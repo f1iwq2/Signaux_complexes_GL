@@ -533,7 +533,7 @@ begin
     Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les dimensions
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
-    s:='Decodeur='+intToSTR(feux[rang].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
+    s:='Signal @'+IntToSTR(Feux[rang].adresse)+' Decodeur='+intToSTR(feux[rang].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
        if feux[rang].Btype_suiv1=2 then s:=s+' (aig)';
        if feux[rang].Btype_suiv1=5 then s:=s+' (aig bis)';
@@ -975,6 +975,7 @@ procedure envoi_directionCDF(adr : integer;code : integer);
 begin
   if (EtatSignalCplx[adr]<>code) then
   begin
+    dessine_feu(adr);
     if traceSign then Affiche('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
 
     case code of
@@ -1016,6 +1017,7 @@ begin
   code:=feux[index].aspect; // aspect du feu;
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
+    dessine_feu(adresse);
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code);
     if traceSign then affiche('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
@@ -1058,6 +1060,7 @@ begin
 
 if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
 begin
+  dessine_feu(adr);
   ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
   codebin:=EtatSignalCplx[adr];
   aspect:=code_to_aspect(codebin);
@@ -1099,7 +1102,6 @@ begin
   if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
   if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
   if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
-  dessine_feu(adr);
 end;
 end;
 
@@ -1178,6 +1180,7 @@ begin
   if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
   begin
     ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
+    dessine_feu(adr);
     //if (tempo_ACC>0) then sleep(100);  // les commandes entre 2 feux successives doivent être séparées au minimum de 100 ms
     if traceSign then affiche('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
     if (aspect=semaphore) or (aspect=vert) or (aspect=carre) or (aspect=jaune) then mode:=1 else mode:=2;
@@ -1223,6 +1226,7 @@ begin
   code:=etatsignalcplx[adresse];
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
+    dessine_feu(adresse);
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
     if (tracesign) then Affiche('Signal virtuel: '+intToSTR(adresse)+' Etat '+etatSign[aspect],clyellow);
@@ -1246,10 +1250,10 @@ begin
 //    affiche(s,ClYellow);
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
+    dessine_feu(adresse);
     codebin:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(codebin); // transforme le motifs de bits en numéro  "code des aspects des signaux"
     combineLoc:=combine;  // copier dans variable locale
-    //dessine_feu(adresse);
     if traceSign then
     begin
       s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
@@ -1275,7 +1279,6 @@ begin
     begin
       Sleep(40);
       pilote_acc(adresse+semaphore,2,feu) ;
-     // dessine_feu(adresse);
     end;
 
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
@@ -1291,7 +1294,6 @@ begin
       sleep(40);
       pilote_ACC(adresse+CombineLoc,2,feu) ;
     end;
-    dessine_feu(adresse);
   end;
 end;
 
