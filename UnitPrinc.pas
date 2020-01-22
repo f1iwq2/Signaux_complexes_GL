@@ -121,7 +121,7 @@ type
 //    L'oeilleton est cablé sur la sortie 4, il est géré directement par le décodeur. **/
 // code des aspects des signaux
 const
-AF='Client TCP-IP CDM Rail ou USB - système LENZ - Version 1.0';
+AF='Client TCP-IP CDM Rail ou USB - système LENZ - Version 1.01';
 carre          =0 ; carre_F=1;
 semaphore      =1 ; semaphore_F=2;
 semaphore_cli  =2 ; semaphore_cli_F=4;
@@ -189,7 +189,7 @@ TMA             = (valide,devalide);
 //Tparcours = record
 //               adresse : integer ;
 //               BType   : char;
-//            end;   
+//            end;
              
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
@@ -197,7 +197,7 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     Nbre_recu_cdm,NivDebug,Tempo_chgt_feux : integer;
     dem_calcul_zone,Hors_tension2,traceSign,TraceZone,Ferme,ParUSB,parSocket,ackCdm,
     NackCDM : boolean;
-    clignotant,test_leb,nack,Maj_feux_cours,avecMSCom : boolean;
+    clignotant,nack,Maj_feux_cours,avecMSCom : boolean;
     N_event_det : integer; // index du dernier évènement (de 1 à 20)
     event_det : array[1..20] of integer;
     branche : array [1..100] of string;
@@ -533,7 +533,7 @@ begin
     Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les dimensions
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
-    s:='Signal @'+IntToSTR(Feux[rang].adresse)+' Decodeur='+intToSTR(feux[rang].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
+    s:='Decodeur='+intToSTR(feux[rang].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
        if feux[rang].Btype_suiv1=2 then s:=s+' (aig)';
        if feux[rang].Btype_suiv1=5 then s:=s+' (aig bis)';
@@ -975,7 +975,6 @@ procedure envoi_directionCDF(adr : integer;code : integer);
 begin
   if (EtatSignalCplx[adr]<>code) then
   begin
-    dessine_feu(adr);
     if traceSign then Affiche('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
 
     case code of
@@ -1017,7 +1016,6 @@ begin
   code:=feux[index].aspect; // aspect du feu;
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    dessine_feu(adresse);
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code);
     if traceSign then affiche('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
@@ -1060,7 +1058,6 @@ begin
 
 if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
 begin
-  dessine_feu(adr);
   ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
   codebin:=EtatSignalCplx[adr];
   aspect:=code_to_aspect(codebin);
@@ -1102,6 +1099,7 @@ begin
   if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
   if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
   if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
+  dessine_feu(adr);
 end;
 end;
 
@@ -1180,7 +1178,6 @@ begin
   if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
   begin
     ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
-    dessine_feu(adr);
     //if (tempo_ACC>0) then sleep(100);  // les commandes entre 2 feux successives doivent être séparées au minimum de 100 ms
     if traceSign then affiche('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
     if (aspect=semaphore) or (aspect=vert) or (aspect=carre) or (aspect=jaune) then mode:=1 else mode:=2;
@@ -1226,7 +1223,6 @@ begin
   code:=etatsignalcplx[adresse];
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    dessine_feu(adresse);
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
     if (tracesign) then Affiche('Signal virtuel: '+intToSTR(adresse)+' Etat '+etatSign[aspect],clyellow);
@@ -1250,10 +1246,10 @@ begin
 //    affiche(s,ClYellow);
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    dessine_feu(adresse);
     codebin:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(codebin); // transforme le motifs de bits en numéro  "code des aspects des signaux"
     combineLoc:=combine;  // copier dans variable locale
+    //dessine_feu(adresse);
     if traceSign then
     begin
       s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
@@ -1279,6 +1275,7 @@ begin
     begin
       Sleep(40);
       pilote_acc(adresse+semaphore,2,feu) ;
+     // dessine_feu(adresse);
     end;
 
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
@@ -1294,6 +1291,7 @@ begin
       sleep(40);
       pilote_ACC(adresse+CombineLoc,2,feu) ;
     end;
+    dessine_feu(adresse);
   end;
 end;
 
@@ -4469,9 +4467,7 @@ begin
 
     end;
   end;
-  //if test_leb=false then rafraichit;
   if dem_calcul_zone then calcul_zones;
-  //Affiche('Rafraichit',clorange);
 end;
 
 function decode_chaine_retro(s : string) : string;
@@ -4540,7 +4536,6 @@ var chaineInt,msg : string;
     i : integer;
 
 begin
-  //if test_leb then exit;
   chaineInt:=chaine;
   //ack:=false;
   //nack:=false;
@@ -4663,11 +4658,15 @@ begin
         portCommOuvert:=false;
       end;
     end
-     else portCommOuvert:=false;
+      else
+        begin
+          portCommOuvert:=false;
+          Affiche('Port Com nul dans le fichier de configuration',clyellow);
+        end;
     if portCommOuvert then affiche('port COM'+intToSTR(NumPort)+' ouvert',clGreen) else
     Affiche('port COM'+intToSTR(NumPort)+' NON ouvert',clRed)  ;
     if portCommOuvert then ParUSB:=true else ParUSB:=false;
-  end 
+  end
   else
   begin
     PortCommOuvert:=false;ParUSB:=false;
@@ -4728,8 +4727,8 @@ begin
   else
   begin
     Affiche('La connexion a CDM n''est pas demandée car l''adresse IP est nulle dans config.cfg',cyan);
-  end;  
-end;    
+  end;
+end;
 
 {$J+}
 function IsWow64Process: Boolean;
@@ -4779,8 +4778,6 @@ begin
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
   Affiche(s,clLime);AfficheDebug(s,ClLime);
 
-
-
   NivDebug:=0;
   // lecture fichier de configuration
   ferme:=false;
@@ -4789,20 +4786,27 @@ begin
   lit_config;
   Nbre_recu_cdm:=0;
 
-  connecte_USB;
-
   AffMem:=true;
 
-  // Initialisation de la comm socket LENZ
-  if AdresseIP<>'0' then
-  begin
-    ClientSocketLenz.port:=port;
-    ClientSocketLenz.Address:=AdresseIP;
-    ClientSocketLenz.Open;
-  end;
-
   connecte_CDM;
-  
+  if CDM_connecte then        // si CDM est connecté, on n'ouvre pas de liaison vers la centrale
+  begin
+    // sinon ouvrir socket vers la centrale
+    avecMScom:=false;
+    // Initialisation de la comm socket LENZ
+    if AdresseIP<>'0' then
+    begin
+      ClientSocketLenz.port:=port;
+      ClientSocketLenz.Address:=AdresseIP;
+      ClientSocketLenz.Open;
+      avecMSCom:=false;
+    end;
+  end
+  else
+    AvecMsCom:=True;
+
+  connecte_USB; // connecte si avecMSCom=True;
+
   // Initialisation des images des signaux
   NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
 
@@ -4812,7 +4816,7 @@ begin
     cree_image(i);  // et initialisation tableaux signaux
   end;
 
-  if test_leb then Tempo_init:=0 else Tempo_init:=10;  // démarre les initialisation des signaux et des aiguillages dans 1 s
+  Tempo_init:=10;  // démarre les initialisation des signaux et des aiguillages dans 1 s
 
   NombreImages:=0;
 
@@ -4845,7 +4849,6 @@ begin
   //NivDebug:=3;
   //Affiche(IntToSTR(detecteur_suivant_El(531,false,518,false)),clyellow);
   //i:=Aiguille_deviee(176);
-
 
 end;
 
@@ -5094,6 +5097,8 @@ begin
     if not(ferme) and (AvecInitAiguillages=1) then init_aiguillages else   // initialisation des aiguillages
     if not(ferme) then demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
     LabelEtat.Caption:=' ';
+    Menu_interface(valide);
+
   end;
 
   if temps>0 then dec(temps);
