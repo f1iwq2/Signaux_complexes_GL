@@ -16,7 +16,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB ;
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB;
 
 type
   TFormPrinc = class(TForm)
@@ -121,7 +121,7 @@ type
 //    L'oeilleton est cablé sur la sortie 4, il est géré directement par le décodeur. **/
 // code des aspects des signaux
 const
-AF='Client TCP-IP CDM Rail ou USB - système LENZ - Version 1.01';
+
 carre          =0 ; carre_F=1;
 semaphore      =1 ; semaphore_F=2;
 semaphore_cli  =2 ; semaphore_cli_F=4;
@@ -202,7 +202,7 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     event_det : array[1..20] of integer;
     branche : array [1..100] of string;
     parcours : array[1..MaxElParcours] of TBranche ; // parcours des locos en fonction des détecteurs
-
+    
 const
   ClBleuClair=$FF7070 ;
   Cyan=$FFA0A0;
@@ -215,7 +215,7 @@ var
   ack,portCommOuvert,trace,AffMem,AfficheDet,Bis,CDM_connecte,parSocketCDM,
   DebugOuv : boolean;
   tablo : array of byte;
-  Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM : string;
+  Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af : string;
   maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,
   timerSimule,NbreImagePligne,Port,NbreBranches,Index2_det,branche_det,Index_det,portCDM : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
@@ -265,7 +265,7 @@ var
 
 implementation
 
-uses UnitDebug;
+uses UnitDebug, verif_version;
 
 procedure menu_interface(MA : TMA);
 var val : boolean;
@@ -636,6 +636,9 @@ begin
     Application.ProcessMessages;
   until (temps<=0);
 end;
+
+
+
 
 // envoi d'une chaîne à la centrale par USBLenz ou socket, puis attend l'ack ou le nack
 function envoi(s : string) : boolean;
@@ -1128,9 +1131,12 @@ envoie les données au décodeur NMRA étendu
 18.	rappel 60 + avertissement clignotant
 
 /*===========================================================================*)
-procedure envoi_NMRA(adresse,code : integer);
-var valeur : integer ;
+procedure envoi_NMRA(adresse: integer);
+var valeur,index,code : integer ;
 begin
+  index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
+  code:=feux[index].aspect; // aspect du feu;
+
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
@@ -1227,6 +1233,7 @@ begin
     aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
     if (tracesign) then Affiche('Signal virtuel: '+intToSTR(adresse)+' Etat '+etatSign[aspect],clyellow);
   end;
+  dessine_feu(adresse);
 end;
 
 (*==========================================================================
@@ -2166,7 +2173,7 @@ begin
      2 : envoi_CDF(signalCplx);
      3 : envoi_LDT(signalCplx);
      4 : envoi_LEB(signalCplx);
-     //5 : envoi_NMRA(SignalCplx);
+     5 : envoi_NMRA(SignalCplx);
      end;
    end;
   end;
@@ -4755,12 +4762,19 @@ begin
 end;
 {$J-}
 
+
+
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var
    i : integer;
-   s : string;
+   s,s2,Url,LocalFile : string;
+   trouve,AvecMaj : Boolean;
+   V_utile,V_publie : real;
 begin
+  
+  AvecMaj:=false;
   TraceSign:=True;
+  AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
   avecMSCom:=false;
   Application.onHint:=doHint;
@@ -4768,11 +4782,16 @@ begin
   Menu_interface(devalide);
 
    // ouvre la fenetre debug
-  FormDebug:=TFormDebug.Create(Application);
+  FormDebug:=TFormDebug.Create(Self);
   FormDebug.Caption:=AF+' debug';
-  FormDebug.Show;
+  //FormDebug.Show;
+
   DebugOuv:=True;
 
+  FormVersion:=TformVersion.Create(self);
+  //FormVersion.show;
+  //FormVersion.Hide;
+  
   if IsWow64Process then s:='OS 64 Bits'
                     else s:='OS 32 Bits';
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
@@ -4850,6 +4869,7 @@ begin
   //Affiche(IntToSTR(detecteur_suivant_El(531,false,518,false)),clyellow);
   //i:=Aiguille_deviee(176);
 
+
 end;
 
 
@@ -4877,9 +4897,8 @@ begin
   portCommOuvert:=false;
   ClientSocketCDM.close;
   ClientSocketLenz.close;
-  
-  
 end;
+
 
 procedure init_aiguillages;
 var i,pos : integer;
