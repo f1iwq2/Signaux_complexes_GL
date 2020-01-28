@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls ,UnitPrinc, ComCtrls;
+  Dialogs, StdCtrls , ComCtrls;
 
 type
   TFormDebug = class(TForm)
@@ -28,10 +28,18 @@ type
 
 var
   FormDebug: TFormDebug;
+  NivDebug : integer;
 
+procedure AfficheDebug(s : string;lacouleur : TColor);
+  
 implementation
 
 {$R *.dfm}
+
+procedure AfficheDebug(s : string;lacouleur : TColor);
+begin
+  FormDebug.MemoDebug.Lines.add(s);
+end;
 
 procedure TFormDebug.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -87,7 +95,10 @@ begin
       else EditNivDebug.text:='3';
     end  
     else EditNivDebug.text:='0';
-  end;  
+  end; 
+  MemoDebug.Lines.add('Niveau='+intToSTR(NivDebug)); 
 end;
+  
+
 
 end.

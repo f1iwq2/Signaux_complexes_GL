@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 404
-  Top = 33
+  Left = 390
+  Top = 178
   BorderStyle = bsSingle
   Caption = 'FormDebug'
   ClientHeight = 639
