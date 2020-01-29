@@ -22,7 +22,7 @@ object FormVersion: TFormVersion
     Height = 105
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlack
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Arial Narrow'
     Font.Style = []
     ParentFont = False

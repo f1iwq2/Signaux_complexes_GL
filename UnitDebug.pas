@@ -16,10 +16,12 @@ type
     ButtonEcrLog: TButton;
     Label3: TLabel;
     MemoDebug: TMemo;
+    CheckAffSig: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
+    procedure CheckAffSigClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -29,6 +31,7 @@ type
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
+  AffSignal : boolean;
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
   
@@ -100,5 +103,10 @@ begin
 end;
   
 
+
+procedure TFormDebug.CheckAffSigClick(Sender: TObject);
+begin
+  AffSignal:=checkAffSig.Checked;
+end;
 
 end.

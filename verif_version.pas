@@ -114,13 +114,13 @@ begin
         begin
           i:=pos('version ',s);
           trouve_version:=i<>0;
-          if trouve_version then s2:=s;
+          if trouve_version then s2:=s;  // chaine contenant la version sur le site
         end;
         if not(trouve_zip) then
         begin
           i:=pos('.zip',s);
           trouve_zip:=i<>0;
-          if trouve_zip then s3:=s;
+          if trouve_zip then s3:=s;    // chaine de l'Id du zip à télécharger
         end;
        // Aff(s)
     end;
@@ -133,21 +133,35 @@ begin
       j:=pos(' ',s2);
       Version_p:=copy(s2,1,j-1);        // version dans version_p
       // isoler l'url du zip
+      //'href="./download/file.php?id=12086&amp;sid=9d0f759226f8c6e48671ab7c23cf36b4">Signaux_complexes_GL.zip';
+      //'href="./download/file.php?id=12086">Signaux_complexes_GL.zip</';
       i:=pos('href="',s3);
       delete(s3,1,i+5);
-      j:=pos('"',s3);
-      s3:=copy(s3,1,j-1);
+      // tester si champ sid=
+      i:=pos('sid=',s3);
+      if i<>0 then
+      begin
+        // supprimer la chaine sid
+        i:=pos('&amp',s3);
+        j:=pos('"',s3);
+        delete(s3,i,j-1); 
+      end
+      else
+      begin
+        j:=pos('"',s3);
+        s3:=copy(s3,1,j-1);
+      end;  
       i:=pos('.',s3);
       if i<>0 then delete(s3,i,1); // supprimer le .
       s3:='http://cdmrail.free.fr/ForumCDR'+s3 ;
-      //aff(s3);               // lien dans s3
+      aff(s3);               // lien dans s3
 
       // changer le . en ,
       s:=Version_p;
       i:=pos('.',s);if i<>0 then s[i]:=',';
       s2:=version;
       i:=pos('.',s2);if i<>0 then s2[i]:=',';
-
+    
       V_publie:=StrToFloat(s);
       V_utile:=StrToFloat(s2);
         if V_utile<V_publie then
@@ -162,6 +176,7 @@ begin
             Aff(s);
 
             if DownloadURL_NOCache(s3,s) then
+            //if true then
             begin
               Aff('Téléchargement réussi');
               Aff('Vous pouvez ouvrir le dossier de téléchargement, décomprimer le zip et l''installer');

@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 390
-  Top = 178
+  Left = 313
+  Top = 77
   BorderStyle = bsSingle
   Caption = 'FormDebug'
   ClientHeight = 639
@@ -20,7 +20,7 @@ object FormDebug: TFormDebug
   TextHeight = 13
   object Label1: TLabel
     Left = 456
-    Top = 52
+    Top = 36
     Width = 108
     Height = 13
     Caption = 'Niveau du Debug (0-3)'
@@ -35,7 +35,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 448
-    Top = 12
+    Top = 4
     Width = 131
     Height = 18
     Caption = 'Fen'#234'tre de d'#233'bug'
@@ -47,16 +47,16 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 448
-    Top = 84
+    Left = 464
+    Top = 200
     Width = 265
-    Height = 209
+    Height = 101
     AutoSize = False
     Caption = 'Label3'
     Color = clGray
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindow
-    Font.Height = -16
+    Font.Height = -15
     Font.Name = 'Arial Narrow'
     Font.Style = []
     ParentColor = False
@@ -65,7 +65,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 576
-    Top = 52
+    Top = 36
     Width = 73
     Height = 21
     Font.Charset = DEFAULT_CHARSET
@@ -79,8 +79,8 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 452
-    Top = 300
+    Left = 564
+    Top = 308
     Width = 181
     Height = 281
     Color = clBlack
@@ -95,8 +95,8 @@ object FormDebug: TFormDebug
     TabOrder = 1
   end
   object ButtonEcrLog: TButton
-    Left = 456
-    Top = 596
+    Left = 448
+    Top = 564
     Width = 97
     Height = 25
     Caption = 'Ecrire le log'
@@ -113,8 +113,23 @@ object FormDebug: TFormDebug
     ScrollBars = ssVertical
     TabOrder = 3
   end
+  object CheckAffSig: TCheckBox
+    Left = 448
+    Top = 64
+    Width = 297
+    Height = 17
+    Caption = 'Affichage du fonctionnement des signaux'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 4
+    OnClick = CheckAffSigClick
+  end
   object SaveDialog: TSaveDialog
-    Left = 616
-    Top = 16
+    Left = 480
+    Top = 440
   end
 end

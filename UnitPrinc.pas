@@ -4672,11 +4672,12 @@ end;
 procedure Maj_Feu(Adrfeu : integer);
 var i,j,k1,k2,BtypeSuiv,Adr_det,etat,Adr,Aig,DetPrec1,DetPrec2,Detprec3,Detprec4,Adr_El_Suiv,
     Btype_el_suivant,det_initial,bt,el_suiv,modele : integer ;
-    bisSuiv,PresTrain,Aff_semaphore,AffSignal,car : boolean;
+    bisSuiv,PresTrain,Aff_semaphore,car : boolean;
     s : string;
 begin
-  if AffSignal then Affiche('Traitement du feu '+intToSTR(Adrfeu),clOrange);
-  if NivDebug>=1 then AfficheDebug('Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------',clOrange);
+  s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
+  if AffSignal then Affiche(s,clOrange);
+  if NivDebug>=1 then AfficheDebug(s,clOrange);
   i:=index_feu(Adrfeu);
   if AdrFeu<>0 then
   begin
@@ -4845,7 +4846,6 @@ begin
       end;
     end;
     envoi_signauxCplx;
-    AffSignal:=false;
 end;
 
 Procedure Maj_feux;
