@@ -134,7 +134,8 @@ titre='Signaux complexes GL ';
 tempoFeu = 100;
 MaxAcc = 2048;
 LargImg=50;HtImg=91;
-const_droit=2;const_devieD=2;const_devieG=3;   // aiguillages en position
+const_droit=2;const_devieD=1;  // positions transmises par la centrale LENZ
+const_devieG=3;   
 MaxElParcours=40;
 
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
@@ -201,11 +202,11 @@ const
   Feu_X=50;Feu_Y=91;
 var
   FormPrinc: TFormPrinc;
-  ack,portCommOuvert,trace,AffMem,AfficheDet,Bis,CDM_connecte,parSocketCDM,
+  ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
   DebugOuv,Raz_Acc_signaux : boolean;
   tablo : array of byte;
   Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af : string;
-  maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,
+  maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,TypeGen,
   timerSimule,NbreImagePligne,Port,NbreBranches,Index2_det,branche_det,Index_det,portCDM : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
   Adresse_detecteur : array[0..60] of integer; // adresses des détecteurs par index
@@ -2776,7 +2777,8 @@ procedure envoi_signal(Adr : integer);
 var i : integer;
 begin
   i:=index_feu(Adr);
-  case feux[i].decodeur of
+  if feux[i].aspect<10 then 
+    case feux[i].decodeur of
      0 : envoi_virtuel(Adr);
      1 : envoi_signalBahn(Adr);
      2 : envoi_CDF(Adr);
@@ -2881,7 +2883,7 @@ var s,sa,chaine,SOrigine: string;
     c,paig : char;
     tec,bistec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux : boolean;
     bd,virgule,i_detect,i,erreur,aig,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
-    ComptEl,Compt_IT,Num_Element,k,modele,aig2,adr,erreur2,l : integer;
+    ComptEl,Compt_IT,Num_Element,k,modele,aig2,adr,erreur2,l,t,bis : integer;
     function lit_ligne : string ;
     begin
       repeat
@@ -2999,7 +3001,7 @@ begin
       enregistrement:=copy(s,1,virgule-1);  // adresse de l'aiguillage [TRI]
       delete(s,1,virgule);
       triple:=pos('TRI',enregistrement)<>0;
-      bis:=pos('B',enregistrement)<>0;
+      if pos('B',enregistrement)<>0 then bis:=1 else bis:=0;
       tjd:=pos('TJD',enregistrement)<>0;
       tjs:=pos('TJS',enregistrement)<>0;
       // adresse de l'aiguillage
@@ -3007,23 +3009,23 @@ begin
       if aig>maxaiguillage then maxaiguillage:=aig;
       if debugConfig then Affiche('Adresse='+IntToSTR(aig)+' enregistrement='+Enregistrement,clyellow);
 
-      if not(bis) then begin aiguillage[aig].AdroitB:='Z'; aiguillage[aig].AdevieB:='Z'; aiguillage[aig].ApointeB:='Z'; aiguillage[aig].Adevie2B:='Z';end
+      if bis=0 then begin aiguillage[aig].AdroitB:='Z'; aiguillage[aig].AdevieB:='Z'; aiguillage[aig].ApointeB:='Z'; aiguillage[aig].Adevie2B:='Z';end
                    else begin aiguillageB[aig].AdroitB:='Z';aiguillageB[aig].AdevieB:='Z';aiguillageB[aig].ApointeB:='Z';aiguillageB[aig].Adevie2B:='Z';end ;
 
       if (triple) then aiguillage[aig].modele:=4;
       if (tjs) then
       begin
-      if not(bis) then aiguillage[aig].modele:=3
+      if bis=0 then aiguillage[aig].modele:=3
           else aiguillageB[aig].modele:=3;
       end;
       if (tjd) then
       begin
-      if not(bis) then aiguillage[aig].modele:=2
+      if bis=0 then aiguillage[aig].modele:=2
               else aiguillageB[aig].modele:=2;
       end;
       if not(tjs) and not(tjd) and not(triple) then
       begin
-        if not(bis) then aiguillage[aig].modele:=1
+        if bis=0 then aiguillage[aig].modele:=1
              else aiguillageB[aig].modele:=1;
       end;
       //if debugConfig then Affiche(s,clyellow);
@@ -3055,16 +3057,16 @@ begin
           if erreur<>0 then delete(enregistrement,1,erreur-1);
           //if ((aig=0) and (erreur=0)) then Affiche('Erreur pas d''adresse dans section P: '+chaine,clRed);
           if (erreur=0) then enregistrement:=copy(s,1,virgule-1);
-          if not(bis) then aiguillage[aig].Apointe:=detect else aiguillageB[aig].Apointe:=detect;
+          if bis=0 then aiguillage[aig].Apointe:=detect else aiguillageB[aig].Apointe:=detect;
           if (erreur<>0) then // si erreur<>0 peut être un B ou un S ou un ,
           begin
             if (enregistrement[1]='B') then
             begin
-              if not(bis) then aiguillage[aig].ApointeBis:=1 else aiguillageB[aig].ApointeBis:=1;
+              if bis=0 then aiguillage[aig].ApointeBis:=1 else aiguillageB[aig].ApointeBis:=1;
               delete(enregistrement,1,1);
               if (debugConfig) then affiche('connecté a aiguillage BIS'+s,clYellow);
             end;
-            if not(bis) then aiguillage[aig].ApointeB:=enregistrement[1] else aiguillageB[aig].ApointeB:=enregistrement[1];
+            if bis=0 then aiguillage[aig].ApointeB:=enregistrement[1] else aiguillageB[aig].ApointeB:=enregistrement[1];
             delete(enregistrement,1,1);
             Num_element:=Num_element+1;
           end;
@@ -3085,18 +3087,18 @@ begin
           if debugconfig then Affiche(enregistrement,clyellow);
           //if ((aig=0) and (erreur=0)) then Affiche('Erreur pas d''adresse dans section D: '+chaine,clRed);
           if (erreur=0) then enregistrement:='';
-          if not(bis) then aiguillage[aig].Adroit:=detect else aiguillageB[aig].Adroit:=detect;
+          if bis=0 then aiguillage[aig].Adroit:=detect else aiguillageB[aig].Adroit:=detect;
           if (erreur<>0) then // si erreur<>0 peut être un B ou un S ou un ,
           begin
             if (enregistrement[1]='B') then
             begin
-              if not(bis) then aiguillage[aig].AdroitBis:=1 else aiguillageB[aig].AdroitBis:=1;
+              if bis=0 then aiguillage[aig].AdroitBis:=1 else aiguillageB[aig].AdroitBis:=1;
               delete(enregistrement,1,1);
               if (debugConfig) then affiche('connecté a aiguillage BIS'+s,clYellow);
             end;
             if (enregistrement[1]<>',') then  // copier si c'est S P D
             begin
-              if not(bis) then aiguillage[aig].AdroitB:=enregistrement[1] else aiguillageB[aig].AdroitB:=enregistrement[1];
+              if bis=0 then aiguillage[aig].AdroitB:=enregistrement[1] else aiguillageB[aig].AdroitB:=enregistrement[1];
               delete(enregistrement,1,1);
               if (debugConfig) then affiche('connecté a aiguillage BIS'+s,clYellow);
             end;
@@ -3118,7 +3120,7 @@ begin
           S2:=erreur<>0;
           if (S2) then delete(enregistrement,erreur,2);
 
-          erreur:=pos('S2',enregistrement); // description d'un rattachement à mla branche S2 d'un aiguillage triple
+          erreur:=pos('S2',enregistrement); // description d'un rattachement à la branche S2 d'un aiguillage triple
           tec:=erreur<>0;  // ne supprimer que le 2
           if (tec) then delete(enregistrement,erreur+1,1);
 
@@ -3131,10 +3133,16 @@ begin
           c:='Z';
           if (erreur<>0) then begin delete(enregistrement,1,erreur-1);c:=enregistrement[1];end;
 
-          if not(bis) and not(bistec) and not(S2) and not(tec) then begin aiguillage[aig].Adevie:=detect;aiguillage[aig].AdevieB:=c;end;
-          if not(bis) and not(bistec) and     S2  and not(tec) then begin aiguillage[aig].Adevie2:=detect;aiguillage[aig].Adevie2B:=c;end;
-          if not(bis) and not(bistec) and     S2  and     tec  then begin aiguillage[aig].Adevie2:=detect;aiguillage[aig].Adevie2B:='T';end;
-          if not(bis) and    (bistec) and not(S2) and not(tec) then begin aiguillage[aig].Adevie:=detect;aiguillage[aig].AdevieBis:=1;aiguillage[aig].AdevieB:=c;end;
+          if (bis=0) and not(bistec) and not(S2) and not(tec) then begin aiguillage[aig].Adevie:=detect;aiguillage[aig].AdevieB:=c;end;
+          if (bis=0) and not(bistec) and     S2  and not(tec) then begin aiguillage[aig].Adevie2:=detect;aiguillage[aig].Adevie2B:=c;end;
+          if (bis=0) and not(bistec) and     S2  and     tec  then begin aiguillage[aig].Adevie2:=detect;aiguillage[aig].Adevie2B:='T';end;
+          if (bis=0) and    (bistec) and not(S2) and not(tec) then begin aiguillage[aig].Adevie:=detect;aiguillage[aig].AdevieBis:=1;aiguillage[aig].AdevieB:=c;end;
+
+          if (bis=1) and not(bistec) and not(S2) and not(tec) then begin aiguillageB[aig].Adevie:=detect;aiguillageB[aig].AdevieB:=c;end;
+          if (bis=1) and not(bistec) and     S2  and not(tec) then begin aiguillageB[aig].Adevie2:=detect;aiguillageB[aig].Adevie2B:=c;end;
+          if (bis=1) and not(bistec) and     S2  and     tec  then begin aiguillageB[aig].Adevie2:=detect;aiguillageB[aig].Adevie2B:='T';end;
+          if (bis=1) and    (bistec) and not(S2) and not(tec) then begin aiguillageB[aig].Adevie:=detect;aiguillageB[aig].AdevieBis:=1;aiguillageB[aig].AdevieB:=c;end;
+          
           virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
           enregistrement:=copy(s,1,virgule-1);
           delete(s,1,virgule);
@@ -3294,7 +3302,7 @@ begin
             Affiche('Ligne '+chaine,clred);
             Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
           end;
-          
+
         end
         else
         // feu de signalisation
@@ -3332,8 +3340,10 @@ begin
                if (j=3) then feux[i].Adr_det3:=adr;
                if (j=4) then feux[i].Adr_det4:=adr;
                //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri 5=bis
+               t:=0;
                if s[1]='A' then
                begin
+                 t:=2;
                  //Affiche('détecté aiguillage',clyellow);
                  if (j=1) then feux[i].Btype_Suiv1:=2;
                  if (j=2) then feux[i].Btype_Suiv2:=2;
@@ -3344,6 +3354,7 @@ begin
                l:=pos('TRI',s);
                if l<>0 then
                begin
+                 t:=4;
                  delete(s,l,3);
                  //Affiche('détecté aiguillage tri',clyellow);
                  if (j=1) then feux[i].Btype_Suiv1:=4;
@@ -3354,12 +3365,20 @@ begin
                l:=pos('B',s);
                if l<>0 then
                begin
+                 t:=5;
                  delete(s,l,1);
-                  //Affiche('détecté aiguillage bis',clyellow);
+                 //Affiche('détecté aiguillage bis',clyellow);
                  if (j=1) then feux[i].Btype_Suiv1:=5;
                  if (j=2) then feux[i].Btype_Suiv2:=5;
                  if (j=3) then feux[i].Btype_Suiv3:=5;
                  if (j=4) then feux[i].Btype_Suiv4:=5;
+               end;
+               if t=0 then //détecteur
+               begin
+                 if (j=1) then feux[i].Btype_Suiv1:=1;
+                 if (j=2) then feux[i].Btype_Suiv2:=1;
+                 if (j=3) then feux[i].Btype_Suiv3:=1;
+                 if (j=4) then feux[i].Btype_Suiv4:=1;
                end;
                Val(s,adr,erreur);
                //Affiche('Adr='+IntToSTR(Adr),clyellow);
@@ -3411,7 +3430,7 @@ begin
     j:=1;
     repeat
       detect:=BrancheN[i][j].Adresse;
-      modele:=BrancheN[i][j].BType;  //1= détecteur 2 ou 3 aiguillage
+      modele:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage 3=bis 4=Buttoir
       j:=j+1;
     until ( (modele=1) or (modele=2) or (modele=3) or ((modele=0) and (detect=0)));
     // trouvé un aiguillage et récupéré son adresse dans detect
@@ -3489,7 +3508,8 @@ begin
 end;
 
 // trouve un élément dans les branches, renvoie  branche_trouve IndexBranche_trouve
-procedure trouve_element(el : integer;sibis : boolean);
+// el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis)
+procedure trouve_element(el : integer;TypeEl : integer);
 var i,Btype,adr,Branche : integer ;
     s : string;
     sort : boolean;
@@ -3504,9 +3524,9 @@ begin
     if ((adr=0) and (Btype=0)) then begin inc(Branche);i:=0;end;
     inc(i);
     sort:=(Branche>NbreBranches) or
-     ((adr=el) and sibis and (Btype=3)) or
-     ((adr=el) and not(sibis) and (Btype=2)) or
-     ((adr=el) and not(sibis) and (Btype=1)) ;
+     ((adr=el) and (TypeEl=3) and (Btype=3)) or
+     ((adr=el) and (TypeEl=2) and (Btype=2)) or
+     ((adr=el) and (TypeEl=1) and (Btype=1)) ;
   until (sort);
   if (adr=el) then
   begin
@@ -3514,7 +3534,7 @@ begin
     IndexBranche_trouve:=i-1;
   end
   else begin s:='Erreur 175 - élément '+intToSTR(el);
-         if (sibis) then s:=s+'bis';
+         if (TypeEl=3) then s:=s+'bis';
          s:=s+' non trouvé';Affiche(s,clred);
          branche_trouve:=0; IndexBranche_trouve:=0;
          if NivDebug>=1 then AfficheDebug(s,clred);
@@ -3524,27 +3544,36 @@ end;
 
 
 // renvoie élément suivant entre deux éléments quels qu'ils soient mais contigus
-// et en variables globales: bis si c'est un aiguillage bis
+// et en variables globales: typeGen le type de l'élément
 // s'ils ne sont pas contigus, on aura une erreur
 // alg= algorithme : 
 // 1=arret sur suivant qu'il soit un détecteur ou un aiguillage  
 // 2=arret sur aiguillage en talon mal positionné
-// 3=arret sur un aiguillage pris en pointe dévié et AdrDevie contient l'adresse de l'aiguillage dévié ainsi que Bis
+// 3=arret sur un aiguillage pris en pointe dévié et AdrDevie contient l'adresse de l'aiguillage dévié ainsi que typeGen
 // code de sortie : élément suivant ou:
-// 9999=erreur fatale 
+// 9999=erreur fatale
 // 9998= arret sur aiguillage en talon mal positionnée
 // 9997: arrêt sur aiguillage dévié
-function suivant_alg3(prec : integer;BisPrec : boolean;actuel : integer;BisActuel : boolean;alg : integer) : integer;
+// typeGen : 1=detecteur 2=aiguillage 3=aiguillage bis
+function suivant_alg3(prec : integer;typeELprec : integer;actuel : integer;typeElActuel : integer;alg : integer) : integer;
 var  Btype,Adr,AdrPrec,BtypePrec,indexBranche_prec,branche_trouve_prec,indexBranche_actuel,branche_trouve_actuel,
-     tjsc1,tjsc2,AdrTjdP,Adr2 : integer;
-     Abis,tjscourbe1,tjscourbe2,tjd,tjs : boolean;
+     tjsc1,tjsc2,AdrTjdP,Adr2,Abis,TypeEl : integer;
+     tjscourbe1,tjscourbe2,tjd,tjs : boolean;
      A,Aprec,tjsc1B,tjsc2B: char;
+     s : string;
 label recommence;
 begin
   recommence:
-  if NivDebug=3 then AfficheDebug('Alg3 précedent='+intToSTR(prec)+' actuel='+intToSTR(actuel),clyellow);
+  if (TypeELPrec=0) or (typeElActuel=0) then
+  begin
+    s:='Erreur 800 - Types nuls : '+intToSTR(prec)+'/'+intToSTR(TypeElPrec)+' '+IntToSTr(actuel)+'/'+IntToSTR(typeElActuel) ;
+    Affiche(s,clred);
+    AfficheDebug(s,clred);
+    Suivant_alg3:=9999;exit;
+  end;
+  if NivDebug=3 then AfficheDebug('Alg3 précedent='+intToSTR(prec)+'/'+intToStr(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+IntToSTR(typeElActuel),clyellow);
   // trouver les éléments du précédent
-  trouve_element(prec,BisPrec); // branche_trouve  IndexBranche_trouve
+  trouve_element(prec,TypeELPrec); // branche_trouve  IndexBranche_trouve
   if IndexBranche_trouve=0 then
   begin
     if NivDebug=3 then AfficheDebug('Element '+intToSTR(prec)+' non trouvé',clred);
@@ -3556,13 +3585,13 @@ begin
   BtypePrec:=BrancheN[branche_trouve_prec,indexBranche_prec].Btype;
   //  if BTypePrec=2 then aiguillage[prec].A
 
-  trouve_element(actuel,BisActuel); // branche_trouve  IndexBranche_trouve
+  trouve_element(actuel,typeElActuel); // branche_trouve  IndexBranche_trouve
   if IndexBranche_trouve=0 then
   begin
     if NivDebug=3 then AfficheDebug('Element '+intToSTR(actuel)+' non trouvé',clred);
     suivant_alg3:=9999;exit;
   end;
-  
+
   indexBranche_actuel:=IndexBranche_trouve;
   branche_trouve_actuel:=branche_trouve;
 
@@ -3579,8 +3608,7 @@ begin
       Aprec:=a;
       A:='Z';
       Adr:=BrancheN[branche_trouve_actuel,indexBranche_actuel+1].Adresse;
-      Btype:=BrancheN[branche_trouve_actuel,indexBranche_actuel+1].Btype;
-      Bis:=Btype=3;
+      typeGen:=BrancheN[branche_trouve_actuel,indexBranche_actuel+1].Btype;
       if NivDebug=3 then AfficheDebug('41 - Le suivant est :'+intToSTR(adr)+'('+intToSTR(Btype)+')',clwhite);
       suivant_alg3:=adr;
       exit;
@@ -3592,9 +3620,8 @@ begin
       Aprec:=a;
       A:='Z';
       Adr:=BrancheN[branche_trouve_actuel,indexBranche_actuel-1].Adresse;
-      Btype:=BrancheN[branche_trouve_actuel,indexBranche_actuel-1].Btype;
-      Bis:=Btype=3;
-      if NivDebug=3 then AfficheDebug('43 - Le suivant est :'+intToSTR(adr)+'('+intToSTR(Btype)+')',clwhite);
+      typeGen:=BrancheN[branche_trouve_actuel,indexBranche_actuel-1].Btype;
+      if NivDebug=3 then AfficheDebug('43 - Le suivant est :'+intToSTR(adr)+'('+intToSTR(TypeGen)+')',clwhite);
       suivant_alg3:=adr;
       exit;
     end;
@@ -3613,7 +3640,7 @@ begin
 
   if (Btype>=2) then  // aiguillage ou bis ou buttoir
   begin
-    if ((aiguillage[Adr].modele=1) and (Btype=2) and not(BisActuel)) then // aiguillage normal non bis
+    if (aiguillage[Adr].modele=1) and (Btype=2)  then // aiguillage normal non bis
     begin
       // aiguillage pris en pointe
       if (aiguillage[adr].Apointe=prec) then
@@ -3622,19 +3649,21 @@ begin
         begin
           if NivDebug=3 then AfficheDebug('130 - aiguillage '+intToSTR(Adr)+' Pris en pointe droit',clyellow);
           AdrPrec:=Adr;
-          if Adr=0 then 
-          begin 
+          if Adr=0 then
+          begin
             Affiche('131 - Erreur fatale',clRed);suivant_alg3:=9999;exit;
           end;
           BtypePrec:=Btype;
           Aprec:=a;
-          ABis:=aiguillage[Adr].AdroitBis=1;
+          ABis:=aiguillage[Adr].AdroitBis; // Abis=1 si aiguillage bis
           A:=aiguillage[Adr].AdroitB;
           Adr:=aiguillage[Adr].Adroit;
-          trouve_element(adr,Abis); // branche_trouve  IndexBranche_trouve
-          Btype:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
-          Bis:=Abis;
-          suivant_alg3:=adr;exit;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(adr,typeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+          suivant_alg3:=adr;
+          exit;
         end;
         if aiguillage[Adr].position<>const_droit then
         begin
@@ -3642,11 +3671,11 @@ begin
           AdrPrec:=Adr;
           if alg=3 then // on demande d'arreter si l'aiguillage pris en pointe est dévié
           begin
-            bis:=false;
+            typeGen:=0;
             AdrDevie:=Adr;
             suivant_alg3:=9997;exit;
           end;
-          if Adr=0 then 
+          if Adr=0 then
           begin Affiche('134 - Erreur fatale',clRed);
             if NivDebug>=1 then AfficheDebug('134 - Erreur fatale',clRed);
             suivant_alg3:=9999;exit;
@@ -3654,11 +3683,12 @@ begin
           BtypePrec:=Btype;
           Aprec:=A;
           A:=aiguillage[Adr].AdevieB;
-          ABis:=aiguillage[Adr].AdevieBis=1;
+          ABis:=aiguillage[Adr].AdevieBis; // Abis=1 si aiguillage bis
           Adr:=aiguillage[Adr].Adevie;
-          trouve_element(adr,Abis); // branche_trouve  IndexBranche_trouve
-          Btype:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
-          Bis:=Abis;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
           suivant_alg3:=adr;exit;
         end;
       end
@@ -3669,32 +3699,32 @@ begin
         begin
           if aiguillage[adr].position=const_droit then
           begin
-            if prec<>aiguillage[Adr].Adroit then 
-              begin 
+            if prec<>aiguillage[Adr].Adroit then
+              begin
                     if NivDebug=3 then AfficheDebug('135.1 - Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
                     suivant_alg3:=9998;exit;
               end
               else
               begin
                 if NivDebug=3 then AfficheDebug('135.2 - Aiguillage '+intToSTR(adr)+' bien positionné',clyellow);
-              end;  
+              end;
           end
           else
           begin
-            if prec<>aiguillage[Adr].Adevie then 
-              begin 
+            if prec<>aiguillage[Adr].Adevie then
+              begin
                 if NivDebug=3 then AfficheDebug('Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
                 suivant_alg3:=9998;exit;
               end
               else
               begin
-                if NivDebug=3 then AfficheDebug('Aiguillage '+intToSTR(adr)+' bien positionné',clyellow);            
+                if NivDebug=3 then AfficheDebug('Aiguillage '+intToSTR(adr)+' bien positionné',clyellow);
               end;
           end;
         end;
-        
+
         AdrPrec:=Adr;
-        if Adr=0 then 
+        if Adr=0 then
         begin Affiche('136 - Erreur fatale',clRed);
           if NivDebug>=1 then AfficheDebug('136 - Erreur fatale',clRed);
           suivant_alg3:=9999;exit;
@@ -3703,19 +3733,21 @@ begin
         APrec:=A;
         // Affiche('trouvé'+intToSTR(adr),clyellow);
         A:=aiguillage[Adr].ApointeB;
-        ABis:=aiguillage[Adr].ApointeBis=1;
+        ABis:=aiguillage[Adr].ApointeBis;
         Adr:=aiguillage[Adr].Apointe;
-        trouve_element(adr,Abis); // branche_trouve  IndexBranche_trouve
-        Btype:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
-        Bis:=Abis;
-        suivant_alg3:=adr;exit;
+        if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+        if Abis=1 then TypeEl:=3;
+        trouve_element(adr,TypeEl); // branche_trouve  IndexBranche_trouve
+        typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+        suivant_alg3:=adr;
+        exit;
       end;
       Affiche('138 - Erreur fatale - Aucun cas Aiguillage',clred);
       if NivDebug=3 then AfficheDebug('138 - Erreur fatale - Aucun cas Aiguillage',clred);
       suivant_alg3:=9999;exit;
     end;
 
-    if ((aiguillage[Adr].modele=1) and (Btype=3) and (BisActuel)) then // aiguillage normal bis
+    if (aiguillageB[Adr].modele=1) and (Btype=3) then // aiguillage normal bis
     begin
       // aiguillage pris en pointe
       if (aiguillageB[Adr].Apointe=Prec) then
@@ -3724,56 +3756,93 @@ begin
         begin
           if NivDebug=3 then AfficheDebug('140 - Aiguillage '+intToSTR(adr)+' bis pris en pointe droit',clyellow);
           AdrPrec:=Adr;
-          if alg=3 then // on demande d'arreter si l'aiguillage pris en pointe est dévié
-          begin
-            bis:=true;
-            AdrDevie:=Adr;
-            suivant_alg3:=9997;exit;
-          end;
           if (Adr=0) then begin Affiche('141 - Erreur fatale',clred);suivant_alg3:=9999;exit;end;
           BtypePrec:=Btype;
           APrec:=A;
           A:=aiguillageB[Adr].AdroitB;
-          ABis:=aiguillageB[Adr].AdroitBis=1;
+          ABis:=aiguillageB[Adr].AdroitBis;
           Adr:=aiguillageB[Adr].Adroit;
-          trouve_element(Adr,ABis); // branche_trouve  IndexBranche_trouve
-          Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-          Bis:=ABis;
-          suivant_alg3:=Adr; exit;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+          suivant_alg3:=Adr;
+          exit;
         end;
-        if (aiguillage[Adr].position<>const_droit) then
+        if (aiguillageB[Adr].position<>const_droit) then
         begin
+          if NivDebug=3 then AfficheDebug('142 - Aiguillage '+intToSTR(adr)+' bis pris en pointe dévié',clyellow);
           AdrPrec:=Adr;
+          if alg=3 then // on demande d'arreter si l'aiguillage pris en pointe est dévié
+          begin
+            typeGen:=3;                                      
+            AdrDevie:=Adr;
+            suivant_alg3:=9997;exit;
+          end;
           if (Adr=0) then begin Affiche('144 - Erreur fatale',clred);suivant_alg3:=9999;exit;end;
           BtypePrec:=Btype;
           APrec:=A;
           A:=aiguillageB[Adr].AdevieB;
-          ABis:=aiguillageB[Adr].AdevieBis=1;
-          Adr:=aiguillageB[Adr].Adevie;  
-          trouve_element(Adr,ABis); // branche_trouve  IndexBranche_trouve
-          Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-          Bis:=ABis;
-          suivant_alg3:=Adr;exit;
+          ABis:=aiguillageB[Adr].AdevieBis;
+          Adr:=aiguillageB[Adr].Adevie;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+          suivant_alg3:=Adr;
+          exit;
         end;
       end
       else
       begin
         if (NivDebug=3) then AfficheDebug('145 - Aiguillage '+IntToSTR(adr)+' bis pris en talon',clyellow);
+        if alg=2 then // on demande d'arreter si l'aiguillage en talon est mal positionné
+        begin
+          if aiguillageB[adr].position=const_droit then
+          begin
+            if prec<>aiguillageB[Adr].Adroit then
+              begin
+                    if NivDebug=3 then AfficheDebug('135.3 - Aiguillage '+intToSTR(adr)+'bis mal positionné',clyellow);
+                    suivant_alg3:=9998;exit;
+              end
+              else
+              begin
+                if NivDebug=3 then AfficheDebug('135.4 - Aiguillage '+intToSTR(adr)+'bis bien positionné',clyellow);
+              end;
+          end
+          else
+          begin
+            if prec<>aiguillageB[Adr].Adevie then
+              begin
+                if NivDebug=3 then AfficheDebug('Aiguillage '+intToSTR(adr)+'bis mal positionné',clyellow);
+                suivant_alg3:=9998;exit;
+              end
+              else
+              begin
+                if NivDebug=3 then AfficheDebug('Aiguillage '+intToSTR(adr)+'bis bien positionné',clyellow);
+              end;
+          end;
+        end;
         AdrPrec:=Adr;
-        if (Adr=0) then begin AfficheDebug('146 - Erreur fatale',clred);suivant_alg3:=9999;exit;end;
+        if Adr=0 then
+        begin Affiche('139 - Erreur fatale',clRed);
+          if NivDebug>=1 then AfficheDebug('139 - Erreur fatale',clRed);
+          suivant_alg3:=9999;exit;
+        end;
         BtypePrec:=Btype;
         APrec:=A;
-        ABis:=aiguillageB[Adr].ApointeBis=1;
         // Affiche('trouvé'+intToSTR(adr),clyellow);
-        A:=aiguillage[Adr].ApointeB;
-        Adr:=aiguillageB[Adr].Apointe; // bug
-        trouve_element(Adr,ABis); // branche_trouve  IndexBranche_trouve
-        Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-        Bis:=ABis;
-        suivant_alg3:=Adr;exit;
+        A:=aiguillageB[Adr].ApointeB;
+        ABis:=aiguillageB[Adr].ApointeBis;
+        Adr:=aiguillageB[Adr].Apointe;
+        if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+        if Abis=1 then TypeEl:=3;
+        trouve_element(adr,TypeEl); // branche_trouve  IndexBranche_trouve
+        typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+        suivant_alg3:=adr;
+        exit;
       end;
     end;
-
 
     if (aiguillage[Adr].modele=2) or (aiguillage[Adr].modele=3) then // TJD ou TJS
     begin
@@ -3805,18 +3874,22 @@ begin
         if aiguillage[AdrTjdP].Adroit=prec then
         begin
           A:=aiguillage[Adr].AdroitB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[Adr].Adroit;
-          BisPrec:=aiguillage[Adr].AdroitBis=1;
-          suivant_alg3:=adr;exit;
+          Abis:=aiguillage[Adr].AdroitBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
+          suivant_alg3:=adr;
+          exit;
         end;
         if aiguillage[Adr].Adroit=prec then
         begin
           A:=aiguillage[AdrTjdP].AdroitB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[AdrTjdP].Adroit;
-          BisPrec:=aiguillage[AdrTjdP].AdroitBis=1;
-          suivant_alg3:=adr;exit;
+          Abis:=aiguillage[AdrTjdP].AdroitBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
+          suivant_alg3:=adr;
+          exit;
         end;
         //Affiche('Erreur 1021  adrTJD='+IntToSTR(Adr)+' adrTJDPointe='+intToSTR(AdrTJDP)+' prec='+IntTOSTR(prec),clred);
         Suivant_alg3:=9999;exit;
@@ -3829,17 +3902,19 @@ begin
         if aiguillage[AdrTjdP].Adroit=prec then
         begin
           A:=aiguillage[Adr].AdevieB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[Adr].Adevie;
-          BisPrec:=aiguillage[Adr].AdevieBis=1;
+          Abis:=aiguillage[Adr].AdevieBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         if aiguillage[Adr].Adevie=prec then
         begin
           A:=aiguillage[AdrTjdP].AdroitB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[AdrTjdP].Adroit;
-          BisPrec:=aiguillage[AdrTjdP].AdroitBis=1;
+          Abis:=aiguillage[AdrTjdP].AdroitBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         //Affiche('Erreur 1022',clred);
@@ -3853,17 +3928,19 @@ begin
         if (aiguillage[AdrtjdP].Adevie=prec) then
         begin
           A:=aiguillage[AdrTjdP].AdroitB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[Adr].Adroit;
-          BisPrec:=aiguillage[Adr].AdroitBis=1;
+          Abis:=aiguillage[Adr].AdroitBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         if (aiguillage[Adr].Adroit=prec) then
         begin
           A:=aiguillage[Adr].AdevieB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[Adr].Adevie;
-          BisPrec:=aiguillage[Adr].AdevieBis=1;
+          Abis:=aiguillage[Adr].AdevieBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         //Affiche('Erreur 1023',clred);
@@ -3877,17 +3954,19 @@ begin
         if aiguillage[AdrTjdP].Adevie=prec then
         begin
           A:=aiguillage[Adr].AdevieB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[Adr].Adevie;
-          BisPrec:=aiguillage[Adr].AdevieBis=1;
+          Abis:=aiguillage[Adr].AdevieBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         if aiguillage[Adr].Adevie=prec then
         begin
           A:=aiguillage[AdrtjdP].AdevieB;
-          if A='Z' then Btype:=1 else Btype:=2;
           Adr:=aiguillage[AdrtjdP].Adevie;
-          BisPrec:=aiguillage[AdrtjdP].AdevieBis=1;
+          Abis:=aiguillage[AdrtjdP].AdevieBis;
+          if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
         //Affiche('Erreur 1024',clred);
@@ -3899,20 +3978,22 @@ begin
       begin
         if NivDebug=3 then AfficheDebug('cas tjs en courbe1',clYellow);
         A:=aiguillage[AdrTjdP].AdevieB;
-        if A='Z' then Btype:=1 else Btype:=2;
         Adr:=aiguillage[AdrTjdP].Adevie;
-        BisPrec:=aiguillage[AdrTjdP].AdroitBis=1;
+        ABis:=aiguillage[AdrTjdP].Adeviebis;
+        if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+        if Abis=1 then typeGen:=3;
         suivant_alg3:=adr;exit;
       end;
       // cas 3 TJS prise dans sa 2eme position courbe
       if ((aiguillage[Adr].Adroit=Prec) and (aiguillage[Adr].AdroitB=Aprec) and (aiguillage[Adr].position=const_droit)
            and (aiguillage[AdrTjdP].position<>const_droit) and (tjs) and tjscourbe1 and tjscourbe2 ) then
       begin
-         if NivDebug=3 then AfficheDebug('cas1 tjs en courbe 2',clYellow);
+        if NivDebug=3 then AfficheDebug('cas1 tjs en courbe 2',clYellow);
         A:=aiguillage[AdrTjdP].AdevieB;
-        if A='Z' then Btype:=1 else Btype:=2;
         Adr:=aiguillage[AdrTjdP].Adevie;
-        BisPrec:=aiguillage[AdrTjdP].AdroitBis=1;
+        Abis:=aiguillage[AdrTjdP].AdevieBis;
+        if A='Z' then typeGen:=1 else typeGen:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+        if Abis=1 then typeGen:=3;
         suivant_alg3:=adr;exit;
       end;
       Affiche('139 - Erreur fatale - Aucun cas TJD/S : adr='+IntToSTR(Adr)+' '+intToSTR(AdrTJDP)+' prec='+IntTOSTR(prec),clred);
@@ -3929,23 +4010,23 @@ begin
                 ( not(CDM_connecte) and  (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position=const_droit) )  then
              begin
                if NivDebug=3 then AfficheDebug('Aiguillage triple droit',clYellow);
-               BisPrec:=aiguillage[Adr].AdroitBis=1;
+               typeGen:=aiguillage[Adr].AdroitBis+1;
                //TSuiv=aiguillage[Adr].AdroitB;
                Adr:=aiguillage[Adr].Adroit;
              end;
-               if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
+             if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
                 ( not(CDM_connecte) and  (aiguillage[Adr].position<>const_droit) and (aiguillage[Adr2].position=const_droit) )  then
              begin
                 if NivDebug=3 then AfficheDebug('Aiguillage triple dévié1 (gauche)',clYellow);
-                BisPrec:=aiguillage[Adr].AdevieBis=1;
+                typeGen:=aiguillage[Adr].AdevieBis+1;
                 //TSuiv=aiguillage[Adr].AdevieB;
                 Adr:=aiguillage[Adr].Adevie;
              end;
-               if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
+             if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
                 ( not(CDM_connecte) and (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position<>const_droit) ) then
              begin
                 if NivDebug=3 then AfficheDebug('Aiguillage triple dévié2 (droit)',clYellow);
-                BisPrec:=aiguillage[Adr].Adevie2Bis=1;
+                typeGen:=aiguillage[Adr].Adevie2Bis+1;
                 //TSuiv=aiguillage[Adr].Adevie2B;
                 Adr:=aiguillage[Adr].Adevie2;
              end;
@@ -3980,17 +4061,17 @@ end;
 
 
 // renvoie l'adresse du détecteur suivant des deux éléments contigus
-function detecteur_suivant(prec : integer;BisPrec : boolean;actuel : integer;BisActuel : boolean) : integer ;
+function detecteur_suivant(prec : integer;TypeElPrec : integer;actuel : integer;TypeElActuel : integer) : integer ;
 var AdrDet,actuelCalc,PrecCalc,etat,i,j,AdrSuiv : integer;
-    BisprecCalc,BisActuelCalc : boolean;
+    BisprecCalc,BisActuelCalc : integer;
 begin
-  if NivDebug>=2 then AfficheDebug('cherche détecteur suivant aux '+IntToSTR(prec)+'-'+intToSTR(actuel),clyellow);
+  if NivDebug>=2 then AfficheDebug('cherche détecteur suivant aux '+IntToSTR(prec)+'/'+IntToSTR(typeElPrec)+' - '+intToSTR(actuel)+'/'+intToSTR(TypeElActuel),clyellow);
   j:=0;
 
   PrecCalc:=prec;
-  bisprecCalc:=bisprec;
+  bisprecCalc:=TypeElprec;
   ActuelCalc:=actuel;
-  BisActuelCalc:=BisActuel;
+  BisActuelCalc:=TypeELActuel;
   // étape 1 trouver le sens
   repeat
     inc(j);
@@ -3998,13 +4079,13 @@ begin
     precCalc:=actuelCalc;
     BisPrecCalc:=BisActuelCalc;
     actuelCalc:=AdrSuiv;
-    BisActuelCalc:=Bis;
+    BisActuelCalc:=typeGen;
     //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
-  until (j=10) or (AdrSuiv>512) or (AdrSuiv=0); // 
+  until (j=10) or (AdrSuiv>512) or (AdrSuiv=0); //
   // si trouvé le sens, trouver le suivant
   if AdrSuiv=actuel then
   begin
-     AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,1);
+     AdrSuiv:=suivant_alg3(prec,TypeElPrec,actuel,TypeElActuel,1);
   end;
   if NivDebug=3 then AfficheDebug('Le suivant est le '+intToSTR(AdrSuiv),clYellow);
   detecteur_suivant:=AdrSuiv;
@@ -4012,17 +4093,17 @@ end;
 
 // renvoie l'adresse du détecteur suivant des deux éléments
 // Det1 et Det2 peuvent être séparés par des aiguillages
-function detecteur_suivant_El(el1: integer;BisDet1 : boolean;el2 : integer;BisDet2 : boolean) : integer ;
+function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2 : integer) : integer ;
 var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,i,
-    j,AdrPrec,Adr,AdrFonc,Btype : integer;
-    BisPrec,BisFonc,BisSuiv,Sortie : boolean;
+    j,AdrPrec,Adr,AdrFonc,Btype,BisPrec,BisFonc,BisSuiv : integer;
+    Sortie : boolean;
     s : string;
 
 begin
-  if NivDebug>=2 then AfficheDebug('cherche détecteur_suivant_El aux '+IntToSTR(el1)+'-'+intToSTR(el2),clyellow);
+  if NivDebug>=2 then AfficheDebug('cherche détecteur_suivant_El aux '+IntToSTR(el1)+'/'+intToSTR(TypeDet1)+'-'+intToSTR(el2)+'/'+intToSTr(TypeDet2),clyellow);
   // traceDet=TRUE;
   // trouver détecteur 1
-  trouve_detecteur(el1); // branche_trouve  IndexBranche_trouve
+  trouve_element(el1,Typedet1); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
   begin
     Affiche('élément '+IntToSTR(el1)+' non trouvé',clred);
@@ -4030,64 +4111,64 @@ begin
   end;
   IndexBranche_det1:=IndexBranche_trouve;
   branche_trouve_det1:=branche_trouve;
- 
-  // trouver détecteur 2
-  trouve_detecteur(el2); // branche_trouve  IndexBranche_trouve
+
+  // trouver élément 2
+  trouve_element(el2,TypeDet2); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
   begin
     Affiche('élément '+IntToSTR(el2)+' non trouvé',clred);
     detecteur_suivant_El:=2;exit;
   end;
- 
+
   IndexBranche_det2:=IndexBranche_trouve;
   branche_trouve_det2:=branche_trouve;
-  
+
   j:=1;
   // étape 1 : trouver le sens de progression (en incrément ou en décrément)
   repeat // boucle d'incrément décrément
-    if (NivDebug=4) then
+    if (NivDebug=3) then
     begin
-      s:='Test route en ';
+      s:='Test 1 route en ';
       if (j=1) then s:=s+'décrément ' else s:=s+'incrément ';
-      s:=s+'- départ depuis détecteur '+IntToSTR(el1);Affiche(s,clyellow);
+      s:=s+'- départ depuis détecteur '+IntToSTR(el1);AfficheDebug(s,clyellow);
     end;
     AdrPrec:=el1;
-    BisPrec:=FALSE;
-    Bis:=FALSE;
+    BisPrec:=typeDet1;
     if (j=1) then i:=IndexBranche_det1-1 else i:=IndexBranche_det1+1;
     //trouve_element(det1,FALSE);
-    Adr:=BrancheN[branche_trouve_det1,i].Adresse;
+    Adr:=BrancheN[branche_trouve_det1,i].Adresse; // élément suivant le det1
     AdrFonc:=Adr;
-    Btype:=BrancheN[branche_trouve,i].BType;  // élément suivant/précédent
-    BisFonc:=Btype=3; // bug si aiguillage bis
+    Btype:=BrancheN[branche_trouve_det1,i].BType;  // élément suivant/précédent
+    BisFonc:=Btype;
     i:=0;
     if (el2<>Adr) then
     repeat
       Adr:=suivant_alg3(AdrPrec,BisPrec,AdrFonc,BisFonc,1);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
-      trouve_element(Adr,Bis);
+      if (NivDebug=3) then AfficheDebug('trouvé '+intToSTR(Adr)+' '+intToSTR(typeGen),clorange);
+      trouve_element(Adr,typeGen);
       Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-      BisSuiv:=Btype=3; // si aiguillage bis
+      BisSuiv:=Btype; // si aiguillage bis
       //Affiche(intToSTR(adr)+'/'+intToStr(Btype),clorange);
       AdrPrec:=AdrFonc;AdrFonc:=Adr;
-      BisPrec:=BisFonc;BisFonc:=Bis; 
-      i:=i+1;                           
-      sortie:=(Adr=El2) or (i=20) or (Adr=0) or ((Adr<>el2) and (btype=1)); 
+      BisPrec:=BisFonc;BisFonc:=typeGen;
+      i:=i+1;
+      sortie:=(Adr=El2) or (i=20) or (Adr=0) or ((Adr<>el2) and (btype=1));
     until (sortie) ;   // boucle de parcours
     if (i=20) then
       begin Affiche('Erreur fatale 300 : Itération trop longue',clred);
       AfficheDebug('Erreur fatale 300 : Itération trop longue',clred);
       detecteur_suivant_el:=3;end;
     if ((Btype=1) and (Adr<>el2) and (NivDebug=3)) then AfficheDebug('N''est pas le détecteur attendu '+intToSTR(Adr)+' pour '+intToSTR(el2),clyellow);
-    inc(j);   // changement de sens 
+    inc(j);   // changement de sens
     sortie:=(Adr=el2) or (j=3) or (Adr=0);
   until sortie;
 
   // si arret sur buttoir
   if Adr=0 then begin detecteur_suivant_el:=0;exit;end;
-  
+
   if ((j=3) and (Adr<>el2)) then
   begin
-    if NivDebug=3 then AfficheDebug('Pas de suivant sur séquence '+IntToSTR(el1)+' à '+intToStr(el2),clyellow);
+    if NivDebug=3 then AfficheDebug('El - Pas de suivant sur séquence '+IntToSTR(el1)+' à '+intToStr(el2),clyellow);
     detecteur_suivant_el:=0;exit;
   end;
 
@@ -4095,26 +4176,25 @@ begin
   if (Adr=el2) then
   begin
     // trouvé la route si j=2 : -  si j=3 : +
-    if (NivDebug=3) then AfficheDebug('Route trouvée',clyellow);
+    if (NivDebug=3) then AfficheDebug('El - Route trouvée',clyellow);
     i:=0;
     AdrFonc:=Adr;
-    BisFonc:=FALSE;
-    BisSuiv:=FALSE;
-    Bis:=FALSE;
+    BisFonc:=1;
+    //typeGen:=0; //?
     repeat
       Adr:=suivant_alg3(AdrPrec,BisPrec,AdrFonc,BisFonc,1);
-   //   if i=0 then El_suivant:=Adr; //???????
-      trouve_element(Adr,Bis);
+      if NivDebug=3 then AfficheDebug('trouvé 2:'+intToSTR(Adr)+' '+intToSTR(typeGen),clorange);
+      trouve_element(Adr,typeGen);
       Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-      BisSuiv:=Btype=3; // si aiguillage bis
+      BisSuiv:=Btype; // si aiguillage bis
       if (NivDebug=3) then AfficheDebug('Suivant='+IntToSTR(Adr)+ '('+intToSTR(Btype)+')',clyellow);
       AdrPrec:=AdrFonc;AdrFonc:=Adr;
-      BisPrec:=BisFonc;BisFonc:=Bis;
+      BisPrec:=BisFonc;BisFonc:=typeGen;
       inc(i);
       sortie:=(Btype=1) or (Adr=0) or (i=20);
     until sortie;
     if NivDebug>=2 Then AfficheDebug('Détecteur suivant='+intToSTR(Adr),clOrange);
-    if (bType=1) or (Adr=0) then detecteur_suivant_el:=Adr;  
+    if (bType=1) or (Adr=0) then detecteur_suivant_el:=Adr;
     if (i=20) then begin
        if NivDebug=3 then AfficheDebug('Erreur fatale 201 : Itération trop longue',clred);
        Affiche('Erreur fatale 201 : Itération trop longue',clred);detecteur_suivant_el:=3;end;
@@ -4126,8 +4206,8 @@ end;
 // renvoi vrai si les aiguillages au delà du signal sont mal positionnés
 function carre_signal(adresse : integer) : boolean;
 var
-   i,j,prec,AdrFeu,AdrSuiv,actuel : integer;
-   multi, sort, BisPrec,BisActuel : boolean;
+   i,j,prec,AdrFeu,AdrSuiv,actuel,TypeELPrec,TypeElActuel : integer;
+   multi, sort  : boolean;
    s : string;
 begin
   if (NivDebug>=1) then AfficheDebug('Test si signal '+IntToSTR(adresse)+' doit afficher un carré si aiguillage avals mal positionnés',clyellow);
@@ -4142,9 +4222,11 @@ begin
 //  }
   j:=0;
   prec:=feux[i].Adr_det1;
-  BisPrec:=FALSE;
+  TypeElPrec:=1;
   actuel:=feux[i].Adr_el_suiv1;
-  BisActuel:=feux[i].Btype_suiv1=5; 
+  if feux[i].Btype_suiv1=1 then TypeElActuel:=1;
+  if feux[i].Btype_suiv1=2 then TypeElActuel:=2;
+  if feux[i].Btype_suiv1=5 then TypeElActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
   multi:=feux[i].Adr_det2<>0;
    // trouver si une des voies présente un train
   if (multi) then
@@ -4156,13 +4238,13 @@ begin
   //Affiche(IntToSTR(actuel),clyellow);
   repeat
     inc(j);
-    AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,2);
+    AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);
     if (AdrSuiv<>9998) then // arret sur aiguillage en talon mal positionnée
     begin
       prec:=actuel;
-      BisPrec:=BisActuel;
+      TypeElPrec:=TypeElActuel;
       actuel:=AdrSuiv;
-      BisActuel:=Bis;   
+      TypeElActuel:=typeGen;
     end;
     // si le suivant est un détecteur comporte t-il un signal?
     AdrFeu:=0;
@@ -4189,11 +4271,11 @@ end;
 // rang=1 pour feu suivant, 2 pour feu suivant le 1, etc
 function etat_signal_suivant(adresse,rang : integer) : integer ;
 var num_feu,AdrDet,etat,AdrFeu,i,j,prec,AdrSuiv : integer;
-    BisPrec,BisActuel : boolean;
+    BisPrec,BisActuel : integer;
     s : string;
 begin
   //traceDet:=true;
-  if NivDebug>=2 then 
+  if NivDebug>=2 then
   AfficheDebug('Cherche état du signal suivant au '+IntToSTR(adresse),clyellow);
   i:=Index_feu(adresse);
   if feux[i].aspect>10 then
@@ -4204,7 +4286,7 @@ begin
       etat_signal_suivant:=0;
       exit;
   end;
-  
+
   if i=0 then
   begin
     Affiche('Erreur 600 - feu non trouvé',clred);
@@ -4222,40 +4304,40 @@ begin
     etat_signal_suivant:=0;
     exit;
   end;
-  BisPrec:=false;
+  BisPrec:=1;  // détecteur
   actuel:=feux[i].Adr_el_suiv1;
-  BisActuel:=feux[i].btype_suiv1=5;
-
+  if feux[i].Btype_suiv1=1 then BisActuel:=1;
+  if feux[i].Btype_suiv1=2 then BisActuel:=2;
+  if feux[i].Btype_suiv1=4 then BisActuel:=2; // aiguillage triple
+  if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
   // si actuel est un détecteur, regarder si il ya un feu
   repeat
     inc(j);
     // à la première itération, si "actuel" est déja un détecteur, ne pas faire de recherche sur le suivant
     if (j=1) and (actuel>512) then
     begin
-      AdrSuiv:=actuel;  
+      AdrSuiv:=actuel;
       actuel:=prec;
-      BisPrec:=FALSE;
-      BisActuel:=FALSE;
+      BisPrec:=0;
+      BisActuel:=0;
     end
     else
       AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,1);
-      
-    if (AdrSuiv=9999) then   
+
+    if (AdrSuiv=9999) then
     begin
       Etat_signal_suivant:=0;
       exit;
     end;
-    if (AdrSuiv=0) then  
+    if (AdrSuiv=0) then
     begin 
       if NivDebug=3 then AfficheDebug('Le suivant est un buttoir',clyellow);  
       Etat_signal_suivant:=carre_F; // faire comme si c'était un signal au carré
       exit;
     end;
     
-    prec:=actuel;
-    BisPrec:=BisActuel;
-    actuel:=AdrSuiv;
-    BisActuel:=Bis;
+    prec:=actuel;BisPrec:=BisActuel;
+    actuel:=AdrSuiv;BisActuel:=typeGen;
     // si le suivant est un détecteur comporte t-il un signal?
 
     AdrFeu:=0;
@@ -4288,7 +4370,7 @@ begin
   until (j=10) or ((AdrFeu<>0) and (num_feu=rang));
   if etat=0 then Signal_Suivant:=0;
   etat_signal_suivant:=Etat;
-  if NivDebug=3 then AfficheDebug('Pas Trouvé de feu suivant au feu Adr='+IntToSTR(ADresse),clOrange);
+  if (NivDebug=3) and (adrFeu=0) then AfficheDebug('Pas Trouvé de feu suivant au feu Adr='+IntToSTR(ADresse),clOrange);
   //TraceDet:=false;
 end;
 
@@ -4298,7 +4380,7 @@ end;
 // adresse=adresse du signal
 function Aiguille_deviee(adresse : integer) : integer ;  
 var AdrDet,AdrFeu,etat,i,j,prec,AdrSuiv,Actuel : integer;
-    BisPrec,BisActuel : boolean;
+    BisPrec,BisActuel : integer;
     s : string;
 begin
   //traceDet:=true;
@@ -4306,9 +4388,12 @@ begin
   j:=0;
   i:=Index_feu(adresse);
   prec:=feux[i].Adr_det1;
-  BisPrec:=false;
+  BisPrec:=1;
   actuel:=feux[i].Adr_el_suiv1;
-  BisActuel:=feux[i].btype_suiv1=3;
+  if feux[i].Btype_suiv1=1 then BisActuel:=1;
+  if feux[i].Btype_suiv1=2 then BisActuel:=2;
+  if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
+
   //Affiche(IntToSTR(actuel),clyellow);
   AdrFeu:=0;
   AdrDevie:=0;
@@ -4316,19 +4401,19 @@ begin
   begin
     if (aiguillage[actuel].Apointe=prec) and (aiguillage[actuel].position<>const_droit) then Aiguille_deviee:=actuel;
   end;
-  
+
   repeat
     inc(j);
-    // 3=demande si le suivant est un aiguillage en pointe dévié oui si AdrSuiv=9997 
+    // 3=demande si le suivant est un aiguillage en pointe dévié oui si AdrSuiv=9997
     // dans ce cas la variable globale AdrDevie est mise à jour
-    AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,3);  
+    AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,3);
     if NivDebug=3 then AfficheDebug('701 - Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
     if ADrSuiv<>9997 then
     begin
       prec:=actuel;
       BisPrec:=BisActuel;
       actuel:=AdrSuiv;
-      BisActuel:=Bis;
+      BisActuel:=typeGen;
       // si le suivant est un détecteur comporte t-il un signal?
       AdrFeu:=0;
       if (AdrSuiv>512) then
@@ -4342,7 +4427,7 @@ begin
   if (AdrSuiv=9997) then
   begin
      s:='le signal '+intToSTR(adresse)+' doit afficher un rappel car l''aiguillage '+intToSTR(AdrDevie);
-     if bis then s:=s+'bis';
+     if (typeGen=3) then s:=s+'bis';
      s:=s+' est dévié';
      if NivDebug=3 then AfficheDebug(s,clYellow);
   end;
@@ -4361,7 +4446,7 @@ var i,j : integer;
 begin
     i:=index_feu(Adr);
     j:=feux[i].decodeur;
-    case j of
+    case j of                       
      // 0 : envoi_directionvirtuel(Adr,nbre);
      1 : envoi_DirectionBahn(Adr,nbre);
      2 : envoi_DirectionCDF(Adr,nbre);
@@ -4411,8 +4496,9 @@ end;
 // a compléter par les 4 détecteurs....
 function test_memoire_zones(adresse : integer) : boolean;
 var
-  ife,Detecteur_precedent,actuel,AdrDet,Etat,AdrFeu,i,j,prec,AdrSuiv : integer;
-  Pres_train,sort,BisPrec,BisActuel : boolean;
+  BisPrec,BisActuel,ife,Detecteur_precedent,actuel,AdrDet,Etat,AdrFeu,i,j,prec,AdrSuiv : integer;
+  Pres_train,sort : boolean;
+
 begin
   if NivDebug>=1 then AfficheDebug('Cherche mémoire à 1 du signal '+intToSTR(adresse)+' au signal suivant ',clyellow);
 
@@ -4424,16 +4510,37 @@ begin
     test_memoire_zones:=false;
   end;
 
-
   Pres_train:=FALSE;
   ife:=1;  // index feu de 1 à 4 pour explorer les 4 détecteurs d'un feu
   repeat
     j:=0;
     if NivDebug=3 then AfficheDebug('Boucle de test feu '+intToSTR(ife)+'/4',clred);
-    if (ife=1) then begin prec:=feux[i].Adr_det1;actuel:=feux[i].Adr_el_suiv1;BisActuel:=feux[i].Btype_suiv1=5;end;  //détecteur sur le signal courant
-    if (ife=2) then begin prec:=feux[i].Adr_det2;actuel:=feux[i].Adr_el_suiv2;BisActuel:=feux[i].Btype_suiv2=5;end;  // détecteur sur le signal courant
-    if (ife=3) then begin prec:=feux[i].Adr_det3;actuel:=feux[i].Adr_el_suiv3;BisActuel:=feux[i].Btype_suiv3=5;end;  // détecteur sur le signal courant
-    if (ife=4) then begin prec:=feux[i].Adr_det4;actuel:=feux[i].Adr_el_suiv4;BisActuel:=feux[i].Btype_suiv4=5;end;  // détecteur sur le signal courant
+    if (ife=1) then
+    begin prec:=feux[i].Adr_det1;actuel:=feux[i].Adr_el_suiv1;
+      if feux[i].Btype_suiv1=1 then BisActuel:=1;
+      if feux[i].Btype_suiv1=2 then BisActuel:=2;
+      if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
+    end;  //détecteur sur le signal courant
+    if (ife=2) then
+    begin prec:=feux[i].Adr_det2;actuel:=feux[i].Adr_el_suiv2;
+      if feux[i].Btype_suiv1=1 then BisActuel:=1;
+      if feux[i].Btype_suiv1=2 then BisActuel:=2;
+      if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
+    end;  // détecteur sur le signal courant
+    if (ife=3) then
+    begin
+      prec:=feux[i].Adr_det3;actuel:=feux[i].Adr_el_suiv3;
+      if feux[i].Btype_suiv1=1 then BisActuel:=1;
+      if feux[i].Btype_suiv1=2 then BisActuel:=2;
+      if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
+    end;  // détecteur sur le signal courant
+    if (ife=4) then
+    begin
+      prec:=feux[i].Adr_det4;actuel:=feux[i].Adr_el_suiv4;
+      if feux[i].Btype_suiv1=1 then BisActuel:=1;
+      if feux[i].Btype_suiv1=2 then BisActuel:=2;
+      if feux[i].Btype_suiv1=5 then BisActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
+    end;  // détecteur sur le signal courant
 
     Detecteur_precedent:=prec;
     if (prec=0) then
@@ -4441,7 +4548,7 @@ begin
        test_memoire_zones:=Pres_train;
        exit;
     end;
-    BisPrec:=FALSE;
+    BisPrec:=1;
 
     repeat
       inc(j);
@@ -4451,20 +4558,20 @@ begin
       begin
         AdrSuiv:=actuel;
         actuel:=prec;
-        BisPrec:=FALSE;
-        BisActuel:=FALSE;
+        BisPrec:=0;
+        BisActuel:=0;
         Pres_train:=MemZone[prec,actuel];
         if Pres_Train and (NivDebug=3) then Affiche('Présence train de '+intToSTR(prec)+' à '+intToSTR(actuel),clyellow);
         Detecteur_precedent:=actuel;
       end
       else
         AdrSuiv:=suivant_alg3(prec,BisPrec,actuel,BisActuel,1);
-                 
+
       prec:=actuel;
       BisPrec:=BisActuel;
       actuel:=AdrSuiv;
-      BisActuel:=Bis;
-     
+      BisActuel:=typeGen;
+
       if AdrSuiv=0 then
       begin
         // si c'est un buttoir
@@ -4508,7 +4615,7 @@ begin
       end
       else
       begin
-        if (NivDebug=3) then AfficheDebug('Trouvé aiguillage '+intToSTR(AdrSuiv),clyellow); 
+        if (NivDebug=3) then AfficheDebug('Trouvé aiguillage '+intToSTR(AdrSuiv),clyellow);
       end;
       sort:=(j=10) or (AdrFeu<>0) ;
     until (sort);
@@ -4537,8 +4644,8 @@ var
   i,i1,i2,j,k,
       IndexBranche_det1,IndexBranche_det2,index_i1,index_i2,
       branche_trouve_det1,branche_trouve_det2,Adr,AdrPrec,position,Btype,BTypePrec,
-      AdrFonc : integer;
-  BisPrec,BisSuiv,BisFonc,sortie : boolean;
+      AdrFonc,BisPrec,BisSuiv,BisFonc : integer;
+  sortie : boolean;
   s : string;
 
 begin
@@ -4560,7 +4667,7 @@ begin
     Affiche('détecteur '+IntToSTR(det2)+' non trouvé',clred);
     calcul_zones_det:=2;exit;
   end;
- 
+
   IndexBranche_det2:=IndexBranche_trouve;
   branche_trouve_det2:=branche_trouve;
 
@@ -4569,29 +4676,28 @@ begin
   repeat // boucle d'incrément décrément
     if (NivDebug=3) then
     begin
-      s:='Test route en ';
+      s:='Test 2 route en ';
       if (j=1) then s:=s+'décrément ' else s:=s+'incrément ';
-      s:=s+'- départ depuis détecteur '+IntToSTR(det1);Affiche(s,clyellow);
+      s:=s+'- départ depuis détecteur '+IntToSTR(det1);AfficheDebug(s,clyellow);
     end;
     AdrPrec:=det1;
-    BisPrec:=FALSE;
-    Bis:=FALSE;
+    BisPrec:=1;
     if (j=1) then i:=IndexBranche_det1-1 else i:=IndexBranche_det1+1;
     //trouve_element(det1,FALSE);
     Adr:=BrancheN[branche_trouve_det1,i].Adresse;
     AdrFonc:=Adr;
-    Btype:=BrancheN[branche_trouve,i].BType;  // élément suivant/précédent
-    BisFonc:=Btype=3; // bug si aiguillage bis
+    Btype:=BrancheN[branche_trouve_det1,i].BType;  // élément suivant/précédent
+    BisFonc:=Btype;
     i:=0;
     if (det2<>Adr) then
     repeat
       Adr:=suivant_alg3(AdrPrec,BisPrec,AdrFonc,BisFonc,1);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
-      trouve_element(Adr,Bis);
+      trouve_element(Adr,typeGen);
       Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-      BisSuiv:=Btype=3; // si aiguillage bis
+      BisSuiv:=Btype; // si aiguillage bis
       //Affiche(intToSTR(adr)+'/'+intToStr(Btype),clorange);
       AdrPrec:=AdrFonc;AdrFonc:=Adr;
-      BisPrec:=BisFonc;BisFonc:=Bis; 
+      BisPrec:=BisFonc;BisFonc:=typeGen;
       i:=i+1;
       sortie:=(Btype=1) or (Btype=4) or (i=20) or (Adr=0);
     until (sortie) ;   // boucle de parcours
@@ -4603,7 +4709,7 @@ begin
     inc(j);
     sortie:=((Adr=det2) and (Btype=1)) or (j=3);
   until sortie;
-  
+
   if ((j=3) and (Adr<>det2)) then
   begin
     if (NivDebug=3) then AfficheDebug('Pas de suivant sur séquence '+IntToSTR(det1)+' à '+intToStr(det2),clyellow);
@@ -4616,18 +4722,18 @@ begin
     if (NivDebug=3) then AfficheDebug('Route trouvée',clyellow);
     i:=0;
     AdrFonc:=Adr;
-    BisFonc:=FALSE;
-    BisSuiv:=FALSE;
-    Bis:=FALSE;
+    BisFonc:=1;
+    BisSuiv:=1;
+    //Bis:=1; ???
     repeat
       Adr:=suivant_alg3(AdrPrec,BisPrec,AdrFonc,BisFonc,1);
       //if i=0 then El_suivant:=Adr;
-      trouve_element(Adr,Bis);
+      trouve_element(Adr,typeGen);
       Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-      BisSuiv:=Btype=3; // si aiguillage bis
+      BisSuiv:=Btype; // si aiguillage bis
       if (NivDebug=3) then AfficheDebug('Suivant='+IntToSTR(Adr)+ '('+intToSTR(Btype)+')',clyellow);
       AdrPrec:=AdrFonc;AdrFonc:=Adr;
-      BisPrec:=BisFonc;BisFonc:=Bis;  
+      BisPrec:=BisFonc;BisFonc:=typeGen;
       inc(i);
       sortie:=(Btype=1) or (Adr=0) or (i=20);
     until sortie;
@@ -4702,7 +4808,7 @@ begin
        //sprintf(Affiche,"Aiguille 27=%d \r\n",aiguillage[27].position);Display(Affiche);
        //   sprintf(Affiche,"Aiguille 31=%d \r\n",aiguillage[31].position);Display(Affiche);
        if ((aiguillage[28].position<>const_droit) and (aiguillage[29].position<>const_droit) and
-           (aiguillage[31].position=const_devieD)) then
+           (aiguillage[31].position=2)) then // attention spécial
            Maj_Etat_Signal(AdrFeu,blanc) else Maj_Etat_Signal(AdrFeu,violet);
        envoi_LEB(AdrFeu);
        exit;
@@ -4715,7 +4821,7 @@ begin
        exit;
     end;
 
-    
+
     if (Feux[i].aspect=2) then //or (feux[i].check<>nil) then // si carré violet
     begin
       if carre_signal(AdrFeu) and (Feux[i].aspect=2) then
@@ -4745,19 +4851,41 @@ begin
         j:=1;
         repeat
           if NivDebug=3 then afficheDebug('Séquence '+IntToSTR(j)+' de recherche des 4 détecteurs précédents-----',clOrange);
-          if (j=1) then begin det_initial:=feux[i].Adr_det1;Adr_El_Suiv:=feux[i].Adr_el_suiv1; Btype_el_suivant:=feux[i].Btype_suiv1;end;
-          if (j=2) then begin det_initial:=feux[i].Adr_det2;Adr_El_Suiv:=feux[i].Adr_el_suiv2; Btype_el_suivant:=feux[i].Btype_suiv2;end;
-          if (j=3) then begin det_initial:=feux[i].Adr_det3;Adr_El_Suiv:=feux[i].Adr_el_suiv3; Btype_el_suivant:=feux[i].Btype_suiv3;end;
-          if (j=4) then begin det_initial:=feux[i].Adr_det4;Adr_El_Suiv:=feux[i].Adr_el_suiv4; Btype_el_suivant:=feux[i].Btype_suiv4;end;
+          if (j=1) then
+          begin det_initial:=feux[i].Adr_det1;Adr_El_Suiv:=feux[i].Adr_el_suiv1;
+            if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
+            if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+          end;
+          if (j=2) then
+          begin
+            det_initial:=feux[i].Adr_det2;Adr_El_Suiv:=feux[i].Adr_el_suiv2;
+            if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
+            if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+          end;
+          if (j=3) then
+          begin det_initial:=feux[i].Adr_det3;Adr_El_Suiv:=feux[i].Adr_el_suiv3;
+            if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
+            if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+          end;
+          if (j=4) then
+          begin
+            det_initial:=feux[i].Adr_det4;Adr_El_Suiv:=feux[i].Adr_el_suiv4;
+            if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
+            if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+          end;
           if (det_initial<>0) then
           begin
-            DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant=5,det_initial,false);
+            DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant,det_initial,1);
             if DetPrec1<>9999 then // route bloquée par aiguillage mal positionné
-            begin
-              DetPrec2:=detecteur_suivant_El(det_initial,False,DetPrec1,false);
+             begin
+              DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1);
               if DetPrec2<>9999 then
               begin
-                DetPrec3:=detecteur_suivant_El(DetPrec1,false,DetPrec2,false);
+                DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1);
                 if DetPrec3<>9999 then
                 begin
                   //DetPrec4:=detecteur_suivant_det(DetPrec2,DetPrec3);
@@ -5623,13 +5751,17 @@ begin
    //aiguillage[10].Position:=1;
   //traceDet:=true;
  // calcul_zones;
-  //carre_signal(358);
   //maj_feu(201);
   //etat_signal_suivant(201,1);
   //Aiguille_deviee(462);
-  //i:=detecteur_suivant(23,false,538,false);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
-  //  i:=etat_signal_suivant(462,2);
-  //NivDebug:=3;
+  formdebug.Show;
+  NivDebug:=3;
+  aiguillageB[1].Position:=1;
+  i:=suivant_alg3(553,1,1,3,1);
+  Affichedebug(intToSTr(i),clred);
+  //test_memoire_zones(274);
+  //i:=detecteur_suivant_El(514,1,518,1);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
+  //i:=etat_signal_suivant(176,1);
   //Affiche(IntToSTR(detecteur_suivant_El(531,false,518,false)),clyellow);
   //i:=Aiguille_deviee(176);
   //signal_direction(372);
@@ -6005,6 +6137,7 @@ begin
    afficheDebug(s,ClRed);
    CDM_connecte:=false;
    ErrorCode:=0;
+   LabelEtat.caption:=Titre;
 end;
 
 // lecture depuis socket
@@ -6178,9 +6311,28 @@ begin
     end
     else
       s:=s+' absent';
-
     Affiche(s,clYellow);
-      
+  end;  
+
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=IntToSTR(i)+'BIS';
+    if aiguillageB[i].modele<>0 then
+    begin
+      if aiguillageB[i].modele=1 then s:=s+' Pointe=';
+      if aiguillageB[i].modele=2 then s:=s+' TJD: centre TJD=';
+      if aiguillageB[i].modele=3 then s:=s+' TJS:';
+      if aiguillageB[i].modele=4 then s:=s+' Triple: Pointe=';
+      s:=s+IntToSTR(aiguillageB[i].APointe)+aiguillageB[i].APointeB+
+         ' Dévie='+IntToSTR(aiguillageB[i].ADevie)+aiguillageB[i].ADevieB+
+         ' Droit='+IntToSTR(aiguillageB[i].ADroit)+aiguillageB[i].ADroitB;
+      if aiguillageB[i].modele=4 then s:=s+' Dévié2='+intToSTR(aiguillageB[i].ADevie2)+aiguillageB[i].ADevie2B;
+      if aiguillageB[i].vitesse<>0 then s:=s+' Vitesse déviée='+intToSTR(aiguillageB[i].vitesse);
+    end
+    else
+      s:=s+' absent';
+
+    Affiche(s,clYellow);      
   end;
 end;
 
@@ -6249,7 +6401,7 @@ begin
        aiguillage[adr].position:=etatAig;
        aiguillageB[adr].position:=etatAig;
        Tempo_chgt_feux:=10; // demander la mise à jour des feux
-       Affiche('Aiguillage '+intToSTR(adr)+'='+IntToStr(etatAig),clYellow);
+       //Affiche('Aiguillage '+intToSTR(adr)+'='+IntToStr(etatAig),clYellow);
        //Affiche(recuCDM,CLOrange);
        //if length(recuCDM)>80 then Affiche(copy(recuCDM,80,length(recuCDM)-80),clOrange);
     end;
@@ -6274,7 +6426,7 @@ begin
         event_det[N_event_det]:=adr;
         dem_calcul_zone:=true;
       end;
-      if AfficheDet then Affiche('Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
+      if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
     end ;
 
     inc(k);
@@ -6328,6 +6480,8 @@ begin
     if feux[i].aspect<10 then
     begin
       s:=s+' SIG Nombre de feux='+IntToSTR(feux[i].aspect)+' ';
+      s:=s+' El Suivant1='+IntToSTR(feux[i].Adr_el_suiv1)+' Type suivant1='+intToSTR(feux[i].Btype_suiv1);
+
       if feux[i].decodeur=6 then
       s:=s+' Cible unisemaf='+intToSTR(feux[i].Unisemaf);
     end
@@ -6358,13 +6512,13 @@ begin
    Affiche('Version 1.1  : gestion des tableaux indicateurs de direction',clLime);
    Affiche('                    gestion du décodeur de signaux Unisemaf Paco (expérimental)',clLime);
    Affiche('                    changemennt dynamique des feux en cliquant sur son image',clLime);
-
+   Affiche('Version 1.11 : compatibilité pour la rétrosignalisation non XpressNet (intellibox)',clLime);
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
   Socket: TCustomWinSocket);
 begin
-   parSocket:=False;
+  parSocket:=False;
 end;
 
 end.
