@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 14
-  Top = 184
+  Left = 172
+  Top = 78
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
   ClientHeight = 607
@@ -1422,7 +1422,13 @@ object FormPrinc: TFormPrinc
       Caption = 'Afficher'
       object Etatdesdtecteurs1: TMenuItem
         Caption = 'Etat des d'#233'tecteurs'
+        Hint = 'Affiche l'#39#233'tat des d'#233'tecteurs'
         OnClick = AffEtatDetecteurs
+      end
+      object ChronoDetect: TMenuItem
+        Caption = 'Chronologie des d'#233'tecteurs'
+        Hint = 'Affiche la chronologie des d'#233'tecteurs'
+        OnClick = ChronoDetectClick
       end
       object Etatdesaiguillages1: TMenuItem
         Caption = 'Etat des aiguillages'
@@ -1481,6 +1487,7 @@ object FormPrinc: TFormPrinc
       Caption = 'Divers'
       object Versions1: TMenuItem
         Caption = 'Versions'
+        Hint = 'Versions'
         OnClick = Versions1Click
       end
     end

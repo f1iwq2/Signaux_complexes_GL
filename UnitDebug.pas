@@ -17,25 +17,48 @@ type
     Label3: TLabel;
     MemoDebug: TMemo;
     CheckAffSig: TCheckBox;
+    ButtonRazTampon: TButton;
+    ButtonCherche: TButton;
+    MemoDet: TMemo;
+    ButtonAffEvtChrono: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
     procedure CheckAffSigClick(Sender: TObject);
+    procedure ButtonRazTamponClick(Sender: TObject);
+    procedure ButtonChercheClick(Sender: TObject);
+    procedure ButtonAffEvtChronoClick(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
 
+Const Max_Event_det_tick = 10000;
+  
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
   AffSignal : boolean;
+  N_event_det : integer; // index du dernier évènement (de 1 à 20)
+  event_det : array[1..20] of integer;
+  //                    tick 1/10s,détecteur
+  N_Event_tick : integer ; // dernier index
+  event_det_tick : array[1..Max_Event_det_tick] of 
+     record
+       tick : longint;
+       detecteur : array[1..1100] of integer;
+     end;
+     
+  
+  
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
   
 implementation
+
+uses UnitPrinc;
 
 {$R *.dfm}
 
@@ -70,6 +93,8 @@ var s : string;
 begin
   s:=GetCurrentDir;
   SaveDialog.InitialDir:=s;
+  SaveDialog.DefaultExt:='txt';
+  SaveDialog.Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
   if SaveDialog.Execute then
   begin
     s:=SaveDialog.FileName;
@@ -92,21 +117,70 @@ begin
   begin
     Key := #0; // prevent beeping
     val(EditNivDebug.text,i,e);
-    if e=0 then 
+    if e=0 then
     begin
       if (i>=0) and (i<=3) then NivDebug:=i
       else EditNivDebug.text:='3';
     end  
     else EditNivDebug.text:='0';
   end; 
-  MemoDebug.Lines.add('Niveau='+intToSTR(NivDebug)); 
+  MemoDebug.Lines.add('Niveau='+intToSTR(NivDebug));
 end;
-  
+
 
 
 procedure TFormDebug.CheckAffSigClick(Sender: TObject);
 begin
   AffSignal:=checkAffSig.Checked;
+end;
+
+procedure TFormDebug.ButtonRazTamponClick(Sender: TObject);
+begin
+   N_event_det:=0;
+   Event_det[1]:=0;
+   MemoEvtDet.Clear;
+   memoEvtDet.Refresh;
+end;
+
+procedure TFormDebug.ButtonChercheClick(Sender: TObject);
+var i : integer;
+    trouve : boolean;
+begin
+
+  with MemoDebug do
+  begin
+    i:=0;
+    repeat
+      trouve:= pos('erreur',Lines[i])<>0;
+      inc(i);
+    until (i>=Lines.Count) or trouve;
+    if trouve then
+    begin
+      Lines.Add('trouvé en '+intToSTR(i));
+      SelStart:=Perform(EM_LINEINDEX,5,0);
+      perform(EM_SCROLLCARET,0,0);
+      setfocus;
+    end;
+  end;
+end;
+
+
+procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
+var i,j,etat : integer;
+    s : string;
+    trouve : boolean;
+begin
+  for i:=1 to N_Event_tick do
+  begin
+    s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det=';
+    trouve:=false;
+    for j:=1 to 1100 do
+    begin
+      etat:=event_det_tick[i].detecteur[j];
+      if etat<>-1 then begin s:=s+IntToSTR(j)+'='+intToSTR(etat);trouve:=true;end;
+    end;
+    if trouve then AfficheDebug(s,clyellow);
+  end;
 end;
 
 end.

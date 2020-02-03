@@ -26,6 +26,8 @@ Const Version='1.11';// sert à la comparaison de la version publiée
 
 implementation
 
+uses UnitPrinc;
+
 {$R *.dfm}
 
 Procedure Aff(s : string);
@@ -172,7 +174,7 @@ begin
           else formVersion.Free;
         end;
 
-        //if V_utile=V_publie then Affiche('Version Actuelle=Version publiée : votre version est à jour',clLime);
+        if V_utile=V_publie then Formprinc.Hint:='Votre version '+Version_p+' est à jour';
 
       end;
     end
