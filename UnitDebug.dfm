@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 514
-  Top = 56
+  Left = 509
+  Top = 108
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
@@ -47,10 +47,10 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 456
-    Top = 88
-    Width = 265
-    Height = 73
+    Left = 448
+    Top = 136
+    Width = 105
+    Height = 225
     AutoSize = False
     Caption = 'Label3'
     Color = clGray
@@ -79,10 +79,10 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 564
-    Top = 416
-    Width = 181
-    Height = 173
+    Left = 560
+    Top = 368
+    Width = 185
+    Height = 221
     Color = clBlack
     Font.Charset = ANSI_CHARSET
     Font.Color = clYellow
@@ -91,8 +91,9 @@ object FormDebug: TFormDebug
     Font.Style = []
     Lines.Strings = (
       'Tableau des '#233'v'#232'nements '
-      'd'#233'tecteurs')
+      'fronts descendants d'#233'tecteurs')
     ParentFont = False
+    ScrollBars = ssVertical
     TabOrder = 1
   end
   object ButtonEcrLog: TButton
@@ -150,7 +151,7 @@ object FormDebug: TFormDebug
   end
   object MemoDet: TMemo
     Left = 560
-    Top = 176
+    Top = 136
     Width = 185
     Height = 225
     Color = clMaroon
@@ -173,8 +174,38 @@ object FormDebug: TFormDebug
     WordWrap = True
     OnClick = ButtonAffEvtChronoClick
   end
+  object CheckAffAffecTrains: TCheckBox
+    Left = 448
+    Top = 88
+    Width = 289
+    Height = 17
+    Caption = 'Affichage d'#39'affectation des trains aux d'#233'tecteurs'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 9
+    OnClick = CheckAffAffecTrainsClick
+  end
+  object CheckBoxTraceLIste: TCheckBox
+    Left = 448
+    Top = 112
+    Width = 289
+    Height = 17
+    Caption = 'Affichage des '#233'valuations des routes'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 10
+    OnClick = CheckBoxTraceLIsteClick
+  end
   object SaveDialog: TSaveDialog
     Left = 464
-    Top = 336
+    Top = 384
   end
 end

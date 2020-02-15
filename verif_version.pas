@@ -22,7 +22,7 @@ var
   FormVersion: TFormVersion;
   Lance_verif : integer;
 
-Const Version='1.11';// sert à la comparaison de la version publiée
+Const Version='1.2';// sert à la comparaison de la version publiée
 
 implementation
 
@@ -100,6 +100,7 @@ var s,s2,s3,Version_p,Url,LocalFile : string;
     i,j : integer;
     V_publie,V_utile : real;
 begin
+    //Affiche('vérifie version',clLime);
     Url:='http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906#p50499';
     LocalFile:='page.txt';
     trouve_version:=false;
@@ -174,7 +175,7 @@ begin
           else formVersion.Free;
         end;
 
-        if V_utile=V_publie then Formprinc.Hint:='Votre version '+Version_p+' est à jour';
+       // if V_utile=V_publie then Affiche('Votre version '+Version_p+' est à jour',clLime);
 
       end;
     end

@@ -5,7 +5,8 @@ uses
   UnitPrinc in 'UnitPrinc.pas' {FormPrinc},
   UnitDebug in 'UnitDebug.pas' {FormDebug},
   verif_version in 'verif_version.pas' {FormVersion},
-  UnitPilote in 'UnitPilote.pas' {FormPilote};
+  UnitPilote in 'UnitPilote.pas' {FormPilote},
+  UnitSimule in 'UnitSimule.pas' {FormSimulation};
 
 {$R *.res}
 
@@ -14,5 +15,6 @@ begin
   Application.CreateForm(TFormPrinc, FormPrinc);
   Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormPilote, FormPilote);
+  Application.CreateForm(TFormSimulation, FormSimulation);
   Application.Run;
 end.

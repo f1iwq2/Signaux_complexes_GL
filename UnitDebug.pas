@@ -21,6 +21,8 @@ type
     ButtonCherche: TButton;
     MemoDet: TMemo;
     ButtonAffEvtChrono: TButton;
+    CheckAffAffecTrains: TCheckBox;
+    CheckBoxTraceLIste: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -29,6 +31,8 @@ type
     procedure ButtonRazTamponClick(Sender: TObject);
     procedure ButtonChercheClick(Sender: TObject);
     procedure ButtonAffEvtChronoClick(Sender: TObject);
+    procedure CheckAffAffecTrainsClick(Sender: TObject);
+    procedure CheckBoxTraceLIsteClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -40,17 +44,22 @@ Const Max_Event_det_tick = 10000;
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
-  AffSignal : boolean;
+  AffSignal,AffAffect : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   event_det : array[1..20] of integer;
   //                    tick 1/10s,détecteur
   N_Event_tick : integer ; // dernier index
-  event_det_tick : array[1..Max_Event_det_tick] of 
+
+  // tableau des évènements détecteurs
+  event_det_tick : array[0..Max_Event_det_tick] of
      record
        tick : longint;
-       detecteur : array[1..1100] of integer;
+       detecteur : array[1..1100] of integer;  // état du détecteur [...]
+       train : integer ;
+       suivant : integer ; // d'ou vient le train
+       traite : boolean;  // traité lors de a recherche d'une route
      end;
-     
+
   
   
 
@@ -128,7 +137,6 @@ begin
 end;
 
 
-
 procedure TFormDebug.CheckAffSigClick(Sender: TObject);
 begin
   AffSignal:=checkAffSig.Checked;
@@ -181,6 +189,16 @@ begin
     end;
     if trouve then AfficheDebug(s,clyellow);
   end;
+end;
+
+procedure TFormDebug.CheckAffAffecTrainsClick(Sender: TObject);
+begin
+  AffAffect:=CheckAffAffecTrains.checked;
+end;
+
+procedure TFormDebug.CheckBoxTraceLIsteClick(Sender: TObject);
+begin
+  TraceListe:=CheckBoxTraceLIste.checked;
 end;
 
 end.

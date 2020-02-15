@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 172
-  Top = 78
+  Left = 33
+  Top = 205
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
   ClientHeight = 607
@@ -13,7 +13,7 @@ object FormPrinc: TFormPrinc
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poDesktopCenter
+  Position = poDefault
   ShowHint = True
   OnClose = FormClose
   OnCreate = FormCreate
@@ -677,8 +677,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 656
-    Top = 0
+    Left = 1096
+    Top = 104
     Width = 33
     Height = 57
     Picture.Data = {
@@ -1198,10 +1198,10 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object BoutVersion: TButton
-    Left = 705
-    Top = 10
-    Width = 74
-    Height = 25
+    Left = 656
+    Top = 0
+    Width = 83
+    Height = 33
     Caption = 'Dem version'
     TabOrder = 0
     OnClick = BoutVersionClick
@@ -1226,7 +1226,7 @@ object FormPrinc: TFormPrinc
   object BoutonRaf: TButton
     Left = 912
     Top = 64
-    Width = 105
+    Width = 89
     Height = 33
     Caption = 'Rafraichissement'
     TabOrder = 2
@@ -1298,8 +1298,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object ButtonTest: TButton
-    Left = 864
-    Top = 8
+    Left = 832
+    Top = 0
     Width = 105
     Height = 33
     Caption = 'Demande '#233'tat de la r'#233'trosignalisation'
@@ -1308,10 +1308,10 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonTestClick
   end
   object ButtonInfo: TButton
-    Left = 1032
-    Top = 72
-    Width = 75
-    Height = 25
+    Left = 1008
+    Top = 64
+    Width = 81
+    Height = 33
     Caption = 'Informations'
     TabOrder = 7
     OnClick = ButtonInfoClick
@@ -1321,46 +1321,23 @@ object FormPrinc: TFormPrinc
     Top = 111
     Width = 419
     Height = 46
-    Caption = 'Test d'#233'tecteur /feu suivant / pr'#233'c'#233'dent'
+    Caption = 'Trains'
     TabOrder = 6
-    object LabelDetSP: TLabel
-      Left = 356
+    object Label1: TLabel
+      Left = 16
       Top = 20
-      Width = 52
-      Height = 18
-      AutoSize = False
-      Caption = '0'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Arial'
-      Font.Style = []
-      ParentFont = False
+      Width = 89
+      Height = 13
+      Caption = 'Nombre de trains : '
     end
-    object EditDetecteur1: TEdit
-      Left = 13
-      Top = 20
-      Width = 44
+    object EditNbTrains: TEdit
+      Left = 112
+      Top = 16
+      Width = 89
       Height = 21
       TabOrder = 0
-      Text = '0'
-    end
-    object BoutCalcZone: TButton
-      Left = 160
-      Top = 20
-      Width = 105
-      Height = 20
-      Caption = 'calcule zone suivante'
-      TabOrder = 2
-      OnClick = BoutCalcZoneClick
-    end
-    object EditDetecteur2: TEdit
-      Left = 69
-      Top = 20
-      Width = 44
-      Height = 21
-      TabOrder = 1
-      Text = '0'
+      Text = 'EditNbTrains'
+      OnKeyPress = EditNbTrainsKeyPress
     end
   end
   object StatusBar1: TStatusBar
@@ -1371,30 +1348,30 @@ object FormPrinc: TFormPrinc
     Panels = <>
     SimplePanel = True
   end
-  object MSComm1: TMSComm
+  object MSCommUSBLenz: TMSComm
     Left = 1120
     Top = 8
     Width = 32
     Height = 32
-    OnComm = MSComm1Comm
+    OnComm = MSCommUSBLenzComm
     ControlData = {
       2143341208000000ED030000ED03000001568A64000006000000010000040000
       00020000802500000000080000000000000000003F00000001000000}
   end
   object loco: TButton
-    Left = 976
-    Top = 10
+    Left = 944
+    Top = 0
     Width = 75
-    Height = 25
+    Height = 33
     Caption = 'loco'
     TabOrder = 10
     OnClick = locoClick
   end
   object ButtonAffDebug: TButton
-    Left = 784
-    Top = 10
-    Width = 75
-    Height = 25
+    Left = 744
+    Top = 0
+    Width = 81
+    Height = 33
     Caption = 'Affiche debug'
     TabOrder = 11
     OnClick = ButtonAffDebugClick
@@ -1485,6 +1462,10 @@ object FormPrinc: TFormPrinc
     end
     object Divers1: TMenuItem
       Caption = 'Divers'
+      object FichierSimu: TMenuItem
+        Caption = 'Ouvrir un fichier de simulation'
+        OnClick = FichierSimuClick
+      end
       object Versions1: TMenuItem
         Caption = 'Versions'
         Hint = 'Versions'
