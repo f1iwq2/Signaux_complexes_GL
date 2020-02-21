@@ -22,7 +22,7 @@ var
   FormVersion: TFormVersion;
   Lance_verif : integer;
 
-Const Version='1.2';// sert à la comparaison de la version publiée
+Const  Version='1.3';  //Version='1.2';// sert à la comparaison de la version publiée
 
 implementation
 
@@ -97,7 +97,7 @@ procedure verifie_version;
 var s,s2,s3,Version_p,Url,LocalFile : string;
     trouve_version,trouve_zip : boolean;
     fichier : text;
-    i,j : integer;
+    i,j,erreur : integer;
     V_publie,V_utile : real;
 begin
     //Affiche('vérifie version',clLime);
@@ -147,12 +147,13 @@ begin
 
       // changer le . en ,
       s:=Version_p;
-      i:=pos('.',s);if i<>0 then s[i]:=',';
+     // i:=pos('.',s);if i<>0 then s[i]:=',';
       s2:=version;
-      i:=pos('.',s2);if i<>0 then s2[i]:=',';
+     // i:=pos('.',s2);if i<>0 then s2[i]:=',';
 
-      V_publie:=StrToFloat(s);
-      V_utile:=StrToFloat(s2);
+      val(s,V_publie,erreur); if erreur<>0 then exit;
+      val(s2,V_utile,erreur); if erreur<>0 then exit;
+
         if V_utile<V_publie then
         begin
           FormVersion.show;

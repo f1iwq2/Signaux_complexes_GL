@@ -14,9 +14,9 @@ Unit UnitPrinc;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
+  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ListeUSB,
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB  ;
 
 type
   TFormPrinc = class(TForm)
@@ -76,6 +76,13 @@ type
     Label1: TLabel;
     EditNbTrains: TEdit;
     FichierSimu: TMenuItem;
+    ButtonEcrCV: TButton;
+    ButtonReprise: TButton;
+    OpenDialog: TOpenDialog;
+    N1: TMenuItem;
+    LireunfichierdeCV1: TMenuItem;
+    LireunaccessoireversunfichierdeCV1: TMenuItem;
+    SaveDialog: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -120,6 +127,10 @@ type
     procedure ChronoDetectClick(Sender: TObject);
     procedure EditNbTrainsKeyPress(Sender: TObject; var Key: Char);
     procedure FichierSimuClick(Sender: TObject);
+    procedure ButtonEcrCVClick(Sender: TObject);
+    procedure ButtonRepriseClick(Sender: TObject);
+    procedure LireunfichierdeCV1Click(Sender: TObject);
+    procedure LireunaccessoireversunfichierdeCV1Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -185,10 +196,10 @@ TMA             = (valide,devalide);
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2 : integer;
-    Hors_tension2,traceSign,TraceZone,Ferme,ParUSB,parSocket,ackCdm,
+    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole : integer;
+    Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
     NackCDM,MsgSim : boolean;
-    TraceListe,clignotant,nack,Maj_feux_cours,avecMSCom : boolean;
+    TraceListe,clignotant,nack,Maj_feux_cours : boolean;
 
     branche : array [1..100] of string;
     Train : array [1..100,1..MaxElParcours] of integer;
@@ -204,9 +215,10 @@ const
 var
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
-  DebugOuv,Raz_Acc_signaux,uni1,uni2,uni3,uni4 : boolean;
+  DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO : boolean;
   tablo : array of byte;
-  Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af : string;
+  Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af,
+  ConfStCom : string;
   maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,TypeGen,
   NbreImagePligne,Port,NbreBranches,Index2_det,branche_det,Index_det,
   portCDM,I_simule : integer;
@@ -214,12 +226,13 @@ var
   Adresse_detecteur : array[0..60] of integer; // adresses des détecteurs par index
   mem : array[0..1024] of boolean ; // mémoire des états des détecteurs
   MemZone : array[0..1024,0..1024] of boolean ; // mémoires de zones
-  Tablo_Simule : array[0..200] of 
+  Tablo_Simule : array[0..200] of
     record
       tick : longint;
       Detecteur,etat : integer ;
     end;
-  index_simule,NDetecteurs,N_Trains : integer;
+  N_Cv,index_simule,NDetecteurs,N_Trains : integer;
+  tablo_CV : array [1..255] of integer;
   couleur : Tcolor;
   fichier : text;
   recuCDML : array of string;
@@ -282,9 +295,10 @@ procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
 
+
 implementation
 
-uses UnitDebug, verif_version, UnitPilote, UnitSimule;
+uses UnitDebug, verif_version, UnitPilote, UnitSimule, UnitTCO;
 
 procedure menu_interface(MA : TMA);
 var val : boolean;
@@ -428,7 +442,7 @@ begin
     cercle(ACanvas,22,13,6,GrisF);
     cercle(ACanvas,33,13,6,grisF);
   end;
-  if EtatSignal=2 then 
+  if EtatSignal=2 then
   begin
     cercle(ACanvas,11,13,6,clWhite);
     cercle(ACanvas,22,13,6,clWhite);
@@ -922,17 +936,21 @@ begin
 end;
 
 
-
+// envoi d'une chaîne à la centrale Lenz par USBLenz ou socket, n'attend pas l'ack
+procedure envoi_ss_ack(s : string);
+begin
+  if Trace then affiche_chaine_Hex(s,ClGreen);
+  if portCommOuvert then FormPrinc.MSCommUSBLenz.Output:=s;
+  if parSocket then Formprinc.ClientSocketLenz.Socket.SendText(s);
+end;
 
 // envoi d'une chaîne à la centrale Lenz par USBLenz ou socket, puis attend l'ack ou le nack
 function envoi(s : string) : boolean;
 var temps : integer;
 begin
-  if Hors_tension2=false then
+  //if Hors_tension2=false then
   begin
-    if Trace then affiche_chaine_Hex(s,ClGreen);
-    if portCommOuvert then FormPrinc.MSCommUSBLenz.Output:=s;
-    if parSocket then Formprinc.ClientSocketLenz.Socket.SendText(s);
+    envoi_ss_ack(s);
     // attend l'ack
     ack:=false;nack:=false;
     if portCommOuvert or ParSocket then
@@ -1060,6 +1078,7 @@ var  groupe,temps : integer ;
      fonction : byte;
      s : string;
 begin
+  //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
   // pilotage par CDM rail
   if CDM_connecte then
   begin
@@ -1486,7 +1505,7 @@ begin
     end;
     
     if (Combine=ral_60)    and (aspect=jaune_cli) then valeur:=12;
-    if (Combine=rappel_30) and (aspect=jaune)     then valeur:=15;  
+    if (Combine=rappel_30) and (aspect=jaune)     then valeur:=15;
     if (Combine=rappel_30) and (aspect=jaune_cli) then valeur:=16;     
     if (Combine=rappel_60) and (aspect=jaune)     then valeur:=17;        
     if (Combine=rappel_60) and (aspect=jaune_cli) then valeur:=18;  
@@ -1498,106 +1517,6 @@ end;
 
 // décodeur unisemaf (paco)
 procedure envoi_UniSemaf(adresse: integer);
-var bits : integer;
-  procedure envoie4_uni(motif : byte);
-  var i,j,bit2,bitM,bh : integer;
-      s : string;
-  begin
-
-    s:='';
-    if uni1 then 
-    begin
-      j:=0;
-      bh:=(bits div 2) + (bits mod 2) ;
-      for i:=0 to bh-1 do   
-      begin
-        bit2:=(motif and 3);
-        if bit2=0 then bitM:=0;
-        if bit2=2 then bitM:=1;
-        if bit2=1 then bitM:=2;
-        if bit2=3 then bitM:=3;
-        pilote_acc(adresse+i,bitM,feu);
-        
-        s:=IntToSTR(Adresse+i)+' ' +intToSTR(bitM); 
-        if bitM=0 then s:=s+' (0)';
-        if bitM=1 then s:=s+' (-)';
-        if bitM=2 then s:=s+' (+)';
-        if bitM=3 then s:=s+' (!)';
-        
-        Affiche(s,clyellow);
-        motif:=motif shr 2; 
-        inc(j);                
-      end;   
-    end;   
-
-    if uni2 then
-    begin
-      j:=0;
-      bh:=(bits div 2) + (bits mod 2) ;
-      for i:=0 to bh-1 do   
-      begin
-        bit2:=(motif and 3);
-        pilote_acc(adresse+i,bit2,feu);
-        s:=IntToSTR(Adresse+i)+' ' +intToSTR(bit2); 
-        if bit2=0 then s:=s+' (0)';
-        if bit2=1 then s:=s+' (-)';
-        if bit2=2 then s:=s+' (+)';
-        if bit2=3 then s:=s+' (!)';
-        
-        Affiche(s,clyellow);
-        motif:=motif shr 2; 
-        inc(j);                
-      end;   
-    end;
-
-    if uni3 then
-    begin
-      j:=0;
-      bh:=(bits div 2) + (bits mod 2) ;
-      for i:=0 to bh-1 do   
-      begin
-        bit2:=(motif and 3);
-        if bit2<>0 then 
-        begin
-          pilote_acc(adresse+i,bit2,feu);
-          s:=IntToSTR(Adresse+i)+' ' +intToSTR(bit2); 
-          if bit2=1 then s:=s+' (-)';
-          if bit2=2 then s:=s+' (+)';
-          if bit2=3 then s:=s+' (!)';
-          Affiche(s,clyellow);
-        end;  
-        motif:=motif shr 2; 
-        inc(j);                
-      end;   
-    end;
-
-    if uni4 then
-    begin
-      j:=0;
-      bh:=(bits div 2) + (bits mod 2) ;
-      for i:=0 to bh-1 do   
-      begin
-        bit2:=(motif and 3);
-        if bit2=0 then bitM:=0;
-        if bit2=2 then bitM:=1;
-        if bit2=1 then bitM:=2;
-        if bit2=3 then bitM:=3;
-        if bitM<>0 then 
-        begin
-          pilote_acc(adresse+i,bitM,feu);
-          s:=IntToSTR(Adresse+i)+' ' +intToSTR(bit2); 
-          if bitM=1 then s:=s+' (-)';
-          if bitM=2 then s:=s+' (+)';
-          if bitM=3 then s:=s+' (!)';
-          Affiche(s,clyellow);
-        end;  
-        motif:=motif shr 2; 
-        inc(j);                
-      end;   
-    end;
-end;
-  
-    
 var modele,index,code,codebin,aspect : integer ;
     s : string;
 begin
@@ -1623,284 +1542,267 @@ begin
     //Affiche('Adresse='+intToSTR(Adresse)+' code='+intToSTR(code)+' combine'+intToSTR(combine),clyellow);
         if modele=2 then // 2 feux
         begin
-          bits:=2;
-          if code=blanc then      envoie4_uni($01);
-          if code=blanc_cli then  envoie4_uni($01);
-          if code=violet then     envoie4_uni($02);
+          if code=blanc then      pilote_acc(adresse,1,feu);
+          if code=blanc_cli then  pilote_acc(adresse,1,feu);
+          if code=violet then     pilote_acc(adresse,2,feu);
         end;
 
         if modele=3 then // 3 feux
         begin
-          bits:=3;
-          if code=vert then       envoie4_uni($01);
-          if code=vert_cli then   envoie4_uni($01);
+          if code=vert then       pilote_acc(adresse,1,feu);
+          if code=vert_cli then   pilote_acc(adresse,1,feu);
 
-          if code=semaphore then  envoie4_uni($02);
-          if code=semaphore_cli then  envoie4_uni($02);
+          if code=semaphore then  pilote_acc(adresse,2,feu);
+          if code=semaphore_cli then pilote_acc(adresse,2,feu);
 
-          if code=jaune then      envoie4_uni($04);
-          if code=jaune_cli then  envoie4_uni($04);
+          if code=jaune then      pilote_acc(adresse+1,1,feu);
+          if code=jaune_cli then  pilote_acc(adresse+1,1,feu);
         end;
 
         if modele=4 then
         begin
-          bits:=5;
           case code of
-          vert                  : envoie4_uni($14);
-          vert_cli              : envoie4_uni($14);
-          jaune                 : envoie4_uni($11);
-          jaune_cli             : envoie4_uni($11);
-          semaphore             : envoie4_uni($12);
-          semaphore_cli         : envoie4_uni($12);
-          carre                 : envoie4_uni($0A);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
           end;
         end;
         // 51=carré + blanc
         if modele=51 then
         begin
-          bits:=6;
           case code of
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          carre                 : envoie4_uni($0A);
-          blanc                 : envoie4_uni($10);
-          blanc_cli             : envoie4_uni($10);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
+          blanc                 : pilote_acc(adresse+2,1,feu);
+          blanc_cli             : pilote_acc(adresse+2,1,feu);
           end;
         end;
         // 52=VJR + blanc + violet
         if modele=52 then
         begin
-          bits:=6;
           case code of
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          violet                : envoie4_uni($10);
-          blanc                 : envoie4_uni($08);
-          blanc_cli             : envoie4_uni($08);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          violet                : pilote_acc(adresse+2,1,feu);
+          blanc                 : pilote_acc(adresse+1,2,feu);
+          blanc_cli             : pilote_acc(adresse+1,2,feu);
           end;
         end;
         // 71=VJR + ralentissement 30
         if modele=71 then
         begin
-          bits:=4;
           case code of
-          vert                  : envoie4_uni($04);
-          vert_cli              : envoie4_uni($04);
-          jaune                 : envoie4_uni($01);
-          jaune_cli             : envoie4_uni($01);
-          semaphore             : envoie4_uni($02);
-          semaphore_cli         : envoie4_uni($02);
-          ral_30                : envoie4_uni($08);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          ral_30                : pilote_acc(adresse+1,2,feu);
           end;
         end;
         // 72=VJR + carré + ralentissement 30
         if modele=72 then
         begin
-          bits:=6;
           case code of
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          carre                 : envoie4_uni($0A);
-          ral_30                : envoie4_uni($30);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
+          ral_30                : pilote_acc(adresse+2,1,feu);
           end;
         end;
         // 73=VJR + carré + ralentissement 60
         if modele=73 then
         begin
-          bits:=6;
           case code of
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          carre                 : envoie4_uni($0A);
-          ral_60                : envoie4_uni($30);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
+          ral_60                : pilote_acc(adresse+2,1,feu);
           end;
         end;
         // 91=VJR + carré + rappel 30
         if modele=91 then
         begin
-          bits:=6;
           case code of
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          carre                 : envoie4_uni($0A);
-          rappel_30             : envoie4_uni($30);
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
+          rappel_30             : pilote_acc(adresse+2,1,feu);
           end;
         end;
-        
+
         // 92=VJR + carré + rappel 60
         if modele=92 then
         begin
-          bits:=6;
-          case code of 
-          vert                  : envoie4_uni($24);
-          vert_cli              : envoie4_uni($24);
-          jaune                 : envoie4_uni($21);
-          jaune_cli             : envoie4_uni($21);
-          semaphore             : envoie4_uni($22);
-          semaphore_cli         : envoie4_uni($22);
-          carre                 : envoie4_uni($0A);
-          rappel_60             : envoie4_uni($30);
+          case code of
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
+          rappel_60             : pilote_acc(adresse+2,1,feu);
           end;
         end;
-        
+
         // 93=VJR + carré + ral30 + rappel 30
         if modele=93 then
         begin
-          bits:=7;
-          if combine=0 then 
+          if combine=0 then
           begin
-            if code=vert                 then envoie4_uni($44);
-            if code=vert_cli              then envoie4_uni($44);
-            if code=jaune                 then envoie4_uni($41);
-            if code=jaune_cli             then envoie4_uni($41);
-            if code=semaphore             then envoie4_uni($42);
-            if code=semaphore_cli         then envoie4_uni($42);
-            if code=carre                 then envoie4_uni($0A);
-            if code=ral_30                then envoie4_uni($50);
-            if code=rappel_30             then envoie4_uni($60);
+            if code=vert                  then pilote_acc(adresse,1,feu);
+            if code=vert_cli              then pilote_acc(adresse,1,feu);
+            if code=jaune                 then pilote_acc(adresse,2,feu);
+            if code=jaune_cli             then pilote_acc(adresse,2,feu);
+            if code=semaphore             then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if code=carre                 then pilote_acc(adresse+1,2,feu);
+            if code=ral_30                then pilote_acc(adresse+2,1,feu);
+            if code=rappel_30             then pilote_acc(adresse+2,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then envoie4_uni($61);
+          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
-        
+
         // 94=VJR + carré + ral60 + rappel60
         if modele=94 then
         begin
-          bits:=7;
           if combine=0 then
           begin
-            if code=vert                  then envoie4_uni($44);
-            if code=vert_cli              then envoie4_uni($44);
-            if code=jaune                 then envoie4_uni($41);
-            if code=jaune_cli             then envoie4_uni($41);
-            if code=semaphore             then envoie4_uni($42);
-            if code=semaphore_cli         then envoie4_uni($42);
-            if code=carre                 then envoie4_uni($0A);
-            if code=ral_60                then envoie4_uni($50);
-            if code=rappel_60             then envoie4_uni($60);
+            if code=vert                  then pilote_acc(adresse,1,feu);
+            if code=vert_cli              then pilote_acc(adresse,1,feu);
+            if code=jaune                 then pilote_acc(adresse,2,feu);
+            if code=jaune_cli             then pilote_acc(adresse,2,feu);
+            if code=semaphore             then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if code=carre                 then pilote_acc(adresse+1,2,feu);
+            if code=ral_60                then pilote_acc(adresse+2,1,feu);
+            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then envoie4_uni($61);
+          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
-        
+
         // 95=VJR + carré + ral30 + rappel 60
         if modele=95 then
         begin
-          bits:=7;
           if combine=0 then
           begin
-            if code=vert                  then envoie4_uni($44);
-            if code=vert_cli              then envoie4_uni($44);
-            if code=jaune                 then envoie4_uni($41);
-            if code=jaune_cli             then envoie4_uni($41);
-            if code=semaphore             then envoie4_uni($42);
-            if code=semaphore_cli         then envoie4_uni($42);
-            if code=carre                 then envoie4_uni($0A);
-            if code=ral_30                then envoie4_uni($50);
-            if code=rappel_60             then envoie4_uni($60);
+            if code=vert                  then pilote_acc(adresse,1,feu);
+            if code=vert_cli              then pilote_acc(adresse,1,feu);
+            if code=jaune                 then pilote_acc(adresse,2,feu);
+            if code=jaune_cli             then pilote_acc(adresse,2,feu);
+            if code=semaphore             then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if code=carre                 then pilote_acc(adresse+1,2,feu);
+            if code=ral_30                then pilote_acc(adresse+2,1,feu);
+            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then envoie4_uni($61);
+          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
         // 96=VJR + blanc + carré + ral30 + rappel30
         if modele=96 then
         begin
-          bits:=8;
-          if combine=0 then 
+          if combine=0 then
           begin
-            if code=vert               then envoie4_uni($84);
-            if code=vert_cli           then envoie4_uni($84);
-            if code=jaune              then envoie4_uni($81);
-            if code=jaune_cli          then envoie4_uni($81);
-            if code=semaphore          then envoie4_uni($82);
-            if code=semaphore_cli      then envoie4_uni($82);
-            if code=carre              then envoie4_uni($0A);
-            if code=ral_30             then envoie4_uni($90);
-            if code=rappel_30          then envoie4_uni($A0);
-            if code=blanc              then envoie4_uni($C1);
-            if code=blanc_cli          then envoie4_uni($C1);
+            if code=vert               then pilote_acc(adresse,1,feu);
+            if code=vert_cli           then pilote_acc(adresse,1,feu);
+            if code=jaune              then pilote_acc(adresse,2,feu);
+            if code=jaune_cli          then pilote_acc(adresse,2,feu);
+            if code=semaphore          then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli      then pilote_acc(adresse+1,1,feu);
+            if code=carre              then pilote_acc(adresse+1,2,feu);
+            if code=ral_30             then pilote_acc(adresse+2,1,feu);
+            if code=rappel_30          then pilote_acc(adresse+2,2,feu);
+            if code=blanc              then pilote_acc(adresse+3,2,feu);
+            if code=blanc_cli          then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then envoie4_uni($A1);
+          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
-        
+
         // 97=VJR + blanc + carré + ral30 + rappel60
         if modele=97 then
         begin
-          bits:=8;
           if combine=0 then
           begin
-            if code=vert                  then envoie4_uni($84);
-            if code=vert_cli              then envoie4_uni($84);
-            if code=jaune                 then envoie4_uni($81);
-            if code=jaune_cli             then envoie4_uni($81);
-            if code=semaphore             then envoie4_uni($82);
-            if code=semaphore_cli         then envoie4_uni($82);
-            if code=carre                 then envoie4_uni($0A);
-            if code=ral_30                then envoie4_uni($90);
-            if code=rappel_60             then envoie4_uni($A0);
-            if code=blanc                 then envoie4_uni($40);
-            if code=blanc_cli             then envoie4_uni($40);
+            if code=vert                  then pilote_acc(adresse,1,feu);
+            if code=vert_cli              then pilote_acc(adresse,1,feu);
+            if code=jaune                 then pilote_acc(adresse,2,feu);
+            if code=jaune_cli             then pilote_acc(adresse,2,feu);
+            if code=semaphore             then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if code=carre                 then pilote_acc(adresse+1,2,feu);
+            if code=ral_30                then pilote_acc(adresse+2,1,feu);
+            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
+            if code=blanc                 then pilote_acc(adresse+3,2,feu);
+            if code=blanc_cli             then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then envoie4_uni($A1);
+          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
         
         // 98=VJR + blanc + violet + ral30 + rappel30
         if modele=98 then
         begin
-          bits:=8;
-          if combine=0 then 
+          if combine=0 then
           begin
-            if code=vert then                  envoie4_uni($84);
-            if code=vert_cli then              envoie4_uni($84);
-            if code=jaune then                 envoie4_uni($81);
-            if code=jaune_cli then             envoie4_uni($81);
-            if code=semaphore then             envoie4_uni($82);
-            if code=semaphore_cli then         envoie4_uni($82);
-            if code=violet then                envoie4_uni($40);
-            if code=ral_30 then                envoie4_uni($90);
-            if code=rappel_30 then             envoie4_uni($A0);
-            if code=blanc then                 envoie4_uni($08);
-            if code=blanc_cli then             envoie4_uni($08);
+            if code=vert then               pilote_acc(adresse,1,feu);
+            if code=vert_cli then           pilote_acc(adresse,1,feu);
+            if code=jaune then              pilote_acc(adresse,2,feu);
+            if code=jaune_cli then          pilote_acc(adresse,2,feu);
+            if code=semaphore then          pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli then      pilote_acc(adresse+1,1,feu);
+            if code=violet then             pilote_acc(adresse+1,2,feu);
+            if code=ral_30 then             pilote_acc(adresse+2,1,feu);
+            if code=rappel_30 then          pilote_acc(adresse+2,2,feu);
+            if code=blanc then              pilote_acc(adresse+3,2,feu);
+            if code=blanc_cli then          pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then  envoie4_uni($A1);
+          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
-        
+
         // 99=VJR + blanc + violet + ral30 + rappel60
         if modele=99 then
         begin
-          bits:=8;
-          if combine=0 then 
+          if combine=0 then
           begin
-            if code=vert   then  envoie4_uni($84);
-            if code=vert_cli              then envoie4_uni($84);
-            if code=jaune                 then envoie4_uni($81);
-            if code=jaune_cli             then envoie4_uni($81);
-            if code=semaphore             then envoie4_uni($82);
-            if code=semaphore_cli         then envoie4_uni($82);
-            if code=violet                then envoie4_uni($40);
-            if code=ral_30                then envoie4_uni($90);
-            if code=rappel_60             then envoie4_uni($A0);
-            if code=blanc                 then envoie4_uni($08);
-            if code=blanc_cli             then envoie4_uni($08);
+            if code=vert                  then pilote_acc(adresse,1,feu);
+            if code=vert_cli              then pilote_acc(adresse,1,feu);
+            if code=jaune                 then pilote_acc(adresse,2,feu);
+            if code=jaune_cli             then pilote_acc(adresse,2,feu);
+            if code=semaphore             then pilote_acc(adresse+1,1,feu);
+            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if code=violet                then pilote_acc(adresse+1,2,feu);
+            if code=ral_30                then pilote_acc(adresse+2,1,feu);
+            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
+            if code=blanc                 then pilote_acc(adresse+3,2,feu);
+            if code=blanc_cli             then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then envoie4_uni($A1);
+          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
     dessine_feu(adresse);
   end;
@@ -3060,10 +2962,45 @@ begin
   if i<>0 then begin adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);end
   else begin adresseIP:='0';parSocket:=false;end;
 
-  // numéro de port
-  s:=lit_ligne;
-  NumPort:=StrToINT(s);
-
+  // configuration du port com
+  s:=lit_ligne; // COM3:57600,N,8,1,2 
+  sa:=s;
+  protocole:=-1;
+  // supprimer la dernier paramètre
+  i:=pos(',',s);
+  if i<>0 then
+  begin
+    delete(s,1,i);
+    j:=i;
+    i:=pos(',',s);
+    j:=j+i;
+    if i<>0 then
+    begin
+      delete(s,1,i);
+      i:=pos(',',s);
+      j:=j+i;
+      if i<>0 then
+      begin
+        delete(s,1,i);
+        i:=pos(',',s);
+        j:=j+i;
+        if i<>0 then
+        begin
+          delete(s,1,i);
+          Val(s,protocole,erreur);
+        end;
+      end;
+    end;
+  end;         
+   
+  ConfStCom:=copy(sa,1,j-1);   
+  i:=pos(':',ConfStCom);
+  
+  val(ConfStCom[i-1],Numport,erreur);
+  if i<>0 then Delete(ConfStCom,1,i);
+  
+  if (protocole=-1) or (i=0) then Affiche('Erreur port com mal déclaré : '+sa,clred);
+  
   //avec ou sans initialisation des aiguillages
   s:=lit_ligne;
   AvecInitAiguillages:=StrToINT(s);
@@ -3090,7 +3027,7 @@ begin
         if (temporisation<0) or (temporisation>10) then temporisation:=5;
         aiguillage[adresse].temps:=temporisation;
         aiguillageB[adresse].temps:=temporisation;
-        
+
         invers:=StrToInt(s);
         if (invers<0) or (invers>1) then invers:=0;   // inversion commande
         aiguillage[adresse].inversion:=invers;
@@ -4848,7 +4785,7 @@ begin
   dec(N_event_det);
 end;
 
-// trouve adresse d'un détecteur à "etat" avant "index"
+// trouve adresse d'un détecteur à "etat" avant "index" dans le tableai chrono
 function trouve_index_det_chrono(Adr,etat,index : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -4974,11 +4911,11 @@ begin
     AdrPrec:=detecteur_suivant_El(det2,1,det1,1);
 
     // le train vient de det1, quitte det2 et va vers Adr
+    // il faut vérifier si le détecteur précédent à été mis à 1 puis à 0 (on cherche 0)
     s:='Test route pour prec='+intToSTR(AdrPrec)+' det1='+intToSTR(det1)+' det2='+IntToSTR(det2) ;
     FormDebug.MemoDet.lines.add(s);
     if traceListe then AfficheDebug(s,clyellow);
 
-    // test avec ou sans mémoire précédente
     // trouver l'index du détecteur (det1) à 0
     i:=trouve_index_det_chrono(det1,0,N_Event_tick);
     if TraceListe then AfficheDebug('Index det='+intToSTR(i),clyellow);
@@ -5755,7 +5692,7 @@ var i : integer;
     chaineInt : string;
 begin
   chaineInt:=s;
-  i:=pos(#$FF+#$FD+#$42,chaineInt);
+  i:=pos(#$FF+#$FD+#$42,chaineInt);      // réponse de l'information des accessoires
   if (i<>0) and (length(chaineInt)>=5) then
   begin
     delete(chaineInt,i,3);
@@ -5813,7 +5750,7 @@ end;
 // procédure appellée après réception sur le port USB ou socket
 procedure interprete_reponse(chaine : string);
 var chaineInt,msg : string;
-    i : integer;
+    i,cv : integer;
 
 begin
   chaineInt:=chaine;
@@ -5826,9 +5763,10 @@ begin
     begin
       msg:='';
       delete(chaineINT,i,2);
+      // décodage du 3eme octet de la chaîne
       if chaineINT[1]=#1 then
       begin
-        case chaineINT[i+1] of
+        case chaineINT[i+1] of   // page 13 doc XpressNet
         #1 :  begin nack:=true;msg:='erreur timout transmission';end;
         #2 :  begin nack:=true;msg:='erreur timout centrale';end;
         #3 :  begin nack:=true;msg:='erreur communication inconnue';end;
@@ -5865,14 +5803,30 @@ begin
               #$81 : begin nack:=true;msg:='Station occupée - Voir doc XpressNet p29';end;
               #$82 : begin nack:=true;msg:='Commande non implantée';end;
               else begin nack:=true;msg:='Réception inconnue';end;
+              end;
+            end
+            else
+            begin
+              if ((chaineINT[1]=#$63) and (chaineINT[2]=#$14)) then    // V3.6 uniquement
+              begin
+                // réception d'un CV. DocXpressNet p26
+                delete(chaineInt,1,2);
+                cv:=ord(chaineINT[1]);
+                if cv>255 then Affiche('Erreur Recu CV>255',clRed)
+                else
+                begin
+                  tablo_cv[cv]:=ord(chaineINT[2]);
+                  inc(N_Cv); // nombre de CV recus
+                end;
+              end
+              else
+                Affiche(msg,clRed);
             end;
-            Affiche(msg,clRed);
           end;
         end;
       end;
     end;
-    if length(chaineINT)<=3 then delete(chaineINT,i,length(chaineINT));
-    end
+    if length(chaineINT)<=3 then delete(chaineINT,i,length(chaineINT))
     else
     begin
       i:=pos(#$ff+#$fd,chaineINT);
@@ -5917,15 +5871,13 @@ end;
 procedure connecte_USB;
 begin
 // initialisation de la comm USB
-  if avecMSCom then
-  begin
     if NumPort<>0 then
     begin
       With Formprinc.MSCommUSBLenz do
       begin
-        Affiche('demande ouverture com'+intToSTR(nuMPort),CLYellow);
-        Settings:='57600,N,8,1';
-        Handshaking:=2; {2=cts  }
+        Affiche('demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+','+IntToSTR(protocole),CLYellow);
+        Settings:=ConfStCom;
+        Handshaking:=protocole; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff }
         SThreshold:=1;
         RThreshold:=1;
         CommPort:=NumPort;
@@ -5944,14 +5896,14 @@ begin
           portCommOuvert:=false;
           Affiche('Port Com nul dans le fichier de configuration',clyellow);
         end;
-    if portCommOuvert then affiche('port COM'+intToSTR(NumPort)+' ouvert',clGreen) else
-    Affiche('port COM'+intToSTR(NumPort)+' NON ouvert',clRed)  ;
-    if portCommOuvert then ParUSB:=true else ParUSB:=false;
-  end
-  else
-  begin
-    PortCommOuvert:=false;ParUSB:=false;
-  end;  
+
+    if portCommOuvert then
+    begin
+      affiche('port COM'+intToSTR(NumPort)+' ouvert',clGreen);
+      Formprinc.LabelEtat.caption:='Interface connectée au COM'+IntToSTR(NumPort);
+    end  
+    else
+      Affiche('port COM'+intToSTR(NumPort)+' NON ouvert',clRed)  ;
 end;
 
 procedure deconnecte_CDM;
@@ -5978,10 +5930,6 @@ begin
     tempo(5);
     // connexion à CDM rail
     s:='C-C-00-0001-CMDGEN-_CNCT|000|';
-    //s:='C-C-00-0001-CMDGEN-_CNCT|019|01|LAY=CAPDEBOUHEYRE;';
-    //s:='|01|LAY=CAPDEBOUHEYRE;';
-    //s:='|01|LAY=RESEAU_TEST;';
-    //s:='C-C-00-0001-CMDGEN-_CNCT|'+format('%.*d',[3,length(s)-1])+s;
     envoi_cdm(s);
     if pos('_ACK',recuCDM)<>0 then
     begin
@@ -5998,11 +5946,6 @@ begin
       // demande les trains
       ////s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
       //envoi_CDM(s);
-
-      s:=chaine_CDM_Acc(23,2);
-      envoi_CDM(s);
-      s:=chaine_CDM_Acc(23,0);
-      envoi_CDM(s);
     end;
   end
   else
@@ -6048,9 +5991,9 @@ begin
   TraceSign:=True;
   AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
-  avecMSCom:=false;
   Application.onHint:=doHint;
   LabelEtat.Caption:='Initialisations en cours';
+
   Menu_interface(devalide);
 
   // créée la fenetre debug
@@ -6060,6 +6003,13 @@ begin
   NivDebug:=0;
   DebugOuv:=True;
 
+  //LireunaccessoireversunfichierdeCV1.Visible:=false;
+
+  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  AvecTCO:=false;
+
+
+  
   EditNbTrains.Text:=IntToSTR(N_Trains);
 
   // créée la fenetre vérification de version
@@ -6079,6 +6029,17 @@ begin
   // lecture fichier de configuration  config.cfg
   lit_config;
 
+  // TCO
+  if avectco then
+  begin
+    //créée la fenêtre TCO
+    FormTCO:=TformTCO.Create(Self);
+    FormTCO.show;
+    construit_TCO;
+    affiche_TCO;
+  end;  
+
+  
   // tenter la liaison vers CDM rail ou vers la centrale Lenz
   Affiche('Test présence CDM',clYellow);
   connecte_CDM;
@@ -6087,12 +6048,10 @@ begin
     Affiche('CDM absent - Ouverture liaison vers centrale Lenz',clYellow);
     // ouverture par USB
     Affiche('demande connexion à la centrale Lenz par USB',clyellow);
-    AvecMsCom:=True; // indicateur de connexion USB
-    connecte_USB; // connecte si avecMSCom=True;
-    if not(ParUSB) then
+    connecte_USB;
+    if not(portCommOuvert) then
     begin
       // sinon ouvrir socket vers la centrale
-      avecMScom:=false;
       // Initialisation de la comm socket LENZ
       if AdresseIP<>'0' then
       begin
@@ -6100,12 +6059,25 @@ begin
         ClientSocketLenz.port:=port;
         ClientSocketLenz.Address:=AdresseIP;
         ClientSocketLenz.Open;
-        avecMSCom:=false;
       end
-    end
-    else avecMScom:=true;
+    end;
   end;
 
+  if portCommOuvert or parsocket then 
+  With Formprinc do
+  begin
+    ButtonEcrCV.Enabled:=true;
+    LireunfichierdeCV1.enabled:=true;
+    LireunaccessoireversunfichierdeCV1.Enabled:=true;
+  end
+  else
+  With Formprinc do
+  begin
+    ButtonEcrCV.Enabled:=false;
+    LireunfichierdeCV1.enabled:=false;
+    LireunaccessoireversunfichierdeCV1.Enabled:=false;
+  end ;
+  
   // Initialisation des images des signaux
   NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
 
@@ -6127,11 +6099,15 @@ begin
   I_Simule:=0;
   tick:=0;
 
-  
   N_Event_tick:=0 ; // dernier index
-  
   NombreImages:=0;
 
+  // énumération des ports USB
+  //EnumerateDevices;
+  //for i:=1 to NumLine do
+  //begin
+  //  if pos('Ports',Line[i])<>0 then Affiche(Line[i],clyellow);
+  //end;
   
   //essai
  // event_det[1]:=527;
@@ -6162,6 +6138,7 @@ begin
   //test_memoire_zones(218);
   //Det_Adj(520);
   //Affiche(' Adj1='+intToStr(Adj1)+' Adj2='+intToStr(Adj2),clyellow);
+ 
   Affiche('Fin des initialisations',clyellow);
 end;
 
@@ -6219,13 +6196,6 @@ begin
 
 end;
 
-procedure simulation;
-var s : string;
-    adr,ts : integer;
-begin
-
-
-end;
 
 
 // timer à 100 ms
@@ -6235,13 +6205,13 @@ begin
   inc(tick);
 
   if Tempo_init>0 then dec(Tempo_init);
-  if Tempo_init=1 then
+  if (Tempo_init=1) and AvecInit then
   begin
     Affiche('Positionnement des feux',clYellow);
     if not(ferme) then envoi_signauxCplx;  // initialisation des feux
     if not(ferme) and (AvecInitAiguillages=1) then init_aiguillages else   // initialisation des aiguillages
     if not(ferme) and (parSocket or portCommOuvert) then demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
-    LabelEtat.Caption:=' ';
+    //LabelEtat.Caption:=' ';
     Menu_interface(valide);
   end;
 
@@ -6383,7 +6353,6 @@ begin
    afficheDebug(s,ClRed);
    CDM_connecte:=false;
    ErrorCode:=0;
-   LabelEtat.caption:=Titre;
 end;
 
 // lecture depuis socket
@@ -6392,8 +6361,8 @@ procedure TFormPrinc.ClientSocketLenzRead(Sender: TObject;
 var s : string;
 begin
   s:=ClientSocketLenz.Socket.ReceiveText;
-  interprete_reponse(s);
   if trace then affiche(chaine_hex(s),clWhite);
+  interprete_reponse(s);
 end;
 
 procedure TFormPrinc.ButtonTestClick(Sender: TObject);
@@ -6555,6 +6524,10 @@ begin
   Affiche('Lenz connecté ',clYellow);
   AfficheDebug('Lenz connecté ',clYellow);
   parSocket:=True;
+  ButtonEcrCV.Enabled:=true;
+  LireunfichierdeCV1.enabled:=true;
+  LireunaccessoireversunfichierdeCV1.Enabled:=true;
+  LabelEtat.caption:='Interface connectée par Ethernet';
 end;
 
 procedure TFormPrinc.ClientSocketCDMConnect(Sender: TObject;Socket: TCustomWinSocket);
@@ -6718,6 +6691,8 @@ begin
    Affiche('Version 1.11 : compatibilité pour la rétrosignalisation non XpressNet (intellibox)',clLime);
    Affiche('                    verrouillages routes pour trains consécutifs',clLime);
    Affiche('Version 1.2  : Renforcement de l''algorithme de suivi des trains',clLime);
+   Affiche('Version 1.3  : Décodeur Unisemaf fonctionnel - Lecture/écriture des CV',clLime);
+   Affiche('                     Protocoles variables de l''interface',clLime);
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
@@ -6760,13 +6735,167 @@ if ord(Key) = VK_RETURN then
     N_trains:=StrToint(EditNbTrains.Text);
     Affiche(IntToSTR(N_trains)+' trains',clyellow);
   end;
-end;  
+end;
 
 procedure TFormPrinc.FichierSimuClick(Sender: TObject);
 begin
   FormSimulation.showModal;
-  TraceListe:=true;
+  //TraceListe:=true;
 end;
+
+procedure TFormPrinc.ButtonEcrCVClick(Sender: TObject);
+var adr,valeur,erreur : integer;
+    s : string;
+begin
+  // doc XpressNet page 55
+  if (Adr>255) or (valeur>255) then exit;
+  val(EditAdresse.text,adr,erreur);
+  val(EditVal.Text,valeur,erreur);
+  //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
+  //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
+  s:=#$ff+#$fe+#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
+
+  s:=checksum(s);
+  envoi(s);     // envoi de la trame et attente Ack
+  // la centrale passe en mode service (p23)
+  Affiche('CV'+intToSTR(Adr)+'='+intToSTR(valeur),clyellow);
+
+end;
+
+procedure TFormPrinc.ButtonRepriseClick(Sender: TObject);
+var s : string;
+begin
+  s:=#$ff+#$fe+#$21+#$81;
+  s:=checksum(s);
+  envoi(s);     // envoi de la trame et attente Ack
+
+end;
+
+procedure Lire_fichier_CV;
+var s: string;
+    fte : textfile;
+    cv,valeur,erreur : integer;
+begin
+  s:=GetCurrentDir;
+  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
+  with FormPrinc do
+  begin
+    OpenDialog.InitialDir:=s;
+    OpenDialog.DefaultExt:='txt';
+    OpenDialog.Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
+    if openDialog.Execute then
+    begin
+      s:=openDialog.FileName;
+      assignFile(fte,s);
+      reset(fte);
+      while not(eof(fte)) do
+      begin
+        readln(fte,s);
+     // s:=' 35     63';
+        val(s,cv,erreur);
+
+        if (cv<>0) then
+        begin
+          delete(s,1,erreur);
+          val(s,valeur,erreur);
+          Affiche('CV='+intToSTR(cv)+' Valeur='+IntToSTR(valeur),clLime);
+          if cv>255 then Affiche('Erreur CV '+IntToSTR(cv)+'>255',clred);
+          if valeur>255 then Affiche('Erreur valeur '+IntToSTR(valeur)+'>255',clred);
+
+          if (cv<=255) and (valeur<=255) then
+          begin
+            s:=#$ff+#$fe+#$23+#$16+Char(cv)+Char(valeur);      //CV de 1 à 256
+            s:=checksum(s);
+            envoi(s);     // envoi de la trame et attente Ack, la premiere trame fait passer la centrale en mode programmation (service)
+            tempo(5);
+          end;
+        end;
+
+      end;
+      closeFile(fte);
+    end;
+  end;
+end;
+
+
+procedure TFormPrinc.LireunfichierdeCV1Click(Sender: TObject);
+begin
+  Lire_fichier_CV;
+end;
+
+procedure TFormPrinc.LireunaccessoireversunfichierdeCV1Click(Sender: TObject);
+var s,sa: string;
+    fte : textfile;
+    i,cv,valeur,erreur : integer;
+begin
+  s:=GetCurrentDir;
+  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
+  N_Cv:=0; // nombre de CV recus à 0
+  sa:='';
+  //for cv:=1 to 255 do
+  begin
+        cv:=3;
+        trace:=true;
+        //s:=#$ff+#$fe+#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
+        s:=#$ff+#$fe+#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
+        s:=checksum(s);
+        // envoi(s);     // envoi de la trame et attente Ack, la premiere trame fait passer la centrale en mode programmation (service)
+        envoi_ss_ack(s);
+        Tempo(1);
+
+        s:=#$ff+#$fe+#$21+#$10+Char(cv);      // demande d'envoi du résultat du mode service
+        s:=checksum(s);
+        //envoi(s);
+        envoi_ss_ack(s);
+        Tempo(1);
+
+        // attente de la réponse de la centrale
+        tablo_CV[cv]:=0;
+        i:=0;
+        repeat
+          Tempo(2); // attend 200 ms
+          inc(i);
+        // N_cv:=cv;
+        until (N_cv=cv) or (i>4);
+        if (i>4) then
+        begin
+          Affiche('Erreur attente trop longue CV',clred);
+          exit;
+        end;
+        //tablo_cv[cv]:=123;
+        sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+        if cv mod 9=0 then
+        begin
+           Affiche(sa,clyellow);sa:='';
+        end;
+  end;
+  Affiche(sa,clyellow);sa:='';
+
+  with FormPrinc.SaveDialog do
+  begin
+    InitialDir:=s;
+    title:='Ecrire un nom de fichier dans lequel sauvegarder les CV';
+    DefaultExt:='txt';
+    Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
+
+    if Execute then
+    begin
+      s:=FileName;
+      assignFile(fte,s);
+      rewrite(fte);
+      Writeln(fte,'cv   valeur');
+      for cv:=1 to 255 do
+      begin
+        s:=IntToSTR(cv)+'  '+intToSTR(tablo_CV[cv]);
+        Writeln(fte,s);
+      end;
+      closeFile(fte);
+    end;
+  end;
+
+end;
+
+
 
 end.
 

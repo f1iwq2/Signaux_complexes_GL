@@ -23,6 +23,8 @@ type
     ButtonAffEvtChrono: TButton;
     CheckAffAffecTrains: TCheckBox;
     CheckBoxTraceLIste: TCheckBox;
+    CheckTrame: TCheckBox;
+    ButtonCop: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -33,6 +35,8 @@ type
     procedure ButtonAffEvtChronoClick(Sender: TObject);
     procedure CheckAffAffecTrainsClick(Sender: TObject);
     procedure CheckBoxTraceLIsteClick(Sender: TObject);
+    procedure CheckTrameClick(Sender: TObject);
+    procedure ButtonCopClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -159,7 +163,7 @@ begin
   begin
     i:=0;
     repeat
-      trouve:= pos('erreur',Lines[i])<>0;
+      trouve:=pos('erreur',Lines[i])<>0;
       inc(i);
     until (i>=Lines.Count) or trouve;
     if trouve then
@@ -171,7 +175,6 @@ begin
     end;
   end;
 end;
-
 
 procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
 var i,j,etat : integer;
@@ -199,6 +202,17 @@ end;
 procedure TFormDebug.CheckBoxTraceLIsteClick(Sender: TObject);
 begin
   TraceListe:=CheckBoxTraceLIste.checked;
+end;
+
+procedure TFormDebug.CheckTrameClick(Sender: TObject);
+begin
+  trace:=CheckTrame.Checked;
+end;
+
+procedure TFormDebug.ButtonCopClick(Sender: TObject);
+var i : integer;
+begin
+  MemoDebug.Lines:=Formprinc.ListBox1.Items
 end;
 
 end.

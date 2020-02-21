@@ -6,7 +6,9 @@ uses
   UnitDebug in 'UnitDebug.pas' {FormDebug},
   verif_version in 'verif_version.pas' {FormVersion},
   UnitPilote in 'UnitPilote.pas' {FormPilote},
-  UnitSimule in 'UnitSimule.pas' {FormSimulation};
+  UnitSimule in 'UnitSimule.pas' {FormSimulation},
+  UnitTCO in 'UnitTCO.pas' {FormTCO},
+  listeusb in 'listeusb.pas';
 
 {$R *.res}
 
@@ -16,5 +18,6 @@ begin
   Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
+  Application.CreateForm(TFormTCO, FormTCO);
   Application.Run;
 end.

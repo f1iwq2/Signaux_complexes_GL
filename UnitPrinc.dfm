@@ -1,9 +1,9 @@
 object FormPrinc: TFormPrinc
-  Left = 33
-  Top = 205
+  Left = 34
+  Top = 494
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
-  ClientHeight = 607
+  ClientHeight = 601
   ClientWidth = 1196
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -33,9 +33,9 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object LabelEtat: TLabel
-    Left = 440
+    Left = 344
     Top = 8
-    Width = 80
+    Width = 305
     Height = 22
     Caption = 'LabelEtat'
     Font.Charset = ANSI_CHARSET
@@ -596,10 +596,10 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3feux: TImage
-    Left = 600
+    Left = 616
     Top = 0
-    Width = 49
-    Height = 105
+    Width = 33
+    Height = 57
     Picture.Data = {
       07544269746D617006090000424D060900000000000036040000280000001A00
       00002C0000000100080000000000D0040000C40E0000C40E0000000100000000
@@ -678,7 +678,7 @@ object FormPrinc: TFormPrinc
   end
   object Image2feux: TImage
     Left = 1096
-    Top = 104
+    Top = 128
     Width = 33
     Height = 57
     Picture.Data = {
@@ -1090,8 +1090,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 1120
-    Top = 96
+    Left = 1112
+    Top = 128
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1198,8 +1198,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object BoutVersion: TButton
-    Left = 656
-    Top = 0
+    Left = 1008
+    Top = 8
     Width = 83
     Height = 33
     Caption = 'Dem version'
@@ -1225,7 +1225,7 @@ object FormPrinc: TFormPrinc
   end
   object BoutonRaf: TButton
     Left = 912
-    Top = 64
+    Top = 8
     Width = 89
     Height = 33
     Caption = 'Rafraichissement'
@@ -1234,18 +1234,18 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 648
-    Top = 164
+    Top = 160
     Width = 537
-    Height = 401
+    Height = 405
     Color = clWhite
     ParentColor = False
     TabOrder = 3
   end
   object GroupBox1: TGroupBox
     Left = 656
-    Top = 40
+    Top = 0
     Width = 249
-    Height = 65
+    Height = 97
     Caption = 'Commande d'#39'accessoires'
     TabOrder = 4
     object Label2: TLabel
@@ -1282,6 +1282,7 @@ object FormPrinc: TFormPrinc
       Top = 32
       Width = 41
       Height = 21
+      Hint = 'Entrez 1 ou 2 pour un accessoire DCC et 1 '#224' 255 pour un CV'
       TabOrder = 1
       Text = '1'
       OnEnter = EditvalEnter
@@ -1291,25 +1292,37 @@ object FormPrinc: TFormPrinc
       Top = 24
       Width = 109
       Height = 33
+      Hint = 'Ecriture des accessoires DCC'
       Caption = 'Envoi commande'
       TabOrder = 2
       WordWrap = True
       OnClick = ButtonCommandeClick
     end
+    object ButtonEcrCV: TButton
+      Left = 8
+      Top = 64
+      Width = 225
+      Height = 25
+      Hint = 'Ecriture CV en mode direct sur voie de  programmation'
+      Caption = 'Ecriture CV - 1 '#224' 255 par bus XpressNet'
+      TabOrder = 3
+      WordWrap = True
+      OnClick = ButtonEcrCVClick
+    end
   end
   object ButtonTest: TButton
-    Left = 832
-    Top = 0
-    Width = 105
+    Left = 912
+    Top = 88
+    Width = 89
     Height = 33
-    Caption = 'Demande '#233'tat de la r'#233'trosignalisation'
+    Caption = 'Demande '#233'tat r'#233'trosignalisation'
     TabOrder = 5
     WordWrap = True
     OnClick = ButtonTestClick
   end
   object ButtonInfo: TButton
     Left = 1008
-    Top = 64
+    Top = 48
     Width = 81
     Height = 33
     Caption = 'Informations'
@@ -1318,11 +1331,12 @@ object FormPrinc: TFormPrinc
   end
   object GroupBox2: TGroupBox
     Left = 654
-    Top = 111
-    Width = 419
+    Top = 103
+    Width = 211
     Height = 46
     Caption = 'Trains'
     TabOrder = 6
+    Visible = False
     object Label1: TLabel
       Left = 16
       Top = 20
@@ -1342,15 +1356,15 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 577
+    Top = 571
     Width = 1196
     Height = 30
     Panels = <>
     SimplePanel = True
   end
   object MSCommUSBLenz: TMSComm
-    Left = 1120
-    Top = 8
+    Left = 880
+    Top = 128
     Width = 32
     Height = 32
     OnComm = MSCommUSBLenzComm
@@ -1359,8 +1373,8 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000001000000}
   end
   object loco: TButton
-    Left = 944
-    Top = 0
+    Left = 1096
+    Top = 8
     Width = 75
     Height = 33
     Caption = 'loco'
@@ -1368,19 +1382,31 @@ object FormPrinc: TFormPrinc
     OnClick = locoClick
   end
   object ButtonAffDebug: TButton
-    Left = 744
-    Top = 0
-    Width = 81
+    Left = 912
+    Top = 48
+    Width = 89
     Height = 33
     Caption = 'Affiche debug'
     TabOrder = 11
     OnClick = ButtonAffDebugClick
   end
+  object ButtonReprise: TButton
+    Left = 1096
+    Top = 48
+    Width = 75
+    Height = 33
+    Hint = 
+      'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
+      'ension de la centrale'
+    Caption = 'Reprise DCC'
+    TabOrder = 12
+    OnClick = ButtonRepriseClick
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    Left = 1072
-    Top = 8
+    Left = 888
+    Top = 80
   end
   object ClientSocketLenz: TClientSocket
     Active = False
@@ -1464,12 +1490,32 @@ object FormPrinc: TFormPrinc
       Caption = 'Divers'
       object FichierSimu: TMenuItem
         Caption = 'Ouvrir un fichier de simulation'
+        Hint = 
+          'Ouvre un fichier de simulation des d'#233'tecteurs pour simuler un fo' +
+          'nctionnement'
         OnClick = FichierSimuClick
       end
       object Versions1: TMenuItem
         Caption = 'Versions'
         Hint = 'Versions'
         OnClick = Versions1Click
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object LireunfichierdeCV1: TMenuItem
+        Caption = 'Lire un fichier de CV vers un accessoire'
+        Hint = 
+          'Ouvre un fichier de CV pour l'#39'envoyer vers un accessoire branch'#233 +
+          ' sur la voie de programmation'
+        OnClick = LireunfichierdeCV1Click
+      end
+      object LireunaccessoireversunfichierdeCV1: TMenuItem
+        Caption = 'Lire un accessoire vers un fichier de CV'
+        Hint = 
+          'Lire les CV d'#39'un accessoire branch'#233' sur la voie de programmation' +
+          ' vers un fichier'
+        OnClick = LireunaccessoireversunfichierdeCV1Click
       end
     end
   end
@@ -1482,5 +1528,13 @@ object FormPrinc: TFormPrinc
     OnRead = ClientSocketCDMRead
     OnError = ClientSocketCDMError
     Left = 352
+  end
+  object OpenDialog: TOpenDialog
+    Left = 1080
+    Top = 88
+  end
+  object SaveDialog: TSaveDialog
+    Left = 1120
+    Top = 88
   end
 end

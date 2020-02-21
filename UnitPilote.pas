@@ -31,11 +31,6 @@ type
     ButtonPilote: TButton;
     EditNbreFeux: TEdit;
     LabelNbFeux: TLabel;
-    GroupBox3: TGroupBox;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
-    RadioButton4: TRadioButton;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);
@@ -54,10 +49,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonPiloteClick(Sender: TObject);
     procedure EditNbreFeuxKeyPress(Sender: TObject; var Key: Char);
-    procedure RadioButton1Click(Sender: TObject);
-    procedure RadioButton2Click(Sender: TObject);
-    procedure RadioButton3Click(Sender: TObject);
-    procedure RadioButton4Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -263,36 +254,5 @@ if ord(Key) = VK_RETURN then
   end;
 end;
 
-procedure TFormPilote.RadioButton1Click(Sender: TObject);
-begin
-  uni1:=RadioButton1.checked;
-  uni2:=RadioButton2.checked;
-  uni3:=RadioButton3.checked;
-  uni4:=RadioButton4.checked;
-end;
-
-procedure TFormPilote.RadioButton2Click(Sender: TObject);
-begin
-   uni1:=RadioButton1.checked;
-   uni2:=RadioButton2.checked;
-   uni3:=RadioButton3.checked;
-   uni4:=RadioButton4.checked;
-end;
-
-procedure TFormPilote.RadioButton3Click(Sender: TObject);
-begin
-  uni1:=RadioButton1.checked;
-  uni2:=RadioButton2.checked;
-  uni3:=RadioButton3.checked;
-  uni4:=RadioButton4.checked;
-end;
-
-procedure TFormPilote.RadioButton4Click(Sender: TObject);
-begin
-  uni1:=RadioButton1.checked;
-  uni2:=RadioButton2.checked;
-  uni3:=RadioButton3.checked;
-  uni4:=RadioButton4.checked;
-end;
 
 end.

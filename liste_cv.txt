@@ -1,0 +1,30 @@
+Fichier décodeur unisemaf
+cible de forme 51
+CV   valeur
+----aspect1
+35     63    affecte les sorties aspect
+36     36
+37     0
+38     0
+-----aspect2
+39     63
+40     33
+41     0
+42     0
+-----aspect3
+43     63
+44     34
+45     0
+46     0
+-----aspect4
+47     63
+48     10
+49     0
+50     0
+-----aspect5
+51     63
+52     16
+53     0
+54     0
+ 
+

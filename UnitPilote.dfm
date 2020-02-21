@@ -4,7 +4,7 @@ object FormPilote: TFormPilote
   BorderStyle = bsDialog
   Caption = 'Pilotage'
   ClientHeight = 350
-  ClientWidth = 542
+  ClientWidth = 346
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -201,49 +201,5 @@ object FormPilote: TFormPilote
     TabOrder = 3
     Text = 'EditNbFeux'
     OnKeyPress = EditNbreFeuxKeyPress
-  end
-  object GroupBox3: TGroupBox
-    Left = 328
-    Top = 48
-    Width = 209
-    Height = 97
-    Caption = 'pilotage unisemaf'
-    TabOrder = 4
-    object RadioButton1: TRadioButton
-      Left = 8
-      Top = 24
-      Width = 145
-      Height = 17
-      Caption = 'Algo1 pilotage inverse'
-      TabOrder = 0
-      OnClick = RadioButton1Click
-    end
-    object RadioButton2: TRadioButton
-      Left = 8
-      Top = 40
-      Width = 145
-      Height = 17
-      Caption = 'Algo2 pilotage normal'
-      TabOrder = 1
-      OnClick = RadioButton2Click
-    end
-    object RadioButton3: TRadioButton
-      Left = 8
-      Top = 56
-      Width = 193
-      Height = 17
-      Caption = 'Algo3 pilotage bits '#224' 1 seuls normal'
-      TabOrder = 2
-      OnClick = RadioButton3Click
-    end
-    object RadioButton4: TRadioButton
-      Left = 8
-      Top = 72
-      Width = 193
-      Height = 17
-      Caption = 'Algo4 pilotage bits '#224' 1 seuls inverse'
-      TabOrder = 3
-      OnClick = RadioButton4Click
-    end
   end
 end

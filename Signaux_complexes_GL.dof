@@ -15,7 +15,7 @@ K=0
 L=1
 M=0
 N=1
-O=0
+O=1
 P=1
 Q=0
 R=0
@@ -76,9 +76,9 @@ LocaleToUnicode=1
 ImagebaseMultiple=1
 SuspiciousTypecast=1
 PrivatePropAccessor=1
-UnsafeType=0
-UnsafeCode=0
-UnsafeCast=0
+UnsafeType=1
+UnsafeCode=1
+UnsafeCast=1
 [Linker]
 MapFile=0
 OutputObjs=0
@@ -94,8 +94,8 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=$(DELPHI)\Lib\Debug
-Packages=vcl;rtl;vclx;VclSmp;vclshlctrls
+SearchPath=
+Packages=
 Conditionals=
 DebugSourceDirs=
 UsePackages=0
@@ -107,7 +107,7 @@ UseLauncher=0
 DebugCWD=
 [Version Info]
 IncludeVerInfo=1
-AutoIncBuild=1
+AutoIncBuild=0
 MajorVer=1
 MinorVer=0
 Release=0
@@ -130,9 +130,3 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
-[HistoryLists\hlUnitAliases]
-Count=1
-Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
-[HistoryLists\hlSearchPath]
-Count=1
-Item0=$(DELPHI)\Lib\Debug

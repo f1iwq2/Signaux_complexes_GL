@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 509
-  Top = 108
+  Left = 302
+  Top = 166
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
@@ -19,8 +19,8 @@ object FormDebug: TFormDebug
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 456
-    Top = 36
+    Left = 464
+    Top = 28
     Width = 108
     Height = 13
     Caption = 'Niveau du Debug (0-3)'
@@ -64,8 +64,8 @@ object FormDebug: TFormDebug
     WordWrap = True
   end
   object EditNivDebug: TEdit
-    Left = 576
-    Top = 36
+    Left = 592
+    Top = 20
     Width = 73
     Height = 21
     Font.Charset = DEFAULT_CHARSET
@@ -117,7 +117,7 @@ object FormDebug: TFormDebug
   end
   object CheckAffSig: TCheckBox
     Left = 448
-    Top = 64
+    Top = 48
     Width = 297
     Height = 17
     Caption = 'Affichage du fonctionnement des signaux'
@@ -176,10 +176,11 @@ object FormDebug: TFormDebug
   end
   object CheckAffAffecTrains: TCheckBox
     Left = 448
-    Top = 88
+    Top = 64
     Width = 289
     Height = 17
     Caption = 'Affichage d'#39'affectation des trains aux d'#233'tecteurs'
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -191,7 +192,7 @@ object FormDebug: TFormDebug
   end
   object CheckBoxTraceLIste: TCheckBox
     Left = 448
-    Top = 112
+    Top = 80
     Width = 289
     Height = 17
     Caption = 'Affichage des '#233'valuations des routes'
@@ -204,8 +205,33 @@ object FormDebug: TFormDebug
     TabOrder = 10
     OnClick = CheckBoxTraceLIsteClick
   end
-  object SaveDialog: TSaveDialog
-    Left = 464
+  object CheckTrame: TCheckBox
+    Left = 448
+    Top = 96
+    Width = 281
+    Height = 17
+    Caption = 'Affichage des trames '#233'chang'#233'es avec LENZ'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 11
+    OnClick = CheckTrameClick
+  end
+  object ButtonCop: TButton
+    Left = 448
     Top = 384
+    Width = 97
+    Height = 49
+    Caption = 'Copie fen'#234'te principale dans debug'
+    TabOrder = 12
+    WordWrap = True
+    OnClick = ButtonCopClick
+  end
+  object SaveDialog: TSaveDialog
+    Left = 680
+    Top = 8
   end
 end
