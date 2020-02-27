@@ -210,7 +210,7 @@ object FormDebug: TFormDebug
     Top = 96
     Width = 281
     Height = 17
-    Caption = 'Affichage des trames '#233'chang'#233'es avec LENZ'
+    Caption = 'Affichage des trames '#233'chang'#233'es avec l'#39'interface'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11

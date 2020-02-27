@@ -1,9 +1,10 @@
 object FormPrinc: TFormPrinc
-  Left = 34
-  Top = 494
+  Left = 58
+  Top = 238
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
-  ClientHeight = 601
+  ClientHeight = 606
   ClientWidth = 1196
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,7 +14,7 @@ object FormPrinc: TFormPrinc
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poDefault
+  Position = poMainFormCenter
   ShowHint = True
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,33 +22,33 @@ object FormPrinc: TFormPrinc
   TextHeight = 13
   object LabelTitre: TLabel
     Left = 8
-    Top = 8
-    Width = 204
-    Height = 23
+    Top = 16
+    Width = 173
+    Height = 18
     Caption = 'Signaux complexes GL'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -19
+    Font.Height = -16
     Font.Name = 'Arial'
-    Font.Style = [fsItalic]
+    Font.Style = [fsBold, fsItalic]
     ParentFont = False
   end
   object LabelEtat: TLabel
-    Left = 344
-    Top = 8
-    Width = 305
-    Height = 22
-    Caption = 'LabelEtat'
+    Left = 456
+    Top = 16
+    Width = 152
+    Height = 18
+    Caption = 'Initialisations en cours'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -19
+    Font.Height = -16
     Font.Name = 'Arial'
     Font.Style = []
     ParentFont = False
   end
   object Image9feux: TImage
     Left = 488
-    Top = 0
+    Top = 8
     Width = 57
     Height = 105
     Picture.Data = {
@@ -236,8 +237,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image7feux: TImage
-    Left = 544
-    Top = 0
+    Left = 504
+    Top = 8
     Width = 57
     Height = 105
     Picture.Data = {
@@ -405,7 +406,7 @@ object FormPrinc: TFormPrinc
   end
   object Image5feux: TImage
     Left = 280
-    Top = -8
+    Top = 0
     Width = 41
     Height = 89
     Picture.Data = {
@@ -505,7 +506,7 @@ object FormPrinc: TFormPrinc
   end
   object Image4feux: TImage
     Left = 240
-    Top = 0
+    Top = 8
     Width = 41
     Height = 97
     Picture.Data = {
@@ -597,7 +598,7 @@ object FormPrinc: TFormPrinc
   end
   object Image3feux: TImage
     Left = 616
-    Top = 0
+    Top = 8
     Width = 33
     Height = 57
     Picture.Data = {
@@ -678,7 +679,7 @@ object FormPrinc: TFormPrinc
   end
   object Image2feux: TImage
     Left = 1096
-    Top = 128
+    Top = 136
     Width = 33
     Height = 57
     Picture.Data = {
@@ -752,7 +753,7 @@ object FormPrinc: TFormPrinc
   end
   object Image2Dir: TImage
     Left = 968
-    Top = 40
+    Top = 48
     Width = 41
     Height = 25
     Picture.Data = {
@@ -827,7 +828,7 @@ object FormPrinc: TFormPrinc
   end
   object Image3Dir: TImage
     Left = 1008
-    Top = 40
+    Top = 48
     Width = 49
     Height = 25
     Picture.Data = {
@@ -905,7 +906,7 @@ object FormPrinc: TFormPrinc
   end
   object Image4Dir: TImage
     Left = 1056
-    Top = 40
+    Top = 48
     Width = 57
     Height = 25
     Picture.Data = {
@@ -993,7 +994,7 @@ object FormPrinc: TFormPrinc
   end
   object Image5Dir: TImage
     Left = 1112
-    Top = 40
+    Top = 48
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1091,7 +1092,7 @@ object FormPrinc: TFormPrinc
   end
   object Image6Dir: TImage
     Left = 1112
-    Top = 128
+    Top = 80
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1199,7 +1200,7 @@ object FormPrinc: TFormPrinc
   end
   object BoutVersion: TButton
     Left = 1008
-    Top = 8
+    Top = 16
     Width = 83
     Height = 33
     Caption = 'Dem version'
@@ -1208,7 +1209,7 @@ object FormPrinc: TFormPrinc
   end
   object ListBox1: TListBox
     Left = 8
-    Top = 40
+    Top = 48
     Width = 633
     Height = 520
     Style = lbOwnerDrawFixed
@@ -1225,7 +1226,7 @@ object FormPrinc: TFormPrinc
   end
   object BoutonRaf: TButton
     Left = 912
-    Top = 8
+    Top = 16
     Width = 89
     Height = 33
     Caption = 'Rafraichissement'
@@ -1234,16 +1235,16 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 648
-    Top = 160
+    Top = 136
     Width = 537
-    Height = 405
+    Height = 437
     Color = clWhite
     ParentColor = False
     TabOrder = 3
   end
   object GroupBox1: TGroupBox
     Left = 656
-    Top = 0
+    Top = 8
     Width = 249
     Height = 97
     Caption = 'Commande d'#39'accessoires'
@@ -1274,6 +1275,7 @@ object FormPrinc: TFormPrinc
       Top = 32
       Width = 57
       Height = 21
+      Hint = 'Adresse accessoire'
       TabOrder = 0
       Text = '1'
     end
@@ -1312,7 +1314,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonTest: TButton
     Left = 912
-    Top = 88
+    Top = 96
     Width = 89
     Height = 33
     Caption = 'Demande '#233'tat r'#233'trosignalisation'
@@ -1322,7 +1324,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonInfo: TButton
     Left = 1008
-    Top = 48
+    Top = 56
     Width = 81
     Height = 33
     Caption = 'Informations'
@@ -1330,8 +1332,8 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonInfoClick
   end
   object GroupBox2: TGroupBox
-    Left = 654
-    Top = 103
+    Left = 982
+    Top = 87
     Width = 211
     Height = 46
     Caption = 'Trains'
@@ -1356,25 +1358,25 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 571
+    Top = 576
     Width = 1196
     Height = 30
     Panels = <>
     SimplePanel = True
   end
   object MSCommUSBLenz: TMSComm
-    Left = 880
-    Top = 128
+    Left = 1024
+    Top = 136
     Width = 32
     Height = 32
     OnComm = MSCommUSBLenzComm
     ControlData = {
       2143341208000000ED030000ED03000001568A64000006000000010000040000
-      00020000802500000000080000000000000000003F00000001000000}
+      00020000802500000000080000000000000000003F00000011000000}
   end
   object loco: TButton
     Left = 1096
-    Top = 8
+    Top = 16
     Width = 75
     Height = 33
     Caption = 'loco'
@@ -1383,7 +1385,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonAffDebug: TButton
     Left = 912
-    Top = 48
+    Top = 56
     Width = 89
     Height = 33
     Caption = 'Affiche debug'
@@ -1392,7 +1394,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonReprise: TButton
     Left = 1096
-    Top = 48
+    Top = 56
     Width = 75
     Height = 33
     Hint = 
@@ -1401,6 +1403,34 @@ object FormPrinc: TFormPrinc
     Caption = 'Reprise DCC'
     TabOrder = 12
     OnClick = ButtonRepriseClick
+  end
+  object EditGenli: TEdit
+    Left = 656
+    Top = 112
+    Width = 121
+    Height = 21
+    TabOrder = 13
+    Visible = False
+  end
+  object Button1: TButton
+    Left = 784
+    Top = 112
+    Width = 113
+    Height = 25
+    Caption = 'Envoi vers Genli'
+    TabOrder = 14
+    Visible = False
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 1040
+    Top = 80
+    Width = 97
+    Height = 25
+    Caption = 'Demande '#233'tat CTS'
+    TabOrder = 15
+    Visible = False
+    OnClick = Button2Click
   end
   object Timer1: TTimer
     Interval = 100
@@ -1447,6 +1477,13 @@ object FormPrinc: TFormPrinc
       object Codificationdesfeux1: TMenuItem
         Caption = 'Codification des feux'
         OnClick = Codificationdesfeux1Click
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object Quitter1: TMenuItem
+        Caption = 'Quitter'
+        OnClick = Quitter1Click
       end
     end
     object Interface1: TMenuItem

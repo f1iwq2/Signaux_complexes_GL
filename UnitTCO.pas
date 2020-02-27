@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls;
+  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus;
 
 type
   TFormTCO = class(TForm)
@@ -16,12 +16,17 @@ type
     LabelY: TLabel;
     ScrollBox: TScrollBox;
     ImageTCO: TImage;
+    PopupMenu1: TPopupMenu;
+    Position1: TMenuItem;
+    N1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure DrawGridDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
     procedure Button1Click(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure ImageTCOContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
   private
     { Déclarations privées }
   public
@@ -318,6 +323,19 @@ begin
   dessin_cbgd(8,5,clyellow);
   
   formprinc.Hide;
+end;
+
+procedure TFormTCO.ImageTCOContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+var  Position: TPoint;
+begin
+  GetCursorPos(Position);
+  Position:=ImageTCO.screenToCLient(Position);
+  Xclic:=position.X;YClic:=position.Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  LabelX.caption:=IntToSTR(XclicCell);  
+  LabelY.caption:=IntToSTR(YclicCell);
+  
 end;
 
 end.

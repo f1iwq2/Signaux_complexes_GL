@@ -83,6 +83,11 @@ type
     LireunfichierdeCV1: TMenuItem;
     LireunaccessoireversunfichierdeCV1: TMenuItem;
     SaveDialog: TSaveDialog;
+    N5: TMenuItem;
+    Quitter1: TMenuItem;
+    EditGenli: TEdit;
+    Button1: TButton;
+    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -131,6 +136,9 @@ type
     procedure ButtonRepriseClick(Sender: TObject);
     procedure LireunfichierdeCV1Click(Sender: TObject);
     procedure LireunaccessoireversunfichierdeCV1Click(Sender: TObject);
+    procedure Quitter1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -196,7 +204,7 @@ TMA             = (valide,devalide);
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole : integer;
+    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole,TempoOctet,TimoutMaxInterface : integer;
     Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
     NackCDM,MsgSim : boolean;
     TraceListe,clignotant,nack,Maj_feux_cours : boolean;
@@ -215,10 +223,10 @@ const
 var
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
-  DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO : boolean;
+  DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO,terminal : boolean;
   tablo : array of byte;
   Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af,
-  ConfStCom : string;
+  ConfStCom,entete,suffixe : string;
   maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,TypeGen,
   NbreImagePligne,Port,NbreBranches,Index2_det,branche_det,Index_det,
   portCDM,I_simule : integer;
@@ -899,8 +907,7 @@ var i : integer;
     check : byte;
 begin
   check:=0;
-  // on commence à 3 pour ne pas calculer le checksum sur FF FE
-  for i:=3 to length(s) do
+  for i:=1 to length(s) do
   begin
     check:=check xor ord(s[i]);
   end;
@@ -936,11 +943,56 @@ begin
 end;
 
 
-// envoi d'une chaîne à la centrale Lenz par USBLenz ou socket, n'attend pas l'ack
+// envoi d'une chaîne à la centrale par USBLenz ou socket, n'attend pas l'ack
+// ici on envoie pas à CDM
 procedure envoi_ss_ack(s : string);
+var i,timeout,valto : integer;
+    com : Tobject;
+    sa : string;
 begin
-  if Trace then affiche_chaine_Hex(s,ClGreen);
-  if portCommOuvert then FormPrinc.MSCommUSBLenz.Output:=s;
+//  com:=formprinc.MSCommUSBLenz;
+  s:=entete+s+suffixe;
+  if Trace then Affiche('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClGreen);
+  // par port com-usb
+
+  if portCommOuvert then
+  begin
+    if (protocole=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
+    begin
+      i:=1;
+      valto:=10;
+      //Affiche('envoi en tenant compte cts',clyellow);
+        repeat
+          timeout:=0;
+          repeat
+            //Application.ProcessMessages;
+            inc(timeout);
+            Sleep(20);
+          until (Formprinc.MSCommUSBLenz.CTSHolding=true) or (timeout>valto);
+          if timeout<=valto then
+          begin
+            //if formprinc.MSCommUSBLenz.CTSHolding then sa:='CTS=1 ' else sa:='CTS=0 ';
+            FormPrinc.MSCommUSBLenz.Output:=s[i];
+            //if terminal then Affiche(sa+s[i],clyellow) else Affiche(sa+chaine_hex(s[i]),clyellow);
+            inc(i);
+          end;
+        until (i=length(s)+1) or (timeout>valto);
+        if timeout>valto then affiche('Erreur attente interface trop longue',clred);
+    end;
+    if (protocole=2) or (tempoOctet=0) then begin FormPrinc.MSCommUSBLenz.Output:=s;exit;end;
+    if (protocole=0) or (protocole=1) or (protocole=3) then
+    begin
+      for i:=1 to length(s) do
+      begin
+        FormPrinc.MSCommUSBLenz.Output:=s[i];
+        //if terminal then Affiche(s[i],clyellow) else Affiche(chaine_hex(s[i]),clyellow);
+        Application.ProcessMessages;
+        Sleep(TempoOctet);
+      end;
+    end;
+  end;
+
+  // par socket (ethernet)
   if parSocket then Formprinc.ClientSocketLenz.Socket.SendText(s);
 end;
 
@@ -948,7 +1000,7 @@ end;
 function envoi(s : string) : boolean;
 var temps : integer;
 begin
-  //if Hors_tension2=false then
+  if Hors_tension2=false then
   begin
     envoi_ss_ack(s);
     // attend l'ack
@@ -957,12 +1009,13 @@ begin
     begin
       temps:=0;
       repeat
-        inc(temps);tempo(1);
-      until ferme or ack or nack or (temps>5); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
+        Application.processMessages;
+        inc(temps);Sleep(100);
+      until ferme or ack or nack or (temps>TimoutMaxInterface); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
       if not(ack) or nack then
       begin
         Affiche('Pas de réponse de l''interface',clRed);inc(pasreponse);
-        if pasreponse>3 then hors_tension2:=true;
+        // &&&&if pasreponse>3 then hors_tension2:=true;
       end;
       if ack then begin pasreponse:=0;hors_tension2:=false;end;
     end;
@@ -1042,9 +1095,9 @@ begin
   fonction:=((adresse-1) mod 4)*2 + (octet-1);
   // pilotage
   if etat then
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $80)
+  s:=#$52+Char(groupe)+char(fonction or $80)
   else
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $88);
+  s:=#$52+Char(groupe)+char(fonction or $88);
 
   s:=checksum(s);
   envoi(s);     // envoi de la trame et attente Ack
@@ -1060,9 +1113,9 @@ begin
   fonction:=((adresse-1) mod 4)*2 + (octet-1);
   // pilotage
   if octet=2 then
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $80)
+  s:=#$52+Char(groupe)+char(fonction or $80)
   else
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $88);
+  s:=#$52+Char(groupe)+char(fonction or $88);
 
   s:=checksum(s);
   if envoi(s) then exit else envoi(s);     // envoi de la trame et attente Ack  sinon renvoyer
@@ -1104,7 +1157,7 @@ begin
     groupe:=(adresse-1) div 4;
     fonction:=((adresse-1) mod 4)*2 + (octet-1);
     // pilotage à 1
-    s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
     s:=checksum(s);
     envoi(s);     // envoi de la trame et attente Ack
     // si l'accessoire est un feu et sans raz des signaux, sortir
@@ -1112,7 +1165,7 @@ begin
 
     // si aiguillage, faire une temporisation
     //if (index_feu(adresse)=0) or (Acc=aig) then
-    if Acc=Aig then 
+    if Acc=Aig then
     begin
       temps:=aiguillage[adresse].temps;if temps=0 then temps:=4;
       if portCommOuvert or ParSocket then tempo(temps);
@@ -1120,7 +1173,7 @@ begin
     sleep(50);
 
     // pilotage à 0 pour éteindre le pilotage de la bobine du relais
-    s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
     s:=checksum(s);
     envoi(s);     // envoi de la trame et attente Ack
   end;
@@ -1142,7 +1195,7 @@ begin
   groupe:=(adresse-1) div 4;
   fonction:=((adresse-1) mod 4)*2 + (octet-1);
   // pilotage à 1
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+  s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
   s:=checksum(s);
   envoi(s);     // envoi de la trame et attente Ack
   sleep(10);    // temps minimal pour ne pas avoir le défaut station occupée qd on pilote un signal leb
@@ -1152,7 +1205,7 @@ begin
 
   //if portCommOuvert or ParSocket then tempo(temps);
   // pilotage à 0 pour éteindre le pilotage de la bobine du relais
-  s:=#$ff+#$fe+#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+  s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
   s:=checksum(s);
   envoi(s);     // envoi de la trame et attente Ack
 end;
@@ -1161,7 +1214,7 @@ procedure vitesse_loco(loco : integer;vitesse : integer;sens : boolean);
 var s : string;
 begin
   if sens then vitesse:=vitesse or 128;
-  s:=#$ff+#$fe+#$e4+#$13+#$0+char(loco)+char(vitesse);
+  s:=#$e4+#$13+#$0+char(loco)+char(vitesse);
   s:=checksum(s);
   envoi(s);
 end;
@@ -2991,16 +3044,36 @@ begin
         end;
       end;
     end;
-  end;         
-   
-  ConfStCom:=copy(sa,1,j-1);   
+  end;
+
+  ConfStCom:=copy(sa,1,j-1);
   i:=pos(':',ConfStCom);
-  
   val(ConfStCom[i-1],Numport,erreur);
   if i<>0 then Delete(ConfStCom,1,i);
-  
-  if (protocole=-1) or (i=0) then Affiche('Erreur port com mal déclaré : '+sa,clred);
-  
+  if (protocole=-1) or (protocole>4) or (i=0) then Affiche('Erreur port com mal déclaré : '+sa,clred);
+
+  // temporisation entre 2 caractères
+  s:=lit_ligne;
+  val(s,TempoOctet,erreur);
+  if erreur<>0 then Affiche('Erreur temporisation entre 2 octets',clred);
+
+  // temporisation attente maximale interface
+  s:=lit_ligne;
+  val(s,TimoutMaxInterface,erreur);
+  if erreur<>0 then Affiche('Erreur temporisation maximale interface',clred);
+
+  //entete
+  s:=lit_ligne;
+  val(s,i,erreur);
+  entete:='';
+  case i of
+   0 : begin entete:='';suffixe:='';end;
+   1 : begin entete:=#$FF+#$FE;suffixe:='';end;
+   2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
+  end;
+  if erreur<>0 then Affiche('Erreur déclaration variable entete',clred);
+
+
   //avec ou sans initialisation des aiguillages
   s:=lit_ligne;
   AvecInitAiguillages:=StrToINT(s);
@@ -5327,13 +5400,13 @@ var s : string;
 begin
   // envoyer 2 fois la commande, une fois avec N=0 pour récupérer le nibble bas,
   // une autre fois avec N=1 pour récupérer le nibble haut
-  s:=#$FF+#$FE+#$42+char((adresse-1) div 4);
+  s:=#$42+char((adresse-1) div 4);
   n:=$80+((adresse-1) mod 4) div 2;
   s:=s+char(n);   // N=0 (bit 0)
   s:=checksum(s);
   envoi(s);
 
-  s:=#$FF+#$FE+#$42+char((adresse-1) div 4);
+  s:=#$42+char((adresse-1) div 4);
   n:=$80+((adresse-1) mod 4) div 2;
   s:=s+char(n or 1);  // N=1 (bit 0)
   s:=checksum(s);
@@ -5392,11 +5465,10 @@ begin
   // on reçoit un doublon dans deux index consécutifs.
   if N_Event_tick>=1 then
   begin
-      
     //Affiche('Event_det_tick['+intToSTR(N_event_tick)+'].detecteur['+intToSTR(Adresse)+']='+intToSTr(event_det_tick[N_event_tick].detecteur[Adresse]),clyellow);
-  
     if event_det_tick[N_event_tick].detecteur[Adresse]=etat01 then exit;    // déja stocké
   end;
+
   if Traceliste then AfficheDebug('--------------------- détecteur '+intToSTR(Adresse)+' à '+intToSTR(etat01)+'-----------------------------',clOrange);
 
   //if etat then Mem[Adresse]:=true;  // mémoriser l'état à 1
@@ -5572,19 +5644,19 @@ begin
       i:=adresse*8+8;
       if detecteur[i]<>((valeur and $8) = $8) then  // si changement de l'état du détecteur bit 7
       begin
-        Event_detecteur(i,(valeur and $8) = $8); 
+        Event_detecteur(i,(valeur and $8) = $8);
       end;
 
       i:=adresse*8+7;
       if detecteur[i]<>((valeur and $4) = $4) then  // si changement de l'état du détecteur bit 6
       begin
-        Event_detecteur(i,(valeur and $4) = $4); 
+        Event_detecteur(i,(valeur and $4) = $4);
       end;
 
       i:=adresse*8+6;
       if detecteur[i]<>((valeur and $2) = $2) then  // si changement de l'état du détecteur bit 5
       begin
-        Event_detecteur(i,(valeur and $2) = $2); 
+        Event_detecteur(i,(valeur and $2) = $2);
       end;
 
       i:=adresse*8+5;
@@ -5687,50 +5759,50 @@ begin
   end;
 end;
 
-function decode_chaine_retro(s : string) : string;
+function Xdecode_chaine_retro(s : string) : string;
 var i : integer;
     chaineInt : string;
 begin
   chaineInt:=s;
-  i:=pos(#$FF+#$FD+#$42,chaineInt);      // réponse de l'information des accessoires
-  if (i<>0) and (length(chaineInt)>=5) then
+
+  // réponse de l'information des accessoires
+  if s[1]=#$42 then
   begin
-    delete(chaineInt,i,3);
-    decode_retro(ord(chaineInt[i]),ord(chaineInt[i+1]));
-    delete(chaineInt,i,3);
+    delete(chaineInt,1,1);
+    //Xdecode_retro(ord(chaineInt[1]),ord(chaineInt[2]));
+    delete(chaineInt,1,3);
   end
   else
   begin
-    i:=pos(#$FF+#$FD+#$81,chaineInt);
-    if (i<>0) and (length(chaineInt)>=5) then
+    if s[1]=#$81 then
     begin
-      delete(chaineInt,i,5);
+      delete(chaineInt,1,2);
       Affiche('Voie hors tension msg1',clRed);
+      Hors_tension2:=true;
     end
     else
     begin
-      i:=pos(#$FF+#$FD+#$61,chaineInt);
-      if (i<>0) and (length(chaineInt)>=5) then
+      if s[1]=#$61 then
       begin
-        delete(chaineInt,i,5);
+        delete(chaineInt,1,2);
         Affiche('Voie hors tension msg2',clRed);
-        Hors_tension2:=true;
+        Hors_tension2:=false;
       end
       else
       begin
-        i:=pos(#$FF+#$FD+#$46+#$43+#$40,chaineInt);
-        if (i<>0) and (length(chaineInt)>=6) then
+        i:=pos(#$46+#$43+#$40,chaineInt);
+        if (i<>0) and (length(chaineInt)>=3) then
         begin
-          delete(chaineInt,i,6);
+          delete(chaineInt,1,3);
           Affiche('Reprise msg 1',clOrange);
           Hors_tension2:=false;
         end
         else
         begin
-          i:=pos(#$FF+#$FD+#$46+#$43+#$50,chaineInt);
-          if (i<>0) and (length(chaineInt)>=6) then
+          i:=pos(#$46+#$43+#$50,chaineInt);
+          if (i<>0) and (length(chaineInt)>=3) then
           begin
-            delete(chaineInt,i,6);
+            delete(chaineInt,1,3);
             Affiche('Reprise msg 2',clOrange);
             Hors_tension2:=false;
           end
@@ -5744,7 +5816,141 @@ begin
       end;
     end;
   end;
-  decode_chaine_retro:=chaineint;
+  Xdecode_chaine_retro:=chaineint;
+end;
+
+// décodage d'une chaine simple de la rétrosignalisation
+function decode_chaine_retro(chaineINT : string) : string ;
+var msg : string;
+    i,cv : integer;
+begin
+  //affiche(chaine_hex(chaine),clyellow);
+  msg:='';
+  ack:=true;nack:=false;
+  // décodage du 3eme octet de la chaîne
+  if chaineINT[1]=#1 then
+  begin
+    case chaineINT[2] of   // page 13 doc XpressNet
+    #1 :  begin nack:=true;msg:='erreur timout transmission';end;
+    #2 :  begin nack:=true;msg:='erreur timout centrale';end;
+    #3 :  begin nack:=true;msg:='erreur communication inconnue';end;
+    #4 :  begin msg:='succès';end;
+    #5 :  begin nack:=true;msg:='plus de time slot';end;
+    #6 :  begin nack:=true;msg:='débordement tampon LI100';end;
+    end;
+    if trace and (chaineINT[2]=#4) then Affiche(msg,clYellow);
+    if trace and (chaineINT[2]<>#4) then Affiche(msg,clRed);
+    delete(chaineINT,1,3);
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#2 then
+  begin
+    msg:='Version matérielle '+intTohex(ord(chaineINT[2]),2)+' - Version soft '+intToHex(ord(chaineINT[3]),2);
+    Affiche(msg,clYellow);
+    delete(chaineINT,1,2);
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#$61 then
+  begin
+    delete(chaineInt,1,1);
+    case chaineINT[1] of
+    #$00 : begin ack:=true;msg:='Voie hors tension';end;
+    #$01 : begin ack:=true;msg:='Reprise';end;
+
+    #$02 : begin ack:=true;msg:='Mode programmation ';end;
+
+    #$80 : begin nack:=true;msg:='erreurs de transferts- Voir doc XpressNet p29';end;
+    #$81 : begin nack:=true;msg:='Station occupée - Voir doc XpressNet p29';end;
+    #$82 : begin nack:=true;msg:='Commande non implantée';end;
+    else begin nack:=true;msg:='Réception inconnue';end;
+    end;
+    if nack then affiche(msg,clred) else affiche(msg,clyellow);
+    delete(chaineINT,1,2);
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if ((chaineINT[1]=#$63) and (chaineINT[2]=#$14)) then    // V3.6 uniquement
+  begin
+    // réception d'un CV. DocXpressNet p26
+
+    delete(chaineInt,1,2);
+    cv:=ord(chaineINT[1]);
+    Affiche('Réception CV'+IntToSTR(cv)+' à '+IntToSTR(ord(chaineINT[2])),clyellow);
+    if cv>255 then Affiche('Erreur Recu CV>255',clRed)
+    else
+    begin
+       tablo_cv[cv]:=ord(chaineINT[2]);
+       inc(N_Cv); // nombre de CV recus
+    end;
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#$42 then
+  begin
+    delete(chaineInt,1,1);
+    decode_retro(ord(chaineInt[1]),ord(chaineInt[2]));
+    delete(chaineInt,1,3);
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#$81 then
+  begin
+    delete(chaineInt,1,2);
+    Affiche('Voie hors tension msg1',clRed);
+    Hors_tension2:=true;
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#$61 then
+  begin
+    delete(chaineInt,1,2);
+    Affiche('Voie hors tension msg2',clRed);
+    Hors_tension2:=false;
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineINT[1]=#$46 then
+  begin
+    //FF FD 46 43 40 41 40 40 49 4D non documentée   
+    //FF FD 46 43 50 41 50 40 50 54 non documentée
+    Affiche('Chaine non documentée recue: '+chaine_HEX(chaineINT),clred);
+    delete(chaineInt,1,8);
+    Hors_tension2:=false;
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  i:=pos(#$46+#$43+#$50,chaineInt);
+  if (i<>0) and (length(chaineInt)>=3) then
+  begin
+    delete(chaineInt,1,3);
+    Affiche('Reprise msg 2',clOrange);
+    Hors_tension2:=false;
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  if chaineInt[1]=#$81 then
+  begin
+    delete(chaineInt,1,2);
+    Affiche('Court circuit msg 1',clRed);
+    decode_chaine_retro:=chaineINT;
+    exit;
+  end;
+
+  ack:=false;
+  nack:=true;
+  affiche('Erreur 7, chaîne rétrosig. inconnue recue:'+chaine_HEX(chaineINT),clred);
+  decode_chaine_retro:='';
 end;
 
 // procédure appellée après réception sur le port USB ou socket
@@ -5753,102 +5959,19 @@ var chaineInt,msg : string;
     i,cv : integer;
 
 begin
-  chaineInt:=chaine;
-  //ack:=false;
-  //nack:=false;
-  while length(chaineINT)>=5 do
+  chaineINT:=chaine;
+
+  while length(chaineINT)>=3 do
   begin
-    i:=pos(#$ff+#$fe,chaineINT);
-    if (i<>0) and (length(chaineINT)>3) then
+    if length(chaineINT)>4 then
     begin
-      msg:='';
-      delete(chaineINT,i,2);
-      // décodage du 3eme octet de la chaîne
-      if chaineINT[1]=#1 then
-      begin
-        case chaineINT[i+1] of   // page 13 doc XpressNet
-        #1 :  begin nack:=true;msg:='erreur timout transmission';end;
-        #2 :  begin nack:=true;msg:='erreur timout centrale';end;
-        #3 :  begin nack:=true;msg:='erreur communication inconnue';end;
-        #4 :  begin msg:='succès';ack:=true;end;
-        #5 :  begin nack:=true;msg:='plus de time slot';end;
-        #6 :  begin nack:=true;msg:='débordement tampon LI100';end;
-        end;
-        if trace and (chaineINT[i+1]=#4) then Affiche(msg,clYellow);
-        if trace and (chaineINT[i+1]<>#4) then Affiche(msg,clRed);
-      end
-      else
-      begin
-        if chaineINT[1]=#2 then
-        begin
-          ack:=true;
-          msg:='Version matérielle '+intTohex(ord(chaineINT[2]),2)+' - Version soft '+intToHex(ord(chaineINT[3]),2);
-          Affiche(msg,clYellow);
-        end
-        else
-        begin
-          if chaineINT[1]=#$42 then
-          begin
-            ack:=true;
-            delete(chaineInt,1,1);
-            decode_retro(ord(chaineInt[1]),ord(chaineInt[2]));
-          end
-          else
-          begin
-            if chaineINT[1]=#$61 then
-            begin
-              delete(chaineInt,1,1);
-              case chaineINT[1] of
-              #$80 : begin nack:=true;msg:='erreurs de transferts- Voir doc XpressNet p29';end;
-              #$81 : begin nack:=true;msg:='Station occupée - Voir doc XpressNet p29';end;
-              #$82 : begin nack:=true;msg:='Commande non implantée';end;
-              else begin nack:=true;msg:='Réception inconnue';end;
-              end;
-            end
-            else
-            begin
-              if ((chaineINT[1]=#$63) and (chaineINT[2]=#$14)) then    // V3.6 uniquement
-              begin
-                // réception d'un CV. DocXpressNet p26
-                delete(chaineInt,1,2);
-                cv:=ord(chaineINT[1]);
-                if cv>255 then Affiche('Erreur Recu CV>255',clRed)
-                else
-                begin
-                  tablo_cv[cv]:=ord(chaineINT[2]);
-                  inc(N_Cv); // nombre de CV recus
-                end;
-              end
-              else
-                Affiche(msg,clRed);
-            end;
-          end;
-        end;
-      end;
+      // supprimer l'entete éventuelle
+      if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fe) then Delete(chaineINT,1,2);
+      if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fd) then Delete(chaineINT,1,2);
     end;
-    if length(chaineINT)<=3 then delete(chaineINT,i,length(chaineINT))
-    else
-    begin
-      i:=pos(#$ff+#$fd,chaineINT);
-      if (i<>0) and (length(chaineINT)>=5) then
-        chaineINT:=decode_chaine_retro(chaineINT)
-      else
-      begin
-        i:=pos(#$FF+#$FD+#$81,chaineInt);
-        if (i<>0) and (length(chaineInt)>=6) then
-        begin
-          delete(chaineInt,i,6);
-          Affiche('Court circuit msg 1',clRed);
-        end
-        else
-        begin
-          affiche('Erreur 7, chaîne rétrosig. inconnue recue:'+chaine_HEX(chaineINT),clred);
-          chaineINT:='';
-        end;
-      end;
-    end;
+    chaineINT:=decode_chaine_retro(chaineINT);
   end;
-  //Affiche(chaineInt,clyellow);
+
 end;
 
 function HexToStr(s: string) : string ;
@@ -5875,13 +5998,18 @@ begin
     begin
       With Formprinc.MSCommUSBLenz do
       begin
-        Affiche('demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+','+IntToSTR(protocole),CLYellow);
-        Settings:=ConfStCom;
-        Handshaking:=protocole; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff }
+        Affiche('Demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+','+IntToSTR(protocole),CLYellow);
+        Settings:=ConfStCom;   // COMx:vitesse,n,8,1
+        if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+          else Handshaking:=protocole;
+
         SThreshold:=1;
         RThreshold:=1;
         CommPort:=NumPort;
-        DTREnable:=false;
+        DTREnable:=True;
+        if protocole=4 then RTSEnable:=True //pour la genli
+        else RTSenable:=False;
+
         InputMode:=comInputModeBinary;
       end;
       portCommOuvert:=true;
@@ -5900,10 +6028,19 @@ begin
     if portCommOuvert then
     begin
       affiche('port COM'+intToSTR(NumPort)+' ouvert',clGreen);
-      Formprinc.LabelEtat.caption:='Interface connectée au COM'+IntToSTR(NumPort);
-    end  
+      With Formprinc do
+      begin
+        LabelTitre.caption:=titre+' Interface connectée au COM'+IntToSTR(NumPort);
+        MenuConnecterUSB.enabled:=false;
+        DeConnecterUSB.enabled:=true;
+        ConnecterCDMRail.enabled:=false;
+        DeConnecterCDMRail.enabled:=false;
+      end;  
+    end
     else
-      Affiche('port COM'+intToSTR(NumPort)+' NON ouvert',clRed)  ;
+      begin
+        Affiche('port COM'+intToSTR(NumPort)+' NON ouvert',clRed)  ;
+      end;
 end;
 
 procedure deconnecte_CDM;
@@ -5950,7 +6087,7 @@ begin
   end
   else
   begin
-    Affiche('La connexion a CDM n''est pas demandée car l''adresse IP est nulle dans config.cfg',cyan);
+    Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans config.cfg',cyan);
   end;
 end;
 
@@ -5994,7 +6131,7 @@ begin
   Application.onHint:=doHint;
   LabelEtat.Caption:='Initialisations en cours';
 
-  Menu_interface(devalide);
+  //Menu_interface(devalide);
 
   // créée la fenetre debug
   FormDebug:=TFormDebug.Create(Self);
@@ -6008,8 +6145,6 @@ begin
   AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   AvecTCO:=false;
 
-
-  
   EditNbTrains.Text:=IntToSTR(N_Trains);
 
   // créée la fenetre vérification de version
@@ -6041,7 +6176,7 @@ begin
 
   
   // tenter la liaison vers CDM rail ou vers la centrale Lenz
-  Affiche('Test présence CDM',clYellow);
+  //Affiche('Test présence CDM',clYellow);
   connecte_CDM;
   if not(CDM_connecte) then        // si CDM est connecté, on n'ouvre pas de liaison vers la centrale
   begin
@@ -6063,7 +6198,7 @@ begin
     end;
   end;
 
-  if portCommOuvert or parsocket then 
+  if portCommOuvert or parsocket then
   With Formprinc do
   begin
     ButtonEcrCV.Enabled:=true;
@@ -6101,7 +6236,7 @@ begin
 
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
-
+  
   // énumération des ports USB
   //EnumerateDevices;
   //for i:=1 to NumLine do
@@ -6138,8 +6273,16 @@ begin
   //test_memoire_zones(218);
   //Det_Adj(520);
   //Affiche(' Adj1='+intToStr(Adj1)+' Adj2='+intToStr(Adj2),clyellow);
- 
+  //trace:=true;
+  //TraceListe:=true;
+
+  //interprete_reponse(#$FF+#$FD+#$46+#$43+#$40+#$41+#$40+#$40+#$49+#$4D);
   Affiche('Fin des initialisations',clyellow);
+
+  //Menu_interface(valide);
+  //s:=#$f0;
+  //s:=checksum(s);
+  //envoi(s);
 end;
 
 
@@ -6156,7 +6299,8 @@ begin
     begin
       chaine_recue:=chaine_recue+char(tablo[i]);
     end;
-    if trace then affiche(chaine_hex(chaine_recue),clWhite);
+    if trace then Affiche('Tick='+IntToSTR(tick)+'/Rec '+chaine_Hex(chaine_recue),Clwhite);
+    if terminal then Affiche(chaine_recue,clLime);
     interprete_reponse(chaine_recue);
     chaine_recue:='';
   end;
@@ -6191,7 +6335,7 @@ begin
   end;
   with formprinc do
   begin
-    Menu_interface(valide);
+    //Menu_interface(valide);
   end;
 
 end;
@@ -6209,9 +6353,16 @@ begin
   begin
     Affiche('Positionnement des feux',clYellow);
     if not(ferme) then envoi_signauxCplx;  // initialisation des feux
-    if not(ferme) and (AvecInitAiguillages=1) then init_aiguillages else   // initialisation des aiguillages
-    if not(ferme) and (parSocket or portCommOuvert) then demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
-    //LabelEtat.Caption:=' ';
+    if not(ferme) and (AvecInitAiguillages=1) then
+    begin
+      Affiche('Positionnement des aiguillages',clYellow);
+      init_aiguillages;   // initialisation des aiguillages
+    end;
+    if (AvecInitAiguillages=0) and not(ferme) and (parSocket or portCommOuvert) then
+    begin
+      demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
+    end;
+    LabelEtat.Caption:=' ';
     Menu_interface(valide);
   end;
 
@@ -6280,7 +6431,7 @@ end;
 procedure TFormPrinc.BoutVersionClick(Sender: TObject);
 var s : string;
 begin
-  s:=hextostr('ff fe f0');
+  s:=#$f0;
   s:=checksum(s);
   envoi(s);
 end;
@@ -6330,8 +6481,11 @@ begin
    10061 : s:=s+': Connexion refusée';
    10065 : s:=s+': Port non connecté';
    end;
-   affiche(s,ClRed);
-   afficheDebug(s,ClRed);
+   if ErrorCode<>10060 then
+   begin
+     affiche(s,ClRed);
+     afficheDebug(s,ClRed);
+   end;  
    parSocket:=false;
    ErrorCode:=0;
 end;
@@ -6406,6 +6560,10 @@ begin
   if portCommOuvert then begin portCommOuvert:=false;MSCommUSBLenz.Portopen:=false; end;
   portCommOuvert:=false;
   ClientSocketLenz.close;
+  MenuConnecterUSB.enabled:=true;
+  DeConnecterUSB.enabled:=false;
+  ConnecterCDMRail.enabled:=true;
+  DeConnecterCDMRail.enabled:=false;
 end;
 
 procedure TFormPrinc.MenuConnecterEthernetClick(Sender: TObject);
@@ -6527,15 +6685,21 @@ begin
   ButtonEcrCV.Enabled:=true;
   LireunfichierdeCV1.enabled:=true;
   LireunaccessoireversunfichierdeCV1.Enabled:=true;
-  LabelEtat.caption:='Interface connectée par Ethernet';
+  LabelTitre.caption:=titre+' Interface connectée par Ethernet';
 end;
 
 procedure TFormPrinc.ClientSocketCDMConnect(Sender: TObject;Socket: TCustomWinSocket);
+var s : string;
 begin
-  LabelTitre.caption:=Titre+ ' - CDM rail connecté';
-  Affiche('CDM Rail connecté ',clYellow);
-  AfficheDebug('CDM Rail connecté ',clYellow);
+  s:='CDM rail connecté';
+  LabelTitre.caption:=titre+' '+s;
+  Affiche(s,clYellow);
+  AfficheDebug(s,clYellow);
   parSocketCDM:=True;
+  MenuConnecterUSB.enabled:=false;
+  DeConnecterUSB.enabled:=false;
+  ConnecterCDMRail.enabled:=false;
+  
 end;
 
 // réception d'un message de CDM rail
@@ -6638,6 +6802,9 @@ begin
   Affiche('CDM rail déconnecté',Cyan);
   AfficheDebug('CDM rail déconnecté',Cyan);
   CDM_connecte:=False;
+  MenuConnecterUSB.enabled:=true;
+  DeConnecterUSB.enabled:=true;
+  ConnecterCDMRail.enabled:=true;
 end;
 
 
@@ -6748,12 +6915,12 @@ var adr,valeur,erreur : integer;
     s : string;
 begin
   // doc XpressNet page 55
-  if (Adr>255) or (valeur>255) then exit;
   val(EditAdresse.text,adr,erreur);
   val(EditVal.Text,valeur,erreur);
+  if (Adr>255) or (valeur>255) then exit;
   //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
   //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
-  s:=#$ff+#$fe+#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
+  s:=#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
 
   s:=checksum(s);
   envoi(s);     // envoi de la trame et attente Ack
@@ -6765,7 +6932,7 @@ end;
 procedure TFormPrinc.ButtonRepriseClick(Sender: TObject);
 var s : string;
 begin
-  s:=#$ff+#$fe+#$21+#$81;
+  s:=#$21+#$81;
   s:=checksum(s);
   envoi(s);     // envoi de la trame et attente Ack
 
@@ -6804,7 +6971,7 @@ begin
 
           if (cv<=255) and (valeur<=255) then
           begin
-            s:=#$ff+#$fe+#$23+#$16+Char(cv)+Char(valeur);      //CV de 1 à 256
+            s:=#$23+#$16+Char(cv)+Char(valeur);      //CV de 1 à 256
             s:=checksum(s);
             envoi(s);     // envoi de la trame et attente Ack, la premiere trame fait passer la centrale en mode programmation (service)
             tempo(5);
@@ -6837,13 +7004,13 @@ begin
         cv:=3;
         trace:=true;
         //s:=#$ff+#$fe+#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
-        s:=#$ff+#$fe+#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
+        s:=#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
         s:=checksum(s);
         // envoi(s);     // envoi de la trame et attente Ack, la premiere trame fait passer la centrale en mode programmation (service)
         envoi_ss_ack(s);
         Tempo(1);
 
-        s:=#$ff+#$fe+#$21+#$10+Char(cv);      // demande d'envoi du résultat du mode service
+        s:=#$21+#$10+Char(cv);      // demande d'envoi du résultat du mode service
         s:=checksum(s);
         //envoi(s);
         envoi_ss_ack(s);
@@ -6892,10 +7059,32 @@ begin
       closeFile(fte);
     end;
   end;
-
 end;
 
 
+procedure TFormPrinc.Quitter1Click(Sender: TObject);
+begin
+   close;
+end;
+
+procedure TFormPrinc.Button1Click(Sender: TObject);
+var s : string;
+begin
+  s:=EditGenli.text; //+#13+#10+#10;
+  terminal:=true;
+  if portCommOuvert then
+  begin
+    Affiche('Envoi a genli de '+ EditGenli.text,clorange);
+    envoi_ss_ack(s);
+  end;
+end;
+
+procedure TFormPrinc.Button2Click(Sender: TObject);
+begin
+  if MSCommUSBLenz.CTSHolding=true then Affiche('CTS=1',Clyellow)
+  else Affiche('CTS=0',clyellow);
+  
+end;
 
 end.
 

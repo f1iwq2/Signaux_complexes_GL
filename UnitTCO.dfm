@@ -88,7 +88,19 @@ object FormTCO: TFormTCO
       Top = 0
       Width = 857
       Height = 345
+      PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
+      OnContextPopup = ImageTCOContextPopup
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 568
+    Top = 296
+    object Position1: TMenuItem
+      Caption = 'Position'
+    end
+    object N1: TMenuItem
+      Caption = '-'
     end
   end
 end
