@@ -4,7 +4,7 @@ object FormDebug: TFormDebug
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
-  ClientWidth = 759
+  ClientWidth = 789
   Color = clWhite
   TransparentColorValue = clTeal
   Font.Charset = DEFAULT_CHARSET
@@ -49,7 +49,7 @@ object FormDebug: TFormDebug
   object Label3: TLabel
     Left = 448
     Top = 136
-    Width = 105
+    Width = 97
     Height = 225
     AutoSize = False
     Caption = 'Label3'
@@ -79,9 +79,9 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 560
+    Left = 552
     Top = 368
-    Width = 185
+    Width = 233
     Height = 221
     Color = clBlack
     Font.Charset = ANSI_CHARSET
@@ -149,28 +149,13 @@ object FormDebug: TFormDebug
     TabOrder = 6
     OnClick = ButtonChercheClick
   end
-  object MemoDet: TMemo
-    Left = 560
-    Top = 136
-    Width = 185
-    Height = 225
-    Color = clMaroon
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clYellow
-    Font.Height = -11
-    Font.Name = 'Arial'
-    Font.Style = []
-    ParentFont = False
-    ScrollBars = ssVertical
-    TabOrder = 7
-  end
   object ButtonAffEvtChrono: TButton
     Left = 448
     Top = 440
     Width = 97
     Height = 33
     Caption = 'Affiche Evts chrono d'#233'tecteurs'
-    TabOrder = 8
+    TabOrder = 7
     WordWrap = True
     OnClick = ButtonAffEvtChronoClick
   end
@@ -187,7 +172,7 @@ object FormDebug: TFormDebug
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
     OnClick = CheckAffAffecTrainsClick
   end
   object CheckBoxTraceLIste: TCheckBox
@@ -202,7 +187,7 @@ object FormDebug: TFormDebug
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     OnClick = CheckBoxTraceLIsteClick
   end
   object CheckTrame: TCheckBox
@@ -217,7 +202,7 @@ object FormDebug: TFormDebug
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 11
+    TabOrder = 10
     OnClick = CheckTrameClick
   end
   object ButtonCop: TButton
@@ -226,9 +211,18 @@ object FormDebug: TFormDebug
     Width = 97
     Height = 49
     Caption = 'Copie fen'#234'te principale dans debug'
-    TabOrder = 12
+    TabOrder = 11
     WordWrap = True
     OnClick = ButtonCopClick
+  end
+  object RichEdit: TRichEdit
+    Left = 552
+    Top = 120
+    Width = 225
+    Height = 241
+    HideScrollBars = False
+    ScrollBars = ssVertical
+    TabOrder = 12
   end
   object SaveDialog: TSaveDialog
     Left = 680

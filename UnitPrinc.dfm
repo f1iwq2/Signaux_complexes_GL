@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 58
-  Top = 238
+  Left = 47
+  Top = 193
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1198,6 +1198,26 @@ object FormPrinc: TFormPrinc
       0000}
     Visible = False
   end
+  object Label1: TLabel
+    Left = 656
+    Top = 116
+    Width = 89
+    Height = 13
+    Caption = 'Nombre de trains : '
+  end
+  object LabelNbTrains: TLabel
+    Left = 760
+    Top = 112
+    Width = 9
+    Height = 19
+    Caption = '0'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -16
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object BoutVersion: TButton
     Left = 1008
     Top = 16
@@ -1328,33 +1348,8 @@ object FormPrinc: TFormPrinc
     Width = 81
     Height = 33
     Caption = 'Informations'
-    TabOrder = 7
-    OnClick = ButtonInfoClick
-  end
-  object GroupBox2: TGroupBox
-    Left = 982
-    Top = 87
-    Width = 211
-    Height = 46
-    Caption = 'Trains'
     TabOrder = 6
-    Visible = False
-    object Label1: TLabel
-      Left = 16
-      Top = 20
-      Width = 89
-      Height = 13
-      Caption = 'Nombre de trains : '
-    end
-    object EditNbTrains: TEdit
-      Left = 112
-      Top = 16
-      Width = 89
-      Height = 21
-      TabOrder = 0
-      Text = 'EditNbTrains'
-      OnKeyPress = EditNbTrainsKeyPress
-    end
+    OnClick = ButtonInfoClick
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -1380,7 +1375,7 @@ object FormPrinc: TFormPrinc
     Width = 75
     Height = 33
     Caption = 'loco'
-    TabOrder = 10
+    TabOrder = 9
     OnClick = locoClick
   end
   object ButtonAffDebug: TButton
@@ -1389,7 +1384,7 @@ object FormPrinc: TFormPrinc
     Width = 89
     Height = 33
     Caption = 'Affiche debug'
-    TabOrder = 11
+    TabOrder = 10
     OnClick = ButtonAffDebugClick
   end
   object ButtonReprise: TButton
@@ -1401,34 +1396,34 @@ object FormPrinc: TFormPrinc
       'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
       'ension de la centrale'
     Caption = 'Reprise DCC'
-    TabOrder = 12
+    TabOrder = 11
     OnClick = ButtonRepriseClick
   end
   object EditGenli: TEdit
-    Left = 656
-    Top = 112
+    Left = 880
+    Top = 160
     Width = 121
     Height = 21
-    TabOrder = 13
+    TabOrder = 12
     Visible = False
   end
   object Button1: TButton
-    Left = 784
-    Top = 112
+    Left = 1064
+    Top = 216
     Width = 113
     Height = 25
     Caption = 'Envoi vers Genli'
-    TabOrder = 14
+    TabOrder = 13
     Visible = False
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 1040
-    Top = 80
+    Left = 992
+    Top = 96
     Width = 97
     Height = 25
     Caption = 'Demande '#233'tat CTS'
-    TabOrder = 15
+    TabOrder = 14
     Visible = False
     OnClick = Button2Click
   end
@@ -1525,6 +1520,11 @@ object FormPrinc: TFormPrinc
     end
     object Divers1: TMenuItem
       Caption = 'Divers'
+      object Config: TMenuItem
+        Caption = 'Configuration'
+        Hint = 'Modifie les variables de configuration sans sauvegarde'
+        OnClick = ConfigClick
+      end
       object FichierSimu: TMenuItem
         Caption = 'Ouvrir un fichier de simulation'
         Hint = 
@@ -1568,7 +1568,7 @@ object FormPrinc: TFormPrinc
   end
   object OpenDialog: TOpenDialog
     Left = 1080
-    Top = 88
+    Top = 104
   end
   object SaveDialog: TSaveDialog
     Left = 1120

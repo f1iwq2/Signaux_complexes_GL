@@ -15,8 +15,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
-  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ListeUSB,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB  ;
+  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, 
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB , unitConfig  ;
 
 type
   TFormPrinc = class(TForm)
@@ -35,7 +35,6 @@ type
     ButtonCommande: TButton;
     ButtonTest: TButton;
     ButtonInfo: TButton;
-    GroupBox2: TGroupBox;
     MainMenu1: TMainMenu;
     Interface1: TMenuItem;
     MenuConnecterUSB: TMenuItem;
@@ -73,8 +72,6 @@ type
     Versions1: TMenuItem;
     ChronoDetect: TMenuItem;
     ClientSocketCDM: TClientSocket;
-    Label1: TLabel;
-    EditNbTrains: TEdit;
     FichierSimu: TMenuItem;
     ButtonEcrCV: TButton;
     ButtonReprise: TButton;
@@ -88,6 +85,9 @@ type
     EditGenli: TEdit;
     Button1: TButton;
     Button2: TButton;
+    Config: TMenuItem;
+    Label1: TLabel;
+    LabelNbTrains: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -130,7 +130,6 @@ type
     procedure ClientSocketLenzDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure ChronoDetectClick(Sender: TObject);
-    procedure EditNbTrainsKeyPress(Sender: TObject; var Key: Char);
     procedure FichierSimuClick(Sender: TObject);
     procedure ButtonEcrCVClick(Sender: TObject);
     procedure ButtonRepriseClick(Sender: TObject);
@@ -139,6 +138,7 @@ type
     procedure Quitter1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure ConfigClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -158,6 +158,7 @@ LargImg=50;HtImg=91;
 const_droit=2;const_devieD=1;  // positions transmises par la centrale LENZ
 const_devieG=3;   
 MaxElParcours=4000;
+
 
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
@@ -204,42 +205,51 @@ TMA             = (valide,devalide);
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole,TempoOctet,TimoutMaxInterface : integer;
+    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole : integer;
     Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
     NackCDM,MsgSim : boolean;
     TraceListe,clignotant,nack,Maj_feux_cours : boolean;
 
     branche : array [1..100] of string;
-    Train : array [1..100,1..MaxElParcours] of integer;
 
 const
   ClBleuClair=$FF7070 ;
   Cyan=$FFA0A0;
   clviolet=$FF00FF;
-  //GrisF=$333333;
   GrisF=$414141;
   clOrange=$0077FF;
   Feu_X=50;Feu_Y=91;
+  couleurTrain : array[1..8] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
+  
 var
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
   DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO,terminal : boolean;
   tablo : array of byte;
-  Enregistrement,AdresseIP,chaine_Envoi,chaine_recue,AdresseIPCDM,recuCDM,Id_CDM,Af,
-  ConfStCom,entete,suffixe : string;
-  maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,NumPort,Tempo_init,Suivant,TypeGen,
-  NbreImagePligne,Port,NbreBranches,Index2_det,branche_det,Index_det,
-  portCDM,I_simule : integer;
+  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,
+  entete,suffixe,ConfStCom : string;
+  maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,Tempo_init,Suivant,TypeGen,
+  NbreImagePligne,NbreBranches,Index2_det,branche_det,Index_det,
+  I_simule : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
   Adresse_detecteur : array[0..60] of integer; // adresses des détecteurs par index
   mem : array[0..1024] of boolean ; // mémoire des états des détecteurs
   MemZone : array[0..1024,0..1024] of boolean ; // mémoires de zones
+  Train : array[1..30] of record
+             index : integer ; // nombre de routes pour ce train
+             route : array[1..2000] of record
+             Mem1,Mem2 : integer;
+           end;
+          end; 
   Tablo_Simule : array[0..200] of
     record
       tick : longint;
       Detecteur,etat : integer ;
     end;
-  N_Cv,index_simule,NDetecteurs,N_Trains : integer;
+  Route : array[1..2000] of record
+     Mem1,Mem2 : integer;
+     end;  
+  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes : integer;
   tablo_CV : array [1..255] of integer;
   couleur : Tcolor;
   fichier : text;
@@ -285,7 +295,7 @@ var
 
 {$R *.dfm}
 
-// utilisation dans unité UnitPilote
+// utilisation dans unité UnitPilote et configunit
 function Index_feu(adresse : integer) : integer;
 procedure dessine_feu2(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_feu3(Acanvas : Tcanvas;EtatSignal : word);
@@ -302,6 +312,9 @@ procedure Maj_Etat_Signal(adresse,aspect : integer);
 procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
+procedure connecte_USB;
+procedure deconnecte_usb;
+function IsWow64Process: Boolean;
 
 
 implementation
@@ -1023,13 +1036,7 @@ begin
   envoi:=ack;
 end;
 
-// insère l'id pour le serveur CDM dans une chaîne
-function place_id(s : string) : string;
-begin
-  delete(s,5,2);
-  insert(id_cdm,s,5);
-  place_id:=s;
-end;
+
 
 // prépare la chaîne de commande pour un accessoire via CDM
 Function chaine_CDM_Acc(adresse,etat1 : integer) : string;
@@ -1059,28 +1066,7 @@ begin
   chaine_CDM_Acc:=so+s;
 end;
 
-// envoi d'une chaîne à CDM par socket, puis attend l'ack ou le nack
-function envoi_CDM(s : string) : boolean;
-var temps : integer;
-begin
-    if parsocketCDM=false then begin envoi_CDM:=false;exit;end;
-    //if NivDebug=3 then begin AfficheDebug('Envoi à CDM rail',clRed);afficheDebug(s,ClGreen);end;
-    Formprinc.ClientSocketCDM.Socket.SendText(s);
-    // attend l'ack
-    ackCDM:=false;nackCDM:=false;
-    if ParSocketCDM then
-    begin
-      temps:=0;
-      repeat
-        inc(temps);tempo(1);
-      until ferme or ackCDM or nackCDM or (temps>2); // CDM répond < 1s
-      if not(ackCDM) or nack then
-      begin
-        Affiche('Pas de réponse de CDM Rail',clRed);
-      end;
-    end;
-  envoi_CDM:=ackCDM;
-end;
+
 
 // active ou désactive une sortie. Une adresse comporte deux sorties identifiées par "octet"
 // Adresse : adresse de l'accessoire
@@ -1298,6 +1284,8 @@ begin
   if (EtatSignalCplx[adr]<>code) then
   begin
     if (traceSign) then Affiche('Signal directionnel: ad'+IntToSTR(adr)+'='+intToSTR(code),clOrange);
+    if AffSignal then AfficheDebug('Signal directionnel: ad'+IntToSTR(adr)+'='+intToSTR(code),clOrange);
+
     case code of
     0 :  begin      pilote_acc(adr,1,feu);   // sortie 1 à 0
                     sleep(tempoFeu);
@@ -1344,6 +1332,7 @@ begin
   if (EtatSignalCplx[adr]<>code) then
   begin
     if traceSign then Affiche('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
+    if AffSignal then AfficheDebug('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
 
     case code of
       // éteindre toutes les leds
@@ -1379,6 +1368,8 @@ begin
   if (EtatSignalCplx[adr]<>code) then
   begin
     if traceSign then Affiche('signal directionnel LEB: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
+    if aFFsIGNAL then AfficheDebug('signal directionnel LEB: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
+
     case code of
     0 : begin pilote_acc(adr+5,2,feu) ;  pilote_acc(adr+6,2,feu) ;end;  //00
     1 : begin pilote_acc(adr+5,1,feu) ;  pilote_acc(adr+6,2,feu) ;end;  //10
@@ -1402,6 +1393,8 @@ begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code);
     if traceSign then affiche('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
+    if Affsignal then afficheDebug('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
+  
   
     if (aspect=carre)     then pilote_acc(adresse,2,feu) ;
     if (aspect=semaphore) then pilote_acc(adresse,1,feu) ;
@@ -1452,6 +1445,14 @@ begin
     if Combine<>0 then s:=s+' + '+etatSign[combine];
     Affiche(s,clOrange);
   end;
+  if AffSignal then
+  begin
+    s:='Signal LEB:  ad'+IntToSTR(adr)+'='+etatSign[aspect];
+    //s:='Signal LEB:  ad'+IntToSTR(adr)+' aspect='+intToSTR(aspect)+' combine='+intToSTR(combine);
+    if Combine<>0 then s:=s+' + '+etatSign[combine];
+    AfficheDebug(s,clOrange);
+  end;
+  
   Sleep(60);  // si le feu se positionne à la suite d'un positionnement d'aiguillage, on peut avoir le message station occupée
 
   if (Combine=0) then
@@ -1532,6 +1533,12 @@ begin
       if Combine<>0 then s:=s+' + '+etatSign[combine];
       Affiche(s,clOrange);
     end;
+    if AffSignal then
+    begin
+      s:='Signal NMRA:  ad'+IntToSTR(adresse)+'='+etatSign[aspect];
+      if Combine<>0 then s:=s+' + '+etatSign[combine];
+      AfficheDebug(s,clOrange);
+    end;
 
     if combine=0 then
     case (code) of
@@ -1588,7 +1595,13 @@ begin
       if Combine<>0 then s:=s+' + '+etatSign[combine];
       Affiche(s,clOrange);
     end;
-
+    if AffSignal then 
+    begin
+      s:='Signal UniSemaf: ad'+IntToSTR(adresse)+'='+etatSign[code];
+      if Combine<>0 then s:=s+' + '+etatSign[combine];
+      AfficheDebug(s,clOrange);
+    end;
+    
     // pour Unisemaf, la cible est définie dans le champ Unisemaf de la structure feux
 
     modele:=feux[index].Unisemaf;
@@ -1881,6 +1894,8 @@ begin
     ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
     //if (tempo_ACC>0) then sleep(100);  // les commandes entre 2 feux successives doivent être séparées au minimum de 100 ms
     if traceSign then affiche('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
+    if AffSignal then afficheDebug('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
+    
     if (aspect=semaphore) or (aspect=vert) or (aspect=carre) or (aspect=jaune) then mode:=1 else mode:=2;
 
     case mode of
@@ -1928,6 +1943,7 @@ begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
     if (tracesign) then Affiche('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
+    if AffSignal then AfficheDebug('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
     dessine_feu(adresse);
   end;
 end;
@@ -1958,6 +1974,12 @@ begin
       s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
       if CombineLoc<>0 then s:=s+' + '+etatSign[combineLoc];
       Affiche(s,clOrange);
+    end;
+    if AffSignal then
+    begin
+      s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
+      if CombineLoc<>0 then s:=s+' + '+etatSign[combineLoc];
+      AfficheDebug(s,clOrange);
     end;
     // spécifique au décodeur digital bahn:
     // si le signal affichait un signal combiné, il faut éteindre le signal avec un sémaphore
@@ -3017,40 +3039,8 @@ begin
 
   // configuration du port com
   s:=lit_ligne; // COM3:57600,N,8,1,2 
-  sa:=s;
-  protocole:=-1;
-  // supprimer la dernier paramètre
-  i:=pos(',',s);
-  if i<>0 then
-  begin
-    delete(s,1,i);
-    j:=i;
-    i:=pos(',',s);
-    j:=j+i;
-    if i<>0 then
-    begin
-      delete(s,1,i);
-      i:=pos(',',s);
-      j:=j+i;
-      if i<>0 then
-      begin
-        delete(s,1,i);
-        i:=pos(',',s);
-        j:=j+i;
-        if i<>0 then
-        begin
-          delete(s,1,i);
-          Val(s,protocole,erreur);
-        end;
-      end;
-    end;
-  end;
-
-  ConfStCom:=copy(sa,1,j-1);
-  i:=pos(':',ConfStCom);
-  val(ConfStCom[i-1],Numport,erreur);
-  if i<>0 then Delete(ConfStCom,1,i);
-  if (protocole=-1) or (protocole>4) or (i=0) then Affiche('Erreur port com mal déclaré : '+sa,clred);
+  if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
+  portcom:=s;
 
   // temporisation entre 2 caractères
   s:=lit_ligne;
@@ -3064,14 +3054,14 @@ begin
 
   //entete
   s:=lit_ligne;
-  val(s,i,erreur);
+  val(s,Valeur_entete,erreur);
   entete:='';
-  case i of
+  case Valeur_entete of
    0 : begin entete:='';suffixe:='';end;
    1 : begin entete:=#$FF+#$FE;suffixe:='';end;
    2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
   end;
-  if erreur<>0 then Affiche('Erreur déclaration variable entete',clred);
+  if (erreur<>0) or (valeur_entete>2) then Affiche('Erreur déclaration variable entete',clred);
 
 
   //avec ou sans initialisation des aiguillages
@@ -4890,17 +4880,18 @@ end;
 // si 2 : détecteur det2 non trouvé
 // si 3 : erreur fatale
 // si 10 : ok route trouvée
+
 function calcul_zones_det(det1,det2 : integer) : integer;
 var
   i,i1,i2,j,k,IndexBranche_det1,IndexBranche_det2,index_i1,index_i2,
   branche_trouve_det1,branche_trouve_det2,Adr,AdrPrec,position,Btype,BTypePrec,
-  AdrFonc,TypePrec,TypeSuiv,TypeFonc,AdrSuiv : integer;
+  AdrFonc,TypePrec,TypeSuiv,TypeFonc,AdrSuiv,Train_Courant : integer;
   t,sortie,trouve : boolean;
-  s : string;
+  s,ss : string;
 
 begin
- // if trouve_seq_chrono_010(det1) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det1),clyellow);
- // if trouve_seq_chrono_010(det2) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det2),clyellow);
+  // if trouve_seq_chrono_010(det1) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det1),clyellow);
+  // if trouve_seq_chrono_010(det2) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det2),clyellow);
   if traceListe then AfficheDebug('calcul_zones_det('+intToSTR(det1)+','+intToSTR(det2)+')',clyellow);
   // trouver détecteur 1
   trouve_detecteur(det1); // branche_trouve  IndexBranche_trouve
@@ -4960,8 +4951,10 @@ begin
       until (sortie) ;   // boucle de parcours
     end;
 
-    if (i=20) then begin Affiche('Erreur fatale 200 : Itération trop longue',clred);
-        AfficheDebug('Erreur fatale 200 : Itération trop longue',clred);calcul_zones_det:=3;end;
+    if (i=20) then 
+    begin Affiche('Erreur fatale 200 : Itération trop longue',clred);
+        AfficheDebug('Erreur fatale 200 : Itération trop longue',clred);calcul_zones_det:=3;
+    end;
     if ((Btype=1) and (Adr<>det2) and (TraceListe) ) then
        AfficheDebug('N''est pas le détecteur attendu '+intToSTR(Adr)+' pour '+intToSTR(det2),clyellow);
     inc(j);
@@ -4985,8 +4978,8 @@ begin
 
     // le train vient de det1, quitte det2 et va vers Adr
     // il faut vérifier si le détecteur précédent à été mis à 1 puis à 0 (on cherche 0)
-    s:='Test route pour prec='+intToSTR(AdrPrec)+' det1='+intToSTR(det1)+' det2='+IntToSTR(det2) ;
-    FormDebug.MemoDet.lines.add(s);
+    //s:='Test route pour prec='+intToSTR(AdrPrec)+' det1='+intToSTR(det1)+' det2='+IntToSTR(det2) ;
+    //FormDebug.MemoDet.lines.add(s);
     if traceListe then AfficheDebug(s,clyellow);
 
     // trouver l'index du détecteur (det1) à 0
@@ -5014,15 +5007,59 @@ begin
 
     MemZone[det1,det2]:=FALSE;        // efface zone précédente
     MemZone[det2,AdrSuiv]:=TRUE;      // valide la nouveau zone
-    With FormDebug.MemoDet do
+   
+    //if N_trains=0 then inc(N_trains);
+    // ajouter la route dans le tableau des routes
+    if N_routes<2000 then inc(N_routes);
+    Route[N_routes].Mem1:=det2;Route[N_routes].Mem2:=AdrSuiv;
+    
+    // affecter la route à un train
+    if N_trains=0 then N_trains:=1;
+    // premier train
+    if (N_trains=1) and (Train[1].index=0) then 
+    begin 
+      Train[1].index:=1;Train[1].route[1].Mem1:=det2;Train[1].route[1].Mem2:=AdrSuiv;
+      Train_Courant:=1;
+      //FormDebug.MemoDet.lines.add('Premier train');
+      Formprinc.LabelNbTrains.caption:='1';
+    end
+    else
     begin
-      Lines.Add('route ok '+intToStr(det1)+' à '+intToStr(det2));
-      s:='Mem '+IntToSTR(det2)+' à '+IntTOStr(AdrSuiv);
-      Lines.Add(s);
+      // parcourir les trains pour voir si det2 correspond à la derniere route du train exploré
+      i:=1;
+      repeat
+        j:=Train[i].index;
+        trouve:=Train[i].route[j].mem2=det2 ;
+        inc(i);
+      until (i>N_Trains) or trouve;
+      if trouve then 
+      begin
+        dec(i);
+        //FormDebug.MemoDet.lines.add('route train '+intToSTR(i));
+        train_courant:=i;
+        inc(j);
+        Train[i].index:=j;Train[i].route[j].Mem1:=det2;Train[i].route[j].Mem2:=AdrSuiv; 
+      end     
+      else
+      // nouveau train
+      begin
+        //FormDebug.MemoDet.lines.add('Nouveau train');
+        inc(N_Trains);
+        Train[N_trains].index:=1;Train[N_trains].route[1].Mem1:=det2;Train[N_trains].route[1].Mem2:=AdrSuiv;
+        Train_courant:=N_trains;
+        Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+      end;
     end;
-    if TraceListe then AfficheDebug(s,clyellow);
-    Affiche(s,clyellow);
 
+    With FormDebug.RichEdit do
+    begin
+      s:='train '+IntToSTR(Train_Courant)+' '+intToStr(det1)+' à '+intToStr(det2)+' => Mem '+IntToSTR(det2)+' à '+IntTOStr(AdrSuiv);
+      Lines.Add(s);
+      RE_ColorLine(FormDebug.RichEdit,lines.count,CouleurTrain[((Train_Courant - 1) mod 8)+1 ]);
+    end;
+    s:='train '+IntToSTR(Train_Courant)+' Mem '+IntToSTR(det2)+' à '+IntTOStr(AdrSuiv);
+    Affiche(s,clyellow);
+    
     // et effacer le premier détecteur de la route (det1)
     i:=1;
     repeat
@@ -5034,12 +5071,12 @@ begin
       supprime_event(i);
       if TraceListe then AfficheDebug('Efface index '+IntToSTR(i),clyellow);
     end;
-
+     
     calcul_zones_det:=10;  // route trouvée et cohérente
     exit;
-  end;
+  end;  
 end;
-
+  
 
 // renvoie le détecteur de la zone mémoire si la mémoire MemZone[det,xxx] est à 1
 // exemple si MemZone[513,517]=true alors Test_mem_origine(513) renvoie 517, sinon 0
@@ -5063,8 +5100,7 @@ var i,j,k1,k2,BtypeSuiv,Adr_det,etat,Adr,Aig,DetPrec1,DetPrec2,Detprec3,Detprec4
     s : string;
 begin
   s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
-  if AffSignal then Affiche(s,clOrange);
-  if NivDebug>=1 then AfficheDebug(s,clOrange);
+  if AffSignal then AfficheDebug(s,clOrange);
   i:=index_feu(Adrfeu);
   if AdrFeu<>0 then
   begin
@@ -5086,13 +5122,13 @@ begin
     // signaux traités spécifiquement
     if (AdrFeu=201) then
     begin
-       //sprintf(Affiche,"Aiguille 27=%d \r\n",aiguillage[27].position);Display(Affiche);
-       //   sprintf(Affiche,"Aiguille 31=%d \r\n",aiguillage[31].position);Display(Affiche);
-       if ((aiguillage[28].position<>const_droit) and (aiguillage[29].position<>const_droit) and
-           (aiguillage[31].position=2)) then // attention spécial
-           Maj_Etat_Signal(AdrFeu,blanc) else Maj_Etat_Signal(AdrFeu,violet);
-       envoi_LEB(AdrFeu);
-       exit;
+      //sprintf(Affiche,"Aiguille 27=%d \r\n",aiguillage[27].position);Display(Affiche);
+      //   sprintf(Affiche,"Aiguille 31=%d \r\n",aiguillage[31].position);Display(Affiche);
+      if ((aiguillage[28].position<>const_droit) and (aiguillage[29].position<>const_droit) and
+         (aiguillage[31].position=2)) then // attention spécial
+         Maj_Etat_Signal(AdrFeu,blanc) else Maj_Etat_Signal(AdrFeu,violet);
+      envoi_LEB(AdrFeu);
+      exit;
     end;
     if (AdrFeu=217) then
     begin
@@ -5109,22 +5145,20 @@ begin
       begin Maj_Etat_Signal(AdrFeu,violet) ; Envoi_signauxCplx;
        exit;
       end
-        else if not(carre_signal(AdrFeu)) then //ici ya pas de check and feux[i].check.checked then
-        begin Maj_Etat_Signal(AdrFeu,blanc);Envoi_signauxCplx;
+      else if not(carre_signal(AdrFeu)) then //ici ya pas de check and feux[i].check.checked then
+      begin Maj_Etat_Signal(AdrFeu,blanc);Envoi_signauxCplx;
         exit;
-        end;
+      end;
     end;
 
-    if AffSignal then Affiche('Debut du traitement général',clYellow);
-    if NivDebug>=2 then AfficheDebug('Début du traitement général',clYellow);
+    //if AffSignal then AfficheDebug('Debut du traitement général',clYellow);
     // traitement des feux >3 feux différents de violet (cas général)
     if (Feux[i].aspect>=3) and (EtatSignalCplx[AdrFeu]<>violet_F) then
     begin
       // détecteurs précédent le feu , pour déterminer si leurs mémoires de zones sont à 1 pour libérer le carré
       if Feux[i].VerrouCarre then
       begin
-        if AffSignal then Affiche('Le feu est verrouillable au carré',clyellow);
-        if NivDebug>=1 then AfficheDebug('Le feu est verrouillable au carré',clyellow);
+        if AffSignal then AfficheDebug('Le feu est verrouillable au carré',clyellow);
         // un feu peut être associé à 4 détecteurs (pour 4 voies)
         // il faut donc explorer les 4 détecteurs probables
         PresTrain:=FALSE;
@@ -5162,7 +5196,7 @@ begin
           begin
             DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant,det_initial,1);
             if DetPrec1<9997 then // route bloquée par aiguillage mal positionné
-             begin
+            begin
               DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1);
               if DetPrec2<9997 then
               begin
@@ -5170,7 +5204,7 @@ begin
                 if DetPrec3<9997 then
                 begin
                   //DetPrec4:=detecteur_suivant_det(DetPrec2,DetPrec3);
-                  if AffSignal then Affiche('les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' ',clyellow);
+                  if AffSignal then AfficheDebug('les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' ',clyellow);
                   PresTrain:=//MemZone[DetPrec4,detPrec3] or
                   MemZone[DetPrec3,detPrec2] or MemZone[DetPrec2,detPrec1] or MemZone[DetPrec1,Det_initial] or presTrain ;
              //     Affiche('MemZone'+intToSTR(DetPrec3)+' '+IntToSTR(detPrec2) = '+MemZone[DetPrec3,detPrec2]
@@ -5180,13 +5214,13 @@ begin
           end;
           inc(j);
         until (j>=5);
-        if presTrain and AffSignal Then affiche('présence train feu '+intToSTR(AdrFeu),clorange);
+        if presTrain and AffSignal Then afficheDebug('présence train feu '+intToSTR(AdrFeu),clorange);
       end;
-      if AffSignal then affiche('Fin de la recherche des 4 détecteurs précédents-----',clOrange);
+      if AffSignal then afficheDebug('Fin de la recherche des 4 détecteurs précédents-----',clOrange);
       // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou que pas présence train avant signal et signal
       // verrouillable au carré, afficher un carré
       car:=carre_signal(AdrFeu);
-      if AffSignal and car then Affiche('le signal a des aiguilles en talon aval mal positionnées',clYellow);
+      if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if (NivDebug>=1) and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if (Feux[i].aspect>=4) and ( (not(PresTrain) and Feux[i].VerrouCarre) or car) then Maj_Etat_Signal(AdrFeu,carre)
       else
@@ -5194,13 +5228,11 @@ begin
         // si on quitte le détecteur on affiche un sémaphore :  attention tester le sens de circulation
         // pour ne pas passer au rouge un feu à contresens.
         // trouver la mémoire de zone MemZone[Adr_det,?] qui a déclenché le feu rouge
-        if AffSignal then Affiche('test du sémaphore',clYellow);
-        if (NivDebug>=1) then AfficheDebug('test du sémaphore',clYellow);
+        if AffSignal then AfficheDebug('test du sémaphore',clYellow);
         Aff_semaphore:=test_memoire_zones(AdrFeu);  // test si présence train après signal
         if Aff_Semaphore then
         begin
-          if AffSignal then Affiche('train après signal-> sémaphore ou carré',clYellow);
-          if (NivDebug>=1) and car then AfficheDebug('train après signal-> sémaphore ou carré',clYellow);
+          if AffSignal then AfficheDebug('train après signal-> sémaphore ou carré',clYellow);
           if testBit(EtatSignalCplx[Adrfeu],carre)=FALSE then Maj_Etat_Signal(AdrFeu,semaphore);
         end
         else
@@ -5209,8 +5241,7 @@ begin
           Aig:=Aiguille_deviee(Adrfeu);
           if (aig<>0) and (feux[i].aspect>=9) then // si le signal peut afficher un rappel et aiguille déviée
           begin
-            if AffSignal then Affiche('Aiguille '+intToSTR(aig)+' déviée',clYellow);
-            if (NivDebug>=1) then AfficheDebug('Aiguille '+intToSTR(aig)+' déviée',clYellow);
+            if AffSignal then AfficheDebug('Aiguille '+intToSTR(aig)+' déviée',clYellow);
             EtatSignalCplx[AdrFeu]:=0;
             if (aiguillage[aig].vitesse=30) or (aiguillage[aig].vitesse=0) then Maj_Etat_Signal(AdrFeu,rappel_30);
             if aiguillage[aig].vitesse=60 then Maj_Etat_Signal(AdrFeu,rappel_60);
@@ -5228,8 +5259,7 @@ begin
           // aiguille locale non déviée
           // si le signal suivant est rouge
           begin
-            if AffSignal then Affiche('pas d''aiguille déviée',clYellow);
-            if (NivDebug>=1) then AfficheDebug('pas d''aiguille déviée',clYellow);
+            if AffSignal then AfficheDebug('pas d''aiguille déviée',clYellow);
             if TestBit(etat,carre) or testBit(etat,semaphore) or testBit(etat,semaphore_cli )then Maj_Etat_Signal(AdrFeu,jaune)
             else
             begin
@@ -5251,10 +5281,10 @@ begin
             end;
           end;
         end;
-        end;
       end;
     end;
-    envoi_signauxCplx;
+  end;
+  envoi_signauxCplx;
 end;
 
 Procedure Maj_feux;
@@ -5426,6 +5456,7 @@ end;
 
 // affecte le numéro de train à un évènement détecteur
 // en sortie : numéro de train
+{
 function affecte_train(index,AdresseAdj,AdresseActuel,etat : integer) : integer;
 var i,train : integer;
     trouve : boolean;
@@ -5454,6 +5485,7 @@ begin
     if AffAffect then AfficheDebug('Pas trouvé',clyellow);
   affecte_train:=train;
 end;
+}
 
 // traitement sur les évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean);
@@ -5490,7 +5522,7 @@ begin
   if (N_Event_tick<Max_Event_det_tick) then
   begin
     inc(N_Event_tick);
-    event_det_tick[N_event_tick].train:=0;
+//    event_det_tick[N_event_tick].train:=0;
 
     event_det_tick[N_event_tick].tick:=tick;
     event_det_tick[N_event_tick].detecteur[Adresse]:=etat01;
@@ -5499,10 +5531,11 @@ begin
 
   exit;
   //------------------------plus utilisé ----------------
+  {
   // front descendant
     if etat01=0 then
     begin
-      affecte_train(N_event_tick,Adresse,0,1); // affecter le numéro du train dont l'adresse du détecteur est à 1
+//      affecte_train(N_event_tick,Adresse,0,1); // affecter le numéro du train dont l'adresse du détecteur est à 1
     end;
     if etat01=1 then
     begin
@@ -5527,7 +5560,7 @@ begin
         event_det_tick[N_event_tick].train:=N_trains;
       end;
     end;
-
+   }
 end;
 
 // évènement d'aiguillage
@@ -5537,7 +5570,7 @@ var i,index1,index2,AdresseE,Adet,det_suiv,pos,Btype,BtypeE,train1,train2,train,
     trouve,trouve1,trouve2 : boolean;
 begin
   exit;
-
+  {
   // -------------------------plus utilisé ----------------
   if N_Event_tick<2 then exit;
   // attribue un train et un détecteur sur un évènement aiguillage
@@ -5575,7 +5608,7 @@ begin
   repeat
     dec(i);
     trouve:=event_det_tick[i].detecteur[Adet]=1; // si le détecteur à rechercher en amont de la liste est à "etat"
-    train:=event_det_tick[i].train;
+    //train:=event_det_tick[i].train;
     index:=i;
   until trouve or (i=1);
   if trouve then
@@ -5618,7 +5651,7 @@ begin
 
 
   end;
-
+   }
 end;
 
 
@@ -5991,6 +6024,42 @@ begin
   HexToStr:=st;
 end;
 
+
+procedure deconnecte_CDM;
+begin
+ with Formprinc do
+    begin
+      ClientSocketCDM.close;
+    end;
+end;
+
+
+
+{$J+}
+function IsWow64Process: Boolean;
+type
+  TIsWow64Process = function(hProcess: THandle; var Wow64Process: Boolean): Boolean; stdcall;
+var
+  DLL: THandle;
+  pIsWow64Process: TIsWow64Process;
+const
+  IsWow64: Boolean = False;
+begin
+  IsWow64:=false;
+  DLL:=LoadLibrary('kernel32.dll');
+  if (DLL<>0) then
+  begin
+    pIsWow64Process:=GetProcAddress(DLL,'IsWow64Process');
+    if (Assigned(pIsWow64Process)) then
+    begin
+      pIsWow64Process(GetCurrentProcess,IsWow64);
+    end;
+    FreeLibrary(DLL);
+  end;
+  Result:=IsWow64;
+end;
+{$J-}
+
 procedure connecte_USB;
 begin
 // initialisation de la comm USB
@@ -6043,79 +6112,6 @@ begin
       end;
 end;
 
-procedure deconnecte_CDM;
-begin
- with Formprinc do
-    begin
-      ClientSocketCDM.close;
-    end;
-end;
-
-procedure connecte_CDM;
-var s : string;
-begin
-  // Initialisation de la comm socket CDM
-  if CDM_connecte then begin Affiche('CDM déja connecté',Cyan);exit;end;
-  if AdresseIPCDM<>'0' then
-  begin
-    with Formprinc do
-    begin
-      ClientSocketCDM.port:=portCDM;
-      ClientSocketCDM.Address:=AdresseIPCDM;
-      ClientSocketCDM.Open;
-    end;
-    tempo(5);
-    // connexion à CDM rail
-    s:='C-C-00-0001-CMDGEN-_CNCT|000|';
-    envoi_cdm(s);
-    if pos('_ACK',recuCDM)<>0 then
-    begin
-      CDM_connecte:=True;
-      Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
-      s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
-      Affiche(s,clYellow);
-      AfficheDebug(s,clyellow);
-
-      // demande des services : ATNT=aiguillages, ADET=détecteurs AACT=actionneurs
-      s:=place_id('C-C-00-0002-RQSERV-RTSIM|030|03|SRV=ATNT;SRV=ADET;SRV=AACT;');
-      envoi_CDM(s);
-      if pos('_ACK',recuCDM)<>0 then Affiche('Services acceptés: aiguillages - détecteurs - actionneurs',clYellow);
-      // demande les trains
-      ////s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
-      //envoi_CDM(s);
-    end;
-  end
-  else
-  begin
-    Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans config.cfg',cyan);
-  end;
-end;
-
-{$J+}
-function IsWow64Process: Boolean;
-type
-  TIsWow64Process = function(hProcess: THandle; var Wow64Process: Boolean): Boolean; stdcall;
-var
-  DLL: THandle;
-  pIsWow64Process: TIsWow64Process;
-const
-  IsWow64: Boolean = False;
-begin
-  IsWow64:=false;
-  DLL:=LoadLibrary('kernel32.dll');
-  if (DLL<>0) then
-  begin
-    pIsWow64Process:=GetProcAddress(DLL,'IsWow64Process');
-    if (Assigned(pIsWow64Process)) then
-    begin
-      pIsWow64Process(GetCurrentProcess,IsWow64);
-    end;
-    FreeLibrary(DLL);
-  end;
-  Result:=IsWow64;
-end;
-{$J-}
-
 
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var
@@ -6129,6 +6125,11 @@ begin
   AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
   Application.onHint:=doHint;
+
+  // version d'OS pour info
+  if IsWow64Process then s:='OS 64 Bits' else s:='OS 32 Bits';
+  s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
+  Affiche(s,clLime);
   LabelEtat.Caption:='Initialisations en cours';
 
   //Menu_interface(devalide);
@@ -6145,25 +6146,22 @@ begin
   AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   AvecTCO:=false;
 
-  EditNbTrains.Text:=IntToSTR(N_Trains);
 
   // créée la fenetre vérification de version
-  FormVersion:=TformVersion.Create(self);
-
-  // version d'OS pour info
-  if IsWow64Process then s:='OS 64 Bits' else s:='OS 32 Bits';
-  s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
-  Affiche(s,clLime);
+  FormVersion:=TformVersion.Create(Self);
 
   ferme:=false;
   CDM_connecte:=false;
   pasreponse:=0;
   Nbre_recu_cdm:=0;
   AffMem:=true;
+  N_routes:=0;
+  N_trains:=0;
+  Train[1].index:=0;
 
   // lecture fichier de configuration  config.cfg
   lit_config;
-
+  
   // TCO
   if avectco then
   begin
@@ -6172,9 +6170,11 @@ begin
     FormTCO.show;
     construit_TCO;
     affiche_TCO;
+    //Formprinc.Hide;
   end;  
 
-  
+
+ 
   // tenter la liaison vers CDM rail ou vers la centrale Lenz
   //Affiche('Test présence CDM',clYellow);
   connecte_CDM;
@@ -6197,7 +6197,7 @@ begin
       end
     end;
   end;
-
+  
   if portCommOuvert or parsocket then
   With Formprinc do
   begin
@@ -6278,7 +6278,7 @@ begin
 
   //interprete_reponse(#$FF+#$FD+#$46+#$43+#$40+#$41+#$40+#$40+#$49+#$4D);
   Affiche('Fin des initialisations',clyellow);
-
+  
   //Menu_interface(valide);
   //s:=#$f0;
   //s:=checksum(s);
@@ -6554,16 +6554,29 @@ begin
   connecte_USB;
 end;
 
-procedure TFormPrinc.DeconnecterUSBClick(Sender: TObject);
+procedure deconnecte_usb;
 begin
   Ferme:=true;
-  if portCommOuvert then begin portCommOuvert:=false;MSCommUSBLenz.Portopen:=false; end;
+  if portCommOuvert then 
+  begin
+    portCommOuvert:=false;
+    Formprinc.MSCommUSBLenz.Portopen:=false; 
+  end;
+
   portCommOuvert:=false;
-  ClientSocketLenz.close;
-  MenuConnecterUSB.enabled:=true;
-  DeConnecterUSB.enabled:=false;
-  ConnecterCDMRail.enabled:=true;
-  DeConnecterCDMRail.enabled:=false;
+  with formprinc do
+  begin
+    ClientSocketLenz.close;
+    MenuConnecterUSB.enabled:=true;
+    DeConnecterUSB.enabled:=false;
+    ConnecterCDMRail.enabled:=true;
+    DeConnecterCDMRail.enabled:=false;
+  end;  
+end;
+
+procedure TFormPrinc.DeconnecterUSBClick(Sender: TObject);
+begin
+  deconnecte_usb;
 end;
 
 procedure TFormPrinc.MenuConnecterEthernetClick(Sender: TObject);
@@ -6691,7 +6704,7 @@ end;
 procedure TFormPrinc.ClientSocketCDMConnect(Sender: TObject;Socket: TCustomWinSocket);
 var s : string;
 begin
-  s:='CDM rail connecté';
+  s:='Socket CDM rail connecté';
   LabelTitre.caption:=titre+' '+s;
   Affiche(s,clYellow);
   AfficheDebug(s,clYellow);
@@ -6711,7 +6724,7 @@ begin
   inc(Nbre_recu_cdm);
   recuCDM:=ClientSocketCDM.Socket.ReceiveText;
 
-  //AfficheDebug('recu de CDM:',clWhite);AfficheDebug(recuCDM,clWhite);
+  // Affiche('recu de CDM:',clWhite);Affiche(recuCDM,clWhite);
   AckCDM:=recuCDM<>'';
   if pos('ACK',recuCDM)=0 then
   begin
@@ -6765,7 +6778,7 @@ begin
       Delete(recuCDM,j,i+5-j);
       val(ss,etat,erreur);
       Event_detecteur(Adr,etat=1);
-      FormDebug.MemoDet.Lines.Add(IntToSTR(adr)+' '+IntToSTR(etat));
+      //FormDebug.MemoDet.Lines.Add(IntToSTR(adr)+' '+IntToSTR(etat));
        
       if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
     end ;
@@ -6860,6 +6873,8 @@ begin
    Affiche('Version 1.2  : Renforcement de l''algorithme de suivi des trains',clLime);
    Affiche('Version 1.3  : Décodeur Unisemaf fonctionnel - Lecture/écriture des CV',clLime);
    Affiche('                     Protocoles variables de l''interface',clLime);
+   Affiche('                     Configuration statique modifiable dans menu',clLime);
+   
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
@@ -6883,7 +6898,7 @@ begin
       if etat<>-1 then
       begin
         s:=s+IntToSTR(j)+'='+intToSTR(etat);
-        s:=s+' Train n°'+intTostr(event_det_tick[i].Train);
+        //s:=s+' Train n°'+intTostr(event_det_tick[i].Train);
         s:=s+' Det suiv='+intTostr(event_det_tick[i].suivant);
 
         trouve:=true;
@@ -6894,15 +6909,6 @@ begin
 
 end;
 
-procedure TFormPrinc.EditNbTrainsKeyPress(Sender: TObject; var Key: Char);
-begin
-if ord(Key) = VK_RETURN then
-  begin
-    Key := #0; // prevent beeping
-    N_trains:=StrToint(EditNbTrains.Text);
-    Affiche(IntToSTR(N_trains)+' trains',clyellow);
-  end;
-end;
 
 procedure TFormPrinc.FichierSimuClick(Sender: TObject);
 begin
@@ -7085,6 +7091,14 @@ begin
   else Affiche('CTS=0',clyellow);
   
 end;
+
+procedure TFormPrinc.ConfigClick(Sender: TObject);
+begin
+  Tformconfig.create(self);
+  formconfig.showmodal;
+  formconfig.close;  
+end;
+
 
 end.
 

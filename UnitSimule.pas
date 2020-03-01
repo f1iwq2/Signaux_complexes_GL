@@ -8,13 +8,14 @@ uses
 
 type
   TFormSimulation = class(TForm)
-    Button1: TButton;
+    ButtonCharge: TButton;
     OpenDialog: TOpenDialog;
     EditIntervalle: TEdit;
     Label1: TLabel;
-    procedure Button1Click(Sender: TObject);
+    CheckBoxRapide: TCheckBox;
+    procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure EditIntervalleChange(Sender: TObject);
+    procedure EditIntervalleKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -29,7 +30,7 @@ implementation
 
 {$R *.dfm}
 
-procedure TFormSimulation.Button1Click(Sender: TObject);
+procedure TFormSimulation.ButtonChargeClick(Sender: TObject);
 var s : string;
    fte : textFile;
    i,k,erreur : integer;
@@ -54,7 +55,8 @@ begin
       begin 
         Delete(s,1,i+4);
         val(s,k,erreur);
-        k:=Index_Simule*Intervalle*10+tick+80;   // démarre dans 8s
+        if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+80 else   // démarre dans 8s
+          k:=Index_Simule+tick+80 ;
         Tablo_simule[index_simule].tick:=k;
         i:=pos('Det=',s);
         if i<>0 then 
@@ -91,16 +93,16 @@ end;
 
 procedure TFormSimulation.FormCreate(Sender: TObject);
 begin
-  Intervalle:=2;
+  Intervalle:=1;
   EditIntervalle.Text:=IntToSTR(Intervalle);
 end;
 
 
-procedure TFormSimulation.EditIntervalleChange(Sender: TObject);
-var i, erreur : integer;
+procedure TFormSimulation.EditIntervalleKeyPress(Sender: TObject;var Key: Char);
+var erreur : integer;
 begin
-  Val(EditIntervalle.Text,i,erreur);
-  if erreur=0 then Intervalle:=i;
+  Val(EditIntervalle.Text,intervalle,erreur);
+  if (intervalle<0) then Intervalle:=1;  
 end;
 
 end.

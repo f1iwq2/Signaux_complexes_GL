@@ -19,12 +19,12 @@ type
     CheckAffSig: TCheckBox;
     ButtonRazTampon: TButton;
     ButtonCherche: TButton;
-    MemoDet: TMemo;
     ButtonAffEvtChrono: TButton;
     CheckAffAffecTrains: TCheckBox;
     CheckBoxTraceLIste: TCheckBox;
     CheckTrame: TCheckBox;
     ButtonCop: TButton;
+    RichEdit: TRichEdit;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -48,7 +48,7 @@ Const Max_Event_det_tick = 10000;
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
-  AffSignal,AffAffect : boolean;
+  AffSignal,AffAffect,initform : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   event_det : array[1..20] of integer;
   //                    tick 1/10s,détecteur
@@ -59,7 +59,7 @@ var
      record
        tick : longint;
        detecteur : array[1..1100] of integer;  // état du détecteur [...]
-       train : integer ;
+       //train : integer ;
        suivant : integer ; // d'ou vient le train
        traite : boolean;  // traité lors de a recherche d'une route
      end;
@@ -68,6 +68,7 @@ var
   
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
+procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
   
 implementation
 
@@ -87,8 +88,20 @@ begin
   //NivDebug:=0;
 end;
 
+procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
+begin
+  with ARichEdit do
+  begin
+    SelStart := SendMessage(Handle, EM_LINEINDEX, ARow - 1, 0);
+    SelLength := Length(Lines[ARow - 1]);
+    SelAttributes.Color := AColor;
+    SelLength := 0;
+  end;
+end;
+
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
+    i : integer;
 begin
   EditNivDebug.Text:='0';
   s:='Cette fenêtre permet d''afficher des informations sur le ';
@@ -96,7 +109,13 @@ begin
   s:=s+' afficher des informations plus ou moins détaillées.';
   Label3.caption:=s;
   MemoDebug.color:=$33;
+  initform:=false;
   MemoDebug.clear;
+  s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
+  if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
+  RichEdit.color:=$111122;
+  MemoDebug.Lines.add(s);
+
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
@@ -214,5 +233,7 @@ var i : integer;
 begin
   MemoDebug.Lines:=Formprinc.ListBox1.Items
 end;
+
+
 
 end.

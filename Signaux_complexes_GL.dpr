@@ -8,7 +8,7 @@ uses
   UnitPilote in 'UnitPilote.pas' {FormPilote},
   UnitSimule in 'UnitSimule.pas' {FormSimulation},
   UnitTCO in 'UnitTCO.pas' {FormTCO},
-  listeusb in 'listeusb.pas';
+  UnitConfig in 'UnitConfig.pas' {FormConfig};
 
 {$R *.res}
 
@@ -19,5 +19,6 @@ begin
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
   Application.CreateForm(TFormTCO, FormTCO);
+  Application.CreateForm(TFormConfig, FormConfig);
   Application.Run;
 end.

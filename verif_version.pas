@@ -62,6 +62,7 @@ var
   Fs:TFileStream;
   lpBuffer: array[0..1024 + 1] of byte;
   dwBytesRead: DWORD;
+  dwTimeout : integer;
 begin
   Result:=False;
 
@@ -70,6 +71,9 @@ begin
     try
       if Assigned(hSession) then
       begin
+        // fonction longue
+        dwTimeout:=2000; //2s
+        InternetSetOption(hSession,INTERNET_OPTION_CONNECT_TIMEOUT,@dwTimeOut, SizeOf(dwTimeOut));
         hService:=InternetOpenUrl(hSession, PChar(aUrl), nil, 0, INTERNET_FLAG_RELOAD, 0);
         if Assigned(hService) then
         try
@@ -126,34 +130,34 @@ begin
           if trouve_zip then s3:=s;
         end;
        // Aff(s)
-    end;
-    closefile(fichier);
-    if trouve_version then
-    begin
-      // isoler le champ version
-      i:=pos('version ',s2);
-      delete(s2,1,i+7);
-      j:=pos(' ',s2);
-      Version_p:=copy(s2,1,j-1);        // version dans version_p
-      // isoler l'url du zip
-      i:=pos('href="',s3);
-      delete(s3,1,i+5);
-      j:=pos('"',s3);
-      s3:=copy(s3,1,j-1);
-      i:=pos('.',s3);
-      if i<>0 then delete(s3,i,1); // supprimer le .
-      s3:='http://cdmrail.free.fr/ForumCDR'+s3 ;
-      aff(s3);               // lien dans s3
+      end;
+      closefile(fichier);
+      if trouve_version then
+      begin
+        // isoler le champ version
+        i:=pos('version ',s2);
+        delete(s2,1,i+7);
+        j:=pos(' ',s2);
+        Version_p:=copy(s2,1,j-1);        // version dans version_p
+        // isoler l'url du zip
+        i:=pos('href="',s3);
+        delete(s3,1,i+5);
+        j:=pos('"',s3);
+        s3:=copy(s3,1,j-1);
+        i:=pos('.',s3);
+        if i<>0 then delete(s3,i,1); // supprimer le .
+        s3:='http://cdmrail.free.fr/ForumCDR'+s3 ;
+        aff(s3);               // lien dans s3
 
-      // changer le . en ,
-      s:=Version_p;
-     // i:=pos('.',s);if i<>0 then s[i]:=',';
-      s2:=version;
-     // i:=pos('.',s2);if i<>0 then s2[i]:=',';
+        // changer le . en ,
+        s:=Version_p;
+        // i:=pos('.',s);if i<>0 then s[i]:=',';
+        s2:=version;
+       // i:=pos('.',s2);if i<>0 then s2[i]:=',';
 
-      val(s,V_publie,erreur); if erreur<>0 then exit;
-      val(s2,V_utile,erreur); if erreur<>0 then exit;
-
+        val(s,V_publie,erreur); if erreur<>0 then exit;
+        val(s2,V_utile,erreur); if erreur<>0 then exit;
+      
         if V_utile<V_publie then
         begin
           FormVersion.show;
@@ -182,7 +186,7 @@ begin
     end
     else
       begin
-        //Aff('Pas d''accès au site CDM rail');
+         //Affiche('Pas d''accès au site CDM rail',clorange);
       end;
 end;
 

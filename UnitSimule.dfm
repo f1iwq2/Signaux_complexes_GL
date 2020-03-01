@@ -27,7 +27,7 @@ object FormSimulation: TFormSimulation
     Font.Style = []
     ParentFont = False
   end
-  object Button1: TButton
+  object ButtonCharge: TButton
     Left = 160
     Top = 96
     Width = 105
@@ -35,7 +35,7 @@ object FormSimulation: TFormSimulation
     Caption = 'Charger un fichier de simulation'
     TabOrder = 0
     WordWrap = True
-    OnClick = Button1Click
+    OnClick = ButtonChargeClick
   end
   object EditIntervalle: TEdit
     Left = 352
@@ -43,11 +43,19 @@ object FormSimulation: TFormSimulation
     Width = 49
     Height = 21
     TabOrder = 1
-    Text = '2'
-    OnChange = EditIntervalleChange
+    Text = '1'
+    OnKeyPress = EditIntervalleKeyPress
+  end
+  object CheckBoxRapide: TCheckBox
+    Left = 56
+    Top = 56
+    Width = 97
+    Height = 17
+    Caption = 'Mode rapide'
+    TabOrder = 2
   end
   object OpenDialog: TOpenDialog
-    Left = 40
-    Top = 64
+    Left = 48
+    Top = 96
   end
 end

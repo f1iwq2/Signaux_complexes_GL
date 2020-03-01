@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 1549
-  Top = 156
+  Left = 267
+  Top = 203
   Width = 928
   Height = 590
   Caption = 'FormTCO'
@@ -10,9 +10,12 @@ object FormTCO: TFormTCO
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
+  Position = poDefault
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object LabelX: TLabel
@@ -55,18 +58,12 @@ object FormTCO: TFormTCO
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object DrawGrid: TDrawGrid
-    Left = 48
-    Top = 408
-    Width = 521
-    Height = 137
-    Color = clBlack
-    DefaultColWidth = 30
-    DefaultRowHeight = 30
-    FixedCols = 0
-    FixedRows = 0
-    TabOrder = 0
-    OnDrawCell = DrawGridDrawCell
+  object Label1: TLabel
+    Left = 496
+    Top = 8
+    Width = 32
+    Height = 13
+    Caption = 'Label1'
   end
   object Button1: TButton
     Left = 320
@@ -74,20 +71,20 @@ object FormTCO: TFormTCO
     Width = 75
     Height = 25
     Caption = 'Button1'
-    TabOrder = 1
+    TabOrder = 0
     OnClick = Button1Click
   end
   object ScrollBox: TScrollBox
     Left = 16
     Top = 40
     Width = 865
-    Height = 353
-    TabOrder = 2
+    Height = 433
+    TabOrder = 1
     object ImageTCO: TImage
       Left = 0
       Top = 0
       Width = 857
-      Height = 345
+      Height = 425
       PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
       OnContextPopup = ImageTCOContextPopup
@@ -101,6 +98,17 @@ object FormTCO: TFormTCO
     end
     object N1: TMenuItem
       Caption = '-'
+    end
+    object Insrer1: TMenuItem
+      Caption = 'Ins'#233'rer'
+      object aiguillageG_PG: TMenuItem
+        Caption = 'Aiguillage gauche ; pointe '#224' gauche'
+        OnClick = aiguillageG_PGClick
+      end
+      object aiguillageD_PD: TMenuItem
+        Caption = 'Aiguillage droit ; pointe '#224' droite'
+        OnClick = aiguillageD_PDClick
+      end
     end
   end
 end
