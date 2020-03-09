@@ -46,14 +46,6 @@ object FormSimulation: TFormSimulation
     Text = '1'
     OnKeyPress = EditIntervalleKeyPress
   end
-  object CheckBoxRapide: TCheckBox
-    Left = 56
-    Top = 56
-    Width = 97
-    Height = 17
-    Caption = 'Mode rapide'
-    TabOrder = 2
-  end
   object OpenDialog: TOpenDialog
     Left = 48
     Top = 96

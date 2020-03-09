@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls , ComCtrls;
+  Dialogs, StdCtrls , ComCtrls, Menus;
 
 type
   TFormDebug = class(TForm)
@@ -25,6 +25,9 @@ type
     CheckTrame: TCheckBox;
     ButtonCop: TButton;
     RichEdit: TRichEdit;
+    PopupMenuRE: TPopupMenu;
+    copier1: TMenuItem;
+    ButtonRazLog: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -37,6 +40,8 @@ type
     procedure CheckBoxTraceLIsteClick(Sender: TObject);
     procedure CheckTrameClick(Sender: TObject);
     procedure ButtonCopClick(Sender: TObject);
+    procedure copier1Click(Sender: TObject);
+    procedure ButtonRazLogClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -44,7 +49,7 @@ type
   end;
 
 Const Max_Event_det_tick = 10000;
-  
+
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
@@ -54,11 +59,12 @@ var
   //                    tick 1/10s,détecteur
   N_Event_tick : integer ; // dernier index
 
-  // tableau des évènements détecteurs
+  // tableau des évènements détecteurs et aiguillages
   event_det_tick : array[0..Max_Event_det_tick] of
      record
        tick : longint;
        detecteur : array[1..1100] of integer;  // état du détecteur [...]
+       Aiguillage,position : integer ;
        //train : integer ;
        suivant : integer ; // d'ou vient le train
        traite : boolean;  // traité lors de a recherche d'une route
@@ -198,18 +204,26 @@ end;
 procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
 var i,j,etat : integer;
     s : string;
-    trouve : boolean;
 begin
   for i:=1 to N_Event_tick do
   begin
-    s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det=';
-    trouve:=false;
+
     for j:=1 to 1100 do
     begin
       etat:=event_det_tick[i].detecteur[j];
-      if etat<>-1 then begin s:=s+IntToSTR(j)+'='+intToSTR(etat);trouve:=true;end;
+      if etat<>-1 then
+      begin
+        s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det='+IntToSTR(j)+'='+intToSTR(etat);
+        AfficheDebug(s,clyellow);
+      end;
     end;
-    if trouve then AfficheDebug(s,clyellow);
+
+    etat:=event_det_tick[i].aiguillage;
+    if etat<>-1 then
+    begin
+      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(etat)+'='+intToSTR(event_det_tick[i].position);
+      AfficheDebug(s,clyellow);
+    end;
   end;
 end;
 
@@ -235,5 +249,17 @@ begin
 end;
 
 
+
+procedure TFormDebug.copier1Click(Sender: TObject);
+begin
+  RichEdit.SelectAll;
+  RichEdit.CopyToClipboard;
+  RichEdit.SetFocus;
+end;
+
+procedure TFormDebug.ButtonRazLogClick(Sender: TObject);
+begin
+  MemoDebug.Clear;
+end;
 
 end.

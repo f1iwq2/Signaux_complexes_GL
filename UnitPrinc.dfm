@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 47
-  Top = 193
+  Left = 64
+  Top = 170
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -597,7 +597,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3feux: TImage
-    Left = 616
+    Left = 600
     Top = 8
     Width = 33
     Height = 57
@@ -1200,14 +1200,14 @@ object FormPrinc: TFormPrinc
   end
   object Label1: TLabel
     Left = 656
-    Top = 116
+    Top = 148
     Width = 89
     Height = 13
     Caption = 'Nombre de trains : '
   end
   object LabelNbTrains: TLabel
     Left = 760
-    Top = 112
+    Top = 144
     Width = 9
     Height = 19
     Caption = '0'
@@ -1255,9 +1255,9 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 648
-    Top = 136
+    Top = 168
     Width = 537
-    Height = 437
+    Height = 405
     Color = clWhite
     ParentColor = False
     TabOrder = 3
@@ -1266,7 +1266,7 @@ object FormPrinc: TFormPrinc
     Left = 656
     Top = 8
     Width = 249
-    Height = 97
+    Height = 129
     Caption = 'Commande d'#39'accessoires'
     TabOrder = 4
     object Label2: TLabel
@@ -1295,7 +1295,7 @@ object FormPrinc: TFormPrinc
       Top = 32
       Width = 57
       Height = 21
-      Hint = 'Adresse accessoire'
+      Hint = 'Adresse accessoire ou de CV'
       TabOrder = 0
       Text = '1'
     end
@@ -1330,6 +1330,17 @@ object FormPrinc: TFormPrinc
       TabOrder = 3
       WordWrap = True
       OnClick = ButtonEcrCVClick
+    end
+    object ButtonLitCV: TButton
+      Left = 8
+      Top = 96
+      Width = 225
+      Height = 25
+      Hint = 'Lecture CV en mode direct sur voie de  programmation'
+      Caption = 'Lecture CV - 1 '#224' 255 par le bus XpressNet'
+      Enabled = False
+      TabOrder = 4
+      OnClick = ButtonLitCVClick
     end
   end
   object ButtonTest: TButton
@@ -1399,33 +1410,14 @@ object FormPrinc: TFormPrinc
     TabOrder = 11
     OnClick = ButtonRepriseClick
   end
-  object EditGenli: TEdit
-    Left = 880
-    Top = 160
-    Width = 121
-    Height = 21
-    TabOrder = 12
-    Visible = False
-  end
-  object Button1: TButton
-    Left = 1064
-    Top = 216
-    Width = 113
-    Height = 25
-    Caption = 'Envoi vers Genli'
-    TabOrder = 13
-    Visible = False
-    OnClick = Button1Click
-  end
   object Button2: TButton
     Left = 992
     Top = 96
     Width = 97
     Height = 25
     Caption = 'Demande '#233'tat CTS'
-    TabOrder = 14
+    TabOrder = 12
     Visible = False
-    OnClick = Button2Click
   end
   object Timer1: TTimer
     Interval = 100
@@ -1454,7 +1446,7 @@ object FormPrinc: TFormPrinc
         OnClick = AffEtatDetecteurs
       end
       object ChronoDetect: TMenuItem
-        Caption = 'Chronologie des d'#233'tecteurs'
+        Caption = 'Chronologie des d'#233'tecteurs et aiguillages'
         Hint = 'Affiche la chronologie des d'#233'tecteurs'
         OnClick = ChronoDetectClick
       end
@@ -1546,13 +1538,6 @@ object FormPrinc: TFormPrinc
           'Ouvre un fichier de CV pour l'#39'envoyer vers un accessoire branch'#233 +
           ' sur la voie de programmation'
         OnClick = LireunfichierdeCV1Click
-      end
-      object LireunaccessoireversunfichierdeCV1: TMenuItem
-        Caption = 'Lire un accessoire vers un fichier de CV'
-        Hint = 
-          'Lire les CV d'#39'un accessoire branch'#233' sur la voie de programmation' +
-          ' vers un fichier'
-        OnClick = LireunaccessoireversunfichierdeCV1Click
       end
     end
   end

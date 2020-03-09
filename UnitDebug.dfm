@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 302
-  Top = 166
+  Left = 286
+  Top = 39
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
@@ -98,7 +98,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 448
-    Top = 560
+    Top = 504
     Width = 97
     Height = 29
     Caption = 'Sauvegarder le log'
@@ -131,8 +131,8 @@ object FormDebug: TFormDebug
     OnClick = CheckAffSigClick
   end
   object ButtonRazTampon: TButton
-    Left = 448
-    Top = 520
+    Left = 688
+    Top = 592
     Width = 97
     Height = 33
     Caption = 'Raz Tampon Ev'#232'nements'
@@ -142,7 +142,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 448
-    Top = 480
+    Top = 464
     Width = 97
     Height = 33
     Caption = 'Chercher erreurs'
@@ -151,10 +151,10 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 448
-    Top = 440
+    Top = 424
     Width = 97
     Height = 33
-    Caption = 'Affiche Evts chrono d'#233'tecteurs'
+    Caption = 'Affiche Evts d'#233'tecteurs et aig'
     TabOrder = 7
     WordWrap = True
     OnClick = ButtonAffEvtChronoClick
@@ -207,7 +207,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 448
-    Top = 384
+    Top = 368
     Width = 97
     Height = 49
     Caption = 'Copie fen'#234'te principale dans debug'
@@ -221,11 +221,29 @@ object FormDebug: TFormDebug
     Width = 225
     Height = 241
     HideScrollBars = False
+    PopupMenu = PopupMenuRE
     ScrollBars = ssVertical
     TabOrder = 12
+  end
+  object ButtonRazLog: TButton
+    Left = 448
+    Top = 544
+    Width = 97
+    Height = 25
+    Caption = 'Raz Tampon Log'
+    TabOrder = 13
+    OnClick = ButtonRazLogClick
   end
   object SaveDialog: TSaveDialog
     Left = 680
     Top = 8
+  end
+  object PopupMenuRE: TPopupMenu
+    Left = 752
+    Top = 16
+    object copier1: TMenuItem
+      Caption = 'copier'
+      OnClick = copier1Click
+    end
   end
 end

@@ -12,7 +12,6 @@ type
     OpenDialog: TOpenDialog;
     EditIntervalle: TEdit;
     Label1: TLabel;
-    CheckBoxRapide: TCheckBox;
     procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditIntervalleKeyPress(Sender: TObject; var Key: Char);
@@ -49,44 +48,69 @@ begin
     index_simule:=1;
     repeat
       readln(fte,s);
+
       i:=pos('Tick=',s);
-  
-      if i<>0 then 
-      begin 
+      if i<>0 then
+      begin
         Delete(s,1,i+4);
         val(s,k,erreur);
         if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+80 else   // démarre dans 8s
           k:=Index_Simule+tick+80 ;
         Tablo_simule[index_simule].tick:=k;
+
+        // détecteur?
         i:=pos('Det=',s);
-        if i<>0 then 
-        begin 
+        if i<>0 then
+        begin
           Delete(s,1,i+3);
           val(s,k,erreur);
           Tablo_simule[index_simule].detecteur:=k;
           i:=pos('=',s);
-          if i<>0 then 
-          begin 
+          if i<>0 then
+          begin
             Delete(s,1,i);
             val(s,k,erreur);
             Tablo_simule[index_simule].etat:=k;
 
-            s:='Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+            s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
                ' Detecteur='+intToSTR(Tablo_simule[index_simule].detecteur)+
                '='+intToSTR(Tablo_simule[index_simule].etat);
             Affiche(s,ClLime);
-            
-            inc(index_simule); 
+
+            inc(index_simule);
           end;
-        end;  
+        end;
+
+        // aiguillage?
+        i:=pos('Aig=',s);
+        if i<>0 then
+        begin
+          Delete(s,1,i+3);
+          val(s,k,erreur);
+          Tablo_simule[index_simule].aiguillage:=k;
+          i:=pos('=',s);
+          if i<>0 then
+          begin
+            Delete(s,1,i);
+            val(s,k,erreur);
+            Tablo_simule[index_simule].etat:=k;
+
+            s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+               ' Aiguillage='+intToSTR(Tablo_simule[index_simule].aiguillage)+
+               '='+intToSTR(Tablo_simule[index_simule].etat);
+            Affiche(s,ClLime);
+
+            inc(index_simule);
+          end;
+        end;
       end;
-      sortie:=eof(fte) or (index_simule>199);
+      sortie:=eof(fte) or (index_simule>Max_Simule);
     until sortie ;
+    if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
     Affiche('Intervalle='+intToSTR(intervalle),clyellow);
     dec(index_simule);
     closeFile(fte);
     FormSimulation.Close;
-    
   end;
 end;
 
@@ -102,7 +126,7 @@ procedure TFormSimulation.EditIntervalleKeyPress(Sender: TObject;var Key: Char);
 var erreur : integer;
 begin
   Val(EditIntervalle.Text,intervalle,erreur);
-  if (intervalle<0) then Intervalle:=1;  
+  if (intervalle<0) then Intervalle:=1;
 end;
 
 end.

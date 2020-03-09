@@ -78,16 +78,14 @@ type
     OpenDialog: TOpenDialog;
     N1: TMenuItem;
     LireunfichierdeCV1: TMenuItem;
-    LireunaccessoireversunfichierdeCV1: TMenuItem;
     SaveDialog: TSaveDialog;
     N5: TMenuItem;
     Quitter1: TMenuItem;
-    EditGenli: TEdit;
-    Button1: TButton;
     Button2: TButton;
     Config: TMenuItem;
     Label1: TLabel;
     LabelNbTrains: TLabel;
+    ButtonLitCV: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -134,11 +132,9 @@ type
     procedure ButtonEcrCVClick(Sender: TObject);
     procedure ButtonRepriseClick(Sender: TObject);
     procedure LireunfichierdeCV1Click(Sender: TObject);
-    procedure LireunaccessoireversunfichierdeCV1Click(Sender: TObject);
     procedure Quitter1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure ConfigClick(Sender: TObject);
+    procedure ButtonLitCVClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -156,7 +152,10 @@ tempoFeu = 100;
 MaxAcc = 2048;
 LargImg=50;HtImg=91;
 const_droit=2;const_devieD=1;  // positions transmises par la centrale LENZ
-const_devieG=3;   
+const_devieG_CDM=3;  // positions transmises par cdm
+const_devieD_CDM=2;  // positions transmises par cdm
+const_droit_CDM=0;  // positions transmises par cdm
+
 MaxElParcours=4000;
 
 
@@ -171,7 +170,7 @@ type TBranche = record
      Taiguillage = record
                  modele : integer;          // 0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
                  position,                  // position actuelle : 1=dévié  2=droit
-                 Adrtriple,
+                 Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
                  inversion : integer;       // pilotage inversé 0=normal 1=inversé
                  vitesse : integer;         // vitesse de franchissement de l"aiguillage en position déviée (60 ou 90)
@@ -205,9 +204,9 @@ TMA             = (valide,devalide);
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,protocole : integer;
+    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2 : integer;
     Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
-    NackCDM,MsgSim : boolean;
+    NackCDM,MsgSim,succes,recu_cv,
     TraceListe,clignotant,nack,Maj_feux_cours : boolean;
 
     branche : array [1..100] of string;
@@ -219,8 +218,9 @@ const
   GrisF=$414141;
   clOrange=$0077FF;
   Feu_X=50;Feu_Y=91;
+  Max_Simule=1000;
   couleurTrain : array[1..8] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
-  
+
 var
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
@@ -240,11 +240,12 @@ var
              route : array[1..2000] of record
              Mem1,Mem2 : integer;
            end;
-          end; 
-  Tablo_Simule : array[0..200] of
+          end;
+
+  Tablo_Simule : array[0..Max_Simule] of
     record
       tick : longint;
-      Detecteur,etat : integer ;
+      Detecteur,Aiguillage,etat : integer ;
     end;
   Route : array[1..2000] of record
      Mem1,Mem2 : integer;
@@ -3719,6 +3720,8 @@ begin
   Adr:=actuel;
   Btype:=BrancheN[branche_trouve_actuel,indexBranche_actuel].Btype;
 
+  //Affiche('Btype='+intToSTR(Btype)+' Actuel='+inTToSTR(actuel),clyellow);
+
   if Btype=1 then  // l'élément actuel est un détecteur
   begin
     // on part de l'actuel pour retomber sur le précédent
@@ -3967,10 +3970,11 @@ begin
 
     if (aiguillage[Adr].modele=2) or (aiguillage[Adr].modele=3) then // TJD ou TJS
     begin
-      AdrTjdP:=aiguillage[Adr].Apointe;
+      // récupérer les élements de la TJD/S
+      AdrTjdP:=aiguillage[Adr].Apointe; // 2eme adresse de la TJD/S
       tjd:=aiguillage[Adr].modele=2;
       tjs:=aiguillage[Adr].modele=3;
-      tjsc1:=aiguillage[Adr].tjsint;   // adresses de la courbe de la TJD
+      tjsc1:=aiguillage[Adr].tjsint;   // adresses de la courbe de la TJS
       tjsc2:=aiguillage[AdrTjdP].tjsint;
       tjsc1B:=aiguillage[Adr].tjsintB;
       tjsc2B:=aiguillage[AdrTjdP].tjsintB;
@@ -4122,43 +4126,108 @@ begin
       AfficheDebug('139 - Erreur fatale - Aucun cas TJD/S : adr='+IntToSTR(Adr)+' '+intToSTR(AdrTJDP)+' prec='+IntTOSTR(prec),clred);
       suivant_alg3:=9999;exit;
     end;
+
     if (aiguillage[Adr].modele=4) then // aiguillage triple
     begin
-       // aiguillage triple pris en pointe
-             Adr2:=aiguillage[Adr].AdrTriple;
-             // attention la lecture d'un aiguillage triple est différente suivant la connexion avec CDM
-             // ou avec l'interface
-             if ( CDM_connecte and (aiguillage[Adr].position=const_droit) ) or
-                ( not(CDM_connecte) and  (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position=const_droit) )  then
-             begin
-               if NivDebug=3 then AfficheDebug('Aiguillage triple droit',clYellow);
-               typeGen:=aiguillage[Adr].AdroitBis+1;
-               //TSuiv=aiguillage[Adr].AdroitB;
-               Adr:=aiguillage[Adr].Adroit;
-             end;
-             if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
-                ( not(CDM_connecte) and  (aiguillage[Adr].position<>const_droit) and (aiguillage[Adr2].position=const_droit) )  then
-             begin
-                if NivDebug=3 then AfficheDebug('Aiguillage triple dévié1 (gauche)',clYellow);
-                typeGen:=aiguillage[Adr].AdevieBis+1;
-                //TSuiv=aiguillage[Adr].AdevieB;
-                Adr:=aiguillage[Adr].Adevie;
-             end;
-             if ( CDM_connecte and (aiguillage[Adr].position=const_devieG) ) or
-                ( not(CDM_connecte) and (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position<>const_droit) ) then
-             begin
-                if NivDebug=3 then AfficheDebug('Aiguillage triple dévié2 (droit)',clYellow);
-                typeGen:=aiguillage[Adr].Adevie2Bis+1;
-                //TSuiv=aiguillage[Adr].Adevie2B;
-                Adr:=aiguillage[Adr].Adevie2;
-             end;
-             if ((aiguillage[Adr].position<>const_droit) and (aiguillage[Adr2].position<>const_droit) ) then
-             begin
-                AfficheDebug('Aiguillage triple '+IntToSTR(Adr)+' : configuration des aiguilles interdite',clYellow);
-                Affiche('Aiguillage triple : '+IntToSTR(Adr)+' configuration des aiguilles interdite',clRed);
-                //TSuiv='Z';
-               suivant_alg3:=9999;exit; // pour échappement
-             end;
+      Adr2:=aiguillage[Adr].AdrTriple;
+      if (aiguillage[adr].Apointe=prec) then
+      begin
+        // aiguillage triple pris en pointe
+        //Affiche('position='+intToSTR(aiguillage[Adr].position),clyellow);
+        if  (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position=const_droit)   then
+        begin
+          if NivDebug=3 then AfficheDebug('Aiguillage triple pris en pointe droit',clYellow);
+          typeGen:=aiguillage[Adr].AdroitBis+1;
+          A:=aiguillage[Adr].AdroitB;
+          Adr:=aiguillage[Adr].Adroit;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+          suivant_alg3:=adr;exit;
+        end;
+        if  (aiguillage[Adr].position<>const_droit) and (aiguillage[Adr2].position=const_droit)   then
+        begin
+          if NivDebug=3 then AfficheDebug('Aiguillage triple dévié1 (à gauche)',clYellow);
+          typeGen:=aiguillage[Adr].AdevieBis+1;
+          A:=aiguillage[Adr].AdevieB;
+          Adr:=aiguillage[Adr].Adevie;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+          suivant_alg3:=adr;exit;
+        end;
+        if  (aiguillage[Adr].position=const_droit) and (aiguillage[Adr2].position<>const_droit)  then
+        begin
+          if NivDebug=3 then AfficheDebug('Aiguillage triple dévié2 (à droite)',clYellow);
+          typeGen:=aiguillage[Adr].Adevie2Bis+1;
+          A:=aiguillage[Adr].Adevie2B;
+          Adr:=aiguillage[Adr].Adevie2;
+          if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+          if Abis=1 then TypeEl:=3;
+          trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+          suivant_alg3:=adr;exit;
+        end;
+        begin
+          s:='Aiguillage triple '+IntToSTR(Adr)+' : configuration des aiguilles interdite';
+          if CDM_connecte then s:=s+': '+IntToSTR(aiguillage[Adr].position);
+          AfficheDebug(s,clYellow);
+          Affiche(s,clRed);
+          suivant_alg3:=9999;exit; // pour échappement
+        end;
+      end
+      else
+      begin
+        if NivDebug=3 then AfficheDebug('Aiguillage triple pris en talon',clyellow);
+        if alg=2 then // on demande d'arreter si l'aiguillage en talon est mal positionné
+        begin
+          if (aiguillage[adr].position=const_droit) and (aiguillage[adr2].position=const_droit) then
+          begin
+            if prec<>aiguillage[Adr].Adroit then
+            begin
+              if NivDebug=3 then AfficheDebug('135.3 - Aiguillage '+intToSTR(adr)+'triple mal positionné',clyellow);
+              suivant_alg3:=9998;exit;
+            end
+            else
+            begin
+              if NivDebug=3 then AfficheDebug('135.4 - Aiguillage '+intToSTR(adr)+'triple bien positionné',clyellow);
+            end;
+          end;
+          if (aiguillage[adr].position<>const_droit) and (aiguillage[adr2].position=const_droit) then
+          begin
+            if prec<>aiguillage[Adr].Adevie then
+            begin
+              if NivDebug=3 then AfficheDebug('135.3 - Aiguillage '+intToSTR(adr)+'triple mal positionné',clyellow);
+              suivant_alg3:=9998;exit;
+            end
+            else
+            begin
+              if NivDebug=3 then AfficheDebug('135.4 - Aiguillage '+intToSTR(adr)+'triple bien positionné',clyellow);
+            end;
+          end;
+          if (aiguillage[adr].position=const_droit) and (aiguillage[adr2].position<>const_droit) then
+          begin
+            if prec<>aiguillage[Adr].Adevie2 then
+            begin
+              if NivDebug=3 then AfficheDebug('135.3 - Aiguillage '+intToSTR(adr)+'triple mal positionné',clyellow);
+              suivant_alg3:=9998;exit;
+            end
+            else
+            begin
+              if NivDebug=3 then AfficheDebug('135.4 - Aiguillage '+intToSTR(adr)+'triple bien positionné',clyellow);
+            end;
+          end;
+        end;
+        A:=aiguillage[Adr].ApointeB;
+        Adr:=aiguillage[Adr].Apointe;
+        if A='Z' then TypeEl:=1 else TypeEL:=2;  //TypeEL=(1=détécteur 2=aig  3=aig Bis)
+        if Abis=1 then TypeEl:=3;
+        trouve_element(Adr,TypeEl); // branche_trouve  IndexBranche_trouve
+        typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
+        suivant_alg3:=Adr;exit;
+      end;
     end;
   end;
   suivant_alg3:=adr;
@@ -5122,8 +5191,6 @@ begin
     // signaux traités spécifiquement
     if (AdrFeu=201) then
     begin
-      //sprintf(Affiche,"Aiguille 27=%d \r\n",aiguillage[27].position);Display(Affiche);
-      //   sprintf(Affiche,"Aiguille 31=%d \r\n",aiguillage[31].position);Display(Affiche);
       if ((aiguillage[28].position<>const_droit) and (aiguillage[29].position<>const_droit) and
          (aiguillage[31].position=2)) then // attention spécial
          Maj_Etat_Signal(AdrFeu,blanc) else Maj_Etat_Signal(AdrFeu,violet);
@@ -5508,7 +5575,7 @@ begin
   ancien_detecteur[Adresse]:=detecteur[Adresse];
   detecteur[Adresse]:=etat;
   detecteur_chgt:=Adresse;
-  
+
   // mise a jour du tableau evt de fronts descendants
   if ancien_detecteur[Adresse] and not(detecteur[Adresse]) and (N_Event_det<20) then
   begin
@@ -5517,7 +5584,7 @@ begin
     event_det[N_event_det]:=Adresse;
     calcul_zones;  // en avant les calculs
   end;
-  
+
   // stocke les changements d'état des détecteurs dans le tableau chronologique
   if (N_Event_tick<Max_Event_det_tick) then
   begin
@@ -5529,6 +5596,12 @@ begin
    // Affiche('stockage de '+intToSTR(N_event_tick)+' à '+intToSTR(etat01),clyellow);
   end;
 
+  // Mettre à jour le TCO
+  if AvecTCO then 
+  begin
+    formTCO.Maj_TCO(Adresse,etat);
+  end;
+  
   exit;
   //------------------------plus utilisé ----------------
   {
@@ -5564,11 +5637,16 @@ begin
 end;
 
 // évènement d'aiguillage
-procedure Event_Aig(adresse : integer);
-var i,index1,index2,AdresseE,Adet,det_suiv,pos,Btype,BtypeE,train1,train2,train,
-    index : integer;
-    trouve,trouve1,trouve2 : boolean;
+procedure Event_Aig(adresse,pos : integer);
 begin
+  if (N_Event_tick<Max_Event_det_tick) then
+  begin
+    inc(N_Event_tick);
+    event_det_tick[N_event_tick].tick:=tick;
+    event_det_tick[N_event_tick].aiguillage:=adresse;
+    event_det_tick[N_event_tick].position:=pos;
+  end;
+  
   exit;
   {
   // -------------------------plus utilisé ----------------
@@ -5706,25 +5784,25 @@ begin
       if (valeur and $C)=$8 then
       begin
         aiguillage[adraig+3].position:=2 ; // état aiguillage haut
-        Event_Aig(adraig+3);
+        Event_Aig(adraig+3,2);
         if trace then begin s:='accessoire '+intToSTR(adraig+3)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
         aiguillage[adraig+3].position:=1 ; // état aiguillage haut
-        Event_Aig(adraig+3);
+        Event_Aig(adraig+3,1);
         if trace then begin s:='accessoire '+intToSTR(adraig+3)+'=1';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
         aiguillage[adraig+2].position:=2; // état aiguillage bas
-        Event_Aig(adraig+2);
+        Event_Aig(adraig+2,2);
         if trace then begin s:='accessoire '+intToSTR(adraig+2)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
         aiguillage[adraig+2].position:=1; // état aiguillage bas
-        Event_Aig(adraig+2);
+        Event_Aig(adraig+2,1);
         if trace then begin s:='accessoire '+intToSTR(adraig+2)+'=1';Affiche(s,clYellow);end;
       end;
     end;
@@ -5766,25 +5844,25 @@ begin
       if (valeur and $C)=$8 then
       begin
         aiguillage[adraig+1].position:=2 ; // état aiguillage haut
-        Event_Aig(adraig+1);
+        Event_Aig(adraig+1,2);
         if trace then begin s:='accessoire '+intToSTR(adraig+1)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
         aiguillage[adraig+1].position:=1 ; // état aiguillage haut
-        Event_Aig(adraig+1);
+        Event_Aig(adraig+1,1);
         if trace then begin s:='accessoire '+intToSTR(adraig+1)+'=1';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
         aiguillage[adraig].position:=2; // état aiguillage bas
-        Event_Aig(adraig);
+        Event_Aig(adraig,2);
         if trace then begin s:='accessoire '+intToSTR(adraig)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
         aiguillage[adraig].position:=1; // état aiguillage bas
-        Event_Aig(adraig);
+        Event_Aig(adraig,1);
         if trace then begin s:='accessoire '+intToSTR(adraig)+'=1';Affiche(s,clYellow);end;
       end;
 
@@ -5855,7 +5933,7 @@ end;
 // décodage d'une chaine simple de la rétrosignalisation
 function decode_chaine_retro(chaineINT : string) : string ;
 var msg : string;
-    i,cv : integer;
+    i,cvLoc : integer;
 begin
   //affiche(chaine_hex(chaine),clyellow);
   msg:='';
@@ -5867,7 +5945,7 @@ begin
     #1 :  begin nack:=true;msg:='erreur timout transmission';end;
     #2 :  begin nack:=true;msg:='erreur timout centrale';end;
     #3 :  begin nack:=true;msg:='erreur communication inconnue';end;
-    #4 :  begin msg:='succès';end;
+    #4 :  begin succes:=true;msg:='succès';end;
     #5 :  begin nack:=true;msg:='plus de time slot';end;
     #6 :  begin nack:=true;msg:='débordement tampon LI100';end;
     end;
@@ -5909,17 +5987,19 @@ begin
 
   if ((chaineINT[1]=#$63) and (chaineINT[2]=#$14)) then    // V3.6 uniquement
   begin
-    // réception d'un CV. DocXpressNet p26
+    // réception d'un CV. DocXpressNet p26   63 14 01 03 chk
 
     delete(chaineInt,1,2);
-    cv:=ord(chaineINT[1]);
-    Affiche('Réception CV'+IntToSTR(cv)+' à '+IntToSTR(ord(chaineINT[2])),clyellow);
-    if cv>255 then Affiche('Erreur Recu CV>255',clRed)
+    cvLoc:=ord(chaineINT[1]);
+    //Affiche('Réception CV'+IntToSTR(cvLoc)+' à '+IntToSTR(ord(chaineINT[2])),clyellow);
+    if cvLoc>255 then Affiche('Erreur Recu CV>255',clRed)
     else
     begin
-       tablo_cv[cv]:=ord(chaineINT[2]);
+       tablo_cv[cvLoc]:=ord(chaineINT[2]);
        inc(N_Cv); // nombre de CV recus
     end;
+    recu_cv:=true;
+    delete(chaineInt,1,3);
     decode_chaine_retro:=chaineINT;
     exit;
   end;
@@ -6067,7 +6147,7 @@ begin
     begin
       With Formprinc.MSCommUSBLenz do
       begin
-        Affiche('Demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+','+IntToSTR(protocole),CLYellow);
+        Affiche('Demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+' protocole '+IntToSTR(protocole),CLYellow);
         Settings:=ConfStCom;   // COMx:vitesse,n,8,1
         if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
           else Handshaking:=protocole;
@@ -6168,8 +6248,8 @@ begin
     //créée la fenêtre TCO
     FormTCO:=TformTCO.Create(Self);
     FormTCO.show;
-    construit_TCO;
-    affiche_TCO;
+    //construit_TCO;
+    //affiche_TCO;
     //Formprinc.Hide;
   end;  
 
@@ -6203,14 +6283,14 @@ begin
   begin
     ButtonEcrCV.Enabled:=true;
     LireunfichierdeCV1.enabled:=true;
-    LireunaccessoireversunfichierdeCV1.Enabled:=true;
+    ButtonLitCV.Enabled:=true;
   end
   else
   With Formprinc do
   begin
     ButtonEcrCV.Enabled:=false;
+    ButtonLitCV.Enabled:=false;
     LireunfichierdeCV1.enabled:=false;
-    LireunaccessoireversunfichierdeCV1.Enabled:=false;
   end ;
   
   // Initialisation des images des signaux
@@ -6226,6 +6306,7 @@ begin
   // initialisation de la chronologie des évènements détecteurs
   for i:=0 to Max_Event_det_tick do
   begin
+    event_det_tick[i].aiguillage:=-1;
     for j:=1 to 1100 do
     event_det_tick[i].detecteur[j]:=-1;   // initialiser les détecteurs à -1
     event_det_tick[i].traite:=false ; // non traité
@@ -6236,14 +6317,13 @@ begin
 
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
-  
+
   // énumération des ports USB
   //EnumerateDevices;
   //for i:=1 to NumLine do
   //begin
   //  if pos('Ports',Line[i])<>0 then Affiche(Line[i],clyellow);
   //end;
-  
   //essai
  // event_det[1]:=527;
  // event_det[2]:=520;
@@ -6253,11 +6333,10 @@ begin
   //traceDet:=true;
  // calcul_zones;
   //maj_feu(201);
-  //etat_signal_suivant(201,1);
-  //Aiguille_deviee(462);
- //NivDebug:=3;
- //formdebug.Show;
+// formdebug.Show;
  //AfficheDet:=true;
+  //NivDebug:=3;
+  //Aiguille_deviee(462);
   //aiguillageB[1].Position:=1;
   //i:=suivant_alg3(553,1,1,3,1);
   //Affichedebug(intToSTr(i),clred);
@@ -6275,10 +6354,8 @@ begin
   //Affiche(' Adj1='+intToStr(Adj1)+' Adj2='+intToStr(Adj2),clyellow);
   //trace:=true;
   //TraceListe:=true;
-
   //interprete_reponse(#$FF+#$FD+#$46+#$43+#$40+#$41+#$40+#$40+#$49+#$4D);
   Affiche('Fin des initialisations',clyellow);
-  
   //Menu_interface(valide);
   //s:=#$f0;
   //s:=checksum(s);
@@ -6408,14 +6485,25 @@ begin
 
 
   //simulation
-  if index_simule<>0 then 
+  if index_simule<>0 then
   begin
     if not(MsgSim) then begin Affiche('Simulation en cours ',Cyan);MsgSim:=true;end;
     while tick=Tablo_simule[i_simule+1].tick do
     begin
       inc(I_simule);
-      Affiche('Simulation tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
-      Event_Detecteur(Tablo_simule[i_simule].detecteur, Tablo_simule[i_simule].etat=1);  // créer évt détecteur
+      // evt détecteur ?
+      if Tablo_simule[i_simule].detecteur<>0 then
+      begin
+        Affiche('Simulation tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        Event_Detecteur(Tablo_simule[i_simule].detecteur, Tablo_simule[i_simule].etat=1);  // créer évt détecteur
+      end;
+      // evt aiguillage ?
+      if Tablo_simule[i_simule].aiguillage<>0 then
+      begin
+        Affiche('Simulation tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        Event_Aig(Tablo_simule[i_simule].Aiguillage, Tablo_simule[i_simule].etat);  // créer évt aiguillage
+      end;
+
     end;
     if i_Simule>=Index_simule then
     begin
@@ -6441,7 +6529,19 @@ procedure TFormPrinc.ButtonCommandeClick(Sender: TObject);
 var adr,valeur,erreur : integer;
 begin
   val(EditAdresse.text,adr,erreur);
+  if (erreur<>0) or (adr<1) or (adr>2048) then 
+  begin
+    EditAdresse.text:='1';
+    exit;
+  end;  
+
   val(EditVal.Text,valeur,erreur);
+  if (erreur<>0) or (valeur<0) or (valeur>255) then 
+  begin
+    EditVal.text:='1';
+    exit;
+  end;  
+
   pilote_acc(adr,valeur,aig);
 end;
 
@@ -6595,15 +6695,12 @@ begin
   ClientSocketLenz.Close;
 end;
 
-
 function cde_cdm(s : string) : string;
 var i : integer;
 begin
   i:=length(s)-1;
   cde_cdm:='0'+IntToSTR(i)+s;
 end;
-
-
 
 procedure TFormPrinc.locoClick(Sender: TObject);
 begin
@@ -6626,16 +6723,23 @@ begin
 end;
 
 procedure TFormPrinc.Etatdesaiguillages1Click(Sender: TObject);
-var i : integer;
+var i,j,model : integer;
     s : string;
 begin
   Affiche('les positions des aiguillages BIS sont les mêmes que leurs homologues non bis',Cyan);
   for i:=1 to MaxAcc do
   begin
-    if aiguillage[i].modele<>0 then
+    model:=aiguillage[i].modele ;
+    if model<>0 then
     begin
       s:='Aiguillage '+IntToSTR(i)+' : '+intToSTR(aiguillage[i].position);
       if aiguillage[i].position=1 then s:=s+' (dévié)' else s:=s+' (droit)';
+      if model=4 then
+      begin
+        j:=aiguillage[i].AdrTriple;
+        s:=s+' Aig '+IntToSTR(j)+': '+intToSTR(aiguillage[j].position);
+      if aiguillage[j].position=1 then s:=s+' (dévié)' else s:=s+' (droit)';
+      end;
       Affiche(s,clWhite);
     end;
   end;
@@ -6696,8 +6800,8 @@ begin
   AfficheDebug('Lenz connecté ',clYellow);
   parSocket:=True;
   ButtonEcrCV.Enabled:=true;
+  ButtonLitCV.Enabled:=true;
   LireunfichierdeCV1.enabled:=true;
-  LireunaccessoireversunfichierdeCV1.Enabled:=true;
   LabelTitre.caption:=titre+' Interface connectée par Ethernet';
 end;
 
@@ -6717,7 +6821,7 @@ end;
 
 // réception d'un message de CDM rail
 procedure TFormPrinc.ClientSocketCDMRead(Sender: TObject;Socket: TCustomWinSocket);
-  var i,j,k,erreur, adr,adr2,etat,etataig : integer ;
+  var i,j,k,erreur, adr,adr2,etat,etataig,etatAig2 : integer ;
       s,ss : string;
       traite,sort : boolean;
 begin
@@ -6756,14 +6860,50 @@ begin
         exit;
       end;
       val(ss,etat,erreur);
+      // Affiche('Aiguillage CDM'+intToSTR(adr)+'='+IntToStr(etat),clLime);
+      // conversion en position :
+      // CDM:  0=droit 1=droite 3=gauche
+      // logiciel : 1=dévié   2=droit
+      
+      // aiguillage normal
+      if aiguillage[adr].modele=1 then 
+      begin                      
+        if etat=0 then etatAig:=2 else etatAig:=1;
+        aiguillage[adr].position:=etatAig;
+        aiguillageB[adr].position:=etatAig;
+        Event_Aig(adr,etatAig);
+      end;
+      // TJD TJS
+      if (aiguillage[adr].modele=2) or (aiguillage[adr].modele=3) then 
+      begin                      
+        adr2:=aiguillage[adr].Apointe;  // 2eme adresse de la TJD
+        case etat of
+        1 : begin etatAig:=1;EtatAig2:=2;end;
+        4 : begin etatAig:=1;EtatAig2:=1;end;
+        5 : begin etatAig:=2;EtatAig2:=1;end;
+        0 : begin etatAig:=2;EtatAig2:=2;end;
+        end;
+        aiguillage[adr].position:=etatAig;aiguillage[adr2].position:=etatAig2;
+        Event_Aig(adr,etatAig);
+        Event_Aig(adr2,etatAig2);
+      end;
+      if aiguillage[adr].modele=4 then // aiguillage triple
+      begin
+        // état de l'aiguillage 1
+        if (etat=0) or (etat=2) then etatAig:=2;
+        if etat=3 then etatAig:=1;
+        aiguillage[adr].Position:=etatAig;
+        // état de l'aiguillage 2
+        adr2:=aiguillage[adr].AdrTriple;
+        if (etat=0) or (etat=3) then etatAig2:=2;
+        if etat=2 then etatAig2:=1;
+        aiguillage[adr2].Position:=etatAig2;
+        Event_Aig(adr,etatAig);
+        Event_Aig(adr2,etatAig2);
+      end;
 
-      // conversion en position : 1=dévié (CDM envoie 2 ou 1)  2=droit (CDM envoie 0)
-      if etat=0 then etatAig:=2 else etatAig:=1;
-      aiguillage[adr].position:=etatAig;
-      aiguillageB[adr].position:=etatAig;
-      Event_Aig(adr);
       Tempo_chgt_feux:=10; // demander la mise à jour des feux
-      //Affiche('Aiguillage '+intToSTR(adr)+'='+IntToStr(etatAig),clYellow);
+
       //Affiche(recuCDM,CLOrange);
       //if length(recuCDM)>80 then Affiche(copy(recuCDM,80,length(recuCDM)-80),clOrange);
     end;
@@ -6874,7 +7014,7 @@ begin
    Affiche('Version 1.3  : Décodeur Unisemaf fonctionnel - Lecture/écriture des CV',clLime);
    Affiche('                     Protocoles variables de l''interface',clLime);
    Affiche('                     Configuration statique modifiable dans menu',clLime);
-   
+   Affiche('Version 1.31 : Correction des positions aiguillages triples et TJD',clLime);
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
@@ -6886,25 +7026,29 @@ end;
 procedure TFormPrinc.ChronoDetectClick(Sender: TObject);
 var i,j,etat : integer;
     s : string;
-    trouve : boolean;
 begin
   for i:=1 to N_Event_tick do
   begin
-    s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det=';
-    trouve:=false;
+
     for j:=1 to 1100 do
     begin
       etat:=event_det_tick[i].detecteur[j];
       if etat<>-1 then
       begin
-        s:=s+IntToSTR(j)+'='+intToSTR(etat);
-        //s:=s+' Train n°'+intTostr(event_det_tick[i].Train);
+        s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick);
+        s:=s+' Det='+IntToSTR(j)+'='+intToSTR(etat);
         s:=s+' Det suiv='+intTostr(event_det_tick[i].suivant);
-
-        trouve:=true;
+        Affiche(s,clyellow);
       end;
     end;
-    if trouve then Affiche(s,clyellow);
+
+    etat:=event_det_tick[i].aiguillage;
+    if etat<>-1 then
+    begin
+      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick);
+      s:=s+' Aig='+intToSTR(etat)+'='+intToSTR(event_det_tick[i].position);
+      Affiche(s,clyellow);
+    end;
   end;
 
 end;
@@ -6922,8 +7066,19 @@ var adr,valeur,erreur : integer;
 begin
   // doc XpressNet page 55
   val(EditAdresse.text,adr,erreur);
+  if (erreur<>0) or (Adr>255) or (Adr<0) then 
+  begin
+    EditAdresse.Text:='1';
+    exit;
+  end;  
+  
   val(EditVal.Text,valeur,erreur);
-  if (Adr>255) or (valeur>255) then exit;
+  if (erreur<>0) or (valeur<0) or (valeur>255) then 
+  begin
+    EditAdresse.text:='1';
+    exit;
+  end;  
+  
   //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
   //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
   s:=#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
@@ -6996,7 +7151,7 @@ begin
   Lire_fichier_CV;
 end;
 
-procedure TFormPrinc.LireunaccessoireversunfichierdeCV1Click(Sender: TObject);
+procedure TFormPrinc.ButtonLitCVClick(Sender: TObject);
 var s,sa: string;
     fte : textfile;
     i,cv,valeur,erreur : integer;
@@ -7005,91 +7160,62 @@ begin
   //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   N_Cv:=0; // nombre de CV recus à 0
   sa:='';
-  //for cv:=1 to 255 do
+  Affiche('Lecture CV',clyellow);
+
+  val(EditAdresse.Text,cv,erreur);
+  if (erreur<>0) or (cv>255) or (cv<0) then 
   begin
-        cv:=3;
-        trace:=true;
-        //s:=#$ff+#$fe+#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
-        s:=#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
-        s:=checksum(s);
-        // envoi(s);     // envoi de la trame et attente Ack, la premiere trame fait passer la centrale en mode programmation (service)
-        envoi_ss_ack(s);
-        Tempo(1);
+    EditAdresse.Text:='1';
+    exit;
+  end;  
+  //trace:=true;
 
-        s:=#$21+#$10+Char(cv);      // demande d'envoi du résultat du mode service
-        s:=checksum(s);
-        //envoi(s);
-        envoi_ss_ack(s);
-        Tempo(1);
 
-        // attente de la réponse de la centrale
-        tablo_CV[cv]:=0;
-        i:=0;
-        repeat
-          Tempo(2); // attend 200 ms
-          inc(i);
-        // N_cv:=cv;
-        until (N_cv=cv) or (i>4);
-        if (i>4) then
-        begin
-          Affiche('Erreur attente trop longue CV',clred);
-          exit;
-        end;
-        //tablo_cv[cv]:=123;
-        sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
-        if cv mod 9=0 then
-        begin
-           Affiche(sa,clyellow);sa:='';
-        end;
-  end;
-  Affiche(sa,clyellow);sa:='';
+  s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
+  //s:=#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
+  s:=checksum(s);
+  // envoi de la trame : fait passer la centrale en mode programmation (service)
+  envoi_ss_ack(s);
 
-  with FormPrinc.SaveDialog do
+  // attendre la trame 01 04 05 (env 1s)
+  succes:=false;i:=0;
+  repeat
+    Application.processMessages;
+    Sleep(100);
+    inc(i);
+  until succes or (i>20);
+  
+  if succes then
   begin
-    InitialDir:=s;
-    title:='Ecrire un nom de fichier dans lequel sauvegarder les CV';
-    DefaultExt:='txt';
-    Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
-
-    if Execute then
+    recu_cv:=false;
+    //Affiche('reçu trame succes',clyellow);
+    s:=#$21+#$10;      // demande d'envoi du résultat du mode service
+    s:=checksum(s);
+    //envoi(s);
+    envoi_ss_ack(s);
+    Tempo(1);
+    // attente de la réponse de la centrale
+    i:=0;
+    repeat
+      Tempo(2); // attend 200 ms
+      inc(i);
+    until recu_cv or (i>4);
+    if (i>4) then
     begin
-      s:=FileName;
-      assignFile(fte,s);
-      rewrite(fte);
-      Writeln(fte,'cv   valeur');
-      for cv:=1 to 255 do
-      begin
-        s:=IntToSTR(cv)+'  '+intToSTR(tablo_CV[cv]);
-        Writeln(fte,s);
-      end;
-      closeFile(fte);
+      Affiche('Erreur attente trop longue CV',clred);
+      exit;
     end;
-  end;
+    sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+    Affiche(sa,clyellow);sa:='';
+  end
+  else
+  Affiche('Pas de réponse de l''interface',clOrange);
 end;
 
 
 procedure TFormPrinc.Quitter1Click(Sender: TObject);
 begin
    close;
-end;
-
-procedure TFormPrinc.Button1Click(Sender: TObject);
-var s : string;
-begin
-  s:=EditGenli.text; //+#13+#10+#10;
-  terminal:=true;
-  if portCommOuvert then
-  begin
-    Affiche('Envoi a genli de '+ EditGenli.text,clorange);
-    envoi_ss_ack(s);
-  end;
-end;
-
-procedure TFormPrinc.Button2Click(Sender: TObject);
-begin
-  if MSCommUSBLenz.CTSHolding=true then Affiche('CTS=1',Clyellow)
-  else Affiche('CTS=0',clyellow);
-  
 end;
 
 procedure TFormPrinc.ConfigClick(Sender: TObject);
@@ -7100,5 +7226,7 @@ begin
 end;
 
 
+begin
 end.
+
 
