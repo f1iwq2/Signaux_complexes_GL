@@ -204,10 +204,10 @@ TMA             = (valide,devalide);
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,precedent ,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2 : integer;
+    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN : integer;
     Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
-    NackCDM,MsgSim,succes,recu_cv,
-    TraceListe,clignotant,nack,Maj_feux_cours : boolean;
+    NackCDM,MsgSim,succes,recu_cv,AffActionneur,
+    TraceListe,clignotant,nack,Maj_feux_cours,configNulle : boolean;
 
     branche : array [1..100] of string;
 
@@ -230,7 +230,7 @@ var
   entete,suffixe,ConfStCom : string;
   maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,Tempo_init,Suivant,TypeGen,
   NbreImagePligne,NbreBranches,Index2_det,branche_det,Index_det,
-  I_simule : integer;
+  I_simule,maxTablo_act,NbreVoies : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
   Adresse_detecteur : array[0..60] of integer; // adresses des détecteurs par index
   mem : array[0..1024] of boolean ; // mémoire des états des détecteurs
@@ -242,6 +242,25 @@ var
            end;
           end;
 
+  Tablo_actionneur : array[1..100] of
+  record
+    actionneur,etat,fonction,tempo : integer;
+    train : string;
+  end;
+
+  Tablo_PN : array[1..20] of
+  record
+    AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture
+    commandeFerme : integer;  // commande de fermeture (1 ou 2)
+    AdresseOuvre  : integer;  // adresse de pilotage DCC pour l'ouverture
+    commandeOuvre : integer;  // commande d'ouverture (1 ou 2)
+    NbVoies       : integer;  // Nombre de voies du PN
+    Voie : array [1..10] of record
+             ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et  l'ouverture
+             PresTrain : boolean; // mémoire de présence de train sur la voie
+           end;
+  end;
+
   Tablo_Simule : array[0..Max_Simule] of
     record
       tick : longint;
@@ -250,7 +269,7 @@ var
   Route : array[1..2000] of record
      Mem1,Mem2 : integer;
      end;  
-  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes : integer;
+  TempoAct,RangActCours,N_Cv,index_simule,NDetecteurs,N_Trains,N_routes : integer;
   tablo_CV : array [1..255] of integer;
   couleur : Tcolor;
   fichier : text;
@@ -1037,7 +1056,25 @@ begin
   envoi:=ack;
 end;
 
+Function chaine_CDM_Func(fonction,etat : integer;train : string) : string;
+var so,sx,s : string;
+begin
+  {  exemple de commande envoyée au serveur pour une fonction
+  C-C-00-0002-CMDTRN-DCCSF|029|03|NAME=nomdutrain;CSTEP=0;FXnumfonction=etat;
 
+  C-C-00-0002-CMDTRN-DCCSF|029|03|NAME=train;CSTEP=0;FX0=0;
+  C-C-00-0002-CMDTRN-DCCSF|029|03|NAME=train;CSTEP=0;FX1=0;
+  C-C-00-0002-CMDTRN-DCCSF|047|06|NAME=train;CSTEP=0;FX0=1;FX1=1;FX2=1;FX3=1;
+  maxi=C-C-00-0002-CMDTRN-DCCSF|111|16|NAME=train;CSTEP=0;FX0=1;FX1=1;FX2=1;FX3=1;FX4=0;FX5=0;FX6=0;FX7=0;FX8=0;FX9=0;FX10=0;FX11=0;FX12=0;FX13=0;
+  }
+  so:=place_id('C-C-01-0004-CMDTRN-DCCSF');
+  s:=s+'NAME='+train+';';
+  s:=s+'CSTEP=0;';
+  s:=s+'FX'+intToSTR(fonction)+'='+intToSTR(etat)+';';
+  sx:=format('%.*d',[2,3])+'|';  // 3 paramètres
+  so:=so+ '|'+format('%.*d',[3,length(s)+length(sx)])+'|'+sx;
+  chaine_CDM_Func:=so+s;
+end;
 
 // prépare la chaîne de commande pour un accessoire via CDM
 Function chaine_CDM_Acc(adresse,etat1 : integer) : string;
@@ -1067,6 +1104,13 @@ begin
   chaine_CDM_Acc:=so+s;
 end;
 
+procedure envoie_fonction_CDM(fonction,etat : integer;train : string);
+var s : string;
+begin
+  s:=chaine_CDM_Func(fonction,etat,train);
+  if trace then affiche(s,clLime);
+  envoi_cdm(s);
+end;
 
 
 // active ou désactive une sortie. Une adresse comporte deux sorties identifiées par "octet"
@@ -3013,8 +3057,13 @@ begin
   end;
   //ChDir(s);
   Affiche('lecture du fichier de configuration client-GL.cfg',clyellow);
-  assign(fichier,'client-GL.cfg');
-  reset(fichier);
+  try
+    assign(fichier,'client-GL.cfg');
+    reset(fichier);
+  except
+    Affiche('Fichier client-gl.cfg non trouvé',clred);
+  end;
+
   {lecture du fichier de configuration}
   // taille de fonte
   s:=lit_ligne;
@@ -3025,7 +3074,7 @@ begin
     ItemHeight:=i+1;
   end;
   // adresse ip et port de CDM
-  
+
   s:=lit_ligne;
   i:=pos(':',s);
   if i<>0 then begin adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);portCDM:=StrToINT(s);end;
@@ -3039,7 +3088,7 @@ begin
   else begin adresseIP:='0';parSocket:=false;end;
 
   // configuration du port com
-  s:=lit_ligne; // COM3:57600,N,8,1,2 
+  s:=lit_ligne; // COM3:57600,N,8,1,2
   if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
   portcom:=s;
 
@@ -3069,7 +3118,7 @@ begin
   s:=lit_ligne;
   AvecInitAiguillages:=StrToINT(s);
 
-  Affiche('Valeurs d''initialisation des aiguillages',clyellow);
+  //Affiche('Valeurs d''initialisation des aiguillages',clyellow);
   //initialisation aiguillages
   repeat
     s:=lit_ligne;
@@ -3084,7 +3133,7 @@ begin
         if (position<1) or (position>2) then position:=1;
         aiguillage[adresse].position:=position;
         aiguillageB[adresse].position:=position;
-        
+
         // temporisation aiguillage
         j:=pos(',',s);
         temporisation:=StrToInt(copy(s,1,j-1));Delete(S,1,j);
@@ -3104,8 +3153,12 @@ begin
   closefile(fichier);
 
   Affiche('lecture du fichier de configuration config.cfg',clyellow);
-  assign(fichier,'config.cfg');
-  reset(fichier);
+  try
+    assign(fichier,'config.cfg');
+    reset(fichier);
+  except
+    Affiche('Fichier config.cfg non trouvé',clred);
+  end;
 
   s:=Lit_ligne;  //variable log non utilisée
   s:=Lit_ligne; // trace_det
@@ -3278,10 +3331,12 @@ begin
           aiguillage[aig].vitesse:=adr;
           enregistrement:='';
         end;
-        
+
       until enregistrement='' ;
     end;
   until (s='0');
+  //Affiche(IntToSTR(maxaiguillage)+' Aiguillages',clYellow);
+
 
   Affiche('définition des branches',clyellow);
   // branches de réseau
@@ -3351,201 +3406,299 @@ begin
     end;
   until (s='0');
   NbreBranches:=i-1;
-  //Affiche(IntToSTR(NbreBranches)+' branches',clYellow);
+ // Affiche(IntToSTR(NbreBranches)+' branches',clYellow);
 
-   // feux
-  Affiche('Définition des feux',clyellow); 
+  // feux
+  Affiche('Définition des feux',clyellow);
   i:=1;
   repeat
     s:=lit_ligne;
-    chaine:=s;
-    //Affiche(s,clYellow);
-    finifeux:=s[1]='0';
-    if not(finifeux) then
+    if s<>'0' then
     begin
-    chaine:=s;
-    j:=pos(',',s);
-    if j>1 then
-    begin
-      adresse:=StrToINT(copy(s,1,j-1));Delete(s,1,j); // adresse de feu
-      feux[i].adresse:=adresse;
+      chaine:=s;
+      //Affiche(s,clYellow);
+      finifeux:=s[1]='0';
+      if not(finifeux) then
+      begin
+      chaine:=s;
       j:=pos(',',s);
-      if j>1 then 
-      begin 
-        sa:=copy(s,1,j-1);
-        if sa[1]='D' then 
-        // feu directionnel
+      if j>1 then
+      begin
+        adresse:=StrToINT(copy(s,1,j-1));Delete(s,1,j); // adresse de feu
+        feux[i].adresse:=adresse;
+        j:=pos(',',s);
+        if j>1 then
         begin
-          delete(sa,1,1);
-          j:=pos(',',s);
-          l:=StrToInt(sa); // nombre de feux du signal directionnel
-          if l>6 then
+          sa:=copy(s,1,j-1);
+          if sa[1]='D' then
+          // feu directionnel
           begin
-            Affiche('Ligne '+s+' 6 feux maximum pour un panneau directionnel',clred);
-            exit;
-          end;
-          feux[i].aspect:=l+10;Delete(s,1,j);
-          // décodeur
-          val(s,adr,erreur);
-          Feux[i].decodeur:=adr;
-          j:=pos(',',s);Delete(s,1,j);
-          //Affiche(s,clYellow);
-          //s:='(A19D,A22D)(A19D,A22S)';
-          // liste des aiguillages
-          k:=1; // numéro de feu directionnel
-          repeat
-            // boucle de direction
-            delete(s,1,1); // supprimer ( ou le ,
-            j:=1; // Nombre de descriptions d'aiguillages dans le feu
-            //Affiche('Boucle de Ligne',clyellow);
-            //Affiche(s,clOrange);
-            repeat
-              //Affiche('Boucle de direction',clyellow);
-              //Affiche(s,clOrange);
-              if s[1]<>'A' then begin Affiche('Erreur a la ligne',clred);exit;end;
-              delete(s,1,1);
-              val(s,adr,erreur);  // adresse
-              c:=s[erreur];       // type
-              setlength(feux[i].AigDirection[k],j+1);  // auglenter le tableau dynamique
-              feux[i].AigDirection[k][j].PosAig:=c;
-              feux[i].AigDirection[k][j].Adresse:=adr;
-              
-             // Affiche(intToSTR(Adr)+c,clyellow);
-            //  Affiche(intToSTR(erreur),clOrange);
-              delete(s,1,erreur);   // supprime jusque S
-              //Affiche(s,clLime);
-              if s[1]=',' then delete(s,1,1);
-              inc(j);
-            until s[1]=')';
-            delete(s,1,1);
-            inc(k);
-          until length(s)<1;
-          dec(k);
-          if k<>l+1 then
-          begin
-            Affiche('Ligne '+chaine,clred);
-            Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
-          end;
-
-        end
-        else
-        // feu de signalisation
-        begin
-          feux[i].aspect:=StrToInt(sa);Delete(s,1,j);
-          j:=pos(',',s);
-          if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
-          j:=pos(',',s);
-          if j=0 then begin Feux[i].decodeur:=StrToInt(s);end else begin Feux[i].decodeur:=StrToInt(copy(s,1,j-1));delete(s,1,j);end;
-          feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
-          feux[i].Btype_Suiv1:=0;feux[i].Btype_Suiv2:=0;feux[i].Btype_Suiv3:=0;feux[i].Btype_Suiv4:=0;
-          feux[i].Adr_det1:=0;feux[i].Adr_det2:=0;feux[i].Adr_det3:=0;feux[i].Adr_det4:=0;
-          // éléments optionnels
-          if j<>0 then
-          begin
-            //Affiche('Entrée:s='+s,clyellow);
-            sa:=s;
-            multiple:=s[1]='(';
-            if multiple then
+            delete(sa,1,1);
+            j:=pos(',',s);
+            l:=StrToInt(sa); // nombre de feux du signal directionnel
+            if l>6 then
             begin
-             delete(s,1,1);
-             j:=0;
-             repeat
-               k:=pos(',',s);
-               if k>1 then
-               begin
-                 val(s,adr,erreur); // extraire l'adresse
-                 Delete(s,1,k);
-               end;
-               //Affiche('Adr='+IntToSTR(adr)+' ' +intToSTR(erreur),clyellow);
-               //Affiche('S avec premier champ supprimé='+s,clyellow);
-               inc(j);
-               if (j=1) then feux[i].Adr_det1:=adr;
-               if (j=2) then feux[i].Adr_det2:=adr;
-               if (j=3) then feux[i].Adr_det3:=adr;
-               if (j=4) then feux[i].Adr_det4:=adr;
-               //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri 5=bis
-               t:=0;
-               if s[1]='A' then
-               begin
-                 t:=2;
-                 //Affiche('détecté aiguillage',clyellow);
-                 if (j=1) then feux[i].Btype_Suiv1:=2;
-                 if (j=2) then feux[i].Btype_Suiv2:=2;
-                 if (j=3) then feux[i].Btype_Suiv3:=2;
-                 if (j=4) then feux[i].Btype_Suiv4:=2;
-                 delete(s,1,1);
-               end;
-               l:=pos('TRI',s);
-               if l<>0 then
-               begin
-                 t:=4;
-                 delete(s,l,3);
-                 //Affiche('détecté aiguillage tri',clyellow);
-                 if (j=1) then feux[i].Btype_Suiv1:=4;
-                 if (j=2) then feux[i].Btype_Suiv2:=4;
-                 if (j=3) then feux[i].Btype_Suiv3:=4;
-                 if (j=4) then feux[i].Btype_Suiv4:=4;
-               end;
-               l:=pos('B',s);
-               if l<>0 then
-               begin
-                 t:=5;
-                 delete(s,l,1);
-                 //Affiche('détecté aiguillage bis',clyellow);
-                 if (j=1) then feux[i].Btype_Suiv1:=5;
-                 if (j=2) then feux[i].Btype_Suiv2:=5;
-                 if (j=3) then feux[i].Btype_Suiv3:=5;
-                 if (j=4) then feux[i].Btype_Suiv4:=5;
-               end;
-               if t=0 then //détecteur
-               begin
-                 if (j=1) then feux[i].Btype_Suiv1:=1;
-                 if (j=2) then feux[i].Btype_Suiv2:=1;
-                 if (j=3) then feux[i].Btype_Suiv3:=1;
-                 if (j=4) then feux[i].Btype_Suiv4:=1;
-               end;
-               Val(s,adr,erreur);
-               //Affiche('Adr='+IntToSTR(Adr),clyellow);
-               if (j=1) then feux[i].Adr_el_suiv1:=Adr;
-               if (j=2) then feux[i].Adr_el_suiv2:=Adr;
-               if (j=3) then feux[i].Adr_el_suiv3:=Adr;
-               if (j=4) then feux[i].Adr_el_suiv4:=Adr;
-               delete(s,1,erreur-1);
-               if s[1]=',' then delete(s,1,1);
-               //Affiche('S en fin de traitement s='+s,clyellow);
-               fini:=s[1]=')';
-             until (fini) or (j>4);
-            //if fini then Affiche('fini',clyellow);
+              Affiche('Ligne '+s+' 6 feux maximum pour un panneau directionnel',clred);
+              exit;
+            end;
+            feux[i].aspect:=l+10;Delete(s,1,j);
+            // décodeur
+            val(s,adr,erreur);
+            Feux[i].decodeur:=adr;
+            j:=pos(',',s);Delete(s,1,j);
+            //Affiche(s,clYellow);
+            //s:='(A19D,A22D)(A19D,A22S)';
+            // liste des aiguillages
+            k:=1; // numéro de feu directionnel
+            repeat
+              // boucle de direction
+              delete(s,1,1); // supprimer ( ou le ,
+              j:=1; // Nombre de descriptions d'aiguillages dans le feu
+              //Affiche('Boucle de Ligne',clyellow);
+              //Affiche(s,clOrange);
+              repeat
+                //Affiche('Boucle de direction',clyellow);
+                //Affiche(s,clOrange);
+                if s[1]<>'A' then begin Affiche('Erreur a la ligne',clred);exit;end;
+                delete(s,1,1);
+                val(s,adr,erreur);  // adresse
+                c:=s[erreur];       // type
+                setlength(feux[i].AigDirection[k],j+1);  // auglenter le tableau dynamique
+                feux[i].AigDirection[k][j].PosAig:=c;
+                feux[i].AigDirection[k][j].Adresse:=adr;
+
+               // Affiche(intToSTR(Adr)+c,clyellow);
+              //  Affiche(intToSTR(erreur),clOrange);
+                delete(s,1,erreur);   // supprime jusque S
+                //Affiche(s,clLime);
+                if s[1]=',' then delete(s,1,1);
+                inc(j);
+              until s[1]=')';
+              delete(s,1,1);
+              inc(k);
+            until length(s)<1;
+            dec(k);
+            if k<>l+1 then
+            begin
+              Affiche('Ligne '+chaine,clred);
+              Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
+            end;
+
+          end
+          else
+          // feu de signalisation
+          begin
+            feux[i].aspect:=StrToInt(sa);Delete(s,1,j);
+            j:=pos(',',s);
+            if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
+            j:=pos(',',s);
+            if j=0 then begin Feux[i].decodeur:=StrToInt(s);end else begin Feux[i].decodeur:=StrToInt(copy(s,1,j-1));delete(s,1,j);end;
+            feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
+            feux[i].Btype_Suiv1:=0;feux[i].Btype_Suiv2:=0;feux[i].Btype_Suiv3:=0;feux[i].Btype_Suiv4:=0;
+            feux[i].Adr_det1:=0;feux[i].Adr_det2:=0;feux[i].Adr_det3:=0;feux[i].Adr_det4:=0;
+            // éléments optionnels
+            if j<>0 then
+            begin
+              //Affiche('Entrée:s='+s,clyellow);
+              sa:=s;
+              multiple:=s[1]='(';
+              if multiple then
+              begin
+               delete(s,1,1);
+               j:=0;
+               repeat
+                 k:=pos(',',s);
+                 if k>1 then
+                 begin
+                   val(s,adr,erreur); // extraire l'adresse
+                   Delete(s,1,k);
+                 end;
+                 //Affiche('Adr='+IntToSTR(adr)+' ' +intToSTR(erreur),clyellow);
+                 //Affiche('S avec premier champ supprimé='+s,clyellow);
+                 inc(j);
+                 if (j=1) then feux[i].Adr_det1:=adr;
+                 if (j=2) then feux[i].Adr_det2:=adr;
+                 if (j=3) then feux[i].Adr_det3:=adr;
+                 if (j=4) then feux[i].Adr_det4:=adr;
+                 //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri 5=bis
+                 t:=0;
+                 if s[1]='A' then
+                 begin
+                   t:=2;
+                   //Affiche('détecté aiguillage',clyellow);
+                   if (j=1) then feux[i].Btype_Suiv1:=2;
+                   if (j=2) then feux[i].Btype_Suiv2:=2;
+                   if (j=3) then feux[i].Btype_Suiv3:=2;
+                   if (j=4) then feux[i].Btype_Suiv4:=2;
+                   delete(s,1,1);
+                 end;
+                 l:=pos('TRI',s);
+                 if l<>0 then
+                 begin
+                   t:=4;
+                   delete(s,l,3);
+                   //Affiche('détecté aiguillage tri',clyellow);
+                   if (j=1) then feux[i].Btype_Suiv1:=4;
+                   if (j=2) then feux[i].Btype_Suiv2:=4;
+                   if (j=3) then feux[i].Btype_Suiv3:=4;
+                   if (j=4) then feux[i].Btype_Suiv4:=4;
+                 end;
+                 l:=pos('B',s);
+                 if l<>0 then
+                 begin
+                   t:=5;
+                   delete(s,l,1);
+                   //Affiche('détecté aiguillage bis',clyellow);
+                   if (j=1) then feux[i].Btype_Suiv1:=5;
+                   if (j=2) then feux[i].Btype_Suiv2:=5;
+                   if (j=3) then feux[i].Btype_Suiv3:=5;
+                   if (j=4) then feux[i].Btype_Suiv4:=5;
+                 end;
+                 if t=0 then //détecteur
+                 begin
+                   if (j=1) then feux[i].Btype_Suiv1:=1;
+                   if (j=2) then feux[i].Btype_Suiv2:=1;
+                   if (j=3) then feux[i].Btype_Suiv3:=1;
+                   if (j=4) then feux[i].Btype_Suiv4:=1;
+                 end;
+                 Val(s,adr,erreur);
+                 //Affiche('Adr='+IntToSTR(Adr),clyellow);
+                 if (j=1) then feux[i].Adr_el_suiv1:=Adr;
+                 if (j=2) then feux[i].Adr_el_suiv2:=Adr;
+                 if (j=3) then feux[i].Adr_el_suiv3:=Adr;
+                 if (j=4) then feux[i].Adr_el_suiv4:=Adr;
+                 delete(s,1,erreur-1);
+                 if s[1]=',' then delete(s,1,1);
+                 //Affiche('S en fin de traitement s='+s,clyellow);
+                 fini:=s[1]=')';
+               until (fini) or (j>4);
+              //if fini then Affiche('fini',clyellow);
+            end;
+          end;
+          if (j>4) or (not(multiple)) then begin Affiche('Erreur: fichier de configuration ligne erronnée : '+chaine,clred); closefile(fichier);exit;end;
+
+          k:=pos(',',s);
+          delete(s,1,k);
+          //Affiche('s='+s,clyellow);
+          feux[i].VerrouCarre:=s[1]='1';
+          // si décodeur UniSemaf (6) champ supplémentaire
+          if Feux[i].decodeur=6 then
+          begin
+             k:=pos(',',s);
+             if k=0 then begin Affiche('Ligne '+chaine,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
+             else
+             begin
+               Delete(S,1,k);
+               Val(s,k,erreur);
+               Feux[i].UniSemaf:=k;
+             end;
+            end;
           end;
         end;
-        if (j>4) or (not(multiple)) then begin Affiche('Erreur: fichier de configuration ligne erronnée : '+chaine,clred); closefile(fichier);exit;end;
-
-        k:=pos(',',s);
-        delete(s,1,k);
-        //Affiche('s='+s,clyellow);
-        feux[i].VerrouCarre:=s[1]='1';
-        // si décodeur UniSemaf (6) champ supplémentaire
-        if Feux[i].decodeur=6 then
-        begin
-           k:=pos(',',s);
-           if k=0 then begin Affiche('Ligne '+chaine,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
-           else
-           begin
-             Delete(S,1,k);
-             Val(s,k,erreur);
-             Feux[i].UniSemaf:=k;
-           end;
-        end;
+        inc(i);
       end;
     end;
-    inc(i);
-    end;
   end;
-  until (finifeux);
+  until (finifeux) or (s='0');
   NbreFeux:=i-1; if NbreFeux<0 then NbreFeux:=0;
   //Affiche('Nombre de feux='+IntToSTR(NbreFeux),clYellow);
 
-  //Affiche(IntToStr(NbreBranches)+' branches',clwhite);
+  configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
+  if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
+  // définition des actionneurs
+  maxTablo_act:=1;
+  NbrePN:=0;
+  repeat        
+    s:=lit_ligne;
+    if pos('F',s)<>0 then
+    // -----------------fonction
+    begin
+      // 815,1,CC406526,F2,450
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        val(copy(s,1,i-1),j,erreur);
+        Tablo_actionneur[maxTablo_act].actionneur:=j;
+        Delete(s,1,i);
+        i:=pos(',',s);
+        if i<>0 then
+        begin
+          i:=pos(',',s);
+          val(copy(s,1,i-1),j,erreur);
+          Tablo_actionneur[maxTablo_act].etat:=j;
+          Delete(s,1,i);
+
+          i:=pos(',',s);
+          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Delete(s,1,i);
+
+          i:=pos('F',s);
+          if i<>0 then
+          begin
+            Delete(s,1,1);
+            val(s,j,erreur);
+            Tablo_actionneur[maxTablo_act].Fonction:=j;
+
+            i:=pos(',',s);
+            if i<>0 then
+            begin
+              Delete(S,1,i);
+              val(s,j,erreur);
+              Tablo_actionneur[maxTablo_act].Tempo:=j;
+              inc(maxTablo_act);
+            end;
+          end;
+          s:='';i:=0;
+        end;
+      end;
+    end;
+    // Passage à niveau
+    // (815,820),(830,810)...,PN(121+,121-)
+    // (815,809),PN(121+,121-)
+    if (pos('PN',s)<>0) then
+    begin
+      inc(NbrePN);
+      NbreVoies:=0;
+      repeat
+        inc(NbreVoies);
+        //Affiche('NbreVoies='+intToSTR(NbreVoies),clyellow);
+        //SetLength(Tablo_PN[1].Voie,1);
+        Delete(s,1,1); // supprime (
+        val(s,j,erreur);
+
+        Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
+
+        //  Affiche('Ferme='+intToSTR(j),clyellow);
+        i:=pos(',',s);Delete(S,1,i);
+        val(s,j,erreur);
+        Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
+        //  Affiche('Ouvre='+intToSTR(j),clyellow);
+        i:=pos(')',s);Delete(S,1,i);
+        i:=pos(',',s);Delete(S,1,i);
+        Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
+      until (copy(s,1,2)='PN') or (NbreVoies=10);
+
+      Tablo_PN[NbrePN].NbVoies:=NbreVoies;
+      Delete(s,1,3);  // Supprime PN(
+      val(s,j,erreur);
+      Tablo_PN[NbrePN].Adresseferme:=j;
+      Delete(s,1,erreur-1);
+      if s[1]='+' then Tablo_PN[NbrePN].CommandeFerme:=2;
+      if s[1]='-' then Tablo_PN[NbrePN].CommandeFerme:=1;
+      Delete(s,1,2); // supprime +,
+
+      val(s,j,erreur);
+      Tablo_PN[NbrePN].AdresseOuvre:=j;
+      Delete(s,1,erreur-1);
+      if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2;
+      if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1;
+      Delete(s,1,1); // supprime )
+      i:=0;
+    end;
+    if pos('PN',s)<>0 then i:=0;
+  until (s='0');
+  dec(maxTablo_act);
+
   closefile(fichier);
   // vérification de la cohérence1
   // parcoure les branches des détecteurs jusqu'à trouver un aiguillage pour voir s'il a été décrit
@@ -5554,6 +5707,66 @@ begin
 end;
 }
 
+// traitement des évènements actionneurs
+procedure Event_act(adr,etat : integer;train : string);
+var i,v,va,j,etatAct,Af,Ao : integer;
+    s : string;
+    presTrain_PN : boolean;
+begin
+  // vérifier si l'actionneur en évènement a été déclaré pour réagir
+  if AffActionneur then Affiche('Actionneur '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
+  // dans le tableau des actionneurs pour fonction train
+  for i:=1 to maxTablo_act do
+  begin
+    s:=Tablo_actionneur[i].train;
+    etatAct:=Tablo_actionneur[i].etat ;
+    if (Tablo_actionneur[i].actionneur=adr) and ((s=train) or (s='X')) and (etatAct=etat) then
+    begin
+      Affiche('Actionneur '+intToSTR(adr)+' Train='+train+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
+      envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,train);
+      TempoAct:=tablo_actionneur[i].Tempo div 100;
+      RangActCours:=i;
+    end;
+  end;
+
+  // dans le tableau des PN
+  for i:=1 to NbrePN do
+  begin
+    for v:=1 to Tablo_PN[i].nbvoies do
+    begin
+      aO:=Tablo_PN[i].voie[v].actOuvre;
+      aF:=Tablo_PN[i].voie[v].actFerme;
+
+      if (aO=adr) and (etat=0) then  // actionneur d'ouverture
+      begin
+        Tablo_PN[i].voie[v].PresTrain:=false;
+        // vérifier les présences train sur les autres voies du PN
+        presTrain_PN:=false;
+        for va:=1 to Tablo_PN[i].nbvoies do
+        begin
+          presTrain_PN:=presTrain_PN or Tablo_PN[i].voie[va].PresTrain;
+        end;
+        if not(presTrain_PN) then
+        begin
+          Affiche('Ouverture PN'+intToSTR(i),clOrange);
+          pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,Aig);
+        end;
+      end;
+
+      if (aF=adr) and (etat=1) then  // actionneur de fermeture
+      begin
+        Tablo_PN[i].voie[v].PresTrain:=true;
+        Affiche('Fermeture PN'+IntToSTR(i)+' (train voie '+IntToSTR(v)+')',clOrange);
+        pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,Aig);
+      end;
+
+    end;
+  end;
+
+
+end;
+
+
 // traitement sur les évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean);
 var i,trainAdj1,TrainAdj2,TrainActuel,Etat01 : integer;
@@ -5582,7 +5795,7 @@ begin
     //Affiche('front descendant',clyellow);
     inc(N_event_det);
     event_det[N_event_det]:=Adresse;
-    calcul_zones;  // en avant les calculs
+    if not(configNulle) then calcul_zones;  // en avant les calculs
   end;
 
   // stocke les changements d'état des détecteurs dans le tableau chronologique
@@ -5597,11 +5810,11 @@ begin
   end;
 
   // Mettre à jour le TCO
-  if AvecTCO then 
+  if AvecTCO then
   begin
     formTCO.Maj_TCO(Adresse,etat);
   end;
-  
+
   exit;
   //------------------------plus utilisé ----------------
   {
@@ -5646,7 +5859,7 @@ begin
     event_det_tick[N_event_tick].aiguillage:=adresse;
     event_det_tick[N_event_tick].position:=pos;
   end;
-  
+
   exit;
   {
   // -------------------------plus utilisé ----------------
@@ -6219,6 +6432,7 @@ begin
   FormDebug.Caption:=AF+' debug';
   N_Trains:=0;
   NivDebug:=0;
+  TempoAct:=0;
   DebugOuv:=True;
 
   //LireunaccessoireversunfichierdeCV1.Visible:=false;
@@ -6360,6 +6574,8 @@ begin
   //s:=#$f0;
   //s:=checksum(s);
   //envoi(s);
+  //id_cdm:='01';
+  //envoie_fonction_CDM(0,1,'train');
 end;
 
 
@@ -6422,15 +6638,16 @@ end;
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
 var i,a : integer;
+    s : string;
 begin
   inc(tick);
 
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
-    Affiche('Positionnement des feux',clYellow);
-    if not(ferme) then envoi_signauxCplx;  // initialisation des feux
-    if not(ferme) and (AvecInitAiguillages=1) then
+    if not(ConfigNulle) then Affiche('Positionnement des feux',clYellow);
+    if not(ferme) and not(ConfigNulle) then envoi_signauxCplx;  // initialisation des feux
+    if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages=1) then
     begin
       Affiche('Positionnement des aiguillages',clYellow);
       init_aiguillages;   // initialisation des aiguillages
@@ -6483,6 +6700,18 @@ begin
 
   if (not(Maj_feux_cours) and (Tempo_chgt_feux>0)) then dec(Tempo_chgt_feux);
 
+  // tempo retombée actionneur
+  if TempoAct<>0 then
+  begin
+    dec(tempoAct);
+    if tempoAct=0 then
+    begin
+      A:=Tablo_actionneur[RangActCours].actionneur;
+      s:=Tablo_actionneur[RangActCours].train;
+      Affiche('Actionneur '+intToSTR(a)+' F'+IntToSTR(Tablo_actionneur[RangActCours].fonction)+':0',clyellow);
+      envoie_fonction_CDM(Tablo_actionneur[RangActCours].fonction,0,s);
+    end;
+  end;
 
   //simulation
   if index_simule<>0 then
@@ -6533,7 +6762,7 @@ begin
   begin
     EditAdresse.text:='1';
     exit;
-  end;  
+  end;
 
   val(EditVal.Text,valeur,erreur);
   if (erreur<>0) or (valeur<0) or (valeur>255) then 
@@ -6738,7 +6967,7 @@ begin
       begin
         j:=aiguillage[i].AdrTriple;
         s:=s+' Aig '+IntToSTR(j)+': '+intToSTR(aiguillage[j].position);
-      if aiguillage[j].position=1 then s:=s+' (dévié)' else s:=s+' (droit)';
+        if aiguillage[j].position=1 then s:=s+' (dévié)' else s:=s+' (droit)';
       end;
       Affiche(s,clWhite);
     end;
@@ -6821,14 +7050,13 @@ end;
 
 // réception d'un message de CDM rail
 procedure TFormPrinc.ClientSocketCDMRead(Sender: TObject;Socket: TCustomWinSocket);
-  var i,j,k,erreur, adr,adr2,etat,etataig,etatAig2 : integer ;
-      s,ss : string;
+  var i,j,k,l,erreur, adr,adr2,etat,etataig,etatAig2,name : integer ;
+      s,ss,train : string;
       traite,sort : boolean;
 begin
   inc(Nbre_recu_cdm);
   recuCDM:=ClientSocketCDM.Socket.ReceiveText;
-
-  // Affiche('recu de CDM:',clWhite);Affiche(recuCDM,clWhite);
+  if trace then begin Affiche('recu de CDM:',clWhite);Affiche(recuCDM,clWhite);end;
   AckCDM:=recuCDM<>'';
   if pos('ACK',recuCDM)=0 then
   begin
@@ -6860,7 +7088,7 @@ begin
         exit;
       end;
       val(ss,etat,erreur);
-      // Affiche('Aiguillage CDM'+intToSTR(adr)+'='+IntToStr(etat),clLime);
+      //Affiche('Aiguillage CDM'+intToSTR(adr)+'='+IntToStr(etat),clLime);
       // conversion en position :
       // CDM:  0=droit 1=droite 3=gauche
       // logiciel : 1=dévié   2=droit
@@ -6919,13 +7147,34 @@ begin
       val(ss,etat,erreur);
       Event_detecteur(Adr,etat=1);
       //FormDebug.MemoDet.Lines.Add(IntToSTR(adr)+' '+IntToSTR(etat));
-       
       if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
     end ;
 
+    // évènement actionneur
+    // attention un actionneur qui repasse à 0 ne contient pas de nom de train
+    //S-E-03-0157-CMDACC-ST_AC|049|05|NAME=0;OBJ=7101;AD=815;TRAIN=CC406526;STATE=1;
+    j:=pos('CMDACC-ST_AC',recuCDM);
+    if j<>0 then
+    begin
+      i:=posEx('AD=',recuCDM,j);ss:=copy(recuCDM,i+3,10);
+      val(ss,adr,erreur);
+      i:=posEx('NAME=',recuCDM,j);ss:=copy(recuCDM,i+5,10);
+      val(ss,name,erreur);
+      i:=posEx('TRAIN=',recuCDM,j);l:=PosEx(';',recuCDM,i);
+      train:=copy(recuCDM,i+6,l-i-6);
+      i:=posEx('STATE=',recuCDM,j);ss:=copy(recuCDM,i+6,10);
+      val(ss,etat,erreur);
+      Delete(recuCDM,j,i-j);
+      i:=pos(';',recuCDM);
+      if i<>0 then Delete(recuCDM,1,i);
+      if AfficheDet then
+        Affiche('Actionneur AD='+intToSTR(adr)+' Nom='+intToSTR(name)+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
+      Event_act(adr,etat,train); // déclenche évent actionneur
+    end;
+
     inc(k);
     //traite:=(k<30) or (pos('CMDACC-ST_TO',recuCDM)<>0) or (pos('CMDACC-ST_DT',recuCDM)<>0) ;
-    sort:=(k>70) or (pos('CMDACC-ST_TO',recuCDM)=0) and (pos('CMDACC-ST_DT',recuCDM)=0);
+    sort:=(k>70) or (pos('CMDACC-ST_TO',recuCDM)=0) and (pos('CMDACC-ST_DT',recuCDM)=0) and (pos('CMDACC-ST_AC',recuCDM)=0);
   until (sort);
 
   //Affiche('Ligne traitée'+recuCDM,clLime);
@@ -7015,6 +7264,9 @@ begin
    Affiche('                     Protocoles variables de l''interface',clLime);
    Affiche('                     Configuration statique modifiable dans menu',clLime);
    Affiche('Version 1.31 : Correction des positions aiguillages triples et TJD',clLime);
+   Affiche('Version 1.4  : Gestion des Fx vers les locomotives par actionneurs',clLime);
+   Affiche('Version 1.41 : Gestion des passages à niveaux par actionneurs',clLime);
+
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
@@ -7184,7 +7436,7 @@ begin
     Sleep(100);
     inc(i);
   until succes or (i>20);
-  
+
   if succes then
   begin
     recu_cv:=false;
@@ -7215,14 +7467,14 @@ end;
 
 procedure TFormPrinc.Quitter1Click(Sender: TObject);
 begin
-   close;
+  close;
 end;
 
 procedure TFormPrinc.ConfigClick(Sender: TObject);
 begin
   Tformconfig.create(self);
   formconfig.showmodal;
-  formconfig.close;  
+  formconfig.close;
 end;
 
 

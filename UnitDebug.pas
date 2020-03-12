@@ -20,7 +20,6 @@ type
     ButtonRazTampon: TButton;
     ButtonCherche: TButton;
     ButtonAffEvtChrono: TButton;
-    CheckAffAffecTrains: TCheckBox;
     CheckBoxTraceLIste: TCheckBox;
     CheckTrame: TCheckBox;
     ButtonCop: TButton;
@@ -28,6 +27,7 @@ type
     PopupMenuRE: TPopupMenu;
     copier1: TMenuItem;
     ButtonRazLog: TButton;
+    CheckBoxAct: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -36,12 +36,12 @@ type
     procedure ButtonRazTamponClick(Sender: TObject);
     procedure ButtonChercheClick(Sender: TObject);
     procedure ButtonAffEvtChronoClick(Sender: TObject);
-    procedure CheckAffAffecTrainsClick(Sender: TObject);
     procedure CheckBoxTraceLIsteClick(Sender: TObject);
     procedure CheckTrameClick(Sender: TObject);
     procedure ButtonCopClick(Sender: TObject);
     procedure copier1Click(Sender: TObject);
     procedure ButtonRazLogClick(Sender: TObject);
+    procedure CheckBoxActClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -227,10 +227,6 @@ begin
   end;
 end;
 
-procedure TFormDebug.CheckAffAffecTrainsClick(Sender: TObject);
-begin
-  AffAffect:=CheckAffAffecTrains.checked;
-end;
 
 procedure TFormDebug.CheckBoxTraceLIsteClick(Sender: TObject);
 begin
@@ -260,6 +256,11 @@ end;
 procedure TFormDebug.ButtonRazLogClick(Sender: TObject);
 begin
   MemoDebug.Clear;
+end;
+
+procedure TFormDebug.CheckBoxActClick(Sender: TObject);
+begin
+  AffActionneur:=CheckBoxAct.Checked;
 end;
 
 end.

@@ -134,8 +134,8 @@ begin
       envoi_CDM(s);
       if pos('_ACK',recuCDM)<>0 then Affiche('Services acceptés: aiguillages - détecteurs - actionneurs',clYellow);
       // demande les trains
-      ////s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
-      //envoi_CDM(s);
+      s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
+      envoi_CDM(s);
     end;
   end
   else

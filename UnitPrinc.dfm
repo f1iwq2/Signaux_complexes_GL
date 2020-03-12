@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 64
-  Top = 170
+  Left = 84
+  Top = 109
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -14,7 +14,7 @@ object FormPrinc: TFormPrinc
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poScreenCenter
   ShowHint = True
   OnClose = FormClose
   OnCreate = FormCreate
@@ -1371,8 +1371,8 @@ object FormPrinc: TFormPrinc
     SimplePanel = True
   end
   object MSCommUSBLenz: TMSComm
-    Left = 1024
-    Top = 136
+    Left = 1144
+    Top = 120
     Width = 32
     Height = 32
     OnComm = MSCommUSBLenzComm

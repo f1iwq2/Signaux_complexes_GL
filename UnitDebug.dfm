@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 286
-  Top = 39
+  Left = 260
+  Top = 148
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
@@ -159,22 +159,6 @@ object FormDebug: TFormDebug
     WordWrap = True
     OnClick = ButtonAffEvtChronoClick
   end
-  object CheckAffAffecTrains: TCheckBox
-    Left = 448
-    Top = 64
-    Width = 289
-    Height = 17
-    Caption = 'Affichage d'#39'affectation des trains aux d'#233'tecteurs'
-    Enabled = False
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    TabOrder = 8
-    OnClick = CheckAffAffecTrainsClick
-  end
   object CheckBoxTraceLIste: TCheckBox
     Left = 448
     Top = 80
@@ -187,22 +171,22 @@ object FormDebug: TFormDebug
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
     OnClick = CheckBoxTraceLIsteClick
   end
   object CheckTrame: TCheckBox
     Left = 448
     Top = 96
-    Width = 281
+    Width = 321
     Height = 17
-    Caption = 'Affichage des trames '#233'chang'#233'es avec l'#39'interface'
+    Caption = 'Affichage des trames '#233'chang'#233'es avec l'#39'interface ou CDM'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     OnClick = CheckTrameClick
   end
   object ButtonCop: TButton
@@ -211,7 +195,7 @@ object FormDebug: TFormDebug
     Width = 97
     Height = 49
     Caption = 'Copie fen'#234'te principale dans debug'
-    TabOrder = 11
+    TabOrder = 10
     WordWrap = True
     OnClick = ButtonCopClick
   end
@@ -223,7 +207,7 @@ object FormDebug: TFormDebug
     HideScrollBars = False
     PopupMenu = PopupMenuRE
     ScrollBars = ssVertical
-    TabOrder = 12
+    TabOrder = 11
   end
   object ButtonRazLog: TButton
     Left = 448
@@ -231,8 +215,25 @@ object FormDebug: TFormDebug
     Width = 97
     Height = 25
     Caption = 'Raz Tampon Log'
-    TabOrder = 13
+    TabOrder = 12
     OnClick = ButtonRazLogClick
+  end
+  object CheckBoxAct: TCheckBox
+    Left = 448
+    Top = 64
+    Width = 257
+    Height = 17
+    Caption = 'Affichage des actionneurs'
+    Color = clWhite
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 13
+    OnClick = CheckBoxActClick
   end
   object SaveDialog: TSaveDialog
     Left = 680
