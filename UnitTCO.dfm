@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 337
-  Top = 102
+  Left = 333
+  Top = 121
   Width = 928
   Height = 681
   VertScrollBar.Visible = False
@@ -22,7 +22,7 @@ object FormTCO: TFormTCO
   TextHeight = 13
   object LabelX: TLabel
     Left = 32
-    Top = 16
+    Top = 14
     Width = 53
     Height = 19
     Caption = 'LabelX'
@@ -49,7 +49,7 @@ object FormTCO: TFormTCO
   end
   object LabelY: TLabel
     Left = 120
-    Top = 16
+    Top = 14
     Width = 51
     Height = 19
     Caption = 'Label1'
@@ -61,7 +61,7 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object Label1: TLabel
-    Left = 496
+    Left = 776
     Top = 8
     Width = 32
     Height = 13
@@ -348,6 +348,20 @@ object FormTCO: TFormTCO
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label18: TLabel
+    Left = 200
+    Top = 10
+    Width = 83
+    Height = 13
+    Caption = 'Taille des cellules'
+  end
+  object Label19: TLabel
+    Left = 336
+    Top = 10
+    Width = 5
+    Height = 13
+    Caption = '/'
+  end
   object EditAdrElement: TEdit
     Left = 200
     Top = 480
@@ -441,13 +455,31 @@ object FormTCO: TFormTCO
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 320
-    Top = 520
+    Left = 792
+    Top = 592
     Width = 75
     Height = 25
     Caption = 'Simu Det 0'
     TabOrder = 7
     OnClick = Button2Click
+  end
+  object EditCellX: TEdit
+    Left = 296
+    Top = 8
+    Width = 33
+    Height = 21
+    TabOrder = 8
+    Text = 'EditCellX'
+    OnKeyPress = EditCellXKeyPress
+  end
+  object EditCellY: TEdit
+    Left = 352
+    Top = 8
+    Width = 33
+    Height = 21
+    TabOrder = 9
+    Text = 'EditCellY'
+    OnKeyPress = EditCellYKeyPress
   end
   object PopupMenu1: TPopupMenu
     Left = 352

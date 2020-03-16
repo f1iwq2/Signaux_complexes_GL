@@ -1,11 +1,11 @@
 object FormDebug: TFormDebug
-  Left = 260
-  Top = 148
+  Left = 217
+  Top = 167
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
   ClientWidth = 789
-  Color = clWhite
+  Color = clWindow
   TransparentColorValue = clTeal
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWhite
@@ -19,8 +19,8 @@ object FormDebug: TFormDebug
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 464
-    Top = 28
+    Left = 616
+    Top = 15
     Width = 108
     Height = 13
     Caption = 'Niveau du Debug (0-3)'
@@ -35,7 +35,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 448
-    Top = 4
+    Top = 12
     Width = 131
     Height = 18
     Caption = 'Fen'#234'tre de d'#233'bug'
@@ -64,9 +64,9 @@ object FormDebug: TFormDebug
     WordWrap = True
   end
   object EditNivDebug: TEdit
-    Left = 592
-    Top = 20
-    Width = 73
+    Left = 728
+    Top = 12
+    Width = 49
     Height = 21
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
@@ -223,25 +223,23 @@ object FormDebug: TFormDebug
     Top = 64
     Width = 257
     Height = 17
-    Caption = 'Affichage des actionneurs'
-    Color = clWhite
+    Caption = 'Affichage des '#233'v'#232'vements actionneurs'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ParentColor = False
     ParentFont = False
     TabOrder = 13
     OnClick = CheckBoxActClick
   end
   object SaveDialog: TSaveDialog
-    Left = 680
-    Top = 8
+    Left = 760
+    Top = 56
   end
   object PopupMenuRE: TPopupMenu
-    Left = 752
-    Top = 16
+    Left = 760
+    Top = 80
     object copier1: TMenuItem
       Caption = 'copier'
       OnClick = copier1Click

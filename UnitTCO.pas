@@ -65,6 +65,10 @@ type
     Label16: TLabel;
     ImageDiag2: TImage;
     Label17: TLabel;
+    Label18: TLabel;
+    EditCellX: TEdit;
+    EditCellY: TEdit;
+    Label19: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -149,6 +153,8 @@ type
     procedure ImageDiag2EndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ImageDiag2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure EditCellXKeyPress(Sender: TObject; var Key: Char);
+    procedure EditCellYKeyPress(Sender: TObject; var Key: Char);
     
   private
     { Déclarations privées }
@@ -156,7 +162,7 @@ type
     { Déclarations publiques }
   end;
 
-  TTCO = array of array of record
+  TTCO = array[1..100] of array[1..50] of record
                BType : integer ;   // 1= détecteur  2= aiguillage 3=bis 4=Buttoir
                Adresse : integer ; // adresse du détecteur ou de l'aiguillage
                BImage : integer ; // 0=rien 1=voie 2=
@@ -229,8 +235,6 @@ begin
     end;
   end;
   reset(fichier);
-  setlength(tco,NbreCellX+1,NbreCellY+1);
-  setlength(Tampontco,NbreCellX+1,NbreCellY+1);
 
   // 2eme passe  : lire le fichier
   while not eof(fichier) do
@@ -268,9 +272,6 @@ begin
   end;
   closefile(fichier);
   Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY),clyellow);
-   // adapter l'image au nombre de cellules
-  FormTCO.ImageTCO.Width:=NbreCellX*LargeurCell+2;
-  FormTCO.ImageTCO.Height:=NbreCellY*HauteurCell+2;
 end;
 
 procedure sauve_fichier_tco;
@@ -307,15 +308,16 @@ begin
   With ImageTCO.canvas do
   begin
     pen.color:=ClGrille;
+    // lignes verticales
     for x:=1 to NbreCellX do
     begin
       moveto(x*LargeurCell,1);
-      LineTo(x*LargeurCell,HtImageTCO);
+      LineTo(x*LargeurCell,HauteurCell*NbreCelly);
     end;
     for y:=1 to NbreCelly do
     begin
       moveto(1,y*HauteurCell);
-      LineTo(LargimageTCO,y*HauteurCell);
+      LineTo(LargeurCell*NbreCellX,y*HauteurCell);
     end;
   end;
 end;
@@ -711,7 +713,7 @@ var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-  r:=Rect(x0,y0,x0+LargeurCell+1,y0+HauteurCell+1);
+  r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
 
   with canvas do
   begin
@@ -719,7 +721,7 @@ begin
     Pen.color:=clLime;
     Brush.Color:=Fond;
     Brush.style:=bsSolid;
-   // rectangle(r);
+   rectangle(r);
     fillRect(r);
   end;  
 end;
@@ -786,18 +788,27 @@ begin
       9 : dessin_infG(ImageTCO.Canvas,X,Y,Clyellow,mode);
      10 : dessin_Diag1(ImageTCO.Canvas,X,Y,Clyellow,mode);
      11 : dessin_Diag2(ImageTCO.Canvas,X,Y,Clyellow,mode);
+     else entoure_cell(x,y);
      end;
-     if (BImage>=2) then 
+     if (BImage>=2) and (i<>0) then 
      begin // Adresse de l'élément
-       ImageTCO.Canvas.Brush.Color:=fond;
-       ImageTCO.Canvas.Font.Color:=CouleurAdresse;
-       ImageTCO.Canvas.TextOut(xOrg+1,yOrg+1,s);
+      with ImageTCO.Canvas do
+       begin
+         font.Size:=5;
+         Brush.Color:=fond;
+         Font.Color:=CouleurAdresse;
+         TextOut(xOrg+1,yOrg+1,s);
+       end;  
      end;  
-     if (BImage=1) then 
+     if (BImage=1) and (i<>0) then 
      begin // Adresse de l'élément
-       ImageTCO.Canvas.Brush.Color:=fond;
-       ImageTCO.Canvas.Font.Color:=CouleurAdresse;
-       ImageTCO.Canvas.TextOut(xOrg+1,yOrg+21,s);
+       with ImageTCO.Canvas do
+       begin
+         font.Size:=5;
+         Brush.Color:=fond;
+         Font.Color:=CouleurAdresse;
+         TextOut(xOrg+1,yOrg+21,s);
+       end;  
      end;  
 end;
 
@@ -807,8 +818,11 @@ var x,y : integer;
     s : string;
     r : Trect;
 begin
-  with formTCO.ImageTCO.Canvas do
+  with ImageTCO.Canvas do
   begin
+    Brush.Color:=clWhite;
+    r:=rect(1,1,ImageTCO.Width,ImageTCO.height);
+    FillRect(r);
     Brush.Style:=bsSolid;
     Brush.Color:=fond;
     pen.color:=clyellow;
@@ -818,6 +832,7 @@ begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
+        //Affiche(IntToSTR(x),clyellow);
         affiche_cellule(x,y,PmCopy);
       end;
   grille;    
@@ -827,8 +842,11 @@ end;
 procedure TFormTCO.FormCreate(Sender: TObject);
 begin
   caption:='TCO';
-  LargeurCell:=35;
-  HauteurCell:=35;
+  LargeurCell:=25;
+  HauteurCell:=25;
+  EditCellX.text:=IntToSTR(LargeurCell);
+  EditCellY.text:=IntToSTR(HauteurCell);
+  
   
   XclicCell:=1;
   YclicCell:=1;
@@ -846,7 +864,7 @@ end;
 procedure TFormTCO.ImageTCOClick(Sender: TObject);
 var  Position: TPoint;
 begin
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
 
   Position:=ImageTCO.screenToCLient(Position);
@@ -861,7 +879,7 @@ begin
   LabelY.caption:=IntToSTR(YclicCell);
   XclicCellInserer:=XClicCell;
   YclicCellInserer:=YClicCell;
-  Entoure_cell(XclicCellInserer,YclicCellInserer);
+  //Entoure_cell(XclicCellInserer,YclicCellInserer);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -875,7 +893,6 @@ procedure TformTCO.Entoure_cell(x,y : integer);
 var r : Trect;
     x0,y0 : integer;
 begin
-  exit;
   x0:=(x-1)*LargeurCell+1;
   y0:=(y-1)*HauteurCell+1;
   with ImageTCO.canvas do
@@ -921,7 +938,7 @@ procedure TFormTCO.ImageTCOContextPopup(Sender: TObject; MousePos: TPoint; var H
 var  Position: TPoint;
 begin
   // efface le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
 
   Position:=ImageTCO.screenToCLient(Position);
@@ -933,7 +950,7 @@ begin
   label1.caption:='clicContext';
   XclicCellInserer:=XClicCell;
   YclicCellInserer:=YClicCell;
-  Entoure_cell(XclicCellInserer,YclicCellInserer);
+  //Entoure_cell(XclicCellInserer,YclicCellInserer);
   
   //Affiche('XClicCell='+intToSTR(XclicCell)+' '+'YClicCell='+intToSTR(YclicCell),clyellow);
 end;
@@ -943,11 +960,11 @@ procedure TFormTCO.aiguillageG_PGClick(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_AigPG_AG(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -959,11 +976,11 @@ procedure TFormTCO.aiguillageD_PDClick(Sender: TObject);
 var  Position: TPoint;
 begin
    // effacer le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_AigPD_AD(ImageTCO.Canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -975,11 +992,11 @@ procedure TFormTCO.Aiguillagegauchepointedroite1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_AigG_PD(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -992,11 +1009,11 @@ begin
   tco[XClicCellInserer,YClicCellInserer].Adresse:=1;
   tco[XClicCellInserer,YClicCellInserer].Btype:=1;
   // effacer le carré pointeur 
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_AigD_PG(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -1006,7 +1023,7 @@ end;
 procedure TFormTCO.FormKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
 begin
   exit;
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   case Key of
      VK_right : if XClicCell<NbreCellX then inc(XClicCell);
      VK_left  : if XClicCell>1 then dec(XClicCell);
@@ -1015,7 +1032,7 @@ begin
   end;
   LabelX.caption:=IntToSTR(XClicCell);  
   LabelY.caption:=IntToSTR(YClicCell);
-  Entoure_cell(XclicCell,YclicCell);   
+  //Entoure_cell(XclicCell,YclicCell);   
   EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCell,YClicCell].BType);
   
@@ -1025,11 +1042,11 @@ procedure TFormTCO.Elmentdroit1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur 
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_voie(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
@@ -1040,11 +1057,11 @@ procedure TFormTCO.Courbegaucheversdroite1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_infG(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
 end;
 
@@ -1052,11 +1069,11 @@ procedure TFormTCO.Courbedroiteversgauche1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur 
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_infD(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position); 
 end;
 
@@ -1065,11 +1082,11 @@ procedure TFormTCO.CourbeSupD1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur 
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_SupD(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position); 
 end;
 
@@ -1077,11 +1094,11 @@ procedure TFormTCO.CourbeSupG1Click(Sender: TObject);
 var  Position: TPoint;
 begin
   // effacer le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   // dessine le dessin
   dessin_SupG(ImageTCO.canvas,XClicCellInserer,YClicCellInserer,clyellow,pmCopy);
   // remet le carré pointeur
-  Entoure_cell(XclicCell,YclicCell);
+  //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
 
 end;
@@ -1387,13 +1404,14 @@ var  Position: TPoint;
      x0,y0,XSel1,YSel1,XSel2,YSel2 : integer;
 begin
   //Affiche('MouseMove',clyellow);
+  //Affiche(IntToSTR(X),clyellow);
   if not(sourisclic) then exit;
   //Affiche('MouseMove',clyellow);
   GetCursorPos(Position);
   Position:=ImageTCO.screenToCLient(Position);
   Xclic:=position.X;
   YClic:=position.Y;
-
+  
   // coordonnées grilleg
   XclicCell:=Xclic div largeurCell + 1;
   YclicCell:=Yclic div hauteurCell + 1;
@@ -1584,6 +1602,35 @@ procedure TFormTCO.ImageDiag2MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   ImageDiag2.BeginDrag(true);
+end;
+
+
+procedure TFormTCO.EditCellXKeyPress(Sender: TObject; var Key: Char);
+var i, erreur : integer;
+begin
+  val(EditCellX.text,i,erreur);
+  if (erreur=0) and (i>9) and (i<40) then 
+  begin
+    LargeurCell:=i;    
+    NbreCellX:=FormTCO.ImageTCO.Width div (LargeurCell);
+    Affiche('NbrecellX='+intToSTR(NbrecellX),clyellow);
+    Affiche_TCO;
+  end;
+
+end;
+
+procedure TFormTCO.EditCellYKeyPress(Sender: TObject; var Key: Char);
+var i,erreur : integer;
+begin
+  val(EditCellY.text,i,erreur);
+  if (erreur=0) and (i>9) and (i<40) then 
+  begin
+    HauteurCell:=i;
+    NbreCellY:=FormTCO.ImageTCO.Height div (LargeurCell);
+    Affiche('NbrecellY='+intToSTR(NbrecellY),clyellow);
+    Affiche_TCO;
+  end;
+
 end;
 
 end.

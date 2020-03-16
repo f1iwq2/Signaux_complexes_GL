@@ -3581,6 +3581,7 @@ begin
           delete(s,1,k);
           //Affiche('s='+s,clyellow);
           feux[i].VerrouCarre:=s[1]='1';
+          delete(s,1,1);
           // si décodeur UniSemaf (6) champ supplémentaire
           if Feux[i].decodeur=6 then
           begin
@@ -5036,11 +5037,9 @@ begin
   if i<2 then exit;
    Affiche('test si seq 010 sur det '+intToSTR(Adresse),clyellow);
   etat0_seq1:=false;  etat1_seq2:=false;  etat0_seq3:=false;
-  if (event_det_tick[i].detecteur[Adresse]=0) then begin etat0_seq1:=true;end;
+  if (event_det_tick[i].detecteur=0) then begin etat0_seq1:=true;end;
   repeat
-//    if (event_det_tick[i].detecteur[Adresse]=0) then etat0_seq1:=true;
-
-    if (event_det_tick[i].detecteur[Adresse]=1) and etat0_seq1 then begin etat1_seq2:=true;end;
+    if (event_det_tick[i].detecteur=1) and etat0_seq1 then begin etat1_seq2:=true;end;
     dec(i);     // remonter le temps ...
   until (i=0) or (etat1_seq2);
   trouve_seq_chrono_010:=etat1_seq2;
@@ -5070,18 +5069,19 @@ begin
   dec(N_event_det);
 end;
 
-// trouve adresse d'un détecteur à "etat" avant "index" dans le tableai chrono
+// trouve adresse d'un détecteur à "etat" avant "index" dans le tableau chrono
 function trouve_index_det_chrono(Adr,etat,index : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
+  if index<=0 then begin affiche('Erreur 784 index invalide',clred);exit; end;
   i:=index;
   if i>N_Event_tick then begin trouve_index_det_chrono:=0;exit; end;
   inc(i);
   repeat
     dec(i);
-    trouve:=event_det_tick[i].detecteur[Adr]=etat ;
-  until trouve or (i=0);
+     trouve:=(event_det_tick[i].etat=etat) and (event_det_tick[i].detecteur=Adr) ;
+  until (trouve or (i=0));
   if trouve then
   begin
     trouve_index_det_chrono:=i;exit;
@@ -5332,6 +5332,7 @@ begin
     Adr_El_Suiv:=Feux[i].Adr_el_suiv1; // adresse élément suivant au feu
     Btype_el_suivant:=Feux[i].Btype_suiv1;
 
+    // signal directionnel ?
     if (modele>10) then
     begin
       //Affiche('Signal directionnel '+IntToSTR(AdrFeu),clyellow);
@@ -5339,6 +5340,7 @@ begin
       exit;
     end;
 
+    // signal non directionnel 
     etat:=etat_signal_suivant(AdrFeu,1) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
 
     // signaux traités spécifiquement
@@ -5357,16 +5359,21 @@ begin
        envoi_LEB(AdrFeu);
        exit;
     end;
-
-
+                
+    // signal à 2 feux = carré violet+blanc
     if (Feux[i].aspect=2) then //or (feux[i].check<>nil) then // si carré violet
     begin
-      if carre_signal(AdrFeu) and (Feux[i].aspect=2) then
-      begin Maj_Etat_Signal(AdrFeu,violet) ; Envoi_signauxCplx;
-       exit;
+      // si aiguillage après signal mal positionnées
+      if carre_signal(AdrFeu) then
+      begin 
+        Maj_Etat_Signal(AdrFeu,violet); 
+        Envoi_signauxCplx;
+        exit;
       end
-      else if not(carre_signal(AdrFeu)) then //ici ya pas de check and feux[i].check.checked then
-      begin Maj_Etat_Signal(AdrFeu,blanc);Envoi_signauxCplx;
+      else 
+      begin 
+        Maj_Etat_Signal(AdrFeu,blanc);
+        Envoi_signauxCplx;
         exit;
       end;
     end;
@@ -5778,7 +5785,7 @@ begin
   if N_Event_tick>=1 then
   begin
     //Affiche('Event_det_tick['+intToSTR(N_event_tick)+'].detecteur['+intToSTR(Adresse)+']='+intToSTr(event_det_tick[N_event_tick].detecteur[Adresse]),clyellow);
-    if event_det_tick[N_event_tick].detecteur[Adresse]=etat01 then exit;    // déja stocké
+     if (event_det_tick[i].etat=etat01) and (event_det_tick[i].detecteur=Adresse) then exit;   // déja stocké
   end;
 
   if Traceliste then AfficheDebug('--------------------- détecteur '+intToSTR(Adresse)+' à '+intToSTR(etat01)+'-----------------------------',clOrange);
@@ -5805,7 +5812,8 @@ begin
 //    event_det_tick[N_event_tick].train:=0;
 
     event_det_tick[N_event_tick].tick:=tick;
-    event_det_tick[N_event_tick].detecteur[Adresse]:=etat01;
+      event_det_tick[N_event_tick].detecteur:=Adresse;
+      event_det_tick[N_event_tick].etat:=etat01;
    // Affiche('stockage de '+intToSTR(N_event_tick)+' à '+intToSTR(etat01),clyellow);
   end;
 
@@ -5857,7 +5865,7 @@ begin
     inc(N_Event_tick);
     event_det_tick[N_event_tick].tick:=tick;
     event_det_tick[N_event_tick].aiguillage:=adresse;
-    event_det_tick[N_event_tick].position:=pos;
+    event_det_tick[N_event_tick].etat:=pos;
   end;
 
   exit;
@@ -6521,8 +6529,12 @@ begin
   for i:=0 to Max_Event_det_tick do
   begin
     event_det_tick[i].aiguillage:=-1;
-    for j:=1 to 1100 do
-    event_det_tick[i].detecteur[j]:=-1;   // initialiser les détecteurs à -1
+    //for j:=1 to 1100 do
+    //event_det_tick[i].detecteur[j]:=-1;   // initialiser les détecteurs à -1
+    event_det_tick[i].detecteur:=-1;
+    event_det_tick[i].etat:=-1;
+    event_det_tick[i].aiguillage:=-1;
+    event_det_tick[i].actionneur:=-1;
     event_det_tick[i].traite:=false ; // non traité
   end;
 
@@ -7266,6 +7278,8 @@ begin
    Affiche('Version 1.31 : Correction des positions aiguillages triples et TJD',clLime);
    Affiche('Version 1.4  : Gestion des Fx vers les locomotives par actionneurs',clLime);
    Affiche('Version 1.41 : Gestion des passages à niveaux par actionneurs',clLime);
+   Affiche('Version 1.42 : Correction erreur lecture feux',clLime);
+   
 
 end;
 
@@ -7282,14 +7296,15 @@ begin
   for i:=1 to N_Event_tick do
   begin
 
-    for j:=1 to 1100 do
+    //for j:=1 to 1100 do
     begin
-      etat:=event_det_tick[i].detecteur[j];
+      etat:=event_det_tick[i].etat;
       if etat<>-1 then
       begin
+        j:=event_det_tick[i].detecteur;
         s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick);
         s:=s+' Det='+IntToSTR(j)+'='+intToSTR(etat);
-        s:=s+' Det suiv='+intTostr(event_det_tick[i].suivant);
+       // s:=s+' Det suiv='+intTostr(event_det_tick[i].suivant);
         Affiche(s,clyellow);
       end;
     end;
@@ -7298,7 +7313,7 @@ begin
     if etat<>-1 then
     begin
       s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick);
-      s:=s+' Aig='+intToSTR(etat)+'='+intToSTR(event_det_tick[i].position);
+      s:=s+' Aig='+intToSTR(etat)+'='+intToSTR(event_det_tick[i].etat);
       Affiche(s,clyellow);
     end;
   end;

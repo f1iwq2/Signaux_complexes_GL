@@ -63,10 +63,12 @@ var
   event_det_tick : array[0..Max_Event_det_tick] of
      record
        tick : longint;
-       detecteur : array[1..1100] of integer;  // état du détecteur [...]
-       Aiguillage,position : integer ;
+       detecteur : integer ;
+       Aiguillage : integer ;
+       actionneur : integer;
+       etat : integer ; // état du détecteur de l'aiguillage ou de l'actionneur
        //train : integer ;
-       suivant : integer ; // d'ou vient le train
+       //suivant : integer ; // d'ou vient le train
        traite : boolean;  // traité lors de a recherche d'une route
      end;
 
@@ -208,9 +210,10 @@ begin
   for i:=1 to N_Event_tick do
   begin
 
-    for j:=1 to 1100 do
+    //for j:=1 to 1100 do
     begin
-      etat:=event_det_tick[i].detecteur[j];
+      j:=event_det_tick[i].detecteur;
+      etat:=event_det_tick[i].etat;
       if etat<>-1 then
       begin
         s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det='+IntToSTR(j)+'='+intToSTR(etat);
@@ -221,7 +224,7 @@ begin
     etat:=event_det_tick[i].aiguillage;
     if etat<>-1 then
     begin
-      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(etat)+'='+intToSTR(event_det_tick[i].position);
+      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(etat)+'='+intToSTR(event_det_tick[i].etat);
       AfficheDebug(s,clyellow);
     end;
   end;

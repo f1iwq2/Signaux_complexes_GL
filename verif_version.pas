@@ -22,7 +22,7 @@ var
   FormVersion: TFormVersion;
   Lance_verif : integer;
 
-Const  Version='1.41';  //Version='1.2';// sert à la comparaison de la version publiée
+Const  Version='1.42';  //Version='1.2';// sert à la comparaison de la version publiée
 
 implementation
 
@@ -164,7 +164,7 @@ begin
           FormVersion.show;
           s:='Vous utilisez la version '+version+' mais il existe la version '+Version_p;
           Aff(s);
-          if MessageDlg(s+' Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
+          if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin
             s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\Signaux_Complexes_GL.Zip';
             Aff('Téléchargement de '+s3+' dans ');

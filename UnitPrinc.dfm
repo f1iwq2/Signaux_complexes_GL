@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 84
-  Top = 109
+  Left = 25
+  Top = 101
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'

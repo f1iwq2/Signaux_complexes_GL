@@ -166,6 +166,7 @@ begin
   IpOk:=n=3; 
 end;
 
+// vérifie si ma config de la com série/usb est ok
 function config_com(s : string) : boolean;
 var sa : string;
     j,i,erreur : integer;
@@ -201,7 +202,7 @@ begin
 
   i:=pos(':',sa);
   val(copy(sa,4,i-1),Numport,erreur);
-  config_com:=not( (NumPort>9) or (protocole=-1) or (protocole>4) or (i=0) );
+  config_com:=not( (copy(sa,1,3)<>'COM') or (NumPort>9) or (protocole=-1) or (protocole>4) or (i=0) );
 end;
 
 procedure TFormConfig.Button1Click(Sender: TObject);
