@@ -33,6 +33,10 @@ type
     Label6: TLabel;
     LabelInfo: TLabel;
     Button2: TButton;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);

@@ -28,6 +28,8 @@ type
     copier1: TMenuItem;
     ButtonRazLog: TButton;
     CheckBoxAct: TCheckBox;
+    CheckBoxEvtDetAig: TCheckBox;
+    CheckBoxAffFD: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -42,20 +44,24 @@ type
     procedure copier1Click(Sender: TObject);
     procedure ButtonRazLogClick(Sender: TObject);
     procedure CheckBoxActClick(Sender: TObject);
+    procedure CheckBoxEvtDetAigClick(Sender: TObject);
+    procedure CheckBoxAffFDClick(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
 
-Const Max_Event_det_tick = 10000;
+Const 
+Max_Event_det_tick=10000;
+Max_event_det=400;
 
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
-  AffSignal,AffAffect,initform : boolean;
+  AffSignal,AffAffect,initform,AffFD : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
-  event_det : array[1..20] of integer;
+  event_det : array[1..Max_event_det] of integer;
   //                    tick 1/10s,détecteur
   N_Event_tick : integer ; // dernier index
 
@@ -140,9 +146,9 @@ begin
     s:=SaveDialog.FileName;
     assignFile(fte,s);
     rewrite(fte);
-     writeln(fte,s);
+    writeln(fte,s);
     with MemoDebug do
-    for i:=1 to Lines.Count do
+    for i:=0 to Lines.Count do
     begin
       writeln(fte,Lines[i]);
     end;
@@ -207,27 +213,36 @@ procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
 var i,j,etat : integer;
     s : string;
 begin
+  MemoDebug.Clear;
+  if N_event_tick=0 then
+  begin
+    AfficheDebug('Il n''y a aucun évènement détecteur ou aiguillage',clyellow);
+    exit;
+  end;
+  s:='Evts chronologiques det aig du '+DateToStr(date)+' '+TimeToStr(Time)+' '+s;
+  AfficheDebug(s,clLime);
+
   for i:=1 to N_Event_tick do
   begin
-
-    //for j:=1 to 1100 do
+                     
     begin
       j:=event_det_tick[i].detecteur;
       etat:=event_det_tick[i].etat;
-      if etat<>-1 then
+      if j<>-1 then
       begin
         s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det='+IntToSTR(j)+'='+intToSTR(etat);
         AfficheDebug(s,clyellow);
       end;
     end;
 
-    etat:=event_det_tick[i].aiguillage;
-    if etat<>-1 then
+    j:=event_det_tick[i].aiguillage;
+    if j<>-1 then
     begin
-      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(etat)+'='+intToSTR(event_det_tick[i].etat);
+      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(j)+'='+intToSTR(event_det_tick[i].etat);
       AfficheDebug(s,clyellow);
     end;
   end;
+  AfficheDebug('-----------------------------',cllime);
 end;
 
 
@@ -264,6 +279,16 @@ end;
 procedure TFormDebug.CheckBoxActClick(Sender: TObject);
 begin
   AffActionneur:=CheckBoxAct.Checked;
+end;
+
+procedure TFormDebug.CheckBoxEvtDetAigClick(Sender: TObject);
+begin
+  AffAigDet:=CheckBoxEvtDetAig.checked;
+end;
+
+procedure TFormDebug.CheckBoxAffFDClick(Sender: TObject);
+begin
+  AffFD:=CheckBoxAffFD.checked;
 end;
 
 end.

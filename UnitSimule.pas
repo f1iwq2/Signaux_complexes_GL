@@ -15,6 +15,7 @@ type
     procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditIntervalleKeyPress(Sender: TObject; var Key: Char);
+    procedure EditIntervalleChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -48,7 +49,6 @@ begin
     index_simule:=1;
     repeat
       readln(fte,s);
-
       i:=pos('Tick=',s);
       if i<>0 then
       begin
@@ -72,10 +72,10 @@ begin
             val(s,k,erreur);
             Tablo_simule[index_simule].etat:=k;
 
-            s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
                ' Detecteur='+intToSTR(Tablo_simule[index_simule].detecteur)+
                '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime);
+            Affiche(s,ClLime); }
 
             inc(index_simule);
           end;
@@ -95,10 +95,10 @@ begin
             val(s,k,erreur);
             Tablo_simule[index_simule].etat:=k;
 
-            s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
                ' Aiguillage='+intToSTR(Tablo_simule[index_simule].aiguillage)+
                '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime);
+            Affiche(s,ClLime); }
 
             inc(index_simule);
           end;
@@ -110,8 +110,12 @@ begin
     Affiche('Intervalle='+intToSTR(intervalle),clyellow);
     dec(index_simule);
     closeFile(fte);
+    formprinc.ButtonArretSimu.Visible:=true;
+    formprinc.ButtonArretSimu.top:=120;
+    
     FormSimulation.Close;
-  end;
+  end; 
+   
 end;
 
 
@@ -126,6 +130,13 @@ procedure TFormSimulation.EditIntervalleKeyPress(Sender: TObject;var Key: Char);
 var erreur : integer;
 begin
   Val(EditIntervalle.Text,intervalle,erreur);
+  if (intervalle<0) then Intervalle:=1;
+end;
+
+procedure TFormSimulation.EditIntervalleChange(Sender: TObject);
+var erreur : integer;
+begin
+   Val(EditIntervalle.Text,intervalle,erreur);
   if (intervalle<0) then Intervalle:=1;
 end;
 

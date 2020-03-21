@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 217
-  Top = 167
+  Left = 241
+  Top = 150
   BorderStyle = bsSingle
   Caption = 'Fen'#234'tre de d'#233'bug'
   ClientHeight = 639
@@ -80,7 +80,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 552
-    Top = 368
+    Top = 376
     Width = 233
     Height = 221
     Color = clBlack
@@ -117,7 +117,7 @@ object FormDebug: TFormDebug
   end
   object CheckAffSig: TCheckBox
     Left = 448
-    Top = 48
+    Top = 32
     Width = 297
     Height = 17
     Caption = 'Affichage du fonctionnement des signaux'
@@ -132,7 +132,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 688
-    Top = 592
+    Top = 600
     Width = 97
     Height = 33
     Caption = 'Raz Tampon Ev'#232'nements'
@@ -201,9 +201,9 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 552
-    Top = 120
-    Width = 225
-    Height = 241
+    Top = 136
+    Width = 233
+    Height = 233
     HideScrollBars = False
     PopupMenu = PopupMenuRE
     ScrollBars = ssVertical
@@ -232,6 +232,38 @@ object FormDebug: TFormDebug
     ParentFont = False
     TabOrder = 13
     OnClick = CheckBoxActClick
+  end
+  object CheckBoxEvtDetAig: TCheckBox
+    Left = 448
+    Top = 48
+    Width = 281
+    Height = 17
+    Caption = 'Affichage des '#233'v'#232'nements d'#233'tecteurs et aiguillages'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 14
+    OnClick = CheckBoxEvtDetAigClick
+  end
+  object CheckBoxAffFD: TCheckBox
+    Left = 448
+    Top = 112
+    Width = 297
+    Height = 17
+    Caption = 'Affichage des fronts descendants des d'#233'tecteurs'
+    Color = clWindow
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 15
+    OnClick = CheckBoxAffFDClick
   end
   object SaveDialog: TSaveDialog
     Left = 760

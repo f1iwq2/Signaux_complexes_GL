@@ -44,6 +44,7 @@ object FormSimulation: TFormSimulation
     Height = 21
     TabOrder = 1
     Text = '1'
+    OnChange = EditIntervalleChange
     OnKeyPress = EditIntervalleKeyPress
   end
   object OpenDialog: TOpenDialog

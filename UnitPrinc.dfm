@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 25
-  Top = 101
+  Left = 55
+  Top = 196
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1246,7 +1246,7 @@ object FormPrinc: TFormPrinc
   end
   object BoutonRaf: TButton
     Left = 912
-    Top = 16
+    Top = 8
     Width = 89
     Height = 33
     Caption = 'Rafraichissement'
@@ -1345,7 +1345,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonTest: TButton
     Left = 912
-    Top = 96
+    Top = 88
     Width = 89
     Height = 33
     Caption = 'Demande '#233'tat r'#233'trosignalisation'
@@ -1391,7 +1391,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonAffDebug: TButton
     Left = 912
-    Top = 56
+    Top = 48
     Width = 89
     Height = 33
     Caption = 'Affiche debug'
@@ -1411,13 +1411,24 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonRepriseClick
   end
   object Button2: TButton
-    Left = 992
+    Left = 1008
     Top = 96
     Width = 97
     Height = 25
-    Caption = 'Demande '#233'tat CTS'
+    Caption = 'Simu D'#233'tecteur 513'
     TabOrder = 12
     Visible = False
+    OnClick = Button2Click
+  end
+  object ButtonArretSimu: TButton
+    Left = 912
+    Top = 128
+    Width = 89
+    Height = 33
+    Caption = 'Arret simulation'
+    TabOrder = 13
+    Visible = False
+    OnClick = ButtonArretSimuClick
   end
   object Timer1: TTimer
     Interval = 100
@@ -1464,6 +1475,10 @@ object FormPrinc: TFormPrinc
       object Codificationdesfeux1: TMenuItem
         Caption = 'Codification des feux'
         OnClick = Codificationdesfeux1Click
+      end
+      object Codificationdesactionneurs1: TMenuItem
+        Caption = 'Codification des actionneurs'
+        OnClick = Codificationdesactionneurs1Click
       end
       object N5: TMenuItem
         Caption = '-'

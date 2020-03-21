@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 333
-  Top = 121
+  Left = 205
+  Top = 235
   Width = 928
   Height = 681
   VertScrollBar.Visible = False
@@ -480,6 +480,15 @@ object FormTCO: TFormTCO
     TabOrder = 9
     Text = 'EditCellY'
     OnKeyPress = EditCellYKeyPress
+  end
+  object ButtonConfigTCO: TButton
+    Left = 576
+    Top = 8
+    Width = 113
+    Height = 25
+    Caption = 'Configuration TCO'
+    TabOrder = 10
+    OnClick = ButtonConfigTCOClick
   end
   object PopupMenu1: TPopupMenu
     Left = 352

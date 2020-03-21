@@ -8,7 +8,8 @@ uses
   UnitPilote in 'UnitPilote.pas' {FormPilote},
   UnitSimule in 'UnitSimule.pas' {FormSimulation},
   UnitTCO in 'UnitTCO.pas' {FormTCO},
-  UnitConfig in 'UnitConfig.pas' {FormConfig};
+  UnitConfig in 'UnitConfig.pas' {FormConfig},
+  UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO};
 
 {$R *.res}
 
@@ -20,5 +21,6 @@ begin
   Application.CreateForm(TFormSimulation, FormSimulation);
   Application.CreateForm(TFormTCO, FormTCO);
   Application.CreateForm(TFormConfig, FormConfig);
+  Application.CreateForm(TFormConfigTCO, FormConfigTCO);
   Application.Run;
 end.

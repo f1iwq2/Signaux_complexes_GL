@@ -69,6 +69,7 @@ type
     EditCellX: TEdit;
     EditCellY: TEdit;
     Label19: TLabel;
+    ButtonConfigTCO: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -155,6 +156,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure EditCellXKeyPress(Sender: TObject; var Key: Char);
     procedure EditCellYKeyPress(Sender: TObject; var Key: Char);
+    procedure ButtonConfigTCOClick(Sender: TObject);
     
   private
     { Déclarations privées }
@@ -188,6 +190,8 @@ var
 procedure construit_TCO;
 
 implementation
+
+uses UnitConfigTCO;
 
 {$R *.dfm}
 
@@ -1631,6 +1635,13 @@ begin
     Affiche_TCO;
   end;
 
+end;
+
+procedure TFormTCO.ButtonConfigTCOClick(Sender: TObject);
+begin
+  TformconfigTCO.create(self);
+  formconfigTCO.showmodal;
+  formconfigTCO.close;
 end;
 
 end.

@@ -2,7 +2,7 @@ object FormConfig: TFormConfig
   Left = 316
   Top = 238
   Width = 598
-  Height = 332
+  Height = 340
   Caption = 'Configuration g'#233'n'#233'rale'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,8 +15,8 @@ object FormConfig: TFormConfig
   PixelsPerInch = 96
   TextHeight = 13
   object Label6: TLabel
-    Left = 104
-    Top = 232
+    Left = 128
+    Top = 248
     Width = 332
     Height = 13
     Caption = 
@@ -81,19 +81,19 @@ object FormConfig: TFormConfig
     Left = 280
     Top = 8
     Width = 290
-    Height = 137
+    Height = 153
     Caption = 'Acc'#232's USB - S'#233'rie '#224' l'#39'interface vers la centrale LENZ'
     TabOrder = 1
     object Label3: TLabel
       Left = 16
-      Top = 32
+      Top = 56
       Width = 128
       Height = 13
       Caption = 'Protocole s'#233'rie USB (COM)'
     end
     object Label4: TLabel
       Left = 16
-      Top = 56
+      Top = 80
       Width = 126
       Height = 26
       Caption = 'Temporisation d'#39'envoi des octets de la trame (ms)'
@@ -101,15 +101,29 @@ object FormConfig: TFormConfig
     end
     object Label5: TLabel
       Left = 16
-      Top = 88
+      Top = 112
       Width = 152
       Height = 26
       Caption = 'Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 100 ms)'
       WordWrap = True
     end
+    object Label9: TLabel
+      Left = 8
+      Top = 16
+      Width = 249
+      Height = 13
+      Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans '
+    end
+    object Label10: TLabel
+      Left = 8
+      Top = 32
+      Width = 40
+      Height = 13
+      Caption = 'CDM rail'
+    end
     object EditcomUSB: TEdit
       Left = 160
-      Top = 32
+      Top = 56
       Width = 121
       Height = 21
       TabStop = False
@@ -118,7 +132,7 @@ object FormConfig: TFormConfig
     end
     object EditTempoOctetUSB: TEdit
       Left = 232
-      Top = 64
+      Top = 88
       Width = 49
       Height = 21
       TabStop = False
@@ -127,7 +141,7 @@ object FormConfig: TFormConfig
     end
     object EditTempoReponse: TEdit
       Left = 232
-      Top = 96
+      Top = 120
       Width = 49
       Height = 21
       TabStop = False
@@ -137,7 +151,7 @@ object FormConfig: TFormConfig
   end
   object Button1: TButton
     Left = 112
-    Top = 264
+    Top = 272
     Width = 105
     Height = 25
     Caption = 'Appliquer et Fermer'
@@ -148,26 +162,40 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 104
     Width = 265
-    Height = 81
+    Height = 105
     Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ'
     TabOrder = 3
     object Label7: TLabel
       Left = 14
-      Top = 24
+      Top = 56
       Width = 95
       Height = 13
       Caption = 'Adresse IP interface'
     end
     object Label8: TLabel
       Left = 14
-      Top = 50
+      Top = 82
       Width = 82
       Height = 13
       Caption = 'Port de l'#39'interface'
     end
+    object Label11: TLabel
+      Left = 8
+      Top = 16
+      Width = 249
+      Height = 13
+      Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans '
+    end
+    object Label12: TLabel
+      Left = 8
+      Top = 32
+      Width = 40
+      Height = 13
+      Caption = 'CDM rail'
+    end
     object EditIPLenz: TEdit
       Left = 176
-      Top = 24
+      Top = 56
       Width = 81
       Height = 21
       TabStop = False
@@ -176,7 +204,7 @@ object FormConfig: TFormConfig
     end
     object EditportLenz: TEdit
       Left = 176
-      Top = 48
+      Top = 80
       Width = 81
       Height = 21
       TabStop = False
@@ -186,7 +214,7 @@ object FormConfig: TFormConfig
   end
   object GroupBox4: TGroupBox
     Left = 280
-    Top = 152
+    Top = 168
     Width = 289
     Height = 73
     Caption = 'Ent'#234'te des trames vers l'#39'interface'
@@ -217,8 +245,8 @@ object FormConfig: TFormConfig
     end
   end
   object Button2: TButton
-    Left = 336
-    Top = 264
+    Left = 352
+    Top = 272
     Width = 113
     Height = 25
     Caption = 'Fermer sans appliquer'
