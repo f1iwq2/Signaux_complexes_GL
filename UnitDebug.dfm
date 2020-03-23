@@ -114,6 +114,7 @@ object FormDebug: TFormDebug
       'MemoDebug')
     ScrollBars = ssVertical
     TabOrder = 3
+    WordWrap = False
   end
   object CheckAffSig: TCheckBox
     Left = 448

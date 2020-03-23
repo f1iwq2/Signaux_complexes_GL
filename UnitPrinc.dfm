@@ -1539,6 +1539,10 @@ object FormPrinc: TFormPrinc
           'nctionnement'
         OnClick = FichierSimuClick
       end
+      object OuvrirunfichiertramesCDM1: TMenuItem
+        Caption = 'Ouvrir un fichier trames CDM'
+        OnClick = OuvrirunfichiertramesCDM1Click
+      end
       object Versions1: TMenuItem
         Caption = 'Versions'
         Hint = 'Versions'

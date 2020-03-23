@@ -72,6 +72,7 @@ var
        detecteur : integer ;
        Aiguillage : integer ;
        actionneur : integer;
+       objet : integer;  // numéro d'objet dans CDM
        etat : integer ; // état du détecteur de l'aiguillage ou de l'actionneur
        //train : integer ;
        //suivant : integer ; // d'ou vient le train
@@ -102,14 +103,14 @@ begin
   //NivDebug:=0;
 end;
 
-procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
+procedure RE_ColorLine(ARichEdit : TRichEdit;ARow : Integer;AColor : TColor);
 begin
   with ARichEdit do
   begin
-    SelStart := SendMessage(Handle, EM_LINEINDEX, ARow - 1, 0);
-    SelLength := Length(Lines[ARow - 1]);
-    SelAttributes.Color := AColor;
-    SelLength := 0;
+    SelStart:=SendMessage(Handle,EM_LINEINDEX,ARow-1,0);
+    SelLength:=Length(Lines[ARow-1]);
+    SelAttributes.Color:=AColor;
+    SelLength:=0;
   end;
 end;
 
@@ -122,6 +123,7 @@ begin
   s:=s+'comportement du programme. Positionner le niveau de 1 à 3 pour';
   s:=s+' afficher des informations plus ou moins détaillées.';
   Label3.caption:=s;
+  MemoDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   MemoDebug.color:=$33;
   initform:=false;
   MemoDebug.clear;
@@ -129,7 +131,6 @@ begin
   if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
   RichEdit.color:=$111122;
   MemoDebug.Lines.add(s);
-
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
