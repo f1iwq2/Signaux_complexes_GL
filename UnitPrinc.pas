@@ -4419,7 +4419,7 @@ end;
 
 
 // renvoie l'adresse du détecteur suivant des deux éléments contigus
-// TypeElprex/actuel: 1= détecteur  2= aiguillage 3=bis 4=Buttoir
+// TypeElprec/actuel: 1= détecteur  2= aiguillage 3=bis 4=Buttoir
 function detecteur_suivant(prec : integer;TypeElPrec : integer;actuel : integer;TypeElActuel : integer) : integer ;
 var actuelCalc,PrecCalc,etat,i,j,AdrSuiv : integer;
     BisprecCalc,BisActuelCalc : integer;
@@ -4693,7 +4693,7 @@ end;
 // renvoie l'état du signal suivant
 // si renvoie 0, pas trouvé le signal suivant.
 // rang=1 pour feu suivant, 2 pour feu suivant le 1, etc
-// Dans AdresseFeuSuivant : adreses du feu suivant (variable globale)
+// Dans AdresseFeuSuivant : adresse du feu suivant (variable globale)
 function etat_signal_suivant(adresse,rang : integer) : integer ;
 var num_feu,AdrDet,etat,AdrFeu,i,j,prec,AdrSuiv : integer;
     TypePrec,TypeActuel : integer;
@@ -6474,8 +6474,8 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-  AvecTCO:=false;
+  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  AvecTCO:=true;
 
   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
@@ -6609,8 +6609,7 @@ begin
   //TraceListe:=true;
   //interprete_reponse(#$FF+#$FD+#$46+#$43+#$40+#$41+#$40+#$40+#$49+#$4D);
   Affiche('Fin des initialisations',clyellow);
-  Affiche('Cette version test rejette les numéros d''objets supérieurs',clLime);
-  Affiche('des aiguillages en bretelle à la même adresse',clLime);
+  
   //Menu_interface(valide);
   //s:=#$f0;
   //s:=checksum(s);
@@ -7340,6 +7339,7 @@ begin
    Affiche('Version 1.42 : Correction erreur lecture feux',clLime);
    Affiche('Version 1.43 : Correction erreur gestion sémaphore',clLime);
    Affiche('Version 1.44 : Gestion trains avec voitures éclairées',clLime);
+   Affiche('Version 1.45 : Rejette les n° d''objets supérieurs aiguillages à la même adresse',clLime);
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;

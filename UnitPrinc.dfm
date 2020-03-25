@@ -1246,7 +1246,7 @@ object FormPrinc: TFormPrinc
   end
   object BoutonRaf: TButton
     Left = 912
-    Top = 8
+    Top = 16
     Width = 89
     Height = 33
     Caption = 'Rafraichissement'
@@ -1345,7 +1345,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonTest: TButton
     Left = 912
-    Top = 88
+    Top = 96
     Width = 89
     Height = 33
     Caption = 'Demande '#233'tat r'#233'trosignalisation'
@@ -1391,7 +1391,7 @@ object FormPrinc: TFormPrinc
   end
   object ButtonAffDebug: TButton
     Left = 912
-    Top = 48
+    Top = 56
     Width = 89
     Height = 33
     Caption = 'Affiche debug'
@@ -1411,8 +1411,8 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonRepriseClick
   end
   object Button2: TButton
-    Left = 1008
-    Top = 96
+    Left = 872
+    Top = 136
     Width = 97
     Height = 25
     Caption = 'Simu D'#233'tecteur 513'
@@ -1421,9 +1421,9 @@ object FormPrinc: TFormPrinc
     OnClick = Button2Click
   end
   object ButtonArretSimu: TButton
-    Left = 912
-    Top = 128
-    Width = 89
+    Left = 1008
+    Top = 96
+    Width = 81
     Height = 33
     Caption = 'Arret simulation'
     TabOrder = 13
@@ -1571,8 +1571,8 @@ object FormPrinc: TFormPrinc
     Left = 352
   end
   object OpenDialog: TOpenDialog
-    Left = 1080
-    Top = 104
+    Left = 1104
+    Top = 112
   end
   object SaveDialog: TSaveDialog
     Left = 1120

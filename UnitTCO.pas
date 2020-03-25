@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus;
+  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus , UnitConfigTCO;
 
 type
   TFormTCO = class(TForm)
@@ -177,9 +177,9 @@ var
   Fond,couleurAdresse : Tcolor;
   FormTCO: TFormTCO;
   Forminit,sourisclic,SelectionAffichee,TamponAffecte : boolean;
-  NbreCellX,NbreCellY,HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,
+  HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
-  LargeurCell,HauteurCell,Xclic,Yclic,XClicCellInserer,YClicCellInserer : integer;
+  Xclic,Yclic,XClicCellInserer,YClicCellInserer : integer;
   
   TamponTCO,tco : TTco ;
   TamponTCO_Org : record 
@@ -191,7 +191,6 @@ procedure construit_TCO;
 
 implementation
 
-uses UnitConfigTCO;
 
 {$R *.dfm}
 
@@ -850,8 +849,7 @@ begin
   HauteurCell:=25;
   EditCellX.text:=IntToSTR(LargeurCell);
   EditCellY.text:=IntToSTR(HauteurCell);
-  
-  
+   
   XclicCell:=1;
   YclicCell:=1;
   KeyPreview:=false; // invalide les évènements clavier
@@ -932,6 +930,8 @@ begin
     dessin_Diag1(ImageDiag1.Canvas,1,1,Clyellow,pmCopy);
     dessin_Diag2(ImageDiag2.Canvas,1,1,Clyellow,pmCopy);
     lire_fichier_tco;
+    ImageTCO.Width:=LargeurCell*NbreCellX;
+    ImageTCO.Height:=HauteurCell*NbreCellY;
     Affiche_tco;
   end;
 
@@ -1527,13 +1527,22 @@ begin
   begin
     Key := #0; // prevent beeping
     Val(EditTypeImage.Text,Bimage,erreur);
-    Affiche(IntToSTR(bimage),clyellow);
-    if (erreur<>0) or (Bimage<0) or (Bimage>9) then 
+   // Affiche(IntToSTR(bimage),clyellow);
+    if (erreur<>0) or (Bimage<0) or (Bimage>11) then 
     begin
-      EditTypeElement.text:=intToSTR(tco[XClicCell,YClicCell].Btype);
+      EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
       exit;
     end;  
     tco[XClicCell,YClicCell].Bimage:=Bimage;
+    case Bimage of
+    // aiguillages
+    1,2,3,4 : tco[XClicCell,YClicCell].Btype:=2;
+    // détecteur ou voie
+    5 : tco[XClicCell,YClicCell].Btype:=1;
+    else tco[XClicCell,YClicCell].Btype:=0;
+    end;
+    
+    EditTypeElement.text:=intToSTR(tco[XClicCell,YClicCell].Btype);
     affiche_cellule(XClicCell,YClicCell,pmCopy);
   end;
 end;
@@ -1560,8 +1569,6 @@ begin
    Detecteur[513]:=false;
    Maj_tco(513,false);
 end;
-
-
 
 procedure TFormTCO.ImageDiag1EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin

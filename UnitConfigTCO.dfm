@@ -11,6 +11,7 @@ object FormConfigTCO: TFormConfigTCO
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -42,7 +43,7 @@ object FormConfigTCO: TFormConfigTCO
     Caption = 'Nombre de cellules en vertical:'
   end
   object LabelNbCellX: TLabel
-    Left = 176
+    Left = 192
     Top = 56
     Width = 96
     Height = 20
@@ -55,7 +56,7 @@ object FormConfigTCO: TFormConfigTCO
     ParentFont = False
   end
   object LabelNbCellY: TLabel
-    Left = 176
+    Left = 192
     Top = 80
     Width = 96
     Height = 20
@@ -76,7 +77,7 @@ object FormConfigTCO: TFormConfigTCO
     TabOrder = 0
     OnClick = ButtonOKClick
   end
-  object Edit1: TEdit
+  object EditTailleCellX: TEdit
     Left = 104
     Top = 16
     Width = 41
@@ -84,7 +85,7 @@ object FormConfigTCO: TFormConfigTCO
     TabOrder = 1
     Text = 'EditTailleCellX'
   end
-  object Edit2: TEdit
+  object EditTailleCellY: TEdit
     Left = 176
     Top = 16
     Width = 41

@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 205
-  Top = 235
+  Left = 251
+  Top = 202
   Width = 928
   Height = 681
   VertScrollBar.Visible = False
@@ -389,7 +389,6 @@ object FormTCO: TFormTCO
     ParentFont = False
     ReadOnly = True
     TabOrder = 0
-    Text = 'EditTypeElement'
   end
   object ButtonSauveTCO: TButton
     Left = 784
@@ -419,8 +418,8 @@ object FormTCO: TFormTCO
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 857
-      Height = 425
+      Width = 846
+      Height = 409
       PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
       OnContextPopup = ImageTCOContextPopup
@@ -442,7 +441,6 @@ object FormTCO: TFormTCO
     Font.Style = []
     ParentFont = False
     TabOrder = 5
-    Text = 'EditTypeImage'
     OnKeyPress = EditTypeImageKeyPress
   end
   object Button1: TButton
@@ -455,9 +453,9 @@ object FormTCO: TFormTCO
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 792
+    Left = 784
     Top = 592
-    Width = 75
+    Width = 89
     Height = 25
     Caption = 'Simu Det 0'
     TabOrder = 7

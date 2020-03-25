@@ -16,3 +16,4 @@ Version 1.41 : Gestion des passages à niveaux par actionneurs
 Version 1.42 : Correction erreur lecture signaux
 Version 1.43 : Correction erreur gestion sémaphore
 Version 1.44 : Gestion trains avec voitures éclairées
+Version 1.45 : Rejette les n° d'objets supérieurs aiguillages à la même adresse

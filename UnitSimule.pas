@@ -111,7 +111,7 @@ begin
     dec(index_simule);
     closeFile(fte);
     formprinc.ButtonArretSimu.Visible:=true;
-    formprinc.ButtonArretSimu.top:=120;
+    formprinc.ButtonArretSimu.top:=88;
     
     FormSimulation.Close;
   end; 

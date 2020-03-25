@@ -22,7 +22,7 @@ var
   FormVersion: TFormVersion;
   Lance_verif : integer;
 
-Const  Version='1.44';  //Version='1.2';// sert à la comparaison de la version publiée
+Const  Version='1.45';  //Version='1.2';// sert à la comparaison de la version publiée
 
 implementation
 
