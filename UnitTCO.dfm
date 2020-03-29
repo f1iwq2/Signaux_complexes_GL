@@ -82,7 +82,7 @@ object FormTCO: TFormTCO
   end
   object Label5: TLabel
     Left = 24
-    Top = 512
+    Top = 520
     Width = 150
     Height = 25
     Caption = 'Type de l'#39#233'l'#233'ment: '
@@ -293,7 +293,7 @@ object FormTCO: TFormTCO
   end
   object Label15: TLabel
     Left = 24
-    Top = 544
+    Top = 560
     Width = 158
     Height = 25
     Caption = 'Image de l'#39#233'l'#233'ment: '
@@ -348,19 +348,48 @@ object FormTCO: TFormTCO
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Label18: TLabel
-    Left = 200
-    Top = 10
-    Width = 83
-    Height = 13
-    Caption = 'Taille des cellules'
+  object ImageFeu: TImage
+    Left = 584
+    Top = 576
+    Width = 25
+    Height = 41
+    DragMode = dmAutomatic
+    Stretch = True
+    OnEndDrag = ImageFeuEndDrag
+    OnMouseDown = ImageFeuMouseDown
   end
-  object Label19: TLabel
-    Left = 336
-    Top = 10
-    Width = 5
+  object Label18: TLabel
+    Left = 560
+    Top = 584
+    Width = 18
+    Height = 19
+    Caption = '12'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object ImageTemp: TImage
+    Left = 304
+    Top = 504
+    Width = 97
+    Height = 97
+  end
+  object SourisX: TLabel
+    Left = 232
+    Top = 8
+    Width = 36
     Height = 13
-    Caption = '/'
+    Caption = 'SourisX'
+  end
+  object SourisY: TLabel
+    Left = 288
+    Top = 8
+    Width = 36
+    Height = 13
+    Caption = 'SourisY'
   end
   object EditAdrElement: TEdit
     Left = 200
@@ -378,7 +407,7 @@ object FormTCO: TFormTCO
   end
   object EditTypeElement: TEdit
     Left = 200
-    Top = 512
+    Top = 520
     Width = 89
     Height = 33
     Font.Charset = ANSI_CHARSET
@@ -412,13 +441,13 @@ object FormTCO: TFormTCO
   object ScrollBox: TScrollBox
     Left = 16
     Top = 40
-    Width = 865
-    Height = 433
+    Width = 873
+    Height = 425
     TabOrder = 4
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 846
+      Width = 865
       Height = 409
       PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
@@ -431,7 +460,7 @@ object FormTCO: TFormTCO
   end
   object EditTypeImage: TEdit
     Left = 200
-    Top = 552
+    Top = 560
     Width = 89
     Height = 33
     Font.Charset = ANSI_CHARSET
@@ -461,31 +490,13 @@ object FormTCO: TFormTCO
     TabOrder = 7
     OnClick = Button2Click
   end
-  object EditCellX: TEdit
-    Left = 296
-    Top = 8
-    Width = 33
-    Height = 21
-    TabOrder = 8
-    Text = 'EditCellX'
-    OnKeyPress = EditCellXKeyPress
-  end
-  object EditCellY: TEdit
-    Left = 352
-    Top = 8
-    Width = 33
-    Height = 21
-    TabOrder = 9
-    Text = 'EditCellY'
-    OnKeyPress = EditCellYKeyPress
-  end
   object ButtonConfigTCO: TButton
     Left = 576
     Top = 8
     Width = 113
     Height = 25
     Caption = 'Configuration TCO'
-    TabOrder = 10
+    TabOrder = 8
     OnClick = ButtonConfigTCOClick
   end
   object PopupMenu1: TPopupMenu
@@ -553,6 +564,14 @@ object FormTCO: TFormTCO
         Caption = 'Courbe SupG'
         OnClick = CourbeSupG1Click
       end
+    end
+    object Tourner90G: TMenuItem
+      Caption = 'Tourner 90'#176' '#224' gauche'
+      OnClick = Tourner90GClick
+    end
+    object Tourner90D: TMenuItem
+      Caption = 'Tourner 90'#176' '#224' droite'
+      OnClick = Tourner90DClick
     end
   end
 end

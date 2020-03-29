@@ -84,7 +84,7 @@ var
   FormPilote: TFormPilote;
   EtatFeuPilote : word;
   AdrPilote : integer;
-
+  
 procedure dessine_feu_pilote;
 
 implementation
@@ -97,16 +97,19 @@ var i : integer;
 begin
   i:=Index_feu(AdrPilote);    // adresse du feu d'origine
   if i<>0 then
-  Vcanvas:=FormPilote.ImagePilote.picture.bitmap.canvas;
+  
+  //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
   EtatFeuPilote:=EtatSignalCplx[0];
+  Vcanvas:=FormPilote.ImagePilote.picture.bitmap.Canvas;
+  
   case feux[i].aspect of
   // feux de signalisation
    2 : dessine_feu2(Vcanvas,EtatFeupilote);
    3 : dessine_feu3(Vcanvas,EtatFeupilote);
-   4 : dessine_feu4(VCanvas,EtatFeupilote);
+   4 : dessine_feu4(VCanvas,0,0,1,1,EtatFeupilote,1);
    5 : dessine_feu5(VCanvas,EtatFeupilote);
    7 : dessine_feu7(VCanvas,EtatFeupilote);
-   9 : dessine_feu9(VCanvas,EtatFeupilote);
+   9 : dessine_feu9(VCanvas,0,0,1,1,EtatFeupilote,1);
   // indicateurs de direction
   12 : dessine_dir2(VCanvas,EtatFeupilote);
   13 : dessine_dir3(VCanvas,EtatFeupilote);
@@ -213,7 +216,7 @@ begin
    radioVert.Checked:=false;
    radioVertCli.Checked:=false;
    i:=index_feu(AdrPilote);
-
+   
 end;
 
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);

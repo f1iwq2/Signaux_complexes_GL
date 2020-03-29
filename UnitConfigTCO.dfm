@@ -44,7 +44,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object LabelNbCellX: TLabel
     Left = 192
-    Top = 56
+    Top = 52
     Width = 96
     Height = 20
     Caption = 'LabelNbCellX'
@@ -57,7 +57,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object LabelNbCellY: TLabel
     Left = 192
-    Top = 80
+    Top = 76
     Width = 96
     Height = 20
     Caption = 'LabelNbCellX'
@@ -92,5 +92,22 @@ object FormConfigTCO: TFormConfigTCO
     Height = 21
     TabOrder = 2
     Text = 'EditTailleCellY'
+  end
+  object ButtonDessine: TButton
+    Left = 24
+    Top = 176
+    Width = 75
+    Height = 25
+    Caption = 'Dessine'
+    TabOrder = 3
+    OnClick = ButtonDessineClick
+  end
+  object CheckDessineGrille: TCheckBox
+    Left = 16
+    Top = 104
+    Width = 105
+    Height = 17
+    Caption = 'dessine grille'
+    TabOrder = 4
   end
 end

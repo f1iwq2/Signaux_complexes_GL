@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls , UnitTCO;
 
 type
   TFormConfigTCO = class(TForm)
@@ -17,21 +17,24 @@ type
     Label4: TLabel;
     LabelNbCellX: TLabel;
     LabelNbCellY: TLabel;
+    ButtonDessine: TButton;
+    CheckDessineGrille: TCheckBox;
     procedure ButtonOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure ButtonDessineClick(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
 
-var
-  FormConfigTCO: TFormConfigTCO;
-  LargeurCell,HauteurCell,NbreCellX,NbreCellY : integer ;
+var  FormConfigTCO: TFormConfigTCO;
+     AvecGrille : boolean;
 
 implementation
 
-uses UnitTCO;
+uses UnitPrinc;
+
 
 {$R *.dfm}
 
@@ -46,8 +49,9 @@ begin
   begin
     ImageTCO.Width:=LargeurCell*NbreCellX;
     ImageTCO.Height:=HauteurCell*NbreCellY;
-    Affiche_TCO;
   end;  
+  AvecGrille:=checkDessineGrille.Checked;
+  formTCO.affiche_TCO;
   close;
 end;
 
@@ -61,5 +65,23 @@ begin
 end;
 
 
+
+procedure TFormConfigTCO.ButtonDessineClick(Sender: TObject);
+var i,erreur : integer;
+    r : Trect;
+    c : tCanvas;
+begin
+   
+  Val(EditTailleCellX.Text,i,erreur);
+  LargeurCell:=i;
+  Val(EditTailleCellY.Text,i,erreur);
+  HauteurCell:=i;
+  with formTCO do
+  begin
+    ImageTCO.Width:=LargeurCell*NbreCellX;
+    ImageTCO.Height:=HauteurCell*NbreCellY;
+  end;  
+  formTCO.affiche_TCO;
+end;
 
 end.

@@ -325,10 +325,10 @@ var
 function Index_feu(adresse : integer) : integer;
 procedure dessine_feu2(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_feu3(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_feu4(Acanvas : Tcanvas;EtatSignal : word);
+procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu5(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_feu7(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_feu9(Acanvas : Tcanvas;EtatSignal : word);
+procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
 procedure dessine_dir2(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_dir3(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_dir4(Acanvas : Tcanvas;EtatSignal : word);
@@ -393,8 +393,10 @@ begin
   with Acanvas do
   begin
     brush.Color:=couleur;
+    Pen.Color:=clBlack;
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
   end;
+  //Affiche(IntToSTR(y),clyellow);
 end;
 
 // dessine les feux sur une cible à 2 feux
@@ -428,25 +430,45 @@ begin
 end;
 
 // dessine les feux sur une cible à 4 feux
-procedure dessine_feu4(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
+// orientation=1 vertical 
+procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
+    LgImage,HtImage : integer;
 begin
   code:=code_to_aspect(Etatsignal); // et aspect
+  rayon:=round(6*frX);
 
+  Xcarre:=round(13*frX); ycarre:=round(11*frY);
+  Xvert:=round(13*frX);  Yvert:=round(22*frY);
+  xSem:=round(13*frX);   ySem:=round(33*frY);
+  xJaune:=round(13*frX); yJaune:=round(44*frY);
+
+  LgImage:=round(frx*Formprinc.Image9feux.Picture.Width);
+  HtImage:=round(fry*Formprinc.Image9feux.Picture.Height);
+  
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+ 
   //extinctions
-  cercle(ACanvas,13,11,6,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,33,6,GrisF);
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,13,22,6,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,44,6,GrisF);
+//  cercle(ACanvas,x+round(13*frX),y+round(11*frY),rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,x+Xsem,y+round(y+Ysem),rayon,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,x+Xvert,y+yvert,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,x+Xjaune,y+YJaune,rayon,GrisF);
 
   // allumages
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,22,6,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,13,44,6,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,33,6,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,x+xVert,y+yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,x+Xjaune,y+yJaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,x+xSem,y+ySem,rayon,clRed);
   if code=carre then
   begin
-    cercle(ACanvas,13,33,6,clRed);
-    cercle(ACanvas,13,11,6,clRed);
+    cercle(ACanvas,x+xSem,y+Ysem,rayon,clRed);
+    cercle(ACanvas,x+xCarre,y+yCarre,rayon,clRed);
   end;
 end;
 
@@ -473,6 +495,162 @@ begin
   if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,33,6,clGreen);
   if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,13,55,6,clorange);
 end;
+
+
+// dessine les feux sur une cible à 7 feux
+procedure dessine_feu7(Acanvas : Tcanvas;EtatSignal : word);
+var code : integer;
+begin
+  code:=code_to_aspect(Etatsignal); // et combine
+  // effacements
+
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,23,6,grisF);
+  if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
+  begin
+    cercle(ACanvas,13,11,6,grisF);cercle(ACanvas,37,11,6,GrisF);
+  end;
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,13,45,6,GrisF);
+  cercle(ACanvas,13,35,6,GrisF);cercle(ACanvas,13,55,6,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,66,6,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,56,6,GrisF);
+
+  // Allumages
+  if (code=ral_30) or (combine=ral_30) or ((code=ral_60) or (combine=ral_60)) and clignotant then
+  begin
+    cercle(ACanvas,13,11,6,clOrange);cercle(ACanvas,37,11,6,clOrange);
+  end;
+  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,13,66,6,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,56,6,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,45,6,clGreen);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,13,23,6,clWhite);
+  if code=carre then
+  begin
+    cercle(ACanvas,13,35,6,clRed);
+    cercle(ACanvas,13,55,6,clRed);
+  end;
+end;
+
+// dessine les feux sur une cible à 9 feux
+procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
+var code,rayon, 
+    XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
+    Xrap1,Yrap1,Xrap2,Yrap2,Temp          : integer;
+    LgImage,HtImage,xt,yt : integer;
+    TempF : double;
+begin
+  rayon:=round(6*frX);
+  code:=code_to_aspect(Etatsignal); // et aspect
+//  Affiche('Dessine feu9 FrX='+FloatToSTR(frx)+' FrY='+FloatToSTR(fry)+' orientation='+IntToSTr(orientation),clorange);
+  // mise à l'échelle des coordonnées des feux en fonction du facteur de réduction frX et frY et x et y (offsets)
+//  Temp:=HtImage-y;Y:=X;X:=Temp;
+//  x:=round(frx*x);y:=round(fry*y);
+ if orientation=2 then begin
+//  TempF:=frX;frX:=frY;frY:=TempF;
+  end;
+
+  
+  XBlanc:=13; YBlanc:=36;
+  Xral1:=13;  YRal1:=24;
+  Xral2:=37;  YRal2:=24;
+  xJaune:=13; yJaune:=80;
+  xRap1:=37;  yRap1:=12;
+  xrap2:=37;  yRap2:=37;
+  Xcarre:=13; Ycarre:=47;
+  XSem:=13;   Ysem:=69;
+  XVert:=13;  YVert:=58;
+
+  Acanvas.MoveTo(0,0);ACanvas.LineTo(1,1);
+  
+
+    
+  LgImage:=Formprinc.Image9feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image9feux.Picture.Bitmap.Height;
+    
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRal1;YRal1:=XRal1;XRal1:=Temp;
+    Temp:=HtImage-yRal2;YRal2:=XRal2;XRal2:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+    Temp:=HtImage-yRap1;YRap1:=XRap1;XRap1:=Temp;
+    Temp:=HtImage-yRap2;YRap2:=XRap2;XRap2:=Temp;
+  end;
+  
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    //rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xral1;Xral1:=Yral1;Yral1:=Temp;
+    Temp:=LgImage-Xral2;Xral2:=Yral2;Yral2:=Temp;
+    Temp:=LgImage-Xrap1;Xrap1:=Yrap1;Yrap1:=Temp;
+    Temp:=LgImage-Xrap2;Xrap2:=Yrap2;Yrap2:=Temp;   
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  XRal1:=round(XRal1*FrX)+x;    YRal1:=round(YRal1*FrY)+Y;
+  XRal2:=round(XRal2*FrX)+x;    YRal2:=round(YRal2*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+  XRap1:=round(XRap1*FrX)+x;    YRap1:=round(YRap1*FrY)+Y;
+  XRap2:=round(XRap2*FrX)+x;    YRap2:=round(YRap2*FrY)+Y;
+
+  // extinctions
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,Rayon,grisF);
+  if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
+  begin
+    cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,xRal2,yRal2,rayon,grisF);
+  end;
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,grisF);
+  if not((code=rappel_60) and clignotant) or not((combine=rappel_60) and clignotant) then
+  begin
+    cercle(ACanvas,xrap1,yrap1,rayon,grisF);cercle(ACanvas,xrap2,yrap2,rayon,grisF);
+  end;
+  cercle(ACanvas,xcarre,Ycarre,rayon,grisF); // carré supérieur
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,grisF);
+  if not((code=vert_cli) and clignotant) then  cercle(ACanvas,xvert,yvert,rayon,grisF);
+
+  // allumages
+  if ((code=ral_60) and clignotant) or (code=ral_30) or
+     ((combine=ral_60) and clignotant) or (combine=ral_30) then
+  begin
+    cercle(ACanvas,Xral1,yRal1,rayon,clOrange);cercle(ACanvas,xral2,yral2,rayon,clOrange);
+  end;
+
+  if ((code=rappel_60) and clignotant) or (code=rappel_30) or
+     ((combine=rappel_60) and clignotant) or (combine=rappel_30) then
+  begin
+    cercle(ACanvas,xrap1,yrap2,rayon,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clOrange);
+  end;
+  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
+  if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clRed);
+  if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
+  if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+
+  if code=carre then
+  begin
+    cercle(ACanvas,xcarre,yCarre,rayon,clRed);
+    cercle(ACanvas,xsem,ysem,rayon,clRed);
+  end;
+end;
+
+
 
 // dessine les feux sur une cible directionnelle à 2 feux
 procedure dessine_dir3(Acanvas : Tcanvas;EtatSignal : word);
@@ -706,83 +884,6 @@ end;
 
 
 
-// dessine les feux sur une cible à 7 feux
-procedure dessine_feu7(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
-begin
-  code:=code_to_aspect(Etatsignal); // et combine
-  // effacements
-
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,23,6,grisF);
-  if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
-  begin
-    cercle(ACanvas,13,11,6,grisF);cercle(ACanvas,37,11,6,GrisF);
-  end;
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,13,45,6,GrisF);
-  cercle(ACanvas,13,35,6,GrisF);cercle(ACanvas,13,55,6,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,66,6,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,56,6,GrisF);
-
-  // Allumages
-  if (code=ral_30) or (combine=ral_30) or ((code=ral_60) or (combine=ral_60)) and clignotant then
-  begin
-    cercle(ACanvas,13,11,6,clOrange);cercle(ACanvas,37,11,6,clOrange);
-  end;
-  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,13,66,6,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,56,6,clRed);
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,45,6,clGreen);
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,13,23,6,clWhite);
-  if code=carre then
-  begin
-    cercle(ACanvas,13,35,6,clRed);
-    cercle(ACanvas,13,55,6,clRed);
-  end;
-end;
-
-// dessine les feux sur une cible à 9 feux
-procedure dessine_feu9(Acanvas : Tcanvas;etatsignal : word);
-var code : integer;
-begin
-  code:=code_to_aspect(Etatsignal); // et aspect
-  // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,36,6,grisF);
-  if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
-  begin
-   cercle(ACanvas,13,24,6,grisF);cercle(ACanvas,37,24,6,grisF);
-  end;
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,80,6,grisF);
-  if not((code=rappel_60) and clignotant) or not((combine=rappel_60) and clignotant) then
-  begin
-    cercle(ACanvas,37,12,6,grisF);cercle(ACanvas,37,37,6,grisF);
-  end;
-  cercle(ACanvas,13,47,6,grisF); // carré supérieur
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,69,6,grisF);
-  if not((code=vert_cli) and clignotant) then  cercle(ACanvas,13,58,6,grisF);
-
-  // allumages
-  if ((code=ral_60) and clignotant) or (code=ral_30) or
-     ((combine=ral_60) and clignotant) or (combine=ral_30) then
-  begin
-    cercle(ACanvas,13,24,6,clOrange);cercle(ACanvas,37,24,6,clOrange);
-  end;
-
-  if ((code=rappel_60) and clignotant) or (code=rappel_30) or
-     ((combine=rappel_60) and clignotant) or (combine=rappel_30) then
-  begin
-    cercle(ACanvas,37,12,6,clOrange);cercle(ACanvas,37,37,6,clOrange);
-  end;
-  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,13,80,6,clOrange);
-  if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,13,69,6,clRed);
-  if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,13,58,6,clGreen);
-  if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,13,36,6,clWhite);
-
-  if code=carre then
-  begin
-    cercle(ACanvas,13,47,6,clRed);
-    cercle(ACanvas,13,69,6,clRed);
-  end;
-end;
-
 
 // renvoie l'index du feu dans le tableau feux[] en fonction de son adresse
 //si pas de feu renvoie 0
@@ -808,10 +909,10 @@ begin
   // feux de signalisation
    2 : dessine_feu2(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
    3 : dessine_feu3(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
-   4 : dessine_feu4(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
+   4 : dessine_feu4(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
    5 : dessine_feu5(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
    7 : dessine_feu7(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
-   9 : dessine_feu9(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
+   9 : dessine_feu9(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
   // indicateurs de direction
   12 : dessine_dir2(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
   13 : dessine_dir3(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
@@ -844,6 +945,9 @@ begin
   
     ImagePilote.top:=40;ImagePilote.left:=220;
     ImagePilote.Parent:=FormPilote;
+    ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto; 
+    ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
+    ImagePilote.Transparent:=true;
     ImagePilote.Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
     LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
     EtatSignalCplx[0]:=EtatSignalCplx[AdrPilote];
@@ -885,7 +989,12 @@ begin
     if feux[rang].Btype_suiv1=5 then s:=s+' (aig bis)';
     Hint:=s;
     onClick:=Formprinc.Imageonclick;
-
+    //width:=100;
+    //Height:=100;
+    Picture.Bitmap.TransparentMode:=tmAuto; 
+    Picture.Bitmap.TransparentColor:=clblue;
+    Transparent:=true;
+    
     case TypeFeu of   // charger le bit map depuis le fichier
     2 : picture.bitmap:=Formprinc.Image2feux.picture.Bitmap;
     3 : picture.bitmap:=Formprinc.Image3feux.picture.Bitmap;
@@ -893,6 +1002,7 @@ begin
     5 : picture.bitmap:=Formprinc.Image5feux.picture.Bitmap;
     7 : picture.bitmap:=Formprinc.Image7feux.picture.Bitmap;
     9 : picture.bitmap:=Formprinc.Image9feux.picture.Bitmap;
+   
     12 : picture.bitmap:=Formprinc.Image2Dir.picture.Bitmap;
     13 : picture.bitmap:=Formprinc.Image3Dir.picture.Bitmap;
     14 : picture.bitmap:=Formprinc.Image4Dir.picture.Bitmap;
@@ -7639,6 +7749,8 @@ begin
 end;
 
 begin
+
+
 
 
 

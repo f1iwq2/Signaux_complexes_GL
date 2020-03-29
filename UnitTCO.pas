@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus , UnitConfigTCO;
+  Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus, UnitPilote ;
 
 type
   TFormTCO = class(TForm)
@@ -65,11 +65,14 @@ type
     Label16: TLabel;
     ImageDiag2: TImage;
     Label17: TLabel;
-    Label18: TLabel;
-    EditCellX: TEdit;
-    EditCellY: TEdit;
-    Label19: TLabel;
     ButtonConfigTCO: TButton;
+    ImageFeu: TImage;
+    Label18: TLabel;
+    ImageTemp: TImage;
+    Tourner90G: TMenuItem;
+    Tourner90D: TMenuItem;
+    SourisX: TLabel;
+    SourisY: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -136,7 +139,7 @@ type
       Y: Integer);
     procedure ImageTCOMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure EffaceCellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
+    procedure Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
     procedure MenuCopierClick(Sender: TObject);
     procedure MenuCollerClick(Sender: TObject);
     procedure ButtonRedessineClick(Sender: TObject);
@@ -154,9 +157,12 @@ type
     procedure ImageDiag2EndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ImageDiag2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure EditCellXKeyPress(Sender: TObject; var Key: Char);
-    procedure EditCellYKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonConfigTCOClick(Sender: TObject);
+    procedure ImageFeuEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImageFeuMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Tourner90GClick(Sender: TObject);
+    procedure Tourner90DClick(Sender: TObject);
     
   private
     { Déclarations privées }
@@ -165,9 +171,11 @@ type
   end;
 
   TTCO = array[1..100] of array[1..50] of record
-               BType : integer ;   // 1= détecteur  2= aiguillage 3=bis 4=Buttoir
-               Adresse : integer ; // adresse du détecteur ou de l'aiguillage
-               BImage : integer ; // 0=rien 1=voie 2=
+               BType : integer ;      // 1= détecteur  2= aiguillage 3=bis 4=Buttoir 
+               Adresse : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
+               BImage : integer ;     // 0=rien 1=voie 2=aiguillage gauche gauche ... 12=feu
+               FeuAspect : integer;   // aspect du feu (2 feux...9 feux)
+               FeuOriente : integer ; // orientation du feu : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
             end;
   
 const
@@ -186,10 +194,17 @@ var
            x1,y1,x2,y2 : integer;
                   end;  
   rAncien : TRect;          
+  PCanvasTCO : Tcanvas;
+  PBitMapTCO : TBitMap;
+  PScrollBoxTCO : TScrollBox;
+  PImageTCO : Timage;
+  PImageTemp : TImage;
 
-procedure construit_TCO;
+  LargeurCell,HauteurCell,NbreCellX,NbreCellY : integer   ;
 
 implementation
+
+uses UnitConfigTCO;
 
 
 {$R *.dfm}
@@ -262,11 +277,18 @@ begin
         tco[x,y].adresse:=valeur;
         delete(s,1,i);
 
-        i:=pos(')',s);
+        i:=pos(',',s);
         if i=0 then begin closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin closefile(fichier);exit;end;
         tco[x,y].Bimage:=valeur;
         delete(s,1,i);
+
+        i:=pos(')',s);
+        if i=0 then begin closefile(fichier);exit;end;
+        val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin closefile(fichier);exit;end;
+        tco[x,y].FeuOriente:=valeur;
+        delete(s,1,i);
+
         inc(x);
 
       until s='';
@@ -284,14 +306,15 @@ var fichier : textfile;
 begin
   AssignFile(fichier,'tco.cfg');
   rewrite(fichier);
-  writeln(fichier,'/type(0=rien 1=voie/détecteur 2=aig 3=aigBis , adresse , image=1 à 10 ');
+  writeln(fichier,'/type(0=rien 1=voie/détecteur 2=aig 3=aigBis , adresse , image=1 à 10 ,orientation');
   writeln(fichier,'/Dalle TCO');
   for y:=1 to NbreCellY do
   begin
     s:='';
     for x:=1 to NbreCellX do
     begin
-      s:=s+'('+IntToSTR(TCO[x,y].BType)+','+Format('%.*d',[3,TCO[x,y].Adresse])+','+IntToSTR(TCO[x,y].BImage)+')';
+      s:=s+'('+IntToSTR(TCO[x,y].BType)+','+Format('%.*d',[3,TCO[x,y].Adresse])+','+
+           IntToSTR(TCO[x,y].BImage)+','+IntToSTR(TCO[x,y].FeuOriente)+')';
     end;
     writeln(fichier,s);
   end;
@@ -304,11 +327,8 @@ procedure TformTCO.grille;
 var x,y : integer;
     r : Trect;
 begin
-  HtImageTCO:=FormTCO.ImageTCO.Height;
-  HtImageTCO:=FormTCO.ImageTCO.Height;
-  LargImageTCO:=FormTCO.ImageTCO.Width;
-
-  With ImageTCO.canvas do
+  if not(AvecGrille) then exit;
+  With PCanvasTCO do
   begin
     pen.color:=ClGrille;
     // lignes verticales
@@ -705,15 +725,204 @@ begin
     x3:=x0+largeurCell-3;y3:=y0+HauteurCell;
     x4:=x0+(largeurCell div 2);y4:=jy2;
     Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4-1,y4-1)]);
-
-
   end;
 end;
 
-procedure TFormTCO.EffaceCellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
+// Affiche dans le TCO en x,y un Feu à 90° d'après l'image transmise 
+// x y en coordonnées grille (cellule)
+procedure Feu_90G(ImageSource : TImage;x,y : integer);
+var p : array[0..2] of TPoint; 
+    x0,y0,HtFeu,LgFeu : integer;
+begin
+  x0:=(x-2)*LargeurCell;  
+  y0:=(y-1)*HauteurCell;
+  HtFeu:=ImageSource.Picture.Height;
+  lgFeu:=ImageSource.Picture.Width;
+  // Affiche('Taille X feu_90G='+IntToSTR(lgFeu),clLime);
+  //PImageTCO.Picture.Bitmap.TransparentMode:=tmFixed; // tmAuto;
+  //PImageTCO.Picture.Bitmap.TransparentColor:=clBlue;
+  //PImageTCO.Transparent:=true;
+  // copie à 90°G sans mise à l'échelle dans l'image provisoire
+  p[0].X:=HtFeu;  //90;
+  p[0].Y:=0;  //0;
+  p[1].X:=HtFeu;  //90;
+  p[1].Y:=LgFeu;  //49;
+  p[2].X:=0;  //0;
+  p[2].Y:=0;  //0;
+  PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,lgFeu,HtFeu,0,0,0);
+  PImageTemp.Picture.Bitmap.Modified:=True; 
+  //PlgBlt(PImageTemp.Canvas.Handle,p,formprinc.Image5feux.Canvas.Handle,0,0,49,90,0,0,0);
+  // et copier l'image tournée sur le TCO
+  //StretchBlt(PcanvasTCO.Handle,x0,y0,LargeurCell*2,HauteurCell,
+  //           PImageTemp.Canvas.Handle,0,0,HtFeu,LgFeu,srccopy);
+  TransparentBlt(PcanvasTCO.Handle,x0,y0,LargeurCell*2,HauteurCell,
+             PImageTemp.Canvas.Handle,0,0,HtFeu,LgFeu,clBlue);    // clblue est la couleur de transparence
+  PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
+end;
+
+// copie de l'image du feu à 90° dans le canvas source et le tourne de 90° et le met dans l'image temporaire
+procedure Feu_90D(ImageSource : TImage;x,y : integer);
+var p : array[0..2] of TPoint; 
+    x0,y0,HtFeu,LgFeu  : integer;
+begin
+  x0:=(x-1)*LargeurCell;
+  y0:=(y-1)*HauteurCell;
+  HtFeu:=ImageSource.Picture.Height;
+  lgFeu:=ImageSource.Picture.Width;
+  // copie à 90°D dans l'image provisoire
+  p[0].X:=0;
+  p[0].Y:=LgFeu;  //49;
+  p[1].X:=0;
+  p[1].Y:=0;
+  p[2].X:=HtFeu;  //90;
+  p[2].Y:=LgFeu;  //49;
+  PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,LgFeu,HtFeu,0,0,0);
+  PImageTemp.Picture.Bitmap.Modified:=True; 
+  // et copier l'image avec mise à l'échelle tournée sur le TCO
+  TransparentBlt(PcanvasTCO.Handle,x0,y0,LargeurCell*2,HauteurCell,
+                 PImageTemp.Canvas.Handle,0,0,HtFeu,LgFeu,clBlue);
+  PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
+  
+end;
+
+ // copie de l'image du feu à 180° depuis le canvas source et le met dans l'image temporaire
+procedure Feu_180(CanvasSource : TCanvas);
+var src,dest : Trect; 
+begin
+  dest:=bounds(0, 0, 49, 90);
+  src:=rect(0, 0, 49, 90); // V flip
+
+  //  dest:=bounds(0, 0, image1.Picture.Width, image1.Picture.Height);
+  //src:=rect(0, image1.Picture.Height-1, image1.Picture.Width-1, 0); // Vertical flip
+
+  //src:=rect(image1.Picture.Width-1, 0, 0, image1.Picture.Height-1); // Horizontal flip
+  //src:=rect(image1.Picture.Width-1, image1.Picture.Height-1, 0, 0); // Both flip
+  PimageTemp.Picture.Bitmap.Canvas.StretchDraw(dest,Formprinc.Image9feux.Picture.Graphic);
+  PImageTemp.Picture.Bitmap.Modified:=True; 
+end;
+
+// renvoie un pointeur vers l'image du feu suivant l'aspect du feu de adresse
+// ne marche pas
+function PointeurImage(adresse : integer) : TImage;
+var i,aspect : integer;
+    Pim : TImage;
+begin
+  // trouver l'aspect du feu
+  i:=Index_feu(adresse);
+  aspect:=feux[i].aspect;
+  
+  case aspect of
+  2 : Pim:=Formprinc.Image2feux;
+  3 : Pim:=Formprinc.Image3feux;
+  4 : Pim:=Formprinc.Image4feux;
+  5 : Pim:=Formprinc.Image5feux;
+  7 : Pim:=Formprinc.Image7feux;
+  9 : Pim:=Formprinc.Image9feux;
+  else Pim:=Formprinc.Image3feux;
+  end;
+  PointeurImage:=Pim;
+end;
+
+// provisoire
+procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
+begin
+with PCanvasTCO do
+  begin
+    brush.Color:=couleur;
+    Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
+  end;
+end;
+
+// Dessine un feu dans le canvas en x,y , dont l'adresse se trouve à la cellule x,y
+procedure dessin_feu(CanvasDest : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
+var  x0,y0,orientation,adresse,i,aspect,TailleX,TailleY : integer;
+     ImageFeu : Timage;
+     frX,frY : real;
+begin
+  x0:=(x-1)*LargeurCell;
+  y0:=(y-1)*HauteurCell;
+  
+  Orientation:=TCO[x,y].FeuOriente; 
+  Adresse:=TCO[x,y].Adresse;
+  i:=Index_feu(adresse);
+  aspect:=feux[i].aspect;
+  
+  case aspect of
+  2 :  ImageFeu:=Formprinc.Image2feux;
+  3 :  ImageFeu:=Formprinc.Image3feux;
+  4 :  ImageFeu:=Formprinc.Image4feux;
+  5 :  ImageFeu:=Formprinc.Image5feux;
+  7 :  ImageFeu:=Formprinc.Image7feux;
+  9 :  ImageFeu:=Formprinc.Image9feux;
+  else ImageFeu:=Formprinc.Image3feux;
+  end;
+  
+  //ImageFeu:=PointeurImage(adresse); // pointeur vers le type de feu à dessiner
+  TailleY:=ImageFeu.picture.BitMap.Height; // 50 taille du feu d'origine  (verticale)
+  TailleX:=ImageFeu.picture.BitMap.Width;  //91n
+  
+  //Facteurs de réductions X et Y pour un signal vertical
+  frX:=LargeurCell/TailleX;
+  frY:=2*HauteurCell/TailleY;
+  //Affiche('FrX='+floatToSTR(frX)+' FrY='+floatToSTR(frY),clyellow);
+
+  // affiche l'icône du signal---------------
+  if (Orientation=1) then 
+  begin
+    //Affiche('Adresse='+intToSTR(Adresse)+' Xfeu='+IntToSTR(X0)+' Yfeu='+intToSTR(y0),clyellow);
+    TransparentBlt(canvasDest.Handle,x0,y0,LargeurCell,HauteurCell*2,
+                   ImageFeu.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
+    PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
+  end;
+  if Orientation=2 then 
+  begin
+    Feu_90G(ImageFeu,x,y); // ici on passe l'origine du feu 
+    x0:=x0-largeurCell;
+    //Affiche('Adresse='+intToSTR(Adresse)+' Xfeu='+IntToSTR(X0)+' Yfeu='+intToSTR(y0),clyellow);
+    // y0:=y0+largeurCell;
+  end;  
+  if Orientation=3 then 
+  begin
+    Feu_90D(ImageFeu,x,y);
+  end;  
+
+  // écrire le texte ------------------
+    with PcanvasTCO do
+    begin
+      font.Size:=5;
+      Brush.Color:=fond;
+      Font.Color:=CouleurAdresse;
+      if Aspect=9 then TextOut(x0-LargeurCell,y0+8,IntToSTR(Adresse))
+      else TextOut(x0+1,y0+8,IntToSTR(Adresse));
+    end;  
+
+   
+  // allumage des feux du signal -----------------
+  (*TailleY:=HauteurCell*2;
+  TailleX:=LargeurCell;
+  frX:=LargeurCell/TailleX;
+  frY:=HauteurCell/TailleY;*)
+  case aspect of
+    4 : dessine_feu4(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+    9 : dessine_feu9(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+  end;
+end;
+
+procedure TFormTCO.Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     r : TRect;
 begin
+  if y>1 then
+  begin
+    // si la cellule au dessus contient un feu vertical, ne pas effacer la cellule
+    if (tco[x,y-1].BImage=12) and (tco[x,y-1].FeuOriente=1) then exit;
+  end;
+  if x<NbreCellX then
+  begin
+    // si la cellule à gauche contient un feu 90D, ne pas effacer la cellule
+    if (tco[x-1,y].BImage=12) and (tco[x-1,y].FeuOriente=3) then exit;
+  end;              
+
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
@@ -724,7 +933,7 @@ begin
     Pen.color:=clLime;
     Brush.Color:=Fond;
     Brush.style:=bsSolid;
-   rectangle(r);
+    rectangle(r);
     fillRect(r);
   end;  
 end;
@@ -777,67 +986,91 @@ begin
   if Btype=2 then s:='A'+s;
   if Btype=3 then s:='A'+s+'B';
 
-    case Bimage of 
-    // ne pas passer la forme ds le paremètre canvas, çà ne s'afficherapas
-      0 : effacecellule(ImageTCO.Canvas,x,y,Clyellow,Mode);
-      1 : dessin_AigPD_AD(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      2 : dessin_AigG_PD(ImageTCO.Canvas,X,Y,Clyellow,mode);
-      3 : dessin_AigPG_AG(ImageTCO.Canvas,X,Y,Clyellow,mode);
-      4 : dessin_AigD_PG(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      5 : dessin_voie(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      6 : dessin_SupG(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      7 : dessin_SupD(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      8 : dessin_infD(ImageTCO.Canvas,X,Y,Clyellow,Mode);
-      9 : dessin_infG(ImageTCO.Canvas,X,Y,Clyellow,mode);
-     10 : dessin_Diag1(ImageTCO.Canvas,X,Y,Clyellow,mode);
-     11 : dessin_Diag2(ImageTCO.Canvas,X,Y,Clyellow,mode);
-     else entoure_cell(x,y);
-     end;
-     if (BImage>=2) and (i<>0) then 
+  if y>1 then if (tco[x,y-1].Bimage=12) and (tco[x,y-1].FeuOriente=1) then exit;
+  
+  case Bimage of 
+    // ne pas passer la forme ds le paramètre canvas, çà ne s'affichera pas
+    //  0 : efface_cellule(PCanvasTCO,x,y,Clyellow,Mode);     &&&&&&&&&
+      1 : dessin_AigPD_AD(PCanvasTCO,X,Y,Clyellow,Mode);
+      2 : dessin_AigG_PD(PCanvasTCO,X,Y,Clyellow,mode);
+      3 : dessin_AigPG_AG(PCanvasTCO,X,Y,Clyellow,mode);
+      4 : dessin_AigD_PG(PCanvasTCO,X,Y,Clyellow,Mode);
+      5 : dessin_voie(PCanvasTCO,X,Y,Clyellow,Mode);
+      6 : dessin_SupG(PCanvasTCO,X,Y,Clyellow,Mode);
+      7 : dessin_SupD(PCanvasTCO,X,Y,Clyellow,Mode);
+      8 : dessin_infD(PCanvasTCO,X,Y,Clyellow,Mode);
+      9 : dessin_infG(PCanvasTCO,X,Y,Clyellow,mode);
+     10 : dessin_Diag1(PCanvasTCO,X,Y,Clyellow,mode);
+     11 : dessin_Diag2(PCanvasTCO,X,Y,Clyellow,mode);
+     12 : dessin_feu(PCanvasTCO,X,Y,Clyellow,mode);
+       
+     //else entoure_cell(x,y);
+  end;
+
+  
+  if (BImage>=2) and (BImage<12) and (i<>0) then 
      begin // Adresse de l'élément
-      with ImageTCO.Canvas do
+      with PCanvasTCO do
        begin
          font.Size:=5;
          Brush.Color:=fond;
          Font.Color:=CouleurAdresse;
          TextOut(xOrg+1,yOrg+1,s);
        end;  
-     end;  
+     end
+     else  
      if (BImage=1) and (i<>0) then 
      begin // Adresse de l'élément
-       with ImageTCO.Canvas do
+       with PCanvasTCO do
        begin
          font.Size:=5;
          Brush.Color:=fond;
          Font.Color:=CouleurAdresse;
          TextOut(xOrg+1,yOrg+21,s);
        end;  
-     end;  
+     end;
+   //canvasTCO.TextOut(xOrg+1,yOrg+1,IntToSTR(x));  
 end;
 
 // affiche le tco suivant le tableau TCO
 procedure TformTCO.Affiche_TCO ;
-var x,y : integer;
+var x,y,DimX,DimY : integer;
     s : string;
     r : Trect;
 begin
-  with ImageTCO.Canvas do
+  DimX:=LargeurCell*NbreCellX;
+  DimY:=HauteurCell*NbreCellY;
+
+  PImageTCO.Height:=DimY;
+  PImageTCO.Width:=DimX;
+  
+  PBitMapTCO.Height:=DimY;
+  PBitMapTCO.Width:=DimX;
+  
+  PScrollBoxTCO.HorzScrollBar.Range:=DimX;
+  PScrollBoxTCO.VertScrollBar.Range:=DimY;
+  
+  //effacer tout
+  with PcanvasTCO do
   begin
     Brush.Color:=clWhite;
-    r:=rect(1,1,ImageTCO.Width,ImageTCO.height);
-    FillRect(r);
+    r:=rect(0,0,ImageTCO.Width,ImageTCO.height);
+    FillRect(r);      
     Brush.Style:=bsSolid;
     Brush.Color:=fond;
     pen.color:=clyellow;
-    r:=rect(1,1,NbreCellX*LargeurCell,NbreCelly*HauteurCell);
+    r:=rect(0,0,NbreCellX*LargeurCell,NbreCelly*HauteurCell);
     FillRect(r);
   end;
+
+  //afficher les cellules
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        //Affiche(IntToSTR(x),clyellow);
         affiche_cellule(x,y,PmCopy);
       end;
+
+  // afficher la grille
   grille;    
 end;
 
@@ -847,8 +1080,7 @@ begin
   caption:='TCO';
   LargeurCell:=25;
   HauteurCell:=25;
-  EditCellX.text:=IntToSTR(LargeurCell);
-  EditCellY.text:=IntToSTR(HauteurCell);
+  AvecGrille:=true;
    
   XclicCell:=1;
   YclicCell:=1;
@@ -868,12 +1100,13 @@ var  Position: TPoint;
 begin
   //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
-
+ 
   Position:=ImageTCO.screenToCLient(Position);
+  //Affiche(IntToSTR(position.x),clyellow);
   Xclic:=position.X;YClic:=position.Y;
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
-  if XclicCell>NbreCellX then exit;
+  if XclicCell>NbreCellX then exit;   
   if YclicCell>NbreCellY then exit;
   
   
@@ -917,6 +1150,22 @@ begin
   if not(Forminit) then
   begin
     FormInit:=true;
+    lire_fichier_tco;
+    ImageTCO.Width:=LargeurCell*NbreCellX;
+    ImageTCO.Height:=HauteurCell*NbreCellY;
+    
+    ImageTCO.Picture.Create;
+    ImageTCO.Picture.Bitmap.Height:=HauteurCell*NbreCellY;
+    ImageTCO.Picture.BitMap.Width:=LargeurCell*NbreCellX;
+ 
+    
+    PCanvasTCO:=FormTCO.ImageTCO.Picture.Bitmap.Canvas;
+    PBitMapTCO:=FormTCO.ImageTCO.Picture.Bitmap;
+    PScrollBoxTCO:=FormTCO.ScrollBox;
+    PImageTCO:=FormTCO.ImageTCO;
+    PImageTemp:=FormTCO.ImageTemp;
+    PImageTemp.Canvas.Rectangle(0,0,PImageTemp.Width,PimageTemp.Height);
+    
     // dessiner les icônes
     dessin_AigPD_AD(ImagePalette1.Canvas,1,1,clyellow,pmCopy);
     dessin_AigG_PD(ImagePalette2.Canvas,1,1,clyellow,pmCopy);
@@ -929,9 +1178,14 @@ begin
     dessin_infG(ImageInfG.canvas,1,1,Clyellow,pmCopy);
     dessin_Diag1(ImageDiag1.Canvas,1,1,Clyellow,pmCopy);
     dessin_Diag2(ImageDiag2.Canvas,1,1,Clyellow,pmCopy);
-    lire_fichier_tco;
-    ImageTCO.Width:=LargeurCell*NbreCellX;
-    ImageTCO.Height:=HauteurCell*NbreCellY;
+
+    With ImageFeu do
+    begin
+      Picture.Bitmap.TransparentMode:=tmAuto; 
+      Picture.Bitmap.TransparentColor:=clblue;
+      Transparent:=true;
+      Picture.Bitmap:=Formprinc.Image9feux.Picture.Bitmap;
+    end;  
     Affiche_tco;
   end;
 
@@ -1110,7 +1364,7 @@ end;
 procedure TFormTCO.ImageTCODragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
-   Accept:=source is TImage;
+//   Accept:=source is TImage;
 end;
 
 
@@ -1361,8 +1615,8 @@ begin
 
   xCell1:=XminiSel div LargeurCell +1;
   xCell2:=XmaxiSel div LargeurCell +1;
-  yCell1:=yminiSel div LargeurCell +1;
-  yCell2:=ymaxiSel div LargeurCell +1;
+  yCell1:=yminiSel div HauteurCell +1;
+  yCell2:=ymaxiSel div HauteurCell +1;
   
   for y:=yCell1 to yCell2 do
     for x:=xCell1 to xCell2 do
@@ -1370,36 +1624,56 @@ begin
       tco[x,y].BType:=0;
       tco[x,y].Adresse:=0;
       tco[x,y].BImage:=0;
-      effacecellule(ImageTCO.Canvas,X,Y,Clyellow,PmCopy);
+      //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
+      efface_cellule(ImageTCO.Canvas,X,Y,Clyellow,PmCopy);
+      
     end;
 
 end;
 
-procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
+var position : Tpoint;
 begin
-  if button=mbLeft then
-  begin
-    xMiniSel:=999;yMiniSel:=999;
-    xMaxiSel:=0;yMaxiSel:=0;
-    sourisclic:=true;
-
-    if SelectionAffichee then
+    if button=mbLeft then
     begin
-      with imageTCO.Canvas do
+      xMiniSel:=999;yMiniSel:=999;
+      xMaxiSel:=0;yMaxiSel:=0;
+      sourisclic:=true;
+      if SelectionAffichee then
       begin
-        Pen.Mode:=PmXor;
-        Pen.color:=clGrille;
-        Brush.Color:=clblue;
-        //FillRect(r);
-        Rectangle(rAncien);
-      end;
-      SelectionAffichee:=false;
-    end;  
-    
-  end;
+        with imageTCO.Canvas do
+        begin
+          Pen.Mode:=PmXor;
+          Pen.color:=clGrille;
+          Brush.Color:=clblue;
+          //FillRect(r);
+          Rectangle(rAncien);
+        end;
+        SelectionAffichee:=false;
+      end;  
+    end;
+    if button=mbRight then
+    begin
+      GetCursorPos(Position);
+      Position:=ImageTCO.screenToCLient(Position);
+      Xclic:=position.X;
+      YClic:=position.Y;
+  
+      // coordonnées grilleg
+      XclicCell:=Xclic div largeurCell + 1;
+      YclicCell:=Yclic div hauteurCell + 1;
 
-    
+       LabelX.caption:=IntToSTR(XclicCell);  
+  LabelY.caption:=IntToSTR(YclicCell);
+  XclicCellInserer:=XClicCell;
+  YclicCellInserer:=YClicCell;
+  //Entoure_cell(XclicCellInserer,YclicCellInserer);
+
+  EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
+  EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BImage);
+      
+    end;
 end;
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
@@ -1409,6 +1683,9 @@ var  Position: TPoint;
 begin
   //Affiche('MouseMove',clyellow);
   //Affiche(IntToSTR(X),clyellow);
+  SourisX.Caption:=IntToSTR(x);
+  SourisY.Caption:=IntToSTR(y);
+  
   if not(sourisclic) then exit;
   //Affiche('MouseMove',clyellow);
   GetCursorPos(Position);
@@ -1416,7 +1693,7 @@ begin
   Xclic:=position.X;
   YClic:=position.Y;
   
-  // coordonnées grilleg
+  // coordonnées grille
   XclicCell:=Xclic div largeurCell + 1;
   YclicCell:=Yclic div hauteurCell + 1;
 
@@ -1433,12 +1710,14 @@ begin
   AncienYMiniSel:=YminiSel;
   AncienXmaxiSel:=XmaxiSel;
   AncienYMaxiSel:=YmaxiSel;
-
+  
   if xMiniSel>x0 then XminiSel:=X0;
   if yMiniSel>y0 then yminiSel:=y0;
   if xMaxiSel<x0 then xmaxiSel:=x0;
   if yMaxiSel<y0 then ymaxiSel:=y0;
 
+  //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMiniSel='+IntToSTR(yMiniSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+  
   if SelectionAffichee then
   with imageTCO.Canvas do
   begin
@@ -1562,6 +1841,13 @@ procedure TFormTCO.Button1Click(Sender: TObject);
 begin
    Detecteur[513]:=true;
    Maj_tco(513,true);
+   with PCanvasTCO do
+   begin
+    pen.Mode:=pmCopy;
+    pen.color:=clRed;
+    brush.color:=clGreen;
+    Rectangle(2,2,140,140);
+   end;  
 end;
 
 procedure TFormTCO.Button2Click(Sender: TObject);
@@ -1615,40 +1901,81 @@ begin
   ImageDiag2.BeginDrag(true);
 end;
 
-
-procedure TFormTCO.EditCellXKeyPress(Sender: TObject; var Key: Char);
-var i, erreur : integer;
-begin
-  val(EditCellX.text,i,erreur);
-  if (erreur=0) and (i>9) and (i<40) then 
-  begin
-    LargeurCell:=i;    
-    NbreCellX:=FormTCO.ImageTCO.Width div (LargeurCell);
-    Affiche('NbrecellX='+intToSTR(NbrecellX),clyellow);
-    Affiche_TCO;
-  end;
-
-end;
-
-procedure TFormTCO.EditCellYKeyPress(Sender: TObject; var Key: Char);
-var i,erreur : integer;
-begin
-  val(EditCellY.text,i,erreur);
-  if (erreur=0) and (i>9) and (i<40) then 
-  begin
-    HauteurCell:=i;
-    NbreCellY:=FormTCO.ImageTCO.Height div (LargeurCell);
-    Affiche('NbrecellY='+intToSTR(NbrecellY),clyellow);
-    Affiche_TCO;
-  end;
-
-end;
-
 procedure TFormTCO.ButtonConfigTCOClick(Sender: TObject);
 begin
   TformconfigTCO.create(self);
   formconfigTCO.showmodal;
   formconfigTCO.close;
 end;
+
+procedure TFormTCO.ImageFeuEndDrag(Sender, Target: TObject; X, Y: Integer);
+var r : Trect;
+begin
+  if (x=0) and (y=0) then exit;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  //PCanvasTCO.Draw((xClicCell-1)*LargeurCell,(yClicCell-1)*HauteurCell,ImageFeu.Picture.Bitmap);
+  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BImage:=12;  
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[XClicCell,YClicCell].FeuOriente:=1;
+  
+  Affiche(IntToSTR(XclicCell),clyellow);
+  Affiche(IntToSTR(YclicCell),clyellow);
+    
+  TransparentBlt(PcanvasTCO.Handle,(xClicCell-1)*LargeurCell,(yClicCell-1)*HauteurCell,LargeurCell,HauteurCell*2,Formprinc.Image9feux.Canvas.Handle,0,0,
+             Formprinc.Image9feux.Picture.Bitmap.Width,Formprinc.Image9feux.Picture.Bitmap.Height,clBlue);
+  PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
+
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+
+
+procedure TFormTCO.ImageFeuMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+   ImageFeu.BeginDrag(true);
+end;
+
+ 
+procedure TFormTCO.Tourner90GClick(Sender: TObject);
+var BImage,aspect,adresse : integer;
+    ImageFeu : TImage;
+begin
+  BImage:=TCO[XClicCell,YClicCell].Bimage;
+  if Bimage<>12 then exit; 
+  adresse:=TCO[XClicCell,YClicCell].Adresse;
+  ImageFeu:=PointeurImage(adresse);
+
+  TCO[XClicCell,YClicCell].FeuOriente:=2;  // feu orienté à 90° gauche
+  // effacer le feu
+  Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,clred,PmCopy);
+
+  Feu_90G(ImageFeu,XClicCell,YclicCell);
+  Efface_cellule(PCanvasTCO,xClicCell,yClicCell+1,clred,PmCopy);  // efface la partie basse du feu vertical
+end;
+
+procedure TFormTCO.Tourner90DClick(Sender: TObject);
+var BImage ,aspect,adresse : integer;
+    ImageFeu : TImage;
+begin
+  BImage:=TCO[XClicCell,YClicCell].Bimage;
+  if Bimage<>12 then exit; 
+  adresse:=TCO[XClicCell,YClicCell].Adresse;
+  ImageFeu:=PointeurImage(adresse);
+  
+  TCO[XClicCell,YClicCell].FeuOriente:=3;  // feu orienté à 90° droit
+  // effacer le feu
+  Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,clred,PmCopy);
+ 
+  Feu_90D(ImageFeu,XClicCell,YclicCell);
+  Efface_cellule(PcanvasTCO,xClicCell,yClicCell+1,clred,PmCopy);  // efface la partie basse du feu vertical
+
+end;
+
 
 end.
