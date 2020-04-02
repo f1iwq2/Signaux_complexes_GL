@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 55
-  Top = 196
+  Left = 56
+  Top = 197
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1415,7 +1415,7 @@ object FormPrinc: TFormPrinc
     Top = 136
     Width = 97
     Height = 25
-    Caption = 'Simu D'#233'tecteur 513'
+    Caption = 'Test'
     TabOrder = 12
     Visible = False
     OnClick = Button2Click

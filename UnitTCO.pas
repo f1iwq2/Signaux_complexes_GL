@@ -177,7 +177,11 @@ type
                FeuAspect : integer;   // aspect du feu (2 feux...9 feux)
                FeuOriente : integer ; // orientation du feu : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
             end;
-  
+  TfeuTCO = array[1..50] of record
+              Adresse : integer ; // adresse du feu;
+              x,y     : integer ; // coordonnées pixels
+              FeuOriente : integer;
+              end;
 const
   clGrille=$707070;
   
@@ -193,6 +197,8 @@ var
   TamponTCO_Org : record 
            x1,y1,x2,y2 : integer;
                   end;  
+  FeuTCO : TFeuTCO;
+  NbFeuTCO : integer;                
   rAncien : TRect;          
   PCanvasTCO : Tcanvas;
   PBitMapTCO : TBitMap;
@@ -235,7 +241,7 @@ begin
     exit;
   end;
 
-  x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;
+  x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;NbFeuTCO:=0;
 
   //Faire une passe pour lire la taille de la matrice
   while not eof(fichier) do
@@ -289,6 +295,17 @@ begin
         tco[x,y].FeuOriente:=valeur;
         delete(s,1,i);
 
+        // si c'est un feu, remplir tableau FeuTCO
+        if tco[x,y].Bimage=12 then
+        begin
+          inc(NbFeuTCO);
+         // Affiche(intToSTR(tco[x,y].Adresse),clyellow);
+          FeuTCO[NbFeuTCO].Adresse:=tco[x,y].Adresse;
+          FeuTCO[NbFeuTCO].FeuOriente:=tco[x,y].FeuOriente;
+          FeuTCO[NbFeuTCO].x:=x;
+          FeuTCO[NbFeuTCO].y:=y;
+        end;
+        
         inc(x);
 
       until s='';
@@ -296,7 +313,8 @@ begin
     inc(y);x:=1;
   end;
   closefile(fichier);
-  Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY),clyellow);
+  Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' NbeFeuxTCO='+IntToSTR(NbFeuTCO),clyellow);
+  
 end;
 
 procedure sauve_fichier_tco;
@@ -844,8 +862,11 @@ begin
   
   Orientation:=TCO[x,y].FeuOriente; 
   Adresse:=TCO[x,y].Adresse;
+  if adresse=0 then exit;
   i:=Index_feu(adresse);
+  if i=0 then exit;
   aspect:=feux[i].aspect;
+  //Affiche(IntToSTR(i)+' '+intToSTR(aspect),clred);
   
   case aspect of
   2 :  ImageFeu:=Formprinc.Image2feux;
@@ -858,8 +879,8 @@ begin
   end;
   
   //ImageFeu:=PointeurImage(adresse); // pointeur vers le type de feu à dessiner
-  TailleY:=ImageFeu.picture.BitMap.Height; // 50 taille du feu d'origine  (verticale)
-  TailleX:=ImageFeu.picture.BitMap.Width;  //91n
+  TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+  TailleX:=ImageFeu.picture.BitMap.Width;  //
   
   //Facteurs de réductions X et Y pour un signal vertical
   frX:=LargeurCell/TailleX;
@@ -897,15 +918,17 @@ begin
     end;  
 
    
+   dessine_feu_mx(canvasDest,x0,y0,frX,frY,adresse,orientation);
   // allumage des feux du signal -----------------
-  (*TailleY:=HauteurCell*2;
-  TailleX:=LargeurCell;
-  frX:=LargeurCell/TailleX;
-  frY:=HauteurCell/TailleY;*)
+  (*
   case aspect of
+    2 : dessine_feu2(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+    3 : dessine_feu3(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
     4 : dessine_feu4(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
-    9 : dessine_feu9(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
-  end;
+    5 : dessine_feu5(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+    7 : dessine_feu7(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+    9 : dessine_feu_mx(canvasDest,x0,y0,frX,frY,etatsignalcplx[adresse],orientation);
+  end;   *)
 end;
 
 procedure TFormTCO.Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
@@ -1081,7 +1104,6 @@ begin
   LargeurCell:=25;
   HauteurCell:=25;
   AvecGrille:=true;
-   
   XclicCell:=1;
   YclicCell:=1;
   KeyPreview:=false; // invalide les évènements clavier
@@ -1785,8 +1807,9 @@ begin
   Affiche_TCO;
 end;
 
+// changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur : integer;
+var Adr,erreur,i : integer;
 begin
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then 
@@ -1794,8 +1817,20 @@ begin
     EditAdrElement.text:=intToSTR(tco[XClicCell,YClicCell].Adresse);
     exit;
   end;  
+  
   tco[XClicCell,YClicCell].Adresse:=Adr;
   affiche_cellule(XClicCell,YClicCell,pmCopy);
+  // si c'est un feu, mettre à jour le tableau FeuTCO
+  if tco[XClicCell,YClicCell].BImage=12 then
+  begin
+   
+    i:=0;
+    while i<NbFeuTCO do
+    begin
+      inc(i);
+      if (FeuTCO[i].x=xClicCell) and (FeuTCO[i].y=yClicCell) then FeuTCO[i].Adresse:=Adr;
+    end;
+  end;
 end;
 
 
@@ -1839,15 +1874,7 @@ end;
 
 procedure TFormTCO.Button1Click(Sender: TObject);
 begin
-   Detecteur[513]:=true;
-   Maj_tco(513,true);
-   with PCanvasTCO do
-   begin
-    pen.Mode:=pmCopy;
-    pen.color:=clRed;
-    brush.color:=clGreen;
-    Rectangle(2,2,140,140);
-   end;  
+   Affiche(IntToSTR(NbfeuTCO),clyellow); 
 end;
 
 procedure TFormTCO.Button2Click(Sender: TObject);
@@ -1856,6 +1883,7 @@ begin
    Maj_tco(513,false);
 end;
 
+// dépose d'un feu sur le TCO
 procedure TFormTCO.ImageDiag1EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -1866,7 +1894,14 @@ begin
   tco[XClicCell,YClicCell].BType:=0;  // rien
   tco[XClicCell,YClicCell].BImage:=10;  // image 10
   tco[XClicCell,YClicCell].Adresse:=0;  
-
+  tco[XClicCell,YClicCell].FeuOriente:=1;  
+  
+   inc(NbFeuTCO);
+   FeuTCO[NbFeuTCO].Adresse:=0;
+   FeuTCO[NbFeuTCO].FeuOriente:=1;
+   FeuTCO[NbFeuTCO].x:=XClicCell;
+   FeuTCO[NbFeuTCO].y:=YClicCell;
+  
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);

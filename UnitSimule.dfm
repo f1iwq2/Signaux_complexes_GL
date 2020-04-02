@@ -43,9 +43,17 @@ object FormSimulation: TFormSimulation
     Width = 49
     Height = 21
     TabOrder = 1
-    Text = '1'
+    Text = '0'
     OnChange = EditIntervalleChange
     OnKeyPress = EditIntervalleKeyPress
+  end
+  object CheckAffTick: TCheckBox
+    Left = 64
+    Top = 64
+    Width = 225
+    Height = 17
+    Caption = 'Afficher les ticks pendant la simulation'
+    TabOrder = 2
   end
   object OpenDialog: TOpenDialog
     Left = 48

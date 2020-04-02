@@ -15,7 +15,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
-  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, 
+  Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB , unitConfig  ;
 
 type
@@ -142,7 +142,6 @@ type
     procedure Codificationdesactionneurs1Click(Sender: TObject);
     procedure ButtonArretSimuClick(Sender: TObject);
     procedure OuvrirunfichiertramesCDM1Click(Sender: TObject);
-
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -158,7 +157,7 @@ titre='Signaux complexes GL ';
 tempoFeu = 100;
 MaxAcc = 2048;
 LargImg=50;HtImg=91;
-const_droit=2;const_devieD=1;  // positions aiguillages transmises par la centrale LENZ
+const_droit=2;const_devie=1;  // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;  // positions aiguillages transmises par cdm
 const_devieD_CDM=2;  // positions aiguillages transmises par cdm
 const_droit_CDM=0;  // positions aiguillages transmises par cdm
@@ -177,7 +176,8 @@ type TBranche = record
                  position,                  // position actuelle : 1=dévié  2=droit
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
-                 inversion : integer;       // pilotage inversé 0=normal 1=inversé
+                 inversion : integer;       // pilotage inversé pour la commande (en mode sans CDM) 0=normal 1=inversé
+                 InversionCDM : integer ;   // inversion pour les aiguillages BIS en lecture (pour parer bug CDM)
                  vitesse : integer;         // vitesse de franchissement de l"aiguillage en position déviée (60 ou 90)
 
                  ADroit : integer ;         // (identifiant extérieur à la TJD) connecté sur la position droite en talon
@@ -210,7 +210,8 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
     Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN : integer;
-    Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,
+    
+    Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,PremierFD,
     NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,
     TraceListe,clignotant,nack,Maj_feux_cours,configNulle : boolean;
 
@@ -236,18 +237,18 @@ var
   entete,suffixe,ConfStCom : string;
   maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,Tempo_init,Suivant,TypeGen,
   NbreImagePligne,NbreBranches,Index2_det,branche_det,Index_det,
-  I_simule,maxTablo_act,NbreVoies,AdresseFeuSuivant : integer;
+  I_simule,maxTablo_act,NbreVoies,AdresseFeuSuivant,El_suivant : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
   Adresse_detecteur : array[0..60] of integer; // adresses des détecteurs par index
   mem : array[0..1024] of boolean ; // mémoire des états des détecteurs
   MemZone : array[0..1024,0..1024] of boolean ; // mémoires de zones
-  Train : array[1..30] of record
+  (* Train : array[1..30] of record
              index : integer ; // nombre de routes pour ce train
              route : array[1..2000] of record
              Mem1,Mem2 : integer;
            end;
           end;
-
+    *)
   Tablo_actionneur : array[1..100] of
   record
     actionneur,etat,fonction,tempo : integer;
@@ -323,11 +324,11 @@ var
 
 // utilisation dans unité UnitPilote et configunit
 function Index_feu(adresse : integer) : integer;
-procedure dessine_feu2(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_feu3(Acanvas : Tcanvas;EtatSignal : word);
+procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu5(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_feu7(Acanvas : Tcanvas;EtatSignal : word);
+procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
 procedure dessine_dir2(Acanvas : Tcanvas;EtatSignal : word);
 procedure dessine_dir3(Acanvas : Tcanvas;EtatSignal : word);
@@ -341,7 +342,7 @@ procedure pilote_direction(Adr,nbre : integer);
 procedure connecte_USB;
 procedure deconnecte_usb;
 function IsWow64Process: Boolean;
-
+procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
 
 implementation
 
@@ -400,33 +401,99 @@ begin
 end;
 
 // dessine les feux sur une cible à 2 feux
-procedure dessine_feu2(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
+procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var Temp,code,rayon,xViolet,YViolet,xBlanc,yBlanc,
+    LgImage,HtImage : integer;
 begin
   code:=code_to_aspect(Etatsignal); // et aspect
+  rayon:=round(6*frX);
+
+  LgImage:=Formprinc.Image2feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image2feux.Picture.Bitmap.Height;
+  
+  XBlanc:=13;  YBlanc:=11;
+  xViolet:=13; yViolet:=23;
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=HtImage-yViolet;YViolet:=XViolet;XViolet:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+  end;
+ 
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-XBlanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xviolet;Xviolet:=Yviolet;Yviolet:=Temp;
+  end;
+ 
+  XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+Y;
+  XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+Y;
+         
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,11,6,GrisF);
-  cercle(ACanvas,13,23,6,GrisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+  cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
 
   // allumages
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,13,11,6,clWhite);
-  if code=violet then cercle(ACanvas,13,23,6,clviolet);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+  if code=violet then cercle(ACanvas,xViolet,yViolet,rayon,clviolet);
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_feu3(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
+procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var  Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
+    LgImage,HtImage : integer;
 begin
   code:=code_to_aspect(Etatsignal); // et aspect
+  rayon:=round(6*frX);
+
+  LgImage:=Formprinc.Image3feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image3feux.Picture.Bitmap.Height;
+  
+  Xvert:=13;  Yvert:=11;
+  xSem:=13;   ySem:=22;
+  xJaune:=13; yJaune:=33;
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+ 
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+  end;
+ 
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+ 
   // extinctions
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,33,6,GrisF);
-  if not((code=vert_cli)  and clignotant) then cercle(ACanvas,13,11,6,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,22,6,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if not((code=vert_cli)  and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
 
   // allumages
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,11,6,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,13,33,6,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,22,6,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
 end;
 
 // dessine les feux sur une cible à 4 feux
@@ -438,95 +505,207 @@ begin
   code:=code_to_aspect(Etatsignal); // et aspect
   rayon:=round(6*frX);
 
-  Xcarre:=round(13*frX); ycarre:=round(11*frY);
-  Xvert:=round(13*frX);  Yvert:=round(22*frY);
-  xSem:=round(13*frX);   ySem:=round(33*frY);
-  xJaune:=round(13*frX); yJaune:=round(44*frY);
-
-  LgImage:=round(frx*Formprinc.Image9feux.Picture.Width);
-  HtImage:=round(fry*Formprinc.Image9feux.Picture.Height);
+  LgImage:=Formprinc.Image4feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image4feux.Picture.Bitmap.Height;
   
+  Xcarre:=13; ycarre:=11;
+  Xvert:=13;  Yvert:=22;
+  xSem:=13;   ySem:=33;
+  xJaune:=13; yJaune:=44;
+
   if (orientation=2) then
   begin
     //rotation 90° vers la gauche des feux
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
     Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
     Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
     Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
     Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
   end;
  
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+  end;
+ 
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+ 
   //extinctions
-//  cercle(ACanvas,x+round(13*frX),y+round(11*frY),rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,x+Xsem,y+round(y+Ysem),rayon,GrisF);
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,x+Xvert,y+yvert,rayon,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,x+Xjaune,y+YJaune,rayon,GrisF);
+  cercle(ACanvas,Xcarre,yCarre,rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,Xvert,yvert,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,Xjaune,YJaune,rayon,GrisF);
 
   // allumages
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,x+xVert,y+yVert,rayon,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,x+Xjaune,y+yJaune,rayon,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,x+xSem,y+ySem,rayon,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,Xjaune,yJaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
   if code=carre then
   begin
-    cercle(ACanvas,x+xSem,y+Ysem,rayon,clRed);
-    cercle(ACanvas,x+xCarre,y+yCarre,rayon,clRed);
+    cercle(ACanvas,xSem,Ysem,rayon,clRed);
+    cercle(ACanvas,xCarre,yCarre,rayon,clRed);
   end;
 end;
 
 // dessine les feux sur une cible à 5 feux
-procedure dessine_feu5(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
+procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var code, XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
+    Temp,rayon,LgImage,HtImage : integer;
 begin
   code:=code_to_aspect(Etatsignal); // et aspect
+  rayon:=round(6*frX);
+  XBlanc:=13; YBlanc:=22;
+  xJaune:=13; yJaune:=55;
+  Xcarre:=13; Ycarre:=11;
+  XSem:=13;   Ysem:=44;
+  XVert:=13;  YVert:=33;
+
+  LgImage:=Formprinc.Image5feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image5feux.Picture.Bitmap.Height;
+    
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+  
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,22,6,GrisF);
-  cercle(ACanvas,13,11,6,GrisF);
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,13,33,6,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,44,6,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,55,6,GrisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+  cercle(ACanvas,xcarre,ycarre,rayon,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
 
   //allumages
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,44,6,clRed);
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,13,22,6,clWhite);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
   if code=carre then
   begin
-    cercle(ACanvas,13,44,6,clRed);
-    cercle(ACanvas,13,11,6,clRed);
+    cercle(ACanvas,xcarre,ycarre,rayon,clRed);
+    cercle(ACanvas,xsem,ysem,rayon,clRed);
   end;
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,33,6,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,13,55,6,clorange);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xvert,yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,xJaune,yjaune,rayon,clorange);
 end;
 
 
 // dessine les feux sur une cible à 7 feux
-procedure dessine_feu7(Acanvas : Tcanvas;EtatSignal : word);
-var code : integer;
+procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var code, XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
+    Temp,rayon,LgImage,HtImage : integer;
 begin
   code:=code_to_aspect(Etatsignal); // et combine
-  // effacements
+  rayon:=round(6*frX);
+  XBlanc:=13; YBlanc:=23;
+  Xral1:=13;  YRal1:=11;
+  Xral2:=37;  YRal2:=11;
+  xJaune:=13; yJaune:=66;
+  Xcarre:=13; Ycarre:=35;
+  XSem:=13;   Ysem:=56;
+  XVert:=13;  YVert:=45;
 
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,13,23,6,grisF);
+  LgImage:=Formprinc.Image7feux.Picture.Bitmap.Width;
+  HtImage:=Formprinc.Image7feux.Picture.Bitmap.Height;
+    
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRal1;YRal1:=XRal1;XRal1:=Temp;
+    Temp:=HtImage-yRal2;YRal2:=XRal2;XRal2:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+  
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    frX:=2*LargeurCell/HtImage;
+    frY:=HauteurCell/LgImage;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xral1;Xral1:=Yral1;Yral1:=Temp;
+    Temp:=LgImage-Xral2;Xral2:=Yral2;Yral2:=Temp; 
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  XRal1:=round(XRal1*FrX)+x;    YRal1:=round(YRal1*FrY)+Y;
+  XRal2:=round(XRal2*FrX)+x;    YRal2:=round(YRal2*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+
+  // effacements
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,grisF);
   if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
   begin
-    cercle(ACanvas,13,11,6,grisF);cercle(ACanvas,37,11,6,GrisF);
+    cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,Xral2,Yral2,rayon,GrisF);
   end;
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,13,45,6,GrisF);
-  cercle(ACanvas,13,35,6,GrisF);cercle(ACanvas,13,55,6,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,13,66,6,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,13,56,6,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  cercle(ACanvas,xcarre,yCarre,rayon,GrisF);cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
 
   // Allumages
   if (code=ral_30) or (combine=ral_30) or ((code=ral_60) or (combine=ral_60)) and clignotant then
   begin
-    cercle(ACanvas,13,11,6,clOrange);cercle(ACanvas,37,11,6,clOrange);
+    cercle(ACanvas,xRal1,yRal1,rayon,clOrange);cercle(ACanvas,xRal2,yRal2,Rayon,clOrange);
   end;
-  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,13,66,6,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,13,56,6,clRed);
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,13,45,6,clGreen);
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,13,23,6,clWhite);
+  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
   if code=carre then
   begin
-    cercle(ACanvas,13,35,6,clRed);
-    cercle(ACanvas,13,55,6,clRed);
+    cercle(ACanvas,xCarre,yCarre,rayon,clRed);
+    cercle(ACanvas,xSem,ySem,rayon,clRed);
   end;
 end;
 
@@ -536,19 +715,11 @@ var code,rayon,
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp          : integer;
     LgImage,HtImage,xt,yt : integer;
-    TempF : double;
 begin
   rayon:=round(6*frX);
   code:=code_to_aspect(Etatsignal); // et aspect
-//  Affiche('Dessine feu9 FrX='+FloatToSTR(frx)+' FrY='+FloatToSTR(fry)+' orientation='+IntToSTr(orientation),clorange);
   // mise à l'échelle des coordonnées des feux en fonction du facteur de réduction frX et frY et x et y (offsets)
-//  Temp:=HtImage-y;Y:=X;X:=Temp;
-//  x:=round(frx*x);y:=round(fry*y);
- if orientation=2 then begin
-//  TempF:=frX;frX:=frY;frY:=TempF;
-  end;
 
-  
   XBlanc:=13; YBlanc:=36;
   Xral1:=13;  YRal1:=24;
   Xral2:=37;  YRal2:=24;
@@ -559,10 +730,6 @@ begin
   XSem:=13;   Ysem:=69;
   XVert:=13;  YVert:=58;
 
-  Acanvas.MoveTo(0,0);ACanvas.LineTo(1,1);
-  
-
-    
   LgImage:=Formprinc.Image9feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image9feux.Picture.Bitmap.Height;
     
@@ -586,7 +753,6 @@ begin
   if (orientation=3) then
   begin
     //rotation 90° vers la droite des feux
-    //rotation 90° vers la gauche des feux
     // calcul des facteurs de réduction pour la rotation
     frX:=2*LargeurCell/HtImage;
     frY:=HauteurCell/LgImage;
@@ -636,7 +802,7 @@ begin
   if ((code=rappel_60) and clignotant) or (code=rappel_30) or
      ((combine=rappel_60) and clignotant) or (combine=rappel_30) then
   begin
-    cercle(ACanvas,xrap1,yrap2,rayon,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clOrange);
+    cercle(ACanvas,xrap1,yrap1,rayon,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clOrange);
   end;
   if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
   if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clRed);
@@ -899,19 +1065,42 @@ i:=1;
   if trouve then Index_feu:=i else Index_feu:=0 ;
 end;
 
-// dessine l'aspect du feu en fonction de son adresse
-procedure Dessine_feu(adresse : integer);
+// dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
+procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
 var i : integer;
 begin
   i:=Index_feu(adresse);
   if i<>0 then
   case feux[i].aspect of
   // feux de signalisation
-   2 : dessine_feu2(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
-   3 : dessine_feu3(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
+   2 : dessine_feu2(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   3 : dessine_feu3(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   4 : dessine_feu4(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   5 : dessine_feu5(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   7 : dessine_feu7(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   9 : dessine_feu9(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+  // indicateurs de direction
+  12 : dessine_dir2(CanvasDest,EtatSignalCplx[adresse]);
+  13 : dessine_dir3(CanvasDest,EtatSignalCplx[adresse]);
+  14 : dessine_dir4(CanvasDest,EtatSignalCplx[adresse]);
+  15 : dessine_dir5(CanvasDest,EtatSignalCplx[adresse]);
+  16 : dessine_dir6(CanvasDest,EtatSignalCplx[adresse]);
+  end;
+end;
+
+// dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
+procedure Dessine_feuxx(adresse : integer);
+var i : integer;
+begin
+  i:=Index_feu(adresse);
+  if i<>0 then
+  case feux[i].aspect of
+  // feux de signalisation
+   2 : dessine_feu2(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
+   3 : dessine_feu3(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
    4 : dessine_feu4(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
-   5 : dessine_feu5(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
-   7 : dessine_feu7(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
+   5 : dessine_feu5(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
+   7 : dessine_feu7(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
    9 : dessine_feu9(Feux[i].Img.Canvas,0,0,1,1,EtatSignalCplx[adresse],1);
   // indicateurs de direction
   12 : dessine_dir2(Feux[i].Img.Canvas,EtatSignalCplx[adresse]);
@@ -1009,13 +1198,14 @@ begin
     15 : picture.bitmap:=Formprinc.Image5Dir.picture.Bitmap;
     16 : picture.bitmap:=Formprinc.Image6Dir.picture.Bitmap;
     end;
+    
     // mettre rouge par défaut
     if TypeFeu=2 then EtatSignalCplx[feux[rang].adresse]:=violet_F;
     if TypeFeu=3 then EtatSignalCplx[feux[rang].adresse]:=semaphore_F;
     if (TypeFeu>3) and (TypeFeu<10) then EtatSignalCplx[feux[rang].adresse]:=carre_F;
     if TypeFeu>10 then EtatSignalCplx[feux[rang].adresse]:=0;
 
-    dessine_feu(feux[rang].adresse);
+    dessine_feu_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
     //if feux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
   end;
 
@@ -1439,6 +1629,7 @@ sur un panneau directionnel - adresse : adresse du signal - code de 1 à 3 pour a
 ; le panneau directionnel à 1, 2 ou 3 leds.
 ============================================== }
 procedure envoi_directionBahn(adr : integer;code : integer);
+var i : integer;
 begin
   if (EtatSignalCplx[adr]<>code) then
   begin
@@ -1476,7 +1667,7 @@ begin
           end;
     end;
     EtatSignalCplx[adr]:=code;
-    Dessine_feu(adr);
+    Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
 
@@ -1565,7 +1756,7 @@ begin
     // signalisation combinée  - rappel 30 + avertissement - à tester......
     if (Combine=0)      then pilote_acc(adresse+2,1,feu) ;    // éteindre rappel 30
     if (Combine=rappel_30) then pilote_acc(adresse+2,2,feu) ; // allumer rappel 30  
-    dessine_feu(adresse);
+    Dessine_feu_mx(Feux[Index_Feu(adresse)].Img.Canvas,0,0,1,1,adresse,1);
   end;
 end;
 
@@ -1643,7 +1834,7 @@ begin
   if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
   if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
   if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
-  dessine_feu(adr);
+  Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
 end;
 end;
 
@@ -1730,7 +1921,7 @@ begin
     if (Combine=rappel_60) and (aspect=jaune_cli) then valeur:=18;  
 
     pilote_acc(adresse,valeur,feu);
-    dessine_feu(adresse);
+    Dessine_feu_mx(Feux[Index_Feu(adresse)].Img.Canvas,0,0,1,1,adresse,1);
   end;
 end;
 
@@ -2028,7 +2219,7 @@ begin
           end;
           if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
-    dessine_feu(adresse);
+    Dessine_feu_mx(Feux[Index_Feu(adresse)].Img.Canvas,0,0,1,1,adresse,1);
   end;
 end;
 
@@ -2086,7 +2277,7 @@ begin
       if (aspect=rappel_60) then begin pilote_acc(adr+3,2,feu);sleep(tempoFeu);pilote_acc(adr+1,2,feu);end;
     end;
     end;
-  dessine_feu(adr);
+  Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
 
@@ -2102,7 +2293,7 @@ begin
     aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
     if (tracesign) then Affiche('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
     if AffSignal then AfficheDebug('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
-    dessine_feu(adresse);
+    Dessine_feu_mx(Feux[Index_Feu(adresse)].Img.Canvas,0,0,1,1,adresse,1);
   end;
 end;
 
@@ -2174,7 +2365,7 @@ begin
       sleep(40);
       pilote_ACC(adresse+CombineLoc,2,feu) ;
     end;
-    dessine_feu(adresse);
+    Dessine_feu_mx(Feux[Index_Feu(adresse)].Img.Canvas,0,0,1,1,adresse,1);
   end;
 end;
 
@@ -3158,10 +3349,11 @@ begin
   // initialisation des aiguillages avec des valeurs par défaut
   for i:=1 to MaxAcc do
   begin
-    Aiguillage[i].modele:=0  ;//  sans existence
-    Aiguillage[i].position:=2; //droit
+    Aiguillage[i].modele:=0  ;  //  sans existence
+    Aiguillage[i].position:=9;  // position inconnue
     Aiguillage[i].temps:=5   ;
     Aiguillage[i].inversion:=0;
+    Aiguillage[i].inversionCDM:=0;
     Aiguillage[i].objet:=0;
   end;
   for i:=1 to 1024 do
@@ -3249,13 +3441,13 @@ begin
         aiguillageB[adresse].position:=position;
 
         // temporisation aiguillage
-        j:=pos(',',s);
-        temporisation:=StrToInt(copy(s,1,j-1));Delete(S,1,j);
+        j:=pos(',',s);if j=0 then j:=length(s);
+        val(s,temporisation,erreur);Delete(S,1,j);
         if (temporisation<0) or (temporisation>10) then temporisation:=5;
         aiguillage[adresse].temps:=temporisation;
         aiguillageB[adresse].temps:=temporisation;
 
-        invers:=StrToInt(s);
+        val(s,invers,erreur);
         if (invers<0) or (invers>1) then invers:=0;   // inversion commande
         aiguillage[adresse].inversion:=invers;
         aiguillageB[adresse].inversion:=invers;
@@ -3438,10 +3630,27 @@ begin
           delete(s,1,virgule);
         end;
 
+        // si vitesse définie
         Val(enregistrement,adr,erreur);
         if erreur=0 then
         begin
           aiguillage[aig].vitesse:=adr;
+          enregistrement:='';
+          virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
+          enregistrement:=copy(s,1,virgule-1);
+          delete(s,1,virgule);
+        end;
+
+        // si inversion aiguillage BIS pour parer à bug CDM aiguillage
+        Val(enregistrement,adr,erreur);
+        if erreur=0 then
+        begin
+          if bis=0 then 
+          begin
+            Affiche('Avertissement: le paramètre de lecture inversée de la position pour l''aiguillage non bis '+intToSTR(aig)+' sera ignorée',clOrange);
+          end;
+          if bis=1 then aiguillageB[aig].inversionCDM:=adr;
+          
           enregistrement:='';
         end;
 
@@ -3960,7 +4169,7 @@ begin
     AfficheDebug(s,clred);
     Suivant_alg3:=9999;exit;
   end;
-  if NivDebug=3 then AfficheDebug('Alg3 précedent='+intToSTR(prec)+'/'+intToStr(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+IntToSTR(typeElActuel),clyellow);
+  if NivDebug=3 then AfficheDebug('Alg3 précédent='+intToSTR(prec)+'/'+intToStr(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+IntToSTR(typeElActuel),clyellow);
   // trouver les éléments du précédent
   trouve_element(prec,TypeELPrec); // branche_trouve  IndexBranche_trouve
   if IndexBranche_trouve=0 then
@@ -4606,6 +4815,8 @@ end;
 
 // renvoie l'adresse du détecteur suivant des deux éléments
 // El1 et El2 peuvent être séparés par des aiguillages
+// en sortie : 1= det1 non trouvé  2= det2 non trouvé
+// code erreur>=9997  ou 0
 function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2 : integer) : integer ;
 var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,i,
     j,AdrPrec,Adr,AdrFonc,Btype,BisPrec,BisFonc,BisSuiv : integer;
@@ -4614,7 +4825,11 @@ var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,
 
 begin
   if NivDebug>=2 then AfficheDebug('cherche détecteur_suivant_El aux '+IntToSTR(el1)+'/'+intToSTR(TypeDet1)+'-'+intToSTR(el2)+'/'+intToSTr(TypeDet2),clyellow);
-  // traceDet=TRUE;
+//  if (El1=553) and (el2=521) then
+//  begin
+//    TraceListe:=true;
+//    NivDebug:=3;
+//  end;
   // trouver détecteur 1
   trouve_element(el1,Typedet1); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
@@ -4660,7 +4875,7 @@ begin
     repeat
       Adr:=suivant_alg3(AdrPrec,BisPrec,AdrFonc,BisFonc,1);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
       if (Adr>=9997) then begin detecteur_suivant_el:=Adr;exit;end;
-      if (NivDebug=3) then AfficheDebug('trouvé '+intToSTR(Adr)+' '+intToSTR(typeGen),clorange);
+      if (NivDebug=3) then AfficheDebug('trouvé='+intToSTR(Adr)+' type='+intToSTR(typeGen),clorange);
       trouve_element(Adr,typeGen);
       Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
       BisSuiv:=Btype; // si aiguillage bis
@@ -5041,7 +5256,6 @@ var
 
 begin
   if NivDebug>=1 then AfficheDebug('Proc test_memoire_zones - Cherche mémoire à 1 du signal '+intToSTR(adresse)+' au signal suivant ',clyellow);
-
   i:=Index_feu(adresse);
   if (i=0) then
   begin
@@ -5094,8 +5308,9 @@ begin
     TypePrec:=1;
     if (prec=0) then
     begin
-       test_memoire_zones:=Pres_train;
-       exit;
+      // sortie si aucun détecteur déclaré sur le feu
+      test_memoire_zones:=Pres_train;
+      exit;
     end;
 
     PrecInitial:=Prec;
@@ -5131,7 +5346,7 @@ begin
 
         Pres_train:=MemZone[PrecInitial][actuel] or Pres_train; // mémoire de zone
         if Pres_Train then PresTrain01:=1 else PresTrain01:=0;
-        if NivDebug=3 then AfficheDebug('mémoire de zone '+IntToSTR(PrecInitial)+' à '+intToSTR(actuel)+'='+IntToSTR(PresTrain01),clyellow);
+        if NivDebug=3 then AfficheDebug('de '+IntToSTR(PrecInitial)+' à '+intToSTR(actuel)+'='+IntToSTR(PresTrain01),clyellow);
        // prec:=actuel; // pour préparer le suivant
 
         i:=index_feu_det(AdrSuiv);  // renvoie l'index du signal se trouvant au détecteur "AdrSuiv": il peut y avoir 4 détecteurs par signal
@@ -5144,9 +5359,10 @@ begin
         begin
           if (feux[i].Adr_el_suiv1<>prec) then   // le feu est-il dans le bon sens de progression?
           begin
-            if (NivDebug=3) And Pres_Train then AfficheDebug('Mémoire de zone à 1',clyellow);
-            if (NivDebug=3) And (not(Pres_Train)) then AfficheDebug('Mémoire de zone à 0',clyellow);
+            if (NivDebug=3) And Pres_Train then AfficheDebug('Sortie proced:Mémoire de zone à 1',clyellow);
+            if (NivDebug=3) And (not(Pres_Train)) then AfficheDebug('Sortie proced:Mémoire de zone à 0',clyellow);
             test_memoire_zones:=Pres_train;exit;
+          
           end
           else
           begin
@@ -5169,26 +5385,9 @@ begin
     inc(ife);
   until ife>=5;
   if (NivDebug=3) and (Etat=0) then AfficheDebug('Pas trouvé de signal suivant au '+intToSTR(adresse),clyellow);
-
   test_memoire_zones:=Pres_train;
 end;
 
-// trouve une séquence chronologique 010 sur un détecteur
-function trouve_seq_chrono_010(Adresse : integer) : boolean;
-var i,etat : integer;
-    etat0_seq1,etat1_seq2,etat0_seq3 : boolean;
-begin
-  i:=N_Event_tick;
-  if i<2 then exit;
-   Affiche('test si seq 010 sur det '+intToSTR(Adresse),clyellow);
-  etat0_seq1:=false;  etat1_seq2:=false;  etat0_seq3:=false;
-  if (event_det_tick[i].detecteur=0) then begin etat0_seq1:=true;end;
-  repeat
-    if (event_det_tick[i].detecteur=1) and etat0_seq1 then begin etat1_seq2:=true;end;
-    dec(i);     // remonter le temps ...
-  until (i=0) or (etat1_seq2);
-  trouve_seq_chrono_010:=etat1_seq2;
-end;
 
 Procedure affiche_Event_det;
 var i : integer;
@@ -5219,7 +5418,12 @@ function trouve_index_det_chrono(Adr,etat,index : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
-  if index<=0 then begin affiche('Erreur 784 index invalide',clred);exit; end;
+  if index<=0 then 
+  begin 
+    affiche('Erreur 784 index détecteur invalide',clred); 
+    AfficheDebug('Erreur 784 index détecteur invalide',clred);
+    exit; 
+  end;
   i:=index;
   if i>N_Event_tick then begin trouve_index_det_chrono:=0;exit; end;
   inc(i);
@@ -5234,236 +5438,33 @@ begin
   trouve_index_det_chrono:=0;
 end;
 
-
-// calcul des zones depuis le tableau des fronts descendants des évènements détecteurs
+// teste si la route est valide de det1, det2 à det3
 // les détecteurs doivent être consécutifs
 // trouve le détecteur suivant de det1 à det2 si la route est correcte. (détecteurs en entrée obligatoires)
 // transmis dans le tableau Event_det
 // Variable globale:  El_suivant : adresse du détecteur suivant le détecteur "actuel"
-//                    Actuel,Suivant : nouveaux détecteurs du canton suivant
 // Résultat:
 // si 0 : pas de route
 // si 1 : détecteur det1 non trouvé
 // si 2 : détecteur det2 non trouvé
 // si 3 : erreur fatale
 // si 10 : ok route trouvée
-
-function calcul_zones_det(det1,det2 : integer) : integer;
-var
-  i,i1,i2,j,k,IndexBranche_det1,IndexBranche_det2,index_i1,index_i2,
-  branche_trouve_det1,branche_trouve_det2,Adr,AdrPrec,position,Btype,BTypePrec,
-  AdrFonc,TypePrec,TypeSuiv,TypeFonc,AdrSuiv,Train_Courant : integer;
-  t,sortie,trouve : boolean;
-  s,ss : string;
-
+function test_route_valide(det1,det2,det3 : integer) : integer; 
+var det_suiv,resultat : integer;
 begin
-  // if trouve_seq_chrono_010(det1) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det1),clyellow);
-  // if trouve_seq_chrono_010(det2) then Affiche('trouvé séquence 010 sur détecteur '+intToSTR(det2),clyellow);
-  if traceListe then AfficheDebug('calcul_zones_det('+intToSTR(det1)+','+intToSTR(det2)+')',clyellow);
-  // trouver détecteur 1
-  trouve_detecteur(det1); // branche_trouve  IndexBranche_trouve
-  if (IndexBranche_trouve=0) then
+  det_suiv:=detecteur_suivant_el(det1,1,det2,1);
+  if (det_suiv<=2) or (det_suiv>=9997) or (det3<>det_suiv) then begin resultat:=0;end;
+  // test sens inverse....
+  if resultat=0 then 
   begin
-    Affiche('détecteur '+IntToSTR(det1)+' non trouvé',clred);
-    calcul_zones_det:=1;exit;
+    test_route_valide:=0;exit;  
+    // si manipulation proche aiguillage
+    det_suiv:=detecteur_suivant_el(det3,1,det2,1);
+    if (det_suiv<=2) or (det_suiv>=9997) or (det1<>det_suiv) then begin test_route_valide:=0;exit;end;
   end;
-  IndexBranche_det1:=IndexBranche_trouve;
-  branche_trouve_det1:=branche_trouve;
-
-  // trouver détecteur 2
-  trouve_detecteur(det2); // branche_trouve  IndexBranche_trouve
-  if (IndexBranche_trouve=0) then
-  begin
-    Affiche('détecteur '+IntToSTR(det2)+' non trouvé',clred);
-    calcul_zones_det:=2;exit;
-  end;
-
-  IndexBranche_det2:=IndexBranche_trouve;
-  branche_trouve_det2:=branche_trouve;
-
-  j:=1;
-  // étape 1 : trouver le sens de progression (en incrément ou en décrément)
-  repeat // boucle d'incrément décrément
-    if (traceListe) then
-    begin
-      s:='Test 2 route en ';
-      if (j=1) then s:=s+'décrément ' else s:=s+'incrément ';
-      s:=s+'- départ depuis détecteur '+IntToSTR(det1);
-      AfficheDebug(s,clyellow);
-    end;
-    AdrPrec:=det1;
-    TypePrec:=1;
-    if (j=1) then i:=IndexBranche_det1-1 else i:=IndexBranche_det1+1;
-    //trouve_element(det1,FALSE);
-    Adr:=BrancheN[branche_trouve_det1,i].Adresse;
-    AdrFonc:=Adr;
-    Btype:=BrancheN[branche_trouve_det1,i].BType;  // élément suivant/précédent
-    TypeFonc:=Btype;
-
-    // si l'élément suivant est un détecteur et il est différent de det2, c'est pas le bon sens  : inutile de traiter le cas
-    if (Btype<>1) or (Adr=Det2) then
-    begin
-      i:=0;
-      if (det2<>Adr) then
-      repeat
-        Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,1);  // donne l'élément suivant de AdrPrec à AdrFonc et dans Bis si c'est un aig bis
-        trouve_element(Adr,typeGen);
-        Btype:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-        TypeSuiv:=Btype; // si aiguillage bis
-        //Affiche(intToSTR(adr)+'/'+intToStr(Btype),clorange);
-        AdrPrec:=AdrFonc;AdrFonc:=Adr;
-        TypePrec:=TypeFonc;TypeFonc:=typeGen;
-        i:=i+1;
-        sortie:=(Btype=1) or (Btype=4) or (i=20) or (Adr=0);
-      until (sortie) ;   // boucle de parcours
-    end;
-
-    if (i=20) then 
-    begin Affiche('Erreur fatale 200 : Itération trop longue',clred);
-        AfficheDebug('Erreur fatale 200 : Itération trop longue',clred);calcul_zones_det:=3;
-    end;
-    if ((Btype=1) and (Adr<>det2) and (TraceListe) ) then
-       AfficheDebug('N''est pas le détecteur attendu '+intToSTR(Adr)+' pour '+intToSTR(det2),clyellow);
-    inc(j);
-    sortie:=((Adr=det2) and (Btype=1)) or (j=3);
-  until sortie;
-
-  if ((j=3) and (Adr<>det2)) then
-  begin
-    if (TraceListe) then AfficheDebug('Pas de suivant sur séquence '+IntToSTR(det1)+' à '+intToStr(det2),clyellow);
-    calcul_zones_det:=0;exit;
-  end;
-
-  // étape 2 : on a trouvé le sens de progression, trouver le détecteur suivant
-  if (Adr=det2) then
-  begin
-    // trouvé la route si j=2 : -  si j=3 : +
-    if (TraceListe) then AfficheDebug('Route trouvée',clyellow);
-
-    if (TraceListe) then AfficheDebug('detecteur_suivant_el('+IntToSTR(det1)+',1,'+IntToSTR(det2)+',1',clyellow);
-    AdrSuiv:=detecteur_suivant_El(det1,1,det2,1);
-    AdrPrec:=detecteur_suivant_El(det2,1,det1,1);
-
-    // le train vient de det1, quitte det2 et va vers Adr
-    // il faut vérifier si le détecteur précédent à été mis à 1 puis à 0 (on cherche 0)
-    //s:='Test route pour prec='+intToSTR(AdrPrec)+' det1='+intToSTR(det1)+' det2='+IntToSTR(det2) ;
-    //FormDebug.MemoDet.lines.add(s);
-    if traceListe then AfficheDebug(s,clyellow);
-
-    // trouver l'index du détecteur (det1) à 0
-    if traceListe then AfficheDebug('trouve_index_det_chrono('+intToSTR(det1)+',0,'+intToSTR(N_event_tick)+')',clYellow);
-    i:=trouve_index_det_chrono(det1,0,N_Event_tick);
-    if TraceListe then AfficheDebug('Index det='+intToSTR(i),clyellow);
-
-    // et trouver l'index du détecteur précédent à 0 avant l'index i
-    if traceListe then AfficheDebug('trouve_index_det_chrono('+intToSTR(AdrPrec)+',0,'+intToSTR(i-1)+')',clYellow);
-    i:=trouve_index_det_chrono(AdrPrec,0,i-1);
-
-    if TraceListe then AfficheDebug('Index prec='+intToSTR(i),clyellow);
-
-    t:=event_det_tick[i].traite;  // détecteur précédent déja traité ?
-    if (i=0) or t then
-    begin
-      if (i=0) and TraceListe then AfficheDebug('La mémoire préc '+intToSTR(AdrPrec)+'=0 donc route non valide',clyellow);
-      if t and TraceListe then AfficheDebug('La mémoire préc '+intToSTR(AdrPrec)+' a déja été traitée donc route non valide',clyellow);
-      calcul_zones_det:=0;exit;
-    end;
-
-    if TraceListe then AfficheDebug('route ok car '+IntToStr(AdrPrec)+'=0 à l''index '+intToSTR(i)+' - DetSuivant='+intToSTR(AdrSuiv),clyellow);
-
-    Mem[AdrPrec]:=false;    // inutile
-    //marquer l'adresse précédente comme traitée
-    event_det_tick[i].traite:=true;
-    if traceListe then AfficheDebug('Mise à 1 mémoire traitée pour l''index '+intToSTR(i),clyellow);
-
-    MemZone[det1,det2]:=FALSE;        // efface zone précédente
-    MemZone[det2,AdrSuiv]:=TRUE;      // valide la nouveau zone
-   
-    //if N_trains=0 then inc(N_trains);
-    // ajouter la route dans le tableau des routes
-    if N_routes<2000 then inc(N_routes);
-    Route[N_routes].Mem1:=det2;Route[N_routes].Mem2:=AdrSuiv;
-    
-    // affecter la route à un train
-    if N_trains=0 then N_trains:=1;
-    // premier train
-    if (N_trains=1) and (Train[1].index=0) then 
-    begin 
-      Train[1].index:=1;Train[1].route[1].Mem1:=det2;Train[1].route[1].Mem2:=AdrSuiv;
-      Train_Courant:=1;
-      //FormDebug.MemoDet.lines.add('Premier train');
-      Formprinc.LabelNbTrains.caption:='1';
-    end
-    else
-    begin
-      // parcourir les trains pour voir si det2 correspond à la derniere route du train exploré
-      i:=1;
-      repeat
-        j:=Train[i].index;
-        trouve:=Train[i].route[j].mem2=det2 ;
-        inc(i);
-      until (i>N_Trains) or trouve;
-      if trouve then 
-      begin
-        dec(i);
-        //FormDebug.MemoDet.lines.add('route train '+intToSTR(i));
-        train_courant:=i;
-        inc(j);
-        Train[i].index:=j;Train[i].route[j].Mem1:=det2;Train[i].route[j].Mem2:=AdrSuiv; 
-      end     
-      else
-      // nouveau train
-      begin
-        //FormDebug.MemoDet.lines.add('Nouveau train');
-        inc(N_Trains);
-        Train[N_trains].index:=1;Train[N_trains].route[1].Mem1:=det2;Train[N_trains].route[1].Mem2:=AdrSuiv;
-        Train_courant:=N_trains;
-        Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
-      end;
-    end;
-
-    With FormDebug.RichEdit do
-    begin
-      s:='train '+IntToSTR(Train_Courant)+' '+intToStr(det1)+' à '+intToStr(det2)+' => Mem '+IntToSTR(det2)+' à '+IntTOStr(AdrSuiv);
-      Lines.Add(s);
-      RE_ColorLine(FormDebug.RichEdit,lines.count,CouleurTrain[((Train_Courant - 1) mod NbCouleurTrain)+1 ]);
-    end;
-    if affFD then AfficheDebug(s,clyellow);
-    s:='train '+IntToSTR(Train_Courant)+' Mem '+IntToSTR(det2)+' à '+IntTOStr(AdrSuiv);
-    Affiche(s,clyellow);
-    if AffAigDet then AfficheDebug(s,clyellow);
-    
-    // et effacer le premier détecteur de la route (det1)
-    i:=1;
-    repeat
-      trouve:=Event_det[i]=Det1;
-      if not(trouve) then inc(i);
-    until (i>N_event_det) or trouve;
-    if trouve then
-    begin
-      supprime_event(i);
-      if TraceListe then AfficheDebug('Efface index '+IntToSTR(i),clyellow);
-    end;
-     
-    calcul_zones_det:=10;  // route trouvée et cohérente
-    exit;
-  end;  
+  test_route_valide:=10 ;
 end;
-  
 
-// renvoie le détecteur de la zone mémoire si la mémoire MemZone[det,xxx] est à 1
-// exemple si MemZone[513,517]=true alors Test_mem_origine(513) renvoie 517, sinon 0
-function Test_mem_origine(det : integer) : integer ;
-var i : integer;
-    trouve : boolean;
-begin
-  i:=513;  // normalement mettre 0 pour etre compatible avec la rétrosignalisation non XpressNet
-  repeat
-    trouve:=memzone[det,i];
-    if not(trouve) then inc(i);
-  until trouve or (i>1024);
-  if trouve then Test_mem_origine:=i else Test_mem_origine:=0;
-end;
 
 // mise à jour de l'état d'un feu en fontion de son environnement et affiche le feu
 procedure Maj_Feu(Adrfeu : integer);
@@ -5611,7 +5612,7 @@ begin
         Aff_semaphore:=test_memoire_zones(AdrFeu);  // test si présence train après signal
         if Aff_Semaphore then
         begin
-          if AffSignal then AfficheDebug('train après signal-> sémaphore ou carré',clYellow);
+          if AffSignal then AfficheDebug('Présence train après signal'+intToSTR(AdrFeu)+' -> sémaphore ou carré',clYellow);
           if testBit(EtatSignalCplx[Adrfeu],carre)=FALSE then Maj_Etat_Signal(AdrFeu,semaphore);
         end
         else
@@ -5730,11 +5731,135 @@ begin
   //affiche('index2='+IntToSTR(index2_det),clWhite);
 end;
 
+// calcul des zones depuis le tableau des fronts descendants des évènements détecteurs
+// transmis dans le tableau Event_det
+procedure calcul_zones_V2;
+var Nbre,Nouveau_Det,i,resultat,det1,det2,det3,AdrSuiv : integer ;
+    creer_tableau : boolean;
+    s : string;
+begin
+  creer_tableau:=false;
+  det3:=event_det[N_event_det]; // c'est le nouveau détecteur
+  FormDebug.MemoEvtDet.lines.add('Le nouveau détecteur est '+IntToSTR(det3)) ;
+  if TraceListe then AfficheDebug('Le nouveau détecteur est '+IntToSTR(det3),clyellow) ;
+  // évaluer d'abord la route du nouveau détecteur sur tous les tableau déja rempli de 2 éléments
+  for i:=1 to N_trains do
+  begin
+    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
+    if Nbre=2 then 
+    begin
+      if TraceListe then AfficheDebug('traitement Train n°'+intToSTR(i)+' 2 détecteurs',clyellow);
+      det1:=event_det_train[i].det[1];
+      det2:=event_det_train[i].det[2];
+      resultat:=test_route_valide(det1,det2,det3); 
+      if resultat=10 then 
+      begin
+        AdrSuiv:=detecteur_suivant_el(det2,1,det3,1); // ici on cherche le suivant à det2 det3
+        if (Adrsuiv<=2) or (Adrsuiv>=9997) then 
+        begin
+          Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
+        end
+        else
+        begin
+          s:='route traitée de '+intToSTR(det2)+' à '+IntToSTR(det3)+' Mem '+intToSTR(det3)+' à '+IntToSTR(Adrsuiv);
+          FormDebug.MemoEvtDet.lines.add(s);
+          if traceListe then AfficheDebug(s,clyellow);
+          With FormDebug.RichEdit do
+          begin         
+            s:='train '+IntToSTR(i)+' '+intToStr(det2)+' à '+intToStr(det3)+' => Mem '+IntToSTR(det3)+' à '+IntTOStr(AdrSuiv);
+            Lines.Add(s);
+            RE_ColorLine(FormDebug.RichEdit,lines.count,CouleurTrain[((i - 1) mod NbCouleurTrain)+1 ]);
+          end;
+          if TraceListe then AfficheDebug(s,clyellow);
+          Affiche(s,clyellow);
+          if AffAigDet then AfficheDebug(s,clyellow);
+
+          MemZone[det2,det3]:=FALSE;        // efface zone précédente
+          MemZone[det3,AdrSuiv]:=TRUE;      // valide la nouveau zone
+          // supprimer le 1er et décaler
+          event_det_train[i].det[1]:=event_det_train[i].det[2];
+          event_det_train[i].det[2]:=det3;
+          event_det_train[i].NbEl:=2;
+          with FormDebug.MemoEvtDet do
+          begin
+            lines.add('Nouveau Tampon train '+intToStr(i)+'--------');
+            lines.add(intToSTR(event_det_train[i].det[1]));
+            lines.add(intToSTR(event_det_train[i].det[2]));
+          end;  
+          if TraceListe then
+          begin
+            AfficheDebug('Nouveau Tampon train '+intToStr(i)+'--------',clyellow);
+            AfficheDebug(intToSTR(event_det_train[i].det[1]),clyellow);
+            AfficheDebug(intToSTR(event_det_train[i].det[2]),clyellow);
+          end;
+          rafraichit;
+          rafraichit;
+          rafraichit;
+          exit; // sortir absolument
+        end;
+      end;
+    end;  
+  end;
+
+  // traiter pour les cas avec 1 élément
+  for i:=1 to N_trains do
+  begin
+    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
+    if Nbre=1 then 
+    begin
+      if traceListe then AfficheDebug('traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
+      // vérifier si l'élément du tableau et le nouveau sont contigus
+      det1:=event_det_train[i].det[1];
+      Det_Adj(det1);
+      if (Adj1=det3) or (Adj2=det3) then
+      begin
+        event_det_train[i].det[2]:=det3;
+        event_det_train[i].NbEl:=2;
+        with FormDebug.MemoEvtDet do
+        begin
+          lines.add('Nouveau Tampon train '+intToStr(i)+'--------');
+          lines.add(intToSTR(event_det_train[i].det[1]));
+          lines.add(intToSTR(event_det_train[i].det[2]));
+        end;  
+        if TraceListe then 
+        begin
+          AfficheDebug('Nouveau Tampon train '+intToStr(i)+'--------',clyellow);
+          AfficheDebug(intToSTR(event_det_train[i].det[1]),clyellow );
+          AfficheDebug(intToSTR(event_det_train[i].det[2]),clyellow );
+        end; 
+        exit; // sortir absolument
+      end; 
+    end;
+  end;
+   
+  // créer un train, donc un tableau
+  if N_Trains>=Max_Trains then 
+  begin
+    Affiche('Erreur nombre de train maximal atteint',clRed);
+  end;
+  Inc(N_trains); 
+  if TraceListe then AfficheDebug('Création Train n°'+intToSTR(i),clyellow);
+  Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+  event_det_train[N_trains].det[1]:=det3;
+  event_det_train[N_trains].NbEl:=1;
+  with FormDebug.MemoEvtDet do
+  begin
+    lines.add('Nouveau Tampon train '+intToStr(N_trains)+'--------');
+    lines.add(intToSTR(event_det_train[N_trains].det[1]));
+  end;    
+  if TraceListe then 
+  begin
+    AfficheDebug('Nouveau Tampon train '+intToStr(N_trains)+'--------',clyellow);
+    AfficheDebug(intToSTR(event_det_train[N_trains].det[1]),clyellow );
+  end;
+end;
+
 
 // calcul des zones depuis le tableau des fronts descendants des évènements détecteurs
 // transmis dans le tableau Event_det
 // appellé  par front descendant sur détecteur
 // met à jour le tableau MemZone
+(* plus utilisé
 procedure calcul_zones ;
 var i,det1,det2,index_1,index_2,index_3,resultat : integer;
    unevalide : boolean;
@@ -5754,6 +5879,7 @@ begin
   repeat
     index_2:=index_1+1;
     repeat
+      //det0:=event_det[index_
       det1:=event_det[index_1];
       det2:=event_det[index_2];
       //if det1=det2 then    // si détecteurs identiques, supprimer le 2eme
@@ -5770,15 +5896,16 @@ begin
         begin
           AfficheDebug('-------Cherche route de '+intToSTR(det1)+' à '+intToSTR(det2)+' i1='+intToSTR(index_1)+' i2='+intToSTR(index_2)+' n='+intToSTR(N_event_det),clyellow);
         end;
-        resultat:=calcul_zones_det(det1,det2);
+        resultat:=calcul_zones_det(det1,det2); 
         if resultat=10 then
         begin
-          s:='route traitée de '+intToSTR(det1)+' à '+IntToSTR(det2);
+          s:='route traitée de '+intToSTR(det1)+' à '+IntToSTR(det2)+' Mem '+intToSTR(det2)+' à '+IntToSTR(El_suivant);
           FormDebug.MemoEvtDet.lines.add(s);
           if traceListe then AfficheDebug(s,clyellow);
           uneValide:=true;
           FormDebug.MemoEvtDet.lines.add('Nouveau Tampon:');
-          affiche_Event_det;
+          if traceListe then AfficheDebug('Nouveau Tampon',clyellow);
+          affiche_Event_det; 
         end;
 
         // détecteur1 non trouvé
@@ -5799,7 +5926,7 @@ begin
       rafraichit;
       rafraichit;
     end;
-end;
+end;        *)
 
 // demande l'état d'un accessoire à la centrale. Le résultat sera réceptionné sur réception des informations
 // de rétrosignalisation.
@@ -5807,6 +5934,7 @@ procedure demande_info_acc(adresse : integer);
 var s : string;
     n : integer;
 begin
+  // uniquement si connecté directement à la centrale
   if portCommOuvert or ParSocket then
   begin
     // envoyer 2 fois la commande, une fois avec N=0 pour récupérer le nibble bas,
@@ -5836,38 +5964,6 @@ begin
   end;
 end;
 
-// affecte le numéro de train à un évènement détecteur
-// en sortie : numéro de train
-{
-function affecte_train(index,AdresseAdj,AdresseActuel,etat : integer) : integer;
-var i,train : integer;
-    trouve : boolean;
-begin
-  if AffAffect then AfficheDebug('Cherche train pour Index='+intToSTR(index)+' pour détecteur='+intToStr(AdresseAdj)+' à '+intToStr(Etat),clyellow);
-  train:=0;
-  if index<2 then begin Affecte_train:=1;exit;end;
-  i:=index;
-  repeat
-    dec(i);
-    trouve:=event_det_tick[i].detecteur[AdresseAdj]=etat; // si le détecteur à rechercher en amont de la liste est à "etat"
-  until trouve or (i=1);
-  if trouve then
-  begin
-    train:=event_det_tick[i].train;
-    //if train<>0 then
-    begin
-      if AffAffect then AfficheDebug('Affectation au train n°'+intToSTR(train),clyellow);
-      event_det_tick[N_event_tick].train:=train;
-      event_det_tick[N_event_tick].suivant:=AdresseActuel;
-
-      //event_det_tick[i].train:=0; // traité
-    end;
-  end
-  else
-    if AffAffect then AfficheDebug('Pas trouvé',clyellow);
-  affecte_train:=train;
-end;
-}
 
 // traitement des évènements actionneurs
 procedure Event_act(adr,etat : integer;train : string);
@@ -5925,12 +6021,13 @@ begin
   end;
 end;
 
-// traitement sur les évènements détecteurs
+// traitement sur les évènements détecteurs 
 procedure Event_Detecteur(Adresse : integer;etat : boolean);
 var i,trainAdj1,TrainAdj2,TrainActuel,Etat01 : integer;
     s : string;
 begin
   if Etat then Etat01:=1 else Etat01:=0;
+ 
   // vérifier si l'état du détecteur est déja stocké, car on peut reçevoir plusieurs évènements pour le même détecteur dans le même état
   // on reçoit un doublon dans deux index consécutifs.
   if N_Event_tick>=1 then
@@ -5947,7 +6044,7 @@ begin
   begin
     s:='Evt Det '+intToSTR(adresse)+'='+intToSTR(etat01);
     Affiche(s,clyellow);
-    AfficheDebug(s,clyellow);
+    if not(TraceListe) then AfficheDebug(s,clyellow);
   end;  
  
   //if etat then Mem[Adresse]:=true;  // mémoriser l'état à 1
@@ -5977,9 +6074,24 @@ begin
       if AffFD then AfficheDebug('index='+intToSTR(N_event_tick)+' FD '+intToSTR(Adresse),clyellow);
       inc(N_event_det);
       event_det[N_event_det]:=Adresse;
-      if not(configNulle) then calcul_zones;  // en avant les calculs
+      // vérification de la connaissance de la position de tous les aiguillages au premier évènement FD détecteur
+      if not(PremierFD) then
+      begin
+        for i:=1 to MaxAiguillage do
+        begin
+          if aiguillage[i].modele<>0 then
+          begin
+            if aiguillage[i].position=9 then
+            Affiche('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
+            AfficheDebug('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
+          end;
+        end;  
+      end;
+      premierFD:=True;
+      if not(configNulle) then calcul_zones_V2;  // en avant les calculs
     end;  
   end;
+
   if (N_event_det>=Max_event_det) then 
   begin
     Affiche('Débordement d''évènements FD - Raz tampon',clred);
@@ -5988,46 +6100,12 @@ begin
   end;   
 
   // attention à partir de cette section le code est susceptible de ne pas être exécuté
-  
 
   // Mettre à jour le TCO
   if AvecTCO then
   begin
     formTCO.Maj_TCO(Adresse,etat);
   end;
-
-  exit;
-  //------------------------plus utilisé ----------------
-  {
-  // front descendant
-    if etat01=0 then
-    begin
-//      affecte_train(N_event_tick,Adresse,0,1); // affecter le numéro du train dont l'adresse du détecteur est à 1
-    end;
-    if etat01=1 then
-    begin
-      det_adj(Adresse); // détecteurs adjacents à Adr (adj1 et adj2)
-      if Adj1>9997 then Adj1:=0;
-      if Adj2>9997 then Adj2:=0;
-      if AffAffect then AfficheDebug('Det='+intToStr(Adresse)+' Adj1='+intToStr(Adj1)+' Adj2='+intToStr(Adj2),clyellow);
-
-      //affecter le numéro de train sur l'un des deux détecteurs adjacents à 0
-      if adj1<>0 then trainAdj1:=affecte_train(N_event_tick,Adj1,Adj2,0); // affecter le numéro du train dont l'adresse du détecteur est à 0
-      if adj2<>0 then trainAdj2:=affecte_train(N_event_tick,Adj2,Adj1,0); // affecter le numéro du train dont l'adresse du détecteur est à 0
-      if AffAffect then AfficheDebug('Det='+intToSTR(Adresse)+' TrainAdj1='+intToSTR(TrainAdj1)+' TrainAdj2='+intToSTR(TrainAdj2),clyellow);
-      if (trainAdj1=0) and (TrainAdj2=0) then
-      begin
-        inc(N_trains);
-        if AffAffect then
-        begin
-          s:='Nouveau train sur '+intToSTR(Adresse)+'='+intToSTR(N_trains);
-          affiche(s,clyellow);
-          afficheDebug(s,clyellow);
-        end;
-        event_det_tick[N_event_tick].train:=N_trains;
-      end;
-    end;
-   }
 end;
 
 // évènement d'aiguillage
@@ -6035,7 +6113,6 @@ procedure Event_Aig(adresse,pos,objet : integer);
 var s: string;
 begin
   // ------------------- traitement du numéro d'objet -------------------------
-  aiguillage[adresse].position:=pos;
   // il faut mémoriser le numéro d'objet le plus bas au détriment de celui qui a la même adresse
   // mais un numéro d'objet supérieur (bug CDM sur bretelles avec aiguillages à la même adresse)
   // init objet
@@ -6059,6 +6136,17 @@ begin
     AfficheDebug(s,clOrange);
     exit;
   end;
+
+  aiguillage[adresse].position:=pos;
+
+  if aiguillageB[adresse].inversionCDM=0 then aiguillageB[adresse].position:=pos
+  else 
+  begin
+    if pos=const_devie then aiguillageB[adresse].position:=const_droit;
+    if pos=const_droit then aiguillageB[adresse].position:=const_devie;
+    
+  end;
+  
   
   // ------------- stockage évènement aiguillage dans tampon event_det_tick -------------------------
   if (N_Event_tick<Max_Event_det_tick) then
@@ -6212,23 +6300,23 @@ begin
     begin
       adraig:=((adresse * 4)+1 ); // *4 car N=1, c'est le "poids fort"
       if (valeur and $C)=$8 then
-      begin
-        Event_Aig(adraig+3,2,0);
+      begin      
+        Event_Aig(adraig+3,const_droit,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+3)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
-        Event_Aig(adraig+3,1,0);
+        Event_Aig(adraig+3,const_devie,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+3)+'=1';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
-        Event_Aig(adraig+2,2,0);
+        Event_Aig(adraig+2,const_droit,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+2)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
-        Event_Aig(adraig+2,1,0);
+        Event_Aig(adraig+2,const_devie,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+2)+'=1';Affiche(s,clYellow);end;
       end;
     end;
@@ -6269,22 +6357,22 @@ begin
       adraig:=(adresse * 4)+1;
       if (valeur and $C)=$8 then
       begin
-        Event_Aig(adraig+1,2,0);
+        Event_Aig(adraig+1,const_droit,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+1)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
-        Event_Aig(adraig+1,1,0);
+        Event_Aig(adraig+1,const_devie,0);
         if trace then begin s:='accessoire '+intToSTR(adraig+1)+'=1';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
-        Event_Aig(adraig,2,0);
+        Event_Aig(adraig,const_droit,0);
         if trace then begin s:='accessoire '+intToSTR(adraig)+'=2';Affiche(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
-        Event_Aig(adraig,1,0);
+        Event_Aig(adraig,const_devie,0);
         if trace then begin s:='accessoire '+intToSTR(adraig)+'=1';Affiche(s,clYellow);end;
       end;
     end;
@@ -6564,6 +6652,7 @@ var
 begin
   //AvecMaj:=false;
   TraceSign:=True;
+  PremierFD:=false;
   AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
   Application.onHint:=doHint;
@@ -6584,8 +6673,8 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-  AvecTCO:=true;
+  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  AvecTCO:=false;
 
   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
@@ -6597,7 +6686,7 @@ begin
   AffMem:=true;
   N_routes:=0;
   N_trains:=0;
-  Train[1].index:=0;
+ // Train[1].index:=0;
 
   // lecture fichier de configuration  config.cfg
   lit_config;
@@ -6675,27 +6764,14 @@ begin
     event_det_tick[i].actionneur:=-1;
     event_det_tick[i].traite:=false ; // non traité
   end;
-
+           
   I_Simule:=0;
   tick:=0;
 
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
 
-  // énumération des ports USB
-  //EnumerateDevices;
-  //for i:=1 to NumLine do
-  //begin
-  //  if pos('Ports',Line[i])<>0 then Affiche(Line[i],clyellow);
-  //end;
   //essai
- // event_det[1]:=527;
- // event_det[2]:=520;
- // N_event_det:=2;
- //  aiguillage[23].Position:=const_droit;
- //  aiguillage[12].Position:=const_droit;
-  //traceDet:=true;
- // calcul_zones;
   //maj_feu(201);
 // formdebug.Show;
  //AfficheDet:=true;
@@ -6726,6 +6802,7 @@ begin
   //envoi(s);
   //id_cdm:='01';
   //envoie_fonction_CDM(0,1,'train');
+  //i:=ShellExecute(handle,PChar('open'),PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),nil,nil,SW_SHOWNORMAL);
 end;
 
 
@@ -6787,7 +6864,9 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var i,a : integer;
+var index,aspect,i,a,x,y,adresse,TailleX,TailleY : integer;
+   imageFeu : Timage;
+   frx,fry : real;
     s : string;
 begin
   inc(tick);
@@ -6821,12 +6900,56 @@ begin
     //tester chaque feu pour voir s'il y a un code de clignotement
     for i:=1 to NbreFeux do
     begin
-      a:=EtatsignalCplx[feux[i].adresse];     // a = état binaire du feu
+      adresse:=feux[i].adresse;
+      a:=EtatsignalCplx[adresse];     // a = état binaire du feu
       if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
-         Dessine_feu(feux[i].adresse);  // dessiner le feu en fonction du bit "clignotant"
+         begin
+           //Affiche(IntToSTR(adresse),clOrange);
+           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+         end;  
     end;
+
+    if avecTCO then
+    begin
+      for i:=1 to NbFeuTCO do
+      begin
+        x:=(FeuTCO[i].x-1)*LargeurCell;
+        y:=(FeuTCO[i].y-1)*HauteurCell;
+        adresse:=FeuTCO[i].adresse;
+        if adresse<>0 then
+        begin
+          index:=index_feu(adresse);
+          if index<>0 then
+          begin
+            aspect:=feux[index].aspect;
+            case aspect of
+             2 :  ImageFeu:=Formprinc.Image2feux;
+             3 :  ImageFeu:=Formprinc.Image3feux;
+             4 :  ImageFeu:=Formprinc.Image4feux;
+             5 :  ImageFeu:=Formprinc.Image5feux;
+             7 :  ImageFeu:=Formprinc.Image7feux;
+             9 :  ImageFeu:=Formprinc.Image9feux;
+           else ImageFeu:=Formprinc.Image3feux;
+           end;
+  
+            TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+            TailleX:=ImageFeu.picture.BitMap.Width; 
+            frx:=LargeurCell/TailleX;
+            frY:=2*HauteurCell/TailleY;
+          
+            a:=EtatsignalCplx[adresse];     // a = état binaire du feu
+            if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+            testBit(a,vert_cli) or testbit(a,blanc_cli) then 
+            Dessine_feu_mx(PCanvasTCO,x,y,frx,fry,adresse,1);
+          end;
+        end;
+      end;
+    end;
+
+    // fenêtre de pilotage manuel du feu
     if AdrPilote<>0 then
     begin
       a:=EtatsignalCplx[0];
@@ -6872,6 +6995,7 @@ begin
       N_Event_tick:=0;
       N_event_det:=0;
       N_trains:=0;
+      for i:=1 to Max_Trains do Event_det_Train[i].NbEl:=0;
       FormDebug.MemoEvtDet.Clear;
       FormDebug.Richedit.Clear;
     end;
@@ -6887,13 +7011,13 @@ begin
        // if Tablo_simule[i_simule].detecteur=538 then Affiche('création evt 538 index '+intToSTR(i_simule),clorange);
        // end;
       
-        Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        if AffTickSimu then Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
         Event_Detecteur(Tablo_simule[i_simule].detecteur, Tablo_simule[i_simule].etat=1);  // créer évt détecteur
       end;
       // evt aiguillage ?
       if Tablo_simule[i_simule].aiguillage<>0 then
       begin
-        Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        if AffTickSimu then Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
         Event_Aig(Tablo_simule[i_simule].Aiguillage,Tablo_simule[i_simule].etat,0);  // créer évt aiguillage
       end;
 
@@ -7162,6 +7286,8 @@ begin
          ' Droit='+IntToSTR(aiguillage[i].ADroit)+aiguillage[i].ADroitB;
       if aiguillage[i].modele=4 then s:=s+' Dévié2='+intToSTR(aiguillage[i].ADevie2)+aiguillage[i].ADevie2B;
       if aiguillage[i].vitesse<>0 then s:=s+' Vitesse déviée='+intToSTR(aiguillage[i].vitesse);
+      if aiguillage[i].inversion<>0 then s:=s+' pilotage inversé';
+      
       Affiche(s,clYellow);
     end;
   end;
@@ -7180,6 +7306,8 @@ begin
          ' Droit='+IntToSTR(aiguillageB[i].ADroit)+aiguillageB[i].ADroitB;
       if aiguillageB[i].modele=4 then s:=s+' Dévié2='+intToSTR(aiguillageB[i].ADevie2)+aiguillageB[i].ADevie2B;
       if aiguillageB[i].vitesse<>0 then s:=s+' Vitesse déviée='+intToSTR(aiguillageB[i].vitesse);
+      if aiguillageB[i].inversion<>0 then s:=s+' pilotage inversé';
+      if aiguillageB[i].inversionCDM<>0 then s:=s+' lecture CDM inversée';
       Affiche(s,clYellow);
     end;  
   end;
@@ -7450,6 +7578,8 @@ begin
    Affiche('Version 1.43 : Correction erreur gestion sémaphore',clLime);
    Affiche('Version 1.44 : Gestion trains avec voitures éclairées',clLime);
    Affiche('Version 1.45 : Rejette les n° d''objets supérieurs aiguillages à la même adresse',clLime);
+   Affiche('Version 1.5  : Nouvel algorithme de suivi des trains',clLime);
+   
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
@@ -7666,10 +7796,10 @@ end;
 procedure TFormPrinc.Button2Click(Sender: TObject);
 var i : integer;
 begin
-  nivDebug:=3;
-  //test_memoire_zones(1005); 
-  MemZone[569][538]:=true;
-  test_memoire_zones(177); 
+  //traceliste:=true;
+  //NivDebug:=3;
+  i:=test_route_valide(519,517,518);
+  Affiche(IntToSTR(i),clOrange);
 end;
 
 

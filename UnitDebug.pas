@@ -55,6 +55,7 @@ type
 Const 
 Max_Event_det_tick=10000;
 Max_event_det=400;
+Max_Trains=50;
 
 var
   FormDebug: TFormDebug;
@@ -62,6 +63,10 @@ var
   AffSignal,AffAffect,initform,AffFD : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   event_det : array[1..Max_event_det] of integer;
+  event_det_train : array[1..Max_Trains] of record
+                    NbEl : integer;
+                    Det : array[1..3] of integer; // tableau des evts détecteurs par train
+                    end;
   //                    tick 1/10s,détecteur
   N_Event_tick : integer ; // dernier index
 
@@ -74,8 +79,6 @@ var
        actionneur : integer;
        objet : integer;  // numéro d'objet dans CDM
        etat : integer ; // état du détecteur de l'aiguillage ou de l'actionneur
-       //train : integer ;
-       //suivant : integer ; // d'ou vient le train
        traite : boolean;  // traité lors de a recherche d'une route
      end;
 

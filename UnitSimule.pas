@@ -12,6 +12,7 @@ type
     OpenDialog: TOpenDialog;
     EditIntervalle: TEdit;
     Label1: TLabel;
+    CheckAffTick: TCheckBox;
     procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditIntervalleKeyPress(Sender: TObject; var Key: Char);
@@ -25,26 +26,29 @@ type
 var
   FormSimulation: TFormSimulation;
   Intervalle    : integer;
+  AffTickSimu   : boolean;
 
 implementation
 
 {$R *.dfm}
 
 procedure TFormSimulation.ButtonChargeClick(Sender: TObject);
-var s : string;
+var s,nF : string;
    fte : textFile;
    i,k,erreur : integer;
    sortie : boolean;
 begin
+  AffTickSimu:= checkAffTick.Checked;
   s:=GetCurrentDir;
   s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   OpenDialog.InitialDir:=s;
   OpenDialog.DefaultExt:='txt';
+  OpenDialog.Title:='Ouvrir un fichier de simulation';
   OpenDialog.Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
   if openDialog.Execute then
   begin
-    s:=openDialog.FileName;
-    assignFile(fte,s);
+    nF:=openDialog.FileName;
+    assignFile(fte,nF);
     reset(fte);
     index_simule:=1;
     repeat
@@ -115,13 +119,13 @@ begin
     
     FormSimulation.Close;
   end; 
-   
+  Affiche('Fichier simulation : '+nF ,clyellow); 
 end;
 
 
 procedure TFormSimulation.FormCreate(Sender: TObject);
 begin
-  Intervalle:=1;
+  Intervalle:=0;
   EditIntervalle.Text:=IntToSTR(Intervalle);
 end;
 
@@ -136,7 +140,7 @@ end;
 procedure TFormSimulation.EditIntervalleChange(Sender: TObject);
 var erreur : integer;
 begin
-   Val(EditIntervalle.Text,intervalle,erreur);
+  Val(EditIntervalle.Text,intervalle,erreur);
   if (intervalle<0) then Intervalle:=1;
 end;
 
