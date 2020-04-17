@@ -1,11 +1,9 @@
 object FormPrinc: TFormPrinc
-  Left = 56
-  Top = 197
-  AutoSize = True
-  BorderStyle = bsSingle
+  Left = 30
+  Top = 270
+  Width = 1212
+  Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
-  ClientHeight = 606
-  ClientWidth = 1196
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,9 +13,13 @@ object FormPrinc: TFormPrinc
   Menu = MainMenu1
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
   ShowHint = True
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    1196
+    606)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -31,19 +33,6 @@ object FormPrinc: TFormPrinc
     Font.Height = -16
     Font.Name = 'Arial'
     Font.Style = [fsBold, fsItalic]
-    ParentFont = False
-  end
-  object LabelEtat: TLabel
-    Left = 456
-    Top = 16
-    Width = 152
-    Height = 18
-    Caption = 'Initialisations en cours'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Arial'
-    Font.Style = []
     ParentFont = False
   end
   object Image9feux: TImage
@@ -678,8 +667,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 1096
-    Top = 136
+    Left = 776
+    Top = 128
     Width = 33
     Height = 57
     Picture.Data = {
@@ -752,8 +741,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2Dir: TImage
-    Left = 968
-    Top = 48
+    Left = 696
+    Top = 184
     Width = 41
     Height = 25
     Picture.Data = {
@@ -827,8 +816,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3Dir: TImage
-    Left = 1008
-    Top = 48
+    Left = 768
+    Top = 136
     Width = 49
     Height = 25
     Picture.Data = {
@@ -905,8 +894,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image4Dir: TImage
-    Left = 1056
-    Top = 48
+    Left = 816
+    Top = 128
     Width = 57
     Height = 25
     Picture.Data = {
@@ -993,8 +982,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5Dir: TImage
-    Left = 1112
-    Top = 48
+    Left = 664
+    Top = 120
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1091,8 +1080,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 1112
-    Top = 80
+    Left = 808
+    Top = 152
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1198,34 +1187,19 @@ object FormPrinc: TFormPrinc
       0000}
     Visible = False
   end
-  object Label1: TLabel
-    Left = 656
-    Top = 148
-    Width = 89
-    Height = 13
-    Caption = 'Nombre de trains : '
-  end
-  object LabelNbTrains: TLabel
-    Left = 760
-    Top = 144
-    Width = 9
-    Height = 19
-    Caption = '0'
+  object LabelEtat: TLabel
+    Left = 456
+    Top = 16
+    Width = 152
+    Height = 18
+    Anchors = [akTop, akRight]
+    Caption = 'Initialisations en cours'
     Font.Charset = ANSI_CHARSET
-    Font.Color = clBlack
+    Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Arial'
-    Font.Style = [fsBold]
+    Font.Style = []
     ParentFont = False
-  end
-  object BoutVersion: TButton
-    Left = 1008
-    Top = 16
-    Width = 83
-    Height = 33
-    Caption = 'Dem version'
-    TabOrder = 0
-    OnClick = BoutVersionClick
   end
   object ListBox1: TListBox
     Left = 8
@@ -1233,6 +1207,7 @@ object FormPrinc: TFormPrinc
     Width = 633
     Height = 520
     Style = lbOwnerDrawFixed
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlue
@@ -1241,34 +1216,31 @@ object FormPrinc: TFormPrinc
     Font.Style = []
     ItemHeight = 16
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 0
     OnDrawItem = ListBox1DrawItem
-  end
-  object BoutonRaf: TButton
-    Left = 912
-    Top = 16
-    Width = 89
-    Height = 33
-    Caption = 'Rafraichissement'
-    TabOrder = 2
-    OnClick = BoutonRafClick
   end
   object ScrollBox1: TScrollBox
     Left = 648
-    Top = 168
+    Top = 176
     Width = 537
-    Height = 405
+    Height = 393
+    HorzScrollBar.Smooth = True
+    HorzScrollBar.Tracking = True
+    VertScrollBar.Smooth = True
+    VertScrollBar.Tracking = True
+    Anchors = [akTop, akRight, akBottom]
     Color = clWhite
     ParentColor = False
-    TabOrder = 3
+    TabOrder = 1
   end
   object GroupBox1: TGroupBox
-    Left = 656
-    Top = 8
+    Left = 648
+    Top = 0
     Width = 249
     Height = 129
+    Anchors = [akTop, akRight]
     Caption = 'Commande d'#39'accessoires'
-    TabOrder = 4
+    TabOrder = 2
     object Label2: TLabel
       Left = 7
       Top = 16
@@ -1309,17 +1281,6 @@ object FormPrinc: TFormPrinc
       Text = '1'
       OnEnter = EditvalEnter
     end
-    object ButtonCommande: TButton
-      Left = 124
-      Top = 24
-      Width = 109
-      Height = 33
-      Hint = 'Ecriture des accessoires DCC'
-      Caption = 'Envoi commande'
-      TabOrder = 2
-      WordWrap = True
-      OnClick = ButtonCommandeClick
-    end
     object ButtonEcrCV: TButton
       Left = 8
       Top = 64
@@ -1327,7 +1288,7 @@ object FormPrinc: TFormPrinc
       Height = 25
       Hint = 'Ecriture CV en mode direct sur voie de  programmation'
       Caption = 'Ecriture CV - 1 '#224' 255 par bus XpressNet'
-      TabOrder = 3
+      TabOrder = 2
       WordWrap = True
       OnClick = ButtonEcrCVClick
     end
@@ -1339,28 +1300,20 @@ object FormPrinc: TFormPrinc
       Hint = 'Lecture CV en mode direct sur voie de  programmation'
       Caption = 'Lecture CV - 1 '#224' 255 par le bus XpressNet'
       Enabled = False
-      TabOrder = 4
+      TabOrder = 3
       OnClick = ButtonLitCVClick
     end
-  end
-  object ButtonTest: TButton
-    Left = 912
-    Top = 96
-    Width = 89
-    Height = 33
-    Caption = 'Demande '#233'tat r'#233'trosignalisation'
-    TabOrder = 5
-    WordWrap = True
-    OnClick = ButtonTestClick
-  end
-  object ButtonInfo: TButton
-    Left = 1008
-    Top = 56
-    Width = 81
-    Height = 33
-    Caption = 'Informations'
-    TabOrder = 6
-    OnClick = ButtonInfoClick
+    object ButtonCommande: TButton
+      Left = 124
+      Top = 24
+      Width = 109
+      Height = 33
+      Hint = 'Ecriture des accessoires DCC'
+      Caption = 'Envoi commande'
+      TabOrder = 4
+      WordWrap = True
+      OnClick = ButtonCommandeClick
+    end
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -1380,55 +1333,138 @@ object FormPrinc: TFormPrinc
       2143341208000000ED030000ED03000001568A64000006000000010000040000
       00020000802500000000080000000000000000003F00000011000000}
   end
-  object loco: TButton
-    Left = 1096
-    Top = 16
-    Width = 75
-    Height = 33
-    Caption = 'loco'
-    TabOrder = 9
-    OnClick = locoClick
-  end
-  object ButtonAffDebug: TButton
+  object Panel1: TPanel
     Left = 912
-    Top = 56
-    Width = 89
-    Height = 33
-    Caption = 'Affiche debug'
-    TabOrder = 10
-    OnClick = ButtonAffDebugClick
+    Top = 0
+    Width = 273
+    Height = 169
+    Anchors = [akTop, akRight]
+    Caption = 'Panel1'
+    TabOrder = 5
+    object BoutonRaf: TButton
+      Left = 8
+      Top = 8
+      Width = 89
+      Height = 33
+      Caption = 'Rafraichissement'
+      TabOrder = 0
+      OnClick = BoutonRafClick
+    end
+    object ButtonAffDebug: TButton
+      Left = 8
+      Top = 48
+      Width = 89
+      Height = 33
+      Caption = 'Affiche debug'
+      TabOrder = 1
+      OnClick = ButtonAffDebugClick
+    end
+    object BoutVersion: TButton
+      Left = 102
+      Top = 8
+      Width = 83
+      Height = 33
+      Caption = 'Dem version'
+      TabOrder = 2
+      OnClick = BoutVersionClick
+    end
+    object loco: TButton
+      Left = 190
+      Top = 8
+      Width = 75
+      Height = 33
+      Caption = 'loco'
+      TabOrder = 3
+      OnClick = locoClick
+    end
+    object ButtonInfo: TButton
+      Left = 104
+      Top = 48
+      Width = 81
+      Height = 33
+      Caption = 'Informations'
+      TabOrder = 4
+      OnClick = ButtonInfoClick
+    end
+    object ButtonReprise: TButton
+      Left = 190
+      Top = 48
+      Width = 75
+      Height = 33
+      Hint = 
+        'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
+        'ension de la centrale'
+      Caption = 'Reprise DCC'
+      TabOrder = 5
+      OnClick = ButtonRepriseClick
+    end
+    object ButtonTest: TButton
+      Left = 8
+      Top = 88
+      Width = 89
+      Height = 33
+      Caption = 'Demande '#233'tat r'#233'trosignalisation'
+      TabOrder = 6
+      WordWrap = True
+      OnClick = ButtonTestClick
+    end
+    object ButtonArretSimu: TButton
+      Left = 104
+      Top = 88
+      Width = 81
+      Height = 33
+      Caption = 'Arret simulation'
+      TabOrder = 7
+      Visible = False
+      OnClick = ButtonArretSimuClick
+    end
+    object ButtonAffTCO: TButton
+      Left = 192
+      Top = 88
+      Width = 73
+      Height = 33
+      Caption = 'Affiche TCO'
+      TabOrder = 8
+      OnClick = ButtonAffTCOClick
+    end
+    object ButtonLanceCDM: TButton
+      Left = 8
+      Top = 128
+      Width = 89
+      Height = 33
+      Caption = 'Lance CDM rail'
+      TabOrder = 9
+      OnClick = ButtonLanceCDMClick
+    end
   end
-  object ButtonReprise: TButton
-    Left = 1096
-    Top = 56
-    Width = 75
-    Height = 33
-    Hint = 
-      'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
-      'ension de la centrale'
-    Caption = 'Reprise DCC'
-    TabOrder = 11
-    OnClick = ButtonRepriseClick
-  end
-  object Button2: TButton
-    Left = 872
+  object Panel2: TPanel
+    Left = 648
     Top = 136
-    Width = 97
+    Width = 153
     Height = 25
-    Caption = 'Test'
-    TabOrder = 12
-    Visible = False
-    OnClick = Button2Click
-  end
-  object ButtonArretSimu: TButton
-    Left = 1008
-    Top = 96
-    Width = 81
-    Height = 33
-    Caption = 'Arret simulation'
-    TabOrder = 13
-    Visible = False
-    OnClick = ButtonArretSimuClick
+    Anchors = [akTop, akRight]
+    Caption = 'Panel2'
+    TabOrder = 6
+    object Label1: TLabel
+      Left = 16
+      Top = 4
+      Width = 89
+      Height = 13
+      Caption = 'Nombre de trains : '
+    end
+    object LabelNbTrains: TLabel
+      Left = 120
+      Top = 2
+      Width = 9
+      Height = 19
+      Caption = '0'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
   end
   object Timer1: TTimer
     Interval = 100
@@ -1447,8 +1483,7 @@ object FormPrinc: TFormPrinc
     Left = 320
   end
   object MainMenu1: TMainMenu
-    Left = 1160
-    Top = 8
+    Left = 560
     object Afficher1: TMenuItem
       Caption = 'Afficher'
       object Etatdesdtecteurs1: TMenuItem
@@ -1571,11 +1606,11 @@ object FormPrinc: TFormPrinc
     Left = 352
   end
   object OpenDialog: TOpenDialog
-    Left = 1104
-    Top = 112
+    Left = 888
+    Top = 152
   end
   object SaveDialog: TSaveDialog
-    Left = 1120
-    Top = 88
+    Left = 888
+    Top = 16
   end
 end

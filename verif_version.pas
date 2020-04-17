@@ -21,8 +21,9 @@ type
 var
   FormVersion: TFormVersion;
   Lance_verif : integer;
+  verifVersion,notificationVersion : boolean;
 
-Const  Version='1.5';  //Version='1.2';// sert à la comparaison de la version publiée
+Const  Version='1.6';  //Version='1.2';// sert à la comparaison de la version publiée
 
 implementation
 
@@ -65,8 +66,8 @@ var
   dwTimeout : integer;
 begin
   Result:=False;
-
-  Try Fs:=TFileStream.Create(s,fmCreate);
+  DeleteFile(s);
+  Try Fs:=TFileStream.Create(s,fmCreate,fmShareDenyNone);
     hSession:=InternetOpen('MyApp',INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
     try
       if Assigned(hSession) then
@@ -105,7 +106,8 @@ var s,s2,s3,Version_p,Url,LocalFile : string;
     V_publie,V_utile : real;
 begin
     //Affiche('vérifie version',clLime);
-    if not(AvecInit) then exit ;
+    if not(AvecInit)  then exit ;
+    if not(verifVersion) then exit;
     Url:='http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906#p50499';
     LocalFile:='page.txt';
     trouve_version:=false;
@@ -166,6 +168,7 @@ begin
           Aff(s);
           if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin
+            // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
             s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\Signaux_Complexes_GL.Zip';
             Aff('Téléchargement de '+s3+' dans ');
             Aff(s);
@@ -181,13 +184,13 @@ begin
           else formVersion.Free;
         end;
 
-       // if V_utile=V_publie then Affiche('Votre version '+Version_p+' est à jour',clLime);
+        if (V_utile=V_publie) and notificationVersion then Affiche('Votre version '+Version_p+' est à jour',clLime);
 
       end;
     end
     else
       begin
-         //Affiche('Pas d''accès au site CDM rail',clorange);
+        if notificationVersion then Affiche('Pas d''accès au site CDM rail',clorange);
       end;
 end;
 

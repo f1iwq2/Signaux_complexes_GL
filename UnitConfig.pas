@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version ;
 
 type
   TFormConfig = class(TForm)
@@ -37,6 +37,9 @@ type
     Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
+    GroupBox5: TGroupBox;
+    CheckVerifVersion: TCheckBox;
+    CheckInfoVersion: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -260,15 +263,15 @@ begin
   if changeInterface then 
   begin
     if AdresseIP<>'0' then
+    begin
+      Affiche('demande connexion à la centrale Lenz par Ethernet',clyellow);
+      With Formprinc do
       begin
-        Affiche('demande connexion à la centrale Lenz par Ethernet',clyellow);
-        With Formprinc do
-        begin
-          ClientSocketLenz.port:=port;
-          ClientSocketLenz.Address:=AdresseIP;
-          ClientSocketLenz.Open;
-        end;  
-      end
+        ClientSocketLenz.port:=port;
+        ClientSocketLenz.Address:=AdresseIP;
+        ClientSocketLenz.Open;
+      end;  
+    end
   end;
 
   if changeUSB then 
@@ -276,6 +279,9 @@ begin
     deconnecte_USB;
     connecte_USB;
   end;
+
+  verifVersion:=CheckVerifVersion.Checked;
+  notificationVersion:=CheckInfoVersion.Checked;
   
   formConfig.close;
 end;
@@ -305,6 +311,10 @@ begin
   if Valeur_entete=0 then RadioButton1.checked:=true;
   if Valeur_entete=1 then RadioButton2.checked:=true;
   if Valeur_entete=2 then RadioButton3.checked:=true;
+
+  CheckVerifVersion.Checked:=verifVersion;
+  CheckInfoVersion.Checked:=notificationVersion;
+  
 end;
 
 end.

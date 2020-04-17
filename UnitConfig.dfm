@@ -2,7 +2,7 @@ object FormConfig: TFormConfig
   Left = 316
   Top = 238
   Width = 598
-  Height = 340
+  Height = 382
   Caption = 'Configuration g'#233'n'#233'rale'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,7 +16,7 @@ object FormConfig: TFormConfig
   TextHeight = 13
   object Label6: TLabel
     Left = 128
-    Top = 248
+    Top = 288
     Width = 332
     Height = 13
     Caption = 
@@ -41,7 +41,7 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 265
-    Height = 89
+    Height = 81
     Caption = 'CDM Rail'
     TabOrder = 0
     object Label1: TLabel
@@ -151,7 +151,7 @@ object FormConfig: TFormConfig
   end
   object Button1: TButton
     Left = 112
-    Top = 272
+    Top = 312
     Width = 105
     Height = 25
     Caption = 'Appliquer et Fermer'
@@ -160,7 +160,7 @@ object FormConfig: TFormConfig
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 104
+    Top = 96
     Width = 265
     Height = 105
     Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ'
@@ -246,11 +246,35 @@ object FormConfig: TFormConfig
   end
   object Button2: TButton
     Left = 352
-    Top = 272
+    Top = 312
     Width = 113
     Height = 25
     Caption = 'Fermer sans appliquer'
     TabOrder = 5
     OnClick = Button2Click
+  end
+  object GroupBox5: TGroupBox
+    Left = 8
+    Top = 208
+    Width = 265
+    Height = 57
+    Caption = 'Versions du programme'
+    TabOrder = 6
+    object CheckVerifVersion: TCheckBox
+      Left = 8
+      Top = 16
+      Width = 249
+      Height = 17
+      Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
+      TabOrder = 0
+    end
+    object CheckInfoVersion: TCheckBox
+      Left = 8
+      Top = 32
+      Width = 241
+      Height = 17
+      Caption = 'Information sur la version actuelle'
+      TabOrder = 1
+    end
   end
 end
