@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls , UnitTCO;
+  Dialogs, StdCtrls , UnitTCO, ExtCtrls;
 
 type
   TFormConfigTCO = class(TForm)
@@ -20,9 +20,28 @@ type
     EditNbCellX: TEdit;
     EditNbCellY: TEdit;
     LabelErreur: TLabel;
+    ColorDialog1: TColorDialog;
+    GroupBox1: TGroupBox;
+    Label5: TLabel;
+    ImageAig: TImage;
+    ImageFond: TImage;
+    Label6: TLabel;
+    ImageGrille: TImage;
+    Label7: TLabel;
+    ImageDetAct: TImage;
+    Label8: TLabel;
+    Memo1: TMemo;
+    Label9: TLabel;
+    Imagecanton: TImage;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure ImageAigClick(Sender: TObject);
+    procedure ImageFondClick(Sender: TObject);
+    procedure ImageGrilleClick(Sender: TObject);
+    procedure ImageDetActClick(Sender: TObject);
+    procedure ImagecantonClick(Sender: TObject);
+    procedure ColorDialog1Show(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -31,13 +50,99 @@ type
 
 var  FormConfigTCO: TFormConfigTCO;
      AvecGrille : boolean;
-
+     titre_couleur : string;
+     
 implementation
 
-uses UnitPrinc;
+uses UnitPrinc ;
 
 
 {$R *.dfm}
+
+procedure icone_aig;
+var r : Trect;
+    x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+begin
+      with FormConfigTCO.ImageAig do
+      begin
+        canvas.Pen.color:=fond;
+        canvas.Brush.Color:=fond;
+        canvas.Rectangle(0,0,Width,Height);
+
+        canvas.pen.color:=clVoies;
+        canvas.brush.color:=clvoies;
+        // bande horizontale
+        r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
+        canvas.FillRect(r);
+
+        x1:=(width div 2); y1:=(height div 2)-3;
+        x2:=3; y2:=0;
+        x3:=0; y3:=3;
+        x4:=0+(width div 2)-1; y4:=(height div 2)+3-1;
+        canvas.Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end;
+
+end;
+
+procedure dessine_icones;
+var r : Trect;
+begin
+  // 1
+  icone_aig;
+  // 2
+  with formConfigTCO.ImageFond do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+  end;
+  // 3
+  with formConfigTCO.ImageGrille do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+    canvas.Pen.color:=ClGrille;
+    canvas.moveto(0,5); canvas.LineTo(width,5);
+    canvas.moveto(27,0); canvas.LineTo(27,Height);
+  end;
+  // 4 détecteur
+  with formConfigTCO.ImageDetAct do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+
+    
+    canvas.Brush.Color:=clAllume;
+    canvas.pen.color:=clAllume;
+    canvas.Pen.Mode:=pmCopy;
+    r:=Rect(1,(height div 2)-6,width-1,(height div 2)+6);
+    canvas.FillRect(r);
+    
+    canvas.pen.color:=clVoies;
+    canvas.brush.color:=clVoies;
+    // bande horizontale
+    r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
+    canvas.FillRect(r);
+  end;
+
+  // 5 canton 
+  with formCOnfigTCO.Imagecanton do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+    
+   
+    canvas.pen.color:=clAllume;
+    canvas.brush.color:=clAllume;
+    // bande horizontale
+    r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
+    canvas.FillRect(r);
+  end;
+
+end;
 
 function verif_config_TCO : boolean;  // renvoie true si ok
 var erreur : integer;
@@ -109,8 +214,6 @@ begin
 end;
 
 
-
-
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
 begin
   EditTailleCellX.Text:=IntToSTR(LargeurCell);
@@ -118,6 +221,68 @@ begin
   EditNbCellX.Text:=IntToSTR(NbreCellX);
   EditNbCellY.Text:=IntToSTR(NbreCellY);
   checkDessineGrille.Checked:=AvecGrille;
+  dessine_icones;
+end;
+
+
+procedure TFormConfigTCO.ImageAigClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur des voies';
+  if ColorDialog1.execute then
+  begin
+    clVoies:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones;
+  end; 
+end;
+
+procedure TFormConfigTCO.ImageFondClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur de fond';
+  if ColorDialog1.execute then
+  begin
+    fond:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones;
+  end;
+end;
+
+procedure TFormConfigTCO.ImageGrilleClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur de la grille';
+  if ColorDialog1.execute then
+  begin
+    ClGrille:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones;
+  end; 
+end;
+
+procedure TFormConfigTCO.ImageDetActClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur de détecteur activé';
+  if ColorDialog1.execute then
+  begin
+    ClAllume:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones;
+  end; 
+end;
+
+procedure TFormConfigTCO.ImagecantonClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur de canton activé';
+  if ColorDialog1.execute then
+  begin
+    ClAllume:=ColorDialog1.Color;
+    dessine_icones;
+  end; 
+end;
+
+// change le titre de la fenêtre de choix des couleurs à son ouverture
+procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
+begin
+   SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
 
 end.

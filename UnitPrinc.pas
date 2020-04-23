@@ -184,11 +184,11 @@ type TBranche = record
                  InversionCDM : integer ;   // inversion pour les aiguillages BIS en lecture (pour parer bug CDM)
                  vitesse : integer;         // vitesse de franchissement de l"aiguillage en position déviée (60 ou 90)
 
-                 ADroit : integer ;         // (identifiant extérieur à la TJD) connecté sur la position droite en talon
+                 ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
                  ADroitB : char ;           // id de branche pour TJD
                  ADroitBis : integer ;      // 0=pas connecté à aiguillage dont l'adresse est bis  =1 connecté à un aig bis
 
-                 ADevie : integer ;         // (identifiant extérieur) adresse de l'élément connecté en position déviée
+                 ADevie : integer ;         // (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
                  ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
                  AdevieBis : integer ;      // 0=pas connecté à aiguillage dont l'adresse est bis  =1 connecté à un aig bis
 
@@ -410,13 +410,6 @@ var Temp,code,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage : integer;
     ech : real;
 begin
-  with ACanvas do
-  begin
-    pen.mode:=PmCopy;
-    Brush.Color:=fond;
-    pen.color:=clyellow;
-  end; 
-
   code:=code_to_aspect(Etatsignal); // et aspect
   rayon:=round(6*frX);
 
@@ -463,12 +456,6 @@ var Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     s : string;
     ech : real;
 begin
-  with ACanvas do
-  begin
-    pen.mode:=PmCopy;
-    Brush.Color:=fond;
-    pen.color:=clyellow;
-  end; 
   code:=code_to_aspect(Etatsignal); // et aspect
   rayon:=round(6*frX);
 
@@ -518,12 +505,6 @@ var Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage : integer;
     ech : real;
 begin
-  with ACanvas do
-  begin
-    pen.mode:=PmCopy;
-    Brush.Color:=fond;
-    pen.color:=clyellow;
-  end; 
   code:=code_to_aspect(Etatsignal); // et aspect
   rayon:=round(6*frX);
 
@@ -539,10 +520,10 @@ begin
   begin
     //rotation 90° vers la gauche des feux
     ech:=frY;frY:=frX;FrX:=ech;
-    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
-    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
-    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
-    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+    Temp:=HtImage-yjaune; YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-ycarre; Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;   YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;  Yvert:=Xvert;Xvert:=Temp;
   end;
  
   if (orientation=3) then
@@ -651,13 +632,6 @@ var code, XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,
     Temp,rayon,LgImage,HtImage : integer;
     ech : real;
 begin
-  with ACanvas do
-  begin
-    pen.mode:=PmCopy;
-    Brush.Color:=fond;
-    pen.color:=clyellow;
-  end; 
-
   code:=code_to_aspect(Etatsignal); // et combine
   rayon:=round(6*frX);
   XBlanc:=13; YBlanc:=23;
@@ -742,12 +716,6 @@ var code,rayon,
     LgImage,HtImage,xt,yt : integer;
     ech : real;
 begin
-  with ACanvas do
-  begin
-    pen.mode:=PmCopy;
-    Brush.Color:=fond;
-    pen.color:=clyellow;
-  end; 
   rayon:=round(6*frX);
   code:=code_to_aspect(Etatsignal); // et aspect
   // mise à l'échelle des coordonnées des feux en fonction du facteur de réduction frX et frY et x et y (offsets)
@@ -3228,6 +3196,7 @@ begin
   i:=index_feu(Adr);
   if feux[i].aspect<10 then
   begin 
+    // envoie la commande au décodeur
     case feux[i].decodeur of
      0 : envoi_virtuel(Adr);
      1 : envoi_signalBahn(Adr);
@@ -3237,15 +3206,16 @@ begin
      5 : envoi_NMRA(Adr);
      6 : envoi_UniSemaf(Adr);
     end;
-    // dessine le feu dans la fenêtre de droite
-    Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);   
 
-    // dessine le feu du TCO
+    // allume les signaux du feu dans la fenêtre de droite
+    Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);   
+
+    // allume les signaux du feu dans le TCO
     if AvecTCO then  
     begin
-     for i:=1 to NbFeuTCO do
+      for i:=1 to NbFeuTCO do
       begin
-        adresse:=FeuTCO[i].adresse;
+        adresse:=FeuTCO[i].adresse;  // vérifie si le feu existe dans le TCO
         if adresse<>0 then
         begin
           a:=EtatsignalCplx[adresse];     // a = état binaire du feu
@@ -3267,21 +3237,21 @@ begin
           // réduction variable en fonction de la taille des cellules
           calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
-              // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-              if orientation=2 then
-              begin
-                if aspect=9 then x:=x+round(10*frX); 
-                if aspect=7 then x:=x+round(10*frX);  
-                if aspect=5 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=4 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=3 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=2 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-              end;
-              Dessine_feu_mx(PCanvasTCO,x,y,frx,fry,adresse,orientation);
-            end;
-         end;   
-      end;   
-  end;  
+          // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
+          if orientation=2 then
+          begin
+            if aspect=9 then x:=x+round(10*frX); 
+            if aspect=7 then x:=x+round(10*frX);  
+            if aspect=5 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
+            if aspect=4 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
+            if aspect=3 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
+            if aspect=2 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
+          end;
+          Dessine_feu_mx(PCanvasTCO,x,y,frx,fry,adresse,orientation);
+        end;
+     end;   
+  end;   
+end;  
 end;
 
 // pilotage des signaux
@@ -4743,11 +4713,13 @@ begin
           suivant_alg3:=adr;exit;
         end;
         begin
+          if aiguillage[Adr].position=9 then begin suivant_alg3:=9999;exit;end; // pour échappement
           s:='Aiguillage triple '+IntToSTR(Adr)+' : configuration des aiguilles interdite';
           if CDM_connecte then s:=s+': '+IntToSTR(aiguillage[Adr].position);
           AfficheDebug(s,clYellow);
           Affiche(s,clRed);
-          suivant_alg3:=9999;exit; // pour échappement
+          suivant_alg3:=9999;
+          exit; 
         end;
       end
       else
@@ -5078,6 +5050,11 @@ begin
   repeat
     inc(j);
     AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);
+    if AdrSuiv=9999 then // élément non trouvé
+    begin
+      carre_signal:=true;  
+      exit;
+    end;
     if (AdrSuiv<>9998) then // arret sur aiguillage en talon mal positionnée
     begin
       prec:=actuel;
@@ -5894,6 +5871,11 @@ begin
           rafraichit;
           rafraichit;
           rafraichit;
+          if avecTCO then
+          begin
+            zone_TCO(det2,det3,0);    // désactivation
+            zone_TCO(det3,AdrSuiv,1); // activation
+          end;
           exit; // sortir absolument
         end;
       end;
@@ -6790,12 +6772,13 @@ begin
       
   else
   begin
-    Sleep(1000);   
+    Sleep(2000); 
+    Application.ProcessMessages;  
     // démarre  le serveur IP : Alt C , return 2 fois
     SendKey(CDMHd,ord('C'),false,true,false);
     SendKey(CDMHd,VK_RETURN,false,false,false);
     SendKey(CDMHd,VK_RETURN,false,false,false);
-    Sleep(100);
+    Sleep(200);
     Application.ProcessMessages;
 
     // Ouvre le fichier réseau : Alt F , Return, O, return
@@ -6803,14 +6786,14 @@ begin
     SendKey(CDMHd,VK_RETURN,false,false,false);
     SendKey(CDMHd,ord('O'),false,false,false);
     SendKey(CDMHd,VK_RETURN,false,false,false);
-    Sleep(200);  // attendre ouverture de la fenêtre
+    Sleep(500);  // attendre ouverture de la fenêtre
     Application.ProcessMessages;
     
     // ouvre le fichier réseau
 
     Affiche('Ouvre '+Lay,clyellow);
     s:=convert_VK(LAY);
-    Sleep(100);
+    Sleep(1000);
     for i:=1 to length(s) do
       SendKey(CDMHd,ord(s[i]),false,false,false);
     SendKey(CDMHd,VK_return,false,false,false);
@@ -6891,7 +6874,7 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   Diffusion:=true;
   
   // créée la fenetre vérification de version
@@ -6904,7 +6887,6 @@ begin
   AffMem:=true;
   N_routes:=0;
   N_trains:=0;
-  ButtonAffTCO.visible:=AvecTCO;
   // Train[1].index:=0;
 
   // lecture fichier de configuration  client_GL.cfg et config.cfg
@@ -6912,7 +6894,7 @@ begin
 
   // lancer CDM rail si on le demande
   if LanceCDM then Lance_CDM;
-
+  ButtonAffTCO.visible:=AvecTCO;
   
   // tenter la liaison vers CDM rail ou vers la centrale Lenz
   //Affiche('Test présence CDM',clYellow);
@@ -6984,8 +6966,8 @@ begin
    // TCO
   if avectco then
   begin
-    //créée la fenêtre TCO
-    FormTCO:=TformTCO.Create(Self);
+    //créée la fenêtre TCO non modale
+    FormTCO:=TformTCO.Create(nil);
     FormTCO.show;
   end;  
 
@@ -7996,7 +7978,7 @@ end;
 
 procedure TFormPrinc.ConfigClick(Sender: TObject);
 begin
-  Tformconfig.create(self);
+  Tformconfig.create(nil);
   formconfig.showmodal;
   formconfig.close;
 end;
@@ -8077,18 +8059,11 @@ begin
   
 end;
 
-
-
 procedure TFormPrinc.ButtonAffTCOClick(Sender: TObject);
 var hd : THandle;
 begin
-  //SetactiveWindow(formTCO.handle);
-  //formTCO.BringToFront;
-   hd:=formTCO.handle;
-
- // SetForeGroundWindow(hd)  ;
-   ShowWindow(hd,SW_Show);
- //  sendMessage(hd,wm_syscommand,sc_minimize,0);
+  formTCO.windowState:=wsNormal; //Maximized;
+  formTCO.BringToFront;
 end;
 
 
@@ -8097,7 +8072,10 @@ begin
   if Lance_CDM then connecte_CDM;
 end;
 
+
 begin
+
+
 
 
 

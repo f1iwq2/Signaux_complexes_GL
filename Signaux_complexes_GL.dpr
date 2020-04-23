@@ -19,8 +19,8 @@ begin
   Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
-  Application.CreateForm(TFormTCO, FormTCO);
   Application.CreateForm(TFormConfig, FormConfig);
   Application.CreateForm(TFormConfigTCO, FormConfigTCO);
+  Application.CreateForm(TFormVersion, FormVersion);
   Application.Run;
 end.

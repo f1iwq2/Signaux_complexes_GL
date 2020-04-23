@@ -1,9 +1,10 @@
 object FormConfigTCO: TFormConfigTCO
-  Left = 542
-  Top = 389
-  Width = 360
-  Height = 251
+  Left = 311
+  Top = 218
+  BorderStyle = bsDialog
   Caption = 'Configuration du TCO'
+  ClientHeight = 264
+  ClientWidth = 618
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,14 +16,14 @@ object FormConfigTCO: TFormConfigTCO
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 8
+    Left = 32
     Top = 16
     Width = 83
     Height = 13
     Caption = 'Taille des cellules'
   end
   object Label2: TLabel
-    Left = 160
+    Left = 176
     Top = 16
     Width = 5
     Height = 13
@@ -49,8 +50,8 @@ object FormConfigTCO: TFormConfigTCO
     Height = 13
   end
   object ButtonOK: TButton
-    Left = 240
-    Top = 176
+    Left = 168
+    Top = 224
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -58,7 +59,7 @@ object FormConfigTCO: TFormConfigTCO
     OnClick = ButtonOKClick
   end
   object EditTailleCellX: TEdit
-    Left = 104
+    Left = 128
     Top = 16
     Width = 41
     Height = 21
@@ -66,7 +67,7 @@ object FormConfigTCO: TFormConfigTCO
     Text = 'EditTailleCellX'
   end
   object EditTailleCellY: TEdit
-    Left = 176
+    Left = 192
     Top = 16
     Width = 41
     Height = 21
@@ -74,11 +75,11 @@ object FormConfigTCO: TFormConfigTCO
     Text = 'EditTailleCellY'
   end
   object ButtonDessine: TButton
-    Left = 24
-    Top = 176
+    Left = 16
+    Top = 224
     Width = 75
     Height = 25
-    Caption = 'Dessine'
+    Caption = 'Redessine'
     TabOrder = 3
     OnClick = ButtonDessineClick
   end
@@ -105,5 +106,105 @@ object FormConfigTCO: TFormConfigTCO
     Height = 21
     TabOrder = 6
     Text = 'EditNbCellY'
+  end
+  object GroupBox1: TGroupBox
+    Left = 256
+    Top = 8
+    Width = 353
+    Height = 217
+    Caption = 'Couleurs '
+    TabOrder = 7
+    object Label5: TLabel
+      Left = 21
+      Top = 32
+      Width = 84
+      Height = 13
+      Caption = 'Couleur des voies'
+    end
+    object ImageAig: TImage
+      Left = 128
+      Top = 16
+      Width = 41
+      Height = 41
+      OnClick = ImageAigClick
+    end
+    object ImageFond: TImage
+      Left = 128
+      Top = 64
+      Width = 41
+      Height = 41
+      OnClick = ImageFondClick
+    end
+    object Label6: TLabel
+      Left = 30
+      Top = 80
+      Width = 75
+      Height = 13
+      Caption = 'Couleur de fond'
+    end
+    object ImageGrille: TImage
+      Left = 128
+      Top = 112
+      Width = 41
+      Height = 41
+      OnClick = ImageGrilleClick
+    end
+    object Label7: TLabel
+      Left = 31
+      Top = 128
+      Width = 74
+      Height = 13
+      Caption = 'couleur de grille'
+    end
+    object ImageDetAct: TImage
+      Left = 128
+      Top = 160
+      Width = 41
+      Height = 41
+      OnClick = ImageDetActClick
+    end
+    object Label8: TLabel
+      Left = 26
+      Top = 176
+      Width = 79
+      Height = 13
+      Caption = 'D'#233'tecteur activ'#233
+    end
+    object Label9: TLabel
+      Left = 218
+      Top = 176
+      Width = 66
+      Height = 13
+      Caption = 'Canton activ'#233
+    end
+    object Imagecanton: TImage
+      Left = 296
+      Top = 160
+      Width = 41
+      Height = 41
+      OnClick = ImagecantonClick
+    end
+  end
+  object Memo1: TMemo
+    Left = 8
+    Top = 128
+    Width = 241
+    Height = 81
+    BevelInner = bvLowered
+    BevelKind = bkFlat
+    BorderStyle = bsNone
+    Lines.Strings = (
+      'Si vous d'#233'finissez un nombre de cellules en '
+      'horizontal ou en vertical plus petit(s) que l'#39'actuel'
+      '(s), alors le TCO sera tronqu'#233', et les '#233'l'#233'ments '
+      'tronqu'#233's seront perdus '#224' la prochaine '
+      'sauvegarde.')
+    ReadOnly = True
+    TabOrder = 8
+  end
+  object ColorDialog1: TColorDialog
+    OnShow = ColorDialog1Show
+    Left = 48
+    Top = 24
   end
 end

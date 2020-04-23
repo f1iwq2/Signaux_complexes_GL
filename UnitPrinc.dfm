@@ -1339,7 +1339,6 @@ object FormPrinc: TFormPrinc
     Width = 273
     Height = 169
     Anchors = [akTop, akRight]
-    Caption = 'Panel1'
     TabOrder = 5
     object BoutonRaf: TButton
       Left = 8
