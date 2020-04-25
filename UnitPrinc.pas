@@ -214,7 +214,7 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,
     NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
     Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
-    ServeurRetroCDM : integer;
+    ServeurRetroCDM,TailleFonte : integer;
     
     Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,PremierFD,
     NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,
@@ -3388,19 +3388,18 @@ begin
   {lecture du fichier de configuration}
   // taille de fonte
   s:=lit_ligne;
-  i:=StrToINT(s);
+  TailleFonte:=StrToINT(s);
   with FormPrinc.ListBox1 do
   begin
-    Font.Height:=i;
-    ItemHeight:=i+1;
+    Font.Height:=TailleFonte;
+    ItemHeight:=TailleFonte+1;
   end;
+  
   // adresse ip et port de CDM
-
   s:=lit_ligne;
   i:=pos(':',s);
   if i<>0 then begin adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);portCDM:=StrToINT(s);end;
-
-
+  
   // adresse ip et port de la centrale
   // AfficheDet:=true;
   s:=lit_ligne;
@@ -6758,11 +6757,10 @@ begin
   s:='CDR';
   if (ProcessRunning(s)) then begin Lance_CDM:=false;exit;end;
 
-  Affiche('Lancement de CDM',clyellow);
+  Affiche('Lancement de CDM '+lay,clyellow);
   if ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
-                    //'open',Pchar('notepad'),
-                    Pchar(''),  // paramètre
+                    Pchar('-f '+lay),  // paramètre    
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
                     ,SW_SHOWNORMAL)<=32 then 
       begin              
@@ -6772,33 +6770,39 @@ begin
       
   else
   begin
-    Sleep(2000); 
+    Sleep(2000);
     Application.ProcessMessages;  
     // démarre  le serveur IP : Alt C , return 2 fois
     SendKey(CDMHd,ord('C'),false,true,false);
-    SendKey(CDMHd,VK_RETURN,false,false,false);
-    SendKey(CDMHd,VK_RETURN,false,false,false);
+    SendKey(CDMHd,ord('C'),false,false,false);  
+    SendKey(CDMHd,VK_RETURN,false,false,false); // ouvre le menu
+    Sleep(200); // attend l'ouverture de la fenêtre
+    SendKey(CDMHd,VK_RETURN,false,false,false); // sélectionne le menu démarre le serveur IP
+    SendKey(CDMHd,VK_RETURN,false,false,false); // acquitte la fentêtre
     Sleep(200);
     Application.ProcessMessages;
 
-    // Ouvre le fichier réseau : Alt F , Return, O, return
-    SendKey(CDMHd,ord('F'),false,true,false);
-    SendKey(CDMHd,VK_RETURN,false,false,false);
-    SendKey(CDMHd,ord('O'),false,false,false);
-    SendKey(CDMHd,VK_RETURN,false,false,false);
-    Sleep(500);  // attendre ouverture de la fenêtre
-    Application.ProcessMessages;
+    if false then
+    begin
+      // Ouvre le fichier réseau  : Alt F , Return, O, return
+      SendKey(CDMHd,ord('F'),false,true,false);
+      SendKey(CDMHd,VK_RETURN,false,false,false);
+      SendKey(CDMHd,ord('O'),false,false,false);
+      SendKey(CDMHd,VK_RETURN,false,false,false);
+      Sleep(500);  // attendre ouverture de la fenêtre
+      Application.ProcessMessages;
     
-    // ouvre le fichier réseau
+      // ouvre le fichier réseau
 
-    Affiche('Ouvre '+Lay,clyellow);
-    s:=convert_VK(LAY);
-    Sleep(1000);
-    for i:=1 to length(s) do
-      SendKey(CDMHd,ord(s[i]),false,false,false);
-    SendKey(CDMHd,VK_return,false,false,false);
-    Sleep(2000);
-    Application.ProcessMessages;
+      Affiche('Ouvre '+Lay,clyellow);
+      s:=convert_VK(LAY);
+      Sleep(1000);
+      for i:=1 to length(s) do
+        SendKey(CDMHd,ord(s[i]),false,false,false);
+      SendKey(CDMHd,VK_return,false,false,false);
+      Sleep(2000);
+      Application.ProcessMessages;
+    end;
 
     // Serveur d'interface
     if ServeurInterfaceCDM>0 then
@@ -6874,8 +6878,8 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-  Diffusion:=true;
+  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  Diffusion:=false;
   
   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
@@ -7749,27 +7753,7 @@ end;
 
 procedure TFormPrinc.Versions1Click(Sender: TObject);
 begin
-   Affiche('Version 1.0  : première version',clLime);
-   Affiche('Version 1.01 : gestion des trajectoires vers les buttoirs',clLime);
-   Affiche('Version 1.02 : vérification automatique des versions',clLime);
-   Affiche('Version 1.1  : gestion des tableaux indicateurs de direction',clLime);
-   Affiche('                    gestion du décodeur de signaux Unisemaf Paco (expérimental)',clLime);
-   Affiche('                    changement dynamique des feux en cliquant sur son image',clLime);
-   Affiche('Version 1.11 : compatibilité pour la rétrosignalisation non XpressNet (intellibox)',clLime);
-   Affiche('                    verrouillages routes pour trains consécutifs',clLime);
-   Affiche('Version 1.2  : Renforcement de l''algorithme de suivi des trains',clLime);
-   Affiche('Version 1.3  : Décodeur Unisemaf fonctionnel - Lecture/écriture des CV',clLime);
-   Affiche('                     Protocoles variables de l''interface',clLime);
-   Affiche('                     Configuration statique modifiable dans menu',clLime);
-   Affiche('Version 1.31 : Correction des positions aiguillages triples et TJD',clLime);
-   Affiche('Version 1.4  : Gestion des Fx vers les locomotives par actionneurs',clLime);
-   Affiche('Version 1.41 : Gestion des passages à niveaux par actionneurs',clLime);
-   Affiche('Version 1.42 : Correction erreur lecture feux',clLime);
-   Affiche('Version 1.43 : Correction erreur gestion sémaphore',clLime);
-   Affiche('Version 1.44 : Gestion trains avec voitures éclairées',clLime);
-   Affiche('Version 1.45 : Rejette les n° d''objets supérieurs aiguillages à la même adresse',clLime);
-   Affiche('Version 1.5  : Nouvel algorithme de suivi des trains - Gestion des feux provenant de voies en buttoir',clLime);
-   Affiche('Version 1.6  : Implémentation du TCO. Ouverture de CDM rail au démarrage avec LAY à la demande',clLime);
+  Affiche('Signaux complexes version '+Version,clLime);
 end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;

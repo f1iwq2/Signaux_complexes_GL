@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg ;
 
 type
   TFormConfig = class(TForm)
@@ -20,7 +20,7 @@ type
     EditTempoOctetUSB: TEdit;
     Label5: TLabel;
     EditTempoReponse: TEdit;
-    Button1: TButton;
+    ButtonAppliquerEtFermer: TButton;
     GroupBox3: TGroupBox;
     Label7: TLabel;
     EditIPLenz: TEdit;
@@ -30,17 +30,39 @@ type
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
-    Label6: TLabel;
     LabelInfo: TLabel;
     Button2: TButton;
-    Label9: TLabel;
-    Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
     GroupBox5: TGroupBox;
     CheckVerifVersion: TCheckBox;
     CheckInfoVersion: TCheckBox;
-    procedure Button1Click(Sender: TObject);
+    CheckLanceCDM: TCheckBox;
+    CheckAvecTCO: TCheckBox;
+    EditNomLay: TEdit;
+    Label13: TLabel;
+    GroupBox6: TGroupBox;
+    RadioButton4: TRadioButton;
+    RadioButton5: TRadioButton;
+    RadioButton6: TRadioButton;
+    RadioButton7: TRadioButton;
+    RadioButton8: TRadioButton;
+    RadioButton9: TRadioButton;
+    RadioButton10: TRadioButton;
+    RadioButton11: TRadioButton;
+    RadioButton12: TRadioButton;
+    GroupBox7: TGroupBox;
+    RadioButton13: TRadioButton;
+    RadioButton14: TRadioButton;
+    RadioButton15: TRadioButton;
+    RadioButton16: TRadioButton;
+    RadioButton17: TRadioButton;
+    RadioButton18: TRadioButton;
+    Label14: TLabel;
+    Label9: TLabel;
+    Label10: TLabel;
+    Image1: TImage;
+    procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
   private
@@ -212,7 +234,193 @@ begin
   config_com:=not( (copy(sa,1,3)<>'COM') or (NumPort>9) or (protocole=-1) or (protocole>4) or (i=0) );
 end;
 
-procedure TFormConfig.Button1Click(Sender: TObject);
+// modifie les fichiers de config en fonction du paramétrage
+procedure genere_config2;
+var s: string;
+    fichier,fichierN : text;
+    i : integer;
+    continue : boolean;
+    
+    // lit une ligne du fichier source "fichier", si c'est une ligne de commentaire, copie jusqu'à ne plus rencontrer
+    // de ligne commentaire, et retourne la ligne en sortie
+    function copie_commentaire : string  ;
+    var c : char;
+    begin
+      repeat
+        readln(fichier,s);
+        //Affiche(s,clWhite);
+        if length(s)>0 then c:=s[1];
+        if c='/' then writeln(fichierN,s);  // copie le commentaire
+      until ((c<>'/') and (s<>'')) or eof(fichier) ;
+      copie_commentaire:=s;
+    end;
+    
+begin
+  try
+    assign(fichier,'client-GL.cfg');
+    reset(fichier);
+  except
+    Affiche('Fichier client-gl.cfg non trouvé',clred);
+    exit;
+  end;
+
+  assign(fichierN,'client-GL.tmp');
+  rewrite(fichierN);
+
+  // entête
+  copie_commentaire;
+  // taille de la fonte
+  writeln(fichierN,TailleFonte);
+  copie_commentaire;
+
+  // adresse ip et port de CDM
+  writeln(fichierN,adresseIPCDM+':'+intToSTR(portCDM));
+  copie_commentaire;
+
+  // adresse ip interface XpressNet
+  writeln(fichierN,adresseIP+':'+intToSTR(port));
+  copie_commentaire;
+
+  // port com
+  writeln(fichierN,portcom);
+  copie_commentaire;
+
+  // temporisation caractère TempoOctet
+  writeln(fichierN,IntToSTR(TempoOctet));
+  copie_commentaire;
+
+  // temporisation attente maximale interface
+  writeln(fichierN,IntToSTR(TimoutMaxInterface));
+  copie_commentaire;
+
+  // entete Valeur_entete
+  writeln(fichierN,intToSTR(Valeur_entete));
+  copie_commentaire;
+
+  // avec ou sans initialisation des aiguillages
+  writeln(fichierN,IntToSTR(AvecInitAiguillages));
+  copie_commentaire;
+
+  writeln(fichierN,s);
+  // valeurs des initialisations
+  repeat
+    readln(fichier,s);
+    writeln(fichierN,s);
+    continue:=s[1]<>'0';
+  until not(continue);
+  copie_commentaire;
+  
+  // Vérification des versions au démarrage
+  if verifVersion then s:='1' else s:='0';
+  writeln(fichierN,s);
+  copie_commentaire;
+
+  // Notification de nouvelle version
+  if notificationVersion then s:='1' else s:='0';
+  writeln(fichierN,s);
+  copie_commentaire;
+ 
+  // Avec TCO
+  if AvecTCO then s:='1' else s:='0';
+  writeln(fichierN,s);
+  copie_commentaire; 
+
+  // lancement de CDM
+  if LanceCDM then s:='1' else s:='0';
+  writeln(fichierN,s);
+  copie_commentaire; 
+
+  // Nom du LAY
+  writeln(fichierN,Lay);
+  copie_commentaire; 
+
+  // Serveur d'interface de CDM
+  writeln(fichierN,intToSTR(ServeurInterfaceCDM));
+  copie_commentaire; 
+
+  // Serveur de rétrosignalisation Lenz de CDM
+  writeln(fichierN,intToSTR(ServeurRetroCDM));
+  copie_commentaire; 
+  
+  closefile(fichier);
+  closefile(fichierN);
+
+  try
+    assign(fichier,'config.cfg');
+    reset(fichier);
+  except
+    Affiche('Fichier config.cfg non trouvé',clred);
+    exit;
+  end;
+
+  assign(fichierN,'config.tmp');
+  rewrite(fichierN);
+
+  // entête
+  copie_commentaire;
+  // 2 variables inutilisées
+  writeln(fichierN,'Log=0');
+  copie_commentaire;
+  // fichier log
+  writeln(fichierN,'TraceDet=0');
+  copie_commentaire;
+  // Raz Signaux
+  if Raz_Acc_signaux then s:='1' else s:='0';
+  writeln(fichierN,'RazSignaux='+s);
+  copie_commentaire;
+
+  writeln(fichierN,s);
+  // modélisation des aiguillages
+  if s[1]<>'0' then
+  repeat
+    readln(fichier,s);
+    writeln(fichierN,s);
+    continue:=s[1]<>'0';
+  until not(continue);
+  copie_commentaire;
+  
+  writeln(fichierN,s);
+  // modélisation des branches de réseau
+  if s[1]<>'0' then
+  repeat
+    readln(fichier,s);
+    writeln(fichierN,s);
+    continue:=s[1]<>'0';
+  until not(continue);
+  copie_commentaire;
+
+  writeln(fichierN,s);
+  // modélisation des signaux
+  if s[1]<>'0' then
+  repeat
+    readln(fichier,s);
+    writeln(fichierN,s);
+    continue:=s[1]<>'0';
+  until not(continue);
+  copie_commentaire;
+
+  writeln(fichierN,s);
+  // Fonctions Fx
+  if s[1]<>'0' then
+  repeat
+    readln(fichier,s);
+    writeln(fichierN,s);
+    continue:=s[1]<>'0';
+  until not(continue);
+  copie_commentaire;
+  
+  closefile(fichier);
+  closefile(fichierN);  
+  
+  deletefile('config.cfg');
+  deletefile('client-GL.cfg');
+
+  renameFile('config.tmp','config.cfg');
+  renameFile('client-GL.tmp','client-GL.cfg');
+
+end;
+
+procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
 var i,erreur : integer;
     s : string;
     ChangeCDM,changeInterface,changeUSB : boolean;
@@ -282,7 +490,29 @@ begin
 
   verifVersion:=CheckVerifVersion.Checked;
   notificationVersion:=CheckInfoVersion.Checked;
-  
+
+  LanceCDM:=CheckLanceCDM.Checked;
+  AvecTCO:=CheckAvecTCO.checked;
+  Lay:=EditNomLay.Text;
+  if RadioButton4.Checked then ServeurInterfaceCDM:=0;
+  if RadioButton5.Checked then ServeurInterfaceCDM:=1;
+  if RadioButton6.Checked then ServeurInterfaceCDM:=2;
+  if RadioButton7.Checked then ServeurInterfaceCDM:=3;
+  if RadioButton8.Checked then ServeurInterfaceCDM:=4;
+  if RadioButton9.Checked then ServeurInterfaceCDM:=5;
+  if RadioButton10.Checked then ServeurInterfaceCDM:=6;
+  if RadioButton11.Checked then ServeurInterfaceCDM:=7;
+  if RadioButton12.Checked then ServeurInterfaceCDM:=8;
+  if RadioButton12.Checked then ServeurInterfaceCDM:=13;
+  if RadioButton13.Checked then ServeurRetroCDM:=1;
+  if RadioButton14.Checked then ServeurRetroCDM:=2;
+  if RadioButton15.Checked then ServeurRetroCDM:=3;
+  if RadioButton16.Checked then ServeurRetroCDM:=4;
+  if RadioButton17.Checked then ServeurRetroCDM:=5;
+  if RadioButton18.Checked then ServeurRetroCDM:=6;
+
+  // générer le fichier clieng-GL.cfg
+  genere_config2;
   formConfig.close;
 end;
 
@@ -314,7 +544,27 @@ begin
 
   CheckVerifVersion.Checked:=verifVersion;
   CheckInfoVersion.Checked:=notificationVersion;
-  
+  CheckLanceCDM.Checked:=LanceCDM;
+  CheckAvecTCO.checked:=avecTCO;
+  EditNomLay.Text:=Lay;
+  RadioButton4.Checked:=ServeurInterfaceCDM=0;
+  RadioButton5.Checked:=ServeurInterfaceCDM=1;
+  RadioButton6.Checked:=ServeurInterfaceCDM=2;
+  RadioButton7.Checked:=ServeurInterfaceCDM=3;
+  RadioButton8.Checked:=ServeurInterfaceCDM=4;
+  RadioButton9.Checked:=ServeurInterfaceCDM=5;
+  RadioButton10.Checked:=ServeurInterfaceCDM=6;
+  RadioButton11.Checked:=ServeurInterfaceCDM=7;
+  RadioButton12.Checked:=ServeurInterfaceCDM=8;
+  RadioButton12.Checked:=ServeurInterfaceCDM=13;
+  RadioButton13.Checked:=ServeurRetroCDM=1;
+  RadioButton14.Checked:=ServeurRetroCDM=2;
+  RadioButton15.Checked:=ServeurRetroCDM=3;
+  RadioButton16.Checked:=ServeurRetroCDM=4;
+  RadioButton17.Checked:=ServeurRetroCDM=5;
+  RadioButton18.Checked:=ServeurRetroCDM=6;
 end;
+
+
 
 end.
