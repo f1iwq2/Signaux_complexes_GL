@@ -135,7 +135,7 @@ object FormPilote: TFormPilote
       Top = 160
       Width = 177
       Height = 17
-      Caption = 'Violet (cible '#224' 2 feux uniquement)'
+      Caption = 'Violet'
       TabOrder = 9
       OnClick = RadioVioletClick
     end

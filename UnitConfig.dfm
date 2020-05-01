@@ -1,13 +1,13 @@
 object FormConfig: TFormConfig
-  Left = 318
-  Top = 157
+  Left = 250
+  Top = 200
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
-  ClientHeight = 644
-  ClientWidth = 592
+  ClientHeight = 472
+  ClientWidth = 858
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,6 +17,7 @@ object FormConfig: TFormConfig
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object LabelInfo: TLabel
@@ -33,9 +34,9 @@ object FormConfig: TFormConfig
     WordWrap = True
   end
   object Image1: TImage
-    Left = 304
-    Top = 392
-    Width = 257
+    Left = 600
+    Top = 128
+    Width = 249
     Height = 177
     Picture.Data = {
       0A544A504547496D6167655BA20000FFD8FFE000104A46494600010101006000
@@ -1340,426 +1341,695 @@ object FormConfig: TFormConfig
       8ACBD9799A732EC7FFD9}
     Stretch = True
   end
-  object GroupBox1: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 273
-    Height = 81
-    Caption = 'CDM Rail'
-    TabOrder = 0
-    object Label1: TLabel
-      Left = 14
-      Top = 26
-      Width = 150
-      Height = 13
-      Caption = 'Adresse IP du serveur CDM rail '
-    end
-    object Label2: TLabel
-      Left = 14
-      Top = 50
-      Width = 115
-      Height = 13
-      Caption = 'Port du serveur CDM rail'
-    end
-    object EditAdrIPCDM: TEdit
-      Left = 176
-      Top = 24
-      Width = 81
-      Height = 21
-      TabStop = False
-      TabOrder = 0
-      Text = 'EditAdrIPCDM'
-    end
-    object EditPortCDM: TEdit
-      Left = 176
-      Top = 48
-      Width = 81
-      Height = 21
-      TabStop = False
-      TabOrder = 1
-      Text = 'EditPortCDM'
-    end
-  end
-  object GroupBox2: TGroupBox
-    Left = 288
-    Top = 8
-    Width = 297
-    Height = 153
-    Caption = 'Acc'#232's USB - S'#233'rie '#224' l'#39'interface vers la centrale LENZ'
-    TabOrder = 1
-    object Label3: TLabel
-      Left = 16
-      Top = 56
-      Width = 128
-      Height = 13
-      Caption = 'Protocole s'#233'rie USB (COM)'
-    end
-    object Label4: TLabel
-      Left = 16
-      Top = 80
-      Width = 126
-      Height = 26
-      Caption = 'Temporisation d'#39'envoi des octets de la trame (ms)'
-      WordWrap = True
-    end
-    object Label5: TLabel
-      Left = 16
-      Top = 112
-      Width = 152
-      Height = 26
-      Caption = 'Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 100 ms)'
-      WordWrap = True
-    end
-    object Label9: TLabel
-      Left = 16
-      Top = 16
-      Width = 249
-      Height = 26
-      Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
-      WordWrap = True
-    end
-    object EditcomUSB: TEdit
-      Left = 160
-      Top = 56
-      Width = 121
-      Height = 21
-      TabStop = False
-      TabOrder = 0
-      Text = 'EditcomUSB'
-    end
-    object EditTempoOctetUSB: TEdit
-      Left = 232
-      Top = 88
-      Width = 49
-      Height = 21
-      TabStop = False
-      TabOrder = 1
-      Text = 'EditTempoOctetUSB'
-    end
-    object EditTempoReponse: TEdit
-      Left = 232
-      Top = 120
-      Width = 49
-      Height = 21
-      TabStop = False
-      TabOrder = 2
-      Text = 'EditTempoReponse'
-    end
+  object Label11: TLabel
+    Left = 600
+    Top = 32
+    Width = 244
+    Height = 31
+    Caption = 'Signaux complexes GL'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -27
+    Font.Name = 'Arial Narrow'
+    Font.Style = [fsBold, fsItalic]
+    ParentFont = False
   end
   object ButtonAppliquerEtFermer: TButton
-    Left = 48
-    Top = 600
+    Left = 384
+    Top = 440
     Width = 201
     Height = 25
     Caption = 'Enregistrer la configuration et Fermer'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 2
+    TabOrder = 0
     OnClick = ButtonAppliquerEtFermerClick
   end
-  object GroupBox3: TGroupBox
-    Left = 288
-    Top = 280
-    Width = 297
-    Height = 105
-    Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ Ethernet'
-    TabOrder = 3
-    object Label7: TLabel
-      Left = 14
-      Top = 56
-      Width = 95
-      Height = 13
-      Caption = 'Adresse IP interface'
-    end
-    object Label8: TLabel
-      Left = 14
-      Top = 82
-      Width = 82
-      Height = 13
-      Caption = 'Port de l'#39'interface'
-    end
-    object Label11: TLabel
-      Left = 8
-      Top = 16
-      Width = 249
-      Height = 13
-      Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans '
-    end
-    object Label12: TLabel
-      Left = 8
-      Top = 32
-      Width = 40
-      Height = 13
-      Caption = 'CDM rail'
-    end
-    object EditIPLenz: TEdit
-      Left = 176
-      Top = 56
-      Width = 81
-      Height = 21
-      TabStop = False
-      TabOrder = 0
-      Text = 'EditIPLenz'
-    end
-    object EditportLenz: TEdit
-      Left = 176
-      Top = 80
-      Width = 81
-      Height = 21
-      TabStop = False
-      TabOrder = 1
-      Text = 'EditportLenz'
-    end
-  end
-  object GroupBox4: TGroupBox
-    Left = 288
-    Top = 168
-    Width = 297
-    Height = 105
-    Caption = 'Ent'#234'te des trames vers l'#39'interface'
-    TabOrder = 4
-    object Label14: TLabel
-      Left = 16
-      Top = 16
-      Width = 249
-      Height = 26
-      Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
-      WordWrap = True
-    end
-    object RadioButton1: TRadioButton
-      Left = 8
-      Top = 48
-      Width = 225
-      Height = 17
-      Caption = 'Sans ent'#234'te (interfaces s'#233'rie)'
-      TabOrder = 0
-    end
-    object RadioButton2: TRadioButton
-      Left = 8
-      Top = 64
-      Width = 225
-      Height = 17
-      Caption = 'Ent'#234'te FF FE (interfaces natives USB)'
-      TabOrder = 1
-    end
-    object RadioButton3: TRadioButton
-      Left = 8
-      Top = 80
-      Width = 265
-      Height = 17
-      Caption = 'Ent'#234'te E4 - Suffixe 0D 0D 0A (arduino XpressNet)'
-      TabOrder = 2
-    end
-  end
   object Button2: TButton
-    Left = 328
-    Top = 600
+    Left = 24
+    Top = 440
     Width = 201
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
-    TabOrder = 5
+    TabOrder = 1
     OnClick = Button2Click
   end
-  object GroupBox5: TGroupBox
+  object PageControl: TPageControl
     Left = 8
-    Top = 96
-    Width = 273
-    Height = 161
-    Caption = 'Au d'#233'marrage '
-    TabOrder = 6
-    object Label13: TLabel
-      Left = 8
-      Top = 100
-      Width = 242
-      Height = 26
-      Caption = 
-        'Nom du fichier LAY '#224' ouvrir au d'#233'marrage de CDM rail (n'#233'cessite ' +
-        'la version mini 7.03 de CDM Rail)'
-      WordWrap = True
+    Top = 8
+    Width = 585
+    Height = 417
+    ActivePage = TabSheetAutonome
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBackground
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 2
+    object TabSheetCDM: TTabSheet
+      Caption = 'CDM Rail'
+      object GroupBox1: TGroupBox
+        Left = 8
+        Top = 8
+        Width = 273
+        Height = 81
+        Caption = 'CDM Rail'
+        TabOrder = 0
+        object Label1: TLabel
+          Left = 14
+          Top = 26
+          Width = 150
+          Height = 13
+          Caption = 'Adresse IP du serveur CDM rail '
+        end
+        object Label2: TLabel
+          Left = 14
+          Top = 50
+          Width = 115
+          Height = 13
+          Caption = 'Port du serveur CDM rail'
+        end
+        object EditAdrIPCDM: TEdit
+          Left = 176
+          Top = 24
+          Width = 81
+          Height = 21
+          TabStop = False
+          TabOrder = 0
+          Text = 'EditAdrIPCDM'
+        end
+        object EditPortCDM: TEdit
+          Left = 176
+          Top = 48
+          Width = 81
+          Height = 21
+          TabStop = False
+          TabOrder = 1
+          Text = 'EditPortCDM'
+        end
+      end
+      object GroupBox5: TGroupBox
+        Left = 8
+        Top = 96
+        Width = 273
+        Height = 161
+        Caption = 'Au d'#233'marrage '
+        TabOrder = 1
+        object Label13: TLabel
+          Left = 8
+          Top = 100
+          Width = 242
+          Height = 26
+          Caption = 
+            'Nom du fichier LAY '#224' ouvrir au d'#233'marrage de CDM rail (n'#233'cessite ' +
+            'la version mini 7.03 de CDM Rail)'
+          WordWrap = True
+        end
+        object CheckVerifVersion: TCheckBox
+          Left = 8
+          Top = 24
+          Width = 249
+          Height = 17
+          Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
+          TabOrder = 0
+        end
+        object CheckInfoVersion: TCheckBox
+          Left = 8
+          Top = 40
+          Width = 241
+          Height = 17
+          Caption = 'Information sur la version actuelle'
+          TabOrder = 1
+        end
+        object CheckLanceCDM: TCheckBox
+          Left = 8
+          Top = 72
+          Width = 241
+          Height = 25
+          Caption = 'Lancer CDM Rail au d'#233'marrage'
+          TabOrder = 2
+          WordWrap = True
+        end
+        object CheckAvecTCO: TCheckBox
+          Left = 8
+          Top = 56
+          Width = 201
+          Height = 17
+          Caption = 'Avec TCO'
+          TabOrder = 3
+        end
+        object EditNomLay: TEdit
+          Left = 16
+          Top = 130
+          Width = 241
+          Height = 21
+          TabOrder = 4
+          Text = 'EditNomLay'
+        end
+      end
+      object GroupBox6: TGroupBox
+        Left = 296
+        Top = 8
+        Width = 273
+        Height = 169
+        Caption = 'Au d'#233'marrage de CDM Rail : interface '
+        TabOrder = 2
+        object RadioButton4: TRadioButton
+          Left = 8
+          Top = 16
+          Width = 185
+          Height = 17
+          Caption = 'Ne pas d'#233'marrer d'#39'interface'
+          TabOrder = 0
+        end
+        object RadioButton5: TRadioButton
+          Left = 8
+          Top = 32
+          Width = 225
+          Height = 17
+          Caption = 'XpressNet (lenz.roco)'
+          TabOrder = 1
+        end
+        object RadioButton6: TRadioButton
+          Left = 8
+          Top = 48
+          Width = 217
+          Height = 17
+          Caption = 'P50X intellibox'
+          TabOrder = 2
+        end
+        object RadioButton7: TRadioButton
+          Left = 8
+          Top = 64
+          Width = 249
+          Height = 17
+          Caption = 'Sprog'
+          TabOrder = 3
+        end
+        object RadioButton8: TRadioButton
+          Left = 8
+          Top = 80
+          Width = 113
+          Height = 17
+          Caption = 'HSI88/HSI88-USB'
+          TabOrder = 4
+        end
+        object RadioButton9: TRadioButton
+          Left = 8
+          Top = 96
+          Width = 193
+          Height = 17
+          Caption = 'ECOS ESU'
+          TabOrder = 5
+        end
+        object RadioButton10: TRadioButton
+          Left = 8
+          Top = 128
+          Width = 233
+          Height = 17
+          Caption = 'FIS88 FeedBack (S88/S88N)'
+          TabOrder = 6
+        end
+        object RadioButton11: TRadioButton
+          Left = 8
+          Top = 112
+          Width = 209
+          Height = 17
+          Caption = 'RS2PC (Rs FeedBack interface)'
+          TabOrder = 7
+        end
+        object RadioButton12: TRadioButton
+          Left = 8
+          Top = 144
+          Width = 209
+          Height = 17
+          Caption = 'DCC++'
+          TabOrder = 8
+        end
+      end
+      object GroupBox7: TGroupBox
+        Left = 296
+        Top = 184
+        Width = 273
+        Height = 145
+        Caption = 'Au d'#233'marrage de CDM Rail : interface de'
+        TabOrder = 3
+        object Label10: TLabel
+          Left = 8
+          Top = 16
+          Width = 146
+          Height = 13
+          Caption = 'r'#233'trosignalisation pour RS Lenz'
+        end
+        object RadioButton13: TRadioButton
+          Left = 8
+          Top = 32
+          Width = 209
+          Height = 17
+          Caption = 'Automatique'
+          TabOrder = 0
+        end
+        object RadioButton14: TRadioButton
+          Left = 8
+          Top = 48
+          Width = 217
+          Height = 17
+          Caption = 'LI-USB'
+          TabOrder = 1
+        end
+        object RadioButton15: TRadioButton
+          Left = 8
+          Top = 64
+          Width = 217
+          Height = 17
+          Caption = 'LI-101F'
+          TabOrder = 2
+        end
+        object RadioButton16: TRadioButton
+          Left = 8
+          Top = 80
+          Width = 217
+          Height = 17
+          Caption = 'LI-100F'
+          TabOrder = 3
+        end
+        object RadioButton17: TRadioButton
+          Left = 8
+          Top = 96
+          Width = 209
+          Height = 17
+          Caption = 'LI-100'
+          TabOrder = 4
+        end
+        object RadioButton18: TRadioButton
+          Left = 8
+          Top = 112
+          Width = 113
+          Height = 17
+          Caption = 'Genli'
+          TabOrder = 5
+        end
+      end
+      object GroupBox8: TGroupBox
+        Left = 8
+        Top = 264
+        Width = 273
+        Height = 113
+        Caption = 'Services CommIP CDM Rail'
+        TabOrder = 4
+        object Label6: TLabel
+          Left = 8
+          Top = 18
+          Width = 215
+          Height = 13
+          Caption = 'Liste des '#233'v'#232'nements envoy'#233's par CDM Rail:'
+        end
+        object CheckBoxServAig: TCheckBox
+          Left = 8
+          Top = 40
+          Width = 113
+          Height = 17
+          Caption = 'Aiguillages'
+          TabOrder = 0
+        end
+        object CheckBoxServDet: TCheckBox
+          Left = 8
+          Top = 56
+          Width = 89
+          Height = 17
+          Caption = 'D'#233'tecteurs'
+          TabOrder = 1
+        end
+        object CheckBoxServAct: TCheckBox
+          Left = 8
+          Top = 72
+          Width = 81
+          Height = 17
+          Caption = 'Actionneurs'
+          TabOrder = 2
+        end
+        object CheckServPosTrains: TCheckBox
+          Left = 8
+          Top = 88
+          Width = 121
+          Height = 17
+          Caption = 'Position des trains'
+          TabOrder = 3
+        end
+        object CheckBoxSrvSig: TCheckBox
+          Left = 144
+          Top = 40
+          Width = 113
+          Height = 17
+          Caption = 'Signaux'
+          TabOrder = 4
+        end
+      end
     end
-    object CheckVerifVersion: TCheckBox
-      Left = 8
-      Top = 24
-      Width = 249
-      Height = 17
-      Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
-      TabOrder = 0
+    object TabSheetAutonome: TTabSheet
+      Caption = 'Mode autonome'
+      ImageIndex = 1
+      object Label9: TLabel
+        Left = 0
+        Top = 368
+        Width = 305
+        Height = 18
+        Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
+        WordWrap = True
+      end
+      object GroupBox2: TGroupBox
+        Left = 8
+        Top = 8
+        Width = 297
+        Height = 129
+        Caption = 'Acc'#232's USB - S'#233'rie '#224' l'#39'interface vers la centrale LENZ'
+        TabOrder = 0
+        object Label3: TLabel
+          Left = 16
+          Top = 24
+          Width = 140
+          Height = 13
+          Caption = '1. Protocole s'#233'rie USB (COM)'
+        end
+        object Label4: TLabel
+          Left = 16
+          Top = 48
+          Width = 126
+          Height = 26
+          Caption = '2. Temporisation d'#39'envoi des octets de la trame (ms)'
+          WordWrap = True
+        end
+        object Label5: TLabel
+          Left = 16
+          Top = 88
+          Width = 152
+          Height = 26
+          Caption = 
+            '3. Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 100 m' +
+            's)'
+          WordWrap = True
+        end
+        object EditcomUSB: TEdit
+          Left = 160
+          Top = 24
+          Width = 121
+          Height = 21
+          TabStop = False
+          TabOrder = 0
+          Text = 'EditcomUSB'
+        end
+        object EditTempoOctetUSB: TEdit
+          Left = 232
+          Top = 56
+          Width = 49
+          Height = 21
+          TabStop = False
+          TabOrder = 1
+          Text = 'EditTempoOctetUSB'
+        end
+        object EditTempoReponse: TEdit
+          Left = 232
+          Top = 88
+          Width = 49
+          Height = 21
+          TabStop = False
+          TabOrder = 2
+          Text = 'EditTempoReponse'
+        end
+      end
+      object GroupBox4: TGroupBox
+        Left = 8
+        Top = 144
+        Width = 297
+        Height = 81
+        Caption = '4. Ent'#234'te des trames vers l'#39'interface'
+        TabOrder = 1
+        object RadioButton1: TRadioButton
+          Left = 8
+          Top = 24
+          Width = 225
+          Height = 17
+          Caption = '0 : Sans ent'#234'te (interfaces s'#233'rie)'
+          TabOrder = 0
+        end
+        object RadioButton2: TRadioButton
+          Left = 8
+          Top = 40
+          Width = 225
+          Height = 17
+          Caption = '1 : Ent'#234'te FF FE (interfaces natives USB)'
+          TabOrder = 1
+        end
+        object RadioButton3: TRadioButton
+          Left = 8
+          Top = 56
+          Width = 265
+          Height = 17
+          Caption = '2 : Ent'#234'te E4 - Suffixe 0D 0D 0A (arduino XpressNet)'
+          TabOrder = 2
+        end
+      end
+      object GroupBox3: TGroupBox
+        Left = 8
+        Top = 232
+        Width = 297
+        Height = 73
+        Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ Ethernet'
+        TabOrder = 2
+        object Label7: TLabel
+          Left = 14
+          Top = 24
+          Width = 95
+          Height = 13
+          Caption = 'Adresse IP interface'
+        end
+        object Label8: TLabel
+          Left = 14
+          Top = 50
+          Width = 82
+          Height = 13
+          Caption = 'Port de l'#39'interface'
+        end
+        object EditIPLenz: TEdit
+          Left = 176
+          Top = 24
+          Width = 81
+          Height = 21
+          TabStop = False
+          TabOrder = 0
+          Text = 'EditIPLenz'
+        end
+        object EditportLenz: TEdit
+          Left = 176
+          Top = 48
+          Width = 81
+          Height = 21
+          TabStop = False
+          TabOrder = 1
+          Text = 'EditportLenz'
+        end
+      end
+      object Memo1: TMemo
+        Left = 312
+        Top = 8
+        Width = 257
+        Height = 97
+        BevelInner = bvLowered
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        Lines.Strings = (
+          '1. Port COM de l'#39'adresse USB de l'#39'interface LI-USB - '
+          'LI100 - LI100F - LI101F - GENLI.'
+          'Attention de COM1 '#224' 9 - Si le port de l'#39'interface '
+          'USB>9, il faut le changer manuellement dans le '
+          'gestionnaire des p'#233'riph'#233'riques. Mettre 0 si inutilis'#233'e. '
+          'Le programme ne tentera pas de se connecter '#224' la '
+          'centrale si CDM rail est d'#233'tect'#233'.')
+        ReadOnly = True
+        TabOrder = 3
+      end
+      object Memo2: TMemo
+        Left = 312
+        Top = 112
+        Width = 257
+        Height = 97
+        BevelInner = bvLowered
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        Lines.Strings = (
+          '2. Valeur de temporisation entre deux octets '
+          'transf'#233'r'#233's '#224' l'#39'interface. Elle peut '#234'tre nulle. Pour '
+          'les interfaces s'#233'rie sans protocole (0) comme le '
+          'GENLI, il est conseill'#233' de la positionner '#224' une '
+          'valeur de l'#39'ordre de 30 (ms). Pour les interfaces avec '
+          'protocole mat'#233'riel RTS-CTS (2) cette '
+          'variable est ignor'#233'e.')
+        ReadOnly = True
+        TabOrder = 4
+      end
+      object Memo3: TMemo
+        Left = 312
+        Top = 216
+        Width = 257
+        Height = 89
+        BevelInner = bvLowered
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        Lines.Strings = (
+          '3. Valeur maximale par tranche de 100 ms qui d'#233'finit '
+          'le temps d'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '
+          'une trame qui lui est transf'#233'r'#233'e. Cette valeur est '#224' '
+          'tester en fonction de votre interface. En cas de '
+          'd'#233'passement de la valeur, un message '#171' pas de '
+          'r'#233'ponse de l'#39'interface '#187' sera affich'#233'.')
+        ReadOnly = True
+        TabOrder = 5
+      end
+      object Memo4: TMemo
+        Left = 312
+        Top = 312
+        Width = 257
+        Height = 73
+        BevelInner = bvLowered
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        Lines.Strings = (
+          '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette '
+          'valeur doit '#234'tre '#224' 0. Pour les interfaces utilisant '
+          'nativement de l'#39'USB, cette valeur doit '#234'tre '#224' 1. La '
+          'valeur 2 est utilis'#233'e exclusivement pour des '
+          'interfaces '#224' base d'#39'arduino pour xpressnet.')
+        ReadOnly = True
+        TabOrder = 6
+      end
+      object GroupBox9: TGroupBox
+        Left = 8
+        Top = 312
+        Width = 297
+        Height = 41
+        Caption = 'Divers'
+        TabOrder = 7
+        object CheckBoxRazSignaux: TCheckBox
+          Left = 8
+          Top = 16
+          Width = 177
+          Height = 17
+          Hint = 'Envoie un 0 apr'#232's chaque commande sur un signal au d'#233'codeur'
+          Caption = 'Raz signaux apr'#232's commande'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+        end
+      end
     end
-    object CheckInfoVersion: TCheckBox
-      Left = 8
-      Top = 40
-      Width = 241
-      Height = 17
-      Caption = 'Information sur la version actuelle'
-      TabOrder = 1
+    object TabSheet1: TTabSheet
+      Caption = 'Aiguillages'
+      ImageIndex = 2
+      object Label12: TLabel
+        Left = 0
+        Top = 8
+        Width = 266
+        Height = 13
+        Caption = 'Liste de mod'#233'lisation des aiguillages du fichier config.cfg'
+      end
+      object MemoAig: TMemo
+        Left = 0
+        Top = 24
+        Width = 569
+        Height = 361
+        Color = clInfoText
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
     end
-    object CheckLanceCDM: TCheckBox
-      Left = 8
-      Top = 72
-      Width = 241
-      Height = 25
-      Caption = 'Lancer CDM Rail au d'#233'marrage'
-      TabOrder = 2
-      WordWrap = True
+    object TabSheet2: TTabSheet
+      Caption = 'Branches'
+      ImageIndex = 3
+      object Label14: TLabel
+        Left = 0
+        Top = 8
+        Width = 261
+        Height = 13
+        Caption = 'Liste de mod'#233'lisation des branches du fichier config.cfg'
+      end
+      object MemoBranches: TMemo
+        Left = 0
+        Top = 24
+        Width = 569
+        Height = 361
+        Color = clInfoText
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
     end
-    object CheckAvecTCO: TCheckBox
-      Left = 8
-      Top = 56
-      Width = 201
-      Height = 17
-      Caption = 'Avec TCO'
-      TabOrder = 3
+    object TabSheet3: TTabSheet
+      Caption = 'Signaux'
+      ImageIndex = 4
+      object Label15: TLabel
+        Left = 0
+        Top = 8
+        Width = 253
+        Height = 13
+        Caption = 'Liste de mod'#233'lisation des signaux du fichier config.cfg'
+      end
+      object MemoSignaux: TMemo
+        Left = 0
+        Top = 24
+        Width = 569
+        Height = 361
+        Color = clInfoText
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
     end
-    object EditNomLay: TEdit
-      Left = 16
-      Top = 130
-      Width = 241
-      Height = 21
-      TabOrder = 4
-      Text = 'EditNomLay'
-    end
-  end
-  object GroupBox6: TGroupBox
-    Left = 8
-    Top = 264
-    Width = 273
-    Height = 169
-    Caption = 'Au d'#233'marrage de CDM Rail : interface '
-    TabOrder = 7
-    object RadioButton4: TRadioButton
-      Left = 8
-      Top = 16
-      Width = 185
-      Height = 17
-      Caption = 'Ne pas d'#233'marrer d'#39'interface'
-      TabOrder = 0
-    end
-    object RadioButton5: TRadioButton
-      Left = 8
-      Top = 32
-      Width = 225
-      Height = 17
-      Caption = 'XpressNet (lenz.roco)'
-      TabOrder = 1
-    end
-    object RadioButton6: TRadioButton
-      Left = 8
-      Top = 48
-      Width = 217
-      Height = 17
-      Caption = 'P50X intellibox'
-      TabOrder = 2
-    end
-    object RadioButton7: TRadioButton
-      Left = 8
-      Top = 64
-      Width = 249
-      Height = 17
-      Caption = 'Sprog'
-      TabOrder = 3
-    end
-    object RadioButton8: TRadioButton
-      Left = 8
-      Top = 80
-      Width = 113
-      Height = 17
-      Caption = 'HSI88/HSI88-USB'
-      TabOrder = 4
-    end
-    object RadioButton9: TRadioButton
-      Left = 8
-      Top = 96
-      Width = 193
-      Height = 17
-      Caption = 'ECOS ESU'
-      TabOrder = 5
-    end
-    object RadioButton10: TRadioButton
-      Left = 8
-      Top = 128
-      Width = 233
-      Height = 17
-      Caption = 'FIS88 FeedBack (S88/S88N)'
-      TabOrder = 6
-    end
-    object RadioButton11: TRadioButton
-      Left = 8
-      Top = 112
-      Width = 209
-      Height = 17
-      Caption = 'RS2PC (Rs FeedBack interface)'
-      TabOrder = 7
-    end
-    object RadioButton12: TRadioButton
-      Left = 8
-      Top = 144
-      Width = 209
-      Height = 17
-      Caption = 'DCC++'
-      TabOrder = 8
-    end
-  end
-  object GroupBox7: TGroupBox
-    Left = 8
-    Top = 440
-    Width = 273
-    Height = 145
-    Caption = 'Au d'#233'marrage de CDM Rail : interface de'
-    TabOrder = 8
-    object Label10: TLabel
-      Left = 8
-      Top = 16
-      Width = 146
-      Height = 13
-      Caption = 'r'#233'trosignalisation pour RS Lenz'
-    end
-    object RadioButton13: TRadioButton
-      Left = 8
-      Top = 32
-      Width = 209
-      Height = 17
-      Caption = 'Automatique'
-      TabOrder = 0
-    end
-    object RadioButton14: TRadioButton
-      Left = 8
-      Top = 48
-      Width = 217
-      Height = 17
-      Caption = 'LI-USB'
-      TabOrder = 1
-    end
-    object RadioButton15: TRadioButton
-      Left = 8
-      Top = 64
-      Width = 217
-      Height = 17
-      Caption = 'LI-101F'
-      TabOrder = 2
-    end
-    object RadioButton16: TRadioButton
-      Left = 8
-      Top = 80
-      Width = 217
-      Height = 17
-      Caption = 'LI-100F'
-      TabOrder = 3
-    end
-    object RadioButton17: TRadioButton
-      Left = 8
-      Top = 96
-      Width = 209
-      Height = 17
-      Caption = 'LI-100'
-      TabOrder = 4
-    end
-    object RadioButton18: TRadioButton
-      Left = 8
-      Top = 112
-      Width = 113
-      Height = 17
-      Caption = 'Genli'
-      TabOrder = 5
+    object TabSheet4: TTabSheet
+      Caption = 'Actionneurs'
+      ImageIndex = 5
+      object Label16: TLabel
+        Left = 0
+        Top = 8
+        Width = 272
+        Height = 13
+        Caption = 'Liste de mod'#233'lisation des actionneurs du fichier config.cfg'
+      end
+      object MemoAct: TMemo
+        Left = 0
+        Top = 24
+        Width = 569
+        Height = 361
+        Color = clInfoText
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
     end
   end
 end

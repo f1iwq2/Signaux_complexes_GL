@@ -30,6 +30,7 @@ type
     CheckBoxAct: TCheckBox;
     CheckBoxEvtDetAig: TCheckBox;
     CheckBoxAffFD: TCheckBox;
+    CheckBoxAffDebDecSig: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -46,6 +47,7 @@ type
     procedure CheckBoxActClick(Sender: TObject);
     procedure CheckBoxEvtDetAigClick(Sender: TObject);
     procedure CheckBoxAffFDClick(Sender: TObject);
+    procedure CheckBoxAffDebDecSigClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -60,7 +62,7 @@ Max_Trains=50;
 var
   FormDebug: TFormDebug;
   NivDebug : integer;
-  AffSignal,AffAffect,initform,AffFD : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   event_det : array[1..Max_event_det] of integer;
   event_det_train : array[1..Max_Trains] of record
@@ -294,5 +296,11 @@ procedure TFormDebug.CheckBoxAffFDClick(Sender: TObject);
 begin
   AffFD:=CheckBoxAffFD.checked;
 end;
+
+procedure TFormDebug.CheckBoxAffDebDecSigClick(Sender: TObject);
+begin
+  debug_dec_sig:=CheckBoxAffDebDecSig.checked;
+end;
+
 
 end.

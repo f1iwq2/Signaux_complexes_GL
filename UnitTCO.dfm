@@ -847,6 +847,15 @@ object FormTCO: TFormTCO
       WordWrap = True
       OnClick = ButtonMasquerClick
     end
+    object ButtonConstruit: TButton
+      Left = 880
+      Top = 88
+      Width = 89
+      Height = 33
+      Caption = 'Construit TCO'
+      TabOrder = 12
+      OnClick = ButtonConstruitClick
+    end
   end
   object ButtonAfficheBandeau: TButton
     Left = 1051

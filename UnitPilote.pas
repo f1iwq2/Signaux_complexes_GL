@@ -227,6 +227,7 @@ begin
   begin
     EtatSignalCplx[AdrPilote]:=EtatSignalCplx[0];
     //Affiche(IntToSTR(EtatSignalCplx[AdrPilote]),clyellow);
+    feux[i].EtatSignal:=EtatSignalCplx[0];
     envoi_signal(AdrPilote);
   end
   else

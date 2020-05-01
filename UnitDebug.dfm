@@ -48,9 +48,9 @@ object FormDebug: TFormDebug
   end
   object Label3: TLabel
     Left = 448
-    Top = 136
+    Top = 168
     Width = 97
-    Height = 225
+    Height = 193
     AutoSize = False
     Caption = 'Label3'
     Color = clGray
@@ -80,7 +80,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 552
-    Top = 376
+    Top = 408
     Width = 233
     Height = 221
     Color = clBlack
@@ -132,8 +132,8 @@ object FormDebug: TFormDebug
     OnClick = CheckAffSigClick
   end
   object ButtonRazTampon: TButton
-    Left = 688
-    Top = 600
+    Left = 448
+    Top = 576
     Width = 97
     Height = 33
     Caption = 'Raz Tampon Ev'#232'nements'
@@ -202,7 +202,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 552
-    Top = 136
+    Top = 168
     Width = 233
     Height = 233
     HideScrollBars = False
@@ -265,6 +265,21 @@ object FormDebug: TFormDebug
     ParentFont = False
     TabOrder = 15
     OnClick = CheckBoxAffFDClick
+  end
+  object CheckBoxAffDebDecSig: TCheckBox
+    Left = 448
+    Top = 128
+    Width = 321
+    Height = 17
+    Caption = 'Affichage du pilotage des d'#233'codeurs de signaux'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 16
+    OnClick = CheckBoxAffDebDecSigClick
   end
   object SaveDialog: TSaveDialog
     Left = 760

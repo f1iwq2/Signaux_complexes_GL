@@ -93,6 +93,7 @@ type
     Label29: TLabel;
     ImagePalette22: TImage;
     Label30: TLabel;
+    ButtonConstruit: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -245,6 +246,7 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure EditAdrElementKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ButtonConstruitClick(Sender: TObject);
     
   private
     { Déclarations privées }
@@ -1242,7 +1244,7 @@ begin
     Brush.Color:=clVoies;
     pen.color:=clVoies;
    
-    // aiguillage dévié (sans inversion)
+    // aiguillage dévié (sans inversion) ou position inconnue (9) 
     if ((inverse=false) and (position=const_Devie)) or
        ((inverse=true)  and (position=const_Droit)) or
        (position=9) then
@@ -1252,7 +1254,7 @@ begin
       horz;
       if mode=1 then
       begin
-        // morceau de diag à tracer en clAllume
+        // morceau de diagonale à tracer en clAllume
         x1:=x0+largeurCell-round(3*frXGlob);y1:=y0;
         x2:=x0+largeurCell;y2:=y0+round(4*FryGlob);
         x3:=x0+(largeurCell div 2)+round(4*frXGlob);y3:=jy2;
@@ -1260,9 +1262,10 @@ begin
         canvas.PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
       end;
       
-      // efface le morceau
+      // efface le morceau  
       if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then 
+         ((inverse=true)  and (position=const_Droit)) then
+      begin 
         // efface le morceau
         x1:=x0+round(12*frXGlob);y1:=jy2; 
         x2:=x1+round(20*frxGlob);y2:=y1;
@@ -1272,6 +1275,7 @@ begin
         Brush.Color:=fond;
         Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
       end;
+    end;
     
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
     if ((inverse=false) and (position=const_Droit)) or
@@ -1282,7 +1286,6 @@ begin
       diagonale;
 
       // efface le morceau
-      if (position=const_Droit) then
       x1:=x0+round(19*frXGlob);y1:=jy1;
       x2:=x1+round(6*frxGlob);y2:=y1;
       x3:=x2-round(12*FrxGlob);y3:=y2+round(12*fryGlob);
@@ -1291,7 +1294,7 @@ begin
       Brush.Color:=fond;
       Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
     end;  
-  end;  
+  end;
 end;
 
 // Element 14
@@ -2262,12 +2265,12 @@ end;
 // transforme les branches en TCO
 // trop compliqué. Il faudra dessiner son TCO soit meme
 procedure construit_TCO;
-var x,y,i,j,Max,indexMax : integer;
+var x,y,i,j,Max,indexMax,Btype,Adresse,ligne,AdrSuiv,Bimage : integer;
 begin
   // étape 0 Raz du TCO
-  for y:=1 to 20 do
-    for x:=1 to 20 do
-    begin
+  for y:=1 to NbreCellY do
+    for x:=1 to NbreCellX do
+    begin                        
       TCO[x,y].Adresse:=0;
       TCO[x,y].Btype:=0;
     end;  
@@ -2285,10 +2288,33 @@ begin
   Affiche('La branche la plus grande a pour index '+IntToSTR(IndexMax),clOrange);
 
   // stocker cette branche au milieu du TCO (en 5)
+  ligne:=5;
   for i:=1 to Max do
   begin
-    TCO[i,5].Adresse:=BrancheN[IndexMax,i].Adresse;
-    TCO[i,5].Btype:=BrancheN[IndexMax,i].Btype;
+    Adresse:=BrancheN[IndexMax,i].Adresse;
+    Btype:=BrancheN[IndexMax,i].Btype;
+    TCO[i,ligne].Adresse:=Adresse;
+    TCO[i,ligne].Btype:=Btype;
+    // Btype 1= détecteur  2= aiguillage 3=bis 4=Buttoir
+    if Btype=1 then TCO[i,ligne].BImage:=1;
+    if Btype=2 then
+    begin
+     // A20,547,561,A22,A24,A26,515,518,A31,A29,A28,A30,539,522,A3,A1,A2,A4,A6B,545,A5B,A3
+     //20,P8P,D547,S548  // 22,P24P,S561,D25S
+     // on se réfère au suivant
+     AdrSuiv:=BrancheN[IndexMax,i+1].Adresse;
+     // connecté sur position droite : la pointe est à gauche
+     if aiguillage[adresse].Adroit=AdrSuiv then 
+       Bimage:=3; // ou 4
+     // connecté sur position déviée : la pointe est à gauche, mais il faut changer de ligne
+     if aiguillage[adresse].Adevie=AdrSuiv then 
+       Bimage:=4; // ou 4
+     // connecté sur pointe : la pointe est à droite
+     if aiguillage[adresse].Apointe=AdrSuiv then 
+       Bimage:=5; // ou 2
+     TCO[i,ligne].BImage:=Bimage;
+   end;
+    
   end;
 end;
 
@@ -2307,8 +2333,9 @@ begin
   // récupérer la position de l'aiguillage
   if (bImage>=2) and (btype<=14) then 
   begin
-    if Adresse<>0 then  pos:=Aiguillage[adresse].position
-    else pos:=9;
+    if Adresse<>0 then pos:=Aiguillage[adresse].position
+    
+    else pos:=9;       
   end;  
 
   Xorg:=(x-1)*LargeurCell;
@@ -3868,8 +3895,8 @@ end;
 
 procedure TFormTCO.Button1Click(Sender: TObject);
 begin
-    Detecteur[569]:=true;
-   Maj_tco(569); 
+   Detecteur[569]:=true;
+   Maj_tco(569);
 end;
 
 
@@ -4181,6 +4208,10 @@ begin
   ScrollBox.Height:=ClientHeight-Panel1.Height-40;
 end;
 
+procedure TFormTCO.ButtonConstruitClick(Sender: TObject);
+begin
+  construit_TCO;
+end;
 
 begin
 

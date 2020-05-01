@@ -4,43 +4,29 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ;
 
 type
   TFormConfig = class(TForm)
-    GroupBox1: TGroupBox;
-    Label1: TLabel;
-    EditAdrIPCDM: TEdit;
-    Label2: TLabel;
-    EditPortCDM: TEdit;
-    GroupBox2: TGroupBox;
-    Label3: TLabel;
-    EditcomUSB: TEdit;
-    Label4: TLabel;
-    EditTempoOctetUSB: TEdit;
-    Label5: TLabel;
-    EditTempoReponse: TEdit;
     ButtonAppliquerEtFermer: TButton;
-    GroupBox3: TGroupBox;
-    Label7: TLabel;
-    EditIPLenz: TEdit;
-    Label8: TLabel;
-    EditportLenz: TEdit;
-    GroupBox4: TGroupBox;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
     LabelInfo: TLabel;
     Button2: TButton;
-    Label11: TLabel;
-    Label12: TLabel;
+    Image1: TImage;
+    PageControl: TPageControl;
+    TabSheetCDM: TTabSheet;
+    TabSheetAutonome: TTabSheet;
+    GroupBox1: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
+    EditAdrIPCDM: TEdit;
+    EditPortCDM: TEdit;
     GroupBox5: TGroupBox;
+    Label13: TLabel;
     CheckVerifVersion: TCheckBox;
     CheckInfoVersion: TCheckBox;
     CheckLanceCDM: TCheckBox;
     CheckAvecTCO: TCheckBox;
     EditNomLay: TEdit;
-    Label13: TLabel;
     GroupBox6: TGroupBox;
     RadioButton4: TRadioButton;
     RadioButton5: TRadioButton;
@@ -52,19 +38,60 @@ type
     RadioButton11: TRadioButton;
     RadioButton12: TRadioButton;
     GroupBox7: TGroupBox;
+    Label10: TLabel;
     RadioButton13: TRadioButton;
     RadioButton14: TRadioButton;
     RadioButton15: TRadioButton;
     RadioButton16: TRadioButton;
     RadioButton17: TRadioButton;
     RadioButton18: TRadioButton;
-    Label14: TLabel;
+    GroupBox2: TGroupBox;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    EditcomUSB: TEdit;
+    EditTempoOctetUSB: TEdit;
+    EditTempoReponse: TEdit;
+    GroupBox4: TGroupBox;
+    RadioButton1: TRadioButton;
+    RadioButton2: TRadioButton;
+    RadioButton3: TRadioButton;
+    GroupBox3: TGroupBox;
+    Label7: TLabel;
+    Label8: TLabel;
+    EditIPLenz: TEdit;
+    EditportLenz: TEdit;
+    GroupBox8: TGroupBox;
+    CheckBoxServAig: TCheckBox;
+    CheckBoxServDet: TCheckBox;
+    CheckBoxServAct: TCheckBox;
+    CheckServPosTrains: TCheckBox;
+    Label6: TLabel;
     Label9: TLabel;
-    Label10: TLabel;
-    Image1: TImage;
+    Label11: TLabel;
+    TabSheet1: TTabSheet;
+    MemoAig: TMemo;
+    Label12: TLabel;
+    TabSheet2: TTabSheet;
+    Label14: TLabel;
+    MemoBranches: TMemo;
+    TabSheet3: TTabSheet;
+    MemoSignaux: TMemo;
+    Label15: TLabel;
+    TabSheet4: TTabSheet;
+    Label16: TLabel;
+    MemoAct: TMemo;
+    CheckBoxSrvSig: TCheckBox;
+    Memo1: TMemo;
+    Memo2: TMemo;
+    Memo3: TMemo;
+    Memo4: TMemo;
+    GroupBox9: TGroupBox;
+    CheckBoxRazSignaux: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -120,8 +147,45 @@ begin
   place_id:=s;
 end;
 
+function services_CDM : boolean;
+var s,ss : string;
+    i : integer;
+begin
+  //s:=place_id('C-C-00-0002-RQSERV-RTSIM|030|03|SRV=ATNT;SRV=ADET;SRV=AACT;');
+  s:=place_id('C-C-00-0002-RQSERV-RTSIM|xxx|xx|');
+  i:=0;
+  if Srvc_Aig then begin s:=s+'SRV=ATNT;';inc(i);end;
+  if Srvc_Act then begin s:=s+'SRV=AACT;';inc(i);end;
+  if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;
+  if Srvc_PosTrain then  begin s:=s+'SRV=TSXY;';inc(i);end ;
+  if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;
+   
+  // insère le nombre de paramètres
+  ss:=format('%.*d',[2,i]) ;
+  delete(s,30,2);
+  insert(ss,s,30);
+  // insère la longueur des paramètres
+  i:=length(s)-29;
+  ss:=format('%.*d',[3,i]) ;
+  delete(s,26,3);
+  insert(ss,s,26);
+  //Affiche(s,clyellow);
+  envoi_CDM(s);sleep(100);
+  if pos('_ACK',recuCDM)<>0 then 
+  begin
+    s:='Services acceptés: ';
+    if Srvc_Aig then s:=s+'- aiguillages ';
+    if Srvc_Act then s:=s+'- actionneurs ';
+    if Srvc_Det then s:=s+'- détecteurs ';
+    if Srvc_PosTrain then s:=s+'- position des trains ';
+    if Srvc_sig then s:=s+'- état des signaux ';
+    Affiche(s,clYellow);
+  end;  
+  services_CDM:=pos('_ACK',recuCDM)<>0;
+end;
+  
 procedure connecte_CDM;
-var s : string;
+var s , ss : string;
     i : integer;
 begin
   // déconnexion de l'ancienne liaison éventuelle
@@ -158,10 +222,9 @@ begin
       Affiche(s,clYellow);
       AfficheDebug(s,clyellow);
 
-      // demande des services : ATNT=aiguillages, ADET=détecteurs AACT=actionneurs
-      s:=place_id('C-C-00-0002-RQSERV-RTSIM|030|03|SRV=ATNT;SRV=ADET;SRV=AACT;');
-      envoi_CDM(s);
-      if pos('_ACK',recuCDM)<>0 then Affiche('Services acceptés: aiguillages - détecteurs - actionneurs',clYellow);
+      // demande des services
+      services_CDM;
+      
       // demande les trains
       s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
       envoi_CDM(s);
@@ -410,7 +473,7 @@ begin
   copie_commentaire;
   
   closefile(fichier);
-  closefile(fichierN);  
+  closefile(fichierN);
   
   deletefile('config.cfg');
   deletefile('client-GL.cfg');
@@ -423,7 +486,7 @@ end;
 procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
 var i,erreur : integer;
     s : string;
-    ChangeCDM,changeInterface,changeUSB : boolean;
+    ChangeCDM,changeInterface,changeUSB,change_srv : boolean;
 begin
   // contrôle adresse IP CDM
   s:=EditAdrIPCDM.text;
@@ -492,6 +555,7 @@ begin
   notificationVersion:=CheckInfoVersion.Checked;
 
   LanceCDM:=CheckLanceCDM.Checked;
+  
   AvecTCO:=CheckAvecTCO.checked;
   Lay:=EditNomLay.Text;
   if RadioButton4.Checked then ServeurInterfaceCDM:=0;
@@ -511,7 +575,23 @@ begin
   if RadioButton17.Checked then ServeurRetroCDM:=5;
   if RadioButton18.Checked then ServeurRetroCDM:=6;
 
-  // générer le fichier clieng-GL.cfg
+  // changement sur les services CDM ?
+  change_srv:=Srvc_Aig<>CheckBoxServAig.checked;
+  change_srv:=Srvc_Det<>CheckBoxServDet.checked or change_srv;
+  change_srv:=Srvc_Act<>CheckBoxServAct.checked or change_srv;
+  change_srv:=Srvc_PosTrain<>CheckServPosTrains.checked or change_srv;
+  change_srv:=Srvc_Sig<>CheckBoxSrvSig.checked or change_srv;
+  
+  Srvc_Aig:=CheckBoxServAig.checked;
+  Srvc_Det:=CheckBoxServDet.checked;
+  Srvc_Act:=CheckBoxServAct.checked;
+  Srvc_PosTrain:=CheckServPosTrains.checked;
+  Srvc_Sig:=CheckBoxSrvSig.checked;
+  Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
+
+  if change_srv then services_CDM;
+  
+  // générer le fichiers config.cfg et clieng-GL.cfg
   genere_config2;
   formConfig.close;
 end;
@@ -522,6 +602,7 @@ begin
 end;
 
 procedure TFormConfig.FormActivate(Sender: TObject);
+var i : integer;
 begin
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
@@ -563,7 +644,36 @@ begin
   RadioButton16.Checked:=ServeurRetroCDM=4;
   RadioButton17.Checked:=ServeurRetroCDM=5;
   RadioButton18.Checked:=ServeurRetroCDM=6;
+
+  CheckBoxServAig.checked:=Srvc_Aig;
+  CheckBoxServDet.checked:=Srvc_Det;
+  CheckBoxServAct.checked:=Srvc_Act;
+  CheckServPosTrains.checked:=Srvc_PosTrain;
+  CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+                
 end;
+
+
+
+procedure TFormConfig.FormCreate(Sender: TObject);
+var i : integer;
+begin
+  // remplit les 4 fenêtres de config des aiguillages branches signaux, actionneurs
+  for i:=1 to MaxAiguillage do
+    MemoAig.Lines.Add(mod_aiguillages[i]);
+  for i:=1 to NbreBranches do
+    MemoBranches.Lines.Add(mod_Branches[i]);
+  for i:=1 to NbreFeux do
+    MemoSignaux.Lines.Add(mod_Signaux[i]);
+  for i:=1 to maxTablo_act do
+    MemoAct.Lines.Add(mod_Act[i]);
+  PageControl.ActivePage:=TabSheetCDM;  // force le premier onglet sur la page
+end;
+
+
+
+
+
 
 
 

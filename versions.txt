@@ -19,5 +19,6 @@ Version 1.44 : Gestion trains avec voitures éclairées
 Version 1.45 : Rejette les n° d'objets supérieurs aiguillages à la même adresse
 Version 1.5  : Nouvel algorithme de suivi des trains - Gestion des feux provenant de voies en buttoir
 Version 1.6  : Implémentation du TCO. Ouverture de CDM rail au démarrage avec LAY à la demande
-
+Version 1.7  : Sauvegarde de la configuration dans les fichier client_gl.cfg et config.cfg si modification des paramètres depuis le menu de configuration.
+               Feu violet disponible sur signaux à 5, 7 et 9 feux.
 

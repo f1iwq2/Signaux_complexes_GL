@@ -158,14 +158,22 @@ type
 
 const
 titre='Signaux complexes GL ';
-tempoFeu = 100;
-MaxAcc = 2048;
+tempoFeu=100;
+MaxAcc=2048;
 LargImg=50;HtImg=91;
 const_droit=2;const_devie=1;  // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;  // positions aiguillages transmises par cdm
 const_devieD_CDM=2;  // positions aiguillages transmises par cdm
 const_droit_CDM=0;   // positions aiguillages transmises par cdm
-
+ClBleuClair=$FF7070 ;
+Cyan=$FFA0A0;
+clviolet=$FF00FF;
+GrisF=$414141;
+clOrange=$0077FF;
+Feu_X=50;Feu_Y=91;
+Max_Simule=10000;
+NbCouleurTrain=8;
+couleurTrain : array[1..NbCouleurTrain] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
 
@@ -181,7 +189,7 @@ type TBranche = record
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
                  inversion : integer;       // pilotage inversé pour la commande (en mode sans CDM) 0=normal 1=inversé
-                 InversionCDM : integer ;   // inversion pour les aiguillages BIS en lecture (pour parer bug CDM)
+                 InversionCDM : integer ;   // inversion pour les aiguillages BIS en lecture 
                  vitesse : integer;         // vitesse de franchissement de l"aiguillage en position déviée (60 ou 90)
 
                  ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
@@ -209,40 +217,28 @@ type TBranche = record
 Taccessoire     = (aig,feu);
 TMA             = (valide,devalide);
 
-
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
-    AvecInitAiguillages,tempsCli,combine,NbreFeux,pasreponse,AdrDevie,
-    NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-    Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
-    ServeurRetroCDM,TailleFonte : integer;
+  AvecInitAiguillages,tempsCli,NbreFeux,pasreponse,AdrDevie,
+  NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
+  Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
+  ServeurRetroCDM,TailleFonte : integer;
     
-    Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,PremierFD,
-    NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,
-    TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM : boolean;
+  Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,PremierFD,
+  NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,
+  TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM : boolean;
 
-    CDMhd : THandle;
+  CDMhd : THandle;
 
-    branche : array [1..100] of string;
+  branche : array [1..100] of string;
 
-const
-  ClBleuClair=$FF7070 ;
-  Cyan=$FFA0A0;
-  clviolet=$FF00FF;
-  GrisF=$414141;
-  clOrange=$0077FF;
-  Feu_X=50;Feu_Y=91;
-  Max_Simule=10000;
-  NbCouleurTrain=8;
-  couleurTrain : array[1..NbCouleurTrain] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
-
-var
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
-  DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO,terminal : boolean;
+  DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,
+  Srvc_PosTrain,Srvc_Sig : boolean;
   tablo : array of byte;  // tableau rx usb
   Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,
   entete,suffixe,ConfStCom,LAY : string;
-  maxaiguillage,detecteur_chgt,Temps,TpsRecuCom,Tempo_init,Suivant,TypeGen,
+  maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,TypeGen,
   NbreImagePligne,NbreBranches,Index2_det,branche_det,Index_det,
   I_simule,maxTablo_act,NbreVoies,AdresseFeuSuivant,El_suivant : integer;
   Ancien_detecteur,detecteur : array[0..1024] of boolean;  // anciens état des détecteurs et adresses des détecteurs et leur état
@@ -261,7 +257,7 @@ var
     actionneur,etat,fonction,tempo : integer;
     train : string;
   end;
-
+  
   Tablo_PN : array[1..20] of
   record
     AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture
@@ -285,12 +281,14 @@ var
   couleur : Tcolor;
   fichier : text;
   tick,Premier_tick : longint;
-
+  // modélisations des fichiers config
+  mod_aiguillages,mod_signaux,mod_branches,mod_act : array[1..100] of string;
+  
   // l'indice du tableau aiguillage est son adresse
   aiguillage : array[0..MaxAcc] of Taiguillage;
   aiguillageB : array[0..MaxAcc] of Taiguillage;
 
-  // signaux/ L'index du tableau n'est pas l'adresse du feu
+  // signaux de la fenêtre de droite - L'index du tableau n'est pas l'adresse du feu
   feux : array[1..MaxAcc] of record
                  adresse, aspect : integer; // adresse du feu, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
                  Img : TImage;              // Pointeur sur structure TImage du feu
@@ -370,12 +368,35 @@ begin
   StatusBar1.Simpletext:=Application.Hint;
 end;
 
-// conversion du motif de bits de la configuration du signal complexe en deux mots:
-// premier mot : (retour de la fonction=(premiers bits)code de la signalisation
-// deuxième mot: variable Combine = code de la signalisation combinée
-// Exemple code_to_aspect(10001000000000)  renvoie jaune et Combine=rappel_30
-function code_to_aspect(codebin : word) : word;
-var i,mot,premierbit : word;
+// renvoie le 1er numéro de bit à 1
+// ex BitNum(4)=2
+Function BitNum(n : word) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  i:=0;
+  repeat
+    trouve:=(n and 1)=1 ;
+    if not(trouve) then inc(i);
+    n:=n shr 1;
+  until (i=16) or trouve;
+  BitNum:=i;
+end;
+
+// conversion du motif de bits (codebin) de la configuration du signal complexe en deux mots:
+// en sortie :
+// premierBit : code de la signalisation
+// Combine = code de la signalisation combinée
+// Exemple code_to_aspect(10001000000000)  renvoie premierBit=jaune_cli (9) et Combine=rappel 60 (13)
+procedure code_to_aspect(codebin : word;var premierbit,combine : word) ;
+var i,mot : word;
+begin
+  premierBit:=BitNum(CodeBin and $3ff);
+  combine:=BitNum(CodeBin and $fc00);
+end;
+
+procedure Xcode_to_aspect(codebin : word;var premierbit,combine : word) ;
+var i,mot : word;
 begin
   mot:=codebin;
   i:=0;premierbit:=0;Combine:=0;
@@ -384,12 +405,11 @@ begin
   begin
     if (mot and 1)=1 then  // si bit 0 du mot est à 1
     begin
-       if (premierbit=0) then premierbit:=i else Combine:=i;
+       if (premierbit=0) then premierbit:=i+1 else Combine:=i+1;
     end;
     mot:=mot shr 1; //décaler à droite
     inc(i);
   end;
-  code_to_aspect:=premierbit;
 end;
 
 // dessine un cercle plein dans le feu
@@ -406,11 +426,12 @@ end;
 
 // dessine les feux sur une cible à 2 feux
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-var Temp,code,rayon,xViolet,YViolet,xBlanc,yBlanc,
+var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage : integer;
     ech : real;
+    code,combine : word;
 begin
-  code:=code_to_aspect(Etatsignal); // et aspect
+  code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
 
   // récupérer les dimensions de l'image d'origine du feu
@@ -451,12 +472,13 @@ end;
 
 // dessine les feux sur une cible à 3 feux
 procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-var Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
+var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage : integer;
     s : string;
     ech : real;
+    code,combine : word;
 begin
-  code:=code_to_aspect(Etatsignal); // et aspect
+  code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
 
   LgImage:=Formprinc.Image3feux.Picture.Bitmap.Width;
@@ -501,11 +523,12 @@ end;
 // dessine les feux sur une cible à 4 feux
 // orientation=1 vertical 
 procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-var Temp,code,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
+var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage : integer;
     ech : real;
+    code,combine : word;
 begin
-  code:=code_to_aspect(Etatsignal); // et aspect
+  code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
 
   LgImage:=Formprinc.Image4feux.Picture.Bitmap.Width;
@@ -561,11 +584,12 @@ end;
 
 // dessine les feux sur une cible à 5 feux
 procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-var code, XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
+var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
     Temp,rayon,LgImage,HtImage : integer;
     ech : real;
+    code,combine : word;
 begin
-  code:=code_to_aspect(Etatsignal); // et aspect
+  code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
   XBlanc:=13; YBlanc:=22;
   xJaune:=13; yJaune:=55;
@@ -612,10 +636,11 @@ begin
   if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
-
+  
   //allumages
   if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
   if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
   if code=carre then
   begin
     cercle(ACanvas,xcarre,ycarre,rayon,clRed);
@@ -628,11 +653,12 @@ end;
 
 // dessine les feux sur une cible à 7 feux
 procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-var code, XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
+var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Temp,rayon,LgImage,HtImage : integer;
     ech : real;
+    code,combine : word;
 begin
-  code:=code_to_aspect(Etatsignal); // et combine
+  code_to_aspect(Etatsignal,code,combine); // et combine
   rayon:=round(6*frX);
   XBlanc:=13; YBlanc:=23;
   Xral1:=13;  YRal1:=11;
@@ -701,6 +727,7 @@ begin
   if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
   if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
   if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
   if code=carre then
   begin
     cercle(ACanvas,xCarre,yCarre,rayon,clRed);
@@ -710,14 +737,15 @@ end;
 
 // dessine les feux sur une cible à 9 feux
 procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
-var code,rayon, 
+var rayon, 
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp          : integer;
     LgImage,HtImage,xt,yt : integer;
     ech : real;
+    code,combine : word;
 begin
   rayon:=round(6*frX);
-  code:=code_to_aspect(Etatsignal); // et aspect
+  code_to_aspect(Etatsignal,code,combine); // et aspect
   // mise à l'échelle des coordonnées des feux en fonction du facteur de réduction frX et frY et x et y (offsets)
 
   XBlanc:=13; YBlanc:=36;
@@ -804,7 +832,8 @@ begin
   if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clRed);
   if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
   if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
-
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  
   if code=carre then
   begin
     cercle(ACanvas,xcarre,yCarre,rayon,clRed);
@@ -1443,9 +1472,11 @@ begin
   if CDM_connecte then
   begin
     //AfficheDebug(intToSTR(adresse),clred);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
     s:=chaine_CDM_Acc(adresse,octet);
     envoi_CDM(s);
     if (acc=feu) and not(Raz_Acc_signaux) then exit;
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
     s:=chaine_CDM_Acc(adresse,0);
     envoi_CDM(s);
     exit;
@@ -1460,12 +1491,15 @@ begin
     begin
       if octet=1 then octet:=2 else octet:=1;
     end;
+
     if (octet=0) or (octet>2) then exit;
+    //if (octet>2) then exit;
     groupe:=(adresse-1) div 4;
     fonction:=((adresse-1) mod 4)*2 + (octet-1);
     // pilotage à 1
     s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
     s:=checksum(s);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
     envoi(s);     // envoi de la trame et attente Ack
     // si l'accessoire est un feu et sans raz des signaux, sortir
     if (acc=feu) and not(Raz_Acc_signaux) then exit;
@@ -1482,6 +1516,7 @@ begin
     // pilotage à 0 pour éteindre le pilotage de la bobine du relais
     s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
     s:=checksum(s);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
     envoi(s);     // envoi de la trame et attente Ack
   end;
 end;
@@ -1526,9 +1561,10 @@ begin
   envoi(s);
 end;
 
+// fonctions sur les bits
 function testBit(n : word;position : integer) : boolean;
 begin
-   testBit:=n and (1 shl position) = (1 shl position);
+  testBit:=n and (1 shl position) = (1 shl position);
 end;
 
 Function RazBit(n : word;position : integer) : word;
@@ -1541,12 +1577,30 @@ begin
   SetBit:=n or (1 shl position);
 end;
 
+
+
+// renvoie la chaîne de l'état du signal
+function chaine_signal(etat : word) : string;
+var aspect,combine : word;
+    s : string;
+begin
+  code_to_aspect(etat,aspect,combine);       
+  s:=''; 
+  if aspect=16 then s:='' else s:=etatSign[aspect];
+  if combine<>16 then 
+  begin
+    if aspect<>16 then s:=s+'+';
+    s:=s+etatSign[combine];
+  end;
+  chaine_signal:=s;  
+end;
+
 // mise à jour état signal complexe dans le tableau de bits du signal EtatSignalCplx */
 // adresse : adresse du signal complexe
 // Aspect : code représentant l'état du signal de 0 à 15
 procedure Maj_Etat_Signal(adresse,aspect : integer);
+var i : integer;
 begin
-
   if testBit((EtatSignalCplx[adresse]),aspect)=false then  // si le bit dans l'état du signal n'est pas allumé, procéder.
   begin
     // effacement du motif de bits en fonction du nouvel état demandé suivant la règle des signaux complexes
@@ -1592,6 +1646,9 @@ begin
       // Affiche(IntToSTR(EtatSignalCplx[adresse]),clyellow);
     end;
   end;
+  // mise à jour de l'état du signal dans le tableau Feux
+  i:=Index_feu(adresse);
+  feux[i].EtatSignal:=EtatSignalCplx[adresse]; 
 end;
 
 
@@ -1706,17 +1763,18 @@ end;
 envoie les données au décodeur CDF pour un signal
 ===========================================================================*}
 procedure envoi_CDF(adresse : integer);
-var code,aspect,index : integer;
+var index : integer;
+  code,aspect,combine : word;
+  s : string;
 begin
-  index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
-  code:=feux[index].aspect; // aspect du feu;
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-    aspect:=code_to_aspect(code);
-    if traceSign then affiche('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
-    if Affsignal then afficheDebug('Signal CDF: '+intToSTR(adresse)+' '+intToSTR(code),clOrange);
-  
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);      
+    s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange); 
   
     if (aspect=carre)     then pilote_acc(adresse,2,feu) ;
     if (aspect=semaphore) then pilote_acc(adresse,1,feu) ;
@@ -1727,15 +1785,15 @@ begin
 
     // signalisation combinée  - rappel 30 + avertissement - à tester......
     if (Combine=0)      then pilote_acc(adresse+2,1,feu) ;    // éteindre rappel 30
-    if (Combine=rappel_30) then pilote_acc(adresse+2,2,feu) ; // allumer rappel 30  
+    if (Combine=rappel_30) then pilote_acc(adresse+2,2,feu) ; // allumer rappel 30
   end;
 end;
 
 {==========================================================================
 envoie les données au décodeur LEB pour un signal
 ===========================================================================*}
-procedure envoi_LEB(adr : integer);
-var codebin,aspect : integer;
+procedure envoi_LEB(adresse : integer);
+var  code,aspect,combine : word;
     s : string;
   procedure envoi5_LEB(selection :byte);
   var i : integer;
@@ -1743,10 +1801,10 @@ var codebin,aspect : integer;
     s:='';
     for i:=0 to 4 do
     begin
-      if (testBit(selection,i)) then begin pilote_acc(adr+i,1,feu);s:=s+'1';end
-      else begin pilote_acc(adr+i,2,feu) ; s:=s+'0';end;
-      //if (testBit(selection,i)) then begin pilote_acc(adr+i,1);s:=s+'1';end
-      //else begin pilote_acc(adr+i,2) ; s:=s+'0';end;
+      if (testBit(selection,i)) then begin pilote_acc(adresse+i,1,feu);s:=s+'1';end
+      else begin pilote_acc(adresse+i,2,feu) ; s:=s+'0';end;
+      //if (testBit(selection,i)) then begin pilote_acc(adresse+i,1);s:=s+'1';end
+      //else begin pilote_acc(adresse+i,2) ; s:=s+'0';end;
       //Sleep(60);
     end;
     //Affiche(inttoStr(selection),clOrange);
@@ -1754,29 +1812,18 @@ var codebin,aspect : integer;
   end;
 begin
 
-if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
+if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
 begin
-  ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
-  codebin:=EtatSignalCplx[adr];
-  aspect:=code_to_aspect(codebin);
-  if traceSign then
-  begin
-    s:='Signal LEB:  ad'+IntToSTR(adr)+'='+etatSign[aspect];
-    //s:='Signal LEB:  ad'+IntToSTR(adr)+' aspect='+intToSTR(aspect)+' combine='+intToSTR(combine);
-    if Combine<>0 then s:=s+' + '+etatSign[combine];
-    Affiche(s,clOrange);
-  end;
-  if AffSignal then
-  begin
-    s:='Signal LEB:  ad'+IntToSTR(adr)+'='+etatSign[aspect];
-    //s:='Signal LEB:  ad'+IntToSTR(adr)+' aspect='+intToSTR(aspect)+' combine='+intToSTR(combine);
-    if Combine<>0 then s:=s+' + '+etatSign[combine];
-    AfficheDebug(s,clOrange);
-  end;
-  
-  Sleep(60);  // si le feu se positionne à la suite d'un positionnement d'aiguillage, on peut avoir le message station occupée
+  ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+  code:=EtatSignalCplx[adresse];
+  code_to_aspect(code,aspect,combine);
+  s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+  if traceSign then affiche(s,clOrange);
+  if Affsignal then afficheDebug(s,clOrange);
 
-  if (Combine=0) then
+  Sleep(60);  // si le feu se positionne à la suite d'un positionnement d'aiguillage, on peut avoir le message station occupée
+  //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
+  if (Combine=16) then
   begin
     if (aspect=carre)         then envoi5_LEB(0);
     if (aspect=violet)        then envoi5_LEB(1);
@@ -1793,7 +1840,7 @@ begin
     if (aspect=ral_30)        then envoi5_LEB(9);
     if (aspect=ral_60)        then envoi5_LEB($b);
   end;
-  if (aspect=0) then
+  if (aspect=16) then
   begin
     if (Combine=rappel_30)    then envoi5_LEB(6);
     if (Combine=rappel_60)    then envoi5_LEB(7);
@@ -1805,7 +1852,8 @@ begin
   if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
   if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
   if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
-end;
+  end;
+
 end;
 
 (*==========================================================================
@@ -1834,34 +1882,23 @@ envoie les données au décodeur NMRA étendu
 
 /*===========================================================================*)
 procedure envoi_NMRA(adresse: integer);
-var valeur,code,codebin,aspect : integer ;
+var valeur : integer ;
+    aspect,combine,code : word;
     s : string;
 begin
   //index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
   //code:=feux[index].aspect; // aspect du feu;
-    
 
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-    codebin:=EtatSignalCplx[adresse];
-    code:=code_to_aspect(codebin);
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);
+    s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
 
-    if traceSign then
-    begin
-      s:='Signal NMRA:  ad'+IntToSTR(adresse)+'='+etatSign[aspect];
-      if Combine<>0 then s:=s+' + '+etatSign[combine];
-      Affiche(s,clOrange);
-    end;
-    if AffSignal then
-    begin
-      s:='Signal NMRA:  ad'+IntToSTR(adresse)+'='+etatSign[aspect];
-      if Combine<>0 then s:=s+' + '+etatSign[combine];
-      AfficheDebug(s,clOrange);
-    end;
-
-    if combine=0 then
-    case (code) of
+    case aspect of
       carre                     : valeur:=0;
       semaphore                 : valeur:=1;
       semaphore_cli             : valeur:=2;
@@ -1872,23 +1909,19 @@ begin
       blanc_cli                 : valeur:=7;
       jaune                     : valeur:=8;
       jaune_cli                 : valeur:=9;
+    end;
+    case combine of  
       ral_30                    : valeur:=10;
       ral_60                    : valeur:=11;
       rappel_30                 : valeur:=13;
       rappel_60                 : valeur:=14;
     end;
 
-    if aspect=0 then 
-    begin
-      if combine=rappel_30 then valeur:=13;
-      if combine=rappel_60 then valeur:=14;
-    end;
-    
     if (Combine=ral_60)    and (aspect=jaune_cli) then valeur:=12;
     if (Combine=rappel_30) and (aspect=jaune)     then valeur:=15;
-    if (Combine=rappel_30) and (aspect=jaune_cli) then valeur:=16;     
-    if (Combine=rappel_60) and (aspect=jaune)     then valeur:=17;        
-    if (Combine=rappel_60) and (aspect=jaune_cli) then valeur:=18;  
+    if (Combine=rappel_30) and (aspect=jaune_cli) then valeur:=16;
+    if (Combine=rappel_60) and (aspect=jaune)     then valeur:=17;
+    if (Combine=rappel_60) and (aspect=jaune_cli) then valeur:=18;
 
     pilote_acc(adresse,valeur,feu);
   end;
@@ -1896,56 +1929,47 @@ end;
 
 // décodeur unisemaf (paco)
 procedure envoi_UniSemaf(adresse: integer);
-var modele,index,code,codebin : integer ;
+var modele,index: integer ;
     s : string;
+    code,aspect,combine : word;
 begin
   index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
 
  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-    codebin:=EtatSignalCplx[adresse];
-    code:=code_to_aspect(codebin);
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);
+    s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
 
-    if traceSign then
-    begin
-      s:='Signal UniSemaf: ad'+IntToSTR(adresse)+'='+etatSign[code];
-      if Combine<>0 then s:=s+' + '+etatSign[combine];
-      Affiche(s,clOrange);
-    end;
-    if AffSignal then 
-    begin
-      s:='Signal UniSemaf: ad'+IntToSTR(adresse)+'='+etatSign[code];
-      if Combine<>0 then s:=s+' + '+etatSign[combine];
-      AfficheDebug(s,clOrange);
-    end;
-    
     // pour Unisemaf, la cible est définie dans le champ Unisemaf de la structure feux
 
     modele:=feux[index].Unisemaf;
     //Affiche('Adresse='+intToSTR(Adresse)+' code='+intToSTR(code)+' combine'+intToSTR(combine),clyellow);
         if modele=2 then // 2 feux
         begin
-          if code=blanc then      pilote_acc(adresse,1,feu);
-          if code=blanc_cli then  pilote_acc(adresse,1,feu);
-          if code=violet then     pilote_acc(adresse,2,feu);
+          if aspect=blanc then      pilote_acc(adresse,1,feu);
+          if aspect=blanc_cli then  pilote_acc(adresse,1,feu);
+          if aspect=violet then     pilote_acc(adresse,2,feu);
         end;
 
         if modele=3 then // 3 feux
         begin
-          if code=vert then       pilote_acc(adresse,1,feu);
-          if code=vert_cli then   pilote_acc(adresse,1,feu);
+          if aspect=vert then       pilote_acc(adresse,1,feu);
+          if aspect=vert_cli then   pilote_acc(adresse,1,feu);
 
-          if code=semaphore then  pilote_acc(adresse,2,feu);
-          if code=semaphore_cli then pilote_acc(adresse,2,feu);
+          if aspect=semaphore then  pilote_acc(adresse,2,feu);
+          if aspect=semaphore_cli then pilote_acc(adresse,2,feu);
 
-          if code=jaune then      pilote_acc(adresse+1,1,feu);
-          if code=jaune_cli then  pilote_acc(adresse+1,1,feu);
+          if aspect=jaune then      pilote_acc(adresse+1,1,feu);
+          if aspect=jaune_cli then  pilote_acc(adresse+1,1,feu);
         end;
 
         if modele=4 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -1958,7 +1982,7 @@ begin
         // 51=carré + blanc
         if modele=51 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -1973,7 +1997,7 @@ begin
         // 52=VJR + blanc + violet
         if modele=52 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -1988,20 +2012,20 @@ begin
         // 71=VJR + ralentissement 30
         if modele=71 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
           jaune_cli             : pilote_acc(adresse,2,feu);
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
-          ral_30                : pilote_acc(adresse+1,2,feu);
           end;
+          if combine=ral_30 then pilote_acc(adresse+1,2,feu);
         end;
         // 72=VJR + carré + ralentissement 30
         if modele=72 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -2009,13 +2033,13 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          ral_30                : pilote_acc(adresse+2,1,feu);
           end;
+          if combine=ral_30 then pilote_acc(adresse+2,1,feu);
         end;
         // 73=VJR + carré + ralentissement 60
         if modele=73 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -2023,13 +2047,13 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          ral_60                : pilote_acc(adresse+2,1,feu);
           end;
+          if combine=ral_60 then pilote_acc(adresse+2,1,feu);
         end;
         // 91=VJR + carré + rappel 30
         if modele=91 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -2037,14 +2061,14 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          rappel_30             : pilote_acc(adresse+2,1,feu);
           end;
+          if combine=rappel_30 then pilote_acc(adresse+2,1,feu);
         end;
 
         // 92=VJR + carré + rappel 60
         if modele=92 then
         begin
-          case code of
+          case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -2052,141 +2076,141 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          rappel_60             : pilote_acc(adresse+2,1,feu);
           end;
+          if combine=rappel_60 then pilote_acc(adresse+2,1,feu);
         end;
 
         // 93=VJR + carré + ral30 + rappel 30
         if modele=93 then
         begin
-          if combine=0 then
+          if combine=16 then //pas de sig combinée
           begin
-            if code=vert                  then pilote_acc(adresse,1,feu);
-            if code=vert_cli              then pilote_acc(adresse,1,feu);
-            if code=jaune                 then pilote_acc(adresse,2,feu);
-            if code=jaune_cli             then pilote_acc(adresse,2,feu);
-            if code=semaphore             then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if code=carre                 then pilote_acc(adresse+1,2,feu);
-            if code=ral_30                then pilote_acc(adresse+2,1,feu);
-            if code=rappel_30             then pilote_acc(adresse+2,2,feu);
+            if aspect=vert                  then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+            if aspect=jaune                 then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_30             then pilote_acc(adresse+2,2,feu);
+          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
 
         // 94=VJR + carré + ral60 + rappel60
         if modele=94 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert                  then pilote_acc(adresse,1,feu);
-            if code=vert_cli              then pilote_acc(adresse,1,feu);
-            if code=jaune                 then pilote_acc(adresse,2,feu);
-            if code=jaune_cli             then pilote_acc(adresse,2,feu);
-            if code=semaphore             then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if code=carre                 then pilote_acc(adresse+1,2,feu);
-            if code=ral_60                then pilote_acc(adresse+2,1,feu);
-            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
+            if aspect=vert                  then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+            if aspect=jaune                 then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_60                then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
 
         // 95=VJR + carré + ral30 + rappel 60
         if modele=95 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert                  then pilote_acc(adresse,1,feu);
-            if code=vert_cli              then pilote_acc(adresse,1,feu);
-            if code=jaune                 then pilote_acc(adresse,2,feu);
-            if code=jaune_cli             then pilote_acc(adresse,2,feu);
-            if code=semaphore             then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if code=carre                 then pilote_acc(adresse+1,2,feu);
-            if code=ral_30                then pilote_acc(adresse+2,1,feu);
-            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
+            if aspect=vert                  then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+            if aspect=jaune                 then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
         // 96=VJR + blanc + carré + ral30 + rappel30
         if modele=96 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert               then pilote_acc(adresse,1,feu);
-            if code=vert_cli           then pilote_acc(adresse,1,feu);
-            if code=jaune              then pilote_acc(adresse,2,feu);
-            if code=jaune_cli          then pilote_acc(adresse,2,feu);
-            if code=semaphore          then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli      then pilote_acc(adresse+1,1,feu);
-            if code=carre              then pilote_acc(adresse+1,2,feu);
-            if code=ral_30             then pilote_acc(adresse+2,1,feu);
-            if code=rappel_30          then pilote_acc(adresse+2,2,feu);
-            if code=blanc              then pilote_acc(adresse+3,2,feu);
-            if code=blanc_cli          then pilote_acc(adresse+3,2,feu);
+            if aspect=vert               then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli           then pilote_acc(adresse,1,feu);
+            if aspect=jaune              then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli          then pilote_acc(adresse,2,feu);
+            if aspect=semaphore          then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli      then pilote_acc(adresse+1,1,feu);
+            if aspect=carre              then pilote_acc(adresse+1,2,feu);
+            if aspect=blanc              then pilote_acc(adresse+3,2,feu);
+            if aspect=blanc_cli          then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30             then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_30          then pilote_acc(adresse+2,2,feu);
+          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
 
         // 97=VJR + blanc + carré + ral30 + rappel60
         if modele=97 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert                  then pilote_acc(adresse,1,feu);
-            if code=vert_cli              then pilote_acc(adresse,1,feu);
-            if code=jaune                 then pilote_acc(adresse,2,feu);
-            if code=jaune_cli             then pilote_acc(adresse,2,feu);
-            if code=semaphore             then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if code=carre                 then pilote_acc(adresse+1,2,feu);
-            if code=ral_30                then pilote_acc(adresse+2,1,feu);
-            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
-            if code=blanc                 then pilote_acc(adresse+3,2,feu);
-            if code=blanc_cli             then pilote_acc(adresse+3,2,feu);
+            if aspect=vert                  then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+            if aspect=jaune                 then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
+            if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
+            if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
-        
+
         // 98=VJR + blanc + violet + ral30 + rappel30
         if modele=98 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert then               pilote_acc(adresse,1,feu);
-            if code=vert_cli then           pilote_acc(adresse,1,feu);
-            if code=jaune then              pilote_acc(adresse,2,feu);
-            if code=jaune_cli then          pilote_acc(adresse,2,feu);
-            if code=semaphore then          pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli then      pilote_acc(adresse+1,1,feu);
-            if code=violet then             pilote_acc(adresse+1,2,feu);
-            if code=ral_30 then             pilote_acc(adresse+2,1,feu);
-            if code=rappel_30 then          pilote_acc(adresse+2,2,feu);
-            if code=blanc then              pilote_acc(adresse+3,2,feu);
-            if code=blanc_cli then          pilote_acc(adresse+3,2,feu);
+            if aspect=vert then               pilote_acc(adresse,1,feu);
+            if aspect=vert_cli then           pilote_acc(adresse,1,feu);
+            if aspect=jaune then              pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli then          pilote_acc(adresse,2,feu);
+            if aspect=semaphore then          pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli then      pilote_acc(adresse+1,1,feu);
+            if aspect=violet then             pilote_acc(adresse+1,2,feu);
+            if aspect=blanc then              pilote_acc(adresse+3,2,feu);
+            if aspect=blanc_cli then          pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30 then             pilote_acc(adresse+2,1,feu);
+          if combine=rappel_30 then          pilote_acc(adresse+2,2,feu);
         end;
 
         // 99=VJR + blanc + violet + ral30 + rappel60
         if modele=99 then
         begin
-          if combine=0 then
+          if combine=16 then
           begin
-            if code=vert                  then pilote_acc(adresse,1,feu);
-            if code=vert_cli              then pilote_acc(adresse,1,feu);
-            if code=jaune                 then pilote_acc(adresse,2,feu);
-            if code=jaune_cli             then pilote_acc(adresse,2,feu);
-            if code=semaphore             then pilote_acc(adresse+1,1,feu);
-            if code=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if code=violet                then pilote_acc(adresse+1,2,feu);
-            if code=ral_30                then pilote_acc(adresse+2,1,feu);
-            if code=rappel_60             then pilote_acc(adresse+2,2,feu);
-            if code=blanc                 then pilote_acc(adresse+3,2,feu);
-            if code=blanc_cli             then pilote_acc(adresse+3,2,feu);
+            if aspect=vert                  then pilote_acc(adresse,1,feu);
+            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+            if aspect=jaune                 then pilote_acc(adresse,2,feu);
+            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+            if aspect=violet                then pilote_acc(adresse+1,2,feu);
+            if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
+            if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
           end;
-          if (code=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
         end;
   end;
 end;
@@ -2200,49 +2224,50 @@ envoie les données au décodeur LDT
        Le mode 1 permet la commande des signaux de 2, 3 et 4 feux
        Le mode 2 permet la commande de signaux de plus de 4 feux
 ===========================================================================}
-procedure envoi_LDT(adr : integer);
-var codebin,aspect,mode : integer;
+procedure envoi_LDT(adresse : integer);
+var code,aspect,combine,mode : word;
+    s : string;
 begin
-  codebin:=EtatSignalCplx[adr];
-  aspect:=code_to_aspect(codebin);
-  if aspect>carre then mode:=2 else mode:=1;
-  if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //; && (stop_cmd==FALSE))
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
   begin
-    ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
-    //if (tempo_ACC>0) then sleep(100);  // les commandes entre 2 feux successives doivent être séparées au minimum de 100 ms
-    if traceSign then affiche('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
-    if AffSignal then afficheDebug('Signal LDT: '+IntToSTR(adr)+' '+intToSTR(mode)+' '+intTOSTR(codebin),clOrange);
-    
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);      
+    s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange); 
+
     if (aspect=semaphore) or (aspect=vert) or (aspect=carre) or (aspect=jaune) then mode:=1 else mode:=2;
 
+    if aspect>carre then mode:=2 else mode:=1;
     case mode of
       // pour les décodeurs en mode 0, il faut écrire la routine vous même car le pilotage dépend du cablage
       // sauf pour le sémaphore, vert et jaune fixe
     1 :       // mode 1: feux 2 3 & 4 feux
     begin
-      if (aspect=semaphore) then pilote_acc(adr,1,feu);
-      if (aspect=vert)      then pilote_acc(adr,2,feu);
-      if (aspect=carre)     then pilote_acc(adr+1,1,feu);
-      if (aspect=jaune)     then pilote_acc(adr+1,2,feu);
+      if (aspect=semaphore) then pilote_acc(adresse,1,feu);
+      if (aspect=vert)      then pilote_acc(adresse,2,feu);
+      if (aspect=carre)     then pilote_acc(adresse+1,1,feu);
+      if (aspect=jaune)     then pilote_acc(adresse+1,2,feu);
     end;
     2 :      // mode 2: plus de 4 feux
     begin
-      if (aspect=semaphore) then begin pilote_acc(adr+2,1,feu);sleep(tempoFeu);pilote_acc(adr,1,feu);end;
-      if (aspect=vert)   then begin pilote_acc(adr+2,1,feu);sleep(tempoFeu);pilote_acc(adr,2,feu);end;
-      if (aspect=carre)  then begin pilote_acc(adr+2,1,feu);sleep(tempoFeu);pilote_acc(adr+1,1,feu);end;
-      if (aspect=jaune)  then begin pilote_acc(adr+2,1,feu);sleep(tempoFeu);pilote_acc(adr+1,2,feu);end;
-      if (aspect=violet) then begin pilote_acc(adr+2,2,feu);sleep(tempoFeu);pilote_acc(adr,1,feu);end;
-      if (aspect=blanc)  then begin pilote_acc(adr+2,2,feu);sleep(tempoFeu);pilote_acc(adr,2,feu);end;
-      if (aspect=semaphore) then begin pilote_acc(adr+2,2,feu);sleep(tempoFeu);pilote_acc(adr+1,1,feu);end;
-      if (aspect=aspect8) then begin pilote_acc(adr+2,2,feu);sleep(tempoFeu);pilote_acc(adr+1,2,feu);end;
-      if (aspect=ral_60_jaune_cli) then begin pilote_acc(adr+3,1,feu);sleep(tempoFeu);pilote_acc(adr,1,feu);end;  // demande groupe 3
-      if (aspect=vert_cli) then begin pilote_acc(adr+3,1,feu);sleep(tempoFeu);pilote_acc(adr,2,feu);end; // demande groupe 3
-      if (aspect=Disque_D) then begin pilote_acc(adr+3,1,feu);sleep(tempoFeu);pilote_acc(adr+1,1,feu);end;// demande groupe 3
-      if (aspect=jaune_cli) then begin pilote_acc(adr+3,1,feu);sleep(tempoFeu);pilote_acc(adr+1,2,feu);end;
-      if (aspect=ral_30) then begin pilote_acc(adr+3,2,feu);sleep(tempoFeu);pilote_acc(adr,1,feu);end;
-      if (aspect=ral_60) then begin pilote_acc(adr+3,2,feu);sleep(tempoFeu);pilote_acc(adr,2,feu);end;
-      if (aspect=rappel_30) then begin pilote_acc(adr+3,2,feu);sleep(tempoFeu);pilote_acc(adr+1,1,feu);end;
-      if (aspect=rappel_60) then begin pilote_acc(adr+3,2,feu);sleep(tempoFeu);pilote_acc(adr+1,2,feu);end;
+      if (aspect=semaphore) then begin pilote_acc(adresse+2,1,feu);sleep(tempoFeu);pilote_acc(adresse,1,feu);end;
+      if (aspect=vert)   then begin pilote_acc(adresse+2,1,feu);sleep(tempoFeu);pilote_acc(adresse,2,feu);end;
+      if (aspect=carre)  then begin pilote_acc(adresse+2,1,feu);sleep(tempoFeu);pilote_acc(adresse+1,1,feu);end;
+      if (aspect=jaune)  then begin pilote_acc(adresse+2,1,feu);sleep(tempoFeu);pilote_acc(adresse+1,2,feu);end;
+      if (aspect=violet) then begin pilote_acc(adresse+2,2,feu);sleep(tempoFeu);pilote_acc(adresse,1,feu);end;
+      if (aspect=blanc)  then begin pilote_acc(adresse+2,2,feu);sleep(tempoFeu);pilote_acc(adresse,2,feu);end;
+      if (aspect=semaphore) then begin pilote_acc(adresse+2,2,feu);sleep(tempoFeu);pilote_acc(adresse+1,1,feu);end;
+      if (combine=aspect8) then begin pilote_acc(adresse+2,2,feu);sleep(tempoFeu);pilote_acc(adresse+1,2,feu);end;
+      if (combine=ral_60_jaune_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempoFeu);pilote_acc(adresse,1,feu);end;  // demande groupe 3
+      if (aspect=vert_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempoFeu);pilote_acc(adresse,2,feu);end; // demande groupe 3
+      if (combine=Disque_D) then begin pilote_acc(adresse+3,1,feu);sleep(tempoFeu);pilote_acc(adresse+1,1,feu);end;// demande groupe 3
+      if (aspect=jaune_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempoFeu);pilote_acc(adresse+1,2,feu);end;
+      if (combine=ral_30) then begin pilote_acc(adresse+3,2,feu);sleep(tempoFeu);pilote_acc(adresse,1,feu);end;
+      if (combine=ral_60) then begin pilote_acc(adresse+3,2,feu);sleep(tempoFeu);pilote_acc(adresse,2,feu);end;
+      if (combine=rappel_30) then begin pilote_acc(adresse+3,2,feu);sleep(tempoFeu);pilote_acc(adresse+1,1,feu);end;
+      if (combine=rappel_60) then begin pilote_acc(adresse+3,2,feu);sleep(tempoFeu);pilote_acc(adresse+1,2,feu);end;
     end;
     end;
   end;
@@ -2251,15 +2276,18 @@ end;
 
 procedure envoi_virtuel(adresse : integer);
 var
-  aspect,code : integer;
+  combine,aspect,code : word;
+  s : string;
 begin
   code:=etatsignalcplx[adresse];
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-    aspect:=code_to_aspect(code); // transforme le motif de bits en numéro  "code des aspects des signaux"
-    if (tracesign) then Affiche('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
-    if AffSignal then AfficheDebug('Signal virtuel: ad'+intToSTR(adresse)+'='+etatSign[aspect],clOrange);
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);
+    s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
   end;
 end;
 
@@ -2271,30 +2299,20 @@ envoie les données au décodeur digitalbahn équipé du logiciel "led_signal_10"
        Ici on met le bit 1 à 1 (état "vert" du programme hexmanipu
 ===========================================================================*)
 procedure envoi_signalBahn(adresse : integer);
-var aspect,combineLoc,codebin : integer;
+var aspect,code,combine : word;
     ralrap, jau ,Ancralrap,Ancjau : boolean;
     s : string;
 begin
-//    s:='@='+IntToSTR(adresse)+' '+intToSTR(ancien_tablo_signalCplx[adresse])+' '+intToSTR(EtatsignalCplx[adresse]);
-//    affiche(s,ClYellow);
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    codebin:=EtatSignalCplx[adresse];
-    aspect:=code_to_aspect(codebin); // transforme le motifs de bits en numéro  "code des aspects des signaux"
-    combineLoc:=combine;  // copier dans variable locale
-    //dessine_feu(adresse);
-    if traceSign then
-    begin
-      s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
-      if CombineLoc<>0 then s:=s+' + '+etatSign[combineLoc];
-      Affiche(s,clOrange);
-    end;
-    if AffSignal then
-    begin
-      s:='Signal bahn: ad'+IntToSTR(adresse)+'='+etatSign[aspect];
-      if CombineLoc<>0 then s:=s+' + '+etatSign[combineLoc];
-      AfficheDebug(s,clOrange);
-    end;
+    
+    code:=EtatSignalCplx[adresse];
+    code_to_aspect(code,aspect,combine);
+    s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+    //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
+
     // spécifique au décodeur digital bahn:
     // si le signal affichait un signal combiné, il faut éteindre le signal avec un sémaphore
     // avant d'afficher le nouvel état non combiné
@@ -2302,12 +2320,13 @@ begin
                (TestBit(ancien_tablo_signalCplx[adresse],rappel_30)) or (TestBit(ancien_tablo_signalCplx[adresse],rappel_60)) ;
     // si ancien état du signal=jaune ou jaune cli
     Ancjau:=(TestBit(ancien_tablo_signalCplx[adresse],jaune)) or (TestBit(ancien_tablo_signalCplx[adresse],jaune_cli)) ;
-
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    
     // si état demandé du signal=ralentissement ou rappel
-    ralrap:=(TestBit(codebin,ral_30)) or (TestBit(codebin,ral_60)) or
-           (TestBit(codebin,rappel_30)) or (TestBit(codebin,rappel_60)) ;
+    ralrap:=(TestBit(code,ral_30)) or (TestBit(code,ral_60)) or
+            (TestBit(code,rappel_30)) or (TestBit(code,rappel_60)) ;
     // si état demandé du signal=jaune ou cli
-    jau:=TestBit(codebin,jaune) or TestBit(codebin,jaune_cli) ;
+    jau:=TestBit(code,jaune) or TestBit(code,jaune_cli) ;
 
     //effacement du signal combiné par sémaphore suivant condition
     if (((Ancralrap and not(ralrap)) or (Ancjau and not(jau))) and (aspect>=8)) then
@@ -2317,20 +2336,17 @@ begin
      // dessine_feu(adresse);
     end;
 
-    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-
     sleep(40);  // les commandes entre 2 feux successifs doivent être séparées au minimum de 100 ms
     // affichage du premier aspect du signal(1er bit à 1 dans codebin
-    pilote_acc(adresse+aspect,2,feu) ;
-
+    if aspect<>16 then pilote_acc(adresse+aspect,2,feu) ;
 
     // affichage de la signalisation combinée (2ème bit à 1 dans codebin)
-    if (CombineLoc<>0) then
+    if (Combine<>16) then
     begin
       sleep(40);
-      pilote_ACC(adresse+CombineLoc,2,feu) ;
+      pilote_ACC(adresse+Combine,2,feu) ;
     end;
-    
+
   end;
 end;
 
@@ -3348,7 +3364,7 @@ var s,sa,chaine,SOrigine: string;
     c,paig : char;
     tec,bistec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux : boolean;
     bd,virgule,i_detect,i,erreur,aig,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
-    ComptEl,Compt_IT,Num_Element,k,modele,aig2,adr,erreur2,l,t,bis : integer;
+    ComptEl,Compt_IT,Num_Element,k,modele,aig2,adr,erreur2,l,t,bis,Nligne : integer;
     function lit_ligne : string ;
     begin
       repeat
@@ -3378,13 +3394,15 @@ begin
   end;
   //ChDir(s);
   Affiche('lecture du fichier de configuration client-GL.cfg',clyellow);
+  {$I-}
   try
     assign(fichier,'client-GL.cfg');
     reset(fichier);
   except
     Affiche('Fichier client-gl.cfg non trouvé',clred);
   end;
-
+  {$I+}
+  
   {lecture du fichier de configuration}
   // taille de fonte
   s:=lit_ligne;
@@ -3524,8 +3542,9 @@ begin
 
   // définition des aiguillages dans les branches
   maxaiguillage:=0;
+  Nligne:=1;
   repeat
-    s:=lit_ligne;sOrigine:=s;
+    s:=lit_ligne;sOrigine:=s;mod_aiguillages[Nligne]:=s;inc(Nligne);
     //chaine:=s;
     if debugconfig then Affiche(s,ClLime);
     if (s<>'0') then
@@ -3690,7 +3709,7 @@ begin
           delete(s,1,virgule);
         end;
 
-        // si inversion aiguillage BIS pour parer à bug CDM aiguillage
+        // si inversion aiguillage BIS 
         Val(enregistrement,adr,erreur);
         if erreur=0 then
         begin
@@ -3711,10 +3730,11 @@ begin
 
   Affiche('définition des branches',clyellow);
   // branches de réseau
-  NDetecteurs:=0;
+  NDetecteurs:=0; Nligne:=1;
   i:=1;i_detect:=1;
   repeat
     s:=lit_ligne;
+    mod_Branches[Nligne]:=s;inc(Nligne);
     //Affiche(s,clWhite);
     //adresse:=pos('0',s);
     //s:='A16B,557,0'  ;
@@ -3781,12 +3801,12 @@ begin
 
   // feux
   Affiche('Définition des feux',clyellow);
-  i:=1;
+  i:=1;Nligne:=1;
   repeat
     s:=lit_ligne;
     if s<>'0' then
     begin
-      chaine:=s;
+      chaine:=s;  mod_Signaux[Nligne]:=s;inc(Nligne);
       //Affiche(s,clYellow);
       finifeux:=s[1]='0';
       if not(finifeux) then
@@ -3980,11 +4000,13 @@ begin
 
   configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
   if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
+
   // définition des actionneurs
   maxTablo_act:=1;
-  NbrePN:=0;
+  NbrePN:=0;Nligne:=1;
   repeat        
     s:=lit_ligne;
+    mod_act[Nligne]:=s;inc(Nligne);
     if pos('F',s)<>0 then
     // -----------------fonction
     begin
@@ -5535,8 +5557,9 @@ end;
 // mise à jour de l'état d'un feu en fontion de son environnement et affiche le feu
 procedure Maj_Feu(Adrfeu : integer);
 var i,j,k1,k2,BtypeSuiv,Adr_det,etat,Adr,Aig,DetPrec1,DetPrec2,Detprec3,Detprec4,Adr_El_Suiv,
-    Btype_el_suivant,det_initial,bt,el_suiv,modele,code : integer ;
+    Btype_el_suivant,det_initial,bt,el_suiv,modele : integer ;
     PresTrain,Aff_semaphore,car : boolean;
+    code,combine : word;
     s : string;
 begin
   s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
@@ -5562,7 +5585,7 @@ begin
     etat:=etat_signal_suivant(AdrFeu,1) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
     if AffSignal then 
     begin
-      code:=code_to_aspect(etat);
+      code_to_aspect(etat,code,combine);
       s:='Etat signal suivant ('+intToSTR(AdresseFeuSuivant)+') est ';
       s:=s+' à '+etatSign[code];
       if Combine<>0 then s:=s+' + '+etatSign[combine];
@@ -6002,6 +6025,7 @@ var i,v,va,j,etatAct,Af,Ao : integer;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   if AffActionneur then Affiche('Actionneur '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
+
   // dans le tableau des actionneurs pour fonction train
   for i:=1 to maxTablo_act do
   begin
@@ -6173,30 +6197,13 @@ procedure Event_Aig(adresse,pos,objet : integer);
 var s: string;
 begin
   // ------------------- traitement du numéro d'objet -------------------------
-  // il faut mémoriser le numéro d'objet le plus bas au détriment de celui qui a la même adresse
-  // mais un numéro d'objet supérieur (bug CDM sur bretelles avec aiguillages à la même adresse)
   // init objet
   if aiguillage[adresse].objet=0 then 
   begin
     aiguillage[adresse].objet:=objet;
     //affiche('stockage Aiguillage '+intToSTR(adresse)+' objet='+intToSTR(objet),clYellow);
   end;  
-  // si l'objet reçu < stocké, on met a jour
-  if objet<aiguillage[adresse].objet then 
-  begin
-    aiguillage[adresse].objet:=objet;
-    //affiche('stockage Aiguillage '+intToSTR(adresse)+' objet='+intToSTR(objet),clYellow);
-  end;  
-  if objet>aiguillage[adresse].objet then 
-  begin
-    s:='Evt aiguillage rejeté: Adr='+intToSTR(adresse)+'='+intToSTR(pos);
-    if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
-    s:=s+' Objet='+intToSTr(objet);
-    Affiche(s,clOrange);
-    AfficheDebug(s,clOrange);
-    exit;
-  end;
-
+  
   aiguillage[adresse].position:=pos;
 
   if aiguillageB[adresse].inversionCDM=0 then aiguillageB[adresse].position:=pos
@@ -6615,7 +6622,7 @@ begin
         DeConnecterUSB.enabled:=true;
         ConnecterCDMRail.enabled:=false;
         DeConnecterCDMRail.enabled:=false;
-      end;  
+      end;
     end
     else
       begin
@@ -6858,6 +6865,13 @@ begin
   //AvecMaj:=false;
   TraceSign:=True;
   PremierFD:=false;
+  // services commIP CDM
+  Srvc_Aig:=true;
+  Srvc_Det:=true;
+  Srvc_Act:=true;
+  Srvc_PosTrain:=false;
+  Srvc_sig:=false;
+  
   AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
   Application.onHint:=doHint;
@@ -6878,8 +6892,8 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-  Diffusion:=false;
+  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  Diffusion:=true;
   
   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
@@ -6891,6 +6905,8 @@ begin
   AffMem:=true;
   N_routes:=0;
   N_trains:=0;
+  Application.HintHidePause:=30000;
+
   // Train[1].index:=0;
 
   // lecture fichier de configuration  client_GL.cfg et config.cfg
@@ -6899,7 +6915,7 @@ begin
   // lancer CDM rail si on le demande
   if LanceCDM then Lance_CDM;
   ButtonAffTCO.visible:=AvecTCO;
-  
+
   // tenter la liaison vers CDM rail ou vers la centrale Lenz
   //Affiche('Test présence CDM',clYellow);
   connecte_CDM;
@@ -6922,7 +6938,7 @@ begin
       end
     end;
   end;
-  
+
   if portCommOuvert or parsocket then
   With Formprinc do
   begin
@@ -6937,7 +6953,7 @@ begin
     ButtonLitCV.Enabled:=false;
     LireunfichierdeCV1.enabled:=false;
   end ;
-  
+
   // Initialisation des images des signaux
   NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
 
@@ -6978,10 +6994,7 @@ begin
   //essai
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
-     
- //   SendMessage(CDMHd, WM_MENUCOMMAND,9001,0);
- //   SendMessage(CDMHd, WM_COMMAND,9001,9001);
- //   SendMessage(CDMHd, WM_MENUSELECT,9001,9001);
+
 end;
 
 
@@ -6991,7 +7004,6 @@ var i : integer;
 begin
   if MSCommUSBLenz.commEvent=comEvReceive then
   begin
-    TpsRecuCom:=0;
     tablo:=MSCommUSBLenz.Input;
     for i:=0 to length(tablo)-1 do
     begin
@@ -7049,7 +7061,6 @@ var index,aspect,i,a,x,y,adresse,TailleX,TailleY,orientation : integer;
     s : string;
 begin
   inc(tick);
-
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
@@ -7087,7 +7098,7 @@ begin
          begin
            //Affiche(IntToSTR(adresse),clOrange);
            Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
-         end;  
+         end;
     end;
 
     // feux du TCO
@@ -7102,7 +7113,7 @@ begin
           a:=EtatsignalCplx[adresse];     // a = état binaire du feu
           if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
-          testBit(a,vert_cli) or testbit(a,blanc_cli) then 
+          testBit(a,vert_cli) or testbit(a,blanc_cli) then
           begin
               aspect:=feuTCO[i].aspect;
               case aspect of
@@ -7114,20 +7125,20 @@ begin
                9 :  ImageFeu:=Formprinc.Image9feux;
              else ImageFeu:=Formprinc.Image3feux;
              end;
-              
+
               x:=(FeuTCO[i].x-1)*LargeurCell;  // coordonnées XY et feu
               y:=(FeuTCO[i].y-1)*HauteurCell;
               TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-              TailleX:=ImageFeu.picture.BitMap.Width; 
-              Orientation:=FeuTCO[i].FeuOriente; 
+              TailleX:=ImageFeu.picture.BitMap.Width;
+              Orientation:=FeuTCO[i].FeuOriente;
                // réduction variable en fonction de la taille des cellules
               calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
               // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
               if orientation=2 then
               begin
-                if aspect=9 then x:=x+round(10*frX); 
-                if aspect=7 then x:=x+round(10*frX);  
+                if aspect=9 then x:=x+round(10*frX);
+                if aspect=7 then x:=x+round(10*frX);
                 if aspect=5 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
                 if aspect=4 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
                 if aspect=3 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
@@ -7148,15 +7159,6 @@ begin
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
          Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
     end;
-  end;
-
-  // affiche la trame recue de l'interface après 500ms
-  if TpsRecuCom<5 then inc(TpsRecuCom);
-  if TpsRecuCom=5 then
-  begin
-    if trace then Affiche_chaine_hex(chaine_recue,clFuchsia); // en hexa ascii
-    chaine_recue:='';
-    TpsRecuCom:=6;
   end;
 
   if (not(Maj_feux_cours) and (Tempo_chgt_feux=1)) then Maj_feux(); // mise à jour des feux sur chgt aiguillage
@@ -7196,7 +7198,7 @@ begin
       // evt détecteur ?
       if Tablo_simule[i_simule].detecteur<>0 then
       begin
-       // if i_simule=164 then 
+       // if i_simule=164 then
        // begin
        // if Tablo_simule[i_simule].detecteur=538 then Affiche('création evt 538 index '+intToSTR(i_simule),clorange);
        // end;
@@ -7221,7 +7223,6 @@ begin
       Affiche('Fin de simulation',Cyan);
     end;
   end;
-
 end;
 
 // bouton version centrale Lenz
@@ -7238,7 +7239,7 @@ procedure TFormPrinc.ButtonCommandeClick(Sender: TObject);
 var adr,valeur,erreur : integer;
 begin
   val(EditAdresse.text,adr,erreur);
-  if (erreur<>0) or (adr<1) or (adr>2048) then 
+  if (erreur<>0) or (adr<1) or (adr>2048) then
   begin
     EditAdresse.text:='1';
     exit;
@@ -7294,7 +7295,7 @@ begin
    begin
      affiche(s,ClRed);
      afficheDebug(s,ClRed);
-   end;  
+   end;
    parSocket:=false;
    ErrorCode:=0;
 end;
@@ -7315,7 +7316,7 @@ begin
    affiche(s,ClRed);
    afficheDebug(s,ClRed);
    CDM_connecte:=false;
-   LabelTitre.caption:=titre;
+   if (portCommOuvert=false) and (parsocket=false) then LabelTitre.caption:=titre;
    ErrorCode:=0;
 end;
 
@@ -7534,10 +7535,14 @@ begin
 end;
 
 procedure Interprete_trameCDM(recuCDM : string);
-var i,objet,posST,posAC,posDT,k,l,erreur, adr,adr2,etat,etataig,etatAig2,name : integer ;
+var i,objet,posST,posAC,posDT,posSG,posXY,k,l,erreur, adr,adr2,etat,etataig,
+    vitesse,etatAig2,name : integer ;
+    x,y,x2,y2 : longint ;
       s,ss,train : string;
       traite,sort : boolean;
 begin
+  //recuCDM:='S-E-08-0530-CMDTRN-SPDXY|063|07|NAME=BB16024;AD=3;SPEED=120;X=10521;Y=2867;X2=18915;Y2=3202;S-E-08-0531-CMDGEN-_STOP|000|';
+
   AckCDM:=recuCDM<>'';
   if pos('ACK',recuCDM)=0 then
   begin
@@ -7545,7 +7550,7 @@ begin
   end;
   k:=0;
   repeat
-    //Affiche('K='+intToSTR(k)+' longueur='+intToSTR(length(recuCDM)),clyellow);
+    // Affiche('K='+intToSTR(k)+' longueur='+intToSTR(length(recuCDM)),clyellow);
     // évènement aiguillage. Le champ AD2 n'est pas forcément présent
     posST:=pos('CMDACC-ST_TO',recuCDM);
     if posST<>0 then
@@ -7553,9 +7558,7 @@ begin
       //Affiche(recuCDM,cllime);
       objet:=0;
       i:=posEx('OBJ=',recuCDM,posST);ss:=copy(recuCDM,i+4,10);
-      if i<>0 then val(ss,objet,erreur) else 
-        Affiche('Erreur pas d''objet ',clred);
-      
+      if i<>0 then val(ss,objet,erreur) else Affiche('Erreur pas d''objet ',clred);
       
       i:=posEx('AD=',recuCDM,posST);ss:=copy(recuCDM,i+3,10);  //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
       if i<posST then begin Affiche('Erreur 96',clred);exit;end;
@@ -7635,6 +7638,18 @@ begin
       if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
     end ;
 
+    // évènement signal - non stocké ni interprété
+    posSG:=pos('CMDACC-ST_SG',recuCDM);
+    if posSG<>0 then
+    begin
+      i:=posEx('AD=',recuCDM,posDT);ss:=copy(recuCDM,i+3,10);
+      val(ss,adr,erreur);
+      i:=posEx('STATE=',recuCDM,posSG);ss:=copy(recuCDM,i+6,10);
+      Delete(recuCDM,posSG,i+5-posSG);
+      val(ss,etat,erreur);
+      //Affiche('SignalCDM '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
+    end ;
+
     // évènement actionneur
     // attention un actionneur qui repasse à 0 ne contient pas de nom de train
     //S-E-03-0157-CMDACC-ST_AC|049|05|NAME=0;OBJ=7101;AD=815;TRAIN=CC406526;STATE=1;
@@ -7657,9 +7672,56 @@ begin
       Event_act(adr,etat,train); // déclenche évent actionneur
     end;
 
+    // évènement position des trains - non stocké ni interprété
+    posXY:=pos('CMDTRN-SPDXY',recuCDM);
+    if posXY<>0 then
+    begin
+      i:=posEx('AD=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+3,10);
+      val(ss,adr,erreur);
+      //Affiche('AD='+IntToSTR(adr),clyellow);
+      Delete(recuCDM,i,l-i+1);
+      
+      i:=posEx('NAME=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      train:=copy(recuCDM,i+5,l-i-5);
+      //Affiche('Train='+train,clyellow);
+      Delete(recuCDM,i,l-i+1);
+      
+      i:=posEx('SPEED=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+6,10);
+      val(ss,vitesse,erreur);
+      //Affiche('Vitesse='+intToSTR(vitesse),clyellow);
+      Delete(recuCDM,i,l-i+1);
+
+      i:=posEx('X=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+2,10);
+      val(ss,x,erreur);
+      //Affiche('X='+IntTostr(x),clyellow);
+      Delete(recuCDM,i,l-i+1);
+
+      i:=posEx('Y=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+2,10);
+      val(ss,y,erreur);
+      //Affiche('Y='+IntTostr(y),clyellow);;
+      Delete(recuCDM,i,l-i+1);
+
+      i:=posEx('X2=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+3,10);
+      val(ss,x2,erreur);
+      //Affiche('X2='+IntTostr(x2),clyellow);
+      Delete(recuCDM,i,l-i+1);
+
+      i:=posEx('Y2=',recuCDM,posXY);l:=posEx(';',recuCDM,i);
+      ss:=copy(recuCDM,i+3,10);
+      val(ss,y2,erreur);
+      //Affiche('Y2='+IntTostr(y2),clyellow);
+      Delete(recuCDM,i,l-i+1);
+
+      Delete(recuCDM,posXY,12);
+    end;
+      
     inc(k);
-    //traite:=(k<30) or (pos('CMDACC-ST_TO',recuCDM)<>0) or (pos('CMDACC-ST_DT',recuCDM)<>0) ;
-    sort:=(k>70) or (posST=0) and (posDT=0) and (posAC=0);
+    sort:=(k>70) or (posST=0) and (posDT=0) and (posAC=0) and (posSG=0);
   until (sort);
 
   //Affiche('Ligne traitée'+recuCDM,clLime);
