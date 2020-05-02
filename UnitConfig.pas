@@ -529,6 +529,11 @@ begin
   if RadioButton1.checked then Valeur_entete:=0;
   if RadioButton2.checked then Valeur_entete:=1;
   if RadioButton3.checked then Valeur_entete:=2;
+  case Valeur_entete of
+   0 : begin entete:='';suffixe:='';end;
+   1 : begin entete:=#$FF+#$FE;suffixe:='';end;
+   2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
+  end;
 
   if changeCDM then connecte_CDM;
   if changeInterface then 
@@ -618,10 +623,6 @@ begin
   if Valeur_entete=1 then RadioButton2.checked:=true;
   if Valeur_entete=2 then RadioButton3.checked:=true;
   LabelInfo.Width:=253;LabelInfo.Height:=25;
-
-  if Valeur_entete=0 then RadioButton1.checked:=true;
-  if Valeur_entete=1 then RadioButton2.checked:=true;
-  if Valeur_entete=2 then RadioButton3.checked:=true;
 
   CheckVerifVersion.Checked:=verifVersion;
   CheckInfoVersion.Checked:=notificationVersion;

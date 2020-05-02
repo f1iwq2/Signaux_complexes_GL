@@ -1324,8 +1324,8 @@ object FormPrinc: TFormPrinc
     SimplePanel = True
   end
   object MSCommUSBLenz: TMSComm
-    Left = 1144
-    Top = 120
+    Left = 720
+    Top = 144
     Width = 32
     Height = 32
     OnComm = MSCommUSBLenzComm

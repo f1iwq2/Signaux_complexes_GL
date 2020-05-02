@@ -1691,10 +1691,10 @@ object FormConfig: TFormConfig
       Caption = 'Mode autonome'
       ImageIndex = 1
       object Label9: TLabel
-        Left = 0
-        Top = 368
-        Width = 305
-        Height = 18
+        Left = 8
+        Top = 352
+        Width = 297
+        Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
         WordWrap = True
       end
@@ -1702,19 +1702,19 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 8
         Width = 297
-        Height = 129
+        Height = 113
         Caption = 'Acc'#232's USB - S'#233'rie '#224' l'#39'interface vers la centrale LENZ'
         TabOrder = 0
         object Label3: TLabel
           Left = 16
           Top = 24
-          Width = 140
+          Width = 142
           Height = 13
-          Caption = '1. Protocole s'#233'rie USB (COM)'
+          Caption = '1. Protocole s'#233'rie USB / COM'
         end
         object Label4: TLabel
           Left = 16
-          Top = 48
+          Top = 45
           Width = 126
           Height = 26
           Caption = '2. Temporisation d'#39'envoi des octets de la trame (ms)'
@@ -1722,7 +1722,7 @@ object FormConfig: TFormConfig
         end
         object Label5: TLabel
           Left = 16
-          Top = 88
+          Top = 75
           Width = 152
           Height = 26
           Caption = 
@@ -1731,9 +1731,9 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object EditcomUSB: TEdit
-          Left = 160
-          Top = 24
-          Width = 121
+          Left = 168
+          Top = 22
+          Width = 118
           Height = 21
           TabStop = False
           TabOrder = 0
@@ -1741,7 +1741,7 @@ object FormConfig: TFormConfig
         end
         object EditTempoOctetUSB: TEdit
           Left = 232
-          Top = 56
+          Top = 48
           Width = 49
           Height = 21
           TabStop = False
@@ -1750,7 +1750,7 @@ object FormConfig: TFormConfig
         end
         object EditTempoReponse: TEdit
           Left = 232
-          Top = 88
+          Top = 80
           Width = 49
           Height = 21
           TabStop = False
@@ -1760,7 +1760,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox4: TGroupBox
         Left = 8
-        Top = 144
+        Top = 128
         Width = 297
         Height = 81
         Caption = '4. Ent'#234'te des trames vers l'#39'interface'
@@ -1792,7 +1792,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox3: TGroupBox
         Left = 8
-        Top = 232
+        Top = 216
         Width = 297
         Height = 73
         Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ Ethernet'
@@ -1905,7 +1905,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox9: TGroupBox
         Left = 8
-        Top = 312
+        Top = 296
         Width = 297
         Height = 41
         Caption = 'Divers'

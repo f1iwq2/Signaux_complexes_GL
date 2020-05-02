@@ -1300,24 +1300,26 @@ begin
       i:=1;
       valto:=10;
       //Affiche('envoi en tenant compte cts',clyellow);
+      repeat
+        timeout:=0;
         repeat
-          timeout:=0;
-          repeat
-            //Application.ProcessMessages;
-            inc(timeout);
-            Sleep(20);
-          until (Formprinc.MSCommUSBLenz.CTSHolding=true) or (timeout>valto);
-          if timeout<=valto then
-          begin
-            //if formprinc.MSCommUSBLenz.CTSHolding then sa:='CTS=1 ' else sa:='CTS=0 ';
-            FormPrinc.MSCommUSBLenz.Output:=s[i];
-            //if terminal then Affiche(sa+s[i],clyellow) else Affiche(sa+chaine_hex(s[i]),clyellow);
-            inc(i);
-          end;
-        until (i=length(s)+1) or (timeout>valto);
-        if timeout>valto then affiche('Erreur attente interface trop longue',clred);
+          //Application.ProcessMessages;
+          inc(timeout);
+          Sleep(20);
+        until (Formprinc.MSCommUSBLenz.CTSHolding=true) or (timeout>valto);
+        if timeout<=valto then
+        begin
+          //if formprinc.MSCommUSBLenz.CTSHolding then sa:='CTS=1 ' else sa:='CTS=0 ';
+          FormPrinc.MSCommUSBLenz.Output:=s[i];
+          //if terminal then Affiche(sa+s[i],clyellow) else Affiche(sa+chaine_hex(s[i]),clyellow);
+          inc(i);
+        end;
+      until (i=length(s)+1) or (timeout>valto);
+      if timeout>valto then affiche('Erreur attente interface trop longue',clred);
     end;
+    // protocole Rts Cts ou sans temporisation
     if (protocole=2) or (tempoOctet=0) then begin FormPrinc.MSCommUSBLenz.Output:=s;exit;end;
+    // sans procotole ou xon xoff ou xon-rts
     if (protocole=0) or (protocole=1) or (protocole=3) then
     begin
       for i:=1 to length(s) do
@@ -6580,13 +6582,21 @@ end;
 
 // initialisation de la comm USB
 procedure connecte_USB;
+var i,j : integer;
 begin
     if NumPort<>0 then
     begin
       With Formprinc.MSCommUSBLenz do
       begin
-        Affiche('Demande ouverture com'+intToSTR(nuMPort)+':'+ConfStCom+' protocole '+IntToSTR(protocole),CLYellow);
+        i:=pos(':',portCom);
+        j:=pos(',',PortCom);      
+        j:=posEx(',',PortCom,j+1);
+        j:=posEx(',',PortCom,j+1);
+        j:=posEx(',',PortCom,j+1);
+        
+        confStCom:=copy(portCom,i+1,j-i-1); //Affiche(ConfStCom,clred);
         Settings:=ConfStCom;   // COMx:vitesse,n,8,1
+        Affiche('Demande ouverture COM'+intToSTR(NumPort)+':'+ConfStCom+' protocole '+IntToSTR(protocole),CLYellow);
         if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
           else Handshaking:=protocole;
 
