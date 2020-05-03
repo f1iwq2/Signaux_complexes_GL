@@ -21,4 +21,7 @@ Version 1.5  : Nouvel algorithme de suivi des trains - Gestion des feux provenan
 Version 1.6  : Implémentation du TCO. Ouverture de CDM rail au démarrage avec LAY à la demande
 Version 1.7  : Sauvegarde de la configuration dans les fichier client_gl.cfg et config.cfg si modification des paramètres depuis le menu de configuration.
                Feu violet disponible sur signaux à 5, 7 et 9 feux.
+version 1.71 : correction d'un bug de la v1.7 sur le protocole COM/USB direct à l'interface
+version 1.72 : affichage message si configuration erronnée dans la fenêtre de configuration - Démarrage de CDM assuré pour les répertoires
+               Program Files et Program Files (x86)
 

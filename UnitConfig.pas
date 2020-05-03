@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils ;
 
 type
   TFormConfig = class(TForm)
@@ -88,10 +88,32 @@ type
     Memo4: TMemo;
     GroupBox9: TGroupBox;
     CheckBoxRazSignaux: TCheckBox;
+    GroupBox11: TGroupBox;
+    LabelAdresse: TLabel;
+    GroupBox10: TGroupBox;
+    RadioButtonsans: TRadioButton;
+    RadioButton30kmh: TRadioButton;
+    RadioButton60kmh: TRadioButton;
+    EditDroit_BD: TEdit;
+    EditDevie_HD: TEdit;
+    EditPointe_BG: TEdit;
+    LabelLigne: TLabel;
+    LabelBG: TLabel;
+    LabelHD: TLabel;
+    LabelBD: TLabel;
+    ImageAig: TImage;
+    ImageAffiche: TImage;
+    ImageTJD: TImage;
+    Edit_HG: TEdit;
+    LabelHG: TLabel;
+    EditP1: TEdit;
+    EditP2: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure MemoAigDblClick(Sender: TObject);
+    procedure MemoAigClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -99,6 +121,8 @@ type
    
   end;
 
+const TitreAig='Description de l''aiguillage ';
+  
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM : string;
@@ -108,6 +132,7 @@ function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
 procedure connecte_CDM;
 function place_id(s : string) : string;
+procedure decodeAig(s : string;var adr : integer;var B : char;var bis : boolean);
   
 implementation
 
@@ -502,7 +527,7 @@ begin
   
   // contrôle adresse IP interface
   s:=EditIPLenz.text;
-  if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';exit;end; 
+  if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';exit;end; 
   changeInterface:=s<>AdresseIP;
   AdresseIP:=s;
   
@@ -609,6 +634,19 @@ end;
 procedure TFormConfig.FormActivate(Sender: TObject);
 var i : integer;
 begin
+  Edit_HG.Visible:=false;
+  labelHG.Visible:=false;
+  EditP1.Visible:=false;
+  EditP2.Visible:=false;
+
+  Edit_HG.ReadOnly:=true;
+  EditP1.ReadOnly:=true;
+  EditP2.ReadOnly:=true;
+  EditPointe_BG.ReadOnly:=true;
+  EditDevie_HD.ReadOnly:=true;
+  EditDroit_BD.ReadOnly:=true;
+  
+  
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
   EditIPLenz.text:=AdresseIP;
@@ -651,6 +689,11 @@ begin
   CheckBoxServAct.checked:=Srvc_Act;
   CheckServPosTrains.checked:=Srvc_PosTrain;
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+
+  EditDroit_BD.Text:='';
+  EditPointe_BG.Text:='';
+  EditDevie_HD.Text:='';
+
                 
 end;
 
@@ -672,10 +715,147 @@ begin
 end;
 
 
+procedure decodeAig(s : string;var adr : integer;var B : char;var bis : boolean);
+var erreur,i : integer;
+begin
+  if (s[1]='P') or (s[1]='S') or (s[1]='D') then delete(s,1,1);
+  // supprimer le champ suivant éventuel
+  i:=pos(',',s);
+  if i<>0 then delete(s,i,length(s)-i+1);
+  val(s,adr,erreur);
+  bis:=pos(s,'B')<>0;
+  B:=#0;
+  i:=pos('S',s);if i<>0 then B:='S';
+  i:=pos('P',s);if i<>0 then B:='P';
+  i:=pos('D',s);if i<>0 then B:='D';
+end;
 
+procedure Aff_champs_aig;
+var Adresse,Adr2,traite,erreur,ligne,i,j,Nboucle,selpos : integer;
+    bis,tjd : boolean;
+    s,ss : string;
+    B : char;
+begin
+  with formConfig.MemoAig do
+  begin
+    ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    s:=Uppercase(Lines[ligne]);            
+    SelStart:=Perform(EM_LINEINDEX,Ligne,0);  // début de la sélection
+    SelLength:=Length(s) ;  // fin de la sélection
+    SetFocus;
+  end;
+  
+  Val(s,Adresse,erreur);
+  formconfig.LabelAdresse.Caption:=TitreAig+InttoSTr(Adresse);
 
+  with formconfig do
+  begin
+    LabelLigne.caption:=s;
+    ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
+    ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
+    ImageAffiche.Transparent:=true;
+    if pos('TJD',s)<>0 then 
+    begin
+      ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
+      Edit_HG.Visible:=true;
+      tjd:=true;
+      labelHG.Visible:=true;
+      EditP1.Visible:=true;
+      EditP2.Visible:=true;
+      EditPointe_BG.Text:=intToSTR(aiguillage[adresse].ADevie)+aiguillage[adresse].ADevieB;
+      Edit_HG.Text:=intToSTR(aiguillage[adresse].ADroit)+aiguillage[adresse].ADroitB;
 
+      Adr2:=aiguillage[adresse].Apointe;
+      EditDevie_HD.Text:=intToSTR(aiguillage[adr2].ADevie)+aiguillage[adr2].ADevieB;
+      EditDroit_BD.Text:=intToSTR(aiguillage[adr2].ADroit)+aiguillage[adr2].ADroitB;
 
+      EditP1.Text:=intToSTR(aiguillage[adresse].APointe);
+      EditP2.Text:=intToSTR(aiguillage[adr2].APointe);
+      
+    end
+    else 
+    begin
+      ImageAffiche.Picture.BitMap:=Imageaig.Picture.Bitmap; 
+      Edit_HG.Visible:=false;
+      labelHG.Visible:=false;
+      EditP1.Visible:=false;
+      EditP2.Visible:=false;
+      tjd:=false;
+    end;  
+  end;
+//  affiche(s,clOrange);
+  
+  i:=pos(',',s);Delete(s,1,i);
+  traite:=0;nBoucle:=0;
+  if not(tjd) then 
+  repeat 
+    if s<>'' then
+    if s[1]='P' then
+    begin
+      decodeAig(s,adresse,B,bis);
+      ss:=intToSTR(Adresse);
+      if bis then ss:=ss+'B';
+      formconfig.EditPointe_BG.Text:=ss+B;
+      i:=pos(',',s);if i=0 then i:=length(s)+1;
+      Delete(s,1,i);
+      inc(traite);
+    end;
+    if s<>'' then 
+    if s[1]='S' then
+    begin
+      decodeAig(s,adresse,B,bis);
+      ss:=intToSTR(Adresse);
+      if bis then ss:=ss+'B';
+      formconfig.EditDevie_HD.Text:=ss+B;
+      i:=pos(',',s);if i=0 then i:=length(s)+1;
+      Delete(s,1,i);
+      inc(traite);
+    end;
+    if s<>'' then
+    if s[1]='D' then
+    begin
+      decodeAig(s,adresse,B,bis);
+      ss:=intToSTR(Adresse);
+      if bis then ss:=ss+'B';
+      formconfig.EditDroit_BD.Text:=ss+B;
+      i:=pos(',',s);if i=0 then i:=length(s)+1;
+      Delete(s,1,i);
+      inc(traite);
+    end;
+    inc(nBoucle);
+  until (traite=3) or (nboucle=3);
+    
+  if s='' then 
+  with formconfig do
+  begin
+    RadioButtonsans.Checked:=true;
+    RadioButton30kmh.Checked:=false;
+    RadioButton60kmh.Checked:=false;
+  end;
+  if s='30' then 
+  with formconfig do
+  begin
+    RadioButtonsans.Checked:=false;
+    RadioButton30kmh.Checked:=true;
+    RadioButton60kmh.Checked:=false;
+  end;
+  if s='60' then 
+  with formconfig do
+  begin
+    RadioButtonsans.Checked:=false;
+    RadioButton30kmh.Checked:=false;
+    RadioButton60kmh.Checked:=true;
+  end;
+end;
+  
+procedure TFormConfig.MemoAigDblClick(Sender: TObject);
+begin   
+   Aff_champs_aig;
+end;
 
+procedure TFormConfig.MemoAigClick(Sender: TObject);
+begin
+      Aff_champs_aig
+end;
 
 end.

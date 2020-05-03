@@ -3364,7 +3364,7 @@ end;
 procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
-    tec,bistec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux : boolean;
+    tec,bistec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux,bisBool : boolean;
     bd,virgule,i_detect,i,erreur,aig,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,aig2,adr,erreur2,l,t,bis,Nligne : integer;
     function lit_ligne : string ;
@@ -3605,6 +3605,39 @@ begin
         begin
           if debugconfig then Affiche('Section P - enregistrement='+enregistrement,clYellow);
           ComptEl:=ComptEl+1;
+          decodeAig(enregistrement,detect,c,bisBool);
+          if c='' then c:='Z';
+          if (bis=1) and (bisBool=false) then 
+          begin 
+            aiguillageB[aig].ApointeBis:=0;
+            aiguillageB[aig].Apointe:=detect;
+            aiguillageB[aig].ApointeB:=c;
+          end;
+          if (bis=0) and (bisBool=true) then 
+          begin 
+            aiguillage[aig].ApointeBis:=1;
+            aiguillage[aig].Apointe:=detect;
+            aiguillage[aig].ApointeB:=c;
+          end;
+          if (bis=0) and (bisBool=false) then 
+          begin
+            aiguillage[aig].ApointeBis:=0;
+            aiguillage[aig].Apointe:=detect; 
+            aiguillage[aig].ApointeB:=c;
+          end;  
+          if (bis=1) and (bisBool=true) then 
+          begin
+            aiguillageB[aig].ApointeBis:=1;
+            aiguillageB[aig].Apointe:=detect; 
+            aiguillageB[aig].ApointeB:=c;
+          end;  
+
+          
+          virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
+          enregistrement:=copy(s,1,virgule-1);
+          delete(s,1,virgule);
+         {
+          
           delete(enregistrement,1,1); // supprime le P
           detect:=0;
           Val(enregistrement,detect,erreur);
@@ -3627,13 +3660,44 @@ begin
           virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
           enregistrement:=copy(s,1,virgule-1);
           delete(s,1,virgule);
-        end;
+          }
+        end; 
 
         if (length(enregistrement)<>0) then  // section droite
         if (enregistrement[1]='D') then
         begin
           if debugconfig then Affiche('Section D - enregistrement='+enregistrement,clYellow);
           ComptEl:=ComptEl+1;
+          decodeAig(enregistrement,detect,c,bisBool);
+          if c='' then c:='Z';
+          if (bis=1) and (bisBool=false) then 
+          begin 
+            aiguillageB[aig].AdroitBis:=0; 
+            aiguillageB[aig].Adroit:=detect;
+            aiguillageB[aig].AdroitB:=c;
+          end;
+          if (bis=0) and (bisBool=true) then 
+          begin 
+            aiguillage[aig].AdroitBis:=1;
+            aiguillage[aig].Adroit:=detect;
+            aiguillage[aig].AdroitB:=c;
+          end;
+          if (bis=0) and (bisBool=false) then 
+          begin
+            aiguillage[aig].AdroitBis:=0;
+            aiguillage[aig].Adroit:=detect; 
+            aiguillage[aig].AdroitB:=c;
+          end;  
+          if (bis=1) and (bisBool=true) then 
+          begin
+            aiguillageB[aig].AdroitBis:=1;
+            aiguillageB[aig].Adroit:=detect; 
+            aiguillageB[aig].AdroitB:=c;
+          end;   
+          virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
+          enregistrement:=copy(s,1,virgule-1);
+          delete(s,1,virgule);
+          {
           delete(enregistrement,1,1); // supprime le P
           Val(enregistrement,detect,erreur);
           if erreur<>0 then delete(enregistrement,1,erreur-1);
@@ -3660,7 +3724,7 @@ begin
           end;
           virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
           enregistrement:=copy(s,1,virgule-1);
-          delete(s,1,virgule);
+          delete(s,1,virgule);}
         end;
 
         if (length(enregistrement)<>0) then
@@ -6696,13 +6760,6 @@ procedure SendKey(Wnd,VK : Cardinal; Ctrl,Alt,Shift : Boolean);
 var
   MC,MA,MS : Boolean;
 begin
-  // Met la fenetre de destination en arrière
-  //ShowWindow(Wnd,SW_SHOW);
-  //SetForegroundWindow(Wnd);
-
-  //if VK=ord('\') then Vk:=58; // *
-  
-  
   // Etats des touches spéciales 
   MC:=Hi(GetAsyncKeyState(VK_CONTROL))>127;
   MA:=Hi(GetAsyncKeyState(VK_MENU))>127;
@@ -6720,7 +6777,7 @@ begin
 //  keybd_event(MapVirtualKeyA(VK,0),0,0,0);
 //  keybd_event(MapVirtualKeyA(VK,0),0,KEYEVENTF_KEYUP,0);
 
-  // Release modifier keys if necessary
+  // Relâchement des touches si nécessaire
   if Ctrl<>MC then keybd_event(VK_CONTROL,0,Byte(Ctrl)*KEYEVENTF_KEYUP,0);
   if Alt<>MA then keybd_event(VK_MENU,0,Byte(Alt)*KEYEVENTF_KEYUP,0);
   if Shift<>MS then keybd_event(VK_SHIFT,0,Byte(Shift)*KEYEVENTF_KEYUP,0);
@@ -6780,10 +6837,18 @@ begin
                     Pchar('-f '+lay),  // paramètre    
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
                     ,SW_SHOWNORMAL)<=32 then 
+  begin              
+    // si çà marche pas essayer depuis l'autre répertoire 
+    if ShellExecute(Formprinc.Handle,
+                    'open',PChar('C:\Program Files\CDM-Rail\cdr.exe'),
+                    Pchar('-f '+lay),  // paramètre    
+                    PChar('C:\Program Files\CDM-Rail\')  // répertoire
+                    ,SW_SHOWNORMAL)<=32 then 
       begin              
-        ShowMessage(SysErrorMessage(GetLastError));
+        ShowMessage('répertoire CDM rail introuvable');
         Lance_CDM:=false;exit;
       end
+  end    
       
   else
   begin
