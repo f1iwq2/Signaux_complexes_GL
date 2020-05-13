@@ -16,7 +16,7 @@ Version 1.41 : Gestion des passages à niveaux par actionneurs
 Version 1.42 : Correction erreur lecture signaux
 Version 1.43 : Correction erreur gestion sémaphore
 Version 1.44 : Gestion trains avec voitures éclairées
-Version 1.45 : Rejette les n° d'objets supérieurs aiguillages à la même adresse
+Version 1.45 : Rejette les n° d'objets supérieurs aiguillages à la même adresse pour le bug des aiguillages BIS de CDM
 Version 1.5  : Nouvel algorithme de suivi des trains - Gestion des feux provenant de voies en buttoir
 Version 1.6  : Implémentation du TCO. Ouverture de CDM rail au démarrage avec LAY à la demande
 Version 1.7  : Sauvegarde de la configuration dans les fichier client_gl.cfg et config.cfg si modification des paramètres depuis le menu de configuration.
@@ -24,4 +24,13 @@ Version 1.7  : Sauvegarde de la configuration dans les fichier client_gl.cfg et 
 version 1.71 : correction d'un bug de la v1.7 sur le protocole COM/USB direct à l'interface
 version 1.72 : affichage message si configuration erronnée dans la fenêtre de configuration - Démarrage de CDM assuré pour les répertoires
                Program Files et Program Files (x86)
+version 1.73 : Amélioration du couper du TCO - Ajout de détecteurs sur les élements de voies 1 10 11 et 20 pour le TCO
+               Affichage d'aide sur les éléments décrits dans le panneau de configuration
+version 1.74 : Amélioration des affichages du TCO  - Pilotage des aiguillages depuis le TCO - Amélioration du séquençage d'ouverture de CDM Rail
+
+
+
+
+              
+
 

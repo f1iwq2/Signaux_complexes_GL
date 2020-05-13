@@ -61,7 +61,6 @@ type
     Image6Dir: TImage;
     Codificationdesfeux1: TMenuItem;
     Divers1: TMenuItem;
-    Versions1: TMenuItem;
     ChronoDetect: TMenuItem;
     ClientSocketCDM: TClientSocket;
     FichierSimu: TMenuItem;
@@ -78,7 +77,6 @@ type
     OuvrirunfichiertramesCDM1: TMenuItem;
     Panel1: TPanel;
     BoutonRaf: TButton;
-    ButtonAffDebug: TButton;
     BoutVersion: TButton;
     loco: TButton;
     ButtonInfo: TButton;
@@ -92,6 +90,7 @@ type
     LabelEtat: TLabel;
     ButtonAffTCO: TButton;
     ButtonLanceCDM: TButton;
+    Affichefentredebug1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -124,13 +123,11 @@ type
       Socket: TCustomWinSocket);
     procedure ClientSocketCDMRead(Sender: TObject;
       Socket: TCustomWinSocket);
-    procedure ButtonAffDebugClick(Sender: TObject);
     procedure ConnecterCDMrailClick(Sender: TObject);
     procedure DeconnecterCDMRailClick(Sender: TObject);
     procedure ClientSocketCDMDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure Codificationdesfeux1Click(Sender: TObject);
-    procedure Versions1Click(Sender: TObject);
     procedure ClientSocketLenzDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure ChronoDetectClick(Sender: TObject);
@@ -146,6 +143,7 @@ type
     procedure OuvrirunfichiertramesCDM1Click(Sender: TObject);
     procedure ButtonAffTCOClick(Sender: TObject);
     procedure ButtonLanceCDMClick(Sender: TObject);
+    procedure Affichefentredebug1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -176,7 +174,8 @@ NbCouleurTrain=8;
 couleurTrain : array[1..NbCouleurTrain] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
-
+decodeur : array[0..6] of string[20] =('rien','digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf');
+           
 type TBranche = record
                BType : integer ;   // 1= détecteur  2= aiguillage 3=bis 4=Buttoir
                Adresse : integer ; // adresse du détecteur ou de l'aiguillage
@@ -228,11 +227,10 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM : boolean;
 
   CDMhd : THandle;
-
   branche : array [1..100] of string;
 
   FormPrinc: TFormPrinc;
-  ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,parSocketCDM,
+  ack,portCommOuvert,trace,AffMem,AfficheDet,CDM_connecte,SocketCDM_connecte,
   DebugOuv,Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,
   Srvc_PosTrain,Srvc_Sig : boolean;
   tablo : array of byte;  // tableau rx usb
@@ -257,7 +255,7 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
     actionneur,etat,fonction,tempo : integer;
     train : string;
   end;
-  
+  KeyInputs: array of TInput;
   Tablo_PN : array[1..20] of
   record
     AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture
@@ -311,8 +309,6 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
                  VerrouCarre : boolean ;     // si vrai, le feu se verrouille au carré si pas de train avant le signal
                  EtatSignal  : word  ;       // comme EtatSignalCplx
                  UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
-                 // pour TCO
-                 indexTCO : integer ;        // index du feu dans le tableau FeuTCO
                  AigDirection : array[1..6] of array of record  // pour les signaux directionnels : contient la liste des aiguillages associés
                                                Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages
                                                posAig  : char;
@@ -345,6 +341,7 @@ procedure connecte_USB;
 procedure deconnecte_usb;
 function  IsWow64Process: Boolean;
 procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
+procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
 
 implementation
 
@@ -425,6 +422,8 @@ begin
 end;
 
 // dessine les feux sur une cible à 2 feux
+// x,y : offset en pixels du coin supérieur gauche du feu
+// frX, frY : facteurs de réduction
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage : integer;
@@ -1415,7 +1414,6 @@ procedure envoie_fonction_CDM(fonction,etat : integer;train : string);
 var s : string;
 begin
   s:=chaine_CDM_Func(fonction,etat,train);
-  if trace then affiche(s,clLime);
   envoi_cdm(s);
 end;
 
@@ -3207,7 +3205,7 @@ end;  // de la procédure pilote signaux
 
 // pilotage d'un signal
 procedure envoi_signal(Adr : integer);
-var i,adresse,a,aspect,x,y,TailleX,TailleY,Orientation : integer;
+var i,adresse,a,aspect,x,y,x0,y0,TailleX,TailleY,Orientation : integer;
     ImageFeu : TImage;
     frX,frY : real;
 begin
@@ -3231,13 +3229,14 @@ begin
     // allume les signaux du feu dans le TCO
     if AvecTCO then  
     begin
-      for i:=1 to NbFeuTCO do
-      begin
-        adresse:=FeuTCO[i].adresse;  // vérifie si le feu existe dans le TCO
-        if adresse<>0 then
-        begin
-          a:=EtatsignalCplx[adresse];     // a = état binaire du feu
-          aspect:=feuTCO[i].aspect;
+     for y:=1 to NbreCellY do
+     for x:=1 to NbreCellX do
+     begin
+       if TCO[x,y].Bimage=30 then
+       begin
+         adresse:=TCO[x,y].adresse;  // vérifie si le feu existe dans le TCO
+         a:=EtatsignalCplx[adresse];     // a = état binaire du feu
+         aspect:=TCO[x,y].aspect;
           case aspect of
                2 :  ImageFeu:=Formprinc.Image2feux;
                3 :  ImageFeu:=Formprinc.Image3feux;
@@ -3247,25 +3246,26 @@ begin
                9 :  ImageFeu:=Formprinc.Image9feux;
           else ImageFeu:=Formprinc.Image3feux;
           end;
-          x:=(FeuTCO[i].x-1)*LargeurCell;  // coordonnées XY et feu
-          y:=(FeuTCO[i].y-1)*HauteurCell;
+          x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
+          y0:=(tco[x,y].y-1)*HauteurCell;
           TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
           TailleX:=ImageFeu.picture.BitMap.Width; 
-          Orientation:=FeuTCO[i].FeuOriente; 
+          Orientation:=TCO[x,y].FeuOriente; 
           // réduction variable en fonction de la taille des cellules
           calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
           // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
           if orientation=2 then
           begin
-            if aspect=9 then x:=x+round(10*frX); 
-            if aspect=7 then x:=x+round(10*frX);  
-            if aspect=5 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-            if aspect=4 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-            if aspect=3 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-            if aspect=2 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
+            if aspect=9 then x0:=x0+round(10*frX); 
+            if aspect=7 then x0:=x0+round(10*frX);  
+            if aspect=5 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+            if aspect=4 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+            if aspect=3 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+            if aspect=2 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
           end;
-          Dessine_feu_mx(PCanvasTCO,x,y,frx,fry,adresse,orientation);
+         // Dessine_feu_mx(PCanvasTCO,x0,y0,frx,fry,adresse,orientation);
+            Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
         end;
      end;   
   end;   
@@ -4156,6 +4156,7 @@ begin
       if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2;
       if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1;
       Delete(s,1,1); // supprime )
+      inc(maxTablo_act);
       i:=0;
     end;
     if pos('PN',s)<>0 then i:=0;
@@ -6756,6 +6757,22 @@ begin
     CloseHandle(hSnapShot);
 end; 
 
+
+// préparation du tampon pour SendInput
+procedure KeybdInput(VKey: Byte; Flags: DWORD);
+begin
+  SetLength(KeyInputs, Length(KeyInputs)+1);
+  KeyInputs[high(KeyInputs)].Itype := INPUT_KEYBOARD;
+  with KeyInputs[high(KeyInputs)].ki do
+  begin
+    wVk:=VKey;
+    wScan:=MapVirtualKey(wVk, 0);
+    dwFlags:=Flags;
+  end;
+end;
+
+
+
 procedure SendKey(Wnd,VK : Cardinal; Ctrl,Alt,Shift : Boolean);
 var
   MC,MA,MS : Boolean;
@@ -6771,7 +6788,7 @@ begin
   if Shift<>MS then keybd_event(VK_SHIFT,0,Byte(MS)*KEYEVENTF_KEYUP,0);
 
   // Appui sur les touches
-  keybd_event(VK,0,0,0);
+  keybd_event(VK,0,0,0);  
   keybd_event(VK,0,KEYEVENTF_KEYUP,0);
 
 //  keybd_event(MapVirtualKeyA(VK,0),0,0,0);
@@ -6814,7 +6831,7 @@ begin
     '.' : s:=s+#$6e;
     '/' : s:=s+#$6f;
     '_' : s:=s+'{8}';
-  //  '\' : s:=s+#$e2;  
+  //  '\' : s:=s+#$e2;
     'a'..'z' : s:=s+Upcase(lay[i]);
     ' ','A'..'Z',#8..#$D : s:=s+lay[i];
     else Affiche('Erreur de conversion VK : '+lay,clred);
@@ -6823,111 +6840,138 @@ begin
   convert_VK:=s;
 end;
 
-// en sortie si Lance_CDM=true, il a été lancé, sinon il était déja lancé.
+// Lance et connecte CDM rail. en sortie si CDM est lancé Lance_CDM=true, 
 function Lance_CDM : boolean;
 var i : integer;
     s : string;
+    cdm_lanceLoc : boolean;
 begin
   s:='CDR';
-  if (ProcessRunning(s)) then begin Lance_CDM:=false;exit;end;
+  if (ProcessRunning(s)) then 
+  begin 
+    // CDM déja lancé;
+    Lance_CDM:=true;
+    if CDM_connecte then exit;
+    deconnecte_USB;
+    connecte_CDM;
+    exit;
+  end;
 
   Affiche('Lancement de CDM '+lay,clyellow);
+  cdm_lanceLoc:=false;
+  // lancement depuis le répertoire 32 bits d'un OS64
   if ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
-                    Pchar('-f '+lay),  // paramètre    
+                    Pchar('-f '+lay),  // paramètre
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL)<=32 then 
-  begin              
-    // si çà marche pas essayer depuis l'autre répertoire 
+                    ,SW_SHOWNORMAL)>32 then
+  cdm_lanceLoc:=true;
+
+  if not(cdm_lanceLoc) then
+  begin
+    // si çà marche pas essayer depuis le répertoire de base sur un OS32
     if ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files\CDM-Rail\cdr.exe'),
-                    Pchar('-f '+lay),  // paramètre    
+                    Pchar('-f '+lay),  // paramètre
                     PChar('C:\Program Files\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL)<=32 then 
-      begin              
-        ShowMessage('répertoire CDM rail introuvable');
-        Lance_CDM:=false;exit;
-      end
-  end    
-      
-  else
+                    ,SW_SHOWNORMAL)<=32 then
+    begin
+      ShowMessage('répertoire CDM rail introuvable');
+      lance_CDM:=false;exit;
+    end;
+    cdm_lanceLoc:=false;
+  end;
+
+  if cdm_lanceLoc then
   begin
-    Sleep(2000);
-    Application.ProcessMessages;  
-    // démarre  le serveur IP : Alt C , return 2 fois
-    SendKey(CDMHd,ord('C'),false,true,false);
-    SendKey(CDMHd,ord('C'),false,false,false);  
-    SendKey(CDMHd,VK_RETURN,false,false,false); // ouvre le menu
-    Sleep(200); // attend l'ouverture de la fenêtre
-    SendKey(CDMHd,VK_RETURN,false,false,false); // sélectionne le menu démarre le serveur IP
-    SendKey(CDMHd,VK_RETURN,false,false,false); // acquitte la fentêtre
-    Sleep(200);
+    // On a lancé CDM, déconnecter l'USB
+    deconnecte_USB;
+    Affiche('lance les fonctions automatiques de CDM',clyellow);
+    Sleep(3000);
+    ProcessRunning(s); // récupérer le handle de CDM
+    SetForegroundWindow(CDMhd);
     Application.ProcessMessages;
 
-    if false then
-    begin
-      // Ouvre le fichier réseau  : Alt F , Return, O, return
-      SendKey(CDMHd,ord('F'),false,true,false);
-      SendKey(CDMHd,VK_RETURN,false,false,false);
-      SendKey(CDMHd,ord('O'),false,false,false);
-      SendKey(CDMHd,VK_RETURN,false,false,false);
-      Sleep(500);  // attendre ouverture de la fenêtre
-      Application.ProcessMessages;
-    
-      // ouvre le fichier réseau
+    // démarre  le serveur IP ------------------------------------
+    KeybdInput(VK_MENU,0);                 // enfonce Alt
+    KeybdInput(Ord('C'),0);                // enfonce C
+    KeybdInput(Ord('C'),KEYEVENTF_KEYUP);  // relache C
 
-      Affiche('Ouvre '+Lay,clyellow);
-      s:=convert_VK(LAY);
-      Sleep(1000);
-      for i:=1 to length(s) do
-        SendKey(CDMHd,ord(s[i]),false,false,false);
-      SendKey(CDMHd,VK_return,false,false,false);
-      Sleep(2000);
-      Application.ProcessMessages;
-    end;
+    KeybdInput(VK_MENU,KEYEVENTF_KEYUP);   // relache ALT
 
-    // Serveur d'interface
+    KeybdInput(Ord('C'),0);
+    KeybdInput(Ord('C'),KEYEVENTF_KEYUP);
+
+    KeybdInput(VK_RETURN,0);
+    KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+    KeybdInput(VK_RETURN,0);
+    KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+
+    i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
+    Sleep(300);
+
+    KeybdInput(VK_RETURN,0);
+    KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+    SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  //fermer la fenetre
+    Sleep(500);
+
+    connecte_CDM;
+    Sleep(400);
+    Application.processMessages;
+
+    // Serveur d'interface --------------------------------------
     if ServeurInterfaceCDM>0 then
     begin
-      // ALT I 2 fois , Return
-      SendKey(CDMHd,ord('I'),false,true,false);   // Avec Alt
-      SendKey(CDMHd,ord('I'),false,false,false);  // Sans Alt
-      SendKey(CDMHd,VK_RETURN,false,false,false); // Ouvre le menu
-      SendKey(CDMHd,VK_RETURN,false,false,false); // Affiche le serveur d'interfaces
-      Sleep(100);
-      
-      // descendre le curseur n fois
+      KeybdInput(VK_MENU,0);               // enfonce ALT
+      KeybdInput(Ord('I'),0);              // I
+      KeybdInput(Ord('I'),KEYEVENTF_KEYUP);
+
+      KeybdInput(VK_MENU,KEYEVENTF_KEYUP); // relache ALT
+      KeybdInput(Ord('I'),0);
+      KeybdInput(Ord('I'),KEYEVENTF_KEYUP);
+
+      KeybdInput(VK_RETURN,0);
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+      KeybdInput(VK_RETURN,0);
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);     // affiche la fenetre d'interface
+      Sleep(300);
+
+      // descendre le curseur n fois pour sélectionner le serveur
       for i:=1 to ServeurInterfaceCDM-1 do
       begin
-         SendKey(CDMHd,VK_DOWN,false,false,false);
+        KeybdInput(VK_DOWN, 0);
+        KeybdInput(VK_DOWN, KEYEVENTF_KEYUP);
       end;
       // 2x TAB pour pointer sur OK
-      SendKey(CDMHd,VK_TAB,false,false,false);
-      SendKey(CDMHd,VK_TAB,false,false,false);
-      SendKey(CDMHd,VK_RETURN,false,false,false);
-      Sleep(100);                                             
-      
-      // Rétrosignalisation
+      KeybdInput(VK_TAB, 0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
+      KeybdInput(VK_TAB, 0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
+      KeybdInput(VK_SPACE, 0);KeybdInput(VK_SPACE, KEYEVENTF_KEYUP);
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Sleep(200);
+     
+      // Interface
       if (ServeurInterfaceCDM=1) or (ServeurInterfaceCDM=7) then
       begin
         for i:=1 to ServeurRetroCDM-1 do
         begin
-          SendKey(CDMHd,VK_DOWN,false,false,false);
+          KeybdInput(VK_DOWN,0);KeybdInput(VK_DOWN,KEYEVENTF_KEYUP);
+          SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
         end;
-        // 3x TAB pour pointer sur OK
-        SendKey(CDMHd,VK_TAB,false,false,false);
-        SendKey(CDMHd,VK_TAB,false,false,false);
-        SendKey(CDMHd,VK_TAB,false,false,false);
-        SendKey(CDMHd,VK_RETURN,false,false,false);
-        Sleep(100);
+        // 2x TAB pour pointer sur OK
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
+        KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE, KEYEVENTF_KEYUP); // valide la fenetre d'interface
+        SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+
+        Sleep(200);
+        KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
+        SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
       end;
-    end;  
-    Sleep(100);
-    SendKey(CDMHd,VK_return,false,false,false);  // renvoyer un CR
-    Lance_CDM:=true;
-    Application.ProcessMessages;
-  end;  
-end;  
+    end;
+  end;
+  Lance_CDM:=true;
+end;
 
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var
@@ -6968,8 +7012,9 @@ begin
   DebugOuv:=True;
 
   AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-  Diffusion:=true;
-  
+  Diffusion:=AvecInit;
+
+  Application.processMessages;
   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
 
@@ -6984,17 +7029,19 @@ begin
 
   // Train[1].index:=0;
 
-  // lecture fichier de configuration  client_GL.cfg et config.cfg
+  // lecture fichiers de configuration  client_GL.cfg et config.cfg
   lit_config;
 
-  // lancer CDM rail si on le demande
+  // lancer CDM rail et le connecte si on le demande
   if LanceCDM then Lance_CDM;
   ButtonAffTCO.visible:=AvecTCO;
+  Loco.Visible:=not(Diffusion);
 
-  // tenter la liaison vers CDM rail ou vers la centrale Lenz
-  //Affiche('Test présence CDM',clYellow);
-  connecte_CDM;
-  if not(CDM_connecte) then        // si CDM est connecté, on n'ouvre pas de liaison vers la centrale
+  // tenter la liaison vers CDM rail
+  if not(CDM_connecte) then connecte_CDM;
+  
+  // si CDM n'est pas connecté, on ouvre la liaison vers la centrale
+  if not(CDM_connecte) then        
   begin
     Affiche('CDM absent - Ouverture liaison vers centrale Lenz',clYellow);
     // ouverture par USB
@@ -7130,7 +7177,7 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var index,aspect,i,a,x,y,adresse,TailleX,TailleY,orientation : integer;
+var index,aspect,i,a,x,y,x0,y0,Bimage,adresse,TailleX,TailleY,orientation : integer;
    imageFeu : Timage;
    frx,fry : real;
     s : string;
@@ -7156,12 +7203,12 @@ begin
 
   if temps>0 then dec(temps);
 
-  // gestion du clignotant des feux
+  // gestion du clignotant des feux de la page principale
   if tempsCli>0 then dec(tempsCli);
   if tempsCli=0 then
   begin
     tempsCli:=5;
-    clignotant:=not(clignotant);
+    clignotant:=not(clignotant);  // inversion du clignotant
     //tester chaque feu pour voir s'il y a un code de clignotement
     for i:=1 to NbreFeux do
     begin
@@ -7170,57 +7217,47 @@ begin
       if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
-         begin
-           //Affiche(IntToSTR(adresse),clOrange);
-           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
-         end;
+      begin
+        //Affiche(IntToSTR(adresse),clOrange);
+        Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+      end;
     end;
 
     // feux du TCO
     if avecTCO then
     begin
       // parcourir les feux du TCO
-      for i:=1 to NbFeuTCO do
+      for y:=1 to NbreCellY do
+      for x:=1 to NbreCellX do
       begin
-        adresse:=FeuTCO[i].adresse;
-        if adresse<>0 then
+        PcanvasTCO.pen.mode:=pmCOpy;
+        BImage:=TCO[x,y].bImage;
+        if Bimage=30 then
         begin
+          adresse:=TCO[x,y].adresse;
           a:=EtatsignalCplx[adresse];     // a = état binaire du feu
           if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
           testBit(a,vert_cli) or testbit(a,blanc_cli) then
           begin
-              aspect:=feuTCO[i].aspect;
-              case aspect of
-               2 :  ImageFeu:=Formprinc.Image2feux;
-               3 :  ImageFeu:=Formprinc.Image3feux;
-               4 :  ImageFeu:=Formprinc.Image4feux;
-               5 :  ImageFeu:=Formprinc.Image5feux;
-               7 :  ImageFeu:=Formprinc.Image7feux;
-               9 :  ImageFeu:=Formprinc.Image9feux;
-             else ImageFeu:=Formprinc.Image3feux;
-             end;
-
-              x:=(FeuTCO[i].x-1)*LargeurCell;  // coordonnées XY et feu
-              y:=(FeuTCO[i].y-1)*HauteurCell;
-              TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-              TailleX:=ImageFeu.picture.BitMap.Width;
-              Orientation:=FeuTCO[i].FeuOriente;
-               // réduction variable en fonction de la taille des cellules
-              calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
-
-              // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-              if orientation=2 then
-              begin
-                if aspect=9 then x:=x+round(10*frX);
-                if aspect=7 then x:=x+round(10*frX);
-                if aspect=5 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=4 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=3 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-                if aspect=2 then begin x:=x+round(10*frX);y:=y+HauteurCell-round(tailleX*frY); end;
-              end;
-              Dessine_feu_mx(PCanvasTCO,x,y,frx,fry,adresse,orientation);
+            aspect:=TCO[x,y].aspect;
+            case aspect of
+             2 :  ImageFeu:=Formprinc.Image2feux;
+             3 :  ImageFeu:=Formprinc.Image3feux;
+             4 :  ImageFeu:=Formprinc.Image4feux;
+             5 :  ImageFeu:=Formprinc.Image5feux;
+             7 :  ImageFeu:=Formprinc.Image7feux;
+             9 :  ImageFeu:=Formprinc.Image9feux;
+            else ImageFeu:=Formprinc.Image3feux;
             end;
+
+            TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+            TailleX:=ImageFeu.picture.BitMap.Width;
+            Orientation:=TCO[x,y].FeuOriente;
+            // réduction variable en fonction de la taille des cellules
+            calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
+            Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
+          end;
         end;
       end;
     end;
@@ -7442,11 +7479,11 @@ end;
 
 procedure deconnecte_usb;
 begin
-  Ferme:=true;
-  if portCommOuvert then 
+  if portCommOuvert then
   begin
     portCommOuvert:=false;
-    Formprinc.MSCommUSBLenz.Portopen:=false; 
+    Formprinc.MSCommUSBLenz.Portopen:=false;
+    Affiche('Port USB déconnecté',clyellow);
   end;
 
   portCommOuvert:=false;
@@ -7457,7 +7494,7 @@ begin
     DeConnecterUSB.enabled:=false;
     ConnecterCDMRail.enabled:=true;
     DeConnecterCDMRail.enabled:=false;
-  end;  
+  end;
 end;
 
 procedure TFormPrinc.DeconnecterUSBClick(Sender: TObject);
@@ -7602,7 +7639,7 @@ begin
   LabelTitre.caption:=titre+' '+s;
   Affiche(s,clYellow);
   AfficheDebug(s,clYellow);
-  parSocketCDM:=True;
+  SocketCDM_connecte:=True;
   MenuConnecterUSB.enabled:=false;
   DeConnecterUSB.enabled:=false;
   ConnecterCDMRail.enabled:=false;
@@ -7810,17 +7847,12 @@ procedure TFormPrinc.ClientSocketCDMRead(Sender: TObject;Socket: TCustomWinSocke
       s,ss,train : string;
       traite,sort : boolean;
 begin
-  inc(Nbre_recu_cdm);
+  inc(Nbre_recu_cdm);  
   recuCDM:=ClientSocketCDM.Socket.ReceiveText;
   if trace then begin Affiche('recu de CDM:',clWhite);Affiche(recuCDM,clWhite);end;
   Interprete_trameCDM(recuCDM);
 end;
 
-
-procedure TFormPrinc.ButtonAffDebugClick(Sender: TObject);
-begin
-  formDebug.show;
-end;
 
 procedure TFormPrinc.ConnecterCDMrailClick(Sender: TObject);
 begin
@@ -7838,6 +7870,7 @@ begin
   Affiche('CDM rail déconnecté',Cyan);
   AfficheDebug('CDM rail déconnecté',Cyan);
   CDM_connecte:=False;
+  SocketCDM_connecte:=false;
   MenuConnecterUSB.enabled:=true;
   DeConnecterUSB.enabled:=true;
   ConnecterCDMRail.enabled:=true;
@@ -7888,10 +7921,6 @@ begin
   end;
 end;
 
-procedure TFormPrinc.Versions1Click(Sender: TObject);
-begin
-  Affiche('Signaux complexes version '+Version,clLime);
-end;
 
 procedure TFormPrinc.ClientSocketLenzDisconnect(Sender: TObject;
   Socket: TCustomWinSocket);
@@ -8112,9 +8141,9 @@ begin
   if (maxTablo_act=0) and (NbrePN=0) then
   begin
     Affiche('Aucun actionneur déclaré',clYellow);
+    exit;
   end;
   
-
   for i:=1 to maxTablo_act do
   begin
     s:=Tablo_actionneur[i].train;
@@ -8190,16 +8219,15 @@ end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
 begin
-  if Lance_CDM then connecte_CDM;
+  Lance_CDM ;
 end;
 
+procedure TFormPrinc.Affichefentredebug1Click(Sender: TObject);
+begin
+  formDebug.show;
+end;
 
 begin
-
-
-
-
-
 
 
 end.

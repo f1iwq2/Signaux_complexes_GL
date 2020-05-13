@@ -38,7 +38,6 @@ type
     RadioButton11: TRadioButton;
     RadioButton12: TRadioButton;
     GroupBox7: TGroupBox;
-    Label10: TLabel;
     RadioButton13: TRadioButton;
     RadioButton14: TRadioButton;
     RadioButton15: TRadioButton;
@@ -108,12 +107,60 @@ type
     LabelHG: TLabel;
     EditP1: TEdit;
     EditP2: TEdit;
+    ImageTri: TImage;
+    Label18: TLabel;
+    EditDevieS2: TEdit;
+    GroupBox12: TGroupBox;
+    ImageSignal: TImage;
+    LabelAdrSig: TLabel;
+    GroupBox13: TGroupBox;
+    LabelDec: TLabel;
+    LabelDetAss: TLabel;
+    LabelElSuiv: TLabel;
+    Label19: TLabel;
+    LabelVerrou: TLabel;
+    GroupBox14: TGroupBox;
+    RadioButtonLoc: TRadioButton;
+    RadioButtonPN: TRadioButton;
+    Label20: TLabel;
+    GroupBoxAct: TGroupBox;
+    LabelActionneur: TLabel;
+    EditAct: TEdit;
+    EditTrain: TEdit;
+    LabelTrain: TLabel;
+    EditEtat: TEdit;
+    Labela: TLabel;
+    EditFonction: TEdit;
+    LabelFonction: TLabel;
+    EditTempo: TEdit;
+    LabelTempo: TLabel;
+    GroupBoxPN: TGroupBox;
+    Label21: TLabel;
+    EditAdrFerme: TEdit;
+    Label22: TLabel;
+    EditAdrOuvre: TEdit;
+    EditCmdFerme: TEdit;
+    EditCdeOuvre: TEdit;
+    Label23: TLabel;
+    LabelV2: TLabel;
+    LabelV3: TLabel;
+    EditV1F: TEdit;
+    Shape1: TShape;
+    StaticText1: TStaticText;
+    StaticText2: TStaticText;
+    EditV2F: TEdit;
+    EditV3F: TEdit;
+    EditV1O: TEdit;
+    EditV2O: TEdit;
+    EditV3O: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure MemoAigDblClick(Sender: TObject);
     procedure MemoAigClick(Sender: TObject);
+    procedure MemoSignauxClick(Sender: TObject);
+    procedure MemoActClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -121,8 +168,9 @@ type
    
   end;
 
-const TitreAig='Description de l''aiguillage ';
-  
+const 
+TitreAig='Description de l''aiguillage ';
+        
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM : string;
@@ -144,22 +192,21 @@ uses UnitDebug,UnitPrinc;
 function envoi_CDM(s : string) : boolean;
 var temps : integer;
 begin
-    if parsocketCDM=false then begin envoi_CDM:=false;exit;end;
+    if SocketCDM_connecte=false then begin envoi_CDM:=false;exit;end;
     //Affiche('Envoi à CDM rail',clRed);Affiche(s,ClGreen);
+    if trace then affiche(s,clLime);
     Formprinc.ClientSocketCDM.Socket.SendText(s);
     // attend l'ack
     ackCDM:=false;nackCDM:=false;
-    if ParSocketCDM then
+    temps:=0;
+    repeat
+      inc(temps);Sleep(100);
+      Application.processMessages;
+    until ferme or ackCDM or nackCDM or (temps>30); // CDM répond < 1s
+    //Affiche(IntToSTR(temps),clyellow);
+    if not(ackCDM) or nack then
     begin
-      temps:=0;
-      repeat
-        inc(temps);Sleep(100);
-        Application.processMessages;
-      until ferme or ackCDM or nackCDM or (temps>10); // CDM répond < 1s
-      if not(ackCDM) or nack then
-      begin
-        Affiche('Pas de réponse de CDM Rail',clRed);
-      end;
+      Affiche('Pas de réponse de CDM Rail',clRed);
     end;
   envoi_CDM:=ackCDM;
 end;
@@ -216,7 +263,6 @@ begin
   // déconnexion de l'ancienne liaison éventuelle
   Formprinc.ClientSocketCDM.Close;
   // Initialisation de la comm socket CDM
-  ParSocketCDM:=false;
   //if CDM_connecte then begin Affiche('CDM déja connecté',Cyan);exit;end;
   if AdresseIPCDM<>'0' then
   begin
@@ -232,8 +278,9 @@ begin
       Sleep(50);
       inc(i);
       Application.processMessages;
-    until (i>10) or ParSocketCDM;  
-    if not(ParSocketCDM) then Affiche('Socket CDM non connecté',clOrange);
+    until (i>10) or SocketCDM_connecte  ;             
+    //if i>30 then affiche('Timeout',clred);
+    if not(SocketCDM_connecte) then Affiche('Socket CDM non connecté',clOrange);
 
     // connexion à CDM rail
     recuCDM:='';
@@ -241,11 +288,11 @@ begin
     envoi_cdm(s);
     if pos('_ACK',recuCDM)<>0 then
     begin
-      CDM_connecte:=True;
       Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
       s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
       Affiche(s,clYellow);
       AfficheDebug(s,clyellow);
+      CDM_connecte:=true;
 
       // demande des services
       services_CDM;
@@ -261,26 +308,19 @@ begin
   end;
 end;
 
-
-
+// teste si une adresse IP V4 est ok
 function Ipok(s : string) : boolean;
-var i,posp,n,octet,erreur : integer;
+var i,k,posp,n,octet,erreur : integer;
 begin
-  n:=0;
-  for i:=1 to length(s) do
+  for k:=1 to 3 do
   begin
-    posp:=pos('.',s);
-    if posp<>0 then 
-    begin
-      inc(n);
-      val(s,octet,erreur);
-      if octet>255 then begin IpOK:=false;exit;end;
-      delete(s,1,posp);
-    end;  
-  end;  
-  val(s,octet,erreur);
-  if octet>255 then begin IpOK:=false;exit;end;
-  IpOk:=n=3; 
+    i:=pos('.',s);
+    if i=0 then begin IpOK:=false;exit;end;
+    val(copy(s,1,i-1),octet,erreur);if (erreur<>0) or (octet>255) then begin IpOK:=false;exit;end;
+    delete(s,1,i);
+  end;
+  val(s,octet,erreur);if (erreur<>0) or (octet>255) then begin IpOK:=false;exit;end;
+  ipOK:=true;  
 end;
 
 // vérifie si ma config de la com série/usb est ok
@@ -620,7 +660,7 @@ begin
   Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
 
   if change_srv then services_CDM;
-  
+
   // générer le fichiers config.cfg et clieng-GL.cfg
   genere_config2;
   formConfig.close;
@@ -638,6 +678,11 @@ begin
   labelHG.Visible:=false;
   EditP1.Visible:=false;
   EditP2.Visible:=false;
+  EditDevieS2.Visible:=false;
+  Label18.Visible:=false;
+  GroupBoxPN.Visible:=false;
+  GroupBoxAct.Visible:=false;
+  
 
   Edit_HG.ReadOnly:=true;
   EditP1.ReadOnly:=true;
@@ -723,7 +768,7 @@ begin
   i:=pos(',',s);
   if i<>0 then delete(s,i,length(s)-i+1);
   val(s,adr,erreur);
-  bis:=pos(s,'B')<>0;
+  bis:=pos('B',s)<>0;
   B:=#0;
   i:=pos('S',s);if i<>0 then B:='S';
   i:=pos('P',s);if i<>0 then B:='P';
@@ -732,29 +777,35 @@ end;
 
 procedure Aff_champs_aig;
 var Adresse,Adr2,traite,erreur,ligne,i,j,Nboucle,selpos : integer;
-    bis,tjd : boolean;
+    bis,tjd,tri : boolean;
     s,ss : string;
     B : char;
 begin
   with formConfig.MemoAig do
   begin
     ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
-    s:=Uppercase(Lines[ligne]);            
+    s:=Uppercase(Lines[ligne]);
+    if s='' then exit;            
     SelStart:=Perform(EM_LINEINDEX,Ligne,0);  // début de la sélection
     SelLength:=Length(s) ;  // fin de la sélection
     SetFocus;
   end;
-  
-  Val(s,Adresse,erreur);
-  formconfig.LabelAdresse.Caption:=TitreAig+InttoSTr(Adresse);
 
+  Val(s,Adresse,erreur);
+  if adresse=0 then exit;
+  ss:=TitreAig+InttoSTr(Adresse);if s[erreur]='B' then ss:=ss+'bis';
+  formconfig.LabelAdresse.Caption:= ss;
+  
+  tjd:=pos('TJD',s)<>0 ;
+  tri:=pos('TRI',s)<>0 ;
   with formconfig do
   begin
     LabelLigne.caption:=s;
     ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
     ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
     ImageAffiche.Transparent:=true;
-    if pos('TJD',s)<>0 then 
+    // tjd
+    if tjd then 
     begin
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
       Edit_HG.Visible:=true;
@@ -762,6 +813,8 @@ begin
       labelHG.Visible:=true;
       EditP1.Visible:=true;
       EditP2.Visible:=true;
+      EditDevieS2.Visible:=false;
+      Label18.Visible:=false;
       EditPointe_BG.Text:=intToSTR(aiguillage[adresse].ADevie)+aiguillage[adresse].ADevieB;
       Edit_HG.Text:=intToSTR(aiguillage[adresse].ADroit)+aiguillage[adresse].ADroitB;
 
@@ -771,15 +824,30 @@ begin
 
       EditP1.Text:=intToSTR(aiguillage[adresse].APointe);
       EditP2.Text:=intToSTR(aiguillage[adr2].APointe);
-      
+      exit;
     end
-    else 
+    else
+    // aiguillage tri
+    if tri then 
+    begin
+      tri:=true;
+      i:=pos(',',s);delete(s,1,i);
+      ImageAffiche.Picture.BitMap:=ImageTri.Picture.Bitmap;
+      EditDevieS2.Visible:=true;
+      Label18.Visible:=true;
+      Val(s,Adr2,erreur); 
+      formconfig.LabelAdresse.Caption:=formconfig.LabelAdresse.Caption+','+IntToSTR(Adr2);
+    end
+    else
+    // aiguillage normal
     begin
       ImageAffiche.Picture.BitMap:=Imageaig.Picture.Bitmap; 
       Edit_HG.Visible:=false;
       labelHG.Visible:=false;
       EditP1.Visible:=false;
       EditP2.Visible:=false;
+      EditDevieS2.Visible:=false;
+      Label18.Visible:=false;
       tjd:=false;
     end;  
   end;
@@ -787,7 +855,7 @@ begin
   
   i:=pos(',',s);Delete(s,1,i);
   traite:=0;nBoucle:=0;
-  if not(tjd) then 
+  if not(tjd) then
   repeat 
     if s<>'' then
     if s[1]='P' then
@@ -824,6 +892,17 @@ begin
     end;
     inc(nBoucle);
   until (traite=3) or (nboucle=3);
+
+  // reste S2 pour le tri à traiter
+  if tri then
+  begin
+    i:=pos('S2-',s);
+    if i<>0 then
+    begin
+      delete(s,i,3);
+      formconfig.EditDevieS2.text:=s;
+    end;
+  end;
     
   if s='' then 
   with formconfig do
@@ -847,6 +926,173 @@ begin
     RadioButton60kmh.Checked:=true;
   end;
 end;
+
+Procedure aff_champs_sig;
+var i,d, ligne, adresse,erreur : integer;
+    s,ss : string;
+begin
+  with formConfig.MemoSignaux do
+  begin
+    ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    s:=Uppercase(Lines[ligne]);  
+    if s='' then exit;          
+    SelStart:=Perform(EM_LINEINDEX,Ligne,0);  // début de la sélection
+    SelLength:=Length(s) ;  // fin de la sélection
+    SetFocus;
+  end;
+  
+  Val(s,Adresse,erreur);
+  if adresse=0 then exit;
+  ss:='Signal '+InttoSTr(Adresse);
+  formconfig.LabelAdrSig.Caption:= ss;
+  i:=Index_feu(adresse);
+  with formconfig.ImageSignal do
+  begin
+    Picture.Bitmap.TransparentMode:=tmAuto; 
+    Picture.Bitmap.TransparentColor:=clblue;
+    Transparent:=true;
+    Picture.BitMap:=feux[i].Img.Picture.Bitmap;
+  end; 
+  with formconfig do
+  begin
+    d:=feux[i].decodeur;
+    LabelDec.caption:='Décodeur associé : '+decodeur[d];
+    d:=feux[i].aspect;
+    // signal directionnel
+    if d<10 then 
+    begin
+      LabelDetAss.caption:='Détecteur associé : '+IntToSTR(feux[i].Adr_det1);
+      LabelElSuiv.caption:='Element suivant : '+IntToSTR(feux[i].Adr_el_suiv1);
+      s:='Verrouillable au carré : '; if feux[i].VerrouCarre then s:=s+'oui' else s:=s+'non';
+      LabelVerrou.caption:=s;
+    end
+    else
+    begin
+      LabelDetAss.caption:='';
+      LabelElSuiv.caption:='';
+      LabelVerrou.caption:='';
+    end;
+  end;
+   
+end;
+
+Procedure aff_champs_act;
+var i,v, ligne,etatact,erreur, adresse,fonction,tempo : integer;
+    s,s2,ss : string;
+    trouve : bool;
+begin
+  with formConfig.MemoAct do
+  begin
+    ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    s:=Uppercase(Lines[ligne]);            
+    if s='' then exit;
+    SelStart:=Perform(EM_LINEINDEX,Ligne,0);  // début de la sélection
+    SelLength:=Length(s) ;  // fin de la sélection
+    SetFocus;
+  end;
+
+  // actionneur passage à niveau
+  if s[1]='(' then 
+  begin
+    with formconfig do
+    begin
+      GroupBoxact.Visible:=false;
+      GroupBoxPN.Top:=104;
+      GroupBoxPN.Visible:=true;
+      Visible:=true;
+      RadioButtonPN.Checked:=true;
+      RadioButtonLoc.Checked:=false;
+    end;
+    // trouver l'index dans le tableau
+    i:=pos('PN(',s);
+    delete(s,1,i+2);
+    val(s,adresse,erreur);
+    i:=0;
+    repeat
+      inc(i);
+      trouve:=(Tablo_PN[i].AdresseFerme=adresse);
+    until trouve or (i>NbrePN);
+    if not(trouve) then exit;
+
+    with formConfig do
+    begin
+      EditAdrFerme.text:=IntToSTR(Tablo_PN[i].AdresseFerme);
+      EditAdrOuvre.text:=IntToSTR(Tablo_PN[i].AdresseOuvre);
+      if Tablo_PN[i].CommandeFerme=2 then s:='+' else s:='-';
+      EditCmdFerme.text:=s;
+      if Tablo_PN[i].CommandeOuvre=2 then s:='+' else s:='-';
+      EditCdeOuvre.text:=s;
+      EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
+      EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
+      v:=Tablo_PN[i].nbvoies;
+      if v>=2 then
+      begin
+        EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
+        EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
+        EditV2F.Visible:=true;
+        EditV2O.Visible:=true;
+        labelV2.Visible:=true;
+      end;
+      if v>=3 then
+      begin
+        EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
+        EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
+        EditV3F.Visible:=true;
+        EditV3O.Visible:=true;
+        labelV3.visible:=true;
+      end;
+      if v<3 then
+      begin
+        EditV3F.Visible:=false;
+        EditV3O.Visible:=false;
+        labelV3.visible:=false;
+      end;
+      if v<2 then
+      begin
+        EditV2F.Visible:=false;
+        EditV2O.Visible:=false;
+        labelV2.visible:=false;
+      end;
+    end;
+  end
+  else
+  // actionneur fonction F locomotive
+  begin
+    with formconfig do
+    begin
+      GroupBoxAct.Top:=104;
+      GroupBoxact.Visible:=true;
+      GroupBoxPN.Visible:=false;
+      formconfig.RadioButtonPN.Checked:=false;
+      formconfig.RadioButtonLoc.Checked:=true;
+    end;  
+    // trouver l'index dans le tableau
+    val(s,adresse,erreur);
+    i:=0;
+    repeat
+      inc(i);
+      trouve:=(Tablo_actionneur[i].actionneur=adresse);
+    until trouve or (i>MaxTablo_act);
+    if not(trouve) then exit;
+    
+    s:=Tablo_actionneur[i].train;
+    etatAct:=Tablo_actionneur[i].etat ;
+    Adresse:=Tablo_actionneur[i].actionneur;
+    fonction:=Tablo_actionneur[i].fonction;
+    s2:=Tablo_actionneur[i].train;
+    tempo:=tablo_actionneur[i].Tempo;
+    with formconfig do
+    begin
+      EditAct.text:=IntToSTR(Adresse);
+      EditTrain.Text:=s;
+      editFonction.Text:=intToSTR(fonction);
+      editEtat.Text:=intToSTR(etatAct);
+      editTempo.Text:=intToSTR(tempo);
+    end;
+  end;
+  
+  ss:='Actionneur '+InttoSTr(Adresse);
+end;  
   
 procedure TFormConfig.MemoAigDblClick(Sender: TObject);
 begin   
@@ -857,5 +1103,17 @@ procedure TFormConfig.MemoAigClick(Sender: TObject);
 begin
       Aff_champs_aig
 end;
+
+procedure TFormConfig.MemoSignauxClick(Sender: TObject);
+begin
+  Aff_champs_sig;
+end;
+
+procedure TFormConfig.MemoActClick(Sender: TObject);
+begin
+  Aff_champs_act;
+end;
+
+
 
 end.

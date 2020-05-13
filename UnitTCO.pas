@@ -247,6 +247,7 @@ type
     procedure EditAdrElementKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ButtonConstruitClick(Sender: TObject);
+    procedure ImageTCODblClick(Sender: TObject);
     
   private
     { Déclarations privées }
@@ -267,30 +268,24 @@ type
   TTCO = array[1..MaxCellX] of array[1..MaxCellY] of record
                BType : integer ;      // 1= détecteur  2= aiguillage 3=bis 4=Buttoir 
                Adresse : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
-               IndexFeu   : integer ;    // index du feu dans le tableau FeuTCO
                BImage : integer ;     // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
                mode :  integer;       // 0=éteint 1=allumé
                inverse : boolean;     // aiguillage piloté inversé
                Texte : string[30];
-               //FeuAspect : integer;   // aspect du feu (2 feux...9 feux)
-               //FeuOriente : integer ; // orientation du feu : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
+               couleurTexte : Tcolor;
+               // pour les feux seulement
                PiedFeu : integer; // type de pied au feu
-            end;
-
-  // Feux du TCO
-  TfeuTCO = array[1..50] of record
-              Adresse : integer ; // adresse du feu;
-              x,y     : integer ; // coordonnées pixels
-              FeuOriente : integer;
-              PiedFeu   : integer;
-              Aspect    : integer;
+               x,y     : integer ; // coordonnées pixels relativés du coin sup gauche pour le décalage par rapport à la cellule
+               FeuOriente : integer;  // orientation du feu : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
+               Aspect    : integer;    // aspect du feu (2 feux...9 feux)
             end;
 
   
 var
-  clAllume,clVoies,Fond,couleurAdresse,clGrille : Tcolor;
+  clAllume,clVoies,Fond,couleurAdresse,clGrille,cltexte : Tcolor;
   FormTCO: TFormTCO;
-  Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie : boolean;
+  Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
+  piloteAig : boolean;
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,
@@ -301,8 +296,6 @@ var
   TamponTCO_Org : record 
                    x1,y1,x2,y2 : integer;
                   end;  
-  FeuTCO : TFeuTCO;
-  NbFeuTCO : integer;                
   rAncien : TRect;          
   PCanvasTCO : Tcanvas;
   PBitMapTCO : TBitMap;
@@ -349,7 +342,7 @@ begin
     NbreCellX:=28;NbreCellY:=13;LargeurCell:=30;HauteurCell:=30;
     exit;
   end;
-  x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;NbFeuTCO:=0;
+  x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;
 
   // couleurs
   s:=lit_ligne;
@@ -360,9 +353,12 @@ begin
   val('$'+s,clAllume,erreur);
   s:=lit_ligne;
   val('$'+s,clGrille,erreur);
+  s:=lit_ligne;
+  
+  if pos(',',s)=0 then begin val('$'+s,cltexte,erreur);s:=lit_ligne;end;
+  
   
   // taille de la matrice
-  s:=lit_ligne;
   Val(s,NbreCellX,erreur);
   delete(s,1,erreur);
   Val(s,NbreCellY,erreur);
@@ -424,34 +420,30 @@ begin
         val(copy(s,1,i-1),PiedFeu,erreur); if erreur<>0 then begin closefile(fichier);exit;end;
         if s[i]=',' then delete(s,1,i) else delete(s,1,i-1);
        
-        // si c'est un feu, remplir tableau feux
+        // si c'est un feu, remplir les paramètres du feu
         if tco[x,y].Bimage=30 then
         begin
-          inc(NbFeuTCO);
-          //Affiche(intToSTR(tco[x,y].Adresse),clyellow);
           i:=index_feu(adresse);
           if i<>0 then 
           begin
             aspect:=Feux[i].aspect;
             //Affiche('Feu '+IntToSTR(Adresse)+' aspect='+intToSTR(aspect),clyellow);
-            Feux[i].indexTCO:=NbFeuTCO;
-            FeuTCO[NbFeuTCO].Aspect:=aspect;
+            tco[x,y].Aspect:=aspect;
+            tco[x,y].FeuOriente:=FeuOriente;
+            tco[x,y].x:=0; 
+            tco[x,y].y:=0;
+            TCO[x,y].PiedFeu:=PiedFeu;  
           end;  
-          FeuTCO[NbFeuTCO].Adresse:=adresse;
-          FeuTCO[NbFeuTCO].FeuOriente:=FeuOriente;
-          FeuTCO[NbFeuTCO].x:=x;
-          FeuTCO[NbFeuTCO].y:=y;
-          FeuTCO[NbFeuTCO].PiedFeu:=PiedFeu;  
-
-          TCO[x,y].IndexFeu:=NbFeuTCO;
-          TCO[x,y].PiedFeu:=PiedFeu;        
+                
         end;
 
-        // texte
+        // texte optionnel
         j:=pos(')',s);
         begin
           if j>1 then // le , est avant le ) donc il y a un peut-etre un texte
-            tco[x,y].Texte:=copy(s,1,j-1) 
+          begin
+            tco[x,y].Texte:=copy(s,1,j-1) ;
+          end  
           else
             tco[x,y].Texte:='';
           delete(s,1,j);
@@ -466,7 +458,7 @@ begin
     inc(y);x:=1;
   end;
   closefile(fichier);
-  Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' NbeFeuxTCO='+IntToSTR(NbFeuTCO),clyellow);
+  Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY),clyellow);
   
 end;
 
@@ -477,11 +469,12 @@ var fichier : textfile;
 begin
   AssignFile(fichier,'tco.cfg');
   rewrite(fichier);
-  Writeln(fichier,'/ Couleurs : fond, voies, détecteur_activé, grille');
+  Writeln(fichier,'/ Couleurs : fond, voies, détecteur_activé, grille, textes');
   Writeln(fichier,IntToHex(fond,6));
   Writeln(fichier,IntToHex(ClVoies,6));
   Writeln(fichier,IntToHex(ClAllume,6));
   Writeln(fichier,IntToHex(ClGrille,6));
+  Writeln(fichier,IntToHex(ClTexte,6));
   
   writeln(fichier,'/ Taille de la matrice x,y');
   writeln(fichier,IntToSTR(NbreCellX)+','+intToSTR(NbreCellY));
@@ -500,8 +493,7 @@ begin
            
            if TCO[x,y].BImage=30 then 
            begin
-             i:=TCO[x,y].IndexFeu;
-             s:=s+IntToSTR(FeuTCO[i].FeuOriente)+','+IntToSTR(TCO[x,y].PiedFeu)+',';
+             s:=s+IntToSTR(TCO[x,y].FeuOriente)+','+IntToSTR(TCO[x,y].PiedFeu)+',';
            end
            else s:=s+'0,0,';
       // texte
@@ -552,6 +544,7 @@ begin
   with canvas do
   begin
     Brush.Color:=Fond;
+    Pen.Mode:=pmCopy;
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
@@ -563,7 +556,6 @@ begin
       begin
         Brush.Color:=clAllume;
         pen.color:=clAllume;
-        Pen.Mode:=pmCopy;
         jy1:=y0+(HauteurCell div 2)-round(6*frYGlob); // pos Y de la bande sup
         jy2:=y0+(HauteurCell div 2)+round(6*frYGlob); // pos Y de la bande inf
         r:=Rect(x0+1,jy1,x0+LargeurCell-1,jy2);
@@ -1071,6 +1063,22 @@ begin
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
+    Adr:=TCO[x,y].adresse;
+    if Adr<>0 then
+    begin
+      if detecteur[Adr] then
+      begin
+        Brush.Color:=clAllume;
+        pen.color:=clAllume;
+        Pen.Mode:=pmCopy;
+        x1:=x0;y1:=y0+hauteurCell-round(6*FryGlob);
+        x2:=x0+largeurCell-round(6*FrXGlob);y2:=y0+1;
+        x3:=x0+largeurCell-1;y3:=y0+round(9*FrYGlob);
+        x4:=x0+round(9*FrXGlob); y4:=y0+hauteurCell-1;
+        PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end;
+    end;  
+    
     x1:=x0;y1:=y0+hauteurCell-round(3*FryGlob);
     x2:=x0+largeurCell-round(3*FrXGlob);y2:=y0;
     x3:=x0+largeurCell;y3:=y0+round(4*FrYGlob);
@@ -1081,6 +1089,9 @@ begin
     pen.color:=couleur;
   
     PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+
+    
+    
   end;
 end;  
 
@@ -1100,6 +1111,22 @@ begin
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
+    Adr:=TCO[x,y].adresse;
+    if Adr<>0 then
+    begin
+      if detecteur[Adr] then
+      begin
+        Brush.Color:=clAllume;
+        pen.color:=clAllume;
+        Pen.Mode:=pmCopy;
+        x1:=x0+round(6*FrXGlob);y1:=y0;
+        x2:=x0+largeurCell-1;y2:=y0+HauteurCell-round(6*FrYGlob)-1;
+        x3:=x0+largeurCell-round(8*FrXGlob)-1;y3:=y0+HauteurCell-1;
+        x4:=x0;y4:=y0+round(8*frYGlob);
+        PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end;
+    end;  
+    
     x1:=x0+round(3*FrXGlob);y1:=y0;
     x2:=x0+largeurCell;y2:=y0+HauteurCell-round(3*FrYGlob);
     x3:=x0+largeurCell-round(4*FrXGlob);y3:=y0+HauteurCell;
@@ -1609,13 +1636,12 @@ end;
 
 // Element 20
 procedure TFormTCO.dessin_20(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,xbv1,xbv2 : integer;
+var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,xbv1,xbv2,adr : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-  xbv1:=x0+(LargeurCell div 2)-round(3*frXGlob); // pos x de la bande verticale
-  xbv2:=x0+(LargeurCell div 2)+round(3*frXGlob); // pos x de la bande verticale
+ 
 
   with canvas do
   begin
@@ -1623,17 +1649,33 @@ begin
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
+    Adr:=TCO[x,y].adresse;
+    if Adr<>0 then
+    begin
+      if detecteur[Adr] then
+      begin
+        Brush.Color:=clAllume;
+        pen.color:=clAllume;
+        Pen.Mode:=pmCopy;
+        xbv1:=x0+(LargeurCell div 2)-round(6*frXGlob); // pos x de la bande verticale
+        xbv2:=x0+(LargeurCell div 2)+round(6*frXGlob); // pos x de la bande verticale
+        r:=Rect(xbv1,y0,xbv2,y0+HauteurCell);
+        FillRect(r);
+      end;
+    end;  
+    
     if mode=1 then couleur:=clAllume else couleur:=clVoies;
     Brush.COlor:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-
+    xbv1:=x0+(LargeurCell div 2)-round(3*frXGlob); // pos x de la bande verticale
+    xbv2:=x0+(LargeurCell div 2)+round(3*frXGlob); // pos x de la bande verticale
     r:=Rect(xbv1,y0,xbv2,y0+HauteurCell);
     FillRect(r);
   end;
 end;
 
-// Element 21
+// Element 21 - croisement - TJD
 procedure TFormTCO.dessin_21(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     r : Trect;
@@ -2129,20 +2171,18 @@ end;
 
 // Dessine un feu dans le canvas en x,y , dont l'adresse se trouve à la cellule x,y
 procedure dessin_feu(CanvasDest : Tcanvas;x,y : integer );
-var  OffsetX,x0,y0,orientation,adresse,i,aspect,TailleX,TailleY,NbCellDest : integer;
+var  OffsetX,x0,y0,xp,yp,orientation,adresse,i,aspect,TailleX,TailleY,NbCellDest : integer;
      ImageFeu : Timage;
      frX,frY : real;
 begin
-  x0:=(x-1)*LargeurCell;
-  y0:=(y-1)*HauteurCell;
+  xp:=(x-1)*LargeurCell;
+  yp:=(y-1)*HauteurCell;
 
   Adresse:=TCO[x,y].Adresse;
-
-  i:=TCO[x,y].indexfeu; // index du feu dans le tableau feuTCO
-  Orientation:=feuTCO[i].FeuOriente; 
+  Orientation:=TCO[x,y].FeuOriente;
   if Orientation=0 then Orientation:=1;  // cas d'un feu non encore renseigné
 
-  aspect:=feuTCO[i].aspect;          
+  aspect:=TCO[x,y].aspect;
  // Affiche(IntToSTR(i)+' '+intToSTR(aspect),clred);
 
   offsetX:=0;
@@ -2162,27 +2202,43 @@ begin
   // réduction variable en fonction de la taille des cellules. 50 est le Zoom Maxi
   calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
+  if orientation=3 then
+  begin
+    x0:=0;y0:=0;
+    x0:=x0+xp;y0:=y0+yp;
+    tco[x,y].x:=x0;
+    tco[x,y].y:=y0; 
+  end;
+
   // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
   if orientation=2 then
   begin
-    if aspect=9 then x0:=x0+round(10*frX); 
-    if aspect=7 then x0:=x0+round(10*frX);  
-    if aspect=5 then begin x0:=x0+round(10*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=4 then begin x0:=x0+round(10*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=3 then begin x0:=x0+round(10*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=2 then begin x0:=x0+round(10*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
+    if aspect=9 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end; 
+    if aspect=7 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end; 
+    if aspect=5 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY); end;
+    if aspect=4 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY); end;
+    if aspect=3 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY); end;
+    if aspect=2 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY); end;
+    x0:=x0+xp;y0:=y0+yp;
+    tco[x,y].x:=x0;
+    tco[x,y].y:=y0;
   end;
 
   // décalage en X pour mettre rapprocher le feu du le bord droit de la cellule pour les feux verticaux
   if orientation=1 then
   begin
-    if aspect=5 then begin x0:=x0+round(25*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=4 then begin x0:=x0+round(25*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=3 then begin x0:=x0+round(25*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
-    if aspect=2 then begin x0:=x0+round(25*frX); y0:=y0+HauteurCell-round(tailleX*frY); end;
+    if aspect=9 then begin x0:=0; y0:=0; end;
+    if aspect=7 then begin x0:=0; y0:=0; end;
+    if aspect=5 then begin x0:=round(25*frX); y0:=HauteurCell-round(tailleY*frY); end;
+    if aspect=4 then begin x0:=round(25*frX); y0:=HauteurCell-round(tailleY*frY); end;
+    if aspect=3 then begin x0:=round(25*frX); y0:=HauteurCell-round(tailleY*frY); end;
+    if aspect=2 then begin x0:=round(25*frX); y0:=HauteurCell-round(tailleY*frY); end;
+    x0:=x0+xp;y0:=y0+yp;
+    tco[x,y].x:=x0;
+    tco[x,y].y:=y0;
   end;
   
-  // orientation verticale
+  // affichage du feu et du pied - orientation verticale
   if (Orientation=1) then 
   begin                              
     // copie avec mise à l'échelle de l'image du feu             
@@ -2197,7 +2253,7 @@ begin
     if aspect=2 then affiche_pied_Vertical2G(x0,y0,frX,frY);
   end;
 
-  // orientation 90°G
+  // affichage du feu et du pieds - orientation 90°G
   if Orientation=2 then 
   begin
     Feu_90G(ImageFeu,x0,y0,frX,frY); // ici on passe l'origine du feu 
@@ -2213,7 +2269,7 @@ begin
     
   end;  
 
-  // orientation 90°D
+  // affichage du feu et du pied - orientation 90°D
   if Orientation=3 then 
   begin
     Feu_90D(ImageFeu,x0,y0,frX,frY);
@@ -2331,19 +2387,17 @@ begin
   mode:=tco[x,y].mode;
 
   // récupérer la position de l'aiguillage
-  if (bImage>=2) and (btype<=14) then 
+  if (bImage>=2) and (btype<=15) then 
   begin
     if Adresse<>0 then pos:=Aiguillage[adresse].position
     
     else pos:=9;       
   end;  
-
   Xorg:=(x-1)*LargeurCell;
   Yorg:=(y-1)*HauteurCell;
   s:=IntToSTR(adresse);
-  i:=Tco[x,y].IndexFeu;
   
-  if y>1 then if (tco[x,y-1].Bimage=30) and (FeuTCO[i].FeuOriente=1) then exit;
+ // pourquoi ? ? if y>1 then if (tco[x,y-1].Bimage=30) and (FeuTCO[i].FeuOriente=1) then exit;
   
   case Bimage of 
     //  0 : efface_cellule(PCanvasTCO,x,y,Clyellow,Mode);     &&&&&&&&&
@@ -2377,7 +2431,7 @@ begin
 //  Affiche(intToSTR( (LargeurCell div 30)+6),clyellow);
   
   // affiche le texte des aiguillages
-  if (BImage>=2) and (BImage<29) and (adresse<>0) then 
+  if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or (BImage=15) or (BImage=21) or (BImage=22)) and (adresse<>0) then 
   begin 
     if Btype<>3 then s:='A'+s else s:='A'+s+'B';
     with PCanvasTCO do
@@ -2388,31 +2442,51 @@ begin
       if Bimage=4  then begin x:=1;y:=1;end;
       if Bimage=5  then begin x:=1;y:=HauteurCell-round(20*fryGlob);end;
       if Bimage=12 then begin x:=1;y:=HauteurCell-round(20*frYGlob);end;
-      if Bimage=22 then begin x:=LargeurCell-round(30*frxGlob);y:=1;end;
+      if Bimage=21 then begin x:=2;y:=1;end;
+      if Bimage=22 then begin x:=1;y:=HauteurCell-round(15*frYGlob);end;
       TextOut(xOrg+x,yOrg+y,s);
       exit;
     end;  
   end;
      
   // détecteurs
-  if (BImage=1) and (adresse<>0) then 
+  if ((BImage=1) ) and (adresse<>0) then 
   begin // Adresse de l'élément
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
       Font.Color:=clWhite;
-      TextOut(xOrg+round(15*frXGlob),yOrg+round(2*fryGlob),s);
+      x:=round(15*frXGlob);y:=HauteurCell-round(17*frYGlob);
+      TextOut(xOrg+x,yOrg+y,s);
+      exit;
+    end;  
+  end;
+  if ((Bimage=10) or (Bimage=20))  and (adresse<>0) then 
+  begin // Adresse de l'élément
+    with PCanvasTCO do
+    begin
+      Brush.Color:=fond;
+      Font.Color:=clWhite;
+      TextOut(xOrg+round(2*frXGlob),yOrg+round(2*fryGlob),s);
+      exit;
+    end;  
+  end;
+  if (Bimage=11) and (adresse<>0) then 
+  begin // Adresse de l'élément
+    with PCanvasTCO do
+    begin
+      Brush.Color:=fond;
+      Font.Color:=clWhite;
+      TextOut(xOrg+round(28*frXGlob),yOrg+round(2*fryGlob),s);
       exit;
     end;  
   end;
 
-  // texte des signaux
+  // adresse des signaux
   if (BImage=30) and (adresse<>0) then 
   begin 
-    i:=tco[x,y].IndexFeu;
-    if i=0 then exit;
-    aspect:=feuTCO[i].aspect;
-    oriente:=Feutco[i].FeuOriente;
+    aspect:=TCO[x,y].Aspect;
+    oriente:=TCO[x,y].FeuOriente;
     x:=0;y:=0;
     if (aspect=9) and (Oriente=1) then begin x:=LargeurCell-round(25*frXGlob);y:=2*HauteurCell-round(25*fryGlob);end;
     if (aspect=9) and (Oriente=2) then begin x:=round(10*frXGlob);y:=HauteurCell-round(17*frYGlob);end;    // orientation G
@@ -2420,16 +2494,16 @@ begin
     if (aspect=7) and (Oriente=1) then begin x:=LargeurCell-round(25*frXGlob);y:=2*HauteurCell-round(25*fryGlob);;end;
     if (aspect=7) and (Oriente=2) then begin x:=round(10*frXGlob);y:=HauteurCell-round(15*frYGlob);end;
     if (aspect=7) and (Oriente=3) then begin x:=LargeurCell+2;y:=1;end;
-    if (aspect=5) and (Oriente=1) then begin x:=round(24*frXGlob);y:=1;end;
+    if (aspect=5) and (Oriente=1) then begin x:=1;y:=1;end;
     if (aspect=5) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
     if (aspect=5) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=4) and (Oriente=1) then begin x:=LargeurCell-18;y:=1;end;
+    if (aspect=4) and (Oriente=1) then begin x:=1;y:=1;end;
     if (aspect=4) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
     if (aspect=4) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=3) and (Oriente=1) then begin x:=LargeurCell-18;y:=1;end;
+    if (aspect=3) and (Oriente=1) then begin x:=1;y:=1;end;
     if (aspect=3) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
     if (aspect=3) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=2) and (Oriente=1) then begin x:=LargeurCell-round(18*frXGlob);y:=1;end;   // orientation V
+    if (aspect=2) and (Oriente=1) then begin x:=1;y:=1;end;   // orientation V
     if (aspect=2) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;  // orientation G
     if (aspect=2) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;  // orientation D
     with PCanvasTCO do
@@ -2459,13 +2533,14 @@ begin
     r:=Rect(x0,y0,x0+largeurCell,y0+LargeurCell);
     Rectangle(r);
     Pen.width:=1;
+    Pen.Mode:=PmCopy;
 //    FillRect(r);
   end;
 end;
 
 procedure efface_entoure;
 begin
- if (entoure) then 
+ if (entoure) then
     begin
       Entoure_cell(Xentoure,Yentoure);
       entoure:=false;
@@ -2527,11 +2602,14 @@ begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if TCO[x,y].BImage<>30 then affiche_cellule(x,y);
+        if TCO[x,y].BImage<>30 then 
+        begin
+          affiche_cellule(x,y);
+        end;  
       end;
 
   PCanvasTCO.Font.Size:=8;    
-  //afficher les cellules des feux pour que les pieds recouvrent le reste et afficher les textes
+  //afficher les cellules des feux et les textes pour que les pieds recouvrent le reste et afficher les textes
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
@@ -2541,6 +2619,10 @@ begin
         begin
           x0:=(x-1)*Largeurcell;
           y0:=(y-1)*hauteurcell;
+          //PCanvasTCO.Brush.Style:=bsSolid;     
+          PCanvasTCO.Brush.Color:=fond;
+          //PCanvasTCO.pen.color:=clyellow;
+          PcanvasTCO.Font.Color:=clTexte;
           PcanvasTCO.Textout(x0+2,y0+1,s);
         end;  
       end;
@@ -2573,6 +2655,7 @@ begin
   ImageTCO.Canvas.font.Name:='Arial';
   clAllume:=clYellow;
   clVoies:=clOrange;
+  clTexte:=ClLime;
   clGrille:=$404040;
   // évite le clignotement pendant les affichages
   DoubleBuffered:=true; 
@@ -2582,10 +2665,11 @@ end;
 // clic gauche sur image
 procedure TFormTCO.ImageTCOClick(Sender: TObject);
 var  Position: TPoint;
-     i ,adresse,Bimage : integer;
+     i,j ,adresse,Bimage : integer;
      s : string;
      menuItem: TmenuItem;
 begin
+  //Affiche('1 Clic',clyellow);
   GetCursorPos(Position);
   {
   Menuitem:=TmenuItem.Create(popupMenu1);
@@ -2603,24 +2687,23 @@ begin
   if YclicCell>NbreCellY then exit;
 
   Bimage:=tco[XClicCell,YClicCell].Bimage;
+  // si aiguillage, mettre à jour l'option de pilotage inverse
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) 
      or (bimage=14) or (bimage=15) then 
   begin
-       CheckPinv.enabled:=true ;
-       CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
+    CheckPinv.enabled:=true ;
+    CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
   end
-   else CheckPinv.enabled:=false;
-
-  if not(selectionaffichee) then _entoure_cell_clic;
+    else CheckPinv.enabled:=false;
 
   if (Bimage=1) or (Bimage=0) then
   begin 
     s:=Tco[XClicCell,YClicCell].Texte;
-    EditTexte.Text:=s;
+    EditTexte.Text:=s;  
     EditTexte.Visible:=true   
   end   
   else EditTexte.Visible:=false;
-  
+
   LabelX.caption:=IntToSTR(XclicCell);  
   LabelY.caption:=IntToSTR(YclicCell);
   XclicCellInserer:=XClicCell;
@@ -2628,22 +2711,10 @@ begin
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
   EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
-
   EdittypeImage.Text:=IntToSTR(BImage);
-  if Bimage=30 then  //feu
-  begin
-    Adresse:=tco[XClicCellInserer,YClicCellInserer].Adresse;
-    i:=Index_Feu(adresse);
-  end;
-   
-  
-  //Affiche('XClicCell='+intToSTR(XclicCell)+' '+'YClicCell='+intToSTR(YclicCell),clyellow);
-  //Affiche('Evt ImageTCOclick',clYellow);
+
+  if not(selectionaffichee) then  _entoure_cell_clic;  
 end;
-
-
-
-
     
 // trouve le détecteur det dans le TCO et renvoie X et Y
 procedure trouve_det(det : integer;var x,y : integer);
@@ -2899,6 +2970,8 @@ begin
     ImageTemp.Visible:=not(Diffusion);
     SourisX.Visible:=not(Diffusion);
     SourisY.Visible:=not(Diffusion);
+    ButtonConstruit.Visible:=not(Diffusion);
+    ButtonAfficheBandeau.visible:=false;
     
     PScrollBoxTCO:=FormTCO.ScrollBox;
 
@@ -3625,9 +3698,63 @@ end;
 procedure TFormTCO.MenuCouperClick(Sender: TObject);
 var  Position: TPoint;
      r : Trect;
-     x0,y0,x,y,XCell1,YCell1,xCell2,yCell2 : integer;
+     Adresse,x0,y0,x,y,XCell1,YCell1,xCell2,yCell2,i,j : integer;
 begin
-  if not(SelectionAffichee) then exit;
+  // couper sans sélection : on coupe une seule cellule
+  if not(SelectionAffichee) then 
+  begin
+    if tco[XclicCell,YClicCell].Bimage=30 then
+    begin
+      // si c'est un feu, le supprimer dans le tableau FeuTCO
+      
+    //  i:=tco[XclicCell,YClicCell].indexFeuTCO;
+    //  affiche('Index='+IntToSTR(i),clyellow);
+    //  for j:=i+1 to NbfeuTCO do 
+    //  begin
+    //    FeuTCO[j-1]:=FeuTco[j];
+    //    Affiche(IntToSTR(j-1)+'<-'+IntTostr(j),clyellow);
+    //  end;  
+    //  dec(NbFeuTCO); 
+
+      // mettre à jour l'index dans le tableau des feux
+      {
+      for i:=1 to NbfeuTCO do
+      begin
+        Adresse:=feuTCO[i].Adresse;
+        j:=Index_feu(adresse);
+        feux[j].indexTCO:=i;
+      end; 
+
+      // et remettre à jour les index du tabloTCO
+      for y:=1 to NbreCellY do
+      for x:=1 to NbreCellX do
+      begin
+        if TCO[x,y].BImage=30 then 
+        begin
+          Adresse:=TCO[x,y].adresse;
+          j:=Index_feu(adresse);
+          TCO[x,y].IndexFeuTCO:=feux[j].indexTCO;
+        end;  
+      end;
+      if NbfeuTCO>2 then dec(NbfeuTCO); 
+     } 
+    end;
+   
+    tamponTCO[XclicCell,YclicCell]:=tco[XclicCell,YclicCell]; // pour pouvoir faire annuler couper
+    TamponTCO_org.x1:=XclicCell;TamponTCO_org.y1:=YclicCell;
+    TamponTCO_org.x2:=XclicCell;TamponTCO_org.y2:=YclicCell;
+   
+    tco[XclicCell,YClicCell].BType:=0;
+    tco[XclicCell,YClicCell].Adresse:=0;
+    tco[XclicCell,YClicCell].Bimage:=0;
+    efface_entoure;
+    efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,fond,PmCopy);
+    TamponAffecte:=true;
+    xCoupe:=XclicCell;yCoupe:=YclicCell;
+    
+    Affiche_tco;
+    exit;
+  end;
 
   TCO_modifie:=true;
   copier;
@@ -3646,16 +3773,18 @@ begin
       tco[x,y].Adresse:=0;
       tco[x,y].BImage:=0;
       //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
+      efface_entoure;
       efface_cellule(ImageTCO.Canvas,X,Y,fond,PmCopy);
       if avecGrille then grille;
     end;
 end;
 
 procedure TFormTCO.AnnulercouperClick(Sender: TObject);
-var x,y,Xplace,yplace : integer;
+var x,y,Xplace,yplace,i,j,adresse : integer;
 begin
   if TamponAffecte then
   begin
+
     if (xCoupe<>0) and (ycoupe<>0) then
     begin
       for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do       // rectangle de la sélection
@@ -3663,8 +3792,17 @@ begin
         begin
           xPlace:=xCoupe+x-TamponTCO_Org.x1;   // destination
           yPlace:=yCoupe+y-TamponTCO_Org.y1;
-          if (xPlace<=NbreCellX) and (yPlace<=NbreCellY) then tco[xPlace,yPlace]:=tamponTCO[x,y];
+          if (xPlace<=NbreCellX) and (yPlace<=NbreCellY) then 
+          begin
+            tco[xPlace,yPlace]:=tamponTCO[x,y];
+            if tco[xPlace,yPlace].Bimage=30 then
+            begin
+              adresse:=tco[xPlace,yPlace].Adresse;
+              j:=Index_feu(adresse);
+            end;
+          end;  
         end;
+
     end;
   end;
   Affiche_TCO;
@@ -3703,7 +3841,7 @@ begin
       Xclic:=position.X;
       YClic:=position.Y;
   
-      // coordonnées grilleg
+      // coordonnées grille
       XclicCell:=Xclic div largeurCell + 1;
       YclicCell:=Yclic div hauteurCell + 1;
 
@@ -3773,6 +3911,8 @@ begin
     Rectangle(rAncien);
   end;
   
+  if piloteAig then begin SelectionAffichee:=false;piloteAig:=false;SourisClic:=false;exit;end; 
+  
   r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+largeurCell,yMaxiSel+hauteurCell);
 
   XSel1:=Xminisel div largeurCell + 1;
@@ -3804,9 +3944,6 @@ begin
 end;
 
 
-
-
-
 procedure TFormTCO.ButtonRedessineClick(Sender: TObject);
 begin
   Affiche_TCO;
@@ -3814,7 +3951,7 @@ end;
 
 // changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,i,index : integer;
+var Adr,erreur,i,index,aspect : integer;
 begin
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then 
@@ -3826,21 +3963,15 @@ begin
   tco[XClicCell,YClicCell].Adresse:=Adr;
   //Affiche('Chgt adresse',clyellow);
 
-  // si c'est un feu, mettre à jour le tableau FeuTCO
   if tco[XClicCell,YClicCell].BImage=30 then
   begin
     index:=Index_feu(adr);
-    if index=0 then 
-    begin 
-      //affiche('Erreur feu inexistant',clred)
-      exit;
-    end  
+    if index=0 then exit
     else 
       begin
        //Affiche('Feu '+intToSTR(Adr),clyellow);
-       i:=tco[XClicCell,YClicCell].IndexFeu;
-       FeuTCO[i].Aspect:=Feux[index].aspect;
-       FeuTCO[i].Adresse:=Adr;
+       Aspect:=Feux[index].Aspect;
+       tco[XClicCell,YClicCell].aspect:=aspect;
        affiche_tco;
        //affiche_cellule(XClicCell,YClicCell,pmCopy);
      end;  
@@ -3851,7 +3982,9 @@ end;
 procedure TFormTCO.EditAdrElementKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if key=VK_RETURN then affiche_cellule(XClicCell,YClicCell);
+  if key=VK_RETURN then 
+  efface_entoure;
+  affiche_cellule(XClicCell,YClicCell);
 end;
 
 procedure TFormTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
@@ -3861,7 +3994,7 @@ begin
   begin
     Key:=#0; // évite beeping
     Val(EditTypeImage.Text,Bimage,erreur);
-   // Affiche(IntToSTR(bimage),clyellow);
+    //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
     if (erreur<>0) or (Bimage<0) or (Bimage>15) then 
     begin
       EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
@@ -3871,9 +4004,9 @@ begin
     tco[XClicCell,YClicCell].Bimage:=Bimage;
     case Bimage of
     // aiguillages
-    1,2,3,4,13,14,15 : tco[XClicCell,YClicCell].Btype:=2;
+    2,3,4,5,12,13,14,15 : tco[XClicCell,YClicCell].Btype:=2;
     // détecteur ou voie
-    5 : tco[XClicCell,YClicCell].Btype:=1;
+    1,10,11,20 : tco[XClicCell,YClicCell].Btype:=1;
     else tco[XClicCell,YClicCell].Btype:=0;
     end;
     
@@ -3913,7 +4046,6 @@ var i : integer;
 begin
   if (x=0) and (y=0) then exit;
   TCO_modifie:=true;
-  inc(NbFeuTCO);
   Xclic:=X;YClic:=Y;
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
@@ -3921,12 +4053,10 @@ begin
   tco[XClicCell,YClicCell].BType:=0;  // rien
   tco[XClicCell,YClicCell].BImage:=10;  // image 10
   tco[XClicCell,YClicCell].Adresse:=0;  
-  tco[XClicCell,YClicCell].IndexFeu:=NbFeuTCO;
-  Feutco[NbFeuTCO].FeuOriente:=1;  
+  tco[XClicCell,YClicCell].FeuOriente:=1;  
   _entoure_cell_clic; 
-  FeuTCO[NbFeuTCO].Adresse:=0;
-  FeuTCO[NbFeuTCO].x:=XClicCell;
-  FeuTCO[NbFeuTCO].y:=YClicCell;
+  tco[XClicCell,YClicCell].x:=0;  //  XClicCell;  //??
+  tco[XClicCell,YClicCell].y:=0;  //  YClicCell;  //??
    
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
@@ -3984,10 +4114,12 @@ begin
   tco[XClicCell,YClicCell].BType:=0;  // rien
   tco[XClicCell,YClicCell].BImage:=30;  
   tco[XClicCell,YClicCell].Adresse:=0;
-  inc(NbFeuTCO);
-  tco[XClicCell,YClicCell].indexFeu:=NbFeuTCO;   
-  FeuTco[NbFeuTCO].FeuOriente:=1;
-  FeuTco[NbFeuTCO].Aspect:=9;
+  tco[XClicCell,YClicCell].FeuOriente:=1;
+  tco[XClicCell,YClicCell].Aspect:=9;
+  tco[XClicCell,YClicCell].x:=0;
+  tco[XClicCell,YClicCell].y:=0;
+  
+
   // ne pas convertir l'adresse sinon evt changement du composant et on écrase l'aspect EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
@@ -4005,7 +4137,7 @@ end;
 
  
 procedure TFormTCO.Tourner90GClick(Sender: TObject);
-var BImage,aspect,adresse,index : integer;
+var BImage,aspect,adresse : integer;
     ImageFeu : TImage;
     frX,frY : real;
 begin
@@ -4014,35 +4146,34 @@ begin
 
   TCO_modifie:=true;
   adresse:=TCO[XClicCell,YClicCell].Adresse;
-  index:=TCO[XClicCell,YClicCell].indexFeu;  
   
   // effacement de l'ancien feu
-  if FeuTCO[index].FeuOriente=3 then
+  if tco[XClicCell,YClicCell].FeuOriente=3 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     Efface_Cellule(PCanvasTCO,xClicCell+1,yClicCell,fond,PmCopy);
   end;
   
-  if FeuTCO[index].FeuOriente=2 then
+  if tco[XClicCell,YClicCell].FeuOriente=2 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     Efface_Cellule(PCanvasTCO,xClicCell-1,yClicCell,fond,PmCopy);
   end;
 
   // si l'image était verticale, il faut effacer la cellule en bas
-  if FeuTCO[index].FeuOriente=1 then
+  if tco[XClicCell,YClicCell].FeuOriente=1 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell+1,fond,PmCopy);
   end;
 
-  FeuTCO[index].FeuOriente:=2;  // feu orienté à 90° gauche
+  tco[XClicCell,YClicCell].FeuOriente:=2;  // feu orienté à 90° gauche
  
   dessin_feu(PCanvasTCO,XclicCell,YClicCell);
 end;
 
 procedure TFormTCO.Tourner90DClick(Sender: TObject);
-var BImage ,aspect,adresse,index : integer;
+var BImage ,aspect,adresse : integer;
     ImageFeu : TImage;
     frX,frY : real;
 begin
@@ -4051,38 +4182,37 @@ begin
 
   TCO_modifie:=true;
   adresse:=TCO[XClicCell,YClicCell].Adresse;
-  index:=TCO[XClicCell,YClicCell].indexFeu;  
-  aspect:=FeuTCO[index].aspect;
+  aspect:=tco[XClicCell,YClicCell].aspect;
   if aspect=0 then aspect:=9;
   
   // ancien feu orienté orienté 90D
-  if FeuTCO[index].FeuOriente=3 then
+  if tco[XClicCell,YClicCell].FeuOriente=3 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     if aspect>=4 then Efface_Cellule(PCanvasTCO,xClicCell+1,yClicCell,fond,PmCopy);
   end;
 
   // ancien feu orienté orienté 90G
-  if FeuTCO[index].FeuOriente=2 then
+  if tco[XClicCell,YClicCell].FeuOriente=2 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     if aspect>=4 then Efface_Cellule(PCanvasTCO,xClicCell+1,yClicCell,fond,PmCopy);
   end;
 
   // si l'image était verticale, il faut effacer la cellule en bas
-  if FeuTCO[index].FeuOriente=1 then
+  if tco[XClicCell,YClicCell].FeuOriente=1 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell+1,fond,PmCopy);
   end;
    
-  FeuTCO[index].FeuOriente:=3;  // feu orienté à 90° droit
+  tco[XClicCell,YClicCell].FeuOriente:=3;  // feu orienté à 90° droit
   dessin_feu(PCanvasTCO,XclicCell,YClicCell);
 end;
 
 
 procedure TFormTCO.Pos_vertClick(Sender: TObject);
-var BImage ,aspect,index,Adresse : integer;
+var BImage ,aspect,Adresse : integer;
     ImageFeu : TImage;
 begin
   BImage:=TCO[XClicCell,YClicCell].Bimage;
@@ -4091,14 +4221,13 @@ begin
 
   TCO_modifie:=true;
   adresse:=TCO[XClicCell,YClicCell].Adresse;
-  index:=TCO[XClicCell,YClicCell].indexFeu;  
-  aspect:=feuTCO[index].aspect;
+  aspect:=tco[XClicCell,YClicCell].aspect;
   if aspect=0 then aspect:=9;
   
   // effacement de l'ancien feu
   
   // ancien feu orienté orienté 90D
-  if FeuTCO[index].FeuOriente=3 then
+  if tco[XClicCell,YClicCell].FeuOriente=3 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     // si le feu occupe 2 cellules
@@ -4106,7 +4235,7 @@ begin
   end;
 
   // ancien feu orienté orienté 90G  
-  if FeuTCO[index].FeuOriente=2 then
+  if tco[XClicCell,YClicCell].FeuOriente=2 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     // si le feu occupe 2 cellules
@@ -4114,13 +4243,13 @@ begin
   end;
 
   // si l'image était verticale, il faut effacer la cellule en bas
-  if FeuTCO[index].FeuOriente=1 then
+  if tco[XClicCell,YClicCell].FeuOriente=1 then
   begin
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell,fond,PmCopy);
     Efface_Cellule(PCanvasTCO,xClicCell,yClicCell+1,fond,PmCopy);
   end;
   
-  FeuTCO[index].FeuOriente:=1;  // feu orienté à 180° 
+  tco[XClicCell,YClicCell].FeuOriente:=1;  // feu orienté à 180° 
   dessin_feu(PCanvasTCO,XclicCell,YClicCell);
   
 end;
@@ -4145,12 +4274,12 @@ var x0,y0 : integer;
 begin
   x0:=(XClicCell-1)*LargeurCell;
   y0:=(YClicCell-1)*HauteurCell;
-  
+  PCanvasTCO.Brush.Color:=fond;
+  PcanvasTCO.Font.Color:=clTexte;  
   PCanvasTCO.TextOut(x0+2,y0+2,EditTexte.Text);
   Tco[XClicCell,YClicCell].Texte:=EditTexte.Text;
   TCO_modifie:=true;
 end;
-  
 
 procedure TFormTCO.ButtonSimuClick(Sender: TObject);
 begin
@@ -4213,7 +4342,67 @@ begin
   construit_TCO;
 end;
 
+procedure TFormTCO.ImageTCODblClick(Sender: TObject);
+var Bimage,Adresse,aspect,i : integer;
+    Msgdlg: Tform;
+    Result : TModalResult;
 begin
+  Bimage:=Tco[xClicCell,yClicCell].BImage;
+  Adresse:=TCO[xClicCell,yClicCell].Adresse;
+
+  // commande aiguillage
+  if (Bimage=2) or (Bimage=3) or (Bimage=4) or (Bimage=5) or (Bimage=12) or
+     (Bimage=13) or (Bimage=14) or (Bimage=15) then
+  begin
+    Msgdlg:=createMessageDialog('Pilotage de l''aiguillage '+IntToSTR(Adresse), mtCustom,[MbYes,mbNo,MbCancel]);
+    with Msgdlg do
+    begin
+      caption:='Aiguillage';
+      BiDiMode := bdRightToLeft;
+      ( FindComponent('Yes') as TButton).Caption:='droit';
+      ( FindComponent('No') as TButton).Caption:='dévié';
+    end;
+    Result:=Msgdlg.ShowModal;
+    if Result=MrYes then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,2,aig);end; // droit
+    if Result=MrNo then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,1,aig);end;  // dévié
+
+    sourisclic:=false;  // évite de générer un cadre de sélection:=false;
+    piloteAig:=true;
+  end;
+
+  // commande de signal
+  if Bimage=30 then
+  begin
+
+    if adresse=0 then exit;
+    AdrPilote:=adresse;
+    i:=Index_feu(adresse);
+    if i=0 then exit;
+    TFormPilote.Create(Self);
+    with formPilote do
+    begin
+      show;
+      ImagePilote.top:=40;ImagePilote.left:=220;
+      ImagePilote.Parent:=FormPilote;
+      ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto; 
+      ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
+      ImagePilote.Transparent:=true;
+
+      ImagePilote.Picture.BitMap:=feux[i].Img.Picture.Bitmap;
+      LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(Adresse);
+      EtatSignalCplx[0]:=EtatSignalCplx[Adresse];
+      LabelNbFeux.Visible:=False;
+      EditNbreFeux.Visible:=false;
+      GroupBox1.Visible:=true;
+      GroupBox2.Visible:=true;
+      sourisclic:=false;  // évite de générer un cadre de sélection
+    end;
+  end;
+end;
+
+begin
+
+
 
 
 

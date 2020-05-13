@@ -33,6 +33,10 @@ type
     Memo1: TMemo;
     Label9: TLabel;
     Imagecanton: TImage;
+    Label10: TLabel;
+    ImageTexte: TImage;
+    Label11: TLabel;
+    Label12: TLabel;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -42,6 +46,7 @@ type
     procedure ImageDetActClick(Sender: TObject);
     procedure ImagecantonClick(Sender: TObject);
     procedure ColorDialog1Show(Sender: TObject);
+    procedure ImageTexteClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -112,7 +117,6 @@ begin
     canvas.Pen.color:=fond;
     canvas.Brush.Color:=fond;
     canvas.Rectangle(0,0,Width,Height);
-
     
     canvas.Brush.Color:=clAllume;
     canvas.pen.color:=clAllume;
@@ -141,6 +145,19 @@ begin
     r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
     canvas.FillRect(r);
   end;
+
+  //6 texte
+  with formCOnfigTCO.ImageTexte do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+    canvas.Font.color:=clTexte;
+    canvas.Pen.mode:=pmCopy;
+    canvas.Textout(5,10,'Voie 1');
+    
+  end;
+
 
 end;
 
@@ -279,10 +296,22 @@ begin
   end; 
 end;
 
+procedure TFormConfigTCO.ImageTexteClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur du texte';
+  if ColorDialog1.execute then
+  begin
+    ClTexte:=ColorDialog1.Color;
+    dessine_icones;
+  end; 
+end;
+
+
 // change le titre de la fenêtre de choix des couleurs à son ouverture
 procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
    SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
+
 
 end.

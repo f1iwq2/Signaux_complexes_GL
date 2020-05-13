@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 250
-  Top = 200
+  Left = 226
+  Top = 188
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -22,10 +22,10 @@ object FormConfig: TFormConfig
   TextHeight = 13
   object LabelInfo: TLabel
     Left = 601
-    Top = 424
-    Width = 4
+    Top = 432
+    Width = 13
     Height = 16
-    Caption = '-'
+    Caption = '-   '
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -1365,6 +1365,177 @@ object FormConfig: TFormConfig
       AAAAAAAAAAAAAAAAAAAA}
     Visible = False
   end
+  object ImageTri: TImage
+    Left = 624
+    Top = 344
+    Width = 145
+    Height = 65
+    Picture.Data = {
+      07544269746D617076120000424D761200000000000076000000280000008900
+      000040000000010004000000000000120000120B0000120B0000100000001000
+      000000000000A5A5A500CECECE00FF000000FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333111111033333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333111111111103333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333331111111111
+      1111120333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3311111111111111111000033333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333311111111111111110000000003333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333111111111111111110000000001110333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333111111111111111110000000011
+      1111111033333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333331111111111111111
+      1000000000111111111111103333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333111111
+      1111111111111000000000111111111111111110333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333111111111111111111110000000001111111111111111111111033333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333311111111111111111111100000000001111111111111111111
+      1111111103333000000033333333333333333333333333333333333333333333
+      3333333333333333333333311111111111111111111110000000000011111111
+      1111111111111111111110000333300000003333333333333333333333333333
+      3333333333333333333333333333311111111111111111111111111000000000
+      0001111111111111111111111111111110000000033330000000333333333333
+      3333333333333333333333333333333333311111111111111111111111111111
+      1000000000000111111111111111111111111111111110000000033333333000
+      0000333333333333333333333333333333333331111111111111111111111111
+      1111111111100000000000011111111111111111111111111111111110000000
+      0333333333333000000033333111111111111111111111111111111111111111
+      1111111111111111110000000000000001111111111111111111111111111111
+      1111100000000333333333333333300000003333301111111111111111111111
+      1111111111111111111111110000000000000000000111111111111111111111
+      1111111111111111100000000333333333333333333330000000333330111111
+      1111111111111111111111111111100000000000000000000011111111111111
+      1111111111111111111111111111000000000333333333333333333333333000
+      0000333330111111111111110000000000000000000000000000000011111111
+      1111111111111111111111111111111111111111000000000333333333333333
+      3333333333333000000033333000000000000000000000000000000000000111
+      1111111111111111111111111111111111111111111111111110000000000000
+      0000000000000000000000000033300000003333300000000000000011111111
+      1111111111111111111111111111111111111111111111111111111111111000
+      0000000000000000000000000000000000000000003330000000333330111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111110333000
+      0000333330111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111110333000000033333011111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111033300000003333301111111111111111111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111111111111111111103330000000333330111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111110333000
+      0000333330111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111110333000000033333011111111111111111111111111111111111111
+      1111111111111111111111111111111111111111111111111111111111111111
+      1111111111111111111111111033300000003333300000000000000011111111
+      1111111111111111111111111111111111111111111111111111111111111000
+      0000000000000000000000000000000000000000003330000000333330000000
+      0000000000000000000000000000011111111111111111111111111111111111
+      1111111111111111111000000000000000000000000000000000000000333000
+      0000333330111111111111110000000000000000000000000000000011111111
+      1111111111111111111111111111111111111111000000000333333333333333
+      3333333333333000000033333011111111111111111111111111111111111000
+      0000000000000000001111111111111111111111111111111111111111110000
+      0000033333333333333333333333300000003333301111111111111111111111
+      1111111111111111111111110000000000000000000111111111111111111111
+      1111111111111111100000000333333333333333333330000000333330111111
+      1111111111111111111111111111111111111111111111111100000000000000
+      0111111111111111111111111111111111111000000003333333333333333000
+      0000333333333333333333333333333333333331111111111111111111111111
+      1111111111100000000000011111111111111111111111111111111110000000
+      0333333333333000000033333333333333333333333333333333333333333333
+      3331111111111111111111111111111110000000000001111111111111111111
+      1111111111111000000003333333300000003333333333333333333333333333
+      3333333333333333333333333333311111111111111111111111111000000000
+      0001111111111111111111111111111110000000033330000000333333333333
+      3333333333333333333333333333333333333333333333333333333111111111
+      1111111111111000000000001111111111111111111111111111100003333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333311111111111111111111100000000001111111111111111111
+      1111111103333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333331111111111111111111100000000
+      0111111111111111111111103333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333111111
+      1111111111111000000000111111111111111110333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333111111111111111110000000001111111111111033333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333111111111111111110000000011
+      1111111033333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333331111111
+      1111111111000000000111033333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333311111111111111110000000003333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333111111111111111110000333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333331111111111
+      1111120333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333311111111110333333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333111111033333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333000
+      0000333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333000000033333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333300000003333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333330000000333333333333
+      3333333333333333333333333333333333333333333333333333333333333333
+      3333333333333333333333333333333333333333333333333333333333333000
+      0000}
+    Visible = False
+  end
+  object Label19: TLabel
+    Left = 104
+    Top = 104
+    Width = 75
+    Height = 13
+    Caption = 'Element suivant'
+  end
+  object Label20: TLabel
+    Left = 24
+    Top = 160
+    Width = 50
+    Height = 13
+    Caption = 'LabelTrain'
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
     Top = 440
@@ -1390,7 +1561,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 417
-    ActivePage = TabSheet1
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -1504,14 +1675,14 @@ object FormConfig: TFormConfig
         Top = 8
         Width = 273
         Height = 169
-        Caption = 'Au d'#233'marrage de CDM Rail : interface '
+        Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
         object RadioButton4: TRadioButton
           Left = 8
           Top = 16
           Width = 185
           Height = 17
-          Caption = 'Ne pas d'#233'marrer d'#39'interface'
+          Caption = 'Ne pas d'#233'marrer de serveur'
           TabOrder = 0
         end
         object RadioButton5: TRadioButton
@@ -1583,19 +1754,12 @@ object FormConfig: TFormConfig
         Left = 296
         Top = 184
         Width = 273
-        Height = 145
-        Caption = 'Au d'#233'marrage de CDM Rail : interface de'
+        Height = 137
+        Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ'
         TabOrder = 3
-        object Label10: TLabel
-          Left = 8
-          Top = 16
-          Width = 146
-          Height = 13
-          Caption = 'r'#233'trosignalisation pour RS Lenz'
-        end
         object RadioButton13: TRadioButton
           Left = 8
-          Top = 32
+          Top = 24
           Width = 209
           Height = 17
           Caption = 'Automatique'
@@ -1603,7 +1767,7 @@ object FormConfig: TFormConfig
         end
         object RadioButton14: TRadioButton
           Left = 8
-          Top = 48
+          Top = 40
           Width = 217
           Height = 17
           Caption = 'LI-USB'
@@ -1611,7 +1775,7 @@ object FormConfig: TFormConfig
         end
         object RadioButton15: TRadioButton
           Left = 8
-          Top = 64
+          Top = 56
           Width = 217
           Height = 17
           Caption = 'LI-101F'
@@ -1619,7 +1783,7 @@ object FormConfig: TFormConfig
         end
         object RadioButton16: TRadioButton
           Left = 8
-          Top = 80
+          Top = 72
           Width = 217
           Height = 17
           Caption = 'LI-100F'
@@ -1627,7 +1791,7 @@ object FormConfig: TFormConfig
         end
         object RadioButton17: TRadioButton
           Left = 8
-          Top = 96
+          Top = 88
           Width = 209
           Height = 17
           Caption = 'LI-100'
@@ -1635,7 +1799,7 @@ object FormConfig: TFormConfig
         end
         object RadioButton18: TRadioButton
           Left = 8
-          Top = 112
+          Top = 104
           Width = 113
           Height = 17
           Caption = 'Genli'
@@ -1683,9 +1847,9 @@ object FormConfig: TFormConfig
         object CheckServPosTrains: TCheckBox
           Left = 8
           Top = 88
-          Width = 121
+          Width = 169
           Height = 17
-          Caption = 'Position des trains'
+          Caption = 'Position des trains (non utilis'#233')'
           TabOrder = 3
         end
         object CheckBoxSrvSig: TCheckBox
@@ -1693,7 +1857,7 @@ object FormConfig: TFormConfig
           Top = 40
           Width = 113
           Height = 17
-          Caption = 'Signaux'
+          Caption = 'Signaux (non utilis'#233')'
           TabOrder = 4
         end
       end
@@ -1949,7 +2113,7 @@ object FormConfig: TFormConfig
       object MemoAig: TMemo
         Left = 0
         Top = 24
-        Width = 249
+        Width = 273
         Height = 361
         Color = clInfoText
         Font.Charset = DEFAULT_CHARSET
@@ -1966,7 +2130,7 @@ object FormConfig: TFormConfig
         OnDblClick = MemoAigDblClick
       end
       object GroupBox11: TGroupBox
-        Left = 264
+        Left = 280
         Top = 32
         Width = 289
         Height = 233
@@ -1986,7 +2150,7 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelLigne: TLabel
-          Left = 88
+          Left = 72
           Top = 42
           Width = 104
           Height = 16
@@ -2026,7 +2190,7 @@ object FormConfig: TFormConfig
         end
         object LabelBD: TLabel
           Left = 225
-          Top = 176
+          Top = 174
           Width = 9
           Height = 16
           Caption = 'D'
@@ -2049,6 +2213,19 @@ object FormConfig: TFormConfig
           Width = 9
           Height = 16
           Caption = 'P'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label18: TLabel
+          Left = 220
+          Top = 198
+          Width = 16
+          Height = 16
+          Caption = 'S2'
           Font.Charset = ANSI_CHARSET
           Font.Color = clBlack
           Font.Height = -13
@@ -2090,7 +2267,7 @@ object FormConfig: TFormConfig
         end
         object EditDroit_BD: TEdit
           Left = 240
-          Top = 176
+          Top = 174
           Width = 41
           Height = 21
           TabOrder = 1
@@ -2127,6 +2304,14 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 5
           Text = 'EditPointe'
+        end
+        object EditDevieS2: TEdit
+          Left = 240
+          Top = 196
+          Width = 41
+          Height = 21
+          TabOrder = 6
+          Text = 'EditDevie_HD'
         end
       end
       object Edit_HG: TEdit
@@ -2171,14 +2356,16 @@ object FormConfig: TFormConfig
       object Label15: TLabel
         Left = 0
         Top = 8
-        Width = 253
+        Width = 530
         Height = 13
-        Caption = 'Liste de mod'#233'lisation des signaux du fichier config.cfg'
+        Caption = 
+          'Liste de mod'#233'lisation des signaux du fichier config.cfg - clique' +
+          'z sur une ligne pour afficher la description du signal'
       end
       object MemoSignaux: TMemo
         Left = 0
         Top = 24
-        Width = 569
+        Width = 289
         Height = 361
         Color = clInfoText
         Font.Charset = DEFAULT_CHARSET
@@ -2190,6 +2377,62 @@ object FormConfig: TFormConfig
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        OnClick = MemoSignauxClick
+      end
+      object GroupBox12: TGroupBox
+        Left = 304
+        Top = 40
+        Width = 257
+        Height = 257
+        Caption = 'Description du signal'
+        TabOrder = 1
+        object ImageSignal: TImage
+          Left = 8
+          Top = 72
+          Width = 65
+          Height = 137
+        end
+        object LabelAdrSig: TLabel
+          Left = 13
+          Top = 20
+          Width = 154
+          Height = 19
+          Caption = 'Adresse du signal = '
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -16
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object LabelDec: TLabel
+          Left = 80
+          Top = 72
+          Width = 53
+          Height = 13
+          Caption = 'D'#233'codeur: '
+        end
+        object LabelDetAss: TLabel
+          Left = 80
+          Top = 88
+          Width = 86
+          Height = 13
+          Caption = 'D'#233'tecteur associ'#233
+        end
+        object LabelElSuiv: TLabel
+          Left = 80
+          Top = 104
+          Width = 75
+          Height = 13
+          Caption = 'Element suivant'
+        end
+        object LabelVerrou: TLabel
+          Left = 80
+          Top = 120
+          Width = 105
+          Height = 13
+          Caption = 'Verrouillable au carr'#233' :'
+        end
       end
     end
     object TabSheet4: TTabSheet
@@ -2198,14 +2441,16 @@ object FormConfig: TFormConfig
       object Label16: TLabel
         Left = 0
         Top = 8
-        Width = 272
+        Width = 555
         Height = 13
-        Caption = 'Liste de mod'#233'lisation des actionneurs du fichier config.cfg'
+        Caption = 
+          'Liste de mod'#233'lisation des actionneurs du fichier config.cfg - cl' +
+          'iquez sur une ligne pour afficher la description de l'#39'action'
       end
       object MemoAct: TMemo
         Left = 0
         Top = 24
-        Width = 569
+        Width = 289
         Height = 361
         Color = clInfoText
         Font.Charset = DEFAULT_CHARSET
@@ -2217,6 +2462,267 @@ object FormConfig: TFormConfig
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        OnClick = MemoActClick
+      end
+      object GroupBox13: TGroupBox
+        Left = 304
+        Top = 32
+        Width = 257
+        Height = 345
+        Caption = 'Description de l'#39'actionneur '
+        TabOrder = 1
+        object GroupBox14: TGroupBox
+          Left = 16
+          Top = 24
+          Width = 225
+          Height = 73
+          Caption = 'Type d'#39'actionneur '
+          TabOrder = 0
+          object RadioButtonLoc: TRadioButton
+            Left = 24
+            Top = 24
+            Width = 193
+            Height = 17
+            Caption = 'Fonction F pour locomotive'
+            TabOrder = 0
+          end
+          object RadioButtonPN: TRadioButton
+            Left = 24
+            Top = 40
+            Width = 193
+            Height = 17
+            Caption = 'Gestion de passage '#224' niveau'
+            TabOrder = 1
+          end
+        end
+        object GroupBoxAct: TGroupBox
+          Left = 16
+          Top = 208
+          Width = 225
+          Height = 129
+          Caption = 'Actionneur fonction de locomotive '
+          TabOrder = 1
+          object LabelActionneur: TLabel
+            Left = 56
+            Top = 44
+            Width = 51
+            Height = 13
+            Caption = 'Actionneur'
+          end
+          object LabelTrain: TLabel
+            Left = 72
+            Top = 20
+            Width = 24
+            Height = 13
+            Caption = 'Train'
+          end
+          object Labela: TLabel
+            Left = 144
+            Top = 68
+            Width = 6
+            Height = 13
+            Caption = #224
+          end
+          object LabelFonction: TLabel
+            Left = 56
+            Top = 68
+            Width = 41
+            Height = 13
+            Caption = 'Fonction'
+          end
+          object LabelTempo: TLabel
+            Left = 40
+            Top = 84
+            Width = 55
+            Height = 13
+            Caption = 'Tempo (ms)'
+          end
+          object EditAct: TEdit
+            Left = 112
+            Top = 20
+            Width = 49
+            Height = 21
+            TabOrder = 0
+            Text = 'EditAct'
+          end
+          object EditTrain: TEdit
+            Left = 112
+            Top = 44
+            Width = 121
+            Height = 21
+            TabOrder = 1
+            Text = 'EditTrain'
+          end
+          object EditEtat: TEdit
+            Left = 160
+            Top = 68
+            Width = 25
+            Height = 21
+            TabOrder = 2
+            Text = 'EditEtat'
+          end
+          object EditFonction: TEdit
+            Left = 112
+            Top = 68
+            Width = 25
+            Height = 21
+            TabOrder = 3
+            Text = 'EditFonc'
+          end
+          object EditTempo: TEdit
+            Left = 112
+            Top = 92
+            Width = 33
+            Height = 21
+            TabOrder = 4
+            Text = 'EditTempo'
+          end
+        end
+        object GroupBoxPN: TGroupBox
+          Left = 16
+          Top = 104
+          Width = 225
+          Height = 193
+          Caption = 'Actionneurs gestion passage '#224' niveau'
+          TabOrder = 2
+          object Label21: TLabel
+            Left = 8
+            Top = 28
+            Width = 100
+            Height = 13
+            Caption = 'Adresse de fermeture'
+          end
+          object Label22: TLabel
+            Left = 8
+            Top = 52
+            Width = 94
+            Height = 13
+            Caption = 'Adresse d'#39'ouverture'
+          end
+          object Label23: TLabel
+            Left = 8
+            Top = 116
+            Width = 30
+            Height = 13
+            Caption = 'Voie 1'
+          end
+          object LabelV2: TLabel
+            Left = 8
+            Top = 140
+            Width = 30
+            Height = 13
+            Caption = 'Voie 2'
+          end
+          object LabelV3: TLabel
+            Left = 8
+            Top = 164
+            Width = 30
+            Height = 13
+            Caption = 'Voie 3'
+          end
+          object Shape1: TShape
+            Left = 64
+            Top = 105
+            Width = 137
+            Height = 2
+          end
+          object EditAdrFerme: TEdit
+            Left = 120
+            Top = 24
+            Width = 41
+            Height = 21
+            TabOrder = 0
+            Text = 'EditAdrFerme'
+          end
+          object EditAdrOuvre: TEdit
+            Left = 120
+            Top = 48
+            Width = 41
+            Height = 21
+            TabOrder = 1
+            Text = 'EditAdrOuvre'
+          end
+          object EditCmdFerme: TEdit
+            Left = 168
+            Top = 24
+            Width = 25
+            Height = 21
+            TabOrder = 2
+            Text = 'EditCdeFerme'
+          end
+          object EditCdeOuvre: TEdit
+            Left = 168
+            Top = 48
+            Width = 25
+            Height = 21
+            TabOrder = 3
+            Text = 'EditCdeOuvre'
+          end
+          object EditV1F: TEdit
+            Left = 64
+            Top = 112
+            Width = 41
+            Height = 21
+            TabOrder = 4
+            Text = 'EditAdrFerme'
+          end
+          object StaticText1: TStaticText
+            Left = 64
+            Top = 88
+            Width = 49
+            Height = 17
+            Caption = 'Act ferme'
+            TabOrder = 5
+          end
+          object StaticText2: TStaticText
+            Left = 152
+            Top = 88
+            Width = 50
+            Height = 17
+            Caption = 'Act ouvre'
+            TabOrder = 6
+          end
+          object EditV2F: TEdit
+            Left = 64
+            Top = 136
+            Width = 41
+            Height = 21
+            TabOrder = 7
+            Text = 'EditAdrFerme'
+          end
+          object EditV3F: TEdit
+            Left = 64
+            Top = 160
+            Width = 41
+            Height = 21
+            TabOrder = 8
+            Text = 'EditAdrFerme'
+          end
+          object EditV1O: TEdit
+            Left = 152
+            Top = 112
+            Width = 41
+            Height = 21
+            TabOrder = 9
+            Text = 'EditAdrFerme'
+          end
+          object EditV2O: TEdit
+            Left = 152
+            Top = 136
+            Width = 41
+            Height = 21
+            TabOrder = 10
+            Text = 'EditAdrFerme'
+          end
+          object EditV3O: TEdit
+            Left = 152
+            Top = 160
+            Width = 41
+            Height = 21
+            TabOrder = 11
+            Text = 'EditAdrFerme'
+          end
+        end
       end
     end
   end

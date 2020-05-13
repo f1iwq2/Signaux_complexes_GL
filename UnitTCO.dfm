@@ -23,7 +23,7 @@ object FormTCO: TFormTCO
   OnResize = FormResize
   DesignSize = (
     1123
-    656)
+    655)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelX: TLabel
@@ -123,6 +123,7 @@ object FormTCO: TFormTCO
       PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
       OnContextPopup = ImageTCOContextPopup
+      OnDblClick = ImageTCODblClick
       OnDragOver = ImageTCODragOver
       OnMouseDown = ImageTCOMouseDown
       OnMouseMove = ImageTCOMouseMove
@@ -870,13 +871,6 @@ object FormTCO: TFormTCO
   end
   object PopupMenu1: TPopupMenu
     Left = 360
-    object Annulercouper: TMenuItem
-      Caption = 'Annuler couper'
-      OnClick = AnnulercouperClick
-    end
-    object N5: TMenuItem
-      Caption = '-'
-    end
     object MenuCouper: TMenuItem
       Caption = 'Couper'
       OnClick = MenuCouperClick
@@ -888,6 +882,13 @@ object FormTCO: TFormTCO
     object MenuColler: TMenuItem
       Caption = 'Coller'
       OnClick = MenuCollerClick
+    end
+    object N5: TMenuItem
+      Caption = '-'
+    end
+    object Annulercouper: TMenuItem
+      Caption = 'Annuler couper'
+      OnClick = AnnulercouperClick
     end
     object N1: TMenuItem
       Caption = '-'

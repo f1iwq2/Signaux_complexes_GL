@@ -1334,10 +1334,10 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 912
-    Top = 0
-    Width = 273
-    Height = 169
+    Left = 904
+    Top = 5
+    Width = 281
+    Height = 129
     Anchors = [akTop, akRight]
     TabOrder = 5
     object BoutonRaf: TButton
@@ -1349,31 +1349,22 @@ object FormPrinc: TFormPrinc
       TabOrder = 0
       OnClick = BoutonRafClick
     end
-    object ButtonAffDebug: TButton
-      Left = 8
-      Top = 48
-      Width = 89
-      Height = 33
-      Caption = 'Affiche debug'
-      TabOrder = 1
-      OnClick = ButtonAffDebugClick
-    end
     object BoutVersion: TButton
       Left = 102
       Top = 8
       Width = 83
       Height = 33
       Caption = 'Dem version'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = BoutVersionClick
     end
     object loco: TButton
       Left = 190
-      Top = 8
-      Width = 75
+      Top = 88
+      Width = 83
       Height = 33
       Caption = 'loco'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = locoClick
     end
     object ButtonInfo: TButton
@@ -1382,28 +1373,28 @@ object FormPrinc: TFormPrinc
       Width = 81
       Height = 33
       Caption = 'Informations'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = ButtonInfoClick
     end
     object ButtonReprise: TButton
       Left = 190
       Top = 48
-      Width = 75
+      Width = 83
       Height = 33
       Hint = 
         'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
         'ension de la centrale'
       Caption = 'Reprise DCC'
-      TabOrder = 5
+      TabOrder = 4
       OnClick = ButtonRepriseClick
     end
     object ButtonTest: TButton
       Left = 8
-      Top = 88
+      Top = 48
       Width = 89
       Height = 33
       Caption = 'Demande '#233'tat r'#233'trosignalisation'
-      TabOrder = 6
+      TabOrder = 5
       WordWrap = True
       OnClick = ButtonTestClick
     end
@@ -1413,26 +1404,26 @@ object FormPrinc: TFormPrinc
       Width = 81
       Height = 33
       Caption = 'Arret simulation'
-      TabOrder = 7
+      TabOrder = 6
       Visible = False
       OnClick = ButtonArretSimuClick
     end
     object ButtonAffTCO: TButton
-      Left = 192
+      Left = 8
       Top = 88
-      Width = 73
+      Width = 89
       Height = 33
       Caption = 'Affiche TCO'
-      TabOrder = 8
+      TabOrder = 7
       OnClick = ButtonAffTCOClick
     end
     object ButtonLanceCDM: TButton
-      Left = 8
-      Top = 128
-      Width = 89
+      Left = 192
+      Top = 8
+      Width = 81
       Height = 33
       Caption = 'Lance CDM rail'
-      TabOrder = 9
+      TabOrder = 8
       OnClick = ButtonLanceCDMClick
     end
   end
@@ -1577,10 +1568,9 @@ object FormPrinc: TFormPrinc
         Caption = 'Ouvrir un fichier trames CDM'
         OnClick = OuvrirunfichiertramesCDM1Click
       end
-      object Versions1: TMenuItem
-        Caption = 'Versions'
-        Hint = 'Versions'
-        OnClick = Versions1Click
+      object Affichefentredebug1: TMenuItem
+        Caption = 'Affiche fen'#234'tre debug'
+        OnClick = Affichefentredebug1Click
       end
       object N1: TMenuItem
         Caption = '-'

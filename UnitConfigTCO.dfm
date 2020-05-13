@@ -44,8 +44,8 @@ object FormConfigTCO: TFormConfigTCO
     Caption = 'Nombre de cellules en vertical:'
   end
   object LabelErreur: TLabel
-    Left = 35
-    Top = 144
+    Left = 302
+    Top = 248
     Width = 3
     Height = 13
   end
@@ -111,7 +111,7 @@ object FormConfigTCO: TFormConfigTCO
     Left = 256
     Top = 8
     Width = 353
-    Height = 217
+    Height = 233
     Caption = 'Couleurs '
     TabOrder = 7
     object Label5: TLabel
@@ -183,6 +183,34 @@ object FormConfigTCO: TFormConfigTCO
       Width = 41
       Height = 41
       OnClick = ImagecantonClick
+    end
+    object Label10: TLabel
+      Left = 48
+      Top = 208
+      Width = 258
+      Height = 13
+      Caption = 'Cliquez sur l'#39'ic'#244'ne pour changer la couleur de l'#39#233'l'#233'ment'
+    end
+    object ImageTexte: TImage
+      Left = 296
+      Top = 16
+      Width = 41
+      Height = 41
+      OnClick = ImageTexteClick
+    end
+    object Label11: TLabel
+      Left = 197
+      Top = 24
+      Width = 87
+      Height = 13
+      Caption = 'Couleur des textes'
+    end
+    object Label12: TLabel
+      Left = 240
+      Top = 40
+      Width = 42
+      Height = 13
+      Caption = 'statiques'
     end
   end
   object Memo1: TMemo
