@@ -153,6 +153,9 @@ type
     EditV1O: TEdit;
     EditV2O: TEdit;
     EditV3O: TEdit;
+    Label10: TLabel;
+    Label17: TLabel;
+    MemoCarre: TMemo;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -928,7 +931,7 @@ begin
 end;
 
 Procedure aff_champs_sig;
-var i,d, ligne, adresse,erreur : integer;
+var i,d,l,k, ligne, adresse,erreur,condCarre : integer;
     s,ss : string;
 begin
   with formConfig.MemoSignaux do
@@ -973,6 +976,27 @@ begin
       LabelVerrou.caption:='';
     end;
   end;
+
+  // conditions de carré
+  formConfig.MemoCarre.Lines.clear;
+  CondCarre:=Length(feux[i].condcarre[1]);
+  
+      l:=1;
+      while condCarre<>0 do
+      begin
+        if condcarre<>0 then dec(condcarre);
+        ss:='';
+        for k:=1 to condCarre do
+        begin
+          ss:=ss+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse);
+          if feux[i].condcarre[l][k].PosAig='S' then ss:=ss+' dévié ' else ss:=ss+' droit ';
+          if k<CondCarre then ss:=ss+'et ';
+        end;
+        formConfig.MemoCarre.Lines.add(ss);
+        inc(l);
+        CondCarre:=Length(feux[i].condcarre[l]);
+        if condCarre<>0 then formConfig.MemoCarre.Lines.add('ou');
+      end;
    
 end;
 
@@ -1113,6 +1137,8 @@ procedure TFormConfig.MemoActClick(Sender: TObject);
 begin
   Aff_champs_act;
 end;
+
+
 
 
 

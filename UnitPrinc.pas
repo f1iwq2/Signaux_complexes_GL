@@ -309,11 +309,15 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
                  VerrouCarre : boolean ;     // si vrai, le feu se verrouille au carré si pas de train avant le signal
                  EtatSignal  : word  ;       // comme EtatSignalCplx
                  UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
-                 AigDirection : array[1..6] of array of record  // pour les signaux directionnels : contient la liste des aiguillages associés
+                 AigDirection : array[1..6] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
                                                Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages
                                                posAig  : char;
                                                end;
-                end;
+                 CondCarre : array[1..6] of array of record  // conditions supplémentaires d'aiguillages en position pour le carré
+                                               Adresse : integer;    // aiguillage
+                                               posAig : char;
+                                               end;
+               end;
   Fimage : Timage;
 
   BrancheN : array[1..100,1..200] of TBranche;
@@ -1503,6 +1507,7 @@ begin
     envoi(s);     // envoi de la trame et attente Ack
     // si l'accessoire est un feu et sans raz des signaux, sortir
     if (acc=feu) and not(Raz_Acc_signaux) then exit;
+    
 
     // si aiguillage, faire une temporisation
     //if (index_feu(adresse)=0) or (Acc=aig) then
@@ -3888,7 +3893,7 @@ begin
         begin
           sa:=copy(s,1,j-1);
           if sa[1]='D' then
-          // feu directionnel
+          // feu directionnel ------------------------------------------
           begin
             delete(sa,1,1);
             j:=pos(',',s);
@@ -3920,7 +3925,7 @@ begin
                 delete(s,1,1);
                 val(s,adr,erreur);  // adresse
                 c:=s[erreur];       // type
-                setlength(feux[i].AigDirection[k],j+1);  // auglenter le tableau dynamique
+                setlength(feux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
                 feux[i].AigDirection[k][j].PosAig:=c;
                 feux[i].AigDirection[k][j].Adresse:=adr;
 
@@ -3943,7 +3948,7 @@ begin
 
           end
           else
-          // feu de signalisation
+          // feu de signalisation---------------------------------
           begin
             k:=StrToInt(sa); //aspect
             feux[i].aspect:=k;Delete(s,1,j);
@@ -3956,7 +3961,7 @@ begin
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
             feux[i].Btype_Suiv1:=0;feux[i].Btype_Suiv2:=0;feux[i].Btype_Suiv3:=0;feux[i].Btype_Suiv4:=0;
             feux[i].Adr_det1:=0;feux[i].Adr_det2:=0;feux[i].Adr_det3:=0;feux[i].Adr_det4:=0;
-            // éléments optionnels
+            // éléments optionnels des voies supplémentaires
             if j<>0 then
             begin
               //Affiche('Entrée:s='+s,clyellow);
@@ -4055,6 +4060,45 @@ begin
              end;
             end;
           end;
+          // voir si conditions supplémentaires de carré
+          l:=1;  // nombre de parenthèses
+          repeat
+            t:=pos('(',s);
+            if t<>0 then 
+            begin
+              //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
+              k:=pos(')',s);
+              sa:=copy(s,t+1,k-t-1); // contient l'intérieur des parenthèses sans les parenthèses
+              //Affiche(sa,clRed);
+              delete(s,1,k);//Affiche(s,clYellow);
+              // boucle dans la parenthèse
+              bd:=0;
+              repeat
+                inc(bd);
+                setlength(feux[i].condCarre[l],bd+1);  // une condition en plus
+                k:=pos(',',sa); 
+                if k<>0 then
+                  chaine:=copy(sa,1,k-1)
+                  else
+                  chaine:=sa;
+
+                if chaine[1]='A' then
+                begin
+                  delete(chaine,1,1);
+                  val(chaine,adresse,erreur);
+                  feux[i].condCarre[l][bd].Adresse:=adresse;
+                  if erreur<>0 then feux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
+                  Affiche('Définition du feu '+IntToSTR(adresse)+': erreur dans les conditions de carré des aiguillages',clred);
+                end;
+                 
+                
+                k:=pos(',',sa);if k<>0 then delete(sa,1,k);
+                //Affiche(sa,clyellow); 
+              until k=0;
+              //Affiche('Longueur tableau '+IntToSTR(l)+':'+intToSTR(length(feux[i].condCarre[l])),clyellow);
+              inc(l);
+            end;
+          until t=0;  
         end;
         inc(i);
       end;
@@ -4293,19 +4337,22 @@ end;
 // 2=arret sur aiguillage en talon mal positionné
 // 3=arret sur un aiguillage pris en pointe dévié et AdrDevie contient l'adresse de l'aiguillage dévié ainsi que typeGen
 // code de sortie : élément suivant ou:
-// 9999=erreur fatale
+// 9999=erreur fatale ou itération trop longue
 // 9998= arret sur aiguillage en talon mal positionnée
 // 9997: arrêt sur aiguillage dévié
+// 9996: arrêt sur position inconnue d'aiguillage
 // typeGen : 1=detecteur 2=aiguillage 3=aiguillage bis
 function suivant_alg3(prec : integer;typeELprec : integer;actuel : integer;typeElActuel : integer;alg : integer) : integer;
 var  Btype,Adr,AdrPrec,BtypePrec,indexBranche_prec,branche_trouve_prec,indexBranche_actuel,branche_trouve_actuel,
-     tjsc1,tjsc2,AdrTjdP,Adr2,Abis,TypeEl : integer;
+     tjsc1,tjsc2,AdrTjdP,Adr2,Abis,TypeEl,N_iteration : integer;
      tjscourbe1,tjscourbe2,tjd,tjs : boolean;
      A,Aprec,tjsc1B,tjsc2B: char;
      s : string;
 label recommence;
 begin
+  n_iteration:=0;
   recommence:
+  if (prec=29) and (actuel=31) then NivDebug:=3;
   if (TypeELPrec=0) or (typeElActuel=0) then
   begin
     s:='Erreur 800 - Types nuls : '+intToSTR(prec)+'/'+intToSTR(TypeElPrec)+' '+IntToSTr(actuel)+'/'+IntToSTR(typeElActuel) ;
@@ -4385,6 +4432,15 @@ begin
       if NivDebug=3 then AfficheDebug('Le précedent est une TJD/S - substitution du precédent par la pointe de la TJD',clYellow);
       // changer l'adresse du précédent par l'autre adresse de la TJD/S
       prec:=Aiguillage[prec].APointe;
+      inc(n_iteration);
+      if n_iteration>50 then 
+      begin
+        s:='Erreur fatale 9999, trop d''itérations';
+        Affiche(s,clRed);
+        AfficheDebug(s,clRed);      
+        suivant_alg3:=9999;
+        exit;
+      end;
       goto recommence;
     end;
 
@@ -4646,8 +4702,9 @@ begin
           suivant_alg3:=adr;
           exit;
         end;
-        //Affiche('Erreur 1021  adrTJD='+IntToSTR(Adr)+' adrTJDPointe='+intToSTR(AdrTJDP)+' prec='+IntTOSTR(prec),clred);
-        if nivDebug=3 then AfficheDebug('TJD mal positionnée',clred);
+        s:='Erreur 1021, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        if nivDebug=3 then AfficheDebug(s,clred);
+        Affiche(s,clred);
         Suivant_alg3:=9998;exit;
       end;
       // cas 2 TJD
@@ -4673,11 +4730,13 @@ begin
           if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
-        if nivDebug=3 then AfficheDebug('TJD mal positionnée',clred);
+        s:='Erreur 1022, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        if nivDebug=3 then AfficheDebug(s,clred);
+        Affiche(s,clred);
         Suivant_alg3:=9998;exit;
       end;
       // cas 3 TJD
-      if  (aiguillage[Adr].position=const_droit)
+      if (aiguillage[Adr].position=const_droit)
           and (aiguillage[AdrTjdP].position<>const_droit) and tjd then
       begin
         if NivDebug=3 then AfficheDebug('cas3 tjd',clYellow);
@@ -4699,7 +4758,9 @@ begin
           if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
-        if nivDebug=3 then AfficheDebug('TJD mal positionnée',clred);
+        s:='Erreur 1023, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        if nivDebug=3 then AfficheDebug(s,clred);
+        Affiche(s,clred);
         Suivant_alg3:=9998;exit;
       end;
       // cas 4 tjd
@@ -4725,7 +4786,9 @@ begin
           if Abis=1 then typeGen:=3;
           suivant_alg3:=adr;exit;
         end;
-        if nivDebug=3 then AfficheDebug('TJD mal positionnée',clred);
+         s:='Erreur 1025, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        if nivDebug=3 then AfficheDebug(s,clred);
+        Affiche(s,clred);
         Suivant_alg3:=9998;exit;
       end;
       // cas TJS prise dans sa position courbe
@@ -4801,7 +4864,7 @@ begin
           suivant_alg3:=adr;exit;
         end;
         begin
-          if aiguillage[Adr].position=9 then begin suivant_alg3:=9999;exit;end; // pour échappement
+          if aiguillage[Adr].position=9 then begin suivant_alg3:=9996;exit;end; // pour échappement
           s:='Aiguillage triple '+IntToSTR(Adr)+' : configuration des aiguilles interdite';
           if CDM_connecte then s:=s+': '+IntToSTR(aiguillage[Adr].position);
           AfficheDebug(s,clYellow);
@@ -4905,7 +4968,7 @@ begin
     actuelCalc:=AdrSuiv;
     BisActuelCalc:=typeGen;
     //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
-  until (j=10) or (typeGen=1) or (AdrSuiv=0) or (AdrSuiv>=9998); // arret si détecteur
+  until (j=10) or (typeGen=1) or (AdrSuiv=0) or (AdrSuiv>=9998); // arret si détecteur zizi
   // si trouvé le sens, trouver le suivant
   if AdrSuiv=actuel then
   begin
@@ -5108,6 +5171,42 @@ begin
   end;
 end;
 
+function cond_carre(adresse : integer) : boolean;
+var i,l,k,NCondCarre,adrAig : integer;
+    resultatET,resultatOU: boolean;
+    s : string;
+begin
+  i:=index_feu(adresse);
+  NCondCarre:=Length(feux[i].condcarre[1]);
+ 
+  l:=1;
+  resultatOU:=false;
+  
+  while NcondCarre<>0 do
+  begin
+    if Ncondcarre<>0 then dec(Ncondcarre);
+    resultatET:=true;
+    for k:=1 to NcondCarre do
+    begin
+      //s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig+' ';
+      AdrAig:=feux[i].condcarre[l][k].Adresse;
+      resultatET:=((aiguillage[AdrAig].position=const_devie) and (feux[i].condcarre[l][k].PosAig='S') or (aiguillage[AdrAig].position=const_droit) and (feux[i].condcarre[l][k].PosAig='D'))
+                and resultatET;
+    end;
+    //if resultatET then Affiche('VRAI',clyellow) else affiche('FAUX',clred);
+    inc(l);
+    resultatOU:=resultatOU or resultatET;
+    NCondCarre:=Length(feux[i].condcarre[l]);
+  end;
+  //if resultatOU then Affiche('VRAI final',clyellow) else affiche('FAUX final',clred);   
+  if NivDebug=3 then 
+  begin
+    s:='Conditions de carré suivant aiguillages: ';
+    if ResultatOU then s:=s+'vrai' else s:=s+'faux';
+    AfficheDebug(s,clyellow);
+  end; 
+  cond_carre:=ResultatOU;
+end;
 
 // renvoi vrai si les aiguillages au delà du signal sont mal positionnés
 function carre_signal(adresse : integer) : boolean;
@@ -5138,7 +5237,7 @@ begin
   repeat
     inc(j);
     AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);
-    if AdrSuiv=9999 then // élément non trouvé
+    if (AdrSuiv=9999) or (AdrSuiv=9996) then // élément non trouvé ou position aiguillage inconnu
     begin
       carre_signal:=true;  
       exit;
@@ -5234,7 +5333,7 @@ begin
         prec:=actuel;TypePrec:=TypeActuel;
         actuel:=AdrSuiv;TypeActuel:=typeGen;
       end;
-    if (AdrSuiv=9999) then
+    if (AdrSuiv=9999) or (AdrSuiv=9996) then
     begin
       Etat_signal_suivant:=0;
       AdresseFeuSuivant:=0;
@@ -5483,9 +5582,14 @@ begin
           AdrSuiv:=suivant_alg3(prec,TypePrec,actuel,TypeActuel,1);
           prec:=actuel;TypePrec:=TypeActuel;
           actuel:=AdrSuiv;TypeActuel:=typeGen;
+          if AdrSuiv>9990 then 
+          begin 
+            test_memoire_zones:=false;exit;
+          end;
+          
          end;
 
-      if NivDebug=3 then AfficheDebug('A suivant='+IntToSTR(adrsuiv),clred);
+      if NivDebug=3 then AfficheDebug('suivant='+IntToSTR(adrsuiv),clred);
       if actuel=0 then
       begin
         // si c'est un buttoir
@@ -5702,7 +5806,7 @@ begin
       if Feux[i].VerrouCarre then
       begin
         if AffSignal then AfficheDebug('Le feu est verrouillable au carré',clyellow);
-        // un feu peut être associé à 4 détecteurs (pour 4 voies)
+        // **** un feu peut être associé à 4 détecteurs (pour 4 voies convergentes) *****
         // il faut donc explorer les 4 détecteurs probables
         PresTrain:=FALSE;
 
@@ -5713,20 +5817,20 @@ begin
           begin det_initial:=feux[i].Adr_det1;Adr_El_Suiv:=feux[i].Adr_el_suiv1;
             if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
             if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
-            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // 1=détécteur   2=aig  5=bis
           end;
           if (j=2) then
           begin
             det_initial:=feux[i].Adr_det2;Adr_El_Suiv:=feux[i].Adr_el_suiv2;
             if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
             if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
-            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // 1=détécteur   2=aig  5=bis
           end;
           if (j=3) then
           begin det_initial:=feux[i].Adr_det3;Adr_El_Suiv:=feux[i].Adr_el_suiv3;
             if feux[i].Btype_suiv1=1 then Btype_el_suivant:=1;
             if feux[i].Btype_suiv1=2 then Btype_el_suivant:=2;
-            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // le type du feu   1=détécteur   2=aig  5=bis
+            if feux[i].Btype_suiv1=5 then Btype_el_suivant:=3; // 1=détécteur   2=aig  5=bis
           end;
           if (j=4) then
           begin
@@ -5771,6 +5875,8 @@ begin
       // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou que pas présence train avant signal et signal
       // verrouillable au carré, afficher un carré
       car:=carre_signal(AdrFeu);
+      // conditions supplémentaires de carré en fonction des aiguillages décrits
+      car:=cond_carre(AdrFeu) or car; 
       if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if (NivDebug>=1) and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if (Feux[i].aspect>=4) and ( (not(PresTrain) and Feux[i].VerrouCarre) or car) then Maj_Etat_Signal(AdrFeu,carre)
@@ -5907,6 +6013,7 @@ begin
   det3:=event_det[N_event_det]; // c'est le nouveau détecteur
   FormDebug.MemoEvtDet.lines.add('Le nouveau détecteur est '+IntToSTR(det3)) ;
   if TraceListe then AfficheDebug('Le nouveau détecteur est '+IntToSTR(det3),clyellow) ;
+
   // évaluer d'abord la route du nouveau détecteur sur tous les tableau déja rempli de 2 éléments
   for i:=1 to N_trains do
   begin
@@ -5980,7 +6087,7 @@ begin
       if traceListe then AfficheDebug('traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
       // vérifier si l'élément du tableau et le nouveau sont contigus
       det1:=event_det_train[i].det[1];
-      Det_Adj(det1);
+      Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
       if (Adj1=det3) or (Adj2=det3) then
       begin
         event_det_train[i].det[2]:=det3;
@@ -7011,7 +7118,7 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=true; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  AvecInit:=false; //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   Diffusion:=AvecInit;
 
   Application.processMessages;
@@ -7833,11 +7940,11 @@ begin
     end;
       
     inc(k);
-    sort:=(k>70) or (posST=0) and (posDT=0) and (posAC=0) and (posSG=0);
+    sort:=(k>100) or (posST=0) and (posDT=0) and (posAC=0) and (posSG=0);
   until (sort);
 
   //Affiche('Ligne traitée'+recuCDM,clLime);
-  if k>=70 then begin Affiche('Erreur 90 : Longrestante='+IntToSTR(length(recuCDM)),clred); Affiche(recuCDM,clred);  end;
+  if k>=100 then begin Affiche('Erreur 90 : Longrestante='+IntToSTR(length(recuCDM)),clred); Affiche(recuCDM,clred);  end;
   Nbre_recu_cdm:=0;
 end;
 
@@ -7878,8 +7985,8 @@ end;
 
 
 procedure TFormPrinc.Codificationdesfeux1Click(Sender: TObject);
-var i,j,k,NfeuxDir,adresse : integer;
-    s : string;
+var i,j,k,l,CondCarre,NfeuxDir,adresse : integer;
+    s,s2 : string;
 begin
   Affiche('Codification interne des feux',Cyan);
 
@@ -7901,6 +8008,23 @@ begin
       end;
       if feux[i].decodeur=6 then
       s:=s+' Cible unisemaf='+intToSTR(feux[i].Unisemaf);
+
+      // conditions sur carré
+      CondCarre:=Length(feux[i].condcarre[1]);
+      l:=1;
+      s2:='';
+      while condCarre<>0 do
+      begin
+        if condcarre<>0 then dec(condcarre);
+        for k:=1 to condCarre do
+        begin
+          s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig+' ';
+        end;
+        s2:=s2+'/';
+        inc(l);
+        CondCarre:=Length(feux[i].condcarre[l]);
+      end;
+      
     end
     else
     // feu directionnel
@@ -7918,6 +8042,7 @@ begin
       end;
     end;
     Affiche(s,clYellow);
+    if s2<>'' then Affiche('Conditions de carré : '+s2,clYellow);
   end;
 end;
 

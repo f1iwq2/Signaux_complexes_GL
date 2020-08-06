@@ -202,15 +202,15 @@ begin
   begin
     i:=0;
     repeat
-      trouve:=pos('erreur',Lines[i])<>0;
+      trouve:=pos('erreur',uppercase(Lines[i]))<>0;
       inc(i);
     until (i>=Lines.Count) or trouve;
     if trouve then
     begin
-      Lines.Add('trouvé en '+intToSTR(i));
-      SelStart:=Perform(EM_LINEINDEX,5,0);
-      perform(EM_SCROLLCARET,0,0);
-      setfocus;
+    Affiche('trouvé en '+intToSTR(i),clyellow);
+    SelStart := I - 1;
+    SelLength := Length('erreur');
+    SetFocus;
     end;
   end;
 end;

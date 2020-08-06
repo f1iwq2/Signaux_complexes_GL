@@ -1536,6 +1536,13 @@ object FormConfig: TFormConfig
     Height = 13
     Caption = 'LabelTrain'
   end
+  object Label10: TLabel
+    Left = 80
+    Top = 120
+    Width = 105
+    Height = 13
+    Caption = 'Verrouillable au carr'#233' :'
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
     Top = 440
@@ -1561,7 +1568,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 417
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheet3
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2348,6 +2355,7 @@ object FormConfig: TFormConfig
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        WordWrap = False
       end
     end
     object TabSheet3: TTabSheet
@@ -2375,22 +2383,23 @@ object FormConfig: TFormConfig
         Font.Style = []
         ParentFont = False
         ReadOnly = True
-        ScrollBars = ssVertical
+        ScrollBars = ssBoth
         TabOrder = 0
+        WordWrap = False
         OnClick = MemoSignauxClick
       end
       object GroupBox12: TGroupBox
         Left = 304
         Top = 40
         Width = 257
-        Height = 257
+        Height = 313
         Caption = 'Description du signal'
         TabOrder = 1
         object ImageSignal: TImage
           Left = 8
           Top = 72
           Width = 65
-          Height = 137
+          Height = 105
         end
         object LabelAdrSig: TLabel
           Left = 13
@@ -2433,6 +2442,22 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = 'Verrouillable au carr'#233' :'
         end
+        object Label17: TLabel
+          Left = 80
+          Top = 144
+          Width = 131
+          Height = 26
+          Caption = 'Conditions suppl'#233'mentaires d'#39'affichage du carr'#233' :'
+          WordWrap = True
+        end
+        object MemoCarre: TMemo
+          Left = 8
+          Top = 184
+          Width = 241
+          Height = 97
+          ReadOnly = True
+          TabOrder = 0
+        end
       end
     end
     object TabSheet4: TTabSheet
@@ -2462,6 +2487,7 @@ object FormConfig: TFormConfig
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        WordWrap = False
         OnClick = MemoActClick
       end
       object GroupBox13: TGroupBox
@@ -2503,15 +2529,15 @@ object FormConfig: TFormConfig
           Caption = 'Actionneur fonction de locomotive '
           TabOrder = 1
           object LabelActionneur: TLabel
-            Left = 56
-            Top = 44
+            Left = 48
+            Top = 24
             Width = 51
             Height = 13
             Caption = 'Actionneur'
           end
           object LabelTrain: TLabel
             Left = 72
-            Top = 20
+            Top = 46
             Width = 24
             Height = 13
             Caption = 'Train'
@@ -2525,14 +2551,14 @@ object FormConfig: TFormConfig
           end
           object LabelFonction: TLabel
             Left = 56
-            Top = 68
+            Top = 70
             Width = 41
             Height = 13
             Caption = 'Fonction'
           end
           object LabelTempo: TLabel
             Left = 40
-            Top = 84
+            Top = 94
             Width = 55
             Height = 13
             Caption = 'Tempo (ms)'
@@ -2548,7 +2574,7 @@ object FormConfig: TFormConfig
           object EditTrain: TEdit
             Left = 112
             Top = 44
-            Width = 121
+            Width = 105
             Height = 21
             TabOrder = 1
             Text = 'EditTrain'

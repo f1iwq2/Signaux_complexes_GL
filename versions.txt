@@ -27,6 +27,8 @@ version 1.72 : affichage message si configuration erronnée dans la fenêtre de co
 version 1.73 : Amélioration du couper du TCO - Ajout de détecteurs sur les élements de voies 1 10 11 et 20 pour le TCO
                Affichage d'aide sur les éléments décrits dans le panneau de configuration
 version 1.74 : Amélioration des affichages du TCO  - Pilotage des aiguillages depuis le TCO - Amélioration du séquençage d'ouverture de CDM Rail
+Version 1.75 : conditions supplémentaires permettant l'affichage d'un carré sur un signal en fonction des aiguillages dans le fichier config.cfg
+
 
 
 
