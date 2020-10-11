@@ -53,6 +53,7 @@ begin
     index_simule:=1;
     repeat
       readln(fte,s);
+      Affiche(s,clLime);
       i:=pos('Tick=',s);
       if i<>0 then
       begin
@@ -61,12 +62,14 @@ begin
         if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+80 else   // démarre dans 8s
           k:=Index_Simule+tick+80 ;
         Tablo_simule[index_simule].tick:=k;
-
+       
         // détecteur?
-        i:=pos('Det=',s);
+        i:=pos('Det',s);
         if i<>0 then
         begin
-          Delete(s,1,i+3);
+          Delete(s,1,i+2);
+          if s[1]='=' then delete(s,1,1); 
+          if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
           Tablo_simule[index_simule].detecteur:=k;
           i:=pos('=',s);
@@ -76,20 +79,22 @@ begin
             val(s,k,erreur);
             Tablo_simule[index_simule].etat:=k;
 
-            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-               ' Detecteur='+intToSTR(Tablo_simule[index_simule].detecteur)+
-               '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime); }
+            //s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+            //   ' Detecteur='+intToSTR(Tablo_simule[index_simule].detecteur)+
+            //   '='+intToSTR(Tablo_simule[index_simule].etat);
+            //Affiche(s,ClLime);
 
             inc(index_simule);
           end;
         end;
 
         // aiguillage?
-        i:=pos('Aig=',s);
+        i:=pos('Aig',s);
         if i<>0 then
         begin
-          Delete(s,1,i+3);
+          Delete(s,1,i+2);
+          if s[1]='=' then delete(s,1,1);
+          if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
           Tablo_simule[index_simule].aiguillage:=k;
           i:=pos('=',s);
@@ -116,10 +121,10 @@ begin
     closeFile(fte);
     formprinc.ButtonArretSimu.Visible:=true;
     formprinc.ButtonArretSimu.top:=88;
-    
+
     FormSimulation.Close;
-  end; 
-  Affiche('Fichier simulation : '+nF ,clyellow); 
+  end;
+  Affiche('Fichier simulation : '+nF ,clyellow);
 end;
 
 

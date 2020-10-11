@@ -16,21 +16,29 @@ type
     ButtonEcrLog: TButton;
     Label3: TLabel;
     MemoDebug: TMemo;
-    CheckAffSig: TCheckBox;
     ButtonRazTampon: TButton;
     ButtonCherche: TButton;
     ButtonAffEvtChrono: TButton;
-    CheckBoxTraceLIste: TCheckBox;
-    CheckTrame: TCheckBox;
     ButtonCop: TButton;
     RichEdit: TRichEdit;
     PopupMenuRE: TPopupMenu;
     copier1: TMenuItem;
     ButtonRazLog: TButton;
-    CheckBoxAct: TCheckBox;
+    GroupBox1: TGroupBox;
+    ButtonSigSuiv: TButton;
+    EditSigSuiv: TEdit;
+    EditPrec: TEdit;
+    EditActuel: TEdit;
+    ButtonDetSuiv: TButton;
+    GroupBox2: TGroupBox;
+    CheckAffSig: TCheckBox;
     CheckBoxEvtDetAig: TCheckBox;
+    CheckBoxTraceLIste: TCheckBox;
+    CheckTrame: TCheckBox;
+    CheckBoxAct: TCheckBox;
     CheckBoxAffFD: TCheckBox;
     CheckBoxAffDebDecSig: TCheckBox;
+    ButtonCanSuivSig: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -48,6 +56,9 @@ type
     procedure CheckBoxEvtDetAigClick(Sender: TObject);
     procedure CheckBoxAffFDClick(Sender: TObject);
     procedure CheckBoxAffDebDecSigClick(Sender: TObject);
+    procedure ButtonSigSuivClick(Sender: TObject);
+    procedure ButtonDetSuivClick(Sender: TObject);
+    procedure ButtonCanSuivSigClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -55,7 +66,7 @@ type
   end;
 
 Const 
-Max_Event_det_tick=10000;
+Max_Event_det_tick=30000;
 Max_event_det=400;
 Max_Trains=50;
 
@@ -112,8 +123,8 @@ procedure RE_ColorLine(ARichEdit : TRichEdit;ARow : Integer;AColor : TColor);
 begin
   with ARichEdit do
   begin
-    SelStart:=SendMessage(Handle,EM_LINEINDEX,ARow-1,0);
-    SelLength:=Length(Lines[ARow-1]);
+    SelStart:=SendMessage(Handle,EM_LINEINDEX,ARow,0);
+    SelLength:=Length(Lines[ARow]);
     SelAttributes.Color:=AColor;
     SelLength:=0;
   end;
@@ -301,6 +312,48 @@ procedure TFormDebug.CheckBoxAffDebDecSigClick(Sender: TObject);
 begin
   debug_dec_sig:=CheckBoxAffDebDecSig.checked;
 end;
+
+
+procedure TFormDebug.ButtonSigSuivClick(Sender: TObject);
+var adr,erreur,ancdebug : integer ;
+begin
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  Val(EditSigSuiv.Text,adr,erreur);
+  if erreur<>0 then exit;
+  etat_signal_suivant(Adr,1) ;
+  NivDebug:=AncDebug;
+end;
+
+procedure TFormDebug.ButtonDetSuivClick(Sender: TObject);
+var Adr,type1,type2,Prec,Actuel,erreur,ancdebug : integer ;
+    s1,s2 : string;
+begin
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  s1:=EditPrec.Text;
+  s2:=EditActuel.Text;
+  if (s1='') or (s2='') then exit;
+  if s1[1]='A' then begin type1:=2;delete(s1,1,1);end else type1:=1;
+  if s2[1]='A' then begin type2:=2;delete(s2,1,1);end else type2:=1;
+  Val(s1,prec,erreur); if erreur<>0 then exit;
+  Val(s2,Actuel,erreur); if erreur<>0 then exit;
+  Adr:=detecteur_suivant_El(prec,type1,actuel,type2);
+  if Adr<9996 then AfficheDebug('Le détecteur suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr),clyellow)
+  else AfficheDebug('Pas trouvé de détecteur suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
+  NivDebug:=AncDebug;
+end;
+
+procedure TFormDebug.ButtonCanSuivSigClick(Sender: TObject);
+var Adr,erreur,ancdebug : integer ;
+begin
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  test_memoire_zones(Adr);
+  NivDebug:=AncDebug;
+end;
+
 
 
 end.

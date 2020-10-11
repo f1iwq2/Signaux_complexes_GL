@@ -2366,7 +2366,7 @@ begin
      if aiguillage[adresse].Adevie=AdrSuiv then 
        Bimage:=4; // ou 4
      // connecté sur pointe : la pointe est à droite
-     if aiguillage[adresse].Apointe=AdrSuiv then 
+     if aiguillage[adresse].Apointe=AdrSuiv then
        Bimage:=5; // ou 2
      TCO[i,ligne].BImage:=Bimage;
    end;
@@ -2890,9 +2890,9 @@ begin
            // tjd ou tjs
            if adresse<>0 then
            begin
-             pos:=aiguillage[adresse].position;
-             pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
-             if (pos=const_droit) and (pos2=const_droit) then 
+             //pos:=aiguillage[adresse].position;
+             //pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
+             if (pos=const_droit) and (pos2=const_droit) then
              begin
                inc(x);
              end;
@@ -2921,8 +2921,8 @@ begin
            if adresse<>0 then
            begin
              pos:=aiguillage[adresse].position;
-             pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
-             if (pos=const_droit) and (pos2=const_droit) then 
+             //pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
+             if (pos=const_droit) and (pos2=const_droit) then
              begin
                inc(x);inc(y);
              end;

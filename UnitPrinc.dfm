@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 30
-  Top = 270
+  Left = 12
+  Top = 210
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1196
+    1179
     606)
   PixelsPerInch = 96
   TextHeight = 13
@@ -1188,7 +1188,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelEtat: TLabel
-    Left = 456
+    Left = 439
     Top = 16
     Width = 152
     Height = 18
@@ -1204,14 +1204,14 @@ object FormPrinc: TFormPrinc
   object ListBox1: TListBox
     Left = 8
     Top = 48
-    Width = 633
-    Height = 520
+    Width = 616
+    Height = 505
     Style = lbOwnerDrawFixed
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlue
-    Font.Height = -16
+    Font.Height = 16
     Font.Name = 'Arial'
     Font.Style = []
     ItemHeight = 16
@@ -1220,10 +1220,10 @@ object FormPrinc: TFormPrinc
     OnDrawItem = ListBox1DrawItem
   end
   object ScrollBox1: TScrollBox
-    Left = 648
+    Left = 631
     Top = 176
     Width = 537
-    Height = 393
+    Height = 377
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -1234,7 +1234,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 1
   end
   object GroupBox1: TGroupBox
-    Left = 648
+    Left = 631
     Top = 0
     Width = 249
     Height = 129
@@ -1317,8 +1317,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 576
-    Width = 1196
+    Top = 577
+    Width = 1179
     Height = 30
     Panels = <>
     SimplePanel = True
@@ -1334,7 +1334,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 904
+    Left = 887
     Top = 5
     Width = 281
     Height = 129
@@ -1428,7 +1428,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object Panel2: TPanel
-    Left = 648
+    Left = 631
     Top = 136
     Width = 153
     Height = 25
@@ -1456,6 +1456,22 @@ object FormPrinc: TFormPrinc
       ParentFont = False
     end
   end
+  object StaticText: TStaticText
+    Left = 16
+    Top = 560
+    Width = 1145
+    Height = 17
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'xx'
+    TabOrder = 7
+  end
+  object StaticText1: TStaticText
+    Left = 8
+    Top = 560
+    Width = 4
+    Height = 4
+    TabOrder = 8
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
@@ -1480,11 +1496,6 @@ object FormPrinc: TFormPrinc
         Caption = 'Etat des d'#233'tecteurs'
         Hint = 'Affiche l'#39#233'tat des d'#233'tecteurs'
         OnClick = AffEtatDetecteurs
-      end
-      object ChronoDetect: TMenuItem
-        Caption = 'Chronologie des d'#233'tecteurs et aiguillages'
-        Hint = 'Affiche la chronologie des d'#233'tecteurs'
-        OnClick = ChronoDetectClick
       end
       object Etatdesaiguillages1: TMenuItem
         Caption = 'Etat des aiguillages'

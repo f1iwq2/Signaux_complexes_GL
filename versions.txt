@@ -28,7 +28,11 @@ version 1.73 : Amélioration du couper du TCO - Ajout de détecteurs sur les éleme
                Affichage d'aide sur les éléments décrits dans le panneau de configuration
 version 1.74 : Amélioration des affichages du TCO  - Pilotage des aiguillages depuis le TCO - Amélioration du séquençage d'ouverture de CDM Rail
 Version 1.75 : conditions supplémentaires permettant l'affichage d'un carré sur un signal en fonction des aiguillages dans le fichier config.cfg
-
+version 1.76 : Modification des aiguillages modélisés depuis le menu de configuration générale
+               Les aiguillages BIS ne sont plus supportés car ils induisent des erreurs.
+               Correction d'un bug sur les feux dont l'élément suivant est un détecteur
+version 2.0  : Changement de description des TJD
+               Amélioration de l'algorithme des routes
 
 
 
