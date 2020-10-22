@@ -53,7 +53,7 @@ begin
     index_simule:=1;
     repeat
       readln(fte,s);
-      Affiche(s,clLime);
+      //Affiche(s,clLime);
       i:=pos('Tick=',s);
       if i<>0 then
       begin

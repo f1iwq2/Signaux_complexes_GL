@@ -33,7 +33,10 @@ version 1.76 : Modification des aiguillages modélisés depuis le menu de configur
                Correction d'un bug sur les feux dont l'élément suivant est un détecteur
 version 2.0  : Changement de description des TJD
                Amélioration de l'algorithme des routes
+               Variables nommées dans config-GL.cfg
+version 2.1 :  Possibilité de piloter des accessoires par des actionneurs CDM
 
+                
 
 
 

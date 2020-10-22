@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1179
+    1196
     606)
   PixelsPerInch = 96
   TextHeight = 13
@@ -667,7 +667,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 776
+    Left = 984
     Top = 128
     Width = 33
     Height = 57
@@ -741,8 +741,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2Dir: TImage
-    Left = 696
-    Top = 184
+    Left = 936
+    Top = 144
     Width = 41
     Height = 25
     Picture.Data = {
@@ -1221,7 +1221,7 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 631
-    Top = 176
+    Top = 168
     Width = 537
     Height = 377
     HorzScrollBar.Smooth = True
@@ -1317,8 +1317,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 577
-    Width = 1179
+    Top = 576
+    Width = 1196
     Height = 30
     Panels = <>
     SimplePanel = True
@@ -1459,18 +1459,11 @@ object FormPrinc: TFormPrinc
   object StaticText: TStaticText
     Left = 16
     Top = 560
-    Width = 1145
+    Width = 14
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'xx'
     TabOrder = 7
-  end
-  object StaticText1: TStaticText
-    Left = 8
-    Top = 560
-    Width = 4
-    Height = 4
-    TabOrder = 8
   end
   object Timer1: TTimer
     Interval = 100

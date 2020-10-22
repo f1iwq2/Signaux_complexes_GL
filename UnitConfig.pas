@@ -125,9 +125,9 @@ type
     EditAct: TEdit;
     EditTrain: TEdit;
     LabelTrain: TLabel;
-    EditEtat: TEdit;
+    EditEtatFoncSortie: TEdit;
     Labela: TLabel;
-    EditFonction: TEdit;
+    EditFonctionAccess: TEdit;
     LabelFonction: TLabel;
     EditTempo: TEdit;
     LabelTempo: TLabel;
@@ -176,6 +176,11 @@ type
     Label28: TLabel;
     LabelTJD2: TLabel;
     CheckInverse: TCheckBox;
+    RadioButtonAccess: TRadioButton;
+    Label29: TLabel;
+    Label30: TLabel;
+    EditEtatActionneur: TEdit;
+    CheckRAZ: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -1323,14 +1328,11 @@ begin
       LabelDetAss.visible:=false;
       LabelElSuiv.visible:=false;
     end;
-  end;
-
-  
-   
+  end;   
 end;
 
 Procedure aff_champs_act;
-var i,v, ligne,etatact,erreur, adresse,fonction,tempo : integer;
+var i,v, ligne,etatact,erreur, adresse,sortie,fonction,tempo,access : integer;
     s,s2,ss : string;
     trouve : bool;
 begin
@@ -1351,10 +1353,12 @@ begin
     begin
       GroupBoxact.Visible:=false;
       GroupBoxPN.Top:=104;
+      GroupBoxPN.Left:=16;
       GroupBoxPN.Visible:=true;
       Visible:=true;
       RadioButtonPN.Checked:=true;
       RadioButtonLoc.Checked:=false;
+      RadioButtonAccess.Checked:=false;
     end;
     // trouver l'index dans le tableau
     i:=pos('PN(',s);
@@ -1409,15 +1413,16 @@ begin
     end;
   end
   else
-  // actionneur fonction F locomotive
+
+  // actionneur fonction F locomotive ou Accessoire
   begin
     with formconfig do
     begin
       GroupBoxAct.Top:=104;
+      GroupBoxAct.Left:=16;
+      
       GroupBoxact.Visible:=true;
-      GroupBoxPN.Visible:=false;
-      formconfig.RadioButtonPN.Checked:=false;
-      formconfig.RadioButtonLoc.Checked:=true;
+      GroupBoxPN.Visible:=false;     
     end;
     // trouver l'index dans le tableau
     val(s,adresse,erreur);
@@ -1428,20 +1433,60 @@ begin
     until trouve or (i>MaxTablo_act);
     if not(trouve) then exit;
     
-    s:=Tablo_actionneur[i].train;
-    etatAct:=Tablo_actionneur[i].etat ;
-    Adresse:=Tablo_actionneur[i].actionneur;
     fonction:=Tablo_actionneur[i].fonction;
-    s2:=Tablo_actionneur[i].train;
-    tempo:=tablo_actionneur[i].Tempo;
-    with formconfig do
+    Access:=Tablo_actionneur[i].accessoire;
+    if fonction<>0 then 
     begin
-      EditAct.text:=IntToSTR(Adresse);
-      EditTrain.Text:=s;
-      editFonction.Text:=intToSTR(fonction);
-      editEtat.Text:=intToSTR(etatAct);
-      editTempo.Text:=intToSTR(tempo);
-    end;
+      etatAct:=Tablo_actionneur[i].etat ;
+      //etatFonc:=Tablo_actionneur[i].
+      Adresse:=Tablo_actionneur[i].actionneur;
+      s2:=Tablo_actionneur[i].train;
+      tempo:=tablo_actionneur[i].Tempo;
+      with formconfig do
+      begin
+        CheckRaz.Visible:=false;
+        GroupBoxAct.Caption:='Actionneur de fonction F de locomotive';
+        LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
+        editEtatActionneur.Text:=IntToSTR(etatAct);
+        LabelFonction.caption:='Fonction';
+        RadioButtonPN.Checked:=false;
+        RadioButtonLoc.Checked:=true;
+        RadioButtonAccess.Checked:=false;
+        EditAct.text:=IntToSTR(Adresse);
+        EditTrain.Text:=s2;
+        editFonctionAccess.Text:=intToSTR(fonction);
+        //editEtat.Text:=intToSTR(etatAct);
+        editTempo.Text:=intToSTR(tempo);
+      end;
+    end;  
+
+    if Access<>0 then 
+    begin
+      etatAct:=Tablo_actionneur[i].etat ;
+      Adresse:=Tablo_actionneur[i].actionneur;
+      sortie:=Tablo_actionneur[i].sortie;
+      s2:=Tablo_actionneur[i].train;
+      tempo:=tablo_actionneur[i].Tempo;
+      with formconfig do
+      begin
+        GroupBoxAct.Caption:='Actionneur d''accessoire';
+        CheckRaz.Visible:=true;
+        CheckRaz.Checked:=Tablo_actionneur[i].Raz;
+        LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
+        LabelFonction.caption:='Accessoire';
+        RadioButtonPN.Checked:=false;
+        RadioButtonLoc.Checked:=false;
+        RadioButtonAccess.Checked:=true;
+        EditAct.text:=IntToSTR(Adresse);
+        EditTrain.Text:=s2;
+        EditEtatActionneur.Text:=IntToSTR(etatAct);
+        editFonctionAccess.Text:=intToSTR(Access);
+        editEtatFoncSortie.Text:=intToSTR(sortie);
+        editTempo.Text:=intToSTR(tempo);
+      end;
+    end;  
+
+    
   end;
   
   ss:='Actionneur '+InttoSTr(Adresse);

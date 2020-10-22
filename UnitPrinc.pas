@@ -91,7 +91,6 @@ type
     ButtonLanceCDM: TButton;
     Affichefentredebug1: TMenuItem;
     StaticText: TStaticText;
-    StaticText1: TStaticText;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -251,7 +250,9 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
   MemZone : array[0..1024,0..1024] of boolean ; // mémoires de zones
   Tablo_actionneur : array[1..100] of
   record
-    actionneur,etat,fonction,tempo : integer;
+    actionneur,etat,fonction,tempo,
+    accessoire,sortie : integer;
+    Raz : boolean;
     train : string;
   end;
   KeyInputs: array of TInput;
@@ -1418,7 +1419,7 @@ begin
 end;
 
 
-// active ou désactive une sortie. Une adresse comporte deux sorties identifiées par "octet"
+// active ou désactive une sortie par xpressnet. Une adresse comporte deux sorties identifiées par "octet"
 // Adresse : adresse de l'accessoire
 // octet : numéro (1-2) de la sortie à cette adresse
 // etat  : false (désactivé) true (activé)
@@ -3892,7 +3893,7 @@ begin
         Val(enregistrement,adr,erreur);
         if erreur=0 then
         begin
-          Affiche('section vitesse définie aig='+intToSTR(aig)+'/'+intToSTR(adr),clyellow);
+          //Affiche('section vitesse définie aig='+intToSTR(aig)+'/'+intToSTR(adr),clyellow);
           aiguillage[aig].vitesse:=adr;
           enregistrement:='';
           virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
@@ -4210,13 +4211,85 @@ begin
   configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
   if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
 
+  // raz des actionneurs
+  for i:=1 to maxTablo_act do
+  begin
+    Tablo_actionneur[i].train:='';
+    Tablo_actionneur[i].etat:=0;
+    Tablo_actionneur[i].actionneur:=0;
+    Tablo_actionneur[i].accessoire:=0;
+    Tablo_actionneur[i].sortie:=0;
+  end;  
+  
   // définition des actionneurs
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
   repeat        
     s:=lit_ligne;
+    // vérifier si F ou A au 4eme champ
+    sa:=s;
+    i:=pos(',',sa);
+    if i>0 then delete(sa,1,i) else s:='0';
+    i:=pos(',',sa);
+    if i>0 then delete(sa,1,i) else s:='0';
+    i:=pos(',',sa);
+    if i>0 then delete(sa,1,i) else s:='0';
+    
     mod_act[Nligne]:=s;inc(Nligne);
-    if pos('F',s)<>0 then
+
+    if length(sa)>1 then if (sa[1]='A') then
+    // -----------------accessoire
+    begin
+      // 815,1,CC406526,A600,1
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        val(copy(s,1,i-1),j,erreur);
+        Tablo_actionneur[maxTablo_act].actionneur:=j;
+        Delete(s,1,i);
+        i:=pos(',',s);
+        if i<>0 then
+        begin
+          i:=pos(',',s);
+          val(copy(s,1,i-1),j,erreur);
+          Tablo_actionneur[maxTablo_act].etat:=j;
+          Delete(s,1,i);
+
+          i:=pos(',',s);
+          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Delete(s,1,i);
+
+          i:=pos('A',s);
+          if i<>0 then
+          begin
+            Delete(s,1,1);
+            val(s,j,erreur);
+            Tablo_actionneur[maxTablo_act].Accessoire:=j;
+
+            i:=pos(',',s);
+            if i<>0 then
+            begin
+              Delete(S,1,i);
+              val(s,j,erreur);
+              Tablo_actionneur[maxTablo_act].sortie:=j;
+            end;
+
+            i:=pos(',',s);
+            if i<>0 then
+            begin
+              Delete(S,1,i);
+              Tablo_actionneur[maxTablo_act].RAZ:=s[1]='Z';
+              inc(maxTablo_act);
+            end;
+            
+          end;
+          s:='';i:=0;
+        end;
+      end;
+      
+    end;
+
+    if length(sa)>1 then if (sa[1]='F') then
     // -----------------fonction
     begin
       // 815,1,CC406526,F2,450
@@ -4258,6 +4331,7 @@ begin
         end;
       end;
     end;
+    
     // Passage à niveau
     // (815,820),(830,810)...,PN(121+,121-)
     // (815,809),PN(121+,121-)
@@ -6376,27 +6450,45 @@ end;
 
 // traitement des évènements actionneurs
 procedure Event_act(adr,etat : integer;train : string);
-var i,v,va,j,etatAct,Af,Ao : integer;
+var i,v,va,j,etatAct,Af,Ao,Access,sortie : integer;
     s : string;
     presTrain_PN : boolean;
+    Ts : TAccessoire;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   if AffActionneur then Affiche('Actionneur '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
-
-  // dans le tableau des actionneurs pour fonction train
+    
   for i:=1 to maxTablo_act do
   begin
     s:=Tablo_actionneur[i].train;
     etatAct:=Tablo_actionneur[i].etat ;
-    if (Tablo_actionneur[i].actionneur=adr) and ((s=train) or (s='X')) and (etatAct=etat) then
+    // actionneur pour fonction train
+    if (Tablo_actionneur[i].actionneur=adr) and (Tablo_actionneur[i].fonction<>0) and ((s=train) or (s='X')) and (etatAct=etat) then
     begin
       Affiche('Actionneur '+intToSTR(adr)+' Train='+train+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
+      // exécutione la fonction F vers CDM
       envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,train);
       TempoAct:=tablo_actionneur[i].Tempo div 100;
       RangActCours:=i;
     end;
+    // actionneur pour accessoire
+    if (Tablo_actionneur[i].actionneur=adr) and (Tablo_actionneur[i].accessoire<>0) and ((s=train) or (s='X')) and (etatAct=etat) then
+    begin
+      access:=Tablo_actionneur[i].accessoire;
+      sortie:=Tablo_actionneur[i].sortie;
+      
+      Affiche('Actionneur '+intToSTR(adr)+' Train='+train+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
+      // exécution la fonction accessoire vers CDM
+      if Tablo_actionneur[i].RAZ then Ts:=aig else Ts:=Feu;
+      pilote_acc(access,sortie,Ts); // sans RAZ
+      RangActCours:=i;           
+    end;
+    
+    
   end;
 
+    
+  
   // dans le tableau des PN
   for i:=1 to NbrePN do
   begin
@@ -6461,7 +6553,7 @@ begin
   if AffAigDet then 
   begin
     //s:='Evt Det '+intToSTR(adresse)+'='+intToSTR(etat01);
-    s:=IntToSTR(i)+' Tick='+IntToSTR(tick)+' Det='+IntToSTR(adresse)+'='+intToSTR(etat01);
+    s:='Tick='+IntToSTR(tick)+' Det='+IntToSTR(adresse)+'='+intToSTR(etat01);
 
     Affiche(s,clyellow);
     if not(TraceListe) then AfficheDebug(s,clyellow);
@@ -6474,15 +6566,18 @@ begin
   detecteur_chgt:=Adresse;
 
   // stocke les changements d'état des détecteurs dans le tableau chronologique
-  if (N_Event_tick<Max_Event_det_tick) then
+  if (N_Event_tick>=Max_Event_det_tick) then
   begin
-    inc(N_Event_tick);   
-    event_det_tick[N_event_tick].tick:=tick;
-    event_det_tick[N_event_tick].detecteur:=Adresse;
-    event_det_tick[N_event_tick].etat:=etat01;
-    if (n_Event_tick mod 10) =0 then affiche_memoire;
-   // Affiche('stockage de '+intToSTR(N_event_tick)+' '+IntToSTR(Adresse)+' à '+intToSTR(etat01),clyellow);
+    N_Event_tick:=0;
+    Affiche('Raz Evts détecteurs',clLime);
   end;
+  inc(N_Event_tick);   
+  event_det_tick[N_event_tick].tick:=tick;
+  event_det_tick[N_event_tick].detecteur:=Adresse;
+  event_det_tick[N_event_tick].etat:=etat01;
+  if (n_Event_tick mod 10) =0 then affiche_memoire;
+   // Affiche('stockage de '+intToSTR(N_event_tick)+' '+IntToSTR(Adresse)+' à '+intToSTR(etat01),clyellow);
+ 
 
   // détection front montant
   if not(ancien_detecteur[Adresse]) and detecteur[Adresse] then
@@ -6573,24 +6668,28 @@ begin
   
   aiguillage[adresse].position:=pos;
 
+  
   // ------------- stockage évènement aiguillage dans tampon event_det_tick -------------------------
-  if (N_Event_tick<Max_Event_det_tick) then
+  if (N_Event_tick>=Max_Event_det_tick) then
   begin
-    if AffAigDet then 
-    begin
-      s:='Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
-      if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
-      if objet<>0 then s:=s+' objet='+IntToSTR(objet);
-      Affiche(s,clyellow);
-      AfficheDebug(s,clyellow);      
-    end;  
-    if (n_Event_tick mod 10) =0 then affiche_memoire;
-    inc(N_Event_tick);
-    event_det_tick[N_event_tick].tick:=tick;
-    event_det_tick[N_event_tick].aiguillage:=adresse;
-    event_det_tick[N_event_tick].etat:=pos;
-    event_det_tick[N_event_tick].objet:=objet;
+    N_Event_tick:=0;
+    Affiche('Raz Evts détecteurs',clLime);
   end;
+  s:='Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
+  if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
+  if AffAigDet then 
+  begin
+    if objet<>0 then s:=s+' objet='+IntToSTR(objet);
+    Affiche(s,clyellow);
+    AfficheDebug(s,clyellow);  
+  end;  
+  FormDebug.MemoEvtDet.lines.add(s) ; 
+  if (n_Event_tick mod 10) =0 then affiche_memoire;
+  inc(N_Event_tick);
+  event_det_tick[N_event_tick].tick:=tick;
+  event_det_tick[N_event_tick].aiguillage:=adresse;
+  event_det_tick[N_event_tick].etat:=pos;
+  event_det_tick[N_event_tick].objet:=objet;
 
   // Mettre à jour le TCO
   if AvecTCO then
@@ -7292,7 +7391,7 @@ begin
   Srvc_PosTrain:=false;
   Srvc_sig:=false;
   
-  AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version+' en cours 3';
+  AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
   Caption:=AF;
   Application.onHint:=doHint;
 
@@ -7312,7 +7411,7 @@ begin
   TempoAct:=0;
   DebugOuv:=True;
 
-  AvecInit:=false; //&&&&
+  AvecInit:=true; //&&&&
   Diffusion:=AvecInit;
 
   Application.processMessages;
@@ -7409,7 +7508,7 @@ begin
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
 
-   // TCO
+  // TCO
   if avectco then
   begin
     //créée la fenêtre TCO non modale
@@ -7422,41 +7521,20 @@ begin
   LabelEtat.Caption:=' ';
   Affiche_memoire;
   //---------------------------------
-  {
+   {
     aiguillage[20].position:=const_droit;
     aiguillage[21].position:=const_droit;
-    aiguillage[25].position:=const_devie;
-    aiguillage[26].position:=const_droit;
-    aiguillage[27].position:=const_droit;
-    aiguillage[28].position:=const_devie;
-    aiguillage[31].position:=const_devie;
-
-    aiguillage[77].position:=const_droit;
-    aiguillage[78].position:=const_droit;
-    aiguillage[79].position:=const_droit;
-    aiguillage[83].position:=const_devie;
-    aiguillage[85].position:=const_droit;
-    aiguillage[87].position:=const_devie;
-
-    aiguillage[89].position:=const_devie;
-    aiguillage[90].position:=const_droit;
-
-    aiguillage[91].position:=const_droit;
-    aiguillage[92].position:=const_devie;
-
-    aiguillage[105].position:=const_droit;
-    aiguillage[106].position:=const_devie;
-    aiguillage[111].position:=const_devie;
+   
 
     NivDebug:=3;
     FormDebug.show;
     //i:=Detecteur_suivant_El(591,1,602,1);
     //i:=Detecteur_suivant_El(597,1,601,1);
     // posent pb:
-    i:=Detecteur_suivant_El(598,1,599,1);
-    //i:=Detecteur_suivant_El(520,1,518,1);
-    AfficheDebug(IntToSTR(i),clyellow);
-    }
+   // i:=Detecteur_suivant_El(598,1,599,1);
+    i:=Detecteur_suivant_El(520,1,20,2);
+   // AfficheDebug(IntToSTR(i),clyellow);
+  }  
     
 end;
 
@@ -7654,17 +7732,17 @@ begin
       // evt détecteur ?
       if Tablo_simule[i_simule].detecteur<>0 then
       begin
-        if AffTickSimu then Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat);
         Event_Detecteur(Tablo_simule[i_simule].detecteur, Tablo_simule[i_simule].etat=1);  // créer évt détecteur
-       // statusBar1.Hint:=' det='+intToSTR(Tablo_simule[i_simule].detecteur)+'='+IntToSTR(Tablo_simule[i_simule].etat);
+        StaticText.caption:=s;
       end;
 
       // evt aiguillage ?
       if Tablo_simule[i_simule].aiguillage<>0 then
       begin
-        if AffTickSimu then Affiche('Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat),Cyan);
+        s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat);
         Event_Aig(Tablo_simule[i_simule].Aiguillage,Tablo_simule[i_simule].etat,0);  // créer évt aiguillage
-      //  statusBar1.Hint:=' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat);
+        StaticText.caption:=s;
       end;
 
     end;
@@ -7675,6 +7753,7 @@ begin
       I_Simule:=0;
       MsgSim:=false;
       Affiche('Fin de simulation',Cyan);
+      StaticText.caption:='';
     end;
   end;
 end;
@@ -8460,7 +8539,7 @@ end;
 
 
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
-var i,adr,etatAct,v,aO,aF : integer;
+var i,adract,etatAct,fonction,v,acc,aO,aF,accessoire,sortie : integer;
     s,s2 : string;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
@@ -8473,28 +8552,36 @@ begin
   begin
     s:=Tablo_actionneur[i].train;
     etatAct:=Tablo_actionneur[i].etat ;
-    Adr:=Tablo_actionneur[i].actionneur;
+    AdrAct:=Tablo_actionneur[i].actionneur;
     s2:=Tablo_actionneur[i].train;
+    acc:=Tablo_actionneur[i].accessoire;
+    sortie:=Tablo_actionneur[i].sortie;
+    fonction:=Tablo_actionneur[i].fonction;
     if (s2<>'') then
     begin
-      Affiche('FonctionF Actionneur='+intToSTR(adr)+' Train='+s2+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etatAct)+
-              ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo),clyellow);
+      if fonction<>0 then
+      s:='FonctionF  Actionneur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' F'+IntToSTR(fonction)+
+              ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo);
+      if acc<>0 then 
+      s:='Accessoire Actionneur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' A'+IntToSTR(acc)+
+              ' sortie='+intToSTR(sortie);
+      Affiche(s,clYellow);        
     end;
   end;
 
   // dans le tableau des PN
   for i:=1 to NbrePN do
   begin
-    s:='PN'+intToSTR(i)+'         Adresse fermeture PN='+IntToSTR(Tablo_PN[i].AdresseFerme);
+    s:='PN'+intToSTR(i)+'          Adresse fermeture PN='+IntToSTR(Tablo_PN[i].AdresseFerme);
     s:=s+'        Adresse ouverture PN='+IntToSTR(Tablo_PN[i].AdresseOuvre);
     Affiche(s,clyellow);
-    s:='               Commande fermeture='+intToSTR(Tablo_PN[i].commandeFerme);
+    s:='                Commande fermeture='+intToSTR(Tablo_PN[i].commandeFerme);
     s:=s+'        Commande ouverture='+intToSTR(Tablo_PN[i].commandeOuvre);
     s:=s+'        Nbre de voies='+intToSTR(Tablo_PN[i].nbVoies);
     Affiche(s,clyellow);
     for v:=1 to Tablo_PN[i].nbvoies do
     begin
-      s:='               Voie '+IntToSTR(v)+': Actionneur de fermeture='+intToSTR(Tablo_PN[i].voie[v].ActFerme);
+      s:='                Voie '+IntToSTR(v)+': Actionneur de fermeture='+intToSTR(Tablo_PN[i].voie[v].ActFerme);
       s:=s+' Actionneur d''ouverture='+intToSTR(Tablo_PN[i].voie[v].ActOuvre);
       Affiche(s,clyellow);
     end;

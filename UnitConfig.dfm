@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 305
-  Top = 330
+  Left = 235
+  Top = 312
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1744,6 +1744,13 @@ object FormConfig: TFormConfig
     Proportional = True
     Visible = False
   end
+  object Label29: TLabel
+    Left = 144
+    Top = 68
+    Width = 6
+    Height = 13
+    Caption = #224
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
     Top = 440
@@ -1769,7 +1776,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 417
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2433,14 +2440,14 @@ object FormConfig: TFormConfig
         object LabelTJD1: TLabel
           Left = 112
           Top = 208
-          Width = 28
+          Width = 52
           Height = 13
           Caption = 'LabelTJD1'
         end
         object LabelTJD2: TLabel
           Left = 168
           Top = 208
-          Width = 28
+          Width = 52
           Height = 13
           Caption = 'LabelTJD1'
         end
@@ -2739,7 +2746,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2879,26 +2886,37 @@ object FormConfig: TFormConfig
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
             Left = 24
-            Top = 24
+            Top = 16
             Width = 193
             Height = 17
             Caption = 'Fonction F pour locomotive'
+            Enabled = False
             TabOrder = 0
           end
           object RadioButtonPN: TRadioButton
             Left = 24
-            Top = 40
+            Top = 48
             Width = 193
             Height = 17
             Caption = 'Gestion de passage '#224' niveau'
+            Enabled = False
             TabOrder = 1
+          end
+          object RadioButtonAccess: TRadioButton
+            Left = 24
+            Top = 32
+            Width = 161
+            Height = 17
+            Caption = 'Fonction F pour accessoire'
+            Enabled = False
+            TabOrder = 2
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 16
-          Top = 208
+          Left = 8
+          Top = 200
           Width = 225
-          Height = 129
+          Height = 145
           Caption = 'Actionneur fonction de locomotive '
           TabOrder = 1
           object LabelActionneur: TLabel
@@ -2936,6 +2954,13 @@ object FormConfig: TFormConfig
             Height = 13
             Caption = 'Tempo (ms)'
           end
+          object Label30: TLabel
+            Left = 168
+            Top = 24
+            Width = 6
+            Height = 13
+            Caption = #224
+          end
           object EditAct: TEdit
             Left = 112
             Top = 20
@@ -2952,15 +2977,15 @@ object FormConfig: TFormConfig
             TabOrder = 1
             Text = 'EditTrain'
           end
-          object EditEtat: TEdit
+          object EditEtatFoncSortie: TEdit
             Left = 160
             Top = 68
             Width = 25
             Height = 21
             TabOrder = 2
-            Text = 'EditEtat'
+            Text = 'EditEtatFoncSortie'
           end
-          object EditFonction: TEdit
+          object EditFonctionAccess: TEdit
             Left = 112
             Top = 68
             Width = 25
@@ -2976,10 +3001,26 @@ object FormConfig: TFormConfig
             TabOrder = 4
             Text = 'EditTempo'
           end
+          object EditEtatActionneur: TEdit
+            Left = 184
+            Top = 20
+            Width = 25
+            Height = 21
+            TabOrder = 5
+            Text = 'EditEtat'
+          end
+          object CheckRAZ: TCheckBox
+            Left = 48
+            Top = 120
+            Width = 145
+            Height = 17
+            Caption = 'Remise '#224' 0 apr'#232's pilotage'
+            TabOrder = 6
+          end
         end
         object GroupBoxPN: TGroupBox
-          Left = 16
-          Top = 104
+          Left = 72
+          Top = 8
           Width = 225
           Height = 193
           Caption = 'Actionneurs gestion passage '#224' niveau'
