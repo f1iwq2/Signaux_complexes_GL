@@ -191,7 +191,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 441
+    Left = 433
     Top = 633
     Width = 353
     Height = 97

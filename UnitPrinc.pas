@@ -222,7 +222,7 @@ Taccessoire     = (aig,feu);
 TMA             = (valide,devalide);
 
 var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
-  AvecInitAiguillages,tempsCli,NbreFeux,pasreponse,AdrDevie,
+  AvecInitAiguillages,tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
   ServeurRetroCDM,TailleFonte : integer;
@@ -3592,7 +3592,8 @@ begin
     begin
       inc(nv);
       delete(s,i,length(sa));
-      if StrToINT(s)=1 then Formprinc.windowState:=wsMaximized;
+      val(s,fenetre,erreur);
+      if fenetre=1 then Formprinc.windowState:=wsMaximized;
     end;
 
     sa:='SECTION_INIT';
@@ -4822,7 +4823,8 @@ begin
         s:='Erreur 1021 TJD '+intToSTR(adr)+' non résolue';
         affichedebug(s,clred);
         affiche(s,clred);
-        adr2:=9996;
+        suivant_alg3:=9996;
+        exit;
       end;  
 
       if nivDebug=3 then AfficheDebug('tjd: '+s+' Suiv='+intToSTR(adr2)+A,clYellow);
@@ -5154,8 +5156,8 @@ begin
     TypeprecCalc:=TypeActuelCalc;
     actuelCalc:=AdrSuiv;
     TypeActuelCalc:=typeGen;
-    //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
-  until (j=10) or (typeGen=1) or (AdrSuiv=0) or (AdrSuiv>=9998); // arret si détecteur 
+    //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);  
+  until (j=10) or (typeGen=1) or (AdrSuiv=0) or (AdrSuiv>=9996); // arret si détecteur 
   // si trouvé le sens, trouver le suivant
   if AdrSuiv=actuel then
   begin
@@ -5206,16 +5208,6 @@ begin
       if BtypeFonc<>1 then
       begin
         Adr:=suivant_alg3(AdrPrec,BtypePrec,AdrFonc,BtypeFonc,2);  // élément suivant mais arret sur aiguillage en talon mal positionnée
-       { if (typeGen=2) then // si le précédent est une TJD/S et le suivant aussi
-        begin
-          if ((aiguillage[Adr].modele=2) or (aiguillage[Adr].modele=3)) and
-           ((aiguillage[adrFonc].modele=2) or (aiguillage[AdrFonc].modele=3)) then
-          begin
-            if nivDebug=3 then AfficheDebug('502 - Détection Précédent=TJD/S Suivant=TJD/S',clyellow);
-            // subsituer la pointe
-            AdrFonc:=aiguillage[AdrFonc].APointe;
-          end;
-        end;  }
       end
 
       else
@@ -5495,6 +5487,7 @@ end;
 // Dans AdresseFeuSuivant : adresse du feu suivant (variable globale)
 function etat_signal_suivant(adresse,rang : integer) : integer ;
 var num_feu,AdrDet,etat,AdrFeu,i,j,prec,AdrSuiv : integer;
+    aspect,combine : word;
     TypePrec,TypeActuel : integer;
     s : string;
 begin
@@ -5609,9 +5602,9 @@ begin
             // oui
             inc(num_feu);
             Etat:=EtatSignalCplx[AdrFeu];
+            code_to_aspect(Etat,aspect,combine);
             Signal_suivant:=AdrFeu;
-
-            if NivDebug=3 then AfficheDebug('Trouvé feu suivant Adr='+IntToSTR(AdrFeu)+'='+IntToSTR(etat),clOrange);
+            if NivDebug=3 then AfficheDebug('Trouvé feu suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine],clorange);
           end
           else
           begin

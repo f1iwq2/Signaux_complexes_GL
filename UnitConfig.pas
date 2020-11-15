@@ -181,6 +181,7 @@ type
     Label30: TLabel;
     EditEtatActionneur: TEdit;
     CheckRAZ: TCheckBox;
+    CheckFenEt: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -529,7 +530,7 @@ end;
 procedure genere_config2;
 var s: string;
     fichier,fichierN : text;
-    i : integer;
+    i,j : integer;
     continue : boolean;
     
     // lit une ligne du fichier source "fichier", si c'est une ligne de commentaire, copie jusqu'à ne plus rencontrer
@@ -561,37 +562,74 @@ begin
   // entête
   copie_commentaire;
   // taille de la fonte
-  writeln(fichierN,TailleFonte);
+  writeln(fichierN,'Fonte=',TailleFonte);
   copie_commentaire;
 
   // adresse ip et port de CDM
-  writeln(fichierN,adresseIPCDM+':'+intToSTR(portCDM));
+  writeln(fichierN,'IpV4_PC=',adresseIPCDM+':'+intToSTR(portCDM));
   copie_commentaire;
 
   // adresse ip interface XpressNet
-  writeln(fichierN,adresseIP+':'+intToSTR(port));
+  writeln(fichierN,'IPV4_Interface=',adresseIP+':'+intToSTR(port));
   copie_commentaire;
 
   // port com
-  writeln(fichierN,portcom);
+  writeln(fichierN,'Protocole_serie=',portcom);
   copie_commentaire;
 
   // temporisation caractère TempoOctet
-  writeln(fichierN,IntToSTR(TempoOctet));
+  writeln(fichierN,'Inter_Car=',IntToSTR(TempoOctet));
   copie_commentaire;
 
   // temporisation attente maximale interface
-  writeln(fichierN,IntToSTR(TimoutMaxInterface));
+  writeln(fichierN,'Tempo_maxi=',IntToSTR(TimoutMaxInterface));
   copie_commentaire;
 
   // entete Valeur_entete
-  writeln(fichierN,intToSTR(Valeur_entete));
+  writeln(fichierN,'Entete=',intToSTR(Valeur_entete));
   copie_commentaire;
 
   // avec ou sans initialisation des aiguillages
-  writeln(fichierN,IntToSTR(AvecInitAiguillages));
+  writeln(fichierN,'Init_Aig=',IntToSTR(AvecInitAiguillages));
   copie_commentaire;
 
+  // plein écran
+  writeln(fichierN,'Fenetre=',fenetre);
+  copie_commentaire;
+  
+  // Vérification des versions au démarrage
+  if verifVersion then s:='1' else s:='0';
+  writeln(fichierN,'verif_version=',s);
+  copie_commentaire;
+
+  // Notification de nouvelle version
+  if notificationVersion then s:='1' else s:='0';
+  writeln(fichierN,'notif_version=',s);
+  copie_commentaire;
+ 
+  // Avec TCO
+  if AvecTCO then s:='1' else s:='0';
+  writeln(fichierN,'TCO=',s);
+  copie_commentaire; 
+
+  // lancement de CDM
+  if LanceCDM then s:='1' else s:='0';
+  writeln(fichierN,'CDM=',s);
+  copie_commentaire; 
+
+  // Nom du LAY
+  writeln(fichierN,'LAY=',Lay);
+  copie_commentaire; 
+
+  // Serveur d'interface de CDM
+  writeln(fichierN,'Serveur_interface=',intToSTR(ServeurInterfaceCDM));
+  copie_commentaire; 
+
+  // Serveur de rétrosignalisation Lenz de CDM
+  writeln(fichierN,'retro=',intToSTR(ServeurRetroCDM));
+  copie_commentaire; 
+  
+  // section init est copié ici
   writeln(fichierN,s);
   // valeurs des initialisations
   repeat
@@ -600,38 +638,6 @@ begin
     continue:=s[1]<>'0';
   until not(continue);
   copie_commentaire;
-  
-  // Vérification des versions au démarrage
-  if verifVersion then s:='1' else s:='0';
-  writeln(fichierN,s);
-  copie_commentaire;
-
-  // Notification de nouvelle version
-  if notificationVersion then s:='1' else s:='0';
-  writeln(fichierN,s);
-  copie_commentaire;
- 
-  // Avec TCO
-  if AvecTCO then s:='1' else s:='0';
-  writeln(fichierN,s);
-  copie_commentaire; 
-
-  // lancement de CDM
-  if LanceCDM then s:='1' else s:='0';
-  writeln(fichierN,s);
-  copie_commentaire; 
-
-  // Nom du LAY
-  writeln(fichierN,Lay);
-  copie_commentaire; 
-
-  // Serveur d'interface de CDM
-  writeln(fichierN,intToSTR(ServeurInterfaceCDM));
-  copie_commentaire; 
-
-  // Serveur de rétrosignalisation Lenz de CDM
-  writeln(fichierN,intToSTR(ServeurRetroCDM));
-  copie_commentaire; 
   
   closefile(fichier);
   closefile(fichierN);
@@ -802,6 +808,7 @@ begin
   notificationVersion:=CheckInfoVersion.Checked;
 
   LanceCDM:=CheckLanceCDM.Checked;
+  if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
   
   AvecTCO:=CheckAvecTCO.checked;
   Lay:=EditNomLay.Text;
@@ -893,6 +900,7 @@ begin
   LabelInfo.Width:=253;LabelInfo.Height:=25;
 
   CheckVerifVersion.Checked:=verifVersion;
+  CheckFenEt.Checked:=Fenetre=1;
   CheckInfoVersion.Checked:=notificationVersion;
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
@@ -1240,11 +1248,9 @@ begin
     if AncLigneCliquee<>-1 then 
     begin
       val(FormConfig.RichSig.Lines[AncLigneCliquee],AncAdresse,erreur);
-      
       if feux[lignecliquee+1].modifie then RE_ColorLine(Formconfig.RichSig,AncligneCliquee,ClWhite) else
       RE_ColorLine(Formconfig.RichSig,AncligneCliquee,ClAqua);
     end;  
-    
   end;
 
  
@@ -1276,6 +1282,10 @@ begin
     begin
       LabelDetAss.visible:=true;
       LabelElSuiv.visible:=true;
+      EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
+      EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
+      Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
+      CheckVerrouCarre.Visible:=false;
       EditDet1.Text:=IntToSTR(feux[i].Adr_det1);
       EditSuiv1.Text:=TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
       j:=feux[i].Adr_det2;
@@ -1327,6 +1337,10 @@ begin
       EditDet4.Text:='';EditSuiv4.Text:='';
       LabelDetAss.visible:=false;
       LabelElSuiv.visible:=false;
+      EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
+      EditSuiv1.Visible:=false;EditSuiv2.Visible:=false;EditSuiv3.Visible:=false;EditSuiv4.Visible:=false;
+      CheckVerrouCarre.Visible:=false;
+      Label24.Visible:=false; Label25.Visible:=false;Label26.Visible:=false;Label27.Visible:=false;
     end;
   end;   
 end;

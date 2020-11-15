@@ -1,12 +1,12 @@
 object FormConfig: TFormConfig
-  Left = 235
-  Top = 312
+  Left = 267
+  Top = 246
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
-  ClientHeight = 472
+  ClientHeight = 495
   ClientWidth = 858
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -1753,7 +1753,7 @@ object FormConfig: TFormConfig
   end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
-    Top = 440
+    Top = 464
     Width = 201
     Height = 25
     Caption = 'Enregistrer la configuration et Fermer'
@@ -1764,7 +1764,7 @@ object FormConfig: TFormConfig
   end
   object Button2: TButton
     Left = 24
-    Top = 440
+    Top = 464
     Width = 201
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
@@ -1775,8 +1775,8 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 585
-    Height = 417
-    ActivePage = TabSheetAct
+    Height = 441
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -1831,12 +1831,12 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 96
         Width = 273
-        Height = 161
-        Caption = 'Au d'#233'marrage '
+        Height = 185
+        Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
         object Label13: TLabel
           Left = 8
-          Top = 100
+          Top = 124
           Width = 242
           Height = 26
           Caption = 
@@ -1862,7 +1862,7 @@ object FormConfig: TFormConfig
         end
         object CheckLanceCDM: TCheckBox
           Left = 8
-          Top = 72
+          Top = 96
           Width = 241
           Height = 25
           Caption = 'Lancer CDM Rail au d'#233'marrage'
@@ -1874,16 +1874,30 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 201
           Height = 17
+          Hint = 'Affiche le TCO au d'#233'marrage'
           Caption = 'Avec TCO'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 3
         end
         object EditNomLay: TEdit
           Left = 16
-          Top = 130
+          Top = 154
           Width = 241
           Height = 21
           TabOrder = 4
           Text = 'EditNomLay'
+        end
+        object CheckFenEt: TCheckBox
+          Left = 8
+          Top = 72
+          Width = 249
+          Height = 17
+          Hint = 'Taille de la fen'#234'tre maximalis'#233'e'
+          Caption = 'Fen'#234'tre '#233'tendue'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
         end
       end
       object GroupBox6: TGroupBox
@@ -2024,7 +2038,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 8
-        Top = 264
+        Top = 288
         Width = 273
         Height = 113
         Caption = 'Services CommIP CDM Rail'
@@ -2559,7 +2573,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 32
         Width = 265
-        Height = 337
+        Height = 361
         Color = clBlack
         Lines.Strings = (
           'RichAig')
@@ -2599,7 +2613,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 24
         Width = 569
-        Height = 361
+        Height = 369
         Color = clInfoText
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -2746,7 +2760,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2830,7 +2844,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 32
         Width = 273
-        Height = 345
+        Height = 361
         Color = clBlack
         Lines.Strings = (
           'RichSig')
@@ -2856,7 +2870,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 24
         Width = 289
-        Height = 361
+        Height = 369
         Color = clInfoText
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
