@@ -486,8 +486,8 @@ begin
   aspect:=feux[i].aspect;
   if aspect<10 then s:=s+IntToSTR(aspect)+',' else s:=s+'D'+intToSTR(aspect-10)+',';
 
-  // bouton feu blanc
-  if feux[i].feublanc then s:=s+'1,' else s:=s+'0,';
+  // bouton feu blanc, n'existe pas pour un feu directionnel (aspect>10)
+  if aspect<10 then begin if feux[i].feublanc then s:=s+'1,' else s:=s+'0,';end;
 
   // décodeur
   s:=s+IntToSTR(feux[i].decodeur)+',';
@@ -697,27 +697,33 @@ begin
     writeln(fichierN,s);
     continue:=s[1]<>'0';
   until not(continue);
-  copie_commentaire;
 
-  writeln(fichierN,s);
-  // modélisation des signaux
-  if s[1]<>'0' then
+  // copie tous les commentaires de la branche feux
   repeat
     readln(fichier,s);
-    writeln(fichierN,s);
-    continue:=s[1]<>'0';
-  until not(continue);
-  copie_commentaire;
+    continue:=true;
+    if length(s)>0 then 
+    begin
+      if s[1]='/' then writeln(fichierN,s);
+      continue:=s[1]<>'0'; 
+    end;
+  until not(continue) or eof(fichier);
 
-  writeln(fichierN,s);
-  // Fonctions Fx
-  if s[1]<>'0' then
-  repeat
-    readln(fichier,s);
+  for i:=1 to NbreFeux do
+  begin
+    s:=encode_sig(i);
+    feux[i].modifie:=false;       // sauvegarde en cours, on démarque 
     writeln(fichierN,s);
-    continue:=s[1]<>'0';
-  until not(continue);
-  copie_commentaire;
+  end;
+  writeln(fichierN,'0');
+  
+  // Fonctions Fx généré du fichier d'origine, pas encore fait
+  repeat
+    continue:=true;
+    readln(fichier,s); 
+    writeln(fichierN,s);
+    if length(s)>0 then continue:=s[1]<>'0';
+  until not(continue) or eof(fichier);
   
   closefile(fichier);
   closefile(fichierN);
@@ -1285,7 +1291,7 @@ begin
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
       Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
-      CheckVerrouCarre.Visible:=false;
+      CheckVerrouCarre.Visible:=true;
       EditDet1.Text:=IntToSTR(feux[i].Adr_det1);
       EditSuiv1.Text:=TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
       j:=feux[i].Adr_det2;

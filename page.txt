@@ -77,7 +77,7 @@
 <script type="text/javascript" src="./styles/prosilver/template/forum_fn.js"></script>
 
 <link href="./styles/prosilver/theme/print.css" rel="stylesheet" type="text/css" media="print" title="printonly" />
-<link href="./style.php?sid=c81070447515d84d3437afdf98a89d47&amp;id=1&amp;lang=en" rel="stylesheet" type="text/css" media="screen, projection" />
+<link href="./style.php?sid=e0537f4fdbc9ba2c100f5b9ba31c8e17&amp;id=1&amp;lang=en" rel="stylesheet" type="text/css" media="screen, projection" />
 
 <link href="./styles/prosilver/theme/normal.css" rel="stylesheet" type="text/css" title="A" />
 <link href="./styles/prosilver/theme/medium.css" rel="alternate stylesheet" type="text/css" title="A+" />
@@ -167,7 +167,7 @@
 </div>
 <div class="clear"></div>
 
-	<div id="p50499" class="post bg2 online">
+	<div id="p50499" class="post bg2">
 		<div class="inner"><span class="corners-top"><span></span></span>
 
 		<div class="postbody">
@@ -176,11 +176,11 @@
 			<p class="author"><a href="./viewtopic.php?p=50499#p50499"><img src="./styles/prosilver/imageset/icon_post_target.gif" width="11" height="9" alt="Message" title="Message" /></a>par <strong><a href="./memberlist.php?mode=viewprofile&amp;u=13164" style="color: #008800;" class="username-coloured">gily</a></strong> &raquo; 20 Janvier 2020, 21:25 </p>
 
 			
-			<div class="content">Bonjour<br /><br />attention <span style="font-weight: bold">ne gère plus les aiguillages BIS qui sont problématiques</span>.<br />attention <span style="font-weight: bold">nécessite de nommer les variables du fichier config-gl.cfg - voir le fichier</span><br />attention <span style="font-weight: bold">changement de paramétrage des TJD</span><br /><br />Version 2.1 du 22/10/2020<br />Vous trouverez ici la version graphique du programme signaux_complexes_GL, client de CDM rail mais qui fonctionne aussi de façon autonome si vous disposez d'une centrale LENZ ou compatible. Il permet également de piloter des fonctions F de locomotives et des passages à niveaux à plusieurs voies d'après des actionneurs. Il gère un TCO et peut lancer CDM rail automatiquement avec votre LAY et l'interface choisie.  <img src="./images/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="M. Vert" /> <br /><br />Ce logiciel nécessite une installation : faire clic droit en sélectionnant &quot;exécuter en tant qu'administrateur&quot; sur installeur.exe.<br />Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.<br /><br />Pour une mise à jour n'oubliez pas de sauvegarder vos deux fichiers de config (.cfg) avant de copier la nouvelle version ; vous pouvez ne copier que le fichier signaux_complexes_GL.exe.<br /><br />Elle est téléchargeable depuis ce lien (droits en contrôle total)<br /><div class="inline-attachment">		<dl class="file">
-			<dt><img src="./styles/prosilver/imageset/icon_topic_attach.gif" width="7" height="10" alt="" title="" /> <a class="postlink" href="./download/file.php?id=12891">signaux_complexes_V2.1.zip</a></dt>
-						<dd>(737.11 Kio) Téléchargé 11 fois</dd>
+			<div class="content">Bonjour<br /><br />attention <span style="font-weight: bold">ne gère plus les aiguillages BIS qui sont problématiques</span>.<br />attention <span style="font-weight: bold">nécessite de nommer les variables du fichier config-gl.cfg - voir le fichier</span><br />attention <span style="font-weight: bold">changement de paramétrage des TJD</span><br /><br />Version 2.11 du 15/11/2020<br />Vous trouverez ici la version graphique du programme signaux_complexes_GL, client de CDM rail mais qui fonctionne aussi de façon autonome si vous disposez d'une centrale LENZ ou compatible. Il permet également de piloter des fonctions F de locomotives et des passages à niveaux à plusieurs voies d'après des actionneurs. Il gère un TCO et peut lancer CDM rail automatiquement avec votre LAY et l'interface choisie.  <img src="./images/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="M. Vert" /> <br /><br />Ce logiciel nécessite une installation : faire clic droit en sélectionnant &quot;exécuter en tant qu'administrateur&quot; sur installeur.exe.<br />Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.<br /><br />Pour une mise à jour n'oubliez pas de sauvegarder vos deux fichiers de config (.cfg) avant de copier la nouvelle version ; vous pouvez ne copier que le fichier signaux_complexes_GL.exe.<br /><br />Elle est téléchargeable depuis ce lien (droits en contrôle total)<br /><div class="inline-attachment">		<dl class="file">
+			<dt><img src="./styles/prosilver/imageset/icon_topic_attach.gif" width="7" height="10" alt="" title="" /> <a class="postlink" href="./download/file.php?id=12992">signaux_complexes_V2.11.zip</a></dt>
+						<dd>(728.73 Kio) Jamais téléchargé</dd>
 		</dl>
-		</div><br /><br />Notice: (cliquer dessus lance le téléchargement automatiquement)<br /><a href="https://github.com/f1iwq2/Signaux_complexes_GL/raw/master/Notice%20d'utilisation%20des%20signaux_complexes_GL_V2.1.pdf" class="postlink">https://github.com/f1iwq2/Signaux_complexes_GL/raw/master/Notice%20d'utilisation%20des%20signaux_complexes_GL_V2.1.pdf</a><br /><br />Pour les programmeurs, le zip suivant contient les fichiers source en Delphi, une notice avancée et l'installeur.<br /><a href="https://github.com/f1iwq2/Signaux_complexes_GL/archive/master.zip" class="postlink">https://github.com/f1iwq2/Signaux_complexes_GL/archive/master.zip</a><br /><br />A bientot<br /><br /><div class="inline-attachment">		<dl class="thumbnail">
+		</div><br /><br />Notice: (cliquer dessus lance le téléchargement automatiquement)<br /><a href="https://github.com/f1iwq2/Signaux_complexes_GL/raw/master/Notice%20d'utilisation%20des%20signaux_complexes_GL_V2.11.pdf" class="postlink">https://github.com/f1iwq2/Signaux_complexes_GL/raw/master/Notice%20d'utilisation%20des%20signaux_complexes_GL_V2.11.pdf</a><br /><br />Pour les programmeurs, le zip suivant contient les fichiers source en Delphi, une notice avancée et l'installeur.<br /><a href="https://github.com/f1iwq2/Signaux_complexes_GL/archive/master.zip" class="postlink">https://github.com/f1iwq2/Signaux_complexes_GL/archive/master.zip</a><br /><br />A bientot<br /><br /><div class="inline-attachment">		<dl class="thumbnail">
 			<dt><a href="./download/file.php?id=12085&amp;mode=view"><img src="./download/file.php?id=12085&amp;t=1" alt="scgl.jpg" title="scgl.jpg (274.24 Kio) Consulté 45 fois" /></a></dt>
 					</dl>
 		</div><br /><br /><div class="inline-attachment">		<dl class="thumbnail">
@@ -188,7 +188,7 @@
 					</dl>
 		</div></div>
 
-							<div class="notice">Dernière édition par <a href="./memberlist.php?mode=viewprofile&amp;u=13164" style="color: #008800;" class="username-coloured">gily</a> le 05 Novembre 2020, 18:51, édité 104 fois au total.									</div>
+							<div class="notice">Dernière édition par <a href="./memberlist.php?mode=viewprofile&amp;u=13164" style="color: #008800;" class="username-coloured">gily</a> le 15 Novembre 2020, 10:46, édité 105 fois au total.									</div>
 			
 		</div>
 
@@ -199,7 +199,7 @@
 			
 		<dd>&nbsp;</dd>
 
-		<dd><strong>Messages:</strong> 754</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
+		<dd><strong>Messages:</strong> 755</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
 		</dl>
 	
 		<div class="back2top"><a href="#wrap" class="top" title="Haut">Haut</a></div>
@@ -238,7 +238,7 @@
 	</div>
 
 	<hr class="divider" />
-	<div id="p50510" class="post bg2 online">
+	<div id="p50510" class="post bg2">
 		<div class="inner"><span class="corners-top"><span></span></span>
 
 		<div class="postbody">
@@ -259,7 +259,7 @@
 			
 		<dd>&nbsp;</dd>
 
-		<dd><strong>Messages:</strong> 754</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
+		<dd><strong>Messages:</strong> 755</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
 		</dl>
 	
 		<div class="back2top"><a href="#wrap" class="top" title="Haut">Haut</a></div>
@@ -349,7 +349,7 @@
 			
 		<dd>&nbsp;</dd>
 
-		<dd><strong>Messages:</strong> 592</dd><dd><strong>Inscrit le:</strong> 10 Avril 2017, 22:34</dd>
+		<dd><strong>Messages:</strong> 593</dd><dd><strong>Inscrit le:</strong> 10 Avril 2017, 22:34</dd>
 		</dl>
 	
 		<div class="back2top"><a href="#wrap" class="top" title="Haut">Haut</a></div>
@@ -358,7 +358,7 @@
 	</div>
 
 	<hr class="divider" />
-	<div id="p50529" class="post bg2 online">
+	<div id="p50529" class="post bg2">
 		<div class="inner"><span class="corners-top"><span></span></span>
 
 		<div class="postbody">
@@ -379,7 +379,7 @@
 			
 		<dd>&nbsp;</dd>
 
-		<dd><strong>Messages:</strong> 754</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
+		<dd><strong>Messages:</strong> 755</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
 		</dl>
 	
 		<div class="back2top"><a href="#wrap" class="top" title="Haut">Haut</a></div>
@@ -448,7 +448,7 @@
 	</div>
 
 	<hr class="divider" />
-	<div id="p50532" class="post bg1 online">
+	<div id="p50532" class="post bg1">
 		<div class="inner"><span class="corners-top"><span></span></span>
 
 		<div class="postbody">
@@ -469,7 +469,7 @@
 			
 		<dd>&nbsp;</dd>
 
-		<dd><strong>Messages:</strong> 754</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
+		<dd><strong>Messages:</strong> 755</dd><dd><strong>Inscrit le:</strong> 25 Juillet 2014, 14:32</dd><dd><strong>Localisation:</strong> nord</dd>
 		</dl>
 	
 		<div class="back2top"><a href="#wrap" class="top" title="Haut">Haut</a></div>
@@ -508,7 +508,7 @@
 							<option value="6">Informations générales</option>
 							<option value="117">&nbsp; &nbsp;Evènements divers</option>
 							<option value="9">&nbsp; &nbsp;Objet du forum CDM-Rail</option>
-							<option value="23">&nbsp; &nbsp;Présentation des membres: bienvenue à zio, Fabricemene, Dizom, toundra670, Laurent c., PATRICK42, evariste, sebcool4, jeanmarckiloris</option>
+							<option value="23">&nbsp; &nbsp;Présentation des membres: bienvenue à Jean Louis</option>
 							<option value="82">CDM-Rail: notes d'utilisation</option>
 							<option value="108">&nbsp; &nbsp;COMMENT DEMARRER</option>
 							<option value="85">&nbsp; &nbsp;Notes d'application pour CDM-Rail</option>

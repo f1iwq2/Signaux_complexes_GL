@@ -38,6 +38,10 @@ version 2.1  : Possibilité de piloter des accessoires par des actionneurs CDM
                Correction d'un bug sur l'écriture du fichier config-gl.cfg lors de la modification de la configuration.
 version 2.11 : Suppression du message d'erreur "Element 9999 non trouvé"
                Ajout de l'option fenêtre étendue dans le panneau de configuration
+Version 2.2  : Correction d'un bug sur le verrouillage des signaux au carré sur les trains en approche.
+               Mise à jour du fichier de config.cfg si modification des signaux dans la configuration.
+
+
 
 
 

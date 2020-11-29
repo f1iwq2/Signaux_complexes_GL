@@ -552,7 +552,7 @@ begin
     Adr:=TCO[x,y].adresse;
     if Adr<>0 then
     begin
-      if detecteur[Adr] then
+      if detecteur[Adr].etat then
       begin
         Brush.Color:=clAllume;
         pen.color:=clAllume;
@@ -1066,7 +1066,7 @@ begin
     Adr:=TCO[x,y].adresse;
     if Adr<>0 then
     begin
-      if detecteur[Adr] then
+      if detecteur[Adr].etat then
       begin
         Brush.Color:=clAllume;
         pen.color:=clAllume;
@@ -1114,7 +1114,7 @@ begin
     Adr:=TCO[x,y].adresse;
     if Adr<>0 then
     begin
-      if detecteur[Adr] then
+      if detecteur[Adr].etat then
       begin
         Brush.Color:=clAllume;
         pen.color:=clAllume;
@@ -1652,7 +1652,7 @@ begin
     Adr:=TCO[x,y].adresse;
     if Adr<>0 then
     begin
-      if detecteur[Adr] then
+      if detecteur[Adr].etat then
       begin
         Brush.Color:=clAllume;
         pen.color:=clAllume;
@@ -4028,14 +4028,14 @@ end;
 
 procedure TFormTCO.Button1Click(Sender: TObject);
 begin
-   Detecteur[569]:=true;
+   Detecteur[569].etat:=true;
    Maj_tco(569);
 end;
 
 
 procedure TFormTCO.Button2Click(Sender: TObject);
 begin
-   Detecteur[569]:=false;
+   Detecteur[569].etat:=false;
    Maj_tco(569);
 end;
 

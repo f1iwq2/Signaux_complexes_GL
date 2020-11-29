@@ -25,11 +25,6 @@ type
     copier1: TMenuItem;
     ButtonRazLog: TButton;
     GroupBox1: TGroupBox;
-    ButtonSigSuiv: TButton;
-    EditSigSuiv: TEdit;
-    EditPrec: TEdit;
-    EditActuel: TEdit;
-    ButtonDetSuiv: TButton;
     GroupBox2: TGroupBox;
     CheckAffSig: TCheckBox;
     CheckBoxEvtDetAig: TCheckBox;
@@ -38,7 +33,16 @@ type
     CheckBoxAct: TCheckBox;
     CheckBoxAffFD: TCheckBox;
     CheckBoxAffDebDecSig: TCheckBox;
+    GroupBox3: TGroupBox;
+    ButtonSigSuiv: TButton;
     ButtonCanSuivSig: TButton;
+    EditSigSuiv: TEdit;
+    Label4: TLabel;
+    GroupBox4: TGroupBox;
+    ButtonDetSuiv: TButton;
+    EditPrec: TEdit;
+    EditActuel: TEdit;
+    Button1: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
@@ -59,13 +63,14 @@ type
     procedure ButtonSigSuivClick(Sender: TObject);
     procedure ButtonDetSuivClick(Sender: TObject);
     procedure ButtonCanSuivSigClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
 
-Const 
+Const
 Max_Event_det_tick=30000;
 Max_event_det=400;
 Max_Trains=50;
@@ -355,5 +360,15 @@ begin
 end;
 
 
+
+procedure TFormDebug.Button1Click(Sender: TObject);
+var Adr,erreur,ancdebug : integer ;
+begin
+  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  PresTrainPrec(Adr);
+  NivDebug:=AncDebug;
+end;
 
 end.
