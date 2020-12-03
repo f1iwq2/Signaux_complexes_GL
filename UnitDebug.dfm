@@ -121,7 +121,7 @@ object FormDebug: TFormDebug
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'MemoDebug')
-    ScrollBars = ssVertical
+    ScrollBars = ssBoth
     TabOrder = 3
     WordWrap = False
   end

@@ -1776,7 +1776,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 441
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2089,6 +2089,29 @@ object FormConfig: TFormConfig
           Height = 17
           Caption = 'Signaux (non utilis'#233')'
           TabOrder = 4
+        end
+      end
+      object GroupBox15: TGroupBox
+        Left = 296
+        Top = 328
+        Width = 273
+        Height = 73
+        Caption = 'Divers'
+        TabOrder = 5
+        object Label31: TLabel
+          Left = 8
+          Top = 16
+          Width = 204
+          Height = 13
+          Caption = 'Seuil du nombre de d'#233'tecteurs trop distants'
+        end
+        object EditNbDetDist: TEdit
+          Left = 232
+          Top = 12
+          Width = 25
+          Height = 21
+          TabOrder = 0
+          Text = 'EditNbDetDist'
         end
       end
     end
@@ -2760,7 +2783,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end

@@ -1,5 +1,5 @@
 Version 1.0  : première version
-Version 1.01 : gestion des trajectoires vers les buttoirs
+Version 1.01 : gestion des routes vers les buttoirs
 Version 1.02 : vérification automatique des versions
 Version 1.1  : gestion des tableaux indicateurs de direction
                gestion du décodeur de signaux Unisemaf Paco (expérimental)
@@ -40,6 +40,9 @@ version 2.11 : Suppression du message d'erreur "Element 9999 non trouvé"
                Ajout de l'option fenêtre étendue dans le panneau de configuration
 Version 2.2  : Correction d'un bug sur le verrouillage des signaux au carré sur les trains en approche.
                Mise à jour du fichier de config.cfg si modification des signaux dans la configuration.
+version 2.21 : Paramétrage du nombre de détecteurs considérés comme trop distants
+               Correction d'un bug de la 2.2
+
 
 
 

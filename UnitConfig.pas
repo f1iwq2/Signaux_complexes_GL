@@ -182,6 +182,9 @@ type
     EditEtatActionneur: TEdit;
     CheckRAZ: TCheckBox;
     CheckFenEt: TCheckBox;
+    GroupBox15: TGroupBox;
+    EditNbDetDist: TEdit;
+    Label31: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -226,6 +229,7 @@ function envoi_CDM(s : string) : boolean;
 procedure connecte_CDM;
 function place_id(s : string) : string;
 procedure decodeAig(s : string;var adr : integer;var B : char);
+procedure sauve_config;
   
 implementation
 
@@ -500,7 +504,7 @@ begin
     if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det2)+','+TypeEl_To_char(feux[i].Btype_suiv2)+IntToSTR(feux[i].Adr_el_suiv2);
     j:=feux[i].Adr_det3;
     if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det3)+','+TypeEl_To_char(feux[i].Btype_suiv3)+IntToSTR(feux[i].Adr_el_suiv3);
-    j:=feux[i].Adr_det4;                                                                                                   
+    j:=feux[i].Adr_det4;
     if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det4)+','+TypeEl_To_char(feux[i].Btype_suiv4)+IntToSTR(feux[i].Adr_el_suiv4);
     s:=s+'),';
   end
@@ -518,11 +522,15 @@ begin
       end;
       s:=s+')';
     end;
-  end;  
+  end;
 
   //verrouillage au carré
-  if aspect<10 then if feux[i].verrouCarre then s:=s+'1' else s:=s+'0';
-
+  if aspect<10 then
+  begin
+    if feux[i].verrouCarre then s:=s+'1' else s:=s+'0';
+    // si unsemaf, paramètre supplémentaire
+    if feux[i].decodeur=6 then s:=s+','+intToSTR(feux[i].unisemaf);
+  end;
   encode_sig:=s;
 end;
 
@@ -596,6 +604,11 @@ begin
   // plein écran
   writeln(fichierN,'Fenetre=',fenetre);
   copie_commentaire;
+
+  // Nombre maxi de détecteurs considérés distants
+  writeln(fichierN,'Nb_Det_Dist=',Nb_Det_Dist);
+  copie_commentaire;
+
   
   // Vérification des versions au démarrage
   if verifVersion then s:='1' else s:='0';
@@ -736,13 +749,16 @@ begin
 
 end;
 
-procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
+
+procedure Sauve_config;
 var i,erreur : integer;
     s : string;
     ChangeCDM,changeInterface,changeUSB,change_srv : boolean;
 begin
   // Vérification de la configuration-------------------------------------------
   // contrôle adresse IP CDM
+  with FormConfig do
+  begin
   s:=EditAdrIPCDM.text;
   if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP CDM rail incorrecte';exit;end; 
   ChangeCDM:=s<>AdresseIPCDM;
@@ -779,6 +795,11 @@ begin
   val(EditTempoReponse.text,i,erreur);
   if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';exit;end; 
   TimoutMaxInterface:=i;
+
+  val(EditNbDetDist.text,i,erreur);
+  if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';exit;end; 
+  Nb_Det_Dist:=i;
+
 
   if RadioButton1.checked then Valeur_entete:=0;
   if RadioButton2.checked then Valeur_entete:=1;
@@ -848,11 +869,18 @@ begin
   Srvc_PosTrain:=CheckServPosTrains.checked;
   Srvc_Sig:=CheckBoxSrvSig.checked;
   Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
-
+  end;
+  
   if change_srv then services_CDM;
 
   // générer le fichiers config.cfg et clieng-GL.cfg
   genere_config2;
+  
+end;
+
+procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
+begin
+  Sauve_config;
   formConfig.close;
 end;
 
@@ -889,7 +917,8 @@ begin
   EditDroit_BD.ReadOnly:=false;
   Edit_HG.ReadOnly:=false;
   
-  
+
+  EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
   EditIPLenz.text:=AdresseIP;

@@ -163,7 +163,7 @@ const_devieG_CDM=3;  // positions aiguillages transmises par cdm
 const_devieD_CDM=2;  // positions aiguillages transmises par cdm
 const_droit_CDM=0;   // positions aiguillages transmises par cdm
 ClBleuClair=$FF7070 ;
-Cyan=$FFA0A0;
+Cyan=$FF6060;
 clviolet=$FF00FF;
 GrisF=$414141;
 clOrange=$0077FF;
@@ -225,7 +225,7 @@ var ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
   AvecInitAiguillages,tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
-  ServeurRetroCDM,TailleFonte : integer;
+  ServeurRetroCDM,TailleFonte,Nb_Det_Dist : integer;
     
   Hors_tension2,traceSign,TraceZone,Ferme,parSocket,ackCdm,PremierFD,
   NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,Option_demarrage,
@@ -404,23 +404,6 @@ begin
   combine:=BitNum(CodeBin and $fc00);
 end;
 
-procedure Xcode_to_aspect(codebin : word;var premierbit,combine : word) ;
-var i,mot : word;
-begin
-  mot:=codebin;
-  i:=0;premierbit:=0;Combine:=0;
-
-  while (i<15) do
-  begin
-    if (mot and 1)=1 then  // si bit 0 du mot est à 1
-    begin
-       if (premierbit=0) then premierbit:=i+1 else Combine:=i+1;
-    end;
-    mot:=mot shr 1; //décaler à droite
-    inc(i);
-  end;
-end;
-
 // dessine un cercle plein dans le feu
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
 begin
@@ -433,7 +416,7 @@ begin
   //Affiche(IntToSTR(y),clyellow);
 end;
 
-// dessine les feux sur une cible à 2 feux
+// dessine les feux sur une cible à 2 feux dans le canvas spécifié
 // x,y : offset en pixels du coin supérieur gauche du feu
 // frX, frY : facteurs de réduction
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
@@ -442,7 +425,7 @@ var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     ech : real;
     code,combine : word;
 begin
-  code_to_aspect(Etatsignal,code,combine); // et aspect
+  code_to_aspect(Etatsignal,code,combine); 
   rayon:=round(6*frX);
 
   // récupérer les dimensions de l'image d'origine du feu
@@ -3476,7 +3459,7 @@ end;
 procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
-    tec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux : boolean;
+    tec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux,trouve_NbDetDist : boolean;
     bd,virgule,i_detect,i,erreur,aig,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,
     postjd,postjs,nv,it : integer;
@@ -3524,6 +3507,8 @@ var s,sa,chaine,SOrigine: string;
 
 begin
   debugConfig:=false;
+  trouve_NbDetDist:=false;
+  Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
   for i:=1 to MaxAcc do
   begin
@@ -3751,12 +3736,28 @@ begin
       ServeurRetroCDM:=i;
     end;
 
+    sa:='NB_DET_DIST=';
+    i:=pos(sa,s);
+    if i<>0 then 
+    begin
+      inc(nv);
+      trouve_NbDetDist:=true;
+      delete(s,i,length(sa));
+      i:=0;
+      val(s,i,erreur);
+      if i<2 then i:=2;
+      Nb_Det_Dist:=i;
+    end;
     inc(it);
 
-  until (Nv>=17) or (it>30);
-  //affiche(IntToSTR(Nv)+' variables',clblue);
-  if it>30 then
-  begin affiche('ERREUR: manque variables dans config-gl.cfg',clred);exit;end;
+  until (Nv>=18) or (it>30);
+  //affiche(IntToSTR(Nv)+' variables',cyan);
+  if (it>30) then
+  begin 
+    s:='ERREUR: manque variables dans config-gl.cfg';
+    if not(trouve_NbDetDist) then s:=s+' : NB_DET_DIST';
+    affiche(s,clred);
+  end;
   //Affiche('Valeurs d''initialisation des aiguillages',clyellow);
 
   closefile(fichier);
@@ -5242,7 +5243,7 @@ begin
       end;
       }
   end;
-  if NivDebug=3 then AfficheDebug('Le suivant est le '+intToSTR(AdrSuiv),clYellow);
+  if (NivDebug=3) and (AdrSuiv<9996) then AfficheDebug('618 : Le suivant est le '+intToSTR(AdrSuiv),clYellow);
   detecteur_suivant:=AdrSuiv;
 end;
 
@@ -5345,7 +5346,7 @@ begin
   j:=1;  // J=1 test en incrément J=2 test en décrément
 
   // étape 1 : trouver le sens de progression (en incrément ou en décrément)
-
+  
   repeat
     //préparer les variables
     AdrPrec:=el1;TypePrec:=typeDet1;
@@ -5386,10 +5387,10 @@ begin
         AdrPrec:=AdrFonc;TypePrec:=TypeFonc;
         AdrFonc:=Adr;TypeFonc:=typeGen;
         inc(i);
-        sortie:=((typeDet2=TypeGen) and (Adr=el2)) or (Adr=0) or (Adr>=9996) or (i=15) or (N_Det=3);
+        sortie:=((typeDet2=TypeGen) and (Adr=el2)) or (Adr=0) or (Adr>=9996) or (i=15) or (N_Det=Nb_det_dist);
       until sortie ;
       if (i=15) and (Nivdebug=3) then afficheDebug('Pas trouvé',clyellow);
-      if (N_det=3) and (Nivdebug=3) then afficheDebug('Détecteurs trop distants',clyellow);
+      if (N_det=Nb_det_dist) and (Nivdebug=3) then afficheDebug('Détecteurs trop distants',clyellow);
     end
 
     else
@@ -5397,7 +5398,7 @@ begin
       // déja trouvé
       adr:=el2;typeGen:=TypeDet2;
     end;
-
+  
     if (typeDet2=TypeGen) and (Adr=el2) then
     begin
       if Nivdebug=3 then AfficheDebug('614 : Trouvé '+intToSTR(el2),clYellow);
@@ -5422,6 +5423,7 @@ begin
         inc(i);
         sortie:=(TypeGen=1) or (Adr=0) or (Adr>=9996) or (i=10);
       until sortie;
+    
       if TypeGen=1 then
       begin
         if NivDebug=3 then
@@ -5437,6 +5439,7 @@ begin
     inc(j);
     //AfficheDebug('j='+intToSTR(j),clyellow);
   until j=3;
+
   detecteur_suivant_el:=9996;
   if NivDebug=3 then affichedebug('------------------',clyellow);
 end;
@@ -6045,12 +6048,20 @@ function PresTrainPrec(AdrFeu : integer) : boolean;
 var PresTrain : boolean;
     j,i,Det_initial,Adr_El_Suiv,Btype_el_suivant,DetPrec1,DetPrec2,DetPrec3,DetPrec4 : integer;
 begin
-  if (AffSignal) or (NivDebug=3) then AfficheDebug('Le feu '+intToSTR(AdrFeu)+' est verrouillable au carré',clyellow);
+  i:=index_feu(Adrfeu);
+  if i=0 then 
+  begin
+    Affiche('Erreur 602 - feu '+IntToSTR(adrFeu)+' non trouvé',clred);
+    if NivDebug=3 then AfficheDebug('Erreur 602 - feu '+IntToSTR(adrFeu)+' non trouvé',clred); 
+    PresTrainPrec:=false;
+    exit;
+  end;
+  
   // **** un feu peut être associé à 4 détecteurs (pour 4 voies convergentes) *****
   // il faut donc explorer les 4 détecteurs probables
   PresTrain:=FALSE;
   j:=1;
-  i:=index_feu(Adrfeu);
+ 
   repeat
     if NivDebug=3 then afficheDebug('Séquence '+IntToSTR(j)+' de recherche des 4 détecteurs précédents-----',clOrange);
     if (j=1) then
@@ -6084,25 +6095,28 @@ begin
     if (det_initial<>0) then
     begin
       DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant,det_initial,1);
-      if DetPrec1<9996 then // route bloquée par aiguillage mal positionné
+      if DetPrec1<1024 then // route bloquée par aiguillage mal positionné
       begin
         DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1);
-        if DetPrec2<9996 then
+        if DetPrec2<1024 then
         begin
           DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1);
-          if DetPrec3<9996 then
+          if DetPrec3<1024 then
           begin
             DetPrec4:=detecteur_suivant_El(DetPrec2,1,DetPrec3,1);
-            if AffSignal or (NivDebug=3) then AfficheDebug('les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' '+intToSTR(DetPrec4),clyellow);
-            PresTrain:=MemZone[DetPrec4,detPrec3] or
-            MemZone[DetPrec3,detPrec2] or MemZone[DetPrec2,detPrec1] or MemZone[DetPrec1,Det_initial] or presTrain ;
-            if AffSignal or (NivDebug=3) then
+            if DetPrec4<1024 then
             begin
-              if MemZone[DetPrec4,detPrec3] then AfficheDebug('0.présence train '+IntToSTR(DetPrec4)+' '+IntToSTR(detPrec3),clyellow);
-              if MemZone[DetPrec3,detPrec2] then AfficheDebug('1.présence train '+IntToSTR(DetPrec3)+' '+IntToSTR(detPrec2),clyellow);
-              if MemZone[DetPrec2,detPrec1] then AfficheDebug('2.présence train '+IntToSTR(DetPrec2)+' '+IntToSTR(detPrec1),clyellow);
-              if MemZone[DetPrec1,det_initial] then AfficheDebug('3.présence train '+IntToSTR(DetPrec1)+' '+IntToSTR(det_Initial),clyellow);
-                 //if PresTrain then AfficheDebug('présence train',clyellow) else afficheDebug('abscence train',clyellow);
+              if AffSignal or (NivDebug=3) then AfficheDebug('les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' '+intToSTR(DetPrec4),clyellow);
+              PresTrain:=MemZone[DetPrec4,detPrec3] or
+              MemZone[DetPrec3,detPrec2] or MemZone[DetPrec2,detPrec1] or MemZone[DetPrec1,Det_initial] or presTrain ;
+              if AffSignal or (NivDebug=3) then
+              begin
+                if MemZone[DetPrec4,detPrec3] then AfficheDebug('0.présence train '+IntToSTR(DetPrec4)+' '+IntToSTR(detPrec3),clyellow);
+                if MemZone[DetPrec3,detPrec2] then AfficheDebug('1.présence train '+IntToSTR(DetPrec3)+' '+IntToSTR(detPrec2),clyellow);
+                if MemZone[DetPrec2,detPrec1] then AfficheDebug('2.présence train '+IntToSTR(DetPrec2)+' '+IntToSTR(detPrec1),clyellow);
+                if MemZone[DetPrec1,det_initial] then AfficheDebug('3.présence train '+IntToSTR(DetPrec1)+' '+IntToSTR(det_Initial),clyellow);
+                   //if PresTrain then AfficheDebug('présence train',clyellow) else afficheDebug('abscence train',clyellow);
+              end;
             end;
             //if AffSignal then AfficheDebug('MemZone'+intToSTR(DetPrec3)+' '+IntToSTR(detPrec2) = '+MemZone[DetPrec3,detPrec2]
           end;
@@ -6676,10 +6690,6 @@ begin
         begin
           If traceListe then AfficheDebug('Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
           MemZone[0,AdrDetFeu]:=true; 
-           //NivDebug:=3;
-          // AffSignal:=true;
-          // Aiguillage[20].position:=const_devie;
-          // Aiguillage[7].position:=const_droit;
           maj_feu(AdrFeu);
         end;  
       end;
@@ -7204,29 +7214,27 @@ var
     ProcessEntry32 : TProcessEntry32;   // pointeur sur la structure ProcessEntry32
     processID : DWord;
 begin
-    Result:=false;
+  Result:=false;
+  hSnapShot:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+  Win32Check(hSnapShot <> INVALID_HANDLE_VALUE);
 
-    hSnapShot:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
-    Win32Check(hSnapShot <> INVALID_HANDLE_VALUE);
+  sExeName:=LowerCase (sExeName);
+  FillChar(ProcessEntry32,SizeOf(TProcessEntry32),#0);
+  ProcessEntry32.dwSize:=SizeOf(TProcessEntry32);   // contient la structure de tous les process
 
-    sExeName:=LowerCase (sExeName);
-
-    FillChar(ProcessEntry32,SizeOf(TProcessEntry32),#0);
-    ProcessEntry32.dwSize:=SizeOf(TProcessEntry32);   // contient la structure de tous les process
-
-    if (Process32First(hSnapShot,ProcessEntry32)) then
-    repeat
-      //Affiche(ProcessEntry32.szExeFile,ClYellow);
-      if (Pos(sExeName,LowerCase(ProcessEntry32.szExeFile))=1) then
-      begin
-        processID:=ProcessEntry32.th32ProcessID;
-        CDMhd:=GetWindowFromID(processID);
-        Affiche('CDM rail processID='+IntToSTR(ProcessID)+' handle='+IntToSTR(CDMhd),clOrange);
-        Result:=true;
-        Break;
-      end; 
-    until (Process32Next(hSnapShot,ProcessEntry32)=false);
-    CloseHandle(hSnapShot);
+  if (Process32First(hSnapShot,ProcessEntry32)) then
+  repeat
+    //Affiche(ProcessEntry32.szExeFile,ClYellow);
+    if (Pos(sExeName,LowerCase(ProcessEntry32.szExeFile))=1) then
+    begin
+      processID:=ProcessEntry32.th32ProcessID;
+      CDMhd:=GetWindowFromID(processID);
+      Affiche('CDM rail processID='+IntToSTR(ProcessID)+' handle='+IntToSTR(CDMhd),clOrange);
+      Result:=true;
+      Break;
+    end; 
+  until (Process32Next(hSnapShot,ProcessEntry32)=false);
+  CloseHandle(hSnapShot);
 end; 
 
 
@@ -7460,10 +7468,9 @@ var
    V_utile : real;
    CibleHandle : Thandle;
 begin
-  //AvecMaj:=false;
   TraceSign:=True;
   PremierFD:=false;
-  // services commIP CDM
+  // services commIP CDM par défaut
   Srvc_Aig:=true;
   Srvc_Det:=true;
   Srvc_Act:=true;
@@ -7573,8 +7580,6 @@ begin
   for i:=0 to Max_Event_det_tick do
   begin
     event_det_tick[i].aiguillage:=-1;
-    //for j:=1 to 1100 do
-    //event_det_tick[i].detecteur[j]:=-1;   // initialiser les détecteurs à -1
     event_det_tick[i].detecteur:=-1;
     event_det_tick[i].etat:=-1;
     event_det_tick[i].aiguillage:=-1;
