@@ -219,7 +219,7 @@ TitreAig='Description de l''aiguillage ';
         
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string;
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
   LigneCliquee,AncLigneCliquee : integer;
   clicliste : boolean;
@@ -338,7 +338,9 @@ begin
     if pos('_ACK',recuCDM)<>0 then
     begin
       Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
+      recucdm:='';
       s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
+     
       Affiche(s,clYellow);
       AfficheDebug(s,clyellow);
       CDM_connecte:=true;

@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 342
-  Top = 80
+  Left = 329
+  Top = 122
   Width = 842
   Height = 762
   Caption = 'Fen'#234'tre de d'#233'bug'
@@ -13,7 +13,6 @@ object FormDebug: TFormDebug
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
     826
@@ -22,7 +21,7 @@ object FormDebug: TFormDebug
   TextHeight = 13
   object Label1: TLabel
     Left = 642
-    Top = 7
+    Top = 4
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -38,7 +37,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 474
-    Top = 4
+    Top = 2
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -52,7 +51,7 @@ object FormDebug: TFormDebug
   end
   object Label3: TLabel
     Left = 472
-    Top = 168
+    Top = 160
     Width = 99
     Height = 185
     Anchors = [akTop, akRight]
@@ -70,7 +69,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 754
-    Top = 4
+    Top = 2
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -86,7 +85,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 578
-    Top = 360
+    Top = 344
     Width = 239
     Height = 225
     Anchors = [akTop, akRight]
@@ -105,7 +104,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 474
-    Top = 480
+    Top = 464
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -127,7 +126,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 474
-    Top = 552
+    Top = 536
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -138,7 +137,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 474
-    Top = 448
+    Top = 432
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -148,7 +147,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 474
-    Top = 408
+    Top = 392
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -159,7 +158,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 474
-    Top = 360
+    Top = 344
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -176,7 +175,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 578
-    Top = 168
+    Top = 160
     Width = 239
     Height = 185
     Anchors = [akTop, akRight]
@@ -187,7 +186,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 474
-    Top = 512
+    Top = 496
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -197,10 +196,10 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 474
-    Top = 592
-    Width = 343
-    Height = 132
+    Left = 472
+    Top = 576
+    Width = 353
+    Height = 145
     Anchors = [akTop, akRight]
     Caption = 'Fonctions primitives'
     Color = cl3DLight
@@ -215,13 +214,13 @@ object FormDebug: TFormDebug
     object GroupBox3: TGroupBox
       Left = 8
       Top = 16
-      Width = 329
-      Height = 57
+      Width = 337
+      Height = 73
       Caption = 'Signal'
       TabOrder = 0
       object Label4: TLabel
-        Left = 241
-        Top = 26
+        Left = 281
+        Top = 10
         Width = 32
         Height = 13
         Caption = 'Signal:'
@@ -235,8 +234,8 @@ object FormDebug: TFormDebug
       object ButtonSigSuiv: TButton
         Left = 8
         Top = 16
-        Width = 65
-        Height = 33
+        Width = 57
+        Height = 49
         Hint = 'Etat du signal suivant'
         Caption = 'Etat signal suivant'
         ParentShowHint = False
@@ -246,10 +245,10 @@ object FormDebug: TFormDebug
         OnClick = ButtonSigSuivClick
       end
       object ButtonCanSuivSig: TButton
-        Left = 72
-        Top = 8
-        Width = 81
-        Height = 41
+        Left = 64
+        Top = 16
+        Width = 65
+        Height = 49
         Hint = 'Renvoie l'#39'occupation du canton suivant le signal'
         Caption = 'Etat canton suivant signal'
         ParentShowHint = False
@@ -259,8 +258,8 @@ object FormDebug: TFormDebug
         OnClick = ButtonCanSuivSigClick
       end
       object EditSigSuiv: TEdit
-        Left = 272
-        Top = 24
+        Left = 280
+        Top = 32
         Width = 41
         Height = 21
         Hint = 'Indiquer l'#39'adresse du signal '
@@ -269,20 +268,30 @@ object FormDebug: TFormDebug
         TabOrder = 2
       end
       object Button1: TButton
-        Left = 152
-        Top = 8
+        Left = 128
+        Top = 16
         Width = 81
-        Height = 41
+        Height = 49
         Caption = 'Etat 3 cantons pr'#233'c'#233'dents signal'
         TabOrder = 3
         WordWrap = True
         OnClick = Button1Click
       end
+      object Button2: TButton
+        Left = 208
+        Top = 16
+        Width = 65
+        Height = 49
+        Caption = 'Cond Carr'#233' aiguillages'
+        TabOrder = 4
+        WordWrap = True
+        OnClick = Button2Click
+      end
     end
     object GroupBox4: TGroupBox
       Left = 8
-      Top = 72
-      Width = 329
+      Top = 88
+      Width = 337
       Height = 49
       Caption = 'D'#233'tecteur suivant'
       TabOrder = 1
@@ -324,7 +333,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox2: TGroupBox
     Left = 472
-    Top = 24
+    Top = 20
     Width = 345
     Height = 137
     Anchors = [akTop, akRight]

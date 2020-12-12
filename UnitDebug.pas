@@ -43,7 +43,7 @@ type
     EditPrec: TEdit;
     EditActuel: TEdit;
     Button1: TButton;
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -64,6 +64,7 @@ type
     procedure ButtonDetSuivClick(Sender: TObject);
     procedure ButtonCanSuivSigClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -115,13 +116,6 @@ uses UnitPrinc;
 procedure AfficheDebug(s : string;lacouleur : TColor);
 begin
   FormDebug.MemoDebug.Lines.add(s);
-end;
-
-procedure TFormDebug.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  //Action := TCloseAction.caNone;
-  //DebugOuv:=False;
-  //NivDebug:=0;
 end;
 
 procedure RE_ColorLine(ARichEdit : TRichEdit;ARow : Integer;AColor : TColor);
@@ -368,6 +362,17 @@ begin
   ancdebug:=NivDebug;
   NivDebug:=3;
   PresTrainPrec(Adr);
+  NivDebug:=AncDebug;
+end;
+
+procedure TFormDebug.Button2Click(Sender: TObject);
+var Adr,erreur,ancdebug : integer ;
+begin
+  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  Cond_Carre(Adr);
+  carre_signal(adr);
   NivDebug:=AncDebug;
 end;
 

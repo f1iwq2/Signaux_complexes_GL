@@ -816,7 +816,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3Dir: TImage
-    Left = 768
+    Left = 840
     Top = 136
     Width = 49
     Height = 25
@@ -894,8 +894,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image4Dir: TImage
-    Left = 816
-    Top = 128
+    Left = 1064
+    Top = 136
     Width = 57
     Height = 25
     Picture.Data = {
@@ -1080,8 +1080,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 808
-    Top = 152
+    Left = 872
+    Top = 136
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1204,7 +1204,7 @@ object FormPrinc: TFormPrinc
   object ListBox1: TListBox
     Left = 8
     Top = 48
-    Width = 616
+    Width = 609
     Height = 505
     Style = lbOwnerDrawFixed
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1235,7 +1235,7 @@ object FormPrinc: TFormPrinc
   end
   object GroupBox1: TGroupBox
     Left = 631
-    Top = 0
+    Top = 5
     Width = 249
     Height = 129
     Anchors = [akTop, akRight]
@@ -1345,6 +1345,9 @@ object FormPrinc: TFormPrinc
       Top = 8
       Width = 89
       Height = 33
+      Hint = 
+        'Mise '#224' jour des feux suivant les zones occup'#233'es et les aiguillag' +
+        'es'
       Caption = 'Rafraichissement'
       TabOrder = 0
       OnClick = BoutonRafClick
@@ -1354,6 +1357,7 @@ object FormPrinc: TFormPrinc
       Top = 8
       Width = 83
       Height = 33
+      Hint = 'Demande la version XpressNet '#224' la centrale'
       Caption = 'Dem version'
       TabOrder = 1
       OnClick = BoutVersionClick
@@ -1393,7 +1397,7 @@ object FormPrinc: TFormPrinc
       Top = 48
       Width = 89
       Height = 33
-      Caption = 'Demande '#233'tat r'#233'trosignalisation'
+      Caption = 'Demande '#233'tat aiguillages'
       TabOrder = 5
       WordWrap = True
       OnClick = ButtonTestClick
@@ -1422,6 +1426,7 @@ object FormPrinc: TFormPrinc
       Top = 8
       Width = 81
       Height = 33
+      Hint = 'Lance CDM Rail'
       Caption = 'Lance CDM rail'
       TabOrder = 8
       OnClick = ButtonLanceCDMClick
@@ -1520,12 +1525,12 @@ object FormPrinc: TFormPrinc
     object Interface1: TMenuItem
       Caption = 'Interface'
       object MenuConnecterUSB: TMenuItem
-        Caption = 'Connecter USB'
+        Caption = 'Connecter l'#39'interface en USB'
         Hint = 'Connecter l'#39'interface en USB'
         OnClick = MenuConnecterUSBClick
       end
       object DeconnecterUSB: TMenuItem
-        Caption = 'D'#233'connecter USB'
+        Caption = 'D'#233'connecter interface de l'#39'USB'
         Hint = 'D'#233'connecter l'#39'interface USB'
         OnClick = DeconnecterUSBClick
       end
@@ -1533,12 +1538,12 @@ object FormPrinc: TFormPrinc
         Caption = '-'
       end
       object MenuConnecterEthernet: TMenuItem
-        Caption = 'Connecter Ethernet'
+        Caption = 'Connecter l'#39'interface en Ethernet'
         Hint = 'Connecter l'#39'interface par Ethernet'
         OnClick = MenuConnecterEthernetClick
       end
       object MenuDeconnecterEthernet: TMenuItem
-        Caption = 'D'#233'connecter Ethernet'
+        Caption = 'D'#233'connecter l'#39'interface de Ethernet'
         Hint = 'D'#233'connecter l'#39'interface par Ethernet'
         OnClick = MenuDeconnecterEthernetClick
       end
