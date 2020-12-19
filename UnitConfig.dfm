@@ -1776,7 +1776,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 441
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2783,7 +2783,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2812,6 +2812,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 4
           Text = 'Edit1'
+          OnChange = EditDet2Change
         end
         object EditSuiv2: TEdit
           Left = 184
@@ -2820,6 +2821,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 5
           Text = 'Edit2'
+          OnChange = EditSuiv2Change
         end
         object EditDet3: TEdit
           Left = 120
@@ -2828,6 +2830,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 6
           Text = 'Edit1'
+          OnChange = EditDet3Change
         end
         object EditSuiv3: TEdit
           Left = 184
@@ -2836,6 +2839,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 7
           Text = 'Edit2'
+          OnChange = EditSuiv3Change
         end
         object EditDet4: TEdit
           Left = 120
@@ -2844,6 +2848,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 8
           Text = 'Edit1'
+          OnChange = EditDet4Change
         end
         object EditSuiv4: TEdit
           Left = 184
@@ -2852,6 +2857,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 9
           Text = 'Edit2'
+          OnChange = EditSuiv4Change
         end
         object CheckVerrouCarre: TCheckBox
           Left = 112

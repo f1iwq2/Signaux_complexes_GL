@@ -207,23 +207,47 @@ type
     procedure EditDet1Change(Sender: TObject);
     procedure EditSuiv1Change(Sender: TObject);
     procedure CheckVerrouCarreClick(Sender: TObject);
+    procedure EditDet2Change(Sender: TObject);
+    procedure EditSuiv2Change(Sender: TObject);
+    procedure EditDet3Change(Sender: TObject);
+    procedure EditSuiv3Change(Sender: TObject);
+    procedure EditDet4Change(Sender: TObject);
+    procedure EditSuiv4Change(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
-   
+
   end;
 
-const 
-TitreAig='Description de l''aiguillage ';
-        
+const
+// variables du fichier de configuration "config-gl.cfg"
+section_init='[section_init]';
+nb_det_dist_ch='nb_det_dist';
+IpV4_PC_ch='IpV4_PC';
+retro_ch='retro';
+Init_aig_ch='Init_Aig';
+LAY_ch='Lay';
+IPV4_INTERFACE_ch='IPV4_INTERFACE';
+PROTOCOLE_SERIE_ch='PROTOCOLE_SERIE';
+INTER_CAR_ch='INTER_CAR';
+Tempo_maxi_ch='Tempo_maxi';
+Entete_ch='Entete';
+TCO_ch='TCO';
+CDM_ch='CDM';
+Serveur_interface_ch='Serveur_interface';
+fenetre_ch='Fenetre';
+NOTIF_VERSION_ch='NOTIF_VERSION';
+verif_version_ch='verif_version';
+Fonte_ch='Fonte';
+
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string;
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
   LigneCliquee,AncLigneCliquee : integer;
-  clicliste : boolean;
-  
+  ack_cdm,clicliste : boolean;
+
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
 procedure connecte_CDM;
@@ -268,6 +292,7 @@ begin
   place_id:=s;
 end;
 
+// demande les services à CDM
 function services_CDM : boolean;
 var s,ss : string;
     i : integer;
@@ -280,7 +305,7 @@ begin
   if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;
   if Srvc_PosTrain then  begin s:=s+'SRV=TSXY;';inc(i);end ;
   if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;
-   
+
   // insère le nombre de paramètres
   ss:=format('%.*d',[2,i]) ;
   delete(s,30,2);
@@ -291,8 +316,9 @@ begin
   delete(s,26,3);
   insert(ss,s,26);
   //Affiche(s,clyellow);
+
   envoi_CDM(s);sleep(100);
-  if pos('_ACK',recuCDM)<>0 then 
+  if ack_cdm then
   begin
     s:='Services acceptés: ';
     if Srvc_Aig then s:=s+'- aiguillages ';
@@ -301,10 +327,11 @@ begin
     if Srvc_PosTrain then s:=s+'- position des trains ';
     if Srvc_sig then s:=s+'- état des signaux ';
     Affiche(s,clYellow);
-  end;  
-  services_CDM:=pos('_ACK',recuCDM)<>0;
+  end;
+  services_CDM:=ack_cdm;
+  ack_cdm:=false;
 end;
-  
+
 procedure connecte_CDM;
 var s , ss : string;
     i : integer;
@@ -327,27 +354,28 @@ begin
       Sleep(50);
       inc(i);
       Application.processMessages;
-    until (i>10) or SocketCDM_connecte  ;             
+    until (i>10) or SocketCDM_connecte  ;
     //if i>30 then affiche('Timeout',clred);
-    if not(SocketCDM_connecte) then Affiche('Socket CDM non connecté',clOrange);
+    if not(SocketCDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
 
     // connexion à CDM rail
     recuCDM:='';
     s:='C-C-00-0001-CMDGEN-_CNCT|000|';
     envoi_cdm(s);
-    if pos('_ACK',recuCDM)<>0 then
+    if ack_cdm then
     begin
+      ack_cdm:=false;
       Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
       recucdm:='';
       s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
-     
+
       Affiche(s,clYellow);
       AfficheDebug(s,clyellow);
       CDM_connecte:=true;
 
       // demande des services
       services_CDM;
-      
+
       // demande les trains
       s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
       envoi_CDM(s);
@@ -371,7 +399,7 @@ begin
     delete(s,1,i);
   end;
   val(s,octet,erreur);if (erreur<>0) or (octet>255) then begin IpOK:=false;exit;end;
-  ipOK:=true;  
+  ipOK:=true;
 end;
 
 // vérifie si la config de la com série/usb est ok
@@ -420,7 +448,7 @@ var s : string;
     c : char;
     tjd : boolean;
 begin
-   s:=IntToSTR(i);    
+   s:=IntToSTR(i);
    tjd:=aiguillage[i].modele=2;
    if tjd then s:=s+'TJD';
    if aiguillage[i].modele=3 then s:=s+'TJS';
@@ -464,13 +492,13 @@ begin
      s:=s+','+intToSTR(aiguillage[i].DDevie)+aiguillage[i].DDevieB+'),';
      s:=s+'I'+IntToSTR(aiguillage[i].InversionCDM);
    end;
-   
+
    encode_aig:=s;
 end;
 
 function TypeEl_to_char(i : integer) : string;
 begin
-  case i of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri 
+  case i of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri
   1 : TypeEl_to_char:='';
   2,3,4 : TypeEl_to_char:='A';
   end;
@@ -486,7 +514,7 @@ begin
   // adresse
   adresse:=feux[i].adresse;
   if adresse=0 then begin encode_sig:='';exit;end;
-  
+
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
   aspect:=feux[i].aspect;
@@ -537,7 +565,7 @@ begin
 end;
 
 // modifie les fichiers de config en fonction du paramétrage
-procedure genere_config2;
+procedure genere_config;
 var s: string;
     fichier,fichierN : text;
     i,j : integer;
@@ -572,79 +600,79 @@ begin
   // entête
   copie_commentaire;
   // taille de la fonte
-  writeln(fichierN,'Fonte=',TailleFonte);
+  writeln(fichierN,Fonte_ch+'=',TailleFonte);
   copie_commentaire;
 
   // adresse ip et port de CDM
-  writeln(fichierN,'IpV4_PC=',adresseIPCDM+':'+intToSTR(portCDM));
+  writeln(fichierN,IpV4_PC_ch+'=',adresseIPCDM+':'+intToSTR(portCDM));
   copie_commentaire;
 
   // adresse ip interface XpressNet
-  writeln(fichierN,'IPV4_Interface=',adresseIP+':'+intToSTR(port));
+  writeln(fichierN,IPV4_Interface_ch+'=',adresseIP+':'+intToSTR(port));
   copie_commentaire;
 
   // port com
-  writeln(fichierN,'Protocole_serie=',portcom);
+  writeln(fichierN,Protocole_serie_ch+'=',portcom);
   copie_commentaire;
 
   // temporisation caractère TempoOctet
-  writeln(fichierN,'Inter_Car=',IntToSTR(TempoOctet));
+  writeln(fichierN,Inter_Car_ch+'=',IntToSTR(TempoOctet));
   copie_commentaire;
 
   // temporisation attente maximale interface
-  writeln(fichierN,'Tempo_maxi=',IntToSTR(TimoutMaxInterface));
+  writeln(fichierN,Tempo_maxi_ch+'=',IntToSTR(TimoutMaxInterface));
   copie_commentaire;
 
   // entete Valeur_entete
-  writeln(fichierN,'Entete=',intToSTR(Valeur_entete));
+  writeln(fichierN,Entete_ch+'=',intToSTR(Valeur_entete));
   copie_commentaire;
 
   // avec ou sans initialisation des aiguillages
-  writeln(fichierN,'Init_Aig=',IntToSTR(AvecInitAiguillages));
+  writeln(fichierN,Init_Aig_ch+'=',IntToSTR(AvecInitAiguillages));
   copie_commentaire;
 
   // plein écran
-  writeln(fichierN,'Fenetre=',fenetre);
+  writeln(fichierN,Fenetre_ch+'=',fenetre);
   copie_commentaire;
 
   // Nombre maxi de détecteurs considérés distants
-  writeln(fichierN,'Nb_Det_Dist=',Nb_Det_Dist);
+  writeln(fichierN,nb_det_dist_ch+'=',Nb_Det_Dist);
   copie_commentaire;
 
-  
   // Vérification des versions au démarrage
   if verifVersion then s:='1' else s:='0';
-  writeln(fichierN,'verif_version=',s);
+  writeln(fichierN,verif_version_ch+'=',s);
   copie_commentaire;
 
   // Notification de nouvelle version
   if notificationVersion then s:='1' else s:='0';
-  writeln(fichierN,'notif_version=',s);
+  writeln(fichierN,notif_version_ch+'=',s);
   copie_commentaire;
- 
+
   // Avec TCO
   if AvecTCO then s:='1' else s:='0';
-  writeln(fichierN,'TCO=',s);
-  copie_commentaire; 
+  writeln(fichierN,TCO_ch+'=',s);
+  copie_commentaire;
 
   // lancement de CDM
   if LanceCDM then s:='1' else s:='0';
-  writeln(fichierN,'CDM=',s);
-  copie_commentaire; 
+  writeln(fichierN,CDM_ch+'=',s);
+  copie_commentaire;
 
   // Nom du LAY
-  writeln(fichierN,'LAY=',Lay);
-  copie_commentaire; 
+  writeln(fichierN,lay_ch+'=',Lay);
+  copie_commentaire;
 
   // Serveur d'interface de CDM
-  writeln(fichierN,'Serveur_interface=',intToSTR(ServeurInterfaceCDM));
-  copie_commentaire; 
+  writeln(fichierN,Serveur_interface_ch+'=',intToSTR(ServeurInterfaceCDM));
+  copie_commentaire;
 
   // Serveur de rétrosignalisation Lenz de CDM
-  writeln(fichierN,'retro=',intToSTR(ServeurRetroCDM));
-  copie_commentaire; 
-  
-  // section init est copié ici
+  writeln(fichierN,retro_ch+'=',intToSTR(ServeurRetroCDM));
+  copie_commentaire;
+
+  // [section init] est copié ici
+  if pos(section_init,lowercase(s))=0 then  writeln(fichierN,section_init);
   writeln(fichierN,s);
   // valeurs des initialisations
   repeat
@@ -653,7 +681,7 @@ begin
     continue:=s[1]<>'0';
   until not(continue);
   copie_commentaire;
-  
+
   closefile(fichier);
   closefile(fichierN);
 
@@ -701,7 +729,7 @@ begin
     continue:=s[1]<>'0';
   until not(continue);
   writeln(fichierN,'0');
-  
+
   copie_commentaire;
   
   writeln(fichierN,s);
@@ -717,10 +745,10 @@ begin
   repeat
     readln(fichier,s);
     continue:=true;
-    if length(s)>0 then 
+    if length(s)>0 then
     begin
       if s[1]='/' then writeln(fichierN,s);
-      continue:=s[1]<>'0'; 
+      continue:=s[1]<>'0';
     end;
   until not(continue) or eof(fichier);
 
@@ -735,7 +763,7 @@ begin
   // Fonctions Fx généré du fichier d'origine, pas encore fait
   repeat
     continue:=true;
-    readln(fichier,s); 
+    readln(fichier,s);
     writeln(fichierN,s);
     if length(s)>0 then continue:=s[1]<>'0';
   until not(continue) or eof(fichier);
@@ -751,7 +779,7 @@ begin
 
 end;
 
-
+// sauvegarder la config dans les fichiers cfg
 procedure Sauve_config;
 var i,erreur : integer;
     s : string;
@@ -762,28 +790,28 @@ begin
   with FormConfig do
   begin
   s:=EditAdrIPCDM.text;
-  if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP CDM rail incorrecte';exit;end; 
+  if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP CDM rail incorrecte';exit;end;
   ChangeCDM:=s<>AdresseIPCDM;
   adresseIPCDM:=s;
-  
+
   // contrôle port CDM
   val(EditPortCDM.Text,i,erreur);
-  if i>65535 then begin labelInfo.Caption:='Port CDM rail incorrect';exit;end; 
+  if i>65535 then begin labelInfo.Caption:='Port CDM rail incorrect';exit;end;
   changeCDM:=(portCDM<>i) or ChangeCDM;
   portCDM:=i;
-  
+
   // contrôle adresse IP interface
   s:=EditIPLenz.text;
-  if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';exit;end; 
+  if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';exit;end;
   changeInterface:=s<>AdresseIP;
   AdresseIP:=s;
-  
+
   // contrôle port interface
   val(EditPortLenz.Text,i,erreur);
-  if i>65535 then begin labelInfo.Caption:='Port Interface incorrect';exit;end;   
+  if i>65535 then begin labelInfo.Caption:='Port Interface incorrect';exit;end;
   changeInterface:=changeInterface or (i<>port);
   port:=i;
-  
+
   // contrôle protocole interface  COM3:57600,N,8,1,2
   s:=EditComUSB.Text;
   if not(config_com(s)) then begin labelInfo.Caption:='Protocole série USB Interface incorrect';exit;end;
@@ -876,8 +904,8 @@ begin
   if change_srv then services_CDM;
 
   // générer le fichiers config.cfg et clieng-GL.cfg
-  genere_config2;
-  
+  genere_config;
+
 end;
 
 procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
@@ -1086,7 +1114,7 @@ begin
 
   RE_ColorLine(Formconfig.RichAig,ligneCliquee,Clyellow);
 
-  ss:=TitreAig+InttoSTr(Adresse);
+  ss:='Description de l''aiguillage '+InttoSTr(Adresse);
   formconfig.LabelAdresse.Caption:= ss;
 
   tjd:=pos('TJD',s)<>0 ;
@@ -1760,61 +1788,6 @@ begin
   end;  
 end;
 
-procedure change_det1;
-var s : string;
-    i,erreur : integer;
-begin
-  if clicliste then exit;
-  
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
-  with Formconfig do
-  begin
-    s:=EditDet1.Text;
-    Val(s,i,erreur);
-    if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
-    LabelInfo.caption:=' '; 
-    feux[lignecliquee+1].Adr_det1:=i;
-    s:=encode_sig(lignecliquee+1);
-    RichSig.Lines[lignecliquee]:=s;
-    feux[lignecliquee+1].modifie:=true;
-  end;  
-end;
-
-procedure change_Suiv1;
-var s : string;
-    i,erreur : integer;
-    B : char;
-begin
-  if clicliste then exit;
-  
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
-  with Formconfig do
-  begin
-    s:=EditSuiv1.Text;
-    if s='' then begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
-    Val(s,i,erreur);
-    //if erreur<>0 then 
-    if erreur<>0 then
-    begin
-      if (s[erreur]='A') and (erreur=1) then 
-      begin
-        feux[lignecliquee+1].Btype_suiv1:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-        delete(s,erreur,1);
-        Val(s,i,erreur);
-      end  
-      else begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
-    end
-    else feux[lignecliquee+1].Btype_suiv1:=1;
-
-    LabelInfo.caption:=' ';
-   
-    feux[lignecliquee+1].Adr_el_suiv1:=i;  
-    s:=encode_sig(lignecliquee+1);
-    RichSig.Lines[lignecliquee]:=s; 
-  end;  
-end;
-
-
 
 procedure TFormConfig.EditPointe_BGChange(Sender: TObject);
 begin
@@ -1898,16 +1871,78 @@ begin
   clicliste:=false;
 end;
 
-
-
 procedure TFormConfig.EditDet1Change(Sender: TObject);
+var s : string;
+    i,erreur : integer;
 begin
-  change_det1;
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditDet1.Text;
+    Val(s,i,erreur);
+    if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Adr_det1:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+    feux[lignecliquee+1].modifie:=true;
+  end;
 end;
 
 procedure TFormConfig.EditSuiv1Change(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+    B : char;
 begin
-  change_Suiv1;
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditSuiv1.Text;
+    if s='' then begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
+    Val(s,i,erreur);
+    //if erreur<>0 then
+    if erreur<>0 then
+    begin
+      if (s[erreur]='A') and (erreur=1) then
+      begin
+        feux[lignecliquee+1].Btype_suiv1:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
+        delete(s,erreur,1);
+        Val(s,i,erreur);
+      end
+      else begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
+    end
+    else feux[lignecliquee+1].Btype_suiv1:=1;
+
+    LabelInfo.caption:=' ';
+
+    feux[lignecliquee+1].Adr_el_suiv1:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditDet2Change(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditDet2.Text;
+    Val(s,i,erreur);
+    //if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Adr_det2:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+    feux[lignecliquee+1].modifie:=true;
+  end;
 end;
 
 procedure TFormConfig.CheckVerrouCarreClick(Sender: TObject);
@@ -1921,10 +1956,163 @@ begin
     s:=encode_sig(lignecliquee+1);
     RichSig.Lines[lignecliquee]:=s;
     feux[lignecliquee+1].modifie:=true;
-  end;  
+  end;
+end;
+
+procedure TFormConfig.EditSuiv2Change(Sender: TObject);
+var s : string;
+    erreur,Btype,Adr : integer;
+    B : char;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditSuiv2.Text;
+    if s='' then 
+    begin 
+      Btype:=0;
+      Adr:=0;
+    end
+    else
+    begin
+      Val(s,Adr,erreur);
+      if (erreur<>0) and (s<>'') then
+      begin
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          Btype:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
+          delete(s,erreur,1);
+          Val(s,Adr,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
+      end;
+    end;  
+    feux[lignecliquee+1].Btype_suiv2:=Btype;
+    feux[lignecliquee+1].Adr_el_suiv2:=Adr;
+    LabelInfo.caption:=' '; 
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+  end;
 end;
 
 
+procedure TFormConfig.EditDet3Change(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditDet3.Text;
+    Val(s,i,erreur);
+   // if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Adr_det3:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+    feux[lignecliquee+1].modifie:=true;
+  end;
+end;
+
+procedure TFormConfig.EditSuiv3Change(Sender: TObject);
+var s : string;
+    erreur,Btype,Adr : integer;
+    B : char;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditSuiv3.Text;
+    if s='' then 
+    begin 
+      Btype:=0;
+      Adr:=0;
+    end
+    else
+    begin
+      Val(s,Adr,erreur);
+      if (erreur<>0) and (s<>'') then
+      begin
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          Btype:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
+          delete(s,erreur,1);
+          Val(s,Adr,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
+      end;
+    end;  
+    feux[lignecliquee+1].Btype_suiv3:=Btype;
+    feux[lignecliquee+1].Adr_el_suiv3:=Adr;
+    LabelInfo.caption:=' '; 
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditDet4Change(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditDet4.Text;
+    Val(s,i,erreur);
+    //if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Adr_det4:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+    feux[lignecliquee+1].modifie:=true;
+  end;
+end;
+
+procedure TFormConfig.EditSuiv4Change(Sender: TObject);
+var s : string;
+    erreur,Btype,Adr : integer;
+    B : char;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditSuiv4.Text;
+    if s='' then 
+    begin 
+      Btype:=0;
+      Adr:=0;
+    end
+    else
+    begin
+      Val(s,Adr,erreur);
+      if (erreur<>0) and (s<>'') then
+      begin
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          Btype:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
+          delete(s,erreur,1);
+          Val(s,Adr,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
+      end;
+    end;  
+    feux[lignecliquee+1].Btype_suiv4:=Btype;
+    feux[lignecliquee+1].Adr_el_suiv4:=Adr;
+    LabelInfo.caption:=' '; 
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s;
+  end;
+end;
 
 end.
 

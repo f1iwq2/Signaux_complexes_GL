@@ -1,6 +1,6 @@
 object FormVersion: TFormVersion
-  Left = 500
-  Top = 341
+  Left = 497
+  Top = 186
   Width = 468
   Height = 194
   Caption = 'V'#233'rification de version'

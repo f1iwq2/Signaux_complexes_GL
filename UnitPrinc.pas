@@ -143,6 +143,7 @@ type
     procedure ButtonAffTCOClick(Sender: TObject);
     procedure ButtonLanceCDMClick(Sender: TObject);
     procedure Affichefentredebug1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -289,7 +290,7 @@ var
   mod_branches,mod_act : array[1..100] of string;
   // l'indice du tableau aiguillage est son adresse
   aiguillage : array[0..MaxAcc] of Taiguillage;
-  // signaux de la fenêtre de droite - L'index du tableau n'est pas l'adresse du feu
+  // signaux - L'index du tableau n'est pas l'adresse du feu
   feux : array[1..MaxAcc] of record
                  adresse, aspect : integer; // adresse du feu, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
                  Img : TImage;              // Pointeur sur structure TImage du feu
@@ -413,6 +414,7 @@ begin
   begin
     brush.Color:=couleur;
     Pen.Color:=clBlack;
+    //Affiche('clignote '+IntToSTR(x)+' '+intToSTR(y),clyellow);
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
   end;
   //Affiche(IntToSTR(y),clyellow);
@@ -427,13 +429,13 @@ var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     ech : real;
     code,combine : word;
 begin
-  code_to_aspect(Etatsignal,code,combine); 
+  code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
 
   // récupérer les dimensions de l'image d'origine du feu
   LgImage:=Formprinc.Image2feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image2feux.Picture.Bitmap.Height;
-  
+
   XBlanc:=13;  YBlanc:=11;
   xViolet:=13; yViolet:=23;
 
@@ -444,7 +446,7 @@ begin
     Temp:=HtImage-yViolet;YViolet:=XViolet;XViolet:=Temp;
     Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
   end;
- 
+
   if (orientation=3) then
   begin
     //rotation 90° vers la droite des feux
@@ -453,10 +455,10 @@ begin
     Temp:=LgImage-XBlanc;Xblanc:=Yblanc;Yblanc:=Temp;
     Temp:=LgImage-Xviolet;Xviolet:=Yviolet;Yviolet:=Temp;
   end;
- 
+
   XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+Y;
   XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+Y;
-         
+
   // extinctions
   if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
   cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
@@ -479,7 +481,7 @@ begin
 
   LgImage:=Formprinc.Image3feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image3feux.Picture.Bitmap.Height;
-  
+
   Xvert:=13;  Yvert:=11;
   xSem:=13;   ySem:=22;
   xJaune:=13; yJaune:=33;
@@ -491,7 +493,7 @@ begin
     Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
     Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
   end;
- 
+
   if (orientation=3) then
   begin
     //rotation 90° vers la droite des feux
@@ -500,11 +502,11 @@ begin
     Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
     Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
   end;
- 
+
   XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
   Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
   XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
- 
+
   // extinctions
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
   if not((code=vert_cli)  and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
@@ -517,7 +519,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 4 feux
-// orientation=1 vertical 
+// orientation=1 vertical
 procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage : integer;
@@ -529,7 +531,7 @@ begin
 
   LgImage:=Formprinc.Image4feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image4feux.Picture.Bitmap.Height;
-  
+
   Xcarre:=13; ycarre:=11;
   Xvert:=13;  Yvert:=22;
   xSem:=13;   ySem:=33;
@@ -996,7 +998,7 @@ begin
     cercle(ACanvas,53,13,6,GrisF);
     cercle(ACanvas,63,13,6,GrisF);
   end;
-  if EtatSignal=3 then 
+  if EtatSignal=3 then
   begin
     cercle(ACanvas,11,13,6,clWhite);
     cercle(ACanvas,22,13,6,clWhite);
@@ -1490,11 +1492,12 @@ begin
     exit;
   end;
 
-  // pilotage par USB ou par réseau de la centrale
-  // test si pilotage inversé
+  // pilotage par USB ou par éthernet de la centrale
+
   // Affiche('Accessoire '+intToSTR(adresse),clLime);
-  if hors_tension2=false then
+  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
+    // test si pilotage aiguillage inversé
     if aiguillage[adresse].inversion=1 then
     begin
       if octet=1 then octet:=2 else octet:=1;
@@ -1595,17 +1598,15 @@ begin
   SetBit:=n or (1 shl position);
 end;
 
-
-
 // renvoie la chaîne de l'état du signal
 function chaine_signal(etat : word) : string;
 var aspect,combine : word;
     s : string;
 begin
-  code_to_aspect(etat,aspect,combine);       
-  s:=''; 
+  code_to_aspect(etat,aspect,combine);
+  s:='';
   if aspect=16 then s:='' else s:=etatSign[aspect];
-  if combine<>16 then 
+  if combine<>16 then
   begin
     if aspect<>16 then s:=s+'+';
     s:=s+etatSign[combine];
@@ -1668,7 +1669,7 @@ begin
   end;
   // mise à jour de l'état du signal dans le tableau Feux
   i:=Index_feu(adresse);
-  feux[i].EtatSignal:=EtatSignalCplx[adresse]; 
+  feux[i].EtatSignal:=EtatSignalCplx[adresse];
 end;
 
 
@@ -1780,22 +1781,22 @@ begin
 end;
 
 {==========================================================================
-envoie les données au décodeur CDF pour un signal
+envoie les données au décodeur CDF
 ===========================================================================*}
 procedure envoi_CDF(adresse : integer);
 var index : integer;
   code,aspect,combine : word;
   s : string;
 begin
-  //***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     code:=EtatSignalCplx[adresse];
-    code_to_aspect(code,aspect,combine);      
+    code_to_aspect(code,aspect,combine);
     s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
-    if Affsignal then afficheDebug(s,clOrange); 
-  
+    if Affsignal then afficheDebug(s,clOrange);
+
     if (aspect=carre)     then pilote_acc(adresse,2,feu) ;
     if (aspect=semaphore) then pilote_acc(adresse,1,feu) ;
     if (aspect=vert)      then pilote_acc(adresse+1,1,feu) ;
@@ -1810,7 +1811,7 @@ begin
 end;
 
 {==========================================================================
-envoie les données au décodeur LEB pour un signal
+envoie les données au décodeur LEB
 ===========================================================================*}
 procedure envoi_LEB(adresse : integer);
 var  code,aspect,combine : word;
@@ -1832,9 +1833,9 @@ var  code,aspect,combine : word;
   end;
 begin
 
-//***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
+if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
 begin
-  //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+  ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
   code:=EtatSignalCplx[adresse];
   code_to_aspect(code,aspect,combine);
   s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
@@ -1909,9 +1910,9 @@ begin
   //index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
   //code:=feux[index].aspect; // aspect du feu;
 
-  //***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
   begin
-    //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     code:=EtatSignalCplx[adresse];
     code_to_aspect(code,aspect,combine);
     s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
@@ -1955,9 +1956,9 @@ var modele,index: integer ;
 begin
   index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
 
-  //***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
   begin
-    //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     code:=EtatSignalCplx[adresse];
     code_to_aspect(code,aspect,combine);
     s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
@@ -2248,9 +2249,9 @@ procedure envoi_LDT(adresse : integer);
 var code,aspect,combine,mode : word;
     s : string;
 begin
-  //***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
   begin
-    //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     code:=EtatSignalCplx[adresse];
     code_to_aspect(code,aspect,combine);      
     s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
@@ -2323,9 +2324,8 @@ var aspect,code,combine : word;
     ralrap, jau ,Ancralrap,Ancjau : boolean;
     s : string;
 begin
-  //***if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
-    
     code:=EtatSignalCplx[adresse];
     code_to_aspect(code,aspect,combine);
     s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
@@ -2342,7 +2342,7 @@ begin
     Ancjau:=(TestBit(ancien_tablo_signalCplx[adresse],jaune)) or (TestBit(ancien_tablo_signalCplx[adresse],jaune_cli)) ;
 
     //***ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
-    
+
     // si état demandé du signal=ralentissement ou rappel
     ralrap:=(TestBit(code,ral_30)) or (TestBit(code,ral_60)) or
             (TestBit(code,rappel_30)) or (TestBit(code,rappel_60)) ;
@@ -2367,7 +2367,7 @@ begin
       sleep(40);
       pilote_ACC(adresse+Combine,2,feu) ;
     end;
-
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
   end;
 end;
 
@@ -3456,12 +3456,13 @@ begin
   IndexBranche_trouve:=i;
 end;
 
-
-
 procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
-    tec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC : boolean;
+    tec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
+    trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
+    trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
+    trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte   : boolean;
     bd,virgule,i_detect,i,erreur,aig,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,
     postjd,postjs,nv,it : integer;
@@ -3485,7 +3486,7 @@ var s,sa,chaine,SOrigine: string;
         begin
           begin
             adresse:=StrToINT(copy(s,1,j-1));Delete(s,1,j); // adresse aiguillage
-            if (adresse>0) and (AvecInitAiguillages=1) then 
+            if (adresse>0) and (AvecInitAiguillages=1) then
             begin
               j:=pos(',',s);
               position:=StrToInt(copy(s,1,j-1));Delete(S,1,j);// position aiguillage
@@ -3511,6 +3512,23 @@ begin
   debugConfig:=false;
   trouve_NbDetDist:=false;
   trouve_ipv4_PC:=false;
+  trouve_retro:=false;
+  trouve_sec_init:=false;
+  trouve_init_aig:=false;
+  trouve_INTER_CAR:=false;
+  trouve_entete:=false;
+  trouve_IPV4_INTERFACE:=false;
+  trouve_lay:=false;
+  trouve_Tempo_maxi:=false;
+  trouve_PROTOCOLE_SERIE:=false;
+  trouve_TCO:=false;
+  trouve_Serveur_interface:=false;
+  trouve_cdm:=false;
+  trouve_NOTIF_VERSION:=false;
+  trouve_fenetre:=false;
+  trouve_verif_version:=false;
+  trouve_Fonte:=false;
+
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
   for i:=1 to MaxAcc do
@@ -3544,11 +3562,12 @@ begin
   repeat
     s:=lit_ligne;
     //affiche(s,cllime);
-    sa:='FONTE=';
+    sa:=uppercase(Fonte_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_fonte:=true;
       delete(s,i,length(sa));
       TailleFonte:=StrToINT(s);
       with FormPrinc.ListBox1 do
@@ -3557,11 +3576,11 @@ begin
         ItemHeight:=TailleFonte+1;
       end;
     end;
-  
+
     // adresse ip et port de CDM
-    sa:='IPV4_PC=';
+    sa:=uppercase(IpV4_PC_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       trouve_ipv4_PC:=true;
@@ -3572,57 +3591,62 @@ begin
 
     // adresse ip et port de la centrale
     // AfficheDet:=true;
-    sa:='IPV4_INTERFACE=';
+    sa:=uppercase(IPV4_INTERFACE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_IPV4_INTERFACE:=true;
       delete(s,i,length(sa));
       i:=pos(':',s);
       if i<>0 then begin adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);end
       else begin adresseIP:='0';parSocketLenz:=false;end;
     end;
-    
+
     // configuration du port com
-    sa:='PROTOCOLE_SERIE=';
+    sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_PROTOCOLE_SERIE:=true;
       delete(s,i,length(sa));
       if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
       portcom:=s;
     end;
-  
+
     // temporisation entre 2 caractères
-    sa:='INTER_CAR=';
+    sa:=uppercase(INTER_CAR_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       delete(s,i,length(sa));
+      trouve_INTER_CAR:=true;
       val(s,TempoOctet,erreur);
       if erreur<>0 then Affiche('Erreur temporisation entre 2 octets',clred);
     end;
-    
+
     // temporisation attente maximale interface
-    sa:='TEMPO_MAXI=';
+    sa:=uppercase(TEMPO_MAXI_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       delete(s,i,length(sa));
+      trouve_Tempo_maxi:=true;
       val(s,TimoutMaxInterface,erreur);
       if erreur<>0 then Affiche('Erreur temporisation maximale interface',clred);
     end;
-    
+
     // entete
-    sa:='ENTETE=';
+    sa:=uppercase(ENTETE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       delete(s,i,length(sa));
+      trouve_Entete:=true;
       val(s,Valeur_entete,erreur);
       entete:='';
       case Valeur_entete of
@@ -3630,41 +3654,44 @@ begin
        1 : begin entete:=#$FF+#$FE;suffixe:='';end;
        2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
       end;
-      if (erreur<>0) or (valeur_entete>2) then Affiche('Erreur déclaration variable entete',clred);
+      if (erreur<>0) or (valeur_entete>2) then Affiche('Erreur déclaration variable '+entete_ch,clred);
     end;
 
     // avec ou sans initialisation des aiguillages
-    sa:='INIT_AIG=';
+    sa:=uppercase(INIT_AIG_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      trouve_init_aig:=true;
+      inc(nv);
+      delete(s,i,length(sa));
+      AvecInitAiguillages:=StrToINT(s);
+    end;
+
+    sa:=uppercase(fenetre_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
     begin
       inc(nv);
-      delete(s,i,length(sa));
-      AvecInitAiguillages:=StrToINT(s); 
-    end;
-
-    sa:='FENETRE=';
-    i:=pos(sa,s);
-    if i<>0 then 
-    begin
-      inc(nv);
+      trouve_fenetre:=true;
       delete(s,i,length(sa));
       val(s,fenetre,erreur);
       if fenetre=1 then Formprinc.windowState:=wsMaximized;
     end;
 
-    sa:='SECTION_INIT';
-    i:=pos(sa,s);
-    if i<>0 then 
+    i:=pos(uppercase(section_init),s);
+    if i<>0 then
     begin
-      inc(nv);  
+      inc(nv);
+      trouve_sec_init:=true;
       compile_section_init;
     end;
 
-    sa:='VERIF_VERSION=';
+    sa:=uppercase(verif_version_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
+      trouve_verif_version:=true;
       inc(nv);
       delete(s,i,length(sa));
       // vérification de la version au démarrage
@@ -3672,36 +3699,39 @@ begin
       val(s,i,erreur);
       if erreur=0 then verifVersion:=i=1;
     end;
-    
-    sa:='NOTIF_VERSION=';
+
+    sa:=uppercase(NOTIF_VERSION_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
     begin
       inc(nv);
       delete(s,i,length(sa));
+      trouve_NOTIF_VERSION:=true;
       // vérification de la version au démarrage
       i:=0;
       val(s,i,erreur);
       notificationVersion:=i=1;
     end;
 
-    sa:='TCO=';
+    sa:=uppercase(TCO_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       delete(s,i,length(sa));
+      trouve_TCO:=true;
       // vérification de la version au démarrage
       i:=0;
       val(s,i,erreur);
       AvecTCO:=i=1;
     end;
 
-    sa:='CDM=';
+    sa:=uppercase(CDM_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
     begin
       inc(nv);
+      trouve_CDM:=true;
       delete(s,i,length(sa));
       // vérification de la version au démarrage
       i:=0;
@@ -3709,61 +3739,79 @@ begin
       LanceCDM:=i=1;
     end;
 
-    sa:='LAY=';
+    sa:=uppercase(LAY_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_lay:=true;
       delete(s,i,length(sa));
       lay:=s;
     end;
 
-    sa:='SERVEUR_INTERFACE=';
+    sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_serveur_interface:=true;
       delete(s,i,length(sa));
       i:=0;
       val(s,i,erreur);
       ServeurInterfaceCDM:=i;
     end;
 
-    sa:='RETRO=';
+    sa:=uppercase(RETRO_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
+      trouve_retro:=true;
       delete(s,i,length(sa));
       i:=0;
       val(s,i,erreur);
       ServeurRetroCDM:=i;
     end;
 
-    sa:='NB_DET_DIST=';
+    sa:=uppercase(nb_det_dist_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then 
+    if i<>0 then
     begin
       inc(nv);
       trouve_NbDetDist:=true;
       delete(s,i,length(sa));
       i:=0;
       val(s,i,erreur);
-      if i<2 then i:=2;
+      if i<2 then begin i:=2;Affiche('Attention '+nb_det_dist_ch+' ramené à '+IntToSTR(i),clOrange); end;
       Nb_Det_Dist:=i;
     end;
     inc(it);
 
   until (Nv>=18) or (it>30);
+
   //affiche(IntToSTR(Nv)+' variables',cyan);
-  if (it>30) then
-  begin 
-    s:='ERREUR: manque variables dans config-gl.cfg';
-    if not(trouve_NbDetDist) then s:=s+' : NB_DET_DIST';
-    if not(trouve_ipv4_PC) then s:=s+' : IpV4_PC';
-    
-    affiche(s,clred);
-  end;
+  s:='';
+  if (it>30) then s:='ERREUR: manque variables dans config-gl.cfg :';
+
+  if not(trouve_NbDetDist) then s:=s+' '+nb_det_dist_ch;
+  if not(trouve_ipv4_PC) then s:=s+' '+IpV4_PC_ch;
+  if not(trouve_retro) then s:=s+' '+retro_ch;
+  if not(trouve_sec_init) then s:=s+' '+section_init;
+  if not(trouve_init_aig) then s:=s+' '+INIT_AIG_ch;
+  if not(trouve_lay) then s:=s+' '+LAY_ch;
+  if not(trouve_INTER_CAR) then s:=s+' '+INTER_CAR_ch;
+  if not(trouve_Tempo_maxi) then s:=s+' '+Tempo_maxi_ch;
+  if not(trouve_Entete) then s:=s+' '+Entete_ch;
+  if not(trouve_TCO) then s:=s+' '+TCO_ch;
+  if not(trouve_CDM) then s:=s+' '+CDM_ch;
+  if not(trouve_Serveur_interface) then s:=s+' '+Serveur_interface_ch;
+  if not(trouve_fenetre) then s:=s+' '+fenetre_ch;
+  if not(trouve_NOTIF_VERSION) then s:=s+' '+NOTIF_VERSION_ch;
+  if not(trouve_verif_version) then s:=s+' '+verif_version_ch;
+  if not(trouve_fonte) then s:=s+' '+fonte_ch;
+
+  if s<>'' then affiche(s,clred);
+
   //Affiche('Valeurs d''initialisation des aiguillages',clyellow);
 
   closefile(fichier);
@@ -6781,6 +6829,8 @@ begin
   begin
     formTCO.Maj_TCO(Adresse);
   end;
+
+  // l'évaluation des routes est à faire selon conditions
   if faire_event then evalue;
 end;
 
@@ -7464,6 +7514,7 @@ var
    V_utile : real;
    CibleHandle : Thandle;
 begin
+  //DoubleBuffered:=true;
   TraceSign:=True;
   PremierFD:=false;
   // services commIP CDM par défaut
@@ -7651,28 +7702,27 @@ begin
 end;
 
 
+// positionnement des aiguillages au démarrage : seulement en mode autonome
 procedure init_aiguillages;
 var i,pos : integer;
     s : string;
 begin
-  Affiche('Positionnement aiguillages',cyan);
-  for i:=1 to maxaiguillage do
+  if portCommOuvert or parSocketLenz then
   begin
-    if aiguillage[i].modele<>0 then // si l'aiguillage existe
+    Affiche('Positionnement aiguillages',cyan);
+    for i:=1 to maxaiguillage do
     begin
-      pos:=aiguillage[i].position;
-      s:='Init aiguillage '+intToSTR(i)+'='+intToSTR(pos);
-      if pos=1 then s:=s+' (dévié)' else s:=s+' (droit)';
-      Affiche(s,cyan);
-      pilote_acc(i,pos,aig);
-      application.processMessages;
-    end;
+      if aiguillage[i].modele<>0 then // si l'aiguillage existe
+      begin
+        pos:=aiguillage[i].position;
+        s:='Init aiguillage '+intToSTR(i)+'='+intToSTR(pos);
+        if pos=1 then s:=s+' (dévié)' else s:=s+' (droit)';
+        Affiche(s,cyan);
+        pilote_acc(i,pos,aig);
+        application.processMessages;
+      end;
+    end;  
   end;
-  with formprinc do
-  begin
-    //Menu_interface(valide);
-  end;
-
 end;
 
 // timer à 100 ms
@@ -7686,11 +7736,10 @@ begin
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
-    if not(ConfigNulle) then Affiche('Positionnement des feux',clYellow);
-    if not(ferme) and not(ConfigNulle) then envoi_signauxCplx;  // initialisation des feux
     if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages=1) then
     begin
-      Affiche('Positionnement des aiguillages',clYellow);
+      Affiche('Positionnement des feux',clYellow);
+      envoi_signauxCplx;  // initialisation des feux
       init_aiguillages;   // initialisation des aiguillages
     end;
     if (AvecInitAiguillages=0) and not(ferme) and (parSocketLenz or portCommOuvert) then
@@ -7720,6 +7769,7 @@ begin
       begin
         //Affiche(IntToSTR(adresse),clOrange);
         Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+        //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
       end;
     end;
 
@@ -8164,10 +8214,17 @@ var i,j,objet,posST,posAC,posDT,posSG,posXY,k,l,erreur, adr,adr2,etat,etataig,
       traite,sort : boolean;
 begin
 {
- recuCDM:='S-E-52-6601-CMDACC-ST_TO|037|05|NAME=2;OBJ=2;AD=126;AD2=0;STATE=0;S-E-52-6602-CMDACC';
- recuCDM:=recuCDM+'-ST_TO|037|05|NAME=6;OBJ=6;AD=127;AD2=0;STATE=0;S-E-52-6603-CMDACC-ST_TO|039|05|NAME=10;OBJ=10;AD=128;AD2=0;STATE=0;S-E-52-6604-CMDACC-ST_TO|039|05|';
- recuCDM:=recuCDM+'NAME=14;OBJ=14;AD=129;OBJ=10;AD=128;AD2=0;STATE=0;S-E-52-6604-CMDACC-ST_TO|039|05|NAME=14;OBJ=14;AD=129;AD2=0;STATE=0;';
+            trame_CDM:='S-R-14-0004-CMDACC-__ACK|000|S-E-14-5162-CMDACC-ST_DT|052|05|NAME=2756;OBJ=2756;AD=518;TRAIN=CC406526;STATE=1;';
+  trame_cdm:=trame_cdm+'S-E-14-5163-CMDACC-ST_DT|049|05|NAME=2757;OBJ=2757;AD=518;TRAIN=_NONE;STATE=1;';
+  trame_cdm:=trame_cdm+'S-E-14-5164-CMDACC-ST_DT|049|05|NAME=2758;OBJ=2758;AD=519;TRAIN=_NONE;STATE=0;';
+  trame_cdm:=trame_cdm+'S-E-14-5165-CMDACC-ST_DT|049|05|NAME=2759;OBJ=2759;AD=519;TRAIN=_NONE;STATE=0';
+  trame_cdm:=trame_cdm+'S-E-14-5166-CMDACC-ST_DT|049|05|NAME=7060;OBJ=7060;AD=520;TRAIN=_NONE;STATE=0';
+  trame_cdm:=trame_cdm+'S-E-14-5167-CMDACC-ST_DT|051|05|NAME=7061;OBJ=7061;AD=520;TRAIN=BB25531;STATE=0';
+  trame_cdm:=trame_cdm+'S-E-14-5168-CMDACC-ST_DT|049|05|NAME=7057;OBJ=7057;AD=517;TRAIN=_NONE;STATE=0';
+  trame_cdm:=trame_cdm+'S-E-14-5169-CMDACC-ST_DT|049|05|NAME=7058;OBJ=7058;AD=517;TRAIN=_NONE;STATE=0';
  }
+
+  //debugtrames:=true;
   AckCDM:=trame_CDM<>'';
   if pos('ACK',trame_CDM)=0 then
   begin
@@ -8183,226 +8240,231 @@ begin
     //Affiche('long chaine param='+intToSTR(long),clyellow);
     if long=0 then
     begin
-      if debugTrames then Affiche('Longueur nulle',clYellow);
-      Nbre_recu_cdm:=0;
-      exit;
+      //if debugTrames then Affiche('Longueur nulle',clYellow);
+      if pos('ACK',trame_cdm)<>0 then Ack_cdm:=true;
+      i:=posEx('|',trame_CDM,i+1);
+      if i=0 then begin Affiche('Erreur trames CDM manque 2ème |',clred);exit;end;
+      delete(trame_cdm,1,i);
     end;
 
-    // trouver le nombre de paramètres
-    i:=posEx('|',trame_CDM,i+1);
-    if i=0 then
+    if long<>0 then
     begin
-      if debugTrames then Affiche('0 paramètres '+trame_CDM,clyellow);
-      Nbre_recu_cdm:=0;
-      exit;
-    end;
-
-    val(copy(trame_CDM,i+1,5),nbre,erreur);
-    //Affiche('nbre='+IntToSTR(nbre),clyellow);
-    // compter le nombre de virgules qui doit être égal au nombre de paramètres
-    NbreVir:=0;  // nombre de virgules
-    repeat
-      i:=posEx(';',trame_CDM,i+1);
-      if i<>0 then inc(NbreVir);
-    until (i=0) or (NbreVir=nbre);
-    if i=0 then
-    begin
-      if debugTrames then Affiche('tronqué : '+trame_CDM,clyellow);
-      residuCDM:=trame_CDM;
-      Nbre_recu_cdm:=0;
-      exit;
-    end;
-
-    CommandeCDM:=copy(trame_CDM,1,i);
-    if debugTrames then Affiche(commandeCDM,clorange);
-    Delete(trame_CDM,1,i);
-
-    // Affiche('K='+intToSTR(k)+' longueur='+intToSTR(length(recuCDM)),clyellow);
-    // évènement aiguillage. Le champ AD2 n'est pas forcément présent
-    posST:=pos('CMDACC-ST_TO',commandeCDM);
-    if posST<>0 then
-    begin
-      delete(commandeCDM,posST,12);
-      objet:=0;
-      i:=posEx('OBJ=',commandeCDM,posST);ss:=copy(commandeCDM,i+4,10);
-      if i<>0 then begin val(ss,objet,erreur);delete(commandeCDM,i,6);end else Affiche('Erreur 95 : pas d''objet ',clred);
-
-      i:=posEx('AD=',commandeCDM,posST);ss:=copy(commandeCDM,i+3,10);  //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
-      if i=0 then begin Affiche('Erreur 96 : absence AD aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-      val(ss,adr,erreur);Delete(commandeCDM,i,4);
-
-      //Affiche(copy(recuCDM,j,i+80),clOrange);
-      i:=posEx('AD2=',commandeCDM,i);ss:=copy(commandeCDM,i+4,10); // Affiche('i='+intToSTR(i),clOrange);
-      if i=0 then begin Affiche('Erreur 97 : absence AD2 aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-      val(ss,adr2,erreur);  //Affiche('adr2='+intToSTR(adr2),clyellow);
-      Delete(commandeCDM,i,5);
-
-      i:=posEx('STATE=',commandeCDM,i);ss:=copy(commandeCDM,i+6,10); //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
-      if i=0 then begin Affiche('Erreur 98 : absence STATE aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-      val(ss,etat,erreur);
-      Delete(commandeCDM,i,7);
-
-      //Affiche('Aig '+inttostr(adr)+' pos='+IntToSTR(etat),clyellow);
-      //Affiche(commandeCDM,clyellow);
-
-      // aiguillage normal
-      if aiguillage[adr].modele=1 then
+      // trouver le nombre de paramètres
+      i:=posEx('|',trame_CDM,i+1);
+      if i=0 then
       begin
-        //Affiche('Normal',clyellow);
-        if etat=0 then etatAig:=2 else etatAig:=1;
-        Event_Aig(adr,etatAig,objet);
+        if debugTrames then AfficheDebug('0 paramètres '+trame_CDM,clyellow);
+        Nbre_recu_cdm:=0;
+        exit;
       end;
-      // TJD TJS
-      if (aiguillage[adr].modele=2) or (aiguillage[adr].modele=3) then
+
+      val(copy(trame_CDM,i+1,5),nbre,erreur);
+      //Affiche('nbre='+IntToSTR(nbre),clyellow);
+      // compter le nombre de virgules qui doit être égal au nombre de paramètres
+      NbreVir:=0;  // nombre de virgules
+      repeat
+        i:=posEx(';',trame_CDM,i+1);
+        if i<>0 then inc(NbreVir);
+      until (i=0) or (NbreVir=nbre);
+      if i=0 then
       begin
-        //Affiche('TJD/S',clyellow);
-        //adr2:=aiguillage[adr].Apointe;  // 2eme adresse de la TJD
-        case etat of
-        1 : begin etatAig:=1;EtatAig2:=2;end;
-        4 : begin etatAig:=1;EtatAig2:=1;end;
-        5 : begin etatAig:=2;EtatAig2:=1;end;
-        0 : begin etatAig:=2;EtatAig2:=2;end;
-        end;
-        if (aiguillage[adr].inversionCDM=1) or (aiguillage[adr2].inversionCDM=1) then
+        if debugTrames then AfficheDebug('tronqué : '+trame_CDM,clyellow);
+        residuCDM:=trame_CDM;
+        Nbre_recu_cdm:=0;
+        exit;
+      end;
+
+      CommandeCDM:=copy(trame_CDM,1,i);
+      if debugTrames then AfficheDebug(commandeCDM,clorange);
+      Delete(trame_CDM,1,i);
+
+      // évènement aiguillage. Le champ AD2 n'est pas forcément présent
+      posST:=pos('CMDACC-ST_TO',commandeCDM);
+      if posST<>0 then
+      begin
+        delete(commandeCDM,posST,12);
+        objet:=0;
+        i:=posEx('OBJ=',commandeCDM,posST);ss:=copy(commandeCDM,i+4,10);
+        if i<>0 then begin val(ss,objet,erreur);delete(commandeCDM,i,6);end else Affiche('Erreur 95 : pas d''objet ',clred);
+
+        i:=posEx('AD=',commandeCDM,posST);ss:=copy(commandeCDM,i+3,10);  //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
+        if i=0 then begin Affiche('Erreur 96 : absence AD aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
+        val(ss,adr,erreur);Delete(commandeCDM,i,4);
+
+        //Affiche(copy(recuCDM,j,i+80),clOrange);
+        i:=posEx('AD2=',commandeCDM,i);ss:=copy(commandeCDM,i+4,10); // Affiche('i='+intToSTR(i),clOrange);
+        if i=0 then begin Affiche('Erreur 97 : absence AD2 aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
+        val(ss,adr2,erreur);  //Affiche('adr2='+intToSTR(adr2),clyellow);
+        Delete(commandeCDM,i,5);
+
+        i:=posEx('STATE=',commandeCDM,i);ss:=copy(commandeCDM,i+6,10); //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
+        if i=0 then begin Affiche('Erreur 98 : absence STATE aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
+        val(ss,etat,erreur);
+        Delete(commandeCDM,i,7);
+
+        //Affiche('Aig '+inttostr(adr)+' pos='+IntToSTR(etat),clyellow);
+        //Affiche(commandeCDM,clyellow);
+
+        // aiguillage normal
+        if aiguillage[adr].modele=1 then
         begin
-          //Affiche('inverse',clyellow);
-          prv:=adr;
-          adr:=adr2;
-          adr2:=prv;
+          //Affiche('Normal',clyellow);
+          if etat=0 then etatAig:=2 else etatAig:=1;
+          Event_Aig(adr,etatAig,objet);
         end;
-        Event_Aig(adr,etatAig,objet);
-        Event_Aig(adr2,etatAig2,objet);
+        // TJD TJS
+        if (aiguillage[adr].modele=2) or (aiguillage[adr].modele=3) then
+        begin
+          //Affiche('TJD/S',clyellow);
+          //adr2:=aiguillage[adr].Apointe;  // 2eme adresse de la TJD
+          case etat of
+          1 : begin etatAig:=1;EtatAig2:=2;end;
+          4 : begin etatAig:=1;EtatAig2:=1;end;
+          5 : begin etatAig:=2;EtatAig2:=1;end;
+          0 : begin etatAig:=2;EtatAig2:=2;end;
+          end;
+          if (aiguillage[adr].inversionCDM=1) or (aiguillage[adr2].inversionCDM=1) then
+          begin
+            //Affiche('inverse',clyellow);
+            prv:=adr;
+            adr:=adr2;
+            adr2:=prv;
+          end;
+          Event_Aig(adr,etatAig,objet);
+          Event_Aig(adr2,etatAig2,objet);
+        end;
+        if aiguillage[adr].modele=4 then // aiguillage triple
+        begin
+          //Affiche('Triple',clyellow);
+          // état de l'aiguillage 1
+          if (etat=0) or (etat=2) then etatAig:=2;
+          if etat=3 then etatAig:=1;
+          // état de l'aiguillage 2
+          adr2:=aiguillage[adr].AdrTriple;
+          if (etat=0) or (etat=3) then etatAig2:=2;
+          if etat=2 then etatAig2:=1;
+          Event_Aig(adr,etatAig,objet);
+          Event_Aig(adr2,etatAig2,objet);
+        end;
+      //  Tempo_chgt_feux:=10; // demander la mise à jour des feux
       end;
-      if aiguillage[adr].modele=4 then // aiguillage triple
-      begin
-        //Affiche('Triple',clyellow);
-        // état de l'aiguillage 1
-        if (etat=0) or (etat=2) then etatAig:=2;
-        if etat=3 then etatAig:=1;
-        // état de l'aiguillage 2
-        adr2:=aiguillage[adr].AdrTriple;
-        if (etat=0) or (etat=3) then etatAig2:=2;
-        if etat=2 then etatAig2:=1;
-        Event_Aig(adr,etatAig,objet);
-        Event_Aig(adr2,etatAig2,objet);
-      end;
-    //  Tempo_chgt_feux:=10; // demander la mise à jour des feux
-    end;
 
 
-    // évènement détecteur
-    posDT:=pos('CMDACC-ST_DT',commandeCDM);
-    if posDT<>0 then
-    begin
-      Delete(commandeCDM,posDT,12);
-      i:=posEx('AD=',commandeCDM,posDT);
-      if i<>0 then
+      // évènement détecteur
+      posDT:=pos('CMDACC-ST_DT',commandeCDM);
+      if posDT<>0 then
       begin
-        ss:=copy(commandeCDM,i+3,10);Delete(commandeCDM,i,4);
+        Delete(commandeCDM,posDT,12);
+        i:=posEx('AD=',commandeCDM,posDT);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+3,10);Delete(commandeCDM,i,4);
+          val(ss,adr,erreur);
+        end;
+        i:=posEx('TRAIN=',commandeCDM,posDT);
+        j:=PosEx(';',commandeCDM,i);
+        train:=copy(commandeCDM,i+6,j-i-6);
+        delete(commandeCDM,i,7);
+
+        //Affiche('Train=*'+Train+'*',clOrange);
+        i:=posEx('STATE=',commandeCDM,posDT);ss:=copy(commandeCDM,i+6,10);
+        val(ss,etat,erreur); Delete(commandeCDM,i,7);
+
+        if (train='_NONE') then train:=detecteur[Adr].train;
+        Event_detecteur(Adr,etat=1,train);
+        //AfficheDebug(IntToSTR(adr)+' '+IntToSTR(etat),clyellow);
+        if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
+      end ;
+
+      // évènement signal - non stocké ni interprété
+      posSG:=pos('CMDACC-ST_SG',commandeCDM);
+      if posSG<>0 then
+      begin
+        Delete(commandeCDM,posSG,12);
+        i:=posEx('AD=',commandeCDM,posDT);ss:=copy(commandeCDM,i+3,10);
         val(ss,adr,erreur);
+        i:=posEx('STATE=',commandeCDM,posSG);ss:=copy(commandeCDM,i+6,10);
+        Delete(commandeCDM,posSG,i+5-posSG);
+        val(ss,etat,erreur);
+        //Affiche('SignalCDM '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
+      end ;
+
+      // évènement actionneur
+      // attention un actionneur qui repasse à 0 ne contient pas de nom de train
+      //S-E-03-0157-CMDACC-ST_AC|049|05|NAME=0;OBJ=7101;AD=815;TRAIN=CC406526;STATE=1;
+      posAC:=pos('CMDACC-ST_AC',commandeCDM);
+      if posAC<>0 then
+      begin
+        Delete(commandeCDM,posAC,12);
+        i:=posEx('AD=',commandeCDM,posAC);ss:=copy(commandeCDM,i+3,10);
+        val(ss,adr,erreur);
+        i:=posEx('NAME=',commandeCDM,posAC);ss:=copy(commandeCDM,i+5,10);
+        val(ss,name,erreur);
+        i:=posEx('TRAIN=',commandeCDM,posAC);l:=PosEx(';',commandeCDM,i);
+        train:=copy(commandeCDM,i+6,l-i-6);
+        i:=posEx('STATE=',commandeCDM,posAC);ss:=copy(commandeCDM,i+6,10);
+        val(ss,etat,erreur);
+        Delete(commandeCDM,posAC,i-posAC);
+        i:=pos(';',commandeCDM);
+        if i<>0 then Delete(commandeCDM,1,i);
+        if AfficheDet then
+          Affiche('Actionneur AD='+intToSTR(adr)+' Nom='+intToSTR(name)+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
+        Event_act(adr,etat,train); // déclenche évent actionneur
       end;
-      i:=posEx('TRAIN=',commandeCDM,posDT);
-      j:=PosEx(';',commandeCDM,i);
-      train:=copy(commandeCDM,i+6,j-i-6);
-      delete(commandeCDM,i,7);
 
-      //Affiche('Train=*'+Train+'*',clOrange);
-      i:=posEx('STATE=',commandeCDM,posDT);ss:=copy(commandeCDM,i+6,10);
-      val(ss,etat,erreur); Delete(commandeCDM,i,7);
+      // évènement position des trains - non stocké ni interprété
+      posXY:=pos('CMDTRN-SPDXY',commandeCDM);
+      if posXY<>0 then
+      begin
+        Delete(commandeCDM,posXY,12);
+        i:=posEx('AD=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+3,10);
+        val(ss,adr,erreur);
+        //Affiche('AD='+IntToSTR(adr),clyellow);
+        Delete(commandeCDM,i,l-i+1);
 
-      if (train='_NONE') then train:=detecteur[Adr].train;
-      Event_detecteur(Adr,etat=1,train);
-      //Affiche(IntToSTR(adr)+' '+IntToSTR(etat),clyellow);
-      if AfficheDet then Affiche('Rétro Détecteur '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
-    end ;
+        i:=posEx('NAME=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        train:=copy(commandeCDM,i+5,l-i-5);
+        //Affiche('Train='+train,clyellow);
+        Delete(commandeCDM,i,l-i+1);
 
-    // évènement signal - non stocké ni interprété
-    posSG:=pos('CMDACC-ST_SG',commandeCDM);
-    if posSG<>0 then
-    begin
-      Delete(commandeCDM,posSG,12);
-      i:=posEx('AD=',commandeCDM,posDT);ss:=copy(commandeCDM,i+3,10);
-      val(ss,adr,erreur);
-      i:=posEx('STATE=',commandeCDM,posSG);ss:=copy(commandeCDM,i+6,10);
-      Delete(commandeCDM,posSG,i+5-posSG);
-      val(ss,etat,erreur);
-      //Affiche('SignalCDM '+intToSTR(adr)+'='+IntToStr(etat),clYellow);
-    end ;
+        i:=posEx('SPEED=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+6,10);
+        val(ss,vitesse,erreur);
+        //Affiche('Vitesse='+intToSTR(vitesse),clyellow);
+        Delete(commandeCDM,i,l-i+1);
 
-    // évènement actionneur
-    // attention un actionneur qui repasse à 0 ne contient pas de nom de train
-    //S-E-03-0157-CMDACC-ST_AC|049|05|NAME=0;OBJ=7101;AD=815;TRAIN=CC406526;STATE=1;
-    posAC:=pos('CMDACC-ST_AC',commandeCDM);
-    if posAC<>0 then
-    begin
-      Delete(commandeCDM,posAC,12);
-      i:=posEx('AD=',commandeCDM,posAC);ss:=copy(commandeCDM,i+3,10);
-      val(ss,adr,erreur);
-      i:=posEx('NAME=',commandeCDM,posAC);ss:=copy(commandeCDM,i+5,10);
-      val(ss,name,erreur);
-      i:=posEx('TRAIN=',commandeCDM,posAC);l:=PosEx(';',commandeCDM,i);
-      train:=copy(commandeCDM,i+6,l-i-6);
-      i:=posEx('STATE=',commandeCDM,posAC);ss:=copy(commandeCDM,i+6,10);
-      val(ss,etat,erreur);
-      Delete(commandeCDM,posAC,i-posAC);
-      i:=pos(';',commandeCDM);
-      if i<>0 then Delete(commandeCDM,1,i);
-      if AfficheDet then
-        Affiche('Actionneur AD='+intToSTR(adr)+' Nom='+intToSTR(name)+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
-      Event_act(adr,etat,train); // déclenche évent actionneur
+        i:=posEx('X=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+2,10);
+        val(ss,x,erreur);
+        //Affiche('X='+IntTostr(x),clyellow);
+        Delete(commandeCDM,i,l-i+1);
+
+        i:=posEx('Y=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+2,10);
+        val(ss,y,erreur);
+        //Affiche('Y='+IntTostr(y),clyellow);;
+        Delete(commandeCDM,i,l-i+1);
+
+        i:=posEx('X2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+3,10);
+        val(ss,x2,erreur);
+        //Affiche('X2='+IntTostr(x2),clyellow);
+        Delete(commandeCDM,i,l-i+1);
+
+        i:=posEx('Y2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
+        ss:=copy(commandeCDM,i+3,10);
+        val(ss,y2,erreur);
+        //Affiche('Y2='+IntTostr(y2),clyellow);
+        Delete(commandeCDM,i,l-i+1);
+
+        Delete(commandeCDM,posXY,12);
+      end;
+
+      inc(k);
+      //Affiche('k='+intToSTR(k),clyellow);
     end;
 
-    // évènement position des trains - non stocké ni interprété
-    posXY:=pos('CMDTRN-SPDXY',commandeCDM);
-    if posXY<>0 then
-    begin
-      Delete(commandeCDM,posXY,12);
-      i:=posEx('AD=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+3,10);
-      val(ss,adr,erreur);
-      //Affiche('AD='+IntToSTR(adr),clyellow);
-      Delete(commandeCDM,i,l-i+1);
-
-      i:=posEx('NAME=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      train:=copy(commandeCDM,i+5,l-i-5);
-      //Affiche('Train='+train,clyellow);
-      Delete(commandeCDM,i,l-i+1);
-      
-      i:=posEx('SPEED=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+6,10);
-      val(ss,vitesse,erreur);
-      //Affiche('Vitesse='+intToSTR(vitesse),clyellow);
-      Delete(commandeCDM,i,l-i+1);
-
-      i:=posEx('X=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+2,10);
-      val(ss,x,erreur);
-      //Affiche('X='+IntTostr(x),clyellow);
-      Delete(commandeCDM,i,l-i+1);
-
-      i:=posEx('Y=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+2,10);
-      val(ss,y,erreur);
-      //Affiche('Y='+IntTostr(y),clyellow);;
-      Delete(commandeCDM,i,l-i+1);
-
-      i:=posEx('X2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+3,10);
-      val(ss,x2,erreur);
-      //Affiche('X2='+IntTostr(x2),clyellow);
-      Delete(commandeCDM,i,l-i+1);
-
-      i:=posEx('Y2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-      ss:=copy(commandeCDM,i+3,10);
-      val(ss,y2,erreur);
-      //Affiche('Y2='+IntTostr(y2),clyellow);
-      Delete(commandeCDM,i,l-i+1);
-
-      Delete(commandeCDM,posXY,12);
-    end;
-
-    inc(k);
-    //Affiche('k='+intToSTR(k),clyellow);
     sort:=(length(trame_CDM)<10) or (k>=2000);// or (posST=0) and (posDT=0) and (posAC=0) and (posSG=0);
   until (sort);
 
@@ -8420,14 +8482,15 @@ procedure TFormPrinc.ClientSocketCDMRead(Sender: TObject;Socket: TCustomWinSocke
       traite,sort : boolean;
 begin
   inc(Nbre_recu_cdm);
-  //if Nbre_recu_cdm>1 then Affiche('Empilement de trames CDM: '+RecuCDM,clred);
-  recuCDM:=residuCDM+ClientSocketCDM.Socket.ReceiveText;  // commandeCDM est le morceau tronquée de la fin de la réception précédente
+  //if Nbre_recu_cdm>1 then Affiche('Empilement de trames CDM: '+intToSTR(Nbre_recu_cdm),clred);
+  recuCDM:=ClientSocketCDM.Socket.ReceiveText;  // commandeCDM est le morceau tronquée de la fin de la réception précédente
   //if residuCDM<>'' then Affiche(recuCDM,clLime);
   residuCDM:='';
   if trace then
   begin
     n:=80;
     Affiche('recu de CDM Tick='+IntToSTR(tick)+' '+IntToSTR(length(recuCDM))+' car',clWhite);Affiche(copy(recuCDM,1,n),clWhite);
+    AfficheDebug(recuCDM,clWhite);
     l:=length(recuCDM);
     i:=1;
     repeat
@@ -8819,8 +8882,14 @@ begin
 end;
 
 
+procedure TFormPrinc.Button1Click(Sender: TObject);
+begin
+   Interprete_trameCDM('yfytrf');
+end;
+
 
 begin
+
 
 
 
