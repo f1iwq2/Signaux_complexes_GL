@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 12
-  Top = 210
+  Left = 1296
+  Top = 222
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1201,24 +1201,6 @@ object FormPrinc: TFormPrinc
     Font.Style = []
     ParentFont = False
   end
-  object ListBox1: TListBox
-    Left = 8
-    Top = 48
-    Width = 609
-    Height = 505
-    Style = lbOwnerDrawFixed
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Color = clBlack
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clBlue
-    Font.Height = 16
-    Font.Name = 'Arial'
-    Font.Style = []
-    ItemHeight = 16
-    ParentFont = False
-    TabOrder = 0
-    OnDrawItem = ListBox1DrawItem
-  end
   object ScrollBox1: TScrollBox
     Left = 631
     Top = 168
@@ -1231,7 +1213,7 @@ object FormPrinc: TFormPrinc
     Anchors = [akTop, akRight, akBottom]
     Color = clWhite
     ParentColor = False
-    TabOrder = 1
+    TabOrder = 0
   end
   object GroupBox1: TGroupBox
     Left = 631
@@ -1240,7 +1222,7 @@ object FormPrinc: TFormPrinc
     Height = 129
     Anchors = [akTop, akRight]
     Caption = 'Commande d'#39'accessoires'
-    TabOrder = 2
+    TabOrder = 1
     object Label2: TLabel
       Left = 7
       Top = 16
@@ -1339,7 +1321,7 @@ object FormPrinc: TFormPrinc
     Width = 281
     Height = 129
     Anchors = [akTop, akRight]
-    TabOrder = 5
+    TabOrder = 4
     object BoutonRaf: TButton
       Left = 8
       Top = 8
@@ -1439,7 +1421,7 @@ object FormPrinc: TFormPrinc
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Panel2'
-    TabOrder = 6
+    TabOrder = 5
     object Label1: TLabel
       Left = 16
       Top = 4
@@ -1468,7 +1450,26 @@ object FormPrinc: TFormPrinc
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'xx'
+    TabOrder = 6
+  end
+  object FenRich: TRichEdit
+    Left = 8
+    Top = 48
+    Width = 617
+    Height = 497
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clYellow
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    PopupMenu = PopupMenuFenRich
+    ReadOnly = True
+    ScrollBars = ssBoth
     TabOrder = 7
+    OnChange = FenRichChange
   end
   object Timer1: TTimer
     Interval = 100
@@ -1498,6 +1499,10 @@ object FormPrinc: TFormPrinc
       object Etatdesaiguillages1: TMenuItem
         Caption = 'Etat des aiguillages'
         OnClick = Etatdesaiguillages1Click
+      end
+      object Etatdessignaux1: TMenuItem
+        Caption = 'Etat des signaux'
+        OnClick = Etatdessignaux1Click
       end
       object N3: TMenuItem
         Caption = '-'
@@ -1610,5 +1615,13 @@ object FormPrinc: TFormPrinc
   object SaveDialog: TSaveDialog
     Left = 888
     Top = 16
+  end
+  object PopupMenuFenRich: TPopupMenu
+    Left = 208
+    Top = 24
+    object Copier1: TMenuItem
+      Caption = 'Copier'
+      OnClick = Copier1Click
+    end
   end
 end

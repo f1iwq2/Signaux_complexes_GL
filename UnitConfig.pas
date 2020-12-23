@@ -77,7 +77,6 @@ type
     Label15: TLabel;
     TabSheetAct: TTabSheet;
     Label16: TLabel;
-    MemoAct: TMemo;
     CheckBoxSrvSig: TCheckBox;
     Memo1: TMemo;
     Memo2: TMemo;
@@ -185,12 +184,12 @@ type
     GroupBox15: TGroupBox;
     EditNbDetDist: TEdit;
     Label31: TLabel;
+    RichAct: TRichEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure MemoSignauxClick(Sender: TObject);
-    procedure MemoActClick(Sender: TObject);
     procedure PageControlChange(Sender: TObject);
     procedure RichAigMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -213,6 +212,15 @@ type
     procedure EditSuiv3Change(Sender: TObject);
     procedure EditDet4Change(Sender: TObject);
     procedure EditSuiv4Change(Sender: TObject);
+    procedure EditActChange(Sender: TObject);
+    procedure RichActMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure EditEtatActionneurChange(Sender: TObject);
+    procedure EditTrainChange(Sender: TObject);
+    procedure EditFonctionAccessChange(Sender: TObject);
+    procedure EditEtatFoncSortieChange(Sender: TObject);
+    procedure EditTempoChange(Sender: TObject);
+    procedure CheckRAZClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -267,7 +275,7 @@ var temps : integer;
 begin
     if SocketCDM_connecte=false then begin envoi_CDM:=false;exit;end;
     //Affiche('Envoi à CDM rail',clRed);Affiche(s,ClGreen);
-    if trace then affiche(s,clLime);
+    if traceTrames then afficheDebug(s,clLime);
     Formprinc.ClientSocketCDM.Socket.SendText(s);
     // attend l'ack
     ackCDM:=false;nackCDM:=false;
@@ -333,7 +341,7 @@ begin
 end;
 
 procedure connecte_CDM;
-var s , ss : string;
+var s : string;
     i : integer;
 begin
   // déconnexion de l'ancienne liaison éventuelle
@@ -389,7 +397,7 @@ end;
 
 // teste si une adresse IP V4 est ok
 function Ipok(s : string) : boolean;
-var i,k,posp,n,octet,erreur : integer;
+var i,k,octet,erreur : integer;
 begin
   for k:=1 to 3 do
   begin
@@ -405,7 +413,7 @@ end;
 // vérifie si la config de la com série/usb est ok
 function config_com(s : string) : boolean;
 var sa : string;
-    j,i,erreur : integer;
+    i,erreur : integer;
 begin
   sa:=s;
   protocole:=-1;
@@ -414,19 +422,15 @@ begin
   if i<>0 then
   begin
     delete(s,1,i);
-    j:=i;
     i:=pos(',',s);
-    j:=j+i;
     if i<>0 then
     begin
       delete(s,1,i);
       i:=pos(',',s);
-      j:=j+i;
       if i<>0 then
       begin
         delete(s,1,i);
         i:=pos(',',s);
-        j:=j+i;
         if i<>0 then
         begin
           delete(s,1,i);
@@ -563,6 +567,30 @@ begin
   end;
   encode_sig:=s;
 end;
+
+// transforme l'actionneur type loco ou actionneur du tableau en texte
+// paramètre d'entrée : index
+function encode_act_loc(i : integer): string;
+var s : string;
+    c : char;
+    adresse : integer;
+begin
+  // adresse
+  
+  adresse:=Tablo_Actionneur[i].actionneur;
+  if adresse=0 then begin encode_act_loc:='';exit;end;
+  if Formconfig.radioButtonLoc.Checked then
+    s:=IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',F'+IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo);
+  if FormConfig.RadioButtonAccess.Checked then
+  begin
+    s:=IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+
+       ',A'+IntToSTR(Tablo_Actionneur[i].accessoire)+','+intToSTR(Tablo_Actionneur[i].sortie)+',';
+    if Tablo_Actionneur[i].Raz then s:=s+'Z' else s:=s+'S';
+  end;     
+
+  encode_act_loc:=s; 
+end;
+
 
 // modifie les fichiers de config en fonction du paramétrage
 procedure genere_config;
@@ -1040,7 +1068,10 @@ begin
 
   // actionneurs
   for i:=1 to maxTablo_act do
-    MemoAct.Lines.Add(mod_Act[i]);
+  begin
+    RichAct.Lines.Add(mod_Act[i]);
+    RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua)
+  end;  
   PageControl.ActivePage:=TabSheetCDM;  // force le premier onglet sur la page
 
   for i:=1 to NbDecodeur do
@@ -1415,9 +1446,12 @@ var i,v, ligne,etatact,erreur, adresse,sortie,fonction,tempo,access : integer;
     s,s2,ss : string;
     trouve : bool;
 begin
-  with formConfig.MemoAct do
+  with formConfig.RichAct do
   begin
     ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    AncLigneCliquee:=Ligne;
+    ligneCliquee:=ligne;
+    //affiche(intToSTR(ligne),clLime);
     s:=Uppercase(Lines[ligne]);            
     if s='' then exit;
     SelStart:=Perform(EM_LINEINDEX,Ligne,0);  // début de la sélection
@@ -1576,11 +1610,6 @@ end;
 procedure TFormConfig.MemoSignauxClick(Sender: TObject);
 begin
   Aff_champs_sig;
-end;
-
-procedure TFormConfig.MemoActClick(Sender: TObject);
-begin
-  Aff_champs_act;
 end;
 
 procedure TFormConfig.PageControlChange(Sender: TObject);
@@ -2111,6 +2140,181 @@ begin
     LabelInfo.caption:=' '; 
     s:=encode_sig(lignecliquee+1);
     RichSig.Lines[lignecliquee]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditActChange(Sender: TObject);
+var s : string;
+    act,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditAct.Text;
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    begin
+      Val(s,act,erreur);
+      if erreur<>0 then
+      begin
+        LabelInfo.caption:='Erreur adresse actionneur';exit
+      end else LabelInfo.caption:=' ';
+      
+      tablo_actionneur[lignecliquee+1].actionneur:=act;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+end;
+
+
+
+procedure TFormConfig.RichActMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  clicliste:=true;
+  LabelInfo.caption:='';
+  Aff_champs_Act;
+  clicliste:=false;
+end;
+
+procedure TFormConfig.EditEtatActionneurChange(Sender: TObject);
+var s : string;
+    etat,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditEtatActionneur.Text;
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    begin
+      Val(s,etat,erreur);
+      if (erreur<>0) or (etat<0) or (etat>1) then
+      begin
+        LabelInfo.caption:='Erreur état actionneur';exit
+      end else LabelInfo.caption:=' ';
+      
+      tablo_actionneur[lignecliquee+1].etat:=etat;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+end;
+  
+procedure TFormConfig.EditTrainChange(Sender: TObject);
+var s,train : string;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    begin
+      train:=editTrain.Text;
+      if train='' then
+      begin
+        LabelInfo.caption:='Erreur train';exit
+      end else LabelInfo.caption:=' ';
+      
+      tablo_actionneur[lignecliquee+1].train:=train;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+end;
+
+procedure TFormConfig.EditFonctionAccessChange(Sender: TObject);
+var s : string;
+    fonction,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditFonctionAccess.Text;
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    begin
+      Val(s,fonction,erreur);
+      if erreur<>0 then
+      begin
+        LabelInfo.caption:='Erreur fonction actionneur';exit
+      end else LabelInfo.caption:=' ';
+      
+      if radioButtonLoc.Checked then tablo_actionneur[lignecliquee+1].fonction:=fonction;
+      if RadioButtonAccess.Checked then Tablo_Actionneur[lignecliquee+1].accessoire:=fonction;
+      
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+end;
+
+procedure TFormConfig.EditEtatFoncSortieChange(Sender: TObject);
+var s : string;
+    Etat,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditEtatFoncSortie.Text;
+    if radioButtonAccess.Checked then
+    begin
+      Val(s,etat,erreur);
+      if (erreur<>0) or (etat<0) or (etat>2) then
+      begin
+        LabelInfo.caption:='Erreur Etat actionneur';exit
+      end else LabelInfo.caption:=' ';
+
+      tablo_actionneur[lignecliquee+1].sortie:=etat;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+
+end;
+
+procedure TFormConfig.EditTempoChange(Sender: TObject);
+var s : string;
+    tempo,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditTempo.Text;
+    if radioButtonLoc.Checked then
+    begin
+      Val(s,tempo,erreur);
+      if erreur<>0 then
+      begin
+        LabelInfo.caption:='Erreur Tempo actionneur';exit
+      end else LabelInfo.caption:=' ';
+      
+      tablo_actionneur[lignecliquee+1].tempo:=tempo;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
+  end;
+end;
+
+
+  
+procedure TFormConfig.CheckRAZClick(Sender: TObject);
+ var s : string;
+    Etat,erreur : integer;
+begin
+  if clicliste then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    if radioButtonAccess.Checked then
+    begin
+      tablo_actionneur[lignecliquee+1].raz:=CheckRAZ.checked;
+      s:=encode_act_loc(lignecliquee+1);
+      RichAct.Lines[lignecliquee]:=s;
+    end;
   end;
 end;
 

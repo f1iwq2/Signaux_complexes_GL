@@ -1776,7 +1776,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 441
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2783,7 +2783,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2895,31 +2895,13 @@ object FormConfig: TFormConfig
           'Liste de mod'#233'lisation des actionneurs du fichier config.cfg - cl' +
           'iquez sur une ligne pour afficher la description de l'#39'action'
       end
-      object MemoAct: TMemo
-        Left = 0
-        Top = 24
-        Width = 289
-        Height = 369
-        Color = clInfoText
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clAqua
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssVertical
-        TabOrder = 0
-        WordWrap = False
-        OnClick = MemoActClick
-      end
       object GroupBox13: TGroupBox
         Left = 304
         Top = 32
         Width = 257
         Height = 345
         Caption = 'Description de l'#39'actionneur '
-        TabOrder = 1
+        TabOrder = 0
         object GroupBox14: TGroupBox
           Left = 16
           Top = 24
@@ -2957,7 +2939,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 200
+          Top = 216
           Width = 225
           Height = 145
           Caption = 'Actionneur fonction de locomotive '
@@ -3011,6 +2993,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 0
             Text = 'EditAct'
+            OnChange = EditActChange
           end
           object EditTrain: TEdit
             Left = 112
@@ -3019,6 +3002,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 1
             Text = 'EditTrain'
+            OnChange = EditTrainChange
           end
           object EditEtatFoncSortie: TEdit
             Left = 160
@@ -3027,6 +3011,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 2
             Text = 'EditEtatFoncSortie'
+            OnChange = EditEtatFoncSortieChange
           end
           object EditFonctionAccess: TEdit
             Left = 112
@@ -3035,6 +3020,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 3
             Text = 'EditFonc'
+            OnChange = EditFonctionAccessChange
           end
           object EditTempo: TEdit
             Left = 112
@@ -3043,6 +3029,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 4
             Text = 'EditTempo'
+            OnChange = EditTempoChange
           end
           object EditEtatActionneur: TEdit
             Left = 184
@@ -3051,6 +3038,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 5
             Text = 'EditEtat'
+            OnChange = EditEtatActionneurChange
           end
           object CheckRAZ: TCheckBox
             Left = 48
@@ -3059,11 +3047,12 @@ object FormConfig: TFormConfig
             Height = 17
             Caption = 'Remise '#224' 0 apr'#232's pilotage'
             TabOrder = 6
+            OnClick = CheckRAZClick
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 72
-          Top = 8
+          Left = 56
+          Top = 56
           Width = 225
           Height = 193
           Caption = 'Actionneurs gestion passage '#224' niveau'
@@ -3206,6 +3195,16 @@ object FormConfig: TFormConfig
             Text = 'EditAdrFerme'
           end
         end
+      end
+      object RichAct: TRichEdit
+        Left = 0
+        Top = 32
+        Width = 289
+        Height = 369
+        Color = clBlack
+        ScrollBars = ssVertical
+        TabOrder = 1
+        OnMouseDown = RichActMouseDown
       end
     end
   end

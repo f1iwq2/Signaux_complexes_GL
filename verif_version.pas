@@ -130,12 +130,13 @@ begin
         begin
           i:=pos('.zip',s);
           trouve_zip:=i<>0;
-          if trouve_zip then s3:=s;
+          if trouve_zip then 
+            s3:=s;
         end;
        // Aff(s)
       end;
       closefile(fichier);
-      if trouve_version then
+      if trouve_version and trouve_zip then
       begin
         // isoler le champ version
         i:=pos('version ',s2);
@@ -190,7 +191,7 @@ begin
     end
     else
       begin
-        if notificationVersion then Affiche('Pas d''accès au site CDM rail',clorange);
+        if notificationVersion then Affiche('Pas d''accès au site CDM rail ou échec téléchargement',clorange);
       end;
 end;
 

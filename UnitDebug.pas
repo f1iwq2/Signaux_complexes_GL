@@ -15,7 +15,6 @@ type
     SaveDialog: TSaveDialog;
     ButtonEcrLog: TButton;
     Label3: TLabel;
-    MemoDebug: TMemo;
     ButtonRazTampon: TButton;
     ButtonCherche: TButton;
     ButtonAffEvtChrono: TButton;
@@ -44,6 +43,9 @@ type
     EditActuel: TEdit;
     Button1: TButton;
     Button2: TButton;
+    RichDebug: TRichEdit;
+    PopupMenuRD: TPopupMenu;
+    Copier2: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -65,6 +67,8 @@ type
     procedure ButtonCanSuivSigClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Copier2Click(Sender: TObject);
+    procedure RichDebugChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -113,11 +117,6 @@ uses UnitPrinc;
 
 {$R *.dfm}
 
-procedure AfficheDebug(s : string;lacouleur : TColor);
-begin
-  FormDebug.MemoDebug.Lines.add(s);
-end;
-
 procedure RE_ColorLine(ARichEdit : TRichEdit;ARow : Integer;AColor : TColor);
 begin
   with ARichEdit do
@@ -129,6 +128,13 @@ begin
   end;
 end;
 
+procedure AfficheDebug(s : string;lacouleur : TColor);
+begin
+  FormDebug.RichDebug.Lines.add(s);
+  RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
+end;
+
+
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
     i : integer;
@@ -138,14 +144,14 @@ begin
   s:=s+'comportement du programme. Positionner le niveau de 1 à 3 pour';
   s:=s+' afficher des informations plus ou moins détaillées.';
   Label3.caption:=s;
-  MemoDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
-  MemoDebug.color:=$33;
+  RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
+  RichDebug.color:=$33;
   initform:=false;
-  MemoDebug.clear;
+  RichDebug.clear;
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
   if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
   RichEdit.color:=$111122;
-  MemoDebug.Lines.add(s);
+  RichDebug.Lines.add(s);
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
@@ -163,7 +169,7 @@ begin
     assignFile(fte,s);
     rewrite(fte);
     writeln(fte,s);
-    with MemoDebug do
+    with RichDebug do
     for i:=0 to Lines.Count do
     begin
       writeln(fte,Lines[i]);
@@ -186,7 +192,7 @@ begin
     end  
     else EditNivDebug.text:='0';
   end; 
-  MemoDebug.Lines.add('Niveau='+intToSTR(NivDebug));
+  RichDebug.Lines.add('Niveau='+intToSTR(NivDebug));
 end;
 
 
@@ -208,7 +214,7 @@ var i : integer;
     trouve : boolean;
 begin
 
-  with MemoDebug do
+  with RichDebug do
   begin
     i:=0;
     repeat
@@ -229,7 +235,7 @@ procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
 var i,j,etat : integer;
     s : string;
 begin
-  MemoDebug.Clear;
+  RichDebug.Clear;
   if N_event_tick=0 then
   begin
     AfficheDebug('Il n''y a aucun évènement détecteur ou aiguillage',clyellow);
@@ -269,16 +275,14 @@ end;
 
 procedure TFormDebug.CheckTrameClick(Sender: TObject);
 begin
-  trace:=CheckTrame.Checked;
+  traceTrames:=CheckTrame.Checked;
 end;
 
 procedure TFormDebug.ButtonCopClick(Sender: TObject);
 var i : integer;
 begin
-  MemoDebug.Lines:=Formprinc.ListBox1.Items
+  RichDebug.Lines:=Formprinc.FenRich.lines;
 end;
-
-
 
 procedure TFormDebug.copier1Click(Sender: TObject);
 begin
@@ -289,7 +293,7 @@ end;
 
 procedure TFormDebug.ButtonRazLogClick(Sender: TObject);
 begin
-  MemoDebug.Clear;
+  RichDebug.Clear;
 end;
 
 procedure TFormDebug.CheckBoxActClick(Sender: TObject);
@@ -374,6 +378,19 @@ begin
   Cond_Carre(Adr);
   carre_signal(adr);
   NivDebug:=AncDebug;
+end;
+
+procedure TFormDebug.Copier2Click(Sender: TObject);
+begin
+  RichDebug.SelectAll;
+  RichDebug.CopyToClipboard;
+  RichDebug.SetFocus;
+end;
+
+// pour déplacer l'ascenseur de l'affichage automatiquement en bas
+procedure TFormDebug.RichDebugChange(Sender: TObject);
+begin
+  SendMessage(RichDebug.handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
 end.
