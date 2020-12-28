@@ -27,8 +27,6 @@ type
     GroupBox1: TGroupBox;
     EditAdresse: TEdit;
     Label2: TLabel;
-    Editval: TEdit;
-    Label3: TLabel;
     MainMenu1: TMainMenu;
     Interface1: TMenuItem;
     MenuConnecterUSB: TMenuItem;
@@ -37,7 +35,6 @@ type
     MenuConnecterEthernet: TMenuItem;
     MenuDeconnecterEthernet: TMenuItem;
     StatusBar1: TStatusBar;
-    Label4: TLabel;
     MSCommUSBLenz: TMSComm;
     Afficher1: TMenuItem;
     Etatdesdtecteurs1: TMenuItem;
@@ -62,7 +59,6 @@ type
     Divers1: TMenuItem;
     ClientSocketCDM: TClientSocket;
     FichierSimu: TMenuItem;
-    ButtonEcrCV: TButton;
     OpenDialog: TOpenDialog;
     N1: TMenuItem;
     LireunfichierdeCV1: TMenuItem;
@@ -70,7 +66,6 @@ type
     N5: TMenuItem;
     Quitter1: TMenuItem;
     Config: TMenuItem;
-    ButtonLitCV: TButton;
     Codificationdesactionneurs1: TMenuItem;
     OuvrirunfichiertramesCDM1: TMenuItem;
     Panel1: TPanel;
@@ -81,7 +76,7 @@ type
     ButtonReprise: TButton;
     ButtonTest: TButton;
     ButtonArretSimu: TButton;
-    ButtonCommande: TButton;
+    ButtonDroit: TButton;
     Panel2: TPanel;
     Label1: TLabel;
     LabelNbTrains: TLabel;
@@ -94,12 +89,22 @@ type
     PopupMenuFenRich: TPopupMenu;
     Copier1: TMenuItem;
     Etatdessignaux1: TMenuItem;
+    N6: TMenuItem;
+    Apropos1: TMenuItem;
+    ButtonDevie: TButton;
+    GroupBox2: TGroupBox;
+    ButtonEcrCV: TButton;
+    ButtonLitCV: TButton;
+    EditCV: TEdit;
+    Label3: TLabel;
+    LabelVCV: TLabel;
+    EditVal: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Timer1Timer(Sender: TObject);
     procedure BoutVersionClick(Sender: TObject);
-    procedure ButtonCommandeClick(Sender: TObject);
+    procedure ButtonDroitClick(Sender: TObject);
     procedure EditvalEnter(Sender: TObject);
     procedure BoutonRafClick(Sender: TObject);
     procedure ClientSocketLenzError(Sender: TObject; Socket: TCustomWinSocket;
@@ -147,6 +152,8 @@ type
     procedure FenRichChange(Sender: TObject);
     procedure Copier1Click(Sender: TObject);
     procedure Etatdessignaux1Click(Sender: TObject);
+    procedure Apropos1Click(Sender: TObject);
+    procedure ButtonDevieClick(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -166,6 +173,7 @@ const_droit=2;const_devie=1;  // positions aiguillages transmises par la central
 const_devieG_CDM=3;  // positions aiguillages transmises par cdm
 const_devieD_CDM=2;  // positions aiguillages transmises par cdm
 const_droit_CDM=0;   // positions aiguillages transmises par cdm
+const_inconnu=9;     // position inconnue
 ClBleuClair=$FF7070 ;
 Cyan=$FF6060;
 clviolet=$FF00FF;
@@ -226,14 +234,14 @@ TMA             = (valide,devalide);
 
 var
   ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
-  AvecInitAiguillages,tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,
+  tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist : integer;
 
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,
   NackCDM,MsgSim,succes,recu_cv,AffActionneur,AffAigDet,Option_demarrage,
-  TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM : boolean;
+  TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages : boolean;
 
   CDMhd : THandle;
   branche : array [1..100] of string;
@@ -360,6 +368,7 @@ function test_memoire_zones(adresse : integer) : boolean;
 function PresTrainPrec(AdrFeu : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse : integer) : boolean;
+procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
 
 implementation
 
@@ -1468,70 +1477,6 @@ begin
 end;
 
 
-// pilotage d'un accessoire (décodeur d'aiguillage, de signal)
-// octet = 0 ou 1 ou 2
-// la sortie "octet" est mise à 1 puis à 0
-// acc = aig ou feu
-procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
-var  groupe,temps : integer ;
-     fonction : byte;
-     s : string;
-begin
-  //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
-  // pilotage par CDM rail
-  if CDM_connecte then
-  begin
-    //AfficheDebug(intToSTR(adresse),clred);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
-    s:=chaine_CDM_Acc(adresse,octet);
-    envoi_CDM(s);
-    if (acc=feu) and not(Raz_Acc_signaux) then exit;
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
-    s:=chaine_CDM_Acc(adresse,0);
-    envoi_CDM(s);
-    exit;
-  end;
-
-  // pilotage par USB ou par éthernet de la centrale
-
-  // Affiche('Accessoire '+intToSTR(adresse),clLime);
-  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
-  begin
-    // test si pilotage aiguillage inversé
-    if aiguillage[adresse].inversion=1 then
-    begin
-      if octet=1 then octet:=2 else octet:=1;
-    end;
-
-    if (octet=0) or (octet>2) then exit;
-    //if (octet>2) then exit;
-    groupe:=(adresse-1) div 4;
-    fonction:=((adresse-1) mod 4)*2 + (octet-1);
-    // pilotage à 1
-    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
-    s:=checksum(s);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
-    envoi(s);     // envoi de la trame et attente Ack
-    // si l'accessoire est un feu et sans raz des signaux, sortir
-    if (acc=feu) and not(Raz_Acc_signaux) then exit;
-
-
-    // si aiguillage, faire une temporisation
-    //if (index_feu(adresse)=0) or (Acc=aig) then
-    if Acc=Aig then
-    begin
-      temps:=aiguillage[adresse].temps;if temps=0 then temps:=4;
-      if portCommOuvert or parSocketLenz then tempo(temps);
-    end;
-    sleep(50);
-
-    // pilotage à 0 pour éteindre le pilotage de la bobine du relais
-    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-    s:=checksum(s);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
-    envoi(s);     // envoi de la trame et attente Ack
-  end;
-end;
 
 // pilote accessoire en entrée 0->2  1->1
 procedure pilote_acc01(adresse : integer;octet : byte);
@@ -3486,7 +3431,7 @@ var s,sa,chaine,SOrigine: string;
         begin
           begin
             adresse:=StrToINT(copy(s,1,j-1));Delete(s,1,j); // adresse aiguillage
-            if (adresse>0) and (AvecInitAiguillages=1) then
+            if (adresse>0) and (AvecInitAiguillages) then
             begin
               j:=pos(',',s);
               position:=StrToInt(copy(s,1,j-1));Delete(S,1,j);// position aiguillage
@@ -3534,7 +3479,7 @@ begin
   for i:=1 to MaxAcc do
   begin
     Aiguillage[i].modele:=0  ;  //  sans existence
-    Aiguillage[i].position:=9;  // position inconnue
+    Aiguillage[i].position:=const_inconnu;  // position inconnue
     Aiguillage[i].temps:=5   ;
     Aiguillage[i].inversion:=0;
     Aiguillage[i].inversionCDM:=0;
@@ -3664,7 +3609,7 @@ begin
       trouve_init_aig:=true;
       inc(nv);
       delete(s,i,length(sa));
-      AvecInitAiguillages:=StrToINT(s);
+      AvecInitAiguillages:=s='1';
     end;
 
     sa:=uppercase(fenetre_ch)+'=';
@@ -4763,9 +4708,9 @@ begin
     if NivDebug=3 then AfficheDebug('44 - éléments non consécutifs: Prec='+intToSTR(prec)+' Actuel='+intTostr(Actuel),clred);
   end;
 
-  if (Btype>=2) then  // aiguillage ou bis ou buttoir
+  if (Btype>=2) then  // aiguillage ou buttoir
   begin
-    if (aiguillage[Adr].modele=1) and (Btype=2)  then // aiguillage normal non bis
+    if (aiguillage[Adr].modele=1) and (Btype=2)  then // aiguillage normal 
     begin
       // aiguillage pris en pointe
       if (aiguillage[adr].Apointe=prec) then
@@ -4816,14 +4761,16 @@ begin
       else
       begin
         if NivDebug=3 then AfficheDebug('135 - aiguillage '+intToSTR(Adr)+' Pris en talon',clyellow);
-        if alg=2 then // on demande d'arreter si l'aiguillage en talon est mal positionné
+        if (alg=2) then // on demande d'arreter si l'aiguillage en talon est mal positionné
         begin
           if aiguillage[adr].position=const_droit then
           begin
+            // si TJD (modele=2) sur le précédent, alors substituer avec la 2eme adresse de la TJD
+            if aiguillage[prec].modele=2 then prec:=aiguillage[prec].DDroit;
             if prec<>aiguillage[Adr].Adroit then
               begin
-                    if NivDebug=3 then AfficheDebug('135.1 - Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
-                    suivant_alg3:=9998;exit;
+                if NivDebug=3 then AfficheDebug('135.1 - Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
+                suivant_alg3:=9998;exit;
               end
               else
               begin
@@ -5155,7 +5102,7 @@ begin
           suivant_alg3:=adr;exit;
         end;
         begin
-          if aiguillage[Adr].position=9 then begin suivant_alg3:=9996;exit;end; // pour échappement
+          if aiguillage[Adr].position=const_inconnu then begin suivant_alg3:=9996;exit;end; // pour échappement
           s:='Aiguillage triple '+IntToSTR(Adr)+' : configuration des aiguilles interdite';
           if CDM_connecte then s:=s+': '+IntToSTR(aiguillage[Adr].position);
           AfficheDebug(s,clYellow);
@@ -5397,6 +5344,10 @@ begin
     AdrPrec:=el1;TypePrec:=typeDet1;
     if j=1 then i1:=IndexBranche_det1+1;
     if j=2 then i1:=IndexBranche_det1-1;
+    // les suivants dansla branche sont:
+    AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
+    typeFonc:=BrancheN[branche_trouve_det1,i1].Btype ;
+    
     if NivDebug=3 then
     begin
       s:='Test en ';
@@ -5405,17 +5356,17 @@ begin
       AfficheDebug(s,clyellow);
     end;
 
-    AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
-    typeFonc:=BrancheN[branche_trouve_det1,i1].Btype ;
-
-
     i:=0;N_Det:=0;
     if AdrFonc<>El2 then // si pas déja trouvé le sens de progression
     begin
       repeat
         //AfficheDebug('Engage '+IntToSTR(AdrPrec)+','+IntToSTR(typePrec)+'/'+IntToSTR(AdrFonc)+','+IntToSTR(typeFonc),clyellow);
         if nivDebug=3 then AfficheDebug('i='+IntToSTR(i)+' NDet='+IntToSTR(N_det),clyellow);
-        Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,1);
+        if (AdrFonc<>0) or (TypeFonc<>0) then Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,1) else
+        begin
+          Adr:=9999;
+        end;
+        
         //AfficheDebug('Sortie Alg3: '+IntToSTR(Adr)+'/'+intToSTR(typeGen),clyellow);
         if TypeGen=1 then inc(N_Det);
         if NivDebug=3 then
@@ -5594,7 +5545,7 @@ begin
   until (sort);
   // si trouvé un feu ou j=10, les aiguillages sont bien positionnés
   // si trouvé 9998, aiguillages mal positionnés
-  if (NivDebug=3) then
+  if (NivDebug>=1) then
   begin
    if (AdrSuiv=9998) then AfficheDebug('Le signal '+intToSTR(adresse)+' doit afficher un carré car l''aiguillage pris en talon '+IntToSTR(actuel)+' est mal positionné',clYellow)
     else AfficheDebug('Le signal '+IntToSTR(adresse)+' ne doit pas être au carré',clYellow);
@@ -5851,7 +5802,8 @@ end;
 // adresse=adresse du signal
 function test_memoire_zones(adresse : integer) : boolean;
 var
-  AdrSuiv,prec,TypePrec,TypeActuel,ife,actuel,AdrDet,Etat,AdrFeu,i,j,PresTrain01,PrecInitial : integer;
+  AdrSuiv,prec,TypePrec,TypeActuel,ife,actuel,AdrDet,Etat,AdrFeu,i,j,PresTrain01,PrecInitial,
+  N_Det : integer;
   Pres_train,sort : boolean;
   s : string;
 begin
@@ -5868,6 +5820,7 @@ begin
   ife:=1;  // index feu de 1 à 4 pour explorer les 4 détecteurs d'un feu
   repeat
     j:=0;
+    N_Det:=0;
     if NivDebug=3 then AfficheDebug('Boucle de test feu '+intToSTR(ife)+'/4',clOrange);
     if (ife=1) then
     begin
@@ -5926,7 +5879,7 @@ begin
       else
         begin
           AdrSuiv:=suivant_alg3(prec,TypePrec,actuel,TypeActuel,1);
-
+          if Typegen=1 then inc(N_Det);
           prec:=actuel;TypePrec:=TypeActuel;
           actuel:=AdrSuiv;TypeActuel:=typeGen;
           if AdrSuiv>9990 then
@@ -5936,7 +5889,7 @@ begin
 
          end;
 
-      if NivDebug=3 then AfficheDebug('132 - suivant='+IntToSTR(adrsuiv),clYellow);
+      if NivDebug=3 then AfficheDebug('132 - suivant='+IntToSTR(adrsuiv)+'/'+IntToSTR(TypeGen),clYellow);
       if actuel=0 then
       begin
         // si c'est un buttoir
@@ -5948,7 +5901,7 @@ begin
       AdrFeu:=0;
       if (TypeActuel=1) then  // détecteur
       begin
-        if (NivDebug=3) and MemZone[PrecInitial][actuel] then AfficheDebug('Présence train de '+intToSTR(PrecInitial)+' à '+intToSTR(actuel),clyellow);
+        if (NivDebug>0) and MemZone[PrecInitial][actuel] then AfficheDebug('Présence train de '+intToSTR(PrecInitial)+' à '+intToSTR(actuel),clyellow);
 
         Pres_train:=MemZone[PrecInitial][actuel] or Pres_train; // mémoire de zone
         if Pres_Train then PresTrain01:=1 else PresTrain01:=0;
@@ -5966,8 +5919,8 @@ begin
           if (feux[i].Adr_el_suiv1<>prec) then   // le feu est-il dans le bon sens de progression?
           begin
             s:='Trouvé feu '+IntToSTR(AdrFeu);
-            if (NivDebug=3) And Pres_Train then AfficheDebug(s+' et sortie proced:Mémoire de zone à 1',clyellow);
-            if (NivDebug=3) And (not(Pres_Train)) then AfficheDebug(s+' et sortie proced:Mémoire de zone à 0',clyellow);
+            if (NivDebug>0) And Pres_Train then AfficheDebug(s+' et sortie proced:Mémoire de zone à 1',clyellow);
+            if (NivDebug>0) And (not(Pres_Train)) then AfficheDebug(s+' et sortie proced:Mémoire de zone à 0',clyellow);
             test_memoire_zones:=Pres_train;exit;
 
           end
@@ -5987,11 +5940,11 @@ begin
       begin
         if (NivDebug=3) then AfficheDebug('Trouvé aiguillage '+intToSTR(AdrSuiv),clyellow);
       end;
-      sort:=(j=10) or (AdrFeu<>0) ;
+      sort:=(j=10) or (AdrFeu<>0) or (N_Det>=Nb_det_dist);     
     until (sort);  // on arrete jusqu'à trouver un signal ou si on va trop loin (10 itérations)
     inc(ife);
   until ife>=5;
-  if (NivDebug=3) and (Etat=0) then AfficheDebug('Pas trouvé de signal suivant au '+intToSTR(adresse),clyellow);
+  if (NivDebug>0) and (Etat=0) then AfficheDebug('Pas trouvé de signal suivant au '+intToSTR(adresse),clyellow);
   test_memoire_zones:=Pres_train;
 end;
 
@@ -6127,18 +6080,22 @@ begin
     if (det_initial<>0) then
     begin
       DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant,det_initial,1,2); // 2= algo2 = arret sur aiguillage en talon mal positionné
+      if nivdebug=3 then afficheDebug('detPrec1='+intToSTR(DetPrec1),clorange);
       if DetPrec1<1024 then // route bloquée par aiguillage mal positionné
-      begin
-        DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1);
+      begin             
+        if detPrec1<>0 then DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1) else DetPrec2:=0;
+        if nivdebug=3 then afficheDebug('detPrec2='+intToSTR(DetPrec2),clorange);
         if DetPrec2<1024 then
         begin
-          DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1);
+          if detPrec2<>0 then DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1) else DetPrec3:=0;
+          if nivdebug=3 then afficheDebug('detPrec3='+intToSTR(DetPrec3),clorange);
           if DetPrec3<1024 then
           begin
-            DetPrec4:=detecteur_suivant_El(DetPrec2,1,DetPrec3,1);
+            if detPrec3<>0 then DetPrec4:=detecteur_suivant_El(DetPrec2,1,DetPrec3,1) else DetPrec4:=0;
+            if nivdebug=3 then afficheDebug('detPrec4='+intToSTR(DetPrec4),clorange);
             if DetPrec4<1024 then
             begin
-              if AffSignal or (NivDebug=3) then AfficheDebug('Les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' '+intToSTR(DetPrec4),clyellow);
+              if AffSignal or (NivDebug>=2) then AfficheDebug('Les détecteurs précédents au feu '+IntToSTR(Adrfeu)+' sont:'+intToSTR(Det_initial)+' '+intToSTR(DetPrec1)+' '+intToSTR(DetPrec2)+' '+intToSTR(DetPrec3)+' '+intToSTR(DetPrec4),clyellow);
               PresTrain:=MemZone[DetPrec4,detPrec3] or
               MemZone[DetPrec3,detPrec2] or MemZone[DetPrec2,detPrec1] or MemZone[DetPrec1,Det_initial] or presTrain ;
               if AffSignal or (NivDebug=3) then
@@ -6175,7 +6132,7 @@ var i,j,k1,k2,BtypeSuiv,Adr_det,etat,Adr,Aig,Adr_El_Suiv,
     s : string;
 begin
   s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
-  //if adrfeu=197 then affsignal:=true else affsignal:=false;
+
   if AffSignal then AfficheDebug(s,clOrange);
   i:=index_feu(Adrfeu);
   if AdrFeu<>0 then
@@ -6227,6 +6184,7 @@ begin
     // signal à 2 feux = carré violet+blanc
     if (Feux[i].aspect=2) then //or (feux[i].check<>nil) then // si carré violet
     begin
+      //AfficheDebug('Feux à 2 feux',CLOrange);
       // si aiguillage après signal mal positionnées
       if carre_signal(AdrFeu) then
       begin
@@ -6236,7 +6194,9 @@ begin
       end
       else
       begin
-        Maj_Etat_Signal(AdrFeu,blanc);
+        if test_memoire_zones(AdrFeu) then Maj_Etat_Signal(AdrFeu,violet)  // test si présence train après signal
+        else Maj_Etat_Signal(AdrFeu,blanc);
+        
         Envoi_signauxCplx;
         exit;
       end;
@@ -6385,6 +6345,16 @@ begin
   //affiche('index2='+IntToSTR(index2_det),clWhite);
 end;
 
+// trouve si le détecteur adr est contigu à un buttoir
+function buttoir_adjacent(adr : integer) : boolean;
+begin
+  trouve_element(adr,1,1); // branche_trouve  IndexBranche_trouve
+  if Branche_trouve=0 then begin buttoir_adjacent:=false;exit;end;
+  buttoir_adjacent:=( (BrancheN[branche_trouve,IndexBranche_trouve+1].Adresse=0) and (BrancheN[branche_trouve,IndexBranche_trouve+1].BType=4) or 
+                      (BrancheN[branche_trouve,IndexBranche_trouve-1].Adresse=0) and (BrancheN[branche_trouve,IndexBranche_trouve-1].BType=4) )
+  
+end;
+
 // calcul des zones depuis le tableau des fronts descendants des évènements détecteurs
 // transmis dans le tableau Event_det
 procedure calcul_zones;
@@ -6494,13 +6464,15 @@ begin
     end;
   end;
 
-  // créer un train, donc un tableau
+  // Nombre d'éléments à 0 : ici c'est un nouveau train donc créer un train, donc un tableau
   if N_Trains>=Max_Trains then
   begin
     Affiche('Erreur nombre de train maximal atteint',clRed);
   end;
   Inc(N_trains);
 
+  
+  
   // vérifier si le détecteur du nouveau train est associé à un feu vers un buttoir
   for i:=1 to NbreFeux do
   begin
@@ -6515,7 +6487,7 @@ begin
         if TraceListe then Affiche('FD - Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
         MemZone[0,AdrDetFeu]:=false;
         //NivDebug:=3;
-         AffSignal:=true;
+         //AffSignal:=true;
          maj_feu(AdrFeu);
       end;
     end;
@@ -6523,18 +6495,36 @@ begin
 
   if TraceListe then AfficheDebug('Création Train n°'+intToSTR(i),clyellow);
   Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
-  event_det_train[N_trains].det[1]:=det3;
-  event_det_train[N_trains].NbEl:=1;
-  with FormDebug.MemoEvtDet do
+
+  // si on démarre d'un buttoir
+  if buttoir_adjacent(det3) then
   begin
-    lines.add('Nouveau Tampon train '+intToStr(N_trains)+'--------');
-    lines.add(intToSTR(event_det_train[N_trains].det[1]));
-  end;
-  if TraceListe then
+    if TraceListe then AfficheDebug('detection démarrage depuis détecteur '+IntToSTR(det3)+' buttoir',clyellow);
+    event_det_train[N_trains].det[1]:=0;
+    event_det_train[N_trains].det[2]:=det3;
+    event_det_train[N_trains].NbEl:=2;
+    with FormDebug.MemoEvtDet do
+    begin
+      lines.add('Nouveau Tampon train '+intToStr(N_Trains)+'--------');
+      lines.add(intToSTR(event_det_train[N_Trains].det[1]));
+      lines.add(intToSTR(event_det_train[N_Trains].det[2]));
+    end;  
+  end
+  else
   begin
-    AfficheDebug('Nouveau Tampon train '+intToStr(N_trains)+'--------',clyellow);
-    AfficheDebug(intToSTR(event_det_train[N_trains].det[1]),clyellow );
-  end;
+    event_det_train[N_trains].det[1]:=det3;
+    event_det_train[N_trains].NbEl:=1;
+    with FormDebug.MemoEvtDet do
+    begin
+      lines.add('Nouveau Tampon train '+intToStr(N_trains)+'--------');
+      lines.add(intToSTR(event_det_train[N_trains].det[1]));
+    end;
+    if TraceListe then
+    begin
+      AfficheDebug('Nouveau Tampon train '+intToStr(N_trains)+'--------',clyellow);
+      AfficheDebug(intToSTR(event_det_train[N_trains].det[1]),clyellow );
+    end;
+  end;  
 end;
 
 
@@ -6759,7 +6749,7 @@ begin
         begin
           if aiguillage[i].modele<>0 then
           begin
-            if aiguillage[i].position=9 then
+            if aiguillage[i].position=const_inconnu then
             begin
               Affiche('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
               AfficheDebug('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
@@ -6789,18 +6779,18 @@ begin
 end;
 
 // évènement d'aiguillage
-procedure Event_Aig(adresse,pos,objet : integer);
+procedure Event_Aig(adresse,pos : integer);
 var s: string;
     faire_event: boolean;
 begin
   // ------------------- traitement du numéro d'objet -------------------------
-  // init objet
+  { init objet
   if aiguillage[adresse].objet=0 then
   begin
     aiguillage[adresse].objet:=objet;
     //affiche('stockage Aiguillage '+intToSTR(adresse)+' objet='+intToSTR(objet),clYellow);
   end;
-
+  }
    // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
    // car le RUN vient de démarrer
   faire_event:=aiguillage[adresse].position<>9;
@@ -6816,7 +6806,7 @@ begin
   if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
   if AffAigDet then
   begin
-    if objet<>0 then s:=s+' objet='+IntToSTR(objet);
+    //if objet<>0 then s:=s+' objet='+IntToSTR(objet);
     Affiche(s,clyellow);
     AfficheDebug(s,clyellow);
   end;
@@ -6826,7 +6816,7 @@ begin
   event_det_tick[N_event_tick].tick:=tick;
   event_det_tick[N_event_tick].aiguillage:=adresse;
   event_det_tick[N_event_tick].etat:=pos;
-  event_det_tick[N_event_tick].objet:=objet;
+  //event_det_tick[N_event_tick].objet:=objet;
 
   // Mettre à jour le TCO
   if AvecTCO then
@@ -6836,6 +6826,75 @@ begin
 
   // l'évaluation des routes est à faire selon conditions
   if faire_event then evalue;
+end;
+
+// pilotage d'un accessoire (décodeur d'aiguillage, de signal)
+// octet = 0 ou 1 ou 2
+// la sortie "octet" est mise à 1 puis à 0
+// acc = aig ou feu
+procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
+var  groupe,temps : integer ;
+     fonction : byte;
+     s : string;
+begin
+  //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
+  // pilotage par CDM rail
+  if CDM_connecte then
+  begin
+    //AfficheDebug(intToSTR(adresse),clred);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
+    s:=chaine_CDM_Acc(adresse,octet);
+    envoi_CDM(s);
+    if (acc=feu) and not(Raz_Acc_signaux) then exit;
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
+    s:=chaine_CDM_Acc(adresse,0);
+    envoi_CDM(s);
+    exit;
+  end;
+
+  // pilotage par USB ou par éthernet de la centrale
+
+  // Affiche('Accessoire '+intToSTR(adresse),clLime);
+  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  begin
+    // test si pilotage aiguillage inversé
+    if aiguillage[adresse].inversion=1 then
+    begin
+      if octet=1 then octet:=2 else octet:=1;
+    end;
+
+    if (octet=0) or (octet>2) then exit;
+    //if (octet>2) then exit;
+    groupe:=(adresse-1) div 4;
+    fonction:=((adresse-1) mod 4)*2 + (octet-1);
+    // pilotage à 1
+    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+    s:=checksum(s);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
+    envoi(s);     // envoi de la trame et attente Ack
+    // si l'accessoire est un feu et sans raz des signaux, sortir
+    if (acc=feu) and not(Raz_Acc_signaux) then exit;
+
+
+    // si aiguillage, faire une temporisation
+    //if (index_feu(adresse)=0) or (Acc=aig) then
+    if Acc=Aig then
+    begin
+      temps:=aiguillage[adresse].temps;if temps=0 then temps:=4;
+      if portCommOuvert or parSocketLenz then tempo(temps);
+    end;
+    sleep(50);
+
+    // pilotage à 0 pour éteindre le pilotage de la bobine du relais
+    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+    s:=checksum(s);
+    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
+    envoi(s);     // envoi de la trame et attente Ack
+    exit;
+  end;
+
+  // pas de centrale et pas CDM connecté: on change la position de l'aiguillage
+  if acc=aig then event_aig(adresse,octet); 
 end;
 
 
@@ -6888,22 +6947,22 @@ begin
       adraig:=((adresse * 4)+1 ); // *4 car N=1, c'est le "poids fort"
       if (valeur and $C)=$8 then
       begin      
-        Event_Aig(adraig+3,const_droit,0);
+        Event_Aig(adraig+3,const_droit);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+3)+'=2';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
-        Event_Aig(adraig+3,const_devie,0);
+        Event_Aig(adraig+3,const_devie);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+3)+'=1';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
-        Event_Aig(adraig+2,const_droit,0);
+        Event_Aig(adraig+2,const_droit);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+2)+'=2';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
-        Event_Aig(adraig+2,const_devie,0);
+        Event_Aig(adraig+2,const_devie);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+2)+'=1';AfficheDebug(s,clYellow);end;
       end;
     end;
@@ -6944,22 +7003,22 @@ begin
       adraig:=(adresse * 4)+1;
       if (valeur and $C)=$8 then
       begin
-        Event_Aig(adraig+1,const_droit,0);
+        Event_Aig(adraig+1,const_droit);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+1)+'=2';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
       begin
-        Event_Aig(adraig+1,const_devie,0);
+        Event_Aig(adraig+1,const_devie);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+1)+'=1';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $3)=$2 then
       begin
-        Event_Aig(adraig,const_droit,0);
+        Event_Aig(adraig,const_droit);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig)+'=2';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $3)=$1 then
       begin
-        Event_Aig(adraig,const_devie,0);
+        Event_Aig(adraig,const_devie);
         if traceTrames then begin s:='accessoire '+intToSTR(adraig)+'=1';AfficheDebug(s,clYellow);end;
       end;
     end;
@@ -7621,7 +7680,7 @@ begin
 
   if not(diffusion) then LireunfichierdeCV1.enabled:=true;
 
-  // ajoute une image dynamiquement
+  // ajoute les images des feux dynamiquement
   for i:=1 to NbreFeux do
   begin
     cree_image(i);  // et initialisation tableaux signaux
@@ -7653,15 +7712,21 @@ begin
     FormTCO.show;
   end;
 
-  //essai  &&&&&&&&&&
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
   Affiche_memoire;
   //---------------------------------
   {
-    aiguillage[20].position:=const_droit;
-    aiguillage[21].position:=const_droit;
-
+    aiguillage[6].position:=const_devie;
+    aiguillage[4].position:=const_droit;
+    aiguillage[3].position:=const_droit;
+    aiguillage[1].position:=const_devie;
+    aiguillage[26].position:=const_droit;
+    aiguillage[28].position:=const_devie;
+    
+    if buttoir_adjacent(515) then affiche('oui',clred);
+    
+  
     NivDebug:=3;
     FormDebug.show;
     //i:=Detecteur_suivant_El(591,1,602,1);
@@ -7740,13 +7805,13 @@ begin
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
-    if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages=1) then
+    if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages) then
     begin
       Affiche('Positionnement des feux',clYellow);
       envoi_signauxCplx;  // initialisation des feux
       init_aiguillages;   // initialisation des aiguillages
     end;
-    if (AvecInitAiguillages=0) and not(ferme) and (parSocketLenz or portCommOuvert) then
+    if not(AvecInitAiguillages) and not(ferme) and (parSocketLenz or portCommOuvert) then
     begin
       demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
     end;
@@ -7827,9 +7892,9 @@ begin
     end;
   end;
 
-  if (not(Maj_feux_cours) and (Tempo_chgt_feux=1)) then Maj_feux(); // mise à jour des feux sur chgt aiguillage
+  //if (not(Maj_feux_cours) and (Tempo_chgt_feux=1)) then Maj_feux(); // mise à jour des feux sur chgt aiguillage
 
-  if (not(Maj_feux_cours) and (Tempo_chgt_feux>0)) then dec(Tempo_chgt_feux);
+  //if (not(Maj_feux_cours) and (Tempo_chgt_feux>0)) then dec(Tempo_chgt_feux);
 
   // tempo retombée actionneur
   if TempoAct<>0 then
@@ -7850,13 +7915,7 @@ begin
     if not(MsgSim) then
     begin
       Affiche('Simulation en cours ',Cyan);MsgSim:=true;
-      N_Event_tick:=0;
-      N_event_det:=0;
-      N_trains:=0;
-      for i:=1 to Max_Trains do Event_det_Train[i].NbEl:=0;
-      i_simule:=0;
-      FormDebug.MemoEvtDet.Clear;
-      FormDebug.Richedit.Clear;
+      Raz_tout;
      // AffTickSimu:=true;
     end;
     while tick=Tablo_simule[i_simule+1].tick do
@@ -7876,7 +7935,7 @@ begin
       if Tablo_simule[i_simule].aiguillage<>0 then
       begin
         s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].aiguillage)+'='+IntToSTR(Tablo_simule[i_simule].etat);
-        Event_Aig(Tablo_simule[i_simule].Aiguillage,Tablo_simule[i_simule].etat,0);  // créer évt aiguillage
+        Event_Aig(Tablo_simule[i_simule].Aiguillage,Tablo_simule[i_simule].etat);  // créer évt aiguillage
         StaticText.caption:=s;
       end;
 
@@ -7892,7 +7951,7 @@ begin
     end;
   end;
 
-  // temporisations de démarrage des trains au feux
+  // temporisations de démarrage des trains au feux pas encore au point
   if Option_demarrage then
   for i:=1 to 1024 do
   begin
@@ -7925,8 +7984,9 @@ begin
 end;
 
 // bouton de commande d'un accessoire
-procedure TFormPrinc.ButtonCommandeClick(Sender: TObject);
-var adr,valeur,erreur : integer;
+procedure TFormPrinc.ButtonDroitClick(Sender: TObject);
+var adr,erreur : integer;
+   s : string;
 begin
   val(EditAdresse.text,adr,erreur);
   if (erreur<>0) or (adr<1) or (adr>2048) then
@@ -7935,14 +7995,26 @@ begin
     exit;
   end;
 
-  val(EditVal.Text,valeur,erreur);
-  if (erreur<>0) or (valeur<0) or (valeur>255) then 
-  begin
-    EditVal.text:='1';
-    exit;
-  end;  
+  pilote_acc(adr,const_droit,aig);
+  s:='accessoire '+IntToSTR(adr)+' droit';
+  Affiche(s,clyellow);
+end;
 
-  pilote_acc(adr,valeur,aig);
+
+procedure TFormPrinc.ButtonDevieClick(Sender: TObject);
+  var adr,erreur : integer;
+   s : string;
+begin
+  val(EditAdresse.text,adr,erreur);
+  if (erreur<>0) or (adr<1) or (adr>2048) then
+  begin
+    EditAdresse.text:='1';
+    exit;
+  end;
+
+  pilote_acc(adr,const_devie,aig);
+  s:='accessoire '+IntToSTR(adr)+' dévié';
+  Affiche(s,clyellow);
 end;
 
 procedure TFormPrinc.EditvalEnter(Sender: TObject);
@@ -8120,7 +8192,7 @@ begin
       s:='Aiguillage '+IntToSTR(i)+' : '+intToSTR(aiguillage[i].position);
       if aiguillage[i].position=const_devie then s:=s+' (dévié)' ;
       if aiguillage[i].position=const_droit then s:=s+' (droit)';
-      if aiguillage[i].position=9 then s:=s+' inconnue';
+      if aiguillage[i].position=const_inconnu then s:=s+' inconnue';
       
       objet:=aiguillage[i].objet;
       if objet<>0 then s:=s+' objet='+intToSTR(objet);
@@ -8303,7 +8375,7 @@ begin
         begin
           //Affiche('Normal',clyellow);
           if etat=0 then etatAig:=2 else etatAig:=1;
-          Event_Aig(adr,etatAig,objet);
+          Event_Aig(adr,etatAig);
         end;
         // TJD TJS
         if (aiguillage[adr].modele=2) or (aiguillage[adr].modele=3) then
@@ -8323,8 +8395,8 @@ begin
             adr:=adr2;
             adr2:=prv;
           end;
-          Event_Aig(adr,etatAig,objet);
-          Event_Aig(adr2,etatAig2,objet);
+          Event_Aig(adr,etatAig);
+          Event_Aig(adr2,etatAig2);
         end;
         if aiguillage[adr].modele=4 then // aiguillage triple
         begin
@@ -8336,8 +8408,8 @@ begin
           adr2:=aiguillage[adr].AdrTriple;
           if (etat=0) or (etat=3) then etatAig2:=2;
           if etat=2 then etatAig2:=1;
-          Event_Aig(adr,etatAig,objet);
-          Event_Aig(adr2,etatAig2,objet);
+          Event_Aig(adr,etatAig);
+          Event_Aig(adr2,etatAig2);
         end;
       //  Tempo_chgt_feux:=10; // demander la mise à jour des feux
       end;
@@ -8598,17 +8670,17 @@ var adr,valeur,erreur : integer;
     s : string;
 begin
   // doc XpressNet page 55
-  val(EditAdresse.text,adr,erreur);
+  val(EditCV.text,adr,erreur);
   if (erreur<>0) or (Adr>255) or (Adr<0) then 
   begin
-    EditAdresse.Text:='1';
+    EditCV.Text:='1';
     exit;
   end;  
   
   val(EditVal.Text,valeur,erreur);
   if (erreur<>0) or (valeur<0) or (valeur>255) then 
   begin
-    EditAdresse.text:='1';
+    EditVal.text:='1';
     exit;
   end;  
   
@@ -8695,10 +8767,10 @@ begin
   sa:='';
   Affiche('Lecture CV',clyellow);
 
-  val(EditAdresse.Text,cv,erreur);
+  val(EditCV.Text,cv,erreur);
   if (erreur<>0) or (cv>255) or (cv<0) then 
   begin
-    EditAdresse.Text:='1';
+    EditCV.Text:='1';
     exit;
   end;  
   //trace:=true;
@@ -8904,7 +8976,18 @@ begin
   end;
 end;
 
+procedure TFormPrinc.Apropos1Click(Sender: TObject);
 begin
+  Affiche(' ',clyellow);
+  Affiche('Signaux complexes GL version '+version+' (C) 2020 F1IWQ Gily TDR',clWhite);
+  Affiche('http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906',clWhite);
+  Affiche('https://github.com/f1iwq2/Signaux_complexes_GL',clWhite);
+  Affiche(' ',clyellow);  
+  
+end;
+
+begin
+
 
 
 

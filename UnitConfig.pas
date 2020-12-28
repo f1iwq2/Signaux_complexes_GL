@@ -185,6 +185,7 @@ type
     EditNbDetDist: TEdit;
     Label31: TLabel;
     RichAct: TRichEdit;
+    CheckBoxInitAig: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -221,6 +222,8 @@ type
     procedure EditEtatFoncSortieChange(Sender: TObject);
     procedure EditTempoChange(Sender: TObject);
     procedure CheckRAZClick(Sender: TObject);
+    procedure Edit_HGChange(Sender: TObject);
+    procedure CheckInverseClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -254,7 +257,7 @@ var
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string;
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
   LigneCliquee,AncLigneCliquee : integer;
-  ack_cdm,clicliste : boolean;
+  ack_cdm,clicliste,entreeTCO : boolean;
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
@@ -265,7 +268,7 @@ procedure sauve_config;
   
 implementation
 
-uses UnitDebug,UnitPrinc;
+uses UnitDebug,UnitPrinc, UnitTCO;
 
 {$R *.dfm}
 
@@ -656,7 +659,8 @@ begin
   copie_commentaire;
 
   // avec ou sans initialisation des aiguillages
-  writeln(fichierN,Init_Aig_ch+'=',IntToSTR(AvecInitAiguillages));
+  if AvecInitAiguillages then s:='1' else s:='0';
+  writeln(fichierN,Init_Aig_ch+'='+s);
   copie_commentaire;
 
   // plein écran
@@ -927,6 +931,8 @@ begin
   Srvc_PosTrain:=CheckServPosTrains.checked;
   Srvc_Sig:=CheckBoxSrvSig.checked;
   Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
+  AvecInitAiguillages:=CheckBoxInitAig.Checked;
+  
   end;
   
   if change_srv then services_CDM;
@@ -940,6 +946,13 @@ procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
 begin
   Sauve_config;
   formConfig.close;
+  // TCO  
+  if avectco and not(entreeTCO) then
+  begin
+    //créée la fenêtre TCO non modale
+    FormTCO:=TformTCO.Create(nil);
+    FormTCO.show;
+  end;
 end;
 
 procedure TFormConfig.Button2Click(Sender: TObject);
@@ -997,6 +1010,7 @@ begin
   CheckInfoVersion.Checked:=notificationVersion;
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
+  entreeTCO:=avecTCO;
   EditNomLay.Text:=Lay;
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
@@ -1020,6 +1034,7 @@ begin
   CheckBoxServAct.checked:=Srvc_Act;
   CheckServPosTrains.checked:=Srvc_PosTrain;
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+  CheckBoxInitAig.checked:=AvecInitAiguillages;
 
   EditDroit_BD.Text:='';
   EditPointe_BG.Text:='';
@@ -1628,6 +1643,12 @@ begin
   clicliste:=false;
 end;
 
+// on change la valeur de la description du champ HG pour les TJD
+procedure change_HG ;
+begin
+  if clicliste then exit;
+end;
+
 // on change la valeur de la description de la pointe de l'aiguillage
 procedure change_Pointe;
 var AdrAig,adr,erreur : integer;
@@ -1823,6 +1844,11 @@ begin
   change_pointe;
 end;
 
+procedure TFormConfig.Edit_HGChange(Sender: TObject);
+begin
+  change_HG;
+end;
+
 procedure TFormConfig.EditDevie_HDChange(Sender: TObject);
 begin
   Change_devie;
@@ -1836,6 +1862,21 @@ end;
 procedure TFormConfig.EditDevieS2Change(Sender: TObject);
 begin
   Change_s2;
+end;
+
+
+procedure TFormConfig.CheckInverseClick(Sender: TObject);
+var s : string;
+    adrAig,erreur : integer;
+begin
+  // récupérer l'adresse de l'aiguillage cliqué
+  s:=formconfig.RichAig.Lines[lignecliquee];
+  Val(s,adrAig,erreur);
+  if checkInverse.Checked then aiguillage[adraig].InversionCDM:=1 else aiguillage[adraig].InversionCDM:=0;
+  // réencoder la ligne
+  s:=encode_aig(AdrAig);
+  formconfig.RichAig.Lines[lignecliquee]:=s;
+  labelLigne.Caption:=s;
 end;
 
 procedure TFormConfig.RadioButtonsansClick(Sender: TObject);
@@ -2317,6 +2358,9 @@ begin
     end;
   end;
 end;
+
+
+
 
 end.
 

@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 1296
-  Top = 222
+  Left = 44
+  Top = 270
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -24,7 +24,7 @@ object FormPrinc: TFormPrinc
   TextHeight = 13
   object LabelTitre: TLabel
     Left = 8
-    Top = 16
+    Top = 8
     Width = 173
     Height = 18
     Caption = 'Signaux complexes GL'
@@ -1203,9 +1203,9 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 631
-    Top = 168
-    Width = 537
-    Height = 377
+    Top = 176
+    Width = 546
+    Height = 385
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -1218,96 +1218,61 @@ object FormPrinc: TFormPrinc
   object GroupBox1: TGroupBox
     Left = 631
     Top = 5
-    Width = 249
-    Height = 129
+    Width = 266
+    Height = 52
     Anchors = [akTop, akRight]
     Caption = 'Commande d'#39'accessoires'
     TabOrder = 1
     object Label2: TLabel
       Left = 7
-      Top = 16
+      Top = 24
       Width = 58
       Height = 13
       Caption = 'adresse acc'
     end
-    object Label3: TLabel
-      Left = 75
-      Top = 16
-      Width = 30
-      Height = 13
-      Caption = '1 ou 2'
-    end
-    object Label4: TLabel
-      Left = 133
-      Top = 10
-      Width = 85
-      Height = 13
-      Caption = '1=d'#233'vi'#233'     2=droit'
-    end
     object EditAdresse: TEdit
-      Left = 8
-      Top = 32
-      Width = 57
+      Left = 72
+      Top = 24
+      Width = 49
       Height = 21
       Hint = 'Adresse accessoire ou de CV'
       TabOrder = 0
       Text = '1'
     end
-    object Editval: TEdit
-      Left = 72
-      Top = 32
-      Width = 41
-      Height = 21
-      Hint = 'Entrez 1 ou 2 pour un accessoire DCC et 1 '#224' 255 pour un CV'
-      TabOrder = 1
-      Text = '1'
-      OnEnter = EditvalEnter
-    end
-    object ButtonEcrCV: TButton
-      Left = 8
-      Top = 64
-      Width = 225
+    object ButtonDroit: TButton
+      Left = 132
+      Top = 16
+      Width = 53
       Height = 25
-      Hint = 'Ecriture CV en mode direct sur voie de  programmation'
-      Caption = 'Ecriture CV - 1 '#224' 255 par bus XpressNet'
+      Hint = 'Ecriture des accessoires DCC'
+      Caption = 'droit'
+      TabOrder = 1
+      WordWrap = True
+      OnClick = ButtonDroitClick
+    end
+    object ButtonDevie: TButton
+      Left = 192
+      Top = 16
+      Width = 57
+      Height = 25
+      Hint = 'Ecriture des accessoires DCC'
+      Caption = 'devi'#233
       TabOrder = 2
       WordWrap = True
-      OnClick = ButtonEcrCVClick
-    end
-    object ButtonLitCV: TButton
-      Left = 8
-      Top = 96
-      Width = 225
-      Height = 25
-      Hint = 'Lecture CV en mode direct sur voie de  programmation'
-      Caption = 'Lecture CV - 1 '#224' 255 par le bus XpressNet'
-      Enabled = False
-      TabOrder = 3
-      OnClick = ButtonLitCVClick
-    end
-    object ButtonCommande: TButton
-      Left = 124
-      Top = 24
-      Width = 109
-      Height = 33
-      Hint = 'Ecriture des accessoires DCC'
-      Caption = 'Envoi commande'
-      TabOrder = 4
-      WordWrap = True
-      OnClick = ButtonCommandeClick
+      OnClick = ButtonDevieClick
     end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 576
+    Top = 584
     Width = 1196
-    Height = 30
+    Height = 22
     Panels = <>
     SimplePanel = True
   end
   object MSCommUSBLenz: TMSComm
-    Left = 720
-    Top = 144
+    Left = 1160
+    Top = 192
     Width = 32
     Height = 32
     OnComm = MSCommUSBLenzComm
@@ -1316,10 +1281,10 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 887
+    Left = 903
     Top = 5
-    Width = 281
-    Height = 129
+    Width = 282
+    Height = 132
     Anchors = [akTop, akRight]
     TabOrder = 4
     object BoutonRaf: TButton
@@ -1385,19 +1350,20 @@ object FormPrinc: TFormPrinc
       OnClick = ButtonTestClick
     end
     object ButtonArretSimu: TButton
-      Left = 104
+      Left = 8
       Top = 88
-      Width = 81
+      Width = 89
       Height = 33
       Caption = 'Arret simulation'
       TabOrder = 6
       Visible = False
+      WordWrap = True
       OnClick = ButtonArretSimuClick
     end
     object ButtonAffTCO: TButton
-      Left = 8
+      Left = 104
       Top = 88
-      Width = 89
+      Width = 81
       Height = 33
       Caption = 'Affiche TCO'
       TabOrder = 7
@@ -1415,12 +1381,11 @@ object FormPrinc: TFormPrinc
     end
   end
   object Panel2: TPanel
-    Left = 631
-    Top = 136
-    Width = 153
+    Left = 904
+    Top = 144
+    Width = 281
     Height = 25
     Anchors = [akTop, akRight]
-    Caption = 'Panel2'
     TabOrder = 5
     object Label1: TLabel
       Left = 16
@@ -1430,7 +1395,7 @@ object FormPrinc: TFormPrinc
       Caption = 'Nombre de trains : '
     end
     object LabelNbTrains: TLabel
-      Left = 120
+      Left = 248
       Top = 2
       Width = 9
       Height = 19
@@ -1445,7 +1410,7 @@ object FormPrinc: TFormPrinc
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 560
+    Top = 565
     Width = 14
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
@@ -1454,9 +1419,9 @@ object FormPrinc: TFormPrinc
   end
   object FenRich: TRichEdit
     Left = 8
-    Top = 48
+    Top = 32
     Width = 617
-    Height = 497
+    Height = 529
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -1471,11 +1436,73 @@ object FormPrinc: TFormPrinc
     TabOrder = 7
     OnChange = FenRichChange
   end
+  object GroupBox2: TGroupBox
+    Left = 632
+    Top = 64
+    Width = 265
+    Height = 105
+    Anchors = [akTop, akRight]
+    Caption = 'Variables CV'
+    TabOrder = 8
+    object Label3: TLabel
+      Left = 208
+      Top = 34
+      Width = 14
+      Height = 13
+      Caption = 'CV'
+      WordWrap = True
+    end
+    object LabelVCV: TLabel
+      Left = 208
+      Top = 55
+      Width = 47
+      Height = 13
+      Caption = 'Valeur CV'
+      WordWrap = True
+    end
+    object ButtonEcrCV: TButton
+      Left = 8
+      Top = 16
+      Width = 153
+      Height = 33
+      Hint = 'Ecriture CV en mode direct sur voie de  programmation'
+      Caption = 'Ecriture CV - 1 '#224' 255 par bus XpressNet'
+      TabOrder = 0
+      WordWrap = True
+      OnClick = ButtonEcrCVClick
+    end
+    object ButtonLitCV: TButton
+      Left = 8
+      Top = 64
+      Width = 153
+      Height = 33
+      Hint = 'Lecture CV en mode direct sur voie de  programmation'
+      Caption = 'Lecture CV - 1 '#224' 255 par le bus XpressNet'
+      Enabled = False
+      TabOrder = 1
+      WordWrap = True
+      OnClick = ButtonLitCVClick
+    end
+    object EditCV: TEdit
+      Left = 168
+      Top = 32
+      Width = 33
+      Height = 21
+      TabOrder = 2
+    end
+    object EditVal: TEdit
+      Left = 168
+      Top = 52
+      Width = 33
+      Height = 21
+      TabOrder = 3
+    end
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    Left = 888
-    Top = 80
+    Left = 1168
+    Top = 224
   end
   object ClientSocketLenz: TClientSocket
     Active = False
@@ -1595,6 +1622,13 @@ object FormPrinc: TFormPrinc
           'Ouvre un fichier de CV pour l'#39'envoyer vers un accessoire branch'#233 +
           ' sur la voie de programmation'
         OnClick = LireunfichierdeCV1Click
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object Apropos1: TMenuItem
+        Caption = 'A propos'
+        OnClick = Apropos1Click
       end
     end
   end

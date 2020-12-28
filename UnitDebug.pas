@@ -14,7 +14,6 @@ type
     Label2: TLabel;
     SaveDialog: TSaveDialog;
     ButtonEcrLog: TButton;
-    Label3: TLabel;
     ButtonRazTampon: TButton;
     ButtonCherche: TButton;
     ButtonAffEvtChrono: TButton;
@@ -46,6 +45,11 @@ type
     RichDebug: TRichEdit;
     PopupMenuRD: TPopupMenu;
     Copier2: TMenuItem;
+    GroupBox5: TGroupBox;
+    ButtonSimuDet0: TButton;
+    ButtonSimuDet1: TButton;
+    EditSimuDet: TEdit;
+    ButtonRazTout: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -69,6 +73,11 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Copier2Click(Sender: TObject);
     procedure RichDebugChange(Sender: TObject);
+    procedure ButtonSimuDet0Click(Sender: TObject);
+    procedure ButtonSimuDet1Click(Sender: TObject);
+    procedure ButtonRazToutClick(Sender: TObject);
+    procedure RichEditChange(Sender: TObject);
+    procedure MemoEvtDetChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -109,6 +118,7 @@ var
   
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
+Procedure Raz_tout;
 procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
   
 implementation
@@ -134,16 +144,27 @@ begin
   RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
 end;
 
+Procedure Raz_tout;
+var i : integer;
+begin
+  N_Event_tick:=0;
+  N_event_det:=0;
+  N_trains:=0;
+  Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+  for i:=1 to Max_Trains do Event_det_Train[i].NbEl:=0;
+  i_simule:=0;
+  FormDebug.MemoEvtDet.Clear;
+  FormDebug.Richedit.Clear;
+end;
 
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
-    i : integer;
 begin
   EditNivDebug.Text:='0';
   s:='Cette fenêtre permet d''afficher des informations sur le ';
-  s:=s+'comportement du programme. Positionner le niveau de 1 à 3 pour';
+  s:=s+'comportement du programme. Positionner le niveau du débug de 1 à 3 pour';
   s:=s+' afficher des informations plus ou moins détaillées.';
-  Label3.caption:=s;
+  RichEdit.Lines.add(s);
   RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   RichDebug.color:=$33;
   initform:=false;
@@ -391,6 +412,42 @@ end;
 procedure TFormDebug.RichDebugChange(Sender: TObject);
 begin
   SendMessage(RichDebug.handle, WM_VSCROLL, SB_BOTTOM, 0);
+end;
+
+procedure TFormDebug.ButtonSimuDet0Click(Sender: TObject);
+var det,erreur : integer;
+begin
+  val(EditSimuDet.Text,det,erreur);
+  if erreur=0 then
+  begin
+    Event_Detecteur(det,false,'');
+  end;
+end;
+  
+
+procedure TFormDebug.ButtonSimuDet1Click(Sender: TObject);
+var det,erreur : integer;
+begin
+  val(EditSimuDet.Text,det,erreur);
+  if erreur=0 then
+  begin
+    Event_Detecteur(det,true,'');
+  end;
+end;
+
+procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
+begin
+  Raz_tout;
+end;
+
+procedure TFormDebug.RichEditChange(Sender: TObject);
+begin
+  SendMessage(RichEdit.handle, WM_VSCROLL, SB_BOTTOM, 0);
+end;
+
+procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
+begin
+  SendMessage(MemoEvtDet.handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
 end.

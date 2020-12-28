@@ -1,12 +1,12 @@
 object FormConfig: TFormConfig
-  Left = 266
-  Top = 160
+  Left = 194
+  Top = 249
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
-  ClientHeight = 495
+  ClientHeight = 501
   ClientWidth = 858
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -1776,7 +1776,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 585
     Height = 441
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetBranches
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2120,7 +2120,7 @@ object FormConfig: TFormConfig
       ImageIndex = 1
       object Label9: TLabel
         Left = 8
-        Top = 352
+        Top = 384
         Width = 297
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
@@ -2335,7 +2335,7 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 296
         Width = 297
-        Height = 41
+        Height = 81
         Caption = 'Divers'
         TabOrder = 7
         object CheckBoxRazSignaux: TCheckBox
@@ -2348,6 +2348,19 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+        end
+        object CheckBoxInitAig: TCheckBox
+          Left = 8
+          Top = 32
+          Width = 281
+          Height = 33
+          Caption = 
+            'Initialisation des aiguillages suivant liste dans fichier client' +
+            '-gl.cfg [section init]'
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 1
+          WordWrap = True
         end
       end
     end
@@ -2582,6 +2595,7 @@ object FormConfig: TFormConfig
           Height = 17
           Caption = 'Inversion de l'#39#233'tat CDM'
           TabOrder = 7
+          OnClick = CheckInverseClick
         end
       end
       object Edit_HG: TEdit
@@ -2591,6 +2605,7 @@ object FormConfig: TFormConfig
         Height = 21
         TabOrder = 1
         Text = 'EditPointe'
+        OnChange = Edit_HGChange
       end
       object RichAig: TRichEdit
         Left = 0
@@ -2877,6 +2892,7 @@ object FormConfig: TFormConfig
         Color = clBlack
         Lines.Strings = (
           'RichSig')
+        ReadOnly = True
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
@@ -3202,6 +3218,7 @@ object FormConfig: TFormConfig
         Width = 289
         Height = 369
         Color = clBlack
+        ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 1
         OnMouseDown = RichActMouseDown
