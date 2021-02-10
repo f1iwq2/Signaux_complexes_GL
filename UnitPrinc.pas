@@ -194,13 +194,12 @@ type TBranche = record
             end;
 
      Taiguillage = record
-                 objet  : integer;          // objet dans CDM rail
                  modele : integer;          // 0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
-                 position,                  // position actuelle : 1=dévié  2=droit (positions centrale lenz)
+                 position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
                  inversion : integer;       // pilotage inversé pour la commande (en mode sans CDM) 0=normal 1=inversé (positionné dans fichier config_gl section_init
-                 InversionCDM : integer ;   // inversion pour les aiguillages en lecture (paramètre I)
+                 InversionCDM : integer ;   // inversion pour les aiguillages en lecture (paramètre I1)
                  vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
 
                  ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
@@ -234,7 +233,7 @@ TMA             = (valide,devalide);
 
 var
   ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;
-  tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,
+  tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist : integer;
@@ -360,6 +359,7 @@ procedure connecte_USB;
 procedure deconnecte_usb;
 function  IsWow64Process: Boolean;
 procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
+procedure Pilote_acc0_X(adresse : integer;octet : byte);
 procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
 function  etat_signal_suivant(Adresse,rang : integer) : integer;
 function suivant_alg3(prec : integer;typeELprec : integer;var actuel : integer;typeElActuel : integer;alg : integer) : integer;
@@ -1086,7 +1086,7 @@ function Index_feu(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
-i:=1;
+  i:=1;
   repeat
     trouve:=feux[i].adresse=adresse;
     if not(trouve) then inc(i);
@@ -1121,7 +1121,6 @@ Procedure TFormprinc.ImageOnClick(Sender : Tobject);
 var s : string;
     P_image_pilote : Timage;
     i,erreur : integer;
-
 begin
   P_image_pilote:=Sender as TImage;  // récupérer l'objet image de la forme pilote
   s:=P_Image_pilote.Hint;
@@ -1354,8 +1353,8 @@ begin
       temps:=0;
       repeat
         Application.processMessages;
-        inc(temps);Sleep(100);
-      until ferme or ack or nack or (temps>TimoutMaxInterface); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
+        inc(temps);Sleep(50);
+      until ferme or ack or nack or (temps>(TimoutMaxInterface*3)); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
       if not(ack) or nack then
       begin
         Affiche('Pas de réponse de l''interface',clRed);inc(pasreponse);
@@ -1402,7 +1401,7 @@ begin
 end;
 
 // prépare la chaîne de commande pour un accessoire via CDM
-Function chaine_CDM_Acc(adresse,etat1 : integer) : string;
+Function chaine_CDM_Acc(adresse,etat : integer) : string;
 var so,sx,s : string;
 begin
  {  exemple de commande envoyée au serveur pour un manoeuvrer accessoire
@@ -1421,7 +1420,7 @@ begin
   }
   so:=place_id('C-C-01-0004-CMDACC-DCCAC');
   s:=s+'AD='+format('%.*d',[1,adresse])+';';
-  s:=s+'STATE='+format('%.*d',[1,etat1])+';';
+  s:=s+'STATE='+format('%.*d',[1,etat])+';';
 
   sx:=format('%.*d',[2,2])+'|';  // 2 paramètres
   so:=so+ '|'+format('%.*d',[3,length(s)+length(sx)])+'|'+sx;
@@ -1476,38 +1475,6 @@ begin
   if envoi(s) then exit else envoi(s);     // envoi de la trame et attente Ack  sinon renvoyer
 end;
 
-
-
-// pilote accessoire en entrée 0->2  1->1
-procedure pilote_acc01(adresse : integer;octet : byte);
-var  groupe : integer ;
-     fonction : byte;
-     s : string;
-begin
-  // test si pilotage inversé
-  if octet=0 then octet:=2;
-  if aiguillage[adresse].inversion=1 then
-  begin
-    if octet=1 then octet:=2 else octet:=1;
-  end;
-  if (octet=0) or (octet>2) then exit;
-  groupe:=(adresse-1) div 4;
-  fonction:=((adresse-1) mod 4)*2 + (octet-1);
-  // pilotage à 1
-  s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
-  s:=checksum(s);
-  envoi(s);     // envoi de la trame et attente Ack
-  sleep(10);    // temps minimal pour ne pas avoir le défaut station occupée qd on pilote un signal leb
-  //temps:=aiguillage[adresse].temps;if temps=0 then temps:=4;
-  // si l'accessoire est un feu, fixer l tempo à 1
-  //if index_feu(adresse)<>0 then temps:=1;
-
-  //if portCommOuvert or parSocketLenz then tempo(temps);
-  // pilotage à 0 pour éteindre le pilotage de la bobine du relais
-  s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-  s:=checksum(s);
-  envoi(s);     // envoi de la trame et attente Ack
-end;
 
 procedure vitesse_loco(loco : integer;vitesse : integer;sens : boolean);
 var s : string;
@@ -1763,15 +1730,16 @@ var  code,aspect,combine : word;
     s : string;
   procedure envoi5_LEB(selection :byte);
   var i : integer;
+      octet : byte;
   begin
     s:='';
     for i:=0 to 4 do
     begin
-      if (testBit(selection,i)) then begin pilote_acc(adresse+i,1,feu);s:=s+'1';end
-      else begin pilote_acc(adresse+i,2,feu) ; s:=s+'0';end;
-      //if (testBit(selection,i)) then begin pilote_acc(adresse+i,1);s:=s+'1';end
-      //else begin pilote_acc(adresse+i,2) ; s:=s+'0';end;
-      //Sleep(60);
+      if (testBit(selection,i)) then begin octet:=1;s:=s+'1';end
+      else begin octet:=2 ; s:=s+'0';end;
+      Pilote_acc(adresse+i,octet,feu);
+      // le décodeur LEB nécessite qu'on envoie 0 après son pilotage ; si on est en mode usb ou ethernet
+      if (portCommOuvert or parSocketLenz) then Pilote_acc0_X(adresse+i,octet);
     end;
     //Affiche(inttoStr(selection),clOrange);
     //Affiche(s,clOrange);
@@ -3407,10 +3375,10 @@ var s,sa,chaine,SOrigine: string;
     tec,tjd,tjs,s2,trouve,triple,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
-    trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte   : boolean;
+    trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig   : boolean;
     bd,virgule,i_detect,i,erreur,aig,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
-    ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,
-    postjd,postjs,nv,it : integer;
+    ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
+    postjd,postjs,nv,it,Num_Champ : integer;
     function lit_ligne : string ;
     begin
       repeat
@@ -3460,6 +3428,7 @@ begin
   trouve_retro:=false;
   trouve_sec_init:=false;
   trouve_init_aig:=false;
+  trouve_tempo_aig:=false;
   trouve_INTER_CAR:=false;
   trouve_entete:=false;
   trouve_IPV4_INTERFACE:=false;
@@ -3483,7 +3452,6 @@ begin
     Aiguillage[i].temps:=5   ;
     Aiguillage[i].inversion:=0;
     Aiguillage[i].inversionCDM:=0;
-    Aiguillage[i].objet:=0;
   end;
   for i:=1 to 1024 do
   begin
@@ -3491,16 +3459,17 @@ begin
      Detecteur[i].train:='0';
      Ancien_detecteur[i]:=false;
   end;
-  //ChDir(s);
+  
   Affiche('lecture du fichier de configuration client-GL.cfg',clyellow);
-  {$I-}
+  {$I+}
   try
     assign(fichier,'client-GL.cfg');
     reset(fichier);
   except
-    Affiche('Fichier client-gl.cfg non trouvé',clred);
+    Affiche('Erreur fatale: fichier client-gl.cfg non trouvé',clred);
+    exit;
   end;
-  {$I+}
+  {$I-}
   nv:=0; it:=0;
   {lecture du fichier de configuration}
   // taille de fonte
@@ -3623,6 +3592,17 @@ begin
       if fenetre=1 then Formprinc.windowState:=wsMaximized;
     end;
 
+    sa:=uppercase(Tempo_Aig_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      trouve_Tempo_aig:=true;
+      delete(s,i,length(sa));
+      val(s,Tempo_Aig,erreur);
+    end;
+ 
+    
     i:=pos(uppercase(section_init),s);
     if i<>0 then
     begin
@@ -3731,11 +3711,11 @@ begin
     end;
     inc(it);
 
-  until (Nv>=18) or (it>30);
+  until (Nv>=19) or (it>30);
 
   //affiche(IntToSTR(Nv)+' variables',cyan);
   s:='';
-  if (it>30) then s:='ERREUR: manque variables dans config-gl.cfg :';
+  if (nv<19) then s:='ERREUR: manque variables dans config-gl.cfg :';
 
   if not(trouve_NbDetDist) then s:=s+' '+nb_det_dist_ch;
   if not(trouve_ipv4_PC) then s:=s+' '+IpV4_PC_ch;
@@ -3750,6 +3730,7 @@ begin
   if not(trouve_CDM) then s:=s+' '+CDM_ch;
   if not(trouve_Serveur_interface) then s:=s+' '+Serveur_interface_ch;
   if not(trouve_fenetre) then s:=s+' '+fenetre_ch;
+  if not(trouve_tempo_aig) then s:=s+' '+tempo_aig_ch;
   if not(trouve_NOTIF_VERSION) then s:=s+' '+NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=s+' '+verif_version_ch;
   if not(trouve_fonte) then s:=s+' '+fonte_ch;
@@ -3761,12 +3742,15 @@ begin
   closefile(fichier);
 
   Affiche('lecture du fichier de configuration config.cfg',clyellow);
+  {$I+}
   try
     assign(fichier,'config.cfg');
     reset(fichier);
   except
     Affiche('Fichier config.cfg non trouvé',clred);
+    exit;
   end;
+  {$I-}
 
   s:=Lit_ligne;  //variable log non utilisée
   s:=Lit_ligne; // trace_det
@@ -3835,14 +3819,14 @@ begin
         delete(s,1,virgule);
       end;
 
-      //Affiche('S='+s,clyellow);
-      //debugconfig:=true;
-
+      Num_Champ:=1;
+      itl:=0;
       repeat  // parcoure la ligne
         if (debugConfig) then Affiche('boucle de ligne: '+s,clYellow);
         if (length(enregistrement)<>0) then
         if (enregistrement[1]='P') then
         begin
+          inc(Num_Champ);
           if tjd then begin affiche('Erreur P interdit dans une TJD : '+sOrigine,clred);closefile(fichier);exit; end;
           if debugconfig then Affiche('Section P - enregistrement='+enregistrement,clYellow);
           ComptEl:=ComptEl+1;
@@ -3854,15 +3838,15 @@ begin
           virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
           enregistrement:=copy(s,1,virgule-1);
           delete(s,1,virgule);
-
+          
         end;
 
         if (length(enregistrement)<>0) then  // section droite
         if (enregistrement[1]='D') then
         begin
+          inc(Num_Champ);
           if debugconfig then Affiche('Section D - enregistrement='+enregistrement,clYellow);
           ComptEl:=ComptEl+1;
-
           if tjd then
           begin
             s:=Enregistrement;
@@ -3899,6 +3883,7 @@ begin
         if (length(enregistrement)<>0) then
         if (enregistrement[1]='S') then
         begin
+          inc(Num_Champ);
           if debugconfig then Affiche('Section S - enregistrement='+enregistrement,clYellow);
           ComptEl:=ComptEl+1;
 
@@ -3946,38 +3931,48 @@ begin
           end;
         end;
 
+        // inversion aiguillage
         if (length(enregistrement)<>0) then
-        if (enregistrement[1]='I') then
-        begin
-          delete(enregistrement,1,1);
-          Val(enregistrement,adr,erreur);
-          enregistrement:='';
-          //Affiche(intTostr(adr),clblue);
-          Aiguillage[aig].inversionCDM:=adr;
-        end;
-
-        //Affiche(s+'/'+Enregistrement,clLime);
+          if (Num_champ=5) then
+          begin
+            if (enregistrement[1]='I')  then
+            begin
+              inc(Num_Champ);  
+              delete(enregistrement,1,1);
+            end;
+            Val(enregistrement,adr,erreur);
+            if erreur<>0 then begin Affiche('Erreur Inversion ; ligne '+sOrigine,clred);closefile(fichier);exit;end;
+            enregistrement:='';
+            //Affiche(intTostr(adr),clblue);
+            Aiguillage[aig].inversionCDM:=adr;
+          end;
+          
         // si vitesse définie
-        Val(enregistrement,adr,erreur);
-        if erreur=0 then
+        if Num_Champ=4 then
         begin
-          //Affiche('section vitesse définie aig='+intToSTR(aig)+'/'+intToSTR(adr),clyellow);
-          aiguillage[aig].vitesse:=adr;
-          enregistrement:='';
-          virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
-          enregistrement:=copy(s,1,virgule-1);
-          delete(s,1,virgule);
-          s:='';enregistrement:='';
-        end;
-
-      until enregistrement='' ;
+          inc(num_champ);
+          if (length(enregistrement)<>0) then
+          if enregistrement[1]='V' then delete(enregistrement,1,1);
+          Val(enregistrement,adr,erreur);
+          if (erreur=0) or (erreur=1) then
+          begin
+            //Affiche('section vitesse définie aig='+intToSTR(aig)+'/'+intToSTR(adr),clyellow);
+            aiguillage[aig].vitesse:=adr;
+            enregistrement:='';
+            virgule:=pos(',',s);if virgule=0 then virgule:=length(s)+1;
+            enregistrement:=copy(s,1,virgule-1);
+            delete(s,1,virgule);
+            s:='';//enregistrement:='';
+          end;
+       end;
+       inc(itl);
+      until (enregistrement='') or (itl>2);
+      if itl>2 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);closefile(fichier);exit;end;
     end;
-   // Affiche(s,clLime);
   until (s='0');
   //Affiche(IntToSTR(maxaiguillage)+' Aiguillages',clYellow);
 
-
-  Affiche('définition des branches',clyellow);
+  Affiche('Définition des branches',clyellow);
   // branches de réseau
   NDetecteurs:=0; Nligne:=1;
   i:=1;i_detect:=1;
@@ -6290,12 +6285,16 @@ Procedure Maj_feux;
 var i : integer;
 begin
   //Affiche('MAJ FEUX',clOrange);
-  Maj_feux_cours:=TRUE;
-  for i:=1 to NbreFeux do
+  if not(maj_feux_cours) then
   begin
-    Maj_feu(Feux[i].Adresse);
-  end;
-  Maj_feux_cours:=FALSE;
+    Maj_feux_cours:=TRUE;
+  
+    for i:=1 to NbreFeux do
+    begin
+      Maj_feu(Feux[i].Adresse);
+    end;
+    Maj_feux_cours:=FALSE;
+  end;  
 end;
 
 
@@ -6558,11 +6557,15 @@ end;
 procedure demande_etat_acc;
 var i : integer;
 begin
-  Affiche('Demande état des aiguillages',ClYellow);
-  for i:=1 to maxaiguillage do
+  if portCommOuvert or parSocketLenz then
   begin
-    demande_info_acc(i);
-  end;
+    Affiche('Demande état des aiguillages',ClYellow);
+    for i:=1 to maxaiguillage do
+    begin
+      demande_info_acc(i);
+      Affiche('Demande état aiguillage '+intToSTR(i),clLime);
+    end;
+  end;  
 end;
 
 
@@ -6778,21 +6781,31 @@ begin
   end;
 end;
 
-// évènement d'aiguillage
+// évènement d'aiguillage (accessoire)
+// pos = const_droit=2 ou const_devie=1
 procedure Event_Aig(adresse,pos : integer);
 var s: string;
-    faire_event: boolean;
+    faire_event,inv : boolean;
+    prov,i : integer;
 begin
-  // ------------------- traitement du numéro d'objet -------------------------
-  { init objet
-  if aiguillage[adresse].objet=0 then
+  // vérifier que l'évènement accessoire vient bien d'un aiguillage et pas d'un feu
+  i:=0;
+  repeat
+    inc(i);
+  until (i>MaxAiguillage) or (i=adresse);
+  if i>MaxAiguillage then exit; // non ce n'est pas un aiguillage, on sort
+
+  // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome, inverser sa position
+  inv:=false;
+  if (aiguillage[adresse].inversionCDM=1) then // and (portCommOuvert or parSocketLenz) then
   begin
-    aiguillage[adresse].objet:=objet;
-    //affiche('stockage Aiguillage '+intToSTR(adresse)+' objet='+intToSTR(objet),clYellow);
+    prov:=pos;
+    inv:=true;
+    if prov=const_droit then pos:=const_devie else pos:=const_droit;
   end;
-  }
-   // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
-   // car le RUN vient de démarrer
+
+  // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
+  // car le RUN vient de démarrer
   faire_event:=aiguillage[adresse].position<>9;
   aiguillage[adresse].position:=pos;
 
@@ -6800,13 +6813,13 @@ begin
   if (N_Event_tick>=Max_Event_det_tick) then
   begin
     N_Event_tick:=0;
-    Affiche('Raz Evts détecteurs',clLime);
+    Affiche('Raz Evts ',clLime);
   end;
   s:='Tick='+IntToSTR(tick)+' Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
   if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
+  if inv then s:=s+' INV';
   if AffAigDet then
   begin
-    //if objet<>0 then s:=s+' objet='+IntToSTR(objet);
     Affiche(s,clyellow);
     AfficheDebug(s,clyellow);
   end;
@@ -6816,7 +6829,6 @@ begin
   event_det_tick[N_event_tick].tick:=tick;
   event_det_tick[N_event_tick].aiguillage:=adresse;
   event_det_tick[N_event_tick].etat:=pos;
-  //event_det_tick[N_event_tick].objet:=objet;
 
   // Mettre à jour le TCO
   if AvecTCO then
@@ -6828,17 +6840,34 @@ begin
   if faire_event then evalue;
 end;
 
+
+// pilote une sortie à 0  dont l'adresse est à octet
+procedure Pilote_acc0_X(adresse : integer;octet : byte);
+var groupe : integer ;
+    fonction : byte;
+    s : string;
+begin
+  if debug_dec_sig then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
+  groupe:=(adresse-1) div 4;
+  fonction:=((adresse-1) mod 4)*2 + (octet-1);
+  s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+  s:=checksum(s);
+  envoi(s);     // envoi de la trame et attente Ack
+end;
+
 // pilotage d'un accessoire (décodeur d'aiguillage, de signal)
-// octet = 0 ou 1 ou 2
+// octet = 1 (dévié) ou 2 (droit)
 // la sortie "octet" est mise à 1 puis à 0
 // acc = aig ou feu
 procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
 var  groupe,temps : integer ;
      fonction : byte;
      s : string;
+label mise0;
 begin
   //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
-  // pilotage par CDM rail
+
+  // pilotage par CDM rail -----------------
   if CDM_connecte then
   begin
     //AfficheDebug(intToSTR(adresse),clred);
@@ -6847,24 +6876,23 @@ begin
     envoi_CDM(s);
     if (acc=feu) and not(Raz_Acc_signaux) then exit;
     if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
+    sleep(50);
     s:=chaine_CDM_Acc(adresse,0);
     envoi_CDM(s);
     exit;
   end;
 
-  // pilotage par USB ou par éthernet de la centrale
-
-  // Affiche('Accessoire '+intToSTR(adresse),clLime);
+  // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
     // test si pilotage aiguillage inversé
-    if aiguillage[adresse].inversion=1 then
+    if (acc=aig) and (aiguillage[adresse].inversion=1) then
     begin
       if octet=1 then octet:=2 else octet:=1;
     end;
 
     if (octet=0) or (octet>2) then exit;
-    //if (octet>2) then exit;
+
     groupe:=(adresse-1) div 4;
     fonction:=((adresse-1) mod 4)*2 + (octet-1);
     // pilotage à 1
@@ -6872,9 +6900,9 @@ begin
     s:=checksum(s);
     if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
     envoi(s);     // envoi de la trame et attente Ack
+
     // si l'accessoire est un feu et sans raz des signaux, sortir
     if (acc=feu) and not(Raz_Acc_signaux) then exit;
-
 
     // si aiguillage, faire une temporisation
     //if (index_feu(adresse)=0) or (Acc=aig) then
@@ -6883,7 +6911,7 @@ begin
       temps:=aiguillage[adresse].temps;if temps=0 then temps:=4;
       if portCommOuvert or parSocketLenz then tempo(temps);
     end;
-    sleep(50);
+    //sleep(50);
 
     // pilotage à 0 pour éteindre le pilotage de la bobine du relais
     s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
@@ -6894,7 +6922,7 @@ begin
   end;
 
   // pas de centrale et pas CDM connecté: on change la position de l'aiguillage
-  if acc=aig then event_aig(adresse,octet); 
+  if acc=aig then event_aig(adresse,octet);
 end;
 
 
@@ -6947,7 +6975,7 @@ begin
       adraig:=((adresse * 4)+1 ); // *4 car N=1, c'est le "poids fort"
       if (valeur and $C)=$8 then
       begin      
-        Event_Aig(adraig+3,const_droit);
+        Event_Aig(adraig+3,const_droit);   
         if traceTrames then begin s:='accessoire '+intToSTR(adraig+3)+'=2';AfficheDebug(s,clYellow);end;
       end;
       if (valeur and $C)=$4 then
@@ -7587,7 +7615,7 @@ begin
   Srvc_PosTrain:=false;
   Srvc_sig:=false;
   
-  AF:='Client TCP-IP CDM Rail ou USB - système LENZ - Version '+Version;
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version;
   Caption:=AF;
   Application.onHint:=doHint;
 
@@ -7642,9 +7670,9 @@ begin
   // si CDM n'est pas connecté, on ouvre la liaison vers la centrale
   if not(CDM_connecte) then
   begin
-    Affiche('CDM absent - Ouverture liaison vers centrale Lenz',clYellow);
+    Affiche('CDM absent',clYellow);
     // ouverture par USB
-    Affiche('demande connexion à la centrale Lenz par USB',clyellow);
+    Affiche('Demande connexion à la centrale par USB protocole XpressNet',clyellow);
     connecte_USB;
     if not(portCommOuvert) then
     begin
@@ -7652,7 +7680,7 @@ begin
       // Initialisation de la comm socket LENZ
       if AdresseIP<>'0' then
       begin
-        Affiche('demande connexion à la centrale Lenz par Ethernet',clyellow);
+        Affiche('Demande connexion à la centrale par Ethernet protocole XpressNet',clyellow);
         ClientSocketLenz.port:=port;
         ClientSocketLenz.Address:=AdresseIP;
         ClientSocketLenz.Open;
@@ -7788,6 +7816,7 @@ begin
         if pos=1 then s:=s+' (dévié)' else s:=s+' (droit)';
         Affiche(s,cyan);
         pilote_acc(i,pos,aig);
+        sleep(Tempo_Aig);
         application.processMessages;
       end;
     end;  
@@ -8042,7 +8071,7 @@ begin
    10061 : s:=s+': Connexion refusée';
    10065 : s:=s+': Port non connecté';
    end;
-   affiche(s,clOrange);
+   if errorcode<>10061 then affiche(s,clOrange);
    if nivDebug=3 then afficheDebug(s,clOrange);
    parSocketLenz:=false;
    ErrorCode:=0;
@@ -8061,7 +8090,7 @@ begin
    10061 : s:=s+': Connexion refusée';
    10065 : s:=s+': Port non connecté';
    end;
-   affiche(s,ClOrange);
+   if errorcode<>10061 then affiche(s,ClOrange);
    afficheDebug(s,ClOrange);
    CDM_connecte:=false;
    if (portCommOuvert=false) and (parSocketLenz=false) then LabelTitre.caption:=titre;
@@ -8181,7 +8210,7 @@ begin
 end;
 
 procedure TFormPrinc.Etatdesaiguillages1Click(Sender: TObject);
-var i,j,model,objet : integer;
+var i,j,model : integer;
     s : string;
 begin
   for i:=1 to MaxAcc do
@@ -8194,8 +8223,6 @@ begin
       if aiguillage[i].position=const_droit then s:=s+' (droit)';
       if aiguillage[i].position=const_inconnu then s:=s+' inconnue';
       
-      objet:=aiguillage[i].objet;
-      if objet<>0 then s:=s+' objet='+intToSTR(objet);
       if model=4 then // aig triple
       begin
         j:=aiguillage[i].AdrTriple;
@@ -8237,7 +8264,7 @@ begin
       end;
       if aiguillage[i].modele=4 then s:=s+' Dévié2='+intToSTR(aiguillage[i].ADevie2)+aiguillage[i].ADevie2B;
       if aiguillage[i].vitesse<>0 then s:=s+' Vitesse déviée='+intToSTR(aiguillage[i].vitesse);
-      if aiguillage[i].inversion<>0 then s:=s+' pilotage inversé';
+      if aiguillage[i].inversionCDM<>0 then s:=s+' pilotage inversé';
 
       Affiche(s,clYellow);
     end;
@@ -8374,19 +8401,20 @@ begin
         if aiguillage[adr].modele=1 then
         begin
           //Affiche('Normal',clyellow);
-          if etat=0 then etatAig:=2 else etatAig:=1;
+          if etat=const_droit_CDM then etatAig:=const_droit else etatAig:=const_devie;
           Event_Aig(adr,etatAig);
         end;
+
         // TJD TJS
         if (aiguillage[adr].modele=2) or (aiguillage[adr].modele=3) then
         begin
           //Affiche('TJD/S',clyellow);
           //adr2:=aiguillage[adr].Apointe;  // 2eme adresse de la TJD
           case etat of
-          1 : begin etatAig:=1;EtatAig2:=2;end;
-          4 : begin etatAig:=1;EtatAig2:=1;end;
-          5 : begin etatAig:=2;EtatAig2:=1;end;
-          0 : begin etatAig:=2;EtatAig2:=2;end;
+          1 : begin etatAig:=const_devie;EtatAig2:=const_droit;end;
+          4 : begin etatAig:=const_devie;EtatAig2:=const_devie;end;
+          5 : begin etatAig:=const_droit;EtatAig2:=const_devie;end;
+          0 : begin etatAig:=const_droit;EtatAig2:=const_droit;end;
           end;
           if (aiguillage[adr].inversionCDM=1) or (aiguillage[adr2].inversionCDM=1) then
           begin

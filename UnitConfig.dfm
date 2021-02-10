@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 194
-  Top = 249
+  Left = 228
+  Top = 189
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1753,7 +1753,7 @@ object FormConfig: TFormConfig
   end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
-    Top = 464
+    Top = 472
     Width = 201
     Height = 25
     Caption = 'Enregistrer la configuration et Fermer'
@@ -1764,7 +1764,7 @@ object FormConfig: TFormConfig
   end
   object Button2: TButton
     Left = 24
-    Top = 464
+    Top = 472
     Width = 201
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
@@ -1775,8 +1775,8 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 585
-    Height = 441
-    ActivePage = TabSheetBranches
+    Height = 457
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBackground
     Font.Height = -11
@@ -2120,7 +2120,7 @@ object FormConfig: TFormConfig
       ImageIndex = 1
       object Label9: TLabel
         Left = 8
-        Top = 384
+        Top = 400
         Width = 297
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
@@ -2131,7 +2131,7 @@ object FormConfig: TFormConfig
         Top = 8
         Width = 297
         Height = 113
-        Caption = 'Acc'#232's USB - S'#233'rie '#224' l'#39'interface vers la centrale LENZ'
+        Caption = 'Acc'#232's USB/S'#233'rie '#224' l'#39'interface vers la centrale via XpressNet'
         TabOrder = 0
         object Label3: TLabel
           Left = 16
@@ -2212,7 +2212,7 @@ object FormConfig: TFormConfig
         object RadioButton3: TRadioButton
           Left = 8
           Top = 56
-          Width = 265
+          Width = 273
           Height = 17
           Caption = '2 : Ent'#234'te E4 - Suffixe 0D 0D 0A (arduino XpressNet)'
           TabOrder = 2
@@ -2223,7 +2223,7 @@ object FormConfig: TFormConfig
         Top = 216
         Width = 297
         Height = 73
-        Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale LENZ Ethernet'
+        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface vers la centrale via XpressNet'
         TabOrder = 2
         object Label7: TLabel
           Left = 14
@@ -2267,8 +2267,8 @@ object FormConfig: TFormConfig
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '1. Port COM de l'#39'adresse USB de l'#39'interface LI-USB - '
-          'LI100 - LI100F - LI101F - GENLI.'
+          '1. Port COM de l'#39'adresse USB de l'#39'interface '
+          'XpressNet.'
           'Attention de COM1 '#224' 9 - Si le port de l'#39'interface '
           'USB>9, il faut le changer manuellement dans le '
           'gestionnaire des p'#233'riph'#233'riques. Mettre 0 si inutilis'#233'e. '
@@ -2335,9 +2335,16 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 296
         Width = 297
-        Height = 81
+        Height = 89
         Caption = 'Divers'
         TabOrder = 7
+        object Label32: TLabel
+          Left = 14
+          Top = 66
+          Width = 200
+          Height = 13
+          Caption = 'Temporisation de s'#233'quencement d'#39'init (ms)'
+        end
         object CheckBoxRazSignaux: TCheckBox
           Left = 8
           Top = 16
@@ -2361,6 +2368,14 @@ object FormConfig: TFormConfig
           ShowHint = False
           TabOrder = 1
           WordWrap = True
+        end
+        object EditTempoAig: TEdit
+          Left = 224
+          Top = 62
+          Width = 41
+          Height = 21
+          TabOrder = 2
+          Text = 'EditTempoAig'
         end
       end
     end
@@ -2502,9 +2517,9 @@ object FormConfig: TFormConfig
           Caption = 'LabelTJD1'
         end
         object GroupBox10: TGroupBox
-          Left = 40
+          Left = 8
           Top = 64
-          Width = 201
+          Width = 273
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
           TabOrder = 0
@@ -2693,9 +2708,9 @@ object FormConfig: TFormConfig
         object LabelAdrSig: TLabel
           Left = 13
           Top = 20
-          Width = 154
+          Width = 52
           Height = 19
-          Caption = 'Adresse du signal = '
+          Caption = 'Signal '
           Font.Charset = ANSI_CHARSET
           Font.Color = clBlack
           Font.Height = -16
@@ -2798,7 +2813,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2882,6 +2897,15 @@ object FormConfig: TFormConfig
           Caption = 'Verrouillable au carr'#233
           TabOrder = 10
           OnClick = CheckVerrouCarreClick
+        end
+        object EditAdrSig: TEdit
+          Left = 72
+          Top = 18
+          Width = 41
+          Height = 21
+          TabOrder = 11
+          Text = ' '
+          OnChange = EditAdrSigChange
         end
       end
       object RichSig: TRichEdit

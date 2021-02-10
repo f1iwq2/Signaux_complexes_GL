@@ -99,7 +99,6 @@ var
                     NbEl : integer;
                     Det : array[1..3] of integer; // tableau des evts détecteurs par train
                     end;
-  //                    tick 1/10s,détecteur
   N_Event_tick : integer ; // dernier index
 
   // tableau des évènements détecteurs et aiguillages

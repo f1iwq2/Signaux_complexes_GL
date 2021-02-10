@@ -45,6 +45,11 @@ version 2.21 : Paramétrage du nombre de détecteurs considérés comme trop distant
 version 2.3  : Changement de la méthode de réception des trames du protocole IPC de CDM-Rail
                Affichage au démarrage des variables manquantes du fichier config-gl.cfg
 version 2.31 : Amélioration calcul des routes depuis buttoir
+	       Lancement du TCO à la validation dans la configuration
+version 2.4  : Optimisation de la gestion des évènements aiguillages
+               Gestion des aiguillages inversés dans CDM pour le mode autonome
+               Debug pilotage feux LEB
+	
 
 
 

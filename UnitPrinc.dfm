@@ -1235,7 +1235,7 @@ object FormPrinc: TFormPrinc
       Top = 24
       Width = 49
       Height = 21
-      Hint = 'Adresse accessoire ou de CV'
+      Hint = 'Adresse accessoire'
       TabOrder = 0
       Text = '1'
     end

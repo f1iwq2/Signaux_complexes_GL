@@ -31,16 +31,29 @@ object FormPilote: TFormPilote
   end
   object ImagePilote: TImage
     Left = 208
-    Top = 64
+    Top = 48
     Width = 113
     Height = 129
   end
   object LabelNbFeux: TLabel
     Left = 208
-    Top = 208
+    Top = 224
     Width = 120
     Height = 13
     Caption = 'Nombre de feux '#224' allumer'
+  end
+  object LabelDec: TLabel
+    Left = 216
+    Top = 192
+    Width = 72
+    Height = 19
+    Caption = 'LabelDec'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
   object GroupBox1: TGroupBox
     Left = 8

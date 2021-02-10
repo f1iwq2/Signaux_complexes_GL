@@ -31,6 +31,7 @@ type
     ButtonPilote: TButton;
     EditNbreFeux: TEdit;
     LabelNbFeux: TLabel;
+    LabelDec: TLabel;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);
@@ -211,11 +212,14 @@ begin
 end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
-var i : integer;
+var i,d : integer;
 begin
    radioVert.Checked:=false;
    radioVertCli.Checked:=false;
    i:=index_feu(AdrPilote);
+   d:=feux[i].decodeur;
+   //labelDec.Caption:=decodeur[d];
+   //Affiche(decodeur[d],clred);
    
 end;
 
@@ -257,6 +261,7 @@ if ord(Key) = VK_RETURN then
     else EditNbreFeux.text:='1';
   end;
 end;
+
 
 
 end.

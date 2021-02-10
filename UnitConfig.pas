@@ -186,6 +186,9 @@ type
     Label31: TLabel;
     RichAct: TRichEdit;
     CheckBoxInitAig: TCheckBox;
+    EditAdrSig: TEdit;
+    Label32: TLabel;
+    EditTempoAig: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -224,6 +227,7 @@ type
     procedure CheckRAZClick(Sender: TObject);
     procedure Edit_HGChange(Sender: TObject);
     procedure CheckInverseClick(Sender: TObject);
+    procedure EditAdrSigChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -248,6 +252,7 @@ TCO_ch='TCO';
 CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
+Tempo_aig_ch='Tempo_Aig';
 NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
@@ -484,8 +489,10 @@ begin
        if c<>'Z' then s:=s+c;
      end;
      // vitesse de franchissement
-     if aiguillage[i].vitesse=30 then s:=s+',30';
-     if aiguillage[i].vitesse=60 then s:=s+',60';
+     if aiguillage[i].vitesse=0 then s:=s+',V0';
+     if aiguillage[i].vitesse=30 then s:=s+',V30';
+     if aiguillage[i].vitesse=60 then s:=s+',V60';
+     if aiguillage[i].inversionCDM=1 then s:=s+',I1' else s:=s+',I0';
    end
 
    else
@@ -661,6 +668,10 @@ begin
   // avec ou sans initialisation des aiguillages
   if AvecInitAiguillages then s:='1' else s:='0';
   writeln(fichierN,Init_Aig_ch+'='+s);
+  copie_commentaire;
+
+  // temporisation initialisation des aiguillages
+  writeln(fichierN,Tempo_aig_ch+'=',IntToSTR(Tempo_aig));
   copie_commentaire;
 
   // plein écran
@@ -844,6 +855,10 @@ begin
   changeInterface:=changeInterface or (i<>port);
   port:=i;
 
+  Val(editTempoAig.Text,i,erreur);
+  if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';exit;end;
+  Tempo_Aig:=i;
+  
   // contrôle protocole interface  COM3:57600,N,8,1,2
   s:=EditComUSB.Text;
   if not(config_com(s)) then begin labelInfo.Caption:='Protocole série USB Interface incorrect';exit;end;
@@ -969,7 +984,7 @@ begin
   EditP2.Visible:=false;
   EditP3.Visible:=false;
   EditP4.Visible:=false;
-  CheckInverse.Visible:=false;
+//  CheckInverse.Visible:=false;
   LabelTJD1.Visible:=false;
   LabelTJD2.Visible:=false;
   EditDevieS2.Visible:=false;
@@ -994,6 +1009,7 @@ begin
   EditPortCDM.Text:=IntToSTR(portCDM);
   EditIPLenz.text:=AdresseIP;
   EditportLenz.text:=IntToSTR(Port);
+  EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditComUSB.Text:=PortCom;
   EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
   EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
@@ -1257,12 +1273,16 @@ begin
       EditP2.Visible:=false;
       EditP3.Visible:=false;
       EditP4.Visible:=false;
-      CheckInverse.Visible:=false;
+//      CheckInverse.Visible:=false;
       labelTJD1.Visible:=false;
       LabelTJD2.Visible:=false;
       EditDevieS2.Visible:=false;
       Label18.Visible:=false;
       tjd:=false;
+      CheckInverse.checked:=aiguillage[adresse].inversionCDM=1;
+      if aiguillage[adresse].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=false;end;
+      if aiguillage[adresse].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButton60kmh.checked:=false;end;
+      if aiguillage[adresse].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=true;end;
     end;  
   end;
 //  affiche(s,clOrange);
@@ -1370,8 +1390,7 @@ begin
 
   RE_ColorLine(Formconfig.RichSig,ligneCliquee,Clyellow);
 
-  ss:='Signal '+InttoSTr(Adresse);
-  formconfig.LabelAdrSig.Caption:= ss;
+  FormConfig.EditAdrSig.text:=InttoSTr(Adresse);
   i:=Index_feu(adresse);
   with formconfig.ImageSignal do
   begin
@@ -2359,6 +2378,25 @@ begin
   end;
 end;
 
+procedure TFormConfig.EditAdrSigChange(Sender: TObject);
+var s : string;
+    i, erreur : integer;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditAdrSig.Text;
+    Val(s,i,erreur);
+    if erreur<>0 then begin LabelInfo.caption:='Erreur adresse signal ';exit;end;
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Adresse:=i;
+    s:=encode_sig(lignecliquee+1);
+    RichSig.Lines[lignecliquee]:=s; 
+    feux[lignecliquee+1].modifie:=true;
+  end;
+end;
 
 
 
