@@ -90,23 +90,10 @@ type
     RadioButtonsans: TRadioButton;
     RadioButton30kmh: TRadioButton;
     RadioButton60kmh: TRadioButton;
-    EditDroit_BD: TEdit;
-    EditDevie_HD: TEdit;
-    EditPointe_BG: TEdit;
     LabelLigne: TLabel;
-    LabelBG: TLabel;
-    LabelHD: TLabel;
-    LabelBD: TLabel;
     ImageAig: TImage;
-    ImageAffiche: TImage;
     ImageTJD: TImage;
-    Edit_HG: TEdit;
-    LabelHG: TLabel;
-    EditP1: TEdit;
-    EditP2: TEdit;
     ImageTri: TImage;
-    Label18: TLabel;
-    EditDevieS2: TEdit;
     GroupBox12: TGroupBox;
     ImageSignal: TImage;
     LabelAdrSig: TLabel;
@@ -169,11 +156,7 @@ type
     EditSuiv4: TEdit;
     CheckVerrouCarre: TCheckBox;
     Image2: TImage;
-    LabelTJD1: TLabel;
-    EditP3: TEdit;
-    EditP4: TEdit;
     Label28: TLabel;
-    LabelTJD2: TLabel;
     CheckInverse: TCheckBox;
     RadioButtonAccess: TRadioButton;
     Label29: TLabel;
@@ -189,6 +172,30 @@ type
     EditAdrSig: TEdit;
     Label32: TLabel;
     EditTempoAig: TEdit;
+    EditAdrAig: TEdit;
+    ComboBoxAig: TComboBox;
+    GroupBox16: TGroupBox;
+    LabelHG: TLabel;
+    Edit_HG: TEdit;
+    LabelBG: TLabel;
+    EditPointe_BG: TEdit;
+    ImageAffiche: TImage;
+    EditP1: TEdit;
+    EditP2: TEdit;
+    EditP3: TEdit;
+    EditP4: TEdit;
+    LabelHD: TLabel;
+    EditDevie_HD: TEdit;
+    LabelBD: TLabel;
+    EditDroit_BD: TEdit;
+    Label18: TLabel;
+    EditDevieS2: TEdit;
+    LabelTJD1: TLabel;
+    LabelTJD2: TLabel;
+    Label33: TLabel;
+    ComboBoxAsp: TComboBox;
+    EditSpecUni: TEdit;
+    LabelUni: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -228,6 +235,9 @@ type
     procedure Edit_HGChange(Sender: TObject);
     procedure CheckInverseClick(Sender: TObject);
     procedure EditAdrSigChange(Sender: TObject);
+    procedure EditAdrAigChange(Sender: TObject);
+    procedure ComboBoxAspChange(Sender: TObject);
+    procedure EditSpecUniChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -519,11 +529,11 @@ begin
 
 end;
 
-// transforme le signal du tableau en texte
+// transforme le signal du tableau graphique en texte
 function encode_sig(i : integer): string;
 var s : string;
     c : char;
-    adresse,aspect,j,k,NfeuxDir : integer;
+    adresse,aspect,j,k,NfeuxDir,CondCarre,l,nc : integer;
 begin
   // adresse
   adresse:=feux[i].adresse;
@@ -553,7 +563,7 @@ begin
     s:=s+'),';
   end
   else
-  // feux directionels
+  // feux directionnels
   begin
     NfeuxDir:=aspect-10;
     for j:=1 to NfeuxDir+1 do
@@ -574,6 +584,32 @@ begin
     if feux[i].verrouCarre then s:=s+'1' else s:=s+'0';
     // si unsemaf, paramètre supplémentaire
     if feux[i].decodeur=6 then s:=s+','+intToSTR(feux[i].unisemaf);
+  end;
+
+  // conditions supplémentaires pour le carré
+  if aspect<10 then
+  begin                
+   CondCarre:=Length(feux[i].condcarre[1]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
+   if condCarre<>0 then
+   begin
+      dec(condCarre);
+      l:=1;
+      while condCarre<>0 do
+      begin
+        //if condcarre<>0 then dec(condcarre);
+        s:=s+',(';
+        nc:=Length(feux[i].condcarre[l])-1 ;     // nombre d'aiguillages dans la parenthèse A21,S,A6,D = 4 
+        for k:=1 to nc do
+        begin
+          s:=s+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
+          if k<nc then s:=s+',';
+        end;
+        s:=s+')';
+        inc(l);
+        //CondCarre:=Length(feux[i].condcarre[l]);
+        dec(condcarre);
+      end;
+    end;  
   end;
   encode_sig:=s;
 end;
@@ -1138,7 +1174,7 @@ end;
 // procédure appellée quand on clique une ligne aiguillage de RichAig
 procedure Aff_champs_aig;
 var Adresse,Adr2,traite,erreur,i,j,Nboucle,selpos,AncAdresse,lc : integer;
-    bis,tjd,tri : boolean;
+    bis,tjd,tri,tjs : boolean;
     s,ss : string;
     B : char;
 begin
@@ -1147,7 +1183,7 @@ begin
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
 
-    s:=Uppercase(Lines[lc]);   // ligne cliquée
+    s:=Uppercase(Lines[lc]);   
     if s='' then exit;
 
     AncLigneCliquee:=LigneCliquee;
@@ -1171,16 +1207,17 @@ begin
     
   end;
 
-  Val(s,Adresse,erreur);  // Adresse de l'aiguillage
+  Val(s,Adresse,erreur);  // Récupérer l'adresse de l'aiguillage
   if adresse=0 then exit;
 
   RE_ColorLine(Formconfig.RichAig,ligneCliquee,Clyellow);
 
-  ss:='Description de l''aiguillage '+InttoSTr(Adresse);
-  formconfig.LabelAdresse.Caption:= ss;
+  ss:=InttoSTr(Adresse);
+  formconfig.EditAdrAig.text:= ss;
 
   tjd:=pos('TJD',s)<>0 ;
   tri:=pos('TRI',s)<>0 ;
+  tjs:=pos('TJS',s)<>0 ;
   with formconfig do
   begin
     LabelLigne.caption:=s;
@@ -1188,8 +1225,10 @@ begin
     ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
     ImageAffiche.Transparent:=true;
     // tjd
-    if tjd then 
+    if tjd or tjs then 
     begin
+      if tjd then ComboBoxAig.ItemIndex:=1; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
+      if tjs then ComboBoxAig.ItemIndex:=2;
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
       labelBG.Caption:='S';
       Edit_HG.Visible:=true;
@@ -1249,6 +1288,7 @@ begin
     // aiguillage tri
     if tri then 
     begin
+      ComboBoxAig.ItemIndex:=3; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
       tri:=true;
       labelTJD1.Visible:=false;
       LabelTJD2.Visible:=false;
@@ -1264,6 +1304,7 @@ begin
     else
     // aiguillage normal
     begin
+      ComboBoxAig.ItemIndex:=0; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
       ImageAffiche.Picture.BitMap:=Imageaig.Picture.Bitmap;
       labelBG.Caption:='P';
       EditPointe_BG.ReadOnly:=false;
@@ -1360,14 +1401,14 @@ end;
 
 // appellée quand on clique sur la liste signaux
 Procedure aff_champs_sig;
-var i,j,l,d,k, ligne,lc, adresse,erreur,condCarre,AncAdresse : integer;
+var i,j,l,d,k,nc, ligne,lc, adresse,erreur,condCarre,AncAdresse : integer;
     s,ss,s2 : string;
 begin
 // déterminer la ligne cliquée et mettre en surbrillance
   with Formconfig.RichSig do
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
-
+    //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     s:=Uppercase(Lines[lc]);   // ligne cliquée
     if s='' then exit;
 
@@ -1375,7 +1416,7 @@ begin
     ligneCliquee:=lc;
     //Affiche('Ancienne='+IntToSTR(AncLigneCliquee)+' Nouvelle='+IntToSTR(LigneCliquee),clyellow);
     
-    // Mettre en rouge le signal modifié quand on clique sur un autre aiguillage
+    // Mettre en rouge le signal modifié quand on clique sur un autre signal
     if AncLigneCliquee<>-1 then 
     begin
       val(FormConfig.RichSig.Lines[AncLigneCliquee],AncAdresse,erreur);
@@ -1392,6 +1433,7 @@ begin
 
   FormConfig.EditAdrSig.text:=InttoSTr(Adresse);
   i:=Index_feu(adresse);
+ 
   with formconfig.ImageSignal do
   begin
     Picture.Bitmap.TransparentMode:=tmAuto; 
@@ -1406,7 +1448,24 @@ begin
     EditDet3.Text:=''; EditSuiv3.Text:='';
     EditDet4.Text:=''; EditSuiv4.Text:='';
     ComboBoxDec.ItemIndex:=feux[i].decodeur;
+    if feux[i].decodeur=6 then 
+    begin 
+      EditSpecUni.Visible:=true;LabelUni.Visible:=true;
+      EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
+    end
+      else begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
     d:=feux[i].aspect;
+    case d of
+    2 : ComboBoxAsp.ItemIndex:=0;
+    3 : ComboBoxAsp.ItemIndex:=1;
+    4 : ComboBoxAsp.ItemIndex:=2;
+    5 : ComboBoxAsp.ItemIndex:=3;
+    7 : ComboBoxAsp.ItemIndex:=4;
+    9 : ComboBoxAsp.ItemIndex:=5;
+    else
+        ComboBoxAsp.ItemIndex:=d-10+4;
+    end; 
+    
     // signal normal
     if d<10 then
     begin
@@ -1438,26 +1497,30 @@ begin
 
       checkVerrouCarre.Checked:=feux[i].VerrouCarre;
       
-      // conditions supplémentaires
-      CondCarre:=Length(feux[i].condcarre[1]);
+      // conditions supplémentaires du carré par aiguillages
+      CondCarre:=Length(feux[i].condcarre[1]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
       l:=1;
-     
-      while condCarre<>0 do
+      if condCarre<>0 then
       begin
-        if condcarre<>0 then dec(condcarre);
-         s2:='';
-        for k:=1 to condCarre do
+        dec(condCarre);
+        while condCarre<>0 do
         begin
-          s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
-          if k<condCarre then s2:=s2+',';
-          
+          //if condcarre<>0 then dec(condcarre);
+          s2:='';
+          nc:=Length(feux[i].condcarre[l])-1 ;     // nombre d'aiguillages dans la parenthèse A21,S,A6,D = 4 
+          for k:=1 to nc do
+          begin
+            s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
+            if k<nc then s2:=s2+',';
+          end;
+          MemoCarre.Lines.Add(s2); 
+          inc(l);
+          dec(condcarre);
         end;
-        //s2:=s2+'/';
-        MemoCarre.Lines.Add(s2); 
-        inc(l);
-        CondCarre:=Length(feux[i].condcarre[l]);
-      end;
-      
+        // scrolle le MemoCarre sur la première ligne
+        MemoCarre.SelStart:=0;
+        MemoCarre.Perform(EM_SCROLLCARET,0,0);
+      end;  
     end
     else
     begin // directionnel
@@ -1964,7 +2027,7 @@ procedure TFormConfig.EditDet1Change(Sender: TObject);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste then exit;
+  if clicliste or (feux[lignecliquee+1].Aspect>10) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -1985,7 +2048,7 @@ var s : string;
     i,erreur : integer;
     B : char;
 begin
-  if clicliste then exit;
+  if clicliste or (feux[lignecliquee+1].Aspect>10) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2399,6 +2462,88 @@ begin
 end;
 
 
+procedure TFormConfig.EditAdrAigChange(Sender: TObject);
+var s : string;
+    i, erreur : integer;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  with Formconfig do
+  begin
+    s:=EditAdrAig.Text;
+    Val(s,i,erreur);
+    if erreur<>0 then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
+    //  vérifier si l'adresse de l'aiguillage existe déja
+    if (aiguillage[i].modele<>0) then 
+    begin
+      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
+      exit;
+    end  
+    else LabelInfo.caption:='';
+    
+    LabelInfo.caption:=' ';
+    s:=encode_aig(i);
+    affiche(s,clyellow);
+  end;
+end;
+
+procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
+var i,index,feu,asp : integer;
+    s : string;
+begin
+  i:=ComboBoxAsp.ItemIndex;
+  //Affiche(IntToSTR(i),clyellow);
+  case i of
+  0 : asp:=2;
+  1 : asp:=3;
+  2 : asp:=4;
+  3 : asp:=5;
+  4 : asp:=7;
+  5 : asp:=9;
+  else asp:=i+6;
+  end;  
+  index:=lignecliquee+1;  // index du feu
+  feux[index].aspect:=asp;
+  
+  s:=encode_sig(index);
+  formconfig.RichSig.Lines[lignecliquee]:=s;
+  // change l'image du feu
+  feux[index].Img.picture.Bitmap:=Select_dessin_feu(asp);
+  // mettre rouge par défaut
+  if asp=2 then EtatSignalCplx[feux[index].adresse]:=32;
+  if asp=3 then EtatSignalCplx[feux[index].adresse]:=2;
+  if (asp>3) and (asp<10) then EtatSignalCplx[feux[index].adresse]:=1;
+  if asp>10 then EtatSignalCplx[feux[index].adresse]:=0;
+  
+  aff_champs_sig;  // redessine le graphisme du cadre
+  dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);
+end;
+
+procedure TFormConfig.EditSpecUniChange(Sender: TObject);
+var erreur,i,Adr : integer ;
+    s : string ;
+begin
+  if clicliste then exit;
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditSpecUni.Text;
+    Val(s,i,erreur); // code unisemaf
+    s:=EditAdrSig.Text;
+    Val(s,Adr,erreur); // Adresse signal
+    // vérification code unisemaf
+    erreur:=verif_unisemaf(Adr,i);
+    if erreur=1 then begin LabelInfo.caption:='Erreur code Unisemaf';exit;end;
+    if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
+    
+    LabelInfo.caption:=' ';
+    feux[lignecliquee+1].Unisemaf:=i;
+    s:=encode_sig(lignecliquee+1);
+    formconfig.RichSig.Lines[lignecliquee]:=s;
+  end;  
+end;
 
 end.
 

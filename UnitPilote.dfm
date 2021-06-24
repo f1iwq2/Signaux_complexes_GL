@@ -12,6 +12,7 @@ object FormPilote: TFormPilote
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
@@ -37,14 +38,14 @@ object FormPilote: TFormPilote
   end
   object LabelNbFeux: TLabel
     Left = 208
-    Top = 224
+    Top = 240
     Width = 120
     Height = 13
     Caption = 'Nombre de feux '#224' allumer'
   end
   object LabelDec: TLabel
     Left = 216
-    Top = 192
+    Top = 208
     Width = 72
     Height = 19
     Caption = 'LabelDec'
@@ -54,6 +55,13 @@ object FormPilote: TFormPilote
     Font.Name = 'Arial'
     Font.Style = [fsBold]
     ParentFont = False
+  end
+  object Label1: TLabel
+    Left = 232
+    Top = 192
+    Width = 50
+    Height = 13
+    Caption = 'D'#233'codeur:'
   end
   object GroupBox1: TGroupBox
     Left = 8
@@ -208,7 +216,7 @@ object FormPilote: TFormPilote
   end
   object EditNbreFeux: TEdit
     Left = 240
-    Top = 248
+    Top = 256
     Width = 57
     Height = 21
     TabOrder = 3

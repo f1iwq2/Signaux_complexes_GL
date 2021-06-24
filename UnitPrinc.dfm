@@ -1557,12 +1557,12 @@ object FormPrinc: TFormPrinc
     object Interface1: TMenuItem
       Caption = 'Interface'
       object MenuConnecterUSB: TMenuItem
-        Caption = 'Connecter l'#39'interface en USB'
+        Caption = 'Connecter l'#39'interface XpressNet en USB'
         Hint = 'Connecter l'#39'interface en USB'
         OnClick = MenuConnecterUSBClick
       end
       object DeconnecterUSB: TMenuItem
-        Caption = 'D'#233'connecter interface de l'#39'USB'
+        Caption = 'D'#233'connecter l'#39'interface XpressNet de l'#39'USB'
         Hint = 'D'#233'connecter l'#39'interface USB'
         OnClick = DeconnecterUSBClick
       end
@@ -1570,12 +1570,12 @@ object FormPrinc: TFormPrinc
         Caption = '-'
       end
       object MenuConnecterEthernet: TMenuItem
-        Caption = 'Connecter l'#39'interface en Ethernet'
+        Caption = 'Connecter l'#39'interface XpressNet en Ethernet'
         Hint = 'Connecter l'#39'interface par Ethernet'
         OnClick = MenuConnecterEthernetClick
       end
       object MenuDeconnecterEthernet: TMenuItem
-        Caption = 'D'#233'connecter l'#39'interface de Ethernet'
+        Caption = 'D'#233'connecter l'#39'interface XpressNet de Ethernet'
         Hint = 'D'#233'connecter l'#39'interface par Ethernet'
         OnClick = MenuDeconnecterEthernetClick
       end

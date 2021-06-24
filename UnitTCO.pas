@@ -465,7 +465,7 @@ end;
 procedure sauve_fichier_tco;
 var fichier : textfile;
     s : string;
-    x,y,i,erreur : integer;
+    x,y : integer;
 begin
   AssignFile(fichier,'tco.cfg');
   rewrite(fichier);
@@ -509,7 +509,6 @@ end;
 
 procedure TformTCO.grille;
 var x,y : integer;
-    r : Trect;
 begin
   if not(AvecGrille) then exit;
   With PCanvasTCO do
@@ -533,10 +532,9 @@ end;
 
 // élément de voie horizontale Element 1
 procedure TFormTCO.dessin_voie(Canvas : Tcanvas;x,y,mode : integer);
-var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
+var Adr, x0,y0,jy1,jy2 : integer;
     r : Trect;
     couleur : Tcolor;
-    s : string;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -579,7 +577,6 @@ procedure TformTCO.dessin_AigG_PD(canvas : Tcanvas;x,y : integer; Mode,position 
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     inverse : boolean;
     r : Trect;
-    s : string;
 
     procedure horz;
     begin
@@ -663,7 +660,6 @@ procedure TFormTCO.dessin_AigPG_AG(Canvas : Tcanvas;x,y : integer;Mode ,position
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     inverse : boolean;
     r : Trect;
-    s : string;
 
     procedure horz;
     begin
@@ -748,7 +744,6 @@ procedure TformTCO.dessin_AigD_PG(Canvas : Tcanvas;x,y,Mode,position : integer);
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     inverse : boolean;
     r : Trect;
-    s : string;
 
     procedure bande_horz;
     begin
@@ -836,7 +831,6 @@ procedure TFormTCO.dessin_AigPD_AD(Canvas : Tcanvas;x,y : integer;Mode,position 
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
     inverse : boolean;
     r : Trect;
-    s : string;
 
     procedure horz;
     begin
@@ -983,7 +977,7 @@ end;
 
 // courbe: droit vers bas  -\  Element 8
 procedure TFormTCO.dessin_infD(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var jy1,jy2,x0,y0,i,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+var jy1,jy2,x0,y0,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -1017,7 +1011,7 @@ end;
 
 // courbe bas gauche vers droit  Elément 9 
 procedure TFormTCO.dessin_infG(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var jy1,jy2,x0,y0,i,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+var jy1,jy2,x0,y0,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -1050,9 +1044,8 @@ end;
 
 // élément 10
 procedure TformTCO.dessin_Diag1(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
+var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
     r : Trect;
-    s : string;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -1097,9 +1090,8 @@ end;
 
 // élément 11
 procedure TformTCO.dessin_Diag2(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
+var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
     r : Trect;
-    s : string;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -1636,7 +1628,7 @@ end;
 
 // Element 20
 procedure TFormTCO.dessin_20(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,xbv1,xbv2,adr : integer;
+var x0,y0,xbv1,xbv2,adr : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -1784,7 +1776,7 @@ end;
 // copie de l'image du feu à 90° dans le canvas source et le tourne de 90° et le met dans l'image temporaire
 procedure Feu_90D(ImageSource : TImage;x,y : integer ; FrX,FrY : real);
 var p : array[0..2] of TPoint; 
-    x0,y0,TailleY,TailleX  : integer;
+    TailleY,TailleX  : integer;
 begin
   TailleY:=ImageSource.Picture.Height;
   TailleX:=ImageSource.Picture.Width;
@@ -1804,30 +1796,6 @@ begin
                  PImageTemp.Canvas.Handle,0,0,TailleY,TailleX,clBlue);
   PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
   
-end;
-
-
-// renvoie un pointeur vers l'image du feu suivant l'aspect du feu de adresse
-// ne marche pas
-function PointeurImage(adresse : integer) : TImage;
-var i,aspect : integer;
-    Pim : TImage;
-begin
-  // trouver l'aspect du feu
-  i:=Index_feu(adresse);
-  aspect:=feux[i].aspect;
-  
-  pim:=nil;
-  case aspect of
-  2 : Pim:=Formprinc.Image2feux;
-  3 : Pim:=Formprinc.Image3feux;
-  4 : Pim:=Formprinc.Image4feux;
-  5 : Pim:=Formprinc.Image5feux;
-  7 : Pim:=Formprinc.Image7feux;
-  9 : Pim:=Formprinc.Image9feux;
-  else Pim:=Formprinc.Image3feux;
-  end;
-  PointeurImage:=Pim;
 end;
 
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
@@ -2171,7 +2139,7 @@ end;
 
 // Dessine un feu dans le canvas en x,y , dont l'adresse se trouve à la cellule x,y
 procedure dessin_feu(CanvasDest : Tcanvas;x,y : integer );
-var  OffsetX,x0,y0,xp,yp,orientation,adresse,i,aspect,TailleX,TailleY,NbCellDest : integer;
+var  x0,y0,xp,yp,orientation,adresse,aspect,TailleX,TailleY : integer;
      ImageFeu : Timage;
      frX,frY : real;
 begin
@@ -2185,7 +2153,6 @@ begin
   aspect:=TCO[x,y].aspect;
  // Affiche(IntToSTR(i)+' '+intToSTR(aspect),clred);
 
-  offsetX:=0;
   case aspect of
   2 :  ImageFeu:=Formprinc.Image2feux;
   3 :  ImageFeu:=Formprinc.Image3feux;
@@ -2289,7 +2256,7 @@ begin
 end;
 
 procedure TFormTCO.Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
-var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
+var x0,y0 : integer;
     r : TRect;
 begin
   if y>1 then
@@ -2375,9 +2342,9 @@ begin
 end;
 
 
-// affiche la cellule. x et y en cases
+// affiche la cellule x et y en cases
 procedure TformTCO.affiche_cellule(x,y : integer);
-var i,Xorg,Yorg,mode,adresse,btype,Bimage,aspect,oriente,pos : integer;
+var Xorg,Yorg,mode,adresse,btype,Bimage,aspect,oriente,pos : integer;
     s : string;
 begin
   PcanvasTCO.pen.Mode:=PmCopy;
@@ -2665,9 +2632,8 @@ end;
 // clic gauche sur image
 procedure TFormTCO.ImageTCOClick(Sender: TObject);
 var  Position: TPoint;
-     i,j ,adresse,Bimage : integer;
+     Bimage : integer;
      s : string;
-     menuItem: TmenuItem;
 begin
   //Affiche('1 Clic',clyellow);
   GetCursorPos(Position);
@@ -2748,7 +2714,6 @@ end;
 procedure zone_TCO(det1,det2,mode : integer);
 var i,x,y,ancienY,ancien2Y,ancienX,ancien2X,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2 : integer;
-    trouve : boolean;
     s : string;
 begin
   // trouver le détecteur det1
@@ -2959,7 +2924,6 @@ begin
 end;  
 
 procedure TFormTCO.FormActivate(Sender: TObject);
-var r : Trect;
 begin
   if not(Forminit) then
   begin
@@ -3075,7 +3039,6 @@ begin
 end;
 
 procedure TFormTCO.Elmentdroit1Click(Sender: TObject);
-var  Position: TPoint;
 begin
   // effacer le carré pointeur 
   //Entoure_cell(XclicCell,YclicCell);
@@ -3696,9 +3659,8 @@ end;
 
 // supprimer la sélection
 procedure TFormTCO.MenuCouperClick(Sender: TObject);
-var  Position: TPoint;
-     r : Trect;
-     Adresse,x0,y0,x,y,XCell1,YCell1,xCell2,yCell2,i,j : integer;
+var  
+     x,y,XCell1,YCell1,xCell2,yCell2 : integer;
 begin
   // couper sans sélection : on coupe une seule cellule
   if not(SelectionAffichee) then 
@@ -3780,7 +3742,7 @@ begin
 end;
 
 procedure TFormTCO.AnnulercouperClick(Sender: TObject);
-var x,y,Xplace,yplace,i,j,adresse : integer;
+var x,y,Xplace,yplace,adresse : integer;
 begin
   if TamponAffecte then
   begin
@@ -3798,7 +3760,6 @@ begin
             if tco[xPlace,yPlace].Bimage=30 then
             begin
               adresse:=tco[xPlace,yPlace].Adresse;
-              j:=Index_feu(adresse);
             end;
           end;  
         end;
@@ -3951,7 +3912,7 @@ end;
 
 // changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,i,index,aspect : integer;
+var Adr,erreur,index,aspect : integer;
 begin
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then 
@@ -4042,7 +4003,6 @@ end;
 
 // dépose d'un feu sur le TCO
 procedure TFormTCO.ImageDiag1EndDrag(Sender, Target: TObject; X, Y: Integer);
-var i : integer;
 begin
   if (x=0) and (y=0) then exit;
   TCO_modifie:=true;
@@ -4101,8 +4061,6 @@ begin
 end;
 
 procedure TFormTCO.ImageFeuEndDrag(Sender, Target: TObject; X, Y: Integer);
-var r : Trect;
-    i : integer;
 begin
   if (x=0) and (y=0) then exit;
   efface_entoure;
@@ -4137,9 +4095,7 @@ end;
 
  
 procedure TFormTCO.Tourner90GClick(Sender: TObject);
-var BImage,aspect,adresse : integer;
-    ImageFeu : TImage;
-    frX,frY : real;
+var BImage,adresse : integer;
 begin
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   if Bimage<>30 then exit; 
@@ -4174,8 +4130,6 @@ end;
 
 procedure TFormTCO.Tourner90DClick(Sender: TObject);
 var BImage ,aspect,adresse : integer;
-    ImageFeu : TImage;
-    frX,frY : real;
 begin
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   if Bimage<>30 then exit; 
@@ -4213,7 +4167,6 @@ end;
 
 procedure TFormTCO.Pos_vertClick(Sender: TObject);
 var BImage ,aspect,Adresse : integer;
-    ImageFeu : TImage;
 begin
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   // si c'est autre chose qu'un feu, sortir
@@ -4343,7 +4296,7 @@ begin
 end;
 
 procedure TFormTCO.ImageTCODblClick(Sender: TObject);
-var Bimage,Adresse,aspect,i : integer;
+var Bimage,Adresse,i : integer;
     Msgdlg: Tform;
     Result : TModalResult;
 begin

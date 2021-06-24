@@ -32,6 +32,7 @@ type
     EditNbreFeux: TEdit;
     LabelNbFeux: TLabel;
     LabelDec: TLabel;
+    Label1: TLabel;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);
@@ -50,6 +51,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonPiloteClick(Sender: TObject);
     procedure EditNbreFeuxKeyPress(Sender: TObject; var Key: Char);
+    procedure FormActivate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -212,15 +214,9 @@ begin
 end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
-var i,d : integer;
 begin
-   radioVert.Checked:=false;
-   radioVertCli.Checked:=false;
-   i:=index_feu(AdrPilote);
-   d:=feux[i].decodeur;
-   //labelDec.Caption:=decodeur[d];
-   //Affiche(decodeur[d],clred);
-   
+  radioVert.Checked:=false;
+  radioVertCli.Checked:=false;
 end;
 
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
@@ -255,13 +251,19 @@ if ord(Key) = VK_RETURN then
         EtatSignalCplx[0]:=i;
         dessine_feu_pilote;
       end;
-
       if (i<0) and (i>6) then EditNbreFeux.text:='1';
     end
     else EditNbreFeux.text:='1';
   end;
 end;
 
-
+procedure TFormPilote.FormActivate(Sender: TObject);
+var i,d : integer;
+begin
+  // mise à jour du champ décodeur
+  i:=index_feu(AdrPilote);
+  d:=feux[i].decodeur;
+  LabelDec.Caption:=decodeur[d];
+end;
 
 end.

@@ -2402,15 +2402,15 @@ object FormConfig: TFormConfig
         Left = 280
         Top = 32
         Width = 289
-        Height = 265
+        Height = 353
         Caption = 'Description de l'#39'aiguillage'
         TabOrder = 0
         object LabelAdresse: TLabel
-          Left = 37
+          Left = 13
           Top = 20
-          Width = 188
+          Width = 196
           Height = 19
-          Caption = 'Adresse de l'#39'aiguillage = '
+          Caption = 'Description de l'#39'aiguillage'
           Font.Charset = ANSI_CHARSET
           Font.Color = clBlack
           Font.Height = -16
@@ -2431,94 +2431,9 @@ object FormConfig: TFormConfig
           Font.Style = []
           ParentFont = False
         end
-        object LabelBG: TLabel
-          Left = 18
-          Top = 174
-          Width = 9
-          Height = 16
-          Caption = 'P'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object LabelHD: TLabel
-          Left = 225
-          Top = 150
-          Width = 9
-          Height = 16
-          Caption = 'S'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object LabelBD: TLabel
-          Left = 225
-          Top = 174
-          Width = 9
-          Height = 16
-          Caption = 'D'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object ImageAffiche: TImage
-          Left = 80
-          Top = 144
-          Width = 137
-          Height = 57
-        end
-        object LabelHG: TLabel
-          Left = 18
-          Top = 142
-          Width = 9
-          Height = 16
-          Caption = 'D'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object Label18: TLabel
-          Left = 220
-          Top = 198
-          Width = 16
-          Height = 16
-          Caption = 'S2'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object LabelTJD1: TLabel
-          Left = 112
-          Top = 208
-          Width = 52
-          Height = 13
-          Caption = 'LabelTJD1'
-        end
-        object LabelTJD2: TLabel
-          Left = 168
-          Top = 208
-          Width = 52
-          Height = 13
-          Caption = 'LabelTJD1'
-        end
         object GroupBox10: TGroupBox
           Left = 8
-          Top = 64
+          Top = 104
           Width = 273
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
@@ -2551,76 +2466,209 @@ object FormConfig: TFormConfig
             OnClick = RadioButton60kmhClick
           end
         end
-        object EditDroit_BD: TEdit
-          Left = 240
-          Top = 174
-          Width = 41
-          Height = 21
-          TabOrder = 1
-          Text = 'EditDroit_BD'
-          OnChange = EditDroit_BDChange
-        end
-        object EditDevie_HD: TEdit
-          Left = 240
-          Top = 148
-          Width = 41
-          Height = 21
-          TabOrder = 2
-          Text = 'EditDevie_HD'
-          OnChange = EditDevie_HDChange
-        end
-        object EditPointe_BG: TEdit
-          Left = 32
-          Top = 172
-          Width = 41
-          Height = 21
-          TabOrder = 3
-          Text = 'EditPointe_BG'
-          OnChange = EditPointe_BGChange
-        end
-        object EditP1: TEdit
-          Left = 112
-          Top = 148
-          Width = 33
-          Height = 21
-          TabOrder = 4
-          Text = 'EditDDroit'
-        end
-        object EditP2: TEdit
-          Left = 112
-          Top = 172
-          Width = 33
-          Height = 21
-          TabOrder = 5
-          Text = 'EditDdevie'
-        end
-        object EditDevieS2: TEdit
-          Left = 240
-          Top = 196
-          Width = 41
-          Height = 21
-          TabOrder = 6
-          Text = 'EditDevie_HD'
-          OnChange = EditDevieS2Change
-        end
         object CheckInverse: TCheckBox
           Left = 40
-          Top = 232
+          Top = 312
           Width = 185
           Height = 17
           Caption = 'Inversion de l'#39#233'tat CDM'
-          TabOrder = 7
+          TabOrder = 1
           OnClick = CheckInverseClick
         end
-      end
-      object Edit_HG: TEdit
-        Left = 312
-        Top = 172
-        Width = 41
-        Height = 21
-        TabOrder = 1
-        Text = 'EditPointe'
-        OnChange = Edit_HGChange
+        object EditAdrAig: TEdit
+          Left = 216
+          Top = 20
+          Width = 49
+          Height = 21
+          Enabled = False
+          TabOrder = 2
+          OnChange = EditAdrAigChange
+        end
+        object ComboBoxAig: TComboBox
+          Left = 72
+          Top = 64
+          Width = 145
+          Height = 21
+          Enabled = False
+          ItemHeight = 13
+          TabOrder = 3
+          Text = 'Type'
+          Items.Strings = (
+            'Aiguillage simple'
+            'TJD'
+            'TJS'
+            'Aiguillage triple')
+        end
+        object GroupBox16: TGroupBox
+          Left = 8
+          Top = 192
+          Width = 273
+          Height = 105
+          Caption = 'Repr'#233'sentation'
+          TabOrder = 4
+          object LabelHG: TLabel
+            Left = 10
+            Top = 17
+            Width = 9
+            Height = 16
+            Caption = 'D'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object LabelBG: TLabel
+            Left = 10
+            Top = 45
+            Width = 9
+            Height = 16
+            Caption = 'P'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object ImageAffiche: TImage
+            Left = 72
+            Top = 16
+            Width = 137
+            Height = 57
+          end
+          object LabelHD: TLabel
+            Left = 217
+            Top = 25
+            Width = 9
+            Height = 16
+            Caption = 'S'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object LabelBD: TLabel
+            Left = 217
+            Top = 49
+            Width = 9
+            Height = 16
+            Caption = 'D'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object Label18: TLabel
+            Left = 212
+            Top = 73
+            Width = 16
+            Height = 16
+            Caption = 'S2'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object LabelTJD1: TLabel
+            Left = 72
+            Top = 84
+            Width = 52
+            Height = 13
+            Caption = 'LabelTJD1'
+          end
+          object LabelTJD2: TLabel
+            Left = 152
+            Top = 84
+            Width = 52
+            Height = 13
+            Caption = 'LabelTJD1'
+          end
+          object Edit_HG: TEdit
+            Left = 24
+            Top = 20
+            Width = 41
+            Height = 21
+            TabOrder = 0
+            Text = 'EditPointe'
+            OnChange = Edit_HGChange
+          end
+          object EditPointe_BG: TEdit
+            Left = 24
+            Top = 44
+            Width = 41
+            Height = 21
+            TabOrder = 1
+            Text = 'EditPointe_BG'
+            OnChange = EditPointe_BGChange
+          end
+          object EditP1: TEdit
+            Left = 88
+            Top = 28
+            Width = 33
+            Height = 21
+            TabOrder = 2
+            Text = 'EditDDroit'
+          end
+          object EditP2: TEdit
+            Left = 88
+            Top = 48
+            Width = 33
+            Height = 21
+            TabOrder = 3
+            Text = 'EditDdevie'
+          end
+          object EditP3: TEdit
+            Left = 160
+            Top = 22
+            Width = 33
+            Height = 21
+            TabOrder = 4
+            Text = 'EditDDroit'
+          end
+          object EditP4: TEdit
+            Left = 160
+            Top = 44
+            Width = 33
+            Height = 21
+            TabOrder = 5
+            Text = 'EditDDroit'
+          end
+          object EditDevie_HD: TEdit
+            Left = 232
+            Top = 20
+            Width = 33
+            Height = 21
+            TabOrder = 6
+            Text = 'EditDevie_HD'
+            OnChange = EditDevie_HDChange
+          end
+          object EditDroit_BD: TEdit
+            Left = 232
+            Top = 44
+            Width = 33
+            Height = 21
+            TabOrder = 7
+            Text = 'EditDroit_BD'
+            OnChange = EditDroit_BDChange
+          end
+          object EditDevieS2: TEdit
+            Left = 232
+            Top = 68
+            Width = 33
+            Height = 21
+            TabOrder = 8
+            Text = 'EditDevie_HD'
+            OnChange = EditDevieS2Change
+          end
+        end
       end
       object RichAig: TRichEdit
         Left = 0
@@ -2632,24 +2680,8 @@ object FormConfig: TFormConfig
           'RichAig')
         ReadOnly = True
         ScrollBars = ssVertical
-        TabOrder = 2
+        TabOrder = 1
         OnMouseDown = RichAigMouseDown
-      end
-      object EditP3: TEdit
-        Left = 432
-        Top = 180
-        Width = 33
-        Height = 21
-        TabOrder = 3
-        Text = 'EditDDroit'
-      end
-      object EditP4: TEdit
-        Left = 432
-        Top = 204
-        Width = 33
-        Height = 21
-        TabOrder = 4
-        Text = 'EditDDroit'
       end
     end
     object TabSheetBranches: TTabSheet
@@ -2696,21 +2728,21 @@ object FormConfig: TFormConfig
         Left = 288
         Top = 40
         Width = 281
-        Height = 313
+        Height = 353
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
           Left = 8
-          Top = 72
-          Width = 65
+          Top = 80
+          Width = 81
           Height = 105
         end
         object LabelAdrSig: TLabel
           Left = 13
           Top = 20
-          Width = 52
+          Width = 166
           Height = 19
-          Caption = 'Signal '
+          Caption = 'Description du signal '
           Font.Charset = ANSI_CHARSET
           Font.Color = clBlack
           Font.Height = -16
@@ -2719,37 +2751,39 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelDec: TLabel
-          Left = 80
+          Left = 88
           Top = 52
-          Width = 53
+          Width = 56
           Height = 13
-          Caption = 'D'#233'codeur: '
+          Caption = 'D'#233'codeur : '
         end
         object LabelDetAss: TLabel
-          Left = 80
-          Top = 72
+          Left = 88
+          Top = 104
           Width = 86
           Height = 13
           Caption = 'D'#233'tecteur associ'#233
         end
         object LabelElSuiv: TLabel
-          Left = 176
-          Top = 72
+          Left = 184
+          Top = 104
           Width = 75
           Height = 13
           Caption = 'Element suivant'
         end
         object Label17: TLabel
           Left = 8
-          Top = 216
-          Width = 131
+          Top = 248
+          Width = 228
           Height = 26
-          Caption = 'Conditions suppl'#233'mentaires d'#39'affichage du carr'#233' :'
+          Caption = 
+            'Conditions suppl'#233'mentaires d'#39'affichage du carr'#233' par les aiguilla' +
+            'ges :'
           WordWrap = True
         end
         object Label24: TLabel
           Left = 104
-          Top = 88
+          Top = 120
           Width = 8
           Height = 13
           Caption = '1'
@@ -2762,7 +2796,7 @@ object FormConfig: TFormConfig
         end
         object Label25: TLabel
           Left = 104
-          Top = 112
+          Top = 144
           Width = 8
           Height = 13
           Caption = '2'
@@ -2775,7 +2809,7 @@ object FormConfig: TFormConfig
         end
         object Label26: TLabel
           Left = 104
-          Top = 136
+          Top = 168
           Width = 8
           Height = 13
           Caption = '3'
@@ -2788,7 +2822,7 @@ object FormConfig: TFormConfig
         end
         object Label27: TLabel
           Left = 104
-          Top = 160
+          Top = 192
           Width = 8
           Height = 13
           Caption = '4'
@@ -2799,17 +2833,32 @@ object FormConfig: TFormConfig
           Font.Style = [fsBold]
           ParentFont = False
         end
+        object Label33: TLabel
+          Left = 96
+          Top = 76
+          Width = 39
+          Height = 13
+          Caption = 'Aspect :'
+        end
+        object LabelUni: TLabel
+          Left = 8
+          Top = 200
+          Width = 75
+          Height = 13
+          Caption = 'Spec Unisemaf:'
+          Visible = False
+        end
         object MemoCarre: TMemo
           Left = 8
-          Top = 248
+          Top = 280
           Width = 241
-          Height = 49
+          Height = 57
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 0
         end
         object ComboBoxDec: TComboBox
-          Left = 136
+          Left = 144
           Top = 48
           Width = 129
           Height = 21
@@ -2819,7 +2868,7 @@ object FormConfig: TFormConfig
         end
         object EditDet1: TEdit
           Left = 120
-          Top = 88
+          Top = 120
           Width = 41
           Height = 21
           TabOrder = 2
@@ -2828,7 +2877,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv1: TEdit
           Left = 184
-          Top = 88
+          Top = 120
           Width = 41
           Height = 21
           TabOrder = 3
@@ -2837,7 +2886,7 @@ object FormConfig: TFormConfig
         end
         object EditDet2: TEdit
           Left = 120
-          Top = 112
+          Top = 144
           Width = 41
           Height = 21
           TabOrder = 4
@@ -2846,7 +2895,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv2: TEdit
           Left = 184
-          Top = 112
+          Top = 144
           Width = 41
           Height = 21
           TabOrder = 5
@@ -2855,7 +2904,7 @@ object FormConfig: TFormConfig
         end
         object EditDet3: TEdit
           Left = 120
-          Top = 136
+          Top = 168
           Width = 41
           Height = 21
           TabOrder = 6
@@ -2864,7 +2913,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv3: TEdit
           Left = 184
-          Top = 136
+          Top = 168
           Width = 41
           Height = 21
           TabOrder = 7
@@ -2873,7 +2922,7 @@ object FormConfig: TFormConfig
         end
         object EditDet4: TEdit
           Left = 120
-          Top = 160
+          Top = 192
           Width = 41
           Height = 21
           TabOrder = 8
@@ -2882,7 +2931,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv4: TEdit
           Left = 184
-          Top = 160
+          Top = 192
           Width = 41
           Height = 21
           TabOrder = 9
@@ -2891,7 +2940,7 @@ object FormConfig: TFormConfig
         end
         object CheckVerrouCarre: TCheckBox
           Left = 112
-          Top = 192
+          Top = 224
           Width = 145
           Height = 17
           Caption = 'Verrouillable au carr'#233
@@ -2899,13 +2948,44 @@ object FormConfig: TFormConfig
           OnClick = CheckVerrouCarreClick
         end
         object EditAdrSig: TEdit
-          Left = 72
+          Left = 184
           Top = 18
-          Width = 41
+          Width = 33
           Height = 21
+          Enabled = False
           TabOrder = 11
           Text = ' '
           OnChange = EditAdrSigChange
+        end
+        object ComboBoxAsp: TComboBox
+          Left = 144
+          Top = 72
+          Width = 129
+          Height = 21
+          ItemHeight = 13
+          TabOrder = 12
+          OnChange = ComboBoxAspChange
+          Items.Strings = (
+            '2 feux'
+            '3 feux'
+            '4 feux'
+            '5 feux'
+            '7 feux'
+            '9 feux'
+            'Directionnel 2 feux'
+            'Directionnel 3 feux'
+            'Directionnel 4 feux'
+            'Directionnel 5 feux'
+            'Directionnel 6 feux')
+        end
+        object EditSpecUni: TEdit
+          Left = 8
+          Top = 216
+          Width = 33
+          Height = 21
+          TabOrder = 13
+          Visible = False
+          OnChange = EditSpecUniChange
         end
       end
       object RichSig: TRichEdit

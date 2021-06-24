@@ -198,8 +198,8 @@ type TBranche = record
                  position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
-                 inversion : integer;       // pilotage inversé pour la commande (en mode sans CDM) 0=normal 1=inversé (positionné dans fichier config_gl section_init
-                 InversionCDM : integer ;   // inversion pour les aiguillages en lecture (paramètre I1)
+                 inversion : integer;       // positionné dans fichier config_gl section_init
+                 InversionCDM : integer ;   // pour les aiguillages déclarés inversés dans CDM, utilisé en mode autonome (paramètre I1)
                  vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
 
                  ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
@@ -329,6 +329,7 @@ var
                                                posAig  : char;
                                                end;
                  CondCarre : array[1..6] of array of record  // conditions supplémentaires d'aiguillages en position pour le carré
+                                                // attention les données sont stockée en adresse 1 du tableau dynamique
                                                Adresse : integer;    // aiguillage
                                                posAig : char;
                                                end;
@@ -369,6 +370,8 @@ function PresTrainPrec(AdrFeu : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse : integer) : boolean;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
+function verif_UniSemaf(adresse,UniSem : integer) : integer;
+function Select_dessin_feu(TypeFeu : integer) : TBitmap;
 
 implementation
 
@@ -1163,6 +1166,26 @@ begin
   end;
 end;
 
+function Select_dessin_feu(TypeFeu : integer) : TBitmap;
+var Bm : TBitMap;
+begin
+    case TypeFeu of   // charger le bit map depuis le fichier
+    2 : Bm:=Formprinc.Image2feux.picture.Bitmap;
+    3 : Bm:=Formprinc.Image3feux.picture.Bitmap;
+    4 : Bm:=Formprinc.Image4feux.picture.Bitmap;
+    5 : Bm:=Formprinc.Image5feux.picture.Bitmap;
+    7 : Bm:=Formprinc.Image7feux.picture.Bitmap;
+    9 : Bm:=Formprinc.Image9feux.picture.Bitmap;
+
+    12 : Bm:=Formprinc.Image2Dir.picture.Bitmap;
+    13 : Bm:=Formprinc.Image3Dir.picture.Bitmap;
+    14 : Bm:=Formprinc.Image4Dir.picture.Bitmap;
+    15 : Bm:=Formprinc.Image5Dir.picture.Bitmap;
+    16 : Bm:=Formprinc.Image6Dir.picture.Bitmap;
+    end;
+    Select_dessin_feu:=bm;
+end;
+
 // créée une image dynamiquement pour un nouveau feu déclaré dans le fichier de config
 procedure cree_image(rang : integer);
 var TypeFeu : integer;
@@ -1187,22 +1210,10 @@ begin
     Picture.Bitmap.TransparentMode:=tmAuto; 
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
+
+    // affecter le type d'image de feu dans l'image créée
+    picture.Bitmap:=Select_dessin_feu(TypeFeu);
     
-    case TypeFeu of   // charger le bit map depuis le fichier
-    2 : picture.bitmap:=Formprinc.Image2feux.picture.Bitmap;
-    3 : picture.bitmap:=Formprinc.Image3feux.picture.Bitmap;
-    4 : picture.bitmap:=Formprinc.Image4feux.picture.Bitmap;
-    5 : picture.bitmap:=Formprinc.Image5feux.picture.Bitmap;
-    7 : picture.bitmap:=Formprinc.Image7feux.picture.Bitmap;
-    9 : picture.bitmap:=Formprinc.Image9feux.picture.Bitmap;
-
-    12 : picture.bitmap:=Formprinc.Image2Dir.picture.Bitmap;
-    13 : picture.bitmap:=Formprinc.Image3Dir.picture.Bitmap;
-    14 : picture.bitmap:=Formprinc.Image4Dir.picture.Bitmap;
-    15 : picture.bitmap:=Formprinc.Image5Dir.picture.Bitmap;
-    16 : picture.bitmap:=Formprinc.Image6Dir.picture.Bitmap;
-    end;
-
     // mettre rouge par défaut
     if TypeFeu=2 then EtatSignalCplx[feux[rang].adresse]:=violet_F;
     if TypeFeu=3 then EtatSignalCplx[feux[rang].adresse]:=semaphore_F;
@@ -3369,6 +3380,27 @@ begin
   IndexBranche_trouve:=i;
 end;
 
+// si 0 = OK
+// si 1 = erreur code Unisemaf
+// si 2 = erreur cohérence entre code et aspect
+function verif_UniSemaf(adresse,UniSem : integer) : integer;
+var aspect : integer;
+begin
+  if UniSem=0 then begin verif_unisemaf:=0;exit;end;
+  if (UniSem<>2) and (UniSem<>3) and (UniSem<>4) and (UniSem<>51) and (UniSem<>52) and (UniSem<>71) and (UniSem<>72) and (UniSem<>73) and
+     ((UniSem<90) or (UniSem>99)) then begin verif_UniSemaf:=1;exit;end;
+
+  aspect:=feux[adresse].aspect;
+  if  ((aspect=2) and (UniSem=2)) or
+      ((aspect=3) and (UniSem=3)) or
+      ((aspect=4) and (UniSem=4)) or
+      ((aspect=5) and ((UniSem=51) or (UniSem=52))) or 
+      ((aspect=7) and ((UniSem=71) or (UniSem=72) or (UniSem=73))) or 
+      ((aspect=9) and ((UniSem>=90) or (UniSem<=99))) 
+      then Verif_unisemaf:=0
+  else Verif_Unisemaf:=2;
+end;
+
 procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
@@ -3378,7 +3410,7 @@ var s,sa,chaine,SOrigine: string;
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig   : boolean;
     bd,virgule,i_detect,i,erreur,aig,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
-    postjd,postjs,nv,it,Num_Champ : integer;
+    postjd,postjs,nv,it,Num_Champ,asp : integer;
     function lit_ligne : string ;
     begin
       repeat
@@ -3499,7 +3531,12 @@ begin
       trouve_ipv4_PC:=true;
       delete(s,i,length(sa));
       i:=pos(':',s);
-      if i<>0 then begin adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);portCDM:=StrToINT(s);end;
+      if i<>0 then 
+      begin 
+        adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);portCDM:=StrToINT(s);
+        if portCDM=0 then affiche('Erreur port nul : '+s,clred);
+      end
+      else affiche('Erreur adresse ip cdm rail '+s,clred);
     end;
 
     // adresse ip et port de la centrale
@@ -3512,7 +3549,11 @@ begin
       trouve_IPV4_INTERFACE:=true;
       delete(s,i,length(sa));
       i:=pos(':',s);
-      if i<>0 then begin adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);end
+      if i<>0 then 
+      begin 
+        adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);
+        if port=0 then affiche('Erreur port nul : '+s,clred);
+      end
       else begin adresseIP:='0';parSocketLenz:=false;end;
     end;
 
@@ -3967,7 +4008,7 @@ begin
        end;
        inc(itl);
       until (enregistrement='') or (itl>2);
-      if itl>2 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);closefile(fichier);exit;end;
+      if itl>4 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);closefile(fichier);exit;end;
     end;
   until (s='0');
   //Affiche(IntToSTR(maxaiguillage)+' Aiguillages',clYellow);
@@ -4123,10 +4164,10 @@ begin
           else
           // feu de signalisation---------------------------------
           begin
-            k:=StrToInt(sa); //aspect
-            feux[i].aspect:=k;Delete(s,1,j);
-            if (k=0) or (k=6) or (k>9) then
-            Affiche('Fichier config.cfg: configuration aspect ('+intToSTR(k)+') feu incorrecte à la ligne '+chaine,clRed);
+            asp:=StrToInt(sa); //aspect
+            feux[i].aspect:=asp;Delete(s,1,j);
+            if (asp=0) or (asp=6) or (asp>9) then
+            Affiche('Fichier config.cfg: configuration aspect ('+intToSTR(asp)+') feu incorrecte à la ligne '+chaine,clRed);
             j:=pos(',',s);
             if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
             j:=pos(',',s);
@@ -4220,6 +4261,13 @@ begin
                Delete(S,1,k);
                Val(s,k,erreur);
                Feux[i].UniSemaf:=k;
+               erreur:=verif_UniSemaf(i,k);
+               if erreur=1 then begin Affiche('Ligne '+chaine,clred);Affiche('Erreur code Unisemaf',clred);end;
+               if erreur=2 then 
+               begin 
+                 Affiche('Ligne '+chaine,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
+               end;
+               
              end;
             end;
           end;
@@ -4451,16 +4499,15 @@ begin
     j:=1;
     repeat
       detect:=BrancheN[i][j].Adresse;
-      modele:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage 3=bis 4=Buttoir
+      modele:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
+      if (modele=2) then
+      begin
+        //affiche('trouvé aig '+intToSTR(detect),clyellow);
+        modele:=aiguillage[detect].modele;
+        if (modele=0) then Affiche('Erreur 1: Aiguillage '+intToStr(detect)+' non décrit mais présent en branche '+intToStr(i)+' pos. '+intToSTR(j),clred);
+      end;
       j:=j+1;
-    until ( (modele=1) or (modele=2) or (modele=3) or ((modele=0) and (detect=0)));
-    // trouvé un aiguillage et récupéré son adresse dans detect
-    //if (type!=1) Display("Erreur aucun détecteur dans la déclaration du réseau\r\n");
-    if (modele=1) or (modele=2) or (modele=3) then
-    begin
-      modele:=aiguillage[detect].modele;
-      if (modele=0) then Affiche('Erreur 1: Aiguillage='+intToStr(detect)+' non décrit mais présent dans la description des branches '+intToStr(i)+'/'+intToSTR(j),clred);
-    end;
+    until((modele=0) and (detect=0));
   end;
 
   // vérification de la cohérence2
@@ -6797,7 +6844,7 @@ begin
 
   // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome, inverser sa position
   inv:=false;
-  if (aiguillage[adresse].inversionCDM=1) then // and (portCommOuvert or parSocketLenz) then
+  if (aiguillage[adresse].inversionCDM=1) and (portCommOuvert or parSocketLenz) then
   begin
     prov:=pos;
     inv:=true;
