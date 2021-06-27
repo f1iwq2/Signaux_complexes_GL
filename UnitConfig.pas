@@ -2009,6 +2009,7 @@ procedure TFormConfig.ComboBoxDecChange(Sender: TObject);
 var s: string;
 begin
 //  Affiche(IntToStr(ComboBoxDec.ItemIndex),clyellow);
+  if NbreFeux<lignecliquee+1 then exit;
   feux[lignecliquee+1].decodeur:= ComboBoxDec.ItemIndex;
   s:=encode_sig(lignecliquee+1);
   formconfig.RichSig.Lines[lignecliquee]:=s;
@@ -2504,6 +2505,7 @@ begin
   else asp:=i+6;
   end;  
   index:=lignecliquee+1;  // index du feu
+  if NbreFeux<index then exit;
   feux[index].aspect:=asp;
   
   s:=encode_sig(index);

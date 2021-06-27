@@ -168,7 +168,7 @@ const
 titre='Signaux complexes GL ';
 tempoFeu=100;
 MaxAcc=2048;
-LargImg=50;HtImg=91; // image des feux
+LargImg=50;HtImg=91; // Dimensions image des feux
 const_droit=2;const_devie=1;  // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;  // positions aiguillages transmises par cdm
 const_devieD_CDM=2;  // positions aiguillages transmises par cdm
@@ -397,7 +397,7 @@ end;
 
 // renvoie le 1er numéro de bit à 1
 // ex BitNum(4)=2
-Function BitNum(n : word) : integer;
+Function PremBitNum(n : word) : integer;
 var i : integer;
     trouve : boolean;
 begin
@@ -407,7 +407,7 @@ begin
     if not(trouve) then inc(i);
     n:=n shr 1;
   until (i=16) or trouve;
-  BitNum:=i;
+  PremBitNum:=i;
 end;
 
 // conversion du motif de bits (codebin) de la configuration du signal complexe en deux mots:
@@ -418,8 +418,8 @@ end;
 procedure code_to_aspect(codebin : word;var premierbit,combine : word) ;
 var i,mot : word;
 begin
-  premierBit:=BitNum(CodeBin and $3ff);
-  combine:=BitNum(CodeBin and $fc00);
+  premierBit:=PremBitNum(CodeBin and $3ff);
+  combine:=PremBitNum(CodeBin and $fc00);
 end;
 
 // dessine un cercle plein dans le feu
