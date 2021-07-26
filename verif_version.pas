@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='2.5';  // sert à la comparaison de la version publiée
+Const  Version='3.0';  // sert à la comparaison de la version publiée
 
 implementation
 

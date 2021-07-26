@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 44
-  Top = 270
+  Left = 58
+  Top = 217
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1598,6 +1598,13 @@ object FormPrinc: TFormPrinc
         Hint = 'Modifie les variables de configuration sans sauvegarde'
         OnClick = ConfigClick
       end
+      object Vrifierlacohrence: TMenuItem
+        Caption = 'V'#233'rifier la coh'#233'rence'
+        OnClick = VrifierlacohrenceClick
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
       object FichierSimu: TMenuItem
         Caption = 'Ouvrir un fichier de simulation'
         Hint = 
@@ -1656,6 +1663,21 @@ object FormPrinc: TFormPrinc
     object Copier1: TMenuItem
       Caption = 'Copier'
       OnClick = Copier1Click
+    end
+  end
+  object PopupMenuFeu: TPopupMenu
+    Left = 856
+    Top = 144
+    object Proprits1: TMenuItem
+      Caption = 'Propri'#233't'#233's'
+      OnClick = Proprits1Click
+    end
+    object N7: TMenuItem
+      Caption = '-'
+    end
+    object Nouveaufeu1: TMenuItem
+      Caption = 'Nouveau feu'
+      OnClick = Nouveaufeu1Click
     end
   end
 end

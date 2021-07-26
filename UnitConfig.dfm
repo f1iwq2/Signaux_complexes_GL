@@ -1,13 +1,13 @@
 object FormConfig: TFormConfig
-  Left = 228
-  Top = 189
+  Left = 345
+  Top = 219
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
   ClientHeight = 501
-  ClientWidth = 858
+  ClientWidth = 854
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -1365,8 +1365,8 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTri: TImage
-    Left = 592
-    Top = 360
+    Left = 600
+    Top = 336
     Width = 145
     Height = 65
     Picture.Data = {
@@ -1543,8 +1543,8 @@ object FormConfig: TFormConfig
     Caption = 'Verrouillable au carr'#233' :'
   end
   object Image2: TImage
-    Left = 712
-    Top = 424
+    Left = 720
+    Top = 352
     Width = 129
     Height = 41
     Picture.Data = {
@@ -1756,7 +1756,7 @@ object FormConfig: TFormConfig
     Top = 472
     Width = 201
     Height = 25
-    Caption = 'Enregistrer la configuration et Fermer'
+    Caption = 'Enregistre la configuration et Fermer'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
@@ -1769,7 +1769,6 @@ object FormConfig: TFormConfig
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
     TabOrder = 1
-    OnClick = Button2Click
   end
   object PageControl: TPageControl
     Left = 8
@@ -1778,7 +1777,7 @@ object FormConfig: TFormConfig
     Height = 457
     ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBackground
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
@@ -2406,7 +2405,7 @@ object FormConfig: TFormConfig
         Caption = 'Description de l'#39'aiguillage'
         TabOrder = 0
         object LabelAdresse: TLabel
-          Left = 13
+          Left = 5
           Top = 20
           Width = 196
           Height = 19
@@ -2419,10 +2418,11 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelLigne: TLabel
-          Left = 72
+          Left = 16
           Top = 42
           Width = 104
           Height = 16
+          Alignment = taCenter
           Caption = '                -         '
           Font.Charset = ANSI_CHARSET
           Font.Color = clBlack
@@ -2433,7 +2433,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox10: TGroupBox
           Left = 8
-          Top = 104
+          Top = 96
           Width = 273
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
@@ -2467,20 +2467,19 @@ object FormConfig: TFormConfig
           end
         end
         object CheckInverse: TCheckBox
-          Left = 40
-          Top = 312
-          Width = 185
+          Left = 16
+          Top = 296
+          Width = 137
           Height = 17
           Caption = 'Inversion de l'#39#233'tat CDM'
           TabOrder = 1
           OnClick = CheckInverseClick
         end
         object EditAdrAig: TEdit
-          Left = 216
+          Left = 208
           Top = 20
-          Width = 49
+          Width = 33
           Height = 21
-          Enabled = False
           TabOrder = 2
           OnChange = EditAdrAigChange
         end
@@ -2489,10 +2488,10 @@ object FormConfig: TFormConfig
           Top = 64
           Width = 145
           Height = 21
-          Enabled = False
           ItemHeight = 13
           TabOrder = 3
           Text = 'Type'
+          OnChange = ComboBoxAigChange
           Items.Strings = (
             'Aiguillage simple'
             'TJD'
@@ -2501,7 +2500,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox16: TGroupBox
           Left = 8
-          Top = 192
+          Top = 176
           Width = 273
           Height = 105
           Caption = 'Repr'#233'sentation'
@@ -2616,6 +2615,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 2
             Text = 'EditDDroit'
+            OnChange = EditP1Change
           end
           object EditP2: TEdit
             Left = 88
@@ -2624,6 +2624,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 3
             Text = 'EditDdevie'
+            OnChange = EditP2Change
           end
           object EditP3: TEdit
             Left = 160
@@ -2632,6 +2633,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 4
             Text = 'EditDDroit'
+            OnChange = EditP3Change
           end
           object EditP4: TEdit
             Left = 160
@@ -2640,6 +2642,7 @@ object FormConfig: TFormConfig
             Height = 21
             TabOrder = 5
             Text = 'EditDDroit'
+            OnChange = EditP4Change
           end
           object EditDevie_HD: TEdit
             Left = 232
@@ -2669,19 +2672,75 @@ object FormConfig: TFormConfig
             OnChange = EditDevieS2Change
           end
         end
+        object ButtonRestaureAig: TButton
+          Left = 192
+          Top = 296
+          Width = 75
+          Height = 25
+          Hint = 
+            'Restaure la configuration de l'#39'aiguillage d'#39'avant sa modificatio' +
+            'n'
+          Caption = 'Restaurer'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          OnClick = ButtonRestaureAigClick
+        end
+        object EditAigTriple: TEdit
+          Left = 248
+          Top = 20
+          Width = 33
+          Height = 21
+          TabOrder = 6
+          Visible = False
+          OnChange = EditAigTripleChange
+        end
       end
       object RichAig: TRichEdit
         Left = 0
-        Top = 32
+        Top = 56
         Width = 265
-        Height = 361
+        Height = 337
         Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clYellow
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         Lines.Strings = (
           'RichAig')
+        ParentFont = False
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 1
         OnMouseDown = RichAigMouseDown
+      end
+      object ButtonNouvAig: TButton
+        Left = 0
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Nouveau'
+        TabOrder = 2
+        OnClick = ButtonNouvAigClick
+      end
+      object BoutSupAig: TButton
+        Left = 72
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Supprime'
+        TabOrder = 3
+        OnClick = BoutSupAigClick
+      end
+      object ButtonAjSup: TButton
+        Left = 144
+        Top = 32
+        Width = 121
+        Height = 17
+        Caption = 'Ajoute l'#39'aig supprim'#233
+        TabOrder = 4
+        OnClick = ButtonAjSupClick
       end
     end
     object TabSheetBranches: TTabSheet
@@ -2690,26 +2749,80 @@ object FormConfig: TFormConfig
       object Label14: TLabel
         Left = 0
         Top = 8
-        Width = 261
+        Width = 508
         Height = 13
-        Caption = 'Liste de mod'#233'lisation des branches du fichier config.cfg'
+        Caption = 
+          'Liste de mod'#233'lisation des branches - Cliquer sur une ligne pour ' +
+          'la modifier - Valider la ligne apr'#232's modification'
       end
-      object MemoBranches: TMemo
+      object Label34: TLabel
+        Left = 408
+        Top = 192
+        Width = 136
+        Height = 26
+        Caption = 'Tapez CTRL-Z pour annuler une modification r'#233'cente'
+        WordWrap = True
+      end
+      object GroupBox20: TGroupBox
+        Left = 408
+        Top = 24
+        Width = 153
+        Height = 161
+        Caption = 'Commandes'
+        TabOrder = 0
+        object LabelResult: TLabel
+          Left = 11
+          Top = 112
+          Width = 3
+          Height = 13
+          Caption = '-'
+        end
+        object ButtonValLigne: TButton
+          Left = 8
+          Top = 24
+          Width = 137
+          Height = 33
+          Hint = 
+            'V'#233'rifie la syntaxe de chaque ligne et valide les lignes correcte' +
+            's'
+          Caption = 'Valider les modifications'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          WordWrap = True
+          OnClick = ButtonValLigneClick
+        end
+        object ButtonVerifConfig: TButton
+          Left = 8
+          Top = 64
+          Width = 137
+          Height = 33
+          Hint = 'V'#233'rification de la coh'#233'rence de l'#39'ensemble de la configuration'
+          Caption = 'V'#233'rification de la coh'#233'rence'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          WordWrap = True
+          OnClick = ButtonVerifConfigClick
+        end
+      end
+      object RichBranche: TRichEdit
         Left = 0
         Top = 24
-        Width = 569
-        Height = 369
-        Color = clInfoText
+        Width = 401
+        Height = 401
+        Color = clBlack
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clAqua
+        Font.Color = clGreen
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        Lines.Strings = (
+          'RichBranche')
         ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssVertical
-        TabOrder = 0
-        WordWrap = False
+        ScrollBars = ssBoth
+        TabOrder = 1
+        OnMouseDown = RichBrancheMouseDown
       end
     end
     object TabSheetSig: TTabSheet
@@ -2733,7 +2846,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object ImageSignal: TImage
           Left = 8
-          Top = 80
+          Top = 48
           Width = 81
           Height = 105
         end
@@ -2751,11 +2864,11 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelDec: TLabel
-          Left = 88
+          Left = 92
           Top = 52
-          Width = 56
+          Width = 53
           Height = 13
-          Caption = 'D'#233'codeur : '
+          Caption = 'D'#233'codeur: '
         end
         object LabelDetAss: TLabel
           Left = 88
@@ -2834,15 +2947,15 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label33: TLabel
-          Left = 96
+          Left = 104
           Top = 76
-          Width = 39
+          Width = 36
           Height = 13
-          Caption = 'Aspect :'
+          Caption = 'Aspect:'
         end
         object LabelUni: TLabel
           Left = 8
-          Top = 200
+          Top = 160
           Width = 75
           Height = 13
           Caption = 'Spec Unisemaf:'
@@ -2852,10 +2965,10 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 280
           Width = 241
-          Height = 57
-          ReadOnly = True
+          Height = 65
           ScrollBars = ssVertical
           TabOrder = 0
+          OnChange = MemoCarreChange
         end
         object ComboBoxDec: TComboBox
           Left = 144
@@ -2939,7 +3052,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv4Change
         end
         object CheckVerrouCarre: TCheckBox
-          Left = 112
+          Left = 104
           Top = 224
           Width = 145
           Height = 17
@@ -2952,7 +3065,6 @@ object FormConfig: TFormConfig
           Top = 18
           Width = 33
           Height = 21
-          Enabled = False
           TabOrder = 11
           Text = ' '
           OnChange = EditAdrSigChange
@@ -2980,27 +3092,72 @@ object FormConfig: TFormConfig
         end
         object EditSpecUni: TEdit
           Left = 8
-          Top = 216
+          Top = 176
           Width = 33
           Height = 21
           TabOrder = 13
           Visible = False
           OnChange = EditSpecUniChange
         end
+        object Buttonrestaure: TButton
+          Left = 8
+          Top = 216
+          Width = 75
+          Height = 25
+          Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
+          Caption = 'Restaurer'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 14
+          OnClick = ButtonrestaureClick
+        end
       end
       object RichSig: TRichEdit
         Left = 0
-        Top = 32
+        Top = 56
         Width = 273
-        Height = 361
+        Height = 337
         Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clYellow
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         Lines.Strings = (
           'RichSig')
+        ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
         OnMouseDown = RichSigMouseDown
+      end
+      object ButtonNouvFeu: TButton
+        Left = 0
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Nouveau'
+        TabOrder = 2
+        OnClick = ButtonNouvFeuClick
+      end
+      object ButtonSupFeu: TButton
+        Left = 72
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Supprime'
+        TabOrder = 3
+        OnClick = ButtonSupFeuClick
+      end
+      object ButtonInsFeu: TButton
+        Left = 144
+        Top = 32
+        Width = 113
+        Height = 17
+        Caption = 'Ajouter le feu supprim'#233
+        TabOrder = 4
+        OnClick = ButtonInsFeuClick
       end
     end
     object TabSheetAct: TTabSheet
@@ -3019,160 +3176,38 @@ object FormConfig: TFormConfig
         Left = 304
         Top = 32
         Width = 257
-        Height = 345
+        Height = 385
         Caption = 'Description de l'#39'actionneur '
         TabOrder = 0
-        object GroupBox14: TGroupBox
+        object GroupBoxRadio: TGroupBox
           Left = 16
           Top = 24
           Width = 225
-          Height = 73
+          Height = 65
           Caption = 'Type d'#39'actionneur '
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
             Left = 24
-            Top = 16
+            Top = 24
             Width = 193
             Height = 17
             Caption = 'Fonction F pour locomotive'
-            Enabled = False
             TabOrder = 0
-          end
-          object RadioButtonPN: TRadioButton
-            Left = 24
-            Top = 48
-            Width = 193
-            Height = 17
-            Caption = 'Gestion de passage '#224' niveau'
-            Enabled = False
-            TabOrder = 1
+            OnClick = RadioButtonLocClick
           end
           object RadioButtonAccess: TRadioButton
             Left = 24
-            Top = 32
+            Top = 40
             Width = 161
             Height = 17
             Caption = 'Fonction F pour accessoire'
-            Enabled = False
-            TabOrder = 2
-          end
-        end
-        object GroupBoxAct: TGroupBox
-          Left = 8
-          Top = 216
-          Width = 225
-          Height = 145
-          Caption = 'Actionneur fonction de locomotive '
-          TabOrder = 1
-          object LabelActionneur: TLabel
-            Left = 48
-            Top = 24
-            Width = 51
-            Height = 13
-            Caption = 'Actionneur'
-          end
-          object LabelTrain: TLabel
-            Left = 72
-            Top = 46
-            Width = 24
-            Height = 13
-            Caption = 'Train'
-          end
-          object Labela: TLabel
-            Left = 144
-            Top = 68
-            Width = 6
-            Height = 13
-            Caption = #224
-          end
-          object LabelFonction: TLabel
-            Left = 56
-            Top = 70
-            Width = 41
-            Height = 13
-            Caption = 'Fonction'
-          end
-          object LabelTempo: TLabel
-            Left = 40
-            Top = 94
-            Width = 55
-            Height = 13
-            Caption = 'Tempo (ms)'
-          end
-          object Label30: TLabel
-            Left = 168
-            Top = 24
-            Width = 6
-            Height = 13
-            Caption = #224
-          end
-          object EditAct: TEdit
-            Left = 112
-            Top = 20
-            Width = 49
-            Height = 21
-            TabOrder = 0
-            Text = 'EditAct'
-            OnChange = EditActChange
-          end
-          object EditTrain: TEdit
-            Left = 112
-            Top = 44
-            Width = 105
-            Height = 21
             TabOrder = 1
-            Text = 'EditTrain'
-            OnChange = EditTrainChange
-          end
-          object EditEtatFoncSortie: TEdit
-            Left = 160
-            Top = 68
-            Width = 25
-            Height = 21
-            TabOrder = 2
-            Text = 'EditEtatFoncSortie'
-            OnChange = EditEtatFoncSortieChange
-          end
-          object EditFonctionAccess: TEdit
-            Left = 112
-            Top = 68
-            Width = 25
-            Height = 21
-            TabOrder = 3
-            Text = 'EditFonc'
-            OnChange = EditFonctionAccessChange
-          end
-          object EditTempo: TEdit
-            Left = 112
-            Top = 92
-            Width = 33
-            Height = 21
-            TabOrder = 4
-            Text = 'EditTempo'
-            OnChange = EditTempoChange
-          end
-          object EditEtatActionneur: TEdit
-            Left = 184
-            Top = 20
-            Width = 25
-            Height = 21
-            TabOrder = 5
-            Text = 'EditEtat'
-            OnChange = EditEtatActionneurChange
-          end
-          object CheckRAZ: TCheckBox
-            Left = 48
-            Top = 120
-            Width = 145
-            Height = 17
-            Caption = 'Remise '#224' 0 apr'#232's pilotage'
-            TabOrder = 6
-            OnClick = CheckRAZClick
+            OnClick = RadioButtonAccessClick
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 56
-          Top = 56
+          Left = 32
+          Top = 80
           Width = 225
           Height = 193
           Caption = 'Actionneurs gestion passage '#224' niveau'
@@ -3224,7 +3259,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 0
-            Text = 'EditAdrFerme'
+            OnChange = EditAdrFermeChange
           end
           object EditAdrOuvre: TEdit
             Left = 120
@@ -3232,7 +3267,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 1
-            Text = 'EditAdrOuvre'
+            OnChange = EditAdrOuvreChange
           end
           object EditCmdFerme: TEdit
             Left = 168
@@ -3240,7 +3275,7 @@ object FormConfig: TFormConfig
             Width = 25
             Height = 21
             TabOrder = 2
-            Text = 'EditCdeFerme'
+            OnChange = EditCmdFermeChange
           end
           object EditCdeOuvre: TEdit
             Left = 168
@@ -3248,7 +3283,7 @@ object FormConfig: TFormConfig
             Width = 25
             Height = 21
             TabOrder = 3
-            Text = 'EditCdeOuvre'
+            OnChange = EditCdeOuvreChange
           end
           object EditV1F: TEdit
             Left = 64
@@ -3256,7 +3291,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 4
-            Text = 'EditAdrFerme'
+            OnChange = EditV1FChange
           end
           object StaticText1: TStaticText
             Left = 64
@@ -3280,7 +3315,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 7
-            Text = 'EditAdrFerme'
+            OnChange = EditV2FChange
           end
           object EditV3F: TEdit
             Left = 64
@@ -3288,7 +3323,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 8
-            Text = 'EditAdrFerme'
+            OnChange = EditV3FChange
           end
           object EditV1O: TEdit
             Left = 152
@@ -3296,7 +3331,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 9
-            Text = 'EditAdrFerme'
+            OnChange = EditV1OChange
           end
           object EditV2O: TEdit
             Left = 152
@@ -3304,7 +3339,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 10
-            Text = 'EditAdrFerme'
+            OnChange = EditV2OChange
           end
           object EditV3O: TEdit
             Left = 152
@@ -3312,20 +3347,235 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 11
-            Text = 'EditAdrFerme'
+            OnChange = EditV3OChange
+          end
+        end
+        object GroupBoxAct: TGroupBox
+          Left = 16
+          Top = 72
+          Width = 225
+          Height = 249
+          Caption = 'Actionneur fonction de locomotive '
+          TabOrder = 1
+          object GroupBox18: TGroupBox
+            Left = 8
+            Top = 24
+            Width = 209
+            Height = 97
+            Caption = 'D'#233'clencheur '
+            TabOrder = 0
+            object LabelActionneur: TLabel
+              Left = 32
+              Top = 24
+              Width = 51
+              Height = 13
+              Caption = 'Actionneur'
+            end
+            object Label30: TLabel
+              Left = 152
+              Top = 24
+              Width = 6
+              Height = 13
+              Caption = #224
+            end
+            object LabelTrain: TLabel
+              Left = 56
+              Top = 46
+              Width = 24
+              Height = 13
+              Caption = 'Train'
+            end
+            object EditAct: TEdit
+              Left = 96
+              Top = 20
+              Width = 49
+              Height = 21
+              TabOrder = 0
+              OnChange = EditActChange
+            end
+            object EditEtatActionneur: TEdit
+              Left = 168
+              Top = 20
+              Width = 25
+              Height = 21
+              TabOrder = 1
+              OnChange = EditEtatActionneurChange
+            end
+            object EditTrain: TEdit
+              Left = 88
+              Top = 52
+              Width = 105
+              Height = 21
+              Hint = 
+                'Train pour lequel la condition s'#39'applique (mettre X pour tous le' +
+                's trains)'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 2
+              OnChange = EditTrainChange
+            end
+          end
+          object GroupBox19: TGroupBox
+            Left = 8
+            Top = 128
+            Width = 209
+            Height = 105
+            Caption = 'Action '
+            TabOrder = 1
+            object LabelTempo: TLabel
+              Left = 40
+              Top = 52
+              Width = 55
+              Height = 13
+              Caption = 'Tempo (ms)'
+            end
+            object LabelFonction: TLabel
+              Left = 24
+              Top = 22
+              Width = 80
+              Height = 13
+              Alignment = taRightJustify
+              BiDiMode = bdLeftToRight
+              Caption = 'Action : Fonction'
+              ParentBiDiMode = False
+            end
+            object Labela: TLabel
+              Left = 144
+              Top = 20
+              Width = 6
+              Height = 13
+              Caption = #224
+            end
+            object EditTempo: TEdit
+              Left = 128
+              Top = 45
+              Width = 33
+              Height = 21
+              TabOrder = 0
+              OnChange = EditTempoChange
+            end
+            object CheckRAZ: TCheckBox
+              Left = 32
+              Top = 72
+              Width = 145
+              Height = 17
+              Caption = 'Remise '#224' 0 apr'#232's pilotage'
+              TabOrder = 1
+              OnClick = CheckRAZClick
+            end
+            object EditFonctionAccess: TEdit
+              Left = 112
+              Top = 15
+              Width = 25
+              Height = 21
+              Hint = 'Num'#233'ro de fonction du d'#233'codeur du train'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 2
+              OnChange = EditFonctionAccessChange
+            end
+            object EditEtatFoncSortie: TEdit
+              Left = 160
+              Top = 15
+              Width = 25
+              Height = 21
+              TabOrder = 3
+              OnChange = EditEtatFoncSortieChange
+            end
           end
         end
       end
-      object RichAct: TRichEdit
+      object GroupBox14: TGroupBox
         Left = 0
         Top = 32
-        Width = 289
-        Height = 369
-        Color = clBlack
-        ReadOnly = True
-        ScrollBars = ssVertical
+        Width = 297
+        Height = 185
+        Caption = 'Actionneurs locomotives ou accessoires'
         TabOrder = 1
-        OnMouseDown = RichActMouseDown
+        object ButtonNouvAcc: TButton
+          Left = 8
+          Top = 24
+          Width = 65
+          Height = 17
+          Caption = 'Nouveau'
+          TabOrder = 0
+          OnClick = ButtonNouvAccClick
+        end
+        object ButtonSupAcc: TButton
+          Left = 80
+          Top = 24
+          Width = 65
+          Height = 17
+          Hint = 'Supprime l'#39'actionneur cliqu'#233' (en jaune)'
+          Caption = 'Supprime'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnClick = ButtonSupAccClick
+        end
+        object RichAct: TRichEdit
+          Left = 8
+          Top = 48
+          Width = 281
+          Height = 129
+          Color = clBlack
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clYellow
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
+          ReadOnly = True
+          ScrollBars = ssVertical
+          TabOrder = 2
+          OnMouseDown = RichActMouseDown
+        end
+      end
+      object GroupBox17: TGroupBox
+        Left = 0
+        Top = 232
+        Width = 297
+        Height = 185
+        Caption = 'Actionneurs passage '#224' niveau'
+        TabOrder = 2
+        object ButtonNouvPN: TButton
+          Left = 8
+          Top = 24
+          Width = 65
+          Height = 17
+          Caption = 'Nouveau'
+          TabOrder = 0
+          OnClick = ButtonNouvPNClick
+        end
+        object ButtonSupPN: TButton
+          Left = 80
+          Top = 24
+          Width = 65
+          Height = 17
+          Hint = 'Supprime l'#39'actionneur cliqu'#233' (en jaune)'
+          Caption = 'Supprime'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnClick = ButtonSupPNClick
+        end
+        object RichPN: TRichEdit
+          Left = 8
+          Top = 48
+          Width = 281
+          Height = 129
+          Color = clBlack
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clYellow
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
+          ReadOnly = True
+          ScrollBars = ssVertical
+          TabOrder = 2
+          OnMouseDown = RichPNMouseDown
+        end
       end
     end
   end

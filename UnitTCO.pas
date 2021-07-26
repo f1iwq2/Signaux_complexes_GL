@@ -2286,9 +2286,9 @@ begin
 end;
 
 // transforme les branches en TCO
-// trop compliqué. Il faudra dessiner son TCO soit meme
+// trop compliqué. Il faudra dessiner son TCO soit meme !
 procedure construit_TCO;
-var x,y,i,j,Max,indexMax,Btype,Adresse,ligne,AdrSuiv,Bimage : integer;
+var x,y,i,j,Max,indexMax,Btype,Adresse,ligne,AdrSuiv,Bimage,index : integer;
 begin
   // étape 0 Raz du TCO
   for y:=1 to NbreCellY do
@@ -2326,14 +2326,15 @@ begin
      //20,P8P,D547,S548  // 22,P24P,S561,D25S
      // on se réfère au suivant
      AdrSuiv:=BrancheN[IndexMax,i+1].Adresse;
+     index:=Index_aig(adresse);     
      // connecté sur position droite : la pointe est à gauche
-     if aiguillage[adresse].Adroit=AdrSuiv then 
+     if aiguillage[Index].Adroit=AdrSuiv then 
        Bimage:=3; // ou 4
      // connecté sur position déviée : la pointe est à gauche, mais il faut changer de ligne
-     if aiguillage[adresse].Adevie=AdrSuiv then 
+     if aiguillage[Index].Adevie=AdrSuiv then 
        Bimage:=4; // ou 4
      // connecté sur pointe : la pointe est à droite
-     if aiguillage[adresse].Apointe=AdrSuiv then
+     if aiguillage[Index].Apointe=AdrSuiv then
        Bimage:=5; // ou 2
      TCO[i,ligne].BImage:=Bimage;
    end;
@@ -2356,7 +2357,7 @@ begin
   // récupérer la position de l'aiguillage
   if (bImage>=2) and (btype<=15) then 
   begin
-    if Adresse<>0 then pos:=Aiguillage[adresse].position
+    if Adresse<>0 then pos:=Aiguillage[Index_Aig(adresse)].position
     
     else pos:=9;       
   end;  
@@ -2710,7 +2711,7 @@ begin
 end;
 
 
-// allume ou éteint (mode) la zone de det1 à det2 sur le TCO
+// allume ou éteint (mode) la voie, zone de det1 à det2 sur le TCO
 procedure zone_TCO(det1,det2,mode : integer);
 var i,x,y,ancienY,ancien2Y,ancienX,ancien2X,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2 : integer;
@@ -2759,7 +2760,7 @@ begin
     // aiguillage pris en talon - pris en pointe
     2 : if ancien2X<x then inc(x) else 
           begin
-            pos:=aiguillage[adresse].position;
+            pos:=aiguillage[Index_Aig(adresse)].position;
             if (pos=const_devie) then begin dec(x);inc(y); end;  
             if (pos=const_droit) then dec(x);
             if pos=9 then exit;
@@ -2768,7 +2769,7 @@ begin
     3 : begin
           if ancien2X<x then 
           begin
-            pos:=aiguillage[adresse].position;
+            pos:=aiguillage[Index_Aig(adresse)].position;
             if (pos=const_devie) then begin inc(x);dec(y); end;  
             if (pos=const_droit) then inc(x);
             if pos=9 then exit;
@@ -2779,7 +2780,7 @@ begin
     4 : begin
           if ancien2X<x then 
           begin
-            pos:=aiguillage[adresse].position;
+            pos:=aiguillage[Index_Aig(adresse)].position;
             if (pos=const_devie) then begin inc(x);inc(y); end;  
             if (pos=const_droit) then inc(x);
             if pos=9 then exit;
@@ -2789,7 +2790,7 @@ begin
       // aiguillage pris en talon - pris en pointe
     5 : if ancien2X<x then inc(x) else 
         begin
-          pos:=aiguillage[adresse].position;
+          pos:=aiguillage[Index_Aig(adresse)].position;
           if (pos=const_devie) then begin dec(x);dec(y); end;  
           if (pos=const_droit) then dec(x);
           if pos=9 then exit;
@@ -2811,7 +2812,7 @@ begin
     // aiguillage en pointe
     12 : if ancien2X<x then 
          begin
-           pos:=aiguillage[adresse].position;
+           pos:=aiguillage[Index_Aig(adresse)].position;
            if (pos=const_devie) then inc(x); 
            if (pos=const_droit) then begin inc(x);inc(y);end;
            if pos=9 then exit;
@@ -2821,7 +2822,7 @@ begin
     13 :  if ancien2X<x then begin inc(x);dec(y); end
           else 
           begin
-            pos:=aiguillage[adresse].position;
+            pos:=aiguillage[Index_Aig(adresse)].position;
             if (pos=const_devie) then dec(x); 
             if (pos=const_droit) then begin dec(x);inc(y);end;
             if pos=9 then exit;
@@ -2832,7 +2833,7 @@ begin
            inc(x);inc(y);
          end else
          begin
-           pos:=aiguillage[adresse].position;
+           pos:=aiguillage[Index_Aig(adresse)].position;
            if (pos=const_devie) then dec(x); 
            if (pos=const_droit) then begin dec(x);dec(y);end;
            if pos=9 then exit;
@@ -2840,7 +2841,7 @@ begin
     // aiguillage en pointe
     15 : if ancien2X<x then 
          begin
-           pos:=aiguillage[adresse].position;
+           pos:=aiguillage[Index_Aig(adresse)].position;
            if (pos=const_devie) then inc(x); 
            if (pos=const_droit) then begin inc(x);dec(y);end;
            if pos=9 then exit;
@@ -2855,8 +2856,8 @@ begin
            // tjd ou tjs
            if adresse<>0 then
            begin
-             //pos:=aiguillage[adresse].position;
-             //pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
+             //pos:=aiguillage[Index_Aig(adresse].position;
+             //pos2:=aiguillage[Index_Aig(aiguillage[Index_Aig(adresse].Apointe].position; // 2eme adresse de la TJD
              if (pos=const_droit) and (pos2=const_droit) then
              begin
                inc(x);
@@ -2885,8 +2886,8 @@ begin
            // tjd ou tjs
            if adresse<>0 then
            begin
-             pos:=aiguillage[adresse].position;
-             //pos2:=aiguillage[aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
+             pos:=aiguillage[Index_Aig(adresse)].position;
+             //pos2:=aiguillage[Index_Aig(aiguillage[adresse].Apointe].position; // 2eme adresse de la TJD
              if (pos=const_droit) and (pos2=const_droit) then
              begin
                inc(x);inc(y);
@@ -2919,8 +2920,6 @@ begin
   begin 
     s:='Erreur 1000 : dépassement d''itérations TCO: '+IntToSTR(det1)+' - '+IntToSTR(det2);
     Affiche(s,clred); AfficheDebug(s,clred); end;
-
-  
 end;  
 
 procedure TFormTCO.FormActivate(Sender: TObject);
@@ -4236,22 +4235,7 @@ end;
 
 procedure TFormTCO.ButtonSimuClick(Sender: TObject);
 begin
-  aiguillage[20].position:=const_droit;
-  aiguillage[21].position:=const_devie;
-  aiguillage[22].position:=const_droit;
-  aiguillage[23].position:=const_devie;
-  aiguillage[24].position:=const_devie;
-  aiguillage[25].position:=const_droit;
-  aiguillage[26].position:=const_devie;
-  aiguillage[27].position:=const_droit;
-  aiguillage[28].position:=const_devie;
-  aiguillage[29].position:=const_devie;
-  aiguillage[30].position:=const_droit;
-
-  aiguillage[31].position:=const_droit;
-  aiguillage[70].position:=const_droit;
-  aiguillage[26].position:=const_devie; 
-  aiguillage[28].position:=const_droit; 
+  aiguillage[Index_Aig(28)].position:=const_droit; 
   
   zone_TCO(548,580,1);
   zone_TCO(561,514,1);
