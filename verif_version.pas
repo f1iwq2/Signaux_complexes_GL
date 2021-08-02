@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls;
+      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils;
 
 type
   TFormVersion = class(TForm)
@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='3.0';  // sert à la comparaison de la version publiée
+Const  Version='3.1';  // sert à la comparaison de la version publiée
 
 implementation
 
@@ -100,10 +100,11 @@ end;
 
 procedure verifie_version;
 var s,s2,s3,Version_p,Url,LocalFile : string;
-    trouve_version,trouve_zip : boolean;
+    trouve_version,trouve_zip,zone_comm : boolean;
     fichier : text;
-    i,j,erreur : integer;
+    i,j,erreur,Ncomm,i2,i3 : integer;
     V_publie,V_utile : real;
+    comm : array[1..10] of string;
 begin
     //Affiche('vérifie version',clLime);
     if not(AvecInit)  then exit ;
@@ -112,6 +113,8 @@ begin
     LocalFile:='page.txt';
     trouve_version:=false;
     trouve_zip:=false;
+    zone_comm:=false;
+    Ncomm:=0;
     if DownloadURL_NOCache(Url,localFile) then
     begin
       AssignFile(fichier,LocalFile);
@@ -124,18 +127,43 @@ begin
         begin
           i:=pos('version ',s);
           trouve_version:=i<>0;
-          if trouve_version then s2:=s;
+          if trouve_version then begin s2:=s;zone_comm:=true;end;
         end;
         if not(trouve_zip) then
         begin
           i:=pos('.zip',s);
           trouve_zip:=i<>0;
-          if trouve_zip then 
-            s3:=s;
+          if trouve_zip then begin s3:=s;zone_comm:=false;end;
         end;
-       // Aff(s)
+        // commentaire en gras
+        if zone_comm then
+        begin
+          i:=pos('bold">',s)+6;i2:=posEx('<br />',s,i+1);
+          if i<>6 then
+          begin
+            inc(ncomm);
+            comm[ncomm]:=UTF8Decode(copy(s,i,i2-i));
+            Delete(s,1,i2-1);
+            j:=0;
+            repeat
+              i:=pos('<br />',s)+6;i3:=posEx('</span>',s,i+1);i2:=posEx('<br />',s,i+1);
+              inc(ncomm);
+              if i2<i3 then
+              begin
+                comm[ncomm]:=UTF8Decode(copy(s,i,i2-i));Delete(s,1,i2-1);
+              end
+              else
+              begin
+                comm[ncomm]:=UTF8Decode(copy(s,i,i3-i));Delete(s,1,i3-1);
+              end;
+              inc(j);
+            until (i3<i2) or (ncomm=10) or (j=20);
+            zone_comm:=false;
+          end;  
+        end;
       end;
       closefile(fichier);
+      
       if trouve_version and trouve_zip then
       begin
         // isoler le champ version
@@ -151,7 +179,6 @@ begin
         i:=pos('.',s3);
         if i<>0 then delete(s3,i,1); // supprimer le .
         s3:='http://cdmrail.free.fr/ForumCDR'+s3 ;
-        aff(s3);               // lien dans s3
 
         // changer le . en ,
         s:=Version_p;
@@ -161,12 +188,20 @@ begin
 
         val(s,V_publie,erreur); if erreur<>0 then exit;
         val(s2,V_utile,erreur); if erreur<>0 then exit;
-      
+
         if V_utile<V_publie then
         begin
+          FormVersion.Top:=1;
+          FormVersion.Left:=1;
           FormVersion.show;
+          //aff(s3);               // url dans s3
           s:='Vous utilisez la version '+version+' mais il existe la version '+Version_p;
-          Aff(s);
+          if ncomm>0 then
+          begin
+            Aff('Nouveautés de la V'+version_p+' de Signaux_Complexes_GL :');
+            Aff(' ');
+            for i:=1 to ncomm do aff(comm[i]);
+          end;  
           if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin
             // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte

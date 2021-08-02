@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 58
-  Top = 217
+  Left = 55
+  Top = 177
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1434,6 +1434,7 @@ object FormPrinc: TFormPrinc
     ReadOnly = True
     ScrollBars = ssBoth
     TabOrder = 7
+    WordWrap = False
     OnChange = FenRichChange
   end
   object GroupBox2: TGroupBox
@@ -1600,6 +1601,7 @@ object FormPrinc: TFormPrinc
       end
       object Vrifierlacohrence: TMenuItem
         Caption = 'V'#233'rifier la coh'#233'rence'
+        Hint = 'V'#233'rifie la coh'#233'rence de la configuration'
         OnClick = VrifierlacohrenceClick
       end
       object N8: TMenuItem

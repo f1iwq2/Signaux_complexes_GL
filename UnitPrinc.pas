@@ -208,6 +208,7 @@ type TBranche = record
                  Adresse : integer;
                  modele : integer;          // 0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
                  position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
+                 posInit,                   // position d'initialisation
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
                  inversion : integer;       // positionné dans fichier config_gl section_init
@@ -238,9 +239,9 @@ type TBranche = record
 
                  // si modifié en mode config
                  modifie : boolean ;
-                end;
+              end;
 
-TFeu =           record 
+TFeu =         record
                  adresse, aspect : integer; // adresse du feu, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
                  Img : TImage;              // Pointeur sur structure TImage du feu
                  Lbl : TLabel;              // pointeur sur structure Tlabel du feu
@@ -268,12 +269,12 @@ TFeu =           record
                                                posAig  : char;
                                                end;
                  CondCarre : array[1..6] of array of record  // conditions supplémentaires d'aiguillages en position pour le carré
-                                                // attention les données sont stockée en adresse 1 du tableau dynamique
+                                                // attention les données sont stockées en adresse 1 du tableau dynamique
                                                Adresse : integer;    // aiguillage
                                                posAig : char;
                                                end;
                end;
-                
+
 Taccessoire     = (aig,feu);
 TMA             = (valide,devalide);
 
@@ -289,7 +290,7 @@ var
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages : boolean;
 
   CDMhd : THandle;
-  
+
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,traceTrames,AffMem,AfficheDet,CDM_connecte,SocketCDM_connecte,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,
@@ -1261,6 +1262,7 @@ var TypeFeu : integer;
 const espY = 15;//40; // espacement Y entre deux lignes de feux
 begin
   TypeFeu:=feux[rang].aspect;
+  if typeFeu<=0 then exit;
   Feux[rang].Img:=Timage.create(Formprinc.ScrollBox1);
   with Feux[rang].Img do
   begin
@@ -2247,10 +2249,10 @@ begin
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
     code:=EtatSignalCplx[adresse];
-    code_to_aspect(code,aspect,combine);      
+    code_to_aspect(code,aspect,combine);
     s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
-    if Affsignal then afficheDebug(s,clOrange); 
+    if Affsignal then afficheDebug(s,clOrange);
 
     if (aspect=semaphore) or (aspect=vert) or (aspect=carre) or (aspect=jaune) then mode:=1 else mode:=2;
 
@@ -2294,7 +2296,6 @@ var
   combine,aspect,code : word;
   s : string;
 begin
-  code:=etatsignalcplx[adresse];
   if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
   begin
     ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
@@ -2390,7 +2391,7 @@ begin
       end;
 
       // vérifier si on quitte le rouge
-      if Option_demarrage then 
+      if Option_demarrage then
       begin
       a:=ancien_tablo_signalCplx[adr];
       b:=EtatSignalCplx[adr];
@@ -2415,14 +2416,14 @@ begin
         end;
       end;
       end;
-      
+
       ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr]; //***
 
       // allume les signaux du feu dans la fenêtre de droite
       Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
 
       // allume les signaux du feu dans le TCO
-      if AvecTCO then  
+      if AvecTCO then
       begin
        for y:=1 to NbreCellY do
        for x:=1 to NbreCellX do
@@ -2430,42 +2431,41 @@ begin
          if TCO[x,y].Bimage=30 then
          begin
            adresse:=TCO[x,y].adresse;      // vérifie si le feu existe dans le TCO
-           a:=EtatsignalCplx[adresse];     // a = état binaire du feu
            aspect:=TCO[x,y].aspect;
-            case aspect of
+           case aspect of
                  2 :  ImageFeu:=Formprinc.Image2feux;
                  3 :  ImageFeu:=Formprinc.Image3feux;
                  4 :  ImageFeu:=Formprinc.Image4feux;
                  5 :  ImageFeu:=Formprinc.Image5feux;
                  7 :  ImageFeu:=Formprinc.Image7feux;
                  9 :  ImageFeu:=Formprinc.Image9feux;
-            else ImageFeu:=Formprinc.Image3feux;
-            end;
-            x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
-            y0:=(tco[x,y].y-1)*HauteurCell;
-            TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-            TailleX:=ImageFeu.picture.BitMap.Width; 
-            Orientation:=TCO[x,y].FeuOriente; 
-            // réduction variable en fonction de la taille des cellules
-            calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
+           else ImageFeu:=Formprinc.Image3feux;
+           end;
+           x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
+           y0:=(tco[x,y].y-1)*HauteurCell;
+           TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+           TailleX:=ImageFeu.picture.BitMap.Width;
+           Orientation:=TCO[x,y].FeuOriente;
+           // réduction variable en fonction de la taille des cellules
+           calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
-            // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-            if orientation=2 then
-            begin
-              if aspect=9 then x0:=x0+round(10*frX); 
-              if aspect=7 then x0:=x0+round(10*frX);  
-              if aspect=5 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-              if aspect=4 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-              if aspect=3 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-              if aspect=2 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-            end;
+           // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
+           if orientation=2 then
+           begin
+             if aspect=9 then x0:=x0+round(10*frX);
+             if aspect=7 then x0:=x0+round(10*frX);
+             if aspect=5 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+             if aspect=4 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+             if aspect=3 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+             if aspect=2 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+           end;
            // Dessine_feu_mx(PCanvasTCO,x0,y0,frx,fry,adresse,orientation);
               Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
-          end;
-       end;   
-    end;   
-  end;  
-end;  
+        end;
+     end;
+    end;
+  end;
+end;
 end;
 
 // pilotage des signaux
@@ -2563,7 +2563,6 @@ procedure trouve_detecteur(detecteur : integer);
 var NBranche,i : integer;
 begin
   Nbranche:=1;
-  i:=1;
   repeat
     i:=index_detecteur(detecteur,Nbranche);
     if i=0 then inc(NBranche);
@@ -2579,7 +2578,6 @@ procedure trouve_aiguillage(adresse : integer);
 var NBranche,i : integer;
 begin
   Nbranche:=1;
-  i:=1;
   repeat
     i:=index_aiguillage(Adresse,Nbranche);
     if i=0 then inc(NBranche);
@@ -2637,7 +2635,6 @@ var s,sa,chaine,SOrigine: string;
         if esp<>0 then delete(s,esp,1);
       until esp=0;
       lit_ligne:=s;
-      //Affiche(s,clWhite);
     end;
     
     procedure compile_section_init;
@@ -2650,14 +2647,16 @@ var s,sa,chaine,SOrigine: string;
         if j>1 then
         begin
           begin
-            adresse:=StrToINT(copy(s,1,j-1));Delete(s,1,j); // adresse aiguillage
+            Val(s,adresse,erreur);
+            Delete(s,1,j); // adresse aiguillage
             if (adresse>0) and (AvecInitAiguillages) then
             begin
               j:=pos(',',s);
-              position:=StrToInt(copy(s,1,j-1));Delete(S,1,j);// position aiguillage
+              Val(s,position,erreur);
+              Delete(S,1,j);// position aiguillage
               if (position<1) or (position>2) then position:=1;
               index:=Index_Aig(adresse);
-              aiguillage[index].position:=position;
+              aiguillage[index].posInit:=position;
 
               // temporisation aiguillage
               j:=pos(',',s);if j=0 then j:=length(s);
@@ -2704,6 +2703,7 @@ begin
     Aiguillage[i].modele:=0  ;  //  sans existence
     Aiguillage[i].adresse:=0;
     Aiguillage[i].position:=const_inconnu;  // position inconnue
+    Aiguillage[i].PosInit:=const_inconnu;  // position inconnue
     Aiguillage[i].temps:=5   ;
     Aiguillage[i].inversion:=0;
     Aiguillage[i].inversionCDM:=0;
@@ -2714,7 +2714,6 @@ begin
      Detecteur[i].train:='0';
      Ancien_detecteur[i]:=false;
   end;
-
 
   Affiche('lecture du fichier de configuration config.cfg',clyellow);
   {$I+}
@@ -3140,7 +3139,7 @@ begin
           s:='';i:=0;
         end;
       end;
-      
+
     end;
 
     if length(sa)>1 then if (sa[1]='F') then
@@ -3367,6 +3366,7 @@ begin
       AvecInitAiguillages:=s='1';
     end;
 
+    // taille de la fenetre
     sa:=uppercase(fenetre_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -3378,6 +3378,7 @@ begin
       if fenetre=1 then Formprinc.windowState:=wsMaximized;
     end;
 
+    // temporisation aiguillages
     sa:=uppercase(Tempo_Aig_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -3388,7 +3389,6 @@ begin
       val(s,Tempo_Aig,erreur);
     end;
  
-    
     i:=pos(uppercase(section_init),s);
     if i<>0 then
     begin
@@ -3418,7 +3418,6 @@ begin
       delete(s,i,length(sa));
       trouve_NOTIF_VERSION:=true;
       // vérification de la version au démarrage
-      i:=0;
       val(s,i,erreur);
       notificationVersion:=i=1;
     end;
@@ -3431,7 +3430,6 @@ begin
       delete(s,i,length(sa));
       trouve_TCO:=true;
       // vérification de la version au démarrage
-      i:=0;
       val(s,i,erreur);
       AvecTCO:=i=1;
     end;
@@ -3444,7 +3442,6 @@ begin
       trouve_CDM:=true;
       delete(s,i,length(sa));
       // vérification de la version au démarrage
-      i:=0;
       val(s,i,erreur);
       LanceCDM:=i=1;
     end;
@@ -3466,7 +3463,6 @@ begin
       inc(nv);
       trouve_serveur_interface:=true;
       delete(s,i,length(sa));
-      i:=0;
       val(s,i,erreur);
       ServeurInterfaceCDM:=i;
     end;
@@ -3478,7 +3474,6 @@ begin
       inc(nv);
       trouve_retro:=true;
       delete(s,i,length(sa));
-      i:=0;
       val(s,i,erreur);
       ServeurRetroCDM:=i;
     end;
@@ -3490,7 +3485,6 @@ begin
       inc(nv);
       trouve_NbDetDist:=true;
       delete(s,i,length(sa));
-      i:=0;
       val(s,i,erreur);
       if i<2 then begin i:=2;Affiche('Attention '+nb_det_dist_ch+' ramené à '+IntToSTR(i),clOrange); end;
       Nb_Det_Dist:=i;
@@ -4449,6 +4443,7 @@ end;
 
 
 // renvoie vrai si les aiguillages déclarés dans la définition du signal sont mal positionnés
+// (conditions suppplémentares)
 function cond_carre(adresse : integer) : boolean;
 var i,l,k,NCondCarre,adrAig,index : integer;
     resultatET,resultatOU: boolean;
@@ -4469,9 +4464,12 @@ begin
       //s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig+' ';
       AdrAig:=feux[i].condcarre[l][k].Adresse;
       index:=index_aig(adrAig);
-      if nivDebug=3 then AfficheDebug('Contrôle aiguillage '+IntToSTR(AdrAig),clyellow);
-      resultatET:=((aiguillage[index].position=const_devie) and (feux[i].condcarre[l][k].PosAig='S') or (aiguillage[index].position=const_droit) and (feux[i].condcarre[l][k].PosAig='D'))
-                and resultatET;
+      if index<>0 then
+      begin
+        if nivDebug=3 then AfficheDebug('Contrôle aiguillage '+IntToSTR(AdrAig),clyellow);
+        resultatET:=((aiguillage[index].position=const_devie) and (feux[i].condcarre[l][k].PosAig='S') or (aiguillage[index].position=const_droit) and (feux[i].condcarre[l][k].PosAig='D'))
+                  and resultatET;
+      end;            
     end;
     //if resultatET then Affiche('VRAI',clyellow) else affiche('FAUX',clred);
     inc(l);
@@ -6269,7 +6267,7 @@ begin
         j:=posEx(',',PortCom,j+1);
         j:=posEx(',',PortCom,j+1);
 
-        confStCom:=copy(portCom,i+1,j-i-1); //Affiche(ConfStCom,clred);
+        confStCom:=copy(portCom,i+1,j-i-1);
         Settings:=ConfStCom;   // COMx:vitesse,n,8,1
         Affiche('Demande ouverture COM'+intToSTR(NumPort)+':'+ConfStCom+' protocole '+IntToSTR(protocole),CLYellow);
         if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
@@ -6786,7 +6784,7 @@ begin
       index:=index_aig(i);
       if aiguillage[index].modele<>0 then // si l'aiguillage existe
       begin
-        pos:=aiguillage[index].position;
+        pos:=aiguillage[index].posInit;
         s:='Init aiguillage '+intToSTR(i)+'='+intToSTR(pos);
         if pos=1 then s:=s+' (dévié)' else s:=s+' (droit)';
         Affiche(s,cyan);
@@ -7139,7 +7137,7 @@ procedure TFormPrinc.MenuConnecterEthernetClick(Sender: TObject);
 begin
 if AdresseIP<>'0' then
   begin
-    Affiche('Demande de connexion de l''interface Lenz en ethernet '+AdresseIP+':'+IntToSTR(Port),clyellow);
+    Affiche('Demande de connexion de l''interface XpressNet en ethernet sur '+AdresseIP+':'+IntToSTR(Port),clyellow);
     ClientSocketLenz.port:=port;
     ClientSocketLenz.Address:=AdresseIP;
     ClientSocketLenz.Open;
@@ -7422,7 +7420,6 @@ begin
       //  Tempo_chgt_feux:=10; // demander la mise à jour des feux
       end;
 
-
       // évènement détecteur
       posDT:=pos('CMDACC-ST_DT',commandeCDM);
       if posDT<>0 then
@@ -7592,10 +7589,9 @@ begin
   DeConnecterUSB.enabled:=true;
   ConnecterCDMRail.enabled:=true;
 end;
-
-
+  
 procedure TFormPrinc.Codificationdesfeux1Click(Sender: TObject);
-var i,j,k,l,CondCarre,NfeuxDir : integer;
+var i,j,k,l,CondCarre,NfeuxDir,nc : integer;
     s,s2 : string;
 begin
   Affiche('Codification interne des feux',Cyan);
@@ -7612,31 +7608,29 @@ begin
       s:=s+' Det='+IntToSTR(feux[i].Adr_det1);
       s:=s+' El_Suiv1='+IntToSTR(feux[i].Adr_el_suiv1)+' Type suiv1='+intToSTR(feux[i].Btype_suiv1);
       case feux[i].Btype_suiv1 of
-      1 : s:=s+' (détecteur)';
-      2 : s:=s+' (aiguillage ou TJD-S)';
-      4 : s:=s+' (aiguillage triple)';
-      5 : s:=s+' (aiguillage bis)';
+      1 : s:=s+' (détecteur) ';
+      2 : s:=s+' (aiguillage ou TJD-S) ';
+      4 : s:=s+' (aiguillage triple) ';
+      5 : s:=s+' (aiguillage bis) ';
       end;
       if feux[i].decodeur=6 then
-      s:=s+' Cible unisemaf='+intToSTR(feux[i].Unisemaf);
+      s:=s+'Cible unisemaf= '+intToSTR(feux[i].Unisemaf);
 
       // conditions sur carré
-      CondCarre:=Length(feux[i].condcarre[1]);
       l:=1;
-      s2:='';
-      while condCarre<>0 do
-      begin
-        if condcarre<>0 then dec(condcarre);
-        for k:=1 to condCarre do
+      repeat
+        nc:=Length(feux[i].condcarre[l])-1 ;
+        if (nc>0) and (l=1) then begin Affiche(s,clYellow);s:='';end;  // pour afficher sur 2 lignes
+        for k:=1 to nc do
         begin
-          s2:=s2+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig+' ';
+          s:=s+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
+            if k<nc then s:=s+',';
         end;
-        s2:=s2+'/';
         inc(l);
-        CondCarre:=Length(feux[i].condcarre[l]);
-      end;
-      
+        if nc>0 then s:=s+'/';
+      until (nc<=0) or (l>6);
     end
+    
     else
     // feu directionnel
     begin
@@ -7862,7 +7856,7 @@ begin
   // dans le tableau des PN
   for i:=1 to NbrePN do
   begin
-    s:='PN'+intToSTR(i)+'          Adresse fermeture PN='+IntToSTR(Tablo_PN[i].AdresseFerme);
+    s:='PN'+intToSTR(i)+'        Adresse fermeture PN='+IntToSTR(Tablo_PN[i].AdresseFerme);
     s:=s+'        Adresse ouverture PN='+IntToSTR(Tablo_PN[i].AdresseOuvre);
     Affiche(s,clyellow);
     s:='                Commande fermeture='+intToSTR(Tablo_PN[i].commandeFerme);
@@ -7981,7 +7975,7 @@ begin
    Tformconfig.create(nil);
    formconfig.PageControl.ActivePage:=formconfig.TabSheetSig;
    //Affiche(intToSTR(index),clOrange);
-   lignecliquee:=index-1;
+   ligneClicSig:=index-1;
    formconfig.showmodal;
    formconfig.close;
 end;

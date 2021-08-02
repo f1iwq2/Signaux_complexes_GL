@@ -56,7 +56,10 @@ version 3.0  : Ajout des fonctions Nouveau / supprimer feu, accessoires dans le 
 	       Tous les éléments des feux, aiguillages, branches et actionneurs peuvent être modifiés depuis le panneau.
                Nécessite de nommer les sections dans le fichier config.cfg
 	       Il n'est donc plus nécessaire de modifier les fichiers de configuration.	
-               
+version 3.1  : Renforcement de la vérification de la configuration.
+               Modification de la liste d'initialisation des aiguillages en mode autonome.
+               Indépendance des modifications entre les onglets du panneau de configuration.
+
 
 
 	

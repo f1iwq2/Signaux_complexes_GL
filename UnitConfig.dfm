@@ -1,13 +1,13 @@
 object FormConfig: TFormConfig
-  Left = 345
-  Top = 219
+  Left = 285
+  Top = 127
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
   ClientHeight = 501
-  ClientWidth = 854
+  ClientWidth = 902
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,7 +21,7 @@ object FormConfig: TFormConfig
   PixelsPerInch = 96
   TextHeight = 13
   object LabelInfo: TLabel
-    Left = 601
+    Left = 649
     Top = 416
     Width = 29
     Height = 16
@@ -34,7 +34,7 @@ object FormConfig: TFormConfig
     ParentFont = False
   end
   object Image1: TImage
-    Left = 600
+    Left = 648
     Top = 128
     Width = 249
     Height = 177
@@ -944,7 +944,7 @@ object FormConfig: TFormConfig
     Stretch = True
   end
   object Label11: TLabel
-    Left = 600
+    Left = 648
     Top = 32
     Width = 244
     Height = 31
@@ -957,7 +957,7 @@ object FormConfig: TFormConfig
     ParentFont = False
   end
   object ImageAig: TImage
-    Left = 600
+    Left = 648
     Top = 312
     Width = 137
     Height = 57
@@ -1229,7 +1229,7 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTJD: TImage
-    Left = 720
+    Left = 760
     Top = 320
     Width = 137
     Height = 57
@@ -1365,7 +1365,7 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTri: TImage
-    Left = 600
+    Left = 648
     Top = 336
     Width = 145
     Height = 65
@@ -1543,7 +1543,7 @@ object FormConfig: TFormConfig
     Caption = 'Verrouillable au carr'#233' :'
   end
   object Image2: TImage
-    Left = 720
+    Left = 760
     Top = 352
     Width = 129
     Height = 41
@@ -1773,9 +1773,9 @@ object FormConfig: TFormConfig
   object PageControl: TPageControl
     Left = 8
     Top = 8
-    Width = 585
+    Width = 633
     Height = 457
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1787,7 +1787,7 @@ object FormConfig: TFormConfig
     object TabSheetCDM: TTabSheet
       Caption = 'CDM Rail'
       object GroupBox1: TGroupBox
-        Left = 8
+        Left = 16
         Top = 8
         Width = 273
         Height = 81
@@ -1827,7 +1827,7 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox5: TGroupBox
-        Left = 8
+        Left = 16
         Top = 96
         Width = 273
         Height = 185
@@ -1900,7 +1900,7 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox6: TGroupBox
-        Left = 296
+        Left = 320
         Top = 8
         Width = 273
         Height = 169
@@ -1980,7 +1980,7 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox7: TGroupBox
-        Left = 296
+        Left = 320
         Top = 184
         Width = 273
         Height = 137
@@ -2036,7 +2036,7 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox8: TGroupBox
-        Left = 8
+        Left = 16
         Top = 288
         Width = 273
         Height = 113
@@ -2091,7 +2091,7 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox15: TGroupBox
-        Left = 296
+        Left = 320
         Top = 328
         Width = 273
         Height = 73
@@ -2120,9 +2120,9 @@ object FormConfig: TFormConfig
       object Label9: TLabel
         Left = 8
         Top = 400
-        Width = 297
+        Width = 294
         Height = 13
-        Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans  CDM Rail'
+        Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
         WordWrap = True
       end
       object GroupBox2: TGroupBox
@@ -2260,55 +2260,54 @@ object FormConfig: TFormConfig
       object Memo1: TMemo
         Left = 312
         Top = 8
-        Width = 257
+        Width = 297
         Height = 97
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '1. Port COM de l'#39'adresse USB de l'#39'interface '
-          'XpressNet.'
-          'Attention de COM1 '#224' 9 - Si le port de l'#39'interface '
-          'USB>9, il faut le changer manuellement dans le '
-          'gestionnaire des p'#233'riph'#233'riques. Mettre 0 si inutilis'#233'e. '
-          'Le programme ne tentera pas de se connecter '#224' la '
-          'centrale si CDM rail est d'#233'tect'#233'.')
+          '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet.'
+          'Attention de COM1 '#224' 9 - Si le port de l'#39'interface USB>9, il '
+          'faut le changer manuellement dans le gestionnaire des '
+          'p'#233'riph'#233'riques. '
+          'Mettre 0 si inutilis'#233'e. Le programme ne tentera pas de se '
+          'connecter '#224' la centrale si CDM rail est d'#233'tect'#233'.')
         ReadOnly = True
         TabOrder = 3
       end
       object Memo2: TMemo
         Left = 312
         Top = 112
-        Width = 257
+        Width = 297
         Height = 97
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '2. Valeur de temporisation entre deux octets '
-          'transf'#233'r'#233's '#224' l'#39'interface. Elle peut '#234'tre nulle. Pour '
-          'les interfaces s'#233'rie sans protocole (0) comme le '
-          'GENLI, il est conseill'#233' de la positionner '#224' une '
-          'valeur de l'#39'ordre de 30 (ms). Pour les interfaces avec '
-          'protocole mat'#233'riel RTS-CTS (2) cette '
-          'variable est ignor'#233'e.')
+          '2. Valeur de temporisation entre deux octets transf'#233'r'#233's '#224' '
+          'l'#39'interface. Elle peut '#234'tre nulle. '
+          'Pour les interfaces s'#233'rie sans protocole (0) comme le '
+          'GENLI, il est conseill'#233' de la positionner '#224' une valeur de '
+          'l'#39'ordre de 30 (ms). '
+          'Pour les interfaces avec protocole mat'#233'riel RTS-CTS (2) '
+          'cette variable est ignor'#233'e.')
         ReadOnly = True
         TabOrder = 4
       end
       object Memo3: TMemo
         Left = 312
         Top = 216
-        Width = 257
+        Width = 297
         Height = 89
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '3. Valeur maximale par tranche de 100 ms qui d'#233'finit '
-          'le temps d'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '
-          'une trame qui lui est transf'#233'r'#233'e. Cette valeur est '#224' '
-          'tester en fonction de votre interface. En cas de '
-          'd'#233'passement de la valeur, un message '#171' pas de '
+          '3. Valeur maximale par tranche de 100 ms qui d'#233'finit le temps '
+          'd'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '
+          'une trame qui lui est transf'#233'r'#233'e. '
+          'Cette valeur est '#224' tester en fonction de votre interface. '
+          'En cas de d'#233'passement de la valeur, un message '#171' pas de '
           'r'#233'ponse de l'#39'interface '#187' sera affich'#233'.')
         ReadOnly = True
         TabOrder = 5
@@ -2316,17 +2315,17 @@ object FormConfig: TFormConfig
       object Memo4: TMemo
         Left = 312
         Top = 312
-        Width = 257
+        Width = 297
         Height = 73
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette '
-          'valeur doit '#234'tre '#224' 0. Pour les interfaces utilisant '
-          'nativement de l'#39'USB, cette valeur doit '#234'tre '#224' 1. La '
-          'valeur 2 est utilis'#233'e exclusivement pour des '
-          'interfaces '#224' base d'#39'arduino pour xpressnet.')
+          '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette valeur '
+          'doit '#234'tre '#224' 0. Pour les interfaces utilisant nativement de '
+          'l'#39'USB, cette valeur doit '#234'tre '#224' 1. '
+          'La valeur 2 est utilis'#233'e exclusivement pour des interfaces '#224' '
+          'base d'#39'arduino pour xpressnet.')
         ReadOnly = True
         TabOrder = 6
       end
@@ -2397,11 +2396,25 @@ object FormConfig: TFormConfig
         Height = 13
         Caption = 'LabelTJD1'
       end
+      object Label35: TLabel
+        Left = 0
+        Top = 56
+        Width = 134
+        Height = 13
+        Caption = 'Configuration des aiguillages'
+      end
+      object Label36: TLabel
+        Left = 232
+        Top = 56
+        Width = 86
+        Height = 13
+        Caption = 'Liste d'#39'initialisation'
+      end
       object GroupBox11: TGroupBox
-        Left = 280
+        Left = 328
         Top = 32
         Width = 289
-        Height = 353
+        Height = 393
         Caption = 'Description de l'#39'aiguillage'
         TabOrder = 0
         object LabelAdresse: TLabel
@@ -2433,7 +2446,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox10: TGroupBox
           Left = 8
-          Top = 96
+          Top = 88
           Width = 273
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
@@ -2468,7 +2481,7 @@ object FormConfig: TFormConfig
         end
         object CheckInverse: TCheckBox
           Left = 16
-          Top = 296
+          Top = 269
           Width = 137
           Height = 17
           Caption = 'Inversion de l'#39#233'tat CDM'
@@ -2484,7 +2497,7 @@ object FormConfig: TFormConfig
           OnChange = EditAdrAigChange
         end
         object ComboBoxAig: TComboBox
-          Left = 72
+          Left = 8
           Top = 64
           Width = 145
           Height = 21
@@ -2500,9 +2513,9 @@ object FormConfig: TFormConfig
         end
         object GroupBox16: TGroupBox
           Left = 8
-          Top = 176
+          Top = 168
           Width = 273
-          Height = 105
+          Height = 97
           Caption = 'Repr'#233'sentation'
           TabOrder = 4
           object LabelHG: TLabel
@@ -2577,15 +2590,15 @@ object FormConfig: TFormConfig
             ParentFont = False
           end
           object LabelTJD1: TLabel
-            Left = 72
-            Top = 84
+            Left = 96
+            Top = 76
             Width = 52
             Height = 13
             Caption = 'LabelTJD1'
           end
           object LabelTJD2: TLabel
-            Left = 152
-            Top = 84
+            Left = 168
+            Top = 76
             Width = 52
             Height = 13
             Caption = 'LabelTJD1'
@@ -2673,8 +2686,8 @@ object FormConfig: TFormConfig
           end
         end
         object ButtonRestaureAig: TButton
-          Left = 192
-          Top = 296
+          Left = 200
+          Top = 56
           Width = 75
           Height = 25
           Hint = 
@@ -2695,24 +2708,76 @@ object FormConfig: TFormConfig
           Visible = False
           OnChange = EditAigTripleChange
         end
+        object GroupBox21: TGroupBox
+          Left = 8
+          Top = 288
+          Width = 273
+          Height = 97
+          Caption = 'Initialisation de l'#39'aiguillage en mode autonome'
+          TabOrder = 7
+          object Label37: TLabel
+            Left = 8
+            Top = 26
+            Width = 66
+            Height = 13
+            Caption = 'D'#233'vi'#233' ou droit'
+          end
+          object Label38: TLabel
+            Left = 8
+            Top = 42
+            Width = 129
+            Height = 13
+            Caption = 'Temporisation  (1/10'#232'me s)'
+          end
+          object LabelDevie: TLabel
+            Left = 200
+            Top = 24
+            Width = 3
+            Height = 13
+          end
+          object EditDevDroit: TEdit
+            Left = 152
+            Top = 18
+            Width = 41
+            Height = 21
+            TabOrder = 0
+            OnChange = EditDevDroitChange
+          end
+          object EditTempo10: TEdit
+            Left = 152
+            Top = 40
+            Width = 41
+            Height = 21
+            TabOrder = 1
+            OnChange = EditTempo10Change
+          end
+          object CheckInvInit: TCheckBox
+            Left = 8
+            Top = 64
+            Width = 153
+            Height = 17
+            Caption = 'Pilotage invers'#233
+            TabOrder = 2
+            OnClick = CheckInvInitClick
+          end
+        end
       end
       object RichAig: TRichEdit
         Left = 0
-        Top = 56
-        Width = 265
-        Height = 337
+        Top = 72
+        Width = 233
+        Height = 353
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clYellow
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        Lines.Strings = (
-          'RichAig')
         ParentFont = False
         ReadOnly = True
-        ScrollBars = ssVertical
+        ScrollBars = ssBoth
         TabOrder = 1
+        WordWrap = False
         OnMouseDown = RichAigMouseDown
       end
       object ButtonNouvAig: TButton
@@ -2742,6 +2807,23 @@ object FormConfig: TFormConfig
         TabOrder = 4
         OnClick = ButtonAjSupClick
       end
+      object RichInitAig: TRichEdit
+        Left = 232
+        Top = 72
+        Width = 89
+        Height = 353
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clYellow
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssBoth
+        TabOrder = 5
+        WordWrap = False
+      end
     end
     object TabSheetBranches: TTabSheet
       Caption = 'Branches'
@@ -2756,7 +2838,7 @@ object FormConfig: TFormConfig
           'la modifier - Valider la ligne apr'#232's modification'
       end
       object Label34: TLabel
-        Left = 408
+        Left = 472
         Top = 192
         Width = 136
         Height = 26
@@ -2764,7 +2846,7 @@ object FormConfig: TFormConfig
         WordWrap = True
       end
       object GroupBox20: TGroupBox
-        Left = 408
+        Left = 464
         Top = 24
         Width = 153
         Height = 161
@@ -2809,7 +2891,7 @@ object FormConfig: TFormConfig
       object RichBranche: TRichEdit
         Left = 0
         Top = 24
-        Width = 401
+        Width = 457
         Height = 401
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
@@ -2822,6 +2904,7 @@ object FormConfig: TFormConfig
         ParentFont = False
         ScrollBars = ssBoth
         TabOrder = 1
+        WordWrap = False
         OnMouseDown = RichBrancheMouseDown
       end
     end
@@ -2838,10 +2921,10 @@ object FormConfig: TFormConfig
           'z sur une ligne pour afficher la description du signal'
       end
       object GroupBox12: TGroupBox
-        Left = 288
+        Left = 336
         Top = 40
         Width = 281
-        Height = 353
+        Height = 385
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
@@ -2964,10 +3047,11 @@ object FormConfig: TFormConfig
         object MemoCarre: TMemo
           Left = 8
           Top = 280
-          Width = 241
-          Height = 65
-          ScrollBars = ssVertical
+          Width = 265
+          Height = 89
+          ScrollBars = ssBoth
           TabOrder = 0
+          WordWrap = False
           OnChange = MemoCarreChange
         end
         object ComboBoxDec: TComboBox
@@ -3052,7 +3136,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv4Change
         end
         object CheckVerrouCarre: TCheckBox
-          Left = 104
+          Left = 120
           Top = 224
           Width = 145
           Height = 17
@@ -3115,8 +3199,8 @@ object FormConfig: TFormConfig
       object RichSig: TRichEdit
         Left = 0
         Top = 56
-        Width = 273
-        Height = 337
+        Width = 329
+        Height = 369
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clYellow
@@ -3173,43 +3257,27 @@ object FormConfig: TFormConfig
           'iquez sur une ligne pour afficher la description de l'#39'action'
       end
       object GroupBox13: TGroupBox
-        Left = 304
+        Left = 360
         Top = 32
         Width = 257
         Height = 385
         Caption = 'Description de l'#39'actionneur '
         TabOrder = 0
-        object GroupBoxRadio: TGroupBox
+        object Label40: TLabel
           Left = 16
-          Top = 24
-          Width = 225
-          Height = 65
-          Caption = 'Type d'#39'actionneur '
-          TabOrder = 0
-          object RadioButtonLoc: TRadioButton
-            Left = 24
-            Top = 24
-            Width = 193
-            Height = 17
-            Caption = 'Fonction F pour locomotive'
-            TabOrder = 0
-            OnClick = RadioButtonLocClick
-          end
-          object RadioButtonAccess: TRadioButton
-            Left = 24
-            Top = 40
-            Width = 161
-            Height = 17
-            Caption = 'Fonction F pour accessoire'
-            TabOrder = 1
-            OnClick = RadioButtonAccessClick
-          end
+          Top = 328
+          Width = 191
+          Height = 26
+          Caption = 
+            'Les accessoires ne sont utilisables qu'#39'en mode connect'#233' avec CDM' +
+            ' Rail'
+          WordWrap = True
         end
         object GroupBoxPN: TGroupBox
-          Left = 32
-          Top = 80
+          Left = -32
+          Top = 24
           Width = 225
-          Height = 193
+          Height = 289
           Caption = 'Actionneurs gestion passage '#224' niveau'
           TabOrder = 2
           object Label21: TLabel
@@ -3252,6 +3320,13 @@ object FormConfig: TFormConfig
             Top = 105
             Width = 137
             Height = 2
+          end
+          object Label39: TLabel
+            Left = 8
+            Top = 188
+            Width = 30
+            Height = 13
+            Caption = 'Voie 4'
           end
           object EditAdrFerme: TEdit
             Left = 120
@@ -3349,19 +3424,61 @@ object FormConfig: TFormConfig
             TabOrder = 11
             OnChange = EditV3OChange
           end
+          object EditV4F: TEdit
+            Left = 64
+            Top = 184
+            Width = 41
+            Height = 21
+            TabOrder = 12
+            OnChange = EditV4FChange
+          end
+          object EditV4O: TEdit
+            Left = 152
+            Top = 184
+            Width = 41
+            Height = 21
+            TabOrder = 13
+            OnChange = EditV4OChange
+          end
         end
-        object GroupBoxAct: TGroupBox
+        object GroupBoxRadio: TGroupBox
           Left = 16
           Top = 72
           Width = 225
-          Height = 249
+          Height = 65
+          Caption = 'Type d'#39'actionneur '
+          TabOrder = 0
+          object RadioButtonLoc: TRadioButton
+            Left = 24
+            Top = 24
+            Width = 193
+            Height = 17
+            Caption = 'Fonction F pour locomotive'
+            TabOrder = 0
+            OnClick = RadioButtonLocClick
+          end
+          object RadioButtonAccess: TRadioButton
+            Left = 24
+            Top = 40
+            Width = 161
+            Height = 17
+            Caption = 'Fonction F pour accessoire'
+            TabOrder = 1
+            OnClick = RadioButtonAccessClick
+          end
+        end
+        object GroupBoxAct: TGroupBox
+          Left = 16
+          Top = 104
+          Width = 225
+          Height = 225
           Caption = 'Actionneur fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
             Top = 24
             Width = 209
-            Height = 97
+            Height = 81
             Caption = 'D'#233'clencheur '
             TabOrder = 0
             object LabelActionneur: TLabel
@@ -3417,13 +3534,13 @@ object FormConfig: TFormConfig
           end
           object GroupBox19: TGroupBox
             Left = 8
-            Top = 128
+            Top = 112
             Width = 209
             Height = 105
             Caption = 'Action '
             TabOrder = 1
             object LabelTempo: TLabel
-              Left = 40
+              Left = 48
               Top = 52
               Width = 55
               Height = 13
@@ -3447,8 +3564,8 @@ object FormConfig: TFormConfig
               Caption = #224
             end
             object EditTempo: TEdit
-              Left = 128
-              Top = 45
+              Left = 112
+              Top = 46
               Width = 33
               Height = 21
               TabOrder = 0
@@ -3456,7 +3573,7 @@ object FormConfig: TFormConfig
             end
             object CheckRAZ: TCheckBox
               Left = 32
-              Top = 72
+              Top = 80
               Width = 145
               Height = 17
               Caption = 'Remise '#224' 0 apr'#232's pilotage'
@@ -3465,7 +3582,7 @@ object FormConfig: TFormConfig
             end
             object EditFonctionAccess: TEdit
               Left = 112
-              Top = 15
+              Top = 18
               Width = 25
               Height = 21
               Hint = 'Num'#233'ro de fonction du d'#233'codeur du train'
@@ -3476,7 +3593,7 @@ object FormConfig: TFormConfig
             end
             object EditEtatFoncSortie: TEdit
               Left = 160
-              Top = 15
+              Top = 18
               Width = 25
               Height = 21
               TabOrder = 3
@@ -3488,7 +3605,7 @@ object FormConfig: TFormConfig
       object GroupBox14: TGroupBox
         Left = 0
         Top = 32
-        Width = 297
+        Width = 345
         Height = 185
         Caption = 'Actionneurs locomotives ou accessoires'
         TabOrder = 1
@@ -3516,7 +3633,7 @@ object FormConfig: TFormConfig
         object RichAct: TRichEdit
           Left = 8
           Top = 48
-          Width = 281
+          Width = 329
           Height = 129
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
@@ -3526,16 +3643,17 @@ object FormConfig: TFormConfig
           Font.Style = []
           ParentFont = False
           ReadOnly = True
-          ScrollBars = ssVertical
+          ScrollBars = ssBoth
           TabOrder = 2
+          WordWrap = False
           OnMouseDown = RichActMouseDown
         end
       end
       object GroupBox17: TGroupBox
         Left = 0
         Top = 232
-        Width = 297
-        Height = 185
+        Width = 345
+        Height = 193
         Caption = 'Actionneurs passage '#224' niveau'
         TabOrder = 2
         object ButtonNouvPN: TButton
@@ -3562,8 +3680,8 @@ object FormConfig: TFormConfig
         object RichPN: TRichEdit
           Left = 8
           Top = 48
-          Width = 281
-          Height = 129
+          Width = 329
+          Height = 137
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clYellow
@@ -3572,8 +3690,9 @@ object FormConfig: TFormConfig
           Font.Style = []
           ParentFont = False
           ReadOnly = True
-          ScrollBars = ssVertical
+          ScrollBars = ssBoth
           TabOrder = 2
+          WordWrap = False
           OnMouseDown = RichPNMouseDown
         end
       end
