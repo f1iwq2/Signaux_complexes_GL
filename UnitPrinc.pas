@@ -177,6 +177,7 @@ type
 
 const
 titre='Signaux complexes GL ';
+const espY = 15;//40; // espacement Y entre deux lignes de feux
 tempoFeu=100;
 MaxAcc=2048;   // et aussi adresse maxi d'accessoire
 LargImg=50;HtImg=91; // Dimensions image des feux
@@ -208,7 +209,7 @@ type TBranche = record
                  Adresse : integer;
                  modele : integer;          // 0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
                  position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
-                 posInit,                   // position d'initialisation
+                 posInit,                   // position d'initialisation 1=dévié 2=droit 9=non positionné
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
                  temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
                  inversion : integer;       // positionné dans fichier config_gl section_init
@@ -245,7 +246,7 @@ TFeu =         record
                  adresse, aspect : integer; // adresse du feu, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
                  Img : TImage;              // Pointeur sur structure TImage du feu
                  Lbl : TLabel;              // pointeur sur structure Tlabel du feu
-                 check : TCheckBox;         // pointeur sur structure Checkbox avec feu blanc
+                 check : TCheckBox;         // pointeur sur structure Checkbox "demande feu blanc"
                  FeuBlanc : boolean ;       // avec checkbox ou pas
                  decodeur : integer;        // type du décodeur
                  Adr_det1 : integer;        // adresse du détecteur1 sur lequel il est implanté
@@ -349,8 +350,8 @@ var
   aiguillage : array[0..MaxAcc] of Taiguillage;
   // signaux - L'index du tableau n'est pas son adresse
   feux :  array[1..MaxAcc] of Tfeu;
-  Feu_supprime : Tfeu;
-  Aig_supprime : TAiguillage;
+  Feu_supprime,Feu_sauve : Tfeu;
+  Aig_supprime,Aig_sauve : TAiguillage;
   
   Fimage : Timage;
   BrancheN : array[1..100,1..200] of TBranche;  //
@@ -383,7 +384,7 @@ procedure Pilote_acc0_X(adresse : integer;octet : byte);
 procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
 function  etat_signal_suivant(Adresse,rang : integer) : integer;
 function suivant_alg3(prec : integer;typeELprec : integer;var actuel : integer;typeElActuel : integer;alg : integer) : integer;
-function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2 : integer) : integer ;
+function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2,alg : integer) : integer ;
 function test_memoire_zones(adresse : integer) : boolean;
 function PresTrainPrec(AdrFeu : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
@@ -1097,9 +1098,6 @@ begin
   begin
      FenRich.lines.add(s);
      RE_ColorLine(FenRich,FenRich.lines.count-1,lacouleur);
-     //FenRich.SetFocus;
-     //FenRich.SelStart := FenRich.GetTextLen;
-     //FenRich.Perform(EM_SCROLLCARET, 0, 0);
   end;
 end;
  
@@ -1257,9 +1255,9 @@ end;
 
 // créée une image dynamiquement pour un nouveau feu déclaré dans le fichier de config
 procedure cree_image(rang : integer);
-var TypeFeu : integer;
+var TypeFeu,adresse : integer;
     s : string;
-const espY = 15;//40; // espacement Y entre deux lignes de feux
+
 begin
   TypeFeu:=feux[rang].aspect;
   if typeFeu<=0 then exit;
@@ -1267,7 +1265,7 @@ begin
   with Feux[rang].Img do
   begin
     Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
-    Name:='ImageFeu'+IntToSTR(rang);   // nom de l'image - sert à identifier le composant si on fait clic droit.
+    //Name:='ImageFeu'+IntToSTR(rang);   // nom de l'image - sert à identifier le composant si on fait clic droit.
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
     width:=57;
@@ -1289,10 +1287,11 @@ begin
     picture.Bitmap:=Select_dessin_feu(TypeFeu);
     
     // mettre rouge par défaut
-    if TypeFeu=2 then EtatSignalCplx[feux[rang].adresse]:=violet_F;
-    if TypeFeu=3 then EtatSignalCplx[feux[rang].adresse]:=semaphore_F;
-    if (TypeFeu>3) and (TypeFeu<10) then EtatSignalCplx[feux[rang].adresse]:=carre_F;
-    if TypeFeu>10 then EtatSignalCplx[feux[rang].adresse]:=0;
+    adresse:=Feux[rang].adresse;
+    if TypeFeu=2 then EtatSignalCplx[adresse]:=violet_F;
+    if TypeFeu=3 then EtatSignalCplx[adresse]:=semaphore_F;
+    if (TypeFeu>3) and (TypeFeu<10) then EtatSignalCplx[adresse]:=carre_F;
+    if TypeFeu>10 then EtatSignalCplx[adresse]:=0;
 
     dessine_feu_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
     //if feux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
@@ -1314,8 +1313,8 @@ begin
   if feux[rang].FeuBlanc then
   begin
     Feux[rang].check:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
-    Feux[rang].check.onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
-    Feux[rang].check.Hint:=intToSTR(rang);  // affecter l'index du feu dans le HINT pour pouvoir le retrouver plus tard
+    //Feux[rang].check.onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus non utilisé
+    Feux[rang].check.Hint:=intToSTR(adresse);  // affecter l'adresse du feu dans le HINT pour pouvoir le retrouver plus tard
 
     with Feux[rang].Check do
     begin
@@ -1326,7 +1325,8 @@ begin
       Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
       BringToFront;
     end;
-  end;
+  end
+  else Feux[rang].check:=nil;
 end;
 
 // calcule le checksum d'une trame
@@ -2597,7 +2597,7 @@ begin
   if (UniSem<>2) and (UniSem<>3) and (UniSem<>4) and (UniSem<>51) and (UniSem<>52) and (UniSem<>71) and (UniSem<>72) and (UniSem<>73) and
      ((UniSem<90) or (UniSem>99)) then begin verif_UniSemaf:=1;exit;end;
 
-  aspect:=feux[adresse].aspect;
+  aspect:=feux[index_feu(adresse)].aspect;
   if  ((aspect=2) and (UniSem=2)) or
       ((aspect=3) and (UniSem=3)) or
       ((aspect=4) and (UniSem=4)) or
@@ -2615,10 +2615,10 @@ var s,sa,chaine,SOrigine: string;
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    pds,trouve_section_branche,trouve_section_sig,trouve_section_act   : boolean;
+    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,compile_init_cfg   : boolean;
     bd,virgule,i_detect,i,erreur,aig,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
-    postjd,postjs,nv,it,Num_Champ,asp : integer;
+    postjd,postjs,nv,it,Num_Champ,asp,inversion : integer;
     label ici1,ici2,ici3,ici4 ;
     
     function lit_ligne : string ;
@@ -2674,6 +2674,7 @@ var s,sa,chaine,SOrigine: string;
     end;
 
 begin
+  compile_init_cfg:=true;
   debugConfig:=false;
   trouve_NbDetDist:=false;
   trouve_ipv4_PC:=false;
@@ -2975,6 +2976,28 @@ begin
           virgule:=pos(',',enregistrement);if virgule=0 then virgule:=length(enregistrement)+1;
           delete(enregistrement,1,virgule);
         end;
+
+        // Init aiguillage
+        i:=pos('INIT(',enregistrement);
+        if i=1 then 
+        begin
+          compile_init_cfg:=false;  // ne pas compiler la section init du fichier config-gl.cfg
+          inc(num_champ);
+          delete(enregistrement,i,i+4);
+          Val(enregistrement,position,erreur);
+          i:=pos(',',enregistrement);
+          if i<>0 then delete(enregistrement,1,i);
+          Val(enregistrement,j,erreur);
+          i:=pos(',',enregistrement);
+          if i<>0 then delete(enregistrement,1,i);
+          Val(enregistrement,inversion,erreur);
+          aiguillage[maxaiguillage].temps:=j;     
+          aiguillage[maxaiguillage].inversion:=inversion;
+          aiguillage[maxaiguillage].posinit:=position;
+          i:=pos(')',enregistrement);
+          delete(enregistrement,1,i);
+        end;
+        
         inc(itl);
       until (enregistrement='') or (itl>3);
       if itl>4 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);closefile(fichier);exit;end;
@@ -3039,7 +3062,6 @@ begin
     end;
   until (s='0');
   NbreFeux:=i-1; if NbreFeux<0 then NbreFeux:=0;
-  //Affiche('Nombre de feux='+IntToSTR(NbreFeux),clYellow);
 
   configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
   if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
@@ -3259,11 +3281,9 @@ begin
       inc(nv);
       trouve_fonte:=true;
       delete(s,i,length(sa));
-      TailleFonte:=StrToINT(s);
-      with FormPrinc.FenRich do
-      begin
-        Font.Size:=TailleFonte;
-      end;
+      val(s,TailleFonte,erreur);
+      if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
+      FormPrinc.FenRich.Font.Size:=TailleFonte;   
     end;
 
     // adresse ip et port de CDM
@@ -3277,8 +3297,9 @@ begin
       i:=pos(':',s);
       if i<>0 then 
       begin 
-        adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);portCDM:=StrToINT(s);
-        if portCDM=0 then affiche('Erreur port nul : '+s,clred);
+        adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);
+        val(s,portCDM,erreur);
+        if (portCDM=0) or (portCDM>65535) or (erreur<>0) then affiche('Erreur port CDM : '+s,clred);
       end
       else affiche('Erreur adresse ip cdm rail '+s,clred);
     end;
@@ -3390,11 +3411,18 @@ begin
     end;
  
     i:=pos(uppercase(section_init),s);
-    if i<>0 then
+    if (i<>0) then
     begin
-      inc(nv);
-      trouve_sec_init:=true;
-      compile_section_init;
+      if compile_init_cfg then
+      begin
+        trouve_sec_init:=true;
+        compile_section_init;  
+        inc(nv);
+        Affiche('compilation de la section [init aig]',cllime);
+      end;  
+      Affiche('Attention la section [init_aig] n''est plus gérée, elle est déplacée dans la configuration des aiguillages',clWhite);
+      Affiche('Veuillez regénérer les fichiers de configuration: ',clWhite);
+      Affiche('Menu Divers/configuration bouton "Enregistrement de la configuration et fermer"',clWhite);
     end;
 
     sa:=uppercase(verif_version_ch)+'=';
@@ -3491,30 +3519,27 @@ begin
     end;
     inc(it);
 
-  until (Nv>=19) or (it>30);
+  until ((Nv>=19) and compile_init_cfg) or ((Nv>=18) and not(compile_init_cfg)) or (it>30);
 
-  //affiche(IntToSTR(Nv)+' variables',cyan);
-  s:='';
-  if (nv<19) then s:='ERREUR: manque variables dans config-gl.cfg :';
-
-  if not(trouve_NbDetDist) then s:=s+' '+nb_det_dist_ch;
-  if not(trouve_ipv4_PC) then s:=s+' '+IpV4_PC_ch;
-  if not(trouve_retro) then s:=s+' '+retro_ch;
-  if not(trouve_sec_init) then s:=s+' '+section_init;
-  if not(trouve_init_aig) then s:=s+' '+INIT_AIG_ch;
-  if not(trouve_lay) then s:=s+' '+LAY_ch;
-  if not(trouve_INTER_CAR) then s:=s+' '+INTER_CAR_ch;
-  if not(trouve_Tempo_maxi) then s:=s+' '+Tempo_maxi_ch;
-  if not(trouve_Entete) then s:=s+' '+Entete_ch;
-  if not(trouve_TCO) then s:=s+' '+TCO_ch;
-  if not(trouve_CDM) then s:=s+' '+CDM_ch;
-  if not(trouve_Serveur_interface) then s:=s+' '+Serveur_interface_ch;
-  if not(trouve_fenetre) then s:=s+' '+fenetre_ch;
-  if not(trouve_tempo_aig) then s:=s+' '+tempo_aig_ch;
-  if not(trouve_NOTIF_VERSION) then s:=s+' '+NOTIF_VERSION_ch;
-  if not(trouve_verif_version) then s:=s+' '+verif_version_ch;
-  if not(trouve_fonte) then s:=s+' '+fonte_ch;
-  if s<>'' then affiche(s,clred);
+  s:='';//Affiche(intToSTR(Nv),clred);
+  if not(trouve_NbDetDist) then s:=nb_det_dist_ch;
+  if not(trouve_ipv4_PC) then s:=IpV4_PC_ch;
+  if not(trouve_retro) then s:=retro_ch;
+  //if not(trouve_sec_init) and compile_init_cfg then s:=section_init;
+  if not(trouve_init_aig) then s:=INIT_AIG_ch;
+  if not(trouve_lay) then s:=LAY_ch;
+  if not(trouve_INTER_CAR) then s:=INTER_CAR_ch;
+  if not(trouve_Tempo_maxi) then s:=Tempo_maxi_ch;
+  if not(trouve_Entete) then s:=Entete_ch;
+  if not(trouve_TCO) then s:=TCO_ch;
+  if not(trouve_CDM) then s:=CDM_ch;
+  if not(trouve_Serveur_interface) then s:=Serveur_interface_ch;
+  if not(trouve_fenetre) then s:=fenetre_ch;
+  if not(trouve_tempo_aig) then s:=tempo_aig_ch;
+  if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
+  if not(trouve_verif_version) then s:=verif_version_ch;
+  if not(trouve_fonte) then s:=fonte_ch;
+  if s<>'' then affiche('ERREUR: manque variables dans config-gl.cfg '+s,clred);
 
   closefile(fichier);
   verif_coherence;
@@ -3622,7 +3647,8 @@ begin
     AfficheDebug(s,clred);
     Suivant_alg3:=9999;exit;
   end;
-  if NivDebug=3 then AfficheDebug('Alg3 précédent='+intToSTR(prec)+'/'+intToStr(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+IntToSTR(typeElActuel),clyellow);
+  if NivDebug=3 then 
+    AfficheDebug('Alg3 précédent='+intToSTR(prec)+'/'+intToStr(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+IntToSTR(typeElActuel)+' Alg='+intToSTr(alg),clyellow);
   // trouver les éléments du précédent
   trouve_element(prec,TypeELPrec,1); // branche_trouve  IndexBranche_trouve
   if IndexBranche_trouve=0 then
@@ -4187,9 +4213,10 @@ end;
 // algo= type d'algorythme pour suivant_alg3
 function detecteur_suivant(prec : integer;TypeElPrec : integer;actuel : integer;TypeElActuel,algo : integer) : integer ;
 var actuelCalc,PrecCalc,j,AdrSuiv ,indexCalc,
-    TypeprecCalc,TypeActuelCalc : integer;
+    TypeprecCalc,TypeActuelCalc : integer;       
 begin
-  if NivDebug>=2 then AfficheDebug('Proc Detecteur_suivant '+IntToSTR(prec)+','+IntToSTR(typeElPrec)+'/'+intToSTR(actuel)+','+intToSTR(TypeElActuel),clyellow);
+  if NivDebug>=2 then 
+    AfficheDebug('Proc Detecteur_suivant '+IntToSTR(prec)+','+IntToSTR(typeElPrec)+'/'+intToSTR(actuel)+','+intToSTR(TypeElActuel)+' Alg='+IntToSTR(algo),clyellow);
   j:=0;
 
   PrecCalc:=prec;
@@ -4199,7 +4226,7 @@ begin
   // étape 1 trouver le sens
   repeat
     inc(j);
-    AdrSuiv:=suivant_alg3(precCalc,TypeprecCalc,actuelCalc,TypeActuelCalc,algo);
+    AdrSuiv:=suivant_alg3(precCalc,TypeprecCalc,actuelCalc,TypeActuelCalc,algo); 
     indexCalc:=index_aig(actuelCalc);
     if (typeGen=2) and false then // si le précédent est une TJD/S et le suivant aussi
       begin
@@ -4290,13 +4317,13 @@ end;
 // El1 et El2 peuvent être séparés par des aiguillages, mais de pas plus de 3 détecteurs
 // en sortie : 9999= det1 ou det2 non trouvé
 // 9996 : non trouvé
-function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2 : integer) : integer ;
+function detecteur_suivant_El(el1: integer;TypeDet1 : integer;el2 : integer;TypeDet2,alg : integer) : integer ;
 var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,i,
     j,AdrPrec,Adr,AdrFonc,TypePrec,TypeFonc,i1,N_det : integer;
     Sortie : boolean;
     s : string;
     label reprise;
-
+                                                           
 begin
   if NivDebug>=2 then
   AfficheDebug('Proc Detecteur_suivant_EL '+intToSTR(el1)+','+intToSTR(Typedet1)+'/'+intToSTR(el2)+','+intToSTR(Typedet2)+'-------------------------',clLime);
@@ -4362,7 +4389,7 @@ begin
       repeat
         //AfficheDebug('Engage '+IntToSTR(AdrPrec)+','+IntToSTR(typePrec)+'/'+IntToSTR(AdrFonc)+','+IntToSTR(typeFonc),clyellow);
         if nivDebug=3 then AfficheDebug('i='+IntToSTR(i)+' NDet='+IntToSTR(N_det),clyellow);
-        if (AdrFonc<>0) or (TypeFonc<>0) then Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,1) else
+        if (AdrFonc<>0) or (TypeFonc<>0) then Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,alg) else
         begin
           Adr:=9999;
         end;
@@ -4401,7 +4428,7 @@ begin
       i:=0;
       repeat
         //AfficheDebug('Engage '+IntToSTR(AdrPrec)+','+IntToSTR(typePrec)+'/'+IntToSTR(AdrFonc)+','+IntToSTR(typeFonc),clyellow);
-        Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,1);
+        Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,alg);
         //AfficheDebug('Sortie Alg3: '+IntToSTR(Adr)+'/'+intToSTR(typeGen),clyellow);
 
         if NivDebug=3 then
@@ -5006,7 +5033,7 @@ function test_route_valide(det1,det2,det3 : integer) : integer;
 var det_suiv,resultat : integer;
 begin
   if TraceListe then AfficheDebug('test route valide '+IntToSTR(det1)+' '+IntToSTR(det2)+' vers '+IntToSTR(det3)+' ',clyellow);
-  det_suiv:=detecteur_suivant_el(det1,1,det2,1);
+  det_suiv:=detecteur_suivant_el(det1,1,det2,1,1);
   if det_suiv=det3 then begin test_route_valide:=10;exit;end;
 
   test_route_valide:=9999;
@@ -5018,7 +5045,7 @@ begin
   begin
     test_route_valide:=0;exit;
     // si manipulation proche aiguillage
-    det_suiv:=detecteur_suivant_el(det3,1,det2,1);
+    det_suiv:=detecteur_suivant_el(det3,1,det2,1,1);
     if (det_suiv>=9996) or (det1<>det_suiv) then begin test_route_valide:=0; NivDebug:=0;exit;end;
   end;
   test_route_valide:=10 ;
@@ -5075,20 +5102,20 @@ begin
       if feux[i].Btype_suiv4=4 then Btype_el_suivant:=2;
     end;
     if (det_initial<>0) then
-    begin
+    begin                     
       DetPrec1:=detecteur_suivant(Adr_El_Suiv,Btype_el_suivant,det_initial,1,2); // 2= algo2 = arret sur aiguillage en talon mal positionné
       if nivdebug=3 then afficheDebug('detPrec1='+intToSTR(DetPrec1),clorange);
       if DetPrec1<1024 then // route bloquée par aiguillage mal positionné
       begin             
-        if detPrec1<>0 then DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1) else DetPrec2:=0;
+        if detPrec1<>0 then DetPrec2:=detecteur_suivant_El(det_initial,1,DetPrec1,1,2) else DetPrec2:=0;
         if nivdebug=3 then afficheDebug('detPrec2='+intToSTR(DetPrec2),clorange);
         if DetPrec2<1024 then
         begin
-          if detPrec2<>0 then DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1) else DetPrec3:=0;
+          if detPrec2<>0 then DetPrec3:=detecteur_suivant_El(DetPrec1,1,DetPrec2,1,2) else DetPrec3:=0;
           if nivdebug=3 then afficheDebug('detPrec3='+intToSTR(DetPrec3),clorange);
           if DetPrec3<1024 then
           begin
-            if detPrec3<>0 then DetPrec4:=detecteur_suivant_El(DetPrec2,1,DetPrec3,1) else DetPrec4:=0;
+            if detPrec3<>0 then DetPrec4:=detecteur_suivant_El(DetPrec2,1,DetPrec3,1,2) else DetPrec4:=0;
             if nivdebug=3 then afficheDebug('detPrec4='+intToSTR(DetPrec4),clorange);
             if DetPrec4<1024 then
             begin
@@ -5122,7 +5149,7 @@ end;
 
 // mise à jour de l'état d'un feu en fontion de son environnement et affiche le feu
 procedure Maj_Feu(Adrfeu : integer);
-var i,Adr_det,etat,Aig,Adr_El_Suiv,
+var Adr_det,etat,Aig,Adr_El_Suiv,
     Btype_el_suivant,modele,index : integer ;
     PresTrain,Aff_semaphore,car : boolean;
     code,combine : word;
@@ -5130,16 +5157,17 @@ var i,Adr_det,etat,Aig,Adr_El_Suiv,
 begin
   s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
 
+  if signalDebug=AdrFeu then AffSignal:=true;
   if AffSignal then AfficheDebug(s,clOrange);
-  i:=index_feu(Adrfeu);
+  index:=index_feu(Adrfeu);
   if AdrFeu<>0 then
   begin
-    modele:=Feux[i].aspect;
+    modele:=Feux[index].aspect;
 
-    Adr_det:=Feux[i].Adr_det1;  // détecteur sur le signal
-    Adr_El_Suiv:=Feux[i].Adr_el_suiv1; // adresse élément suivant au feu
-    Btype_el_suivant:=Feux[i].Btype_suiv1;
-
+    Adr_det:=Feux[index].Adr_det1;  // détecteur sur le signal
+    Adr_El_Suiv:=Feux[index].Adr_el_suiv1; // adresse élément suivant au feu
+    Btype_el_suivant:=Feux[index].Btype_suiv1;
+                       
     // signal directionnel ?
     if (modele>10) then
     begin
@@ -5179,7 +5207,7 @@ begin
     }
 
     // signal à 2 feux = carré violet+blanc
-    if (Feux[i].aspect=2) then //or (feux[i].check<>nil) then // si carré violet
+    if (Feux[index].aspect=2) then //or (feux[i].check<>nil) then // si carré violet
     begin
       //AfficheDebug('Feux à 2 feux',CLOrange);
       // si aiguillage après signal mal positionnées
@@ -5201,21 +5229,21 @@ begin
 
     //if AffSignal then AfficheDebug('Debut du traitement général',clYellow);
     // traitement des feux >3 feux différents de violet (cas général)
-    if (Feux[i].aspect>=3) and (EtatSignalCplx[AdrFeu]<>violet_F) then
+    if (Feux[index].aspect>=3) and (EtatSignalCplx[AdrFeu]<>violet_F) then
     begin
       PresTrain:=false;
       // détecteurs précédent le feu , pour déterminer si leurs mémoires de zones sont à 1 pour libérer le carré
-      if (Feux[i].VerrouCarre) and (Feux[i].aspect>=4) then presTrain:=PresTrainPrec(AdrFeu);
+      if (Feux[index].VerrouCarre) and (Feux[index].aspect>=4) then presTrain:=PresTrainPrec(AdrFeu);
       
       if AffSignal then afficheDebug('Fin de la recherche des 4 détecteurs précédents-----',clOrange);
       // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou que pas présence train avant signal et signal
       // verrouillable au carré, afficher un carré
       car:=carre_signal(AdrFeu);
       // conditions supplémentaires de carré en fonction des aiguillages décrits
-      car:=cond_carre(AdrFeu) or car;
+      car:=cond_carre(AdrFeu) or car;    
       if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if (NivDebug>=1) and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
-      if (Feux[i].aspect>=4) and ( (not(PresTrain) and Feux[i].VerrouCarre) or car) then Maj_Etat_Signal(AdrFeu,carre)
+      if (Feux[index].aspect>=4) and ( (not(PresTrain) and Feux[index].VerrouCarre) or car) then Maj_Etat_Signal(AdrFeu,carre)
       else
       begin
         // si on quitte le détecteur on affiche un sémaphore :  attention tester le sens de circulation
@@ -5232,12 +5260,11 @@ begin
         end
         else
         begin
-          // si aiguille locale déviée
           Aig:=Aiguille_deviee(Adrfeu);
-          index:=index_aig(Aig);
-          if (aig<>0) and (feux[i].aspect>=9) then // si le signal peut afficher un rappel et aiguille déviée
+          // si aiguille locale déviée
+          if (aig<>0) and (feux[index].aspect>=9) then // si le signal peut afficher un rappel et aiguille déviée
           begin
-            if AffSignal then AfficheDebug('Aiguille '+intToSTR(aig)+' déviée',clYellow);
+            if AffSignal then AfficheDebug('Aiguille '+intToSTR(AdrFeu)+' déviée',clYellow);
             EtatSignalCplx[AdrFeu]:=0;
             if (aiguillage[index].vitesse=30) or (aiguillage[index].vitesse=0) then Maj_Etat_Signal(AdrFeu,rappel_30);
             if aiguillage[index].vitesse=60 then Maj_Etat_Signal(AdrFeu,rappel_60);
@@ -5275,7 +5302,15 @@ begin
               else
                 // si le signal suivant est jaune
                 if TestBit(etat,jaune) then Maj_Etat_Signal(AdrFeu,jaune_cli)
-                  else  Maj_Etat_Signal(AdrFeu,vert)
+                  else  
+                    begin
+                      if feux[index].check<>nil then
+                      begin
+                        if feux[index].check.Checked then Maj_Etat_Signal(AdrFeu,blanc);
+                      end
+                      else
+                      Maj_Etat_Signal(AdrFeu,vert);
+                    end;
             end;
           end;
         end;
@@ -5283,6 +5318,7 @@ begin
     end;
   end;
   envoi_signauxCplx;
+  if signalDebug=AdrFeu then AffSignal:=false;
 end;
 
 Procedure Maj_feux;
@@ -5381,7 +5417,7 @@ begin
       resultat:=test_route_valide(det1,det2,det3);
       if resultat=10 then
       begin
-        AdrSuiv:=detecteur_suivant_el(det2,1,det3,1); // ici on cherche le suivant à det2 det3
+        AdrSuiv:=detecteur_suivant_el(det2,1,det3,1,1); // ici on cherche le suivant à det2 det3, algo=1
         if (Adrsuiv>=9996) then
         begin
           Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
@@ -5781,12 +5817,9 @@ var s: string;
     faire_event,inv : boolean;
     prov,i,index : integer;
 begin
-  // vérifier que l'évènement accessoire vient bien d'un aiguillage et pas d'un feu
-  i:=0;
-  repeat
-    inc(i);
-  until (i>MaxAiguillage) or (i=adresse);
-  if i>MaxAiguillage then exit; // non ce n'est pas un aiguillage, on sort
+  // vérifier que l'évènement accessoire vient bien d'un aiguillage et pas d'un feu qu'on pilote (et que cdm renvoie)
+  index:=index_aig(adresse);
+  if index>MaxAiguillage then exit; // non ce n'est pas un aiguillage, on sort
 
   // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome, inverser sa position
   inv:=false;
@@ -7081,10 +7114,33 @@ begin
   demande_etat_acc;
 end;
 
-// procédure Event appelée si on clique sur un checkbox des images des feux
+// procédure Event appelée si on clique sur un checkbox de demande de feu blanc des images des feux
+// non utilisé
 procedure TFormprinc.proc_checkBoxFB(Sender : Tobject);
+var s : string;
+    Cb : TcheckBox;
+    etat,adresse,erreur : integer;
+    i : word;
+    coche : boolean;
 begin
-  Maj_feux ;              // évalue l'état des signaux
+  Cb:=Sender as TcheckBox; 
+  coche:=cb.Checked;         // état de la checkbox
+  s:=Cb.Hint; 
+  val(s,adresse,erreur);   // adresse du signal correspondant au checkbox cliqué
+  if erreur=0 then
+  begin
+    i:=index_feu(adresse);
+    etat:=feux[i].EtatSignal;
+    affiche(IntToSTR(etat),clyellow);
+    // si le feu est vert et que la coche est mise, substituer le blanc
+    if (etat=vert_F) and coche then 
+    begin
+      Maj_Etat_Signal(Adresse,blanc);
+      Envoi_signauxCplx;
+    end;
+    // si pas coché, on revient en normal
+    if not(coche) then rafraichit;
+  end; 
 end;
 
 

@@ -10,5 +10,5 @@ Fichiers sources.
 :lien: http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906#p50499
 :cdm:  http://cdmrail.free.fr/SiteCDR/index.html
 
-* {lien} [Lien vers le fil] -- Forum de CDM rail
-* {cdm} [Lin vers CDM rail] -- Site de CDM rail  
+* {lien}[Lien vers le fil] -- Forum de CDM rail
+* {cdm}[Lien vers CDM rail] -- Site de CDM rail  

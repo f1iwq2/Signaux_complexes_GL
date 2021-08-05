@@ -59,6 +59,10 @@ version 3.0  : Ajout des fonctions Nouveau / supprimer feu, accessoires dans le 
 version 3.1  : Renforcement de la vérification de la configuration.
                Modification de la liste d'initialisation des aiguillages en mode autonome.
                Indépendance des modifications entre les onglets du panneau de configuration.
+               Correction d'un bug sur l'affichage des rappels de ralentissement non présentés.
+               Correction d'un bug sur certains évènements aiguillages.
+               Correction d'un bug sur présence train avant signal sur aiguille en talon mal positionnée.
+
 
 
 

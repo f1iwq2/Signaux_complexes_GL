@@ -50,6 +50,7 @@ type
     ButtonSimuDet1: TButton;
     EditSimuDet: TEdit;
     ButtonRazTout: TButton;
+    EditDebugSignal: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -78,6 +79,7 @@ type
     procedure ButtonRazToutClick(Sender: TObject);
     procedure RichEditChange(Sender: TObject);
     procedure MemoEvtDetChange(Sender: TObject);
+    procedure EditDebugSignalChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -91,7 +93,7 @@ Max_Trains=50;
 
 var
   FormDebug: TFormDebug;
-  NivDebug : integer;
+  NivDebug,signalDebug : integer;
   AffSignal,AffAffect,initform,AffFD,debug_dec_sig : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   event_det : array[1..Max_event_det] of integer;
@@ -114,8 +116,6 @@ var
      end;
 
   
-  
-
 procedure AfficheDebug(s : string;lacouleur : TColor);
 Procedure Raz_tout;
 procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
@@ -139,8 +139,11 @@ end;
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
 begin
-  FormDebug.RichDebug.Lines.add(s);
-  RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
+  with FormDebug.RichDebug do
+  begin
+    Lines.add(s);
+    RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
+  end;  
 end;
 
 Procedure Raz_tout;
@@ -361,7 +364,7 @@ begin
   if s2[1]='A' then begin type2:=2;delete(s2,1,1);end else type2:=1;
   Val(s1,prec,erreur); if erreur<>0 then exit;
   Val(s2,Actuel,erreur); if erreur<>0 then exit;
-  Adr:=detecteur_suivant_El(prec,type1,actuel,type2);
+  Adr:=detecteur_suivant_El(prec,type1,actuel,type2,1);
   if Adr<9996 then AfficheDebug('Le détecteur suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr),clyellow)
   else AfficheDebug('Pas trouvé de détecteur suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
   NivDebug:=AncDebug;
@@ -447,6 +450,12 @@ end;
 procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
 begin
   SendMessage(MemoEvtDet.handle, WM_VSCROLL, SB_BOTTOM, 0);
+end;
+
+procedure TFormDebug.EditDebugSignalChange(Sender: TObject);
+var erreur : integer;
+begin
+  val(EditDebugSignal.text,signalDebug,erreur);
 end;
 
 end.

@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 285
-  Top = 127
+  Left = 277
+  Top = 203
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -17,6 +17,7 @@ object FormConfig: TFormConfig
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -1528,13 +1529,6 @@ object FormConfig: TFormConfig
     Height = 13
     Caption = 'Element suivant'
   end
-  object Label20: TLabel
-    Left = 24
-    Top = 160
-    Width = 50
-    Height = 13
-    Caption = 'LabelTrain'
-  end
   object Label10: TLabel
     Left = 80
     Top = 120
@@ -1769,13 +1763,14 @@ object FormConfig: TFormConfig
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
     TabOrder = 1
+    OnClick = Button2Click
   end
   object PageControl: TPageControl
     Left = 8
     Top = 8
     Width = 633
     Height = 457
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1783,7 +1778,6 @@ object FormConfig: TFormConfig
     Font.Style = []
     ParentFont = False
     TabOrder = 2
-    OnChange = PageControlChange
     object TabSheetCDM: TTabSheet
       Caption = 'CDM Rail'
       object GroupBox1: TGroupBox
@@ -2104,6 +2098,13 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = 'Seuil du nombre de d'#233'tecteurs trop distants'
         end
+        object Label41: TLabel
+          Left = 8
+          Top = 36
+          Width = 188
+          Height = 13
+          Caption = 'Taille de la fonte de la fen'#234'tre principale'
+        end
         object EditNbDetDist: TEdit
           Left = 232
           Top = 12
@@ -2111,6 +2112,14 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 0
           Text = 'EditNbDetDist'
+        end
+        object EditFonte: TEdit
+          Left = 232
+          Top = 32
+          Width = 25
+          Height = 21
+          ReadOnly = True
+          TabOrder = 1
         end
       end
     end
@@ -2358,10 +2367,8 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 32
           Width = 281
-          Height = 33
-          Caption = 
-            'Initialisation des aiguillages suivant liste dans fichier client' +
-            '-gl.cfg [section init]'
+          Height = 25
+          Caption = 'Initialisation des aiguillages '
           ParentShowHint = False
           ShowHint = False
           TabOrder = 1
@@ -2396,20 +2403,6 @@ object FormConfig: TFormConfig
         Height = 13
         Caption = 'LabelTJD1'
       end
-      object Label35: TLabel
-        Left = 0
-        Top = 56
-        Width = 134
-        Height = 13
-        Caption = 'Configuration des aiguillages'
-      end
-      object Label36: TLabel
-        Left = 232
-        Top = 56
-        Width = 86
-        Height = 13
-        Caption = 'Liste d'#39'initialisation'
-      end
       object GroupBox11: TGroupBox
         Left = 328
         Top = 32
@@ -2428,20 +2421,6 @@ object FormConfig: TFormConfig
           Font.Height = -16
           Font.Name = 'Arial'
           Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object LabelLigne: TLabel
-          Left = 16
-          Top = 42
-          Width = 104
-          Height = 16
-          Alignment = taCenter
-          Caption = '                -         '
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Arial'
-          Font.Style = []
           ParentFont = False
         end
         object GroupBox10: TGroupBox
@@ -2484,7 +2463,10 @@ object FormConfig: TFormConfig
           Top = 269
           Width = 137
           Height = 17
+          Hint = 'Cocher si l'#39'aiguillage est invers'#233' dans CDM rail'
           Caption = 'Inversion de l'#39#233'tat CDM'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 1
           OnClick = CheckInverseClick
         end
@@ -2494,7 +2476,7 @@ object FormConfig: TFormConfig
           Width = 33
           Height = 21
           TabOrder = 2
-          OnChange = EditAdrAigChange
+          OnKeyPress = EditAdrAigKeyPress
         end
         object ComboBoxAig: TComboBox
           Left = 8
@@ -2520,7 +2502,7 @@ object FormConfig: TFormConfig
           TabOrder = 4
           object LabelHG: TLabel
             Left = 10
-            Top = 17
+            Top = 21
             Width = 9
             Height = 16
             Caption = 'D'
@@ -2590,18 +2572,32 @@ object FormConfig: TFormConfig
             ParentFont = False
           end
           object LabelTJD1: TLabel
-            Left = 96
+            Left = 80
             Top = 76
             Width = 52
             Height = 13
             Caption = 'LabelTJD1'
           end
           object LabelTJD2: TLabel
-            Left = 168
+            Left = 176
             Top = 76
             Width = 52
             Height = 13
             Caption = 'LabelTJD1'
+          end
+          object LabelL: TLabel
+            Left = 10
+            Top = 69
+            Width = 8
+            Height = 16
+            Caption = 'L'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Visible = False
           end
           object Edit_HG: TEdit
             Left = 24
@@ -2609,8 +2605,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 0
-            Text = 'EditPointe'
-            OnChange = Edit_HGChange
+            OnKeyPress = Edit_HGKeyPress
           end
           object EditPointe_BG: TEdit
             Left = 24
@@ -2618,8 +2613,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 1
-            Text = 'EditPointe_BG'
-            OnChange = EditPointe_BGChange
+            OnKeyPress = EditPointe_BGKeyPress
           end
           object EditP1: TEdit
             Left = 88
@@ -2627,8 +2621,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 2
-            Text = 'EditDDroit'
-            OnChange = EditP1Change
+            OnKeyPress = EditP1KeyPress
           end
           object EditP2: TEdit
             Left = 88
@@ -2636,8 +2629,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 3
-            Text = 'EditDdevie'
-            OnChange = EditP2Change
+            OnKeyPress = EditP2KeyPress
           end
           object EditP3: TEdit
             Left = 160
@@ -2645,8 +2637,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 4
-            Text = 'EditDDroit'
-            OnChange = EditP3Change
+            OnKeyPress = EditP3KeyPress
           end
           object EditP4: TEdit
             Left = 160
@@ -2654,8 +2645,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 5
-            Text = 'EditDDroit'
-            OnChange = EditP4Change
+            OnKeyPress = EditP4KeyPress
           end
           object EditDevie_HD: TEdit
             Left = 232
@@ -2663,8 +2653,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 6
-            Text = 'EditDevie_HD'
-            OnChange = EditDevie_HDChange
+            OnKeyPress = EditDevie_HDKeyPress
           end
           object EditDroit_BD: TEdit
             Left = 232
@@ -2672,8 +2661,7 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 7
-            Text = 'EditDroit_BD'
-            OnChange = EditDroit_BDChange
+            OnKeyPress = EditDroit_BDKeyPress
           end
           object EditDevieS2: TEdit
             Left = 232
@@ -2681,8 +2669,16 @@ object FormConfig: TFormConfig
             Width = 33
             Height = 21
             TabOrder = 8
-            Text = 'EditDevie_HD'
-            OnChange = EditDevieS2Change
+            OnKeyPress = EditDevieS2KeyPress
+          end
+          object EditL: TEdit
+            Left = 40
+            Top = 68
+            Width = 25
+            Height = 21
+            TabOrder = 9
+            Visible = False
+            OnChange = EditLChange
           end
         end
         object ButtonRestaureAig: TButton
@@ -2706,7 +2702,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 6
           Visible = False
-          OnChange = EditAigTripleChange
+          OnKeyPress = EditAigTripleKeyPress
         end
         object GroupBox21: TGroupBox
           Left = 8
@@ -2717,7 +2713,7 @@ object FormConfig: TFormConfig
           TabOrder = 7
           object Label37: TLabel
             Left = 8
-            Top = 26
+            Top = 18
             Width = 66
             Height = 13
             Caption = 'D'#233'vi'#233' ou droit'
@@ -2729,44 +2725,46 @@ object FormConfig: TFormConfig
             Height = 13
             Caption = 'Temporisation  (1/10'#232'me s)'
           end
-          object LabelDevie: TLabel
-            Left = 200
-            Top = 24
-            Width = 3
-            Height = 13
-          end
-          object EditDevDroit: TEdit
-            Left = 152
-            Top = 18
-            Width = 41
-            Height = 21
-            TabOrder = 0
-            OnChange = EditDevDroitChange
-          end
           object EditTempo10: TEdit
-            Left = 152
+            Left = 160
             Top = 40
             Width = 41
             Height = 21
-            TabOrder = 1
-            OnChange = EditTempo10Change
+            TabOrder = 0
+            OnKeyPress = EditTempo10KeyPress
           end
           object CheckInvInit: TCheckBox
             Left = 8
             Top = 64
             Width = 153
             Height = 17
+            Hint = 'Inverse le pilotage de l'#39'aiguillage'
             Caption = 'Pilotage invers'#233
-            TabOrder = 2
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
             OnClick = CheckInvInitClick
+          end
+          object ComboBoxDD: TComboBox
+            Left = 160
+            Top = 16
+            Width = 97
+            Height = 21
+            ItemHeight = 13
+            TabOrder = 2
+            OnChange = ComboBoxDDChange
+            Items.Strings = (
+              'D'#233'vi'#233
+              'Droit'
+              'Non positionn'#233)
           end
         end
       end
       object RichAig: TRichEdit
         Left = 0
-        Top = 72
-        Width = 233
-        Height = 353
+        Top = 56
+        Width = 321
+        Height = 369
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clYellow
@@ -2806,23 +2804,6 @@ object FormConfig: TFormConfig
         Caption = 'Ajoute l'#39'aig supprim'#233
         TabOrder = 4
         OnClick = ButtonAjSupClick
-      end
-      object RichInitAig: TRichEdit
-        Left = 232
-        Top = 72
-        Width = 89
-        Height = 353
-        Color = clBlack
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clYellow
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssBoth
-        TabOrder = 5
-        WordWrap = False
       end
     end
     object TabSheetBranches: TTabSheet
@@ -2922,9 +2903,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox12: TGroupBox
         Left = 336
-        Top = 40
+        Top = 32
         Width = 281
-        Height = 385
+        Height = 393
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
@@ -2969,7 +2950,7 @@ object FormConfig: TFormConfig
         end
         object Label17: TLabel
           Left = 8
-          Top = 248
+          Top = 264
           Width = 228
           Height = 26
           Caption = 
@@ -3046,11 +3027,11 @@ object FormConfig: TFormConfig
         end
         object MemoCarre: TMemo
           Left = 8
-          Top = 280
+          Top = 296
           Width = 265
           Height = 89
           ScrollBars = ssBoth
-          TabOrder = 0
+          TabOrder = 12
           WordWrap = False
           OnChange = MemoCarreChange
         end
@@ -3068,80 +3049,77 @@ object FormConfig: TFormConfig
           Top = 120
           Width = 41
           Height = 21
-          TabOrder = 2
-          Text = 'EditDet1'
-          OnChange = EditDet1Change
+          TabOrder = 3
+          OnKeyPress = EditDet1KeyPress
         end
         object EditSuiv1: TEdit
           Left = 184
           Top = 120
           Width = 41
           Height = 21
-          TabOrder = 3
-          Text = 'EditSuiv1'
-          OnChange = EditSuiv1Change
+          TabOrder = 4
+          OnKeyPress = EditSuiv1KeyPress
         end
         object EditDet2: TEdit
           Left = 120
           Top = 144
           Width = 41
           Height = 21
-          TabOrder = 4
-          Text = 'Edit1'
-          OnChange = EditDet2Change
+          TabOrder = 5
+          OnKeyPress = EditDet2KeyPress
         end
         object EditSuiv2: TEdit
           Left = 184
           Top = 144
           Width = 41
           Height = 21
-          TabOrder = 5
-          Text = 'Edit2'
-          OnChange = EditSuiv2Change
+          TabOrder = 6
+          OnKeyPress = EditSuiv2KeyPress
         end
         object EditDet3: TEdit
           Left = 120
           Top = 168
           Width = 41
           Height = 21
-          TabOrder = 6
-          Text = 'Edit1'
-          OnChange = EditDet3Change
+          TabOrder = 7
+          OnKeyPress = EditDet3KeyPress
         end
         object EditSuiv3: TEdit
           Left = 184
           Top = 168
           Width = 41
           Height = 21
-          TabOrder = 7
-          Text = 'Edit2'
-          OnChange = EditSuiv3Change
+          TabOrder = 8
+          OnKeyPress = EditSuiv3KeyPress
         end
         object EditDet4: TEdit
           Left = 120
           Top = 192
           Width = 41
           Height = 21
-          TabOrder = 8
-          Text = 'Edit1'
-          OnChange = EditDet4Change
+          TabOrder = 9
+          OnKeyPress = EditDet4KeyPress
         end
         object EditSuiv4: TEdit
           Left = 184
           Top = 192
           Width = 41
           Height = 21
-          TabOrder = 9
-          Text = 'Edit2'
-          OnChange = EditSuiv4Change
+          TabOrder = 10
+          OnKeyPress = EditSuiv4KeyPress
         end
         object CheckVerrouCarre: TCheckBox
           Left = 120
           Top = 224
           Width = 145
           Height = 17
+          Hint = 
+            'Passe le feu au carr'#233' ci aucun train n'#39'est pr'#233'sent 3 cantons ava' +
+            'nt le signal'
           Caption = 'Verrouillable au carr'#233
-          TabOrder = 10
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 11
           OnClick = CheckVerrouCarreClick
         end
         object EditAdrSig: TEdit
@@ -3149,9 +3127,9 @@ object FormConfig: TFormConfig
           Top = 18
           Width = 33
           Height = 21
-          TabOrder = 11
+          TabOrder = 0
           Text = ' '
-          OnChange = EditAdrSigChange
+          OnKeyPress = EditAdrSigKeyPress
         end
         object ComboBoxAsp: TComboBox
           Left = 144
@@ -3159,7 +3137,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           ItemHeight = 13
-          TabOrder = 12
+          TabOrder = 2
           OnChange = ComboBoxAspChange
           Items.Strings = (
             '2 feux'
@@ -3179,9 +3157,9 @@ object FormConfig: TFormConfig
           Top = 176
           Width = 33
           Height = 21
-          TabOrder = 13
+          TabOrder = 14
           Visible = False
-          OnChange = EditSpecUniChange
+          OnKeyPress = EditSpecUniKeyPress
         end
         object Buttonrestaure: TButton
           Left = 8
@@ -3192,8 +3170,17 @@ object FormConfig: TFormConfig
           Caption = 'Restaurer'
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 14
+          TabOrder = 13
           OnClick = ButtonrestaureClick
+        end
+        object CheckBoxFB: TCheckBox
+          Left = 120
+          Top = 240
+          Width = 153
+          Height = 17
+          Caption = 'Avec demande feu blanc'
+          TabOrder = 15
+          OnClick = CheckBoxFBClick
         end
       end
       object RichSig: TRichEdit
@@ -3237,7 +3224,7 @@ object FormConfig: TFormConfig
       object ButtonInsFeu: TButton
         Left = 144
         Top = 32
-        Width = 113
+        Width = 145
         Height = 17
         Caption = 'Ajouter le feu supprim'#233
         TabOrder = 4
@@ -3274,8 +3261,8 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object GroupBoxPN: TGroupBox
-          Left = -32
-          Top = 24
+          Left = 16
+          Top = 16
           Width = 225
           Height = 289
           Caption = 'Actionneurs gestion passage '#224' niveau'
@@ -3468,8 +3455,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 16
-          Top = 104
+          Left = 48
+          Top = 176
           Width = 225
           Height = 225
           Caption = 'Actionneur fonction de locomotive '

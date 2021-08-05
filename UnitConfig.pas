@@ -88,7 +88,6 @@ type
     RadioButtonsans: TRadioButton;
     RadioButton30kmh: TRadioButton;
     RadioButton60kmh: TRadioButton;
-    LabelLigne: TLabel;
     ImageAig: TImage;
     ImageTJD: TImage;
     ImageTri: TImage;
@@ -102,7 +101,6 @@ type
     Label19: TLabel;
     GroupBoxRadio: TGroupBox;
     RadioButtonLoc: TRadioButton;
-    Label20: TLabel;
     GroupBoxAct: TGroupBox;
     GroupBoxPN: TGroupBox;
     Label21: TLabel;
@@ -220,42 +218,30 @@ type
     GroupBox21: TGroupBox;
     Label37: TLabel;
     Label38: TLabel;
-    EditDevDroit: TEdit;
     EditTempo10: TEdit;
     CheckInvInit: TCheckBox;
-    RichInitAig: TRichEdit;
-    Label35: TLabel;
-    Label36: TLabel;
-    LabelDevie: TLabel;
     Label39: TLabel;
     EditV4F: TEdit;
     EditV4O: TEdit;
     Label40: TLabel;
+    Label41: TLabel;
+    EditFonte: TEdit;
+    ComboBoxDD: TComboBox;
+    LabelL: TLabel;
+    EditL: TEdit;
+    CheckBoxFB: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure PageControlChange(Sender: TObject);
     procedure RichAigMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure EditPointe_BGChange(Sender: TObject);
-    procedure EditDevie_HDChange(Sender: TObject);
-    procedure EditDroit_BDChange(Sender: TObject);
-    procedure EditDevieS2Change(Sender: TObject);
     procedure RadioButtonsansClick(Sender: TObject);
     procedure RadioButton30kmhClick(Sender: TObject);
     procedure RadioButton60kmhClick(Sender: TObject);
     procedure ComboBoxDecChange(Sender: TObject);
     procedure RichSigMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure EditDet1Change(Sender: TObject);
-    procedure EditSuiv1Change(Sender: TObject);
     procedure CheckVerrouCarreClick(Sender: TObject);
-    procedure EditDet2Change(Sender: TObject);
-    procedure EditSuiv2Change(Sender: TObject);
-    procedure EditDet3Change(Sender: TObject);
-    procedure EditSuiv3Change(Sender: TObject);
-    procedure EditDet4Change(Sender: TObject);
-    procedure EditSuiv4Change(Sender: TObject);
     procedure EditActChange(Sender: TObject);
     procedure RichActMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -265,12 +251,8 @@ type
     procedure EditEtatFoncSortieChange(Sender: TObject);
     procedure EditTempoChange(Sender: TObject);
     procedure CheckRAZClick(Sender: TObject);
-    procedure Edit_HGChange(Sender: TObject);
     procedure CheckInverseClick(Sender: TObject);
-    procedure EditAdrSigChange(Sender: TObject);
-    procedure EditAdrAigChange(Sender: TObject);
     procedure ComboBoxAspChange(Sender: TObject);
-    procedure EditSpecUniChange(Sender: TObject);
     procedure ButtonrestaureClick(Sender: TObject);
     procedure RadioButtonLocClick(Sender: TObject);
     procedure RadioButtonAccessClick(Sender: TObject);
@@ -294,11 +276,7 @@ type
     procedure ButtonSupFeuClick(Sender: TObject);
     procedure ButtonInsFeuClick(Sender: TObject);
     procedure ButtonNouvAigClick(Sender: TObject);
-    procedure EditP1Change(Sender: TObject);
     procedure BoutSupAigClick(Sender: TObject);
-    procedure EditP2Change(Sender: TObject);
-    procedure EditP3Change(Sender: TObject);
-    procedure EditP4Change(Sender: TObject);
     procedure ButtonAjSupClick(Sender: TObject);
     procedure ButtonRestaureAigClick(Sender: TObject);
     procedure ComboBoxAigChange(Sender: TObject);
@@ -307,12 +285,36 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure ButtonVerifConfigClick(Sender: TObject);
     procedure MemoCarreChange(Sender: TObject);
-    procedure EditAigTripleChange(Sender: TObject);
-    procedure EditDevDroitChange(Sender: TObject);
-    procedure EditTempo10Change(Sender: TObject);
     procedure CheckInvInitClick(Sender: TObject);
     procedure EditV4FChange(Sender: TObject);
     procedure EditV4OChange(Sender: TObject);
+    procedure ComboBoxDDChange(Sender: TObject);
+    procedure EditLChange(Sender: TObject);
+    procedure CheckBoxFBClick(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure EditAdrAigKeyPress(Sender: TObject; var Key: Char);
+    procedure EditAdrSigKeyPress(Sender: TObject; var Key: Char);
+    procedure EditP3KeyPress(Sender: TObject; var Key: Char);
+    procedure EditP4KeyPress(Sender: TObject; var Key: Char);
+    procedure EditAigTripleKeyPress(Sender: TObject; var Key: Char);
+    procedure Edit_HGKeyPress(Sender: TObject; var Key: Char);
+    procedure EditPointe_BGKeyPress(Sender: TObject; var Key: Char);
+    procedure EditP1KeyPress(Sender: TObject; var Key: Char);
+    procedure EditP2KeyPress(Sender: TObject; var Key: Char);
+    procedure EditDevie_HDKeyPress(Sender: TObject; var Key: Char);
+    procedure EditDroit_BDKeyPress(Sender: TObject; var Key: Char);
+    procedure EditDevieS2KeyPress(Sender: TObject; var Key: Char);
+    procedure EditTempo10KeyPress(Sender: TObject; var Key: Char);
+    procedure EditDet1KeyPress(Sender: TObject; var Key: Char);
+    procedure EditSuiv1KeyPress(Sender: TObject; var Key: Char);
+    procedure EditDet2KeyPress(Sender: TObject; var Key: Char);
+    procedure EditSuiv2KeyPress(Sender: TObject; var Key: Char);
+    procedure EditDet3KeyPress(Sender: TObject; var Key: Char);
+    procedure EditSuiv3KeyPress(Sender: TObject; var Key: Char);
+    procedure EditDet4KeyPress(Sender: TObject; var Key: Char);
+    procedure EditSuiv4KeyPress(Sender: TObject; var Key: Char);
+    procedure EditSpecUniKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -638,6 +640,12 @@ begin
    if aiguillage[index].vitesse=60 then s:=s+',V60';
    if aiguillage[index].inversionCDM=1 then s:=s+',I1' else s:=s+',I0';
    
+   // valeur d'initialisation
+   s:=s+',INIT(';
+   s:=s+IntToSTR(aiguillage[index].posInit)+',';
+   s:=s+IntToSTR(aiguillage[index].temps)+',';
+   s:=s+intToSTR(aiguillage[index].inversion)+')';
+   
    encode_aig:=s;
 end;
 
@@ -834,8 +842,6 @@ var s,chaine,sa : string;
     multiple,fini : boolean;
 begin
       s:=chaine_signal;
-      //Affiche(s,clYellow);
-  
       j:=pos(',',s);
       if j>1 then
       begin
@@ -1070,7 +1076,6 @@ end;
 function encode_act_pn(i : integer) : string;
 var s : string;
     voie,NbVoies : integer;
-    
 begin
   with formconfig do
   begin
@@ -1126,6 +1131,7 @@ begin
   copie_commentaire;
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
+  FormPrinc.FenRich.Font.Size:=TailleFonte;  
   copie_commentaire;
 
   // adresse ip et port de CDM
@@ -1199,18 +1205,18 @@ begin
 
   // Serveur de rétrosignalisation Lenz de CDM
   writeln(fichierN,retro_ch+'=',intToSTR(ServeurRetroCDM));
-  copie_commentaire;
 
   // [section init] est copié ici
   // valeurs des initialisations aiguillages
-  writeln(fichierN,section_init);
+  // n'est plus géré dans config-gl.cfg
+  {writeln(fichierN,section_init);
   for i:=1 to MaxAiguillage do
   begin
     s:=encode_init_aig(i);  
     writeln(fichierN,s);
   end;
   writeln(fichierN,'0,0,0,0');
-  
+  }
   closefile(fichierN); // config-gl.tmp
   closefile(fichier);  // config-gl.cfg
 
@@ -1265,7 +1271,7 @@ begin
     // supprime le graphisme des feux
     Feux[i].Img.free;                
     Feux[i].Lbl.free;                
-    if feux[i].feublanc then Feux[i].Check.free;
+    if feux[i].feublanc then begin Feux[i].Check.free;Feux[i].Check:=nil;end;
     // et le recréer
     cree_image(i);
   end;
@@ -1320,6 +1326,11 @@ begin
     changeCDM:=(portCDM<>i) or ChangeCDM;
     portCDM:=i;
 
+    // taille fonte
+    val(EditFonte.text,i,erreur);
+    if (i<8) or (i>25) then i:=10;
+    TailleFonte:=i;
+    
     // contrôle adresse IP interface
     s:=EditIPLenz.text;
     if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';sauve_config:=false;exit;end;
@@ -1435,7 +1446,7 @@ end;
 
 procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
 begin
-  if sauve_config then formConfig.close;
+  if sauve_config then formConfig.close;  // si la config est ok, on ferme la fenetre
   // TCO
   if avectco and not(entreeTCO) then
   begin
@@ -1453,6 +1464,7 @@ begin
   if affevt then affiche('FormConfig activate',clLime);
   Aig_supprime.Adresse:=0;
   Feu_Supprime.Adresse:=0;
+  Feu_sauve.adresse:=0;
   
   clicListe:=false;
   Edit_HG.Visible:=false;
@@ -1485,6 +1497,7 @@ begin
   EditportLenz.text:=IntToSTR(Port);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditComUSB.Text:=PortCom;
+  EditFonte.text:=IntToSTR(TailleFonte);
   EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
   EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
   RadioButton1.checked:=false;
@@ -1532,33 +1545,33 @@ begin
   EditPointe_BG.Text:='';
   EditDevie_HD.Text:='';   
 
-  ligneclicSig:=0;
+  ligneclicSig:=-1;
   AncLigneClicSig:=-1;
-  ligneclicAct:=0;
+  ligneclicAct:=-1;
   AncLigneClicAct:=-1;
-  ligneclicAig:=0;
+  ligneclicAig:=-1;
   AncLigneClicAig:=-1;
-  lignecliqueePN:=0;
+  lignecliqueePN:=-1;
   AncLigneCliqueePN:=-1;
          
   // remplit les 4 fenêtres de config des aiguillages branches signaux, actionneurs
 
   // aiguillages
   RichAig.Clear;
-  RichInitAig.Clear;
   for i:=1 to MaxAiguillage do
   begin
     s:=encode_aig(i);
     RichAig.Lines.Add(s);
     RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
     Aiguillage[i].modifie:=false;
-    // valeurs d'init
-    s:=encode_init_aig(i);
-    RichInitAig.Lines.Add(s);
-    RE_ColorLine(RichInitAig,RichInitAig.lines.count-1,ClAqua);
   end;
+  With RichAig do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;  
 
-  // branches
+  // branches 
   clicListe:=true;
   RichBranche.clear;
   for i:=1 to NbreBranches do
@@ -1567,6 +1580,11 @@ begin
     RichBranche.Lines.Add(s);
     RE_ColorLine(RichBranche,RichBranche.lines.count-1,ClAqua);
   end;
+  With RichBranche do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end; 
 
   // signaux
   RichSig.clear;
@@ -1574,8 +1592,7 @@ begin
   begin
     ComboBoxDec.items.add(decodeur[i-1]);
   end;
-  EditDet1.Text:='';EditDet2.Text:='';EditDet3.Text:='';EditDet4.Text:='';
-  EditSuiv1.Text:='';EditSuiv2.Text:='';EditSuiv3.Text:='';EditSuiv4.Text:='';
+  
   for i:=1 to NbreFeux do
   begin
     s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
@@ -1586,6 +1603,11 @@ begin
       RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
       Feux[i].modifie:=false;
     end;
+  end;
+  With RichSig do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
   end;
 
   // actionneurs Train ou accessoire
@@ -1599,6 +1621,11 @@ begin
       RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua);
     end;
   end;
+  With RichAct do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
 
   // actionneurs PN
   RichPN.Clear;
@@ -1610,6 +1637,11 @@ begin
       RichPN.Lines.Add(s);
       RE_ColorLine(RichPN,RichPN.lines.count-1,ClAqua);
     end;
+  end;
+  With RichPN do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
   end;
 
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
@@ -1655,9 +1687,10 @@ end;
 
 // affiche le graphisme de l'aiguillage en fonction du tablo en index
 procedure Aff_champs_aig_tablo(index : integer);
-var Adresse,Adr2,id2,erreur,position : integer;
+var Adresse,Adr2,ind,id2,erreur,position : integer;
     tjd,tri,tjs : boolean;
     s,ss : string;
+    i : integer;
     B : char;
 begin
   s:=Uppercase(formConfig.RichAig.Lines[index-1]);
@@ -1667,6 +1700,7 @@ begin
   Val(s,Adresse,erreur);  // Récupérer l'adresse de l'aiguillage
   if adresse=0 then exit;
 
+  ind:=Index_aig(adresse);
   clicliste:=true;
 
   ss:=InttoSTr(Adresse);
@@ -1677,15 +1711,27 @@ begin
   tjs:=pos('TJS',s)<>0 ;
   with formconfig do
   begin
-    LabelLigne.caption:=s;
+    EditAdrAig.Color:=clWindow;
     ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
     ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
     ImageAffiche.Transparent:=true;
     // tjd
     if tjd or tjs then
     begin
-      if tjd then ComboBoxAig.ItemIndex:=1;
-      if tjs then ComboBoxAig.ItemIndex:=2;
+      if tjd then 
+      begin
+        ComboBoxAig.ItemIndex:=1;
+        EditL.Visible:=false;
+        LabelL.Visible:=false;
+      end;  
+      if tjs then 
+      begin
+        ComboBoxAig.ItemIndex:=2;
+        EditL.Visible:=true;
+        LabelL.Visible:=true;
+        LabelL.Caption:='L'+IntToSTR(aiguillage[ind].tjsint);
+        EditL.Text:=aiguillage[ind].tjsintB;
+      end;  
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
       labelBG.Caption:='S';
       Edit_HG.Visible:=true;
@@ -1747,6 +1793,8 @@ begin
     // aiguillage normal ou tri
     if not(tjd) and not(tjs) or tri then
     begin
+      EditL.Visible:=false;
+      LabelL.Visible:=false;
       ComboBoxAig.ItemIndex:=0;
       if not(tri) then 
       begin
@@ -1787,15 +1835,17 @@ begin
         Label18.Visible:=true;
         adr2:=aiguillage[index].AdrTriple;
         EditDevieS2.text:=intToSTR(aiguillage[index].Adevie2)+aiguillage[index].Adevie2B;
-        EditAigTriple.Text:=intToSTR(aiguillage[index].Adrtriple);
+        i:=aiguillage[index].Adrtriple;
+        EditAigTriple.Text:=intToSTR(i);
+        if i=0 then EditAigTriple.Color:=clred else EditAigTriple.Color:=clWindow;
       end;  
     end;
   end;
 
   position:=aiguillage[index].posinit;
-  if position=const_inconnu then formconfig.EditDevDroit.text:='I';
-  if position=const_droit then formconfig.EditDevDroit.text:='D';
-  if position=const_devie then formconfig.EditDevDroit.text:='S';
+  if position=const_inconnu then formconfig.ComboBoxDD.ItemIndex:=2;
+  if position=const_droit then formconfig.ComboBoxDD.ItemIndex:=1;
+  if position=const_devie then formconfig.ComboBoxDD.ItemIndex:=0;
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
   formconfig.CheckInvInit.Checked:=aiguillage[index].inversion=1;
@@ -1900,13 +1950,15 @@ begin
         ComboBoxAsp.ItemIndex:=d-10+4;
     end; 
     
+    if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
     // signal normal
     if d<10 then
-    begin
+    begin     
       Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
       Label17.Width:=228;
       LabelDetAss.visible:=true;
       LabelElSuiv.visible:=true;
+      
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
       Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
@@ -1932,7 +1984,8 @@ begin
       else begin EditDet4.Text:='';EditSuiv4.Text:='';end;  
 
       checkVerrouCarre.Checked:=feux[i].VerrouCarre;
-
+      checkBoxFB.Checked:=feux[i].FeuBlanc;
+      
       // conditions supplémentaires du carré par aiguillages
       l:=1;
       repeat
@@ -2094,10 +2147,51 @@ begin
   end
 end;
   
-
-procedure TFormConfig.PageControlChange(Sender: TObject);
+procedure raz_champs_act;
 begin
- 
+  with formConfig do
+  begin
+    editAct.Text:='';
+    EditEtatActionneur.Text:='';
+    EditTrain.Text:='';
+    EditFonctionAccess.Text:='';
+    EditEtatFoncSortie.Text:='';
+    EditTempo.Text:='';
+    CheckRaz.Checked:=false;
+  end;
+end;
+  
+procedure raz_champs_aig;
+begin
+  with formConfig do
+  begin
+    LabelInfo.caption:='';
+    EditAdrAig.Text:='';EditAigTriple.Text:='';
+    Edit_HG.text:='';
+    editDevie_HD.Text:='';
+    editDroit_BD.Text:='';
+    editPointe_BG.Text:='';
+    EditTempo10.text:='';
+  end;  
+end;
+
+procedure raz_champs_sig;
+begin
+  with formconfig do
+  begin
+    LabelInfo.caption:='';
+    EditDet1.Text:='';EditSuiv1.Text:='';
+    EditDet2.Text:='';EditSuiv2.Text:='';
+    EditDet3.Text:='';EditSuiv3.Text:='';
+    EditDet4.Text:='';EditSuiv4.Text:='';
+    EditAdrSig.Text:='';
+    MemoCarre.Clear;
+    ComboBoxAsp.ItemIndex:=-1;
+    ComboBoxDec.ItemIndex:=-1;
+    ImageSignal.Picture:=Nil;
+    checkVerrouCarre.Checked:=false;
+    checkBoxFB.Checked:=false;
+  end;
 end;
 
 // cliqué sur liste aiguillages
@@ -2106,16 +2200,23 @@ var i,lc,adresse,erreur : integer;
     s : string;
 begin
   clicliste:=true;
-  LabelInfo.caption:='';
-
+  raz_champs_aig;
+  ComboBoxAig.ItemIndex:=-1;
+  formconfig.ComboBoxDD.ItemIndex:=-1;
+   
   with Formconfig.RichAig do
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
     //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     s:=Uppercase(Lines[lc]);   // ligne cliquée
-    if s='' then exit;
+    if s='' then 
+    begin
+      RE_ColorLine(Formconfig.RichAig,ligneclicAig,ClAqua);
+      ligneclicAig:=-1;
+      exit;
+    end;  
 
-    Aig_supprime:=Aiguillage[lc+1];  // sauvegarde
+    Aig_sauve:=Aiguillage[lc+1];  // sauvegarde
     AncligneclicAig:=ligneclicAig;
     ligneclicAig:=lc;
 
@@ -2123,7 +2224,6 @@ begin
     begin
       if aiguillage[ligneclicAig+1].modifie then RE_ColorLine(Formconfig.RichAig,AncligneclicAig,ClWhite) else
       RE_ColorLine(Formconfig.RichAig,AncligneclicAig,ClAqua);
-      RE_ColorLine(Formconfig.RichInitAig,AncligneclicAig,ClAqua);
     end;
   end;
 
@@ -2132,19 +2232,18 @@ begin
 
   RE_ColorLine(Formconfig.RichAig,ligneclicAig,Clyellow);
   i:=index_aig(Adresse);
-  RE_ColorLine(Formconfig.RichInitAig,i-1,Clyellow);
 
   aff_champs_Aig_tablo(i);
   clicliste:=false;
 end;
 
 // on change la valeur de la description du champ HG pour les TJD
-procedure change_HG ;
+procedure TFormConfig.Edit_HGKeyPress(Sender: TObject; var Key: Char);
 var s : string;
     adr,adraig,erreur,index : integer;
     b : char;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change HG',clyellow);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -2170,23 +2269,21 @@ begin
       // réencoder la ligne
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneclicAig]:=s;
-      labelLigne.Caption:=s;
     end
       else
         LabelInfo.caption:='Erreur pointe aiguillage '+intToSTR(AdrAig);
     end;
-
 end;
 
 // on change la valeur de la description de la déviation de l'aiguillage
-procedure change_Devie;
+procedure TFormConfig.EditDevie_HDKeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,adr2,erreur,index,modele : integer;
     b : char;
     s : string;
 begin
   // cliqué sur le edit dévié aiguillage
   // ne pas traiter si on a cliqué sur la liste
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change dévié',clyellow);
     
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -2216,7 +2313,6 @@ begin
         // réencoder la ligne
         s:=encode_aig(Index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
-        labelLigne.Caption:=s;
       end
       else
       begin
@@ -2241,14 +2337,14 @@ begin
 end;
 
 // on change la valeur de la description du droit de l'aiguillage
-procedure change_Droit;
+procedure TFormConfig.EditDroit_BDKeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,erreur,index,modele,adr2 : integer;
     b : char;
     s : string;
 begin
   // cliqué sur le edit droit aiguillage
   // ne pas traiter si on a cliqué sur la liste
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change droit',clyellow);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -2276,7 +2372,6 @@ begin
         // réencoder la ligne
         s:=encode_aig(Index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
-        labelLigne.Caption:=s;
       end
       else
       begin
@@ -2299,7 +2394,8 @@ begin
   end;  
 end;
 
-procedure TFormConfig.EditPointe_BGChange(Sender: TObject);
+procedure TFormConfig.EditPointe_BGKeyPress(Sender: TObject;
+  var Key: Char);
 var AdrAig,adr,erreur,index : integer;
     b : char;
     normal,tjd,tjs,tri : boolean;
@@ -2307,7 +2403,7 @@ var AdrAig,adr,erreur,index : integer;
 begin
   // cliqué sur le edit pointe aiguillage
   // ne pas traiter si on a cliqué sur la liste
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change pointe',clyellow);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -2321,9 +2417,6 @@ begin
     decodeAig(s,adr,B);
     if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then 
     begin
-      // RichAig.SelStart:=Perform(EM_LINEINDEX,ligneclicAig,0);  // début de la sélection
-      // RichAig.SelLength:=Length(s) ;  // fin de la sélection
-      //SetFocus;
       RE_ColorLine(RichAig,ligneclicAig,ClWhite);
       Index:=Index_Aig(AdrAig);
       normal:=aiguillage[index].modele=1;
@@ -2343,7 +2436,6 @@ begin
         // réencoder la ligne
         s:=encode_aig(index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
-        labelLigne.Caption:=s;
       end;
       if tjd or tjs then
       begin
@@ -2351,7 +2443,6 @@ begin
         Aiguillage[index].ADevieB:=B;
         s:=encode_aig(index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
-        labelLigne.Caption:=s;       
       end;
     end
       else
@@ -2359,29 +2450,14 @@ begin
     end;  
 end;
  
-procedure TFormConfig.Edit_HGChange(Sender: TObject);
-begin
-  change_HG;
-end;
-
-procedure TFormConfig.EditDevie_HDChange(Sender: TObject);
-begin
-  Change_devie;
-end;
-
-procedure TFormConfig.EditDroit_BDChange(Sender: TObject);
-begin
-  Change_droit;
-end;
-
-procedure TFormConfig.EditDevieS2Change(Sender: TObject);
+procedure TFormConfig.EditDevieS2KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,erreur,index : integer;
     b : char;
     s : string;
 begin
   // cliqué sur le edit droit aiguillage
   // ne pas traiter si on a cliqué sur la liste
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change S2',clyellow);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -2406,7 +2482,6 @@ begin
       // réencoder la ligne
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneclicAig]:=s;
-      labelLigne.Caption:=s;
     end
     else
     begin
@@ -2429,7 +2504,6 @@ begin
   // réencoder la ligne
   s:=encode_aig(Index_Aig(AdrAig));
   formconfig.RichAig.Lines[ligneclicAig]:=s;
-  labelLigne.Caption:=s;
 end;
 
 procedure TFormConfig.RadioButtonsansClick(Sender: TObject);
@@ -2446,7 +2520,6 @@ begin
   aiguillage[index].modifie:=true;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
-  labelLigne.Caption:=s;
 end;
 
 procedure TFormConfig.RadioButton30kmhClick(Sender: TObject);
@@ -2463,7 +2536,6 @@ begin
   aiguillage[index].modifie:=true;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
-  labelLigne.Caption:=s;
 end;
 
 procedure TFormConfig.RadioButton60kmhClick(Sender: TObject);
@@ -2480,7 +2552,6 @@ begin
   aiguillage[Index].modifie:=true;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
-  labelLigne.Caption:=s;
 end;
 
 procedure TFormConfig.ComboBoxDecChange(Sender: TObject);
@@ -2507,14 +2578,21 @@ var lc,AncAdresse,adresse,erreur : integer;
     s : string;
 begin
   clicliste:=true;
-  LabelInfo.caption:='';
+  raz_champs_sig;
+  
   with Formconfig.RichSig do
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
     //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     s:=Uppercase(Lines[lc]);   // ligne cliquée
-    if s='' then exit;
-    Feu_supprime:=feux[lc+1];  // sauvegarde
+    if s='' then 
+    begin
+      RE_ColorLine(Formconfig.RichSig,ligneclicSig,ClAqua);
+      ligneclicSig:=-1;
+      exit;
+    end;  
+    
+    Feu_Sauve:=feux[lc+1];  // sauvegarde
 
     AncLigneClicSig:=ligneclicSig;
     ligneClicSig:=lc;
@@ -2531,17 +2609,18 @@ begin
   Val(s,Adresse,erreur);  // Adresse du signal
   if adresse=0 then exit;
 
+  EditAdrSig.Color:=clWindow;
   RE_ColorLine(Formconfig.RichSig,ligneClicSig,Clyellow);
 
   aff_champs_sig_feux(lc+1);
   clicliste:=false;
 end;
 
-procedure TFormConfig.EditDet1Change(Sender: TObject);
+procedure TFormConfig.EditDet1KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (ligneClicSig<0) then exit;
+  if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   s:=RichSig.Lines[ligneClicSig];
   if affevt then Affiche('Evt Détecteur 1',clOrange);
   
@@ -2560,11 +2639,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditSuiv1Change(Sender: TObject);
+procedure TFormConfig.EditSuiv1KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) then exit;
+  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt suivant1',clOrange);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2592,11 +2671,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditDet2Change(Sender: TObject);
+procedure TFormConfig.EditDet2KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (ligneClicSig<0) then exit;
+  if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt detecteur 2',clOrange);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
@@ -2628,13 +2707,28 @@ begin
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
   end;
+end;        
+
+procedure TFormConfig.CheckBoxFBClick(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt FB',clOrange);
+  
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    feux[ligneClicSig+1].FeuBlanc:=checkBoxFB.Checked;
+    s:=encode_sig_feux(ligneClicSig+1);
+    RichSig.Lines[ligneClicSig]:=s;
+    feux[ligneClicSig+1].modifie:=true;
+  end;
 end;
 
-procedure TFormConfig.EditSuiv2Change(Sender: TObject);
+procedure TFormConfig.EditSuiv2KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i: integer;
 begin
-  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) then exit;
+  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt Element suivant2',clOrange);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
@@ -2663,11 +2757,11 @@ begin
 end;
 
 
-procedure TFormConfig.EditDet3Change(Sender: TObject);
+procedure TFormConfig.EditDet3KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (ligneClicSig<0) then exit;
+  if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt Detecteur 3',clOrange);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2684,11 +2778,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditSuiv3Change(Sender: TObject);
+procedure TFormConfig.EditSuiv3KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i : integer;
 begin
-  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) then exit;
+  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2715,11 +2809,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditDet4Change(Sender: TObject);
+procedure TFormConfig.EditDet4KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (ligneClicSig<0) then exit;
+  if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2736,11 +2830,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditSuiv4Change(Sender: TObject);
+procedure TFormConfig.EditSuiv4KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i : integer;
 begin
-  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) then exit;
+  if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
@@ -2798,7 +2892,7 @@ var ligne : integer;
 begin
   clicliste:=true;
   LabelInfo.caption:='';
-
+  raz_champs_act;
   with RichAct do
   begin
     ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
@@ -2809,6 +2903,12 @@ begin
       ligneClicAct:=ligne;
       RE_ColorLine(Formconfig.RichAct,ligneClicAct,ClYellow);
       Aff_champs_Act(ligneClicAct);
+    end
+    else
+    begin
+      RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
+      ligneclicAct:=-1;
+      exit;
     end;  
   end;
   clicliste:=false;
@@ -2912,7 +3012,6 @@ begin
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
-
 end;
 
 procedure TFormConfig.EditTempoChange(Sender: TObject);
@@ -2957,11 +3056,11 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditAdrSigChange(Sender: TObject);
+procedure TFormConfig.EditAdrSigKeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i, erreur : integer;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt adresse signal',clOrange);
   // attention interférence avec clic droit propriétés sur un signal qui génère un evt sur ce contrôle
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
@@ -2969,7 +3068,18 @@ begin
   begin
     s:=EditAdrSig.Text;
     Val(s,i,erreur);
-    if erreur<>0 then begin LabelInfo.caption:='Erreur adresse signal ';exit;end;
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then 
+    begin 
+      EditAdrSig.Color:=clred;
+      LabelInfo.caption:='Erreur adresse signal ';exit;
+    end;
+    if (index_feu(i)<>0) then
+    begin
+      EditAdrSig.Color:=clred;
+      LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
+    end;
+    
+    EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].adresse:=i;
     s:=encode_sig_feux(ligneClicSig+1);
@@ -2978,40 +3088,45 @@ begin
    end; 
 end;
 
-procedure TFormConfig.EditAdrAigChange(Sender: TObject);
+procedure TFormConfig.EditAdrAigKeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,vide,erreur,index,adr2,modele : integer;
     c : char;
 begin
-  if clicliste then exit;
-
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=EditAdrAig.Text;
     Val(s,i,erreur);
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then 
+    begin 
+      EditAdrAig.Color:=clred;
+      LabelInfo.caption:='Erreur adresse Aiguillage ';exit;
+    end;
+        
     index:=ligneclicAig+1;
     if index=0 then exit;
 
     modele:=aiguillage[index].modele;
+    // si normal ou triple
     if (modele=1) or (modele=4) then
     begin
       if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
       //  vérifier si l'adresse de l'aiguillage existe déja
       if (aiguillage[Index_Aig(i)].modele<>0) then 
       begin
+        EditAdrAig.Color:=clred;
         LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
         exit;
-      end  
-      else LabelInfo.caption:='';
-    
+      end;
+      EditAdrAig.Color:=clWindow;
       LabelInfo.caption:=' ';
       s:=encode_aig_gfx;
     
       aiguillage[index].adresse:=i;
       aiguillage[index].modifie:=true;
       formconfig.RichAig.Lines[ligneclicAig]:=s;
-      labelLigne.caption:=s;
     end;
     if (modele=2) or (modele=3) then  
     begin
@@ -3029,7 +3144,6 @@ begin
       aiguillage[index].modifie:=true;
       s:=encode_aig(index);
       formconfig.RichAig.Lines[index-1]:=s;
-      labelLigne.caption:=s;
       
       // modif homologue
       adr2:=aiguillage[index].Ddroit;
@@ -3040,9 +3154,6 @@ begin
       formconfig.RichAig.Lines[index-1]:=s;
     end;
   end;
-  s:=encode_init_aig(index);
-  formconfig.RichInitAig.Lines[index-1]:=s;
-  
 end;
 
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
@@ -3065,6 +3176,12 @@ begin
   index:=ligneClicSig+1;  // index du feu
   if NbreFeux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
+  if ((aspect=2) or (aspect>=5)) and (aspect<10) then 
+    checkBoxFB.Visible:=true else 
+    begin
+      checkBoxFB.Visible:=false;
+      checkBoxFB.Checked:=false;
+    end;  
   feux[index].aspect:=aspect;
   s:=encode_sig_feux(index);  
   RichSig.Lines[ligneClicSig]:=s;
@@ -3075,11 +3192,11 @@ begin
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
 end;
 
-procedure TFormConfig.EditSpecUniChange(Sender: TObject);
+procedure TFormConfig.EditSpecUniKeyPress(Sender: TObject; var Key: Char);
 var erreur,i,Adr : integer ;
     s : string ;
 begin
-  if clicliste or (ligneClicSig<0) then exit;
+  if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt Unisemaf',clOrange);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
@@ -3104,11 +3221,11 @@ end;
 procedure TFormConfig.ButtonrestaureClick(Sender: TObject);
 var index : integer;
 begin
-  if (Feu_supprime.adresse<>0) or (ligneClicSig>=0) then
+  if (Feu_sauve.adresse<>0) and (ligneClicSig>=0) then
   begin
     clicListe:=true;
     index:=ligneClicSig+1;    
-    feux[index]:=Feu_supprime;
+    feux[index]:=Feu_sauve;
     RichSig.Lines[ligneClicSig]:=encode_sig_feux(index);
     aff_champs_sig_feux(index);  // réaffiche les champs 
     Maj_Hint_feu(index);  
@@ -3199,7 +3316,13 @@ begin
       ligneCliqueePN:=ligne;
       RE_ColorLine(RichPN,LigneCliqueePN,ClYellow);
       Aff_champs_PN(lignecliqueePN);
-    end;
+    end
+    else
+    begin
+      RE_ColorLine(Formconfig.RichPN,lignecliqueePN,ClAqua);
+      lignecliqueePN:=-1;
+      exit;
+    end;  
   end;  
   clicliste:=false; 
 end;
@@ -3622,7 +3745,8 @@ begin
   ligneClicSig:=i-1;
   AncligneClicSig:=ligneClicSig;
   Aff_champs_Sig_feux(i);
-  clicliste:=false;  
+  clicliste:=false;
+  Feu_sauve.Adresse:=0;
   config_modifie:=true;
 end;
 
@@ -3641,14 +3765,37 @@ begin
   
   clicliste:=true;
   Feu_supprime:=feux[index];  // sauvegarde le feu supprimé
+  Feu_sauve.adresse:=0; // dévalider sa définition
   // supprime le feu du tableau
   dec(NbreFeux);
+  ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
+
+  feux[index].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
+  Feux[index].Lbl.Free;  // supprime le label, ...
+  if Feux[index].check<>nil then begin Feux[index].check.Free;Feux[index].Check:=nil;end;  // supprime le check du feu blanc s'il existait
+  // décale le tableau de feux et recalcule les positions des images
   for i:=index to NbreFeux do
   begin
     feux[i]:=feux[i+1];
+    with feux[i].Img do
+    begin
+      Top:=(HtImg+espY+20)*((i-1) div NbreImagePLigne);   // détermine les points d'origine
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+    end;  
+    with feux[i].Lbl do
+    begin
+      Top:=HtImg+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+    end;
+    if Feux[i].check<>nil then
+    with Feux[i].Check do
+    begin
+      Hint:=intToSTR(i);  
+      Top:=HtImg+15+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+    end;   
   end;
-  feux[NbreFeux+1].Img.Free;
-  
+     
   EditAdrSig.Text:='';
   EditDet1.Text:='';EditDet2.Text:='';EditDet3.Text:='';EditDet4.Text:='';
   EditSuiv1.Text:='';EditSuiv2.Text:='';EditSuiv3.Text:='';EditSuiv4.Text:='';
@@ -3667,8 +3814,9 @@ begin
       RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
     end;   
   end;  
-  ligneClicSig:=-1;
+  ligneClicSig:=-1;                    
   AncligneClicSig:=-1;
+  raz_champs_sig;
   clicliste:=false;
 end;
 
@@ -3689,8 +3837,8 @@ begin
     begin
       with RichSig do
       begin
+        ButtonInsFeu.Caption:='Ajouter le feu supprimé';
         Lines.Add(s);
-        Affiche(s,clyellow);
         RE_ColorLine(RichSig,RichSig.lines.count-1,ClYellow);
         ligneClicSig:=NbreFeux-1;
         AncligneClicSig:=-1;
@@ -3747,19 +3895,19 @@ begin
   // et les tjd pour voir si pb de cohérence
   for aig:=1 to maxaiguillage do
   begin
-    // tjd
-    if aiguillage[aig].modele=2 then
+    // tjd ou tjs
+    if (aiguillage[aig].modele=2) or (aiguillage[aig].modele=3) then
     begin
       if aiguillage[aig].Ddroit<>aiguillage[aig].Ddevie then
       begin
-        Affiche('Erreur 7: la TJD '+IntToStr(aig)+' a des adresses de destination différentes ('+intToSTR(aiguillage[aig].Ddroit)+' et '+intToSTR(aiguillage[aig].Ddevie)+')',clred);
+        Affiche('Erreur 7: la TJD/S '+IntToStr(aig)+' a des adresses de destination différentes ('+intToSTR(aiguillage[aig].Ddroit)+' et '+intToSTR(aiguillage[aig].Ddevie)+')',clred);
         ok:=false;
       end;  
       // vérifier si son homologue est une tjd
       adr2:=aiguillage[aig].Ddroit;
-      if aiguillage[Index_Aig(adr2)].modele<>2 then 
+      if (aiguillage[Index_Aig(adr2)].modele<>2) and (aiguillage[Index_Aig(adr2)].modele<>3) then 
       begin
-        Affiche('Erreur 8: l''aiguillage '+intToStr(Adr2)+' n''est pas une TJD, mais apparait dans la TJD '+IntToSTR(aiguillage[aig].Adresse),clred);
+        Affiche('Erreur 8: l''aiguillage '+intToStr(Adr2)+' n''est pas une TJD/S ou n''existe pas, mais apparait dans la TJD/S '+IntToSTR(aiguillage[aig].Adresse),clred);
         ok:=false;
       end;
     end;
@@ -3775,9 +3923,8 @@ begin
     end;
     adr:=aiguillage[aig].Adroit;
     if (aiguillage[aig].AdroitB='Z') then
-    begin
-      trouve_detecteur(adr); // branche_trouve   IndexBranche_trouve
-      if (IndexBranche_trouve=0) then
+    begin           
+      if trouve_detecteur(adr)=0 then
       begin
         Affiche('Erreur 2: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clred);
         ok:=false;
@@ -3786,8 +3933,7 @@ begin
     adr:=aiguillage[aig].Adevie;
     if (aiguillage[aig].AdevieB='Z') then
     begin
-      trouve_detecteur(adr); // branche_trouve   IndexBranche_trouve
-      if (IndexBranche_trouve=0) then
+      if trouve_detecteur(adr)=0 then
       begin
         Affiche('Erreur 3: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
@@ -3796,8 +3942,7 @@ begin
     adr:=aiguillage[aig].Apointe;
     if ((aiguillage[aig].ApointeB='Z') and (aiguillage[aig].modele=1)) then
     begin
-      trouve_detecteur(adr); // branche_trouve   IndexBranche_trouve
-      if (IndexBranche_trouve=0) then
+      if trouve_detecteur(adr)=0 then
       begin
         Affiche('Erreur 4 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
@@ -3808,8 +3953,7 @@ begin
       if (aiguillage[aig].Adevie2B='Z') then
       begin
         adr:=aiguillage[aig].Adevie2;
-        trouve_detecteur(adr); // branche_trouve   IndexBranche_trouve
-        if (IndexBranche_trouve=0) then
+        if trouve_detecteur(adr)=0 then
         begin
           Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
           ok:=false;
@@ -3818,15 +3962,23 @@ begin
     end;
   end;
 
-  // cohérence 3 : vérifie si doublon aiguillage
+  // cohérence 3 : vérifie si aiguillage triple ok et si doublon aiguillage
   for aig:=1 to maxaiguillage do
   begin
     adr:=aiguillage[aig].Adresse;
+    if aiguillage[aig].modele=4 then 
+    begin
+      if aiguillage[aig].AdrTriple=0 then 
+      begin
+        Affiche('Erreur 6.1 : 2ème adresse de l''aiguillage triple '+intToSTR(adr)+' non définie',clred);
+        ok:=false;
+      end;
+    end;
     for i:=aig+1 to maxaiguillage do
     begin
       if adr=aiguillage[i].Adresse then 
       begin
-        affiche('Erreur 6 : aiguillage '+intToSTR(adr)+' défini deux fois',clred);
+        affiche('Erreur 6.2 : aiguillage '+intToSTR(adr)+' défini deux fois',clred);
         ok:=false;
       end;
     end;     
@@ -3846,7 +3998,7 @@ begin
     end;     
   end; 
   
-  // cohérence 5 ; vérifie si les aiguillages définis en condition supplémentaires de carré existent
+  // cohérence 5 ; vérifie si aiguillages définis en condition supplémentaires de carré existent
   for j:=1 to NbreFeux do
   begin
     l:=1;
@@ -4003,10 +4155,7 @@ begin
         end;  
       end;
     end;
-    
   end;
-  
-  
   verif_coherence:=ok;
 end;
 
@@ -4024,6 +4173,8 @@ begin
   aiguillage[i].DdroitB:='D'; aiguillage[i].DdevieB:='S'; // préparation pour TJD/S
   aiguillage[i].ApointeB:='Z';
   aiguillage[i].Adevie2B:='Z';   
+  aiguillage[i].tjsintB:='D';   
+  
   aiguillage[i].posInit:=const_inconnu;
   aiguillage[i].Temps:=5;
   
@@ -4038,44 +4189,32 @@ begin
     Perform(EM_SCROLLCARET,0,0);
   end;    
 
-  s:=encode_init_aig(i);
-  with richInitAig do
-  begin
-    Lines.add(s);
-    SetFocus;
-    Selstart:=RichInitAig.GetTextLen-1;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-               
   LabelInfo.caption:='Aiguillage '+intToSTR(aiguillage[i].Adresse)+' créé';
   ligneClicAig:=i-1;
   AncligneClicAig:=ligneClicAig;
   Aff_champs_aig_tablo(i);
   clicliste:=false;  
   config_modifie:=true;
+  Aig_sauve.Adresse:=0;
 end;
-
 
 procedure TFormConfig.BoutSupAigClick(Sender: TObject);
 var i,index,index2 : integer;
     s : string;
 begin
   i:=ligneClicAig;
-  if (i=-1) then exit;
+  if (i<0) then exit;
   index:=i+1; // passe en index tableau
 
   s:='Voulez-vous supprimer l''aiguillage '+IntToSTR(aiguillage[index].adresse)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   Affiche('Suppression de l''aiguillage='+IntToSTR(index)+' adresse='+IntToSTR(aiguillage[index].adresse),clOrange);
-  
+  ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
   clicliste:=true;
-  Aig_supprime:=Aiguillage[index];  // sauvegarde le supprimé
+  raz_champs_aig;
+  Aig_supprime:=aiguillage[index];  // sauvegarde le supprimé
+  Aig_sauve.adresse:=0;             // dévalider sa définition
 
-  // si le supprimé est une TJD/S supprimer sa définition dans son homologue
-  index2:=index_aig(aiguillage[index].Ddroit); // adresse de l'homologue
-  aiguillage[index2].Ddevie:=0;
-  aiguillage[index2].Ddroit:=0;
-  
   // efface les attributs de l'aiguillage supprimé
   aiguillage[index].Adresse:=0;
   aiguillage[index].Modele:=0;
@@ -4094,9 +4233,7 @@ begin
   end;
   
   config_modifie:=true;
-
   RichAig.Clear;
-  RichInitAig.Clear;
 
   // réafficher le richsig
   for i:=1 to MaxAiguillage do
@@ -4106,9 +4243,6 @@ begin
     begin
       RichAig.Lines.Add(s);
       RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
-      s:=encode_Init_Aig(i);
-      RichInitAig.Lines.Add(s);  
-      RE_ColorLine(RichInitAig,RichInitAig.lines.count-1,ClAqua);
     end;  
   end;  
   ligneClicAig:=-1;
@@ -4116,12 +4250,12 @@ begin
   clicliste:=false;
 end;
 
-procedure TFormConfig.EditP1Change(Sender: TObject);
+procedure TFormConfig.EditP1KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,adr2,erreur,index,id2 : integer;
     b,c : char;
     s : string;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P1',clyellow);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -4172,7 +4306,6 @@ begin
       clicListe:=false;
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneClicAig]:=s;
-      labelLigne.Caption:=s;
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneClicAig]:=s;
       // changer l'homologue
@@ -4188,12 +4321,12 @@ begin
     end;  
 end;
 
-procedure TFormConfig.EditP2Change(Sender: TObject);
+procedure TFormConfig.EditP2KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,adr2,erreur,index,id2 : integer;
     b,c : char;
     s : string;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P2',clyellow);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -4245,7 +4378,6 @@ begin
       clicListe:=false;
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneClicAig]:=s;
-      labelLigne.Caption:=s;
       // changer l'homologue
       adr2:=aiguillage[index].Ddroit;
       index:=index_aig(Adr2);
@@ -4259,19 +4391,18 @@ begin
     end;  
 end;
 
-procedure TFormConfig.EditP3Change(Sender: TObject);
+procedure TFormConfig.EditP3KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,adr2,erreur,index,modele : integer;
     b,c : char;
     s : string;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P3',clyellow);
-  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=formconfig.RichAig.Lines[ligneClicAig];
-    Val(s,adrAig,erreur);
+    Val(s,adrAig,erreur);           // adrAig est l'adresse de l'aiguillage modifié
       
     //vérifier la syntaxe
     s:=EditP3.text;
@@ -4283,13 +4414,21 @@ begin
       clicListe:=false;
     end;
     
-    decodeAig(s,adr,B);
+    decodeAig(s,adr,B);            // adr est le contenu du champ P3
     if (B='S') and (adr<>0) then 
     begin
       LabelInfo.caption:='';
       RE_ColorLine(RichAig,ligneClicAig,ClWhite);
       Index:=Index_Aig(AdrAig);
-          
+      modele:=aiguillage[Index].modele;
+
+      if modele=3 then // TJS
+      begin
+        LabelL.caption:=IntToSTR(adr);
+        aiguillage[index].tjsint:=adr;
+      end;
+
+      
       Aiguillage[index].modifie:=true;
       LabelInfo.caption:='';
       // modifier la base de données de l'aiguillage
@@ -4311,18 +4450,19 @@ begin
       
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneClicAig]:=s;
-      labelLigne.Caption:=s;
 
       // changer l'homologue
       index:=index_aig(Adr);
-      if index=0 then 
+      if index=0 then    // si elle n'existe pas la créer
       begin
         // créer homologue
-        labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
+        if modele=2 then labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
+        if modele=3 then labelInfo.Caption:='Création de la TJS homologue '+IntToSTR(adr);
+        
         inc(MaxAiguillage);
         index:=MaxAiguillage;
         aiguillage[index].Adresse:=Adr;
-        aiguillage[Index].modele:=2;
+        aiguillage[Index].modele:=modele;
         aiguillage[Index].Adroit:=0;
         aiguillage[Index].AdroitB:='D';
         aiguillage[Index].Adevie:=0;
@@ -4331,6 +4471,9 @@ begin
         aiguillage[Index].DdroitB:='D';
         aiguillage[Index].Ddevie:=adrAig;
         aiguillage[Index].DdevieB:='S';
+        aiguillage[Index].APointeB:='Z';
+        aiguillage[Index].tjsINTB:='S';
+        
         s:=encode_aig(index);
         formconfig.RichAig.Lines[index-1]:=s;
         // scroller à la fin
@@ -4339,11 +4482,13 @@ begin
           SetFocus;
           Selstart:=RichAig.GetTextLen-1;
           Perform(EM_SCROLLCARET,0,0);
-        end; 
-      end
+          RE_ColorLine(RichAig,index-1,ClAqua);
+          HideCaret(richAig.Handle); // éteint curseur
+        end;
+      end  // fin de la création
       else 
       begin
-        // existe, vérifier si c'est bien une TJD
+        // existe, vérifier si c'est bien une TJD/S
         modele:=aiguillage[Index].modele;
         if (modele=2) or (modele=3) then
         begin
@@ -4361,12 +4506,12 @@ begin
 end;
 
 
-procedure TFormConfig.EditP4Change(Sender: TObject);
+procedure TFormConfig.EditP4KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,adr2,erreur,index : integer;
     b,c : char;
     s : string;
 begin
-  if clicliste then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P4',clyellow);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
@@ -4413,7 +4558,6 @@ begin
       
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneClicAig]:=s;
-      labelLigne.Caption:=s;
 
       // changer l'homologue
       index:=index_aig(Adr2);
@@ -4429,7 +4573,7 @@ end;
 procedure TFormConfig.ButtonAjSupClick(Sender: TObject);
 var s : string;
 begin
- if Aig_supprime.adresse<>0 then
+  if Aig_supprime.adresse<>0 then
   begin
     inc(MaxAiguillage);
     aiguillage[MaxAiguillage]:=Aig_supprime;
@@ -4443,23 +4587,14 @@ begin
     if s<>'' then
     with RichAig do
     begin
+      ButtonAjSup.Caption:='Ajouter l''aig supprimé';
+      ligneClicAig:=MaxAiguillage-1;
+      AncligneClicAig:=-1;
       RichAig.Lines.Add(s);
       RE_ColorLine(RichAig,RichAig.lines.count-1,clYellow);
       SetFocus;
       Selstart:=RichAig.GetTextLen-1;
       Perform(EM_SCROLLCARET,0,0);
-    end; 
-    s:=encode_Init_Aig(MaxAiguillage);  // ligne de l'initialisation 
-    if s<>'' then
-    with RichInitAig do
-    begin
-      Lines.Add(s);
-      RE_ColorLine(RichInitAig,RichInitAig.lines.count-1,ClYellow);
-      SetFocus;
-      Selstart:=RichInitAig.GetTextLen-1;
-      Perform(EM_SCROLLCARET,0,0);
-      ligneClicAig:=MaxAiguillage-1;
-      AncligneClicAig:=-1;
     end; 
     Aff_champs_aig_tablo(MaxAiguillage);
   end;  
@@ -4469,11 +4604,11 @@ end;
 procedure TFormConfig.ButtonRestaureAigClick(Sender: TObject);
 var index : integer;
 begin
-  if (Aig_supprime.adresse<>0) or (ligneclicAig>=0) then
+  if (Aig_sauve.adresse<>0) and (ligneclicAig>=0) then
   begin
     clicListe:=true;
     index:=ligneclicAig+1;    
-    Aiguillage[index]:=Aig_supprime;
+    Aiguillage[index]:=Aig_sauve;
     RichAig.Lines[ligneclicAig]:=encode_Aig(index);
     aff_champs_Aig_tablo(index);  // réaffiche les champs 
     clicListe:=false;
@@ -4549,7 +4684,6 @@ begin
   result:=0;
 end;
 
-
 // trouve l'enregistrement suivant après l'offset dans une branche
 // en sortie : trouve_enregistrement= nouvel offset, enregistrement
 // si 0 en sortie: fin de ligne
@@ -4562,7 +4696,6 @@ begin
         else ss:=copy(branche[Num_Branche],offset,length(branche[Num_Branche])-offset+1); // si j=0 c'est la fin de la chaîne
   enregistrement:=ss;
   if j=0 then result:=0 else result:=j+1;
-
 end;
 
 // compile une branche de réseau sous forme de texte, et la stocke dans le tableau des branches
@@ -4640,8 +4773,7 @@ end;
 
 procedure TFormConfig.RichBrancheMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var curseur,lc : integer;
-    
+var curseur,lc : integer;   
 begin
   if clicListe then exit;
   clicListe:=true;
@@ -4775,7 +4907,7 @@ begin
    LabelInfo.Caption:=''; 
 end;  
 
-procedure TFormConfig.EditAigTripleChange(Sender: TObject);
+procedure TFormConfig.EditAigTripleKeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,modele,erreur,index : integer;
 begin
@@ -4797,77 +4929,64 @@ begin
       if (aiguillage[Index_Aig(i)].modele<>0) then 
       begin
         LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
+        EditAigTriple.Color:=clred;
         exit;
       end ;
+      if i=0 then EditAigTriple.Color:=clred else EditAigTriple.Color:=clWindow;
       LabelInfo.caption:='';
       s:=encode_aig_gfx; 
       aiguillage[index].AdrTriple:=i;
-      aiguillage[index].modifie:=true;
+      aiguillage[index].modifie:=true;              
       formconfig.RichAig.Lines[ligneclicAig]:=s;
-      labelLigne.caption:=s;
     end;
   end;  
 end;
 
-procedure TFormConfig.EditDevDroitChange(Sender: TObject);
-var s : string;
-    i : integer;
+procedure TFormConfig.ComboBoxDDChange(Sender: TObject);
+var s: string;
+    i,pos: integer;
 begin
   if clicliste or (ligneclicAig<0) then exit;
-
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
-    s:=EditDevDroit.Text;
-    i:=0;
-    if s<>'' then
-    begin
-      case s[1] of
-      'D' : begin i:=const_droit;labelDevie.Caption:='Droit';end;
-      'S' : begin i:=const_devie;labelDevie.Caption:='Dévié';end;
-      'I' : begin i:=const_inconnu;labelDevie.Caption:='Non définie';end;
-      else begin i:=0;labelDevie.Caption:='Erreur';end;
-      end;
-    end;  
-    if i=0 then
-    begin
-      LabelInfo.caption:='Erreur position d''initialisation : D, S ou I';
-      exit; 
-    end;  
-
-    LabelInfo.caption:='';
     s:=encode_aig_gfx;   
-    aiguillage[ligneclicAig+1].PosInit:=i;
+    i:=ComboBoxDD.ItemIndex;
+    case i of
+    0 :  pos:=const_devie;
+    1 :  pos:=const_droit;
+    2 :  pos:=const_inconnu;
+    end;
+    
+    aiguillage[ligneclicAig+1].PosInit:=pos;
     aiguillage[ligneclicAig+1].modifie:=true;
     formconfig.RichAig.Lines[ligneclicAig]:=s;
-    labelLigne.caption:=s;
-
-    s:=encode_init_aig(ligneclicAig+1);
-    RichInitAig.lines[ligneclicAig]:=s;
-  end;  
+    s:=encode_aig(ligneclicAig+1);
+    RichAig.lines[ligneclicAig]:=s;
+  end;
 end;
 
-procedure TFormConfig.EditTempo10Change(Sender: TObject);
+procedure TFormConfig.EditTempo10KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
 begin
-  if clicliste or (ligneclicAig<0) then exit;
+  if clicliste or (ord(Key)<>VK_RETURN) or (ligneclicAig<0) then exit;
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=EditTempo10.Text;
     Val(s,i,erreur);
-
-    LabelInfo.caption:='';
-    s:=encode_aig_gfx;
-    aiguillage[ligneclicAig+1].temps:=i;
-    aiguillage[ligneclicAig+1].modifie:=true;
-    formconfig.RichAig.Lines[ligneclicAig]:=s;
-    labelLigne.caption:=s;
-
-    s:=encode_init_aig(ligneclicAig+1);
-    RichInitAig.lines[ligneclicAig]:=s;
+    if (i>0) and (i<50) then
+    begin
+      LabelInfo.caption:='';
+      s:=encode_aig_gfx;
+      aiguillage[ligneclicAig+1].temps:=i;
+      aiguillage[ligneclicAig+1].modifie:=true;
+      formconfig.RichAig.Lines[ligneclicAig]:=s;
+      s:=encode_aig(ligneclicAig+1);
+      RichAig.lines[ligneclicAig]:=s;
+    end ;
   end;  
 end;
 
@@ -4882,8 +5001,8 @@ begin
   Val(s,adrAig,erreur);
   if checkInvInit.Checked then aiguillage[Index_Aig(adraig)].Inversion:=1 else aiguillage[Index_Aig(adraig)].Inversion:=0;
   // réencoder la ligne
-  s:=encode_init_aig(Index_Aig(AdrAig));
-  formconfig.RichInitAig.Lines[ligneclicAig]:=s;
+  s:=encode_aig(Index_Aig(AdrAig));
+  formconfig.RichAig.Lines[ligneclicAig]:=s;
 end;
 
 procedure TFormConfig.EditV4FChange(Sender: TObject);
@@ -4918,7 +5037,7 @@ var s : string;
     i,act,erreur,NbVoies : integer;
     V4valide : boolean;
 begin
-  if clicliste then exit;
+  if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt EditV4O Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
@@ -4940,7 +5059,67 @@ begin
   end;
 end;
 
+procedure TFormConfig.EditLChange(Sender: TObject);
+var s : string;
 begin
+  if clicliste or (ligneclicAig<0) then exit;
+  if affevt then affiche('Evt EditL Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  begin
+    s:=EditL.Text;
+    if s='' then exit;
+    if (s[1]<>'S') and (s[1]<>'D') then 
+    begin
+      LabelInfo.caption:='Erreur Champ L : D ou S';exit;
+    end;
+    aiguillage[ligneclicAig+1].tjsintb:=s[1];
+    s:=encode_aig(ligneclicAig+1);
+    RichAig.Lines[ligneclicAig]:=s;
+  end;  
+end;
+
+procedure TFormConfig.Button2Click(Sender: TObject);
+begin
+  close;
+end;
+
+procedure TFormConfig.FormClose(Sender: TObject; var Action: TCloseAction);
+var index : integer;
+begin
+  for index:=1 to NbreFeux do
+  begin
+    // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
+    if feux[index].FeuBlanc and (feux[index].check=nil) then
+    begin
+      feux[index].Check:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
+      with Feux[index].Check do
+      begin
+        onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
+        Hint:=intToSTR(index);
+        caption:='dem FB';
+        Parent:=Formprinc.ScrollBox1;
+        width:=100;height:=15;
+        Top:=HtImg+15+((HtImg+EspY+20)*((index-1) div NbreImagePLigne));
+        Left:=10+ (LargImg+5)*((index-1) mod (NbreImagePLigne));
+        BringToFront;
+      end;  
+    end;
+    // supprimer les checkBox de feux blancs si ils ont été décochés
+    if not(feux[index].FeuBlanc) and (feux[index].check<>nil) then 
+    begin
+      Feux[index].Check.free;
+      Feux[index].Check:=nil;
+    end;
+  end;
+end;
+
+begin
+
+
+begin
+
+end;
+
 end.
 
 

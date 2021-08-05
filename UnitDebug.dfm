@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 192
-  Top = 290
+  Left = 203
+  Top = 155
   Width = 855
   Height = 817
   Caption = 'Fen'#234'tre de d'#233'bug'
@@ -433,6 +433,19 @@ object FormDebug: TFormDebug
       ParentFont = False
       TabOrder = 6
       OnClick = CheckBoxAffDebDecSigClick
+    end
+    object EditDebugSignal: TEdit
+      Left = 168
+      Top = 12
+      Width = 33
+      Height = 18
+      Hint = 
+        'Adresse du signal seul '#224' surveiller ou si 0 surveille tous les s' +
+        'ignaux'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 7
+      OnChange = EditDebugSignalChange
     end
   end
   object RichDebug: TRichEdit

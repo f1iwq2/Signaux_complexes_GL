@@ -2328,14 +2328,11 @@ begin
      AdrSuiv:=BrancheN[IndexMax,i+1].Adresse;
      index:=Index_aig(adresse);     
      // connecté sur position droite : la pointe est à gauche
-     if aiguillage[Index].Adroit=AdrSuiv then 
-       Bimage:=3; // ou 4
+     if aiguillage[Index].Adroit=AdrSuiv then Bimage:=3; // ou 4
      // connecté sur position déviée : la pointe est à gauche, mais il faut changer de ligne
-     if aiguillage[Index].Adevie=AdrSuiv then 
-       Bimage:=4; // ou 4
+     if aiguillage[Index].Adevie=AdrSuiv then Bimage:=4; // ou 4
      // connecté sur pointe : la pointe est à droite
-     if aiguillage[Index].Apointe=AdrSuiv then
-       Bimage:=5; // ou 2
+     if aiguillage[Index].Apointe=AdrSuiv then Bimage:=5; // ou 2
      TCO[i,ligne].BImage:=Bimage;
    end;
     
