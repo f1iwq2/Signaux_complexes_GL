@@ -1770,7 +1770,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 457
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11

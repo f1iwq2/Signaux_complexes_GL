@@ -3761,7 +3761,7 @@ begin
 
   s:='Voulez-vous supprimer le feu '+IntToSTR(feux[index].adresse)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  Affiche('Suppression du feu index='+IntToSTR(index)+' adresse='+IntToSTR(feux[index].adresse),clOrange);
+  Affiche('Suppression du feu ='+IntToSTR(feux[index].adresse),clOrange);
   
   clicliste:=true;
   Feu_supprime:=feux[index];  // sauvegarde le feu supprimé
@@ -3852,16 +3852,6 @@ begin
   end;
 end;
 
-// renvoie l'index d'un détecteur
-function trouve_detecteur(adresse : integer) : integer;
-var i : integer;
-begin
-  i:=0;
-  repeat
-    inc(i);
-  until (adresse_detecteur[i]=adresse) or (i>NDetecteurs);
-  if adresse_detecteur[i]=adresse then trouve_detecteur:=i else trouve_detecteur:=0;
-end;  
 
 function verif_coherence : boolean;
 var i,j,k,l,aig,adr,adr2,detect,modele,condcarre,nc : integer;
@@ -3924,7 +3914,8 @@ begin
     adr:=aiguillage[aig].Adroit;
     if (aiguillage[aig].AdroitB='Z') then
     begin           
-      if trouve_detecteur(adr)=0 then
+      trouve_detecteur(adr);
+      if IndexBranche_trouve=0 then
       begin
         Affiche('Erreur 2: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clred);
         ok:=false;
@@ -3933,7 +3924,8 @@ begin
     adr:=aiguillage[aig].Adevie;
     if (aiguillage[aig].AdevieB='Z') then
     begin
-      if trouve_detecteur(adr)=0 then
+      trouve_detecteur(adr);
+      if IndexBranche_trouve=0 then
       begin
         Affiche('Erreur 3: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
@@ -3942,7 +3934,8 @@ begin
     adr:=aiguillage[aig].Apointe;
     if ((aiguillage[aig].ApointeB='Z') and (aiguillage[aig].modele=1)) then
     begin
-      if trouve_detecteur(adr)=0 then
+      trouve_detecteur(adr);
+      if IndexBranche_trouve=0 then
       begin
         Affiche('Erreur 4 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
@@ -3953,7 +3946,8 @@ begin
       if (aiguillage[aig].Adevie2B='Z') then
       begin
         adr:=aiguillage[aig].Adevie2;
-        if trouve_detecteur(adr)=0 then
+        trouve_detecteur(adr);
+        if IndexBranche_trouve=0 then
         begin
           Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
           ok:=false;
@@ -4023,7 +4017,8 @@ begin
     i:=feux[j].Adr_det1;
     if i<>0 then
     begin
-      if trouve_detecteur(i)=0 then
+      trouve_detecteur(i);
+      if IndexBranche_trouve=0 then
       begin
         ok:=false;
         Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4033,7 +4028,8 @@ begin
     i:=feux[j].Adr_det2;
     if i<>0 then
     begin
-      if trouve_detecteur(i)=0 then
+      trouve_detecteur(i);
+      if IndexBranche_trouve=0 then
       begin
         ok:=false;
         Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4043,7 +4039,8 @@ begin
     i:=feux[j].Adr_det3;
     if i<>0 then
     begin
-      if trouve_detecteur(i)=0 then
+      trouve_detecteur(i);
+      if IndexBranche_trouve=0 then
       begin
         ok:=false;
         Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4053,7 +4050,8 @@ begin
     i:=feux[j].Adr_det4;
     if i<>0 then
     begin
-      if trouve_detecteur(i)=0 then
+      trouve_detecteur(i);
+      if IndexBranche_trouve=0 then
       begin
         ok:=false;
         Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4067,7 +4065,8 @@ begin
     begin
       if k=1 then   // détecteur
       begin
-        if trouve_detecteur(i)=0 then
+        trouve_detecteur(i);
+        if IndexBranche_trouve=0 then
         begin
           ok:=false;
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4091,7 +4090,8 @@ begin
     begin
       if k=1 then   // détecteur
       begin
-        if trouve_detecteur(i)=0 then
+        trouve_detecteur(i);
+        if IndexBranche_trouve=0 then
         begin
           ok:=false;
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4115,7 +4115,8 @@ begin
     begin
       if k=1 then   // détecteur
       begin
-        if trouve_detecteur(i)=0 then
+        trouve_detecteur(i);
+        if IndexBranche_trouve=0 then
         begin
           ok:=false;
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4139,7 +4140,8 @@ begin
     begin
       if k=1 then   // détecteur
       begin
-        if trouve_detecteur(i)=0 then
+        trouve_detecteur(i);
+        if IndexBranche_trouve=0 then
         begin
           ok:=false;
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -4208,7 +4210,7 @@ begin
 
   s:='Voulez-vous supprimer l''aiguillage '+IntToSTR(aiguillage[index].adresse)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  Affiche('Suppression de l''aiguillage='+IntToSTR(index)+' adresse='+IntToSTR(aiguillage[index].adresse),clOrange);
+  Affiche('Suppression de l''aiguillage='+IntToSTR(aiguillage[index].adresse),clOrange);
   ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
   clicliste:=true;
   raz_champs_aig;

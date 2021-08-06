@@ -6756,6 +6756,7 @@ begin
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
   Affiche_memoire;
+  
   //---------------------------------
   {
     if buttoir_adjacent(515) then affiche('oui',clred);
