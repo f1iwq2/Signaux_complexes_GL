@@ -5818,8 +5818,8 @@ var s: string;
     prov,i,index : integer;
 begin
   // vérifier que l'évènement accessoire vient bien d'un aiguillage et pas d'un feu qu'on pilote (et que cdm renvoie)
-  index:=index_aig(adresse);
-  if index>MaxAiguillage then exit; // non ce n'est pas un aiguillage, on sort
+  index:=index_aig(adresse);   
+  if index=0 then exit; // non ce n'est pas un aiguillage, on sort
 
   // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome, inverser sa position
   inv:=false;
@@ -6630,7 +6630,7 @@ begin
   Srvc_sig:=false;
 
   config_modifie:=false;
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version;
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion;
   Caption:=AF;
   Application.onHint:=doHint;
 
@@ -8015,7 +8015,7 @@ end;
 procedure TFormPrinc.Apropos1Click(Sender: TObject);
 begin
   Affiche(' ',clyellow);
-  Affiche('Signaux complexes GL version '+version+' (C) 2020 F1IWQ Gily TDR',clWhite);
+  Affiche('Signaux complexes GL version '+version+sousVersion+' (C) 2020 F1IWQ Gily TDR',clWhite);
   Affiche('http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906',clWhite);
   Affiche('https://github.com/f1iwq2/Signaux_complexes_GL',clWhite);
   Affiche(' ',clyellow);  
