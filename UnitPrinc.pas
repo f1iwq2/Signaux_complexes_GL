@@ -3760,7 +3760,7 @@ begin
           suivant_alg3:=adr;
           exit;
         end;
-        if aiguillage[index].position<>const_droit then
+        if aiguillage[index].position=const_devie then
         begin
           if NivDebug=3 then AfficheDebug('133 - aiguillage '+intToSTR(Adr)+' Pris en pointe dévié',clyellow);
           // AdrPrec:=Adr;  // JU
@@ -3820,7 +3820,8 @@ begin
 
         // AdrPrec:=Adr;  // JU
         if Adr=0 then
-        begin Affiche('136 - Erreur fatale',clRed);
+        begin 
+          Affiche('136 - Erreur fatale',clRed);
           if NivDebug>=1 then AfficheDebug('136 - Erreur fatale',clRed);
           suivant_alg3:=9999;exit;
         end;
@@ -3835,8 +3836,13 @@ begin
         suivant_alg3:=adr;
         exit;
       end;
-      Affiche('138 - Erreur fatale - Aucun cas Aiguillage',clred);
-      if NivDebug=3 then AfficheDebug('138 - Erreur fatale - Aucun cas Aiguillage',clred);
+      if NivDebug=3 then 
+      begin
+        s:='138 - Aiguillage '+IntToSTR(adr)+' non résolu';
+        if aiguillage[index].position=const_inconnu then s:=s+' car position inconnue';
+        AfficheDebug(s,clred);
+      end;
+      
       suivant_alg3:=9999;exit;
     end;
 
@@ -3874,7 +3880,7 @@ begin
       end;
 
       // rechercher le port de destination de la tjd
-      Adr2:=0;A:=#0;
+      Adr2:=0;A:='Z';
       if aiguillage[index].position=const_droit then
       begin
         A:=aiguillage[index].DDroitB;
@@ -3909,6 +3915,15 @@ begin
           Affiche(s,clred);
           suivant_alg3:=9996;
           exit;
+        end
+        else 
+        begin
+          if NivDebug=3 then
+          begin
+            s:='Erreur 1022 position TJD '+intToSTR(adr)+' non résolue car position inconnue';
+            affichedebug(s,clred);
+          end;  
+          suivant_alg3:=9996;
         end;
       end;
 
@@ -3983,7 +3998,7 @@ begin
           suivant_alg3:=adr;
           exit;
         end;
-        s:='Erreur 1022, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        s:='Erreur 1023, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
         if nivDebug=3 then AfficheDebug(s,clred);
         Affiche(s,clred);
         Suivant_alg3:=9998;exit;
@@ -4025,7 +4040,7 @@ begin
           suivant_alg3:=adr;
           exit;
         end;
-        s:='Erreur 1023, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        s:='Erreur 1024, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
         if nivDebug=3 then AfficheDebug(s,clred);
         Affiche(s,clred);
         Suivant_alg3:=9998;exit;
@@ -4054,7 +4069,7 @@ begin
           suivant_alg3:=adr;
           exit;
         end;
-        s:='Erreur 1024, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
+        s:='Erreur 1025, TJD '+IntToSTR(Adr)+'/'+IntToSTR(AdrTjdP)+' mal positionnée';
         if nivDebug=3 then AfficheDebug(s,clred);
         Affiche(s,clred);
         Suivant_alg3:=9998;
@@ -4084,7 +4099,7 @@ begin
         substitue;
         exit;
       end;
-      s:='1025 - Erreur fatale - position TJD/S '+IntToSTR(Adr)+'/'+intToSTR(AdrTJDP)+' inconnue';
+      s:='1026 - Erreur fatale - position TJD/S '+IntToSTR(Adr)+'/'+intToSTR(AdrTJDP)+' inconnue';
       Affiche(s,clred);
       AfficheDebug(s,clred);
       suivant_alg3:=9999;exit;
@@ -4506,7 +4521,7 @@ begin
   //if resultatOU then Affiche('VRAI final',clyellow) else affiche('FAUX final',clred);
   if NivDebug=3 then
   begin
-    s:='Conditions de carré suivant aiguillages: ';
+    s:='Conditions supp. de carré suivant aiguillages: ';
     if ResultatOU then s:=s+'vrai : le signal doit afficher carré' else s:=s+'faux : le signal ne doit pas afficher de carré';
     AfficheDebug(s,clyellow);
   end;
@@ -4588,7 +4603,7 @@ end;
 // si renvoie 0, pas trouvé le signal suivant.
 // rang=1 pour feu suivant, 2 pour feu suivant le 1, etc
 // Dans AdresseFeuSuivant : adresse du feu suivant (variable globale)
-function etat_signal_suivant(adresse,rang : integer) : integer ;
+function etat_signal_suivant(adresse,rang : integer) : integer ; 
 var num_feu,etat,AdrFeu,i,j,prec,AdrSuiv : integer;
     aspect,combine : word;
     TypePrec,TypeActuel : integer;
@@ -4634,7 +4649,6 @@ begin
   if feux[i].Btype_suiv1=2 then TypeActuel:=2;
   if feux[i].Btype_suiv1=4 then TypeActuel:=2; // aiguillage triple
   if feux[i].Btype_suiv1=5 then TypeActuel:=3; // le type du feu   1=détécteur   2=aig  5=bis
-
   repeat
     inc(j);
     if nivDebug=3 then AfficheDebug('Itération '+IntToSTR(j),clyellow);
@@ -4648,7 +4662,6 @@ begin
     begin
       //if nivDebug=3 then AfficheDebug('Engagement j='+IntToSTR(j)+' '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow);
       AdrSuiv:=suivant_alg3(prec,TypePrec,actuel,TypeActuel,1);
-
       if Nivdebug=3 then AfficheDebug('Suivant='+intToSTR(AdrSuiv),clyellow);
       prec:=actuel;TypePrec:=TypeActuel;
       actuel:=AdrSuiv;TypeActuel:=typeGen;
@@ -4667,7 +4680,6 @@ begin
         exit;
       end;
     end;
-
     // si le suivant est un détecteur comporte t-il un signal?
     AdrFeu:=0;
     if (TypeActuel=1) then  // détecteur?
@@ -4708,7 +4720,6 @@ begin
   AdresseFeuSuivant:=Signal_suivant;
   if (NivDebug=3) and (adrFeu=0) then AfficheDebug('Pas Trouvé de feu suivant au feu Adr='+IntToSTR(ADresse),clOrange);
 end;
-
 
 // renvoie l'adresse de l'aiguille si elle est déviée après le signal et ce jusqu'au prochain signal
 // sinon renvoie 0
@@ -5057,6 +5068,7 @@ function PresTrainPrec(AdrFeu : integer) : boolean;
 var PresTrain : boolean;
     j,i,Det_initial,Adr_El_Suiv,Btype_el_suivant,DetPrec1,DetPrec2,DetPrec3,DetPrec4 : integer;
 begin
+  If NivDebug=3 then AfficheDebug('Proc PresTrainPrec('+intToSTR(AdrFeu)+') ---------------',clOrange); 
   i:=index_feu(Adrfeu);
   if i=0 then 
   begin
@@ -5072,7 +5084,7 @@ begin
   j:=1;
  
   repeat
-    if NivDebug=3 then afficheDebug('Séquence '+IntToSTR(j)+' de recherche des 4 détecteurs précédents-----',clOrange);
+    if NivDebug=3 then afficheDebug('Séquence '+IntToSTR(j)+' de recherche des 4 détecteurs précédents-----',clYellow);
     if (j=1) then
     begin
       det_initial:=feux[i].Adr_det1;Adr_El_Suiv:=feux[i].Adr_el_suiv1;
@@ -5155,10 +5167,14 @@ var Adr_det,etat,Aig,Adr_El_Suiv,
     code,combine : word;
     s : string;
 begin
-  s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
+  
 
   if signalDebug=AdrFeu then AffSignal:=true;
-  if AffSignal then AfficheDebug(s,clOrange);
+  if AffSignal then 
+  begin
+    s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
+    AfficheDebug(s,clOrange);
+  end;  
   index:=index_feu(Adrfeu);
   if AdrFeu<>0 then
   begin
@@ -5176,17 +5192,16 @@ begin
       exit;
     end;
 
-    // signal non directionnel
+    // signal non directionnel       
     etat:=etat_signal_suivant(AdrFeu,1) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
     if AffSignal then
     begin
       code_to_aspect(etat,code,combine);
-      s:='Etat signal suivant ('+intToSTR(AdresseFeuSuivant)+') est ';
+      s:='Etat_signal_suivant ('+intToSTR(AdresseFeuSuivant)+') est ';
       s:=s+' à '+etatSign[code];
       if Combine<>0 then s:=s+' + '+etatSign[combine];
       AfficheDebug(s,clyellow);
     end;
-      
     // signaux traités spécifiquement
     {
     if (AdrFeu=201) then
@@ -5714,7 +5729,6 @@ begin
   begin
     //s:='Evt Det '+intToSTR(adresse)+'='+intToSTR(etat01);
     s:='Tick='+IntToSTR(tick)+' Evt Det='+IntToSTR(adresse)+'='+intToSTR(etat01);
-
     Affiche(s,clyellow);
     if not(TraceListe) then AfficheDebug(s,clyellow);
   end;  
@@ -5843,7 +5857,11 @@ begin
     Affiche('Raz Evts ',clLime);
   end;
   s:='Tick='+IntToSTR(tick)+' Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
-  if pos=const_droit then s:=s+' droit' else s:=s+' dévié';
+  case pos of 
+    const_droit : s:=s+' droit';
+    const_devie : s:=s+' dévié';
+    const_inconnu : s:=s+' inconnu';
+  end;  
   if inv then s:=s+' INV';
   if AffAigDet then
   begin
