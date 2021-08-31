@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils, Unitprinc ;
 
 type
   TFormConfig = class(TForm)
@@ -230,6 +230,7 @@ type
     LabelL: TLabel;
     EditL: TEdit;
     CheckBoxFB: TCheckBox;
+    Label20: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -372,7 +373,7 @@ function compile_branche(s : string;i : integer) : boolean;
   
 implementation
 
-uses UnitDebug,UnitPrinc, UnitTCO;
+uses UnitDebug, UnitTCO;
 
 {$R *.dfm}
 
@@ -413,7 +414,7 @@ var s : string;
 begin   
   s:='@='+inttostr(feux[i].Adresse)+' Decodeur='+intToSTR(feux[i].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
-  if feux[i].Btype_suiv1=2 then s:=s+' (aig)';  
+  if feux[i].Btype_suiv1=aig then s:=s+' (aig)';  
   feux[i].Img.Hint:=s;
 end;  
 
@@ -578,19 +579,19 @@ end;
 function encode_aig(index : integer): string;
 var s : string;
     c : char;
-    tjd,tjs,tri : boolean;
+    tjdC,tjsC,triC : boolean;
 begin
    if index=0 then exit;
    s:=IntToSTR(aiguillage[index].Adresse);
-   tjd:=aiguillage[index].modele=2;
-   tjs:=aiguillage[index].modele=3;
-   tri:=aiguillage[index].modele=4;
-   if tjd then s:=s+'TJD';
-   if tjs then s:=s+'TJS';
-   if tri then begin s:=s+'TRI,';s:=s+intToSTR(aiguillage[index].AdrTriple);end;
+   tjdC:=aiguillage[index].modele=tjd;
+   tjsC:=aiguillage[index].modele=tjs;
+   triC:=aiguillage[index].modele=triple;
+   if tjdC then s:=s+'TJD';
+   if tjsC then s:=s+'TJS';
+   if triC then begin s:=s+'TRI,';s:=s+intToSTR(aiguillage[index].AdrTriple);end;
    s:=s+',';
    // aiguillage normal ou triple
-   if not(tjd) and not(tjs) then
+   if not(tjdC) and not(tjsC) then
    begin
      // P
      s:=s+'P';s:=s+intToSTR(aiguillage[index].Apointe);
@@ -608,7 +609,7 @@ begin
      if (c<>'Z') and (c<>#0) then s:=s+c;
      //if c=#0 then s:=s+'Z';
      // S2 aiguillage triple
-     if tri then
+     if triC then
      begin
        s:=s+',S2-';
        s:=s+intToSTR(aiguillage[index].Adevie2);
@@ -619,7 +620,7 @@ begin
    end;
 
    // tjd / s
-   if tjd or tjs then
+   if tjdC or tjsC then
    begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
      c:=aiguillage[index].AdroitB;if c<>'Z' then s:=s+c;
@@ -629,7 +630,7 @@ begin
      s:=s+','+intToSTR(aiguillage[index].DDevie)+aiguillage[index].DDevieB+')';
    end;
 
-   if tjs then
+   if tjsC then
    begin
      s:=s+',L'+intToSTR(aiguillage[index].Tjsint)+aiguillage[index].TjsintB;
    end;
@@ -746,11 +747,12 @@ begin
    encode_aig_gfx:=s;
 end;
 
-function TypeEl_to_char(i : integer) : string;
+// renvoie un A si BT est un aiguillage
+function TypeEl_to_char(BT : TEquipement) : string;
 begin
-  case i of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri
-  1 : TypeEl_to_char:='';
-  2,3,4 : TypeEl_to_char:='A';
+  case BT of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri
+  det : TypeEl_to_char:='';
+  aig,tjd,tjs,triple : TypeEl_to_char:='A';
   end;
 end;
 
@@ -913,7 +915,7 @@ begin
             val(s,Feux[i].decodeur,erreur);
             if j<>0 then delete(s,1,j);
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
-            feux[i].Btype_Suiv1:=0;feux[i].Btype_Suiv2:=0;feux[i].Btype_Suiv3:=0;feux[i].Btype_Suiv4:=0;
+            feux[i].Btype_Suiv1:=rien;feux[i].Btype_Suiv2:=rien;feux[i].Btype_Suiv3:=rien;feux[i].Btype_Suiv4:=rien;
             feux[i].Adr_det1:=0;feux[i].Adr_det2:=0;feux[i].Adr_det3:=0;feux[i].Adr_det4:=0;
             // éléments optionnels des voies supplémentaires
             if j<>0 then
@@ -940,35 +942,20 @@ begin
                  if (j=3) then feux[i].Adr_det3:=adr;
                  if (j=4) then feux[i].Adr_det4:=adr;
                  //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri 
-                 t:=0;
                  if s[1]='A' then
                  begin
-                   t:=2;
-                   //Affiche('détecté aiguillage',clyellow);
-                   if (j=1) then feux[i].Btype_Suiv1:=2;
-                   if (j=2) then feux[i].Btype_Suiv2:=2;
-                   if (j=3) then feux[i].Btype_Suiv3:=2;
-                   if (j=4) then feux[i].Btype_Suiv4:=2;
+                   if (j=1) then feux[i].Btype_Suiv1:=aig;
+                   if (j=2) then feux[i].Btype_Suiv2:=aig;
+                   if (j=3) then feux[i].Btype_Suiv3:=aig;
+                   if (j=4) then feux[i].Btype_Suiv4:=aig;
                    delete(s,1,1);
-                 end;
-                 l:=pos('TRI',s);
-                 if l<>0 then
-                 begin
-                   t:=4;
-                   delete(s,l,3);
-                   //Affiche('détecté aiguillage tri',clyellow);
-                   if (j=1) then feux[i].Btype_Suiv1:=4;
-                   if (j=2) then feux[i].Btype_Suiv2:=4;
-                   if (j=3) then feux[i].Btype_Suiv3:=4;
-                   if (j=4) then feux[i].Btype_Suiv4:=4;
-                 end;
-
-                 if t=0 then //détecteur
-                 begin
-                   if (j=1) then feux[i].Btype_Suiv1:=1;
-                   if (j=2) then feux[i].Btype_Suiv2:=1;
-                   if (j=3) then feux[i].Btype_Suiv3:=1;
-                   if (j=4) then feux[i].Btype_Suiv4:=1;
+                 end
+                 else
+                 begin  // détecteur
+                   if (j=1) then feux[i].Btype_Suiv1:=det;
+                   if (j=2) then feux[i].Btype_Suiv2:=det;
+                   if (j=3) then feux[i].Btype_Suiv3:=det;
+                   if (j=4) then feux[i].Btype_Suiv4:=det;
                  end;
                  Val(s,adr,erreur);
                  //Affiche('Adr='+IntToSTR(Adr),clyellow);
@@ -1001,7 +988,7 @@ begin
                Delete(S,1,k);
                Val(s,k,erreur);
                Feux[i].UniSemaf:=k;
-               erreur:=verif_UniSemaf(i,k);
+               erreur:=verif_UniSemaf(adresse,k);
                if erreur=1 then begin Affiche('Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
                if erreur=2 then 
                begin 
@@ -2277,8 +2264,9 @@ end;
 
 // on change la valeur de la description de la déviation de l'aiguillage
 procedure TFormConfig.EditDevie_HDKeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index,modele : integer;
+var AdrAig,adr,adr2,erreur,index : integer;
     b : char;
+    modele:Tequipement;
     s : string;
 begin
   // cliqué sur le edit dévié aiguillage
@@ -2298,7 +2286,7 @@ begin
     if index=0 then exit;
     modele:=aiguillage[index].modele;
    
-    if (modele=1) or (modele=4) then
+    if (modele=aig) or (modele=triple) then
     begin
       if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then 
       begin
@@ -2320,7 +2308,7 @@ begin
       end;
     end;
 
-    if (modele=2) or (modele=3) then
+    if (modele=tjd) or (modele=tjs) then
     begin
       // TJD/TJS
       adr2:=aiguillage[index].DDroit;  // adresse homologue
@@ -2338,8 +2326,9 @@ end;
 
 // on change la valeur de la description du droit de l'aiguillage
 procedure TFormConfig.EditDroit_BDKeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,erreur,index,modele,adr2 : integer;
+var AdrAig,adr,erreur,index,adr2 : integer;
     b : char;
+    modele: TEquipement;
     s : string;
 begin
   // cliqué sur le edit droit aiguillage
@@ -2358,7 +2347,7 @@ begin
     Index:=Index_Aig(AdrAig);
     if index=0 then exit;
     modele:=aiguillage[index].modele;
-    if (modele=1) or (modele=4) then
+    if (modele=aig) or (modele=triple) then
     begin
       if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then
       begin
@@ -2378,7 +2367,7 @@ begin
         LabelInfo.caption:='Erreur droit aiguillage '+intToSTR(AdrAig);
       end;
     end;
-    if (modele=2) or (modele=3) then
+    if (modele=tjd) or (modele=tjs) then
     begin
       // TJD/TJS
       adr2:=aiguillage[index].DDroit;  // adresse homologue
@@ -2398,7 +2387,7 @@ procedure TFormConfig.EditPointe_BGKeyPress(Sender: TObject;
   var Key: Char);
 var AdrAig,adr,erreur,index : integer;
     b : char;
-    normal,tjd,tjs,tri : boolean;
+    normal,tjdC,tjsC,triC : boolean;
     s : string;
 begin
   // cliqué sur le edit pointe aiguillage
@@ -2419,17 +2408,17 @@ begin
     begin
       RE_ColorLine(RichAig,ligneclicAig,ClWhite);
       Index:=Index_Aig(AdrAig);
-      normal:=aiguillage[index].modele=1;
-      tjd:=aiguillage[index].modele=2;
-      tjs:=aiguillage[index].modele=3;
-      tri:=aiguillage[index].modele=4;
+      normal:=aiguillage[index].modele=aig;
+      tjdC:=aiguillage[index].modele=tjd;
+      tjsC:=aiguillage[index].modele=tjs;
+      triC:=aiguillage[index].modele=triple;
       
       Aiguillage[index].modifie:=true;
       LabelInfo.caption:='';
       // modifier la base de données de l'aiguillage
       if b=#0 then b:='Z';
 
-      if normal or tri then
+      if normal or triC then
       begin
         Aiguillage[index].APointe:=adr;
         Aiguillage[index].APointeB:=B;
@@ -2437,7 +2426,7 @@ begin
         s:=encode_aig(index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
       end;
-      if tjd or tjs then
+      if tjdC or tjsC then
       begin
         Aiguillage[index].ADevie:=adr;
         Aiguillage[index].ADevieB:=B;
@@ -2621,15 +2610,14 @@ var s : string;
     i,erreur : integer;
 begin
   if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-  s:=RichSig.Lines[ligneClicSig];
-  if affevt then Affiche('Evt Détecteur 1',clOrange);
+  if affevt then Affiche('Evt detecteur 1',clOrange);
   
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditDet1.Text;
     Val(s,i,erreur);
-    if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
+    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det1:=i;
     maj_hint_feu(ligneClicSig+1);
@@ -2642,32 +2630,40 @@ end;
 procedure TFormConfig.EditSuiv1KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
+    bt : Tequipement;
 begin
   if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-  if affevt then Affiche('Evt suivant1',clOrange);
+  if affevt then Affiche('Evt Element suivant1',clOrange);
+  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditSuiv1.Text;
-    if s='' then begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
-    Val(s,i,erreur);
-    if erreur<>0 then
+    if s<>'' then
     begin
-      if (s[erreur]='A') and (erreur=1) then
+      Val(s,i,erreur);
+      if erreur<>0 then
       begin
-        feux[ligneClicSig+1].Btype_suiv1:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-        delete(s,erreur,1);
-        Val(s,i,erreur);
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          bt:=aig; 
+          delete(s,erreur,1);
+          Val(s,i,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
       end
-      else begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
+      else bt:=det;
     end
-    else feux[ligneClicSig+1].Btype_suiv1:=1;
-
+    else
+    begin
+      i:=0;
+      bt:=rien;
+    end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_el_suiv1:=i;
+    feux[ligneClicSig+1].Btype_suiv1:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
-    maj_hint_feu(ligneClicSig+1);
   end;
 end;
 
@@ -2682,9 +2678,8 @@ begin
   with Formconfig do
   begin
     s:=EditDet2.Text;
-    if s='' then exit;
     Val(s,i,erreur);
-    if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
+    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det2:=i;
     maj_hint_feu(ligneClicSig+1);
@@ -2727,6 +2722,7 @@ end;
 procedure TFormConfig.EditSuiv2KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i: integer;
+    bt : Tequipement;
 begin
   if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then Affiche('Evt Element suivant2',clOrange);
@@ -2735,22 +2731,29 @@ begin
   with Formconfig do
   begin
     s:=EditSuiv2.Text;
-    if s='' then begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
-    Val(s,i,erreur);
-    if erreur<>0 then
+    if s<>'' then
     begin
-      if (s[erreur]='A') and (erreur=1) then
+      Val(s,i,erreur);
+      if erreur<>0 then
       begin
-        feux[ligneClicSig+1].Btype_suiv2:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-        delete(s,erreur,1);
-        Val(s,i,erreur);
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          bt:=aig; 
+          delete(s,erreur,1);
+          Val(s,i,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
       end
-      else begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
+      else bt:=det;
     end
-    else feux[ligneClicSig+1].Btype_suiv2:=1;
-
+    else
+    begin
+      i:=0;
+      bt:=rien;
+    end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_el_suiv2:=i;
+    feux[ligneClicSig+1].Btype_suiv2:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
   end;
@@ -2760,15 +2763,16 @@ end;
 procedure TFormConfig.EditDet3KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     i,erreur : integer;
-begin
+begin    
   if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-  if affevt then Affiche('Evt Detecteur 3',clOrange);
+  if affevt then Affiche('Evt detecteur 3',clOrange);
+  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditDet3.Text;
-    if s='' then exit;
-    Val(s,i,erreur);if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
+    Val(s,i,erreur);
+    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det3:=i;
     maj_hint_feu(ligneClicSig+1);
@@ -2781,29 +2785,38 @@ end;
 procedure TFormConfig.EditSuiv3KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i : integer;
+    bt : Tequipement;
 begin
   if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-
+  if affevt then Affiche('Evt Element suivant3',clOrange);
+  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditSuiv3.Text;
-    if s='' then begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
-    Val(s,i,erreur);
-    if erreur<>0 then
+    if s<>'' then
     begin
-      if (s[erreur]='A') and (erreur=1) then
+      Val(s,i,erreur);
+      if erreur<>0 then
       begin
-        feux[ligneClicSig+1].Btype_suiv3:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-        delete(s,erreur,1);
-        Val(s,i,erreur);
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          bt:=aig; 
+          delete(s,erreur,1);
+          Val(s,i,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
       end
-      else begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
+      else bt:=det;
     end
-    else feux[ligneClicSig+1].Btype_suiv3:=1;
-
+    else
+    begin
+      i:=0;
+      bt:=rien;
+    end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_el_suiv3:=i;
+    feux[ligneClicSig+1].Btype_suiv3:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
   end;
@@ -2814,13 +2827,14 @@ var s : string;
     i,erreur : integer;
 begin
   if clicliste or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-
+  if affevt then Affiche('Evt detecteur 4',clOrange);
+  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditDet4.Text;
-    if s='' then exit;
-    Val(s,i,erreur);if erreur<>0 then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
+    Val(s,i,erreur);
+    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det4:=i;
     maj_hint_feu(ligneClicSig+1);
@@ -2833,29 +2847,38 @@ end;
 procedure TFormConfig.EditSuiv4KeyPress(Sender: TObject; var Key: Char);
 var s : string;
     erreur,i : integer;
+    bt : Tequipement;
 begin
   if clicliste or (comboBoxAsp.Itemindex>=6) or (ligneClicSig<0) or (ord(Key)<>VK_RETURN) then exit;
-
+  if affevt then Affiche('Evt Element suivant4',clOrange);
+  
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditSuiv4.Text;
-    if s='' then begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
-    Val(s,i,erreur);
-    if erreur<>0 then
+    if s<>'' then
     begin
-      if (s[erreur]='A') and (erreur=1) then
+      Val(s,i,erreur);
+      if erreur<>0 then
       begin
-        feux[ligneClicSig+1].Btype_suiv4:=2;  // type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-        delete(s,erreur,1);
-        Val(s,i,erreur);
+        if (s[erreur]='A') and (erreur=1) then
+        begin
+          bt:=aig; 
+          delete(s,erreur,1);
+          Val(s,i,erreur);
+        end
+        else begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
       end
-      else begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
+      else bt:=det;
     end
-    else feux[ligneClicSig+1].Btype_suiv1:=1;
-
+    else
+    begin
+      i:=0;
+      bt:=rien;
+    end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_el_suiv4:=i;
+    feux[ligneClicSig+1].Btype_suiv4:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
   end;
@@ -3090,7 +3113,8 @@ end;
 
 procedure TFormConfig.EditAdrAigKeyPress(Sender: TObject; var Key: Char);
 var s : string;
-    i,vide,erreur,index,adr2,modele : integer;
+    i,vide,erreur,index,adr2 : integer;
+    modele: TEquipement;
     c : char;
 begin
   if clicliste or (ord(Key)<>VK_RETURN) then exit;
@@ -3110,11 +3134,11 @@ begin
 
     modele:=aiguillage[index].modele;
     // si normal ou triple
-    if (modele=1) or (modele=4) then
+    if (modele=aig) or (modele=triple) then
     begin
       if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
       //  vérifier si l'adresse de l'aiguillage existe déja
-      if (aiguillage[Index_Aig(i)].modele<>0) then 
+      if (aiguillage[Index_Aig(i)].modele<>rien) then 
       begin
         EditAdrAig.Color:=clred;
         LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
@@ -3128,7 +3152,7 @@ begin
       aiguillage[index].modifie:=true;
       formconfig.RichAig.Lines[ligneclicAig]:=s;
     end;
-    if (modele=2) or (modele=3) then  
+    if (modele=tjd) or (modele=tjs) then  
     begin
       clicListe:=true;
       // modifier les champs P1 et P2 avec la nouvelle adresse
@@ -3854,7 +3878,8 @@ end;
 
 
 function verif_coherence : boolean;
-var i,j,k,l,aig,adr,adr2,detect,modele,condcarre,nc : integer;
+var i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc : integer;
+    modAig,model,km: TEquipement;
     ok : boolean;
 begin
   // vérification de la cohérence1
@@ -3865,91 +3890,91 @@ begin
     j:=1;
     repeat
       detect:=BrancheN[i][j].Adresse;
-      modele:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
-      if (modele=2) then
+      model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
+      if (model=aig) then
       begin
         //affiche('trouvé aig '+intToSTR(detect),clyellow);
-        modele:=aiguillage[Index_Aig(detect)].modele;
-        if (modele=0) then
+        modAig:=aiguillage[Index_Aig(detect)].modele;
+        if (model=rien) then
           begin
             Affiche('Erreur 1: Aiguillage '+intToStr(detect)+' non décrit mais présent en branche '+intToStr(i)+' pos. '+intToSTR(j),clred);
             ok:=false;
           end;
       end;
       j:=j+1;
-    until((modele=0) and (detect=0));
+    until((model=rien) and (detect=0));
   end;
 
   // vérification de la cohérence2
   // parcoure les aiguillages pour voir si les détecteurs sont en branches des détecteurs
   // et les tjd pour voir si pb de cohérence
-  for aig:=1 to maxaiguillage do
+  for Indexaig:=1 to maxaiguillage do
   begin
     // tjd ou tjs
-    if (aiguillage[aig].modele=2) or (aiguillage[aig].modele=3) then
+    if (aiguillage[Indexaig].modele=tjd) or (aiguillage[Indexaig].modele=tjs) then
     begin
-      if aiguillage[aig].Ddroit<>aiguillage[aig].Ddevie then
+      if aiguillage[Indexaig].Ddroit<>aiguillage[Indexaig].Ddevie then
       begin
-        Affiche('Erreur 7: la TJD/S '+IntToStr(aig)+' a des adresses de destination différentes ('+intToSTR(aiguillage[aig].Ddroit)+' et '+intToSTR(aiguillage[aig].Ddevie)+')',clred);
+        Affiche('Erreur 7: la TJD/S '+IntToStr(Indexaig)+' a des adresses de destination différentes ('+intToSTR(aiguillage[Indexaig].Ddroit)+' et '+intToSTR(aiguillage[Indexaig].Ddevie)+')',clred);
         ok:=false;
       end;  
       // vérifier si son homologue est une tjd
-      adr2:=aiguillage[aig].Ddroit;
-      if (aiguillage[Index_Aig(adr2)].modele<>2) and (aiguillage[Index_Aig(adr2)].modele<>3) then 
+      adr2:=aiguillage[Indexaig].Ddroit;
+      if (aiguillage[Index_Aig(adr2)].modele<>tjd) and (aiguillage[Index_Aig(adr2)].modele<>tjs) then 
       begin
-        Affiche('Erreur 8: l''aiguillage '+intToStr(Adr2)+' n''est pas une TJD/S ou n''existe pas, mais apparait dans la TJD/S '+IntToSTR(aiguillage[aig].Adresse),clred);
+        Affiche('Erreur 8: l''aiguillage '+intToStr(Adr2)+' n''est pas une TJD/S ou n''existe pas, mais apparait dans la TJD/S '+IntToSTR(aiguillage[Indexaig].Adresse),clred);
         ok:=false;
       end;
     end;
     // vérifier si l'aiguillage est dans les branches
-    if aiguillage[aig].modele<>0 then
+    if aiguillage[Indexaig].modele<>rien then
     begin
-      trouve_aiguillage(aiguillage[aig].adresse); // passe l'adresse de l'aiguillage à trouver
+      trouve_aiguillage(aiguillage[Indexaig].adresse); // passe l'adresse de l'aiguillage à trouver
       if (IndexBranche_trouve=0) then
       begin
-        Affiche('Avertissement 6: aiguillage '+intToSTR(aiguillage[aig].adresse)+' décrit dans les aiguillages ; absent dans la description des branches',clOrange);
+        Affiche('Avertissement 6: aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' décrit dans les aiguillages ; absent dans la description des branches',clOrange);
         ok:=false;
       end;
     end;
-    adr:=aiguillage[aig].Adroit;
-    if (aiguillage[aig].AdroitB='Z') then
+    adr:=aiguillage[Indexaig].Adroit;
+    if (aiguillage[Indexaig].AdroitB='Z') then
     begin           
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 2: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clred);
+        Affiche('Erreur 2: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clred);
         ok:=false;
       end;
     end;
-    adr:=aiguillage[aig].Adevie;
-    if (aiguillage[aig].AdevieB='Z') then
+    adr:=aiguillage[Indexaig].Adevie;
+    if (aiguillage[Indexaig].AdevieB='Z') then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 3: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
+        Affiche('Erreur 3: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
       end;  
     end;
-    adr:=aiguillage[aig].Apointe;
-    if ((aiguillage[aig].ApointeB='Z') and (aiguillage[aig].modele=1)) then
+    adr:=aiguillage[Indexaig].Apointe;
+    if ((aiguillage[Indexaig].ApointeB='Z') and (aiguillage[Indexaig].modele=aig)) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 4 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
+        Affiche('Erreur 4 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
       end;
     end;
-    if (aiguillage[aig].modele=4) then // aiguillage triple
+    if (aiguillage[Indexaig].modele=triple) then // aiguillage triple
     begin
-      if (aiguillage[aig].Adevie2B='Z') then
+      if (aiguillage[Indexaig].Adevie2B='Z') then
       begin
-        adr:=aiguillage[aig].Adevie2;
+        adr:=aiguillage[Indexaig].Adevie2;
         trouve_detecteur(adr);
         if IndexBranche_trouve=0 then
         begin
-          Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[aig].adresse)+' mais absent dans la description des branches',clRed);
+          Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
           ok:=false;
         end;
       end;
@@ -3957,18 +3982,18 @@ begin
   end;
 
   // cohérence 3 : vérifie si aiguillage triple ok et si doublon aiguillage
-  for aig:=1 to maxaiguillage do
+  for Indexaig:=1 to maxaiguillage do
   begin
-    adr:=aiguillage[aig].Adresse;
-    if aiguillage[aig].modele=4 then 
+    adr:=aiguillage[Indexaig].Adresse;
+    if aiguillage[Indexaig].modele=triple then 
     begin
-      if aiguillage[aig].AdrTriple=0 then 
+      if aiguillage[Indexaig].AdrTriple=0 then 
       begin
         Affiche('Erreur 6.1 : 2ème adresse de l''aiguillage triple '+intToSTR(adr)+' non définie',clred);
         ok:=false;
       end;
     end;
-    for i:=aig+1 to maxaiguillage do
+    for i:=Indexaig+1 to maxaiguillage do
     begin
       if adr=aiguillage[i].Adresse then 
       begin
@@ -4060,10 +4085,10 @@ begin
 
     // élement suivant 1
     i:=feux[j].Adr_el_suiv1;
-    k:=feux[j].Btype_suiv1;
+    km:=feux[j].Btype_suiv1;
     if i<>0 then
     begin
-      if k=1 then   // détecteur
+      if km=det then   // détecteur
       begin
         trouve_detecteur(i);
         if IndexBranche_trouve=0 then
@@ -4072,7 +4097,7 @@ begin
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
         end;
       end;
-      if (k>=2) then
+      if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
         if index_aig(i)=0 then 
@@ -4085,10 +4110,10 @@ begin
 
     // élement suivant 2
     i:=feux[j].Adr_el_suiv2;
-    k:=feux[j].Btype_suiv2;
+    km:=feux[j].Btype_suiv2;
     if i<>0 then
     begin
-      if k=1 then   // détecteur
+      if km=det then   // détecteur
       begin
         trouve_detecteur(i);
         if IndexBranche_trouve=0 then
@@ -4097,7 +4122,7 @@ begin
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
         end;
       end;
-      if (k>=2) then
+      if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
         if index_aig(i)=0 then 
@@ -4110,10 +4135,10 @@ begin
 
     // élement suivant 3
     i:=feux[j].Adr_el_suiv3;
-    k:=feux[j].Btype_suiv3;
+    km:=feux[j].Btype_suiv3;
     if i<>0 then
     begin
-      if k=1 then   // détecteur
+      if km=det then   // détecteur
       begin
         trouve_detecteur(i);
         if IndexBranche_trouve=0 then
@@ -4122,7 +4147,7 @@ begin
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
         end;
       end;
-      if (k>=2) then
+      if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
         if index_aig(i)=0 then 
@@ -4135,10 +4160,10 @@ begin
     
     // élement suivant 4
     i:=feux[j].Adr_el_suiv4;
-    k:=feux[j].Btype_suiv4;
+    km:=feux[j].Btype_suiv4;
     if i<>0 then
     begin
-      if k=1 then   // détecteur
+      if km=det then   // détecteur
       begin
         trouve_detecteur(i);
         if IndexBranche_trouve=0 then
@@ -4147,7 +4172,7 @@ begin
           Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
         end;
       end;
-      if (k>=2) then
+      if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
         if index_aig(i)=0 then 
@@ -4169,8 +4194,7 @@ begin
   inc(MaxAiguillage);
   i:=MaxAiguillage;
   aiguillage[i].Adresse:=999;
-  aiguillage[i].modele:=1;
-  aiguillage[i].modele:=1;
+  aiguillage[i].modele:=aig;
   aiguillage[i].AdroitB:='Z'; aiguillage[i].AdevieB:='Z';
   aiguillage[i].DdroitB:='D'; aiguillage[i].DdevieB:='S'; // préparation pour TJD/S
   aiguillage[i].ApointeB:='Z';
@@ -4219,7 +4243,7 @@ begin
 
   // efface les attributs de l'aiguillage supprimé
   aiguillage[index].Adresse:=0;
-  aiguillage[index].Modele:=0;
+  aiguillage[index].Modele:=rien;
   aiguillage[index].Adroit:=0;
   aiguillage[index].Adevie:=0;
   aiguillage[index].Ddroit:=0;
@@ -4297,7 +4321,7 @@ begin
       LabelInfo.caption:='Changement de l''adresse de la TJD de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
 
       id2:=Index_Aig(Adr);
-      if (aiguillage[id2].modele<>0) then 
+      if (aiguillage[id2].modele<>rien) then 
       begin
         LabelInfo.caption:='aiguillage '+IntToSTR(adr)+' existe déja - ne sera pas écrasé' ;
         exit;
@@ -4369,7 +4393,7 @@ begin
       LabelInfo.caption:='Changement de l''adresse de la TJD de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
 
       id2:=Index_Aig(Adr);
-      if (aiguillage[id2].modele<>0) then 
+      if (aiguillage[id2].modele<>rien) then 
       begin
         LabelInfo.caption:='aiguillage '+IntToSTR(adr)+' existe déja - ne sera pas écrasé' ;
         exit;
@@ -4394,7 +4418,8 @@ begin
 end;
 
 procedure TFormConfig.EditP3KeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index,modele : integer;
+var AdrAig,adr,adr2,erreur,index : integer;
+    model: Tequipement;
     b,c : char;
     s : string;
 begin
@@ -4422,9 +4447,9 @@ begin
       LabelInfo.caption:='';
       RE_ColorLine(RichAig,ligneClicAig,ClWhite);
       Index:=Index_Aig(AdrAig);
-      modele:=aiguillage[Index].modele;
+      model:=aiguillage[Index].modele;
 
-      if modele=3 then // TJS
+      if model=tjs then // TJS
       begin
         LabelL.caption:=IntToSTR(adr);
         aiguillage[index].tjsint:=adr;
@@ -4458,13 +4483,13 @@ begin
       if index=0 then    // si elle n'existe pas la créer
       begin
         // créer homologue
-        if modele=2 then labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
-        if modele=3 then labelInfo.Caption:='Création de la TJS homologue '+IntToSTR(adr);
+        if model=tjd then labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
+        if model=tjs then labelInfo.Caption:='Création de la TJS homologue '+IntToSTR(adr);
         
         inc(MaxAiguillage);
         index:=MaxAiguillage;
         aiguillage[index].Adresse:=Adr;
-        aiguillage[Index].modele:=modele;
+        aiguillage[Index].modele:=model;
         aiguillage[Index].Adroit:=0;
         aiguillage[Index].AdroitB:='D';
         aiguillage[Index].Adevie:=0;
@@ -4491,8 +4516,8 @@ begin
       else 
       begin
         // existe, vérifier si c'est bien une TJD/S
-        modele:=aiguillage[Index].modele;
-        if (modele=2) or (modele=3) then
+        model:=aiguillage[Index].modele;
+        if (model=tjd) or (model=tjs) then
         begin
           aiguillage[index].adresse:=adr;
           s:=encode_aig(index);
@@ -4580,7 +4605,7 @@ begin
     inc(MaxAiguillage);
     aiguillage[MaxAiguillage]:=Aig_supprime;
     Aig_Supprime.adresse:=0;  // dévalider l'aiguillage sauvegardé
-    Aig_Supprime.modele:=0;  
+    Aig_Supprime.modele:=rien;  
     clicListe:=true;
     config_modifie:=true;
 
@@ -4625,7 +4650,17 @@ begin
   if MaxAiguillage<ligneclicAig+1 then exit;
   if affevt then Affiche('Evt ComboBox Aiguillage',clOrange);
   i:=ligneclicAig+1;
-  aiguillage[i].modele:=ComboBoxAig.ItemIndex+1;
+  case ComboBoxAig.ItemIndex of
+  0 : aiguillage[i].modele:=aig;
+  1 : aiguillage[i].modele:=tjd;
+  2 : aiguillage[i].modele:=tjs;
+  3 : aiguillage[i].modele:=triple;
+  else aiguillage[i].modele:=rien;
+  end;
+  
+  
+  ;
+  
   s:=encode_aig(i);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
   clicliste:=true;
@@ -4738,7 +4773,7 @@ begin
            code:=false;
          end;
          BrancheN[i,j].adresse:=adresse;
-         BrancheN[i,j].btype:=2; // ident aiguillage
+         BrancheN[i,j].btype:=aig; // ident aiguillage
        end
        else 
        begin
@@ -4751,8 +4786,8 @@ begin
      if erreur=0 then
      begin
        BrancheN[i,j].adresse:=detect;          // adresse
-       BrancheN[i,j].btype:=1;// ident détecteur
-       if detect=0 then begin BrancheN[i,j].btype:=4;end; // buttoir
+       BrancheN[i,j].btype:=det;// ident détecteur
+       if detect=0 then begin BrancheN[i,j].btype:=buttoir;end; // buttoir
        // vérifier si le détecteur est déja stocké
        bd:=0;
        repeat
@@ -4767,7 +4802,7 @@ begin
      end;
      inc(j);
      BrancheN[i,j].adresse:=0; // préparer le suivant à 0
-     BrancheN[i,j].BType:=0;
+     BrancheN[i,j].BType:=rien;
      //Affiche('branche '+intToSTR(i)+' index='+intToStr(j),clGreen);
    until (offset=0);
    compile_branche:=code;
@@ -4911,7 +4946,8 @@ end;
 
 procedure TFormConfig.EditAigTripleKeyPress(Sender: TObject; var Key: Char);
 var s : string;
-    i,modele,erreur,index : integer;
+    i,erreur,index : integer;
+    model: TEquipement;
 begin
   if clicliste then exit;
 
@@ -4923,12 +4959,12 @@ begin
     index:=ligneclicAig+1;
     if index=0 then exit;
 
-    modele:=aiguillage[index].modele;
-    if (modele=4) then
+    model:=aiguillage[index].modele;
+    if (model=triple) then
     begin
       if (erreur<>0) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
       //  vérifier si l'adresse de l'aiguillage existe déja
-      if (aiguillage[Index_Aig(i)].modele<>0) then 
+      if (aiguillage[Index_Aig(i)].modele<>rien) then 
       begin
         LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
         EditAigTriple.Color:=clred;
@@ -5121,6 +5157,10 @@ begin
 begin
 
 end;
+
+
+
+
 
 end.
 

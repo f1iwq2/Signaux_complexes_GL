@@ -67,9 +67,9 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 591
-    Top = 320
+    Top = 336
     Width = 239
-    Height = 225
+    Height = 209
     Anchors = [akTop, akRight]
     Color = clBlack
     Font.Charset = ANSI_CHARSET
@@ -88,7 +88,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 487
-    Top = 312
+    Top = 328
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -98,7 +98,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 487
-    Top = 344
+    Top = 360
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -109,7 +109,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 487
-    Top = 280
+    Top = 296
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -119,7 +119,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 487
-    Top = 240
+    Top = 256
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -130,7 +130,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 487
-    Top = 192
+    Top = 208
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -147,7 +147,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 591
-    Top = 160
+    Top = 176
     Width = 239
     Height = 153
     Anchors = [akTop, akRight]
@@ -166,7 +166,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 487
-    Top = 384
+    Top = 400
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -315,7 +315,7 @@ object FormDebug: TFormDebug
     Left = 485
     Top = 20
     Width = 345
-    Height = 137
+    Height = 149
     Anchors = [akTop, akRight]
     Caption = 'S'#233'lections d'#39'affichage'
     Color = cl3DLight
@@ -359,7 +359,7 @@ object FormDebug: TFormDebug
     end
     object CheckBoxTraceLIste: TCheckBox
       Left = 8
-      Top = 112
+      Top = 128
       Width = 185
       Height = 17
       Caption = 'Evaluations des routes des trains'
@@ -374,7 +374,7 @@ object FormDebug: TFormDebug
     end
     object CheckTrame: TCheckBox
       Left = 8
-      Top = 80
+      Top = 96
       Width = 233
       Height = 17
       Caption = 'Trames '#233'chang'#233'es avec l'#39'interface ou CDM'
@@ -404,7 +404,7 @@ object FormDebug: TFormDebug
     end
     object CheckBoxAffFD: TCheckBox
       Left = 8
-      Top = 96
+      Top = 112
       Width = 193
       Height = 17
       Caption = 'Fronts descendants des d'#233'tecteurs'
@@ -421,7 +421,7 @@ object FormDebug: TFormDebug
     end
     object CheckBoxAffDebDecSig: TCheckBox
       Left = 8
-      Top = 64
+      Top = 80
       Width = 193
       Height = 17
       Caption = 'Pilotage des d'#233'codeurs de signaux'
@@ -438,7 +438,7 @@ object FormDebug: TFormDebug
       Left = 168
       Top = 12
       Width = 33
-      Height = 18
+      Height = 21
       Hint = 
         'Adresse du signal seul '#224' surveiller ou si 0 surveille tous les s' +
         'ignaux'
@@ -446,6 +446,26 @@ object FormDebug: TFormDebug
       ShowHint = True
       TabOrder = 7
       OnChange = EditDebugSignalChange
+    end
+    object CheckBoxTiers: TCheckBox
+      Left = 8
+      Top = 64
+      Width = 273
+      Height = 17
+      Hint = 
+        'N'#233'cessite d'#39'activer les services "signaux" et "position des trai' +
+        'ns" dans la configuration g'#233'n'#233'rale'
+      Caption = 'Ev'#232'vements tiers (signaux et position des trains)'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 8
+      OnClick = CheckBoxTiersClick
     end
   end
   object RichDebug: TRichEdit
@@ -509,7 +529,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTout: TButton
     Left = 488
-    Top = 160
+    Top = 176
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]

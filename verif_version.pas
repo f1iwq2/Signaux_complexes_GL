@@ -23,7 +23,8 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='3.1';  // sert à la comparaison de la version publiée
+Const  Version='3.2';  // sert à la comparaison de la version publiée
+       SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
 
@@ -102,8 +103,9 @@ procedure verifie_version;
 var s,s2,s3,Version_p,Url,LocalFile : string;
     trouve_version,trouve_zip,zone_comm : boolean;
     fichier : text;
-    i,j,erreur,Ncomm,i2,i3 : integer;
+    i,j,erreur,Ncomm,i2,i3,l : integer;
     V_publie,V_utile : real;
+    SV_publie : char;
     comm : array[1..10] of string;
 begin
     //Affiche('vérifie version',clLime);
@@ -122,18 +124,28 @@ begin
       while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
       begin
         readln(fichier,s);
+        //Affiche(s,clyellow);
         s:=LowerCase(s);
         if not(trouve_version) then
         begin
           i:=pos('version ',s);
           trouve_version:=i<>0;
-          if trouve_version then begin s2:=s;zone_comm:=true;end;
+          if trouve_version then 
+          begin 
+            s2:=s;zone_comm:=true;
+            //Affiche('trouvé version',clOrange);
+          end;
         end;
         if not(trouve_zip) then
         begin
           i:=pos('.zip',s);
           trouve_zip:=i<>0;
-          if trouve_zip then begin s3:=s;zone_comm:=false;end;
+          //if trouve_zip then Affiche(s,clyellow);
+          if trouve_zip then 
+          begin 
+            s3:=s;
+            //zone_comm:=false;
+          end;
         end;
         // commentaire en gras
         if zone_comm then
@@ -141,6 +153,7 @@ begin
           i:=pos('bold">',s)+6;i2:=posEx('<br />',s,i+1);
           if i<>6 then
           begin
+            //Affiche(s,clred);
             inc(ncomm);
             comm[ncomm]:=UTF8Decode(copy(s,i,i2-i));
             Delete(s,1,i2-1);
@@ -186,19 +199,26 @@ begin
         s2:=version;
        // i:=pos('.',s2);if i<>0 then s2[i]:=',';
 
-        val(s,V_publie,erreur); if erreur<>0 then exit;
-        val(s2,V_utile,erreur); if erreur<>0 then exit;
+        l:=length(s);
+        SV_publie:=s[l];
+        if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else s:=copy(s,1,l-1);
+        
+        val(s,V_publie,erreur); 
+        if erreur<>0 then exit;
+        val(s2,V_utile,erreur); 
+        if erreur<>0 then exit;
 
-        if V_utile<V_publie then
+        if (V_utile<V_publie) or 
+           ((V_utile=V_publie) and (SousVersion<SV_publie)) then
         begin
           FormVersion.Top:=1;
           FormVersion.Left:=1;
           FormVersion.show;
           //aff(s3);               // url dans s3
-          s:='Vous utilisez la version '+version+' mais il existe la version '+Version_p;
+          s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;
           if ncomm>0 then
           begin
-            Aff('Nouveautés de la V'+version_p+' de Signaux_Complexes_GL :');
+            Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL :');
             Aff(' ');
             for i:=1 to ncomm do aff(comm[i]);
           end;  
@@ -220,7 +240,7 @@ begin
           else formVersion.Free;
         end;
 
-        if (V_utile=V_publie) and notificationVersion then Affiche('Votre version '+Version_p+' est à jour',clLime);
+        if (V_utile=V_publie) and notificationVersion then Affiche('Votre version '+Version_p+SousVersion+' est à jour',clLime);
 
       end;
     end

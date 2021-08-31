@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 1294
-  Top = 168
+  Left = 13
+  Top = 175
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1305,8 +1305,9 @@ object FormPrinc: TFormPrinc
       Width = 83
       Height = 33
       Hint = 'Demande la version XpressNet '#224' la centrale'
-      Caption = 'Dem version'
+      Caption = 'Dem version centrale'
       TabOrder = 1
+      WordWrap = True
       OnClick = BoutVersionClick
     end
     object loco: TButton

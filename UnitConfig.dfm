@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 277
-  Top = 203
+  Left = 291
+  Top = 218
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -958,8 +958,8 @@ object FormConfig: TFormConfig
     ParentFont = False
   end
   object ImageAig: TImage
-    Left = 648
-    Top = 312
+    Left = 736
+    Top = 432
     Width = 137
     Height = 57
     Picture.Data = {
@@ -1230,8 +1230,8 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTJD: TImage
-    Left = 760
-    Top = 320
+    Left = 744
+    Top = 416
     Width = 137
     Height = 57
     Picture.Data = {
@@ -1366,8 +1366,8 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTri: TImage
-    Left = 648
-    Top = 336
+    Left = 744
+    Top = 432
     Width = 145
     Height = 65
     Picture.Data = {
@@ -1537,8 +1537,8 @@ object FormConfig: TFormConfig
     Caption = 'Verrouillable au carr'#233' :'
   end
   object Image2: TImage
-    Left = 760
-    Top = 352
+    Left = 768
+    Top = 440
     Width = 129
     Height = 41
     Picture.Data = {
@@ -1745,6 +1745,16 @@ object FormConfig: TFormConfig
     Height = 13
     Caption = #224
   end
+  object Label20: TLabel
+    Left = 648
+    Top = 312
+    Width = 208
+    Height = 39
+    Caption = 
+      'Tous les param'#232'tres doivent '#234'tre valid'#233's en appuyant sur la touc' +
+      'he ENTREE apr'#232's leur introduction/modification'
+    WordWrap = True
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
     Top = 472
@@ -1770,7 +1780,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 457
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2425,7 +2435,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox10: TGroupBox
           Left = 8
-          Top = 88
+          Top = 80
           Width = 273
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
@@ -2460,7 +2470,7 @@ object FormConfig: TFormConfig
         end
         object CheckInverse: TCheckBox
           Left = 16
-          Top = 269
+          Top = 261
           Width = 137
           Height = 17
           Hint = 'Cocher si l'#39'aiguillage est invers'#233' dans CDM rail'
@@ -2480,7 +2490,7 @@ object FormConfig: TFormConfig
         end
         object ComboBoxAig: TComboBox
           Left = 8
-          Top = 64
+          Top = 48
           Width = 145
           Height = 21
           ItemHeight = 13
@@ -2495,7 +2505,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox16: TGroupBox
           Left = 8
-          Top = 168
+          Top = 160
           Width = 273
           Height = 97
           Caption = 'Repr'#233'sentation'
@@ -2683,7 +2693,7 @@ object FormConfig: TFormConfig
         end
         object ButtonRestaureAig: TButton
           Left = 200
-          Top = 56
+          Top = 48
           Width = 75
           Height = 25
           Hint = 

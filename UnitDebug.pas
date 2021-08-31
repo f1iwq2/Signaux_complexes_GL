@@ -51,6 +51,7 @@ type
     EditSimuDet: TEdit;
     ButtonRazTout: TButton;
     EditDebugSignal: TEdit;
+    CheckBoxTiers: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -80,6 +81,7 @@ type
     procedure RichEditChange(Sender: TObject);
     procedure MemoEvtDetChange(Sender: TObject);
     procedure EditDebugSignalChange(Sender: TObject);
+    procedure CheckBoxTiersClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -90,6 +92,7 @@ Const
 Max_Event_det_tick=30000;
 Max_event_det=400;
 Max_Trains=50;
+
 
 var
   FormDebug: TFormDebug;
@@ -352,7 +355,8 @@ begin
 end;
 
 procedure TFormDebug.ButtonDetSuivClick(Sender: TObject);
-var Adr,type1,type2,Prec,Actuel,erreur,ancdebug : integer ;
+var Adr,Prec,Actuel,erreur,ancdebug : integer ;
+    type1,type2 : tequipement;
     s1,s2 : string;
 begin
   ancdebug:=NivDebug;
@@ -360,8 +364,8 @@ begin
   s1:=EditPrec.Text;
   s2:=EditActuel.Text;
   if (s1='') or (s2='') then exit;
-  if s1[1]='A' then begin type1:=2;delete(s1,1,1);end else type1:=1;
-  if s2[1]='A' then begin type2:=2;delete(s2,1,1);end else type2:=1;
+  if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
+  if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
   Val(s1,prec,erreur); if erreur<>0 then exit;
   Val(s2,Actuel,erreur); if erreur<>0 then exit;
   Adr:=detecteur_suivant_El(prec,type1,actuel,type2,1);
@@ -456,6 +460,11 @@ procedure TFormDebug.EditDebugSignalChange(Sender: TObject);
 var erreur : integer;
 begin
   val(EditDebugSignal.text,signalDebug,erreur);
+end;
+
+procedure TFormDebug.CheckBoxTiersClick(Sender: TObject);
+begin
+  AffTiers:=checkBoxTiers.checked;
 end;
 
 end.

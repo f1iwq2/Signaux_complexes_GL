@@ -266,7 +266,7 @@ const
 type  
   // structure du TCO
   TTCO = array[1..MaxCellX] of array[1..MaxCellY] of record
-               BType : integer ;      // 1= détecteur  2= aiguillage 3=bis 4=Buttoir 
+               BType : TEquipement ;      
                Adresse : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
                BImage : integer ;     // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
                mode :  integer;       // 0=éteint 1=allumé
@@ -321,7 +321,7 @@ procedure lire_fichier_tco;
 var fichier : textfile;
     s : string;
     x,y,i,j,adresse,Aspect,valeur,erreur,FeuOriente,PiedFeu : integer;
-
+    BT : TEquipement;
     function lit_ligne : string ;
     var c : char;
     begin
@@ -384,7 +384,11 @@ begin
         i:=pos(',',s);
         if i=0 then begin closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin closefile(fichier);exit;end;
-        tco[x,y].BType:=valeur;
+        if valeur=1 then BT:=det;
+        if valeur=2 then BT:=aig;
+        if valeur=4 then BT:=buttoir;
+        
+        tco[x,y].BType:=BT;
         delete(s,1,i);
 
         // Adresse
@@ -487,8 +491,9 @@ begin
     s:='';
     for x:=1 to NbreCellX do
     begin
-      s:=s+'('+IntToSTR(TCO[x,y].BType)+','+Format('%.*d',[3,TCO[x,y].Adresse])+','+
+      s:=s+'('+IntToSTR(BTypeToNum(TCO[x,y].BType))+','+Format('%.*d',[3,TCO[x,y].Adresse])+','+
            IntToSTR(TCO[x,y].BImage)+',';
+           
            if TCO[x,y].inverse then s:=s+'1,' else s:=s+'0,';
            
            if TCO[x,y].BImage=30 then 
@@ -2288,14 +2293,15 @@ end;
 // transforme les branches en TCO
 // trop compliqué. Il faudra dessiner son TCO soit meme !
 procedure construit_TCO;
-var x,y,i,j,Max,indexMax,Btype,Adresse,ligne,AdrSuiv,Bimage,index : integer;
+var x,y,i,j,Max,indexMax,Adresse,ligne,AdrSuiv,Bimage,index : integer;
+   BT: Tequipement;
 begin
   // étape 0 Raz du TCO
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
     begin                        
       TCO[x,y].Adresse:=0;
-      TCO[x,y].Btype:=0;
+      TCO[x,y].Btype:=rien;
     end;  
 
   //étape 1 trouver la branche la plus longue
@@ -2315,12 +2321,12 @@ begin
   for i:=1 to Max do
   begin
     Adresse:=BrancheN[IndexMax,i].Adresse;
-    Btype:=BrancheN[IndexMax,i].Btype;
+    BT:=BrancheN[IndexMax,i].Btype;
     TCO[i,ligne].Adresse:=Adresse;
-    TCO[i,ligne].Btype:=Btype;
+    TCO[i,ligne].Btype:=BT;
     // Btype 1= détecteur  2= aiguillage 3=bis 4=Buttoir
-    if Btype=1 then TCO[i,ligne].BImage:=1;
-    if Btype=2 then
+    if Bt=det then TCO[i,ligne].BImage:=1;
+    if Bt=aig then
     begin
      // A20,547,561,A22,A24,A26,515,518,A31,A29,A28,A30,539,522,A3,A1,A2,A4,A6B,545,A5B,A3
      //20,P8P,D547,S548  // 22,P24P,S561,D25S
@@ -2342,17 +2348,18 @@ end;
 
 // affiche la cellule x et y en cases
 procedure TformTCO.affiche_cellule(x,y : integer);
-var Xorg,Yorg,mode,adresse,btype,Bimage,aspect,oriente,pos : integer;
+var Xorg,Yorg,mode,adresse,Bimage,aspect,oriente,pos : integer;
+    Bt : TEquipement;
     s : string;
 begin
   PcanvasTCO.pen.Mode:=PmCopy;
   adresse:=tco[x,y].Adresse;
-  btype:=tco[x,y].Btype;
+  bt:=tco[x,y].Btype;
   BImage:=tco[x,y].BImage;
   mode:=tco[x,y].mode;
 
   // récupérer la position de l'aiguillage
-  if (bImage>=2) and (btype<=15) then 
+  if (bImage>=2)  then         //?????     and (btype<=15)
   begin
     if Adresse<>0 then pos:=Aiguillage[Index_Aig(adresse)].position
     
@@ -2398,7 +2405,7 @@ begin
   // affiche le texte des aiguillages
   if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or (BImage=15) or (BImage=21) or (BImage=22)) and (adresse<>0) then 
   begin 
-    if Btype<>3 then s:='A'+s else s:='A'+s+'B';
+    if Bt<>tjs then s:='A'+s else s:='A'+s+'B';
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
@@ -2674,7 +2681,7 @@ begin
   YclicCellInserer:=YClicCell;
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
-  EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCellInserer,YClicCellInserer].BType));
   EdittypeImage.Text:=IntToSTR(BImage);
 
   if not(selectionaffichee) then  _entoure_cell_clic;  
@@ -3031,7 +3038,7 @@ begin
   LabelY.caption:=IntToSTR(YClicCell);
   //Entoure_cell(XclicCell,YclicCell);   
   EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR(tco[XClicCell,YClicCell].BType);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].BType));
 end;
 
 procedure TFormTCO.Elmentdroit1Click(Sender: TObject);
@@ -3044,7 +3051,7 @@ begin
   //Entoure_cell(XclicCell,YclicCell);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
-  EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCellInserer,YClicCellInserer].BType));
 end;
 
 procedure TFormTCO.Courbegaucheversdroite1Click(Sender: TObject);
@@ -3127,11 +3134,11 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_AigPD_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=2;  // aiguillage
+  tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=5;  // image 5
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
 end;
 
@@ -3143,12 +3150,12 @@ begin
   Xclic:=X;YClic:=Y;
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
-  tco[XClicCell,YClicCell].BType:=2;  // aiguillage
+  tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=2;  // image 2
   dessin_AigG_PD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
 end;
 
@@ -3167,11 +3174,11 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_AigPG_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=2;  // aiguillage
+  tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=3;  // image 3
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
 end;
 
@@ -3190,11 +3197,11 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_AigD_PG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=2;  // aiguillage
+  tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=4;  // image 4
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3214,12 +3221,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_voie(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=1;  // voie
+  tco[XClicCell,YClicCell].BType:=voie;  // voie (3)
   tco[XClicCell,YClicCell].BImage:=1;  // image 1
   tco[XClicCell,YClicCell].Adresse:=0;  
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3238,12 +3245,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_SupG(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=6;  // image 6
   tco[XClicCell,YClicCell].Adresse:=0;  
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3262,12 +3269,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_SupD(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=7;  // image 7
   tco[XClicCell,YClicCell].Adresse:=0;  
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3287,12 +3294,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_infD(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=8;  // image 8
   tco[XClicCell,YClicCell].Adresse:=0;  
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3388,12 +3395,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_infG(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=9;  // image 9
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3407,12 +3414,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_Aig45PG_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=12;  // image 12
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3427,12 +3434,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_Aig45PD_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);      
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=13;  // image 13
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3446,15 +3453,14 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_Aig45PD_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=14;  // image 14
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
-
 
 procedure TFormTCO.ImageAig45PG_ADEndDrag(Sender, Target: TObject; X,
   Y: Integer);
@@ -3466,16 +3472,15 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_Aig45PG_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=15;  // image 15
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
-
-
+ 
 procedure TFormTCO.ImagePalette16EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3485,12 +3490,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_16(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=16;  // image 16
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3504,16 +3509,15 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_17(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=17;  // image 17
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
-
-
+   
 procedure TFormTCO.ImagePalette18EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
@@ -3524,12 +3528,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_18(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=18;  // image 18
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3543,12 +3547,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_19(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=19;  // image 19
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3562,12 +3566,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_20(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=20;  // image 20
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3581,12 +3585,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_21(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=21;  
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3600,12 +3604,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   Dessin_22(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=22;  
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -3655,8 +3659,7 @@ end;
 
 // supprimer la sélection
 procedure TFormTCO.MenuCouperClick(Sender: TObject);
-var  
-     x,y,XCell1,YCell1,xCell2,yCell2 : integer;
+var  x,y,XCell1,YCell1,xCell2,yCell2 : integer;
 begin
   // couper sans sélection : on coupe une seule cellule
   if not(SelectionAffichee) then 
@@ -3702,7 +3705,7 @@ begin
     TamponTCO_org.x1:=XclicCell;TamponTCO_org.y1:=YclicCell;
     TamponTCO_org.x2:=XclicCell;TamponTCO_org.y2:=YclicCell;
    
-    tco[XclicCell,YClicCell].BType:=0;
+    tco[XclicCell,YClicCell].BType:=rien;
     tco[XclicCell,YClicCell].Adresse:=0;
     tco[XclicCell,YClicCell].Bimage:=0;
     efface_entoure;
@@ -3727,7 +3730,7 @@ begin
   for y:=yCell1 to yCell2 do
     for x:=xCell1 to xCell2 do
     begin
-      tco[x,y].BType:=0;
+      tco[x,y].BType:=rien;
       tco[x,y].Adresse:=0;
       tco[x,y].BImage:=0;
       //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
@@ -3759,7 +3762,6 @@ begin
             end;
           end;  
         end;
-
     end;
   end;
   Affiche_TCO;
@@ -3768,8 +3770,7 @@ end;
 
 // évènement qui se produit quand on clique gauche ou droit
 procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
-var position : Tpoint;
-    
+var position : Tpoint;   
 begin
 //  ImageTCO.BeginDrag(true);
     if button=mbLeft then
@@ -3809,7 +3810,7 @@ begin
   //Entoure_cell(XclicCellInserer,YclicCellInserer);
 
   EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
-  EdittypeElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].BType);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCellInserer,YClicCellInserer].BType));
   end; 
 end;
 
@@ -3961,13 +3962,13 @@ begin
     tco[XClicCell,YClicCell].Bimage:=Bimage;
     case Bimage of
     // aiguillages
-    2,3,4,5,12,13,14,15 : tco[XClicCell,YClicCell].Btype:=2;
+    2,3,4,5,12,13,14,15 : tco[XClicCell,YClicCell].Btype:=aig;
     // détecteur ou voie
-    1,10,11,20 : tco[XClicCell,YClicCell].Btype:=1;
-    else tco[XClicCell,YClicCell].Btype:=0;
+    1,10,11,20 : tco[XClicCell,YClicCell].Btype:=voie;
+    else tco[XClicCell,YClicCell].Btype:=rien;
     end;
     
-    EditTypeElement.text:=intToSTR(tco[XClicCell,YClicCell].Btype);
+    EditTypeElement.text:=intToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
     affiche_cellule(XClicCell,YClicCell);
   end;
 end;
@@ -4006,7 +4007,7 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_Diag1(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=10;  // image 10
   tco[XClicCell,YClicCell].Adresse:=0;  
   tco[XClicCell,YClicCell].FeuOriente:=1;  
@@ -4015,7 +4016,7 @@ begin
   tco[XClicCell,YClicCell].y:=0;  //  YClicCell;  //??
    
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -4034,12 +4035,12 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   dessin_Diag2(ImageTCO.Canvas,XClicCell,YClicCell,0);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=11;  
   tco[XClicCell,YClicCell].Adresse:=0;  
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
@@ -4065,7 +4066,7 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   //PCanvasTCO.Draw((xClicCell-1)*LargeurCell,(yClicCell-1)*HauteurCell,ImageFeu.Picture.Bitmap);
-  tco[XClicCell,YClicCell].BType:=0;  // rien
+  tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=30;  
   tco[XClicCell,YClicCell].Adresse:=0;
   tco[XClicCell,YClicCell].FeuOriente:=1;
@@ -4075,7 +4076,7 @@ begin
   
 
   // ne pas convertir l'adresse sinon evt changement du composant et on écrase l'aspect EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
-  EdittypeElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Btype);
+  EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 
   dessin_feu(PCanvasTCO,XclicCell,YClicCell);
@@ -4297,8 +4298,8 @@ begin
       ( FindComponent('No') as TButton).Caption:='dévié';
     end;
     Result:=Msgdlg.ShowModal;
-    if Result=MrYes then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,2,aig);end; // droit
-    if Result=MrNo then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,1,aig);end;  // dévié
+    if Result=MrYes then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,2,aigP);end; // droit
+    if Result=MrNo then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,1,aigP);end;  // dévié
 
     sourisclic:=false;  // évite de générer un cadre de sélection:=false;
     piloteAig:=true;
