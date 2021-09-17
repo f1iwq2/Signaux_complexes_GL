@@ -1780,7 +1780,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 457
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2474,7 +2474,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 17
           Hint = 'Cocher si l'#39'aiguillage est invers'#233' dans CDM rail'
-          Caption = 'Inversion de l'#39#233'tat CDM'
+          Caption = 'Inversion du pilotage'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
@@ -2614,6 +2614,8 @@ object FormConfig: TFormConfig
             Top = 20
             Width = 41
             Height = 21
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 0
             OnKeyPress = Edit_HGKeyPress
           end
@@ -2622,6 +2624,8 @@ object FormConfig: TFormConfig
             Top = 44
             Width = 41
             Height = 21
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 1
             OnKeyPress = EditPointe_BGKeyPress
           end
@@ -2662,6 +2666,8 @@ object FormConfig: TFormConfig
             Top = 20
             Width = 33
             Height = 21
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 6
             OnKeyPress = EditDevie_HDKeyPress
           end
@@ -2670,6 +2676,8 @@ object FormConfig: TFormConfig
             Top = 44
             Width = 33
             Height = 21
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 7
             OnKeyPress = EditDroit_BDKeyPress
           end
@@ -2723,45 +2731,33 @@ object FormConfig: TFormConfig
           TabOrder = 7
           object Label37: TLabel
             Left = 8
-            Top = 18
+            Top = 26
             Width = 66
             Height = 13
             Caption = 'D'#233'vi'#233' ou droit'
           end
           object Label38: TLabel
             Left = 8
-            Top = 42
+            Top = 50
             Width = 129
             Height = 13
             Caption = 'Temporisation  (1/10'#232'me s)'
           end
           object EditTempo10: TEdit
             Left = 160
-            Top = 40
+            Top = 48
             Width = 41
             Height = 21
             TabOrder = 0
             OnKeyPress = EditTempo10KeyPress
           end
-          object CheckInvInit: TCheckBox
-            Left = 8
-            Top = 64
-            Width = 153
-            Height = 17
-            Hint = 'Inverse le pilotage de l'#39'aiguillage'
-            Caption = 'Pilotage invers'#233
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 1
-            OnClick = CheckInvInitClick
-          end
           object ComboBoxDD: TComboBox
             Left = 160
-            Top = 16
+            Top = 24
             Width = 97
             Height = 21
             ItemHeight = 13
-            TabOrder = 2
+            TabOrder = 1
             OnChange = ComboBoxDDChange
             Items.Strings = (
               'D'#233'vi'#233
@@ -3050,7 +3046,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3067,6 +3063,8 @@ object FormConfig: TFormConfig
           Top = 120
           Width = 41
           Height = 21
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 4
           OnKeyPress = EditSuiv1KeyPress
         end
@@ -3083,6 +3081,8 @@ object FormConfig: TFormConfig
           Top = 144
           Width = 41
           Height = 21
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 6
           OnKeyPress = EditSuiv2KeyPress
         end
@@ -3099,6 +3099,8 @@ object FormConfig: TFormConfig
           Top = 168
           Width = 41
           Height = 21
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 8
           OnKeyPress = EditSuiv3KeyPress
         end
@@ -3115,6 +3117,8 @@ object FormConfig: TFormConfig
           Top = 192
           Width = 41
           Height = 21
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 10
           OnKeyPress = EditSuiv4KeyPress
         end

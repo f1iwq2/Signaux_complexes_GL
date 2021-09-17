@@ -219,7 +219,6 @@ type
     Label37: TLabel;
     Label38: TLabel;
     EditTempo10: TEdit;
-    CheckInvInit: TCheckBox;
     Label39: TLabel;
     EditV4F: TEdit;
     EditV4O: TEdit;
@@ -324,7 +323,6 @@ type
 
 const
 // variables du fichier de configuration "config-gl.cfg"
-section_init='[section_init]';
 nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
 retro_ch='retro';
@@ -570,8 +568,7 @@ begin
   if index=0 then exit;
   s:=IntToSTR(aiguillage[index].Adresse)+','; 
   s:=s+IntToSTR(aiguillage[index].posInit)+',';
-  s:=s+IntToSTR(aiguillage[index].temps)+',';
-  s:=s+intToSTR(aiguillage[index].inversion);
+  s:=s+IntToSTR(aiguillage[index].temps);
   encode_init_aig:=s;
 end;
 
@@ -644,9 +641,8 @@ begin
    // valeur d'initialisation
    s:=s+',INIT(';
    s:=s+IntToSTR(aiguillage[index].posInit)+',';
-   s:=s+IntToSTR(aiguillage[index].temps)+',';
-   s:=s+intToSTR(aiguillage[index].inversion)+')';
-   
+   s:=s+IntToSTR(aiguillage[index].temps)+')'; 
+  
    encode_aig:=s;
 end;
 
@@ -754,6 +750,20 @@ begin
   det : TypeEl_to_char:='';
   aig,tjd,tjs,triple : TypeEl_to_char:='A';
   end;
+end;
+
+// 
+function TypeElAIg_to_char(adr : integer;c : char) : string;
+var s: string;
+begin
+  case c of
+  'Z',#0 : s:='détecteur '+IntToSTR(adr);
+  'P' : s:='pointe de l''aiguillage '+IntToSTR(adr);
+  'S' : s:='position déviée de l''aiguillage '+IntToSTR(adr);
+  'D' : s:='position droite de l''aiguillage '+IntToSTR(adr);
+  else s:='Erreur';
+  end;
+  TypeElAIg_to_char:=s; 
 end;
 
 // transforme le signal du tableau feux[] en texte 
@@ -1746,11 +1756,13 @@ begin
       b:=aiguillage[Index_Aig(adresse)].ADroitB;         
       if b='Z' then b:=#0;
       Edit_HG.Text:=intToSTR(aiguillage[index].ADroit)+b;  
+      Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,b); 
 
       // champ en bas à gauche
       b:=aiguillage[Index].ADevieB;
       if b='Z' then b:=#0;
       EditPointe_BG.Text:=intToSTR(aiguillage[index].ADevie)+b;
+      EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].ADevie,b);
 
       // milieu haut gauche
       EditP1.Text:=intToSTR(adresse)+aiguillage[Index].DDroitB; 
@@ -1764,10 +1776,12 @@ begin
 
       // droit haut
       EditDevie_HD.Text:=intToSTR(aiguillage[id2].Adevie)+aiguillage[id2].AdevieB; 
+      EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[id2].Adevie,aiguillage[id2].AdevieB); 
       LabelTJD1.Caption:=IntToSTR(adresse);
       
       // droit bas
-      EditDroit_BD.Text:=intToSTR(aiguillage[id2].Adroit)+aiguillage[Id2].AdroitB; 
+      EditDroit_BD.Text:=intToSTR(aiguillage[id2].Adroit)+aiguillage[Id2].AdroitB;
+      EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[id2].ADroit,aiguillage[Id2].AdroitB); 
       LabelTJD2.Caption:=IntToSTR(adr2);
 
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
@@ -1807,8 +1821,13 @@ begin
       if aiguillage[Index].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=true;end;
 
       EditPointe_BG.Text:=intToSTR(aiguillage[index].Apointe)+aiguillage[index].ApointeB;
+      EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].Apointe,aiguillage[index].ApointeB);
+
       EditDevie_HD.Text:=intToSTR(aiguillage[index].Adevie)+aiguillage[index].AdevieB;
+      EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Adevie,aiguillage[index].AdevieB); 
+
       EditDroit_BD.Text:=intToSTR(aiguillage[index].Adroit)+aiguillage[index].AdroitB;
+      EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[index].AdroitB); 
       if tri then 
       begin
         ComboBoxAig.ItemIndex:=3; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
@@ -1835,7 +1854,6 @@ begin
   if position=const_devie then formconfig.ComboBoxDD.ItemIndex:=0;
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
-  formconfig.CheckInvInit.Checked:=aiguillage[index].inversion=1;
   
   clicListe:=false;
 end;
@@ -1895,6 +1913,22 @@ begin
   end;
 end;
 
+// transforme une chaine "élément" en une chaine affichable pour le hint
+// ex chaine_element("A32")=aiguillage 32
+function chaine_element(Equip : Tequipement;adr : integer) : string;
+var s: string;
+begin
+  case Equip of
+  aig : s:='Aiguillage ';
+  tjd : s:='Tjd ';
+  tjs : s:='Tjs ';
+  triple : s:='Aiguillage triple ';
+  det : s:='Détecteur ';
+  else s:='Inconnu ';
+  end;
+  result:=s+intToSTR(adr);
+end;
+
 // mise à jour des champs du signal d'après le tableau feux
 Procedure aff_champs_sig_feux(index : integer);
 var i,j,l,d,k,nc,condCarre : integer;
@@ -1946,29 +1980,35 @@ begin
       LabelDetAss.visible:=true;
       LabelElSuiv.visible:=true;
       
+      
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
       Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
       CheckVerrouCarre.Visible:=true;
       EditDet1.Text:=IntToSTR(feux[i].Adr_det1);
       EditSuiv1.Text:=TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
+    
+      EditSuiv1.Hint:=chaine_element(feux[i].Btype_suiv1,feux[i].Adr_el_suiv1);
       j:=feux[i].Adr_det2;
       if j<>0 then 
       begin
         Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(feux[i].Btype_suiv2)+IntToSTR(feux[i].Adr_el_suiv2);
-      end else begin EditDet2.Text:='';EditSuiv2.Text:='';end;  
+        EditSuiv2.Hint:=chaine_element(feux[i].Btype_suiv2,feux[i].Adr_el_suiv2);
+      end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;  
       j:=feux[i].Adr_det3;
       if j<>0 then 
       begin
         EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(feux[i].Btype_suiv3)+IntToSTR(feux[i].Adr_el_suiv3);
+        EditSuiv3.Hint:=chaine_element(feux[i].Btype_suiv3,feux[i].Adr_el_suiv3);
       end 
-      else begin EditDet3.Text:='';EditSuiv3.Text:='';end;
+      else begin EditDet3.Text:='';EditSuiv3.Text:='';EditSuiv3.Hint:='';end;
       j:=feux[i].Adr_det4;
       if j<>0 then 
       begin
         EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(feux[i].Btype_suiv4)+IntToSTR(feux[i].Adr_el_suiv4);
+        EditSuiv4.Hint:=chaine_element(feux[i].Btype_suiv4,feux[i].Adr_el_suiv4);
       end
-      else begin EditDet4.Text:='';EditSuiv4.Text:='';end;  
+      else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;  
 
       checkVerrouCarre.Checked:=feux[i].VerrouCarre;
       checkBoxFB.Checked:=feux[i].FeuBlanc;
@@ -2601,7 +2641,7 @@ begin
   EditAdrSig.Color:=clWindow;
   RE_ColorLine(Formconfig.RichSig,ligneClicSig,Clyellow);
 
-  aff_champs_sig_feux(lc+1);
+  aff_champs_sig_feux(lc+1);   // affiche les champs du feu
   clicliste:=false;
 end;
 
@@ -4048,6 +4088,14 @@ begin
         ok:=false;
         Affiche('Erreur : Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
       end;
+    end
+    else
+    begin
+      if feux[j].Aspect<10 then
+      begin
+        ok:=false;
+        Affiche('Erreur : Adresse de détecteur nul sur signal '+IntToSTR(feux[j].adresse),clred);
+      end;  
     end;
     
     i:=feux[j].Adr_det2;
@@ -5037,7 +5085,6 @@ begin
   if affevt then affiche('Evt change InvInit',clyellow);
   s:=formconfig.RichAig.Lines[ligneclicAig];
   Val(s,adrAig,erreur);
-  if checkInvInit.Checked then aiguillage[Index_Aig(adraig)].Inversion:=1 else aiguillage[Index_Aig(adraig)].Inversion:=0;
   // réencoder la ligne
   s:=encode_aig(Index_Aig(AdrAig));
   formconfig.RichAig.Lines[ligneclicAig]:=s;

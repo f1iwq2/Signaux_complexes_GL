@@ -24,7 +24,7 @@ var
   verifVersion,notificationVersion : boolean;
 
 Const  Version='3.2';  // sert à la comparaison de la version publiée
-       SousVersion=' '; // en cas d'absence de sous version mettre un espace
+       SousVersion='C'; // en cas d'absence de sous version mettre un espace
 
 implementation
 

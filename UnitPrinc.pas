@@ -216,13 +216,12 @@ TBranche = record
                  position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
                  posInit,                   // position d'initialisation 1=dévié 2=droit 9=non positionné
                  Adrtriple,                 // 2eme adresse pour un aiguillage triple
-                 temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms)
-                 inversion : integer;       // positionné dans fichier config_gl section_init
+                 temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms
                  InversionCDM : integer ;   // pour les aiguillages déclarés inversés dans CDM, utilisé en mode autonome (paramètre I1)
                  vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
 
                  ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
-                 ADroitB : char ;           // id de branche pour TJD
+                 ADroitB : char ;           // P D S Z
 
                  ADevie : integer ;         // (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
                  ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
@@ -2634,7 +2633,7 @@ var s,sa,chaine,SOrigine: string;
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,compile_init_cfg   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
-    postjd,postjs,nv,it,Num_Champ,asp,inversion,adraig : integer;
+    postjd,postjs,nv,it,Num_Champ,asp,adraig : integer;
     label ici1,ici2,ici3,ici4 ;
     
     function lit_ligne : string ;
@@ -2654,41 +2653,6 @@ var s,sa,chaine,SOrigine: string;
       lit_ligne:=s;
     end;
     
-    procedure compile_section_init;
-    var index : integer;
-    begin
-     //initialisation aiguillages
-      repeat
-        s:=lit_ligne;
-        j:=pos(',',s);
-        if j>1 then
-        begin
-          begin
-            Val(s,adresse,erreur);
-            Delete(s,1,j); // adresse aiguillage
-            if (adresse>0) and (AvecInitAiguillages) then
-            begin
-              j:=pos(',',s);
-              Val(s,position,erreur);
-              Delete(S,1,j);// position aiguillage
-              if (position<1) or (position>2) then position:=1;
-              index:=Index_Aig(adresse);
-              aiguillage[index].posInit:=position;
-
-              // temporisation aiguillage
-              j:=pos(',',s);if j=0 then j:=length(s);
-              val(s,temporisation,erreur);Delete(S,1,j);
-              if (temporisation<0) or (temporisation>10) then temporisation:=5;
-              aiguillage[index].temps:=temporisation;
-
-              val(s,invers,erreur);
-              if (invers<0) or (invers>1) then invers:=0;   // inversion commande
-              aiguillage[index].inversion:=invers;
-            end;
-          end;
-        end;
-      until (adresse=0);
-    end;
 
 begin
   compile_init_cfg:=true;
@@ -2723,7 +2687,6 @@ begin
     Aiguillage[i].position:=const_inconnu;  // position inconnue
     Aiguillage[i].PosInit:=const_inconnu;  // position inconnue
     Aiguillage[i].temps:=5   ;
-    Aiguillage[i].inversion:=0;
     Aiguillage[i].inversionCDM:=0;
   end;
   for i:=1 to 1024 do
@@ -3005,11 +2968,11 @@ begin
           i:=pos(',',enregistrement);
           if i<>0 then delete(enregistrement,1,i);
           Val(enregistrement,j,erreur);
-          i:=pos(',',enregistrement);
-          if i<>0 then delete(enregistrement,1,i);
-          Val(enregistrement,inversion,erreur);
+          //i:=pos(',',enregistrement);
+          //if i<>0 then delete(enregistrement,1,i);
+          //Val(enregistrement,inversion,erreur);
           aiguillage[maxaiguillage].temps:=j;     
-          aiguillage[maxaiguillage].inversion:=inversion;
+          //aiguillage[maxaiguillage].inversion:=inversion;
           aiguillage[maxaiguillage].posinit:=position;
           i:=pos(')',enregistrement);
           delete(enregistrement,1,i);
@@ -3427,21 +3390,6 @@ begin
       val(s,Tempo_Aig,erreur);
     end;
  
-    i:=pos(uppercase(section_init),s);
-    if (i<>0) then
-    begin
-      if compile_init_cfg then
-      begin
-        trouve_sec_init:=true;
-        compile_section_init;  
-        inc(nv);
-        Affiche('compilation de la section [init aig]',cllime);
-      end;  
-      Affiche('Attention la section [init_aig] n''est plus gérée, elle est déplacée dans la configuration des aiguillages',clWhite);
-      Affiche('Veuillez regénérer les fichiers de configuration: ',clWhite);
-      Affiche('Menu Divers/configuration bouton "Enregistrement de la configuration et fermer"',clWhite);
-    end;
-
     sa:=uppercase(verif_version_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -3542,7 +3490,6 @@ begin
   if not(trouve_NbDetDist) then s:=nb_det_dist_ch;
   if not(trouve_ipv4_PC) then s:=IpV4_PC_ch;
   if not(trouve_retro) then s:=retro_ch;
-  //if not(trouve_sec_init) and compile_init_cfg then s:=section_init;
   if not(trouve_init_aig) then s:=INIT_AIG_ch;
   if not(trouve_lay) then s:=LAY_ch;
   if not(trouve_INTER_CAR) then s:=INTER_CAR_ch;
@@ -5907,6 +5854,14 @@ var  groupe,temps,index : integer ;
 label mise0;
 begin
   //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
+  
+  index:=index_aig(adresse);
+
+  // test si pilotage aiguillage inversé
+  if (acc=aigP) and (aiguillage[index].inversionCDM=1) then
+  begin
+   if octet=1 then octet:=2 else octet:=1;
+  end;
 
   // pilotage par CDM rail -----------------
   if CDM_connecte then
@@ -5926,13 +5881,6 @@ begin
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
-    // test si pilotage aiguillage inversé
-    index:=index_aig(adresse);
-    if (acc=aigP) and (aiguillage[index].inversion=1) then
-    begin
-      if octet=1 then octet:=2 else octet:=1;
-    end;
-
     if (octet=0) or (octet>2) then exit;
 
     groupe:=(adresse-1) div 4;

@@ -62,6 +62,9 @@ version 3.1  : Renforcement de la vérification de la configuration.
                Correction d'un bug sur l'affichage des rappels de ralentissement non présentés.
                Correction d'un bug sur certains évènements aiguillages.
                Correction d'un bug sur présence train avant signal sur aiguille en talon mal positionnée.
+version 3.2  : Correction bug cohérence signal unisemaf.
+             : Simplification des aiguillages pilotés inversés
+
 
 
 
