@@ -1,5 +1,5 @@
 object FormPrinc: TFormPrinc
-  Left = 13
+  Left = 15
   Top = 175
   Width = 1212
   Height = 664

@@ -64,6 +64,8 @@ version 3.1  : Renforcement de la vérification de la configuration.
                Correction d'un bug sur présence train avant signal sur aiguille en talon mal positionnée.
 version 3.2  : Correction bug cohérence signal unisemaf.
              : Simplification des aiguillages pilotés inversés
+version 3.3  : Gestion du décodeur de signaux Stéphane Ravaut
+
 
 
 

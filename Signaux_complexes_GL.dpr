@@ -9,7 +9,8 @@ uses
   UnitSimule in 'UnitSimule.pas' {FormSimulation},
   UnitTCO in 'UnitTCO.pas' {FormTCO},
   UnitConfig in 'UnitConfig.pas' {FormConfig},
-  UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO};
+  UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO},
+  UnitSR in '..\macro fichier\UnitSR.pas' {FormSR};
 
 {$R *.res}
 
@@ -22,5 +23,6 @@ begin
   Application.CreateForm(TFormConfig, FormConfig);
   Application.CreateForm(TFormConfigTCO, FormConfigTCO);
   Application.CreateForm(TFormVersion, FormVersion);
+  Application.CreateForm(TFormSR, FormSR);
   Application.Run;
 end.

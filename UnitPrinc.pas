@@ -198,8 +198,11 @@ Max_Simule=10000;
 
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
-NbDecodeur = 7;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf');
+NbDecodeur = 8;
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR');
+Etats : array[0..19] of string[30]=('Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
+           'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
+           'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
 
 type 
 Taccessoire   = (aigP,feu);
@@ -278,6 +281,9 @@ TBranche = record
                                                Adresse : integer;    // aiguillage
                                                posAig : char;
                                                end;
+                 SR : array[1..8] of record             // décodeur Stéphane Ravaut
+                                       sortie1,sortie0 : integer;
+                                     end;  
                end;
 
           
@@ -421,8 +427,25 @@ begin
   StatusBar1.Simpletext:=Application.Hint;
 end;
 
+// fonctions sur les bits
+function testBit(n : word;position : integer) : boolean;
+begin
+  testBit:=n and (1 shl position) = (1 shl position);
+end;
+
+Function RazBit(n : word;position : integer) : word;
+begin
+  RazBit:=n and not(1 shl position);
+end;
+
+Function SetBit(n : word;position : integer) : word;
+begin
+  SetBit:=n or (1 shl position);
+end;
+
 // renvoie le 1er numéro de bit à 1
-// ex BitNum(4)=2
+// PremBitNum(1)=0
+// PremBitNum(4)=2
 Function PremBitNum(n : word) : integer;
 var i : integer;
     trouve : boolean;
@@ -436,6 +459,7 @@ begin
   PremBitNum:=i;
 end;
 
+
 // conversion du motif de bits (codebin) de la configuration du signal complexe en deux mots:
 // en sortie :
 // premierBit : code de la signalisation
@@ -445,6 +469,47 @@ procedure code_to_aspect(codebin : word;var premierbit,combine : word) ;
 begin
   premierBit:=PremBitNum(CodeBin and $3ff);
   combine:=PremBitNum(CodeBin and $fc00);
+end;
+
+// conversion d'un état signal binaire en état unique
+// exemple code_to_etat(10001000000000) (jaune_cli et rappel 60) renvoie 19
+function code_to_etat(code : word) : integer;
+var aspect,combine : word;    
+begin
+  code_to_aspect(code,aspect,combine);
+  result:=9999;
+  if aspect=0 then result:=1; // carré
+  if aspect=1 then result:=2; // sémaphore
+  if aspect=2 then result:=3; // sémaphore cli
+  if aspect=3 then result:=4; // vert
+  if aspect=4 then result:=5; // vert cli
+  if aspect=5 then result:=6; // violet
+  if aspect=6 then result:=7; // blanc
+  if aspect=7 then result:=8; // blanc cli
+  if aspect=8 then result:=9; // jaune
+  if aspect=9 then result:=10; // jaune cli
+  
+  if aspect=16 then
+  begin
+    if combine=10 then result:=11; // ralen 30
+    if combine=11 then result:=12; // ralen 60
+    if combine=12 then result:=14; // rappel 30
+    if combine=13 then result:=15; // rappel 60           
+  end
+  else
+  begin
+    if (aspect=9) and (combine=11) then result:=13;   //ralen 60 + jaune cli
+    if (aspect=8) and (combine=12) then result:=16;   //rappel 30 + jaune
+    if (aspect=9) and (combine=12) then result:=17;   //rappel 30 + jaune cli
+    if (aspect=8) and (combine=13) then result:=18;   //rappel 60 + jaune
+    if (aspect=9) and (combine=13) then result:=19;   //rappel 60 + jaune cli
+  end;  
+  code_to_etat:=result;  
+  {'Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
+           'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
+               7        8         9         10         11          12               13               14         15   
+           'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
+                     16                  17                      18                   19     }
 end;
 
 
@@ -1593,21 +1658,6 @@ begin
   end;
 end;
 
-// fonctions sur les bits
-function testBit(n : word;position : integer) : boolean;
-begin
-  testBit:=n and (1 shl position) = (1 shl position);
-end;
-
-Function RazBit(n : word;position : integer) : word;
-begin
-  RazBit:=n and not(1 shl position);
-end;
-
-Function SetBit(n : word;position : integer) : word;
-begin
-  SetBit:=n or (1 shl position);
-end;
 
 // renvoie la chaîne de l'état du signal
 function chaine_signal(etat : word) : string;
@@ -1819,6 +1869,51 @@ begin
     if (Combine=rappel_30) then pilote_acc(adresse+2,2,feu) ; // allumer rappel 30
   end;
 end;
+
+{==========================================================================
+envoie les données au décodeur SR
+===========================================================================*}
+procedure envoi_SR(adresse : integer);
+var 
+  code,aspect,combine : word;
+  index,i,etat : integer;
+  s : string;
+begin
+  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  begin
+    ancien_tablo_signalCplx[adresse]:=EtatSignalCplx[adresse];
+    code:=EtatSignalCplx[adresse];
+    //code_to_aspect(code,aspect,combine);
+    s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+    index:=index_feu(adresse);                    
+    etat:=code_to_etat(code);
+          
+    //Affiche('Code a chercher='+IntToSTR(etat),clyellow);
+
+    inc(aspect);
+    if index<>0 then
+    begin
+      i:=0;
+      repeat
+        inc(i);                                   
+      until (feux[index].SR[i].sortie1=etat) or (feux[index].SR[i].sortie0=etat) or (i=8);
+
+      if (feux[index].SR[i].sortie1=etat) then 
+      begin
+        //affiche('trouvé en sortie1 index '+IntToSTR(i),clyellow);
+        Pilote_acc(adresse+i-1,2,feu);
+      end;  
+      if (feux[index].SR[i].sortie0=etat) then 
+      begin
+        //affiche('trouvé en sortie0 index '+IntToSTR(i),clyellow);
+        Pilote_acc(adresse+i-1,1,feu);
+      end;  
+    end; 
+  end;
+end;
+
 
 {==========================================================================
 envoie les données au décodeur LEB
@@ -2403,6 +2498,7 @@ begin
        4 : envoi_LEB(Adr);
        5 : envoi_NMRA(Adr);
        6 : envoi_UniSemaf(Adr);
+       7 : envoi_SR(Adr);
       end;
 
       // vérifier si on quitte le rouge
@@ -3035,6 +3131,7 @@ begin
   repeat
     inc(Nligne);
     s:=lit_ligne;
+    //affiche(s,clyellow);
     ici3:         
     if s<>'0' then 
     begin 
@@ -7652,6 +7749,15 @@ begin
         inc(l);
         if nc>0 then s:=s+'/';
       until (nc<=0) or (l>6);
+
+      s:=s+' RV(';
+      for l:=1 to 8 do
+      begin
+        s:=s+intToSTR(feux[i].SR[l].sortie1)+',';
+        s:=s+intToSTR(feux[i].SR[l].sortie0);
+        if l<8 then s:=s+'/' else s:=s+')';
+      end;
+
     end
     
     else

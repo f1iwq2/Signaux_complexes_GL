@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 291
-  Top = 218
+  Left = 268
+  Top = 207
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1748,11 +1748,11 @@ object FormConfig: TFormConfig
   object Label20: TLabel
     Left = 648
     Top = 312
-    Width = 208
-    Height = 39
+    Width = 170
+    Height = 52
     Caption = 
-      'Tous les param'#232'tres doivent '#234'tre valid'#233's en appuyant sur la touc' +
-      'he ENTREE apr'#232's leur introduction/modification'
+      'Les param'#232'tres en vert doivent '#234'tre valid'#233's en appuyant sur la t' +
+      'ouche ENTREE apr'#232's leur introduction/modification'
     WordWrap = True
   end
   object ButtonAppliquerEtFermer: TButton
@@ -2486,7 +2486,7 @@ object FormConfig: TFormConfig
           Width = 33
           Height = 21
           TabOrder = 2
-          OnKeyPress = EditAdrAigKeyPress
+          OnChange = EditAdrAigChange
         end
         object ComboBoxAig: TComboBox
           Left = 8
@@ -2617,7 +2617,7 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 0
-            OnKeyPress = Edit_HGKeyPress
+            OnChange = Edit_HGChange
           end
           object EditPointe_BG: TEdit
             Left = 24
@@ -2627,13 +2627,14 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 1
-            OnKeyPress = EditPointe_BGKeyPress
+            OnChange = EditPointe_BGChange
           end
           object EditP1: TEdit
             Left = 88
             Top = 28
             Width = 33
             Height = 21
+            Color = clLime
             TabOrder = 2
             OnKeyPress = EditP1KeyPress
           end
@@ -2642,6 +2643,7 @@ object FormConfig: TFormConfig
             Top = 48
             Width = 33
             Height = 21
+            Color = clLime
             TabOrder = 3
             OnKeyPress = EditP2KeyPress
           end
@@ -2650,6 +2652,7 @@ object FormConfig: TFormConfig
             Top = 22
             Width = 33
             Height = 21
+            Color = clLime
             TabOrder = 4
             OnKeyPress = EditP3KeyPress
           end
@@ -2658,6 +2661,7 @@ object FormConfig: TFormConfig
             Top = 44
             Width = 33
             Height = 21
+            Color = clLime
             TabOrder = 5
             OnKeyPress = EditP4KeyPress
           end
@@ -2669,7 +2673,7 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 6
-            OnKeyPress = EditDevie_HDKeyPress
+            OnChange = EditDevie_HDChange
           end
           object EditDroit_BD: TEdit
             Left = 232
@@ -2679,13 +2683,14 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 7
-            OnKeyPress = EditDroit_BDKeyPress
+            OnChange = EditDroit_BDChange
           end
           object EditDevieS2: TEdit
             Left = 232
             Top = 68
             Width = 33
             Height = 21
+            Color = clLime
             TabOrder = 8
             OnKeyPress = EditDevieS2KeyPress
           end
@@ -2720,7 +2725,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 6
           Visible = False
-          OnKeyPress = EditAigTripleKeyPress
+          OnChange = EditAigTripleChange
         end
         object GroupBox21: TGroupBox
           Left = 8
@@ -2749,7 +2754,7 @@ object FormConfig: TFormConfig
             Width = 41
             Height = 21
             TabOrder = 0
-            OnKeyPress = EditTempo10KeyPress
+            OnChange = EditTempo10Change
           end
           object ComboBoxDD: TComboBox
             Left = 160
@@ -3046,7 +3051,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3056,6 +3061,7 @@ object FormConfig: TFormConfig
           Width = 41
           Height = 21
           TabOrder = 3
+          OnChange = EditDet1Change
           OnKeyPress = EditDet1KeyPress
         end
         object EditSuiv1: TEdit
@@ -3066,6 +3072,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
+          OnChange = EditSuiv1Change
           OnKeyPress = EditSuiv1KeyPress
         end
         object EditDet2: TEdit
@@ -3074,6 +3081,7 @@ object FormConfig: TFormConfig
           Width = 41
           Height = 21
           TabOrder = 5
+          OnChange = EditDet2Change
           OnKeyPress = EditDet2KeyPress
         end
         object EditSuiv2: TEdit
@@ -3084,6 +3092,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 6
+          OnChange = EditSuiv2Change
           OnKeyPress = EditSuiv2KeyPress
         end
         object EditDet3: TEdit
@@ -3092,6 +3101,7 @@ object FormConfig: TFormConfig
           Width = 41
           Height = 21
           TabOrder = 7
+          OnChange = EditDet3Change
           OnKeyPress = EditDet3KeyPress
         end
         object EditSuiv3: TEdit
@@ -3102,6 +3112,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 8
+          OnChange = EditSuiv3Change
           OnKeyPress = EditSuiv3KeyPress
         end
         object EditDet4: TEdit
@@ -3110,6 +3121,7 @@ object FormConfig: TFormConfig
           Width = 41
           Height = 21
           TabOrder = 9
+          OnChange = EditDet4Change
           OnKeyPress = EditDet4KeyPress
         end
         object EditSuiv4: TEdit
@@ -3120,6 +3132,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 10
+          OnChange = EditSuiv4Change
           OnKeyPress = EditSuiv4KeyPress
         end
         object CheckVerrouCarre: TCheckBox
@@ -3143,6 +3156,7 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 0
           Text = ' '
+          OnChange = EditAdrSigChange
           OnKeyPress = EditAdrSigKeyPress
         end
         object ComboBoxAsp: TComboBox
@@ -3173,11 +3187,12 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 14
           Visible = False
+          OnChange = EditSpecUniChange
           OnKeyPress = EditSpecUniKeyPress
         end
         object Buttonrestaure: TButton
           Left = 8
-          Top = 216
+          Top = 200
           Width = 75
           Height = 25
           Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
@@ -3195,6 +3210,15 @@ object FormConfig: TFormConfig
           Caption = 'Avec demande feu blanc'
           TabOrder = 15
           OnClick = CheckBoxFBClick
+        end
+        object ButtonConfigSR: TButton
+          Left = 8
+          Top = 232
+          Width = 75
+          Height = 25
+          Caption = 'Configuration'
+          TabOrder = 16
+          OnClick = ButtonConfigSRClick
         end
       end
       object RichSig: TRichEdit
@@ -3275,8 +3299,8 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object GroupBoxPN: TGroupBox
-          Left = 16
-          Top = 16
+          Left = 8
+          Top = 24
           Width = 225
           Height = 289
           Caption = 'Actionneurs gestion passage '#224' niveau'
@@ -3444,7 +3468,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxRadio: TGroupBox
           Left = 16
-          Top = 72
+          Top = 40
           Width = 225
           Height = 65
           Caption = 'Type d'#39'actionneur '
@@ -3469,8 +3493,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 48
-          Top = 176
+          Left = 40
+          Top = 248
           Width = 225
           Height = 225
           Caption = 'Actionneur fonction de locomotive '
