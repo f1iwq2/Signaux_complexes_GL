@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 15
-  Top = 175
+  Left = 60
+  Top = 181
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1674,13 +1674,6 @@ object FormPrinc: TFormPrinc
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's'
       OnClick = Proprits1Click
-    end
-    object N7: TMenuItem
-      Caption = '-'
-    end
-    object Nouveaufeu1: TMenuItem
-      Caption = 'Nouveau feu'
-      OnClick = Nouveaufeu1Click
     end
   end
 end

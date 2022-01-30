@@ -260,7 +260,7 @@ type
 const
   
   ZoomMax=50;
-  MaxCellX=100;MaxCellY=50;
+  MaxCellX=150;MaxCellY=70;
 
 
 type  

@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='3.3';  // sert à la comparaison de la version publiée
+Const  Version='3.4';  // sert à la comparaison de la version publiée
        SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
@@ -150,11 +150,12 @@ begin
         // commentaire en gras
         if zone_comm then
         begin
-          i:=pos('bold">',s)+6;i2:=posEx('<br />',s,i+1);
+          i:=pos('bold">',s)+6;i2:=posEx('<br />',s,i+1); i3:=posEx('</span>',s,i+1) ;
           if i<>6 then
           begin
             //Affiche(s,clred);
             inc(ncomm);
+            if i3<i2 then i2:=i3;
             comm[ncomm]:=UTF8Decode(copy(s,i,i2-i));
             Delete(s,1,i2-1);
             j:=0;
@@ -211,8 +212,8 @@ begin
         if (V_utile<V_publie) or 
            ((V_utile=V_publie) and (SousVersion<SV_publie)) then
         begin
-          FormVersion.Top:=1;
-          FormVersion.Left:=1;
+          FormVersion.Top:=10;
+          FormVersion.Left:=10;
           FormVersion.show;
           //aff(s3);               // url dans s3
           s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;

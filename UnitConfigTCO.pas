@@ -37,6 +37,8 @@ type
     ImageTexte: TImage;
     Label11: TLabel;
     Label12: TLabel;
+    LabelMaxX: TLabel;
+    LabelMaxY: TLabel;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -238,6 +240,8 @@ begin
   EditNbCellX.Text:=IntToSTR(NbreCellX);
   EditNbCellY.Text:=IntToSTR(NbreCellY);
   checkDessineGrille.Checked:=AvecGrille;
+  labelMaxX.caption:='Max='+intToSTR(MaxCellX);
+  labelMaxY.caption:='Max='+intToSTR(MaxCellY);
   dessine_icones;
 end;
 
@@ -312,6 +316,8 @@ procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
    SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
+
+
 
 
 end.

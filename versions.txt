@@ -63,8 +63,12 @@ version 3.1  : Renforcement de la vérification de la configuration.
                Correction d'un bug sur certains évènements aiguillages.
                Correction d'un bug sur présence train avant signal sur aiguille en talon mal positionnée.
 version 3.2  : Correction bug cohérence signal unisemaf.
-             : Simplification des aiguillages pilotés inversés
-version 3.3  : Gestion du décodeur de signaux Stéphane Ravaut
+             : Simplification des aiguillages pilotés inversés.
+version 3.3  : Gestion du décodeur de signaux Stéphane Ravaut.
+               Possibilité de clic droit sur feu pour accéder à ses propriétés directement.
+version 3.31 : correction d'un bug sur les suppressions de feux et rajout de feux
+version 3.4  : fusion des fichiers de configurations en un feul fichier : ConfigGenerale.cfg
+               Intégration des TJD à 2 états.
 
 
 

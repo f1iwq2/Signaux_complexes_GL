@@ -4,7 +4,7 @@ object FormConfigTCO: TFormConfigTCO
   BorderStyle = bsDialog
   Caption = 'Configuration du TCO'
   ClientHeight = 264
-  ClientWidth = 618
+  ClientWidth = 665
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -31,14 +31,14 @@ object FormConfigTCO: TFormConfigTCO
   end
   object Label3: TLabel
     Left = 16
-    Top = 56
+    Top = 60
     Width = 156
     Height = 13
     Caption = 'Nombre de cellules en horizontal:'
   end
   object Label4: TLabel
     Left = 16
-    Top = 80
+    Top = 84
     Width = 145
     Height = 13
     Caption = 'Nombre de cellules en vertical:'
@@ -49,8 +49,22 @@ object FormConfigTCO: TFormConfigTCO
     Width = 3
     Height = 13
   end
+  object LabelMaxX: TLabel
+    Left = 235
+    Top = 60
+    Width = 53
+    Height = 13
+    Caption = 'LabelMaxX'
+  end
+  object LabelMaxY: TLabel
+    Left = 235
+    Top = 84
+    Width = 53
+    Height = 13
+    Caption = 'LabelMaxY'
+  end
   object ButtonOK: TButton
-    Left = 168
+    Left = 216
     Top = 224
     Width = 75
     Height = 25
@@ -108,7 +122,7 @@ object FormConfigTCO: TFormConfigTCO
     Text = 'EditNbCellY'
   end
   object GroupBox1: TGroupBox
-    Left = 256
+    Left = 304
     Top = 8
     Width = 353
     Height = 233
@@ -216,7 +230,7 @@ object FormConfigTCO: TFormConfigTCO
   object Memo1: TMemo
     Left = 8
     Top = 128
-    Width = 241
+    Width = 281
     Height = 81
     BevelInner = bvLowered
     BevelKind = bkFlat
