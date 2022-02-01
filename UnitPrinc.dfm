@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 60
-  Top = 181
+  Left = 82
+  Top = 118
   Width = 1212
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1560,7 +1560,7 @@ object FormPrinc: TFormPrinc
       Caption = 'Interface'
       object MenuConnecterUSB: TMenuItem
         Caption = 'Connecter l'#39'interface XpressNet en USB'
-        Hint = 'Connecter l'#39'interface en USB'
+        Hint = 'Connecter l'#39'interface en USB (mode autonome)'
         OnClick = MenuConnecterUSBClick
       end
       object DeconnecterUSB: TMenuItem

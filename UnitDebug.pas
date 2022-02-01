@@ -52,6 +52,8 @@ type
     ButtonRazTout: TButton;
     EditDebugSignal: TEdit;
     CheckBoxTiers: TCheckBox;
+    ButtonSimuAct0: TButton;
+    ButtonSimuAct1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -82,6 +84,8 @@ type
     procedure MemoEvtDetChange(Sender: TObject);
     procedure EditDebugSignalChange(Sender: TObject);
     procedure CheckBoxTiersClick(Sender: TObject);
+    procedure ButtonSimuAct1Click(Sender: TObject);
+    procedure ButtonSimuAct0Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -441,6 +445,27 @@ begin
   end;
 end;
 
+
+procedure TFormDebug.ButtonSimuAct1Click(Sender: TObject);
+var det,erreur : integer;
+begin
+  val(EditSimuDet.Text,det,erreur);
+  if erreur=0 then
+  begin
+    Event_Act(det,1,'');
+  end;
+end;
+
+procedure TFormDebug.ButtonSimuAct0Click(Sender: TObject);
+var det,erreur : integer;
+begin
+  val(EditSimuDet.Text,det,erreur);
+  if erreur=0 then
+  begin
+    Event_Act(det,0,'');
+  end;
+end;
+
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
 begin
   Raz_tout;
@@ -466,5 +491,10 @@ procedure TFormDebug.CheckBoxTiersClick(Sender: TObject);
 begin
   AffTiers:=checkBoxTiers.checked;
 end;
+
+
+
+
+
 
 end.

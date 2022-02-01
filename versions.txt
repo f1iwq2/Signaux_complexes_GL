@@ -69,6 +69,12 @@ version 3.3  : Gestion du décodeur de signaux Stéphane Ravaut.
 version 3.31 : correction d'un bug sur les suppressions de feux et rajout de feux
 version 3.4  : fusion des fichiers de configurations en un feul fichier : ConfigGenerale.cfg
                Intégration des TJD à 2 états.
+version 3.5  : Les actions "fonctions F, accessoires, sons" sur actionneurs sont possibles depuis les détecteurs.
+               Possibilité de jouer des sons sur un évènement actionneur/détecteur.
+               Correction d'un bug sur le lancement de CDM en 32 bits.
+               Correction des messages d'erreurs et de nombre de trains en mode "config nulle".
+
+
 
 
 

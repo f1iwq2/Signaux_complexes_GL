@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 268
-  Top = 207
+  Left = 281
+  Top = 124
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 457
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2581,7 +2581,10 @@ object FormConfig: TFormConfig
             Top = 24
             Width = 65
             Height = 17
+            Hint = 'TJD '#224' 1 moteur'
             Caption = '2 '#233'tats'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 0
             OnClick = RadioButtonTJD2Click
           end
@@ -2590,7 +2593,10 @@ object FormConfig: TFormConfig
             Top = 40
             Width = 65
             Height = 17
+            Hint = 'TJD '#224' 2 moteurs'
             Caption = '4 '#233'tats'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 1
             OnClick = RadioButtonTJD4Click
           end
@@ -2876,7 +2882,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3085,7 +3091,7 @@ object FormConfig: TFormConfig
       end
     end
     object TabSheetAct: TTabSheet
-      Caption = 'Actionneurs'
+      Caption = 'Actionneurs/D'#233'tecteurs'
       ImageIndex = 5
       object Label16: TLabel
         Left = 0
@@ -3105,12 +3111,12 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object Label40: TLabel
           Left = 16
-          Top = 344
+          Top = 328
           Width = 222
-          Height = 26
+          Height = 39
           Caption = 
-            'Les actionneurs ne sont utilisables qu'#39'en mode connect'#233' avec CDM' +
-            ' Rail'
+            'Les actionneurs ne sont utilisables qu'#39'en mode RUN avec CDM Rail' +
+            '. Les d'#233'tecteurs sont utilisables en mode autonome.'
           WordWrap = True
         end
         object GroupBoxPN: TGroupBox
@@ -3283,9 +3289,9 @@ object FormConfig: TFormConfig
         end
         object GroupBoxRadio: TGroupBox
           Left = 16
-          Top = 40
+          Top = 24
           Width = 225
-          Height = 65
+          Height = 81
           Caption = 'Type d'#39'actionneur '
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
@@ -3306,10 +3312,19 @@ object FormConfig: TFormConfig
             TabOrder = 1
             OnClick = RadioButtonAccessClick
           end
+          object RadioButtonSon: TRadioButton
+            Left = 24
+            Top = 56
+            Width = 161
+            Height = 17
+            Caption = 'Son'
+            TabOrder = 2
+            OnClick = RadioButtonSonClick
+          end
         end
         object GroupBoxAct: TGroupBox
-          Left = 64
-          Top = 112
+          Left = 16
+          Top = 80
           Width = 225
           Height = 225
           Caption = 'Actionneur fonction de locomotive '
@@ -3322,14 +3337,15 @@ object FormConfig: TFormConfig
             Caption = 'D'#233'clencheur '
             TabOrder = 0
             object LabelActionneur: TLabel
-              Left = 32
-              Top = 24
-              Width = 51
-              Height = 13
-              Caption = 'Actionneur'
+              Left = 16
+              Top = 16
+              Width = 54
+              Height = 26
+              Caption = 'Actionneur D'#233'tecteurZ'
+              WordWrap = True
             end
             object Label30: TLabel
-              Left = 152
+              Left = 136
               Top = 24
               Width = 6
               Height = 13
@@ -3337,23 +3353,25 @@ object FormConfig: TFormConfig
             end
             object LabelTrain: TLabel
               Left = 56
-              Top = 46
+              Top = 54
               Width = 24
               Height = 13
               Caption = 'Train'
             end
             object EditAct: TEdit
-              Left = 96
+              Left = 88
               Top = 20
-              Width = 49
+              Width = 41
               Height = 21
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 0
               OnChange = EditActChange
             end
             object EditEtatActionneur: TEdit
-              Left = 168
+              Left = 152
               Top = 20
-              Width = 25
+              Width = 17
               Height = 21
               TabOrder = 1
               OnChange = EditEtatActionneurChange
@@ -3403,6 +3421,33 @@ object FormConfig: TFormConfig
               Height = 13
               Caption = #224
             end
+            object LabelNomSon: TLabel
+              Left = 16
+              Top = 24
+              Width = 91
+              Height = 13
+              Caption = 'Nom du fichier son:'
+            end
+            object SpeedButtonJoue: TSpeedButton
+              Left = 88
+              Top = 64
+              Width = 41
+              Height = 33
+              Flat = True
+              Glyph.Data = {
+                4E010000424D4E010000000000003E0000002800000022000000220000000100
+                010000000000100100000000000000000000020000000000000000000000FFFF
+                FF00FFFFFFFFC0000000FFFFFFFFC0000000FFFFFFFFC0000000C0000000C000
+                0000800000004000000000000000000000001FFFFFFE000000003FFFFFFF0000
+                00003FFFFFFF000000003FFFFFFF000000003FF8FFFF000000003FF03FFF0000
+                00003FF00FFF000000003FF303FF000000003FF3C0FF000000003FF3F07F0000
+                00003FF3FC7F000000003FF3FC7F000000003FF3E07F000000003FF381FF0000
+                00003FF207FF000000003FF01FFF000000003FF07FFF000000003FF9FFFF0000
+                00003FFFFFFF000000003FFFFFFF000000003FFFFFFF000000001FFFFFFE0000
+                000000000000000000008000000040000000C0000000C0000000FFFFFFFFC000
+                0000FFFFFFFFC0000000FFFFFFFFC0000000}
+              OnClick = SpeedButtonJoueClick
+            end
             object EditTempo: TEdit
               Left = 112
               Top = 46
@@ -3439,6 +3484,14 @@ object FormConfig: TFormConfig
               TabOrder = 3
               OnChange = EditEtatFoncSortieChange
             end
+            object EditSon: TEdit
+              Left = 16
+              Top = 40
+              Width = 177
+              Height = 21
+              TabOrder = 4
+              OnChange = EditSonChange
+            end
           end
         end
       end
@@ -3447,7 +3500,7 @@ object FormConfig: TFormConfig
         Top = 32
         Width = 345
         Height = 185
-        Caption = 'Actionneurs locomotives ou accessoires'
+        Caption = 'Actionneurs/d'#233'tecteurs locomotives ou accessoires'
         TabOrder = 1
         object ButtonNouvAcc: TButton
           Left = 8

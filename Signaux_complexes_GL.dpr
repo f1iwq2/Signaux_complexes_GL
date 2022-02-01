@@ -10,7 +10,7 @@ uses
   UnitTCO in 'UnitTCO.pas' {FormTCO},
   UnitConfig in 'UnitConfig.pas' {FormConfig},
   UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO},
-  UnitSR in '..\macro fichier\UnitSR.pas' {FormSR};
+  UnitSR in 'UnitSR.pas' {FormSR};
 
 {$R *.res}
 

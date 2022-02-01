@@ -501,7 +501,7 @@ object FormDebug: TFormDebug
     object EditSimuDet: TEdit
       Left = 8
       Top = 16
-      Width = 73
+      Width = 41
       Height = 21
       Hint = 'Adresse d'#39'un d'#233'tecteur'
       ParentShowHint = False
@@ -509,7 +509,7 @@ object FormDebug: TFormDebug
       TabOrder = 0
     end
     object ButtonSimuDet0: TButton
-      Left = 120
+      Left = 48
       Top = 16
       Width = 75
       Height = 25
@@ -518,13 +518,31 @@ object FormDebug: TFormDebug
       OnClick = ButtonSimuDet0Click
     end
     object ButtonSimuDet1: TButton
-      Left = 232
+      Left = 120
       Top = 16
       Width = 75
       Height = 25
       Caption = 'D'#233'tecteur '#224' 1'
       TabOrder = 2
       OnClick = ButtonSimuDet1Click
+    end
+    object ButtonSimuAct0: TButton
+      Left = 192
+      Top = 16
+      Width = 75
+      Height = 25
+      Caption = 'Actionneur '#224' 0'
+      TabOrder = 3
+      OnClick = ButtonSimuAct0Click
+    end
+    object ButtonSimuAct1: TButton
+      Left = 264
+      Top = 16
+      Width = 75
+      Height = 25
+      Caption = 'Actionneur '#224' 1'
+      TabOrder = 4
+      OnClick = ButtonSimuAct1Click
     end
   end
   object ButtonRazTout: TButton

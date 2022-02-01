@@ -16,7 +16,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB   ;
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem   ;
 
 type
   TFormPrinc = class(TForm)
@@ -320,11 +320,12 @@ var
   MemZone : array[0..1024,0..1024] of boolean ; // mémoires de zones des détecteurs
   Tablo_actionneur : array[1..100] of
   record
-    loco,act : boolean;   // type loco ou actionneur
-    actionneur,etat,fonction,tempo,
+    loco,act,son : boolean;   // type loco actionneur ou son
+    adresse,etat,fonction,tempo,
     accessoire,sortie : integer;
     Raz : boolean;
-    train : string;
+    det : boolean; // désigne un détecteur
+    FichierSon,train : string;
   end;
   KeyInputs: array of TInput;
   Tablo_PN : array[1..20] of
@@ -395,6 +396,7 @@ function PresTrainPrec(AdrFeu : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse : integer) : boolean;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
+procedure Event_act(adr,etat : integer;train : string);
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
 function Select_dessin_feu(TypeFeu : integer) : TBitmap;
 procedure cree_image(rang : integer);
@@ -1251,7 +1253,7 @@ begin
   P_image_pilote:=Sender as TImage;  // récupérer l'objet image de la forme pilote
   s:=P_Image_pilote.Hint;
   //Affiche(s,clyellow);
-  i:=pos('@',s);  if i<>0 then delete(s,i,1);
+  i:=pos('@',s);  if i<>0 then delete(s,1,i);
   i:=pos('=',s);  if i<>0 then delete(s,i,1);
   i:=pos(' ',s);
   if i<>0 then s:=copy(s,1,i-1);
@@ -4785,40 +4787,51 @@ end;
 // traitement des évènements actionneurs
 procedure Event_act(adr,etat : integer;train : string);
 var i,v,va,etatAct,Af,Ao,Access,sortie : integer;
-    s : string;
+    s,st : string;
     presTrain_PN : boolean;
     Ts : TAccessoire;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
-  if AffActionneur then Affiche('Actionneur '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
-    
+  if AffActionneur then AfficheDebug('Act/Det '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
+
   for i:=1 to maxTablo_act do
   begin
     s:=Tablo_actionneur[i].train;
     etatAct:=Tablo_actionneur[i].etat ;
+    if Tablo_actionneur[i].det then st:='Détecteur ' else st:='Actionneur ';
+
     // actionneur pour fonction train
-    if (Tablo_actionneur[i].actionneur=adr) and (Tablo_actionneur[i].fonction<>0) and ((s=train) or (s='X')) and (etatAct=etat) then
+    if (Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].loco) and ((s=train) or (s='X')) and (etatAct=etat) then
     begin
-      Affiche('Actionneur '+intToSTR(adr)+' Train='+train+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
-      // exécutione la fonction F vers CDM
+      Affiche(st+intToSTR(adr)+' Train='+train+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
+      // exécution de la fonction F vers CDM
       envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,train);
       TempoAct:=tablo_actionneur[i].Tempo div 100;
       RangActCours:=i;
     end;
+
     // actionneur pour accessoire
-    if (Tablo_actionneur[i].actionneur=adr) and (Tablo_actionneur[i].accessoire<>0) and ((s=train) or (s='X')) and (etatAct=etat) then
+    if (Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].act) and ((s=train) or (s='X')) and (etatAct=etat) then
     begin
       access:=Tablo_actionneur[i].accessoire;
       sortie:=Tablo_actionneur[i].sortie;
-      
-      Affiche('Actionneur '+intToSTR(adr)+' Train='+train+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
+
+      Affiche(st+intToSTR(adr)+' Train='+train+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
       // exécution la fonction accessoire vers CDM
       if Tablo_actionneur[i].RAZ then Ts:=aigP else Ts:=Feu;
       pilote_acc(access,sortie,Ts); // sans RAZ
-      RangActCours:=i;           
+      RangActCours:=i;
+    end;
+
+    // actionneur pour son
+    if (Tablo_actionneur[i].adresse=adr)  and (Tablo_actionneur[i].Son) and ((s=train) or (s='X')) and (etatAct=etat)
+    then
+    begin
+      Affiche(st+intToSTR(adr)+' Train='+train+' son '+Tablo_actionneur[i].FichierSon,clyellow);
+      sndPlaySound(pchar(Tablo_actionneur[i].FichierSon),SND_ASYNC);
     end;
   end;
-  
+
   // dans le tableau des PN
   for i:=1 to NbrePN do
   begin
@@ -4869,7 +4882,7 @@ begin
   end;
 end;  
 
-// traitement sur les évènements détecteurs 
+// traitement sur les évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
 var i,AdrSuiv,AdrFeu,AdrDetfeu,index,Etat01,AdrPrec : integer;
     typeSuiv : tequipement;
@@ -4896,8 +4909,8 @@ begin
     s:='Tick='+IntToSTR(tick)+' Evt Det='+IntToSTR(adresse)+'='+intToSTR(etat01);
     Affiche(s,clyellow);
     if not(TraceListe) then AfficheDebug(s,clyellow);
-  end;  
- 
+  end;
+
   ancien_detecteur[Adresse]:=detecteur[Adresse].etat;
   detecteur[Adresse].etat:=etat;
   detecteur[Adresse].train:=train;
@@ -4921,6 +4934,7 @@ begin
   begin
     // explorer les feux pour déverrouiller les feux dont le trajets viennent d'un buttoir pour changer le feu qd un train se présente
     // sur le détecteur
+    if not(confignulle) then
     for i:=1 to NbreFeux do
     begin
       AdrFeu:=Feux[i].Adresse;
@@ -4939,6 +4953,9 @@ begin
         end;
       end;
     end;
+    // gérer l'évènement detecteur pour action
+    if etat then i:=1 else i:=0;
+    event_act(Adresse,i,train);
   end;
 
   // détection fronts descendants
@@ -4967,7 +4984,10 @@ begin
         end;
       end;
       premierFD:=True;
-      calcul_zones;
+      // gérer l'évènement detecteur pour action
+      if etat then i:=1 else i:=0;
+      event_act(Adresse,i,train);
+      if not(confignulle) then calcul_zones;
     end;
   end;
 
@@ -5041,7 +5061,7 @@ begin
   if AvecTCO then formTCO.Maj_TCO(Adresse);
 
   // l'évaluation des routes est à faire selon conditions
-  if faire_event then evalue;
+  if faire_event and not(confignulle) then evalue;
 end;
 
 // pilote une sortie à 0  dont l'adresse est à octet
@@ -5662,22 +5682,21 @@ begin
     exit;
   end;
 
-  Affiche('Lancement de CDM '+lay,clyellow);
+
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
   if ShellExecute(Formprinc.Handle,'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
                     Pchar('-f '+lay),  // paramètre
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL)>32 then 
+                    ,SW_SHOWNORMAL)>32 then
                     begin
                       cdm_lanceLoc:=true;
-                      //Affiche('lancé1',clyellow);
-                    end;  
+                      Affiche('Lancement de CDM 64 '+lay,clyellow);
+                    end;
 
   if not(cdm_lanceLoc) then
   begin
     // si çà marche pas essayer depuis le répertoire de base sur un OS32
-    Affiche('2eme lancement',clyellow);
     if ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files\CDM-Rail\cdr.exe'),
                     Pchar('-f '+lay),  // paramètre
@@ -5687,7 +5706,8 @@ begin
       ShowMessage('répertoire CDM rail introuvable');
       lance_CDM:=false;exit;
     end;
-    cdm_lanceLoc:=false;
+    cdm_lanceLoc:=true;
+    Affiche('Lancement de CDM 32 '+lay,clyellow);
   end;
 
   if cdm_lanceLoc then
@@ -6113,7 +6133,7 @@ begin
     dec(tempoAct);
     if tempoAct=0 then
     begin
-      A:=Tablo_actionneur[RangActCours].actionneur;
+      A:=Tablo_actionneur[RangActCours].adresse;
       s:=Tablo_actionneur[RangActCours].train;
       Affiche('Actionneur '+intToSTR(a)+' F'+IntToSTR(Tablo_actionneur[RangActCours].fonction)+':0',clyellow);
       envoie_fonction_CDM(Tablo_actionneur[RangActCours].fonction,0,s);
@@ -7072,6 +7092,7 @@ end;
 
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
 var i,adract,etatAct,fonction,v,acc,sortie : integer;
+    son : boolean;
     s,s2 : string;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
@@ -7085,20 +7106,24 @@ begin
   begin
     s:=Tablo_actionneur[i].train;
     etatAct:=Tablo_actionneur[i].etat ;
-    AdrAct:=Tablo_actionneur[i].actionneur;
+    AdrAct:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].train;
     acc:=Tablo_actionneur[i].accessoire;
     sortie:=Tablo_actionneur[i].sortie;
     fonction:=Tablo_actionneur[i].fonction;
+    son:=Tablo_actionneur[i].son;
     if (s2<>'') then
     begin
       if fonction<>0 then
-      s:='FonctionF  Actionneur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' F'+IntToSTR(fonction)+
+      s:='FonctionF  Déclencheur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' F'+IntToSTR(fonction)+
               ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo);
-      if acc<>0 then 
-      s:='Accessoire Actionneur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' A'+IntToSTR(acc)+
+      if acc<>0 then
+      s:='Accessoire Déclencheur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+' A'+IntToSTR(acc)+
               ' sortie='+intToSTR(sortie);
-      Affiche(s,clYellow);        
+      if son then
+      s:='Son Déclencheur='+intToSTR(adrAct)+':'+intToSTR(etatAct)+' Train='+s2+'  Fichier:'+ Tablo_actionneur[i].FichierSon;
+
+      Affiche(s,clYellow);
     end;
   end;
 
@@ -7235,5 +7260,8 @@ begin
   if verif_coherence then affiche('La configuration est cohérente',clLime);
 end;
 
+
+
 begin
+
 end.

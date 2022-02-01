@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils, Unitprinc ;
+  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils, Unitprinc,
+  MMSystem, Buttons ;
 
 type
   TFormConfig = class(TForm)
@@ -233,6 +234,10 @@ type
     GroupBoxEtatTJD: TGroupBox;
     RadioButtonTJD2: TRadioButton;
     RadioButtonTJD4: TRadioButton;
+    RadioButtonSon: TRadioButton;
+    EditSon: TEdit;
+    LabelNomSon: TLabel;
+    SpeedButtonJoue: TSpeedButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -322,6 +327,9 @@ type
     procedure PageControlChange(Sender: TObject);
     procedure RadioButtonTJD2Click(Sender: TObject);
     procedure RadioButtonTJD4Click(Sender: TObject);
+    procedure RadioButtonSonClick(Sender: TObject);
+    procedure EditSonChange(Sender: TObject);
+    procedure SpeedButtonJoueClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -992,26 +1000,34 @@ begin
       end;
 end;
 
-// transforme l'actionneur type loco ou actionneur du tableau en texte
+// transforme l'actionneur type loco ou actionneur ou son du tableau en texte
 // paramètre d'entrée : index
-function encode_act_loc(i : integer): string;
+function encode_act_loc_son(i : integer): string;
 var s : string;
     adresse : integer;
 begin
   // adresse
-  adresse:=Tablo_Actionneur[i].actionneur;
+  adresse:=Tablo_Actionneur[i].adresse;
+  s:=IntToSTR(adresse);
+  if tablo_actionneur[i].det then s:=s+'Z';
+
   if Tablo_Actionneur[i].loco then
-    s:=IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',F'+IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo);
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',F'+IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo);
+
   if Tablo_Actionneur[i].act then
   begin
-    s:=IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+
        ',A'+IntToSTR(Tablo_Actionneur[i].accessoire)+','+intToSTR(Tablo_Actionneur[i].sortie)+',';
     if Tablo_Actionneur[i].Raz then s:=s+'Z' else s:=s+'S';
-  end;     
-  encode_act_loc:=s; 
+  end;
+
+  if Tablo_Actionneur[i].son then
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',"'+Tablo_Actionneur[i].FichierSon+'"';
+
+  encode_act_loc_son:=s;
 end;
 
-// encode l'actioneur PN du tableau en texte
+// encode l'actionneur PN du tableau en texte
 function encode_act_pn(i : integer) : string;
 var s : string;
     voie,NbVoies : integer;
@@ -1021,7 +1037,7 @@ begin
     NbVoies:=Tablo_PN[i].NbVoies;
     s:='';
     for voie:=1 to NbVoies do
-    begin                                    
+    begin
       s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].ActFerme)+','+intToSTR(tablo_PN[i].Voie[voie].ActOuvre)+')';
       if voie<NbVoies then s:=s+',';
     end;
@@ -1183,7 +1199,7 @@ begin
   writeln(fichierN,section_act_ch);
   for i:=1 to maxTablo_act do
   begin
-    s:=encode_act_loc(i);
+    s:=encode_act_loc_son(i);
     if s<>'' then writeln(fichierN,s);
   end;  
   
@@ -1280,19 +1296,24 @@ begin
   begin
     Tablo_actionneur[i].train:='';
     Tablo_actionneur[i].etat:=0;
-    Tablo_actionneur[i].actionneur:=0;
+    Tablo_actionneur[i].adresse:=0;
     Tablo_actionneur[i].accessoire:=0;
     Tablo_actionneur[i].sortie:=0;
-  end;  
-  
-  Affiche('Définition des actionneurs',clyellow);
+    Tablo_actionneur[i].fichierSon:='';
+    Tablo_actionneur[i].det:=false;
+    Tablo_actionneur[i].loco:=false;
+    Tablo_actionneur[i].act:=false;
+    Tablo_actionneur[i].son:=false;
+  end;
+
+  Affiche('Définition des actionneurs/détecteurs',clyellow);
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
-  
+
   // définition des actionneurs
-  repeat        
+  repeat
     s:=lit_ligne;
-    // vérifier si F ou A au 4eme champ
+    // vérifier si F ou A  ou " au 4eme champ
     sa:=s; sOrigine:=s;
     i:=pos(',',sa);
     if i>0 then delete(sa,1,i) else s:='0';
@@ -1300,20 +1321,56 @@ begin
     if i>0 then delete(sa,1,i) else s:='0';
     i:=pos(',',sa);
     if i>0 then delete(sa,1,i) else s:='0';
-    
+
     inc(Nligne);
+
+    if length(sa)>1 then if (sa[1]='"') then
+    // -----------------son
+    begin
+      Tablo_actionneur[maxtablo_act].act:=false;
+      Tablo_actionneur[maxtablo_act].son:=true;
+      Tablo_actionneur[maxtablo_act].loco:=false;
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        val(copy(s,1,i-1),j,erreur);
+        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
+        Tablo_actionneur[maxTablo_act].adresse:=j;
+        Delete(s,1,i);
+        i:=pos(',',s);
+        if i<>0 then
+        begin
+          i:=pos(',',s);
+          val(copy(s,1,i-1),j,erreur);
+          Tablo_actionneur[maxTablo_act].etat:=j;
+          Delete(s,1,i);
+
+          i:=pos(',',s);
+          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Delete(s,1,i);
+
+          i:=pos('"',s);
+          Delete(s,1,i);
+          i:=pos('"',s);
+          Tablo_actionneur[maxTablo_act].fichierSon:=copy(s,1,i-1);
+          inc(maxTablo_act);
+        end;
+      end;
+    end;
 
     if length(sa)>1 then if (sa[1]='A') then
     // -----------------accessoire
     begin
       Tablo_actionneur[maxtablo_act].act:=true;
+      Tablo_actionneur[maxtablo_act].son:=false;
       Tablo_actionneur[maxtablo_act].loco:=false;
-      
+
       i:=pos(',',s);
       if i<>0 then
       begin
         val(copy(s,1,i-1),j,erreur);
-        Tablo_actionneur[maxTablo_act].actionneur:=j;
+        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
+        Tablo_actionneur[maxTablo_act].adresse:=j;
         Delete(s,1,i);
         i:=pos(',',s);
         if i<>0 then
@@ -1349,7 +1406,7 @@ begin
               Tablo_actionneur[maxTablo_act].RAZ:=s[1]='Z';
               inc(maxTablo_act);
             end;
-            
+
           end;
           s:='';i:=0;
         end;
@@ -1362,12 +1419,15 @@ begin
     begin
       Tablo_actionneur[maxtablo_act].act:=false;
       Tablo_actionneur[maxtablo_act].loco:=true;
+      Tablo_actionneur[maxtablo_act].son:=false;
+
       // 815,1,CC406526,F2,450
       i:=pos(',',s);
       if i<>0 then
       begin
         val(copy(s,1,i-1),j,erreur);
-        Tablo_actionneur[maxTablo_act].actionneur:=j;
+        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
+        Tablo_actionneur[maxTablo_act].adresse:=j;
         Delete(s,1,i);
         i:=pos(',',s);
         if i<>0 then
@@ -1948,33 +2008,41 @@ begin
 
     // section aiguillages
     sa:=uppercase(section_aig_ch);
-    i:=pos(sa,s);
-    trouve_section_aig:=i<>0;
-    if trouve_section_aig then compile_aiguillages;
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_aig:=true;
+      compile_aiguillages;
+    end;
 
     // section branche
     sa:=uppercase(section_branches_ch);
-    i:=pos(sa,s);
-    trouve_section_branche:=i<>0;
-    if trouve_section_branche then compile_branches;
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_branche:=true;
+      compile_branches;
+    end;
 
     // section signaux
     sa:=uppercase(section_sig_ch);
-    i:=pos(sa,s);
-    trouve_section_sig:=i<>0;
-    if trouve_section_sig then compile_signaux;
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_sig:=true;
+      compile_signaux;
+    end;
 
     // section actionneurs
     sa:=uppercase(section_act_ch);
-    i:=pos(sa,s);
-    trouve_section_act:=i<>0;
-    if trouve_section_act then compile_actionneurs;
-    
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_act:=true;
+      compile_actionneurs;
+    end;
+
     inc(it);
 
-  until (eof(fichier));  
+  until (eof(fichier));
 
-end;  
+end;
 // procédure lit_config
 begin
   debugConfig:=false;
@@ -2064,9 +2132,9 @@ begin
     closeFile(fichier);
     // regénérer la config dans le fichier configgenerale.cfg
     assign(fichier,'client-gl.cfg');
-    reset(fichier);  // pour les commentaires  
+    reset(fichier);  // pour les commentaires
     genere_config; 
-                         
+
     s:='------------------------------------------------------------------------------------------------------';
     Affiche(s,clAqua);
     Affiche('AVERTISSEMENT: les fichiers de configurations ont été fusionnés dans ConfigGenerale.cfg',clAqua);
@@ -2111,6 +2179,9 @@ begin
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
   if s<>'' then affiche('ERREUR: manque variables dans '+NomConfig+' :'+s,clred);
+  if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
+  if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
+  if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
   verif_coherence;
 end;
 
@@ -2472,7 +2543,7 @@ begin
   RichAct.Clear;
   for i:=1 to maxTablo_act do
   begin
-    s:=encode_act_loc(i);
+    s:=encode_act_loc_son(i);
     if s<>'' then
     begin
       RichAct.Lines.Add(s);
@@ -2764,6 +2835,10 @@ begin
     Visible:=true;
     RadioButtonLoc.Checked:=false;
     RadioButtonAccess.Checked:=false;
+    RadioButtonSon.Checked:=false;
+    EditSon.Visible:=false;
+    SpeedButtonJoue.Visible:=false;
+    LabelNomSon.Visible:=false;
   end;
 end;
 
@@ -2779,11 +2854,17 @@ begin
     CheckRaz.Visible:=false;
     GroupBoxAct.Caption:='Actionneur de fonction F de locomotive';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
+    LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Fonction';
     RadioButtonLoc.Checked:=true;
     RadioButtonAccess.Checked:=false;
+    RadioButtonSon.Checked:=false;
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
+    EditSon.Visible:=false;
+    SpeedButtonJoue.Visible:=false;
+    EditFonctionAccess.Visible:=true;
+    LabelNomSon.Visible:=false;
   end;
 end;
 
@@ -2799,9 +2880,47 @@ begin
     GroupBoxAct.Caption:='Actionneur d''accessoire';
     CheckRaz.Visible:=true;
     LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
+    LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Accessoire';
     RadioButtonLoc.Checked:=false;
+    RadioButtonSon.checked:=false;
     RadioButtonAccess.Checked:=true;
+    GroupBoxAct.Visible:=true;
+    GroupBoxPN.Visible:=false;
+    EditSon.Visible:=false;
+    SpeedButtonJoue.Visible:=false;
+    EditFonctionAccess.Visible:=true;
+    LabelNomSon.Visible:=false;
+  end;
+end;
+
+procedure champs_type_son;
+begin
+  with formconfig do
+  begin
+    GroupBoxRadio.Visible:=true;
+    GroupBoxRadio.top:=20;        
+    GroupBoxRadio.Left:=16;
+    GroupBoxAct.Top:=104;
+    GroupBoxAct.Left:=16;
+    GroupBoxAct.Caption:='Actionneur d''accessoire';
+    CheckRaz.Visible:=true;
+
+    LabelTempo.Visible:=false; EditTempo.visible:=false;
+
+    editEtatFoncSortie.visible:=false;
+    LabelA.Visible:=false;
+    LabelFonction.visible:=false;
+    EditFonctionAccess.Visible:=false;
+    CheckRaz.Visible:=false;
+    EditSon.Visible:=true;
+    SpeedButtonJoue.Visible:=true;
+    LabelNomSon.Visible:=true;
+    
+    RadioButtonLoc.Checked:=false;
+    RadioButtonAccess.Checked:=false;
+    RadioButtonSon.checked:=true;
+    
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
   end;
@@ -2964,51 +3083,54 @@ end;
 // mise à jour des champs graphiques des actionneurs d'après l'index du richAct
 Procedure aff_champs_act(i : integer);
 var etatact, adresse,sortie,fonction,tempo,access : integer;
-    s,s2 : string;
+    s,s2,adr : string;
+    det : boolean;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
   s:=Uppercase(FormConfig.RichAct.Lines[i]);
-  if s='' then exit; 
+  if s='' then exit;
   inc(i); // passer en index tablo
 
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
+  det:=Tablo_actionneur[i].det;
+  if det then s2:='Détecteur ' else s2:='Actionneur ';
+  s2:=s2+intToSTR(Tablo_actionneur[i].adresse);
+  FormConfig.EditAct.Hint:=s2;
 
   // Actionneur fonction F loco
-  if Tablo_actionneur[i].loco then 
+  if Tablo_actionneur[i].loco then
   begin
-    Formconfig.radioButtonLoc.Checked:=true;
-    Formconfig.radioButtonAccess.Checked:=false; 
-    etatAct:=Tablo_actionneur[i].etat ;
-    //etatFonc:=Tablo_actionneur[i].
-    Adresse:=Tablo_actionneur[i].actionneur;
+    champs_type_loco;
+    etatAct:=Tablo_actionneur[i].etat;
+    Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].train;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
       champs_type_loco;
-      EditAct.text:=IntToSTR(Adresse);
+      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      EditAct.text:=adr;
       editEtatActionneur.Text:=IntToSTR(etatAct);
       EditTrain.Text:=s2;
       editFonctionAccess.Text:=intToSTR(fonction);
       editTempo.Text:=intToSTR(tempo);
     end;
-  end;  
+  end;
 
   // Actionneur accessoire
-  if Tablo_actionneur[i].act then 
+  if Tablo_actionneur[i].act then
   begin
     champs_type_act;
-    Formconfig.radioButtonLoc.Checked:=false;
-    Formconfig.radioButtonAccess.Checked:=true;
     etatAct:=Tablo_actionneur[i].etat ;
-    Adresse:=Tablo_actionneur[i].actionneur;
+    Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
     s2:=Tablo_actionneur[i].train;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
-      EditAct.text:=IntToSTR(Adresse);
+      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      EditAct.text:=adr;
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
       EditTrain.Text:=s2;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
@@ -3016,8 +3138,27 @@ begin
       editEtatFoncSortie.Text:=intToSTR(sortie);
       editTempo.Text:=intToSTR(tempo);
     end;
-  end;  
-end;  
+  end;
+
+  // Actionneur son
+  if Tablo_actionneur[i].son then
+  begin
+    champs_type_son;
+    etatAct:=Tablo_actionneur[i].etat ;
+    Adresse:=Tablo_actionneur[i].adresse;
+    s2:=Tablo_actionneur[i].train;
+    s:=Tablo_actionneur[i].FichierSon;
+    with formconfig do
+    begin
+      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      EditAct.text:=adr;
+      //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
+      EditTrain.Text:=s2;
+      EditSon.Text:=s;
+      EditEtatActionneur.Text:=IntToSTR(etatAct);
+    end;
+  end;
+end;
 
 // affiche les champs de l'actionneur PN en fonction du tableau en fonction de l'index du richedit
 procedure aff_champs_PN(i : integer);
@@ -3921,25 +4062,33 @@ end;
 
 
 procedure TFormConfig.EditActChange(Sender: TObject);
-var s : string;
+var s,s2 : string;
     act,erreur : integer;
+    det : boolean;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt Edit act Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditAct.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
+      Val(s,act,erreur);
+      det:=s[erreur]='Z'; // si détecteur
+      if det then s2:='Détecteur ' else s2:='Actionneur ';
+      s2:=s2+intToSTR(act);
+      EditAct.Hint:=s2;
+      if det then delete(s,erreur,1);
       Val(s,act,erreur);
       if erreur<>0 then
       begin
         LabelInfo.caption:='Erreur adresse actionneur';exit
       end else LabelInfo.caption:=' ';
-      
-      tablo_actionneur[ligneClicAct+1].actionneur:=act;
-      s:=encode_act_loc(ligneClicAct+1);
+
+      tablo_actionneur[ligneClicAct+1].adresse:=act;
+      tablo_actionneur[ligneClicAct+1].det:=det;
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -3992,7 +4141,7 @@ begin
       end else LabelInfo.caption:=' ';
       
       tablo_actionneur[ligneClicAct+1].etat:=etat;
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4015,7 +4164,31 @@ begin
       end else LabelInfo.caption:=' ';
       
       tablo_actionneur[ligneClicAct+1].train:=train;
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
+      RichAct.Lines[ligneClicAct]:=s;
+    end;
+  end;
+end;
+
+
+procedure TFormConfig.EditSonChange(Sender: TObject);
+var s,fichier : string;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt Edit NomFichier Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
+    begin
+      fichier:=EditSon.Text;
+      if fichier='' then
+      begin
+        LabelInfo.caption:='Nom fichier vide';exit
+      end else LabelInfo.caption:=' ';
+      
+      tablo_actionneur[ligneClicAct+1].fichierSon:=fichier;
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4042,7 +4215,7 @@ begin
       if radioButtonLoc.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
       if RadioButtonAccess.Checked then Tablo_Actionneur[ligneClicAct+1].accessoire:=fonction;
       
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4067,7 +4240,7 @@ begin
       end else LabelInfo.caption:=' ';
 
       tablo_actionneur[ligneClicAct+1].sortie:=etat;
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4092,7 +4265,7 @@ begin
       end else LabelInfo.caption:=' ';
       
       tablo_actionneur[ligneClicAct+1].tempo:=tempo;
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4109,7 +4282,7 @@ begin
     if radioButtonAccess.Checked then
     begin
       tablo_actionneur[ligneClicAct+1].raz:=CheckRAZ.checked;
-      s:=encode_act_loc(ligneClicAct+1);
+      s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
@@ -4321,10 +4494,11 @@ begin
 
   Tablo_Actionneur[i].loco:=true;
   Tablo_Actionneur[i].Act:=false;
+  Tablo_Actionneur[i].Son:=false;
   champs_type_loco; 
   
   val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].actionneur:=champ ;
+  Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
   Tablo_actionneur[i].train:=editTrain.Text;
@@ -4335,7 +4509,7 @@ begin
   val(editTempo.Text,champ,erreur);
   Tablo_actionneur[i].tempo:=champ;
   tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc(i);
+  s:=encode_act_loc_son(i);
   RichAct.Lines[ligneClicAct]:=s;
 end;
 
@@ -4350,10 +4524,11 @@ begin
 
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=true;
+  Tablo_Actionneur[i].Son:=false;
   champs_type_act;  
   
   val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].actionneur:=champ ;
+  Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
   Tablo_actionneur[i].train:=editTrain.Text;
@@ -4364,7 +4539,39 @@ begin
   val(editTempo.Text,champ,erreur);
   Tablo_actionneur[i].tempo:=champ;
   tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc(i);
+  s:=encode_act_loc_son(i);
+  RichAct.Lines[ligneClicAct]:=s;
+end;
+
+
+procedure TFormConfig.RadioButtonSonClick(Sender: TObject);
+var  champ,i,erreur : integer;
+    s : string;
+begin
+  // rendre visible le groupbox Actionneur fonction F loco
+  if clicListe then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioSon '+IntToSTR(i),clyellow);
+
+  Tablo_Actionneur[i].loco:=false;
+  Tablo_Actionneur[i].Act:=false;
+  Tablo_Actionneur[i].Son:=true;
+  
+  champs_type_son;  
+ 
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  Tablo_actionneur[i].train:=editTrain.Text;
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  val(editEtatFoncSortie.Text,champ,erreur);
+  Tablo_actionneur[i].sortie:=champ;
+  val(editTempo.Text,champ,erreur);
+  Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].Raz:=checkRaz.checked;
+  s:=encode_act_loc_son(i);
   RichAct.Lines[ligneClicAct]:=s;
 end;
 
@@ -4654,7 +4861,7 @@ begin
   Tablo_actionneur[maxtablo_act].act:=false;
   Tablo_actionneur[maxtablo_act].loco:=true;
 
-  s:=encode_act_loc(i); 
+  s:=encode_act_loc_son(i); 
   if ligneClicAct<>-1 then RE_ColorLine(RichAct,ligneClicAct,ClAqua);
 
   // ajouter et scroller en fin
@@ -4718,7 +4925,7 @@ begin
   if (i=-1) then exit;
   index:=i+1; // passe en index tableau
   
-  adr:=tablo_actionneur[index].actionneur;
+  adr:=tablo_actionneur[index].adresse;
   s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   Affiche('Suppression de l''actionneur index='+IntToSTR(index)+' adresse='+IntToSTR(adr),clOrange);
@@ -4738,7 +4945,7 @@ begin
   RichAct.Clear;
   for i:=1 to maxTablo_act do
   begin
-    s:=encode_act_loc(i);
+    s:=encode_act_loc_son(i);
     if s<>'' then
     begin
       RichAct.Lines.Add(s);
@@ -5270,6 +5477,7 @@ begin
   aiguillage[i].modele:=aig;
   aiguillage[i].AdroitB:='Z'; aiguillage[i].AdevieB:='Z';
   aiguillage[i].DdroitB:='D'; aiguillage[i].DdevieB:='S'; // préparation pour TJD/S
+  aiguillage[i].EtatTJD:=4;
   aiguillage[i].ApointeB:='Z';
   aiguillage[i].Adevie2B:='Z';   
   aiguillage[i].tjsintB:='D';   
@@ -6235,8 +6443,16 @@ begin
   Label20.Visible:=false;
 end;
 
-begin
 
+procedure TFormConfig.SpeedButtonJoueClick(Sender: TObject);
+begin
+   if sndPlaySound(pchar(EditSon.Text),0)=false then
+        labelInfo.Caption:='Erreur';
+
+end;
+
+
+begin
 
 
 
