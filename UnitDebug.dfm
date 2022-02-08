@@ -1,8 +1,9 @@
 object FormDebug: TFormDebug
-  Left = 203
-  Top = 155
-  Width = 855
-  Height = 817
+  Left = 285
+  Top = 142
+  Width = 842
+  Height = 784
+  VertScrollBar.Position = 7
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -15,13 +16,13 @@ object FormDebug: TFormDebug
   Position = poMainFormCenter
   OnCreate = FormCreate
   DesignSize = (
-    839
-    779)
+    809
+    746)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 655
-    Top = 4
+    Left = 642
+    Top = -3
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -36,8 +37,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 487
-    Top = 2
+    Left = 474
+    Top = -5
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -50,8 +51,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 767
-    Top = 2
+    Left = 754
+    Top = -5
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -66,10 +67,10 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 591
-    Top = 336
+    Left = 570
+    Top = 329
     Width = 239
-    Height = 209
+    Height = 201
     Anchors = [akTop, akRight]
     Color = clBlack
     Font.Charset = ANSI_CHARSET
@@ -87,8 +88,8 @@ object FormDebug: TFormDebug
     OnChange = MemoEvtDetChange
   end
   object ButtonEcrLog: TButton
-    Left = 487
-    Top = 328
+    Left = 466
+    Top = 321
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -97,8 +98,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 487
-    Top = 360
+    Left = 466
+    Top = 353
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -108,8 +109,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 487
-    Top = 296
+    Left = 466
+    Top = 289
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -118,8 +119,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 487
-    Top = 256
+    Left = 466
+    Top = 249
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -129,8 +130,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 487
-    Top = 208
+    Left = 466
+    Top = 201
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -146,8 +147,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonCopClick
   end
   object RichEdit: TRichEdit
-    Left = 591
-    Top = 176
+    Left = 570
+    Top = 169
     Width = 239
     Height = 153
     Anchors = [akTop, akRight]
@@ -165,8 +166,8 @@ object FormDebug: TFormDebug
     OnChange = RichEditChange
   end
   object ButtonRazLog: TButton
-    Left = 487
-    Top = 400
+    Left = 466
+    Top = 393
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -176,9 +177,9 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 485
-    Top = 608
-    Width = 353
+    Left = 464
+    Top = 601
+    Width = 345
     Height = 145
     Anchors = [akTop, akRight]
     Caption = 'Fonctions primitives'
@@ -194,7 +195,7 @@ object FormDebug: TFormDebug
     object GroupBox3: TGroupBox
       Left = 8
       Top = 16
-      Width = 337
+      Width = 329
       Height = 73
       Caption = 'Signal'
       TabOrder = 0
@@ -271,7 +272,7 @@ object FormDebug: TFormDebug
     object GroupBox4: TGroupBox
       Left = 8
       Top = 88
-      Width = 337
+      Width = 329
       Height = 49
       Caption = 'D'#233'tecteur suivant'
       TabOrder = 1
@@ -290,7 +291,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonDetSuivClick
       end
       object EditPrec: TEdit
-        Left = 216
+        Left = 208
         Top = 18
         Width = 49
         Height = 21
@@ -300,7 +301,7 @@ object FormDebug: TFormDebug
         TabOrder = 1
       end
       object EditActuel: TEdit
-        Left = 272
+        Left = 264
         Top = 18
         Width = 49
         Height = 21
@@ -312,8 +313,8 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 485
-    Top = 20
+    Left = 464
+    Top = 13
     Width = 345
     Height = 149
     Anchors = [akTop, akRight]
@@ -467,11 +468,26 @@ object FormDebug: TFormDebug
       TabOrder = 8
       OnClick = CheckBoxTiersClick
     end
+    object CheckDebugTrames: TCheckBox
+      Left = 208
+      Top = 128
+      Width = 129
+      Height = 17
+      Caption = 'Debug trames CDM'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 9
+      OnClick = CheckDebugTramesClick
+    end
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = 8
-    Width = 470
+    Top = 1
+    Width = 457
     Height = 743
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
@@ -483,12 +499,12 @@ object FormDebug: TFormDebug
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 487
-    Top = 552
+    Left = 464
+    Top = 537
     Width = 345
-    Height = 49
+    Height = 57
     Anchors = [akTop, akRight]
-    Caption = 'Simulation d'#233'tecteur'
+    Caption = 'Simulation d'#233'tecteur / actionneur'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clNavy
@@ -499,9 +515,9 @@ object FormDebug: TFormDebug
     ParentFont = False
     TabOrder = 12
     object EditSimuDet: TEdit
-      Left = 8
-      Top = 16
-      Width = 41
+      Left = 16
+      Top = 24
+      Width = 33
       Height = 21
       Hint = 'Adresse d'#39'un d'#233'tecteur'
       ParentShowHint = False
@@ -509,45 +525,49 @@ object FormDebug: TFormDebug
       TabOrder = 0
     end
     object ButtonSimuDet0: TButton
-      Left = 48
+      Left = 56
       Top = 16
-      Width = 75
-      Height = 25
+      Width = 57
+      Height = 33
       Caption = 'D'#233'tecteur '#224' 0'
       TabOrder = 1
+      WordWrap = True
       OnClick = ButtonSimuDet0Click
     end
     object ButtonSimuDet1: TButton
-      Left = 120
+      Left = 128
       Top = 16
-      Width = 75
-      Height = 25
+      Width = 57
+      Height = 33
       Caption = 'D'#233'tecteur '#224' 1'
       TabOrder = 2
+      WordWrap = True
       OnClick = ButtonSimuDet1Click
     end
     object ButtonSimuAct0: TButton
-      Left = 192
+      Left = 200
       Top = 16
-      Width = 75
-      Height = 25
+      Width = 59
+      Height = 33
       Caption = 'Actionneur '#224' 0'
       TabOrder = 3
+      WordWrap = True
       OnClick = ButtonSimuAct0Click
     end
     object ButtonSimuAct1: TButton
-      Left = 264
+      Left = 272
       Top = 16
-      Width = 75
-      Height = 25
+      Width = 59
+      Height = 33
       Caption = 'Actionneur '#224' 1'
       TabOrder = 4
+      WordWrap = True
       OnClick = ButtonSimuAct1Click
     end
   end
   object ButtonRazTout: TButton
-    Left = 488
-    Top = 176
+    Left = 467
+    Top = 169
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]

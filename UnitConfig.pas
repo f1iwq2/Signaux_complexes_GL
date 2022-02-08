@@ -82,7 +82,6 @@ type
     Memo3: TMemo;
     Memo4: TMemo;
     GroupBox9: TGroupBox;
-    CheckBoxRazSignaux: TCheckBox;
     GroupBox11: TGroupBox;
     LabelAdresse: TLabel;
     GroupBox10: TGroupBox;
@@ -238,6 +237,10 @@ type
     EditSon: TEdit;
     LabelNomSon: TLabel;
     SpeedButtonJoue: TSpeedButton;
+    CheckBoxRazSignaux: TCheckBox;
+    EditTempoFeu: TEdit;
+    Label35: TLabel;
+    Label36: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -330,6 +333,7 @@ type
     procedure RadioButtonSonClick(Sender: TObject);
     procedure EditSonChange(Sender: TObject);
     procedure SpeedButtonJoueClick(Sender: TObject);
+    procedure EditTempoFeuChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -354,6 +358,7 @@ CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
 Tempo_aig_ch='Tempo_Aig';
+Tempo_Feu_ch='Tempo_Feu';
 NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
@@ -519,9 +524,18 @@ begin
       // demande des services
       services_CDM;
 
-      // demande les trains mais on ne l'utilise pas! 
+      // demande la description des trains
       s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
+      ntrains:=0;
       envoi_CDM(s);
+      sleep(10);
+      Application.ProcessMessages;
+      if ntrains<>0 then
+      with formprinc do
+      begin
+        combotrains.ItemIndex:=0;
+        editAdrTrain.text:=IntToSTR(trains[1].adresse);
+      end;
     end;
   end
   else
@@ -875,7 +889,7 @@ begin
                  if (j=2) then feux[i].Adr_det2:=adr;
                  if (j=3) then feux[i].Adr_det3:=adr;
                  if (j=4) then feux[i].Adr_det4:=adr;
-                 //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri 
+                 //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
                  if s[1]='A' then
                  begin
                    if (j=1) then feux[i].Btype_Suiv1:=aig;
@@ -1162,6 +1176,10 @@ begin
   writeln(fichierN,'RazSignaux='+s);
   //copie_commentaire;
 
+  // temporisation entre 2 commandes décodeurs feu
+  writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
+  copie_commentaire;
+  
   // aiguillages
   writeln(fichierN,section_aig_ch);
   for i:=1 to MaxAiguillage do
@@ -1226,7 +1244,7 @@ var s,sa,chaine,SOrigine: string;
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve   : boolean;
+    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig : integer;
@@ -1901,6 +1919,18 @@ begin
       val(s,Tempo_Aig,erreur);
     end;
  
+    // temporisation décodeurs de feux
+    sa:=uppercase(Tempo_Feu_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      trouve_Tempo_feu:=true;
+      delete(s,i,length(sa));
+      val(s,Tempo_Feu,erreur);
+      if tempo_Feu=0 then Tempo_feu:=100;
+    end;
+ 
     sa:=uppercase(verif_version_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -2052,6 +2082,7 @@ begin
   trouve_sec_init:=false;
   trouve_init_aig:=false;
   trouve_tempo_aig:=false;
+  trouve_tempo_feu:=false;
   trouve_INTER_CAR:=false;
   trouve_entete:=false;
   trouve_IPV4_INTERFACE:=false;
@@ -2175,6 +2206,12 @@ begin
   if not(trouve_Serveur_interface) then s:=Serveur_interface_ch;
   if not(trouve_fenetre) then s:=fenetre_ch;
   if not(trouve_tempo_aig) then s:=tempo_aig_ch;
+  if not(trouve_tempo_feu) then 
+  begin
+    s:=tempo_feu_ch;
+    tempo_feu:=100;
+    s:='';
+  end;  
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
@@ -2214,7 +2251,7 @@ begin
     
     // contrôle adresse IP interface
     s:=EditIPLenz.text;
-    if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP Lenz incorrecte';sauve_config:=false;exit;end;
+    if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP interface Xpressnet incorrecte';sauve_config:=false;exit;end;
     changeInterface:=s<>AdresseIP;
     AdresseIP:=s;
 
@@ -2418,7 +2455,8 @@ begin
   EditDevie_HD.ReadOnly:=false;
   EditDroit_BD.ReadOnly:=false;
   Edit_HG.ReadOnly:=false;
-  
+
+  EditTempoFeu.Text:=IntToSTR(Tempo_feu);
   EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
@@ -3332,7 +3370,8 @@ begin
 
       Aiguillage[index].Adroit:=adr;
       Aiguillage[index].AdroitB:=B;
-
+      Edit_HG.Hint:=TypeElAIg_to_char(adr,B);
+      
       // réencoder la ligne
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneclicAig]:=s;
@@ -3378,6 +3417,7 @@ begin
         if b=#0 then b:='Z';
         Aiguillage[Index].ADevie:=adr;
         Aiguillage[Index].ADevieB:=B;
+        EditDevie_HD.Hint:=TypeElAIg_to_char(adr,B);
         // réencoder la ligne
         s:=encode_aig(Index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
@@ -3424,7 +3464,7 @@ begin
   // ne pas traiter si on a cliqué sur la liste
   if clicliste then exit;
   if affevt then affiche('Evt change droit',clyellow);
-  
+             
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
@@ -3447,6 +3487,7 @@ begin
         if b=#0 then b:='Z';
         Aiguillage[index].ADroit:=adr;
         Aiguillage[index].ADroitB:=B;
+          EditDroit_BD.Hint:=TypeElAIg_to_char(adr,B);
         // réencoder la ligne
         s:=encode_aig(Index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
@@ -3531,6 +3572,7 @@ begin
         s:=encode_aig(index);
         formconfig.RichAig.Lines[ligneclicAig]:=s;
       end;
+      EditPointe_BG.Hint:=TypeElAIg_to_char(adr,B);
     end
       else
         LabelInfo.caption:='Erreur pointe aiguillage '+intToSTR(AdrAig);
@@ -3704,9 +3746,10 @@ var s: string;
 begin
 //  Affiche(IntToStr(ComboBoxDec.ItemIndex),clyellow);
   if clicListe then exit;
-  
+
   if NbreFeux<ligneclicSig+1 then exit;
   i:=ligneclicSig+1;
+  if i<1 then exit;
   feux[i].decodeur:=ComboBoxDec.ItemIndex;
   Maj_Hint_feu(i);
 
@@ -3740,7 +3783,7 @@ var s : string;
 begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt detecteur 1',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
@@ -3759,6 +3802,17 @@ end;
 procedure TFormConfig.EditDet1Change(Sender: TObject);
 begin
   Det1;
+end;
+
+procedure TFormConfig.EditTempoFeuChange(Sender: TObject);
+var i,erreur : integer;
+    s : string;
+begin
+  s:=editTempoFeu.Text;
+  Val(s,i,erreur);
+  if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur temporisation décodeurs ';exit;end;
+  LabelInfo.caption:=' ';
+  tempo_feu:=i;
 end;
 
 procedure Suiv1;
@@ -4075,7 +4129,8 @@ begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
       Val(s,act,erreur);
-      det:=s[erreur]='Z'; // si détecteur
+      if s='' then exit;
+      det:=pos('Z',s)<>0;    // si détecteur
       if det then s2:='Détecteur ' else s2:='Actionneur ';
       s2:=s2+intToSTR(act);
       EditAct.Hint:=s2;
@@ -4299,9 +4354,10 @@ begin
   with Formconfig do
   begin
     s:=EditAdrSig.Text;
+    if (s='') or (ligneClicSig<0) then exit;
     Val(s,i,erreur);
-    if (erreur<>0) or (i<=0) or (i>MaxAcc) then 
-    begin 
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
+    begin
       EditAdrSig.Color:=clred;
       LabelInfo.caption:='Erreur adresse signal ';exit;
     end;
@@ -4310,14 +4366,14 @@ begin
       EditAdrSig.Color:=clred;
       LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
     end;
-    
+
     EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].adresse:=i;
     s:=encode_sig_feux(ligneClicSig+1);
-    RichSig.Lines[ligneClicSig]:=s; 
+    RichSig.Lines[ligneClicSig]:=s;
     Feux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
-   end; 
+   end;
 end;
 
 
@@ -4411,8 +4467,9 @@ begin
   4 : aspect:=7;
   5 : aspect:=9;
   else aspect:=i+6;
-  end;  
+  end;
   index:=ligneClicSig+1;  // index du feu
+  if index<1 then exit;
   if NbreFeux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
   if ((aspect=2) or (aspect>=5)) and (aspect<10) then 
@@ -6453,6 +6510,8 @@ end;
 
 
 begin
+
+
 
 
 

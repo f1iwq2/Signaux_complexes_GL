@@ -1,7 +1,7 @@
 object FormPrinc: TFormPrinc
-  Left = 82
-  Top = 118
-  Width = 1212
+  Left = 24
+  Top = 203
+  Width = 1213
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
   Color = clBtnFace
@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1196
+    1197
     606)
   PixelsPerInch = 96
   TextHeight = 13
@@ -982,8 +982,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5Dir: TImage
-    Left = 664
-    Top = 120
+    Left = 464
+    Top = 0
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1188,7 +1188,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelEtat: TLabel
-    Left = 439
+    Left = 440
     Top = 16
     Width = 152
     Height = 18
@@ -1202,7 +1202,7 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object ScrollBox1: TScrollBox
-    Left = 631
+    Left = 632
     Top = 176
     Width = 546
     Height = 385
@@ -1216,7 +1216,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 0
   end
   object GroupBox1: TGroupBox
-    Left = 631
+    Left = 632
     Top = 5
     Width = 266
     Height = 52
@@ -1265,7 +1265,7 @@ object FormPrinc: TFormPrinc
   object StatusBar1: TStatusBar
     Left = 0
     Top = 584
-    Width = 1196
+    Width = 1197
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1281,7 +1281,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 903
+    Left = 904
     Top = 5
     Width = 282
     Height = 132
@@ -1310,22 +1310,13 @@ object FormPrinc: TFormPrinc
       WordWrap = True
       OnClick = BoutVersionClick
     end
-    object loco: TButton
-      Left = 190
-      Top = 88
-      Width = 83
-      Height = 33
-      Caption = 'loco'
-      TabOrder = 2
-      OnClick = locoClick
-    end
     object ButtonInfo: TButton
       Left = 104
       Top = 48
       Width = 81
       Height = 33
       Caption = 'Informations'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = ButtonInfoClick
     end
     object ButtonReprise: TButton
@@ -1337,7 +1328,7 @@ object FormPrinc: TFormPrinc
         'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
         'ension de la centrale'
       Caption = 'Reprise DCC'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = ButtonRepriseClick
     end
     object ButtonTest: TButton
@@ -1346,7 +1337,7 @@ object FormPrinc: TFormPrinc
       Width = 89
       Height = 33
       Caption = 'Demande '#233'tat aiguillages'
-      TabOrder = 5
+      TabOrder = 4
       WordWrap = True
       OnClick = ButtonTestClick
     end
@@ -1356,7 +1347,7 @@ object FormPrinc: TFormPrinc
       Width = 89
       Height = 33
       Caption = 'Arret simulation'
-      TabOrder = 6
+      TabOrder = 5
       Visible = False
       WordWrap = True
       OnClick = ButtonArretSimuClick
@@ -1367,7 +1358,7 @@ object FormPrinc: TFormPrinc
       Width = 81
       Height = 33
       Caption = 'Affiche TCO'
-      TabOrder = 7
+      TabOrder = 6
       OnClick = ButtonAffTCOClick
     end
     object ButtonLanceCDM: TButton
@@ -1377,12 +1368,21 @@ object FormPrinc: TFormPrinc
       Height = 33
       Hint = 'Lance CDM Rail'
       Caption = 'Lance CDM rail'
-      TabOrder = 8
+      TabOrder = 7
       OnClick = ButtonLanceCDMClick
+    end
+    object ButtonLocCV: TButton
+      Left = 192
+      Top = 88
+      Width = 81
+      Height = 33
+      Caption = 'Trains / CVs'
+      TabOrder = 8
+      OnClick = ButtonLocCVClick
     end
   end
   object Panel2: TPanel
-    Left = 904
+    Left = 905
     Top = 144
     Width = 281
     Height = 25
@@ -1421,7 +1421,7 @@ object FormPrinc: TFormPrinc
   object FenRich: TRichEdit
     Left = 8
     Top = 32
-    Width = 617
+    Width = 618
     Height = 529
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
@@ -1437,9 +1437,10 @@ object FormPrinc: TFormPrinc
     TabOrder = 7
     WordWrap = False
     OnChange = FenRichChange
+    OnMouseDown = FenRichMouseDown
   end
   object GroupBox2: TGroupBox
-    Left = 632
+    Left = 681
     Top = 64
     Width = 265
     Height = 105
@@ -1456,7 +1457,7 @@ object FormPrinc: TFormPrinc
     end
     object LabelVCV: TLabel
       Left = 208
-      Top = 55
+      Top = 15
       Width = 47
       Height = 13
       Caption = 'Valeur CV'
@@ -1498,6 +1499,63 @@ object FormPrinc: TFormPrinc
       Width = 33
       Height = 21
       TabOrder = 3
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 632
+    Top = 64
+    Width = 265
+    Height = 105
+    Anchors = [akTop, akRight]
+    Caption = 'Commande vitesse trains'
+    TabOrder = 9
+    object Label4: TLabel
+      Left = 8
+      Top = 30
+      Width = 67
+      Height = 13
+      Caption = 'Adresse train :'
+    end
+    object Label5: TLabel
+      Left = 8
+      Top = 68
+      Width = 74
+      Height = 13
+      Caption = 'Vitesse train % :'
+    end
+    object loco: TButton
+      Left = 142
+      Top = 56
+      Width = 83
+      Height = 33
+      Caption = 'Envoi '#224' loco'
+      TabOrder = 0
+      OnClick = locoClick
+    end
+    object EditAdrTrain: TEdit
+      Left = 80
+      Top = 24
+      Width = 25
+      Height = 21
+      TabOrder = 1
+      OnChange = EditAdrTrainChange
+    end
+    object EditVitesse: TEdit
+      Left = 80
+      Top = 64
+      Width = 25
+      Height = 21
+      TabOrder = 2
+      Text = '30'
+    end
+    object ComboTrains: TComboBox
+      Left = 112
+      Top = 24
+      Width = 145
+      Height = 21
+      ItemHeight = 13
+      TabOrder = 3
+      OnChange = ComboTrainsChange
     end
   end
   object Timer1: TTimer

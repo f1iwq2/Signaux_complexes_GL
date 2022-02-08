@@ -6,7 +6,7 @@ object FormConfig: TFormConfig
     'ies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
-  ClientHeight = 501
+  ClientHeight = 526
   ClientWidth = 902
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -1555,7 +1555,7 @@ object FormConfig: TFormConfig
   end
   object ButtonAppliquerEtFermer: TButton
     Left = 384
-    Top = 472
+    Top = 496
     Width = 201
     Height = 25
     Caption = 'Enregistre la configuration et Fermer'
@@ -1566,7 +1566,7 @@ object FormConfig: TFormConfig
   end
   object Button2: TButton
     Left = 24
-    Top = 472
+    Top = 496
     Width = 201
     Height = 25
     Caption = 'Fermer sans enregistrer la configuration'
@@ -1577,8 +1577,8 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 633
-    Height = 457
-    ActivePage = TabSheetCDM
+    Height = 481
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1589,6 +1589,14 @@ object FormConfig: TFormConfig
     OnChange = PageControlChange
     object TabSheetCDM: TTabSheet
       Caption = 'CDM Rail'
+      object Label36: TLabel
+        Left = 8
+        Top = 424
+        Width = 255
+        Height = 13
+        Caption = 'Param'#232'tres de connexion et d'#39#233'change avec CDM rail'
+        WordWrap = True
+      end
       object GroupBox1: TGroupBox
         Left = 16
         Top = 8
@@ -1937,7 +1945,7 @@ object FormConfig: TFormConfig
       ImageIndex = 1
       object Label9: TLabel
         Left = 8
-        Top = 400
+        Top = 424
         Width = 294
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
@@ -2161,26 +2169,15 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = 'Temporisation de s'#233'quencement d'#39'init (ms)'
         end
-        object CheckBoxRazSignaux: TCheckBox
-          Left = 8
-          Top = 16
-          Width = 177
-          Height = 17
-          Hint = 'Envoie un 0 apr'#232's chaque commande sur un signal au d'#233'codeur'
-          Caption = 'Raz signaux apr'#232's commande'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-        end
         object CheckBoxInitAig: TCheckBox
-          Left = 8
-          Top = 32
-          Width = 281
+          Left = 16
+          Top = 24
+          Width = 257
           Height = 25
           Caption = 'Initialisation des aiguillages '
           ParentShowHint = False
           ShowHint = False
-          TabOrder = 1
+          TabOrder = 0
           WordWrap = True
         end
         object EditTempoAig: TEdit
@@ -2188,7 +2185,7 @@ object FormConfig: TFormConfig
           Top = 62
           Width = 41
           Height = 21
-          TabOrder = 2
+          TabOrder = 1
           Text = 'EditTempoAig'
         end
       end
@@ -2743,6 +2740,13 @@ object FormConfig: TFormConfig
           'Liste de mod'#233'lisation des signaux du fichier config.cfg - clique' +
           'z sur une ligne pour afficher la description du signal'
       end
+      object Label35: TLabel
+        Left = 40
+        Top = 428
+        Width = 201
+        Height = 13
+        Caption = 'Temporisation entre deux commandes (ms)'
+      end
       object GroupBox12: TGroupBox
         Left = 336
         Top = 32
@@ -2978,7 +2982,6 @@ object FormConfig: TFormConfig
           Width = 33
           Height = 21
           TabOrder = 0
-          Text = ' '
           OnChange = EditAdrSigChange
         end
         object ComboBoxAsp: TComboBox
@@ -3039,6 +3042,7 @@ object FormConfig: TFormConfig
           Height = 25
           Caption = 'Configuration'
           TabOrder = 16
+          Visible = False
           OnClick = ButtonConfigSRClick
         end
       end
@@ -3046,7 +3050,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 56
         Width = 329
-        Height = 369
+        Height = 345
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clYellow
@@ -3088,6 +3092,25 @@ object FormConfig: TFormConfig
         Caption = 'Ajouter le feu supprim'#233
         TabOrder = 4
         OnClick = ButtonInsFeuClick
+      end
+      object CheckBoxRazSignaux: TCheckBox
+        Left = 0
+        Top = 402
+        Width = 169
+        Height = 17
+        Hint = 'Envoie un 0 apr'#232's chaque commande sur un signal aux d'#233'codeurs'
+        Caption = 'Raz signaux apr'#232's commande'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 5
+      end
+      object EditTempoFeu: TEdit
+        Left = 0
+        Top = 424
+        Width = 33
+        Height = 21
+        TabOrder = 6
+        OnChange = EditTempoFeuChange
       end
     end
     object TabSheetAct: TTabSheet

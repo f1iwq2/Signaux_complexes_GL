@@ -1,6 +1,6 @@
 object FormSR: TFormSR
-  Left = 413
-  Top = 214
+  Left = 425
+  Top = 73
   Width = 491
   Height = 600
   Caption = 'Configuration du d'#233'codeur du signal St'#233'phane Ravaut'

@@ -54,6 +54,7 @@ type
     CheckBoxTiers: TCheckBox;
     ButtonSimuAct0: TButton;
     ButtonSimuAct1: TButton;
+    CheckDebugTrames: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -86,6 +87,7 @@ type
     procedure CheckBoxTiersClick(Sender: TObject);
     procedure ButtonSimuAct1Click(Sender: TObject);
     procedure ButtonSimuAct0Click(Sender: TObject);
+    procedure CheckDebugTramesClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -96,7 +98,6 @@ Const
 Max_Event_det_tick=30000;
 Max_event_det=400;
 Max_Trains=50;
-
 
 var
   FormDebug: TFormDebug;
@@ -493,8 +494,9 @@ begin
 end;
 
 
-
-
-
+procedure TFormDebug.CheckDebugTramesClick(Sender: TObject);
+begin
+  debugtrames:=checkDebugTrames.checked;
+end;
 
 end.

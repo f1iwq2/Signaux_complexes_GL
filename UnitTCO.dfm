@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 1326
-  Top = 122
+  Left = 1395
+  Top = 198
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False
@@ -23,7 +23,7 @@ object FormTCO: TFormTCO
   OnResize = FormResize
   DesignSize = (
     1123
-    655)
+    656)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelX: TLabel
@@ -265,41 +265,41 @@ object FormTCO: TFormTCO
       OnEndDrag = ImagePalette1EndDrag
       OnMouseDown = ImagePalette1MouseDown
     end
-    object ImageSupG: TImage
+    object ImagePalette6: TImage
       Left = 216
       Top = 56
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageSupGEndDrag
-      OnMouseDown = ImageSupGMouseDown
+      OnEndDrag = ImagePalette6EndDrag
+      OnMouseDown = ImagePalette6MouseDown
     end
-    object ImageSupD: TImage
+    object ImagePalette7: TImage
       Left = 288
       Top = 56
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageSupDEndDrag
-      OnMouseDown = ImageSupDMouseDown
+      OnEndDrag = ImagePalette7EndDrag
+      OnMouseDown = ImagePalette7MouseDown
     end
-    object ImageInfD: TImage
+    object ImagePalette8: TImage
       Left = 360
       Top = 56
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageInfDEndDrag
-      OnMouseDown = ImageInfDMouseDown
+      OnEndDrag = ImagePalette8EndDrag
+      OnMouseDown = ImagePalette8MouseDown
     end
-    object ImageInfG: TImage
+    object ImagePalette9: TImage
       Left = 432
       Top = 56
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageInfGEndDrag
-      OnMouseDown = ImageInfGMouseDown
+      OnEndDrag = ImagePalette9EndDrag
+      OnMouseDown = ImagePalette9MouseDown
     end
     object Label11: TLabel
       Left = 200
@@ -397,14 +397,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageDiag1: TImage
+    object ImagePalette10: TImage
       Left = 216
       Top = 104
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageDiag1EndDrag
-      OnMouseDown = ImageDiag1MouseDown
+      OnEndDrag = ImageDiag10EndDrag
+      OnMouseDown = ImagePalette10MouseDown
     end
     object Label16: TLabel
       Left = 192
@@ -419,14 +419,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageDiag2: TImage
+    object ImagePalette11: TImage
       Left = 288
       Top = 104
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageDiag2EndDrag
-      OnMouseDown = ImageDiag2MouseDown
+      OnEndDrag = ImageDiag11EndDrag
+      OnMouseDown = ImagePalette11MouseDown
     end
     object Label17: TLabel
       Left = 264
@@ -441,15 +441,15 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageFeu: TImage
+    object ImagePalette30: TImage
       Left = 376
       Top = 104
       Width = 25
       Height = 41
       DragMode = dmAutomatic
       Stretch = True
-      OnEndDrag = ImageFeuEndDrag
-      OnMouseDown = ImageFeuMouseDown
+      OnEndDrag = ImagePalette30EndDrag
+      OnMouseDown = ImagePalette30MouseDown
     end
     object Label18: TLabel
       Left = 336
@@ -464,14 +464,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageAig45PG_AG: TImage
+    object ImagePalette12: TImage
       Left = 576
       Top = 8
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageAig45PG_AGEndDrag
-      OnMouseDown = ImageAig45PG_AGMouseDown
+      OnEndDrag = ImagePalette12EndDrag
+      OnMouseDown = ImagePalette12MouseDown
     end
     object Label20: TLabel
       Left = 552
@@ -499,14 +499,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageAig45PD_AD: TImage
+    object ImagePalette13: TImage
       Left = 648
       Top = 8
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageAig45PD_ADEndDrag
-      OnMouseDown = ImageAig45PD_ADMouseDown
+      OnEndDrag = ImagePalette13EndDrag
+      OnMouseDown = ImagePalette13MouseDown
     end
     object Label21: TLabel
       Left = 696
@@ -521,14 +521,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageAig45PD_AG: TImage
+    object ImagePalette14: TImage
       Left = 720
       Top = 8
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageAig45PD_AGEndDrag
-      OnMouseDown = ImageAig45PD_AGMouseDown
+      OnEndDrag = ImagePalette14EndDrag
+      OnMouseDown = ImagePalette14MouseDown
     end
     object Label22: TLabel
       Left = 768
@@ -543,14 +543,14 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImageAig45PG_AD: TImage
+    object ImagePalette15: TImage
       Left = 792
       Top = 8
       Width = 41
       Height = 41
       DragMode = dmAutomatic
-      OnEndDrag = ImageAig45PG_ADEndDrag
-      OnMouseDown = ImageAig45PG_ADMouseDown
+      OnEndDrag = ImagePalette15EndDrag
+      OnMouseDown = ImagePalette15MouseDown
     end
     object Label23: TLabel
       Left = 8

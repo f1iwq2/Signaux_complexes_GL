@@ -73,6 +73,13 @@ version 3.5  : Les actions "fonctions F, accessoires, sons" sur actionneurs sont
                Possibilité de jouer des sons sur un évènement actionneur/détecteur.
                Correction d'un bug sur le lancement de CDM en 32 bits.
                Correction des messages d'erreurs et de nombre de trains en mode "config nulle".
+version 3.6  : Amélioration gestion temporisations des actionneurs.
+               Ajout temporisation pilotage des décodeurs de feux.
+               Correction d'affichage du TCO.
+               Correction des messages transmis de CDM.
+               Changement des vitesses courantes des trains.
+ 
+                
 
 
 

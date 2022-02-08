@@ -39,10 +39,10 @@ type
     Label7: TLabel;
     Label10: TLabel;
     ImagePalette1: TImage;
-    ImageSupG: TImage;
-    ImageSupD: TImage;
-    ImageInfD: TImage;
-    ImageInfG: TImage;
+    ImagePalette6: TImage;
+    ImagePalette7: TImage;
+    ImagePalette8: TImage;
+    ImagePalette9: TImage;
     Label11: TLabel;
     Label12: TLabel;
     Label13: TLabel;
@@ -51,11 +51,11 @@ type
     ImagePalette4: TImage;
     Label8: TLabel;
     Label9: TLabel;
-    ImageDiag1: TImage;
+    ImagePalette10: TImage;
     Label16: TLabel;
-    ImageDiag2: TImage;
+    ImagePalette11: TImage;
     Label17: TLabel;
-    ImageFeu: TImage;
+    ImagePalette30: TImage;
     Label18: TLabel;
     ButtonSauveTCO: TButton;
     ButtonRedessine: TButton;
@@ -65,14 +65,14 @@ type
     ButtonConfigTCO: TButton;
     Annulercouper: TMenuItem;
     N5: TMenuItem;
-    ImageAig45PG_AG: TImage;
+    ImagePalette12: TImage;
     Label20: TLabel;
     Label3: TLabel;
-    ImageAig45PD_AD: TImage;
+    ImagePalette13: TImage;
     Label21: TLabel;
-    ImageAig45PD_AG: TImage;
+    ImagePalette14: TImage;
     Label22: TLabel;
-    ImageAig45PG_AD: TImage;
+    ImagePalette15: TImage;
     Label23: TLabel;
     EditTexte: TEdit;
     ButtonSimu: TButton;
@@ -139,18 +139,18 @@ type
       Y: Integer);
     procedure ImagePalette1MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImageSupGEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageSupGMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette6EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette6MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ImageSupDEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageSupDMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette7EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette7MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ImageInfDEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageInfDMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette8EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette8MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ImageInfGMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette9MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ImageInfGEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette9EndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ButtonSauveTCOClick(Sender: TObject);
     procedure MenuCouperClick(Sender: TObject);
     procedure ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;
@@ -171,15 +171,15 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Maj_TCO(Adresse : integer);
-    procedure ImageDiag1EndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageDiag1MouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImageDiag10EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette10MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ImageDiag2EndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageDiag2MouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImageDiag11EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette11MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ButtonConfigTCOClick(Sender: TObject);
-    procedure ImageFeuEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImageFeuMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette30EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette30MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Tourner90GClick(Sender: TObject);
     procedure Tourner90DClick(Sender: TObject);
@@ -187,21 +187,21 @@ type
     procedure TrackBarZoomChange(Sender: TObject);
     procedure AnnulercouperClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure ImageAig45PG_AGEndDrag(Sender, Target: TObject; X,
+    procedure ImagePalette12EndDrag(Sender, Target: TObject; X,
       Y: Integer);
-    procedure ImageAig45PG_AGMouseDown(Sender: TObject;
+    procedure ImagePalette12MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImageAig45PD_ADEndDrag(Sender, Target: TObject; X,
+    procedure ImagePalette13EndDrag(Sender, Target: TObject; X,
       Y: Integer);
-    procedure ImageAig45PD_ADMouseDown(Sender: TObject;
+    procedure ImagePalette13MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImageAig45PD_AGEndDrag(Sender, Target: TObject; X,
+    procedure ImagePalette14EndDrag(Sender, Target: TObject; X,
       Y: Integer);
-    procedure ImageAig45PD_AGMouseDown(Sender: TObject;
+    procedure ImagePalette14MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImageAig45PG_ADEndDrag(Sender, Target: TObject; X,
+    procedure ImagePalette15EndDrag(Sender, Target: TObject; X,
       Y: Integer);
-    procedure ImageAig45PG_ADMouseDown(Sender: TObject;
+    procedure ImagePalette15MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure EditTexteChange(Sender: TObject);
     procedure ButtonSimuClick(Sender: TObject);
@@ -334,14 +334,17 @@ var fichier : textfile;
     end;
 
 begin
+  {$I+}
   try
-    assignFile(fichier,'tco.cfg');
+    assign(fichier,'tco.cfg');
     reset(fichier);
   except
     Affiche('Nouveau tco',clyellow);
-    NbreCellX:=28;NbreCellY:=13;LargeurCell:=30;HauteurCell:=30;
+    NbreCellX:=35;NbreCellY:=20;LargeurCell:=30;HauteurCell:=30;
     exit;
   end;
+  {$I-}
+  
   x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;
 
   // couleurs
@@ -511,6 +514,25 @@ begin
   Affiche('TCO sauvegardé',clyellow);
 end;
 
+procedure entoure_cell_grille(x,y : integer);
+// redessine le carré de grille de la cellule qui a été altéré par la mise à
+          // jour de la cellule
+var Xorg,Yorg : integer;
+begin;
+  Xorg:=(x-1)*LargeurCell;
+  Yorg:=(y-1)*HauteurCell;
+  if AvecGrille then With PcanvasTCO do
+  begin
+            Pen.Color:=clGrille;
+            Pen.mode:=PmCopy;
+            MoveTo(Xorg,YOrg);
+            LineTo(Xorg+LargeurCell,YOrg);
+            LineTo(Xorg+LargeurCell,YOrg+HauteurCell);
+            LineTo(Xorg,YOrg+HauteurCell);
+            LineTo(Xorg,YOrg);
+  end;  
+end;
+
 
 procedure TformTCO.grille;
 var x,y : integer;
@@ -614,15 +636,20 @@ begin
 
     Brush.COlor:=clVoies;
     Pen.Mode:=pmCopy;
-    pen.color:=clVoies;
-
     // aiguillage dévié (sans inversion)
     if ((inverse=false) and (position=const_Devie)) or
        ((inverse=true)  and (position=const_Droit)) or
        (position=9) then
     begin
       horz;
-      if (mode=1) and (position=const_devie) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
+      if (mode=1) and (position=const_devie) then 
+      begin 
+        Pen.color:=clAllume;Brush.color:=ClAllume 
+      end 
+      else 
+      begin 
+        Pen.color:=clVoies;Brush.Color:=clVoies;
+      end;
       deviation;
       r:=Rect(x0+(LargeurCell div 2),jy1,x0+LargeurCell,jy2);
       canvas.FillRect(r);
@@ -2348,7 +2375,7 @@ end;
 
 // affiche la cellule x et y en cases
 procedure TformTCO.affiche_cellule(x,y : integer);
-var Xorg,Yorg,mode,adresse,Bimage,aspect,oriente,pos : integer;
+var Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pos : integer;
     Bt : TEquipement;
     s : string;
 begin
@@ -2362,16 +2389,17 @@ begin
   if (bImage>=2)  then         //?????     and (btype<=15)
   begin
     if Adresse<>0 then pos:=Aiguillage[Index_Aig(adresse)].position
-    
-    else pos:=9;       
-  end;  
+
+    else pos:=9;
+  end;
   Xorg:=(x-1)*LargeurCell;
   Yorg:=(y-1)*HauteurCell;
   s:=IntToSTR(adresse);
-  
+
  // pourquoi ? ? if y>1 then if (tco[x,y-1].Bimage=30) and (FeuTCO[i].FeuOriente=1) then exit;
-  
-  case Bimage of 
+
+  // affiche d'abord l'icone de la cellule et colore la voie si zone ou détecteur actionnée selon valeur mode
+  case Bimage of
     //  0 : efface_cellule(PCanvasTCO,x,y,Clyellow,Mode);     &&&&&&&&&
       1 : dessin_voie(PCanvasTCO,X,Y,mode);
       2 : dessin_AigG_PD(PCanvasTCO,X,Y,mode,pos);
@@ -2395,54 +2423,56 @@ begin
      20 : dessin_20(PCanvasTCO,X,Y,mode);
      21 : dessin_21(PCanvasTCO,X,Y,mode);
      22 : dessin_22(PCanvasTCO,X,Y,mode);
-     
+
      30 : dessin_feu(PCanvasTCO,X,Y);
   end;
 
   PCanvasTCO.font.Size:=(LargeurCell div 10)+4  ;
 //  Affiche(intToSTR( (LargeurCell div 30)+6),clyellow);
-  
+
   // affiche le texte des aiguillages
-  if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or (BImage=15) or (BImage=21) or (BImage=22)) and (adresse<>0) then 
-  begin 
+  if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or (BImage=15) or (BImage=21) or (BImage=22)) and (adresse<>0) then
+  begin
     if Bt<>tjs then s:='A'+s else s:='A'+s+'B';
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
       Font.Color:=clYellow;
-      x:=0;y:=0;
-      if Bimage=4  then begin x:=1;y:=1;end;
-      if Bimage=5  then begin x:=1;y:=HauteurCell-round(20*fryGlob);end;
-      if Bimage=12 then begin x:=1;y:=HauteurCell-round(20*frYGlob);end;
-      if Bimage=21 then begin x:=2;y:=1;end;
-      if Bimage=22 then begin x:=1;y:=HauteurCell-round(15*frYGlob);end;
-      TextOut(xOrg+x,yOrg+y,s);
-      exit;
-    end;  
+      xt:=0;yt:=0;
+      if Bimage=4  then begin xt:=1;yt:=1;end;
+      if Bimage=5  then begin xt:=1;yt:=HauteurCell-round(20*fryGlob);end;
+      if Bimage=12 then begin xt:=1;yt:=HauteurCell-round(20*frYGlob);end;
+      if Bimage=21 then begin xt:=2;yt:=1;end;
+      if Bimage=22 then begin xt:=1;yt:=HauteurCell-round(15*frYGlob);end;
+      TextOut(xOrg+xt,yOrg+yt,s);
+      //exit;
+    end;
   end;
-     
+
   // détecteurs
-  if ((BImage=1) ) and (adresse<>0) then 
+  if ((BImage=1) ) and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
       Font.Color:=clWhite;
-      x:=round(15*frXGlob);y:=HauteurCell-round(17*frYGlob);
-      TextOut(xOrg+x,yOrg+y,s);
-      exit;
-    end;  
+      xt:=round(15*frXGlob);yt:=HauteurCell-round(17*frYGlob);
+      TextOut(xOrg+xt,yOrg+yt,s);
+      //exit;
+    end;
   end;
-  if ((Bimage=10) or (Bimage=20))  and (adresse<>0) then 
+  
+  if ((Bimage=10) or (Bimage=20))  and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
       Font.Color:=clWhite;
       TextOut(xOrg+round(2*frXGlob),yOrg+round(2*fryGlob),s);
-      exit;
+      //exit;
     end;  
   end;
+  
   if (Bimage=11) and (adresse<>0) then 
   begin // Adresse de l'élément
     with PCanvasTCO do
@@ -2450,7 +2480,7 @@ begin
       Brush.Color:=fond;
       Font.Color:=clWhite;
       TextOut(xOrg+round(28*frXGlob),yOrg+round(2*fryGlob),s);
-      exit;
+      //exit;
     end;  
   end;
 
@@ -2459,33 +2489,34 @@ begin
   begin 
     aspect:=TCO[x,y].Aspect;
     oriente:=TCO[x,y].FeuOriente;
-    x:=0;y:=0;
-    if (aspect=9) and (Oriente=1) then begin x:=LargeurCell-round(25*frXGlob);y:=2*HauteurCell-round(25*fryGlob);end;
-    if (aspect=9) and (Oriente=2) then begin x:=round(10*frXGlob);y:=HauteurCell-round(17*frYGlob);end;    // orientation G
-    if (aspect=9) and (Oriente=3) then begin x:=LargeurCell+2;y:=1;end;
-    if (aspect=7) and (Oriente=1) then begin x:=LargeurCell-round(25*frXGlob);y:=2*HauteurCell-round(25*fryGlob);;end;
-    if (aspect=7) and (Oriente=2) then begin x:=round(10*frXGlob);y:=HauteurCell-round(15*frYGlob);end;
-    if (aspect=7) and (Oriente=3) then begin x:=LargeurCell+2;y:=1;end;
-    if (aspect=5) and (Oriente=1) then begin x:=1;y:=1;end;
-    if (aspect=5) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
-    if (aspect=5) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=4) and (Oriente=1) then begin x:=1;y:=1;end;
-    if (aspect=4) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
-    if (aspect=4) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=3) and (Oriente=1) then begin x:=1;y:=1;end;
-    if (aspect=3) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;
-    if (aspect=3) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;
-    if (aspect=2) and (Oriente=1) then begin x:=1;y:=1;end;   // orientation V
-    if (aspect=2) and (Oriente=2) then begin x:=round(10*frXGlob);y:=round(2*frYGlob);end;  // orientation G
-    if (aspect=2) and (Oriente=3) then begin x:=round(10*frXGlob);y:=HauteurCell-round(22*frYGlob);end;  // orientation D
+    xt:=0;yt:=0;
+    if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell-round(25*frXGlob);yt:=2*HauteurCell-round(25*fryGlob);end;
+    if (aspect=9) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(17*frYGlob);end;    // orientation G
+    if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell+2;yt:=1;end;
+    if (aspect=7) and (Oriente=1) then begin xt:=LargeurCell-round(25*frXGlob);yt:=2*HauteurCell-round(25*fryGlob);;end;
+    if (aspect=7) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(15*frYGlob);end;
+    if (aspect=7) and (Oriente=3) then begin xt:=LargeurCell+2;yt:=1;end;
+    if (aspect=5) and (Oriente=1) then begin xt:=1;yt:=1;end;
+    if (aspect=5) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=round(2*frYGlob);end;
+    if (aspect=5) and (Oriente=3) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(22*frYGlob);end;
+    if (aspect=4) and (Oriente=1) then begin xt:=1;yt:=1;end;
+    if (aspect=4) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=round(2*frYGlob);end;
+    if (aspect=4) and (Oriente=3) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(22*frYGlob);end;
+    if (aspect=3) and (Oriente=1) then begin xt:=1;yt:=1;end;
+    if (aspect=3) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=round(2*frYGlob);end;
+    if (aspect=3) and (Oriente=3) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(22*frYGlob);end;
+    if (aspect=2) and (Oriente=1) then begin xt:=1;yt:=1;end;   // orientation V
+    if (aspect=2) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=round(2*frYGlob);end;  // orientation G
+    if (aspect=2) and (Oriente=3) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(22*frYGlob);end;  // orientation D
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
       Font.Color:=clLime;
-      TextOut(xOrg+x,yOrg+y,s);
+      TextOut(xOrg+xt,yOrg+yt,s);
     end;  
   end;
 
+  entoure_cell_grille(x,y); 
   //canvasTCO.TextOut(xOrg+1,yOrg+1,IntToSTR(x));  
 end;
 
@@ -2719,6 +2750,7 @@ end;
 procedure zone_TCO(det1,det2,mode : integer);
 var i,x,y,ancienY,ancien2Y,ancienX,ancien2X,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2 : integer;
+    memtrouve : boolean;
     s : string;
 begin
   // trouver le détecteur det1
@@ -2736,13 +2768,20 @@ begin
     x:=Ydet2;Ydet2:=Ydet1;Ydet1:=x;
     x:=det2;det2:=det1;det1:=x;
   end;
+
+  if yDet2<yDet1 then 
+  begin 
+    y:=Ydet2;Ydet2:=Ydet1;Ydet1:=y;
+    y:=Xdet2;Xdet2:=Xdet1;Xdet1:=y;
+    y:=det2;det2:=det1;det1:=y;
+  end;
   
   //Affiche('trouvé '+intToSTR(det2)+' en '+IntToSTR(xDet2)+'/'+intToSTR(ydet2),clyellow);
   
   // Aller de det1 à det2 vers le sens X croissant du TCO
   ancienX:=-1;ancienY:=-1; 
   x:=xDet1;y:=Ydet1;
-  i:=0;
+  i:=0; memtrouve:=false;
   
   repeat
     ancien2X:=ancienX;
@@ -2757,7 +2796,7 @@ begin
     adresse:=TCO[x,y].Adresse ;
     Bimage:=TCO[x,y].Bimage;
 
-    // trouver le trajet pour rejoindre det1 à det2
+    // vers case suivante: trouver le trajet pour rejoindre det1 à det2
     case Bimage of 
     // voie
     1 : if ancien2X<x then inc(x) else dec(x);
@@ -2917,8 +2956,9 @@ begin
         end;         
     else exit;   
     end;
-    inc(i);                                      
-  until (x=1) or (x=NbreCellX) or (y=NbreCellY) or (adresse=det2) or (i>40);
+    inc(i);  
+    if adresse=det2 then memTrouve:=true;                                    
+  until (x=1) or (x=NbreCellX) or (y=NbreCellY) or ((adresse<>det2) and memTrouve) or (i>40);
 
   if i>40 then 
   begin 
@@ -2951,16 +2991,16 @@ begin
     dessin_AigPG_AG(ImagePalette3.Canvas,1,1,0,9);
     dessin_AigD_PG(ImagePalette4.Canvas,1,1,0,9);
     dessin_voie(ImagePalette1.canvas,1,1,0);
-    dessin_SupG(ImageSupG.canvas,1,1,0);
-    dessin_SupD(ImageSupD.canvas,1,1,0);
-    dessin_InfD(ImageInfD.canvas,1,1,0);
-    dessin_infG(ImageInfG.canvas,1,1,0);
-    dessin_Diag1(ImageDiag1.Canvas,1,1,0);
-    dessin_Diag2(ImageDiag2.Canvas,1,1,0);
-    dessin_Aig45PG_AG(ImageAig45PG_AG.Canvas,1,1,0,9);
-    dessin_Aig45PD_AD(ImageAig45PD_AD.Canvas,1,1,0,9);
-    dessin_Aig45PD_AG(ImageAig45PD_AG.Canvas,1,1,0,9);
-    dessin_Aig45PG_AD(ImageAig45PG_AD.Canvas,1,1,0,9);
+    dessin_SupG(ImagePalette6.canvas,1,1,0);
+    dessin_SupD(ImagePalette7.canvas,1,1,0);
+    dessin_InfD(ImagePalette8.canvas,1,1,0);
+    dessin_infG(ImagePalette9.canvas,1,1,0);
+    dessin_Diag1(ImagePalette10.Canvas,1,1,0);
+    dessin_Diag2(ImagePalette11.Canvas,1,1,0);
+    dessin_Aig45PG_AG(ImagePalette12.Canvas,1,1,0,9);
+    dessin_Aig45PD_AD(ImagePalette13.Canvas,1,1,0,9);
+    dessin_Aig45PD_AG(ImagePalette14.Canvas,1,1,0,9);
+    dessin_Aig45PG_AD(ImagePalette15.Canvas,1,1,0,9);
     dessin_16(ImagePalette16.canvas,1,1,0);
     dessin_17(ImagePalette17.canvas,1,1,0);
     dessin_18(ImagePalette18.canvas,1,1,0);
@@ -2984,7 +3024,7 @@ begin
     PImageTemp:=FormTCO.ImageTemp;
     PImageTemp.Canvas.Rectangle(0,0,PImageTemp.Width,PimageTemp.Height);
     
-    With ImageFeu do
+    With ImagePalette30 do
     begin
       Picture.Bitmap.TransparentMode:=tmAuto; 
       Picture.Bitmap.TransparentColor:=clblue;
@@ -3136,10 +3176,12 @@ begin
   dessin_AigPD_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=5;  // image 5
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
+ 
 end;
 
 procedure TFormTCO.ImagePalette2EndDrag(Sender,Target: TObject; X,Y: Integer);
@@ -3153,10 +3195,12 @@ begin
   tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=2;  // image 2
   dessin_AigG_PD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
+  
 end;
 
 procedure TFormTCO.ImagePalette2MouseDown(Sender: TObject;
@@ -3176,10 +3220,11 @@ begin
   dessin_AigPG_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=3;  // image 3
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
-  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);  
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage); 
 end;
 
 procedure TFormTCO.ImagePalette3MouseDown(Sender: TObject;
@@ -3199,6 +3244,7 @@ begin
   dessin_AigD_PG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BType:=aig;  // aiguillage
   tco[XClicCell,YClicCell].BImage:=4;  // image 4
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3224,10 +3270,12 @@ begin
   tco[XClicCell,YClicCell].BType:=voie;  // voie (3)
   tco[XClicCell,YClicCell].BImage:=1;  // image 1
   tco[XClicCell,YClicCell].Adresse:=0;  
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
-  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+  
 end;
 
 procedure TFormTCO.ImagePalette1MouseDown(Sender: TObject;
@@ -3236,7 +3284,7 @@ begin
   ImagePalette1.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageSupGEndDrag(Sender, Target: TObject; X,Y: Integer);
+procedure TFormTCO.ImagePalette6EndDrag(Sender, Target: TObject; X,Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
   efface_entoure;
@@ -3248,18 +3296,19 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=6;  // image 6
   tco[XClicCell,YClicCell].Adresse:=0;  
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageSupGMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TFormTCO.ImagePalette6MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageSupG.BeginDrag(true);
+  ImagePalette6.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageSupDEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette7EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3272,19 +3321,20 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=7;  // image 7
   tco[XClicCell,YClicCell].Adresse:=0;  
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageSupDMouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette7MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageSupD.BeginDrag(true);
+  ImagePalette7.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageInfDEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette8EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3297,49 +3347,50 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=8;  // image 8
   tco[XClicCell,YClicCell].Adresse:=0;  
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageInfDMouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette8MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageInfD.BeginDrag(true);
+  ImagePalette7.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageInfGMouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette9MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageInfG.BeginDrag(true);
-end;
-
-
-procedure TFormTCO.ImageAig45PG_AGMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-   ImageAig45PG_AG.BeginDrag(true);
+  ImagePalette9.BeginDrag(true);
 end;
 
 
-procedure TFormTCO.ImageAig45PD_ADMouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette12MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageAig45PD_AD.BeginDrag(true);
+   ImagePalette12.BeginDrag(true);
 end;
 
 
-procedure TFormTCO.ImageAig45PD_AGMouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette13MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageAig45PD_AG.BeginDrag(true);
+  ImagePalette13.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageAig45PG_ADMouseDown(Sender: TObject;
+
+procedure TFormTCO.ImagePalette14MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageAig45PG_AD.BeginDrag(true);
+  ImagePalette14.BeginDrag(true);
+end;
+
+procedure TFormTCO.ImagePalette15MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ImagePalette15.BeginDrag(true);
 end;
 
 procedure TFormTCO.ImagePalette16MouseDown(Sender: TObject;
@@ -3385,7 +3436,7 @@ begin
   ImagePalette22.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageInfGEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette9EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3398,13 +3449,14 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=9;  // image 9
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageAig45PG_AGEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette12EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3417,14 +3469,16 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=12;  // image 12
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+  
 end;
 
 
-procedure TFormTCO.ImageAig45PD_ADEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette13EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3437,13 +3491,15 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=13;  // image 13
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+  
 end;
 
-procedure TFormTCO.ImageAig45PD_AGEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette14EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3456,13 +3512,14 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=14;  // image 14
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageAig45PG_ADEndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette15EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -3475,6 +3532,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=15;  // image 15
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3493,6 +3551,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=16;  // image 16
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3512,6 +3571,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=17;  // image 17
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3531,6 +3591,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=18;  // image 18
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3550,6 +3611,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=19;  // image 19
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3569,6 +3631,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=20;  // image 20
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3588,6 +3651,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=21;  
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3607,6 +3671,7 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=22;  
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
@@ -3974,13 +4039,16 @@ begin
 end;
 
 procedure TFormTCO.Maj_TCO(Adresse : integer);
-var x,y : integer;
+var x,y,xOrg,yOrg : integer;
 begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if tco[x,y].Adresse=Adresse then 
-        affiche_cellule(x,y);
+        if tco[x,y].Adresse=Adresse then
+        begin
+          affiche_cellule(x,y);
+          entoure_cell_grille(x,y);            
+        end;
       end;
 end;
 
@@ -3999,7 +4067,7 @@ end;
 
 
 // dépose d'un feu sur le TCO
-procedure TFormTCO.ImageDiag1EndDrag(Sender, Target: TObject; X, Y: Integer);
+procedure TFormTCO.ImageDiag10EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
   TCO_modifie:=true;
@@ -4010,7 +4078,8 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=10;  // image 10
   tco[XClicCell,YClicCell].Adresse:=0;  
-  tco[XClicCell,YClicCell].FeuOriente:=1;  
+  tco[XClicCell,YClicCell].FeuOriente:=1; 
+  entoure_cell_grille(XClicCell,YClicCell);  
   _entoure_cell_clic; 
   tco[XClicCell,YClicCell].x:=0;  //  XClicCell;  //??
   tco[XClicCell,YClicCell].y:=0;  //  YClicCell;  //??
@@ -4020,13 +4089,13 @@ begin
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageDiag1MouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette10MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageDiag1.BeginDrag(true);
+  ImagePalette10.BeginDrag(true);
 end;
 
-procedure TFormTCO.ImageDiag2EndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImageDiag11EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
@@ -4038,16 +4107,17 @@ begin
   tco[XClicCell,YClicCell].BType:=rien;  // rien
   tco[XClicCell,YClicCell].BImage:=11;  
   tco[XClicCell,YClicCell].Adresse:=0;  
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImageDiag2MouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette11MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ImageDiag2.BeginDrag(true);
+  ImagePalette11.BeginDrag(true);
 end;
 
 procedure TFormTCO.ButtonConfigTCOClick(Sender: TObject);
@@ -4057,7 +4127,7 @@ begin
   formconfigTCO.close;
 end;
 
-procedure TFormTCO.ImageFeuEndDrag(Sender, Target: TObject; X, Y: Integer);
+procedure TFormTCO.ImagePalette30EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
   if (x=0) and (y=0) then exit;
   efface_entoure;
@@ -4073,21 +4143,22 @@ begin
   tco[XClicCell,YClicCell].Aspect:=9;
   tco[XClicCell,YClicCell].x:=0;
   tco[XClicCell,YClicCell].y:=0;
-  
 
   // ne pas convertir l'adresse sinon evt changement du composant et on écrase l'aspect EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeElement.Text:=IntToSTR(BtypeToNum(tco[XClicCell,YClicCell].Btype));
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 
   dessin_feu(PCanvasTCO,XclicCell,YClicCell);
+  entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
+ 
 end;
 
 
-procedure TFormTCO.ImageFeuMouseDown(Sender: TObject; Button: TMouseButton;
+procedure TFormTCO.ImagePalette30MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-   ImageFeu.BeginDrag(true);
+   ImagePalette30.BeginDrag(true);
 end;
 
  
@@ -4298,8 +4369,8 @@ begin
       ( FindComponent('No') as TButton).Caption:='dévié';
     end;
     Result:=Msgdlg.ShowModal;
-    if Result=MrYes then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,2,aigP);end; // droit
-    if Result=MrNo then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,1,aigP);end;  // dévié
+    if Result=MrYes then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,const_droit,aigP);end; // droit
+    if Result=MrNo then begin efface_entoure;SelectionAffichee:=false;pilote_acc(adresse,const_devie,aigP);end;  // dévié
 
     sourisclic:=false;  // évite de générer un cadre de sélection:=false;
     piloteAig:=true;
@@ -4308,7 +4379,6 @@ begin
   // commande de signal
   if Bimage=30 then
   begin
-
     if adresse=0 then exit;
     AdrPilote:=adresse;
     i:=Index_feu(adresse);
@@ -4319,7 +4389,7 @@ begin
       show;
       ImagePilote.top:=40;ImagePilote.left:=220;
       ImagePilote.Parent:=FormPilote;
-      ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto; 
+      ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
       ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
       ImagePilote.Transparent:=true;
 
@@ -4336,6 +4406,10 @@ begin
 end;
 
 begin
+
+
+
+
 
 
 
