@@ -1,9 +1,9 @@
 object FormDebug: TFormDebug
-  Left = 285
-  Top = 142
+  Left = 219
+  Top = 67
   Width = 842
   Height = 784
-  VertScrollBar.Position = 7
+  VertScrollBar.Position = 39
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -22,7 +22,7 @@ object FormDebug: TFormDebug
   TextHeight = 13
   object Label1: TLabel
     Left = 642
-    Top = -3
+    Top = -35
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -38,7 +38,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 474
-    Top = -5
+    Top = -37
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -52,7 +52,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 754
-    Top = -5
+    Top = -37
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -68,7 +68,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 570
-    Top = 329
+    Top = 297
     Width = 239
     Height = 201
     Anchors = [akTop, akRight]
@@ -89,7 +89,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 466
-    Top = 321
+    Top = 289
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -99,7 +99,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 466
-    Top = 353
+    Top = 321
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -110,7 +110,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 466
-    Top = 289
+    Top = 257
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -120,7 +120,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 466
-    Top = 249
+    Top = 217
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -131,7 +131,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 466
-    Top = 201
+    Top = 169
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -148,7 +148,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 570
-    Top = 169
+    Top = 137
     Width = 239
     Height = 153
     Anchors = [akTop, akRight]
@@ -167,7 +167,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 466
-    Top = 393
+    Top = 361
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -178,9 +178,9 @@ object FormDebug: TFormDebug
   end
   object GroupBox1: TGroupBox
     Left = 464
-    Top = 601
+    Top = 569
     Width = 345
-    Height = 145
+    Height = 177
     Anchors = [akTop, akRight]
     Caption = 'Fonctions primitives'
     Color = cl3DLight
@@ -273,8 +273,8 @@ object FormDebug: TFormDebug
       Left = 8
       Top = 88
       Width = 329
-      Height = 49
-      Caption = 'D'#233'tecteur suivant'
+      Height = 81
+      Caption = 'D'#233'tecteur/'#233'l'#233'ment suivant'
       TabOrder = 1
       object ButtonDetSuiv: TButton
         Left = 16
@@ -282,8 +282,8 @@ object FormDebug: TFormDebug
         Width = 185
         Height = 25
         Hint = 
-          'Renvoie l'#39#233'l'#233'ment suivant aux deux '#233'l'#233'ments (d'#233'tecteurs ou aigui' +
-          'llages) '
+          'Renvoie le d'#233'tecteur suivant aux deux '#233'l'#233'ments (d'#233'tecteurs ou ai' +
+          'guillages) '
         Caption = 'D'#233'tecteur suivant aux '#233'l'#233'ments'
         ParentShowHint = False
         ShowHint = True
@@ -292,7 +292,7 @@ object FormDebug: TFormDebug
       end
       object EditPrec: TEdit
         Left = 208
-        Top = 18
+        Top = 34
         Width = 49
         Height = 21
         Hint = 'Element pr'#233'c'#233'dent'
@@ -302,7 +302,7 @@ object FormDebug: TFormDebug
       end
       object EditActuel: TEdit
         Left = 264
-        Top = 18
+        Top = 34
         Width = 49
         Height = 21
         Hint = 'Element actuel'
@@ -310,11 +310,23 @@ object FormDebug: TFormDebug
         ShowHint = True
         TabOrder = 2
       end
+      object ButtonElSuiv: TButton
+        Left = 16
+        Top = 48
+        Width = 185
+        Height = 25
+        Hint = 
+          'Renvoie l'#39#233'l'#233'ment suivant aux deux '#233'l'#233'ments (d'#233'tecteurs ou aigui' +
+          'llages) '
+        Caption = 'Element suivant aux '#233'l'#233'ments'
+        TabOrder = 3
+        OnClick = ButtonElSuivClick
+      end
     end
   end
   object GroupBox2: TGroupBox
     Left = 464
-    Top = 13
+    Top = -19
     Width = 345
     Height = 149
     Anchors = [akTop, akRight]
@@ -486,7 +498,7 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = 1
+    Top = -31
     Width = 457
     Height = 743
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -500,7 +512,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox5: TGroupBox
     Left = 464
-    Top = 537
+    Top = 505
     Width = 345
     Height = 57
     Anchors = [akTop, akRight]
@@ -567,7 +579,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTout: TButton
     Left = 467
-    Top = 169
+    Top = 137
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]

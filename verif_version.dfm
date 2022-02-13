@@ -4,7 +4,7 @@ object FormVersion: TFormVersion
   BorderIcons = []
   BorderStyle = bsNone
   Caption = 'V'#233'rification de version'
-  ClientHeight = 215
+  ClientHeight = 234
   ClientWidth = 645
   Color = clNavy
   Font.Charset = ANSI_CHARSET
@@ -20,7 +20,7 @@ object FormVersion: TFormVersion
     Left = 8
     Top = 16
     Width = 625
-    Height = 185
+    Height = 209
     Color = clNavy
     Font.Charset = ANSI_CHARSET
     Font.Color = clYellow

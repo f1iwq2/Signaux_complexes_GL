@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='3.6';  // sert à la comparaison de la version publiée
+Const  Version='3.62';  // sert à la comparaison de la version publiée
        SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
@@ -220,8 +220,8 @@ begin
           if ncomm>0 then
           begin
             Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL :');
-            Aff(' ');
-            for i:=1 to ncomm do aff(comm[i]);
+            aff(' ');
+            for i:=1 to ncomm-1 do aff(comm[i]);
           end;  
           if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin

@@ -55,6 +55,7 @@ type
     ButtonSimuAct0: TButton;
     ButtonSimuAct1: TButton;
     CheckDebugTrames: TCheckBox;
+    ButtonElSuiv: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -88,6 +89,7 @@ type
     procedure ButtonSimuAct1Click(Sender: TObject);
     procedure ButtonSimuAct0Click(Sender: TObject);
     procedure CheckDebugTramesClick(Sender: TObject);
+    procedure ButtonElSuivClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -497,6 +499,39 @@ end;
 procedure TFormDebug.CheckDebugTramesClick(Sender: TObject);
 begin
   debugtrames:=checkDebugTrames.checked;
+end;
+
+procedure TFormDebug.ButtonElSuivClick(Sender: TObject);
+var Adr,Prec,Actuel,erreur,ancdebug : integer ;
+    type1,type2 : tequipement;
+    s1,s2,s : string;
+begin
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  s1:=EditPrec.Text;
+  s2:=EditActuel.Text;
+  if (s1='') or (s2='') then exit;
+  if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
+  if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
+  Val(s1,prec,erreur); if erreur<>0 then exit;
+  Val(s2,Actuel,erreur); if erreur<>0 then exit;
+  Adr:=suivant_Alg3(prec,type1,actuel,type2,1);
+  if Adr<9996 then 
+  begin
+    s:='L''élément suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr)+' ';
+    case typeGen of
+    aig : s:=s+'aiguillage';
+    tjd : s:=s+'tjd';
+    tjs : s:=s+'tjs';
+    triple : s:=s+'triple';
+    det : s:=s+'détecteur';
+    buttoir : s:=s+'buttoir';
+    end;
+    AfficheDebug(s,clYellow);
+  end  
+  else AfficheDebug('Pas trouvé d''élement suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
+  NivDebug:=AncDebug;
+
 end;
 
 end.
