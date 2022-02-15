@@ -1,4 +1,4 @@
-unit UnitConfig;
+Unit UnitConfig;
 
 interface
 
@@ -362,13 +362,13 @@ Tempo_Feu_ch='Tempo_Feu';
 NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
+Raz_signaux_ch='RazSignaux';
 
-// variables de config
+// sections de config
 section_aig_ch='[section_aig]';
 section_sig_ch='[section_sig]';
 section_act_ch='[section_act]';
 section_branches_ch='[section_branches]';
-Raz_signaux_ch='RazSignaux';
 
 var
   FormConfig: TFormConfig;
@@ -392,7 +392,7 @@ procedure decode_ligne_feux(chaine_signal : string;i : integer);
 function verif_coherence : boolean;
 function compile_branche(s : string;i : integer) : boolean;
 function encode_sig_feux(i : integer): string;
-  
+
 implementation
 
 uses UnitDebug,UnitTCO, UnitSR;
@@ -403,8 +403,7 @@ uses UnitDebug,UnitTCO, UnitSR;
 function envoi_CDM(s : string) : boolean;
 var temps : integer;
 begin
-  if SocketCDM_connecte=false then begin envoi_CDM:=false;exit;end;
-  //Affiche('Envoi à CDM rail',clRed);Affiche(s,ClGreen);
+  if CDM_connecte=false then begin envoi_CDM:=false;exit;end;
   if traceTrames then afficheDebug(s,clLime);
   Formprinc.ClientSocketCDM.Socket.SendText(s);
   // attend l'ack
@@ -502,9 +501,9 @@ begin
       Sleep(50);
       inc(i);
       Application.processMessages;
-    until (i>10) or SocketCDM_connecte  ;
+    until (i>10) or CDM_connecte  ;
     //if i>10 then affiche('Timeout',clred);
-    if not(SocketCDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
+    if not(CDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
 
     // connexion à CDM rail
     recuCDM:='';
@@ -683,21 +682,23 @@ begin
   end;
 end;
 
-// 
 function TypeElAIg_to_char(adr : integer;c : char) : string;
 var s: string;
 begin
-  case c of
-  'Z',#0 : s:='détecteur '+IntToSTR(adr);
-  'P' : s:='pointe de l''aiguillage '+IntToSTR(adr);
-  'S' : s:='position déviée de l''aiguillage '+IntToSTR(adr);
-  'D' : s:='position droite de l''aiguillage '+IntToSTR(adr);
-  else s:='Erreur';
+  if (adr=0) and (c<>'D') and (c<>'S') and (c<>'P')  then s:='Buttoir';
+
+  if adr<>0 then
+  begin
+    if c='P' then s:='pointe de l''aiguillage '+IntToSTR(adr) else
+    if c='S' then s:='position déviée de l''aiguillage '+IntToSTR(adr) else
+    if c='D' then s:='position droite de l''aiguillage '+IntToSTR(adr) else
+    if (c<>'D') and (c<>'S') and (c<>'P') then s:='détecteur '+IntToSTR(adr) else
+    s:='erreur';
   end;
-  TypeElAIg_to_char:=s; 
+  TypeElAIg_to_char:=s;
 end;
 
-// transforme le signal du tableau feux[] en texte 
+// transforme le signal du tableau feux[] en texte
 function encode_sig_feux(i : integer): string;
 var s : string;
     adresse,aspect,j,k,NfeuxDir,CondCarre,nc : integer;
@@ -2741,7 +2742,7 @@ begin
       b:=aiguillage[Index_Aig(adresse)].ADroitB;         
       if b='Z' then b:=#0;
       Edit_HG.Text:=intToSTR(aiguillage[index].ADroit)+b;  
-      Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,b); 
+      Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,b);
 
       // champ en bas à gauche
       b:=aiguillage[Index].ADevieB;

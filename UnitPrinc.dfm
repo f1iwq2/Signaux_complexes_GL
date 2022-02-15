@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 24
-  Top = 203
+  Left = 15
+  Top = 195
   Width = 1213
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1538,7 +1538,6 @@ object FormPrinc: TFormPrinc
       Width = 25
       Height = 21
       TabOrder = 1
-      OnChange = EditAdrTrainChange
     end
     object EditVitesse: TEdit
       Left = 80

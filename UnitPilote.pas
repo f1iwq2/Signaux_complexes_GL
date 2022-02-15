@@ -1,6 +1,6 @@
 unit UnitPilote;
 
-// cet unité utilise stocke l'état du signal de pilotage dans l'index 0 du tableau EtatSignalcplx 
+// cette unité stocke l'état du signal de pilotage dans l'index 0 du tableau EtatSignalcplx
 
 interface
 
@@ -9,7 +9,7 @@ uses
   Dialogs, ExtCtrls, StdCtrls, UnitPrinc;
 
 type
-  TFormPilote = class(TForm)
+   TFormPilote = class(TForm)
     LabelTitrePilote: TLabel;
     ImagePilote: TImage;
     GroupBox1: TGroupBox;
@@ -82,12 +82,12 @@ Disque_D       =14; // pour décodeur LDT
 ral_60_jaune_cli =15;ral_60_jaune_cli_F=16384; // pour décodeur LDT
 aspect8        =16 ;
 
-  
+
 var
   FormPilote: TFormPilote;
   EtatFeuPilote : word;
   AdrPilote : integer;
-  
+
 procedure dessine_feu_pilote;
 
 implementation
@@ -265,5 +265,6 @@ begin
   d:=feux[i].decodeur;
   LabelDec.Caption:=decodeur[d];
 end;
+
 
 end.

@@ -4,7 +4,7 @@ object FormPilote: TFormPilote
   BorderStyle = bsDialog
   Caption = 'Pilotage'
   ClientHeight = 350
-  ClientWidth = 346
+  ClientWidth = 331
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object FormPilote: TFormPilote
   TextHeight = 13
   object LabelTitrePilote: TLabel
     Left = 8
-    Top = 0
+    Top = 8
     Width = 249
     Height = 34
     Caption = 'Pilotage du signal'

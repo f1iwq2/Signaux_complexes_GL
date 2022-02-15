@@ -80,6 +80,7 @@ version 3.6  : Amélioration gestion temporisations des actionneurs.
                Changement des vitesses courantes des trains.
 version 3.61 : Correction de la non présentation de certains signaux s'ils sont séparés par plus d'un détecteur.
 version 3.62 : Correction présence trains 3 cantons avant signaux et 1 canton après signaux.
+version 3.63 : Gestion améliorée du décodeur Unisemaf
  
                 
 
