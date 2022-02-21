@@ -359,6 +359,7 @@ Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
 Tempo_aig_ch='Tempo_Aig';
 Tempo_Feu_ch='Tempo_Feu';
+Algo_Unisemaf_ch='Alg_Unisemaf';
 NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
@@ -673,7 +674,7 @@ begin
    encode_aig:=s;
 end;
 
-// renvoie un A si BT est un aiguillage
+// renvoie un A si BT est un aiguillage (aig, tjd, tjs tri)
 function TypeEl_to_char(BT : TEquipement) : string;
 begin
   case BT of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri
@@ -786,20 +787,25 @@ begin
   encode_sig_feux:=s;
 end;
 
-// décode la ligne de signal et la stocke dans l'index du tableau feux
+// décode la ligne de signal et la stocke dans l'index i du tableau feux
 procedure decode_ligne_feux(chaine_signal : string;i : integer);
 var s,chaine,sa : string;
     j,k,l,t,adresse,adr,erreur ,asp,bd: integer;
     c : char;
     multiple,fini : boolean;
 begin
+      if i=0 then 
+      begin
+        AfficheDebug('Erreur 670 : index nul',clred);
+        exit;
+      end;
       s:=chaine_signal;
       j:=pos(',',s);
       if j>1 then
       begin
         // adresse de feu
         val(s,adresse,erreur);
-        if adresse=0 then begin affiche('Erreur ligne '+s,clred);exit;end;
+        if adresse=0 then begin affiche('Erreur 671 ligne '+s,clred);exit;end;
         Delete(s,1,j);
         feux[i].adresse:=adresse;
         j:=pos(',',s);
@@ -814,14 +820,14 @@ begin
             val(sa,l,erreur); // nombre de feux du signal directionnel
             if l>6 then
             begin
-              Affiche('Ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
+              Affiche('Erreur 672 ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
               exit;
             end;
             feux[i].aspect:=l+10;Delete(s,1,j);
             // décodeur
             val(s,adr,erreur);
             Feux[i].decodeur:=adr;
-            if (adr>NbDecodeur-1) then Affiche('Ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
+            if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
             j:=pos(',',s);Delete(s,1,j);
             // liste des aiguillages
             k:=1; // numéro de feu directionnel
@@ -830,7 +836,7 @@ begin
               delete(s,1,1); // supprimer ( ou le ,
               j:=1; // Nombre de descriptions d'aiguillages dans le feu
               repeat
-                if s[1]<>'A' then begin Affiche('Erreur a la ligne '+chaine_signal,clred);exit;end;
+                if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
                 delete(s,1,1);
                 val(s,adr,erreur);  // adresse
                 c:=s[erreur];       // type
@@ -849,7 +855,7 @@ begin
             dec(k);
             if k<>l+1 then
             begin
-              Affiche('Ligne '+chaine_signal,clred);
+              Affiche('Erreur 675 ligne '+chaine_signal,clred);
               Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
             end;
           end
@@ -859,12 +865,12 @@ begin
             val(sa,asp,erreur);  //aspect
             feux[i].aspect:=asp;Delete(s,1,j);
             if (asp=0) or (asp=6) or (asp>9) then
-            Affiche('Fichier '+NomConfig+' configuration aspect ('+intToSTR(asp)+') feu incorrecte à la ligne '+chaine_signal,clRed);
+            Affiche('Erreur 676 Fichier '+NomConfig+' configuration aspect ('+intToSTR(asp)+') feu incorrecte à la ligne '+chaine_signal,clRed);
             j:=pos(',',s);
             if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
             j:=pos(',',s);
             val(s,Feux[i].decodeur,erreur);
-            if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
+            if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
             if j<>0 then delete(s,1,j);
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
             feux[i].Btype_Suiv1:=rien;feux[i].Btype_Suiv2:=rien;feux[i].Btype_Suiv3:=rien;feux[i].Btype_Suiv4:=rien;
@@ -919,7 +925,7 @@ begin
           end;
           if (j>4) or (not(multiple)) then 
           begin 
-            Affiche('Erreur: fichier de configuration ligne erronnée : '+chaine_signal,clred); 
+            Affiche('Erreur 678: fichier de configuration ligne erronnée : '+chaine_signal,clred); 
             closefile(fichier);
             exit;
           end;
@@ -927,7 +933,7 @@ begin
           k:=pos(',',s);
           delete(s,1,k);
           //Affiche('s='+s,clyellow);
-          if length(s)=0 then begin Affiche('Erreur: fichier de configuration ligne erronnée : '+chaine_signal,clred); closefile(fichier);exit;end;
+          if length(s)=0 then begin Affiche('Erreur 679: fichier de configuration ligne erronnée : '+chaine_signal,clred); closefile(fichier);exit;end;
           feux[i].VerrouCarre:=s[1]='1';
           delete(s,1,1);
 
@@ -938,16 +944,16 @@ begin
           if Feux[i].decodeur=6 then
           begin
              
-             if k=0 then begin Affiche('Ligne '+chaine_signal,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
+             if k=0 then begin Affiche('Erreur 680 Ligne '+chaine_signal,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
              else
              begin
                Val(s,k,erreur);
                Feux[i].UniSemaf:=k;
                erreur:=verif_UniSemaf(adresse,k);
-               if erreur=1 then begin Affiche('Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
+               if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
                if erreur=2 then 
                begin 
-                 Affiche('Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
+                 Affiche('Erreur 682 Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
                end;
                
              end;
@@ -982,7 +988,7 @@ begin
                   val(chaine,adresse,erreur);
                   feux[i].condCarre[l][bd].Adresse:=adresse;
                   if erreur<>0 then feux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
-                  Affiche('Définition du feu '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
+                  Affiche('Erreur 683 Définition du feu '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
                 end;
                                  
                 k:=pos(',',sa);if k<>0 then delete(sa,1,k);
@@ -1180,7 +1186,11 @@ begin
   // temporisation entre 2 commandes décodeurs feu
   writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
   copie_commentaire;
-  
+
+  // algorithme Unisemaf
+  writeln(fichierN,Algo_unisemaf_ch+'=',IntToSTR(algo_Unisemaf));
+  copie_commentaire;
+
   // aiguillages
   writeln(fichierN,section_aig_ch);
   for i:=1 to MaxAiguillage do
@@ -1202,7 +1212,7 @@ begin
   
   writeln(fichierN,section_sig_ch);
   // feux
- for i:=1 to NbreFeux do
+  for i:=1 to NbreFeux do
   begin
     s:=encode_sig_feux(i);
     // transformer le tableau feux en ligne
@@ -1245,7 +1255,8 @@ var s,sa,chaine,SOrigine: string;
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu   : boolean;
+    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
+    trouve_algo_uni   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig : integer;
@@ -1932,6 +1943,18 @@ begin
       if tempo_Feu=0 then Tempo_feu:=100;
     end;
  
+    // algo unisemaf
+    sa:=uppercase(Algo_unisemaf_ch)+'=';  
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      trouve_Algo_Uni:=true;
+      delete(s,i,length(sa));
+      val(s,algo_Unisemaf,erreur);
+      if (algo_Unisemaf<0) or (algo_Unisemaf>2) then algo_Unisemaf:=1;
+    end;
+ 
     sa:=uppercase(verif_version_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -2476,6 +2499,9 @@ begin
   if Valeur_entete=2 then RadioButton3.checked:=true;
   LabelInfo.Width:=253;LabelInfo.Height:=25;
   LabelResult.width:=137;LabelResult.Height:=25;
+  LabelNomSon.top:=16;LabelNomSon.Left:=48;
+  SpeedButtonJoue.Top:=64; SpeedButtonJoue.Left:=80;
+  EditSon.Top:=44;EditSon.Left:=16;
 
   CheckVerifVersion.Checked:=verifVersion;
   CheckFenEt.Checked:=Fenetre=1;
@@ -3439,6 +3465,8 @@ begin
         if index=0 then exit;
         aiguillage[index].Adevie:=adr;
         aiguillage[index].AdevieB:=B;
+        RE_ColorLine(Formconfig.RichAig,index-1,ClWhite);
+        LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
       end;
       if aiguillage[index].EtatTJD=2 then
       begin
@@ -3448,8 +3476,7 @@ begin
       
       s:=encode_aig(index);
       formconfig.RichAig.Lines[index-1]:=s;
-      RE_ColorLine(Formconfig.RichAig,index-1,ClWhite);
-      LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
+
     end;
   end;  
 end;
@@ -3927,7 +3954,7 @@ var s : string;
     bt : Tequipement;
 begin
   if affevt then Affiche('Evt Element suivant2',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
@@ -4047,7 +4074,7 @@ var s : string;
 begin
   if clicliste then exit;
   if affevt then Affiche('Evt detecteur 4',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
@@ -4695,7 +4722,7 @@ begin
   if affevt then affiche('Evt EditCmdFerme Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditCmdFerme.Text;
     if (s='+') or (s='-') then
     begin
@@ -5079,7 +5106,7 @@ begin
     Selstart:=RichSig.GetTextLen-1;
     Perform(EM_SCROLLCARET,0,0);
   end;
-  
+
   LabelInfo.caption:='';
   ligneClicSig:=i-1;
   AncligneClicSig:=ligneClicSig;
@@ -5151,7 +5178,7 @@ begin
   EditAdrSig.Text:='';
   EditDet1.Text:='';EditDet2.Text:='';EditDet3.Text:='';EditDet4.Text:='';
   EditSuiv1.Text:='';EditSuiv2.Text:='';EditSuiv3.Text:='';EditSuiv4.Text:='';
-    
+
   config_modifie:=true;
 
   RichSig.Clear;
@@ -5208,8 +5235,9 @@ end;
 
 
 function verif_coherence : boolean;
-var i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc : integer;
+var i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc,index2 : integer;
     modAig,model,km: TEquipement;
+    c : char;
     ok : boolean;
 begin
   // vérification de la cohérence1
@@ -5247,7 +5275,7 @@ begin
       begin
         Affiche('Erreur 7: la TJD/S '+IntToStr(Indexaig)+' a des adresses de destination différentes ('+intToSTR(aiguillage[Indexaig].Ddroit)+' et '+intToSTR(aiguillage[Indexaig].Ddevie)+')',clred);
         ok:=false;
-      end;  
+      end;
       // vérifier si son homologue est une tjd
       adr2:=aiguillage[Indexaig].Ddroit;
       if (aiguillage[Index_Aig(adr2)].modele<>tjd) and (aiguillage[Index_Aig(adr2)].modele<>tjs) then 
@@ -5315,7 +5343,7 @@ begin
   for Indexaig:=1 to maxaiguillage do
   begin
     adr:=aiguillage[Indexaig].Adresse;
-    if aiguillage[Indexaig].modele=triple then 
+    if aiguillage[Indexaig].modele=triple then
     begin
       if aiguillage[Indexaig].AdrTriple=0 then 
       begin
@@ -5330,7 +5358,7 @@ begin
         affiche('Erreur 6.2: aiguillage '+intToSTR(adr)+' défini deux fois',clred);
         ok:=false;
       end;
-    end;     
+    end;
   end; 
 
   // cohérence 4 : vérifie si doublon signal
@@ -5339,7 +5367,7 @@ begin
     adr:=feux[j].Adresse;
     for i:=j+1 to NbreFeux do
     begin
-      if adr=feux[i].Adresse then 
+      if adr=feux[i].Adresse then
       begin
         affiche('Erreur 7 : signal '+intToSTR(adr)+' défini deux fois',clred);
         ok:=false;  
@@ -5385,9 +5413,9 @@ begin
       begin
         ok:=false;
         Affiche('Erreur 8.2: Adresse de détecteur nul sur signal '+IntToSTR(feux[j].adresse),clred);
-      end;  
+      end;
     end;
-    
+
     i:=feux[j].Adr_det2;
     if i<>0 then
     begin
@@ -5409,7 +5437,7 @@ begin
         Affiche('Erreur 8.4: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
       end;
     end;
-    
+
     i:=feux[j].Adr_det4;
     if i<>0 then
     begin
@@ -5463,7 +5491,7 @@ begin
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
-        if index_aig(i)=0 then 
+        if index_aig(i)=0 then
         begin
           ok:=false;
           Affiche('Erreur 9.4: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -5495,7 +5523,7 @@ begin
         end;  
       end;
     end;
-    
+
     // élement suivant 4
     i:=feux[j].Adr_el_suiv4;
     km:=feux[j].Btype_suiv4;
@@ -5513,14 +5541,58 @@ begin
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
-        if index_aig(i)=0 then 
+        if index_aig(i)=0 then
         begin
           ok:=false;
           Affiche('Erreur 9.10: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
-        end;  
+        end;
       end;
     end;
   end;
+
+  // cohérence 7
+  // parcoure les aiguillages pour voir si les aiguillages déclarés aux extrémités sont existants
+  for Indexaig:=1 to maxaiguillage do
+  begin
+    adr:=aiguillage[indexaig].Adresse;
+
+    adr2:=aiguillage[indexaig].ADroit;
+    c:=aiguillage[indexaig].AdroitB;
+    if (c='D') or (c='S') or (c='P') then
+    begin
+      index2:=Index_aig(adr2);
+      if index2=0 then
+      begin
+        ok:=false;
+        Affiche('Erreur 10.1: aiguillage '+intToSTR(adr)+': déclaration d''un aiguillage '+IntToSTR(adr2)+' inexistant',clred);
+      end;
+    end;
+
+    adr2:=aiguillage[indexaig].ADevie;
+    c:=aiguillage[indexaig].AdevieB;
+    if (c='D') or (c='S') or (c='P') then
+    begin
+      index2:=Index_aig(adr2);
+      if index2=0 then
+      begin
+        ok:=false;
+        Affiche('Erreur 10.2: aiguillage '+intToSTR(adr)+': déclaration d''un aiguillage '+IntToSTR(adr2)+' inexistant',clred);
+      end;
+    end;
+
+    adr2:=aiguillage[indexaig].Apointe;
+    c:=aiguillage[indexaig].ApointeB;
+    if (c='D') or (c='S') or (c='P') then
+    begin
+      index2:=Index_aig(adr2);
+      if index2=0 then
+      begin
+        ok:=false;
+        Affiche('Erreur 10.3: aiguillage '+intToSTR(adr)+': déclaration d''un aiguillage '+IntToSTR(adr2)+' inexistant',clred);
+      end;
+    end;
+  end;
+
   verif_coherence:=ok;
 end;
 
@@ -5538,7 +5610,7 @@ begin
   aiguillage[i].EtatTJD:=4;
   aiguillage[i].ApointeB:='Z';
   aiguillage[i].Adevie2B:='Z';   
-  aiguillage[i].tjsintB:='D';   
+  aiguillage[i].tjsintB:='D';
   
   aiguillage[i].posInit:=const_inconnu;
   aiguillage[i].Temps:=5;
@@ -5558,7 +5630,7 @@ begin
   ligneClicAig:=i-1;
   AncligneClicAig:=ligneClicAig;
   Aff_champs_aig_tablo(i);
-  clicliste:=false;  
+  clicliste:=false;
   config_modifie:=true;
   Aig_sauve.Adresse:=0;
 end;

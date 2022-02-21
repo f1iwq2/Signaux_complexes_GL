@@ -196,6 +196,7 @@ begin
     AvecGrille:=checkDessineGrille.Checked;
   end;
   verif_config_TCO:=not(nokNbX or nokNbY or nokHt or nokLg);
+  NbCellulesTCO:=NbreCellX*NbreCellY;
 end;
 
 procedure TFormConfigTCO.ButtonOKClick(Sender: TObject);

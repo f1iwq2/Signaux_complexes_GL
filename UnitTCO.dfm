@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 1395
-  Top = 198
+  Left = 20
+  Top = 203
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False
@@ -833,7 +833,7 @@ object FormTCO: TFormTCO
       Top = 120
       Width = 161
       Height = 17
-      Caption = 'Pilotage aiguillage invers'#233
+      Caption = 'aiguillage invers'#233
       TabOrder = 10
       OnClick = CheckPinvClick
     end

@@ -3446,13 +3446,13 @@ object FormConfig: TFormConfig
             end
             object LabelNomSon: TLabel
               Left = 16
-              Top = 24
+              Top = 40
               Width = 91
               Height = 13
               Caption = 'Nom du fichier son:'
             end
             object SpeedButtonJoue: TSpeedButton
-              Left = 88
+              Left = 80
               Top = 64
               Width = 41
               Height = 33
@@ -3509,7 +3509,7 @@ object FormConfig: TFormConfig
             end
             object EditSon: TEdit
               Left = 16
-              Top = 40
+              Top = 48
               Width = 177
               Height = 21
               TabOrder = 4

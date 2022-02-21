@@ -303,7 +303,7 @@ var
   PImageTCO : Timage;
   PImageTemp : TImage;
   frXGlob,frYGlob : real;
-  LargeurCell,HauteurCell,NbreCellX,NbreCellY : integer   ;
+  LargeurCell,HauteurCell,NbreCellX,NbreCellY,NbCellulesTCO : integer   ;
 
 procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY,DimOrgX,DimOrgY : integer);
 procedure sauve_fichier_tco;
@@ -365,6 +365,7 @@ begin
   Val(s,NbreCellX,erreur);
   delete(s,1,erreur);
   Val(s,NbreCellY,erreur);
+  NbCellulesTCO:=NbreCellX*NbreCellY;
   
   // largeur et hauteur des cellules
   s:=lit_ligne;
@@ -583,7 +584,8 @@ begin
         pen.color:=clAllume;
         jy1:=y0+(HauteurCell div 2)-round(6*frYGlob); // pos Y de la bande sup
         jy2:=y0+(HauteurCell div 2)+round(6*frYGlob); // pos Y de la bande inf
-        r:=Rect(x0+1,jy1,x0+LargeurCell-1,jy2);
+        if avecGrille then r:=Rect(x0+1,jy1,x0+LargeurCell-1,jy2) else
+          r:=Rect(x0,jy1,x0+LargeurCell,jy2) ;
         FillRect(r);
       end;  
     end;   
@@ -599,6 +601,13 @@ begin
   end;
 end;
 
+
+ { diagonale
+    x1:=x0;y1:=y0+hauteurCell-round(3*FryGlob);
+    x2:=x0+largeurCell-round(3*FrXGlob);y2:=y0;
+    x3:=x0+largeurCell;y3:=y0+round(4*FrYGlob);
+    x4:=x0+round(4*FrXGlob); y4:=y0+hauteurCell;
+  }
 // element 2
 procedure TformTCO.dessin_AigG_PD(canvas : Tcanvas;x,y : integer; Mode,position : integer);
 var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
@@ -614,11 +623,13 @@ var x0,y0,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
 
     procedure deviation;
     begin
+      //Canvas.Brush.Color:=clRed;
       x1:=x0+(largeurCell div 2); y1:=jy1+round(1*frYGlob);
-      x2:=x0-round(1*FrXGlob);y2:=y0+HauteurCell-round(2*FrYGlob);
-      x3:=x0+round(2*FrXGlob);y3:=y0+HauteurCell;
-      x4:=x1+round(1*FrXGlob);y4:=jy2;
+      x2:=x0-round(1*FrXGlob);y2:=y0+HauteurCell-round(2*FrYGlob);     //1
+      x3:=x0+round(2*FrXGlob);y3:=y0+HauteurCell;          //2
+      x4:=x1+round(1*FrXGlob);y4:=jy2;                     //1
       canvas.Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      //Canvas.Brush.Color:=clVoies;
     end;  
     
 begin
@@ -634,12 +645,12 @@ begin
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
-    Brush.COlor:=clVoies;
+    Brush.Color:=clVoies;
     Pen.Mode:=pmCopy;
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or  (position=9) then
+    if (position=const_Devie) or (position=9) then 
     begin
       horz;
       if (mode=1) and (position=const_devie) then 
@@ -655,8 +666,9 @@ begin
       canvas.FillRect(r);
 
       // effacement du morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x1;y1:=jy1;
         x2:=x1-6;y2:=jy2;
@@ -669,8 +681,9 @@ begin
     end;
 
     // aiguillage droit (sans inversion) dévié (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       deviation;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -727,9 +740,10 @@ begin
     Pen.Mode:=pmCopy;
     
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin
       horz;
       if (mode=1) and (position=const_Devie) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -738,8 +752,9 @@ begin
       canvas.FillRect(r);
       
       // effacement du morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x4+round(2*frXGlob);y1:=jy2-round(1*frYGlob);
         x2:=x1+round(5*frXGlob);y2:=jy1;
@@ -752,8 +767,9 @@ begin
     end;
 
     // aiguillage droit (sans inversion) dévié (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       devie;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) 
@@ -813,9 +829,10 @@ begin
     Brush.color:=clVoies;
 
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin
       bande_horz;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -824,8 +841,9 @@ begin
       Canvas.FillRect(r);
       deviation;
       // effacement du morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x1;y1:=jy1;
         x2:=x1+5;y2:=jy2-1;
@@ -838,8 +856,9 @@ begin
     end;
 
     // aiguillage droit (sans inversion) dévié (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       deviation;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then Brush.color:=clAllume else Brush.Color:=couleur;
@@ -899,9 +918,10 @@ begin
     pen.color:=clVoies;
 
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin
       horz;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -911,8 +931,9 @@ begin
       deviation;
 
       // efface le morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x1-12;y1:=jy1;
         x2:=x1+5;y2:=jy2-1;
@@ -925,8 +946,9 @@ begin
     end;
       
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       deviation;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1206,9 +1228,10 @@ begin
     pen.color:=clVoies;
     
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin
       diagonale;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1223,9 +1246,10 @@ begin
         canvas.PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
       end;
            
-       // efface le morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      // efface le morceau
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x0+round(22*frxGlob);y1:=jy2; //+round(FrYGlob*1);
         x2:=x1+round(12*frxGlob);y2:=y1;
@@ -1238,8 +1262,9 @@ begin
     end;
     
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie))  then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie))  then
+    if (position=const_Droit) then
     begin
       horz;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1296,9 +1321,10 @@ begin
     pen.color:=clVoies;
    
     // aiguillage dévié (sans inversion) ou position inconnue (9) 
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin
       diagonale;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1314,8 +1340,9 @@ begin
       end;
       
       // efface le morceau  
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin 
         // efface le morceau
         x1:=x0+round(12*frXGlob);y1:=jy2; 
@@ -1329,8 +1356,9 @@ begin
     end;
     
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_droit) then
     begin
       horz;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1385,9 +1413,10 @@ begin
     pen.color:=clVoies;
     
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin        
       diagonale;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1403,8 +1432,9 @@ begin
         canvas.PolyGon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
       end;
       // efface le morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         // efface le morceau
         x1:=x0+round(2*frXGlob);y1:=jy1-round(1*fryGlob); 
@@ -1418,8 +1448,9 @@ begin
     end;
    
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       horz;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1475,9 +1506,10 @@ begin
     pen.color:=clVoies;
     
     // aiguillage dévié (sans inversion)
-    if ((inverse=false) and (position=const_Devie)) or
-       ((inverse=true)  and (position=const_Droit)) or
-       (position=9) then
+    //if ((inverse=false) and (position=const_Devie)) or
+    //   ((inverse=true)  and (position=const_Droit)) or
+    //   (position=9) then
+    if (position=const_Devie) or (position=9) then
     begin            
       diagonale;
       if (mode=1) and ( ((inverse=false) and (position=const_Devie)) or ((inverse=true) and (position=const_Droit)) ) then begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -1493,8 +1525,9 @@ begin
       end;
       
       // efface le morceau
-      if ((inverse=false) and (position=const_Devie)) or
-         ((inverse=true)  and (position=const_Droit)) then
+      //if ((inverse=false) and (position=const_Devie)) or
+      //   ((inverse=true)  and (position=const_Droit)) then
+      if (position=const_Devie) then
       begin
         x1:=x0+round(20*frXGlob);y1:=jy1-round(1*frYGlob); 
         x2:=x1+round(23*frxGlob);y2:=y1;
@@ -1507,8 +1540,9 @@ begin
     end;
     
     // aiguillage droit (sans inversion) ou dévie (avec inversion)
-    if ((inverse=false) and (position=const_Droit)) or
-       ((inverse=true)  and (position=const_Devie)) then
+    //if ((inverse=false) and (position=const_Droit)) or
+    //   ((inverse=true)  and (position=const_Devie)) then
+    if (position=const_Droit) then
     begin
       horz;
       if (mode=1) and ( ((inverse=false) and (position=const_droit)) or ((inverse=true) and (position=const_devie)) ) then  begin Pen.color:=clAllume;Brush.color:=ClAllume end else begin Pen.color:=clVoies;Brush.Color:=clVoies;end;
@@ -2375,7 +2409,7 @@ end;
 
 // affiche la cellule x et y en cases
 procedure TformTCO.affiche_cellule(x,y : integer);
-var Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pos : integer;
+var p,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pos : integer;
     Bt : TEquipement;
     s : string;
 begin
@@ -2389,8 +2423,15 @@ begin
   if (bImage>=2)  then         //?????     and (btype<=15)
   begin
     if Adresse<>0 then pos:=Aiguillage[Index_Aig(adresse)].position
-
-    else pos:=9;
+    else pos:=const_inconnu;
+    if TCO[x,y].inverse then 
+    begin
+      p:=const_inconnu;
+      if pos=const_devie then p:=const_droit;
+      if pos=const_droit then p:=const_devie;
+      pos:=p;
+    end;
+  
   end;
   Xorg:=(x-1)*LargeurCell;
   Yorg:=(y-1)*HauteurCell;
@@ -2423,12 +2464,11 @@ begin
      20 : dessin_20(PCanvasTCO,X,Y,mode);
      21 : dessin_21(PCanvasTCO,X,Y,mode);
      22 : dessin_22(PCanvasTCO,X,Y,mode);
-
      30 : dessin_feu(PCanvasTCO,X,Y);
   end;
 
   PCanvasTCO.font.Size:=(LargeurCell div 10)+4  ;
-//  Affiche(intToSTR( (LargeurCell div 30)+6),clyellow);
+  //Affiche(intToSTR( (LargeurCell div 30)+6),clyellow);
 
   // affiche le texte des aiguillages
   if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or (BImage=15) or (BImage=21) or (BImage=22)) and (adresse<>0) then
@@ -2439,11 +2479,16 @@ begin
       Brush.Color:=fond;
       Font.Color:=clYellow;
       xt:=0;yt:=0;
-      if Bimage=4  then begin xt:=1;yt:=1;end;
-      if Bimage=5  then begin xt:=1;yt:=HauteurCell-round(20*fryGlob);end;
-      if Bimage=12 then begin xt:=1;yt:=HauteurCell-round(20*frYGlob);end;
-      if Bimage=21 then begin xt:=2;yt:=1;end;
-      if Bimage=22 then begin xt:=1;yt:=HauteurCell-round(15*frYGlob);end;
+      if Bimage=2  then begin xt:=3;yt:=1;end;
+      if Bimage=3  then begin xt:=3;yt:=HauteurCell-round(20*fryGlob);end;
+      if Bimage=4  then begin xt:=3;yt:=1;end;
+      if Bimage=5  then begin xt:=3;yt:=HauteurCell-round(20*fryGlob);end;
+      if Bimage=12 then begin xt:=3;yt:=HauteurCell-round(20*frYGlob);end;
+      if Bimage=13 then begin xt:=3;yt:=1;end;
+      if Bimage=14 then begin xt:=LargeurCell-round(25*frXGlob);yt:=1;end;
+      if Bimage=15 then begin xt:=3;yt:=1;end;
+      if Bimage=21 then begin xt:=3;yt:=1;end;
+      if Bimage=22 then begin xt:=3;yt:=HauteurCell-round(15*frYGlob);end;
       TextOut(xOrg+xt,yOrg+yt,s);
       //exit;
     end;
@@ -2767,19 +2812,19 @@ begin
     x:=Xdet2;Xdet2:=Xdet1;Xdet1:=x;
     x:=Ydet2;Ydet2:=Ydet1;Ydet1:=x;
     x:=det2;det2:=det1;det1:=x;
-  end;
 
-  if yDet2<yDet1 then 
-  begin 
-    y:=Ydet2;Ydet2:=Ydet1;Ydet1:=y;
-    y:=Xdet2;Xdet2:=Xdet1;Xdet1:=y;
-    y:=det2;det2:=det1;det1:=y;
+    //y:=Ydet2;Ydet2:=Ydet1;Ydet1:=y;
+    //y:=Xdet2;Xdet2:=Xdet1;Xdet1:=y;
+    //y:=det2;det2:=det1;det1:=y;
   end;
   
   //Affiche('trouvé '+intToSTR(det2)+' en '+IntToSTR(xDet2)+'/'+intToSTR(ydet2),clyellow);
   
   // Aller de det1 à det2 vers le sens X croissant du TCO
-  ancienX:=-1;ancienY:=-1; 
+  ancienX:=Xdet2;ancienY:=yDet2-Ydet1; 
+  if ydet2<ydet1 then ancieny:=ydet1+1 else ancieny:=ydet1-1;
+  if xdet2<xdet1 then ancienx:=xdet1+1 else ancienx:=xdet1-1;
+  
   x:=xDet1;y:=Ydet1;
   i:=0; memtrouve:=false;
   
@@ -2959,8 +3004,8 @@ begin
     inc(i);  
     if adresse=det2 then memTrouve:=true;                                    
   until (x=1) or (x=NbreCellX) or (y=NbreCellY) or ((adresse<>det2) and memTrouve) or (i>40);
-
-  if i>40 then 
+  //Affiche(intToSTR(x),clLime);                          
+  if i>NbCellulesTCO then 
   begin 
     s:='Erreur 1000 : dépassement d''itérations TCO: '+IntToSTR(det1)+' - '+IntToSTR(det2);
     Affiche(s,clred); AfficheDebug(s,clred); end;
@@ -2983,6 +3028,7 @@ begin
     PScrollBoxTCO:=FormTCO.ScrollBox;
 
     lire_fichier_tco;
+    NbCellulesTCO:=NbreCellX*NbreCellY;
  
     calcul_reduction(frxGlob,fryGlob,LargeurCell,HauteurCell,ZoomMax,ZoomMax);
     // dessiner les icônes                               
