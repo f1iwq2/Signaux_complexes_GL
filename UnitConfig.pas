@@ -241,6 +241,14 @@ type
     EditTempoFeu: TEdit;
     Label35: TLabel;
     Label36: TLabel;
+    ButtonTestAct: TButton;
+    RadioGroup1: TRadioGroup;
+    RadioButtonActDet: TRadioButton;
+    RadioButtonZones: TRadioButton;
+    EditAct2: TEdit;
+    OpenDialogSon: TOpenDialog;
+    SpeedButtonCharger: TSpeedButton;
+    LabelNumBranche: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -334,6 +342,11 @@ type
     procedure EditSonChange(Sender: TObject);
     procedure SpeedButtonJoueClick(Sender: TObject);
     procedure EditTempoFeuChange(Sender: TObject);
+    procedure ButtonTestActClick(Sender: TObject);
+    procedure RadioButtonActDetClick(Sender: TObject);
+    procedure RadioButtonZonesClick(Sender: TObject);
+    procedure EditAct2Change(Sender: TObject);
+    procedure SpeedButtonChargerClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -373,11 +386,11 @@ section_branches_ch='[section_branches]';
 
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,
-  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,indexfeuclic : integer;
+  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,indexfeuclic,NumTrameCDM : integer;
   ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes : boolean;
   fichier : text;
 
@@ -794,7 +807,7 @@ var s,chaine,sa : string;
     c : char;
     multiple,fini : boolean;
 begin
-      if i=0 then 
+      if i=0 then
       begin
         AfficheDebug('Erreur 670 : index nul',clred);
         exit;
@@ -890,6 +903,11 @@ begin
                  begin
                    val(s,adr,erreur); // extraire l'adresse
                    Delete(s,1,k);
+                   if Adr>NbMemZone then
+                   begin
+                     Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand',clred);
+                     Adr:=NbMemZone;
+                   end;
                  end;
                  inc(j);
                  if (j=1) then feux[i].Adr_det1:=adr;
@@ -1029,8 +1047,18 @@ var s : string;
 begin
   // adresse
   adresse:=Tablo_Actionneur[i].adresse;
-  s:=IntToSTR(adresse);
-  if tablo_actionneur[i].det then s:=s+'Z';
+  
+
+  if Tablo_Actionneur[i].typActMemZone=0 then
+  begin
+    s:=IntToSTR(adresse); if tablo_actionneur[i].det then s:=s+'Z';
+  end
+  else
+  begin
+    s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].adresse2)+']';
+  end;
+  
+  
 
   if Tablo_Actionneur[i].loco then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',F'+IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo);
@@ -1262,7 +1290,9 @@ var s,sa,chaine,SOrigine: string;
     postjd,postjs,nv,it,Num_Champ,asp,adraig : integer;
   
  function lit_ligne : string ;
-    var esp : integer;
+    var esp,l1,l2,k : integer;
+        guim : boolean;
+        sp : string;
     begin
       repeat
         readln(fichier,s);
@@ -1270,11 +1300,13 @@ var s,sa,chaine,SOrigine: string;
         s:=uppercase(s);
         if length(s)>0 then c:=s[1];
       until ((c<>'/') and (s<>'')) or eof(fichier) ;
-      // supprime les espaces éventuels
+      // supprime les espaces éventuels sauf entre les guillements
+      esp:=0;
       repeat
-        esp:=pos(' ',s);
-        if esp<>0 then delete(s,esp,1);
-      until esp=0;
+        l1:=pos('"',s);l2:=posEx('"',s,l1+1);
+        esp:=posEx(' ',s,Esp+1);
+        if (esp<>0) and (esp<l1) and (esp>l2) then delete(s,esp,1);
+      until esp=0; 
       lit_ligne:=s;
     end;
 
@@ -1297,11 +1329,11 @@ end;
     
 procedure compile_branches;
 begin
-  // branches 
-  NDetecteurs:=0; 
+  // branches
+  NDetecteurs:=0;
   Nligne:=1;
   i_detect:=1;
-  i:=1; 
+  i:=1;
   Affiche('Définition des branches',clyellow);
 
   repeat
@@ -1312,12 +1344,12 @@ begin
       j:=1;offset:=1;
       inc(Nligne);
       compile_branche(s,i);
-      inc(i);  
+      inc(i);
     end;
   until (s='0') or eof(fichier);
   NbreBranches:=i-1;
 end;
-  
+
 procedure compile_actionneurs;
 var i : integer;
 begin
@@ -1327,6 +1359,8 @@ begin
     Tablo_actionneur[i].train:='';
     Tablo_actionneur[i].etat:=0;
     Tablo_actionneur[i].adresse:=0;
+    Tablo_actionneur[i].adresse2:=0;
+    Tablo_Actionneur[i].typActMemZone:=0;
     Tablo_actionneur[i].accessoire:=0;
     Tablo_actionneur[i].sortie:=0;
     Tablo_actionneur[i].fichierSon:='';
@@ -1343,10 +1377,38 @@ begin
   // définition des actionneurs
   repeat
     s:=lit_ligne;
-    // vérifier si F ou A  ou " au 4eme champ
     sa:=s; sOrigine:=s;
-    i:=pos(',',sa);
-    if i>0 then delete(sa,1,i) else s:='0';
+
+    i:=pos('MEM[',sOrigine);
+    if i>0 then
+    begin
+      Tablo_actionneur[maxtablo_act].typActMemZone:=1;  // type mémoire de zone
+      Delete(sa,1,4);
+      val(sa,j,erreur);
+      Tablo_actionneur[maxtablo_act].adresse:=j;
+      i:=pos(',',sa);delete(sa,1,i);
+      val(sa,j,erreur);
+      i:=pos(',',sa);
+      Tablo_actionneur[maxtablo_act].adresse2:=j;
+      Tablo_actionneur[maxTablo_act].det:=true;
+      delete(sa,1,i);
+      s:=sa; // mémo s
+    end;
+
+    if length(sOrigine)>1 then
+    begin
+      if (sOrigine[1]<>'(') and (pos('MEM[',sOrigine)=0) then  // si pas détecteur de PN
+      begin
+        Tablo_actionneur[maxtablo_act].typActMemZone:=0;  // type actionneur
+        val(sa,j,erreur);
+        Tablo_actionneur[maxtablo_act].adresse:=j;
+        Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z';
+        delete(sa,1,erreur);
+        s:=sa;
+      end;  
+    end;
+
+    // vérifier si F ou A  ou " au 4eme champ
     i:=pos(',',sa);
     if i>0 then delete(sa,1,i) else s:='0';
     i:=pos(',',sa);
@@ -1363,17 +1425,9 @@ begin
       i:=pos(',',s);
       if i<>0 then
       begin
-        val(copy(s,1,i-1),j,erreur);
-        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
-        Tablo_actionneur[maxTablo_act].adresse:=j;
-        Delete(s,1,i);
-        i:=pos(',',s);
-        if i<>0 then
-        begin
-          i:=pos(',',s);
-          val(copy(s,1,i-1),j,erreur);
+         val(s,j,erreur);
           Tablo_actionneur[maxTablo_act].etat:=j;
-          Delete(s,1,i);
+          Delete(s,1,erreur);
 
           i:=pos(',',s);
           Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
@@ -1384,7 +1438,6 @@ begin
           i:=pos('"',s);
           Tablo_actionneur[maxTablo_act].fichierSon:=copy(s,1,i-1);
           inc(maxTablo_act);
-        end;
       end;
     end;
 
@@ -1398,17 +1451,9 @@ begin
       i:=pos(',',s);
       if i<>0 then
       begin
-        val(copy(s,1,i-1),j,erreur);
-        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
-        Tablo_actionneur[maxTablo_act].adresse:=j;
-        Delete(s,1,i);
-        i:=pos(',',s);
-        if i<>0 then
-        begin
-          i:=pos(',',s);
-          val(copy(s,1,i-1),j,erreur);
+          val(s,j,erreur);
           Tablo_actionneur[maxTablo_act].etat:=j;
-          Delete(s,1,i);
+          Delete(s,1,erreur);
 
           i:=pos(',',s);
           Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
@@ -1440,7 +1485,6 @@ begin
           end;
           s:='';i:=0;
         end;
-      end;
 
     end;
 
@@ -1455,17 +1499,9 @@ begin
       i:=pos(',',s);
       if i<>0 then
       begin
-        val(copy(s,1,i-1),j,erreur);
-        Tablo_actionneur[maxTablo_act].det:=s[erreur]='Z';
-        Tablo_actionneur[maxTablo_act].adresse:=j;
-        Delete(s,1,i);
-        i:=pos(',',s);
-        if i<>0 then
-        begin
-          i:=pos(',',s);
-          val(copy(s,1,i-1),j,erreur);
+          val(s,j,erreur);
           Tablo_actionneur[maxTablo_act].etat:=j;
-          Delete(s,1,i);
+          Delete(s,1,erreur);
 
           i:=pos(',',s);
           Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
@@ -1489,7 +1525,6 @@ begin
           end;
           s:='';i:=0;
         end;
-      end;
     end;
     
     // Passage à niveau
@@ -2500,8 +2535,8 @@ begin
   LabelInfo.Width:=253;LabelInfo.Height:=25;
   LabelResult.width:=137;LabelResult.Height:=25;
   LabelNomSon.top:=16;LabelNomSon.Left:=48;
-  SpeedButtonJoue.Top:=64; SpeedButtonJoue.Left:=80;
-  EditSon.Top:=44;EditSon.Left:=16;
+  SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
+  EditSon.Top:=38;EditSon.Left:=16;
 
   CheckVerifVersion.Checked:=verifVersion;
   CheckFenEt.Checked:=Fenetre=1;
@@ -2903,7 +2938,26 @@ begin
     RadioButtonSon.Checked:=false;
     EditSon.Visible:=false;
     SpeedButtonJoue.Visible:=false;
+    SpeedButtonCharger.Visible:=false;
+    
     LabelNomSon.Visible:=false;
+  end;
+end;
+
+procedure positionne;
+begin
+  with formconfig do
+  begin
+    GroupBoxRadio.Visible:=true;
+    GroupBoxRadio.top:=16;
+    GroupBoxRadio.Left:=16;
+    GroupBoxAct.Top:=92;
+    GroupBoxAct.Left:=16;
+    GroupBoxAct.Height:=292;
+    GroupBox18.Top:=16;
+    GroupBox18.Height:=136;
+    GroupBox19.Top:=160;
+    GroupBox19.Height:=96;
   end;
 end;
 
@@ -2911,11 +2965,8 @@ procedure champs_type_loco;
 begin
   with formconfig do
   begin
-    GroupBoxRadio.Visible:=true;
-    GroupBoxRadio.top:=20;        
-    GroupBoxRadio.Left:=16;
-    GroupBoxAct.Top:=104;    
-    GroupBoxAct.Left:=16;
+    positionne;
+
     CheckRaz.Visible:=false;
     GroupBoxAct.Caption:='Actionneur de fonction F de locomotive';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
@@ -2928,6 +2979,7 @@ begin
     GroupBoxPN.Visible:=false;
     EditSon.Visible:=false;
     SpeedButtonJoue.Visible:=false;
+    SpeedButtonCharger.Visible:=false;
     EditFonctionAccess.Visible:=true;
     LabelNomSon.Visible:=false;
   end;
@@ -2937,11 +2989,8 @@ procedure champs_type_act;
 begin
   with formconfig do
   begin
-    GroupBoxRadio.Visible:=true;
-    GroupBoxRadio.top:=20;        
-    GroupBoxRadio.Left:=16;
-    GroupBoxAct.Top:=104;
-    GroupBoxAct.Left:=16;
+    positionne;
+
     GroupBoxAct.Caption:='Actionneur d''accessoire';
     CheckRaz.Visible:=true;
     LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
@@ -2954,6 +3003,7 @@ begin
     GroupBoxPN.Visible:=false;
     EditSon.Visible:=false;
     SpeedButtonJoue.Visible:=false;
+    SpeedButtonCharger.Visible:=false;
     EditFonctionAccess.Visible:=true;
     LabelNomSon.Visible:=false;
   end;
@@ -2963,11 +3013,7 @@ procedure champs_type_son;
 begin
   with formconfig do
   begin
-    GroupBoxRadio.Visible:=true;
-    GroupBoxRadio.top:=20;        
-    GroupBoxRadio.Left:=16;
-    GroupBoxAct.Top:=104;
-    GroupBoxAct.Left:=16;
+    Positionne;
     GroupBoxAct.Caption:='Actionneur d''accessoire';
     CheckRaz.Visible:=true;
 
@@ -2980,6 +3026,7 @@ begin
     CheckRaz.Visible:=false;
     EditSon.Visible:=true;
     SpeedButtonJoue.Visible:=true;
+    SpeedButtonCharger.Visible:=true;
     LabelNomSon.Visible:=true;
     
     RadioButtonLoc.Checked:=false;
@@ -3147,7 +3194,7 @@ end;
 
 // mise à jour des champs graphiques des actionneurs d'après l'index du richAct
 Procedure aff_champs_act(i : integer);
-var etatact, adresse,sortie,fonction,tempo,access : integer;
+var etatact, adresse,sortie,fonction,tempo,access,typ : integer;
     s,s2,adr : string;
     det : boolean;
 begin
@@ -3159,6 +3206,22 @@ begin
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
   det:=Tablo_actionneur[i].det;
+  typ:=Tablo_actionneur[i].typActMemZone;
+
+  with formconfig do
+  begin
+    if typ=0 then 
+    begin
+      EditTrain.Visible:=true ;
+      LabelTrain.Visible:=true ;
+    end  
+    else 
+    begin
+      EditTrain.Visible:=false;
+      LabelTrain.Visible:=false;
+    end;
+  end;    
+  
   if det then s2:='Détecteur ' else s2:='Actionneur ';
   s2:=s2+intToSTR(Tablo_actionneur[i].adresse);
   FormConfig.EditAct.Hint:=s2;
@@ -3167,15 +3230,34 @@ begin
   if Tablo_actionneur[i].loco then
   begin
     champs_type_loco;
+    
+    if typ=0 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=true;
+      radioButtonZones.Checked:=false;
+      editAct2.Visible:=false;
+      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+    end;
+    if typ=1 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=false;
+      radioButtonZones.Checked:=true;
+      editAct2.Visible:=true;
+      LabelActionneur.Caption:='Mémoire de Zone'; 
+      editAct2.Text:=IntToSTR(Tablo_actionneur[i].adresse2);
+    end;
+    
     etatAct:=Tablo_actionneur[i].etat;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].train;
+    trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
       champs_type_loco;
       adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
       EditAct.text:=adr;
+      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       editEtatActionneur.Text:=IntToSTR(etatAct);
       EditTrain.Text:=s2;
       editFonctionAccess.Text:=intToSTR(fonction);
@@ -3187,15 +3269,32 @@ begin
   if Tablo_actionneur[i].act then
   begin
     champs_type_act;
+    if typ=0 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=true;
+      radioButtonZones.Checked:=false;
+      editAct2.Visible:=false;
+      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+    end;
+    if typ=1 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=false;
+      radioButtonZones.Checked:=true;
+      editAct2.Visible:=true;
+      LabelActionneur.Caption:='Mémoire de Zone'; 
+    end;
+    
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
     s2:=Tablo_actionneur[i].train;
+    trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
       adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
       EditAct.text:=adr;
+      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
       EditTrain.Text:=s2;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
@@ -3209,14 +3308,31 @@ begin
   if Tablo_actionneur[i].son then
   begin
     champs_type_son;
+    if typ=0 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=true;
+      radioButtonZones.Checked:=false;
+      editAct2.Visible:=false;
+      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+    end;
+    if typ=1 then with formconfig do
+    begin
+      radioButtonActDet.Checked:=false;
+      radioButtonZones.Checked:=true;
+      editAct2.Visible:=true;
+      LabelActionneur.Caption:='Mémoire de Zone';
+    end;
+    
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].train;
+    trainsauve:=s2;
     s:=Tablo_actionneur[i].FichierSon;
     with formconfig do
     begin
       adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
       EditAct.text:=adr;
+      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
       EditTrain.Text:=s2;
       EditSon.Text:=s;
@@ -4177,6 +4293,35 @@ begin
   end;
 end;
 
+
+procedure TFormConfig.EditAct2Change(Sender: TObject);
+var s,s2 : string;
+    det2,erreur : integer;
+    det : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt Edit act2 Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditAct2.Text;
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
+    begin
+      Val(s,det2,erreur);
+      if s='' then exit;
+      if erreur<>0 then
+      begin
+        LabelInfo.caption:='Erreur adresse détecteur';exit
+      end else LabelInfo.caption:=' ';
+
+      tablo_actionneur[ligneClicAct+1].adresse2:=det2;
+      tablo_actionneur[ligneClicAct+1].det:=det;
+      s:=encode_act_loc_son(ligneClicAct+1);
+      RichAct.Lines[ligneClicAct]:=s;
+    end;
+  end;
+end;
+
 procedure TFormConfig.RichActMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var ligne : integer;
@@ -4516,7 +4661,8 @@ begin
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
 end;
 
-procedure Uni;
+
+procedure TFormConfig.EditSpecUniChange(Sender: TObject);
 var erreur,i,Adr : integer ;
     s : string ;
 begin
@@ -4540,12 +4686,6 @@ begin
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;  
   end;  
-end;  
-
-procedure TFormConfig.EditSpecUniChange(Sender: TObject);
-begin
-  if clicliste or (ligneClicSig<0) then exit;
-  uni;
 end;
 
 
@@ -5233,10 +5373,39 @@ begin
   end;
 end;
 
+// renvoie le numéro de branche en défaut
+// si ok, renvoie 0
+Function verif_extr_branches : integer;
+var i,j,detect,erreur : integer;
+    model,AncModel : Tequipement;
+begin
+  Erreur:=0;
+  for i:=1 to NbreBranches do
+  begin
+    j:=1;
+    repeat
+      detect:=BrancheN[i][j].Adresse;
+      AncModel:=model;
+      model:=BrancheN[i][j].BType; 
+      if (j=1) and (model<>Aig) and (Model<>Buttoir) then
+      begin 
+        Affiche('Erreur 3.1 branche '+intToSTR(i)+' : le premier élément d''une branche doit être un buttoir ou un aiguillage',clred);
+        erreur:=i;
+      end;  
+      inc(j);
+      until((model=rien) and (detect=0)); 
+    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then 
+    begin
+      Affiche('Erreur 3.2 branche '+intToSTR(i)+' : le dernier élément d''une branche doit être un buttoir ou un aiguillage',clred);
+      erreur:=i;
+    end;  
+  end;   
+  verif_extr_branches:=Erreur; 
+end;
 
 function verif_coherence : boolean;
 var i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc,index2 : integer;
-    modAig,model,km: TEquipement;
+    modAig,AncModel,model,km: TEquipement;
     c : char;
     ok : boolean;
 begin
@@ -5248,21 +5417,34 @@ begin
     j:=1;
     repeat
       detect:=BrancheN[i][j].Adresse;
+
+      if detect>NbMemZone then
+      begin
+        Affiche('Erreur 1: adresse détecteur trop grand: '+intToSTR(detect),clred);
+        ok:=false;
+      end;
+
+      AncModel:=model;
       model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
+      
       if (model=aig) then
       begin
         //affiche('trouvé aig '+intToSTR(detect),clyellow);
         modAig:=aiguillage[Index_Aig(detect)].modele;
         if (model=rien) then
           begin
-            Affiche('Erreur 1: Aiguillage '+intToStr(detect)+' non décrit mais présent en branche '+intToStr(i)+' pos. '+intToSTR(j),clred);
+            Affiche('Erreur 2: Aiguillage '+intToStr(detect)+' non décrit mais présent en branche '+intToStr(i)+' pos. '+intToSTR(j),clred);
             ok:=false;
           end;
       end;
       j:=j+1;
     until((model=rien) and (detect=0));
+    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then 
+      Affiche('Erreur 3.2 branche '+intToSTR(i)+' : le dernier élément d''une branche doit être un buttoir ou un aiguillage',clred);
   end;
 
+  if verif_extr_branches<>0 then ok:=false;
+  
   // vérification de la cohérence2
   // parcoure les aiguillages pour voir si les détecteurs sont en branches des détecteurs
   // et les tjd pour voir si pb de cohérence
@@ -5555,7 +5737,11 @@ begin
   for Indexaig:=1 to maxaiguillage do
   begin
     adr:=aiguillage[indexaig].Adresse;
-
+    if adr>NbMemZone then
+    begin
+      Affiche('Erreur 9.11: adresse aiguillage trop grand: '+intToSTR(adr),clred);
+      ok:=false;
+    end;
     adr2:=aiguillage[indexaig].ADroit;
     c:=aiguillage[indexaig].AdroitB;
     if (c='D') or (c='S') or (c='P') then
@@ -6068,10 +6254,7 @@ begin
   3 : aiguillage[i].modele:=triple;
   else aiguillage[i].modele:=rien;
   end;
-  
-  
-  ;
-  
+
   s:=encode_aig(i);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
   clicliste:=true;
@@ -6099,14 +6282,13 @@ begin
       begin
         RichBranche.Lines[ligne-1]:=s;
         branche[ligne]:=s;  // stocker la ligne dans la branche pour la compiler
-        if compile_branche(s,ligne) then 
+        if compile_branche(s,ligne) then
         begin
           RE_ColorLine(RichBranche,Ligne-1,ClLime);
         end
         else 
         begin
           RE_ColorLine(RichBranche,Ligne-1,ClRed);
-          labelResult.Caption:='Erreur de syntaxe';
           ok:=false;
         end; 
         inc(ligne); 
@@ -6117,7 +6299,16 @@ begin
     
   until ligne>RichBranche.Lines.count;
   NbreBranches:=ligne-1;
-  if ok then labelResult.Caption:='Syntaxe correcte';
+
+  ligne:=verif_extr_branches;
+  if ligne<>0 then
+  begin
+    ok:=false;
+    RE_ColorLine(RichBranche,Ligne-1,ClRed);
+  end; 
+  
+  if ok then labelResult.Caption:='Syntaxe correcte'
+    else labelResult.Caption:='Erreur de syntaxe';
 end;
 
 function virgule_suiv(sl : string;o : integer) : integer;
@@ -6183,19 +6374,31 @@ begin
            Affiche('Erreur 17 champ '+se+' ligne '+s,clred);
            code:=false;
          end;
+         if adresse>NbMemZone then
+         begin
+           Affiche('Erreur 18 ligne '+s+' : adresse aiguillage trop grand: '+intToSTR(adresse),clred);
+           adresse:=NbMemZone;
+           code:=false;
+         end;
          BrancheN[i,j].adresse:=adresse;
          BrancheN[i,j].btype:=aig; // ident aiguillage
        end
-       else 
+       else
        begin
-         Affiche('Erreur 18 champ '+se+' ligne '+s,clred);
+         Affiche('Erreur 19 champ '+se+' ligne '+s,clred);
          code:=false;
          erreur:=0; // forcer erreur à 0 pour obliger à passer sur un détecteur
-       end;  
+       end;
      end;
      // détecteur
      if erreur=0 then
      begin
+       if detect>NbMemZone then
+       begin
+         Affiche('Erreur 20 ligne '+s+' : adresse détecteur trop grand: '+intToSTR(detect),clred);
+         detect:=NbMemZone;
+         code:=false;
+       end;
        BrancheN[i,j].adresse:=detect;          // adresse
        BrancheN[i,j].btype:=det;// ident détecteur
        if detect=0 then begin BrancheN[i,j].btype:=buttoir;end; // buttoir
@@ -6203,8 +6406,14 @@ begin
        bd:=0;
        repeat
          inc(bd);
-         trouve:=Adresse_detecteur[bd]=detect;
-       until ((bd=NDetecteurs+1) or trouve) ;
+         if bd>NbMaxDet then
+         begin
+           Affiche('Nombre maximal de détecteurs dépassé ('+IntToSTR(NbMaxDet)+')',clred);
+           code:=false;
+         end
+         else
+           trouve:=Adresse_detecteur[bd]=detect;
+       until ((bd=NDetecteurs+1) or trouve) or (bd>NbMaxDet) ;
        if not(trouve) then
        begin
          Adresse_detecteur[bd]:=detect;
@@ -6216,6 +6425,11 @@ begin
      BrancheN[i,j].BType:=rien;
      //Affiche('branche '+intToSTR(i)+' index='+intToStr(j),clGreen);
    until (offset=0);
+   if j=2 then
+   begin
+     Affiche('Une branche doit contenir au moins deux éléments',clred);
+     code:=false;
+   end;
    compile_branche:=code;
 end;
 
@@ -6229,6 +6443,7 @@ begin
   with Formconfig.RichBranche do
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1);
     AncligneClicBr:=ligneClicBr;
     ligneClicBr:=lc;
     curseur:=SelStart;  // position initiale du curseur
@@ -6576,16 +6791,108 @@ end;
 
 procedure TFormConfig.SpeedButtonJoueClick(Sender: TObject);
 begin
-   if sndPlaySound(pchar(EditSon.Text),0)=false then
+   if PlaySound(pchar(EditSon.Text),0,SND_ASYNC)=false then
         labelInfo.Caption:='Erreur';
 
 end;
 
 
+procedure TFormConfig.ButtonTestActClick(Sender: TObject);
+Var Adr,adr2,erreur,etat : integer;
+    train : string;
 begin
+  etat:=0;
+  val(EditEtatActionneur.Text,Etat,erreur);
+  val(EditAct.Text,Adr,erreur);
+  val(EditAct2.Text,Adr2,erreur);
+  if erreur=0 then
+  begin
+    train:=EditTrain.Text;
+    Event_act(adr,adr2,etat,train);
+  end;  
+end;
+
+procedure TFormConfig.RadioButtonActDetClick(Sender: TObject);
+var i,champ,erreur : integer;
+    s : string;
+begin
+  if clicListe then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].typActMemZone:=0;
+  LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+  editAct2.Visible:=false;
+  EditTrain.Visible:=true;
+  LabelTrain.Visible:=true;
+
+  Tablo_Actionneur[i].train:=trainSauve;
+  EditTrain.Text:=trainSauve;
+  
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  Tablo_actionneur[i].train:=editTrain.Text;
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  val(editEtatFoncSortie.Text,champ,erreur);
+  Tablo_actionneur[i].sortie:=champ;
+  val(editTempo.Text,champ,erreur);
+  Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].Raz:=checkRaz.checked;
+  s:=encode_act_loc_son(i);
+  RichAct.Lines[ligneClicAct]:=s;
+
+end;
 
 
+procedure TFormConfig.RadioButtonZonesClick(Sender: TObject);
+var i,champ,erreur : integer;
+    s : string;
+begin
+  if clicListe then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].typActMemZone:=1;
+  LabelActionneur.Caption:='Mémoire de Zone'; 
+  EditTrain.Visible:=false;
+  LabelTrain.Visible:=false;
+  editAct2.Visible:=true;
+  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
+  
+  Tablo_actionneur[i].train:='X';
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  val(editEtatFoncSortie.Text,champ,erreur);
+  Tablo_actionneur[i].sortie:=champ;
+  val(editTempo.Text,champ,erreur);
+  Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].Raz:=checkRaz.checked;
+  s:=encode_act_loc_son(i);
+  RichAct.Lines[ligneClicAct]:=s;
+end;
 
+
+procedure TFormConfig.SpeedButtonChargerClick(Sender: TObject);
+var s: string;
+begin
+  s:=GetCurrentDir;
+  OpenDialogSon.InitialDir:=s;
+  OpenDialogSon.DefaultExt:='wav';
+  OpenDialogSon.Title:='Ouvrir un fichier son';
+  OpenDialogSon.Filter:='Fichiers wav (*.wav)|*.wav|Tous fichiers (*.*)|*.*';
+  if openDialogSon.Execute then
+  begin
+    s:=openDialogSon.FileName;
+    editson.Text:=s;
+  end;
+end;
+
+begin
 
 
 end.

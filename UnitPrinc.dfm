@@ -1440,8 +1440,8 @@ object FormPrinc: TFormPrinc
     OnMouseDown = FenRichMouseDown
   end
   object GroupBox2: TGroupBox
-    Left = 681
-    Top = 64
+    Left = 697
+    Top = 56
     Width = 265
     Height = 105
     Anchors = [akTop, akRight]
@@ -1457,7 +1457,7 @@ object FormPrinc: TFormPrinc
     end
     object LabelVCV: TLabel
       Left = 208
-      Top = 15
+      Top = 55
       Width = 47
       Height = 13
       Caption = 'Valeur CV'
@@ -1507,41 +1507,56 @@ object FormPrinc: TFormPrinc
     Width = 265
     Height = 105
     Anchors = [akTop, akRight]
-    Caption = 'Commande vitesse trains'
+    Caption = 'Commande aux trains'
     TabOrder = 9
     object Label4: TLabel
       Left = 8
-      Top = 30
+      Top = 22
       Width = 67
       Height = 13
       Caption = 'Adresse train :'
     end
     object Label5: TLabel
       Left = 8
-      Top = 68
+      Top = 44
       Width = 74
       Height = 13
       Caption = 'Vitesse train % :'
     end
+    object LabelFonction: TLabel
+      Left = 144
+      Top = 44
+      Width = 47
+      Height = 13
+      Caption = 'Fonction: '
+    end
+    object Label6: TLabel
+      Left = 224
+      Top = 44
+      Width = 9
+      Height = 13
+      Caption = #224' '
+    end
     object loco: TButton
-      Left = 142
-      Top = 56
+      Left = 6
+      Top = 64
       Width = 83
       Height = 33
-      Caption = 'Envoi '#224' loco'
+      Caption = 'Envoi vitesse '#224' loco'
       TabOrder = 0
+      WordWrap = True
       OnClick = locoClick
     end
     object EditAdrTrain: TEdit
       Left = 80
-      Top = 24
+      Top = 16
       Width = 25
       Height = 21
       TabOrder = 1
     end
     object EditVitesse: TEdit
       Left = 80
-      Top = 64
+      Top = 40
       Width = 25
       Height = 21
       TabOrder = 2
@@ -1549,12 +1564,47 @@ object FormPrinc: TFormPrinc
     end
     object ComboTrains: TComboBox
       Left = 112
-      Top = 24
+      Top = 16
       Width = 145
       Height = 21
       ItemHeight = 13
       TabOrder = 3
       OnChange = ComboTrainsChange
+    end
+    object EditNumFonction: TEdit
+      Left = 192
+      Top = 40
+      Width = 25
+      Height = 21
+      Hint = 'Fonction de 0 '#224' 12 ou 28'
+      TabOrder = 4
+    end
+    object ButtonFonction: TButton
+      Left = 176
+      Top = 64
+      Width = 81
+      Height = 33
+      Caption = 'Envoi fonction '#224' loco'
+      TabOrder = 6
+      WordWrap = True
+      OnClick = ButtonFonctionClick
+    end
+    object EditFonc01: TEdit
+      Left = 240
+      Top = 40
+      Width = 17
+      Height = 21
+      TabOrder = 5
+    end
+    object Button1: TButton
+      Left = 96
+      Top = 72
+      Width = 75
+      Height = 25
+      Caption = 'Button1'
+      TabOrder = 7
+      Visible = False
+      OnClick = Button1Click
     end
   end
   object Timer1: TTimer
@@ -1726,7 +1776,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object PopupMenuFeu: TPopupMenu
-    Left = 856
+    Left = 760
     Top = 144
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's'

@@ -80,9 +80,13 @@ version 3.6  : Amélioration gestion temporisations des actionneurs.
                Changement des vitesses courantes des trains.
 version 3.61 : Correction de la non présentation de certains signaux s'ils sont séparés par plus d'un détecteur.
 version 3.62 : Correction présence trains 3 cantons avant signaux et 1 canton après signaux.
-version 3.7  : Gestion améliorée du décodeur Unisemaf
-               Présentation du rappel30/60 sur TJD déviées
-               Correction erreur 1000 au TCO
+version 3.7  : Gestion améliorée du décodeur Unisemaf.
+               Présentation du rappel30/60 sur TJD déviées.
+               Correction erreur 1000 au TCO.
+version 3.71 : Suppression vitesse train à 0 lors d'une commande de fonction F train.
+               Ajout d'un bouton de test des actionneurs dans la page de configuration des actionneurs.
+version 3.8  : Possibilité de déclencher les actions depuis une zone deux détecteurs contigus.
+               Gestion des fonctions F de train de F0 à F28 en mode autonome.
 
  
                 
