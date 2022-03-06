@@ -87,8 +87,9 @@ version 3.71 : Suppression vitesse train à 0 lors d'une commande de fonction F t
                Ajout d'un bouton de test des actionneurs dans la page de configuration des actionneurs.
 version 3.8  : Possibilité de déclencher les actions depuis une zone deux détecteurs contigus.
                Gestion des fonctions F de train de F0 à F28 en mode autonome.
+version 3.81 : Pilotage des TJD depuis le TCO.
+               Améliorations diverses dans le TCO.
 
- 
                 
 
 

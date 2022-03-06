@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 230
-  Top = 226
+  Left = 384
+  Top = 136
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetBranches
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1858,7 +1858,7 @@ object FormConfig: TFormConfig
           Top = 18
           Width = 215
           Height = 13
-          Caption = 'Liste des '#233'v'#232'nements envoy'#233's par CDM Rail:'
+          Caption = 'Liste des '#233'v'#232'nements demand'#233's '#224' CDM Rail:'
         end
         object CheckBoxServAig: TCheckBox
           Left = 8
@@ -2732,6 +2732,7 @@ object FormConfig: TFormConfig
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
+        OnKeyDown = RichBrancheKeyDown
         OnMouseDown = RichBrancheMouseDown
       end
     end

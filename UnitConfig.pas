@@ -347,6 +347,8 @@ type
     procedure RadioButtonZonesClick(Sender: TObject);
     procedure EditAct2Change(Sender: TObject);
     procedure SpeedButtonChargerClick(Sender: TObject);
+    procedure RichBrancheKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -446,7 +448,8 @@ end;
 
 procedure Maj_Hint_feu(i : integer);
 var s : string;
-begin   
+begin
+  // ne pas supprimer le @ espace et = qui sert de marqueur pour identifier le feu
   s:='@='+inttostr(feux[i].Adresse)+' Decodeur='+intToSTR(feux[i].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
   if feux[i].Btype_suiv1=aig then s:=s+' (aig)';  
@@ -500,8 +503,8 @@ var s : string;
 begin
   // déconnexion de l'ancienne liaison éventuelle
   Formprinc.ClientSocketCDM.Close;
- 
-  if AdresseIPCDM<>'0' then
+
+  if (AdresseIPCDM<>'0') and (ProcessRunning('CDR')) then
   begin
     // ouverture du socket CDM
     with Formprinc do
@@ -553,7 +556,7 @@ begin
   end
   else
   begin
-    Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,cyan);
+    if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,cyan);
   end;
 end;
 
@@ -662,7 +665,6 @@ begin
      s:=s+','+intToSTR(aiguillage[index].DDevie)+aiguillage[index].DDevieB+')';
    end;
       
-
    if tjsC then
    begin
      s:=s+',L'+intToSTR(aiguillage[index].Tjsint)+aiguillage[index].TjsintB;
@@ -941,9 +943,9 @@ begin
                until (fini) or (j>4);
             end;
           end;
-          if (j>4) or (not(multiple)) then 
-          begin 
-            Affiche('Erreur 678: fichier de configuration ligne erronnée : '+chaine_signal,clred); 
+          if (j>4) or (not(multiple)) then
+          begin
+            Affiche('Erreur 678: fichier de configuration ligne erronnée : '+chaine_signal,clred);
             closefile(fichier);
             exit;
           end;
@@ -957,11 +959,10 @@ begin
 
           if length(s)>0 then if s[1]=',' then delete(s,1,1);
           if length(s)>0 then if s[1]='U' then delete(s,1,1);
-          
+
           // si décodeur UniSemaf (6) champ supplémentaire
           if Feux[i].decodeur=6 then
           begin
-             
              if k=0 then begin Affiche('Erreur 680 Ligne '+chaine_signal,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
              else
              begin
@@ -969,11 +970,11 @@ begin
                Feux[i].UniSemaf:=k;
                erreur:=verif_UniSemaf(adresse,k);
                if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
-               if erreur=2 then 
-               begin 
+               if erreur=2 then
+               begin
                  Affiche('Erreur 682 Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
                end;
-               
+
              end;
             end;
           end;
@@ -982,19 +983,19 @@ begin
           l:=1;  // nombre de parenthèses
           repeat
             t:=pos('(',s);
-            if t=1 then 
+            if t=1 then
             begin
               //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
               k:=pos(')',s);
               sa:=copy(s,t+1,k-t-1); // contient l'intérieur des parenthèses sans les parenthèses
               delete(s,1,k);//Affiche(s,clYellow);
-          
+
               // boucle dans la parenthèse
               bd:=0;
               repeat
                 inc(bd);
                 setlength(feux[i].condCarre[l],bd+1);  // une condition en plus
-                k:=pos(',',sa); 
+                k:=pos(',',sa);
                 if k<>0 then
                   chaine:=copy(sa,1,k-1)
                   else
@@ -1008,16 +1009,16 @@ begin
                   if erreur<>0 then feux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
                   Affiche('Erreur 683 Définition du feu '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
                 end;
-                                 
+
                 k:=pos(',',sa);if k<>0 then delete(sa,1,k);
               until k=0;
               inc(l);
             end;
-          until t<>1;  
+          until t<>1;
           if length(s)>1 then if s[1]=',' then delete(s,1,1);
 
           // champ SR
-          if length(s)>2 then 
+          if length(s)>2 then
             if copy(s,1,2)='SR' then
           begin
             delete(s,1,3);
@@ -1034,7 +1035,7 @@ begin
               feux[i].SR[l].sortie0:=j;
             end;
           end;
-          
+
         end;
       end;
 end;
@@ -1272,7 +1273,7 @@ begin
   closefile(fichierN);
 
   deletefile(NomConfig);
-  renameFile('ConfigGenerale.tmp',NomConfig);           
+  renameFile('ConfigGenerale.tmp',NomConfig);
 end;
 
 procedure lit_config;
@@ -1306,7 +1307,7 @@ var s,sa,chaine,SOrigine: string;
         l1:=pos('"',s);l2:=posEx('"',s,l1+1);
         esp:=posEx(' ',s,Esp+1);
         if (esp<>0) and (esp<l1) and (esp>l2) then delete(s,esp,1);
-      until esp=0; 
+      until esp=0;
       lit_ligne:=s;
     end;
 
@@ -1314,19 +1315,19 @@ procedure compile_signaux;
 begin
   Affiche('Définition des signaux',clyellow);
   i:=1;Nligne:=1;
-
+  NbreFeux:=0;
   repeat
     inc(Nligne);
     s:=lit_ligne;
     //affiche(s,clyellow);
-    if s<>'0' then 
-    begin 
+    if s<>'0' then
+    begin
+      inc(NbreFeux);
       decode_ligne_feux(s,i);inc(i);
     end;
   until (s='0') or  eof(fichier);
-  NbreFeux:=i-1; if NbreFeux<0 then NbreFeux:=0;
 end;
-    
+
 procedure compile_branches;
 begin
   // branches
@@ -1346,7 +1347,8 @@ begin
       compile_branche(s,i);
       inc(i);
     end;
-  until (s='0') or eof(fichier);
+  until (s='0') or eof(fichier) or (i>=MaxBranches);
+  if i>MaxBranches then Affiche('Nombre maximal de branches atteint',clRed);
   NbreBranches:=i-1;
 end;
 
@@ -1587,7 +1589,12 @@ begin
     if debugconfig then Affiche(s,ClLime);
     if (s<>'0') then
     begin
-      inc(maxaiguillage);
+      if MaxAiguillage>=MaxAcc then
+      begin
+        Affiche('Nombre maximal d''aiguillages atteint',clRed);
+      end
+      else
+        inc(maxaiguillage);
       virgule:=pos(',',s);
       enregistrement:=copy(s,1,virgule-1);  // adresse de l'aiguillage [TRI]
       delete(s,1,virgule);
@@ -1761,7 +1768,7 @@ begin
           aiguillage[maxaiguillage].vitesse:=adr;
           virgule:=pos(',',enregistrement);if virgule=0 then virgule:=length(s)+1;
           delete(enregistrement,1,virgule);
-        end;  
+        end;
 
         // TJS et L
         if (length(enregistrement)<>0) then
@@ -1820,11 +1827,10 @@ begin
 end;
   
 procedure lit_flux;
-   
     label ici1,ici2,ici3,ici4 ;
     var i : integer;
 
-// début de la procédure lit_config    
+// début de la procédure lit_config
 begin
   nv:=0; it:=0;
   // taille de fonte
@@ -1852,8 +1858,8 @@ begin
       trouve_ipv4_PC:=true;
       delete(s,i,length(sa));
       i:=pos(':',s);
-      if i<>0 then 
-      begin 
+      if i<>0 then
+      begin
         adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);
         val(s,portCDM,erreur);
         if (portCDM=0) or (portCDM>65535) or (erreur<>0) then affiche('Erreur port CDM : '+s,clred);
@@ -1870,8 +1876,8 @@ begin
       trouve_IPV4_INTERFACE:=true;
       delete(s,i,length(sa));
       i:=pos(':',s);
-      if i<>0 then 
-      begin 
+      if i<>0 then
+      begin
         adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);
         if (adresseIP<>'0') and (port=0) then affiche('Erreur port nul : '+sOrigine,clRed);
       end
@@ -1965,7 +1971,7 @@ begin
       delete(s,i,length(sa));
       val(s,Tempo_Aig,erreur);
     end;
- 
+
     // temporisation décodeurs de feux
     sa:=uppercase(Tempo_Feu_ch)+'=';
     i:=pos(sa,s);
@@ -1979,7 +1985,7 @@ begin
     end;
  
     // algo unisemaf
-    sa:=uppercase(Algo_unisemaf_ch)+'=';  
+    sa:=uppercase(Algo_unisemaf_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
     begin
@@ -2175,28 +2181,29 @@ begin
      Ancien_detecteur[i]:=false;
   end;
 
+  {
   // vérifier si le fichier ConfigGenerale.cfg existe
   fichier_trouve:=true;
   {$I+}
-  try
+
+  {try
     assign(fichier,NomConfig);
     reset(fichier);
   except
     fichier_trouve:=false;
   end;
   {$I-}
+  {
   if fichier_trouve then
   begin
     close(fichier);
-  end;  
+  end;
 
   // si pas trouvé le fichier, lire les 2 anciens fichiers et les fusionner
   if not(fichier_trouve) then
   begin
-    Affiche('***Traitement de fusion des deux fichiers de config***',clAqua);
-
-    Affiche('Lecture de l''ancien fichier de configuration client-GL.cfg',clyellow);
     {$I+}
+   {
     try
       assign(fichier,'client-GL.cfg');
       reset(fichier);
@@ -2205,25 +2212,29 @@ begin
       exit;
     end;
     {$I-}
+    {Affiche('Lecture de l''ancien fichier de configuration client-GL.cfg',clyellow);
+
     lit_flux;
     closeFile(fichier);
 
     Affiche('Lecture de l''ancien fichier de configuration config.cfg',clyellow);
     {$I+}
-    try
+    {try
       assign(fichier,'config.cfg');
       reset(fichier);
     except
       Affiche('Fichier config.cfg non trouvé',clred);
       exit;
     end;
+    Affiche('***Traitement de fusion des deux fichiers de config***',clAqua);
+
     {$I-}
-    lit_flux;
+    {lit_flux;
     closeFile(fichier);
     // regénérer la config dans le fichier configgenerale.cfg
     assign(fichier,'client-gl.cfg');
     reset(fichier);  // pour les commentaires
-    genere_config; 
+    genere_config;
 
     s:='------------------------------------------------------------------------------------------------------';
     Affiche(s,clAqua);
@@ -2233,24 +2244,23 @@ begin
   end
 
   else
-  begin
-    Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
-    {$I+}
-    try
-      assign(fichier,NomConfig);
-      reset(fichier);
-    except
-      Affiche('Fichier '+NomConfig+' non trouvé',clred);
-      exit;
-    end;
-    {$I-}
-    lit_flux;
-    close(fichier);
+  begin}
+  Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
+  {$I+}
+  try
+    assign(fichier,NomConfig);
+    reset(fichier);
+  except
+    Affiche('Fichier '+NomConfig+' non trouvé',clred);
+    exit;
   end;
+  {$I-}
+  lit_flux;
+  close(fichier);
 
   configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
   if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
-  
+
   s:='';//Affiche(intToSTR(Nv),clred);
   if not(trouve_NbDetDist) then s:=nb_det_dist_ch;
   if not(trouve_ipv4_PC) then s:=IpV4_PC_ch;
@@ -2265,15 +2275,17 @@ begin
   if not(trouve_Serveur_interface) then s:=Serveur_interface_ch;
   if not(trouve_fenetre) then s:=fenetre_ch;
   if not(trouve_tempo_aig) then s:=tempo_aig_ch;
-  if not(trouve_tempo_feu) then 
+  if not(trouve_Algo_Uni) then s:=Algo_unisemaf_ch;
+  if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
     tempo_feu:=100;
     s:='';
-  end;  
+  end;
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
+
   if s<>'' then affiche('ERREUR: manque variables dans '+NomConfig+' :'+s,clred);
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
@@ -2307,7 +2319,7 @@ begin
     val(EditFonte.text,i,erreur);
     if (i<8) or (i>25) then i:=10;
     TailleFonte:=i;
-    
+
     // contrôle adresse IP interface
     s:=EditIPLenz.text;
     if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP interface Xpressnet incorrecte';sauve_config:=false;exit;end;
@@ -2323,23 +2335,23 @@ begin
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';sauve_config:=false;exit;end;
     Tempo_Aig:=i;
-  
+
     // contrôle protocole interface  COM3:57600,N,8,1,2
     s:=EditComUSB.Text;
     if not(config_com(s)) then begin labelInfo.Caption:='Protocole série USB Interface incorrect';sauve_config:=false;exit;end;
     changeUSB:=portcom<>s;
     portcom:=s;
-  
+
     val(EditTempoOctetUSB.text,i,erreur);
-    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';sauve_config:=false;exit;end; 
+    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';sauve_config:=false;exit;end;
     TempoOctet:=i;
-  
+
     val(EditTempoReponse.text,i,erreur);
-    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';sauve_config:=false;exit;end; 
+    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';sauve_config:=false;exit;end;
     TimoutMaxInterface:=i;
 
     val(EditNbDetDist.text,i,erreur);
-    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';sauve_config:=false;exit;end; 
+    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';sauve_config:=false;exit;end;
     Nb_Det_Dist:=i;
 
     if RadioButton1.checked then Valeur_entete:=0;
@@ -2352,7 +2364,7 @@ begin
     end;
 
     if changeCDM then connecte_CDM;
-    if changeInterface then 
+    if changeInterface then
     begin
       if AdresseIP<>'0' then
       begin
@@ -2362,11 +2374,11 @@ begin
           ClientSocketLenz.port:=port;
           ClientSocketLenz.Address:=AdresseIP;
           ClientSocketLenz.Open;
-        end;  
+        end;
       end
     end;
 
-    if changeUSB then 
+    if changeUSB then
     begin
       deconnecte_USB;
       connecte_USB;
@@ -2377,7 +2389,7 @@ begin
 
     LanceCDM:=CheckLanceCDM.Checked;
     if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
-    
+
     AvecTCO:=CheckAvecTCO.checked;
     Lay:=EditNomLay.Text;
     if RadioButton4.Checked then ServeurInterfaceCDM:=0;
@@ -2403,7 +2415,7 @@ begin
     change_srv:=Srvc_Act<>CheckBoxServAct.checked or change_srv;
     change_srv:=Srvc_PosTrain<>CheckServPosTrains.checked or change_srv;
     change_srv:=Srvc_Sig<>CheckBoxSrvSig.checked or change_srv;
-  
+
     Srvc_Aig:=CheckBoxServAig.checked;
     Srvc_Det:=CheckBoxServDet.checked;
     Srvc_Act:=CheckBoxServAct.checked;
@@ -2424,7 +2436,7 @@ begin
     Affiche('Fichier '+NomConfig+' non trouvé',clOrange);
   end;
   {$I-}
- 
+
   genere_config;
   Affiche('Configuration sauvegardée dans le fichier',clLime);
   config_modifie:=false;
@@ -2771,7 +2783,7 @@ begin
           EditP1.Visible:=true;EditP2.Visible:=true;EditP3.Visible:=true;EditP4.Visible:=true;
           LabelTJD1.Visible:=true;LabelTJD2.Visible:=true;
         end;
-      end;  
+      end;
       
       if tjs then 
       begin
@@ -2800,7 +2812,7 @@ begin
       id2:=Index_Aig(adr2);
       
       // champ en haut à gauche
-      b:=aiguillage[Index_Aig(adresse)].ADroitB;         
+      b:=aiguillage[Index_Aig(adresse)].ADroitB;
       if b='Z' then b:=#0;
       Edit_HG.Text:=intToSTR(aiguillage[index].ADroit)+b;  
       Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,b);
@@ -3032,7 +3044,7 @@ begin
     RadioButtonLoc.Checked:=false;
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.checked:=true;
-    
+
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
   end;
@@ -3322,7 +3334,7 @@ begin
       editAct2.Visible:=true;
       LabelActionneur.Caption:='Mémoire de Zone';
     end;
-    
+
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].train;
@@ -3409,7 +3421,7 @@ begin
     CheckRaz.Checked:=false;
   end;
 end;
-  
+
 procedure raz_champs_aig;
 begin
   with formConfig do
@@ -3535,7 +3547,7 @@ begin
   // ne pas traiter si on a cliqué sur la liste
   if clicliste then exit;
   if affevt then affiche('Evt change dévié',clyellow);
-    
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
@@ -3547,15 +3559,20 @@ begin
     index:=index_aig(adrAig);
     if index=0 then exit;
     modele:=aiguillage[index].modele;
-   
+
     if (modele=aig) or (modele=triple) then
     begin
-      if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then 
+      if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then
       begin
         // aiguillage normal ou triple
+        LabelInfo.caption:='';
+        if (B='S') or (b='P') or (b='D') then
+        begin
+          if adr=AdrAig then LabelInfo.caption:='Un aiguillage ne peut pointer sur lui même ';
+        end;
+
         RE_ColorLine(RichAig,ligneclicAig,ClWhite);
         Aiguillage[index].modifie:=true;
-        LabelInfo.caption:='';
         // modifier la base de données de l'aiguillage
         if b=#0 then b:='Z';
         Aiguillage[Index].ADevie:=adr;
@@ -3608,7 +3625,7 @@ begin
   // ne pas traiter si on a cliqué sur la liste
   if clicliste then exit;
   if affevt then affiche('Evt change droit',clyellow);
-             
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
@@ -3619,6 +3636,13 @@ begin
     decodeAig(s,adr,B);
     Index:=Index_Aig(AdrAig);
     if index=0 then exit;
+
+    LabelInfo.caption:='';
+    if (B='S') or (b='P') or (b='D') then
+    begin
+      if adr=AdrAig then LabelInfo.caption:='Un aiguillage ne peut pointer sur lui même ';
+    end;
+
     modele:=aiguillage[index].modele;
     if (modele=aig) or (modele=triple) then
     begin
@@ -3626,7 +3650,6 @@ begin
       begin
         RE_ColorLine(RichAig,ligneclicAig,ClWhite);
         Aiguillage[Index].modifie:=true;
-        LabelInfo.caption:='';
         // modifier la base de données de l'aiguillage
         if b=#0 then b:='Z';
         Aiguillage[index].ADroit:=adr;
@@ -3663,7 +3686,7 @@ begin
       RE_ColorLine(Formconfig.RichAig,index-1,ClWhite);
       LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
     end;
-  end;  
+  end;
 
 end;
 
@@ -3677,27 +3700,33 @@ begin
   // ne pas traiter si on a cliqué sur la liste
   if clicliste then exit;
   if affevt then affiche('Evt change pointe',clyellow);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=formconfig.RichAig.Lines[ligneclicAig];
     Val(s,adrAig,erreur);
-      
+
     //vérifier la syntaxe de P
     s:=Editpointe_BG.text;
     decodeAig(s,adr,B);
-    if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then 
+    if ((B='S') or (B='P') or (B='D') or (B=#0) or (b='Z')) and (s<>'') then
     begin
       RE_ColorLine(RichAig,ligneclicAig,ClWhite);
       Index:=Index_Aig(AdrAig);
+      LabelInfo.caption:='';
+      if (B='S') or (b='P') or (b='D') then
+      begin
+        if adr=AdrAig then LabelInfo.caption:='Un aiguillage ne peut pointer sur lui même ';
+      end;
+
       normal:=aiguillage[index].modele=aig;
       tjdC:=aiguillage[index].modele=tjd;
       tjsC:=aiguillage[index].modele=tjs;
       triC:=aiguillage[index].modele=triple;
-      
+
       Aiguillage[index].modifie:=true;
-      LabelInfo.caption:='';
+
       // modifier la base de données de l'aiguillage
       if b=#0 then b:='Z';
 
@@ -4204,7 +4233,7 @@ begin
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
   end;
-end;  
+end;
 
 procedure TFormConfig.EditDet4Change(Sender: TObject);
 begin
@@ -4567,7 +4596,7 @@ begin
   begin
     s:=EditAdrAig.Text;
     Val(s,i,erreur);
-    if (erreur<>0) or (i<=0) or (i>MaxAcc) then 
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
     begin 
       EditAdrAig.Color:=clred;
       LabelInfo.caption:='Erreur adresse Aiguillage ';exit;
@@ -4929,7 +4958,7 @@ begin
   if affevt then affiche('Evt EditV1F Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditV1F.Text;
     Val(s,act,erreur);
     if (erreur<>0) then
@@ -5103,7 +5132,7 @@ begin
   LigneClicAct:=i-1;
   AncligneClicAct:=ligneClicAct;
   Aff_champs_Act(maxTablo_act-1);
-  clicliste:=false;  
+  clicliste:=false;
   config_modifie:=true;
 end;
 
@@ -5268,18 +5297,18 @@ begin
   s:='Voulez-vous supprimer le feu '+IntToSTR(feux[index].adresse)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   Affiche('Suppression du feu ='+IntToSTR(feux[index].adresse),clOrange);
-  
+
   clicliste:=true;  // évite les évènements Edit text
   Feu_supprime:=feux[index];  // sauvegarde le feu supprimé
   Feu_sauve.adresse:=0; // dévalider sa définition
   Feu_sauve.aspect:=0; // dévalider sa définition
-  
+
   // supprime le feu du tableau
 
   ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
 
   feux[index].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
-  Feux[index].Lbl.Free;  // supprime le label, ...
+  Feux[index].Lbl.free;  // supprime le label, ...
   if Feux[index].check<>nil then begin Feux[index].check.Free;Feux[index].Check:=nil;end;  // supprime le check du feu blanc s'il existait
 
   // décale le tableau de feux et recalcule les positions des images
@@ -5290,13 +5319,13 @@ begin
     begin
       Top:=(HtImg+espY+20)*((i-1) div NbreImagePLigne);   // détermine les points d'origine
       Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
-      Name:='ImageFeu'+IntToSTR(i);  
+      Name:='ImageFeu'+IntToSTR(i);
       s:='Index='+IntToSTR(i)+' @='+inttostr(feux[i].Adresse)+' Décodeur='+intToSTR(feux[i].Decodeur)+
        ' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
       if feux[i].Btype_suiv1=aig then s:=s+' (aig)';
       Hint:=s;
-    end;  
+    end;
     with feux[i].Lbl do
     begin
       Top:=HtImg+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
@@ -5306,15 +5335,15 @@ begin
     if Feux[i].check<>nil then
     with Feux[i].Check do
     begin
-      Hint:=intToSTR(i);  
+      Hint:=intToSTR(i);
       Top:=HtImg+15+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
       Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
-    end; 
-    //Affiche('décale feu '+IntToSTR(i)+'<'+intToSTR(i+1),clorange);  
+    end;
+    //Affiche('décale feu '+IntToSTR(i)+'<'+intToSTR(i+1),clorange);
   end;
 
   dec(NbreFeux);
-     
+
   EditAdrSig.Text:='';
   EditDet1.Text:='';EditDet2.Text:='';EditDet3.Text:='';EditDet4.Text:='';
   EditSuiv1.Text:='';EditSuiv2.Text:='';EditSuiv3.Text:='';EditSuiv4.Text:='';
@@ -5331,9 +5360,9 @@ begin
     begin
       RichSig.Lines.Add(s);
       RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
-    end;   
-  end;  
-  ligneClicSig:=-1;                    
+    end;
+  end;
+  ligneClicSig:=-1;
   AncligneClicSig:=-1;
   raz_champs_sig;
   clicliste:=false;
@@ -5350,7 +5379,7 @@ begin
     feux[NbreFeux]:=Feu_supprime;
     Feu_Supprime.adresse:=0;  // dévalider le feu sauvegardé
     Feu_supprime.aspect:=0;
-    cree_image(nbrefeux);         
+    cree_image(nbrefeux);
     config_modifie:=true;
     // réafficher le rechedit
     s:=encode_Sig_Feux(NbreFeux);
@@ -5368,7 +5397,7 @@ begin
         Perform(EM_SCROLLCARET,0,0);
       end;
       Aff_champs_sig_feux(NbreFeux);
-    end; 
+    end;
     clicListe:=false;
   end;
 end;
@@ -5386,28 +5415,29 @@ begin
     repeat
       detect:=BrancheN[i][j].Adresse;
       AncModel:=model;
-      model:=BrancheN[i][j].BType; 
+      model:=BrancheN[i][j].BType;
       if (j=1) and (model<>Aig) and (Model<>Buttoir) then
-      begin 
+      begin
         Affiche('Erreur 3.1 branche '+intToSTR(i)+' : le premier élément d''une branche doit être un buttoir ou un aiguillage',clred);
         erreur:=i;
-      end;  
+      end;
       inc(j);
-      until((model=rien) and (detect=0)); 
-    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then 
+      until((model=rien) and (detect=0));
+    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then
     begin
       Affiche('Erreur 3.2 branche '+intToSTR(i)+' : le dernier élément d''une branche doit être un buttoir ou un aiguillage',clred);
       erreur:=i;
-    end;  
-  end;   
-  verif_extr_branches:=Erreur; 
+    end;
+  end;
+
+  verif_extr_branches:=Erreur;
 end;
 
 function verif_coherence : boolean;
-var i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc,index2 : integer;
-    modAig,AncModel,model,km: TEquipement;
+var AncAdr,i,j,k,l,Indexaig,adr,adr2,detect,condcarre,nc,index2,SuivAdr : integer;
+    modAig,AncModel,model,km,SuivModel: TEquipement;
     c : char;
-    ok : boolean;
+    ok,trouveSuiv,TrouvePrec : boolean;
 begin
   // vérification de la cohérence1
   // parcoure les branches jusqu'à trouver un aiguillage pour voir s'il a été décrit
@@ -5426,12 +5456,12 @@ begin
 
       AncModel:=model;
       model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
-      
+
       if (model=aig) then
       begin
         //affiche('trouvé aig '+intToSTR(detect),clyellow);
         modAig:=aiguillage[Index_Aig(detect)].modele;
-        if (model=rien) then
+        if (modAig=rien) then
           begin
             Affiche('Erreur 2: Aiguillage '+intToStr(detect)+' non décrit mais présent en branche '+intToStr(i)+' pos. '+intToSTR(j),clred);
             ok:=false;
@@ -5439,12 +5469,12 @@ begin
       end;
       j:=j+1;
     until((model=rien) and (detect=0));
-    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then 
+    if (Ancmodel<>Aig) and (AncModel<>Buttoir) then
       Affiche('Erreur 3.2 branche '+intToSTR(i)+' : le dernier élément d''une branche doit être un buttoir ou un aiguillage',clred);
   end;
 
   if verif_extr_branches<>0 then ok:=false;
-  
+
   // vérification de la cohérence2
   // parcoure les aiguillages pour voir si les détecteurs sont en branches des détecteurs
   // et les tjd pour voir si pb de cohérence
@@ -5527,7 +5557,7 @@ begin
     adr:=aiguillage[Indexaig].Adresse;
     if aiguillage[Indexaig].modele=triple then
     begin
-      if aiguillage[Indexaig].AdrTriple=0 then 
+      if aiguillage[Indexaig].AdrTriple=0 then
       begin
         Affiche('Erreur 6.1: 2ème adresse de l''aiguillage triple '+intToSTR(adr)+' non définie',clred);
         ok:=false;
@@ -5541,7 +5571,7 @@ begin
         ok:=false;
       end;
     end;
-  end; 
+  end;
 
   // cohérence 4 : vérifie si doublon signal
   for j:=1 to NbreFeux do
@@ -5552,9 +5582,9 @@ begin
       if adr=feux[i].Adresse then
       begin
         affiche('Erreur 7 : signal '+intToSTR(adr)+' défini deux fois',clred);
-        ok:=false;  
+        ok:=false;
       end;
-    end;     
+    end;
   end; 
   
   // cohérence 5 ; vérifie si aiguillages définis en condition supplémentaires de carré existent
@@ -5648,7 +5678,7 @@ begin
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
-        if index_aig(i)=0 then 
+        if index_aig(i)=0 then
         begin
           ok:=false;
           Affiche('Erreur 9.2: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -5779,6 +5809,102 @@ begin
     end;
   end;
 
+  // cohérence 8
+  // parcoure les branches pour voir si les aiguillages aux extrémités sont cohérentes avec leurs déclarations
+  for i:=1 to NbreBranches do
+  begin
+    j:=1;  // on vérifie entre j-1 et j+1
+    detect:=BrancheN[i][1].Adresse;
+    model:=BrancheN[i][1].BType;
+    repeat
+      AncAdr:=detect;AncModel:=model;
+      detect:=BrancheN[i][j].Adresse;
+      SuivAdr:=BrancheN[i][j+1].Adresse;
+      SuivModel:=BrancheN[i][j+1].Btype;
+      model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
+      trouvePrec:=false;
+
+      if (model=aig) or (model=Tjd) or (model=Tjs) then
+      begin
+        k:=index_aig(detect);
+        // comparer au précédent
+        if j=1 then trouvePrec:=true;
+        if (j>1) then
+        begin
+          if aiguillage[k].modele=Aig then
+          begin
+            if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+            if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+            if aiguillage[k].APointe=AncAdr then trouvePrec:=true;
+          end;
+          if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
+          begin
+            if aiguillage[k].EtatTJD=2 then
+            begin
+              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
+            end;
+            if aiguillage[k].EtatTJD=4 then
+            begin
+              l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
+              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
+              if aiguillage[l].Adroit=AncAdr then trouvePrec:=true;
+              if aiguillage[l].Adevie=AncAdr then trouvePrec:=true;
+              if aiguillage[l].Ddevie=AncAdr then trouvePrec:=true;
+            end;
+          end;
+          if not(trouvePrec) then
+          begin
+            Affiche('La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(AncAdr)+') en branche '+intToSTR(i),clred);
+            ok:=false;
+          end;
+        end;
+
+        TrouveSuiv:=false;
+        // comparer au suivant
+        if SuivModel<>rien then
+        begin
+          if aiguillage[k].modele=Aig then
+          begin
+            if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+            if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+            if aiguillage[k].APointe=SuivAdr then trouveSuiv:=true;
+          end;
+          if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
+          begin
+           if aiguillage[k].EtatTJD=2 then
+              begin
+                if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddevie=SuivAdr then trouveSuiv:=true;
+              end;
+              if aiguillage[k].EtatTJD=4 then
+              begin
+                l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
+                if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Adroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Adevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Ddevie=SuivAdr then trouveSuiv:=true;
+              end;
+          end;
+          if not(trouveSuiv) then
+          begin
+            Affiche('La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(SuivAdr)+') en branche '+intToSTR(i),clred);
+            ok:=false;
+          end;
+        end;
+      end;
+      inc(j);
+    until((model=rien) and (detect=0)) ;
+  end;
+
   verif_coherence:=ok;
 end;
 
@@ -5786,6 +5912,11 @@ procedure TFormConfig.ButtonNouvAigClick(Sender: TObject);
 var i : integer;
     s : string;
 begin
+  if MaxAiguillage>=MaxAcc then
+  begin
+    Affiche('Nombre maximal d''aiguillages atteint',clRed);
+    exit;
+  end;
   clicliste:=true;
   inc(MaxAiguillage);
   i:=MaxAiguillage;
@@ -5795,13 +5926,13 @@ begin
   aiguillage[i].DdroitB:='D'; aiguillage[i].DdevieB:='S'; // préparation pour TJD/S
   aiguillage[i].EtatTJD:=4;
   aiguillage[i].ApointeB:='Z';
-  aiguillage[i].Adevie2B:='Z';   
+  aiguillage[i].Adevie2B:='Z';
   aiguillage[i].tjsintB:='D';
-  
+
   aiguillage[i].posInit:=const_inconnu;
   aiguillage[i].Temps:=5;
-  
-  s:=encode_Aig(i); 
+
+  s:=encode_Aig(i);
   if ligneClicAig<>-1 then RE_ColorLine(RichAig,ligneClicAig,ClAqua);
   // scroller à la fin
   with richAig do
@@ -5810,7 +5941,7 @@ begin
     SetFocus;
     Selstart:=RichAig.GetTextLen-1;
     Perform(EM_SCROLLCARET,0,0);
-  end;    
+  end;
 
   LabelInfo.caption:='Aiguillage '+intToSTR(aiguillage[i].Adresse)+' créé';
   ligneClicAig:=i-1;
@@ -5847,14 +5978,14 @@ begin
   aiguillage[index].Ddevie:=0;
   aiguillage[index].APointe:=0;
   aiguillage[index].modifie:=false;
-  
+
   // supprime l'aiguillage du tableau
   dec(MaxAiguillage);
   for i:=index to MaxAiguillage do
   begin
     Aiguillage[i]:=Aiguillage[i+1];
   end;
-  
+
   config_modifie:=true;
   RichAig.Clear;
 
@@ -5866,8 +5997,8 @@ begin
     begin
       RichAig.Lines.Add(s);
       RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
-    end;  
-  end;  
+    end;
+  end;
   ligneClicAig:=-1;
   AncligneClicAig:=-1;
   clicliste:=false;
@@ -6137,7 +6268,7 @@ var AdrAig,adr,adr2,erreur,index : integer;
 begin
   if clicliste or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P4',clyellow);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
@@ -6260,7 +6391,7 @@ begin
   clicliste:=true;
   Aff_champs_aig_tablo(i);
   clicliste:=false;
-end;  
+end;
 
 procedure TFormConfig.ButtonValLigneClick(Sender: TObject);
 var s: string;
@@ -6269,8 +6400,8 @@ var s: string;
 begin
   ligne:=1;
   ok:=true;
-  repeat 
-    s:=RichBranche.Lines[ligne-1];
+  repeat
+    s:=AnsiUpperCase(RichBranche.Lines[ligne-1]);
     if s<>'' then
     begin
       // supprime les espaces éventuels
@@ -6278,7 +6409,7 @@ begin
         esp:=pos(' ',s);
         if esp<>0 then delete(s,esp,1);
       until esp=0;
-      if s<>'' then 
+      if s<>'' then
       begin
         RichBranche.Lines[ligne-1]:=s;
         branche[ligne]:=s;  // stocker la ligne dans la branche pour la compiler
@@ -6286,19 +6417,20 @@ begin
         begin
           RE_ColorLine(RichBranche,Ligne-1,ClLime);
         end
-        else 
+        else
         begin
           RE_ColorLine(RichBranche,Ligne-1,ClRed);
           ok:=false;
-        end; 
-        inc(ligne); 
+        end;
+        inc(ligne);
       end
     else RichBranche.Lines.Delete(ligne-1);
   end
   else RichBranche.Lines.Delete(ligne-1);
-    
-  until ligne>RichBranche.Lines.count;
+
+  until (ligne>RichBranche.Lines.count) or (ligne>=MaxBranches);
   NbreBranches:=ligne-1;
+  if ligne>=MaxBranches then Affiche('Nombre maximal de branches atteint',clRed);
 
   ligne:=verif_extr_branches;
   if ligne<>0 then
@@ -6421,21 +6553,23 @@ begin
        end;
      end;
      inc(j);
+
      BrancheN[i,j].adresse:=0; // préparer le suivant à 0
      BrancheN[i,j].BType:=rien;
      //Affiche('branche '+intToSTR(i)+' index='+intToStr(j),clGreen);
-   until (offset=0);
+   until (offset=0) or (j>=MaxElBranches);
    if j=2 then
    begin
-     Affiche('Une branche doit contenir au moins deux éléments',clred);
+     Affiche('Branche '+IntToSTR(i)+' : Une branche doit contenir au moins deux éléments',clred);
      code:=false;
    end;
+   if (j>=MaxElBranches) then Affiche('Nombre maximal d''élements dans une branche atteint',clred);
    compile_branche:=code;
 end;
 
 procedure TFormConfig.RichBrancheMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var curseur,lc : integer;   
+var curseur,lc : integer;
 begin
   if clicListe then exit;
   clicListe:=true;
@@ -6447,16 +6581,16 @@ begin
     AncligneClicBr:=ligneClicBr;
     ligneClicBr:=lc;
     curseur:=SelStart;  // position initiale du curseur
-    if AncligneClicBr<>ligneClicBr then 
+    if AncligneClicBr<>ligneClicBr then
     begin
-      if AncligneClicBr<>-1 then 
+      if AncligneClicBr<>-1 then
       begin
         RE_ColorLine(RichBranche,AncligneClicBr,ClAqua);
       end;
       RE_ColorLine(RichBranche,ligneClicBr,ClYellow);
       selStart:=curseur;  // remettre le curseur en position initiale
-    end;  
-  end;  
+    end;
+  end;
   clicListe:=false;
 end;
 
@@ -6676,7 +6810,7 @@ begin
   if affevt then affiche('Evt EditV4F Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditV4F.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
@@ -6820,7 +6954,7 @@ begin
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
   Tablo_Actionneur[i].typActMemZone:=0;
-  LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+  LabelActionneur.Caption:='Actionneur DétecteurZ';
   editAct2.Visible:=false;
   EditTrain.Visible:=true;
   LabelTrain.Visible:=true;
@@ -6892,7 +7026,75 @@ begin
   end;
 end;
 
+procedure TFormConfig.RichBrancheKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var lc,curseur : integer;
 begin
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichBranche keydown',clyellow);
+    with Formconfig.RichBranche do
+    begin
+      lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1);
+        AncligneClicBr:=ligneClicBr;
+        ligneClicBr:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicBr<>ligneClicBr then
+        begin
+          if AncligneClicBr<>-1 then
+          begin
+            RE_ColorLine(RichBranche,AncligneClicBr,ClAqua);
+          end;
+          RE_ColorLine(RichBranche,ligneClicBr,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+        end;
+      end;
+   end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichBranche keydown',clyellow);
+    with Formconfig.RichBranche do
+    begin
+      lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+      if lc<NbreBranches-1 then
+      begin
+        inc(lc);
+        LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1);
+        AncligneClicBr:=ligneClicBr;
+        ligneClicBr:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicBr<>ligneClicBr then
+        begin
+          if AncligneClicBr<>-1 then
+          begin
+            RE_ColorLine(RichBranche,AncligneClicBr,ClAqua);
+          end;
+          RE_ColorLine(RichBranche,ligneClicBr,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+        end;
+      end;
+   end;
+  end;
+  clicListe:=false;
+
+end;
+
+
+begin
+
+
+
+
 
 
 end.

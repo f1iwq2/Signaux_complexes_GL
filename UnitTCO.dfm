@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 20
-  Top = 203
+  Left = 139
+  Top = 146
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False
@@ -110,6 +110,8 @@ object FormTCO: TFormTCO
     VertScrollBar.Tracking = True
     Anchors = [akLeft, akTop, akRight]
     BevelEdges = [beLeft, beTop, beRight]
+    Color = clBtnFace
+    ParentColor = False
     TabOrder = 0
     DesignSize = (
       1032
@@ -117,8 +119,8 @@ object FormTCO: TFormTCO
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 1012
-      Height = 303
+      Width = 1009
+      Height = 353
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = PopupMenu1
       OnClick = ImageTCOClick
@@ -157,44 +159,45 @@ object FormTCO: TFormTCO
     Font.Style = []
     ParentFont = False
     TabOrder = 2
+    OnDragOver = Panel1DragOver
     DesignSize = (
       1100
       166)
     object Label4: TLabel
       Left = 8
-      Top = 8
-      Width = 137
-      Height = 20
+      Top = 16
+      Width = 103
+      Height = 16
       Caption = 'Adresse de l'#39#233'l'#233'ment: '
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
     end
     object Label5: TLabel
       Left = 8
-      Top = 32
-      Width = 116
-      Height = 20
+      Top = 40
+      Width = 89
+      Height = 16
       Caption = 'Type de l'#39#233'l'#233'ment: '
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
     end
     object Label15: TLabel
       Left = 8
-      Top = 56
-      Width = 123
-      Height = 20
+      Top = 64
+      Width = 93
+      Height = 16
       Caption = 'Image de l'#39#233'l'#233'ment: '
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
@@ -205,6 +208,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette5DragOver
       OnEndDrag = ImagePalette5EndDrag
       OnMouseDown = ImagePalette5MouseDown
     end
@@ -227,6 +231,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette2DragOver
       OnEndDrag = ImagePalette2EndDrag
       OnMouseDown = ImagePalette2MouseDown
     end
@@ -262,6 +267,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette1DragOver
       OnEndDrag = ImagePalette1EndDrag
       OnMouseDown = ImagePalette1MouseDown
     end
@@ -271,6 +277,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette6DragOver
       OnEndDrag = ImagePalette6EndDrag
       OnMouseDown = ImagePalette6MouseDown
     end
@@ -280,6 +287,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette7DragOver
       OnEndDrag = ImagePalette7EndDrag
       OnMouseDown = ImagePalette7MouseDown
     end
@@ -289,6 +297,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette8DragOver
       OnEndDrag = ImagePalette8EndDrag
       OnMouseDown = ImagePalette8MouseDown
     end
@@ -298,6 +307,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette9DragOver
       OnEndDrag = ImagePalette9EndDrag
       OnMouseDown = ImagePalette9MouseDown
     end
@@ -359,6 +369,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette3DragOver
       OnEndDrag = ImagePalette3EndDrag
       OnMouseDown = ImagePalette3MouseDown
     end
@@ -403,6 +414,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette10DragOver
       OnEndDrag = ImageDiag10EndDrag
       OnMouseDown = ImagePalette10MouseDown
     end
@@ -425,6 +437,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette11DragOver
       OnEndDrag = ImageDiag11EndDrag
       OnMouseDown = ImagePalette11MouseDown
     end
@@ -448,6 +461,7 @@ object FormTCO: TFormTCO
       Height = 41
       DragMode = dmAutomatic
       Stretch = True
+      OnDragOver = ImagePalette30DragOver
       OnEndDrag = ImagePalette30EndDrag
       OnMouseDown = ImagePalette30MouseDown
     end
@@ -470,6 +484,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette12DragOver
       OnEndDrag = ImagePalette12EndDrag
       OnMouseDown = ImagePalette12MouseDown
     end
@@ -505,6 +520,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette13DragOver
       OnEndDrag = ImagePalette13EndDrag
       OnMouseDown = ImagePalette13MouseDown
     end
@@ -527,6 +543,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette14DragOver
       OnEndDrag = ImagePalette14EndDrag
       OnMouseDown = ImagePalette14MouseDown
     end
@@ -549,18 +566,19 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette15DragOver
       OnEndDrag = ImagePalette15EndDrag
       OnMouseDown = ImagePalette15MouseDown
     end
     object Label23: TLabel
-      Left = 8
-      Top = 85
-      Width = 33
-      Height = 20
+      Left = 56
+      Top = 88
+      Width = 27
+      Height = 16
       Caption = 'Texte'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
@@ -571,6 +589,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette16DragOver
       OnEndDrag = ImagePalette16EndDrag
       OnMouseDown = ImagePalette16MouseDown
     end
@@ -593,6 +612,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette17DragOver
       OnEndDrag = ImagePalette17EndDrag
       OnMouseDown = ImagePalette17MouseDown
     end
@@ -615,6 +635,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette18DragOver
       OnEndDrag = ImagePalette18EndDrag
       OnMouseDown = ImagePalette18MouseDown
     end
@@ -637,6 +658,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette19DragOver
       OnEndDrag = ImagePalette19EndDrag
       OnMouseDown = ImagePalette19MouseDown
     end
@@ -659,6 +681,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette20DragOver
       OnEndDrag = ImagePalette20EndDrag
       OnMouseDown = ImagePalette20MouseDown
     end
@@ -681,6 +704,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette21DragOver
       OnEndDrag = ImagePalette21EndDrag
       OnMouseDown = ImagePalette21MouseDown
     end
@@ -703,6 +727,7 @@ object FormTCO: TFormTCO
       Width = 41
       Height = 41
       DragMode = dmAutomatic
+      OnDragOver = ImagePalette22DragOver
       OnEndDrag = ImagePalette22EndDrag
       OnMouseDown = ImagePalette22MouseDown
     end
@@ -719,14 +744,27 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label1: TLabel
+      Left = 8
+      Top = 112
+      Width = 75
+      Height = 16
+      Caption = 'position du texte'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial Narrow'
+      Font.Style = []
+      ParentFont = False
+    end
     object EditAdrElement: TEdit
-      Left = 152
-      Top = 8
+      Left = 144
+      Top = 16
       Width = 33
-      Height = 28
+      Height = 24
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
@@ -735,13 +773,13 @@ object FormTCO: TFormTCO
       OnKeyDown = EditAdrElementKeyDown
     end
     object EditTypeElement: TEdit
-      Left = 152
-      Top = 32
+      Left = 144
+      Top = 40
       Width = 33
-      Height = 28
+      Height = 24
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
@@ -749,13 +787,13 @@ object FormTCO: TFormTCO
       TabOrder = 1
     end
     object EditTypeImage: TEdit
-      Left = 152
-      Top = 56
+      Left = 144
+      Top = 64
       Width = 33
-      Height = 28
+      Height = 24
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
@@ -812,7 +850,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object EditTexte: TEdit
-      Left = 96
+      Left = 88
       Top = 88
       Width = 89
       Height = 21
@@ -830,7 +868,7 @@ object FormTCO: TFormTCO
     end
     object CheckPinv: TCheckBox
       Left = 16
-      Top = 120
+      Top = 144
       Width = 161
       Height = 17
       Caption = 'aiguillage invers'#233
@@ -848,14 +886,19 @@ object FormTCO: TFormTCO
       WordWrap = True
       OnClick = ButtonMasquerClick
     end
-    object ButtonConstruit: TButton
-      Left = 880
-      Top = 88
+    object ComboRepr: TComboBox
+      Left = 88
+      Top = 112
       Width = 89
-      Height = 33
-      Caption = 'Construit TCO'
+      Height = 21
+      ItemHeight = 13
       TabOrder = 12
-      OnClick = ButtonConstruitClick
+      OnChange = ComboReprChange
+      Items.Strings = (
+        'Sans'
+        'Centrale'
+        'Haut'
+        'Bas')
     end
   end
   object ButtonAfficheBandeau: TButton
@@ -872,7 +915,7 @@ object FormTCO: TFormTCO
   object PopupMenu1: TPopupMenu
     Left = 360
     object MenuCouper: TMenuItem
-      Caption = 'Couper'
+      Caption = '-'
       OnClick = MenuCouperClick
     end
     object MenuCopier: TMenuItem
@@ -894,15 +937,15 @@ object FormTCO: TFormTCO
       Caption = '-'
     end
     object Tourner90G: TMenuItem
-      Caption = 'Positionner 90'#176' '#224' gauche'
+      Caption = 'Positionner feu 90'#176' '#224' gauche'
       OnClick = Tourner90GClick
     end
     object Tourner90D: TMenuItem
-      Caption = 'Positionner 90'#176' '#224' droite'
+      Caption = 'Positionner feu 90'#176' '#224' droite'
       OnClick = Tourner90DClick
     end
     object Pos_vert: TMenuItem
-      Caption = 'Positionner verticalement'
+      Caption = 'Positionner feu verticalement'
       OnClick = Pos_vertClick
     end
   end

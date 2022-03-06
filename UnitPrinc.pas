@@ -3,7 +3,7 @@ Unit UnitPrinc;
   programme signaux complexes Graphique Lenz
   delphi 7 + activeX Tmscomm + clientSocket
  ********************************************
- 27/2/2022 10h
+ 6/3/2022 16h
  note sur le pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
@@ -198,6 +198,8 @@ NbMaxDet=100;         // nombre maximal de détecteurs d'un réseau
 NbMemZone=2048;       // adresse maximale des détecteurs
 Max_Trains=100;
 Max_event_det=400;
+MaxBranches=100;
+MaxElBranches=200;
 LargImg=50;HtImg=91;  // Dimensions image des feux
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
 const_devie=1;        // positions aiguillages transmises par la centrale LENZ
@@ -286,7 +288,7 @@ TFeu = record
                  Adr_el_suiv4 : integer;     // adresse de l'élément4 suivant (si un signal est pour plusieurs voies)
                  Btype_suiv1 : TEquipement ; // type de l'élément suivant ne prend que les valeurs rien, det ou aig
                  Btype_suiv2 : TEquipement ; // 
-                 Btype_suiv3 : TEquipement ; // 
+                 Btype_suiv3 : TEquipement ; //
                  Btype_suiv4 : TEquipement ; // 
                  VerrouCarre : boolean ;     // si vrai, le feu se verrouille au carré si pas de train avant le signal
                  modifie     : boolean;      // feu modifié
@@ -397,7 +399,8 @@ var
   Aig_supprime,Aig_sauve : TAiguillage;
 
   Fimage : Timage;
-  BrancheN : array[1..100,1..200] of TBranche;
+
+  BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
 
 {$R *.dfm}
 
@@ -440,6 +443,7 @@ procedure cree_image(rang : integer);
 procedure trouve_aiguillage(adresse : integer);
 procedure trouve_detecteur(detecteur : integer);
 function BTypeToNum(BT : TEquipement) : integer;
+function ProcessRunning(sExeName: String) : Boolean;
 
 implementation
 
@@ -494,8 +498,7 @@ begin
   until (i=16) or trouve;
   PremBitNum:=i;
 end;
-
-
+   
 // conversion du motif de bits (codebin) de la configuration du signal complexe en deux mots:
 // en sortie :
 // premierBit : code de la signalisation
@@ -547,7 +550,6 @@ begin
            'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
                      16                  17                      18                   19     }
 end;
-
 
 // dessine un cercle plein dans le feu
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
@@ -3062,22 +3064,32 @@ end;
 // si 0 = OK
 // si 1 = erreur code Unisemaf
 // si 2 = erreur cohérence entre code et aspect
+// si 3 = signal inconnu
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
-var aspect : integer;
+var aspect,i : integer;
 begin
   if UniSem=0 then begin verif_unisemaf:=1;exit;end;
   if (UniSem<>2) and (UniSem<>3) and (UniSem<>4) and (UniSem<>51) and (UniSem<>52) and (UniSem<>71) and (UniSem<>72) and (UniSem<>73) and
      ((UniSem<90) or (UniSem>99)) then begin verif_UniSemaf:=1;exit;end;
 
-  aspect:=feux[index_feu(adresse)].aspect;
-  if  ((aspect=2) and (UniSem=2)) or
-      ((aspect=3) and (UniSem=3)) or
-      ((aspect=4) and (UniSem=4)) or
-      ((aspect=5) and ((UniSem=51) or (UniSem=52))) or
-      ((aspect=7) and ((UniSem=71) or (UniSem=72) or (UniSem=73))) or
-      ((aspect=9) and ((UniSem>=90) or (UniSem<=99)))
-      then Verif_unisemaf:=0
-  else Verif_Unisemaf:=2;
+  i:=index_feu(adresse);
+  if i<>0 then
+  begin
+    aspect:=feux[i].aspect;
+    if  ((aspect=2) and (UniSem=2)) or
+        ((aspect=3) and (UniSem=3)) or
+        ((aspect=4) and (UniSem=4)) or
+        ((aspect=5) and ((UniSem=51) or (UniSem=52))) or
+        ((aspect=7) and ((UniSem=71) or (UniSem=72) or (UniSem=73))) or
+        ((aspect=9) and ((UniSem>=90) or (UniSem<=99)))
+        then Verif_unisemaf:=0
+    else Verif_Unisemaf:=2;
+  end
+  else
+  begin
+     Affiche('Erreur Signal '+intToSTR(adresse)+' inconnu',clred);
+     Verif_Unisemaf:=3;
+  end;
 end;
 
 
@@ -6386,13 +6398,13 @@ begin
     begin
       processID:=ProcessEntry32.th32ProcessID;
       CDMhd:=GetWindowFromID(processID);
-      Affiche('CDM rail processID='+IntToSTR(ProcessID)+' handle='+IntToSTR(CDMhd),clOrange);
+      //Affiche('CDM rail processID='+IntToSTR(ProcessID)+' handle='+IntToSTR(CDMhd),clOrange);
       Result:=true;
       Break;
-    end; 
+    end;
   until (Process32Next(hSnapShot,ProcessEntry32)=false);
   CloseHandle(hSnapShot);
-end; 
+end;
 
 // préparation du tampon pour SendInput
 procedure KeybdInput(VKey: Byte; Flags: DWORD);
@@ -6491,7 +6503,6 @@ begin
     connecte_CDM;
     exit;
   end;
-
 
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
@@ -6833,7 +6844,7 @@ begin
       begin
         pos:=aiguillage[index].posInit;
         s:='Init aiguillage '+intToSTR(i)+'='+intToSTR(pos);
-        if pos=1 then s:=s+' (dévié)' else s:=s+' (droit)';
+        if pos=const_devie then s:=s+' (dévié)' else s:=s+' (droit)';     
         Affiche(s,cyan);
         pilote_acc(i,pos,aigP);
         sleep(Tempo_Aig);
@@ -7349,7 +7360,7 @@ end;
 // décodage d'une trame CDM au protocole IPC
 // la trame_CDM peut contenir 2000 caractères à l'initialisation du RUN.
 procedure Interprete_trameCDM(trame_CDM:string);
-var i,j,objet,posST,posAC,posDT,posSG,posXY,k,l,erreur, adr,adr2,etat,etataig,
+var i,j,objet,posST,posAC,posDT,posSG,posXY,k,l,erreur,posErr, adr,adr2,etat,etataig,
     vitesse,etatAig2,name,prv,nbre,nbreVir,long,index,posDes,AncNumTrameCDM : integer ;
     x,y,x2,y2 : longint ;
     s,ss,train,commandeCDM : string;
@@ -7372,13 +7383,16 @@ begin
   trame_cdm:=trame_cdm+'S-C-07-1373-DSCTRN-SPEED|029|03|NAME=CAMERA;AD=6;TMAX=120;'  ;
   trame_cdm:=trame_cdm+'S-C-07-1374-DSCTRN-__END|000|' ;
   }
+  //affiche(trame_cdm,clLime);
   residuCDM:='';
   AckCDM:=trame_CDM<>'';
-  if pos('ACK',trame_CDM)=0 then
+
+  {if pos('ACK',trame_CDM)=0 then
   begin
     if pos('ERR=200',trame_CDM)<>0 then Affiche('Erreur CDM : réseau non chargé',clred);
+    if pos('ERR=500',trame_CDM)<>0 then Affiche('Erreur CDM : serveur DCC non lancé',clred);
   end;
-
+  }
   k:=0;
   repeat
     {// inutile de vérifier les numéros de trames, elles peuvent ne pas être envoyées dans l'ordre!!
@@ -7401,18 +7415,18 @@ begin
               val(copy(trame_CDM,i+1,j-1),NumTrameCDM,erreur);
               if AncNumTrameCDM=0 then AncNumTrameCDM:=NumTrameCDM-1;
               affiche(IntToSTR(NumTrameCDM),clLime);
-              if AncNumTrameCDM+1<>NumTrameCDM then 
+              if AncNumTrameCDM+1<>NumTrameCDM then
               begin
                 s:='Erreur trames CDM perdues: #dernière='+intToSTR(AncNumTrameCDM)+' #Nouvelle='+intToSTR(NumTrameCDM);
                 Affiche(s,clred);
                 AfficheDebug(s,clred);
-              end;  
+              end;
             end;
           end;
         end;
       end;
     end;}
-      
+
     // trouver la longueur de la chaîne de paramètres entre les 2 premiers |xxx|
     i:=pos('|',trame_CDM);
     if i=0 then
@@ -7442,6 +7456,7 @@ begin
       delete(trame_cdm,1,j);
       goto reprise;
     end;
+
 
     if long>l then
     begin
@@ -7474,6 +7489,23 @@ begin
       CommandeCDM:=copy(trame_CDM,1,i);
       //if debugTrames then AfficheDebug(commandeCDM,clorange);
       Delete(trame_CDM,1,i);
+
+      //Affiche('long chaine param='+intToSTR(long),clyellow);
+    if long=0 then
+    begin
+      //if debugTrames then Affiche('Longueur nulle',clYellow);
+      if pos('ACK',trame_cdm)<>0 then Ack_cdm:=true;
+      delete(trame_cdm,1,j);
+      goto reprise;
+    end;
+
+      posERR:=pos('_ERR',commandeCDM);
+      if posErr<>0 then
+      begin
+        if pos('ERR=200',commandeCDM)<>0 then Affiche('Erreur CDM : réseau non chargé',clred);
+        //if pos('ERR=500',commandeCDM)<>0 then Affiche('Erreur CDM : serveur DCC non lancé',clred);
+        delete(commandeCDM,1,i);
+      end;
 
       // description des trains  03|NAME=BB16024;AD=3;TMAX=120;'
       posDES:=pos('DSCTRN-SPEED',commandeCDM);

@@ -1374,7 +1374,7 @@ object FormPrinc: TFormPrinc
     object ButtonLocCV: TButton
       Left = 192
       Top = 88
-      Width = 81
+      Width = 83
       Height = 33
       Caption = 'Trains / CVs'
       TabOrder = 8
