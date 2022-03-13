@@ -10,7 +10,8 @@ uses
   UnitTCO in 'UnitTCO.pas' {FormTCO},
   UnitConfig in 'UnitConfig.pas' {FormConfig},
   UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO},
-  UnitSR in 'UnitSR.pas' {FormSR};
+  UnitSR in 'UnitSR.pas' {FormSR},
+  Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig};
 
 {$R *.res}
 
@@ -24,5 +25,6 @@ begin
   Application.CreateForm(TFormConfigTCO, FormConfigTCO);
   Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormSR, FormSR);
+  Application.CreateForm(TFormAig, FormAig);
   Application.Run;
 end.

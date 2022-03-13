@@ -354,7 +354,7 @@ var
     typActMemZone  : integer;  // 0=actioneur  1=MemZone
     Raz : boolean;
     det : boolean; // désigne un détecteur
-    FichierSon,train : string;
+    FichierSon,trainDecl,TrainDest : string;
   end;
   
   KeyInputs: array of TInput;
@@ -436,7 +436,7 @@ function PresTrainPrec(Adresse : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse : integer) : boolean;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
-procedure Event_act(adr,adr2,etat : integer;train : string);
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
 function Select_dessin_feu(TypeFeu : integer) : TBitmap;
 procedure cree_image(rang : integer);
@@ -2040,10 +2040,11 @@ begin
     if index<>0 then
     begin
       i:=0;
+      // trouve l'index dans la configuration du feu correspondant à son état demandé
       repeat
         inc(i);                                   
       until (feux[index].SR[i].sortie1=etat) or (feux[index].SR[i].sortie0=etat) or (i=8);
-
+                            
       if (feux[index].SR[i].sortie1=etat) then 
       begin
         //affiche('trouvé en sortie1 index '+IntToSTR(i),clyellow);
@@ -2251,7 +2252,7 @@ begin
           carre                 : pilote_acc(adresse+1,2,feu);
           end;
         end;
-        // 51=carrÃ© + blanc
+        // 51=carré + blanc
         if modele=51 then
         begin
           case aspect of
@@ -2294,7 +2295,7 @@ begin
           end;
           if combine=ral_30 then pilote_acc(adresse+1,2,feu);
         end;
-        // 72=VJR + carrÃ© + ralentissement 30
+        // 72=VJR + carré + ralentissement 30
         if modele=72 then
         begin
           case aspect of
@@ -2308,7 +2309,7 @@ begin
           end;
           if combine=ral_30 then pilote_acc(adresse+2,1,feu);
         end;
-        // 73=VJR + carrÃ© + ralentissement 60
+        // 73=VJR + carré + ralentissement 60
         if modele=73 then
         begin
           case aspect of
@@ -2322,7 +2323,7 @@ begin
           end;
           if combine=ral_60 then pilote_acc(adresse+2,1,feu);
         end;
-        // 91=VJR + carrÃ© + rappel 30
+        // 91=VJR + carré + rappel 30
         if modele=91 then
         begin
           case aspect of
@@ -2337,7 +2338,7 @@ begin
           if combine=rappel_30 then pilote_acc(adresse+2,1,feu);
         end;
 
-        // 92=VJR + carrÃ© + rappel 60
+        // 92=VJR + carré + rappel 60
         if modele=92 then
         begin
           case aspect of
@@ -2352,7 +2353,7 @@ begin
           if combine=rappel_60 then pilote_acc(adresse+2,1,feu);
         end;
 
-        // 93=VJR + carrÃ© + ral30 + rappel 30
+        // 93=VJR + carré + ral30 + rappel 30
         if modele=93 then
         begin
           if combine=16 then //pas de sig combinÃ©e
@@ -2370,7 +2371,7 @@ begin
           if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
 
-        // 94=VJR + carrÃ© + ral60 + rappel60
+        // 94=VJR + carré + ral60 + rappel60
         if modele=94 then
         begin
           if combine=16 then
@@ -2388,7 +2389,7 @@ begin
           if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
 
-        // 95=VJR + carrÃ© + ral30 + rappel 60
+        // 95=VJR + carré + ral30 + rappel 60
         if modele=95 then
         begin
           if combine=16 then
@@ -2405,7 +2406,7 @@ begin
           if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
           if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
         end;
-        // 96=VJR + blanc + carrÃ© + ral30 + rappel30
+        // 96=VJR + blanc + carré + ral30 + rappel30
         if modele=96 then
         begin
           if combine=16 then
@@ -2425,7 +2426,7 @@ begin
           if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
         end;
 
-        // 97=VJR + blanc + carrÃ© + ral30 + rappel60
+        // 97=VJR + blanc + carré + ral30 + rappel60
         if modele=97 then
         begin
           if combine=16 then
@@ -2738,20 +2739,20 @@ begin
     end;
     2 :      // mode 2: plus de 4 feux
     begin
-      if (aspect=semaphore) then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
-      if (aspect=vert)   then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
-      if (aspect=carre)  then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
-      if (aspect=jaune)  then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
-      if (aspect=violet) then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
-      if (aspect=blanc)  then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
-      if (aspect=semaphore) then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
-      if (combine=aspect8) then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
+      if (aspect=semaphore)  then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
+      if (aspect=vert)       then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
+      if (aspect=carre)      then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
+      if (aspect=jaune)      then begin pilote_acc(adresse+2,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
+      if (aspect=violet)     then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
+      if (aspect=blanc)      then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
+      if (aspect=semaphore)  then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
+      if (combine=aspect8)   then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
       if (combine=ral_60_jaune_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;  // demande groupe 3
-      if (aspect=vert_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end; // demande groupe 3
-      if (combine=Disque_D) then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;// demande groupe 3
-      if (aspect=jaune_cli) then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
-      if (combine=ral_30) then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
-      if (combine=ral_60) then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
+      if (aspect=vert_cli)   then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end; // demande groupe 3
+      if (combine=Disque_D)  then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;// demande groupe 3
+      if (aspect=jaune_cli)  then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
+      if (combine=ral_30)    then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;
+      if (combine=ral_60)    then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
       if (combine=rappel_30) then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
       if (combine=rappel_60) then begin pilote_acc(adresse+3,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
     end;
@@ -5375,8 +5376,8 @@ begin
           begin
             MemZone[det2,det3]:=FALSE;        // efface zone précédente
             MemZone[det3,AdrSuiv]:=TRUE;      // valide la nouvelle zone
-            event_act(det2,det3,0,'X');        // désactivation zone
-            event_act(det3,AdrSuiv,1,'X');     // activation zone
+            event_act(det2,det3,0,'');        // désactivation zone
+            event_act(det3,AdrSuiv,1,'');     // activation zone
           end
           else Affiche('Erreur 740 : Adresse détecteur trop élevé',clred);
 
@@ -5549,9 +5550,9 @@ end;
 
 
 // traitement des évènements actionneurs
-procedure Event_act(adr,adr2,etat : integer;train : string);
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 var i,v,va,etatAct,Af,Ao,Access,sortie : integer;
-    s,st : string;
+    s,st,trainDest : string;
     presTrain_PN,adresseOk : boolean;
     Ts : TAccessoire;
 begin
@@ -5561,7 +5562,7 @@ begin
   for i:=1 to maxTablo_act do
   begin
     
-    s:=Tablo_actionneur[i].train;
+    s:=Tablo_actionneur[i].trainDecl;  
     etatAct:=Tablo_actionneur[i].etat ;
 
     adresseok:=(Tablo_actionneur[i].adresse=adr) ;
@@ -5581,31 +5582,32 @@ begin
     end; 
     
     // actionneur pour fonction train
-    if adresseOk and (Tablo_actionneur[i].loco) and ((s=train) or (s='X') or (train='X')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
     begin
-      Affiche(st+' Train='+train+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
+      trainDest:=Tablo_actionneur[i].trainDest;
+      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
       // exécution de la fonction F vers CDM
-      envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,train);
+      envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,trainDest);
       tablo_actionneur[i].TempoCourante:=tablo_actionneur[i].Tempo div 100;
     end;
 
     // actionneur pour accessoire
-    if adresseOk and (Tablo_actionneur[i].act) and ((s=train) or (s='X') or (train='X')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
     begin
       access:=Tablo_actionneur[i].accessoire;
       sortie:=Tablo_actionneur[i].sortie;
 
-      Affiche(st+' Train='+train+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
+      Affiche(st+' Train='+trainDecl+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
       // exécution la fonction accessoire vers CDM
       if Tablo_actionneur[i].RAZ then Ts:=aigP else Ts:=Feu;
       pilote_acc(access,sortie,Ts); // sans RAZ
     end;
 
     // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ((s=train) or (s='X') or (train='X')) and (etatAct=etat)
+    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat)
     then
     begin
-      Affiche(st+' Train='+train+' son '+Tablo_actionneur[i].FichierSon,clyellow);
+      Affiche(st+' Train='+trainDecl+' son '+Tablo_actionneur[i].FichierSon,clyellow);
       PlaySound(pchar(Tablo_actionneur[i].FichierSon),0,SND_ASYNC);
     end;
   end;
@@ -6965,8 +6967,8 @@ begin
       if Tablo_actionneur[i].TempoCourante=0 then
       begin
         A:=Tablo_actionneur[i].adresse;
-        s:=Tablo_actionneur[i].train;
-        Affiche('Actionneur '+intToSTR(a)+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':0',clyellow);
+        s:=Tablo_actionneur[i].trainDest;
+        Affiche('Actionneur '+intToSTR(a)+' TrainDest='+s+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':0',clyellow);
         envoie_fonction_CDM(Tablo_actionneur[i].fonction,0,s);
       end;
     end;
@@ -7370,29 +7372,14 @@ begin
 {
   trame_CDM:='S-R-14-0004-CMDACC-__ACK|000|S-E-14-5162-CMDACC-ST_DT|052|05|NAME=2756;OBJ=2756;AD=518;TRAIN=CC406526;STATE=1;';
   trame_cdm:=trame_cdm+'S-E-14-5163-CMDACC-ST_DT|049|05|NAME=2757;OBJ=2757;AD=518;TRAIN=_NONE;STATE=1;';
-  trame_cdm:=trame_cdm+'S-E-14-5164-CMDACC-ST_DT|049|05|NAME=2758;OBJ=2758;AD=519;TRAIN=_NONE;STATE=0;';
-  trame_cdm:=trame_cdm+'S-E-14-5165-CMDACC-ST_DT|049|05|NAME=2759;OBJ=2759;AD=519;TRAIN=_NONE;STATE=0';
-  trame_cdm:=trame_cdm+'S-E-14-5166-CMDACC-ST_DT|049|05|NAME=7060;OBJ=7060;AD=520;TRAIN=_NONE;STATE=0';
-  trame_cdm:=trame_cdm+'S-E-14-5167-CMDACC-ST_DT|051|05|NAME=7061;OBJ=7061;AD=520;TRAIN=BB25531;STATE=0';
-  trame_cdm:=trame_cdm+'S-E-14-5168-CMDACC-ST_DT|049|05|NAME=7057;OBJ=7057;AD=517;TRAIN=_NONE;STATE=0';
-  trame_cdm:=trame_cdm+'S-E-14-5169-CMDACC-ST_DT|049|05|NAME=7058;OBJ=7058;AD=517;TRAIN=_NONE;STATE=0';
-
-  trame_cdm:='S-R-07-0002-DSCTRN-__ACK|000|S-C-07-1369-DSCTRN-SPEED|030|03|NAME=BB25531;AD=1;TMAX=120;S-C-07-1370-DSCTRN-SPEED|026|03|NAME=TGV;AD=2;TMAX=120;' ;
-  trame_cdm:=trame_cdm+'S-C-07-1371-DSCTRN-SPEED|030|03|NAME=BB16024;AD=3;TMAX=120;'  ;
-  trame_cdm:=trame_cdm+'S-C-07-1372-DSCTRN-SPEED|031|03|NAME=CC406526;AD=4;TMAX=120;' ;
   trame_cdm:=trame_cdm+'S-C-07-1373-DSCTRN-SPEED|029|03|NAME=CAMERA;AD=6;TMAX=120;'  ;
   trame_cdm:=trame_cdm+'S-C-07-1374-DSCTRN-__END|000|' ;
+  S-R-01-0004-CMDTRN-__ERR|048|03|ERR=300;SEV=2;MSG=Throttle_By_Name_Not_Found;
   }
   //affiche(trame_cdm,clLime);
   residuCDM:='';
   AckCDM:=trame_CDM<>'';
 
-  {if pos('ACK',trame_CDM)=0 then
-  begin
-    if pos('ERR=200',trame_CDM)<>0 then Affiche('Erreur CDM : réseau non chargé',clred);
-    if pos('ERR=500',trame_CDM)<>0 then Affiche('Erreur CDM : serveur DCC non lancé',clred);
-  end;
-  }
   k:=0;
   repeat
     {// inutile de vérifier les numéros de trames, elles peuvent ne pas être envoyées dans l'ordre!!
@@ -7491,19 +7478,22 @@ begin
       Delete(trame_CDM,1,i);
 
       //Affiche('long chaine param='+intToSTR(long),clyellow);
-    if long=0 then
-    begin
-      //if debugTrames then Affiche('Longueur nulle',clYellow);
-      if pos('ACK',trame_cdm)<>0 then Ack_cdm:=true;
-      delete(trame_cdm,1,j);
-      goto reprise;
-    end;
+      if long=0 then
+      begin
+        //if debugTrames then Affiche('Longueur nulle',clYellow);
+        if pos('ACK',trame_cdm)<>0 then Ack_cdm:=true;
+        delete(trame_cdm,1,j);
+        goto reprise;
+      end;
 
       posERR:=pos('_ERR',commandeCDM);
       if posErr<>0 then
       begin
-        if pos('ERR=200',commandeCDM)<>0 then Affiche('Erreur CDM : réseau non chargé',clred);
-        //if pos('ERR=500',commandeCDM)<>0 then Affiche('Erreur CDM : serveur DCC non lancé',clred);
+        if pos('ERR=200',commandeCDM)<>0 then s:='Erreur CDM : réseau non chargé ';
+        if pos('ERR=500',commandeCDM)<>0 then s:='Erreur CDM : serveur DCC non lancé ';
+        if pos('ERR=300',commandeCDM)<>0 then s:='Erreur CDM : train non trouvé ';
+        j:=pos('MSG=',commandeCDM);if j<>0 then s:=s+copy(commandeCDM,j,i-j);
+        Affiche(s,clred);
         delete(commandeCDM,1,i);
       end;
 
@@ -8059,29 +8049,30 @@ begin
   Affiche('Codification interne des actionneurs',Cyan);
   for i:=1 to maxTablo_act do
   begin
-    s:=Tablo_actionneur[i].train;
+    s:=Tablo_actionneur[i].trainDecl;
     etatAct:=Tablo_actionneur[i].etat ;
     AdrAct:=Tablo_actionneur[i].adresse;
-    s2:=Tablo_actionneur[i].train;
+    s2:=Tablo_actionneur[i].trainDecl;
     acc:=Tablo_actionneur[i].accessoire;
     sortie:=Tablo_actionneur[i].sortie;
     fonction:=Tablo_actionneur[i].fonction;
     son:=Tablo_actionneur[i].son;
     Mem:=Tablo_actionneur[i].typActMemZone=1;
-    
+
     if Mem then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2)
     else s:=intToSTR(adrAct);
-    
+
     if (s2<>'') then
     begin
       if fonction<>0 then
-      s:='FonctionF  Déclencheur='+s+' :'+intToSTR(etatAct)+' Train='+s2+' F'+IntToSTR(fonction)+
+      s:='FonctionF  Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' TrainDest='+Tablo_actionneur[i].TrainDest+' F'+IntToSTR(fonction)+
               ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo);
       if acc<>0 then
-      s:='Accessoire Déclencheur='+s+' :'+intToSTR(etatAct)+' Train='+s2+' A'+IntToSTR(acc)+
+      s:='Accessoire Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' A'+IntToSTR(acc)+
               ' sortie='+intToSTR(sortie);
       if son then
-      s:='Son Déclencheur='+s+' :'+intToSTR(etatAct)+' Train='+s2+'  Fichier:'+ Tablo_actionneur[i].FichierSon;
+      s:='Son Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+
+         '  Fichier:'+Tablo_actionneur[i].FichierSon;
 
       Affiche(s,clYellow);
     end;

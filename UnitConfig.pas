@@ -194,7 +194,7 @@ type
     EditEtatActionneur: TEdit;
     Label30: TLabel;
     LabelTrain: TLabel;
-    EditTrain: TEdit;
+    EditTrainDecl: TEdit;
     GroupBox19: TGroupBox;
     LabelTempo: TLabel;
     EditTempo: TEdit;
@@ -249,6 +249,8 @@ type
     OpenDialogSon: TOpenDialog;
     SpeedButtonCharger: TSpeedButton;
     LabelNumBranche: TLabel;
+    EditTrainDest: TEdit;
+    Label42: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -265,7 +267,7 @@ type
     procedure RichActMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure EditEtatActionneurChange(Sender: TObject);
-    procedure EditTrainChange(Sender: TObject);
+    procedure EditTrainDeclChange(Sender: TObject);
     procedure EditFonctionAccessChange(Sender: TObject);
     procedure EditEtatFoncSortieChange(Sender: TObject);
     procedure EditTempoChange(Sender: TObject);
@@ -349,6 +351,7 @@ type
     procedure SpeedButtonChargerClick(Sender: TObject);
     procedure RichBrancheKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure EditTrainDestChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -1062,17 +1065,19 @@ begin
   
 
   if Tablo_Actionneur[i].loco then
-    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',F'+IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo);
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',F'+
+             IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo)+
+             ','+Tablo_Actionneur[i].trainDest;
 
   if Tablo_Actionneur[i].act then
   begin
-    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+
        ',A'+IntToSTR(Tablo_Actionneur[i].accessoire)+','+intToSTR(Tablo_Actionneur[i].sortie)+',';
     if Tablo_Actionneur[i].Raz then s:=s+'Z' else s:=s+'S';
   end;
 
   if Tablo_Actionneur[i].son then
-    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].train+',"'+Tablo_Actionneur[i].FichierSon+'"';
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].FichierSon+'"';
 
   encode_act_loc_son:=s;
 end;
@@ -1358,7 +1363,8 @@ begin
   // raz des actionneurs
   for i:=1 to maxTablo_act do
   begin
-    Tablo_actionneur[i].train:='';
+    Tablo_actionneur[i].trainDecl:='';
+    Tablo_actionneur[i].trainDest:='';
     Tablo_actionneur[i].etat:=0;
     Tablo_actionneur[i].adresse:=0;
     Tablo_actionneur[i].adresse2:=0;
@@ -1407,7 +1413,7 @@ begin
         Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z';
         delete(sa,1,erreur);
         s:=sa;
-      end;  
+      end;
     end;
 
     // vérifier si F ou A  ou " au 4eme champ
@@ -1432,7 +1438,7 @@ begin
           Delete(s,1,erreur);
 
           i:=pos(',',s);
-          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
           Delete(s,1,i);
 
           i:=pos('"',s);
@@ -1458,7 +1464,7 @@ begin
           Delete(s,1,erreur);
 
           i:=pos(',',s);
-          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
           Delete(s,1,i);
 
           i:=pos('A',s);
@@ -1491,7 +1497,7 @@ begin
     end;
 
     if length(sa)>1 then if (sa[1]='F') then
-    // -----------------loco
+    // -----------------fonction loco
     begin
       Tablo_actionneur[maxtablo_act].act:=false;
       Tablo_actionneur[maxtablo_act].loco:=true;
@@ -1506,7 +1512,7 @@ begin
           Delete(s,1,erreur);
 
           i:=pos(',',s);
-          Tablo_actionneur[maxTablo_act].train:=copy(s,1,i-1);
+          Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
           Delete(s,1,i);
 
           i:=pos('F',s);
@@ -1516,19 +1522,26 @@ begin
             val(s,j,erreur);
             Tablo_actionneur[maxTablo_act].Fonction:=j;
 
-            i:=pos(',',s);
+            i:=pos(',',s);// champ tempo
             if i<>0 then
             begin
               Delete(S,1,i);
               val(s,j,erreur);
               Tablo_actionneur[maxTablo_act].Tempo:=j;
+              i:=pos(',',s); // champ train dest
+              if i=0 then tablo_actionneur[maxTablo_act].TrainDest:=tablo_actionneur[maxTablo_act].TrainDecl
+              else
+              begin
+                tablo_actionneur[maxTablo_act].TrainDest:=copy(s,i+1,length(s)-i);
+              end;
+
               inc(maxTablo_act);
             end;
           end;
           s:='';i:=0;
         end;
     end;
-    
+
     // Passage à niveau
     if (pos('PN',s)<>0) then
     begin
@@ -2994,6 +3007,8 @@ begin
     SpeedButtonCharger.Visible:=false;
     EditFonctionAccess.Visible:=true;
     LabelNomSon.Visible:=false;
+    editTrainDest.Visible:=true;
+    label42.Visible:=true;
   end;
 end;
 
@@ -3018,6 +3033,8 @@ begin
     SpeedButtonCharger.Visible:=false;
     EditFonctionAccess.Visible:=true;
     LabelNomSon.Visible:=false;
+    editTrainDest.Visible:=false;
+    label42.Visible:=false;
   end;
 end;
 
@@ -3047,6 +3064,8 @@ begin
 
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
+    editTrainDest.Visible:=false;
+    label42.Visible:=false;
   end;
 end;
 
@@ -3224,12 +3243,12 @@ begin
   begin
     if typ=0 then 
     begin
-      EditTrain.Visible:=true ;
+      EditTrainDecl.Visible:=true ;
       LabelTrain.Visible:=true ;
     end  
     else 
     begin
-      EditTrain.Visible:=false;
+      EditTrainDecl.Visible:=false;
       LabelTrain.Visible:=false;
     end;
   end;    
@@ -3261,7 +3280,7 @@ begin
     
     etatAct:=Tablo_actionneur[i].etat;
     Adresse:=Tablo_actionneur[i].adresse;
-    s2:=Tablo_actionneur[i].train;
+    s2:=Tablo_actionneur[i].trainDecl;
     trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
@@ -3271,7 +3290,8 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       editEtatActionneur.Text:=IntToSTR(etatAct);
-      EditTrain.Text:=s2;
+      EditTrainDecl.Text:=s2;
+      EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
       editFonctionAccess.Text:=intToSTR(fonction);
       editTempo.Text:=intToSTR(tempo);
     end;
@@ -3299,7 +3319,7 @@ begin
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
-    s2:=Tablo_actionneur[i].train;
+    s2:=Tablo_actionneur[i].trainDecl;
     trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
@@ -3308,7 +3328,7 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      EditTrain.Text:=s2;
+      EditTrainDecl.Text:=s2;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
       editFonctionAccess.Text:=intToSTR(Access);
       editEtatFoncSortie.Text:=intToSTR(sortie);
@@ -3337,7 +3357,7 @@ begin
 
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
-    s2:=Tablo_actionneur[i].train;
+    s2:=Tablo_actionneur[i].trainDecl;
     trainsauve:=s2;
     s:=Tablo_actionneur[i].FichierSon;
     with formconfig do
@@ -3346,7 +3366,7 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      EditTrain.Text:=s2;
+      EditTrainDecl.Text:=s2;
       EditSon.Text:=s;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
     end;
@@ -3414,7 +3434,7 @@ begin
   begin
     editAct.Text:='';
     EditEtatActionneur.Text:='';
-    EditTrain.Text:='';
+    EditTrainDecl.Text:='';
     EditFonctionAccess.Text:='';
     EditEtatFoncSortie.Text:='';
     EditTempo.Text:='';
@@ -4404,27 +4424,51 @@ begin
   end;
 end;
   
-procedure TFormConfig.EditTrainChange(Sender: TObject);
+procedure TFormConfig.EditTrainDeclChange(Sender: TObject);
 var s,train : string;
 begin
   if clicliste then exit;
-  if affevt then affiche('Evt Edit Train Change',clyellow);
+  if affevt then affiche('Evt Edit TrainDecl Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked then
     begin
-      train:=editTrain.Text;
+      train:=EditTrainDecl.Text;
       if train='' then
       begin
         LabelInfo.caption:='Erreur train';exit
       end else LabelInfo.caption:=' ';
-      
-      tablo_actionneur[ligneClicAct+1].train:=train;
+
+      tablo_actionneur[ligneClicAct+1].trainDecl:=train;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
+end;
+
+procedure TFormConfig.EditTrainDestChange(Sender: TObject);
+var s,train : string;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt Edit TrainDest Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    if radioButtonLoc.Checked then
+    begin
+      train:=EditTrainDest.Text;
+      if train='' then
+      begin
+        LabelInfo.caption:='Erreur train';exit
+      end else LabelInfo.caption:=' ';
+
+      tablo_actionneur[ligneClicAct+1].trainDest:=train;
+      s:=encode_act_loc_son(ligneClicAct+1);
+      RichAct.Lines[ligneClicAct]:=s;
+    end;
+  end;
+
 end;
 
 
@@ -4755,7 +4799,7 @@ begin
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].train:=editTrain.Text;
+  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -4785,7 +4829,7 @@ begin
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].train:=editTrain.Text;
+  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -4817,7 +4861,7 @@ begin
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].train:=editTrain.Text;
+  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -6933,7 +6977,6 @@ end;
 
 procedure TFormConfig.ButtonTestActClick(Sender: TObject);
 Var Adr,adr2,erreur,etat : integer;
-    train : string;
 begin
   etat:=0;
   val(EditEtatActionneur.Text,Etat,erreur);
@@ -6941,8 +6984,7 @@ begin
   val(EditAct2.Text,Adr2,erreur);
   if erreur=0 then
   begin
-    train:=EditTrain.Text;
-    Event_act(adr,adr2,etat,train);
+    Event_act(adr,adr2,etat,'X');
   end;  
 end;
 
@@ -6956,17 +6998,17 @@ begin
   Tablo_Actionneur[i].typActMemZone:=0;
   LabelActionneur.Caption:='Actionneur DétecteurZ';
   editAct2.Visible:=false;
-  EditTrain.Visible:=true;
+  EditTrainDecl.Visible:=true;
   LabelTrain.Visible:=true;
 
-  Tablo_Actionneur[i].train:=trainSauve;
-  EditTrain.Text:=trainSauve;
+  Tablo_Actionneur[i].trainDecl:=trainSauve;
+  EditTrainDecl.Text:=trainSauve;
   
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].train:=editTrain.Text;
+  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -6989,12 +7031,12 @@ begin
   if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
   Tablo_Actionneur[i].typActMemZone:=1;
   LabelActionneur.Caption:='Mémoire de Zone'; 
-  EditTrain.Visible:=false;
+  EditTrainDecl.Visible:=false;
   LabelTrain.Visible:=false;
   editAct2.Visible:=true;
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
   
-  Tablo_actionneur[i].train:='X';
+  Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
@@ -7091,11 +7133,6 @@ end;
 
 
 begin
-
-
-
-
-
 
 end.
 

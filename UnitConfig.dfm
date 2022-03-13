@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 384
-  Top = 136
+  Left = 281
+  Top = 138
   Hint = 
     'Modifie les fichiers de configuration selon les s'#233'lections chois' +
     'ies'
@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3383,11 +3383,11 @@ object FormConfig: TFormConfig
               Caption = #224
             end
             object LabelTrain: TLabel
-              Left = 56
+              Left = 16
               Top = 110
-              Width = 24
+              Width = 49
               Height = 13
-              Caption = 'Train'
+              Caption = 'Train D'#233'cl'
             end
             object EditAct: TEdit
               Left = 72
@@ -3407,18 +3407,18 @@ object FormConfig: TFormConfig
               TabOrder = 1
               OnChange = EditEtatActionneurChange
             end
-            object EditTrain: TEdit
-              Left = 88
+            object EditTrainDecl: TEdit
+              Left = 72
               Top = 108
-              Width = 105
+              Width = 129
               Height = 21
               Hint = 
-                'Train pour lequel la condition s'#39'applique (mettre X pour tous le' +
-                's trains)'
+                'Train d'#233'clencheur pour lequel la condition s'#39'applique (mettre X ' +
+                'pour tous les trains)'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 2
-              OnChange = EditTrainChange
+              OnChange = EditTrainDeclChange
             end
             object RadioGroup1: TRadioGroup
               Left = 8
@@ -3459,19 +3459,19 @@ object FormConfig: TFormConfig
             Left = 8
             Top = 160
             Width = 209
-            Height = 97
+            Height = 96
             Caption = 'Action '
             TabOrder = 1
             object LabelTempo: TLabel
               Left = 48
-              Top = 52
+              Top = 44
               Width = 55
               Height = 13
               Caption = 'Tempo (ms)'
             end
             object LabelFonction: TLabel
               Left = 24
-              Top = 22
+              Top = 18
               Width = 80
               Height = 13
               Alignment = taRightJustify
@@ -3494,10 +3494,10 @@ object FormConfig: TFormConfig
               Caption = 'Nom du fichier son:'
             end
             object SpeedButtonJoue: TSpeedButton
-              Left = 40
-              Top = 56
-              Width = 41
-              Height = 33
+              Left = 64
+              Top = 88
+              Width = 25
+              Height = 25
               Flat = True
               Glyph.Data = {
                 4E010000424D4E010000000000003E0000002800000022000000220000000100
@@ -3514,10 +3514,10 @@ object FormConfig: TFormConfig
               OnClick = SpeedButtonJoueClick
             end
             object SpeedButtonCharger: TSpeedButton
-              Left = 136
-              Top = 60
-              Width = 41
-              Height = 30
+              Left = 120
+              Top = 88
+              Width = 25
+              Height = 26
               Flat = True
               Glyph.Data = {
                 BA060000424DBA06000000000000360400002800000019000000170000000100
@@ -3576,9 +3576,16 @@ object FormConfig: TFormConfig
                 0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000}
               OnClick = SpeedButtonChargerClick
             end
+            object Label42: TLabel
+              Left = 16
+              Top = 68
+              Width = 49
+              Height = 13
+              Caption = 'Train Dest'
+            end
             object EditTempo: TEdit
               Left = 112
-              Top = 46
+              Top = 38
               Width = 33
               Height = 21
               TabOrder = 0
@@ -3595,7 +3602,7 @@ object FormConfig: TFormConfig
             end
             object EditFonctionAccess: TEdit
               Left = 112
-              Top = 18
+              Top = 14
               Width = 25
               Height = 21
               Hint = 'Num'#233'ro de fonction du d'#233'codeur du train (0 '#224' 12 ou 28)'
@@ -3606,26 +3613,37 @@ object FormConfig: TFormConfig
             end
             object EditEtatFoncSortie: TEdit
               Left = 160
-              Top = 18
+              Top = 14
               Width = 25
               Height = 21
               TabOrder = 3
               OnChange = EditEtatFoncSortieChange
             end
             object EditSon: TEdit
-              Left = 8
+              Left = 32
               Top = 64
-              Width = 177
+              Width = 161
               Height = 21
               TabOrder = 4
               OnChange = EditSonChange
             end
+            object EditTrainDest: TEdit
+              Left = 72
+              Top = 64
+              Width = 129
+              Height = 21
+              Hint = 'Train destinataire de la fonction F'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 5
+              OnChange = EditTrainDestChange
+            end
           end
           object ButtonTestAct: TButton
             Left = 64
-            Top = 264
+            Top = 266
             Width = 89
-            Height = 25
+            Height = 20
             Hint = 'Test de l'#39'actionneur/d'#233'tecteur en mode RUN'
             Caption = 'Test actionneur'
             ParentShowHint = False
