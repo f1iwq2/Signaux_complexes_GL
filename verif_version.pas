@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='3.82';  // sert à la comparaison de la version publiée
+Const  Version='3.83';  // sert à la comparaison de la version publiée
        SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
@@ -200,16 +200,17 @@ begin
         s2:=version;
        // i:=pos('.',s2);if i<>0 then s2[i]:=',';
 
+        s:=AnsiUppercase(s);
         l:=length(s);
         SV_publie:=s[l];
         if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else s:=copy(s,1,l-1);
-        
-        val(s,V_publie,erreur); 
+
+        val(s,V_publie,erreur);
         if erreur<>0 then exit;
-        val(s2,V_utile,erreur); 
+        val(s2,V_utile,erreur);
         if erreur<>0 then exit;
 
-        if (V_utile<V_publie) or 
+        if (V_utile<V_publie) or
            ((V_utile=V_publie) and (SousVersion<SV_publie)) then
         begin
           FormVersion.Top:=10;

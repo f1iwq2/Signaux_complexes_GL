@@ -251,6 +251,7 @@ type
     LabelNumBranche: TLabel;
     EditTrainDest: TEdit;
     Label42: TLabel;
+    Label43: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -2474,25 +2475,25 @@ var AncAdresse,adresse,erreur : integer;
     s : string;
 begin
   s:=Uppercase(FormConfig.RichSig.Lines[lc]);   // ligne cliquée
-    if s='' then 
-    begin
-      RE_ColorLine(Formconfig.RichSig,ligneclicSig,ClAqua);
-      ligneclicSig:=-1;
-      exit;
-    end;  
+  if s='' then 
+  begin
+    RE_ColorLine(Formconfig.RichSig,ligneclicSig,ClAqua);
+    ligneclicSig:=-1;
+    exit;
+  end;  
     
-    Feu_Sauve:=feux[lc+1];  // sauvegarde
+  Feu_Sauve:=feux[lc+1];  // sauvegarde
 
-    AncLigneClicSig:=ligneclicSig;
-    ligneClicSig:=lc;
+  AncLigneClicSig:=ligneclicSig;
+  ligneClicSig:=lc;
 
-    // Mettre en rouge le signal modifié quand on clique sur un autre signal
-    if AncligneclicSig<>-1 then
-    begin
-      val(FormConfig.RichSig.Lines[AncLigneClicSig],AncAdresse,erreur);
-      if feux[ligneClicSig+1].modifie then RE_ColorLine(Formconfig.RichSig,AncLigneClicSig,ClWhite) else
-      RE_ColorLine(Formconfig.RichSig,AncLigneClicSig,ClAqua);
-    end;
+  // Mettre en rouge le signal modifié quand on clique sur un autre signal
+  if AncligneclicSig<>-1 then
+  begin
+    val(FormConfig.RichSig.Lines[AncLigneClicSig],AncAdresse,erreur);
+    if feux[ligneClicSig+1].modifie then RE_ColorLine(Formconfig.RichSig,AncLigneClicSig,ClWhite) else
+    RE_ColorLine(Formconfig.RichSig,AncLigneClicSig,ClAqua);
+  end;
 
   Val(s,Adresse,erreur);  // Adresse du signal
   if adresse=0 then exit;
@@ -3130,10 +3131,13 @@ begin
     7 : ComboBoxAsp.ItemIndex:=4;
     9 : ComboBoxAsp.ItemIndex:=5;
     else
-        ComboBoxAsp.ItemIndex:=d-10+4;
+      ComboBoxAsp.ItemIndex:=d-10+4;
     end; 
     
     if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
+
+    if (d>3) and (d<10) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+    
     // signal normal
     if d<10 then
     begin     
@@ -3146,7 +3150,6 @@ begin
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
       Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
-      CheckVerrouCarre.Visible:=true;
       EditDet1.Text:=IntToSTR(feux[i].Adr_det1);
       EditSuiv1.Text:=TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
     
@@ -4579,7 +4582,7 @@ begin
   if affevt then affiche('Evt CheckRaz Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     if radioButtonAccess.Checked then
     begin
       tablo_actionneur[ligneClicAct+1].raz:=CheckRAZ.checked;
@@ -4589,7 +4592,7 @@ begin
   end;
 end;
 
-procedure AdrSig;
+procedure TFormConfig.EditAdrSigChange(Sender: TObject);
 var s : string;
     i, erreur : integer;
 begin
@@ -4622,11 +4625,6 @@ begin
    end;
 end;
 
-
-procedure TFormConfig.EditAdrSigChange(Sender: TObject);
-begin
-  AdrSig;
-end;
 
 procedure TFormConfig.EditAdrAigChange(Sender: TObject);
   var s : string;
@@ -4698,7 +4696,7 @@ begin
 end;
 
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
-var i,index,aspect : integer;
+var x,y,i,index,aspect,adresseFeu : integer;
     s : string;
 begin
   if clicListe then exit;
@@ -4718,20 +4716,35 @@ begin
   if index<1 then exit;
   if NbreFeux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
-  if ((aspect=2) or (aspect>=5)) and (aspect<10) then 
-    checkBoxFB.Visible:=true else 
+  if ((aspect=2) or (aspect>=5)) and (aspect<10) then
+    checkBoxFB.Visible:=true else
     begin
       checkBoxFB.Visible:=false;
       checkBoxFB.Checked:=false;
-    end;  
+    end;
+  if (aspect>3) and (aspect<10) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+
   feux[index].aspect:=aspect;
-  s:=encode_sig_feux(index);  
+  s:=encode_sig_feux(index);
   RichSig.Lines[ligneClicSig]:=s;
   aff_champs_sig_feux(index); // redessine les champs et le feu
-  
+
   // change l'image du feu dans la feuille graphique principale
   Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
+  // et dans le TCO
+  if avecTCO then
+  begin
+    for y:=1 to NbreCellY do
+    for x:=1 to NbreCellX do
+      begin
+        if TCO[x,y].BImage=30 then
+        begin
+          AdresseFeu:=feux[index].adresse;
+          if tco[x,y].Adresse=AdresseFeu then affiche_tco;
+        end;
+      end;
+  end;
 end;
 
 
@@ -5660,7 +5673,7 @@ begin
       if IndexBranche_trouve=0 then
       begin
         ok:=false;
-        Affiche('Erreur 8.1: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.1: Détecteur '+intToSTR(i)+' non existant dans les branches mais associé au signal '+IntToSTR(feux[j].adresse),clred);
       end;
     end
     else
@@ -6430,6 +6443,12 @@ begin
   else aiguillage[i].modele:=rien;
   end;
 
+  if (aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs) then
+  begin
+    if not(radioButtonTJD2.Checked) and not(radioButtonTJD4.Checked) then
+      radioButtonTJD2.Checked:=true;
+  end;
+  
   s:=encode_aig(i);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
   clicliste:=true;

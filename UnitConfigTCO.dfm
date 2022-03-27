@@ -226,6 +226,20 @@ object FormConfigTCO: TFormConfigTCO
       Height = 13
       Caption = 'statiques'
     end
+    object ImageQuai: TImage
+      Left = 296
+      Top = 64
+      Width = 41
+      Height = 41
+      OnClick = ImageQuaiClick
+    end
+    object Label13: TLabel
+      Left = 206
+      Top = 80
+      Width = 74
+      Height = 13
+      Caption = 'Couleur de quai'
+    end
   end
   object Memo1: TMemo
     Left = 8

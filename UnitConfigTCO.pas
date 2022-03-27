@@ -39,6 +39,8 @@ type
     Label12: TLabel;
     LabelMaxX: TLabel;
     LabelMaxY: TLabel;
+    ImageQuai: TImage;
+    Label13: TLabel;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -49,6 +51,7 @@ type
     procedure ImagecantonClick(Sender: TObject);
     procedure ColorDialog1Show(Sender: TObject);
     procedure ImageTexteClick(Sender: TObject);
+    procedure ImageQuaiClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -93,6 +96,7 @@ end;
 
 procedure dessine_icones;
 var r : Trect;
+    x1,y1,x2,jy1,jy2 : integer;
 begin
   // 1
   icone_aig;
@@ -140,7 +144,6 @@ begin
     canvas.Brush.Color:=fond;
     canvas.Rectangle(0,0,Width,Height);
     
-   
     canvas.pen.color:=clAllume;
     canvas.brush.color:=clAllume;
     // bande horizontale
@@ -157,9 +160,23 @@ begin
     canvas.Font.color:=clTexte;
     canvas.Pen.mode:=pmCopy;
     canvas.Textout(5,10,'Voie 1');
-    
   end;
 
+  //Quai
+  with formconfigTCO.ImageQuai do
+  begin
+    canvas.Pen.color:=fond;
+    canvas.Brush.Color:=fond;
+    canvas.Rectangle(0,0,Width,Height);
+    canvas.Brush.Color:=clQuai;
+    canvas.pen.color:=clQuai;
+    x1:=0;
+    x2:=x1+width;
+    jy1:=(HauteurCell div 2)-round(6*frYGlob); // pos Y de la bande sup
+    jy2:=(HauteurCell div 2)+round(6*frYGlob); // pos Y de la bande inf
+    
+    canvas.PolyGon([point(x1,jy1),point(x2,jy1),point(x2,jy2),point(x1,jy2)]);
+  end;
 
 end;
 
@@ -211,7 +228,7 @@ begin
       ImageTCO.Height:=HauteurCell*NbreCellY;
     end;  
     AvecGrille:=checkDessineGrille.Checked;
-    formTCO.affiche_TCO;
+    affiche_TCO;
     LabelErreur.caption:='';
     close;
   end; 
@@ -228,9 +245,9 @@ begin
     begin
       ImageTCO.Width:=LargeurCell*NbreCellX;
       ImageTCO.Height:=HauteurCell*NbreCellY;
-    end;  
-    formTCO.affiche_TCO;
-  end;  
+    end;
+    affiche_TCO;
+  end;
 end;
 
 
@@ -250,17 +267,21 @@ end;
 procedure TFormConfigTCO.ImageAigClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur des voies';
+  ColorDialog1.Color:=clVoies;
+
   if ColorDialog1.execute then
   begin
     clVoies:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones;
-  end; 
+  end;
 end;
 
 procedure TFormConfigTCO.ImageFondClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de fond';
+  ColorDialog1.Color:=fond;
+
   if ColorDialog1.execute then
   begin
     fond:=ColorDialog1.Color;
@@ -272,51 +293,72 @@ end;
 procedure TFormConfigTCO.ImageGrilleClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de la grille';
+  ColorDialog1.Color:=clGrille;
+
   if ColorDialog1.execute then
   begin
     ClGrille:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones;
-  end; 
+  end;
 end;
 
 procedure TFormConfigTCO.ImageDetActClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de détecteur activé';
+  ColorDialog1.Color:=clAllume;
+
   if ColorDialog1.execute then
   begin
     ClAllume:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones;
-  end; 
+  end;
 end;
 
 procedure TFormConfigTCO.ImagecantonClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de canton activé';
+  ColorDialog1.Color:=clAllume;
+
   if ColorDialog1.execute then
   begin
     ClAllume:=ColorDialog1.Color;
     dessine_icones;
-  end; 
+  end;
 end;
 
 procedure TFormConfigTCO.ImageTexteClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur du texte';
+  ColorDialog1.Color:=cltexte;
+
   if ColorDialog1.execute then
   begin
     ClTexte:=ColorDialog1.Color;
     dessine_icones;
-  end; 
+  end;
 end;
 
+procedure TFormConfigTCO.ImageQuaiClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur du quai';
+  ColorDialog1.Color:=clQuai;
+
+  if ColorDialog1.execute then
+  begin
+    ClQuai:=ColorDialog1.Color;
+    dessine_icones;
+  end;
+end;
 
 // change le titre de la fenêtre de choix des couleurs à son ouverture
 procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
    SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
+
+
 
 
 

@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2873,11 +2873,24 @@ object FormConfig: TFormConfig
         end
         object LabelUni: TLabel
           Left = 8
-          Top = 160
-          Width = 75
+          Top = 184
+          Width = 72
           Height = 13
-          Caption = 'Spec Unisemaf:'
+          Caption = 'Spec Unisemaf'
           Visible = False
+        end
+        object Label43: TLabel
+          Left = 40
+          Top = 160
+          Width = 38
+          Height = 16
+          Caption = 'Voies:'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
         end
         object MemoCarre: TMemo
           Left = 8
@@ -3015,7 +3028,7 @@ object FormConfig: TFormConfig
         end
         object EditSpecUni: TEdit
           Left = 8
-          Top = 176
+          Top = 200
           Width = 33
           Height = 21
           TabOrder = 14
@@ -3024,7 +3037,7 @@ object FormConfig: TFormConfig
         end
         object Buttonrestaure: TButton
           Left = 8
-          Top = 216
+          Top = 224
           Width = 75
           Height = 25
           Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
@@ -3045,7 +3058,7 @@ object FormConfig: TFormConfig
         end
         object ButtonConfigSR: TButton
           Left = 8
-          Top = 248
+          Top = 256
           Width = 75
           Height = 25
           Caption = 'Configuration'
@@ -3459,7 +3472,7 @@ object FormConfig: TFormConfig
             Left = 8
             Top = 160
             Width = 209
-            Height = 96
+            Height = 113
             Caption = 'Action '
             TabOrder = 1
             object LabelTempo: TLabel
@@ -3494,10 +3507,10 @@ object FormConfig: TFormConfig
               Caption = 'Nom du fichier son:'
             end
             object SpeedButtonJoue: TSpeedButton
-              Left = 64
-              Top = 88
-              Width = 25
-              Height = 25
+              Left = 56
+              Top = 80
+              Width = 41
+              Height = 33
               Flat = True
               Glyph.Data = {
                 4E010000424D4E010000000000003E0000002800000022000000220000000100
@@ -3515,9 +3528,9 @@ object FormConfig: TFormConfig
             end
             object SpeedButtonCharger: TSpeedButton
               Left = 120
-              Top = 88
+              Top = 80
               Width = 25
-              Height = 26
+              Height = 34
               Flat = True
               Glyph.Data = {
                 BA060000424DBA06000000000000360400002800000019000000170000000100

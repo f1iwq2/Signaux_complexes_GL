@@ -90,7 +90,9 @@ version 3.8  : Possibilité de déclencher les actions depuis une zone deux détect
 version 3.81 : Pilotage des TJD depuis le TCO.
                Améliorations diverses dans le TCO.
 version 3.82 : Application d'un train destinataire pour les actionneurs de fonctions F.
-   
+version 3.83 : Quais pour le TCO.
+               Fontes, couleurs et styles variables pour les textes des TCO.
+
 
 
 

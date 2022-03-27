@@ -3,7 +3,7 @@ Unit UnitPrinc;
   programme signaux complexes Graphique Lenz
   delphi 7 + activeX Tmscomm + clientSocket
  ********************************************
- 6/3/2022 16h
+ 24/3/2022 15h
  note sur le pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
@@ -180,6 +180,7 @@ type
     procedure ComboTrainsChange(Sender: TObject);
     procedure ButtonFonctionClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -349,12 +350,12 @@ var
   record
     loco,act,son: boolean;   // type loco actionneur ou son 
     adresse,adresse2,        // adresse: adresse de base ; adresse2=cas d'une Zone
-    etat,fonction,tempo,TempoCourante,  
+    etat,fonction,tempo,TempoCourante,
     accessoire,sortie,
     typActMemZone  : integer;  // 0=actioneur  1=MemZone
     Raz : boolean;
     det : boolean; // désigne un détecteur
-    FichierSon,trainDecl,TrainDest : string;
+    FichierSon,trainDecl,TrainDest,TrainCourant : string;
   end;
   
   KeyInputs: array of TInput;
@@ -1427,7 +1428,7 @@ begin
   else Feux[rang].check:=nil;
 end;
 
-// calcule le checksum d'une trame
+// ajoute en bout de chaine le checksum d'une trame
 Function Checksum(s : string) : string;
 var i : integer;
     check : byte;
@@ -2906,7 +2907,7 @@ begin
          if TCO[x,y].Bimage=30 then
          begin
            adresse:=TCO[x,y].adresse;      // vérifie si le feu existe dans le TCO
-           aspect:=TCO[x,y].aspect;
+           aspect:=feux[index_feu(adresse)].Aspect;
            case aspect of
                  2 :  ImageFeu:=Formprinc.Image2feux;
                  3 :  ImageFeu:=Formprinc.Image3feux;
@@ -5585,11 +5586,14 @@ begin
     if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
     begin
       trainDest:=Tablo_actionneur[i].trainDest;
-      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
       // exécution de la fonction F vers CDM
+      if (trainDest='X') or (trainDest='') then traindest:=traindecl;
+      if (trainDest='X') then traindest:=s;
+      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
       envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,trainDest);
+      tablo_actionneur[i].TrainCourant:=trainDest;  // pour mémoriser le train pour la retombée de la fonction
       tablo_actionneur[i].TempoCourante:=tablo_actionneur[i].Tempo div 100;
-    end;
+    end;                              
 
     // actionneur pour accessoire
     if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
@@ -6273,7 +6277,6 @@ begin
     end;
     Affiche('CDM rail déconnecté',Cyan);
     AfficheDebug('CDM rail déconnecté',Cyan);
-
   end;
 end;
 
@@ -6641,7 +6644,7 @@ begin
   Srvc_sig:=false;
 
   config_modifie:=false;
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion;
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion+' BETA';
   Caption:=AF;
   Application.onHint:=doHint;
 
@@ -6765,10 +6768,10 @@ begin
   // TCO
   if avectco then
   begin
-    //créée la fenêtre TCO non modale
-    FormTCO:=TformTCO.Create(nil);
-    FormTCO.show;
-  end;
+      //créée la fenêtre TCO non modale
+      FormTCO:=TformTCO.Create(nil);
+      FormTCO.show;
+  end; 
 
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
@@ -6868,6 +6871,13 @@ begin
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
+    // TCO
+    {if avectco then
+    begin
+      //créée la fenêtre TCO non modale
+      FormTCO:=TformTCO.Create(nil);
+      FormTCO.show;
+    end; }
     if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages) then
     begin
       Affiche('Positionnement des feux',clYellow);
@@ -6922,7 +6932,7 @@ begin
           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
           testBit(a,vert_cli) or testbit(a,blanc_cli) then
           begin
-            aspect:=TCO[x,y].aspect;
+            aspect:=feux[index_feu(adresse)].Aspect;
             case aspect of
              2 :  ImageFeu:=Formprinc.Image2feux;
              3 :  ImageFeu:=Formprinc.Image3feux;
@@ -6967,7 +6977,7 @@ begin
       if Tablo_actionneur[i].TempoCourante=0 then
       begin
         A:=Tablo_actionneur[i].adresse;
-        s:=Tablo_actionneur[i].trainDest;
+        s:=Tablo_actionneur[i].trainCourant;
         Affiche('Actionneur '+intToSTR(a)+' TrainDest='+s+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':0',clyellow);
         envoie_fonction_CDM(Tablo_actionneur[i].fonction,0,s);
       end;
@@ -8155,6 +8165,7 @@ begin
   s:=editAdrTrain.Text;
   val(s,adr,erreur);
   if (erreur<>0) or (adr<0) then exit;
+  if not(portCommOuvert) and not(parSocketLenz) then exit;
   s:=editVitesse.Text;
   val(s,vit,erreur);
   if (erreur<>0) or (vit<0) then exit;
@@ -8285,6 +8296,7 @@ begin
   if erreur<>0 then exit;
   val(editFonc01.Text,etat,erreur);
   if erreur<>0 then exit;
+  if not(portCommOuvert) and not(parSocketLenz) then exit;
   val(editAdrTrain.Text,loco,erreur);
   s:=trains[combotrains.itemindex+1].nom_train;
   if CDM_connecte then 
@@ -8298,7 +8310,7 @@ begin
     envoie_fonction_CDM(fonction,etat,s);
     Affiche('Train='+s+' F'+IntToSTR(fonction)+':'+intToSTR(etat),clyellow);
   end;
-  if portCommOuvert or parSocketLenz then 
+  
   begin
     if erreur<>0 then begin Affiche('Sélectionnez un train',clOrange);exit;end;
     if fonction>28 then 
@@ -8335,5 +8347,21 @@ begin
   end;  
 end;
 
+
+procedure TFormPrinc.Button2Click(Sender: TObject);
 begin
+  aiguillage[Index_Aig(1)].position:=const_devie; 
+  aiguillage[Index_Aig(3)].position:=const_devie; 
+  aiguillage[Index_Aig(5)].position:=const_droit; 
+ 
+  zone_TCO(518,515,1);
+end;
+
+
+
+
+
+begin
+
+
 end.

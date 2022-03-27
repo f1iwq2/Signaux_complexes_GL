@@ -1440,8 +1440,8 @@ object FormPrinc: TFormPrinc
     OnMouseDown = FenRichMouseDown
   end
   object GroupBox2: TGroupBox
-    Left = 697
-    Top = 56
+    Left = 633
+    Top = 64
     Width = 265
     Height = 105
     Anchors = [akTop, akRight]
