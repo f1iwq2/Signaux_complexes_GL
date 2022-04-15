@@ -2445,6 +2445,17 @@ begin
   end;
 end;
 
+function style(s : string) : TfontStyles;
+var fs : tFontStyles;
+begin
+  fs:=[];
+  if pos('G',s)<>0 then fs:=fs+[fsbold];
+  if pos('I',s)<>0 then fs:=fs+[fsItalic];
+  if pos('S',s)<>0 then fs:=fs+[fsUnderline];
+  if pos('B',s)<>0 then fs:=fs+[fsStrikeout];
+  style:=fs;
+end;
+
 // affiche la cellule x et y en cases
 procedure affiche_cellule(x,y : integer);
 var i,repr,p,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pos,pos2 : integer;
@@ -2534,8 +2545,9 @@ begin
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
-      Font.Color:=clYellow;
+      Font.Color:=tco[x,y].coulFonte;
       Font.Name:='Arial';
+      Font.Style:=style(tco[x,y].FontStyle);
       xt:=0;yt:=0;
       if Bimage=2  then begin xt:=3;yt:=1;end;
       if Bimage=3  then begin xt:=3;yt:=HauteurCell-round(20*fryGlob);end;
@@ -2558,8 +2570,9 @@ begin
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
-      Font.Color:=clWhite;
+      Font.Color:=tco[x,y].coulFonte;
       Font.Name:='Arial';
+      Font.Style:=style(tco[x,y].FontStyle);
       xt:=round(15*frXGlob);
       case repr of
       1 : yt:=(HauteurCell div 2)-round(7*fryGlob);   // milieu
@@ -2579,7 +2592,8 @@ begin
     begin
       Brush.Color:=fond;
       Font.Name:='Arial';
-      Font.Color:=clWhite;
+      Font.Style:=style(tco[x,y].FontStyle);
+      Font.Color:=tco[x,y].coulFonte;
       TextOut(xOrg+round(2*frXGlob),yOrg+round(2*fryGlob),s);
       //exit;
     end;
@@ -2590,7 +2604,8 @@ begin
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
-      Font.Color:=clWhite;
+      Font.Color:=tco[x,y].coulFonte;;
+      Font.Style:=style(tco[x,y].FontStyle);
       Font.Name:='Arial';
       TextOut(xOrg+round(28*frXGlob),yOrg+round(2*fryGlob),s);
       //exit;
@@ -2624,7 +2639,8 @@ begin
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
-      Font.Color:=clLime;
+      Font.Color:=tco[x,y].coulFonte;
+      Font.Style:=style(tco[x,y].FontStyle);
       Font.Name:='Arial';
       TextOut(xOrg+xt,yOrg+yt,s);
     end;
@@ -2695,12 +2711,8 @@ begin
   if ss='' then ss:='Arial';
   PcanvasTCO.Font.Name:=ss;
   ss:=tco[x,y].FontStyle;
-  fs:=[];
-  if pos('G',ss)<>0 then fs:=fs+[fsbold];
-  if pos('I',ss)<>0 then fs:=fs+[fsItalic];
-  if pos('S',ss)<>0 then fs:=fs+[fsUnderline];
-  if pos('B',ss)<>0 then fs:=fs+[fsStrikeout];
-  PcanvasTCO.Font.Style:=fs;
+ 
+  PcanvasTCO.Font.Style:=style(ss);
 
   repr:=tco[x,y].repr;
   taillefonte:=tco[x,y].TailleFonte;
@@ -3159,6 +3171,7 @@ end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
 begin
+  //Affiche('Form TCO activate',clyellow);
   if not(Forminit) then
   begin
     FormInit:=true;
@@ -3229,8 +3242,9 @@ begin
     end;
 
     //Affiche_tco;
+    TrackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
   end;
-  TrackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
+ 
 end;
 
 // evt qui se produit quand on clic droit dans l'image
@@ -3369,6 +3383,7 @@ begin
   YclicCell:=Yclic div hauteurCell +1;
   dessin_AigPD_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BImage:=5;  // image 5
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell);
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3387,6 +3402,7 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   tco[XClicCell,YClicCell].BImage:=2;  // image 2
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   dessin_AigG_PD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   entoure_cell_grille(XClicCell,YClicCell);
   _entoure_cell_clic;
@@ -3408,6 +3424,7 @@ begin
   if (x=0) and (y=0) then exit;
   efface_entoure;
   TCO_modifie:=true;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   Xclic:=X;YClic:=Y;
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
@@ -3437,6 +3454,7 @@ begin
   YclicCell:=Yclic div hauteurCell +1;
   dessin_AigD_PG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BImage:=4;  // image 4
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3460,6 +3478,7 @@ begin
   YclicCell:=Yclic div hauteurCell +1;
   dessin_voie(ImageTCO.Canvas,XClicCell,YClicCell,0);
   tco[XClicCell,YClicCell].BImage:=1;  // image 1
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   tco[XClicCell,YClicCell].Adresse:=0;  
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
@@ -3660,6 +3679,7 @@ begin
   dessin_Aig45PG_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BImage:=12;  // image 12
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3682,6 +3702,7 @@ begin
   dessin_Aig45PD_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);      
   tco[XClicCell,YClicCell].BImage:=13;  // image 13
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3703,6 +3724,7 @@ begin
   dessin_Aig45PD_AG(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BImage:=14;  // image 14
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3723,6 +3745,7 @@ begin
   Dessin_Aig45PG_AD(ImageTCO.Canvas,XClicCell,YClicCell,0,9);
   tco[XClicCell,YClicCell].BImage:=15;  // image 15
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3842,6 +3865,7 @@ begin
   Dessin_21(ImageTCO.Canvas,XClicCell,YClicCell,0,9,9);
   tco[XClicCell,YClicCell].BImage:=21;
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -3862,6 +3886,7 @@ begin
   Dessin_22(ImageTCO.Canvas,XClicCell,YClicCell,0,9,9);
   tco[XClicCell,YClicCell].BImage:=22;
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   entoure_cell_grille(XClicCell,YClicCell); 
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -4336,6 +4361,8 @@ begin
   tco[XClicCell,YClicCell].BImage:=30;
   tco[XClicCell,YClicCell].Adresse:=0;
   tco[XClicCell,YClicCell].FeuOriente:=1;
+  tco[XClicCell,YClicCell].coulFonte:=clWhite;
+  
   tco[XClicCell,YClicCell].x:=0;
   tco[XClicCell,YClicCell].y:=0;
 
@@ -4582,7 +4609,7 @@ begin
     TFormPilote.Create(Self);
     with formPilote do
     begin
-      show;
+      show;   
       ImagePilote.top:=40;ImagePilote.left:=220;
       ImagePilote.Parent:=FormPilote;
       ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
@@ -4591,12 +4618,14 @@ begin
 
       ImagePilote.Picture.BitMap:=feux[i].Img.Picture.Bitmap;
       LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(Adresse);
-      EtatSignalCplx[0]:=EtatSignalCplx[Adresse];
+      feux[0].EtatSignal:=feux[i].EtatSignal;
+      
       LabelNbFeux.Visible:=False;
       EditNbreFeux.Visible:=false;
       GroupBox1.Visible:=true;
-      GroupBox2.Visible:=true;
-      efface_entoure;SelectionAffichee:=false;
+      GroupBox2.Visible:=true; 
+      efface_entoure;
+      SelectionAffichee:=false;
       sourisclic:=false;  // évite de générer un cadre de sélection
     end;
   end;
@@ -4781,10 +4810,14 @@ begin
 end;
 
 procedure TFormTCO.ButtonFonteClick(Sender: TObject);
-var s : string;
+var s,ss : string;
     fs : TFontStyles;
 begin
-  titre_Fonte:='Fonte et couleur pour la cellule ('+intToSTR(xClicCell)+','+intToSTR(YClicCell)+') Texte: '+tco[xClicCell,YClicCell].Texte;
+  s:='Fonte et couleur pour la cellule ('+intToSTR(xClicCell)+','+intToSTR(YClicCell)+') Texte: ';
+  ss:=tco[xClicCell,YClicCell].Texte;
+  if ss='' then s:=s+inttoSTR(tco[xClicCell,YClicCell].Adresse) else s:=s+ss;
+  
+  titre_fonte:=s;
   FontDialog1.Font.Name:=tco[XclicCell,YclicCell].Fonte;
   FontDialog1.Font.Color:=tco[XclicCell,YclicCell].CoulFonte;
   FontDialog1.Font.Size:=tco[XclicCell,YclicCell].taillefonte;

@@ -668,7 +668,7 @@ begin
      c:=aiguillage[index].AdevieB;if c<>'Z' then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDevie)+aiguillage[index].DDevieB+')';
    end;
-      
+
    if tjsC then
    begin
      s:=s+',L'+intToSTR(aiguillage[index].Tjsint)+aiguillage[index].TjsintB;
@@ -2643,11 +2643,12 @@ begin
 
   // signaux
   RichSig.clear;
+  ComboBoxDec.items.Clear;
   for i:=1 to NbDecodeur do
   begin
     ComboBoxDec.items.add(decodeur[i-1]);
   end;
-  
+
   for i:=1 to NbreFeux do
   begin
     s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
@@ -2804,8 +2805,8 @@ begin
         ComboBoxAig.ItemIndex:=2;
         EditL.Visible:=true;
         LabelL.Visible:=true;
-        LabelL.Caption:='L'+IntToSTR(aiguillage[ind].tjsint);
-        EditL.Text:=aiguillage[ind].tjsintB;
+        LabelL.Caption:='L';
+        EditL.Text:=IntToSTR(aiguillage[ind].tjsint)+aiguillage[ind].tjsintB;
       end;  
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
       labelBG.Caption:='S';
@@ -3132,7 +3133,7 @@ begin
     9 : ComboBoxAsp.ItemIndex:=5;
     else
       ComboBoxAsp.ItemIndex:=d-10+4;
-    end; 
+    end;
     
     if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
 
@@ -6445,10 +6446,10 @@ begin
 
   if (aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs) then
   begin
-    if not(radioButtonTJD2.Checked) and not(radioButtonTJD4.Checked) then
-      radioButtonTJD2.Checked:=true;
+    if not(radioButtonTJD2.Checked) and not(radioButtonTJD4.Checked) then radioButtonTJD2.Checked:=true;
+    if (aiguillage[i].tjsIntB<>'S') and (aiguillage[i].tjsIntB<>'D') then aiguillage[i].tjsIntB:='D';
   end;
-  
+
   s:=encode_aig(i);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
   clicliste:=true;
@@ -6920,6 +6921,7 @@ end;
 
 procedure TFormConfig.EditLChange(Sender: TObject);
 var s : string;
+    i, erreur :integer;
 begin
   if clicliste or (ligneclicAig<0) then exit;
   if affevt then affiche('Evt EditL Change',clyellow);
@@ -6927,11 +6929,14 @@ begin
   begin
     s:=EditL.Text;
     if s='' then exit;
-    if (s[1]<>'S') and (s[1]<>'D') then 
+    val(s,i,erreur);
+    if (s[erreur]<>'S') and (s[erreur]<>'D') then
     begin
-      LabelInfo.caption:='Erreur Champ L : D ou S';exit;
-    end;
-    aiguillage[ligneclicAig+1].tjsintb:=s[1];
+      LabelInfo.caption:='Erreur Champ L manque D ou S';exit
+    end
+    else LabelInfo.caption:='';
+    aiguillage[ligneclicAig+1].tjsint:=i;
+    aiguillage[ligneclicAig+1].tjsintb:=s[erreur];
     s:=encode_aig(ligneclicAig+1);
     RichAig.Lines[ligneclicAig]:=s;
   end;  

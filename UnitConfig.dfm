@@ -2392,7 +2392,7 @@ object FormConfig: TFormConfig
             Caption = 'LabelTJD1'
           end
           object LabelL: TLabel
-            Left = 10
+            Left = 18
             Top = 69
             Width = 8
             Height = 16
@@ -2491,9 +2491,9 @@ object FormConfig: TFormConfig
             OnKeyPress = EditDevieS2KeyPress
           end
           object EditL: TEdit
-            Left = 40
+            Left = 32
             Top = 68
-            Width = 25
+            Width = 33
             Height = 21
             TabOrder = 9
             Visible = False

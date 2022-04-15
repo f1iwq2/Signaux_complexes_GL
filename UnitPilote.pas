@@ -102,7 +102,7 @@ begin
   if i<>0 then
   
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
-  EtatFeuPilote:=EtatSignalCplx[0];
+  EtatFeuPilote:=feux[0].EtatSignal;
   Vcanvas:=FormPilote.ImagePilote.picture.bitmap.Canvas;
   
   case feux[i].aspect of
@@ -184,6 +184,7 @@ end;
 
 procedure TFormPilote.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  //Affiche('close',clyellow);
   AdrPilote:=0;  // pour désactiver le test des clignotements
 end;
 
@@ -215,8 +216,8 @@ end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
 begin
-  radioVert.Checked:=false;
-  radioVertCli.Checked:=false;
+//  radioVert.Checked:=false;
+//  radioVertCli.Checked:=false;
 end;
 
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
@@ -225,9 +226,7 @@ begin
   i:=index_feu(AdrPilote);
   if feux[i].aspect<10 then
   begin
-    EtatSignalCplx[AdrPilote]:=EtatSignalCplx[0];
-    //Affiche(IntToSTR(EtatSignalCplx[AdrPilote]),clyellow);
-    feux[i].EtatSignal:=EtatSignalCplx[0];
+    feux[i].EtatSignal:=feux[0].EtatSignal;
     envoi_signal(AdrPilote);
   end
   else
@@ -248,7 +247,7 @@ if ord(Key) = VK_RETURN then
     begin
       if (i>=0) and (i<=6) then
       begin
-        EtatSignalCplx[0]:=i;
+        feux[0].EtatSignal:=i;
         dessine_feu_pilote;
       end;
       if (i<0) and (i>6) then EditNbreFeux.text:='1';

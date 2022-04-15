@@ -3,7 +3,7 @@ Unit UnitPrinc;
   programme signaux complexes Graphique Lenz
   delphi 7 + activeX Tmscomm + clientSocket
  ********************************************
- 24/3/2022 15h
+ 6/4/2022 14h
  note sur le pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
@@ -220,7 +220,7 @@ Max_Simule=10000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
 NbDecodeur = 8;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR');
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR');
 Etats : array[0..19] of string[30]=('Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
            'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
@@ -293,7 +293,8 @@ TFeu = record
                  Btype_suiv4 : TEquipement ; // 
                  VerrouCarre : boolean ;     // si vrai, le feu se verrouille au carré si pas de train avant le signal
                  modifie     : boolean;      // feu modifié
-                 EtatSignal  : word  ;       // comme EtatSignalCplx (doublon)
+                 EtatSignal  : word  ;       // 
+                 AncienEtat  : word  ;
                  UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
                  AigDirection : array[1..6] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
                                                Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages
@@ -311,7 +312,6 @@ TFeu = record
 
 
 var
-  ancien_tablo_signalCplx,EtatsignalCplx : array[0..MaxAcc] of word;  // attention tableau indicé par l'adresse du signal et non son index!!
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
@@ -386,7 +386,7 @@ var
   // l'indice du tableau aiguillage n'est pas son adresse
   aiguillage : array[0..MaxAcc] of Taiguillage;
   // signaux - L'index du tableau n'est pas son adresse
-  feux :  array[1..MaxAcc] of Tfeu;
+  feux :  array[0..MaxAcc] of Tfeu;
   trains : array[1..Max_Trains] of record
               nom_train : string;
               adresse,vitmax : integer;
@@ -544,7 +544,7 @@ begin
     if (aspect=8) and (combine=13) then result:=18;   //rappel 60 + jaune
     if (aspect=9) and (combine=13) then result:=19;   //rappel 60 + jaune cli
   end;  
-  code_to_etat:=result;  
+  code_to_etat:=result;
   {'Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
                7        8         9         10         11          12               13               14         15   
@@ -565,7 +565,7 @@ end;
 
 // dessine les feux sur une cible à 2 feux dans le canvas spécifié
 // x,y : offset en pixels du coin supérieur gauche du feu
-// frX, frY : facteurs de réduction
+// frX, frY : facteurs de réduction (pour agrandisseent)
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage : integer;
@@ -578,8 +578,8 @@ begin
   // récupérer les dimensions de l'image d'origine du feu
   LgImage:=Formprinc.Image2feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image2feux.Picture.Bitmap.Height;
-
-  XBlanc:=13;  YBlanc:=11;
+             //zizi
+  XBlanc:=13; YBlanc:=11;
   xViolet:=13; yViolet:=23;
 
   if (orientation=2) then
@@ -1268,18 +1268,18 @@ begin
   if i<>0 then
   case feux[i].aspect of
   // feux de signalisation
-   2 : dessine_feu2(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
-   3 : dessine_feu3(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
-   4 : dessine_feu4(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
-   5 : dessine_feu5(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
-   7 : dessine_feu7(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
-   9 : dessine_feu9(CanvasDest,x,y,frx,fry,EtatSignalCplx[adresse],orientation);
+   2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+   3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+   4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+   5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+   7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+   9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
   // indicateurs de direction
-  12 : dessine_dir2(CanvasDest,EtatSignalCplx[adresse]);
-  13 : dessine_dir3(CanvasDest,EtatSignalCplx[adresse]);
-  14 : dessine_dir4(CanvasDest,EtatSignalCplx[adresse]);
-  15 : dessine_dir5(CanvasDest,EtatSignalCplx[adresse]);
-  16 : dessine_dir6(CanvasDest,EtatSignalCplx[adresse]);
+  12 : dessine_dir2(CanvasDest,feux[i].EtatSignal);
+  13 : dessine_dir3(CanvasDest,feux[i].EtatSignal);
+  14 : dessine_dir4(CanvasDest,feux[i].EtatSignal);
+  15 : dessine_dir5(CanvasDest,feux[i].EtatSignal);
+  16 : dessine_dir6(CanvasDest,feux[i].EtatSignal);
   end;
 end;
 
@@ -1312,7 +1312,7 @@ begin
     ImagePilote.Transparent:=true;
     ImagePilote.Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
     LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
-    EtatSignalCplx[0]:=EtatSignalCplx[AdrPilote];
+    feux[0].EtatSignal:=feux[i].EtatSignal;
     if feux[i].aspect>10 then
     begin
       GroupBox1.Visible:=false;
@@ -1354,11 +1354,12 @@ end;
 // créée une image dynamiquement pour un nouveau feu déclaré dans le fichier de config
 // rang commence à 1
 procedure cree_image(rang : integer);
-var TypeFeu,adresse : integer;
+var adresse,TypeFeu : integer;
     s : string;
 begin
   TypeFeu:=feux[rang].aspect;
   if typeFeu<=0 then exit;
+  adresse:=feux[rang].adresse;
   Feux[rang].Img:=Timage.create(Formprinc.ScrollBox1);
   with Feux[rang].Img do
   begin
@@ -1366,10 +1367,7 @@ begin
     Name:='ImageFeu'+IntToSTR(rang);   // nom de l'image - sert à identifier le composant si on fait clic droit.
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
-    //Affiche(intToSTR(rang)+' '+intToSTR(left),clorange);
-    width:=57;
-    Height:=105;
-    s:='Index='+IntToSTR(rang)+' @='+inttostr(feux[rang].Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
+    s:='Index='+IntToSTR(rang)+' @='+inttostr(Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
        ' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
     if feux[rang].Btype_suiv1=aig then s:=s+' (aig)';
@@ -1386,11 +1384,10 @@ begin
     picture.Bitmap:=Select_dessin_feu(TypeFeu);
 
     // mettre rouge par défaut
-    adresse:=Feux[rang].adresse;
-    if TypeFeu=2 then EtatSignalCplx[adresse]:=violet_F;
-    if TypeFeu=3 then EtatSignalCplx[adresse]:=semaphore_F;
-    if (TypeFeu>3) and (TypeFeu<10) then EtatSignalCplx[adresse]:=carre_F;
-    if TypeFeu>10 then EtatSignalCplx[adresse]:=0;
+    if TypeFeu=2 then feux[rang].EtatSignal:=violet_F;
+    if TypeFeu=3 then feux[rang].EtatSignal:=semaphore_F;
+    if (TypeFeu>3) and (TypeFeu<10) then feux[rang].EtatSignal:=carre_F;
+    if TypeFeu>10 then feux[rang].EtatSignal:=0;
 
     dessine_feu_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
     //if feux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
@@ -1412,7 +1409,7 @@ begin
   if feux[rang].FeuBlanc then
   begin
     Feux[rang].check:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
-    //Feux[rang].check.onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus non utilisé
+    Feux[rang].check.onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus 
     Feux[rang].check.Hint:=intToSTR(adresse);  // affecter l'adresse du feu dans le HINT pour pouvoir le retrouver plus tard
 
     with Feux[rang].Check do
@@ -1604,8 +1601,6 @@ var so,sx,s : string;
 begin
  {  exemple de commande envoyée au serveur pour manoeuvrer un accessoire
   C-C-00-0004-CMDACC-DCCAC|018|02|AD=100;STATE=1;
-  "	NAME : nom de l'aiguille
-  "	OBJ: numéro CDM-Rail de l'aiguille (index)
   "	AD: adresse (DCC) de l'aiguille
   "	AD2: adresse #2 (DCC) de l'aiguille (TJD bi-moteurs ou aiguille triples)
   "	STATE: état de l'aiguille
@@ -1831,54 +1826,53 @@ var i : integer;
 begin                              
 // ('0carré','1sémaphore','2sémaphore cli','3vert','4vert cli','5violet',
 //           '6blanc','7blanc cli','8jaune','9jaune cli','10ral 30','11ral 60','12rappel 30','13rappel 60');
-  if testBit((EtatSignalCplx[adresse]),aspect)=false then  // si le bit dans l'état du signal n'est pas allumé, procéder.
+
+  i:=index_feu(adresse);
+  if testBit(feux[i].EtatSignal,aspect)=false then  // si le bit dans l'état du signal n'est pas allumé, procéder.
   begin
     // effacement du motif de bits en fonction du nouvel état demandé suivant la règle des signaux complexes
     if (aspect<=blanc_cli) then
     begin
-      EtatSignalCplx[adresse]:=0;  //Tout aspect <=7 efface les autres
+      feux[i].EtatSignal:=0;  //Tout aspect <=7 efface les autres
     end;
     if (aspect=jaune) then // jaune
     begin
-      EtatSignalCplx[adresse]:=RazBit(EtatSignalCplx[adresse],jaune_cli); // cas du jaune: efface le bit du jaune clignotant (bit 9)
-      EtatSignalCplx[adresse]:=RazBit(EtatSignalCplx[adresse],ral_30);  // cas du jaune: efface le bit du ral_30 (bit 10)
-      EtatSignalCplx[adresse]:=RazBit(EtatSignalCplx[adresse],ral_60);  // cas du jaune: efface le bit du ral_60 (bit 11)
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and not($00FF);   // et effacer les bits 0 à 7
+      feux[i].EtatSignal:=RazBit(feux[i].EtatSignal,jaune_cli); // cas du jaune: efface le bit du jaune clignotant (bit 9)
+      feux[i].EtatSignal:=RazBit(feux[i].EtatSignal,ral_30);  // cas du jaune: efface le bit du ral_30 (bit 10)
+      feux[i].EtatSignal:=RazBit(feux[i].EtatSignal,ral_60);  // cas du jaune: efface le bit du ral_60 (bit 11)
+      feux[i].EtatSignal:=feux[i].EtatSignal and not($00FF);   // et effacer les bits 0 à 7
     end;
     if (aspect=jaune_cli) then // jaune clignotant
     begin
-      EtatSignalCplx[adresse]:=RazBit(EtatSignalCplx[adresse],jaune);   // cas du jaunecli: efface le bit du jaune  (bit 8)
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and $FF00;   // et effacer les bits 0 à 7
+      feux[i].EtatSignal:=RazBit(feux[i].EtatSignal,jaune);   // cas du jaunecli: efface le bit du jaune  (bit 8)
+      feux[i].EtatSignal:=feux[i].EtatSignal and $FF00;   // et effacer les bits 0 à 7
     end;
     if (aspect=ral_30) then // ralentissement 30
     begin
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and not($3BFF);   // cas du ral 30: efface les bits 0 1 2 3 4 5 6 7 8 9 11 12 et 13 :  11 1000 1111 1111
+      feux[i].EtatSignal:=feux[i].EtatSignal and not($3BFF);   // cas du ral 30: efface les bits 0 1 2 3 4 5 6 7 8 9 11 12 et 13 :  11 1000 1111 1111
     end;
     if (aspect=ral_60) then // ralentissement 60
     begin
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and not($35FF);   // cas du ral 60: efface les bits 8 10 12 et 13 et de 0 à 7  : 11 0100 1111 1111
+      feux[i].EtatSignal:=feux[i].EtatSignal and not($35FF);   // cas du ral 60: efface les bits 8 10 12 et 13 et de 0 à 7  : 11 0100 1111 1111
     end;
     if (aspect=rappel_30) then // rappel 30
     begin
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and not($2cff);   // cas du rappel 30: efface les bits 0 1 2 3 4 5 6 7 10 11 et 13 : 10 1100 1111 0000
+      feux[i].EtatSignal:=feux[i].EtatSignal and not($2cff);   // cas du rappel 30: efface les bits 0 1 2 3 4 5 6 7 10 11 et 13 : 10 1100 1111 0000
     end;
     if (aspect=rappel_60) then // rappel 60
     begin
-      EtatSignalCplx[adresse]:=EtatSignalCplx[adresse] and not($1Cff);   // cas du rappel 60: efface les bits 0 1 2 3 4 5 6 7 10 11 et 12  1 1100 1111 0000
+      feux[i].EtatSignal:=feux[i].EtatSignal and not($1Cff);   // cas du rappel 60: efface les bits 0 1 2 3 4 5 6 7 10 11 et 12  1 1100 1111 0000
     end;
     if (aspect=aspect8) then // ral_60_jaune_cli décodeur LDT
     begin
-      EtatSignalCplx[adresse]:=jaune_cli_F or ral_60_F;   // cas du ralentissement 60 + avertissement clignotant : efface les bits 10 11 et 12
+      feux[i].EtatSignal:=jaune_cli_F or ral_60_F;   // cas du ralentissement 60 + avertissement clignotant : efface les bits 10 11 et 12
     end;
     if (aspect<>aspect8) then
     begin
-      EtatSignalCplx[adresse]:=SetBit(EtatSignalCplx[adresse],aspect);   // allume le numéro du bit de la fonction du signal
-      // Affiche(IntToSTR(EtatSignalCplx[adresse]),clyellow);
+      feux[i].EtatSignal:=SetBit(feux[i].EtatSignal,aspect);   // allume le numéro du bit de la fonction du signal
     end;
   end;
-  // mise à jour de l'état du signal dans le tableau Feux
-  i:=Index_feu(adresse);
-  if i<>0 then feux[i].EtatSignal:=EtatSignalCplx[adresse];
+
 end;
 
 
@@ -1888,8 +1882,10 @@ sur un panneau directionnel - adresse : adresse du signal - code de 1 à 3 pour a
 ; le panneau directionnel à 1, 2 ou 3 leds.
 ============================================== }
 procedure envoi_directionBahn(adr : integer;code : integer);
+var i : integer;
 begin
-  if (EtatSignalCplx[adr]<>code) then
+  i:=index_feu(adr);
+  if (feux[i].EtatSignal<>code) then
   begin
     if (traceSign) then Affiche('Signal directionnel: ad'+IntToSTR(adr)+'='+intToSTR(code),clOrange);
     if AffSignal then AfficheDebug('Signal directionnel: ad'+IntToSTR(adr)+'='+intToSTR(code),clOrange);
@@ -1924,7 +1920,7 @@ begin
                     sleep(Tempo_Feu);
           end;
     end;
-    EtatSignalCplx[adr]:=code;
+    feux[i].EtatSignal:=code;
     Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
@@ -1936,8 +1932,10 @@ adresse : adresse du signal - code de 1 à 3 pour allumer
 le panneau directionnel à 1, 2, 3 ou 4 leds.
 ============================================== }
 procedure envoi_directionCDF(adr : integer;code : integer);
+var i : integer;
 begin
-  if (EtatSignalCplx[adr]<>code) then
+  i:=index_feu(adr);
+  if (feux[i].EtatSignal<>code) then
   begin
     if traceSign then Affiche('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
     if AffSignal then AfficheDebug('signal directionnel CDF: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
@@ -1967,13 +1965,15 @@ begin
         sleep(200);
       end;
     end;
-    EtatSignalCplx[adr]:=code;
+    feux[i].EtatSignal:=code;
   end;
 end;
 
 procedure Envoi_DirectionLEB(Adr : integer;code : integer);
+var i : integer;
 begin
-  if (EtatSignalCplx[adr]<>code) then
+  i:=index_feu(i);
+  if feux[i].EtatSignal<>code then
   begin
     if traceSign then Affiche('signal directionnel LEB: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
     if aFFsIGNAL then AfficheDebug('signal directionnel LEB: '+IntToSTR(adr)+' '+intToSTR(code),ClOrange);
@@ -1984,7 +1984,7 @@ begin
     2 : begin pilote_acc(adr+5,2,feu) ;  pilote_acc(adr+6,1,feu) ;end;  //01
     3 : begin pilote_acc(adr+5,1,feu) ;  pilote_acc(adr+6,1,feu) ;end;  //11
     end;
-    EtatSignalCplx[adr]:=code;
+    feux[i].EtatSignal:=code;
   end;
 end;
 
@@ -1994,11 +1994,13 @@ envoie les données au décodeur CDF
 procedure envoi_CDF(adresse : integer);
 var
   code,aspect,combine : word;
+  i : integer;
   s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then  //; && (stop_cmd==FALSE))
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2026,14 +2028,14 @@ var
   index,i,etat : integer;
   s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  index:=index_feu(adresse);
+  if (feux[index].AncienEtat<>feux[index].EtatSignal) then  //; && (stop_cmd==FALSE))
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[index].EtatSignal;
     //code_to_aspect(code,aspect,combine);
     s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
-    index:=index_feu(adresse);                    
     etat:=code_to_etat(code);
           
     //Affiche('Code a chercher='+IntToSTR(etat),clyellow);
@@ -2065,7 +2067,8 @@ end;
 envoie les données au décodeur LEB
 ===========================================================================*}
 procedure envoi_LEB(adresse : integer);
-var  code,aspect,combine : word;
+var code,aspect,combine : word;
+    index : integer;
     s : string;
   procedure envoi5_LEB(selection :byte);
   var i : integer;
@@ -2084,10 +2087,10 @@ var  code,aspect,combine : word;
     //Affiche(s,clOrange);
   end;
 begin
-
-if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
+index:=index_feu(adresse);
+if (feux[index].AncienEtat<>feux[index].EtatSignal) then //; && (stop_cmd==FALSE))
 begin
-  code:=EtatSignalCplx[adresse];
+  code:=feux[index].EtatSignal;
   code_to_aspect(code,aspect,combine);
   s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
   if traceSign then affiche(s,clOrange);
@@ -2154,13 +2157,14 @@ envoie les données au décodeur NMRA étendu
 
 /*===========================================================================*)
 procedure envoi_NMRA(adresse: integer);
-var valeur : integer ;
+var valeur,i : integer ;
     aspect,combine,code : word;
     s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2206,9 +2210,9 @@ var modele,index: integer ;
 begin
   index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
 
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then
+  if (feux[index].AncienEtat<>feux[index].EtatSignal) then
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[index].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2217,6 +2221,7 @@ begin
     // pour Unisemaf, la cible est définie dans le champ Unisemaf de la structure feux
 
     modele:=feux[index].Unisemaf;
+    if modele=0 then Affiche('Erreur 741 : spécification unisemaf signal '+intToSTR(adresse)+' non défini',clred);
     //Affiche('Adresse='+intToSTR(Adresse)+' code='+intToSTR(code)+' combine'+intToSTR(combine),clyellow);
 
     // pilotage qui marche chez JEF
@@ -2715,11 +2720,13 @@ envoie les données au décodeur LDT
 ===========================================================================}
 procedure envoi_LDT(adresse : integer);
 var code,aspect,combine,mode : word;
+    i : integer;
     s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then //; && (stop_cmd==FALSE))
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then //; && (stop_cmd==FALSE))
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2765,11 +2772,13 @@ end;
 procedure envoi_virtuel(adresse : integer);
 var
   combine,aspect,code : word;
+  i : integer;
   s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then  //; && (stop_cmd==FALSE))
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2787,11 +2796,13 @@ envoie les données au décodeur digitalbahn équipé du logiciel "led_signal_10"
 procedure envoi_signalBahn(adresse : integer);
 var aspect,code,combine : word;
     ralrap, jau ,Ancralrap,Ancjau : boolean;
+    i : integer;
     s : string;
 begin
-  if (ancien_tablo_signalCplx[adresse]<>EtatSignalCplx[adresse]) then  //; && (stop_cmd==FALSE))
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then  //; && (stop_cmd==FALSE))
   begin
-    code:=EtatSignalCplx[adresse];
+    code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
@@ -2801,10 +2812,10 @@ begin
     // spécifique au décodeur digital bahn:
     // si le signal affichait un signal combiné, il faut éteindre le signal avec un sémaphore
     // avant d'afficher le nouvel état non combiné
-    Ancralrap:=(TestBit(ancien_tablo_signalCplx[adresse],ral_30)) or (TestBit(ancien_tablo_signalCplx[adresse],ral_60)) or
-               (TestBit(ancien_tablo_signalCplx[adresse],rappel_30)) or (TestBit(ancien_tablo_signalCplx[adresse],rappel_60)) ;
+    Ancralrap:=(TestBit(feux[i].AncienEtat,ral_30)) or (TestBit(feux[i].AncienEtat,ral_60)) or
+               (TestBit(feux[i].AncienEtat,rappel_30)) or (TestBit(feux[i].AncienEtat,rappel_60)) ;
     // si ancien état du signal=jaune ou jaune cli
-    Ancjau:=(TestBit(ancien_tablo_signalCplx[adresse],jaune)) or (TestBit(ancien_tablo_signalCplx[adresse],jaune_cli)) ;
+    Ancjau:=(TestBit(feux[i].AncienEtat,jaune)) or (TestBit(feux[i].AncienEtat,jaune_cli)) ;
 
     // si état demandé du signal=ralentissement ou rappel
     ralrap:=(TestBit(code,ral_30)) or (TestBit(code,ral_60)) or
@@ -2834,7 +2845,7 @@ begin
 end;
 
 
-// pilotage d'un signal
+// pilotage d'un signal , et mise à jour du graphisme du feu dans les 3 fenetres
 procedure envoi_signal(Adr : integer);
 var i,adresse,det,a,b,aspect,x,y,x0,y0,TailleX,TailleY,Orientation : integer;
     ImageFeu : TImage;
@@ -2850,7 +2861,7 @@ begin
     exit;
   end;
   //Affiche(intToSTR(Adr)+' '+intToSTR(i),clWhite);
-  if (ancien_tablo_signalCplx[adr]<>EtatSignalCplx[adr]) then //***
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then
   begin
     if feux[i].aspect<10 then   // si signal non directionnel
     begin
@@ -2869,8 +2880,8 @@ begin
       // Gestion démarrage temporisé des trains si on quitte le rouge : ne fonctionne qu'avec CDM rail connecté
       if Option_demarrage and cdm_connecte then
       begin
-        a:=ancien_tablo_signalCplx[adr];
-        b:=EtatSignalCplx[adr];
+        a:=feux[i].AncienEtat;
+        b:=feux[i].EtatSignal;
         if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) and ((b<>semaphore_F) and (b<>carre_F) and (b<>violet_F)) then
         begin
           if not(Diffusion) then Affiche('On quitte le rouge du signal '+intToSTR(adr),clyellow);
@@ -2893,7 +2904,7 @@ begin
         end;
       end;
 
-      ancien_tablo_signalCplx[adr]:=EtatSignalCplx[adr];
+      feux[i].AncienEtat:=feux[i].EtatSignal;
 
       // allume les signaux du feu dans la fenêtre de droite
       Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
@@ -2948,8 +2959,7 @@ end;
 procedure envoi_signauxCplx;
 var i,signalCplx : integer;
 begin
-  //Affiche('Envoi des signaux (envoi_signaixCplx)',ClGreen);
-  //chaque signal doit être appellé en fonction de sa procédure suivant le décodeur
+  //Affiche('Envoi des signaux (envoi_signauxCplx)',ClGreen);
   for i:=1 to NbreFeux do
   begin
    signalCplx:=feux[i].adresse;
@@ -2970,12 +2980,12 @@ begin
     inc(i);
     trouve:=s[i] in ['0'..'9'];
   end;
-  if trouve then 
+  if trouve then
   begin
     val(copy(s,i,l),j,erreur);
     extract_int:=j;
   end
-  else extract_int:=0;  
+  else extract_int:=0;
 end;
 
 // trouve l'index d'un détecteur dans une branche
@@ -3014,7 +3024,7 @@ var i,adr : integer;
     procedure recherche;
     begin
       repeat
-        adr:=BrancheN[Num_Branche,i].adresse; 
+        adr:=BrancheN[Num_Branche,i].adresse;
         trouve:=(AdrAig=adr) and ((BrancheN[Num_Branche,i].Btype=aig) or (BrancheN[Num_branche,i].BType=buttoir)); // cherche un aiguillage
         //Affiche('cherche='+intToSTR(det)+'/explore='+intToSTR(adr)+' Branche='+intToStr(Num_branche)+' index='+intToStr(i),ClWhite);
         if not(trouve) then inc(i);
@@ -3094,19 +3104,6 @@ begin
   end;
 end;
 
-
-// front descendant sur un détecteur
-function detecteur_0(adresse : integer) : boolean;
-begin
-  detecteur_0:=(Ancien_detecteur[adresse]=true) and ((detecteur[adresse].etat)=false);
-  Ancien_detecteur[adresse]:=detecteur[adresse].etat;
-end;
-
-function detecteur_1(adresse : integer) : boolean;
-begin
-  detecteur_1:=(Ancien_detecteur[adresse]=false) and ((detecteur[adresse].etat)=true);
-  Ancien_detecteur[adresse]:=detecteur[adresse].etat;
-end;
 
 // trouve un élément dans les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple)
@@ -4477,7 +4474,7 @@ begin
           begin
             // oui
             inc(num_feu);
-            Etat:=EtatSignalCplx[AdrFeu];
+            Etat:=feux[index_feu(AdrFeu)].EtatSignal;
             code_to_aspect(Etat,aspect,combine);
             Signal_suivant:=AdrFeu;
             if NivDebug=3 then AfficheDebug('Trouvé feu suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine],clorange);
@@ -4499,7 +4496,7 @@ begin
                begin
                  // oui
                  inc(num_feu);
-                 Etat:=EtatSignalCplx[AdrFeu];
+                 Etat:=feux[index_feu(AdrFeu)].EtatSignal;
                  code_to_aspect(Etat,aspect,combine);
                  Signal_suivant:=AdrFeu;
                  if NivDebug=3 then AfficheDebug('Sur même détecteur, trouvé feu2 suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine],clorange);
@@ -4848,7 +4845,7 @@ end;
 // si 9999 : pas de route
 // si 10 : ok route trouvée
 function test_route_valide(det1,det2,det3 : integer) : integer;
-var det_suiv,resultat : integer;
+var det_suiv : integer;
 begin
   if TraceListe then AfficheDebug('test route valide '+IntToSTR(det1)+' '+IntToSTR(det2)+' vers '+IntToSTR(det3)+' ',clyellow);
   det_suiv:=detecteur_suivant_el(det1,det,det2,det,1);
@@ -5002,12 +4999,12 @@ begin
     PresTrainPrecVieux:=false;
     exit;
   end;
-  
+
   // **** un feu peut être associé à 4 détecteurs (pour 4 voies convergentes) *****
   // il faut donc explorer les 4 détecteurs probables
   PresTrain:=FALSE;
   j:=1;
- 
+
   repeat
     if NivDebug=3 then afficheDebug('Séquence '+IntToSTR(j)+' de recherche des 4 détecteurs précédents-----',clYellow);
     if (j=1) then
@@ -5015,7 +5012,7 @@ begin
       det_initial:=feux[i].Adr_det1;
       Adr_El_Suiv:=feux[i].Adr_el_suiv1;
       Btype_el_suivant:=feux[i].Btype_suiv1;
-    end;                                       
+    end;
     if (j=2) then
     begin
       det_initial:=feux[i].Adr_det2;
@@ -5163,7 +5160,7 @@ begin
 
     //if AffSignal then AfficheDebug('Debut du traitement général',clYellow);
     // traitement des feux >3 feux différents de violet (cas général)
-    if (Feux[index].aspect>=3) and (EtatSignalCplx[AdrFeu]<>violet_F) then
+    if (Feux[index].aspect>=3) and (feux[index].EtatSignal<>violet_F) then
     begin
       PresTrain:=false;
       // détecteurs précédent le feu , pour déterminer si leurs mémoires de zones sont à 1 pour libérer le carré
@@ -5183,14 +5180,13 @@ begin
         // si on quitte le détecteur on affiche un sémaphore :  attention tester le sens de circulation
         // pour ne pas passer au rouge un feu à contresens.
         // trouver la mémoire de zone MemZone[Adr_det,?] qui a déclenché le feu rouge
-        //if adrFeu=1002 then NivDebug:=3;
         if AffSignal then AfficheDebug('test du sémaphore',clYellow);
         Aff_semaphore:=test_memoire_zones(AdrFeu);  // test si présence train après signal
         //Nivdebug:=0;
         if Aff_Semaphore then
         begin
           if AffSignal then AfficheDebug('Présence train après signal'+intToSTR(AdrFeu)+' -> sémaphore ou carré',clYellow);
-          if testBit(EtatSignalCplx[Adrfeu],carre)=FALSE then Maj_Etat_Signal(AdrFeu,semaphore);
+          if testBit(feux[index].EtatSignal,carre)=FALSE then Maj_Etat_Signal(AdrFeu,semaphore);
         end
         else
         begin
@@ -5200,7 +5196,7 @@ begin
           begin
             indexAig:=Index_aig(aig);
             if AffSignal then AfficheDebug('Aiguille '+intToSTR(aig)+' du signal '+intToSTR(AdrFeu)+' déviée',clYellow);
-            EtatSignalCplx[AdrFeu]:=0;
+            feux[index].EtatSignal:=0;
             if (aiguillage[indexAig].vitesse=30) or (aiguillage[indexAig].vitesse=0) then Maj_Etat_Signal(AdrFeu,rappel_30);
             if aiguillage[indexAig].vitesse=60 then Maj_Etat_Signal(AdrFeu,rappel_60);
 
@@ -5219,14 +5215,14 @@ begin
           begin
             if AffSignal then AfficheDebug('pas d''aiguille déviée',clYellow);
             // effacer la signbalisation combinée
-            EtatSignalCplx[adrFeu]:=EtatSignalCplx[adrFeu] and not($3c00);
+            feux[index].EtatSignal:=feux[index].EtatSignal and not($3c00);
             if TestBit(etat,carre) or testBit(etat,semaphore) or testBit(etat,semaphore_cli )then Maj_Etat_Signal(AdrFeu,jaune)
             else
             begin
               // si signal suivant affiche rappel
               if TestBit(etat,rappel_30) or TestBit(etat,rappel_60) then
               begin
-                EtatSignalCplx[AdrFeu]:=0;
+                feux[index].EtatSignal:=0;
                 if TestBit(etat,rappel_30) then  Maj_Etat_Signal(AdrFeu,ral_30);
                 if TestBit(etat,rappel_60) then
                 begin
@@ -6644,7 +6640,7 @@ begin
   Srvc_sig:=false;
 
   config_modifie:=false;
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion+' BETA';
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion;
   Caption:=AF;
   Application.onHint:=doHint;
 
@@ -6903,8 +6899,8 @@ begin
     //tester chaque feu pour voir s'il y a un code de clignotement
     for i:=1 to NbreFeux do
     begin
+      a:=feux[i].EtatSignal;     // a = état binaire du feu
       adresse:=feux[i].adresse;
-      a:=EtatsignalCplx[adresse];     // a = état binaire du feu
       if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
@@ -6927,7 +6923,8 @@ begin
         if Bimage=30 then
         begin
           adresse:=TCO[x,y].adresse;
-          a:=EtatsignalCplx[adresse];     // a = état binaire du feu
+          i:=index_feu(adresse);
+          a:=feux[i].EtatSignal;     // a = état binaire du feu
           if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
           testBit(a,vert_cli) or testbit(a,blanc_cli) then
@@ -6957,7 +6954,7 @@ begin
     // fenêtre de pilotage manuel du feu
     if AdrPilote<>0 then
     begin
-      a:=EtatsignalCplx[0];
+      a:=feux[0].EtatSignal;
       if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
@@ -7156,7 +7153,6 @@ begin
 end;
 
 // procédure Event appelée si on clique sur un checkbox de demande de feu blanc des images des feux
-// non utilisé
 procedure TFormprinc.proc_checkBoxFB(Sender : Tobject);
 var s : string;
     Cb : TcheckBox;
@@ -7173,16 +7169,16 @@ begin
     i:=index_feu(adresse);
     if i=0 then exit;
     etat:=feux[i].EtatSignal;
-    affiche(IntToSTR(etat),clyellow);
+    //affiche(IntToSTR(etat),clyellow);
     // si le feu est vert et que la coche est mise, substituer le blanc
-    if (etat=vert_F) and coche then
+    if ((etat=vert_F) or (etat=vert_cli_F)) and coche then
     begin
       Maj_Etat_Signal(Adresse,blanc);
       Envoi_signauxCplx;
     end;
     // si pas coché, on revient en normal
     if not(coche) then rafraichit;
-  end; 
+  end;
 end;
 
 procedure TFormPrinc.ButtonInfoClick(Sender: TObject);
