@@ -252,6 +252,7 @@ type
     EditTrainDest: TEdit;
     Label42: TLabel;
     Label43: TLabel;
+    CheckBandeauTCO: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -373,6 +374,7 @@ INTER_CAR_ch='INTER_CAR';
 Tempo_maxi_ch='Tempo_maxi';
 Entete_ch='Entete';
 TCO_ch='TCO';
+MasqueBandeauTCO_ch='MasqueBandeauTCO';
 CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
@@ -1195,6 +1197,10 @@ begin
   writeln(fichierN,TCO_ch+'=',s);
   copie_commentaire;
 
+  if MasqueBandeauTCO then s:='1' else s:='0';
+  writeln(fichierN,MasqueBandeauTCO_ch+'=',s);
+  copie_commentaire; 
+
   // lancement de CDM
   if LanceCDM then s:='1' else s:='0';
   writeln(fichierN,CDM_ch+'=',s);
@@ -1288,7 +1294,7 @@ var s,sa,chaine,SOrigine: string;
     c,paig : char;
     tec,tjdC,tjsC,s2,trouve,triC,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
-    trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,
+    trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
     trouve_algo_uni   : boolean;
@@ -1853,7 +1859,7 @@ begin
     //affiche(s,cllime);
     sa:=uppercase(Fonte_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_fonte:=true;
@@ -1866,7 +1872,7 @@ begin
     // adresse ip et port de CDM
     sa:=uppercase(IpV4_PC_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_ipv4_PC:=true;
@@ -1884,7 +1890,7 @@ begin
     // adresse ip et port de la centrale
     sa:=uppercase(IPV4_INTERFACE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_IPV4_INTERFACE:=true;
@@ -1901,7 +1907,7 @@ begin
     // configuration du port com
     sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_PROTOCOLE_SERIE:=true;
@@ -1913,7 +1919,7 @@ begin
     // temporisation entre 2 caractères
     sa:=uppercase(INTER_CAR_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       delete(s,i,length(sa));
@@ -1925,7 +1931,7 @@ begin
     // temporisation attente maximale interface
     sa:=uppercase(TEMPO_MAXI_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       delete(s,i,length(sa));
@@ -1937,7 +1943,7 @@ begin
     // entete
     sa:=uppercase(ENTETE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       delete(s,i,length(sa));
@@ -1955,7 +1961,7 @@ begin
     // avec ou sans initialisation des aiguillages
     sa:=uppercase(INIT_AIG_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       trouve_init_aig:=true;
       inc(nv);
@@ -1966,7 +1972,7 @@ begin
     // taille de la fenetre
     sa:=uppercase(fenetre_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_fenetre:=true;
@@ -1978,7 +1984,7 @@ begin
     // temporisation aiguillages
     sa:=uppercase(Tempo_Aig_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_Tempo_aig:=true;
@@ -1989,7 +1995,7 @@ begin
     // temporisation décodeurs de feux
     sa:=uppercase(Tempo_Feu_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_Tempo_feu:=true;
@@ -2001,7 +2007,7 @@ begin
     // algo unisemaf
     sa:=uppercase(Algo_unisemaf_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_Algo_Uni:=true;
@@ -2012,7 +2018,7 @@ begin
  
     sa:=uppercase(verif_version_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       trouve_verif_version:=true;
       inc(nv);
@@ -2025,7 +2031,7 @@ begin
 
     sa:=uppercase(NOTIF_VERSION_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       delete(s,i,length(sa));
@@ -2037,19 +2043,29 @@ begin
 
     sa:=uppercase(TCO_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       delete(s,i,length(sa));
       trouve_TCO:=true;
-      // vérification de la version au démarrage
       val(s,i,erreur);
       AvecTCO:=i=1;
-    end;
+    end;       
 
+    sa:=uppercase(MasqueBandeauTCO_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      trouve_MasqueTCO:=true;
+      val(s,i,erreur);
+      MasqueBandeauTCO:=i=1;
+    end; 
+    
     sa:=uppercase(CDM_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_CDM:=true;
@@ -2061,7 +2077,7 @@ begin
 
     sa:=uppercase(LAY_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_lay:=true;
@@ -2071,7 +2087,7 @@ begin
 
     sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_serveur_interface:=true;
@@ -2082,7 +2098,7 @@ begin
 
     sa:=uppercase(RETRO_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_retro:=true;
@@ -2093,7 +2109,7 @@ begin
 
     sa:=uppercase(nb_det_dist_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_NbDetDist:=true;
@@ -2105,7 +2121,7 @@ begin
   
     sa:=uppercase(Raz_signaux_ch)+'=';
     i:=pos(sa,s);
-    if i<>0 then
+    if i=1 then
     begin
       inc(nv);
       trouve_NbDetDist:=true;
@@ -2172,6 +2188,7 @@ begin
   trouve_Serveur_interface:=false;
   trouve_cdm:=false;
   trouve_NOTIF_VERSION:=false;
+  trouve_masqueTCO:=false;
   trouve_fenetre:=false;
   trouve_verif_version:=false;
   trouve_Fonte:=false;
@@ -2405,6 +2422,7 @@ begin
     if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
 
     AvecTCO:=CheckAvecTCO.checked;
+    MasqueBandeauTCO:=CheckBandeauTCO.checked;
     Lay:=EditNomLay.Text;
     if RadioButton4.Checked then ServeurInterfaceCDM:=0;
     if RadioButton5.Checked then ServeurInterfaceCDM:=1;
@@ -2569,6 +2587,7 @@ begin
   CheckInfoVersion.Checked:=notificationVersion;
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
+  CheckBandeauTCO.Checked:=MasqueBandeauTCO;
   entreeTCO:=avecTCO;
   EditNomLay.Text:=Lay;
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
@@ -7157,6 +7176,7 @@ end;
 
 
 begin
+
 
 end.
 

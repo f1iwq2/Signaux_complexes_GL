@@ -20,7 +20,6 @@ object FormTCO: TFormTCO
   OnCreate = FormCreate
   OnDockOver = FormDockOver
   OnKeyDown = FormKeyDown
-  OnResize = FormResize
   DesignSize = (
     1123
     656)
@@ -108,7 +107,7 @@ object FormTCO: TFormTCO
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
-    Anchors = [akLeft, akTop, akRight]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     BevelEdges = [beLeft, beTop, beRight]
     Color = clBtnFace
     ParentColor = False

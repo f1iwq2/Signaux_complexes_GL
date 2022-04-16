@@ -209,7 +209,6 @@ type
       Y: Integer);
     procedure ButtonMasquerClick(Sender: TObject);
     procedure ButtonAfficheBandeauClick(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure ImagePalette21EndDrag(Sender, Target: TObject; X,
       Y: Integer);
     procedure ImagePalette22EndDrag(Sender, Target: TObject; X,
@@ -286,6 +285,14 @@ type
 const
   ZoomMax=50;ZoomMin=20;
   MaxCellX=150;MaxCellY=70;
+  ClFond_ch='CoulFond';
+  clVoies_ch='CoulVoies';
+  clAllume_ch='CoulAllume';
+  clGrille_ch='CoulGrille';
+  clTexte_ch='CoulTexte';
+  clQuai_ch='CoulQuai';
+  Matrice_ch='Matrice';
+  Cellule_ch='Cellule';
 
 type
   // structure du TCO
@@ -311,7 +318,7 @@ var
   clAllume,clVoies,Fond,couleurAdresse,clGrille,cltexte,clQuai,CoulFonte : Tcolor;
   FormTCO: TFormTCO;
   Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
-  piloteAig : boolean;
+  piloteAig,ancienFormatTCO,BandeauMasque : boolean;
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,
@@ -343,13 +350,16 @@ uses UnitConfigTCO, Unit_Pilote_aig;
 
 procedure lire_fichier_tco;
 var fichier : textfile;
-    s : string;
-    x,y,i,j,m,adresse,valeur,erreur,FeuOriente,PiedFeu,tailleFont : integer;
+    s,sa : string;
+    nv,x,y,i,j,m,adresse,valeur,erreur,FeuOriente,PiedFeu,tailleFont : integer;
+    trouve_CoulFond,trouve_clVoies,trouve_clAllume,trouve_clGrille,
+    trouve_clTexte,trouve_clQuai,trouve_matrice,trouve_cellule : boolean;
     function lit_ligne : string ;
     var c : char;
     begin
       repeat
         readln(fichier,s);
+        s:=Uppercase(s);
         //Affiche(s,clWhite);
         if length(s)>0 then c:=s[1];
       until ((c<>'/') and (s<>'')) or eof(fichier) ;
@@ -369,33 +379,138 @@ begin
   {$I-}
 
   x:=1;y:=1;NbreCellX:=0;NbreCellY:=0;
+  trouve_clAllume:=false;
+  trouve_CoulFond:=false;
+  trouve_clVoies:=false;
+  trouve_clGrille:=false;
+  trouve_clTexte:=false;
+  trouve_clQuai:=false;
+  trouve_matrice:=false;
+  trouve_cellule:=false;
 
   // couleurs
   s:=lit_ligne;
-  val('$'+s,fond,erreur);
+  sa:=uppercase(ClFond_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_CoulFond:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    fond:=i;
+  end
+  else val('$'+s,Fond,erreur);
+
   s:=lit_ligne;
-  val('$'+s,clVoies,erreur);
+  sa:=uppercase(clVoies_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_clVoies:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    clVoies:=i;
+  end
+  else val('$'+s,clVoies,erreur);
+
   s:=lit_ligne;
-  val('$'+s,clAllume,erreur);
+  sa:=uppercase(clAllume_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_clAllume:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    clAllume:=i;
+  end
+  else val('$'+s,clAllume,erreur);
+
   s:=lit_ligne;
-  val('$'+s,clGrille,erreur);
+  sa:=uppercase(clGrille_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_clGrille:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    clGrille:=i;
+  end
+  else val('$'+s,clGrille,erreur);
+
   s:=lit_ligne;
-  if pos(',',s)=0 then begin val('$'+s,cltexte,erreur);s:=lit_ligne;end;
-  if pos(',',s)=0 then begin val('$'+s,clQuai,erreur);s:=lit_ligne;end;
+  sa:=uppercase(clTexte_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_clTexte:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    clTexte:=i;
+  end
+  else val('$'+s,clTexte,erreur);
+
+  s:=lit_ligne;
+  sa:=uppercase(clQuai_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_clQuai:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    clQuai:=i;
+  end
+  else val('$'+s,clQuai,erreur);
 
   // taille de la matrice
-  Val(s,NbreCellX,erreur);
-  delete(s,1,erreur);
+  s:=lit_ligne;
+  sa:=uppercase(Matrice_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_matrice:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    NbreCellX:=i;
+  end
+  else val(s,NbreCellX,erreur);
+
+  i:=pos(',',s);delete(s,1,i);
   Val(s,NbreCellY,erreur);
+
   NbCellulesTCO:=NbreCellX*NbreCellY;
   
   // largeur et hauteur des cellules
   s:=lit_ligne;
-  Val(s,LargeurCell,erreur);
-  delete(s,1,erreur);
+  sa:=uppercase(Cellule_ch)+'=';
+  i:=pos(sa,s);
+  if i<>0 then
+  begin
+    inc(nv);
+    trouve_cellule:=true;
+    delete(s,i,length(sa));
+    val('$'+s,i,erreur);
+    NbreCellX:=i;
+  end
+  else val(s,LargeurCell,erreur);
+
+  i:=pos(',',s);delete(s,1,i);
   Val(s,HauteurCell,erreur);
 
-  // lire le fichier
+  ancienFormatTCO:=not(trouve_cellule);  // si ancienformat, on va sauver automatiqmement en nouveau format à la fermeture.
+  
+  if not(ancienFormatTCO) then 
+  begin
+    s:=lit_ligne;  // [matrice]
+  end;
+  
+  // lire la matrice
   while not eof(fichier) do
   begin
     s:=lit_ligne;
@@ -503,6 +618,15 @@ begin
 
             i:=pos(',',s);
             val('$'+s,coulFonte,erreur);
+            if ancienFormatTCO then
+            begin
+              m:=tco[x,y].BImage;
+              case m of
+              1 : coulFonte:=ClYellow;
+              2,3,4,5,12,13,14,15,21,22 : coulfonte:=ClLime;
+              30 : coulFonte:=clLime;
+              end;
+            end;
             tco[x,y].coulFonte:=coulFonte;
             delete(s,1,i);
             if s[1]<>')' then
@@ -538,18 +662,19 @@ begin
   AssignFile(fichier,'tco.cfg');
   rewrite(fichier);
   Writeln(fichier,'/ Couleurs : fond, voies, détecteur_activé, grille, textes, quai');
-  Writeln(fichier,IntToHex(fond,6));
-  Writeln(fichier,IntToHex(ClVoies,6));
-  Writeln(fichier,IntToHex(ClAllume,6));
-  Writeln(fichier,IntToHex(ClGrille,6));
-  Writeln(fichier,IntToHex(ClTexte,6));
-  Writeln(fichier,IntToHex(ClQuai,6));
+  Writeln(fichier,clFond_ch+'='+IntToHex(fond,6));
+  Writeln(fichier,clVoies_ch+'='+IntToHex(ClVoies,6));
+  Writeln(fichier,clAllume_ch+'='+IntToHex(ClAllume,6));
+  Writeln(fichier,clGrille_ch+'='+IntToHex(ClGrille,6));
+  Writeln(fichier,clTexte_ch+'='+IntToHex(ClTexte,6));
+  Writeln(fichier,clQuai_ch+'='+IntToHex(ClQuai,6));
 
   writeln(fichier,'/ Taille de la matrice x,y');
-  writeln(fichier,IntToSTR(NbreCellX)+','+intToSTR(NbreCellY));
+  writeln(fichier,matrice_ch+'='+IntToSTR(NbreCellX)+','+intToSTR(NbreCellY));
   writeln(fichier,'/ Largeur et hauteur des cellules en pixels');
-  writeln(fichier,IntToSTR(LargeurCell)+','+intToSTR(HauteurCell));
-  writeln(fichier,'/Dalle TCO');
+  writeln(fichier,cellule_ch+'='+IntToSTR(LargeurCell)+','+intToSTR(HauteurCell));
+  writeln(fichier,'/Matrice TCO');
+  writeln(fichier,'[Matrice]');
   writeln(fichier,'/ inutilisé,adresse,image,inversion aiguillage,Orientation du feu, pied du feu , [texte], representation, fonte, taille fonte, couleur fonte, style ');
   for y:=1 to NbreCellY do
   begin
@@ -2795,6 +2920,7 @@ end;
 
 procedure TFormTCO.FormCreate(Sender: TObject);
 begin
+  //Affiche('FormTCO create',clyellow);
   caption:='TCO';
   AvecGrille:=true;
   TCO_modifie:=false;
@@ -3171,7 +3297,7 @@ end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
 begin
-  //Affiche('Form TCO activate',clyellow);
+  Affiche('Form TCO activate',clyellow);
   if not(Forminit) then
   begin
     FormInit:=true;
@@ -3240,9 +3366,23 @@ begin
       Transparent:=true;
       Picture.Bitmap:=Formprinc.Image9feux.Picture.Bitmap;
     end;
-
+  
     //Affiche_tco;
     TrackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
+
+    if MasqueBandeauTCO then 
+    begin
+      ButtonAfficheBandeau.visible:=true;
+      BandeauMasque:=true;
+      Panel1.Hide;
+      ScrollBox.Height:=ClientHeight-40;
+    end
+    else
+    begin
+      BandeauMasque:=false;
+      Panel1.show;
+      ScrollBox.Height:=ClientHeight-Panel1.Height-40;
+    end;
   end;
  
 end;
@@ -4557,6 +4697,8 @@ begin
   Panel1.Hide;
   ButtonAfficheBandeau.visible:=true;
   ScrollBox.Height:=ClientHeight-40;
+  //ScrollBox.Anchors:=[akLeft,AkTop,AkRight,akBottom];
+  BandeauMasque:=true;
 end;
 
 procedure TFormTCO.ButtonAfficheBandeauClick(Sender: TObject);
@@ -4564,13 +4706,8 @@ begin
   Panel1.Show;
   ButtonAfficheBandeau.visible:=false;
   ScrollBox.Height:=ClientHeight-Panel1.Height-40;
+  BandeauMasque:=false;
 end;
-
-procedure TFormTCO.FormResize(Sender: TObject);
-begin
-  ScrollBox.Height:=ClientHeight-Panel1.Height-40;
-end;
-
 
 procedure TFormTCO.ImageTCODblClick(Sender: TObject);
 var Bimage,Adresse,i : integer;

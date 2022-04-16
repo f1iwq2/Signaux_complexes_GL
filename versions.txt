@@ -93,8 +93,9 @@ version 3.82 : Application d'un train destinataire pour les actionneurs de fonct
 version 3.83 : Quais pour le TCO.
                Fontes, couleurs et styles variables pour les textes des TCO.
 version 3.84 : Possibilité d'affecter des couleurs différentes pour chaque texte ou adresse de
-               signal, d'aiguillage ou de détecteur. Pour le passage de la V3.83 à la V3.84 vous devrez
-               entrer une couleur de fonte pour chaque cellule contenant une adresse.
+               signal, d'aiguillage ou de détecteur. 
+               Affichage ou non du bandeau de configuration du TCO au démarrage
+
 
 
 

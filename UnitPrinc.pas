@@ -325,7 +325,7 @@ var
 
   FormPrinc: TFormPrinc;
   ack,portCommOuvert,traceTrames,AffMem,AfficheDet,CDM_connecte,
-  Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,
+  Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
   Srvc_PosTrain,Srvc_Sig,debugtrames : boolean;
   tablo : array of byte;  // tableau rx usb
   Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,
@@ -6823,10 +6823,18 @@ begin
   ClientSocketLenz.close;
   if TCO_modifie then 
     if MessageDlg('Le TCO a été modifié. Voulez vous le sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
+    begin
       sauve_fichier_tco;
+      ancienFormatTCO:=false;
+    end;  
   if config_modifie then
     if MessageDlg('La configuration a été modifiée. Voulez vous la sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
       sauve_config;
+
+  if avecTCO then
+  begin
+    if ancienFormatTCO then sauve_fichier_tco;
+  end;      
 end;
 
 

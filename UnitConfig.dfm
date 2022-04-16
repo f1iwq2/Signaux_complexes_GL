@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1682,7 +1682,7 @@ object FormConfig: TFormConfig
         object CheckAvecTCO: TCheckBox
           Left = 8
           Top = 56
-          Width = 201
+          Width = 89
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
           Caption = 'Avec TCO'
@@ -1708,6 +1708,17 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 5
+        end
+        object CheckBandeauTCO: TCheckBox
+          Left = 128
+          Top = 56
+          Width = 129
+          Height = 17
+          Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
+          Caption = 'Bandeau TCO masqu'#233
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
         end
       end
       object GroupBox6: TGroupBox
