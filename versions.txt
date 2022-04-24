@@ -95,6 +95,9 @@ version 3.83 : Quais pour le TCO.
 version 3.84 : Possibilité d'affecter des couleurs différentes pour chaque texte ou adresse de
                signal, d'aiguillage ou de détecteur. 
                Affichage ou non du bandeau de configuration du TCO au démarrage
+version 3.85 : Affichage des cantons occupés avec des couleurs différentes par train ou non dans le TCO.
+               Grille optionnelle sauvegardée dans la configuration du TCO.
+               Possibilité de déclarer des signaux implantés à droite ou à gauche des voies dans le TCO.
 
 
 

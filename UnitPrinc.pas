@@ -3,7 +3,7 @@ Unit UnitPrinc;
   programme signaux complexes Graphique Lenz
   delphi 7 + activeX Tmscomm + clientSocket
  ********************************************
- 6/4/2022 14h
+ 24/4/2022 12h
  note sur le pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
@@ -314,7 +314,7 @@ TFeu = record
 var
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
-  Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,
+  Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,AdrTrain : integer;
 
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
@@ -578,7 +578,7 @@ begin
   // récupérer les dimensions de l'image d'origine du feu
   LgImage:=Formprinc.Image2feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image2feux.Picture.Bitmap.Height;
-             //zizi
+             
   XBlanc:=13; YBlanc:=11;
   xViolet:=13; yViolet:=23;
 
@@ -5206,7 +5206,11 @@ begin
             else
             begin
               // sinon si signal suivant=jaune
-              if (TestBit(etat,jaune)) then Maj_Etat_Signal(AdrFeu,jaune_cli);
+              if (TestBit(etat,jaune)) then 
+              begin
+                Maj_Etat_Signal(AdrFeu,jaune_cli);
+                if AffSignal then AfficheDebug('400.Mise du feu au jaune cli',clyellow);
+              end;  
             end;
           end
           else
@@ -5216,32 +5220,59 @@ begin
             if AffSignal then AfficheDebug('pas d''aiguille déviée',clYellow);
             // effacer la signbalisation combinée
             feux[index].EtatSignal:=feux[index].EtatSignal and not($3c00);
-            if TestBit(etat,carre) or testBit(etat,semaphore) or testBit(etat,semaphore_cli )then Maj_Etat_Signal(AdrFeu,jaune)
+            if TestBit(etat,carre) or testBit(etat,semaphore) or testBit(etat,semaphore_cli )then 
+            begin
+              Maj_Etat_Signal(AdrFeu,jaune);
+              if AffSignal then AfficheDebug('Mise du Feu à l''avertissement',clyellow);
+            end  
             else
             begin
+              if affsignal then AfficheDebug('test 403',clyellow);
               // si signal suivant affiche rappel
               if TestBit(etat,rappel_30) or TestBit(etat,rappel_60) then
               begin
                 feux[index].EtatSignal:=0;
-                if TestBit(etat,rappel_30) then  Maj_Etat_Signal(AdrFeu,ral_30);
+                if TestBit(etat,rappel_30) then 
+                begin
+                  Maj_Etat_Signal(AdrFeu,ral_30);
+                  if affsignal then AfficheDebug('Mise du feu au ralen 30',clyellow);
+                end;  
                 if TestBit(etat,rappel_60) then
                 begin
+                  if AffSignal then AfficheDebug('Mise du Feu au ralen 60',clyellow);
                   Maj_Etat_Signal(AdrFeu,ral_60);  // si signal suivant est au rappel60, il faut tester s'il est à l'avertissement aussi
                   if TestBit(etat,jaune) then Maj_Etat_Signal(AdrFeu,jaune_cli);
                 end;
               end
               else
+              begin
                 // si le signal suivant est jaune
-                if TestBit(etat,jaune) then Maj_Etat_Signal(AdrFeu,jaune_cli)
+                if affsignal then AfficheDebug('test 404',clyellow);
+                if TestBit(etat,jaune) then 
+                begin
+                  Maj_Etat_Signal(AdrFeu,jaune_cli);
+                  if affsignal then AfficheDebug('401.Mise du feu au jaune cli',clyellow);
+                end  
                   else  
                     begin
+                      if affsignal then AfficheDebug('test 405',clyellow);
                       if feux[index].check<>nil then
                       begin
-                        if feux[index].check.Checked then Maj_Etat_Signal(AdrFeu,blanc);
+                        if affsignal then AfficheDebug('test 406',clyellow);
+                        if feux[index].check.Checked then 
+                        begin
+                          Maj_Etat_Signal(AdrFeu,blanc);
+                          if affsignal then AfficheDebug('Mise du feu au blanc',clyellow);
+                        end
+                        else Maj_Etat_Signal(AdrFeu,vert);
                       end
                       else
-                      Maj_Etat_Signal(AdrFeu,vert);
+                      begin
+                        Maj_Etat_Signal(AdrFeu,vert);
+                        if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
+                      end;  
                     end;
+              end;      
             end;
           end;
         end;
@@ -5326,6 +5357,7 @@ end;
 // transmis dans le tableau Event_det
 procedure calcul_zones;
 var AdrFeu,AdrDetFeu,Nbre,i,resultat,det1,det2,det3,AdrSuiv,AdrPrec : integer ;
+    
     creer_tableau : boolean;
     TypeSuiv : tEquipement;
     s : string;
@@ -5362,8 +5394,9 @@ begin
           With FormDebug.RichEdit do
           begin
             s:='train '+IntToSTR(i)+' '+intToStr(det2)+' à '+intToStr(det3)+' => Mem '+IntToSTR(det3)+' à '+IntTOStr(AdrSuiv);
-            Lines.Add(s);
-            RE_ColorLine(FormDebug.RichEdit,lines.count-1,CouleurTrain[ ((i - 1) mod NbCouleurTrain) +1] );
+            Lines.Add(s);  
+            index_couleur:=((i - 1) mod NbCouleurTrain) +1;
+            RE_ColorLine(FormDebug.RichEdit,lines.count-1,CouleurTrain[index_couleur]);
           end;
           if TraceListe then AfficheDebug(s,clyellow);
           Affiche(s,clyellow);
@@ -5394,14 +5427,16 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1]),clyellow);
             AfficheDebug(intToSTR(event_det_train[i].det[2]),clyellow);
           end;
-          rafraichit;
-          rafraichit;
-          rafraichit;
           if avecTCO then
-          begin
+          begin   
             zone_TCO(det2,det3,0);    // désactivation
-            zone_TCO(det3,AdrSuiv,1); // activation
+            // activation
+            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1) 
+            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
+          rafraichit;
+          rafraichit;
+          rafraichit;
           exit; // sortir absolument
         end;
       end;
@@ -6871,17 +6906,11 @@ var aspect,i,a,x,y,Bimage,adresse,TailleX,TailleY,orientation : integer;
     s : string;
 begin
   inc(tick);
+  if sourisclic then inc(Temposouris);
   if Tdoubleclic>0 then dec(Tdoubleclic);
   if Tempo_init>0 then dec(Tempo_init);
   if (Tempo_init=1) and AvecInit then
   begin
-    // TCO
-    {if avectco then
-    begin
-      //créée la fenêtre TCO non modale
-      FormTCO:=TformTCO.Create(nil);
-      FormTCO.show;
-    end; }
     if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages) then
     begin
       Affiche('Positionnement des feux',clYellow);
@@ -6969,9 +6998,6 @@ begin
          Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
     end;
   end;
-
-  //if (not(Maj_feux_cours) and (Tempo_chgt_feux=1)) then Maj_feux(); // mise à jour des feux sur chgt aiguillage
-  //if (not(Maj_feux_cours) and (Tempo_chgt_feux>0)) then dec(Tempo_chgt_feux);
 
   // tempo retombée actionneur
   for i:=1 to maxTablo_act do

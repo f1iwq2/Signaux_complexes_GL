@@ -2207,11 +2207,11 @@ object FormConfig: TFormConfig
       object Label12: TLabel
         Left = 0
         Top = 8
-        Width = 564
+        Width = 468
         Height = 13
         Caption = 
-          'Liste de mod'#233'lisation des aiguillages du fichier config.cfg - cl' +
-          'iquez sur une ligne pour afficher la description de l'#39'aiguillage'
+          'Liste de mod'#233'lisation des aiguillages - cliquez sur une ligne po' +
+          'ur afficher la description de l'#39'aiguillage'
       end
       object Label28: TLabel
         Left = 88
@@ -2753,11 +2753,11 @@ object FormConfig: TFormConfig
       object Label15: TLabel
         Left = 0
         Top = 8
-        Width = 530
+        Width = 434
         Height = 13
         Caption = 
-          'Liste de mod'#233'lisation des signaux du fichier config.cfg - clique' +
-          'z sur une ligne pour afficher la description du signal'
+          'Liste de mod'#233'lisation des signaux - cliquez sur une ligne pour a' +
+          'fficher la description du signal'
       end
       object Label35: TLabel
         Left = 40
@@ -3151,11 +3151,11 @@ object FormConfig: TFormConfig
       object Label16: TLabel
         Left = 0
         Top = 8
-        Width = 555
+        Width = 459
         Height = 13
         Caption = 
-          'Liste de mod'#233'lisation des actionneurs du fichier config.cfg - cl' +
-          'iquez sur une ligne pour afficher la description de l'#39'action'
+          'Liste de mod'#233'lisation des actionneurs - cliquez sur une ligne po' +
+          'ur afficher la description de l'#39'action'
       end
       object GroupBox13: TGroupBox
         Left = 360

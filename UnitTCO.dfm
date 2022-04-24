@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 162
-  Top = 174
+  Left = 117
+  Top = 151
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False
@@ -883,7 +883,16 @@ object FormTCO: TFormTCO
       Top = 112
       Width = 161
       Height = 17
+      Hint = 'Cocher si l'#39'aiguillage est repr'#233'sent'#233' invers'#233
       Caption = 'aiguillage invers'#233
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -9
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 9
       OnClick = CheckPinvClick
     end
@@ -958,16 +967,27 @@ object FormTCO: TFormTCO
       Caption = '-'
     end
     object Tourner90G: TMenuItem
-      Caption = 'Positionner feu 90'#176' '#224' gauche'
+      Caption = 'Positionner signal 90'#176' '#224' gauche'
       OnClick = Tourner90GClick
     end
     object Tourner90D: TMenuItem
-      Caption = 'Positionner feu 90'#176' '#224' droite'
+      Caption = 'Positionner signal 90'#176' '#224' droite'
       OnClick = Tourner90DClick
     end
     object Pos_vert: TMenuItem
-      Caption = 'Positionner feu verticalement'
+      Caption = 'Positionner signal verticalement'
       OnClick = Pos_vertClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Signalgauchedelavoie1: TMenuItem
+      Caption = 'Signal '#224' gauche de la voie'
+      OnClick = Signalgauchedelavoie1Click
+    end
+    object Signaldroitedelavoie1: TMenuItem
+      Caption = 'Signal '#224' droite de la voie'
+      OnClick = Signaldroitedelavoie1Click
     end
   end
   object FontDialog1: TFontDialog

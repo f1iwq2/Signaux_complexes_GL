@@ -3,7 +3,7 @@ object FormConfigTCO: TFormConfigTCO
   Top = 218
   BorderStyle = bsDialog
   Caption = 'Configuration du TCO'
-  ClientHeight = 264
+  ClientHeight = 277
   ClientWidth = 665
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,16 +16,16 @@ object FormConfigTCO: TFormConfigTCO
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 32
-    Top = 16
+    Left = 8
+    Top = 8
     Width = 83
     Height = 13
     Caption = 'Taille des cellules'
   end
   object Label2: TLabel
-    Left = 176
-    Top = 16
-    Width = 5
+    Left = 120
+    Top = 8
+    Width = 13
     Height = 13
     Caption = 'x'
   end
@@ -63,38 +63,50 @@ object FormConfigTCO: TFormConfigTCO
     Height = 13
     Caption = 'LabelMaxY'
   end
+  object LabelTailleX: TLabel
+    Left = 96
+    Top = 8
+    Width = 17
+    Height = 13
+    Caption = 'LabelTailleX'
+  end
+  object LabelTailleY: TLabel
+    Left = 136
+    Top = 8
+    Width = 25
+    Height = 13
+    Caption = 'LabelTailleY'
+  end
+  object Ratio: TLabel
+    Left = 8
+    Top = 32
+    Width = 25
+    Height = 13
+    Caption = 'Ratio'
+  end
+  object Label14: TLabel
+    Left = 72
+    Top = 32
+    Width = 17
+    Height = 13
+    Caption = '/10'
+  end
   object ButtonOK: TButton
     Left = 216
-    Top = 224
+    Top = 248
     Width = 75
     Height = 25
     Caption = 'OK'
     TabOrder = 0
     OnClick = ButtonOKClick
   end
-  object EditTailleCellX: TEdit
-    Left = 128
-    Top = 16
-    Width = 41
-    Height = 21
-    TabOrder = 1
-    Text = 'EditTailleCellX'
-  end
-  object EditTailleCellY: TEdit
-    Left = 192
-    Top = 16
-    Width = 41
-    Height = 21
-    TabOrder = 2
-    Text = 'EditTailleCellY'
-  end
   object ButtonDessine: TButton
     Left = 16
-    Top = 224
+    Top = 248
     Width = 75
     Height = 25
     Caption = 'Redessine'
-    TabOrder = 3
+    TabOrder = 1
     OnClick = ButtonDessineClick
   end
   object CheckDessineGrille: TCheckBox
@@ -103,14 +115,14 @@ object FormConfigTCO: TFormConfigTCO
     Width = 105
     Height = 17
     Caption = 'dessine grille'
-    TabOrder = 4
+    TabOrder = 2
   end
   object EditNbCellX: TEdit
     Left = 184
     Top = 56
     Width = 49
     Height = 21
-    TabOrder = 5
+    TabOrder = 3
     Text = 'EditNbCellX'
   end
   object EditNbCellY: TEdit
@@ -118,16 +130,16 @@ object FormConfigTCO: TFormConfigTCO
     Top = 80
     Width = 49
     Height = 21
-    TabOrder = 6
+    TabOrder = 4
     Text = 'EditNbCellY'
   end
   object GroupBox1: TGroupBox
     Left = 304
     Top = 8
     Width = 353
-    Height = 233
+    Height = 265
     Caption = 'Couleurs '
-    TabOrder = 7
+    TabOrder = 5
     object Label5: TLabel
       Left = 21
       Top = 32
@@ -200,7 +212,7 @@ object FormConfigTCO: TFormConfigTCO
     end
     object Label10: TLabel
       Left = 48
-      Top = 208
+      Top = 240
       Width = 258
       Height = 13
       Caption = 'Cliquez sur l'#39'ic'#244'ne pour changer la couleur de l'#39#233'l'#233'ment'
@@ -240,11 +252,19 @@ object FormConfigTCO: TFormConfigTCO
       Height = 13
       Caption = 'Couleur de quai'
     end
+    object CheckCouleur: TCheckBox
+      Left = 56
+      Top = 208
+      Width = 281
+      Height = 17
+      Caption = 'Couleur des cantons activ'#233's par la couleur des trains'
+      TabOrder = 0
+    end
   end
   object Memo1: TMemo
-    Left = 8
-    Top = 128
-    Width = 281
+    Left = 16
+    Top = 144
+    Width = 273
     Height = 81
     BevelInner = bvLowered
     BevelKind = bkFlat
@@ -256,11 +276,22 @@ object FormConfigTCO: TFormConfigTCO
       'tronqu'#233's seront perdus '#224' la prochaine '
       'sauvegarde.')
     ReadOnly = True
-    TabOrder = 8
+    TabOrder = 6
+  end
+  object EditRatio: TEdit
+    Left = 40
+    Top = 29
+    Width = 25
+    Height = 21
+    Hint = 'Rapport X/Y d'#39'affichage des cellules'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+    Text = 'EditRatio'
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
-    Left = 48
-    Top = 24
+    Left = 216
+    Top = 8
   end
 end

@@ -10,8 +10,6 @@ type
   TFormConfigTCO = class(TForm)
     ButtonOK: TButton;
     Label1: TLabel;
-    EditTailleCellX: TEdit;
-    EditTailleCellY: TEdit;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -41,6 +39,12 @@ type
     LabelMaxY: TLabel;
     ImageQuai: TImage;
     Label13: TLabel;
+    LabelTailleX: TLabel;
+    LabelTailleY: TLabel;
+    EditRatio: TEdit;
+    Ratio: TLabel;
+    Label14: TLabel;
+    CheckCouleur: TCheckBox;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -144,8 +148,8 @@ begin
     canvas.Brush.Color:=fond;
     canvas.Rectangle(0,0,Width,Height);
     
-    canvas.pen.color:=clAllume;
-    canvas.brush.color:=clAllume;
+    canvas.pen.color:=clCanton;
+    canvas.brush.color:=clCanton;
     // bande horizontale
     r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
     canvas.FillRect(r);
@@ -198,19 +202,24 @@ begin
     nokNbY:=nokNbY or (NbreCellY<10) or (NbreCellY>MaxCellY);
     if nokNbY then LabelErreur.caption:='Erreur: nombre de cellules Y: mini=10 maxi='+IntToSTR(MaxCellY);
 
-    Val(EditTailleCellX.Text,LargeurCell,erreur);
+    {
+    Val(LabelTailleX.caption,LargeurCell,erreur);
     nokLg:=erreur<>0;
     if nokLg then LabelErreur.caption:='Erreur largeur de cellules';
     nokLg:=nokLg or (LargeurCell<20) or (LargeurCell>50)  ;
     if nokLg then LabelErreur.caption:='Erreur: Tailles des cellules - largeur cellules mini=20 maxi=50';
-  
-    Val(EditTailleCellY.Text,HauteurCell,erreur);
+
+    Val(LabelTailleY.caption,HauteurCell,erreur);
     nokHt:=erreur<>0;
     if nokHt then LabelErreur.caption:='Erreur hauteur de cellules';
     nokHt:=nokHt or (HauteurCell<20) or (HauteurCell>50)  ;
     if nokHt then LabelErreur.caption:='Erreur: Tailles des cellules - hauteur cellules mini=20 maxi=50';
-
+    }
+    val(EditRatio.text,RatioC,erreur);
+    
     AvecGrille:=checkDessineGrille.Checked;
+    if checkCouleur.checked then ModeCouleurCanton:=1 else ModeCouleurCanton:=0;
+    
   end;
   verif_config_TCO:=not(nokNbX or nokNbY or nokHt or nokLg);
   NbCellulesTCO:=NbreCellX*NbreCellY;
@@ -228,6 +237,7 @@ begin
       ImageTCO.Height:=HauteurCell*NbreCellY;
     end;  
     AvecGrille:=checkDessineGrille.Checked;
+    calcul_cellules;
     affiche_TCO;
     LabelErreur.caption:='';
     close;
@@ -246,6 +256,7 @@ begin
       ImageTCO.Width:=LargeurCell*NbreCellX;
       ImageTCO.Height:=HauteurCell*NbreCellY;
     end;
+    calcul_cellules;
     affiche_TCO;
   end;
 end;
@@ -253,11 +264,13 @@ end;
 
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
 begin
-  EditTailleCellX.Text:=IntToSTR(LargeurCell);
-  EditTailleCellY.Text:=IntToSTR(HauteurCell);
+  LabelTailleX.caption:=IntToSTR(LargeurCell);
+  LabelTailleY.caption:=IntToSTR(HauteurCell);
   EditNbCellX.Text:=IntToSTR(NbreCellX);
   EditNbCellY.Text:=IntToSTR(NbreCellY);
+  EditRatio.text:=IntToSTR(RatioC);
   checkDessineGrille.Checked:=AvecGrille;
+  checkCouleur.Checked:=ModeCouleurCanton=1;
   labelMaxX.caption:='Max='+intToSTR(MaxCellX);
   labelMaxY.caption:='Max='+intToSTR(MaxCellY);
   dessine_icones;
@@ -323,7 +336,7 @@ begin
 
   if ColorDialog1.execute then
   begin
-    ClAllume:=ColorDialog1.Color;
+    ClCanton:=ColorDialog1.Color;
     dessine_icones;
   end;
 end;
