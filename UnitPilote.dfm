@@ -15,6 +15,9 @@ object FormPilote: TFormPilote
   OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    331
+    350)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitrePilote: TLabel
@@ -31,10 +34,11 @@ object FormPilote: TFormPilote
     ParentFont = False
   end
   object ImagePilote: TImage
-    Left = 208
-    Top = 48
-    Width = 113
-    Height = 129
+    Left = 224
+    Top = 56
+    Width = 81
+    Height = 105
+    Anchors = []
   end
   object LabelNbFeux: TLabel
     Left = 208
@@ -57,7 +61,7 @@ object FormPilote: TFormPilote
     ParentFont = False
   end
   object Label1: TLabel
-    Left = 232
+    Left = 240
     Top = 192
     Width = 50
     Height = 13
@@ -65,7 +69,7 @@ object FormPilote: TFormPilote
   end
   object GroupBox1: TGroupBox
     Left = 8
-    Top = 40
+    Top = 48
     Width = 193
     Height = 185
     Caption = 'Signalisation de base'
@@ -163,7 +167,7 @@ object FormPilote: TFormPilote
   end
   object GroupBox2: TGroupBox
     Left = 8
-    Top = 232
+    Top = 240
     Width = 193
     Height = 89
     Caption = 'Signalisation combin'#233'e'
@@ -207,7 +211,7 @@ object FormPilote: TFormPilote
   end
   object ButtonPilote: TButton
     Left = 208
-    Top = 288
+    Top = 296
     Width = 113
     Height = 33
     Caption = 'Envoyer la commande'

@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2621,6 +2621,7 @@ object FormConfig: TFormConfig
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        HideSelection = False
         ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth
@@ -3089,6 +3090,7 @@ object FormConfig: TFormConfig
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        HideSelection = False
         Lines.Strings = (
           'RichSig')
         ParentFont = False

@@ -385,7 +385,7 @@ begin
     reset(fichier);
   except
     Affiche('Nouveau tco',clyellow);
-    NbreCellX:=35;NbreCellY:=20;LargeurCell:=30;HauteurCell:=30;
+    NbreCellX:=35;NbreCellY:=20;LargeurCell:=35;HauteurCell:=35;
     RatioC:=10;
     exit;
   end;
@@ -542,8 +542,9 @@ begin
       Val(s,NbreCellY,erreur)
     end;
        
-    // largeur et hauteur des cellules
+    // Ancien largeur et hauteur des cellules
     if ancienformatTCO then begin s:=lit_ligne;val(s,LargeurCell,erreur);i:=pos(',',s);delete(s,1,i);Val(s,HauteurCell,erreur);end;
+    {
     sa:=uppercase(Cellule_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -552,11 +553,12 @@ begin
       trouve_cellule:=true;
       delete(s,i,length(sa));
       val(s,i,erreur);
-      NbreCellX:=i;
+      LargeurCell:=i;
       i:=pos(',',s);delete(s,1,i);
       Val(s,HauteurCell,erreur)
     end;
-
+    }
+    
     // ratio
     sa:=uppercase(Ratio_ch)+'=';
     i:=pos(sa,s);
@@ -746,8 +748,6 @@ begin
 
   writeln(fichier,'/ Taille de la matrice x,y');
   writeln(fichier,matrice_ch+'='+IntToSTR(NbreCellX)+','+intToSTR(NbreCellY));
-  writeln(fichier,'/ Largeur et hauteur des cellules en pixels');
-  writeln(fichier,cellule_ch+'='+IntToSTR(LargeurCell)+','+intToSTR(HauteurCell));
   writeln(fichier,'/ Ratio d''affichage celluleX/CelluleY');
   writeln(fichier,Ratio_ch+'='+intToSTR(ratioC));
   writeln(fichier,'/Matrice TCO');
@@ -3233,9 +3233,9 @@ end;
 //        =2 : couleur de l'index train
 
 procedure zone_TCO(det1,det2,mode: integer);
-var i,j,x,y,ancienY,ancien2Y,ancienX,ancien2X,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
+var i,j,x,y,xn,yn,ancienY,ancienX,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2 : integer;
-    memtrouve,debugTCO : boolean;
+    memtrouve,debugTCO,increment : boolean;
     mdl : Tequipement;
     s : string;
 begin
@@ -3248,34 +3248,32 @@ begin
   trouve_det(det2,Xdet2,Ydet2);
   if (Xdet2=0) or (Ydet2=0) then exit;
 
+  increment:=true;
   // inverser coordonnées des détecteurs si à l'envers en X
   if xDet2<xDet1 then
   begin
-    x:=Xdet2;Xdet2:=Xdet1;Xdet1:=x;
+    increment:=false;
+   { x:=Xdet2;Xdet2:=Xdet1;Xdet1:=x;
     x:=Ydet2;Ydet2:=Ydet1;Ydet1:=x;
-    x:=det2;det2:=det1;det1:=x;
+    x:=det2;det2:=det1;det1:=x; }
   end;
 
-  if debugTCO then Affiche('réorienté en det1='+intToSTR(det1)+' X='+intToSTR(xDet1)+' Y='+intToSTR(ydet1)+
-                                  ' det2='+intToSTR(det2)+' X='+intToSTR(xDet2)+' Y='+intToSTR(ydet2),clyellow);
+
   
   //Affiche('trouvé '+intToSTR(det1)+' en '+IntToSTR(xDet1)+'/'+intToSTR(ydet1),clyellow);
   //Affiche('trouvé '+intToSTR(det2)+' en '+IntToSTR(xDet2)+'/'+intToSTR(ydet2),clyellow);
 
   // Aller de det1 à det2 vers le sens X croissant du TCO
-  ancienX:=Xdet2;ancienY:=yDet2-Ydet1;
+
   if ydet2<ydet1 then ancieny:=ydet1+1 else ancieny:=ydet1-1;
   if xdet2<xdet1 then ancienx:=xdet1+1 else ancienx:=xdet1-1;
-
   x:=xDet1;y:=Ydet1;
+  xn:=x;yn:=y;
   i:=0; memtrouve:=false;
 
   repeat
-    ancien2X:=ancienX;
-    ancienX:=X;
-    ancien2Y:=ancienY;
-    ancienY:=y;
-    //Affiche('X='+intToSTR(x)+' Y='+IntToSTR(Y),clyellow);
+
+    if debugTCO then Affiche('X='+intToSTR(x)+' AncienX='+intToSTR(ancienX)+' Y='+IntToSTR(Y)+' AncienY='+IntToSTR(ancienY),clyellow);
 
     // Affiche la cellule en fonction du mode
     Tco[x,y].mode:=mode;
@@ -3286,103 +3284,100 @@ begin
     // vers case suivante: trouver le trajet pour rejoindre det1 à det2
     case Bimage of
     // voie
-    1 : if ancien2X<x then inc(x) else dec(x);
-    // aiguillage pris en talon - pris en pointe
-    2 : if ancien2X<x then inc(x) else
-          begin
-            pos:=positionTCO(x,y);
-            if (pos=const_devie) then begin dec(x);inc(y); end;
-            if (pos=const_droit) then dec(x);
-            if (pos=const_inconnu) then Erreur_TCO(x,y);
-          end;
-    // aiguillage en pointe dévié: changer xy
-    3 : begin
-          if ancien2X<x then
-          begin
-            pos:=positionTCO(x,y);
-            if (pos=const_devie) then begin inc(x);dec(y); end;
-            if (pos=const_droit) then inc(x);
-            if (pos=const_inconnu) then Erreur_TCO(x,y);
-          end
-          else dec(x);
+    1 : begin
+          if debugTCO then Affiche('El 1',clyellow);
+          if ancienX<x then xn:=x+1 else xn:=x-1;
         end;
-    // aiguillage en pointe
-    4 : begin
-          if ancien2X<x then
-          begin
-            pos:=positionTCO(x,y);
-            if (pos=const_devie) then begin inc(x);inc(y); end;
-            if (pos=const_droit) then inc(x);
-            if (pos=const_inconnu) then Erreur_TCO(x,y);
-          end
-          else dec(x);
-        end;
-      // aiguillage pris en talon - pris en pointe
-    5 : if ancien2X<x then inc(x) else
-        begin
+    2 : begin
+          if debugTCO then Affiche('El 2',clyellow);
           pos:=positionTCO(x,y);
-          if (pos=const_devie) then begin dec(x);dec(y); end;
-          if (pos=const_droit) then dec(x);
+          if (ancienX<x) and (ancienY=y) then xn:=x+1;
+          if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y+1;end;
+          if (ancienX<x) and (ancienY>y) then xn:=x-1;
           if (pos=const_inconnu) then Erreur_TCO(x,y);
         end;
-    // tourner à droite
-    6 : if ancien2X<x then inc(x)
-        else begin dec(x);dec(y);end;
-
-    // tourner vers le haut
-    7 :  if ancien2x<x then begin inc(x);dec(y); end else dec(x);
-    // tourner vers le bas
-    8 : if ancien2X<x then begin inc(x);inc(y); end else dec(x);
-    // tourner
-    9 : if ancien2X<x then inc(x) else begin dec(x);inc(y);end;
-    // diagonale /
-    10 : if ancien2X<x then begin inc(x);dec(y);end else begin dec(x);inc(y);end;
-    // diagonale \
-    11 : if ancien2X<x then begin inc(x);inc(y);end else begin dec(x);dec(y);end;
-    // aiguillage en pointe
-    12 : if ancien2X<x then
-         begin
+    3 : begin
+          if debugTCO then Affiche('El 3',clyellow);
+          pos:=positionTCO(x,y);
+          if (ancienX<x) then begin xn:=x+1;if pos=const_devie then yn:=y-1;end;
+          if (ancienX>x) and (ancienY=Y) then xn:=x-1;
+          if (ancienX>x) and (ancienY<y) then xn:=x-1;
+          if (pos=const_inconnu) then Erreur_TCO(x,y);
+        end;
+    4 : begin
+          if debugTCO then Affiche('El 4',clyellow);
+          pos:=positionTCO(x,y);
+          if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;if pos=const_devie then yn:=y+1;end;
+          if (ancienX>x) and (ancienY=Y) then xn:=x-1;
+          if (ancienX>x) and (ancienY>y) then xn:=x-1;
+          if (pos=const_inconnu) then Erreur_TCO(x,y);
+        end;
+    5 : begin
+          if debugTCO then Affiche('El 5',clyellow);
+          pos:=positionTCO(x,y);
+          if (ancienX<x) and (ancienY=Y) then xn:=x+1;
+          if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y-1;end;    
+          if (ancienX<x) and (ancienY<y) then xn:=x+1;
+          if (pos=const_inconnu) then Erreur_TCO(x,y);
+        end;
+    6 : begin
+         if debugTCO then Affiche('El 6',clyellow);
+         if ancienX<x then xn:=x+1
+           else begin xn:=x-1;yn:=y-1;end;
+         end;  
+    7 : if ancienx<x then begin xn:=x+1;yn:=y-1; end else xn:=x-1;
+    8 : if ancienX<x then begin xn:=x+1;yn:=y+1; end else xn:=x-1;
+    9 : if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y+1;end;
+    10 : begin
+           if debugTCO then Affiche('El 10',clyellow);
+           if ancienX<x then begin xn:=x+1;yn:=y-1;end else begin xn:=x-1;yn:=y+1;end;
+         end;  
+    11 : begin
+           if debugTCO then Affiche('El 11',clyellow);
+           if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
+         end;  
+    12 : begin
+           if debugTCO then Affiche('El 12',clyellow);
            pos:=positionTCO(x,y);
-           if (pos=const_devie) then inc(x);
-           if (pos=const_droit) then begin inc(x);inc(y);end;
-           if (pos=const_inconnu) then Erreur_TCO(x,y);
-         end
-         else begin dec(x);dec(y);end;
-    // aiguillage en talon
-    13 :  if ancien2X<x then begin inc(x);dec(y); end
-          else
-          begin
-            pos:=positionTCO(x,y);
-            if (pos=const_devie) then dec(x);
-            if (pos=const_droit) then begin dec(x);inc(y);end;
-            if (pos=const_inconnu) then Erreur_TCO(x,y);
-          end;
-    // aiguillage en talon
-    14 : if ancien2X<x then
-         begin
-           inc(x);inc(y);
-         end else
-         begin
-           pos:=positionTCO(x,y);
-           if (pos=const_devie) then dec(x);
-           if (pos=const_droit) then begin dec(x);dec(y);end;
+           if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;if pos=const_droit then yn:=y+1;end;
+           if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;yn:=y-1;end;    
+           if (ancienX>x) and (ancienY>y) then begin xn:=x-1;yn:=y-1;end;
            if (pos=const_inconnu) then Erreur_TCO(x,y);
          end;
-    // aiguillage en pointe
-    15 : if ancien2X<x then
-         begin
+    13 : begin
+           if debugTCO then Affiche('El 13',clyellow);
            pos:=positionTCO(x,y);
-           if (pos=const_devie) then inc(x);
-           if (pos=const_droit) then begin inc(x);dec(y);end;
+           if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;yn:=y-1;end;
+           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;if pos=const_droit then yn:=y+1;end;    
+           if (ancienX<x) and (ancienY>y) then begin xn:=x+1;yn:=y-1;end;
            if (pos=const_inconnu) then Erreur_TCO(x,y);
-         end
-         else begin dec(x);inc(y);end;
-    16 : if ancien2X<x then inc(y) else begin dec(x);dec(y);end;
-    17 : if ancien2Y<y then begin inc(y);end else begin inc(x);dec(y);end;
-    18 : if Ancien2X<x then dec(y) else begin inc(y);dec(x);end;
-    19 : if ancien2Y<y then begin inc(x);inc(y);end else dec(y);
-    20 : if ancien2Y<y then inc(y) else dec(y);
+         end;
+    14 : begin
+           if debugTCO then Affiche('El 14',clyellow);
+           pos:=positionTCO(x,y);
+           if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;yn:=y+1;end;
+           if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;    
+           if (ancienX>x) and (ancienY>y) then begin xn:=x-1;if pos=const_droit then yn:=y-1;end;
+           if (pos=const_inconnu) then Erreur_TCO(x,y);
+         end;
+    15 : begin
+           if debugTCO then Affiche('El 15',clyellow);
+           pos:=positionTCO(x,y);
+           if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;if pos=const_droit then yn:=y-1;end;
+           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;    
+           if (ancienX>x) and (ancienY=y) then begin xn:=x-1;yn:=y+1;end;
+           if (pos=const_inconnu) then Erreur_TCO(x,y);
+         end;    
+    16 : if ancienX<x then yn:=y+1 else begin xn:=x-1;yn:=y-1;end;
+    17 : if ancienY<y then begin yn:=y+1;end else begin xn:=x+1;yn:=y-1;end;
+    18 : if AncienX<x then yn:=y-1 else begin yn:=y+1;xn:=x-1;end;
+    19 : begin
+           if debugTCO then Affiche('El 19',clyellow);
+           if ancienY<y then begin xn:=x+1;yn:=y+1;end else yn:=y-1;
+         end; 
+    20 : if ancienY<y then yn:=y+1 else yn:=y-1;
     21 : begin
+           if debugTCO then Affiche('El 21',clyellow);
            // tjd ou tjs
            if adresse<>0 then
            begin
@@ -3397,37 +3392,50 @@ begin
                if (pos2=const_inconnu) then Erreur_TCO(x,y);
                if (pos=const_droit) and (pos2=const_droit) then
                begin
-                 inc(x);
+                 if ancienX<x then xn:=x+1 else xn:=x-1;
                end;
                if (pos=const_devie) and (pos2=const_devie) then
                begin
-                 inc(x);dec(y);
+                 if ancienX<x then begin xn:=x+1;yn:=y-1;end
+                 else begin xn:=x-1;yn:=y+1;end;
                end;
                if (pos=const_droit) and (pos2=const_devie) then
                begin
-                 inc(x);
+                 if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y+1;end;
                end;
                if (pos=const_devie) and (pos2=const_droit) then
                begin
-                 inc(x);dec(y);
+                 if ancienX<x then begin xn:=x+1;end
+                              else begin xn:=x-1;yn:=y-1;end;
                end;
              end;
              if mdl=tjs then
              begin
-               if (pos=const_droit) then inc(x);
-               if (pos=const_devie) then begin inc(x);dec(y);end;
+               if (pos=const_droit) then 
+               begin
+                 if ancienX<x then xn:=x+1 else xn:=x-1;
+               end;  
+               if (pos=const_devie) then 
+               begin 
+                 if ancienX<x then begin xn:=x+1;yn:=y-1;end 
+                              else begin xn:=x-1;yn:=y+1;end ;
+               end;
              end;
            end
            else
            // croisement
            begin
-             if ancien2Y=y then begin inc(x);end else begin inc(x);dec(y);end;
+             if (ancienX<x) and (ancienY=Y) then xn:=x+1;
+             if (ancienX>x) and (ancienY=Y) then xn:=x-1;
+             if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
+             if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;
            end;
          end;
     // TJD ou croisement
     22 : begin
            // tjd ou tjs
-           if adresse<>0 then
+           if debugTCO then Affiche('El 22',clyellow); 
+           if adresse<>0 then 
            begin
              j:=Index_Aig(adresse);
              pos:=aiguillage[j].position;
@@ -3440,45 +3448,62 @@ begin
                if (pos2=const_inconnu) then Erreur_TCO(x,y);
                if (pos=const_droit) and (pos2=const_droit) then
                begin
-                 inc(x);inc(y);
+                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
                end;
                if (pos=const_devie) and (pos2=const_devie) then
                begin
-                 inc(x);
+                 if ancienX<x then xn:=x+1 else xn:=x-1;
                end;
                if (pos=const_droit) and (pos2=const_devie) then
                begin
-                 inc(x);inc(y);
+                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;end ;
                end;
                if (pos=const_devie) and (pos2=const_droit) then
                begin
-                 inc(x);
+                 if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y-1;end;
                end;
              end;
              if mdl=tjs then
              begin
                if mdl=tjs then
              begin
-               if (pos=const_droit) then inc(x);
-               if (pos=const_devie) then begin inc(x);inc(y);end;
+               if (pos=const_droit) then 
+               begin
+                 if ancienX<x then xn:=x+1 else xn:=x-1;
+               end ;
+               if (pos=const_devie) then 
+               begin 
+                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end 
+               end;
              end;
              end;
            end
            else
            // croisement
            begin
-             if ancien2Y=y then begin inc(x);end else begin inc(x);inc(y);end;
+             if (ancienX<x) and (ancienY=Y) then xn:=x+1;
+             if (ancienX>x) and (ancienY=Y) then xn:=x-1;
+             if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
+             if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
            end;
-        end;
-    else exit;
+         end;
+       else 
+       begin
+         Affiche('Erreur 400 TCO - Element '+intToSTR(Bimage)+' inconnu ',clred);
+         exit;
+       end;  
     end;
     inc(i);
     if adresse=det2 then memTrouve:=true;
+    ancienX:=X;
+    ancienY:=y;
+    x:=xn;
+    y:=yn;
   until (x=1) or (x=NbreCellX) or (y=NbreCellY) or ((adresse<>det2) and memTrouve) or (i>NbCellulesTCO);
   //Affiche(intToSTR(x),clLime);
   if i>NbCellulesTCO then
   begin
-    s:='Erreur 1000 : dépassement d''itérations TCO: '+IntToSTR(det1)+' - '+IntToSTR(det2);
+    s:='Erreur 1000 TCO : dépassement d''itérations '+IntToSTR(det1)+' - '+IntToSTR(det2);
     Affiche(s,clred); AfficheDebug(s,clred);
   end;
 end;
@@ -4833,20 +4858,19 @@ end;
 
 procedure TFormTCO.ButtonSimuClick(Sender: TObject);
 begin
-  aiguillage[Index_Aig(1)].position:=const_devie; 
+  aiguillage[Index_Aig(1)].position:=const_devie;
   aiguillage[Index_Aig(2)].position:=const_droit;
-  aiguillage[Index_Aig(3)].position:=const_devie; 
-  aiguillage[Index_Aig(5)].position:=const_devie; 
-  aiguillage[Index_Aig(7)].position:=const_droit; 
-  aiguillage[Index_Aig(12)].position:=const_devie; 
-  aiguillage[Index_Aig(20)].position:=const_devie; 
+  aiguillage[Index_Aig(3)].position:=const_droit;
+  aiguillage[Index_Aig(4)].position:=const_devie;
+  aiguillage[Index_Aig(5)].position:=const_droit;
+  aiguillage[Index_Aig(7)].position:=const_devie;
+  aiguillage[Index_Aig(12)].position:=const_droit;
+  aiguillage[Index_Aig(20)].position:=const_droit;
+  aiguillage[Index_Aig(21)].position:=const_droit;
+  aiguillage[Index_Aig(26)].position:=const_droit;
+  aiguillage[Index_Aig(28)].position:=const_devie;
   index_couleur:=1;
- //zone_TCO(527,519,0);
- zone_TCO(519,517,2);
- 
-
-  //zone_TCO(547,560,1);
-  //zone_TCO(530,520,1);
+  zone_TCO(520,529,1);
 end;
 
 procedure TFormTCO.CheckPinvClick(Sender: TObject);

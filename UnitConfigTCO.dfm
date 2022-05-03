@@ -15,30 +15,16 @@ object FormConfigTCO: TFormConfigTCO
   OnActivate = FormActivate
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 8
-    Top = 8
-    Width = 83
-    Height = 13
-    Caption = 'Taille des cellules'
-  end
-  object Label2: TLabel
-    Left = 120
-    Top = 8
-    Width = 13
-    Height = 13
-    Caption = 'x'
-  end
   object Label3: TLabel
     Left = 16
-    Top = 60
+    Top = 44
     Width = 156
     Height = 13
     Caption = 'Nombre de cellules en horizontal:'
   end
   object Label4: TLabel
     Left = 16
-    Top = 84
+    Top = 68
     Width = 145
     Height = 13
     Caption = 'Nombre de cellules en vertical:'
@@ -51,49 +37,35 @@ object FormConfigTCO: TFormConfigTCO
   end
   object LabelMaxX: TLabel
     Left = 235
-    Top = 60
+    Top = 44
     Width = 53
     Height = 13
     Caption = 'LabelMaxX'
   end
   object LabelMaxY: TLabel
     Left = 235
-    Top = 84
+    Top = 68
     Width = 53
     Height = 13
     Caption = 'LabelMaxY'
   end
-  object LabelTailleX: TLabel
-    Left = 96
-    Top = 8
-    Width = 17
-    Height = 13
-    Caption = 'LabelTailleX'
-  end
-  object LabelTailleY: TLabel
-    Left = 136
-    Top = 8
-    Width = 25
-    Height = 13
-    Caption = 'LabelTailleY'
-  end
   object Ratio: TLabel
-    Left = 8
-    Top = 32
+    Left = 16
+    Top = 16
     Width = 25
     Height = 13
     Caption = 'Ratio'
   end
   object Label14: TLabel
-    Left = 72
-    Top = 32
+    Left = 80
+    Top = 16
     Width = 17
     Height = 13
     Caption = '/10'
   end
   object ButtonOK: TButton
     Left = 216
-    Top = 248
+    Top = 240
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -102,7 +74,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object ButtonDessine: TButton
     Left = 16
-    Top = 248
+    Top = 240
     Width = 75
     Height = 25
     Caption = 'Redessine'
@@ -111,7 +83,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object CheckDessineGrille: TCheckBox
     Left = 16
-    Top = 104
+    Top = 88
     Width = 105
     Height = 17
     Caption = 'dessine grille'
@@ -119,7 +91,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object EditNbCellX: TEdit
     Left = 184
-    Top = 56
+    Top = 40
     Width = 49
     Height = 21
     TabOrder = 3
@@ -127,7 +99,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object EditNbCellY: TEdit
     Left = 184
-    Top = 80
+    Top = 64
     Width = 49
     Height = 21
     TabOrder = 4
@@ -263,7 +235,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object Memo1: TMemo
     Left = 16
-    Top = 144
+    Top = 136
     Width = 273
     Height = 81
     BevelInner = bvLowered
@@ -279,8 +251,8 @@ object FormConfigTCO: TFormConfigTCO
     TabOrder = 6
   end
   object EditRatio: TEdit
-    Left = 40
-    Top = 29
+    Left = 48
+    Top = 13
     Width = 25
     Height = 21
     Hint = 'Rapport X/Y d'#39'affichage des cellules'
@@ -291,7 +263,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
-    Left = 216
-    Top = 8
+    Left = 248
+    Top = 88
   end
 end

@@ -9,8 +9,6 @@ uses
 type
   TFormConfigTCO = class(TForm)
     ButtonOK: TButton;
-    Label1: TLabel;
-    Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     ButtonDessine: TButton;
@@ -39,8 +37,6 @@ type
     LabelMaxY: TLabel;
     ImageQuai: TImage;
     Label13: TLabel;
-    LabelTailleX: TLabel;
-    LabelTailleY: TLabel;
     EditRatio: TEdit;
     Ratio: TLabel;
     Label14: TLabel;
@@ -264,8 +260,6 @@ end;
 
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
 begin
-  LabelTailleX.caption:=IntToSTR(LargeurCell);
-  LabelTailleY.caption:=IntToSTR(HauteurCell);
   EditNbCellX.Text:=IntToSTR(NbreCellX);
   EditNbCellY.Text:=IntToSTR(NbreCellY);
   EditRatio.text:=IntToSTR(RatioC);

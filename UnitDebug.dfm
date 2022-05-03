@@ -1,9 +1,8 @@
 object FormDebug: TFormDebug
-  Left = 219
-  Top = 67
+  Left = 200
+  Top = 155
   Width = 842
   Height = 784
-  VertScrollBar.Position = 39
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -22,7 +21,7 @@ object FormDebug: TFormDebug
   TextHeight = 13
   object Label1: TLabel
     Left = 642
-    Top = -35
+    Top = 4
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -38,7 +37,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 474
-    Top = -37
+    Top = 2
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -52,7 +51,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 754
-    Top = -37
+    Top = 2
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -68,7 +67,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 570
-    Top = 297
+    Top = 336
     Width = 239
     Height = 201
     Anchors = [akTop, akRight]
@@ -89,7 +88,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 466
-    Top = 289
+    Top = 328
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -99,7 +98,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 466
-    Top = 321
+    Top = 360
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -110,7 +109,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 466
-    Top = 257
+    Top = 296
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -120,7 +119,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 466
-    Top = 217
+    Top = 256
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -131,7 +130,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 466
-    Top = 169
+    Top = 208
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -148,7 +147,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 570
-    Top = 137
+    Top = 176
     Width = 239
     Height = 153
     Anchors = [akTop, akRight]
@@ -167,7 +166,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 466
-    Top = 361
+    Top = 400
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -178,7 +177,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox1: TGroupBox
     Left = 464
-    Top = 569
+    Top = 608
     Width = 345
     Height = 177
     Anchors = [akTop, akRight]
@@ -326,7 +325,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox2: TGroupBox
     Left = 464
-    Top = -19
+    Top = 20
     Width = 345
     Height = 149
     Anchors = [akTop, akRight]
@@ -480,27 +479,27 @@ object FormDebug: TFormDebug
       TabOrder = 8
       OnClick = CheckBoxTiersClick
     end
-    object CheckDebugTrames: TCheckBox
-      Left = 208
-      Top = 128
-      Width = 129
+    object CheckBox1: TCheckBox
+      Left = 160
+      Top = 48
+      Width = 177
       Height = 17
-      Caption = 'Debug trames CDM'
+      Caption = 'Duplication Fen'#234'tre evts vers log'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindowText
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
       TabOrder = 9
-      OnClick = CheckDebugTramesClick
+      OnClick = CheckBox1Click
     end
   end
   object RichDebug: TRichEdit
-    Left = 8
-    Top = -31
+    Left = 0
+    Top = 0
     Width = 457
-    Height = 743
+    Height = 737
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'RichDebug')
@@ -512,7 +511,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox5: TGroupBox
     Left = 464
-    Top = 505
+    Top = 544
     Width = 345
     Height = 57
     Anchors = [akTop, akRight]
@@ -579,7 +578,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTout: TButton
     Left = 467
-    Top = 137
+    Top = 176
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]

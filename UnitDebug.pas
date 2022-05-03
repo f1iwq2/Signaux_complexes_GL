@@ -54,8 +54,8 @@ type
     CheckBoxTiers: TCheckBox;
     ButtonSimuAct0: TButton;
     ButtonSimuAct1: TButton;
-    CheckDebugTrames: TCheckBox;
     ButtonElSuiv: TButton;
+    CheckBox1: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -88,8 +88,8 @@ type
     procedure CheckBoxTiersClick(Sender: TObject);
     procedure ButtonSimuAct1Click(Sender: TObject);
     procedure ButtonSimuAct0Click(Sender: TObject);
-    procedure CheckDebugTramesClick(Sender: TObject);
     procedure ButtonElSuivClick(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -490,11 +490,6 @@ begin
 end;
 
 
-procedure TFormDebug.CheckDebugTramesClick(Sender: TObject);
-begin
-  debugtrames:=checkDebugTrames.checked;
-end;
-
 procedure TFormDebug.ButtonElSuivClick(Sender: TObject);
 var Adr,Prec,Actuel,erreur,ancdebug : integer ;
     type1,type2 : tequipement;
@@ -526,6 +521,11 @@ begin
   else AfficheDebug('Pas trouvé d''élement suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
   NivDebug:=AncDebug;
 
+end;
+
+procedure TFormDebug.CheckBox1Click(Sender: TObject);
+begin
+  dupliqueEvt:=CheckBox1.checked;
 end;
 
 end.
