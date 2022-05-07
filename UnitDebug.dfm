@@ -494,6 +494,21 @@ object FormDebug: TFormDebug
       TabOrder = 9
       OnClick = CheckBox1Click
     end
+    object CheckDebugTCO: TCheckBox
+      Left = 200
+      Top = 128
+      Width = 121
+      Height = 17
+      Caption = 'Debug TCO'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 10
+      OnClick = CheckDebugTCOClick
+    end
   end
   object RichDebug: TRichEdit
     Left = 0

@@ -56,6 +56,7 @@ type
     ButtonSimuAct1: TButton;
     ButtonElSuiv: TButton;
     CheckBox1: TCheckBox;
+    CheckDebugTCO: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -90,6 +91,7 @@ type
     procedure ButtonSimuAct0Click(Sender: TObject);
     procedure ButtonElSuivClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
+    procedure CheckDebugTCOClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -102,7 +104,7 @@ Max_Event_det_tick=30000;
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug : integer;
-  AffSignal,AffAffect,initform,AffFD,debug_dec_sig : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
@@ -526,6 +528,11 @@ end;
 procedure TFormDebug.CheckBox1Click(Sender: TObject);
 begin
   dupliqueEvt:=CheckBox1.checked;
+end;
+
+procedure TFormDebug.CheckDebugTCOClick(Sender: TObject);
+begin
+  debugTCO:=checkDebugTCO.checked;
 end;
 
 end.
