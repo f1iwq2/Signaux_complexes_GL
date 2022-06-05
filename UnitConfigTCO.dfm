@@ -204,11 +204,11 @@ object FormConfigTCO: TFormConfigTCO
       Caption = 'Couleur des textes'
     end
     object Label12: TLabel
-      Left = 240
+      Left = 192
       Top = 40
-      Width = 42
+      Width = 93
       Height = 13
-      Caption = 'statiques'
+      Caption = 'statiques par d'#233'faut'
     end
     object ImageQuai: TImage
       Left = 296
@@ -229,7 +229,7 @@ object FormConfigTCO: TFormConfigTCO
       Top = 208
       Width = 281
       Height = 17
-      Caption = 'Couleur des cantons activ'#233's par la couleur des trains'
+      Caption = 'Couleur du cantons activ'#233' par la couleur du train'
       TabOrder = 0
     end
   end

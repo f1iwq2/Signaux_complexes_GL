@@ -253,6 +253,8 @@ type
     Label42: TLabel;
     Label43: TLabel;
     CheckBandeauTCO: TCheckBox;
+    EditNbCantons: TEdit;
+    Label44: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -354,6 +356,10 @@ type
     procedure RichBrancheKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure EditTrainDestChange(Sender: TObject);
+    procedure RichAigKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure RichSigKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -379,6 +385,7 @@ CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
 Tempo_aig_ch='Tempo_Aig';
+Nb_cantons_Sig_ch='Nb_cantons_Sig';
 Tempo_Feu_ch='Tempo_Feu';
 Algo_Unisemaf_ch='Alg_Unisemaf';
 NOTIF_VERSION_ch='NOTIF_VERSION';
@@ -396,10 +403,10 @@ var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
-  LigneCliqueePN,AncLigneCliqueePN,clicMemo,
+  LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM : integer;
-  ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes : boolean;
+  ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes,confasauver : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -510,56 +517,59 @@ begin
   // déconnexion de l'ancienne liaison éventuelle
   Formprinc.ClientSocketCDM.Close;
 
-  if (AdresseIPCDM<>'0') and (ProcessRunning('CDR')) then
+  if (AdresseIPCDM<>'0') then
   begin
-    // ouverture du socket CDM
-    with Formprinc do
+    if(ProcessRunning('CDR')) then
     begin
-      ClientSocketCDM.port:=portCDM;
-      ClientSocketCDM.Address:=AdresseIPCDM;
-      ClientSocketCDM.Open;
-    end;
-    i:=0;
-    repeat
-      Sleep(50);
-      inc(i);
-      Application.processMessages;
-    until (i>10) or CDM_connecte  ;
-    //if i>10 then affiche('Timeout',clred);
-    if not(CDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
-
-    // connexion à CDM rail
-    recuCDM:='';
-    s:='C-C-00-0001-CMDGEN-_CNCT|000|';
-    envoi_cdm(s);
-    if ack_cdm then
-    begin
-      ack_cdm:=false;
-      Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
-      recucdm:='';
-      s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
-
-      Affiche(s,clYellow);
-      AfficheDebug(s,clyellow);
-      CDM_connecte:=true;
-
-      // demande des services
-      services_CDM;
-
-      // demande la description des trains
-      s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
-      ntrains:=0;
-      envoi_CDM(s);
-      sleep(10);
-      Application.ProcessMessages;
-      if ntrains<>0 then
-      with formprinc do
+      // ouverture du socket CDM
+      with Formprinc do
       begin
-        combotrains.ItemIndex:=0;
-        editAdrTrain.text:=IntToSTR(trains[1].adresse);
+        ClientSocketCDM.port:=portCDM;
+        ClientSocketCDM.Address:=AdresseIPCDM;
+        ClientSocketCDM.Open;
       end;
-    end;
-  end
+      i:=0;
+      repeat
+        Sleep(50);
+        inc(i);
+        Application.processMessages;
+      until (i>10) or CDM_connecte  ;
+      //if i>10 then affiche('Timeout',clred);
+      if not(CDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
+
+      // connexion à CDM rail
+      recuCDM:='';
+      s:='C-C-00-0001-CMDGEN-_CNCT|000|';
+      envoi_cdm(s);
+      if ack_cdm then
+      begin
+        ack_cdm:=false;
+        Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
+        recucdm:='';
+        s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
+      
+        Affiche(s,clYellow);
+        AfficheDebug(s,clyellow);
+        CDM_connecte:=true;
+
+        // demande des services
+        services_CDM;
+        // demande la description des trains
+        s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
+        ntrains:=0;
+        envoi_CDM(s);
+        sleep(10);
+        Application.ProcessMessages;
+        if ntrains<>0 then
+        with formprinc do
+        begin
+          combotrains.ItemIndex:=0;
+          editAdrTrain.text:=IntToSTR(trains[1].adresse);
+        end;
+      end;
+    end
+    else Affiche('CDM Rail non lancé',clOrange);
+  end  
   else
   begin
     if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,cyan);
@@ -674,7 +684,7 @@ begin
    end;
 
    if croi then
-   begin        //zizi
+   begin      
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
      c:=aiguillage[index].AdroitB;if c<>'Z' then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDroit)+aiguillage[index].DDroitB+'),';
@@ -1136,7 +1146,7 @@ var s: string;
     continue : boolean;
 
 begin
-  assign(fichierN,NomConfig);
+  assign(fichierN,NomConfig);    
   rewrite(fichierN);
 
   // entête
@@ -1206,12 +1216,15 @@ begin
   writeln(fichierN,retro_ch+'=',intToSTR(ServeurRetroCDM));
 
   // entête
-   // Raz Signaux
+  // Raz Signaux
   if Raz_Acc_signaux then s:='1' else s:='0';
   writeln(fichierN,'RazSignaux='+s);
 
   // temporisation entre 2 commandes décodeurs feu
   writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
+
+  // Nombre de cantons avant signal
+  writeln(fichierN,Nb_cantons_Sig_ch+'=',intToSTR(Nb_cantons_Sig));
 
   // algorithme Unisemaf
   writeln(fichierN,Algo_unisemaf_ch+'=',IntToSTR(algo_Unisemaf));
@@ -1283,11 +1296,11 @@ var s,sa,chaine,SOrigine: string;
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
-    trouve_algo_uni,croi   : boolean;
+    trouve_algo_uni,croi,trouve_Nb_cantons_Sig   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
-  
+
  function lit_ligne : string ;
     var esp,l1,l2,k : integer;
         guim : boolean;
@@ -1829,13 +1842,15 @@ begin
     end;
   until (sOrigine='0');
 end;
-  
+
 procedure lit_flux;
     label ici1,ici2,ici3,ici4 ;
     var i : integer;
 
 // début de la procédure lit_config
 begin
+  // valeurs par défaut
+  Nb_cantons_Sig:=3;
   nv:=0; it:=0;
   // taille de fonte
   repeat
@@ -1963,6 +1978,18 @@ begin
       delete(s,i,length(sa));
       val(s,fenetre,erreur);
       if fenetre=1 then Formprinc.windowState:=wsMaximized;
+    end;
+
+    // Nombre de cantons avant signal
+    sa:=uppercase(Nb_cantons_Sig_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      trouve_Nb_cantons_Sig:=true;
+      delete(s,i,length(sa));
+      val(s,Nb_cantons_Sig,erreur);
+      if (Nb_cantons_Sig<3) or (Nb_cantons_Sig>5) then Nb_cantons_Sig:=3;
     end;
 
     // temporisation aiguillages
@@ -2213,6 +2240,7 @@ begin
     Tempo_Aig:=100;
     Tempo_feu:=100;
     ServeurInterfaceCDM:=1;
+    Nb_cantons_Sig:=3;
     ServeurRetroCDM:=1;
     algo_Unisemaf:=1;
     TailleFonte:=12;
@@ -2243,6 +2271,7 @@ begin
   if not(trouve_fenetre) then s:=fenetre_ch;
   if not(trouve_tempo_aig) then s:=tempo_aig_ch;
   if not(trouve_Algo_Uni) then s:=Algo_unisemaf_ch;
+  if not(trouve_Nb_cantons_Sig) then s:=Nb_cantons_Sig_ch;
   if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
@@ -2253,34 +2282,53 @@ begin
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
 
-  if s<>'' then affiche('ERREUR: manque variables dans '+NomConfig+' :'+s,clred);
+  if s<>'' then
+  begin
+    affiche('Manque variables dans '+NomConfig+' : '+s,clOrange);
+    confasauver:=true;
+  end;
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
   verif_coherence;
+  formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
 end;
 
 
 // sauvegarder la config dans le fichier cfg
 function Sauve_config : boolean;
-var i,erreur : integer;
-    s : string;
-    ChangeCDM,changeInterface,changeUSB,change_srv : boolean;
 begin
+  // générer le fichier de config
+  genere_config;
+  Affiche('Configuration sauvegardée dans le fichier',clLime);
+  config_modifie:=false;
+  confasauver:=false;
+  sauve_config:=true;
+  exit;
+end;
+
+
+
+function verifie_panneau_config : boolean;
+var ChangeCDM,changeInterface,changeUSB,change_srv,ok : boolean;
+    i,erreur : integer;
+    s : string;
+begin
+  ok:=true;
   // Vérification de la configuration-------------------------------------------
   // contrôle adresse IP CDM
   with FormConfig do
   begin
     s:=EditAdrIPCDM.text;
     if s='' then s:='127.0.0.1';
-    if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP CDM rail incorrecte';sauve_config:=false;exit;end;
+    if not(IpOk(s)) then begin labelInfo.Caption:='Adresse IP CDM rail incorrecte';ok:=false;end;
     ChangeCDM:=s<>AdresseIPCDM;
     adresseIPCDM:=s;
 
     // contrôle port CDM
     val(EditPortCDM.Text,i,erreur);
     if i=0 then i:=9999;
-    if i>65535 then begin labelInfo.Caption:='Port CDM rail incorrect';sauve_config:=false;exit;end;
+    if i>65535 then begin labelInfo.Caption:='Port CDM rail incorrect';ok:=false;end;
     changeCDM:=(portCDM<>i) or ChangeCDM;
     portCDM:=i;
 
@@ -2292,39 +2340,44 @@ begin
     // contrôle adresse IP interface
     s:=EditIPLenz.text;
     if s='' then s:='0';
-    if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP interface Xpressnet incorrecte';sauve_config:=false;exit;end;
+    if not(IpOk(s)) and (s<>'0') then begin labelInfo.Caption:='Adresse IP interface Xpressnet incorrecte';ok:=false;end;
     changeInterface:=s<>AdresseIP;
     AdresseIP:=s;
 
     // contrôle port interface
     val(EditPortLenz.Text,i,erreur);
     if i=0 then i:=5550;
-    if i>65535 then begin labelInfo.Caption:='Port Interface incorrect';sauve_config:=false;exit;end;
+    if i>65535 then begin labelInfo.Caption:='Port Interface incorrect';ok:=false;end;
     changeInterface:=changeInterface or (i<>port);
     port:=i;
 
     Val(editTempoAig.Text,i,erreur);
-    if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';sauve_config:=false;exit;end;
+    if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
 
     // contrôle protocole interface  COM3:57600,N,8,1,2
     s:=EditComUSB.Text;
     if s='' then s:='COM3:57600,N,8,1,2';
-    if not(config_com(s)) then begin labelInfo.Caption:='Protocole série USB Interface incorrect';sauve_config:=false;exit;end;
+    if not(config_com(s)) then begin labelInfo.Caption:='Protocole série USB Interface incorrect';ok:=false;end;
     changeUSB:=portcom<>s;
     portcom:=s;
 
     val(EditTempoOctetUSB.text,i,erreur);
-    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';sauve_config:=false;exit;end;
+    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';ok:=false;end;
     TempoOctet:=i;
 
     val(EditTempoReponse.text,i,erreur);
-    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';sauve_config:=false;exit;end;
+    if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';ok:=false;end;
     TimoutMaxInterface:=i;
 
     val(EditNbDetDist.text,i,erreur);
-    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';sauve_config:=false;exit;end;
+    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';ok:=false;end;
     Nb_Det_Dist:=i;
+
+    val(EditNbCantons.text,i,erreur);
+    if (erreur<>0) or ((i<3) or (i>5)) then begin labelInfo.Caption:='Valeur cantons signaux de 3 à 5';ok:=false;end;
+    Nb_cantons_Sig:=i;
+    formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
 
     if RadioButton1.checked then Valeur_entete:=0;
     if RadioButton2.checked then Valeur_entete:=1;
@@ -2382,7 +2435,7 @@ begin
     if RadioButton17.Checked then ServeurRetroCDM:=5;
     if RadioButton18.Checked then ServeurRetroCDM:=6;
 
-    // changement sur les services CDM 
+    // changement sur les services CDM
     change_srv:=Srvc_Aig<>CheckBoxServAig.checked;
     change_srv:=Srvc_Det<>CheckBoxServDet.checked or change_srv;
     change_srv:=Srvc_Act<>CheckBoxServAct.checked or change_srv;
@@ -2398,17 +2451,19 @@ begin
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
   end;
   if change_srv then services_CDM;
-
-  // générer le fichier de config
-  genere_config;
-  Affiche('Configuration sauvegardée dans le fichier',clLime);
-  config_modifie:=false;
-  sauve_config:=true;
+  verifie_panneau_config:=ok;
 end;
 
 procedure TFormConfig.ButtonAppliquerEtFermerClick(Sender: TObject);
+var  ok : boolean;
 begin
-  if sauve_config then formConfig.close;  // si la config est ok, on ferme la fenetre
+  ok:=verifie_panneau_config;
+  if ok then
+  begin
+    Sauve_config;
+    formConfig.close;  // si la config est ok, on ferme la fenetre
+  end;
+
   // TCO
   if avectco and not(entreeTCO) then
   begin
@@ -2492,6 +2547,7 @@ begin
   EditDroit_BD.ReadOnly:=false;
   Edit_HG.ReadOnly:=false;
 
+  EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
   EditTempoFeu.Text:=IntToSTR(Tempo_feu);
   EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
   EditAdrIPCDM.text:=adresseIPCDM;
@@ -2499,6 +2555,7 @@ begin
   EditIPLenz.text:=AdresseIP;
   EditportLenz.text:=IntToSTR(Port);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
+
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
   EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
@@ -2667,6 +2724,7 @@ begin
   clicListe:=true;
   if affevt then affiche('FormConfig create',clLime);
   clicListe:=false;
+
 end;
 
 
@@ -2731,8 +2789,8 @@ begin
     GroupBoxEtatTJD.Visible:=false;
     GroupBox21.Visible:=true;
     GroupBox10.Visible:=true;
-    checkInverse.Visible:=true;
-
+    checkInverse.Visible:=true; 
+    
     // tjd
     if tjd or tjs or croi then
     begin
@@ -2847,6 +2905,12 @@ begin
       editL.Visible:=false;
       labelL.Visible:=false;
       ComboBoxAig.ItemIndex:=4;
+      editP1.Visible:=false;
+      editP2.Visible:=false;
+      editP3.Visible:=false;
+      editP4.Visible:=false;
+      labelTJD1.Visible:=false;
+      labelTJD2.Visible:=false;
     end;
     
     // aiguillage normal ou tri
@@ -5337,20 +5401,21 @@ begin
   config_modifie:=true;
 end;
 
-procedure TFormConfig.ButtonSupFeuClick(Sender: TObject);
+
+procedure supprime_sig;
 var adresse,i,indexFeu,index,debut,fin,longueur,ltot,lignedeb,lignefin,l : integer;
     s : string;
 begin
   if affevt then affiche('Evt bouton Sup Feu',clyellow);
   //trouver ligne de début et de fin sélectionner.
-  debut:=RichSig.SelStart;
-  longueur:=RichSig.SelLength;
+  debut:=FormConfig.RichSig.SelStart;
+  longueur:=FormConfig.RichSig.SelLength;
   fin:=debut+longueur;
   //Affiche(inttostr(debut)+' '+inttostr(longueur),clyellow);
   // trouver les lignes sélectionnées
   i:=0;ltot:=0;ligneDeb:=0;LigneFin:=0;
   repeat
-    l:=length(RichSig.lines[i])+2;  //+2 car CR LF
+    l:=length(FormConfig.RichSig.lines[i])+2;  //+2 car CR LF
     ltot:=ltot+l;
     if (debut<ltot) and (ligneDeb=0) then ligneDeb:=i+1;
     if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
@@ -5370,7 +5435,7 @@ begin
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
-  ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
+  FormConfig.ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
   clicliste:=true;
   Feu_supprime:=feux[index];  // sauvegarde le supprimé
   feu_sauve.adresse:=0;       // dévalider sa définition
@@ -5435,7 +5500,7 @@ begin
   Nbrefeux:=NbreFeux-(ligneFin-LigneDeb)-1;
 
   config_modifie:=true;
-  RichSig.Clear;
+  FormConfig.RichSig.Clear;
 
   // réafficher le richsig
   for i:=1 to NbreFeux do
@@ -5443,8 +5508,8 @@ begin
     s:=encode_Sig_Feux(i);
     if s<>'' then
     begin
-      RichSig.Lines.Add(s);
-      RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
+      FormConfig.RichSig.Lines.Add(s);
+      RE_ColorLine(FormConfig.RichSig,FormConfig.RichSig.lines.count-1,ClAqua);
     end;
   end;
   ligneClicSig:=-1;
@@ -5530,6 +5595,11 @@ begin
   raz_champs_sig;
   clicliste:=false;
   }
+end;
+
+procedure TFormConfig.ButtonSupFeuClick(Sender: TObject);
+begin
+  Supprime_sig;
 end;
 
 // Ajouter le feu supprimé
@@ -6326,19 +6396,24 @@ begin
   Aig_sauve.Adresse:=0;
 end;
 
-procedure TFormConfig.BoutSupAigClick(Sender: TObject);
+
+// supprime le ou les aiguillages sélectionnés dans le richEdit
+procedure supprime_aig;
 var ligneDeb,LigneFin,i,index,index2,debut,longueur,fin,l,ltot : integer;
     s : string;
 begin
   //trouver ligne de début et de fin sélectionner.
-  debut:=RichAig.SelStart;
-  longueur:=RichAig.SelLength;
+  with formConfig do
+  begin
+    debut:=RichAig.SelStart;
+    longueur:=RichAig.SelLength;
+  end;  
   fin:=debut+longueur;
   //Affiche(inttostr(debut)+' '+inttostr(longueur),clyellow);
   // trouver les lignes sélectionnées
   i:=0;ltot:=0;ligneDeb:=0;LigneFin:=0;
   repeat
-    l:=length(RichAig.lines[i])+2;  //+2 car CR LF
+    l:=length(FormConfig.RichAig.lines[i])+2;  //+2 car CR LF
     ltot:=ltot+l;
     if (debut<ltot) and (ligneDeb=0) then ligneDeb:=i+1;
     if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
@@ -6359,7 +6434,7 @@ begin
   
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   
-  ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
+  FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
   clicliste:=true;
   raz_champs_aig;
   Aig_supprime:=aiguillage[index];  // sauvegarde le supprimé
@@ -6393,7 +6468,7 @@ begin
   MaxAiguillage:=maxAiguillage-(ligneFin-LigneDeb)-1;
     
   config_modifie:=true;
-  RichAig.Clear;
+  FormConfig.RichAig.Clear;
                                                    
   // réafficher le richsig
   for i:=1 to MaxAiguillage do
@@ -6401,11 +6476,11 @@ begin
     s:=encode_Aig(i);
     if s<>'' then
     begin
-      RichAig.Lines.Add(s);
-      RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
+      FormConfig.RichAig.Lines.Add(s);
+      RE_ColorLine(FormConfig.RichAig,FormConfig.RichAig.lines.count-1,ClAqua);
     end;
   end;
-  With RichAig do
+  With FormConfig.RichAig do
   begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
@@ -6413,6 +6488,11 @@ begin
   ligneClicAig:=-1;
   AncligneClicAig:=-1;
   clicliste:=false;
+end;
+
+procedure TFormConfig.BoutSupAigClick(Sender: TObject);
+begin
+  Supprime_aig;
 end;
 
 procedure TFormConfig.EditP1KeyPress(Sender: TObject; var Key: Char);
@@ -6999,7 +7079,7 @@ begin
   with Formconfig.RichBranche do
   begin
     lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
-    LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1);
+    if lines[lc]<>'' then LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1) else LabelNumBranche.Caption:='';
     AncligneClicBr:=ligneClicBr;
     ligneClicBr:=lc;
     curseur:=SelStart;  // position initiale du curseur
@@ -7297,7 +7377,7 @@ begin
     aiguillage[ligneclicAig+1].tjsintb:=s[erreur];
     s:=encode_aig(ligneclicAig+1);
     RichAig.Lines[ligneclicAig]:=s;
-  end;  
+  end;
 end;
 
 procedure TFormConfig.Button2Click(Sender: TObject);
@@ -7307,6 +7387,7 @@ end;
 
 procedure TFormConfig.FormClose(Sender: TObject; var Action: TCloseAction);
 var index : integer;
+    ok : boolean;
 begin
   for index:=1 to NbreFeux do
   begin
@@ -7324,15 +7405,29 @@ begin
         Top:=HtImg+15+((HtImg+EspY+20)*((index-1) div NbreImagePLigne));
         Left:=10+ (LargImg+5)*((index-1) mod (NbreImagePLigne));
         BringToFront;
-      end;  
+      end;
     end;
     // supprimer les checkBox de feux blancs si ils ont été décochés
-    if not(feux[index].FeuBlanc) and (feux[index].check<>nil) then 
+    if not(feux[index].FeuBlanc) and (feux[index].check<>nil) then
     begin
       Feux[index].Check.free;
       Feux[index].Check:=nil;
     end;
   end;
+
+  ok:=verifie_panneau_config;
+
+  // TCO
+  if avectco and not(entreeTCO) then
+  begin
+    //créée la fenêtre TCO non modale
+    FormTCO:=TformTCO.Create(nil);
+    FormTCO.show;
+    FormPrinc.ButtonAffTCO.Visible:=true;
+  end;
+
+  if not(ok) then action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
+
 end;
 
 procedure TFormConfig.ButtonConfigSRClick(Sender: TObject);
@@ -7465,7 +7560,7 @@ begin
       if lc>0 then
       begin
         dec(lc);
-        LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1);
+        if lines[lc]<>'' then LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1) else LabelNumBranche.Caption:='';
         AncligneClicBr:=ligneClicBr;
         ligneClicBr:=lc;
         curseur:=SelStart;  // position initiale du curseur
@@ -7510,15 +7605,22 @@ begin
    end;
   end;
   clicListe:=false;
-
 end;
 
 
+procedure TFormConfig.RichAigKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
+  if key=VK_delete then supprime_aig;
+end;
 
+procedure TFormConfig.RichSigKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key=VK_delete then supprime_sig;
+end;
 
-
-
+begin
 end.
 
 

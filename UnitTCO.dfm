@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 117
-  Top = 151
+  Left = 151
+  Top = 72
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False

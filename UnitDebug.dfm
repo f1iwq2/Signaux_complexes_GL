@@ -1,8 +1,8 @@
 object FormDebug: TFormDebug
-  Left = 200
-  Top = 155
-  Width = 842
-  Height = 784
+  Left = -8
+  Top = -8
+  Width = 1382
+  Height = 744
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -15,12 +15,12 @@ object FormDebug: TFormDebug
   Position = poMainFormCenter
   OnCreate = FormCreate
   DesignSize = (
-    809
-    746)
+    1349
+    706)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 642
+    Left = 1182
     Top = 4
     Width = 108
     Height = 13
@@ -36,7 +36,7 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 474
+    Left = 1014
     Top = 2
     Width = 131
     Height = 18
@@ -50,7 +50,7 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 754
+    Left = 1294
     Top = 2
     Width = 49
     Height = 21
@@ -66,7 +66,7 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 570
+    Left = 1110
     Top = 336
     Width = 239
     Height = 201
@@ -87,7 +87,7 @@ object FormDebug: TFormDebug
     OnChange = MemoEvtDetChange
   end
   object ButtonEcrLog: TButton
-    Left = 466
+    Left = 1006
     Top = 328
     Width = 97
     Height = 29
@@ -97,7 +97,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 466
+    Left = 1006
     Top = 360
     Width = 97
     Height = 33
@@ -108,7 +108,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 466
+    Left = 1006
     Top = 296
     Width = 97
     Height = 25
@@ -118,7 +118,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 466
+    Left = 1006
     Top = 256
     Width = 97
     Height = 33
@@ -129,7 +129,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 466
+    Left = 1006
     Top = 208
     Width = 97
     Height = 41
@@ -146,7 +146,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonCopClick
   end
   object RichEdit: TRichEdit
-    Left = 570
+    Left = 1110
     Top = 176
     Width = 239
     Height = 153
@@ -165,7 +165,7 @@ object FormDebug: TFormDebug
     OnChange = RichEditChange
   end
   object ButtonRazLog: TButton
-    Left = 466
+    Left = 1006
     Top = 400
     Width = 97
     Height = 33
@@ -176,7 +176,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 464
+    Left = 1004
     Top = 608
     Width = 345
     Height = 177
@@ -247,7 +247,7 @@ object FormDebug: TFormDebug
         ShowHint = True
         TabOrder = 2
       end
-      object Button1: TButton
+      object ButtonCP: TButton
         Left = 128
         Top = 16
         Width = 81
@@ -255,7 +255,7 @@ object FormDebug: TFormDebug
         Caption = 'Etat 3 cantons pr'#233'c'#233'dents signal'
         TabOrder = 3
         WordWrap = True
-        OnClick = Button1Click
+        OnClick = ButtonCPClick
       end
       object Button2: TButton
         Left = 208
@@ -324,7 +324,7 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 464
+    Left = 1004
     Top = 20
     Width = 345
     Height = 149
@@ -357,9 +357,9 @@ object FormDebug: TFormDebug
     object CheckBoxEvtDetAig: TCheckBox
       Left = 8
       Top = 32
-      Width = 201
+      Width = 289
       Height = 17
-      Caption = 'Ev'#232'nements d'#233'tecteurs et aiguillages'
+      Caption = 'Ev'#232'nements d'#233'tecteurs, aiguillages et actionneurs'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -11
@@ -399,21 +399,6 @@ object FormDebug: TFormDebug
       TabOrder = 3
       OnClick = CheckTrameClick
     end
-    object CheckBoxAct: TCheckBox
-      Left = 8
-      Top = 48
-      Width = 153
-      Height = 17
-      Caption = 'Ev'#232'vements actionneurs'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 4
-      OnClick = CheckBoxActClick
-    end
     object CheckBoxAffFD: TCheckBox
       Left = 8
       Top = 112
@@ -428,7 +413,7 @@ object FormDebug: TFormDebug
       Font.Style = []
       ParentColor = False
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 4
       OnClick = CheckBoxAffFDClick
     end
     object CheckBoxAffDebDecSig: TCheckBox
@@ -443,7 +428,7 @@ object FormDebug: TFormDebug
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 5
       OnClick = CheckBoxAffDebDecSigClick
     end
     object EditDebugSignal: TEdit
@@ -456,7 +441,7 @@ object FormDebug: TFormDebug
         'ignaux'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 7
+      TabOrder = 6
       OnChange = EditDebugSignalChange
     end
     object CheckBoxTiers: TCheckBox
@@ -476,11 +461,11 @@ object FormDebug: TFormDebug
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 8
+      TabOrder = 7
       OnClick = CheckBoxTiersClick
     end
     object CheckBox1: TCheckBox
-      Left = 160
+      Left = 8
       Top = 48
       Width = 177
       Height = 17
@@ -491,7 +476,7 @@ object FormDebug: TFormDebug
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 8
       OnClick = CheckBox1Click
     end
     object CheckDebugTCO: TCheckBox
@@ -506,15 +491,15 @@ object FormDebug: TFormDebug
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 9
       OnClick = CheckDebugTCOClick
     end
   end
   object RichDebug: TRichEdit
     Left = 0
     Top = 0
-    Width = 457
-    Height = 737
+    Width = 997
+    Height = 697
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'RichDebug')
@@ -525,7 +510,7 @@ object FormDebug: TFormDebug
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 464
+    Left = 1004
     Top = 544
     Width = 345
     Height = 57
@@ -592,12 +577,17 @@ object FormDebug: TFormDebug
     end
   end
   object ButtonRazTout: TButton
-    Left = 467
+    Left = 1007
     Top = 176
     Width = 97
     Height = 25
+    Hint = 
+      'Supprime les trains d'#233'tect'#233's ou en cas de nouveau RUN, permet de' +
+      ' partir de 0'
     Anchors = [akTop, akRight]
     Caption = 'RAZ tous trains'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 13
     OnClick = ButtonRazToutClick
   end

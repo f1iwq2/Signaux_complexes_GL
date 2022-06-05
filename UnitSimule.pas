@@ -71,7 +71,8 @@ begin
           if s[1]='=' then delete(s,1,1); 
           if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
-          Tablo_simule[index_simule].detecteur:=k;
+          Tablo_simule[index_simule].adresse:=k;
+          Tablo_simule[index_simule].modele:=det;
           i:=pos('=',s);
           if i<>0 then
           begin
@@ -96,18 +97,20 @@ begin
           if s[1]='=' then delete(s,1,1);
           if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
-          Tablo_simule[index_simule].aiguillage:=k;
+          Tablo_simule[index_simule].adresse:=k;
+          Tablo_simule[index_simule].modele:=aig;
           i:=pos('=',s);
           if i<>0 then
           begin
             Delete(s,1,i);
             val(s,k,erreur);
-            Tablo_simule[index_simule].etat:=k;
+            if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
+            else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
 
             {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-               ' Aiguillage='+intToSTR(Tablo_simule[index_simule].aiguillage)+
+               ' Aiguillage='+intToSTR(Tablo_simule[index_simule].adresse)+
                '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime); }
+            Affiche(s,ClLime);   }
 
             inc(index_simule);
           end;
@@ -120,7 +123,6 @@ begin
     dec(index_simule);
     closeFile(fte);
     formprinc.ButtonArretSimu.Visible:=true;
-    formprinc.ButtonArretSimu.top:=88;
 
     FormSimulation.Close;
   end;

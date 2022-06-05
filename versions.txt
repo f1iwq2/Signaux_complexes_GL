@@ -98,16 +98,16 @@ version 3.84 : Possibilité d'affecter des couleurs différentes pour chaque texte
 version 3.85 : Affichage des cantons occupés avec des couleurs différentes par train ou non dans le TCO.
                Grille optionnelle sauvegardée dans la configuration du TCO.
                Possibilité de déclarer des signaux implantés à droite ou à gauche des voies dans le TCO.
-version 4.0  :  Changement de l'algorithme d'affichage du TCO.
+version 4.0  : Changement de l'algorithme d'affichage du TCO.
                Calcul de la route correcte d'un train si changement de la position de
                l'aiguillage derrière le train.
                Renforcement de la vérification de la configuration. 
                Possibilité de multisélectionner les feux ou les aiguillages pour leur suppression dans
                le panneau de configuration.
-version 4.1  : Intégration des croisements
-               Correction de quelques bugs
-
-
+version 4.1  : Intégration des croisements.
+               Correction de quelques bugs.
+version 4.2  : Améliorations diverses.
+               Traitement des rebonds des détecteurs.
 
 
 

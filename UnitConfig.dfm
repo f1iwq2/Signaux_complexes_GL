@@ -958,8 +958,8 @@ object FormConfig: TFormConfig
     ParentFont = False
   end
   object ImageAig: TImage
-    Left = 736
-    Top = 432
+    Left = 744
+    Top = 480
     Width = 137
     Height = 57
     Picture.Data = {
@@ -1230,8 +1230,8 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTJD: TImage
-    Left = 736
-    Top = 400
+    Left = 744
+    Top = 416
     Width = 137
     Height = 57
     Picture.Data = {
@@ -1366,8 +1366,8 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object ImageTri: TImage
-    Left = 736
-    Top = 360
+    Left = 744
+    Top = 344
     Width = 137
     Height = 65
     Picture.Data = {
@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1641,12 +1641,12 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 96
         Width = 273
-        Height = 185
+        Height = 201
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
         object Label13: TLabel
           Left = 8
-          Top = 124
+          Top = 140
           Width = 242
           Height = 26
           Caption = 
@@ -1656,7 +1656,7 @@ object FormConfig: TFormConfig
         end
         object CheckVerifVersion: TCheckBox
           Left = 8
-          Top = 24
+          Top = 40
           Width = 249
           Height = 17
           Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
@@ -1664,7 +1664,7 @@ object FormConfig: TFormConfig
         end
         object CheckInfoVersion: TCheckBox
           Left = 8
-          Top = 40
+          Top = 56
           Width = 241
           Height = 17
           Caption = 'Information sur la version actuelle'
@@ -1672,7 +1672,7 @@ object FormConfig: TFormConfig
         end
         object CheckLanceCDM: TCheckBox
           Left = 8
-          Top = 96
+          Top = 112
           Width = 241
           Height = 25
           Caption = 'Lancer CDM Rail au d'#233'marrage'
@@ -1681,7 +1681,7 @@ object FormConfig: TFormConfig
         end
         object CheckAvecTCO: TCheckBox
           Left = 8
-          Top = 56
+          Top = 72
           Width = 89
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
@@ -1692,7 +1692,7 @@ object FormConfig: TFormConfig
         end
         object EditNomLay: TEdit
           Left = 16
-          Top = 154
+          Top = 170
           Width = 241
           Height = 21
           TabOrder = 4
@@ -1700,7 +1700,7 @@ object FormConfig: TFormConfig
         end
         object CheckFenEt: TCheckBox
           Left = 8
-          Top = 72
+          Top = 24
           Width = 249
           Height = 17
           Hint = 'Taille de la fen'#234'tre maximalis'#233'e'
@@ -1710,8 +1710,8 @@ object FormConfig: TFormConfig
           TabOrder = 5
         end
         object CheckBandeauTCO: TCheckBox
-          Left = 128
-          Top = 56
+          Left = 8
+          Top = 88
           Width = 129
           Height = 17
           Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
@@ -1722,9 +1722,9 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox6: TGroupBox
-        Left = 320
+        Left = 312
         Top = 8
-        Width = 273
+        Width = 281
         Height = 169
         Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
@@ -1802,9 +1802,9 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox7: TGroupBox
-        Left = 320
+        Left = 312
         Top = 184
-        Width = 273
+        Width = 281
         Height = 137
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ'
         TabOrder = 3
@@ -1859,7 +1859,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 288
+        Top = 304
         Width = 273
         Height = 113
         Caption = 'Services CommIP CDM Rail'
@@ -1913,41 +1913,65 @@ object FormConfig: TFormConfig
         end
       end
       object GroupBox15: TGroupBox
-        Left = 320
+        Left = 312
         Top = 328
-        Width = 273
-        Height = 73
+        Width = 281
+        Height = 89
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
           Left = 8
-          Top = 16
+          Top = 24
           Width = 204
           Height = 13
           Caption = 'Seuil du nombre de d'#233'tecteurs trop distants'
         end
         object Label41: TLabel
           Left = 8
-          Top = 36
+          Top = 68
           Width = 188
           Height = 13
           Caption = 'Taille de la fonte de la fen'#234'tre principale'
         end
+        object Label44: TLabel
+          Left = 8
+          Top = 45
+          Width = 223
+          Height = 13
+          Caption = 'Nombre de cantons pr'#233'sence train avant signal'
+        end
         object EditNbDetDist: TEdit
-          Left = 232
-          Top = 12
+          Left = 240
+          Top = 20
           Width = 25
           Height = 21
+          ParentShowHint = False
+          ShowHint = False
           TabOrder = 0
           Text = 'EditNbDetDist'
         end
         object EditFonte: TEdit
-          Left = 232
-          Top = 32
+          Left = 240
+          Top = 64
           Width = 25
           Height = 21
+          ParentShowHint = False
           ReadOnly = True
+          ShowHint = False
           TabOrder = 1
+        end
+        object EditNbCantons: TEdit
+          Left = 240
+          Top = 41
+          Width = 25
+          Height = 21
+          Hint = 
+            'Nombre de cantons  pr'#233'sence train avant un signal pour le d'#233'clar' +
+            'er verrouill'#233
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          Text = 'EditNbCantons'
         end
       end
     end
@@ -2185,9 +2209,10 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 257
           Height = 25
+          Hint = 'Initialisation des aiguillages au d'#233'marrage'
           Caption = 'Initialisation des aiguillages '
           ParentShowHint = False
-          ShowHint = False
+          ShowHint = True
           TabOrder = 0
           WordWrap = True
         end
@@ -2628,6 +2653,7 @@ object FormConfig: TFormConfig
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
+        OnKeyDown = RichAigKeyDown
         OnMouseDown = RichAigMouseDown
       end
       object ButtonNouvAig: TButton
@@ -2920,7 +2946,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3099,6 +3125,7 @@ object FormConfig: TFormConfig
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
+        OnKeyDown = RichSigKeyDown
         OnMouseDown = RichSigMouseDown
       end
       object ButtonNouvFeu: TButton
@@ -3525,6 +3552,7 @@ object FormConfig: TFormConfig
               Top = 80
               Width = 41
               Height = 33
+              Hint = 'Joue le son'
               Flat = True
               Glyph.Data = {
                 4E010000424D4E010000000000003E0000002800000022000000220000000100
@@ -3538,6 +3566,8 @@ object FormConfig: TFormConfig
                 00003FFFFFFF000000003FFFFFFF000000003FFFFFFF000000001FFFFFFE0000
                 000000000000000000008000000040000000C0000000C0000000FFFFFFFFC000
                 0000FFFFFFFFC0000000FFFFFFFFC0000000}
+              ParentShowHint = False
+              ShowHint = True
               OnClick = SpeedButtonJoueClick
             end
             object SpeedButtonCharger: TSpeedButton
@@ -3545,6 +3575,7 @@ object FormConfig: TFormConfig
               Top = 80
               Width = 25
               Height = 34
+              Hint = 'Ouvre un fichier son WAV'
               Flat = True
               Glyph.Data = {
                 BA060000424DBA06000000000000360400002800000019000000170000000100
@@ -3601,6 +3632,8 @@ object FormConfig: TFormConfig
                 272752FFFFFFFF000000FF27BFBFBFBFBFBFBFBF25FFFFFFFFFFFFFFFFFFFFFF
                 FFFFFF000000FF266F2727272727276F13FFFFFFFFFFFFFFFFFFFFFFFFFFFF00
                 0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000}
+              ParentShowHint = False
+              ShowHint = True
               OnClick = SpeedButtonChargerClick
             end
             object Label42: TLabel
@@ -3777,7 +3810,7 @@ object FormConfig: TFormConfig
     end
   end
   object OpenDialogSon: TOpenDialog
-    Left = 708
-    Top = 500
+    Left = 604
+    Top = 508
   end
 end

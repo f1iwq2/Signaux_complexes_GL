@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 10
-  Top = 259
+  Left = 6
+  Top = 246
   Width = 1213
   Height = 664
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1284,7 +1284,7 @@ object FormPrinc: TFormPrinc
     Left = 904
     Top = 5
     Width = 282
-    Height = 132
+    Height = 92
     Anchors = [akTop, akRight]
     TabOrder = 4
     object BoutonRaf: TButton
@@ -1299,66 +1299,24 @@ object FormPrinc: TFormPrinc
       TabOrder = 0
       OnClick = BoutonRafClick
     end
-    object BoutVersion: TButton
-      Left = 102
-      Top = 8
-      Width = 83
-      Height = 33
-      Hint = 'Demande la version XpressNet '#224' la centrale'
-      Caption = 'Dem version centrale'
-      TabOrder = 1
-      WordWrap = True
-      OnClick = BoutVersionClick
-    end
-    object ButtonInfo: TButton
-      Left = 104
-      Top = 48
-      Width = 81
-      Height = 33
-      Caption = 'Informations'
-      TabOrder = 2
-      OnClick = ButtonInfoClick
-    end
-    object ButtonReprise: TButton
-      Left = 190
-      Top = 48
-      Width = 83
-      Height = 33
-      Hint = 
-        'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
-        'ension de la centrale'
-      Caption = 'Reprise DCC'
-      TabOrder = 3
-      OnClick = ButtonRepriseClick
-    end
-    object ButtonTest: TButton
-      Left = 8
-      Top = 48
-      Width = 89
-      Height = 33
-      Caption = 'Demande '#233'tat aiguillages'
-      TabOrder = 4
-      WordWrap = True
-      OnClick = ButtonTestClick
-    end
     object ButtonArretSimu: TButton
       Left = 8
-      Top = 88
+      Top = 48
       Width = 89
       Height = 33
       Caption = 'Arret simulation'
-      TabOrder = 5
+      TabOrder = 1
       Visible = False
       WordWrap = True
       OnClick = ButtonArretSimuClick
     end
     object ButtonAffTCO: TButton
       Left = 104
-      Top = 88
+      Top = 48
       Width = 81
       Height = 33
       Caption = 'Affiche TCO'
-      TabOrder = 6
+      TabOrder = 2
       OnClick = ButtonAffTCOClick
     end
     object ButtonLanceCDM: TButton
@@ -1368,22 +1326,36 @@ object FormPrinc: TFormPrinc
       Height = 33
       Hint = 'Lance CDM Rail'
       Caption = 'Lance CDM rail'
-      TabOrder = 7
+      TabOrder = 3
       OnClick = ButtonLanceCDMClick
     end
     object ButtonLocCV: TButton
-      Left = 192
-      Top = 88
+      Left = 104
+      Top = 8
       Width = 83
       Height = 33
+      Hint = 'Affichage du panneau de contr'#244'le des trains ou des CV'
       Caption = 'Trains / CVs'
-      TabOrder = 8
+      TabOrder = 4
       OnClick = ButtonLocCVClick
+    end
+    object BoutonRazTrains: TButton
+      Left = 192
+      Top = 48
+      Width = 81
+      Height = 33
+      Hint = 
+        'Supprime les trains d'#233'tect'#233's ou en cas de nouveau RUN, permet de' +
+        ' partir de 0'
+      Caption = 'Raz trains ou nouveau RUN'
+      TabOrder = 5
+      WordWrap = True
+      OnClick = BoutonRazTrainsClick
     end
   end
   object Panel2: TPanel
     Left = 905
-    Top = 144
+    Top = 104
     Width = 281
     Height = 25
     Anchors = [akTop, akRight]
@@ -1421,7 +1393,7 @@ object FormPrinc: TFormPrinc
   object FenRich: TRichEdit
     Left = 8
     Top = 32
-    Width = 618
+    Width = 601
     Height = 529
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
@@ -1640,6 +1612,10 @@ object FormPrinc: TFormPrinc
         Caption = 'Etat des signaux'
         OnClick = Etatdessignaux1Click
       end
+      object Etatdeszonespartrain1: TMenuItem
+        Caption = 'Etat des zones par train'
+        OnClick = Etatdeszonespartrain1Click
+      end
       object N3: TMenuItem
         Caption = '-'
       end
@@ -1689,6 +1665,27 @@ object FormPrinc: TFormPrinc
         OnClick = MenuDeconnecterEthernetClick
       end
       object N4: TMenuItem
+        Caption = '-'
+      end
+      object Demanderversiondelacentrale1: TMenuItem
+        Caption = 'Interface XpressNet:'
+        object Demanderlaversiondelacentrale1: TMenuItem
+          Caption = 'Demander la version de la centrale'
+          OnClick = Demanderlaversiondelacentrale1Click
+        end
+        object Demandetatdesaiguillages1: TMenuItem
+          Caption = 'Demande '#233'tat des aiguillages'
+          OnClick = Demandetatdesaiguillages1Click
+        end
+        object RepriseDCC1: TMenuItem
+          Caption = 'Reprise DCC'
+          Hint = 
+            'Relance du bus DCC apr'#232's une '#233'criture d'#39'un CV ou une mise hors t' +
+            'ension de la centrale'
+          OnClick = RepriseDCC1Click
+        end
+      end
+      object N7: TMenuItem
         Caption = '-'
       end
       object ConnecterCDMrail: TMenuItem

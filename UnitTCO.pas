@@ -3231,10 +3231,8 @@ begin
   s:='Erreur TCO: ';
   adresse:=tco[x,y].Adresse;
   i:=index_aig(adresse);
-  if i<>0 then
-  begin
-    s:=s+'position aiguillage '+intToSTR(adresse)+' inconnue';
-  end;
+  if i=0 then s:=s+'aiguillage '+intToSTR(adresse)+' inconnu';
+  if i<>0 then s:=s+'position aiguillage '+intToSTR(adresse)+' inconnue';
   Affiche(s,clred);
 end;
 
@@ -3297,7 +3295,11 @@ begin
     case Bimage of
     // voie
     1 : begin
-          //if debugTCO then AfficheDebug('El 1',clyellow);
+          if debugTCO then 
+          begin
+            s:='El 1';if adresse<>0 then s:=s+'adr='+intToStr(adresse);
+            AfficheDebug(s,clyellow);
+          end;  
           if ancienX<x then xn:=x+1 else xn:=x-1;
         end;
     2 : begin
@@ -3390,53 +3392,61 @@ begin
     20 : if ancienY<y then yn:=y+1 else yn:=y-1;
     21 : begin
            //if debugTCO then AfficheDebug('El 21',clyellow);
-           // tjd ou tjs
+           mdl:=rien;
            if adresse<>0 then
            begin
              j:=Index_Aig(adresse);
-             pos:=aiguillage[j].position;
-             if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
              mdl:=aiguillage[j].modele;
-             if mdl=tjd then
+             if (mdl=tjs) or (mdl=tjd) then
              begin
-               j:=Index_Aig(aiguillage[j].Ddroit);
-               pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-               if (pos2=const_inconnu) then Erreur_TCO(x,y);
-               if (pos=const_droit) and (pos2=const_droit) then
+               // tjd ou tjs
+               pos:=aiguillage[j].position;
+               if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+
+               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=4) then
                begin
-                 if ancienX<x then xn:=x+1 else xn:=x-1;
+                 j:=Index_Aig(aiguillage[j].Ddroit);
+                 pos2:=aiguillage[j].position; // 2eme adresse de la TJD
+                 if (pos2=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+                 if (pos=const_droit) and (pos2=const_droit) then
+                 begin
+                   if ancienX<x then xn:=x+1 else xn:=x-1;
+                 end;
+                 if (pos=const_devie) and (pos2=const_devie) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;yn:=y-1;end
+                   else begin xn:=x-1;yn:=y+1;end;
+                 end;
+                 if (pos=const_droit) and (pos2=const_devie) then
+                 begin
+                   if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y+1;end;
+                 end;
+                 if (pos=const_devie) and (pos2=const_droit) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;end
+                                else begin xn:=x-1;yn:=y-1;end;
+                 end;
                end;
-               if (pos=const_devie) and (pos2=const_devie) then
+
+               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=2) then 
                begin
-                 if ancienX<x then begin xn:=x+1;yn:=y-1;end
-                 else begin xn:=x-1;yn:=y+1;end;
-               end;
-               if (pos=const_droit) and (pos2=const_devie) then
-               begin
-                 if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y+1;end;
-               end;
-               if (pos=const_devie) and (pos2=const_droit) then
-               begin
-                 if ancienX<x then begin xn:=x+1;end
-                              else begin xn:=x-1;yn:=y-1;end;
+                 if (pos=const_droit) then
+                 begin
+                   if ancienX<x then xn:=x+1 else xn:=x-1;
+                 end;
+                 if (pos=const_devie) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;yn:=y-1;end
+                                else begin xn:=x-1;yn:=y+1;end ;
+                 end;
                end;
              end;
-             if mdl=tjs then
-             begin
-               if (pos=const_droit) then 
-               begin
-                 if ancienX<x then xn:=x+1 else xn:=x-1;
-               end;  
-               if (pos=const_devie) then 
-               begin 
-                 if ancienX<x then begin xn:=x+1;yn:=y-1;end 
-                              else begin xn:=x-1;yn:=y+1;end ;
-               end;
-             end;
-           end
-           else
+           end;
+
+           if (adresse=0) or (mdl=crois) then
            // croisement
            begin
+             if DebugTCO then AfficheDebug('croisement',clyellow);
              if (ancienX<x) and (ancienY=Y) then xn:=x+1;
              if (ancienX>x) and (ancienY=Y) then xn:=x-1;
              if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
@@ -3445,70 +3455,72 @@ begin
          end;
     // TJD ou croisement
     22 : begin
-           // tjd ou tjs
-           //if debugTCO then AfficheDebug('El 22',clyellow); 
-           if adresse<>0 then 
+           //if debugTCO then AfficheDebug('El 22',clyellow);
+           mdl:=rien;
+           if adresse<>0 then
            begin
              j:=Index_Aig(adresse);
-             pos:=aiguillage[j].position;
-             if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
              mdl:=aiguillage[j].modele;
-             if mdl=tjd then
+             if (mdl=tjd) or (mdl=tjs) then
              begin
-               j:=Index_Aig(aiguillage[j].Ddroit);
-               pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-               if (pos2=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
-               if (pos=const_droit) and (pos2=const_droit) then
+               pos:=aiguillage[j].position;
+               if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+
+               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=4) then
                begin
-                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
+                 j:=Index_Aig(aiguillage[j].Ddroit);
+                 pos2:=aiguillage[j].position; // 2eme adresse de la TJD
+                 if (pos2=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+                 if (pos=const_droit) and (pos2=const_droit) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
+                 end;
+                 if (pos=const_devie) and (pos2=const_devie) then
+                 begin
+                   if ancienX<x then xn:=x+1 else xn:=x-1;
+                 end;
+                 if (pos=const_droit) and (pos2=const_devie) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;end ;
+                 end;
+                 if (pos=const_devie) and (pos2=const_droit) then
+                 begin
+                   if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y-1;end;
+                 end;
                end;
-               if (pos=const_devie) and (pos2=const_devie) then
+               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=2) then
                begin
-                 if ancienX<x then xn:=x+1 else xn:=x-1;
-               end;
-               if (pos=const_droit) and (pos2=const_devie) then
-               begin
-                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;end ;
-               end;
-               if (pos=const_devie) and (pos2=const_droit) then
-               begin
-                 if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y-1;end;
+                 if (pos=const_droit) then
+                 begin
+                   if ancienX<x then xn:=x+1 else xn:=x-1;
+                 end ;
+                 if (pos=const_devie) then
+                 begin
+                   if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end
+                 end;
                end;
              end;
-             if mdl=tjs then
-             begin
-               if mdl=tjs then
-             begin
-               if (pos=const_droit) then 
-               begin
-                 if ancienX<x then xn:=x+1 else xn:=x-1;
-               end ;
-               if (pos=const_devie) then 
-               begin 
-                 if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end 
-               end;
-             end;
-             end;
-           end
-           else
+           end;
+
+           if (adresse=0) or (mdl=crois) then
            // croisement
            begin
+             if DebugTCO then AfficheDebug('croisement',clyellow);
              if (ancienX<x) and (ancienY=Y) then xn:=x+1;
              if (ancienX>x) and (ancienY=Y) then xn:=x-1;
              if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
              if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
            end;
-         end;
-       else 
+         end
+
+       else
+
        begin
          // fausse route, sortir
-         if DebugTCO then 
-         begin
+         if DebugTCO then
            AfficheDebug('Sortie de calcul route TCO par élement '+intToSTR(Bimage)+' inconnu en x='+intToSTR(x)+' y='+intToSTR(y)+' sur route '+intToSTR(det1)+' à '+intToSTR(det2),clOrange);
-           sortir:=true;
-         end;
-         //exit;
-       end;  
+         sortir:=true;
+       end;
     end;
     inc(i);
     if adresse=det2 then memTrouve:=true;
@@ -4883,7 +4895,7 @@ end;
 
 procedure TFormTCO.ButtonSimuClick(Sender: TObject);
 begin
-{  aiguillage[Index_Aig(1)].position:=const_devie;
+  aiguillage[Index_Aig(1)].position:=const_droit;
   aiguillage[Index_Aig(2)].position:=const_droit;
   aiguillage[Index_Aig(3)].position:=const_droit;
   aiguillage[Index_Aig(4)].position:=const_devie;
@@ -4893,15 +4905,17 @@ begin
   aiguillage[Index_Aig(20)].position:=const_droit;
   aiguillage[Index_Aig(21)].position:=const_droit;
   aiguillage[Index_Aig(26)].position:=const_droit;
-  aiguillage[Index_Aig(28)].position:=const_devie; }
+  aiguillage[Index_Aig(28)].position:=const_devie;
   index_couleur:=1;
+  aiguillage[Index_Aig(81)].position:=const_droit;
+  aiguillage[Index_Aig(82)].position:=const_droit;
   aiguillage[Index_Aig(120)].position:=const_droit;
   aiguillage[Index_Aig(119)].position:=const_droit;
   aiguillage[Index_Aig(116)].position:=const_droit;
   aiguillage[Index_Aig(117)].position:=const_devie;
+   
   
-  
-  zone_TCO(595,602,1);
+  zone_TCO(518,523,1);
 end;
 
 procedure TFormTCO.CheckPinvClick(Sender: TObject);

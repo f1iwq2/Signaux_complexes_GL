@@ -28,7 +28,6 @@ type
     CheckBoxEvtDetAig: TCheckBox;
     CheckBoxTraceLIste: TCheckBox;
     CheckTrame: TCheckBox;
-    CheckBoxAct: TCheckBox;
     CheckBoxAffFD: TCheckBox;
     CheckBoxAffDebDecSig: TCheckBox;
     GroupBox3: TGroupBox;
@@ -40,7 +39,7 @@ type
     ButtonDetSuiv: TButton;
     EditPrec: TEdit;
     EditActuel: TEdit;
-    Button1: TButton;
+    ButtonCP: TButton;
     Button2: TButton;
     RichDebug: TRichEdit;
     PopupMenuRD: TPopupMenu;
@@ -69,14 +68,13 @@ type
     procedure ButtonCopClick(Sender: TObject);
     procedure copier1Click(Sender: TObject);
     procedure ButtonRazLogClick(Sender: TObject);
-    procedure CheckBoxActClick(Sender: TObject);
     procedure CheckBoxEvtDetAigClick(Sender: TObject);
     procedure CheckBoxAffFDClick(Sender: TObject);
     procedure CheckBoxAffDebDecSigClick(Sender: TObject);
     procedure ButtonSigSuivClick(Sender: TObject);
     procedure ButtonDetSuivClick(Sender: TObject);
     procedure ButtonCanSuivSigClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure ButtonCPClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Copier2Click(Sender: TObject);
     procedure RichDebugChange(Sender: TObject);
@@ -98,9 +96,6 @@ type
     { Déclarations publiques }
   end;
 
-Const
-Max_Event_det_tick=30000;
-
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug : integer;
@@ -108,21 +103,10 @@ var
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
-  // tableau des évènements détecteurs et aiguillages
-  event_det_tick : array[0..Max_Event_det_tick] of
-     record
-       tick : longint;
-       detecteur : integer ;
-       Aiguillage : integer ;
-       actionneur : integer;
-       objet : integer;  // numéro d'objet dans CDM
-       etat : integer ; // état du détecteur de l'aiguillage ou de l'actionneur
-       traite : boolean;  // traité lors de a recherche d'une route
-     end;
+  
 
   
 procedure AfficheDebug(s : string;lacouleur : TColor);
-Procedure Raz_tout;
 procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
   
 implementation
@@ -148,21 +132,10 @@ begin
   begin
     Lines.add(s);
     RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
-  end;  
+  end;
 end;
 
-Procedure Raz_tout;
-var i : integer;
-begin
-  N_Event_tick:=0;
-  N_event_det:=0;
-  N_trains:=0;
-  Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
-  for i:=1 to Max_Trains do Event_det_Train[i].NbEl:=0;
-  i_simule:=0;
-  FormDebug.MemoEvtDet.Clear;
-  FormDebug.Richedit.Clear;
-end;
+
 
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
@@ -238,23 +211,27 @@ begin
 end;
 
 procedure TFormDebug.ButtonChercheClick(Sender: TObject);
-var i : integer;
+var ligne,l,position : integer;
+    s : string;
     trouve : boolean;
 begin
-
   with RichDebug do
   begin
-    i:=0;
+    ligne:=0;
+    l:=0;
     repeat
-      trouve:=pos('erreur',uppercase(Lines[i]))<>0;
-      inc(i);
-    until (i>=Lines.Count) or trouve;
+      s:=lowercase(Lines[ligne]);
+      l:=l+length(s)+2;
+      position:=pos('erreur',s);
+      trouve:=position<>0;
+      inc(ligne);
+    until (ligne>=Lines.Count) or trouve;
     if trouve then
     begin
-    Affiche('trouvé en '+intToSTR(i),clyellow);
-    SelStart := I - 1;
-    SelLength := Length('erreur');
-    SetFocus;
+      //Affiche('trouvé en '+intToSTR(ligne),clyellow);
+      SelStart:= l-length(s)+position-3;
+      SelLength:=6;
+      SetFocus;
     end;
   end;
 end;
@@ -262,6 +239,7 @@ end;
 procedure TFormDebug.ButtonAffEvtChronoClick(Sender: TObject);
 var i,j,etat : integer;
     s : string;
+    typ : Tequipement;
 begin
   RichDebug.Clear;
   if N_event_tick=0 then
@@ -276,20 +254,18 @@ begin
   begin
                      
     begin
-      j:=event_det_tick[i].detecteur;
+      j:=event_det_tick[i].adresse;
       etat:=event_det_tick[i].etat;
       if j<>-1 then
       begin
-        s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Det='+IntToSTR(j)+'='+intToSTR(etat);
+        s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick);
+        typ:=event_det_tick[i].modele;
+        if typ=det then s:=s+' Det=';
+        if typ=aig then s:=s+' Aig=';
+        if typ=act then s:=s+' Act=';
+        s:=s+IntToSTR(j)+'='+intToSTR(etat);
         AfficheDebug(s,clyellow);
       end;
-    end;
-
-    j:=event_det_tick[i].aiguillage;
-    if j<>-1 then
-    begin
-      s:=IntToSTR(i)+' Tick='+IntToSTR(event_det_tick[i].tick)+' Aig='+IntToSTR(j)+'='+intToSTR(event_det_tick[i].etat);
-      AfficheDebug(s,clyellow);
     end;
   end;
   AfficheDebug('-----------------------------',cllime);
@@ -322,11 +298,6 @@ end;
 procedure TFormDebug.ButtonRazLogClick(Sender: TObject);
 begin
   RichDebug.Clear;
-end;
-
-procedure TFormDebug.CheckBoxActClick(Sender: TObject);
-begin
-  AffActionneur:=CheckBoxAct.Checked;
 end;
 
 procedure TFormDebug.CheckBoxEvtDetAigClick(Sender: TObject);
@@ -388,7 +359,7 @@ end;
 
 
 
-procedure TFormDebug.Button1Click(Sender: TObject);
+procedure TFormDebug.ButtonCPClick(Sender: TObject);
 var Adr,erreur,ancdebug : integer ;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
