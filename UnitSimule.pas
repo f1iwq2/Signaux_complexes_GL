@@ -59,16 +59,16 @@ begin
       begin
         Delete(s,1,i+4);
         val(s,k,erreur);
-        if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+80 else   // démarre dans 8s
-          k:=Index_Simule+tick+80 ;
+        if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+30 else   // démarre dans 3s
+          k:=Index_Simule+tick+30 ;
         Tablo_simule[index_simule].tick:=k;
-       
+
         // détecteur?
         i:=pos('Det',s);
         if i<>0 then
         begin
           Delete(s,1,i+2);
-          if s[1]='=' then delete(s,1,1); 
+          if s[1]='=' then delete(s,1,1);
           if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
           Tablo_simule[index_simule].adresse:=k;

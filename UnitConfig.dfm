@@ -1578,7 +1578,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2122,7 +2122,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 8
         Width = 297
-        Height = 97
+        Height = 81
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
@@ -2130,15 +2130,14 @@ object FormConfig: TFormConfig
           '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet.'
           'Attention de COM1 '#224' 9 - Si le port de l'#39'interface USB>9, il '
           'faut le changer manuellement dans le gestionnaire des '
-          'p'#233'riph'#233'riques. '
-          'Mettre 0 si inutilis'#233'e. Le programme ne tentera pas de se '
-          'connecter '#224' la centrale si CDM rail est d'#233'tect'#233'.')
+          'p'#233'riph'#233'riques. Si COMX : Signaux complexes d'#233'tecte le'
+          'port automatiquement (mais le d'#233'marrage est plus long)')
         ReadOnly = True
         TabOrder = 3
       end
       object Memo2: TMemo
         Left = 312
-        Top = 112
+        Top = 96
         Width = 297
         Height = 97
         BevelInner = bvLowered
@@ -2157,7 +2156,7 @@ object FormConfig: TFormConfig
       end
       object Memo3: TMemo
         Left = 312
-        Top = 216
+        Top = 208
         Width = 297
         Height = 89
         BevelInner = bvLowered
@@ -2194,12 +2193,12 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 296
         Width = 297
-        Height = 89
-        Caption = 'Divers'
+        Height = 113
+        Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
         TabOrder = 7
         object Label32: TLabel
           Left = 14
-          Top = 66
+          Top = 50
           Width = 200
           Height = 13
           Caption = 'Temporisation de s'#233'quencement d'#39'init (ms)'
@@ -2218,11 +2217,19 @@ object FormConfig: TFormConfig
         end
         object EditTempoAig: TEdit
           Left = 224
-          Top = 62
+          Top = 46
           Width = 41
           Height = 21
           TabOrder = 1
           Text = 'EditTempoAig'
+        end
+        object CheckPosAig: TCheckBox
+          Left = 16
+          Top = 72
+          Width = 257
+          Height = 17
+          Caption = 'Demande positions des aiguillages '#224' la centrale'
+          TabOrder = 2
         end
       end
     end

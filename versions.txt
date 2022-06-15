@@ -108,6 +108,10 @@ version 4.1  : Intégration des croisements.
                Correction de quelques bugs.
 version 4.2  : Améliorations diverses.
                Traitement des rebonds des détecteurs.
+version 4.3  : Détection automatique du port COM de l'interface XpressNet par COMX.
+               Suppression du transitoire d'affichage du vert sur les signaux qui passent à l'avertissement.
+               Information sur la compatibilité windows 11 ajoutée à la documentation.
+
 
 
 

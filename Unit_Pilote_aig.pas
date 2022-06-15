@@ -70,6 +70,7 @@ begin
       LabelAdr1.Caption:='Adresse1: '+intToSTR(aiguille);
       aiguille2:=aiguillage[i].DDevie;
       LabelAdr2.Caption:='Adresse2: '+intToSTR(aiguille2);
+      s:=s+'/'+intToSTR(aiguille2);
       LabelAdr2.Visible:=true;
       LabelAdr1.Visible:=true;
       ButtonDev2.Visible:=true;

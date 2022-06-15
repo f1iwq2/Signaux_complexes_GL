@@ -2649,7 +2649,7 @@ begin
   TailleX:=ImageFeu.picture.BitMap.Width;
   TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
   PiedFeu:=TCO[x,y].PiedFeu;
-  
+
   // réduction variable en fonction de la taille des cellules. 50 est le Zoom Maxi
   calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
 
@@ -2799,7 +2799,7 @@ begin
   BImage:=tco[x,y].BImage;
   mode:=tco[x,y].mode;
   repr:=tco[x,y].repr;
-   
+
   Xorg:=(x-1)*LargeurCell;
   Yorg:=(y-1)*HauteurCell;
 
@@ -3566,9 +3566,9 @@ begin
 
     lire_fichier_tco;
     HauteurCell:=ImagePalette1.Height;
-    LargeurCell:=ImagePalette1.Width;                                                            
-    calcul_reduction(frxGlob,fryGlob,LargeurCell,HauteurCell,ZoomMax,ZoomMax);     
-    
+    LargeurCell:=ImagePalette1.Width;
+    calcul_reduction(frxGlob,fryGlob,LargeurCell,HauteurCell,ZoomMax,ZoomMax);
+
     // dessiner les icônes
     dessin_5(ImagePalette5.Canvas,1,1,0);  //posX,posY,état,position
     dessin_2(ImagePalette2.Canvas,1,1,0);
@@ -3616,11 +3616,11 @@ begin
       Transparent:=true;
       Picture.Bitmap:=Formprinc.Image9feux.Picture.Bitmap;
     end;
-  
+
     //Affiche_tco;
     TrackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
 
-    if MasqueBandeauTCO then 
+    if MasqueBandeauTCO then
     begin
       ButtonAfficheBandeau.visible:=true;
       BandeauMasque:=true;
@@ -3634,7 +3634,7 @@ begin
       ScrollBox.Height:=ClientHeight-Panel1.Height-40;
     end;
   end;
- 
+
 end;
 
 // evt qui se produit quand on clic droit dans l'image
@@ -3666,7 +3666,7 @@ end;
 procedure TFormTCO.FormKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
 begin
   exit;
-  //Entoure_cell(XclicCell,YclicCell);
+  Entoure_cell(XclicCell,YclicCell);
   case Key of
      VK_right : if XClicCell<NbreCellX then inc(XClicCell);
      VK_left  : if XClicCell>1 then dec(XClicCell);
@@ -3675,7 +3675,7 @@ begin
   end;
   LabelX.caption:=IntToSTR(XClicCell);  
   LabelY.caption:=IntToSTR(YClicCell);
-  //Entoure_cell(XclicCell,YclicCell);   
+  Entoure_cell(XclicCell,YclicCell);   
   EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
 end;
 
@@ -5244,6 +5244,7 @@ begin
     Affiche_TCO;
   end;  
 end;
+
 
 begin
 end.

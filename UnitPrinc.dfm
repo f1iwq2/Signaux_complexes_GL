@@ -1568,16 +1568,6 @@ object FormPrinc: TFormPrinc
       Height = 21
       TabOrder = 5
     end
-    object Button1: TButton
-      Left = 96
-      Top = 72
-      Width = 75
-      Height = 25
-      Caption = 'Button1'
-      TabOrder = 7
-      Visible = False
-      OnClick = Button1Click
-    end
   end
   object Timer1: TTimer
     Interval = 100
@@ -1673,9 +1663,9 @@ object FormPrinc: TFormPrinc
           Caption = 'Demander la version de la centrale'
           OnClick = Demanderlaversiondelacentrale1Click
         end
-        object Demandetatdesaiguillages1: TMenuItem
-          Caption = 'Demande '#233'tat des aiguillages'
-          OnClick = Demandetatdesaiguillages1Click
+        object Demandetataccessoires1: TMenuItem
+          Caption = 'Demande '#233'tat accessoires'
+          OnClick = Demandetataccessoires1Click
         end
         object RepriseDCC1: TMenuItem
           Caption = 'Reprise DCC'
@@ -1773,7 +1763,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object PopupMenuFeu: TPopupMenu
-    Left = 760
+    Left = 800
     Top = 144
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's'

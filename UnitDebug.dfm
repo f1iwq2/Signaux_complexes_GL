@@ -1,8 +1,8 @@
 object FormDebug: TFormDebug
-  Left = -8
-  Top = -8
-  Width = 1382
-  Height = 744
+  Left = 346
+  Top = 166
+  Width = 712
+  Height = 425
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -15,12 +15,12 @@ object FormDebug: TFormDebug
   Position = poMainFormCenter
   OnCreate = FormCreate
   DesignSize = (
-    1349
-    706)
+    687
+    394)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 1182
+    Left = 521
     Top = 4
     Width = 108
     Height = 13
@@ -36,7 +36,7 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 1014
+    Left = 353
     Top = 2
     Width = 131
     Height = 18
@@ -50,7 +50,7 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 1294
+    Left = 633
     Top = 2
     Width = 49
     Height = 21
@@ -66,7 +66,7 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 1110
+    Left = 449
     Top = 336
     Width = 239
     Height = 201
@@ -87,7 +87,7 @@ object FormDebug: TFormDebug
     OnChange = MemoEvtDetChange
   end
   object ButtonEcrLog: TButton
-    Left = 1006
+    Left = 345
     Top = 328
     Width = 97
     Height = 29
@@ -97,7 +97,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 1006
+    Left = 345
     Top = 360
     Width = 97
     Height = 33
@@ -108,7 +108,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 1006
+    Left = 345
     Top = 296
     Width = 97
     Height = 25
@@ -118,7 +118,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 1006
+    Left = 345
     Top = 256
     Width = 97
     Height = 33
@@ -129,7 +129,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 1006
+    Left = 345
     Top = 208
     Width = 97
     Height = 41
@@ -146,7 +146,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonCopClick
   end
   object RichEdit: TRichEdit
-    Left = 1110
+    Left = 449
     Top = 176
     Width = 239
     Height = 153
@@ -165,7 +165,7 @@ object FormDebug: TFormDebug
     OnChange = RichEditChange
   end
   object ButtonRazLog: TButton
-    Left = 1006
+    Left = 345
     Top = 400
     Width = 97
     Height = 33
@@ -176,7 +176,7 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 1004
+    Left = 343
     Top = 608
     Width = 345
     Height = 177
@@ -324,7 +324,7 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 1004
+    Left = 343
     Top = 20
     Width = 345
     Height = 149
@@ -498,8 +498,8 @@ object FormDebug: TFormDebug
   object RichDebug: TRichEdit
     Left = 0
     Top = 0
-    Width = 997
-    Height = 697
+    Width = 329
+    Height = 590
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'RichDebug')
@@ -510,7 +510,7 @@ object FormDebug: TFormDebug
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 1004
+    Left = 343
     Top = 544
     Width = 345
     Height = 57
@@ -577,7 +577,7 @@ object FormDebug: TFormDebug
     end
   end
   object ButtonRazTout: TButton
-    Left = 1007
+    Left = 346
     Top = 176
     Width = 97
     Height = 25

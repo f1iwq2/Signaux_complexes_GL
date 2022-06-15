@@ -255,6 +255,7 @@ type
     CheckBandeauTCO: TCheckBox;
     EditNbCantons: TEdit;
     Label44: TLabel;
+    CheckPosAig: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -373,6 +374,7 @@ nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
 retro_ch='retro';
 Init_aig_ch='Init_Aig';
+Init_dem_aig_ch='Init_Dem_Aig';
 LAY_ch='Lay';
 IPV4_INTERFACE_ch='IPV4_INTERFACE';
 PROTOCOLE_SERIE_ch='PROTOCOLE_SERIE';
@@ -1178,6 +1180,10 @@ begin
   if AvecInitAiguillages then s:='1' else s:='0';
   writeln(fichierN,Init_Aig_ch+'='+s);
 
+  // avec ou sans demande de la position des aiguillages en mode autonome
+  if AvecDemandeAiguillages then s:='1' else s:='0';
+  writeln(fichierN,Init_dem_aig_ch+'='+s);
+  
   // temporisation initialisation des aiguillages
   writeln(fichierN,Tempo_aig_ch+'=',IntToSTR(Tempo_aig));
 
@@ -1296,7 +1302,7 @@ var s,sa,chaine,SOrigine: string;
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
-    trouve_algo_uni,croi,trouve_Nb_cantons_Sig   : boolean;
+    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
@@ -1324,7 +1330,7 @@ var s,sa,chaine,SOrigine: string;
 
 procedure compile_signaux;
 begin
-  Affiche('Définition des signaux',clyellow);
+  //Affiche('Définition des signaux',clyellow);
   i:=1;Nligne:=1;
   NbreFeux:=0;
   repeat
@@ -1346,7 +1352,7 @@ begin
   Nligne:=1;
   i_detect:=1;
   i:=1;
-  Affiche('Définition des branches',clyellow);
+  //Affiche('Définition des branches',clyellow);
 
   repeat
     s:=lit_ligne;
@@ -1384,7 +1390,7 @@ begin
     Tablo_actionneur[i].son:=false;
   end;
 
-  Affiche('Définition des actionneurs/détecteurs',clyellow);
+  //Affiche('Définition des actionneurs/détecteurs',clyellow);
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
 
@@ -1596,7 +1602,7 @@ end;
   
 procedure compile_aiguillages;
 begin
-  Affiche('Définition des aiguillages',clyellow);
+  //Affiche('Définition des aiguillages',clyellow);
   maxaiguillage:=0;
   Nligne:=1;
   repeat
@@ -1967,7 +1973,19 @@ begin
       delete(s,i,length(sa));
       AvecInitAiguillages:=s='1';
     end;
+    
 
+    // avec demande de position des aiguillages en mode autonome au démarrage
+    sa:=uppercase(Init_dem_aig_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      trouve_dem_aig:=true;
+      inc(nv);
+      delete(s,i,length(sa));
+      AvecDemandeAiguillages:=s='1';
+    end;
+    
     // taille de la fenetre
     sa:=uppercase(fenetre_ch)+'=';
     i:=pos(sa,s);
@@ -2186,6 +2204,7 @@ begin
   trouve_retro:=false;
   trouve_sec_init:=false;
   trouve_init_aig:=false;
+  trouve_dem_aig:=false;
   trouve_tempo_aig:=false;
   trouve_tempo_feu:=false;
   trouve_INTER_CAR:=false;
@@ -2272,6 +2291,7 @@ begin
   if not(trouve_tempo_aig) then s:=tempo_aig_ch;
   if not(trouve_Algo_Uni) then s:=Algo_unisemaf_ch;
   if not(trouve_Nb_cantons_Sig) then s:=Nb_cantons_Sig_ch;
+  if not(trouve_dem_aig) then s:=Init_dem_aig_ch;
   if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
@@ -2449,6 +2469,7 @@ begin
     Srvc_Sig:=CheckBoxSrvSig.checked;
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
+    AvecDemandeAiguillages:=checkPosAig.checked;
   end;
   if change_srv then services_CDM;
   verifie_panneau_config:=ok;
@@ -2462,15 +2483,6 @@ begin
   begin
     Sauve_config;
     formConfig.close;  // si la config est ok, on ferme la fenetre
-  end;
-
-  // TCO
-  if avectco and not(entreeTCO) then
-  begin
-    //créée la fenêtre TCO non modale
-    FormTCO:=TformTCO.Create(nil);
-    FormTCO.show;
-    FormPrinc.ButtonAffTCO.Visible:=true;
   end;
 end;
 
@@ -2603,6 +2615,7 @@ begin
   CheckServPosTrains.checked:=Srvc_PosTrain;
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
+  CheckPosAig.checked:=AvecDemandeAiguillages;
 
   clicListe:=true;  // empeche le traitement de l'evt text
   EditDroit_BD.Text:='';
@@ -7621,6 +7634,8 @@ begin
 end;
 
 begin
+
+
 end.
 
 
