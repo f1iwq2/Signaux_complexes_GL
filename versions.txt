@@ -111,6 +111,10 @@ version 4.2  : Améliorations diverses.
 version 4.3  : Détection automatique du port COM de l'interface XpressNet par COMX.
                Suppression du transitoire d'affichage du vert sur les signaux qui passent à l'avertissement.
                Information sur la compatibilité windows 11 ajoutée à la documentation.
+version 4.4  : Possibilité d'avoir un champ vide dans le LAY, ce qui ouvre CDM avec le dernier LAY pour les
+               problèmes d'ouverture avec W10 et W11.
+               Les passages à niveaux peut être commandés par des zones de détection.
+               Code source modifié pour être compilable avec Rad Studio 11.
 
 
 

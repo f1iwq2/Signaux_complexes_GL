@@ -215,6 +215,7 @@ var ligne,l,position : integer;
     s : string;
     trouve : boolean;
 begin
+  // faire avec 
   with RichDebug do
   begin
     ligne:=0;

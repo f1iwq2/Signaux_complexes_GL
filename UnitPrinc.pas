@@ -3,7 +3,7 @@ Unit UnitPrinc;
   programme signaux complexes Graphique Lenz
   delphi 7 + activeX Tmscomm + clientSocket
  ********************************************
- 15/6/2022 15h
+ 19/6/2022 21h
  note sur le pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
@@ -325,7 +325,7 @@ var
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
-  Srvc_PosTrain,Srvc_Sig,debugtrames,
+  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages : boolean;
@@ -406,6 +406,7 @@ var
     NbVoies       : integer;  // Nombre de voies du PN
     Voie : array [1..10] of record
              ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et  l'ouverture
+             detZ1F,detZ2F,detZ1O,detZ2O : integer; // Zones de détection
              PresTrain : boolean; // mémoire de présence de train sur la voie
            end;
   end;
@@ -6018,8 +6019,10 @@ begin
           end;
           // mettre à jour le feu de det3 pour le passer au rouge de suite
           j:=signal_detecteur(det3);
-          Maj_Feu(j);
+          if j<>0 then Maj_Feu(j);
+          // Maj des autres feux (pour l'avertissement)
           Maj_feux;
+          // pour le jaune cli
           Maj_feux;
           exit; // sortir absolument
         end;
@@ -6142,7 +6145,6 @@ begin
       AfficheDebug(intToSTR(event_det_train[N_Trains].det[1]),clyellow);
       AfficheDebug(intToSTR(event_det_train[N_Trains].det[2]),clyellow);
     end;  
-    
   end
   else
   begin
@@ -6207,15 +6209,15 @@ begin
 end;
 
 
-// traitement des évènements actionneurs
+// traitement des évènements actionneurs (detecteurs aussi)
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var i,v,va,etatAct,Af,Ao,Access,sortie : integer;
+var i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
     presTrain_PN,adresseOk : boolean;
     Ts : TAccessoire;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
-  if AffAigDet then AfficheDebug('Act/Det '+intToSTR(Adr)+'='+intToSTR(etat),clyellow);
+  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+' '+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
   //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
   for i:=1 to maxTablo_act do
   begin
@@ -6276,33 +6278,76 @@ begin
   // dans le tableau des PN
   for i:=1 to NbrePN do
   begin
-    for v:=1 to Tablo_PN[i].nbvoies do
+    if Tablo_PN[i].voie[1].actOuvre<>0 then
     begin
-      aO:=Tablo_PN[i].voie[v].actOuvre;
-      aF:=Tablo_PN[i].voie[v].actFerme;
-
-      if (aO=adr) and (etat=0) then  // actionneur d'ouverture
+      // PN par actionneur
+      for v:=1 to Tablo_PN[i].nbvoies do
       begin
-        Tablo_PN[i].voie[v].PresTrain:=false;
-        // vérifier les présences train sur les autres voies du PN
-        presTrain_PN:=false;
-        for va:=1 to Tablo_PN[i].nbvoies do
-        begin
-          presTrain_PN:=presTrain_PN or Tablo_PN[i].voie[va].PresTrain;
-        end;
-        if not(presTrain_PN) then
-        begin
-          Affiche('Ouverture PN'+intToSTR(i),clOrange);
-          pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,AigP);
-        end;
-      end;
+        
+        aF:=Tablo_PN[i].voie[v].actFerme;
 
-      if (aF=adr) and (etat=1) then  // actionneur de fermeture
+        if (aO=adr) and (etat=0) then  // actionneur d'ouverture
+        begin
+          Tablo_PN[i].voie[v].PresTrain:=false;
+          // vérifier les présences train sur les autres voies du PN
+          presTrain_PN:=false;
+          for va:=1 to Tablo_PN[i].nbvoies do
+          begin
+            presTrain_PN:=presTrain_PN or Tablo_PN[i].voie[va].PresTrain;
+          end;
+          if not(presTrain_PN) then
+          begin
+            Affiche('Ouverture PN'+intToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')',clOrange);
+            pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,AigP);
+          end;
+        end;
+     
+        if (aF=adr) and (etat=1) then  // actionneur de fermeture
+        begin
+          Tablo_PN[i].voie[v].PresTrain:=true;
+          s:='Fermeture PN'+IntToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')';
+          Affiche(s,clOrange);
+          pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,AigP);
+        end;
+      end
+    end
+    else
+    begin
+      // PN par zone de détection
+      //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
+      for v:=1 to Tablo_PN[i].nbvoies do
       begin
-        Tablo_PN[i].voie[v].PresTrain:=true;
-        Affiche('Fermeture PN'+IntToSTR(i)+' (train voie '+IntToSTR(v)+')',clOrange);
-        pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,AigP);
-      end;
+        dZ1F:=Tablo_PN[i].voie[v].detZ1F;
+        dZ2F:=Tablo_PN[i].voie[v].detZ2F;
+        dZ1O:=Tablo_PN[i].voie[v].detZ1O;
+        dZ2O:=Tablo_PN[i].voie[v].detZ2O;
+        if (dZ1O=adr) and (dZ2O=adr2) and (etat=0) then  // zone d'ouverture
+        begin
+          Tablo_PN[i].voie[v].PresTrain:=false;
+          // vérifier les présences train sur les autres voies du PN
+          presTrain_PN:=false;
+          for va:=1 to Tablo_PN[i].nbvoies do
+          begin
+            presTrain_PN:=presTrain_PN or Tablo_PN[i].voie[va].PresTrain;
+          end;
+          if not(presTrain_PN) then
+          begin
+            s:='Ouverture PN'+intToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2);
+            Affiche(s,clorange);
+            //if AffAigDet then AfficheDebug(s,clorange);
+            pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,AigP);
+          end;
+        end;
+
+        if (dZ1F=adr) and (dZ2F=adr2) and (etat=1) then  // zone de fermeture
+        begin
+          Tablo_PN[i].voie[v].PresTrain:=true;
+          s:='Fermeture PN'+IntToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2)+' (train voie '+IntToSTR(v)+')';
+          affiche(s,clorange);
+          //if AffAigDet then AfficheDebug(s,clorange);
+          pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,AigP);
+        end; 
+      end; 
     end;
   end;
 end;
@@ -7270,12 +7315,14 @@ begin
     deconnecte_USB;
     connecte_CDM;
     exit;
-  end;
+  end;        
 
+  if lay<>'' then s:='-f '+lay else s:='';
+  
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
   if ShellExecute(Formprinc.Handle,'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
-                    Pchar('-f '+lay),  // paramètre
+                    Pchar(s),  // paramètre
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
                     ,SW_SHOWNORMAL)>32 then
                     begin
@@ -7288,7 +7335,7 @@ begin
     // si çà marche pas essayer depuis le répertoire de base sur un OS32
     if ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files\CDM-Rail\cdr.exe'),
-                    Pchar('-f '+lay),  // paramètre
+                    Pchar(s),  // paramètre
                     PChar('C:\Program Files\CDM-Rail\')  // répertoire
                     ,SW_SHOWNORMAL)<=32 then
     begin
@@ -7330,6 +7377,7 @@ begin
 
     KeybdInput(VK_RETURN,0);
     KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+
     SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  //fermer la fenetre
     Sleep(500);
 
@@ -7564,6 +7612,7 @@ begin
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
   Affiche_memoire;
+  DoubleBuffered:=true;
 
  { 
     aiguillage[index_aig(1)].position:=const_droit;
@@ -8961,12 +9010,25 @@ begin
     s:=s+'        Commande ouverture='+intToSTR(Tablo_PN[i].commandeOuvre);
     s:=s+'        Nbre de voies='+intToSTR(Tablo_PN[i].nbVoies);
     Affiche(s,clyellow);
-    for v:=1 to Tablo_PN[i].nbvoies do
+
+    if tablo_PN[i].Voie[1].ActFerme<>0 then
+    // par actionneur
     begin
-      s:='                Voie '+IntToSTR(v)+': Actionneur de fermeture='+intToSTR(Tablo_PN[i].voie[v].ActFerme);
-      s:=s+' Actionneur d''ouverture='+intToSTR(Tablo_PN[i].voie[v].ActOuvre);
-      Affiche(s,clyellow);
-    end;
+      for v:=1 to Tablo_PN[i].nbvoies do
+      begin
+        s:='                Voie '+IntToSTR(v)+': Actionneur de fermeture='+intToSTR(Tablo_PN[i].voie[v].ActFerme);
+        s:=s+' Actionneur d''ouverture='+intToSTR(Tablo_PN[i].voie[v].ActOuvre);
+        Affiche(s,clyellow); 
+      end;
+    end
+    else
+    // par zone de détection
+      for v:=1 to Tablo_PN[i].nbvoies do
+      begin
+        s:='                Voie '+IntToSTR(v)+': Zones de fermeture='+intToSTR(tablo_PN[i].Voie[v].detZ1F)+'-'+intToSTR(tablo_PN[i].Voie[v].detZ2F);
+        s:=s+'  Zones d''ouverture='+intToSTR(tablo_PN[i].Voie[v].detZ1O)+'-'+intToSTR(tablo_PN[i].Voie[v].detZ2O);
+        Affiche(s,clyellow); 
+      end;
   end;
 end;
 
@@ -9145,7 +9207,7 @@ end;
 // cliqué gauche dans la fenetre Fenrich
 procedure TFormPrinc.FenRichMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var lc : integer;
+var lc,i : integer;
     s : string;
 begin
   if Tdoubleclic=0 then doubleclic:=false;
@@ -9162,7 +9224,8 @@ begin
     TdoubleClic:=0;
     with FenRich do
     begin
-      lc:=Perform(EM_LINEFROMCHAR,-1,0);
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);
       s:=lines[lc];
     end;
     if pos('http',s)<>0 then

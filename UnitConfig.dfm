@@ -1554,10 +1554,11 @@ object FormConfig: TFormConfig
     WordWrap = True
   end
   object ButtonAppliquerEtFermer: TButton
-    Left = 384
+    Left = 240
     Top = 512
     Width = 201
     Height = 25
+    Hint = 'Enregistre la configuration et ferme la fen'#234'tre'
     Caption = 'Enregistre la configuration et Fermer'
     ParentShowHint = False
     ShowHint = True
@@ -1565,11 +1566,14 @@ object FormConfig: TFormConfig
     OnClick = ButtonAppliquerEtFermerClick
   end
   object Button2: TButton
-    Left = 24
+    Left = 8
     Top = 512
     Width = 201
     Height = 25
+    Hint = 'Ferme la fen'#234'tre sans enregistrer la configuration'
     Caption = 'Fermer sans enregistrer la configuration'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 1
     OnClick = Button2Click
   end
@@ -1578,7 +1582,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1956,7 +1960,6 @@ object FormConfig: TFormConfig
           Width = 25
           Height = 21
           ParentShowHint = False
-          ReadOnly = True
           ShowHint = False
           TabOrder = 1
         end
@@ -3195,8 +3198,8 @@ object FormConfig: TFormConfig
           'ur afficher la description de l'#39'action'
       end
       object GroupBox13: TGroupBox
-        Left = 360
-        Top = 32
+        Left = 352
+        Top = 40
         Width = 257
         Height = 433
         Caption = 'Description de l'#39'actionneur '
@@ -3215,8 +3218,11 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 16
           Width = 225
-          Height = 321
+          Height = 345
+          Hint = 'D'#233'tecteur 1 zone de fermeture'
           Caption = 'Actionneurs gestion passage '#224' niveau'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 2
           object Label21: TLabel
             Left = 8
@@ -3265,6 +3271,54 @@ object FormConfig: TFormConfig
             Width = 30
             Height = 13
             Caption = 'Voie 4'
+          end
+          object Label45: TLabel
+            Left = 64
+            Top = 216
+            Width = 54
+            Height = 13
+            Caption = 'Zone ferme'
+          end
+          object Label46: TLabel
+            Left = 152
+            Top = 216
+            Width = 55
+            Height = 13
+            Caption = 'Zone ouvre'
+          end
+          object Label47: TLabel
+            Left = 8
+            Top = 244
+            Width = 30
+            Height = 13
+            Caption = 'Voie 1'
+          end
+          object Label48: TLabel
+            Left = 8
+            Top = 268
+            Width = 30
+            Height = 13
+            Caption = 'Voie 2'
+          end
+          object Label49: TLabel
+            Left = 8
+            Top = 292
+            Width = 30
+            Height = 13
+            Caption = 'Voie 3'
+          end
+          object Label50: TLabel
+            Left = 8
+            Top = 316
+            Width = 30
+            Height = 13
+            Caption = 'Voie 4'
+          end
+          object Shape2: TShape
+            Left = 64
+            Top = 233
+            Width = 150
+            Height = 2
           end
           object EditAdrFerme: TEdit
             Left = 120
@@ -3378,10 +3432,150 @@ object FormConfig: TFormConfig
             TabOrder = 13
             OnChange = EditV4OChange
           end
+          object EditZdet1V1F: TEdit
+            Left = 64
+            Top = 240
+            Width = 33
+            Height = 21
+            TabOrder = 14
+            OnChange = EditZdet1V1FChange
+          end
+          object EditZdet1V1O: TEdit
+            Left = 152
+            Top = 240
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
+            TabOrder = 15
+            OnChange = EditZdet1V1OChange
+          end
+          object EditZdet2V1F: TEdit
+            Left = 96
+            Top = 240
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone de fermeture'
+            TabOrder = 16
+            OnChange = EditZdet2V1FChange
+          end
+          object EditZdet2V1O: TEdit
+            Left = 184
+            Top = 240
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
+            TabOrder = 17
+            OnChange = EditZdet2V1OChange
+          end
+          object EditZdet1V2F: TEdit
+            Left = 64
+            Top = 264
+            Width = 33
+            Height = 21
+            TabOrder = 18
+            OnChange = EditZdet1V2FChange
+          end
+          object EditZdet2V2F: TEdit
+            Left = 96
+            Top = 264
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone de fermeture'
+            TabOrder = 19
+            OnChange = EditZdet2V2FChange
+          end
+          object EditZdet1V2O: TEdit
+            Left = 152
+            Top = 264
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
+            TabOrder = 20
+            OnChange = EditZdet1V2OChange
+          end
+          object EditZdet2V2O: TEdit
+            Left = 184
+            Top = 264
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
+            TabOrder = 21
+            OnChange = EditZdet2V2OChange
+          end
+          object EditZdet1V3F: TEdit
+            Left = 64
+            Top = 288
+            Width = 33
+            Height = 21
+            TabOrder = 22
+            OnChange = EditZdet1V3FChange
+          end
+          object EditZdet2V3F: TEdit
+            Left = 96
+            Top = 288
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone de fermeture'
+            TabOrder = 23
+            OnChange = EditZdet2V3FChange
+          end
+          object EditZdet1V3O: TEdit
+            Left = 152
+            Top = 288
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
+            TabOrder = 24
+            OnChange = EditZdet1V3OChange
+          end
+          object EditZdet2V3O: TEdit
+            Left = 184
+            Top = 288
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
+            TabOrder = 25
+            OnChange = EditZdet2V3OChange
+          end
+          object EditZdet1V4F: TEdit
+            Left = 64
+            Top = 312
+            Width = 33
+            Height = 21
+            TabOrder = 26
+            OnChange = EditZdet1V4FChange
+          end
+          object EditZdet2V4F: TEdit
+            Left = 96
+            Top = 312
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone de fermeture'
+            TabOrder = 27
+            OnChange = EditZdet2V4FChange
+          end
+          object EditZdet1V4O: TEdit
+            Left = 152
+            Top = 312
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
+            TabOrder = 28
+            OnChange = EditZdet1V4OChange
+          end
+          object EditZdet2V4O: TEdit
+            Left = 184
+            Top = 312
+            Width = 33
+            Height = 21
+            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
+            TabOrder = 29
+            OnChange = EditZdet2V4OChange
+          end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 16
-          Top = 16
+          Left = 168
+          Top = 24
           Width = 225
           Height = 73
           Caption = 'Type d'#39'actionneur '
@@ -3415,8 +3609,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 16
-          Top = 92
+          Left = 112
+          Top = 12
           Width = 225
           Height = 293
           Caption = 'Actionneur fonction de locomotive '
@@ -3816,8 +4010,20 @@ object FormConfig: TFormConfig
       end
     end
   end
+  object ButtonEnregistre: TButton
+    Left = 472
+    Top = 512
+    Width = 169
+    Height = 25
+    Hint = 'Enregistre la configuration sans fermer la fen'#234'tre'
+    Caption = 'Enregistre la configuration'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+    OnClick = ButtonEnregistreClick
+  end
   object OpenDialogSon: TOpenDialog
-    Left = 604
-    Top = 508
+    Left = 668
+    Top = 468
   end
 end

@@ -3590,7 +3590,7 @@ begin
     dessin_18(ImagePalette18.canvas,1,1,0);
     dessin_19(ImagePalette19.canvas,1,1,0);
     dessin_20(ImagePalette20.canvas,1,1,0);
-    dessin_21(ImagePalette21.canvas,1,1,0,);
+    dessin_21(ImagePalette21.canvas,1,1,0); 
     dessin_22(ImagePalette22.canvas,1,1,0);
     dessin_23(ImagePalette23.canvas,1,1,0);
 

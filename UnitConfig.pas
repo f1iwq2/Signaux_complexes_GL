@@ -256,6 +256,30 @@ type
     EditNbCantons: TEdit;
     Label44: TLabel;
     CheckPosAig: TCheckBox;
+    ButtonEnregistre: TButton;
+    Label45: TLabel;
+    Label46: TLabel;
+    Label47: TLabel;
+    Label48: TLabel;
+    Label49: TLabel;
+    Label50: TLabel;
+    Shape2: TShape;
+    EditZdet1V1F: TEdit;
+    EditZdet1V1O: TEdit;
+    EditZdet2V1F: TEdit;
+    EditZdet2V1O: TEdit;
+    EditZdet1V2F: TEdit;
+    EditZdet2V2F: TEdit;
+    EditZdet1V2O: TEdit;
+    EditZdet2V2O: TEdit;
+    EditZdet1V3F: TEdit;
+    EditZdet2V3F: TEdit;
+    EditZdet1V3O: TEdit;
+    EditZdet2V3O: TEdit;
+    EditZdet1V4F: TEdit;
+    EditZdet2V4F: TEdit;
+    EditZdet1V4O: TEdit;
+    EditZdet2V4O: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -361,6 +385,23 @@ type
       Shift: TShiftState);
     procedure RichSigKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ButtonEnregistreClick(Sender: TObject);
+    procedure EditZdet1V1FChange(Sender: TObject);
+    procedure EditZdet2V1FChange(Sender: TObject);
+    procedure EditZdet1V1OChange(Sender: TObject);
+    procedure EditZdet2V1OChange(Sender: TObject);
+    procedure EditZdet1V2FChange(Sender: TObject);
+    procedure EditZdet2V2FChange(Sender: TObject);
+    procedure EditZdet1V2OChange(Sender: TObject);
+    procedure EditZdet2V2OChange(Sender: TObject);
+    procedure EditZdet1V3FChange(Sender: TObject);
+    procedure EditZdet2V3FChange(Sender: TObject);
+    procedure EditZdet1V3OChange(Sender: TObject);
+    procedure EditZdet2V3OChange(Sender: TObject);
+    procedure EditZdet1V4FChange(Sender: TObject);
+    procedure EditZdet2V4FChange(Sender: TObject);
+    procedure EditZdet1V4OChange(Sender: TObject);
+    procedure EditZdet2V4OChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -408,7 +449,8 @@ var
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM : integer;
-  ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes,confasauver : boolean;
+  ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes,confasauver,
+  modif_branches : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -890,7 +932,8 @@ begin
                 if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
                 delete(s,1,1);
                 val(s,adr,erreur);  // adresse
-                c:=s[erreur];       // type
+                c:=#0;
+                if erreur<>0 then c:=s[erreur];       // type
                 setlength(feux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
                 feux[i].AigDirection[k][j].PosAig:=c;
                 feux[i].AigDirection[k][j].Adresse:=adr;
@@ -1125,11 +1168,29 @@ begin
   begin
     NbVoies:=Tablo_PN[i].NbVoies;
     s:='';
-    for voie:=1 to NbVoies do
+    
+    // par actionneur
+    if tablo_PN[i].Voie[1].ActFerme<>0 then
     begin
-      s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].ActFerme)+','+intToSTR(tablo_PN[i].Voie[voie].ActOuvre)+')';
-      if voie<NbVoies then s:=s+',';
+      for voie:=1 to NbVoies do
+      begin
+        s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].ActFerme)+','+intToSTR(tablo_PN[i].Voie[voie].ActOuvre)+')';
+        if voie<NbVoies then s:=s+',';
+      end;
+    end  
+
+    else
+    // par détecteur 
+    begin
+      s:='';
+      for voie:=1 to NbVoies do
+      begin
+        s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].detZ1F)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2F)+','+intToSTR(tablo_PN[i].Voie[voie].detZ1O)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2O)+')';
+        if voie<NbVoies then s:=s+',';
+      end;
+    
     end;
+    
     s:=s+',PN('+IntToSTR(tablo_PN[i].AdresseFerme);
        if tablo_PN[i].commandeFerme=2 then s:=s+'+,' else s:=s+'-,';
     s:=s+IntToSTR(tablo_PN[i].AdresseOuvre);
@@ -1422,7 +1483,8 @@ begin
         Tablo_actionneur[maxtablo_act].typActMemZone:=0;  // type actionneur
         val(sa,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
-        Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z';
+        if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z' 
+        else Affiche('Erreur actionneur '+sOrigine,clred);
         delete(sa,1,erreur);
         s:=sa;
       end;
@@ -1561,18 +1623,41 @@ begin
       NbreVoies:=0;
       repeat
         inc(NbreVoies);
-        //Affiche('NbreVoies='+intToSTR(NbreVoies),clyellow);
-        //SetLength(Tablo_PN[1].Voie,1);
         Delete(s,1,1); // supprime (
-        val(s,j,erreur);
+        // déterminer si il y a un - avant le )
+        j:=pos(')',s);
+        i:=pos('-',s);
+        if (i<j) and (i<>0) then
+        begin
+          // zone de détection
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].detZ1F:=j;
+          delete(s,1,erreur);
 
-        Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].detZ2F:=j;
+          delete(s,1,erreur);
 
-        //  Affiche('Ferme='+intToSTR(j),clyellow);
-        i:=pos(',',s);Delete(S,1,i);
-        val(s,j,erreur);
-        Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
-        //  Affiche('Ouvre='+intToSTR(j),clyellow);
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].detZ1O:=j;
+          delete(s,1,erreur);
+
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].detZ2O:=j;
+        end
+        else
+        begin
+          // actionneurs
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
+          //  Affiche('Ferme='+intToSTR(j),clyellow);
+          i:=pos(',',s);
+          Delete(S,1,i);
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
+          //  Affiche('Ouvre='+intToSTR(j),clyellow);
+        end;
+        
         i:=pos(')',s);Delete(S,1,i);
         i:=pos(',',s);Delete(S,1,i);
         Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
@@ -1802,7 +1887,8 @@ begin
           delete(enregistrement,1,1);
           Val(enregistrement,adr,erreur);
           aiguillage[maxaiguillage].tjsInt:=adr;
-          c:=enregistrement[erreur];
+          c:=#0;
+          if erreur<>0 then c:=enregistrement[erreur];
           if ((c<>'S') and (c<>'D')) then 
           begin
             c:=' ';Affiche('Erreur paramètre L '+sOrigine,clred);
@@ -3454,25 +3540,60 @@ begin
       EditCmdFerme.text:=s;
       if Tablo_PN[i].CommandeOuvre=2 then s:='+' else s:='-';
       EditCdeOuvre.text:=s;
-      EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
-      EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
-      v:=Tablo_PN[i].nbvoies;
-      if v>=2 then
+
+      // par actionneur
+      if Tablo_PN[i].voie[1].ActFerme<>0 then
       begin
-        EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
-        EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
-      end;
-      if v>=3 then
+        EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
+        EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
+        v:=Tablo_PN[i].nbvoies;
+        if v>=2 then
+        begin
+          EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
+          EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
+        end;
+        if v>=3 then
+        begin
+          EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
+          EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
+        end;
+        if v>=4 then
+        begin
+          EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
+          EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
+        end;
+      end
+      else
       begin
-        EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
-        EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
+        // par zone de détecteurs
+        v:=Tablo_PN[i].nbvoies;
+        EditZdet1V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ1F);
+        EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
+        EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
+        EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
+        if v>=2 then
+        begin
+          EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
+          EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
+          EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
+          EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
+        end;
+        if v>=3 then
+        begin
+          EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
+          EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
+          EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
+          EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
+        end;  
+        if v>=4 then
+        begin
+          EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
+          EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
+          EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
+          EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
+        end;
       end;
-      if v>=4 then
-      begin
-        EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
-        EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
-      end;
-    end;
+    end;  
   end
 end;
   
@@ -3532,10 +3653,11 @@ begin
   raz_champs_aig;
   ComboBoxAig.ItemIndex:=-1;
   formconfig.ComboBoxDD.ItemIndex:=-1;
-   
+ 
   with Formconfig.RichAig do
   begin
-    lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    i:=Selstart;
+    lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     s:=Uppercase(Lines[lc]);   // ligne cliquée
     if s='' then 
@@ -4024,21 +4146,22 @@ end;
 
 // cliqué sur liste feux
 procedure TFormConfig.RichSigMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var lc : integer;
+var lc,i : integer;
 begin
   clicliste:=true;
   raz_champs_sig;
   
   with Formconfig.RichSig do
   begin
-    lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    i:=Selstart;
+    lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     clicListeFeu(feux[lc+1].adresse);
   end;  
 
 end;
 
-procedure Det1;
+procedure TFormConfig.EditDet1Change(Sender: TObject);
 var s : string;
     i,erreur : integer;
 begin
@@ -4058,11 +4181,6 @@ begin
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
   end;
-end;
-
-procedure TFormConfig.EditDet1Change(Sender: TObject);
-begin
-  Det1;
 end;
 
 procedure TFormConfig.EditTempoFeuChange(Sender: TObject);
@@ -4441,14 +4559,15 @@ end;
 
 procedure TFormConfig.RichActMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var ligne : integer;
+var ligne,i : integer;
 begin
   clicliste:=true;
   LabelInfo.caption:='';
   raz_champs_act;
   with RichAct do
   begin
-    ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    i:=Selstart;
+    ligne:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     if ligne<maxTablo_act then 
     begin
       if AncligneClicAct<>-1 then RE_ColorLine(RichAct,AncligneClicAct,ClAqua);    
@@ -4953,7 +5072,7 @@ end;
 
 procedure TFormConfig.RichPNMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var  ligne : integer;
+var i,ligne : integer;
 begin
   clicliste:=true;
   LabelInfo.caption:='';
@@ -4961,11 +5080,21 @@ begin
   editV2F.Text:='';editV2O.Text:='';
   editV3F.Text:='';editV3O.Text:='';
   editV4F.Text:='';editV4O.Text:='';
+  EditZdet1V1F.text:='';EditZdet2V1F.text:='';
+  EditZdet1V1O.text:='';EditZdet2V1O.text:='';
+  EditZdet1V2F.text:='';EditZdet2V2F.text:='';
+  EditZdet1V2O.text:='';EditZdet2V2O.text:='';
+  EditZdet1V3F.text:='';EditZdet2V3F.text:='';
+  EditZdet1V3O.text:='';EditZdet2V3O.text:='';
+  EditZdet1V4F.text:='';EditZdet2V4F.text:='';
+  EditZdet1V4O.text:='';EditZdet2V4O.text:='';
+        
   editAdrFerme.Text:='';EditCmdFerme.text:='';
   editAdrOuvre.Text:='';EditCdeOuvre.text:='';
   with RichPN do
   begin
-    ligne:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    i:=Selstart;
+    ligne:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     if ligne<nbrePN then
     begin
       if AncLigneCliqueePN<>-1 then RE_ColorLine(RichPN,AncligneCliqueePN,ClAqua);    
@@ -6954,6 +7083,7 @@ begin
   begin 
     labelResult.Caption:='Syntaxe correcte';
     config_modifie:=true;
+    modif_branches:=false;
   end  
     else labelResult.Caption:='Erreur de syntaxe';
 end;
@@ -7084,14 +7214,15 @@ end;
 
 procedure TFormConfig.RichBrancheMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var curseur,lc : integer;
+var i,curseur,lc : integer;
 begin
   if clicListe then exit;
   clicListe:=true;
   if affevt then affiche('Evt RichBranche clic',clyellow);
   with Formconfig.RichBranche do
   begin
-    lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+    i:=Selstart;
+    lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     if lines[lc]<>'' then LabelNumBranche.Caption:='Branche n°'+intToSTR(lc+1) else LabelNumBranche.Caption:='';
     AncligneClicBr:=ligneClicBr;
     ligneClicBr:=lc;
@@ -7131,7 +7262,8 @@ begin
   if (ligneClicSig<0) or clicListe then exit;
   
   if affevt then affiche('Evt MemoCarre change',clyellow);
-  clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,-1,0);     // numéro de la ligne du curseur
+  j:=MemoCarre.Selstart;
+  clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,j,0);     // numéro de la ligne du curseur
   aspect:=feux[ligneClicSig+1].aspect;
   dir:=aspect>10;
 
@@ -7169,7 +7301,8 @@ begin
         delete(s,1,1);
         val(s,adr,erreur);  // adresse
         if adr=0 then exit;
-        c:=s[erreur];       // S ou D
+        c:=#0;
+        if erreur<>0 then c:=s[erreur];       // S ou D
         if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
         setlength(feux[ligneClicSig+1].AigDirection[ligne],j+1);  // augmenter le tableau dynamique
         feux[ligneClicSig+1].AigDirection[ligne][j].PosAig:=c;
@@ -7200,7 +7333,8 @@ begin
         delete(s,1,1);
         val(s,adr,erreur);  // adresse
         if adr=0 then exit;
-        c:=s[erreur];       // S ou D
+        c:=#0;
+        if erreur<>0 then c:=s[erreur];       // S ou D
         if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
         setlength(feux[ligneClicSig+1].condCarre[ligne],j+1);  
         feux[ligneClicSig+1].condCarre[ligne][j].PosAig:=c;
@@ -7381,6 +7515,7 @@ begin
     s:=EditL.Text;
     if s='' then exit;
     val(s,i,erreur);
+    if erreur<>0 then
     if (s[erreur]<>'S') and (s[erreur]<>'D') then
     begin
       LabelInfo.caption:='Erreur Champ L manque D ou S';exit
@@ -7402,6 +7537,16 @@ procedure TFormConfig.FormClose(Sender: TObject; var Action: TCloseAction);
 var index : integer;
     ok : boolean;
 begin
+  if modif_branches then  
+  begin
+    if MessageDlg('Les branches ont été modifiées mais non validées. Voulez fermer la fenêtre ?',mtConfirmation,[mbYes,mbNo],0)=mrNo then 
+    begin
+      action:=tCloseAction(caNone);
+      exit;
+    end;      
+  end;  
+  modif_branches:=false;
+
   for index:=1 to NbreFeux do
   begin
     // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
@@ -7560,8 +7705,9 @@ end;
 
 procedure TFormConfig.RichBrancheKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var lc,curseur : integer;
+var lc,curseur,i : integer;
 begin
+  modif_branches:=true;
   if ord(Key)=VK_UP then
   begin
     if clicListe then exit;
@@ -7569,7 +7715,8 @@ begin
     if affevt then affiche('Evt RichBranche keydown',clyellow);
     with Formconfig.RichBranche do
     begin
-      lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
       if lc>0 then
       begin
         dec(lc);
@@ -7597,7 +7744,8 @@ begin
     if affevt then affiche('Evt RichBranche keydown',clyellow);
     with Formconfig.RichBranche do
     begin
-      lc:=Perform(EM_LINEFROMCHAR,-1,0);  // numéro de la lignée cliquée
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
       if lc<NbreBranches-1 then
       begin
         inc(lc);
@@ -7633,9 +7781,427 @@ begin
   if key=VK_delete then supprime_sig;
 end;
 
+procedure TFormConfig.ButtonEnregistreClick(Sender: TObject);
+var ok: boolean;
 begin
+  ok:=verifie_panneau_config;
+  if ok then Sauve_config;
+end;
 
 
+procedure TFormConfig.EditZdet1V1FChange(Sender: TObject);
+var s : string;
+    det,erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V1F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet1V1F.Text;
+    Val(s,det,erreur);
+    if (erreur<>0) then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 1 ferme';exit
+    end else LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].voie[1].DetZ1F:=det;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V1FChange(Sender: TObject);
+var s : string;
+    det,erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V1F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet2V1F.Text;
+    Val(s,det,erreur);
+    if (erreur<>0) then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 1 ferme';exit
+    end else LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].voie[1].DetZ2F:=det;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet1V1OChange(Sender: TObject);
+var s : string;
+    det,erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V1O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet1V1O.Text;
+    Val(s,det,erreur);
+    if (erreur<>0) then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 1 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].voie[1].DetZ1O:=det;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V1OChange(Sender: TObject);
+var s : string;
+    det,erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V1O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet2V1O.Text;
+    Val(s,det,erreur);
+    if (erreur<>0) then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 1 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].voie[1].DetZ2O:=det;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet1V2FChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V2F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V2F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 2 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[2].detZ1F:=act;
+    V2valide:=(EditZdet1V2F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=1) then tablo_PN[i].NbVoies:=2;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=1;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V2FChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V2F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V2F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 2 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[2].detZ2F:=act;
+    V2valide:=(EditZdet2V2F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=1) then tablo_PN[i].NbVoies:=2;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=1;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet1V2OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V2O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V2O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 2 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[2].detZ1O:=act;
+    V2valide:=(EditZdet1V2O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=1) then tablo_PN[i].NbVoies:=2;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=1;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V2OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V2F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V2O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 2 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[2].detZ2O:=act;
+    V2valide:=(EditZdet2V2O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=1) then tablo_PN[i].NbVoies:=2;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=1;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+
+end;
+
+procedure TFormConfig.EditZdet1V3FChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V3F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V3F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 3 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[3].detZ1F:=act;
+    V2valide:=(EditZdet1V3F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=2) then tablo_PN[i].NbVoies:=3;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=2;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V3FChange(Sender: TObject);
+   var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V3F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V3F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 3 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[3].detZ2F:=act;
+    V2valide:=(EditZdet2V3F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=2) then tablo_PN[i].NbVoies:=3;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=2;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet1V3OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V3O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V3O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 3 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[3].detZ1O:=act;
+    V2valide:=(EditZdet1V3O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=2) then tablo_PN[i].NbVoies:=3;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=2;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+
+end;
+
+procedure TFormConfig.EditZdet2V3OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V3O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V3O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 3 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[3].detZ2O:=act;
+    V2valide:=(EditZdet2V3O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=2) then tablo_PN[i].NbVoies:=3;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=2;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+
+end;
+
+procedure TFormConfig.EditZdet1V4FChange(Sender: TObject);
+ var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V4F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V4F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 4 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[4].detZ1F:=act;
+    V2valide:=(EditZdet1V4F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V4FChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V4F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V4F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 4 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[4].detZ2F:=act;
+    V2valide:=(EditZdet2V4F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet1V4OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V4O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet1V4O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 4 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[4].detZ1O:=act;
+    V2valide:=(EditZdet1V4O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+
+end;
+
+procedure TFormConfig.EditZdet2V4OChange(Sender: TObject);
+ var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V4O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin 
+    s:=EditZdet2V4O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 3 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[4].detZ2O:=act;
+    V2valide:=(EditZdet2V4O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+begin
 end.
 
 
