@@ -2319,11 +2319,12 @@ begin
     Aiguillage[i].PosInit:=const_inconnu;  // position inconnue
     Aiguillage[i].temps:=5   ;
     Aiguillage[i].inversionCDM:=0;
+    Aiguillage[i].EtatTJD:=4;
   end;
   for i:=1 to 1024 do
   begin
      Detecteur[i].etat:=false;
-     Detecteur[i].train:='0';
+     //Detecteur[i].train:='0';
      Ancien_detecteur[i]:=false;
   end;
 
@@ -2905,15 +2906,18 @@ begin
           RadioButtonTJD2.Checked:=true;RadioButtonTJD4.Checked:=false;
           EditP1.Visible:=false;EditP2.Visible:=false;EditP3.Visible:=false;EditP4.Visible:=false;
           LabelTJD1.Visible:=false;LabelTJD2.Visible:=false;
-        end;
-        if aiguillage[ind].EtatTJD=4 then 
-        begin 
+          LabelInfo.Caption:='';
+        end
+        else if aiguillage[ind].EtatTJD=4 then
+        begin
           RadioButtonTJD2.Checked:=false;RadioButtonTJD4.Checked:=true;
           EditP1.Visible:=true;EditP2.Visible:=true;EditP3.Visible:=true;EditP4.Visible:=true;
           LabelTJD1.Visible:=true;LabelTJD2.Visible:=true;
-        end;
+          LabelInfo.Caption:='';
+        end
+        else LabelInfo.Caption:='Nombre d''états de la TJD/S inconnu';
       end;
-      
+
       if tjs then 
       begin
         ComboBoxAig.ItemIndex:=2;
@@ -3276,7 +3280,7 @@ begin
       Label17.Width:=228;
       LabelDetAss.visible:=true;
       LabelElSuiv.visible:=true;
-      
+      label43.Visible:=true;
       
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
@@ -3329,6 +3333,7 @@ begin
     else
     begin // directionnel
       Label17.Caption:='Conditions d''affichage du feu directionnel :';
+      label43.Visible:=false;
       LabelDetAss.visible:=false;
       LabelElSuiv.visible:=false;
       EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
@@ -3509,7 +3514,7 @@ end;
 
 // affiche les champs de l'actionneur PN en fonction du tableau en fonction de l'index du richedit
 procedure aff_champs_PN(i : integer);
-var adresse,erreur,v : integer;
+var adresse,erreur,j,v : integer;
     trouve : boolean;
     s : string;
 begin
@@ -3567,32 +3572,35 @@ begin
       begin
         // par zone de détecteurs
         v:=Tablo_PN[i].nbvoies;
-        EditZdet1V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ1F);
-        EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
-        EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
-        EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
-        if v>=2 then
-        begin
-          EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
-          EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
-          EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
-          EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
+        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then 
+        begin 
+          EditZdet1V1F.text:=intToSTR(j);
+          EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
+          EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
+          EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
+          if v>=2 then
+          begin
+            EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
+            EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
+            EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
+            EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
+          end;
+          if v>=3 then
+          begin
+            EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
+            EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
+            EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
+            EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
+          end;  
+          if v>=4 then
+          begin
+            EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
+            EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
+            EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
+            EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
+          end;
         end;
-        if v>=3 then
-        begin
-          EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
-          EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
-          EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
-          EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
-        end;  
-        if v>=4 then
-        begin
-          EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
-          EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
-          EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
-          EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
-        end;
-      end;
+      end;  
     end;  
   end
 end;
@@ -4058,7 +4066,10 @@ begin
   
   adr2:=aiguillage[index].Ddroit;  // adresse homologue
   index:=Index_Aig(Adr2);
-  aiguillage[index].etatTJD:=2;
+  if index<>0 then
+  begin
+    aiguillage[index].etatTJD:=2;
+  end;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[index-1]:=s;
 end;
@@ -4085,8 +4096,11 @@ begin
   
   adr2:=aiguillage[index].Ddroit;  // adresse homologue
   index:=Index_Aig(Adr2);
-  aiguillage[index].etatTJD:=4;
-  aiguillage[index].modifie:=true;
+  if index<>0 then
+  begin
+    aiguillage[index].etatTJD:=4;
+    aiguillage[index].modifie:=true;
+  end;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[index-1]:=s;
 end;
@@ -4101,8 +4115,11 @@ begin
   Val(s,adrAig,erreur);
   if AdrAig=0 then exit;
   index:=Index_Aig(AdrAig);
-  aiguillage[index].vitesse:=30;
-  aiguillage[index].modifie:=true;
+  if index<>0 then
+  begin
+    aiguillage[index].vitesse:=30;
+    aiguillage[index].modifie:=true;
+  end;  
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
 end;
@@ -4117,8 +4134,11 @@ begin
   Val(s,adrAig,erreur);
   if AdrAig=0 then exit;
   index:=Index_Aig(AdrAig);
-  aiguillage[Index].vitesse:=60;
-  aiguillage[Index].modifie:=true;
+  if index<>0 then
+  begin
+    aiguillage[Index].vitesse:=60;
+    aiguillage[Index].modifie:=true;
+  end;  
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
 end;
@@ -4141,7 +4161,6 @@ begin
   aff_champs_sig_feux(i);
   if affevt then Affiche('Evt ComboBox Decodeur',clOrange);
 end;
-
 
 
 // cliqué sur liste feux
@@ -4564,6 +4583,11 @@ begin
   clicliste:=true;
   LabelInfo.caption:='';
   raz_champs_act;
+
+  // désactiver la ligne PN
+  RE_ColorLine(Formconfig.RichPN,LigneCliqueePN,ClAqua);
+  lignecliqueePN:=-1;
+  
   with RichAct do
   begin
     i:=Selstart;
@@ -4619,18 +4643,15 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    train:=EditTrainDecl.Text;
+    if train='' then
     begin
-      train:=EditTrainDecl.Text;
-      if train='' then
-      begin
-        LabelInfo.caption:='Erreur train';exit
-      end else LabelInfo.caption:=' ';
+      LabelInfo.caption:='Erreur train';exit
+    end else LabelInfo.caption:=' ';
 
-      tablo_actionneur[ligneClicAct+1].trainDecl:=train;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      RichAct.Lines[ligneClicAct]:=s;
-    end;
+    tablo_actionneur[ligneClicAct+1].trainDecl:=train;
+    s:=encode_act_loc_son(ligneClicAct+1);
+    RichAct.Lines[ligneClicAct]:=s;
   end;
 end;
 
@@ -5091,6 +5112,11 @@ begin
         
   editAdrFerme.Text:='';EditCmdFerme.text:='';
   editAdrOuvre.Text:='';EditCdeOuvre.text:='';
+
+  // désactive la sélection des actionneurs
+  RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
+  ligneclicAct:=-1;
+  
   with RichPN do
   begin
     i:=Selstart;
@@ -5214,7 +5240,9 @@ begin
     Val(s,act,erreur);
     if (erreur<>0) then
     begin
-      LabelInfo.caption:='Erreur adresse actionneur voie 1 ferme';exit
+      LabelInfo.caption:='Erreur adresse actionneur voie 1 ferme';
+      tablo_PN[lignecliqueePN+1].voie[1].ActFerme:=0;
+      exit
     end else LabelInfo.caption:=' ';
     tablo_PN[lignecliqueePN+1].voie[1].ActFerme:=act;
     s:=encode_act_PN(lignecliqueePN+1);
@@ -5362,6 +5390,10 @@ begin
   inc(maxTablo_act);
   i:=MaxTablo_act;
 
+  // désactiver la ligne PN
+  RE_ColorLine(Formconfig.RichPN,LigneCliqueePN,ClAqua);
+  lignecliqueePN:=-1;
+  
   radioButtonLoc.Checked:=true;
   Tablo_actionneur[maxtablo_act].act:=false;
   Tablo_actionneur[maxtablo_act].loco:=true;
@@ -5397,6 +5429,10 @@ begin
   inc(nbrePN);
   i:=nbrePN;
 
+  // désactive la sélection des actionneurs
+  RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
+  ligneclicAct:=-1;
+  
   Tablo_PN[i].NbVoies:=1;
   
   s:=encode_act_pn(i); 
@@ -5410,7 +5446,20 @@ begin
     Selstart:=RichPN.GetTextLen-1;
     Perform(EM_SCROLLCARET,0,0);
   end;
- 
+
+  editV1F.Text:='';editV1O.Text:='';
+  editV2F.Text:='';editV2O.Text:='';
+  editV3F.Text:='';editV3O.Text:='';
+  editV4F.Text:='';editV4O.Text:='';
+  EditZdet1V1F.text:='';EditZdet2V1F.text:='';
+  EditZdet1V1O.text:='';EditZdet2V1O.text:='';
+  EditZdet1V2F.text:='';EditZdet2V2F.text:='';
+  EditZdet1V2O.text:='';EditZdet2V2O.text:='';
+  EditZdet1V3F.text:='';EditZdet2V3F.text:='';
+  EditZdet1V3O.text:='';EditZdet2V3O.text:='';
+  EditZdet1V4F.text:='';EditZdet2V4F.text:='';
+  EditZdet1V4O.text:='';EditZdet2V4O.text:='';
+  
   GroupBoxRadio.Visible:=false;
   LabelInfo.caption:='';
   LigneCliqueePN:=i-1;
@@ -5463,6 +5512,7 @@ end;
 
 procedure TFormConfig.ButtonSupPNClick(Sender: TObject);
 var i,index,adr : integer;
+    ac,pn : boolean;
     s: string;
 begin
   if affevt then affiche('Evt bouton Sup PN',clyellow);
@@ -5470,8 +5520,17 @@ begin
   if (i=-1) then exit;
   index:=i+1; // passe en index tableau
 
+  pn:=false;
   adr:=tablo_PN[index].voie[1].ActFerme;
-  s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
+  ac:=adr<>0 ; // type actionneur
+  if adr=0 then 
+  begin
+    adr:=tablo_PN[index].voie[1].DetZ1F;
+    pn:=adr<>0;
+  end;  
+  
+  if ac then s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
+  if pn then s:='Voulez-vous supprimer l''actionneur de zone '+IntToSTR(adr)+'-'+inttostr(tablo_PN[index].voie[1].DetZ1O)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   Affiche('Suppression de l''actionneur index='+IntToSTR(index)+' adresse='+IntToSTR(adr),clOrange);
   
@@ -7619,7 +7678,7 @@ begin
   val(EditAct2.Text,Adr2,erreur);
   if erreur=0 then
   begin
-    Event_act(adr,adr2,etat,'X');
+    Event_act(adr,adr2,etat,'');
   end;  
 end;
 

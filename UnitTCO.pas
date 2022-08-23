@@ -327,7 +327,7 @@ var
   clAllume,clVoies,Fond,couleurAdresse,clGrille,cltexte,clQuai,CoulFonte,ClCanton : Tcolor;
   FormTCO: TFormTCO;
   Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
-  piloteAig,AncienFormatTCO,BandeauMasque,eval_format : boolean;
+  piloteAig,BandeauMasque,eval_format : boolean;
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,RatioC,ModeCouleurCanton,
@@ -402,7 +402,6 @@ begin
   trouve_clCanton:=false;
   trouve_ModeCanton:=false;
   trouve_AvecGrille:=false;
-  ancienFormatTCO:=false;
   eval_format:=false;
   ModeCouleurCanton:=1;
   clCanton:=ClYellow;
@@ -420,19 +419,10 @@ begin
       delete(s,i,length(sa));
       val('$'+s,i,erreur);
       fond:=i;
-      eval_format:=true;
-    end
-    else 
-    begin 
-      if eval_format=false then
-      begin
-        val('$'+s,Fond,erreur);
-        ancienformatTCO:=true;
-        eval_format:=true;
-      end;  
-    end;
+     // eval_format:=true;
+    end  ;
  
-    if ancienformatTCO then begin s:=lit_ligne; val('$'+s,clVoies,erreur);end;
+ 
     sa:=uppercase(clVoies_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -444,7 +434,6 @@ begin
       clVoies:=i;
     end;
 
-    if ancienformatTCO then begin s:=lit_ligne; val('$'+s,clAllume,erreur);end;
     sa:=uppercase(clAllume_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -456,7 +445,6 @@ begin
       clAllume:=i;
     end;
   
-    if ancienformatTCO then begin s:=lit_ligne;val('$'+s,clGrille,erreur);end;
     sa:=uppercase(clGrille_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -468,7 +456,6 @@ begin
       clGrille:=i;
     end;
 
-    if ancienformatTCO then begin s:=lit_ligne; val('$'+s,clTexte,erreur);end;
     sa:=uppercase(clTexte_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -480,7 +467,6 @@ begin
       clTexte:=i;
     end;
 
-    if ancienformatTCO then begin s:=lit_ligne; val('$'+s,clQuai,erreur);end;
     sa:=uppercase(clQuai_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -528,7 +514,6 @@ begin
     //----------------------------------------------------------------
 
     // taille de la matrice
-    if ancienformatTCO then begin s:=lit_ligne;val(s,NbreCellX,erreur);i:=pos(',',s);delete(s,1,i);Val(s,NbreCellY,erreur);end;
     sa:=uppercase(Matrice_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -542,22 +527,6 @@ begin
       Val(s,NbreCellY,erreur)
     end;
        
-    // Ancien largeur et hauteur des cellules
-    if ancienformatTCO then begin s:=lit_ligne;val(s,LargeurCell,erreur);i:=pos(',',s);delete(s,1,i);Val(s,HauteurCell,erreur);end;
-    {
-    sa:=uppercase(Cellule_ch)+'=';
-    i:=pos(sa,s);
-    if i<>0 then
-    begin
-      inc(nv);
-      trouve_cellule:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      LargeurCell:=i;
-      i:=pos(',',s);delete(s,1,i);
-      Val(s,HauteurCell,erreur)
-    end;
-    }
     
     // ratio
     sa:=uppercase(Ratio_ch)+'=';
@@ -571,7 +540,7 @@ begin
       RatioC:=i;
     end;
     
-  until (pos('[MATRICE]',uppercase(s))<>0) or (eof(fichier) or AncienFormatTCO); 
+  until (pos('[MATRICE]',uppercase(s))<>0) or (eof(fichier));
 
   NbCellulesTCO:=NbreCellX*NbreCellY;
   
@@ -688,15 +657,6 @@ begin
 
             i:=pos(',',s);
             val('$'+s,coulFonte,erreur);
-            if ancienFormatTCO then
-            begin
-              m:=tco[x,y].BImage;
-              case m of
-              1 : coulFonte:=ClYellow;
-              2,3,4,5,12,13,14,15,21,22 : coulfonte:=ClLime;
-              30 : coulFonte:=clLime;
-              end;
-            end;
             tco[x,y].coulFonte:=coulFonte;
             delete(s,1,i);
             if s[1]<>')' then
@@ -721,7 +681,6 @@ begin
   end;
   closefile(fichier);
 
-  if not(trouve_AvecGrille) then ancienFormatTCO:=true;  // provoque la sauvegarde
   e:=sizeof(Tco) div 1024;
   Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' / '+IntToSTR(e)+'Ko',clyellow);
 end;

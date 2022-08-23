@@ -10,7 +10,14 @@ Unit UnitPrinc;
     -            1    = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
 *)
 
-// en mode simulation run, CDM ne renvoie pas les détecteurs au départ du RUN.
+// en mode simulation run: 
+// CDM ne renvoie pas les détecteurs au départ du RUN.
+// il ne renvoie pas non plus le nom des trains sur les actionneurs
+// les noms des trains sont bien renvoyés sur les détecteurs à 1
+//
+// En mode RUN:
+// CDM renvoie le nom des trains sur les actionneurs à 1, jamais à 0
+// et quelquefois (pas toujours!) sur les détecteurs à 1, jamais à 0
 
 interface
 
@@ -56,7 +63,7 @@ type
     Image4Dir: TImage;
     Image5Dir: TImage;
     Image6Dir: TImage;
-    Codificationdesfeux1: TMenuItem;
+    Codificationdessignaux: TMenuItem;
     Divers1: TMenuItem;
     ClientSocketCDM: TClientSocket;
     FichierSimu: TMenuItem;
@@ -119,6 +126,7 @@ type
     RepriseDCC1: TMenuItem;
     BoutonRazTrains: TButton;
     Demandetataccessoires1: TMenuItem;
+    LancerCDMrail1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -150,7 +158,7 @@ type
     procedure DeconnecterCDMRailClick(Sender: TObject);
     procedure ClientSocketCDMDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
-    procedure Codificationdesfeux1Click(Sender: TObject);
+    procedure CodificationdessignauxClick(Sender: TObject);
     procedure ClientSocketLenzDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure FichierSimuClick(Sender: TObject);
@@ -183,6 +191,7 @@ type
     procedure RepriseDCC1Click(Sender: TObject);
     procedure BoutonRazTrainsClick(Sender: TObject);
     procedure Demandetataccessoires1Click(Sender: TObject);
+    procedure LancerCDMrail1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -338,7 +347,8 @@ var
 
   tablo : array of byte;  // tableau rx usb
 
-  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,LAY : string;
+  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,LAY
+  : string;
 
   Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
   detecteur : array[0..NbMemZone] of
@@ -594,10 +604,6 @@ end;
 
 // dessine un cercle plein dans le feu
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
-var Pen : Hpen;
-    Brush : HBrush;
-    ps : TpaintStruct;
-    hd : hdc;
 begin
   with Acanvas do
   begin
@@ -605,17 +611,6 @@ begin
     Pen.Color:=clBlack;
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
   end; 
-  
-{  hd:=BeginPaint(Acanvas.Handle,ps);
-  //hd:=Acanvas.Handle;
-  Pen:=CreatePen(PS_Solid, 1, ClBlack);
-  Brush:=CreateSolidBrush(couleur);
-  SelectObject(hd,Pen);
-  SelectObject(hd,Brush);
-  Ellipse(hd,x-rayon,y-rayon,x+rayon,y+rayon);
-  Deleteobject(Pen);
-  Deleteobject(Brush);
-  EndPaint(Acanvas.Handle,ps);}
 end;
 
 // dessine les feux sur une cible à 2 feux dans le canvas spécifié
@@ -1406,6 +1401,7 @@ end;
 procedure cree_image(rang : integer);
 var adresse,TypeFeu : integer;
     s : string;
+    T_BP : TBitMap;
 begin
   TypeFeu:=feux[rang].aspect;
   if typeFeu<=0 then exit;
@@ -1419,9 +1415,9 @@ begin
     Name:='ImageFeu'+IntToSTR(adresse);   // nom de l'image - sert à identifier le composant si on fait clic droit.
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine          20
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));                                         //5
-    width:=LargImg;
-    Height:=HtImg;
-
+    //width:=LargImg;
+    //Height:=HtImg;
+               
     s:='Index='+IntToSTR(rang)+' @='+inttostr(Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
        ' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
@@ -1432,8 +1428,11 @@ begin
     PopUpMenu:=Formprinc.PopupMenuFeu;  // affectation popupmenu sur clic droit
 
     // affecter le type d'image de feu dans l'image créée
-    picture.Bitmap:=Select_dessin_feu(TypeFeu);
-
+    T_BP:=Select_dessin_feu(TypeFeu);
+    picture.Bitmap:=T_Bp;
+    Width:=T_Bp.width;
+    Height:=T_Bp.Height;
+    
     picture.BitMap.TransparentMode:=tmfixed;     // tmauto  (la couleur transparente est déterminée par pixel le plus en haut à gauche du bitmap)
                                                  // tmfixed (la couleur transparente est explicitement assignée et stockée dans le bitmap)
     Picture.Bitmap.TransparentColor:=clblue;
@@ -2948,8 +2947,8 @@ begin
             begin
               detecteur[det].tempo:=20;  // armer la tempo à 2s
               // arreter le train
-              s:=detecteur[det].train;
-              detecteur[det].train:=s;
+              //s:=detecteur[det].train;
+              //detecteur[det].train:=s;
               //Affiche('et son détecteur '+IntToSTR(det)+'=1 tempo démarrage ; train '+s,clYellow);
               s:=chaine_CDM_vitesseST(0,s);  // 0%
               envoi_cdm(s);
@@ -4163,7 +4162,7 @@ begin
 end;
 
 
-// renvoie l'élément avant det2 si det1 et det2 sont contigus ou séparés que par des aiguillages
+// renvoie l'élément avant det2 si det1 et det2 sont contigus ou ne sont séparés que par des aiguillages
 // si det1 et det2 sont contigus sans aiguillages entre eux, çà renvoie det1
 // det_contigu(527,520: renvoie   7 dans suivant
 // det_contigu(514,522: renvoie 514 dans suivant
@@ -4176,6 +4175,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
 
   // donne le suivant au point de connection de l'aiguillage
   // prec=det ou aig ; suiv=aig
+  // aig_suiv(527,7) : renvoie 520 dans suiv_2                 
   // procédure récursive
   procedure aig_suiv(prec,suiv : integer) ;
   var adr2,index : integer;
@@ -4363,7 +4363,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
           end;
         end;
       end;
-  end;
+  end;    // fin de la procédure aig_suiv
 
 
 begin
@@ -5831,6 +5831,7 @@ begin
   end;
   envoi_signauxCplx;
   if signalDebug=AdrFeu then begin AffSignal:=false;nivDebug:=0;end;
+  application.ProcessMessages;  // évite le clignotement
 end;
 
 Procedure Maj_feux;
@@ -5901,10 +5902,11 @@ var AdrFeu,AdrDetFeu,Nbre,i,j,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,det_sui
     TypeSuiv : tEquipement;
     s : string;
 begin
-  det3:=event_det[N_event_det]; // c'est le nouveau détecteur
+  det3:=event_det[N_event_det]; // c'est le nouveau détecteur   
   if det3=0 then exit; // pas de nouveau détecteur
-  FormDebug.MemoEvtDet.lines.add('Le nouveau détecteur est '+IntToSTR(det3)) ;
-  if TraceListe or dupliqueEvt then AfficheDebug('Le nouveau détecteur est '+IntToSTR(det3),clyellow) ;
+  s:='Le nouveau détecteur est '+IntToSTR(det3);
+  FormDebug.MemoEvtDet.lines.add(s) ;
+  if TraceListe or dupliqueEvt then AfficheDebug(s,clyellow) ;
 
 
   for i:=1 to N_trains do
@@ -6210,6 +6212,7 @@ end;
 
 
 // traitement des évènements actionneurs (detecteurs aussi)
+// adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 var i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
@@ -6217,7 +6220,7 @@ var i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     Ts : TAccessoire;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
-  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+' '+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
+  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
   //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
   for i:=1 to maxTablo_act do
   begin
@@ -6242,7 +6245,7 @@ begin
     end; 
     
     // actionneur pour fonction train
-    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat) then
     begin
       trainDest:=Tablo_actionneur[i].trainDest;
       // exécution de la fonction F vers CDM
@@ -6255,7 +6258,7 @@ begin
     end;                              
 
     // actionneur pour accessoire
-    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat) then
     begin
       access:=Tablo_actionneur[i].accessoire;
       sortie:=Tablo_actionneur[i].sortie;
@@ -6267,7 +6270,7 @@ begin
     end;
 
     // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X')) and (etatAct=etat)
+    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat)
     then
     begin
       Affiche(st+' Train='+trainDecl+' son '+Tablo_actionneur[i].FichierSon,clyellow);
@@ -6363,7 +6366,6 @@ procedure evalue;
 begin
   if not(configNulle) then
   begin
-    //if CDM_connecte // and (length(recuCDM)<1000) then
     Maj_feux;  // on ne traite pas les calculs si CDM en envoie plusieurs
   end;
 end;  
@@ -6375,7 +6377,6 @@ var i,AdrSuiv,AdrFeu,AdrDetfeu,index,Etat01,AdrPrec : integer;
     s : string;
 begin
   if Etat then Etat01:=1 else Etat01:=0;
-  if train='' then train:='X';
   // vérifier si l'état du détecteur est déja stocké, car on peut reçevoir plusieurs évènements pour le même détecteur dans le même état
   // on reçoit un doublon dans deux index consécutifs.
  (*
@@ -6442,9 +6443,9 @@ begin
       end;
     end;
 
-    // gérer l'évènement detecteur pour action
+    // gérer l'évènement actionneur pour action
     if etat then i:=1 else i:=0;
-    event_act(Adresse,0,i,train);
+    event_act(Adresse,0,i,'');
   end;
 
   // détection fronts descendants
@@ -6476,7 +6477,7 @@ begin
 
       // gérer l'évènement detecteur pour action
       if etat then i:=1 else i:=0;
-      event_act(Adresse,0,i,train);
+      event_act(Adresse,0,i,train);  
       if not(confignulle) then calcul_zones;
     end;
   end;
@@ -6507,9 +6508,8 @@ var s: string;
     faire_event,inv : boolean;
     prov,index : integer;
 begin
-  // vérifier que l'évènement accessoire vient bien d'un aiguillage et pas d'un feu qu'on pilote (et que cdm renvoie)
   index:=index_aig(adresse);
-  if index=0 then exit; // non ce n'est pas un aiguillage ou alors aiguillage non déclaré, on sort
+  if index=0 then exit;
 
   // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome ou CDM, inverser sa position
   inv:=false;
@@ -7097,17 +7097,13 @@ begin
           inc(port);
         end;
       end;
-
     end
-
     else inc(port);
     Application.processMessages;
 
   until (port=10) or trouve;
 end;
-
-
-
+    
 // initialisation de la comm USB pour l'interface Xpressnet
 procedure connecte_USB;
 var i,j : integer;
@@ -7476,6 +7472,7 @@ end;
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var i : integer;
     s : string;
+    t : tequipement;
 begin
   TraceSign:=True;
   PremierFD:=false;
@@ -7521,7 +7518,6 @@ begin
   ferme:=false;
   CDM_connecte:=false;
   pasreponse:=0;
-  recuCDM:='';
   residuCDM:='';
   Nbre_recu_cdm:=0;
   AffMem:=true;
@@ -7633,14 +7629,7 @@ begin
     aiguillage[index_aig(31)].position:=const_devie;
     aiguillage[index_aig(25)].position:=const_droit;
     aiguillage[index_aig(9)].position:=const_droit;
-
-    nivDebug:=3;
-    FormDebug.Show;
-    Test_croisement(523,518,1);
-    if ncrois<>0 then Affiche('Croisement détecté '+intToSTR(croisement[1].adresse),clyellow);
-  }
-//  CreateFile('\\?\COM1',GENERIC_READ or GENERIC_WRITE,0,nil,OPEN_EXISTING,     FILE_ATTRIBUTE_NORMAL,0);
-
+}
 end;
 
 
@@ -7702,16 +7691,11 @@ begin
     if MessageDlg('Le TCO a été modifié. Voulez vous le sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
     begin
       sauve_fichier_tco;
-      ancienFormatTCO:=false;
     end;
   if config_modifie then
     if MessageDlg('La configuration a été modifiée. Voulez vous la sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
       sauve_config;
   if confasauver then sauve_config;
-  if avecTCO then
-  begin
-    if ancienFormatTCO then sauve_fichier_tco;
-  end;
   Application.ProcessMessages;
 end;
 
@@ -7943,7 +7927,7 @@ begin
       dec(detecteur[i].tempo);
       if detecteur[i].tempo=0 then
       begin
-        s:=detecteur[i].train;
+        //s:=detecteur[i].train;
         //Affiche('Tempo 0 timer train '+s+' det '+intToSTR(i),clOrange);
         s:=chaine_CDM_vitesseST(100,s);  // 100%
         envoi_cdm(s);
@@ -8133,14 +8117,7 @@ procedure TFormPrinc.MenuDeconnecterEthernetClick(Sender: TObject);
 begin
   ClientSocketLenz.Close;
 end;
-
-function cde_cdm(s : string) : string;
-var i : integer;
-begin
-  i:=length(s)-1;
-  cde_cdm:='0'+IntToSTR(i)+s;
-end;
-  
+ 
 procedure TFormPrinc.AffEtatDetecteurs(Sender: TObject);
 var j,adr : integer;
     s : string;
@@ -8150,7 +8127,7 @@ begin
   begin
    adr:=Adresse_detecteur[j];
    s:='Dét '+intToSTR(adr)+'=';
-   if Detecteur[adr].etat then s:=s+'1 '+Detecteur[Adr].train else s:=s+'0';
+   if Detecteur[adr].etat then s:=s+'1 ' else s:=s+'0';
    Affiche(s,clYellow);
   end;
 end;
@@ -8270,10 +8247,10 @@ end;
 // décodage d'une trame CDM au protocole IPC
 // la trame_CDM peut contenir 2000 caractères à l'initialisation du RUN.
 procedure Interprete_trameCDM(trame_CDM:string);
-var i,j,objet,posST,posAC,posDT,posSG,posXY,k,l,erreur,posErr, adr,adr2,etat,etataig,
+var i,j,objet,k,l,erreur,posErr,adr,adr2,etat,etataig,
     vitesse,etatAig2,name,prv,nbre,nbreVir,long,index,posDes,AncNumTrameCDM : integer ;
     x,y,x2,y2 : longint ;
-    s,ss,train,commandeCDM : string;
+    nom,s,ss,train,commandeCDM : string;
     traite,sort : boolean;
 label reprise;
 begin
@@ -8426,46 +8403,85 @@ begin
       begin
         inc(ntrains);
         delete(commandeCDM,1,posDES+12);
-        i:=posEx('NAME=',commandeCDM,posST);delete(commandeCDM,1,i+4);
-        i:=pos(';',commandeCDM);
-        trains[ntrains].nom_train:=copy(commandeCDM,1,i-1);
-        delete(commandeCDM,1,i);
 
-        i:=pos('AD=',commandeCDM);Delete(commandeCDM,1,i+2);
-        val(commandeCDM,trains[ntrains].adresse,erreur);
-        i:=pos(';',commandeCDM);
-        delete(commandeCDM,1,i);
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          trains[ntrains].nom_train:=ss;
+          val(ss,adr,erreur);
+          //s:='NAME='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,trains[ntrains].adresse,erreur);
+          //s:='AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=pos('TMAX=',commandeCDM);Delete(commandeCDM,1,i+4);
-        val(commandeCDM,trains[ntrains].vitmax,erreur);
-        i:=pos(';',commandeCDM);
-        delete(commandeCDM,1,i);
-        Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
+        i:=posEx('TMAX=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          val(ss,trains[ntrains].vitmax,erreur);
+          //s:='AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+          Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
+        end;  
       end;
 
       // évènement aiguillage. Le champ AD2 n'est pas forcément présent
-      posST:=pos('CMDACC-ST_TO',commandeCDM);
-      if posST<>0 then
+      i:=pos('CMDACC-ST_TO',commandeCDM);
+      if i<>0 then
       begin
-        delete(commandeCDM,posST,12);
-        objet:=0;
-        i:=posEx('OBJ=',commandeCDM,posST);ss:=copy(commandeCDM,i+4,10);
-        if i<>0 then begin val(ss,objet,erreur);delete(commandeCDM,i,6);end else Affiche('Erreur 95 : pas d''objet ',clred);
+        delete(commandeCDM,i,12);
 
-        i:=posEx('AD=',commandeCDM,posST);ss:=copy(commandeCDM,i+3,10);  //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
-        if i=0 then begin Affiche('Erreur 96 : absence AD aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-        val(ss,adr,erreur);Delete(commandeCDM,i,4);
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          nom:=ss;
+          Delete(commandeCDM,i,l-i+1);
+        end; 
+        
+        i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,objet,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        //Affiche(copy(recuCDM,j,i+80),clOrange);
-        i:=posEx('AD2=',commandeCDM,i);ss:=copy(commandeCDM,i+4,10); // Affiche('i='+intToSTR(i),clOrange);
-        if i=0 then begin Affiche('Erreur 97 : absence AD2 aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-        val(ss,adr2,erreur);  //Affiche('adr2='+intToSTR(adr2),clyellow);
-        Delete(commandeCDM,i,5);
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          //s:='AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=posEx('STATE=',commandeCDM,i);ss:=copy(commandeCDM,i+6,10); //Affiche('j='+IntToSTR(j)+' i='+intToSTR(i),clred);
-        if i=0 then begin Affiche('Erreur 98 : absence STATE aig '+intToSTR(adr),clred);Affiche(commandeCDM,clyellow);end;
-        val(ss,etat,erreur);
-        Delete(commandeCDM,i,7);
+        i:=posEx('AD2=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,adr2,erreur);
+          //s:='AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+
+        i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,etat,erreur);
+          //s:='AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;
 
         //Affiche('Aig '+inttostr(adr)+' pos='+IntToSTR(etat),clyellow);
         //Affiche(commandeCDM,clyellow);
@@ -8558,42 +8574,99 @@ begin
 
       // évènement détecteur. Si det=1, Le nom du train est souvent _NONE
       // si det=0 le nom du train est toujours _NONE
-      posDT:=pos('CMDACC-ST_DT',commandeCDM);
-      if posDT<>0 then
+      i:=pos('CMDACC-ST_DT',commandeCDM);
+      if i<>0 then
       begin
-        Delete(commandeCDM,posDT,12);
-        i:=posEx('AD=',commandeCDM,posDT);
-        if i<>0 then
-        begin
-          ss:=copy(commandeCDM,i+3,10);Delete(commandeCDM,i,4);
-          val(ss,adr,erreur);
-        end;
-        i:=posEx('TRAIN=',commandeCDM,posDT);
-        j:=PosEx(';',commandeCDM,i);
-        train:=copy(commandeCDM,i+6,j-i-6);
-        delete(commandeCDM,i,7);
-
-        //Affiche('Train='+Train,clOrange);
-        i:=posEx('STATE=',commandeCDM,posDT);ss:=copy(commandeCDM,i+6,10);
-        val(ss,etat,erreur); Delete(commandeCDM,i,7);
-
-        if (train='_NONE') then train:=detecteur[Adr].train;
+        Delete(commandeCDM,i,12);
         
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+
+        i:=posEx('TRAIN=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          train:=copy(commandeCDM,i+6,l-i-6);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+        
+        i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,etat,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          nom:=copy(commandeCDM,i+6,l-i-6);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,objet,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
         Event_detecteur(Adr,etat=1,train);
         //Affiche(train,clYellow);
         //Affiche(IntToSTR(adr)+' '+IntToSTR(etat)+' '+train,clyellow);
       end ;
 
       // évènement signal - non stocké ni interprété
-      posSG:=pos('CMDACC-ST_SG',commandeCDM);
-      if posSG<>0 then
+      // S-E-01-0021-CMDACC-ST_SG|039|05|NAME=150;OBJ=150;AD=0;AD2=0;STATE=0;
+      i:=pos('CMDACC-ST_SG',commandeCDM);
+      if i<>0 then
       begin
-        Delete(commandeCDM,posSG,12);
-        i:=posEx('AD=',commandeCDM,posDT);ss:=copy(commandeCDM,i+3,10);
-        val(ss,adr,erreur);
-        i:=posEx('STATE=',commandeCDM,posSG);ss:=copy(commandeCDM,i+6,10);
-        Delete(commandeCDM,posSG,i+5-posSG);
-        val(ss,etat,erreur);
+        Delete(commandeCDM,i,12);
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          nom:=copy(commandeCDM,i+5,l-i-5);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+
+        i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,objet,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+        
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('AD2=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,adr2,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+
+        i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,etat,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
         s:='SignalCDM '+intToSTR(adr)+'='+IntToStr(etat);
         if afftiers then AfficheDebug(s,ClSkyBlue);
       end;
@@ -8601,76 +8674,262 @@ begin
       // évènement actionneur
       // attention un actionneur qui repasse à 0 ne contient pas de nom de train
       //S-E-03-0157-CMDACC-ST_AC|049|05|NAME=0;OBJ=7101;AD=815;TRAIN=CC406526;STATE=1;
-      posAC:=pos('CMDACC-ST_AC',commandeCDM);
-      if posAC<>0 then
+      i:=pos('CMDACC-ST_AC',commandeCDM);
+      if i<>0 then
       begin
-        Delete(commandeCDM,posAC,12);
-        i:=posEx('AD=',commandeCDM,posAC);ss:=copy(commandeCDM,i+3,10);
-        val(ss,adr,erreur);
-        i:=posEx('NAME=',commandeCDM,posAC);ss:=copy(commandeCDM,i+5,10);
-        val(ss,name,erreur);
-        i:=posEx('TRAIN=',commandeCDM,posAC);l:=PosEx(';',commandeCDM,i);
-        train:=copy(commandeCDM,i+6,l-i-6);
-        i:=posEx('STATE=',commandeCDM,posAC);ss:=copy(commandeCDM,i+6,10);
-        val(ss,etat,erreur);
-        Delete(commandeCDM,posAC,i-posAC);
-        i:=pos(';',commandeCDM);
-        if i<>0 then Delete(commandeCDM,1,i);
+        Delete(commandeCDM,i,12);
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,adr,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
+        i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,objet,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          nom:=ss;
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
+        i:=posEx('TRAIN=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          train:=ss;
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if i<>0 then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,etat,erreur);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
         if AffAigDet then
           AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+intToSTR(name)+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
         Event_act(adr,0,etat,train); // déclenche évent actionneur
       end;
 
       // évènement position des trains - non stocké ni interprété
-      posXY:=pos('CMDTRN-SPDXY',commandeCDM);
-      if posXY<>0 then
+      // S-E-01-0039-CDMTRN-SPDXY|063|07|NAME=TRAIN_3;AD=0;SPEED=3;X=24735;Y=19630;X2=16874;Y2=19630;
+      i:=pos('CDMTRN-SPDXY',commandeCDM);
+      if i<>0 then
       begin
-        Delete(commandeCDM,posXY,12);
-        i:=posEx('AD=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+3,10);
-        val(ss,adr,erreur);
-        s:='Train AD='+IntToSTR(adr);
-        Delete(commandeCDM,i,l-i+1);
+        Delete(commandeCDM,i,12);
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          s:='Train AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=posEx('NAME=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        train:=copy(commandeCDM,i+5,l-i-5);
-        s:=s+' '+train;
-        Delete(commandeCDM,i,l-i+1);
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          train:=copy(commandeCDM,i+5,l-i-5);
+          s:=s+' '+train;
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=posEx('SPEED=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+6,10);
-        val(ss,vitesse,erreur);
-        s:=s+' '+IntToSTR(vitesse);
-        Delete(commandeCDM,i,l-i+1);
+        i:=posEx('SPEED=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,vitesse,erreur);
+          s:=s+' SPEED='+IntToSTR(vitesse);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=posEx('X=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+2,10);
-        val(ss,x,erreur);
-        s:=s+' X='+IntTostr(x);
-        Delete(commandeCDM,i,l-i+1);
+        i:=posEx('X=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+2,l-i-2);
+          val(ss,x,erreur);
+          s:=s+' X='+IntTostr(x);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        i:=posEx('Y=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+2,l-i-2);
+          val(ss,y,erreur);
+          s:=s+' Y='+IntTostr(y);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('X2=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,x2,erreur);
+          s:=s+' X2='+IntTostr(x2);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        if (i<>0) and (l<>0) then
+        begin
+          i:=posEx('Y2=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,y2,erreur);
+          s:=s+' Y2='+IntTostr(y2);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
 
-        i:=posEx('Y=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+2,10);
-        val(ss,y,erreur);
-        s:=s+' Y='+IntTostr(y);
-        Delete(commandeCDM,i,l-i+1);
-
-        i:=posEx('X2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+3,10);
-        val(ss,x2,erreur);
-        s:=s+' X2='+IntTostr(x2);
-        Delete(commandeCDM,i,l-i+1);
-
-        i:=posEx('Y2=',commandeCDM,posXY);l:=posEx(';',commandeCDM,i);
-        ss:=copy(commandeCDM,i+3,10);
-        val(ss,y2,erreur);
-        s:=s+' Y2='+IntTostr(y2);
-        Delete(commandeCDM,i,l-i+1);
         if afftiers then afficheDebug(s,clAqua);
-
-        Delete(commandeCDM,posXY,12);
       end;
 
+      // évènement vitesse des trains - non stocké ni interprété
+      //S-E-01-0189-CDMTRN-SPEED|054|06|NAME=TRAIN_3;AD=0;SPEED=99;RMAX=120;CMAX=120;REQ=8;
+      i:=pos('CDMTRN-SPEED',commandeCDM);
+      if i<>0 then 
+      begin
+        Delete(commandeCDM,i,12);
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          s:='Train AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          train:=copy(commandeCDM,i+5,l-i-5);
+          s:=s+' '+train;
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('SPEED=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,vitesse,erreur);
+          s:=s+' SPEED='+IntToSTR(vitesse);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('RMAX=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          val(ss,x,erreur);
+          s:=s+' RMAX='+IntTostr(x);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        i:=posEx('CMAX=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          val(ss,y,erreur);
+          s:=s+' CMAX='+IntTostr(y);
+          Delete(commandeCDM,i,l-i+1);
+        end;  
+
+        i:=posEx('REQ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,x2,erreur);
+          s:=s+' REQ='+IntTostr(x2);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        if afftiers then afficheDebug(s,clAqua);
+        
+      end;  
+      
+      // évènement port CDM - non stocké ni interprété
+      // S-E-01-0188-CDMTRN-P_CDM|060|07|NAME=TRAIN_3;AD=0;SPEED=99;SEG=38;PORT=1;X=35565;Y=12364;
+      i:=pos('CDMTRN-P_CDM',commandeCDM);   
+      if i<>0 then
+      begin
+        Delete(commandeCDM,i,12);
+        i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+3,l-i-3);
+          val(ss,adr,erreur);
+          s:='Train AD='+IntToSTR(adr);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('NAME=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          train:=copy(commandeCDM,i+5,l-i-5);
+          s:=s+' '+train;
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('SPEED=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+6,l-i-6);
+          val(ss,vitesse,erreur);
+          s:=s+' SPEED='+IntToSTR(vitesse);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+        
+        i:=posEx('SEG=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+4,l-i-4);
+          val(ss,x,erreur);
+          s:=s+' SEG='+IntTostr(x);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
+        i:=posEx('PORT=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+5,l-i-5);
+          val(ss,y,erreur);
+          s:=s+' PORT='+IntTostr(y);
+          Delete(commandeCDM,i,l-i+1);
+        end; 
+
+        i:=posEx('X=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+2,l-i-2);
+          val(ss,x2,erreur);
+          s:=s+' X='+IntTostr(x2);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+          
+        if afftiers then afficheDebug(s,clAqua);
+
+        i:=posEx('Y=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
+        if (i<>0) and (l<>0) then
+        begin
+          ss:=copy(commandeCDM,i+2,l-i-2);
+          val(ss,x2,erreur);
+          s:=s+' Y='+IntTostr(x2);
+          Delete(commandeCDM,i,l-i+1);
+        end;
+
+        if afftiers then afficheDebug(s,clAqua);
+      end;  
+      
       inc(k);
       //Affiche('k='+intToSTR(k),clyellow);
     end;
@@ -8721,7 +8980,7 @@ begin
   deconnecte_cdm;
 end;
   
-procedure TFormPrinc.Codificationdesfeux1Click(Sender: TObject);
+procedure TFormPrinc.CodificationdessignauxClick(Sender: TObject);
 var i,j,k,l,NfeuxDir,nc : integer;
     s,s2 : string;
 begin
@@ -8770,7 +9029,6 @@ begin
           if l<8 then s:=s+'/' else s:=s+')';
         end;
       end;  
-
     end
     
     else
@@ -9059,8 +9317,8 @@ begin
     begin
       readln(fte,s);
       Affiche(s,clLime);
-      RecuCDM:=s;
       Interprete_trameCDM(s);
+      application.processmessages;
     end;  
     closeFile(fte);
   end;    
@@ -9074,7 +9332,7 @@ end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
 begin
-  Lance_CDM ;
+  Lance_CDM;
 end;
 
 procedure TFormPrinc.Affichefentredebug1Click(Sender: TObject);
@@ -9322,12 +9580,15 @@ begin
   Raz_tout;
 end;
 
-
-
 procedure TFormPrinc.Demandetataccessoires1Click(Sender: TObject);
 begin
   if portCommOuvert or parSocketLenz then demande_etat_acc
   else Affiche('L''interface XpressNet n''est pas connectée par USB ou par Ethernet',clorange);
+end;
+
+procedure TFormPrinc.LancerCDMrail1Click(Sender: TObject);
+begin
+  Lance_CDM ;
 end;
 
 end.

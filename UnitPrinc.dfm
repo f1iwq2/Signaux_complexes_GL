@@ -1613,9 +1613,9 @@ object FormPrinc: TFormPrinc
         Caption = 'Codification des aiguillages'
         OnClick = Codificationdesaiguillages1Click
       end
-      object Codificationdesfeux1: TMenuItem
-        Caption = 'Codification des feux'
-        OnClick = Codificationdesfeux1Click
+      object Codificationdessignaux: TMenuItem
+        Caption = 'Codification des signaux'
+        OnClick = CodificationdessignauxClick
       end
       object Codificationdesactionneurs1: TMenuItem
         Caption = 'Codification des actionneurs'
@@ -1678,6 +1678,10 @@ object FormPrinc: TFormPrinc
       object N7: TMenuItem
         Caption = '-'
       end
+      object LancerCDMrail1: TMenuItem
+        Caption = 'Lancer et connecter CDM rail'
+        OnClick = LancerCDMrail1Click
+      end
       object ConnecterCDMrail: TMenuItem
         Caption = 'Connecter CDM rail'
         OnClick = ConnecterCDMrailClick
@@ -1691,7 +1695,7 @@ object FormPrinc: TFormPrinc
       Caption = 'Divers'
       object Config: TMenuItem
         Caption = 'Configuration'
-        Hint = 'Modifie les variables de configuration sans sauvegarde'
+        Hint = 'Modifie les variables de configuration'
         OnClick = ConfigClick
       end
       object Vrifierlacohrence: TMenuItem
@@ -1711,6 +1715,7 @@ object FormPrinc: TFormPrinc
       end
       object OuvrirunfichiertramesCDM1: TMenuItem
         Caption = 'Ouvrir un fichier trames CDM'
+        Hint = 'Ouvre un fichier trames CDM (protocole COM IP)'
         OnClick = OuvrirunfichiertramesCDM1Click
       end
       object Affichefentredebug1: TMenuItem

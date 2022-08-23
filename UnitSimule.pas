@@ -116,6 +116,7 @@ begin
           end;
         end;
       end;
+      Application.ProcessMessages;
       sortie:=eof(fte) or (index_simule>Max_Simule);
     until sortie ;
     if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
