@@ -1,10 +1,10 @@
 Unit UnitPrinc;
 (********************************************
   programme signaux complexes Graphique Lenz
-  delphi 7 + activeX Tmscomm + clientSocket
+  Delphi 7 + activeX Tmscomm + clientSocket
+  ou RadStudio
  ********************************************
- 19/6/2022 21h
- note sur le pilotage des accessoires:
+ Pilotage des accessoires:
  raquette   octet sortie
     +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
     -            1    = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
@@ -127,6 +127,7 @@ type
     BoutonRazTrains: TButton;
     Demandetataccessoires1: TMenuItem;
     LancerCDMrail1: TMenuItem;
+    TrackBarVit: TTrackBar;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -192,6 +193,8 @@ type
     procedure BoutonRazTrainsClick(Sender: TObject);
     procedure Demandetataccessoires1Click(Sender: TObject);
     procedure LancerCDMrail1Click(Sender: TObject);
+    procedure TrackBarVitChange(Sender: TObject);
+    procedure EditVitesseChange(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -337,7 +340,8 @@ var
   Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
-  TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages : boolean;
+  TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
+  AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth : boolean;
 
   tick,Premier_tick : longint;
 
@@ -353,9 +357,9 @@ var
   Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
   detecteur : array[0..NbMemZone] of
   record
-    etat : boolean;
-    tempo : integer;
-    train : string;
+    etat : boolean;        // état 0/1 du détecteur
+    tempo : integer;       // temporisation de passage de 1 à 0 pour retarder le démarrage train au feu non rouge
+    train : string;        // nom du train ayant enclenché le détecteur (CDM - pas fiable)
   end;
 
   TypeGen : TEquipement;
@@ -464,11 +468,7 @@ procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
-procedure dessine_dir2(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_dir3(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_dir4(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_dir5(Acanvas : Tcanvas;EtatSignal : word);
-procedure dessine_dir6(Acanvas : Tcanvas;EtatSignal : word);
+procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
 procedure Maj_Etat_Signal(adresse,aspect : integer);
 procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
@@ -615,7 +615,11 @@ end;
 
 // dessine les feux sur une cible à 2 feux dans le canvas spécifié
 // x,y : offset en pixels du coin supérieur gauche du feu
+// Acanvas : canvas de destination
+// x,y : point d'origine de destination
 // frX, frY : facteurs de réduction (pour agrandissement)
+// EtatSignal : état du signal
+// orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage : integer;
@@ -953,7 +957,7 @@ begin
 
   if (orientation=2) then
   begin
-    //rotation 90° vers la gauche des feux
+    //rotation 90° vers la gauche des feux : échange des coordonnées X et Y et translation sur HtImage
     ech:=frY;frY:=frX;FrX:=ech;
     Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
     Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
@@ -968,7 +972,7 @@ begin
 
   if (orientation=3) then
   begin
-    //rotation 90° vers la droite des feux
+    //rotation 90° vers la droite des feux : échange des coordonnées X et Y et translation sur LgImage
     ech:=frY;frY:=frX;FrX:=ech;
     Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
     Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
@@ -1032,220 +1036,138 @@ begin
 end;
 
 
-// dessine les feux sur une cible directionnelle à 2 feux
-procedure dessine_dir3(Acanvas : Tcanvas;EtatSignal : word);
+// dessine les feux sur une cible directionnelle à N feux
+procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
+var rayon,x1,x2,x3,y1,y2,y3,x4,y4,x5,y5,x6,y6,LgImage,HtImage,temp : integer;
+    ech : real;
 begin
+  rayon:=round(6*frX);
+  if n=2 then x2:=25 else x2:=22;
+  x1:=11;x3:=33;x4:=43;x5:=53;x6:=63;
+  y1:=13;y2:=13;y3:=13;y4:=13;y5:=13;y6:=13;
+  
+  case N of
+  2 : with Formprinc.Image2Dir.Picture.Bitmap do
+      begin 
+        LgImage:=Width;
+        HtImage:=Height;
+      end;
+  3 : with Formprinc.Image3Dir.Picture.Bitmap do
+      begin 
+        LgImage:=Width;
+        HtImage:=Height;
+      end;  
+  4 : with Formprinc.Image4Dir.Picture.Bitmap do
+      begin 
+        LgImage:=Width;
+        HtImage:=Height;
+      end;  
+  5 : with Formprinc.Image5Dir.Picture.Bitmap do
+      begin 
+        LgImage:=Width;
+        HtImage:=Height;
+      end;  
+  6 : with Formprinc.Image6Dir.Picture.Bitmap do
+      begin 
+        LgImage:=Width;
+        HtImage:=Height;
+      end;  
+  end;    
+   
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux : échange des coordonnées X et Y et translation sur HtImage
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-y1;y1:=X1;X1:=Temp;
+    Temp:=HtImage-y2;y2:=X2;X2:=Temp;
+    Temp:=HtImage-y3;y3:=X3;X3:=Temp;
+    Temp:=HtImage-y4;y4:=X4;X4:=Temp;
+    Temp:=HtImage-y5;y5:=X5;X5:=Temp;
+    Temp:=HtImage-y6;y6:=X6;X6:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux : échange des coordonnées X et Y et translation sur LgImage
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-X1;X1:=Y1;Y1:=Temp;
+    Temp:=LgImage-X2;X2:=Y2;Y2:=Temp;
+    Temp:=LgImage-X3;X3:=Y3;Y3:=Temp;
+    Temp:=LgImage-X4;X4:=Y4;Y4:=Temp;
+    Temp:=LgImage-X5;X5:=Y5;Y5:=Temp;
+    Temp:=LgImage-X6;X6:=Y6;Y6:=Temp;
+  end;  
+
+  X1:=round(X1*Frx)+x;  Y1:=round(Y1*Fry)+Y;
+  X2:=round(X2*FrX)+x;  Y2:=round(Y2*FrY)+Y;
+  X3:=round(X3*FrX)+x;  Y3:=round(Y3*FrY)+Y;
+  X4:=round(X4*Frx)+x;  Y4:=round(Y4*Fry)+Y;
+  X5:=round(X5*FrX)+x;  Y5:=round(Y5*FrY)+Y;
+  X6:=round(X6*FrX)+x;  Y6:=round(Y6*FrY)+Y;
+  
   if EtatSignal=0 then
   begin
-    cercle(ACanvas,11,13,6,GrisF);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,GrisF);
+    cercle(ACanvas,x1,y1,rayon,GrisF);
+    cercle(ACanvas,x2,y2,rayon,GrisF);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;
   if EtatSignal=1 then 
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,grisF);
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,GrisF);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;
   if EtatSignal=2 then
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,grisF);
-  end;
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+  end;                  
   if EtatSignal=3 then 
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-  end;
-end;
-
-// dessine les feux sur une cible directionnelle à 4 feux
-procedure dessine_dir4(Acanvas : Tcanvas;EtatSignal : word);
-begin
-  if EtatSignal=0 then 
-  begin
-    cercle(ACanvas,11,13,6,GrisF);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,GrisF);
-    cercle(ACanvas,43,13,6,GrisF);
-  end;
-  if EtatSignal=1 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-  end;
-  if EtatSignal=2 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-  end;
-  if EtatSignal=3 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,GrisF);
-  end;
-  if EtatSignal=4 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-  end;
-  if EtatSignal=5 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,clWhite);
-  end;
-end;
-
-procedure dessine_dir5(Acanvas : Tcanvas;EtatSignal : word);
-begin
-  if EtatSignal=0 then 
-  begin
-    cercle(ACanvas,11,13,6,GrisF);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,GrisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-  end;
-  if EtatSignal=1 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-  end;
-  if EtatSignal=2 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-  end;
-  if EtatSignal=3 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-  end;
-  if EtatSignal=4 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,GrisF);
-  end;
-  if EtatSignal=5 then 
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,clWhite);
-  end;
-end;
-
-procedure dessine_dir6(Acanvas : Tcanvas;EtatSignal : word);
-begin
-  if EtatSignal=0 then
-  begin
-    cercle(ACanvas,11,13,6,GrisF);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,GrisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-    cercle(ACanvas,63,13,6,GrisF);
-  end;
-  if EtatSignal=1 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,GrisF);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-    cercle(ACanvas,63,13,6,GrisF);
-  end;
-  if EtatSignal=2 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,grisF);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-    cercle(ACanvas,63,13,6,GrisF);
-  end;
-  if EtatSignal=3 then
-  begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,GrisF);
-    cercle(ACanvas,53,13,6,GrisF);
-    cercle(ACanvas,63,13,6,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;
   if EtatSignal=4 then 
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,GrisF);
-    cercle(ACanvas,63,13,6,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;
-  if EtatSignal=5 then
+  if EtatSignal=5 then 
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,clWhite);
-    cercle(ACanvas,63,13,6,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clWhite);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;
-  if EtatSignal=6 then
+  if EtatSignal=6 then 
   begin
-    cercle(ACanvas,11,13,6,clWhite);
-    cercle(ACanvas,22,13,6,clWhite);
-    cercle(ACanvas,33,13,6,clWhite);
-    cercle(ACanvas,43,13,6,clWhite);
-    cercle(ACanvas,53,13,6,clWhite);
-    cercle(ACanvas,63,13,6,clWhite);
-  end;
-end;
-
-
-// dessine les feux sur une cible directionnelle à 2 feux
-procedure dessine_dir2(Acanvas : Tcanvas;EtatSignal : word);
-begin
-  if EtatSignal=0 then 
-  begin
-    cercle(ACanvas,12,13,6,GrisF);
-    cercle(ACanvas,25,13,6,GrisF);
-  end;
-  if EtatSignal=1 then
-  begin
-    cercle(ACanvas,12,13,6,clWhite);
-    cercle(ACanvas,25,13,6,GrisF);
-  end;
-  if EtatSignal=2 then 
-  begin
-    cercle(ACanvas,12,13,6,clWhite);
-    cercle(ACanvas,25,13,6,clWhite);
+    cercle(ACanvas,x1,y1,rayon,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clWhite);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clWhite);
   end;
 end;
 
@@ -1307,25 +1229,24 @@ end;
 
 // dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
 procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
-var i : integer;
+var i,aspect : integer;
 begin
   i:=Index_feu(adresse);
   if i<>0 then
-  case feux[i].aspect of
-  // feux de signalisation
-   2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-   3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-   4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-   5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-   7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-   9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-  // indicateurs de direction
-  12 : dessine_dir2(CanvasDest,feux[i].EtatSignal);
-  13 : dessine_dir3(CanvasDest,feux[i].EtatSignal);
-  14 : dessine_dir4(CanvasDest,feux[i].EtatSignal);
-  15 : dessine_dir5(CanvasDest,feux[i].EtatSignal);
-  16 : dessine_dir6(CanvasDest,feux[i].EtatSignal);
-  end;
+  begin
+    aspect:=feux[i].aspect ;
+    case aspect of
+    // feux de signalisation
+     2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     // indicateurs de direction
+     12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,aspect-10);
+    end;
+  end;  
 end;
 
 // procédure activée quand on clique gauche sur l'image d'un feu
@@ -1334,8 +1255,8 @@ var s : string;
     P_image_pilote : Timage;
     i,erreur : integer;
 begin
-  P_image_pilote:=Sender as TImage;  // récupérer l'objet image de la forme pilote
-  s:=P_Image_pilote.Hint;
+  P_image_pilote:=Sender as TImage;  // récupérer l'objet image du feu qu'on a cliqué de la forme pilote
+  s:=P_Image_pilote.Hint;            // récupérer son hint qui contient l'adresse du feu cliqué
   //Affiche(s,clyellow);
   i:=pos('@',s);  if i<>0 then delete(s,1,i);
   i:=pos('=',s);  if i<>0 then delete(s,i,1);
@@ -1977,7 +1898,7 @@ begin
           end;
     end;
     feux[i].EtatSignal:=code;
-    Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
+    Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);       
   end;
 end;
 
@@ -2956,7 +2877,15 @@ begin
           end;
         end;
       end;
+    end
 
+    else
+    begin
+      pilote_direction(Adr,feux[i].etatSignal)
+    end;
+
+
+    
       feux[i].AncienEtat:=feux[i].EtatSignal;
 
       // allume les signaux du feu dans la fenêtre de droite
@@ -2979,6 +2908,11 @@ begin
                  5 :  ImageFeu:=Formprinc.Image5feux;
                  7 :  ImageFeu:=Formprinc.Image7feux;
                  9 :  ImageFeu:=Formprinc.Image9feux;
+                 12 : ImageFeu:=Formprinc.Image2Dir;
+                 13 : ImageFeu:=Formprinc.Image3Dir;
+                 14 : ImageFeu:=Formprinc.Image4Dir;
+                 15 : ImageFeu:=Formprinc.Image5Dir;
+                 16 : ImageFeu:=Formprinc.Image6Dir; 
            else ImageFeu:=Formprinc.Image3feux;
            end;
            x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
@@ -3005,7 +2939,6 @@ begin
      end;
     end;
   end;
-end;
 end;
 
 // pilotage des signaux
@@ -4173,7 +4106,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
     type_tmp : char;
     trouve,afdeb : boolean;
 
-  // donne le suivant au point de connection de l'aiguillage
+  // donne le suivant au point de connexion de l'aiguillage
   // prec=det ou aig ; suiv=aig
   // aig_suiv(527,7) : renvoie 520 dans suiv_2                 
   // procédure récursive
@@ -4469,8 +4402,8 @@ end;
 
 
 // renvoie le détecteur suivant aux détecteurs 1 et 2
-// les aiguillages n'ont pas besoin d'être ouverts entre 1 et 2.
-// par contre pour le suivant au det2, les aiguillages doivent être ouverts
+// les aiguillages n'ont pas besoin d'être positionnés entre 1 et 2.
+// par contre pour le suivant au det2, les aiguillages doivent être positionnés
 // si on ne trouve pas le suivant, renvoie 9999
 function det_suiv_cont(det1,det2 : integer) : integer;
 var dernier: integer;
@@ -5897,6 +5830,7 @@ end;
 
 // calcul des zones depuis le tableau des fronts descendants des évènements détecteurs
 // transmis dans le tableau Event_det
+// rattache le nouveau détecteur à un train
 procedure calcul_zones;
 var AdrFeu,AdrDetFeu,Nbre,i,j,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,det_suiv,nc : integer ;
     TypeSuiv : tEquipement;
@@ -5907,8 +5841,7 @@ begin
   s:='Le nouveau détecteur est '+IntToSTR(det3);
   FormDebug.MemoEvtDet.lines.add(s) ;
   if TraceListe or dupliqueEvt then AfficheDebug(s,clyellow) ;
-
-
+ 
   for i:=1 to N_trains do
   begin
     Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
@@ -7297,7 +7230,7 @@ end;
 
 // Lance et connecte CDM rail. en sortie si CDM est lancé Lance_CDM=true, 
 function Lance_CDM : boolean;
-var i : integer;
+var i,retour,retour2 : integer;
     s : string;
     cdm_lanceLoc : boolean;
 begin
@@ -7317,25 +7250,28 @@ begin
   
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
-  if ShellExecute(Formprinc.Handle,'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
+  
+  retour:=ShellExecute(Formprinc.Handle,'open',PChar('C:\Program Files (x86)\CDM-Rail\cdr.exe'),
                     Pchar(s),  // paramètre
                     PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL)>32 then
-                    begin
-                      cdm_lanceLoc:=true;
-                      Affiche('Lancement de CDM 64 '+lay,clyellow);
-                    end;
+                    ,SW_SHOWNORMAL);
+  if retour>32 then
+  begin
+    cdm_lanceLoc:=true;
+    Affiche('Lancement de CDM 64 '+lay,clyellow);
+  end;
 
   if not(cdm_lanceLoc) then
   begin
     // si çà marche pas essayer depuis le répertoire de base sur un OS32
-    if ShellExecute(Formprinc.Handle,
+    retour2:=ShellExecute(Formprinc.Handle,
                     'open',PChar('C:\Program Files\CDM-Rail\cdr.exe'),
                     Pchar(s),  // paramètre
                     PChar('C:\Program Files\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL)<=32 then
+                    ,SW_SHOWNORMAL);
+    if retour2<=32 then
     begin
-      ShowMessage('répertoire CDM rail introuvable');
+      ShowMessage('CDM rail introuvable : '+#13#10+'Erreur 32='+intToSTR(retour)+' Erreur 64='+inttoStr(retour2));
       lance_CDM:=false;exit;
     end;
     cdm_lanceLoc:=true;
@@ -7542,9 +7478,8 @@ begin
   if not(CDM_connecte) then
   begin
     // ouverture par USB
-   
-    connecte_USB;
-    if not(portCommOuvert) then
+    if AvecDemandeInterfaceUSB then connecte_USB;
+    if not(portCommOuvert) and AvecDemandeInterfaceEth then
     begin
       // sinon ouvrir socket vers la centrale
       // Initialisation de la comm socket LENZ
@@ -7554,7 +7489,7 @@ begin
         ClientSocketLenz.port:=port;
         ClientSocketLenz.Address:=AdresseIP;
         ClientSocketLenz.Open;
-      end
+      end;
     end;
   end;
 
@@ -7590,11 +7525,13 @@ begin
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
 
+  // box2=CV
   GroupBox2.Left:=633;
-  GroupBox2.Top:=64;
+  GroupBox2.Top:=60;
   GroupBox2.Visible:=false;
+  // box3=vitesses et fonctions F
   GroupBox3.Left:=633;
-  GroupBox3.Top:=64;
+  GroupBox3.Top:=60;
   GroupBox3.visible:=true;
 
   // TCO
@@ -8389,10 +8326,16 @@ begin
       posERR:=pos('_ERR',commandeCDM);
       if posErr<>0 then
       begin
-        if pos('ERR=200',commandeCDM)<>0 then s:='Erreur CDM : réseau non chargé ';
-        if pos('ERR=500',commandeCDM)<>0 then s:='Erreur CDM : serveur DCC non lancé ';
-        if pos('ERR=300',commandeCDM)<>0 then s:='Erreur CDM : train non trouvé ';
-        j:=pos('MSG CDM : ',commandeCDM);if j<>0 then s:=s+copy(commandeCDM,j,i-j);
+        if pos('ERR=200',commandeCDM)<>0 then s:='Erreur CDM : réseau non chargé '
+        else
+        if pos('ERR=500',commandeCDM)<>0 then s:='Erreur CDM : serveur DCC non lancé '
+        else
+        if pos('ERR=300',commandeCDM)<>0 then s:='Erreur CDM : train non trouvé '
+        else
+        begin
+          j:=pos('MSG=',commandeCDM);
+          if j<>0 then s:='CDM: '+copy(commandeCDM,j,i-j);
+        end;  
         Affiche(s,clred);
         delete(commandeCDM,1,i);
       end;
@@ -8984,7 +8927,7 @@ procedure TFormPrinc.CodificationdessignauxClick(Sender: TObject);
 var i,j,k,l,NfeuxDir,nc : integer;
     s,s2 : string;
 begin
-  Affiche('Codification interne des feux:',ClYellow);
+  Affiche('Codification interne des signaux:',ClYellow);
 
   for i:=1 to NbreFeux do
   begin
@@ -9352,11 +9295,10 @@ begin
   s:=editVitesse.Text;
   val(s,vit,erreur);
   if (erreur<>0) or (vit<0) then exit;
+  Affiche('Commande vitesse train '+s+ ' à '+IntToSTR(vit)+'%',cllime);
   s:=trains[combotrains.itemindex+1].nom_train;
   vitesse_loco(s,adr,vit,true);
   if s='' then s:=intToSTR(adr);
-  Affiche('Commande vitesse train '+s+ ' à '+IntToSTR(vit)+'%',cllime);
-
 end;
 
 // pour déplacer l'ascenseur de l'affichage automatiquement en bas
@@ -9380,7 +9322,7 @@ begin
   begin
     Adr:=Feux[i].Adresse;
     Etat:=Feux[i].EtatSignal;
-    s:='Feu '+IntToSTR(Adr)+' Etat=';
+    s:='Signal '+IntToSTR(Adr)+' Etat=';
     code_to_aspect(Etat,aspect,combine);
     s:=s+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine];
     Affiche(s,clYellow);
@@ -9591,4 +9533,18 @@ begin
   Lance_CDM ;
 end;
 
+
+procedure TFormPrinc.TrackBarVitChange(Sender: TObject);
+begin
+  EditVitesse.Text:=intToSTR(TrackBarVit.position);
+end;
+
+procedure TFormPrinc.EditVitesseChange(Sender: TObject);
+var i,e : integer;
+begin
+  val(EditVitesse.Text,i,e);
+  if (e=0) and (i>=0) and (i<=100) then TrackBarVit.position:=i;
+end;
+
 end.
+

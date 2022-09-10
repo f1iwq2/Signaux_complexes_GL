@@ -1,9 +1,7 @@
 object FormConfig: TFormConfig
   Left = 281
   Top = 138
-  Hint = 
-    'Modifie les fichiers de configuration selon les s'#233'lections chois' +
-    'ies'
+  Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
   ClientHeight = 543
@@ -1582,7 +1580,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1594,11 +1592,13 @@ object FormConfig: TFormConfig
     object TabSheetCDM: TTabSheet
       Caption = 'CDM Rail'
       object Label36: TLabel
-        Left = 8
-        Top = 424
-        Width = 255
+        Left = 24
+        Top = 432
+        Width = 369
         Height = 13
-        Caption = 'Param'#232'tres de connexion et d'#39#233'change avec CDM rail'
+        Caption = 
+          'Param'#232'tres de connexion et d'#39#233'change avec CDM rail et param'#232'tres' +
+          ' g'#233'n'#233'raux'
         WordWrap = True
       end
       object GroupBox1: TGroupBox
@@ -1679,7 +1679,7 @@ object FormConfig: TFormConfig
           Top = 112
           Width = 241
           Height = 25
-          Caption = 'Lancer CDM Rail au d'#233'marrage'
+          Caption = 'Lancer et connecter CDM Rail au d'#233'marrage'
           TabOrder = 2
           WordWrap = True
         end
@@ -1982,8 +1982,8 @@ object FormConfig: TFormConfig
       Caption = 'Mode autonome'
       ImageIndex = 1
       object Label9: TLabel
-        Left = 8
-        Top = 424
+        Left = 16
+        Top = 440
         Width = 294
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
@@ -2196,7 +2196,7 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 296
         Width = 297
-        Height = 113
+        Height = 129
         Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
         TabOrder = 7
         object Label32: TLabel
@@ -2233,6 +2233,28 @@ object FormConfig: TFormConfig
           Height = 17
           Caption = 'Demande positions des aiguillages '#224' la centrale'
           TabOrder = 2
+        end
+        object CheckBoxDemarUSB: TCheckBox
+          Left = 16
+          Top = 88
+          Width = 273
+          Height = 17
+          Hint = 'Connecte l'#39'interface XpressNet en COM ou USB au d'#233'marrage'
+          Caption = 'Connexion de l'#39'interface Xpressnet en COM ou USB'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+        end
+        object CheckBoxDemarEth: TCheckBox
+          Left = 16
+          Top = 104
+          Width = 265
+          Height = 17
+          Hint = 'Connecte l'#39'interface XpressNet en Ethernet ou Wifi au d'#233'marrage'
+          Caption = 'Connexion de l'#39'interface Xpressnet en Ethernet'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
         end
       end
     end
@@ -2715,8 +2737,8 @@ object FormConfig: TFormConfig
         WordWrap = True
       end
       object LabelNumBranche: TLabel
-        Left = 464
-        Top = 424
+        Left = 8
+        Top = 448
         Width = 56
         Height = 13
         Caption = 'Branche n'#176' '
@@ -2783,6 +2805,30 @@ object FormConfig: TFormConfig
         WordWrap = False
         OnKeyDown = RichBrancheKeyDown
         OnMouseDown = RichBrancheMouseDown
+      end
+      object Memo5: TMemo
+        Left = 464
+        Top = 232
+        Width = 153
+        Height = 209
+        Lines.Strings = (
+          'Une ligne doit commencer par '
+          'un aiguillage (ou un buttoir) et '
+          'se terminer par un aiguillage '
+          '(ou un buttoir). Il n'#39'est pas '
+          'n'#233'cessaire d'#39'avoir un '
+          'd'#233'tecteur dans une ligne.'
+          ''
+          'Un aiguillage peut se retrouver '
+          #224' plusieurs endroits de cette '
+          'section, mais pas un d'#233'tecteur. '
+          ''
+          'Tous les aiguillages d'#233'clar'#233's '
+          'doivent appara'#238'tre au moins '
+          'une fois dans les branches.'
+          '')
+        ReadOnly = True
+        TabOrder = 2
       end
     end
     object TabSheetSig: TTabSheet
@@ -3202,7 +3248,7 @@ object FormConfig: TFormConfig
         Top = 40
         Width = 257
         Height = 433
-        Caption = 'Description de l'#39'actionneur '
+        Caption = 'Description de l'#39'action'
         TabOrder = 0
         object Label40: TLabel
           Left = 16
@@ -3219,10 +3265,9 @@ object FormConfig: TFormConfig
           Top = 16
           Width = 225
           Height = 345
-          Hint = 'D'#233'tecteur 1 zone de fermeture'
-          Caption = 'Actionneurs gestion passage '#224' niveau'
+          Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
-          ShowHint = True
+          ShowHint = False
           TabOrder = 2
           object Label21: TLabel
             Left = 8
@@ -3357,6 +3402,9 @@ object FormConfig: TFormConfig
             Top = 112
             Width = 41
             Height = 21
+            Hint = 'Actionneur 1 fermeture'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 4
             OnChange = EditV1FChange
           end
@@ -3397,6 +3445,9 @@ object FormConfig: TFormConfig
             Top = 112
             Width = 41
             Height = 21
+            Hint = 'Actionneur 1 ouverture'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 9
             OnChange = EditV1OChange
           end
@@ -3574,11 +3625,11 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 168
+          Left = 32
           Top = 24
           Width = 225
           Height = 73
-          Caption = 'Type d'#39'actionneur '
+          Caption = 'Type d'#39'action'
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
             Left = 24
@@ -3609,11 +3660,11 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 112
-          Top = 12
+          Left = 24
+          Top = 92
           Width = 225
           Height = 293
-          Caption = 'Actionneur fonction de locomotive '
+          Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
@@ -3669,7 +3720,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 
                 'Train d'#233'clencheur pour lequel la condition s'#39'applique (mettre X ' +
-                'pour tous les trains)'
+                'pour tous les trains) - d'#233'clenchement par actionneur uniquement'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 2
@@ -3715,7 +3766,7 @@ object FormConfig: TFormConfig
             Top = 160
             Width = 209
             Height = 113
-            Caption = 'Action '
+            Caption = 'Destinataire de l'#39'action '
             TabOrder = 1
             object LabelTempo: TLabel
               Left = 48

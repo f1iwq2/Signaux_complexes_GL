@@ -114,11 +114,11 @@ begin
    7 : dessine_feu7(VCanvas,0,0,1,1,EtatFeupilote,1);
    9 : dessine_feu9(VCanvas,0,0,1,1,EtatFeupilote,1);
   // indicateurs de direction
-  12 : dessine_dir2(VCanvas,EtatFeupilote);
-  13 : dessine_dir3(VCanvas,EtatFeupilote);
-  14 : dessine_dir4(VCanvas,EtatFeupilote);
-  15 : dessine_dir5(VCanvas,EtatFeupilote);
-  16 : dessine_dir6(VCanvas,EtatFeupilote);
+  12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
+  13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
+  14 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,4);
+  15 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,5);
+  16 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,6);
   end;
 end;
 
@@ -221,19 +221,17 @@ begin
 end;
 
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
-var i,e : integer;
+var i,index,e : integer;
 begin
-  i:=index_feu(AdrPilote);
-  if feux[i].aspect<10 then
+  index:=index_feu(AdrPilote);
+  if feux[index].aspect>10 then 
   begin
-    feux[i].EtatSignal:=feux[0].EtatSignal;
-    envoi_signal(AdrPilote);
-  end
-  else
-    begin
-      val(EditNbreFeux.Text,i,e);
-      pilote_direction(AdrPilote,i);
-    end;
+    val(EditNbreFeux.Text,i,e);
+    feux[0].EtatSignal:=i;
+    pilote_direction(AdrPilote,i); 
+  end;
+  feux[index].EtatSignal:=feux[0].EtatSignal;
+  envoi_signal(AdrPilote);
 end;
 
 procedure TFormPilote.EditNbreFeuxKeyPress(Sender: TObject; var Key: Char);

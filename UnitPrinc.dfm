@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
   Left = 6
-  Top = 246
+  Top = 203
   Width = 1213
-  Height = 664
+  Height = 670
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   DesignSize = (
     1197
-    606)
+    612)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1203,9 +1203,9 @@ object FormPrinc: TFormPrinc
   end
   object ScrollBox1: TScrollBox
     Left = 632
-    Top = 176
+    Top = 192
     Width = 546
-    Height = 385
+    Height = 391
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -1232,7 +1232,7 @@ object FormPrinc: TFormPrinc
     end
     object EditAdresse: TEdit
       Left = 72
-      Top = 24
+      Top = 20
       Width = 49
       Height = 21
       Hint = 'Adresse accessoire'
@@ -1264,7 +1264,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 584
+    Top = 590
     Width = 1197
     Height = 22
     Panels = <>
@@ -1293,8 +1293,8 @@ object FormPrinc: TFormPrinc
       Width = 89
       Height = 33
       Hint = 
-        'Mise '#224' jour des feux suivant les zones occup'#233'es et les aiguillag' +
-        'es'
+        'Mise '#224' jour des signaux suivant les zones occup'#233'es et les aiguil' +
+        'lages'
       Caption = 'Rafraichissement'
       TabOrder = 0
       OnClick = BoutonRafClick
@@ -1383,7 +1383,7 @@ object FormPrinc: TFormPrinc
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 565
+    Top = 571
     Width = 14
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
@@ -1394,7 +1394,7 @@ object FormPrinc: TFormPrinc
     Left = 8
     Top = 32
     Width = 601
-    Height = 529
+    Height = 535
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -1477,7 +1477,7 @@ object FormPrinc: TFormPrinc
     Left = 632
     Top = 64
     Width = 265
-    Height = 105
+    Height = 129
     Anchors = [akTop, akRight]
     Caption = 'Commande aux trains'
     TabOrder = 9
@@ -1511,7 +1511,7 @@ object FormPrinc: TFormPrinc
     end
     object loco: TButton
       Left = 6
-      Top = 64
+      Top = 88
       Width = 83
       Height = 33
       Caption = 'Envoi vitesse '#224' loco'
@@ -1533,6 +1533,7 @@ object FormPrinc: TFormPrinc
       Height = 21
       TabOrder = 2
       Text = '30'
+      OnChange = EditVitesseChange
     end
     object ComboTrains: TComboBox
       Left = 112
@@ -1553,7 +1554,7 @@ object FormPrinc: TFormPrinc
     end
     object ButtonFonction: TButton
       Left = 176
-      Top = 64
+      Top = 88
       Width = 81
       Height = 33
       Caption = 'Envoi fonction '#224' loco'
@@ -1567,6 +1568,18 @@ object FormPrinc: TFormPrinc
       Width = 17
       Height = 21
       TabOrder = 5
+    end
+    object TrackBarVit: TTrackBar
+      Left = 16
+      Top = 64
+      Width = 233
+      Height = 21
+      Hint = 'Vitesse loco en %'
+      Ctl3D = False
+      Max = 100
+      ParentCtl3D = False
+      TabOrder = 7
+      OnChange = TrackBarVitChange
     end
   end
   object Timer1: TTimer
@@ -1768,8 +1781,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object PopupMenuFeu: TPopupMenu
-    Left = 800
-    Top = 144
+    Left = 896
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's'
       OnClick = Proprits1Click

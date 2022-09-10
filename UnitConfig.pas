@@ -280,6 +280,9 @@ type
     EditZdet2V4F: TEdit;
     EditZdet1V4O: TEdit;
     EditZdet2V4O: TEdit;
+    CheckBoxDemarUSB: TCheckBox;
+    CheckBoxDemarEth: TCheckBox;
+    Memo5: TMemo;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -416,6 +419,8 @@ IpV4_PC_ch='IpV4_PC';
 retro_ch='retro';
 Init_aig_ch='Init_Aig';
 Init_dem_aig_ch='Init_Dem_Aig';
+Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
+Init_dem_interfaceEth_ch='Init_demETH';
 LAY_ch='Lay';
 IPV4_INTERFACE_ch='IPV4_INTERFACE';
 PROTOCOLE_SERIE_ch='PROTOCOLE_SERIE';
@@ -933,7 +938,7 @@ begin
                 delete(s,1,1);
                 val(s,adr,erreur);  // adresse
                 c:=#0;
-                if erreur<>0 then c:=s[erreur];       // type
+                if erreur<>0 then c:=s[erreur];          // type
                 setlength(feux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
                 feux[i].AigDirection[k][j].PosAig:=c;
                 feux[i].AigDirection[k][j].Adresse:=adr;
@@ -1248,6 +1253,14 @@ begin
   // temporisation initialisation des aiguillages
   writeln(fichierN,Tempo_aig_ch+'=',IntToSTR(Tempo_aig));
 
+  // connexion de l'interface en COM/USB
+  if AvecDemandeInterfaceUSB then s:='1' else s:='0';
+  writeln(fichierN,Init_dem_interfaceUSBCOM_ch+'='+s);
+
+  // connexion de l'interface en Ethernet
+  if AvecDemandeInterfaceEth then s:='1' else s:='0';
+  writeln(fichierN,Init_dem_interfaceEth_ch+'='+s);
+
   // plein écran
   writeln(fichierN,Fenetre_ch+'=',fenetre);
 
@@ -1363,7 +1376,7 @@ var s,sa,chaine,SOrigine: string;
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
-    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig   : boolean;
+    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
@@ -2060,7 +2073,6 @@ begin
       AvecInitAiguillages:=s='1';
     end;
     
-
     // avec demande de position des aiguillages en mode autonome au démarrage
     sa:=uppercase(Init_dem_aig_ch)+'=';
     i:=pos(sa,s);
@@ -2070,6 +2082,28 @@ begin
       inc(nv);
       delete(s,i,length(sa));
       AvecDemandeAiguillages:=s='1';
+    end;
+
+    // avec demande de connexion en COM USB au démarrage     
+    sa:=uppercase(Init_dem_interfaceUSBCOM_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      trouve_demcnxCOMUSB:=true;
+      inc(nv);
+      delete(s,i,length(sa));
+      AvecDemandeInterfaceUSB:=s='1';
+    end;
+
+    // avec demande de connexion en ethernet au démarrage 
+    sa:=uppercase(Init_dem_interfaceEth_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      trouve_demcnxEth:=true;
+      inc(nv);
+      delete(s,i,length(sa));
+      AvecDemandeInterfaceEth:=s='1';
     end;
     
     // taille de la fenetre
@@ -2308,6 +2342,8 @@ begin
   trouve_verif_version:=false;
   trouve_Fonte:=false;
   trouve_Raz:=false;
+  trouve_demcnxCOMUSB:=false;
+  trouve_demcnxEth:=false;
 
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
@@ -2343,6 +2379,8 @@ begin
     TempoOctet:=50;
     TimoutMaxInterface:=7;
     AvecInitAiguillages:=true;
+    AvecDemandeInterfaceUSB:=true;
+    AvecDemandeInterfaceEth:=true;
     Tempo_Aig:=100;
     Tempo_feu:=100;
     ServeurInterfaceCDM:=1;
@@ -2379,6 +2417,9 @@ begin
   if not(trouve_Algo_Uni) then s:=Algo_unisemaf_ch;
   if not(trouve_Nb_cantons_Sig) then s:=Nb_cantons_Sig_ch;
   if not(trouve_dem_aig) then s:=Init_dem_aig_ch;
+  if not(trouve_demcnxCOMUSB) then s:=Init_dem_interfaceUSBCOM_ch;
+  if not(trouve_demcnxEth) then s:=Init_dem_interfaceEth_ch;
+  
   if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
@@ -2392,6 +2433,7 @@ begin
   if s<>'' then
   begin
     affiche('Manque variables dans '+NomConfig+' : '+s,clOrange);
+    Affiche('Elles seront régénérées automatiquement',clOrange);
     confasauver:=true;
   end;
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
@@ -2557,6 +2599,9 @@ begin
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
     AvecDemandeAiguillages:=checkPosAig.checked;
+    AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
+    AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
+    
   end;
   if change_srv then services_CDM;
   verifie_panneau_config:=ok;
@@ -2703,6 +2748,9 @@ begin
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
   CheckPosAig.checked:=AvecDemandeAiguillages;
+  CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
+  CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
+  
 
   clicListe:=true;  // empeche le traitement de l'evt text
   EditDroit_BD.Text:='';
@@ -3129,7 +3177,7 @@ begin
     positionne;
 
     CheckRaz.Visible:=false;
-    GroupBoxAct.Caption:='Actionneur de fonction F de locomotive';
+    GroupBoxAct.Caption:='Action pour fonction F de locomotive';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Fonction';
@@ -3154,7 +3202,7 @@ begin
   begin
     positionne;
 
-    GroupBoxAct.Caption:='Actionneur d''accessoire';
+    GroupBoxAct.Caption:='Action pour accessoire';
     CheckRaz.Visible:=true;
     LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
     LabelFonction.visible:=true;
@@ -3179,7 +3227,7 @@ begin
   with formconfig do
   begin
     Positionne;
-    GroupBoxAct.Caption:='Actionneur d''accessoire';
+    GroupBoxAct.Caption:='Action pour son';
     CheckRaz.Visible:=true;
 
     LabelTempo.Visible:=false; EditTempo.visible:=false;
@@ -3223,10 +3271,11 @@ end;
 
 // mise à jour des champs du signal d'après le tableau feux
 Procedure aff_champs_sig_feux(index : integer);
-var i,j,l,d,k,nc,condCarre : integer;
+var i,j,l,d,p,k,nc,condCarre : integer;
     s : string;
 begin
   if Affevt then affiche('Aff_champs_sig_feux('+intToSTR(index)+')',clyellow);
+  clicListe:=true;
   i:=index;
   FormConfig.EditAdrSig.text:=InttoSTr(feux[i].adresse);
 
@@ -3343,13 +3392,13 @@ begin
 
       // conditions d'affichage du signal directionnel
       L:=feux[i].aspect-10; //nombre de feux du signal directionnel
-      for j:=1 to L+1 do
+      for p:=1 to L+1 do
       begin
         s:='';
-        nc:=Length(feux[i].AigDirection[j])-1;
+        nc:=Length(feux[i].AigDirection[p])-1;
         for k:=1 to nc do
         begin
-          s:=s+'A'+IntToSTR(feux[i].AigDirection[j][k].adresse) + feux[i].AigDirection[j][k].posaig;
+          s:=s+'A'+IntToSTR(feux[i].AigDirection[p][k].adresse) + feux[i].AigDirection[p][k].posaig;
           if k<nc then s:=s+',';
         end;
         MemoCarre.Lines.Add(s);
@@ -3359,6 +3408,7 @@ begin
       MemoCarre.Perform(EM_SCROLLCARET,0,0);
     end;
   end;
+  clicListe:=false;
 end;
 
 
@@ -8261,6 +8311,8 @@ begin
 end;
 
 begin
+
+
 end.
 
 

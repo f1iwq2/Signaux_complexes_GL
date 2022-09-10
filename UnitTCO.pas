@@ -629,51 +629,40 @@ begin
           delete(s,1,m-1);
         end;
 
-        if s[1]=')' then
+        if s[1]=',' then delete(s,1,1);
+        val(s,j,erreur);
+        tco[x,y].repr:=j;
+        delete(s,1,erreur-1);
+        if s[1]=',' then 
         begin
-          // ici on est dans l'ancien format
-          Delete(s,1,1);
-          tco[x,y].repr:=2; // en haut
-          tco[x,y].Couleur:=fond;
-        end
-        else
-        begin
-          if s[1]=',' then delete(s,1,1);
-          val(s,j,erreur);
-          tco[x,y].repr:=j;
-          delete(s,1,erreur-1);
-          if s[1]=',' then // on pointe sur ( en ancien format
+          // fonte
+          delete(s,1,1);
+          i:=pos(',',s);
+          tco[x,y].fonte:=copy(s,1,i-1);    
+          //Affiche(fonte,clyellow);
+          Delete(s,1,i);
+
+          Val(s,taillefont,erreur);
+          tco[x,y].TailleFonte:=taillefont;
+          delete(s,1,erreur);
+
+          i:=pos(',',s);
+          val('$'+s,coulFonte,erreur);
+          tco[x,y].coulFonte:=coulFonte;
+          delete(s,1,i);
+          if s[1]<>')' then
           begin
-            // fonte
-            delete(s,1,1);
-            i:=pos(',',s);
-            tco[x,y].fonte:=copy(s,1,i-1);    
-            //Affiche(fonte,clyellow);
-            Delete(s,1,i);
-
-            Val(s,taillefont,erreur);
-            tco[x,y].TailleFonte:=taillefont;
-            delete(s,1,erreur);
-
-            i:=pos(',',s);
-            val('$'+s,coulFonte,erreur);
-            tco[x,y].coulFonte:=coulFonte;
-            delete(s,1,i);
-            if s[1]<>')' then
-            begin
-              // style GISB
-              i:=pos(')',s);
-              tco[x,y].fontstyle:=copy(s,1,i-1);
-            end;
-
+            // style GISB
             i:=pos(')',s);
-            //Affiche(IntToHEX(coulFonte,6),clred);
-            delete(s,1,i);
+            tco[x,y].fontstyle:=copy(s,1,i-1);
+          end;
 
-          end
-          else delete(s,1,1); // ancien format
+          i:=pos(')',s);
+          //Affiche(IntToHEX(coulFonte,6),clred);
+          delete(s,1,i);
 
         end;
+
         inc(x);
       until s='';
     end;
@@ -2576,7 +2565,7 @@ begin
   end;
 end;
 
-// Dessine un feu dans le canvasDest en x,y , dont l'adresse se trouve à la cellule x,y
+// Dessine un signal dans le canvasDest en x,y , dont l'adresse se trouve à la cellule x,y
 procedure dessin_feu(CanvasDest : Tcanvas;x,y : integer );
 var  x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY : integer;
      ImageFeu : Timage;
@@ -2592,7 +2581,7 @@ begin
 
   aspect:=feux[index_feu(adresse)].aspect;
   if aspect=0 then aspect:=9;
-  if aspect>9 then exit;
+  //if aspect>9 then exit;
  // Affiche(IntToSTR(i)+' '+intToSTR(aspect),clred);
 
   case aspect of
@@ -2602,6 +2591,12 @@ begin
   5 :  ImageFeu:=Formprinc.Image5feux;
   7 :  ImageFeu:=Formprinc.Image7feux;
   9 :  ImageFeu:=Formprinc.Image9feux;
+  12 : ImageFeu:=Formprinc.Image2Dir;
+  13 : ImageFeu:=Formprinc.Image3Dir;
+  14 : ImageFeu:=Formprinc.Image4Dir;
+  15 : ImageFeu:=Formprinc.Image5Dir;
+  16 : ImageFeu:=Formprinc.Image6Dir;
+  
   else ImageFeu:=Formprinc.Image9feux;
   end;
 
@@ -4961,6 +4956,24 @@ begin
       GroupBox2.Visible:=true; 
       efface_entoure;
       SelectionAffichee:=false;
+
+      if feux[i].aspect>10 then
+      begin
+        GroupBox1.Visible:=false;
+        GroupBox2.Visible:=false;
+        LabelNbFeux.Visible:=true;
+        EditNbreFeux.Visible:=true;
+        EditNbreFeux.Text:='1';
+      end
+      else
+      begin
+        LabelNbFeux.Visible:=False;
+        EditNbreFeux.Visible:=false;
+        GroupBox1.Visible:=true;
+        GroupBox2.Visible:=true;
+      end;
+
+      
       sourisclic:=false;  // évite de générer un cadre de sélection
     end;
   end;
