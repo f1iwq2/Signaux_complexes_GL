@@ -11,7 +11,8 @@ uses
   UnitConfig in 'UnitConfig.pas' {FormConfig},
   UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO},
   UnitSR in 'UnitSR.pas' {FormSR},
-  Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig};
+  Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig},
+  UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO};
 
 {$R *.res}
 
@@ -26,5 +27,6 @@ begin
   Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormSR, FormSR);
   Application.CreateForm(TFormAig, FormAig);
+  Application.CreateForm(TFormConfCellTCO, FormConfCellTCO);
   Application.Run;
 end.

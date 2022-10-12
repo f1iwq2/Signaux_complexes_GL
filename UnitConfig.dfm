@@ -1580,7 +1580,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3002,7 +3002,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end

@@ -454,7 +454,7 @@ var
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM : integer;
-  ack_cdm,clicliste,entreeTCO,affevt,config_modifie,clicproprietes,confasauver,
+  ack_cdm,clicliste,affevt,config_modifie,clicproprietes,confasauver,
   modif_branches : boolean;
   fichier : text;
 
@@ -2722,7 +2722,6 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
-  entreeTCO:=avecTCO;
   EditNomLay.Text:=Lay;
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
@@ -4988,7 +4987,7 @@ begin
   Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
   // et dans le TCO
-  if avecTCO then
+  if formTCO.Showing then
   begin
     for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
@@ -7683,15 +7682,6 @@ begin
   end;
 
   ok:=verifie_panneau_config;
-
-  // TCO
-  if avectco and not(entreeTCO) then
-  begin
-    //créée la fenêtre TCO non modale
-    FormTCO:=TformTCO.Create(nil);
-    FormTCO.show;
-    FormPrinc.ButtonAffTCO.Visible:=true;
-  end;
 
   if not(ok) then action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
 

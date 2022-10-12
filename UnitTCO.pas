@@ -26,10 +26,6 @@ type
     Pos_vert: TMenuItem;
     TrackBarZoom: TTrackBar;
     Panel1: TPanel;
-    Label4: TLabel;
-    Label15: TLabel;
-    EditAdrElement: TEdit;
-    EditTypeImage: TEdit;
     ImageTemp: TImage;
     ImagePalette5: TImage;
     Label6: TLabel;
@@ -71,10 +67,7 @@ type
     ImagePalette14: TImage;
     Label22: TLabel;
     ImagePalette15: TImage;
-    Label23: TLabel;
-    EditTexte: TEdit;
     ButtonSimu: TButton;
-    CheckPinv: TCheckBox;
     ImagePalette16: TImage;
     Label24: TLabel;
     ImagePalette17: TImage;
@@ -91,15 +84,26 @@ type
     Label29: TLabel;
     ImagePalette22: TImage;
     Label30: TLabel;
-    ComboRepr: TComboBox;
-    Label1: TLabel;
     ImagePalette23: TImage;
     Label31: TLabel;
     FontDialog1: TFontDialog;
-    ButtonFonte: TButton;
     N2: TMenuItem;
     Signalgauchedelavoie1: TMenuItem;
     Signaldroitedelavoie1: TMenuItem;
+    N3: TMenuItem;
+    Signal1: TMenuItem;
+    N4: TMenuItem;
+    GroupBox1: TGroupBox;
+    Label4: TLabel;
+    EditAdrElement: TEdit;
+    EditTypeImage: TEdit;
+    Label15: TLabel;
+    ButtonFonte: TButton;
+    Label23: TLabel;
+    EditTexte: TEdit;
+    ComboRepr: TComboBox;
+    Label1: TLabel;
+    CheckPinv: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -145,7 +149,6 @@ type
       Y: Integer);
     procedure ImageTCOMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
     procedure MenuCopierClick(Sender: TObject);
     procedure MenuCollerClick(Sender: TObject);
     procedure ButtonRedessineClick(Sender: TObject);
@@ -170,7 +173,6 @@ type
     procedure Pos_vertClick(Sender: TObject);
     procedure TrackBarZoomChange(Sender: TObject);
     procedure AnnulercouperClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ImagePalette12EndDrag(Sender, Target: TObject; X,
       Y: Integer);
     procedure ImagePalette12MouseDown(Sender: TObject;
@@ -280,6 +282,8 @@ type
     procedure FontDialog1Show(Sender: TObject);
     procedure Signaldroitedelavoie1Click(Sender: TObject);
     procedure Signalgauchedelavoie1Click(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
+    procedure N3Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -316,7 +320,7 @@ type
                FontStyle   : string[4];   // GSIB  (Gras Souligné Italique Barré)
                coulFonte   : Tcolor;
                TailleFonte : integer;
-               Couleur     : Tcolor;      // couleur de fond de la cellule
+               Couleur     : Tcolor;      // couleur non utilisée
                // pour les feux seulement
                PiedFeu     : integer;     // type de pied au feu : signal à gauche=1 ou à droite=2 de la voie
                x,y         : integer ;    // coordonnées pixels relativés du coin sup gauche du feu pour le décalage par rapport à la cellule
@@ -327,7 +331,7 @@ var
   clAllume,clVoies,Fond,couleurAdresse,clGrille,cltexte,clQuai,CoulFonte,ClCanton : Tcolor;
   FormTCO: TFormTCO;
   Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
-  piloteAig,BandeauMasque,eval_format : boolean;
+  piloteAig,BandeauMasque,eval_format,TCOouvert : boolean;
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,RatioC,ModeCouleurCanton,
@@ -351,10 +355,19 @@ procedure sauve_fichier_tco;
 procedure zone_TCO(det1,det2,mode: integer);
 procedure efface_entoure;
 procedure affiche_TCO;
+procedure affiche_cellule(x,y : integer);
+procedure _entoure_cell_clic;
+procedure affiche_texte(x,y : integer);
+procedure change_fonte;
+procedure Tourne90G;
+procedure Tourne90D;
+procedure Vertical;
+procedure signalG;
+procedure signalD;
 
 implementation
 
-uses UnitConfigTCO, Unit_Pilote_aig;
+uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO;
 
 {$R *.dfm}
 
@@ -1162,7 +1175,7 @@ begin
   jy2:=y0+(HauteurCell div 2)+round(3*FrYGlob); // pos Y de la bande inf
   inverse:=tco[x,y].inverse;
   position:=positionTCO(x,y);
-  
+
   with canvas do
   begin
     Brush.Color:=Fond;
@@ -2453,7 +2466,7 @@ begin
     moveTo( x+round((x1+0)*frX),y+round(y1*frY) );
     LineTo( x+round((x1+0)*frX),y+round((y1+7)*frY) );
     
-    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else 
+    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else
                    LineTo( x+round((x1-50)*frX),y+round((y1+7)*frY) ); 
     
     moveTo( x+round((x1+1)*frX),y+round((y1+0)*frY) );
@@ -2698,7 +2711,7 @@ begin
   dessine_feu_mx(canvasDest,x0,y0,frX,frY,adresse,orientation);
 end;
 
-procedure TformTCO.Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
+procedure Efface_Cellule(Canvas : Tcanvas;x,y : integer; couleur : Tcolor;Mode : TPenMode);
 var x0,y0 : integer;
     r : TRect;
 begin
@@ -2952,10 +2965,11 @@ end;
 
 procedure _entoure_cell_clic;
 begin
-  if not(entoure) then 
+  if not(entoure) then
     begin
       Entoure_cell(XclicCell,YclicCell);
-      Xentoure:=XClicCell;Yentoure:=YclicCell;entoure:=true;
+      Xentoure:=XClicCell;Yentoure:=YclicCell;
+      entoure:=true;
     end
     else
     begin
@@ -2981,7 +2995,7 @@ begin
   if ss='' then ss:='Arial';
   PcanvasTCO.Font.Name:=ss;
   ss:=tco[x,y].FontStyle;
- 
+
   PcanvasTCO.Font.Style:=style(ss);
 
   repr:=tco[x,y].repr;
@@ -2996,7 +3010,7 @@ begin
   if taillefonte=0 then taillefonte:=8;
   PCanvasTCO.font.Size:=(taillefonte*LargeurCell) div 40;
 
-  s:=tco[x,y].Texte;
+  s:=tco[x,y].Texte+'  ';
   PcanvasTCO.Textout(x0+2,y0+yt,s);
 end;
 
@@ -3087,6 +3101,9 @@ begin
   // évite le clignotement pendant les affichages mais ne marche pas
   //DoubleBuffered:=true;
   comborepr.Enabled:=false;
+  ImageTCO.Top:=0;
+  ImageTCO.Left:=0;
+  TCOouvert:=true;
   //controlStyle:=controlStyle+[csOpaque];
 end;
 
@@ -3097,7 +3114,7 @@ var  Position: TPoint;
      s : string;
 begin
   //Affiche('Clic gauche',clLime);
- 
+
   GetCursorPos(Position);
   {
   Menuitem:=TmenuItem.Create(popupMenu1);
@@ -3120,11 +3137,21 @@ begin
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
      or (bimage=14) or (bimage=15) then
   begin
-    CheckPinv.enabled:=true ;
+    
+    with FormConfCellTCO.CheckPinv do
+    begin
+      enabled:=true;
+      checked:=TCO[XClicCell,YClicCell].inverse;
+    end;  
     CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
+    CheckPinv.enabled:=true ;
   end
-    else CheckPinv.enabled:=false;
-
+    else 
+    begin
+      CheckPinv.enabled:=false;
+      FormConfCellTCO.checkPinv.enabled:=false;
+    end;  
+      
   if (Bimage=1) or (Bimage=0) or (Bimage=23) then
   begin
     s:=Tco[XClicCell,YClicCell].Texte;
@@ -3149,6 +3176,8 @@ begin
   ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
 
   if not(selectionaffichee) then _entoure_cell_clic;
+
+  actualise;
 end;
 
 // trouve le détecteur det dans le TCO et renvoie X et Y
@@ -3157,7 +3186,7 @@ var xc,yc : integer;
     trouve : boolean;
 begin
   yc:=1;
-  repeat 
+  repeat
     xc:=0;
     repeat
       inc(xc);
@@ -3496,7 +3525,7 @@ begin
   dec(ir);
   for i:=1 to ir do 
     Affiche_cellule(routeTCO[i].x,routeTCO[i].y);
-  
+
 end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
@@ -3514,7 +3543,6 @@ begin
     ButtonAfficheBandeau.visible:=false;
     TrackBarZoom.Max:=ZoomMax;
     TrackBarZoom.Min:=ZoomMin;
-    
 
     PScrollBoxTCO:=FormTCO.ScrollBox;
 
@@ -3596,7 +3624,7 @@ procedure TFormTCO.ImageTCOContextPopup(Sender: TObject; MousePos: TPoint; var H
 var  Position: TPoint;
 
 begin
-  //Affiche('Clic droit',clyellow);
+  // Affiche('Clic droit',clyellow);
   // efface le carré pointeur
   //Entoure_cell(XclicCell,YclicCell);
   GetCursorPos(Position);
@@ -3606,7 +3634,7 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
 
- // _entoure_cell_clic;
+  _entoure_cell_clic;
 
   LabelX.caption:=IntToSTR(XclicCell);
   LabelY.caption:=IntToSTR(YclicCell);
@@ -3799,7 +3827,7 @@ begin
   dessin_4(ImageTCO.Canvas,XClicCell,YClicCell,0);
   tco[XClicCell,YClicCell].BImage:=4;  // image 4
   tco[xClicCell,YClicCell].CoulFonte:=clYellow;
-  entoure_cell_grille(XClicCell,YClicCell); 
+  entoure_cell_grille(XClicCell,YClicCell);
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
@@ -3828,7 +3856,7 @@ begin
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
-  
+
 end;
 
 procedure TFormTCO.ImagePalette1MouseDown(Sender: TObject;
@@ -4073,7 +4101,7 @@ begin
   tco[XClicCell,YClicCell].BImage:=14;  // image 14
   tco[XClicCell,YClicCell].Adresse:=0;  // rien
   tco[xClicCell,YClicCell].CoulFonte:=clYellow;
-  entoure_cell_grille(XClicCell,YClicCell); 
+  entoure_cell_grille(XClicCell,YClicCell);
   _entoure_cell_clic;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
@@ -4280,9 +4308,9 @@ begin
     for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
       for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
         tamponTCO[x,y]:=tco[x,y];
-    TamponAffecte:=true;  
+    TamponAffecte:=true;
   end;
-  
+
 end;
 
 procedure TFormTCO.MenuCopierClick(Sender: TObject);
@@ -4389,7 +4417,7 @@ begin
           Rectangle(rAncien);
         end;
         SelectionAffichee:=false;
-      end;  
+      end;
     end;
 
     if button=mbRight then
@@ -4526,10 +4554,11 @@ begin
 
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
-    
+
   if Adr=0 then tco[XClicCell,YClicCell].repr:=2;
 
   tco[XClicCell,YClicCell].Adresse:=Adr;
+  formConfCellTCO.editAdrElement.Text:=intToSTR(Adr);
 
   if tco[XClicCell,YClicCell].BImage=30 then
   begin
@@ -4549,29 +4578,32 @@ end;
 procedure TFormTCO.EditAdrElementKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if key=VK_RETURN then 
+  if key=VK_RETURN then
   begin
     efface_entoure;
     affiche_cellule(XClicCell,YClicCell);
-  end;  
+  end;
 end;
 
 procedure TFormTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
-var Bimage,erreur : integer;
+var Bimage,erreur,i : integer;
 begin
+  if actualize then exit;
   if ord(Key)=VK_RETURN then
   begin
     Key:=#0; // évite beeping
     Val(EditTypeImage.Text,Bimage,erreur);
     //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
-    if (erreur<>0) or (Bimage<0) or (Bimage>15) then 
+    if (erreur<>0) or not(Bimage in[0..23,30]) then
     begin
       EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
       exit;
-    end;  
+    end;
     TCO_modifie:=true;
     tco[XClicCell,YClicCell].Bimage:=Bimage;
-
+    formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
+    actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
+    efface_entoure;
     affiche_cellule(XClicCell,YClicCell);
   end;
 end;
@@ -4703,10 +4735,10 @@ begin
    ImagePalette30.BeginDrag(true);
 end;
 
-
-procedure TFormTCO.Tourner90GClick(Sender: TObject);
+procedure Tourne90G;
 var BImage : integer;
 begin
+  if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   if Bimage<>30 then exit;
 
@@ -4734,11 +4766,18 @@ begin
 
   tco[XClicCell,YClicCell].FeuOriente:=2;  // feu orienté à 90° gauche
   Affiche_TCO;
+  actualise;    // met à jour la fenetre de config de la cellule
 end;
 
-procedure TFormTCO.Tourner90DClick(Sender: TObject);
+procedure TFormTCO.Tourner90GClick(Sender: TObject);
+begin
+  tourne90G;
+end;
+
+procedure tourne90D;
 var BImage ,aspect,adresse : integer;
 begin
+  if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   if Bimage<>30 then exit;
 
@@ -4772,12 +4811,18 @@ begin
   tco[XClicCell,YClicCell].FeuOriente:=3;  // feu orienté à 90° droit
   //dessin_feu(PCanvasTCO,XclicCell,YClicCell);
   Affiche_TCO;
+  actualise;    // met à jour la fenetre de config de la cellule
 end;
 
+procedure TFormTCO.Tourner90DClick(Sender: TObject);
+begin
+  tourne90D;
+end;  
 
-procedure TFormTCO.Pos_vertClick(Sender: TObject);
+procedure vertical;
 var BImage ,aspect,Adresse : integer;
 begin
+  if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   // si c'est autre chose qu'un feu, sortir
   if Bimage<>30 then exit;
@@ -4815,8 +4860,13 @@ begin
   tco[XClicCell,YClicCell].FeuOriente:=1;  // feu orienté à 180°
   //dessin_feu(PCanvasTCO,XclicCell,YClicCell);
   affiche_tco;
-
+  actualise;    // met à jour la fenetre de config de la cellule
 end;
+
+procedure TFormTCO.Pos_vertClick(Sender: TObject);
+begin
+  vertical;
+end;  
 
 procedure TFormTCO.TrackBarZoomChange(Sender: TObject);
 begin
@@ -4827,22 +4877,18 @@ begin
 end;
 
 
-// interdire la fermeture de la fenêtre tco
-procedure TFormTCO.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  action:=tCloseAction(caNone);
-end;
-
 procedure TFormTCO.EditTexteChange(Sender: TObject);
 begin
   PCanvasTCO.Brush.Color:=fond;
-
+  efface_entoure;
   if Tco[XClicCell,YClicCell].texte='' then
   begin
     Tco[XClicCell,YClicCell].CoulFonte:=clTexte;
     Tco[XClicCell,YClicCell].TailleFonte:=8;
   end;
+
   Tco[XClicCell,YClicCell].Texte:=EditTexte.Text;
+  formConfCellTCO.EditTexte.Text:=EditTexte.Text;
   TCO_modifie:=true;
   affiche_texte(XClicCell,YClicCell);
 end;
@@ -4875,6 +4921,7 @@ end;
 procedure TFormTCO.CheckPinvClick(Sender: TObject);
 var Bimage : integer;
 begin
+  if actualize then exit;
   if (xClicCell=0) or (xClicCell>NbreCellX) or (yClicCell=0) or (yClicCell>NbreCelly) then exit;
   Bimage:=Tco[xClicCell,yClicCell].Bimage;
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) 
@@ -4882,7 +4929,7 @@ begin
      begin
        TCO[xClicCell,yClicCell].inverse:=CheckPinv.checked;
        TCO_modifie:=true;
-     end;  
+     end;
 end;
 
 procedure TFormTCO.ButtonMasquerClick(Sender: TObject);
@@ -4982,7 +5029,9 @@ end;
 procedure TFormTCO.ComboReprChange(Sender: TObject);
 begin
   tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
-  efface_entoure;SelectionAffichee:=false;
+  efface_entoure;
+  SelectionAffichee:=false;
+  formConfCellTCO.ComboRepr.ItemIndex:=ComboRepr.ItemIndex;
   sourisclic:=false;
   //affiche_cellule(XClicCell,yClicCell);
   affiche_tco;
@@ -5157,41 +5206,49 @@ begin
   accept:=true;
 end;
 
-procedure TFormTCO.ButtonFonteClick(Sender: TObject);
+procedure change_fonte;
 var s,ss : string;
     fs : TFontStyles;
 begin
   s:='Fonte et couleur pour la cellule ('+intToSTR(xClicCell)+','+intToSTR(YClicCell)+') Texte: ';
   ss:=tco[xClicCell,YClicCell].Texte;
   if ss='' then s:=s+inttoSTR(tco[xClicCell,YClicCell].Adresse) else s:=s+ss;
-  
+
   titre_fonte:=s;
-  FontDialog1.Font.Name:=tco[XclicCell,YclicCell].Fonte;
-  FontDialog1.Font.Color:=tco[XclicCell,YclicCell].CoulFonte;
-  FontDialog1.Font.Size:=tco[XclicCell,YclicCell].taillefonte;
-
-  fs:=[];
-  s:=tco[XclicCell,YclicCell].FontStyle;
-  if pos('G',s)<>0 then fs:=fs+[fsbold];
-  if pos('I',s)<>0 then fs:=fs+[fsItalic];
-  if pos('S',s)<>0 then fs:=fs+[fsUnderline];
-  if pos('B',s)<>0 then fs:=fs+[fsStrikeout];
-  FontDialog1.Font.Style:=fs;
-
-  if FontDialog1.execute then
+  With FormTCO do
   begin
-    tco[XclicCell,YclicCell].Fonte:=FontDialog1.Font.Name;
-    tco[XclicCell,YclicCell].CoulFonte:=FontDialog1.Font.Color;
-    tco[XclicCell,YclicCell].taillefonte:=FontDialog1.Font.Size;
-    fs:=FontDialog1.Font.Style;
-    s:='';
-    if fsBold in fs then s:=s+'G';
-    if fsItalic in fs then s:=s+'I';
-    if fsUnderline in fs then s:=s+'S';
-    if fsStrikeout in fs then s:=s+'B';
-    tco[XclicCell,YclicCell].FontStyle:=s;
-    affiche_tco;
+    FontDialog1.Font.Name:=tco[XclicCell,YclicCell].Fonte;
+    FontDialog1.Font.Color:=tco[XclicCell,YclicCell].CoulFonte;
+    FontDialog1.Font.Size:=tco[XclicCell,YclicCell].taillefonte;
+
+    fs:=[];
+    s:=tco[XclicCell,YclicCell].FontStyle;
+    if pos('G',s)<>0 then fs:=fs+[fsbold];
+    if pos('I',s)<>0 then fs:=fs+[fsItalic];
+    if pos('S',s)<>0 then fs:=fs+[fsUnderline];
+    if pos('B',s)<>0 then fs:=fs+[fsStrikeout];
+    FontDialog1.Font.Style:=fs;
+
+    if FontDialog1.execute then
+    begin
+      tco[XclicCell,YclicCell].Fonte:=FontDialog1.Font.Name;
+      tco[XclicCell,YclicCell].CoulFonte:=FontDialog1.Font.Color;
+      tco[XclicCell,YclicCell].taillefonte:=FontDialog1.Font.Size;
+      fs:=FontDialog1.Font.Style;
+      s:='';
+      if fsBold in fs then s:=s+'G';
+      if fsItalic in fs then s:=s+'I';
+      if fsUnderline in fs then s:=s+'S';
+      if fsStrikeout in fs then s:=s+'B';
+      tco[XclicCell,YclicCell].FontStyle:=s;
+      affiche_tco;
+    end;
   end;
+end;
+
+procedure TFormTCO.ButtonFonteClick(Sender: TObject);
+begin 
+  change_fonte;
 end;
 
 procedure TFormTCO.FontDialog1Show(Sender: TObject);
@@ -5199,24 +5256,94 @@ begin
   SetWindowText(FontDialog1.Handle,pchar(titre_Fonte));
 end;
 
-procedure TFormTCO.Signaldroitedelavoie1Click(Sender: TObject);
+procedure signalD;
 begin
+  if actualize then exit;
   if TCO[XClicCell,YClicCell].Bimage=30 then
   begin
     TCO[XClicCell,YClicCell].PiedFeu:=2;
     Affiche_TCO;
+    TCO_modifie:=true;
+    actualise;    // met à jour la fenetre de config de la cellule
+  end;
+end;
+
+procedure TFormTCO.Signaldroitedelavoie1Click(Sender: TObject);
+begin
+  signalD;
+end;
+
+procedure signalG;
+begin
+  if actualize then exit;
+  if TCO[XClicCell,YClicCell].Bimage=30 then
+  begin
+    TCO[XClicCell,YClicCell].PiedFeu:=1;
+    Affiche_TCO;
+    TCO_modifie:=true;
+    actualise;    // met à jour la fenetre de config de la cellule
   end;
 end;
 
 procedure TFormTCO.Signalgauchedelavoie1Click(Sender: TObject);
 begin
-  if TCO[XClicCell,YClicCell].Bimage=30 then
-  begin
-    TCO[XClicCell,YClicCell].PiedFeu:=1;
-    Affiche_TCO;
-  end;  
+  signalG;
 end;
 
+procedure TFormTCO.PopupMenu1Popup(Sender: TObject);
+var oriente,piedFeu : integer;
+begin
+  //Affiche('on popup',clyellow);
+  // grise ou non l'entrée signal du menu
+  if tco[XClicCell,YClicCell].Bimage=30 then
+  begin
+    PopUpMenu1.Items[6].Enabled:=true;
+    oriente:=tco[XClicCell,YClicCell].Feuoriente;
+    if oriente=1 then
+    begin
+      PopUpMenu1.Items[6][0].checked:=false;
+      PopUpMenu1.Items[6][1].checked:=false;
+      PopUpMenu1.Items[6][2].checked:=true;
+    end;
+    if oriente=2 then
+    begin
+      PopUpMenu1.Items[6][0].checked:=true;
+      PopUpMenu1.Items[6][1].checked:=false;
+      PopUpMenu1.Items[6][2].checked:=false;
+    end;
+    if oriente=3 then
+    begin
+      PopUpMenu1.Items[6][0].checked:=false;
+      PopUpMenu1.Items[6][1].checked:=true;
+      PopUpMenu1.Items[6][2].checked:=false; 
+    end;  
+    PiedFeu:=tco[XClicCell,YClicCell].PiedFeu;
+    if PiedFeu=1 then
+    begin
+      PopUpMenu1.Items[6][4].checked:=true;
+      PopUpMenu1.Items[6][5].checked:=false;
+    end;
+    if PiedFeu=2 then
+    begin
+      PopUpMenu1.Items[6][4].checked:=false;
+      PopUpMenu1.Items[6][5].checked:=true;
+    end;
+    
+    
+  end  
+  else
+    PopUpMenu1.Items[6].Enabled:=false;
+    
+end;
+
+
+
+procedure TFormTCO.N3Click(Sender: TObject);
+begin
+  actualise;
+  FormConfCellTCO.show;
+  FormConfCellTCO.BringToFront;
+end;
 
 begin
 end.

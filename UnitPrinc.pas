@@ -18,6 +18,15 @@ Unit UnitPrinc;
 // En mode RUN:
 // CDM renvoie le nom des trains sur les actionneurs à 1, jamais à 0
 // et quelquefois (pas toujours!) sur les détecteurs à 1, jamais à 0
+//
+// En simulation:
+// CDM Rail ne renvoie pas les états des aiguillages en début de simu
+// Les aiguillages sont renvoyés quand on clique dessus
+// Les actionneurs fonctionnent. Les détecteurs ne sont pas renvoyés.
+//
+// En mode centrale connectée à signaux complexes (autonome) si on bouge un
+// aiguillage à la raquette, on récupère bien sa position par XpressNet.
+
 
 interface
 
@@ -1269,9 +1278,8 @@ begin
   
   with Formpilote do
   begin
-    TFormPilote.Create(Self);
+    TFormPilote.Create(Self); // rajouté
     show;
-
     ImagePilote.Parent:=FormPilote;
     ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
     ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
@@ -1774,8 +1782,8 @@ begin
   end;
   if cdm_connecte then
   begin
-     //s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
-     s:=chaine_CDM_vitesseINT(vitesse,loco);    // par adresse du train
+     s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
+     //s:=chaine_CDM_vitesseINT(vitesse,loco);    // par adresse du train
      envoi_CDM(s);
      //affiche(s,clLime);    
   end;
@@ -2892,7 +2900,7 @@ begin
       Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
 
       // allume les signaux du feu dans le TCO
-      if AvecTCO then
+      if formTCO.Showing then
       begin
        for y:=1 to NbreCellY do
        for x:=1 to NbreCellX do
@@ -5945,7 +5953,7 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1]),clyellow);
             AfficheDebug(intToSTR(event_det_train[i].det[2]),clyellow);
           end;
-          if avecTCO then
+          if formTCO.Showing then
           begin   
             zone_TCO(det2,det3,0);    // désactivation
             // activation
@@ -6425,7 +6433,7 @@ begin
   // attention à partir de cette section le code est susceptible de ne pas être exécuté??
 
   // Mettre à jour le TCO
-  if AvecTCO then
+  if formTCO.Showing then
   begin
     formTCO.Maj_TCO(Adresse);
   end;
@@ -6487,7 +6495,7 @@ begin
   event_det_tick[N_event_tick].etat:=pos;
 
   // Mettre à jour le TCO
-  if AvecTCO then formTCO.Maj_TCO(Adresse);
+  if formTCO.Showing then formTCO.Maj_TCO(Adresse);
 
   // l'évaluation des routes est à faire selon conditions
   if faire_event and not(confignulle) then evalue;
@@ -6999,17 +7007,17 @@ begin
       s:=#$f0;
       s:=checksum(s);
       envoi_ss_ack(s);
-
+      application.processMessages;
       s:='Port com'+intToSTR(port)+' ouvert ';
 
       temp:=0;
       repeat
         sleep(100);
         inc(temp);
-        Application.processmessages;
-      until (version_Interface<>'') or (temp>10);
+       // Application.processmessages;  // provoque violation
+      until (version_Interface<>'') or (temp>2);
 
-      if (temp>10) then
+      if (temp>2) then
       begin
         Affiche(s+' mais l''interface n''a pas répondu',clyellow);
         portCommOuvert:=false;  // refermer le port
@@ -7032,7 +7040,6 @@ begin
       end;
     end
     else inc(port);
-    Application.processMessages;
 
   until (port=10) or trouve;
 end;
@@ -7080,7 +7087,7 @@ begin
   begin
     portCommOuvert:=false;
     //Affiche('Détection automatique du port de l''interface Xpressnet',clyellow);
-    NumPort:=trouve_USB;
+    NumPort:=trouve_USB;  
     portCommOuvert:=NumPort<>0;
   end;
 
@@ -7433,7 +7440,6 @@ begin
   LabelEtat.Caption:='Initialisations en cours';
 
   //Menu_interface(devalide);
-
   // créée la fenetre debug
   FormDebug:=TFormDebug.Create(Self);
   FormDebug.Caption:=AF+' debug';
@@ -7447,10 +7453,9 @@ begin
   Option_demarrage:=false;  // démarrage des trains après tempo, pas encore au point
   Diffusion:=AvecInit;      // mode diffusion publique
 
-  Application.processMessages;
-  // créée la fenetre vérification de version
+   // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
-
+  
   ferme:=false;
   CDM_connecte:=false;
   pasreponse:=0;
@@ -7462,13 +7467,13 @@ begin
   NumTrameCDM:=0;
   Application.HintHidePause:=30000;
 
-  // lecture fichiers de configuration 
-  lit_config;
-  Application.processMessages;
+  // lecture fichiers de configuration
+  lit_config;    
+  Application.ProcessMessages;
 
   // lancer CDM rail et le connecte si on le demande
+
   if LanceCDM then Lance_CDM;
-  ButtonAffTCO.visible:=AvecTCO;
   Loco.Visible:=true;
 
   // tenter la liaison vers CDM rail
@@ -7535,11 +7540,10 @@ begin
   GroupBox3.visible:=true;
 
   // TCO
-  if avectco then
   begin
     //créée la fenêtre TCO non modale
     FormTCO:=TformTCO.Create(nil);
-    FormTCO.show;
+    if avecTCO then FormTCO.show;
   end;
 
   Affiche('Fin des initialisations',clyellow);
@@ -7745,7 +7749,7 @@ begin
     end;
 
     // feux du TCO
-    if avecTCO then
+    if TCOouvert then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
       // parcourir les feux du TCO
       for y:=1 to NbreCellY do
@@ -9152,7 +9156,6 @@ end;
 
 procedure TFormPrinc.ConfigClick(Sender: TObject);
 begin
-  Tformconfig.create(nil);
   FormConfig.PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   formconfig.showmodal;
   // ne pas faire close : déja provoqué par le self de la fermeture
@@ -9270,6 +9273,7 @@ end;
 procedure TFormPrinc.ButtonAffTCOClick(Sender: TObject);
 begin
   formTCO.windowState:=wsNormal; //Maximized;
+  formTCO.show;
   formTCO.BringToFront;
 end;
 
@@ -9295,8 +9299,8 @@ begin
   s:=editVitesse.Text;
   val(s,vit,erreur);
   if (erreur<>0) or (vit<0) then exit;
-  Affiche('Commande vitesse train '+s+ ' à '+IntToSTR(vit)+'%',cllime);
   s:=trains[combotrains.itemindex+1].nom_train;
+  Affiche('Commande vitesse train '+s+' ('+intToSTR(adr)+') à '+IntToSTR(vit)+'%',cllime);
   vitesse_loco(s,adr,vit,true);
   if s='' then s:=intToSTR(adr);
 end;
@@ -9392,7 +9396,6 @@ begin
   s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'adresse du feu (ex: ImageFeu260)
   //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu260)
   adresseFeuClic:=extract_int(s);   // extraire l'adresse (ex 260)
-  Tformconfig.create(nil);
   formconfig.PageControl.ActivePage:=formconfig.TabSheetSig;
   clicproprietes:=true;
   formconfig.showmodal;
