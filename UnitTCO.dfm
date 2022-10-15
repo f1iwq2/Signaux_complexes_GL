@@ -915,6 +915,7 @@ object FormTCO: TFormTCO
         Top = 84
         Width = 89
         Height = 21
+        Style = csDropDownList
         ItemHeight = 13
         TabOrder = 4
         OnChange = ComboReprChange

@@ -1580,7 +1580,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2357,9 +2357,9 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 145
           Height = 21
+          Style = csDropDownList
           ItemHeight = 13
           TabOrder = 3
-          Text = 'Type'
           OnChange = ComboBoxAigChange
           Items.Strings = (
             'Aiguillage simple'
@@ -2626,6 +2626,7 @@ object FormConfig: TFormConfig
             Top = 24
             Width = 97
             Height = 21
+            Style = csDropDownList
             ItemHeight = 13
             TabOrder = 1
             OnChange = ComboBoxDDChange
@@ -3002,7 +3003,8 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 129
           Height = 21
-          ItemHeight = 0
+          Style = csDropDownList
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3105,6 +3107,7 @@ object FormConfig: TFormConfig
           Top = 72
           Width = 129
           Height = 21
+          Style = csDropDownList
           ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange

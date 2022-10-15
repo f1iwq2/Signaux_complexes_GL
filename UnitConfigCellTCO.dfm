@@ -1,6 +1,6 @@
 object FormConfCellTCO: TFormConfCellTCO
-  Left = 211
-  Top = 228
+  Left = 467
+  Top = 112
   BorderStyle = bsDialog
   Caption = 'FormConfCellTCO'
   ClientHeight = 375
@@ -55,6 +55,7 @@ object FormConfCellTCO: TFormConfCellTCO
       Top = 60
       Width = 89
       Height = 24
+      Style = csDropDownList
       ItemHeight = 16
       TabOrder = 0
       OnChange = ComboReprChange
@@ -137,12 +138,15 @@ object FormConfCellTCO: TFormConfCellTCO
       Top = 48
       Width = 33
       Height = 21
+      Hint = 'Num'#233'ro d'#39'image de l'#39#233'l'#233'ment'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -9
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 0
       OnKeyPress = EditTypeImageKeyPress
     end
@@ -254,6 +258,9 @@ object FormConfCellTCO: TFormConfCellTCO
       Top = 48
       Width = 33
       Height = 24
+      Hint = 'Adresse DCC de l'#39#233'l'#233'ment'
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 3
       OnKeyPress = EditAdrElementKeyPress
     end

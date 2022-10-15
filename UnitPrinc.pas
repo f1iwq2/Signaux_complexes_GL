@@ -6162,6 +6162,7 @@ var i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
 begin
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
+  if adr=0 then exit;
   //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
   for i:=1 to maxTablo_act do
   begin
@@ -8628,7 +8629,7 @@ begin
         i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if i<>0 then
         begin
-          ss:=copy(commandeCDM,i+6,l-i-6);
+          ss:=copy(commandeCDM,i+3,l-i-3);
           val(ss,adr,erreur);
           Delete(commandeCDM,i,l-i+1);
         end;
