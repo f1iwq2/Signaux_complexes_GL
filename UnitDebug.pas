@@ -153,6 +153,13 @@ begin
   if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
   RichEdit.color:=$111122;
   RichDebug.Lines.add(s);
+  visible:=false; // invisible au démarrage
+  with VertScrollBar do
+  begin
+    Range:=785;  // garantir l'apparition de la trackbar dans radStudio
+    visible:=true;
+    tracking:=true;
+  end;  
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);

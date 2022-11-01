@@ -346,7 +346,7 @@ var
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
-  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,
+  Srvc_PosTrain,Srvc_Sig,debugtrames,
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
@@ -360,7 +360,7 @@ var
 
   tablo : array of byte;  // tableau rx usb
 
-  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,LAY
+  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe
   : string;
 
   Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
@@ -546,6 +546,7 @@ end;
 // renvoie le 1er numéro de bit à 1
 // PremBitNum(1)=0
 // PremBitNum(4)=2
+// si pas de bit à 1, renvoie -1
 Function PremBitNum(n : word) : integer;
 var i : integer;
     trouve : boolean;
@@ -556,7 +557,7 @@ begin
     if not(trouve) then inc(i);
     n:=n shr 1;
   until (i=16) or trouve;
-  PremBitNum:=i;
+  if trouve then PremBitNum:=i else PremBitNum:=-1;
 end;
    
 // conversion du motif de bits (codebin) de la configuration du signal complexe en deux mots:
@@ -564,7 +565,8 @@ end;
 // premierBit : code de la signalisation
 // Combine = code de la signalisation combinée
 // Exemple code_to_aspect(10001000000000)  renvoie premierBit=jaune_cli (9) et Combine=rappel 60 (13)
-procedure code_to_aspect(codebin : word;var premierbit,combine : word) ;
+// si pas de combinaison, renvoie -1
+procedure code_to_aspect(codebin : word;var premierbit,combine : integer) ;
 begin
   premierBit:=PremBitNum(CodeBin and $3ff);
   combine:=PremBitNum(CodeBin and $fc00);
@@ -573,7 +575,7 @@ end;
 // conversion d'un état signal binaire en état unique
 // exemple code_to_etat(10001000000000) (jaune_cli et rappel 60) renvoie 19
 function code_to_etat(code : word) : integer;
-var aspect,combine : word;    
+var aspect,combine : integer;    
 begin
   code_to_aspect(code,aspect,combine);
   result:=9999;
@@ -631,9 +633,9 @@ end;
 // orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
-    LgImage,HtImage : integer;
+    LgImage,HtImage,code,combine : integer;
     ech : real;
-    code,combine : word;
+    
 begin
   code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
@@ -677,9 +679,9 @@ end;
 // dessine les feux sur une cible à 3 feux
 procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
-    LgImage,HtImage : integer;
+    LgImage,HtImage,code,combine : integer;
     ech : real;
-    code,combine : word;
+    
 begin
   code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
@@ -727,9 +729,9 @@ end;
 // orientation=1 vertical
 procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
-    LgImage,HtImage : integer;
+    LgImage,HtImage,code,combine : integer;
     ech : real;
-    code,combine : word;
+    
 begin
   code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
@@ -788,9 +790,9 @@ end;
 // dessine les feux sur une cible à 5 feux
 procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
-    Temp,rayon,LgImage,HtImage : integer;
+    Temp,rayon,LgImage,HtImage,code,combine : integer;
     ech : real;
-    code,combine : word;
+
 begin
   code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
@@ -857,9 +859,8 @@ end;
 // dessine les feux sur une cible à 7 feux
 procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
-    Temp,rayon,LgImage,HtImage : integer;
+    Temp,rayon,LgImage,HtImage,code,combine  : integer;
     ech : real;
-    code,combine : word;
 begin
   code_to_aspect(Etatsignal,code,combine); // et combine
   rayon:=round(6*frX);
@@ -943,9 +944,9 @@ procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal
 var rayon,
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp          : integer;
-    LgImage,HtImage,xt,yt : integer;
+    LgImage,HtImage,xt,yt,code,combine  : integer;
     ech : real;
-    code,combine : word;
+    
 begin
   rayon:=round(6*frX);
   code_to_aspect(Etatsignal,code,combine); // et aspect
@@ -1791,16 +1792,19 @@ end;
 
 // renvoie la chaîne de l'état du signal
 function chaine_signal(etat : word) : string;
-var aspect,combine : word;
+var aspect,combine : integer;
     s : string;
 begin
   code_to_aspect(etat,aspect,combine);
   s:='';
-  if aspect=16 then s:='' else s:=etatSign[aspect];
+  if (aspect=16) then s:='' else begin if aspect<>-1 then s:=etatSign[aspect];end;
   if combine<>16 then
   begin
-    if aspect<>16 then s:=s+'+';
-    s:=s+etatSign[combine];
+    if (aspect<>16) and (combine<>-1) then 
+    begin
+      if aspect<>-1 then s:=s+'+';
+      s:=s+etatSign[combine];
+    end;  
   end;
   chaine_signal:=s;
 end;
@@ -1977,7 +1981,7 @@ envoie les données au décodeur CDF
 ===========================================================================*}
 procedure envoi_CDF(adresse : integer);
 var
-  code,aspect,combine : word;
+  code,aspect,combine : integer;
   i : integer;
   s : string;
 begin
@@ -2051,7 +2055,7 @@ end;
 envoie les données au décodeur LEB
 ===========================================================================*}
 procedure envoi_LEB(adresse : integer);
-var code,aspect,combine : word;
+var code,aspect,combine : integer;
     index : integer;
     s : string;
   procedure envoi5_LEB(selection :byte);
@@ -2142,7 +2146,7 @@ envoie les données au décodeur NMRA étendu
 /*===========================================================================*)
 procedure envoi_NMRA(adresse: integer);
 var valeur,i : integer ;
-    aspect,combine,code : word;
+    aspect,combine,code : integer;
     s : string;
 begin
   i:=index_feu(adresse);
@@ -2190,7 +2194,7 @@ end;
 procedure envoi_UniSemaf(adresse: integer);
 var modele,index: integer ;
     s : string;
-    code,aspect,combine : word;
+    code,aspect,combine : integer;
 begin
   index:=Index_feu(adresse);    // tranforme l'adresse du feu en index tableau
 
@@ -2703,7 +2707,7 @@ envoie les données au décodeur LDT
        Le mode 2 permet la commande de signaux de plus de 4 feux
 ===========================================================================}
 procedure envoi_LDT(adresse : integer);
-var code,aspect,combine,mode : word;
+var code,aspect,combine,mode : integer;
     i : integer;
     s : string;
 begin
@@ -2754,7 +2758,7 @@ end;
 
 procedure envoi_virtuel(adresse : integer);
 var
-  combine,aspect,code : word;
+  combine,aspect,code : integer;
   i : integer;
   s : string;
 begin
@@ -2777,7 +2781,7 @@ envoie les données au décodeur digitalbahn équipé du logiciel "led_signal_10"
        Ici on met le bit 1 à 1 (état "vert" du programme hexmanipu
 ===========================================================================*)
 procedure envoi_signalBahn(adresse : integer);
-var aspect,code,combine : word;
+var aspect,code,combine : integer;
     ralrap, jau ,Ancralrap,Ancjau : boolean;
     i : integer;
     s : string;
@@ -3038,6 +3042,7 @@ begin
   //affiche('index2='+IntToSTR(index2_det),clWhite);
 end;
 
+// trouve le détecteur dans les branches (branche_trouve, Indexbranche_trouve)
 // si pas trouvé, IndexBranche_trouve=0
 procedure trouve_detecteur(detecteur : integer);
 var NBranche,i : integer;
@@ -3265,6 +3270,7 @@ begin
       suivant_alg3:=9999;
       exit;
     end;
+
     if (aiguillage[index].modele=aig) and (Bt=aig)  then // aiguillage normal
     begin
       // aiguillage index (adr) pris en pointe
@@ -3281,12 +3287,18 @@ begin
           Aprec:=a;
           A:=aiguillage[index].AdroitB;
           Adr:=aiguillage[index].Adroit;
-          if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
-          trouve_element(adr,typeEl,1); // branche_trouve  IndexBranche_trouve
-          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+          if adr<>0 then
+          begin
+            if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
+            trouve_element(adr,typeEl,1); // branche_trouve  IndexBranche_trouve
+            typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype; 
+          end
+          else 
+            typeGen:=buttoir;
           suivant_alg3:=adr;
           exit;
         end;
+
         if aiguillage[index].position=const_devie then
         begin
           if NivDebug=3 then AfficheDebug('133 - aiguillage '+intToSTR(Adr)+' Pris en pointe dévié',clyellow);
@@ -3306,12 +3318,17 @@ begin
           Aprec:=A;
           A:=aiguillage[index].AdevieB;
           Adr:=aiguillage[index].Adevie;
-          if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
-          trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
-          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+          if adr<>0 then
+          begin
+            if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
+            trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+            typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+          end
+            else typeGen:=buttoir;
           suivant_alg3:=adr;
           exit;
         end;
+
         if aiguillage[index].position=const_inconnu then
         begin
           if NivDebug>=1 then
@@ -3376,10 +3393,14 @@ begin
         APrec:=A;
         A:=aiguillage[index].ApointeB;
         Adr:=aiguillage[index].Apointe;
-        //  Affiche('trouvé '+intToSTR(adr),clyellow);
-        if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
-        trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
-        typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+        if adr<>0 then
+        begin
+          //  Affiche('trouvé '+intToSTR(adr),clyellow);
+          if A='Z' then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
+          trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
+        end
+          else TypeGen:=Buttoir;  
         suivant_alg3:=adr;
         exit;
       end;
@@ -4944,7 +4965,7 @@ end;
 // Dans AdresseFeuSuivant : adresse du feu suivant (variable globale)
 function etat_signal_suivant(adresse,rang : integer) : integer ; 
 var num_feu,etat,AdrFeu,i,j,prec,AdrSuiv,index2,voie : integer;
-    aspect,combine : word;
+    aspect,combine : integer;
     TypePrec,TypeActuel : TEquipement;
     s : string;
 begin
@@ -5047,9 +5068,15 @@ begin
             // oui
             inc(num_feu);
             Etat:=feux[index_feu(AdrFeu)].EtatSignal;
-            code_to_aspect(Etat,aspect,combine);
+            code_to_aspect(Etat,aspect,combine);     
             Signal_suivant:=AdrFeu;
-            if NivDebug=3 then AfficheDebug('Trouvé feu suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine],clorange);
+            if NivDebug=3 then    
+            begin
+              s:='Trouvé feu suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'=';
+              if aspect<>-1 then s:=s+EtatSign[aspect]+' ';
+              if combine<>-1 then s:=s+EtatSign[combine];
+              AfficheDebug(s,clorange);
+            end;  
           end
           else
           begin
@@ -5071,8 +5098,13 @@ begin
                  Etat:=feux[index_feu(AdrFeu)].EtatSignal;
                  code_to_aspect(Etat,aspect,combine);
                  Signal_suivant:=AdrFeu;
-                 if NivDebug=3 then AfficheDebug('Sur même détecteur, trouvé feu2 suivant Adr='+IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine],clorange);
-
+                 if NivDebug=3 then 
+                 begin
+                   s:=IntToSTR(AdrFeu)+': '+IntToSTR(etat)+'=';
+                   if aspect<>-1 then s:=s+EtatSign[aspect]+' ';
+                   if combine<>-1 then s:=s+EtatSign[combine];
+                   AfficheDebug('Sur même détecteur, trouvé feu2 suivant Adr='+s,clorange);
+                 end;
                end
                else
                begin
@@ -5587,7 +5619,7 @@ end;
 procedure Maj_Feu(Adrfeu : integer);
 var Adr_det,etat,Aig,Adr_El_Suiv,modele,index,IndexAig : integer ;
     PresTrain,Aff_semaphore,car : boolean;
-    code,combine : word;
+    code,combine : integer;
     Btype_el_suivant : TEquipement;
     s : string;
 begin
@@ -5621,8 +5653,9 @@ begin
     begin
       code_to_aspect(etat,code,combine);
       s:='Etat_signal_suivant ('+intToSTR(AdresseFeuSuivant)+') est ';
-      s:=s+' à '+etatSign[code];
-      if Combine<>0 then s:=s+' + '+etatSign[combine];
+      s:=s+' à ';
+      if code<>-1 then s:=s+etatSign[code];
+      if (Combine<>0) and (combine<>-1) then s:=s+' + '+etatSign[combine];
       AfficheDebug(s,clyellow);
     end;
     
@@ -7254,7 +7287,8 @@ begin
     exit;
   end;        
 
-  if lay<>'' then s:='-f '+lay else s:='';
+  //if lay<>'' then s:='-f '+lay else s:='';
+  s:='';
   
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
@@ -7266,7 +7300,7 @@ begin
   if retour>32 then
   begin
     cdm_lanceLoc:=true;
-    Affiche('Lancement de CDM 64 '+lay,clyellow);
+    Affiche('Lancement de CDM 64 ',clyellow);
   end;
 
   if not(cdm_lanceLoc) then
@@ -7283,12 +7317,12 @@ begin
       lance_CDM:=false;exit;
     end;
     cdm_lanceLoc:=true;
-    Affiche('Lancement de CDM 32 '+lay,clyellow);
+    Affiche('Lancement de CDM 32 ',clyellow);
   end;
 
   if cdm_lanceLoc then
   begin
-    Formprinc.caption:=af+' - '+lay;
+    Formprinc.caption:=af;
     // On a lancé CDM, déconnecter l'USB
     deconnecte_USB;
     Affiche('lance les fonctions automatiques de CDM',clyellow);
@@ -7453,7 +7487,13 @@ begin
   AvecInit:=true;           //&&&&    avec initialisation des aiguillages ou pas
   Option_demarrage:=false;  // démarrage des trains après tempo, pas encore au point
   Diffusion:=AvecInit;      // mode diffusion publique
-
+  // pour Rad studio------------------------
+  FenRich.Height:=Height-150;     
+  ScrollBox1.Height:=Height-280;
+  StaticText.AutoSize:=true;
+  StaticText.Top:=FenRich.Height+FenRich.Top+10;
+  //----------------------------------------
+  
    // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
   
@@ -9320,7 +9360,7 @@ end;
 
 procedure TFormPrinc.Etatdessignaux1Click(Sender: TObject);
 var Adr,etat,i : integer;
-    aspect,combine : word;
+    aspect,combine : integer;
     s : string;
 begin
   for i:=1 to NbreFeux do
@@ -9329,7 +9369,9 @@ begin
     Etat:=Feux[i].EtatSignal;
     s:='Signal '+IntToSTR(Adr)+' Etat=';
     code_to_aspect(Etat,aspect,combine);
-    s:=s+IntToSTR(etat)+'='+EtatSign[aspect]+' '+EtatSign[combine];
+    s:=s+IntToSTR(etat)+'=';
+    if aspect<>-1 then s:=s+EtatSign[aspect];
+    if combine<>-1 then s:=s+' '+EtatSign[combine];
     Affiche(s,clYellow);
   end;
 end;

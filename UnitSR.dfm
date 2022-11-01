@@ -513,6 +513,7 @@ object FormSR: TFormSR
     Top = 48
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 0
     OnChange = ComboBoxAdr1Change
@@ -522,6 +523,7 @@ object FormSR: TFormSR
     Top = 72
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 1
     OnChange = ComboBoxAdr2Change
@@ -531,6 +533,7 @@ object FormSR: TFormSR
     Top = 104
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 2
     OnChange = ComboBoxAdr3Change
@@ -540,6 +543,7 @@ object FormSR: TFormSR
     Top = 128
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 3
     OnChange = ComboBoxAdr4Change
@@ -549,6 +553,7 @@ object FormSR: TFormSR
     Top = 168
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 4
     OnChange = ComboBoxAdr5Change
@@ -558,6 +563,7 @@ object FormSR: TFormSR
     Top = 192
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 5
     OnChange = ComboBoxAdr6Change
@@ -567,6 +573,7 @@ object FormSR: TFormSR
     Top = 224
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 6
     OnChange = ComboBoxAdr7Change
@@ -576,6 +583,7 @@ object FormSR: TFormSR
     Top = 248
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 7
     OnChange = ComboBoxAdr8Change
@@ -585,6 +593,7 @@ object FormSR: TFormSR
     Top = 280
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 8
     OnChange = ComboBoxAdr9Change
@@ -594,6 +603,7 @@ object FormSR: TFormSR
     Top = 304
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 9
     OnChange = ComboBoxAdr10Change
@@ -603,6 +613,7 @@ object FormSR: TFormSR
     Top = 336
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 10
     OnChange = ComboBoxAdr11Change
@@ -612,6 +623,7 @@ object FormSR: TFormSR
     Top = 360
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 11
     OnChange = ComboBoxAdr12Change
@@ -621,6 +633,7 @@ object FormSR: TFormSR
     Top = 392
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 12
     OnChange = ComboBoxAdr13Change
@@ -630,6 +643,7 @@ object FormSR: TFormSR
     Top = 416
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 13
     OnChange = ComboBoxAdr14Change
@@ -639,6 +653,7 @@ object FormSR: TFormSR
     Top = 456
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 14
     OnChange = ComboBoxAdr15Change
@@ -648,6 +663,7 @@ object FormSR: TFormSR
     Top = 480
     Width = 145
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 15
     OnChange = ComboBoxAdr16Change

@@ -120,8 +120,9 @@ version 4.6 :  Correction TJD 2/4 états dans le changement de sélection.
                Gestion des panneaux directionnels dans le TCO.
 version 4.7 :  Réorganisation du menu et du panneau de configuration des cellules du TCO.
                Amélioration du séquenceur de connexion à l'interface.
-
 version 4.71 : Correction bug décodage trame actionneur de CDM
+version 4.72 : Renforcement de la vérification de la configuration.
+
 
 
 

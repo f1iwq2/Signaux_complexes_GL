@@ -1580,7 +1580,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1645,22 +1645,12 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 96
         Width = 273
-        Height = 201
+        Height = 169
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
-        object Label13: TLabel
-          Left = 8
-          Top = 140
-          Width = 242
-          Height = 26
-          Caption = 
-            'Nom du fichier LAY '#224' ouvrir au d'#233'marrage de CDM rail (n'#233'cessite ' +
-            'la version mini 7.03 de CDM Rail)'
-          WordWrap = True
-        end
         object CheckVerifVersion: TCheckBox
           Left = 8
-          Top = 40
+          Top = 48
           Width = 249
           Height = 17
           Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
@@ -1668,7 +1658,7 @@ object FormConfig: TFormConfig
         end
         object CheckInfoVersion: TCheckBox
           Left = 8
-          Top = 56
+          Top = 64
           Width = 241
           Height = 17
           Caption = 'Information sur la version actuelle'
@@ -1676,7 +1666,7 @@ object FormConfig: TFormConfig
         end
         object CheckLanceCDM: TCheckBox
           Left = 8
-          Top = 112
+          Top = 136
           Width = 241
           Height = 25
           Caption = 'Lancer et connecter CDM Rail au d'#233'marrage'
@@ -1685,7 +1675,7 @@ object FormConfig: TFormConfig
         end
         object CheckAvecTCO: TCheckBox
           Left = 8
-          Top = 72
+          Top = 96
           Width = 89
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
@@ -1693,14 +1683,6 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 3
-        end
-        object EditNomLay: TEdit
-          Left = 16
-          Top = 170
-          Width = 241
-          Height = 21
-          TabOrder = 4
-          Text = 'EditNomLay'
         end
         object CheckFenEt: TCheckBox
           Left = 8
@@ -1711,18 +1693,18 @@ object FormConfig: TFormConfig
           Caption = 'Fen'#234'tre '#233'tendue'
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 5
+          TabOrder = 4
         end
         object CheckBandeauTCO: TCheckBox
           Left = 8
-          Top = 88
+          Top = 112
           Width = 129
           Height = 17
           Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
           Caption = 'Bandeau TCO masqu'#233
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 6
+          TabOrder = 5
         end
       end
       object GroupBox6: TGroupBox
@@ -1863,9 +1845,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 304
+        Top = 272
         Width = 273
-        Height = 113
+        Height = 137
         Caption = 'Services CommIP CDM Rail'
         TabOrder = 4
         object Label6: TLabel
@@ -1908,8 +1890,8 @@ object FormConfig: TFormConfig
           TabOrder = 3
         end
         object CheckBoxSrvSig: TCheckBox
-          Left = 144
-          Top = 40
+          Left = 8
+          Top = 104
           Width = 113
           Height = 17
           Caption = 'Signaux (non utilis'#233')'
@@ -3004,7 +2986,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end

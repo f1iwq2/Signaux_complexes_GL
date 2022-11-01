@@ -21,12 +21,10 @@ type
     EditAdrIPCDM: TEdit;
     EditPortCDM: TEdit;
     GroupBox5: TGroupBox;
-    Label13: TLabel;
     CheckVerifVersion: TCheckBox;
     CheckInfoVersion: TCheckBox;
     CheckLanceCDM: TCheckBox;
     CheckAvecTCO: TCheckBox;
-    EditNomLay: TEdit;
     GroupBox6: TGroupBox;
     RadioButton4: TRadioButton;
     RadioButton5: TRadioButton;
@@ -421,7 +419,6 @@ Init_aig_ch='Init_Aig';
 Init_dem_aig_ch='Init_Dem_Aig';
 Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
-LAY_ch='Lay';
 IPV4_INTERFACE_ch='IPV4_INTERFACE';
 PROTOCOLE_SERIE_ch='PROTOCOLE_SERIE';
 INTER_CAR_ch='INTER_CAR';
@@ -1286,9 +1283,6 @@ begin
   if LanceCDM then s:='1' else s:='0';
   writeln(fichierN,CDM_ch+'=',s);
 
-  // Nom du LAY
-  writeln(fichierN,lay_ch+'=',Lay);
-
   // Serveur d'interface de CDM
   writeln(fichierN,Serveur_interface_ch+'=',intToSTR(ServeurInterfaceCDM));
 
@@ -1372,7 +1366,7 @@ procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
     tec,tjdC,tjsC,s2,trouve,triC,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
-    trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
+    trouve_sec_init,trouve_init_aig,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
@@ -2223,16 +2217,6 @@ begin
       LanceCDM:=i=1;
     end;
 
-    sa:=uppercase(LAY_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_lay:=true;
-      delete(s,i,length(sa));
-      lay:=s;
-    end;
-
     sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2330,7 +2314,6 @@ begin
   trouve_INTER_CAR:=false;
   trouve_entete:=false;
   trouve_IPV4_INTERFACE:=false;
-  trouve_lay:=false;
   trouve_Tempo_maxi:=false;
   trouve_PROTOCOLE_SERIE:=false;
   trouve_TCO:=false;
@@ -2405,7 +2388,6 @@ begin
   if not(trouve_ipv4_PC) then s:=IpV4_PC_ch;
   if not(trouve_retro) then s:=retro_ch;
   if not(trouve_init_aig) then s:=INIT_AIG_ch;
-  if not(trouve_lay) then s:=LAY_ch;
   if not(trouve_INTER_CAR) then s:=INTER_CAR_ch;
   if not(trouve_Tempo_maxi) then s:=Tempo_maxi_ch;
   if not(trouve_Entete) then s:=Entete_ch;
@@ -2566,7 +2548,7 @@ begin
 
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
-    Lay:=EditNomLay.Text;
+
     if RadioButton4.Checked then ServeurInterfaceCDM:=0;
     if RadioButton5.Checked then ServeurInterfaceCDM:=1;
     if RadioButton6.Checked then ServeurInterfaceCDM:=2;
@@ -2722,7 +2704,6 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
-  EditNomLay.Text:=Lay;
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
   RadioButton6.Checked:=ServeurInterfaceCDM=2;
@@ -5917,9 +5898,9 @@ begin
   verif_extr_branches:=Erreur;
 end;
 
-function verif_coherence : boolean;
+function verif_coherence : boolean;        
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
-    x,y,extr2,adr3,index3 : integer;
+    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     ok,trouveSuiv,TrouvePrec : boolean;
@@ -6158,16 +6139,44 @@ begin
         begin
           ok:=false;
           Affiche('Erreur 9.1: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        end
+        else
+        begin
+          // vérifier si les deux détecteurs du signal sont consécutifs (l et i)
+          l:=feux[j].Adr_det1;
+          trouve_detecteur(i);
+          det1Br:=branche_trouve;
+          det1Index:=IndexBranche_trouve;
+
+          trouve_detecteur(l);
+          det2Br:=branche_trouve;
+          det2Index:=IndexBranche_trouve;
+          if (det1Br<>Det2Br) or (abs(det1Index-det2Index)>1) then
+          begin
+            ok:=false;
+            Affiche('Erreur 9.12: signal '+intToSTR(feux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non consécutifs ',clred); 
+          end;          
         end;
       end;
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
-        if index_aig(i)=0 then
+        k:=index_aig(i);
+        if k=0 then
         begin
           ok:=false;
           Affiche('Erreur 9.2: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
-        end;  
+        end
+        else
+        begin
+          // vérifier si le détecteur du signal et l'aiguillage sont consécutifs
+          l:=feux[j].Adr_det1;
+          if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
+          begin
+            ok:=false;
+            Affiche('Erreur 9.21: signal '+intToSTR(feux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non consécutifs ',clred); 
+          end;
+        end;
       end;
     end;
 

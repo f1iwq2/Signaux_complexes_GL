@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 6
-  Top = 203
+  Left = 70
+  Top = 187
   Width = 1213
   Height = 670
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1383,10 +1383,10 @@ object FormPrinc: TFormPrinc
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 571
+    Top = 567
     Width = 14
     Height = 17
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akLeft, akBottom]
     Caption = 'xx'
     TabOrder = 6
   end
@@ -1394,7 +1394,7 @@ object FormPrinc: TFormPrinc
     Left = 8
     Top = 32
     Width = 601
-    Height = 535
+    Height = 513
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET

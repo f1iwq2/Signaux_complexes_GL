@@ -3654,6 +3654,7 @@ begin
      VK_left  : if XClicCell>1 then dec(XClicCell);
      VK_down  : if YClicCell<NbreCellY then inc(YClicCell);
      VK_up    : if YClicCell>1 then dec(YClicCell);
+     VK_delete : affiche('delete',clorange);
   end;
   LabelX.caption:=IntToSTR(XClicCell);  
   LabelY.caption:=IntToSTR(YClicCell);
