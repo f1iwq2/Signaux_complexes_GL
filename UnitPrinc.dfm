@@ -667,8 +667,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 984
-    Top = 128
+    Left = 888
+    Top = 88
     Width = 33
     Height = 57
     Picture.Data = {
@@ -1765,8 +1765,8 @@ object FormPrinc: TFormPrinc
     Left = 352
   end
   object OpenDialog: TOpenDialog
-    Left = 888
-    Top = 152
+    Left = 944
+    Top = 65528
   end
   object SaveDialog: TSaveDialog
     Left = 888

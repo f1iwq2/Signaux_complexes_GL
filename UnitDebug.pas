@@ -176,7 +176,6 @@ begin
     s:=SaveDialog.FileName;
     assignFile(fte,s);
     rewrite(fte);
-    writeln(fte,s);
     with RichDebug do
     for i:=0 to Lines.Count do
     begin

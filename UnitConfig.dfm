@@ -1580,7 +1580,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1593,7 +1593,7 @@ object FormConfig: TFormConfig
       Caption = 'CDM Rail'
       object Label36: TLabel
         Left = 24
-        Top = 432
+        Top = 440
         Width = 369
         Height = 13
         Caption = 
@@ -1645,9 +1645,16 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 96
         Width = 273
-        Height = 169
+        Height = 193
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
+        object Label13: TLabel
+          Left = 8
+          Top = 144
+          Width = 242
+          Height = 13
+          Caption = 'Nom du fichier LAY '#224' utiliser au d'#233'marrage de CDM'
+        end
         object CheckVerifVersion: TCheckBox
           Left = 8
           Top = 48
@@ -1666,7 +1673,7 @@ object FormConfig: TFormConfig
         end
         object CheckLanceCDM: TCheckBox
           Left = 8
-          Top = 136
+          Top = 120
           Width = 241
           Height = 25
           Caption = 'Lancer et connecter CDM Rail au d'#233'marrage'
@@ -1675,7 +1682,7 @@ object FormConfig: TFormConfig
         end
         object CheckAvecTCO: TCheckBox
           Left = 8
-          Top = 96
+          Top = 80
           Width = 89
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
@@ -1697,7 +1704,7 @@ object FormConfig: TFormConfig
         end
         object CheckBandeauTCO: TCheckBox
           Left = 8
-          Top = 112
+          Top = 96
           Width = 129
           Height = 17
           Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
@@ -1705,6 +1712,17 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 5
+        end
+        object EditLAY: TEdit
+          Left = 8
+          Top = 160
+          Width = 249
+          Height = 21
+          Hint = 'Nom du LAY avec .lay'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          Text = 'Nom du fichier LAY avec .lay'
         end
       end
       object GroupBox6: TGroupBox
@@ -1845,7 +1863,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 272
+        Top = 296
         Width = 273
         Height = 137
         Caption = 'Services CommIP CDM Rail'
@@ -2986,7 +3004,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3230,9 +3248,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox13: TGroupBox
         Left = 352
-        Top = 40
+        Top = 32
         Width = 257
-        Height = 433
+        Height = 441
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object Label40: TLabel
@@ -3248,22 +3266,22 @@ object FormConfig: TFormConfig
         object GroupBoxPN: TGroupBox
           Left = 8
           Top = 16
-          Width = 225
-          Height = 345
+          Width = 233
+          Height = 353
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
           ShowHint = False
           TabOrder = 2
           object Label21: TLabel
             Left = 8
-            Top = 28
+            Top = 20
             Width = 100
             Height = 13
             Caption = 'Adresse de fermeture'
           end
           object Label22: TLabel
             Left = 8
-            Top = 52
+            Top = 44
             Width = 94
             Height = 13
             Caption = 'Adresse d'#39'ouverture'
@@ -3352,7 +3370,7 @@ object FormConfig: TFormConfig
           end
           object EditAdrFerme: TEdit
             Left = 120
-            Top = 24
+            Top = 16
             Width = 41
             Height = 21
             TabOrder = 0
@@ -3360,7 +3378,7 @@ object FormConfig: TFormConfig
           end
           object EditAdrOuvre: TEdit
             Left = 120
-            Top = 48
+            Top = 40
             Width = 41
             Height = 21
             TabOrder = 1
@@ -3368,17 +3386,23 @@ object FormConfig: TFormConfig
           end
           object EditCmdFerme: TEdit
             Left = 168
-            Top = 24
+            Top = 16
             Width = 25
             Height = 21
+            Hint = 'Commande de fermeture (0 '#224' 2)'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 2
             OnChange = EditCmdFermeChange
           end
           object EditCdeOuvre: TEdit
             Left = 168
-            Top = 48
+            Top = 40
             Width = 25
             Height = 21
+            Hint = 'Commande d'#39'ouverture (0 '#224' 2)'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 3
             OnChange = EditCdeOuvreChange
           end
@@ -3608,10 +3632,48 @@ object FormConfig: TFormConfig
             TabOrder = 29
             OnChange = EditZdet2V4OChange
           end
+          object Button1: TButton
+            Left = 200
+            Top = 16
+            Width = 27
+            Height = 21
+            Hint = 'Test de fermeture (mode CDM ou connect'#233' '#224' l'#39'interface)'
+            Caption = 'test'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 30
+            OnClick = Button1Click
+          end
+          object Button3: TButton
+            Left = 200
+            Top = 40
+            Width = 27
+            Height = 21
+            Hint = 'Test d'#39'ouverture (mode CDM ou connect'#233' '#224' l'#39'interface)'
+            Caption = 'test'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 31
+            OnClick = Button3Click
+          end
+          object CheckPnPulse: TCheckBox
+            Left = 8
+            Top = 64
+            Width = 97
+            Height = 17
+            Hint = 
+              'Sortie impulsionnelle ou continue (attention peut d'#233'truire les m' +
+              'oteurs '#224' bobine)'
+            Caption = 'Impulsionnel'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 32
+            OnClick = CheckPnPulseClick
+          end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 32
-          Top = 24
+          Left = 16
+          Top = 128
           Width = 225
           Height = 73
           Caption = 'Type d'#39'action'
@@ -3645,8 +3707,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 24
-          Top = 92
+          Left = 8
+          Top = 148
           Width = 225
           Height = 293
           Caption = 'Action fonction de locomotive '

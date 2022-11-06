@@ -23,8 +23,8 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='4.72';  // sert à la comparaison de la version publiée
-       SousVersion=' '; // en cas d'absence de sous version mettre un espace
+Const  Version='4.73';  // sert à la comparaison de la version publiée
+       SousVersion='C'; // en cas d'absence de sous version mettre un espace
 
 implementation
 
@@ -184,7 +184,7 @@ begin
         i:=pos('version ',s2);
         delete(s2,1,i+7);
         j:=pos(' ',s2);
-        Version_p:=copy(s2,1,j-1);        // version dans version_p
+        Version_p:=copy(s2,1,j-1);        // version dans version_p Exemple V4.73b
         // isoler l'url du zip
         i:=pos('href="',s3);
         delete(s3,1,i+5);
@@ -203,7 +203,7 @@ begin
         s:=AnsiUppercase(s);
         l:=length(s);
         SV_publie:=s[l];
-        if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else s:=copy(s,1,l-1);
+        if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else begin s:=copy(s,1,l-1);Version_P:=s;end;
 
         val(s,V_publie,erreur);
         if erreur<>0 then exit;
@@ -213,7 +213,7 @@ begin
         if (V_utile<V_publie) or
            ((V_utile=V_publie) and (SousVersion<SV_publie)) then
         begin
-          FormVersion.Top:=10;
+          FormVersion.Top:=10;            
           FormVersion.Left:=10;
           FormVersion.show;
           //aff(s3);               // url dans s3
@@ -256,13 +256,13 @@ end;
 procedure TFormVersion.FormCreate(Sender: TObject);
 begin
   Timerverif.Interval:=1000;    // timer à 1 seconde
-  Lance_verif:=2;               // lancer la vérification de version dans 1s
+  Lance_verif:=3;               // lancer la vérification de version dans 1s
 end;
 
 procedure TFormVersion.TimerVerifTimer(Sender: TObject);
 begin
   if lance_verif>0 then dec(lance_verif);
-  if lance_verif=1 then verifie_version;
+  if lance_verif=1 then begin lance_verif:=0;verifie_version;end;
 end;
 
 end.

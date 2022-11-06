@@ -281,6 +281,11 @@ type
     CheckBoxDemarUSB: TCheckBox;
     CheckBoxDemarEth: TCheckBox;
     Memo5: TMemo;
+    EditLAY: TEdit;
+    Label13: TLabel;
+    Button1: TButton;
+    Button3: TButton;
+    CheckPnPulse: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -403,6 +408,9 @@ type
     procedure EditZdet2V4FChange(Sender: TObject);
     procedure EditZdet1V4OChange(Sender: TObject);
     procedure EditZdet2V4OChange(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure CheckPnPulseClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -416,6 +424,7 @@ nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
 retro_ch='retro';
 Init_aig_ch='Init_Aig';
+LAY_ch='Lay';
 Init_dem_aig_ch='Init_Dem_Aig';
 Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
@@ -867,7 +876,7 @@ begin
   // feux directionnels
   begin
     NfeuxDir:=aspect-10;
-    for j:=1 to NfeuxDir+1 do
+    for j:=1 to NfeuxDir+1 do 
     begin
       s:=s+'(';
       for k:=1 to Length(feux[i].AigDirection[j])-1 do
@@ -1170,7 +1179,7 @@ begin
   begin
     NbVoies:=Tablo_PN[i].NbVoies;
     s:='';
-    
+
     // par actionneur
     if tablo_PN[i].Voie[1].ActFerme<>0 then
     begin
@@ -1179,10 +1188,10 @@ begin
         s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].ActFerme)+','+intToSTR(tablo_PN[i].Voie[voie].ActOuvre)+')';
         if voie<NbVoies then s:=s+',';
       end;
-    end  
+    end
 
     else
-    // par détecteur 
+    // par détecteur
     begin
       s:='';
       for voie:=1 to NbVoies do
@@ -1190,14 +1199,16 @@ begin
         s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].detZ1F)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2F)+','+intToSTR(tablo_PN[i].Voie[voie].detZ1O)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2O)+')';
         if voie<NbVoies then s:=s+',';
       end;
-    
+
     end;
-    
-    s:=s+',PN('+IntToSTR(tablo_PN[i].AdresseFerme);
-       if tablo_PN[i].commandeFerme=2 then s:=s+'+,' else s:=s+'-,';
-    s:=s+IntToSTR(tablo_PN[i].AdresseOuvre);
-       if tablo_PN[i].commandeOuvre=2 then s:=s+'+)' else s:=s+'-)';
-  end;  
+
+    s:=s+',PN('+IntToSTR(tablo_PN[i].AdresseFerme)+',';
+       s:=s+intToSTR(tablo_PN[i].commandeFerme)+',';
+    s:=s+IntToSTR(tablo_PN[i].AdresseOuvre)+',';
+       s:=s+intToSTR(tablo_PN[i].commandeOuvre)+'),';
+
+    if tablo_PN[i].pulse=1 then s:=s+'1' else s:=s+'0';   
+  end;
   encode_act_pn:=s;
 end;
 
@@ -1283,6 +1294,9 @@ begin
   if LanceCDM then s:='1' else s:='0';
   writeln(fichierN,CDM_ch+'=',s);
 
+  // Nom du lay
+  writeln(fichierN,lay_ch+'=',Lay);
+
   // Serveur d'interface de CDM
   writeln(fichierN,Serveur_interface_ch+'=',intToSTR(ServeurInterfaceCDM));
 
@@ -1366,7 +1380,7 @@ procedure lit_config;
 var s,sa,chaine,SOrigine: string;
     c,paig : char;
     tec,tjdC,tjsC,s2,trouve,triC,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
-    trouve_sec_init,trouve_init_aig,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
+    trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
@@ -1675,17 +1689,42 @@ begin
       val(s,j,erreur);
       Tablo_PN[NbrePN].Adresseferme:=j;
       Delete(s,1,erreur-1);
-      if s[1]='+' then Tablo_PN[NbrePN].CommandeFerme:=2;
-      if s[1]='-' then Tablo_PN[NbrePN].CommandeFerme:=1;
-      Delete(s,1,2); // supprime +,
+      if s[1]=',' then delete(s,1,1);
+      if s[1]='+' then Tablo_PN[NbrePN].CommandeFerme:=2
+      else
+      if s[1]='-' then Tablo_PN[NbrePN].CommandeFerme:=1
+      else
+      begin
+        // nouvelle syntaxe
+        val(s,j,erreur);
+        Tablo_PN[NbrePN].CommandeFerme:=j;
+      end;
+      j:=pos(',',s);
+      Delete(s,1,j); // supprime séparateurs
 
       val(s,j,erreur);
       Tablo_PN[NbrePN].AdresseOuvre:=j;
       Delete(s,1,erreur-1);
-      if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2;
-      if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1;
-      Delete(s,1,1); // supprime )
-      i:=0;
+      if s[1]=',' then delete(s,1,1);
+      if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2
+      else
+      if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1
+      else
+      begin
+        // nouvelle syntaxe
+        val(s,j,erreur);
+        Tablo_PN[NbrePN].CommandeOuvre:=j;
+      end;
+      j:=pos(')',s);
+      Delete(s,1,j); // supprime séparateurs
+      if length(s)>0 then
+      begin
+        // champ impulsion nouvelle syntaxe
+        if s[1]=',' then delete(s,1,1);
+        val(s,i,erreur);
+        Tablo_PN[NbrePN].Pulse:=i;
+      end;
+
     end;
     if pos('PN',s)<>0 then i:=0;
   until (s='0');
@@ -2217,6 +2256,16 @@ begin
       LanceCDM:=i=1;
     end;
 
+    sa:=uppercase(LAY_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      trouve_lay:=true;
+      delete(s,i,length(sa));
+      lay:=s;
+    end;
+
     sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2317,6 +2366,7 @@ begin
   trouve_Tempo_maxi:=false;
   trouve_PROTOCOLE_SERIE:=false;
   trouve_TCO:=false;
+  trouve_LAY:=false;
   trouve_Serveur_interface:=false;
   trouve_cdm:=false;
   trouve_NOTIF_VERSION:=false;
@@ -2391,6 +2441,7 @@ begin
   if not(trouve_INTER_CAR) then s:=INTER_CAR_ch;
   if not(trouve_Tempo_maxi) then s:=Tempo_maxi_ch;
   if not(trouve_Entete) then s:=Entete_ch;
+  if not(trouve_LAY) then s:=s+LAY_ch;
   if not(trouve_TCO) then s:=TCO_ch;
   if not(trouve_CDM) then s:=CDM_ch;
   if not(trouve_Serveur_interface) then s:=Serveur_interface_ch;
@@ -2548,7 +2599,7 @@ begin
 
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
-
+    lay:=editLay.Text;
     if RadioButton4.Checked then ServeurInterfaceCDM:=0;
     if RadioButton5.Checked then ServeurInterfaceCDM:=1;
     if RadioButton6.Checked then ServeurInterfaceCDM:=2;
@@ -2646,7 +2697,7 @@ begin
   Aig_supprime.Adresse:=0;
   Feu_Supprime.Adresse:=0;
   Feu_sauve.adresse:=0;
-  
+
   clicListe:=false;
   Edit_HG.Visible:=false;
   labelHG.Visible:=false;
@@ -2704,6 +2755,7 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
+  editLAY.Text:=lay;
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
   RadioButton6.Checked:=ServeurInterfaceCDM=2;
@@ -3279,7 +3331,7 @@ begin
       ButtonConfigSR.Visible:=true else  ButtonConfigSR.Visible:=false;
 
     if feux[i].decodeur=6 then 
-    begin 
+    begin
       EditSpecUni.Visible:=true;LabelUni.Visible:=true;
       EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
     end
@@ -3571,10 +3623,10 @@ begin
     begin
       EditAdrFerme.text:=IntToSTR(Tablo_PN[i].AdresseFerme);
       EditAdrOuvre.text:=IntToSTR(Tablo_PN[i].AdresseOuvre);
-      if Tablo_PN[i].CommandeFerme=2 then s:='+' else s:='-';
-      EditCmdFerme.text:=s;
-      if Tablo_PN[i].CommandeOuvre=2 then s:='+' else s:='-';
-      EditCdeOuvre.text:=s;
+      EditCmdFerme.text:=intToSTR(Tablo_PN[i].CommandeFerme);
+      EditCdeOuvre.text:=intToSTR(Tablo_PN[i].CommandeOuvre);
+      if Tablo_PN[i].Pulse=1 then trouve:=true else trouve:=false;
+      CheckPnPulse.Checked:=trouve;
 
       // par actionneur
       if Tablo_PN[i].voie[1].ActFerme<>0 then
@@ -4858,7 +4910,7 @@ begin
     RichSig.Lines[ligneClicSig]:=s;
     Maj_Hint_feu(ligneClicSig+1); 
    end;
-end;             
+end;
 
 
 procedure TFormConfig.EditAdrAigChange(Sender: TObject);
@@ -5026,7 +5078,7 @@ begin
     Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
     dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
     clicListe:=false;
-  end;  
+  end;
 end;
 
 procedure TFormConfig.RadioButtonLocClick(Sender: TObject);
@@ -5139,21 +5191,21 @@ begin
   EditZdet1V3O.text:='';EditZdet2V3O.text:='';
   EditZdet1V4F.text:='';EditZdet2V4F.text:='';
   EditZdet1V4O.text:='';EditZdet2V4O.text:='';
-        
+
   editAdrFerme.Text:='';EditCmdFerme.text:='';
   editAdrOuvre.Text:='';EditCdeOuvre.text:='';
 
   // désactive la sélection des actionneurs
   RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
   ligneclicAct:=-1;
-  
+
   with RichPN do
   begin
     i:=Selstart;
     ligne:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
     if ligne<nbrePN then
     begin
-      if AncLigneCliqueePN<>-1 then RE_ColorLine(RichPN,AncligneCliqueePN,ClAqua);    
+      if AncLigneCliqueePN<>-1 then RE_ColorLine(RichPN,AncligneCliqueePN,ClAqua);
       AncLigneCliqueePN:=Ligne;
       ligneCliqueePN:=ligne;
       RE_ColorLine(RichPN,LigneCliqueePN,ClYellow);
@@ -5192,7 +5244,7 @@ end;
 
 procedure TFormConfig.EditCmdFermeChange(Sender: TObject);
 var s : string;
-    act : integer;
+    i,erreur : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt EditCmdFerme Change',clyellow);
@@ -5200,6 +5252,7 @@ begin
   with Formconfig do
   begin
     s:=EditCmdFerme.Text;
+    {
     if (s='+') or (s='-') then
     begin
       if s='-' then act:=1 else act:=2;
@@ -5208,8 +5261,13 @@ begin
       s:=encode_act_PN(lignecliqueePN+1);
       RichPN.Lines[lignecliqueePN]:=s;
     end
-    else 
-     LabelInfo.caption:='Erreur Commande ferme actionneur';exit
+    }
+    val(s,i,erreur);
+    if (i<0) or (i>2) or (erreur<>0) then begin LabelInfo.caption:='Erreur Commande ferme actionneur';exit;end;
+    LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].CommandeFerme:=i;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
   end;
 end;
 
@@ -5221,7 +5279,7 @@ begin
   if affevt then affiche('Evt EditAdrOuvre Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditAdrOuvre.Text;
     Val(s,act,erreur);
     if erreur<>0 then
@@ -5236,15 +5294,21 @@ end;
 
 procedure TFormConfig.EditCdeOuvreChange(Sender: TObject);
 var s : string;
-    act : integer;
+    i,erreur : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt EditCmdOuvre Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditCdeOuvre.Text;
-    if (s='+') or (s='-') then
+    val(s,i,erreur);
+    if (i<0) or (i>2) or (erreur<>0) then begin LabelInfo.caption:='Erreur Commande ferme actionneur';exit;end;
+    LabelInfo.caption:=' ';
+    tablo_PN[lignecliqueePN+1].CommandeOuvre:=i;
+    s:=encode_act_PN(lignecliqueePN+1);
+    RichPN.Lines[lignecliqueePN]:=s;
+    {if (s='+') or (s='-') then
     begin
       if s='-' then act:=1 else act:=2;
       LabelInfo.caption:=' ';
@@ -5252,8 +5316,9 @@ begin
       s:=encode_act_PN(lignecliqueePN+1);
       RichPN.Lines[lignecliqueePN]:=s;
     end
-    else 
-     LabelInfo.caption:='Erreur Commande ouvre actionneur';exit
+    else
+     LabelInfo.caption:='Erreur Commande ouvre actionneur';exit  }
+
   end;
 end;
 
@@ -5289,7 +5354,7 @@ begin
   if affevt then affiche('Evt EditV1O Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditV1O.Text;
     Val(s,act,erreur);
     if erreur<>0 then
@@ -5311,7 +5376,7 @@ begin
   if affevt then affiche('Evt EditV2F Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditV2F.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
@@ -5489,13 +5554,14 @@ begin
   EditZdet1V3O.text:='';EditZdet2V3O.text:='';
   EditZdet1V4F.text:='';EditZdet2V4F.text:='';
   EditZdet1V4O.text:='';EditZdet2V4O.text:='';
-  
+
   GroupBoxRadio.Visible:=false;
   LabelInfo.caption:='';
   LigneCliqueePN:=i-1;
   AncLigneCliqueePN:=LigneCliqueePN;
+  tablo_PN[lignecliqueePN+1].Pulse:=1;
   Aff_champs_PN(nbrePN-1);
-  clicliste:=false;  
+  clicliste:=false;
   config_modifie:=true;
 end;
 
@@ -5553,27 +5619,28 @@ begin
   pn:=false;
   adr:=tablo_PN[index].voie[1].ActFerme;
   ac:=adr<>0 ; // type actionneur
-  if adr=0 then 
+  if adr=0 then
   begin
     adr:=tablo_PN[index].voie[1].DetZ1F;
     pn:=adr<>0;
-  end;  
-  
+  end;
+  if not(ac) and not(pn) then ac:=true;
+
   if ac then s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
   if pn then s:='Voulez-vous supprimer l''actionneur de zone '+IntToSTR(adr)+'-'+inttostr(tablo_PN[index].voie[1].DetZ1O)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   Affiche('Suppression de l''actionneur index='+IntToSTR(index)+' adresse='+IntToSTR(adr),clOrange);
-  
+
   clicliste:=true;
-  
+
   // supprime l'actionneur du tableau
   dec(nbrePN);
   for i:=index to nbrePN do
   begin
     tablo_PN[i]:=tablo_PN[i+1];
   end;
-  
-  clicliste:=false;  
+
+  clicliste:=false;
   config_modifie:=true;
 
   RichPN.Clear;
@@ -8309,9 +8376,49 @@ begin
   end;
 end;
 
+procedure TFormConfig.Button1Click(Sender: TObject);
+var adr,cmd,erreur : integer;
+    ts : Taccessoire;
 begin
+  val(editAdrFerme.Text,adr,erreur);if erreur<>0 then exit;
+  val(editCmdFerme.Text,cmd,erreur);if erreur<>0 then exit;
+  if ligneCliqueePN=-1 then exit;
+  aff_acc:=true;
+  if Tablo_PN[ligneCliqueePN+1].pulse=1 then ts:=aigP else ts:=feu;
+  pilote_acc(adr,cmd,ts);
+  aff_acc:=false;
+end;
 
+procedure TFormConfig.Button3Click(Sender: TObject);
+var adr,cmd,erreur : integer;
+    ts : Taccessoire;
+begin
+  val(editAdrOuvre.Text,adr,erreur);if erreur<>0 then exit;
+  val(editCdeOuvre.Text,cmd,erreur);if erreur<>0 then exit;
+  if ligneCliqueePN=-1 then exit;
+  aff_acc:=true;
+  if Tablo_PN[ligneCliqueePN+1].pulse=1 then ts:=aigP else ts:=feu;
+  pilote_acc(adr,cmd,ts);
+  aff_acc:=false;
+end;
 
+procedure TFormConfig.CheckPnPulseClick(Sender: TObject);
+var i : integer;
+    s : string;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt CheckPnPulse Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    if CheckPnPulse.Checked then i:=1 else i:=0;
+      tablo_PN[lignecliqueePN+1].Pulse:=i;
+      s:=encode_act_PN(lignecliqueePN+1);
+      RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+begin
 end.
 
 
