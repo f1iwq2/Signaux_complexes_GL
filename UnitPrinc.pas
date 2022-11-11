@@ -211,6 +211,8 @@ type
     { Déclarations publiques }
     Procedure ImageOnClick(Sender : TObject);
     procedure proc_checkBoxFB(Sender : Tobject);
+    procedure proc_checkBoxFV(Sender : Tobject);
+    procedure proc_checkBoxFR(Sender : Tobject);
   end;
 
 
@@ -224,7 +226,6 @@ Max_event_det=400;
 MaxBranches=100;
 MaxElBranches=200;
 LargImg=50;HtImg=91;  // Dimensions image des feux
-espY=15;              // espacement Y entre deux lignes de feux
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
 const_devie=1;        // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;   // positions aiguillages transmises par cdm
@@ -299,7 +300,11 @@ TFeu = record
                  adresse, aspect : integer;  // adresse du feu, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
                  Img : TImage;               // Pointeur sur structure TImage du feu
                  Lbl : TLabel;               // pointeur sur structure Tlabel du feu
-                 check : TCheckBox;          // pointeur sur structure Checkbox "demande feu blanc"
+                 checkFB : TCheckBox;        // pointeur sur structure Checkbox "demande feu blanc"
+                 checkFR : TCheckBox;        // pointeur demande feu rouge cli
+                 checkFV : TcheckBox;        // pointeur demande feu vert cli
+                 FeuVertCli : boolean ;      // avec checkbox ou pas
+                 FeuRougeCli : boolean ;     // avec checkbox ou pas
                  FeuBlanc : boolean ;        // avec checkbox ou pas
                  decodeur : integer;         // type du décodeur  // 'rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR'
                  Adr_det1 : integer;         // adresse du détecteur1 sur lequel il est implanté
@@ -336,7 +341,7 @@ TFeu = record
 
 var
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,
-  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,
+  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,
   NbreImagePligne,NbreBranches,Index2_det,Index2_aig,branche_det,
   I_simule,maxTablo_act,NbreVoies,AdresseFeuSuivant,El_suivant,
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,
@@ -346,7 +351,7 @@ var
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
-  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,
+  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,AvecFVR,
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
@@ -505,6 +510,9 @@ procedure trouve_aiguillage(adresse : integer);
 procedure trouve_detecteur(detecteur : integer);
 function ProcessRunning(sExeName: String) : Boolean;
 Procedure Raz_tout;
+Function chaine_CDM_Acc(adresse,etat : integer) : string;
+Function Checksum(s : string) : string;
+function envoi(s : string) : boolean;
 
 implementation
 
@@ -1349,7 +1357,7 @@ begin
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));                                         //5
     //width:=LargImg;
     //Height:=HtImg;
-               
+
     s:='Index='+IntToSTR(rang)+' @='+inttostr(Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
        ' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
@@ -1364,7 +1372,7 @@ begin
     picture.Bitmap:=T_Bp;
     Width:=T_Bp.width;
     Height:=T_Bp.Height;
-    
+
     picture.BitMap.TransparentMode:=tmfixed;     // tmauto  (la couleur transparente est déterminée par pixel le plus en haut à gauche du bitmap)
                                                  // tmfixed (la couleur transparente est explicitement assignée et stockée dans le bitmap)
     Picture.Bitmap.TransparentColor:=clblue;
@@ -1397,12 +1405,12 @@ begin
   // créée le checkBox si un feu blanc est déclaré sur ce feu
   if feux[rang].FeuBlanc then
   begin
-    Feux[rang].check:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
-    Feux[rang].check.onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
-    Feux[rang].check.Hint:=intToSTR(adresse);  // affecter l'adresse du feu dans le HINT pour pouvoir le retrouver plus tard
-
-    with Feux[rang].Check do
+    Feux[rang].checkFB:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
+    with Feux[rang].CheckFB do
     begin
+      onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
+      Hint:='Feu blanc';
+      Name:='CheckBoxFB'+intToSTR(adresse);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
       caption:='dem FB';
       Parent:=Formprinc.ScrollBox1;
       width:=100;height:=15;
@@ -1411,7 +1419,46 @@ begin
       BringToFront;
     end;
   end
-  else Feux[rang].check:=nil;
+  else Feux[rang].checkFB:=nil;
+
+  // créée la checkbox feu vert cli
+  if AvecFVR or feux[rang].FeuVertCli then
+  begin
+    Feux[rang].CheckFV:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
+    with Feux[rang].CheckFV do
+    begin
+      onClick:=formprinc.proc_checkBoxFV;  // affecter l'adresse de la procédure de traitement quand on clique dessus
+      Hint:='Vert cli';
+      Name:='CheckBoxFV'+intToSTR(adresse);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
+      caption:='dem FVC';
+      Parent:=Formprinc.ScrollBox1;
+      width:=100;height:=15;
+      Top:=HtImg+30+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
+      BringToFront;
+    end;
+  end
+  else Feux[rang].checkFV:=nil;
+
+  // créée la checkbox feu rouge cli
+  if AvecFVR or feux[rang].FeuRougeCli then
+  begin
+    Feux[rang].checkFR:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
+    with Feux[rang].CheckFR do
+    begin
+      Feux[rang].checkFR.onClick:=formprinc.proc_checkBoxFR;  // affecter l'adresse de la procédure de traitement quand on clique dessus
+      Feux[rang].checkFR.Hint:='Sémaphore cli';  // affecter l'adresse du feu dans le HINT pour pouvoir le retrouver plus tard
+      Name:='CheckBoxFR'+intToSTR(adresse);
+      caption:='dem FRC';
+      Parent:=Formprinc.ScrollBox1;
+      width:=100;height:=15;
+      Top:=HtImg+45+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
+      BringToFront;
+    end;
+  end
+  else Feux[rang].checkFR:=nil;
+
 end;
 
 // ajoute en bout de chaine le checksum d'une trame
@@ -5713,7 +5760,15 @@ begin
         if Aff_Semaphore then
         begin
           if AffSignal then AfficheDebug('Présence train après signal'+intToSTR(AdrFeu)+' -> sémaphore ou carré',clYellow);
-          if testBit(feux[index].EtatSignal,carre)=FALSE then Maj_Etat_Signal(AdrFeu,semaphore);
+          if testBit(feux[index].EtatSignal,carre)=FALSE then 
+          begin
+            if feux[index].checkFR<>nil then
+            begin
+              if feux[index].checkFR.Checked then Maj_Etat_Signal(AdrFeu,semaphore_cli)
+              else Maj_Etat_Signal(AdrFeu,semaphore);
+            end
+            else Maj_Etat_Signal(AdrFeu,semaphore); 
+          end;  
         end
         else
         begin
@@ -5780,25 +5835,31 @@ begin
                   Maj_Etat_Signal(AdrFeu,jaune_cli);
                   //if affsignal then AfficheDebug('401.Mise du feu au jaune cli',clyellow);
                 end
-                  else
+                else
+                begin
+                  // feu vert, vert cli ou blanc
+                  //if affsignal then AfficheDebug('test 405',clyellow);
+                  if feux[index].checkFB<>nil then
+                  begin
+                    //if affsignal then AfficheDebug('test 406',clyellow);
+                    if feux[index].checkFB.Checked then
                     begin
-                      //if affsignal then AfficheDebug('test 405',clyellow);
-                      if feux[index].check<>nil then
-                      begin
-                        //if affsignal then AfficheDebug('test 406',clyellow);
-                        if feux[index].check.Checked then
-                        begin
-                          Maj_Etat_Signal(AdrFeu,blanc);
-                          //if affsignal then AfficheDebug('Mise du feu au blanc',clyellow);
-                        end
-                        else Maj_Etat_Signal(AdrFeu,vert);
-                      end
-                      else
-                      begin
-                        Maj_Etat_Signal(AdrFeu,vert);
-                        //if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
-                      end;
-                    end;
+                      Maj_Etat_Signal(AdrFeu,blanc);
+                      //if affsignal then AfficheDebug('Mise du feu au blanc',clyellow);
+                    end
+                    else Maj_Etat_Signal(AdrFeu,vert);
+                  end
+                  else
+                  begin
+                    if feux[index].checkFV<>nil then
+                    begin
+                      if feux[index].checkFV.Checked then Maj_Etat_Signal(AdrFeu,vert_cli) 
+                      else Maj_Etat_Signal(AdrFeu,vert);
+                    end  
+                    else Maj_Etat_Signal(AdrFeu,vert);
+                    //if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
+                  end;
+                end;
               end;
             end;
           end;
@@ -6559,8 +6620,8 @@ end;
 // pilotage d'un accessoire (décodeur d'aiguillage, de signal)
 // par CDM ou interface
 // octet = 1 (dévié) ou 2 (droit)
-// la sortie "octet" est mise à 1 puis à 0
-// acc = aig ou feu
+// si acc=Taig, alors la sortie "octet" est mise à 1 puis à 0
+// si acc=feu,  alors la sortie "octet" est mise à 1 uniquement.
 procedure pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire);
 var  groupe,temp,index : integer ;
      fonction,pilotage : byte;
@@ -6581,7 +6642,7 @@ begin
   end;
 
   // pilotage par CDM rail -----------------
-  if CDM_connecte then
+  if CDM_connecte then      
   begin
     //AfficheDebug(intToSTR(adresse),clred);
     if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
@@ -7498,6 +7559,7 @@ begin
   ncrois:=0;
   debugtrames:=false;
   algo_Unisemaf:=1;
+  espY:=15;
 
   AvecInit:=true;           //&&&&    avec initialisation des aiguillages ou pas
   Option_demarrage:=false;  // démarrage des trains après tempo, pas encore au point
@@ -8049,9 +8111,9 @@ var s : string;
 begin
   Cb:=Sender as TcheckBox;
   coche:=cb.Checked;         // état de la checkbox
-  s:=Cb.Hint;
-  val(s,adresse,erreur);   // adresse du signal correspondant au checkbox cliqué
-  if erreur=0 then
+  s:=Cb.Name;
+  adresse:=extract_int(s);
+  if adresse<>0 then
   begin
     i:=index_feu(adresse);
     if i=0 then exit;
@@ -8061,6 +8123,64 @@ begin
     if ((etat=vert_F) or (etat=vert_cli_F)) and coche then
     begin
       Maj_Etat_Signal(Adresse,blanc);
+      Envoi_signauxCplx;
+    end;
+    // si pas coché, on revient en normal
+    if not(coche) then Maj_feux;
+  end;
+end;
+
+// procédure Event appelée si on clique sur un checkbox de demande de feu blanc des images des feux
+procedure TFormprinc.proc_checkBoxFV(Sender : Tobject);
+var s : string;
+    Cb : TcheckBox;
+    etat,adresse,erreur : integer;
+    i : word;
+    coche : boolean;
+begin
+  Cb:=Sender as TcheckBox;
+  coche:=cb.Checked;       // état de la checkbox
+  s:=Cb.name;
+  adresse:=extract_int(s);
+  if adresse<>0 then
+  begin
+    i:=index_feu(adresse);
+    if i=0 then exit;
+    etat:=feux[i].EtatSignal;
+    //affiche(IntToSTR(etat),clyellow);
+    // si le feu est vert et que la coche est mise, substituer le blanc
+    if (etat=vert_f) and coche then
+    begin
+      Maj_Etat_Signal(Adresse,vert_cli);
+      Envoi_signauxCplx;
+    end;
+    // si pas coché, on revient en normal
+    if not(coche) then Maj_feux;
+  end;
+end;
+
+// procédure Event appelée si on clique sur un checkbox de demande de feu blanc des images des feux
+procedure TFormprinc.proc_checkBoxFR(Sender : Tobject);
+var s : string;
+    Cb : TcheckBox;
+    etat,adresse,erreur : integer;
+    i : word;
+    coche : boolean;
+begin
+  Cb:=Sender as TcheckBox;
+  coche:=cb.Checked;         // état de la checkbox
+  s:=Cb.Name;
+  adresse:=extract_int(s);
+  if adresse<>0 then
+  begin
+    i:=index_feu(adresse);
+    if i=0 then exit;
+    etat:=feux[i].EtatSignal;
+    //affiche(IntToSTR(etat),clyellow);
+    // si le feu est vert et que la coche est mise, substituer le blanc
+    if (etat=semaphore_f) and coche then
+    begin
+      Maj_Etat_Signal(Adresse,semaphore_cli);
       Envoi_signauxCplx;
     end;
     // si pas coché, on revient en normal
@@ -8144,8 +8264,8 @@ begin
       s:='Aiguillage '+IntToSTR(aiguillage[i].Adresse)+' : ';
       pos:=aiguillage[i].position;
       case pos of
-        const_devie : s:=s+' (dévié)' ;
-        const_droit : s:=s+' (droit)';
+        const_devie : s:=s+' dévié' ;
+        const_droit : s:=s+' droit';
         const_inconnu : s:=s+' inconnue';
         else s:=s+' erreur ('+intToSTR(pos)+')';
       end;
@@ -8219,8 +8339,8 @@ end;
     
 procedure TFormPrinc.ClientSocketLenzConnect(Sender: TObject;Socket: TCustomWinSocket);
 begin
-  Affiche('Lenz connecté ',clYellow);
-  AfficheDebug('Lenz connecté ',clYellow);
+  Affiche('Socket interface connecté ',clYellow);
+  AfficheDebug('Socket interface connecté ',clYellow);
   parSocketLenz:=True;
   ButtonEcrCV.Enabled:=true;
   ButtonLitCV.Enabled:=true;

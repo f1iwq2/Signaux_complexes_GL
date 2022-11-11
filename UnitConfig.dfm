@@ -2846,7 +2846,7 @@ object FormConfig: TFormConfig
       end
       object Label35: TLabel
         Left = 40
-        Top = 428
+        Top = 444
         Width = 201
         Height = 13
         Caption = 'Temporisation entre deux commandes (ms)'
@@ -3227,11 +3227,22 @@ object FormConfig: TFormConfig
       end
       object EditTempoFeu: TEdit
         Left = 0
-        Top = 424
+        Top = 440
         Width = 33
         Height = 21
         TabOrder = 6
         OnChange = EditTempoFeuChange
+      end
+      object CheckBoxFVR: TCheckBox
+        Left = 0
+        Top = 416
+        Width = 281
+        Height = 17
+        Hint = 'Le changement de cette option n'#233'cessite un red'#233'marrage'
+        Caption = 'Gestion feux verts et s'#233'maphore clignotants'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 7
       end
     end
     object TabSheetAct: TTabSheet

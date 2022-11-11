@@ -286,6 +286,7 @@ type
     Button1: TButton;
     Button3: TButton;
     CheckPnPulse: TCheckBox;
+    CheckBoxFVR: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -446,6 +447,7 @@ NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
 Raz_signaux_ch='RazSignaux';
+AvecFVR_ch='FeuxVertRougeCli';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -1078,8 +1080,8 @@ begin
             begin
               //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
               k:=pos(')',s);
-              sa:=copy(s,t+1,k-t-1); // contient l'intérieur des parenthèses sans les parenthèses
-              delete(s,1,k);//Affiche(s,clYellow);
+              sa:=copy(s,t+1,k-t); // contient l'intérieur des parenthèses sans les parenthèses
+              delete(s,1,k+1);//Affiche(s,clYellow);
 
               // boucle dans la parenthèse
               bd:=0;
@@ -1303,10 +1305,12 @@ begin
   // Serveur de rétrosignalisation Lenz de CDM
   writeln(fichierN,retro_ch+'=',intToSTR(ServeurRetroCDM));
 
-  // entête
   // Raz Signaux
   if Raz_Acc_signaux then s:='1' else s:='0';
-  writeln(fichierN,'RazSignaux='+s);
+  writeln(fichierN,Raz_signaux_ch+'='+s);
+
+  if AvecFVR then s:='1' else s:='0';
+  writeln(fichierN,AvecFVR_ch+'='+s);
 
   // temporisation entre 2 commandes décodeurs feu
   writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
@@ -1383,7 +1387,7 @@ var s,sa,chaine,SOrigine: string;
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,
+    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,trouve_FVR,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
@@ -2312,6 +2316,20 @@ begin
       Raz_Acc_signaux:=i=1;
     end;
 
+    sa:=uppercase(AvecFVR_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      trouve_FVR:=true;
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      if i>1 then i:=1;
+      AvecFVR:=i=1;
+      if avecFVR then espY:=48 else espY:=15;  // espacement Y entre deux lignes de feux
+    end;
+
+
     // section aiguillages
     sa:=uppercase(section_aig_ch);
     if pos(sa,s)<>0 then
@@ -2377,6 +2395,20 @@ begin
   trouve_Raz:=false;
   trouve_demcnxCOMUSB:=false;
   trouve_demcnxEth:=false;
+  trouve_Algo_Uni:=false;
+  trouve_Nb_cantons_Sig:=false;
+  trouve_FVR:=false;
+  
+  if not(trouve_tempo_feu) then
+  begin
+    s:=tempo_feu_ch;
+    tempo_feu:=100;
+    s:='';
+  end;
+  if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
+  if not(trouve_verif_version) then s:=verif_version_ch;
+  if not(trouve_fonte) then s:=fonte_ch;
+  if not(trouve_FVR) then s:=AvecFVR_ch;
 
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
@@ -2414,6 +2446,8 @@ begin
     AvecInitAiguillages:=true;
     AvecDemandeInterfaceUSB:=true;
     AvecDemandeInterfaceEth:=true;
+    lay:='';
+    avecFVR:=false;
     Tempo_Aig:=100;
     Tempo_feu:=100;
     ServeurInterfaceCDM:=1;
@@ -2452,6 +2486,7 @@ begin
   if not(trouve_dem_aig) then s:=Init_dem_aig_ch;
   if not(trouve_demcnxCOMUSB) then s:=Init_dem_interfaceUSBCOM_ch;
   if not(trouve_demcnxEth) then s:=Init_dem_interfaceEth_ch;
+  if not(trouve_FVR) then s:=AvecFVR_ch;
   
   if not(trouve_tempo_feu) then
   begin
@@ -2462,10 +2497,11 @@ begin
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
+  if not(trouve_FVR) then s:=AvecFVR_ch;
 
   if s<>'' then
   begin
-    affiche('Manque variables dans '+NomConfig+' : '+s,clOrange);
+    affiche('Manque variable(s) dans '+NomConfig+' : '+s,clOrange);
     Affiche('Elles seront régénérées automatiquement',clOrange);
     confasauver:=true;
   end;
@@ -2630,11 +2666,12 @@ begin
     Srvc_PosTrain:=CheckServPosTrains.checked;
     Srvc_Sig:=CheckBoxSrvSig.checked;
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
+    AvecFVR:=CheckBoxFVR.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
-    
+
   end;
   if change_srv then services_CDM;
   verifie_panneau_config:=ok;
@@ -2778,11 +2815,12 @@ begin
   CheckBoxServAct.checked:=Srvc_Act;
   CheckServPosTrains.checked:=Srvc_PosTrain;
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+  CheckBoxFVR.Checked:=AvecFVR;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
   CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
-  
+
 
   clicListe:=true;  // empeche le traitement de l'evt text
   EditDroit_BD.Text:='';
@@ -5752,7 +5790,9 @@ begin
   begin
     feux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
     Feux[i].Lbl.free;  // supprime le label, ...
-    if Feux[i].check<>nil then begin Feux[i].check.Free;Feux[i].Check:=nil;end;  // supprime le check du feu blanc s'il existait
+    if Feux[i].checkFB<>nil then begin Feux[i].checkFB.Free;Feux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
+    feux[i].checkFR.Free;feux[i].checkFR:=nil;
+    feux[i].checkFV.Free;feux[i].checkFV:=nil;
   end;
 
   for i:=1 to NbreFeux-ligneFin do
@@ -5783,13 +5823,31 @@ begin
       Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
       caption:='@'+IntToSTR(Feux[IndexFeu].adresse);
     end;
-    if Feux[IndexFeu].check<>nil then
-    with Feux[IndexFeu].Check do
+    if Feux[IndexFeu].checkFB<>nil then
+    with Feux[IndexFeu].CheckFB do
     begin
-      Hint:=intToSTR(IndexFeu);
+      Name:='CheckBoxFB'+intToSTR(adresse);
+      Hint:='Feu blanc';
       Top:=HtImg+15+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
       Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
     end;
+    if Feux[IndexFeu].checkFV<>nil then
+    with Feux[IndexFeu].CheckFV do
+    begin
+      Name:='CheckBoxFV'+intToSTR(adresse);
+      Hint:='Feu vert clignotant';
+      Top:=HtImg+30+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
+    end;
+    if Feux[IndexFeu].checkFR<>nil then
+    with Feux[IndexFeu].CheckFR do
+    begin
+      Name:='CheckBoxFR'+intToSTR(adresse);
+      Hint:='Sémaphore clignotant';
+      Top:=HtImg+45+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
+    end;
+
     //Affiche('décale feu '+IntToSTR(i)+'<'+intToSTR(i+1),clorange);
 
     feux[index].Adresse:=0;
@@ -5815,84 +5873,6 @@ begin
   raz_champs_sig;
   clicliste:=false;
 
-  {
-  i:=ligneClicSig;
-  if (i<0) then exit;
-  index:=i+1; // passe en index tableau
-
-  s:='Voulez-vous supprimer le feu '+IntToSTR(feux[index].adresse)+'?';
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  Affiche('Suppression du feu ='+IntToSTR(feux[index].adresse),clOrange);
-
-  clicliste:=true;  // évite les évènements Edit text
-  Feu_supprime:=feux[index];  // sauvegarde le feu supprimé
-  Feu_sauve.adresse:=0; // dévalider sa définition
-  Feu_sauve.aspect:=0; // dévalider sa définition
-
-  // supprime le feu du tableau
-
-  ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
-
-  feux[index].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
-  Feux[index].Lbl.free;  // supprime le label, ...
-  if Feux[index].check<>nil then begin Feux[index].check.Free;Feux[index].Check:=nil;end;  // supprime le check du feu blanc s'il existait
-
-  // décale le tableau de feux et recalcule les positions des images
-  for i:=index to NbreFeux-1 do
-  begin
-    feux[i]:=feux[i+1];
-    with feux[i].Img do
-    begin
-      Top:=(HtImg+espY+20)*((i-1) div NbreImagePLigne);   // détermine les points d'origine
-      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
-      Name:='ImageFeu'+IntToSTR(i);
-      s:='Index='+IntToSTR(i)+' @='+inttostr(feux[i].Adresse)+' Décodeur='+intToSTR(feux[i].Decodeur)+
-       ' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
-      if feux[i].Btype_suiv1=aig then s:=s+' (aig)';
-      Hint:=s;
-    end;
-    with feux[i].Lbl do
-    begin
-      Top:=HtImg+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
-      caption:='@'+IntToSTR(Feux[i].adresse);
-    end;
-    if Feux[i].check<>nil then
-    with Feux[i].Check do
-    begin
-      Hint:=intToSTR(i);
-      Top:=HtImg+15+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
-    end;
-    //Affiche('décale feu '+IntToSTR(i)+'<'+intToSTR(i+1),clorange);
-  end;
-
-  dec(NbreFeux);
-
-  EditAdrSig.Text:='';
-  EditDet1.Text:='';EditDet2.Text:='';EditDet3.Text:='';EditDet4.Text:='';
-  EditSuiv1.Text:='';EditSuiv2.Text:='';EditSuiv3.Text:='';EditSuiv4.Text:='';
-
-  config_modifie:=true;
-
-  RichSig.Clear;
-
-  // réafficher le richsig
-  for i:=1 to NbreFeux do
-  begin
-    s:=encode_Sig_Feux(i);
-    if s<>'' then
-    begin
-      RichSig.Lines.Add(s);
-      RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
-    end;
-  end;
-  ligneClicSig:=-1;
-  AncligneClicSig:=-1;
-  raz_champs_sig;
-  clicliste:=false;
-  }
 end;
 
 procedure TFormConfig.ButtonSupFeuClick(Sender: TObject);
@@ -7734,10 +7714,10 @@ begin
   for index:=1 to NbreFeux do
   begin
     // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
-    if feux[index].FeuBlanc and (feux[index].check=nil) then
+    if feux[index].FeuBlanc and (feux[index].checkFB=nil) then
     begin
-      feux[index].Check:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
-      with Feux[index].Check do
+      feux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
+      with Feux[index].CheckFB do
       begin
         onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
         Hint:=intToSTR(index);
@@ -7750,10 +7730,10 @@ begin
       end;
     end;
     // supprimer les checkBox de feux blancs si ils ont été décochés
-    if not(feux[index].FeuBlanc) and (feux[index].check<>nil) then
+    if not(feux[index].FeuBlanc) and (feux[index].checkFB<>nil) then
     begin
-      Feux[index].Check.free;
-      Feux[index].Check:=nil;
+      Feux[index].CheckFB.free;
+      Feux[index].CheckFB:=nil;
     end;
   end;
 

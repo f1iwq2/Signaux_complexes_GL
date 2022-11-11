@@ -1,8 +1,9 @@
 object FormDebug: TFormDebug
-  Left = 324
-  Top = 102
-  Width = 771
-  Height = 683
+  Left = 429
+  Top = 147
+  Width = 754
+  Height = 789
+  VertScrollBar.Position = 82
   VertScrollBar.Tracking = True
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
@@ -16,13 +17,13 @@ object FormDebug: TFormDebug
   Position = poMainFormCenter
   OnCreate = FormCreate
   DesignSize = (
-    738
-    645)
+    721
+    751)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 597
-    Top = 4
+    Left = 564
+    Top = -78
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -37,8 +38,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 429
-    Top = 2
+    Left = 412
+    Top = -80
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -51,8 +52,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 709
-    Top = 2
+    Left = 675
+    Top = -80
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -67,10 +68,10 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object MemoEvtDet: TMemo
-    Left = 495
-    Top = 336
+    Left = 485
+    Top = 254
     Width = 229
-    Height = 201
+    Height = 194
     Anchors = [akTop, akRight]
     Color = clBlack
     Font.Charset = ANSI_CHARSET
@@ -88,8 +89,8 @@ object FormDebug: TFormDebug
     OnChange = MemoEvtDetChange
   end
   object ButtonEcrLog: TButton
-    Left = 389
-    Top = 328
+    Left = 379
+    Top = 246
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -98,8 +99,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 389
-    Top = 360
+    Left = 379
+    Top = 278
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -109,8 +110,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 389
-    Top = 296
+    Left = 379
+    Top = 214
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -119,8 +120,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 389
-    Top = 256
+    Left = 379
+    Top = 174
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -130,8 +131,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 389
-    Top = 208
+    Left = 379
+    Top = 126
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -147,8 +148,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonCopClick
   end
   object RichEdit: TRichEdit
-    Left = 495
-    Top = 176
+    Left = 485
+    Top = 94
     Width = 229
     Height = 153
     Anchors = [akTop, akRight]
@@ -166,8 +167,8 @@ object FormDebug: TFormDebug
     OnChange = RichEditChange
   end
   object ButtonRazLog: TButton
-    Left = 389
-    Top = 400
+    Left = 379
+    Top = 318
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -177,15 +178,15 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 387
-    Top = 608
+    Left = 369
+    Top = 566
     Width = 345
-    Height = 177
+    Height = 185
     Anchors = [akTop, akRight]
     Caption = 'Fonctions primitives'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
+    Font.Color = clNavy
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
@@ -271,7 +272,7 @@ object FormDebug: TFormDebug
     end
     object GroupBox4: TGroupBox
       Left = 8
-      Top = 88
+      Top = 96
       Width = 329
       Height = 81
       Caption = 'D'#233'tecteur/'#233'l'#233'ment suivant'
@@ -325,8 +326,8 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 395
-    Top = 20
+    Left = 377
+    Top = -62
     Width = 333
     Height = 149
     Anchors = [akTop, akRight]
@@ -498,9 +499,9 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = 8
-    Width = 368
-    Height = 612
+    Top = -74
+    Width = 353
+    Height = 718
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'RichDebug')
@@ -511,8 +512,8 @@ object FormDebug: TFormDebug
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 387
-    Top = 544
+    Left = 369
+    Top = 454
     Width = 345
     Height = 57
     Anchors = [akTop, akRight]
@@ -578,8 +579,8 @@ object FormDebug: TFormDebug
     end
   end
   object ButtonRazTout: TButton
-    Left = 390
-    Top = 176
+    Left = 380
+    Top = 94
     Width = 97
     Height = 25
     Hint = 
@@ -591,6 +592,83 @@ object FormDebug: TFormDebug
     ShowHint = True
     TabOrder = 13
     OnClick = ButtonRazToutClick
+  end
+  object GroupBox6: TGroupBox
+    Left = 368
+    Top = 518
+    Width = 345
+    Height = 41
+    Anchors = [akTop, akRight]
+    Caption = 'Sorties'
+    Color = cl3DLight
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clNavy
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 14
+    object Label3: TLabel
+      Left = 16
+      Top = 16
+      Width = 38
+      Height = 13
+      Caption = 'Adresse'
+    end
+    object Label5: TLabel
+      Left = 104
+      Top = 16
+      Width = 27
+      Height = 13
+      Caption = 'Sortie'
+    end
+    object EditAdresse: TEdit
+      Left = 64
+      Top = 10
+      Width = 33
+      Height = 21
+      Hint = 'Adresse d'#39'accessoire'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
+    object EditSortie: TEdit
+      Left = 136
+      Top = 10
+      Width = 25
+      Height = 21
+      Hint = 'Sortie 1 ou 2'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+    end
+    object Button1: TButton
+      Left = 224
+      Top = 8
+      Width = 49
+      Height = 25
+      Hint = 
+        'Mise '#224' 1 de la sortie - attention peut d'#233'truire les moteurs '#224' bo' +
+        'bine'
+      Caption = 'Mise '#224' 1'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = Button1Click
+    end
+    object Button0: TButton
+      Left = 280
+      Top = 8
+      Width = 49
+      Height = 25
+      Hint = 'Mise '#224' 0 de la sortie'
+      Caption = 'Mise '#224' 0'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = Button0Click
+    end
   end
   object SaveDialog: TSaveDialog
     Left = 768

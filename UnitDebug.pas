@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls , ComCtrls, Menus;
+  Dialogs, StdCtrls , ComCtrls, Menus, unitconfig;
 
 type
   TFormDebug = class(TForm)
@@ -56,6 +56,13 @@ type
     ButtonElSuiv: TButton;
     CheckBox1: TCheckBox;
     CheckDebugTCO: TCheckBox;
+    GroupBox6: TGroupBox;
+    EditAdresse: TEdit;
+    Label3: TLabel;
+    Label5: TLabel;
+    EditSortie: TEdit;
+    Button1: TButton;
+    Button0: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -90,6 +97,8 @@ type
     procedure ButtonElSuivClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
     procedure CheckDebugTCOClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button0Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -511,6 +520,92 @@ end;
 procedure TFormDebug.CheckDebugTCOClick(Sender: TObject);
 begin
   debugTCO:=checkDebugTCO.checked;
+end;
+
+procedure TFormDebug.Button1Click(Sender: TObject);
+var adr,sortie,erreur,groupe,pilotage : integer;
+    fonction : byte;
+    s : string;
+begin
+  val(EditAdresse.text,adr,erreur);
+  if (erreur<>0) or (adr<1) or (adr>2048) then
+  begin
+    EditAdresse.text:='1';
+    exit;
+  end;
+  val(EditSortie.text,sortie,erreur);
+  if (sortie<1) or (sortie>2) then
+  begin
+    EditSortie.text:='1';
+    exit;
+  end;
+
+  s:='accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 1';
+  AfficheDebug(s,clyellow);
+
+  if CDM_connecte then
+  begin
+    //AfficheDebug(intToSTR(adresse),clred);
+    s:=chaine_CDM_Acc(adr,sortie);
+    envoi_CDM(s);
+  end;
+  
+  // pilotage par USB ou par éthernet de la centrale ------------
+  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  begin
+    pilotage:=1; 
+    groupe:=(adr-1) div 4;
+    fonction:=((adr-1) mod 4)*2 + (sortie-1); 
+    // pilotage à 1
+    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+    s:=checksum(s);
+    envoi(s);     // envoi de la trame et attente Ack
+  end;
+  
+  Self.ActiveControl:=nil;
+end;
+
+procedure TFormDebug.Button0Click(Sender: TObject);
+var adr,sortie,erreur,groupe,pilotage : integer;
+    fonction : byte;
+    s : string;
+begin
+  val(EditAdresse.text,adr,erreur);
+  if (erreur<>0) or (adr<1) or (adr>2048) then
+  begin
+    EditAdresse.text:='1';
+    exit;
+  end;
+  val(EditSortie.text,sortie,erreur);
+  if (sortie<1) or (sortie>2) then
+  begin
+    EditSortie.text:='1';
+    exit;
+  end;
+
+  s:='accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 0';
+  AfficheDebug(s,clyellow);
+
+  if CDM_connecte then
+  begin
+    //AfficheDebug(intToSTR(adresse),clred);
+    s:=chaine_CDM_Acc(adr,0);
+    envoi_CDM(s);
+  end;
+  
+  // pilotage par USB ou par éthernet de la centrale ------------
+  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  begin
+    pilotage:=1; 
+    groupe:=(adr-1) div 4;
+    fonction:=((adr-1) mod 4)*2 + (sortie-1); 
+    // pilotage à 0
+    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+    s:=checksum(s);
+    envoi(s);     // envoi de la trame et attente Ack
+  end;
+  
+  Self.ActiveControl:=nil;
 end;
 
 end.
