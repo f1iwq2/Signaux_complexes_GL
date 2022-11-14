@@ -113,39 +113,15 @@ version 4.3  : Détection automatique du port COM de l'interface XpressNet par CO
                Information sur la compatibilité windows 11 ajoutée à la documentation.
 version 4.4  : Possibilité d'avoir un champ vide dans le LAY, ce qui ouvre CDM avec le dernier LAY pour les
                problèmes d'ouverture avec W10 et W11.
-               Les passages à niveaux peut être commandés par des zones de détection.
+               Les passages à niveaux peuvent être commandés par des zones de détection.
                Code source modifié pour être compilable avec Rad Studio 11.
 version 4.5 :  Correction champ "déclencheur" pour son.
 version 4.6 :  Correction TJD 2/4 états dans le changement de sélection. 
                Gestion des panneaux directionnels dans le TCO.
 version 4.7 :  Réorganisation du menu et du panneau de configuration des cellules du TCO.
                Amélioration du séquenceur de connexion à l'interface.
-version 4.71 : Correction bug décodage trame actionneur de CDM
+version 4.71 : Correction bug décodage trame actionneur de CDM.
 version 4.72 : Renforcement de la vérification de la configuration.
-version 4.73 : Pilotage des PN en impulsionnel ou non
-version 4.8  : gestion des sémaphores clignotants et voie libre clignotants
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-              
-
-
+version 4.73 : Pilotage des PN en impulsionnel ou non.
+version 5.0  : Gestion des sémaphores clignotants et voies libres clignotants.
+               Gestion des actionneurs déclenchés par évènements aiguillages.

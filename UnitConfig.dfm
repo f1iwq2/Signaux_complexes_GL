@@ -1,11 +1,11 @@
 object FormConfig: TFormConfig
-  Left = 281
-  Top = 138
+  Left = 218
+  Top = 143
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
-  ClientHeight = 543
-  ClientWidth = 902
+  ClientHeight = 552
+  ClientWidth = 901
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -1521,22 +1521,22 @@ object FormConfig: TFormConfig
     Visible = False
   end
   object Label19: TLabel
-    Left = 104
-    Top = 104
+    Left = 808
+    Top = 96
     Width = 75
     Height = 13
     Caption = 'Element suivant'
   end
   object Label10: TLabel
-    Left = 80
-    Top = 120
+    Left = 792
+    Top = 104
     Width = 105
     Height = 13
     Caption = 'Verrouillable au carr'#233' :'
   end
   object Label29: TLabel
-    Left = 144
-    Top = 68
+    Left = 856
+    Top = 76
     Width = 6
     Height = 13
     Caption = #224
@@ -1551,9 +1551,20 @@ object FormConfig: TFormConfig
       'ouche ENTREE apr'#232's leur introduction/modification'
     WordWrap = True
   end
+  object Label40: TLabel
+    Left = 656
+    Top = 496
+    Width = 222
+    Height = 39
+    Caption = 
+      'Les actionneurs ne sont utilisables qu'#39'en mode RUN avec CDM Rail' +
+      '. Les d'#233'tecteurs sont utilisables en mode autonome.'
+    Visible = False
+    WordWrap = True
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 240
-    Top = 512
+    Top = 520
     Width = 201
     Height = 25
     Hint = 'Enregistre la configuration et ferme la fen'#234'tre'
@@ -1565,7 +1576,7 @@ object FormConfig: TFormConfig
   end
   object Button2: TButton
     Left = 8
-    Top = 512
+    Top = 520
     Width = 201
     Height = 25
     Hint = 'Ferme la fen'#234'tre sans enregistrer la configuration'
@@ -1579,7 +1590,7 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 633
-    Height = 497
+    Height = 505
     ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -3082,7 +3093,7 @@ object FormConfig: TFormConfig
         end
         object CheckVerrouCarre: TCheckBox
           Left = 120
-          Top = 232
+          Top = 216
           Width = 145
           Height = 17
           Hint = 
@@ -3147,7 +3158,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxFB: TCheckBox
           Left = 120
-          Top = 256
+          Top = 264
           Width = 153
           Height = 17
           Caption = 'Avec demande feu blanc'
@@ -3163,6 +3174,30 @@ object FormConfig: TFormConfig
           TabOrder = 16
           Visible = False
           OnClick = ButtonConfigSRClick
+        end
+        object CheckFVC: TCheckBox
+          Left = 120
+          Top = 232
+          Width = 145
+          Height = 17
+          Hint = 'Remplace le feu vert par un feu vert clignotant'
+          Caption = 'Feu vert clignotant'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 17
+          OnClick = CheckFVCClick
+        end
+        object CheckFRC: TCheckBox
+          Left = 120
+          Top = 248
+          Width = 145
+          Height = 17
+          Hint = 'Remplace le s'#233'maphore par un feu rouge clignotant'
+          Caption = 'Feu rouge clignotant'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 18
+          OnClick = CheckFRCClick
         end
       end
       object RichSig: TRichEdit
@@ -3233,17 +3268,6 @@ object FormConfig: TFormConfig
         TabOrder = 6
         OnChange = EditTempoFeuChange
       end
-      object CheckBoxFVR: TCheckBox
-        Left = 0
-        Top = 416
-        Width = 281
-        Height = 17
-        Hint = 'Le changement de cette option n'#233'cessite un red'#233'marrage'
-        Caption = 'Gestion feux verts et s'#233'maphore clignotants'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 7
-      end
     end
     object TabSheetAct: TTabSheet
       Caption = 'Actionneurs/D'#233'tecteurs'
@@ -3264,21 +3288,11 @@ object FormConfig: TFormConfig
         Height = 441
         Caption = 'Description de l'#39'action'
         TabOrder = 0
-        object Label40: TLabel
-          Left = 16
-          Top = 384
-          Width = 222
-          Height = 39
-          Caption = 
-            'Les actionneurs ne sont utilisables qu'#39'en mode RUN avec CDM Rail' +
-            '. Les d'#233'tecteurs sont utilisables en mode autonome.'
-          WordWrap = True
-        end
         object GroupBoxPN: TGroupBox
-          Left = 8
-          Top = 16
+          Left = 0
+          Top = 24
           Width = 233
-          Height = 353
+          Height = 401
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
           ShowHint = False
@@ -3683,8 +3697,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 16
-          Top = 128
+          Left = 8
+          Top = 16
           Width = 225
           Height = 73
           Caption = 'Type d'#39'action'
@@ -3719,21 +3733,21 @@ object FormConfig: TFormConfig
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 148
-          Width = 225
-          Height = 293
+          Top = 84
+          Width = 233
+          Height = 341
           Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
             Top = 16
-            Width = 209
-            Height = 137
+            Width = 217
+            Height = 153
             Caption = 'D'#233'clencheur '
             TabOrder = 0
             object LabelActionneur: TLabel
               Left = 8
-              Top = 80
+              Top = 96
               Width = 54
               Height = 26
               Caption = 'Actionneur D'#233'tecteurZ'
@@ -3741,21 +3755,21 @@ object FormConfig: TFormConfig
             end
             object Label30: TLabel
               Left = 168
-              Top = 88
+              Top = 104
               Width = 6
               Height = 13
               Caption = #224
             end
             object LabelTrain: TLabel
               Left = 16
-              Top = 110
+              Top = 126
               Width = 49
               Height = 13
               Caption = 'Train D'#233'cl'
             end
             object EditAct: TEdit
               Left = 72
-              Top = 84
+              Top = 100
               Width = 41
               Height = 21
               ParentShowHint = False
@@ -3765,7 +3779,7 @@ object FormConfig: TFormConfig
             end
             object EditEtatActionneur: TEdit
               Left = 184
-              Top = 84
+              Top = 100
               Width = 17
               Height = 21
               TabOrder = 1
@@ -3773,7 +3787,7 @@ object FormConfig: TFormConfig
             end
             object EditTrainDecl: TEdit
               Left = 72
-              Top = 108
+              Top = 124
               Width = 129
               Height = 21
               Hint = 
@@ -3788,7 +3802,7 @@ object FormConfig: TFormConfig
               Left = 8
               Top = 16
               Width = 193
-              Height = 57
+              Height = 73
               Caption = 'Type de d'#233'clenchement'
               TabOrder = 3
             end
@@ -3812,18 +3826,27 @@ object FormConfig: TFormConfig
             end
             object EditAct2: TEdit
               Left = 120
-              Top = 84
+              Top = 100
               Width = 41
               Height = 21
               TabOrder = 6
               OnChange = EditAct2Change
             end
+            object RadioButtonAig: TRadioButton
+              Left = 32
+              Top = 64
+              Width = 145
+              Height = 17
+              Caption = 'Ev'#232'nement aiguillage'
+              TabOrder = 7
+              OnClick = RadioButtonAigClick
+            end
           end
           object GroupBox19: TGroupBox
             Left = 8
-            Top = 160
-            Width = 209
-            Height = 113
+            Top = 176
+            Width = 217
+            Height = 129
             Caption = 'Destinataire de l'#39'action '
             TabOrder = 1
             object LabelTempo: TLabel
@@ -3859,7 +3882,7 @@ object FormConfig: TFormConfig
             end
             object SpeedButtonJoue: TSpeedButton
               Left = 56
-              Top = 80
+              Top = 88
               Width = 41
               Height = 33
               Hint = 'Joue le son'
@@ -3882,7 +3905,7 @@ object FormConfig: TFormConfig
             end
             object SpeedButtonCharger: TSpeedButton
               Left = 120
-              Top = 80
+              Top = 88
               Width = 25
               Height = 34
               Hint = 'Ouvre un fichier son WAV'
@@ -3963,7 +3986,7 @@ object FormConfig: TFormConfig
             end
             object CheckRAZ: TCheckBox
               Left = 32
-              Top = 40
+              Top = 48
               Width = 145
               Height = 17
               Caption = 'Remise '#224' 0 apr'#232's pilotage'
@@ -4011,7 +4034,7 @@ object FormConfig: TFormConfig
           end
           object ButtonTestAct: TButton
             Left = 64
-            Top = 266
+            Top = 306
             Width = 89
             Height = 20
             Hint = 'Test de l'#39'actionneur/d'#233'tecteur en mode RUN'
@@ -4072,7 +4095,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox17: TGroupBox
         Left = 0
-        Top = 232
+        Top = 224
         Width = 345
         Height = 193
         Caption = 'Actionneurs passage '#224' niveau'
@@ -4121,7 +4144,7 @@ object FormConfig: TFormConfig
   end
   object ButtonEnregistre: TButton
     Left = 472
-    Top = 512
+    Top = 520
     Width = 169
     Height = 25
     Hint = 'Enregistre la configuration sans fermer la fen'#234'tre'

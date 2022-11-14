@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
   Left = 70
-  Top = 187
+  Top = 246
   Width = 1213
   Height = 670
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'

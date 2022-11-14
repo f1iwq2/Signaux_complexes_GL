@@ -244,7 +244,7 @@ Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
 NbDecodeur = 8;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR');
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf Paco','SR');
 Etats : array[0..19] of string[30]=('Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
            'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
@@ -301,8 +301,8 @@ TFeu = record
                  Img : TImage;               // Pointeur sur structure TImage du feu
                  Lbl : TLabel;               // pointeur sur structure Tlabel du feu
                  checkFB : TCheckBox;        // pointeur sur structure Checkbox "demande feu blanc"
-                 checkFR : TCheckBox;        // pointeur demande feu rouge cli
-                 checkFV : TcheckBox;        // pointeur demande feu vert cli
+                 checkFR : boolean;          // demande feu rouge cli
+                 checkFV : boolean;          // demande feu vert cli
                  FeuVertCli : boolean ;      // avec checkbox ou pas
                  FeuRougeCli : boolean ;     // avec checkbox ou pas
                  FeuBlanc : boolean ;        // avec checkbox ou pas
@@ -414,13 +414,13 @@ var
 
   Tablo_actionneur : array[1..100] of
   record
-    loco,act,son: boolean;     // type loco actionneur ou son
+    loco,act,son: boolean;     // destinataire loco acessoire ou son
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,fonction,tempo,TempoCourante,
     accessoire,sortie,
-    typActMemZone  : integer;  // 0=actioneur  1=MemZone
+    typdeclenche  : integer;  // déclencheur: 0=actioneur  1=MemZone   2=evt aig
     Raz : boolean;
-    det : boolean;             // désigne un détecteur
+    det : boolean;             // le déclencheur est un détecteur
     FichierSon,trainDecl,TrainDest,TrainCourant : string;
   end;
 
@@ -645,7 +645,7 @@ procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage,code,combine : integer;
     ech : real;
-    
+
 begin
   code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
@@ -653,7 +653,7 @@ begin
   // récupérer les dimensions de l'image d'origine du feu
   LgImage:=Formprinc.Image2feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image2feux.Picture.Bitmap.Height;
-             
+
   XBlanc:=13; YBlanc:=11;
   xViolet:=13; yViolet:=23;
 
@@ -691,7 +691,7 @@ procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
-    
+
 begin
   code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
@@ -1266,7 +1266,7 @@ begin
      // indicateurs de direction
      12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,aspect-10);
     end;
-  end;  
+  end;
 end;
 
 // procédure activée quand on clique gauche sur l'image d'un feu
@@ -1420,44 +1420,6 @@ begin
     end;
   end
   else Feux[rang].checkFB:=nil;
-
-  // créée la checkbox feu vert cli
-  if AvecFVR or feux[rang].FeuVertCli then
-  begin
-    Feux[rang].CheckFV:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
-    with Feux[rang].CheckFV do
-    begin
-      onClick:=formprinc.proc_checkBoxFV;  // affecter l'adresse de la procédure de traitement quand on clique dessus
-      Hint:='Vert cli';
-      Name:='CheckBoxFV'+intToSTR(adresse);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
-      caption:='dem FVC';
-      Parent:=Formprinc.ScrollBox1;
-      width:=100;height:=15;
-      Top:=HtImg+30+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
-      BringToFront;
-    end;
-  end
-  else Feux[rang].checkFV:=nil;
-
-  // créée la checkbox feu rouge cli
-  if AvecFVR or feux[rang].FeuRougeCli then
-  begin
-    Feux[rang].checkFR:=TCheckBox.create(Formprinc.ScrollBox1);  // ranger l'adresse de la Checkbox dans la structure du feu
-    with Feux[rang].CheckFR do
-    begin
-      Feux[rang].checkFR.onClick:=formprinc.proc_checkBoxFR;  // affecter l'adresse de la procédure de traitement quand on clique dessus
-      Feux[rang].checkFR.Hint:='Sémaphore cli';  // affecter l'adresse du feu dans le HINT pour pouvoir le retrouver plus tard
-      Name:='CheckBoxFR'+intToSTR(adresse);
-      caption:='dem FRC';
-      Parent:=Formprinc.ScrollBox1;
-      width:=100;height:=15;
-      Top:=HtImg+45+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
-      BringToFront;
-    end;
-  end
-  else Feux[rang].checkFR:=nil;
 
 end;
 
@@ -5762,13 +5724,9 @@ begin
           if AffSignal then AfficheDebug('Présence train après signal'+intToSTR(AdrFeu)+' -> sémaphore ou carré',clYellow);
           if testBit(feux[index].EtatSignal,carre)=FALSE then 
           begin
-            if feux[index].checkFR<>nil then
-            begin
-              if feux[index].checkFR.Checked then Maj_Etat_Signal(AdrFeu,semaphore_cli)
-              else Maj_Etat_Signal(AdrFeu,semaphore);
-            end
-            else Maj_Etat_Signal(AdrFeu,semaphore); 
-          end;  
+            if feux[index].checkFR then Maj_Etat_Signal(AdrFeu,semaphore_cli)
+            else Maj_Etat_Signal(AdrFeu,semaphore);
+          end;
         end
         else
         begin
@@ -5851,11 +5809,7 @@ begin
                   end
                   else
                   begin
-                    if feux[index].checkFV<>nil then
-                    begin
-                      if feux[index].checkFV.Checked then Maj_Etat_Signal(AdrFeu,vert_cli) 
-                      else Maj_Etat_Signal(AdrFeu,vert);
-                    end  
+                    if feux[index].checkFV then Maj_Etat_Signal(AdrFeu,vert_cli)
                     else Maj_Etat_Signal(AdrFeu,vert);
                     //if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
                   end;
@@ -6252,7 +6206,7 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
+var typ,i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
     presTrain_PN,adresseOk : boolean;
     Ts : TAccessoire;
@@ -6269,18 +6223,19 @@ begin
 
     adresseok:=(Tablo_actionneur[i].adresse=adr) ;
 
-    if Tablo_actionneur[i].det then
+    typ:=Tablo_actionneur[i].typdeclenche;
+    if typ=1 then
     begin
-      st:='Détecteur '+intToSTR(adr);
-      if Tablo_actionneur[i].typActMemZone=1 then
-      begin
-        adresseok:=adresseOk and (Tablo_actionneur[i].adresse2=adr2);
-        st:='Mémoire de zone '+intToSTR(adr)+' '+intToStr(adr2);
-      end;
-    end
-    else
+      adresseok:=adresseOk and (Tablo_actionneur[i].adresse2=adr2);
+      st:='Mémoire de zone '+intToSTR(adr)+' '+intToStr(adr2);
+    end;
+    if typ=0 then
     begin
-      st:='Actionneur '+intToSTR(adr);
+      st:='Détecteur/actionneur '+intToSTR(adr);
+    end;
+    if typ=2 then
+    begin
+      st:='Aiguillage '+intToSTR(adr);
     end;
 
     // actionneur pour fonction train
@@ -6312,7 +6267,8 @@ begin
     if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat)
     then
     begin
-      Affiche(st+' Train='+trainDecl+' son '+Tablo_actionneur[i].FichierSon,clyellow);
+      if typ<>2 then st:=st+' Train='+trainDecl;
+      Affiche(st+' son '+Tablo_actionneur[i].FichierSon,clyellow);
       PlaySound(pchar(Tablo_actionneur[i].FichierSon),0,SND_ASYNC);
     end;
   end;
@@ -6325,7 +6281,7 @@ begin
       // PN par actionneur
       for v:=1 to Tablo_PN[i].nbvoies do
       begin
-        
+
         aF:=Tablo_PN[i].voie[v].actFerme;
 
         if (aO=adr) and (etat=0) then  // actionneur d'ouverture
@@ -6451,7 +6407,7 @@ begin
     N_Event_tick:=0;
     Affiche('Raz Evts détecteurs',clLime);
   end;
-  
+
   inc(N_Event_tick);
   event_det_tick[N_event_tick].tick:=tick;
   event_det_tick[N_event_tick].adresse:=Adresse;
@@ -6479,7 +6435,7 @@ begin
         if AdrPrec=0 then
         begin
           If traceListe then AfficheDebug('Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
-          MemZone[0,AdrDetFeu]:=true;                      
+          MemZone[0,AdrDetFeu]:=true;
           event_act(0,AdrDetFeu,1,'');             // activation zone
           maj_feu(AdrFeu);
         end;
@@ -6520,7 +6476,7 @@ begin
 
       // gérer l'évènement detecteur pour action
       if etat then i:=1 else i:=0;
-      event_act(Adresse,0,i,train);  
+      event_act(Adresse,0,i,train);
       if not(confignulle) then calcul_zones;
     end;
   end;
@@ -6531,7 +6487,7 @@ begin
     N_event_det:=0;
     FormDebug.MemoEvtDet.lines.add('Raz sur débordement');
   end;
-  
+
   // attention à partir de cette section le code est susceptible de ne pas être exécuté??
 
   // Mettre à jour le TCO
@@ -6549,7 +6505,7 @@ end;
 procedure Event_Aig(adresse,pos : integer);
 var s: string;
     faire_event,inv : boolean;
-    prov,index : integer;
+    prov,index,i,etatact,typ,adr : integer;
 begin
   index:=index_aig(adresse);
   if index=0 then exit;
@@ -6601,6 +6557,15 @@ begin
 
   // l'évaluation des routes est à faire selon conditions
   if faire_event and not(confignulle) then evalue;
+
+  // actionneur d'aiguillage
+  for i:=1 to maxTablo_act do
+  begin
+    etatAct:=Tablo_actionneur[i].etat ;
+    adr:=Tablo_actionneur[i].adresse;
+    typ:=Tablo_actionneur[i].typdeclenche;
+    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,'');
+  end;
 end;
 
 // pilote une sortie à 0 à l'interface en Xpressnet dont l'adresse est à octet
@@ -7667,7 +7632,7 @@ begin
   Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
   Affiche_memoire;
-  DoubleBuffered:=true;
+//  DoubleBuffered:=true;
 
  { 
     aiguillage[index_aig(1)].position:=const_droit;
@@ -8028,6 +7993,7 @@ begin
   pilote_acc(adr,const_devie,aigP);
   s:='accessoire '+IntToSTR(adr)+' dévié';
   Affiche(s,clyellow);
+  Self.ActiveControl:=nil;
 end;
 
 procedure TFormPrinc.EditvalEnter(Sender: TObject);
@@ -9339,8 +9305,8 @@ begin
 end;
 
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
-var i,adract,etatAct,fonction,v,acc,sortie : integer;
-    son,Mem : boolean;
+var i,typ,adract,etatAct,fonction,v,acc,sortie : integer;
+    loc,act,son : boolean;
     s,s2 : string;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
@@ -9359,26 +9325,26 @@ begin
     acc:=Tablo_actionneur[i].accessoire;
     sortie:=Tablo_actionneur[i].sortie;
     fonction:=Tablo_actionneur[i].fonction;
+    loc:=Tablo_actionneur[i].loco;
+    act:=Tablo_actionneur[i].act;
     son:=Tablo_actionneur[i].son;
-    Mem:=Tablo_actionneur[i].typActMemZone=1;
+    typ:=Tablo_actionneur[i].typdeclenche;
 
-    if Mem then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2)
-    else s:=intToSTR(adrAct);
+    if typ=1 then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
+    if typ=0 then s:=intToSTR(adrAct);
+    if typ=2 then s:='Aig '+intToSTR(AdrAct);
 
-    if (s2<>'') then
-    begin
-      if fonction<>0 then
+    if loc then
       s:='FonctionF  Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' TrainDest='+Tablo_actionneur[i].TrainDest+' F'+IntToSTR(fonction)+
               ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo);
-      if acc<>0 then
+    if act then
       s:='Accessoire Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' A'+IntToSTR(acc)+
               ' sortie='+intToSTR(sortie);
-      if son then
+    if son then
       s:='Son Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+
          '  Fichier:'+Tablo_actionneur[i].FichierSon;
 
-      Affiche(s,clYellow);
-    end;
+    Affiche(s,clYellow);
   end;
 
   // dans le tableau des PN
@@ -9440,6 +9406,7 @@ begin
     begin
       readln(fte,s);
       Affiche(s,clLime);
+      sleep(100);
       Interprete_trameCDM(s);
       application.processmessages;
     end;  
@@ -9727,6 +9694,8 @@ begin
   val(EditVitesse.Text,i,e);
   if (e=0) and (i>=0) and (i<=100) then TrackBarVit.position:=i;
 end;
+
+
 
 
 

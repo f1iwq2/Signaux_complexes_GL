@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 155
-  Top = 94
+  Left = 178
+  Top = 70
   Width = 1139
   Height = 694
   VertScrollBar.Visible = False
@@ -24,12 +24,12 @@ object FormTCO: TFormTCO
     656)
   PixelsPerInch = 96
   TextHeight = 13
-  object LabelX: TLabel
+  object LabelCoord: TLabel
     Left = 64
     Top = 0
-    Width = 7
+    Width = 18
     Height = 16
-    Caption = '0'
+    Caption = '0,0'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -47,19 +47,6 @@ object FormTCO: TFormTCO
     Font.Color = clWindowText
     Font.Height = -13
     Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object LabelY: TLabel
-    Left = 88
-    Top = 0
-    Width = 7
-    Height = 16
-    Caption = '0'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Arial'
     Font.Style = [fsBold]
     ParentFont = False
   end
@@ -133,8 +120,8 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1051
-    Top = 34
+    Left = 1059
+    Top = 18
     Width = 41
     Height = 366
     Anchors = [akTop, akRight, akBottom]

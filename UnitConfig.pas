@@ -219,7 +219,6 @@ type
     Label39: TLabel;
     EditV4F: TEdit;
     EditV4O: TEdit;
-    Label40: TLabel;
     Label41: TLabel;
     EditFonte: TEdit;
     ComboBoxDD: TComboBox;
@@ -286,7 +285,10 @@ type
     Button1: TButton;
     Button3: TButton;
     CheckPnPulse: TCheckBox;
-    CheckBoxFVR: TCheckBox;
+    CheckFVC: TCheckBox;
+    CheckFRC: TCheckBox;
+    Label40: TLabel;
+    RadioButtonAig: TRadioButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -412,6 +414,9 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure CheckPnPulseClick(Sender: TObject);
+    procedure CheckFVCClick(Sender: TObject);
+    procedure CheckFRCClick(Sender: TObject);
+    procedure RadioButtonAigClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -447,7 +452,6 @@ NOTIF_VERSION_ch='NOTIF_VERSION';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
 Raz_signaux_ch='RazSignaux';
-AvecFVR_ch='FeuxVertRougeCli';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -841,6 +845,11 @@ begin
 
     //verrouillage au carré
     if feux[i].verrouCarre then s:=s+'1' else s:=s+'0';
+    // feu vert cli
+    if feux[i].checkFV then s:=s+',FVC1' else s:=s+',FVC0';
+    // feu rouge cli
+    if feux[i].checkFR then s:=s+',FRC1' else s:=s+',FRC0';
+
     // si unsemaf, paramètre supplémentaire
     if feux[i].decodeur=6 then s:=s+',U'+intToSTR(feux[i].unisemaf);
 
@@ -1049,6 +1058,19 @@ begin
           if length(s)=0 then begin Affiche('Erreur 679: fichier de configuration ligne erronnée : '+chaine_signal,clred); closefile(fichier);exit;end;
           feux[i].VerrouCarre:=s[1]='1';
           delete(s,1,1);
+          if length(s)>0 then if s[1]=',' then delete(s,1,1);
+          if copy(s,1,3)='FVC' then
+          begin
+            delete(s,1,3);
+            if length(s)>0 then begin feux[i].checkFV:=s[1]='1';delete(s,1,1);end;
+          end;
+          if length(s)>0 then if s[1]=',' then delete(s,1,1);
+          if copy(s,1,3)='FRC' then
+          begin
+            delete(s,1,3);
+            if length(s)>0 then begin feux[i].checkFR:=s[1]='1';delete(s,1,1);end;
+          end;
+
 
           if length(s)>0 then if s[1]=',' then delete(s,1,1);
           if length(s)>0 then if s[1]='U' then delete(s,1,1);
@@ -1141,18 +1163,24 @@ var s : string;
 begin
   // adresse
   adresse:=Tablo_Actionneur[i].adresse;
-  
 
-  if Tablo_Actionneur[i].typActMemZone=0 then
+  // type actionneur
+  case Tablo_Actionneur[i].typdeclenche of
+  0 :
   begin
     s:=IntToSTR(adresse); if tablo_actionneur[i].det then s:=s+'Z';
-  end
-  else
+  end;
+  // type mémoire de zone
+  1 :
   begin
     s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].adresse2)+']';
   end;
-  
-  
+  // type aiguillage
+  2 :
+  begin
+    s:='A'+IntToSTR(adresse);
+  end;
+  end;
 
   if Tablo_Actionneur[i].loco then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',F'+
@@ -1309,9 +1337,6 @@ begin
   if Raz_Acc_signaux then s:='1' else s:='0';
   writeln(fichierN,Raz_signaux_ch+'='+s);
 
-  if AvecFVR then s:='1' else s:='0';
-  writeln(fichierN,AvecFVR_ch+'='+s);
-
   // temporisation entre 2 commandes décodeurs feu
   writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
 
@@ -1466,7 +1491,7 @@ begin
     Tablo_actionneur[i].etat:=0;
     Tablo_actionneur[i].adresse:=0;
     Tablo_actionneur[i].adresse2:=0;
-    Tablo_Actionneur[i].typActMemZone:=0;
+    Tablo_Actionneur[i].typdeclenche:=0;
     Tablo_actionneur[i].accessoire:=0;
     Tablo_actionneur[i].sortie:=0;
     Tablo_actionneur[i].fichierSon:='';
@@ -1485,10 +1510,20 @@ begin
     s:=lit_ligne;
     sa:=s; sOrigine:=s;
 
+    if s[1]='A' then
+    begin
+      Tablo_actionneur[maxtablo_act].typdeclenche:=2;  // type aiguillage
+      Delete(sa,1,1);
+      val(sa,j,erreur);
+      Tablo_actionneur[maxtablo_act].adresse:=j;
+      delete(sa,1,erreur);
+      s:=sa;
+    end;
+
     i:=pos('MEM[',sOrigine);
     if i>0 then
     begin
-      Tablo_actionneur[maxtablo_act].typActMemZone:=1;  // type mémoire de zone
+      Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type mémoire de zone
       Delete(sa,1,4);
       val(sa,j,erreur);
       Tablo_actionneur[maxtablo_act].adresse:=j;
@@ -1503,12 +1538,12 @@ begin
 
     if length(sOrigine)>1 then
     begin
-      if (sOrigine[1]<>'(') and (pos('MEM[',sOrigine)=0) then  // si pas détecteur de PN
+      if (sOrigine[1]<>'(') and (sorigine[1]<>'A') and (pos('MEM[',sOrigine)=0) then  // si pas détecteur de PN
       begin
-        Tablo_actionneur[maxtablo_act].typActMemZone:=0;  // type actionneur
+        Tablo_actionneur[maxtablo_act].typdeclenche:=0;  // type actionneur
         val(sa,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
-        if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z' 
+        if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z'
         else Affiche('Erreur actionneur '+sOrigine,clred);
         delete(sa,1,erreur);
         s:=sa;
@@ -2316,20 +2351,6 @@ begin
       Raz_Acc_signaux:=i=1;
     end;
 
-    sa:=uppercase(AvecFVR_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_FVR:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      if i>1 then i:=1;
-      AvecFVR:=i=1;
-      if avecFVR then espY:=48 else espY:=15;  // espacement Y entre deux lignes de feux
-    end;
-
-
     // section aiguillages
     sa:=uppercase(section_aig_ch);
     if pos(sa,s)<>0 then
@@ -2397,8 +2418,8 @@ begin
   trouve_demcnxEth:=false;
   trouve_Algo_Uni:=false;
   trouve_Nb_cantons_Sig:=false;
-  trouve_FVR:=false;
-  
+  //trouve_FVR:=false;
+
   if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
@@ -2408,7 +2429,6 @@ begin
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
-  if not(trouve_FVR) then s:=AvecFVR_ch;
 
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
@@ -2447,7 +2467,6 @@ begin
     AvecDemandeInterfaceUSB:=true;
     AvecDemandeInterfaceEth:=true;
     lay:='';
-    avecFVR:=false;
     Tempo_Aig:=100;
     Tempo_feu:=100;
     ServeurInterfaceCDM:=1;
@@ -2486,8 +2505,7 @@ begin
   if not(trouve_dem_aig) then s:=Init_dem_aig_ch;
   if not(trouve_demcnxCOMUSB) then s:=Init_dem_interfaceUSBCOM_ch;
   if not(trouve_demcnxEth) then s:=Init_dem_interfaceEth_ch;
-  if not(trouve_FVR) then s:=AvecFVR_ch;
-  
+
   if not(trouve_tempo_feu) then
   begin
     s:=tempo_feu_ch;
@@ -2497,7 +2515,6 @@ begin
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
-  if not(trouve_FVR) then s:=AvecFVR_ch;
 
   if s<>'' then
   begin
@@ -2666,7 +2683,6 @@ begin
     Srvc_PosTrain:=CheckServPosTrains.checked;
     Srvc_Sig:=CheckBoxSrvSig.checked;
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
-    AvecFVR:=CheckBoxFVR.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
@@ -2815,7 +2831,6 @@ begin
   CheckBoxServAct.checked:=Srvc_Act;
   CheckServPosTrains.checked:=Srvc_PosTrain;
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
-  CheckBoxFVR.Checked:=AvecFVR;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
@@ -3218,7 +3233,7 @@ begin
     EditSon.Visible:=false;
     SpeedButtonJoue.Visible:=false;
     SpeedButtonCharger.Visible:=false;
-    
+
     LabelNomSon.Visible:=false;
   end;
 end;
@@ -3232,10 +3247,10 @@ begin
     GroupBoxRadio.Left:=16;
     GroupBoxAct.Top:=92;
     GroupBoxAct.Left:=16;
-    GroupBoxAct.Height:=292;
+    GroupBoxAct.Height:=340;
     GroupBox18.Top:=16;
-    GroupBox18.Height:=136;
-    GroupBox19.Top:=160;
+    GroupBox18.Height:=150;
+    GroupBox19.Top:=190;
     GroupBox19.Height:=96;
   end;
 end;
@@ -3311,7 +3326,7 @@ begin
     SpeedButtonJoue.Visible:=true;
     SpeedButtonCharger.Visible:=true;
     LabelNomSon.Visible:=true;
-    
+
     RadioButtonLoc.Checked:=false;
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.checked:=true;
@@ -3320,6 +3335,49 @@ begin
     GroupBoxPN.Visible:=false;
     editTrainDest.Visible:=false;
     label42.Visible:=false;
+  end;
+end;
+
+procedure champs_decl_actdet;
+begin
+  with formconfig do
+  begin
+    EditTrainDecl.Visible:=true ;
+    LabelTrain.Visible:=true ;
+    radioButtonActDet.Checked:=true;
+    radioButtonZones.Checked:=false;
+    radioButtonAig.Checked:=false;
+    editact2.Visible:=false;
+    LabelActionneur.Caption:='Actionneur DétecteurZ';
+  end;
+end;
+
+procedure champs_decl_zones;
+begin
+  with formconfig do
+  begin
+    radioButtonActDet.Checked:=false;
+    radioButtonZones.Checked:=true;
+    radioButtonAig.Checked:=false;
+    EditTrainDecl.Visible:=false;
+    LabelTrain.Visible:=false;
+    editact2.Visible:=true;
+    LabelActionneur.Caption:='Mémoire de Zone';
+  end;
+end;
+
+procedure champs_decl_aig;
+begin
+  with formconfig do
+  begin
+    radioButtonActDet.Checked:=false;
+    radioButtonZones.Checked:=false;
+    radioButtonAig.Checked:=true;
+    EditAct2.Visible:=false;
+    EditTrainDecl.Visible:=false;
+    LabelTrain.Visible:=false;
+    editact2.Visible:=false;
+    LabelActionneur.Caption:='Aiguillage';
   end;
 end;
 
@@ -3389,9 +3447,19 @@ begin
     end;
     
     if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
+    if d>2 then
+    begin
+      checkFVC.Visible:=true;
+      checkFRC.Visible:=true;
+    end
+    else
+    begin
+      checkFVC.Visible:=false;
+      checkFRC.Visible:=false;
+    end;
 
     if (d>3) and (d<10) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
-    
+
     // signal normal
     if d<10 then
     begin     
@@ -3415,7 +3483,7 @@ begin
         EditSuiv2.Hint:=chaine_element(feux[i].Btype_suiv2,feux[i].Adr_el_suiv2);
       end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;  
       j:=feux[i].Adr_det3;
-      if j<>0 then 
+      if j<>0 then
       begin
         EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(feux[i].Btype_suiv3)+IntToSTR(feux[i].Adr_el_suiv3);
         EditSuiv3.Hint:=chaine_element(feux[i].Btype_suiv3,feux[i].Adr_el_suiv3);
@@ -3431,7 +3499,9 @@ begin
 
       checkVerrouCarre.Checked:=feux[i].VerrouCarre;
       checkBoxFB.Checked:=feux[i].FeuBlanc;
-      
+      checkFVC.Checked:=feux[i].checkFV;
+      checkFRC.Checked:=feux[i].checkFR;
+
       // conditions supplémentaires du carré par aiguillages
       l:=1;
       repeat
@@ -3458,6 +3528,9 @@ begin
       EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
       EditSuiv1.Visible:=false;EditSuiv2.Visible:=false;EditSuiv3.Visible:=false;EditSuiv4.Visible:=false;
       CheckVerrouCarre.Visible:=false;
+      checkFVC.visible:=false;
+      checkFRC.visible:=false;
+
       Label24.Visible:=false; Label25.Visible:=false;Label26.Visible:=false;Label27.Visible:=false;
 
       // conditions d'affichage du signal directionnel
@@ -3496,52 +3569,45 @@ begin
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
   det:=Tablo_actionneur[i].det;
-  typ:=Tablo_actionneur[i].typActMemZone;
+  typ:=Tablo_actionneur[i].typdeclenche;
 
+  // déclencheurs
   with formconfig do
   begin
-    if typ=0 then 
+    //
+    case typ of
+    0 :
     begin
-      EditTrainDecl.Visible:=true ;
-      LabelTrain.Visible:=true ;
-    end  
-    else 
-    begin
-      EditTrainDecl.Visible:=false;
-      LabelTrain.Visible:=false;
+      champs_decl_actdet;
     end;
-  end;    
-  
+    1 :
+    begin
+      champs_decl_zones;
+    end;
+    2 :
+    begin
+      champs_decl_aig;
+    end;
+    end;
+  end;
+
   if det then s2:='Détecteur ' else s2:='Actionneur ';
   s2:=s2+intToSTR(Tablo_actionneur[i].adresse);
   FormConfig.EditAct.Hint:=s2;
+
 
   // Actionneur fonction F loco
   if Tablo_actionneur[i].loco then
   begin
     champs_type_loco;
-    
-    if typ=0 then with formconfig do
-    begin
-      radioButtonActDet.Checked:=true;
-      radioButtonZones.Checked:=false;
-      editAct2.Visible:=false;
-      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
-    end;
-    if typ=1 then with formconfig do
-    begin
-      radioButtonActDet.Checked:=false;
-      radioButtonZones.Checked:=true;
-      editAct2.Visible:=true;
-      LabelActionneur.Caption:='Mémoire de Zone'; 
-      editAct2.Text:=IntToSTR(Tablo_actionneur[i].adresse2);
-    end;
-    
+    formconfig.editAct2.Text:=IntToSTR(Tablo_actionneur[i].adresse2);
+
     etatAct:=Tablo_actionneur[i].etat;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].trainDecl;
     trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
+
     with formconfig do
     begin
       champs_type_loco;
@@ -3560,21 +3626,22 @@ begin
   if Tablo_actionneur[i].act then
   begin
     champs_type_act;
-    if typ=0 then with formconfig do
+    case typ of
+    0 : with formconfig do
     begin
-      radioButtonActDet.Checked:=true;
-      radioButtonZones.Checked:=false;
-      editAct2.Visible:=false;
-      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+      //radioButtonActDet.Checked:=true;
+      //radioButtonZones.Checked:=false;
+      //editAct2.Visible:=false;
     end;
-    if typ=1 then with formconfig do
+    1 : with formconfig do
     begin
-      radioButtonActDet.Checked:=false;
-      radioButtonZones.Checked:=true;
-      editAct2.Visible:=true;
-      LabelActionneur.Caption:='Mémoire de Zone'; 
     end;
-    
+    2 : with formconfig do
+    begin
+    end;
+
+    end;
+
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
@@ -3750,7 +3817,7 @@ begin
     editDroit_BD.Text:='';
     editPointe_BG.Text:='';
     EditTempo10.text:='';
-  end;  
+  end;
 end;
 
 procedure raz_champs_sig;
@@ -3769,6 +3836,8 @@ begin
     ImageSignal.Picture:=Nil;
     checkVerrouCarre.Checked:=false;
     checkBoxFB.Checked:=false;
+    checkFVC.Checked:=false;
+    checkFRC.Checked:=false;
   end;
 end;
 
@@ -4413,7 +4482,7 @@ var s : string;
 begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt Verrou carré',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     feux[ligneClicSig+1].VerrouCarre:=checkVerrouCarre.Checked;
@@ -4421,7 +4490,7 @@ begin
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
   end;
-end;        
+end;
 
 procedure TFormConfig.CheckBoxFBClick(Sender: TObject);
 var s : string;
@@ -4707,14 +4776,14 @@ begin
   // désactiver la ligne PN
   RE_ColorLine(Formconfig.RichPN,LigneCliqueePN,ClAqua);
   lignecliqueePN:=-1;
-  
+
   with RichAct do
   begin
     i:=Selstart;
     ligne:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-    if ligne<maxTablo_act then 
+    if ligne<maxTablo_act then
     begin
-      if AncligneClicAct<>-1 then RE_ColorLine(RichAct,AncligneClicAct,ClAqua);    
+      if AncligneClicAct<>-1 then RE_ColorLine(RichAct,AncligneClicAct,ClAqua);
       AncligneClicAct:=Ligne;
       ligneClicAct:=ligne;
       RE_ColorLine(Formconfig.RichAct,ligneClicAct,ClYellow);
@@ -4732,22 +4801,24 @@ end;
 
 procedure TFormConfig.EditEtatActionneurChange(Sender: TObject);
 var s : string;
-    etat,erreur : integer;
+    etat,erreur,typ : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt EditActionneur Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditEtatActionneur.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
       Val(s,etat,erreur);
-      if (erreur<>0) or (etat<0) or (etat>1) then
+      typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
+      if (erreur<>0) or (etat<0) or ((typ<2) and (etat>1)) or ((typ=2) and (etat>2)) then
       begin
-        LabelInfo.caption:='Erreur état actionneur';exit
+        if typ<2 then begin LabelInfo.caption:='Erreur état actionneur';exit;end;
+        if typ=2 then begin LabelInfo.caption:='Erreur position aiguillage';exit;end;
       end else LabelInfo.caption:=' ';
-      
+
       tablo_actionneur[ligneClicAct+1].etat:=etat;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
@@ -5047,7 +5118,24 @@ begin
       checkBoxFB.Visible:=false;
       checkBoxFB.Checked:=false;
     end;
-  if (aspect>3) and (aspect<10) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+  if (aspect>3) and (aspect<10) then
+  begin
+    CheckVerrouCarre.Visible:=true
+  end
+  else
+  begin
+    CheckVerrouCarre.Visible:=false;
+  end;
+  if (aspect>2) and (aspect<10) then
+  begin
+    checkFVC.visible:=true;
+    checkFRC.visible:=true;
+  end
+  else
+  begin
+    checkFVC.visible:=false;
+    checkFRC.visible:=false;
+  end;
 
   feux[index].aspect:=aspect;
   s:=encode_sig_feux(index);
@@ -5791,8 +5879,6 @@ begin
     feux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
     Feux[i].Lbl.free;  // supprime le label, ...
     if Feux[i].checkFB<>nil then begin Feux[i].checkFB.Free;Feux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
-    feux[i].checkFR.Free;feux[i].checkFR:=nil;
-    feux[i].checkFV.Free;feux[i].checkFV:=nil;
   end;
 
   for i:=1 to NbreFeux-ligneFin do
@@ -5829,22 +5915,6 @@ begin
       Name:='CheckBoxFB'+intToSTR(adresse);
       Hint:='Feu blanc';
       Top:=HtImg+15+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
-    end;
-    if Feux[IndexFeu].checkFV<>nil then
-    with Feux[IndexFeu].CheckFV do
-    begin
-      Name:='CheckBoxFV'+intToSTR(adresse);
-      Hint:='Feu vert clignotant';
-      Top:=HtImg+30+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
-      Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
-    end;
-    if Feux[IndexFeu].checkFR<>nil then
-    with Feux[IndexFeu].CheckFR do
-    begin
-      Name:='CheckBoxFR'+intToSTR(adresse);
-      Hint:='Sémaphore clignotant';
-      Top:=HtImg+45+((HtImg+EspY+20)*((IndexFeu-1) div NbreImagePLigne));
       Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
     end;
 
@@ -7754,6 +7824,8 @@ end;
 procedure TFormConfig.PageControlChange(Sender: TObject);
 begin
   Label20.Visible:=false;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then label40.Visible:=true
+    else label40.Visible:=false;
 end;
 
 
@@ -7785,7 +7857,7 @@ begin
   if clicListe then exit;
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typActMemZone:=0;
+  Tablo_Actionneur[i].typdeclenche:=0;
   LabelActionneur.Caption:='Actionneur DétecteurZ';
   editAct2.Visible:=false;
   EditTrainDecl.Visible:=true;
@@ -7819,13 +7891,43 @@ begin
   if clicListe then exit;
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typActMemZone:=1;
-  LabelActionneur.Caption:='Mémoire de Zone'; 
+  Tablo_Actionneur[i].typdeclenche:=1;
+  LabelActionneur.Caption:='Mémoire de Zone';
   EditTrainDecl.Visible:=false;
   LabelTrain.Visible:=false;
   editAct2.Visible:=true;
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
-  
+
+  Tablo_actionneur[i].trainDecl:='X';
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  val(editEtatFoncSortie.Text,champ,erreur);
+  Tablo_actionneur[i].sortie:=champ;
+  val(editTempo.Text,champ,erreur);
+  Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].Raz:=checkRaz.checked;
+  s:=encode_act_loc_son(i);
+  RichAct.Lines[ligneClicAct]:=s;
+end;
+
+procedure TFormConfig.RadioButtonAigClick(Sender: TObject);
+var i,champ,erreur : integer;
+    s : string;
+begin
+  if clicListe then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioBoutonAig '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].typdeclenche:=2;
+  LabelActionneur.Caption:='Aiguillage';
+  EditTrainDecl.Visible:=false;
+  LabelTrain.Visible:=false;
+  editAct2.Visible:=false;
+  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
+
   Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
@@ -8398,7 +8500,39 @@ begin
   end;
 end;
 
+procedure TFormConfig.CheckFVCClick(Sender: TObject);
+var s : string;
 begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt FVC',clOrange);
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    feux[ligneClicSig+1].checkFV:=checkFVC.Checked;
+    s:=encode_sig_feux(ligneClicSig+1);
+    RichSig.Lines[ligneClicSig]:=s;
+    feux[ligneClicSig+1].modifie:=true;
+  end;
+end;
+
+procedure TFormConfig.CheckFRCClick(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt FRC',clOrange);
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    feux[ligneClicSig+1].checkFR:=checkFRC.Checked;
+    s:=encode_sig_feux(ligneClicSig+1);
+    RichSig.Lines[ligneClicSig]:=s;
+    feux[ligneClicSig+1].modifie:=true;
+  end;
+end;
+
+begin
+
+
 end.
 
 
