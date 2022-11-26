@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 178
-  Top = 70
+  Left = 152
+  Top = 35
   Width = 1139
-  Height = 694
+  Height = 686
   VertScrollBar.Visible = False
   Caption = 'FormTCO'
   Color = clBtnFace
@@ -19,9 +19,10 @@ object FormTCO: TFormTCO
   OnCreate = FormCreate
   OnDockOver = FormDockOver
   OnKeyDown = FormKeyDown
+  OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1123
-    656)
+    1131
+    655)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -71,8 +72,8 @@ object FormTCO: TFormTCO
     Height = 97
   end
   object Label19: TLabel
-    Left = 1059
-    Top = 407
+    Left = 1075
+    Top = 399
     Width = 32
     Height = 13
     Anchors = [akRight, akBottom]
@@ -87,25 +88,25 @@ object FormTCO: TFormTCO
   object ScrollBox: TScrollBox
     Left = 8
     Top = 18
-    Width = 1036
-    Height = 375
+    Width = 1057
+    Height = 367
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelEdges = [beLeft, beTop, beRight]
-    Color = clBtnFace
+    Color = clBackground
     ParentColor = False
     TabOrder = 0
     DesignSize = (
-      1032
-      371)
+      1053
+      363)
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 1009
-      Height = 353
+      Width = 1030
+      Height = 345
       Anchors = [akLeft, akTop, akRight, akBottom]
       ParentShowHint = False
       PopupMenu = PopupMenu1
@@ -120,10 +121,10 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1059
+    Left = 1075
     Top = 18
     Width = 41
-    Height = 366
+    Height = 358
     Anchors = [akTop, akRight, akBottom]
     Max = 50
     Min = 20
@@ -135,10 +136,11 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 8
-    Top = 479
-    Width = 1100
+    Top = 471
+    Width = 1113
     Height = 166
     Anchors = [akLeft, akRight, akBottom]
+    Color = clActiveBorder
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlue
     Font.Height = -9
@@ -148,7 +150,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1100
+      1113
       166)
     object ImagePalette5: TImage
       Left = 504
@@ -718,7 +720,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 992
+      Left = 1005
       Top = 48
       Width = 92
       Height = 33
@@ -729,7 +731,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 992
+      Left = 1005
       Top = 8
       Width = 92
       Height = 33
@@ -739,8 +741,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 784
-      Top = 112
+      Left = 608
+      Top = 104
       Width = 89
       Height = 25
       Caption = 'Simu det 1'
@@ -748,8 +750,8 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 880
-      Top = 112
+      Left = 728
+      Top = 104
       Width = 89
       Height = 25
       Caption = 'Simu Det 0'
@@ -757,7 +759,7 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 992
+      Left = 1005
       Top = 88
       Width = 92
       Height = 33
@@ -767,8 +769,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 864
-      Top = 80
+      Left = 720
+      Top = 136
       Width = 113
       Height = 25
       Caption = 'Simu canton occup'#233
@@ -776,7 +778,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 992
+      Left = 1005
       Top = 128
       Width = 92
       Height = 33
@@ -931,10 +933,21 @@ object FormTCO: TFormTCO
         OnClick = CheckPinvClick
       end
     end
+    object buttonRaz: TButton
+      Left = 901
+      Top = 128
+      Width = 92
+      Height = 33
+      Anchors = [akTop, akRight]
+      Caption = 'Raz des occupations'
+      TabOrder = 8
+      WordWrap = True
+      OnClick = buttonRazClick
+    end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1051
-    Top = 431
+    Left = 1067
+    Top = 423
     Width = 57
     Height = 33
     Anchors = [akRight, akBottom]
@@ -995,6 +1008,42 @@ object FormTCO: TFormTCO
       end
     end
     object N2: TMenuItem
+      Caption = '-'
+    end
+    object Inserer: TMenuItem
+      Caption = 'Inserer'
+      object LigneDessus: TMenuItem
+        Caption = 'Ligne au dessus'
+        OnClick = LigneDessusClick
+      end
+      object LigneDessous: TMenuItem
+        Caption = 'Ligne en dessous'
+        OnClick = LigneDessousClick
+      end
+      object N7: TMenuItem
+        Caption = '-'
+      end
+      object Colonnegauche1: TMenuItem
+        Caption = 'Colonne '#224' gauche'
+        OnClick = Colonnegauche1Click
+      end
+      object Colonnedroite1: TMenuItem
+        Caption = 'Colonne '#224' droite'
+        OnClick = Colonnedroite1Click
+      end
+    end
+    object Supprimer: TMenuItem
+      Caption = 'Supprimer'
+      object SupprimeLigne: TMenuItem
+        Caption = 'Ligne'
+        OnClick = SupprimeLigneClick
+      end
+      object Colonne: TMenuItem
+        Caption = 'Colonne'
+        OnClick = ColonneClick
+      end
+    end
+    object N6: TMenuItem
       Caption = '-'
     end
     object N3: TMenuItem

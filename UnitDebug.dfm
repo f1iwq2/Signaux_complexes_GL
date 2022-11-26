@@ -2,8 +2,7 @@ object FormDebug: TFormDebug
   Left = 429
   Top = 147
   Width = 754
-  Height = 789
-  VertScrollBar.Position = 82
+  Height = 784
   VertScrollBar.Tracking = True
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
@@ -18,12 +17,12 @@ object FormDebug: TFormDebug
   OnCreate = FormCreate
   DesignSize = (
     721
-    751)
+    746)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 564
-    Top = -78
+    Top = 4
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -39,7 +38,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 412
-    Top = -80
+    Top = 2
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -53,7 +52,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 675
-    Top = -80
+    Top = 2
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -69,7 +68,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TMemo
     Left = 485
-    Top = 254
+    Top = 336
     Width = 229
     Height = 194
     Anchors = [akTop, akRight]
@@ -90,7 +89,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 379
-    Top = 246
+    Top = 328
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -100,7 +99,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 379
-    Top = 278
+    Top = 360
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -111,7 +110,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 379
-    Top = 214
+    Top = 296
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -121,7 +120,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 379
-    Top = 174
+    Top = 256
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -132,7 +131,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 379
-    Top = 126
+    Top = 208
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -149,7 +148,7 @@ object FormDebug: TFormDebug
   end
   object RichEdit: TRichEdit
     Left = 485
-    Top = 94
+    Top = 176
     Width = 229
     Height = 153
     Anchors = [akTop, akRight]
@@ -168,7 +167,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 379
-    Top = 318
+    Top = 400
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -179,7 +178,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox1: TGroupBox
     Left = 369
-    Top = 566
+    Top = 648
     Width = 345
     Height = 185
     Anchors = [akTop, akRight]
@@ -327,7 +326,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox2: TGroupBox
     Left = 377
-    Top = -62
+    Top = 20
     Width = 333
     Height = 149
     Anchors = [akTop, akRight]
@@ -499,7 +498,7 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = -74
+    Top = 8
     Width = 353
     Height = 718
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -513,7 +512,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox5: TGroupBox
     Left = 369
-    Top = 454
+    Top = 536
     Width = 345
     Height = 57
     Anchors = [akTop, akRight]
@@ -580,7 +579,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTout: TButton
     Left = 380
-    Top = 94
+    Top = 176
     Width = 97
     Height = 25
     Hint = 
@@ -595,7 +594,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox6: TGroupBox
     Left = 368
-    Top = 518
+    Top = 600
     Width = 345
     Height = 41
     Anchors = [akTop, akRight]

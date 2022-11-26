@@ -222,8 +222,6 @@ begin
 end;
 
 procedure TFormConfigTCO.ButtonOKClick(Sender: TObject);
-var i : integer;   
-    
 begin
   if verif_config_TCO then
   begin
@@ -241,9 +239,6 @@ begin
 end;
 
 procedure TFormConfigTCO.ButtonDessineClick(Sender: TObject);
-var i,erreur : integer;
-    r : Trect;
-    c : tCanvas;
 begin
   if verif_config_TCO then
   begin

@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1197
-    612)
+    1205
+    619)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1189,7 +1189,7 @@ object FormPrinc: TFormPrinc
   end
   object LabelEtat: TLabel
     Left = 440
-    Top = 16
+    Top = 8
     Width = 152
     Height = 18
     Anchors = [akTop, akRight]
@@ -1264,8 +1264,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 590
-    Width = 1197
+    Top = 597
+    Width = 1205
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1441,7 +1441,7 @@ object FormPrinc: TFormPrinc
       Width = 153
       Height = 33
       Hint = 'Ecriture CV en mode direct sur voie de  programmation'
-      Caption = 'Ecriture CV - 1 '#224' 255 par bus XpressNet'
+      Caption = 'Ecriture CV - 1 '#224' 255  par interface'
       TabOrder = 0
       WordWrap = True
       OnClick = ButtonEcrCVClick
@@ -1452,7 +1452,7 @@ object FormPrinc: TFormPrinc
       Width = 153
       Height = 33
       Hint = 'Lecture CV en mode direct sur voie de  programmation'
-      Caption = 'Lecture CV - 1 '#224' 255 par le bus XpressNet'
+      Caption = 'Lecture CV - 1 '#224' 255 par interface'
       Enabled = False
       TabOrder = 1
       WordWrap = True
@@ -1474,7 +1474,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 632
+    Left = 736
     Top = 64
     Width = 265
     Height = 129
@@ -1582,6 +1582,24 @@ object FormPrinc: TFormPrinc
       OnChange = TrackBarVitChange
     end
   end
+  object ButtonEnv: TButton
+    Left = 1064
+    Top = 144
+    Width = 113
+    Height = 33
+    Caption = 'Envoi vers centrale DCC++'
+    TabOrder = 10
+    WordWrap = True
+    OnClick = ButtonEnvClick
+  end
+  object EditEnvoi: TEdit
+    Left = 928
+    Top = 152
+    Width = 121
+    Height = 21
+    TabOrder = 11
+    Text = '<1>'
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
@@ -1645,12 +1663,12 @@ object FormPrinc: TFormPrinc
     object Interface1: TMenuItem
       Caption = 'Interface'
       object MenuConnecterUSB: TMenuItem
-        Caption = 'Connecter l'#39'interface XpressNet en USB'
+        Caption = 'Connecter l'#39'interface en USB'
         Hint = 'Connecter l'#39'interface en USB (mode autonome)'
         OnClick = MenuConnecterUSBClick
       end
       object DeconnecterUSB: TMenuItem
-        Caption = 'D'#233'connecter l'#39'interface XpressNet de l'#39'USB'
+        Caption = 'D'#233'connecter l'#39'interface de l'#39'USB'
         Hint = 'D'#233'connecter l'#39'interface USB'
         OnClick = DeconnecterUSBClick
       end
@@ -1658,12 +1676,12 @@ object FormPrinc: TFormPrinc
         Caption = '-'
       end
       object MenuConnecterEthernet: TMenuItem
-        Caption = 'Connecter l'#39'interface XpressNet en Ethernet'
+        Caption = 'Connecter l'#39'interface en Ethernet'
         Hint = 'Connecter l'#39'interface par Ethernet'
         OnClick = MenuConnecterEthernetClick
       end
       object MenuDeconnecterEthernet: TMenuItem
-        Caption = 'D'#233'connecter l'#39'interface XpressNet de Ethernet'
+        Caption = 'D'#233'connecter l'#39'interface de Ethernet'
         Hint = 'D'#233'connecter l'#39'interface par Ethernet'
         OnClick = MenuDeconnecterEthernetClick
       end
@@ -1671,7 +1689,7 @@ object FormPrinc: TFormPrinc
         Caption = '-'
       end
       object Demanderversiondelacentrale1: TMenuItem
-        Caption = 'Interface XpressNet:'
+        Caption = 'Interface'
         object Demanderlaversiondelacentrale1: TMenuItem
           Caption = 'Demander la version de la centrale'
           OnClick = Demanderlaversiondelacentrale1Click

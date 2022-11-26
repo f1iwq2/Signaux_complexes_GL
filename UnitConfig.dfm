@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 218
-  Top = 143
+  Left = 236
+  Top = 124
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1520,27 +1520,6 @@ object FormConfig: TFormConfig
       0000}
     Visible = False
   end
-  object Label19: TLabel
-    Left = 808
-    Top = 96
-    Width = 75
-    Height = 13
-    Caption = 'Element suivant'
-  end
-  object Label10: TLabel
-    Left = 792
-    Top = 104
-    Width = 105
-    Height = 13
-    Caption = 'Verrouillable au carr'#233' :'
-  end
-  object Label29: TLabel
-    Left = 856
-    Top = 76
-    Width = 6
-    Height = 13
-    Caption = #224
-  end
   object Label20: TLabel
     Left = 648
     Top = 312
@@ -1591,7 +1570,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1993,8 +1972,8 @@ object FormConfig: TFormConfig
       Caption = 'Mode autonome'
       ImageIndex = 1
       object Label9: TLabel
-        Left = 16
-        Top = 440
+        Left = 0
+        Top = 448
         Width = 294
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
@@ -2005,7 +1984,7 @@ object FormConfig: TFormConfig
         Top = 8
         Width = 297
         Height = 113
-        Caption = 'Acc'#232's USB/S'#233'rie '#224' l'#39'interface vers la centrale via XpressNet'
+        Caption = 'Acc'#232's USB/S'#233'rie '#224' l'#39'interface vers la centrale'
         TabOrder = 0
         object Label3: TLabel
           Left = 16
@@ -2064,8 +2043,8 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 128
         Width = 297
-        Height = 81
-        Caption = '4. Ent'#234'te des trames vers l'#39'interface'
+        Height = 65
+        Caption = '4. Ent'#234'te des trames XpressNet vers l'#39'interface'
         TabOrder = 1
         object RadioButton1: TRadioButton
           Left = 8
@@ -2083,21 +2062,13 @@ object FormConfig: TFormConfig
           Caption = '1 : Ent'#234'te FF FE (interfaces natives USB)'
           TabOrder = 1
         end
-        object RadioButton3: TRadioButton
-          Left = 8
-          Top = 56
-          Width = 273
-          Height = 17
-          Caption = '2 : Ent'#234'te E4 - Suffixe 0D 0D 0A (arduino XpressNet)'
-          TabOrder = 2
-        end
       end
       object GroupBox3: TGroupBox
         Left = 8
-        Top = 216
+        Top = 200
         Width = 297
         Height = 73
-        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface vers la centrale via XpressNet'
+        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface'
         TabOrder = 2
         object Label7: TLabel
           Left = 14
@@ -2142,7 +2113,7 @@ object FormConfig: TFormConfig
         BorderStyle = bsNone
         Lines.Strings = (
           '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet.'
-          'Attention de COM1 '#224' 9 - Si le port de l'#39'interface USB>9, il '
+          'Attention de COM1 '#224' 30 - Si le port de l'#39'interface USB>30, il '
           'faut le changer manuellement dans le gestionnaire des '
           'p'#233'riph'#233'riques. Si COMX : Signaux complexes d'#233'tecte le'
           'port automatiquement (mais le d'#233'marrage est plus long)')
@@ -2190,36 +2161,34 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 312
         Width = 297
-        Height = 73
+        Height = 57
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
           '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette valeur '
           'doit '#234'tre '#224' 0. Pour les interfaces utilisant nativement de '
-          'l'#39'USB, cette valeur doit '#234'tre '#224' 1. '
-          'La valeur 2 est utilis'#233'e exclusivement pour des interfaces '#224' '
-          'base d'#39'arduino pour xpressnet.')
+          'l'#39'USB, cette valeur doit '#234'tre '#224' 1. ')
         ReadOnly = True
         TabOrder = 6
       end
       object GroupBox9: TGroupBox
         Left = 8
-        Top = 296
+        Top = 280
         Width = 297
-        Height = 129
+        Height = 121
         Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
         TabOrder = 7
         object Label32: TLabel
           Left = 14
-          Top = 50
+          Top = 42
           Width = 200
           Height = 13
           Caption = 'Temporisation de s'#233'quencement d'#39'init (ms)'
         end
         object CheckBoxInitAig: TCheckBox
           Left = 16
-          Top = 24
+          Top = 16
           Width = 257
           Height = 25
           Hint = 'Initialisation des aiguillages au d'#233'marrage'
@@ -2231,15 +2200,18 @@ object FormConfig: TFormConfig
         end
         object EditTempoAig: TEdit
           Left = 224
-          Top = 46
+          Top = 38
           Width = 41
           Height = 21
+          Hint = 'Temporisation entre la commande de deux aiguillages'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 1
           Text = 'EditTempoAig'
         end
         object CheckPosAig: TCheckBox
           Left = 16
-          Top = 72
+          Top = 64
           Width = 257
           Height = 17
           Caption = 'Demande positions des aiguillages '#224' la centrale'
@@ -2247,25 +2219,55 @@ object FormConfig: TFormConfig
         end
         object CheckBoxDemarUSB: TCheckBox
           Left = 16
-          Top = 88
+          Top = 80
           Width = 273
           Height = 17
           Hint = 'Connecte l'#39'interface XpressNet en COM ou USB au d'#233'marrage'
-          Caption = 'Connexion de l'#39'interface Xpressnet en COM ou USB'
+          Caption = 'Connexion de l'#39'interface en COM ou USB'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 3
         end
         object CheckBoxDemarEth: TCheckBox
           Left = 16
-          Top = 104
+          Top = 96
           Width = 265
           Height = 17
           Hint = 'Connecte l'#39'interface XpressNet en Ethernet ou Wifi au d'#233'marrage'
-          Caption = 'Connexion de l'#39'interface Xpressnet en Ethernet'
+          Caption = 'Connexion de l'#39'interface en Ethernet'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
+        end
+      end
+      object GroupBox22: TGroupBox
+        Left = 312
+        Top = 376
+        Width = 297
+        Height = 65
+        Caption = 'Protocole de connexion '#224' la centrale ou '#224' l'#39'interface'
+        TabOrder = 8
+        object RadioButtonDCC: TRadioButton
+          Left = 8
+          Top = 40
+          Width = 113
+          Height = 17
+          Hint = 'Protocole DCC++ vers la centrale/interface'
+          Caption = 'DCC++ (Arduino)'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+        end
+        object RadioButtonXpress: TRadioButton
+          Left = 8
+          Top = 20
+          Width = 257
+          Height = 17
+          Hint = 'Protocole Xpressnet vers la centrale/interface'
+          Caption = 'XpressNet (Lenz, Digikeijs, Roco, OpenDCC ...)'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
         end
       end
     end
@@ -3015,7 +3017,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end

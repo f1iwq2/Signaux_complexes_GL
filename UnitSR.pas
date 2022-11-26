@@ -7,7 +7,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls , UnitPrinc, UnitConfig;
 
 type
   TFormSR = class(TForm)
@@ -128,13 +128,10 @@ var
 
 implementation
 
-uses UnitPrinc, UnitConfig;
-
 
 {$R *.dfm}
 
 procedure etat_SR(etat : integer;var etat1,etat2 : integer) ;
-var i : integer;
 begin
   // etat1 correspond à l'allumage des leds du 1er cycle clignotant
   // etat2 correspond à l'allumage des leds du 2eme cycle clignotant
@@ -182,7 +179,7 @@ end;
 
 
 procedure TFormSR.FormActivate(Sender: TObject);
-var erreur,i,etat1,etat2 : integer;
+var erreur,etat1,etat2 : integer;
 begin
   Val(FormConfig.EditAdrSig.text,Adr,erreur);
   indexSig:=index_feu(Adr);

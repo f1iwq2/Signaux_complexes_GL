@@ -1,9 +1,10 @@
 object FormSR: TFormSR
   Left = 425
   Top = 73
-  Width = 491
-  Height = 600
+  BorderStyle = bsDialog
   Caption = 'Configuration du d'#233'codeur du signal St'#233'phane Ravaut'
+  ClientHeight = 562
+  ClientWidth = 475
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

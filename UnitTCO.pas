@@ -103,6 +103,17 @@ type
     ComboRepr: TComboBox;
     Label1: TLabel;
     CheckPinv: TCheckBox;
+    N6: TMenuItem;
+    Inserer: TMenuItem;
+    Supprimer: TMenuItem;
+    LigneDessus: TMenuItem;
+    LigneDessous: TMenuItem;
+    SupprimeLigne: TMenuItem;
+    Colonne: TMenuItem;
+    N7: TMenuItem;
+    Colonnegauche1: TMenuItem;
+    Colonnedroite1: TMenuItem;
+    buttonRaz: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ImageTCOClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -283,7 +294,15 @@ type
     procedure Signalgauchedelavoie1Click(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
     procedure N3Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure LigneDessusClick(Sender: TObject);
+    procedure LigneDessousClick(Sender: TObject);
+    procedure SupprimeLigneClick(Sender: TObject);
+    procedure Colonnegauche1Click(Sender: TObject);
+    procedure Colonnedroite1Click(Sender: TObject);
+    procedure ColonneClick(Sender: TObject);
+    procedure buttonRazClick(Sender: TObject);
+    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 
   private
     { Déclarations privées }
@@ -312,7 +331,7 @@ type
   TTCO = array[1..MaxCellX] of array[1..MaxCellY] of record
                Adresse     : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
                BImage      : integer ;    // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
-               mode        : Tcolor;      // couleur de voie 0=éteint
+               mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur en fonction du train
                inverse     : boolean;     // aiguillage piloté inversé
                repr        : integer;     // position de la représentation texte 0 = rien 1=centrale 2=Haut  3=Bas
                Texte       : string[30];  // texte de la cellule
@@ -341,8 +360,9 @@ var
   TamponTCO,tco : TTco ;
   // pour copier coller
   TamponTCO_Org : record
-                   x1,y1,x2,y2 : integer;
-                  end;
+                   x1,y1,x2,y2,NbreCellX,NbreCellY : integer;
+                 end;
+
   rAncien : TRect;
   PCanvasTCO : Tcanvas;
   PBitMapTCO : TBitMap;
@@ -378,7 +398,7 @@ var fichier : textfile;
     nv,x,y,i,j,m,adresse,valeur,erreur,FeuOriente,PiedFeu,tailleFont : integer;
     e : integer;
     trouve_CoulFond,trouve_clVoies,trouve_clAllume,trouve_clGrille,trouve_clCanton,
-    trouve_clTexte,trouve_clQuai,trouve_matrice,trouve_cellule,trouve_ModeCanton,
+    trouve_clTexte,trouve_clQuai,trouve_matrice,trouve_ratio,trouve_ModeCanton,
     trouve_AvecGrille : boolean;
     function lit_ligne : string ;
     var c : char;
@@ -387,6 +407,7 @@ var fichier : textfile;
         readln(fichier,s);
         s:=Uppercase(s);
         //Affiche(s,clWhite);
+        c:=#0;
         if length(s)>0 then c:=s[1];
       until ((c<>'/') and (s<>'')) or eof(fichier) ;
       lit_ligne:=s;
@@ -412,7 +433,7 @@ begin
   trouve_clTexte:=false;
   trouve_clQuai:=false;
   trouve_matrice:=false;
-  trouve_cellule:=false;
+  trouve_ratio:=false;
   trouve_clCanton:=false;
   trouve_ModeCanton:=false;
   trouve_AvecGrille:=false;
@@ -548,7 +569,7 @@ begin
     if i<>0 then
     begin
       inc(nv);
-      trouve_cellule:=true;
+      trouve_ratio:=true;
       delete(s,i,length(sa));
       val(s,i,erreur);
       RatioC:=i;
@@ -685,7 +706,7 @@ begin
   closefile(fichier);
 
   e:=sizeof(Tco) div 1024;
-  Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' / '+IntToSTR(e)+'Ko',clyellow);
+  //Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' / '+IntToSTR(e)+'Ko',clyellow);
 end;
 
 procedure sauve_fichier_tco;
@@ -867,13 +888,13 @@ begin
 end;
 
 procedure dessin_2(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,jy2,xf,yf,x1,x2,y1,y2,x3,position : integer;
+var x0,y0,xc,yc,jy1,jy2,xf,yf,position : integer;
     r : Trect;
          
    procedure trajet_droit;
    begin
      if mode=0 then
-     with canvas do 
+     with canvas do
      begin
        pen.color:=clvoies;
        Brush.Color:=clvoies;
@@ -921,7 +942,7 @@ var x0,y0,xc,yc,jy1,jy2,xf,yf,x1,x2,y1,y2,x3,position : integer;
        // partie horz g en couleur de voie
        pen.color:=clvoies;
        Brush.Color:=clvoies;
-       moveto(x0,yc);LineTo(xc,yc); 
+       moveto(x0,yc);LineTo(xc,yc);
      
        if mode=1 then couleur:=clAllume;
        if mode=2 then couleur:=couleurtrain[index_couleur];
@@ -970,8 +991,6 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
-      x2:=xc+epaisseur+10;y2:=yc-epaisseur-3;
       jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
       pen.width:=1;
       Polygon([point(x0+1,y0+hauteurCell-epaisseur),Point(xc-(epaisseur div 2),jy1),Point(xc-epaisseur-epaisseur,jy1),Point(x0+1,y0+hauteurcell-epaisseur-epaisseur)]);
@@ -983,9 +1002,6 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.Width:=1;
-      x1:=xc+(epaisseur div 2);y1:=yc+(epaisseur div 2);
-      x2:=x1+epaisseur-1;y2:=yc-(epaisseur div 2);
-      x3:=x1+10;
       jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
       r:=rect(x0+1,jy2+1,x0+largeurCell-1,jy2+epaisseur);
       FillRect(r);
@@ -994,7 +1010,7 @@ begin
 end;
 
 procedure dessin_3(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,xf,yf,x1,x2,y1,y2,x3,position : integer;
+var x0,y0,xc,yc,jy1,xf,yf,position : integer;
     r : Trect;
          
    procedure trajet_droit;
@@ -1097,9 +1113,6 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
-      x2:=xc+epaisseur+10;y2:=yc-epaisseur-3;
-      jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
       pen.width:=1;
       Polygon([point(xc+epaisseur-4,yc+epaisseur-1),point(xc+2*epaisseur-1,yc-epaisseur),point(xc+3*epaisseur,yc-epaisseur),point(xc+2*epaisseur,yc+epaisseur-1)]);
     end;
@@ -1110,9 +1123,6 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.Width:=1;
-      x1:=xc+(epaisseur div 2);y1:=yc+(epaisseur div 2);
-      x2:=x1+epaisseur-1;y2:=yc-(epaisseur div 2);
-      x3:=x1+10;
       jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
       r:=rect(x0+1,jy1,x0+largeurCell-1,jy1-epaisseur);
       FillRect(r);
@@ -1121,7 +1131,7 @@ begin
 end;
 
 procedure dessin_4(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,jy2,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
     r : Trect;
          
    procedure trajet_droit;
@@ -1375,7 +1385,7 @@ end;
 
 // coin supérieur gauche (Element 6)
 procedure dessin_6(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,jy1,jy2 : integer;
+var x0,y0,xc,yc : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -1439,7 +1449,7 @@ var x0,y0,xc,yc : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-  xc:=x0+(largeurCell div 2);
+  xc:=x0+(largeurCell div 2);  
   yc:=y0+(hauteurCell div 2);
 
   with canvas do
@@ -1494,7 +1504,7 @@ end;
 
 // élément 10
 procedure dessin_10(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var Adr, x0,y0,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+var Adr, x0,y0: integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -1683,7 +1693,7 @@ end;
 
 // Elément 13
 procedure dessin_13(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position : integer;
     r : Trect;
 
    procedure trajet_droit;
@@ -2147,7 +2157,7 @@ end;
 
 // Element 19
 procedure dessin_19(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,adr : integer;
+var x0,y0,xc,yc : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -2209,12 +2219,11 @@ end;
 
 // Element 21 - croisement - TJD
 procedure dessin_21(Canvas : Tcanvas;x,y,mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,yc : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-  xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
 
   with canvas do
@@ -2238,12 +2247,11 @@ end;
 
 // Element 22
 procedure dessin_22(Canvas : Tcanvas;x,y,mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,yc : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-  xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
 
   with canvas do
@@ -2268,7 +2276,7 @@ end;
 
 // Element 23
 procedure dessin_23(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,x1,y1,x2,y2,jy1,jy2 : integer;
+var x0,y0,x1,x2,jy1,jy2 : integer;
     r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
@@ -2283,8 +2291,8 @@ begin
 
     Brush.Color:=clQuai;
     pen.color:=clQuai;
-    x1:=x0;y1:=y0;
-    x2:=x0+largeurCell;y2:=y0+HauteurCell-round(3*FrYGlob);
+    x1:=x0;
+    x2:=x0+largeurCell;
 
     jy1:=y0+(HauteurCell div 2)-round(14*frYGlob); // pos Y de la bande sup
     jy2:=y0+(HauteurCell div 2)+round(14*frYGlob); // pos Y de la bande inf
@@ -2914,7 +2922,7 @@ end;
 
 // affiche la cellule x et y en cases
 procedure affiche_cellule(x,y : integer);
-var i,repr,p,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pos,pos2,pied : integer;
+var repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
     Bt : TEquipement;
     s : string;
 begin
@@ -2995,6 +3003,7 @@ begin
   // détecteurs
   if ((BImage=1) ) and (adresse<>0) then
   begin // Adresse de l'élément
+    if repr<>0 then
     with PCanvasTCO do
     begin
       Brush.Color:=fond;
@@ -3002,13 +3011,12 @@ begin
       Font.Name:='Arial';
       Font.Style:=style(tco[x,y].FontStyle);
       xt:=round(15*frXGlob);
-      repr:=0;
       case repr of
       1 : yt:=(HauteurCell div 2)-round(7*fryGlob);   // milieu
       2 : yt:=1;  // haut
       3 : yt:=HauteurCell-round(17*frYGlob);   // bas
       end;
-      if repr<>0 then TextOut(xOrg+xt,Yorg+yt,s);
+      TextOut(xOrg+xt,Yorg+yt,s);
     end;
   end;
 
@@ -3138,7 +3146,6 @@ end;
 procedure affiche_texte(x,y : integer);
 var x0,y0,yt,repr : integer;
     ss,s : string;
-    fs : TFontStyles;
 begin
   x0:=(x-1)*Largeurcell;
   y0:=(y-1)*hauteurcell;
@@ -3172,7 +3179,7 @@ end;
 
 // affiche le tco suivant le tableau TCO
 procedure Affiche_TCO ;
-var x,y,x0,y0,DimX,DimY,yt : integer;
+var x,y,DimX,DimY : integer;
     s : string;
     r : Trect;
 begin
@@ -3211,7 +3218,6 @@ begin
         begin
           affiche_cellule(x,y);
         end;
-        
       end;
 
   //afficher les cellules des feux et les textes pour que les pieds recouvrent le reste et afficher les textes
@@ -3384,7 +3390,7 @@ end;
 procedure zone_TCO(det1,det2,mode: integer);
 var i,j,x,y,xn,yn,ancienY,ancienX,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2,ir : integer;
-    memtrouve,increment,sortir : boolean;
+    memtrouve,sortir : boolean;
     mdl : Tequipement;
     routeTCO : array[1..100] of record
       x,y : integer;
@@ -3399,9 +3405,7 @@ begin
   trouve_det(det2,Xdet2,Ydet2);
   if (Xdet2=0) or (Ydet2=0) then exit;
 
-  increment:=true;
   // inverser coordonnées des détecteurs si à l'envers en X
-  if xDet2<xDet1 then increment:=false;
 
   //Affiche('trouvé '+intToSTR(det1)+' en '+IntToSTR(xDet1)+'/'+intToSTR(ydet1),clyellow);
   //Affiche('trouvé '+intToSTR(det2)+' en '+IntToSTR(xDet2)+'/'+intToSTR(ydet2),clyellow);
@@ -4456,6 +4460,9 @@ var x,y : integer;
 begin
   if SelectionAffichee then
   begin
+    TamponTCO_org.NbreCellX:=NbreCellX;
+    TamponTCO_org.NbreCellY:=NbreCellY;
+  
     TamponTCO_Org.x1:=XminiSel div LargeurCell +1;
     TamponTCO_Org.x2:=XmaxiSel div LargeurCell +1;
     TamponTCO_Org.y1:=yminiSel div LargeurCell +1;
@@ -4477,6 +4484,9 @@ end;
 procedure TFormTCO.MenuCouperClick(Sender: TObject);
 var  x,y,XCell1,YCell1,xCell2,yCell2 : integer;
 begin
+  TamponTCO_org.NbreCellX:=NbreCellX;
+  TamponTCO_org.NbreCellY:=NbreCellY;
+  
   // couper sans sélection : on coupe une seule cellule
   if not(SelectionAffichee) then
   begin
@@ -4525,7 +4535,8 @@ var x,y,Xplace,yplace,adresse : integer;
 begin
   if TamponAffecte then
   begin
-
+    NbreCellX:=TamponTCO_org.NbreCellX;
+    NbreCellY:=TamponTCO_org.NbreCellY;
     if (xCoupe<>0) and (ycoupe<>0) then
     begin
       for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do       // rectangle de la sélection
@@ -4699,7 +4710,7 @@ end;
 
 // changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,index,aspect : integer;
+var Adr,erreur,index : integer;
 begin
   //Affiche('Chgt adresse',clyellow);
 
@@ -4737,7 +4748,7 @@ begin
 end;
 
 procedure TFormTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
-var Bimage,erreur,i : integer;
+var Bimage,erreur : integer;
 begin
   if actualize then exit;
   if ord(Key)=VK_RETURN then
@@ -5496,9 +5507,239 @@ begin
   FormConfCellTCO.BringToFront;
 end;
 
-procedure TFormTCO.Button3Click(Sender: TObject);
+
+
+
+procedure TFormTCO.LigneDessusClick(Sender: TObject);
+var x,y : integer;
 begin
-  dessin_14(ImageTCO.canvas,6,1,1);
+  if NbreCellY>=MaxCellY then exit;
+  for y:=NbreCellY downto YClicCell do
+  begin
+    for x:=1 to NbreCellX do tco[x,y+1]:=tco[x,y];
+  end;
+  for x:=1 to NbreCellX do
+  begin
+    tco[x,YClicCell].Adresse:=0;
+    tco[x,YClicCell].BImage:=0;
+    tco[x,YClicCell].inverse:=false;
+    tco[x,YClicCell].repr:=0;
+    tco[x,YClicCell].texte:='';
+    tco[x,YClicCell].fonte:='';
+    tco[x,YClicCell].Couleur:=fond;
+    tco[x,YClicCell].PiedFeu:=0;
+    tco[x,YClicCell].FeuOriente:=0;
+  end;
+  inc(NbreCellY);
+  affiche_TCO;
+end;
+
+procedure TFormTCO.LigneDessousClick(Sender: TObject);
+var x,y : integer;
+begin
+  if NbreCellY>=MaxCellY then exit;
+  for y:=NbreCellY downto YClicCell+1 do
+  begin
+    for x:=1 to NbreCellX do tco[x,y+1]:=tco[x,y];
+  end;
+  for x:=1 to NbreCellX do
+  begin
+    tco[x,YClicCell+1].Adresse:=0;
+    tco[x,YClicCell+1].BImage:=0;
+    tco[x,YClicCell+1].inverse:=false;
+    tco[x,YClicCell+1].repr:=0;
+    tco[x,YClicCell+1].texte:='';
+    tco[x,YClicCell+1].fonte:='';
+    tco[x,YClicCell+1].Couleur:=fond;
+    tco[x,YClicCell+1].PiedFeu:=0;
+    tco[x,YClicCell+1].FeuOriente:=0;
+  end;
+  inc(NbreCellY);
+  affiche_TCO;
+end;
+
+procedure TFormTCO.SupprimeLigneClick(Sender: TObject);
+var x,y : integer;
+begin
+  if NbreCellY<=1 then exit;
+
+  // tampon de sauvegarde
+  TamponTCO_Org.NbreCellX:=NbreCellX;
+  TamponTCO_Org.NbreCellY:=NbreCellY; 
+  TamponTCO_Org.x1:=1;
+  TamponTCO_Org.x2:=NbreCellX;
+  TamponTCO_Org.y1:=1;
+  TamponTCO_Org.y2:=NbreCellY; 
+  xcoupe:=1;ycoupe:=1;
+  for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
+    for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
+      tamponTCO[x,y]:=tco[x,y];
+  TamponAffecte:=true;
+
+  // supression ligne
+  for y:=YClicCell to NbreCellY do
+  begin
+    for x:=1 to NbreCellX do tco[x,y]:=tco[x,y+1];
+  end;
+  for x:=1 to NbreCellX do
+  begin
+    tco[x,NbreCellY].Adresse:=0;
+    tco[x,NbreCellY].BImage:=0;
+    tco[x,NbreCellY].inverse:=false;
+    tco[x,NbreCellY].repr:=0;
+    tco[x,NbreCellY].texte:='';
+    tco[x,NbreCellY].fonte:='';
+    tco[x,NbreCellY].Couleur:=fond;
+    tco[x,NbreCellY].PiedFeu:=0;
+    tco[x,NbreCellY].FeuOriente:=0;
+  end;
+  dec(NbreCellY);
+  affiche_TCO;
+end;
+
+procedure TFormTCO.Colonnegauche1Click(Sender: TObject);
+  var x,y : integer;
+begin
+  if NbreCellX>=MaxCellX then exit;
+  for x:=NbreCellX downto XClicCell do
+  begin
+    for y:=1 to NbreCellY do tco[x+1,y]:=tco[x,y];
+  end;
+  for y:=1 to NbreCellX do
+  begin
+    tco[XClicCell,y].Adresse:=0;
+    tco[XClicCell,y].BImage:=0;
+    tco[XClicCell,y].inverse:=false;
+    tco[XClicCell,y].repr:=0;
+    tco[XClicCell,y].texte:='';
+    tco[XClicCell,y].fonte:='';
+    tco[XClicCell,y].Couleur:=fond;
+    tco[XClicCell,y].PiedFeu:=0;
+    tco[XClicCell,y].FeuOriente:=0;
+  end;
+  inc(NbreCellX);
+  affiche_TCO;
+end;
+
+procedure TFormTCO.Colonnedroite1Click(Sender: TObject);
+  var x,y : integer;
+begin
+  if NbreCellX>=MaxCellX then exit;
+  for x:=NbreCellX downto XClicCell+1 do
+  begin
+    for y:=1 to NbreCellY do tco[x+1,y]:=tco[x,y];
+  end;
+  for y:=1 to NbreCellX do
+  begin
+    tco[XClicCell+1,y].Adresse:=0;
+    tco[XClicCell+1,y].BImage:=0;
+    tco[XClicCell+1,y].inverse:=false;
+    tco[XClicCell+1,y].repr:=0;
+    tco[XClicCell+1,y].texte:='';
+    tco[XClicCell+1,y].fonte:='';
+    tco[XClicCell+1,y].Couleur:=fond;
+    tco[XClicCell+1,y].PiedFeu:=0;
+    tco[XClicCell+1,y].FeuOriente:=0;
+  end;
+  inc(NbreCellX);
+  affiche_TCO;
+end;
+
+// suppression colonne
+procedure TFormTCO.ColonneClick(Sender: TObject);
+var x,y : integer;
+begin
+  if NbreCellX<=1 then exit;
+
+  // tampon de sauvegarde
+  TamponTCO_Org.NbreCellX:=NbreCellX;
+  TamponTCO_Org.NbreCellY:=NbreCellY; 
+  TamponTCO_Org.x1:=1;
+  TamponTCO_Org.x2:=NbreCellX;
+  TamponTCO_Org.y1:=1;
+  TamponTCO_Org.y2:=NbreCellY; 
+  xcoupe:=1;ycoupe:=1;
+  for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
+    for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
+      tamponTCO[x,y]:=tco[x,y];
+  TamponAffecte:=true;
+
+  // supression colonne
+  for x:=xClicCell to NbreCellx do
+  begin
+    for y:=1 to NbreCelly do tco[x,y]:=tco[x+1,y];
+  end;
+  for y:=1 to NbreCellY do
+  begin
+    tco[NbreCellx,y].Adresse:=0;
+    tco[NbreCellx,y].BImage:=0;
+    tco[NbreCellx,y].inverse:=false;
+    tco[NbreCellx,y].repr:=0;
+    tco[NbreCellx,y].texte:='';
+    tco[NbreCellx,y].fonte:='';
+    tco[NbreCellx,y].Couleur:=fond;
+    tco[NbreCellx,y].PiedFeu:=0;
+    tco[NbreCellx,y].FeuOriente:=0;
+  end;
+  dec(NbreCellX);
+  affiche_TCO;
+end;
+
+procedure TFormTCO.buttonRazClick(Sender: TObject);
+var x,y : integer;
+begin
+  for x:=1 to NbreCellx do
+    for y:=1 to NbreCelly do tco[x,y].mode:=0;
+  Affiche_TCO;
+end;
+
+procedure TFormTCO.FormMouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var i,maxi,x,y : integer;
+s : string;
+  position : tpoint;
+begin
+
+  i:=FormTCO.TrackBarZoom.Position;
+
+  if WheelDelta>0 then
+  begin
+    if (i<=ZoomMin) then
+    begin
+      FormTCO.TrackBarZoom.Position:=ZoomMin;
+      exit;
+    end;
+    dec(i);
+  end
+  else
+  begin
+    if (i>=ZoomMax) then
+    begin
+      FormTCO.TrackBarZoom.Position:=ZoomMax;
+      exit;
+    end;
+    inc(i);
+  end;
+
+  // positionner la trackbar zoom
+  FormTCO.TrackBarZoom.Position:=i;
+  calcul_cellules;
+  Affiche_TCO;
+  SelectionAffichee:=false;
+
+  //positionner les trackbar du scrollbox sur la position cliquée de la souris
+  {GetCursorPos(Position);
+  x:=position.x div largeurCell +1 ;
+  y:=position.Y div HauteurCell +1 ;
+  }
+  maxi:=ScrollBox.HorzScrollBar.Range-ScrollBox.ClientWidth;
+  i:=round(xClicCell*maxi/NbreCellx);
+  ScrollBox.HorzScrollBar.position:=i;
+
+  maxi:=ScrollBox.VertScrollBar.Range-ScrollBox.ClientHeight;
+  i:=round(yClicCell*maxi/NbreCelly);
+  ScrollBox.VertScrollBar.position:=i;
+
 end;
 
 begin

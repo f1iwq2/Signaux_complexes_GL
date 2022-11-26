@@ -10,7 +10,7 @@ Unit UnitPrinc;
     -            1    = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
 *)
 
-// en mode simulation run: 
+// en mode simulation run:
 // CDM ne renvoie pas les détecteurs au départ du RUN.
 // il ne renvoie pas non plus le nom des trains sur les actionneurs
 // les noms des trains sont bien renvoyés sur les détecteurs à 1
@@ -33,7 +33,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem   ;
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem  ;
 
 type
   TFormPrinc = class(TForm)
@@ -137,6 +137,8 @@ type
     Demandetataccessoires1: TMenuItem;
     LancerCDMrail1: TMenuItem;
     TrackBarVit: TTrackBar;
+    ButtonEnv: TButton;
+    EditEnvoi: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -204,6 +206,7 @@ type
     procedure LancerCDMrail1Click(Sender: TObject);
     procedure TrackBarVitChange(Sender: TObject);
     procedure EditVitesseChange(Sender: TObject);
+    procedure ButtonEnvClick(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -244,10 +247,10 @@ Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
 NbDecodeur = 8;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf Paco','SR');
-Etats : array[0..19] of string[30]=('Non commandé','carré','sémaphore','sémaphore cli','vert','vert cli','violet',
-           'blanc','blanc cli','jaune','jaune cli','ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60',
-           'rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','Digikeijs 4018','Unisemaf Paco','SR');
+Etats : array[0..19] of string[30]=('Non commandé',
+                                    'carré','sémaphore','sémaphore cli','vert','vert cli','violet','blanc','blanc cli','jaune','jaune cli',
+                                    'ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60','rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
 
 type
 Taccessoire   = (aigP,feu);    // aiguillage ou feu
@@ -306,7 +309,7 @@ TFeu = record
                  FeuVertCli : boolean ;      // avec checkbox ou pas
                  FeuRougeCli : boolean ;     // avec checkbox ou pas
                  FeuBlanc : boolean ;        // avec checkbox ou pas
-                 decodeur : integer;         // type du décodeur  // 'rien','Digital Bahn','CDF','LDT','LEB','NMRA','Unisemaf','SR'
+                 decodeur : integer;         // type du décodeur  // 'rien','Digital Bahn','CDF','LDT','LEB','Digikeijs','Unisemaf','SR'
                  Adr_det1 : integer;         // adresse du détecteur1 sur lequel il est implanté
                  Adr_det2 : integer;         // adresse du détecteur2 sur lequel il est implanté (si un signal est pour plusieurs voies)
                  Adr_det3 : integer;         // adresse du détecteur3 sur lequel il est implanté (si un signal est pour plusieurs voies)
@@ -323,7 +326,7 @@ TFeu = record
                  modifie     : boolean;      // feu modifié
                  EtatSignal  : word  ;       // état du signal
                  AncienEtat  : word  ;       // ancien état du signal
-                 UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
+                 UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF ou du préréglage pour digikeijs
                  AigDirection : array[1..7] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
                                                Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages +1 position 0
                                                posAig  : char;
@@ -333,15 +336,16 @@ TFeu = record
                                                Adresse : integer;    // aiguillage
                                                posAig : char;
                                                end;
-                 SR : array[1..8] of record    // configuration du décodeur Stéphane Ravaut
+                 SR : array[1..19] of record   // configuration du décodeur Stéphane Ravaut : 8 valeurs maxi
                                                sortie1,sortie0 : integer;
                                      end;
+                 Na : integer;                 // nombre d'adresses du feu occupées par le décodeur CDF
                end;
 
 
 var
-  maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,
-  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,
+  maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
+  N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
   NbreImagePligne,NbreBranches,Index2_det,Index2_aig,branche_det,
   I_simule,maxTablo_act,NbreVoies,AdresseFeuSuivant,El_suivant,
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,
@@ -349,21 +353,19 @@ var
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,AdrTrain : integer;
 
-  ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,
+  ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
-  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,AvecFVR,
+  Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,AvecFVR,InverseMotif,
   Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
-  AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc : boolean;
+  AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc : boolean;
 
   tick,Premier_tick : longint;
 
   CDMhd : THandle;
 
   FormPrinc: TFormPrinc;
-
-  tablo : array of byte;  // tableau rx usb
 
   Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,Lay
   : string;
@@ -518,6 +520,7 @@ implementation
 
 uses UnitDebug, verif_version, UnitPilote, UnitSimule, UnitTCO, UnitConfig;
 
+{
 procedure menu_interface(MA : TMA);
 var val : boolean;
 begin
@@ -528,8 +531,9 @@ begin
     DeConnecterUSB.enabled:=val;
     MenuConnecterEthernet.enabled:=val;
     MenuDeConnecterEthernet.enabled:=val;
-  end;  
+  end;
 end;
+}
 
 procedure Tformprinc.DoHint(Sender : Tobject);
 begin
@@ -1218,9 +1222,22 @@ begin
      RE_ColorLine(FenRich,FenRich.lines.count-1,lacouleur);
   end;
 end;
+
+procedure Affiche_suivi(s : string;lacouleur : TColor);
+var i : integer;
+begin
+  with formprinc.FenRich do
+  begin
+     i:=lines.Count-1;
+     s:=lines.Strings[i]+s;
+     lines.Strings[i]:=s;
+     RE_ColorLine(Formprinc.FenRich,i,lacouleur);
+  end;
+end;
+
  
 // renvoie l'index du feu dans le tableau feux[] en fonction de son adresse
-//si pas trouvé renvoie 0
+// si pas trouvé renvoie 0
 function Index_feu(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -1234,7 +1251,7 @@ begin
 end;
 
 // renvoie l'index de l'aiguillage dans le tableau aiguillages[] en fonction de son adresse
-//si pas trouvé renvoie 0
+// si pas trouvé renvoie 0
 function Index_Aig(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -1286,7 +1303,7 @@ begin
   if adrPilote=0 then exit;
   i:=Index_feu(AdrPilote);
   if i=0 then exit;
-  
+
   with Formpilote do
   begin
     TFormPilote.Create(Self); // rajouté
@@ -1355,8 +1372,8 @@ begin
     Name:='ImageFeu'+IntToSTR(adresse);   // nom de l'image - sert à identifier le composant si on fait clic droit.
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine          20
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));                                         //5
-    //width:=LargImg;
-    //Height:=HtImg;
+    width:=LargImg;
+    Height:=HtImg;
 
     s:='Index='+IntToSTR(rang)+' @='+inttostr(Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
        ' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
@@ -1370,12 +1387,10 @@ begin
     // affecter le type d'image de feu dans l'image créée
     T_BP:=Select_dessin_feu(TypeFeu);
     picture.Bitmap:=T_Bp;
-    Width:=T_Bp.width;
-    Height:=T_Bp.Height;
 
     picture.BitMap.TransparentMode:=tmfixed;     // tmauto  (la couleur transparente est déterminée par pixel le plus en haut à gauche du bitmap)
                                                  // tmfixed (la couleur transparente est explicitement assignée et stockée dans le bitmap)
-    Picture.Bitmap.TransparentColor:=clblue;
+    Picture.Bitmap.TransparentColor:=clblue;     // la couleur de transparence est bleue
     Transparent:=true;
 
     // mettre rouge par défaut
@@ -1470,13 +1485,17 @@ end;
 procedure envoi_ss_ack(s : string);
 var i,timeout,valto : integer;
 begin
-  s:=entete+s+suffixe;
-  if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);
+  if protocole=1 then
+  begin
+    s:=entete+s+suffixe;
+    if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);
+  end;
+  if (protocole=2) and TraceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+s,ClLime);
 
   // par port com-usb
   if portCommOuvert then
   begin
-    if (protocole=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
+    if (prot_serie=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
     begin
       i:=1;
       valto:=10;
@@ -1501,30 +1520,30 @@ begin
     end;
 
     // protocole Rts Cts ou sans temporisation
-    if (protocole=2) or (tempoOctet=0) then
+    if (prot_serie=2) or (tempoOctet=0) then
     begin
       FormPrinc.MSCommUSBLenz.Output:=s;
       exit;
     end;
 
-    // sans procotole ou xon xoff ou xon-rts
-    if (protocole=0) or (protocole=1) or (protocole=3) then
+    // procotole xon xoff ou xon-rts
+    if (prot_serie=1) or (prot_serie=3) then
     begin
       for i:=1 to length(s) do
       begin
         FormPrinc.MSCommUSBLenz.Output:=s[i];
-        //if terminal then Affiche(s[i],clyellow) else Affiche(chaine_hex(s[i]),clyellow);
-        Application.ProcessMessages;
+        //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
         Sleep(TempoOctet);
       end;
     end;
+    if (prot_serie=0) then FormPrinc.MSCommUSBLenz.Output:=s;
   end;
 
   // par socket (ethernet)
   if parSocketLenz then Formprinc.ClientSocketLenz.Socket.SendText(s);
 end;
 
-// envoi d'une chaîne à la centrale Lenz par USBLenz ou socket, puis attend l'ack ou le nack
+// envoi d'une chaîne à l'interface par USB ou socket, puis attend l'ack ou le nack
 function envoi(s : string) : boolean;
 var tempo : integer;
 begin
@@ -1542,7 +1561,10 @@ begin
       until ferme or ack or nack or (tempo>(TimoutMaxInterface*3)); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
       if not(ack) or nack then
       begin
-        Affiche('Pas de réponse de l''interface',clRed);inc(pasreponse);
+        s:='Pas de réponse de l''interface';
+        Affiche(s,clRed);
+        if traceTrames then AfficheDebug(s,clred);
+        inc(pasreponse);
         // &&&if pasreponse>3 then hors_tension2:=true;
       end;
       if ack then begin pasreponse:=0;hors_tension2:=false;end;
@@ -1641,16 +1663,20 @@ var  groupe : integer ;
      fonction : byte;
      s : string;
 begin
-  groupe:=(adresse-1) div 4;
-  fonction:=((adresse-1) mod 4)*2 + (octet-1);
-  // pilotage
-  if etat then
-  s:=#$52+Char(groupe)+char(fonction or $80)
-  else
-  s:=#$52+Char(groupe)+char(fonction or $88);
+  if protocole=1 then
+  begin
+    groupe:=(adresse-1) div 4;
+    fonction:=((adresse-1) mod 4)*2 + (octet-1);
+    // pilotage
+    if etat then
+    s:=#$52+Char(groupe)+char(fonction or $80)
+    else
+    s:=#$52+Char(groupe)+char(fonction or $88);
 
-  s:=checksum(s);
-  envoi(s);     // envoi de la trame et attente Ack
+    s:=checksum(s);
+    envoi(s);     // envoi de la trame et attente Ack
+  end;
+  if protocole=2 then Affiche('D1: Commande DCC++ pas encore implantée',clred);
 end;
 
 procedure pilote_direct01(adresse:integer;octet:integer);
@@ -1658,17 +1684,21 @@ var  groupe : integer ;
      fonction : byte;
      s : string;
 begin
-  if octet=0 then octet:=2;
-  groupe:=(adresse-1) div 4;
-  fonction:=((adresse-1) mod 4)*2 + (octet-1);
-  // pilotage
-  if octet=2 then
-  s:=#$52+Char(groupe)+char(fonction or $80)
-  else
-  s:=#$52+Char(groupe)+char(fonction or $88);
+  if protocole=1 then
+  begin
+    if octet=0 then octet:=2;
+    groupe:=(adresse-1) div 4;
+    fonction:=((adresse-1) mod 4)*2 + (octet-1);
+    // pilotage
+    if octet=2 then
+    s:=#$52+Char(groupe)+char(fonction or $80)
+    else
+    s:=#$52+Char(groupe)+char(fonction or $88);
 
-  s:=checksum(s);
-  if envoi(s) then exit else envoi(s);     // envoi de la trame et attente Ack  sinon renvoyer
+    s:=checksum(s);
+    if envoi(s) then exit else envoi(s);     // envoi de la trame et attente Ack  sinon renvoyer
+  end;
+  if protocole=2 then Affiche('D2: Commande DCC++ pas encore implantée',clred);
 end;
 
 
@@ -1678,18 +1708,22 @@ var ah,al,i : integer;
 begin
   if portCommOuvert or parSocketLenz then
   begin
-    if loco<99 then begin Ah:=0;Al:=loco;end
-    else begin ah:=((loco and $FF00) + $C000) shr 8;al:=loco and 255;end;
-    s:=#$E3+#0+char(ah)+char(al);
-    s:=checksum(s);
-    fa:=256;fb:=256;
-    envoi(s); 
-    i:=0;
-    repeat
-      inc(i);
-      Sleep(100);
-      Application.ProcessMessages;
-    until (fa<>256) or (i=10);
+    if protocole=1 then
+    begin
+      if loco<99 then begin Ah:=0;Al:=loco;end
+      else begin ah:=((loco and $FF00) + $C000) shr 8;al:=loco and 255;end;
+      s:=#$E3+#0+char(ah)+char(al);
+      s:=checksum(s);
+      fa:=256;fb:=256;
+      envoi(s);
+      i:=0;
+      repeat
+        inc(i);
+        Sleep(100);
+        Application.ProcessMessages;
+      until (fa<>256) or (i=10);
+    end;
+    if protocole=2 then Affiche('D3: Commande DCC++ pas encore implantée',clred);
   end;
 end;
 
@@ -1697,52 +1731,127 @@ end;
 procedure Fonction_Loco_Operation(loco,fonction,etat : integer);
 var s : string ;
     ah,al : integer;
-    b : byte ;
+    b,c : byte ;
 begin
   if (fonction<0) or (fonction>28) or (loco<0) or (loco>9999) then exit;
   if portCommOuvert or parSocketLenz then
   begin
-    demande_etat_loco(loco);    // récupère les états des fonctions Fa=F0 à 4 Fb=F5 à F12 AdrTrain
-    //Affiche('Train='+IntToSTR(AdrTrain)+' '+IntToHex(fa,2)+' '+IntToHex(fb,2),clyellow);
-    // en fonction du décodeur, on n'a pas le bon train!!
-    if (fa<>256) then
+    if protocole=1 then
     begin
-      s:=#$E4;
-      if fonction<=4 then s:=s+#$20;
-      if (fonction>=5) and (fonction<=8) then s:=s+#$21;
-      if (fonction>=9) and (fonction<=12) then s:=s+#$22;
-      if (fonction>=13) and (fonction<=20) then s:=s+#$23;    // 23 non doc
-      if (fonction>=21) and (fonction<=28) then s:=s+#$28;    // 28 non doc
-      //  codification de l'adresse de la loco : doc Xpressnet page 40 (§2.1.15)
-      if loco<99 then begin Ah:=0;Al:=loco;end
-      else begin ah:=((loco or $C000) shr 8);al:=loco and 255;end;
-      s:=s+char(ah)+char(al);
-      // codification de la fonction : doc Xpressnet page 64 {§2.2.20.5)
-      if etat<>0 then
+      demande_etat_loco(loco);    // récupère les états des fonctions Fa=F0 à 4 Fb=F5 à F12 AdrTrain
+      //Affiche('Train='+IntToSTR(AdrTrain)+' '+IntToHex(fa,2)+' '+IntToHex(fb,2),clyellow);
+      // en fonction du décodeur, on n'a pas le bon train!!
+      if (fa<>256) then
       begin
-        case fonction of
-          0           : b:=fa or setbit(0,4);
-          1,2,3,4     : b:=fa or setbit(0,fonction-1);         // fa est aligné avec l'octet de demande
-          5,6,7,8     : b:=fb or setbit(0,fonction-5);         // fa est aligné avec l'octet de demande
-          9,10,11,12  : b:=(fb shr 4) or setbit(0,fonction-9); // fa est décalé à gauche de 4 avec l'octet de demande
+        s:=#$E4;
+        if fonction<=4 then s:=s+#$20;
+        if (fonction>=5) and (fonction<=8) then s:=s+#$21;
+        if (fonction>=9) and (fonction<=12) then s:=s+#$22;
+        if (fonction>=13) and (fonction<=20) then s:=s+#$23;    // 23 non doc
+        if (fonction>=21) and (fonction<=28) then s:=s+#$28;    // 28 non doc
+        //  codification de l'adresse de la loco : doc Xpressnet page 40 (§2.1.15)
+        if loco<99 then begin Ah:=0;Al:=loco;end
+        else begin ah:=((loco or $C000) shr 8);al:=loco and 255;end;
+        s:=s+char(ah)+char(al);
+        // codification de la fonction : doc Xpressnet page 64 {§2.2.20.5)
+        if etat<>0 then
+        begin
+          case fonction of
+            0           : b:=fa or setbit(0,4);
+            1,2,3,4     : b:=fa or setbit(0,fonction-1);         // fa est aligné avec l'octet de demande
+            5,6,7,8     : b:=fb or setbit(0,fonction-5);         // fa est aligné avec l'octet de demande
+            9,10,11,12  : b:=(fb shr 4) or setbit(0,fonction-9); // fa est décalé à gauche de 4 avec l'octet de demande
+          end;
+          if (fonction>=13) and (fonction<=20) then b:=(fb shr 8) or setbit(0,fonction-13);   // non doc
+          if (fonction>=21) and (fonction<=28) then b:=(fb shr 8) or setbit(0,fonction-21);   // non doc
+          end
+        else
+        begin
+          case fonction of
+            0           : b:=fa and razbit(255,4);               // fa est aligné avec l'octet de demande
+            1,2,3,4     : b:=fa and razbit(255,fonction-1);      // fa est aligné avec l'octet de demande
+            5,6,7,8     : b:=fb and razbit(255,fonction-5);
+            9,10,11,12  : b:=(fb shr 4) and razbit(255,fonction-9);
+          end;
+          if (fonction>=13) and (fonction<=20) then b:=(fb shr 8) or razbit(255,fonction-13);   // non doc
+          if (fonction>=21) and (fonction<=28) then b:=(fb shr 8) or razbit(255,fonction-21);   // non doc
         end;
-        if (fonction>=13) and (fonction<=20) then b:=(fb shr 8) or setbit(0,fonction-13);   // non doc
-        if (fonction>=21) and (fonction<=28) then b:=(fb shr 8) or setbit(0,fonction-21);   // non doc
-        end
-      else
-      begin
-        case fonction of
-          0           : b:=fa and razbit(255,4);               // fa est aligné avec l'octet de demande
-          1,2,3,4     : b:=fa and razbit(255,fonction-1);      // fa est aligné avec l'octet de demande
-          5,6,7,8     : b:=fb and razbit(255,fonction-5);
-          9,10,11,12  : b:=(fb shr 4) and razbit(255,fonction-9);
-        end;
-        if (fonction>=13) and (fonction<=20) then b:=(fb shr 8) or razbit(255,fonction-13);   // non doc
-        if (fonction>=21) and (fonction<=28) then b:=(fb shr 8) or razbit(255,fonction-21);   // non doc
+        s:=s+char(b);
+        s:=checksum(s);
+        envoi(s);
       end;
-      s:=s+char(b);
-      s:=checksum(s);
-      envoi(s);
+    end;
+    if protocole=2 then 
+    begin
+      c:=0;
+      if fonction<=4 then
+      begin
+        b:=128;
+        if etat=1 then
+        case fonction of
+        0 : b:=b+16;
+        1 : b:=b+1;
+        2 : b:=b+2;
+        3 : b:=b+4;
+        4 : b:=b+8;
+        end;
+      end;
+      if (fonction>=5) and (fonction<=8) then
+      begin
+        b:=176;
+        if etat=1 then
+        case fonction of
+        5 : b:=b+1;
+        6 : b:=b+2;
+        7 : b:=b+4;
+        8 : b:=b+8;
+        end;
+      end;
+      if (fonction>=9) and (fonction<=12) then
+      begin
+        b:=160;
+        if etat=1 then
+        case fonction of
+        9 : b:=b+1;
+        10 : b:=b+2;
+        11 : b:=b+4;
+        12 : b:=b+8;
+        end;
+      end;
+      if (fonction>=13) and (fonction<=20) then
+      begin
+        b:=222;
+        if etat=1 then
+        case fonction of
+        13 : c:=1;
+        14 : c:=2;
+        15 : c:=4;
+        16 : c:=8;
+        17 : c:=16;
+        18 : c:=32;
+        19 : c:=64;
+        20 : c:=128;
+        end;
+      end;
+      if (fonction>=21) and (fonction<=28) then
+      begin
+        b:=223;
+        if etat=1 then
+        case fonction of
+        21 : c:=1;
+        22 : c:=2;
+        23 : c:=4;
+        24 : c:=8;
+        25 : c:=16;
+        26 : c:=32;
+        27 : c:=64;
+        28 : c:=128;
+        end;
+      end;
+      s:='<'+intToSTR(loco)+' '+intToSTR(b);
+      if c<>0 then s:=s+' '+inttostr(c);
+      s:=s+'>';
+      envoi_ss_ack(s);  // pas d'ack sur les fonctions F
     end;
   end;
 end;
@@ -1756,28 +1865,32 @@ begin
   if (fonction<0) or (fonction>28) or (loco<0) or (loco>9999) then exit;
   if portCommOuvert or parSocketLenz then
   begin
-    s:=#$E4;
-    case fonction of
-      0,1,2,3,4   : s:=s+#$24;
-      5,6,7,8     : s:=s+#$25;
-      9,10,11,12  : s:=s+#$26;
-      13,14,15,16 : s:=s+#$27;    // non doc
+    if protocole=1 then
+    begin
+      s:=#$E4;
+      case fonction of
+        0,1,2,3,4   : s:=s+#$24;
+        5,6,7,8     : s:=s+#$25;
+        9,10,11,12  : s:=s+#$26;
+        13,14,15,16 : s:=s+#$27;    // non doc
+      end;
+      //  codification de l'adresse de la loco : doc Xpressnet page 40 (§2.1.15)
+      if loco<99 then begin Ah:=0;Al:=loco;end
+      else begin ah:=((loco and $FF00) + $C000) shr 8;al:=loco and 255;end;
+      s:=s+char(ah)+char(al);
+      // codification de la fonction : doc Xpressnet page 64 {§2.2.20.5)
+      case fonction of
+        0           : b:=setbit(0,4);
+        1,2,3,4     : b:=setbit(0,fonction-1);
+        5,6,7,8     : b:=setbit(0,fonction-5);
+        9,10,11,12  : b:=setbit(0,fonction-9);
+        13,14,15,16 : b:=setbit(0,fonction-13);     // non doc
+      end;
+      s:=s+char(b);
+      s:=checksum(s);
+      envoi(s);
     end;
-    //  codification de l'adresse de la loco : doc Xpressnet page 40 (§2.1.15)
-    if loco<99 then begin Ah:=0;Al:=loco;end
-    else begin ah:=((loco and $FF00) + $C000) shr 8;al:=loco and 255;end;
-    s:=s+char(ah)+char(al);
-    // codification de la fonction : doc Xpressnet page 64 {§2.2.20.5)
-    case fonction of
-      0           : b:=setbit(0,4);
-      1,2,3,4     : b:=setbit(0,fonction-1);
-      5,6,7,8     : b:=setbit(0,fonction-5);
-      9,10,11,12  : b:=setbit(0,fonction-9);
-      13,14,15,16 : b:=setbit(0,fonction-13);     // non doc
-    end;
-    s:=s+char(b);
-    s:=checksum(s);
-    envoi(s);
+    if protocole=2 then Affiche('D5: Commande DCC++ pas encore implantée',clred);
   end;
 end;
 
@@ -1787,17 +1900,25 @@ var s : string;
 begin
   if portCommOuvert or parSocketLenz then
   begin
-    if sens then vitesse:=vitesse or 128;
-    s:=#$e4+#$13+#$0+char(loco)+char(vitesse);
-    s:=checksum(s);
-    envoi(s);
+    if protocole=1 then
+    begin
+      if sens then vitesse:=vitesse or 128;
+      s:=#$e4+#$13+#$0+char(loco)+char(vitesse);
+      s:=checksum(s);
+      envoi(s);
+    end;
+    if protocole=2 then
+    begin
+      s:='<t 1 '+intToSTR(loco)+' '+intToSTR(vitesse)+' 1>';
+      envoi(s);
+    end;
   end;
   if cdm_connecte then
   begin
      s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
      //s:=chaine_CDM_vitesseINT(vitesse,loco);    // par adresse du train
      envoi_CDM(s);
-     //affiche(s,clLime);    
+     //affiche(s,clLime);
   end;
 end;
 
@@ -1815,7 +1936,7 @@ begin
     begin
       if aspect<>-1 then s:=s+'+';
       s:=s+etatSign[combine];
-    end;  
+    end;
   end;
   chaine_signal:=s;
 end;
@@ -1992,29 +2113,187 @@ envoie les données au décodeur CDF
 ===========================================================================*}
 procedure envoi_CDF(adresse : integer);
 var
-  code,aspect,combine : integer;
-  i : integer;
+  combine,aspect,code : integer;
+  i,nombre : integer;
   s : string;
+
+  procedure ecrire(v : integer);
+  var j : integer;
+  begin
+    // bit 0
+    if nombre>0 then
+    begin
+      if (v and 1)=0 then j:=1 else j:=2;
+      pilote_acc(adresse,j,feu);
+    end;   
+
+    // bit 1
+    if nombre>1 then
+    begin
+      if (v and 2)=0 then j:=1 else j:=2;
+      pilote_acc(adresse+1,j,feu);
+    end;  
+
+    // bit 2
+    if nombre>2 then
+    begin
+      if (v and 4)=0 then j:=1 else j:=2;
+      pilote_acc(adresse+2,j,feu);
+    end;  
+
+    // bit 3
+    if nombre>3 then
+    begin
+      if (v and 8)=0 then j:=1 else j:=2;
+      pilote_acc(adresse+3,j,feu);
+    end;  
+  end;
+
+  procedure ecrire_2(v : integer);
+  var j,bit2 : integer;
+  begin
+    // bit 0-1 (adresse)
+    if nombre>0 then
+    begin
+      bit2:=v and 3;
+      if bit2=0 then
+      begin 
+        // raz les 2 bits
+        Pilote_acc0_X(adresse,1);Pilote_acc0_X(adresse,2);
+      end;
+      if bit2=1 then pilote_acc(adresse,1,feu);
+      if bit2=2 then pilote_acc(adresse,2,feu);
+    end;
+
+    // bit 2-3 (adresse+1)
+    if nombre>1 then
+    begin
+      inc(adresse);
+      bit2:=v and $c;  // 1100
+      if bit2=0 then
+      begin
+        // raz les 2 bits
+        Pilote_acc0_X(adresse,1);Pilote_acc0_X(adresse,2);
+      end;
+      if bit2=4 then pilote_acc(adresse,1,feu);
+      if bit2=8 then pilote_acc(adresse,2,feu);
+    end;
+
+    // bit 4-5 (adresse+2)
+    if nombre>2 then
+    begin
+      inc(adresse);
+      bit2:=v and $30;  // 11 0000
+      if bit2=0 then
+      begin
+        // raz les 2 bits
+        Pilote_acc0_X(adresse,1);Pilote_acc0_X(adresse,2);
+      end;
+      if bit2=16 then pilote_acc(adresse,1,feu);
+      if bit2=32 then pilote_acc(adresse,2,feu);
+    end;
+
+    // bit 6-7 (adresse+3)
+    if nombre>3 then
+    begin
+      inc(adresse);
+      bit2:=v and $c0;  // 1100 0000
+      if bit2=0 then
+      begin
+        // raz les 2 bits
+        Pilote_acc0_X(adresse,1);Pilote_acc0_X(adresse,2);
+      end;
+      if bit2=64  then pilote_acc(adresse,1,feu);
+      if bit2=128 then pilote_acc(adresse,2,feu);
+    end;
+  end;
+
+  procedure ecrire_3(v : integer);
+  var bit2 : integer;
+  begin
+    // adresse+0
+    if (nombre>0) then
+    begin
+      bit2:=v and 3;  //0000 0011
+      if bit2<>0 then
+      begin
+        pilote_acc(adresse,bit2,feu);
+        exit;
+      end;
+    end;
+
+    // adresse+1
+    if (nombre>1) then
+    begin
+      bit2:=v and $c; //0000 1100
+      if bit2<>0 then
+     begin
+        pilote_acc(adresse+1,bit2 shr 2,feu);
+        exit;
+      end;
+    end;
+
+    // adresse+2
+    if (nombre>2) then
+    begin
+      bit2:=v and $30; //0011 0000
+      if bit2<>0 then
+      begin
+        pilote_acc(adresse+2,bit2 shr 4,feu);
+        exit;
+      end;
+    end;
+
+    // adresse+3
+    if (nombre>3) then
+    begin
+      bit2:=v and $c0; //1100 0000
+      if bit2<>0 then
+      begin
+        pilote_acc(adresse+3,bit2 shr 6,feu);
+      end;
+    end;
+  end;
+
 begin
   i:=index_feu(adresse);
   if (feux[i].AncienEtat<>feux[i].EtatSignal) then  //; && (stop_cmd==FALSE))
   begin
     code:=feux[i].EtatSignal;
+    nombre:=feux[i].Na;          // nombre d'adresses occupées par le signal
     code_to_aspect(code,aspect,combine);
     s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
 
-    if (aspect=carre)     then pilote_acc(adresse,2,feu) ;
-    if (aspect=semaphore) then pilote_acc(adresse,1,feu) ;
-    if (aspect=vert)      then pilote_acc(adresse+1,1,feu) ;
-    if (aspect=jaune)     then pilote_acc(adresse+1,2,feu);
-    // signalisation non combinée rappel 30 seul
-    if (combine=rappel_30) then pilote_acc(adresse+1,1,feu);
-    
-    // signalisation combinée  - rappel 30 + avertissement - à tester......
-    if (Combine=-1)      then pilote_acc(adresse+2,1,feu) ;    // éteindre rappel 30
-    if (Combine=rappel_30) then pilote_acc(adresse+2,2,feu) ; // allumer rappel 30
+    if combine=-1 then
+    case aspect of
+      carre         : ecrire_3(Feux[i].SR[1].sortie1);
+      semaphore     : ecrire_3(Feux[i].SR[2].sortie1);
+      semaphore_cli : ecrire_3(Feux[i].SR[3].sortie1);
+      vert          : ecrire_3(Feux[i].SR[4].sortie1);
+      vert_cli      : ecrire_3(Feux[i].SR[5].sortie1);
+      violet        : ecrire_3(Feux[i].SR[6].sortie1);
+      blanc         : ecrire_3(Feux[i].SR[7].sortie1);
+      blanc_cli     : ecrire_3(Feux[i].SR[8].sortie1);
+      jaune         : ecrire_3(Feux[i].SR[9].sortie1);
+      jaune_cli     : ecrire_3(Feux[i].SR[10].sortie1);
+    end;
+    if aspect=-1 then
+    case combine of
+      ral_30        : ecrire_3(Feux[i].SR[11].sortie1);
+      ral_60        : ecrire_3(Feux[i].SR[12].sortie1);
+      rappel_30     : ecrire_3(Feux[i].SR[14].sortie1);
+      rappel_60     : ecrire_3(Feux[i].SR[15].sortie1);
+    end;
+    if (aspect<>-1) and (combine<>-1) then
+    begin
+      if (Combine=ral_60)    and (aspect=jaune_cli) then ecrire_3(Feux[i].SR[13].sortie1);
+      if (Combine=rappel_30) and (aspect=jaune)     then ecrire_3(Feux[i].SR[16].sortie1);
+      if (Combine=rappel_30) and (aspect=jaune_cli) then ecrire_3(Feux[i].SR[17].sortie1);
+      if (Combine=rappel_60) and (aspect=jaune)     then ecrire_3(Feux[i].SR[18].sortie1);
+      if (Combine=rappel_60) and (aspect=jaune_cli) then ecrire_3(Feux[i].SR[19].sortie1);
+    end;
   end;
 end;
 
@@ -2754,7 +3033,7 @@ begin
       if (aspect=blanc)      then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end;
       if (aspect=semaphore)  then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;
       if (combine=aspect8)   then begin pilote_acc(adresse+2,2,feu);sleep(tempo_Feu);pilote_acc(adresse+1,2,feu);end;
-      if (combine=ral_60) and (aspect=jaune_cli) 
+      if (combine=ral_60) and (aspect=jaune_cli)
                              then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse,1,feu);end;  // demande groupe 3
       if (aspect=vert_cli)   then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse,2,feu);end; // demande groupe 3
       if (combine=Disque_D)  then begin pilote_acc(adresse+3,1,feu);sleep(tempo_Feu);pilote_acc(adresse+1,1,feu);end;// demande groupe 3
@@ -2782,6 +3061,85 @@ begin
     s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
+  end;
+end;
+
+// inverse l'ordre des bits dans un octet
+function inverse(b : byte) : byte;
+var r : byte;
+begin
+  r:= ((b and $80) shr 7);
+  r:=r or ((b and $40) shr 5);
+  r:=r or ((b and $20) shr 3);
+  r:=r or ((b and $10) shr 2);
+  r:=r or ((b and $08) shl 1);
+  r:=r or ((b and $04) shl 3);
+  r:=r or ((b and $02) shl 5);
+  r:=r or ((b and $01) shl 7);
+  inverse:=r;
+end;
+
+// envoie les données au digikeijs 4018
+procedure digi_4018(adresse : integer);
+  procedure ecrire(v : integer);
+  var j : integer;
+  begin
+    if InverseMotif then v:=inverse(v);
+    // bit 0
+    if (v and 1)=0 then j:=1 else j:=2;
+    pilote_acc(adresse,j,feu);
+
+    // bit 1
+    if (v and 2)=0 then j:=1 else j:=2;
+    pilote_acc(adresse+1,j,feu);
+
+    // bit 2
+    if (v and 4)=0 then j:=1 else j:=2;
+    pilote_acc(adresse+2,j,feu);
+  end;
+
+var
+  combine,aspect,code : integer;
+  i : integer;
+  s : string;
+begin
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then  //; && (stop_cmd==FALSE))
+  begin
+    code:=feux[i].EtatSignal;
+    code_to_aspect(code,aspect,combine);
+    s:='Signal digikeijs 4018: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+
+    if combine=-1 then
+    case aspect of
+      carre         : ecrire(Feux[i].SR[1].sortie1);
+      semaphore     : ecrire(Feux[i].SR[2].sortie1);
+      semaphore_cli : ecrire(Feux[i].SR[3].sortie1);
+      vert          : ecrire(Feux[i].SR[4].sortie1);
+      vert_cli      : ecrire(Feux[i].SR[5].sortie1);
+      violet        : ecrire(Feux[i].SR[6].sortie1);
+      blanc         : ecrire(Feux[i].SR[7].sortie1);
+      blanc_cli     : ecrire(Feux[i].SR[8].sortie1);
+      jaune         : ecrire(Feux[i].SR[9].sortie1);
+      jaune_cli     : ecrire(Feux[i].SR[10].sortie1);
+    end;
+    if aspect=-1 then
+    case combine of
+      ral_30        : ecrire(Feux[i].SR[11].sortie1);
+      ral_60        : ecrire(Feux[i].SR[12].sortie1);
+      rappel_30     : ecrire(Feux[i].SR[14].sortie1);
+      rappel_60     : ecrire(Feux[i].SR[15].sortie1);
+    end;
+    if (aspect<>-1) and (combine<>-1) then
+    begin
+      if (Combine=ral_60)    and (aspect=jaune_cli) then ecrire(Feux[i].SR[13].sortie1);
+      if (Combine=rappel_30) and (aspect=jaune)     then ecrire(Feux[i].SR[16].sortie1);
+      if (Combine=rappel_30) and (aspect=jaune_cli) then ecrire(Feux[i].SR[17].sortie1);
+      if (Combine=rappel_60) and (aspect=jaune)     then ecrire(Feux[i].SR[18].sortie1);
+      if (Combine=rappel_60) and (aspect=jaune_cli) then ecrire(Feux[i].SR[19].sortie1);
+    end;
   end;
 end;
 
@@ -2822,7 +3180,7 @@ begin
     // si état demandé du signal=jaune ou cli
     jau:=TestBit(code,jaune) or TestBit(code,jaune_cli) ;
 
-    //effacement du signal combiné par sémaphore suivant condition
+    // effacement du signal combiné par sémaphore suivant condition
     if (((Ancralrap and not(ralrap)) or (Ancjau and not(jau))) and (aspect>=8)) then
     begin
       Sleep(40);
@@ -2834,7 +3192,7 @@ begin
     // affichage du premier aspect du signal(1er bit à 1 dans codebin
     if aspect<>-1 then pilote_acc(adresse+aspect,2,feu) ;
 
-    // affichage de la signalisation combinée 
+    // affichage de la signalisation combinée
     if (Combine<>-1) then
     begin
       sleep(40);
@@ -2843,7 +3201,7 @@ begin
   end;
 end;
 
-// pilotage d'un signal , et mise à jour du graphisme du feu dans les 3 fenetres
+// pilotage d'un signal, et mise à jour du graphisme du feu dans les 3 fenetres
 procedure envoi_signal(Adr : integer);
 var i,adresse,det,a,b,aspect,x,y,x0,y0,TailleX,TailleY,Orientation : integer;
     ImageFeu : TImage;
@@ -2870,7 +3228,7 @@ begin
        2 : envoi_CDF(Adr);
        3 : envoi_LDT(Adr);
        4 : envoi_LEB(Adr);
-       5 : envoi_NMRA(Adr);
+       5 : digi_4018(Adr);
        6 : envoi_UniSemaf(Adr);
        7 : envoi_SR(Adr);
       end;
@@ -2909,60 +3267,59 @@ begin
     end;
 
 
-    
-      feux[i].AncienEtat:=feux[i].EtatSignal;
 
-      // allume les signaux du feu dans la fenêtre de droite
-      Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
+    feux[i].AncienEtat:=feux[i].EtatSignal;
 
-      // allume les signaux du feu dans le TCO
-      if formTCO.Showing then
-      begin
-       for y:=1 to NbreCellY do
-       for x:=1 to NbreCellX do
+    // allume les signaux du feu dans la fenêtre de droite
+    Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
+
+    // allume les signaux du feu dans le TCO
+    if formTCO.Showing then
+    begin
+     for y:=1 to NbreCellY do
+     for x:=1 to NbreCellX do
+     begin
+       if TCO[x,y].Bimage=30 then
        begin
-         if TCO[x,y].Bimage=30 then
+         adresse:=TCO[x,y].adresse;      // vérifie si le feu existe dans le TCO
+         aspect:=feux[index_feu(adresse)].Aspect;
+         case aspect of
+               2 :  ImageFeu:=Formprinc.Image2feux;
+               3 :  ImageFeu:=Formprinc.Image3feux;
+               4 :  ImageFeu:=Formprinc.Image4feux;
+               5 :  ImageFeu:=Formprinc.Image5feux;
+               7 :  ImageFeu:=Formprinc.Image7feux;
+               9 :  ImageFeu:=Formprinc.Image9feux;
+               12 : ImageFeu:=Formprinc.Image2Dir;
+               13 : ImageFeu:=Formprinc.Image3Dir;
+               14 : ImageFeu:=Formprinc.Image4Dir;
+               15 : ImageFeu:=Formprinc.Image5Dir;
+               16 : ImageFeu:=Formprinc.Image6Dir;
+         else ImageFeu:=Formprinc.Image3feux;
+         end;
+         x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
+         y0:=(tco[x,y].y-1)*HauteurCell;
+         TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+         TailleX:=ImageFeu.picture.BitMap.Width;
+        Orientation:=TCO[x,y].FeuOriente;
+         // réduction variable en fonction de la taille des cellules
+         calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
+            // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
+         if orientation=2 then
          begin
-           adresse:=TCO[x,y].adresse;      // vérifie si le feu existe dans le TCO
-           aspect:=feux[index_feu(adresse)].Aspect;
-           case aspect of
-                 2 :  ImageFeu:=Formprinc.Image2feux;
-                 3 :  ImageFeu:=Formprinc.Image3feux;
-                 4 :  ImageFeu:=Formprinc.Image4feux;
-                 5 :  ImageFeu:=Formprinc.Image5feux;
-                 7 :  ImageFeu:=Formprinc.Image7feux;
-                 9 :  ImageFeu:=Formprinc.Image9feux;
-                 12 : ImageFeu:=Formprinc.Image2Dir;
-                 13 : ImageFeu:=Formprinc.Image3Dir;
-                 14 : ImageFeu:=Formprinc.Image4Dir;
-                 15 : ImageFeu:=Formprinc.Image5Dir;
-                 16 : ImageFeu:=Formprinc.Image6Dir; 
-           else ImageFeu:=Formprinc.Image3feux;
-           end;
-           x0:=(tco[x,y].x-1)*LargeurCell;  // coordonnées XY du feu
-           y0:=(tco[x,y].y-1)*HauteurCell;
-           TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-           TailleX:=ImageFeu.picture.BitMap.Width;
-           Orientation:=TCO[x,y].FeuOriente;
-           // réduction variable en fonction de la taille des cellules
-           calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
-
-           // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-           if orientation=2 then
-           begin
-             if aspect=9 then x0:=x0+round(10*frX);
-             if aspect=7 then x0:=x0+round(10*frX);
-             if aspect=5 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-             if aspect=4 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-             if aspect=3 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-             if aspect=2 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
-           end;
-           // Dessine_feu_mx(PCanvasTCO,x0,y0,frx,fry,adresse,orientation);
-              Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
-        end;
-     end;
-    end;
+           if aspect=9 then x0:=x0+round(10*frX);
+           if aspect=7 then x0:=x0+round(10*frX);
+           if aspect=5 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+           if aspect=4 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+           if aspect=3 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+           if aspect=2 then begin x0:=x0+round(10*frX);y0:=y0+HauteurCell-round(tailleX*frY); end;
+         end;
+         // Dessine_feu_mx(PCanvasTCO,x0,y0,frx,fry,adresse,orientation);
+            Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
+      end;
+   end;
   end;
+ end;
 end;
 
 // pilotage des signaux
@@ -4173,7 +4530,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
       if (suiv_pointe=prec) and ((typ=aig) or (typ=triple)) then
       begin
         // faire le droit
-        if afdeb then afficheDebug('251. Aig '+intToSTR(suiv)+' test en pointe droit',clyellow); 
+        if afdeb then afficheDebug('251. Aig '+intToSTR(suiv)+' test en pointe droit',clyellow);
         type_Dernier:=aig;
         aig_ext(suiv,'D',suiv_2,type_tmp);
         if type_tmp<>'Z' then aig_suiv(suiv,suiv_2) else
@@ -5215,7 +5572,6 @@ begin
     2 : envoi_DirectionCDF(Adr,nbre);
    //3 : envoi_DirectionLDT(Adr,nbre);
     4 : envoi_DirectionLEB(Adr,nbre);
-    //5 : envoi_DirectionNMRA(Adr,nbre);
    end;
 end;
 
@@ -6008,7 +6364,7 @@ begin
           begin   
             zone_TCO(det2,det3,0);    // désactivation
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1) 
+            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
             else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
           // mettre à jour le feu de det3 pour le passer au rouge de suite
@@ -6159,25 +6515,32 @@ begin
       AfficheDebug('4. Nouveau Tampon train '+intToStr(N_trains)+'--------',clyellow);
       AfficheDebug(intToSTR(event_det_train[N_trains].det[1]),clyellow );
     end;
-  end;  
+  end;
 end;
 
 // demande l'état d'un accessoire à la centrale. Le résultat sera réceptionné sur évènement des informations
 // de rétrosignalisation.
-procedure demande_info_acc(adresse : integer);
+procedure demande_info_acc_XpressNet(adresse : integer);
 var s : string;
     n : byte;
 begin
   // uniquement si connecté directement à la centrale
   if portCommOuvert or parSocketLenz then
   begin
-    s:=#$42+char((adresse-1) div 4);
-    n:=((adresse-1) mod 4) div 2;   // N=0 ou 1
-    //AfficheDebug(intToSTR(adresse)+' '+intToSTR(n),ClWhite);
-    n:=$80 or n;
-    s:=s+char(n);
-    s:=checksum(s);
-    envoi(s);
+    if protocole=1 then
+    begin
+      s:=#$42+char((adresse-1) div 4);
+      n:=((adresse-1) mod 4) div 2;   // N=0 ou 1
+      //AfficheDebug(intToSTR(adresse)+' '+intToSTR(n),ClWhite);
+      n:=$80 or n;
+      s:=s+char(n);
+      s:=checksum(s);
+      envoi(s);
+    end;
+    if protocole=2 then
+    begin
+      Affiche('Erreur demande info accessoire '+intToSTR(adresse)+' non traitée en dcc+',clred);
+    end;
   end;
 end;
 
@@ -6189,15 +6552,25 @@ begin
   if portCommOuvert or parSocketLenz then
   begin
     Affiche('Demande état des aiguillages',ClYellow);
-    for i:=1 to maxaiguillage do
+    if protocole=1 then
     begin
-      model:=aiguillage[i].modele ;
-      if (model<>rien) and (model<>crois) then
+      for i:=1 to maxaiguillage do
       begin
-        adresse:=aiguillage[i].Adresse;
-        Affiche('Demande état aiguillage '+intToSTR(adresse),clLime);
-        demande_info_acc(adresse);
+        model:=aiguillage[i].modele ;
+        if (model<>rien) and (model<>crois) then
+        begin
+          adresse:=aiguillage[i].Adresse;
+
+          Affiche('Demande état aiguillage '+intToSTR(adresse),clLime);
+          demande_info_acc_XpressNet(adresse);
+        end;
       end;
+    end;
+    if protocole=2 then
+    begin
+      affiche_aigdcc:=true;
+      envoi('<T>');
+      affiche_aigdcc:=false;
     end;
   end;
 end;
@@ -6568,18 +6941,28 @@ begin
   end;
 end;
 
-// pilote une sortie à 0 à l'interface en Xpressnet dont l'adresse est à octet
+// pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
 procedure Pilote_acc0_X(adresse : integer;octet : byte);
 var groupe : integer ;
     fonction : byte;
     s : string;
 begin
-  if debug_dec_sig then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet),clorange);
-  groupe:=(adresse-1) div 4;
-  fonction:=((adresse-1) mod 4)*2 + (octet-1);
-  s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-  s:=checksum(s);
-  envoi(s);     // envoi de la trame à l'interface et attente Ack
+  if (portCommOuvert or parSocketLenz) then
+  begin
+    if debug_dec_sig then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet)+' à 0',clorange);
+    if protocole=1 then
+    begin
+      groupe:=(adresse-1) div 4;
+      fonction:=((adresse-1) mod 4)*2 + (octet-1);
+      s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+      s:=checksum(s);
+      envoi(s);     // envoi de la trame à l'interface et attente Ack
+    end;
+    if protocole=2 then
+    begin
+      //la RAZ d'une sortie n'existe pas en DCC+!
+    end;
+  end;
 end;
 
 // pilotage d'un accessoire (décodeur d'aiguillage, de signal)
@@ -6607,7 +6990,7 @@ begin
   end;
 
   // pilotage par CDM rail -----------------
-  if CDM_connecte then      
+  if CDM_connecte then
   begin
     //AfficheDebug(intToSTR(adresse),clred);
     if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
@@ -6625,39 +7008,53 @@ begin
     exit;
   end;
 
+  if (pilotage=0) or (pilotage>2) then exit;
+
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
-    if (pilotage=0) or (pilotage>2) then exit;
-
-    groupe:=(adresse-1) div 4;
-    fonction:=((adresse-1) mod 4)*2 + (pilotage-1);
-    // pilotage à 1
-    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
-    s:=checksum(s);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
-    envoi(s);     // envoi de la trame et attente Ack
-    event_aig(adresse,pilotage);
-
-    // si l'accessoire est un feu et sans raz des signaux, sortir
-    if (acc=feu) and not(Raz_Acc_signaux) then exit;
-
-    // si aiguillage, faire une temporisation
-    //if (index_feu(adresse)=0) or (Acc=aig) then
-    if Acc=AigP then
+    if protocole=1 then
     begin
-      temp:=aiguillage[index].temps;if temp=0 then temp:=4;
-      if portCommOuvert or parSocketLenz then tempo(temp);
-    end;
-    //sleep(50);
-    // pilotage à 0 pour éteindre le pilotage de la bobine du relais
-    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-    s:=checksum(s);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
-    envoi(s);     // envoi de la trame et attente Ack
-    exit;
-  end;
+      groupe:=(adresse-1) div 4;
+      fonction:=((adresse-1) mod 4)*2 + (pilotage-1);
+      // pilotage à 1
+      s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+      s:=checksum(s);
+      if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
+      envoi(s);     // envoi de la trame et attente Ack
+      event_aig(adresse,pilotage);
 
+      // si l'accessoire est un feu et sans raz des signaux, sortir
+      if (acc=feu) and not(Raz_Acc_signaux) then exit;
+
+      // si aiguillage, faire une temporisation
+      //if (index_feu(adresse)=0) or (Acc=aig) then
+      if Acc=AigP then
+      begin
+        temp:=aiguillage[index].temps;if temp=0 then temp:=4;
+        if portCommOuvert or parSocketLenz then tempo(temp);
+      end;
+     //sleep(50);
+      // pilotage à 0 pour éteindre le pilotage de la bobine du relais
+      s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+      s:=checksum(s);
+      if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
+      envoi(s);     // envoi de la trame et attente Ack
+      exit;
+    end;
+    if protocole=2 then
+    begin
+      event_aig(adresse,pilotage);
+      // en pilotage, on envoie que l'ID cad l'adresse - 0=droit 1=dévié
+      if pilotage=const_devie then fonction:=1;
+      if pilotage=const_droit then fonction:=0;
+      //affiche_retour_DCC:=true;
+      s:='<T '+intToSTR(adresse)+' '+intToSTR(fonction)+'>';
+      //Affiche(s,clYellow);
+      envoi(s);
+      exit;
+    end;
+  end;
   // pas de centrale et pas CDM connecté: on change la position de l'aiguillage
   if acc=aigP then event_aig(adresse,octet);
 end;
@@ -6665,7 +7062,7 @@ end;
 
 // le décodage de la rétro est appelé sur une réception d'une trame de la rétrosignalisation de la centrale.
 // On déclenche ensuite les évènements détecteurs ou aiguillages.
-procedure decode_retro(adresse,valeur : integer);
+procedure decode_retro_XpressNet(adresse,valeur : integer);
 var  s : string;
      adraig,bitsITT,i : integer;
 begin
@@ -6799,9 +7196,211 @@ begin
   end;
 end;
 
+// renvoi le nombre de paramètres dans une chaine DCC++ entre le premier < >
+function nombre_parametres(s : string) : integer;
+var i,j,n : integer;
+begin
+  i:=1;n:=0;
+  j:=pos('>',s);
+  repeat
+    i:=posEx(' ',s,i);
+    if i<>0 then begin inc(n);inc(i);end;
+  until (i=0) or (i>j);
+  result:=n;
+end;
+
+// décodage chaine au protocole DCC (un seul paramètre encadré par < > )
+function decode_chaine_retro_dcc(chaineINT : string) : string;
+var i,j,n,adresse,groupe,rang,valeur,erreur : integer;
+    s : string;
+begin
+  i:=pos('<',chaineINT);
+  j:=pos('>',chaineINT);
+  if (i=0) or (j=0) then exit;
+
+  ack:=chaineINT<>'';
+  //Affiche(chaineINT,clLime);
+
+  if affiche_retour_dcc then
+  begin
+    Affiche(chaineINT,clOrange);
+  end;
+
+  if pos('DCC',chaineINT)<>0 then
+  begin
+    version_Interface:=chaineINT;
+    chaineINT:='';
+    exit;
+  end;
+
+  // réponse écriture eprom
+  i:=pos('<e',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+2);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+  // eprom vide
+  i:=pos('<0>',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,i,i+3);
+    result:=chaineINT;
+    exit;
+  end;
+
+
+  // détecteur 0 (Q ID) ou réponse à un détecteur si 3 paramètres (Q ID PIN PULLUP)
+  i:=pos('<Q',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+2);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i=erreur then // 1 seul paramètre
+    begin
+      if i<>0 then delete(chaineINT,1,i);
+      result:=chaineINT;
+      Event_detecteur(valeur,true,'');  // pas de train affecté
+      exit;
+    end;
+    // sinon 3 paramètres
+    if i<>0 then delete(chaineINT,1,i);
+    exit;
+  end;
+
+  // détecteur 1
+  i:=pos('<q',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+2);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    Event_detecteur(valeur,false,'');  // pas de train affecté
+    exit;
+  end;
+
+  // réponse à la demande de mise sous tension ou hors tension de la voie
+  i:=pos('<p',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+1);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+  // Ok
+  i:=pos('<O>',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,i,3);
+    exit;
+  end;
+
+  // Nok
+  i:=pos('<X>',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,i,3);
+    exit;
+  end;
+
+  // réponse à un aiguillage ou à leur définition
+  i:=pos('<H',chaineINT);
+  if i<>0 then
+  begin
+    // détermine le nombre de paramètres
+    delete(chaineINT,1,i+1);
+    n:=nombre_parametres(chaineINT);
+    if n=4 then // position d'un aiguillage, réponse à <T>
+    begin
+      val(chaineINT,adresse,erreur);
+      delete(chaineINT,1,erreur);
+      val(chaineINT,groupe,erreur);
+      delete(chaineINT,1,erreur);
+      val(chaineINT,rang,erreur);
+      delete(chaineINT,1,erreur);
+      val(chaineINT,valeur,erreur);
+      j:=const_inconnu;
+      if valeur=0 then j:=const_droit;
+      if valeur=1 then j:=const_devie;
+      i:=index_aig(adresse);
+      if i<>0 then aiguillage[i].position:=j
+      else affiche('Erreur 70 : Aiguillage '+intToSTR(adresse)+' envoyé par la centrale non défini dans signaux_complexes',clred);
+      if affiche_aigdcc then
+      begin
+        s:='Aiguillage '+intToSTR(adresse)+':';
+        if j=const_droit then s:=s+'droit';
+        if j=const_devie then s:=s+'devie';
+        Affiche(s,clyellow);
+      end;
+    end;
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+  // réponse à une demande de vitesse loco
+  i:=pos('<T',chaineINT);   // <t 4 4 9 7 1>   ou <t 4 9 7>
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+1);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+  // réponse à la programmation d'un CV
+  i:=pos('<r',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+1);
+    j:=pos('|',chaineINT);
+    j:=posEx('|',chaineINT,j+1);
+    delete(chaineINT,1,j);
+    val(chaineINT,valeur,erreur);
+    tablo_cv[1]:=valeur;
+    recu_cv:=true;
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+  // réponse aux définitions des sorties
+  i:=pos('<Y',chaineINT);
+  if i<>0 then
+  begin
+    delete(chaineINT,1,i+2);
+    val(chaineINT,valeur,erreur);
+    i:=pos('>',chaineINT);
+    if i<>0 then delete(chaineINT,1,i);
+    result:=chaineINT;
+    exit;
+  end;
+
+
+  if chaineINT<>'' then Affiche('Reçu commande inconnue :'+chaineINT,clred);
+  chaineINT:='';
+
+end;
 
 // décodage d'une chaine simple de la rétrosignalisation de la centrale
-function decode_chaine_retro(chaineINT : string) : string ;
+// en sortie, la chaine chaineINT est supprimée de la partie traitée
+function decode_chaine_retro_Xpress(chaineINT : string) : string ;
 var msg : string;
     i,cvLoc : integer;
 begin
@@ -6822,7 +7421,7 @@ begin
     if traceTrames and (chaineINT[2]=#4) then AfficheDebug(msg,clYellow);
     if traceTrames and (chaineINT[2]<>#4) then AfficheDebug(msg,clRed);
     delete(chaineINT,1,3);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6831,8 +7430,8 @@ begin
     msg:='Version matérielle '+intTohex(ord(chaineINT[2]),2)+' - Version soft '+intToHex(ord(chaineINT[3]),2);
     Affiche(msg,clYellow);
     version_Interface:=chaineInt;
-    delete(chaineINT,1,2);
-    decode_chaine_retro:=chaineINT;
+    delete(chaineINT,1,4);
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6852,7 +7451,7 @@ begin
     end;
     if nack then affiche(msg,clred) else affiche(msg,clyellow);
     delete(chaineINT,1,2);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6871,16 +7470,16 @@ begin
     end;
     recu_cv:=true;
     delete(chaineInt,1,3);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
   if chaineINT[1]=#$42 then
   begin
     delete(chaineInt,1,1);
-    decode_retro(ord(chaineInt[1]),ord(chaineInt[2]));
+    decode_retro_XpressNet(ord(chaineInt[1]),ord(chaineInt[2]));
     delete(chaineInt,1,3);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6889,7 +7488,7 @@ begin
     delete(chaineInt,1,2);
     Affiche('Voie hors tension msg1',clRed);
     Hors_tension2:=true;
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6898,13 +7497,13 @@ begin
     delete(chaineInt,1,2);
     Affiche('Voie hors tension msg2',clRed);
     Hors_tension2:=false;
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
   if chaineINT[1]=#$46 then
   begin
-    //FF FD 46 43 40 41 40 40 49 4D non documentée   
+    //FF FD 46 43 40 41 40 40 49 4D non documentée
     //FF FD 46 43 50 41 50 40 50 54 non documentée
     //      46 43 40 41 40 40 48 4C
     //      46 43 50 41 54 40 50 50
@@ -6912,7 +7511,7 @@ begin
     Affiche('reprise puissance ',clLime);
     delete(chaineInt,1,8);
     Hors_tension2:=false;
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6922,7 +7521,7 @@ begin
     delete(chaineInt,1,3);
     Affiche('Reprise msg 2',clOrange);
     Hors_tension2:=false;
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6930,7 +7529,7 @@ begin
   begin
     delete(chaineInt,1,2);
     Affiche('Court circuit msg 1',clRed);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
@@ -6941,31 +7540,49 @@ begin
     Fa:=ord(chaineInt[4]); // fonction A
     Fb:=ord(chaineInt[5]); // fonction B
     delete(chaineInt,1,6);
-    decode_chaine_retro:=chaineINT;
+    decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
   ack:=false;
   nack:=true;
   affiche('Erreur 7, chaîne rétrosig. inconnue recue:'+chaine_HEX(chaineINT),clred);
-  decode_chaine_retro:='';
+  decode_chaine_retro_Xpress:='';
 end;
 
 // procédure appellée après réception sur le port USB ou socket
-procedure interprete_reponse(chaine : string);
+// la chaine peut contenir plusieurs informations
+// on boucle tant qu'on a pas traitée toute la chaine
+function interprete_reponse(chaine : string): string;
 var chaineInt: string;
+    i,j : integer;
 begin
   chaineINT:=chaine;
-  while length(chaineINT)>=3 do
+  if protocole=1 then
   begin
-    if length(chaineINT)>4 then
+    while length(chaineINT)>=3 do
     begin
-      // supprimer l'entete éventuelle
-      if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fe) then Delete(chaineINT,1,2);
-      if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fd) then Delete(chaineINT,1,2);
+      if length(chaineINT)>4 then
+      begin
+        // supprimer l'entete éventuelle
+        if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fe) then Delete(chaineINT,1,2);
+        if (chaineINT[1]=#$ff) and (chaineINT[2]=#$fd) then Delete(chaineINT,1,2);
+      end;
+      chaineINT:=decode_chaine_retro_Xpress(chaineINT);
     end;
-    chaineINT:=decode_chaine_retro(chaineINT);
   end;
+  if protocole=2 then
+  begin
+    i:=pos('<',chaineINT);
+    j:=pos('>',chaineINT);
+    while (i<>0) and (j<>0) do
+    begin
+      chaineINT:=decode_chaine_retro_dcc(chaineINT);
+      i:=pos('<',chaineINT);
+      j:=pos('>',chaineINT);
+    end;
+  end;
+  interprete_reponse:=chaineINT;
 end;
 
 function HexToStr(s: string) : string ;
@@ -7032,16 +7649,89 @@ begin
 end;
 {$J-}
 
-function trouve_USB : integer;
-var port,i,j,temp : integer;
+procedure envoi_aiguillages_DCCpp;
+var adr,groupe,fonction,i : integer;
+    s :string;
+begin
+  Affiche('Envoi la liste des aiguillages à la centrale DCC++',clyellow);
+  Affiche('',clyellow);
+  for i:=1 to MaxAiguillage do
+  begin
+
+    adr:=aiguillage[i].adresse;
+    groupe:=((adr-1) div 4)+1;
+    fonction:=((adr-1) mod 4);
+    s:='<T '+intToSTR(adr)+' '+intToSTR(groupe)+' '+intToSTR(fonction)+'>';
+    Affiche_suivi(intToSTR(adr)+' ',clyellow);
+    envoi(s);
+  end;
+end;
+
+function test_protocole : boolean;
+var s: string;
+   temp : integer;
+   trouve:  boolean;
+begin
+// voir si le comm ouvert est en protocole xpressnet ou dcc
+    if portCommOuvert then
+    begin
+      if protocole=1 then   // Xpressnet
+      begin
+        s:=#$f0;
+        s:=checksum(s);
+      end;
+      if protocole=2 then     // dcc++
+        s:='<s>';
+
+      envoi_ss_ack(s);
+      application.processMessages;
+
+      temp:=0;
+      repeat
+        sleep(100);
+        inc(temp);
+        Application.processmessages;
+      until (version_Interface<>'') or (temp>15);
+
+      if (temp>15) then
+      begin
+        Affiche_suivi(' mais l''interface n''a pas répondu',clyellow);
+        portCommOuvert:=false;  // refermer le port
+        result:=false;
+        Formprinc.MSCommUSBLenz.portopen:=false;
+      end
+      else
+      begin
+        if (protocole=1) and (version_interface[1]=#2) then
+        begin
+          Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
+          trouve:=true;
+          result:=true;
+        end;
+        if (protocole=2) and (version_interface<>'') then
+        begin
+          Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
+          trouve:=true;
+          result:=true;
+        end;
+
+        if not(trouve) then
+        begin
+          Affiche_suivi(s+' mais l''interface a répondu incorrectement',clyellow);
+          result:=false;
+        end;
+      end;
+    end
+end;
+
+function connecte_port_usb(port : integer) : integer;
+var i,j,temp : integer;
     trouve : boolean;
     s : string;
 begin
-  port:=1;
   result:=0;
   trouve:=false;
-  repeat
-    With Formprinc.MSCommUSBLenz do
+  With Formprinc.MSCommUSBLenz do
     begin
       //Affiche('Test port com'+intToSTR(port),clyellow);
       version_interface:='';
@@ -7052,131 +7742,79 @@ begin
       j:=posEx(',',PortCom,j+1);
 
       s:=copy(portCom,i+1,j-i-1);
-      Settings:=s;   // COMx:vitesse,n,8,1
-      if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
-        else Handshaking:=protocole;
+      Settings:=s;   // vitesse,n,8,1
+      if prot_serie>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+        else Handshaking:=prot_serie;
       SThreshold:=1;
       RThreshold:=1;
       InputLen:=0;
       CommPort:=Port;
       DTREnable:=True;
-      if protocole=4 then RTSEnable:=True //pour la genli
+      if prot_serie=4 then RTSEnable:=True //pour la genli
       else RTSenable:=False;
       InputMode:=comInputModeBinary;
     end;
+
     portCommOuvert:=true;
     try
        Formprinc.MSCommUSBLenz.portopen:=true;
     except
       portCommOuvert:=false;
     end;
-
-    // voir si le comm ouvert est en protocole lenz
 
     if portCommOuvert then
     begin
-      s:=#$f0;
-      s:=checksum(s);
-      envoi_ss_ack(s);
-      application.processMessages;
-      s:='Port com'+intToSTR(port)+' ouvert ';
-
-      temp:=0;
-      repeat
-        sleep(100);
-        inc(temp);
-        Application.processmessages;  // provoque violation
-      until (version_Interface<>'') or (temp>2);
-
-      if (temp>2) then
-      begin
-        Affiche(s+' mais l''interface n''a pas répondu',clyellow);
-        portCommOuvert:=false;  // refermer le port
-        Formprinc.MSCommUSBLenz.portopen:=false;
-        inc(port);
-      end
-      else
-      begin
-        if version_interface[1]=#2 then
-        begin
-          Affiche(s+' et l''interface a répondu correctement',clyellow);
-          trouve:=true;
-          result:=port;
-        end
-        else
-        begin
-          Affiche(s+' mais l''interface a répondu incorrectement',clyellow);
-          inc(port);
-        end;
-      end;
-    end
-    else inc(port);
-
-  until (port=10) or trouve;
+      Affiche('Port COM'+intToSTR(port)+' ouvert',clLime);
+      sleep(1000);
+      trouve:=test_protocole;
+    end;
+  if trouve then result:=port else result:=0;
 end;
-    
-// initialisation de la comm USB pour l'interface Xpressnet
-procedure connecte_USB;
-var i,j : integer;
-    ConfStCom : string;
+
+procedure connecte_usb;
+var 
+    numport,erreur : integer;
+    s : string;
 begin
-  //traceTrames:=true;
-  if NumPort<>0 then
+  if portcommouvert then exit;
+  numport:=0;
+  if portcom<>'' then val(portcom[4],numport,erreur);
+
+  if numport=0 then
+  // scan des ports
   begin
-    With Formprinc.MSCommUSBLenz do   // MSComm est le composant OCX TMSComm32
-    begin
-      i:=pos(':',portCom);
-      j:=pos(',',PortCom);
-      j:=posEx(',',PortCom,j+1);
-      j:=posEx(',',PortCom,j+1);
-      j:=posEx(',',PortCom,j+1);
-
-      confStCom:=copy(portCom,i+1,j-i-1);
-      Settings:=ConfStCom;   // vitesse,n,8,1
-      Affiche('Demande ouverture interface Xpressnet COM'+intToSTR(NumPort)+':'+ConfStCom+' protocole '+IntToSTR(protocole),CLYellow);
-      if protocole>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
-        else Handshaking:=protocole;
-      SThreshold:=1;
-      RThreshold:=1;
-      InputLen:=0;
-      CommPort:=NumPort;
-      DTREnable:=True;
-      if protocole=4 then RTSEnable:=True //pour la genli
-      else RTSenable:=False;
-      InputMode:=comInputModeBinary;
-    end;
-
-    portCommOuvert:=true;
-    try
-       Formprinc.MSCommUSBLenz.portopen:=true;
-    except
-      portCommOuvert:=false;
-    end;
+    numport:=1;
+    repeat
+      //Affiche('Test port COM'+intToSTR(numport),clyellow);
+      With Formprinc.MSCommUSBLenz do
+      begin
+        //Affiche('Test port com'+intToSTR(numport),clyellow);
+        port:=connecte_port_usb(numport);
+        inc(numport);
+      end;
+    until (port<>0) or (numport>MaxPortCom);
   end
-
+  else port:=connecte_port_usb(numport);
+  
+  if port=0 then
+  begin
+    s:='Pas d''interface ';
+    if protocole=1 then s:=s+'XpressNet';
+    if protocole=2 then s:=s+'DCC++';
+    Affiche(s+' trouvée sur les ports COM de 1 à '+intToSTR(MaxPortCom),clOrange);
+  end
   else
   begin
-    portCommOuvert:=false;
-    //Affiche('Détection automatique du port de l''interface Xpressnet',clyellow);
-    NumPort:=trouve_USB;  
-    portCommOuvert:=NumPort<>0;
-  end;
-
-  if portCommOuvert then
-  begin
+    Formprinc.DeConnecterUSB.enabled:=true;
     With Formprinc do
     begin
-      LabelTitre.caption:=titre+' Interface connectée au COM'+IntToSTR(NumPort);
-      affiche('Port COM'+intToSTR(NumPort)+' ouvert',clGreen);
-      MenuConnecterUSB.enabled:=false;
-      DeConnecterUSB.enabled:=true;
-      ConnecterCDMRail.enabled:=false;
-      DeConnecterCDMRail.enabled:=false;
+      ButtonEcrCV.Enabled:=true;
+      LireunfichierdeCV1.enabled:=true;
+      ButtonLitCV.Enabled:=true;
     end;
-  end
-  else affiche('Port COM non ouvert',clorange);
+    if protocole=2 then envoi_aiguillages_DCCpp;  // envoi la liste des aiguillages à l'interface DCC++
+  end;
 end;
-
 
 Function GetWindowFromID(ProcessID : Cardinal): THandle;
 Var TestID  : Cardinal;
@@ -7491,23 +8129,34 @@ end;
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var i : integer;
     s : string;
-    t : tequipement;
 begin
   TraceSign:=True;
+  configPrete:=false; // form config prete
   PremierFD:=false;
   // services commIP CDM par défaut
   ntrains:=1;
+  protocole:=1;
   Srvc_Aig:=true;
   Srvc_Det:=true;
   Srvc_Act:=true;
   Srvc_PosTrain:=false;
   Srvc_sig:=false;
   confasauver:=false;
-
   config_modifie:=false;
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet - Version '+Version+sousVersion;
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
+  chaine_recue:='';
   Caption:=AF;
   Application.onHint:=doHint;
+
+  // box2=CV
+  GroupBox2.Left:=633;
+  GroupBox2.Top:=60;
+  GroupBox2.Visible:=false;
+  // box3=vitesses et fonctions F
+  GroupBox3.Left:=633;
+  GroupBox3.Top:=60;
+  GroupBox3.visible:=true;
+
 
   // version d'OS pour info
   if IsWow64Process then s:='OS 64 Bits' else s:='OS 32 Bits';
@@ -7524,21 +8173,22 @@ begin
   ncrois:=0;
   debugtrames:=false;
   algo_Unisemaf:=1;
+  MaxPortCom:=30;
   espY:=15;
 
   AvecInit:=true;           //&&&&    avec initialisation des aiguillages ou pas
   Option_demarrage:=false;  // démarrage des trains après tempo, pas encore au point
   Diffusion:=AvecInit;      // mode diffusion publique
   // pour Rad studio------------------------
-  FenRich.Height:=Height-150;     
+  FenRich.Height:=Height-150;
   ScrollBox1.Height:=Height-280;
   StaticText.AutoSize:=true;
   StaticText.Top:=FenRich.Height+FenRich.Top+10;
   //----------------------------------------
-  
+
    // créée la fenetre vérification de version
   FormVersion:=TformVersion.Create(Self);
-  
+
   ferme:=false;
   CDM_connecte:=false;
   pasreponse:=0;
@@ -7548,15 +8198,29 @@ begin
   N_routes:=0;
   N_trains:=0;
   NumTrameCDM:=0;
+  protocole:=1;
   Application.HintHidePause:=30000;
+  visible:=true;  // rend la form visible plus tot
 
   // lecture fichiers de configuration
-  lit_config;    
+  lit_config;
+
+  if protocole=1 then
+  begin
+    ButtonEnv.visible:=false;
+    EditEnvoi.Visible:=false;
+  end;
+  if protocole=2 then
+  begin
+    ButtonEnv.visible:=true;
+    EditEnvoi.Visible:=true;
+  end;
+
   Application.ProcessMessages;
 
   // lancer CDM rail et le connecte si on le demande
-
   if LanceCDM then Lance_CDM;
+
   Loco.Visible:=true;
 
   // tenter la liaison vers CDM rail
@@ -7573,8 +8237,8 @@ begin
       // Initialisation de la comm socket LENZ
       if AdresseIP<>'0' then
       begin
-        Affiche('Demande ouverture interface XpressNet par Ethernet '+AdresseIP+':'+intToSTR(port),clyellow);
-        ClientSocketLenz.port:=port;
+        Affiche('Demande ouverture interface par Ethernet '+AdresseIP+':'+intToSTR(port),clyellow);
+        ClientSocketLenz.port:=portInterface;
         ClientSocketLenz.Address:=AdresseIP;
         ClientSocketLenz.Open;
       end;
@@ -7613,28 +8277,27 @@ begin
   N_Event_tick:=0 ; // dernier index
   NombreImages:=0;
 
-  // box2=CV
-  GroupBox2.Left:=633;
-  GroupBox2.Top:=60;
-  GroupBox2.Visible:=false;
-  // box3=vitesses et fonctions F
-  GroupBox3.Left:=633;
-  GroupBox3.Top:=60;
-  GroupBox3.visible:=true;
-
   // TCO
   begin
     //créée la fenêtre TCO non modale
     FormTCO:=TformTCO.Create(nil);
-    if avecTCO then FormTCO.show;
+    if avecTCO then
+    begin
+      formTCO.show;
+      With Formprinc do
+      begin
+        BringToFront;
+        Setfocus;
+      end;
+    end;
   end;
 
-  Affiche('Fin des initialisations',clyellow);
+  //Affiche('Fin des initialisations',clyellow);
   LabelEtat.Caption:=' ';
   Affiche_memoire;
 //  DoubleBuffered:=true;
 
- { 
+ {
     aiguillage[index_aig(1)].position:=const_droit;
     aiguillage[index_aig(3)].position:=const_devie;
     aiguillage[index_aig(4)].position:=const_devie;
@@ -7659,8 +8322,8 @@ end;
 
 // évènement réception d'une trame sur le port COM USB (centrale Lenz)
 procedure TFormPrinc.MSCommUSBLenzComm(Sender: TObject);
-var i : integer;
-    tev : integer;
+var i,tev : integer;
+    tablo : array of byte;  // tableau rx usb
 begin
   tev:=MSCommUSBLenz.commEvent;
   {
@@ -7696,10 +8359,14 @@ begin
     begin
       chaine_recue:=chaine_recue+char(tablo[i]);
     end;
-    if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+chaine_Hex(chaine_recue),Clwhite);
-    if terminal then Affiche(chaine_recue,clLime);
-    interprete_reponse(chaine_recue);
-    chaine_recue:='';
+    setlength(tablo,0);
+    if traceTrames then
+    begin
+      if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+chaine_Hex(chaine_recue),Clwhite);
+      if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+chaine_recue,Clwhite);
+    end;
+    //if terminal then Affiche(chaine_recue,clLime);
+    chaine_recue:=interprete_reponse(chaine_recue);
   end;
 end;
 
@@ -7735,7 +8402,7 @@ begin
   // 1 fois pour initialser la position dans le tableau
   // 2eme fois pour positionner physiquement les aiguillages
   // pour générer les evts de position
-  //Affiche('Positionnement aiguillages',cyan);
+  // Affiche('Positionnement aiguillages',cyan);
   for i:=1 to MaxAcc do
   begin
     index:=index_aig(i);
@@ -7754,25 +8421,13 @@ begin
           s:=s+' non positionné';
         end;
         Affiche(s,cyan);
-        if pos<>const_inconnu then aiguillage[index].position:=pos;
+        aiguillage[index].position:=pos;
       end;
-    end;
-  end;
 
-  for i:=1 to MaxAcc do
-  begin
-    index:=index_aig(i);
-
-    model:=aiguillage[index].modele;
-    if (model<>rien) and (model<>crois) then // si l'aiguillage existe et différent de croisement
-    begin
-      Affiche('Pos aig '+intToSTR(i),cyan);
-      pos:=aiguillage[index].posInit;
       if (pos=const_devie) or (pos=const_droit) then
       begin
-        if pos<>const_inconnu then pilote_acc(i,pos,aigP);
+        pilote_acc(i,pos,aigP);
         if portCommOuvert or parSocketLenz or CDM_connecte then sleep(Tempo_Aig);
-        //application.processMessages;
       end;
     end;
   end;
@@ -7790,6 +8445,11 @@ begin
   if sourisclic then inc(Temposouris);
   if Tdoubleclic>0 then dec(Tdoubleclic);
   if Tempo_init>0 then dec(Tempo_init);
+  if tps_affiche_retour_dcc>0 then
+  begin
+    dec(tps_affiche_retour_dcc);
+    if tps_affiche_retour_dcc=0 then affiche_retour_dcc:=false;
+  end;
   if (Tempo_init=1) and AvecInit then
   begin
     if not(ConfigNulle) and not(ferme) and (AvecInitAiguillages) then
@@ -7804,13 +8464,13 @@ begin
       demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
     end;
     LabelEtat.Caption:=' ';
-    Menu_interface(valide);
+    //Menu_interface(valide);
   end;
 
   if temps>0 then dec(temps);
 
   // gestion du clignotant des feux de la page principale
-  
+
   if tempsCli>0 then dec(tempsCli);
   if tempsCli=0 then
   begin
@@ -8071,7 +8731,7 @@ end;
 procedure TFormprinc.proc_checkBoxFB(Sender : Tobject);
 var s : string;
     Cb : TcheckBox;
-    etat,adresse,erreur : integer;
+    etat,adresse : integer;
     i : word;
     coche : boolean;
 begin
@@ -8100,7 +8760,7 @@ end;
 procedure TFormprinc.proc_checkBoxFV(Sender : Tobject);
 var s : string;
     Cb : TcheckBox;
-    etat,adresse,erreur : integer;
+    etat,adresse : integer;
     i : word;
     coche : boolean;
 begin
@@ -8129,7 +8789,7 @@ end;
 procedure TFormprinc.proc_checkBoxFR(Sender : Tobject);
 var s : string;
     Cb : TcheckBox;
-    etat,adresse,erreur : integer;
+    etat,adresse : integer;
     i : word;
     coche : boolean;
 begin
@@ -8189,8 +8849,8 @@ procedure TFormPrinc.MenuConnecterEthernetClick(Sender: TObject);
 begin
 if AdresseIP<>'0' then
   begin
-    Affiche('Demande de connexion de l''interface XpressNet en ethernet sur '+AdresseIP+':'+IntToSTR(Port),clyellow);
-    ClientSocketLenz.port:=port;
+    Affiche('Demande de connexion de l''interface en ethernet sur '+AdresseIP+':'+IntToSTR(PortInterface),clyellow);
+    ClientSocketLenz.port:=portInterface;
     ClientSocketLenz.Address:=AdresseIP;
     ClientSocketLenz.Open;
     Hors_tension2:=false;
@@ -8312,6 +8972,12 @@ begin
   ButtonLitCV.Enabled:=true;
   LireunfichierdeCV1.enabled:=true;
   LabelTitre.caption:=titre+' Interface connectée par Ethernet';
+  if protocole=2 then
+  begin
+    envoi_ss_ack('<s>');
+    application.processMessages;
+    envoi_aiguillages_DCCpp; 
+  end;
 end;
 
 procedure TFormPrinc.ClientSocketCDMConnect(Sender: TObject;Socket: TCustomWinSocket);
@@ -9118,7 +9784,16 @@ begin
           s:=s+intToSTR(feux[i].SR[l].sortie0);
           if l<8 then s:=s+'/' else s:=s+')';
         end;
-      end;  
+      end;
+      if feux[i].decodeur=8 then
+      begin
+        s:=s+' DK(';
+        for l:=1 to 19 do
+        begin
+          s:=s+intToSTR(feux[i].SR[l].sortie1);
+          if l<19 then s:=s+',' else s:=s+')';
+        end;
+      end;
     end
     
     else
@@ -9158,25 +9833,33 @@ var adr,valeur,erreur : integer;
 begin
   // doc XpressNet page 55
   val(EditCV.text,adr,erreur);
-  if (erreur<>0) or (Adr>255) or (Adr<0) then 
+  if (erreur<>0) or (Adr>255) or (Adr<0) then
   begin
     EditCV.Text:='1';
     exit;
-  end;  
-  
+  end;
+
   val(EditVal.Text,valeur,erreur);
-  if (erreur<>0) or (valeur<0) or (valeur>255) then 
+  if (erreur<>0) or (valeur<0) or (valeur>255) then
   begin
     EditVal.text:='1';
     exit;
-  end;  
-  
-  //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
-  //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
-  s:=#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
-  s:=checksum(s);
-  envoi(s);     // envoi de la trame et attente Ack
-  // la centrale passe en mode service (p23)
+  end;
+
+  if protocole=1 then
+  begin
+    //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
+    //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
+    s:=#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
+    s:=checksum(s);
+    envoi(s);     // envoi de la trame et attente Ack
+    // la centrale passe en mode service (p23)
+  end;
+  if protocole=2 then
+  begin
+    s:='<W '+inttostr(adr)+' '+intToSTR(valeur)+' 1 1>';
+    envoi(s);
+  end;
   Affiche('CV'+intToSTR(Adr)+'='+intToSTR(valeur),clyellow);
 
 end;
@@ -9249,29 +9932,55 @@ begin
   begin
     EditCV.Text:='1';
     exit;
-  end;  
-  //trace:=true;
-  s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
-  //s:=#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
-  s:=checksum(s);
-  // envoi de la trame : fait passer la centrale en mode programmation (service)
-  envoi_ss_ack(s);
+  end;
 
-  // attendre la trame 01 04 05 (env 1s)
-  succes:=false;i:=0;
-  repeat
-    Application.processMessages;
-    Sleep(100);
-    inc(i);
-  until succes or (i>20);
-
-  if succes then
+  if protocole=1 then
   begin
-    recu_cv:=false;
-    //Affiche('reçu trame succes',clyellow);
-    s:=#$21+#$10;      // demande d'envoi du résultat du mode service
+    //trace:=true;
+    s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
+    //s:=#$22+#$18+Char(cv);      //CV de 1 à 255 + 1024 (V3.6)
     s:=checksum(s);
-    //envoi(s);
+    // envoi de la trame : fait passer la centrale en mode programmation (service)
+    envoi_ss_ack(s);
+
+    // attendre la trame 01 04 05 (env 1s)
+    succes:=false;i:=0;
+    repeat
+      Application.processMessages;
+      Sleep(100);
+      inc(i);
+    until succes or (i>20);
+
+    if succes then
+    begin
+      recu_cv:=false;
+      //Affiche('reçu trame succes',clyellow);
+      s:=#$21+#$10;      // demande d'envoi du résultat du mode service
+      s:=checksum(s);
+      //envoi(s);
+      envoi_ss_ack(s);
+      Tempo(1);
+      // attente de la réponse de la centrale
+      i:=0;
+      repeat
+        Tempo(2); // attend 200 ms
+        inc(i);
+      until recu_cv or (i>4);
+      if (i>4) then
+      begin
+        Affiche('Erreur attente trop longue CV',clred);
+        exit;
+      end;
+      sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+      Affiche(sa,clyellow);sa:='';
+    end
+    else
+    Affiche('Pas de réponse de l''interface après demande de passage en mode prog',clOrange);
+  end;
+
+  if protocole=2 then
+  begin
+    s:='<R '+intToSTR(cv)+' 1 1>';
     envoi_ss_ack(s);
     Tempo(1);
     // attente de la réponse de la centrale
@@ -9285,11 +9994,9 @@ begin
       Affiche('Erreur attente trop longue CV',clred);
       exit;
     end;
-    sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+    sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[1])+' ';
     Affiche(sa,clyellow);sa:='';
-  end
-  else
-  Affiche('Pas de réponse de l''interface après demande de passage en mode prog',clOrange);
+  end;
 end;
 
 procedure TFormPrinc.Quitter1Click(Sender: TObject);
@@ -9299,9 +10006,12 @@ end;
 
 procedure TFormPrinc.ConfigClick(Sender: TObject);
 begin
-  FormConfig.PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
-  formconfig.showmodal;
-  // ne pas faire close : déja provoqué par le self de la fermeture
+  if ConfigPrete then
+  begin
+    FormConfig.PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
+    formconfig.showmodal;
+    // ne pas faire close : déja provoqué par le self de la fermeture
+  end;  
 end;
 
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
@@ -9472,9 +10182,12 @@ begin
     Etat:=Feux[i].EtatSignal;
     s:='Signal '+IntToSTR(Adr)+' Etat=';
     code_to_aspect(Etat,aspect,combine);
-    s:=s+IntToSTR(etat)+'=';
-    if aspect<>-1 then s:=s+EtatSign[aspect];
-    if combine<>-1 then s:=s+' '+EtatSign[combine];
+    s:=s+IntToSTR(etat);
+    if Feux[i].aspect<10 then
+    begin
+      if aspect<>-1 then s:=s+' '+EtatSign[aspect];
+      if combine<>-1 then s:=s+' '+EtatSign[combine];
+    end;
     Affiche(s,clYellow);
   end;
 end;
@@ -9637,32 +10350,51 @@ end;
 procedure TFormPrinc.Demanderlaversiondelacentrale1Click(Sender: TObject);
 var s : string;
 begin
-  if portCommOuvert or parSocketLenz then
+  if (portcommOuvert=false) and (parsocketLenz=false) then
+  begin
+    Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
+    exit;
+  end;
+  if (protocole=1) then
   begin
     s:=#$f0;
     s:=checksum(s);
     envoi(s);
+  end ;
+  if (protocole=2) then
+  begin
+    affiche_retour_dcc:=true;
+    tps_affiche_retour_dcc:=2;
+    s:=checksum('<s>');
+    envoi(s);
   end
-  else Affiche('L''interface XpressNet n''est pas connectée par USB ou par Ethernet',clorange);  
 end;
 
 procedure TFormPrinc.Demandetatdesaiguillages1Click(Sender: TObject);
 begin
-  if portCommOuvert or parSocketLenz then demande_etat_acc
-  else Affiche('L''interface XpressNet n''est pas connectée par USB ou par Ethernet',clorange);  
+  if (portcommOuvert=false) and (parsocketLenz=false) then
+  begin
+    Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
+    exit;
+  end;
+  if (protocole=1) then demande_etat_acc ;
 end;
-
 
 procedure TFormPrinc.RepriseDCC1Click(Sender: TObject);
 var s : string;
 begin
-  if portCommOuvert or parSocketLenz then
+  if (portcommOuvert=false) and (parsocketLenz=false) then
+  begin
+    Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
+    exit;
+  end;
+  if protocole=1 then
   begin
     s:=#$21+#$81;
     s:=checksum(s);
     envoi(s);     // envoi de la trame et attente Ack
-  end
-  else Affiche('L''interface XpressNet n''est pas connectée par USB ou par Ethernet',clorange);
+  end;
+  if protocole=2 then envoi('<1>');
 end;
 
 procedure TFormPrinc.BoutonRazTrainsClick(Sender: TObject);
@@ -9674,7 +10406,7 @@ end;
 procedure TFormPrinc.Demandetataccessoires1Click(Sender: TObject);
 begin
   if portCommOuvert or parSocketLenz then demande_etat_acc
-  else Affiche('L''interface XpressNet n''est pas connectée par USB ou par Ethernet',clorange);
+  else Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
 end;
 
 procedure TFormPrinc.LancerCDMrail1Click(Sender: TObject);
@@ -9695,8 +10427,16 @@ begin
   if (e=0) and (i>=0) and (i<=100) then TrackBarVit.position:=i;
 end;
 
-
-
+procedure TFormPrinc.ButtonEnvClick(Sender: TObject);
+var temp : integer;
+begin
+  //decode_chaine_retro_dcc('<Q 22><q 22><ZER>');
+  //TraceTrames:=true;
+  affiche_retour_dcc:=true;
+  tps_affiche_retour_dcc:=2;
+  Affiche(editEnvoi.text,ClWhite);
+  envoi(editEnvoi.Text);
+end;
 
 
 end.

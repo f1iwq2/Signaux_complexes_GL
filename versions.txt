@@ -125,3 +125,8 @@ version 4.72 : Renforcement de la vérification de la configuration.
 version 4.73 : Pilotage des PN en impulsionnel ou non.
 version 5.0  : Gestion des sémaphores clignotants et voies libres clignotants.
                Gestion des actionneurs déclenchés par évènements aiguillages.
+version 5.1  : Gestion décodeur DigiKeijs 4018
+               Gestion ports COM>10
+               Ajout fonctions ajouter/supprimer lignes/colonnes dans le TCO
+               Gestion protocole DCC++
+               

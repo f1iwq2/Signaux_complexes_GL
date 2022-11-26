@@ -299,7 +299,6 @@ begin
 end;
 
 procedure TFormDebug.ButtonCopClick(Sender: TObject);
-var i : integer;
 begin
   RichDebug.Lines:=Formprinc.FenRich.lines;
 end;
@@ -523,7 +522,7 @@ begin
 end;
 
 procedure TFormDebug.Button1Click(Sender: TObject);
-var adr,sortie,erreur,groupe,pilotage : integer;
+var adr,sortie,erreur,groupe : integer;
     fonction : byte;
     s : string;
 begin
@@ -553,7 +552,6 @@ begin
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
-    pilotage:=1; 
     groupe:=(adr-1) div 4;
     fonction:=((adr-1) mod 4)*2 + (sortie-1); 
     // pilotage à 1
@@ -566,7 +564,7 @@ begin
 end;
 
 procedure TFormDebug.Button0Click(Sender: TObject);
-var adr,sortie,erreur,groupe,pilotage : integer;
+var adr,sortie,erreur,groupe : integer;
     fonction : byte;
     s : string;
 begin
@@ -596,7 +594,6 @@ begin
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
   begin
-    pilotage:=1; 
     groupe:=(adr-1) div 4;
     fonction:=((adr-1) mod 4)*2 + (sortie-1); 
     // pilotage à 0

@@ -12,7 +12,9 @@ uses
   UnitConfigTCO in 'UnitConfigTCO.pas' {FormConfigTCO},
   UnitSR in 'UnitSR.pas' {FormSR},
   Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig},
-  UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO};
+  UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO},
+  UnitDigikeijs in 'UnitDigikeijs.pas' {FormDigikeijs},
+  UnitCDF in 'UnitCDF.pas' {FormCDF};
 
 {$R *.res}
 
@@ -28,5 +30,7 @@ begin
   Application.CreateForm(TFormSR, FormSR);
   Application.CreateForm(TFormAig, FormAig);
   Application.CreateForm(TFormConfCellTCO, FormConfCellTCO);
+  Application.CreateForm(TFormDigikeijs, FormDigikeijs);
+  Application.CreateForm(TFormCDF, FormCDF);
   Application.Run;
 end.

@@ -1,0 +1,381 @@
+object FormDigikeijs: TFormDigikeijs
+  Left = 362
+  Top = 124
+  BorderStyle = bsDialog
+  Caption = 'Configuration du d'#233'codeur Digikeijs 4018'
+  ClientHeight = 442
+  ClientWidth = 344
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  OnActivate = FormActivate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object LabelTitre: TLabel
+    Left = 16
+    Top = 8
+    Width = 63
+    Height = 19
+    Caption = 'Adresse'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label1: TLabel
+    Left = 8
+    Top = 136
+    Width = 32
+    Height = 13
+    Caption = 'Label1'
+  end
+  object Label2: TLabel
+    Left = 8
+    Top = 160
+    Width = 32
+    Height = 13
+    Caption = 'Label2'
+  end
+  object Label3: TLabel
+    Left = 8
+    Top = 184
+    Width = 32
+    Height = 13
+    Caption = 'Label3'
+  end
+  object Label4: TLabel
+    Left = 8
+    Top = 208
+    Width = 32
+    Height = 13
+    Caption = 'Label4'
+  end
+  object Label5: TLabel
+    Left = 8
+    Top = 232
+    Width = 32
+    Height = 13
+    Caption = 'Label5'
+  end
+  object Label6: TLabel
+    Left = 8
+    Top = 256
+    Width = 32
+    Height = 13
+    Caption = 'Label6'
+  end
+  object Label7: TLabel
+    Left = 8
+    Top = 280
+    Width = 32
+    Height = 13
+    Caption = 'Label7'
+  end
+  object Label8: TLabel
+    Left = 8
+    Top = 304
+    Width = 32
+    Height = 13
+    Caption = 'Label8'
+  end
+  object Label9: TLabel
+    Left = 8
+    Top = 328
+    Width = 32
+    Height = 13
+    Caption = 'Label9'
+  end
+  object Label10: TLabel
+    Left = 8
+    Top = 352
+    Width = 38
+    Height = 13
+    Caption = 'Label10'
+  end
+  object Label11: TLabel
+    Left = 184
+    Top = 160
+    Width = 38
+    Height = 13
+    Caption = 'Label11'
+  end
+  object Label12: TLabel
+    Left = 184
+    Top = 184
+    Width = 38
+    Height = 13
+    Caption = 'Label12'
+  end
+  object Label13: TLabel
+    Left = 184
+    Top = 208
+    Width = 38
+    Height = 13
+    Caption = 'Label13'
+  end
+  object Label14: TLabel
+    Left = 184
+    Top = 232
+    Width = 38
+    Height = 13
+    Caption = 'Label14'
+  end
+  object Label15: TLabel
+    Left = 184
+    Top = 256
+    Width = 38
+    Height = 13
+    Caption = 'Label15'
+  end
+  object Label16: TLabel
+    Left = 184
+    Top = 280
+    Width = 38
+    Height = 13
+    Caption = 'Label16'
+  end
+  object Label17: TLabel
+    Left = 184
+    Top = 304
+    Width = 38
+    Height = 13
+    Caption = 'Label17'
+  end
+  object Label18: TLabel
+    Left = 184
+    Top = 328
+    Width = 38
+    Height = 13
+    Caption = 'Label18'
+  end
+  object Label19: TLabel
+    Left = 184
+    Top = 352
+    Width = 38
+    Height = 13
+    Caption = 'Label19'
+  end
+  object ImageDigi: TImage
+    Left = 240
+    Top = 16
+    Width = 57
+    Height = 97
+  end
+  object Shape1: TShape
+    Left = 168
+    Top = 112
+    Width = 2
+    Height = 273
+  end
+  object Label20: TLabel
+    Left = 24
+    Top = 48
+    Width = 184
+    Height = 26
+    Caption = 
+      'Tables d'#39'aspects du signal en fonction du motif envoy'#233' au d'#233'code' +
+      'ur Digikeijs'
+    WordWrap = True
+  end
+  object Label21: TLabel
+    Left = 120
+    Top = 112
+    Width = 29
+    Height = 13
+    Caption = 'Motif'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label22: TLabel
+    Left = 296
+    Top = 136
+    Width = 29
+    Height = 13
+    Caption = 'Motif'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Button1: TButton
+    Left = 128
+    Top = 408
+    Width = 75
+    Height = 25
+    Caption = 'Fermer'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object Edit1: TEdit
+    Left = 120
+    Top = 136
+    Width = 25
+    Height = 21
+    TabOrder = 1
+    OnChange = Edit1Change
+  end
+  object Edit2: TEdit
+    Left = 120
+    Top = 160
+    Width = 25
+    Height = 21
+    TabOrder = 2
+    OnChange = Edit2Change
+  end
+  object Edit3: TEdit
+    Left = 120
+    Top = 184
+    Width = 25
+    Height = 21
+    TabOrder = 3
+    OnChange = Edit3Change
+  end
+  object Edit4: TEdit
+    Left = 120
+    Top = 208
+    Width = 25
+    Height = 21
+    TabOrder = 4
+    OnChange = Edit4Change
+  end
+  object Edit5: TEdit
+    Left = 120
+    Top = 232
+    Width = 25
+    Height = 21
+    TabOrder = 5
+    OnChange = Edit5Change
+  end
+  object Edit6: TEdit
+    Left = 120
+    Top = 256
+    Width = 25
+    Height = 21
+    TabOrder = 6
+    OnChange = Edit6Change
+  end
+  object Edit7: TEdit
+    Left = 120
+    Top = 280
+    Width = 25
+    Height = 21
+    TabOrder = 7
+    OnChange = Edit7Change
+  end
+  object Edit8: TEdit
+    Left = 120
+    Top = 304
+    Width = 25
+    Height = 21
+    TabOrder = 8
+    OnChange = Edit8Change
+  end
+  object Edit9: TEdit
+    Left = 120
+    Top = 328
+    Width = 25
+    Height = 21
+    TabOrder = 9
+    OnChange = Edit9Change
+  end
+  object Edit10: TEdit
+    Left = 120
+    Top = 352
+    Width = 25
+    Height = 21
+    TabOrder = 10
+    OnChange = Edit10Change
+  end
+  object Edit11: TEdit
+    Left = 296
+    Top = 160
+    Width = 25
+    Height = 21
+    TabOrder = 11
+    OnChange = Edit11Change
+  end
+  object Edit12: TEdit
+    Left = 296
+    Top = 184
+    Width = 25
+    Height = 21
+    TabOrder = 12
+    OnChange = Edit12Change
+  end
+  object Edit13: TEdit
+    Left = 296
+    Top = 208
+    Width = 25
+    Height = 21
+    TabOrder = 13
+    OnChange = Edit13Change
+  end
+  object Edit14: TEdit
+    Left = 296
+    Top = 232
+    Width = 25
+    Height = 21
+    TabOrder = 14
+    OnChange = Edit14Change
+  end
+  object Edit15: TEdit
+    Left = 296
+    Top = 256
+    Width = 25
+    Height = 21
+    TabOrder = 15
+    OnChange = Edit15Change
+  end
+  object Edit16: TEdit
+    Left = 296
+    Top = 280
+    Width = 25
+    Height = 21
+    TabOrder = 16
+    OnChange = Edit16Change
+  end
+  object Edit17: TEdit
+    Left = 296
+    Top = 304
+    Width = 25
+    Height = 21
+    TabOrder = 17
+    OnChange = Edit17Change
+  end
+  object Edit18: TEdit
+    Left = 296
+    Top = 328
+    Width = 25
+    Height = 21
+    TabOrder = 18
+    OnChange = Edit18Change
+  end
+  object Edit19: TEdit
+    Left = 296
+    Top = 352
+    Width = 25
+    Height = 21
+    TabOrder = 19
+    OnChange = Edit19Change
+  end
+  object CheckMotif: TCheckBox
+    Left = 16
+    Top = 88
+    Width = 169
+    Height = 17
+    Caption = 'Inversion du sens du motif'
+    TabOrder = 20
+  end
+end

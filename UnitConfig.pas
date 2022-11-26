@@ -52,7 +52,6 @@ type
     GroupBox4: TGroupBox;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
     GroupBox3: TGroupBox;
     Label7: TLabel;
     Label8: TLabel;
@@ -96,7 +95,6 @@ type
     LabelDec: TLabel;
     LabelDetAss: TLabel;
     LabelElSuiv: TLabel;
-    Label19: TLabel;
     GroupBoxRadio: TGroupBox;
     RadioButtonLoc: TRadioButton;
     GroupBoxAct: TGroupBox;
@@ -119,7 +117,6 @@ type
     EditV1O: TEdit;
     EditV2O: TEdit;
     EditV3O: TEdit;
-    Label10: TLabel;
     Label17: TLabel;
     MemoCarre: TMemo;
     RichAig: TRichEdit;
@@ -141,7 +138,6 @@ type
     Label28: TLabel;
     CheckInverse: TCheckBox;
     RadioButtonAccess: TRadioButton;
-    Label29: TLabel;
     CheckFenEt: TCheckBox;
     GroupBox15: TGroupBox;
     EditNbDetDist: TEdit;
@@ -289,6 +285,9 @@ type
     CheckFRC: TCheckBox;
     Label40: TLabel;
     RadioButtonAig: TRadioButton;
+    GroupBox22: TGroupBox;
+    RadioButtonDCC: TRadioButton;
+    RadioButtonXpress: TRadioButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -431,12 +430,13 @@ IpV4_PC_ch='IpV4_PC';
 retro_ch='retro';
 Init_aig_ch='Init_Aig';
 LAY_ch='Lay';
+Maxcom_ch='MaxCom';
 Init_dem_aig_ch='Init_Dem_Aig';
 Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
-IPV4_INTERFACE_ch='IPV4_INTERFACE';
-PROTOCOLE_SERIE_ch='PROTOCOLE_SERIE';
-INTER_CAR_ch='INTER_CAR';
+IPV4_INTERFACE_ch='Ipv4_interface';
+PROTOCOLE_SERIE_ch='Protocole_serie';
+INTER_CAR_ch='Inter_car';
 Tempo_maxi_ch='Tempo_maxi';
 Entete_ch='Entete';
 TCO_ch='TCO';
@@ -448,9 +448,10 @@ Tempo_aig_ch='Tempo_Aig';
 Nb_cantons_Sig_ch='Nb_cantons_Sig';
 Tempo_Feu_ch='Tempo_Feu';
 Algo_Unisemaf_ch='Alg_Unisemaf';
-NOTIF_VERSION_ch='NOTIF_VERSION';
+NOTIF_VERSION_ch='notif_version';
 verif_version_ch='verif_version';
 Fonte_ch='Fonte';
+Protocole_ch='Protocole';
 Raz_signaux_ch='RazSignaux';
 
 // sections de config
@@ -462,12 +463,14 @@ section_branches_ch='[section_branches]';
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
-  portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,Port,protocole,NumPort,
-  LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,
+
+  portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,
+  LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM : integer;
-  ack_cdm,clicliste,affevt,config_modifie,clicproprietes,confasauver,
-  modif_branches : boolean;
+
+  ack_cdm,clicliste,affevt,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
+  modif_branches,ConfigPrete : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -485,7 +488,8 @@ function encode_sig_feux(i : integer): string;
 
 implementation
 
-uses UnitDebug,UnitTCO, UnitSR;
+uses UnitDebug,UnitTCO, UnitSR,UnitDigikeijs,
+  UnitCDF;
 
 {$R *.dfm}
 
@@ -628,8 +632,8 @@ begin
           editAdrTrain.text:=IntToSTR(trains[1].adresse);
         end;
       end;
-    end
-    else Affiche('CDM Rail non lancé',clOrange);
+    end;
+    //else Affiche('CDM Rail non lancé',clOrange);
   end  
   else
   begin
@@ -658,7 +662,7 @@ var sa : string;
     i,erreur : integer;
 begin
   sa:=s;
-  protocole:=-1;
+  prot_serie:=-1;
   // supprimer la dernier paramètre
   i:=pos(',',s);
   if i<>0 then
@@ -676,7 +680,7 @@ begin
         if i<>0 then
         begin
           delete(s,1,i);
-          Val(s,protocole,erreur);
+          Val(s,prot_serie,erreur);
         end;
       end;
     end;
@@ -684,7 +688,7 @@ begin
 
   i:=pos(':',sa);
   val(copy(sa,4,i-1),Numport,erreur);
-  config_com:=not( (copy(sa,1,3)<>'COM') or (NumPort>9) or (protocole=-1) or (protocole>4) or (i=0) );
+  config_com:=not( (copy(sa,1,3)<>'COM') or (NumPort>MaxPortCom) or (prot_serie=-1) or (prot_serie>4) or (i=0) );
 end;
 
 // transforme l'aiguillage de la base de données aiguillage en texte
@@ -850,8 +854,8 @@ begin
     // feu rouge cli
     if feux[i].checkFR then s:=s+',FRC1' else s:=s+',FRC0';
 
-    // si unsemaf, paramètre supplémentaire
-    if feux[i].decodeur=6 then s:=s+',U'+intToSTR(feux[i].unisemaf);
+    // si unisemaf, paramètre supplémentaire
+    if (feux[i].decodeur=6) then s:=s+',U'+intToSTR(feux[i].unisemaf);
 
     // conditions supplémentaires pour le carré
     for nc:=1 to 6 do
@@ -868,9 +872,9 @@ begin
         end;
         s:=s+')';
       end;
-    end;  
+    end;
 
-    // décodeur SR  
+    // décodeur SR
     if feux[i].decodeur=7 then
     begin
       s:=s+',SR(';
@@ -880,6 +884,29 @@ begin
         s:=s+intToSTR(feux[i].SR[nc].sortie0);
         if nc<8 then s:=s+',' else s:=s+')';
       end;
+    end;
+
+    // décodeur Digikeijs
+    if feux[i].decodeur=5 then
+    begin
+      s:=s+',DK(';
+      for nc:=1 to 19 do
+      begin
+        s:=s+intToSTR(feux[i].SR[nc].sortie1);
+        if nc<19 then s:=s+',' else s:=s+')';
+      end;
+    end;
+
+    // décodeur CDF
+    if feux[i].decodeur=2 then
+    begin
+      s:=s+',CDF(';
+      for nc:=1 to 19 do
+      begin
+        s:=s+intToSTR(feux[i].SR[nc].sortie1);
+        if nc<19 then s:=s+',' else s:=s+')';
+      end;
+      s:=s+',NA'+intToSTR(feux[i].na);
     end;
 
   end
@@ -986,7 +1013,7 @@ begin
             if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
             j:=pos(',',s);
             val(s,Feux[i].decodeur,erreur);
-            
+
             if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
             if j<>0 then delete(s,1,j);
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
@@ -1075,21 +1102,27 @@ begin
           if length(s)>0 then if s[1]=',' then delete(s,1,1);
           if length(s)>0 then if s[1]='U' then delete(s,1,1);
 
-          // si décodeur UniSemaf (6) champ supplémentaire
-          if Feux[i].decodeur=6 then
+          // si décodeur UniSemaf (6) champ supplémentaire U
+          if (Feux[i].decodeur=6) then
           begin
-             if k=0 then begin Affiche('Erreur 680 Ligne '+chaine_signal,clred);Affiche('Manque définition de la cible pour le décodeur UniSemaf',clred);end
+             Val(s,k,erreur);
+             delete(s,1,erreur);
+             if k=0 then
+             begin
+               if Feux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal,clred);Affiche('Manque définition décodeur UniSemaf',clred);end;
+             end
              else
              begin
-               Val(s,k,erreur);
                Feux[i].UniSemaf:=k;
-               erreur:=verif_UniSemaf(adresse,k);
-               if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
-               if erreur=2 then
+               if Feux[i].decodeur=6 then
                begin
-                 Affiche('Erreur 682 Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
+                 erreur:=verif_UniSemaf(adresse,k);
+                 if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
+                 if erreur=2 then
+                 begin
+                   Affiche('Erreur 682 Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
+                 end;
                end;
-
              end;
             end;
           end;
@@ -1122,7 +1155,7 @@ begin
                   val(chaine,adresse,erreur);
                   feux[i].condCarre[l][bd].Adresse:=adresse;
                   if erreur<>0 then feux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
-                  Affiche('Erreur 683 Définition du feu '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
+                  Affiche('Erreur 683 Définition du signal '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
                 end;
 
                 k:=pos(',',sa);if k<>0 then delete(sa,1,k);
@@ -1151,6 +1184,47 @@ begin
             end;
           end;
 
+          // champ DK
+          if length(s)>2 then
+            if copy(s,1,2)='DK' then
+          begin
+            delete(s,1,3);
+            for l:=1 to 19 do
+            begin
+              k:=pos(',',s);
+              val(s,j,erreur);
+              delete(s,1,k);
+              feux[i].SR[l].sortie1:=j;
+            end;
+          end;
+
+          // champ CDF
+          if length(s)>3 then
+            if copy(s,1,3)='CDF' then
+          begin
+            delete(s,1,4);
+            for l:=1 to 19 do
+            begin
+              k:=pos(',',s);
+              val(s,j,erreur);
+              delete(s,1,k);
+              feux[i].SR[l].sortie1:=j;
+            end;
+            j:=pos('NA',s);
+            if j<>1 then affiche('Manque paramètre NA dans ligne '+chaine_signal,clred)
+            else
+            begin
+              delete(s,1,2);
+              val(s,j,erreur);
+              if (j<0) or (j>4) then 
+              begin
+                j:=4;affiche('Paramètre NA incorrect dans ligne '+chaine_signal,clred)
+              end;  
+              feux[i].na:=j;
+            end;
+            
+          end;
+          
         end;
       end;
 end;
@@ -1249,10 +1323,9 @@ procedure genere_config;
 var s: string;
     fichierN : text;
     i : integer;
-    continue : boolean;
 
 begin
-  assign(fichierN,NomConfig);    
+  assign(fichierN,NomConfig);
   rewrite(fichierN);
 
   // entête
@@ -1262,12 +1335,17 @@ begin
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
   FormPrinc.FenRich.Font.Size:=TailleFonte;
 
+  writeln(fichierN,Protocole_ch+'=',protocole);
+
   // adresse ip et port de CDM
   writeln(fichierN,IpV4_PC_ch+'=',adresseIPCDM+':'+intToSTR(portCDM));
 
   // adresse ip interface XpressNet
-  writeln(fichierN,IPV4_Interface_ch+'=',adresseIP+':'+intToSTR(port));
+  writeln(fichierN,IPV4_Interface_ch+'=',adresseIP+':'+intToSTR(portInterface));
 
+  // max com
+  writeln(fichierN,Maxcom_ch+'=',MaxPortCom);
+  
   // port com
   writeln(fichierN,Protocole_serie_ch+'=',portcom);
 
@@ -1406,22 +1484,20 @@ end;
 
 procedure lit_config;
 
-var s,sa,chaine,SOrigine: string;
-    c,paig : char;
-    tec,tjdC,tjsC,s2,trouve,triC,debugConfig,multiple,fini,finifeux,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,
+var s,sa,SOrigine: string;
+    c : char;
+    tec,tjdC,tjsC,s2,triC,debugConfig,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,trouve_protocole,
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    pds,trouve_section_branche,trouve_section_sig,trouve_section_act,fichier_trouve,trouve_tempo_feu,trouve_FVR,
+    trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
-    bd,virgule,i_detect,i,erreur,aig2,detect,offset,index, adresse,j,position,temporisation,invers,indexPointe,indexDevie,indexDroit,
+    virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
     ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
 
  function lit_ligne : string ;
-    var esp,l1,l2,k : integer;
-        guim : boolean;
-        sp : string;
+    var esp,l1,l2 : integer;
     begin
       repeat
         readln(fichier,s);
@@ -1508,66 +1584,69 @@ begin
   // définition des actionneurs
   repeat
     s:=lit_ligne;
-    sa:=s; sOrigine:=s;
-
-    if s[1]='A' then
+    if s<>'0' then
     begin
-      Tablo_actionneur[maxtablo_act].typdeclenche:=2;  // type aiguillage
-      Delete(sa,1,1);
-      val(sa,j,erreur);
-      Tablo_actionneur[maxtablo_act].adresse:=j;
-      delete(sa,1,erreur);
-      s:=sa;
-    end;
+      //Affiche(s,clyellow);
+      sa:=s; sOrigine:=s;
 
-    i:=pos('MEM[',sOrigine);
-    if i>0 then
-    begin
-      Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type mémoire de zone
-      Delete(sa,1,4);
-      val(sa,j,erreur);
-      Tablo_actionneur[maxtablo_act].adresse:=j;
-      i:=pos(',',sa);delete(sa,1,i);
-      val(sa,j,erreur);
-      i:=pos(',',sa);
-      Tablo_actionneur[maxtablo_act].adresse2:=j;
-      Tablo_actionneur[maxTablo_act].det:=true;
-      delete(sa,1,i);
-      s:=sa; // mémo s
-    end;
-
-    if length(sOrigine)>1 then
-    begin
-      if (sOrigine[1]<>'(') and (sorigine[1]<>'A') and (pos('MEM[',sOrigine)=0) then  // si pas détecteur de PN
+      if s[1]='A' then
       begin
-        Tablo_actionneur[maxtablo_act].typdeclenche:=0;  // type actionneur
+        Tablo_actionneur[maxtablo_act].typdeclenche:=2;  // type aiguillage
+        Delete(sa,1,1);
         val(sa,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
-        if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z'
-        else Affiche('Erreur actionneur '+sOrigine,clred);
         delete(sa,1,erreur);
         s:=sa;
       end;
-    end;
 
-    // vérifier si F ou A  ou " au 4eme champ
-    i:=pos(',',sa);
-    if i>0 then delete(sa,1,i) else s:='0';
-    i:=pos(',',sa);
-    if i>0 then delete(sa,1,i) else s:='0';
-
-    inc(Nligne);
-
-    if length(sa)>1 then if (sa[1]='"') then
-    // -----------------son
-    begin
-      Tablo_actionneur[maxtablo_act].act:=false;
-      Tablo_actionneur[maxtablo_act].son:=true;
-      Tablo_actionneur[maxtablo_act].loco:=false;
-      i:=pos(',',s);
-      if i<>0 then
+      i:=pos('MEM[',sOrigine);
+      if i>0 then
       begin
-         val(s,j,erreur);
+        Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type mémoire de zone
+        Delete(sa,1,4);
+        val(sa,j,erreur);
+        Tablo_actionneur[maxtablo_act].adresse:=j;
+        i:=pos(',',sa);delete(sa,1,i);
+        val(sa,j,erreur);
+        i:=pos(',',sa);
+        Tablo_actionneur[maxtablo_act].adresse2:=j;
+        Tablo_actionneur[maxTablo_act].det:=true;
+        delete(sa,1,i);
+        s:=sa; // mémo s
+      end;
+
+      if length(sOrigine)>1 then
+      begin
+        if (sOrigine[1]<>'(') and (sorigine[1]<>'A') and (pos('MEM[',sOrigine)=0) then  // si pas détecteur de PN
+        begin
+          Tablo_actionneur[maxtablo_act].typdeclenche:=0;  // type actionneur
+          val(sa,j,erreur);
+          Tablo_actionneur[maxtablo_act].adresse:=j;
+          if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z'
+          else Affiche('Erreur actionneur '+sOrigine,clred);
+          delete(sa,1,erreur);
+          s:=sa;
+        end;
+      end;
+
+      // vérifier si F ou A  ou " au 4eme champ
+      i:=pos(',',sa);
+      if i>0 then delete(sa,1,i) else s:='0';
+      i:=pos(',',sa);
+      if i>0 then delete(sa,1,i) else s:='0';
+
+      inc(Nligne);
+
+      if length(sa)>1 then if (sa[1]='"') then
+      // -----------------son
+      begin
+        Tablo_actionneur[maxtablo_act].act:=false;
+        Tablo_actionneur[maxtablo_act].son:=true;
+        Tablo_actionneur[maxtablo_act].loco:=false;
+        i:=pos(',',s);
+        if i<>0 then
+        begin
+          val(s,j,erreur);
           Tablo_actionneur[maxTablo_act].etat:=j;
           Delete(s,1,erreur);
 
@@ -1580,67 +1659,66 @@ begin
           i:=pos('"',s);
           Tablo_actionneur[maxTablo_act].fichierSon:=copy(s,1,i-1);
           inc(maxTablo_act);
-      end;
-    end;
-
-    if length(sa)>1 then if (sa[1]='A') then
-    // -----------------accessoire
-    begin
-      Tablo_actionneur[maxtablo_act].act:=true;
-      Tablo_actionneur[maxtablo_act].son:=false;
-      Tablo_actionneur[maxtablo_act].loco:=false;
-
-      i:=pos(',',s);
-      if i<>0 then
-      begin
-          val(s,j,erreur);
-          Tablo_actionneur[maxTablo_act].etat:=j;
-          Delete(s,1,erreur);
-
-          i:=pos(',',s);
-          Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
-          Delete(s,1,i);
-
-          i:=pos('A',s);
-          if i<>0 then
-          begin
-            Delete(s,1,1);
-            val(s,j,erreur);
-            Tablo_actionneur[maxTablo_act].Accessoire:=j;
-
-            i:=pos(',',s);
-            if i<>0 then
-            begin
-              Delete(S,1,i);
-              val(s,j,erreur);
-              Tablo_actionneur[maxTablo_act].sortie:=j;
-            end;
-
-            i:=pos(',',s);
-            if i<>0 then
-            begin
-              Delete(S,1,i);
-              Tablo_actionneur[maxTablo_act].RAZ:=s[1]='Z';
-              inc(maxTablo_act);
-            end;
-
-          end;
-          s:='';i:=0;
         end;
+      end;
 
-    end;
-
-    if length(sa)>1 then if (sa[1]='F') then
-    // -----------------fonction loco
-    begin
-      Tablo_actionneur[maxtablo_act].act:=false;
-      Tablo_actionneur[maxtablo_act].loco:=true;
-      Tablo_actionneur[maxtablo_act].son:=false;
-
-      // 815,1,CC406526,F2,450
-      i:=pos(',',s);
-      if i<>0 then
+      if length(sa)>1 then if (sa[1]='A') then
+      // -----------------accessoire
       begin
+        Tablo_actionneur[maxtablo_act].act:=true;
+        Tablo_actionneur[maxtablo_act].son:=false;
+        Tablo_actionneur[maxtablo_act].loco:=false;
+
+        i:=pos(',',s);
+        if i<>0 then
+        begin
+            val(s,j,erreur);
+            Tablo_actionneur[maxTablo_act].etat:=j;
+            Delete(s,1,erreur);
+
+            i:=pos(',',s);
+            Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
+            Delete(s,1,i);
+
+            i:=pos('A',s);
+            if i<>0 then
+            begin
+              Delete(s,1,1);
+              val(s,j,erreur);
+              Tablo_actionneur[maxTablo_act].Accessoire:=j;
+
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                Delete(S,1,i);
+                val(s,j,erreur);
+                Tablo_actionneur[maxTablo_act].sortie:=j;
+              end;
+
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                Delete(S,1,i);
+                Tablo_actionneur[maxTablo_act].RAZ:=s[1]='Z';
+                inc(maxTablo_act);
+              end;
+
+            end;
+            s:='';i:=0;
+          end;
+      end;
+
+      if length(sa)>1 then if (sa[1]='F') then
+      // -----------------fonction loco
+      begin
+        Tablo_actionneur[maxtablo_act].act:=false;
+        Tablo_actionneur[maxtablo_act].loco:=true;
+        Tablo_actionneur[maxtablo_act].son:=false;
+
+        // 815,1,CC406526,F2,450
+        i:=pos(',',s);
+        if i<>0 then
+        begin
           val(s,j,erreur);
           Tablo_actionneur[maxTablo_act].etat:=j;
           Delete(s,1,erreur);
@@ -1668,108 +1746,107 @@ begin
               begin
                 tablo_actionneur[maxTablo_act].TrainDest:=copy(s,i+1,length(s)-i);
               end;
-
               inc(maxTablo_act);
             end;
           end;
           s:='';i:=0;
         end;
-    end;
+      end;
 
-    // Passage à niveau
-    if (pos('PN',s)<>0) then
-    begin
-      inc(NbrePN);
-      NbreVoies:=0;
-      repeat
-        inc(NbreVoies);
-        Delete(s,1,1); // supprime (
-        // déterminer si il y a un - avant le )
-        j:=pos(')',s);
-        i:=pos('-',s);
-        if (i<j) and (i<>0) then
-        begin
-          // zone de détection
-          val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].detZ1F:=j;
-          delete(s,1,erreur);
+      // Passage à niveau
+      if (pos('PN',s)<>0) then
+      begin
+        inc(NbrePN);
+        NbreVoies:=0;
+        repeat
+          inc(NbreVoies);
+          Delete(s,1,1); // supprime (
+          // déterminer si il y a un - avant le )
+          j:=pos(')',s);
+          i:=pos('-',s);
+          if (i<j) and (i<>0) then
+          begin
+            // zone de détection
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].detZ1F:=j;
+            delete(s,1,erreur);
 
-          val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].detZ2F:=j;
-          delete(s,1,erreur);
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].detZ2F:=j;
+            delete(s,1,erreur);
 
-          val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].detZ1O:=j;
-          delete(s,1,erreur);
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].detZ1O:=j;
+            delete(s,1,erreur);
 
-          val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].detZ2O:=j;
-        end
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].detZ2O:=j;
+          end
+          else
+          begin
+            // actionneurs
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
+            //  Affiche('Ferme='+intToSTR(j),clyellow);
+            i:=pos(',',s);
+            Delete(S,1,i);
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
+            // Affiche('Ouvre='+intToSTR(j),clyellow);
+          end;
+
+          i:=pos(')',s);Delete(S,1,i);
+          i:=pos(',',s);Delete(S,1,i);
+          Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
+        until (copy(s,1,2)='PN') or (NbreVoies=10);
+
+        Tablo_PN[NbrePN].NbVoies:=NbreVoies;
+        Delete(s,1,3);  // Supprime PN(
+        val(s,j,erreur);
+        Tablo_PN[NbrePN].Adresseferme:=j;
+        Delete(s,1,erreur-1);
+        if s[1]=',' then delete(s,1,1);
+        if s[1]='+' then Tablo_PN[NbrePN].CommandeFerme:=2
+        else
+        if s[1]='-' then Tablo_PN[NbrePN].CommandeFerme:=1
         else
         begin
-          // actionneurs
+          // nouvelle syntaxe
           val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
-          //  Affiche('Ferme='+intToSTR(j),clyellow);
-          i:=pos(',',s);
-          Delete(S,1,i);
-          val(s,j,erreur);
-          Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
-          //  Affiche('Ouvre='+intToSTR(j),clyellow);
+          Tablo_PN[NbrePN].CommandeFerme:=j;
         end;
-        
-        i:=pos(')',s);Delete(S,1,i);
-        i:=pos(',',s);Delete(S,1,i);
-        Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
-      until (copy(s,1,2)='PN') or (NbreVoies=10);
+        j:=pos(',',s);
+        Delete(s,1,j); // supprime séparateurs
 
-      Tablo_PN[NbrePN].NbVoies:=NbreVoies;
-      Delete(s,1,3);  // Supprime PN(
-      val(s,j,erreur);
-      Tablo_PN[NbrePN].Adresseferme:=j;
-      Delete(s,1,erreur-1);
-      if s[1]=',' then delete(s,1,1);
-      if s[1]='+' then Tablo_PN[NbrePN].CommandeFerme:=2
-      else
-      if s[1]='-' then Tablo_PN[NbrePN].CommandeFerme:=1
-      else
-      begin
-        // nouvelle syntaxe
         val(s,j,erreur);
-        Tablo_PN[NbrePN].CommandeFerme:=j;
-      end;
-      j:=pos(',',s);
-      Delete(s,1,j); // supprime séparateurs
-
-      val(s,j,erreur);
-      Tablo_PN[NbrePN].AdresseOuvre:=j;
-      Delete(s,1,erreur-1);
-      if s[1]=',' then delete(s,1,1);
-      if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2
-      else
-      if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1
-      else
-      begin
-        // nouvelle syntaxe
-        val(s,j,erreur);
-        Tablo_PN[NbrePN].CommandeOuvre:=j;
-      end;
-      j:=pos(')',s);
-      Delete(s,1,j); // supprime séparateurs
-      if length(s)>0 then
-      begin
-        // champ impulsion nouvelle syntaxe
+        Tablo_PN[NbrePN].AdresseOuvre:=j;
+        Delete(s,1,erreur-1);
         if s[1]=',' then delete(s,1,1);
-        val(s,i,erreur);
-        Tablo_PN[NbrePN].Pulse:=i;
+        if s[1]='+' then Tablo_PN[NbrePN].CommandeOuvre:=2
+        else
+        if s[1]='-' then Tablo_PN[NbrePN].CommandeOuvre:=1
+        else
+        begin
+          // nouvelle syntaxe
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].CommandeOuvre:=j;
+        end;
+        j:=pos(')',s);
+        Delete(s,1,j); // supprime séparateurs
+        if length(s)>0 then
+        begin
+          // champ impulsion nouvelle syntaxe
+          if s[1]=',' then delete(s,1,1);
+          val(s,i,erreur);
+          Tablo_PN[NbrePN].Pulse:=i;
+          s:='';
+        end;
       end;
-
     end;
-    if pos('PN',s)<>0 then i:=0;
   until (s='0');
   dec(maxTablo_act);
 end;
-  
+
 procedure compile_aiguillages;
 begin
   //Affiche('Définition des aiguillages',clyellow);
@@ -2033,6 +2110,7 @@ begin
   repeat
     s:=lit_ligne;
     //affiche(s,cllime);
+
     sa:=uppercase(Fonte_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2043,6 +2121,17 @@ begin
       val(s,TailleFonte,erreur);
       if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
       FormPrinc.FenRich.Font.Size:=TailleFonte;
+    end;
+
+    sa:=uppercase(Protocole_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      trouve_protocole:=true;
+      delete(s,i,length(sa));
+      val(s,Protocole,erreur);
+      if (Protocole<1) or (Protocole>2) then Protocole:=1;  //1=xpressnet 2=DCC+
     end;
 
     // adresse ip et port de CDM
@@ -2074,10 +2163,24 @@ begin
       i:=pos(':',s);
       if i<>0 then
       begin
-        adresseIP:=copy(s,1,i-1);Delete(s,1,i);port:=StrToINT(s);
-        if (adresseIP<>'0') and (port=0) then affiche('Erreur port nul : '+sOrigine,clRed);
+        adresseIP:=copy(s,1,i-1);Delete(s,1,i);portInterface:=StrToINT(s);
+        if (adresseIP<>'0') and (portInterface=0) then affiche('Erreur port nul : '+sOrigine,clRed);
       end
       else begin adresseIP:='0';parSocketLenz:=false;end;
+    end;
+
+    // nombre max de port série à explorer
+    // configuration du port com
+    sa:=uppercase(MaxCom_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      trouve_MaxPort:=true;
+      val(s,MaxPortCom,erreur);
+      if erreur<>0 then Affiche('Erreur MaxCom: '+sOrigine,clred);
+      if (MaxPortCom<1) or (MaxPortCom>99) then MaxPortCom:=30;
     end;
 
     // configuration du port com
@@ -2129,9 +2232,8 @@ begin
       case Valeur_entete of
        0 : begin entete:='';suffixe:='';end;
        1 : begin entete:=#$FF+#$FE;suffixe:='';end;
-       2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
       end;
-      if (erreur<>0) or (valeur_entete>2) then Affiche('Erreur déclaration variable '+entete_ch,clred);
+      if (erreur<>0) or (valeur_entete>1) then Affiche('Erreur déclaration variable '+entete_ch,clred);
     end;
 
     // avec ou sans initialisation des aiguillages
@@ -2449,7 +2551,7 @@ begin
      Ancien_detecteur[i]:=false;
   end;
 
-  Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
+  //Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
   {$I+}
   try
     assign(fichier,NomConfig);
@@ -2458,7 +2560,7 @@ begin
     Affiche('Fichier '+NomConfig+' non trouvé : création d''un fichier vide par défaut',clred);
     portcom:='COM3:57600,N,8,1,2';
     adresseIPCDM:='127.0.0.1';portCDM:=9999;
-    adresseIP:='192.168.1.23';port:=5550;
+    adresseIP:='192.168.1.23';portInterface:=5550;
     verifVersion:=true;
     Valeur_entete:=1;
     TempoOctet:=50;
@@ -2583,8 +2685,8 @@ begin
     val(EditPortLenz.Text,i,erreur);
     if i=0 then i:=5550;
     if i>65535 then begin labelInfo.Caption:='Port Interface incorrect';ok:=false;end;
-    changeInterface:=changeInterface or (i<>port);
-    port:=i;
+    changeInterface:=changeInterface or (i<>portinterface);
+    portInterface:=i;
 
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
@@ -2616,11 +2718,9 @@ begin
 
     if RadioButton1.checked then Valeur_entete:=0;
     if RadioButton2.checked then Valeur_entete:=1;
-    if RadioButton3.checked then Valeur_entete:=2;
     case Valeur_entete of
      0 : begin entete:='';suffixe:='';end;
      1 : begin entete:=#$FF+#$FE;suffixe:='';end;
-     2 : begin entete:=#228;suffixe:=#13+#13+#10;end;
     end;
 
     if changeCDM then connecte_CDM;
@@ -2631,7 +2731,7 @@ begin
         Affiche('demande connexion à la centrale Lenz par Ethernet',clyellow);
         With Formprinc do
         begin
-          ClientSocketLenz.port:=port;
+          ClientSocketLenz.port:=portInterface;
           ClientSocketLenz.Address:=AdresseIP;
           ClientSocketLenz.Open;
         end;
@@ -2687,6 +2787,19 @@ begin
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
+    protocole:=1;
+    if RadioButtonXpress.Checked then
+    begin
+      protocole:=1;
+      formprinc.EditEnvoi.Visible:=false;
+      formprinc.ButtonEnv.Visible:=false;
+    end;
+    if RadioButtonDcc.Checked then
+    begin
+      protocole:=2;
+      formprinc.EditEnvoi.Visible:=true;
+      formprinc.ButtonEnv.Visible:=true;
+    end;
 
   end;
   if change_srv then services_CDM;
@@ -2783,7 +2896,7 @@ begin
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
   EditIPLenz.text:=AdresseIP;
-  EditportLenz.text:=IntToSTR(Port);
+  EditportLenz.text:=IntToSTR(PortInterface);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
 
   EditComUSB.Text:=PortCom;
@@ -2792,10 +2905,8 @@ begin
   EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
   RadioButton1.checked:=false;
   RadioButton2.checked:=false;
-  RadioButton3.checked:=false;
   if Valeur_entete=0 then RadioButton1.checked:=true;
   if Valeur_entete=1 then RadioButton2.checked:=true;
-  if Valeur_entete=2 then RadioButton3.checked:=true;
   LabelInfo.Width:=253;LabelInfo.Height:=25;
   LabelResult.width:=137;LabelResult.Height:=25;
   LabelNomSon.top:=16;LabelNomSon.Left:=48;
@@ -2836,11 +2947,13 @@ begin
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
   CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
 
+  RadioButtonXpress.Checked:=protocole=1;
+  RadioButtonDcc.Checked:=protocole=2;
 
   clicListe:=true;  // empeche le traitement de l'evt text
   EditDroit_BD.Text:='';
   EditPointe_BG.Text:='';
-  EditDevie_HD.Text:='';   
+  EditDevie_HD.Text:='';
 
   ligneclicSig:=-1;
   AncLigneClicSig:=-1;
@@ -2957,7 +3070,7 @@ begin
   clicListe:=true;
   if affevt then affiche('FormConfig create',clLime);
   clicListe:=false;
-
+  ConfigPrete:=true;
 end;
 
 
@@ -2996,6 +3109,7 @@ var Adresse,Adr2,ind,id2,erreur,position : integer;
     i : integer;
     B : char;
 begin
+  if index<1 then exit;
   s:=Uppercase(formConfig.RichAig.Lines[index-1]);
   //Affiche(s,clLime);
   if s='' then exit;
@@ -3399,10 +3513,11 @@ end;
 
 // mise à jour des champs du signal d'après le tableau feux
 Procedure aff_champs_sig_feux(index : integer);
-var i,j,l,d,p,k,nc,condCarre : integer;
+var i,j,l,d,p,k,nc,decodeur : integer;
     s : string;
 begin
   if Affevt then affiche('Aff_champs_sig_feux('+intToSTR(index)+')',clyellow);
+  if index<0 then exit;
   clicListe:=true;
   i:=index;
   FormConfig.EditAdrSig.text:=InttoSTr(feux[i].adresse);
@@ -3423,17 +3538,30 @@ begin
     EditDet4.Text:=''; EditSuiv4.Text:='';
     ComboBoxDec.ItemIndex:=feux[i].decodeur;
 
-    if feux[i].decodeur=7 then 
-      ButtonConfigSR.Visible:=true else  ButtonConfigSR.Visible:=false;
+    decodeur:=feux[i].decodeur;
+    ButtonConfigSR.Visible:=false;
+    //SR
+    if (decodeur=7) or (decodeur=2) then ButtonConfigSR.Visible:=true;
 
-    if feux[i].decodeur=6 then 
+    // unisemaf
+    if (decodeur=6) then
     begin
-      EditSpecUni.Visible:=true;LabelUni.Visible:=true;
+      EditSpecUni.Visible:=true;
+      LabelUni.Caption:='Spec Unisemaf';
+      LabelUni.Visible:=true;
       EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
-    end
-      else begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
-      
-      
+      editSpecUni.Hint:='Paramètre de description supplémentaire du décodeur Unisemaf';
+      editSpecUni.ShowHint:=true;
+    end;
+    // digikeijs
+    if (decodeur=5) then
+    begin
+      ButtonConfigSR.Visible:=true ;
+    end;
+    if (decodeur<>6) then
+      begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
+
+
     d:=feux[i].aspect;
     case d of
     2 : ComboBoxAsp.ItemIndex:=0;
@@ -3562,6 +3690,7 @@ var etatact, adresse,sortie,fonction,tempo,access,typ : integer;
     det : boolean;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
+  if i<0 then exit;
   s:=Uppercase(FormConfig.RichAct.Lines[i]);
   if s='' then exit;
   inc(i); // passer en index tablo
@@ -3706,6 +3835,7 @@ var adresse,erreur,j,v : integer;
     s : string;
 begin
   if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
+  if i<0 then exit;
   s:=Uppercase(FormConfig.RichPN.Lines[i]);
   if s='' then exit;
 
@@ -4334,7 +4464,7 @@ end;
 
 procedure TFormConfig.ComboBoxDecChange(Sender: TObject);
 var s: string;
-    i : integer;
+    i,decodeur : integer;
 begin
 //  Affiche(IntToStr(ComboBoxDec.ItemIndex),clyellow);
   if clicListe then exit;
@@ -4342,7 +4472,8 @@ begin
   if NbreFeux<ligneclicSig+1 then exit;
   i:=ligneclicSig+1;
   if i<1 then exit;
-  feux[i].decodeur:=ComboBoxDec.ItemIndex;
+  decodeur:=ComboBoxDec.ItemIndex;
+  feux[i].decodeur:=decodeur;
   Maj_Hint_feu(i);
 
   s:=encode_sig_feux(i);
@@ -4738,7 +4869,7 @@ end;
 
 
 procedure TFormConfig.EditAct2Change(Sender: TObject);
-var s,s2 : string;
+var s : string;
     det2,erreur : integer;
     det : boolean;
 begin
@@ -5162,7 +5293,7 @@ end;
 
 
 procedure TFormConfig.EditSpecUniChange(Sender: TObject);
-var erreur,i,Adr : integer ;
+var erreur,i,Adr,decodeur : integer ;
     s : string ;
 begin
   if clicliste or (ligneClicSig<0) then exit;
@@ -5176,15 +5307,18 @@ begin
     s:=EditAdrSig.Text;
     Val(s,Adr,erreur); // Adresse signal
     // vérification code unisemaf
-    erreur:=verif_unisemaf(Adr,i);
-    if erreur=1 then begin LabelInfo.caption:='Erreur code Unisemaf';exit;end;
-    if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
-    
+    decodeur:=feux[ligneClicSig+1].decodeur;
+    if decodeur=6 then
+    begin
+      erreur:=verif_unisemaf(Adr,i);
+      if erreur=1 then begin LabelInfo.caption:='Erreur code Unisemaf';exit;end;
+      if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
+    end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Unisemaf:=i;
     s:=encode_sig_feux(ligneClicSig+1);
-    RichSig.Lines[ligneClicSig]:=s;  
-  end;  
+    RichSig.Lines[ligneClicSig]:=s;
+  end;
 end;
 
 
@@ -5784,7 +5918,7 @@ begin
 end;
 
 procedure TFormConfig.ButtonNouvFeuClick(Sender: TObject);
-var i,index,AdrMax : integer;
+var i,AdrMax : integer;
     s : string;
 begin
   clicliste:=true;
@@ -6020,6 +6154,7 @@ var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
     x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
+    vitesse : longint;
     ok,trouveSuiv,TrouvePrec : boolean;
 begin
   // vérification de la cohérence1
@@ -6091,7 +6226,7 @@ begin
     end;
     adr:=aiguillage[Indexaig].Adroit;
     if (aiguillage[Indexaig].AdroitB='Z') then
-    begin           
+    begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
@@ -6207,7 +6342,7 @@ begin
       if feux[j].Aspect<10 then
       begin
         ok:=false;
-        Affiche('Erreur 8.2: Adresse de détecteur nul sur signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.2: Détecteur inconnu ('+intToSTR(i)+') sur signal '+IntToSTR(feux[j].adresse),clred);
       end;
     end;
 
@@ -6221,7 +6356,7 @@ begin
         Affiche('Erreur 8.3: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
       end;
     end;
-    
+
     i:=feux[j].Adr_det3;
     if i<>0 then
     begin
@@ -6427,7 +6562,7 @@ begin
               ok:=false;
             end;
           end;
-      
+
           if (model2=aig) or (model2=triple) then
           begin
             if c='D' then 
@@ -6499,7 +6634,7 @@ begin
               if adr<>extr then Affiche('Erreur 10.34: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
             end;
             if c='P' then 
-            begin 
+            begin
               extr:=aiguillage[index2].APointe;
               if adr<>extr then Affiche('Erreur 10.35: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
             end;
@@ -6667,7 +6802,7 @@ begin
             if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
             if aiguillage[k].Ddevie=SuivAdr then trouveSuiv:=true;
           end;
-          
+
           if not(trouveSuiv) then
           begin
             Affiche('Erreur 12: La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(SuivAdr)+') en branche '+intToSTR(i),clred);
@@ -6725,6 +6860,11 @@ begin
         end;
   end;
 
+  // 10 Divers
+  i:=pos(':',portcom);j:=pos(',',portcom);
+  val(copy(portcom,i+1,j-i),vitesse,l);
+  if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
+
   verif_coherence:=ok;
 end;
 
@@ -6775,7 +6915,7 @@ end;
 
 // supprime le ou les aiguillages sélectionnés dans le richEdit
 procedure supprime_aig;
-var ligneDeb,LigneFin,i,index,index2,debut,longueur,fin,l,ltot : integer;
+var ligneDeb,LigneFin,i,index,debut,longueur,fin,l,ltot : integer;
     s : string;
 begin
   //trouver ligne de début et de fin sélectionner.
@@ -7814,10 +7954,25 @@ begin
 end;
 
 procedure TFormConfig.ButtonConfigSRClick(Sender: TObject);
+var decodeur : integer;
 begin
   clicListe:=true;
-  formSR.showmodal;
-  formSR.close;
+  decodeur:=feux[ligneClicSig+1].decodeur;
+  if decodeur=7 then  // SR
+  begin
+    formSR.showmodal;
+    formSR.close;
+  end;
+  if (decodeur=2) then  // cdf
+  begin
+    formCDF.showmodal;
+    formCDF.close;
+  end;
+  if (decodeur=5) then
+  begin
+    formDigikeijs.showmodal;
+    formDigikeijs.close;
+  end;
   clicListe:=false;
 end;
 
@@ -8531,6 +8686,8 @@ begin
 end;
 
 begin
+
+
 
 
 end.
