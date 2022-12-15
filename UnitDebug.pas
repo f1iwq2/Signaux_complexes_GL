@@ -99,6 +99,7 @@ type
     procedure CheckDebugTCOClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button0Click(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -144,8 +145,6 @@ begin
   end;
 end;
 
-
-
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
 begin
@@ -163,12 +162,13 @@ begin
   RichEdit.color:=$111122;
   RichDebug.Lines.add(s);
   visible:=false; // invisible au démarrage
+  //garantit la scrollbar dans radstudio
   with VertScrollBar do
   begin
-    Range:=785;  // garantir l'apparition de la trackbar dans radStudio
+    Range:=850;
     visible:=true;
     tracking:=true;
-  end;  
+  end;
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
@@ -220,7 +220,7 @@ end;
 procedure TFormDebug.ButtonRazTamponClick(Sender: TObject);
 begin
    N_event_det:=0;
-   Event_det[1]:=0;
+   Event_det[1].adresse:=0;
    MemoEvtDet.Clear;
    memoEvtDet.Refresh;
 end;
@@ -412,43 +412,28 @@ procedure TFormDebug.ButtonSimuDet0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then
-  begin
-    Event_Detecteur(det,false,'');
-  end;
+  if erreur=0 then Event_Detecteur(det,false,'');
 end;
-  
 
 procedure TFormDebug.ButtonSimuDet1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then
-  begin
-    Event_Detecteur(det,true,'');
-  end;
+  if erreur=0 then Event_Detecteur(det,true,'');
 end;
-
 
 procedure TFormDebug.ButtonSimuAct1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  
-  if erreur=0 then
-  begin
-    Event_Act(det,0,1,'');
-  end;
+  if erreur=0 then Event_Act(det,0,1,'');
 end;
 
 procedure TFormDebug.ButtonSimuAct0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then
-  begin
-    Event_Act(det,0,0,'');
-  end;
+  if erreur=0 then Event_Act(det,0,0,'');
 end;
 
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
@@ -493,7 +478,7 @@ begin
   Val(s1,prec,erreur); if erreur<>0 then exit;
   Val(s2,Actuel,erreur); if erreur<>0 then exit;
   Adr:=suivant_Alg3(prec,type1,actuel,type2,1);
-  if Adr<9996 then 
+  if Adr<9995 then
   begin
     s:='L''élément suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr)+' ';
     case typeGen of
@@ -505,8 +490,8 @@ begin
     buttoir : s:=s+'buttoir';
     end;
     AfficheDebug(s,clYellow);
-  end  
-  else AfficheDebug('Pas trouvé d''élement suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
+  end
+  else AfficheDebug('Pas trouvé d''élement suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow);
   NivDebug:=AncDebug;
 
 end;
@@ -603,6 +588,11 @@ begin
   end;
   
   Self.ActiveControl:=nil;
+end;
+
+procedure TFormDebug.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=chr(27) then close;
 end;
 
 end.

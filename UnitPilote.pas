@@ -33,6 +33,7 @@ type
     LabelNbFeux: TLabel;
     LabelDec: TLabel;
     Label1: TLabel;
+    CheckVerrouCarre: TCheckBox;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);
@@ -52,6 +53,8 @@ type
     procedure ButtonPiloteClick(Sender: TObject);
     procedure EditNbreFeuxKeyPress(Sender: TObject; var Key: Char);
     procedure FormActivate(Sender: TObject);
+    procedure CheckVerrouCarreClick(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -224,11 +227,11 @@ procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
 var i,index,e : integer;
 begin
   index:=index_feu(AdrPilote);
-  if feux[index].aspect>10 then 
+  if feux[index].aspect>10 then
   begin
     val(EditNbreFeux.Text,i,e);
     feux[0].EtatSignal:=i;
-    pilote_direction(AdrPilote,i); 
+    pilote_direction(AdrPilote,i);
   end;
   feux[index].EtatSignal:=feux[0].EtatSignal;
   envoi_signal(AdrPilote);
@@ -261,7 +264,27 @@ begin
   i:=index_feu(AdrPilote);
   d:=feux[i].decodeur;
   LabelDec.Caption:=decodeur[d];
+  // check
+  checkVerrouCarre.Checked:=feux[i].VerrouilleCarre;
 end;
 
+procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);
+var i : integer;
+begin
+  i:=index_feu(AdrPilote);
+  feux[i].VerrouilleCarre:=checkVerrouCarre.Checked=true;
+  if feux[i].VerrouilleCarre then
+  begin
+    Maj_Etat_Signal(AdrPilote,carre);
+    envoi_signal(Adrpilote);
+    Maj_Etat_Signal(0,carre);
+    dessine_feu_pilote;
+  end;
+end;
+
+procedure TFormPilote.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=chr(27) then close;
+end;
 
 end.

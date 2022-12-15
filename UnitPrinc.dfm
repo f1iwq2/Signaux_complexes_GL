@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 70
-  Top = 246
+  Left = 67
+  Top = 170
   Width = 1213
   Height = 670
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -1474,7 +1474,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 736
+    Left = 656
     Top = 64
     Width = 265
     Height = 129
@@ -1606,14 +1606,14 @@ object FormPrinc: TFormPrinc
     Left = 1168
     Top = 224
   end
-  object ClientSocketLenz: TClientSocket
+  object ClientSocketInterface: TClientSocket
     Active = False
     ClientType = ctNonBlocking
     Port = 0
-    OnConnect = ClientSocketLenzConnect
-    OnDisconnect = ClientSocketLenzDisconnect
-    OnRead = ClientSocketLenzRead
-    OnError = ClientSocketLenzError
+    OnConnect = ClientSocketInterfaceConnect
+    OnDisconnect = ClientSocketInterfaceDisconnect
+    OnRead = ClientSocketInterfaceRead
+    OnError = ClientSocketInterfaceError
     Left = 320
   end
   object MainMenu1: TMainMenu
@@ -1698,6 +1698,10 @@ object FormPrinc: TFormPrinc
           Caption = 'Demande '#233'tat accessoires'
           OnClick = Demandetataccessoires1Click
         end
+        object Demandetatdtecteurs1: TMenuItem
+          Caption = 'Demande '#233'tat d'#233'tecteurs'
+          OnClick = Demandetatdtecteurs1Click
+        end
         object RepriseDCC1: TMenuItem
           Caption = 'Reprise DCC'
           Hint = 
@@ -1771,6 +1775,13 @@ object FormPrinc: TFormPrinc
         OnClick = Apropos1Click
       end
     end
+    object Roulage1: TMenuItem
+      Caption = 'Roulage'
+      object Placerlestrains1: TMenuItem
+        Caption = 'Placer les trains'
+        OnClick = Placerlestrains1Click
+      end
+    end
   end
   object ClientSocketCDM: TClientSocket
     Active = False
@@ -1792,7 +1803,7 @@ object FormPrinc: TFormPrinc
   end
   object PopupMenuFenRich: TPopupMenu
     Left = 208
-    Top = 24
+    Top = 16
     object Copier1: TMenuItem
       Caption = 'Copier'
       OnClick = Copier1Click

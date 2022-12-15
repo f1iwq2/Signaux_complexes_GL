@@ -11,10 +11,12 @@ object FormPilote: TFormPilote
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
   DesignSize = (
     331
     350)
@@ -42,14 +44,14 @@ object FormPilote: TFormPilote
   end
   object LabelNbFeux: TLabel
     Left = 208
-    Top = 240
+    Top = 248
     Width = 120
     Height = 13
     Caption = 'Nombre de feux '#224' allumer'
   end
   object LabelDec: TLabel
-    Left = 216
-    Top = 208
+    Left = 224
+    Top = 192
     Width = 72
     Height = 19
     Caption = 'LabelDec'
@@ -62,7 +64,7 @@ object FormPilote: TFormPilote
   end
   object Label1: TLabel
     Left = 240
-    Top = 192
+    Top = 176
     Width = 50
     Height = 13
     Caption = 'D'#233'codeur:'
@@ -220,11 +222,20 @@ object FormPilote: TFormPilote
   end
   object EditNbreFeux: TEdit
     Left = 240
-    Top = 256
+    Top = 264
     Width = 57
     Height = 21
     TabOrder = 3
     Text = 'EditNbFeux'
     OnKeyPress = EditNbreFeuxKeyPress
+  end
+  object CheckVerrouCarre: TCheckBox
+    Left = 216
+    Top = 216
+    Width = 113
+    Height = 17
+    Caption = 'Verrouiller au carr'#233
+    TabOrder = 4
+    OnClick = CheckVerrouCarreClick
   end
 end

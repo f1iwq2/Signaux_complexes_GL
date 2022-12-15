@@ -59,7 +59,7 @@ begin
       begin
         Delete(s,1,i+4);
         val(s,k,erreur);
-        if intervalle<>0 then k:=Index_Simule*Intervalle*10+tick+30 else   // démarre dans 3s
+        if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
           k:=Index_Simule+tick+30 ;
         Tablo_simule[index_simule].tick:=k;
 

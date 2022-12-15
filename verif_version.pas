@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils;
+      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc;
 
 type
   TFormVersion = class(TForm)
@@ -23,12 +23,10 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='5.1';  // sert à la comparaison de la version publiée
+Const  Version='5.2';  // sert à la comparaison de la version publiée
        SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
-
-uses UnitPrinc;
 
 {$R *.dfm}
 
@@ -130,8 +128,8 @@ begin
         begin
           i:=pos('version ',s);
           trouve_version:=i<>0;
-          if trouve_version then 
-          begin 
+          if trouve_version then
+          begin
             s2:=s;zone_comm:=true;
             //Affiche('trouvé version',clOrange);
           end;
@@ -141,8 +139,8 @@ begin
           i:=pos('.zip',s);
           trouve_zip:=i<>0;
           //if trouve_zip then Affiche(s,clyellow);
-          if trouve_zip then 
-          begin 
+          if trouve_zip then
+          begin
             s3:=s;
             //zone_comm:=false;
           end;
@@ -177,7 +175,7 @@ begin
         end;
       end;
       closefile(fichier);
-      
+
       if trouve_version and trouve_zip then
       begin
         // isoler le champ version

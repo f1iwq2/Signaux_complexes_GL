@@ -129,4 +129,9 @@ version 5.1  : Gestion décodeur DigiKeijs 4018
                Gestion ports COM>10
                Ajout fonctions ajouter/supprimer lignes/colonnes dans le TCO
                Gestion protocole DCC++
-               
+version 5.2  : Nouvel algorithme pour le décodeur digikeijs 4018
+               Déclaration des trains en mode autonome               
+               Suivi des trains sur les détecteurs enclenchés en mode autonome
+               Fermeture des fenêtres secondaires par appui sur Esc/Echap
+               Correction bug ouverture des PN par actionneurs
+

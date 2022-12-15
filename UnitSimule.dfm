@@ -1,7 +1,7 @@
 object FormSimulation: TFormSimulation
   Left = 332
   Top = 283
-  Width = 438
+  Width = 447
   Height = 189
   Caption = 'Simulation'
   Color = clBtnFace
@@ -15,11 +15,11 @@ object FormSimulation: TFormSimulation
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 16
+    Left = 8
     Top = 32
-    Width = 330
+    Width = 369
     Height = 16
-    Caption = 'Intervalle de temps entre deux '#233'v'#232'nements d'#233'tecteurs (s)'
+    Caption = 'Intervalle de temps entre deux '#233'v'#232'nements d'#233'tecteurs (x100ms)'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -38,9 +38,9 @@ object FormSimulation: TFormSimulation
     OnClick = ButtonChargeClick
   end
   object EditIntervalle: TEdit
-    Left = 352
+    Left = 384
     Top = 32
-    Width = 49
+    Width = 41
     Height = 21
     TabOrder = 1
     Text = '0'
