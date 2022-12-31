@@ -96,7 +96,7 @@ end;
 
 procedure dessine_icones;
 var r : Trect;
-    x1,y1,x2,jy1,jy2 : integer;
+    x1,x2,jy1,jy2 : integer;
 begin
   // 1
   icone_aig;
@@ -123,13 +123,13 @@ begin
     canvas.Pen.color:=fond;
     canvas.Brush.Color:=fond;
     canvas.Rectangle(0,0,Width,Height);
-    
+
     canvas.Brush.Color:=clAllume;
     canvas.pen.color:=clAllume;
     canvas.Pen.Mode:=pmCopy;
     r:=Rect(1,(height div 2)-6,width-1,(height div 2)+6);
     canvas.FillRect(r);
-    
+
     canvas.pen.color:=clVoies;
     canvas.brush.color:=clVoies;
     // bande horizontale
@@ -137,13 +137,13 @@ begin
     canvas.FillRect(r);
   end;
 
-  // 5 canton 
+  // 5 canton
   with formCOnfigTCO.Imagecanton do
   begin
     canvas.Pen.color:=fond;
     canvas.Brush.Color:=fond;
     canvas.Rectangle(0,0,Width,Height);
-    
+
     canvas.pen.color:=clCanton;
     canvas.brush.color:=clCanton;
     // bande horizontale

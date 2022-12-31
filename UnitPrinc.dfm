@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 67
-  Top = 170
+  Left = 35
+  Top = 192
   Width = 1213
   Height = 670
   Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1205
-    619)
+    1197
+    612)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1264,8 +1264,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 597
-    Width = 1205
+    Top = 590
+    Width = 1197
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1474,8 +1474,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 656
-    Top = 64
+    Left = 640
+    Top = 56
     Width = 265
     Height = 129
     Anchors = [akTop, akRight]
@@ -1600,6 +1600,16 @@ object FormPrinc: TFormPrinc
     TabOrder = 11
     Text = '<1>'
   end
+  object Button1: TButton
+    Left = 960
+    Top = 120
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 12
+    Visible = False
+    OnClick = Button1Click
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
@@ -1636,6 +1646,10 @@ object FormPrinc: TFormPrinc
       object Etatdeszonespartrain1: TMenuItem
         Caption = 'Etat des zones par train'
         OnClick = Etatdeszonespartrain1Click
+      end
+      object Evenementsdetecteurspartrain1: TMenuItem
+        Caption = 'Evenements detecteurs par train'
+        OnClick = Evenementsdetecteurspartrain1Click
       end
       object N3: TMenuItem
         Caption = '-'
@@ -1812,8 +1826,12 @@ object FormPrinc: TFormPrinc
   object PopupMenuFeu: TPopupMenu
     Left = 896
     object Proprits1: TMenuItem
-      Caption = 'Propri'#233't'#233's'
+      Caption = 'Propri'#233't'#233's du signal'
       OnClick = Proprits1Click
+    end
+    object Informationsdusignal1: TMenuItem
+      Caption = 'Informations du signal'
+      OnClick = Informationsdusignal1Click
     end
   end
 end

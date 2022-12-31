@@ -1570,7 +1570,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1799,7 +1799,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 184
         Width = 281
-        Height = 113
+        Height = 89
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ'
         TabOrder = 3
         object RadioButton13: TRadioButton
@@ -1819,25 +1819,25 @@ object FormConfig: TFormConfig
           TabOrder = 1
         end
         object RadioButton15: TRadioButton
-          Left = 8
-          Top = 56
-          Width = 217
+          Left = 152
+          Top = 40
+          Width = 105
           Height = 17
           Caption = 'LI-101F'
           TabOrder = 2
         end
         object RadioButton16: TRadioButton
           Left = 8
-          Top = 72
-          Width = 217
+          Top = 56
+          Width = 89
           Height = 17
           Caption = 'LI-100F'
           TabOrder = 3
         end
         object RadioButton17: TRadioButton
-          Left = 8
-          Top = 88
-          Width = 209
+          Left = 152
+          Top = 56
+          Width = 89
           Height = 17
           Caption = 'LI-100'
           TabOrder = 4
@@ -1908,9 +1908,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox15: TGroupBox
         Left = 312
-        Top = 304
+        Top = 288
         Width = 281
-        Height = 137
+        Height = 121
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1980,7 +1980,7 @@ object FormConfig: TFormConfig
           Height = 21
           Hint = 
             'Mode d'#233'bug au d'#233'marrage (0=sans ; 1=Log d'#233'marrage ; 2=D'#233'marrage ' +
-            'par '#233'tape)'
+            'par '#233'tape ; 3=Dynamique)'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 3
@@ -2211,7 +2211,7 @@ object FormConfig: TFormConfig
           Width = 257
           Height = 25
           Hint = 'Initialisation des aiguillages au d'#233'marrage'
-          Caption = 'Initialisation des aiguillages '
+          Caption = 'Initialiser les aiguillages en position initiale'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2263,7 +2263,10 @@ object FormConfig: TFormConfig
           Top = 120
           Width = 169
           Height = 17
+          Hint = 'Permet le roulage des trains en mode autonome'
           Caption = 'Option roulage des trains'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 5
         end
       end
@@ -3044,7 +3047,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end

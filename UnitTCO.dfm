@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 207
-  Top = 62
+  Left = 179
+  Top = 15
   Width = 1139
   Height = 686
   VertScrollBar.Visible = False
@@ -96,7 +96,7 @@ object FormTCO: TFormTCO
     VertScrollBar.Tracking = True
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelEdges = [beLeft, beTop, beRight]
-    Color = clBackground
+    Color = clBlack
     ParentColor = False
     TabOrder = 0
     DesignSize = (
@@ -105,8 +105,8 @@ object FormTCO: TFormTCO
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 1030
-      Height = 345
+      Width = 1009
+      Height = 337
       Anchors = [akLeft, akTop, akRight, akBottom]
       ParentShowHint = False
       PopupMenu = PopupMenu1
@@ -135,10 +135,10 @@ object FormTCO: TFormTCO
     OnChange = TrackBarZoomChange
   end
   object Panel1: TPanel
-    Left = 8
-    Top = 471
-    Width = 1113
-    Height = 166
+    Left = 0
+    Top = 480
+    Width = 1121
+    Height = 165
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
     Font.Charset = ANSI_CHARSET
@@ -150,10 +150,10 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1113
-      166)
+      1121
+      165)
     object ImagePalette5: TImage
-      Left = 504
+      Left = 520
       Top = 8
       Width = 41
       Height = 41
@@ -163,7 +163,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette5MouseDown
     end
     object Label6: TLabel
-      Left = 200
+      Left = 216
       Top = 22
       Width = 9
       Height = 19
@@ -176,7 +176,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette2: TImage
-      Left = 288
+      Left = 304
       Top = 8
       Width = 41
       Height = 41
@@ -186,7 +186,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette2MouseDown
     end
     object Label7: TLabel
-      Left = 272
+      Left = 288
       Top = 22
       Width = 9
       Height = 19
@@ -199,7 +199,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label10: TLabel
-      Left = 488
+      Left = 504
       Top = 22
       Width = 9
       Height = 19
@@ -212,7 +212,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette1: TImage
-      Left = 216
+      Left = 232
       Top = 8
       Width = 41
       Height = 41
@@ -225,7 +225,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette1MouseDown
     end
     object ImagePalette6: TImage
-      Left = 216
+      Left = 232
       Top = 56
       Width = 41
       Height = 41
@@ -235,7 +235,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette6MouseDown
     end
     object ImagePalette7: TImage
-      Left = 288
+      Left = 304
       Top = 56
       Width = 41
       Height = 41
@@ -245,7 +245,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette7MouseDown
     end
     object ImagePalette8: TImage
-      Left = 360
+      Left = 376
       Top = 56
       Width = 41
       Height = 41
@@ -255,7 +255,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette8MouseDown
     end
     object ImagePalette9: TImage
-      Left = 432
+      Left = 448
       Top = 56
       Width = 41
       Height = 41
@@ -265,7 +265,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette9MouseDown
     end
     object Label11: TLabel
-      Left = 200
+      Left = 216
       Top = 70
       Width = 9
       Height = 19
@@ -278,7 +278,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label12: TLabel
-      Left = 272
+      Left = 288
       Top = 70
       Width = 9
       Height = 19
@@ -291,7 +291,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label13: TLabel
-      Left = 344
+      Left = 360
       Top = 70
       Width = 9
       Height = 19
@@ -304,7 +304,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label14: TLabel
-      Left = 416
+      Left = 432
       Top = 70
       Width = 9
       Height = 19
@@ -317,7 +317,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette3: TImage
-      Left = 360
+      Left = 376
       Top = 8
       Width = 41
       Height = 41
@@ -327,7 +327,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette3MouseDown
     end
     object ImagePalette4: TImage
-      Left = 432
+      Left = 448
       Top = 8
       Width = 41
       Height = 41
@@ -336,7 +336,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette4MouseDown
     end
     object Label8: TLabel
-      Left = 344
+      Left = 360
       Top = 22
       Width = 9
       Height = 19
@@ -349,7 +349,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label9: TLabel
-      Left = 416
+      Left = 432
       Top = 22
       Width = 9
       Height = 19
@@ -362,7 +362,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette10: TImage
-      Left = 216
+      Left = 232
       Top = 104
       Width = 41
       Height = 41
@@ -372,7 +372,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette10MouseDown
     end
     object Label16: TLabel
-      Left = 192
+      Left = 208
       Top = 118
       Width = 18
       Height = 19
@@ -385,7 +385,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette11: TImage
-      Left = 288
+      Left = 304
       Top = 104
       Width = 41
       Height = 41
@@ -395,7 +395,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette11MouseDown
     end
     object Label17: TLabel
-      Left = 264
+      Left = 280
       Top = 118
       Width = 17
       Height = 19
@@ -408,7 +408,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette30: TImage
-      Left = 440
+      Left = 456
       Top = 104
       Width = 25
       Height = 41
@@ -422,7 +422,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette30MouseDown
     end
     object Label18: TLabel
-      Left = 408
+      Left = 424
       Top = 118
       Width = 18
       Height = 19
@@ -435,7 +435,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette12: TImage
-      Left = 576
+      Left = 592
       Top = 8
       Width = 41
       Height = 41
@@ -445,7 +445,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette12MouseDown
     end
     object Label20: TLabel
-      Left = 552
+      Left = 568
       Top = 22
       Width = 18
       Height = 19
@@ -458,7 +458,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object Label3: TLabel
-      Left = 624
+      Left = 640
       Top = 22
       Width = 18
       Height = 19
@@ -471,7 +471,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette13: TImage
-      Left = 648
+      Left = 664
       Top = 8
       Width = 41
       Height = 41
@@ -481,7 +481,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette13MouseDown
     end
     object Label21: TLabel
-      Left = 696
+      Left = 712
       Top = 22
       Width = 18
       Height = 19
@@ -494,7 +494,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette14: TImage
-      Left = 720
+      Left = 736
       Top = 8
       Width = 41
       Height = 41
@@ -504,7 +504,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette14MouseDown
     end
     object Label22: TLabel
-      Left = 768
+      Left = 784
       Top = 22
       Width = 18
       Height = 19
@@ -517,7 +517,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette15: TImage
-      Left = 792
+      Left = 808
       Top = 8
       Width = 41
       Height = 41
@@ -527,7 +527,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette15MouseDown
     end
     object ImagePalette16: TImage
-      Left = 504
+      Left = 520
       Top = 56
       Width = 41
       Height = 41
@@ -537,7 +537,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette16MouseDown
     end
     object Label24: TLabel
-      Left = 480
+      Left = 496
       Top = 70
       Width = 18
       Height = 19
@@ -550,7 +550,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette17: TImage
-      Left = 576
+      Left = 592
       Top = 56
       Width = 41
       Height = 41
@@ -560,7 +560,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette17MouseDown
     end
     object Label25: TLabel
-      Left = 552
+      Left = 568
       Top = 70
       Width = 18
       Height = 19
@@ -573,7 +573,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette18: TImage
-      Left = 648
+      Left = 664
       Top = 56
       Width = 41
       Height = 41
@@ -583,7 +583,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette18MouseDown
     end
     object Label26: TLabel
-      Left = 624
+      Left = 640
       Top = 70
       Width = 18
       Height = 19
@@ -596,7 +596,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette19: TImage
-      Left = 720
+      Left = 736
       Top = 56
       Width = 41
       Height = 41
@@ -606,7 +606,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette19MouseDown
     end
     object Label27: TLabel
-      Left = 696
+      Left = 712
       Top = 70
       Width = 18
       Height = 19
@@ -619,7 +619,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette20: TImage
-      Left = 792
+      Left = 808
       Top = 56
       Width = 41
       Height = 41
@@ -629,7 +629,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette20MouseDown
     end
     object Label28: TLabel
-      Left = 768
+      Left = 784
       Top = 70
       Width = 18
       Height = 19
@@ -642,7 +642,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette21: TImage
-      Left = 864
+      Left = 880
       Top = 8
       Width = 41
       Height = 41
@@ -655,7 +655,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette21MouseDown
     end
     object Label29: TLabel
-      Left = 840
+      Left = 856
       Top = 22
       Width = 18
       Height = 19
@@ -668,7 +668,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette22: TImage
-      Left = 936
+      Left = 952
       Top = 8
       Width = 41
       Height = 41
@@ -681,7 +681,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette22MouseDown
     end
     object Label30: TLabel
-      Left = 912
+      Left = 928
       Top = 22
       Width = 18
       Height = 19
@@ -694,7 +694,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ImagePalette23: TImage
-      Left = 360
+      Left = 376
       Top = 104
       Width = 41
       Height = 41
@@ -707,7 +707,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette23MouseDown
     end
     object Label31: TLabel
-      Left = 336
+      Left = 352
       Top = 118
       Width = 18
       Height = 19
@@ -720,7 +720,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 1005
+      Left = 1013
       Top = 48
       Width = 92
       Height = 33
@@ -731,7 +731,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1005
+      Left = 1013
       Top = 8
       Width = 92
       Height = 33
@@ -741,8 +741,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 608
-      Top = 104
+      Left = 760
+      Top = 112
       Width = 89
       Height = 25
       Caption = 'Simu det 1'
@@ -750,8 +750,8 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 728
-      Top = 104
+      Left = 656
+      Top = 112
       Width = 89
       Height = 25
       Caption = 'Simu Det 0'
@@ -759,7 +759,7 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1005
+      Left = 1013
       Top = 88
       Width = 92
       Height = 33
@@ -769,8 +769,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 720
-      Top = 136
+      Left = 864
+      Top = 80
       Width = 113
       Height = 25
       Caption = 'Simu canton occup'#233
@@ -778,7 +778,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1005
+      Left = 1013
       Top = 128
       Width = 92
       Height = 33
@@ -789,7 +789,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonMasquerClick
     end
     object GroupBox1: TGroupBox
-      Left = 0
+      Left = 16
       Top = 8
       Width = 185
       Height = 137
@@ -934,7 +934,7 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 901
+      Left = 909
       Top = 128
       Width = 92
       Height = 33

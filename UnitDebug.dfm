@@ -1,14 +1,11 @@
 object FormDebug: TFormDebug
   Left = 306
   Top = 21
-  Width = 836
+  Width = 856
   Height = 721
-  VertScrollBar.Position = 160
-  VertScrollBar.Range = 850
+  VertScrollBar.Position = 6
   VertScrollBar.Smooth = True
-  VertScrollBar.Style = ssFlat
   VertScrollBar.Tracking = True
-  AutoScroll = False
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
   TransparentColorValue = clTeal
@@ -20,16 +17,17 @@ object FormDebug: TFormDebug
   KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   DesignSize = (
-    811
+    831
     690)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 646
-    Top = -156
+    Left = 666
+    Top = -2
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -44,8 +42,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 494
-    Top = -158
+    Left = 514
+    Top = -4
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -58,8 +56,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 757
-    Top = -158
+    Left = 777
+    Top = -4
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -73,72 +71,51 @@ object FormDebug: TFormDebug
     Text = 'EditNivDebug'
     OnKeyPress = EditNivDebugKeyPress
   end
-  object MemoEvtDet: TMemo
-    Left = 562
-    Top = 176
-    Width = 234
-    Height = 187
-    Anchors = [akTop, akRight]
-    Color = clBlack
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clYellow
-    Font.Height = -11
-    Font.Name = 'Arial'
-    Font.Style = []
-    Lines.Strings = (
-      'Tableau des '#233'v'#232'nements '
-      'fronts descendants d'#233'tecteurs')
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 1
-    OnChange = MemoEvtDetChange
-  end
   object ButtonEcrLog: TButton
-    Left = 453
-    Top = 168
+    Left = 441
+    Top = 322
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
     Caption = 'Sauvegarder le log'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 453
-    Top = 200
+    Left = 441
+    Top = 354
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Raz Tampon Ev'#232'nements ---->'
-    TabOrder = 3
+    TabOrder = 2
     WordWrap = True
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 453
-    Top = 136
+    Left = 441
+    Top = 290
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Chercher erreurs'
-    TabOrder = 4
+    TabOrder = 3
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 453
-    Top = 96
+    Left = 441
+    Top = 250
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Affiche Evts d'#233'tecteurs et aig'
-    TabOrder = 5
+    TabOrder = 4
     WordWrap = True
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 453
-    Top = 48
+    Left = 441
+    Top = 202
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -149,14 +126,14 @@ object FormDebug: TFormDebug
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 6
+    TabOrder = 5
     WordWrap = True
     OnClick = ButtonCopClick
   end
   object RichEdit: TRichEdit
-    Left = 562
-    Top = 16
-    Width = 234
+    Left = 546
+    Top = 170
+    Width = 270
     Height = 153
     Anchors = [akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
@@ -169,24 +146,24 @@ object FormDebug: TFormDebug
     PopupMenu = PopupMenuRE
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 7
+    TabOrder = 6
     OnChange = RichEditChange
   end
   object ButtonRazLog: TButton
-    Left = 453
-    Top = 240
+    Left = 441
+    Top = 394
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Raz Tampon Log <-----'
-    TabOrder = 8
+    TabOrder = 7
     WordWrap = True
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 451
-    Top = 480
-    Width = 345
+    Left = 447
+    Top = 634
+    Width = 372
     Height = 185
     Anchors = [akTop, akRight]
     Caption = 'Fonctions primitives'
@@ -198,16 +175,16 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
     object GroupBox3: TGroupBox
       Left = 8
       Top = 16
-      Width = 329
+      Width = 353
       Height = 73
       Caption = 'Signal'
       TabOrder = 0
       object Label4: TLabel
-        Left = 281
+        Left = 305
         Top = 10
         Width = 32
         Height = 13
@@ -220,7 +197,7 @@ object FormDebug: TFormDebug
         ParentFont = False
       end
       object ButtonSigSuiv: TButton
-        Left = 8
+        Left = 16
         Top = 16
         Width = 57
         Height = 49
@@ -233,7 +210,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonSigSuivClick
       end
       object ButtonCanSuivSig: TButton
-        Left = 64
+        Left = 72
         Top = 16
         Width = 65
         Height = 49
@@ -246,9 +223,9 @@ object FormDebug: TFormDebug
         OnClick = ButtonCanSuivSigClick
       end
       object EditSigSuiv: TEdit
-        Left = 280
+        Left = 304
         Top = 32
-        Width = 41
+        Width = 33
         Height = 21
         Hint = 'Indiquer l'#39'adresse du signal '
         ParentShowHint = False
@@ -256,7 +233,7 @@ object FormDebug: TFormDebug
         TabOrder = 2
       end
       object ButtonCP: TButton
-        Left = 128
+        Left = 136
         Top = 16
         Width = 81
         Height = 49
@@ -266,7 +243,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonCPClick
       end
       object Button2: TButton
-        Left = 208
+        Left = 224
         Top = 16
         Width = 65
         Height = 49
@@ -279,7 +256,7 @@ object FormDebug: TFormDebug
     object GroupBox4: TGroupBox
       Left = 8
       Top = 96
-      Width = 329
+      Width = 345
       Height = 81
       Caption = 'D'#233'tecteur/'#233'l'#233'ment suivant'
       TabOrder = 1
@@ -332,9 +309,9 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 459
-    Top = -140
-    Width = 333
+    Left = 439
+    Top = 14
+    Width = 380
     Height = 149
     Anchors = [akTop, akRight]
     Caption = 'S'#233'lections d'#39'affichage'
@@ -346,7 +323,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     object CheckAffSig: TCheckBox
       Left = 8
       Top = 16
@@ -488,7 +465,7 @@ object FormDebug: TFormDebug
       OnClick = CheckBox1Click
     end
     object CheckDebugTCO: TCheckBox
-      Left = 200
+      Left = 248
       Top = 128
       Width = 121
       Height = 17
@@ -505,21 +482,21 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = -152
-    Width = 435
+    Top = 2
+    Width = 419
     Height = 788
     Anchors = [akLeft, akTop, akRight]
     Lines.Strings = (
       'RichDebug')
     PopupMenu = PopupMenuRD
     ScrollBars = ssBoth
-    TabOrder = 11
+    TabOrder = 10
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 451
-    Top = 368
-    Width = 345
+    Left = 447
+    Top = 522
+    Width = 372
     Height = 57
     Anchors = [akTop, akRight]
     Caption = 'Simulation d'#233'tecteur / actionneur'
@@ -531,7 +508,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 12
+    TabOrder = 11
     object EditSimuDet: TEdit
       Left = 16
       Top = 24
@@ -543,9 +520,9 @@ object FormDebug: TFormDebug
       TabOrder = 0
     end
     object ButtonSimuDet0: TButton
-      Left = 56
+      Left = 72
       Top = 16
-      Width = 57
+      Width = 65
       Height = 33
       Caption = 'D'#233'tecteur '#224' 0'
       TabOrder = 1
@@ -553,9 +530,9 @@ object FormDebug: TFormDebug
       OnClick = ButtonSimuDet0Click
     end
     object ButtonSimuDet1: TButton
-      Left = 128
+      Left = 152
       Top = 16
-      Width = 57
+      Width = 65
       Height = 33
       Caption = 'D'#233'tecteur '#224' 1'
       TabOrder = 2
@@ -563,9 +540,9 @@ object FormDebug: TFormDebug
       OnClick = ButtonSimuDet1Click
     end
     object ButtonSimuAct0: TButton
-      Left = 200
+      Left = 224
       Top = 16
-      Width = 59
+      Width = 65
       Height = 33
       Caption = 'Actionneur '#224' 0'
       TabOrder = 3
@@ -573,9 +550,9 @@ object FormDebug: TFormDebug
       OnClick = ButtonSimuAct0Click
     end
     object ButtonSimuAct1: TButton
-      Left = 272
+      Left = 296
       Top = 16
-      Width = 59
+      Width = 65
       Height = 33
       Caption = 'Actionneur '#224' 1'
       TabOrder = 4
@@ -584,8 +561,8 @@ object FormDebug: TFormDebug
     end
   end
   object ButtonRazTout: TButton
-    Left = 454
-    Top = 16
+    Left = 442
+    Top = 170
     Width = 97
     Height = 25
     Hint = 
@@ -595,13 +572,13 @@ object FormDebug: TFormDebug
     Caption = 'RAZ tous trains'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 13
+    TabOrder = 12
     OnClick = ButtonRazToutClick
   end
   object GroupBox6: TGroupBox
-    Left = 450
-    Top = 432
-    Width = 345
+    Left = 446
+    Top = 586
+    Width = 373
     Height = 41
     Anchors = [akTop, akRight]
     Caption = 'Sorties'
@@ -613,7 +590,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 14
+    TabOrder = 13
     object Label3: TLabel
       Left = 16
       Top = 16
@@ -674,6 +651,16 @@ object FormDebug: TFormDebug
       TabOrder = 3
       OnClick = Button0Click
     end
+  end
+  object MemoEvtDet: TRichEdit
+    Left = 548
+    Top = 330
+    Width = 265
+    Height = 185
+    Anchors = [akTop, akRight]
+    Color = clBlack
+    ScrollBars = ssVertical
+    TabOrder = 14
   end
   object SaveDialog: TSaveDialog
     Left = 768

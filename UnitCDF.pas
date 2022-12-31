@@ -103,6 +103,19 @@ begin
   Val(FormConfig.EditAdrSig.text,Adresse,erreur);
   index:=index_feu(Adresse);
   LabelTitre.caption:='Adresse du signal: '+intToSTR(adresse);
+  erreur:=feux[index].decodeur;
+  if erreur=5 then
+  begin
+    caption:='Configuration du décodeur Digikeijs';
+    label20.caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur Digikeijs';
+    label24.Caption:='1 à 5';
+  end;
+  if erreur=2 then
+  begin
+    caption:='Configuration du décodeur CDF';
+    label20.Caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur CDF';
+    label24.Caption:='1 à 4';
+  end;
 
   Label1.caption:=etats[1];
   Label2.caption:=etats[2];
@@ -359,7 +372,7 @@ begin
   if index<>0 then
   begin
     val(EditNAdresses.Text,i,erreur);
-    if (i>0) and (i<5) then
+    if (i>0) and (i<6) then
     begin
       Feux[index].Na:=i;
       Maj_DB;

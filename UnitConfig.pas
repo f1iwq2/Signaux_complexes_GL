@@ -466,9 +466,10 @@ type
   end;
 
 const
-// variables du fichier de configuration
+// constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+Algo_localisation_ch='Algo_localisation';
 Avec_roulage_ch='Avec_roulage';
 nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
@@ -519,9 +520,10 @@ var
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,clicListeTrain,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
-  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM : integer;
+  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
+  Algo_localisation : integer;
 
-  ack_cdm,clicliste,affevt,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
+  ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains : boolean;
   fichier : text;
 
@@ -544,7 +546,7 @@ uses UnitDebug,UnitTCO, UnitSR, UnitCDF;
 
 {$R *.dfm}
 
-// envoi d'une chaîne à CDM par socket, puis attend l'ack ou le nack
+// envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
 function envoi_CDM(s : string) : boolean;
 var temps : integer;
 begin
@@ -581,9 +583,9 @@ begin
   // ne pas supprimer le @ espace et = qui sert de marqueur pour identifier le feu
   s:='@='+inttostr(feux[i].Adresse)+' Decodeur='+intToSTR(feux[i].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
-  if feux[i].Btype_suiv1=aig then s:=s+' (aig)';  
+  if feux[i].Btype_suiv1=aig then s:=s+' (aig)';
   feux[i].Img.Hint:=s;
-end;  
+end;
 
 // demande les services Com-IP à CDM
 function services_CDM : boolean;
@@ -663,9 +665,8 @@ begin
         Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
         recucdm:='';
         s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
-      
+
         Affiche(s,clYellow);
-        AfficheDebug(s,clyellow);
         CDM_connecte:=true;
 
         // demande des services
@@ -679,7 +680,7 @@ begin
       end;
     end;
     //else Affiche('CDM Rail non lancé',clOrange);
-  end  
+  end
   else
   begin
     if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,cyan);
@@ -1377,6 +1378,7 @@ begin
   // entête
   // copie_commentaire;
   writeln(fichierN,'/ Fichier de configuration de signaux_complexes_GL');
+  writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
   // taille de la fonte
@@ -1554,7 +1556,12 @@ begin
   writeln(fichierN,'/------------');
   writeln(fichierN,section_placement_ch);
   for i:=1 to 6 do
-    writeln(fichierN,placement[i].train,',',placement[i].detecteur);
+    begin
+      s:=placement[i].train+','+inttoSTR(placement[i].detecteur)+',';
+      s:=s+intToSTR(placement[i].detdir)+',';
+      if placement[i].inverse then s:=s+'1' else s:=s+'0';
+      writeln(fichierN,s);
+    end;
   writeln(fichierN,'0');
 
   closefile(fichierN);
@@ -2303,6 +2310,14 @@ begin
       val(s,debug,erreur);
     end;
 
+    sa:=uppercase(Algo_localisation_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,Algo_localisation,erreur);
+    end;
+
     sa:=uppercase(Avec_roulage_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2396,7 +2411,7 @@ begin
       portcom:=s;
     end;
 
-    // temporisation entre 2 caractères
+    // temporisatflion entre 2 caractères
     sa:=uppercase(INTER_CAR_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2718,8 +2733,22 @@ begin
             delete(s,1,j);
             val(s,j,erreur);
             placement[i].detecteur:=j;
-            inc(i);
+            j:=pos(',',s);
+            if j<>0 then
+            begin
+              delete(s,1,j);
+              val(s,j,erreur);
+              placement[i].detdir:=j;
+              j:=pos(',',s);
+              if j<>0 then
+              begin
+                delete(s,1,j);
+                val(s,j,erreur);
+                placement[i].inverse:=j=1;
+              end;
+            end;
           end;
+          inc(i);
           s:='';
         end;
       until (s='0') or eof(fichier);
@@ -2793,7 +2822,6 @@ begin
   end;
 
   //Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
-  {$I+}
   try
     assign(fichier,NomConfig);
     reset(fichier);
@@ -2822,7 +2850,6 @@ begin
     assign(fichier,NomConfig);
     reset(fichier);
   end;
-  {$I-}
   lit_flux;
   close(fichier);
 
@@ -2869,7 +2896,7 @@ begin
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
   verif_coherence;
-  formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
+  
 end;
 
 
@@ -2914,7 +2941,7 @@ begin
     TailleFonte:=i;
 
     val(EditDebug.text,i,erreur);
-    if (i<0) or (i>2) then i:=0;
+    if (i<0) or (i>3) then i:=0;
     Debug:=i;
 
     if checkRoulage.Checked then AvecRoulage:=1 else AvecRoulage:=0;
@@ -2971,7 +2998,7 @@ begin
     if changeCDM then connecte_CDM;
     if changeInterface then
     begin
-      if AdresseIP<>'0' then
+      if (AdresseIP<>'0') and (adresseIP<>'') then
       begin
         Affiche('demande connexion à la centrale Lenz par Ethernet',clyellow);
         With Formprinc do
@@ -3340,7 +3367,6 @@ end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 begin
-  affevt:=false; // pour debug
   clicListe:=true;
   if affevt then affiche('FormConfig create',clLime);
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
@@ -3454,7 +3480,7 @@ begin
       Edit_HG.Visible:=true;
       EditAigTriple.Visible:=false;
      
-      Edit_HG.ReadOnly:=false;        
+      Edit_HG.ReadOnly:=false;
       EditPointe_BG.ReadOnly:=false;  
       EditDevie_HD.ReadOnly:=false;
       EditDroit_BD.ReadOnly:=false;
@@ -4253,6 +4279,7 @@ var i,lc,adresse,erreur : integer;
     s : string;
 begin
   clicliste:=true;
+ // HideCaret(RichAig.Handle);
   raz_champs_aig;
   ComboBoxAig.ItemIndex:=-1;
   formconfig.ComboBoxDD.ItemIndex:=-1;
@@ -5614,7 +5641,7 @@ begin
     feux[index]:=Feu_sauve;
     RichSig.Lines[ligneClicSig]:=encode_sig_feux(index);
     aff_champs_sig_feux(index);  // réaffiche les champs 
-    Maj_Hint_feu(index);  
+    Maj_Hint_feu(index);
     // change l'image du feu dans la feuille graphique principale
     Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
     dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
@@ -6675,7 +6702,7 @@ begin
         end
         else
         begin
-          // vérifier si les deux détecteurs du signal sont consécutifs (l et i)
+          // vérifier si les deux détecteurs du signal sont contigüs (l et i)
           l:=feux[j].Adr_det1;
           trouve_detecteur(i);
           det1Br:=branche_trouve;
@@ -6687,7 +6714,7 @@ begin
           if (det1Br<>Det2Br) or (abs(det1Index-det2Index)>1) then
           begin
             ok:=false;
-            Affiche('Erreur 9.12: signal '+intToSTR(feux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non consécutifs ',clred); 
+            Affiche('Erreur 9.12: signal '+intToSTR(feux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non contigüs ',clred);
           end;          
         end;
       end;
@@ -6707,7 +6734,7 @@ begin
           if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
           begin
             ok:=false;
-            Affiche('Erreur 9.21: signal '+intToSTR(feux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non consécutifs ',clred); 
+            Affiche('Erreur 9.21: signal '+intToSTR(feux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
           end;
         end;
       end;

@@ -10,7 +10,6 @@ type
   TFormDebug = class(TForm)
     EditNivDebug: TEdit;
     Label1: TLabel;
-    MemoEvtDet: TMemo;
     Label2: TLabel;
     SaveDialog: TSaveDialog;
     ButtonEcrLog: TButton;
@@ -63,6 +62,7 @@ type
     EditSortie: TEdit;
     Button1: TButton;
     Button0: TButton;
+    MemoEvtDet: TRichEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -89,7 +89,7 @@ type
     procedure ButtonSimuDet1Click(Sender: TObject);
     procedure ButtonRazToutClick(Sender: TObject);
     procedure RichEditChange(Sender: TObject);
-    procedure MemoEvtDetChange(Sender: TObject);
+    procedure MemoEvtDet1Change(Sender: TObject);
     procedure EditDebugSignalChange(Sender: TObject);
     procedure CheckBoxTiersClick(Sender: TObject);
     procedure ButtonSimuAct1Click(Sender: TObject);
@@ -100,6 +100,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button0Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormActivate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -109,16 +110,18 @@ type
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug : integer;
-  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
-  
 
-  
+
+
 procedure AfficheDebug(s : string;lacouleur : TColor);
+procedure AfficheDebug_suivi(s : string;lacouleur : TColor);
 procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
-  
+procedure affiche_evt(s: string;lacouleur : TColor);
+
 implementation
 
 uses UnitPrinc;
@@ -138,6 +141,7 @@ end;
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
 begin
+  if debugAffiche then
   with FormDebug.RichDebug do
   begin
     Lines.add(s);
@@ -145,9 +149,33 @@ begin
   end;
 end;
 
+procedure affiche_evt(s: string;lacouleur : TColor);
+begin
+  if DebugAffiche then
+  with FormDebug.MemoEvtDet do
+  begin
+    Lines.add(s);
+    RE_ColorLine(FormDebug.MemoEvtDet,FormDebug.MemoEvtDet.lines.count-1,lacouleur);
+  end;
+end;
+
+procedure AfficheDebug_suivi(s : string;lacouleur : TColor);
+var i : integer;
+begin
+  if DebugAffiche then
+  with formDebug.RichDebug do
+  begin
+    i:=lines.Count-1;
+    s:=lines.Strings[i]+s;
+    lines.Strings[i]:=s;
+    RE_ColorLine(FormDebug.RichDebug,i,lacouleur);
+  end;
+end;
+
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
 begin
+  if affevt then affiche('FormDebug create',clLime);
   EditNivDebug.Text:='0';
   s:='Cette fenêtre permet d''afficher des informations sur le ';
   s:=s+'comportement du programme. Positionner le niveau du débug de 1 à 3 pour';
@@ -161,14 +189,8 @@ begin
   if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
   RichEdit.color:=$111122;
   RichDebug.Lines.add(s);
-  visible:=false; // invisible au démarrage
-  //garantit la scrollbar dans radstudio
-  with VertScrollBar do
-  begin
-    Range:=850;
-    visible:=true;
-    tracking:=true;
-  end;
+  Autoscroll:=true; // permet l'affichage de l'ascenseur
+  DebugAffiche:=true;
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
@@ -332,13 +354,13 @@ end;
 
 
 procedure TFormDebug.ButtonSigSuivClick(Sender: TObject);
-var adr,erreur,ancdebug : integer ;
+var adr,erreur,ancdebug,AdrSigSuivant : integer ;
 begin
   ancdebug:=NivDebug;
   NivDebug:=3;
   Val(EditSigSuiv.Text,adr,erreur);
   if erreur<>0 then exit;
-  etat_signal_suivant(Adr,1) ;
+  etat_signal_suivant(Adr,1,AdrSigSuivant) ;
   NivDebug:=AncDebug;
 end;
 
@@ -375,23 +397,23 @@ end;
 
 
 procedure TFormDebug.ButtonCPClick(Sender: TObject);
-var Adr,erreur,ancdebug : integer ;
+var Adr,erreur,ancdebug,adrtrain : integer ;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  PresTrainPrec(Adr);
+  PresTrainPrec(Adr,Nb_cantons_Sig,adrtrain);
   NivDebug:=AncDebug;
 end;
 
 procedure TFormDebug.Button2Click(Sender: TObject);
-var Adr,erreur,ancdebug : integer ;
+var Adr,erreur,ancdebug,trainreseve : integer ;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
   Cond_Carre(Adr);
-  carre_signal(adr);
+  carre_signal(adr,trainreseve);
   NivDebug:=AncDebug;
 end;
 
@@ -446,7 +468,7 @@ begin
   SendMessage(RichEdit.handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
-procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
+procedure TFormDebug.MemoEvtDet1Change(Sender: TObject);
 begin
   SendMessage(MemoEvtDet.handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
@@ -461,7 +483,6 @@ procedure TFormDebug.CheckBoxTiersClick(Sender: TObject);
 begin
   AffTiers:=checkBoxTiers.checked;
 end;
-
 
 procedure TFormDebug.ButtonElSuivClick(Sender: TObject);
 var Adr,Prec,Actuel,erreur,ancdebug : integer ;
@@ -593,6 +614,12 @@ end;
 procedure TFormDebug.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if key=chr(27) then close;
+end;
+
+procedure TFormDebug.FormActivate(Sender: TObject);
+begin
+  if affevt then affiche('FormConfig activate',clLime);
+  formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
 end;
 
 end.

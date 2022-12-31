@@ -26,19 +26,105 @@ type
 var
   FormSimulation: TFormSimulation;
   Intervalle    : integer;
-  AffTickSimu   : boolean;
+
+procedure ouvre_simulation(nomfichier : string);
 
 implementation
 
 {$R *.dfm}
 
-procedure TFormSimulation.ButtonChargeClick(Sender: TObject);
-var s,nF : string;
-   fte : textFile;
+procedure ouvre_simulation(nomfichier : string);
+var s: string;
+   fte : text;
    i,k,erreur : integer;
    sortie : boolean;
 begin
-  AffTickSimu:= checkAffTick.Checked;
+  assignFile(fte,nomfichier);
+  {$I+}
+  try
+    reset(fte);
+  except
+    Affiche('Fichier '+nomFichier+' incorrect',clred);
+    exit;
+  end;
+  index_simule:=1;
+  sortie:=false;
+  while not(eof(fte)) and not(sortie) do
+  begin
+    readln(fte,s);
+    s:=Uppercase(s);
+    i:=pos('TICK=',s);
+    if i<>0 then
+    begin
+      Delete(s,1,i+4);
+      val(s,k,erreur);
+      //if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
+      //  k:=Index_Simule+tick+30 ;
+      Tablo_simule[index_simule].tick:=k;
+        // détecteur?
+      i:=pos('DET',s);
+      if i<>0 then
+      begin
+        Delete(s,1,i+2);
+        if s[1]='=' then delete(s,1,1);
+        if s[1]=' ' then delete(s,1,1);
+        val(s,k,erreur);
+        Tablo_simule[index_simule].adresse:=k;
+        Tablo_simule[index_simule].modele:=det;
+        i:=pos('=',s);
+        if i<>0 then
+        begin
+          Delete(s,1,i);
+          val(s,k,erreur);
+          Tablo_simule[index_simule].etat:=k;
+            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+             ' Detecteur='+intToSTR(Tablo_simule[index_simule].Adresse)+
+             '='+intToSTR(Tablo_simule[index_simule].etat);
+            Affiche(s,ClLime); }
+            inc(index_simule);
+        end;
+      end;
+        // aiguillage?
+      i:=pos('AIG',s);
+      if i<>0 then
+      begin
+        Delete(s,1,i+2);
+        if s[1]='=' then delete(s,1,1);
+        if s[1]=' ' then delete(s,1,1);
+        val(s,k,erreur);
+        Tablo_simule[index_simule].adresse:=k;
+        Tablo_simule[index_simule].modele:=aig;
+        i:=pos('=',s);
+        if i<>0 then
+        begin
+          Delete(s,1,i);
+          val(s,k,erreur);
+          if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
+          else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
+            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
+            ' Aiguillage='+intToSTR(Tablo_simule[index_simule].adresse)+
+             '='+intToSTR(Tablo_simule[index_simule].etat);
+          Affiche(s,ClLime);   }
+            inc(index_simule);
+        end;
+      end;
+    end;
+    Application.ProcessMessages;
+    sortie:=eof(fte) or (index_simule>Max_Simule) or (pos('STOP',s)<>0);
+  end ;
+  if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
+  Affiche('Intervalle='+intToSTR(intervalle),clyellow);
+  dec(index_simule);   //maxi
+  closeFile(fte);
+  formprinc.ButtonArretSimu.Visible:=true;
+  i_simule:=1;
+  FormSimulation.Close;
+  Affiche('Fichier simulation : '+Nomfichier ,clyellow);
+end;
+
+procedure TFormSimulation.ButtonChargeClick(Sender: TObject);
+var s : string;
+begin
   s:=GetCurrentDir;
   s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   OpenDialog.InitialDir:=s;
@@ -47,89 +133,11 @@ begin
   OpenDialog.Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
   if openDialog.Execute then
   begin
-    nF:=openDialog.FileName;
-    assignFile(fte,nF);
-    reset(fte);
-    index_simule:=1;
-    repeat
-      readln(fte,s);
-      //Affiche(s,clLime);
-      i:=pos('Tick=',s);
-      if i<>0 then
-      begin
-        Delete(s,1,i+4);
-        val(s,k,erreur);
-        if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
-          k:=Index_Simule+tick+30 ;
-        Tablo_simule[index_simule].tick:=k;
-
-        // détecteur?
-        i:=pos('Det',s);
-        if i<>0 then
-        begin
-          Delete(s,1,i+2);
-          if s[1]='=' then delete(s,1,1);
-          if s[1]=' ' then delete(s,1,1);
-          val(s,k,erreur);
-          Tablo_simule[index_simule].adresse:=k;
-          Tablo_simule[index_simule].modele:=det;
-          i:=pos('=',s);
-          if i<>0 then
-          begin
-            Delete(s,1,i);
-            val(s,k,erreur);
-            Tablo_simule[index_simule].etat:=k;
-
-            //s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-            //   ' Detecteur='+intToSTR(Tablo_simule[index_simule].detecteur)+
-            //   '='+intToSTR(Tablo_simule[index_simule].etat);
-            //Affiche(s,ClLime);
-
-            inc(index_simule);
-          end;
-        end;
-
-        // aiguillage?
-        i:=pos('Aig',s);
-        if i<>0 then
-        begin
-          Delete(s,1,i+2);
-          if s[1]='=' then delete(s,1,1);
-          if s[1]=' ' then delete(s,1,1);
-          val(s,k,erreur);
-          Tablo_simule[index_simule].adresse:=k;
-          Tablo_simule[index_simule].modele:=aig;
-          i:=pos('=',s);
-          if i<>0 then
-          begin
-            Delete(s,1,i);
-            val(s,k,erreur);
-            if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
-            else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
-
-            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-               ' Aiguillage='+intToSTR(Tablo_simule[index_simule].adresse)+
-               '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime);   }
-
-            inc(index_simule);
-          end;
-        end;
-      end;
-      Application.ProcessMessages;
-      sortie:=eof(fte) or (index_simule>Max_Simule);
-    until sortie ;
-    if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
-    Affiche('Intervalle='+intToSTR(intervalle),clyellow);
-    dec(index_simule);
-    closeFile(fte);
-    formprinc.ButtonArretSimu.Visible:=true;
-
-    FormSimulation.Close;
+    if checkAffTick.Checked then raz_tout;
+    s:=openDialog.FileName;
+    ouvre_simulation(s);
   end;
-  Affiche('Fichier simulation : '+nF ,clyellow);
 end;
-
 
 procedure TFormSimulation.FormCreate(Sender: TObject);
 begin

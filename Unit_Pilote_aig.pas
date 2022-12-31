@@ -21,6 +21,7 @@ type
     procedure ButtonDroitClick(Sender: TObject);
     procedure ButtonDev2Click(Sender: TObject);
     procedure ButtonDroit2Click(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -126,6 +127,11 @@ begin
   s:='accessoire '+IntToSTR(aiguille2)+' droit';
   Affiche(s,clyellow);
   if AigC then close;
+end;
+
+procedure TFormAig.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=chr(27) then close;
 end;
 
 end.

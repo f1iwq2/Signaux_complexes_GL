@@ -21,16 +21,16 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TFormPrinc, FormPrinc);
-  Application.CreateForm(TFormDebug, FormDebug);
+  Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
   Application.CreateForm(TFormConfig, FormConfig);
   Application.CreateForm(TFormConfigTCO, FormConfigTCO);
-  Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormSR, FormSR);
   Application.CreateForm(TFormAig, FormAig);
   Application.CreateForm(TFormConfCellTCO, FormConfCellTCO);
   Application.CreateForm(TFormCDF, FormCDF);
   Application.CreateForm(TFormPlace, FormPlace);
+  Application.CreateForm(TFormDebug, FormDebug);
   Application.Run;
 end.

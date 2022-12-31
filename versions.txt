@@ -134,4 +134,11 @@ version 5.2  : Nouvel algorithme pour le décodeur digikeijs 4018
                Suivi des trains sur les détecteurs enclenchés en mode autonome
                Fermeture des fenêtres secondaires par appui sur Esc/Echap
                Correction bug ouverture des PN par actionneurs
+version 5.3  : Informations sur les états des signaux par clic droit sur le signal.
+               Correction éventuelle fenêtre de violation au démarrage.
+               Renforcement du suivi des trains: 
+                (prise en compte des changements d'aiguillages)
+                (détection simultanée d'un train sur deux détecteurs)
+               
+
 

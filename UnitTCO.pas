@@ -389,6 +389,7 @@ procedure Tourne90D;
 procedure Vertical;
 procedure signalG;
 procedure signalD;
+procedure lire_fichier_tco;
 
 implementation
 
@@ -779,6 +780,7 @@ end;
 procedure calcul_cellules;
 begin
   LargeurCell:=ZoomMax-FormTCO.TrackBarZoom.Position+ZoomMin;
+  //Affiche(intToSTR(largeurcell),clyellow);
   hauteurCell:=(LargeurCell * RatioC) div 10;
   Epaisseur:=LargeurCell div 7;   // épaisseur du trait pour PEN
 end;
@@ -2968,7 +2970,7 @@ end;
 // affiche la cellule x et y en cases
 // index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
 procedure affiche_cellule(x,y : integer);
-var repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
+var i,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
     Bt : TEquipement;
     s : string;
 begin
@@ -3063,6 +3065,21 @@ begin
       3 : yt:=HauteurCell-round(17*frYGlob);   // bas
       end;
       TextOut(xOrg+xt,Yorg+yt,s);
+      i:=detecteur[adresse].AdrTrain;
+      if i<>0 then
+      begin
+        i:=index_train_adresse(i);
+        if i<>0 then
+        begin
+          case repr of
+            1,3 : yt:=1;  // haut
+            2 : yt:=HauteurCell-round(17*frYGlob);   // bas
+          end;
+          s:=trains[i].nom_train;
+          PCanvasTCO.font.Size:=(LargeurCell div 13)+4  ;
+          TextOut(xOrg,Yorg+yt,s);
+        end;
+      end;
     end;
   end;
 
@@ -3311,7 +3328,6 @@ begin
   comborepr.Enabled:=false;
   ImageTCO.Top:=0;
   ImageTCO.Left:=0;
-  TCOouvert:=true;
   //controlStyle:=controlStyle+[csOpaque];
 end;
 
@@ -3778,7 +3794,7 @@ end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
 begin
-  //Affiche('Form TCO activate',clyellow);
+  if affevt then Affiche('Form TCO activate',clyellow);
   if not(Forminit) then
   begin
     FormInit:=true;
@@ -3794,7 +3810,6 @@ begin
 
     PScrollBoxTCO:=FormTCO.ScrollBox;
 
-    lire_fichier_tco;
     HauteurCell:=ImagePalette1.Height;
     LargeurCell:=ImagePalette1.Width;
     calcul_reduction(frxGlob,fryGlob,LargeurCell,HauteurCell,ZoomMax,ZoomMax);
@@ -3856,16 +3871,16 @@ begin
       ButtonAfficheBandeau.visible:=true;
       BandeauMasque:=true;
       Panel1.Hide;
-      ScrollBox.Height:=ClientHeight-40;
+      ScrollBox.Height:=ClientHeight-30;
     end
     else
     begin
       BandeauMasque:=false;
       Panel1.show;
-      ScrollBox.Height:=ClientHeight-Panel1.Height-40;
+      ScrollBox.Height:=ClientHeight-Panel1.Height-30;
     end;
   end;
-
+  TCOouvert:=true;
 end;
 
 // evt qui se produit quand on clic droit dans l'image
@@ -5123,7 +5138,7 @@ begin
   calcul_cellules;
   Affiche_TCO;
   SelectionAffichee:=false;
-  //Affiche(intTostr(TrackBarZoom.Position),clLime);
+//  Affiche(intTostr(TrackBarZoom.Position),clLime);
 end;
 
 
@@ -5783,9 +5798,7 @@ end;
 
 procedure TFormTCO.FormMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-var i,maxi,x,y : integer;
-s : string;
-  position : tpoint;
+var i,maxi : integer;
 begin
 
   i:=FormTCO.TrackBarZoom.Position;

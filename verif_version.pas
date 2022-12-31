@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='5.2';  // sert à la comparaison de la version publiée
+Const  Version='5.3';  // sert à la comparaison de la version publiée
        SousVersion=' '; // en cas d'absence de sous version mettre un espace
 
 implementation
@@ -66,6 +66,8 @@ var
 begin
   Result:=False;
   DeleteFile(s);
+  //Affiche('VV1',clLime);
+  Application.ProcessMessages;
   Try Fs:=TFileStream.Create(s,fmCreate,fmShareDenyNone);
     hSession:=InternetOpen('MyApp',INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
     try
@@ -73,6 +75,8 @@ begin
       begin
         // fonction longue
         dwTimeout:=2000; //2s
+        //Affiche('VV2',clLime);
+        Application.ProcessMessages;
         InternetSetOption(hSession,INTERNET_OPTION_CONNECT_TIMEOUT,@dwTimeOut, SizeOf(dwTimeOut));
         hService:=InternetOpenUrl(hSession, PChar(aUrl), nil, 0, INTERNET_FLAG_RELOAD, 0);
         if Assigned(hService) then
@@ -240,8 +244,11 @@ begin
           else formVersion.Free;
         end;
 
-        if (V_utile=V_publie) and notificationVersion then Affiche('Votre version '+Version_p+SousVersion+' est à jour',clLime);
-
+        if notificationVersion then
+        begin
+          if V_utile=V_publie then Affiche('Votre version '+Version_p+SousVersion+' est à jour',clLime);
+          if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+Version_p+SV_publie,clLime);
+        end;
       end;
     end
     else

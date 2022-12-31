@@ -50,9 +50,9 @@ object FormSimulation: TFormSimulation
   object CheckAffTick: TCheckBox
     Left = 64
     Top = 64
-    Width = 225
+    Width = 313
     Height = 17
-    Caption = 'Afficher les ticks pendant la simulation'
+    Caption = 'RAZ des trains et de leurs placements avant de d'#233'marrer'
     TabOrder = 2
   end
   object OpenDialog: TOpenDialog
