@@ -17,7 +17,6 @@ type
     ButtonCherche: TButton;
     ButtonAffEvtChrono: TButton;
     ButtonCop: TButton;
-    RichEdit: TRichEdit;
     PopupMenuRE: TPopupMenu;
     copier1: TMenuItem;
     ButtonRazLog: TButton;
@@ -73,7 +72,6 @@ type
     procedure CheckBoxTraceLIsteClick(Sender: TObject);
     procedure CheckTrameClick(Sender: TObject);
     procedure ButtonCopClick(Sender: TObject);
-    procedure copier1Click(Sender: TObject);
     procedure ButtonRazLogClick(Sender: TObject);
     procedure CheckBoxEvtDetAigClick(Sender: TObject);
     procedure CheckBoxAffFDClick(Sender: TObject);
@@ -88,7 +86,6 @@ type
     procedure ButtonSimuDet0Click(Sender: TObject);
     procedure ButtonSimuDet1Click(Sender: TObject);
     procedure ButtonRazToutClick(Sender: TObject);
-    procedure RichEditChange(Sender: TObject);
     procedure MemoEvtDet1Change(Sender: TObject);
     procedure EditDebugSignalChange(Sender: TObject);
     procedure CheckBoxTiersClick(Sender: TObject);
@@ -101,6 +98,7 @@ type
     procedure Button0Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormActivate(Sender: TObject);
+    procedure MemoEvtDetChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -113,8 +111,6 @@ var
   AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
-
-
 
 
 procedure AfficheDebug(s : string;lacouleur : TColor);
@@ -139,15 +135,6 @@ begin
   end;
 end;
 
-procedure AfficheDebug(s : string;lacouleur : TColor);
-begin
-  if debugAffiche then
-  with FormDebug.RichDebug do
-  begin
-    Lines.add(s);
-    RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
-  end;
-end;
 
 procedure affiche_evt(s: string;lacouleur : TColor);
 begin
@@ -156,6 +143,16 @@ begin
   begin
     Lines.add(s);
     RE_ColorLine(FormDebug.MemoEvtDet,FormDebug.MemoEvtDet.lines.count-1,lacouleur);
+  end;
+end;
+
+procedure AfficheDebug(s : string;lacouleur : TColor);
+begin
+  if debugAffiche then
+  with FormDebug.RichDebug do
+  begin
+    Lines.add(s);
+    RE_ColorLine(FormDebug.RichDebug,FormDebug.RichDebug.lines.count-1,lacouleur);
   end;
 end;
 
@@ -177,19 +174,12 @@ var s: string;
 begin
   if affevt then affiche('FormDebug create',clLime);
   EditNivDebug.Text:='0';
-  s:='Cette fenêtre permet d''afficher des informations sur le ';
-  s:=s+'comportement du programme. Positionner le niveau du débug de 1 à 3 pour';
-  s:=s+' afficher des informations plus ou moins détaillées.';
-  RichEdit.Lines.add(s);
   RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   RichDebug.color:=$33;
   initform:=false;
   RichDebug.clear;
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
-  if IsWow64Process then s:=s+' OS 64 Bits' else s:=s+' OS 32 Bits';
-  RichEdit.color:=$111122;
-  RichDebug.Lines.add(s);
-  Autoscroll:=true; // permet l'affichage de l'ascenseur
+  Autoscroll:=true; // permet l'affichage de l'ascenseur dans radstudio
   DebugAffiche:=true;
 end;
 
@@ -325,13 +315,6 @@ begin
   RichDebug.Lines:=Formprinc.FenRich.lines;
 end;
 
-procedure TFormDebug.copier1Click(Sender: TObject);
-begin
-  RichEdit.SelectAll;
-  RichEdit.CopyToClipboard;
-  RichEdit.SetFocus;
-end;
-
 procedure TFormDebug.ButtonRazLogClick(Sender: TObject);
 begin
   RichDebug.Clear;
@@ -408,12 +391,13 @@ end;
 
 procedure TFormDebug.Button2Click(Sender: TObject);
 var Adr,erreur,ancdebug,trainreseve : integer ;
+    reservetraintiers : boolean;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
   Cond_Carre(Adr);
-  carre_signal(adr,trainreseve);
+  carre_signal(adr,0,reservetraintiers);
   NivDebug:=AncDebug;
 end;
 
@@ -461,11 +445,6 @@ end;
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
 begin
   Raz_tout;
-end;
-
-procedure TFormDebug.RichEditChange(Sender: TObject);
-begin
-  SendMessage(RichEdit.handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
 procedure TFormDebug.MemoEvtDet1Change(Sender: TObject);
@@ -556,7 +535,7 @@ begin
   end;
   
   // pilotage par USB ou par éthernet de la centrale ------------
-  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  if (hors_tension=false) and (portCommOuvert or parSocketLenz) then
   begin
     groupe:=(adr-1) div 4;
     fonction:=((adr-1) mod 4)*2 + (sortie-1); 
@@ -598,7 +577,7 @@ begin
   end;
   
   // pilotage par USB ou par éthernet de la centrale ------------
-  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  if (hors_tension=false) and (portCommOuvert or parSocketLenz) then
   begin
     groupe:=(adr-1) div 4;
     fonction:=((adr-1) mod 4)*2 + (sortie-1); 
@@ -620,6 +599,11 @@ procedure TFormDebug.FormActivate(Sender: TObject);
 begin
   if affevt then affiche('FormConfig activate',clLime);
   formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
+end;
+
+procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
+begin
+  SendMessage(MemoEvtDet.handle,WM_VSCROLL,SB_BOTTOM,0);
 end;
 
 end.

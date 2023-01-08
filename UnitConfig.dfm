@@ -1570,7 +1570,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2126,41 +2126,38 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 8
         Width = 297
-        Height = 81
+        Height = 49
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet.'
-          'Attention de COM1 '#224' 30 - Si le port de l'#39'interface USB>30, il '
-          'faut le changer manuellement dans le gestionnaire des '
-          'p'#233'riph'#233'riques. Si COMX : Signaux complexes d'#233'tecte le'
-          'port automatiquement (mais le d'#233'marrage est plus long)')
+          '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet. '
+          'COM de 1 '#224' 99 - Si COMX : Signaux complexes d'#233'tecte le '
+          'port automatiquement (mais le d'#233'marrage est plus long)'
+          ' ')
         ReadOnly = True
         TabOrder = 3
       end
       object Memo2: TMemo
         Left = 312
-        Top = 96
+        Top = 64
         Width = 297
-        Height = 97
+        Height = 73
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
           '2. Valeur de temporisation entre deux octets transf'#233'r'#233's '#224' '
           'l'#39'interface. Elle peut '#234'tre nulle. '
-          'Pour les interfaces s'#233'rie sans protocole (0) comme le '
-          'GENLI, il est conseill'#233' de la positionner '#224' une valeur de '
-          'l'#39'ordre de 30 (ms). '
-          'Pour les interfaces avec protocole mat'#233'riel RTS-CTS (2) '
-          'cette variable est ignor'#233'e.')
+          'Pour les interfaces s'#233'rie sans protocole (0) comme le GENLI, il '
+          'est conseill'#233' de mettre 30 (ms). Pour les interfaces avec '
+          'protocole mat'#233'riel RTS-CTS (2) cette variable est ignor'#233'e.')
         ReadOnly = True
         TabOrder = 4
       end
       object Memo3: TMemo
         Left = 312
-        Top = 200
+        Top = 144
         Width = 297
         Height = 89
         BevelInner = bvLowered
@@ -2169,8 +2166,8 @@ object FormConfig: TFormConfig
         Lines.Strings = (
           '3. Valeur maximale par tranche de 100 ms qui d'#233'finit le temps '
           'd'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '
-          'une trame qui lui est transf'#233'r'#233'e. '
-          'Cette valeur est '#224' tester en fonction de votre interface. '
+          'une trame qui lui est transf'#233'r'#233'e. Cette valeur est '#224' tester en '
+          'fonction de votre interface. '
           'En cas de d'#233'passement de la valeur, un message '#171' pas de '
           'r'#233'ponse de l'#39'interface '#187' sera affich'#233'.')
         ReadOnly = True
@@ -2178,16 +2175,18 @@ object FormConfig: TFormConfig
       end
       object Memo4: TMemo
         Left = 312
-        Top = 296
+        Top = 240
         Width = 297
-        Height = 57
+        Height = 49
         BevelInner = bvLowered
         BevelKind = bkFlat
         BorderStyle = bsNone
         Lines.Strings = (
-          '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette valeur '
-          'doit '#234'tre '#224' 0. Pour les interfaces utilisant nativement de '
-          'l'#39'USB, cette valeur doit '#234'tre '#224' 1. ')
+          
+            '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette valeur d' +
+            'oit '
+          #234'tre '#224' 0. Pour les interfaces utilisant nativement de l'#39'USB, '
+          'cette valeur doit '#234'tre '#224' 1. ')
         ReadOnly = True
         TabOrder = 6
       end
@@ -2298,6 +2297,31 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
+        end
+      end
+      object GroupBox25: TGroupBox
+        Left = 312
+        Top = 320
+        Width = 297
+        Height = 49
+        Caption = 'Divers'
+        TabOrder = 9
+        object Label58: TLabel
+          Left = 24
+          Top = 24
+          Width = 155
+          Height = 13
+          Caption = 'Filtrage des d'#233'tecteurs (x100 ms)'
+        end
+        object EditFiltrDet: TEdit
+          Left = 224
+          Top = 16
+          Width = 25
+          Height = 21
+          Hint = 'Temps de filtrage d'#39'un d'#233'tecteur qui passe '#224' 0'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
         end
       end
     end

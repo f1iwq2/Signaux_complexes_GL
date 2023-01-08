@@ -118,6 +118,8 @@ begin
   closeFile(fte);
   formprinc.ButtonArretSimu.Visible:=true;
   i_simule:=1;
+  SauvefiltrageDet0:=filtrageDet0;
+  filtrageDet0:=0;
   FormSimulation.Close;
   Affiche('Fichier simulation : '+Nomfichier ,clyellow);
 end;

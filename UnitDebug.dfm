@@ -1,9 +1,8 @@
 object FormDebug: TFormDebug
   Left = 306
   Top = 21
-  Width = 856
+  Width = 864
   Height = 721
-  VertScrollBar.Position = 6
   VertScrollBar.Smooth = True
   VertScrollBar.Tracking = True
   Caption = 'Fen'#234'tre de d'#233'bug'
@@ -21,13 +20,13 @@ object FormDebug: TFormDebug
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   DesignSize = (
-    831
+    839
     690)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 666
-    Top = -2
+    Left = 674
+    Top = 4
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -42,8 +41,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 514
-    Top = -4
+    Left = 522
+    Top = 2
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -56,8 +55,8 @@ object FormDebug: TFormDebug
     ParentFont = False
   end
   object EditNivDebug: TEdit
-    Left = 777
-    Top = -4
+    Left = 785
+    Top = 2
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -72,8 +71,8 @@ object FormDebug: TFormDebug
     OnKeyPress = EditNivDebugKeyPress
   end
   object ButtonEcrLog: TButton
-    Left = 441
-    Top = 322
+    Left = 449
+    Top = 328
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -82,8 +81,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonEcrLogClick
   end
   object ButtonRazTampon: TButton
-    Left = 441
-    Top = 354
+    Left = 449
+    Top = 360
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -93,8 +92,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonRazTamponClick
   end
   object ButtonCherche: TButton
-    Left = 441
-    Top = 290
+    Left = 449
+    Top = 296
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -103,8 +102,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonChercheClick
   end
   object ButtonAffEvtChrono: TButton
-    Left = 441
-    Top = 250
+    Left = 449
+    Top = 256
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -114,8 +113,8 @@ object FormDebug: TFormDebug
     OnClick = ButtonAffEvtChronoClick
   end
   object ButtonCop: TButton
-    Left = 441
-    Top = 202
+    Left = 449
+    Top = 208
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -130,39 +129,20 @@ object FormDebug: TFormDebug
     WordWrap = True
     OnClick = ButtonCopClick
   end
-  object RichEdit: TRichEdit
-    Left = 546
-    Top = 170
-    Width = 270
-    Height = 153
-    Anchors = [akTop, akRight]
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Arial'
-    Font.Style = []
-    HideScrollBars = False
-    ParentFont = False
-    PopupMenu = PopupMenuRE
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 6
-    OnChange = RichEditChange
-  end
   object ButtonRazLog: TButton
-    Left = 441
-    Top = 394
+    Left = 449
+    Top = 400
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Raz Tampon Log <-----'
-    TabOrder = 7
+    TabOrder = 6
     WordWrap = True
     OnClick = ButtonRazLogClick
   end
   object GroupBox1: TGroupBox
-    Left = 447
-    Top = 634
+    Left = 455
+    Top = 600
     Width = 372
     Height = 185
     Anchors = [akTop, akRight]
@@ -175,7 +155,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 8
+    TabOrder = 7
     object GroupBox3: TGroupBox
       Left = 8
       Top = 16
@@ -309,8 +289,8 @@ object FormDebug: TFormDebug
     end
   end
   object GroupBox2: TGroupBox
-    Left = 439
-    Top = 14
+    Left = 447
+    Top = 20
     Width = 380
     Height = 149
     Anchors = [akTop, akRight]
@@ -323,7 +303,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
     object CheckAffSig: TCheckBox
       Left = 8
       Top = 16
@@ -482,20 +462,20 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = 2
-    Width = 419
+    Top = 8
+    Width = 427
     Height = 788
     Anchors = [akLeft, akTop, akRight]
     Lines.Strings = (
       'RichDebug')
     PopupMenu = PopupMenuRD
     ScrollBars = ssBoth
-    TabOrder = 10
+    TabOrder = 9
     OnChange = RichDebugChange
   end
   object GroupBox5: TGroupBox
-    Left = 447
-    Top = 522
+    Left = 455
+    Top = 488
     Width = 372
     Height = 57
     Anchors = [akTop, akRight]
@@ -508,7 +488,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 11
+    TabOrder = 10
     object EditSimuDet: TEdit
       Left = 16
       Top = 24
@@ -561,8 +541,8 @@ object FormDebug: TFormDebug
     end
   end
   object ButtonRazTout: TButton
-    Left = 442
-    Top = 170
+    Left = 450
+    Top = 176
     Width = 97
     Height = 25
     Hint = 
@@ -572,12 +552,12 @@ object FormDebug: TFormDebug
     Caption = 'RAZ tous trains'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 12
+    TabOrder = 11
     OnClick = ButtonRazToutClick
   end
   object GroupBox6: TGroupBox
-    Left = 446
-    Top = 586
+    Left = 454
+    Top = 552
     Width = 373
     Height = 41
     Anchors = [akTop, akRight]
@@ -590,7 +570,7 @@ object FormDebug: TFormDebug
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    TabOrder = 13
+    TabOrder = 12
     object Label3: TLabel
       Left = 16
       Top = 16
@@ -653,14 +633,15 @@ object FormDebug: TFormDebug
     end
   end
   object MemoEvtDet: TRichEdit
-    Left = 548
-    Top = 330
+    Left = 556
+    Top = 174
     Width = 265
-    Height = 185
+    Height = 307
     Anchors = [akTop, akRight]
     Color = clBlack
     ScrollBars = ssVertical
-    TabOrder = 14
+    TabOrder = 13
+    OnChange = MemoEvtDetChange
   end
   object SaveDialog: TSaveDialog
     Left = 768
@@ -671,7 +652,6 @@ object FormDebug: TFormDebug
     Top = 432
     object copier1: TMenuItem
       Caption = 'copier'
-      OnClick = copier1Click
     end
   end
   object PopupMenuRD: TPopupMenu

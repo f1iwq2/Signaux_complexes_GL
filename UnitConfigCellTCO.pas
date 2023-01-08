@@ -13,7 +13,7 @@ type
     ComboRepr: TComboBox;
     Label1: TLabel;
     ButtonFonte: TButton;
-    EditTexte: TEdit;
+    EditTexteCCTCO: TEdit;
     GroupBox2: TGroupBox;
     Label15: TLabel;
     EditTypeImage: TEdit;
@@ -31,7 +31,7 @@ type
     procedure ButtonOkClick(Sender: TObject);
     procedure EditTypeImageKeyPress(Sender: TObject; var Key: Char);
     procedure EditAdrElementChange(Sender: TObject);
-    procedure EditTexteChange(Sender: TObject);
+    procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ComboReprChange(Sender: TObject);
@@ -65,11 +65,12 @@ procedure actualise;
 var Bimage : integer;
     oriente,piedFeu : integer;
 begin
-  actualize:=true;  // évite les évènemebts parasites
+  actualize:=true;  // évite les évènements parasites
   FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XClicCell)+','+intToSTR(YClicCell);
   Bimage:=TCO[XClicCell,YClicCell].Bimage;
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
 
+  // si signal
   if Bimage<30 then
   With formConfCellTCO.ImagePalette do
   begin
@@ -78,6 +79,7 @@ begin
     Transparent:=false;
   end;
 
+  // si pas signal
   if Bimage<>30 then
   with formConfCellTCO do
   begin
@@ -88,6 +90,7 @@ begin
     RadioButtonD.Enabled:=false;
   end;
 
+  //mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
   with formConfCellTCO.ImagePalette.Picture do
   case Bimage of
   1: Assign(FormTCO.ImagePalette1.Picture);
@@ -181,7 +184,7 @@ begin
 
   with formConfCellTCO do
   begin
-    EditTexte.Text:=Tco[XClicCell,YClicCell].Texte;
+    EditTexteCCTCO.Text:=Tco[XClicCell,YClicCell].Texte;
     EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
     ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
   end;
@@ -245,7 +248,7 @@ begin
 
 end;
 
-procedure TFormConfCellTCO.EditTexteChange(Sender: TObject);
+procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 begin
   PCanvasTCO.Brush.Color:=fond;
 
@@ -254,11 +257,11 @@ begin
     Tco[XClicCell,YClicCell].CoulFonte:=clTexte;
     Tco[XClicCell,YClicCell].TailleFonte:=8;
   end;
-  Tco[XClicCell,YClicCell].Texte:=EditTexte.Text;
-  TCO_modifie:=true;
+  Tco[XClicCell,YClicCell].Texte:=EditTexteCCTCO.Text;
+  if not(clicTCO) then TCO_modifie:=true;
   if not(selectionaffichee) then efface_entoure;
   affiche_texte(XClicCell,YClicCell);
-  formTCO.EditTexte.Text:=EditTexte.text;
+  formTCO.EditTexte.Text:=EditTexteCCTCO.text;
   if not(selectionaffichee) then _entoure_cell_clic;
 end;
 

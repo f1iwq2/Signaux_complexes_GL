@@ -3,7 +3,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, unitprinc;
+  Dialogs, StdCtrls, unitprinc, unitpilote;
 
 type
   TFormPlace = class(TForm)
@@ -71,6 +71,7 @@ type
     procedure EditDir4Change(Sender: TObject);
     procedure EditDir5Change(Sender: TObject);
     procedure EditDir6Change(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -380,8 +381,8 @@ begin
 end;
 
 procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
-var i,j,adrDet,AdrTrain : integer;
-    trouve : boolean;
+var a,i,j,id,adrDet,AdrTrain,AdrFeu : integer;
+    trouve,rouge : boolean;
 begin
   if cdm_connecte then
   begin
@@ -395,21 +396,37 @@ begin
     adrDet:=Adresse_detecteur[i];
     if Detecteur[adrDet].etat and (detecteur[adrDet].train<>'') then
     begin
-      Affiche('Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet),clYellow);
+      rouge:=false;
       AdrTrain:=detecteur[AdrDet].AdrTrain;
-      j:=index_train_adresse(AdrTrain);
-      vitesse_loco('',adrTrain,trains[j].VitNominale,not(placement[j].inverse));
-      trouve:=true;
-      roulage:=true;
-      maj_feux;
-      reserve_canton(AdrDet,placement[j].detdir,adrtrain);
+      AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du feu correspondant au détecteur
+      if adrFeu<>0 then
+      begin
+        id:=index_feu(AdrFeu);
+        a:=feux[id].EtatSignal;
+        if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) then rouge:=true;
+      end;
 
+      if not(rouge) then
+      begin
+        j:=index_train_adresse(AdrTrain);
+        vitesse_loco('',adrTrain,trains[j].VitNominale,not(placement[j].inverse));
+        trouve:=true;
+        roulage:=true;
+        maj_feux;
+        Affiche('Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet),clYellow);
+        reserve_canton(AdrDet,placement[j].detdir,adrtrain);
+      end
+      Else Affiche('Le signal '+intToSTR(AdrFeu)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
     end;
   end;
   if trouve then
   begin
     Maj_feux;
     Formprinc.LabelTitre.caption:=titre+' - Mode roulage en cours';
+    with Formprinc.SBMarcheArretLoco do
+    begin
+      Visible:=true;
+    end;
   end;
   if not(trouve) then Affiche('Pas de train placé',clOrange);
 end;
@@ -538,6 +555,11 @@ begin
   end;
   labelTexte.caption:='';
   placement[6].detdir:=i;
+end;
+
+procedure TFormPlace.FormCreate(Sender: TObject);
+begin
+  PlaceAffiche:=true;
 end;
 
 end.

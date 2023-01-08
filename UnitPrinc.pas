@@ -43,7 +43,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem , registry  ;
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem , registry,
+  Buttons  ;
 
 type
   TFormPrinc = class(TForm)
@@ -99,9 +100,6 @@ type
     BoutonRaf: TButton;
     ButtonArretSimu: TButton;
     ButtonDroit: TButton;
-    Panel2: TPanel;
-    Label1: TLabel;
-    LabelNbTrains: TLabel;
     LabelEtat: TLabel;
     ButtonAffTCO: TButton;
     ButtonLanceCDM: TButton;
@@ -155,6 +153,10 @@ type
     Informationsdusignal1: TMenuItem;
     Button1: TButton;
     Evenementsdetecteurspartrain1: TMenuItem;
+    RazResa: TMenuItem;
+    SBMarcheArretLoco: TSpeedButton;
+    Label1: TLabel;
+    LabelNbTrains: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -228,6 +230,8 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Informationsdusignal1Click(Sender: TObject);
     procedure Evenementsdetecteurspartrain1Click(Sender: TObject);
+    procedure RazResaClick(Sender: TObject);
+    procedure SBMarcheArretLocoClick(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -261,11 +265,12 @@ const_inconnu=9;      // position inconnue
 NbCouleurTrain=8;
 MaxCdeDccpp=20;
 ClBleuClair=$FF7070 ;
+clRose=$AAAAFF;
 Cyan=$FF6060;
 clviolet=$FF00FF;
 GrisF=$414141;
 clOrange=$0077FF;
-couleurTrain : array[1..NbCouleurTrain] of Tcolor = (clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
+couleurTrain : array[0..NbCouleurTrain] of Tcolor = (clRose,clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
 Max_Simule=10000;
 Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
@@ -378,16 +383,16 @@ var
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
-  etape,idEl,avecRoulage,intervalle_courant : integer;
+  etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0 : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
   Srvc_PosTrain,Srvc_Sig,debugtrames,LayParParam,AvecFVR,InverseMotif,
-  Hors_tension2,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
+  Hors_tension,traceSign,TraceZone,Ferme,parSocketLenz,ackCdm,PremierFD,doubleclic,
   NackCDM,MsgSim,StopSimu,succes,recu_cv,AffAigDet,Option_demarrage,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
-  retEtatDet,roulage,init_aig_cours,affevt : boolean;
+  retEtatDet,roulage,init_aig_cours,affevt,placeAffiche : boolean;
 
   tick,Premier_tick : longint;
 
@@ -402,13 +407,10 @@ var
   detecteur : array[0..NbMemZone] of  // détecteurs indexés par l'adresse
   record
     etat : boolean;        // état 0/1 du déecteur
-    tempo : integer;       // temporisation de passage de 1 à 0 pour retarder le démarrage train au feu non rouge
     train : string;        // nom du train ayant enclenché le détecteur (CDM - pas fiable)
     AdrTrain : integer;    // adresse du train "train"
-    IndexTrain : integer;   // index du train
-    QuitteVers1,QuitteVers2 : integer;   //
-    vers1,vers2 : integer; // détecteurs vers lequel se dirige le train sur un front descendant
-    de1,de2     : integer; // détecteurs d'où vient le train qui vient sur ce détecteur
+    tempo0   : integer;    // tempo de retombée à 0 du détecteur (filtrage)
+    IndexTrain : integer;  // index du train
   end;
 
   TypeGen : TEquipement;
@@ -511,6 +513,8 @@ var
               nom_train : string;
               adresse,vitmax,VitNominale,VitRalenti : integer;
               TempoArret : integer;  // tempo d'arret pour le timer
+              TempoDemarre : integer;
+              index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
            end;
 
   // éléments verrouillés
@@ -532,6 +536,7 @@ var
 
   event_det_train : array[0..Max_Trains] of record
                     NbEl,AdrTrain : integer;
+                    signal_rouge : integer ; // si le train est arreté sur un signal au rouge
                     nom_train : string; // nom du train
                     suivant : integer;  // suivant prévisionnel à det1 et det2
                     Det : array[1..2] of record
@@ -574,7 +579,7 @@ function detecteur_suivant_El(el1: integer;TypeDet1 : TEquipement;el2 : integer;
 function test_memoire_zones(adresse : integer) : boolean;
 function PresTrainPrec(Adresse,NbCtSig : integer;var AdrTr : integer) : boolean;
 function cond_carre(adresse : integer) : boolean;
-function carre_signal(adresse : integer;var TrainReserve : integer) : boolean;
+function carre_signal(adresse,TrainReserve : integer;var reserveTrainTiers : boolean) : boolean;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
@@ -595,6 +600,7 @@ procedure vitesse_loco(nom_train :string;loco : integer;vitesse : integer;sens :
 procedure Maj_Feux;
 procedure Det_Adj(adresse : integer);
 procedure reserve_canton(detecteur1,detecteur2,adrtrain : integer);
+function signal_detecteur(detecteur : integer) : integer;
 
 implementation
 
@@ -1337,7 +1343,7 @@ begin
   if trouve then Index_train_nom:=i else Index_train_nom:=0 ;
 end;
 
-// trouve l'index d'un train par son adresse
+// trouve l'index d'un train par son adresse dans le tableau trains
 function index_train_adresse(adr : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -1664,27 +1670,24 @@ end;
 function envoi(s : string) : boolean;
 var tempo : integer;
 begin
-  if Hors_tension2=false then
+  envoi_ss_ack(s);
+  // attend l'ack
+  ack:=false;nack:=false;
+  if portCommOuvert or parSocketLenz then
   begin
-    envoi_ss_ack(s);
-    // attend l'ack
-    ack:=false;nack:=false;
-    if portCommOuvert or parSocketLenz then
+    tempo:=0;
+    repeat
+      Application.processMessages;
+      inc(tempo);Sleep(50);
+    until ferme or ack or nack or (tempo>(TimoutMaxInterface*3)); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
+    if not(ack) or nack then
     begin
-      tempo:=0;
-      repeat
-        Application.processMessages;
-        inc(tempo);Sleep(50);
-      until ferme or ack or nack or (tempo>(TimoutMaxInterface*3)); // l'interface répond < 5s en mode normal et 1,5 mn en mode programmation
-      if not(ack) or nack then
-      begin
-        s:='Pas de réponse de l''interface';
-        Affiche(s,clRed);
-        if traceTrames then AfficheDebug(s,clred);
-        inc(pasreponse);
-      end;
-      if ack then begin pasreponse:=0;hors_tension2:=false;end;
+      s:='Pas de réponse de l''interface';
+      Affiche(s,clRed);
+      if traceTrames then AfficheDebug(s,clred);
+      inc(pasreponse);
     end;
+    if ack then begin pasreponse:=0;hors_tension:=false;end;
   end;
   envoi:=ack;
 end;
@@ -2014,11 +2017,13 @@ end;
 procedure vitesse_loco(nom_train :string;loco : integer;vitesse : integer;sens : boolean);
 var s : string;
 begin
-  if portCommOuvert or parSocketLenz then
+  if not(hors_tension) and ((portCommOuvert or parSocketLenz)) then
   begin
     if protocole=1 then
     begin
-      //Affiche(inttostr(vitesse),clOrange);
+      //Affiche('X9 train '+inttostr(loco)+' '+inttostr(vitesse),clOrange);
+      //AfficheDebug('X9 train '+inttostr(loco)+' '+inttostr(vitesse),clOrange);
+
       if vitesse>127 then vitesse:=127;
       if sens then vitesse:=vitesse or 128;
       s:=#$e4+#$13+#$0+char(loco)+char(vitesse);
@@ -2032,12 +2037,13 @@ begin
       envoi(s);
     end;
   end;
+
   if cdm_connecte then
   begin
-     s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
-     //s:=chaine_CDM_vitesseINT(vitesse,loco);    // par adresse du train
-     envoi_CDM(s);
-     //affiche(s,clLime);
+    s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
+    //s:=chaine_CDM_vitesseINT(vitesse,loco);    // par adresse du train
+    envoi_CDM(s);
+    //affiche(s,clLime);
   end;
 end;
 
@@ -3308,7 +3314,7 @@ begin
     code_to_aspect(code,aspect,combine);
     s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
     if traceSign then affiche(s,clOrange);
-    if Affsignal then afficheDebug(s,clOrange);
+    if Affsignal or traceListe then afficheDebug(s,clOrange);
     //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
 
     // spécifique au décodeur digital bahn:
@@ -3349,9 +3355,58 @@ begin
   end;
 end;
 
+// renvoie l'adresse du détecteur suivant des deux éléments contigus
+// TypeElprec/actuel: 1= détecteur  2= aiguillage 4=Buttoir
+// algo= type d'algorithme pour suivant_alg3
+function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : integer;TypeElActuel : TEquipement;algo : integer) : integer ;
+var actuelCalc,PrecCalc,j,AdrSuiv ,indexCalc : integer;
+    TypeprecCalc,TypeActuelCalc : TEquipement;
+begin
+  if NivDebug>=2 then
+    AfficheDebug('Proc Detecteur_suivant '+IntToSTR(prec)+','+BTypeToChaine(typeElPrec)+'/'+intToSTR(actuel)+','+
+                  BTypeToChaine(TypeElActuel)+
+                  ' Alg='+IntToSTR(algo),clyellow);
+  j:=0;
+
+  PrecCalc:=prec;
+  TypeprecCalc:=TypeElprec;
+  ActuelCalc:=actuel;
+  TypeActuelCalc:=TypeELActuel;
+  // étape 1 trouver le sens
+  repeat
+    inc(j);
+    AdrSuiv:=suivant_alg3(precCalc,TypeprecCalc,actuelCalc,TypeActuelCalc,algo);
+    indexCalc:=index_aig(actuelCalc);
+    if (typeGen=tjd) and false then // si le précédent est une TJD/S et le suivant aussi
+      begin
+        if ((aiguillage[index_aig(AdrSuiv)].modele=tjd) or (aiguillage[index_aig(AdrSuiv)].modele=tjs)) and
+           ((aiguillage[indexCalc].modele=tjd) or (aiguillage[indexCalc].modele=tjs)) then
+        begin
+          if nivDebug=3 then AfficheDebug('501 - Détection Précédent=TJD/S Suivant=TJD/S',clyellow);
+          // subsituer la pointe
+          actuelCalc:=aiguillage[indexCalc].APointe;
+        end;
+      end;
+    precCalc:=actuelCalc;
+    TypeprecCalc:=TypeActuelCalc;
+    actuelCalc:=AdrSuiv;
+    TypeActuelCalc:=typeGen;
+    //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
+  until (j=10) or (typeGen=det) or (AdrSuiv=0) or (AdrSuiv>=9990); // arret si détecteur
+
+  // si trouvé le sens, trouver le suivant
+  if AdrSuiv=actuel then
+  begin
+     AdrSuiv:=suivant_alg3(prec,TypeElPrec,actuel,TypeElActuel,1); // suivant immédiat
+  end;
+  if (NivDebug=3) and (AdrSuiv<9990) then AfficheDebug('618 : Le suivant est le '+intToSTR(AdrSuiv),clYellow);
+  detecteur_suivant:=AdrSuiv;
+end;
+
+
 // pilotage d'un signal, et mise à jour du graphisme du feu dans les 3 fenetres
 procedure envoi_signal(Adr : integer);
-var i,adresse,det,a,b,aspect,x,y,TailleX,TailleY,Orientation,AdrTrain : integer;
+var i,it,j,index_train,adresse,detect,detsuiv,a,b,aspect,x,y,TailleX,TailleY,Orientation,AdrTrain : integer;
     ImageFeu : TImage;
     frX,frY : real;
     s : string;
@@ -3389,28 +3444,40 @@ begin
         if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) and ((b<>semaphore_F) and (b<>carre_F) and (b<>violet_F)) then
         begin
           // y a t il un train en face du signal
-          det:=feux[i].Adr_det1;
-          if det<>0 then
+          detect:=feux[i].Adr_det1;
+          if detect<>0 then
           begin
             // test si train sur le détecteur det
-            if detecteur[det].etat then
+            if detecteur[detect].etat then
             begin
-              AdrTrain:=detecteur[det].AdrTrain;
+              AdrTrain:=detecteur[detect].AdrTrain;
               if AdrTrain<>0 then
               begin
-                s:='Le train @'+intToSTR(detecteur[det].AdrTrain)+' va démarrer du signal '+intToSTR(adr);
-                Affiche(s,clLime);
-                if TraceLIste then AfficheDebug(s,clLime);
-                detecteur[det].tempo:=20;  // armer la tempo à 2s
+                s:='Le train @'+intToSTR(AdrTrain)+' va démarrer du signal '+intToSTR(adr);
+                Affiche(s,clWhite);
+                if TraceListe then AfficheDebug(s,clWhite);
+                index_train:=index_train_adresse(adrtrain);
+                if index_train<>0 then it:=trains[index_train].index_event_det_train;
+                if it<>0 then event_det_train[it].signal_rouge:=0;
+                // faire la réservation du canton
+                if feux[i].Btype_suiv1<>det then detSuiv:=detecteur_suivant(detect,det,feux[i].Adr_el_suiv1,feux[i].Btype_suiv1,1)
+                  else detSuiv:=feux[i].Adr_el_suiv1;
+                if detSuiv<9990 then reserve_canton(detect,detSuiv,Adrtrain);
+                // démarrage d'un train
+                j:=index_train_adresse(adrtrain);
+                trains[j].tempoDemarre:=20;  // armer la tempo à 2s
+                // annuler la demande d'arret éventuelle
+                trains[j].TempoArret:=0;
+
                 // arreter le train
                 //s:=detecteur[det].train;
                 //detecteur[det].train:=s;
                 //Affiche('et son détecteur '+IntToSTR(det)+'=1 tempo démarrage ; train '+s,clYellow);
-                if cdm_connecte then
-                begin
-                  s:=chaine_CDM_vitesseST(0,s);  // 0%
-                  envoi_cdm(s);
-                end;
+                //if cdm_connecte then
+                //begin
+                //  s:=chaine_CDM_vitesseST(0,s);  // 0%
+                //  envoi_cdm(s);
+                //end;
               end;
             end;
           end;
@@ -4584,55 +4651,6 @@ begin
 end;
 
 
-// renvoie l'adresse du détecteur suivant des deux éléments contigus
-// TypeElprec/actuel: 1= détecteur  2= aiguillage 4=Buttoir
-// algo= type d'algorithme pour suivant_alg3
-function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : integer;TypeElActuel : TEquipement;algo : integer) : integer ;
-var actuelCalc,PrecCalc,j,AdrSuiv ,indexCalc : integer;
-    TypeprecCalc,TypeActuelCalc : TEquipement;
-begin
-  if NivDebug>=2 then
-    AfficheDebug('Proc Detecteur_suivant '+IntToSTR(prec)+','+BTypeToChaine(typeElPrec)+'/'+intToSTR(actuel)+','+
-                  BTypeToChaine(TypeElActuel)+
-                  ' Alg='+IntToSTR(algo),clyellow);
-  j:=0;
-
-  PrecCalc:=prec;
-  TypeprecCalc:=TypeElprec;
-  ActuelCalc:=actuel;
-  TypeActuelCalc:=TypeELActuel;
-  // étape 1 trouver le sens
-  repeat
-    inc(j);
-    AdrSuiv:=suivant_alg3(precCalc,TypeprecCalc,actuelCalc,TypeActuelCalc,algo);
-    indexCalc:=index_aig(actuelCalc);
-    if (typeGen=tjd) and false then // si le précédent est une TJD/S et le suivant aussi
-      begin
-        if ((aiguillage[index_aig(AdrSuiv)].modele=tjd) or (aiguillage[index_aig(AdrSuiv)].modele=tjs)) and
-           ((aiguillage[indexCalc].modele=tjd) or (aiguillage[indexCalc].modele=tjs)) then
-        begin
-          if nivDebug=3 then AfficheDebug('501 - Détection Précédent=TJD/S Suivant=TJD/S',clyellow);
-          // subsituer la pointe
-          actuelCalc:=aiguillage[indexCalc].APointe;
-        end;
-      end;
-    precCalc:=actuelCalc;
-    TypeprecCalc:=TypeActuelCalc;
-    actuelCalc:=AdrSuiv;
-    TypeActuelCalc:=typeGen;
-    //Affiche('Suivant signalaig='+IntToSTR(AdrSuiv),clyellow);
-  until (j=10) or (typeGen=det) or (AdrSuiv=0) or (AdrSuiv>=9990); // arret si détecteur
-
-  // si trouvé le sens, trouver le suivant
-  if AdrSuiv=actuel then
-  begin
-     AdrSuiv:=suivant_alg3(prec,TypeElPrec,actuel,TypeElActuel,1); // suivant immédiat
-  end;
-  if (NivDebug=3) and (AdrSuiv<9990) then AfficheDebug('618 : Le suivant est le '+intToSTR(AdrSuiv),clYellow);
-  detecteur_suivant:=AdrSuiv;
-end;
-
-
 //renvoie l'élément connecté de l'aiguillage ou de la tjd tjs "adr" sur le point D,S ou P passé par connect
 procedure aig_ext(adr : integer ; connect : char;var suiv : integer;var typ_suiv: char);
 var i : integer;
@@ -5404,15 +5422,17 @@ begin
 end;
 
 // renvoie vrai si le signal adresse doit afficher un carré car les aiguillages au dela du signal sont mal positionnés
-// renvoie dans TrainReserve l'adresse de l'aiguillage qui a été réservé
-function carre_signal(adresse : integer;var TrainReserve : integer) : boolean;
+// TrainReserve : adresse du train qui demande la fonction
+// Si reserveTrainTiers=vrai, le parcours est réservé par un autre train
+function carre_signal(adresse,TrainReserve : integer;var reserveTrainTiers : boolean) : boolean;
 var
-   i,j,k,prec,indexFeu,AdrSuiv,index2,voie,AdrFeu : integer;
+   i,j,k,prec,indexFeu,AdrSuiv,index2,voie,AdrFeu,adrtrain : integer;
    TypeELPrec,TypeElActuel : TEquipement;
    multi, sort  : boolean;
    s : string;
 begin
-  TrainReserve:=0;
+  AdrTrain:=0;   
+  ReserveTrainTiers:=false;
   if (NivDebug>=1) then AfficheDebug('Test si signal '+IntToSTR(adresse)+' doit afficher un carré si aiguillage avals mal positionnés',clyellow);
 
   i:=Index_feu(adresse);
@@ -5435,6 +5455,7 @@ begin
   // trouver si une des voies présente un train
   if (multi) then
   begin
+    reserveTrainTiers:=false;
     carre_signal:=false;   // pour l'instant verrouillé en mode pas de carré
     exit;
   end;
@@ -5446,11 +5467,12 @@ begin
     k:=index_aig(actuel);
     if aiguillage[k].AdrTrain<>0 then
     begin
-      TrainReserve:=aiguillage[k].AdrTrain;
-      if (nivdebug>=1) then AfficheDebug('Aiguillage '+intToSTR(aiguillage[k].adresse)+' verrouillé par train @'+intToSTR(TrainReserve),clorange);
-      result:=false;
-      if debug=3 then formprinc.Caption:='';
-      exit;
+      AdrTrain:=aiguillage[k].AdrTrain;
+      if AdrTrain<>0 then
+      begin
+        reserveTrainTiers:=reserveTrainTiers or (adrTrain<>TrainReserve);
+        if (nivdebug>=1) then AfficheDebug('Aiguillage '+intToSTR(aiguillage[k].adresse)+' verrouillé par train @'+intToSTR(AdrTrain),clorange);
+      end;
     end;
   end;
 
@@ -5460,7 +5482,7 @@ begin
     AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);  // arret sur aiguille en talon mal positionéne
 
     if (AdrSuiv=9999) or (AdrSuiv=9996) or (AdrSuiv=9995) then // élément non trouvé ou position aiguillage inconnu ou buttoir
-    begin
+    begin;
       carre_signal:=true;
       if debug=3 then formprinc.Caption:='';
       exit;
@@ -5473,9 +5495,9 @@ begin
       TypeElActuel:=typeGen;
     end;
 
-    // si le précécent est un détecteur comporte t-il un signal?
+    // si le précédent est un détecteur comporte t-il un signal?
     indexFeu:=0;
-    if (prec>512) then
+    if (typeElPrec=det) then
     begin
       //indexFeu:=index_feu_det(AdrSuiv,voie,index2); // trouve l'index du feu correspondant au détecteur AdrSuiv
       indexFeu:=index_feu_det(prec,voie,index2); // trouve l'index du feu correspondant au détecteur AdrSuiv
@@ -5536,12 +5558,13 @@ begin
       k:=index_aig(actuel);
       if aiguillage[k].AdrTrain<>0 then
       begin
-        TrainReserve:=aiguillage[k].AdrTrain;
-        if (nivdebug>=1) then AfficheDebug('Aiguillage '+intToSTR(aiguillage[k].adresse)+' verrouillé par train @'+intToSTR(TrainReserve),clorange);
-        result:=true;
-        if debug=3 then formprinc.Caption:='';
-        exit;
-      end;
+        AdrTrain:=aiguillage[k].AdrTrain;
+        if adrTrain<>0 then
+        begin
+          reserveTrainTiers:=reserveTrainTiers or (AdrTrain<>Trainreserve);
+          if (nivdebug>=1) then AfficheDebug('Aiguillage '+intToSTR(aiguillage[k].adresse)+' verrouillé par train @'+intToSTR(AdrTrain),clorange);
+        end;
+      end;                                                                                                   
     end;
 
     sort:=(j=10) or (indexFeu<>0) or (AdrSuiv=9998) or (AdrSuiv=0); // arret si aiguillage en talon ou buttoir
@@ -5550,8 +5573,9 @@ begin
   // si trouvé 9998, aiguillages mal positionnés
   if (NivDebug>=1) then
   begin
-   if (AdrSuiv=9998) then AfficheDebug('Le signal '+intToSTR(adresse)+' doit afficher un carré car l''aiguillage pris en talon '+IntToSTR(actuel)+' est mal positionné',clYellow)
-    else AfficheDebug('Le signal '+IntToSTR(adresse)+' ne doit pas être au carré',clYellow);
+   if (AdrSuiv=9998) then AfficheDebug('Le signal '+intToSTR(adresse)+' doit afficher un carré car l''aiguillage pris en talon '+IntToSTR(actuel)+' est mal positionné',clYellow);
+   if AdrTrain<>0 then afficheDebug('Un aiguillage est réservé par le train '+intToSTR(AdrTrain),clyellow);
+   if (AdrSuiv<>9998) and (AdrTrain=0) then AfficheDebug('Le signal '+intToSTR(adresse)+' ne doit pas afficher de carré',clyellow);
   end;
   carre_signal:=AdrSuiv=9998;
   if debug=3 then formprinc.Caption:='';
@@ -6328,6 +6352,7 @@ begin
           if AdrSuiv=0 then AfficheDebug('Buttoir',clyellow);
         end;
         if debug=3 then formprinc.Caption:='';
+        Signal_precedent:=0;
         exit;
       end;
 
@@ -6386,7 +6411,7 @@ end;
 // renvoie vrai si présence train
 // dans AdrTrain:
 // renvoie 0 si pas d
-// renvoie l'adresse du train dans AdrTrain ou 0 si elle est indisponible
+// renvoie l'adresse du 1er train rencontré dans AdrTrain ou 0 si elle est indisponible
 function PresTrainPrec(Adresse,NbCtSig : integer;var AdrTr : integer) : boolean;
 var
   AdrSuiv,prec,ife,actuel,i,j,ifd,
@@ -6442,7 +6467,7 @@ begin
     end;  // détecteur sur le signal courant
 
     pres_Train:=Detecteur[actuel].etat;
-    if pres_train then AdrTr:=Detecteur[actuel].AdrTrain;
+    if pres_train and (AdrTr=0) then AdrTr:=Detecteur[actuel].AdrTrain;
 
     TypeActuel:=det;
     if actuel=0 then
@@ -6466,7 +6491,7 @@ begin
         if AdrSuiv=0 then
         begin
           PresTrainPrec:=Pres_Train or (Detecteur[actuel].etat);
-          AdrTr:=Detecteur[actuel].AdrTrain;
+          if (adrTr=0) then AdrTr:=Detecteur[actuel].AdrTrain;
         end;
 
         if (nivDebug=3) then
@@ -6496,7 +6521,8 @@ begin
           etat:=Detecteur[actuel].etat;
           Pres_train:=MemZone[actuel,dernierdet].etat or Pres_Train or (etat);
           PresTrainPrec:=Pres_Train;
-          if etat then AdrTr:=Detecteur[actuel].AdrTrain;
+          if adrTr=0 then AdrTr:=Detecteur[actuel].AdrTrain;
+          if adrtr=0 then AdrTr:=MemZone[actuel,dernierdet].AdrTrain;
 
           if Pres_Train then
           begin
@@ -6563,7 +6589,7 @@ end;
 // mise à jour de l'état d'un feu en fonction de son environnement et affiche le feu
 procedure Maj_Feu(Adrfeu : integer);
 var Adr_det,etat,Aig,Adr_El_Suiv,modele,index,IndexAig,trainreserve,AdrTrainLoc : integer ;
-    PresTrain,Aff_semaphore,car : boolean;
+    PresTrain,Aff_semaphore,car,reserveTrainTiers : boolean;
     code,combine,AdrSignalsuivant : integer;
     Btype_el_suivant : TEquipement;
     s : string;
@@ -6617,7 +6643,7 @@ begin
       //AfficheDebug('Feux à 2 feux',CLOrange);
       // si aiguillage après signal mal positionnées ou réservé ou pas de train avant le signal
       PresTrain:=PresTrainPrec(AdrFeu,Nb_cantons_Sig,AdrTrainLoc);
-      if carre_signal(AdrFeu,trainreserve) or not(PresTrain) or (feux[index].VerrouilleCarre) then
+      if carre_signal(AdrFeu,AdrTrainLoc,reserveTrainTiers) or not(PresTrain) or (feux[index].VerrouilleCarre) then
       begin
         Maj_Etat_Signal(AdrFeu,violet);
         envoi_signal(AdrFeu);
@@ -6641,16 +6667,15 @@ begin
     begin
       PresTrain:=false;
       // détecteurs précédent le feu , pour déterminer si leurs mémoires de zones sont à 1 pour libérer le carré
-      if (Feux[index].VerrouCarre) and (modele>=4) then
-        presTrain:=PresTrainPrec(AdrFeu,Nb_cantons_Sig,AdrTrainLoc); //etape A   // présence train par adresse train
-
-      if AffSignal then afficheDebug('Fin de la recherche des 4 détecteurs précédents-----',clOrange);
+      //if (Feux[index].VerrouCarre) and (modele>=4) then
+      presTrain:=PresTrainPrec(AdrFeu,Nb_cantons_Sig,AdrTrainLoc); //etape A   // présence train par adresse train
+      if AffSignal and roulage then AfficheDebug('L''@ du train avant le signal est '+intToSTR(AdrTrainLoc),clYellow);
 
       // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou aig réservé ou que pas présence train avant signal et signal
       // verrouillable au carré, afficher un carré
-      car:=carre_signal(AdrFeu,trainreserve);  // si trainReserve<>0, réservé par le train
+      car:=carre_signal(AdrFeu,AdrTrainLoc,reserveTrainTiers);  // si reserveTrainTiers, réservé par un autre train
       // En mode roulage, si la réservation est faite par le train détecté en étape A, ne pas verrouiller au carré
-      if roulage and (trainreserve<>0) and (AdrTrainLoc=TrainReserve) then car:=false;
+      if roulage then car:=reserveTrainTiers or car;
 
       // conditions supplémentaires de carré en fonction des aiguillages décrits
       car:=cond_carre(AdrFeu) or car;
@@ -6874,7 +6899,7 @@ end;
 // libère le canton avant detecteur2 comportant un signal et le signal précédent
 // attention le détecteur 2 n'est pas forcément associé à un signal (et dans le bon sens
 Procedure libere_canton(detecteur1,detecteur2 : integer);
-var sd2,i,j,AdrPrec : integer;
+var sd2,i,j: integer;
     typ : tEquipement;
 begin
   if not(roulage) then exit;
@@ -6906,10 +6931,11 @@ begin
 end;
 
 // réserve le canton du detecteur équipé du feu (non compris) au feu suivant
+// det1 et det2 sont contigus
 procedure reserve_canton(detecteur1,detecteur2,adrtrain : integer);
-var it,AdrSig,actuel,succ,Suiv,i,j,etat,etatSuiv,AdrSignalsuivant : integer;
+var AdrSig,i,j,etat,etatSuiv,AdrSignalsuivant : integer;
     rouge,cas2 : boolean;
-    typ,typSuiv,typeAct : tEquipement;
+    typ : tEquipement;
 begin
   if not(roulage) then exit;
   if traceliste then afficheDebug('demande réservation canton '+intToSTR(detecteur1)+' '+intToSTR(detecteur2)+' par train @'+intToSTR(adrtrain),clorange);
@@ -6981,14 +7007,22 @@ end;
 
 // pilote le train sur le détecteur det2, d'adresse adrtrain
 // le det1 indique d'ou vient le train pour le bon sens du signal
-procedure pilote_train(det1,det2,adrtrain : integer);
+// le train est piloté si ontrouve un signal dans le bon sens sur det2
+// it : numéro du train du réseau (pour la couleur)
+procedure pilote_train(det1,det2,AdrTrain,it : integer);
 var entree_signal,jauneC,rappel30C,rappel60C,rouge : boolean;
-    i,adresse,adresse2,Etat,voie,i2 : integer;
+    i,index_train,adresse,adresse2,Etat,voie,i2 : integer;
+    couleur : TColor;
+    s : string;
 begin
   if not(roulage) or (adrtrain=0) then exit;
   i:=index_feu_det(det2,voie,i2); // index du feu associé au det2  j:=signal_detecteur(det3);
-
   if i=0 then exit;
+
+  i2:=((it-1) mod NbCouleurTrain) +1;
+  couleur:=CouleurTrain[i2];
+  index_train:=index_train_adresse(adrTrain);  // index du tableau trains
+
   adresse:=feux[i].adresse;    //voir si il est dans le bon sens
 
   adresse2:=signal_suivant_det(det1,det2); // renvoie le signal suivant dans le sens det1 det2
@@ -6997,7 +7031,7 @@ begin
   etat:=feux[i].EtatSignal;
 
   rouge:=testbit(etat,semaphore) or testbit(etat,carre) or testbit(etat,violet);
-  jauneC:=testbit(etat,jaune);
+  jauneC:=testbit(etat,jaune) or testbit(etat,blanc) or testbit(etat,blanc_cli);
   rappel30C:=testbit(etat,rappel_30);
   rappel60C:=testbit(etat,rappel_60);
 
@@ -7005,11 +7039,16 @@ begin
 
   // si le feu est au rouge et qu'on entre dans son détecteur
   if rouge and entree_signal then
-  begin    
-    if traceListe then AfficheDebug('Signal '+intToSTR(adresse)+' au rouge - Arrêt train @'+intToSTR(AdrTrain),clLime);
-    i:=index_train_adresse(AdrTrain);
-    if (i<>0) and (i<Max_Trains) then trains[i].TempoArret:=50;
+  begin
+    s:='Signal '+intToSTR(adresse)+' au rouge - Arrêt train @'+intToSTR(AdrTrain);
+    if traceListe then AfficheDebug(s,couleur);
+    Affiche(s,couleur);
+    event_det_train[it].signal_rouge:=adresse;
+    if (index_train<>0) and (index_train<Max_Trains) then trains[index_train].TempoArret:=50;
+    exit;
   end;
+
+  event_det_train[it].signal_rouge:=0;
 
   if (jauneC or Rappel30C) and entree_signal then
   begin
@@ -7018,1188 +7057,53 @@ begin
       if jauneC then AfficheDebug('Signal '+intToSTR(adresse)+' à l''avertissement - Ralentissement train @'+intToSTR(AdrTrain),clLime);
       if Rappel30C and not(jauneC) then AfficheDebug('Signal '+intToSTR(adresse)+' au rappel30 - Ralentissement train @'+intToSTR(AdrTrain),clLime);
     end;
-    i:=index_train_adresse(AdrTrain); //renvoie l'index du train AdrTrain du tableau trains
-    if (i<>0) and (i<Max_Trains) then vitesse_loco('',AdrTrain,trains[i].VitRalenti,not(placement[i].inverse));
+    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse));
   end;
 
   if (Rappel60C) and not(jauneC) and entree_signal then
   begin
     if traceListe then AfficheDebug('Signal '+intToSTR(adresse)+' au rappel60 - Ralentissement train @'+intToSTR(AdrTrain),clLime);
-    i:=index_train_adresse(AdrTrain);
-    if (i<>0) and (i<Max_Trains) then vitesse_loco('',AdrTrain,trains[i].VitRalenti,not(placement[i].inverse));
+    if (index_train<>0) and (index_train<Max_Trains) then
+      vitesse_loco('',AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse));
   end;
 
-  if testbit(etat,vert) and entree_signal then
+  if (testbit(etat,vert) or testbit(etat,vert_cli)) and entree_signal then
   begin
     if traceListe then AfficheDebug('Signal '+intToSTR(adresse)+' Voie libre - Vitesse nominale train @'+intToSTR(AdrTrain),clLime);
-    i:=index_train_adresse(AdrTrain);
-    if (i<>0) and (i<Max_Trains) then vitesse_loco('',AdrTrain,trains[i].VitNominale,not(placement[i].inverse));
+    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',AdrTrain,trains[index_train].VitNominale,not(placement[index_train].inverse));
   end;
+
+  if testbit(etat,jaune_Cli) and entree_signal then
+  begin
+    if traceListe then AfficheDebug('Signal '+intToSTR(adresse)+' Jaune cli - Vitesse nominale train @'+intToSTR(AdrTrain),clLime);
+    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',AdrTrain,trains[index_train].VitNominale,not(placement[index_train].inverse));
+  end;
+
   if testbit(etat,semaphore_cli) and entree_signal then
   begin
     if traceListe then AfficheDebug('Signal '+intToSTR(adresse)+' Sémaphore cli - Vitesse réduite train @'+intToSTR(AdrTrain),clLime);
-    i:=index_train_adresse(AdrTrain);
-    if (i<>0) and (i<Max_Trains) then vitesse_loco('',AdrTrain,trains[i].VitRalenti,not(placement[i].inverse));
+    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse));
   end;
 end;
 
-// calcul des zones depuis le tableau des fronts montants ou descendants des évènements détecteurs
-// transmis dans le tableau Event_det
-// rattache le nouveau détecteur à un train
-// adresse: adresse du detecteur, front: état du détecteur
-procedure calcul_zones_V2a(adresse: integer;front : boolean);
-var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,etat,i,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,de1,de2,v1,v2 : integer ;
-    traite,trouve,cas1,cas2 : boolean;
-    TypeSuiv : tEquipement;
+
+// le traitement d'un détecteur à 0 est temporisé car il peut électriquement rebondir à cause des mauvais contacts.
+procedure traite_det0(adresse : integer);
+var i,j,k,EtatSig,det1,det2,det3,det4,det_suiv,adrSuiv,AdrTrainLoc,n : integer;
+    suivOk,CasAig : boolean;
     s,train_ch : string;
 begin
-{
-  nbre:=0;
-  for i:=1 to NDetecteurs do
-  begin
-   det1:=Adresse_detecteur[i];
-   if Detecteur[det1].AdrTrain<>0 then inc(nbre);
-  end;
-
-  if ((nbre<2) and (i_simule>=77)) or (i_simule>=118) then
-  begin
-    Affiche('Erreur suivi: '+intToSTR(i_simule),clred);
-    Index_Simule:=0;  // fin de simulation
-    I_Simule:=0;
-    MsgSim:=false;
-    StopSimu:=true;
-    //exit;
-  end;
-  {
-  if i_simule<>0 then
-  begin
-    s:=IntToSTR(i_simule)+' tick='+intToSTR(Tablo_simule[i_simule].tick)+' '+intToSTR(det3);
-    if front then s:=s+' (1)' else s:=s+' (0)';
-    Affiche(s,clLime);
-  end;
-  }
-  det3:=adresse; // c'est le nouveau détecteur
-  if det3=0 then exit; // pas de nouveau détecteur
-  traite:=false;
-  s:='V2A->Le nouveau détecteur est '+IntToSTR(det3);
-  if front then s:=s+' (1)' else s:=s+' (0)';
-  FormDebug.MemoEvtDet.lines.add(s) ;
-  if dupliqueEvt then AfficheDebug(s,clyellow) ;
-
-  for i:=1 to N_trains do
-  begin
-    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
-    det1:=event_det_train[i].det[1].adresse;
-    det2:=event_det_train[i].det[2].adresse;
-
-    {
-    if ((det2=det3) and (nbre=2)) or ((det1=det3) and (nbre=1)) then
-    begin
-      s:='Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
-      FormDebug.MemoEvtDet.lines.add(s);
-      if dupliqueEvt then AfficheDebug(s,clyellow);
-      exit; // sortir
-    end;
-    }
-
-    // 1 élément dans le tableau et détecteur à 0---------------------------------------------
-    if (nbre=1) and not(front) then
-    begin
-      Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-      // vérifie si les détecteurs adjacents sont à 0 pour remplir le champ "prévision" de det3 : le train se dirige de det3 à adj1 ou adj2
-      if not(detecteur[Adj1].etat) then
-      begin
-        detecteur[det3].vers1:=Adj1;  // le train de det3 peut aller vers adj1
-        detecteur[adj1].de1:=det3;    // marquer adj1 que le train vient de det3
-      end
-      else detecteur[det3].vers1:=0;
-      if not(detecteur[Adj2].etat) then
-      begin
-        detecteur[det3].vers2:=Adj2;  // le train de det3 peut aller vers adj2
-        detecteur[adj2].de1:=det3;    // marquer adj2 que le train vient de det3
-      end
-      else detecteur[det3].vers2:=0;
-
-
-      if (roulage) then
-      begin
-        // traiter pour les cas avec 1 élément
-        if traceListe then AfficheDebug('1-0 traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
-        // vérifier si l'élément du tableau et le nouveau sont contigus
-        if (Adj1=det1) or (Adj2=det1) then
-        begin
-          with event_det_train[i] do
-          begin
-            det[2].adresse:=det3;
-            det[2].etat:=front;
-            NbEl:=2;
-          end;
-
-          adrTrainLoc:=event_det_train[i].Adrtrain;
-          Train_ch:=event_det_train[i].nom_train;
-          if (AdrTrainLoc=0) and roulage then Affiche('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
-
-          // en mode roulage, on a placé les trains
-
-          j:=1;
-          repeat
-            trouve:=placement[j].detdir=det3;
-            inc(j);
-          until (j>6) or trouve;
-          dec(j);
-          //si début de démarrage train i
-          if not(trouve) or (TrainZone[i].Nbre>0) then exit;
-            // affecter le nouveau détecteur
-            detecteur[det3].train:=Train_ch;
-            detecteur[det3].AdrTrain:=AdrTrainLoc;
-            // libérer l'ancien
-            //detecteur[event_det_train[i].Det[1].adresse].AdrTrain:=0;
-            //detecteur[event_det_train[i].Det[1].adresse].train:='';
-
-            AdrSuiv:=detecteur_suivant_el(det1,det,det3,det,1);
-            //*** route validée ***
-            MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
-            MemZone[det1,det3].train:='';
-            MemZone[det1,det3].Adrtrain:=0;
-            MemZone[det3,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
-            MemZone[det3,det1].train:='';
-            MemZone[det3,det1].Adrtrain:=0;
-
-            MemZone[det3,AdrSuiv].etat:=true;    // valide la nouvelle zone
-            MemZone[det3,AdrSuiv].train:=Train_ch;
-            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
-            MemZone[AdrSuiv,det3].etat:=False;     // on dévalide la zone inverse
-            MemZone[AdrSuiv,det2].train:='';
-            MemZone[AdrSuiv,det2].AdrTrain:=0;
-
-            // stockage dans historique de zones
-            if i<MaxTrainZone then
-            begin
-              n:=TrainZone[i].Nbre+1;
-              if n>MaxZones then n:=1;
-              with TrainZone[i] do
-              begin
-                Nbre:=n;
-                Zone[n].det1:=det1;
-                Zone[n].det2:=det3;
-                train:=train_ch;
-                AdrTrain:=AdrTrainLoc
-              end;
-            end;
-            //reserve_canton(det1,det3,false,0,false);   // déreserve le canton précedent
-            //reserve_canton(det3,AdrSuiv,false,TrainZone[i].Adrtrain,true); // si feu réserve canton courant
-            libere_canton(det1,det3);   // on quitte det3
-            reserve_canton(det3,adrSuiv,adrtrainLoc);
-            event_act(det1,det3,1,'');     // évènement actionneur
-            maj_feux;
-
-            // affichages
-            Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
-        FormDebug.MemoEvtDet.lines.add(s);
-        if traceListe then AfficheDebug(s,clyellow);
-        //Affiche(s,CouleurTrain[index_couleur]);
-        if AffAigDet then AfficheDebug(s,clyellow);
-
-        index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-        Affiche_Evt('1-0. Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleurTrain[index_couleur]);
-        with FormDebug.MemoEvtDet do
-        begin
-          s:=intToSTR(event_det_train[i].det[1].adresse);
-          Affiche_Evt(s,couleurTrain[index_couleur]);
-          if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
-          s:=intToSTR(event_det_train[i].det[2].adresse);
-          Affiche_evt(s,couleurTrain[index_couleur]);
-          if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
-        end;
-
-        if TCOouvert then
-        begin
-          // activation
-          if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-          else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
-        end;
-        exit; // sortir absolument
-      end
-      else
-      begin
-        Affiche_evt('les éléments '+intToSTR(det1)+' et '+intToSTR(det3)+' ne sont pas contigus',clyellow);
-        // det3 et det1 non adjacents
-      end;
-    end;
-    end;
-
-    // 1 élément dans le tableau et détecteur à 1 : on pilote le train si feu sur det3---------------------------------------------
-    if (nbre=1) and front then
-    begin
-      if traceListe then AfficheDebug('1-1 Traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
-      if detecteur[det3].de1=det1 then
-      // vérifier si l'élément du tableau et le nouveau sont contigus
-      //Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
-      //if (Adj1=det3) or (Adj2=det3) then
-      begin
-        Train_ch:=event_det_train[i].nom_train;
-        AdrTrainLoc:=event_det_train[i].AdrTrain;
-
-        // en mode roulage, on a placé les trains
-        if roulage then
-        begin
-          j:=1;
-          repeat
-            trouve:=placement[j].detdir=det3;
-            inc(j);
-          until (j>6) or trouve;
-          dec(j);
-          //si début de démarrage train i
-          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMemZone) and (det3<NbMemZone) then
-          begin
-            //Affiche('on a trouvé le train '+intToSTR(j),clYellow);
-
-            detecteur[det3].train:=train_ch;    // affecter le nom du train au détecteur
-            detecteur[det3].AdrTrain:=AdrTrainLoc ;    // affecter l'@ du train au détecteur
-
-            detecteur[det1].train:=''; // désaffecter le nom du train du détecteur précédent
-            detecteur[det1].AdrTrain:=0;
-
-            //*** route validée ***
-            MemZone[det1,det3].etat:=TRUE;      // valide la nouvelle zone
-            MemZone[det1,det3].train:=train_ch;
-            MemZone[det1,det3].AdrTrain:=AdrTrainLoc;
-
-            MemZone[det3,det1].etat:=False;     // on dévalide la zone inverse
-
-            // test si on peut réserver le canton suivant
-            det_suiv:=det_suiv_cont(det1,det3);
-            if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
-            // libérer le canton précédent
-            libere_canton(det1,det2);
-            s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
-            Affiche_Evt(s,clWhite);
-            if TCOouvert then
-            begin
-              // activation
-              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
-              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
-            end;
-          end;
-        end;
-
-        pilote_train(det1,det3,adrtrainLoc);  // pilote le train sur det3
-        //event_act(det1,det3,1,'');     // activation zone
-
-        // actualiser le signal du det3
-        j:=signal_detecteur(det3);
-        if j<>0 then Maj_Feu(j);
-        exit;
-      end;
-      if Traceliste then AfficheDebug(inttoSTR(det3)+' n''est pas contigu à '+intToSTR(det1)+' pour le train '+intToSTR(i),clyellow);
-      traite:=true;  // traiter le train suivant
-    end;
-
-    // 2 éléments dans le tableau et détecteur à 0---------------------------------------------
-    if (nbre=2) and not(front) then
-    begin
-      if TraceListe or (NivDebug=3) then AfficheDebug('2-0 traitement Train n°'+intToSTR(i)+' 2 détecteurs',clyellow);
-      // front descendant sur détecteur 2
-      det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
-      if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),clYellow);
-      if (det_suiv=det3) then
-      begin
-        if TraceListe then AfficheDebug('La route est valide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' sont contigus',clyellow);
-        // ici on cherche le suivant à det2 det3, algo=1
-        AdrSuiv:=detecteur_suivant_el(det2,det,det3,det,0);
-        if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),clyellow);
-        if (Adrsuiv>=9990) then
-        begin
-          //Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
-          if (NivDebug=3) or TraceListe then AfficheDebug('Msg 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clorange);
-        end
-        else
-        begin
-          if (det2<NbMemZone) and (det3<NbMemZone) and (AdrSuiv<NbMemZone) then
-          begin
-            //*** route validée ***
-            train_ch:=event_det_train[i].nom_train;
-            AdrTrainLoc:=event_det_train[i].Adrtrain;
-            MemZone[det2,det3].etat:=FALSE;        // efface zone précédente
-            MemZone[det2,det3].train:='';
-            MemZone[det2,det3].AdrTrain:=0;
-            MemZone[det3,det2].etat:=False;        // on dévalide la zone inverse
-            MemZone[det3,det2].train:='';
-            MemZone[det3,det2].AdrTrain:=0;
-
-            MemZone[det3,AdrSuiv].etat:=TRUE;      // valide la nouvelle zone
-            MemZone[det3,AdrSuiv].train:=train_ch;
-            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
-            MemZone[AdrSuiv,det3].etat:=False;     // on dévalide la zone inverse
-            MemZone[AdrSuiv,det3].train:='';
-            MemZone[AdrSuiv,det3].AdrTrain:=0;
-
-            detecteur[det3].train:=train_ch ;   // affectation nom train au nouveau détecteur
-            detecteur[det3].AdrTrain:=AdrTrainLoc;
-            if detecteur[det2].train=train_ch then  detecteur[det2].train:='';    // désaffectation du nom de train de l'ancien détecteur si le nom du train est égal
-            if detecteur[det2].AdrTrain=AdrTrainLoc then detecteur[det2].AdrTrain:=0;    // désaffectation du nom de train de l'ancien détecteur
-
-            libere_canton(det2,det3);
-            reserve_canton(det3,AdrSuiv,adrTrainLoc);
-            maj_feux;
-            // stockage dans historique de zones
-            if i<MaxTrainZone then
-            begin
-              n:=TrainZone[i].Nbre+1;
-              if n>MaxZones then n:=1;
-              with TrainZone[i] do
-              begin
-                Nbre:=n;
-                Zone[n].det1:=det3;
-                Zone[n].det2:=AdrSuiv;
-                Nbre:=n;
-              end;
-              // zone suivante en prévision
-              det4:=detecteur_suivant_EL(det3,det,AdrSuiv,det,1);
-              TrainPrevZone[i][1]:=det4;
-            end;
-
-            event_act(det2,det3,0,'');        // désactivation zone
-            event_act(det3,AdrSuiv,1,'');     // activation zone
-          end
-          else
-          begin
-            s:='Erreur 740 : Adresse détecteur trop élevé ';
-            if (det2>NbMemZone) and (det2<9990) then s:=s+inttostr(det2)+' ';
-            if (det3>NbMemZone) and (det3<9990) then s:=s+inttostr(det3)+' ';
-            if (AdrSuiv>NbMemZone) and (AdrSuiv<9990) then s:=s+inttostr(AdrSuiv);
-            Affiche(s,clred);
-          end;
-
-          // supprimer le 1er et décaler
-          with event_det_train[i] do
-          begin
-            det[1].adresse:=event_det_train[i].det[2].adresse;
-            det[1].etat:=event_det_train[i].det[2].etat;
-            det[2].adresse:=det3;
-            det[2].etat:=detecteur[det3].etat;
-            NbEl:=2;
-          end;
-
-          // affichages
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          s:='2-0 Train n°'+intToSTR(i)+' route ok de '+intToSTR(det2)+' à '+IntToSTR(det3)+' '+intToSTR(det3)+' à '+IntToSTR(Adrsuiv);
-          FormDebug.MemoEvtDet.lines.add(s);
-          if traceListe then AfficheDebug(s,clyellow);
-          if DebugAffiche then With FormDebug.RichEdit do
-          begin
-            s:='Train '+IntToSTR(i);
-            if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
-            s:=s+' '+intToStr(det2)+' à '+intToStr(det3)+'=>'+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
-            s:=s+' Prev='+intToSTR(TrainPrevZone[i][1]);
-            Lines.Add(s);
-            RE_ColorLine(FormDebug.RichEdit,lines.count-1,CouleurTrain[index_couleur]);
-          end;
-          s:='Train '+IntToSTR(i);
-          if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
-          s:=s+' '+Train_ch+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
-          if traceListe then AfficheDebug(s,clyellow);
-
-          s:='Train '+IntToSTR(i);
-          if AdrTrainLoc<>0 then s:=s+' '+train_ch+' @'+intToSTR(AdrTrainLoc);
-          s:=s+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
-          Affiche(s,CouleurTrain[index_couleur]);
-          if AffAigDet then AfficheDebug(s,clyellow);
-
-          Affiche_Evt('1.Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleurTrain[index_couleur]);
-          with FormDebug.MemoEvtDet do
-          begin
-            Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleurTrain[index_couleur]);
-            Affiche_Evt(intToStr(event_det_train[i].det[2].adresse),couleurTrain[index_couleur]);
-          end;
-          if TraceListe or dupliqueEvt then
-          begin
-            AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),clyellow);
-            AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),clyellow);
-          end;
-          if TCOouvert then
-          begin
-            zone_TCO(det2,det3,0);    // désactivation
-            // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
-          end;
-
-          // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
-          j:=signal_detecteur(det3);
-          if j<>0 then
-          begin
-            Maj_Feu(j);
-            k:=index_feu(j);
-            // si le feu j est au rouge
-            etat:=feux[k].etatsignal;
-            if (testBit(etat,carre)) or (testBit(etat,semaphore)) or (testBit(etat,semaphore_cli)) then
-            begin
-              // Maj du signal précédent (pour l'avertissement)
-              j:=Signal_precedent(j);
-              if j<>0 then
-              begin
-                maj_feu(j);
-                j:=Signal_precedent(j);
-                if j<>0 then maj_feu(j);
-              end;
-            end;
-          end;
-          maj_feux; // mise à jour générale
-          maj_feux; // 2eme mise à jour
-          maj_feux;
-          exit; // sortir absolument
-        end;
-      end
-      else
-      begin
-        if TraceListe then AfficheDebug('La route est invalide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' ne sont pas contigus',clOrange);
-        if event_det_train[i].det[2].adresse=det3 then
-        begin
-          s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
-          FormDebug.MemoEvtDet.lines.add(s);
-          if dupliqueEvt then AfficheDebug(s,clyellow);
-          // exhit sortir
-        end;
-      end;
-      traite:=true;
-    end;
-
-    if (nbre=2) and front then
-    begin
-      if TraceListe or (NivDebug=3) then AfficheDebug('2-1 traitement Train n°'+intToSTR(i)+' 2 détecteurs',clyellow);
-      // front descendant sur détecteur 2
-      det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
-      if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),clYellow);
-      if (det_suiv=det3) then
-      begin
-        if TraceListe then AfficheDebug('La route est valide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' sont contigus',clyellow);
-        if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) then
-        begin
-          //*** route validée ***
-          MemZone[det1,det2].etat:=false;
-          MemZone[det2,det1].etat:=False;     // on dévalide la zone inverse
-          MemZone[det2,det3].etat:=TRUE;      // valide la nouvelle zone
-          MemZone[det3,det2].etat:=False;     // on dévalide la zone inverse
-          //Train_Ch:=event_det_train[i].nom_train;
-          //AdrTrainLoc:=event_det_train[i].Adrtrain;
-          Train_ch:=MemZone[det2,det3].train;
-          AdrTrainLoc:=MemZone[det2,det3].AdrTrain;
-
-          detecteur[det3].train:=Train_ch;   // affectation nom train au nouveau détecteur
-          detecteur[det3].AdrTrain:=AdrTrainLoc;   // affectation train au nouveau détecteur
-          detecteur[det2].train:=''; // désaffectation du nom de train de l'ancien détecteur
-          detecteur[det2].AdrTrain:=0;
-
-          pilote_train(det2,det3,adrtrainLoc);   // pilote le train sur det3
-          // test si on peut réserver le canton suivant
-          det_suiv:=det_suiv_cont(det2,det3);
-          if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
-          //event_act(det2,det3,1,'');     // activation zone
-        end
-        else
-        begin
-          s:='Erreur 741 : Adresse détecteur trop élevé ';
-          if (det2>NbMemZone)  and (det2<9990) then s:=s+inttostr(det2)+' ';
-          if (det3>NbMemZone)  and (det3<9990) then s:=s+inttostr(det2)+' ';
-          if (AdrSuiv>NbMemZone) and (det2<9990) then s:=s+inttostr(det2);
-          Affiche(s,clred);
-        end;
-        // stockage dans historique de zones sauf s'il est déja stocké
-        if i<MaxTrainZone then
-        begin
-          n:=TrainZone[i].Nbre;
-          if (TrainZone[i].Zone[n].det1<>det2) or (TrainZone[i].Zone[n].det2<>det3) then
-          begin
-            n:=TrainZone[i].Nbre+1;
-            if n>MaxZones then n:=1;
-            TrainZone[i].Nbre:=n;
-            TrainZone[i].Zone[n].det1:=det2;
-            TrainZone[i].Zone[n].det2:=det3;
-            TrainZone[i].Nbre:=n;
-            // zone suivante en prévision
-            det4:=detecteur_suivant_EL(det2,det,det3,det,1);
-            TrainPrevZone[i][1]:=det4;
-          end;
-        end;
-        // affichages
-        s:='2-1 Train n°'+intToSTR(i)+' Route ok de '+intToSTR(det2)+' à '+IntToSTR(det3)+' '+intToSTR(det3)+' à '+IntToSTR(Adrsuiv);
-        FormDebug.MemoEvtDet.lines.add(s);
-        if traceListe then AfficheDebug(s,clyellow);
-        if DebugAffiche then With FormDebug.RichEdit do
-        begin
-          s:='Train '+IntToSTR(i)+' '+intToStr(det2)+' à '+intToStr(det3);
-          Lines.Add(s);
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          RE_ColorLine(FormDebug.RichEdit,lines.count-1,CouleurTrain[index_couleur]);
-        end;
-        if TraceListe then AfficheDebug(s,clyellow);
-        Affiche(s,CouleurTrain[index_couleur]);
-        if AffAigDet then AfficheDebug(s,clyellow);
-        if TCOouvert then
-        begin
-          zone_TCO(det1,det2,0);    // désactivation
-          // activation
-          if ModeCouleurCanton=0 then zone_TCO(det2,det3,1)
-          else zone_TCO(det2,det3,2);  // affichage avec la couleur de index_couleur du train
-        end;
-        exit; // sortir absolument
-      end
-      else
-      begin
-        if TraceListe then AfficheDebug('La route est invalide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' ne sont pas contigus',clOrange);
-        if event_det_train[i].det[2].adresse=det3 then
-        begin
-          s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
-          FormDebug.MemoEvtDet.lines.add(s);
-          if dupliqueEvt then AfficheDebug(s,clyellow);
-          exit; // rebond :sortir
-        end;
-      end;
-      traite:=true; // non traité: train suivant
-    end;
-  end;  // fin de la boucle for i
-
-  // nouveau train front det=1 (uniquement mode roulage)
-  {
-  if front then
-  begin
-    if traceListe then AfficheDebug('Nouveau train',clyellow);
-    if N_Trains>=Max_Trains then
-    begin
-      Affiche('Erreur nombre de train maximal atteint',clRed);
-      N_trains:=0;
-    end;
-    Inc(N_trains);
-    with event_det_train[N_trains] do
-    begin
-      det[1].adresse:=det3;
-      det[2].adresse:=0;
-      det[1].etat:=front;
-      NbEl:=1;
-      nom_train:=detecteur[det3].train;
-      AdrTrain:=detecteur[det3].AdrTrain;
-    end;
-  end;
-  }
-
-
-  if front then
-  begin
-    Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-    // libére les "vers det3" de adj1
-    if adj1<9990 then
-    begin
-      if detecteur[adj1].vers1=det3 then detecteur[adj1].vers1:=0;
-      if detecteur[adj1].vers2=det3 then detecteur[adj1].vers2:=0;
-    end;
-    // libére les "vers det3" de adj2
-    if adj2<9990 then
-    begin
-      if detecteur[adj2].vers1=det3 then detecteur[adj2].vers1:=0;
-      if detecteur[adj2].vers2=det3 then detecteur[adj2].vers2:=0;
-    end;
-
-    if adj1<9990 then
-    begin
-      if not(detecteur[Adj1].etat) then
-      // détecteur adjacent à 1
-      begin
-        detecteur[det3].vers1:=Adj1;  // le train de det3 peut aller vers adj1
-        detecteur[adj1].de1:=det3;    // marquer adj1 que le train vient de det3
-      end
-      else
-      // détecteur adjacent à 0
-      begin
-        detecteur[det3].vers1:=0;
-        detecteur[det3].de1:=0; detecteur[det3].de2:=0;
-        detecteur[adj1].de1:=0;
-      end;
-    end;
-    if adj2<9990 then
-    begin
-      if not(detecteur[Adj2].etat) then
-      begin
-        detecteur[det3].vers2:=Adj2;  // le train de det3 peut aller vers adj2
-        detecteur[adj2].de1:=det3;    // marquer adj2 que le train vient de det3
-      end
-      else
-      begin
-        detecteur[det3].vers2:=0;
-        detecteur[det3].de1:=0; detecteur[det3].de2:=0;
-        detecteur[adj2].de1:=0;
-      end;
-    end;
-
-    // test nouveau train
-    v1:=detecteur[det3].vers1;   // destination du det3
-    v2:=detecteur[det3].vers2;
-    de1:=detecteur[v1].de1;      // provenance du v1
-    de2:=detecteur[v1].de2;
-    if ( (det3=de1) and (de1<>0) or ((v1=de2)) and (de2<>0)) then
-      cas1:=true;
-
-    de1:=detecteur[v2].de1;      // provenance du v2
-    de2:=detecteur[v2].de2;
-      if ( (det3=de1) and (de1<>0) or ((v2=de2)) and (de2<>0)) then
-      cas2:=true;
-    if cas1 and cas2 then
-    begin
-      Affiche_evt('Incertitude '+intToSTR(det3)+' vers '+intToSTR(v1)+' ou '+intToSTR(v2),clwhite);
-      exit;
-    end;
-
-    if cas1 then Affiche_evt('C1-1 Nouveau train de '+intToSTR(det3)+' à '+intToSTR(v1),clyellow);
-    if cas2 then Affiche_evt('C2-1 Nouveau train de '+intToSTR(det3)+' à '+intToSTR(v2),clyellow);
-
-
-  end;
-
-  if not(front) then
-  begin
-
-    v1:=detecteur[det3].vers1;   // destination du det3
-    v2:=detecteur[det3].vers2;
-    de1:=detecteur[v1].de1;      // provenance du v1
-    de2:=detecteur[v1].de2;
-    if ( (det3=de1) and (de1<>0) or ((v1=de2)) and (de2<>0)) then
-      cas1:=true;
-
-    de1:=detecteur[v2].de1;      // provenance du v2
-    de2:=detecteur[v2].de2;
-      if ( (det3=de1) and (de1<>0) or ((v2=de2)) and (de2<>0)) then
-      cas2:=true;
-
-    if cas1 and cas2 then
-    begin
-      Affiche_evt('Incertitude '+intToSTR(det3)+' vers '+intToSTR(v1)+' ou '+intToSTR(v2),clwhite);
-      exit;
-    end;
-
-    if cas1 then Affiche_evt('C1-0 Nouveau train de '+intToSTR(det3)+' à '+intToSTR(v1),clyellow);
-    if cas2 then Affiche_evt('C1-0 Nouveau train de '+intToSTR(det3)+' à '+intToSTR(v2),clyellow);
-
-    detecteur[det3].vers1:=0;
-    detecteur[det3].vers2:=0;
-
-    Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-    if adj1<9990 then
-    begin
-      if detecteur[adj1].etat then
-      begin
-        detecteur[det3].de1:=adj1;  // revalider les liens possibles avec les adjacents
-        if detecteur[adj1].vers1=0 then detecteur[adj1].vers1:=det3
-        else
-          if detecteur[adj1].vers2=0 then detecteur[adj1].vers2:=det3
-          else Affiche_evt('Anomalie 750 ',clred);
-      end;
-    end;
-
-    if adj2<9990 then
-    begin
-      if detecteur[adj2].etat then
-      begin
-        detecteur[det3].de1:=adj2;  // revalider les liens possibles avec les adjacents
-        if detecteur[adj2].vers1=0 then detecteur[adj2].vers1:=det3
-        else
-          if detecteur[adj2].vers2=0 then detecteur[adj2].vers2:=det3
-          else Affiche_evt('Anomalie 751 ',clred);
-      end;
-    end;
-  end;
-
-  exit;
-
-  // nouveau train front det=0
-  if traite or not(front) then
-  begin
-    if traceListe then AfficheDebug('Nouveau train',clyellow);
-    // Nombre d'éléments à 0 : ici c'est un nouveau train donc créer un train, donc un tableau
-    if N_Trains>=Max_Trains then
-    begin
-      Affiche('Erreur nombre de train maximal atteint',clRed);
-      N_trains:=0;
-    end;
-    Inc(N_trains);
-    with event_det_train[N_trains] do
-    begin
-      det[1].adresse:=0;
-      det[2].adresse:=0;
-      NbEl:=0;
-      nom_train:='';
-    end;
-
-    // vérifier si le détecteur du nouveau train est associé à un feu vers un buttoir
-    for i:=1 to NbreFeux do
-    begin
-      AdrFeu:=Feux[i].Adresse;
-      AdrDetfeu:=Feux[i].Adr_Det1;
-      if (AdrDetFeu=Det3) and (feux[i].aspect<10) then
-      begin
-        AdrSuiv:=Feux[i].Adr_el_suiv1;
-        TypeSuiv:=Feux[i].Btype_suiv1;
-        AdrPrec:=detecteur_suivant(AdrSuiv,typeSuiv,AdrDetFeu,det,1) ; // détecteur précédent le feu ; algo 1
-        if AdrPrec=0 then
-        begin
-          if TraceListe then Affiche('FD - Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
-          if AdrDetFeu<NbMemZone then
-            MemZone[0,AdrDetFeu].etat:=false
-          else
-            Affiche('Erreur 741: Adresse détecteur feu trop élevé: '+intToSTR(AdrDetFeu),clred);
-          maj_feu(AdrFeu);
-        end;
-      end;
-    end;
-
-    if TraceListe then AfficheDebug('Création Train n°'+intToSTR(N_trains),clyellow);
-    Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
-
-    // si on démarre d'un buttoir
-    if buttoir_adjacent(det3) then
-    begin
-      if TraceListe then AfficheDebug('Détection démarrage depuis détecteur '+IntToSTR(det3)+' buttoir',clyellow);
-      event_det_train[N_trains].det[1].adresse:=0;
-      event_det_train[N_trains].det[2].adresse:=det3;
-      event_det_train[N_trains].NbEl:=2;
-      s:='3. Nouveau Tampon train '+intToStr(N_Trains)+'--------';
-      with FormDebug.MemoEvtDet do
-      begin
-        lines.add(s);
-        lines.add(intToSTR(event_det_train[N_Trains].det[1].adresse));
-        lines.add(intToSTR(event_det_train[N_Trains].det[2].adresse));
-      end;
-      if dupliqueEvt then
-      begin
-        AfficheDebug(s,clyellow);
-        AfficheDebug(intToSTR(event_det_train[N_Trains].det[1].adresse),clyellow);
-        AfficheDebug(intToSTR(event_det_train[N_Trains].det[2].adresse),clyellow);
-      end;
-    end
-    else
-    begin
-      with event_det_train[N_trains] do
-      begin
-        det[1].adresse:=det3;
-        det[1].etat:=front;
-        NbEl:=1;
-        nom_train:=detecteur[det3].train;
-        AdrTrain:=detecteur[det3].AdrTrain;
-      end;
-
-      TrainZone[n_trains].train:=detecteur[det3].train;
-      TrainZone[n_trains].AdrTrain:=detecteur[det3].Adrtrain;
-      if roulage then
-      begin
-        j:=index_train_adresse(detecteur[det3].AdrTrain);
-        j:=placement[j].detdir; // detecteur destination
-        MemZone[det3,j].etat:=true;
-        MemZone[det3,j].train:=detecteur[det3].train;
-        MemZone[det3,j].AdrTrain:=detecteur[det3].AdrTrain;
-
-      end;
-
-      s:=intToSTR(event_det_train[N_trains].det[1].adresse);
-      with FormDebug.MemoEvtDet do
-      begin
-        id_couleur:=((N_trains - 1) mod NbCouleurTrain) +1;;
-        Affiche_Evt('0-0 Tampon train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',  CouleurTrain[id_couleur]);
-        Affiche_evt(s,CouleurTrain[id_couleur]);
-      end;
-      if dupliqueEvt then
-      begin
-        AfficheDebug('0-0 Tampon train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
-        AfficheDebug(s,clyellow);
-      end;
-      if TraceListe then
-      begin
-        AfficheDebug('0-0 Tampon train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
-        AfficheDebug(s,clyellow);
-      end;
-    end;
-  end;
-end;
-
-procedure calcul_zones_V2b(adresse: integer;front : boolean);
-var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,etat,i,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,de1,de2,v1,v2 : integer ;
-    traite,trouve,cas1,cas2 : boolean;
-    TypeSuiv : tEquipement;
-    couleur : Tcolor;
-    s,train_ch : string;
-begin
-  det3:=adresse; // c'est le nouveau détecteur
-  if det3=0 then exit; // pas de nouveau détecteur
-  s:='V2B ->Le nouveau détecteur est '+IntToSTR(det3);
-  if front then s:=s+' (1)' else s:=s+' (0)';
-  FormDebug.MemoEvtDet.lines.add(s) ;
-  if dupliqueEvt then AfficheDebug(s,clyellow) ;
-
-  if front then
-  begin
-    Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-    // libére les "vers det3" de adj1
-    if adj1<9990 then
-    begin
-      for i:=1 to n_trains do
-      begin
-        n:=event_det_train[i].NbEl;
-        // on vient de adj1.vers1 ?
-        if (detecteur[adj1].vers1=det3) and (detecteur[adj1].QuitteVers1=i) then  // si le détecteur adjacent va vers det3 avec le train i
-        begin
-          //detecteur[adj1].QuitteVers1:=0;
-          detecteur[det3].IndexTrain:=i;
-          detecteur[adj1].IndexTrain:=0;
-          if n=2 then event_det_train[i].Det[1]:=event_det_train[i].Det[2];
-          if n=1 then event_det_train[i].NbEl:=2;
-          event_det_train[i].Det[2].adresse:=det3;
-          event_det_train[i].Det[2].etat:=true;
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          couleur:=couleurTrain[index_couleur];
-          Affiche_evt('A11 Train '+intToSTR(i)+' de '+intToSTR(adj1)+' vers '+intToSTR(det3),couleur);
-          Affiche_evt(intToSTR(adj1),couleur);
-          Affiche_evt(intToSTR(det3)+' 1',couleur);
-          detecteur[adj1].vers1:=0;
-          detecteur[adj1].vers2:=0;
-          exit;
-        end;
-
-        //on vient de adj1.vers1?
-        if (detecteur[adj1].vers2=det3) and (detecteur[adj1].QuitteVers1=i) then
-        begin
-          //detecteur[adj1].QuitteVers1:=0;
-          detecteur[det3].IndexTrain:=i;
-          detecteur[adj1].IndexTrain:=0;
-          if n=2 then event_det_train[i].Det[1]:=event_det_train[i].Det[2];
-          if n=1 then event_det_train[i].NbEl:=2;
-          event_det_train[i].Det[2].adresse:=det3;
-          event_det_train[i].Det[2].etat:=true;
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          couleur:=couleurTrain[index_couleur];
-          Affiche_evt('A12 Train de '+intToSTR(i)+' de '+intToSTR(adj1)+' vers '+intToSTR(det3),couleur);
-          Affiche_evt(intToSTR(adj1),couleur);
-          Affiche_evt(intToSTR(det3),couleur);
-          detecteur[adj1].vers1:=0;
-          detecteur[adj1].vers2:=0;
-          exit;
-        end;
-      end;
-
-      if adj2<9990 then
-      begin
-        if (detecteur[adj2].vers1=det3) and (detecteur[adj2].QuitteVers1=i) then
-        begin
-          //detecteur[adj2].QuitteVers1:=0;
-          detecteur[det3].IndexTrain:=i;
-          detecteur[adj2].IndexTrain:=0;
-          if n=2 then event_det_train[i].Det[1]:=event_det_train[i].Det[2];
-          if n=1 then event_det_train[i].NbEl:=2;
-          event_det_train[i].Det[2].adresse:=det3;
-          event_det_train[i].Det[2].etat:=true;
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          couleur:=couleurTrain[index_couleur];
-          Affiche_evt('A21 Train de '+intToSTR(i)+' de '+intToSTR(adj2)+' vers '+intToSTR(det3),couleur);
-          Affiche_evt(intToSTR(adj2),couleur);
-          Affiche_evt(intToSTR(det3),couleur);
-          detecteur[adj2].vers1:=0;
-          detecteur[adj2].vers2:=0;
-          exit;
-        end;
-        if (detecteur[adj2].vers2=det3) and (detecteur[adj2].QuitteVers1=i) then
-        begin
-          //detecteur[adj2].QuitteVers1:=0;
-          detecteur[det3].IndexTrain:=i;
-          detecteur[adj2].IndexTrain:=0;
-          if n=2 then event_det_train[i].Det[1]:=event_det_train[i].Det[2];
-          if n=1 then event_det_train[i].NbEl:=2;
-          event_det_train[i].Det[2].adresse:=det3;
-          event_det_train[i].Det[2].etat:=true;
-          index_couleur:=((i - 1) mod NbCouleurTrain) +1;
-          couleur:=couleurTrain[index_couleur];
-          Affiche_evt('A22 Train de '+intToSTR(i)+' de '+intToSTR(adj2)+' vers '+intToSTR(det3),couleur);
-          Affiche_evt(intToSTR(adj2),couleur);
-          Affiche_evt(intToSTR(det3),couleur);
-          detecteur[adj2].vers1:=0;
-          detecteur[adj2].vers2:=0;
-          exit;
-        end;
-      end;
-    end;
-
-    // évènement non lié : c'est un nouveau train
-    inc(n_trains);
-    index_couleur:=((n_trains - 1) mod NbCouleurTrain) +1;
-    Affiche_evt('Création train '+inttostr(n_trains),couleurTrain[index_couleur]);
-    event_det_train[n_trains].det[1].adresse:=det3;
-    event_det_train[n_trains].det[1].etat:=true;
-    event_det_train[n_trains].NbEl:=1;
-    if detecteur[det3].IndexTrain=0 then detecteur[det3].IndexTrain:=n_trains;   // on affecte le numéro du train à défaut de l'adresse
-    Affiche_evt(intToSTR(event_det_train[n_trains].det[1].adresse),couleurTrain[index_couleur]);
-  end;
-
-  if not(front) then
-  begin
-    Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-    if adj1<9990 then
-    begin
-      if not(detecteur[adj1].etat) then
-      begin
-        AdrTrainLoc:=detecteur[det3].QuitteVers1;
-        detecteur[adj1].de1:=detecteur[det3].IndexTrain;
-        detecteur[det3].vers1:=adj1;
-        detecteur[det3].QuitteVers1:=detecteur[det3].IndexTrain;
-        index_couleur:=((AdrTrainLoc - 1) mod NbCouleurTrain) +1;
-        Affiche_evt(intToSTR(det3)+' quitté par train '+intToSTR(AdrTrainLoc),couleurTrain[index_couleur]);
-      end;
-    end;
-
-    if adj2<9990 then
-    begin
-      if not(detecteur[adj2].etat) then
-      begin
-        AdrTrainLoc:=detecteur[det3].QuitteVers1;
-        detecteur[adj2].de1:=detecteur[det3].IndexTrain;
-        detecteur[det3].vers2:=adj2;
-        detecteur[det3].QuitteVers1:=detecteur[det3].IndexTrain;
-        index_couleur:=((AdrTrainLoc - 1) mod NbCouleurTrain) +1;
-        Affiche_evt(intToSTR(det3)+' quitté par train '+intToSTR(AdrTrainLoc),couleurTrain[index_couleur]);
-      end;
-    end;
-   { begin
-      Affiche_evt('train '+inttostr(n_trains),clyellow);
-      Affiche_evt(intToSTR(event_det_train[n_trains].det[1].adresse),clyellow);
-      if event_det_train[n_trains].NbEl=2 then Affiche_evt(intToSTR(event_det_train[n_trains].det[2].adresse),clyellow);
-    end;
-    }
-  end;
-
-  exit;
-
-end;
-
-
-
-// calcul des zones depuis le tableau des fronts montants ou descendants des évènements détecteurs
-// transmis dans le tableau Event_det
-// rattache le nouveau détecteur à un train
-// adresse: adresse du detecteur, front: état du détecteur
-procedure calcul_zones_V1(adresse: integer;front : boolean);
-var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,etat,i,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc : integer ;
-    traite,trouve,SuivOk,casaig : boolean;
-    couleur : tcolor;
-    TypeSuiv : tEquipement;
-    s,train_ch : string;
-begin
-  det3:=adresse; // c'est le nouveau détecteur
-  if det3=0 then exit; // pas de nouveau détecteur
-  traite:=false;
-  s:='V1->Le nouveau détecteur est '+IntToSTR(det3);
-  if front then s:=s+' (1)' else s:=s+' (0)';
-  Affiche_evt(s,clwhite) ;
-  if dupliqueEvt then AfficheDebug(s,clyellow) ;
-
+  det3:=adresse;
   for i:=1 to N_trains do
   begin
     index_couleur:=((i - 1) mod NbCouleurTrain) +1;
     couleur:=CouleurTrain[index_couleur];
-    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
+    //Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
     det1:=event_det_train[i].det[1].adresse;
     det2:=event_det_train[i].det[2].adresse;
 
-    if ((det2=det3) and (nbre=2)) or ((det1=det3) and (nbre=1)) then
-    begin
-      s:='Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
-      FormDebug.MemoEvtDet.lines.add(s);
-      if dupliqueEvt then AfficheDebug(s,clyellow);
-      exit; // sortir
-    end;
-
-    // 1 élément dans le tableau et détecteur à 0---------------------------------------------
-    if (nbre=1) and not(front) then
-    begin
-      Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
-      //if (roulage) then
-      begin
-        // traiter pour les cas avec 1 élément
-        if traceListe then AfficheDebug('1-0 traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
-        // vérifier si l'élément du tableau et le nouveau sont contigus
-        if (Adj1=det1) or (Adj2=det1) then
-        begin
-          event_det_tick[N_event_tick].train:=i;
-
-          with event_det_train[i] do
-          begin
-            det[2].adresse:=det3;
-            det[2].etat:=front;
-            NbEl:=2;
-          end;
-
-          // en mode roulage, on a placé les trains
-          if roulage then
-          begin
-            adrTrainLoc:=event_det_train[i].Adrtrain;
-            Train_ch:=event_det_train[i].nom_train;
-            if (AdrTrainLoc=0) and roulage then Affiche('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
-
-            j:=1;
-            repeat
-              trouve:=placement[j].detdir=det3;
-              inc(j);
-            until (j>6) or trouve;
-            dec(j);
-            //si début de démarrage train i
-            if not(trouve) or (TrainZone[i].Nbre>0) then
-            begin
-              exit;
-            end;
-            // affecter le nouveau détecteur
-            detecteur[det3].train:=Train_ch;
-            detecteur[det3].AdrTrain:=AdrTrainLoc;
-            // libérer l'ancien
-            //detecteur[event_det_train[i].Det[1].adresse].AdrTrain:=0;
-            //detecteur[event_det_train[i].Det[1].adresse].train:='';
-          end;
-
-          AdrSuiv:=detecteur_suivant_el(det1,det,det3,det,1);
-          //*** route validée ***
-          MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
-          MemZone[det1,det3].train:='';
-          MemZone[det1,det3].Adrtrain:=0;
-          MemZone[det3,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
-          MemZone[det3,det1].train:='';
-          MemZone[det3,det1].Adrtrain:=0;
-          MemZone[det3,AdrSuiv].etat:=true;    // valide la nouvelle zone
-          MemZone[det3,AdrSuiv].train:=Train_ch;
-          MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
-          MemZone[AdrSuiv,det3].etat:=False;     // on dévalide la zone inverse
-          MemZone[AdrSuiv,det2].train:='';
-          MemZone[AdrSuiv,det2].AdrTrain:=0;
-
-          // stockage dans historique de zones
-          if i<MaxTrainZone then
-          begin
-            n:=TrainZone[i].Nbre+1;
-            if n>MaxZones then n:=1;
-            with TrainZone[i] do
-            begin
-              Nbre:=n;
-              Zone[n].det1:=det1;
-              Zone[n].det2:=det3;
-              train:=train_ch;
-              AdrTrain:=AdrTrainLoc
-            end;
-          end;
-          //reserve_canton(det1,det3,false,0,false);   // déreserve le canton précedent
-          //reserve_canton(det3,AdrSuiv,false,TrainZone[i].Adrtrain,true); // si feu réserve canton courant
-          libere_canton(det1,det3);   // on quitte det3
-          reserve_canton(det3,adrSuiv,adrtrainLoc);
-          event_act(det1,det3,1,'');     // évènement actionneur
-          maj_feux;
-
-          // affichages
-          Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
-        if traceListe then AfficheDebug(s,clyellow);
-        //Affiche(s,CouleurTrain[index_couleur]);
-        if AffAigDet then AfficheDebug(s,clyellow);
-
-        Affiche_Evt('1-0. Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
-        s:=intToSTR(event_det_train[i].det[1].adresse);
-        Affiche_Evt(s,couleur);
-        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
-        s:=intToSTR(event_det_train[i].det[2].adresse);
-        Affiche_evt(s,couleur);
-        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
-
-        if TCOouvert then
-        begin
-          // activation
-          if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-          else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
-        end;
-        exit; // sortir absolument
-      end
-      else
-      begin
-        Affiche_evt('les éléments '+intToSTR(det1)+' et '+intToSTR(det3)+' ne sont pas contigus',clyellow);
-        // det3 et det1 non adjacents
-      end;
-    end;
-    end;
-
-    // 1 élément dans le tableau et détecteur à 1 : on pilote le train si feu sur det3---------------------------------------------
-    if (nbre=1) and front then
-    begin
-      if traceListe then AfficheDebug('1-1 Traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
-      // vérifier si l'élément du tableau et le nouveau sont contigus
-      Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
-      suivok:=(Adj1=det3) or (Adj2=det3);
-      if suivok then
-      begin
-        Train_ch:=event_det_train[i].nom_train;
-        AdrTrainLoc:=event_det_train[i].AdrTrain;
-
-        event_det_tick[N_event_tick].train:=i;
-
-        // en mode roulage, on a placé les trains
-        if roulage then
-        begin
-          j:=1;
-          repeat
-            trouve:=placement[j].detdir=det3;
-            inc(j);
-          until (j>6) or trouve;
-          dec(j);
-          //si début de démarrage train i
-          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMemZone) and (det3<NbMemZone) then
-          begin
-            //Affiche('on a trouvé le train '+intToSTR(j),clYellow);
-
-            detecteur[det3].train:=train_ch;    // affecter le nom du train au détecteur
-            detecteur[det3].AdrTrain:=AdrTrainLoc ;    // affecter l'@ du train au détecteur
-
-            detecteur[det1].train:=''; // désaffecter le nom du train du détecteur précédent
-            detecteur[det1].AdrTrain:=0;
-
-            //*** route validée ***
-            MemZone[det1,det3].etat:=TRUE;      // valide la nouvelle zone
-            MemZone[det1,det3].train:=train_ch;
-            MemZone[det1,det3].AdrTrain:=AdrTrainLoc;
-
-            MemZone[det3,det1].etat:=False;     // on dévalide la zone inverse
-
-            // test si on peut réserver le canton suivant
-            det_suiv:=det_suiv_cont(det1,det3);
-            if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
-            s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
-            Affiche_Evt(s,clWhite);
-            if TCOouvert then
-            begin
-              // activation
-              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
-              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
-            end;
-          end;
-        end;
-
-        pilote_train(det1,det3,adrtrainLoc);  // pilote le train sur det3
-        //event_act(det1,det3,1,'');     // activation zone
-
-        // actualiser le signal du det3
-        j:=signal_detecteur(det3);
-        if j<>0 then Maj_Feu(j);
-        exit;
-      end;
-      if Traceliste then AfficheDebug(inttoSTR(det3)+' n''est pas contigu à '+intToSTR(det1)+' pour le train '+intToSTR(i),clyellow);
-      traite:=true;  // traiter le train suivant
-    end;
-
-    // 2 éléments dans le tableau et détecteur à 0---------------------------------------------
-    if (nbre=2) and not(front) then
-    begin
-      if TraceListe or (NivDebug=3) then AfficheDebug('2-0 traitement Train n°'+intToSTR(i)+' 2 détecteurs',couleur);
-       // test si det1, det2 et det3 sont contigus malgré aig mal positionnés
-       //zizi
+  if TraceListe or (NivDebug=3) then AfficheDebug('2-0 traitement Train n°'+intToSTR(i)+' 2 détecteurs',couleur);
+      // test si det1, det2 et det3 sont contigus malgré aig mal positionnés
       det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
       if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),couleur);
       SuivOk:=det_suiv=det3;
@@ -8237,6 +7141,19 @@ begin
         end
         else
         begin
+          // en mode roulage, voir si on perd le détecteur si le train était arreté devat un signal rouge
+          {if roulage then
+          begin
+            AdrFeu:=event_det_train[i].signal_rouge;
+            if AdrFeu<>0 then
+            begin
+              s:='Erreur signal '+intToSTR(AdrFeu)+' au rouge et perte détecteur: ignoré';
+              Affiche_Evt(s,clred);
+              if traceListe then AfficheDebug(s,clred);
+              event_det_tick[N_event_tick].reaffecte:=4;   // fd sur un feu à 0
+              exit;
+            end;
+          end;}
           if (det2<NbMemZone) and (det3<NbMemZone) and (AdrSuiv<NbMemZone) then
           begin
             //*** route validée ***
@@ -8318,15 +7235,6 @@ begin
 
           Affiche_evt(s,couleur);
           if traceListe then AfficheDebug(s,clyellow);
-          if DebugAffiche then With FormDebug.RichEdit do
-          begin
-            s:='Train '+IntToSTR(i);
-            if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
-            s:=s+' '+intToStr(det2)+' à '+intToStr(det3)+'=>'+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
-            s:=s+' Prev='+intToSTR(TrainPrevZone[i][1]);
-            Lines.Add(s);
-            RE_ColorLine(FormDebug.RichEdit,lines.count-1,couleur);
-          end;
           s:='Train '+IntToSTR(i);
           if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
           s:=s+' '+Train_ch+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
@@ -8339,11 +7247,8 @@ begin
           if AffAigDet then AfficheDebug(s,couleur);
 
           Affiche_Evt('1.Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
-          with FormDebug.MemoEvtDet do
-          begin
-            Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
-            Affiche_Evt(intToStr(event_det_train[i].det[2].adresse),couleur);
-          end;
+          Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
+          Affiche_Evt(intToStr(event_det_train[i].det[2].adresse),couleur);
           if TraceListe or dupliqueEvt then
           begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
@@ -8364,8 +7269,8 @@ begin
             Maj_Feu(j);
             k:=index_feu(j);
             // si le feu j est au rouge
-            etat:=feux[k].etatsignal;
-            if (testBit(etat,carre)) or (testBit(etat,semaphore)) or (testBit(etat,semaphore_cli)) then
+            etatSig:=feux[k].etatsignal;
+            if (testBit(etatSig,carre)) or (testBit(etatSig,semaphore)) or (testBit(etatSig,semaphore_cli)) then
             begin
               // Maj du signal précédent (pour l'avertissement)
               j:=Signal_precedent(j);
@@ -8391,13 +7296,447 @@ begin
           s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
           FormDebug.MemoEvtDet.lines.add(s);
           if dupliqueEvt then AfficheDebug(s,clyellow);
-          // exhit sortir
         end;
       end;
-      //traite:=true;
+    end;
+end;
+
+
+// calcul des zones depuis le tableau des fronts montants ou descendants des évènements détecteurs
+// transmis dans le tableau Event_det
+// rattache le nouveau détecteur à un train
+// adresse: adresse du detecteur, front: état du détecteur
+procedure calcul_zones_V1(adresse: integer;etat : boolean);
+var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,i,i2,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
+    id_couleur,det_suiv,nc,etatSig : integer ;
+    traite,trouve,SuivOk,casaig,rebond : boolean;
+    couleur : tcolor;
+    TypeSuiv : tEquipement;
+    s,train_ch : string;
+begin
+  det3:=adresse; // c'est le nouveau détecteur
+  if det3=0 then exit; // pas de nouveau détecteur
+  traite:=false;
+  rebond:=false;
+  s:='Le nouveau détecteur est '+IntToSTR(det3);
+  if etat then s:=s+' 1' else s:=s+' 0';
+  Affiche_evt(s,clwhite) ;
+  if dupliqueEvt then AfficheDebug(s,clyellow) ;
+
+  for i:=1 to N_trains do
+  begin
+    index_couleur:=((i - 1) mod NbCouleurTrain) +1;
+    couleur:=CouleurTrain[index_couleur];
+    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
+    det1:=event_det_train[i].det[1].adresse;
+    det2:=event_det_train[i].det[2].adresse;
+
+
+    if ((det2=det3) and (nbre=2)) or ((det1=det3) and (nbre=1)) then
+    begin
+      //s:='Dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
+      //Affiche_evt(s,clwhite);
+      event_det_tick[N_event_tick].train:=i;
+      event_det_tick[N_event_tick].reaffecte:=3;
+      if dupliqueEvt then AfficheDebug(s,clyellow);
+      rebond:=true;  // possible rebond ?
     end;
 
-    if (nbre=2) and front then
+
+    // 1 élément dans le tableau et détecteur à 0---------------------------------------------
+    if (nbre=1) and not(etat) then
+    begin
+      Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
+      //if (roulage) then
+      begin
+        // traiter pour les cas avec 1 élément
+        if traceListe then AfficheDebug('1-0 traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
+        // vérifier si l'élément du tableau et le nouveau sont contigus
+        if (Adj1=det1) or (Adj2=det1) then
+        begin
+          event_det_tick[N_event_tick].train:=i;
+
+          with event_det_train[i] do
+          begin
+            det[2].adresse:=det3;
+            det[2].etat:=etat;
+            NbEl:=2;
+          end;
+
+          // en mode roulage, on a placé les trains
+          if roulage then
+          begin
+            adrTrainLoc:=event_det_train[i].Adrtrain;
+            Train_ch:=event_det_train[i].nom_train;
+            if (AdrTrainLoc=0) and roulage then Affiche('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
+
+            j:=1;
+            repeat
+              trouve:=placement[j].detdir=det3;
+              inc(j);
+            until (j>6) or trouve;
+            dec(j);
+            //si début de démarrage train i
+            if not(trouve) or (TrainZone[i].Nbre>0) then
+            begin
+              exit;
+            end;
+            // affecter le nouveau détecteur
+            detecteur[det3].train:=Train_ch;
+            detecteur[det3].AdrTrain:=AdrTrainLoc;
+            // libérer l'ancien
+            //detecteur[event_det_train[i].Det[1].adresse].AdrTrain:=0;
+            //detecteur[event_det_train[i].Det[1].adresse].train:='';
+          end;
+
+          AdrSuiv:=detecteur_suivant_el(det1,det,det3,det,1);
+          //*** route validée ***
+          if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) and (adrSuiv<NbMemZone) then
+          begin
+            MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
+            MemZone[det1,det3].train:='';
+            MemZone[det1,det3].Adrtrain:=0;
+            MemZone[det3,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
+            MemZone[det3,det1].train:='';
+            MemZone[det3,det1].Adrtrain:=0;      // libère la réservation
+            MemZone[det3,AdrSuiv].etat:=true;    // valide la nouvelle zone
+            MemZone[det3,AdrSuiv].train:=Train_ch;
+            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
+            MemZone[AdrSuiv,det3].etat:=False;     // on dévalide la zone inverse
+            MemZone[AdrSuiv,det2].train:='';
+            MemZone[AdrSuiv,det2].AdrTrain:=0;
+          end;
+
+          // stockage dans historique de zones
+          if i<MaxTrainZone then
+          begin
+            n:=TrainZone[i].Nbre+1;
+            if n>MaxZones then n:=1;
+            with TrainZone[i] do
+            begin
+              Nbre:=n;
+              Zone[n].det1:=det1;
+              Zone[n].det2:=det3;
+              train:=train_ch;
+              AdrTrain:=AdrTrainLoc
+            end;
+          end;
+          //reserve_canton(det1,det3,false,0,false);   // déreserve le canton précedent
+          //reserve_canton(det3,AdrSuiv,false,TrainZone[i].Adrtrain,true); // si feu réserve canton courant
+          libere_canton(det1,det3);   // on quitte det3
+          reserve_canton(det3,adrSuiv,adrtrainLoc);
+          event_act(det1,det3,1,'');     // évènement actionneur
+          maj_feux;
+
+          // affichages
+          Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
+        if traceListe then AfficheDebug(s,clyellow);
+        //Affiche(s,CouleurTrain[index_couleur]);
+        if AffAigDet then AfficheDebug(s,clyellow);
+
+        Affiche_Evt('1-0. Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
+        s:=intToSTR(event_det_train[i].det[1].adresse);
+        Affiche_Evt(s,couleur);
+        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
+        s:=intToSTR(event_det_train[i].det[2].adresse);
+        Affiche_evt(s,couleur);
+        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
+
+        if TCOouvert then
+        begin
+          // activation
+          if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
+          else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+        end;
+        exit; // sortir absolument
+      end
+      else
+      begin
+        Affiche_evt('1-0 Les éléments '+intToSTR(det1)+' et '+intToSTR(det3)+' ne sont pas contigus',clyellow);
+        // det3 et det1 non adjacents
+      end;
+    end;
+    end;
+
+    // 1 élément dans le tableau et détecteur à 1 : on pilote le train si feu sur det3---------------------------------------------
+    if (nbre=1) and etat then
+    begin
+      if traceListe then AfficheDebug('1-1 Traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
+      // vérifier si l'élément du tableau et le nouveau sont contigus
+      Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
+      suivok:=(Adj1=det3) or (Adj2=det3);
+      if suivok then
+      begin
+        Train_ch:=event_det_train[i].nom_train;
+        AdrTrainLoc:=event_det_train[i].AdrTrain;
+
+        event_det_tick[N_event_tick].train:=i;
+
+        // en mode roulage, on a placé les trains
+        if roulage then
+        begin
+          j:=1;
+          repeat
+            trouve:=placement[j].detdir=det3;
+            inc(j);
+          until (j>6) or trouve;
+          dec(j);
+          //si début de démarrage train i
+          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMemZone) and (det3<NbMemZone) then
+          begin
+            //Affiche('on a trouvé le train '+intToSTR(j),clYellow);
+
+            detecteur[det3].train:=train_ch;    // affecter le nom du train au détecteur
+            detecteur[det3].AdrTrain:=AdrTrainLoc ;    // affecter l'@ du train au détecteur
+
+            detecteur[det1].train:=''; // désaffecter le nom du train du détecteur précédent
+            detecteur[det1].AdrTrain:=0;
+
+            //*** route validée ***
+            MemZone[det1,det3].etat:=TRUE;      // valide la nouvelle zone
+            MemZone[det1,det3].train:=train_ch;
+            MemZone[det1,det3].AdrTrain:=AdrTrainLoc;
+
+            MemZone[det3,det1].etat:=False;     // on dévalide la zone inverse
+
+            // test si on peut réserver le canton suivant
+            det_suiv:=det_suiv_cont(det1,det3);
+            if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
+            s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
+            Affiche_Evt(s,clWhite);
+            if TCOouvert then
+            begin
+              // activation
+              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
+              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
+            end;
+          end;
+        end;
+
+        pilote_train(det1,det3,adrtrainLoc,i);  // pilote le train sur det3
+        //event_act(det1,det3,1,'');     // activation zone
+
+        // actualiser le signal du det3
+        j:=signal_detecteur(det3);
+        if j<>0 then Maj_Feu(j);
+        exit;
+      end;
+      if Traceliste then AfficheDebug(inttoSTR(det3)+' n''est pas contigu à '+intToSTR(det1)+' pour le train '+intToSTR(i),clyellow);
+      traite:=true;  // traiter le train suivant
+    end;
+
+    // 2 éléments dans le tableau et détecteur à 0---------------------------------------------
+    if (nbre=2) and not(etat) then
+   { begin
+      if not(cdm_connecte) then
+      begin
+        detecteur[det3].tempo0:=3;  // filtrage à 0,3s
+        exit;
+      end;
+      traite_det0(det3);  // ne faire qu'une
+    end;
+    }
+    begin
+      if TraceListe or (NivDebug=3) then AfficheDebug('2-0 traitement Train n°'+intToSTR(i)+' 2 détecteurs',couleur);
+      // test si det1, det2 et det3 sont contigus malgré aig mal positionnés
+      det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
+      if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),couleur);
+      SuivOk:=det_suiv=det3;
+      CasAig:=false;
+
+      if not(SuivOk) then
+      begin
+        // cas d'un aiguillage qui a changé
+        if det3=event_det_train[i].suivant then
+        begin
+          CasAig:=true;
+          s:='***CasAigChg train '+intToSTR(i)+' '+intToSTR(det1)+' '+intToSTR(det2)+' '+intToSTR(det3);
+          Affiche_Evt(s,couleur);
+          if TraceListe then AfficheDebug(s,couleur);
+          // trouver le suivant
+          det_Adj(det3);
+          if adj1<9990 then adrSuiv:=adj1;
+          if adj2<9990 then adrSuiv:=adj2;
+          event_det_tick[N_event_tick].reaffecte:=2;  // réaffecté par changement d'aiguillage
+        end;
+      end;
+
+      if SuivOk or CasAig then
+      begin
+        if TraceListe then AfficheDebug('Route est valide, dét '+intToSTR(det2)+' '+intToSTR(det3)+' contigus',couleur);
+        // ici on cherche le suivant à det2 det3, algo=1
+        event_det_tick[N_event_tick].train:=i;
+        if not(casAig) then AdrSuiv:=detecteur_suivant_el(det2,det,det3,det,0);  // dans le cas de CasAig, alors adrSuiv=9996 donc AdrSuiv est calculé plus haut
+        event_det_train[i].suivant:=AdrSuiv;
+        if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),couleur);
+        if (Adrsuiv>=9990) and not(casaig) then
+        begin
+          //Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
+          if (NivDebug=3) or TraceListe then AfficheDebug('Msg 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clorange);
+        end
+        else
+        begin
+          // en mode roulage, voir si on perd le détecteur si le train était arreté devat un signal rouge
+          {if roulage then
+          begin
+            AdrFeu:=event_det_train[i].signal_rouge;
+            if AdrFeu<>0 then
+            begin
+              s:='Erreur signal '+intToSTR(AdrFeu)+' au rouge et perte détecteur: ignoré';
+              Affiche_Evt(s,clred);
+              if traceListe then AfficheDebug(s,clred);
+              event_det_tick[N_event_tick].reaffecte:=4;   // fd sur un feu à 0
+              exit;
+            end;
+          end;}
+          if (det2<NbMemZone) and (det3<NbMemZone) and (AdrSuiv<NbMemZone) then
+          begin
+            //*** route validée ***
+            train_ch:=event_det_train[i].nom_train;
+            AdrTrainLoc:=event_det_train[i].Adrtrain;
+             // efface zone précédente
+            MemZone[det2,det3].etat:=FALSE;
+            MemZone[det2,det3].train:='';
+            MemZone[det2,det3].AdrTrain:=0;
+            MemZone[det2,det3].NumTrain:=0;
+            // on dévalide la zone inverse
+            MemZone[det3,det2].etat:=False;
+            MemZone[det3,det2].train:='';
+            MemZone[det3,det2].AdrTrain:=0;
+            MemZone[det3,det2].NumTrain:=0;
+
+            // valide la nouvelle zone
+            MemZone[det3,AdrSuiv].etat:=TRUE;
+            MemZone[det3,AdrSuiv].train:=train_ch;
+            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
+            MemZone[det3,AdrSuiv].NumTrain:=i;
+            // on dévalide la zone inverse
+            MemZone[AdrSuiv,det3].etat:=False;
+            MemZone[AdrSuiv,det3].train:='';
+            MemZone[AdrSuiv,det3].AdrTrain:=0;
+            MemZone[AdrSuiv,det3].NumTrain:=0;
+
+            detecteur[det3].train:=train_ch ;   // affectation nom train au nouveau détecteur
+            detecteur[det3].AdrTrain:=AdrTrainLoc;
+            if detecteur[det2].train=train_ch then  detecteur[det2].train:='';    // désaffectation du nom de train de l'ancien détecteur si le nom du train est égal
+            if detecteur[det2].AdrTrain=AdrTrainLoc then detecteur[det2].AdrTrain:=0;    // désaffectation du nom de train de l'ancien détecteur
+
+            libere_canton(det2,det3);
+            reserve_canton(det3,AdrSuiv,adrTrainLoc);
+            maj_feux;
+            // stockage dans historique de zones
+            if i<MaxTrainZone then
+            begin
+              n:=TrainZone[i].Nbre+1;
+              if n>MaxZones then n:=1;
+              with TrainZone[i] do
+              begin
+                Nbre:=n;
+                Zone[n].det1:=det3;
+                Zone[n].det2:=AdrSuiv;
+                Nbre:=n;
+              end;
+              // zone suivante en prévision
+              det4:=detecteur_suivant_EL(det3,det,AdrSuiv,det,1);
+              TrainPrevZone[i][1]:=det4;
+            end;
+
+            event_act(det2,det3,0,'');        // désactivation zone
+            event_act(det3,AdrSuiv,1,'');     // activation zone
+          end
+          else
+          begin
+            s:='Erreur 740 : Adresse détecteur trop élevé ';
+            if det2>NbMemZone then s:=s+inttostr(det2)+' ';
+            if det3>NbMemZone then s:=s+inttostr(det2)+' ';
+            if AdrSuiv>NbMemZone then s:=s+inttostr(det2);
+            Affiche(s,clred);
+          end;
+
+          // supprimer le 1er et décaler
+          with event_det_train[i] do
+          begin
+            det[1].adresse:=event_det_train[i].det[2].adresse;
+            det[1].etat:=event_det_train[i].det[2].etat;
+            det[2].adresse:=det3;
+            det[2].etat:=detecteur[det3].etat;
+            NbEl:=2;
+          end;
+
+          // affichages
+          s:='2-0 Train n°'+intToSTR(i)+' route ok de '+intToSTR(det2)+' à '+IntToSTR(det3);
+          if casAig then s:=s+'A';
+          s:=s+' à '+IntToSTR(Adrsuiv);
+
+          Affiche_evt(s,couleur);
+          if traceListe then AfficheDebug(s,clyellow);
+          s:='Train '+IntToSTR(i);
+          if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
+          s:=s+' '+Train_ch+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
+          if traceListe then AfficheDebug(s,couleur);
+
+          s:='Train '+IntToSTR(i);
+          if AdrTrainLoc<>0 then s:=s+' '+train_ch+' @'+intToSTR(AdrTrainLoc);
+          s:=s+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
+          Affiche(s,Couleur);
+          if AffAigDet then AfficheDebug(s,couleur);
+
+          Affiche_Evt('1.Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
+          Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
+          Affiche_Evt(intToStr(event_det_train[i].det[2].adresse),couleur);
+          if TraceListe or dupliqueEvt then
+          begin
+            AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
+            AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
+          end;
+          if TCOouvert then
+          begin
+            zone_TCO(det2,det3,0);    // désactivation
+            // activation
+            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
+            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+          end;
+
+          // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
+          j:=signal_detecteur(det3);
+          if j<>0 then
+          begin
+            Maj_Feu(j);
+            k:=index_feu(j);
+            // si le feu j est au rouge
+            etatSig:=feux[k].etatsignal;
+            if (testBit(etatSig,carre)) or (testBit(etatSig,semaphore)) or (testBit(etatSig,semaphore_cli)) then
+            begin
+              // Maj du signal précédent (pour l'avertissement)
+              j:=Signal_precedent(j);
+              if j<>0 then
+              begin
+                maj_feu(j);
+                j:=Signal_precedent(j);
+                if j<>0 then maj_feu(j);
+              end;
+            end;
+          end;
+          maj_feux; // mise à jour générale
+          maj_feux; // 2eme mise à jour
+          maj_feux;
+          exit; // sortir absolument
+        end;
+      end
+      else
+      begin
+        //Affiche_Evt('Route invalide: dét '+intToSTR(det2)+' '+intToSTR(det3)+' non contigus',clOrange);
+        if event_det_train[i].det[2].adresse=det3 then
+        begin
+          s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
+          FormDebug.MemoEvtDet.lines.add(s);
+          if dupliqueEvt then AfficheDebug(s,clyellow);
+        end;
+      end;
+    end;
+
+
+    if (nbre=2) and etat then
     begin
       if TraceListe or (NivDebug=3) then AfficheDebug('2-1 traitement Train n°'+intToSTR(i)+' 2 détecteurs',clwhite);
       // front descendant sur détecteur 2
@@ -8424,7 +7763,10 @@ begin
           detecteur[det2].train:=''; // désaffectation du nom de train de l'ancien détecteur
           detecteur[det2].AdrTrain:=0;
 
-          pilote_train(det2,det3,adrtrainLoc);   // pilote le train sur det3
+          i2:=index_train_adresse(AdrTrainLoc);
+          if i2<>0 then trains[i2].index_event_det_train:=i;   // lier l'index du train en circulation
+
+          pilote_train(det2,det3,adrtrainLoc,i);   // pilote le train sur det3
           // test si on peut réserver le canton suivant
           det_suiv:=det_suiv_cont(det2,det3);
           if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
@@ -8458,17 +7800,9 @@ begin
           end;
         end;
         // affichages
-        s:='2-1 Train n°'+intToSTR(i)+' Route ok de '+intToSTR(det2)+' à '+IntToSTR(det3)+' '+intToSTR(det3)+' à '+IntToSTR(Adrsuiv);
+        s:='2-1 Train n°'+intToSTR(i)+' Route ok de '+intToSTR(det2)+' à '+IntToSTR(det3);
         Affiche_evt(s,couleur);
         if traceListe then AfficheDebug(s,Couleur);
-        if DebugAffiche then With FormDebug.RichEdit do
-        begin
-          s:='Train '+IntToSTR(i)+' '+intToStr(det2)+' à '+intToStr(det3);
-          Lines.Add(s);
-          RE_ColorLine(FormDebug.RichEdit,lines.count-1,Couleur);
-        end;
-        if TraceListe then AfficheDebug(s,couleur);
-        Affiche(s,Couleur);
         if AffAigDet then AfficheDebug(s,couleur);
         if TCOouvert then
         begin
@@ -8482,44 +7816,698 @@ begin
       else
       begin
         if TraceListe then AfficheDebug('La route est invalide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' ne sont pas contigus',clOrange);
-        if event_det_train[i].det[2].adresse=det3 then
+        {if rebond and (event_det_train[i].det[2].adresse=det3) then
         begin
           s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
           FormDebug.MemoEvtDet.lines.add(s);
           if dupliqueEvt then AfficheDebug(s,clyellow);
+          //  désaffecter la zone
+          memzone[det2,det_suiv].etat:=false;
+          memZone[det1,det2].etat:=true;
           exit; // rebond :sortir
-        end;
+        end;        }
       end;
       traite:=true; // non traité: train suivant
     end;
   end;  // fin de la boucle for i
 
-  // nouveau train front det=1 (uniquement mode roulage)
-  {
-  if front then
+  // dans cette partie, le détecteur n'a pas encore été affecté à un train existant.
+  if rebond then exit;
+
+  if etat then
+  begin
+    for i:=1 to N_trains do
+    begin
+      i2:=event_det_train[i].Suivant;
+      SuivOk:=event_det_train[i].Det[2].etat ;
+      det_adj(det3);
+      if (adj1=i2) or (adj2=i2) then
+      begin
+        s:='Train '+intToSTR(i)+' Détection '+intToSTR(det3)+' à 1 avant RAZ du '+intToSTR(i2);
+        Affiche_evt(s,clorange);
+        if traceListe then afficheDebug(s,clorange);
+        detecteur[det3].AdrTrain:=i; // récupération du train au détecteur
+
+        adrTrainLoc:=detecteur[i2].AdrTrain;
+        Train_ch:=MemZone[det2,i2].train;
+
+        detecteur[det3].train:=Train_ch;   // affectation nom train au nouveau détecteur
+        detecteur[det3].AdrTrain:=AdrTrainLoc;   // affectation train au nouveau détecteur
+        detecteur[det2].train:=''; // désaffectation du nom de train de l'ancien détecteur
+        detecteur[det2].AdrTrain:=0;
+
+        event_det_tick[N_event_tick].train:=i;
+        event_det_tick[N_event_tick].reaffecte:=1;    // mauvais séquençage détecteurs contigus
+
+        pilote_train(i2,det3,adrtrainLoc,i);   // pilote le train sur det3
+        // test si on peut réserver le canton suivant
+        det_suiv:=det_suiv_cont(i2,det3);
+        if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
+        // libère canton
+        libere_canton(i2,det3);
+
+
+        exit;
+      end;
+    end;
+  end;
+
+  // nouveau train front det=0
+  if not(etat) then
   begin
     if traceListe then AfficheDebug('Nouveau train',clyellow);
+    // Nombre d'éléments à 0 : ici c'est un nouveau train donc créer un train, donc un tableau
     if N_Trains>=Max_Trains then
     begin
       Affiche('Erreur nombre de train maximal atteint',clRed);
       N_trains:=0;
     end;
     Inc(N_trains);
+    event_det_tick[N_event_tick].train:=n_trains;
+
     with event_det_train[N_trains] do
     begin
-      det[1].adresse:=det3;
+      det[1].adresse:=0;
       det[2].adresse:=0;
-      det[1].etat:=front;
-      NbEl:=1;
-      nom_train:=detecteur[det3].train;
-      AdrTrain:=detecteur[det3].AdrTrain;
+      NbEl:=0;
+      nom_train:='';
+    end;
+
+    // vérifier si le détecteur du nouveau train est associé à un feu vers un buttoir
+    for i:=1 to NbreFeux do
+    begin
+      AdrFeu:=Feux[i].Adresse;
+      AdrDetfeu:=Feux[i].Adr_Det1;
+      if (AdrDetFeu=Det3) and (feux[i].aspect<10) then
+      begin
+        AdrSuiv:=Feux[i].Adr_el_suiv1;
+        TypeSuiv:=Feux[i].Btype_suiv1;
+        AdrPrec:=detecteur_suivant(AdrSuiv,typeSuiv,AdrDetFeu,det,1) ; // détecteur précédent le feu ; algo 1
+        if AdrPrec=0 then
+        begin
+          if TraceListe then Affiche('FD - Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
+          if AdrDetFeu<NbMemZone then
+            MemZone[0,AdrDetFeu].etat:=false
+          else
+            Affiche('Erreur 741: Adresse détecteur feu trop élevé: '+intToSTR(AdrDetFeu),clred);
+          maj_feu(AdrFeu);
+        end;
+      end;
+    end;
+
+    if TraceListe then AfficheDebug('Création Train n°'+intToSTR(N_trains),clyellow);
+    Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+
+    // si on démarre d'un buttoir
+    if buttoir_adjacent(det3) then
+    begin
+      if TraceListe then AfficheDebug('Détection démarrage depuis détecteur '+IntToSTR(det3)+' buttoir',clyellow);
+      event_det_train[N_trains].det[1].adresse:=0;
+      event_det_train[N_trains].det[2].adresse:=det3;
+      event_det_train[N_trains].NbEl:=2;
+      s:='3. Nouveau Tampon train '+intToStr(N_Trains)+'--------';
+      Affiche_Evt(s,couleur);
+      Affiche_Evt(intToSTR(event_det_train[N_Trains].det[1].adresse),couleur);
+      Affiche_Evt(intToSTR(event_det_train[N_Trains].det[2].adresse),couleur);
+      if dupliqueEvt then
+      begin
+        AfficheDebug(s,clyellow);
+        AfficheDebug(intToSTR(event_det_train[N_Trains].det[1].adresse),couleur);
+        AfficheDebug(intToSTR(event_det_train[N_Trains].det[2].adresse),couleur);
+      end;
+    end
+    else
+    begin
+      with event_det_train[N_trains] do
+      begin
+        det[1].adresse:=det3;
+        det[1].etat:=etat;
+        NbEl:=1;
+        nom_train:=detecteur[det3].train;
+        AdrTrain:=detecteur[det3].AdrTrain;
+      end;
+
+      TrainZone[n_trains].train:=detecteur[det3].train;
+      TrainZone[n_trains].AdrTrain:=detecteur[det3].Adrtrain;
+      if roulage then
+      begin
+        j:=index_train_adresse(detecteur[det3].AdrTrain);
+        j:=placement[j].detdir; // detecteur destination
+        MemZone[det3,j].etat:=true;
+        MemZone[det3,j].train:=detecteur[det3].train;
+        MemZone[det3,j].AdrTrain:=detecteur[det3].AdrTrain;
+
+      end;
+
+      s:=intToSTR(event_det_train[N_trains].det[1].adresse);
+      id_couleur:=((N_trains - 1) mod NbCouleurTrain) +1;
+      Affiche_Evt('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',CouleurTrain[id_couleur]);
+      Affiche_evt(s,CouleurTrain[id_couleur]);
+      if dupliqueEvt then
+      begin
+        AfficheDebug('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
+        AfficheDebug(s,clyellow);
+      end;
+      if TraceListe then
+      begin
+        AfficheDebug('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
+        AfficheDebug(s,clyellow);
+      end;
     end;
   end;
-  }
+end;
 
-  if front then
+// calcul des zones depuis le tableau des fronts montants ou descendants des évènements détecteurs
+// transmis dans le tableau Event_det
+// rattache le nouveau détecteur à un train
+// adresse: adresse du detecteur, front: état du détecteur
+procedure calcul_zones_V2(adresse: integer;etat : boolean);
+var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,i,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
+    id_couleur,det_suiv,nc,etatSig : integer ;
+    traite,trouve,SuivOk,casaig,rebond : boolean;
+    couleur : tcolor;
+    TypeSuiv : tEquipement;
+    s,train_ch : string;
+begin
+  det3:=adresse; // c'est le nouveau détecteur
+  if det3=0 then exit; // pas de nouveau détecteur
+  traite:=false;
+  rebond:=false;
+  s:='Le nouveau détecteur est '+IntToSTR(det3);
+  if etat then s:=s+' 1' else s:=s+' 0';
+  Affiche_evt(s,clwhite) ;
+  if dupliqueEvt then AfficheDebug(s,clyellow) ;
+
+  for i:=1 to N_trains do
   begin
-    // voir si on crée un nouveau train
+    index_couleur:=((i - 1) mod NbCouleurTrain) +1;
+    couleur:=CouleurTrain[index_couleur];
+    Nbre:=event_det_train[i].NbEl ;  // Nombre d'éléments du tableau courant exploré
+    det1:=event_det_train[i].det[1].adresse;
+    det2:=event_det_train[i].det[2].adresse;
+
+    {
+    if ((det2=det3) and (nbre=2) ) or ((det1=det3) and (nbre=1)) then
+    begin
+      s:='Dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
+      Affiche_evt(s,clwhite);
+      event_det_tick[N_event_tick].train:=i;
+      event_det_tick[N_event_tick].reaffecte:=3;
+      if dupliqueEvt then AfficheDebug(s,clyellow);
+      rebond:=true;  // possible rebond ?
+    end; }
+
+    // 1 élément dans le tableau et détecteur à 0---------------------------------------------
+    if (nbre=1) and not(etat) then
+    begin
+      Det_Adj(det3);  // renvoie les adresses des détecteurs adjacents au détecteur "det3" résultat dans adj1 et adj2
+      //if (roulage) then
+      begin
+        // traiter pour les cas avec 1 élément
+        if traceListe then AfficheDebug('1-0 traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
+        // vérifier si l'élément du tableau et le nouveau sont contigus
+        if (Adj1=det1) or (Adj2=det1) then
+        begin
+          event_det_tick[N_event_tick].train:=i;
+
+          with event_det_train[i] do
+          begin
+            det[2].adresse:=det3;
+            det[2].etat:=etat;
+            NbEl:=2;
+          end;
+
+          // en mode roulage, on a placé les trains
+          if roulage then
+          begin
+            adrTrainLoc:=event_det_train[i].Adrtrain;
+            Train_ch:=event_det_train[i].nom_train;
+            if (AdrTrainLoc=0) and roulage then Affiche('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
+
+            j:=1;
+            repeat
+              trouve:=placement[j].detdir=det3;
+              inc(j);
+            until (j>6) or trouve;
+            dec(j);
+            //si début de démarrage train i
+            if not(trouve) or (TrainZone[i].Nbre>0) then
+            begin
+              exit;
+            end;
+            // affecter le nouveau détecteur
+            detecteur[det3].train:=Train_ch;
+            detecteur[det3].AdrTrain:=AdrTrainLoc;
+            // libérer l'ancien
+            //detecteur[event_det_train[i].Det[1].adresse].AdrTrain:=0;
+            //detecteur[event_det_train[i].Det[1].adresse].train:='';
+          end;
+
+          AdrSuiv:=detecteur_suivant_el(det1,det,det3,det,1);
+          //*** route validée ***
+          if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) and (adrSuiv<NbMemZone) then
+          begin
+            MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
+            MemZone[det1,det3].train:='';
+            MemZone[det1,det3].Adrtrain:=0;
+            MemZone[det3,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
+            MemZone[det3,det1].train:='';
+            MemZone[det3,det1].Adrtrain:=0;
+            MemZone[det3,AdrSuiv].etat:=true;    // valide la nouvelle zone
+            MemZone[det3,AdrSuiv].train:=Train_ch;
+            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
+            MemZone[AdrSuiv,det3].etat:=False;     // on dévalide la zone inverse
+            MemZone[AdrSuiv,det2].train:='';
+            MemZone[AdrSuiv,det2].AdrTrain:=0;
+          end;
+
+          // stockage dans historique de zones
+          if i<MaxTrainZone then
+          begin
+            n:=TrainZone[i].Nbre+1;
+            if n>MaxZones then n:=1;
+            with TrainZone[i] do
+            begin
+              Nbre:=n;
+              Zone[n].det1:=det1;
+              Zone[n].det2:=det3;
+              train:=train_ch;
+              AdrTrain:=AdrTrainLoc
+            end;
+          end;
+          //reserve_canton(det1,det3,false,0,false);   // déreserve le canton précedent
+          //reserve_canton(det3,AdrSuiv,false,TrainZone[i].Adrtrain,true); // si feu réserve canton courant
+          libere_canton(det1,det3);   // on quitte det3
+          reserve_canton(det3,adrSuiv,adrtrainLoc);
+          event_act(det1,det3,1,'');     // évènement actionneur
+          maj_feux;
+
+          // affichages
+          Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
+        if traceListe then AfficheDebug(s,clyellow);
+        //Affiche(s,CouleurTrain[index_couleur]);
+        if AffAigDet then AfficheDebug(s,clyellow);
+
+        Affiche_Evt('1-0. Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
+        s:=intToSTR(event_det_train[i].det[1].adresse);
+        Affiche_Evt(s,couleur);
+        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
+        s:=intToSTR(event_det_train[i].det[2].adresse);
+        Affiche_evt(s,couleur);
+        if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
+
+        if TCOouvert then
+        begin
+          // activation
+          if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
+          else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+        end;
+        exit; // sortir absolument
+      end
+      else
+      begin
+        Affiche_evt('1-0 Les éléments '+intToSTR(det1)+' et '+intToSTR(det3)+' ne sont pas contigus',clyellow);
+        // det3 et det1 non adjacents
+      end;
+    end;
+    end;
+
+    // 1 élément dans le tableau et détecteur à 1 : on pilote le train si feu sur det3---------------------------------------------
+    if (nbre=1) and etat then
+    begin
+      if traceListe then AfficheDebug('1-1 Traitement Train n°'+intToSTR(i)+' 1 détecteur',clyellow);
+      // vérifier si l'élément du tableau et le nouveau sont contigus
+      Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
+      suivok:=(Adj1=det3) or (Adj2=det3);
+      if suivok then
+      begin
+        Train_ch:=event_det_train[i].nom_train;
+        AdrTrainLoc:=event_det_train[i].AdrTrain;
+
+        event_det_tick[N_event_tick].train:=i;
+
+        // en mode roulage, on a placé les trains
+        if roulage then
+        begin
+          j:=1;
+          repeat
+            trouve:=placement[j].detdir=det3;
+            inc(j);
+          until (j>6) or trouve;
+          dec(j);
+          //si début de démarrage train i
+          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMemZone) and (det3<NbMemZone) then
+          begin
+            //Affiche('on a trouvé le train '+intToSTR(j),clYellow);
+
+            detecteur[det3].train:=train_ch;    // affecter le nom du train au détecteur
+            detecteur[det3].AdrTrain:=AdrTrainLoc ;    // affecter l'@ du train au détecteur
+
+            detecteur[det1].train:=''; // désaffecter le nom du train du détecteur précédent
+            detecteur[det1].AdrTrain:=0;
+
+            //*** route validée ***
+            MemZone[det1,det3].etat:=TRUE;      // valide la nouvelle zone
+            MemZone[det1,det3].train:=train_ch;
+            MemZone[det1,det3].AdrTrain:=AdrTrainLoc;
+
+            MemZone[det3,det1].etat:=False;     // on dévalide la zone inverse
+
+            // test si on peut réserver le canton suivant
+            det_suiv:=det_suiv_cont(det1,det3);
+            if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
+            s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
+            Affiche_Evt(s,clWhite);
+            if TCOouvert then
+            begin
+              // activation
+              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
+              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
+            end;
+          end;
+        end;
+
+        pilote_train(det1,det3,adrtrainLoc,i);  // pilote le train sur det3
+        //event_act(det1,det3,1,'');     // activation zone
+
+        // actualiser le signal du det3
+        j:=signal_detecteur(det3);
+        if j<>0 then Maj_Feu(j);
+        exit;
+      end;
+      if Traceliste then AfficheDebug(inttoSTR(det3)+' n''est pas contigu à '+intToSTR(det1)+' pour le train '+intToSTR(i),clyellow);
+      traite:=true;  // traiter le train suivant
+    end;
+
+    // 2 éléments dans le tableau et détecteur à 0---------------------------------------------
+    if (nbre=2) and not(etat) then
+    begin
+      if TraceListe or (NivDebug=3) then AfficheDebug('2-0 traitement Train n°'+intToSTR(i)+' 2 détecteurs',couleur);
+      // test si det1, det2 et det3 sont contigus malgré aig mal positionnés
+      {
+      det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
+      if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),couleur);
+      SuivOk:=det_suiv=det3;
+      CasAig:=false;
+
+      if not(SuivOk) then
+      begin
+        // cas d'un aiguillage qui a changé
+        if det3=event_det_train[i].suivant then
+        begin
+          CasAig:=true;
+          s:='***CasAigChg train '+intToSTR(i)+' '+intToSTR(det1)+' '+intToSTR(det2)+' '+intToSTR(det3);
+          Affiche_Evt(s,couleur);
+          if TraceListe then AfficheDebug(s,couleur);
+          // trouver le suivant
+          det_Adj(det3);
+          if adj1<9990 then adrSuiv:=adj1;
+          if adj2<9990 then adrSuiv:=adj2;
+          event_det_tick[N_event_tick].reaffecte:=2;  // réaffecté par changement d'aiguillage
+        end;
+      end;
+      }
+      casaig:=false;
+      suivok:=det2=det3;
+
+      if SuivOk or CasAig then
+      begin
+        if TraceListe then AfficheDebug('Route est valide, dét '+intToSTR(det2)+' '+intToSTR(det3)+' contigus',couleur);
+        // ici on cherche le suivant à det2 det3, algo=1
+        event_det_tick[N_event_tick].train:=i;
+        Adrsuiv:=det_suiv_cont(det1,det2);
+        //if not(casAig) then AdrSuiv:=detecteur_suivant_el(det2,det,det3,det,0);  // dans le cas de CasAig, alors adrSuiv=9996 donc AdrSuiv est calculé plus haut
+        event_det_train[i].suivant:=AdrSuiv;
+        if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),couleur);
+        if (Adrsuiv>=9990) and not(casaig) then
+        begin
+          //Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
+          if (NivDebug=3) or TraceListe then AfficheDebug('Msg 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clorange);
+        end
+        else
+        begin
+          if (det2<NbMemZone) and (det3<NbMemZone) and (AdrSuiv<NbMemZone) then
+          begin
+            //*** route validée ***
+            train_ch:=event_det_train[i].nom_train;
+            AdrTrainLoc:=event_det_train[i].Adrtrain;
+             // efface zone précédente
+            MemZone[det2,det3].etat:=FALSE;
+            MemZone[det2,det3].train:='';
+            MemZone[det2,det3].AdrTrain:=0;
+            MemZone[det2,det3].NumTrain:=0;
+            // on dévalide la zone inverse
+            MemZone[det3,det2].etat:=False;
+            MemZone[det3,det2].train:='';
+            MemZone[det3,det2].AdrTrain:=0;
+            MemZone[det3,det2].NumTrain:=0;
+
+            // valide la nouvelle zone
+            MemZone[det3,AdrSuiv].etat:=TRUE;
+            MemZone[det3,AdrSuiv].train:=train_ch;
+            MemZone[det3,AdrSuiv].AdrTrain:=AdrTrainLoc;
+            MemZone[det3,AdrSuiv].NumTrain:=i;
+            // on dévalide la zone inverse
+            MemZone[AdrSuiv,det3].etat:=False;
+            MemZone[AdrSuiv,det3].train:='';
+            MemZone[AdrSuiv,det3].AdrTrain:=0;
+            MemZone[AdrSuiv,det3].NumTrain:=0;
+
+            detecteur[det3].train:=train_ch ;   // affectation nom train au nouveau détecteur
+            detecteur[det3].AdrTrain:=AdrTrainLoc;
+
+            if detecteur[det2].train=train_ch then  detecteur[det2].train:='';    // désaffectation du nom de train de l'ancien détecteur si le nom du train est égal
+            if detecteur[det2].AdrTrain=AdrTrainLoc then detecteur[det2].AdrTrain:=0;    // désaffectation du nom de train de l'ancien détecteur
+
+            libere_canton(det2,det3);
+            reserve_canton(det3,AdrSuiv,adrTrainLoc);
+            maj_feux;
+            // stockage dans historique de zones
+            if i<MaxTrainZone then
+            begin
+              n:=TrainZone[i].Nbre+1;
+              if n>MaxZones then n:=1;
+              with TrainZone[i] do
+              begin
+                Nbre:=n;
+                Zone[n].det1:=det3;
+                Zone[n].det2:=AdrSuiv;
+                Nbre:=n;
+              end;
+              // zone suivante en prévision
+              det4:=detecteur_suivant_EL(det3,det,AdrSuiv,det,1);
+              TrainPrevZone[i][1]:=det4;
+            end;
+
+            event_act(det2,det3,0,'');        // désactivation zone
+            event_act(det3,AdrSuiv,1,'');     // activation zone
+          end
+          else
+          begin
+            s:='Erreur 740 : Adresse détecteur trop élevé ';
+            if det2>NbMemZone then s:=s+inttostr(det2)+' ';
+            if det3>NbMemZone then s:=s+inttostr(det2)+' ';
+            if AdrSuiv>NbMemZone then s:=s+inttostr(det2);
+            Affiche(s,clred);
+          end;
+          {
+          // supprimer le 1er et décaler
+          with event_det_train[i] do
+          begin
+            det[1].adresse:=event_det_train[i].det[2].adresse;
+            det[1].etat:=event_det_train[i].det[2].etat;
+            det[2].adresse:=det3;
+            det[2].etat:=detecteur[det3].etat;
+            NbEl:=2;
+          end;
+          }
+          event_det_train[i].det[2].etat:=etat;
+          // affichages
+          s:='2-0 Train n°'+intToSTR(i)+' route ok de '+intToSTR(det2)+' à '+IntToSTR(det3);
+          if casAig then s:=s+'A';
+          s:=s+' à '+IntToSTR(Adrsuiv);
+
+          Affiche_evt(s,couleur);
+          if traceListe then AfficheDebug(s,clyellow);
+          s:='Train '+IntToSTR(i);
+          if AdrTrainLoc<>0 then s:=s+' @'+intToSTR(AdrTrainLoc);
+          s:=s+' '+Train_ch+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
+          if traceListe then AfficheDebug(s,couleur);
+
+          s:='Train '+IntToSTR(i);
+          if AdrTrainLoc<>0 then s:=s+' '+train_ch+' @'+intToSTR(AdrTrainLoc);
+          s:=s+' sur zones '+IntToSTR(det3)+' à '+IntToStr(AdrSuiv);
+          Affiche(s,Couleur);
+          if AffAigDet then AfficheDebug(s,couleur);
+
+          Affiche_Evt('1.Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
+          Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
+          Affiche_Evt(intToStr(event_det_train[i].det[2].adresse)+' 0',couleur);
+          if TraceListe or dupliqueEvt then
+          begin
+            AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
+            AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
+          end;
+          if TCOouvert then
+          begin
+            zone_TCO(det2,det3,0);    // désactivation
+            // activation
+            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
+            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+          end;
+
+          // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
+          j:=signal_detecteur(det3);
+          if j<>0 then
+          begin
+            Maj_Feu(j);
+            k:=index_feu(j);
+            // si le feu j est au rouge
+            etatSig:=feux[k].etatsignal;
+            if (testBit(etatSig,carre)) or (testBit(etatSig,semaphore)) or (testBit(etatSig,semaphore_cli)) then
+            begin
+              // Maj du signal précédent (pour l'avertissement)
+              j:=Signal_precedent(j);
+              if j<>0 then
+              begin
+                maj_feu(j);
+                j:=Signal_precedent(j);
+                if j<>0 then maj_feu(j);
+              end;
+            end;
+          end;
+          maj_feux; // mise à jour générale
+          maj_feux; // 2eme mise à jour
+          maj_feux;
+          exit; // sortir absolument
+        end;
+      end
+      else
+      begin
+        //Affiche_Evt('Route invalide: dét '+intToSTR(det2)+' '+intToSTR(det3)+' non contigus',clOrange);
+        if event_det_train[i].det[2].adresse=det3 then
+        begin
+          s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
+          FormDebug.MemoEvtDet.lines.add(s);
+          if dupliqueEvt then AfficheDebug(s,clyellow);
+          // exhit sortir
+        end;
+      end;
+      //traite:=true;
+    end;
+
+    if (nbre=2) and etat then
+    begin
+      if TraceListe or (NivDebug=3) then AfficheDebug('2-1 traitement Train n°'+intToSTR(i)+' 2 détecteurs',clwhite);
+      // front descendant sur détecteur 2
+      det_suiv:=det_suiv_cont(det1,det2);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
+      if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),clWhite);
+      if (det_suiv=det3) then
+      begin
+        event_det_tick[N_event_tick].train:=i;
+        if TraceListe then AfficheDebug('La route est valide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' sont contigus',couleur);
+        if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) then
+        begin
+          //*** route validée ***
+          MemZone[det1,det2].etat:=false;
+          MemZone[det2,det1].etat:=False;     // on dévalide la zone inverse
+          MemZone[det2,det3].etat:=TRUE;      // valide la nouvelle zone
+          MemZone[det3,det2].etat:=False;     // on dévalide la zone inverse
+          //Train_Ch:=event_det_train[i].nom_train;
+          //AdrTrainLoc:=event_det_train[i].Adrtrain;
+          Train_ch:=MemZone[det2,det3].train;
+          AdrTrainLoc:=MemZone[det2,det3].AdrTrain;
+
+          detecteur[det3].train:=Train_ch;   // affectation nom train au nouveau détecteur
+          detecteur[det3].AdrTrain:=AdrTrainLoc;   // affectation train au nouveau détecteur
+          detecteur[det2].train:=''; // désaffectation du nom de train de l'ancien détecteur
+          detecteur[det2].AdrTrain:=0;
+
+          // supprimer le 1er et décaler
+          with event_det_train[i] do
+          begin
+            det[1].adresse:=event_det_train[i].det[2].adresse;
+            det[1].etat:=event_det_train[i].det[2].etat;
+            det[2].adresse:=det3;
+            det[2].etat:=detecteur[det3].etat;
+            NbEl:=2;
+          end;
+          Affiche_Evt('2-1 Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
+          Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
+          Affiche_Evt(intToStr(event_det_train[i].det[2].adresse)+' 1',couleur);
+
+
+
+          pilote_train(det2,det3,adrtrainLoc,i);   // pilote le train sur det3
+          // test si on peut réserver le canton suivant
+          det_suiv:=det_suiv_cont(det2,det3);
+          if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
+          // libère canton
+          libere_canton(det2,det3);
+          //event_act(det2,det3,1,'');     // activation zone
+        end
+        else
+        begin
+          s:='Erreur 740 : Adresse détecteur trop élevé ';
+          if det2>NbMemZone then s:=s+inttostr(det2)+' ';
+          if det3>NbMemZone then s:=s+inttostr(det2)+' ';
+          if AdrSuiv>NbMemZone then s:=s+inttostr(det2);
+          Affiche(s,clred);
+        end;
+        // stockage dans historique de zones sauf s'il est déja stocké
+        if i<MaxTrainZone then
+        begin
+          n:=TrainZone[i].Nbre;
+          if (TrainZone[i].Zone[n].det1<>det2) or (TrainZone[i].Zone[n].det2<>det3) then
+          begin
+            n:=TrainZone[i].Nbre+1;
+            if n>MaxZones then n:=1;
+            TrainZone[i].Nbre:=n;
+            TrainZone[i].Zone[n].det1:=det2;
+            TrainZone[i].Zone[n].det2:=det3;
+            TrainZone[i].Nbre:=n;
+            // zone suivante en prévision
+            det4:=detecteur_suivant_EL(det2,det,det3,det,1);
+            TrainPrevZone[i][1]:=det4;
+          end;
+        end;
+        // affichages
+        s:='2-1 Train n°'+intToSTR(i)+' Route ok de '+intToSTR(det2)+' à '+IntToSTR(det3);
+        Affiche_evt(s,couleur);
+        if traceListe then AfficheDebug(s,Couleur);
+        if AffAigDet then AfficheDebug(s,couleur);
+        if TCOouvert then
+        begin
+          zone_TCO(det1,det2,0);    // désactivation
+          // activation
+          if ModeCouleurCanton=0 then zone_TCO(det2,det3,1)
+          else zone_TCO(det2,det3,2);  // affichage avec la couleur de index_couleur du train
+        end;
+        exit; // sortir absolument
+      end
+      else
+      begin
+        if TraceListe then AfficheDebug('La route est invalide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' ne sont pas contigus',clOrange);
+        {if rebond and (event_det_train[i].det[2].adresse=det3) then
+        begin
+          s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
+          FormDebug.MemoEvtDet.lines.add(s);
+          if dupliqueEvt then AfficheDebug(s,clyellow);
+          //  désaffecter la zone
+          memzone[det2,det_suiv].etat:=false;
+          memZone[det1,det2].etat:=true;
+          exit; // rebond :sortir
+        end;  }
+      end;
+      traite:=true; // non traité: train suivant
+    end;
+  end;  // fin de la boucle for i
+
+  // dans cette partie, le détecteur n'a pas encore été affecté à un train existant.
+  if rebond then exit;
+
+  if etat then
+  begin
     for i:=1 to N_trains do
     begin
       det2:=event_det_train[i].Suivant;
@@ -8530,14 +8518,14 @@ begin
         Affiche_evt('Train '+intToSTR(i)+' Détection '+intToSTR(det3)+' à 1 avant RAZ du '+intToSTR(det2),clorange);
         detecteur[det3].AdrTrain:=i; // récupération du train au détecteur
         event_det_tick[N_event_tick].train:=i;
-        event_det_tick[N_event_tick].reaffecte:=1;
+        event_det_tick[N_event_tick].reaffecte:=1;    // mauvais séquençage détecteurs contigus
         exit;
       end;
     end;
   end;
 
   // nouveau train front det=0
-  if traite or not(front) then
+  if not(etat) then
   begin
     if traceListe then AfficheDebug('Nouveau train',clyellow);
     // Nombre d'éléments à 0 : ici c'est un nouveau train donc créer un train, donc un tableau
@@ -8608,7 +8596,7 @@ begin
       with event_det_train[N_trains] do
       begin
         det[1].adresse:=det3;
-        det[1].etat:=front;
+        det[1].etat:=etat;
         NbEl:=1;
         nom_train:=detecteur[det3].train;
         AdrTrain:=detecteur[det3].AdrTrain;
@@ -8627,8 +8615,8 @@ begin
       end;
 
       s:=intToSTR(event_det_train[N_trains].det[1].adresse);
-      id_couleur:=((N_trains - 1) mod NbCouleurTrain) +1;;
-      Affiche_Evt('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',  CouleurTrain[id_couleur]);
+      id_couleur:=((N_trains - 1) mod NbCouleurTrain) +1;
+      Affiche_Evt('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',CouleurTrain[id_couleur]);
       Affiche_evt(s,CouleurTrain[id_couleur]);
       if dupliqueEvt then
       begin
@@ -8644,11 +8632,12 @@ begin
   end;
 end;
 
+
 procedure calcul_zones(adresse: integer;front : boolean);
 begin
   if debug=3 then formprinc.Caption:='Calcul_zones '+intToSTR(adresse);
   if Algo_localisation=1 then calcul_zones_v1(adresse,front);
-  if Algo_localisation=2 then calcul_zones_v2b(adresse,front);
+  if Algo_localisation=2 then calcul_zones_v2(adresse,front);
   if debug=3 then formprinc.Caption:='';
 end;
 
@@ -8940,7 +8929,7 @@ end;
 
 // traitement des évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
-var dr,i,AdrSuiv,indextrain,AdrFeu,AdrDetfeu,index,Etat01,AdrPrec : integer;
+var dr,i,AdrSuiv,AdrFeu,AdrDetfeu,index,Etat01,AdrPrec : integer;
     typeSuiv : tequipement;
     s : string;
 begin
@@ -8949,6 +8938,29 @@ begin
     Affiche('Erreur 82 : reçu adresse de détecteur trop grande : '+intToSTR(adresse),clred);
     exit;
   end;
+
+  // vérifier si front descendant pour filtrage
+  if filtrageDet0<>0 then
+  begin
+    dr:=detecteur[adresse].tempo0;
+    if (detecteur[Adresse].etat and not(etat)) and (dr=0) then
+    begin
+      if dr<>0 then exit;
+      detecteur[adresse].tempo0:=filtrageDet0;
+      exit;
+    end;
+    if dr=99 then detecteur[adresse].tempo0:=0;
+
+    // si détecteur passe à 1 et qu'un filtrage à 0 est en cours, annuler le 0
+    if etat and (dr<>0) then
+    begin
+      Affiche_Evt('Détecteur '+intToSTR(adresse)+' à 0 annulé',clorange);
+      detecteur[adresse].tempo0:=0;
+    end;
+  end;
+
+
+
   s:=detecteur[adresse].train;
   if (train='') and (s<>'') then train:=s;
   if Etat then Etat01:=1 else Etat01:=0;
@@ -9185,7 +9197,7 @@ begin
   end;
 end;
 
-// pilotage d'un accessoire (décodeur d'aiguillage, de signal)
+// pilotage d'un accessoire (décodeur d'aiguillage, de signal) et génère l'event aig
 // par CDM ou interface
 // octet = 1 (dévié) ou 2 (droit)
 // si acc=Taig, alors la sortie "octet" est mise à 1 puis à 0
@@ -9240,8 +9252,14 @@ begin
   if (pilotage=0) or (pilotage>2) then exit;
 
   // pilotage par USB ou par éthernet de la centrale ------------
-  if (hors_tension2=false) and (portCommOuvert or parSocketLenz) then
+  if (portCommOuvert or parSocketLenz) then
   begin
+    if hors_tension then
+    begin
+      Affiche('Voie hors tension, pas de pilotage d''accessoires',clRose);
+      result:=false;
+      exit;
+    end;
     if protocole=1 then
     begin
       groupe:=(adresse-1) div 4;
@@ -9481,6 +9499,8 @@ begin
   if n>j then delete(chaineINT,n,1);
   n:=pos(#$0A,chaineINT);
   if n>j then delete(chaineINT,n,1);
+
+  if i>1 then delete(chaineINT,1,i-1);
 
   ack:=chaineINT<>'';
 //  Affiche(copy(chaineINT,i,j-i+1),clblue);
@@ -9746,7 +9766,7 @@ begin
     delete(chaineInt,1,1);
     case chaineINT[1] of
     #$00 : begin ack:=true;msg:='Voie hors tension';end;
-    #$01 : begin ack:=true;msg:='Reprise';Hors_tension2:=false;end;
+    #$01 : begin ack:=true;msg:='Reprise';Hors_tension:=false;end;
 
     #$02 : begin ack:=true;msg:='Mode programmation ';end;
 
@@ -9793,7 +9813,7 @@ begin
   begin
     delete(chaineInt,1,2);
     Affiche('Voie hors tension msg1',clRed);
-    Hors_tension2:=true;
+    Hors_tension:=true;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
@@ -9802,7 +9822,7 @@ begin
   begin
     delete(chaineInt,1,2);
     Affiche('Voie hors tension msg2',clRed);
-    Hors_tension2:=false;
+    Hors_tension:=false;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
@@ -9816,7 +9836,7 @@ begin
 
     Affiche('reprise puissance ',clLime);
     delete(chaineInt,1,8);
-    Hors_tension2:=false;
+    Hors_tension:=false;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
@@ -9826,7 +9846,7 @@ begin
   begin
     delete(chaineInt,1,3);
     Affiche('Reprise msg 2',clOrange);
-    Hors_tension2:=false;
+    Hors_tension:=false;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
@@ -9835,6 +9855,7 @@ begin
   begin
     delete(chaineInt,1,2);
     Affiche('Court circuit msg 1',clRed);
+    Hors_tension:=true;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
@@ -9941,6 +9962,7 @@ begin
     end;
     Affiche('CDM rail déconnecté',Cyan);
     AfficheDebug('CDM rail déconnecté',Cyan);
+    filtrageDet0:=SauvefiltrageDet0;
   end;
 end;
 
@@ -10013,7 +10035,10 @@ begin
 
       if (temp>15) then
       begin
-        Affiche_suivi(' mais l''interface n''a pas répondu',clyellow);
+        s:=' mais l''interface n''a pas répondu ';
+        if protocole=1 then s:=s+' en XpressNet';
+        if protocole=2 then s:=s+' en DCC++';
+        Affiche_suivi(s,clyellow);
         portCommOuvert:=false;  // refermer le port
         result:=false;
         exit;
@@ -10143,7 +10168,10 @@ begin
   if debug=1 then affiche('Connexion interface USB',clLime);
   if portcommouvert then exit;
   numport:=0;
-  if portcom<>'' then val(portcom[4],numport,erreur);
+  if portcom<>'' then
+  begin
+    val(copy(portcom,4,6),Numport,erreur);
+  end;
 
   if numport=0 then
   // scan des ports
@@ -10465,6 +10493,16 @@ begin
   Lance_CDM:=true;
 end;
 
+procedure Raz_reservations ;
+var i : integer;
+begin
+   // raz des réservations
+  for i:=1 to MaxAiguillage do
+  begin
+    aiguillage[i].AdrTrain:=0;
+  end;
+end;
+
 // supprime les events, les trains etc
 Procedure Raz_tout;
 var i,j : integer;
@@ -10488,10 +10526,6 @@ begin
     detecteur[i].etat:=false;
     detecteur[i].train:='';
     detecteur[i].adrTrain:=0;
-    detecteur[i].vers1:=0;
-    detecteur[i].vers2:=0;
-    detecteur[i].de1:=0;
-    detecteur[i].de2:=0;
     ancien_detecteur[i]:=false;
   end;
   for i:=1 to NbMemZone do
@@ -10518,6 +10552,7 @@ begin
     event_det_train[i].Det[2].etat:=false;
   end;
 
+  // raz des réservations
   for i:=1 to maxaiguillage do
   begin
     aiguillage[i].AdrTrain:=0;
@@ -10527,7 +10562,6 @@ begin
   if DebugAffiche then
   begin
     FormDebug.MemoEvtDet.Clear;
-    FormDebug.Richedit.Clear;
   end;
   roulage:=false;
 
@@ -10589,9 +10623,8 @@ end;
 
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
-var i,t : integer;
+var i : integer;
     s : string;
-    teq : tequipement;
 begin
   TraceSign:=True;
   configPrete:=false; // form config prete
@@ -10600,6 +10633,7 @@ begin
   ntrains:=0;
   ntrains_cdm:=0;
   protocole:=1;
+  filtrageDet0:=3;
   Srvc_Aig:=true;
   Srvc_Det:=true;
   Srvc_Act:=true;
@@ -10713,7 +10747,7 @@ begin
 
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
   // lecture fichiers de configuration
-  procetape('on va lire la config');  //2
+  procetape('on va lire la config');
   lit_config;
   lire_fichier_tco;
   procetape('on a lu la config');
@@ -10731,8 +10765,46 @@ begin
 
   Application.ProcessMessages;
 
-  // lancer CDM rail et le connecte si on le demande
-  procetape('test CDM et son lancement');  //1
+  // Initialisation des images des signaux
+  procetape('Création des signaux');
+  NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
+
+  // ajoute les images des feux dynamiquement
+  for i:=1 to NbreFeux do
+  begin
+    if debug=1 then affiche('Création du signal '+intToSTR(i)+' ----------',clLime);
+    cree_image(i);  // et initialisation tableaux signaux
+  end;
+  Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
+
+  // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
+  begin
+    //créée la fenêtre TCO non modale
+    FormTCO:=TformTCO.Create(nil);
+    i:=0;
+    repeat
+      application.processmessages;
+      inc(i);
+    until (TcoOuvert) or (i>20);
+    Application.processmessages;
+    if avecTCO then FormTCO.show;    // créer fiche dynamique (projet/fichier)
+  end;
+
+  raz_tout;
+  procetape('Début des init');
+  I_Simule:=0;
+  tick:=0;
+  N_Event_tick:=0 ; // dernier index
+  NombreImages:=0;
+
+  //Affiche('Fin des initialisations',clyellow);
+  LabelEtat.Caption:=' ';
+  Affiche_memoire;
+  modeStkRetro:=false;
+
+
+  // lancer CDM rail et le connecte si on le demande à faire après la création des feux et du tco
+  procetape('test CDM et son lancement');
   if LanceCDM then Lance_CDM;
   procetape('fin cdm');
   Loco.Visible:=true;
@@ -10771,47 +10843,7 @@ begin
     LireunfichierdeCV1.enabled:=false;
   end;
 
-  // Initialisation des images des signaux
-  procetape('Création des signaux');
-  NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
 
-  // ajoute les images des feux dynamiquement
-  for i:=1 to NbreFeux do
-  begin
-    if debug=1 then affiche('Création du signal '+intToSTR(i)+' ----------',clLime);
-    cree_image(i);  // et initialisation tableaux signaux
-  end;
-  Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
-
-  // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
-  begin
-    //créée la fenêtre TCO non modale
-    FormTCO:=TformTCO.Create(nil);
-    i:=0;
-    repeat
-      application.processmessages;
-      inc(i);
-    until (TcoOuvert) or formTCO.active or (i>20);
-    Application.processmessages;
-    {
-    if not(TCOOUvert) then Affiche('Erreur : fenêtre TCO non créée',clred);
-    if TCOOuvert and (Debug=1) then Affiche('Fenêtre TCO créée',clYellow);
-    if formTCO.active then Affiche('active',clyellow);
-    }
-    if avecTCO then FormTCO.show;    // créer fiche dynamique (projet/fichie) ne pas afficher sinon fenetre fantome!!
-  end;
-
-  raz_tout;
-  procetape('Début des init');
-  I_Simule:=0;
-  tick:=0;
-  N_Event_tick:=0 ; // dernier index
-  NombreImages:=0;
-
-  //Affiche('Fin des initialisations',clyellow);
-  LabelEtat.Caption:=' ';
-  Affiche_memoire;
-  modeStkRetro:=false;
 
   if AvecInit then
   begin
@@ -11041,6 +11073,7 @@ begin
   end;
 
   // arret loco sur n secondes
+  // démarrage loco temporisé
   for i:=1 to 20 do
   begin
     a:=trains[i].TempoArret;
@@ -11050,6 +11083,17 @@ begin
       trains[i].TempoArret:=a;
       if a=0 then vitesse_loco('',trains[i].adresse,0,true) else
         if (a mod 10)=0 then vitesse_loco('',trains[i].adresse,trains[i].VitRalenti div 2,true);
+    end;
+    a:=trains[i].TempoDemarre;
+    if a<>0 then
+    begin
+      dec(a);
+      trains[i].TempoDemarre:=a;
+      if a=0 then
+      begin
+       //Affiche('Démarrage train @'+intToSTR(trains[i].Adresse),clLime);
+       vitesse_loco('',trains[i].Adresse,trains[i].VitNominale,not(placement[i].inverse));
+      end;
     end;
   end;
 
@@ -11091,6 +11135,7 @@ begin
         Index_Simule:=0;  // fin de simulation
         I_Simule:=0;
         MsgSim:=false;
+        filtrageDet0:=SauvefiltrageDet0;
         Affiche('Fin de simulation',Cyan);
         StaticText.caption:='';
       end;
@@ -11098,30 +11143,22 @@ begin
     inc(intervalle_courant);
   end;
 
-  // temporisations de démarrage des trains au feux
-  if (Option_demarrage or roulage) then
-  for i:=1 to 1024 do
+  // temporisation détecteur à 0
+  for i:=1 to NbMemZone do
   begin
-    if detecteur[i].tempo<>0 then
+    a:=detecteur[i].tempo0;
+    if a<>0 then
     begin
-      dec(detecteur[i].tempo);
-      //Affiche(intToSTR(i),clBlue);
-      if detecteur[i].tempo=0 then
+      dec(a);
+      detecteur[i].tempo0:=a;
+      if (a=0) then
       begin
-        //s:=detecteur[i].train;
-        if cdm_connecte then
-        begin
-          s:=chaine_CDM_vitesseST(100,s);  // 100%
-          envoi_cdm(s);
-        end;
-        if roulage then
-        begin
-          a:=index_train_adresse(detecteur[i].AdrTrain);
-          if (a>1) and (a<Max_Trains) then vitesse_loco('',detecteur[i].AdrTrain,trains[a].VitNominale,not(placement[a].inverse));
-        end;
+        detecteur[i].tempo0:=99;
+        event_detecteur(i,false,detecteur[i].train);
       end;
     end;
   end;
+
 end;
 
 
@@ -11321,7 +11358,7 @@ end;
 
 procedure TFormPrinc.MenuConnecterUSBClick(Sender: TObject);
 begin
-  Hors_tension2:=false;
+  Hors_tension:=false;
   connecte_USB;
 end;
 
@@ -11358,7 +11395,7 @@ if AdresseIP<>'0' then
     ClientSocketInterface.port:=portInterface;
     ClientSocketInterface.Address:=AdresseIP;
     ClientSocketInterface.Open;
-    Hors_tension2:=false;
+    Hors_tension:=false;
   end;
 end;
 
@@ -11368,7 +11405,7 @@ begin
 end;
  
 procedure TFormPrinc.AffEtatDetecteurs(Sender: TObject);
-var j,adr,adrTrain,ad1 : integer;
+var j,adr,adrTrain : integer;
     s : string;
 begin
   Affiche('Etat des détecteurs:',ClLime);
@@ -11377,9 +11414,6 @@ begin
    adr:=Adresse_detecteur[j];
    s:='Dét '+intToSTR(adr)+'=';
    if Detecteur[adr].etat then s:=s+'1 ' else s:=s+'0 ';
-   if Algo_localisation=2 then s:=s+'vers1='+intToSTR(detecteur[adr].vers1)+' vers2='+intToSTR(detecteur[adr].vers2)+' ';
-   if Algo_localisation=2 then s:=s+'de1='+intToSTR(detecteur[adr].de1)+' de2='+intToSTR(detecteur[adr].de2)+' ';
-   if Algo_localisation=2 then s:=s+'qv1='+intToSTR(detecteur[adr].QuitteVers1)+' qv2='+intToSTR(detecteur[adr].QuitteVers2)+' ';
 
    s:=s+detecteur[adr].train;
    AdrTrain:=detecteur[adr].AdrTrain;
@@ -11912,14 +11946,14 @@ begin
       if i<>0 then
       begin
         Delete(commandeCDM,i,12);
-        
+
         i:=posEx('AD=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
         begin
           ss:=copy(commandeCDM,i+3,l-i-3);
           val(ss,adr,erreur);
           Delete(commandeCDM,i,l-i+1);
-        end;  
+        end;
 
         i:=posEx('TRAIN=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
@@ -11952,8 +11986,6 @@ begin
         end;
           
         Event_detecteur(Adr,etat=1,train);
-        //Affiche(train,clYellow);
-        //Affiche(IntToSTR(adr)+' '+IntToSTR(etat)+' '+train,clyellow);
       end ;
 
       // évènement signal - non stocké ni interprété
@@ -11967,7 +11999,7 @@ begin
         begin
           nom:=copy(commandeCDM,i+5,l-i-5);
           Delete(commandeCDM,i,l-i+1);
-        end;  
+        end;
 
         i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
@@ -12668,6 +12700,7 @@ begin
   Index_Simule:=0;  // fin de simulation
   I_Simule:=0;
   MsgSim:=false;
+  filtrageDet0:=SauvefiltrageDet0;
   StopSimu:=true;
   Affiche('Fin de simulation',Cyan);
 end;
@@ -12716,7 +12749,7 @@ end;
 procedure TFormPrinc.Affichefentredebug1Click(Sender: TObject);
 begin
 //  formdebug.Create(nil);
-  formDebug.show;
+ if debugaffiche then  formDebug.show;
 end;
 
 procedure TFormPrinc.locoClick(Sender: TObject);
@@ -12771,10 +12804,10 @@ begin
 end;
 
 procedure TFormPrinc.Etatdeszonespartrain1Click(Sender: TObject);
-var i,j,n,train,pos : integer;
+var i,j,n,train : integer;
     couleur : tcolor;
     rien,aff : boolean;
-    s : string;
+    s,ss : string;
 begin
   Affiche('',clyellow);
   Affiche('Historique de l''état des zones par train',clWhite);
@@ -12819,13 +12852,23 @@ begin
 
   for i:=1 to n_trains do
   begin
-    Affiche('Event det train '+intToSTR(i),clOrange);
+    s:='Event det train '+intToSTR(i);
+    n:=event_det_train[i].AdrTrain;
+    if n<>0 then s:=s+' @'+intToSTR(n);
+    ss:=event_det_train[i].nom_train;
+    if ss<>'' then s:=s+' '+ss;
+    Affiche(s,clOrange);
+
+    n:=event_det_train[i].signal_rouge;
+    if n<>0 then Affiche('Arreté devant signal '+intToSTR(n),clyellow);
     for j:=1 to event_det_train[i].NbEl do
     begin
-      Affiche(intToSTR(event_det_train[i].Det[j].adresse),clyellow);
+      s:=intToSTR(event_det_train[i].Det[j].adresse);
+      Affiche(s,clyellow);
     end;
   end;
 
+  {
   Affiche('Evènements détecteurs par train',clWhite);
   for i:=1 to n_trains do
   begin
@@ -12837,7 +12880,7 @@ begin
       if event_det_tick[j].train=i then Affiche(intToSTR(event_det_tick[j].adresse)+' '+intToSTR(event_det_tick[j].etat),couleur);
     end;
   end;
-
+  }
   if rien then Affiche('Aucune zone n''a été déclenchée',clOrange);
 end;
 
@@ -12865,7 +12908,7 @@ begin
   Affiche('En orange : pilotage des signaux / erreurs mineures',ClWhite);
   Affiche('En bleu : pilotage des aiguillages',ClWhite);
   Affiche('En jaune : rétrosignalisation reçue depuis l''interface',ClWhite);
-  
+  Affiche('Taille du TCO : '+intToSTR(SizeOf(tco) div 1024)+' ko',clorange);
   Affiche(' ',clyellow);
 end;
 
@@ -12885,7 +12928,8 @@ end;
 
 procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
 var s: string;
-    v,i,etat,aspect,combine,adresse,aig,trainReserve,AdrSignalsuivant : integer;
+    i,aspect,combine,adresse,aig,trainReserve,AdrSignalsuivant : integer;
+    reserveTrainTiers : boolean;
     code : word;
 begin
   clicliste:=false;
@@ -12906,8 +12950,8 @@ begin
   if aspect=0 then
   begin
     Affiche('Le signal est au carré car ',clyellow);
-    if carre_signal(Adresse,trainreserve) and (trainreserve=0) then affiche('les aiguillages en aval du signal sont mal positionnées ou leur positions inconnues',clyellow) ;
-    if trainreserve<>0 then affiche('un aiguillage ou un croisement en aval du signal sont réservés par le train @'+intToSTR(trainReserve),clyellow);
+    if carre_signal(Adresse,trainreserve,reserveTrainTiers) then affiche('les aiguillages en aval du signal sont mal positionnées ou leur positions inconnues',clyellow) ;
+    if reserveTrainTiers then affiche('un aiguillage ou un croisement en aval du signal sont réservés par un autre train ',clyellow);
     if Cond_Carre(Adresse) then affiche_suivi('les aiguillages déclarés dans la définition du signal sont mal positionnés',clyellow);
     if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,TrainReserve)) then affiche('le signal est verrouillable au carré et aucun train n''est présent avant le signal',clyellow);
     if test_memoire_zones(Adresse) then affiche('présence train dans canton suivant le signal',clyellow);
@@ -12992,13 +13036,12 @@ begin
   else begin groupBox2.Visible:=false;groupBox3.Visible:=true;end;
 end;
 
-
 procedure TFormPrinc.ComboTrainsChange(Sender: TObject);
 var i : integer;
 begin
    i:=ComboTrains.itemIndex+1;
    if (i<>0) and (i<Max_Trains) then
-   EditAdrTrain.Text:=intToSTR(trains[i+1].adresse);
+   EditAdrTrain.Text:=intToSTR(trains[i].adresse);
 end;
 
 procedure TFormPrinc.ButtonFonctionClick(Sender: TObject);
@@ -13118,24 +13161,23 @@ end;
 
 procedure TFormPrinc.ButtonEnvClick(Sender: TObject);
 begin
-  
-  //decode_chaine_retro_dcc('<Q 22><q 22><ZER>');
-  //TraceTrames:=true;
   affiche_retour_dcc:=true;
   tps_affiche_retour_dcc:=2;
   Affiche(editEnvoi.text,ClWhite);
   envoi(editEnvoi.Text);
 end;
 
-
 procedure TFormPrinc.Placerlestrains1Click(Sender: TObject);
 begin
-  if cdm_connecte then
+  if PlaceAffiche then
   begin
-    Affiche('Placement des trains incompatible en mode CDM rail',clOrange);
-    exit;
+    if cdm_connecte then
+    begin
+      Affiche('Placement des trains incompatible en mode CDM rail',clOrange);
+      exit;
+    end;
+    formplace.showmodal;
   end;
-  formplace.showmodal;
 end;
 
 procedure TFormPrinc.Demandetatdtecteurs1Click(Sender: TObject);
@@ -13153,6 +13195,7 @@ procedure placement_trains;
 var adr,AdrTrain,i,j : integer;
     trouve : boolean;
 begin
+  trouve:=false;
   for i:=1 to 6 do
   begin
     Adr:=placement[i].detecteur;
@@ -13180,16 +13223,14 @@ begin
     end;
   end;
   if trouve then Maj_feux;
-
 end;
 
 procedure TFormPrinc.Button1Click(Sender: TObject);
 begin
-//  placement_trains;
+  placement_trains;
   ouvre_simulation('C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
-  //ouvre_simulation('C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL\oua.txt');
+ //  ouvre_simulation('C:\Program Files\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
 end;
-
 
 
 procedure TFormPrinc.Evenementsdetecteurspartrain1Click(Sender: TObject);
@@ -13212,8 +13253,12 @@ Affiche('Evenements tous détecteurs',clwhite);
       s:='';
       for j:=1 to train*15 do s:=s+' ';
       s:=s+intToSTR(event_det_tick[i].adresse)+' '+intToSTR(event_det_tick[i].etat);
-      if event_det_tick[i].reaffecte=1 then s:=s+'R';
-      if event_det_tick[i].reaffecte=2 then s:=s+'A';
+      case event_det_tick[i].reaffecte of
+       1 : s:=s+'/S';
+       2 : s:=s+'/A';
+       3 : s:=s+'/R';
+       4 : s:=s+'/0';
+       end;
       Affiche(s,couleur);
     end;
     if event_det_tick[i].modele=aig then
@@ -13229,10 +13274,28 @@ Affiche('Evenements tous détecteurs',clwhite);
        Affiche(s,clWhite);
     end;
   end;
+end;
 
+procedure TFormPrinc.RazResaClick(Sender: TObject);
+begin
+  Affiche('Mise à 0 de la réservation des aiguillages',clYellow);
+  Raz_reservations;
+  Maj_feux;
 end;
 
-
+procedure TFormPrinc.SBMarcheArretLocoClick(Sender: TObject);
+var i,adr : integer;
+begin
+  for i:=1 to Ntrains do
+  begin
+    adr:=Trains[i].adresse;
+    if adr<>0 then
+    begin
+      Affiche('Arrêt train @'+intToSTR(adr)+' '+Trains[i].nom_train,clyellow);
+      vitesse_loco('',adr,0,not(placement[i].inverse));
+    end;
+  end;
+end;
 
 end.
 

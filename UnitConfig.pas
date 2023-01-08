@@ -318,6 +318,9 @@ type
     EditVitNom: TEdit;
     LabelInfVitesse: TLabel;
     CheckRoulage: TCheckBox;
+    GroupBox25: TGroupBox;
+    Label58: TLabel;
+    EditFiltrDet: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -469,6 +472,7 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+Filtrage_det_ch='Filtrage_det';
 Algo_localisation_ch='Algo_localisation';
 Avec_roulage_ch='Avec_roulage';
 nb_det_dist_ch='nb_det_dist';
@@ -677,6 +681,8 @@ begin
         envoi_CDM(s);
         sleep(10);
         Application.ProcessMessages;
+        SauvefiltrageDet0:=filtrageDet0;
+        filtrageDet0:=0;
       end;
     end;
     //else Affiche('CDM Rail non lancé',clOrange);
@@ -752,9 +758,10 @@ begin
     end;
   end;
 
-  i:=pos(':',sa);
-  val(copy(sa,4,i-1),Numport,erreur);
-  config_com:=not( (copy(sa,1,3)<>'COM') or (NumPort>MaxPortCom) or (prot_serie=-1) or (prot_serie>4) or (i=0) );
+  i:=pos('COM',sa);
+  if i<>0 then delete(sa,1,3);
+  val(sa,Numport,erreur);
+  config_com:=not( (i=0) or (NumPort>MaxPortCom) or (prot_serie=-1) or (prot_serie>4) or (i=0) );
 end;
 
 // transforme l'aiguillage de la base de données aiguillage en texte
@@ -1381,6 +1388,7 @@ begin
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
+  writeln(fichierN,Filtrage_det_ch+'=',filtrageDet0);
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
   FormPrinc.FenRich.Font.Size:=TailleFonte;
@@ -2310,6 +2318,14 @@ begin
       val(s,debug,erreur);
     end;
 
+    sa:=uppercase(Filtrage_det_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,filtrageDet0,erreur);
+    end;
+
     sa:=uppercase(Algo_localisation_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2408,6 +2424,7 @@ begin
       trouve_PROTOCOLE_SERIE:=true;
       delete(s,i,length(sa));
       if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
+      if (NumPort>MaxPortCom) then Affiche('Le port com est supérieur au nombre de COMx à explorer dans le fichier de configuraion',clred);
       portcom:=s;
     end;
 
@@ -2960,6 +2977,10 @@ begin
     changeInterface:=changeInterface or (i<>portinterface);
     portInterface:=i;
 
+    val(EditFiltrDet.Text,i,erreur);
+    if (i<0) or (i>10) then i:=3;
+    filtrageDet0:=i;
+
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
@@ -3136,10 +3157,6 @@ var i :integer;
     s : string;
 begin
   if affevt then affiche('FormConfig activate',clLime);
-  Aig_supprime.Adresse:=0;
-  Feu_Supprime.Adresse:=0;
-  Feu_sauve.adresse:=0;
-
   clicListe:=false;
   Edit_HG.Visible:=false;
   labelHG.Visible:=false;
@@ -3174,6 +3191,7 @@ begin
   EditIPLenz.text:=AdresseIP;
   EditportLenz.text:=IntToSTR(PortInterface);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
+  EditFiltrDet.text:=intToSTR(filtrageDet0);
 
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
@@ -3370,6 +3388,9 @@ begin
   clicListe:=true;
   if affevt then affiche('FormConfig create',clLime);
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
+  Aig_supprime.Adresse:=0;
+  Feu_Supprime.Adresse:=0;
+  Feu_sauve.adresse:=0;
   clicListe:=false;
   if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
   ConfigPrete:=true;
@@ -9250,6 +9271,10 @@ end;
 
 
 
+
+
+
+
 
 
 

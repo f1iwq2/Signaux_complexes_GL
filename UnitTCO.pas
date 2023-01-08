@@ -311,7 +311,7 @@ type
   end;
 
 const
-  ZoomMax=50;ZoomMin=20;
+  ZoomMax=50;ZoomMin=15;
   MaxCellX=150;MaxCellY=70;
   ClFond_ch='CoulFond';
   clVoies_ch='CoulVoies';
@@ -328,16 +328,16 @@ const
 
 type
   // structure du TCO
-  TTCO = array[1..MaxCellX] of array[1..MaxCellY] of record
+  TTCO = array[1..MaxCellX,1..MaxCellY] of record
                Adresse     : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
                BImage      : integer ;    // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
                mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur en fonction du train
                trajet      : integer;     // décrit le trajet ouvert sur la voie (cas d'un croisement ou d'ue tjd/S)
                inverse     : boolean;     // aiguillage piloté inversé
                repr        : integer;     // position de la représentation texte 0 = rien 1=centrale 2=Haut  3=Bas
-               Texte       : string[30];  // texte de la cellule
-               Fonte       : string[30];  // fonte du texte
-               FontStyle   : string[4];   // GSIB  (Gras Souligné Italique Barré)
+               Texte       : string;  // texte de la cellule
+               Fonte       : string;  // fonte du texte
+               FontStyle   : string;   // GSIB  (Gras Souligné Italique Barré)
                coulFonte   : Tcolor;
                TailleFonte : integer;
                Couleur     : Tcolor;      // couleur non utilisée
@@ -351,7 +351,7 @@ var
   clAllume,clVoies,Fond,couleurAdresse,clGrille,cltexte,clQuai,CoulFonte,ClCanton : Tcolor;
   FormTCO: TFormTCO;
   Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
-  piloteAig,BandeauMasque,eval_format,TCOouvert : boolean;
+  clicTCO,piloteAig,BandeauMasque,eval_format,TCOouvert : boolean;
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,RatioC,ModeCouleurCanton,
@@ -3328,17 +3328,18 @@ begin
   comborepr.Enabled:=false;
   ImageTCO.Top:=0;
   ImageTCO.Left:=0;
+
   //controlStyle:=controlStyle+[csOpaque];
 end;
 
-// clic gauche sur image
+// clic gauche sur TCO
 procedure TFormTCO.ImageTCOClick(Sender: TObject);
 var  Position: TPoint;
      Bimage : integer;
      s : string;
 begin
-  //Affiche('Clic gauche',clLime);
-
+  if affevt then Affiche('TCO ImageTCOClic',clLime);
+  clicTCO:=true;
   GetCursorPos(Position);
   {
   Menuitem:=TmenuItem.Create(popupMenu1);
@@ -3361,21 +3362,22 @@ begin
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
      or (bimage=14) or (bimage=15) then
   begin
-    
+    // aiguillage inversé
     with FormConfCellTCO.CheckPinv do
     begin
       enabled:=true;
       checked:=TCO[XClicCell,YClicCell].inverse;
-    end;  
+    end;
     CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
     CheckPinv.enabled:=true ;
   end
-    else 
-    begin
-      CheckPinv.enabled:=false;
-      FormConfCellTCO.checkPinv.enabled:=false;
-    end;  
-      
+  else
+  begin
+    CheckPinv.enabled:=false;
+    FormConfCellTCO.checkPinv.enabled:=false;
+  end;
+
+  // si voie ou rien ou signal ou quai
   if (Bimage=1) or (Bimage=0) or (Bimage=23) then
   begin
     s:=Tco[XClicCell,YClicCell].Texte;
@@ -3399,8 +3401,8 @@ begin
   ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
 
   if not(selectionaffichee) then _entoure_cell_clic;
-
   actualise;
+  clicTCO:=false;
 end;
 
 // trouve le détecteur det dans le TCO et renvoie X et Y
@@ -3416,7 +3418,7 @@ begin
       trouve:=tco[xc,yc].Adresse=det;
     until (xc=NbreCellX+1) or trouve;
     inc(yc);
-  until (yc=NbreCellY+1) or trouve;  
+  until (yc=NbreCellY+1) or trouve;
   dec(yc);
   if trouve then
   begin
@@ -4558,18 +4560,18 @@ begin
   TCO_modifie:=true;
 end;
 
-procedure copier;     
+procedure copier;
 var x,y : integer;
 begin
   if SelectionAffichee then
   begin
     TamponTCO_org.NbreCellX:=NbreCellX;
     TamponTCO_org.NbreCellY:=NbreCellY;
-  
+
     TamponTCO_Org.x1:=XminiSel div LargeurCell +1;
     TamponTCO_Org.x2:=XmaxiSel div LargeurCell +1;
     TamponTCO_Org.y1:=yminiSel div LargeurCell +1;
-    TamponTCO_Org.y2:=ymaxiSel div LargeurCell +1; 
+    TamponTCO_Org.y2:=ymaxiSel div LargeurCell +1;
     for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
       for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
         tamponTCO[x,y]:=tco[x,y];
@@ -4669,7 +4671,7 @@ begin
 //  ImageTCO.BeginDrag(true);
   if button=mbLeft then
   begin
-    //Affiche('Souris clic enfoncée',clLime);
+    if affEvt then Affiche('TCO Souris clicG enfoncée',clLime);
     Temposouris:=0;
     xMiniSel:=99999;yMiniSel:=99999;
     xMaxiSel:=0;yMaxiSel:=0;
@@ -4691,6 +4693,7 @@ begin
 
   if button=mbRight then
   begin
+    if affEvt then Affiche('TCO Souris clicG enfoncée',clLime);
     GetCursorPos(Position);
     Position:=ImageTCO.screenToCLient(Position);
     Xclic:=position.X;
@@ -4816,7 +4819,7 @@ procedure TFormTCO.EditAdrElementChange(Sender: TObject);
 var Adr,erreur,index : integer;
 begin
   //Affiche('Chgt adresse',clyellow);
-
+  if clicTCO then exit;
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
 
@@ -4853,6 +4856,7 @@ end;
 procedure TFormTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
 var Bimage,erreur : integer;
 begin
+  if affevt then Affiche('TCC evt editTypeImageKeyPress',clorange);
   if actualize then exit;
   if ord(Key)=VK_RETURN then
   begin
@@ -5144,6 +5148,8 @@ end;
 
 procedure TFormTCO.EditTexteChange(Sender: TObject);
 begin
+  if clicTCO then exit;
+  if affevt then Affiche('TCO.EditTextChange',clOrange);
   PCanvasTCO.Brush.Color:=fond;
   efface_entoure;
   if Tco[XClicCell,YClicCell].texte='' then
@@ -5153,7 +5159,7 @@ begin
   end;
 
   Tco[XClicCell,YClicCell].Texte:=EditTexte.Text;
-  formConfCellTCO.EditTexte.Text:=EditTexte.Text;
+  formConfCellTCO.EditTexteCCTCO.Text:=EditTexte.Text;
   TCO_modifie:=true;
   affiche_texte(XClicCell,YClicCell);
 end;
@@ -5186,10 +5192,11 @@ end;
 procedure TFormTCO.CheckPinvClick(Sender: TObject);
 var Bimage : integer;
 begin
+  if clicTCO then exit;
   if actualize then exit;
   if (xClicCell=0) or (xClicCell>NbreCellX) or (yClicCell=0) or (yClicCell>NbreCelly) then exit;
   Bimage:=Tco[xClicCell,yClicCell].Bimage;
-  if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) 
+  if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
      or (bimage=14) or (bimage=15) then
      begin
        TCO[xClicCell,yClicCell].inverse:=CheckPinv.checked;
@@ -5218,6 +5225,7 @@ procedure TFormTCO.ImageTCODblClick(Sender: TObject);
 var Bimage,Adresse,i : integer;
     tjdC : boolean;
 begin
+  //Affiche('Double clic',clred);
   Bimage:=Tco[xClicCell,yClicCell].BImage;
   Adresse:=TCO[xClicCell,yClicCell].Adresse;
   if adresse=0 then exit;
@@ -5265,7 +5273,7 @@ begin
       LabelNbFeux.Visible:=False;
       EditNbreFeux.Visible:=false;
       GroupBox1.Visible:=true;
-      GroupBox2.Visible:=true; 
+      GroupBox2.Visible:=true;
       efface_entoure;
       SelectionAffichee:=false;
 
@@ -5293,6 +5301,7 @@ end;
 
 procedure TFormTCO.ComboReprChange(Sender: TObject);
 begin
+  if clicTCO then exit;
   tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
   efface_entoure;
   SelectionAffichee:=false;

@@ -74,13 +74,13 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 1
       OnClick = ButtonFonteClick
     end
-    object EditTexte: TEdit
+    object EditTexteCCTCO: TEdit
       Left = 8
       Top = 16
       Width = 209
       Height = 24
       TabOrder = 2
-      OnChange = EditTexteChange
+      OnChange = EditTexteCCTCOChange
     end
   end
   object GroupBox2: TGroupBox
