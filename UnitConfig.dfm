@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 253
-  Top = 95
+  Left = 243
+  Top = 119
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1570,7 +1570,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1910,7 +1910,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 288
         Width = 281
-        Height = 121
+        Height = 137
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1984,6 +1984,21 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 3
+        end
+        object CheckBoxVerifXpressNet: TCheckBox
+          Left = 8
+          Top = 112
+          Width = 233
+          Height = 17
+          Hint = 
+            'Contr'#244'le si une adresse DCC se trouve dans la plage 257-272 si o' +
+            'n utilise Xpressnet. Ne pas cocher si XpressNet n'#39'est pas utilis' +
+            #233
+          Caption = 'V'#233'rification des adresses XpressNet'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
+          OnClick = CheckBoxVerifXpressNetClick
         end
       end
     end
@@ -3345,8 +3360,8 @@ object FormConfig: TFormConfig
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object GroupBoxPN: TGroupBox
-          Left = 0
-          Top = 24
+          Left = 8
+          Top = 16
           Width = 233
           Height = 401
           Caption = 'Action gestion passage '#224' niveau'
@@ -3753,8 +3768,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 8
-          Top = 16
+          Left = 120
+          Top = 8
           Width = 225
           Height = 73
           Caption = 'Type d'#39'action'
@@ -3788,8 +3803,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 8
-          Top = 84
+          Left = 120
+          Top = 44
           Width = 233
           Height = 341
           Caption = 'Action fonction de locomotive '

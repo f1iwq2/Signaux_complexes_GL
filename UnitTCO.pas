@@ -328,7 +328,7 @@ const
 
 type
   // structure du TCO
-  TTCO = array[1..MaxCellX,1..MaxCellY] of record
+  TTCO = array of array of record
                Adresse     : integer ;    // adresse du détecteur ou de l'aiguillage ou du feu
                BImage      : integer ;    // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
                mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur en fonction du train
@@ -357,8 +357,11 @@ var
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,Xentoure,Yentoure,RatioC,ModeCouleurCanton,
   AncienXClicCell,AncienYClicCell,LargeurCell,HauteurCell,NbreCellX,NbreCellY,NbCellulesTCO,
   Epaisseur : integer;
+
   titre_Fonte : string;
+
   TamponTCO,tco : TTco ;
+
   // pour copier coller
   TamponTCO_Org : record
                    x1,y1,x2,y2,NbreCellX,NbreCellY : integer;
@@ -461,8 +464,8 @@ begin
       fond:=i;
      // eval_format:=true;
     end  ;
- 
- 
+
+
     sa:=uppercase(clVoies_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -484,7 +487,7 @@ begin
       val('$'+s,i,erreur);
       clAllume:=i;
     end;
-  
+
     sa:=uppercase(clGrille_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -561,13 +564,12 @@ begin
       inc(nv);
       trouve_matrice:=true;
       delete(s,i,length(sa));
-      val(s,i,erreur);
-      NbreCellX:=i;
+      val(s,NbreCellX,erreur);
       i:=pos(',',s);delete(s,1,i);
       Val(s,NbreCellY,erreur)
     end;
-       
-    
+
+
     // ratio
     sa:=uppercase(Ratio_ch)+'=';
     i:=pos(sa,s);
@@ -579,11 +581,39 @@ begin
       val(s,i,erreur);
       RatioC:=i;
     end;
-    
+
   until (pos('[MATRICE]',uppercase(s))<>0) or (eof(fichier));
 
   NbCellulesTCO:=NbreCellX*NbreCellY;
-  
+
+  if (NbreCellX<20) or (NbreCellX>MaxCellX) then
+  begin
+    NbreCellX:=MaxCellX;
+    Affiche('TCO: le nombre de cellules X a été ramené à '+intToSTR(NbreCellX),clred);
+  end;
+  if (NbreCellY<5) or (NbreCellY>MaxCellY) then
+  begin
+    NbreCellY:=MaxCellY;
+    Affiche('TCO: le nombre de cellules Y a été ramené à '+intToSTR(NbreCellX),clred);
+  end;
+
+  try
+    SetLength(TCO,NbreCellX+1,NbreCellY+1);
+  except
+    Affiche('TCO:Mémoire insuffisante pour'+intToSTR(NbreCellX)+' '+intToSTR(NbreCellY),clred);
+    NbreCellX:=20;NbreCellY:=12;
+    SetLength(TCO,NbreCellX+1,NbreCellY+1);
+  end;
+
+  try
+    SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+  except
+    Affiche('TamponTCO:Mémoire insuffisante',clred);
+    NbreCellX:=20;NbreCellY:=12;
+    SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+  end;
+
+
   // lire la matrice
   while not eof(fichier) do
   begin
@@ -678,7 +708,7 @@ begin
           // fonte
           delete(s,1,1);
           i:=pos(',',s);
-          tco[x,y].fonte:=copy(s,1,i-1);    
+          tco[x,y].fonte:=copy(s,1,i-1);
           //Affiche(fonte,clyellow);
           Delete(s,1,i);
 
@@ -3249,6 +3279,9 @@ begin
   //affiche('Affiche_tco',clLime);
   DimX:=LargeurCell*NbreCellX;
   DimY:=HauteurCell*NbreCellY;
+  // DimX DimY maxi 8191 pixels pour les bitmap
+  if (dimX>8192) then begin Affiche('Espace TCO X trop grand',clred); exit; end;
+  if (dimY>8192) then begin Affiche('Espace TCO Y trop grand',clred); exit; end;
 
   PImageTCO.Height:=DimY;
   PImageTCO.Width:=DimX;

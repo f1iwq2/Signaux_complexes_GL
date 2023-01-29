@@ -1,9 +1,9 @@
 object FormPrinc: TFormPrinc
-  Left = 64
-  Top = 110
+  Left = 48
+  Top = 231
   Width = 1213
   Height = 670
-  Caption = 'Client TCP-IP CDM Rail ou USB - syst'#232'me LENZ'
+  Caption = 'Signaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,8 +17,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1205
-    619)
+    1197
+    612)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -666,7 +666,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 888
+    Left = 896
     Top = 88
     Width = 33
     Height = 57
@@ -1263,8 +1263,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 597
-    Width = 1205
+    Top = 590
+    Width = 1197
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1465,8 +1465,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 640
-    Top = 56
+    Left = 632
+    Top = 64
     Width = 265
     Height = 129
     Anchors = [akTop, akRight]
@@ -1642,6 +1642,7 @@ object FormPrinc: TFormPrinc
       Width = 25
       Height = 21
       TabOrder = 1
+      OnChange = EditAdrTrainChange
     end
     object EditVitesse: TEdit
       Left = 80
@@ -1720,13 +1721,14 @@ object FormPrinc: TFormPrinc
     Text = '<1>'
   end
   object Button1: TButton
-    Left = 936
-    Top = 120
+    Left = 360
+    Top = 0
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Button1'
     TabOrder = 11
+    Visible = False
     OnClick = Button1Click
   end
   object Timer1: TTimer

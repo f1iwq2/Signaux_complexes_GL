@@ -321,6 +321,7 @@ type
     GroupBox25: TGroupBox;
     Label58: TLabel;
     EditFiltrDet: TEdit;
+    CheckBoxVerifXpressNet: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -462,6 +463,7 @@ type
     procedure ButtonNTClick(Sender: TObject);
     procedure EditVitNomChange(Sender: TObject);
     procedure EditVitRalentiChange(Sender: TObject);
+    procedure CheckBoxVerifXpressNetClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -472,6 +474,7 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
 Algo_localisation_ch='Algo_localisation';
 Avec_roulage_ch='Avec_roulage';
@@ -525,7 +528,7 @@ var
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,clicListeTrain,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
-  Algo_localisation : integer;
+  Algo_localisation,Verif_AdrXpressNet : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains : boolean;
@@ -539,7 +542,6 @@ procedure decodeAig(s : string;var adr : integer;var B : char);
 function sauve_config : boolean;
 procedure lit_config;
 Procedure aff_champs_sig_feux(index : integer);
-procedure decode_ligne_feux(chaine_signal : string;i : integer);
 function verif_coherence : boolean;
 function compile_branche(s : string;i : integer) : boolean;
 function encode_sig_feux(i : integer): string;
@@ -992,12 +994,13 @@ begin
 end;
 
 // décode la ligne de signal et la stocke dans l'index i du tableau feux
-procedure decode_ligne_feux(chaine_signal : string;i : integer);
+function decode_ligne_feux(chaine_signal : string;i : integer) : boolean;
 var s,chaine,sa : string;
-    j,k,l,t,adresse,adr,erreur ,asp,bd: integer;
+    j,k,l,t,id,adresse,adr,erreur ,asp,bd: integer;
     c : char;
     multiple,fini : boolean;
 begin
+  decode_ligne_feux:=true;  // pas de doublon
       if i=0 then
       begin
         AfficheDebug('Erreur 670 : index nul',clred);
@@ -1007,9 +1010,20 @@ begin
       j:=pos(',',s);
       if j>1 then
       begin
-        // adresse de feu
+        // adresse de signal
         val(s,adresse,erreur);
         if adresse=0 then begin affiche('Erreur 671 ligne '+s,clred);exit;end;
+        // vérifier si le signal existe pour ne pas le stocker
+        for id:=1 to NbreFeux do
+        begin
+          if feux[id].adresse=adresse then
+          begin
+            decode_ligne_feux:=false;
+            exit;
+          end;
+        end;
+        inc(nbreFeux);
+
         Delete(s,1,j);
         feux[i].adresse:=adresse;
         j:=pos(',',s);
@@ -1076,7 +1090,7 @@ begin
             j:=pos(',',s);
             val(s,Feux[i].decodeur,erreur);
 
-            if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
+            if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Feux[i].decodeur),clred);
             if j<>0 then delete(s,1,j);
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
             feux[i].Btype_Suiv1:=rien;feux[i].Btype_Suiv2:=rien;feux[i].Btype_Suiv3:=rien;feux[i].Btype_Suiv4:=rien;
@@ -1098,7 +1112,7 @@ begin
                    Delete(s,1,k);
                    if Adr>NbMemZone then
                    begin
-                     Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand',clred);
+                     Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
                      Adr:=NbMemZone;
                    end;
                  end;
@@ -1171,7 +1185,7 @@ begin
              delete(s,1,erreur);
              if k=0 then
              begin
-               if Feux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal,clred);Affiche('Manque définition décodeur UniSemaf',clred);end;
+               if Feux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal+' Manque définition décodeur UniSemaf signal '+intToSTR(adresse),clred);end;
              end
              else
              begin
@@ -1179,10 +1193,10 @@ begin
                if Feux[i].decodeur=6 then
                begin
                  erreur:=verif_UniSemaf(adresse,k);
-                 if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal,clred);Affiche('Erreur code Unisemaf',clred);end;
+                 if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal+' Erreur code Unisemaf',clred);end;
                  if erreur=2 then
                  begin
-                   Affiche('Erreur 682 Ligne '+chaine_signal,clred);Affiche('Erreur cohérence aspect signal ('+intToSTR(asp)+') et code Unisemaf ('+intToSTR(k)+')',clred);
+                   Affiche('Erreur 682 Ligne '+chaine_signal+' Erreur cohérence signal (Adresse='+intToSTR(adresse)+' Aspect='+intToSTR(asp)+' et code Unisemaf=('+intToSTR(k)+')',clred);
                  end;
                end;
              end;
@@ -1328,6 +1342,7 @@ begin
   with formconfig do
   begin
     NbVoies:=Tablo_PN[i].NbVoies;
+    if NbVoies>4 then nbVoies:=4;
     s:='';
 
     // par actionneur
@@ -1349,7 +1364,6 @@ begin
         s:=s+'('+intToSTR(tablo_PN[i].Voie[voie].detZ1F)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2F)+','+intToSTR(tablo_PN[i].Voie[voie].detZ1O)+'-'+intToSTR(tablo_PN[i].Voie[voie].detZ2O)+')';
         if voie<NbVoies then s:=s+',';
       end;
-
     end;
 
     s:=s+',PN('+IntToSTR(tablo_PN[i].AdresseFerme)+',';
@@ -1357,7 +1371,7 @@ begin
     s:=s+IntToSTR(tablo_PN[i].AdresseOuvre)+',';
        s:=s+intToSTR(tablo_PN[i].commandeOuvre)+'),';
 
-    if tablo_PN[i].pulse=1 then s:=s+'1' else s:=s+'0';   
+    if tablo_PN[i].pulse=1 then s:=s+'1' else s:=s+'0';
   end;
   encode_act_pn:=s;
 end;
@@ -1368,8 +1382,6 @@ begin
   intToSTR(trains[index].vitmax)+','+intToSTR(trains[index].vitnominale)+','+
   intToSTR(trains[index].vitRalenti);
 end;
-
-
 
 // modifie le fichier de config en fonction du paramétrage
 // recopie les commentaires du fichier "fichier"
@@ -1394,6 +1406,8 @@ begin
   FormPrinc.FenRich.Font.Size:=TailleFonte;
 
   writeln(fichierN,Protocole_ch+'=',protocole);
+
+  writeln(fichierN,Verif_AdrXpressNet_ch+'=',Verif_AdrXpressNet);
 
   // adresse ip et port de CDM
   writeln(fichierN,IpV4_PC_ch+'=',adresseIPCDM+':'+intToSTR(portCDM));
@@ -1618,13 +1632,23 @@ begin
   repeat
     inc(Nligne);
     s:=lit_ligne;
-    //affiche(s,clyellow);
     if s<>'0' then
     begin
-      inc(NbreFeux);
-      decode_ligne_feux(s,i);inc(i);
+      if NbreFeux>=NbreMaxiSignaux then
+      begin
+        Affiche('Nombre maximal de signaux atteint',clRed);
+      end
+      else
+      begin
+        if decode_ligne_feux(s,i) then    // décode la chaine et stocke en tableau feux
+        begin
+          inc(i);
+        end  
+        else
+          Affiche('Erreur 9 : signal '+s+' en doublon a été ignoré',clred);  
+      end;
     end;
-  until (s='0') or  eof(fichier);
+  until (s='0') or eof(fichier);
 end;
 
 procedure compile_branches;
@@ -1655,7 +1679,7 @@ procedure compile_actionneurs;
 var i : integer;
 begin
   // raz des actionneurs
-  for i:=1 to maxTablo_act do
+  for i:=1 to Max_actionneurs do
   begin
     Tablo_actionneur[i].trainDecl:='';
     Tablo_actionneur[i].trainDest:='';
@@ -1672,7 +1696,6 @@ begin
     Tablo_actionneur[i].son:=false;
   end;
 
-  //Affiche('Définition des actionneurs/détecteurs',clyellow);
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
 
@@ -1892,7 +1915,7 @@ begin
           i:=pos(')',s);Delete(S,1,i);
           i:=pos(',',s);Delete(S,1,i);
           Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
-        until (copy(s,1,2)='PN') or (NbreVoies=10);
+        until (copy(s,1,2)='PN') or (NbreVoies=4);
 
         Tablo_PN[NbrePN].NbVoies:=NbreVoies;
         Delete(s,1,3);  // Supprime PN(
@@ -1954,7 +1977,7 @@ begin
     if debugconfig then Affiche(s,ClLime);
     if (s<>'0') then
     begin
-      if MaxAiguillage>=MaxAcc then
+      if MaxAiguillage>=NbreMaxiAiguillages then
       begin
         Affiche('Nombre maximal d''aiguillages atteint',clRed);
       end
@@ -2219,7 +2242,7 @@ begin
       val(s,AdrBaseDetDccpp,erreur);
       s:='';
     end;
-    
+
     sa:=uppercase(section_initpp_ch);
     i:=pos(sa,s);
     if i<>0 then
@@ -2316,6 +2339,14 @@ begin
     begin
       delete(s,i,length(sa));
       val(s,debug,erreur);
+    end;
+
+    sa:=uppercase(Verif_AdrXpressNet_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,Verif_AdrXpressNet,erreur);
     end;
 
     sa:=uppercase(Filtrage_det_ch)+'=';
@@ -2820,7 +2851,7 @@ begin
 
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
-  for i:=1 to MaxAcc do
+  for i:=1 to NbreMaxiAiguillages do
   begin
     Aiguillage[i].modele:=rien  ;  //  sans existence
     Aiguillage[i].adresse:=0;
@@ -2960,6 +2991,8 @@ begin
     val(EditDebug.text,i,erreur);
     if (i<0) or (i>3) then i:=0;
     Debug:=i;
+
+    if CheckBoxVerifXpressNet.checked then Verif_AdrXpressNet:=1 else Verif_AdrXpressNet:=0;
 
     if checkRoulage.Checked then AvecRoulage:=1 else AvecRoulage:=0;
 
@@ -3196,6 +3229,7 @@ begin
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
   editdebug.Text:=IntToSTR(debug);
+  CheckBoxVerifXpressNet.Checked:=Verif_AdrXpressNet=1;
   checkRoulage.Checked:=AvecRoulage=1;
   EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
   EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
@@ -3545,7 +3579,7 @@ begin
       
         // droit bas
         EditDroit_BD.Text:=intToSTR(aiguillage[id2].Adroit)+aiguillage[Id2].AdroitB;
-        EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[id2].ADroit,aiguillage[Id2].AdroitB); 
+        EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[id2].ADroit,aiguillage[Id2].AdroitB);
         LabelTJD2.Caption:=IntToSTR(adr2);
       end;
 
@@ -3623,7 +3657,7 @@ begin
       EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Adevie,aiguillage[index].AdevieB); 
 
       EditDroit_BD.Text:=intToSTR(aiguillage[index].Adroit)+aiguillage[index].AdroitB;
-      EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[index].AdroitB); 
+      EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[index].AdroitB);
       if tri then 
       begin
         ComboBoxAig.ItemIndex:=3; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
@@ -3896,7 +3930,7 @@ begin
     else
       ComboBoxAsp.ItemIndex:=d-10+4;
     end;
-    
+
     if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
     if d>2 then
     begin
@@ -4026,7 +4060,6 @@ begin
   // déclencheurs
   with formconfig do
   begin
-    //
     case typ of
     0 :
     begin
@@ -4078,6 +4111,7 @@ begin
   if Tablo_actionneur[i].act then
   begin
     champs_type_act;
+    {
     case typ of
     0 : with formconfig do
     begin
@@ -4091,8 +4125,8 @@ begin
     2 : with formconfig do
     begin
     end;
-
     end;
+    }
 
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
@@ -4459,8 +4493,7 @@ begin
       s:=encode_aig(index);
       formconfig.RichAig.Lines[index-1]:=s;
     end;
-    
-  end;  
+  end;
 end;
 
 // on change la valeur de la description de la déviation de l'aiguillage
@@ -6070,6 +6103,11 @@ var s: string;
     i : integer;
 begin
   if affevt then affiche('Evt bouton nouveau acc',clyellow);
+  if maxtablo_act>=Max_actionneurs then
+  begin
+    Affiche('Nombre maximal d''actionneurs atteint',clred);
+    exit;
+  end;
   clicliste:=true;
   inc(maxTablo_act);
   i:=MaxTablo_act;
@@ -6093,7 +6131,7 @@ begin
     Selstart:=RichAct.GetTextLen-1;
     Perform(EM_SCROLLCARET,0,0);
   end;
- 
+
   GroupBoxRadio.Visible:=true;
   LabelInfo.caption:='';
   LigneClicAct:=i-1;
@@ -6109,6 +6147,12 @@ var s: string;
     i : integer;
 begin
   if affevt then affiche('Evt bouton nouveau PN',clyellow);
+  if maxtablo_act>=Max_actionneurs then
+  begin
+    Affiche('Nombre maximal d''actionneurs atteint',clred);
+    exit;
+  end;
+
   clicliste:=true;
   inc(nbrePN);
   i:=nbrePN;
@@ -6251,6 +6295,12 @@ var i,AdrMax : integer;
     s : string;
 begin
   clicliste:=true;
+  if NbreFeux>=NbreMaxiSignaux then
+  begin
+    Affiche('Nombre maximal de signaux atteint',clRed);
+    exit;
+  end;
+
   inc(NbreFeux);
 
   AdrMax:=0;
@@ -6478,13 +6528,13 @@ begin
   verif_extr_branches:=Erreur;
 end;
 
-function verif_coherence : boolean;        
+function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
-    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index : integer;
+    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,dec : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     vitesse : longint;
-    ok,trouveSuiv,TrouvePrec : boolean;
+    ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
 begin
   // vérification de la cohérence1
   // parcoure les branches jusqu'à trouver un aiguillage pour voir s'il a été décrit
@@ -6628,7 +6678,7 @@ begin
     begin
       if adr=feux[i].Adresse then
       begin
-        affiche('Erreur 7 : signal '+intToSTR(adr)+' défini deux fois',clred);
+        affiche('Erreur 9 : signal '+intToSTR(adr)+' défini deux fois',clred);
         ok:=false;
       end;
     end;
@@ -6839,6 +6889,7 @@ begin
 
   // cohérence 7
   // parcoure les aiguillages pour voir si les aiguillages déclarés aux extrémités sont existants
+  // et qu'ils ne pointent pas sur eux mêmes
   for Indexaig:=1 to maxaiguillage do
   //indexaig:=index_aig(93);
   begin
@@ -6859,6 +6910,7 @@ begin
       c:=aiguillage[indexaig].AdroitB;
       if (c='D') or (c='S') or (c='P') then
       begin
+        if adr2=adr then affiche('Erreur 10.0 : la position droite de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
         if index2=0 then
@@ -6894,11 +6946,11 @@ begin
 
           if (model2=aig) or (model2=triple) then
           begin
-            if c='D' then 
+            if c='D' then
             begin
               extr:=aiguillage[index2].ADroit;
               if adr<>extr then Affiche('Erreur 10.23: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
-            end;  
+            end;
             if c='S' then 
             begin
               extr:=aiguillage[index2].ADevie;
@@ -6909,7 +6961,7 @@ begin
               extr:=aiguillage[index2].APointe;
               if adr<>extr then Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
             end;
-          end; 
+          end;
         end;  
       end;
   
@@ -6917,6 +6969,7 @@ begin
       c:=aiguillage[indexaig].AdevieB;
       if (c='D') or (c='S') or (c='P') then
       begin
+        if adr2=adr then affiche('Erreur 10.1 : la position déviée de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
         if index2=0 then
@@ -6932,11 +6985,11 @@ begin
             if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                (adr<>aiguillage[index2].DDevie) and (adr<>aiguillage[index2].Ddroit) then
             begin
-              Affiche('Erreur 10.31: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+              Affiche('Erreur 10.31: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;    
           end;
-    
+
           // tjs ou tjs à 4 états
           if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=4)) then
           begin
@@ -6956,13 +7009,13 @@ begin
             begin
               extr:=aiguillage[index2].ADroit;
               if adr<>extr then Affiche('Erreur 10.33: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
-            end;  
+            end;
             if c='S' then 
             begin
               extr:=aiguillage[index2].ADevie;
               if adr<>extr then Affiche('Erreur 10.34: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
             end;
-            if c='P' then 
+            if c='P' then
             begin
               extr:=aiguillage[index2].APointe;
               if adr<>extr then Affiche('Erreur 10.35: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
@@ -6975,6 +7028,7 @@ begin
       c:=aiguillage[indexaig].ApointeB;
       if (c='D') or (c='S') or (c='P') then
       begin
+        if adr2=adr then affiche('Erreur 10.2 : la pointe de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
         if index2=0 then
@@ -7009,7 +7063,7 @@ begin
        
             if (model2=aig) or (model2=triple) then
             begin
-              if c='D' then 
+              if c='D' then
               begin
                 extr:=aiguillage[index2].ADroit;
                 if adr<>extr then Affiche('Erreur 10.43: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
@@ -7022,12 +7076,12 @@ begin
               if c='P' then 
               begin 
                 extr:=aiguillage[index2].APointe;
-                if adr<>extr then Affiche('Erreur 10.45: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
+                if adr<>extr then Affiche('Erreur 10.45: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
               end;
             end; 
           end;  
         end;  
-      end; 
+      end;
     end;
   end;
     
@@ -7194,6 +7248,84 @@ begin
   val(copy(portcom,i+1,j-i),vitesse,l);
   if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
 
+  // si xpressnet, pas d'accesoires entre 257 à 272
+  AdrOk:=True;
+  if Verif_AdrXpressNet=1 then
+  begin
+    for i:=1 to maxaiguillage do
+    begin
+      adresse:=aiguillage[i].Adresse ;
+      if (adresse>=257) and (adresse<=272) then
+      begin
+        AdrOk:=false;
+        ok:=false;
+        Affiche('Erreur 13: l''aiguillage '+IntToSTR(adresse)+' se trouve dans la plage des accessoires DCC interdits (257-272) en Xpressnet',clred);
+      end;
+    end;
+    for i:=1 to NbreFeux do
+    begin
+      adresse:=feux[i].Adresse;
+      dec:=feux[i].decodeur;
+      nc:=1;
+      // nc=nombre d'adresses du signal
+      if dec=1 then nc:=14;          // digitalbahn
+      if dec=2 then nc:=5;           // leb
+      if dec=3 then nc:=8;           // ldt
+      if dec=4 then nc:=feux[i].Na;  // cdf
+      if dec=5 then nc:=feux[i].Na;  // digikeijs
+      if dec=6 then                  // paco unisemaf
+      begin
+        x:=feux[index].Unisemaf;     // modèle
+        case x of
+        2 : nc:=1;
+        3,4 : nc:=2;
+        51,52 : nc:=3;
+        71 : nc:=2;
+        72,73 : nc:=3;
+        91,92 : nc:=3;
+        93,94,95,96,97,98,99 : nc:=4;
+        end;
+      end;
+      if dec=7 then nc:=8;           // sr
+
+      if (adresse>=257) and (adresse<=272) or ((adresse+nc-1>=257) and (adresse+nc<=272)) then
+      begin
+        AdrOk:=false;
+        ok:=false;
+        Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' se trouve dans la plage des accessoires DCC interdits (257-272)',clred);
+        Affiche('en Xpressnet car son décodeur '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+' à '+intToSTR(adresse+nc-1),clred);
+      end;
+    end;
+
+    // actionneurs
+    for i:=1 to maxTablo_act do
+    begin
+      if Tablo_actionneur[i].act then
+      begin
+        adresse:=Tablo_actionneur[i].accessoire;
+        if (adresse>=257) and (adresse<=272) then
+        begin
+          AdrOk:=false;
+          ok:=false;
+          Affiche('Erreur 15: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
+          Affiche('qui se trouve dans la plage des accessoires DCC interdits (257-272) en Xpressnet',clred);
+        end;
+      end;
+    end;
+
+    if not(AdrOk) then
+    begin
+      j:=MessageDlg('Une adresse DCC via XpressNet a été trouvée dans la plage interdite.'+#13+
+                        'Si vous n''utilisez pas XpressNet, vous devez choisir d''ignorer cette erreur.'+#13+#13+
+                        'Voulez vous ignorer cette erreur à l''avenir? ',mtConfirmation,[mbNo,mbYes],0) ;
+      if j=mrYes then
+      begin
+        Verif_AdrXpressNet:=0;
+        sauve_config;
+      end;
+    end;
+  end;
+
   verif_coherence:=ok;
 end;
 
@@ -7201,7 +7333,7 @@ procedure TFormConfig.ButtonNouvAigClick(Sender: TObject);
 var i : integer;
     s : string;
 begin
-  if MaxAiguillage>=MaxAcc then
+  if MaxAiguillage>=NbreMaxiAiguillages then
   begin
     Affiche('Nombre maximal d''aiguillages atteint',clRed);
     exit;
@@ -7217,7 +7349,7 @@ begin
   aiguillage[i].ApointeB:='Z';
   aiguillage[i].Adevie2B:='Z';
   aiguillage[i].tjsintB:='D';
-
+  aiguillage[i].AdrTrain:=0;
   aiguillage[i].posInit:=const_inconnu;
   aiguillage[i].Temps:=5;
 
@@ -8240,9 +8372,9 @@ procedure TFormConfig.FormClose(Sender: TObject; var Action: TCloseAction);
 var index : integer;
     ok : boolean;
 begin
-  if modif_branches then  
+  if modif_branches then
   begin
-    if MessageDlg('Les branches ont été modifiées mais non validées. Voulez fermer la fenêtre ?',mtConfirmation,[mbYes,mbNo],0)=mrNo then 
+    if MessageDlg('Les branches ont été modifiées mais non validées. Voulez fermer la fenêtre ?',mtConfirmation,[mbYes,mbNo],0)=mrNo then
     begin
       action:=tCloseAction(caNone);
       exit;
@@ -9269,16 +9401,11 @@ begin
    supprime_train;
 end;
 
+procedure TFormConfig.CheckBoxVerifXpressNetClick(Sender: TObject);
+begin
+  if CheckBoxVerifXpressNet.checked then Verif_AdrXpressNet:=1 else Verif_AdrXpressNet:=0;
+end;
 
-
-
-
-
-
-
-
-
-
 end.
 
 

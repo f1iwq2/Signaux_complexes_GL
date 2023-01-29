@@ -30,8 +30,8 @@ object FormConfigTCO: TFormConfigTCO
     Caption = 'Nombre de cellules en vertical:'
   end
   object LabelErreur: TLabel
-    Left = 302
-    Top = 248
+    Left = 16
+    Top = 216
     Width = 3
     Height = 13
   end
@@ -235,7 +235,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object Memo1: TMemo
     Left = 16
-    Top = 136
+    Top = 120
     Width = 273
     Height = 81
     BevelInner = bvLowered

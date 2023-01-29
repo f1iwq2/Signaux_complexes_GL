@@ -174,29 +174,46 @@ begin
     x2:=x1+width;
     jy1:=(HauteurCell div 2)-round(6*frYGlob); // pos Y de la bande sup
     jy2:=(HauteurCell div 2)+round(6*frYGlob); // pos Y de la bande inf
-    
+
     canvas.PolyGon([point(x1,jy1),point(x2,jy1),point(x2,jy2),point(x1,jy2)]);
   end;
 
 end;
 
 function verif_config_TCO : boolean;  // renvoie true si ok
-var erreur : integer;
-    nokNbX,nokNbY,nokHt,nokLg : boolean;
+var erreur,mx,my : integer;
+    ok : boolean;
 begin
+  ok:=true;
   with formConfigTCO do
   begin
-    Val(EditNbCellX.Text,NbreCellX,erreur);
-    nokNbX:=erreur<>0;
-    if nokNbX then LabelErreur.caption:='Erreur nombre de cellules X';
-    nokNbX:=(NbreCellX<20) or (NbreCellX>MaxCellX);
-    if nokNbX then LabelErreur.caption:='Erreur: nombre de cellules X: mini=20 maxi='+IntToSTR(MaxCellX);
+    Val(EditNbCellX.Text,mx,erreur);
+    if (mx<20) or (mx>MaxCellX) then
+    begin
+      LabelErreur.caption:='Erreur: nombre de cellules X: mini=20 maxi='+IntToSTR(MaxCellX);
+      ok:=false;
+    end
+    else NbreCellX:=mx;
 
-    Val(EditNbCellY.Text,NbreCellY,erreur);
-    nokNbY:=erreur<>0;
-    if nokNbY then LabelErreur.caption:='Erreur: nombre de cellules Y';
-    nokNbY:=nokNbY or (NbreCellY<10) or (NbreCellY>MaxCellY);
-    if nokNbY then LabelErreur.caption:='Erreur: nombre de cellules Y: mini=10 maxi='+IntToSTR(MaxCellY);
+    Val(EditNbCellY.Text,my,erreur);
+    if (my<10) or (my>MaxCellY) then
+    begin
+      LabelErreur.caption:='Erreur: nombre de cellules Y: mini=10 maxi='+IntToSTR(MaxCellY);
+      ok:=false;
+    end
+    else NbreCellY:=my;
+
+    if LargeurCell*NbreCellX>8192 then
+    begin
+      LabelErreur.caption:='Erreur: nombre de cellules X';
+      ok:=false;
+    end;
+
+    if HauteurCell*NbreCellY>8192 then
+    begin
+      LabelErreur.caption:='Erreur: nombre de cellules Y';
+      ok:=false;
+    end;
 
     {
     Val(LabelTailleX.caption,LargeurCell,erreur);
@@ -212,30 +229,57 @@ begin
     if nokHt then LabelErreur.caption:='Erreur: Tailles des cellules - hauteur cellules mini=20 maxi=50';
     }
     val(EditRatio.text,RatioC,erreur);
-    
+
     AvecGrille:=checkDessineGrille.Checked;
     if checkCouleur.checked then ModeCouleurCanton:=1 else ModeCouleurCanton:=0;
-    
+
   end;
-  verif_config_TCO:=not(nokNbX or nokNbY or nokHt or nokLg);
+  verif_config_TCO:=ok;
   NbCellulesTCO:=NbreCellX*NbreCellY;
 end;
 
 procedure TFormConfigTCO.ButtonOKClick(Sender: TObject);
+var ok : boolean;
+    larg,haut : integer;
 begin
+  ok:=true;
+
   if verif_config_TCO then
   begin
-    with formTCO do
+    with FormTCO.ImageTCO do
     begin
-      ImageTCO.Width:=LargeurCell*NbreCellX;
-      ImageTCO.Height:=HauteurCell*NbreCellY;
-    end;  
+      Width:=LargeurCell*NbreCellX;
+      Height:=HauteurCell*NbreCellY;
+    end;
+
+    try
+      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+    except
+      LabelErreur.caption:='TCO Mémoire insuffisante';
+      NbreCellX:=20;NbreCellY:=12;
+      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+      ok:=false;
+    end;
+
+    try
+      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+    except
+      LabelErreur.caption:='TamponTCO Mémoire insuffisante';
+      NbreCellX:=20;NbreCellY:=12;
+      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+      ok:=false;
+    end;
+
+
     AvecGrille:=checkDessineGrille.Checked;
-    calcul_cellules;
-    affiche_TCO;
-    LabelErreur.caption:='';
-    close;
-  end; 
+    if ok then
+    begin
+      calcul_cellules;
+      affiche_TCO;
+      LabelErreur.caption:='';
+      close;
+   end;
+  end;
 end;
 
 procedure TFormConfigTCO.ButtonDessineClick(Sender: TObject);
@@ -359,6 +403,10 @@ procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
    SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
+
+
+
+
 
 
 

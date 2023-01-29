@@ -3,7 +3,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, unitprinc, unitpilote;
+  Dialogs, StdCtrls, unitprinc, unitpilote , unitDebug;
 
 type
   TFormPlace = class(TForm)
@@ -133,8 +133,8 @@ begin
 end;
 
 procedure TFormPlace.ButtonPlaceClick(Sender: TObject);
-var suiv,detect,erreur : integer;
-    s : string;
+var Suiv,prec,detect,erreur,i,it : integer;
+    s,Ssuiv,NomTrain : string;
 begin
   if cdm_connecte then
   begin
@@ -146,79 +146,65 @@ begin
   begin
     detecteur[detect].train:='';
     detecteur[detect].AdrTrain:=0;
+    detecteur[detect].IndexTrain:=0;
   end;
 
-  s:=edit1.Text;
-  if s<>'' then
+  it:=0;
+  for i:=1 to 6 do
   begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 1';
-    if detect<>0 then
-    begin
-      detecteur[detect].adrTrain:=trains[1].adresse;
-      event_detecteur(detect,true,trains[1].nom_train);
-      Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir1.Text,clLime);
-    end
-    else
-    begin
-      detecteur[detect].etat:=false;
-      detecteur[detect].train:='';
-      detecteur[detect].adrTrain:=0;
+    case i of
+    1 : begin s:=edit1.Text;Ssuiv:=EditDir1.Text;end;
+    2 : begin s:=edit2.Text;Ssuiv:=EditDir2.Text;end;
+    3 : begin s:=edit3.Text;Ssuiv:=EditDir3.Text;end;
+    4 : begin s:=edit4.Text;Ssuiv:=EditDir4.Text;end;
+    5 : begin s:=edit5.Text;Ssuiv:=EditDir5.Text;end;
+    6 : begin s:=edit6.Text;Ssuiv:=EditDir6.Text;end;
     end;
-  end;
 
-  s:=edit2.Text;
-  if s<>'' then
-  begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 2';
-    if detect<>0 then
+    if (s<>'') and (Ssuiv<>'') then
     begin
-      detecteur[detect].adrTrain:=trains[2].adresse;
-      event_detecteur(detect,true,trains[2].nom_train);
-      Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir2.Text,clLime);
-    end
-    else
-    begin
-      detecteur[detect].etat:=false;
-      detecteur[detect].train:='';
-      detecteur[detect].adrTrain:=0;
-    end;
-  end;
-
-  s:=edit3.Text;
-  if s<>'' then
-  begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 3';
-    if detect<>0 then
-    begin
-      detecteur[detect].adrTrain:=trains[3].adresse;
-      event_detecteur(detect,true,trains[3].nom_train);
-      Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir3.Text,clLime);
-    end
-    else
-    begin
-      detecteur[detect].etat:=false;
-      detecteur[detect].train:='';
-      detecteur[detect].adrTrain:=0;
-    end;
-  end;
-
-  s:=edit4.Text;
-  if s<>'' then
-  begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 4';
-    if detect<>0 then
-    begin
-      det_adj(detect);
-      val(editDir4.Text,Suiv,erreur);
+      val(s,detect,erreur);
+      val(Ssuiv,Suiv,erreur);
+      NomTrain:=trains[i].nom_train;
+      if (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train '+intToSTR(i);
+      prec:=det_suiv_cont(Suiv,detect);  // détecteur précédent (d'ou vient la loco)
       if detect<>0 then
       begin
-        detecteur[detect].adrTrain:=trains[4].adresse;
-        event_detecteur(detect,true,trains[4].nom_train);
-        Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir4.Text,clLime);
+        inc(it);
+        //detecteur[detect].adrTrain:=trains[i].adresse;
+        //event_detecteur(detect,true,trains[i].nom_train);
+        Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
+        {
+        SauvefiltrageDet0:=filtrageDet0;
+        filtrageDet0:=0;
+        Affiche(intToSTR(prec)+' 1',clyellow);
+        event_detecteur(prec,true,NomTrain);
+        Affiche(intToSTR(prec)+' 0',clyellow);
+        event_detecteur(prec,false,NomTrain);
+
+        Affiche(intToSTR(detect)+' 1',clyellow);
+        event_detecteur(detect,true,NomTrain);
+        filtrageDet0:=SauveFiltrageDet0;
+        }
+
+        detecteur[detect].etat:=true;
+        detecteur[detect].AdrTrain:=trains[i].adresse;
+        detecteur[detect].train:=placement[i].train;
+        detecteur[detect].IndexTrain:=i;
+
+        MemZone[prec,detect].etat:=true;
+        MemZone[prec,detect].train:=placement[i].train;
+        MemZone[prec,detect].Adrtrain:=trains[i].adresse;
+        MemZone[prec,detect].NumTrain:=i;
+        //Affiche(inttostr(prec)+' '+intToSTR(detect),clorange);
+
+        event_det_train[it].NbEl:=1 ;
+        event_det_train[it].AdrTrain:=trains[i].adresse;
+        event_det_train[it].det[1].adresse:=prec;
+        event_det_train[it].det[1].etat:=false;
+        event_det_train[it].nom_train:=placement[i].train;
+        inc(N_trains);
+
       end
       else
       begin
@@ -229,43 +215,6 @@ begin
     end;
   end;
 
-  s:=edit5.Text;
-  if s<>'' then
-  begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 5';
-    if detect<>0 then
-    begin
-      detecteur[detect].adrTrain:=trains[5].adresse;
-      event_detecteur(detect,true,trains[5].nom_train);
-      Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir5.Text,clLime);
-    end
-    else
-    begin
-      detecteur[detect].etat:=false;
-      detecteur[detect].train:='';
-      detecteur[detect].adrTrain:=0;
-    end;
-  end;
-
-  s:=edit6.Text;
-  if s<>'' then
-  begin
-    val(s,detect,erreur);
-    if (erreur<>0) or (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train 6';
-    if detect<>0 then
-    begin
-      detecteur[detect].adrTrain:=trains[6].adresse;
-      event_detecteur(detect,true,trains[6].nom_train);
-      Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+EditDir6.Text,clLime);
-    end
-    else
-    begin
-      detecteur[detect].etat:=false;
-      detecteur[detect].train:='';
-      detecteur[detect].adrTrain:=0;
-    end;
-  end;
   if formTCO.Showing then
   begin
     affiche_tco;
@@ -383,6 +332,7 @@ end;
 procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
 var a,i,j,id,adrDet,AdrTrain,AdrFeu : integer;
     trouve,rouge : boolean;
+    var s: string;
 begin
   if cdm_connecte then
   begin
@@ -391,14 +341,19 @@ begin
   end;
 
   trouve:=false;
+  // explorer les détecteurs pour lancer les trains
   for i:=1 to NDetecteurs do
   begin
     adrDet:=Adresse_detecteur[i];
     if Detecteur[adrDet].etat and (detecteur[adrDet].train<>'') then
     begin
       rouge:=false;
+      trouve:=true;
+      roulage:=true;
       AdrTrain:=detecteur[AdrDet].AdrTrain;
       AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du feu correspondant au détecteur
+
+      // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
       if adrFeu<>0 then
       begin
         id:=index_feu(AdrFeu);
@@ -410,18 +365,22 @@ begin
       begin
         j:=index_train_adresse(AdrTrain);
         vitesse_loco('',adrTrain,trains[j].VitNominale,not(placement[j].inverse));
-        trouve:=true;
-        roulage:=true;
-        maj_feux;
-        Affiche('Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet),clYellow);
+
+        maj_feux(true);  // avec détecteurs
+        s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
+        Affiche(s,clYellow);
+        if traceListe then AfficheDebug(s,clyellow);
         reserve_canton(AdrDet,placement[j].detdir,adrtrain);
+
       end
       Else Affiche('Le signal '+intToSTR(AdrFeu)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
     end;
   end;
+
+  // au moins un train démarre
   if trouve then
   begin
-    Maj_feux;
+    Maj_feux(true);
     Formprinc.LabelTitre.caption:=titre+' - Mode roulage en cours';
     with Formprinc.SBMarcheArretLoco do
     begin

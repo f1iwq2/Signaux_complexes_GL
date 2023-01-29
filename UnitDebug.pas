@@ -62,6 +62,7 @@ type
     Button1: TButton;
     Button0: TButton;
     MemoEvtDet: TRichEdit;
+    CheckDetSIg: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -99,6 +100,7 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormActivate(Sender: TObject);
     procedure MemoEvtDetChange(Sender: TObject);
+    procedure CheckDetSIgClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -108,7 +110,7 @@ type
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug : integer;
-  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
@@ -217,7 +219,7 @@ begin
     begin
       if (i>=0) and (i<=3) then NivDebug:=i
       else EditNivDebug.text:='3';
-    end  
+    end
     else EditNivDebug.text:='0';
   end; 
   RichDebug.Lines.add('Niveau='+intToSTR(NivDebug));
@@ -373,19 +375,21 @@ begin
   ancdebug:=NivDebug;
   NivDebug:=3;
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
-  test_memoire_zones(Adr);
+  if test_memoire_zones(Adr) then AfficheDebug('Présence train',clYellow) else
+    AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
 end;
 
 
 
 procedure TFormDebug.ButtonCPClick(Sender: TObject);
-var Adr,erreur,ancdebug,adrtrain : integer ;
+var Adr,erreur,ancdebug,adrtrain,voie : integer ;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  PresTrainPrec(Adr,Nb_cantons_Sig,adrtrain);
+  if PresTrainPrec(Adr,Nb_cantons_Sig,false,voie,adrtrain) then AfficheDebug('Présence train',clYellow) else
+    AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
 end;
 
@@ -524,7 +528,7 @@ begin
     exit;
   end;
 
-  s:='accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 1';
+  s:='Accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 1';
   AfficheDebug(s,clyellow);
 
   if CDM_connecte then
@@ -566,7 +570,7 @@ begin
     exit;
   end;
 
-  s:='accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 0';
+  s:='Accessoire '+IntToSTR(adr)+' ; sortie '+intToSTR(sortie)+' à 0';
   AfficheDebug(s,clyellow);
 
   if CDM_connecte then
@@ -604,6 +608,11 @@ end;
 procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
 begin
   SendMessage(MemoEvtDet.handle,WM_VSCROLL,SB_BOTTOM,0);
+end;
+
+procedure TFormDebug.CheckDetSIgClick(Sender: TObject);
+begin
+  AFfDetSIg:=checkDetSig.checked;
 end;
 
 end.

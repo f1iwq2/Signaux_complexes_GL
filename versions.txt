@@ -141,8 +141,7 @@ version 5.3  : Informations sur les états des signaux par clic droit sur le sign
                  détection simultanée d'un train sur deux détecteurs
 version 5.4  : Amélioration du mode roulage.
                Améliorations diverses.
-               Filtrage des détecteurs en mode autonome.
-
-               
-
+version 5.5  : Gestion signaux en doublon.
+               Vérification des adresses interdites en XpressNet
+               Passage au rouge du signal au premier train quittant son détecteur
 
