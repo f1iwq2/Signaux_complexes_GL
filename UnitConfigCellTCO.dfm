@@ -3,7 +3,7 @@ object FormConfCellTCO: TFormConfCellTCO
   Top = 112
   BorderStyle = bsDialog
   Caption = 'FormConfCellTCO'
-  ClientHeight = 375
+  ClientHeight = 402
   ClientWidth = 251
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,12 +12,13 @@ object FormConfCellTCO: TFormConfCellTCO
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnActivate = FormActivate
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object ButtonOk: TButton
     Left = 168
-    Top = 344
+    Top = 368
     Width = 75
     Height = 25
     Caption = 'Ok'
@@ -26,7 +27,7 @@ object FormConfCellTCO: TFormConfCellTCO
   end
   object GroupBox1: TGroupBox
     Left = 8
-    Top = 240
+    Top = 264
     Width = 233
     Height = 97
     Caption = 'Texte'
@@ -87,7 +88,7 @@ object FormConfCellTCO: TFormConfCellTCO
     Left = 8
     Top = 8
     Width = 233
-    Height = 225
+    Height = 257
     Caption = 'El'#233'ment'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -122,7 +123,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object Label2: TLabel
       Left = 168
-      Top = 22
+      Top = 14
       Width = 48
       Height = 16
       Caption = 'Adresse : '
@@ -134,8 +135,8 @@ object FormConfCellTCO: TFormConfCellTCO
       ParentFont = False
     end
     object EditTypeImage: TEdit
-      Left = 40
-      Top = 48
+      Left = 32
+      Top = 40
       Width = 33
       Height = 21
       Hint = 'Num'#233'ro d'#39'image de l'#39#233'l'#233'ment'
@@ -152,7 +153,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object GroupBox3: TGroupBox
       Left = 8
-      Top = 80
+      Top = 112
       Width = 209
       Height = 73
       Caption = 'Orientation du signal'
@@ -211,7 +212,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object GroupBox4: TGroupBox
       Left = 8
-      Top = 160
+      Top = 192
       Width = 209
       Height = 57
       Caption = 'Implantation du signal'
@@ -255,7 +256,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object EditAdrElement: TEdit
       Left = 176
-      Top = 48
+      Top = 40
       Width = 33
       Height = 24
       Hint = 'Adresse DCC de l'#39#233'l'#233'ment'
@@ -264,10 +265,26 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 3
       OnKeyPress = EditAdrElementKeyPress
     end
+    object ButtonFond: TButton
+      Left = 16
+      Top = 72
+      Width = 97
+      Height = 33
+      Caption = 'Couleur de fond de la cellule'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Arial Narrow'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      WordWrap = True
+      OnClick = ButtonFondClick
+    end
   end
   object CheckPinv: TCheckBox
     Left = 8
-    Top = 352
+    Top = 368
     Width = 129
     Height = 17
     Hint = 'Cocher si l'#39'aiguillage est repr'#233'sent'#233' invers'#233

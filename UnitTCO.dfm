@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 179
-  Top = 15
-  Width = 1139
-  Height = 686
+  Left = 132
+  Top = 127
+  Width = 1132
+  Height = 728
   VertScrollBar.Visible = False
   Caption = 'FormTCO'
   Color = clBtnFace
@@ -21,8 +21,8 @@ object FormTCO: TFormTCO
   OnKeyDown = FormKeyDown
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1131
-    655)
+    1124
+    697)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -72,8 +72,8 @@ object FormTCO: TFormTCO
     Height = 97
   end
   object Label19: TLabel
-    Left = 1075
-    Top = 399
+    Left = 1068
+    Top = 441
     Width = 32
     Height = 13
     Anchors = [akRight, akBottom]
@@ -88,8 +88,8 @@ object FormTCO: TFormTCO
   object ScrollBox: TScrollBox
     Left = 8
     Top = 18
-    Width = 1057
-    Height = 367
+    Width = 1050
+    Height = 409
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -100,18 +100,17 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 0
     DesignSize = (
-      1053
-      363)
+      1046
+      405)
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 1009
-      Height = 337
+      Width = 1002
+      Height = 379
       Anchors = [akLeft, akTop, akRight, akBottom]
       ParentShowHint = False
       PopupMenu = PopupMenu1
       ShowHint = True
-      OnClick = ImageTCOClick
       OnContextPopup = ImageTCOContextPopup
       OnDblClick = ImageTCODblClick
       OnDragOver = ImageTCODragOver
@@ -121,10 +120,10 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1075
+    Left = 1068
     Top = 18
     Width = 41
-    Height = 358
+    Height = 400
     Anchors = [akTop, akRight, akBottom]
     Max = 50
     Min = 20
@@ -136,8 +135,8 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 0
-    Top = 480
-    Width = 1121
+    Top = 522
+    Width = 1114
     Height = 165
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -150,7 +149,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1121
+      1114
       165)
     object ImagePalette5: TImage
       Left = 520
@@ -720,7 +719,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 1013
+      Left = 1006
       Top = 48
       Width = 92
       Height = 33
@@ -731,7 +730,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1013
+      Left = 1006
       Top = 8
       Width = 92
       Height = 33
@@ -759,7 +758,7 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1013
+      Left = 1006
       Top = 88
       Width = 92
       Height = 33
@@ -778,7 +777,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1013
+      Left = 1006
       Top = 128
       Width = 92
       Height = 33
@@ -792,7 +791,7 @@ object FormTCO: TFormTCO
       Left = 16
       Top = 8
       Width = 185
-      Height = 137
+      Height = 153
       Caption = 'Configuration cellule'
       Font.Charset = ANSI_CHARSET
       Font.Color = clBackground
@@ -853,9 +852,15 @@ object FormTCO: TFormTCO
         Font.Style = []
         ParentFont = False
       end
+      object ShapeCoulFond: TShape
+        Left = 160
+        Top = 130
+        Width = 18
+        Height = 18
+      end
       object EditAdrElement: TEdit
         Left = 144
-        Top = 16
+        Top = 12
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -870,7 +875,7 @@ object FormTCO: TFormTCO
       end
       object EditTypeImage: TEdit
         Left = 144
-        Top = 40
+        Top = 36
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -893,7 +898,7 @@ object FormTCO: TFormTCO
       end
       object EditTexte: TEdit
         Left = 88
-        Top = 64
+        Top = 60
         Width = 89
         Height = 21
         TabOrder = 3
@@ -915,9 +920,9 @@ object FormTCO: TFormTCO
           'Bas')
       end
       object CheckPinv: TCheckBox
-        Left = 16
-        Top = 112
-        Width = 161
+        Left = 8
+        Top = 110
+        Width = 113
         Height = 17
         Hint = 'Cocher si l'#39'aiguillage est repr'#233'sent'#233' invers'#233
         Caption = 'aiguillage invers'#233
@@ -932,9 +937,18 @@ object FormTCO: TFormTCO
         TabOrder = 5
         OnClick = CheckPinvClick
       end
+      object ButtonCoulFond: TButton
+        Left = 80
+        Top = 130
+        Width = 81
+        Height = 18
+        Caption = 'Couleur de fond'
+        TabOrder = 6
+        OnClick = ButtonCoulFondClick
+      end
     end
     object buttonRaz: TButton
-      Left = 909
+      Left = 902
       Top = 128
       Width = 92
       Height = 33
@@ -944,10 +958,19 @@ object FormTCO: TFormTCO
       WordWrap = True
       OnClick = buttonRazClick
     end
+    object ButtonCalibrage: TButton
+      Left = 560
+      Top = 112
+      Width = 75
+      Height = 25
+      Caption = 'Calibrage'
+      TabOrder = 9
+      OnClick = ButtonCalibrageClick
+    end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1067
-    Top = 423
+    Left = 1060
+    Top = 465
     Width = 57
     Height = 33
     Anchors = [akRight, akBottom]
@@ -1014,6 +1037,7 @@ object FormTCO: TFormTCO
       Caption = 'Inserer'
       object LigneDessus: TMenuItem
         Caption = 'Ligne au dessus'
+        Hint = 'ins'#232're une ligne au dessus'
         OnClick = LigneDessusClick
       end
       object LigneDessous: TMenuItem
@@ -1060,5 +1084,10 @@ object FormTCO: TFormTCO
     Font.Style = []
     Left = 256
     Top = 432
+  end
+  object ColorDialog1: TColorDialog
+    OnShow = ColorDialog1Show
+    Left = 448
+    Top = 456
   end
 end

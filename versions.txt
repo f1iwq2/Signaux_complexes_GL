@@ -144,4 +144,11 @@ version 5.4  : Amélioration du mode roulage.
 version 5.5  : Gestion signaux en doublon.
                Vérification des adresses interdites en XpressNet
                Passage au rouge du signal au premier train quittant son détecteur
+version 5.51 : Renforcement de la vérification de la cohérence 
+               (chevauchement des signaux et des aiguillages)
+               Correction bug édition TCO (suppression/insertion ligne/colonne)
+version 5.52 : Correction bug exploitation TCO
+version 5.6  : Ajout d'affichage d'informations supplémentaires
+               Couleur de fond définissable pour chaque cellule du TCO ou une zone.
+
 

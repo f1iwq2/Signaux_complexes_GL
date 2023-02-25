@@ -282,7 +282,6 @@ begin
 
   for i:=1 to N_Event_tick do
   begin
-                     
     begin
       j:=event_det_tick[i].adresse;
       etat:=event_det_tick[i].etat;
@@ -394,7 +393,7 @@ begin
 end;
 
 procedure TFormDebug.Button2Click(Sender: TObject);
-var Adr,erreur,ancdebug,trainreseve : integer ;
+var Adr,erreur,ancdebug : integer ;
     reservetraintiers : boolean;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
@@ -415,7 +414,7 @@ end;
 // pour déplacer l'ascenseur de l'affichage automatiquement en bas
 procedure TFormDebug.RichDebugChange(Sender: TObject);
 begin
-  SendMessage(RichDebug.handle, WM_VSCROLL, SB_BOTTOM, 0);
+  SendMessage(RichDebug.handle,WM_VSCROLL,SB_BOTTOM,0);
 end;
 
 procedure TFormDebug.ButtonSimuDet0Click(Sender: TObject);
@@ -485,19 +484,11 @@ begin
   if Adr<9995 then
   begin
     s:='L''élément suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr)+' ';
-    case typeGen of
-    aig : s:=s+'aiguillage';
-    tjd : s:=s+'tjd';
-    tjs : s:=s+'tjs';
-    triple : s:=s+'triple';
-    det : s:=s+'détecteur';
-    buttoir : s:=s+'buttoir';
-    end;
+    s:=s+BTypeToChaine(typeGen);
     AfficheDebug(s,clYellow);
   end
-  else AfficheDebug('Pas trouvé d''élement suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow);
+  else AfficheDebug('Pas trouvé d''élement suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow);
   NivDebug:=AncDebug;
-
 end;
 
 procedure TFormDebug.CheckBox1Click(Sender: TObject);
@@ -541,12 +532,16 @@ begin
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension=false) and (portCommOuvert or parSocketLenz) then
   begin
-    groupe:=(adr-1) div 4;
-    fonction:=((adr-1) mod 4)*2 + (sortie-1); 
-    // pilotage à 1
-    s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
-    s:=checksum(s);
-    envoi(s);     // envoi de la trame et attente Ack
+    if protocole=1 then
+    begin
+      groupe:=(adr-1) div 4;
+      fonction:=((adr-1) mod 4)*2 + (sortie-1);
+      // pilotage à 1
+      s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
+      s:=checksum(s);
+      envoi(s);     // envoi de la trame et attente Ack
+    end;
+    if protocole=2 then AfficheDebug('D10: Commande DCC++ pas encore implantée',clred);
   end;
   
   Self.ActiveControl:=nil;
@@ -583,12 +578,16 @@ begin
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension=false) and (portCommOuvert or parSocketLenz) then
   begin
-    groupe:=(adr-1) div 4;
-    fonction:=((adr-1) mod 4)*2 + (sortie-1); 
-    // pilotage à 0
-    s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-    s:=checksum(s);
-    envoi(s);     // envoi de la trame et attente Ack
+    if protocole=1 then
+    begin
+      groupe:=(adr-1) div 4;
+      fonction:=((adr-1) mod 4)*2 + (sortie-1);
+      // pilotage à 0
+      s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+      s:=checksum(s);
+      envoi(s);     // envoi de la trame et attente Ack
+    end;
+    if protocole=2 then AfficheDebug('D11: Commande DCC++ pas encore implantée',clred) 
   end;
   
   Self.ActiveControl:=nil;

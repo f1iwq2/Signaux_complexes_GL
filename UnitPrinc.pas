@@ -157,6 +157,7 @@ type
     SBMarcheArretLoco: TSpeedButton;
     Label1: TLabel;
     LabelNbTrains: TLabel;
+    Splitter: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -233,6 +234,7 @@ type
     procedure RazResaClick(Sender: TObject);
     procedure SBMarcheArretLocoClick(Sender: TObject);
     procedure EditAdrTrainChange(Sender: TObject);
+    procedure SplitterMoved(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -361,20 +363,20 @@ TFeu = record
                  modifie     : boolean;      // feu modifié
                  EtatSignal  : word  ;       // état du signal
                  AncienEtat  : word  ;       // ancien état du signal
-                 UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF ou du préréglage pour digikeijs
+                 UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
                  AigDirection : array[1..7] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
-                                               Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages +1 position 0
-                                               posAig  : char;
-                                               end;
+                                  Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages +1 position 0
+                                  posAig  : char;
+                                end;
                  CondCarre : array[1..6] of array of record  // conditions supplémentaires d'aiguillages en position pour le carré
-                                                // attention les données sont stockées en adresse 1 du tableau dynamique
-                                               Adresse : integer;    // aiguillage
-                                               posAig : char;
-                                               end;
-                 SR : array[1..19] of record   // configuration du décodeur Stéphane Ravaut : 8 valeurs maxi
-                                               sortie1,sortie0 : integer;
-                                     end;
-                 Na : integer;                 // nombre d'adresses du feu occupées par le décodeur CDF
+                                  // attention les données sont stockées en adresse 1 du tableau dynamique
+                                  Adresse : integer;    // aiguillage
+                                  posAig : char;
+                               end;
+                 SR : array[1..19] of record   // configuration du décodeur Stéphane Ravaut ou digikeijs ou cdf
+                                   sortie1,sortie0 : integer;
+                                   end;
+                 Na : integer;                 // nombre d'adresses du feu occupées par le décodeur CDF/digikeijs
                end;
 
 
@@ -382,7 +384,7 @@ var
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
   N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
   NbreImagePligne,NbreBranches,Index2_det,Index2_aig,branche_det,ntrains_cdm,
-  I_simule,maxTablo_act,NbreVoies,El_suivant,N_modules_dcc,NbDet1,
+  I_simule,maxTablo_act,NbreVoies,El_suivant,N_modules_dcc,NbDet1,ncrois,
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,etat_init_interface,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
@@ -450,7 +452,6 @@ var
     entree,sortie,           // point d'entrée et de sortie
     affect_train : integer;  // numéro du train affecté
   end;
-  ncrois : integer;
 
   // Prévision des zones suivantes (en fonction de la position aiguillages)
   TrainPrevZone : array[1..20] of array[1..5] of integer;   // non utilisé
@@ -523,7 +524,7 @@ var
               index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
            end;
 
-  // éléments verrouillés
+  // éléments scannés et/ou verrouillés
   elements : array[1..20] of record
      adresse : integer;
      typ : Tequipement;
@@ -552,9 +553,7 @@ var
                     end;
   Feu_supprime,Feu_sauve : Tfeu;
   Aig_supprime,Aig_sauve : TAiguillage;
-
   Fimage : Timage;
-
   BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
 
 {$R *.dfm}
@@ -608,6 +607,7 @@ procedure Det_Adj(adresse : integer);
 procedure reserve_canton(detecteur1,detecteur2,adrtrain : integer);
 function signal_detecteur(detecteur : integer) : integer;
 function det_suiv_cont(det1,det2 : integer) : integer;
+function BTypeToChaine(BT : TEquipement) : string;
 
 implementation
 
@@ -638,8 +638,14 @@ begin
 end;
 
 procedure Tformprinc.DoHint(Sender : Tobject);
+var s: string;
 begin
-  StatusBar1.Simpletext:=Application.Hint;
+  s:=Application.Hint;
+  StatusBar1.Simpletext:=s;
+  if s='insère une ligne au dessus' then
+  begin
+  //  grise_ligne_TCO;
+  end;
 end;
 
 // fonctions sur les bits
@@ -797,7 +803,6 @@ procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
-
 begin
   code_to_aspect(Etatsignal,code,combine);
   rayon:=round(6*frX);
@@ -847,7 +852,6 @@ procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
-    
 begin
   code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
@@ -6635,7 +6639,7 @@ begin
   end;
   if AffSignal then
   begin
-    s:='Traitement du feu '+intToSTR(Adrfeu)+'------------------------------------';
+    s:='Traitement du signal '+intToSTR(Adrfeu)+'------------------------------------';
     AfficheDebug(s,clOrange);
     nivDebug:=3;
   end;
@@ -6707,15 +6711,16 @@ begin
       // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou aig réservé ou que pas présence train avant signal et signal
       // verrouillable au carré, afficher un carré
       car:=carre_signal(AdrFeu,AdrTrainLoc,reserveTrainTiers);  // si reserveTrainTiers, réservé par un autre train
+      if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       // En mode roulage, si la réservation est faite par le train détecté en étape A, ne pas verrouiller au carré
       if roulage then car:=reserveTrainTiers or car;
 
       // conditions supplémentaires de carré en fonction des aiguillages décrits
       car:=cond_carre(AdrFeu) or car;
-      if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
+      //if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if AffSignal and feux[index].VerrouilleCarre then AfficheDebug('le signal est verrouillé au carré',clYellow);
 
-      if (modele>=4) and ( (not(PresTrain) and Feux[index].VerrouCarre) or car or feux[index].VerrouilleCarre ) then Maj_Etat_Signal(AdrFeu,carre)
+      if (modele>=4) and ( (not(PresTrain) and Feux[index].VerrouCarre) or (car and feux[index].VerrouilleCarre) ) then Maj_Etat_Signal(AdrFeu,carre)
       else
       begin
         // si on quitte le détecteur on affiche un sémaphore :  tester le sens de circulation
@@ -9303,7 +9308,8 @@ begin
       result:=false;
       exit;
     end;
-    if protocole=1 then
+
+    if protocole=1 then // xpressnet
     begin
       groupe:=(adresse-1) div 4;
       fonction:=((adresse-1) mod 4)*2 + (pilotage-1);
@@ -9333,7 +9339,8 @@ begin
       result:=true;
       exit;
     end;
-    if protocole=2 then
+
+    if protocole=2 then  // dcc++
     begin
       event_aig(adresse,pilotage);
       // en pilotage, on envoie que l'ID cad l'adresse - 0=droit 1=dévié
@@ -9346,6 +9353,7 @@ begin
       result:=true;
       exit;
     end;
+
   end;
 
   // pas de centrale et pas CDM connecté: on change la position de l'aiguillage
@@ -10503,13 +10511,13 @@ begin
       // descendre le curseur n fois pour sélectionner le serveur
       for i:=1 to ServeurInterfaceCDM-1 do
       begin
-        KeybdInput(VK_DOWN, 0);
-        KeybdInput(VK_DOWN, KEYEVENTF_KEYUP);
+        KeybdInput(VK_DOWN,0);
+        KeybdInput(VK_DOWN,KEYEVENTF_KEYUP);
       end;
       // 2x TAB pour pointer sur OK
-      KeybdInput(VK_TAB, 0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
-      KeybdInput(VK_TAB, 0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
-      KeybdInput(VK_SPACE, 0);KeybdInput(VK_SPACE, KEYEVENTF_KEYUP);
+      KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+      KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP);
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
       Sleep(200);
 
@@ -10522,9 +10530,9 @@ begin
           SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
         end;
         // 2x TAB pour pointer sur OK
-        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
-        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB, KEYEVENTF_KEYUP);
-        KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE, KEYEVENTF_KEYUP); // valide la fenetre d'interface
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
 
         Sleep(200);
@@ -10681,6 +10689,7 @@ begin
   TraceSign:=True;
   configPrete:=false; // form config prete
   PremierFD:=false;
+  sauve_tco:=false;
   // services commIP CDM par défaut
   ntrains:=0;
   ntrains_cdm:=0;
@@ -10745,6 +10754,18 @@ begin
   StaticText.Top:=FenRich.Height+FenRich.Top+10;
   //----------------------------------------
 
+  {
+  FenRich.Align := alLeft;
+  FenRich.Width := FormPrinc.ClientWidth div 3;
+  Splitter.Parent := FormPrinc;
+  // Make sure the splitter is to the right of the directory list box.
+  Splitter.Left := FenRich.Left + FenRich.Width + 1;
+  Splitter.Align := FenRich.Align; // Give it the same alignment as the directory.
+  // Each pane must be at least one quarter of the form?s width.
+  Splitter.MinSize := Formprinc.ClientWidth div 4;
+  //ScrollBox1.Align:=alclient;
+  }
+
   ferme:=false;
   CDM_connecte:=false;
   pasreponse:=0;
@@ -10767,43 +10788,14 @@ begin
   Application.HintHidePause:=30000;
   visible:=true;  // rend la form visible plus tot
 
-  // ouvrir le TCO avant de lire la config car en mode DCC++, on va
-  // recevoir les events détecteurs et la mise à jour du TCO
-  // !!non il faut ouvrir e TCO après la config
-
-  {
-  procetape('Debug et TCO');
-  if debug=1 then affiche('Ouverture du debug',clLime);
-  formdebug:=TformDebug.Create(nil);
-  i:=0;
-  repeat
-    application.processmessages;
-    inc(i);
-  until (DebugAffiche) or (i>15);
-  if not(DebugAffiche) then Affiche('Erreur : fenêtre debug non créée',clred);
-  if debugAffiche and (Debug=1) then Affiche('Fenêtre Debug créée',clYellow);
-
-  if debug=1 then affiche('Ouverture du TCO',clLime);
-
-  //créée la fenêtre TCO non modale avant la fin de la création de formprinc
-  FormTCO:=TformTCO.Create(nil);
-  i:=0;
-  repeat
-    application.processmessages;
-    inc(i);
-  until (TcoOuvert) or (i>15);
-  if not(TCOOUvert) then Affiche('Erreur : fenêtre TCO non créée',clred);
-  if TCOOuvert and (Debug=1) then Affiche('Fenêtre TCO créée',clYellow);
-  }
-
-  // TCO
-
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
   procetape('Lecture du TCO');
   lire_fichier_tco;
+  verif_coherence;
+  
   procetape('La configuration a été lue');
 
   if protocole=1 then
@@ -11001,10 +10993,15 @@ procedure TFormPrinc.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Ferme:=true;
 
-  if portCommOuvert then begin portCommOuvert:=false;MSCommUSBLenz.Portopen:=false; end;
+  if portCommOuvert then
+  begin
+    portCommOuvert:=false;
+    MSCommUSBLenz.Portopen:=false;
+  end;
   portCommOuvert:=false;
   ClientSocketCDM.close;
   ClientSocketInterface.close;
+  timer1.Enabled:=false;
   if TCO_modifie then
     if MessageDlg('Le TCO a été modifié. Voulez vous le sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
       sauve_fichier_tco;
@@ -11012,6 +11009,7 @@ begin
     if MessageDlg('La configuration a été modifiée. Voulez vous la sauvegarder ?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
       sauve_config;
   if confasauver then sauve_config;
+  if sauve_tco then sauve_fichier_tco;
   Application.ProcessMessages;
 end;
 
@@ -11082,7 +11080,7 @@ begin
              5 :  ImageFeu:=Formprinc.Image5feux;
              7 :  ImageFeu:=Formprinc.Image7feux;
              9 :  ImageFeu:=Formprinc.Image9feux;
-            else ImageFeu:=Formprinc.Image3feux;
+            else  ImageFeu:=Formprinc.Image3feux;
             end;
 
             TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
@@ -12892,7 +12890,7 @@ begin
     inc(i);
   until (i>NbMemZone);
 
-  Affiche('Derniers élements verrouillés:',clWhite);
+  Affiche('Derniers éléments scannés:',clWhite);
   for i:=1 to idEl do
   begin
     Affiche(IntToSTR(elements[i].adresse),clLime);
@@ -13286,7 +13284,8 @@ procedure TFormPrinc.Button1Click(Sender: TObject);
 begin
   placement_trains;
   //ouvre_simulation('C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
-  ouvre_simulation('C:\Program Files\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
+  //ouvre_simulation('C:\Program Files\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
+  ouvre_simulation('C:\temp\Signaux_complexes_GL\2trains_autonome.txt');
 end;
 
 
@@ -13366,6 +13365,13 @@ procedure TFormPrinc.EditAdrTrainChange(Sender: TObject);
     comboTrains.ItemIndex:=i-1;
   end;
   clicAdrTrain:=false;
+end;
+
+
+procedure TFormPrinc.SplitterMoved(Sender: TObject);
+begin
+  ScrollBox1.left:=Splitter.Left+10;
+  ScrollBox1.width:=width-scrollBox1.left-20;
 end;
 
 

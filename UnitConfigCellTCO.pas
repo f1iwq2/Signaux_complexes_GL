@@ -28,6 +28,7 @@ type
     RadioButtonG: TRadioButton;
     RadioButtonD: TRadioButton;
     EditAdrElement: TEdit;
+    ButtonFond: TButton;
     procedure ButtonOkClick(Sender: TObject);
     procedure EditTypeImageKeyPress(Sender: TObject; var Key: Char);
     procedure EditAdrElementChange(Sender: TObject);
@@ -42,6 +43,8 @@ type
     procedure RadioButtonGClick(Sender: TObject);
     procedure RadioButtonDClick(Sender: TObject);
     procedure EditAdrElementKeyPress(Sender: TObject; var Key: Char);
+    procedure ButtonFondClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -250,7 +253,7 @@ end;
 
 procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 begin
-  PCanvasTCO.Brush.Color:=fond;
+  PCanvasTCO.Brush.Color:=clfond;
 
   if Tco[XClicCell,YClicCell].texte='' then
   begin
@@ -276,7 +279,7 @@ var i,x,y : integer;
 begin
   // fenetre toujours dessus
   actualize:=false;
-  SetWindowPos(Handle, HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
+  SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   exit;
 
   // dessine les composants - non utilisé
@@ -407,6 +410,17 @@ begin
     actualise;
     if not(selectionaffichee) then _entoure_cell_clic;
   end;
+end;
+
+procedure TFormConfCellTCO.ButtonFondClick(Sender: TObject);
+begin
+  change_couleur_fond;
+end;
+
+procedure TFormConfCellTCO.FormActivate(Sender: TObject);
+begin
+  if selectionaffichee then ButtonFond.caption:='Couleur de fond de la sélection'
+  else ButtonFond.caption:='Couleur de fond de la cellule';
 end;
 
 end.

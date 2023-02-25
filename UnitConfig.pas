@@ -322,6 +322,8 @@ type
     Label58: TLabel;
     EditFiltrDet: TEdit;
     CheckBoxVerifXpressNet: TCheckBox;
+    LabelCrois: TLabel;
+    Image3: TImage;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -2861,11 +2863,15 @@ begin
     Aiguillage[i].temps:=5;
     Aiguillage[i].inversionCDM:=0;
     Aiguillage[i].EtatTJD:=4;
+    Aiguillage[i].vitesse:=0;
   end;
   for i:=1 to 1024 do
   begin
     Detecteur[i].etat:=false;
-    //Detecteur[i].train:='0';
+    Detecteur[i].train:='';
+    Detecteur[i].AdrTrain:=0;
+    Detecteur[i].tempo0:=0;
+    Detecteur[i].IndexTrain:=0;
     Ancien_detecteur[i]:=false;
   end;
 
@@ -2943,8 +2949,7 @@ begin
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
-  verif_coherence;
-  
+
 end;
 
 
@@ -3428,6 +3433,9 @@ begin
   clicListe:=false;
   if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
   ConfigPrete:=true;
+
+  groupBox21.Top:=304;
+  GroupBox21.Left:=8;
 end;
 
 
@@ -3618,6 +3626,7 @@ begin
       editP4.Visible:=false;
       labelTJD1.Visible:=false;
       labelTJD2.Visible:=false;
+      labelcrois.Visible:=true;
     end;
     
     // aiguillage normal ou tri
@@ -6528,9 +6537,46 @@ begin
   verif_extr_branches:=Erreur;
 end;
 
+function nombre_adresses_signal(adr : integer) : integer;
+var x,dec,nc,i : integer;
+begin
+  nc:=0;
+  i:=index_feu(adr);
+  dec:=feux[i].decodeur;
+  x:=feux[i].aspect;
+  if x>10 then
+  begin
+    nombre_adresses_signal:=x-10;
+    exit;
+  end;
+
+  // nc=nombre d'adresses du signal
+  if dec=0 then nc:=0;           // rien
+  if dec=1 then nc:=14;          // digitalbahn
+  if dec=2 then nc:=5;           // leb
+  if dec=3 then nc:=8;           // ldt
+  if dec=4 then nc:=feux[i].Na;  // cdf
+  if dec=5 then nc:=feux[i].Na;  // digikeijs
+  if dec=6 then                  // paco unisemaf
+  begin
+    x:=feux[index].Unisemaf;     // modèle
+    case x of
+    2 : nc:=1;
+    3,4 : nc:=2;
+    51,52 : nc:=3;
+    71 : nc:=2;
+    72,73 : nc:=3;
+    91,92 : nc:=3;
+    93,94,95,96,97,98,99 : nc:=4;
+    end;
+  end;
+  if dec=7 then nc:=8;           // sr   
+  nombre_adresses_signal:=nc;
+end;
+
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
-    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,dec : integer;
+    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,dec,nc2 : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     vitesse : longint;
@@ -6587,7 +6633,7 @@ begin
       end;
       // vérifier si son homologue est une tjd
       adr2:=aiguillage[Indexaig].Ddroit;
-      if (aiguillage[Index_Aig(adr2)].modele<>tjd) and (aiguillage[Index_Aig(adr2)].modele<>tjs) then 
+      if (aiguillage[Index_Aig(adr2)].modele<>tjd) and (aiguillage[Index_Aig(adr2)].modele<>tjs) then
       begin
         Affiche('Erreur 8: l''aiguillage '+intToStr(Adr2)+' n''est pas une TJD/S ou n''existe pas, mais apparait dans la TJD/S '+IntToSTR(aiguillage[Indexaig].Adresse),clred);
         ok:=false;
@@ -6670,24 +6716,58 @@ begin
     end;
   end;
 
-  // cohérence 4 : vérifie si doublon signal
+  // cohérence 4 : vérifie si doublon signal ou si recouvrement avec un autre signal ou un aiguillage
   for j:=1 to NbreFeux do
   begin
     adr:=feux[j].Adresse;
+    nc:=nombre_adresses_signal(adr);
+
+    for i:=1 to maxaiguillage do
+    begin
+      adr2:=aiguillage[i].Adresse;
+      if ((adr2>=adr) and (adr2<=adr+nc-1)) then
+      begin
+        affiche('Erreur 9.1 : signal '+intToSTR(adr)+' ('+intToSTR(nc)+' adresses) et aiguillage '+intToSTR(adr2)+' se chevauchent',clred);
+        ok:=false;
+      end;  
+    end;
+    
     for i:=j+1 to NbreFeux do
     begin
-      if adr=feux[i].Adresse then
+      adr2:=feux[i].Adresse;    
+      nc2:=nombre_adresses_signal(adr2);
+      if ((adr>adr2)      and (adr     <adr2+nc2-1)) or
+         ((adr+nc-1>adr2) and (adr+nc-1<adr2+nc2-1))
+      then
       begin
-        affiche('Erreur 9 : signal '+intToSTR(adr)+' défini deux fois',clred);
+        affiche('Erreur 9.2 : signaux '+intToSTR(adr)+' ('+intToSTR(nc)+' adresses) et '+intToStr(adr2)+' ('+intToSTR(nc2)+' adresses) se chevauchent',clred);
         ok:=false;
       end;
     end;
-  end; 
-  
+  end;
+
   // cohérence 5 ; vérifie si aiguillages définis en condition supplémentaires de carré existent
+  // vérifie aussi le décodeur digikeijs
   for j:=1 to NbreFeux do
   begin
     l:=1;
+    nc:=feux[j].decodeur;
+    if nc=5 then // digikeijs
+    begin
+      if feux[j].Na=0 then
+      begin
+        Affiche('Erreur 9.3 : signal '+intToSTR(feux[j].adresse)+' : Le nombre d''adresses du décodeur digiKeijs est nul',clred);
+        ok:=false;
+      end;
+    end;
+    if nc=2 then // cdf
+    begin
+      if feux[j].Na=0 then
+      begin
+        Affiche('Erreur 9.4 : signal '+intToSTR(feux[j].adresse)+' : Le nombre d''adresses du décodeur CDF est nul',clred);
+        ok:=false;
+      end;
+    end;
     repeat
       nc:=Length(feux[j].condcarre[l])-1 ;
       for k:=1 to nc do
@@ -6853,7 +6933,7 @@ begin
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
       begin
         // aiguillage
-        if index_aig(i)=0 then 
+        if index_aig(i)=0 then
         begin
           ok:=false;
           Affiche('Erreur 9.6: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
@@ -6956,7 +7036,7 @@ begin
               extr:=aiguillage[index2].ADevie;
               if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
             end;
-            if c='P' then 
+            if c='P' then
             begin 
               extr:=aiguillage[index2].APointe;
               if adr<>extr then Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
@@ -7073,7 +7153,7 @@ begin
                 extr:=aiguillage[index2].ADevie;
                 if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
               end;
-              if c='P' then 
+              if c='P' then
               begin 
                 extr:=aiguillage[index2].APointe;
                 if adr<>extr then Affiche('Erreur 10.45: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
@@ -7202,48 +7282,47 @@ begin
   begin
     for y:=1 to NbreCellY do
       for x:=1 to NbreCellX do
+      begin
+        i:=TCO[x,y].BImage;
+        if i=30 then
         begin
-          i:=TCO[x,y].BImage;
-          if i=30 then
+          adr:=TCO[x,y].adresse;
+          if index_feu(adr)=0 then
           begin
-            adr:=TCO[x,y].adresse;
-            if index_feu(adr)=0 then
-            begin
-              Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
-              ok:=false;
-            end;
+            Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+            ok:=false;
           end;
-          if (i=2) or (i=3) or (i=4) or (i=5) or (i=12) or (i=13) or (i=14) or (i=15) then
+        end;
+        if (i=2) or (i=3) or (i=4) or (i=5) or (i=12) or (i=13) or (i=14) or (i=15) or (i=21) or (i=22) then
+        begin
+          adr:=TCO[x,y].adresse;
+          if index_aig(adr)=0 then
           begin
-            adr:=TCO[x,y].adresse;
-            if index_aig(adr)=0 then
-            begin
-              Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
-              ok:=false;
-            end;
+            Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+            ok:=false;
           end;
-          if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
+        end;
+        if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
+        begin
+          adr:=TCO[x,y].adresse;
+          if adr<>0 then
           begin
-            adr:=TCO[x,y].adresse;
-            if adr<>0 then
+            j:=1;
+            repeat
+              trouveSuiv:=adr=Adresse_detecteur[j];
+              inc(j);
+            until (j>NDetecteurs) or trouveSuiv;
+            if not(trouveSuiv) then
             begin
-              j:=1;
-              repeat
-                trouveSuiv:=adr=Adresse_detecteur[j];
-                inc(j);
-              until (j>NDetecteurs) or trouveSuiv;
-             
-              if not(trouveSuiv) then
-              begin
-                Affiche('Un détecteur '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
-                ok:=false;
-              end;
+              Affiche('Un détecteur '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+              ok:=false;
             end;
           end;
         end;
+      end;
   end;
 
-  // 10 Divers
+  // 11 Divers
   i:=pos(':',portcom);j:=pos(',',portcom);
   val(copy(portcom,i+1,j-i),vitesse,l);
   if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
@@ -7265,28 +7344,7 @@ begin
     for i:=1 to NbreFeux do
     begin
       adresse:=feux[i].Adresse;
-      dec:=feux[i].decodeur;
-      nc:=1;
-      // nc=nombre d'adresses du signal
-      if dec=1 then nc:=14;          // digitalbahn
-      if dec=2 then nc:=5;           // leb
-      if dec=3 then nc:=8;           // ldt
-      if dec=4 then nc:=feux[i].Na;  // cdf
-      if dec=5 then nc:=feux[i].Na;  // digikeijs
-      if dec=6 then                  // paco unisemaf
-      begin
-        x:=feux[index].Unisemaf;     // modèle
-        case x of
-        2 : nc:=1;
-        3,4 : nc:=2;
-        51,52 : nc:=3;
-        71 : nc:=2;
-        72,73 : nc:=3;
-        91,92 : nc:=3;
-        93,94,95,96,97,98,99 : nc:=4;
-        end;
-      end;
-      if dec=7 then nc:=8;           // sr
+      nc:=Nombre_adresses_signal(adresse);
 
       if (adresse>=257) and (adresse<=272) or ((adresse+nc-1>=257) and (adresse+nc<=272)) then
       begin
@@ -7316,8 +7374,8 @@ begin
     if not(AdrOk) then
     begin
       j:=MessageDlg('Une adresse DCC via XpressNet a été trouvée dans la plage interdite.'+#13+
-                        'Si vous n''utilisez pas XpressNet, vous devez choisir d''ignorer cette erreur.'+#13+#13+
-                        'Voulez vous ignorer cette erreur à l''avenir? ',mtConfirmation,[mbNo,mbYes],0) ;
+                    'Si vous n''utilisez pas XpressNet, vous devez choisir d''ignorer cette erreur.'+#13+#13+
+                    'Voulez vous ignorer cette erreur à l''avenir? ',mtConfirmation,[mbNo,mbYes],0) ;
       if j=mrYes then
       begin
         Verif_AdrXpressNet:=0;
@@ -7352,6 +7410,10 @@ begin
   aiguillage[i].AdrTrain:=0;
   aiguillage[i].posInit:=const_inconnu;
   aiguillage[i].Temps:=5;
+  aiguillage[i].position:=const_inconnu;
+  aiguillage[i].InversionCDM:=0;
+  aiguillage[i].vitesse:=0;
+
 
   s:=encode_Aig(i);
   if ligneClicAig<>-1 then RE_ColorLine(RichAig,ligneClicAig,ClAqua);
@@ -7861,11 +7923,15 @@ begin
     if (aiguillage[i].tjsIntB<>'S') and (aiguillage[i].tjsIntB<>'D') then aiguillage[i].tjsIntB:='D';
   end;
 
+  if aiguillage[i].modele=crois then LabelCrois.Visible:=true else LabelCrois.Visible:=false;
+
   s:=encode_aig(i);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
   clicliste:=true;
   Aff_champs_aig_tablo(i);
   clicliste:=false;
+
+
 end;
 
 procedure TFormConfig.ButtonValLigneClick(Sender: TObject);
@@ -8444,7 +8510,6 @@ procedure TFormConfig.SpeedButtonJoueClick(Sender: TObject);
 begin
    if PlaySound(pchar(EditSon.Text),0,SND_ASYNC)=false then
         labelInfo.Caption:='Erreur';
-
 end;
 
 

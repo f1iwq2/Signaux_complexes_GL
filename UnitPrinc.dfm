@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 48
-  Top = 231
+  Left = 59
+  Top = 174
   Width = 1213
   Height = 670
   Caption = 'Signaux complexes'
@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   DesignSize = (
     1197
-    612)
+    611)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1200,6 +1200,16 @@ object FormPrinc: TFormPrinc
     Font.Style = []
     ParentFont = False
   end
+  object Splitter: TSplitter
+    Left = 0
+    Top = 0
+    Width = 5
+    Height = 589
+    Color = clWindowFrame
+    ParentColor = False
+    Visible = False
+    OnMoved = SplitterMoved
+  end
   object ScrollBox1: TScrollBox
     Left = 632
     Top = 192
@@ -1263,7 +1273,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 590
+    Top = 589
     Width = 1197
     Height = 22
     Panels = <>

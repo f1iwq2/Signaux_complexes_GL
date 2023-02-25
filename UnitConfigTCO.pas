@@ -41,6 +41,8 @@ type
     Ratio: TLabel;
     Label14: TLabel;
     CheckCouleur: TCheckBox;
+    Label1: TLabel;
+    ImagePiedFeu: TImage;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -52,6 +54,7 @@ type
     procedure ColorDialog1Show(Sender: TObject);
     procedure ImageTexteClick(Sender: TObject);
     procedure ImageQuaiClick(Sender: TObject);
+    procedure ImagePiedFeuClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -75,8 +78,8 @@ var r : Trect;
 begin
       with FormConfigTCO.ImageAig do
       begin
-        canvas.Pen.color:=fond;
-        canvas.Brush.Color:=fond;
+        canvas.Pen.color:=clfond;
+        canvas.Brush.Color:=clfond;
         canvas.Rectangle(0,0,Width,Height);
 
         canvas.pen.color:=clVoies;
@@ -96,22 +99,24 @@ end;
 
 procedure dessine_icones;
 var r : Trect;
-    x1,x2,jy1,jy2 : integer;
+    x1,y1,x2,y2,jy1,jy2,larg,haut : integer;
 begin
   // 1
   icone_aig;
   // 2
   with formConfigTCO.ImageFond do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    larg:=width ;
+    haut:=height;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
   end;
   // 3
   with formConfigTCO.ImageGrille do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
     canvas.Pen.color:=ClGrille;
     canvas.moveto(0,5); canvas.LineTo(width,5);
@@ -120,8 +125,8 @@ begin
   // 4 détecteur
   with formConfigTCO.ImageDetAct do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
 
     canvas.Brush.Color:=clAllume;
@@ -140,8 +145,8 @@ begin
   // 5 canton
   with formCOnfigTCO.Imagecanton do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
 
     canvas.pen.color:=clCanton;
@@ -154,8 +159,8 @@ begin
   //6 texte
   with formCOnfigTCO.ImageTexte do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
     canvas.Font.color:=clTexte;
     canvas.Pen.mode:=pmCopy;
@@ -165,17 +170,34 @@ begin
   //Quai
   with formconfigTCO.ImageQuai do
   begin
-    canvas.Pen.color:=fond;
-    canvas.Brush.Color:=fond;
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
     canvas.Rectangle(0,0,Width,Height);
     canvas.Brush.Color:=clQuai;
     canvas.pen.color:=clQuai;
     x1:=0;
     x2:=x1+width;
-    jy1:=(HauteurCell div 2)-round(6*frYGlob); // pos Y de la bande sup
-    jy2:=(HauteurCell div 2)+round(6*frYGlob); // pos Y de la bande inf
+    jy1:=(Haut div 2)-round(12*frYGlob); // pos Y de la bande sup
+    jy2:=(Haut div 2)+round(12*frYGlob); // pos Y de la bande inf
 
     canvas.PolyGon([point(x1,jy1),point(x2,jy1),point(x2,jy2),point(x1,jy2)]);
+  end;
+
+  // pied signal
+  with formconfigTCO.ImagePiedFeu do
+  begin
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
+    canvas.Rectangle(0,0,Width,Height);
+    canvas.Brush.Color:=clPiedSignal;
+    canvas.pen.color:=clPiedSignal;
+    canvas.Pen.Width:=2;
+    x1:=Larg div 2;
+    y1:=0;
+    canvas.moveTo(x1,y1);
+    y2:=HauteurCell div 2;
+    canvas.LineTo(x1,y2);
+    canvas.LineTo(x1-10,y2);
   end;
 
 end;
@@ -240,7 +262,6 @@ end;
 
 procedure TFormConfigTCO.ButtonOKClick(Sender: TObject);
 var ok : boolean;
-    larg,haut : integer;
 begin
   ok:=true;
 
@@ -326,11 +347,11 @@ end;
 procedure TFormConfigTCO.ImageFondClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de fond';
-  ColorDialog1.Color:=fond;
+  ColorDialog1.Color:=clfond;
 
   if ColorDialog1.execute then
   begin
-    fond:=ColorDialog1.Color;
+    clfond:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones;
   end;
@@ -398,18 +419,23 @@ begin
   end;
 end;
 
+procedure TFormConfigTCO.ImagePiedFeuClick(Sender: TObject);
+begin
+  titre_couleur:='Changer la couleur du pied du signal';
+  ColorDialog1.Color:=clPiedSignal;
+
+  if ColorDialog1.execute then
+  begin
+    clPiedSignal:=ColorDialog1.Color;
+    dessine_icones;
+  end;
+end;
+
 // change le titre de la fenêtre de choix des couleurs à son ouverture
 procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
    SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
-
-
-
-
-
-
-
 
 
 

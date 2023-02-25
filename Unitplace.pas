@@ -173,7 +173,6 @@ begin
         inc(it);
         //detecteur[detect].adrTrain:=trains[i].adresse;
         //event_detecteur(detect,true,trains[i].nom_train);
-        Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
         {
         SauvefiltrageDet0:=filtrageDet0;
         filtrageDet0:=0;
@@ -203,6 +202,9 @@ begin
         event_det_train[it].det[1].adresse:=prec;
         event_det_train[it].det[1].etat:=false;
         event_det_train[it].nom_train:=placement[i].train;
+
+        Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
+
         inc(N_trains);
 
       end

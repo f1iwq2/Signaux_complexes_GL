@@ -134,11 +134,13 @@ object FormConfigTCO: TFormConfigTCO
       OnClick = ImageFondClick
     end
     object Label6: TLabel
-      Left = 30
-      Top = 80
-      Width = 75
-      Height = 13
-      Caption = 'Couleur de fond'
+      Left = 32
+      Top = 72
+      Width = 76
+      Height = 26
+      Alignment = taRightJustify
+      Caption = 'Couleur de fond par d'#233'faut'
+      WordWrap = True
     end
     object ImageGrille: TImage
       Left = 128
@@ -218,11 +220,27 @@ object FormConfigTCO: TFormConfigTCO
       OnClick = ImageQuaiClick
     end
     object Label13: TLabel
-      Left = 206
+      Left = 214
       Top = 80
       Width = 74
       Height = 13
       Caption = 'Couleur de quai'
+    end
+    object Label1: TLabel
+      Left = 184
+      Top = 120
+      Width = 102
+      Height = 26
+      Alignment = taRightJustify
+      Caption = 'Couleur des pieds de signaux'
+      WordWrap = True
+    end
+    object ImagePiedFeu: TImage
+      Left = 296
+      Top = 112
+      Width = 41
+      Height = 41
+      OnClick = ImagePiedFeuClick
     end
     object CheckCouleur: TCheckBox
       Left = 56
