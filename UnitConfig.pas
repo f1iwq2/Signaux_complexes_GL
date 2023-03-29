@@ -466,6 +466,12 @@ type
     procedure EditVitNomChange(Sender: TObject);
     procedure EditVitRalentiChange(Sender: TObject);
     procedure CheckBoxVerifXpressNetClick(Sender: TObject);
+    procedure RichActKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure RichPNKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure RichEditTrainsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -476,6 +482,7 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
 Algo_localisation_ch='Algo_localisation';
@@ -510,6 +517,7 @@ Protocole_ch='Protocole';
 Raz_signaux_ch='RazSignaux';
 EnvAigDccpp_ch='EnvAigDccpp';
 AdrBaseDetDccpp_ch='AdrBaseDetDccpp';
+AvecVerifIconesTCO_ch='AvecVerifIconesTCO';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -527,13 +535,14 @@ var
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
-  LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,clicListeTrain,
+  LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
-  Algo_localisation,Verif_AdrXpressNet : integer;
+  Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
-  modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains : boolean;
+  modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
+  trouveAvecVerifIconesTCO : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -1084,9 +1093,12 @@ begin
           // feu de signalisation---------------------------------
           begin
             val(sa,asp,erreur);  //aspect
+            if (asp<2) or (asp=6) or (asp=8) or (asp>9) then
+            begin
+              Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
+              asp:=2;
+            end;
             feux[i].aspect:=asp;Delete(s,1,j);
-            if (asp=0) or (asp=6) or (asp>9) then
-            Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
             j:=pos(',',s);
             if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
             j:=pos(',',s);
@@ -1107,6 +1119,7 @@ begin
                delete(s,1,1);
                j:=0;
                repeat
+                 adr:=0;
                  k:=pos(',',s);
                  if k>1 then
                  begin
@@ -1399,10 +1412,12 @@ begin
   // entête
   // copie_commentaire;
   writeln(fichierN,'/ Fichier de configuration de signaux_complexes_GL');
+  writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
   writeln(fichierN,Filtrage_det_ch+'=',filtrageDet0);
+  writeln(fichierN,AntiTimeoutEthLenz_ch+'=',AntiTimeoutEthLenz);
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
   FormPrinc.FenRich.Font.Size:=TailleFonte;
@@ -1603,7 +1618,7 @@ var s,sa,SOrigine: string;
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
-    ComptEl,Compt_IT,Num_Element,k,modele,adr,adr2,erreur2,l,t,Nligne,postriple,itl,
+    ComptEl,Compt_IT,Num_Element,k,adr,erreur2,l,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
 
  function lit_ligne : string ;
@@ -1916,7 +1931,7 @@ begin
 
           i:=pos(')',s);Delete(S,1,i);
           i:=pos(',',s);Delete(S,1,i);
-          Tablo_PN[NbrePN].voie[NbreVoies].PresTrain:=false;
+          Tablo_PN[NbrePN].compteur:=0;
         until (copy(s,1,2)='PN') or (NbreVoies=4);
 
         Tablo_PN[NbrePN].NbVoies:=NbreVoies;
@@ -2359,12 +2374,21 @@ begin
       val(s,filtrageDet0,erreur);
     end;
 
+    sa:=uppercase(AntiTimeoutEthLenz_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,AntiTimeoutEthLenz,erreur);
+    end;
+
     sa:=uppercase(Algo_localisation_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
     begin
       delete(s,i,length(sa));
       val(s,Algo_localisation,erreur);
+      if Algo_localisation<>1 then Affiche('Avertissement: Algo_localisation='+intToSTR(algo_localisation)+' est expérimental et non garanti',clorange);
     end;
 
     sa:=uppercase(Avec_roulage_ch)+'=';
@@ -2630,6 +2654,17 @@ begin
       notificationVersion:=i=1;
     end;
 
+    sa:=uppercase(AvecVerifIconesTCO_ch);
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      trouveAvecVerifIconesTCO:=true;
+      inc(nv);
+      delete(s,i,length(sa)+1);
+      val(s,AvecVerifIconesTCO,erreur);
+      s:='';
+    end;
+
     sa:=uppercase(TCO_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2813,6 +2848,7 @@ end;
 begin
   debugConfig:=false;
   trouve_NbDetDist:=false;
+  trouveAvecVerifIconesTCO:=false;
   trouve_ipv4_PC:=false;
   trouve_retro:=false;
   trouve_sec_init:=false;
@@ -2839,6 +2875,8 @@ begin
   trouve_demcnxEth:=false;
   trouve_Algo_Uni:=false;
   trouve_Nb_cantons_Sig:=false;
+  AvecVerifIconesTCO:=1;
+
   //trouve_FVR:=false;
 
   if not(trouve_tempo_feu) then
@@ -2850,6 +2888,7 @@ begin
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
+
 
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
@@ -2929,6 +2968,7 @@ begin
   if not(trouve_dem_aig) then s:=Init_dem_aig_ch;
   if not(trouve_demcnxCOMUSB) then s:=Init_dem_interfaceUSBCOM_ch;
   if not(trouve_demcnxEth) then s:=Init_dem_interfaceEth_ch;
+  if not(trouveAvecVerifIconesTCO) then confasauver:=true;
 
   if not(trouve_tempo_feu) then
   begin
@@ -4000,13 +4040,16 @@ begin
       l:=1;
       repeat
         nc:=Length(feux[i].condcarre[l])-1 ;
-        s:='';
-        for k:=1 to nc do
+        if nc<>-1 then
         begin
-          s:=s+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
-          if k<nc then s:=s+',';
+          s:='';
+          for k:=1 to nc do
+          begin
+            s:=s+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
+            if k<nc then s:=s+',';
+          end;
+          MemoCarre.Lines.Add(s);
         end;
-        MemoCarre.Lines.Add(s);
         inc(l);
       until (nc<=0) or (l>6);
       // scrolle le MemoCarre sur la première ligne
@@ -4049,17 +4092,16 @@ begin
 end;
 
 
-// mise à jour des champs graphiques des actionneurs d'après l'index du richAct
+// mise à jour des champs graphiques des actionneurs d'après l'index du tableau
 Procedure aff_champs_act(i : integer);
 var etatact, adresse,sortie,fonction,tempo,access,typ : integer;
     s,s2,adr : string;
     det : boolean;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
-  if i<0 then exit;
-  s:=Uppercase(FormConfig.RichAct.Lines[i]);
+  if i<1 then exit;
+  s:=Uppercase(FormConfig.RichAct.Lines[i-1]);
   if s='' then exit;
-  inc(i); // passer en index tablo
 
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
@@ -4194,16 +4236,39 @@ begin
   end;
 end;
 
-// affiche les champs de l'actionneur PN en fonction du tableau en fonction de l'index du richedit
+procedure raz_champs_pn;
+begin
+  with formconfig do
+  begin
+    editAdrFerme.Text:='';EditCmdFerme.text:='';
+    editAdrOuvre.Text:='';EditCdeOuvre.text:='';
+    editV1F.Text:='';editV1O.Text:='';
+    editV2F.Text:='';editV2O.Text:='';
+    editV3F.Text:='';editV3O.Text:='';
+    editV4F.Text:='';editV4O.Text:='';
+    EditZdet1V1F.text:='';EditZdet2V1F.text:='';EditZdet1V1O.text:='';EditZdet2V1O.text:='';
+    EditZdet1V2F.text:='';EditZdet2V2F.text:='';EditZdet1V2O.text:='';EditZdet2V2O.text:='';
+    EditZdet1V3F.text:='';EditZdet2V3F.text:='';EditZdet1V3O.text:='';EditZdet2V3O.text:='';
+    EditZdet1V4F.text:='';EditZdet2V4F.text:='';EditZdet1V4O.text:='';EditZdet2V4O.text:='';
+  end;
+end;
+
+// affiche les champs de l'actionneur PN en fonction de l'index du tableau
 procedure aff_champs_PN(i : integer);
 var adresse,erreur,j,v : integer;
     trouve : boolean;
     s : string;
 begin
   if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
-  if i<0 then exit;
-  s:=Uppercase(FormConfig.RichPN.Lines[i]);
+  if i<1 then exit;
+  s:=Uppercase(FormConfig.RichPN.Lines[i-1]);
   if s='' then exit;
+
+  with formconfig do
+  begin
+    LabelInfo.caption:='';
+    raz_champs_pn;
+  end;
 
   // actionneur passage à niveau
   if s[1]='(' then
@@ -4292,13 +4357,15 @@ procedure raz_champs_act;
 begin
   with formConfig do
   begin
-    editAct.Text:='';
+    editAct.Text:='';EditAct2.Text:='';
     EditEtatActionneur.Text:='';
     EditTrainDecl.Text:='';
     EditFonctionAccess.Text:='';
     EditEtatFoncSortie.Text:='';
     EditTempo.Text:='';
     CheckRaz.Checked:=false;
+    editson.Text:='';
+    EditTrainDest.text:='';
   end;
 end;
 
@@ -4336,6 +4403,7 @@ begin
     checkFRC.Checked:=false;
   end;
 end;
+
 
 // cliqué sur liste aiguillages
 procedure TFormConfig.RichAigMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -4410,7 +4478,7 @@ begin
       Aiguillage[index].Adroit:=adr;
       Aiguillage[index].AdroitB:=B;
       Edit_HG.Hint:=TypeElAIg_to_char(adr,B);
-      
+
       // réencoder la ligne
       s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneclicAig]:=s;
@@ -4860,7 +4928,6 @@ begin
   begin
     i:=Selstart;
     lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-    //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
     clicListeFeu(feux[lc+1].adresse);
   end;  
 
@@ -5286,7 +5353,7 @@ begin
       AncligneClicAct:=Ligne;
       ligneClicAct:=ligne;
       RE_ColorLine(Formconfig.RichAct,ligneClicAct,ClYellow);
-      Aff_champs_Act(ligneClicAct);
+      Aff_champs_Act(ligneClicAct+1);
     end
     else
     begin
@@ -5809,22 +5876,7 @@ procedure TFormConfig.RichPNMouseDown(Sender: TObject;
 var i,ligne : integer;
 begin
   clicliste:=true;
-  LabelInfo.caption:='';
-  editV1F.Text:='';editV1O.Text:='';
-  editV2F.Text:='';editV2O.Text:='';
-  editV3F.Text:='';editV3O.Text:='';
-  editV4F.Text:='';editV4O.Text:='';
-  EditZdet1V1F.text:='';EditZdet2V1F.text:='';
-  EditZdet1V1O.text:='';EditZdet2V1O.text:='';
-  EditZdet1V2F.text:='';EditZdet2V2F.text:='';
-  EditZdet1V2O.text:='';EditZdet2V2O.text:='';
-  EditZdet1V3F.text:='';EditZdet2V3F.text:='';
-  EditZdet1V3O.text:='';EditZdet2V3O.text:='';
-  EditZdet1V4F.text:='';EditZdet2V4F.text:='';
-  EditZdet1V4O.text:='';EditZdet2V4O.text:='';
 
-  editAdrFerme.Text:='';EditCmdFerme.text:='';
-  editAdrOuvre.Text:='';EditCdeOuvre.text:='';
 
   // désactive la sélection des actionneurs
   RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
@@ -5840,16 +5892,16 @@ begin
       AncLigneCliqueePN:=Ligne;
       ligneCliqueePN:=ligne;
       RE_ColorLine(RichPN,LigneCliqueePN,ClYellow);
-      Aff_champs_PN(lignecliqueePN);
+      Aff_champs_PN(lignecliqueePN+1);
     end
     else
     begin
       RE_ColorLine(Formconfig.RichPN,lignecliqueePN,ClAqua);
       lignecliqueePN:=-1;
       exit;
-    end;  
-  end;  
-  clicliste:=false; 
+    end;
+  end;
+  clicliste:=false;
 end;
 
 procedure TFormConfig.EditAdrFermeChange(Sender: TObject);
@@ -6145,7 +6197,7 @@ begin
   LabelInfo.caption:='';
   LigneClicAct:=i-1;
   AncligneClicAct:=ligneClicAct;
-  Aff_champs_Act(maxTablo_act-1);
+  Aff_champs_Act(maxTablo_act);
   clicliste:=false;
   config_modifie:=true;
 end;
@@ -6153,7 +6205,7 @@ end;
 
 procedure TFormConfig.ButtonNouvPNClick(Sender: TObject);
 var s: string;
-    i : integer;
+    i,j : integer;
 begin
   if affevt then affiche('Evt bouton nouveau PN',clyellow);
   if maxtablo_act>=Max_actionneurs then
@@ -6169,10 +6221,27 @@ begin
   // désactive la sélection des actionneurs
   RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
   ligneclicAct:=-1;
-  
-  Tablo_PN[i].NbVoies:=1;
-  
-  s:=encode_act_pn(i); 
+
+  raz_champs_pn;
+  tablo_PN[NbrePN].AdresseFerme:=0;
+  tablo_PN[NbrePN].AdresseOuvre:=0;
+  tablo_PN[NbrePN].commandeFerme:=0;
+  tablo_PN[NbrePN].CommandeOuvre:=0;
+  tablo_PN[NbrePN].NbVoies:=1;
+  tablo_PN[NbrePN].Pulse:=0;
+
+  for j:=1 to 4 do
+  begin
+    tablo_PN[NbrePN].Voie[j].ActFerme:=0;
+    tablo_PN[NbrePN].Voie[j].ActOuvre:=0;
+    tablo_PN[NbrePN].Voie[j].detZ1F:=0;
+    tablo_PN[NbrePN].Voie[j].detZ1O:=0;
+    tablo_PN[NbrePN].Voie[j].detZ2F:=0;
+    tablo_PN[NbrePN].Voie[j].detZ2O:=0;
+    tablo_PN[NbrePN].compteur:=0;
+  end;
+
+  s:=encode_act_pn(i);
   if LigneCliqueePN<>-1 then RE_ColorLine(RichPN,ligneCliqueePN,ClAqua);
 
   // ajouter et scroller en fin
@@ -6184,71 +6253,91 @@ begin
     Perform(EM_SCROLLCARET,0,0);
   end;
 
-  editV1F.Text:='';editV1O.Text:='';
-  editV2F.Text:='';editV2O.Text:='';
-  editV3F.Text:='';editV3O.Text:='';
-  editV4F.Text:='';editV4O.Text:='';
-  EditZdet1V1F.text:='';EditZdet2V1F.text:='';
-  EditZdet1V1O.text:='';EditZdet2V1O.text:='';
-  EditZdet1V2F.text:='';EditZdet2V2F.text:='';
-  EditZdet1V2O.text:='';EditZdet2V2O.text:='';
-  EditZdet1V3F.text:='';EditZdet2V3F.text:='';
-  EditZdet1V3O.text:='';EditZdet2V3O.text:='';
-  EditZdet1V4F.text:='';EditZdet2V4F.text:='';
-  EditZdet1V4O.text:='';EditZdet2V4O.text:='';
-
   GroupBoxRadio.Visible:=false;
   LabelInfo.caption:='';
   LigneCliqueePN:=i-1;
   AncLigneCliqueePN:=LigneCliqueePN;
   tablo_PN[lignecliqueePN+1].Pulse:=1;
-  Aff_champs_PN(nbrePN-1);
+  Aff_champs_PN(nbrePN);
   clicliste:=false;
   config_modifie:=true;
 end;
 
-procedure TFormConfig.ButtonSupAccClick(Sender: TObject);
-var i,index,adr : integer;
+procedure supprime_act;
+var i,debut,longueur,fin,ltot,lignedeb,lignefin,l : integer;
     s: string;
 begin
-  if affevt then affiche('Evt bouton Sup acc',clyellow);
-
   i:=ligneClicAct;
   if (i=-1) then exit;
-  index:=i+1; // passe en index tableau
-  
-  adr:=tablo_actionneur[index].adresse;
-  s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  Affiche('Suppression de l''actionneur index='+IntToSTR(index)+' adresse='+IntToSTR(adr),clOrange);
-  
-  clicliste:=true;
-  
-  // supprime l'actionneur du tableau
-  dec(maxTablo_act);
-  for i:=index to maxTablo_act do
-  begin
-    tablo_actionneur[i]:=tablo_actionneur[i+1];
-  end;
-  
-  clicliste:=false;  
-  config_modifie:=true;
 
-  RichAct.Clear;
+  debut:=FormConfig.RichAct.SelStart;
+  longueur:=FormConfig.RichAct.SelLength;
+  fin:=debut+longueur;
+  //Affiche(inttostr(debut)+' '+inttostr(longueur),clyellow);
+  // trouver les lignes sélectionnées
+  i:=0;ltot:=0;ligneDeb:=0;LigneFin:=0;
+  repeat
+    l:=length(FormConfig.RichAct.lines[i])+2;  //+2 car CR LF
+    ltot:=ltot+l;
+    if (debut<ltot) and (ligneDeb=0) then ligneDeb:=i+1;
+    if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
+    //if (ltot=fin) and (ligneFin=0) then ligneFin:=i;
+    inc(i);
+  until (i>=NbreFeux) or (ligneFin>0);
+  if lignefin>maxTablo_act then lignefin:=maxTablo_act;
+  if ligneDeb=0 then begin ligneDeb:=ligneclicAct+1;ligneFin:=ligneclicAct+1;end;
+  if (lignedeb<1) or (lignefin<1) or (lignefin>maxTablo_act) then exit;
+
+  if ligneDeb=LigneFin then s:='Voulez-vous supprimer l''actionneur '+IntToSTR(tablo_actionneur[lignedeb].adresse)+'?'
+  else s:='Voulez-vous supprimer les actionneurs de '+
+           IntToSTR(tablo_actionneur[ligneDeb].adresse)+' à '+IntToSTR(tablo_actionneur[ligneFin].adresse)+' ?';
+
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  if ligneDeb=LigneFin then s:='Suppression de l''actionneur '+intToSTR(tablo_actionneur[lignedeb].adresse)
+  else s:='Suppression des actionneurs de '+
+           IntToSTR(tablo_actionneur[lignedeb].adresse)+' à '+IntToSTR(tablo_actionneur[lignefin].adresse);
+  Affiche(s,clOrange);
+
+  clicliste:=true;
+
+  for i:=lignedeb to lignefin do
+  begin
+    Affiche('Suppression actionneur '+intToSTR(tablo_actionneur[i].Adresse),clorange);
+  end;
+
+  for i:=1 to maxTablo_act-ligneFin do
+  begin
+    index:=i+lignefin; //index de l'aiguillage de remplacement
+    tablo_actionneur[lignedeb+i-1]:=tablo_actionneur[index];
+  end;
+
+  maxTablo_act:=maxTablo_act-(ligneFin-LigneDeb)-1;
+  config_modifie:=true;
+  formConfig.RichAct.Clear;
+  raz_champs_act;
+
   for i:=1 to maxTablo_act do
   begin
     s:=encode_act_loc_son(i);
     if s<>'' then
-    begin
+    with formconfig do begin
       RichAct.Lines.Add(s);
       RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua);
     end;   
   end;  
   AncligneClicAct:=-1;
   ligneClicAct:=-1;
+  clicliste:=false;
 end;
 
-procedure TFormConfig.ButtonSupPNClick(Sender: TObject);
+procedure TFormConfig.ButtonSupAccClick(Sender: TObject);
+begin
+  if affevt then affiche('Evt bouton Sup acc',clyellow);
+  supprime_act;
+end;
+
+procedure supprime_pn;
 var i,index,adr : integer;
     ac,pn : boolean;
     s: string;
@@ -6271,7 +6360,7 @@ begin
   if ac then s:='Voulez-vous supprimer l''actionneur '+IntToSTR(adr)+'?';
   if pn then s:='Voulez-vous supprimer l''actionneur de zone '+IntToSTR(adr)+'-'+inttostr(tablo_PN[index].voie[1].DetZ1O)+'?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  Affiche('Suppression de l''actionneur index='+IntToSTR(index)+' adresse='+IntToSTR(adr),clOrange);
+  Affiche('Suppression de l''actionneur '+IntToSTR(adr),clOrange);
 
   clicliste:=true;
 
@@ -6282,21 +6371,28 @@ begin
     tablo_PN[i]:=tablo_PN[i+1];
   end;
 
-  clicliste:=false;
   config_modifie:=true;
 
-  RichPN.Clear;
+  formConfig.RichPN.Clear;
+  raz_champs_pn;
+
   for i:=1 to NbrePN do
   begin
     s:=encode_act_PN(i);
     if s<>'' then
-    begin
+    with formConfig do begin
       RichPN.Lines.Add(s);
       RE_ColorLine(RichPN,RichPN.lines.count-1,ClAqua);
-    end;   
-  end;  
+    end;
+  end;
   lignecliqueePN:=-1;
   AncLigneCliqueePN:=-1;
+  clicliste:=false;
+end;
+
+procedure TFormConfig.ButtonSupPNClick(Sender: TObject);
+begin
+  supprime_pn;
 end;
 
 procedure TFormConfig.ButtonNouvFeuClick(Sender: TObject);
@@ -6349,7 +6445,7 @@ end;
 
 
 procedure supprime_sig;
-var adresse,i,indexFeu,index,debut,fin,longueur,ltot,lignedeb,lignefin,l : integer;
+var adresse,i,indexFeu,debut,fin,longueur,ltot,lignedeb,lignefin,l : integer;
     s : string;
 begin
   if affevt then affiche('Evt bouton Sup Feu',clyellow);
@@ -6367,15 +6463,13 @@ begin
     if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
     //if (ltot=fin) and (ligneFin=0) then ligneFin:=i;
     inc(i);
-  until (i>=NbreFeux) or (ligneFin>0);
-  if lignefin=0 then if fin>ltot then ligneFin:=NbreFeux;
+  until (ltot>=fin);
+  if lignefin>NbreFeux then lignefin:=NbreFeux;
+  if ligneDeb=0 then begin ligneDeb:=ligneclicSig+1;ligneFin:=ligneclicSig+1;end;
+  if (lignedeb<1) or (lignefin<1) or (lignefin>NbreFeux) then exit;
   //Affiche(inttostr(ligneDeb)+' '+inttostr(LigneFin),clyellow);
 
-  i:=ligneClicSig;
-  if (i<0) then exit;
-  index:=i+1; // passe en index tableau
-
-  if ligneDeb=LigneFin then s:='Voulez-vous supprimer le signal '+IntToSTR(feux[index].adresse)+'?'
+  if ligneDeb=LigneFin then s:='Voulez-vous supprimer le signal '+IntToSTR(feux[lignedeb].adresse)+'?'
   else s:='Voulez-vous supprimer les signaux de '+
            IntToSTR(feux[ligneDeb].adresse)+' à '+IntToSTR(feux[ligneFin].adresse)+' ?';
 
@@ -6398,6 +6492,7 @@ begin
   // d'abord supprimer les images des feux
   for i:=LigneDeb to LigneFin do
   begin
+    Affiche('Suppression signal '+intToSTR(feux[i].Adresse),clorange);
     feux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
     Feux[i].Lbl.free;  // supprime le label, ...
     if Feux[i].checkFB<>nil then begin Feux[i].checkFB.Free;Feux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
@@ -6405,13 +6500,13 @@ begin
 
   for i:=1 to NbreFeux-ligneFin do
   begin
-    index:=i+lignefin; //index ddu feu de remplacement
+    index:=i+lignefin; //index du feu de remplacement
     indexFeu:=lignedeb+i-1;
-    //Affiche('Suppresion feu '+intToSTR(feux[i+lignedeb].Adresse),clorange);
+    //Affiche('Suppression signal '+intToSTR(feux[i+lignedeb].Adresse),clorange);
     //Affiche('remplacement par index '+intToSTR(index),clorange);
 
-   feux[indexFeu]:=feux[index];
-   adresse:=feux[indexFeu].adresse;
+    feux[indexFeu]:=feux[index];
+    adresse:=feux[indexFeu].adresse;
 
     with feux[IndexFeu].Img do
     begin
@@ -7034,7 +7129,7 @@ begin
             if c='S' then 
             begin
               extr:=aiguillage[index2].ADevie;
-              if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
             end;
             if c='P' then
             begin 
@@ -7085,7 +7180,7 @@ begin
        
           if (model2=aig) or (model2=triple) then
           begin
-            if c='D' then 
+            if c='D' then
             begin
               extr:=aiguillage[index2].ADroit;
               if adr<>extr then Affiche('Erreur 10.33: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
@@ -7124,7 +7219,7 @@ begin
             if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                (adr<>aiguillage[index2].DDevie) and (adr<>aiguillage[index2].Ddroit) then
             begin
-              Affiche('Erreur 10.41: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+              Affiche('Erreur 10.41: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;    
    
@@ -7151,7 +7246,7 @@ begin
               if c='S' then 
               begin
                 extr:=aiguillage[index2].ADevie;
-                if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
+                if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
               end;
               if c='P' then
               begin 
@@ -7184,93 +7279,96 @@ begin
       begin
         k:=index_aig(detect);
         // comparer au précédent
-        if j=1 then trouvePrec:=true;
-        if (j>1) then
+        if k<>0 then
         begin
-          if aiguillage[k].modele=Aig then
+          if j=1 then trouvePrec:=true;
+          if (j>1) then
           begin
-            if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
-            if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
-            if aiguillage[k].APointe=AncAdr then trouvePrec:=true;
-          end;
-          if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
-          begin
-            if aiguillage[k].EtatTJD=2 then
+            if aiguillage[k].modele=Aig then
+            begin
+              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+              if aiguillage[k].APointe=AncAdr then trouvePrec:=true;
+            end;
+            if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
+            begin
+              if aiguillage[k].EtatTJD=2 then
+              begin
+                if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+                if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+                if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
+                if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
+              end;
+              if aiguillage[k].EtatTJD=4 then
+              begin
+                l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
+                if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+                if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+                if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
+                if aiguillage[l].Adroit=AncAdr then trouvePrec:=true;
+                if aiguillage[l].Adevie=AncAdr then trouvePrec:=true;
+                if aiguillage[l].Ddevie=AncAdr then trouvePrec:=true;
+              end;
+            end;
+            if aiguillage[k].modele=crois then
             begin
               if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
               if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
               if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
               if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
             end;
-            if aiguillage[k].EtatTJD=4 then
+
+            if not(trouvePrec) then
             begin
-              l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
-              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
-              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
-              if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
-              if aiguillage[l].Adroit=AncAdr then trouvePrec:=true;
-              if aiguillage[l].Adevie=AncAdr then trouvePrec:=true;
-              if aiguillage[l].Ddevie=AncAdr then trouvePrec:=true;
+              Affiche('Erreur 11: La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(AncAdr)+') en branche '+intToSTR(i),clred);
+              ok:=false;
             end;
           end;
-          if aiguillage[k].modele=crois then
-          begin
-            if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
-            if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
-            if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
-            if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
-          end;
-          
-          if not(trouvePrec) then
-          begin
-            Affiche('Erreur 11: La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(AncAdr)+') en branche '+intToSTR(i),clred);
-            ok:=false;
-          end;
-        end;
 
-        TrouveSuiv:=false;
-        // comparer au suivant
-        if SuivModel<>rien then
-        begin
-          if aiguillage[k].modele=Aig then
+          TrouveSuiv:=false;
+          // comparer au suivant
+          if SuivModel<>rien then
           begin
-            if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
-            if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
-            if aiguillage[k].APointe=SuivAdr then trouveSuiv:=true;
-          end;
-          if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
-          begin
-            if aiguillage[k].EtatTJD=2 then
+            if aiguillage[k].modele=Aig then
+            begin
+              if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+              if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+              if aiguillage[k].APointe=SuivAdr then trouveSuiv:=true;
+            end;
+            if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
+            begin
+              if aiguillage[k].EtatTJD=2 then
+              begin
+                if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddevie=SuivAdr then trouveSuiv:=true;
+              end;
+              if aiguillage[k].EtatTJD=4 then
+              begin
+                l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
+                if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Adroit=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Adevie=SuivAdr then trouveSuiv:=true;
+                if aiguillage[l].Ddevie=SuivAdr then trouveSuiv:=true;
+              end;
+            end;
+            if aiguillage[k].modele=crois then
             begin
               if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
               if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
               if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
               if aiguillage[k].Ddevie=SuivAdr then trouveSuiv:=true;
             end;
-            if aiguillage[k].EtatTJD=4 then
-            begin
-              l:=index_aig(aiguillage[k].Ddroit); // 2eme adresse de la TJD
-              if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
-              if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
-              if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
-              if aiguillage[l].Adroit=SuivAdr then trouveSuiv:=true;
-              if aiguillage[l].Adevie=SuivAdr then trouveSuiv:=true;
-              if aiguillage[l].Ddevie=SuivAdr then trouveSuiv:=true;
-            end;
-          end;
-          if aiguillage[k].modele=crois then
-          begin
-            if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
-            if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
-            if aiguillage[k].Ddroit=SuivAdr then trouveSuiv:=true;
-            if aiguillage[k].Ddevie=SuivAdr then trouveSuiv:=true;
-          end;
 
-          if not(trouveSuiv) then
-          begin
-            Affiche('Erreur 12: La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(SuivAdr)+') en branche '+intToSTR(i),clred);
-            ok:=false;
-          end;
+            if not(trouveSuiv) then
+            begin
+              Affiche('Erreur 12: La description de l''aiguillage '+intToSTR(detect)+' ne correspond pas à son élément contigu ('+intToStr(SuivAdr)+') en branche '+intToSTR(i),clred);
+              ok:=false;
+            end;
+          end;  
         end;
       end;
       inc(j);
@@ -7318,6 +7416,11 @@ begin
               ok:=false;
             end;
           end;
+        end;
+        if not(verif_cellule(x,y,i)) then
+        begin
+          Affiche('TCO: Erreur de proximité composants incompatibles: cellules TCO['+intToSTR(x)+','+intToSTR(y)+'] ',clred);
+          ok:=false;
         end;
       end;
   end;
@@ -7438,7 +7541,7 @@ end;
 
 // supprime le ou les aiguillages sélectionnés dans le richEdit
 procedure supprime_aig;
-var ligneDeb,LigneFin,i,index,debut,longueur,fin,l,ltot : integer;
+var ligneDeb,LigneFin,i,debut,longueur,fin,l,ltot : integer;
     s : string;
 begin
   //trouver ligne de début et de fin sélectionner.
@@ -7446,7 +7549,7 @@ begin
   begin
     debut:=RichAig.SelStart;
     longueur:=RichAig.SelLength;
-  end;  
+  end;
   fin:=debut+longueur;
   //Affiche(inttostr(debut)+' '+inttostr(longueur),clyellow);
   // trouver les lignes sélectionnées
@@ -7458,21 +7561,18 @@ begin
     if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
     //if (ltot=fin) and (ligneFin=0) then ligneFin:=i;
     inc(i);
-  until (i>=MaxAiguillage) or (ligneFin>0);
-  if lignefin=0 then if fin>ltot then ligneFin:=MaxAiguillage;
+  until (ltot>=fin);
+  if lignefin>maxAiguillage then lignefin:=maxAiguillage;
+  if ligneDeb=0 then begin ligneDeb:=ligneclicAig+1;ligneFin:=ligneclicAig+1;end;
+  if (lignedeb<1) or (lignefin<1) or (lignefin>maxAiguillage) then exit;
   //Affiche(inttostr(Ltot)+' '+inttostr(Fin),clyellow);
-  
-  
-  i:=ligneClicAig;
-  if (i<0) then exit;
-  index:=i+1; // passe en index tableau
 
-  if ligneDeb=LigneFin then s:='Voulez-vous supprimer l''aiguillage '+IntToSTR(aiguillage[index].adresse)+'?'
+  if ligneDeb=LigneFin then s:='Voulez-vous supprimer l''aiguillage '+IntToSTR(aiguillage[lignedeb].adresse)+'?'
   else s:='Voulez-vous supprimer les aiguillages de '+
            IntToSTR(aiguillage[ligneDeb].adresse)+' à '+IntToSTR(aiguillage[ligneFin].adresse)+' ?';
-  
+
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-  
+
   FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
   clicliste:=true;
   raz_champs_aig;
@@ -7486,12 +7586,16 @@ begin
            IntToSTR(aiguillage[ligneDeb].adresse)+' à '+IntToSTR(aiguillage[ligneFin].adresse);
   Affiche(s,clOrange);
 
+  for i:=lignedeb to lignefin do
+  begin
+    Affiche('Suppression aiguillage '+intToSTR(aiguillage[i].Adresse),clorange);
+  end;
+
   //Affiche('Boucle de '+intToSTR(ligneDeb)+' N='+intToSTR(MaxAiguillage-ligneFin),clyellow);
 
   for i:=1 to MaxAiguillage-ligneFin do
   begin
     index:=i+lignefin; //index de l'aiguillage de remplacement
-    //Affiche('Suppresion aiguillage '+intToSTR(aiguillage[i+lignedeb].Adresse),clorange);
     //Affiche('remplacement par index '+intToSTR(index),clorange);
 
     Aiguillage[lignedeb+i-1]:=Aiguillage[index];
@@ -7505,10 +7609,10 @@ begin
     aiguillage[index].modifie:=false;
   end;
   MaxAiguillage:=maxAiguillage-(ligneFin-LigneDeb)-1;
-    
+
   config_modifie:=true;
   FormConfig.RichAig.Clear;
-                                                   
+
   // réafficher le richsig
   for i:=1 to MaxAiguillage do
   begin
@@ -7523,7 +7627,7 @@ begin
   begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
-  end;  
+  end;
   ligneClicAig:=-1;
   AncligneClicAig:=-1;
   clicliste:=false;
@@ -8161,7 +8265,6 @@ var s,sO: string;
     dir : boolean;
 begin
   if (ligneClicSig<0) or clicListe then exit;
-  
   if affevt then affiche('Evt MemoCarre change',clyellow);
   j:=MemoCarre.Selstart;
   clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,j,0);     // numéro de la ligne du curseur
@@ -8225,7 +8328,10 @@ begin
     // boucle de ligne
     for ligne:=1 to 6 do
     begin
-      s:=MemoCarre.Lines[ligne-1];
+      s:=uppercase(MemoCarre.Lines[ligne-1]);
+      clicListe:=true;
+      MemoCarre.Lines[ligne-1]:=s;
+      clicListe:=false;
       sO:=s;
       j:=1;
       if s<>'' then 
@@ -8249,9 +8355,10 @@ begin
     end;    
   end;
 
-   s:=encode_sig_feux(ligneClicSig+1);
-   RichSig.Lines[ligneClicSig]:=s;
-   LabelInfo.Caption:=''; 
+  s:=encode_sig_feux(ligneClicSig+1);
+  RichSig.Lines[ligneClicSig]:=s;
+  LabelInfo.Caption:='';
+  clicListe:=false;
 end;  
 
 
@@ -8702,16 +8809,136 @@ begin
 end;
 
 
-procedure TFormConfig.RichAigKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TFormConfig.RichAigKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
+var lc,curseur,i : integer;
 begin
   if key=VK_delete then supprime_aig;
+
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichAig keydown',clyellow);
+    with Formconfig.RichAig do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        AncligneClicAig:=ligneClicAig;
+        ligneClicAig:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicAig<>ligneClicAig then
+        begin
+          if AncligneClicAig<>-1 then
+          begin
+            RE_ColorLine(RichAig,AncligneClicAig,ClAqua);
+          end;
+          RE_ColorLine(RichAig,ligneClicAig,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_Aig_tablo(lc+1);
+        end;
+      end;
+   end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichAig keydown',clyellow);
+    with Formconfig.RichAig do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc<maxaiguillage-1 then
+      begin
+        inc(lc);
+        AncligneClicAig:=ligneClicAig;
+        ligneClicAig:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicAig<>ligneClicAig then
+        begin
+          if AncligneClicAig<>-1 then
+          begin
+            RE_ColorLine(RichAig,AncligneClicAig,ClAqua);
+          end;
+          RE_ColorLine(RichAig,ligneClicAig,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_Aig_tablo(lc+1);
+        end;
+      end;
+   end;
+  end;
+  clicListe:=false;
+
 end;
 
 procedure TFormConfig.RichSigKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+  var lc,curseur,i : integer;
 begin
   if key=VK_delete then supprime_sig;
+
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichSig keydown',clyellow);
+    with Formconfig.RichSig do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        AncligneClicSig:=ligneClicSig;
+        ligneClicSig:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicSig<>ligneClicSig then
+        begin
+          if AncligneClicSig<>-1 then
+          begin
+            RE_ColorLine(RichSig,AncligneClicSig,ClAqua);
+          end;
+          RE_ColorLine(RichSig,ligneClicSig,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_sig_feux(lc+1);
+        end;
+      end;
+   end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichSig keydown',clyellow);
+    with Formconfig.RichSig do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc<NbreFeux-1 then
+      begin
+        inc(lc);
+        AncligneClicSig:=ligneClicSig;
+        ligneClicSig:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicSig<>ligneClicSig then
+        begin
+          if AncligneClicSig<>-1 then
+          begin
+            RE_ColorLine(RichSig,AncligneClicSig,ClAqua);
+          end;
+          RE_ColorLine(RichSig,ligneClicSig,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_sig_feux(lc+1);
+        end;
+      end;
+   end;
+  end;
+  clicListe:=false;
 end;
 
 procedure TFormConfig.ButtonEnregistreClick(Sender: TObject);
@@ -9240,6 +9467,8 @@ end;
 
 procedure clicListeTrains(index : integer);
 begin
+  if index<1 then exit;
+  if Trains[index].nom_train='' then exit;
   with formconfig do
   begin
     editNomTrain.text:=Trains[index].nom_train;
@@ -9257,25 +9486,26 @@ var j : integer;
 begin
   //affiche('RichEditTrainChange',clyellow);
   clicListe:=true;
+  AncligneclicTrain:=ligneclicTrain;
   with richeditTrains do
   begin
     j:=Selstart;
-    RE_ColorLine(Formconfig.richeditTrains,clicListeTrain,ClAqua);
-    clicListeTrain:=Perform(EM_LINEFROMCHAR,j,0);  // numéro de la lignée cliquée
+    RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClAqua);
+    ligneclicTrain:=Perform(EM_LINEFROMCHAR,j,0);  // numéro de la lignée cliquée
   end;
 
   //Affiche(intToSTR(lc),clyellow);
 
-  if clicListeTrain+1>Max_Trains then
+  if ligneclicTrain+1>ntrains then
   begin
-    ligneclicAig:=Max_Trains-1;
+    ligneclicTrain:=ntrains-1;
   end;
-  s:=RichEditTrains.Lines[clicListeTrain];
+  s:=RichEditTrains.Lines[ligneclicTrain];
   if s='' then exit;
 
-  RE_ColorLine(Formconfig.richeditTrains,clicListeTrain,ClYellow);
+  RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClYellow);
 
-  clicListeTrains(clicListeTrain+1);
+  clicListeTrains(ligneclicTrain+1);
 
   clicliste:=false;
 end;
@@ -9286,16 +9516,16 @@ var i : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change nom train',clyellow);
-  if (clicListeTrain<0) or (clicListeTrain>=Max_Trains) or (ntrains<1) then exit;
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
-  RE_ColorLine(RichEditTrains,clicListeTrain,ClYellow);
-  trains[clicListeTrain+1].Nom_train:=EditNomTrain.text;
-  RichEditTrains.Lines[clicListeTrain]:=Train_tablo(clicListeTrain+1);
+  RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+  trains[ligneclicTrain+1].Nom_train:=EditNomTrain.text;
+  RichEditTrains.Lines[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
 
   i:=formprinc.ComboTrains.ItemIndex;
   if i<0 then exit;
-  formprinc.ComboTrains.Items[clicListeTrain]:=EditNomTrain.text;
-  if i=clicListeTrain then formprinc.ComboTrains.Text:=EditNomTrain.text;
+  formprinc.ComboTrains.Items[ligneclicTrain]:=EditNomTrain.text;
+  if i=ligneclicTrain then formprinc.ComboTrains.Text:=EditNomTrain.text;
 
 end;
 
@@ -9304,11 +9534,11 @@ var erreur :integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change adresse train',clyellow);
-  if (clicListeTrain<0) or (clicListeTrain>=Max_Trains) or (ntrains<1) then exit;
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
-  RE_ColorLine(RichEditTrains,clicListeTrain,ClYellow);
-  val(EditAdresseTrain.text,trains[clicListeTrain+1].adresse,erreur);
-  formconfig.RichEditTrains.Lines[clicListeTrain]:=Train_tablo(clicListeTrain+1);
+  RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+  val(EditAdresseTrain.text,trains[ligneclicTrain+1].adresse,erreur);
+  formconfig.RichEditTrains.Lines[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
 end;
 
 procedure TFormConfig.EditVitesseMaxiChange(Sender: TObject);
@@ -9316,11 +9546,11 @@ var erreur :integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change adresse train',clyellow);
-  if (clicListeTrain<0) or (clicListeTrain>=Max_Trains) or (ntrains<1) then exit;
+  if (ligneclicTrain<0) or (ntrains>=ntrains) or (ntrains<1) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
-  RE_ColorLine(RichEditTrains,clicListeTrain,ClYellow);
-  val(EditVitesseMaxi.text,trains[clicListeTrain+1].vitmax,erreur);
-  formconfig.RichEditTrains.Lines[clicListeTrain]:=Train_tablo(clicListeTrain+1);
+  RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+  val(EditVitesseMaxi.text,trains[ligneclicTrain+1].vitmax,erreur);
+  formconfig.RichEditTrains.Lines[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
 end;
 
 procedure TFormConfig.EditVitNomChange(Sender: TObject);
@@ -9328,13 +9558,13 @@ procedure TFormConfig.EditVitNomChange(Sender: TObject);
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse nominale train',clyellow);
-  if (clicListeTrain<0) or (clicListeTrain>=Max_Trains) or (ntrains<1) then exit;
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
   with Formconfig do
   begin
-    RE_ColorLine(RichEditTrains,clicListeTrain,ClYellow);
-    val(EditVitNom.text,trains[clicListeTrain+1].vitNominale,erreur);
-    formconfig.RichEditTrains.Lines[clicListeTrain]:=Train_tablo(clicListeTrain+1);
+    RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+    val(EditVitNom.text,trains[ligneclicTrain+1].vitNominale,erreur);
+    formconfig.RichEditTrains.Lines[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
   end;
 end;
 
@@ -9343,13 +9573,13 @@ end;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse ralenti train',clyellow);
-  if (clicListeTrain<0) or (clicListeTrain>=Max_Trains) then exit;
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
   with Formconfig do
   begin
-    RE_ColorLine(RichEditTrains,clicListeTrain,ClYellow);
-    val(EditVitRalenti.text,trains[clicListeTrain+1].vitRalenti,erreur);
-    formconfig.RichEditTrains.Lines[clicListeTrain]:=Train_tablo(clicListeTrain+1);
+    RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+    val(EditVitRalenti.text,trains[ligneclicTrain+1].vitRalenti,erreur);
+    formconfig.RichEditTrains.Lines[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
   end;
 end;
 
@@ -9366,27 +9596,34 @@ begin
   trains[ntrains].vitmax:=120;
   clicListeTrains(ntrains);
   j:=richEditTrains.Selstart;
-  RE_ColorLine(Formconfig.richeditTrains,clicListeTrain,ClAqua);
-  clicListeTrain:=ntrains-1;
-  RE_ColorLine(Formconfig.richeditTrains,clicListeTrain,ClYellow);
+  RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClAqua);
+  ligneclicTrain:=ntrains-1;
+  RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClYellow);
   formconfig.RichEditTrains.Lines.Add(Train_tablo(ntrains));
+  with formconfig.richEdittrains do
+  begin
+    SetFocus;
+    Selstart:=RichEdittrains.GetTextLen-1;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
   clicListe:=false;
 end;
 
 // supprime le ou les train sélectionnés dans le richEdit
 procedure supprime_train;
-var ligneDeb,LigneFin,i,index,debut,longueur,fin,l,ltot : integer;
+var ligneDeb,LigneFin,i,debut,longueur,fin,l,ltot : integer;
     s : string;
 begin
-  //trouver ligne de début et de fin sélectionner.
+  //trouver ligne de début et de fin sélectionnées.
   with formConfig do
   begin
     debut:=RichEditTrains.SelStart;
     longueur:=RichEditTrains.SelLength;
   end;
   fin:=debut+longueur;
-  //Affiche(inttostr(debut)+' '+inttostr(longueur),clyellow);
+  //Affiche(inttostr(debut)+' '+inttostr(longueur),clorange);
   // trouver les lignes sélectionnées
+
   i:=0;ltot:=0;ligneDeb:=0;LigneFin:=0;
   repeat
     l:=length(FormConfig.RichEditTrains.lines[i])+2;  //+2 car CR LF
@@ -9395,27 +9632,20 @@ begin
     if (ltot>=fin) and (ligneFin=0) and (ligneDeb<>0) then ligneFin:=i+1;
     //if (ltot=fin) and (ligneFin=0) then ligneFin:=i;
     inc(i);
-  until (i>=ntrains) or (ligneFin>0);
-  if lignefin=0 then if fin>ltot then ligneFin:=clicListeTrain;
-  //Affiche(inttostr(Ltot)+' '+inttostr(Fin),clyellow);
+  until (ltot>=fin);
+  if lignefin>nTrains then lignefin:=nTrains;
+  if ligneDeb=0 then begin ligneDeb:=ligneclictrain+1;ligneFin:=ligneclictrain+1;end;
+  if (lignedeb<1) or (lignefin<1) or (lignefin>ntrains) then exit;
 
+  //Affiche(inttostr(Lignedeb)+' '+inttostr(LigneFin),clyellow);
 
-  i:=clicListeTrain;
-  if (i<0) then exit;
-  index:=i+1; // passe en index tableau
-
-  if ligneDeb=LigneFin then s:='Voulez-vous supprimer le train '+trains[index].nom_train+'?'
+  if ligneDeb=LigneFin then s:='Voulez-vous supprimer le train '+trains[lignedeb].nom_train+'?'
   else s:='Voulez-vous supprimer les trains de '+
-           trains[index].nom_train+' à '+trains[lignefin].nom_train+' ?';
+           trains[lignedeb].nom_train+' à '+trains[lignefin].nom_train+' ?';
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
-  //FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
   clicliste:=true;
-  //raz_champs_aig;
-  //Aig_supprime:=aiguillage[index];  // sauvegarde le supprimé
-  //Aig_sauve.adresse:=0;             // dévalider sa définition
-
   index:=ligneDeb;
 
   if ligneDeb=LigneFin then s:='Suppression du train '+trains[index].nom_train
@@ -9423,14 +9653,15 @@ begin
            trains[ligneDeb].nom_train+' à '+trains[ligneFin].nom_train;
   Affiche(s,clOrange);
 
-  //Affiche('Boucle de '+intToSTR(ligneDeb)+' N='+intToSTR(MaxAiguillage-ligneFin),clyellow);
+  for i:=lignedeb to lignefin do
+  begin
+    Affiche('Suppression du train '+trains[i].nom_train+' @'+intToSTR(trains[i].Adresse),clorange);
+  end;
+
 
   for i:=1 to ntrains-ligneFin do
   begin
-    index:=i+lignefin; //index de l'aiguillage de remplacement
-    //Affiche('Suppresion aiguillage '+intToSTR(aiguillage[i+lignedeb].Adresse),clorange);
-    //Affiche('remplacement par index '+intToSTR(index),clorange);
-
+    index:=i+lignefin; //index de remplacement
     trains[lignedeb+i-1]:=trains[index];
     trains[index].Adresse:=0;
     trains[index].nom_train:='';
@@ -9456,19 +9687,216 @@ begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
   end;
-  clicListeTrain:=-1;
+  ligneclicTrain:=-1;
   clicliste:=false;
 end;
 
 
 procedure TFormConfig.ButtonSupprimeClick(Sender: TObject);
 begin
-   supprime_train;
+  supprime_train;
 end;
 
 procedure TFormConfig.CheckBoxVerifXpressNetClick(Sender: TObject);
 begin
   if CheckBoxVerifXpressNet.checked then Verif_AdrXpressNet:=1 else Verif_AdrXpressNet:=0;
+end;
+
+
+procedure TFormConfig.RichActKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var lc,curseur,i : integer;
+begin
+  if key=VK_delete then supprime_act;
+
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichAct keyup',clyellow);
+    with Formconfig.RichAct do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        AncligneClicAct:=ligneClicAct;
+        ligneClicAct:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicAct<>ligneClicAct then
+        begin
+          if AncligneClicAct<>-1 then
+          begin
+            RE_ColorLine(RichAct,AncligneClicAct,ClAqua);
+          end;
+          RE_ColorLine(RichAct,ligneClicAct,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_Act(lc+1);
+        end;
+      end;
+   end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichAct keydown',clyellow);
+    with Formconfig.RichAct do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc<maxTablo_act-1 then
+      begin
+        inc(lc);
+        AncligneClicAct:=ligneClicAct;
+        ligneClicAct:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneClicAct<>ligneClicAct then
+        begin
+          if AncligneClicAct<>-1 then
+          begin
+            RE_ColorLine(RichAct,AncligneClicAct,ClAqua);
+          end;
+          RE_ColorLine(RichAct,ligneClicAct,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_Act(lc+1);
+        end;
+      end;
+   end;
+  end;
+  clicListe:=false;
+end;
+
+procedure TFormConfig.RichPNKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var lc,curseur,i : integer;
+begin
+  if ord(Key)=VK_DELETE then supprime_pn;
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichPN keyup',clyellow);
+    with Formconfig.RichPN do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        AncLigneCliqueePN:=LigneCliqueePN;
+        LigneCliqueePN:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncLigneCliqueePN<>LigneCliqueePN then
+        begin
+          if AncLigneCliqueePN<>-1 then
+          begin
+            RE_ColorLine(RichPN,AncLigneCliqueePN,ClAqua);
+          end;
+          RE_ColorLine(RichPN,LigneCliqueePN,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_PN(lc+1);
+        end;
+      end;
+    end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichPN keydown',clyellow);
+    with Formconfig.RichPN do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc<NbrePN-1 then
+      begin
+        inc(lc);
+        AncLigneCliqueePN:=LigneCliqueePN;
+        LigneCliqueePN:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncLigneCliqueePN<>LigneCliqueePN then
+        begin
+          if AncLigneCliqueePN<>-1 then
+          begin
+            RE_ColorLine(RichPN,AncLigneCliqueePN,ClAqua);
+          end;
+          RE_ColorLine(RichPN,LigneCliqueePN,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          aff_champs_PN(lc+1);
+        end;
+      end;
+    end;
+  end;
+  clicListe:=false;
+end;
+
+procedure TFormConfig.RichEditTrainsKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var lc,curseur,i : integer;
+begin
+  if ord(key)=VK_DELETE then supprime_train;
+  if ord(Key)=VK_UP then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichEditTrains keyup',clyellow);
+    with Formconfig.RichEditTrains do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc>0 then
+      begin
+        dec(lc);
+        AncligneclicTrain:=ligneclicTrain;
+        ligneclicTrain:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneclicTrain<>ligneclicTrain then
+        begin
+          if AncligneclicTrain<>-1 then
+          begin
+            RE_ColorLine(RichEditTrains,AncligneclicTrain,ClAqua);
+          end;
+          RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          clicListeTrains(lc+1);
+        end;
+      end;
+   end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    if affevt then affiche('Evt RichEditTrains keydown',clyellow);
+    with Formconfig.RichEditTrains do
+    begin
+      i:=Selstart;
+      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+      if lc<ntrains-1 then
+      begin
+        inc(lc);
+        AncligneclicTrain:=ligneclicTrain;
+        ligneclicTrain:=lc;
+        curseur:=SelStart;  // position initiale du curseur
+        if AncligneclicTrain<>ligneclicTrain then
+        begin
+          if AncligneclicTrain<>-1 then
+          begin
+            RE_ColorLine(RichEditTrains,AncligneclicTrain,ClAqua);
+          end;
+          RE_ColorLine(RichEditTrains,ligneclicTrain,ClYellow);
+          selStart:=curseur;  // remettre le curseur en position initiale
+          clicListeTrains(lc+1);
+        end;
+      end;
+   end;
+  end;
+  clicListe:=false;
 end;
 
 end.

@@ -63,38 +63,29 @@ object FormConfigTCO: TFormConfigTCO
     Height = 13
     Caption = '/10'
   end
-  object ButtonOK: TButton
-    Left = 216
-    Top = 240
-    Width = 75
-    Height = 25
-    Caption = 'OK'
-    TabOrder = 0
-    OnClick = ButtonOKClick
-  end
   object ButtonDessine: TButton
     Left = 16
     Top = 240
     Width = 75
     Height = 25
     Caption = 'Redessine'
-    TabOrder = 1
+    TabOrder = 0
     OnClick = ButtonDessineClick
   end
   object CheckDessineGrille: TCheckBox
     Left = 16
-    Top = 88
+    Top = 96
     Width = 105
     Height = 17
     Caption = 'dessine grille'
-    TabOrder = 2
+    TabOrder = 1
   end
   object EditNbCellX: TEdit
     Left = 184
     Top = 40
     Width = 49
     Height = 21
-    TabOrder = 3
+    TabOrder = 2
     Text = 'EditNbCellX'
   end
   object EditNbCellY: TEdit
@@ -102,7 +93,7 @@ object FormConfigTCO: TFormConfigTCO
     Top = 64
     Width = 49
     Height = 21
-    TabOrder = 4
+    TabOrder = 3
     Text = 'EditNbCellY'
   end
   object GroupBox1: TGroupBox
@@ -111,7 +102,7 @@ object FormConfigTCO: TFormConfigTCO
     Width = 353
     Height = 265
     Caption = 'Couleurs '
-    TabOrder = 5
+    TabOrder = 4
     object Label5: TLabel
       Left = 21
       Top = 32
@@ -134,9 +125,9 @@ object FormConfigTCO: TFormConfigTCO
       OnClick = ImageFondClick
     end
     object Label6: TLabel
-      Left = 32
+      Left = 33
       Top = 72
-      Width = 76
+      Width = 75
       Height = 26
       Alignment = taRightJustify
       Caption = 'Couleur de fond par d'#233'faut'
@@ -247,26 +238,25 @@ object FormConfigTCO: TFormConfigTCO
       Top = 208
       Width = 281
       Height = 17
-      Caption = 'Couleur du cantons activ'#233' par la couleur du train'
+      Caption = 'Couleur du canton activ'#233' par la couleur du train'
       TabOrder = 0
     end
   end
   object Memo1: TMemo
     Left = 16
-    Top = 120
+    Top = 136
     Width = 273
-    Height = 81
+    Height = 65
     BevelInner = bvLowered
     BevelKind = bkFlat
     BorderStyle = bsNone
     Lines.Strings = (
       'Si vous d'#233'finissez un nombre de cellules en '
-      'horizontal ou en vertical plus petit(s) que l'#39'actuel'
-      '(s), alors le TCO sera tronqu'#233', et les '#233'l'#233'ments '
-      'tronqu'#233's seront perdus '#224' la prochaine '
-      'sauvegarde.')
+      'horizontal ou en vertical plus petit(s) que l'#39'actuel(s), '
+      'alors le TCO sera tronqu'#233', et les '#233'l'#233'ments tronqu'#233's '
+      'seront perdus '#224' la prochaine sauvegarde.')
     ReadOnly = True
-    TabOrder = 6
+    TabOrder = 5
   end
   object EditRatio: TEdit
     Left = 48
@@ -276,8 +266,17 @@ object FormConfigTCO: TFormConfigTCO
     Hint = 'Rapport X/Y d'#39'affichage des cellules'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 7
+    TabOrder = 6
     Text = 'EditRatio'
+  end
+  object BitBtnOk: TBitBtn
+    Left = 208
+    Top = 240
+    Width = 75
+    Height = 25
+    TabOrder = 7
+    OnClick = BitBtnOkClick
+    Kind = bkOK
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show

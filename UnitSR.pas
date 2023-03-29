@@ -7,7 +7,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls , UnitPrinc, UnitConfig;
+  Dialogs, StdCtrls, ExtCtrls , UnitPrinc, UnitConfig,
+  Buttons;
 
 type
   TFormSR = class(TForm)
@@ -94,8 +95,8 @@ type
     LabelCV32: TLabel;
     ComboBoxAdr15: TComboBox;
     ComboBoxAdr16: TComboBox;
-    ButtonOK: TButton;
     LabelErreur: TLabel;
+    BitBtnok: TBitBtn;
     procedure FormActivate(Sender: TObject);
     procedure ComboBoxAdr1Change(Sender: TObject);
     procedure ComboBoxAdr2Change(Sender: TObject);
@@ -113,8 +114,8 @@ type
     procedure ComboBoxAdr14Change(Sender: TObject);
     procedure ComboBoxAdr15Change(Sender: TObject);
     procedure ComboBoxAdr16Change(Sender: TObject);
-    procedure ButtonOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure BitBtnokClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -464,10 +465,7 @@ begin
   maj_db;
 end;
 
-procedure TFormSR.ButtonOKClick(Sender: TObject);
-begin
-  close;
-end;
+
 
 procedure TFormSR.FormCreate(Sender: TObject);
 var i : integer;
@@ -491,6 +489,11 @@ begin
       ComboBoxAdr15.items.add(etats[i]);
       ComboBoxAdr16.items.add(etats[i]);
     end;
+end;
+
+procedure TFormSR.BitBtnokClick(Sender: TObject);
+begin
+  close;
 end;
 
 end.

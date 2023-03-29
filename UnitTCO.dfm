@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 132
-  Top = 127
-  Width = 1132
-  Height = 728
+  Left = 217
+  Top = 60
+  Width = 1142
+  Height = 678
   VertScrollBar.Visible = False
   Caption = 'FormTCO'
   Color = clBtnFace
@@ -17,12 +17,13 @@ object FormTCO: TFormTCO
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCreate = FormCreate
-  OnDockOver = FormDockOver
+  OnDragOver = FormDragOver
   OnKeyDown = FormKeyDown
+  OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1124
-    697)
+    1126
+    639)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -65,15 +66,9 @@ object FormTCO: TFormTCO
     Height = 13
     Caption = '0'
   end
-  object ImageTemp: TImage
-    Left = 24
-    Top = 394
-    Width = 97
-    Height = 97
-  end
   object Label19: TLabel
-    Left = 1068
-    Top = 441
+    Left = 1078
+    Top = 391
     Width = 32
     Height = 13
     Anchors = [akRight, akBottom]
@@ -85,11 +80,23 @@ object FormTCO: TFormTCO
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object ImageTemp: TImage
+    Left = 976
+    Top = 96
+    Width = 97
+    Height = 97
+  end
+  object ImageTemp2: TImage
+    Left = 976
+    Top = 208
+    Width = 97
+    Height = 97
+  end
   object ScrollBox: TScrollBox
     Left = 8
     Top = 18
-    Width = 1050
-    Height = 409
+    Width = 828
+    Height = 351
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -100,14 +107,15 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 0
     DesignSize = (
-      1046
-      405)
+      824
+      347)
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 1002
-      Height = 379
+      Width = 716
+      Height = 305
       Anchors = [akLeft, akTop, akRight, akBottom]
+      AutoSize = True
       ParentShowHint = False
       PopupMenu = PopupMenu1
       ShowHint = True
@@ -120,14 +128,16 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1068
+    Left = 1078
     Top = 18
     Width = 41
-    Height = 400
+    Height = 350
     Anchors = [akTop, akRight, akBottom]
+    Ctl3D = True
     Max = 50
     Min = 20
     Orientation = trVertical
+    ParentCtl3D = False
     Position = 20
     TabOrder = 1
     TickMarks = tmTopLeft
@@ -135,8 +145,8 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 0
-    Top = 522
-    Width = 1114
+    Top = 472
+    Width = 1124
     Height = 165
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -149,18 +159,8 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1114
+      1124
       165)
-    object ImagePalette5: TImage
-      Left = 520
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette5DragOver
-      OnEndDrag = ImagePalette5EndDrag
-      OnMouseDown = ImagePalette5MouseDown
-    end
     object Label6: TLabel
       Left = 216
       Top = 22
@@ -173,16 +173,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette2: TImage
-      Left = 304
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette2DragOver
-      OnEndDrag = ImagePalette2EndDrag
-      OnMouseDown = ImagePalette2MouseDown
     end
     object Label7: TLabel
       Left = 288
@@ -209,59 +199,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette1: TImage
-      Left = 232
-      Top = 8
-      Width = 41
-      Height = 41
-      Hint = 'Voie pouvant porter un d'#233'tecteur'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      OnDragOver = ImagePalette1DragOver
-      OnEndDrag = ImagePalette1EndDrag
-      OnMouseDown = ImagePalette1MouseDown
-    end
-    object ImagePalette6: TImage
-      Left = 232
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette6DragOver
-      OnEndDrag = ImagePalette6EndDrag
-      OnMouseDown = ImagePalette6MouseDown
-    end
-    object ImagePalette7: TImage
-      Left = 304
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette7DragOver
-      OnEndDrag = ImagePalette7EndDrag
-      OnMouseDown = ImagePalette7MouseDown
-    end
-    object ImagePalette8: TImage
-      Left = 376
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette8DragOver
-      OnEndDrag = ImagePalette8EndDrag
-      OnMouseDown = ImagePalette8MouseDown
-    end
-    object ImagePalette9: TImage
-      Left = 448
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette9DragOver
-      OnEndDrag = ImagePalette9EndDrag
-      OnMouseDown = ImagePalette9MouseDown
     end
     object Label11: TLabel
       Left = 216
@@ -315,25 +252,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette3: TImage
-      Left = 376
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette3DragOver
-      OnEndDrag = ImagePalette3EndDrag
-      OnMouseDown = ImagePalette3MouseDown
-    end
-    object ImagePalette4: TImage
-      Left = 448
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnEndDrag = ImagePalette4EndDrag
-      OnMouseDown = ImagePalette4MouseDown
-    end
     object Label8: TLabel
       Left = 360
       Top = 22
@@ -360,16 +278,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette10: TImage
-      Left = 232
-      Top = 104
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette10DragOver
-      OnEndDrag = ImageDiag10EndDrag
-      OnMouseDown = ImagePalette10MouseDown
-    end
     object Label16: TLabel
       Left = 208
       Top = 118
@@ -382,16 +290,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette11: TImage
-      Left = 304
-      Top = 104
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette11DragOver
-      OnEndDrag = ImageDiag11EndDrag
-      OnMouseDown = ImagePalette11MouseDown
     end
     object Label17: TLabel
       Left = 280
@@ -406,22 +304,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette30: TImage
-      Left = 456
-      Top = 104
-      Width = 25
-      Height = 41
-      Hint = 'Signal'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      Stretch = True
-      OnDragOver = ImagePalette30DragOver
-      OnEndDrag = ImagePalette30EndDrag
-      OnMouseDown = ImagePalette30MouseDown
-    end
     object Label18: TLabel
-      Left = 424
+      Left = 352
       Top = 118
       Width = 18
       Height = 19
@@ -432,16 +316,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette12: TImage
-      Left = 592
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette12DragOver
-      OnEndDrag = ImagePalette12EndDrag
-      OnMouseDown = ImagePalette12MouseDown
     end
     object Label20: TLabel
       Left = 568
@@ -469,16 +343,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette13: TImage
-      Left = 664
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette13DragOver
-      OnEndDrag = ImagePalette13EndDrag
-      OnMouseDown = ImagePalette13MouseDown
-    end
     object Label21: TLabel
       Left = 712
       Top = 22
@@ -491,16 +355,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette14: TImage
-      Left = 736
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette14DragOver
-      OnEndDrag = ImagePalette14EndDrag
-      OnMouseDown = ImagePalette14MouseDown
     end
     object Label22: TLabel
       Left = 784
@@ -515,26 +369,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette15: TImage
-      Left = 808
-      Top = 8
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette15DragOver
-      OnEndDrag = ImagePalette15EndDrag
-      OnMouseDown = ImagePalette15MouseDown
-    end
-    object ImagePalette16: TImage
-      Left = 520
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette16DragOver
-      OnEndDrag = ImagePalette16EndDrag
-      OnMouseDown = ImagePalette16MouseDown
-    end
     object Label24: TLabel
       Left = 496
       Top = 70
@@ -547,16 +381,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette17: TImage
-      Left = 592
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette17DragOver
-      OnEndDrag = ImagePalette17EndDrag
-      OnMouseDown = ImagePalette17MouseDown
     end
     object Label25: TLabel
       Left = 568
@@ -571,16 +395,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette18: TImage
-      Left = 664
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette18DragOver
-      OnEndDrag = ImagePalette18EndDrag
-      OnMouseDown = ImagePalette18MouseDown
-    end
     object Label26: TLabel
       Left = 640
       Top = 70
@@ -593,16 +407,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette19: TImage
-      Left = 736
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette19DragOver
-      OnEndDrag = ImagePalette19EndDrag
-      OnMouseDown = ImagePalette19MouseDown
     end
     object Label27: TLabel
       Left = 712
@@ -617,16 +421,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette20: TImage
-      Left = 808
-      Top = 56
-      Width = 41
-      Height = 41
-      DragMode = dmAutomatic
-      OnDragOver = ImagePalette20DragOver
-      OnEndDrag = ImagePalette20EndDrag
-      OnMouseDown = ImagePalette20MouseDown
-    end
     object Label28: TLabel
       Left = 784
       Top = 70
@@ -639,19 +433,6 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object ImagePalette21: TImage
-      Left = 880
-      Top = 8
-      Width = 41
-      Height = 41
-      Hint = 'Croisement ou TJD ou TJS'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      OnDragOver = ImagePalette21DragOver
-      OnEndDrag = ImagePalette21EndDrag
-      OnMouseDown = ImagePalette21MouseDown
     end
     object Label29: TLabel
       Left = 856
@@ -666,19 +447,6 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette22: TImage
-      Left = 952
-      Top = 8
-      Width = 41
-      Height = 41
-      Hint = 'Croisement ou TJD ou TJS'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      OnDragOver = ImagePalette22DragOver
-      OnEndDrag = ImagePalette22EndDrag
-      OnMouseDown = ImagePalette22MouseDown
-    end
     object Label30: TLabel
       Left = 928
       Top = 22
@@ -692,25 +460,12 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object ImagePalette23: TImage
-      Left = 376
-      Top = 104
-      Width = 41
-      Height = 41
-      Hint = 'Quai'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      OnDragOver = ImagePalette23DragOver
-      OnEndDrag = ImagePalette23EndDrag
-      OnMouseDown = ImagePalette23MouseDown
-    end
     object Label31: TLabel
-      Left = 352
+      Left = 424
       Top = 118
       Width = 18
       Height = 19
-      Caption = '23'
+      Caption = '31'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -718,8 +473,275 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label5: TLabel
+      Left = 856
+      Top = 70
+      Width = 18
+      Height = 19
+      Caption = '24'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label32: TLabel
+      Left = 928
+      Top = 70
+      Width = 18
+      Height = 19
+      Caption = '25'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette1: TImage
+      Left = 232
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette1DragOver
+      OnEndDrag = ImagePalette1EndDrag
+      OnMouseDown = ImagePalette1MouseDown
+    end
+    object ImagePalette2: TImage
+      Left = 304
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette2DragOver
+      OnEndDrag = ImagePalette2EndDrag
+      OnMouseDown = ImagePalette2MouseDown
+    end
+    object ImagePalette3: TImage
+      Left = 376
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette3DragOver
+      OnEndDrag = ImagePalette3EndDrag
+      OnMouseDown = ImagePalette3MouseDown
+    end
+    object ImagePalette4: TImage
+      Left = 448
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette4DragOver
+      OnEndDrag = ImagePalette4EndDrag
+      OnMouseDown = ImagePalette4MouseDown
+    end
+    object ImagePalette5: TImage
+      Left = 520
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette5DragOver
+      OnEndDrag = ImagePalette5EndDrag
+      OnMouseDown = ImagePalette5MouseDown
+    end
+    object ImagePalette12: TImage
+      Left = 592
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette12DragOver
+      OnEndDrag = ImagePalette12EndDrag
+      OnMouseDown = ImagePalette12MouseDown
+    end
+    object ImagePalette13: TImage
+      Left = 664
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette13DragOver
+      OnEndDrag = ImagePalette13EndDrag
+      OnMouseDown = ImagePalette13MouseDown
+    end
+    object ImagePalette14: TImage
+      Left = 736
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette14DragOver
+      OnEndDrag = ImagePalette14EndDrag
+      OnMouseDown = ImagePalette14MouseDown
+    end
+    object ImagePalette15: TImage
+      Left = 808
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette15DragOver
+      OnEndDrag = ImagePalette15EndDrag
+      OnMouseDown = ImagePalette15MouseDown
+    end
+    object ImagePalette21: TImage
+      Left = 880
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette21DragOver
+      OnEndDrag = ImagePalette21EndDrag
+      OnMouseDown = ImagePalette21MouseDown
+    end
+    object ImagePalette22: TImage
+      Left = 952
+      Top = 8
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette22DragOver
+      OnEndDrag = ImagePalette22EndDrag
+      OnMouseDown = ImagePalette22MouseDown
+    end
+    object ImagePalette6: TImage
+      Left = 232
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette6DragOver
+      OnEndDrag = ImagePalette6EndDrag
+      OnMouseDown = ImagePalette6MouseDown
+    end
+    object ImagePalette7: TImage
+      Left = 304
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette7DragOver
+      OnEndDrag = ImagePalette7EndDrag
+      OnMouseDown = ImagePalette7MouseDown
+    end
+    object ImagePalette9: TImage
+      Left = 448
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette9DragOver
+      OnEndDrag = ImagePalette9EndDrag
+      OnMouseDown = ImagePalette9MouseDown
+    end
+    object ImagePalette16: TImage
+      Left = 520
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette16DragOver
+      OnEndDrag = ImagePalette16EndDrag
+      OnMouseDown = ImagePalette16MouseDown
+    end
+    object ImagePalette17: TImage
+      Left = 592
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette17DragOver
+      OnEndDrag = ImagePalette17EndDrag
+      OnMouseDown = ImagePalette17MouseDown
+    end
+    object ImagePalette18: TImage
+      Left = 664
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette18DragOver
+      OnEndDrag = ImagePalette18EndDrag
+      OnMouseDown = ImagePalette18MouseDown
+    end
+    object ImagePalette19: TImage
+      Left = 736
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette19DragOver
+      OnEndDrag = ImagePalette19EndDrag
+      OnMouseDown = ImagePalette19MouseDown
+    end
+    object ImagePalette20: TImage
+      Left = 808
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette20DragOver
+      OnEndDrag = ImagePalette20EndDrag
+      OnMouseDown = ImagePalette20MouseDown
+    end
+    object ImagePalette24: TImage
+      Left = 880
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette24DragOver
+      OnEndDrag = ImagePalette24EndDrag
+      OnMouseDown = ImagePalette24MouseDown
+    end
+    object ImagePalette25: TImage
+      Left = 952
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette25DragOver
+      OnEndDrag = ImagePalette25EndDrag
+      OnMouseDown = ImagePalette25MouseDown
+    end
+    object ImagePalette10: TImage
+      Left = 232
+      Top = 104
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette10DragOver
+      OnEndDrag = ImagePalette10EndDrag
+      OnMouseDown = ImagePalette10MouseDown
+    end
+    object ImagePalette11: TImage
+      Left = 304
+      Top = 104
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette11DragOver
+      OnEndDrag = ImagePalette11EndDrag
+      OnMouseDown = ImagePalette11MouseDown
+    end
+    object ImagePalette31: TImage
+      Left = 448
+      Top = 104
+      Width = 41
+      Height = 41
+      Hint = 'Quai'
+      ParentShowHint = False
+      ShowHint = True
+      OnDragOver = ImagePalette31DragOver
+      OnEndDrag = ImagePalette31EndDrag
+      OnMouseDown = ImagePalette31MouseDown
+    end
+    object ImagePalette30: TImage
+      Left = 384
+      Top = 104
+      Width = 25
+      Height = 41
+      Hint = 'Signal'
+      ParentShowHint = False
+      ShowHint = True
+      Stretch = True
+      OnDragOver = ImagePalette30DragOver
+      OnEndDrag = ImagePalette30EndDrag
+      OnMouseDown = ImagePalette30MouseDown
+    end
+    object ImagePalette8: TImage
+      Left = 376
+      Top = 56
+      Width = 41
+      Height = 41
+      OnDragOver = ImagePalette8DragOver
+      OnEndDrag = ImagePalette8EndDrag
+      OnMouseDown = ImagePalette8MouseDown
+    end
     object ButtonSauveTCO: TButton
-      Left = 1006
+      Left = 1016
       Top = 48
       Width = 92
       Height = 33
@@ -730,7 +752,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1006
+      Left = 1016
       Top = 8
       Width = 92
       Height = 33
@@ -758,7 +780,7 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1006
+      Left = 1016
       Top = 88
       Width = 92
       Height = 33
@@ -768,8 +790,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 864
-      Top = 80
+      Left = 760
+      Top = 136
       Width = 113
       Height = 25
       Caption = 'Simu canton occup'#233
@@ -777,7 +799,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1006
+      Left = 1016
       Top = 128
       Width = 92
       Height = 33
@@ -948,7 +970,7 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 902
+      Left = 912
       Top = 128
       Width = 92
       Height = 33
@@ -969,8 +991,8 @@ object FormTCO: TFormTCO
     end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1060
-    Top = 465
+    Left = 1070
+    Top = 415
     Width = 57
     Height = 33
     Anchors = [akRight, akBottom]

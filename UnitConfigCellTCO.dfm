@@ -14,17 +14,9 @@ object FormConfCellTCO: TFormConfCellTCO
   OldCreateOrder = False
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13
-  object ButtonOk: TButton
-    Left = 168
-    Top = 368
-    Width = 75
-    Height = 25
-    Caption = 'Ok'
-    TabOrder = 0
-    OnClick = ButtonOkClick
-  end
   object GroupBox1: TGroupBox
     Left = 8
     Top = 264
@@ -37,7 +29,7 @@ object FormConfCellTCO: TFormConfCellTCO
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 0
     object Label1: TLabel
       Left = 8
       Top = 41
@@ -96,7 +88,7 @@ object FormConfCellTCO: TFormConfCellTCO
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 1
     object Label15: TLabel
       Left = 8
       Top = 22
@@ -297,7 +289,16 @@ object FormConfCellTCO: TFormConfCellTCO
     ParentFont = False
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 3
+    TabOrder = 2
     OnClick = CheckPinvClick
+  end
+  object BitBtnOk: TBitBtn
+    Left = 152
+    Top = 368
+    Width = 75
+    Height = 25
+    TabOrder = 3
+    OnClick = BitBtnOkClick
+    Kind = bkOK
   end
 end

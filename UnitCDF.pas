@@ -4,11 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls , unitconfig, UnitPrinc;
+  Dialogs, StdCtrls, ExtCtrls , unitconfig, UnitPrinc, Buttons;
 
 type
   TFormCDF = class(TForm)
-    Button1: TButton;
     Label20: TLabel;
     Label1: TLabel;
     Label2: TLabel;
@@ -56,7 +55,7 @@ type
     EditNAdresses: TEdit;
     LabelTitre: TLabel;
     Label24: TLabel;
-    procedure Button1Click(Sender: TObject);
+    BitBtnOk: TBitBtn;
     procedure FormActivate(Sender: TObject);
     procedure Edit1Change(Sender: TObject);
     procedure Edit2Change(Sender: TObject);
@@ -78,6 +77,7 @@ type
     procedure Edit19Change(Sender: TObject);
     procedure Edit17Change(Sender: TObject);
     procedure EditNAdressesChange(Sender: TObject);
+    procedure BitBtnOkClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -92,10 +92,7 @@ implementation
 
 {$R *.dfm}
 
-procedure TFormCDF.Button1Click(Sender: TObject);
-begin
-  close;
-end;
+
 
 procedure TFormCDF.FormActivate(Sender: TObject);
 var erreur : integer;
@@ -378,6 +375,11 @@ begin
       Maj_DB;
     end;  
   end;
+end;
+
+procedure TFormCDF.BitBtnOkClick(Sender: TObject);
+begin
+  close;
 end;
 
 end.

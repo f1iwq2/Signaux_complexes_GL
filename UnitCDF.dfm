@@ -223,21 +223,12 @@ object FormCDF: TFormCDF
     Height = 13
     Caption = '1 '#224' 4'
   end
-  object Button1: TButton
-    Left = 128
-    Top = 432
-    Width = 75
-    Height = 25
-    Caption = 'Ok'
-    TabOrder = 0
-    OnClick = Button1Click
-  end
   object Edit1: TEdit
     Left = 120
     Top = 176
     Width = 25
     Height = 21
-    TabOrder = 1
+    TabOrder = 0
     OnChange = Edit1Change
   end
   object Edit2: TEdit
@@ -245,7 +236,7 @@ object FormCDF: TFormCDF
     Top = 200
     Width = 25
     Height = 21
-    TabOrder = 2
+    TabOrder = 1
     OnChange = Edit2Change
   end
   object Edit3: TEdit
@@ -253,7 +244,7 @@ object FormCDF: TFormCDF
     Top = 224
     Width = 25
     Height = 21
-    TabOrder = 3
+    TabOrder = 2
     OnChange = Edit3Change
   end
   object Edit4: TEdit
@@ -261,7 +252,7 @@ object FormCDF: TFormCDF
     Top = 248
     Width = 25
     Height = 21
-    TabOrder = 4
+    TabOrder = 3
     OnChange = Edit4Change
   end
   object Edit5: TEdit
@@ -269,7 +260,7 @@ object FormCDF: TFormCDF
     Top = 272
     Width = 25
     Height = 21
-    TabOrder = 5
+    TabOrder = 4
     OnChange = Edit5Change
   end
   object Edit6: TEdit
@@ -277,7 +268,7 @@ object FormCDF: TFormCDF
     Top = 296
     Width = 25
     Height = 21
-    TabOrder = 6
+    TabOrder = 5
     OnChange = Edit6Change
   end
   object Edit7: TEdit
@@ -285,7 +276,7 @@ object FormCDF: TFormCDF
     Top = 320
     Width = 25
     Height = 21
-    TabOrder = 7
+    TabOrder = 6
     OnChange = Edit7Change
   end
   object Edit8: TEdit
@@ -293,7 +284,7 @@ object FormCDF: TFormCDF
     Top = 344
     Width = 25
     Height = 21
-    TabOrder = 8
+    TabOrder = 7
     OnChange = Edit8Change
   end
   object Edit9: TEdit
@@ -301,7 +292,7 @@ object FormCDF: TFormCDF
     Top = 368
     Width = 25
     Height = 21
-    TabOrder = 9
+    TabOrder = 8
     OnChange = Edit9Change
   end
   object Edit10: TEdit
@@ -309,7 +300,7 @@ object FormCDF: TFormCDF
     Top = 392
     Width = 25
     Height = 21
-    TabOrder = 10
+    TabOrder = 9
     OnChange = Edit10Change
   end
   object Edit11: TEdit
@@ -317,7 +308,7 @@ object FormCDF: TFormCDF
     Top = 200
     Width = 25
     Height = 21
-    TabOrder = 11
+    TabOrder = 10
     OnChange = Edit11Change
   end
   object Edit12: TEdit
@@ -325,7 +316,7 @@ object FormCDF: TFormCDF
     Top = 224
     Width = 25
     Height = 21
-    TabOrder = 12
+    TabOrder = 11
     OnChange = Edit12Change
   end
   object Edit13: TEdit
@@ -333,7 +324,7 @@ object FormCDF: TFormCDF
     Top = 248
     Width = 25
     Height = 21
-    TabOrder = 13
+    TabOrder = 12
     OnChange = Edit13Change
   end
   object Edit14: TEdit
@@ -341,7 +332,7 @@ object FormCDF: TFormCDF
     Top = 272
     Width = 25
     Height = 21
-    TabOrder = 14
+    TabOrder = 13
     OnChange = Edit14Change
   end
   object Edit15: TEdit
@@ -349,7 +340,7 @@ object FormCDF: TFormCDF
     Top = 296
     Width = 25
     Height = 21
-    TabOrder = 15
+    TabOrder = 14
     OnChange = Edit15Change
   end
   object Edit16: TEdit
@@ -357,7 +348,7 @@ object FormCDF: TFormCDF
     Top = 320
     Width = 25
     Height = 21
-    TabOrder = 16
+    TabOrder = 15
     OnChange = Edit16Change
   end
   object Edit17: TEdit
@@ -365,7 +356,7 @@ object FormCDF: TFormCDF
     Top = 344
     Width = 25
     Height = 21
-    TabOrder = 17
+    TabOrder = 16
     OnChange = Edit17Change
   end
   object Edit18: TEdit
@@ -373,7 +364,7 @@ object FormCDF: TFormCDF
     Top = 368
     Width = 25
     Height = 21
-    TabOrder = 18
+    TabOrder = 17
     OnChange = Edit18Change
   end
   object Edit19: TEdit
@@ -381,7 +372,7 @@ object FormCDF: TFormCDF
     Top = 392
     Width = 25
     Height = 21
-    TabOrder = 19
+    TabOrder = 18
     OnChange = Edit19Change
   end
   object EditNAdresses: TEdit
@@ -389,8 +380,17 @@ object FormCDF: TFormCDF
     Top = 120
     Width = 25
     Height = 21
-    TabOrder = 20
+    TabOrder = 19
     Text = '1'
     OnChange = EditNAdressesChange
+  end
+  object BitBtnOk: TBitBtn
+    Left = 136
+    Top = 432
+    Width = 75
+    Height = 25
+    TabOrder = 20
+    OnClick = BitBtnOkClick
+    Kind = bkOK
   end
 end

@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, UnitTCO, ExtCtrls;
+  Dialogs, StdCtrls, UnitTCO, ExtCtrls,
+  Buttons;
 
 type
   TFormConfCellTCO = class(TForm)
-    ButtonOk: TButton;
     GroupBox1: TGroupBox;
     ComboRepr: TComboBox;
     Label1: TLabel;
@@ -29,7 +29,7 @@ type
     RadioButtonD: TRadioButton;
     EditAdrElement: TEdit;
     ButtonFond: TButton;
-    procedure ButtonOkClick(Sender: TObject);
+    BitBtnOk: TBitBtn;
     procedure EditTypeImageKeyPress(Sender: TObject; var Key: Char);
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
@@ -45,6 +45,8 @@ type
     procedure EditAdrElementKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonFondClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure BitBtnOkClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -68,6 +70,7 @@ procedure actualise;
 var Bimage : integer;
     oriente,piedFeu : integer;
 begin
+  if not(formConfCellTCOAff) then exit;
   actualize:=true;  // évite les évènements parasites
   FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XClicCell)+','+intToSTR(YClicCell);
   Bimage:=TCO[XClicCell,YClicCell].Bimage;
@@ -118,7 +121,7 @@ begin
  20: Assign(FormTCO.ImagePalette20.Picture);
  21: Assign(FormTCO.ImagePalette21.Picture);
  22: Assign(FormTCO.ImagePalette22.Picture);
- 23: Assign(FormTCO.ImagePalette23.Picture);
+ 23,31: Assign(FormTCO.ImagePalette31.Picture);
  30: begin
        With formConfCellTCO.ImagePalette do
        begin
@@ -194,10 +197,7 @@ begin
   actualize:=false;
 end;
 
-procedure TFormConfCellTCO.ButtonOkClick(Sender: TObject);
-begin
-  close;
-end;
+
 
 procedure TFormConfCellTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
 var Bimage,erreur : integer;
@@ -207,7 +207,7 @@ begin
     Key:=#0; // évite beeping
     Val(EditTypeImage.Text,Bimage,erreur);
     //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
-    if (erreur<>0) or not(Bimage in[0..23,30]) then
+    if (erreur<>0) or not(Bimage in[0..23,30,31]) then
     begin
       EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
       exit;
@@ -279,6 +279,7 @@ var i,x,y : integer;
 begin
   // fenetre toujours dessus
   actualize:=false;
+  formConfCellTCOAff:=true;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   exit;
 
@@ -319,7 +320,7 @@ begin
           20 : ImageSRC:=FormTCO.ImagePalette20;
           21 : ImageSRC:=FormTCO.ImagePalette21;
           22 : ImageSRC:=FormTCO.ImagePalette22;
-          23 : ImageSRC:=FormTCO.ImagePalette23;
+          23,31 : ImageSRC:=FormTCO.ImagePalette31;
           24 : ImageSRC:=FormTCO.ImagePalette30;
           end;
           picture.Bitmap:=ImageSRC.picture.BitMap;
@@ -337,8 +338,6 @@ begin
   end;
 end;
 
-
-
 procedure TFormConfCellTCO.ComboReprChange(Sender: TObject);
 begin
   tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
@@ -355,7 +354,7 @@ begin
   if (xClicCell=0) or (xClicCell>NbreCellX) or (yClicCell=0) or (yClicCell>NbreCelly) then exit;
   Bimage:=Tco[xClicCell,yClicCell].Bimage;
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) 
-     or (bimage=14) or (bimage=15) then
+     or (bimage=14) or (bimage=15) or (bimage=24) then
      begin
        TCO[xClicCell,yClicCell].inverse:=CheckPinv.checked;
        TCO_modifie:=true;
@@ -421,6 +420,16 @@ procedure TFormConfCellTCO.FormActivate(Sender: TObject);
 begin
   if selectionaffichee then ButtonFond.caption:='Couleur de fond de la sélection'
   else ButtonFond.caption:='Couleur de fond de la cellule';
+end;
+
+procedure TFormConfCellTCO.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=chr(27) then close;
+end;
+
+procedure TFormConfCellTCO.BitBtnOkClick(Sender: TObject);
+begin
+  close
 end;
 
 end.

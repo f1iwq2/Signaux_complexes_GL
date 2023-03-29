@@ -150,5 +150,11 @@ version 5.51 : Renforcement de la vérification de la cohérence
 version 5.52 : Correction bug exploitation TCO
 version 5.6  : Ajout d'affichage d'informations supplémentaires
                Couleur de fond définissable pour chaque cellule du TCO ou une zone.
+               Correction d'un bug sur les trackbar du TCO sous Windows 10/11
+version 5.7  : Glisser-déposer du TCO avec les icônes de placement.
+               Vérification des incompatibilités de placement des icônes du TCO.
+               Gestion des passages à niveau par comptage/décomptage des trains.
+
+
 
 

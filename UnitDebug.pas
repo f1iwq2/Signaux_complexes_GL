@@ -109,7 +109,7 @@ type
 
 var
   FormDebug: TFormDebug;
-  NivDebug,signalDebug : integer;
+  NivDebug,signalDebug,compt_erreur,positionErreur,LigneErreur : integer;
   AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
@@ -183,6 +183,8 @@ begin
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
   Autoscroll:=true; // permet l'affichage de l'ascenseur dans radstudio
   DebugAffiche:=true;
+  compt_erreur:=0;
+  LigneErreur:=0;
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
@@ -240,28 +242,37 @@ begin
 end;
 
 procedure TFormDebug.ButtonChercheClick(Sender: TObject);
-var ligne,l,position : integer;
+var i,l,positionErreur : integer;
     s : string;
     trouve : boolean;
 begin
   // faire avec 
   with RichDebug do
   begin
-    ligne:=0;
-    l:=0;
     repeat
-      s:=lowercase(Lines[ligne]);
-      l:=l+length(s)+2;
-      position:=pos('erreur',s);
-      trouve:=position<>0;
-      inc(ligne);
-    until (ligne>=Lines.Count) or trouve;
+      s:=lowercase(Lines[ligneErreur]);
+      positionErreur:=pos('erreur',s);
+      trouve:=positionErreur<>0;
+      inc(LigneErreur);
+    until (LigneErreur>=Lines.Count) or trouve;
+
     if trouve then
     begin
-      //Affiche('trouvé en '+intToSTR(ligne),clyellow);
-      SelStart:= l-length(s)+position-3;
+      inc(compt_erreur);
+      //Affiche('trouvé en '+Lines[ligneErreur-1],clred);
+      l:=0;
+      for i:=0 to ligneErreur-1 do
+      begin
+        l:=l+length(Lines[i])+2;
+      end;
+      SelStart:= l-length(s)+positionErreur-3;
       SelLength:=6;
-      SetFocus;
+      SetFocus;      // afficher la sélection
+      Perform(EM_SCROLLCARET,0,0); // et scroller à l'endroit de la sélection
+    end
+    else
+    begin
+      LigneErreur:=0;
     end;
   end;
 end;
@@ -380,7 +391,6 @@ begin
 end;
 
 
-
 procedure TFormDebug.ButtonCPClick(Sender: TObject);
 var Adr,erreur,ancdebug,adrtrain,voie : integer ;
 begin
@@ -447,12 +457,13 @@ end;
 
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
 begin
+  AfficheDebug('Raz tous trains et routes',clLime);
   Raz_tout;
 end;
 
 procedure TFormDebug.MemoEvtDet1Change(Sender: TObject);
 begin
-  SendMessage(MemoEvtDet.handle, WM_VSCROLL, SB_BOTTOM, 0);
+  SendMessage(MemoEvtDet.handle,WM_VSCROLL,SB_BOTTOM,0);
 end;
 
 procedure TFormDebug.EditDebugSignalChange(Sender: TObject);

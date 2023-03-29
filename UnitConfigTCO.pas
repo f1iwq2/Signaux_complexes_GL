@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls , UnitTCO, ExtCtrls, Menus;
+  Dialogs, StdCtrls , UnitTCO, ExtCtrls, Menus,
+  Buttons;
 
 type
   TFormConfigTCO = class(TForm)
-    ButtonOK: TButton;
     Label3: TLabel;
     Label4: TLabel;
     ButtonDessine: TButton;
@@ -43,7 +43,7 @@ type
     CheckCouleur: TCheckBox;
     Label1: TLabel;
     ImagePiedFeu: TImage;
-    procedure ButtonOKClick(Sender: TObject);
+    BitBtnOk: TBitBtn;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -55,6 +55,7 @@ type
     procedure ImageTexteClick(Sender: TObject);
     procedure ImageQuaiClick(Sender: TObject);
     procedure ImagePiedFeuClick(Sender: TObject);
+    procedure BitBtnOkClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -76,25 +77,24 @@ procedure icone_aig;
 var r : Trect;
     x1,y1,x2,y2,x3,y3,x4,y4 : integer;
 begin
-      with FormConfigTCO.ImageAig do
-      begin
-        canvas.Pen.color:=clfond;
-        canvas.Brush.Color:=clfond;
-        canvas.Rectangle(0,0,Width,Height);
+  with FormConfigTCO.ImageAig do
+  begin
+    canvas.Pen.color:=clfond;
+    canvas.Brush.Color:=clfond;
+    canvas.Rectangle(0,0,Width,Height);
 
-        canvas.pen.color:=clVoies;
-        canvas.brush.color:=clvoies;
-        // bande horizontale
-        r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
-        canvas.FillRect(r);
+    canvas.pen.color:=clVoies;
+    canvas.brush.color:=clvoies;
+    // bande horizontale
+    r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
+    canvas.FillRect(r);
 
-        x1:=(width div 2); y1:=(height div 2)-3;
-        x2:=3; y2:=0;
-        x3:=0; y3:=3;
-        x4:=0+(width div 2)-1; y4:=(height div 2)+3-1;
-        canvas.Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
-      end;
-
+    x1:=(width div 2); y1:=(height div 2)-3;
+    x2:=3; y2:=0;
+    x3:=0; y3:=3;
+    x4:=0+(width div 2)-1; y4:=(height div 2)+3-1;
+    canvas.Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+  end;
 end;
 
 procedure dessine_icones;
@@ -156,7 +156,7 @@ begin
     canvas.FillRect(r);
   end;
 
-  //6 texte
+  // 6 texte
   with formCOnfigTCO.ImageTexte do
   begin
     canvas.Pen.color:=clfond;
@@ -167,7 +167,7 @@ begin
     canvas.Textout(5,10,'Voie 1');
   end;
 
-  //Quai
+  // Quai
   with formconfigTCO.ImageQuai do
   begin
     canvas.Pen.color:=clfond;
@@ -260,48 +260,6 @@ begin
   NbCellulesTCO:=NbreCellX*NbreCellY;
 end;
 
-procedure TFormConfigTCO.ButtonOKClick(Sender: TObject);
-var ok : boolean;
-begin
-  ok:=true;
-
-  if verif_config_TCO then
-  begin
-    with FormTCO.ImageTCO do
-    begin
-      Width:=LargeurCell*NbreCellX;
-      Height:=HauteurCell*NbreCellY;
-    end;
-
-    try
-      SetLength(TCO,NbreCellX+1,NbreCellY+1);
-    except
-      LabelErreur.caption:='TCO Mémoire insuffisante';
-      NbreCellX:=20;NbreCellY:=12;
-      SetLength(TCO,NbreCellX+1,NbreCellY+1);
-      ok:=false;
-    end;
-
-    try
-      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
-    except
-      LabelErreur.caption:='TamponTCO Mémoire insuffisante';
-      NbreCellX:=20;NbreCellY:=12;
-      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
-      ok:=false;
-    end;
-
-
-    AvecGrille:=checkDessineGrille.Checked;
-    if ok then
-    begin
-      calcul_cellules;
-      affiche_TCO;
-      LabelErreur.caption:='';
-      close;
-   end;
-  end;
-end;
 
 procedure TFormConfigTCO.ButtonDessineClick(Sender: TObject);
 begin
@@ -434,9 +392,50 @@ end;
 // change le titre de la fenêtre de choix des couleurs à son ouverture
 procedure TFormConfigTCO.ColorDialog1Show(Sender: TObject);
 begin
-   SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
+  SetWindowText(ColorDialog1.Handle,pchar(titre_couleur));
 end;
 
+procedure TFormConfigTCO.BitBtnOkClick(Sender: TObject);
+var ok : boolean;
+begin
+  ok:=true;
 
+  if verif_config_TCO then
+  begin
+    with FormTCO.ImageTCO do
+    begin
+      Width:=LargeurCell*NbreCellX;
+      Height:=HauteurCell*NbreCellY;
+    end;
+
+    try
+      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+    except
+      LabelErreur.caption:='TCO Mémoire insuffisante';
+      NbreCellX:=20;NbreCellY:=12;
+      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+      ok:=false;
+    end;
+
+    try
+      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+    except
+      LabelErreur.caption:='TamponTCO Mémoire insuffisante';
+      NbreCellX:=20;NbreCellY:=12;
+      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+      ok:=false;
+    end;
+
+
+    AvecGrille:=checkDessineGrille.Checked;
+    if ok then
+    begin
+      calcul_cellules;
+      affiche_TCO;
+      LabelErreur.caption:='';
+      close;
+   end;
+  end;
+end;
 
 end.

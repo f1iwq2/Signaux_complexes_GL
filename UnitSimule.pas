@@ -13,6 +13,7 @@ type
     EditIntervalle: TEdit;
     Label1: TLabel;
     CheckAffTick: TCheckBox;
+    CheckEvalroutes: TCheckBox;
     procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditIntervalleKeyPress(Sender: TObject; var Key: Char);
@@ -136,6 +137,7 @@ begin
   if openDialog.Execute then
   begin
     if checkAffTick.Checked then raz_tout;
+    if checkEvalRoutes.Checked then TraceListe:=true;
     s:=openDialog.FileName;
     ouvre_simulation(s);
   end;

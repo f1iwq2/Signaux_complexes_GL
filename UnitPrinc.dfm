@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 59
-  Top = 174
+  Left = 66
+  Top = 209
   Width = 1213
   Height = 670
   Caption = 'Signaux complexes'
@@ -225,8 +225,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image7feux: TImage
-    Left = 504
-    Top = 8
+    Left = 144
+    Top = 0
     Width = 57
     Height = 105
     Picture.Data = {
@@ -666,8 +666,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 896
-    Top = 88
+    Left = 904
+    Top = 136
     Width = 33
     Height = 57
     Picture.Data = {
@@ -740,8 +740,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2Dir: TImage
-    Left = 936
-    Top = 144
+    Left = 984
+    Top = 120
     Width = 41
     Height = 25
     Picture.Data = {
@@ -815,8 +815,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3Dir: TImage
-    Left = 840
-    Top = 136
+    Left = 968
+    Top = 168
     Width = 49
     Height = 25
     Picture.Data = {
@@ -893,7 +893,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image4Dir: TImage
-    Left = 1064
+    Left = 1032
     Top = 120
     Width = 57
     Height = 25
@@ -981,8 +981,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5Dir: TImage
-    Left = 464
-    Top = 0
+    Left = 1096
+    Top = 120
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1079,8 +1079,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 872
-    Top = 136
+    Left = 896
+    Top = 120
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1200,22 +1200,17 @@ object FormPrinc: TFormPrinc
     Font.Style = []
     ParentFont = False
   end
-  object Splitter: TSplitter
+  object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Width = 5
     Height = 589
-    Color = clWindowFrame
-    ParentColor = False
-    Visible = False
-    OnMoved = SplitterMoved
   end
   object ScrollBox1: TScrollBox
     Left = 632
-    Top = 192
+    Top = 200
     Width = 546
-    Height = 399
-    HorzScrollBar.Smooth = True
+    Height = 391
+    HorzScrollBar.Increment = 48
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
@@ -1291,20 +1286,20 @@ object FormPrinc: TFormPrinc
   end
   object Panel1: TPanel
     Left = 904
-    Top = 5
+    Top = 13
     Width = 282
     Height = 108
     Anchors = [akTop, akRight]
     TabOrder = 4
     object Label1: TLabel
-      Left = 136
+      Left = 56
       Top = 88
       Width = 89
       Height = 13
       Caption = 'Nombre de trains : '
     end
     object LabelNbTrains: TLabel
-      Left = 256
+      Left = 240
       Top = 84
       Width = 9
       Height = 19
@@ -1391,27 +1386,6 @@ object FormPrinc: TFormPrinc
     Caption = 'xx'
     TabOrder = 5
   end
-  object FenRich: TRichEdit
-    Left = 8
-    Top = 32
-    Width = 601
-    Height = 513
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clYellow
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    PopupMenu = PopupMenuFenRich
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 6
-    WordWrap = False
-    OnChange = FenRichChange
-    OnMouseDown = FenRichMouseDown
-  end
   object GroupBox2: TGroupBox
     Left = 633
     Top = 64
@@ -1419,7 +1393,7 @@ object FormPrinc: TFormPrinc
     Height = 105
     Anchors = [akTop, akRight]
     Caption = 'Variables CV'
-    TabOrder = 7
+    TabOrder = 6
     object Label3: TLabel
       Left = 208
       Top = 34
@@ -1481,7 +1455,7 @@ object FormPrinc: TFormPrinc
     Height = 129
     Anchors = [akTop, akRight]
     Caption = 'Commande aux trains'
-    TabOrder = 8
+    TabOrder = 7
     object Label4: TLabel
       Left = 8
       Top = 22
@@ -1698,7 +1672,7 @@ object FormPrinc: TFormPrinc
       TabOrder = 5
     end
     object TrackBarVit: TTrackBar
-      Left = 16
+      Left = 24
       Top = 64
       Width = 233
       Height = 21
@@ -1717,7 +1691,7 @@ object FormPrinc: TFormPrinc
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Envoi vers centrale DCC++'
-    TabOrder = 9
+    TabOrder = 8
     WordWrap = True
     OnClick = ButtonEnvClick
   end
@@ -1727,7 +1701,7 @@ object FormPrinc: TFormPrinc
     Width = 121
     Height = 21
     Anchors = [akTop, akRight]
-    TabOrder = 10
+    TabOrder = 9
     Text = '<1>'
   end
   object Button1: TButton
@@ -1737,9 +1711,44 @@ object FormPrinc: TFormPrinc
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Button1'
-    TabOrder = 11
+    TabOrder = 10
     Visible = False
     OnClick = Button1Click
+  end
+  object Panel2: TPanel
+    Left = 8
+    Top = 32
+    Width = 609
+    Height = 497
+    TabOrder = 11
+    object SplitterV: TSplitter
+      Left = 1
+      Top = 1
+      Width = 8
+      Height = 495
+      Beveled = True
+      OnMoved = SplitterVMoved
+    end
+    object FenRich: TRichEdit
+      Left = 8
+      Top = 16
+      Width = 593
+      Height = 505
+      Color = clBlack
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clYellow
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      PopupMenu = PopupMenuFenRich
+      ReadOnly = True
+      ScrollBars = ssBoth
+      TabOrder = 0
+      WordWrap = False
+      OnChange = FenRichChange
+      OnMouseDown = FenRichMouseDown
+    end
   end
   object Timer1: TTimer
     Interval = 100
@@ -1959,6 +1968,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object PopupMenuFeu: TPopupMenu
+    OnPopup = PopupMenuFeuPopup
     Left = 896
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's du signal'

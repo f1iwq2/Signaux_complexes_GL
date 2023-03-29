@@ -2102,7 +2102,7 @@ object FormConfig: TFormConfig
         Top = 200
         Width = 297
         Height = 73
-        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface'
+        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface vers la centrale'
         TabOrder = 2
         object Label7: TLabel
           Left = 14
@@ -2382,7 +2382,7 @@ object FormConfig: TFormConfig
         object LabelCrois: TLabel
           Left = 32
           Top = 320
-          Width = 193
+          Width = 187
           Height = 26
           Caption = 
             'Les croisements re'#231'oivent une adresse m'#234'me s'#39'ils ne sont pas pil' +
@@ -3793,8 +3793,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxRadio: TGroupBox
-          Left = 120
-          Top = 8
+          Left = 56
+          Top = 16
           Width = 225
           Height = 73
           Caption = 'Type d'#39'action'
@@ -3828,8 +3828,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 120
-          Top = 44
+          Left = 64
+          Top = 60
           Width = 233
           Height = 341
           Caption = 'Action fonction de locomotive '
@@ -4146,7 +4146,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 32
         Width = 345
-        Height = 185
+        Height = 225
         Caption = 'Actionneurs/d'#233'tecteurs locomotives ou accessoires'
         TabOrder = 1
         object ButtonNouvAcc: TButton
@@ -4174,24 +4174,26 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 48
           Width = 329
-          Height = 129
+          Height = 161
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clYellow
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
+          HideSelection = False
           ParentFont = False
           ReadOnly = True
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
+          OnKeyDown = RichActKeyDown
           OnMouseDown = RichActMouseDown
         end
       end
       object GroupBox17: TGroupBox
         Left = 0
-        Top = 224
+        Top = 272
         Width = 345
         Height = 193
         Caption = 'Actionneurs passage '#224' niveau'
@@ -4228,11 +4230,13 @@ object FormConfig: TFormConfig
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
+          HideSelection = False
           ParentFont = False
           ReadOnly = True
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
+          OnKeyDown = RichPNKeyDown
           OnMouseDown = RichPNMouseDown
         end
       end
@@ -4607,9 +4611,11 @@ object FormConfig: TFormConfig
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        HideSelection = False
         ParentFont = False
         ReadOnly = True
         TabOrder = 0
+        OnKeyDown = RichEditTrainsKeyDown
         OnMouseDown = RichEditTrainsMouseDown
       end
       object GroupBox24: TGroupBox
@@ -4643,9 +4649,9 @@ object FormConfig: TFormConfig
         object Label56: TLabel
           Left = 16
           Top = 72
-          Width = 115
+          Width = 215
           Height = 13
-          Caption = 'Vitesse '#224' l'#39'avertissement'
+          Caption = 'Vitesse '#224' l'#39'avertissement ou au ralentissement'
         end
         object Label57: TLabel
           Left = 16
@@ -4659,13 +4665,16 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 145
           Height = 21
+          Hint = 'Nom du train'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 0
           OnChange = EditNomTrainChange
         end
         object EditAdresseTrain: TEdit
-          Left = 136
+          Left = 240
           Top = 48
-          Width = 65
+          Width = 41
           Height = 21
           Hint = 'Adresse du d'#233'codeur du train'
           ParentShowHint = False
@@ -4674,26 +4683,35 @@ object FormConfig: TFormConfig
           OnChange = EditAdresseTrainChange
         end
         object EditVitesseMaxi: TEdit
-          Left = 136
+          Left = 240
           Top = 120
-          Width = 65
+          Width = 41
           Height = 21
+          Hint = 'Vitesse maximale autoris'#233'e par le d'#233'codeur'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 2
           OnChange = EditVitesseMaxiChange
         end
         object EditVitRalenti: TEdit
-          Left = 136
+          Left = 240
           Top = 72
-          Width = 65
+          Width = 41
           Height = 21
+          Hint = 'Vitesse apr'#232's l'#39'avertissement'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 3
           OnChange = EditVitRalentiChange
         end
         object EditVitNom: TEdit
-          Left = 136
+          Left = 240
           Top = 96
-          Width = 65
+          Width = 41
           Height = 21
+          Hint = 'Vitesse si voie libre'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 4
           OnChange = EditVitNomChange
         end

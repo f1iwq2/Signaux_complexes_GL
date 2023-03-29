@@ -3,11 +3,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, unitprinc, unitpilote , unitDebug;
+  Dialogs, StdCtrls, unitprinc, unitpilote , unitDebug, Buttons;
 
 type
   TFormPlace = class(TForm)
-    Buttonferme: TButton;
     Label1: TLabel;
     ButtonInitAig: TButton;
     ButtonSauve: TButton;
@@ -44,7 +43,7 @@ type
     EditDir5: TEdit;
     EditDir6: TEdit;
     Label5: TLabel;
-    procedure ButtonfermeClick(Sender: TObject);
+    BitBtn1: TBitBtn;
     procedure ButtonInitAigClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ButtonPlaceClick(Sender: TObject);
@@ -72,6 +71,7 @@ type
     procedure EditDir5Change(Sender: TObject);
     procedure EditDir6Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -87,10 +87,7 @@ uses UnitConfig, UnitTCO;
 
 {$R *.dfm}
 
-procedure TFormPlace.ButtonfermeClick(Sender: TObject);
-begin
-  close;
-end;
+
 
 procedure TFormPlace.ButtonInitAigClick(Sender: TObject);
 begin
@@ -142,11 +139,13 @@ begin
     exit;
   end;
 
+  raz_tout;
   for detect:=1 to NbMemZone do
   begin
     detecteur[detect].train:='';
     detecteur[detect].AdrTrain:=0;
     detecteur[detect].IndexTrain:=0;
+    detecteur[detect].etat:=false;
   end;
 
   it:=0;
@@ -167,46 +166,56 @@ begin
       val(Ssuiv,Suiv,erreur);
       NomTrain:=trains[i].nom_train;
       if (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train '+intToSTR(i);
-      prec:=det_suiv_cont(Suiv,detect);  // détecteur précédent (d'ou vient la loco)
       if detect<>0 then
       begin
-        inc(it);
-        //detecteur[detect].adrTrain:=trains[i].adresse;
-        //event_detecteur(detect,true,trains[i].nom_train);
-        {
-        SauvefiltrageDet0:=filtrageDet0;
-        filtrageDet0:=0;
-        Affiche(intToSTR(prec)+' 1',clyellow);
-        event_detecteur(prec,true,NomTrain);
-        Affiche(intToSTR(prec)+' 0',clyellow);
-        event_detecteur(prec,false,NomTrain);
+        prec:=det_suiv_cont(Suiv,detect,1);  // détecteur précédent (d'ou vient la loco) arret sur suivant
+        if (prec<9990) then
+        begin
+          inc(it);
+          //detecteur[detect].adrTrain:=trains[i].adresse;
+          //event_detecteur(detect,true,trains[i].nom_train);
+          {
+          SauvefiltrageDet0:=filtrageDet0;
+          filtrageDet0:=0;
+          Affiche(intToSTR(prec)+' 1',clyellow);
+          event_detecteur(prec,true,NomTrain);
+          Affiche(intToSTR(prec)+' 0',clyellow);
+          event_detecteur(prec,false,NomTrain);
 
-        Affiche(intToSTR(detect)+' 1',clyellow);
-        event_detecteur(detect,true,NomTrain);
-        filtrageDet0:=SauveFiltrageDet0;
-        }
+          Affiche(intToSTR(detect)+' 1',clyellow);
+          event_detecteur(detect,true,NomTrain);
+          filtrageDet0:=SauveFiltrageDet0;
+          }
 
-        detecteur[detect].etat:=true;
-        detecteur[detect].AdrTrain:=trains[i].adresse;
-        detecteur[detect].train:=placement[i].train;
-        detecteur[detect].IndexTrain:=i;
+          detecteur[detect].etat:=true;
+          detecteur[detect].AdrTrain:=trains[i].adresse;
+          detecteur[detect].train:=placement[i].train;
+          detecteur[detect].IndexTrain:=i;
 
-        MemZone[prec,detect].etat:=true;
-        MemZone[prec,detect].train:=placement[i].train;
-        MemZone[prec,detect].Adrtrain:=trains[i].adresse;
-        MemZone[prec,detect].NumTrain:=i;
-        //Affiche(inttostr(prec)+' '+intToSTR(detect),clorange);
+          MemZone[prec,detect].etat:=true;
+          MemZone[prec,detect].train:=placement[i].train;
+          MemZone[prec,detect].Adrtrain:=trains[i].adresse;
+          MemZone[prec,detect].NumTrain:=i;
+          //Affiche(inttostr(prec)+' '+intToSTR(detect),clorange);
 
-        event_det_train[it].NbEl:=1 ;
-        event_det_train[it].AdrTrain:=trains[i].adresse;
-        event_det_train[it].det[1].adresse:=prec;
-        event_det_train[it].det[1].etat:=false;
-        event_det_train[it].nom_train:=placement[i].train;
+          event_det_train[it].NbEl:=1 ;
+          event_det_train[it].AdrTrain:=trains[i].adresse;
+          event_det_train[it].det[1].adresse:=prec;
+          event_det_train[it].det[1].etat:=false;
+          event_det_train[it].nom_train:=placement[i].train;
 
-        Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
+          Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
 
-        inc(N_trains);
-
+          inc(N_trains);
+        end
+        else
+        begin
+          s:='Train '+nomtrain +' non positionné car détecteurs '+IntToSTR(detect)+' '+intToSTR(suiv)+' non consécutifs';
+          Affiche(s,clred);
+          detecteur[detect].etat:=false;
+          detecteur[detect].train:='';
+          detecteur[detect].adrTrain:=0;
+        end;
       end
       else
       begin
@@ -221,7 +230,9 @@ begin
   begin
     affiche_tco;
   end;
-
+  maj_feux(true);
+  maj_feux(true);
+  maj_feux(true);
 end;
 
 procedure TFormPlace.Edit1Change(Sender: TObject);
@@ -521,6 +532,11 @@ end;
 procedure TFormPlace.FormCreate(Sender: TObject);
 begin
   PlaceAffiche:=true;
+end;
+
+procedure TFormPlace.BitBtn1Click(Sender: TObject);
+begin
+  close;
 end;
 
 end.

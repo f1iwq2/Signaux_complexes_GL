@@ -19,7 +19,7 @@ object FormPlace: TFormPlace
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 32
+    Left = 40
     Top = 8
     Width = 229
     Height = 20
@@ -123,22 +123,13 @@ object FormPlace: TFormPlace
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Buttonferme: TButton
-    Left = 16
-    Top = 416
-    Width = 75
-    Height = 25
-    Caption = 'Fermer'
-    TabOrder = 0
-    OnClick = ButtonfermeClick
-  end
   object ButtonInitAig: TButton
     Left = 16
     Top = 248
     Width = 273
     Height = 25
     Caption = 'Positionner les aiguillages en position initiale'
-    TabOrder = 1
+    TabOrder = 0
     OnClick = ButtonInitAigClick
   end
   object ButtonSauve: TButton
@@ -146,8 +137,13 @@ object FormPlace: TFormPlace
     Top = 376
     Width = 273
     Height = 25
+    Hint = 
+      'Enregistre la configuration de placement dans le fichier de conf' +
+      'iguration'
     Caption = 'Enregistrer la configuration de  placement'
-    TabOrder = 2
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
     OnClick = ButtonSauveClick
   end
   object Edit1: TEdit
@@ -158,7 +154,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 1'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 3
+    TabOrder = 2
     OnChange = Edit1Change
   end
   object Edit2: TEdit
@@ -169,7 +165,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 2'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 4
+    TabOrder = 3
     OnChange = Edit2Change
   end
   object Edit3: TEdit
@@ -180,7 +176,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 3'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 5
+    TabOrder = 4
     OnChange = Edit3Change
   end
   object Edit4: TEdit
@@ -191,7 +187,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 4'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 6
+    TabOrder = 5
     OnChange = Edit4Change
   end
   object Edit5: TEdit
@@ -202,7 +198,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 5'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 7
+    TabOrder = 6
     OnChange = Edit5Change
   end
   object Edit6: TEdit
@@ -213,7 +209,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur recevant le train 6'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 8
+    TabOrder = 7
     OnChange = Edit6Change
   end
   object ButtonPlace: TButton
@@ -222,7 +218,7 @@ object FormPlace: TFormPlace
     Width = 273
     Height = 25
     Caption = 'Placer les trains sur les d'#233'tecteurs ci-dessus'
-    TabOrder = 9
+    TabOrder = 8
     OnClick = ButtonPlaceClick
   end
   object ButtonLanceRoutage: TButton
@@ -237,7 +233,7 @@ object FormPlace: TFormPlace
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     OnClick = ButtonLanceRoutageClick
   end
   object Button1: TButton
@@ -246,7 +242,7 @@ object FormPlace: TFormPlace
     Width = 81
     Height = 25
     Caption = 'Config trains'
-    TabOrder = 11
+    TabOrder = 10
     OnClick = Button1Click
   end
   object ButtonArretroutage: TButton
@@ -255,7 +251,7 @@ object FormPlace: TFormPlace
     Width = 273
     Height = 25
     Caption = 'Arr'#234't du roulage'
-    TabOrder = 12
+    TabOrder = 11
     OnClick = ButtonArretroutageClick
   end
   object CheckInverse1: TCheckBox
@@ -267,7 +263,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 13
+    TabOrder = 12
     OnClick = CheckInverse1Click
   end
   object CheckInverse2: TCheckBox
@@ -279,7 +275,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 14
+    TabOrder = 13
     OnClick = CheckInverse2Click
   end
   object CheckInverse3: TCheckBox
@@ -291,7 +287,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 15
+    TabOrder = 14
     OnClick = CheckInverse3Click
   end
   object CheckInverse4: TCheckBox
@@ -303,7 +299,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 16
+    TabOrder = 15
     OnClick = CheckInverse4Click
   end
   object CheckInverse5: TCheckBox
@@ -315,7 +311,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 17
+    TabOrder = 16
     OnClick = CheckInverse5Click
   end
   object CheckInverse6: TCheckBox
@@ -327,7 +323,7 @@ object FormPlace: TFormPlace
     Caption = 'sens inverse'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 18
+    TabOrder = 17
     OnClick = CheckInverse6Click
   end
   object EditDir1: TEdit
@@ -338,7 +334,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 1'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 19
+    TabOrder = 18
     OnChange = EditDir1Change
   end
   object EditDir2: TEdit
@@ -349,7 +345,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 2'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 20
+    TabOrder = 19
     OnChange = EditDir2Change
   end
   object EditDir3: TEdit
@@ -360,7 +356,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 3'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 21
+    TabOrder = 20
     OnChange = EditDir3Change
   end
   object EditDir4: TEdit
@@ -371,7 +367,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 4'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 22
+    TabOrder = 21
     OnChange = EditDir4Change
   end
   object EditDir5: TEdit
@@ -382,7 +378,7 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 5'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 23
+    TabOrder = 22
     OnChange = EditDir5Change
   end
   object EditDir6: TEdit
@@ -393,7 +389,16 @@ object FormPlace: TFormPlace
     Hint = 'D'#233'tecteur suivant vers lequel doit se diriger le train 6'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 24
+    TabOrder = 23
     OnChange = EditDir6Change
+  end
+  object BitBtn1: TBitBtn
+    Left = 16
+    Top = 416
+    Width = 73
+    Height = 25
+    TabOrder = 24
+    OnClick = BitBtn1Click
+    Kind = bkClose
   end
 end

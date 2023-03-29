@@ -505,7 +505,7 @@ object FormSR: TFormSR
   object LabelErreur: TLabel
     Left = 224
     Top = 528
-    Width = 3
+    Width = 89
     Height = 13
     Caption = ':'
   end
@@ -669,13 +669,13 @@ object FormSR: TFormSR
     TabOrder = 15
     OnChange = ComboBoxAdr16Change
   end
-  object ButtonOK: TButton
-    Left = 56
+  object BitBtnok: TBitBtn
+    Left = 16
     Top = 520
     Width = 75
     Height = 25
-    Caption = 'OK'
     TabOrder = 16
-    OnClick = ButtonOKClick
+    OnClick = BitBtnokClick
+    Kind = bkOK
   end
 end

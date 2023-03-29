@@ -61,9 +61,6 @@ type
     { Déclarations publiques }
   end;
 
-// définition des adresses normalisées du décodeur de leds de digitalBahn
-//    l'ordre des adresses est à respecter dans la programation des signaux.
-//    L'oeilleton est cablé sur la sortie 4, il est géré directement par le décodeur. **/
 // code des aspects des signaux
 const
 
@@ -258,14 +255,20 @@ if ord(Key) = VK_RETURN then
 end;
 
 procedure TFormPilote.FormActivate(Sender: TObject);
-var i,d : integer;
+var n,i,d : integer;
 begin
   // mise à jour du champ décodeur
   i:=index_feu(AdrPilote);
   d:=feux[i].decodeur;
+  n:=feux[i].aspect;
   LabelDec.Caption:=decodeur[d];
-  // check
-  checkVerrouCarre.Checked:=feux[i].VerrouilleCarre;
+  // checkcarré
+  if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
+  begin
+    checkVerrouCarre.Visible:=true;
+    checkVerrouCarre.Checked:=feux[i].VerrouilleCarre;
+  end;
+
 end;
 
 procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);
