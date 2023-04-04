@@ -44,6 +44,7 @@ type
     EditDir6: TEdit;
     Label5: TLabel;
     BitBtn1: TBitBtn;
+    ButtonArretTrains: TButton;
     procedure ButtonInitAigClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ButtonPlaceClick(Sender: TObject);
@@ -57,7 +58,6 @@ type
     procedure ButtonSauveClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonLanceRoutageClick(Sender: TObject);
-    procedure ButtonArretroutageClick(Sender: TObject);
     procedure CheckInverse1Click(Sender: TObject);
     procedure CheckInverse2Click(Sender: TObject);
     procedure CheckInverse3Click(Sender: TObject);
@@ -72,6 +72,8 @@ type
     procedure EditDir6Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
+    procedure ButtonArretTrainsClick(Sender: TObject);
+    procedure ButtonArretroutageClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -403,7 +405,7 @@ begin
   if not(trouve) then Affiche('Pas de train placé',clOrange);
 end;
 
-procedure TFormPlace.ButtonArretroutageClick(Sender: TObject);
+procedure TFormPlace.ButtonArretTrainsClick(Sender: TObject);
 var i : integer;
 begin
   roulage:=false;
@@ -539,4 +541,16 @@ begin
   close;
 end;
 
+procedure TFormPlace.ButtonArretroutageClick(Sender: TObject);
+var i : integer;
+begin
+  roulage:=false;
+  Affiche('Arrêt du roulage de tous les trains et libération des aiguillages',clorange);
+  Formprinc.LabelTitre.caption:=titre+' ';
+  for i:=1 to ntrains do
+    vitesse_loco('',trains[i].adresse,0,true);
+  raz_tout;
+end;
+
+begin
 end.

@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 217
-  Top = 60
+  Left = 82
+  Top = 129
   Width = 1142
   Height = 678
   VertScrollBar.Visible = False
@@ -893,7 +893,6 @@ object FormTCO: TFormTCO
         ParentFont = False
         TabOrder = 0
         OnChange = EditAdrElementChange
-        OnKeyDown = EditAdrElementKeyDown
       end
       object EditTypeImage: TEdit
         Left = 144
@@ -907,7 +906,7 @@ object FormTCO: TFormTCO
         Font.Style = []
         ParentFont = False
         TabOrder = 1
-        OnKeyPress = EditTypeImageKeyPress
+        OnChange = EditTypeImageChange
       end
       object ButtonFonte: TButton
         Left = 8
@@ -1054,6 +1053,10 @@ object FormTCO: TFormTCO
     end
     object N2: TMenuItem
       Caption = '-'
+    end
+    object outslectionner1: TMenuItem
+      Caption = 'Tout s'#233'lectionner'
+      OnClick = outslectionner1Click
     end
     object Inserer: TMenuItem
       Caption = 'Inserer'

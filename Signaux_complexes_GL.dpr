@@ -14,7 +14,8 @@ uses
   Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig},
   UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO},
   UnitCDF in 'UnitCDF.pas' {FormCDF},
-  Unitplace in 'Unitplace.pas' {FormPlace};
+  Unitplace in 'Unitplace.pas' {FormPlace},
+  UnitPareFeu in 'UnitPareFeu.pas';
 
 {$R *.res}
 

@@ -30,7 +30,6 @@ type
     EditAdrElement: TEdit;
     ButtonFond: TButton;
     BitBtnOk: TBitBtn;
-    procedure EditTypeImageKeyPress(Sender: TObject; var Key: Char);
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -42,11 +41,11 @@ type
     procedure RadioButtonHDClick(Sender: TObject);
     procedure RadioButtonGClick(Sender: TObject);
     procedure RadioButtonDClick(Sender: TObject);
-    procedure EditAdrElementKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonFondClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure BitBtnOkClick(Sender: TObject);
+    procedure EditTypeImageChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -66,6 +65,7 @@ uses UnitPrinc;
 
 {$R *.dfm}
 
+// actualise le contenu de la fenetre
 procedure actualise;
 var Bimage : integer;
     oriente,piedFeu : integer;
@@ -122,6 +122,8 @@ begin
  21: Assign(FormTCO.ImagePalette21.Picture);
  22: Assign(FormTCO.ImagePalette22.Picture);
  23,31: Assign(FormTCO.ImagePalette31.Picture);
+ 24: Assign(FormTCO.ImagePalette24.Picture);
+ 25: Assign(FormTCO.ImagePalette25.Picture);
  30: begin
        With formConfCellTCO.ImagePalette do
        begin
@@ -185,8 +187,13 @@ begin
        RadioButtonD.Enabled:=false;
      end;
    end;
-
   end;
+
+  // aiguillage
+  if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or
+      (BImage=15) or (BImage=21) or (BImage=22) or (BImage=24) or (BImage=25)) then
+    formConfCellTCO.checkPinv.Enabled:=true
+    else formConfCellTCO.checkPinv.Enabled:=false;
 
   with formConfCellTCO do
   begin
@@ -198,35 +205,11 @@ begin
 end;
 
 
-
-procedure TFormConfCellTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
-var Bimage,erreur : integer;
-begin
-  if ord(Key)=VK_RETURN then
-  begin
-    Key:=#0; // évite beeping
-    Val(EditTypeImage.Text,Bimage,erreur);
-    //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
-    if (erreur<>0) or not(Bimage in[0..23,30,31]) then
-    begin
-      EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
-      exit;
-    end;
-    TCO_modifie:=true;
-    tco[XClicCell,YClicCell].Bimage:=Bimage;
-    
-    if not(selectionaffichee) then efface_entoure;
-    affiche_cellule(XClicCell,YClicCell);
-    formTCO.editTypeImage.Text:=editTypeImage.Text;
-    actualise;
-    if not(selectionaffichee) then _entoure_cell_clic;
-  end;
-end;
-
 procedure TFormConfCellTCO.EditAdrElementChange(Sender: TObject);
 var Adr,erreur,index : integer;
 begin
- //Affiche('Chgt adresse',clyellow);
+  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
+  if affevt then Affiche('TFormConfCellTCO.EditAdrElementChange',clyellow);
 
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
@@ -234,6 +217,8 @@ begin
   if Adr=0 then tco[XClicCell,YClicCell].repr:=2;
 
   tco[XClicCell,YClicCell].Adresse:=Adr;
+  formTCO.EditAdrElement.Text:=intToSTR(adr);
+
 
   if tco[XClicCell,YClicCell].BImage=30 then
   begin
@@ -253,6 +238,7 @@ end;
 
 procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 begin
+  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
   PCanvasTCO.Brush.Color:=clfond;
 
   if Tco[XClicCell,YClicCell].texte='' then
@@ -278,6 +264,7 @@ var i,x,y : integer;
     image,imagesrc : Timage;
 begin
   // fenetre toujours dessus
+  if affevt then Affiche('FormConfCellTCO create',clyellow);
   actualize:=false;
   formConfCellTCOAff:=true;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
@@ -340,6 +327,7 @@ end;
 
 procedure TFormConfCellTCO.ComboReprChange(Sender: TObject);
 begin
+  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
   tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
   efface_entoure;SelectionAffichee:=false;
   sourisclic:=false;
@@ -353,12 +341,14 @@ var Bimage : integer;
 begin
   if (xClicCell=0) or (xClicCell>NbreCellX) or (yClicCell=0) or (yClicCell>NbreCelly) then exit;
   Bimage:=Tco[xClicCell,yClicCell].Bimage;
-  if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) 
-     or (bimage=14) or (bimage=15) or (bimage=24) then
-     begin
+  if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) or
+     (bimage=14) or (bimage=15) or (bimage=24)
+  then
+  begin
        TCO[xClicCell,yClicCell].inverse:=CheckPinv.checked;
+       formTCO.CheckPinv.checked:=CheckPinv.checked;
        TCO_modifie:=true;
-     end;
+  end;
 end;
 
 procedure TFormConfCellTCO.RadioButtonVClick(Sender: TObject);
@@ -386,31 +376,6 @@ begin
   signalD;
 end;
 
-
-procedure TFormConfCellTCO.EditAdrElementKeyPress(Sender: TObject; var Key: Char);
-var Adr,erreur :  integer;
-begin
-  if ord(Key)=VK_RETURN then
-  begin
-    Key:=#0; // évite beeping
-    Val(EditAdrElement.Text,Adr,erreur);
-    //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
-    if (erreur<>0) then
-    begin
-      EditAdrElement.text:=intToSTR(tco[XClicCell,YClicCell].Adresse);
-      exit;
-    end;
-    TCO_modifie:=true;
-    tco[XClicCell,YClicCell].Adresse:=Adr;
-    
-    if not(selectionaffichee) then efface_entoure;
-    affiche_cellule(XClicCell,YClicCell);
-    formTCO.EditAdrElement.Text:=EditAdrElement.Text;
-    actualise;
-    if not(selectionaffichee) then _entoure_cell_clic;
-  end;
-end;
-
 procedure TFormConfCellTCO.ButtonFondClick(Sender: TObject);
 begin
   change_couleur_fond;
@@ -418,6 +383,7 @@ end;
 
 procedure TFormConfCellTCO.FormActivate(Sender: TObject);
 begin
+  if affevt then Affiche('FormConfCellTCO activate',clyellow);
   if selectionaffichee then ButtonFond.caption:='Couleur de fond de la sélection'
   else ButtonFond.caption:='Couleur de fond de la cellule';
 end;
@@ -430,6 +396,25 @@ end;
 procedure TFormConfCellTCO.BitBtnOkClick(Sender: TObject);
 begin
   close
+end;
+
+procedure TFormConfCellTCO.EditTypeImageChange(Sender: TObject);
+var Bimage,erreur : integer;
+begin
+  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
+  if affevt then Affiche('TCO evt editTypeImageKeyPress',clorange);
+  Val(EditTypeImage.Text,Bimage,erreur);
+  if (erreur<>0) or not(Bimage in[0..22,24..25,30,31]) then
+  begin
+    exit;
+  end;
+  TCO_modifie:=true;
+  tco[XClicCell,YClicCell].Bimage:=Bimage;
+  FormTCO.EditTypeImage.text:=intToSTR(BImage);
+  actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
+  efface_entoure;
+  affiche_cellule(XClicCell,YClicCell);
+
 end;
 
 end.

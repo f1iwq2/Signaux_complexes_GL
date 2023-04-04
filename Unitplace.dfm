@@ -3,7 +3,7 @@ object FormPlace: TFormPlace
   Top = 142
   BorderStyle = bsDialog
   Caption = 'Placement des trains'
-  ClientHeight = 449
+  ClientHeight = 485
   ClientWidth = 307
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -134,7 +134,7 @@ object FormPlace: TFormPlace
   end
   object ButtonSauve: TButton
     Left = 16
-    Top = 376
+    Top = 408
     Width = 273
     Height = 25
     Hint = 
@@ -238,7 +238,7 @@ object FormPlace: TFormPlace
   end
   object Button1: TButton
     Left = 208
-    Top = 416
+    Top = 448
     Width = 81
     Height = 25
     Caption = 'Config trains'
@@ -247,10 +247,13 @@ object FormPlace: TFormPlace
   end
   object ButtonArretroutage: TButton
     Left = 16
-    Top = 344
+    Top = 376
     Width = 273
     Height = 25
+    Hint = 'Arr'#234't des trains et lib'#232're les r'#233'servations'
     Caption = 'Arr'#234't du roulage'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 11
     OnClick = ButtonArretroutageClick
   end
@@ -394,11 +397,23 @@ object FormPlace: TFormPlace
   end
   object BitBtn1: TBitBtn
     Left = 16
-    Top = 416
+    Top = 448
     Width = 73
     Height = 25
     TabOrder = 24
     OnClick = BitBtn1Click
     Kind = bkClose
+  end
+  object ButtonArretTrains: TButton
+    Left = 16
+    Top = 344
+    Width = 273
+    Height = 25
+    Hint = 'Arr'#234'te tous les trains'
+    Caption = 'Arr'#234't des trains'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 25
+    OnClick = ButtonArretTrainsClick
   end
 end

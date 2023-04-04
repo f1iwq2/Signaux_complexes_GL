@@ -123,6 +123,7 @@ type
     ImagePalette8: TImage;
     ImageTemp: TImage;
     ImageTemp2: TImage;
+    outslectionner1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageTCOContextPopup(Sender: TObject; MousePos: TPoint;
@@ -169,7 +170,6 @@ type
     procedure ButtonRedessineClick(Sender: TObject);
     procedure grille;
     procedure EditAdrElementChange(Sender: TObject);
-    procedure EditTypeImageKeyPress(Sender: TObject; var Key: Char);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Maj_TCO(Adresse : integer);
@@ -237,8 +237,6 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ImagePalette22MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure EditAdrElementKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ImageTCODblClick(Sender: TObject);
     procedure ComboReprChange(Sender: TObject);
     procedure ImagePalette1DragOver(Sender, Source: TObject; X, Y: Integer;
@@ -330,6 +328,8 @@ type
       State: TDragState; var Accept: Boolean);
     procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
+    procedure EditTypeImageChange(Sender: TObject);
+    procedure outslectionner1Click(Sender: TObject);
 
 
   private
@@ -1635,8 +1635,8 @@ begin
     r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
     FillRect(r);
 
-     Adr:=TCO[x,y].adresse;
-    pen.color:=couleur;
+    Adr:=TCO[x,y].adresse;
+       
     if (Adr<>0) and (detecteur[Adr].etat) then couleur:=clAllume
     else
     case mode of
@@ -1654,6 +1654,7 @@ begin
       pen.color:=clvoies;
     end;
     Brush.Color:=couleur;
+    pen.color:=couleur; 
     Pen.Mode:=pmCopy;
     Pen.Width:=epaisseur;
     MoveTo(x0+largeurCell,y0);LineTo(x0,y0+hauteurCell);
@@ -1677,7 +1678,6 @@ begin
     FillRect(r);
 
     Adr:=TCO[x,y].adresse;
-    pen.color:=couleur;
     if (Adr<>0) and (detecteur[Adr].etat) then couleur:=clAllume
     else
     case mode of
@@ -1694,6 +1694,7 @@ begin
       moveTo(x0,y0);LineTo(x0+largeurCell,y0+hauteurCell);
       pen.color:=clvoies;
     end;
+    pen.color:=couleur; 
     Brush.Color:=couleur;
     Pen.Mode:=pmCopy;
     Pen.Width:=epaisseur;
@@ -2631,7 +2632,7 @@ begin
   end;
 end;
 
-// Element 25
+// Element 25  croisement
 procedure dessin_25(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xf,yf,xc,yc,trajet : integer;
     r : Trect;
@@ -3346,7 +3347,7 @@ begin
   end;
 
   // autres détecteurs
-  if ((Bimage=7) or (Bimage=8) or (Bimage=9) or (Bimage=10) or (Bimage=17)  or (Bimage=20))  and (adresse<>0) then
+  if ((Bimage=7) or (Bimage=8) or (Bimage=9) or (Bimage=10) or (Bimage=11) or (Bimage=17)  or (Bimage=20))  and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO do
     begin
@@ -5271,7 +5272,6 @@ begin
     //Affiche('xcliccell='+IntToSTR(XclicCell)+' ycliccell='+IntToSTR(YclicCell),clyellow);
     if XclicCell>NbreCellX then exit;
     if YclicCell>NbreCellY then exit;
-
     Bimage:=tco[XClicCell,YClicCell].Bimage;
     if formConfCellTCOAff then
     begin
@@ -5313,17 +5313,15 @@ begin
     s:=IntToSTR(XclicCell)+','+IntToSTR(YclicCell);
     LabelCoord.caption:=s;
     GroupBox1.Caption:='Configuration cellule '+s;
-
     XclicCellInserer:=XClicCell;
     YclicCellInserer:=YClicCell;
-
     EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
     EdittypeImage.Text:=IntToSTR(BImage);
     ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
     ShapeCoulFond.Brush.Color:=tco[XClicCell,yClicCell].CouleurFond;
 
     if not(selectionaffichee) then _entoure_cell_clic;
-    actualise;
+    actualise;    // actualise la fenetre de config cellule
     clicTCO:=false;
   end;
 
@@ -5334,7 +5332,7 @@ begin
     Position:=ImageTCO.screenToCLient(Position);
     Xclic:=position.X;
     YClic:=position.Y;
-       // coordonnées grille
+    // coordonnées grille
     XclicCell:=Xclic div largeurCell + 1;
     YclicCell:=Yclic div hauteurCell + 1;
     LabelCoord.caption:=IntToSTR(XClicCell)+','+IntToSTR(YClicCell);
@@ -5342,6 +5340,7 @@ begin
     YclicCellInserer:=YClicCell;
     //Entoure_cell(XclicCellInserer,YclicCellInserer);
     EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
+    EditTypeImage.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Bimage);
   end;
 end;
 
@@ -5450,7 +5449,7 @@ begin
 
   tco[XClicCell,YClicCell].Adresse:=Adr;
   formConfCellTCO.editAdrElement.Text:=intToSTR(Adr);
-
+  tco_Modifie:=true;
   if tco[XClicCell,YClicCell].BImage=30 then
   begin
     index:=Index_feu(adr);
@@ -5461,44 +5460,9 @@ begin
        affiche_tco;
      end;
   end;
-
   Affiche_cellule(XclicCell,YclicCell);
 end;
 
-
-procedure TFormTCO.EditAdrElementKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if key=VK_RETURN then
-  begin
-    efface_entoure;
-    affiche_cellule(XClicCell,YClicCell);
-  end;
-end;
-
-procedure TFormTCO.EditTypeImageKeyPress(Sender: TObject; var Key: Char);
-var Bimage,erreur : integer;
-begin
-  if affevt then Affiche('TCC evt editTypeImageKeyPress',clorange);
-  if actualize then exit;
-  if ord(Key)=VK_RETURN then
-  begin
-    Key:=#0; // évite beeping
-    Val(EditTypeImage.Text,Bimage,erreur);
-    //Affiche('Keypressed / Bimage='+IntToSTR(bimage),clyellow);
-    if (erreur<>0) or not(Bimage in[0..23,30,31]) then
-    begin
-      EditTypeImage.text:=intToSTR(tco[XClicCell,YClicCell].BImage);
-      exit;
-    end;
-    TCO_modifie:=true;
-    tco[XClicCell,YClicCell].Bimage:=Bimage;
-    formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
-    actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
-    efface_entoure;
-    affiche_cellule(XClicCell,YClicCell);
-  end;
-end;
 
 // mise à jour des cellules de l'adresse "adresse"
 procedure TFormTCO.Maj_TCO(Adresse : integer);
@@ -5624,57 +5588,24 @@ begin
   l:=Formprinc.Image9feux.width;    //57
   h:=Formprinc.Image9feux.height;   //105
   ImagePalette30.BeginDrag(true);
-  //ImageTemp:=ImagePalette30;
   BitBlt(OldBmp.Canvas.Handle,0,0,LargeurCell,HauteurCell,ImageTCO.Canvas.Handle,offsetSourisX,offsetSourisY,SRCCOPY);
- // StretchBlt(formTCO.ImageTemp.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle
- //            formprinc.Image9feux.Canvas.Handle,0,0,l,h,srccopy);
-  drag:=true;
-  oldx:=offsetSourisX;oldy:=offsetSourisY;
-   // debut_drag(ImagePalette30);
-
-
-
-  //imagePalette30.BeginDrag(true);
-  //StretchBlt(formTCO.ImageTCO.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle
-  //           formprinc.Image9feux.Canvas.Handle,0,0,l,h,srccopy);
-
-  //Efface_Cellule(formTCO.ImageTCO.canvas,1,1,pmCopy);
-
-  {TransparentBlt(formTCO.ImageTemp.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle   //50,50 ok 51,51 nok
-                 formprinc.Image9feux.Canvas.Handle,0,0,50,90,clblue);
-     formtco.ImageTCO.repaint;
-    }
-      with formTCO.ImageTemp2.Canvas do
-      begin
-        pen.Color:=clfond;
-        brush.Color:=clblack;
-        Rectangle(0,0,91,91);
-      end;
-      TransparentBlt(formTCO.ImageTemp2.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle   //50,50 ok 51,51 nok
-                 formprinc.Image9feux.Canvas.Handle,0,0,50,90,clblue);
-      //StretchBlt(formTCO.ImageTemp2.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle
-      //           formprinc.Image9feux.Canvas.Handle,0,0,50,90,srccopy);
-     formtco.ImageTCO.repaint;
-  //   formTCO.ImageTemp.Canvas.Rectangle(0,0,91,91);
-     formTCO.ImageTemp:=formTCO.ImageTemp2;
-     BitBlt(formTCO.ImageTemp.canvas.Handle,0,0,20,20,formTCO.ImageTemp2.canvas.Handle,0,0,SRCCOPY);
-
-  //
-  {
-  BitBlt(OldBmp.Canvas.Handle,0,0,LargeurCell,HauteurCell,FormTCO.ImageTCO.Canvas.Handle,offsetSourisX,offsetSourisY,SRCCOPY);
-  StretchBlt(Vbm.Handle,0,0,largeurCell,HauteurCell,   // destination masque avec mise à l'échelle
-             formprinc.Image9feux.canvas.handle,0,0,l,h,srccopy);     //Formprinc.Image9feux.Picture.Bitmap;
   drag:=true;
   oldx:=offsetSourisX;oldy:=offsetSourisY;
 
-   //https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-bitblt
-   StretchBlt(formTCO.ImageTCO.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination masque avec mise à l'échelle
-              formprinc.Image9feux.canvas.handle,0,0,l,h,srccopy);     //Formprinc.Image9feux.Picture.Bitmap;
-     }
-//   TransparentBlt(formTCO.ImageTCO.canvas.Handle,0,0,largeurCell,HauteurCell,
-//                formprinc.Image9feux.canvas.handle,0,0,l,h,clblue);
+  with formTCO.ImageTemp2.Canvas do
+  begin
+    pen.Color:=clfond;
+    brush.Color:=clblack;
+    Rectangle(0,0,91,91);
+  end;
+  TransparentBlt(formTCO.ImageTemp2.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle   //50,50 ok 51,51 nok
+                 formprinc.Image9feux.Canvas.Handle,0,0,50,90,clblue);
 
-   formtco.ImageTCO.repaint;
+  formtco.ImageTCO.repaint;
+  formTCO.ImageTemp:=formTCO.ImageTemp2;
+  BitBlt(formTCO.ImageTemp.canvas.Handle,0,0,20,20,formTCO.ImageTemp2.canvas.Handle,0,0,SRCCOPY);
+
+  formtco.ImageTCO.repaint;
 end;
 
 procedure Tourne90G;
@@ -5910,6 +5841,7 @@ begin
   Adresse:=Tco[xClicCell,yClicCell].Adresse;
   if adresse=0 then exit;
 
+  // double clic sur détecteur : inversion
   if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and (adresse<>0) then
   begin
     detecteur[adresse].etat:=not(detecteur[adresse].etat);
@@ -5918,7 +5850,7 @@ begin
 
   tjdC:=false;
   // commande tjd/c
-  if (Bimage=21) or (Bimage=22) then
+  if (Bimage=21) or (Bimage=22) or (Bimage=25) then
   begin
     i:=Index_aig(Adresse);
     tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
@@ -6363,14 +6295,14 @@ var oriente,piedFeu : integer;
 begin
   //Affiche('on popup',clyellow);
   
-  PopUpMenu1.Items[8][0].Caption:='Ligne au dessus de la '+intToSTR(YclicCell);
-  PopUpMenu1.Items[8][1].Caption:='Ligne en dessous de la '+intToSTR(YclicCell);
-  PopUpMenu1.Items[8][3].Caption:='Colonne à gauche de la '+intToSTR(XclicCell);
-  PopUpMenu1.Items[8][4].Caption:='Colonne à droite de la '+intToSTR(XclicCell);
-  
-  PopUpMenu1.Items[9][0].Caption:='Ligne '+intToSTR(YclicCell);
-  PopUpMenu1.Items[9][1].Caption:='Colonne '+intToSTR(XclicCell);
-  
+  PopUpMenu1.Items[9][0].Caption:='Ligne au dessus de la '+intToSTR(YclicCell);
+  PopUpMenu1.Items[9][1].Caption:='Ligne en dessous de la '+intToSTR(YclicCell);
+  PopUpMenu1.Items[9][3].Caption:='Colonne à gauche de la '+intToSTR(XclicCell);
+  PopUpMenu1.Items[9][4].Caption:='Colonne à droite de la '+intToSTR(XclicCell);
+
+  PopUpMenu1.Items[10][0].Caption:='Ligne '+intToSTR(YclicCell);
+  PopUpMenu1.Items[10][1].Caption:='Colonne '+intToSTR(XclicCell);
+
   // grise ou non l'entrée signal du menu
   if tco[XClicCell,YClicCell].Bimage=30 then
   begin
@@ -6392,8 +6324,8 @@ begin
     begin
       PopUpMenu1.Items[6][0].checked:=false;
       PopUpMenu1.Items[6][1].checked:=true;
-      PopUpMenu1.Items[6][2].checked:=false; 
-    end;  
+      PopUpMenu1.Items[6][2].checked:=false;
+    end;
     PiedFeu:=tco[XClicCell,YClicCell].PiedFeu;
     if PiedFeu=1 then
     begin
@@ -6765,9 +6697,42 @@ begin
   accept:=true;
 end;
 
+procedure TFormTCO.EditTypeImageChange(Sender: TObject);
+var Bimage,erreur : integer;
+begin
+  if clicTCO or not(formConfCellTCOAff) then exit;
+  if affevt then Affiche('TCO evt editTypeImageChange',clorange);
+  if actualize then exit;
+  Val(EditTypeImage.Text,Bimage,erreur);
+  if (erreur<>0) or not(Bimage in[0..22,24..25,30,31]) then
+  begin
+    exit;
+  end;
+  TCO_modifie:=true;
+  tco[XClicCell,YClicCell].Bimage:=Bimage;
+  formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
+  actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
+  efface_entoure;
+  affiche_cellule(XClicCell,YClicCell);
+end;
 
+procedure TFormTCO.outslectionner1Click(Sender: TObject);
+begin
+  xminiSel:=0;
+  yminiSel:=0;
+  xMaxiSel:=(NbreCellX-1)*LargeurCell;
+  yMaxiSel:=(NbreCellY-1)*HauteurCell;
+  rAncien:=rect(xminiSel,YminiSel,xmaxiSel+LargeurCell,YMaxiSel+HauteurCell);
+
+  SelectionAffichee:=true;
+  with imageTCO.Canvas do
+  begin
+    Pen.Mode:=PmXor;
+    Pen.color:=clGrille;
+    Brush.Color:=clblue;
+    Rectangle(rAncien);
+  end;
+end;
 
 begin
-
-
 end.

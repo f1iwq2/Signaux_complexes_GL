@@ -154,7 +154,8 @@ version 5.6  : Ajout d'affichage d'informations supplémentaires
 version 5.7  : Glisser-déposer du TCO avec les icônes de placement.
                Vérification des incompatibilités de placement des icônes du TCO.
                Gestion des passages à niveau par comptage/décomptage des trains.
-
-
-
-
+version 5.71 : Gestion des actionneurs sur fronts plutot que sur états.
+version 5.72 : Actualisation des réponses/commandes des détecteurs en DCC++.
+               Correction d'une régression sur les evt actionneurs par aiguillages.
+version 5.73 : Ajout d'un bouton d'autorisation pour le pare-feu windows.
+               Ajout d'une 5ème voie pour la gestion des PN par actionneurs.

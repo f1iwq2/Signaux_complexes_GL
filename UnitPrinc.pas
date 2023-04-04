@@ -14,6 +14,9 @@ Unit UnitPrinc;
     -            1    = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
 
  vitesse port com lenz=57600
+
+ ligne de commande en mode administrateur pour valider le socket:
+ netsh advfirewall firewall add rule name="cdm rail" dir=in action=allow program="C:\Program Files (x86)\CDM-Rail\cdr.exe" enable=yes
 *)
 
 // en mode simulation run:
@@ -394,7 +397,7 @@ var
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
-  TpsTimeoutSL : integer;
+  TpsTimeoutSL,formatY : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -477,11 +480,12 @@ var
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,fonction,tempo,TempoCourante,
     accessoire,sortie,
-    typdeclenche  : integer;  // déclencheur: 0=actioneur  1=MemZone   2=evt aig
+    typdeclenche  : integer;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
     Raz : boolean;
-    det : boolean;             // le déclencheur est un détecteur
     FichierSon,trainDecl,TrainDest,TrainCourant : string;
   end;
+
+  Ancien_actionneur : array[0..1024] of integer;
 
   KeyInputs: array of TInput;
   Tablo_PN : array[0..Max_actionneurs] of
@@ -493,7 +497,7 @@ var
     NbVoies       : integer;  // Nombre de voies du PN
     Pulse         : integer;  // 0=commande maintenue  1=Impulsionnel
     compteur      : integer;  // comptage actionneurs fermeture et décomptage actionneurs ouverturef
-    Voie : array [1..4] of record
+    Voie : array [1..5] of record
              ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et  l'ouverture
              detZ1F,detZ2F,detZ1O,detZ2O : integer; // Zones de détection
            end;
@@ -3283,6 +3287,22 @@ begin
   r:=r or ((b and $02) shl 5);
   r:=r or ((b and $01) shl 7);
   inverse:=r;
+end;
+
+// inverse l'ordre des bits dans les deux quartets d'un octet
+// ex 0010 1010 devient 0100 0101
+function inverseQuartet(b : byte) : byte;
+var r : byte;
+begin
+  r:= ((b and $8) shr 3);       // vers bit 0
+  r:=r or ((b and $4) shr 1);   // vers bit 1
+  r:=r or ((b and $2) shl 1);   // vers bit 2
+  r:=r or ((b and $1) shl 3);   // vers bit 3
+  r:=r or ((b and $80) shr 3);  // vers bit 4
+  r:=r or ((b and $40) shr 1);  // vers bit 5
+  r:=r or ((b and $20) shl 1);  // vers bit 6
+  r:=r or ((b and $10) shl 3);  // vers bit 7
+  inverseQuartet:=r;
 end;
 
 // envoie les données au décodeur digikeijs 4018
@@ -8858,25 +8878,49 @@ end;
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 var typ,i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
-    presTrain_PN,adresseOk : boolean;
+    fm,fd,presTrain_PN,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
 begin
-  // vérifier si l'actionneur en évènement a été déclaré pour réagir
-  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
-  if adr=0 then exit;
+  if adr<=0 then exit;
   //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
+
+  if adr>1024 then
+  begin
+    Affiche('Erreur 81 : reçu adresse actionneur trop grande : '+intToSTR(adr),clred);
+    exit;
+  end;
+
+  // Etat actionneur (un état aiguillage peut prendre les valeurs de 1 à 2)
+  // ancien  nouveau
+  //    0      1     FM
+  //    0      2     FM
+  //    1      2     FM
+  //    2      1     FM
+  //---------------------
+  //    1      0     FD
+  //    2      0     FD
+
+  fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant
+  fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant
+
+  ancien_actionneur[adr]:=etat;
+  if not(fd) and not(fm) then exit;
+
+  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
+
+  // vérifier si l'actionneur en évènement a été déclaré pour réagir
+  // dans tableau des actionneurs
   for i:=1 to maxTablo_act do
   begin
-
     s:=Tablo_actionneur[i].trainDecl;
-    etatAct:=Tablo_actionneur[i].etat ;
-
-    typ:=Tablo_actionneur[i].typdeclenche;
+    etatAct:=Tablo_actionneur[i].etat ;  // état à réagir
+    etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);
+    typ:=Tablo_actionneur[i].typdeclenche;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
     if typ=0 then
     begin
       st:='Détecteur/actionneur '+intToSTR(adr);
     end;
-    if typ=1 then
+    if typ=3 then
     begin
       adresseok:=adresseOk and (Tablo_actionneur[i].adresse2=adr2);
       st:='Mémoire de zone '+intToSTR(adr)+' '+intToStr(adr2);
@@ -8890,7 +8934,7 @@ begin
                ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2) ) and (typ=1) );
 
     // actionneur pour fonction train
-    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       trainDest:=Tablo_actionneur[i].trainDest;
       // exécution de la fonction F vers CDM
@@ -8903,7 +8947,7 @@ begin
     end;
 
     // actionneur pour accessoire
-    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat) then
+    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       access:=Tablo_actionneur[i].accessoire;
       sortie:=Tablo_actionneur[i].sortie;
@@ -8915,7 +8959,7 @@ begin
     end;
 
     // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatAct=etat)
+    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide)
     then
     begin
       if typ<>2 then st:=st+' Train='+trainDecl;
@@ -8930,13 +8974,13 @@ begin
     if Tablo_PN[i].voie[1].actOuvre<>0 then
     begin
       // PN par actionneur
-      if Tablo_PN[i].nbvoies>4 then Tablo_PN[i].nbvoies:=4;
+      if Tablo_PN[i].nbvoies>5 then Tablo_PN[i].nbvoies:=5;
       for v:=1 to Tablo_PN[i].nbvoies do
       begin
         aF:=Tablo_PN[i].voie[v].actFerme;
         aO:=Tablo_PN[i].voie[v].actOuvre;
 
-        if (aO=adr) and (etat=0) then  // actionneur d'ouverture
+        if (aO=adr) and (fd) then  // actionneur d'ouverture sur front descendant
         begin
           if tablo_pn[i].compteur=1 then  // compteur du nombre de trains sur le PN
           begin
@@ -8947,7 +8991,7 @@ begin
           if tablo_pn[i].compteur>0 then dec(tablo_pn[i].compteur);
         end;
 
-        if (aF=adr) and (etat=1) then  // actionneur de fermeture
+        if (aF=adr) and (fm) then  // actionneur de fermeture sur front montant
         begin
           inc(tablo_pn[i].compteur);
           if tablo_pn[i].compteur=1 then
@@ -8964,14 +9008,14 @@ begin
     begin
       // PN par zone de détection
       // Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
-      if Tablo_PN[i].nbvoies>4 then Tablo_PN[i].nbvoies:=4;
+      if Tablo_PN[i].nbvoies>5 then Tablo_PN[i].nbvoies:=5;
       for v:=1 to Tablo_PN[i].nbvoies do
       begin
         dZ1F:=Tablo_PN[i].voie[v].detZ1F;
         dZ2F:=Tablo_PN[i].voie[v].detZ2F;
         dZ1O:=Tablo_PN[i].voie[v].detZ1O;
         dZ2O:=Tablo_PN[i].voie[v].detZ2O;
-        if (dZ1O=adr) and (dZ2O=adr2) and (etat=0) then  // zone d'ouverture
+        if (dZ1O=adr) and (dZ2O=adr2) and (fd) then  // zone d'ouverture
         begin
           if Tablo_PN[i].compteur=1 then
           begin
@@ -8984,7 +9028,7 @@ begin
           end;
         end;
 
-        if (dZ1F=adr) and (dZ2F=adr2) and (etat=1) then  // zone de fermeture
+        if (dZ1F=adr) and (dZ2F=adr2) and (fm) then  // zone de fermeture
         begin
           inc(Tablo_PN[i].compteur);
           if tablo_pn[i].compteur=1 then
@@ -9119,11 +9163,11 @@ begin
 
         AdrSuiv:=Feux[i].Adr_el_suiv1;
         TypeSuiv:=Feux[i].Btype_suiv1;
-        if AffSignal then AfficheDebug('Pour Feu '+intToSTR(AdrFeu)+' detecteursuivant('+intToSTR(AdrSuiv)+','+BTypeToChaine(typeSuiv)+','+intToSTR(AdrDetFeu)+',1)',clyellow);
+        if AffSignal then AfficheDebug('Pour signal '+intToSTR(AdrFeu)+' detecteursuivant('+intToSTR(AdrSuiv)+','+BTypeToChaine(typeSuiv)+','+intToSTR(AdrDetFeu)+',1)',clyellow);
         AdrPrec:=detecteur_suivant(AdrSuiv,typeSuiv,AdrDetFeu,det,1) ; // détecteur précédent le feu, algo 1
         if AdrPrec=0 then
         begin
-          If traceListe then AfficheDebug('Le feu '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
+          If traceListe then AfficheDebug('Le signal '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
           MemZone[0,AdrDetFeu].etat:=true;
           event_act(0,AdrDetFeu,1,'');             // activation zone
           maj_feu(AdrFeu,false);
@@ -9201,63 +9245,64 @@ var s: string;
 begin
   if nivDebug=1 then AfficheDebug('Event Aig '+intToSTR(adresse),clorange);
   index:=index_aig(adresse);
-  if index=0 then exit;
-
-  // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome ou CDM, inverser sa position
-  inv:=false;
-  if (aiguillage[index].inversionCDM=1) and (portCommOuvert or parSocketLenz) then
+  if index<>0 then
   begin
-    prov:=pos;
-    inv:=true;
-    if prov=const_droit then pos:=const_devie else pos:=const_droit;
-  end;
-
-  // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
-  // car le RUN vient de démarrer
-  faire_event:=aiguillage[index].position<>9;
-  aiguillage[index].position:=pos;    // stockage de la nouvelle position de l'aiguillage
-
-  // ------------- stockage évènement aiguillage dans tampon event_det_tick -------------------------
-  if (N_Event_tick>=Max_Event_det_tick) then
-  begin
-    N_Event_tick:=0;
-    Affiche('Raz Evts ',clLime);
-  end;
-
-  if AffAigDet then
-  begin
-    s:='Tick='+IntToSTR(tick)+' Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
-    case pos of
-      const_droit : s:=s+' droit';
-      const_devie : s:=s+' dévié';
-      const_inconnu : s:=s+' inconnu';
+    // si l'aiguillage est inversé dans CDM et qu'on est en mode autonome ou CDM, inverser sa position
+    inv:=false;
+    if (aiguillage[index].inversionCDM=1) and (portCommOuvert or parSocketLenz) then
+    begin
+      prov:=pos;
+      inv:=true;
+      if prov=const_droit then pos:=const_devie else pos:=const_droit;
     end;
-    if inv then s:=s+' INV';
-    AfficheDebug(s,clyellow);
-    FormDebug.MemoEvtDet.lines.add(s) ;
+
+    // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
+    // car le RUN vient de démarrer
+    faire_event:=aiguillage[index].position<>9;
+    aiguillage[index].position:=pos;    // stockage de la nouvelle position de l'aiguillage
+
+    // ------------- stockage évènement aiguillage dans tampon event_det_tick -------------------------
+    if (N_Event_tick>=Max_Event_det_tick) then
+    begin
+      N_Event_tick:=0;
+      Affiche('Raz Evts ',clLime);
+    end;
+
+    if AffAigDet then
+    begin
+      s:='Tick='+IntToSTR(tick)+' Evt Aig '+intToSTR(adresse)+'='+intToSTR(pos);
+      case pos of
+        const_droit : s:=s+' droit';
+        const_devie : s:=s+' dévié';
+        const_inconnu : s:=s+' inconnu';
+      end;
+      if inv then s:=s+' INV';
+      AfficheDebug(s,clyellow);
+      FormDebug.MemoEvtDet.lines.add(s) ;
+    end;
+
+
+    if (n_Event_tick mod 10) =0 then affiche_memoire;
+    inc(N_Event_tick);
+    event_det_tick[N_event_tick].tick:=tick;
+    event_det_tick[N_event_tick].adresse:=adresse;
+    event_det_tick[N_event_tick].modele:=aig;
+    event_det_tick[N_event_tick].etat:=pos;
+
+    // Mettre à jour le TCO
+    if TCOouvert then formTCO.Maj_TCO(Adresse);
+
+    // l'évaluation des routes est à faire selon conditions
+    if faire_event and not(confignulle) then begin evalue;evalue;end;
   end;
 
-
-  if (n_Event_tick mod 10) =0 then affiche_memoire;
-  inc(N_Event_tick);
-  event_det_tick[N_event_tick].tick:=tick;
-  event_det_tick[N_event_tick].adresse:=adresse;
-  event_det_tick[N_event_tick].modele:=aig;
-  event_det_tick[N_event_tick].etat:=pos;
-
-  // Mettre à jour le TCO
-  if TCOouvert then formTCO.Maj_TCO(Adresse);
-
-  // l'évaluation des routes est à faire selon conditions
-  if faire_event and not(confignulle) then begin evalue;evalue;end;
-
-  // actionneur d'aiguillage
+  // evt actionneur d'aiguillage
   for i:=1 to maxTablo_act do
   begin
     etatAct:=Tablo_actionneur[i].etat ;
     adr:=Tablo_actionneur[i].adresse;
     typ:=Tablo_actionneur[i].typdeclenche;
-    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,'');
+    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
   end;
 end;
 
@@ -9577,6 +9622,7 @@ end;
 // décodage chaine au protocole DCC (un seul paramètre encadré par < > )
 function decode_chaine_retro_dcc(chaineINT : string) : string;
 var i,j,n,adresse,groupe,rang,valeur,erreur : integer;
+    b : byte;
     s : string;
 begin
   if length(s)>0 then if chaineINT[1]=#$0D then delete(chaineINT,1,1);
@@ -9639,7 +9685,7 @@ begin
     exit;
   end;
 
-  // détecteur 0 (Q ID) ou réponse à un détecteur si 3 paramètres (Q ID PIN PULLUP)
+  // détecteur 1 (Q ID) ou réponse à un détecteur si 3 paramètres (Q ID PIN PULLUP)
   i:=pos('<Q',chaineINT);
   if i<>0 then
   begin
@@ -9658,7 +9704,7 @@ begin
     exit;
   end;
 
-  // détecteur 1
+  // détecteur 0
   i:=pos('<q',chaineINT);
   if i<>0 then
   begin
@@ -9706,24 +9752,62 @@ begin
     exit;
   end;
 
-  // y  détecteur en hexa
+  // réponse à la commande <Y nombre format>
+  // y  détecteurs
+  //  <y 00001010000101000111010000>     format 0
+  //  <y 0A0147405801CE..40›             format 1 quartets renversés
+  //  <y XXXXX......›       (hexa pur)   format 2
+  //  <Q ID>                             format 3
+  //
   i:=pos('<y',chaineINT);
   if i<>0 then
   begin
     delete(chaineINT,1,i+2);
-    i:=0;
-    repeat
-      if chaineINT[1]='0' then valeur:=0 else valeur:=1;
-      delete(chaineINT,1,1);
-      Event_detecteur(AdrBaseDetDccpp+i,valeur=1,'');
-      //affiche(intToSTR(513+i),clyellow);
-      inc(i);
-    until (chaineINT[1]='>') or (length(s)=1);
+    if (formatY=0) or (formatY=-1) then
+    begin
+      i:=0;
+      repeat
+        if chaineINT[1]='0' then valeur:=0 else valeur:=1;
+        delete(chaineINT,1,1);
+        Event_detecteur(AdrBaseDetDccpp+i,valeur=1,'');
+        //affiche(intToSTR(513+i),clyellow);
+        inc(i);
+      until (chaineINT[1]='>') or (length(chaineINT)=1);
+    end;
+
+    if formatY=1 then
+    begin
+      j:=0;
+      repeat
+        val('$'+copy(chaineINT,1,2),b,erreur);
+        delete(chaineINT,1,2);
+        b:=inverseQuartet(b);
+        for i:=7 downto 0 do
+        begin
+          event_detecteur(AdrBaseDetDccpp+j,testbit(b,i),'');
+          inc(j);
+        end;
+      until length(chaineINT)<=1;
+    end;
+
+    if formatY=2 then
+    begin
+      j:=0;
+      repeat
+        val('$'+copy(chaineINT,1,2),b,erreur);
+        delete(chaineINT,1,2);
+        for i:=7 downto 0 do
+        begin
+          event_detecteur(AdrBaseDetDccpp+j,testbit(b,i),'');
+          inc(j);
+        end;
+      until length(chaineINT)<=1;
+    end;
     delete(chaineINT,1,1);
     result:=chaineINT;
+    formatY:=-1;
     exit;
   end;
-
 
   // Nok
   i:=pos('<X>',chaineINT);
@@ -10212,7 +10296,7 @@ begin
 end;
 
 procedure init_dccpp;
-var i : integer;
+var i,j1,j2,p,n,erreur : integer;
     s : string;
 begin
   if EnvAigDccpp=1 then envoi_aiguillages_DCCpp;  // envoi la liste des aiguillages à l'interface DCC++
@@ -10225,6 +10309,14 @@ begin
       Affiche(s,clLime);
       affiche_retour_dcc:=true;
       tps_affiche_retour_dcc:=2;
+      p:=pos('<Y',s);
+      if p<>0 then
+      begin
+        j1:=pos(' ',s);
+        j2:=PosEx(' ',s,j1+1);
+        val(copy(s,j1+1,1),n,erreur);
+        val(copy(s,j2+1,length(s)-j2-1),formatY,erreur);
+      end;
       envoi(s);
       sleep(200);
     end;
@@ -10792,11 +10884,10 @@ begin
   AntiTimeoutEthLenz:=0;
   Verif_AdrXpressNet:=1;
   avecRoulage:=0;
+  formatY:=-1;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique
-
   roulage1.visible:=false;
-
 
   With ScrollBox1 do
   begin
@@ -10941,7 +11032,7 @@ begin
   NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
   if NbreImagePLigne=0 then NbreImagePLigne:=1;
 
-  // ajoute les images des feux dynamiquement
+  // ajoute les images des signaux dynamiquement
   for i:=1 to NbreFeux do
   begin
     if debug=1 then affiche('Création du signal '+intToSTR(i)+' ----------',clLime);
@@ -11059,8 +11150,14 @@ begin
   //    roulage:=true;
      det_contigu(526,515,i,teq);
      Affiche(intToSTR(i),clred);  }
+ { formatY:=2;
+     ‹y 00001010000101000111010000>     format 0
+  //  ‹y 0A0147405801CE..40›             format 1 quartets renversés
+  //  ‹y XXXXX......›       (hexa pur)   format 2
 
+  decode_chaine_retro_dcc('<y 0A0147405801CE>');   }
   procetape('Terminé !!');
+  Maj_feux(false);
 end;
 
 
@@ -11187,7 +11284,7 @@ begin
       end;
     end;
 
-    // feux du TCO
+    // signaux du TCO
     if TCOouvert then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
       // parcourir les feux du TCO
@@ -11340,7 +11437,6 @@ begin
       end;
     end;
   end;
-
 end;
 
 
@@ -12830,7 +12926,7 @@ begin
     son:=Tablo_actionneur[i].son;
     typ:=Tablo_actionneur[i].typdeclenche;
 
-    if typ=1 then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
+    if typ=3 then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
     if typ=0 then s:=intToSTR(adrAct);
     if typ=2 then s:='Aig '+intToSTR(AdrAct);
 

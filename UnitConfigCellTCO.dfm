@@ -141,7 +141,7 @@ object FormConfCellTCO: TFormConfCellTCO
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      OnKeyPress = EditTypeImageKeyPress
+      OnChange = EditTypeImageChange
     end
     object GroupBox3: TGroupBox
       Left = 8
@@ -255,7 +255,7 @@ object FormConfCellTCO: TFormConfCellTCO
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
-      OnKeyPress = EditAdrElementKeyPress
+      OnChange = EditAdrElementChange
     end
     object ButtonFond: TButton
       Left = 16

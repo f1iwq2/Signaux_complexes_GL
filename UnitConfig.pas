@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils, Unitprinc,
-  MMSystem, Buttons ;
+  MMSystem, Buttons , UnitPareFeu;
 
 type
   TFormConfig = class(TForm)
@@ -324,6 +324,15 @@ type
     CheckBoxVerifXpressNet: TCheckBox;
     LabelCrois: TLabel;
     Image3: TImage;
+    ButtonPFCDM: TButton;
+    Label59: TLabel;
+    EditV5F: TEdit;
+    EditV5O: TEdit;
+    EditZdet1V5F: TEdit;
+    EditZdet2V5F: TEdit;
+    EditZdet1V5O: TEdit;
+    EditZdet2V5O: TEdit;
+    Label60: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -443,7 +452,6 @@ type
     procedure EditZdet1V3OChange(Sender: TObject);
     procedure EditZdet2V3OChange(Sender: TObject);
     procedure EditZdet1V4FChange(Sender: TObject);
-    procedure EditZdet2V4FChange(Sender: TObject);
     procedure EditZdet1V4OChange(Sender: TObject);
     procedure EditZdet2V4OChange(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -472,6 +480,13 @@ type
       Shift: TShiftState);
     procedure RichEditTrainsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ButtonPFCDMClick(Sender: TObject);
+    procedure EditV5FChange(Sender: TObject);
+    procedure EditV5OChange(Sender: TObject);
+    procedure EditZdet1V5FChange(Sender: TObject);
+    procedure EditZdet2V5FChange(Sender: TObject);
+    procedure EditZdet1V5OChange(Sender: TObject);
+    procedure EditZdet2V5OChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -1317,10 +1332,10 @@ begin
   case Tablo_Actionneur[i].typdeclenche of
   0 :
   begin
-    s:=IntToSTR(adresse); if tablo_actionneur[i].det then s:=s+'Z';
+    s:=IntToSTR(adresse);// if tablo_actionneur[i].det then s:=s+'Z';
   end;
   // type mémoire de zone
-  1 :
+  3 :
   begin
     s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].adresse2)+']';
   end;
@@ -1357,7 +1372,7 @@ begin
   with formconfig do
   begin
     NbVoies:=Tablo_PN[i].NbVoies;
-    if NbVoies>4 then nbVoies:=4;
+    if NbVoies>5 then nbVoies:=5;
     s:='';
 
     // par actionneur
@@ -1707,7 +1722,7 @@ begin
     Tablo_actionneur[i].accessoire:=0;
     Tablo_actionneur[i].sortie:=0;
     Tablo_actionneur[i].fichierSon:='';
-    Tablo_actionneur[i].det:=false;
+   // Tablo_actionneur[i].det:=false;
     Tablo_actionneur[i].loco:=false;
     Tablo_actionneur[i].act:=false;
     Tablo_actionneur[i].son:=false;
@@ -1737,7 +1752,7 @@ begin
       i:=pos('MEM[',sOrigine);
       if i>0 then
       begin
-        Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type mémoire de zone
+        Tablo_actionneur[maxtablo_act].typdeclenche:=3;  // type mémoire de zone
         Delete(sa,1,4);
         val(sa,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
@@ -1745,7 +1760,6 @@ begin
         val(sa,j,erreur);
         i:=pos(',',sa);
         Tablo_actionneur[maxtablo_act].adresse2:=j;
-        Tablo_actionneur[maxTablo_act].det:=true;
         delete(sa,1,i);
         s:=sa; // mémo s
       end;
@@ -1757,8 +1771,6 @@ begin
           Tablo_actionneur[maxtablo_act].typdeclenche:=0;  // type actionneur
           val(sa,j,erreur);
           Tablo_actionneur[maxtablo_act].adresse:=j;
-          if erreur<>0 then Tablo_actionneur[maxTablo_act].det:=sa[erreur]='Z'
-          else Affiche('Erreur actionneur '+sOrigine,clred);
           delete(sa,1,erreur);
           s:=sa;
         end;
@@ -1932,7 +1944,7 @@ begin
           i:=pos(')',s);Delete(S,1,i);
           i:=pos(',',s);Delete(S,1,i);
           Tablo_PN[NbrePN].compteur:=0;
-        until (copy(s,1,2)='PN') or (NbreVoies=4);
+        until (copy(s,1,2)='PN') or (NbreVoies=5);
 
         Tablo_PN[NbrePN].NbVoies:=NbreVoies;
         Delete(s,1,3);  // Supprime PN(
@@ -3282,7 +3294,7 @@ begin
   RadioButton2.checked:=false;
   if Valeur_entete=0 then RadioButton1.checked:=true;
   if Valeur_entete=1 then RadioButton2.checked:=true;
-  LabelInfo.Width:=253;LabelInfo.Height:=25;
+  LabelInfo.Width:=240;LabelInfo.Height:=25;
   LabelResult.width:=137;LabelResult.Height:=25;
   LabelNomSon.top:=16;LabelNomSon.Left:=48;
   SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
@@ -4096,7 +4108,6 @@ end;
 Procedure aff_champs_act(i : integer);
 var etatact, adresse,sortie,fonction,tempo,access,typ : integer;
     s,s2,adr : string;
-    det : boolean;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
   if i<1 then exit;
@@ -4105,7 +4116,6 @@ begin
 
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
-  det:=Tablo_actionneur[i].det;
   typ:=Tablo_actionneur[i].typdeclenche;
 
   // déclencheurs
@@ -4116,7 +4126,7 @@ begin
     begin
       champs_decl_actdet;
     end;
-    1 :
+    3 :
     begin
       champs_decl_zones;
     end;
@@ -4127,7 +4137,8 @@ begin
     end;
   end;
 
-  if det then s2:='Détecteur ' else s2:='Actionneur ';
+  //if det then s2:='Détecteur ' else s2:='Actionneur ';
+  s2:='Détecteur ou actionneur ';
   s2:=s2+intToSTR(Tablo_actionneur[i].adresse);
   FormConfig.EditAct.Hint:=s2;
 
@@ -4147,7 +4158,7 @@ begin
     with formconfig do
     begin
       champs_type_loco;
-      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       editEtatActionneur.Text:=IntToSTR(etatAct);
@@ -4187,7 +4198,7 @@ begin
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
-      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
@@ -4225,7 +4236,7 @@ begin
     s:=Tablo_actionneur[i].FichierSon;
     with formconfig do
     begin
-      adr:=IntToSTR(Adresse); if det then adr:=adr+'Z';
+      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
@@ -4246,10 +4257,12 @@ begin
     editV2F.Text:='';editV2O.Text:='';
     editV3F.Text:='';editV3O.Text:='';
     editV4F.Text:='';editV4O.Text:='';
+    editV5F.Text:='';editV5O.Text:='';
     EditZdet1V1F.text:='';EditZdet2V1F.text:='';EditZdet1V1O.text:='';EditZdet2V1O.text:='';
     EditZdet1V2F.text:='';EditZdet2V2F.text:='';EditZdet1V2O.text:='';EditZdet2V2O.text:='';
     EditZdet1V3F.text:='';EditZdet2V3F.text:='';EditZdet1V3O.text:='';EditZdet2V3O.text:='';
     EditZdet1V4F.text:='';EditZdet2V4F.text:='';EditZdet1V4O.text:='';EditZdet2V4O.text:='';
+    EditZdet1V5F.text:='';EditZdet2V5F.text:='';EditZdet1V5O.text:='';EditZdet2V5O.text:='';
   end;
 end;
 
@@ -4315,12 +4328,18 @@ begin
           EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
           EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
         end;
+        if v>=5 then
+        begin
+          EditV5F.text:=intToSTR(Tablo_PN[i].voie[5].ActFerme);
+          EditV5O.text:=intToSTR(Tablo_PN[i].voie[5].ActOuvre);
+        end;
+
       end
       else
       begin
         // par zone de détecteurs
         v:=Tablo_PN[i].nbvoies;
-        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then 
+        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then
         begin 
           EditZdet1V1F.text:=intToSTR(j);
           EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
@@ -4339,7 +4358,7 @@ begin
             EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
             EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
             EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
-          end;  
+          end;
           if v>=4 then
           begin
             EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
@@ -4347,6 +4366,14 @@ begin
             EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
             EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
           end;
+          if v>=5 then
+          begin
+            EditZdet1V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ1F);
+            EditZdet2V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ2F);
+            EditZdet1V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ1O);
+            EditZdet2V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ2O);
+          end;
+
         end;
       end;  
     end;  
@@ -5294,7 +5321,6 @@ begin
       end else LabelInfo.caption:=' ';
 
       tablo_actionneur[ligneClicAct+1].adresse:=act;
-      tablo_actionneur[ligneClicAct+1].det:=det;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
@@ -5324,7 +5350,6 @@ begin
       end else LabelInfo.caption:=' ';
 
       tablo_actionneur[ligneClicAct+1].adresse2:=det2;
-      tablo_actionneur[ligneClicAct+1].det:=det;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
     end;
@@ -5379,7 +5404,7 @@ begin
     begin
       Val(s,etat,erreur);
       typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
-      if (erreur<>0) or (etat<0) or ((typ<2) and (etat>1)) or ((typ=2) and (etat>2)) then
+      if (erreur<>0) or (etat<0) or ((typ<3) and (etat>1)) or ((typ=2) and (etat>2)) then
       begin
         if typ<2 then begin LabelInfo.caption:='Erreur état actionneur';exit;end;
         if typ=2 then begin LabelInfo.caption:='Erreur position aiguillage';exit;end;
@@ -5391,7 +5416,7 @@ begin
     end;
   end;
 end;
-  
+
 procedure TFormConfig.EditTrainDeclChange(Sender: TObject);
 var s,train : string;
 begin
@@ -6475,9 +6500,9 @@ begin
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
-  FormConfig.ButtonInsFeu.Caption:='Ajouter le feu '+intToSTR(feux[index].adresse)+' supprimé';
+  FormConfig.ButtonInsFeu.Caption:='Ajouter le signal '+intToSTR(feux[ligneDeb].adresse)+' supprimé';
   clicliste:=true;
-  Feu_supprime:=feux[index];  // sauvegarde le supprimé
+  Feu_supprime:=feux[lignedeb];  // sauvegarde le supprimé
   feu_sauve.adresse:=0;       // dévalider sa définition
 
   index:=ligneDeb;
@@ -7573,10 +7598,10 @@ begin
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
-  FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[index].adresse)+' supprimé';
+  FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[lignedeb].adresse)+' supprimé';
   clicliste:=true;
   raz_champs_aig;
-  Aig_supprime:=aiguillage[index];  // sauvegarde le supprimé
+  Aig_supprime:=aiguillage[lignedeb];  // sauvegarde le supprimé
   Aig_sauve.adresse:=0;             // dévalider sa définition
 
   index:=ligneDeb;
@@ -8494,7 +8519,7 @@ begin
   if affevt then affiche('Evt EditV4O Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditV4O.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
@@ -8510,6 +8535,61 @@ begin
     s:=encode_act_PN(i);
     RichPN.Lines[lignecliqueePN]:=s;
   end;
+end;
+
+procedure TFormConfig.EditV5FChange(Sender: TObject);
+var s : string;
+    i,act,erreur,NbVoies : integer;
+    V5valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditV5F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditV5F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse actionneur voie 4 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[5].ActFerme:=act;
+    V5valide:=(EditV4O.text<>'') and (EditV5F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V5Valide and (NbVoies<=4) then tablo_PN[i].NbVoies:=5;
+    if not(V5Valide) then tablo_PN[i].NbVoies:=4;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditV5OChange(Sender: TObject);
+var s : string;
+    i,act,erreur,NbVoies : integer;
+    V5valide : boolean;
+begin
+  if clicliste or (lignecliqueePN<0) then exit;
+  if affevt then affiche('Evt EditV5O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditV5O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse actionneur voie 4 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[5].ActOuvre:=act;
+    V5valide:=(EditV4O.text<>'') and (EditV5F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V5Valide and (NbVoies<=4) then tablo_PN[i].NbVoies:=5;
+    if not(V5Valide) then tablo_PN[i].NbVoies:=4;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+
 end;
 
 procedure TFormConfig.EditLChange(Sender: TObject);
@@ -8674,7 +8754,7 @@ begin
   if clicListe then exit;
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typdeclenche:=1;
+  Tablo_Actionneur[i].typdeclenche:=3;
   LabelActionneur.Caption:='Mémoire de Zone';
   EditTrainDecl.Visible:=false;
   LabelTrain.Visible:=false;
@@ -9253,7 +9333,7 @@ begin
 end;
 
 procedure TFormConfig.EditZdet1V4FChange(Sender: TObject);
- var s : string;
+var s : string;
     act,erreur,NbVoies,i : integer;
     V2valide : boolean;
 begin
@@ -9261,7 +9341,7 @@ begin
   if affevt then affiche('Evt EditZdet1V4F Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditZdet1V4F.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
@@ -9279,31 +9359,60 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditZdet2V4FChange(Sender: TObject);
+
+procedure TFormConfig.EditZdet1V5FChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V5F Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet1V5F.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 5 ferme';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[5].detZ1F:=act;
+    V2valide:=(EditZdet1V5F.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=4) then tablo_PN[i].NbVoies:=5;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=4;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V5FChange(Sender: TObject);
 var s : string;
     act,erreur,NbVoies,i : integer;
     V2valide : boolean;
 begin
   if clicliste then exit;
-  if affevt then affiche('Evt EditZdet2V4F Change',clyellow);
+  if affevt then affiche('Evt EditZdet2V5F Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
-    s:=EditZdet2V4F.Text;
+  begin
+    s:=EditZdet2V5F.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
     begin
-      LabelInfo.caption:='Erreur adresse détecteur voie 4 ferme';exit
+      LabelInfo.caption:='Erreur adresse détecteur voie 5 ferme';exit
     end else LabelInfo.caption:=' ';
     i:=lignecliqueePN+1;
-    tablo_PN[i].voie[4].detZ2F:=act;
-    V2valide:=(EditZdet2V4F.text<>'');
+    tablo_PN[i].voie[5].detZ2F:=act;
+    V2valide:=(EditZdet2V5F.text<>'');
     NbVoies:=tablo_PN[i].NbVoies;
-    if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
-    if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    if V2Valide and (NbVoies=4) then tablo_PN[i].NbVoies:=5;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=4;
     s:=encode_act_PN(i);
     RichPN.Lines[lignecliqueePN]:=s;
   end;
+
 end;
 
 procedure TFormConfig.EditZdet1V4OChange(Sender: TObject);
@@ -9315,7 +9424,7 @@ begin
   if affevt then affiche('Evt EditZdet1V4O Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditZdet1V4O.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
@@ -9331,11 +9440,38 @@ begin
     s:=encode_act_PN(i);
     RichPN.Lines[lignecliqueePN]:=s;
   end;
+end;
+
+procedure TFormConfig.EditZdet1V5OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet1V5O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet1V5O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 5 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[5].detZ1O:=act;
+    V2valide:=(EditZdet1V5O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=4) then tablo_PN[i].NbVoies:=5;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=4;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
 
 end;
 
 procedure TFormConfig.EditZdet2V4OChange(Sender: TObject);
- var s : string;
+var s : string;
     act,erreur,NbVoies,i : integer;
     V2valide : boolean;
 begin
@@ -9343,12 +9479,12 @@ begin
   if affevt then affiche('Evt EditZdet2V4O Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     s:=EditZdet2V4O.Text;
     Val(s,act,erreur);
     if (erreur<>0) and (s<>'') then
     begin
-      LabelInfo.caption:='Erreur adresse détecteur voie 3 ouvre';exit
+      LabelInfo.caption:='Erreur adresse détecteur voie 4 ouvre';exit
     end else LabelInfo.caption:=' ';
     i:=lignecliqueePN+1;
     tablo_PN[i].voie[4].detZ2O:=act;
@@ -9356,6 +9492,33 @@ begin
     NbVoies:=tablo_PN[i].NbVoies;
     if V2Valide and (NbVoies=3) then tablo_PN[i].NbVoies:=4;
     if not(V2Valide) then tablo_PN[i].NbVoies:=3;
+    s:=encode_act_PN(i);
+    RichPN.Lines[lignecliqueePN]:=s;
+  end;
+end;
+
+procedure TFormConfig.EditZdet2V5OChange(Sender: TObject);
+var s : string;
+    act,erreur,NbVoies,i : integer;
+    V2valide : boolean;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt EditZdet2V5O Change',clyellow);
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
+  with Formconfig do
+  begin
+    s:=EditZdet2V5O.Text;
+    Val(s,act,erreur);
+    if (erreur<>0) and (s<>'') then
+    begin
+      LabelInfo.caption:='Erreur adresse détecteur voie 5 ouvre';exit
+    end else LabelInfo.caption:=' ';
+    i:=lignecliqueePN+1;
+    tablo_PN[i].voie[5].detZ2O:=act;
+    V2valide:=(EditZdet2V5O.text<>'');
+    NbVoies:=tablo_PN[i].NbVoies;
+    if V2Valide and (NbVoies=4) then tablo_PN[i].NbVoies:=5;
+    if not(V2Valide) then tablo_PN[i].NbVoies:=4;
     s:=encode_act_PN(i);
     RichPN.Lines[lignecliqueePN]:=s;
   end;
@@ -9899,6 +10062,40 @@ begin
   clicListe:=false;
 end;
 
+procedure TFormConfig.ButtonPFCDMClick(Sender: TObject);
+var i : integer;
+    s : string;
+    r : boolean;
+begin
+  i:=verifie_regle;
+  if i=0 then
+  begin
+    r:=cree_regle;
+    if r then
+    begin
+      s:='La règle d''autorisation CDM rail a été ajoutée dans le pare-feu ';
+      Affiche(s,clyellow);
+      i:=verifie_regle;
+    end;  
+  end;
+
+  if i=0 then s:='La règle d''autorisation CDM rail n''a pas été trouvée dans le pare-feu ';
+  if i=1 then s:='La règle d''autorisation CDM rail a été trouvée dans le pare-feu mais elle est désactivée';
+  if i=2 then s:='La règle d''autorisation CDM rail a été trouvée dans le pare-feu et elle est activée';
+  Affiche(s,clyellow);
+  formconfig.Labelinfo.caption:=s;
+  activecontrol:=nil;
+end;
+
+
+
+
+
+
+
+
+
+
 end.
 
 
