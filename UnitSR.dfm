@@ -505,7 +505,7 @@ object FormSR: TFormSR
   object LabelErreur: TLabel
     Left = 224
     Top = 528
-    Width = 89
+    Width = 3
     Height = 13
     Caption = ':'
   end

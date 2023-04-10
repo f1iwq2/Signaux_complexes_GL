@@ -164,4 +164,5 @@ begin
   if (intervalle<0) then Intervalle:=1;
 end;
 
+begin
 end.

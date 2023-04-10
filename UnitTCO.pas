@@ -467,6 +467,20 @@ begin
     Affiche('Nouveau tco',clyellow);
     NbreCellX:=35;NbreCellY:=20;LargeurCell:=35;HauteurCell:=35;
     RatioC:=10;
+    ClFond:=$202050;
+    ClVoies:=$0077FF;
+    ClAllume:=$00FFFF;
+    ClGrille:=$404040;
+    ClTexte:=$00FF00;
+    ClQuai:=$808080;
+    clPiedSignal:=$4080FF;
+    ClCanton:=$00FFFF;
+    AvecGrille:=true;
+    SetLength(TCO,NbreCellX+1,NbreCellY+1);
+    SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+    for x:=1 to NbreCellX do
+      for y:=1 to NbreCellY do
+        tco[x,y].CouleurFond:=clfond;
     exit;
   end;
   {$I-}
@@ -485,6 +499,7 @@ begin
   trouve_AvecGrille:=false;
   eval_format:=false;
   ModeCouleurCanton:=1;
+  AvecGrille:=true;
   clCanton:=ClYellow;
 
   // couleurs

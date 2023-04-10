@@ -625,4 +625,5 @@ begin
   AFfDetSIg:=checkDetSig.checked;
 end;
 
+begin
 end.

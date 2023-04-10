@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   DesignSize = (
     1197
-    611)
+    612)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1203,7 +1203,7 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 589
+    Height = 590
   end
   object ScrollBox1: TScrollBox
     Left = 632
@@ -1268,7 +1268,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 589
+    Top = 590
     Width = 1197
     Height = 22
     Panels = <>

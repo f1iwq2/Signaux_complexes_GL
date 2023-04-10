@@ -451,7 +451,6 @@ begin
   labelCV30.Caption:='CV='+IntToSTR(etat2);
   feux[indexSig].SR[8].sortie1:=i;
   maj_db;
-
 end;
 
 procedure TFormSR.ComboBoxAdr16Change(Sender: TObject);
@@ -496,5 +495,6 @@ begin
   close;
 end;
 
+begin
 end.
 

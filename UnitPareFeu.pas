@@ -7,7 +7,7 @@ function cree_regle : boolean;
 implementation
 
 uses
-  SysUtils,ActiveX,ComObj,Variants,UnitPrinc,Graphics,unitConfig;
+  SysUtils,ActiveX,ComObj,Variants,UnitPrinc,Graphics,unitConfig,verif_version;
 Const
   NET_FW_ACTION_ALLOW = 1;
   NET_FW_IP_PROTOCOL_TCP = 6;
@@ -29,8 +29,8 @@ var
   s,fichier : string;
   r : boolean;
 begin
-  r:=false;
-  if IsWow64Process then fichier:='C:\Program Files (x86)\CDM-Rail\cdr.exe' else fichier:='C:\Program Files\CDM-Rail\cdr.exe';
+  fichier:=CheminProgrammes+'\CDM-Rail\cdr.exe';
+  
   // Crée l'objet FwPolicy2
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;

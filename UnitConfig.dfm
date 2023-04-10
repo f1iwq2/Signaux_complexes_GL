@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1728,6 +1728,8 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 6
           Text = 'Nom du fichier LAY avec .lay'
+          OnChange = EditLAYChange
+          OnExit = EditLAYExit
         end
       end
       object GroupBox6: TGroupBox
@@ -3126,7 +3128,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3400,7 +3402,7 @@ object FormConfig: TFormConfig
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
-          Left = 64
+          Left = 8
           Top = 16
           Width = 225
           Height = 73
@@ -3435,8 +3437,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 192
-          Top = 28
+          Left = 8
+          Top = 84
           Width = 233
           Height = 341
           Caption = 'Action fonction de locomotive '
@@ -3485,6 +3487,9 @@ object FormConfig: TFormConfig
               Top = 100
               Width = 17
               Height = 21
+              Hint = 'Etat '#224' ou 1'
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 1
               OnChange = EditEtatActionneurChange
             end
@@ -3547,7 +3552,7 @@ object FormConfig: TFormConfig
           end
           object GroupBox19: TGroupBox
             Left = 8
-            Top = 176
+            Top = 184
             Width = 217
             Height = 129
             Caption = 'Destinataire de l'#39'action '
@@ -3749,8 +3754,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 8
-          Top = 16
+          Left = 224
+          Top = 176
           Width = 233
           Height = 401
           Caption = 'Action gestion passage '#224' niveau'

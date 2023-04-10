@@ -290,4 +290,5 @@ begin
   if key=chr(27) then close;
 end;
 
+begin
 end.

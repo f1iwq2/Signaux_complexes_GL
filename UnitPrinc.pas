@@ -397,7 +397,7 @@ var
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
-  TpsTimeoutSL,formatY : integer;
+  TpsTimeoutSL,formatY,OsBits : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -415,8 +415,8 @@ var
 
   FormPrinc: TFormPrinc;
 
-  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,Lay
-  : string;
+  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,Lay,
+  CheminProgrammes : string;
 
   Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
   detecteur : array[0..NbMemZone] of  // détecteurs indexés par l'adresse
@@ -480,7 +480,7 @@ var
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,fonction,tempo,TempoCourante,
     accessoire,sortie,
-    typdeclenche  : integer;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
+    typdeclenche  : integer;  // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
     Raz : boolean;
     FichierSon,trainDecl,TrainDest,TrainCourant : string;
   end;
@@ -623,8 +623,7 @@ function testBit(n : word;position : integer) : boolean;
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
-  Unitplace,
-  verif_version;
+  Unitplace, verif_version , UnitCDF;
 
 {
 procedure menu_interface(MA : TMA);
@@ -653,10 +652,6 @@ var s: string;
 begin
   s:=Application.Hint;
   StatusBar1.Simpletext:=s;
-  if s='insère une ligne au dessus' then
-  begin
-  //  grise_ligne_TCO;
-  end;
 end;
 
 // fonctions sur les bits
@@ -1240,7 +1235,7 @@ begin
     Temp:=LgImage-X4;X4:=Y4;Y4:=Temp;
     Temp:=LgImage-X5;X5:=Y5;Y5:=Temp;
     Temp:=LgImage-X6;X6:=Y6;Y6:=Temp;
-  end;  
+  end;
 
   X1:=round(X1*Frx)+x;  Y1:=round(Y1*Fry)+Y;
   X2:=round(X2*FrX)+x;  Y2:=round(Y2*FrY)+Y;
@@ -1516,7 +1511,7 @@ begin
     Select_dessin_feu:=bm;
 end;
 
-// créée une image dynamiquement pour un nouveau feu déclaré dans le fichier de config
+// créée une image dynamiquement pour un nouveau signal déclaré dans le fichier de config
 // rang commence à 1
 procedure cree_image(rang : integer);
 var adresse,TypeFeu : integer;
@@ -1775,7 +1770,7 @@ begin
   chaine_CDM_vitesseST:=so+s;
 end;
 
-// chaîne pour vitesse train INT par son adresse
+// renvoie une chaîne pour vitesse train INT par son adresse
 function chaine_CDM_vitesseINT(vitesse:integer;train:integer) : string;
 var s,so,sx: string;
 begin
@@ -1789,7 +1784,7 @@ begin
   chaine_CDM_vitesseINT:=so+s;
 end;
 
-// chaîne pour un accessoire via CDM
+// renvoie une chaîne pour piloter un accessoire via CDM
 Function chaine_CDM_Acc(adresse,etat : integer) : string;
 var so,sx,s : string;
 begin
@@ -2116,7 +2111,7 @@ begin
   chaine_signal:=s;
 end;
 
-// mise à jour état signal complexe dans le tableau de bits du signal EtatSignalCplx */
+// mise à jour état signal complexe dans le tableau de bits du signal EtatSignalCplx
 // adresse : adresse du signal complexe
 // Aspect : code représentant l'état du signal de 0 à 15
 procedure Maj_Etat_Signal(adresse,aspect : integer);
@@ -10532,7 +10527,7 @@ end;
 // Lance et connecte CDM rail. en sortie si CDM est lancé Lance_CDM=true,
 function Lance_CDM : boolean;
 var i,retour,retour2 : integer;
-    s : string;
+    repertoire,s : string;
     cdm_lanceLoc : boolean;
 begin
   s:='CDR';
@@ -10551,33 +10546,24 @@ begin
 
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
+  repertoire:=CheminProgrammes+'\CDM-Rail';
 
+  //Affiche(s,clred);
+  //Affiche(repertoire,clorange);
   retour:=ShellExecute(Formprinc.Handle,'open',
                     Pchar('cdr.exe'),
                     Pchar(s),  // paramètre
-                    PChar('C:\Program Files (x86)\CDM-Rail\')  // répertoire
+                    PChar(repertoire)  // répertoire
                     ,SW_SHOWNORMAL);
   if retour>32 then
   begin
     cdm_lanceLoc:=true;
-    Affiche('Lancement de CDM 64 ',clyellow);
-  end;
-
-  if not(cdm_lanceLoc) then
+  end
+  else
   begin
-    // si çà marche pas essayer depuis le répertoire de base sur un OS32
-    retour2:=ShellExecute(Formprinc.Handle,'open',
-                    PChar('cdr.exe'),
-                    Pchar(s),  // paramètre
-                    PChar('C:\Program Files\CDM-Rail\')  // répertoire
-                    ,SW_SHOWNORMAL);
-    if retour2<=32 then
-    begin
-      ShowMessage('CDM rail introuvable : '+#13#10+'Erreur 32='+intToSTR(retour)+' Erreur 64='+inttoStr(retour2));
-      lance_CDM:=false;exit;
-    end;
-    cdm_lanceLoc:=true;
-    Affiche('Lancement de CDM 32 ',clyellow);
+    ShowMessage('CDM rail introuvable : '+#13#10+'Erreur='+intToSTR(retour));
+    lance_CDM:=false;
+    exit;
   end;
 
   if cdm_lanceLoc then
@@ -10859,11 +10845,7 @@ begin
   GroupBox3.visible:=true;
 
   procetape('');  //0
-  // version d'OS pour info
-  if IsWow64Process then s:='OS 64 Bits' else s:='OS 32 Bits';
-  s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
-  Affiche(s,clLime);
-  LabelEtat.Caption:='Initialisations en cours';
+  
 
   N_Trains:=0;
   NivDebug:=0;
@@ -10889,6 +10871,23 @@ begin
   Diffusion:=AvecInit;      // mode diffusion publique
   roulage1.visible:=false;
 
+  OsBits:=0;
+  if IsWow64Process then 
+  begin
+    OsBits:=64; 
+    CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES(X86)');
+  end
+  else 
+  begin
+    OsBits:=32;
+    CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES');
+  end;  
+  // version d'OS pour info
+  if OsBits=64 then s:='OS 64 Bits' else s:='OS 32 Bits';
+  s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
+  Affiche(s,clLime);
+  LabelEtat.Caption:='Initialisations en cours';
+  
   With ScrollBox1 do
   begin
     HorzScrollBar.Tracking:=true;
@@ -11332,6 +11331,16 @@ begin
          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
          testBit(a,vert_cli) or testbit(a,blanc_cli) then
          Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+    end;
+
+    // fenetre de config du signal CDF 
+    if dessineCDF then
+    begin
+      a:=feux[0].EtatSignal;
+      if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+         TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+         testBit(a,vert_cli) or testbit(a,blanc_cli) then
+         Dessine_feu_CDF;  // dessiner le feu CDF en fonction du bit "clignotant"
     end;
   end;
 
@@ -12992,7 +13001,7 @@ var  s : string;
    fte : textFile;
 begin
   s:=GetCurrentDir;
-  s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
+  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   OpenDialog.InitialDir:=s;
   OpenDialog.Title:='Ouvrir un fichier de trames CDM (protocole COM-IPC)';
   OpenDialog.DefaultExt:='txt';
@@ -13622,8 +13631,6 @@ end;
 
 procedure TFormPrinc.PopupMenuFeuPopup(Sender: TObject);
 var s : string;
-    P_image_pilote : Timage;
-    adressefeuclic: integer;
     ob : TPopupMenu;
 begin
   // AdrPilote est récupéré de l'event OnMouseDown de l'image du signal qui se produit avant
@@ -13633,5 +13640,6 @@ begin
   ob.Items[1].Caption:='Informations du signal '+intToSTR(AdrPilote);
 end;
 
+begin
 end.
 

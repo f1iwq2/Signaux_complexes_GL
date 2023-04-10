@@ -159,3 +159,7 @@ version 5.72 : Actualisation des réponses/commandes des détecteurs en DCC++.
                Correction d'une régression sur les evt actionneurs par aiguillages.
 version 5.73 : Ajout d'un bouton d'autorisation pour le pare-feu windows.
                Ajout d'une 5ème voie pour la gestion des PN par actionneurs.
+version 5.74 : Correction bug création nouveau TCO.
+               Nouvel installeur-> Signaux complexes s'installe dans c:\programmes\signaux_complexes.
+               avec un raccourci sur le bureau.
+

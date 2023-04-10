@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls , unitconfig, UnitPrinc, Buttons;
+  Dialogs, StdCtrls, ExtCtrls , unitconfig, Buttons , UnitPilote , unitPrinc;
 
 type
   TFormCDF = class(TForm)
@@ -78,6 +78,7 @@ type
     procedure Edit17Change(Sender: TObject);
     procedure EditNAdressesChange(Sender: TObject);
     procedure BitBtnOkClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Déclarations privées }
   public
@@ -87,10 +88,15 @@ type
 var
   FormCDF: TFormCDF;
   Adresse,Index : integer;
+  dessineCDF : boolean;
+
+{$R *.dfm}
+
+procedure dessine_feu_CDF;
 
 implementation
 
-{$R *.dfm}
+
 
 
 
@@ -101,6 +107,8 @@ begin
   index:=index_feu(Adresse);
   LabelTitre.caption:='Adresse du signal: '+intToSTR(adresse);
   erreur:=feux[index].decodeur;
+  feux[0]:=feux[index];
+  //Asp:=feux[index].aspect;
   if erreur=5 then
   begin
     caption:='Configuration du décodeur Digikeijs';
@@ -165,6 +173,34 @@ begin
   editNadresses.text:=intToSTR(feux[index].NA); 
 end;
 
+procedure dessine_feu_CDF;
+var i : integer;
+    Vcanvas : Tcanvas;
+begin
+  i:=0;
+
+  //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
+  EtatFeuPilote:=feux[i].EtatSignal;
+  dessineCDF:=true; // demande dessin CDF pour les clignotements
+  Vcanvas:=FormCDF.ImageDigi.picture.bitmap.Canvas;
+  
+  case feux[i].aspect of
+  // feux de signalisation
+   2 : dessine_feu2(Vcanvas,0,0,1,1,EtatFeupilote,1);
+   3 : dessine_feu3(Vcanvas,0,0,1,1,EtatFeupilote,1);
+   4 : dessine_feu4(VCanvas,0,0,1,1,EtatFeupilote,1);
+   5 : dessine_feu5(VCanvas,0,0,1,1,EtatFeupilote,1);
+   7 : dessine_feu7(VCanvas,0,0,1,1,EtatFeupilote,1);
+   9 : dessine_feu9(VCanvas,0,0,1,1,EtatFeupilote,1);
+  // indicateurs de direction
+  12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
+  13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
+  14 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,4);
+  15 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,5);
+  16 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,6);
+  end;
+end;
+
 procedure Maj_DB;
 var s : string;
 begin
@@ -180,6 +216,8 @@ begin
   begin
     val(Edit1.Text,Feux[index].SR[1].sortie1,erreur);
     Maj_DB;
+    if label1.Caption=etats[1] then Maj_Etat_Signal(0,carre);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -190,6 +228,8 @@ begin
   begin
     val(Edit2.Text,Feux[index].SR[2].sortie1,erreur);
     Maj_DB;
+    if label2.Caption=etats[2] then Maj_Etat_Signal(0,semaphore);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -200,6 +240,8 @@ begin
   begin
     val(Edit3.Text,Feux[index].SR[3].sortie1,erreur);
     Maj_DB;
+    if label3.Caption=etats[3] then Maj_Etat_Signal(0,semaphore_cli);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -210,6 +252,8 @@ begin
   begin
     val(Edit4.Text,Feux[index].SR[4].sortie1,erreur);
     Maj_DB;
+    if label4.Caption=etats[4] then Maj_Etat_Signal(0,vert);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -220,6 +264,8 @@ begin
   begin
     val(Edit5.Text,Feux[index].SR[5].sortie1,erreur);
     Maj_DB;
+    if label5.Caption=etats[5] then Maj_Etat_Signal(0,vert_cli);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -230,6 +276,8 @@ begin
   begin
     val(Edit6.Text,Feux[index].SR[6].sortie1,erreur);
     Maj_DB;
+    if label6.Caption=etats[6] then Maj_Etat_Signal(0,violet);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -240,6 +288,8 @@ begin
   begin
     val(Edit7.Text,Feux[index].SR[7].sortie1,erreur);
     Maj_DB;
+    if label7.Caption=etats[7] then Maj_Etat_Signal(0,blanc);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -250,6 +300,8 @@ begin
   begin
     val(Edit8.Text,Feux[index].SR[8].sortie1,erreur);
     Maj_DB;
+    if label8.Caption=etats[8] then Maj_Etat_Signal(0,blanc_cli);
+    dessine_feu_CDF;
   end;
 end;
 
@@ -260,6 +312,8 @@ begin
   begin
     val(Edit9.Text,Feux[index].SR[9].sortie1,erreur);
     Maj_DB;
+    if label9.Caption=etats[9] then  begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,jaune);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -270,6 +324,12 @@ begin
   begin
     val(Edit10.Text,Feux[index].SR[10].sortie1,erreur);
     Maj_DB;
+    if label10.Caption=etats[10] then
+    begin
+      Maj_Etat_Signal(0,semaphore);
+      Maj_Etat_Signal(0,jaune_cli);
+    end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -280,6 +340,8 @@ begin
   begin
     val(Edit11.Text,Feux[index].SR[11].sortie1,erreur);
     Maj_DB;
+    if label11.Caption=etats[11] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_30);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -290,6 +352,8 @@ begin
   begin
     val(Edit12.Text,Feux[index].SR[12].sortie1,erreur);
     Maj_DB;
+    if label12.Caption=etats[12] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_60);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -300,6 +364,8 @@ begin
   begin
     val(Edit13.Text,Feux[index].SR[13].sortie1,erreur);
     Maj_DB;
+    if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,ral_60);Maj_Etat_Signal(0,jaune_cli);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -310,6 +376,8 @@ begin
   begin
     val(Edit14.Text,Feux[index].SR[14].sortie1,erreur);
     Maj_DB;
+    if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_30);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -320,6 +388,8 @@ begin
   begin
     val(Edit15.Text,Feux[index].SR[15].sortie1,erreur);
     Maj_DB;
+    if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -330,6 +400,8 @@ begin
   begin
     val(Edit16.Text,Feux[index].SR[16].sortie1,erreur);
     Maj_DB;
+    if label16.Caption=etats[16] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -340,6 +412,8 @@ begin
   begin
     val(Edit17.Text,Feux[index].SR[17].sortie1,erreur);
     Maj_DB;
+    if label17.Caption=etats[17] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune_cli);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -350,6 +424,8 @@ begin
   begin
     val(Edit18.Text,Feux[index].SR[18].sortie1,erreur);
     Maj_DB;
+    if label18.Caption=etats[18] then begin Maj_Etat_Signal(0,rappel_60); Maj_Etat_Signal(0,jaune);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -360,6 +436,8 @@ begin
   begin
     val(Edit19.Text,Feux[index].SR[19].sortie1,erreur);
     Maj_DB;
+    if label19.Caption=etats[19] then begin Maj_Etat_Signal(0,rappel_60);  Maj_Etat_Signal(0,jaune_cli);end;
+    dessine_feu_CDF;
   end;
 end;
 
@@ -380,6 +458,11 @@ end;
 procedure TFormCDF.BitBtnOkClick(Sender: TObject);
 begin
   close;
+end;
+
+procedure TFormCDF.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  dessineCDF:=false;
 end;
 
 end.

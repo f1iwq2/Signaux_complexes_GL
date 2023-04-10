@@ -23,9 +23,11 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='5.73';  // sert à la comparaison de la version publiée
+Const  Version='5.74';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
+function GetCurrentProcessEnvVar(const VariableName: string): string;
+       
 implementation
 
 {$R *.dfm}
@@ -270,4 +272,5 @@ begin
   if lance_verif=1 then begin lance_verif:=0;verifie_version;end;
 end;
 
+begin
 end.

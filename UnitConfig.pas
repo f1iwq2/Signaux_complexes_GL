@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls , verif_version, jpeg, ComCtrls ,StrUtils, Unitprinc,
-  MMSystem, Buttons , UnitPareFeu;
+  Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
+  MMSystem, Buttons , UnitPareFeu, verif_version;
 
 type
   TFormConfig = class(TForm)
@@ -487,6 +487,8 @@ type
     procedure EditZdet2V5FChange(Sender: TObject);
     procedure EditZdet1V5OChange(Sender: TObject);
     procedure EditZdet2V5OChange(Sender: TObject);
+    procedure EditLAYChange(Sender: TObject);
+    procedure EditLAYExit(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -557,7 +559,7 @@ var
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
-  trouveAvecVerifIconesTCO : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -1419,14 +1421,14 @@ procedure genere_config;
 var s: string;
     fichierN : text;
     i : integer;
-
 begin
   assign(fichierN,NomConfig);
   rewrite(fichierN);
 
   // entête
   // copie_commentaire;
-  writeln(fichierN,'/ Fichier de configuration de signaux_complexes_GL');
+  s:='/ Fichier de configuration de signaux_complexes_GL version '+version+sousversion;
+  writeln(fichierN,s);
   writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
@@ -1633,7 +1635,7 @@ var s,sa,SOrigine: string;
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
-    ComptEl,Compt_IT,Num_Element,k,adr,erreur2,l,t,Nligne,postriple,itl,
+    ComptEl,Compt_IT,Num_Element,adr,t,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
 
  function lit_ligne : string ;
@@ -3294,7 +3296,7 @@ begin
   RadioButton2.checked:=false;
   if Valeur_entete=0 then RadioButton1.checked:=true;
   if Valeur_entete=1 then RadioButton2.checked:=true;
-  LabelInfo.Width:=240;LabelInfo.Height:=25;
+  LabelInfo.Width:=240;LabelInfo.Height:=65;LabelInfo.AutoSize:=false;
   LabelResult.width:=137;LabelResult.Height:=25;
   LabelNomSon.top:=16;LabelNomSon.Left:=48;
   SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
@@ -3306,7 +3308,7 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
-  editLAY.Text:=lay;
+
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
   RadioButton6.Checked:=ServeurInterfaceCDM=2;
@@ -3341,7 +3343,7 @@ begin
   EditDroit_BD.Text:='';
   EditPointe_BG.Text:='';
   EditDevie_HD.Text:='';
-
+  editLAY.Text:=lay;
   ligneclicSig:=-1;
   AncLigneClicSig:=-1;
   ligneclicAct:=-1;
@@ -3367,8 +3369,8 @@ begin
   begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
-  end;  
-  
+  end;
+
   // branches
   clicListe:=true;
   RichBranche.clear;
@@ -3382,7 +3384,7 @@ begin
   begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
-  end; 
+  end;
 
   // signaux
   RichSig.clear;
@@ -3477,6 +3479,7 @@ end;
 procedure TFormConfig.FormCreate(Sender: TObject);
 begin
   clicListe:=true;
+  Affiche_avert:=false;
   if affevt then affiche('FormConfig create',clLime);
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   Aig_supprime.Adresse:=0;
@@ -3554,7 +3557,7 @@ begin
     GroupBox21.Visible:=true;
     GroupBox10.Visible:=true;
     checkInverse.Visible:=true; 
-    
+
     // tjd
     if tjd or tjs or croi then
     begin
@@ -3626,7 +3629,7 @@ begin
       EditP2.Text:=intToSTR(adresse)+aiguillage[Index].DDevieB;   
     
       // milieu haut droit
-      EditP3.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DDevieB; 
+      EditP3.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DDevieB;
       // milieu bas droit
       EditP4.Text:=intToSTR(aiguillage[index].Ddroit)+aiguillage[index].DdroitB; 
 
@@ -3880,7 +3883,8 @@ begin
     radioButtonZones.Checked:=false;
     radioButtonAig.Checked:=false;
     editact2.Visible:=false;
-    LabelActionneur.Caption:='Actionneur DétecteurZ';
+    LabelActionneur.Caption:='Actionneur Détecteur';
+    EditEtatActionneur.Hint:='0 ou 1';
   end;
 end;
 
@@ -3895,6 +3899,7 @@ begin
     LabelTrain.Visible:=false;
     editact2.Visible:=true;
     LabelActionneur.Caption:='Mémoire de Zone';
+    EditEtatActionneur.Hint:='0 ou 1';
   end;
 end;
 
@@ -3910,6 +3915,7 @@ begin
     LabelTrain.Visible:=false;
     editact2.Visible:=false;
     LabelActionneur.Caption:='Aiguillage';
+    EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
   end;
 end;
 
@@ -4008,7 +4014,7 @@ begin
 
     // signal normal
     if d<10 then
-    begin     
+    begin
       Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
       Label17.Width:=228;
       LabelDetAss.visible:=true;
@@ -5331,7 +5337,6 @@ end;
 procedure TFormConfig.EditAct2Change(Sender: TObject);
 var s : string;
     det2,erreur : integer;
-    det : boolean;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt Edit act2 Change',clyellow);
@@ -5399,16 +5404,30 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
-    s:=EditEtatActionneur.Text;
+    s:=upperCase(EditEtatActionneur.Text);
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
-      Val(s,etat,erreur);
       typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
-      if (erreur<>0) or (etat<0) or ((typ<3) and (etat>1)) or ((typ=2) and (etat>2)) then
+      if (typ=2) and (s<>'') then  // aiguillage
       begin
-        if typ<2 then begin LabelInfo.caption:='Erreur état actionneur';exit;end;
-        if typ=2 then begin LabelInfo.caption:='Erreur position aiguillage';exit;end;
-      end else LabelInfo.caption:=' ';
+        if s[1]='S' then s:='1';
+        if s[1]='D' then s:='2';
+      end;
+
+      Val(s,etat,erreur);
+
+      // act det memzone
+      if (typ=0) or (typ=1) or (typ=3) then
+      begin
+        if (etat<0) or (etat>1) then begin LabelInfo.caption:='Erreur état actionneur/détecteur';exit;end;
+      end;
+      // aig
+      if (typ=2) then
+      begin
+        if (etat<1) or (etat>2) then begin LabelInfo.caption:='Erreur position aiguillage';exit;end;
+      end;
+
+      LabelInfo.caption:=' ';
 
       tablo_actionneur[ligneClicAct+1].etat:=etat;
       s:=encode_act_loc_son(ligneClicAct+1);
@@ -5458,7 +5477,6 @@ begin
       RichAct.Lines[ligneClicAct]:=s;
     end;
   end;
-
 end;
 
 
@@ -8725,7 +8743,7 @@ begin
   editAct2.Visible:=false;
   EditTrainDecl.Visible:=true;
   LabelTrain.Visible:=true;
-
+  EditEtatActionneur.Hint:='Etat 0 ou 1';
   Tablo_Actionneur[i].trainDecl:=trainSauve;
   EditTrainDecl.Text:=trainSauve;
   
@@ -8761,6 +8779,7 @@ begin
   editAct2.Visible:=true;
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
 
+  EditEtatActionneur.Hint:='Etat 0 ou 1';
   Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
@@ -8791,6 +8810,7 @@ begin
   editAct2.Visible:=false;
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
 
+  EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
   Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
@@ -9747,7 +9767,6 @@ end;
 end;
 
 procedure TFormConfig.ButtonNTClick(Sender: TObject);
-var j : integer;
 begin
   if nTrains>=Max_Trains then exit;
   clicListe:=true;
@@ -9758,7 +9777,6 @@ begin
   trains[ntrains].VitRalenti:=40;
   trains[ntrains].vitmax:=120;
   clicListeTrains(ntrains);
-  j:=richEditTrains.Selstart;
   RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClAqua);
   ligneclicTrain:=ntrains-1;
   RE_ColorLine(Formconfig.richeditTrains,ligneclicTrain,ClYellow);
@@ -10087,15 +10105,25 @@ begin
   activecontrol:=nil;
 end;
 
+procedure TFormConfig.EditLAYChange(Sender: TObject);
+var s : string;
+begin
+  if clicListe then exit;
+  if not(Affiche_avert) then
+  begin
+    Affiche_avert:=true;
+    s:='Pour que cette fonction soit opérationnelle, dans CDM Rail, il faut charger votre réseau, puis "définir le réseau actuel comme ';
+    s:=s+'réseau de démarrage" puis le dévalider';
+    LabelInfo.caption:=s;
+  end;
+end;
 
-
+procedure TFormConfig.EditLAYExit(Sender: TObject);
+begin
+  Affiche_avert:=false;
+  LabelInfo.caption:='';
+end;
 
-
-
-
-
-
-
 end.
 
 
