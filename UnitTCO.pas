@@ -2521,7 +2521,7 @@ end;
 
 // Element 24
 procedure dessin_24(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,jx1,jy1,jx2,xf,yf,position : integer;
+var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
     r : Trect;
     fond: tcolor;
 
@@ -4196,7 +4196,6 @@ end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
 var s : string;
-    r :Trect;
 begin
   if affevt then Affiche('Form TCO activate',clyellow);
   if not(Forminit) then
@@ -4347,8 +4346,7 @@ end;
 // vérifie que les icones adjacentes sont cohérentes
 function verif_cellule(x,y,Bim : integer) : boolean;
 var res,verif : boolean;
-    Bimz,i : integer;
-    bl,bz : integer;
+    Bimz,i,bl : integer;
 begin
   result:=true;
   verif:=false;
@@ -5361,8 +5359,7 @@ end;
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
 var r : Trect;
-    cellX,cellY,x0,y0,XSel1,YSel1,XSel2,YSel2,Bimage,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
-    s : string;
+    cellX,cellY,XSel1,YSel1,XSel2,YSel2,Bimage,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
 begin
   //Affiche('ImageTCOMouseMove',clLime);
   if Temposouris<1 then exit;

@@ -163,6 +163,7 @@ type
     Panel2: TPanel;
     FenRich: TRichEdit;
     SplitterV: TSplitter;
+    Vrifiernouvelleversion1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -241,6 +242,7 @@ type
     procedure EditAdrTrainChange(Sender: TObject);
     procedure SplitterVMoved(Sender: TObject);
     procedure PopupMenuFeuPopup(Sender: TObject);
+    procedure Vrifiernouvelleversion1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -288,15 +290,14 @@ Max_Simule=10000;
 Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
-NbDecodeur = 8;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','Digikeijs 4018','Unisemaf Paco','SR');
+NbDecodeur = 9;
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','Digikeijs 4018','Unisemaf Paco','Stéphane Ravaut','Arcomora');
 Etats : array[0..19] of string[30]=('Non commandé',
                                     'carré','sémaphore','sémaphore cli','vert','vert cli','violet','blanc','blanc cli','jaune','jaune cli',
                                     'ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60','rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
 
 type
 Taccessoire   = (aigP,feu);    // aiguillage ou feu
-TMA           = (valide,devalide);
 TEquipement   = (rien,aig,tjd,tjs,triple,det,buttoir,voie,crois,act);   // voie uniquement pour le tco
 TBranche      = record
                   BType : Tequipement ;   // ne prend que les valeurs suivantes: dét aig Buttoir
@@ -1537,9 +1538,9 @@ begin
     width:=LargImg;
     Height:=HtImg;
 
-    s:='Index='+IntToSTR(rang)+' @='+inttostr(Adresse)+' Décodeur='+intToSTR(feux[rang].Decodeur)+
-       ' Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
+    s:='Index='+IntToSTR(rang)+'  @='+inttostr(Adresse)+'  Décodeur='+decodeur[feux[rang].Decodeur]+
+       '  Adresse détecteur associé='+intToSTR(feux[rang].Adr_det1)+
+       '  Adresse élement suivant='+intToSTR(feux[rang].Adr_el_suiv1);
     if feux[rang].Btype_suiv1=aig then s:=s+' (aig)';
     Hint:=s;
 
@@ -2214,7 +2215,7 @@ begin
           end;
     end;
     feux[i].EtatSignal:=code;
-    Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);       
+    Dessine_feu_mx(Feux[Index_Feu(adr)].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
 
@@ -2564,40 +2565,134 @@ begin
       AfficheDebug(s,clyellow);
     end;
 
-  Sleep(60);  // si le feu se positionne à la suite d'un positionnement d'aiguillage, on peut avoir le message station occupée
-  //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
-  if (aspect<>-1) and (combine=-1) then
+    Sleep(60);  // si le feu se positionne à la suite d'un positionnement d'aiguillage, on peut avoir le message station occupée
+    //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
+    if (aspect<>-1) and (combine=-1) then
+    begin
+      if (aspect=carre)         then envoi5_LEB(0);
+      if (aspect=violet)        then envoi5_LEB(1);
+      if (aspect=blanc_cli)     then envoi5_LEB(2);
+      if (aspect=blanc)         then envoi5_LEB(3);
+      if (aspect=semaphore)     then envoi5_LEB(4);
+      if (aspect=semaphore_cli) then envoi5_LEB(5);
+      if (aspect=jaune)         then envoi5_LEB(8);
+      if (aspect=jaune_cli)     then envoi5_LEB($a);
+      if (aspect=vert_cli)      then envoi5_LEB($c);
+      if (aspect=vert)          then envoi5_LEB($d);
+      if (aspect=rappel_30)     then envoi5_LEB(6);
+      if (aspect=rappel_60)     then envoi5_LEB(7);
+      if (aspect=ral_30)        then envoi5_LEB(9);
+      if (aspect=ral_60)        then envoi5_LEB($b);
+    end;
+    if (combine<>-1) and (aspect=-1) then
+    begin
+      if (Combine=rappel_30)    then envoi5_LEB(6);
+      if (Combine=rappel_60)    then envoi5_LEB(7);
+      if (Combine=ral_30)       then envoi5_LEB(9);
+      if (Combine=ral_60)       then envoi5_LEB($b);
+    end;
+    if ((Combine=rappel_30) and (aspect=jaune))     then envoi5_LEB($e);
+    if ((Combine=rappel_30) and (aspect=jaune_cli)) then envoi5_LEB($f);
+    if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
+    if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
+    if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
+  end;
+end;
+
+// pilote le décodeur arcomora
+procedure envoi_arcomora(adresse :integer);
+var asp,aspect,combine,code,offset,sortie : integer;
+    s : string;
+begin
+  index:=index_feu(adresse);
+  if (feux[index].AncienEtat<>feux[index].EtatSignal) then //; && (stop_cmd==FALSE))
   begin
-    if (aspect=carre)         then envoi5_LEB(0);
-    if (aspect=violet)        then envoi5_LEB(1);
-    if (aspect=blanc_cli)     then envoi5_LEB(2);
-    if (aspect=blanc)         then envoi5_LEB(3);
-    if (aspect=semaphore)     then envoi5_LEB(4);
-    if (aspect=semaphore_cli) then envoi5_LEB(5);
-    if (aspect=jaune)         then envoi5_LEB(8);
-    if (aspect=jaune_cli)     then envoi5_LEB($a);
-    if (aspect=vert_cli)      then envoi5_LEB($c);
-    if (aspect=vert)          then envoi5_LEB($d);
-    if (aspect=rappel_30)     then envoi5_LEB(6);
-    if (aspect=rappel_60)     then envoi5_LEB(7);
-    if (aspect=ral_30)        then envoi5_LEB(9);
-    if (aspect=ral_60)        then envoi5_LEB($b);
+    code:=feux[index].EtatSignal;
+    asp:=feux[index].aspect;
+    code_to_aspect(code,aspect,combine);
+    s:='Signal Arcomora: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+    if AffDetSig then
+    begin
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal);
+      AfficheDebug(s,clyellow);
+    end;
+
+    Sleep(60);
+    if asp=2 then
+    begin
+      case aspect of
+      violet        : begin offset:=0;sortie:=2;end;
+      blanc         : begin offset:=0;sortie:=1;end;
+      blanc_cli     : begin offset:=1;sortie:=1;end;
+      end;
+    end;
+
+    if asp=3 then
+    begin
+      case aspect of
+      vert          : begin offset:=0;sortie:=1;end;
+      jaune         : begin offset:=0;sortie:=2;end;
+      semaphore     : begin offset:=1;sortie:=1;end;
+      vert_cli      : begin offset:=1;sortie:=2;end;
+      semaphore_cli : begin offset:=2;sortie:=1;end;
+      jaune_cli     : begin offset:=2;sortie:=2;end;
+      end;
+    end;
+
+    if (asp=4) or (asp=5) then
+    begin
+      case aspect of
+      vert          : begin offset:=0;sortie:=1;end;
+      jaune         : begin offset:=0;sortie:=2;end;
+      semaphore     : begin offset:=1;sortie:=1;end;
+      carre         : begin offset:=1;sortie:=2;end;
+      vert_cli      : begin offset:=2;sortie:=1;end;
+      jaune_cli     : begin offset:=2;sortie:=2;end;
+      semaphore_cli : begin offset:=3;sortie:=1;end;
+      end;
+    end;
+
+    if (asp=7) then
+    begin
+      case aspect of
+      vert          : begin offset:=0;sortie:=1;end;
+      jaune         : begin offset:=0;sortie:=2;end;
+      semaphore     : begin offset:=1;sortie:=1;end;
+      carre         : begin offset:=1;sortie:=2;end;
+      vert_cli      : begin offset:=4;sortie:=1;end;
+      semaphore_cli : begin offset:=4;sortie:=2;end;
+      end;
+      case combine of
+      ral_30        : begin offset:=2;sortie:=1;end;
+      ral_60        : begin offset:=3;sortie:=1;end;
+      end;
+    end;
+
+    if (asp=9) then
+    begin
+      case aspect of
+      vert          : begin offset:=0;sortie:=1;end;
+      jaune         : begin offset:=0;sortie:=2;end;
+      semaphore     : begin offset:=1;sortie:=1;end;
+      carre         : begin offset:=1;sortie:=2;end;
+      vert_cli      : begin offset:=4;sortie:=1;end;
+      semaphore_cli : begin offset:=4;sortie:=2;end;
+      end;
+      case combine of
+      ral_30        : begin offset:=2;sortie:=1;end;
+      rappel_30     : begin offset:=2;sortie:=2;end;
+      ral_60        : begin offset:=3;sortie:=1;end;
+      rappel_60     : begin offset:=3;sortie:=2;end;
+      end;
+    end;
+
   end;
-  if (combine<>-1) and (aspect=-1) then
-  begin
-    if (Combine=rappel_30)    then envoi5_LEB(6);
-    if (Combine=rappel_60)    then envoi5_LEB(7);
-    if (Combine=ral_30)       then envoi5_LEB(9);
-    if (Combine=ral_60)       then envoi5_LEB($b);
-  end;
-  if ((Combine=rappel_30) and (aspect=jaune))     then envoi5_LEB($e);
-  if ((Combine=rappel_30) and (aspect=jaune_cli)) then envoi5_LEB($f);
-  if ((Combine=rappel_60) and (aspect=jaune))     then envoi5_LEB($10);
-  if ((Combine=rappel_60) and (aspect=jaune_cli)) then envoi5_LEB($11);
-  if ((Combine=ral_60)    and (aspect=jaune_cli)) then envoi5_LEB($12);
-  end;
+  Pilote_acc(adresse+offset,sortie,feu);
 
 end;
+
 
 (*==========================================================================
 envoie les données au décodeur NMRA étendu
@@ -2642,9 +2737,6 @@ begin
       s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
       AfficheDebug(s,clyellow);
     end;
-
-    // attention: impossible d'envoyer des octets en XpressNet!!
-    // NMRA ne focntionnera pas..
 
     case aspect of
       carre                     : valeur:=0;
@@ -3538,6 +3630,7 @@ begin
        5 : digi_4018(Adr);
        6 : envoi_UniSemaf(Adr);
        7 : envoi_SR(Adr);
+       8 : envoi_arcomora(Adr);
       end;
 
       // Gestion démarrage temporisé des trains si on quitte le rouge : ne fonctionne qu'en roulage
@@ -8871,9 +8964,9 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var typ,i,v,va,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
+var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
-    fm,fd,presTrain_PN,adresseOk,etatvalide : boolean;
+    fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
 begin
   if adr<=0 then exit;
@@ -10526,7 +10619,7 @@ end;
 
 // Lance et connecte CDM rail. en sortie si CDM est lancé Lance_CDM=true,
 function Lance_CDM : boolean;
-var i,retour,retour2 : integer;
+var i,retour : integer;
     repertoire,s : string;
     cdm_lanceLoc : boolean;
 begin
@@ -13640,6 +13733,21 @@ begin
   ob.Items[1].Caption:='Informations du signal '+intToSTR(AdrPilote);
 end;
 
+procedure TFormPrinc.Vrifiernouvelleversion1Click(Sender: TObject);
+var s : string;
+    v_publie,v_utile : real;
+    erreur : integer;
 begin
+  V_publie:=verifie_version;
+  str(v_publie:2:2,s);
+  if v_publie>0 then
+  begin
+    val(version,V_utile,erreur);
+    if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' est à jour',clLime);
+    if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
+  end
+  else Affiche('Site CDM-Rail inateignable',clred);
+end;
+
 end.
 

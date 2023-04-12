@@ -1,8 +1,8 @@
 object FormVersion: TFormVersion
   Left = 222
   Top = 260
-  BorderIcons = []
-  BorderStyle = bsNone
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
   Caption = 'V'#233'rification de version'
   ClientHeight = 234
   ClientWidth = 645
@@ -18,9 +18,9 @@ object FormVersion: TFormVersion
   TextHeight = 20
   object Memo1: TMemo
     Left = 8
-    Top = 16
+    Top = 8
     Width = 625
-    Height = 209
+    Height = 217
     Color = clNavy
     Font.Charset = ANSI_CHARSET
     Font.Color = clYellow

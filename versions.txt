@@ -162,4 +162,5 @@ version 5.73 : Ajout d'un bouton d'autorisation pour le pare-feu windows.
 version 5.74 : Correction bug création nouveau TCO.
                Nouvel installeur-> Signaux complexes s'installe dans c:\programmes\signaux_complexes.
                avec un raccourci sur le bureau.
+version      : Gestion du décodeur de signaux Arcomora.
 

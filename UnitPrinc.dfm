@@ -18,7 +18,7 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   DesignSize = (
     1197
-    612)
+    611)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1203,7 +1203,7 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 590
+    Height = 589
   end
   object ScrollBox1: TScrollBox
     Left = 632
@@ -1268,7 +1268,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 590
+    Top = 589
     Width = 1197
     Height = 22
     Panels = <>
@@ -1927,6 +1927,10 @@ object FormPrinc: TFormPrinc
       object Apropos1: TMenuItem
         Caption = 'A propos'
         OnClick = Apropos1Click
+      end
+      object Vrifiernouvelleversion1: TMenuItem
+        Caption = 'V'#233'rifier nouvelle version'
+        OnClick = Vrifiernouvelleversion1Click
       end
     end
     object Roulage1: TMenuItem

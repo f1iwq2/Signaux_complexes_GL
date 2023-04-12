@@ -1635,7 +1635,7 @@ var s,sa,SOrigine: string;
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
-    ComptEl,Compt_IT,Num_Element,adr,t,Nligne,postriple,itl,
+    ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
 
  function lit_ligne : string ;
@@ -6682,6 +6682,8 @@ begin
   i:=index_feu(adr);
   dec:=feux[i].decodeur;
   x:=feux[i].aspect;
+
+  // signal directionnel
   if x>10 then
   begin
     nombre_adresses_signal:=x-10;
@@ -6708,7 +6710,16 @@ begin
     93,94,95,96,97,98,99 : nc:=4;
     end;
   end;
-  if dec=7 then nc:=8;           // sr   
+  if dec=7 then nc:=8;           // sr
+  if dec=8 then
+  begin
+    case x of
+    3 : nc:=3;
+    4,5 : nc:=4;
+    7 : nc:=5;
+    9 : nc:=5;
+    end;
+  end;
   nombre_adresses_signal:=nc;
 end;
 
