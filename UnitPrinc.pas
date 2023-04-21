@@ -47,7 +47,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem , registry,
-  Buttons;
+  Buttons, NB30 ;
 
 type
   TFormPrinc = class(TForm)
@@ -164,6 +164,11 @@ type
     FenRich: TRichEdit;
     SplitterV: TSplitter;
     Vrifiernouvelleversion1: TMenuItem;
+    N9: TMenuItem;
+    Analyser1: TMenuItem;
+    Coller1: TMenuItem;
+    ButtonAffAnalyseCDM: TButton;
+    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -243,6 +248,10 @@ type
     procedure SplitterVMoved(Sender: TObject);
     procedure PopupMenuFeuPopup(Sender: TObject);
     procedure Vrifiernouvelleversion1Click(Sender: TObject);
+    procedure Analyser1Click(Sender: TObject);
+    procedure Coller1Click(Sender: TObject);
+    procedure ButtonAffAnalyseCDMClick(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -624,7 +633,7 @@ function testBit(n : word;position : integer) : boolean;
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
-  Unitplace, verif_version , UnitCDF;
+  Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM;
 
 {
 procedure menu_interface(MA : TMA);
@@ -720,7 +729,7 @@ begin
     if aspect=8 then result:=9;  // jaune
     if aspect=9 then result:=10; // jaune cli
   end;   
-  if aspect=-1 then         
+  if aspect=-1 then
   begin
     if combine=10 then result:=11; // ralen 30
     if combine=11 then result:=12; // ralen 60
@@ -3694,7 +3703,7 @@ begin
     Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
 
     // allume les signaux du feu dans le TCO
-    if TCOouvert then
+    if TCOACtive then
     begin
      for y:=1 to NbreCellY do
      for x:=1 to NbreCellX do
@@ -7437,7 +7446,7 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
             AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
           end;
-          if TCOouvert then
+          if TCOActive then
           begin
             zone_TCO(det2,det3,0);    // désactivation
             // activation
@@ -7636,7 +7645,7 @@ begin
           Affiche_evt(s,couleur);
           if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
 
-          if TCOouvert then
+          if TCOActive then
           begin
             // activation
             if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
@@ -7698,7 +7707,7 @@ begin
             if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
             s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
             Affiche_Evt(s,clWhite);
-            if TCOouvert then
+            if TCOActive then
             begin
               // activation
               if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
@@ -7883,7 +7892,7 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
             AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
           end;
-          if TCOouvert then
+          if TCOActive then
           begin
             zone_TCO(det2,det3,0);    // désactivation
             // activation
@@ -7998,7 +8007,7 @@ begin
         Affiche_evt(s,couleur);
         if traceListe then AfficheDebug(s,Couleur);
         if AffAigDet then AfficheDebug(s,couleur);
-        if TCOouvert then
+        if TCOActive then
         begin
           zone_TCO(det1,det2,0);    // désactivation
           // activation
@@ -8315,7 +8324,7 @@ begin
         Affiche_evt(s,couleur);
         if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
 
-        if TCOouvert then
+        if TCOActive then
         begin
           // activation
           if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
@@ -8377,7 +8386,7 @@ begin
             if det_suiv<9990 then reserve_canton(det3,det_suiv,AdrTrainLoc);
             s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
             Affiche_Evt(s,clWhite);
-            if TCOouvert then
+            if TCOActive then
             begin
               // activation
               if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
@@ -8547,7 +8556,7 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
             AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
           end;
-          if TCOouvert then
+          if TCOActive then
           begin
             zone_TCO(det2,det3,0);    // désactivation
             // activation
@@ -8675,7 +8684,7 @@ begin
         Affiche_evt(s,couleur);
         if traceListe then AfficheDebug(s,Couleur);
         if AffAigDet then AfficheDebug(s,couleur);
-        if TCOouvert then
+        if TCOActive then
         begin
           zone_TCO(det1,det2,0);    // désactivation
           // activation
@@ -9315,7 +9324,7 @@ begin
   // attention à partir de cette section le code est susceptible de ne pas être exécuté??
 
   // Mettre à jour le TCO
-  if TcoOuvert then
+  if TcoActive then
   begin
     formTCO.Maj_TCO(Adresse);
   end;
@@ -9378,7 +9387,7 @@ begin
     event_det_tick[N_event_tick].etat:=pos;
 
     // Mettre à jour le TCO
-    if TCOouvert then formTCO.Maj_TCO(Adresse);
+    if TCOActive then formTCO.Maj_TCO(Adresse);
 
     // l'évaluation des routes est à faire selon conditions
     if faire_event and not(confignulle) then begin evalue;evalue;end;
@@ -10617,8 +10626,8 @@ begin
   convert_VK:=s;
 end;
 
-// Lance et connecte CDM rail. en sortie si CDM est lancé Lance_CDM=true,
-function Lance_CDM : boolean;
+// Lance et connecte CDM rail si avecsocket=true. en sortie si CDM est lancé Lance_CDM=true,
+function Lance_CDM(avecSocket : boolean) : boolean;
 var i,retour : integer;
     repertoire,s : string;
     cdm_lanceLoc : boolean;
@@ -10659,7 +10668,7 @@ begin
     exit;
   end;
 
-  if cdm_lanceLoc then
+  if AvecSocket and cdm_lanceLoc then
   begin
     Formprinc.caption:=af+' - '+lay;
     // On a lancé CDM, déconnecter l'USB
@@ -10786,6 +10795,7 @@ begin
     detecteur[i].etat:=false;
     detecteur[i].train:='';
     detecteur[i].adrTrain:=0;
+    detecteur[i].IndexTrain:=0;
     ancien_detecteur[i]:=false;
   end;
   for i:=1 to NbMemZone do
@@ -10830,6 +10840,10 @@ begin
   begin
     Tablo_Pn[i].compteur:=0;
   end;
+
+  for i:=1 to NbreCellx do
+    for j:=1 to NbreCelly do tco[i,j].mode:=0;
+      if TCOActive then affiche_TCO;
 
   {  ralentit au démarrage
   for i:=1 to NbreFeux do
@@ -10897,6 +10911,125 @@ begin
   init_aig_cours:=false;
 end;
 
+// renvoyer date heure, MAC, version SC , verif_version, avec_roulage
+
+// ex 1
+function GetMACAdress: string;
+var
+  NCB: PNCB;
+  Adapter: PAdapterStatus;
+
+  URetCode: PChar;
+  RetCode: char;
+  I: integer;
+  Lenum: PlanaEnum;
+  _SystemID: string;
+  TMPSTR: string;
+begin
+  Result    := '';
+  _SystemID := '';
+  Getmem(NCB, SizeOf(TNCB));
+  Fillchar(NCB^, SizeOf(TNCB), 0);
+
+  Getmem(Lenum, SizeOf(TLanaEnum));
+  Fillchar(Lenum^, SizeOf(TLanaEnum), 0);
+
+  Getmem(Adapter, SizeOf(TAdapterStatus));
+  Fillchar(Adapter^, SizeOf(TAdapterStatus), 0);
+
+  Lenum.Length    := chr(0);
+  NCB.ncb_command := chr(NCBENUM);
+  NCB.ncb_buffer  := Pointer(Lenum);
+  NCB.ncb_length  := SizeOf(Lenum);
+  RetCode         := Netbios(NCB);
+
+  i := 0;
+  repeat
+    Fillchar(NCB^, SizeOf(TNCB), 0);
+    Ncb.ncb_command  := chr(NCBRESET);
+    Ncb.ncb_lana_num := lenum.lana[I];
+    RetCode          := Netbios(Ncb);
+
+    Fillchar(NCB^, SizeOf(TNCB), 0);
+    Ncb.ncb_command  := chr(NCBASTAT);
+    Ncb.ncb_lana_num := lenum.lana[I];
+    // Must be 16
+    Ncb.ncb_callname := '*               ';
+
+    Ncb.ncb_buffer := Pointer(Adapter);
+
+    Ncb.ncb_length := SizeOf(TAdapterStatus);
+    RetCode        := Netbios(Ncb);
+    //---- calc _systemId from mac-address[2-5] XOR mac-address[1]...
+    if (RetCode = chr(0)) or (RetCode = chr(6)) then
+    begin
+      _SystemId := IntToHex(Ord(Adapter.adapter_address[0]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[1]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[2]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[3]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[4]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[5]), 2);
+    end;
+    Inc(i);
+  until (I >= Ord(Lenum.Length)) or (_SystemID <> '00-00-00-00-00-00');
+  FreeMem(NCB);
+  FreeMem(Adapter);
+  FreeMem(Lenum);
+  GetMacAdress := _SystemID;
+end;
+
+// ex2
+function GetAdapterInfo(Lana: Char): String;
+var
+  Adapter: TAdapterStatus;
+  NCB: TNCB;
+begin
+  FillChar(NCB, SizeOf(NCB), 0);
+  NCB.ncb_command := Char(NCBRESET);
+  NCB.ncb_lana_num := Lana;
+  if Netbios(@NCB) <> Char(NRC_GOODRET) then
+  begin
+    Result := 'mac not found';
+    Exit;
+  end;
+
+  FillChar(NCB, SizeOf(NCB), 0);
+  NCB.ncb_command := Char(NCBASTAT);
+  NCB.ncb_lana_num := Lana;
+  NCB.ncb_callname := '*';
+
+  FillChar(Adapter, SizeOf(Adapter), 0);
+  NCB.ncb_buffer := @Adapter;
+  NCB.ncb_length := SizeOf(Adapter);
+  if Netbios(@NCB) <> Char(NRC_GOODRET) then
+  begin
+    Result := 'mac not found';
+    Exit;
+  end;
+  Result :=
+    IntToHex(Byte(Adapter.adapter_address[0]), 2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[1]), 2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[2]), 2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[3]), 2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[4]), 2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[5]), 2);
+end;
+
+function GetMACAddress: string;
+var
+  AdapterList: TLanaEnum;
+  NCB: TNCB;
+begin
+  FillChar(NCB, SizeOf(NCB), 0);
+  NCB.ncb_command := Char(NCBENUM);
+  NCB.ncb_buffer := @AdapterList;
+  NCB.ncb_length := SizeOf(AdapterList);
+  Netbios(@NCB);
+  if Byte(AdapterList.length) > 0 then
+    Result := GetAdapterInfo(AdapterList.lana[0])
+  else
+    Result := 'mac not found';
+end;
 
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
@@ -10963,6 +11096,7 @@ begin
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique
   roulage1.visible:=false;
+  FenRich.MaxLength:=$7FFFFFF0;
 
   OsBits:=0;
   if IsWow64Process then 
@@ -11140,7 +11274,7 @@ begin
     repeat
       application.processmessages;
       inc(i);
-    until (TcoOuvert) or (i>20);
+    until (TcoCree) or (i>20);
     Application.processmessages;
     if avecTCO then FormTCO.show;    // créer fiche dynamique (projet/fichier)
   end;
@@ -11160,10 +11294,9 @@ begin
 
   // lancer CDM rail et le connecte si on le demande ; à faire après la création des feux et du tco
   procetape('Test CDM et son lancement');
-  if LanceCDM then Lance_CDM;
+  if LanceCDM then Lance_CDM(true);
   procetape('Fin cdm');
   Loco.Visible:=true;
-
 
   // tenter la liaison vers CDM rail
   procetape('Test connexion CDM');
@@ -11250,6 +11383,17 @@ begin
   decode_chaine_retro_dcc('<y 0A0147405801CE>');   }
   procetape('Terminé !!');
   Maj_feux(false);
+
+ { With FenRich do
+  begin
+    ReadOnly:=false;
+    clear;
+    Affiche('',clYellow);
+    PasteFromClipboard;
+    SetFocus;
+    ReadOnly:=true;
+  end; }
+  //Affiche(GetMACAddress,clred);
 end;
 
 
@@ -11377,7 +11521,7 @@ begin
     end;
 
     // signaux du TCO
-    if TCOouvert then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
+    if TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
       // parcourir les feux du TCO
       for y:=1 to NbreCellY do
@@ -13127,7 +13271,7 @@ end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
 begin
-  Lance_CDM;
+  Lance_CDM(true);
 end;
 
 procedure TFormPrinc.Affichefentredebug1Click(Sender: TObject);
@@ -13534,7 +13678,7 @@ end;
 
 procedure TFormPrinc.LancerCDMrail1Click(Sender: TObject);
 begin
-  Lance_CDM ;
+  Lance_CDM(true) ;
 end;
 
 procedure TFormPrinc.TrackBarVitChange(Sender: TObject);
@@ -13747,6 +13891,95 @@ begin
     if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end
   else Affiche('Site CDM-Rail inateignable',clred);
+end;
+
+procedure TFormPrinc.Analyser1Click(Sender: TObject);
+var s1,s2 : string;
+    i : integer;
+begin
+  s1:=lowercase(fenRich.Lines[0]);
+  if pos('module',s1)=0 then
+  begin
+    Affiche('Pas de module détecté',clyellow);
+    Affiche('Procédure: dans CDM RAIL ouvrez votre réseau ; Menu ... / TrackDrawing  / Module Display',clLime);
+    Affiche('Cela ouvre une fenêtre DEBUG dans cdm',clLime);
+    Affiche('Dans cette fenêtre, faire Clic droit puis "sélectionner tout" et "copier"',clLime);
+    Affiche('Dans Signaux complexes, clic droit et "coller ; puis menu divers / Analyse des modules ',clLime);
+
+    if lance_cdm(false) then
+    begin
+      sleep(400);
+      s2:='CDR';
+      ProcessRunning(s2); // récupérer le handle de CDM
+      SetForegroundWindow(CDMhd);
+      Application.ProcessMessages;
+      sleep(300);
+
+      KeybdInput(VK_MENU,0);                 // enfonce Alt
+      KeybdInput(vk_decimal,0);
+      KeybdInput(vk_decimal,KEYEVENTF_KEYUP);
+      KeybdInput(VK_MENU,KEYEVENTF_KEYUP);   // relache ALT
+
+      KeybdInput(VK_DOWN,0);                
+      KeybdInput(VK_DOWN,KEYEVENTF_KEYUP);                
+      KeybdInput(VK_RETURN,0);                
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);    
+      KeybdInput(VK_RETURN,0);                // valide le menu "track drawing"
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);  
+
+      // envoie les touches
+      i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
+      Sleep(500);
+      Application.ProcessMessages;
+
+      // clic droit valider le menu
+      KeybdInput(VK_RBUTTON,0);                // VK_APPS = menu droit
+      KeybdInput(VK_RBUTTON,KEYEVENTF_KEYUP); 
+      i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.ProcessMessages; 
+    end;
+    exit;
+
+  end;
+  Analyse_seg;
+
+end;
+
+procedure TFormPrinc.Coller1Click(Sender: TObject);
+begin
+  With FenRich do
+  begin
+    ReadOnly:=false;
+    clear;
+    Affiche('',clYellow);
+    PasteFromClipboard;
+    SetFocus;
+    ReadOnly:=true;
+  end;  
+end;
+
+procedure TFormPrinc.ButtonAffAnalyseCDMClick(Sender: TObject);
+begin
+  formAnalyseCDM.Show;
+end;
+
+procedure TFormPrinc.Button2Click(Sender: TObject);
+var i : integer;
+begin
+  i:=index_aig(26);
+  Affiche(intToSTR(aiguillage[i].ADroit)+aiguillage[i].AdroitB,clred);
+  Affiche(intToSTR(aiguillage[i].ADevie)+aiguillage[i].AdevieB,clred);
+  Affiche(intToSTR(aiguillage[i].DDroit)+aiguillage[i].DDroitB,clred);
+  Affiche(intToSTR(aiguillage[i].Ddevie)+aiguillage[i].DdevieB,clred);
+
+  i:=index_aig(28);
+  Affiche(intToSTR(aiguillage[i].ADroit)+aiguillage[i].AdroitB,clorange);
+  Affiche(intToSTR(aiguillage[i].ADevie)+aiguillage[i].AdevieB,clorange);
+  Affiche(intToSTR(aiguillage[i].DDroit)+aiguillage[i].DDroitB,clorange);
+  Affiche(intToSTR(aiguillage[i].Ddevie)+aiguillage[i].DDevieB,clorange);
+
+
+
 end;
 
 end.

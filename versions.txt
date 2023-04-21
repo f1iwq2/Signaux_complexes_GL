@@ -162,5 +162,6 @@ version 5.73 : Ajout d'un bouton d'autorisation pour le pare-feu windows.
 version 5.74 : Correction bug création nouveau TCO.
                Nouvel installeur-> Signaux complexes s'installe dans c:\programmes\signaux_complexes.
                avec un raccourci sur le bureau.
-version      : Gestion du décodeur de signaux Arcomora.
-
+version 6.0  : Gestion du décodeur de signaux Arcomora.
+               Importation des aiguillages depuis CDM Rail. 
+               Nécessite la version >=23.04 de CDM rail.

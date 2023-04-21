@@ -384,8 +384,8 @@ var
   FormTCO: TFormTCO;
 
   Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
-  clicTCO,piloteAig,BandeauMasque,eval_format,TCOouvert,sauve_tco,formConfCellTCOAff,
-  drag : boolean;
+  clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,formConfCellTCOAff,
+  drag,TCOActive,TCOCree : boolean;
 
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
@@ -3657,7 +3657,7 @@ begin
   oldbmp.width:=100;
   oldbmp.Height:=100;
   //controlStyle:=controlStyle+[csOpaque];
-
+  TCOCree:=true;
 end;
 
 
@@ -4320,7 +4320,7 @@ begin
       ScrollBox.Height:=ClientHeight-Panel1.Height-30;
     end;
   end;
-  TCOouvert:=true;
+  TCOActive:=true;
 end;
 
 // evt qui se produit quand on clic droit dans l'image

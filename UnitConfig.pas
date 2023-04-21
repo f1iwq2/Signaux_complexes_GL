@@ -840,25 +840,37 @@ begin
      end;
    end;
 
-   // tjd 2/4 états ou tjs 
+   // tjd 2/4 états ou tjs
    if (tjdC or tjsC) then
    begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
-     c:=aiguillage[index].AdroitB;if c<>'Z' then s:=s+c;
-     s:=s+','+intToSTR(aiguillage[index].DDroit)+aiguillage[index].DDroitB+'),';
+
+     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+','+intToSTR(aiguillage[index].DDroit);
+
+     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+'),';
      s:=s+'S('+intToSTR(aiguillage[index].Adevie);
-     c:=aiguillage[index].AdevieB;if c<>'Z' then s:=s+c;
-     s:=s+','+intToSTR(aiguillage[index].DDevie)+aiguillage[index].DDevieB+')';
+
+     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+','+intToSTR(aiguillage[index].DDevie);
+
+     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+')';
    end;
 
    if croi then
-   begin      
+   begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
-     c:=aiguillage[index].AdroitB;if c<>'Z' then s:=s+c;
-     s:=s+','+intToSTR(aiguillage[index].DDroit)+aiguillage[index].DDroitB+'),';
+     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+','+intToSTR(aiguillage[index].DDroit);
+     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+'),';
      s:=s+'S('+intToSTR(aiguillage[index].Adevie);
-     c:=aiguillage[index].AdevieB;if c<>'Z' then s:=s+c;
-     s:=s+','+intToSTR(aiguillage[index].DDevie)+aiguillage[index].DDevieB+')';
+     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+','+intToSTR(aiguillage[index].DDevie);
+     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     s:=s+')';
    end;
 
    if tjsC then
@@ -874,20 +886,20 @@ begin
      if aiguillage[index].vitesse=60 then s:=s+',V60';
      if aiguillage[index].inversionCDM=1 then s:=s+',I1' else s:=s+',I0';
    end;
-   
+
    // valeur d'initialisation
    if not(croi) then
    begin
      s:=s+',INIT(';
      s:=s+IntToSTR(aiguillage[index].posInit)+',';
-     s:=s+IntToSTR(aiguillage[index].temps)+')'; 
+     s:=s+IntToSTR(aiguillage[index].temps)+')';
    end;
-  
+
    if tjdC then
    begin
      if aiguillage[index].EtatTJD=2 then s:=s+',E2' else s:=s+',E4';
    end;
-  
+
    encode_aig:=s;
 end;
 

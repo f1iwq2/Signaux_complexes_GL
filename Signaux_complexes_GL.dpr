@@ -15,7 +15,8 @@ uses
   UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO},
   UnitCDF in 'UnitCDF.pas' {FormCDF},
   Unitplace in 'Unitplace.pas' {FormPlace},
-  UnitPareFeu in 'UnitPareFeu.pas';
+  UnitPareFeu in 'UnitPareFeu.pas',
+  UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM};
 
 {$R *.res}
 
@@ -33,5 +34,6 @@ begin
   Application.CreateForm(TFormCDF, FormCDF);
   Application.CreateForm(TFormPlace, FormPlace);
   Application.CreateForm(TFormDebug, FormDebug);
+  Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
   Application.Run;
 end.

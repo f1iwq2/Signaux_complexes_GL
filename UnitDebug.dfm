@@ -1,6 +1,6 @@
 object FormDebug: TFormDebug
-  Left = 306
-  Top = 21
+  Left = 209
+  Top = 192
   Width = 864
   Height = 788
   VertScrollBar.Increment = 67
@@ -481,6 +481,22 @@ object FormDebug: TFormDebug
       ShowHint = True
       TabOrder = 10
       OnClick = CheckDetSIgClick
+    end
+    object CheckImporteCDM: TCheckBox
+      Left = 256
+      Top = 96
+      Width = 129
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Importation CDM Rail'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 11
+      OnClick = CheckImporteCDMClick
     end
   end
   object RichDebug: TRichEdit

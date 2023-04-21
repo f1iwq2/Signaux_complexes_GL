@@ -63,6 +63,7 @@ type
     Button0: TButton;
     MemoEvtDet: TRichEdit;
     CheckDetSIg: TCheckBox;
+    CheckImporteCDM: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -101,6 +102,7 @@ type
     procedure FormActivate(Sender: TObject);
     procedure MemoEvtDetChange(Sender: TObject);
     procedure CheckDetSIgClick(Sender: TObject);
+    procedure CheckImporteCDMClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -110,7 +112,7 @@ type
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug,compt_erreur,positionErreur,LigneErreur : integer;
-  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg,debugAnalyse : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
@@ -625,5 +627,9 @@ begin
   AFfDetSIg:=checkDetSig.checked;
 end;
 
+procedure TFormDebug.CheckImporteCDMClick(Sender: TObject);
 begin
+  debugAnalyse:=checkImporteCDM.checked;
+end;
+
 end.

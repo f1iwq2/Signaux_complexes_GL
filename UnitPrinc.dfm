@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 66
-  Top = 209
-  Width = 1213
-  Height = 670
+  Left = 68
+  Top = 194
+  Width = 1227
+  Height = 671
   Caption = 'Signaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,8 +17,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1197
-    611)
+    1211
+    612)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -35,7 +35,7 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object Image9feux: TImage
-    Left = 384
+    Left = 416
     Top = 0
     Width = 57
     Height = 105
@@ -815,7 +815,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3Dir: TImage
-    Left = 968
+    Left = 928
     Top = 168
     Width = 49
     Height = 25
@@ -981,8 +981,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5Dir: TImage
-    Left = 1096
-    Top = 120
+    Left = 960
+    Top = 0
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1187,7 +1187,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelEtat: TLabel
-    Left = 440
+    Left = 454
     Top = 8
     Width = 152
     Height = 18
@@ -1203,13 +1203,13 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 589
+    Height = 590
   end
   object ScrollBox1: TScrollBox
-    Left = 632
+    Left = 646
     Top = 200
     Width = 546
-    Height = 391
+    Height = 392
     HorzScrollBar.Increment = 48
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -1220,7 +1220,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 0
   end
   object GroupBox1: TGroupBox
-    Left = 632
+    Left = 646
     Top = 5
     Width = 266
     Height = 52
@@ -1268,8 +1268,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 589
-    Width = 1197
+    Top = 590
+    Width = 1211
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1285,22 +1285,22 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 904
-    Top = 13
+    Left = 918
+    Top = 5
     Width = 282
-    Height = 108
+    Height = 148
     Anchors = [akTop, akRight]
     TabOrder = 4
     object Label1: TLabel
-      Left = 56
-      Top = 88
+      Left = 64
+      Top = 128
       Width = 89
       Height = 13
       Caption = 'Nombre de trains : '
     end
     object LabelNbTrains: TLabel
       Left = 240
-      Top = 84
+      Top = 124
       Width = 9
       Height = 19
       Caption = '0'
@@ -1376,10 +1376,30 @@ object FormPrinc: TFormPrinc
       WordWrap = True
       OnClick = BoutonRazTrainsClick
     end
+    object ButtonAffAnalyseCDM: TButton
+      Left = 184
+      Top = 88
+      Width = 89
+      Height = 33
+      Caption = 'Affiche fen'#234'tre analyse CDM'
+      TabOrder = 6
+      Visible = False
+      WordWrap = True
+      OnClick = ButtonAffAnalyseCDMClick
+    end
+    object Button2: TButton
+      Left = 48
+      Top = 96
+      Width = 75
+      Height = 25
+      Caption = 'Button2'
+      TabOrder = 7
+      OnClick = Button2Click
+    end
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 567
+    Top = 568
     Width = 14
     Height = 17
     Anchors = [akLeft, akBottom]
@@ -1387,7 +1407,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 5
   end
   object GroupBox2: TGroupBox
-    Left = 633
+    Left = 647
     Top = 64
     Width = 265
     Height = 105
@@ -1449,7 +1469,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 632
+    Left = 646
     Top = 64
     Width = 265
     Height = 129
@@ -1685,8 +1705,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object ButtonEnv: TButton
-    Left = 1064
-    Top = 144
+    Left = 1078
+    Top = 160
     Width = 113
     Height = 33
     Anchors = [akTop, akRight]
@@ -1696,8 +1716,8 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonEnvClick
   end
   object EditEnvoi: TEdit
-    Left = 936
-    Top = 152
+    Left = 950
+    Top = 168
     Width = 121
     Height = 21
     Anchors = [akTop, akRight]
@@ -1705,7 +1725,7 @@ object FormPrinc: TFormPrinc
     Text = '<1>'
   end
   object Button1: TButton
-    Left = 360
+    Left = 494
     Top = 0
     Width = 75
     Height = 25
@@ -1914,6 +1934,14 @@ object FormPrinc: TFormPrinc
       object N1: TMenuItem
         Caption = '-'
       end
+      object Analyser1: TMenuItem
+        Caption = 'Importer le r'#233'seau CDM Rail'
+        Hint = 'Importer le r'#233'seau CDM rail (aiguillages)'
+        OnClick = Analyser1Click
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
       object LireunfichierdeCV1: TMenuItem
         Caption = 'Lire un fichier de CV vers un accessoire'
         Hint = 
@@ -1953,7 +1981,7 @@ object FormPrinc: TFormPrinc
     OnDisconnect = ClientSocketCDMDisconnect
     OnRead = ClientSocketCDMRead
     OnError = ClientSocketCDMError
-    Left = 352
+    Left = 344
   end
   object OpenDialog: TOpenDialog
     Left = 944
@@ -1969,6 +1997,10 @@ object FormPrinc: TFormPrinc
     object Copier1: TMenuItem
       Caption = 'Copier'
       OnClick = Copier1Click
+    end
+    object Coller1: TMenuItem
+      Caption = 'Coller'
+      OnClick = Coller1Click
     end
   end
   object PopupMenuFeu: TPopupMenu
