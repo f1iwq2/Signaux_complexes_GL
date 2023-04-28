@@ -168,7 +168,6 @@ type
     Analyser1: TMenuItem;
     Coller1: TMenuItem;
     ButtonAffAnalyseCDM: TButton;
-    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -251,7 +250,6 @@ type
     procedure Analyser1Click(Sender: TObject);
     procedure Coller1Click(Sender: TObject);
     procedure ButtonAffAnalyseCDMClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -310,7 +308,7 @@ Taccessoire   = (aigP,feu);    // aiguillage ou feu
 TEquipement   = (rien,aig,tjd,tjs,triple,det,buttoir,voie,crois,act);   // voie uniquement pour le tco
 TBranche      = record
                   BType : Tequipement ;   // ne prend que les valeurs suivantes: dét aig Buttoir
-                  Adresse : integer ; // adresse du détecteur ou de l'aiguillage
+                  Adresse : integer ;     // adresse du détecteur ou de l'aiguillage
                 end;
 
 Taiguillage = record
@@ -13905,6 +13903,9 @@ begin
     Affiche('Cela ouvre une fenêtre DEBUG dans cdm',clLime);
     Affiche('Dans cette fenêtre, faire Clic droit puis "sélectionner tout" et "copier"',clLime);
     Affiche('Dans Signaux complexes, clic droit et "coller ; puis menu divers / Analyse des modules ',clLime);
+    Affiche('Dans la fenêtre graphique d''importation cliquer sur importer',clLime);
+    Affiche('Attention : nécessite la version >=23.05 de CDM',clLime);
+
 
     if lance_cdm(false) then
     begin
@@ -13960,27 +13961,11 @@ end;
 
 procedure TFormPrinc.ButtonAffAnalyseCDMClick(Sender: TObject);
 begin
+  FormAnalyseCDM.WindowState:=wsMaximized;
   formAnalyseCDM.Show;
 end;
 
-procedure TFormPrinc.Button2Click(Sender: TObject);
-var i : integer;
-begin
-  i:=index_aig(26);
-  Affiche(intToSTR(aiguillage[i].ADroit)+aiguillage[i].AdroitB,clred);
-  Affiche(intToSTR(aiguillage[i].ADevie)+aiguillage[i].AdevieB,clred);
-  Affiche(intToSTR(aiguillage[i].DDroit)+aiguillage[i].DDroitB,clred);
-  Affiche(intToSTR(aiguillage[i].Ddevie)+aiguillage[i].DdevieB,clred);
 
-  i:=index_aig(28);
-  Affiche(intToSTR(aiguillage[i].ADroit)+aiguillage[i].AdroitB,clorange);
-  Affiche(intToSTR(aiguillage[i].ADevie)+aiguillage[i].AdevieB,clorange);
-  Affiche(intToSTR(aiguillage[i].DDroit)+aiguillage[i].DDroitB,clorange);
-  Affiche(intToSTR(aiguillage[i].Ddevie)+aiguillage[i].DDevieB,clorange);
-
-
-
-end;
 
 end.
 

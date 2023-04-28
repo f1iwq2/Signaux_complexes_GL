@@ -482,22 +482,6 @@ object FormDebug: TFormDebug
       TabOrder = 10
       OnClick = CheckDetSIgClick
     end
-    object CheckImporteCDM: TCheckBox
-      Left = 256
-      Top = 96
-      Width = 129
-      Height = 17
-      Alignment = taLeftJustify
-      Caption = 'Importation CDM Rail'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 11
-      OnClick = CheckImporteCDMClick
-    end
   end
   object RichDebug: TRichEdit
     Left = 8

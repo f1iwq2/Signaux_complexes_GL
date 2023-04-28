@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 68
-  Top = 194
+  Left = 86
+  Top = 188
   Width = 1227
   Height = 671
   Caption = 'Signaux complexes'
@@ -1386,15 +1386,6 @@ object FormPrinc: TFormPrinc
       Visible = False
       WordWrap = True
       OnClick = ButtonAffAnalyseCDMClick
-    end
-    object Button2: TButton
-      Left = 48
-      Top = 96
-      Width = 75
-      Height = 25
-      Caption = 'Button2'
-      TabOrder = 7
-      OnClick = Button2Click
     end
   end
   object StaticText: TStaticText

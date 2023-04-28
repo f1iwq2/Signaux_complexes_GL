@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
-  MMSystem, Buttons , UnitPareFeu, verif_version;
+  MMSystem, Buttons , UnitPareFeu, verif_version,
+  Menus;
 
 type
   TFormConfig = class(TForm)
@@ -333,6 +334,9 @@ type
     EditZdet1V5O: TEdit;
     EditZdet2V5O: TEdit;
     Label60: TLabel;
+    PopupMenuConfig: TPopupMenu;
+    Copier1: TMenuItem;
+    Coller1: TMenuItem;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -489,6 +493,8 @@ type
     procedure EditZdet2V5OChange(Sender: TObject);
     procedure EditLAYChange(Sender: TObject);
     procedure EditLAYExit(Sender: TObject);
+    procedure Copier1Click(Sender: TObject);
+    procedure Coller1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -573,6 +579,8 @@ Procedure aff_champs_sig_feux(index : integer);
 function verif_coherence : boolean;
 function compile_branche(s : string;i : integer) : boolean;
 function encode_sig_feux(i : integer): string;
+procedure valide_branches;
+procedure trier_aig;
 
 implementation
 
@@ -2786,6 +2794,7 @@ begin
     begin
       trouve_section_aig:=true;
       compile_aiguillages;
+      trier_aig;
     end;
 
     // section branche
@@ -4679,6 +4688,7 @@ begin
         if index=0 then exit;
         aiguillage[index].Adroit:=adr;
         aiguillage[index].AdroitB:=B;
+        LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
       end;  
       // TJD2
       if aiguillage[index].EtatTJD=2 then
@@ -4689,7 +4699,6 @@ begin
       s:=encode_aig(index);
       formconfig.RichAig.Lines[index-1]:=s;
       RE_ColorLine(Formconfig.RichAig,index-1,ClWhite);
-      LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
     end;
 
     if modele=crois then
@@ -6318,6 +6327,26 @@ begin
   config_modifie:=true;
 end;
 
+
+// trie les aiguillages
+procedure trier_aig;
+var i,j : integer;
+    temp : TAiguillage;
+begin
+  for i:=1 to MaxAiguillage do
+  begin
+    for j:=i+1 to MaxAiguillage do
+    begin
+      if aiguillage[i].Adresse>aiguillage[j].adresse then
+      begin
+        temp:=aiguillage[i];
+        aiguillage[i]:=aiguillage[j];
+        aiguillage[j]:=temp;
+      end;
+    end;
+  end;
+end;
+
 procedure supprime_act;
 var i,debut,longueur,fin,ltot,lignedeb,lignefin,l : integer;
     s: string;
@@ -6811,7 +6840,7 @@ begin
       end;
     end;
     adr:=aiguillage[Indexaig].Adroit;
-    if (aiguillage[Indexaig].AdroitB='Z') then
+    if (aiguillage[Indexaig].AdroitB='Z') or (aiguillage[Indexaig].AdroitB=#0) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
@@ -6821,7 +6850,7 @@ begin
       end;
     end;
     adr:=aiguillage[Indexaig].Adevie;
-    if (aiguillage[Indexaig].AdevieB='Z') then
+    if (aiguillage[Indexaig].AdevieB='Z') or (aiguillage[Indexaig].AdevieB=#0) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
@@ -6831,7 +6860,7 @@ begin
       end;  
     end;
     adr:=aiguillage[Indexaig].Apointe;
-    if ((aiguillage[Indexaig].ApointeB='Z') and (aiguillage[Indexaig].modele=aig)) then
+    if ( ((aiguillage[Indexaig].ApointeB='Z') or (aiguillage[Indexaig].ApointeB=#0)) and (aiguillage[Indexaig].modele=aig) ) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
@@ -6842,7 +6871,7 @@ begin
     end;
     if (aiguillage[Indexaig].modele=triple) then // aiguillage triple
     begin
-      if (aiguillage[Indexaig].Adevie2B='Z') then
+      if (aiguillage[Indexaig].Adevie2B='Z') or (aiguillage[Indexaig].Adevie2B=#0)  then
       begin
         adr:=aiguillage[Indexaig].Adevie2;
         trouve_detecteur(adr);
@@ -7144,9 +7173,9 @@ begin
     end;
 
     // on ne vérifie pas les tjd tjs crois
-    if (model<>tjd) and (model<>tjd) and (model<>crois) then 
+    if (model<>tjd) and (model<>tjd) and (model<>crois) then
     begin
-    
+
       adr2:=aiguillage[indexaig].ADroit;    // adresse de ce qui est connecté sur la position droite
       c:=aiguillage[indexaig].AdroitB;
       if (c='D') or (c='S') or (c='P') then
@@ -7154,12 +7183,6 @@ begin
         if adr2=adr then affiche('Erreur 10.0 : la position droite de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
-        if index2=0 then
-        begin
-          ok:=false;
-          Affiche('Erreur 10.20: aiguillage '+intToSTR(adr)+': déclaration d''un aiguillage '+IntToSTR(adr2)+' inexistant',clred);
-        end
-        else
         begin
           // tjs ou tjs à 2 états ou croisement
           if ( ((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=2) ) or (model2=crois) then
@@ -7167,11 +7190,11 @@ begin
             if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                (adr<>aiguillage[index2].DDevie) and (adr<>aiguillage[index2].Ddroit) then
             begin
-              Affiche('Erreur 10.21: Discordance de déclaration aiguillages '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+              Affiche('Erreur 10.21: Discordance de déclaration aiguillages '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
-            end;    
+            end;
           end;
-   
+
           // tjs ou tjs à 4 états
           if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=4)) then
           begin
@@ -7180,7 +7203,7 @@ begin
             if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                (adr<>aiguillage[index3].ADevie) and (adr<>aiguillage[index3].Adroit) then
             begin
-              Affiche('Erreur 10.22: Discordance de déclaration aiguillages  '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+              Affiche('Erreur 10.22: Discordance de déclaration aiguillages  '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;
           end;
@@ -7205,7 +7228,7 @@ begin
           end;
         end;  
       end;
-  
+
       adr2:=aiguillage[indexaig].Adevie;  // adresse de ce qui est connecté sur la position déviée
       c:=aiguillage[indexaig].AdevieB;
       if (c='D') or (c='S') or (c='P') then
@@ -7272,12 +7295,6 @@ begin
         if adr2=adr then affiche('Erreur 10.2 : la pointe de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
-        if index2=0 then
-        begin
-          ok:=false;
-          Affiche('Erreur 10.40: aiguillage '+intToSTR(adr)+': déclaration d''un aiguillage '+IntToSTR(adr2)+' inexistant',clred);
-        end
-        else
         begin
           // tjs ou tjs à 2 états ou croisement
           if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=2)) or (model2=crois) then
@@ -8104,7 +8121,7 @@ begin
 
 end;
 
-procedure TFormConfig.ButtonValLigneClick(Sender: TObject);
+procedure valide_branches;
 var s: string;
     ligne,esp : integer;
     ok : boolean;
@@ -8112,7 +8129,7 @@ begin
   ligne:=1;
   ok:=true;
   repeat
-    s:=AnsiUpperCase(RichBranche.Lines[ligne-1]);
+    s:=AnsiUpperCase(formConfig.RichBranche.Lines[ligne-1]);
     if s<>'' then
     begin
       // supprime les espaces éventuels
@@ -8122,24 +8139,24 @@ begin
       until esp=0;
       if s<>'' then
       begin
-        RichBranche.Lines[ligne-1]:=s;
+        formConfig.RichBranche.Lines[ligne-1]:=s;
         branche[ligne]:=s;  // stocker la ligne dans la branche pour la compiler
         if compile_branche(s,ligne) then
         begin
-          RE_ColorLine(RichBranche,Ligne-1,ClLime);
+          RE_ColorLine(FormConfig.RichBranche,Ligne-1,ClLime);
         end
         else
         begin
-          RE_ColorLine(RichBranche,Ligne-1,ClRed);
+          RE_ColorLine(FormConfig.RichBranche,Ligne-1,ClRed);
           ok:=false;
         end;
         inc(ligne);
       end
-    else RichBranche.Lines.Delete(ligne-1);
+    else FormConfig.RichBranche.Lines.Delete(ligne-1);
   end
-  else RichBranche.Lines.Delete(ligne-1);
+  else FormConfig.RichBranche.Lines.Delete(ligne-1);
 
-  until (ligne>RichBranche.Lines.count) or (ligne>=MaxBranches);
+  until (ligne>FormConfig.RichBranche.Lines.count) or (ligne>=MaxBranches);
   NbreBranches:=ligne-1;
   if ligne>=MaxBranches then Affiche('Nombre maximal de branches atteint',clRed);
 
@@ -8147,16 +8164,21 @@ begin
   if ligne<>0 then
   begin
     ok:=false;
-    RE_ColorLine(RichBranche,Ligne-1,ClRed);
-  end; 
+    RE_ColorLine(FormConfig.RichBranche,Ligne-1,ClRed);
+  end;
   
   if ok then 
   begin 
-    labelResult.Caption:='Syntaxe correcte';
+    FormConfig.labelResult.Caption:='Syntaxe correcte';
     config_modifie:=true;
     modif_branches:=false;
   end  
-    else labelResult.Caption:='Erreur de syntaxe';
+    else FormConfig.labelResult.Caption:='Erreur de syntaxe';
+end;
+
+procedure TFormConfig.ButtonValLigneClick(Sender: TObject);
+begin
+  valide_branches;
 end;
 
 function virgule_suiv(sl : string;o : integer) : integer;
@@ -10145,6 +10167,21 @@ procedure TFormConfig.EditLAYExit(Sender: TObject);
 begin
   Affiche_avert:=false;
   LabelInfo.caption:='';
+end;
+
+procedure TFormConfig.Copier1Click(Sender: TObject);
+begin
+  RichBranche.CopyToClipboard;
+  RichBranche.SetFocus;
+end;
+
+procedure TFormConfig.Coller1Click(Sender: TObject);
+begin
+  With RichBranche do
+  begin
+    PasteFromClipboard;
+    SetFocus;
+  end;
 end;
 
 end.

@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2925,6 +2925,7 @@ object FormConfig: TFormConfig
         Lines.Strings = (
           'RichBranche')
         ParentFont = False
+        PopupMenu = PopupMenuConfig
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
@@ -3128,7 +3129,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -4835,5 +4836,17 @@ object FormConfig: TFormConfig
   object OpenDialogSon: TOpenDialog
     Left = 668
     Top = 468
+  end
+  object PopupMenuConfig: TPopupMenu
+    Left = 728
+    Top = 88
+    object Copier1: TMenuItem
+      Caption = 'Copier'
+      OnClick = Copier1Click
+    end
+    object Coller1: TMenuItem
+      Caption = 'Coller'
+      OnClick = Coller1Click
+    end
   end
 end
