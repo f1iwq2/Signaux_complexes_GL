@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 155
-  Top = 53
+  Left = 163
+  Top = 46
   Width = 1142
   Height = 678
   VertScrollBar.Visible = False
@@ -22,8 +22,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1126
-    639)
+    1134
+    647)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -81,13 +81,13 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 976
+    Left = 888
     Top = 96
     Width = 97
     Height = 97
   end
   object ImageTemp2: TImage
-    Left = 976
+    Left = 888
     Top = 208
     Width = 97
     Height = 97

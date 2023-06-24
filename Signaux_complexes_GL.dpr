@@ -16,11 +16,13 @@ uses
   UnitCDF in 'UnitCDF.pas' {FormCDF},
   Unitplace in 'Unitplace.pas' {FormPlace},
   UnitPareFeu in 'UnitPareFeu.pas',
-  UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM};
+  UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
+  Importation in 'Importation.pas' {FormImportation};
 
 {$R *.res}
 
 begin
+  // la form TCO ne doit pas etre créée ici!!
   Application.Initialize;
   Application.CreateForm(TFormPrinc, FormPrinc);
   Application.CreateForm(TFormVersion, FormVersion);
@@ -35,5 +37,6 @@ begin
   Application.CreateForm(TFormPlace, FormPlace);
   Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
+  Application.CreateForm(TFormImportation, FormImportation);
   Application.Run;
 end.

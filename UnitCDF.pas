@@ -1,5 +1,7 @@
 unit UnitCDF;
 
+// configuration des décodeurs CDM et Digikeijs
+
 interface
 
 uses
@@ -95,9 +97,6 @@ var
 procedure dessine_feu_CDF;
 
 implementation
-
-
-
 
 
 procedure TFormCDF.FormActivate(Sender: TObject);

@@ -33,7 +33,7 @@ object FormConfig: TFormConfig
     ParentFont = False
     WordWrap = True
   end
-  object Image1: TImage
+  object ImageSignaux: TImage
     Left = 648
     Top = 128
     Width = 249
@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1911,7 +1911,12 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 145
           Height = 17
-          Caption = 'Position trains (non utilis'#233')'
+          Hint = 
+            'Utilis'#233' avec la fenetre CDM de signaux complexes pour afficher l' +
+            'es trains'
+          Caption = 'Position trains'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 3
         end
         object CheckBoxSrvSig: TCheckBox
@@ -2119,7 +2124,7 @@ object FormConfig: TFormConfig
         Top = 200
         Width = 297
         Height = 73
-        Caption = 'Acc'#232's Ethernet '#224' l'#39'interface vers la centrale'
+        Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale'
         TabOrder = 2
         object Label7: TLabel
           Left = 14
@@ -2795,9 +2800,9 @@ object FormConfig: TFormConfig
       end
       object RichAig: TRichEdit
         Left = 0
-        Top = 56
+        Top = 64
         Width = 321
-        Height = 369
+        Height = 385
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clYellow
@@ -2832,7 +2837,7 @@ object FormConfig: TFormConfig
         OnClick = BoutSupAigClick
       end
       object ButtonAjSup: TButton
-        Left = 144
+        Left = 152
         Top = 32
         Width = 121
         Height = 17
@@ -2922,6 +2927,7 @@ object FormConfig: TFormConfig
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        HideSelection = False
         Lines.Strings = (
           'RichBranche')
         ParentFont = False
@@ -3101,7 +3107,7 @@ object FormConfig: TFormConfig
           Visible = False
         end
         object Label43: TLabel
-          Left = 40
+          Left = 48
           Top = 160
           Width = 38
           Height = 16
@@ -3755,8 +3761,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 224
-          Top = 176
+          Left = 152
+          Top = 16
           Width = 233
           Height = 401
           Caption = 'Action gestion passage '#224' niveau'
@@ -4136,7 +4142,7 @@ object FormConfig: TFormConfig
             TabOrder = 31
             OnChange = EditZdet2V4OChange
           end
-          object Button1: TButton
+          object ButtonTestFerme: TButton
             Left = 200
             Top = 16
             Width = 27
@@ -4146,9 +4152,9 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 36
-            OnClick = Button1Click
+            OnClick = ButtonTestFermeClick
           end
-          object Button3: TButton
+          object ButtonTestOuvre: TButton
             Left = 200
             Top = 40
             Width = 27
@@ -4158,7 +4164,7 @@ object FormConfig: TFormConfig
             ParentShowHint = False
             ShowHint = True
             TabOrder = 37
-            OnClick = Button3Click
+            OnClick = ButtonTestOuvreClick
           end
           object CheckPnPulse: TCheckBox
             Left = 8
@@ -4566,7 +4572,7 @@ object FormConfig: TFormConfig
           'age'
         WordWrap = True
       end
-      object Image3: TImage
+      object ImageTrain: TImage
         Left = 384
         Top = 312
         Width = 153

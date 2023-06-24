@@ -383,7 +383,7 @@ var
 
   FormTCO: TFormTCO;
 
-  Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,Diffusion,TCO_modifie,
+  Forminit,sourisclic,SelectionAffichee,TamponAffecte,entoure,TCO_modifie,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,formConfCellTCOAff,
   drag,TCOActive,TCOCree : boolean;
 
@@ -3251,6 +3251,7 @@ procedure affiche_cellule(x,y : integer);
 var i,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
     s : string;
 begin
+  //if tco[x,y].BImage=0 then exit;
   //Affiche('Affiche_cellule',clLime);
   PcanvasTCO.pen.Mode:=PmCopy;
   adresse:=tco[x,y].Adresse;
@@ -5286,27 +5287,28 @@ begin
     if XclicCell>NbreCellX then exit;
     if YclicCell>NbreCellY then exit;
     Bimage:=tco[XClicCell,YClicCell].Bimage;
+
     if formConfCellTCOAff then
     begin
-
-    // si aiguillage, mettre à jour l'option de pilotage inverse
-    if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
-       or (bimage=14) or (bimage=15) or (bimage=24) then
-    begin
-      // aiguillage inversé
-      with FormConfCellTCO.CheckPinv do
+      // si aiguillage, mettre à jour l'option de pilotage inverse
+      if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
+         or (bimage=14) or (bimage=15) or (bimage=24) then
       begin
-        enabled:=true;
-        checked:=TCO[XClicCell,YClicCell].inverse;
+
+        // aiguillage inversé
+        with FormConfCellTCO.CheckPinv do
+        begin
+          enabled:=true;
+          checked:=TCO[XClicCell,YClicCell].inverse;
+        end;
+        CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
+        CheckPinv.enabled:=true ;
+      end
+      else
+      begin
+        CheckPinv.enabled:=false;
+        FormConfCellTCO.checkPinv.enabled:=false;
       end;
-      CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
-      CheckPinv.enabled:=true ;
-    end
-    else
-    begin
-      CheckPinv.enabled:=false;
-      FormConfCellTCO.checkPinv.enabled:=false;
-    end;
     end;
 
     // si voie ou rien ou signal ou quai
@@ -5332,6 +5334,10 @@ begin
     EdittypeImage.Text:=IntToSTR(BImage);
     ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
     ShapeCoulFond.Brush.Color:=tco[XClicCell,yClicCell].CouleurFond;
+
+    s:='El='+intToSTR(tco[XClicCell,YClicCell].BImage);
+    if tco[XClicCell,YClicCell].adresse<>0 then s:=s+' Adr='+intToSTR(tco[XClicCell,YClicCell].adresse);
+    //hint:=s;
 
     if not(selectionaffichee) then _entoure_cell_clic;
     actualise;    // actualise la fenetre de config cellule

@@ -9,17 +9,17 @@ implementation
 uses
   SysUtils,ActiveX,ComObj,Variants,UnitPrinc,Graphics,unitConfig,verif_version;
 Const
-  NET_FW_ACTION_ALLOW = 1;
-  NET_FW_IP_PROTOCOL_TCP = 6;
-  NET_FW_IP_PROTOCOL_UDP = 17;
-  NET_FW_IP_PROTOCOL_ANY = 256;
+  NET_FW_ACTION_ALLOW=1;
+  NET_FW_IP_PROTOCOL_TCP=6;
+  NET_FW_IP_PROTOCOL_UDP=17;
+  NET_FW_IP_PROTOCOL_ANY=256;
   net_fw_profile2_private=2;
   net_fw_profile2_public=4;
   net_fw_rule_dir_out=2;
   net_fw_rule_dir_in=1;
-  NET_FW_MODIFY_STATE_OK = 0;
-  NET_FW_MODIFY_STATE_GP_OVERRIDE = 1;
-  NET_FW_MODIFY_STATE_INBOUND_BLOCKED = 2;
+  NET_FW_MODIFY_STATE_OK=0;
+  NET_FW_MODIFY_STATE_GP_OVERRIDE=1;
+  NET_FW_MODIFY_STATE_INBOUND_BLOCKED=2;
   nom_regle_cdm='CDM rail';
 
 // Ajoute une règle à un programme en utilisant Microsoft Windows Firewall APIs.
@@ -34,7 +34,7 @@ begin
   // Crée l'objet FwPolicy2
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;
-  CurrentProfiles:= fwPolicy2.CurrentProfileTypes;
+  CurrentProfiles:=fwPolicy2.CurrentProfileTypes;
   //CurrentProfiles:=net_fw_profile2_private or net_fw_profile2_public;
 
   //Crée l'objet de la règle.
@@ -110,41 +110,41 @@ end;
 // =2 oui et active
 function CheckingRuleEnabled : integer;
 var
-  fwPolicy2,RulesObject,rule : OleVariant;
-  PolicyModifyState,CurrentProfiles : Integer;
+  fwPolicy2,RulesObject,regle : OleVariant;
+  CurrentProfiles : Integer;
   bIsEnabled,trouve : Boolean;
   oEnum : IEnumvariant;
   iValue : LongWord;
   s : string;
 begin
-  fwPolicy2:= CreateOleObject('HNetCfg.FwPolicy2');
+  fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;
   CurrentProfiles:=fwPolicy2.CurrentProfileTypes;
   trouve:=false ;
   oEnum:=IUnknown(Rulesobject._NewEnum) as IEnumVariant;
-  while (oEnum.Next(1,rule,iValue)=0) and not(trouve) do
+  while (oEnum.Next(1,regle,iValue)=0) and not(trouve) do
   begin
-    if (rule.Profiles And CurrentProfiles)<>0 then
+    if (regle.Profiles And CurrentProfiles)<>0 then
     begin
-      s:=rule.Name;
+      s:=regle.Name;
       trouve:=s=nom_regle_cdm;
       if trouve then
       begin
         Affiche('Description de l''autorisation socket pour CDM rail dans le pare-feu Windows',clyellow);
         Affiche('Nom : ' + s,clLime);
-        Affiche('Description : ' + rule.Description,clLime);
-        Affiche('Nom d''application: ' + rule.ApplicationName,clLime);
-        Affiche('Nom du service: ' + rule.ServiceName,clLime);
-        bIsEnabled:=rule.enabled;
+        Affiche('Description : ' + regle.Description,clLime);
+        Affiche('Nom d''application: ' + regle.ApplicationName,clLime);
+        Affiche('Nom du service: ' + regle.ServiceName,clLime);
+        bIsEnabled:=regle.enabled;
         if bisEnabled then affiche('Activée',clLime) else affiche('désactivée',clLime) ;
-        if (rule.Protocol=NET_FW_IP_PROTOCOL_TCP) or (rule.Protocol=NET_FW_IP_PROTOCOL_UDP) then
+        if (regle.Protocol=NET_FW_IP_PROTOCOL_TCP) or (regle.Protocol=NET_FW_IP_PROTOCOL_UDP) then
         begin
-          if (rule.Protocol=NET_FW_IP_PROTOCOL_TCP) then Affiche('Protocole : TCP',clLime);
-          if (rule.Protocol=NET_FW_IP_PROTOCOL_UDP) then Affiche('Protocole : UDP',clLime);
-          Affiche('Ports locaux : ' + rule.LocalPorts,clLime);
-          Affiche('Ports distants : ' + rule.RemotePorts,clLime);
-          Affiche('Adresses locales : ' + rule.LocalAddresses,clLime);
-          Affiche('Adresses distantes : ' + rule.RemoteAddresses,clLime);
+          if (regle.Protocol=NET_FW_IP_PROTOCOL_TCP) then Affiche('Protocole : TCP',clLime);
+          if (regle.Protocol=NET_FW_IP_PROTOCOL_UDP) then Affiche('Protocole : UDP',clLime);
+          Affiche('Ports locaux : ' + regle.LocalPorts,clLime);
+          Affiche('Ports distants : ' + regle.RemotePorts,clLime);
+          Affiche('Adresses locales : ' + regle.LocalAddresses,clLime);
+          Affiche('Adresses distantes : ' + regle.RemoteAddresses,clLime);
         end;
       end;
     end;

@@ -5,14 +5,13 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
-  MMSystem, Buttons , UnitPareFeu, verif_version,
-  Menus;
+  MMSystem, Buttons , UnitPareFeu, verif_version, Menus ;
 
 type
   TFormConfig = class(TForm)
     ButtonAppliquerEtFermer: TButton;
     LabelInfo: TLabel;
-    Image1: TImage;
+    ImageSignaux: TImage;
     PageControl: TPageControl;
     TabSheetCDM: TTabSheet;
     TabSheetAutonome: TTabSheet;
@@ -279,8 +278,8 @@ type
     Memo5: TMemo;
     EditLAY: TEdit;
     Label13: TLabel;
-    Button1: TButton;
-    Button3: TButton;
+    ButtonTestFerme: TButton;
+    ButtonTestOuvre: TButton;
     CheckPnPulse: TCheckBox;
     CheckFVC: TCheckBox;
     CheckFRC: TCheckBox;
@@ -324,7 +323,7 @@ type
     EditFiltrDet: TEdit;
     CheckBoxVerifXpressNet: TCheckBox;
     LabelCrois: TLabel;
-    Image3: TImage;
+    ImageTrain: TImage;
     ButtonPFCDM: TButton;
     Label59: TLabel;
     EditV5F: TEdit;
@@ -458,8 +457,8 @@ type
     procedure EditZdet1V4FChange(Sender: TObject);
     procedure EditZdet1V4OChange(Sender: TObject);
     procedure EditZdet2V4OChange(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure ButtonTestFermeClick(Sender: TObject);
+    procedure ButtonTestOuvreClick(Sender: TObject);
     procedure CheckPnPulseClick(Sender: TObject);
     procedure CheckFVCClick(Sender: TObject);
     procedure CheckFRCClick(Sender: TObject);
@@ -512,6 +511,7 @@ Algo_localisation_ch='Algo_localisation';
 Avec_roulage_ch='Avec_roulage';
 nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
+ServicesCDM_ch='ServicesCDM';
 retro_ch='retro';
 Init_aig_ch='Init_Aig';
 LAY_ch='Lay';
@@ -541,6 +541,7 @@ Raz_signaux_ch='RazSignaux';
 EnvAigDccpp_ch='EnvAigDccpp';
 AdrBaseDetDccpp_ch='AdrBaseDetDccpp';
 AvecVerifIconesTCO_ch='AvecVerifIconesTCO';
+NomModuleCDM_ch='NomModuleCDM';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -584,7 +585,7 @@ procedure trier_aig;
 
 implementation
 
-uses UnitDebug,UnitTCO, UnitSR, UnitCDF;
+uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM;
 
 {$R *.dfm}
 
@@ -619,10 +620,10 @@ begin
   place_id:=s;
 end;
 
-procedure Maj_Hint_feu(i : integer);
+procedure Maj_Hint_Signal(i : integer);
 var s : string;
 begin
-  // ne pas supprimer le @ espace et = qui sert de marqueur pour identifier le feu
+  // ne pas supprimer le @= qui sert de marqueur pour identifier le feu
   s:='@='+inttostr(feux[i].Adresse)+' Decodeur='+intToSTR(feux[i].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
        ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
   if feux[i].Btype_suiv1=aig then s:=s+' (aig)';
@@ -630,18 +631,19 @@ begin
 end;
 
 // demande les services Com-IP à CDM
+// demande à CDM d'envoyer les états sur changements des services demandés.
+// exemple: si on demande le service aiguillage, CDM renverra la position d'un aiguillage qui change d'état.
 function services_CDM : boolean;
 var s,ss : string;
     i : integer;
 begin
-  //s:=place_id('C-C-00-0002-RQSERV-RTSIM|030|03|SRV=ATNT;SRV=ADET;SRV=AACT;');
   s:=place_id('C-C-00-0002-RQSERV-RTSIM|xxx|xx|');
   i:=0;
-  if Srvc_Aig then begin s:=s+'SRV=ATNT;';inc(i);end;
-  if Srvc_Act then begin s:=s+'SRV=AACT;';inc(i);end;
-  if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;
-  if Srvc_PosTrain then  begin s:=s+'SRV=TSXY;';inc(i);end ;
-  if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;
+  if Srvc_Aig then begin s:=s+'SRV=ATNT;';inc(i);end;   // service changement aiguillage
+  if Srvc_Act then begin s:=s+'SRV=AACT;';inc(i);end;   // service actionneurs
+  if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;   // service détecteurs
+  if Srvc_Pos then begin s:=s+'SRV=TSXY;';inc(i);end ;  // service position des trains
+  if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;   // service signaux
 
   // insère le nombre de paramètres
   ss:=format('%.*d',[2,i]) ;
@@ -662,7 +664,7 @@ begin
     if Srvc_Aig then s:=s+'- aiguillages ';
     if Srvc_Act then s:=s+'- actionneurs ';
     if Srvc_Det then s:=s+'- détecteurs ';
-    if Srvc_PosTrain then s:=s+'- position des trains ';
+    if Srvc_Pos then s:=s+'- position des trains ';
     if Srvc_sig then s:=s+'- état des signaux ';
     Affiche(s,clYellow);
   end;
@@ -1436,7 +1438,6 @@ begin
 end;
 
 // modifie le fichier de config en fonction du paramétrage
-// recopie les commentaires du fichier "fichier"
 procedure genere_config;
 var s: string;
     fichierN : text;
@@ -1465,6 +1466,15 @@ begin
 
   // adresse ip et port de CDM
   writeln(fichierN,IpV4_PC_ch+'=',adresseIPCDM+':'+intToSTR(portCDM));
+
+  // services CDM
+  i:=0;
+  if Srvc_Aig then i:=setbit(i,0);
+  if Srvc_Act then i:=setbit(i,1);
+  if Srvc_Det then i:=setbit(i,2);
+  if Srvc_Pos then i:=setbit(i,3);
+  if Srvc_Sig then i:=setbit(i,4);
+  writeln(fichierN,ServicesCDM_ch+'=',i);
 
   // adresse ip interface XpressNet
   writeln(fichierN,IPV4_Interface_ch+'=',adresseIP+':'+intToSTR(portInterface));
@@ -1530,6 +1540,8 @@ begin
 
   // Nom du lay
   writeln(fichierN,lay_ch+'=',Lay);
+
+  writeln(fichierN,NomModuleCDM_ch+'=',NomModuleCDM);
 
   // Serveur d'interface de CDM
   writeln(fichierN,Serveur_interface_ch+'=',intToSTR(ServeurInterfaceCDM));
@@ -1645,7 +1657,6 @@ begin
 end;
 
 procedure lit_config;
-
 var s,sa,SOrigine: string;
     c : char;
     tec,tjdC,tjsC,s2,triC,debugConfig,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,trouve_protocole,
@@ -2443,7 +2454,11 @@ begin
       delete(s,i,length(sa));
       val(s,TailleFonte,erreur);
       if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
-      FormPrinc.FenRich.Font.Size:=TailleFonte;
+      with FormPrinc.FenRich do
+      begin
+        clear;
+        Font.Size:=TailleFonte;
+      end;
     end;
 
     sa:=uppercase(Protocole_ch)+'=';
@@ -2475,6 +2490,21 @@ begin
       else affiche('Erreur adresse ip cdm rail '+s,clred);
     end;
 
+    // Services CDM
+    sa:=uppercase(ServicesCDM_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      Srvc_aig:=testbit(i,0);
+      Srvc_act:=testbit(i,1);
+      Srvc_det:=testbit(i,2);
+      Srvc_pos:=testbit(i,3);
+      Srvc_sig:=testbit(i,4);
+    end;
+
     // adresse ip et port de la centrale
     sa:=uppercase(IPV4_INTERFACE_ch)+'=';
     i:=pos(sa,s);
@@ -2503,7 +2533,7 @@ begin
       trouve_MaxPort:=true;
       val(s,MaxPortCom,erreur);
       if erreur<>0 then Affiche('Erreur MaxCom: '+sOrigine,clred);
-      if (MaxPortCom<1) or (MaxPortCom>99) then MaxPortCom:=30;
+      if (MaxPortCom<1) or (MaxPortCom>255) then MaxPortCom:=30;
     end;
 
     // configuration du port com
@@ -2570,7 +2600,7 @@ begin
       delete(s,i,length(sa));
       AvecInitAiguillages:=s='1';
     end;
-    
+
     // avec demande de position des aiguillages en mode autonome au démarrage
     sa:=uppercase(Init_dem_aig_ch)+'=';
     i:=pos(sa,s);
@@ -2740,6 +2770,15 @@ begin
       trouve_lay:=true;
       delete(s,i,length(sa));
       lay:=s;
+    end;
+
+    sa:=uppercase(NomModuleCDM_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      NomModuleCDM:=s;
     end;
 
     sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
@@ -2961,6 +3000,11 @@ begin
     verifVersion:=true;
     Valeur_entete:=1;
     TempoOctet:=50;
+    Srvc_Aig:=true;
+    Srvc_Act:=true;
+    Srvc_Det:=true;
+    Srvc_Pos:=false;
+    Srvc_Sig:=false;
     TimoutMaxInterface:=7;
     AvecInitAiguillages:=true;
     AvecDemandeInterfaceUSB:=true;
@@ -2972,7 +3016,7 @@ begin
     Nb_cantons_Sig:=3;
     ServeurRetroCDM:=1;
     algo_Unisemaf:=1;
-    TailleFonte:=12;
+    TailleFonte:=10;
     Nb_Det_Dist:=3;
     genere_config;
     assign(fichier,NomConfig);
@@ -3180,13 +3224,13 @@ begin
     change_srv:=Srvc_Aig<>CheckBoxServAig.checked;
     change_srv:=Srvc_Det<>CheckBoxServDet.checked or change_srv;
     change_srv:=Srvc_Act<>CheckBoxServAct.checked or change_srv;
-    change_srv:=Srvc_PosTrain<>CheckServPosTrains.checked or change_srv;
+    change_srv:=Srvc_Pos<>CheckServPosTrains.checked or change_srv;
     change_srv:=Srvc_Sig<>CheckBoxSrvSig.checked or change_srv;
 
     Srvc_Aig:=CheckBoxServAig.checked;
     Srvc_Det:=CheckBoxServDet.checked;
     Srvc_Act:=CheckBoxServAct.checked;
-    Srvc_PosTrain:=CheckServPosTrains.checked;
+    Srvc_Pos:=CheckServPosTrains.checked;
     Srvc_Sig:=CheckBoxSrvSig.checked;
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
@@ -3227,8 +3271,8 @@ begin
   end;
 end;
 
-// LC=Adresse du feu
-procedure clicListeFeu(lc : integer);
+// LC=Adresse du signal
+procedure clicListeSignal(lc : integer);
 var AncAdresse,index,adresse,erreur : integer;
     s : string;
 begin
@@ -3350,7 +3394,9 @@ begin
   CheckBoxServAig.checked:=Srvc_Aig;
   CheckBoxServDet.checked:=Srvc_Det;
   CheckBoxServAct.checked:=Srvc_Act;
-  CheckServPosTrains.checked:=Srvc_PosTrain;
+  CheckServPosTrains.checked:=Srvc_Pos;
+  CheckBoxSrvSig.Checked:=Srvc_Sig;
+
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
   CheckPosAig.checked:=AvecDemandeAiguillages;
@@ -3466,7 +3512,7 @@ begin
     Perform(EM_SCROLLCARET,0,0);
   end;
 
-  if clicproprietes then clicListeFeu(Adressefeuclic);
+  if clicproprietes then clicListeSignal(Adressefeuclic);
   clicproprietes:=false;
 
   i:=1;
@@ -3509,9 +3555,12 @@ begin
   clicListe:=false;
   if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
   ConfigPrete:=true;
-
+  richBranche.HideSelection:=false; // pour pouvoir copier coller la fenetre
   groupBox21.Top:=304;
   GroupBox21.Left:=8;
+
+   // création de l'icone de déplacement du train
+
 end;
 
 
@@ -3906,6 +3955,7 @@ begin
     editact2.Visible:=false;
     LabelActionneur.Caption:='Actionneur Détecteur';
     EditEtatActionneur.Hint:='0 ou 1';
+    EditAct.Hint:='Actionneur/Détecteur ';
   end;
 end;
 
@@ -3921,6 +3971,7 @@ begin
     editact2.Visible:=true;
     LabelActionneur.Caption:='Mémoire de Zone';
     EditEtatActionneur.Hint:='0 ou 1';
+    EditAct.Hint:='Détecteur ';
   end;
 end;
 
@@ -3937,6 +3988,7 @@ begin
     editact2.Visible:=false;
     LabelActionneur.Caption:='Aiguillage';
     EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
+    EditAct.Hint:='Aiguillage ';
   end;
 end;
 
@@ -4054,7 +4106,7 @@ begin
       begin
         Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(feux[i].Btype_suiv2)+IntToSTR(feux[i].Adr_el_suiv2);
         EditSuiv2.Hint:=chaine_element(feux[i].Btype_suiv2,feux[i].Adr_el_suiv2);
-      end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;  
+      end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;
       j:=feux[i].Adr_det3;
       if j<>0 then
       begin
@@ -4164,11 +4216,8 @@ begin
     end;
   end;
 
-  //if det then s2:='Détecteur ' else s2:='Actionneur ';
-  s2:='Détecteur ou actionneur ';
-  s2:=s2+intToSTR(Tablo_actionneur[i].adresse);
-  FormConfig.EditAct.Hint:=s2;
-
+  s2:=FormConfig.EditAct.Hint;
+  FormConfig.EditAct.Hint:=s2+intToSTR(Tablo_actionneur[i].adresse);
 
   // Actionneur fonction F loco
   if Tablo_actionneur[i].loco then
@@ -4246,7 +4295,7 @@ begin
       radioButtonActDet.Checked:=true;
       radioButtonZones.Checked:=false;
       editAct2.Visible:=false;
-      LabelActionneur.Caption:='Actionneur DétecteurZ'; 
+      LabelActionneur.Caption:='Actionneur Détecteur'; 
     end;
     if typ=1 then with formconfig do
     begin
@@ -4962,7 +5011,7 @@ begin
   if i<1 then exit;
   decodeur:=ComboBoxDec.ItemIndex;
   feux[i].decodeur:=decodeur;
-  Maj_Hint_feu(i);
+  Maj_Hint_Signal(i);
 
   s:=encode_sig_feux(i);
   formconfig.RichSig.Lines[ligneclicSig]:=s;
@@ -4982,7 +5031,7 @@ begin
   begin
     i:=Selstart;
     lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-    clicListeFeu(feux[lc+1].adresse);
+    clicListeSignal(feux[lc+1].adresse);
   end;  
 
 end;
@@ -5002,7 +5051,7 @@ begin
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det1:=i;
-    maj_hint_feu(ligneClicSig+1);
+    maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
@@ -5020,11 +5069,12 @@ begin
   tempo_feu:=i;
 end;
 
+
 procedure Suiv1;
    var s : string;
     i,erreur : integer;
     bt : Tequipement;
-begin    
+begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt Element suivant1',clOrange);
   
@@ -5082,7 +5132,7 @@ begin
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det2:=i;
-    maj_hint_feu(ligneClicSig+1);
+    maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
@@ -5093,7 +5143,7 @@ procedure TFormConfig.EditDet2Change(Sender: TObject);
 begin
   det2;
 end;
- 
+
 
 procedure TFormConfig.CheckVerrouCarreClick(Sender: TObject);
 var s : string;
@@ -5185,7 +5235,7 @@ begin
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det3:=i;
-    maj_hint_feu(ligneClicSig+1);
+    maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
@@ -5260,7 +5310,7 @@ begin
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].Adr_det4:=i;
-    maj_hint_feu(ligneClicSig+1);
+    maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
     feux[ligneClicSig+1].modifie:=true;
@@ -5322,8 +5372,9 @@ end;
 
 procedure TFormConfig.EditActChange(Sender: TObject);
 var s,s2 : string;
-    act,erreur : integer;
-    det : boolean;
+    act,erreur,det1,det2,suiv : integer;
+    elsuiv : tEquipement;
+    de : boolean;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt Edit act Change',clyellow);
@@ -5336,11 +5387,19 @@ begin
     begin
       Val(s,act,erreur);
       if s='' then exit;
-      det:=pos('Z',s)<>0;    // si détecteur
-      if det then s2:='Détecteur ' else s2:='Actionneur ';
-      s2:=s2+intToSTR(act);
-      EditAct.Hint:=s2;
-      if det then delete(s,erreur,1);
+
+      // 0=actionneur/détecteur  2=evt aig  3=MemZone
+      if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=3) or (Tablo_Actionneur[ligneClicAct+1].typdeclenche=0) then
+        s2:='Actionneur/Détecteur ';
+      if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=2) then s2:='Aiguillage ';
+
+      EditAct.Hint:=s2+intToSTR(act);
+
+
+
+
+      de:=pos('Z',s)<>0;    // si détecteur
+      if de then delete(s,erreur,1);
       Val(s,act,erreur);
       if erreur<>0 then
       begin
@@ -5350,6 +5409,18 @@ begin
       tablo_actionneur[ligneClicAct+1].adresse:=act;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
+
+      // vérifier si les détecteurs sont contigus si on est en zone
+      if Tablo_Actionneur[ligneClicAct+1].typdeclenche=3 then
+      begin
+        Val(EditAct2.Text,det2,erreur);
+        if erreur<>0 then exit;
+        det_contigu(act,det2,suiv,elSuiv);
+        if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(act)+' et '+intToSTR(det2)+' ne sont pas contigus'
+          else LabelInfo.Caption:='';
+      end
+      else LabelInfo.Caption:='';
+
     end;
   end;
 end;
@@ -5357,7 +5428,8 @@ end;
 
 procedure TFormConfig.EditAct2Change(Sender: TObject);
 var s : string;
-    det2,erreur : integer;
+    det1,det2,erreur,suiv : integer;
+    elSuiv : Tequipement;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt Edit act2 Change',clyellow);
@@ -5378,6 +5450,14 @@ begin
       tablo_actionneur[ligneClicAct+1].adresse2:=det2;
       s:=encode_act_loc_son(ligneClicAct+1);
       RichAct.Lines[ligneClicAct]:=s;
+
+      // vérifier si les détecteurs sont contigus
+      Val(EditAct.Text,det1,erreur);
+      if erreur<>0 then exit;
+      det_contigu(det1,det2,suiv,elSuiv);
+      if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(det1)+' et '+intToSTR(det2)+' ne sont pas contigus'
+      else LabelInfo.Caption:='';
+
     end;
   end;
 end;
@@ -5650,7 +5730,7 @@ begin
     feux[ligneClicSig+1].adresse:=i;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
-    Maj_Hint_feu(ligneClicSig+1); 
+    Maj_Hint_Signal(ligneClicSig+1);
    end;
 end;
 
@@ -5823,8 +5903,6 @@ begin
   end;
 end;
 
-
-
 procedure TFormConfig.ButtonrestaureClick(Sender: TObject);
 var index : integer;
 begin
@@ -5835,7 +5913,7 @@ begin
     feux[index]:=Feu_sauve;
     RichSig.Lines[ligneClicSig]:=encode_sig_feux(index);
     aff_champs_sig_feux(index);  // réaffiche les champs 
-    Maj_Hint_feu(index);
+    Maj_Hint_Signal(index);
     // change l'image du feu dans la feuille graphique principale
     Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
     dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
@@ -5940,7 +6018,6 @@ procedure TFormConfig.RichPNMouseDown(Sender: TObject;
 var i,ligne : integer;
 begin
   clicliste:=true;
-
 
   // désactive la sélection des actionneurs
   RE_ColorLine(Formconfig.RichAct,ligneclicAct,ClAqua);
@@ -6408,7 +6485,7 @@ begin
     with formconfig do begin
       RichAct.Lines.Add(s);
       RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua);
-    end;   
+    end;
   end;  
   AncligneClicAct:=-1;
   ligneClicAct:=-1;
@@ -6766,11 +6843,12 @@ end;
 
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
-    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,dec,nc2 : integer;
+    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2 : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     vitesse : longint;
     ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
+    s : string;
 begin
   // vérification de la cohérence1
   // parcoure les branches jusqu'à trouver un aiguillage pour voir s'il a été décrit
@@ -6857,7 +6935,7 @@ begin
       begin
         Affiche('Erreur 31: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
-      end;  
+      end;
     end;
     adr:=aiguillage[Indexaig].Apointe;
     if ( ((aiguillage[Indexaig].ApointeB='Z') or (aiguillage[Indexaig].ApointeB=#0)) and (aiguillage[Indexaig].modele=aig) ) then
@@ -6898,7 +6976,7 @@ begin
     end;
     for i:=Indexaig+1 to maxaiguillage do
     begin
-      if adr=aiguillage[i].Adresse then 
+      if adr=aiguillage[i].Adresse then
       begin
         affiche('Erreur 6.2: aiguillage '+intToSTR(adr)+' défini deux fois',clred);
         ok:=false;
@@ -7274,7 +7352,7 @@ begin
               extr:=aiguillage[index2].ADroit;
               if adr<>extr then Affiche('Erreur 10.33: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
             end;
-            if c='S' then 
+            if c='S' then
             begin
               extr:=aiguillage[index2].ADevie;
               if adr<>extr then Affiche('Erreur 10.34: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
@@ -7326,7 +7404,7 @@ begin
                 extr:=aiguillage[index2].ADroit;
                 if adr<>extr then Affiche('Erreur 10.43: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
               end;
-              if c='S' then 
+              if c='S' then
               begin
                 extr:=aiguillage[index2].ADevie;
                 if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
@@ -7342,7 +7420,7 @@ begin
       end;
     end;
   end;
-    
+
   // cohérence 8
   // parcoure les branches pour voir si les aiguillages aux extrémités sont cohérentes avec leurs déclarations
   for i:=1 to NbreBranches do
@@ -7517,6 +7595,7 @@ begin
   AdrOk:=True;
   if Verif_AdrXpressNet=1 then
   begin
+
     for i:=1 to maxaiguillage do
     begin
       adresse:=aiguillage[i].Adresse ;
@@ -7567,6 +7646,24 @@ begin
         Verif_AdrXpressNet:=0;
         sauve_config;
       end;
+    end;
+  end;
+
+  // actionneurs de zone
+  for i:=1 to maxTablo_act do
+  begin
+    if Tablo_actionneur[i].typdeclenche=3 then  // si actionneur de zone
+    begin
+      adresse:=Tablo_actionneur[i].Adresse;
+      adresse2:=Tablo_actionneur[i].Adresse2;
+      det_contigu(adresse,adresse2,suivant,SuivModel);
+      if (suivant=0) or (suivant>9995) then
+      begin
+        ok:=false;
+        s:='Erreur 18: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' est enclenché par les détecteurs '+intToSTR(adresse)+' ' +intToSTR(adresse2)+' qui ne sont pas contigus';
+        Affiche(s,clred);
+      end;
+
     end;
   end;
 
@@ -8117,8 +8214,6 @@ begin
   clicliste:=true;
   Aff_champs_aig_tablo(i);
   clicliste:=false;
-
-
 end;
 
 procedure valide_branches;
@@ -8784,14 +8879,14 @@ begin
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
   Tablo_Actionneur[i].typdeclenche:=0;
-  LabelActionneur.Caption:='Actionneur DétecteurZ';
+  LabelActionneur.Caption:='Actionneur Détecteur';
   editAct2.Visible:=false;
   EditTrainDecl.Visible:=true;
   LabelTrain.Visible:=true;
   EditEtatActionneur.Hint:='Etat 0 ou 1';
   Tablo_Actionneur[i].trainDecl:=trainSauve;
   EditTrainDecl.Text:=trainSauve;
-  
+
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
@@ -8806,6 +8901,8 @@ begin
   tablo_actionneur[i].Raz:=checkRaz.checked;
   s:=encode_act_loc_son(i);
   RichAct.Lines[ligneClicAct]:=s;
+
+  EditAct.Hint:='Actionneur/Détecteur '+intToSTR(Tablo_actionneur[i].adresse);
 
 end;
 
@@ -8839,6 +8936,9 @@ begin
   tablo_actionneur[i].Raz:=checkRaz.checked;
   s:=encode_act_loc_son(i);
   RichAct.Lines[ligneClicAct]:=s;
+
+  EditAct.Hint:='Actionneur/Détecteur '+intToSTR(Tablo_actionneur[i].adresse);
+
 end;
 
 procedure TFormConfig.RadioButtonAigClick(Sender: TObject);
@@ -8870,6 +8970,7 @@ begin
   tablo_actionneur[i].Raz:=checkRaz.checked;
   s:=encode_act_loc_son(i);
   RichAct.Lines[ligneClicAct]:=s;
+  EditAct.Hint:='Aiguillage '+intToSTR(Tablo_actionneur[i].adresse);
 end;
 
 
@@ -9589,7 +9690,7 @@ begin
   end;
 end;
 
-procedure TFormConfig.Button1Click(Sender: TObject);
+procedure TFormConfig.ButtonTestFermeClick(Sender: TObject);
 var adr,cmd,erreur : integer;
     ts : Taccessoire;
 begin
@@ -9602,7 +9703,7 @@ begin
   aff_acc:=false;
 end;
 
-procedure TFormConfig.Button3Click(Sender: TObject);
+procedure TFormConfig.ButtonTestOuvreClick(Sender: TObject);
 var adr,cmd,erreur : integer;
     ts : Taccessoire;
 begin
@@ -9898,7 +9999,7 @@ begin
   config_modifie:=true;
   FormConfig.RichEdittrains.Clear;
 
-  // réafficher le richsig
+  // réafficher le richEditTrains
   for i:=1 to ntrains do
   begin
     s:=trains[i].nom_train+','+inttostr(trains[i].adresse)+','+intToSTR(trains[i].vitmax);
@@ -10183,6 +10284,7 @@ procedure TFormConfig.Coller1Click(Sender: TObject);
     SetFocus;
   end;
 end;
+
 
 end.
 

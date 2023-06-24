@@ -1,0 +1,3583 @@
+reseau_gily_signal_ajoute_top.cdm
+
+Segment=2 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=23760 Ymin=11880 Xmax=28131 Ymax=14159
+StartAngle=4500 ArcAngle=4500 Rayon=5050 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24160 lYc=8709 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=-1 xc0=0 yc0=-1
+DeltaDev2=0 xc=0 yc=-1
+Adresse=126 Adresse2=0 Duree=0
+  Port=3 port x=27731 y=12280 z=0
+  Angle=13500 Local=0 Connecte=1
+  ConnecteAuPort=15 ConnecteAuSegment=13
+  Port=4 port x=24160 y=13759 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=1028 ConnecteAuSegment=1026
+  Periph=2744 Type=detector Pere=2 x=24172 y=13759 z=0
+  Angle=8986  Bright=1  Bdown=1
+  Location=99  Adresse=521  Status=1
+
+Segment=13 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=27331 Ymin=8310 Xmax=29610 Ymax=12680
+StartAngle=0 ArcAngle=4500 Rayon=5050 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24160 lYc=8710 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=14 port x=29210 y=8710 z=0
+  Angle=9000 Local=0 Connecte=1
+  ConnecteAuPort=1017 ConnecteAuSegment=1016
+  Port=15 port x=27731 y=12280 z=0
+  Angle=-4500 Local=1 Connecte=1
+  ConnecteAuPort=3 ConnecteAuSegment=2
+  Periph=2745 Type=detector Pere=13 x=29209 y=8795 z=0
+  Angle=162  Bright=0  Bdown=0
+  Location=2  Adresse=521  Status=1
+
+Segment=16 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=3636 Ymin=12324 Xmax=6189 Ymax=13474
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=10 Adresse2=0 Duree=2
+  Port=17 port x=4036 y=13073 z=0
+  Angle=3 Local=0 Connecte=1
+  ConnecteAuPort=795 ConnecteAuSegment=791
+  Port=18 port x=5716 y=13074 z=0
+  Angle=-17997 Local=1 Connecte=1
+  ConnecteAuPort=8775 ConnecteAuSegment=8774
+  Port=19 port x=5789 y=12724 z=0
+  Angle=15867 Local=2 Connecte=1
+  ConnecteAuPort=1453 ConnecteAuSegment=1452
+
+Segment=20 arc
+Nport=2 Nperiph=0 Ninter=1
+Xmin=23750 Ymin=11387 Xmax=27647 Ymax=13470
+StartAngle=4500 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24150 lYc=8690 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=21 port x=27247 y=11787 z=0
+  Angle=13500 Local=0 Connecte=1
+  ConnecteAuPort=1339 ConnecteAuSegment=1334
+  Port=22 port x=24150 y=13070 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=1023 ConnecteAuSegment=1021
+  x=26148 y=12588 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=110 straight
+Nport=2 Nperiph=1 Ninter=2
+Xmin=12020 Ymin=13359 Xmax=19520 Ymax=14160
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=111 port x=19120 y=13760 z=0
+  Angle=-17999 Local=0 Connecte=1
+  ConnecteAuPort=1027 ConnecteAuSegment=1026
+  Port=112 port x=12420 y=13759 z=0
+  Angle=1 Local=1 Connecte=1
+  ConnecteAuPort=8825 ConnecteAuSegment=8823
+  Periph=2763 Type=detector Pere=110 x=12456 y=13759 z=0
+  Angle=9001  Bright=0  Bdown=1
+  Location=99  Adresse=524  Status=1
+  x=19120 y=13760 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=12420 y=13759 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=133 straight
+Nport=2 Nperiph=1 Ninter=2
+Xmin=1960 Ymin=13359 Xmax=6120 Ymax=14170
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=134 port x=5720 y=13759 z=0
+  Angle=17981 Local=0 Connecte=1
+  ConnecteAuPort=8801 ConnecteAuSegment=8800
+  Port=135 port x=2360 y=13770 z=0
+  Angle=-19 Local=1 Connecte=1
+  ConnecteAuPort=863 ConnecteAuSegment=861
+  Periph=8772 Type=actuator Pere=133 x=2586 y=13769 z=0
+  Angle=8981  Bright=0  Bdown=1
+  Location=93  Adresse=834  Status=23
+  x=5720 y=13759 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=2970 y=13603 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=160 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=-4100 Ymin=8289 Xmax=-2017 Ymax=12187
+StartAngle=13500 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=680 lYc=8689 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=161 port x=-2417 y=11787 z=0
+  Angle=-13500 Local=0 Connecte=1
+  ConnecteAuPort=3700 ConnecteAuSegment=3695
+  Port=162 port x=-3700 y=8689 z=0
+  Angle=9000 Local=1 Connecte=1
+  ConnecteAuPort=170 ConnecteAuSegment=169
+  Periph=9947 Type=detector Pere=160 x=-3083 y=10930 z=0
+  Angle=14922  Bright=0  Bdown=1
+  Location=31  Adresse=531  Status=1
+
+Segment=169 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=-4100 Ymin=5192 Xmax=-2017 Ymax=9089
+StartAngle=18000 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=680 lYc=8689 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=170 port x=-3700 y=8689 z=0
+  Angle=-9000 Local=0 Connecte=1
+  ConnecteAuPort=162 ConnecteAuSegment=160
+  Port=171 port x=-2417 y=5592 z=0
+  Angle=13500 Local=1 Connecte=1
+  ConnecteAuPort=173 ConnecteAuSegment=172
+  Periph=2756 Type=detector Pere=169 x=-3699 y=8611 z=0
+  Angle=-17898  Bright=0  Bdown=0
+  Location=2  Adresse=518  Status=1
+
+Segment=172 arc
+Nport=2 Nperiph=4 Ninter=0
+Xmin=-2817 Ymin=3909 Xmax=1081 Ymax=5992
+StartAngle=-13500 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=681 lYc=8689 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=173 port x=-2417 y=5592 z=0
+  Angle=-4500 Local=0 Connecte=1
+  ConnecteAuPort=171 ConnecteAuSegment=169
+  Port=174 port x=681 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=501 ConnecteAuSegment=500
+  Periph=2271 Type=signal Pere=172 x=-731 y=4543 z=0
+  Angle=-10881  Bright=0  Bdown=0
+  Location=58  Adresse=47  Status=1
+  Periph=2272 Type=detector Pere=172 x=-731 y=4543 z=0
+  Angle=-10881  Bright=0  Bdown=0
+  Location=58  Adresse=0  Status=0
+  Periph=2757 Type=detector Pere=172 x=-731 y=4543 z=0
+  Angle=-10907  Bright=1  Bdown=1
+  Location=58  Adresse=518  Status=1
+  Periph=4544 Type=actuator Pere=172 x=-212 y=4401 z=0
+  Angle=-10176  Bright=0  Bdown=0
+  Location=73  Adresse=817  Status=23
+
+Segment=202 crossing
+Nport=4 Nperiph=0 Ninter=0
+Xmin=1961 Ymin=3588 Xmax=4441 Ymax=5030
+StartAngle=18000 ArcAngle=2250 Rayon=3529 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=1680 longueurDev=1552
+DeltaDev=643 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=100 Adresse2=0 Duree=0
+  Port=203 port x=4041 y=4309 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=214 ConnecteAuSegment=213
+  Port=204 port x=3977 y=4630 z=0
+  Angle=-15750 Local=1 Connecte=1
+  ConnecteAuPort=2082 ConnecteAuSegment=2079
+  Port=205 port x=2361 y=4309 z=0
+  Angle=0 Local=2 Connecte=1
+  ConnecteAuPort=502 ConnecteAuSegment=500
+  Port=206 port x=2425 y=3988 z=0
+  Angle=2250 Local=3 Connecte=1
+  ConnecteAuPort=2102 ConnecteAuSegment=2099
+
+Segment=213 straight
+Nport=2 Nperiph=3 Ninter=0
+Xmin=3641 Ymin=3909 Xmax=7791 Ymax=4709
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=214 port x=4041 y=4309 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=203 ConnecteAuSegment=202
+  Port=215 port x=7391 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=258 ConnecteAuSegment=257
+  Periph=966 Type=signal Pere=213 x=5232 y=4309 z=0
+  Angle=-9000  Bright=1  Bdown=1
+  Location=35  Adresse=0  Status=0
+  Periph=967 Type=detector Pere=213 x=5232 y=4309 z=0
+  Angle=-9000  Bright=1  Bdown=1
+  Location=35  Adresse=0  Status=0
+  Periph=4542 Type=actuator Pere=213 x=4816 y=4309 z=0
+  Angle=-9000  Bright=0  Bdown=0
+  Location=23  Adresse=813  Status=23
+
+Segment=218 straight
+Nport=2 Nperiph=4 Ninter=0
+Xmin=2028 Ymin=3253 Xmax=6178 Ymax=4054
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=219 port x=2428 y=3654 z=0
+  Angle=-2 Local=0 Connecte=1
+  ConnecteAuPort=2101 ConnecteAuSegment=2099
+  Port=220 port x=5778 y=3653 z=0
+  Angle=17998 Local=1 Connecte=1
+  ConnecteAuPort=2138 ConnecteAuSegment=2137
+  Periph=2259 Type=signal Pere=218 x=2865 y=3654 z=0
+  Angle=-9002  Bright=0  Bdown=1
+  Location=13  Adresse=57  Status=1
+  Periph=2260 Type=detector Pere=218 x=2865 y=3654 z=0
+  Angle=-9002  Bright=0  Bdown=1
+  Location=13  Adresse=0  Status=0
+  Periph=3655 Type=actuator Pere=218 x=2718 y=3654 z=0
+  Angle=-9002  Bright=1  Bdown=1
+  Location=8  Adresse=808  Status=23
+  Periph=2758 Type=detector Pere=218 x=3930 y=3654 z=0
+  Angle=-9002  Bright=0  Bdown=0
+  Location=44  Adresse=519  Status=1
+
+Segment=257 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=6991 Ymin=3909 Xmax=11141 Ymax=4709
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=258 port x=7391 y=4309 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=215 ConnecteAuSegment=213
+  Port=259 port x=10741 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=261 ConnecteAuSegment=260
+
+Segment=260 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=10341 Ymin=3909 Xmax=14491 Ymax=4709
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=261 port x=10741 y=4309 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=259 ConnecteAuSegment=257
+  Port=262 port x=14091 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=296 ConnecteAuSegment=295
+  Periph=2750 Type=detector Pere=260 x=11873 y=4309 z=0
+  Angle=-9000  Bright=1  Bdown=0
+  Location=33  Adresse=523  Status=1
+
+Segment=266 arc
+Nport=2 Nperiph=3 Ninter=0
+Xmin=27331 Ymin=1389 Xmax=29610 Ymax=5760
+StartAngle=-4500 ArcAngle=4500 Rayon=5050 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24161 lYc=5360 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=267 port x=27731 y=1789 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=271 ConnecteAuSegment=269
+  Port=268 port x=29210 y=5360 z=0
+  Angle=-9000 Local=1 Connecte=1
+  ConnecteAuPort=1255 ConnecteAuSegment=1254
+  Periph=1534 Type=signal Pere=266 x=28724 y=3197 z=0
+  Angle=-2536  Bright=1  Bdown=0
+  Location=43  Adresse=0  Status=0
+  Periph=1535 Type=detector Pere=266 x=28724 y=3197 z=0
+  Angle=-2536  Bright=1  Bdown=0
+  Location=43  Adresse=0  Status=0
+  Periph=3656 Type=actuator Pere=266 x=29052 y=4102 z=0
+  Angle=-1442  Bright=1  Bdown=1
+  Location=67  Adresse=812  Status=23
+
+Segment=269 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=23761 Ymin=-90 Xmax=28131 Ymax=2189
+StartAngle=-9000 ArcAngle=4500 Rayon=5050 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24161 lYc=5360 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=270 port x=24161 y=310 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=283 ConnecteAuSegment=281
+  Port=271 port x=27731 y=1789 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=267 ConnecteAuSegment=266
+
+Segment=275 arc
+Nport=2 Nperiph=4 Ninter=0
+Xmin=26847 Ymin=1843 Xmax=28930 Ymax=5740
+StartAngle=-4500 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24150 lYc=5340 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=276 port x=27247 y=2243 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=280 ConnecteAuSegment=278
+  Port=277 port x=28530 y=5340 z=0
+  Angle=-9000 Local=1 Connecte=1
+  ConnecteAuPort=1251 ConnecteAuSegment=1250
+  Periph=2273 Type=signal Pere=275 x=28523 y=5097 z=0
+  Angle=-318  Bright=0  Bdown=0
+  Location=92  Adresse=53  Status=1
+  Periph=2274 Type=detector Pere=275 x=28523 y=5097 z=0
+  Angle=-318  Bright=0  Bdown=0
+  Location=92  Adresse=0  Status=0
+  Periph=2749 Type=detector Pere=275 x=28358 y=4126 z=0
+  Angle=-1661  Bright=1  Bdown=1
+  Location=64  Adresse=526  Status=1
+  Periph=5500 Type=actuator Pere=275 x=28377 y=4193 z=0
+  Angle=-1518  Bright=1  Bdown=0
+  Location=66  Adresse=820  Status=23
+
+Segment=278 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=23750 Ymin=560 Xmax=27647 Ymax=2643
+StartAngle=-9000 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24150 lYc=5340 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=279 port x=24150 y=960 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=286 ConnecteAuSegment=284
+  Port=280 port x=27247 y=2243 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=276 ConnecteAuSegment=275
+
+Segment=281 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=20190 Ymin=-90 Xmax=24561 Ymax=2189
+StartAngle=-13500 ArcAngle=4500 Rayon=5050 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24161 lYc=5359 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=282 port x=20590 y=1789 z=0
+  Angle=-4500 Local=0 Connecte=1
+  ConnecteAuPort=2205 ConnecteAuSegment=2200
+  Port=283 port x=24161 y=310 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=270 ConnecteAuSegment=269
+  Periph=3645 Type=detector Pere=281 x=24156 y=309 z=0
+  Angle=-9006  Bright=0  Bdown=1
+  Location=99  Adresse=527  Status=1
+
+Segment=284 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=20653 Ymin=560 Xmax=24550 Ymax=2643
+StartAngle=-13500 ArcAngle=4500 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24150 lYc=5340 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=285 port x=21053 y=2243 z=0
+  Angle=-4500 Local=0 Connecte=1
+  ConnecteAuPort=315 ConnecteAuSegment=313
+  Port=286 port x=24150 y=960 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=279 ConnecteAuSegment=278
+  Periph=2748 Type=detector Pere=284 x=22466 y=1297 z=0
+  Angle=-11261  Bright=0  Bdown=0
+  Location=49  Adresse=526  Status=1
+
+Segment=287 straight
+Nport=2 Nperiph=2 Ninter=0
+Xmin=10178 Ymin=3250 Xmax=14328 Ymax=4051
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=288 port x=10578 y=3651 z=0
+  Angle=-2 Local=0 Connecte=1
+  ConnecteAuPort=2139 ConnecteAuSegment=2137
+  Port=289 port x=13928 y=3650 z=0
+  Angle=17998 Local=1 Connecte=1
+  ConnecteAuPort=2145 ConnecteAuSegment=2144
+  Periph=1674 Type=signal Pere=287 x=13569 y=3650 z=0
+  Angle=-9002  Bright=0  Bdown=0
+  Location=89  Adresse=0  Status=0
+  Periph=1675 Type=detector Pere=287 x=13569 y=3650 z=0
+  Angle=-9002  Bright=0  Bdown=0
+  Location=89  Adresse=0  Status=0
+
+Segment=295 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=13691 Ymin=3909 Xmax=17841 Ymax=4709
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=296 port x=14091 y=4309 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=262 ConnecteAuSegment=260
+  Port=297 port x=17441 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=300 ConnecteAuSegment=298
+  Periph=2751 Type=detector Pere=295 x=17359 y=4309 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=97  Adresse=523  Status=1
+
+Segment=298 arc
+Nport=2 Nperiph=5 Ninter=0
+Xmin=17041 Ymin=2822 Xmax=20464 Ymax=4709
+StartAngle=4500 ArcAngle=4500 Rayon=3710 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=17441 lYc=599 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=299 port x=20064 y=3222 z=0
+  Angle=13500 Local=0 Connecte=1
+  ConnecteAuPort=314 ConnecteAuSegment=313
+  Port=300 port x=17441 y=4309 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=297 ConnecteAuSegment=295
+  Periph=1722 Type=signal Pere=298 x=17945 y=4275 z=0
+  Angle=8220  Bright=0  Bdown=1
+  Location=82  Adresse=37  Status=1
+  Periph=1723 Type=detector Pere=298 x=17945 y=4275 z=0
+  Angle=8220  Bright=0  Bdown=1
+  Location=82  Adresse=0  Status=0
+  Periph=2703 Type=signal Pere=298 x=17945 y=4275 z=0
+  Angle=8017  Bright=0  Bdown=0
+  Location=82  Adresse=0  Status=0
+  Periph=2704 Type=detector Pere=298 x=17945 y=4275 z=0
+  Angle=8017  Bright=0  Bdown=0
+  Location=82  Adresse=0  Status=0
+  Periph=2774 Type=actuator Pere=298 x=18767 y=4064 z=0
+  Angle=6906  Bright=0  Bdown=1
+  Location=53  Adresse=801  Status=23
+
+Segment=313 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=19664 Ymin=1843 Xmax=21453 Ymax=3622
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=314 port x=20064 y=3222 z=0
+  Angle=-4471 Local=0 Connecte=1
+  ConnecteAuPort=299 ConnecteAuSegment=298
+  Port=315 port x=21053 y=2243 z=0
+  Angle=13529 Local=1 Connecte=1
+  ConnecteAuPort=285 ConnecteAuSegment=284
+
+Segment=500 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=281 Ymin=3909 Xmax=2761 Ymax=5043
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=1 Adresse2=0 Duree=3
+  Port=501 port x=681 y=4309 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=174 ConnecteAuSegment=172
+  Port=502 port x=2361 y=4309 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=205 ConnecteAuSegment=202
+  Port=503 port x=2358 y=4643 z=0
+  Angle=-15749 Local=2 Connecte=1
+  ConnecteAuPort=2073 ConnecteAuSegment=2072
+
+Segment=635 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=12010 Ymin=12669 Xmax=19510 Ymax=13469
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=636 port x=19110 y=13069 z=0
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=1022 ConnecteAuSegment=1021
+  Port=637 port x=12410 y=13069 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=8784 ConnecteAuSegment=8782
+  Periph=2767 Type=detector Pere=635 x=13249 y=13069 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=87  Adresse=513  Status=1
+
+Segment=791 crossing
+Nport=4 Nperiph=0 Ninter=1
+Xmin=1957 Ymin=12330 Xmax=4436 Ymax=13813
+StartAngle=-2397 ArcAngle=2400 Rayon=3638 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=1680 longueurDev=1535
+DeltaDev=683 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=101 Adresse2=0 Duree=0
+  Port=792 port x=2429 y=13413 z=0
+  Angle=-2397 Local=0 Connecte=1
+  ConnecteAuPort=864 ConnecteAuSegment=861
+  Port=793 port x=2357 y=13071 z=0
+  Angle=3 Local=1 Connecte=1
+  ConnecteAuPort=3690 ConnecteAuSegment=3689
+  Port=794 port x=3964 y=12730 z=0
+  Angle=15603 Local=2 Connecte=1
+  ConnecteAuPort=886 ConnecteAuSegment=884
+  Port=795 port x=4036 y=13073 z=0
+  Angle=-17997 Local=3 Connecte=1
+  ConnecteAuPort=17 ConnecteAuSegment=16
+  x=3150 y=13273 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=861 turnout
+Nport=3 Nperiph=0 Ninter=1
+Xmin=280 Ymin=13010 Xmax=2839 Ymax=14176
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=11 Adresse2=0 Duree=2
+  Port=862 port x=680 y=13776 z=0
+  Angle=-19 Local=0 Connecte=1
+  ConnecteAuPort=3730 ConnecteAuSegment=3729
+  Port=863 port x=2360 y=13770 z=0
+  Angle=17981 Local=1 Connecte=1
+  ConnecteAuPort=135 ConnecteAuSegment=133
+  Port=864 port x=2439 y=13410 z=0
+  Angle=15669 Local=2 Connecte=1
+  ConnecteAuPort=792 ConnecteAuSegment=791
+  x=2372 y=13438 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=884 straight
+Nport=2 Nperiph=3 Ninter=0
+Xmin=3564 Ymin=9607 Xmax=10486 Ymax=13130
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=885 port x=10086 y=10007 z=1000
+  Angle=15602 Local=0 Connecte=1
+  ConnecteAuPort=1152 ConnecteAuSegment=1151
+  Port=886 port x=3964 y=12730 z=0
+  Angle=-2398 Local=1 Connecte=1
+  ConnecteAuPort=794 ConnecteAuSegment=791
+  Periph=1530 Type=signal Pere=884 x=5743 y=11939 z=0
+  Angle=6602  Bright=0  Bdown=0
+  Location=70  Adresse=0  Status=0
+  Periph=1531 Type=detector Pere=884 x=5743 y=11939 z=0
+  Angle=6602  Bright=0  Bdown=0
+  Location=70  Adresse=0  Status=0
+  Periph=2772 Type=actuator Pere=884 x=4622 y=12437 z=0
+  Angle=6602  Bright=0  Bdown=1
+  Location=89  Adresse=802  Status=23
+
+Segment=1016 straight
+Nport=2 Nperiph=2 Ninter=0
+Xmin=28810 Ymin=6640 Xmax=29610 Ymax=9110
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1017 port x=29210 y=8710 z=0
+  Angle=-9000 Local=0 Connecte=1
+  ConnecteAuPort=14 ConnecteAuSegment=13
+  Port=1018 port x=29210 y=7040 z=0
+  Angle=9000 Local=1 Connecte=1
+  ConnecteAuPort=1256 ConnecteAuSegment=1254
+  Periph=2275 Type=signal Pere=1016 x=29210 y=7843 z=0
+  Angle=18000  Bright=0  Bdown=0
+  Location=51  Adresse=77  Status=1
+  Periph=2276 Type=detector Pere=1016 x=29210 y=7843 z=0
+  Angle=18000  Bright=0  Bdown=0
+  Location=51  Adresse=0  Status=0
+
+Segment=1021 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=18710 Ymin=12669 Xmax=24550 Ymax=13469
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1022 port x=19110 y=13069 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=636 ConnecteAuSegment=635
+  Port=1023 port x=24150 y=13069 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=22 ConnecteAuSegment=20
+
+Segment=1026 straight
+Nport=2 Nperiph=3 Ninter=2
+Xmin=18720 Ymin=13360 Xmax=24560 Ymax=14161
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1027 port x=19120 y=13760 z=0
+  Angle=1 Local=0 Connecte=1
+  ConnecteAuPort=111 ConnecteAuSegment=110
+  Port=1028 port x=24160 y=13761 z=0
+  Angle=-17999 Local=1 Connecte=1
+  ConnecteAuPort=4 ConnecteAuSegment=2
+  Periph=1726 Type=signal Pere=1026 x=19187 y=13760 z=0
+  Angle=-8999  Bright=0  Bdown=0
+  Location=1  Adresse=49  Status=1
+  Periph=1727 Type=detector Pere=1026 x=19187 y=13760 z=0
+  Angle=-8999  Bright=0  Bdown=0
+  Location=1  Adresse=0  Status=0
+  Periph=2762 Type=detector Pere=1026 x=21522 y=13760 z=0
+  Angle=-8999  Bright=1  Bdown=1
+  Location=47  Adresse=524  Status=1
+  x=23891 y=13596 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=19120 y=13760 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1043 arc
+Nport=2 Nperiph=3 Ninter=4
+Xmin=25962 Ymin=6690 Xmax=28622 Ymax=9523
+StartAngle=1996 ArcAngle=4500 Rayon=3600 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24838 lYc=5861 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1044 port x=28222 y=7090 z=0
+  Angle=10996 Local=0 Connecte=1
+  ConnecteAuPort=1253 ConnecteAuSegment=1250
+  Port=1045 port x=26362 y=9123 z=0
+  Angle=-2504 Local=1 Connecte=1
+  ConnecteAuPort=1393 ConnecteAuSegment=1392
+  Periph=1737 Type=signal Pere=1043 x=27285 y=8502 z=0
+  Angle=4718  Bright=0  Bdown=1
+  Location=60  Adresse=0  Status=0
+  Periph=1738 Type=detector Pere=1043 x=27285 y=8502 z=0
+  Angle=4718  Bright=0  Bdown=1
+  Location=60  Adresse=0  Status=0
+  Periph=3029 Type=actuator Pere=1043 x=28111 y=7360 z=0
+  Angle=2461  Bright=0  Bdown=0
+  Location=10  Adresse=810  Status=23
+  x=27810 y=7583 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=27713 y=8028 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=27605 y=8414 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=27698 y=8048 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1090 straight
+Nport=2 Nperiph=4 Ninter=0
+Xmin=5315 Ymin=4577 Xmax=10245 Ymax=5377
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1091 port x=5715 y=4977 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=2080 ConnecteAuSegment=2079
+  Port=1092 port x=9845 y=4977 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1344 ConnecteAuSegment=1343
+  Periph=2263 Type=signal Pere=1090 x=6820 y=4977 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=26  Adresse=55  Status=1
+  Periph=2264 Type=detector Pere=1090 x=6820 y=4977 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=26  Adresse=0  Status=0
+  Periph=2754 Type=detector Pere=1090 x=6820 y=4977 z=0
+  Angle=-9000  Bright=0  Bdown=0
+  Location=26  Adresse=515  Status=1
+  Periph=4545 Type=actuator Pere=1090 x=5769 y=4977 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=1  Adresse=818  Status=23
+
+Segment=1097 straight
+Nport=2 Nperiph=4 Ninter=0
+Xmin=5187 Ymin=5220 Xmax=8987 Ymax=6020
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1098 port x=5587 y=5620 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=2086 ConnecteAuSegment=2083
+  Port=1099 port x=8587 y=5620 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1679 ConnecteAuSegment=1678
+  Periph=2261 Type=signal Pere=1097 x=7760 y=5620 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=72  Adresse=0  Status=0
+  Periph=2262 Type=detector Pere=1097 x=7760 y=5620 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=72  Adresse=0  Status=0
+  Periph=3017 Type=detector Pere=1097 x=5669 y=5620 z=0
+  Angle=-9000  Bright=0  Bdown=0
+  Location=2  Adresse=514  Status=1
+  Periph=3030 Type=actuator Pere=1097 x=6219 y=5620 z=0
+  Angle=-9000  Bright=0  Bdown=0
+  Location=21  Adresse=816  Status=23
+
+Segment=1145 straight
+Nport=2 Nperiph=3 Ninter=0
+Xmin=6739 Ymin=5863 Xmax=11539 Ymax=6663
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1146 port x=7139 y=6263 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=2092 ConnecteAuSegment=2091
+  Port=1147 port x=11139 y=6263 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1149 ConnecteAuSegment=1148
+  Periph=1858 Type=signal Pere=1145 x=8845 y=6263 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=42  Adresse=43  Status=1
+  Periph=1859 Type=detector Pere=1145 x=8845 y=6263 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=42  Adresse=0  Status=0
+  Periph=3015 Type=detector Pere=1145 x=8845 y=6263 z=0
+  Angle=-9000  Bright=0  Bdown=0
+  Location=42  Adresse=516  Status=1
+
+Segment=1148 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=10739 Ymin=5863 Xmax=15539 Ymax=6663
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1149 port x=11139 y=6263 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1147 ConnecteAuSegment=1145
+  Port=1150 port x=15139 y=6263 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=2192 ConnecteAuSegment=2191
+  Periph=3016 Type=detector Pere=1148 x=12450 y=6263 z=0
+  Angle=-9000  Bright=1  Bdown=1
+  Location=32  Adresse=516  Status=1
+
+Segment=1151 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=9686 Ymin=7982 Xmax=14141 Ymax=10407
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1152 port x=10086 y=10007 z=1000
+  Angle=-2397 Local=0 Connecte=1
+  ConnecteAuPort=885 ConnecteAuSegment=884
+  Port=1153 port x=13741 y=8382 z=1000
+  Angle=15603 Local=1 Connecte=1
+  ConnecteAuPort=1437 ConnecteAuSegment=1436
+
+Segment=1250 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=27822 Ymin=4940 Xmax=28930 Ymax=7490
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=9 Adresse2=0 Duree=2
+  Port=1251 port x=28530 y=5340 z=0
+  Angle=9000 Local=0 Connecte=1
+  ConnecteAuPort=277 ConnecteAuSegment=275
+  Port=1252 port x=28530 y=7020 z=0
+  Angle=-9000 Local=1 Connecte=1
+  ConnecteAuPort=1261 ConnecteAuSegment=1258
+  Port=1253 port x=28222 y=7090 z=0
+  Angle=-7004 Local=2 Connecte=1
+  ConnecteAuPort=1044 ConnecteAuSegment=1043
+
+Segment=1254 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=28507 Ymin=4960 Xmax=29610 Ymax=7484
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=8 Adresse2=0 Duree=2
+  Port=1255 port x=29210 y=5360 z=0
+  Angle=9000 Local=0 Connecte=1
+  ConnecteAuPort=268 ConnecteAuSegment=266
+  Port=1256 port x=29210 y=7040 z=0
+  Angle=-9000 Local=1 Connecte=1
+  ConnecteAuPort=1018 ConnecteAuSegment=1016
+  Port=1257 port x=28907 y=7084 z=0
+  Angle=-7004 Local=2 Connecte=1
+  ConnecteAuPort=1262 ConnecteAuSegment=1258
+
+Segment=1258 crossing
+Nport=4 Nperiph=0 Ninter=0
+Xmin=27754 Ymin=6620 Xmax=29306 Ymax=9620
+StartAngle=-9000 ArcAngle=2000 Rayon=5955 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=2200 longueurDev=2067
+DeltaDev=752 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=102 Adresse2=0 Duree=0
+  Port=1259 port x=28530 y=9220 z=0
+  Angle=-9000 Local=0 Connecte=1
+  ConnecteAuPort=1341 ConnecteAuSegment=1336
+  Port=1260 port x=28154 y=9154 z=0
+  Angle=-7000 Local=1 Connecte=1
+  ConnecteAuPort=1863 ConnecteAuSegment=1862
+  Port=1261 port x=28530 y=7020 z=0
+  Angle=9000 Local=2 Connecte=1
+  ConnecteAuPort=1252 ConnecteAuSegment=1250
+  Port=1262 port x=28906 y=7086 z=0
+  Angle=11000 Local=3 Connecte=1
+  ConnecteAuPort=1257 ConnecteAuSegment=1254
+
+Segment=1334 pre_curve
+Nport=2 Nperiph=0 Ninter=1
+Xmin=26847 Ymin=11012 Xmax=28022 Ymax=12187
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1339 port x=27247 y=11787 z=0
+  Angle=-4500 Local=0 Connecte=1
+  ConnecteAuPort=21 ConnecteAuSegment=20
+  Port=1340 port x=27622 y=11412 z=0
+  Angle=13500 Local=1 Connecte=1
+  ConnecteAuPort=1337 ConnecteAuSegment=1335
+  x=27358 y=11442 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1335 curve
+Nport=2 Nperiph=3 Ninter=0
+Xmin=27222 Ymin=8820 Xmax=28930 Ymax=11812
+StartAngle=4500 ArcAngle=-4500 Rayon=3100 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=25430 lYc=9220 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1337 port x=27622 y=11412 z=0
+  Angle=-4500 Local=0 Connecte=1
+  ConnecteAuPort=1340 ConnecteAuSegment=1334
+  Port=1338 port x=28530 y=9220 z=0
+  Angle=9000 Local=1 Connecte=1
+  ConnecteAuPort=1342 ConnecteAuSegment=1336
+  Periph=964 Type=signal Pere=1335 x=27898 y=11096 z=0
+  Angle=-14275  Bright=1  Bdown=0
+  Location=17  Adresse=0  Status=0
+  Periph=965 Type=detector Pere=1335 x=27898 y=11096 z=0
+  Angle=-14275  Bright=1  Bdown=0
+  Location=17  Adresse=0  Status=0
+  Periph=3024 Type=actuator Pere=1335 x=28529 y=9295 z=0
+  Angle=-17861  Bright=1  Bdown=1
+  Location=96  Adresse=806  Status=23
+
+Segment=1336 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=28130 Ymin=8820 Xmax=28930 Ymax=9620
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1341 port x=28530 y=9220 z=0
+  Angle=9000 Local=0 Connecte=1
+  ConnecteAuPort=1259 ConnecteAuSegment=1258
+  Port=1342 port x=28530 y=9220 z=0
+  Angle=-9000 Local=1 Connecte=1
+  ConnecteAuPort=1338 ConnecteAuSegment=1335
+
+Segment=1343 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=9437 Ymin=4581 Xmax=15277 Ymax=5381
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1344 port x=9837 y=4981 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1092 ConnecteAuSegment=1090
+  Port=1345 port x=14877 y=4981 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1347 ConnecteAuSegment=1346
+  Periph=2755 Type=detector Pere=1343 x=12903 y=4981 z=0
+  Angle=-9000  Bright=1  Bdown=1
+  Location=60  Adresse=515  Status=1
+
+Segment=1346 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=14477 Ymin=4581 Xmax=17277 Ymax=5381
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1347 port x=14877 y=4981 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1345 ConnecteAuSegment=1343
+  Port=1348 port x=16877 y=4981 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1382 ConnecteAuSegment=1381
+
+Segment=1373 arc
+Nport=2 Nperiph=0 Ninter=1
+Xmin=16539 Ymin=5863 Xmax=19061 Ymax=7006
+StartAngle=-9000 ArcAngle=2250 Rayon=4500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=16939 lYc=10763 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1374 port x=16939 y=6263 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=2193 ConnecteAuSegment=2191
+  Port=1375 port x=18661 y=6606 z=0
+  Angle=-15750 Local=1 Connecte=1
+  ConnecteAuPort=1377 ConnecteAuSegment=1376
+  x=18139 y=6426 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1376 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=18261 Ymin=6206 Xmax=20521 Ymax=7981
+StartAngle=-6750 ArcAngle=2250 Rayon=4500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=16939 lYc=10763 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1377 port x=18661 y=6606 z=0
+  Angle=2250 Local=0 Connecte=1
+  ConnecteAuPort=1375 ConnecteAuSegment=1373
+  Port=1378 port x=20121 y=7581 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=1407 ConnecteAuSegment=1406
+
+Segment=1381 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=16477 Ymin=4581 Xmax=18999 Ymax=5724
+StartAngle=-9000 ArcAngle=2250 Rayon=4500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=16877 lYc=9481 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1382 port x=16877 y=4981 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1348 ConnecteAuSegment=1346
+  Port=1383 port x=18599 y=5324 z=0
+  Angle=-15750 Local=1 Connecte=1
+  ConnecteAuPort=1385 ConnecteAuSegment=1384
+
+Segment=1384 arc
+Nport=2 Nperiph=0 Ninter=1
+Xmin=18199 Ymin=4924 Xmax=20431 Ymax=6672
+StartAngle=-6750 ArcAngle=2200 Rayon=4500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=16877 lYc=9481 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1385 port x=18599 y=5324 z=0
+  Angle=2250 Local=0 Connecte=1
+  ConnecteAuPort=1383 ConnecteAuSegment=1381
+  Port=1386 port x=20031 y=6272 z=0
+  Angle=-13550 Local=1 Connecte=1
+  ConnecteAuPort=1398 ConnecteAuSegment=1397
+  x=19497 y=5823 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1389 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=22009 Ymin=8118 Xmax=24010 Ymax=9646
+StartAngle=10996 ArcAngle=2250 Rayon=3600 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24839 lYc=5862 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1390 port x=23610 y=9246 z=0
+  Angle=-16004 Local=0 Connecte=1
+  ConnecteAuPort=1394 ConnecteAuSegment=1392
+  Port=1391 port x=22409 y=8518 z=0
+  Angle=4246 Local=1 Connecte=1
+  ConnecteAuPort=1399 ConnecteAuSegment=1397
+
+Segment=1392 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=23210 Ymin=8723 Xmax=26762 Ymax=9861
+StartAngle=6496 ArcAngle=4500 Rayon=3600 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24838 lYc=5861 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1393 port x=26362 y=9123 z=0
+  Angle=15496 Local=0 Connecte=1
+  ConnecteAuPort=1045 ConnecteAuSegment=1043
+  Port=1394 port x=23610 y=9246 z=0
+  Angle=1996 Local=1 Connecte=1
+  ConnecteAuPort=1390 ConnecteAuSegment=1389
+
+Segment=1397 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=19631 Ymin=5872 Xmax=22809 Ymax=8918
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1398 port x=20031 y=6272 z=0
+  Angle=4336 Local=0 Connecte=1
+  ConnecteAuPort=1386 ConnecteAuSegment=1384
+  Port=1399 port x=22409 y=8518 z=0
+  Angle=-13664 Local=1 Connecte=1
+  ConnecteAuPort=1391 ConnecteAuSegment=1389
+
+Segment=1406 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=19721 Ymin=7181 Xmax=22784 Ymax=10244
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1407 port x=20121 y=7581 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=1378 ConnecteAuSegment=1376
+  Port=1408 port x=22384 y=9844 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=1877 ConnecteAuSegment=1876
+
+Segment=1436 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=13341 Ymin=6357 Xmax=17796 Ymax=8782
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1437 port x=13741 y=8382 z=1000
+  Angle=-2397 Local=0 Connecte=1
+  ConnecteAuPort=1153 ConnecteAuSegment=1151
+  Port=1438 port x=17396 y=6757 z=1000
+  Angle=15603 Local=1 Connecte=1
+  ConnecteAuPort=1440 ConnecteAuSegment=1439
+  Periph=7076 Type=detector Pere=1436 x=13794 y=8359 z=0
+  Angle=-11397  Bright=0  Bdown=0
+  Location=1  Adresse=525  Status=1
+
+Segment=1439 straight
+Nport=2 Nperiph=0 Ninter=3
+Xmin=16996 Ymin=5138 Xmax=20537 Ymax=7157
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1440 port x=17396 y=6757 z=1000
+  Angle=-2398 Local=0 Connecte=1
+  ConnecteAuPort=1438 ConnecteAuSegment=1436
+  Port=1441 port x=20137 y=5538 z=1000
+  Angle=15602 Local=1 Connecte=1
+  ConnecteAuPort=1467 ConnecteAuSegment=1466
+  x=18139 y=6426 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=19497 y=5823 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=18890 y=6093 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=1449 straight
+Nport=2 Nperiph=4 Ninter=0
+Xmin=7110 Ymin=12026 Xmax=14607 Ymax=12826
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1450 port x=14207 y=12426 z=1000
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=1464 ConnecteAuSegment=1463
+  Port=1451 port x=7510 y=12426 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=1454 ConnecteAuSegment=1452
+  Periph=1532 Type=signal Pere=1449 x=8257 y=12426 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=88  Adresse=59  Status=1
+  Periph=1533 Type=detector Pere=1449 x=8257 y=12426 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=88  Adresse=0  Status=0
+  Periph=3022 Type=actuator Pere=1449 x=8809 y=12426 z=0
+  Angle=9000  Bright=1  Bdown=0
+  Location=80  Adresse=804  Status=23
+  Periph=2765 Type=detector Pere=1449 x=8257 y=12426 z=0
+  Angle=9000  Bright=1  Bdown=1
+  Location=88  Adresse=528  Status=1
+
+Segment=1452 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=5389 Ymin=12024 Xmax=7910 Ymax=13124
+StartAngle=-11133 ArcAngle=2300 Rayon=4380 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=7382 lYc=16804 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1453 port x=5789 y=12724 z=0
+  Angle=-2133 Local=0 Connecte=1
+  ConnecteAuPort=19 ConnecteAuSegment=16
+  Port=1454 port x=7510 y=12426 z=1000
+  Angle=-17833 Local=1 Connecte=1
+  ConnecteAuPort=1451 ConnecteAuSegment=1449
+
+Segment=1463 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=13807 Ymin=12026 Xmax=21307 Ymax=12826
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1464 port x=14207 y=12426 z=1000
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1450 ConnecteAuSegment=1449
+  Port=1465 port x=20907 y=12426 z=1000
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=4880 ConnecteAuSegment=4879
+  Periph=2766 Type=detector Pere=1463 x=20719 y=12426 z=0
+  Angle=-9000  Bright=1  Bdown=1
+  Location=97  Adresse=528  Status=1
+
+Segment=1466 arc
+Nport=2 Nperiph=4 Ninter=0
+Xmin=19737 Ymin=4647 Xmax=21338 Ymax=5938
+StartAngle=6602 ArcAngle=-1500 Rayon=3599 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=18674 lYc=2250 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1467 port x=20137 y=5538 z=1000
+  Angle=-2398 Local=0 Connecte=1
+  ConnecteAuPort=1441 ConnecteAuSegment=1439
+  Port=1468 port x=20938 y=5047 z=1000
+  Angle=14102 Local=1 Connecte=1
+  ConnecteAuPort=4857 ConnecteAuSegment=4856
+  Periph=7084 Type=signal Pere=1466 x=20799 y=5155 z=0
+  Angle=-12619  Bright=0  Bdown=0
+  Location=81  Adresse=41  Status=1
+  Periph=7085 Type=detector Pere=1466 x=20799 y=5155 z=0
+  Angle=-12619  Bright=0  Bdown=0
+  Location=81  Adresse=0  Status=0
+  Periph=7088 Type=signal Pere=1466 x=20799 y=5155 z=0
+  Angle=-12631  Bright=0  Bdown=1
+  Location=81  Adresse=0  Status=0
+  Periph=7089 Type=detector Pere=1466 x=20799 y=5155 z=0
+  Angle=-12631  Bright=0  Bdown=1
+  Location=81  Adresse=0  Status=0
+
+Segment=1678 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=8187 Ymin=5220 Xmax=14489 Ymax=6020
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1679 port x=8587 y=5620 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1099 ConnecteAuSegment=1097
+  Port=1680 port x=14089 y=5620 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=2189 ConnecteAuSegment=2188
+
+Segment=1681 arc
+Nport=2 Nperiph=2 Ninter=1
+Xmin=16491 Ymin=5224 Xmax=20473 Ymax=7342
+StartAngle=-9000 ArcAngle=4500 Rayon=4500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=16891 lYc=10124 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1682 port x=16891 y=5624 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=2190 ConnecteAuSegment=2188
+  Port=1683 port x=20073 y=6942 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=1687 ConnecteAuSegment=1686
+  Periph=2746 Type=detector Pere=1681 x=18015 y=5767 z=0
+  Angle=-7553  Bright=0  Bdown=0
+  Location=32  Adresse=522  Status=1
+  Periph=3018 Type=detector Pere=1681 x=17297 y=5642 z=0
+  Angle=-8283  Bright=1  Bdown=1
+  Location=11  Adresse=514  Status=1
+  x=18890 y=6093 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1686 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=19673 Ymin=6542 Xmax=22721 Ymax=9590
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1687 port x=20073 y=6942 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=1683 ConnecteAuSegment=1681
+  Port=1688 port x=22321 y=9190 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=1872 ConnecteAuSegment=1867
+
+Segment=1810 straight
+Nport=2 Nperiph=2 Ninter=0
+Xmin=2059 Ymin=5863 Xmax=5859 Ymax=6663
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1811 port x=5459 y=6263 z=0
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=2093 ConnecteAuSegment=2091
+  Port=1812 port x=2459 y=6263 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=5503 ConnecteAuSegment=5502
+  Periph=1860 Type=signal Pere=1810 x=4752 y=6263 z=0
+  Angle=9000  Bright=0  Bdown=1
+  Location=23  Adresse=45  Status=1
+  Periph=1861 Type=detector Pere=1810 x=4752 y=6263 z=0
+  Angle=9000  Bright=0  Bdown=1
+  Location=23  Adresse=0  Status=0
+
+Segment=1862 arc
+Nport=2 Nperiph=2 Ninter=3
+Xmin=26081 Ymin=8754 Xmax=28554 Ymax=11227
+StartAngle=2000 ArcAngle=5000 Rayon=2800 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=25523 lYc=8196 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1863 port x=28154 y=9154 z=0
+  Angle=11000 Local=0 Connecte=1
+  ConnecteAuPort=1260 ConnecteAuSegment=1258
+  Port=1864 port x=26481 y=10827 z=0
+  Angle=-2000 Local=1 Connecte=1
+  ConnecteAuPort=1874 ConnecteAuSegment=1869
+  Periph=2747 Type=detector Pere=1862 x=27278 y=10378 z=0
+  Angle=4961  Bright=0  Bdown=0
+  Location=62  Adresse=522  Status=1
+  Periph=6125 Type=actuator Pere=1862 x=28130 y=9218 z=0
+  Angle=2140  Bright=1  Bdown=1
+  Location=2  Adresse=821  Status=23
+  x=27723 y=9928 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=27726 y=9641 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=27319 y=10344 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=1867 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=21921 Ymin=8790 Xmax=23639 Ymax=10508
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1872 port x=22321 y=9190 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=1688 ConnecteAuSegment=1686
+  Port=1873 port x=23239 y=10108 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=1870 ConnecteAuSegment=1868
+
+Segment=1868 curve
+Nport=2 Nperiph=2 Ninter=0
+Xmin=22839 Ymin=9708 Xmax=26881 Ymax=11413
+StartAngle=13500 ArcAngle=-6500 Rayon=3090 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=25424 lYc=7923 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1870 port x=23239 y=10108 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=1873 ConnecteAuSegment=1867
+  Port=1871 port x=26481 y=10827 z=0
+  Angle=16000 Local=1 Connecte=1
+  ConnecteAuPort=1875 ConnecteAuSegment=1869
+  Periph=1526 Type=signal Pere=1868 x=23517 y=10354 z=0
+  Angle=-5188  Bright=0  Bdown=0
+  Location=10  Adresse=51  Status=1
+  Periph=1527 Type=detector Pere=1868 x=23517 y=10354 z=0
+  Angle=-5188  Bright=0  Bdown=0
+  Location=10  Adresse=0  Status=0
+
+Segment=1869 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=26081 Ymin=10427 Xmax=26881 Ymax=11227
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1874 port x=26481 y=10827 z=0
+  Angle=16000 Local=0 Connecte=1
+  ConnecteAuPort=1864 ConnecteAuSegment=1862
+  Port=1875 port x=26481 y=10827 z=0
+  Angle=-2000 Local=1 Connecte=1
+  ConnecteAuPort=1871 ConnecteAuSegment=1868
+
+Segment=1876 bumper_stop
+Nport=2 Nperiph=0 Ninter=0
+Xmin=21984 Ymin=9444 Xmax=23491 Ymax=10951
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=1877 port x=22384 y=9844 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=1408 ConnecteAuSegment=1406
+  Port=1878 dummy_port x=23091 y=10551 z=0
+  Angle=-13500 Local=1 Connecte=0
+  ConnecteAuPort=0 ConnecteAuSegment=0
+
+Segment=2072 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=1958 Ymin=4243 Xmax=4435 Ymax=5686
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=3 Adresse2=0 Duree=2
+  Port=2073 port x=2358 y=4643 z=0
+  Angle=2251 Local=0 Connecte=1
+  ConnecteAuPort=503 ConnecteAuSegment=500
+  Port=2074 port x=3910 y=5286 z=0
+  Angle=-15749 Local=1 Connecte=1
+  ConnecteAuPort=2084 ConnecteAuSegment=2083
+  Port=2075 port x=4035 y=4977 z=0
+  Angle=18000 Local=2 Connecte=1
+  ConnecteAuPort=2081 ConnecteAuSegment=2079
+
+Segment=2079 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=3583 Ymin=4220 Xmax=6115 Ymax=5377
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=5 Adresse2=0 Duree=0
+  Port=2080 port x=5715 y=4977 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=1091 ConnecteAuSegment=1090
+  Port=2081 port x=4035 y=4977 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=2075 ConnecteAuSegment=2072
+  Port=2082 port x=3983 y=4620 z=0
+  Angle=2251 Local=2 Connecte=1
+  ConnecteAuPort=204 ConnecteAuSegment=202
+
+Segment=2083 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=3510 Ymin=4886 Xmax=5987 Ymax=6329
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=4 Adresse2=0 Duree=2
+  Port=2084 port x=3910 y=5286 z=0
+  Angle=2251 Local=0 Connecte=1
+  ConnecteAuPort=2074 ConnecteAuSegment=2072
+  Port=2085 port x=5462 y=5929 z=0
+  Angle=-15749 Local=1 Connecte=1
+  ConnecteAuPort=2094 ConnecteAuSegment=2091
+  Port=2086 port x=5587 y=5620 z=0
+  Angle=18000 Local=2 Connecte=1
+  ConnecteAuPort=1098 ConnecteAuSegment=1097
+
+Segment=2091 turnout
+Nport=3 Nperiph=1 Ninter=0
+Xmin=5059 Ymin=5529 Xmax=7539 Ymax=6663
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=6 Adresse2=0 Duree=3
+  Port=2092 port x=7139 y=6263 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=1146 ConnecteAuSegment=1145
+  Port=2093 port x=5459 y=6263 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=1811 ConnecteAuSegment=1810
+  Port=2094 port x=5462 y=5929 z=0
+  Angle=2251 Local=2 Connecte=1
+  ConnecteAuPort=2085 ConnecteAuSegment=2083
+  Periph=3028 Type=actuator Pere=2091 x=5462 y=5929 z=0
+  Angle=-6749  Bright=0  Bdown=0
+  Location=0  Adresse=814  Status=23
+
+Segment=2099 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=348 Ymin=3254 Xmax=2828 Ymax=4388
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=2 Adresse2=0 Duree=0
+  Port=2100 port x=748 y=3654 z=0
+  Angle=-1 Local=0 Connecte=1
+  ConnecteAuPort=6692 ConnecteAuSegment=6691
+  Port=2101 port x=2428 y=3654 z=0
+  Angle=17999 Local=1 Connecte=1
+  ConnecteAuPort=219 ConnecteAuSegment=218
+  Port=2102 port x=2425 y=3988 z=0
+  Angle=-15750 Local=2 Connecte=1
+  ConnecteAuPort=206 ConnecteAuSegment=202
+
+Segment=2133 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=14956 Ymin=2892 Xmax=17488 Ymax=4049
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=7 Adresse2=0 Duree=3
+  Port=2134 port x=17088 y=3648 z=0
+  Angle=17996 Local=0 Connecte=1
+  ConnecteAuPort=2203 ConnecteAuSegment=2198
+  Port=2135 port x=15408 y=3649 z=0
+  Angle=-4 Local=1 Connecte=1
+  ConnecteAuPort=2146 ConnecteAuSegment=2144
+  Port=2136 port x=15356 y=3292 z=0
+  Angle=2247 Local=2 Connecte=1
+  ConnecteAuPort=6720 ConnecteAuSegment=6715
+
+Segment=2137 straight
+Nport=2 Nperiph=2 Ninter=0
+Xmin=5378 Ymin=3251 Xmax=10978 Ymax=4053
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2138 port x=5778 y=3653 z=0
+  Angle=-2 Local=0 Connecte=1
+  ConnecteAuPort=220 ConnecteAuSegment=218
+  Port=2139 port x=10578 y=3651 z=0
+  Angle=17998 Local=1 Connecte=1
+  ConnecteAuPort=288 ConnecteAuSegment=287
+  Periph=2759 Type=detector Pere=2137 x=9479 y=3651 z=0
+  Angle=-9002  Bright=1  Bdown=1
+  Location=77  Adresse=519  Status=1
+  Periph=3657 Type=actuator Pere=2137 x=6765 y=3653 z=0
+  Angle=-9002  Bright=1  Bdown=1
+  Location=20  Adresse=800  Status=23
+
+Segment=2144 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=13528 Ymin=3249 Xmax=15808 Ymax=4050
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2145 port x=13928 y=3650 z=0
+  Angle=-4 Local=0 Connecte=1
+  ConnecteAuPort=289 ConnecteAuSegment=287
+  Port=2146 port x=15408 y=3649 z=0
+  Angle=17996 Local=1 Connecte=1
+  ConnecteAuPort=2135 ConnecteAuSegment=2133
+
+Segment=2188 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=13689 Ymin=5220 Xmax=17289 Ymax=6020
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2189 port x=14089 y=5620 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1680 ConnecteAuSegment=1678
+  Port=2190 port x=16889 y=5620 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1682 ConnecteAuSegment=1681
+
+Segment=2191 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=14739 Ymin=5863 Xmax=17339 Ymax=6663
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2192 port x=15139 y=6263 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1150 ConnecteAuSegment=1148
+  Port=2193 port x=16939 y=6263 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=1374 ConnecteAuSegment=1373
+
+Segment=2198 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=16688 Ymin=3248 Xmax=17488 Ymax=4048
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2203 port x=17088 y=3648 z=0
+  Angle=-4 Local=0 Connecte=1
+  ConnecteAuPort=2134 ConnecteAuSegment=2133
+  Port=2204 port x=17088 y=3648 z=0
+  Angle=17996 Local=1 Connecte=1
+  ConnecteAuPort=2201 ConnecteAuSegment=2199
+
+Segment=2199 curve
+Nport=2 Nperiph=4 Ninter=0
+Xmin=16688 Ymin=2084 Xmax=20295 Ymax=4048
+StartAngle=8996 ArcAngle=-4496 Rayon=3973 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=17085 lYc=-325 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2201 port x=17088 y=3648 z=0
+  Angle=-4 Local=0 Connecte=1
+  ConnecteAuPort=2204 ConnecteAuSegment=2198
+  Port=2202 port x=19895 y=2484 z=0
+  Angle=13500 Local=1 Connecte=1
+  ConnecteAuPort=2206 ConnecteAuSegment=2200
+  Periph=2776 Type=signal Pere=2199 x=18268 y=3468 z=0
+  Angle=-10733  Bright=0  Bdown=1
+  Location=38  Adresse=39  Status=1
+  Periph=2777 Type=detector Pere=2199 x=18268 y=3468 z=0
+  Angle=-10733  Bright=0  Bdown=1
+  Location=38  Adresse=0  Status=0
+  Periph=3644 Type=detector Pere=2199 x=18268 y=3468 z=0
+  Angle=-10795  Bright=1  Bdown=0
+  Location=38  Adresse=527  Status=1
+  Periph=7102 Type=actuator Pere=2199 x=18160 y=3500 z=0
+  Angle=-10570  Bright=1  Bdown=1
+  Location=34  Adresse=833  Status=23
+
+Segment=2200 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=19495 Ymin=1389 Xmax=20990 Ymax=2884
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=2205 port x=20590 y=1789 z=0
+  Angle=13500 Local=0 Connecte=1
+  ConnecteAuPort=282 ConnecteAuSegment=281
+  Port=2206 port x=19895 y=2484 z=0
+  Angle=-4500 Local=1 Connecte=1
+  ConnecteAuPort=2202 ConnecteAuSegment=2199
+
+Segment=3682 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-1480 Ymin=12309 Xmax=1080 Ymax=13470
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=19 Adresse2=0 Duree=3
+  Port=3683 port x=680 y=13070 z=0
+  Angle=-17997 Local=0 Connecte=1
+  ConnecteAuPort=3691 ConnecteAuSegment=3689
+  Port=3684 port x=-1000 y=13070 z=0
+  Angle=3 Local=1 Connecte=1
+  ConnecteAuPort=3736 ConnecteAuSegment=3733
+  Port=3685 port x=-1080 y=12709 z=0
+  Angle=2315 Local=2 Connecte=1
+  ConnecteAuPort=3702 ConnecteAuSegment=3697
+
+Segment=3689 straight
+Nport=2 Nperiph=1 Ninter=0
+Xmin=280 Ymin=12670 Xmax=2757 Ymax=13471
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=3690 port x=2357 y=13071 z=0
+  Angle=-17997 Local=0 Connecte=1
+  ConnecteAuPort=793 ConnecteAuSegment=791
+  Port=3691 port x=680 y=13070 z=0
+  Angle=3 Local=1 Connecte=1
+  ConnecteAuPort=3683 ConnecteAuSegment=3682
+  Periph=3780 Type=actuator Pere=3689 x=1675 y=13071 z=0
+  Angle=9003  Bright=0  Bdown=0
+  Location=40  Adresse=803  Status=23
+
+Segment=3695 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-2817 Ymin=11387 Xmax=-1963 Ymax=12241
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=3700 port x=-2417 y=11787 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=161 ConnecteAuSegment=160
+  Port=3701 port x=-2363 y=11841 z=0
+  Angle=-13500 Local=1 Connecte=1
+  ConnecteAuPort=3698 ConnecteAuSegment=3696
+
+Segment=3696 curve
+Nport=2 Nperiph=4 Ninter=0
+Xmin=-2763 Ymin=11441 Xmax=-680 Ymax=13109
+StartAngle=13500 ArcAngle=-2185 Rayon=4085 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=526 lYc=8953 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=3698 port x=-2363 y=11841 z=0
+  Angle=4500 Local=0 Connecte=1
+  ConnecteAuPort=3701 ConnecteAuSegment=3695
+  Port=3699 port x=-1080 y=12709 z=0
+  Angle=-15685 Local=1 Connecte=1
+  ConnecteAuPort=3703 ConnecteAuSegment=3697
+  Periph=3760 Type=signal Pere=3696 x=-1631 y=12422 z=0
+  Angle=-5813  Bright=1  Bdown=0
+  Location=60  Adresse=0  Status=0
+  Periph=3761 Type=detector Pere=3696 x=-1631 y=12422 z=0
+  Angle=-5813  Bright=1  Bdown=0
+  Location=60  Adresse=0  Status=0
+  Periph=7100 Type=actuator Pere=3696 x=-1173 y=12668 z=0
+  Angle=-6542  Bright=0  Bdown=1
+  Location=93  Adresse=832  Status=23
+  Periph=9948 Type=detector Pere=3696 x=-1631 y=12422 z=0
+  Angle=-5681  Bright=1  Bdown=1
+  Location=60  Adresse=531  Status=1
+
+Segment=3697 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-1480 Ymin=12309 Xmax=-680 Ymax=13109
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=3702 port x=-1080 y=12709 z=0
+  Angle=-15685 Local=0 Connecte=1
+  ConnecteAuPort=3685 ConnecteAuSegment=3682
+  Port=3703 port x=-1080 y=12709 z=0
+  Angle=2315 Local=1 Connecte=1
+  ConnecteAuPort=3699 ConnecteAuSegment=3696
+
+Segment=3729 turnout
+Nport=3 Nperiph=0 Ninter=1
+Xmin=-1481 Ymin=13022 Xmax=1080 Ymax=14182
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=18 Adresse2=0 Duree=7
+  Port=3730 port x=680 y=13776 z=0
+  Angle=17981 Local=0 Connecte=1
+  ConnecteAuPort=862 ConnecteAuSegment=861
+  Port=3731 port x=-1000 y=13782 z=0
+  Angle=-19 Local=1 Connecte=1
+  ConnecteAuPort=6233 ConnecteAuSegment=6231
+  Port=3732 port x=-1081 y=13422 z=0
+  Angle=2293 Local=2 Connecte=1
+  ConnecteAuPort=3737 ConnecteAuSegment=3733
+  x=-1042 y=13438 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=3733 crossing
+Nport=4 Nperiph=0 Ninter=1
+Xmin=-3079 Ymin=12328 Xmax=-600 Ymax=13812
+StartAngle=3 ArcAngle=2400 Rayon=3638 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=1680 longueurDev=1535
+DeltaDev=683 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=103 Adresse2=0 Duree=0
+  Port=3734 port x=-2679 y=13069 z=0
+  Angle=3 Local=0 Connecte=1
+  ConnecteAuPort=6201 ConnecteAuSegment=6200
+  Port=3735 port x=-2606 y=12728 z=0
+  Angle=2403 Local=1 Connecte=1
+  ConnecteAuPort=6727 ConnecteAuSegment=6722
+  Port=3736 port x=-1000 y=13070 z=0
+  Angle=-17997 Local=2 Connecte=1
+  ConnecteAuPort=3684 ConnecteAuSegment=3682
+  Port=3737 port x=-1073 y=13412 z=0
+  Angle=-15597 Local=3 Connecte=1
+  ConnecteAuPort=3732 ConnecteAuSegment=3729
+  x=-1790 y=13273 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=4856 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=20538 Ymin=3774 Xmax=23302 Ymax=5447
+StartAngle=-12898 ArcAngle=3000 Rayon=4152 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=23550 lYc=8275 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4857 port x=20938 y=5047 z=1000
+  Angle=-3898 Local=0 Connecte=1
+  ConnecteAuPort=1468 ConnecteAuSegment=1466
+  Port=4858 port x=22902 y=4174 z=1000
+  Angle=17102 Local=1 Connecte=1
+  ConnecteAuPort=4860 ConnecteAuSegment=4859
+  Periph=7077 Type=detector Pere=4856 x=22880 y=4177 z=0
+  Angle=-9928  Bright=1  Bdown=1
+  Location=98  Adresse=525  Status=1
+
+Segment=4859 arc
+Nport=2 Nperiph=1 Ninter=0
+Xmin=22502 Ymin=3723 Xmax=25439 Ymax=4799
+StartAngle=-9898 ArcAngle=3000 Rayon=4152 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=23550 lYc=8275 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4860 port x=22902 y=4174 z=1000
+  Angle=-898 Local=0 Connecte=1
+  ConnecteAuPort=4858 ConnecteAuSegment=4856
+  Port=4861 port x=25039 y=4399 z=1000
+  Angle=-15898 Local=1 Connecte=1
+  ConnecteAuPort=4863 ConnecteAuSegment=4862
+  Periph=4892 Type=actuator Pere=4859 x=24620 y=4263 z=0
+  Angle=-7507  Bright=0  Bdown=0
+  Location=79  Adresse=811  Status=23
+
+Segment=4862 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=24639 Ymin=3999 Xmax=27177 Ymax=6063
+StartAngle=-6898 ArcAngle=3000 Rayon=4152 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=23550 lYc=8275 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4863 port x=25039 y=4399 z=1000
+  Angle=2102 Local=0 Connecte=1
+  ConnecteAuPort=4861 ConnecteAuSegment=4859
+  Port=4864 port x=26777 y=5663 z=1000
+  Angle=-12898 Local=1 Connecte=1
+  ConnecteAuPort=4866 ConnecteAuSegment=4865
+
+Segment=4865 arc
+Nport=2 Nperiph=0 Ninter=1
+Xmin=26377 Ymin=5263 Xmax=28050 Ymax=8027
+StartAngle=-3898 ArcAngle=3000 Rayon=4152 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=23549 lYc=8275 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4866 port x=26777 y=5663 z=1000
+  Angle=5102 Local=0 Connecte=1
+  ConnecteAuPort=4864 ConnecteAuSegment=4862
+  Port=4867 port x=27650 y=7627 z=1000
+  Angle=-9898 Local=1 Connecte=1
+  ConnecteAuPort=4876 ConnecteAuSegment=4875
+  x=27810 y=7583 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=4875 turnout_curved
+Nport=3 Nperiph=0 Ninter=5
+Xmin=26978 Ymin=7227 Xmax=28050 Ymax=11209
+StartAngle=8102 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=-8929 yc0=1411
+DeltaDev2=670 xc=-4939 yc=780
+Adresse=17 Adresse2=0 Duree=2
+  Port=4876 port x=27650 y=7627 z=1000
+  Angle=8102 Local=0 Connecte=1
+  ConnecteAuPort=4867 ConnecteAuSegment=4865
+  Port=4877 port x=27475 y=10809 z=1000
+  Angle=-6898 Local=1 Connecte=1
+  ConnecteAuPort=4894 ConnecteAuSegment=4893
+  Port=4878 port x=27378 y=10201 z=1000
+  Angle=-6898 Local=2 Connecte=1
+  ConnecteAuPort=4883 ConnecteAuSegment=4882
+  x=27713 y=8028 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=27605 y=8414 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=27698 y=8048 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=27723 y=9928 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=27726 y=9641 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=4879 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=20507 Ymin=12026 Xmax=24537 Ymax=12826
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4880 port x=20907 y=12426 z=1000
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=1465 ConnecteAuSegment=1463
+  Port=4881 port x=24137 y=12426 z=1000
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=4884 ConnecteAuSegment=4882
+
+Segment=4882 arc
+Nport=2 Nperiph=3 Ninter=1
+Xmin=23739 Ymin=9801 Xmax=27778 Ymax=12826
+StartAngle=2102 ArcAngle=6898 Rayon=3469 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=24139 lYc=8957 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4883 port x=27378 y=10201 z=1000
+  Angle=11102 Local=0 Connecte=1
+  ConnecteAuPort=4878 ConnecteAuSegment=4875
+  Port=4884 port x=24139 y=12426 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=4881 ConnecteAuSegment=4879
+  Periph=4901 Type=signal Pere=4882 x=25055 y=12303 z=0
+  Angle=7469  Bright=0  Bdown=1
+  Location=77  Adresse=0  Status=0
+  Periph=4902 Type=detector Pere=4882 x=25055 y=12303 z=0
+  Angle=7469  Bright=0  Bdown=1
+  Location=77  Adresse=0  Status=0
+  Periph=4905 Type=actuator Pere=4882 x=26673 y=11326 z=0
+  Angle=4308  Bright=0  Bdown=0
+  Location=31  Adresse=819  Status=23
+  x=27319 y=10344 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=4893 arc
+Nport=2 Nperiph=3 Ninter=3
+Xmin=23248 Ymin=10409 Xmax=27875 Ymax=13838
+StartAngle=2102 ArcAngle=6898 Rayon=4100 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=23648 lYc=9338 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=4894 port x=27475 y=10809 z=1000
+  Angle=11102 Local=0 Connecte=1
+  ConnecteAuPort=4877 ConnecteAuSegment=4875
+  Port=4895 port x=23648 y=13438 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6237 ConnecteAuSegment=6236
+  Periph=4903 Type=signal Pere=4893 x=25972 y=12716 z=0
+  Angle=5547  Bright=0  Bdown=1
+  Location=49  Adresse=0  Status=0
+  Periph=4904 Type=detector Pere=4893 x=25972 y=12716 z=0
+  Angle=5547  Bright=0  Bdown=1
+  Location=49  Adresse=0  Status=0
+  Periph=7092 Type=actuator Pere=4893 x=27447 y=10881 z=0
+  Angle=2210  Bright=1  Bdown=0
+  Location=1  Adresse=830  Status=23
+  x=26148 y=12588 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=23891 y=13596 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=27358 y=11442 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=5502 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-1191 Ymin=5863 Xmax=2859 Ymax=7534
+StartAngle=-9000 ArcAngle=-3000 Rayon=6500 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=2459 lYc=12763 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=5503 port x=2459 y=6263 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=1812 ConnecteAuSegment=1810
+  Port=5504 port x=-791 y=7134 z=0
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=5506 ConnecteAuSegment=5505
+
+Segment=5505 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-2490 Ymin=6734 Xmax=-391 Ymax=8284
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=5506 port x=-791 y=7134 z=0
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=5504 ConnecteAuSegment=5502
+  Port=5507 port x=-2090 y=7884 z=0
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=5509 ConnecteAuSegment=5508
+
+Segment=5508 bumper_stop
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-3356 Ymin=7084 Xmax=-1290 Ymax=8784
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=5509 port x=-2090 y=7884 z=0
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=5507 ConnecteAuSegment=5505
+  Port=5510 dummy_port x=-2956 y=8384 z=0
+  Angle=-3000 Local=1 Connecte=0
+  ConnecteAuPort=0 ConnecteAuSegment=0
+
+Segment=6196 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-4777 Ymin=13368 Xmax=-2212 Ymax=14525
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=23 Adresse2=0 Duree=3
+  Port=6197 port x=-2612 y=13780 z=0
+  Angle=-17959 Local=0 Connecte=1
+  ConnecteAuPort=6232 ConnecteAuSegment=6231
+  Port=6198 port x=-4294 y=13768 z=0
+  Angle=41 Local=1 Connecte=1
+  ConnecteAuPort=6208 ConnecteAuSegment=6204
+  Port=6199 port x=-4377 y=14125 z=0
+  Angle=-2271 Local=2 Connecte=1
+  ConnecteAuPort=6282 ConnecteAuSegment=6281
+
+Segment=6200 turnout
+Nport=3 Nperiph=0 Ninter=1
+Xmin=-4839 Ymin=12668 Xmax=-2279 Ymax=13827
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=22 Adresse2=0 Duree=2
+  Port=6201 port x=-2679 y=13069 z=0
+  Angle=-17997 Local=0 Connecte=1
+  ConnecteAuPort=3734 ConnecteAuSegment=3733
+  Port=6202 port x=-4359 y=13068 z=0
+  Angle=3 Local=1 Connecte=1
+  ConnecteAuPort=6606 ConnecteAuSegment=6605
+  Port=6203 port x=-4439 y=13427 z=0
+  Angle=-2309 Local=2 Connecte=1
+  ConnecteAuPort=6207 ConnecteAuSegment=6204
+  x=-3260 y=13273 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=6204 crossing
+Nport=4 Nperiph=0 Ninter=2
+Xmin=-6548 Ymin=13027 Xmax=-3894 Ymax=14494
+StartAngle=-2309 ArcAngle=2350 Rayon=3966 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=1700 longueurDev=1700
+DeltaDev=739 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=104 Adresse2=0 Duree=0
+  Port=6205 port x=-6003 y=14094 z=0
+  Angle=-2309 Local=0 Connecte=1
+  ConnecteAuPort=6294 ConnecteAuSegment=6293
+  Port=6206 port x=-6148 y=13754 z=0
+  Angle=41 Local=1 Connecte=1
+  ConnecteAuPort=6819 ConnecteAuSegment=6814
+  Port=6207 port x=-4439 y=13427 z=0
+  Angle=15691 Local=2 Connecte=1
+  ConnecteAuPort=6203 ConnecteAuSegment=6200
+  Port=6208 port x=-4294 y=13768 z=0
+  Angle=-17959 Local=3 Connecte=1
+  ConnecteAuPort=6198 ConnecteAuSegment=6196
+  x=-4465 y=13438 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=-6148 y=13754 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=6231 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-3012 Ymin=13380 Xmax=-602 Ymax=14192
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6232 port x=-2612 y=13780 z=0
+  Angle=43 Local=0 Connecte=1
+  ConnecteAuPort=6197 ConnecteAuSegment=6196
+  Port=6233 port x=-1002 y=13792 z=0
+  Angle=-17957 Local=1 Connecte=1
+  ConnecteAuPort=3731 ConnecteAuSegment=3729
+
+Segment=6236 straight
+Nport=2 Nperiph=0 Ninter=2
+Xmin=13248 Ymin=13038 Xmax=24048 Ymax=13838
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6237 port x=23648 y=13438 z=1000
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=4895 ConnecteAuSegment=4893
+  Port=6238 port x=13648 y=13438 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6240 ConnecteAuSegment=6239
+  x=19120 y=13760 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=19120 y=13760 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=6239 straight
+Nport=2 Nperiph=5 Ninter=10
+Xmin=3248 Ymin=13038 Xmax=14048 Ymax=13838
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6240 port x=13648 y=13438 z=1000
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=6238 ConnecteAuSegment=6236
+  Port=6241 port x=3648 y=13438 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6243 ConnecteAuSegment=6242
+  Periph=7042 Type=signal Pere=6239 x=4798 y=13438 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=88  Adresse=63  Status=1
+  Periph=7043 Type=detector Pere=6239 x=4798 y=13438 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=88  Adresse=535  Status=1
+  Periph=7062 Type=detector Pere=6239 x=13597 y=13438 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=0  Adresse=535  Status=1
+  Periph=7072 Type=signal Pere=6239 x=4798 y=13438 z=0
+  Angle=9000  Bright=0  Bdown=1
+  Location=88  Adresse=0  Status=0
+  Periph=7073 Type=detector Pere=6239 x=4798 y=13438 z=0
+  Angle=9000  Bright=0  Bdown=1
+  Location=88  Adresse=535  Status=1
+  x=12420 y=13759 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=5720 y=13759 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=6498 y=13273 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=7879 y=13327 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=10865 y=13755 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=8931 y=13551 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=8701 y=13502 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=5720 y=13759 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=8400 y=13438 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=10865 y=13755 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=6242 straight
+Nport=2 Nperiph=1 Ninter=8
+Xmin=-6752 Ymin=13038 Xmax=4048 Ymax=13838
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6243 port x=3648 y=13438 z=1000
+  Angle=-18000 Local=0 Connecte=1
+  ConnecteAuPort=6241 ConnecteAuSegment=6239
+  Port=6244 port x=-6352 y=13438 z=1000
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6457 ConnecteAuSegment=6456
+  Periph=7083 Type=detector Pere=6242 x=418 y=13438 z=0
+  Angle=9000  Bright=1  Bdown=1
+  Location=32  Adresse=535  Status=1
+  x=2970 y=13603 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=3150 y=13273 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=2372 y=13438 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=-1042 y=13438 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=-1790 y=13273 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=-3260 y=13273 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=-4465 y=13438 z=1000
+  MirrorZ=0 MirrorParent=0
+  x=-6148 y=13754 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=6250 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-16826 Ymin=17449 Xmax=-13836 Ymax=18501
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=32 Adresse2=0 Duree=5
+  Port=6251 port x=-14236 y=18101 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6301 ConnecteAuSegment=6296
+  Port=6252 port x=-16426 y=18101 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6255 ConnecteAuSegment=6254
+  Port=6253 port x=-16399 y=17849 z=0
+  Angle=1200 Local=2 Connecte=1
+  ConnecteAuPort=6451 ConnecteAuSegment=6449
+
+Segment=6254 crossing
+Nport=4 Nperiph=0 Ninter=0
+Xmin=-19302 Ymin=17444 Xmax=-16026 Ymax=18758
+StartAngle=18000 ArcAngle=1200 Rayon=11779 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=2476 longueurDev=2422
+DeltaDev=515 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=105 Adresse2=0 Duree=0
+  Port=6255 port x=-16426 y=18101 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6252 ConnecteAuSegment=6250
+  Port=6256 port x=-16453 y=18358 z=0
+  Angle=-16800 Local=1 Connecte=1
+  ConnecteAuPort=6262 ConnecteAuSegment=6259
+  Port=6257 port x=-18902 y=18101 z=0
+  Angle=0 Local=2 Connecte=1
+  ConnecteAuPort=9805 ConnecteAuSegment=9802
+  Port=6258 port x=-18875 y=17844 z=0
+  Angle=1200 Local=3 Connecte=1
+  ConnecteAuPort=6311 ConnecteAuSegment=6310
+
+Segment=6259 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-16880 Ymin=17958 Xmax=-13890 Ymax=19010
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=31 Adresse2=0 Duree=5
+  Port=6260 port x=-14290 y=18610 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6289 ConnecteAuSegment=6284
+  Port=6261 port x=-16480 y=18610 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=9819 ConnecteAuSegment=9814
+  Port=6262 port x=-16453 y=18358 z=0
+  Angle=1200 Local=2 Connecte=1
+  ConnecteAuPort=6256 ConnecteAuSegment=6254
+
+Segment=6281 arc
+Nport=2 Nperiph=4 Ninter=0
+Xmin=-7803 Ymin=13725 Xmax=-3977 Ymax=16532
+StartAngle=-11271 ArcAngle=-2169 Rayon=9650 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-652 lYc=23027 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6282 port x=-4377 y=14125 z=0
+  Angle=15729 Local=0 Connecte=1
+  ConnecteAuPort=6199 ConnecteAuSegment=6196
+  Port=6283 port x=-7403 y=16132 z=0
+  Angle=-4440 Local=1 Connecte=1
+  ConnecteAuPort=6291 ConnecteAuSegment=6286
+  Periph=7056 Type=detector Pere=6281 x=-4486 y=14171 z=0
+  Angle=6626  Bright=1  Bdown=0
+  Location=3  Adresse=534  Status=1
+  Periph=7097 Type=actuator Pere=6281 x=-5114 y=14470 z=0
+  Angle=6246  Bright=0  Bdown=1
+  Location=22  Adresse=827  Status=23
+  Periph=9830 Type=signal Pere=6281 x=-5525 y=14698 z=0
+  Angle=5967  Bright=0  Bdown=1
+  Location=35  Adresse=79  Status=1
+  Periph=9831 Type=detector Pere=6281 x=-5525 y=14698 z=0
+  Angle=5967  Bright=0  Bdown=1
+  Location=35  Adresse=0  Status=0
+
+Segment=6284 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-14690 Ymin=18210 Xmax=-13075 Ymax=19010
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6289 port x=-14290 y=18610 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6260 ConnecteAuSegment=6259
+  Port=6290 port x=-13475 y=18610 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=6287 ConnecteAuSegment=6285
+
+Segment=6285 curve
+Nport=2 Nperiph=1 Ninter=0
+Xmin=-13875 Ymin=15732 Xmax=-7003 Ymax=19010
+StartAngle=9000 ArcAngle=-4440 Rayon=8679 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-13475 lYc=9931 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6287 port x=-13475 y=18610 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6290 ConnecteAuSegment=6284
+  Port=6288 port x=-7403 y=16132 z=0
+  Angle=13560 Local=1 Connecte=1
+  ConnecteAuPort=6292 ConnecteAuSegment=6286
+  Periph=7055 Type=detector Pere=6285 x=-11176 y=18300 z=0
+  Angle=-10536  Bright=0  Bdown=0
+  Location=34  Adresse=534  Status=1
+
+Segment=6286 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-7803 Ymin=15732 Xmax=-7003 Ymax=16532
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6291 port x=-7403 y=16132 z=0
+  Angle=13560 Local=0 Connecte=1
+  ConnecteAuPort=6283 ConnecteAuSegment=6281
+  Port=6292 port x=-7403 y=16132 z=0
+  Angle=-4440 Local=1 Connecte=1
+  ConnecteAuPort=6288 ConnecteAuSegment=6285
+
+Segment=6293 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-9416 Ymin=13694 Xmax=-5603 Ymax=16521
+StartAngle=-11309 ArcAngle=-2169 Rayon=9650 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-2219 lYc=22971 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6294 port x=-6003 y=14094 z=0
+  Angle=15691 Local=0 Connecte=1
+  ConnecteAuPort=6205 ConnecteAuSegment=6204
+  Port=6295 port x=-9016 y=16121 z=0
+  Angle=-4478 Local=1 Connecte=1
+  ConnecteAuPort=6303 ConnecteAuSegment=6298
+
+Segment=6296 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-14636 Ymin=17701 Xmax=-13422 Ymax=18501
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6301 port x=-14236 y=18101 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6251 ConnecteAuSegment=6250
+  Port=6302 port x=-13822 y=18101 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=6299 ConnecteAuSegment=6297
+
+Segment=6297 curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-14222 Ymin=15721 Xmax=-8616 Ymax=18501
+StartAngle=9000 ArcAngle=-4478 Rayon=6823 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-13822 lYc=11278 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6299 port x=-13822 y=18101 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6302 ConnecteAuSegment=6296
+  Port=6300 port x=-9016 y=16121 z=0
+  Angle=13522 Local=1 Connecte=1
+  ConnecteAuPort=6304 ConnecteAuSegment=6298
+
+Segment=6298 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-9416 Ymin=15721 Xmax=-8616 Ymax=16521
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6303 port x=-9016 y=16121 z=0
+  Angle=13522 Local=0 Connecte=1
+  ConnecteAuPort=6295 ConnecteAuSegment=6293
+  Port=6304 port x=-9016 y=16121 z=0
+  Angle=-4478 Local=1 Connecte=1
+  ConnecteAuPort=6300 ConnecteAuSegment=6297
+
+Segment=6310 turnout_curved
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-22183 Ymin=16141 Xmax=-18475 Ymax=18244
+StartAngle=-16800 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=1880 yc0=-8842
+DeltaDev2=670 xc=1040 yc=-4891
+Adresse=25 Adresse2=0 Duree=2
+  Port=6311 port x=-18875 y=17844 z=0
+  Angle=-16800 Local=0 Connecte=1
+  ConnecteAuPort=6258 ConnecteAuSegment=6254
+  Port=6312 port x=-21783 y=16541 z=0
+  Angle=4200 Local=1 Connecte=1
+  ConnecteAuPort=6984 ConnecteAuSegment=6979
+  Port=6313 port x=-21181 y=16668 z=0
+  Angle=4200 Local=2 Connecte=1
+  ConnecteAuPort=6968 ConnecteAuSegment=6967
+
+Segment=6449 turnout_curved
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-19563 Ymin=15862 Xmax=-15999 Ymax=18249
+StartAngle=4200 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=-6049 yc0=6718
+DeltaDev2=670 xc=-3346 yc=3716
+Adresse=24 Adresse2=0 Duree=2
+  Port=6450 port x=-19163 y=16262 z=0
+  Angle=4200 Local=0 Connecte=1
+  ConnecteAuPort=6801 ConnecteAuSegment=6800
+  Port=6451 port x=-16399 y=17849 z=0
+  Angle=-16800 Local=1 Connecte=1
+  ConnecteAuPort=6253 ConnecteAuSegment=6250
+  Port=6452 port x=-16857 y=17437 z=0
+  Angle=-16800 Local=2 Connecte=1
+  ConnecteAuPort=6466 ConnecteAuSegment=6461
+
+Segment=6456 arc
+Nport=2 Nperiph=0 Ninter=1
+Xmin=-8607 Ymin=13038 Xmax=-5952 Ymax=14335
+StartAngle=-9000 ArcAngle=-3000 Rayon=3710 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-6352 lYc=17148 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6457 port x=-6352 y=13438 z=1000
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6244 ConnecteAuSegment=6242
+  Port=6458 port x=-8207 y=13935 z=1000
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=6464 ConnecteAuSegment=6459
+  x=-7681 y=13684 z=1000
+  MirrorZ=0 MirrorParent=0
+
+Segment=6459 pre_curve
+Nport=2 Nperiph=1 Ninter=0
+Xmin=-13696 Ymin=13535 Xmax=-7807 Ymax=17273
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6464 port x=-8207 y=13935 z=1000
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=6458 ConnecteAuSegment=6456
+  Port=6465 port x=-13296 y=16873 z=386
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=6462 ConnecteAuSegment=6460
+  Periph=7053 Type=detector Pere=6459 x=-8214 y=13939 z=0
+  Angle=6000  Bright=0  Bdown=0
+  Location=0  Adresse=533  Status=1
+
+Segment=6460 curve
+Nport=2 Nperiph=4 Ninter=0
+Xmin=-17257 Ymin=16473 Xmax=-12896 Ymax=17947
+StartAngle=6000 ArcAngle=4200 Rayon=5031 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-15811 lYc=12516 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6462 port x=-13296 y=16873 z=386
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=6465 ConnecteAuSegment=6459
+  Port=6463 port x=-16857 y=17437 z=0
+  Angle=1200 Local=1 Connecte=1
+  ConnecteAuPort=6467 ConnecteAuSegment=6461
+  Periph=7022 Type=signal Pere=6460 x=-15752 y=17547 z=0
+  Angle=8933  Bright=0  Bdown=0
+  Location=69  Adresse=71  Status=1
+  Periph=7023 Type=detector Pere=6460 x=-15752 y=17547 z=0
+  Angle=8933  Bright=0  Bdown=0
+  Location=69  Adresse=0  Status=0
+  Periph=7054 Type=detector Pere=6460 x=-15253 y=17516 z=0
+  Angle=8363  Bright=1  Bdown=1
+  Location=56  Adresse=533  Status=1
+  Periph=7096 Type=actuator Pere=6460 x=-15907 y=17546 z=0
+  Angle=9109  Bright=0  Bdown=0
+  Location=74  Adresse=831  Status=23
+
+Segment=6461 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-17257 Ymin=17037 Xmax=-16457 Ymax=17837
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6466 port x=-16857 y=17437 z=0
+  Angle=1200 Local=0 Connecte=1
+  ConnecteAuPort=6452 ConnecteAuSegment=6449
+  Port=6467 port x=-16857 y=17437 z=0
+  Angle=-16800 Local=1 Connecte=1
+  ConnecteAuPort=6463 ConnecteAuSegment=6460
+
+Segment=6600 dbl_slip_switch
+Nport=4 Nperiph=0 Ninter=0
+Xmin=-12501 Ymin=7563 Xmax=-9267 Ymax=9310
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=26 Adresse2=28 Duree=2
+  Port=6601 port x=-12101 y=8211 z=0
+  Angle=1050 Local=0 Connecte=1
+  ConnecteAuPort=6995 ConnecteAuSegment=6990
+  Port=6602 port x=-12027 y=7963 z=0
+  Angle=2250 Local=1 Connecte=1
+  ConnecteAuPort=6986 ConnecteAuSegment=6981
+  Port=6603 port x=-9667 y=8662 z=0
+  Angle=-16950 Local=2 Connecte=1
+  ConnecteAuPort=6965 ConnecteAuSegment=6960
+  Port=6604 port x=-9740 y=8910 z=0
+  Angle=-15750 Local=3 Connecte=1
+  ConnecteAuPort=6935 ConnecteAuSegment=6934
+
+Segment=6605 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-6175 Ymin=12386 Xmax=-3959 Ymax=13468
+StartAngle=9003 ArcAngle=2250 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-4357 lYc=9368 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6606 port x=-4359 y=13068 z=0
+  Angle=-17997 Local=0 Connecte=1
+  ConnecteAuPort=6202 ConnecteAuSegment=6200
+  Port=6607 port x=-5775 y=12786 z=0
+  Angle=2253 Local=1 Connecte=1
+  ConnecteAuPort=7004 ConnecteAuSegment=6999
+
+Segment=6691 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-1565 Ymin=3254 Xmax=1148 Ymax=4435
+StartAngle=-9001 ArcAngle=-2250 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=749 lYc=8654 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6692 port x=748 y=3654 z=0
+  Angle=17999 Local=0 Connecte=1
+  ConnecteAuPort=2100 ConnecteAuSegment=2099
+  Port=6693 port x=-1165 y=4035 z=0
+  Angle=-2251 Local=1 Connecte=1
+  ConnecteAuPort=6705 ConnecteAuSegment=6702
+
+Segment=6702 turnout_curved
+Nport=3 Nperiph=1 Ninter=0
+Xmin=-3618 Ymin=3146 Xmax=-390 Ymax=6011
+StartAngle=-5251 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=7173 yc0=5502
+DeltaDev2=670 xc=3967 yc=3043
+Adresse=12 Adresse2=0 Duree=2
+  Port=6703 port x=-3218 y=5611 z=0
+  Angle=-5251 Local=0 Connecte=1
+  ConnecteAuPort=6729 ConnecteAuSegment=6724
+  Port=6704 port x=-790 y=3546 z=0
+  Angle=15749 Local=1 Connecte=1
+  ConnecteAuPort=6711 ConnecteAuSegment=6710
+  Port=6705 port x=-1165 y=4035 z=0
+  Angle=15749 Local=2 Connecte=1
+  ConnecteAuPort=6693 ConnecteAuSegment=6691
+  Periph=7091 Type=actuator Pere=6702 x=-790 y=3546 z=0
+  Angle=6749  Bright=0  Bdown=0
+  Location=0  Adresse=826  Status=23
+
+Segment=6706 turnout
+Nport=3 Nperiph=1 Ninter=0
+Xmin=-362 Ymin=2467 Xmax=2118 Ymax=3601
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=20 Adresse2=0 Duree=2
+  Port=6707 port x=1718 y=2867 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6718 ConnecteAuSegment=6713
+  Port=6708 port x=38 y=2867 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=6753 ConnecteAuSegment=6752
+  Port=6709 port x=41 y=3201 z=0
+  Angle=-2251 Local=2 Connecte=1
+  ConnecteAuPort=6712 ConnecteAuSegment=6710
+  Periph=7101 Type=actuator Pere=6706 x=1718 y=2867 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=0  Adresse=815  Status=23
+
+Segment=6710 straight
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-1190 Ymin=2801 Xmax=441 Ymax=3946
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6711 port x=-790 y=3546 z=0
+  Angle=-2255 Local=0 Connecte=1
+  ConnecteAuPort=6704 ConnecteAuSegment=6702
+  Port=6712 port x=41 y=3201 z=0
+  Angle=15745 Local=1 Connecte=1
+  ConnecteAuPort=6709 ConnecteAuSegment=6706
+
+Segment=6713 pre_curve
+Nport=2 Nperiph=4 Ninter=0
+Xmin=1318 Ymin=2467 Xmax=13616 Ymax=3267
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6718 port x=1718 y=2867 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6707 ConnecteAuSegment=6706
+  Port=6719 port x=13216 y=2867 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=6716 ConnecteAuSegment=6714
+  Periph=7038 Type=signal Pere=6713 x=2411 y=2867 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=6  Adresse=35  Status=1
+  Periph=7039 Type=detector Pere=6713 x=2411 y=2867 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=6  Adresse=0  Status=0
+  Periph=7060 Type=detector Pere=6713 x=2411 y=2867 z=0
+  Angle=-9000  Bright=1  Bdown=0
+  Location=6  Adresse=520  Status=1
+  Periph=7061 Type=detector Pere=6713 x=8678 y=2867 z=0
+  Angle=-9000  Bright=0  Bdown=1
+  Location=60  Adresse=520  Status=1
+
+Segment=6714 curve
+Nport=2 Nperiph=2 Ninter=0
+Xmin=12816 Ymin=2467 Xmax=15756 Ymax=3692
+StartAngle=-9000 ArcAngle=2247 Rayon=5598 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=13216 lYc=8465 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6716 port x=13216 y=2867 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=6719 ConnecteAuSegment=6713
+  Port=6717 port x=15356 y=3292 z=0
+  Angle=-15753 Local=1 Connecte=1
+  ConnecteAuPort=6721 ConnecteAuSegment=6715
+  Periph=7064 Type=signal Pere=6714 x=14051 y=2930 z=0
+  Angle=-8142  Bright=0  Bdown=0
+  Location=38  Adresse=0  Status=0
+  Periph=7065 Type=detector Pere=6714 x=14051 y=2930 z=0
+  Angle=-8142  Bright=0  Bdown=0
+  Location=38  Adresse=0  Status=0
+
+Segment=6715 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=14956 Ymin=2892 Xmax=15756 Ymax=3692
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6720 port x=15356 y=3292 z=0
+  Angle=-15753 Local=0 Connecte=1
+  ConnecteAuPort=2136 ConnecteAuSegment=2133
+  Port=6721 port x=15356 y=3292 z=0
+  Angle=2247 Local=1 Connecte=1
+  ConnecteAuPort=6717 ConnecteAuSegment=6714
+
+Segment=6722 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-3006 Ymin=12328 Xmax=-2206 Ymax=13128
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6727 port x=-2606 y=12728 z=0
+  Angle=-15597 Local=0 Connecte=1
+  ConnecteAuPort=3735 ConnecteAuSegment=3733
+  Port=6728 port x=-2606 y=12728 z=0
+  Angle=2403 Local=1 Connecte=1
+  ConnecteAuPort=6725 ConnecteAuSegment=6723
+
+Segment=6723 curve
+Nport=2 Nperiph=5 Ninter=0
+Xmin=-5323 Ymin=6381 Xmax=-2206 Ymax=13128
+StartAngle=11403 ArcAngle=10346 Rayon=3908 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-1015 lYc=9159 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6725 port x=-2606 y=12728 z=0
+  Angle=-15597 Local=0 Connecte=1
+  ConnecteAuPort=6728 ConnecteAuSegment=6722
+  Port=6726 port x=-4115 y=6781 z=0
+  Angle=12749 Local=1 Connecte=1
+  ConnecteAuPort=6730 ConnecteAuSegment=6724
+  Periph=7036 Type=signal Pere=6723 x=-2792 y=12640 z=0
+  Angle=11705  Bright=0  Bdown=1
+  Location=2  Adresse=61  Status=1
+  Periph=7037 Type=detector Pere=6723 x=-2792 y=12640 z=0
+  Angle=11705  Bright=0  Bdown=1
+  Location=2  Adresse=0  Status=0
+  Periph=7057 Type=detector Pere=6723 x=-2792 y=12640 z=0
+  Angle=11904  Bright=1  Bdown=0
+  Location=2  Adresse=517  Status=1
+  Periph=7058 Type=detector Pere=6723 x=-4803 y=8196 z=0
+  Angle=-16574  Bright=0  Bdown=1
+  Location=77  Adresse=517  Status=1
+  Periph=7068 Type=actuator Pere=6723 x=-3282 y=12343 z=0
+  Angle=12545  Bright=1  Bdown=1
+  Location=11  Adresse=809  Status=23
+
+Segment=6724 pre_curve
+Nport=2 Nperiph=3 Ninter=0
+Xmin=-4515 Ymin=5211 Xmax=-2818 Ymax=7181
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6729 port x=-3218 y=5611 z=0
+  Angle=12749 Local=0 Connecte=1
+  ConnecteAuPort=6703 ConnecteAuSegment=6702
+  Port=6730 port x=-4115 y=6781 z=0
+  Angle=-5251 Local=1 Connecte=1
+  ConnecteAuPort=6726 ConnecteAuSegment=6723
+  Periph=7066 Type=signal Pere=6724 x=-3241 y=5641 z=0
+  Angle=3749  Bright=0  Bdown=1
+  Location=2  Adresse=0  Status=0
+  Periph=7067 Type=detector Pere=6724 x=-3241 y=5641 z=0
+  Angle=3749  Bright=0  Bdown=1
+  Location=2  Adresse=0  Status=0
+  Periph=7069 Type=actuator Pere=6724 x=-3294 y=5710 z=0
+  Angle=3749  Bright=0  Bdown=0
+  Location=8  Adresse=807  Status=23
+
+Segment=6752 turnout_curved
+Nport=3 Nperiph=1 Ninter=0
+Xmin=-3478 Ymin=2467 Xmax=438 Ymax=3937
+StartAngle=18000 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=0 yc0=-9040
+DeltaDev2=670 xc=0 yc=-5000
+Adresse=21 Adresse2=0 Duree=2
+  Port=6753 port x=38 y=2867 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6708 ConnecteAuSegment=6706
+  Port=6754 port x=-3078 y=3537 z=0
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=6956 ConnecteAuSegment=6955
+  Port=6755 port x=-2462 y=3537 z=0
+  Angle=-3000 Local=2 Connecte=1
+  ConnecteAuPort=6947 ConnecteAuSegment=6942
+  Periph=7090 Type=actuator Pere=6752 x=38 y=2867 z=0
+  Angle=9000  Bright=0  Bdown=0
+  Location=0  Adresse=825  Status=23
+
+Segment=6800 arc
+Nport=2 Nperiph=3 Ninter=0
+Xmin=-20782 Ymin=13306 Xmax=-18763 Ymax=16662
+StartAngle=13200 ArcAngle=4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-16687 lYc=13512 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6801 port x=-19163 y=16262 z=0
+  Angle=-13800 Local=0 Connecte=1
+  ConnecteAuPort=6450 ConnecteAuSegment=6449
+  Port=6802 port x=-20382 y=13706 z=0
+  Angle=8700 Local=1 Connecte=1
+  ConnecteAuPort=6804 ConnecteAuSegment=6803
+  Periph=7016 Type=signal Pere=6800 x=-19544 y=15862 z=0
+  Angle=14056  Bright=0  Bdown=1
+  Location=19  Adresse=0  Status=0
+  Periph=7017 Type=detector Pere=6800 x=-19544 y=15862 z=0
+  Angle=14056  Bright=0  Bdown=1
+  Location=19  Adresse=0  Status=0
+  Periph=7099 Type=actuator Pere=6800 x=-19290 y=16142 z=0
+  Angle=13471  Bright=0  Bdown=0
+  Location=6  Adresse=829  Status=23
+
+Segment=6803 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-20787 Ymin=10637 Xmax=-19037 Ymax=14106
+StartAngle=17700 ArcAngle=4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-16687 lYc=13512 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6804 port x=-20382 y=13706 z=0
+  Angle=-9300 Local=0 Connecte=1
+  ConnecteAuPort=6802 ConnecteAuSegment=6800
+  Port=6805 port x=-19437 y=11037 z=0
+  Angle=13200 Local=1 Connecte=1
+  ConnecteAuPort=6807 ConnecteAuSegment=6806
+
+Segment=6806 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-19837 Ymin=9418 Xmax=-16481 Ymax=11437
+StartAngle=-13800 ArcAngle=4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-16687 lYc=13513 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6807 port x=-19437 y=11037 z=0
+  Angle=-4800 Local=0 Connecte=1
+  ConnecteAuPort=6805 ConnecteAuSegment=6803
+  Port=6808 port x=-16881 y=9818 z=0
+  Angle=17700 Local=1 Connecte=1
+  ConnecteAuPort=6810 ConnecteAuSegment=6809
+
+Segment=6809 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-17281 Ymin=9413 Xmax=-13812 Ymax=11163
+StartAngle=-9300 ArcAngle=4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-16687 lYc=13513 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6810 port x=-16881 y=9818 z=0
+  Angle=-300 Local=0 Connecte=1
+  ConnecteAuPort=6808 ConnecteAuSegment=6806
+  Port=6811 port x=-14212 y=10763 z=0
+  Angle=-13800 Local=1 Connecte=1
+  ConnecteAuPort=6817 ConnecteAuSegment=6812
+
+Segment=6812 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-14612 Ymin=10363 Xmax=-13812 Ymax=11163
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6817 port x=-14212 y=10763 z=0
+  Angle=4200 Local=0 Connecte=1
+  ConnecteAuPort=6811 ConnecteAuSegment=6809
+  Port=6818 port x=-14212 y=10763 z=0
+  Angle=-13800 Local=1 Connecte=1
+  ConnecteAuPort=6815 ConnecteAuSegment=6813
+
+Segment=6813 curve
+Nport=2 Nperiph=4 Ninter=1
+Xmin=-14612 Ymin=10363 Xmax=-6109 Ymax=14151
+StartAngle=13200 ArcAngle=-4159 Rayon=11636 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-6426 lYc=2116 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6815 port x=-14212 y=10763 z=0
+  Angle=4200 Local=0 Connecte=1
+  ConnecteAuPort=6818 ConnecteAuSegment=6812
+  Port=6816 port x=-6509 y=13751 z=0
+  Angle=-17959 Local=1 Connecte=1
+  ConnecteAuPort=6820 ConnecteAuSegment=6814
+  Periph=7032 Type=signal Pere=6813 x=-10151 y=13140 z=0
+  Angle=-7133  Bright=0  Bdown=0
+  Location=56  Adresse=75  Status=1
+  Periph=7033 Type=detector Pere=6813 x=-10151 y=13140 z=0
+  Angle=-7133  Bright=0  Bdown=0
+  Location=56  Adresse=0  Status=0
+  Periph=7050 Type=detector Pere=6813 x=-6538 y=13751 z=0
+  Angle=-8945  Bright=1  Bdown=1
+  Location=99  Adresse=538  Status=1
+  Periph=7051 Type=detector Pere=6813 x=-14209 y=10766 z=0
+  Angle=-4802  Bright=0  Bdown=0
+  Location=0  Adresse=538  Status=1
+  x=-7681 y=13684 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=6814 pre_curve
+Nport=2 Nperiph=1 Ninter=0
+Xmin=-6909 Ymin=13351 Xmax=-5748 Ymax=14154
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6819 port x=-6148 y=13754 z=0
+  Angle=-17959 Local=0 Connecte=1
+  ConnecteAuPort=6206 ConnecteAuSegment=6204
+  Port=6820 port x=-6509 y=13751 z=0
+  Angle=41 Local=1 Connecte=1
+  ConnecteAuPort=6816 ConnecteAuSegment=6813
+  Periph=7098 Type=actuator Pere=6814 x=-6352 y=13752 z=0
+  Angle=9041  Bright=0  Bdown=1
+  Location=56  Adresse=828  Status=23
+
+Segment=6934 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-10140 Ymin=8510 Xmax=-6508 Ymax=9592
+StartAngle=11250 ArcAngle=-4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-8324 lYc=5492 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6935 port x=-9740 y=8910 z=0
+  Angle=2250 Local=0 Connecte=1
+  ConnecteAuPort=6604 ConnecteAuSegment=6600
+  Port=6936 port x=-6908 y=8910 z=0
+  Angle=15750 Local=1 Connecte=1
+  ConnecteAuPort=6938 ConnecteAuSegment=6937
+
+Segment=6937 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-7308 Ymin=6508 Xmax=-4506 Ymax=9310
+StartAngle=6750 ArcAngle=-4500 Rayon=3700 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-8324 lYc=5492 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6938 port x=-6908 y=8910 z=0
+  Angle=-2250 Local=0 Connecte=1
+  ConnecteAuPort=6936 ConnecteAuSegment=6934
+  Port=6939 port x=-4906 y=6908 z=0
+  Angle=11250 Local=1 Connecte=1
+  ConnecteAuPort=6945 ConnecteAuSegment=6940
+
+Segment=6940 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-5306 Ymin=5401 Xmax=-4047 Ymax=7308
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6945 port x=-4906 y=6908 z=0
+  Angle=-6750 Local=0 Connecte=1
+  ConnecteAuPort=6939 ConnecteAuSegment=6937
+  Port=6946 port x=-4447 y=5801 z=0
+  Angle=11250 Local=1 Connecte=1
+  ConnecteAuPort=6943 ConnecteAuSegment=6941
+
+Segment=6941 curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-4847 Ymin=3137 Xmax=-2062 Ymax=6201
+StartAngle=-15750 ArcAngle=3750 Rayon=4684 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-120 lYc=7593 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6943 port x=-4447 y=5801 z=0
+  Angle=-6750 Local=0 Connecte=1
+  ConnecteAuPort=6946 ConnecteAuSegment=6940
+  Port=6944 port x=-2462 y=3537 z=0
+  Angle=15000 Local=1 Connecte=1
+  ConnecteAuPort=6948 ConnecteAuSegment=6942
+
+Segment=6942 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-2862 Ymin=3137 Xmax=-2062 Ymax=3937
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6947 port x=-2462 y=3537 z=0
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=6755 ConnecteAuSegment=6752
+  Port=6948 port x=-2462 y=3537 z=0
+  Angle=-3000 Local=1 Connecte=1
+  ConnecteAuPort=6944 ConnecteAuSegment=6941
+
+Segment=6955 arc
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-4651 Ymin=3137 Xmax=-2678 Ymax=4966
+StartAngle=-12000 ArcAngle=-2250 Rayon=4000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-1078 lYc=7001 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6956 port x=-3078 y=3537 z=0
+  Angle=15000 Local=0 Connecte=1
+  ConnecteAuPort=6754 ConnecteAuSegment=6752
+  Port=6957 port x=-4251 y=4566 z=0
+  Angle=-5250 Local=1 Connecte=1
+  ConnecteAuPort=6963 ConnecteAuSegment=6958
+
+Segment=6958 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-6845 Ymin=4166 Xmax=-3851 Ymax=7825
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6963 port x=-4251 y=4566 z=0
+  Angle=12750 Local=0 Connecte=1
+  ConnecteAuPort=6957 ConnecteAuSegment=6955
+  Port=6964 port x=-6445 y=7425 z=0
+  Angle=-5250 Local=1 Connecte=1
+  ConnecteAuPort=6961 ConnecteAuSegment=6959
+
+Segment=6959 curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-10067 Ymin=7025 Xmax=-6045 Ymax=9118
+StartAngle=3750 ArcAngle=6300 Rayon=3303 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-9065 lYc=5415 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6961 port x=-6445 y=7425 z=0
+  Angle=12750 Local=0 Connecte=1
+  ConnecteAuPort=6964 ConnecteAuSegment=6958
+  Port=6962 port x=-9667 y=8662 z=0
+  Angle=1050 Local=1 Connecte=1
+  ConnecteAuPort=6966 ConnecteAuSegment=6960
+
+Segment=6960 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-10067 Ymin=8262 Xmax=-9267 Ymax=9062
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6965 port x=-9667 y=8662 z=0
+  Angle=1050 Local=0 Connecte=1
+  ConnecteAuPort=6603 ConnecteAuSegment=6600
+  Port=6966 port x=-9667 y=8662 z=0
+  Angle=-16950 Local=1 Connecte=1
+  ConnecteAuPort=6962 ConnecteAuSegment=6959
+
+Segment=6967 turnout_curved
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-23448 Ymin=13686 Xmax=-20781 Ymax=17068
+StartAngle=-13800 ArcAngle=3000 Rayon=5000 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=3116 longueurDev=2500
+DeltaDev=670 CurveOffset=0 xc0=6049 yc0=-6717
+DeltaDev2=670 xc=3346 yc=-3716
+Adresse=27 Adresse2=0 Duree=2
+  Port=6968 port x=-21181 y=16668 z=0
+  Angle=-13800 Local=0 Connecte=1
+  ConnecteAuPort=6313 ConnecteAuSegment=6310
+  Port=6969 port x=-23048 y=14086 z=0
+  Angle=7200 Local=1 Connecte=1
+  ConnecteAuPort=6993 ConnecteAuSegment=6988
+  Port=6970 port x=-22590 y=14497 z=0
+  Angle=7200 Local=2 Connecte=1
+  ConnecteAuPort=7002 ConnecteAuSegment=6997
+
+Segment=6979 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-22183 Ymin=16141 Xmax=-21383 Ymax=16941
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6984 port x=-21783 y=16541 z=0
+  Angle=-13800 Local=0 Connecte=1
+  ConnecteAuPort=6312 ConnecteAuSegment=6310
+  Port=6985 port x=-21783 y=16541 z=0
+  Angle=4200 Local=1 Connecte=1
+  ConnecteAuPort=6982 ConnecteAuSegment=6980
+
+Segment=6980 curve
+Nport=2 Nperiph=5 Ninter=0
+Xmin=-24168 Ymin=5680 Xmax=-15071 Ymax=16941
+StartAngle=13200 ArcAngle=16050 Rayon=6001 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-17767 lYc=12081 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6982 port x=-21783 y=16541 z=0
+  Angle=-13800 Local=0 Connecte=1
+  ConnecteAuPort=6985 ConnecteAuSegment=6979
+  Port=6983 port x=-15471 y=6537 z=0
+  Angle=-15750 Local=1 Connecte=1
+  ConnecteAuPort=6987 ConnecteAuSegment=6981
+  Periph=7010 Type=signal Pere=6980 x=-23762 y=12345 z=0
+  Angle=17748  Bright=0  Bdown=1
+  Location=28  Adresse=65  Status=1
+  Periph=7011 Type=detector Pere=6980 x=-23762 y=12345 z=0
+  Angle=17748  Bright=0  Bdown=1
+  Location=28  Adresse=0  Status=0
+  Periph=7044 Type=detector Pere=6980 x=-23042 y=14942 z=0
+  Angle=15148  Bright=1  Bdown=0
+  Location=12  Adresse=529  Status=1
+  Periph=7047 Type=detector Pere=6980 x=-22800 y=8813 z=0
+  Angle=-14701  Bright=0  Bdown=1
+  Location=50  Adresse=529  Status=1
+  Periph=7093 Type=actuator Pere=6980 x=-23343 y=14299 z=0
+  Angle=15831  Bright=0  Bdown=1
+  Location=16  Adresse=822  Status=23
+
+Segment=6981 pre_curve
+Nport=2 Nperiph=3 Ninter=0
+Xmin=-15871 Ymin=6137 Xmax=-11627 Ymax=8363
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6986 port x=-12027 y=7963 z=0
+  Angle=-15750 Local=0 Connecte=1
+  ConnecteAuPort=6602 ConnecteAuSegment=6600
+  Port=6987 port x=-15471 y=6537 z=0
+  Angle=2250 Local=1 Connecte=1
+  ConnecteAuPort=6983 ConnecteAuSegment=6980
+  Periph=7008 Type=signal Pere=6981 x=-13002 y=7559 z=0
+  Angle=11250  Bright=0  Bdown=1
+  Location=28  Adresse=0  Status=0
+  Periph=7009 Type=detector Pere=6981 x=-13002 y=7559 z=0
+  Angle=11250  Bright=0  Bdown=1
+  Location=28  Adresse=0  Status=0
+  Periph=9297 Type=actuator Pere=6981 x=-13032 y=7547 z=0
+  Angle=11250  Bright=0  Bdown=0
+  Location=29  Adresse=836  Status=23
+
+Segment=6988 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-23448 Ymin=13686 Xmax=-22648 Ymax=14486
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6993 port x=-23048 y=14086 z=0
+  Angle=-10800 Local=0 Connecte=1
+  ConnecteAuPort=6969 ConnecteAuSegment=6967
+  Port=6994 port x=-23048 y=14086 z=0
+  Angle=7200 Local=1 Connecte=1
+  ConnecteAuPort=6991 ConnecteAuSegment=6989
+
+Segment=6989 curve
+Nport=2 Nperiph=5 Ninter=0
+Xmin=-23705 Ymin=6799 Xmax=-16686 Ymax=14486
+StartAngle=16200 ArcAngle=11850 Rayon=5261 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-18044 lYc=12460 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6991 port x=-23048 y=14086 z=0
+  Angle=-10800 Local=0 Connecte=1
+  ConnecteAuPort=6994 ConnecteAuSegment=6988
+  Port=6992 port x=-17086 y=7287 z=0
+  Angle=-16950 Local=1 Connecte=1
+  ConnecteAuPort=6996 ConnecteAuSegment=6990
+  Periph=7012 Type=signal Pere=6989 x=-23141 y=13762 z=0
+  Angle=16567  Bright=0  Bdown=1
+  Location=3  Adresse=67  Status=1
+  Periph=7013 Type=detector Pere=6989 x=-23141 y=13762 z=0
+  Angle=16567  Bright=0  Bdown=1
+  Location=3  Adresse=0  Status=0
+  Periph=7045 Type=detector Pere=6989 x=-23141 y=13762 z=0
+  Angle=16863  Bright=1  Bdown=0
+  Location=3  Adresse=530  Status=1
+  Periph=7048 Type=detector Pere=6989 x=-20422 y=7767 z=0
+  Angle=-11687  Bright=0  Bdown=1
+  Location=68  Adresse=530  Status=1
+  Periph=7094 Type=actuator Pere=6989 x=-23106 y=13892 z=0
+  Angle=16421  Bright=0  Bdown=1
+  Location=1  Adresse=823  Status=23
+
+Segment=6990 pre_curve
+Nport=2 Nperiph=3 Ninter=0
+Xmin=-17486 Ymin=6887 Xmax=-11701 Ymax=8611
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=6995 port x=-12101 y=8211 z=0
+  Angle=-16950 Local=0 Connecte=1
+  ConnecteAuPort=6601 ConnecteAuSegment=6600
+  Port=6996 port x=-17086 y=7287 z=0
+  Angle=1050 Local=1 Connecte=1
+  ConnecteAuPort=6992 ConnecteAuSegment=6989
+  Periph=7006 Type=signal Pere=6990 x=-12866 y=8069 z=0
+  Angle=10050  Bright=0  Bdown=1
+  Location=15  Adresse=0  Status=0
+  Periph=7007 Type=detector Pere=6990 x=-12866 y=8069 z=0
+  Angle=10050  Bright=0  Bdown=1
+  Location=15  Adresse=0  Status=0
+  Periph=9296 Type=actuator Pere=6990 x=-13089 y=8028 z=0
+  Angle=10050  Bright=1  Bdown=0
+  Location=19  Adresse=835  Status=23
+
+Segment=6997 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-22990 Ymin=14097 Xmax=-22190 Ymax=14897
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=7002 port x=-22590 y=14497 z=0
+  Angle=-10800 Local=0 Connecte=1
+  ConnecteAuPort=6970 ConnecteAuSegment=6967
+  Port=7003 port x=-22590 y=14497 z=0
+  Angle=7200 Local=1 Connecte=1
+  ConnecteAuPort=7000 ConnecteAuSegment=6998
+
+Segment=6998 curve
+Nport=2 Nperiph=4 Ninter=0
+Xmin=-23228 Ymin=7731 Xmax=-15702 Ymax=14897
+StartAngle=16200 ArcAngle=13053 Rayon=4863 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-17965 lYc=12994 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=7000 port x=-22590 y=14497 z=0
+  Angle=-10800 Local=0 Connecte=1
+  ConnecteAuPort=7003 ConnecteAuSegment=6997
+  Port=7001 port x=-16102 y=8502 z=0
+  Angle=-15747 Local=1 Connecte=1
+  ConnecteAuPort=7005 ConnecteAuSegment=6999
+  Periph=7014 Type=signal Pere=6998 x=-22828 y=12942 z=0
+  Angle=-17939  Bright=0  Bdown=1
+  Location=14  Adresse=69  Status=1
+  Periph=7015 Type=detector Pere=6998 x=-22828 y=12942 z=0
+  Angle=-17939  Bright=0  Bdown=1
+  Location=14  Adresse=0  Status=0
+  Periph=7046 Type=detector Pere=6998 x=-22828 y=12942 z=0
+  Angle=-17684  Bright=1  Bdown=0
+  Location=14  Adresse=537  Status=1
+  Periph=7095 Type=actuator Pere=6998 x=-22821 y=13256 z=0
+  Angle=17691  Bright=1  Bdown=1
+  Location=11  Adresse=824  Status=23
+
+Segment=6999 pre_curve
+Nport=2 Nperiph=3 Ninter=0
+Xmin=-16502 Ymin=8102 Xmax=-5375 Ymax=13186
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=7004 port x=-5775 y=12786 z=0
+  Angle=-15747 Local=0 Connecte=1
+  ConnecteAuPort=6607 ConnecteAuSegment=6605
+  Port=7005 port x=-16102 y=8502 z=0
+  Angle=2253 Local=1 Connecte=1
+  ConnecteAuPort=7001 ConnecteAuSegment=6998
+  Periph=7034 Type=signal Pere=6999 x=-6172 y=12621 z=0
+  Angle=11253  Bright=0  Bdown=1
+  Location=3  Adresse=0  Status=0
+  Periph=7035 Type=detector Pere=6999 x=-6172 y=12621 z=0
+  Angle=11253  Bright=0  Bdown=1
+  Location=3  Adresse=0  Status=0
+  Periph=7049 Type=detector Pere=6999 x=-15556 y=8728 z=0
+  Angle=11253  Bright=0  Bdown=0
+  Location=94  Adresse=537  Status=1
+
+Segment=8774 turnout
+Nport=3 Nperiph=0 Ninter=2
+Xmin=5316 Ymin=12674 Xmax=8306 Ymax=13727
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=29 Adresse2=0 Duree=2
+  Port=8775 port x=5716 y=13074 z=0
+  Angle=3 Local=0 Connecte=1
+  ConnecteAuPort=18 ConnecteAuSegment=16
+  Port=8776 port x=7906 y=13075 z=0
+  Angle=-17997 Local=1 Connecte=1
+  ConnecteAuPort=8783 ConnecteAuSegment=8782
+  Port=8777 port x=7879 y=13327 z=0
+  Angle=-16797 Local=2 Connecte=1
+  ConnecteAuPort=8812 ConnecteAuSegment=8811
+  x=6498 y=13273 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=7879 y=13327 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=8778 turnout
+Nport=3 Nperiph=0 Ninter=3
+Xmin=8275 Ymin=13102 Xmax=11265 Ymax=14155
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=30 Adresse2=0 Duree=5
+  Port=8779 port x=10865 y=13755 z=0
+  Angle=-17998 Local=0 Connecte=1
+  ConnecteAuPort=8824 ConnecteAuSegment=8823
+  Port=8780 port x=8675 y=13754 z=0
+  Angle=2 Local=1 Connecte=1
+  ConnecteAuPort=8802 ConnecteAuSegment=8800
+  Port=8781 port x=8701 y=13502 z=0
+  Angle=1202 Local=2 Connecte=1
+  ConnecteAuPort=8813 ConnecteAuSegment=8811
+  x=10865 y=13755 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=8931 y=13551 z=0
+  MirrorZ=1000 MirrorParent=0
+  x=8701 y=13502 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=8782 straight
+Nport=2 Nperiph=4 Ninter=0
+Xmin=7506 Ymin=12675 Xmax=12806 Ymax=13477
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=8783 port x=7906 y=13075 z=0
+  Angle=3 Local=0 Connecte=1
+  ConnecteAuPort=8776 ConnecteAuSegment=8774
+  Port=8784 port x=12406 y=13077 z=0
+  Angle=-17997 Local=1 Connecte=1
+  ConnecteAuPort=637 ConnecteAuSegment=635
+  Periph=8828 Type=signal Pere=8782 x=9528 y=13076 z=0
+  Angle=-8997  Bright=0  Bdown=1
+  Location=36  Adresse=73  Status=1
+  Periph=8829 Type=detector Pere=8782 x=9528 y=13076 z=0
+  Angle=-8997  Bright=0  Bdown=1
+  Location=36  Adresse=0  Status=0
+  Periph=8830 Type=detector Pere=8782 x=9528 y=13076 z=0
+  Angle=-8997  Bright=1  Bdown=0
+  Location=36  Adresse=513  Status=1
+  Periph=8831 Type=actuator Pere=8782 x=8132 y=13075 z=0
+  Angle=-8997  Bright=0  Bdown=1
+  Location=5  Adresse=805  Status=23
+
+Segment=8800 straight
+Nport=2 Nperiph=0 Ninter=1
+Xmin=5320 Ymin=13359 Xmax=9070 Ymax=14159
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=8801 port x=5720 y=13759 z=0
+  Angle=0 Local=0 Connecte=1
+  ConnecteAuPort=134 ConnecteAuSegment=133
+  Port=8802 port x=8670 y=13759 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=8780 ConnecteAuSegment=8778
+  x=5720 y=13759 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=8811 straight
+Nport=2 Nperiph=0 Ninter=1
+Xmin=7479 Ymin=12927 Xmax=9101 Ymax=13902
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=8812 port x=7879 y=13327 z=0
+  Angle=1202 Local=0 Connecte=1
+  ConnecteAuPort=8777 ConnecteAuSegment=8774
+  Port=8813 port x=8701 y=13502 z=0
+  Angle=-16798 Local=1 Connecte=1
+  ConnecteAuPort=8781 ConnecteAuSegment=8778
+  x=8400 y=13438 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=8823 straight
+Nport=2 Nperiph=3 Ninter=1
+Xmin=10465 Ymin=13355 Xmax=12815 Ymax=14156
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=8824 port x=10865 y=13755 z=0
+  Angle=4 Local=0 Connecte=1
+  ConnecteAuPort=8779 ConnecteAuSegment=8778
+  Port=8825 port x=12415 y=13756 z=0
+  Angle=-17996 Local=1 Connecte=1
+  ConnecteAuPort=112 ConnecteAuSegment=110
+  Periph=962 Type=signal Pere=8823 x=12374 y=13756 z=0
+  Angle=-8996  Bright=0  Bdown=1
+  Location=97  Adresse=0  Status=0
+  Periph=963 Type=detector Pere=8823 x=12374 y=13756 z=0
+  Angle=-8996  Bright=0  Bdown=1
+  Location=97  Adresse=0  Status=0
+  Periph=9829 Type=actuator Pere=8823 x=11811 y=13756 z=0
+  Angle=-8996  Bright=0  Bdown=0
+  Location=61  Adresse=837  Status=23
+  x=10865 y=13755 z=0
+  MirrorZ=1000 MirrorParent=0
+
+Segment=9802 turnout
+Nport=3 Nperiph=0 Ninter=0
+Xmin=-21470 Ymin=17498 Xmax=-18502 Ymax=18753
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=34 Adresse2=0 Duree=4
+  Port=9803 port x=-21070 y=17898 z=0
+  Angle=1200 Local=0 Connecte=1
+  ConnecteAuPort=9822 ConnecteAuSegment=9821
+  Port=9804 port x=-18928 y=18353 z=0
+  Angle=-16800 Local=1 Connecte=1
+  ConnecteAuPort=9817 ConnecteAuSegment=9812
+  Port=9805 port x=-18902 y=18101 z=0
+  Angle=18000 Local=2 Connecte=1
+  ConnecteAuPort=6257 ConnecteAuSegment=6254
+
+Segment=9812 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-19328 Ymin=17953 Xmax=-18528 Ymax=18753
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=9817 port x=-18928 y=18353 z=0
+  Angle=1200 Local=0 Connecte=1
+  ConnecteAuPort=9804 ConnecteAuSegment=9802
+  Port=9818 port x=-18928 y=18353 z=0
+  Angle=-16800 Local=1 Connecte=1
+  ConnecteAuPort=9815 ConnecteAuSegment=9813
+
+Segment=9813 curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-19328 Ymin=17953 Xmax=-16083 Ymax=19010
+StartAngle=10200 ArcAngle=-1200 Rayon=11761 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=-16483 lYc=6849 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=9815 port x=-18928 y=18353 z=0
+  Angle=1200 Local=0 Connecte=1
+  ConnecteAuPort=9818 ConnecteAuSegment=9812
+  Port=9816 port x=-16483 y=18610 z=0
+  Angle=18000 Local=1 Connecte=1
+  ConnecteAuPort=9820 ConnecteAuSegment=9814
+
+Segment=9814 pre_curve
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-16883 Ymin=18210 Xmax=-16080 Ymax=19010
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=9819 port x=-16480 y=18610 z=0
+  Angle=18000 Local=0 Connecte=1
+  ConnecteAuPort=6261 ConnecteAuSegment=6259
+  Port=9820 port x=-16483 y=18610 z=0
+  Angle=0 Local=1 Connecte=1
+  ConnecteAuPort=9816 ConnecteAuSegment=9813
+
+Segment=9821 straight
+Nport=2 Nperiph=2 Ninter=0
+Xmin=-22448 Ymin=17290 Xmax=-20670 Ymax=18298
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=9822 port x=-21070 y=17898 z=0
+  Angle=-16799 Local=0 Connecte=1
+  ConnecteAuPort=9803 ConnecteAuSegment=9802
+  Port=9823 port x=-22048 y=17690 z=0
+  Angle=1201 Local=1 Connecte=1
+  ConnecteAuPort=9825 ConnecteAuSegment=9824
+  Periph=9827 Type=signal Pere=9821 x=-21349 y=17839 z=0
+  Angle=10200  Bright=0  Bdown=1
+  Location=28  Adresse=0  Status=0
+  Periph=9828 Type=detector Pere=9821 x=-21349 y=17839 z=0
+  Angle=10200  Bright=0  Bdown=1
+  Location=28  Adresse=0  Status=0
+
+Segment=9824 bumper_stop
+Nport=2 Nperiph=0 Ninter=0
+Xmin=-23426 Ymin=16890 Xmax=-21248 Ymax=18490
+StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
+Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
+lXc=0 lYc=0 Longueur=0 longueurDev=0
+DeltaDev=0 CurveOffset=0 xc0=0 yc0=0
+DeltaDev2=0 xc=0 yc=0
+Adresse=0 Adresse2=0 Duree=0
+  Port=9825 port x=-22048 y=17690 z=0
+  Angle=-16800 Local=0 Connecte=1
+  ConnecteAuPort=9823 ConnecteAuSegment=9821
+  Port=9826 dummy_port x=-23026 y=17482 z=0
+  Angle=1200 Local=1 Connecte=0
+  ConnecteAuPort=0 ConnecteAuSegment=0
+

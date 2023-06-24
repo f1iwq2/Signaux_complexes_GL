@@ -426,7 +426,6 @@ begin
       ok:=false;
     end;
 
-
     AvecGrille:=checkDessineGrille.Checked;
     if ok then
     begin

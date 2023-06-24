@@ -1,10 +1,10 @@
 object FormAnalyseCDM: TFormAnalyseCDM
-  Left = 154
-  Top = 36
+  Left = 206
+  Top = 0
   AutoScroll = False
-  Caption = 'FormAnalyseCDM'
-  ClientHeight = 660
-  ClientWidth = 1032
+  Caption = 'Fen'#234'tre r'#233'seau CDM'
+  ClientHeight = 648
+  ClientWidth = 1041
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,18 +12,55 @@ object FormAnalyseCDM: TFormAnalyseCDM
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
+  OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   DesignSize = (
-    1032
-    660)
+    1041
+    648)
   PixelsPerInch = 96
   TextHeight = 13
+  object Label4: TLabel
+    Left = 1001
+    Top = 520
+    Width = 27
+    Height = 13
+    Anchors = [akTop, akRight]
+    Caption = 'Zoom'
+  end
+  object ImageLoco: TImage
+    Left = 688
+    Top = 600
+    Width = 65
+    Height = 25
+    Picture.Data = {
+      07544269746D61701A020000424D1A0200000000000076000000280000003100
+      00000F0000000100040000000000A40100000000000000000000100000000000
+      0000000000000000800000800000008080008000000080008000808000008080
+      8000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFF
+      FF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000FFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000FFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000FFF77777BBB777777777
+      777777777777777777BBB77777FFF0000000FF777777B7B77777777777777777
+      7777777777B7B777777FF0000000FF777777BBB7999999999999999999977777
+      77BBB777777FF0000000FF777777BBBBBBB7777777777777779777BBBBBBB777
+      777FF0000000FF777777BBBBBBBBBB7777777777779BBBBBBBBBB777777FF000
+      0000FF777777BBB7BBBB77777777777777977BBBB7BBB777777FF0000000FF77
+      7777BBBB7777777777777777779999997BBBB777777FF0000000FF777777B7B7
+      77777777777777777777777777B7B777777FF0000000FFF77777BBB777777777
+      777777777777777777BBB77777FFF0000000FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFF0000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFF0000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFF0000000}
+    Transparent = True
+    Visible = False
+  end
   object ScrollBox1: TScrollBox
     Left = 8
     Top = 16
-    Width = 977
-    Height = 537
+    Width = 986
+    Height = 509
     HorzScrollBar.Tracking = True
     Anchors = [akLeft, akTop, akRight, akBottom]
     AutoScroll = False
@@ -31,29 +68,41 @@ object FormAnalyseCDM: TFormAnalyseCDM
     ParentColor = False
     TabOrder = 0
     object ImageCDM: TImage
-      Left = 0
-      Top = 0
-      Width = 937
-      Height = 512
+      Left = 24
+      Top = 8
+      Width = 873
+      Height = 465
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = ImageCDMClick
+      OnMouseMove = ImageCDMMouseMove
     end
   end
   object GroupBox1: TGroupBox
-    Left = 16
-    Top = 560
-    Width = 257
-    Height = 89
+    Left = 8
+    Top = 536
+    Width = 385
+    Height = 109
     Anchors = [akLeft, akBottom]
     Caption = 'Affichages '
     TabOrder = 1
     object Label1: TLabel
-      Left = 24
-      Top = 56
-      Width = 81
+      Left = 8
+      Top = 50
+      Width = 76
+      Height = 26
+      Caption = 'Afficher le segment/port n'#176
+      WordWrap = True
+    end
+    object Label3: TLabel
+      Left = 8
+      Top = 84
+      Width = 82
       Height = 13
-      Caption = 'Afficher le port n'#176
+      Caption = 'Allumer d'#233'tecteur'
     end
     object CheckConnexions: TCheckBox
-      Left = 24
+      Left = 8
       Top = 16
       Width = 97
       Height = 17
@@ -65,7 +114,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
       OnClick = CheckConnexionsClick
     end
     object CheckAdresses: TCheckBox
-      Left = 24
+      Left = 8
       Top = 32
       Width = 97
       Height = 17
@@ -77,18 +126,18 @@ object FormAnalyseCDM: TFormAnalyseCDM
       OnClick = CheckAdressesClick
     end
     object CheckSegments: TCheckBox
-      Left = 112
+      Left = 128
       Top = 16
       Width = 81
-      Height = 25
+      Height = 17
       Caption = 'segments'
       TabOrder = 2
       OnClick = CheckSegmentsClick
     end
     object CheckPorts: TCheckBox
-      Left = 112
+      Left = 128
       Top = 32
-      Width = 121
+      Width = 65
       Height = 17
       Hint = 'Affiche le num'#233'ro de segment et le port de CDM'
       Caption = 'Ports'
@@ -98,118 +147,157 @@ object FormAnalyseCDM: TFormAnalyseCDM
       OnClick = CheckPortsClick
     end
     object EditPort: TEdit
-      Left = 112
+      Left = 96
       Top = 56
-      Width = 57
+      Width = 49
       Height = 21
       TabOrder = 4
     end
     object ButtonAffPort: TButton
-      Left = 176
+      Left = 152
       Top = 56
       Width = 73
       Height = 25
-      Caption = 'Afficher le port'
+      Caption = 'Afficher'
       TabOrder = 5
       OnClick = ButtonAffPortClick
     end
+    object EditDetecteur: TEdit
+      Left = 96
+      Top = 80
+      Width = 33
+      Height = 21
+      TabOrder = 6
+    end
+    object ButtonAffDet: TButton
+      Left = 152
+      Top = 80
+      Width = 73
+      Height = 25
+      Caption = 'Allumer'
+      TabOrder = 7
+      OnClick = ButtonAffDetClick
+    end
+    object CheckColorationDiff: TCheckBox
+      Left = 232
+      Top = 16
+      Width = 137
+      Height = 17
+      Caption = 'Coloration diff'#233'renti'#233'e'
+      TabOrder = 8
+      OnClick = CheckColorationDiffClick
+    end
+    object ButtonAllumeTs: TButton
+      Left = 232
+      Top = 80
+      Width = 129
+      Height = 25
+      Caption = 'Allume tous les d'#233'tecteurs'
+      TabOrder = 9
+      OnClick = ButtonAllumeTsClick
+    end
+    object ButtonImprime: TButton
+      Left = 232
+      Top = 48
+      Width = 75
+      Height = 25
+      Caption = 'Imprimer'
+      TabOrder = 10
+      OnClick = ButtonImprimeClick
+    end
   end
   object TrackBar1: TTrackBar
-    Left = 992
+    Left = 1001
     Top = 16
     Width = 37
-    Height = 553
+    Height = 489
+    Hint = 'Curseur de Zoom'
     Anchors = [akTop, akRight]
-    Max = 200
+    Max = 90
     Min = 50
     Orientation = trVertical
-    Position = 200
+    ParentShowHint = False
+    Position = 90
+    ShowHint = True
     TabOrder = 2
     OnChange = TrackBar1Change
   end
-  object GroupBox2: TGroupBox
-    Left = 280
-    Top = 560
+  object GroupBoxSegment: TGroupBox
+    Left = 400
+    Top = 536
     Width = 145
-    Height = 89
+    Height = 109
     Anchors = [akLeft, akBottom]
-    Caption = 'Strat'#233'gies d'#39'importation'
+    Caption = 'Segment'
     TabOrder = 3
-    object CheckDebugAnalyse: TCheckBox
-      Left = 16
-      Top = 24
-      Width = 121
-      Height = 17
-      Caption = 'Debug importation'
-      TabOrder = 0
-      OnClick = CheckDebugAnalyseClick
-    end
-    object CheckDebugBranches: TCheckBox
-      Left = 16
-      Top = 48
-      Width = 97
-      Height = 17
-      Caption = 'Debug branches'
-      TabOrder = 1
-      OnClick = CheckDebugBranchesClick
-    end
-  end
-  object GroupBox3: TGroupBox
-    Left = 432
-    Top = 560
-    Width = 537
-    Height = 89
-    Anchors = [akLeft, akBottom]
-    Caption = 'Param'#232'tres'
-    TabOrder = 4
-    DesignSize = (
-      537
-      89)
-    object ButtonImporter: TButton
-      Left = 382
-      Top = 40
-      Width = 75
-      Height = 25
-      Hint = 'Lancement de l'#39'importation'
-      Anchors = [akLeft, akBottom]
-      Caption = 'Importer'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 0
-      OnClick = ButtonImporterClick
-    end
-    object RadioGroup1: TRadioGroup
+    object Label2: TLabel
       Left = 8
-      Top = 24
-      Width = 305
-      Height = 57
-      Caption = 'Adressage des croisements'
-      TabOrder = 1
+      Top = 22
+      Width = 42
+      Height = 13
+      Caption = 'Segment'
     end
-    object RadioCroisSuite: TRadioButton
-      Left = 24
-      Top = 40
-      Width = 217
-      Height = 17
-      Caption = 'Croisements '#224' la suite des aiguillages'
-      TabOrder = 2
+    object LabelAdresse: TLabel
+      Left = 11
+      Top = 48
+      Width = 44
+      Height = 13
+      Caption = 'Adresse :'
     end
-    object RadioCroisBase: TRadioButton
-      Left = 24
-      Top = 56
-      Width = 217
-      Height = 17
-      Caption = 'Croisements '#224' partir de l'#39'adresse de base'
-      TabOrder = 3
+    object LabelPorts: TLabel
+      Left = 11
+      Top = 74
+      Width = 33
+      Height = 13
+      Caption = 'Ports : '
+      WordWrap = True
     end
-    object EditBaseCrois: TEdit
-      Left = 240
-      Top = 54
+    object EditSegment: TEdit
+      Left = 80
+      Top = 16
       Width = 41
       Height = 21
-      TabOrder = 4
-      Text = '100'
-      OnChange = EditBaseCroisChange
+      ReadOnly = True
+      TabOrder = 0
     end
+    object EditAdresse: TEdit
+      Left = 64
+      Top = 44
+      Width = 57
+      Height = 21
+      Hint = 'Changement de l'#39'adresse de l'#39'aiguillage'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnChange = EditAdresseChange
+    end
+  end
+  object Memo1: TMemo
+    Left = 552
+    Top = 544
+    Width = 105
+    Height = 93
+    Anchors = [akLeft, akBottom]
+    Lines.Strings = (
+      'cliquez sur un '
+      'segment du r'#233'seau '
+      'pour avoir d'#39'autres '
+      'informations')
+    ReadOnly = True
+    TabOrder = 4
+  end
+  object ButtonAnime: TButton
+    Left = 752
+    Top = 548
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Test anime'
+    TabOrder = 5
+    OnClick = ButtonAnimeClick
+  end
+  object PrintDialog1: TPrintDialog
+    Left = 688
+    Top = 560
   end
 end

@@ -165,3 +165,5 @@ version 5.74 : Correction bug création nouveau TCO.
 version 6.0  : Gestion du décodeur de signaux Arcomora.
                Importation des aiguillages et des branches depuis CDM Rail. 
                Nécessite la version >=23.04 de CDM rail.
+version 6.1  : Amélioration de la fenêtre réseau CDM.
+               Animation des trains dans la fenêtre réseau CDM.

@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='6.0';  // sert à la comparaison de la version publiée
+Const  Version='6.1';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -111,7 +111,7 @@ begin
   end;
 end;
 
-
+// renvoie le numéro de version depuis le forum CDM
 function verifie_version : real;
 var s,s2,s3,Version_p,Url,LocalFile,nomfichier : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;

@@ -428,7 +428,6 @@ begin
   labelCV26.Caption:='CV='+IntToSTR(etat2);
   feux[indexSig].SR[7].sortie1:=i;
   maj_db;
-
 end;
 
 procedure TFormSR.ComboBoxAdr14Change(Sender: TObject);
@@ -464,30 +463,28 @@ begin
   maj_db;
 end;
 
-
-
 procedure TFormSR.FormCreate(Sender: TObject);
 var i : integer;
 begin
- for i:=0 to 19 do
-    begin
-      ComboBoxAdr1.items.add(etats[i]);
-      ComboBoxAdr2.items.add(etats[i]);
-      ComboBoxAdr3.items.add(etats[i]);
-      ComboBoxAdr4.items.add(etats[i]);
-      ComboBoxAdr5.items.add(etats[i]);
-      ComboBoxAdr6.items.add(etats[i]);
-      ComboBoxAdr7.items.add(etats[i]);
-      ComboBoxAdr8.items.add(etats[i]);
-      ComboBoxAdr9.items.add(etats[i]);
-      ComboBoxAdr10.items.add(etats[i]);
-      ComboBoxAdr11.items.add(etats[i]);
-      ComboBoxAdr12.items.add(etats[i]);
-      ComboBoxAdr13.items.add(etats[i]);
-      ComboBoxAdr14.items.add(etats[i]);
-      ComboBoxAdr15.items.add(etats[i]);
-      ComboBoxAdr16.items.add(etats[i]);
-    end;
+  for i:=0 to 19 do
+  begin
+    ComboBoxAdr1.items.add(etats[i]);
+    ComboBoxAdr2.items.add(etats[i]);
+    ComboBoxAdr3.items.add(etats[i]);
+    ComboBoxAdr4.items.add(etats[i]);
+    ComboBoxAdr5.items.add(etats[i]);
+    ComboBoxAdr6.items.add(etats[i]);
+    ComboBoxAdr7.items.add(etats[i]);
+    ComboBoxAdr8.items.add(etats[i]);
+    ComboBoxAdr9.items.add(etats[i]);
+    ComboBoxAdr10.items.add(etats[i]);
+    ComboBoxAdr11.items.add(etats[i]);
+    ComboBoxAdr12.items.add(etats[i]);
+    ComboBoxAdr13.items.add(etats[i]);
+    ComboBoxAdr14.items.add(etats[i]);
+    ComboBoxAdr15.items.add(etats[i]);
+    ComboBoxAdr16.items.add(etats[i]);
+  end;
 end;
 
 procedure TFormSR.BitBtnokClick(Sender: TObject);

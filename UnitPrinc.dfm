@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 86
-  Top = 188
+  Left = 22
+  Top = 241
   Width = 1227
   Height = 671
   Caption = 'Signaux complexes'
@@ -17,8 +17,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1211
-    612)
+    1219
+    620)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1203,12 +1203,12 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 590
+    Height = 598
   end
   object ScrollBox1: TScrollBox
-    Left = 646
+    Left = 630
     Top = 200
-    Width = 546
+    Width = 563
     Height = 392
     HorzScrollBar.Increment = 48
     HorzScrollBar.Tracking = True
@@ -1220,9 +1220,9 @@ object FormPrinc: TFormPrinc
     TabOrder = 0
   end
   object GroupBox1: TGroupBox
-    Left = 646
+    Left = 630
     Top = 5
-    Width = 266
+    Width = 265
     Height = 52
     Anchors = [akTop, akRight]
     Caption = 'Commande d'#39'accessoires'
@@ -1268,8 +1268,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 590
-    Width = 1211
+    Top = 598
+    Width = 1219
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1324,9 +1324,9 @@ object FormPrinc: TFormPrinc
       OnClick = BoutonRafClick
     end
     object ButtonArretSimu: TButton
-      Left = 8
-      Top = 48
-      Width = 89
+      Left = 192
+      Top = 88
+      Width = 81
       Height = 33
       Caption = 'Arret simulation'
       TabOrder = 1
@@ -1377,11 +1377,11 @@ object FormPrinc: TFormPrinc
       OnClick = BoutonRazTrainsClick
     end
     object ButtonAffAnalyseCDM: TButton
-      Left = 184
-      Top = 88
+      Left = 8
+      Top = 48
       Width = 89
       Height = 33
-      Caption = 'Affiche fen'#234'tre analyse CDM'
+      Caption = 'Affiche le r'#233'seau CDM'
       TabOrder = 6
       Visible = False
       WordWrap = True
@@ -1460,7 +1460,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 646
+    Left = 630
     Top = 64
     Width = 265
     Height = 129
@@ -1927,8 +1927,14 @@ object FormPrinc: TFormPrinc
       end
       object Analyser1: TMenuItem
         Caption = 'Importer le r'#233'seau CDM Rail'
-        Hint = 'Importer le r'#233'seau CDM rail (aiguillages)'
+        Hint = 
+          'Importer le r'#233'seau CDM rail (aiguillages, branches) et cr'#233'e le f' +
+          'ichier de segments CDM'
         OnClick = Analyser1Click
+      end
+      object Affiche_fenetre_CDM: TMenuItem
+        Caption = 'Affiche la fen'#234'tre du r'#233'seau CDM'
+        OnClick = Affiche_fenetre_CDMClick
       end
       object N9: TMenuItem
         Caption = '-'
@@ -1990,7 +1996,7 @@ object FormPrinc: TFormPrinc
       OnClick = Copier1Click
     end
     object Coller1: TMenuItem
-      Caption = 'Coller'
+      Caption = 'Coller, compiler et importer le r'#233'seau CDM rail'
       OnClick = Coller1Click
     end
   end

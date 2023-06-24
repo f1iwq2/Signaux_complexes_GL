@@ -174,20 +174,6 @@ begin
         if (prec<9990) then
         begin
           inc(it);
-          //detecteur[detect].adrTrain:=trains[i].adresse;
-          //event_detecteur(detect,true,trains[i].nom_train);
-          {
-          SauvefiltrageDet0:=filtrageDet0;
-          filtrageDet0:=0;
-          Affiche(intToSTR(prec)+' 1',clyellow);
-          event_detecteur(prec,true,NomTrain);
-          Affiche(intToSTR(prec)+' 0',clyellow);
-          event_detecteur(prec,false,NomTrain);
-
-          Affiche(intToSTR(detect)+' 1',clyellow);
-          event_detecteur(detect,true,NomTrain);
-          filtrageDet0:=SauveFiltrageDet0;
-          }
 
           detecteur[detect].etat:=true;
           detecteur[detect].AdrTrain:=trains[i].adresse;
@@ -366,7 +352,7 @@ begin
       trouve:=true;
       roulage:=true;
       AdrTrain:=detecteur[AdrDet].AdrTrain;
-      AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du feu correspondant au détecteur
+      AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du signal correspondant au détecteur
 
       // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
       if adrFeu<>0 then
