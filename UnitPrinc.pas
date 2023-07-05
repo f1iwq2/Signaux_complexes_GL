@@ -4135,7 +4135,7 @@ begin
           Adr:=aiguillage[index].Adevie;
           if adr<>0 then
           begin
-            if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
+            if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig)
             trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
             typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
           end
@@ -4710,17 +4710,19 @@ begin
       Adr2:=aiguillage[index].AdrTriple;
       if (aiguillage[index].Apointe=prec) then
       begin
-        // aiguillage triple pris en pointe
+        //aiguillage triple pris en pointe
         //Affiche('position='+intToSTR(aiguillage[index_aig(Adr].position),clyellow);
         if (aiguillage[index].position=const_droit) and (aiguillage[index_aig(Adr2)].position=const_droit)   then
         begin
-          if NivDebug=3 then AfficheDebug('Aiguillage triple pris en pointe droit',clYellow);
+          if NivDebug=3 then AfficheDebug('Aiguillage triple '+inttoSTR(aiguillage[index].adresse)+' pris en pointe droit',clYellow);
           A:=aiguillage[index].AdroitB;
           Adr:=aiguillage[index].Adroit;
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
+          if adr=0 then TypeEl:=buttoir;
           trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
-          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
-          suivant_alg3:=adr;exit;
+          typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;  //??
+          suivant_alg3:=adr;
+          exit;
         end;
         if (aiguillage[index].position<>const_droit) and (aiguillage[index_aig(Adr2)].position=const_droit)   then
         begin
@@ -4728,6 +4730,7 @@ begin
           A:=aiguillage[index].AdevieB;
           Adr:=aiguillage[index].Adevie;
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;
+          if adr=0 then TypeEl:=buttoir;
           trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
           typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
           suivant_alg3:=adr;exit;
@@ -4798,7 +4801,7 @@ begin
         end;
         A:=aiguillage[index].ApointeB;
         Adr:=aiguillage[index].Apointe;
-        if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  
+        if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;
         trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
         typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
         suivant_alg3:=Adr;
@@ -4846,7 +4849,7 @@ begin
       inc(trouve);
       if trouve=1 then index1:=i;
       if trouve=2 then index2:=i;
-      if trouve=1 then              // on ne mémorise la voie qu'a la premiere recherche
+      if trouve=1 then              // on ne mémorise la voie qu'à la premiere recherche
       begin
         if trouve1 then voie:=1;
         if trouve2 then voie:=2;
@@ -5645,7 +5648,7 @@ begin
   i:=Index_feu(adresse);
   if i=0 then
   begin
-    s:='Erreur 603 - signal '+IntToSTR(adresse)+' non trouvé';
+    s:='Erreur 603 - Signal '+IntToSTR(adresse)+' non trouvé';
     Affiche(s,clred);
     if NivDebug=3 then AfficheDebug(s,clred);
     carre_signal:=true;
@@ -5819,7 +5822,6 @@ function signal_suivant_det(det1,det2 : integer) : integer;
 var num_feu,AdrFeu,i,j,prec,AdrSuiv,index2,voie : integer;
     Typ,TypePrec,TypeActuel : TEquipement;
     s : string;
-
 begin
   //traceDet:=true;
   if NivDebug>=2 then AfficheDebug('Cherche Signal suivant détecteur '+IntToSTR(det1),clyellow);
@@ -10412,7 +10414,7 @@ end;
 
 procedure init_dccpp;
 var i,j1,j2,p,n,erreur : integer;
-    s : string;
+    s,se : string;
 begin
   if EnvAigDccpp=1 then envoi_aiguillages_DCCpp;  // envoi la liste des aiguillages à l'interface DCC++
 
@@ -10421,7 +10423,8 @@ begin
     s:=CdeDccpp[i];
     if s<>'' then
     begin
-      Affiche(s,clLime);
+      se:=s+'  : '+decodeDCC(s);
+      Affiche(se,clLime);
       affiche_retour_dcc:=true;
       tps_affiche_retour_dcc:=2;
       p:=pos('<Y',s);
@@ -11123,7 +11126,7 @@ begin
     OsBits:=64;
     CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES(X86)');
   end
-  else 
+  else
   begin
     OsBits:=32;
     CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES');
@@ -11251,16 +11254,16 @@ begin
   Application.HintHidePause:=30000;
   Application.HintColor:=$70FFFF;
   Application.HintPause:=400;
-  visible:=true;  // rend la form visible plus tot
-
+  //visible:=true;  // rend la form visible plus tot
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
+
   procetape('Lecture du TCO');
   lire_fichier_tco;
   verif_coherence;
-  
+
   procetape('La configuration a été lue');
 
   if protocole=1 then
@@ -11275,7 +11278,6 @@ begin
   end;
 
   Application.ProcessMessages;
-
   // Initialisation des images des signaux
   procetape('Création des signaux');
   NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
@@ -11289,6 +11291,7 @@ begin
   end;
   Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
 
+  if debug=1 then Affiche('Création TCO',clLime);
   // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
   begin
     //créée la fenêtre TCO non modale
@@ -11302,6 +11305,7 @@ begin
     if avecTCO then FormTCO.show;    // créer fiche dynamique (projet/fichier)
   end;
 
+  if debug=1 then Affiche('Initialisations',clLime);
   raz_tout;
   procetape('Début des init');
   I_Simule:=0;
@@ -11321,9 +11325,10 @@ begin
     trains[i].SbitMap.width:=300;
     trains[i].SbitMap.height:=300;
   end;
- 
+
 
   // lancer CDM rail et le connecte si on le demande ; à faire après la création des feux et du tco
+  if debug=1 then Affiche('Procédure CDM',clLime);
   procetape('Test CDM et son lancement');
   if LanceCDM then Lance_CDM(true);
   procetape('Fin cdm');
@@ -11347,6 +11352,7 @@ begin
     end;
   end;
 
+  if debug=1 then Affiche('Tentative ouverture liaison centrale',clLime);
   if portCommOuvert or parSocketLenz then
   With Formprinc do
   begin
@@ -11413,6 +11419,7 @@ begin
 
   decode_chaine_retro_dcc('<y 0A0147405801CE>');   }
   procetape('Terminé !!');
+  if debug=1 then Affiche('Positionnement des signaux',clLime);
   Maj_feux(false);
 
   // vérifier si le fichier de segments existe
@@ -11420,6 +11427,7 @@ begin
   formprinc.ButtonAffAnalyseCDM.Visible:=fichier_module_cdm;
   if fichier_module_CDM then
   begin
+    if debug=1 then Affiche('Module réseau CDM',clLime);
     Affiche_fenetre_CDM.Enabled:=true;
     lit_fichier_segments_cdm;
   end
@@ -11435,6 +11443,7 @@ begin
     ReadOnly:=true;
   end; }
   //Affiche(GetMACAddress,clred);
+  if debug=1 then Affiche('Fini',clLime);
 end;
 
 
@@ -13735,11 +13744,14 @@ begin
 end;
 
 procedure TFormPrinc.ButtonEnvClick(Sender: TObject);
+var se,s : string;
 begin
   affiche_retour_dcc:=true;
   tps_affiche_retour_dcc:=2;
-  Affiche(editEnvoi.text,ClWhite);
-  envoi(editEnvoi.Text);
+  s:=editEnvoi.Text;
+  se:=s+'  : '+decodeDCC(s);
+  Affiche(se,ClWhite);
+  envoi(s);
 end;
 
 procedure TFormPrinc.Placerlestrains1Click(Sender: TObject);
@@ -13950,8 +13962,6 @@ begin
     Affiche('Dans Signaux complexes, clic droit et "coller, compiler et importer le réseau CDM rail" ',clLime);
     Affiche('Dans la fenêtre graphique d''importation cliquer sur "compiler"',clLime);
 
-
-
     if lance_cdm(false) then
     begin
       sleep(400);
@@ -13966,12 +13976,12 @@ begin
       KeybdInput(vk_decimal,KEYEVENTF_KEYUP);
       KeybdInput(VK_MENU,KEYEVENTF_KEYUP);   // relache ALT
 
-      KeybdInput(VK_DOWN,0);                
-      KeybdInput(VK_DOWN,KEYEVENTF_KEYUP);                
+      KeybdInput(VK_DOWN,0);
+      KeybdInput(VK_DOWN,KEYEVENTF_KEYUP);
       KeybdInput(VK_RETURN,0);
-      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);    
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
       KeybdInput(VK_RETURN,0);                // valide le menu "track drawing"
-      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);  
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
 
       // envoie les touches
       i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
@@ -13980,14 +13990,12 @@ begin
 
       // clic droit valider le menu
       KeybdInput(VK_RBUTTON,0);                // VK_APPS = menu droit
-      KeybdInput(VK_RBUTTON,KEYEVENTF_KEYUP); 
+      KeybdInput(VK_RBUTTON,KEYEVENTF_KEYUP);
       i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-      Application.ProcessMessages; 
+      Application.ProcessMessages;
     end;
     exit;
-
   end;
-
 end;
 
 procedure TFormPrinc.Coller1Click(Sender: TObject);

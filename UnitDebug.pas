@@ -175,6 +175,7 @@ procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
 begin
   if affevt then affiche('FormDebug create',clLime);
+  if debug=1 then Affiche('Création fenêtre debug',clLime);
   EditNivDebug.Text:='0';
   RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   RichDebug.color:=$33;
@@ -185,6 +186,7 @@ begin
   DebugAffiche:=true;
   compt_erreur:=0;
   LigneErreur:=0;
+  if debug=1 then Affiche('Fin création fenêtre debug',clLime);
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);

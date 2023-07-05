@@ -1,7 +1,7 @@
 object FormTCO: TFormTCO
-  Left = 163
-  Top = 46
-  Width = 1142
+  Left = 147
+  Top = 77
+  Width = 1141
   Height = 678
   VertScrollBar.Visible = False
   Caption = 'FormTCO'
@@ -22,7 +22,7 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1134
+    1133
     647)
   PixelsPerInch = 96
   TextHeight = 13
@@ -67,7 +67,7 @@ object FormTCO: TFormTCO
     Caption = '0'
   end
   object Label19: TLabel
-    Left = 1078
+    Left = 1077
     Top = 391
     Width = 32
     Height = 13
@@ -95,7 +95,7 @@ object FormTCO: TFormTCO
   object ScrollBox: TScrollBox
     Left = 8
     Top = 18
-    Width = 828
+    Width = 827
     Height = 351
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
@@ -105,14 +105,14 @@ object FormTCO: TFormTCO
     BevelEdges = [beLeft, beTop, beRight]
     Color = clBlack
     ParentColor = False
-    TabOrder = 0
+    TabOrder = 1
     DesignSize = (
-      824
+      823
       347)
     object ImageTCO: TImage
       Left = 0
       Top = 0
-      Width = 716
+      Width = 715
       Height = 305
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
@@ -128,7 +128,7 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1078
+    Left = 1077
     Top = 18
     Width = 41
     Height = 350
@@ -139,15 +139,16 @@ object FormTCO: TFormTCO
     Orientation = trVertical
     ParentCtl3D = False
     Position = 20
-    TabOrder = 1
+    TabOrder = 0
+    TabStop = False
     TickMarks = tmTopLeft
     OnChange = TrackBarZoomChange
   end
   object Panel1: TPanel
     Left = 0
-    Top = 472
-    Width = 1124
-    Height = 165
+    Top = 464
+    Width = 1123
+    Height = 173
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
     Font.Charset = ANSI_CHARSET
@@ -159,8 +160,8 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1124
-      165)
+      1123
+      173)
     object Label6: TLabel
       Left = 216
       Top = 22
@@ -741,29 +742,31 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette8MouseDown
     end
     object ButtonSauveTCO: TButton
-      Left = 1016
+      Left = 1015
       Top = 48
       Width = 92
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Sauvegarder TCO'
       TabOrder = 0
+      TabStop = False
       WordWrap = True
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1016
+      Left = 1015
       Top = 8
       Width = 92
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Redessine'
       TabOrder = 1
+      TabStop = False
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 760
-      Top = 112
+      Left = 496
+      Top = 136
       Width = 89
       Height = 25
       Caption = 'Simu det 1'
@@ -771,8 +774,8 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 656
-      Top = 112
+      Left = 496
+      Top = 104
       Width = 89
       Height = 25
       Caption = 'Simu Det 0'
@@ -780,18 +783,19 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1016
+      Left = 1015
       Top = 88
       Width = 92
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Configuration TCO'
       TabOrder = 4
+      TabStop = False
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 760
-      Top = 136
+      Left = 592
+      Top = 128
       Width = 113
       Height = 25
       Caption = 'Simu canton occup'#233
@@ -799,13 +803,14 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1016
+      Left = 1015
       Top = 128
       Width = 92
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Masquer bandeau'
       TabOrder = 6
+      TabStop = False
       WordWrap = True
       OnClick = ButtonMasquerClick
     end
@@ -933,6 +938,7 @@ object FormTCO: TFormTCO
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 4
+        TabStop = False
         OnChange = ComboReprChange
         Items.Strings = (
           'Sans'
@@ -969,28 +975,44 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 912
+      Left = 911
       Top = 128
       Width = 92
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
       TabOrder = 8
+      TabStop = False
       WordWrap = True
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 560
-      Top = 112
+      Left = 592
+      Top = 104
       Width = 75
       Height = 25
       Caption = 'Calibrage'
       TabOrder = 9
       OnClick = ButtonCalibrageClick
     end
+    object ButtonDessiner: TButton
+      Left = 816
+      Top = 128
+      Width = 89
+      Height = 33
+      Hint = 
+        'Dessine le TCO '#224' la souris. Clic droit pour lever le pointeur. T' +
+        'ouche Echap pour quitter le mode trac'#233'.'
+      Anchors = [akTop, akRight]
+      Caption = 'Dessiner le TCO'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 10
+      OnClick = ButtonDessinerClick
+    end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1070
+    Left = 1069
     Top = 415
     Width = 57
     Height = 33
@@ -1113,6 +1135,6 @@ object FormTCO: TFormTCO
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
     Left = 448
-    Top = 456
+    Top = 432
   end
 end

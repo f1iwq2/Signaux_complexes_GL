@@ -22,6 +22,7 @@ const
    Zmini=50;
    Zmaxi=100;
    fond_cdm=$303000;
+   precision_clic=4; // précision du clic sur un élément
 
 type
   TFormAnalyseCDM = class(TForm)
@@ -836,7 +837,7 @@ begin
     r:=((y1-y)*(y1-y2)-(x1-x)*(x2-x1))/(l*l);
     s:=((y1-y)*(x2-x1)-(x1-x)*(y2-y1))/(l*l);
     if (r>0) and (r<1) then
-        if Abs(s*l)<=7 then Result:=True;  //s*l=distance
+        if Abs(s*l)<=precision_clic then Result:=True;  //s*l=distance
   end;
 end;
 
@@ -869,7 +870,7 @@ begin
     if inverse then yArc:=CentreY+round(rayon*sinA) else
       yArc:=CentreY-round(rayon*sinA);
 
-    trouve:=(abs(x-xArc)<10) and (abs(y-yArc)<10);
+    trouve:=(abs(x-xArc)<precision_clic) and (abs(y-yArc)<precision_clic);
      if deb then
      begin
        Affiche(intToSTR(x-xArc)+' / '+intToSTR(y-yARc),clyellow);
@@ -1645,7 +1646,8 @@ begin
         moveto(portsSeg[0].x,portsSeg[0].y);LineTo(portsSeg[1].x,portsSeg[1].y);
         moveTo((portsSeg[0].x+portsSeg[1].x) div 2,(portsSeg[0].y+portsSeg[1].y) div 2);
         LineTo(portsSeg[2].x,portsSeg[2].y);
-        moveTo((portsSeg[0].x+portsSeg[1].x) div 2,(portsSeg[3].y+portsSeg[3].y) div 2);
+        moveTo((portsSeg[0].x+portsSeg[1].x) div 2,(portsSeg[0].y+portsSeg[1].y) div 2);
+        LineTo(portsSeg[3].x,portsSeg[3].y);
         if formAnalyseCDM.CheckAdresses.checked then coords_aff_aig(canvas,i);
       end
       else
@@ -3437,6 +3439,7 @@ end;
 
 procedure TFormAnalyseCDM.FormCreate(Sender: TObject);
 begin
+  if debug=1 then Affiche('Création fenêtre CDM',clLime);
   IndexClic:=0;
   checkPorts.Checked:=false;
   CheckAdresses.checked:=true;
@@ -3466,7 +3469,7 @@ begin
     hauteurTrain:=Height;
   end;
   ArcTanHautLargTrain:=ArcTan(HauteurTrain/LargeurTrain);
-
+  if debug=1 then Affiche('Fin création fenetre CDM',clLime);
 end;
 
 
@@ -3526,6 +3529,16 @@ begin
         coords(x2,y2);
         canvas.MoveTo(x1,y1);
         canvas.LineTo(x2,y2);
+
+        if ctype='turnout_3way' then
+        begin
+          canvas.moveTo(x1,y1);
+          x2:=segment[i].port[3].x;
+          y2:=segment[i].port[3].y;
+          coords(x2,y2);
+          canvas.LineTo(x2,y2);
+        end;
+
         xAig:=x1;yAig:=y1-5;
 
         s:=intToSTR(Segment[i].adresse);

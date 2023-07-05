@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetTrains
+    ActivePage = TabSheetDccpp
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -4499,6 +4499,8 @@ object FormConfig: TFormConfig
         ParentFont = False
         TabOrder = 0
         OnChange = RichCdeDccppChange
+        OnKeyDown = RichCdeDccppKeyDown
+        OnMouseDown = RichCdeDccppMouseDown
       end
       object GroupBox23: TGroupBox
         Left = 8

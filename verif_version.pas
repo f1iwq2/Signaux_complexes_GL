@@ -23,13 +23,15 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='6.1';  // sert à la comparaison de la version publiée
+Const  Version='6.2';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
 function verifie_version : real;
 
 implementation
+
+uses unitconfig;
 
 {$R *.dfm}
 
@@ -284,8 +286,10 @@ end;
 
 procedure TFormVersion.FormCreate(Sender: TObject);
 begin
+  if debug=1 then Affiche('Création fenêtre version',clLime);
   Timerverif.Interval:=1000;    // timer à 1 seconde
   Lance_verif:=2;               // lancer la vérification de version dans 3s
+  if debug=1 then Affiche('Fin création fenêtre version',clLime);
 end;
 
 procedure TFormVersion.TimerVerifTimer(Sender: TObject);
@@ -299,6 +303,7 @@ begin
     timerVerif.Enabled:=false;
     if not(AvecInit)     then exit;
     if not(verifVersion) then exit;
+    if debug=1 then Affiche('Vérification version en ligne',clLime);
     V_publie:=verifie_version;
     if notificationVersion and (v_publie>0) then
     begin

@@ -494,6 +494,10 @@ type
     procedure EditLAYExit(Sender: TObject);
     procedure Copier1Click(Sender: TObject);
     procedure Coller1Click(Sender: TObject);
+    procedure RichCdeDccppMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure RichCdeDccppKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -562,7 +566,8 @@ var
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
-  Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz : integer;
+  Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
+  ligneDCC : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
@@ -582,6 +587,7 @@ function compile_branche(s : string;i : integer) : boolean;
 function encode_sig_feux(i : integer): string;
 procedure valide_branches;
 procedure trier_aig;
+function decodeDCC(s : string) : string;
 
 implementation
 
@@ -3545,6 +3551,7 @@ end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 begin
+  if debug=1 then Affiche('Création fenêtre config',clLime);
   clicListe:=true;
   Affiche_avert:=false;
   if affevt then affiche('FormConfig create',clLime);
@@ -3558,9 +3565,7 @@ begin
   richBranche.HideSelection:=false; // pour pouvoir copier coller la fenetre
   groupBox21.Top:=304;
   GroupBox21.Left:=8;
-
-   // création de l'icone de déplacement du train
-
+  if debug=1 then Affiche('Fin création fenêtre config',clLime);
 end;
 
 
@@ -8846,6 +8851,7 @@ end;
 procedure TFormConfig.PageControlChange(Sender: TObject);
 begin
   Label20.Visible:=false;
+  LabelInfo.caption:='';
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then label40.Visible:=true
     else label40.Visible:=false;
 end;
@@ -8989,8 +8995,7 @@ begin
   end;
 end;
 
-procedure TFormConfig.RichBrancheKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TFormConfig.RichBrancheKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
 var lc,curseur,i : integer;
 begin
   modif_branches:=true;
@@ -9778,6 +9783,45 @@ begin
   end;  
 end;
 
+function decodeDCC(s : string) : string;
+var i,erreur : integer;
+    sr : string;
+begin
+  s:=AnsiUppercase(s);
+  if copy(s,1,2)='<Y' then
+  begin
+    delete(s,1,2);
+    val(s,i,erreur);
+    sr:='Lecture de '+intToSTR(i)+' groupes de 8 détecteurs soit '+intToSTR(i*8)+' détecteurs';
+    delete(s,1,erreur);
+    val(s,i,erreur);
+    case i of
+    0 : sr:=sr+', en binaire';
+    1 : sr:=sr+', en hexa bcd';
+    2 : sr:=sr+', en hexa vrai';
+    3 : sr:=sr+', spécifique';
+    end;
+  end;
+
+  if copy(s,1,3)='<1>' then sr:='Mise sous tension de la voie';
+  if copy(s,1,3)='<0>' then sr:='Mise hors tension de la voie';
+
+  if copy(s,1,2)='<T' then
+  begin
+    delete(s,1,2);
+    val(s,i,erreur);sr:='Positionne aiguillage '+intToSTR(i);
+    delete(s,1,erreur);
+    val(s,i,erreur);
+    if i=0 then sr:=sr+' droit';
+    if i=1 then sr:=sr+' dévié';
+  end;
+
+  if copy(s,1,2)='<E' then sr:='Ecrit en eprom';
+
+  decodeDCC:=sr;
+end;
+
+
 procedure TFormConfig.RichCdeDccppChange(Sender: TObject);
 var i,maxi : integer;
 begin
@@ -9787,6 +9831,7 @@ begin
   begin
     CdeDccpp[i]:=RichCdeDccpp.Lines[i-1];
   end;
+  LabelInfo.caption:=decodeDCC(richCdeDCCpp.lines[ligneDCC]);
 end;
 
 procedure TFormConfig.CheckEnvAigDccppClick(Sender: TObject);
@@ -10285,6 +10330,34 @@ procedure TFormConfig.Coller1Click(Sender: TObject);
   end;
 end;
 
+
+
+procedure TFormConfig.RichCdeDccppMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var i : integer;
+begin
+  with Formconfig.RichCdeDCCpp do
+  begin
+    i:=Selstart;
+    ligneDCC:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+    LabelInfo.caption:=decodeDCC(lines[ligneDCC]);
+  end;
+end;
+
+procedure TFormConfig.RichCdeDccppKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+  var i : integer;
+begin
+  with Formconfig.RichCdeDCCpp do
+  begin
+    i:=Selstart;
+    ligneDCC:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+    if ord(Key)=VK_UP then dec(ligneDCC);
+    if ord(Key)=VK_DOWN then inc(ligneDCC);
+    if ligneDCC<0 then ligneDCC:=0;
+
+    LabelInfo.caption:=decodeDCC(lines[ligneDCC]);
+  end;
+end;
 
 end.
 

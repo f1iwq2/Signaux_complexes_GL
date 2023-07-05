@@ -65,11 +65,68 @@ uses UnitPrinc;
 
 {$R *.dfm}
 
-// actualise le contenu de la fenetre
+// actualise le contenu de la fenetre et de la zone tco
 procedure actualise;
-var Bimage : integer;
-    oriente,piedFeu : integer;
+var Bimage,oriente,piedFeu : integer;
+    s : string;
 begin
+     Bimage:=tco[XClicCell,YClicCell].Bimage;
+
+    if formConfCellTCOAff then
+    begin
+      // si aiguillage, mettre à jour l'option de pilotage inverse
+      if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
+         or (bimage=14) or (bimage=15) or (bimage=24) then
+      begin
+
+        // aiguillage inversé
+        with FormConfCellTCO.CheckPinv do
+        begin
+          enabled:=true;
+          checked:=TCO[XClicCell,YClicCell].inverse;
+        end;
+        FormTCO.CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
+        FormTCO.CheckPinv.enabled:=true ;
+      end
+      else
+      begin
+        FormTCO.CheckPinv.enabled:=false;
+        FormConfCellTCO.checkPinv.enabled:=false;
+      end;
+    end;
+
+    // si voie ou rien ou signal ou quai
+    if (Bimage=1) or (Bimage=0) or (Bimage=23) or (Bimage=31) or (Bimage=30) then
+    begin
+      s:=Tco[XClicCell,YClicCell].Texte;
+      with formTCO do
+      begin
+        EditTexte.Text:=s;
+        EditTexte.Visible:=true;
+        ComboRepr.Enabled:=true;
+      end;
+    end
+    else
+    begin
+      formTCO.EditTexte.Visible:=false;
+      formTCO.comboRepr.Enabled:=false;
+    end;
+
+    s:=IntToSTR(XclicCell)+','+IntToSTR(YclicCell);
+    FormTCO.LabelCoord.caption:=s;
+    FormTCO.GroupBox1.Caption:='Configuration cellule '+s;
+    XclicCellInserer:=XClicCell;
+    YclicCellInserer:=YClicCell;
+    FormTCO.EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
+    FormTCO.EdittypeImage.Text:=IntToSTR(BImage);
+    FormTCO.ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
+    FormTCO.ShapeCoulFond.Brush.Color:=tco[XClicCell,yClicCell].CouleurFond;
+
+    s:='El='+intToSTR(tco[XClicCell,YClicCell].BImage);
+    if tco[XClicCell,YClicCell].adresse<>0 then s:=s+' Adr='+intToSTR(tco[XClicCell,YClicCell].adresse);
+    //hint:=s;
+
+
   if not(formConfCellTCOAff) then exit;
   actualize:=true;  // évite les évènements parasites
   FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XClicCell)+','+intToSTR(YClicCell);
