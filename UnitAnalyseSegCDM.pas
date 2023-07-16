@@ -178,6 +178,8 @@ procedure Compilation;
 procedure lit_fichier_segments_cdm;
 procedure affichage(imprime : boolean);
 procedure Aff_train(adr: integer;train:string;x1,y1,x2,y2 :integer);
+procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
+                rayon: Integer; StartDegres, StopDegres: Double);
 
 implementation
 
@@ -998,11 +1000,10 @@ end;
 
 // dessine un arc orienté de xa,ya à xb,yb dans le canvas image (pas imprimante)
 // coordonnées CDM
-procedure arc_xy(centreX,centreY,rayon,xa,ya,xb,yb : integer);
+procedure arc_xy(canvas : tcanvas;centreX,centreY,rayon,xa,ya,xb,yb : integer);
 var x1,y1,x2,y2: integer  ;
     arcXa,arcYa,arcxb,arcYb,angleA,angleB,
     cosA,SinA,CosB,SinB,vectoriel,AngleAB: double;
-    canvas : Tcanvas;
     inverse,maxA,maxB,deb : boolean;
 begin
   deb:=false;
@@ -1012,7 +1013,7 @@ begin
   coords(xa,ya);
   coords(xb,yb);
   rayon:=round(rayon*reducX) div 1000;
-  canvas:=FormAnalyseCDM.ImageCDM.Canvas;
+
 
   X1:=centreX - rayon;
   Y1:=centreY - rayon;
@@ -1149,7 +1150,7 @@ begin
   canvas.pen.color:=clred;
   ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
-  arc_xy(centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
+  arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
 
   centreX:=round(-rayonD*cos(alpha))+MilieuX;
   centreY:=round(pente*centreX+b);
@@ -1157,7 +1158,7 @@ begin
   canvas.pen.color:=clyellow;
   ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
-  arc_xy(centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
+  arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
 
 
   exit;
@@ -1200,7 +1201,7 @@ begin
   centreX:=x0+5000;
   centreY:=round(pente*centreX+b);
   rayon:=round(sqrt(sqr(centreX-x0)+sqr(centreY-y0)));
-  arc_xy(centreX,centreY,rayon,x2,y2,x0,y0);
+  arc_xy(canvas,centreX,centreY,rayon,x2,y2,x0,y0);
 
   // point de départ en vert
   canvas.pen.color:=clLime;
@@ -3882,7 +3883,7 @@ begin
       x2:=segment[ind1].periph[per2].x;
       y2:=segment[ind1].periph[per2].y;
       canvas.pen.Color:=clred;
-      arc_xy(centreX,centreY,rayon,x1,y1,x2,y2);
+      arc_xy(canvas,centreX,centreY,rayon,x1,y1,x2,y2);
 
       coords(centreX,centreY);
       {coords(x2,y2);
@@ -4019,7 +4020,7 @@ begin
         xs:=Segment[index].port[IndexPort].x;
         ys:=Segment[index].port[IndexPort].y;
         // donc tracer un arc de (x,y) détecteur à (xs,ys) port
-        arc_xy(centreX,centreY,rayon,x,y,xs,ys);
+        arc_xy(canvas,centreX,centreY,rayon,x,y,xs,ys);
       end;
       if (ctyp='straight') or (ctyp='pre_curve') or (ctyp='bumper_stop')  then
       begin
@@ -4094,7 +4095,7 @@ begin
         xs:=Segment[index].port[IndexPort].x;
         ys:=Segment[index].port[IndexPort].y;
         // donc tracer un arc de (x,y) (détecteur) à (xs,ys) port
-        arc_xy(centreX,centreY,rayon,x,y,xs,ys);
+        arc_xy(canvas,centreX,centreY,rayon,x,y,xs,ys);
       end;
       if (ctyp='straight') or (ctyp='pre_curve') or (ctyp='bumper_stop')  then
       begin

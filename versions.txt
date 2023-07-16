@@ -168,6 +168,8 @@ version 6.0  : Gestion du décodeur de signaux Arcomora.
 version 6.1  : Amélioration de la fenêtre réseau CDM.
                Animation des trains dans la fenêtre réseau CDM.
 version 6.2  : Déplacement du curseur du TCO avec les touches curseur.
-               Dessin du TCO à la souris
+               Dessin du TCO à la souris.
+version 6.3  : Choix du graphisme du TCO en lignes brisées ou courbes.
+
 
 

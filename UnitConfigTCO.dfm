@@ -73,9 +73,9 @@ object FormConfigTCO: TFormConfigTCO
     OnClick = ButtonDessineClick
   end
   object CheckDessineGrille: TCheckBox
-    Left = 16
-    Top = 96
-    Width = 105
+    Left = 160
+    Top = 16
+    Width = 97
     Height = 17
     Caption = 'dessine grille'
     TabOrder = 1
@@ -244,7 +244,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object Memo1: TMemo
     Left = 16
-    Top = 136
+    Top = 168
     Width = 273
     Height = 65
     BevelInner = bvLowered
@@ -278,9 +278,33 @@ object FormConfigTCO: TFormConfigTCO
     OnClick = BitBtnOkClick
     Kind = bkOK
   end
+  object RadioGroup1: TRadioGroup
+    Left = 16
+    Top = 96
+    Width = 281
+    Height = 57
+    Caption = 'Graphisme'
+    TabOrder = 8
+  end
+  object RadioButtonLignes: TRadioButton
+    Left = 40
+    Top = 112
+    Width = 113
+    Height = 17
+    Caption = 'Lignes bris'#233'es'
+    TabOrder = 9
+  end
+  object RadioButtonCourbes: TRadioButton
+    Left = 40
+    Top = 128
+    Width = 113
+    Height = 17
+    Caption = 'Lignes courbes'
+    TabOrder = 10
+  end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
-    Left = 248
-    Top = 88
+    Left = 272
+    Top = 8
   end
 end

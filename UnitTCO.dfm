@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 147
-  Top = 77
+  Left = 195
+  Top = 62
   Width = 1141
   Height = 678
   VertScrollBar.Visible = False
@@ -119,7 +119,6 @@ object FormTCO: TFormTCO
       ParentShowHint = False
       PopupMenu = PopupMenu1
       ShowHint = True
-      OnContextPopup = ImageTCOContextPopup
       OnDblClick = ImageTCODblClick
       OnDragOver = ImageTCODragOver
       OnMouseDown = ImageTCOMouseDown
@@ -910,6 +909,7 @@ object FormTCO: TFormTCO
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+        ReadOnly = True
         TabOrder = 1
         OnChange = EditTypeImageChange
       end
@@ -1008,7 +1008,17 @@ object FormTCO: TFormTCO
       ParentShowHint = False
       ShowHint = True
       TabOrder = 10
+      TabStop = False
       OnClick = ButtonDessinerClick
+    end
+    object ButtonTrajet: TButton
+      Left = 712
+      Top = 128
+      Width = 75
+      Height = 25
+      Caption = 'Trajets'
+      TabOrder = 11
+      OnClick = ButtonTrajetClick
     end
   end
   object ButtonAfficheBandeau: TButton
@@ -1024,7 +1034,8 @@ object FormTCO: TFormTCO
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
-    Left = 360
+    Left = 368
+    Top = 8
     object MenuCouper: TMenuItem
       Caption = 'Couper'
       OnClick = MenuCouperClick
@@ -1041,7 +1052,7 @@ object FormTCO: TFormTCO
       Caption = '-'
     end
     object Annulercouper: TMenuItem
-      Caption = 'Annuler couper'
+      Caption = 'Annuler    ctrl+Z'
       OnClick = AnnulercouperClick
     end
     object N1: TMenuItem

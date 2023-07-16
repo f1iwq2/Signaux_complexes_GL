@@ -49,7 +49,7 @@ object FormSimulation: TFormSimulation
     OnChange = EditIntervalleChange
     OnKeyPress = EditIntervalleKeyPress
   end
-  object CheckAffTick: TCheckBox
+  object CheckRaz: TCheckBox
     Left = 64
     Top = 48
     Width = 313

@@ -12,7 +12,7 @@ type
     OpenDialog: TOpenDialog;
     EditIntervalle: TEdit;
     Label1: TLabel;
-    CheckAffTick: TCheckBox;
+    CheckRaz: TCheckBox;
     CheckEvalroutes: TCheckBox;
     procedure ButtonChargeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -136,7 +136,7 @@ begin
   OpenDialog.Filter:='Fichiers texte (*.txt)|*.txt|Tous fichiers (*.*)|*.*';
   if openDialog.Execute then
   begin
-    if checkAffTick.Checked then raz_tout;
+    if checkRAZ.Checked then raz_tout;
     if checkEvalRoutes.Checked then TraceListe:=true;
     s:=openDialog.FileName;
     ouvre_simulation(s);
@@ -145,7 +145,8 @@ end;
 
 procedure TFormSimulation.FormCreate(Sender: TObject);
 begin
-  Intervalle:=0;
+  Intervalle:=1;
+  CheckRaz.Checked:=true;
   EditIntervalle.Text:=IntToSTR(Intervalle);
 end;
 

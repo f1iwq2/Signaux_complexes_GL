@@ -387,7 +387,6 @@ begin
   if clicTCO or not(formConfCellTCOAff) or actualize then exit;
   tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
   efface_entoure;SelectionAffichee:=false;
-  sourisclic:=false;
   FormTCO.ComboRepr.ItemIndex:=ComboRepr.ItemIndex;
   //affiche_cellule(XClicCell,yClicCell);
   affiche_tco;

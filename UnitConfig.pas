@@ -571,7 +571,7 @@ var
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
-  trouveAvecVerifIconesTCO,Affiche_avert : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert,activ : boolean;
   fichier : text;
 
 function config_com(s : string) : boolean;
@@ -3320,6 +3320,7 @@ var i :integer;
     s : string;
 begin
   if affevt then affiche('FormConfig activate',clLime);
+  activ:=true;
   clicListe:=false;
   Edit_HG.Visible:=false;
   labelHG.Visible:=false;
@@ -3546,6 +3547,7 @@ begin
 
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
+  activ:=false;
 end;
 
 
@@ -9825,6 +9827,7 @@ end;
 procedure TFormConfig.RichCdeDccppChange(Sender: TObject);
 var i,maxi : integer;
 begin
+  if activ then exit;
   maxi:=RichCdeDCCpp.Lines.count;
   if maxi>MaxCdeDccpp then maxi:=MaxCdeDccpp;
   for i:=1 to maxi do

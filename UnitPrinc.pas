@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-
+// 8/7 17h
 (********************************************
   programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -47,7 +47,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem , registry,
-  Buttons, NB30 ;
+  Buttons, NB30;
 
 type
   TFormPrinc = class(TForm)
@@ -11109,7 +11109,6 @@ begin
   etape:=1;
   affevt:=false;
   avec_splitter:=false;
-  DebugAffiche:=false;
   Algo_localisation:=1;     // normal
   AntiTimeoutEthLenz:=0;
   Verif_AdrXpressNet:=1;
@@ -11538,7 +11537,7 @@ begin
       ClientSocketInterface.Socket.SendText(' ');
     end;
   end;
-  if sourisclic then inc(Temposouris);
+  if tempoSouris>0 then dec(Temposouris);
   if Tdoubleclic>0 then dec(Tdoubleclic);
   if Tempo_init>0 then dec(Tempo_init);
   if tps_affiche_retour_dcc>0 then
@@ -14021,11 +14020,9 @@ end;
 procedure TFormPrinc.Affiche_fenetre_CDMClick(Sender: TObject);
 begin
   formAnalyseCDM.Show;
-
 end;
 
 
 
-
 end.
 

@@ -44,6 +44,9 @@ type
     Label1: TLabel;
     ImagePiedFeu: TImage;
     BitBtnOk: TBitBtn;
+    RadioGroup1: TRadioGroup;
+    RadioButtonLignes: TRadioButton;
+    RadioButtonCourbes: TRadioButton;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -65,7 +68,8 @@ type
 var  FormConfigTCO: TFormConfigTCO;
      AvecGrille : boolean;
      titre_couleur : string;
-     
+     graphisme : integer;
+
 implementation
 
 uses UnitPrinc ;
@@ -97,7 +101,7 @@ begin
   end;
 end;
 
-procedure dessine_icones;
+procedure dessine_icones_config;
 var r : Trect;
     x1,y1,x2,y2,jy1,jy2,larg,haut : integer;
 begin
@@ -277,67 +281,86 @@ end;
 
 
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
+var s: string;
 begin
   EditNbCellX.Text:=IntToSTR(NbreCellX);
   EditNbCellY.Text:=IntToSTR(NbreCellY);
   EditRatio.text:=IntToSTR(RatioC);
+  RadioButtonCourbes.checked:=graphisme=2;
+  RadioButtonLignes.checked:=graphisme=1;
   checkDessineGrille.Checked:=AvecGrille;
   checkCouleur.Checked:=ModeCouleurCanton=1;
   labelMaxX.caption:='Max='+intToSTR(MaxCellX);
   labelMaxY.caption:='Max='+intToSTR(MaxCellY);
-  dessine_icones;
+  dessine_icones_config;
+  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
 end;
 
 
 procedure TFormConfigTCO.ImageAigClick(Sender: TObject);
+var s : string;
 begin
   titre_couleur:='Changer la couleur des voies';
   ColorDialog1.Color:=clVoies;
 
+  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
   if ColorDialog1.execute then
   begin
     clVoies:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
 procedure TFormConfigTCO.ImageFondClick(Sender: TObject);
+var s : string;
 begin
   titre_couleur:='Changer la couleur de fond';
-  ColorDialog1.Color:=clfond;
+
+  s:='ColorA='+IntToHex(clfond,6);  // pour rajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
 
   if ColorDialog1.execute then
   begin
     clfond:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
 procedure TFormConfigTCO.ImageGrilleClick(Sender: TObject);
+var s: string;
 begin
   titre_couleur:='Changer la couleur de la grille';
   ColorDialog1.Color:=clGrille;
+
+  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
 
   if ColorDialog1.execute then
   begin
     ClGrille:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
 procedure TFormConfigTCO.ImageDetActClick(Sender: TObject);
+var s: string;
 begin
   titre_couleur:='Changer la couleur de détecteur activé';
   ColorDialog1.Color:=clAllume;
+
+  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
 
   if ColorDialog1.execute then
   begin
     ClAllume:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
@@ -349,7 +372,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClCanton:=ColorDialog1.Color;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
@@ -361,7 +384,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClTexte:=ColorDialog1.Color;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
@@ -373,7 +396,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClQuai:=ColorDialog1.Color;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
@@ -385,7 +408,7 @@ begin
   if ColorDialog1.execute then
   begin
     clPiedSignal:=ColorDialog1.Color;
-    dessine_icones;
+    dessine_icones_config;
   end;
 end;
 
@@ -397,6 +420,7 @@ end;
 
 procedure TFormConfigTCO.BitBtnOkClick(Sender: TObject);
 var ok : boolean;
+    x,y : integer;
 begin
   ok:=true;
 
@@ -417,6 +441,12 @@ begin
       ok:=false;
     end;
 
+    for y:=1 to NbreCellY do
+      for x:=1 to NbreCellX do
+        begin
+          if tco[x,y].CouleurFond=0 then tco[x,y].CouleurFond:=clfond;
+        end;
+
     try
       SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
     except
@@ -426,11 +456,25 @@ begin
       ok:=false;
     end;
 
+
+    if RadioButtonLignes.Checked then
+    begin
+      if graphisme=2 then TCO_modifie:=true;
+      graphisme:=1 ;
+    end;
+    if RadioButtonCourbes.Checked then
+    begin
+      if graphisme=1 then TCO_modifie:=true;
+      graphisme:=2;
+    end;
+
     AvecGrille:=checkDessineGrille.Checked;
     if ok then
     begin
       calcul_cellules;
       affiche_TCO;
+      
+      dessine_icones;
       LabelErreur.caption:='';
       close;
    end;

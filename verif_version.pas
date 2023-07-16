@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc;
+      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc,
+      ShellAPI ;
 
 type
   TFormVersion = class(TForm)
@@ -23,11 +24,13 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='6.2';  // sert à la comparaison de la version publiée
+Const  Version='6.3';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
 function verifie_version : real;
+function DownloadURL_NOCache(aUrl: string;s : string;var taille : longint): Boolean;
+function url_github(var url: string) : boolean;
 
 implementation
 
@@ -56,6 +59,46 @@ begin
     if GetEnvironmentVariable(PChar(VariableName), PChar(result), nSize) <> nSize - 1 then
       raise Exception.Create(SysErrorMessage(GetlastError))
   end;
+end;
+
+// récupère l'url de téléchargement du github avec curl
+// curl -s https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest \
+function url_github(var url: string) : boolean;
+var s : string;
+    retour,i : integer;
+    trouve : boolean;
+    fichier : text;
+begin
+  result:=false;
+  url:='';
+  s:='-s -o url.txt https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';  // résultat dans url.txt
+  //s:='';
+  retour:=ShellExecute(Formprinc.Handle,'open',
+                       Pchar('curl.exe'),
+                       //Pchar('cmd.exe'),
+                       Pchar(s),  // paramètre
+                       Pchar('')  // répertoire
+                       ,SW_HIDE);               // pas d'affichage
+  if retour>32 then
+  begin
+    result:=true;
+    assign(fichier,'url.txt');
+    reset(fichier);
+    trouve:=false;
+    while not(eof(fichier)) or not trouve do
+    begin
+      readln(fichier,s);
+      if pos('browser_download_url',s)<>0 then
+      begin
+        trouve:=true;
+        i:=pos('https',s);
+        delete(s,1,i-1);
+        i:=pos('"',s);
+        s:=copy(s,1,i-1);
+        url:=s;
+      end;
+    end;
+  end
 end;
 
 
@@ -97,7 +140,7 @@ begin
               InternetReadFile(hService,@lpBuffer,1024,dwBytesRead);
               fs.WriteBuffer(lpBuffer,dwBytesRead);
               t:=t+dwBytesRead;
-              if dwBytesRead=0 then break;
+               if dwBytesRead=0 then break;
             end;
             Result := True;
             taille:=t;
@@ -115,7 +158,7 @@ end;
 
 // renvoie le numéro de version depuis le forum CDM
 function verifie_version : real;
-var s,s2,s3,Version_p,Url,LocalFile,nomfichier : string;
+var s,s2,s3,Version_p,Url,LocalFile,nomfichier,UrlGIT : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;
     fichier : text;
     i,j,erreur,Ncomm,i2,i3,l : integer;
@@ -125,6 +168,9 @@ var s,s2,s3,Version_p,Url,LocalFile,nomfichier : string;
     comm : array[1..10] of string;
 begin
     //Affiche('vérifie version',clLime);
+    // tester si on peut extraire l'url par curl
+    //if url_github(UrlGIT) then affiche('curl ok',clyellow);
+
     Url:='http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906#p50499';
     LocalFile:='page.txt';
     trouve_version:=false;
@@ -162,14 +208,14 @@ begin
           end;
         end;
         // commentaire en gras
-        if zone_comm then
-        begin
-          i:=pos('bold">',LowerCase(s))+6;i2:=posEx('<br />',LowerCase(s),i+1); i3:=posEx('</span>',LowerCase(s),i+1) ;
-          if i<>6 then
+          if zone_comm then
           begin
-            //Affiche(s,clred);
-            inc(ncomm);
-            if i3<i2 then i2:=i3;
+            i:=pos('bold">',LowerCase(s))+6;i2:=posEx('<br />',LowerCase(s),i+1); i3:=posEx('</span>',LowerCase(s),i+1) ;
+            if i<>6 then
+            begin
+              //Affiche(s,clred);
+              inc(ncomm);
+              if i3<i2 then i2:=i3;
             comm[ncomm]:=UTF8Decode(copy(s,i,i2-i));
             Delete(s,1,i2-1);
             j:=0;
@@ -211,7 +257,7 @@ begin
         end;
         i:=pos('zip"',LowerCase(s3));     // s3 contient l'url du zip
         s3:=copy(s3,1,i+2);
-
+        //----------------------------------------------------
         //isoler le nom du fichier
         i:=length(s3);
         repeat
@@ -251,7 +297,7 @@ begin
             Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL :');
             aff(' ');
             for i:=1 to ncomm-1 do aff(comm[i]);
-          end;  
+          end;
           if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin
             // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
