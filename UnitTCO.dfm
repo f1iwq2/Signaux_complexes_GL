@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 195
-  Top = 62
+  Left = 4
+  Top = 99
   Width = 1141
   Height = 678
   VertScrollBar.Visible = False
@@ -81,16 +81,16 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 888
-    Top = 96
-    Width = 97
-    Height = 97
+    Left = 952
+    Top = 64
+    Width = 121
+    Height = 121
   end
   object ImageTemp2: TImage
-    Left = 888
-    Top = 208
-    Width = 97
-    Height = 97
+    Left = 952
+    Top = 200
+    Width = 121
+    Height = 121
   end
   object ScrollBox: TScrollBox
     Left = 8

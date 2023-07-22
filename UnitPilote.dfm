@@ -1,6 +1,6 @@
 object FormPilote: TFormPilote
-  Left = 330
-  Top = 195
+  Left = 479
+  Top = 202
   BorderStyle = bsDialog
   Caption = 'Pilotage'
   ClientHeight = 350
@@ -50,7 +50,7 @@ object FormPilote: TFormPilote
     Caption = 'Nombre de feux '#224' allumer'
   end
   object LabelDec: TLabel
-    Left = 224
+    Left = 208
     Top = 192
     Width = 72
     Height = 19
@@ -237,5 +237,40 @@ object FormPilote: TFormPilote
     Caption = 'Verrouiller au carr'#233
     TabOrder = 4
     OnClick = CheckVerrouCarreClick
+  end
+  object GroupBox3: TGroupBox
+    Left = 8
+    Top = 224
+    Width = 193
+    Height = 73
+    Caption = 'Signalisation combin'#233'e'
+    TabOrder = 5
+    object CheckChiffre: TCheckBox
+      Left = 16
+      Top = 16
+      Width = 97
+      Height = 17
+      Caption = 'Chiffre'
+      TabOrder = 0
+      OnClick = CheckChiffreClick
+    end
+    object CheckChevron: TCheckBox
+      Left = 16
+      Top = 32
+      Width = 97
+      Height = 17
+      Caption = 'Chevron'
+      TabOrder = 1
+      OnClick = CheckChevronClick
+    end
+    object CheckClignote: TCheckBox
+      Left = 16
+      Top = 48
+      Width = 97
+      Height = 17
+      Caption = 'Clignotants'
+      TabOrder = 2
+      OnClick = CheckClignoteClick
+    end
   end
 end

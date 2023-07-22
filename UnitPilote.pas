@@ -34,6 +34,10 @@ type
     LabelDec: TLabel;
     Label1: TLabel;
     CheckVerrouCarre: TCheckBox;
+    GroupBox3: TGroupBox;
+    CheckChiffre: TCheckBox;
+    CheckChevron: TCheckBox;
+    CheckClignote: TCheckBox;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);
@@ -55,6 +59,9 @@ type
     procedure FormActivate(Sender: TObject);
     procedure CheckVerrouCarreClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure CheckChiffreClick(Sender: TObject);
+    procedure CheckChevronClick(Sender: TObject);
+    procedure CheckClignoteClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -64,23 +71,43 @@ type
 // code des aspects des signaux
 const
 
-carre          =0 ; carre_F=1;
-semaphore      =1 ; semaphore_F=2;
-semaphore_cli  =2 ; semaphore_cli_F=4;
-vert           =3 ; vert_F=8;
-vert_cli       =4 ; vert_cli_F=16;
-violet         =5 ; violet_F=32;
-blanc          =6 ; blanc_F=64;
-blanc_cli      =7 ; blanc_cli_F=128;
-jaune          =8 ; jaune_F=256;
-jaune_cli      =9 ; jaune_cli_F=512;
-ral_30         =10; ral_30_F=1024;
-ral_60         =11; ral_60_F=2048;
-rappel_30      =12; rappel_30_F=4096;
-rappel_60      =13; rappel_60_F=8192;
-Disque_D       =14; // pour décodeur LDT
-ral_60_jaune_cli =15;ral_60_jaune_cli_F=16384; // pour décodeur LDT
-aspect8        =16 ;
+carre            =0 ; carre_F=1;
+vert_jaune_H     =0 ; vert_jaune_H_F=1; // signal belge
+
+semaphore        =1 ; semaphore_F=2;
+semaphore_cli    =2 ; semaphore_cli_F=4;
+
+vert             =3 ; vert_F=8;
+vert_cli         =4 ; vert_cli_F=16;
+
+violet           =5 ; violet_F=32;
+vert_jaune_V     =5 ; vert_jaune_V_F=32;
+
+blanc            =6 ; blanc_F=64;
+rouge_blanc      =6 ; rouge_blanc_F=64; // signal belge
+blanc_cli        =7 ; blanc_cli_F=128;
+
+jaune            =8 ; jaune_F=256;
+deux_jaunes      =8 ; deux_jaunes_F=256; // signal belge
+jaune_cli        =9 ; jaune_cli_F=512;
+
+ral_30           =10; ral_30_F=1024;
+chiffre          =10; chiffre_F=1024;
+
+ral_60           =11; ral_60_F=2048;
+chevron          =11; chevron_F=2048;
+
+rappel_30        =12; rappel_30_F=4096;
+clign            =12 ; clign_F=4096;
+
+rappel_60        =13; rappel_60_F=8192;
+
+Disque_D         =14; // pour décodeur LDT
+
+ral_60_jaune_cli =15;ral_60_jaune_cli_F=32768; // pour décodeur LDT
+SetRaz           =15;SetRaz_F=32768; // pour belge
+
+aspect8          =16 ;
 
 
 var
@@ -113,6 +140,7 @@ begin
    5 : dessine_feu5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_feu7(VCanvas,0,0,1,1,EtatFeupilote,1);
    9 : dessine_feu9(VCanvas,0,0,1,1,EtatFeupilote,1);
+  20 : dessine_feu20(VCanvas,0,0,1,1,EtatFeupilote,1,feux[i].adresse);
   // indicateurs de direction
   12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
   13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
@@ -190,7 +218,7 @@ end;
 
 procedure TFormPilote.RadioRalen30Click(Sender: TObject);
 begin
-  Maj_Etat_Signal(0,ral_30);
+  Maj_Etat_Signal(0,chevron);
   dessine_feu_pilote;
 end;
 
@@ -224,7 +252,7 @@ procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
 var i,index,e : integer;
 begin
   index:=index_feu(AdrPilote);
-  if feux[index].aspect>10 then
+  if (feux[index].aspect>10) and (feux[index].aspect<20 )then
   begin
     val(EditNbreFeux.Text,i,e);
     feux[0].EtatSignal:=i;
@@ -262,12 +290,75 @@ begin
   d:=feux[i].decodeur;
   n:=feux[i].aspect;
   LabelDec.Caption:=decodeur[d];
+  feux[0].decodeur:=d;
+  feux[0].aspect:=n;
+  // signal belge
+  if (n=20) then
+  begin
+    Radiocarre.Caption:='Vert jaune horizontal';
+    Radioviolet.Caption:='Vert jaune vertical';
+    RadioJaune.Caption:='Deux jaunes';
+    RadioJauneCli.Caption:='Deux jaunes clignotants';
+    RadioBlanc.caption:='Rouge Blanc';
+    RadioBlancCli.caption:='Rouge Blanc clignotants';
+
+    radiovertcli.visible:=false;
+    radioJaunecli.visible:=false;
+    radioRougecli.visible:=false;
+    radioBlanccli.visible:=false;
+
+    groupBox3.Top:=GroupBox2.Top;
+    groupBox3.Left:=GroupBox2.Left;
+    groupBox2.Visible:=false;
+    groupBox3.Visible:=true;
+  end;
+
+   if n<>20 then
+  begin
+    Radiocarre.Caption:='Carré';
+    Radioviolet.Caption:='Violet';
+    RadioJauneCli.Caption:='Avertissement clignotant';
+    RadioJaune.Caption:='Avertissement';
+    RadioBlanc.caption:='Blanc';
+    RadioBlancCli.caption:='Blanc clignotant';
+    radiovertcli.visible:=true;
+    radioJaunecli.visible:=true;
+    radioRougecli.visible:=true;
+    radioBlanccli.visible:=true;
+  end;
+
+
   // checkcarré
   if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
   begin
     checkVerrouCarre.Visible:=true;
     checkVerrouCarre.Checked:=feux[i].VerrouilleCarre;
   end;
+
+    ImagePilote.Parent:=FormPilote;
+    ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
+    ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
+    ImagePilote.Transparent:=true;
+    ImagePilote.Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
+    LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
+    feux[0].EtatSignal:=feux[i].EtatSignal;
+
+    if (feux[i].aspect>10) and (feux[i].aspect<20) then
+    begin
+      // signaux directionnels
+      GroupBox1.Visible:=false;
+      GroupBox2.Visible:=false;
+      LabelNbFeux.Visible:=true;
+      EditNbreFeux.Visible:=true;
+      EditNbreFeux.Text:='1';
+    end
+    else
+    begin
+      LabelNbFeux.Visible:=False;
+      EditNbreFeux.Visible:=false;
+      GroupBox1.Visible:=true;
+      if (feux[i].aspect<10) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
+    end;
 
 end;
 
@@ -288,6 +379,24 @@ end;
 procedure TFormPilote.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if key=chr(27) then close;
+end;
+
+procedure TFormPilote.CheckChiffreClick(Sender: TObject);
+begin
+  if checkChiffre.Checked then Maj_Etat_Signal(0,chiffre) else Maj_Etat_Signal(0,chiffre or SetRaz_F);
+  dessine_feu_pilote;
+end;
+
+procedure TFormPilote.CheckChevronClick(Sender: TObject);
+begin
+  if checkChevron.Checked then Maj_Etat_Signal(0,chevron) else Maj_Etat_Signal(0,chevron or setRaz_F);
+  dessine_feu_pilote;
+end;
+
+procedure TFormPilote.CheckClignoteClick(Sender: TObject);
+begin
+  if checkclignote.Checked then Maj_Etat_Signal(0,clign) else Maj_Etat_Signal(0,clign or setRaz_F);
+  dessine_feu_pilote;
 end;
 
 begin

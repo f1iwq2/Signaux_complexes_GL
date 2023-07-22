@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetDccpp
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2419,7 +2419,7 @@ object FormConfig: TFormConfig
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
           TabOrder = 0
           object RadioButtonsans: TRadioButton
-            Left = 24
+            Left = 8
             Top = 16
             Width = 57
             Height = 17
@@ -2433,7 +2433,7 @@ object FormConfig: TFormConfig
             OnClick = RadioButtonsansClick
           end
           object RadioButton30kmh: TRadioButton
-            Left = 24
+            Left = 8
             Top = 32
             Width = 73
             Height = 17
@@ -2447,7 +2447,7 @@ object FormConfig: TFormConfig
             OnClick = RadioButton30kmhClick
           end
           object RadioButton60kmh: TRadioButton
-            Left = 24
+            Left = 8
             Top = 48
             Width = 73
             Height = 17
@@ -2459,6 +2459,29 @@ object FormConfig: TFormConfig
             ShowHint = True
             TabOrder = 2
             OnClick = RadioButton60kmhClick
+          end
+          object RadioButtonSpecifique: TRadioButton
+            Left = 88
+            Top = 24
+            Width = 81
+            Height = 17
+            Hint = 
+              'Pour signaux belges. Permet d'#39'afficher le chiffre de r'#233'duction d' +
+              'e vitesse sur le signal pr'#233'c'#233'dent l'#39'aiguillage'
+            Caption = 'Sp'#233'cifique :'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            OnClick = RadioButtonSpecifiqueClick
+          end
+          object EditSpecifique: TEdit
+            Left = 112
+            Top = 40
+            Width = 33
+            Height = 21
+            TabOrder = 4
+            Text = '40'
+            OnChange = EditSpecifiqueChange
           end
         end
         object CheckInverse: TCheckBox
@@ -2986,7 +3009,7 @@ object FormConfig: TFormConfig
         Left = 336
         Top = 32
         Width = 281
-        Height = 425
+        Height = 441
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
@@ -3016,14 +3039,14 @@ object FormConfig: TFormConfig
           Caption = 'D'#233'codeur: '
         end
         object LabelDetAss: TLabel
-          Left = 88
+          Left = 96
           Top = 104
           Width = 86
           Height = 13
           Caption = 'D'#233'tecteur associ'#233
         end
         object LabelElSuiv: TLabel
-          Left = 184
+          Left = 192
           Top = 104
           Width = 75
           Height = 13
@@ -3031,7 +3054,7 @@ object FormConfig: TFormConfig
         end
         object Label17: TLabel
           Left = 8
-          Top = 288
+          Top = 315
           Width = 228
           Height = 26
           Caption = 
@@ -3121,7 +3144,7 @@ object FormConfig: TFormConfig
         end
         object MemoCarre: TMemo
           Left = 8
-          Top = 320
+          Top = 344
           Width = 265
           Height = 89
           ScrollBars = ssBoth
@@ -3135,12 +3158,12 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
         object EditDet1: TEdit
-          Left = 120
+          Left = 136
           Top = 120
           Width = 41
           Height = 21
@@ -3148,7 +3171,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet1Change
         end
         object EditSuiv1: TEdit
-          Left = 184
+          Left = 200
           Top = 120
           Width = 41
           Height = 21
@@ -3158,7 +3181,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv1Change
         end
         object EditDet2: TEdit
-          Left = 120
+          Left = 136
           Top = 144
           Width = 41
           Height = 21
@@ -3166,7 +3189,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet2Change
         end
         object EditSuiv2: TEdit
-          Left = 184
+          Left = 200
           Top = 144
           Width = 41
           Height = 21
@@ -3176,7 +3199,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv2Change
         end
         object EditDet3: TEdit
-          Left = 120
+          Left = 136
           Top = 168
           Width = 41
           Height = 21
@@ -3184,7 +3207,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet3Change
         end
         object EditSuiv3: TEdit
-          Left = 184
+          Left = 200
           Top = 168
           Width = 41
           Height = 21
@@ -3194,7 +3217,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv3Change
         end
         object EditDet4: TEdit
-          Left = 120
+          Left = 136
           Top = 192
           Width = 41
           Height = 21
@@ -3202,7 +3225,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet4Change
         end
         object EditSuiv4: TEdit
-          Left = 184
+          Left = 200
           Top = 192
           Width = 41
           Height = 21
@@ -3253,7 +3276,8 @@ object FormConfig: TFormConfig
             'Directionnel 3 feux'
             'Directionnel 4 feux'
             'Directionnel 5 feux'
-            'Directionnel 6 feux')
+            'Directionnel 6 feux'
+            'Signal belge type 1')
         end
         object EditSpecUni: TEdit
           Left = 8
@@ -3318,6 +3342,30 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 18
           OnClick = CheckFRCClick
+        end
+        object CheckBoxVersContrevoie: TCheckBox
+          Left = 120
+          Top = 280
+          Width = 137
+          Height = 17
+          Hint = 'Permet d'#39'afficher le chevron si l'#39'aiguillage du signal est devi'#233
+          Caption = 'Signal vers contrevoie'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 19
+          OnClick = CheckBoxVersContrevoieClick
+        end
+        object CheckBoxContreVoie: TCheckBox
+          Left = 120
+          Top = 294
+          Width = 137
+          Height = 25
+          Hint = 'Signal clignotant'
+          Caption = 'Signal de contrevoie'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 20
+          OnClick = CheckBoxContreVoieClick
         end
       end
       object RichSig: TRichEdit

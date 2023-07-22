@@ -170,6 +170,7 @@ version 6.1  : Amélioration de la fenêtre réseau CDM.
 version 6.2  : Déplacement du curseur du TCO avec les touches curseur.
                Dessin du TCO à la souris.
 version 6.3  : Choix du graphisme du TCO en lignes brisées ou courbes.
+version 7.0  : Gestion des signaux belges (avec chevron et réduction de vitesse).
 
 
 

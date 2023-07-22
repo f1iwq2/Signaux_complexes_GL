@@ -336,6 +336,10 @@ type
     PopupMenuConfig: TPopupMenu;
     Copier1: TMenuItem;
     Coller1: TMenuItem;
+    CheckBoxVersContrevoie: TCheckBox;
+    CheckBoxContreVoie: TCheckBox;
+    RadioButtonSpecifique: TRadioButton;
+    EditSpecifique: TEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -498,6 +502,10 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure RichCdeDccppKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure RadioButtonSpecifiqueClick(Sender: TObject);
+    procedure CheckBoxVersContrevoieClick(Sender: TObject);
+    procedure CheckBoxContreVoieClick(Sender: TObject);
+    procedure EditSpecifiqueChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -591,7 +599,7 @@ function decodeDCC(s : string) : string;
 
 implementation
 
-uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM;
+uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote;
 
 {$R *.dfm}
 
@@ -897,9 +905,15 @@ begin
    // vitesse de franchissement et inversion
    if not(croi) then
    begin
-     if aiguillage[index].vitesse=0 then s:=s+',V0';
-     if aiguillage[index].vitesse=30 then s:=s+',V30';
-     if aiguillage[index].vitesse=60 then s:=s+',V60';
+     case aiguillage[index].vitesse of
+      0 :  s:=s+',V0';
+      30 : s:=s+',V30';
+      60 : s:=s+',V60';
+      else begin
+             s:=s+',V'+formconfig.EditSpecifique.Text;
+           end;
+     end;
+
      if aiguillage[index].inversionCDM=1 then s:=s+',I1' else s:=s+',I0';
    end;
 
@@ -958,16 +972,16 @@ begin
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
   aspect:=feux[i].aspect;
-  if aspect<10 then s:=s+IntToSTR(aspect)+',' else s:=s+'D'+intToSTR(aspect-10)+',';
+  if (aspect<10) or (aspect>=20) then s:=s+IntToSTR(aspect)+',' else s:=s+'D'+intToSTR(aspect-10)+',';
 
   // bouton feu blanc, n'existe pas pour un feu directionnel (aspect>10)
-  if aspect<10 then begin if feux[i].feublanc then s:=s+'1,' else s:=s+'0,';end;
+  if (aspect<10) or (aspect>=20) then begin if feux[i].feublanc then s:=s+'1,' else s:=s+'0,';end;
 
   // décodeur
   s:=s+IntToSTR(feux[i].decodeur)+',';
 
   // detecteur et élement suivant (4 maxi)
-  if aspect<10 then
+  if (aspect<10) or (aspect>=20) then
   begin
     s:=s+'('+IntToSTR(feux[i].Adr_det1)+','+TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
     j:=feux[i].Adr_det2;
@@ -1029,12 +1043,20 @@ begin
       s:=s+',NA'+intToSTR(feux[i].na);
     end;
 
+    // signal belge
+    if (feux[i].aspect=20) then
+    begin
+      s:=s+',NA'+intToSTR(feux[i].na)+',VCV';
+      if feux[i].verscontrevoie then s:=s+'1' else s:=s+'0';
+      s:=s+',CV';
+      if feux[i].contrevoie then s:=s+'1' else s:=s+'0';
+    end;
   end
   else
   // feux directionnels
   begin
     NfeuxDir:=aspect-10;
-    for j:=1 to NfeuxDir+1 do 
+    for j:=1 to NfeuxDir+1 do
     begin
       s:=s+'(';
       for k:=1 to Length(feux[i].AigDirection[j])-1 do
@@ -1045,7 +1067,7 @@ begin
       s:=s+')';
     end;
   end;
-  
+
   encode_sig_feux:=s;
 end;
 
@@ -1138,7 +1160,7 @@ begin
           // feu de signalisation---------------------------------
           begin
             val(sa,asp,erreur);  //aspect
-            if (asp<2) or (asp=6) or (asp=8) or (asp>9) then
+            if (asp<2) or (asp=6) or (asp=8) or (asp>20) then
             begin
               Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
               asp:=2;
@@ -1234,8 +1256,55 @@ begin
             if length(s)>0 then begin feux[i].checkFR:=s[1]='1';delete(s,1,1);end;
           end;
 
+          if length(s)>0 then if s[1]=',' then delete(s,1,1);
+          if length(s)>0 then
+          begin
+            if copy(s,1,2)='NA' then
+            begin
+              delete(s,1,2);
+              val(s,j,erreur);
+              delete(s,1,1);
+              if (j<2) or (j>5) then
+              begin
+                j:=5;affiche('Paramètre NA incorrect dans ligne '+chaine_signal,clred)
+              end;
+              feux[i].na:=j;
+            end;
+          end;
 
           if length(s)>0 then if s[1]=',' then delete(s,1,1);
+          if length(s)>0 then
+          begin
+            if copy(s,1,3)='VCV' then
+            begin
+              delete(s,1,3);
+              val(s,j,erreur);
+              delete(s,1,1);
+              if (j<0) or (j>1) then
+              begin
+                j:=0;affiche('Paramètre VCV incorrect dans ligne '+chaine_signal,clred)
+              end;
+              feux[i].verscontrevoie:=j=1;
+            end;
+          end;
+
+          if length(s)>0 then if s[1]=',' then delete(s,1,1);
+          if length(s)>0 then
+          begin
+            if copy(s,1,2)='CV' then
+            begin
+              delete(s,1,2);
+              val(s,j,erreur);
+              delete(s,1,1);
+              if (j<0) or (j>1) then
+              begin
+                j:=0;affiche('Paramètre CV incorrect dans ligne '+chaine_signal,clred)
+              end;
+              feux[i].contrevoie:=j=1;
+            end;
+          end;
+
+
           if length(s)>0 then if s[1]='U' then delete(s,1,1);
 
           // si décodeur UniSemaf (6) champ supplémentaire U
@@ -3739,9 +3808,10 @@ begin
 
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
       
-      if aiguillage[Index_Aig(adresse)].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index_Aig(adresse)].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index_Aig(adresse)].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=true;end;
+      if aiguillage[Index_Aig(adresse)].vitesse=0  then begin RadioButtonSans.checked:=true; RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
+      if aiguillage[Index_Aig(adresse)].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true; RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
+      if aiguillage[Index_Aig(adresse)].vitesse=40 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;end;
+      if aiguillage[Index_Aig(adresse)].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end;
     end;
 
     if croi then 
@@ -3787,9 +3857,14 @@ begin
       
       Label18.Visible:=false;
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
-      if aiguillage[Index].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButton60kmh.checked:=true;end;
+      if aiguillage[Index].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      else
+      if aiguillage[Index].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      else
+      if aiguillage[Index].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end
+      else
+      begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true;RadioButton60kmh.checked:=false;end ;
+
 
       EditPointe_BG.Text:=intToSTR(aiguillage[index].Apointe)+aiguillage[index].ApointeB;
       EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].Apointe,aiguillage[index].ApointeB);
@@ -4034,6 +4109,8 @@ begin
     picture.Bitmap:=Select_dessin_feu(feux[i].aspect);
   end;
 
+  if feux[i].contrevoie then inverse_image(formCOnfig.ImageSignal,Formprinc.ImageSignal20);
+
   with formconfig do
   begin
     MemoCarre.Lines.Clear;
@@ -4044,25 +4121,35 @@ begin
 
     decodeur:=feux[i].decodeur;
     ButtonConfigSR.Visible:=false;
-    //SR
-    if (decodeur=7) or (decodeur=2) then ButtonConfigSR.Visible:=true;
 
-    // unisemaf
-    if (decodeur=6) then
-    begin
-      EditSpecUni.Visible:=true;
-      LabelUni.Caption:='Spec Unisemaf';
-      LabelUni.Visible:=true;
-      EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
-      editSpecUni.Hint:='Paramètre de description supplémentaire du décodeur Unisemaf';
-      editSpecUni.ShowHint:=true;
-    end;
-    // digikeijs
-    if (decodeur=5) then
-    begin
-      ButtonConfigSR.Visible:=true ;
-    end;
-    if (decodeur<>6) then
+   case decodeur of
+    2,7 : ButtonConfigSR.Visible:=true;
+    5 : ButtonConfigSR.Visible:=true ; // digikeijs
+    6 : begin
+        EditSpecUni.Visible:=true;
+        LabelUni.Caption:='Spec Unisemaf';
+        LabelUni.Visible:=true;
+        EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
+        editSpecUni.Hint:='Paramètre de description supplémentaire du décodeur Unisemaf';
+        editSpecUni.ShowHint:=true;
+      end;
+  9 : begin
+        s:='Décodeur pour signaux belges SNCB - 4 aspects uniquement: ';
+        labelInfo.Caption:=s+'vert - rouge - double jaune - rouge blanc';
+      end;
+  10 : begin
+       s:='Décodeur pour signaux belges SNCB - 6 aspects + chiffre + V ';
+       labelInfo.Caption:=s;
+       labelUni.Caption:='Nombre d''adresses';LabelUni.Visible:=true;
+       editSpecUni.Hint:='Nombre d''adresses occupées par le signal';
+       editSpecUni.ShowHint:=true;
+       EditSpecUni.Visible:=true;
+       EditSpecUni.Text:=IntToSTR(feux[i].Na);
+       end
+  else labelInfo.Caption:='';
+  end;
+
+  if (decodeur<>6) and (decodeur<>10) then
       begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
 
 
@@ -4074,11 +4161,13 @@ begin
     5 : ComboBoxAsp.ItemIndex:=3;
     7 : ComboBoxAsp.ItemIndex:=4;
     9 : ComboBoxAsp.ItemIndex:=5;
+    20 : ComboBoxAsp.ItemIndex:=11;
     else
       ComboBoxAsp.ItemIndex:=d-10+4;
     end;
 
-    if ((d=2) or (d>=5)) and (d<10) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
+    // affiche ou non les checkbox en fonction de l'aspect
+    if (((d=2) or (d>=5)) and (d<10)) or (d=20) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
     if d>2 then
     begin
       checkFVC.Visible:=true;
@@ -4090,10 +4179,34 @@ begin
       checkFRC.Visible:=false;
     end;
 
-    if (d>3) and (d<10) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+    if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+    if d=20 then
+    begin
+      CheckBoxVersContrevoie.Visible:=true;
+      CheckBoxContrevoie.Visible:=true;
+      CheckBoxContrevoie.Checked:=feux[i].contrevoie;
+      CheckBoxVersContrevoie.Checked:=feux[i].Verscontrevoie;
+
+      if Feux[i].Btype_suiv1=Aig then s:='Permet d''afficher le chevron sur le signal si l''aiguillage '+intToSTR(Feux[i].Adr_el_suiv1)+' est dévié'
+      else s:='Permet d''afficher le chevron sur le signal si son aiguillage est dévié;'+char(13)+'mais ce signal n''est pas suivi d''un aiguillage';
+      CheckBoxversContrevoie.Hint:=s;
+      CheckBoxFB.caption:='Avec demande Blanc rouge';
+      checkVerrouCarre.Caption:='verrouillable au rouge';
+      checkVerrouCarre.Hint:='Positionne le feu au rouge si aucun train n''est présent 3 cantons avant le signal';
+      checkFVC.visible:=false;
+      checkFRC.visible:=false;
+    end
+    else
+    begin
+      CheckBoxVersContrevoie.Visible:=false;
+      CheckBoxContrevoie.Visible:=false;
+      CheckBoxFB.caption:='Avec demande feu blanc';
+      checkVerrouCarre.Caption:='verrouillable au carré';
+      checkVerrouCarre.Hint:='Positionne le feu au carré si aucun train n''est présent 3 cantons avant le signal';
+    end;
 
     // signal normal
-    if d<10 then
+    if (d<10) or (d>=20) then
     begin
       Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
       Label17.Width:=228;
@@ -4982,9 +5095,43 @@ begin
   begin
     aiguillage[index].vitesse:=30;
     aiguillage[index].modifie:=true;
-  end;  
+  end;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
+end;
+
+procedure vitesse_spec;
+var s : string;
+    AdrAig,erreur,index,v : integer;
+begin
+  if clicliste then exit;
+
+  s:=formconfig.RichAig.Lines[ligneclicAig];
+  Val(s,adrAig,erreur);
+  if AdrAig=0 then exit;
+  index:=Index_Aig(AdrAig);
+  if index<>0 then
+  begin
+    val(formconfig.editSpecifique.Text,v,erreur);
+    if (v>=99) or (v<1) or (erreur<>0) then begin FormConfig.labelInfo.Caption:='Erreur vitesse';exit;end;
+    FormConfig.labelInfo.Caption:='';
+    aiguillage[index].vitesse:=v;
+    aiguillage[index].modifie:=true;
+  end;
+  s:=encode_aig(index);
+  formconfig.RichAig.Lines[ligneclicAig]:=s;
+end;
+
+procedure TFormConfig.EditSpecifiqueChange(Sender: TObject);
+begin
+  if affevt then affiche('Evt edit vitesse spec',clyellow);
+  vitesse_spec;
+end;
+
+procedure TFormConfig.RadioButtonSpecifiqueClick(Sender: TObject);
+begin
+  if affevt then affiche('Evt RadioBouton vitesse spec',clyellow);
+  vitesse_spec;
 end;
 
 procedure TFormConfig.RadioButton60kmhClick(Sender: TObject);
@@ -5020,6 +5167,23 @@ begin
   feux[i].decodeur:=decodeur;
   Maj_Hint_Signal(i);
 
+  case decodeur of
+  6 : begin
+        labelUni.Caption:='Spec Unisemaf';LabelUni.Visible:=true;
+        EditSpecUni.Visible:=true;
+      end;
+  9 : begin
+     s:='Décodeur pour signaux belges SNCB - 4 aspects uniquement: ';
+     labelInfo.Caption:=s+'vert - rouge - double jaune - rouge blanc';
+     end;
+  10 : begin
+       s:='Décodeur pour signaux belges SNCB - 6 aspects + chiffre + V ';
+       labelInfo.Caption:=s;
+       labelUni.Caption:='Nombre d''adresses';LabelUni.Visible:=true;
+       EditSpecUni.Visible:=true;
+       end
+  else labelInfo.Caption:='';
+  end;
   s:=encode_sig_feux(i);
   formconfig.RichSig.Lines[ligneclicSig]:=s;
   aff_champs_sig_feux(i);
@@ -5172,7 +5336,7 @@ var s : string;
 begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt FB',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     feux[ligneClicSig+1].FeuBlanc:=checkBoxFB.Checked;
@@ -5814,6 +5978,7 @@ end;
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
 var x,y,i,index,aspect,adresseFeu : integer;
     s : string;
+    bm :tbitmap;
 begin
   if clicListe then exit;
   if affevt then Affiche('Evt aspect',clOrange);
@@ -5826,36 +5991,13 @@ begin
   3 : aspect:=5;
   4 : aspect:=7;
   5 : aspect:=9;
+  11 : aspect:=20;
   else aspect:=i+6;
   end;
   index:=ligneClicSig+1;  // index du feu
   if index<1 then exit;
   if NbreFeux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
-  if ((aspect=2) or (aspect>=5)) and (aspect<10) then
-    checkBoxFB.Visible:=true else
-    begin
-      checkBoxFB.Visible:=false;
-      checkBoxFB.Checked:=false;
-    end;
-  if (aspect>3) and (aspect<10) then
-  begin
-    CheckVerrouCarre.Visible:=true
-  end
-  else
-  begin
-    CheckVerrouCarre.Visible:=false;
-  end;
-  if (aspect>2) and (aspect<10) then
-  begin
-    checkFVC.visible:=true;
-    checkFRC.visible:=true;
-  end
-  else
-  begin
-    checkFVC.visible:=false;
-    checkFRC.visible:=false;
-  end;
 
   feux[index].aspect:=aspect;
   s:=encode_sig_feux(index);
@@ -5863,7 +6005,9 @@ begin
   aff_champs_sig_feux(index); // redessine les champs et le feu
 
   // change l'image du feu dans la feuille graphique principale
-  Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
+  bm:=Select_dessin_feu(feux[index].aspect);
+  if bm=nil then exit;
+  Feux[index].Img.picture.Bitmap:=bm;
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
   // et dans le TCO
   if formTCO.Showing then
@@ -5902,9 +6046,10 @@ begin
       erreur:=verif_unisemaf(Adr,i);
       if erreur=1 then begin LabelInfo.caption:='Erreur code Unisemaf';exit;end;
       if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
+      LabelInfo.caption:=' ';
+      feux[ligneClicSig+1].Unisemaf:=i;
     end;
-    LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Unisemaf:=i;
+    if decodeur=10 then feux[ligneClicSig+1].Na:=i;
     s:=encode_sig_feux(ligneClicSig+1);
     RichSig.Lines[ligneClicSig]:=s;
   end;
@@ -6845,6 +6990,8 @@ begin
     9 : nc:=5;
     end;
   end;
+  if dec=9 then nc:=2;
+  if dec=10 then nc:=feux[i].Na;
   nombre_adresses_signal:=nc;
 end;
 
@@ -10333,8 +10480,6 @@ procedure TFormConfig.Coller1Click(Sender: TObject);
   end;
 end;
 
-
-
 procedure TFormConfig.RichCdeDccppMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i : integer;
 begin
@@ -10362,6 +10507,55 @@ begin
   end;
 end;
 
+
+procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt VersContrevoie',clOrange);
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    feux[ligneClicSig+1].verscontrevoie:=checkBoxVersContreVoie.Checked;
+    s:=encode_sig_feux(ligneClicSig+1);
+    RichSig.Lines[ligneClicSig]:=s;
+    feux[ligneClicSig+1].modifie:=true;
+  end;
+end;
+
+procedure TFormConfig.CheckBoxContreVoieClick(Sender: TObject);
+var s : string;
+    bm : Tbitmap;
+    adr : integer;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt Contrevoie',clOrange);
+
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    feux[ligneClicSig+1].contrevoie:=checkBoxContreVoie.Checked;
+    s:=encode_sig_feux(ligneClicSig+1);
+    RichSig.Lines[ligneClicSig]:=s;
+    feux[ligneClicSig+1].modifie:=true;
+
+    aff_champs_sig_feux(ligneClicSig+1); // redessine les champs et le feu  - contient l'inversion de l'image
+
+    // maj le signal dans la fenetre principale
+    Feux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
+    adr:=feux[ligneClicSig+1].adresse;
+    if feux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clign) else Maj_Etat_Signal(adr,clign or setRaz_F);
+    dessine_feu_mx(Feux[ligneClicSig+1].Img.Canvas,0,0,1,1,feux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
+
+
+  end;
+
+
+
+
+end;
+
+
+
 end.
 
 

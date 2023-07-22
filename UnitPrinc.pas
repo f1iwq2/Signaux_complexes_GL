@@ -8,10 +8,15 @@ Unit UnitPrinc;
   sinon une exception surgira au moment de l'ouverture du com
   Dans projet/option/fiches : fiches disponibles : formtco uniquement
  ********************************************
+ Attention si le répertoire d'install n'est pas autorisé, windows10-11 va sauver les fichiers dans
+ C:\Users\moi\AppData\Local\VirtualStore\Program Files (x86)\Signaux_complexes
+ il faut autoriser l'utilisateur: Utilisateurs (nom\utilisateurs)
+
+
  Pilotage des accessoires:
  raquette   octet sortie
-    +            2    = aiguillage droit  = sortie 2 de l'adresse d'accessoire
-    -            1    = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
+    +            2    =   vert  = aiguillage droit  = sortie 2 de l'adresse d'accessoire
+    -            1    =   rouge = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
 
  vitesse port com lenz=57600
 
@@ -169,6 +174,7 @@ type
     Coller1: TMenuItem;
     ButtonAffAnalyseCDM: TButton;
     Affiche_fenetre_CDM: TMenuItem;
+    ImageSignal20: TImage;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -299,8 +305,14 @@ Max_Simule=10000;
 Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
            'blanc','blanc cli','jaune','jaune cli','ral 30','ral 60','rappel 30','rappel 60');
-NbDecodeur = 9;
-decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LDT','LEB','Digikeijs 4018','Unisemaf Paco','Stéphane Ravaut','Arcomora');
+EtatSignBelge: array[0..11] of string[30]=
+      ('vert jaune horizontal','rouge','rouge cli','vert','vert cli','vert jaune vertical','rouge blanc','rouge blanc cli',
+       'deux jaunes','deux jaunes cli','Chiffre','Chevron');
+
+
+NbDecodeur = 11;
+decodeur : array[0..NbDecodeur-1] of string[20] =('rien','Digital Bahn','CDF','LS-DEC-SNCF','LEB','Digikeijs 4018','Unisemaf Paco','Stéphane Ravaut',
+                                                  'Arcomora','LS-DEC-NMBS','B-models');
 Etats : array[0..19] of string[30]=('Non commandé',
                                     'carré','sémaphore','sémaphore cli','vert','vert cli','violet','blanc','blanc cli','jaune','jaune cli',
                                     'ralen 30','ralen 60','ralen 60 + jaune cli','rappel 30','rappel 60','rappel 30 + jaune','rappel 30 + jaune cli','rappel 60 + jaune','rappel 60 + jaune cli');
@@ -352,8 +364,8 @@ Taiguillage = record
                  modifie : boolean ;
               end;
 
-TFeu = record
-                 adresse, aspect : integer;  // adresse du signal, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)
+TSignal = record
+                 adresse, aspect : integer;  // adresse du signal, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)  (20=signal belge 1)
                  Img : TImage;               // Pointeur sur structure TImage du feu
                  Lbl : TLabel;               // pointeur sur structure Tlabel du feu
                  checkFB : TCheckBox;        // pointeur sur structure Checkbox "demande feu blanc"
@@ -361,6 +373,8 @@ TFeu = record
                  checkFV : boolean;          // demande feu vert cli
                  FeuVertCli : boolean ;      // avec checkbox ou pas
                  FeuRougeCli : boolean ;     // avec checkbox ou pas
+                 contrevoie : boolean;       // signal de contrevoie (SNCB)
+                 Verscontrevoie : boolean;   // signal vers contrevoie (SNCB)
                  FeuBlanc : boolean ;        // avec checkbox ou pas
                  decodeur : integer;         // type du décodeur  // 'rien','DigitalBahn','CDF','LDT','LEB','Digikeijs','Unisemaf','SR'
                  Adr_det1 : integer;         // adresse du détecteur1 sur lequel il est implanté
@@ -529,7 +543,7 @@ var
   aiguillage : array[0..NbreMaxiAiguillages] of Taiguillage;
   // signaux - L'index du tableau n'est pas son adresse
   CdeDccpp : array[1..MaxCdeDccpp] of string;
-  feux :  array[0..NbreMaxiSignaux] of Tfeu;
+  feux :  array[0..NbreMaxiSignaux] of TSignal;
   trains_cdm : array[1..Max_Trains] of record
               nom_train : string;
               adresse,vitmax : integer;
@@ -576,7 +590,7 @@ var
                        etat : boolean;
                        end;
                     end;
-  Feu_supprime,Feu_sauve : Tfeu;
+  Feu_supprime,Feu_sauve : TSignal;
   Aig_supprime,Aig_sauve : TAiguillage;
   BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
 
@@ -591,6 +605,7 @@ procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal
 procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
+procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer;adresse : integer);
 procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
 procedure Maj_Etat_Signal(adresse,aspect : integer);
 procedure Affiche(s : string;lacouleur : TColor);
@@ -635,6 +650,7 @@ function BTypeToChaine(BT : TEquipement) : string;
 function testBit(n : word;position : integer) : boolean;
 procedure det_contigu(det1,det2 : integer;var suivant : integer;var ElSuiv : TEquipement);
 Function SetBit(n : word;position : integer) : word;
+procedure inverse_image(imageDest,ImageSrc : Timage) ;
 
 implementation
 
@@ -762,9 +778,11 @@ procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
 begin
   with Acanvas do
   begin
+    brush.Style:=bsSolid;
     brush.Color:=couleur;
     pen.Color:=clBlack;
     pen.Width:=1;
+    pen.Mode:=pmCopy;
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
   end; 
 end;
@@ -947,7 +965,7 @@ begin
 
   LgImage:=Formprinc.Image5feux.Picture.Bitmap.Width;
   HtImage:=Formprinc.Image5feux.Picture.Bitmap.Height;
-    
+
   if (orientation=2) then
   begin
     //rotation 90° vers la gauche des feux
@@ -984,7 +1002,7 @@ begin
   if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
-  
+
   //allumages
   if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
   if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
@@ -1089,7 +1107,7 @@ var rayon,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp          : integer;
     LgImage,HtImage,xt,yt,code,combine  : integer;
     ech : real;
-    
+
 begin
   rayon:=round(6*frX);
   code_to_aspect(Etatsignal,code,combine); // et aspect
@@ -1188,6 +1206,288 @@ begin
   end;
 end;
 
+// Ecrire sur un canvas un texte incliné, avec ou sans bordure, monochrome ou à face texturée
+procedure AffTexteIncliBordeTexture( C : TCanvas; X,Y : integer; Fonte : tFont;
+                                     clBord : TColor; EpBord : integer; PenMode : TPenMode;
+                                     Texture : tBitMap; Texte : string; AngleDD : longint);
+// params : C       = Canvas-cible
+//          X,Y     = Coordonnées angle supérieur gauche du début du texte.
+//          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
+//          clBord  = Couleur de la bordure.
+//          EpBord  = Epaisseur de la bordure.
+//          PenMode = TPenMode : utiliser en général pmCopy.
+//          Texture = BitMap de texture : Si Texture = Nil alors la face sera de la couleur de Fonte avec un contour de clBord si EpBord > 0.
+//          Texte   = Texte à écrire.
+//          AngleDD = Angle d'inclinaison en Dixièmes de degré.
+var	      dc     : HDC;
+          lgFont : LOGFONT;
+          AncFonte,NouvFonte : HFONT;
+	        AncPen,NouvPen     : HPEN;
+          AncBrush,NouvBrush : HBRUSH;
+begin
+          C.Pen.Mode:=PenMode;
+          dc := C.Handle;
+ 
+          // Initialisation de la fonte
+          zeroMemory(@lgFont,sizeOf(lgFont));
+          strPCopy(lgFont.lfFaceName,Fonte.Name);
+          lgFont.lfHeight := Fonte.Height;
+          if Fonte.style=[]       then lgFont.lfWeight:=FW_REGULAR; // Normal
+          if Fonte.style=[fsBold] then lgFont.lfWeight:=FW_BOLD;    // Gras
+ 
+          if fsItalic in Fonte.style    then lgFont.lfItalic:=1;
+          if fsUnderline in Fonte.style then lgFont.lfUnderline:=1;
+          if fsStrikeout in Fonte.style then lgFont.lfStrikeout:=1;
+ 
+          lgFont.lfEscapement:=AngleDD; // Modification de l'inclinaison
+ 
+          NouvFonte := CreateFontInDirect(lgFont);
+          AncFonte := SelectObject(dc,NouvFonte);
+ 
+          // Initialisation du contour :
+          if EpBord<>0 then NouvPen := CreatePen(PS_SOLID,EpBord,clBord)
+                       else NouvPen := CreatePen(PS_NULL,0,0);
+          AncPen := SelectObject(dc,NouvPen);
+ 
+          // Initialisation de la couleur de la police ou de la Texture :
+          if Texture=nil then NouvBrush := CreateSolidBrush(Fonte.color) 
+                         else NouvBrush := CreatePatternBrush(Texture.Handle);
+          AncBrush := SelectObject(dc,NouvBrush);
+          // Le contexte doit être transparent
+          SetBkMode(dc,TRANSPARENT);
+ 
+          // Dessin du texe :
+          BeginPath(dc);
+          TextOut(dc,X,Y,PChar(Texte),length(texte)); //<- au lieu de TextOut(dc,X,Y,PansiChar(Texte),length(texte)) pour rendre le code compatible avec toutes les versions de Delphi (de D2 à XE2);
+          EndPath(dc);
+          StrokeAndFillPath(dc);
+
+          // Restauration objets et libération mémoire
+          SelectObject(dc,AncFonte);
+          DeleteObject(NouvFonte);
+          SelectObject(dc,AncPen);
+          DeleteObject(NouvPen);
+          SelectObject(dc,AncBrush);
+          DeleteObject(NouvBrush);
+ 
+end; // AffTexteIncliBordeTexture
+
+// inverse une image horz et la met dans dest
+procedure inverse_image(imageDest,ImageSrc : Timage);
+var r,mrect,nrect : trect;
+    larg,haut : integer;
+begin
+  larg:=ImageSrc.Width;
+  haut:=ImageSrc.Height;
+  mRect:= rect(0, 0, larg, haut);
+  nRect:= rect(larg-1,0,-1,haut);
+  ImageDest.canvas.CopyRect(mRect, ImageSrc.canvas, nRect);
+end;
+
+// dessine les feux sur une cible belge à 5 feux
+// cette image peut être inversée (contre voie)
+procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer;adresse : integer);
+var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Yrouge,largeur,
+    index,Temp,rayon,LgImage,HtImage,code,combine,x1,y1,x2,y2,x3,y3,xChiffre,yChiffre,xfin,yfin,angle,
+    AdrAig,IndexAig,vitesse : integer;
+    ech : real;
+    inverse,etatChevron,EtatChiffre,codeClignote : boolean;
+    r : Trect;
+begin
+  code_to_aspect(Etatsignal,code,combine); // et aspect
+  combine:=etatSignal and $fc00;
+  // LDT-DEC-NMBS ou b-model
+  etatChiffre:=testBit(combine,chiffre);
+  etatChevron:=testBit(combine,chevron);
+  CodeClignote:=testBit(combine,clign);
+  largeur:=57;
+
+  rayon:=round(6*frX);
+  {Xblanc:=12;YBlanc:=51;
+  Xrouge:=12;Yrouge:=25;
+  xJauneBas:=12;yJauneBas:=38;
+  xJauneHaut:=38;yJauneHaut:=12;
+  xVert:=12;YVert:=12;}
+  xVert:=15; yvert:=24;
+  xrouge:=15; yrouge:=37;
+  xjauneBas:=15;yjauneBas:=50;
+  xblanc:=15;yblanc:=63;
+  xJauneHaut:=41;yJauneHaut:=24;
+
+  // chevron
+  x1:=9;y1:=3;
+  x2:=16;y2:=10;
+  x3:=x2+(x2-x1);y3:=y1;
+  // texte
+  XChiffre:=14;Ychiffre:=76;
+  Xfin:=26;yFin:=99;
+
+  index:=index_feu(adresse);
+  if feux[index].contrevoie then
+  begin
+    xvert:=largeur-xvert;
+    xrouge:=largeur-xrouge;
+    xjaunebas:=largeur-xjaunebas;
+    xjaunehaut:=largeur-xjaunehaut;
+    xblanc:=largeur-xblanc;
+    x1:=largeur-x1;
+    x2:=largeur-x2;
+    x3:=largeur-x3;
+    Xchiffre:=32;
+    Xfin:=44;
+  end;
+
+  if XChiffre>Xfin then echange(Xchiffre,Xfin);
+
+  LgImage:=Formprinc.ImageSignal20.Picture.Bitmap.Width;
+  HtImage:=Formprinc.ImageSignal20.Picture.Bitmap.Height;
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjauneBas;YJauneBas:=XJauneBas;XjauneBas:=Temp;
+    Temp:=HtImage-yjauneHaut;YJauneHaut:=XJauneHaut;XjauneHaut:=Temp;
+    Temp:=HtImage-yblanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRouge;YRouge:=Xrouge;XRouge:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+    Temp:=HtImage-y1;Y1:=X1;X1:=Temp;
+    Temp:=HtImage-y2;Y2:=X2;X2:=Temp;
+    Temp:=HtImage-y3;Y3:=X3;X3:=Temp;
+    Temp:=HtImage-yChiffre;YChiffre:=XChiffre;XChiffre:=Temp;
+    Temp:=HtImage-yfin;Yfin:=Xfin;Xfin:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-XjauneBas;XJauneBas:=YJauneBas;YjauneBas:=Temp;
+    Temp:=LgImage-XJauneHaut;XJauneHaut:=YJauneHaut;YjauneHaut:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xrouge;Xrouge:=Yrouge;Yrouge:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+
+    Temp:=LgImage-x1;X1:=Y1;Y1:=Temp;
+    Temp:=LgImage-X2;X2:=Y2;Y2:=Temp;
+    Temp:=LgImage-X3;X3:=Y3;Y3:=Temp;
+    Temp:=LgImage-XChiffre;XChiffre:=YChiffre;YChiffre:=Temp;
+    Temp:=LgImage-Xfin;Xfin:=Yfin;Yfin:=Temp;
+  end;
+
+  XJauneBas:=round(XjauneBas*Frx)+x;  YJauneBas:=round(YjauneBas*Fry)+Y;
+  XJauneHaut:=round(XjauneHaut*Frx)+x;  YJauneHaut:=round(YjauneHaut*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  Xrouge:=round(Xrouge*FrX)+x;  Yrouge:=round(Yrouge*FrY)+Y;
+  xchiffre:=round(Xchiffre*frx)+x;  ychiffre:=round(ychiffre*fry)+y;
+  xfin:=round(Xfin*frx)+x;  yfin:=round(yfin*fry)+y;
+  x1:=round(X1*frx)+x;  y1:=round(y1*fry)+y;
+  x2:=round(X2*frx)+x;  y2:=round(y2*fry)+y;
+  x3:=round(X3*frx)+x;  y3:=round(y3*fry)+y;
+
+  // extinctions
+  if not((code=vert) and codeclignote and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
+  if not((code=semaphore) and codeclignote and clignotant) then cercle(ACanvas,xrouge,yrouge,rayon,GrisF);
+  if not((code=rouge_blanc) and codeclignote and clignotant) then
+  begin
+    cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+    cercle(ACanvas,xRouge,yRouge,rayon,GrisF);
+  end;
+  if not((code=deux_jaunes) and codeclignote and clignotant) then
+  begin
+    cercle(ACanvas,xjaunebas,yjauneBas,rayon,GrisF);
+    cercle(ACanvas,xjaunehaut,yjauneHaut,rayon,GrisF);
+  end;
+  if not((code=vert_jaune_H) and codeclignote and clignotant) then
+  begin
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,grisF);
+  end;
+  if not((code=vert_jaune_V) and codeclignote and clignotant) then
+  begin
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,grisF);
+  end;
+
+
+  //allumages
+  if ((code=vert) and codeClignote and clignotant) or ((code=vert) and not(codeclignote)) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
+  if ((code=semaphore) and codeClignote and clignotant) or ((code=semaphore) and not(codeclignote)) then cercle(ACanvas,xrouge,yrouge,rayon,clRed);
+  if ((code=rouge_blanc) and codeClignote and clignotant) or ((code=rouge_blanc) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
+    cercle(ACanvas,xrouge,yrouge,rayon,clred);
+  end;
+  if ((code=deux_jaunes) and codeClignote and clignotant) or ((code=deux_jaunes) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,clOrange);
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clOrange);
+  end;
+  if ((code=vert_jaune_H) and codeClignote and clignotant) or ((code=vert_jaune_H) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+  end;
+  if ((code=vert_jaune_V) and codeClignote and clignotant) or ((code=vert_jaune_V) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjaunebas,yjaunebas,rayon,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+  end;
+
+  with Acanvas do
+  begin
+    if Etatchevron then pen.color:=ClWhite else pen.color:=clblack;
+
+    // dessine le chevron
+    pen.Width:=2;
+    Moveto(x1,y1);Lineto(x2,y2);Lineto(x3,y3);
+
+    // écrit le chiffre
+    if etatChiffre then
+    begin
+      Brush.Color:=clblack;
+      with font do
+      begin
+        Font.Color:=clWhite;
+        font.Size:=(LargeurCell div 5)+4;
+        font.Style:=[fsbold];
+      end;
+
+      if feux[index].Btype_suiv1=aig then
+      begin
+        adrAig:=feux[index].Adr_el_suiv1;
+        IndexAig:=index_aig(adrAig);
+        vitesse:=aiguillage[IndexAig].vitesse div 10;
+
+        if orientation=1 then Textout(XChiffre,Ychiffre,intToSTR(vitesse))
+        else
+        begin
+          case orientation of
+          2 : angle:=-900;
+          3 : angle:=900;
+          end;
+          AffTexteIncliBordeTexture(Acanvas,Xchiffre,Ychiffre,Acanvas.Font,clYellow,0,pmcopy,nil,intToSTR(vitesse),angle);
+        end;
+      end;
+    end
+    else
+    begin
+      // éteint le chiffre
+      Brush.Color:=clblack;
+      Pen.Color:=clblack;
+      r.Left:=xchiffre+1;r.Top:=Ychiffre+1;
+      r.Right:=Xfin-2;r.Bottom:=Yfin-1;
+      Fillrect(r);
+    end;
+
+  end;
+
+
+end;
+
 
 // dessine les feux sur une cible directionnelle à N feux
 procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
@@ -1223,7 +1523,7 @@ begin
         HtImage:=Height;
       end;
   6 : with Formprinc.Image6Dir.Picture.Bitmap do
-      begin 
+      begin
         LgImage:=Width;
         HtImage:=Height;
       end;  
@@ -1435,6 +1735,7 @@ begin
      5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
      7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
      9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     20 : dessine_feu20(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,feux[i].adresse);
      // indicateurs de direction
      12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,aspect-10);
     end;
@@ -1481,28 +1782,7 @@ begin
   begin
     TFormPilote.Create(Self); // rajouté
     show;
-    ImagePilote.Parent:=FormPilote;
-    ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
-    ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
-    ImagePilote.Transparent:=true;
-    ImagePilote.Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
-    LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
-    feux[0].EtatSignal:=feux[i].EtatSignal;
-    if feux[i].aspect>10 then
-    begin
-      GroupBox1.Visible:=false;
-      GroupBox2.Visible:=false;
-      LabelNbFeux.Visible:=true;
-      EditNbreFeux.Visible:=true;
-      EditNbreFeux.Text:='1';
-    end
-    else
-    begin
-      LabelNbFeux.Visible:=False;
-      EditNbreFeux.Visible:=false;
-      GroupBox1.Visible:=true;
-      GroupBox2.Visible:=true;
-    end;
+
   end;
 end;
 
@@ -1516,7 +1796,9 @@ begin
     5 : Bm:=Formprinc.Image5feux.picture.Bitmap;
     7 : Bm:=Formprinc.Image7feux.picture.Bitmap;
     9 : Bm:=Formprinc.Image9feux.picture.Bitmap;
+    20 : Bm:=Formprinc.ImageSignal20.picture.Bitmap;
 
+    // signaux directionnels
     12 : Bm:=Formprinc.Image2Dir.picture.Bitmap;
     13 : Bm:=Formprinc.Image3Dir.picture.Bitmap;
     14 : Bm:=Formprinc.Image4Dir.picture.Bitmap;
@@ -1582,9 +1864,17 @@ begin
     if TypeFeu=3 then feux[rang].EtatSignal:=semaphore_F;
     if (TypeFeu>3) and (TypeFeu<10) and feux[rang].VerrouCarre then feux[rang].EtatSignal:=carre_F;
     if (TypeFeu>3) and (TypeFeu<10) and not(feux[rang].VerrouCarre) then feux[rang].EtatSignal:=semaphore_F;
+    if (TypeFeu>10) and (typeFeu<20) then feux[rang].EtatSignal:=0;
 
-    if TypeFeu>10 then feux[rang].EtatSignal:=0;
-
+    if typeFeu=20 then
+    begin
+      feux[rang].EtatSignal:=semaphore_F;
+      if feux[rang].contrevoie then
+      begin
+        inverse_image(Feux[rang].Img,Formprinc.ImageSignal20);
+        feux[rang].EtatSignal:=feux[rang].EtatSignal+clign_F;
+      end;
+    end;
     dessine_feu_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
     //if feux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
   end;
@@ -2109,10 +2399,25 @@ begin
 end;
 
 // renvoie la chaîne de l'état du signal
-function chaine_signal(etat : word) : string;
+function chaine_signal(etat,decodeur : word) : string;
 var aspect,combine : integer;
     s : string;
 begin
+  if decodeur>=9 then
+  begin
+    // en signalisation belge, on peut avoir plusieurs bits à 1 simultanément en combine
+    code_to_aspect(etat,aspect,combine);
+    combine:=etat and $fc00;
+    // LDT-DEC-NMBS ou b-model
+    s:=EtatSignBelge[Aspect];
+    if combine<>0 then
+    begin
+      if testBit(combine,chiffre) then s:=s+'+'+EtatSignBelge[chiffre];  // bit 10
+      if testBit(combine,chevron) then s:=s+'+'+EtatSignBelge[chevron];  // bit 11
+    end;
+    result:=s;
+    exit;
+  end;
   code_to_aspect(etat,aspect,combine);
   s:='';
   if (aspect=16) then s:='' else begin if aspect<>-1 then s:=etatSign[aspect];end;
@@ -2127,10 +2432,46 @@ begin
   chaine_signal:=s;
 end;
 
-// mise à jour état signal complexe dans le tableau de bits du signal EtatSignalCplx
+procedure Maj_Etat_Signal_Belge(adresse,aspect : integer);
+var i,code,combine : integer;
+    etats : word;
+// La signalisation combinée est à partir du bit 10 (chiffre, chevron)
+begin
+  if debug=3 then formprinc.Caption:='Maj_Etat_Signal '+IntToSTR(adresse);
+  i:=index_feu(adresse);
+//  if testBit(feux[i].EtatSignal,aspect)=false then  // si le bit dans l'état du signal n'est pas allumé, procéder.
+  begin
+    // signalisation de base
+    if aspect<=9 then
+    begin
+      // razer tous les bits non combinés (de 0 à 9)
+      etats:=feux[i].EtatSignal and not($03FF);
+      // et allumer le nouveau
+      etats:=setbit(etats,aspect);
+      feux[i].EtatSignal:=etats;
+    end;
+    // signalisation combinée
+    if aspect>=10 then
+    begin
+      etats:=feux[i].EtatSignal;
+      //si le bit 15 est à 1, c'est l'indicateur de raz
+      if testBit(aspect,setraz) then
+      begin
+        etats:=Razbit(etats,setraz);
+        etats:=RazBit(etats,aspect);
+      end
+      else etats:=setBit(etats,aspect);
+
+      feux[i].EtatSignal:=etats;
+    end;
+  end;
+end;
+
+// mise à jour état signal complexe francais dans le tableau de bits du signal EtatSignalCplx
 // adresse : adresse du signal complexe
 // Aspect : code représentant l'état du signal de 0 à 15
-procedure Maj_Etat_Signal(adresse,aspect : integer);
+// La signalisation combinée est à partir du bit 10 (ralen 30)
+procedure Maj_Etat_Signal_fr(adresse,aspect : integer);
 var i : integer;
 begin
 // ('0carré','1sémaphore','2sémaphore cli','3vert','4vert cli','5violet',
@@ -2183,6 +2524,15 @@ begin
     end;
   end;
   if debug=3 then formprinc.Caption:='';
+end;
+
+procedure Maj_Etat_Signal(adresse,aspect : integer);
+var i,d : integer;
+begin
+  i:=index_feu(adresse);
+  d:=feux[i].aspect;
+  if d=20 then Maj_Etat_Signal_belge(adresse,aspect)
+  else Maj_Etat_Signal_fr(adresse,aspect);
 end;
 
 {=============================================
@@ -2450,12 +2800,12 @@ begin
     code:=feux[i].EtatSignal;
     nombre:=feux[i].Na;          // nombre d'adresses occupées par le signal
     code_to_aspect(code,aspect,combine);
-    s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2505,12 +2855,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     //code_to_aspect(code,aspect,combine);
-    s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[index].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,feux[index].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2571,12 +2921,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[index].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,feux[index].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2625,12 +2975,12 @@ begin
     code:=feux[index].EtatSignal;
     asp:=feux[index].aspect;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Arcomora: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal Arcomora: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[index].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,feux[index].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2744,12 +3094,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2794,12 +3144,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[index].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,feux[index].decodeur);
       AfficheDebug(s,clyellow);
     end;
     // pour Unisemaf, la cible est définie dans le champ Unisemaf de la structure feux
@@ -3290,20 +3640,100 @@ begin
           if ((aspect=jaune) or (aspect=jaune_cli)) and (combine=rappel_60)
                                     then begin pilote_acc(adresse,1,feu);pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
         end;
-    end;    
+    end;
+  end;
+end;
+
+procedure envoi_b_models(adresse : integer);
+var na,code,aspect,combine,mode : integer;
+    afb,recht,i : integer;
+    s : string;
+begin
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then //; && (stop_cmd==FALSE))
+  begin
+    code:=feux[i].EtatSignal;
+    code_to_aspect(code,aspect,combine);
+    s:='Signal b_models: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+    if AffDetSig then
+    begin
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
+      AfficheDebug(s,clyellow);
+    end;
+    na:=feux[i].Na;
+    // doc VB 5 lampes + chiffre + V
+    // marqué recht et Afb dans la doc !!
+    afb:=1; // afb
+    recht:=2; // recht
+    if aspect=semaphore then
+    begin
+      pilote_acc(adresse,afb,feu);
+      if (na>=4) and (combine=chiffre) then pilote_acc(adresse+3,afb,feu);      // chiffre
+      if (na>=5) and (combine=chevron) then pilote_acc(adresse+4,afb,feu);      // chevron
+    end;
+    if aspect=rouge_blanc   then
+    begin
+      pilote_acc(adresse+2,recht,feu);
+      if na>=4 then pilote_acc(adresse+3,afb,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if aspect=vert then
+    begin
+      pilote_acc(adresse,recht,feu);
+      if (na>=4) and (combine=chiffre) then pilote_acc(adresse+3,afb,feu);
+      if (na>=5) and (combine=chevron) then pilote_acc(adresse+4,afb,feu);
+    end;
+    if aspect=deux_jaunes   then
+    begin
+      pilote_acc(adresse+1,afb,feu);
+      if na>=4 then pilote_acc(adresse+3,afb,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if aspect=vert_jaune_H  then
+    begin
+      pilote_acc(adresse+1,recht,feu);
+      if na>=4 then pilote_acc(adresse+3,afb,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if (aspect=vert) and (combine=chiffre)  then
+    begin
+      pilote_acc(adresse,recht,feu)  ;
+      if na>=4 then pilote_acc(adresse+3,recht,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if (aspect=deux_jaunes) then
+    begin
+      pilote_acc(adresse+1,afb,feu)  ;
+      if na>=4 then pilote_acc(adresse+3,recht,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if aspect=vert_jaune_H then
+    begin
+      pilote_acc(adresse+1,recht,feu);
+      if na>=4 then pilote_acc(adresse+3,recht,feu);
+      if na>=5 then pilote_acc(adresse+4,afb,feu);
+    end;
+    if aspect=vert_jaune_V then
+    begin
+      pilote_acc(adresse+1,afb,feu)  ;
+      if na>=4 then pilote_acc(adresse+3,afb,feu);
+      if na>=5 then pilote_acc(adresse+4,recht,feu);
+    end;
+
   end;
 end;
 
 {==========================================================================
-envoie les données au décodeur LDT
-       adresse=adresse sur le BUS DCC
-       code=code d'allumage selon l'adressage (ex carre, vert, rappel_30 ..).
-       mode=mode du décodeur adressé, de 1 à 2
-       un décodeur occupe 8 adresses
-       Le mode 1 permet la commande des signaux de 2, 3 et 4 feux
-       Le mode 2 permet la commande de signaux de plus de 4 feux
-===========================================================================}
-procedure envoi_LDT(adresse : integer);
+envoie les données au décodeur LDT_nmbs (belge)
+seulement 4 aspects !!
+rouge
+vert
+2 jaune (slow approch de la doc ldt)
+blanc
+}
+procedure envoi_ldt_nmbs(adresse : integer);
 var code,aspect,combine,mode : integer;
     i : integer;
     s : string;
@@ -3313,12 +3743,47 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal LDT_NMBS: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
+      AfficheDebug(s,clyellow);
+    end;
+    if aspect=vert          then begin pilote_acc(adresse,2,feu);end;
+    if aspect=semaphore     then begin pilote_acc(adresse,1,feu);end;
+    if aspect=deux_jaunes   then begin pilote_acc(adresse+1,2,feu);end;
+    if aspect=vert_jaune_H  then begin pilote_acc(adresse+1,1,feu);end;
+    // a voir!!!
+  end;
+end;
+
+{==========================================================================
+envoie les données au décodeur LDT_sncf
+       adresse=adresse sur le BUS DCC
+       code=code d'allumage selon l'adressage (ex carre, vert, rappel_30 ..).
+       mode=mode du décodeur adressé, de 1 à 2
+       un décodeur occupe 8 adresses
+       Le mode 1 permet la commande des signaux de 2, 3 et 4 feux
+       Le mode 2 permet la commande de signaux de plus de 4 feux
+===========================================================================}
+procedure envoi_LDT_sncf(adresse : integer);
+var code,aspect,combine,mode : integer;
+    i : integer;
+    s : string;
+begin
+  i:=index_feu(adresse);
+  if (feux[i].AncienEtat<>feux[i].EtatSignal) then //; && (stop_cmd==FALSE))
+  begin
+    code:=feux[i].EtatSignal;
+    code_to_aspect(code,aspect,combine);
+    s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
+    if traceSign then affiche(s,clOrange);
+    if Affsignal then afficheDebug(s,clOrange);
+    if AffDetSig then
+    begin
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3370,7 +3835,7 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
   end;
@@ -3459,12 +3924,12 @@ begin
     code:=feux[i].EtatSignal;
     nombre:=feux[i].Na;          // nombre d'adresses occupées par le signal
     code_to_aspect(code,aspect,combine);
-    s:='Signal digikeijs 4018: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal digikeijs 4018: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3517,12 +3982,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+    s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
     if traceSign then affiche(s,clOrange);
     if Affsignal or traceListe then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,feux[i].decodeur);
       AfficheDebug(s,clyellow);
     end;
     //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
@@ -3633,19 +4098,21 @@ begin
 
   if (feux[i].AncienEtat<>feux[i].EtatSignal) then
   begin
-    if feux[i].aspect<10 then   // si signal non directionnel
+    if (feux[i].aspect<10) or (feux[i].aspect>=20)  then   // si signal non directionnel
     begin
       // envoie la commande au décodeur
       case feux[i].decodeur of
        0 : envoi_virtuel(Adr);
        1 : envoi_signalBahn(Adr);
        2 : envoi_CDF(Adr);
-       3 : envoi_LDT(Adr);
+       3 : envoi_LDT_sncf(Adr);
        4 : envoi_LEB(Adr);
        5 : digi_4018(Adr);
        6 : envoi_UniSemaf(Adr);
        7 : envoi_SR(Adr);
        8 : envoi_arcomora(Adr);
+       9 : envoi_ldt_nmbs(adr);
+       10 : envoi_b_models(adr);
       end;
 
       // Gestion démarrage temporisé des trains si on quitte le rouge : ne fonctionne qu'en roulage
@@ -3730,6 +4197,7 @@ begin
                14 : ImageFeu:=Formprinc.Image4Dir;
                15 : ImageFeu:=Formprinc.Image5Dir;
                16 : ImageFeu:=Formprinc.Image6Dir;
+               20 : ImageFeu:=formprinc.ImageSignal20;
          else ImageFeu:=Formprinc.Image3feux;
          end;
          TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
@@ -5655,7 +6123,7 @@ begin
     exit;
   end;
 
-  if feux[i].aspect>10 then
+  if (feux[i].aspect>10) and (feux[i].aspect<20) then
   begin
     s:='La demande de carré d''un signal directionnel '+IntToSTR(Adresse)+' est irrecevable';
     Affiche(s,clred);
@@ -5977,7 +6445,7 @@ begin
     AdrSignalsuivant:=0;
     exit;
   end;
-  if feux[i].aspect>10 then
+  if (feux[i].aspect>10) and (feux[i].aspect<20) then
   begin
     s:='La demande de l''état du signal suivant depuis un feu directionnel '+IntToSTR(Adresse)+' est irrecevable';
     Affiche(s,clred);
@@ -6130,7 +6598,7 @@ begin
 end;
 
 // renvoie l'adresse de la première aiguille déviée après le signal "adresse" et ce jusqu'au prochain signal
-// sinon renvoie 0
+// sinon il n'y a pas d'aiguille ou si pas dévié, renvoie 0
 // adresse=adresse du signal
 function Aiguille_deviee(adresse : integer) : integer ;
 var AdrFeu,i,j,prec,AdrSuiv,Actuel,index,index2,voie : integer;
@@ -6789,6 +7257,129 @@ begin
   PresTrainPrec:=Pres_Train;
 end;
 
+// met à jour l'état du signel belge selon l'environnement des aiguillages et des trains
+procedure signal_belge(Adrfeu : integer;detect : boolean);
+var adrAig,adr_det,adr_el_suiv,AdrTrainLoc,voie,indexAig,aiguille,etat,AdrSignalsuivant : integer;
+    Btype_el_suivant : TEquipement;
+    car,presTrain,reserveTrainTiers,Aff_Semaphore : boolean;
+    s: string;
+begin
+  if affsignal=false then
+  begin
+    if signalDebug=AdrFeu then AffSignal:=true
+    else affsignal:=false;
+  end;
+  if AffSignal then
+  begin
+    s:='Traitement du signal '+intToSTR(Adrfeu)+'------------------------------------';
+    AfficheDebug(s,clOrange);
+    nivDebug:=3;
+  end;
+
+
+
+  if affSignal then AfficheDebug('Signal belge',clOrange);
+
+  index:=Index_feu(AdrFeu);
+  Adr_det:=Feux[index].Adr_det1;  // détecteur sur le signal
+  Adr_El_Suiv:=Feux[index].Adr_el_suiv1; // adresse élément suivant au feu
+  Btype_el_suivant:=Feux[index].Btype_suiv1;
+  PresTrain:=false;
+
+  // détecteurs précédent le feu , pour déterminer si leurs mémoires de zones sont à 1 pour libérer le carré
+  //if (Feux[index].VerrouCarre) and (modele>=4) then
+  presTrain:=PresTrainPrec(AdrFeu,Nb_cantons_Sig,false,AdrTrainLoc,voie); //etape A   // présence train par adresse train ; renvoie l'adresse du train dans AdrTrainLoc
+  if AffSignal and roulage then AfficheDebug('L''@ du train avant le signal est '+intToSTR(AdrTrainLoc),clYellow);
+
+  // si le signal peut afficher un carré et les aiguillages après le signal sont mal positionnées ou aig réservé ou que pas présence train avant signal et signal
+  // verrouillable au carré, afficher un carré
+
+  car:=carre_signal(AdrFeu,AdrTrainLoc,reserveTrainTiers);  // si reserveTrainTiers, réservé par un autre train
+  if AffSignal and reserveTrainTiers then AfficheDebug('trouvé aiguillage réservé par autre train',clYellow);
+  if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
+  // En mode roulage, si la réservation est faite par le train détecté en étape A, ne pas verrouiller au carré
+  if roulage then car:=reserveTrainTiers or car;
+
+  // conditions supplémentaires de carré en fonction des aiguillages décrits
+  car:=cond_carre(AdrFeu) or car;
+  if AffSignal and feux[index].VerrouilleCarre then AfficheDebug('le signal est verrouillé au carré',clYellow);
+
+
+  if (Feux[index].VerrouCarre and not(presTrain)) or car
+       then Maj_Etat_Signal_belge(AdrFeu,semaphore)
+  else
+  begin
+    // si on quitte le détecteur on affiche un sémaphore :  tester le sens de circulation
+    // pour ne pas passer au rouge un feu à contresens.
+    // trouver la mémoire de zone MemZone[Adr_det,?] qui a déclenché le feu rouge
+    if AffSignal then AfficheDebug('test du sémaphore',clYellow);
+    Aff_semaphore:=test_memoire_zones(AdrFeu);  // test si présence train après signal
+    if Aff_Semaphore then
+    begin
+      if AffSignal then AfficheDebug('Présence train après signal'+intToSTR(AdrFeu)+' -> sémaphore ou carré',clYellow);
+      if testBit(feux[index].EtatSignal,carre)=FALSE then
+      begin
+        if feux[index].checkFR then Maj_Etat_Signal_belge(AdrFeu,semaphore_cli)
+        else Maj_Etat_Signal_belge(AdrFeu,semaphore);
+      end;
+    end
+    else
+    begin
+      // si aiguillage au pied du signal avec chevron
+      if feux[index].Btype_suiv1=aig then
+      begin
+        adrAig:=feux[index].Adr_el_suiv1;
+        IndexAig:=index_aig(adrAig);
+
+        if aiguillage[IndexAig].position=const_devie then
+        begin
+          if feux[index].verscontrevoie then Maj_Etat_Signal_belge(AdrFeu,chevron) else Maj_Etat_Signal_belge(AdrFeu,chevron or setRaz_F);
+          if aiguillage[indexAig].vitesse<>0 then Maj_Etat_Signal_belge(AdrFeu,chiffre)
+            else
+              Maj_Etat_Signal_belge(AdrFeu,chiffre or setRaz_F);
+        end
+        else begin Maj_Etat_Signal_belge(AdrFeu,chiffre or setRaz_F); Maj_Etat_Signal_belge(AdrFeu,chevron or setRaz_F);end;
+      end;
+      etat:=etat_signal_suivant(AdrFeu,1,AdrSignalsuivant) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
+      if adrSignalSuivant=0 then Maj_Etat_Signal_belge(AdrFeu,semaphore)
+      else
+      begin
+        if TestBit(etat,semaphore) or TestBit(etat,carre) or TestBit(etat,rouge_blanc) then Maj_Etat_Signal_belge(AdrFeu,deux_jaunes)
+        else
+        begin
+          if testBit(etat,chiffre) then
+          begin
+            Maj_Etat_Signal_belge(AdrFeu,vert_jaune_H)
+          end
+          else
+          // aiguille signal suivant  droite
+          begin
+            if AffSignal then AfficheDebug('pas d''aiguille déviée',clYellow);
+            // feu vert, vert cli ou blanc
+            //if affsignal then AfficheDebug('test 405',clyellow);
+            if feux[index].checkFB<>nil then
+            begin
+              //if affsignal then AfficheDebug('test 406',clyellow);
+              if feux[index].checkFB.Checked then
+                Maj_Etat_Signal_belge(AdrFeu,rouge_blanc)
+                  else Maj_Etat_Signal_belge(AdrFeu,vert);
+            end
+            else
+            begin
+              if feux[index].checkFV then Maj_Etat_Signal_belge(AdrFeu,vert_cli)
+              else Maj_Etat_Signal_belge(AdrFeu,vert);
+              //if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  envoi_signal(AdrFeu);
+  if signalDebug=AdrFeu then begin AffSignal:=false;nivDebug:=0;end;
+  if debug=3 then formprinc.Caption:='';
+end;
+
 
 // mise à jour de l'état d'un signal en fonction de son environnement et affiche le signal
 // AdrFeu: adresse du signal
@@ -6815,15 +7406,22 @@ begin
   index:=index_feu(Adrfeu);
   if (Nivdebug>=1) then AfficheDebug('Proc Maj_feu '+IntToSTR(adrFeu),clorange);
 
-  if (AdrFeu<>0) and (index<>0) then
-  begin
+  if (AdrFeu=0) or (index=0) then exit;
+
     modele:=Feux[index].aspect;
+
+  if modele=20 then
+  begin
+    signal_belge(AdrFeu,detect);
+    exit;
+  end;
+
     Adr_det:=Feux[index].Adr_det1;  // détecteur sur le signal
     Adr_El_Suiv:=Feux[index].Adr_el_suiv1; // adresse élément suivant au feu
     Btype_el_suivant:=Feux[index].Btype_suiv1;
 
     // signal directionnel ?
-    if (modele>10) then
+    if (modele>10) and (modele<20) then
     begin
       //Affiche('Signal directionnel '+IntToSTR(AdrFeu),clyellow);
       Signal_direction(AdrFeu);
@@ -6889,7 +7487,7 @@ begin
       //if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if AffSignal and feux[index].VerrouilleCarre then AfficheDebug('le signal est verrouillé au carré',clYellow);
 
-      if (modele>=4) and Feux[index].VerrouCarre and 
+      if (modele>=4) and Feux[index].VerrouCarre and
                          ( (not(PresTrain) or car or feux[index].Verrouillecarre) ) then Maj_Etat_Signal(AdrFeu,carre)
       else
       begin
@@ -6999,7 +7597,7 @@ begin
         end;
       end;
     end;
-  end;
+
   envoi_signal(AdrFeu);
   if signalDebug=AdrFeu then begin AffSignal:=false;nivDebug:=0;end;
   if debug=3 then formprinc.Caption:='';
@@ -11521,9 +12119,10 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var aspect,i,a,x,y,Bimage,adresse,TailleX,TailleY,orientation : integer;
+var aspect,i,a,x,y,Bimage,combine,adresse,TailleX,TailleY,orientation : integer;
    imageFeu : Timage;
    frx,fry : real;
+   faire : boolean;
     s : string;
 begin
   inc(tick);
@@ -11560,12 +12159,23 @@ begin
     begin
       a:=feux[i].EtatSignal;     // a = état binaire du feu
       adresse:=feux[i].adresse;
-      if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
-         TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
-         testBit(a,vert_cli)  or testbit(a,blanc_cli) then
+      // signal belge
+      if feux[i].aspect=20 then
       begin
-        Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
-        //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
+        // signal belge
+        if TestBit(a,clign) then
+           begin
+           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+           end;
+      end
+      else
+      begin
+        // signal français
+        if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+           testBit(a,vert_cli)  or testbit(a,blanc_cli) then
+           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+          //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
       end;
     end;
 
@@ -11583,9 +12193,17 @@ begin
           adresse:=TCO[x,y].adresse;
           i:=index_feu(adresse);
           a:=feux[i].EtatSignal;     // a = état binaire du feu
-          if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
-          TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
-          testBit(a,vert_cli) or testbit(a,blanc_cli) then
+          faire:=false;
+          if feux[i].aspect<>20 then
+            faire:=TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+            testBit(a,vert_cli) or testbit(a,blanc_cli)
+          else
+          begin
+            combine:=a and $fc00;
+            faire:=testBit(combine,clign);
+          end;
+          if faire then
           begin
             aspect:=feux[index_feu(adresse)].Aspect;
             case aspect of
@@ -11613,13 +12231,25 @@ begin
     if AdrPilote<>0 then
     begin
       a:=feux[0].EtatSignal;
-      if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
-         TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
-         testBit(a,vert_cli) or testbit(a,blanc_cli) then
-         Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+      if feux[0].aspect<>20 then
+      begin
+        if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+           TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+           testBit(a,vert_cli) or testbit(a,blanc_cli) then
+           Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+      end
+      else
+      begin
+        if feux[0].aspect=20 then
+        begin
+          // signal belge
+          if TestBit(a,clign) then Dessine_feu_pilote;
+        end;
+      end;
+
     end;
 
-    // fenetre de config du signal CDF 
+    // fenetre de config du signal CDF
     if dessineCDF then
     begin
       a:=feux[0].EtatSignal;
@@ -11846,7 +12476,8 @@ end;
 procedure TFormprinc.proc_checkBoxFB(Sender : Tobject);
 var s : string;
     Cb : TcheckBox;
-    etat,adresse : integer;
+    etat : word;
+    aspect,combine,adresse : integer;
     i : word;
     coche : boolean;
 begin
@@ -11859,8 +12490,9 @@ begin
     i:=index_feu(adresse);
     if i=0 then exit;
     etat:=feux[i].EtatSignal;
+    code_to_aspect(etat,aspect,combine);
     // si le feu est vert et que la coche est mise, substituer le blanc
-    if ((etat=vert_F) or (etat=vert_cli_F)) and coche then
+    if ((aspect=vert) or (aspect=vert_cli)) and coche then
     begin
       Maj_Etat_Signal(Adresse,blanc);
       Envoi_signauxCplx;
@@ -13511,7 +14143,7 @@ end;
 
 procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
 var s: string;
-    i,aspect,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie : integer;
+    etat,index,i,k,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie : integer;
     reserveTrainTiers : boolean;
     code : word;
 begin
@@ -13521,18 +14153,20 @@ begin
   adresse:=extract_int(s);   // extraire l'adresse (ex 260)
 
   i:=index_feu(Adresse);
-  if feux[i].aspect>10 then exit;
+  n:=feux[i].aspect;
+  if (n>10) and (n<20) then exit;
   code:=feux[i].EtatSignal;
   code_to_aspect(code,aspect,combine);
-  s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(code);
+  s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(code,feux[i].decodeur);
   Affiche(s,clYellow);
   //Affiche(IntToSTR(aspect),clred);
   //Affiche(IntToSTR(combine),clred);
 
+  s:='Le signal '+intToSTR(adresse)+' présente '+chaine_signal(code,feux[i].decodeur)+' car ';
   // carré
-  if aspect=0 then
+  if (aspect=carre) and (n<>20) then
   begin
-    Affiche('Le signal '+intToSTR(adresse)+' est au carré car ',clyellow);
+    Affiche(s,clyellow);
     if carre_signal(Adresse,trainreserve,reserveTrainTiers) then affiche('les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues',clyellow) ;
     if reserveTrainTiers then affiche('un aiguillage ou un croisement en aval du signal sont réservés par un autre train ',clyellow);
     if Cond_Carre(Adresse) then affiche_suivi('les aiguillages déclarés dans la définition du signal sont mal positionnés',clyellow);
@@ -13540,39 +14174,73 @@ begin
     if test_memoire_zones(Adresse) then affiche('présence train dans canton suivant le signal',clyellow);
     if feux[i].VerrouilleCarre then affiche('le signal est verrouillé au carré dans la fenêtre de pilotage',clYellow);
   end;
-  if aspect=1 then
+
+  if (aspect=vert_jaune_H) and (n=20) then
   begin
-    Affiche('Le signal '+intToSTR(adresse)+' est au sémaphore car ',clyellow);
-    if test_memoire_zones(Adresse) then affiche_suivi('présence train dans canton après le signal',clyellow);
+    etat:=etat_signal_suivant(Adresse,1,AdrSignalsuivant) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
+    if testbit(etat,chiffre) then
+    begin
+      s:=s+'le signal suivant '+intToSTR(adrSignalSuivant)+' affiche une réduction de vitesse ';
+      Affiche(s,clyellow);
+    end;
   end;
-  // avertissement
-  if aspect=8 then
+
+
+  if aspect=semaphore then
+  begin
+    Affiche(s,clyellow);
+    if test_memoire_zones(Adresse)  then affiche_suivi('présence train dans canton après le signal',clyellow);
+    if n=20 then
+    begin
+      // signal belge
+      if carre_signal(Adresse,trainreserve,reserveTrainTiers) then affiche('les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues',clyellow) ;
+      if reserveTrainTiers then affiche('un aiguillage ou un croisement en aval du signal sont réservés par un autre train ',clyellow);
+      if Cond_Carre(Adresse) then affiche_suivi('les aiguillages déclarés dans la définition du signal sont mal positionnés',clyellow);
+      if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,false,TrainReserve,voie)) then affiche('le signal est verrouillable au carré et aucun train n''est présent avant le signal',clyellow);
+      if test_memoire_zones(Adresse) then affiche('présence train dans canton suivant le signal',clyellow);
+      if feux[i].VerrouilleCarre then affiche('le signal est verrouillé au carré dans la fenêtre de pilotage',clYellow);
+    end;
+  end;
+  // avertissement ou deux-jaunes (belge)
+  if aspect=jaune then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche('Le signal '+intToSTR(adresse)+' est à l''avertissement car son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i),clyellow);
+    index:=index_feu(AdrSignalSuivant);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,feux[index].decodeur),clyellow);
   end;
    // avertissement cli
-  if aspect=9 then
+  if aspect=jaune_cli then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche('Le signal '+intToSTR(adresse)+' est au jaune cli car son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i),clyellow);
+    index:=index_feu(AdrSignalSuivant);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,feux[index].decodeur),clyellow);
   end;
   // ralen 30
-  if combine=10 then
+  if (combine=10) and (n<>20) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche('Le signal '+intToSTR(adresse)+' est au ralentissement 30 car son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i),clyellow);
+    index:=index_feu(AdrSignalSuivant);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,feux[index].decodeur),clyellow);
   end;
-  if combine=11 then
+  if (combine=11)  and (n<>20) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche('Le signal '+intToSTR(adresse)+' est au ralentissement 60 car son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i),clyellow);
+    index:=index_feu(AdrSignalSuivant);
+    Affiche(s+'car son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,feux[index].decodeur),clyellow);
   end;
-  if (combine=12) or (combine=13) then
+  if ((combine=12) or (combine=13)) and (n<>20) then
   begin
     Aig:=Aiguille_deviee(Adresse);
     // si aiguille locale déviée
-    if (aig<>0) then Affiche('Le signal '+intToSTR(adresse)+' est à rappel 30 car l''aiguillage suivant '+intToSTR(Aig)+' est dévié',clyellow);
+    if (aig<>0) then Affiche(s+'l''aiguillage suivant '+intToSTR(Aig)+' est dévié',clyellow);
+  end;
+
+  // chiffre et signal belge
+  if (combine=10) and (n=20) then
+  begin
+    aig:=feux[i].Adr_el_suiv1;
+    aig:=index_aig(aig);
+    Affiche(s+'le signal doit être franchi à <'+intToSTR(aiguillage[aig].vitesse)+'km/h',clyellow);
   end;
 
 end;
@@ -14023,6 +14691,6 @@ begin
 end;
 
 
-
+
 end.
 

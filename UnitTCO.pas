@@ -450,6 +450,7 @@ procedure grise_ligne_tco;
 procedure change_couleur_fond;
 function verif_cellule(x,y,Bim : integer) : boolean;
 procedure dessine_icones;
+procedure echange(var a,b : integer);
 
 implementation
 
@@ -478,6 +479,7 @@ var fichier : textfile;
     end;
 
 begin
+  //Affiche(GetCurrentDir,clYellow);
   {$I+}
   try
     assign(fichier,'tco.cfg');
@@ -4309,7 +4311,7 @@ end;
 
 // Affiche dans le TCO en x,y un signal à 90° d'après l'image transmise
 // x y en coordonnées pixels
-procedure Feu_90G(ImageSource : TImage;x,y : integer;FrX,FrY : real);
+procedure Feu_90G(ImageSource : TImage;x,y : integer;FrX,FrY : real;inverse : boolean);
 var p : array[0..2] of TPoint;
     TailleY,TailleX : integer;
 begin
@@ -4323,9 +4325,17 @@ begin
   p[1].Y:=TailleX;  //49;
   p[2].X:=0;  //0;
   p[2].Y:=0;  //0;
-  // copie l'image du signal depuis imagesource vers image temporaire à la même échelle mais retournée à 90°
-  PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
 
+  if inverse then
+  begin
+    inverse_image(FormTCO.ImageTemp2,ImageSource);
+    // copie l'image du signal depuis imagesource vers image temporaire à la même échelle mais retournée à 90°
+    PlgBlt(PImageTemp.Canvas.Handle,p,FormTCO.ImageTemp2.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
+  end
+  else
+    PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
+
+  //PimageTemp.Visible:=true;
   // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparennt
   TransparentBlt(PcanvasTCO.Handle,x,y,round(TailleY*FrY),round(TailleX*FrX),   // destination
                  PImageTemp.Canvas.Handle,0,0,TailleY,TailleX,clBlue);    // source - clblue est la couleur de transparence
@@ -4333,7 +4343,7 @@ begin
 end;
 
 // copie de l'image du signal à 90° dans le canvas source et le tourne de 90° et le met dans l'image temporaire
-procedure Feu_90D(ImageSource : TImage;x,y : integer ; FrX,FrY : real);
+procedure Feu_90D(ImageSource : TImage;x,y : integer ; FrX,FrY : real;inverse : boolean);
 var p : array[0..2] of TPoint;
     TailleY,TailleX  : integer;
 begin
@@ -4347,8 +4357,15 @@ begin
   p[1].Y:=0;
   p[2].X:=TailleY;  //90;
   p[2].Y:=TailleX;  //49;
-  // copie l'image du signal depuis imagesource vers image temporaire à la même échelle mais retournée à 90°
-  PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
+
+  if inverse then
+  begin
+    inverse_image(FormTCO.ImageTemp2,ImageSource);
+    // copie l'image du signal depuis imagesource vers image temporaire à la même échelle mais retournée à 90°
+    PlgBlt(PImageTemp.Canvas.Handle,p,FormTCO.ImageTemp2.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
+  end
+  else
+    PlgBlt(PImageTemp.Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
 
   // et copier l'image avec mise à l'échelle tournée sur le TCO
   TransparentBlt(PcanvasTCO.Handle,x,y,round(tailleY*FrY),round(tailleX*FrX),
@@ -4682,6 +4699,7 @@ begin
     // if (tco[x-1,y].BImage=12) and (tco[x-1,y].FeuOriente=3) then exit;
   end;
   }
+  if (x>NbreCellX) or (y>NbreCellY) or (x<1) or (y<1) then exit;
 
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -4700,12 +4718,13 @@ begin
 end;
 
 // Dessine un signal dans le canvasDest en x,y , dont l'adresse se trouve à la cellule x,y
-procedure dessin_feu(CanvasDest : Tcanvas;x,y : integer );
-var  x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY : integer;
+procedure dessin_Signal(CanvasDest : Tcanvas;x,y : integer );
+var  index,x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY : integer;
      ImageFeu : Timage;
      frX,frY : real;
 begin
   //Efface_Cellule(CanvasDest,x,y,pmCopy);
+  if (x>NbreCellX) or (y>NbreCellY) or (x<1) or (y<1) then exit;
 
   xp:=(x-1)*LargeurCell;
   yp:=(y-1)*HauteurCell;
@@ -4714,7 +4733,8 @@ begin
   Orientation:=TCO[x,y].FeuOriente;
   if Orientation=0 then Orientation:=1;  // cas d'un signal non encore renseigné
 
-  aspect:=feux[index_feu(adresse)].aspect;
+  index:=index_feu(adresse);
+  aspect:=feux[index].aspect;
   if aspect=0 then aspect:=9;
   //if aspect>9 then exit;
   //Affiche(IntToSTR(i)+' '+intToSTR(aspect),clred);
@@ -4731,6 +4751,7 @@ begin
   14 : ImageFeu:=Formprinc.Image4Dir;
   15 : ImageFeu:=Formprinc.Image5Dir;
   16 : ImageFeu:=Formprinc.Image6Dir;
+  20 : ImageFeu:=formprinc.ImageSignal20;
 
   else ImageFeu:=Formprinc.Image9feux;
   end;
@@ -4745,6 +4766,7 @@ begin
   x0:=0;y0:=0; // pour les signaux directionnels
   if orientation=3 then  //D
   begin
+    if aspect=20 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end;
     if aspect=9 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end;
     if aspect=7 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end;
     if aspect=5 then begin x0:=0; y0:=round((tailleX/2)*frY);end;
@@ -4756,6 +4778,7 @@ begin
   // décalage en X pour mettre la tete du signal alignée sur le bord droit de la cellule pour les signaux tournés à 90G
   if orientation=2 then
   begin
+    if aspect=20 then begin x0:=0; y0:=0;end;
     if aspect=9 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end;
     if aspect=7 then begin x0:=round(10*frX); y0:=HauteurCell-round(tailleX*frY);end;
     if aspect=5 then begin x0:=round(10*frX); y0:=round((tailleX/2)*frY);end;
@@ -4767,6 +4790,7 @@ begin
   // décalage en X pour rapprocher le signal du le bord droit de la cellule pour les feux verticaux
   if orientation=1 then
   begin
+    if aspect=20 then begin x0:=0; y0:=0; end;
     if aspect=9 then begin x0:=0; y0:=0; end;
     if aspect=7 then begin x0:=0; y0:=0; end;
     if aspect=5 then begin x0:=round(13*frx); y0:=0;end;
@@ -4782,11 +4806,22 @@ begin
   // affichage du signal et du pied - orientation verticale
   if (Orientation=1) then
   begin
-    // copie avec mise à l'échelle de l'image du signal
-    TransparentBlt(canvasDest.Handle,x0,y0,round(TailleX*frX),round(TailleY*frY),
+    // si inversion
+    if feux[index].contrevoie then
+    begin
+      inverse_image(FormTCO.ImageTemp,ImageFeu);
+      // copie avec mise à l'échelle de l'image du signal
+      TransparentBlt(canvasDest.Handle,x0,y0,round(TailleX*frX),round(TailleY*frY),
+                   FormTCO.ImageTemp.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
+    end
+    else
+      // copie avec mise à l'échelle de l'image du signal
+      TransparentBlt(canvasDest.Handle,x0,y0,round(TailleX*frX),round(TailleY*frY),
                    ImageFeu.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
+
     PImageTCO.Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
     case aspect of
+    20 : affiche_pied_Vertical5G(x0+round(10*frx),y0+hauteurCell-round(10*fry),frX,frY,piedFeu);
     9 : affiche_pied_Vertical9G(x0,y0,frX,frY,piedFeu);
     7 : affiche_pied_Vertical7G(x0,y0,frX,frY,piedFeu);
     5 : affiche_pied_Vertical5G(x0,y0,frX,frY,piedFeu);
@@ -4799,9 +4834,10 @@ begin
   // affichage du feu et du pieds - orientation 90°G
   if Orientation=2 then
   begin
-    Feu_90G(ImageFeu,x0,y0,frX,frY); // ici on passe l'origine du signal
+    Feu_90G(ImageFeu,x0,y0,frX,frY,feux[index].contrevoie); // ici on passe l'origine du signal
     // dessiner le pied
     case aspect of
+    20 : affiche_pied5G_90G(x0+2,y0+round(fry*5),frX,frY,piedFeu);
     9 : affiche_pied9G_90G(x0,y0,frX,frY,piedFeu);
     7 : affiche_pied7G_90G(x0,y0,frX,frY,piedFeu);
     5 : affiche_pied5G_90G(x0,y0,frX,frY,piedFeu);
@@ -4814,9 +4850,10 @@ begin
   // affichage du signal et du pied - orientation 90°D
   if Orientation=3 then
   begin
-    Feu_90D(ImageFeu,x0,y0,frX,frY);
+    Feu_90D(ImageFeu,x0,y0,frX,frY,feux[index].contrevoie);
     // dessiner le pied
     case aspect of
+    20 : affiche_pied5G_90D(x0+(largeurCell div 2)+round(frx*12),y0+(hauteurCell div 2),frX,frY,piedFeu);
     9 : affiche_pied9G_90D(x0,y0,frX,frY,piedFeu);
     7 : affiche_pied7G_90D(x0,y0,frX,frY,piedFeu);
     5 : affiche_pied5G_90D(x0,y0,frX,frY,piedFeu);
@@ -4845,7 +4882,8 @@ end;
 // affiche la cellule x et y en cases
 // index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
 procedure affiche_cellule(x,y : integer);
-var i,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
+var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
+    inverse : boolean;
     s : string;
 begin
   //if tco[x,y].BImage=0 then exit;
@@ -4891,7 +4929,7 @@ begin
    23,31 : dessin_31(PCanvasTCO,X,Y,mode);
    24 : dessin_24(PCanvasTCO,X,Y,mode);
    25 : dessin_25(PCanvasTCO,X,Y,mode);
-   30 : dessin_feu(PCanvasTCO,X,Y);
+   30 : dessin_Signal(PCanvasTCO,X,Y);
    end;
 
   PCanvasTCO.font.Size:=(LargeurCell div 10)+4  ;
@@ -5004,10 +5042,29 @@ begin
   // adresse des signaux
   if (BImage=30) and (adresse<>0) then
   begin
-    aspect:=feux[index_feu(adresse)].Aspect;
+    index:=index_feu(adresse);
+    aspect:=feux[index].Aspect;
     oriente:=TCO[x,y].FeuOriente;
     pied:=TCO[x,y].PiedFeu;
+    inverse:=feux[index].contrevoie;
     xt:=0;yt:=0;
+    if (aspect=20) and (Oriente=1) then
+    begin
+      if inverse then begin xt:=2;yt:=2*HauteurCell-round(16*fryGlob);end
+      else
+      begin xt:=(largeurCell div 2)+round(5*frXglob);yt:=2*HauteurCell-round(20*fryGlob); end;
+    end;
+    if (aspect=20) and (Oriente=2) then
+    begin
+      if inverse then begin xt:=round(20*frxGlob);yt:=round(3*fryGlob);end
+      else
+      begin xt:=round(10*frxGlob);yt:=HauteurCell-round(16*fryGlob);end;
+    end;
+    if (aspect=20) and (Oriente=3) then
+    begin
+      if inverse then begin xt:=largeurCell+round(10*frxGlob);yt:=HauteurCell-round(16*fryGlob);end
+      else begin xt:=largeurCell+round(10*frxGlob);yt:=round(1*fryGlob);end;
+    end;
     if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell-round(25*frXGlob);yt:=2*HauteurCell-round(25*fryGlob);end;
     if (aspect=9) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=HauteurCell-round(17*frYGlob);end;    // orientation G
     if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell+round(25*frXglob);yt:=1;end;
@@ -5028,9 +5085,9 @@ begin
     if (aspect=2) and (Oriente=1) and (pied=1) then begin xt:=round(45*frXglob);yt:=1;end;  // signal à gauche
     if (aspect=2) and (Oriente=2) then begin xt:=round(10*frXGlob);yt:=HauteurCell;end;  // orientation G
     if (aspect=2) and (Oriente=3) then begin xt:=round(10*frXGlob);yt:=HauteurCell;end;  // orientation D
-    if (aspect>10) and (oriente=1) then begin xt:=1;yt:=HauteurCell-round(14*frYGlob);end;
-    if (aspect>10) and (oriente=2) then begin xt:=LargeurCell-round(15*frXGlob);yt:=0;end;
-    if (aspect>10) and (oriente=3) then begin xt:=LargeurCell-round(15*frXGlob);yt:=0;end;
+    if (aspect>10) and (aspect<20) and(oriente=1) then begin xt:=1;yt:=HauteurCell-round(14*frYGlob);end;
+    if (aspect>10) and (aspect<20) and (oriente=2) then begin xt:=LargeurCell-round(15*frXGlob);yt:=0;end;
+    if (aspect>10) and (aspect<20) and (oriente=3) then begin xt:=LargeurCell-round(15*frXGlob);yt:=0;end;
 
     with PCanvasTCO do
     begin
@@ -6104,7 +6161,6 @@ begin
     trackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
 
     ScrollBox.Width:=clientWidth-80;
-    //ScrollBox.Width:=clientWidth-200;
     if MasqueBandeauTCO then
     begin
       ButtonAfficheBandeau.visible:=true;
@@ -8032,7 +8088,7 @@ begin
   tco[XClicCell,YClicCell].y:=0;
   // ne pas convertir l'adresse sinon evt changement du composant et on écrase l'aspect EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
-  Dessin_feu(ImageTCO.Canvas,XClicCell,YClicCell);
+  Dessin_Signal(ImageTCO.Canvas,XClicCell,YClicCell);
 end;
 
 
@@ -8136,7 +8192,6 @@ begin
   end;
 
   tco[XClicCell,YClicCell].FeuOriente:=3;  // feu orienté à 90° droit
-  //dessin_feu(PCanvasTCO,XclicCell,YClicCell);
   Affiche_TCO;
   actualise;    // met à jour la fenetre de config de la cellule
 end;
@@ -8185,7 +8240,6 @@ begin
   end;
 
   tco[XClicCell,YClicCell].FeuOriente:=1;  // signal orienté à 180°
-  //dessin_feu(PCanvasTCO,XclicCell,YClicCell);
   affiche_tco;
   actualise;    // met à jour la fenetre de config de la cellule
 end;
@@ -8368,7 +8422,7 @@ begin
       efface_entoure;
       SelectionAffichee:=false;
 
-      if feux[i].aspect>10 then
+      if (feux[i].aspect>10) and (feux[i].aspect<20) then
       begin
         GroupBox1.Visible:=false;
         GroupBox2.Visible:=false;
@@ -8381,7 +8435,7 @@ begin
         LabelNbFeux.Visible:=False;
         EditNbreFeux.Visible:=false;
         GroupBox1.Visible:=true;
-        GroupBox2.Visible:=true;
+        if (feux[i].aspect<20) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
       end;
     end;
   end;
