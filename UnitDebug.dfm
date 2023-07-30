@@ -20,8 +20,8 @@ object FormDebug: TFormDebug
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   DesignSize = (
-    831
-    749)
+    839
+    757)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel

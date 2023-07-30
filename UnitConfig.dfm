@@ -1570,8 +1570,8 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 633
-    Height = 505
-    ActivePage = TabSheetSig
+    Height = 497
+    ActivePage = TabSheetDecodeurs
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3158,7 +3158,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3262,22 +3262,9 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
-          Items.Strings = (
-            '2 feux'
-            '3 feux'
-            '4 feux'
-            '5 feux'
-            '7 feux'
-            '9 feux'
-            'Directionnel 2 feux'
-            'Directionnel 3 feux'
-            'Directionnel 4 feux'
-            'Directionnel 5 feux'
-            'Directionnel 6 feux'
-            'Signal belge type 1')
         end
         object EditSpecUni: TEdit
           Left = 8
@@ -3435,6 +3422,169 @@ object FormConfig: TFormConfig
         Height = 21
         TabOrder = 6
         OnChange = EditTempoFeuChange
+      end
+    end
+    object TabSheetDecodeurs: TTabSheet
+      Caption = 'D'#233'codeurs'
+      ImageIndex = 8
+      object Label61: TLabel
+        Left = 13
+        Top = 4
+        Width = 284
+        Height = 19
+        Caption = 'D'#233'codeurs personnalis'#233's de signaux'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -16
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label62: TLabel
+        Left = 24
+        Top = 40
+        Width = 36
+        Height = 16
+        Caption = 'Etats'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label63: TLabel
+        Left = 160
+        Top = 24
+        Width = 73
+        Height = 32
+        Caption = 'D'#233'calage d'#39'adresse'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+        WordWrap = True
+      end
+      object Label66: TLabel
+        Left = 256
+        Top = 40
+        Width = 50
+        Height = 16
+        Caption = 'Sorties'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+        WordWrap = True
+      end
+      object GroupBox26: TGroupBox
+        Left = 376
+        Top = 64
+        Width = 241
+        Height = 393
+        Caption = 'Commandes'
+        TabOrder = 0
+        object Label67: TLabel
+          Left = 22
+          Top = 24
+          Width = 195
+          Height = 20
+          Caption = 'Nom du d'#233'codeur personnalis'#233
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -16
+          Font.Name = 'Arial Narrow'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label65: TLabel
+          Left = 19
+          Top = 96
+          Width = 126
+          Height = 39
+          Alignment = taRightJustify
+          Caption = 'Nombre d'#39'adresses occup'#233'es par le signal sur le d'#233'codeur:'
+          WordWrap = True
+        end
+        object Label64: TLabel
+          Left = 64
+          Top = 160
+          Width = 105
+          Height = 13
+          Caption = 'Signalisation nationale'
+        end
+        object Label68: TLabel
+          Left = 23
+          Top = 356
+          Width = 178
+          Height = 13
+          Caption = 'Nombre de d'#233'codeurs personnalis'#233's :'
+        end
+        object LabelNbDecPers: TLabel
+          Left = 208
+          Top = 356
+          Width = 6
+          Height = 13
+          Caption = '0'
+        end
+        object ComboBoxDecodeurPerso: TComboBox
+          Left = 24
+          Top = 56
+          Width = 193
+          Height = 21
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = ComboBoxDecodeurPersoChange
+        end
+        object EditNbreAdr: TEdit
+          Left = 168
+          Top = 104
+          Width = 49
+          Height = 21
+          TabOrder = 1
+          Text = '2'
+          OnChange = EditNbreAdrChange
+        end
+        object ComboBoxNation: TComboBox
+          Left = 48
+          Top = 176
+          Width = 145
+          Height = 21
+          ItemHeight = 13
+          TabOrder = 2
+          OnChange = ComboBoxNationChange
+          Items.Strings = (
+            'Fran'#231'aise'
+            'Belge')
+        end
+        object BoutonNouveau: TButton
+          Left = 86
+          Top = 216
+          Width = 75
+          Height = 25
+          Hint = 'Ajouter un nouveau d'#233'codeur personnalis'#233
+          Caption = 'Nouveau'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+          OnClick = BoutonNouveauClick
+        end
+        object ButtonSup: TButton
+          Left = 86
+          Top = 248
+          Width = 75
+          Height = 25
+          Hint = 'Supprimer le d'#233'codeur personnalis'#233
+          Caption = 'Supprimer'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
+          OnClick = ButtonSupClick
+        end
       end
     end
     object TabSheetAct: TTabSheet

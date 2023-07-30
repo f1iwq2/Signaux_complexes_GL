@@ -340,6 +340,22 @@ type
     CheckBoxContreVoie: TCheckBox;
     RadioButtonSpecifique: TRadioButton;
     EditSpecifique: TEdit;
+    TabSheetDecodeurs: TTabSheet;
+    Label61: TLabel;
+    Label62: TLabel;
+    Label63: TLabel;
+    Label66: TLabel;
+    GroupBox26: TGroupBox;
+    Label67: TLabel;
+    ComboBoxDecodeurPerso: TComboBox;
+    Label65: TLabel;
+    EditNbreAdr: TEdit;
+    Label64: TLabel;
+    ComboBoxNation: TComboBox;
+    BoutonNouveau: TButton;
+    ButtonSup: TButton;
+    Label68: TLabel;
+    LabelNbDecPers: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -506,10 +522,18 @@ type
     procedure CheckBoxVersContrevoieClick(Sender: TObject);
     procedure CheckBoxContreVoieClick(Sender: TObject);
     procedure EditSpecifiqueChange(Sender: TObject);
+    procedure BoutonNouveauClick(Sender: TObject);
+    procedure EditNbreAdrChange(Sender: TObject);
+    procedure ComboBoxDecodeurPersoChange(Sender: TObject);
+    procedure ButtonSupClick(Sender: TObject);
+    procedure ComboBoxNationChange(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
+    procedure modif_editT(Sender : TObject);
+    procedure modif_ComboTS(Sender : TObject);
+    procedure modif_ComboL(Sender : TObject);
   end;
 
 const
@@ -564,7 +588,9 @@ section_dccpp_ch='[section_dcc++]';
 section_initpp_ch='[init_dcc++]';
 section_trains_ch='[section_trains]';
 section_placement_ch='[section_placement]';
-
+section_DecPers_ch='[section_decodeurs]';
+Nba_ch='NombreAdresses';
+nation_ch='Nation';
 
 var
   FormConfig: TFormConfig;
@@ -575,12 +601,16 @@ var
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC : integer;
+  ligneDCC,decCourant,ligne_signal : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
-  trouveAvecVerifIconesTCO,Affiche_avert,activ : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
   fichier : text;
+
+  EditT  : Array[1..10] of Tedit;
+  ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
+  ShapeT : array[1..10] of TShape;
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
@@ -634,14 +664,16 @@ begin
   place_id:=s;
 end;
 
-procedure Maj_Hint_Signal(i : integer);
+procedure Maj_Hint_Signal(indexFeu : integer);
 var s : string;
 begin
   // ne pas supprimer le @= qui sert de marqueur pour identifier le feu
-  s:='@='+inttostr(feux[i].Adresse)+' Decodeur='+intToSTR(feux[i].Decodeur)+' Adresse détecteur associé='+intToSTR(feux[i].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(feux[i].Adr_el_suiv1);
-  if feux[i].Btype_suiv1=aig then s:=s+' (aig)';
-  feux[i].Img.Hint:=s;
+  s:='Index='+IntToSTR(IndexFeu)+' @='+inttostr(feux[IndexFeu].Adresse)+' Décodeur='+decodeur[feux[IndexFeu].Decodeur]+
+       ' Adresse détecteur associé='+intToSTR(feux[IndexFeu].Adr_det1)+
+       ' Adresse élement suivant='+intToSTR(feux[IndexFeu].Adr_el_suiv1);
+  if feux[IndexFeu].Btype_suiv1=aig then s:=s+' (aig)';
+
+  feux[indexFeu].Img.Hint:=s;
 end;
 
 // demande les services Com-IP à CDM
@@ -981,6 +1013,7 @@ begin
   s:=s+IntToSTR(feux[i].decodeur)+',';
 
   // detecteur et élement suivant (4 maxi)
+  // signal non directionnel
   if (aspect<10) or (aspect>=20) then
   begin
     s:=s+'('+IntToSTR(feux[i].Adr_det1)+','+TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
@@ -1059,7 +1092,7 @@ begin
     for j:=1 to NfeuxDir+1 do
     begin
       s:=s+'(';
-      for k:=1 to Length(feux[i].AigDirection[j])-1 do
+      for k:=1 to Length(feux[i].AigDirection[j])-1 do    // boum
       begin
         s:=s+'A'+IntToSTR(feux[i].AigDirection[j][k].adresse) + feux[i].AigDirection[j][k].posaig;
         if k<Length(feux[i].AigDirection[j])-1 then s:=s+',';
@@ -1171,7 +1204,7 @@ begin
             j:=pos(',',s);
             val(s,Feux[i].decodeur,erreur);
 
-            if (Feux[i].decodeur>NbDecodeur-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Feux[i].decodeur),clred);
+            if (Feux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Feux[i].decodeur),clred);
             if j<>0 then delete(s,1,j);
             feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
             feux[i].Btype_Suiv1:=rien;feux[i].Btype_Suiv2:=rien;feux[i].Btype_Suiv3:=rien;feux[i].Btype_Suiv4:=rien;
@@ -1516,7 +1549,7 @@ end;
 procedure genere_config;
 var s: string;
     fichierN : text;
-    i : integer;
+    i,j,n : integer;
 begin
   assign(fichierN,NomConfig);
   rewrite(fichierN);
@@ -1659,6 +1692,30 @@ begin
   writeln(fichierN,'0');
 
   writeln(fichierN,'/------------');
+
+  // décodeurs de signaux personnalisés (sauver avant les signaux pour avoir la liste des décodeurs personnalisés
+  writeln(fichierN,section_DecPers_ch);
+  for i:=1 to NbreDecPers do
+  begin
+    writeln(fichierN,decodeur_pers[i].nom);
+    n:=decodeur_pers[i].NbreAdr;
+    s:='NombreAdresses='+intToSTR(n);
+    writeln(fichierN,s);
+    n:=decodeur_pers[i].nation;
+    s:='Nation='+intToSTR(n);
+    writeln(fichierN,s);
+
+    for j:=1 to decodeur_pers[i].NbreAdr do
+    begin
+      s:=intToSTR(decodeur_pers[i].desc[j].etat1)+','+intToSTR(decodeur_pers[i].desc[j].etat2)+','+
+         intToSTR(decodeur_pers[i].desc[j].offsetAdresse)+','+intToSTR(decodeur_pers[i].desc[j].sortie1)+','+
+         intToSTR(decodeur_pers[i].desc[j].sortie2);
+       writeln(fichierN,s);
+    end;
+  end;
+  writeln(fichierN,'0');
+
+  writeln(fichierN,'/------------');
   writeln(fichierN,section_sig_ch);
   // feux
   for i:=1 to NbreFeux do
@@ -1726,6 +1783,9 @@ begin
       writeln(fichierN,s);
     end;
   writeln(fichierN,'0');
+
+
+
 
   closefile(fichierN);
 
@@ -2280,10 +2340,10 @@ begin
            virgule:=pos(',',enregistrement);if virgule=0 then virgule:=length(s)+1;
            delete(enregistrement,1,virgule);
         end;
-          
+
         // si vitesse définie
         if (length(enregistrement)<>0) then
-        if enregistrement[1]='V' then 
+        if enregistrement[1]='V' then
         begin
           inc(num_champ);
           delete(enregistrement,1,1);
@@ -2296,7 +2356,7 @@ begin
 
         // TJS et L
         if (length(enregistrement)<>0) then
-        if enregistrement[1]='L' then 
+        if enregistrement[1]='L' then
         begin
           if not(tjsC) then begin Affiche('Erreur paramètre L ligne: '+sOrigine,clred);exit;end;
           inc(num_champ);
@@ -2349,6 +2409,73 @@ begin
       if itl>4 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);exit;end;
     end;
   until (sOrigine='0');
+end;
+
+// compile les décodeurs personnalisés
+procedure compile_dec_pers;
+var nv,i,j,k,l,adr : integer;
+begin
+  Nligne:=1;
+  nv:=0;
+  repeat
+    s:=lit_ligne;
+    inc(Nligne);
+    if s<>'0' then
+    begin
+      if NbreDecPers<NbreMaxiDecPers then
+      begin
+        inc(NbreDecPers);
+        decodeur_pers[NbreDecPers].nom:=sOrigine;
+        decodeur[NbDecodeurdeBase+NbreDecPers-1]:=sOrigine;
+        // nombre d'adresses
+        s:=lit_ligne;
+        k:=pos(uppercase(nba_ch)+'=',s);
+        if k=1 then
+        begin
+          delete(s,1,length(nba_ch)+1);
+          val(s,j,erreur);                        // ne pas écraser j
+          decodeur_pers[NbreDecPers].NbreAdr:=j;
+        end;
+        // nation
+        s:=lit_ligne;
+        k:=pos(uppercase(nation_ch)+'=',s);
+        if k=1 then
+        begin
+          delete(s,1,length(nation_ch)+1);
+          val(s,k,erreur);
+          if (k=0) or (k>2) then k:=1;
+          decodeur_pers[NbreDecPers].Nation:=k;
+        end;
+
+        adr:=1;
+        repeat
+            s:=lit_ligne;
+            k:=pos(',',s);
+            val(s,l,erreur);
+            delete(s,1,k);
+            decodeur_pers[NbreDecPers].desc[adr].etat1:=l;
+            k:=pos(',',s);
+            val(s,l,erreur);
+            delete(s,1,k);
+            decodeur_pers[NbreDecPers].desc[adr].etat2:=l;
+            k:=pos(',',s);
+            val(s,l,erreur);
+            delete(s,1,k);
+            decodeur_pers[NbreDecPers].desc[adr].offsetadresse:=l;
+            k:=pos(',',s);
+            val(s,l,erreur);
+            delete(s,1,k);
+            decodeur_pers[NbreDecPers].desc[adr].sortie1:=l;
+            k:=pos(',',s);
+            val(s,l,erreur);
+            delete(s,1,k);
+            decodeur_pers[NbreDecPers].desc[adr].sortie2:=l;
+            s:='';
+          inc(adr);
+        until (adr>j);
+      end;
+    end;
+  until eof(fichier) or (s='0');
 end;
 
 procedure compile_dccpp;
@@ -2455,6 +2582,12 @@ begin
       editadrtrain.Text:=inttostr(trains[1].adresse);
     end;
   until (sOrigine='0') or (ntrains>=Max_Trains);
+  for i:=1 to ntrains do
+  begin
+    trains[i].x:=-999999;
+    trains[i].y:=-999999;
+  end;  
+    
 end;
 
 procedure lit_flux;
@@ -2951,6 +3084,15 @@ begin
       compile_trains;
     end;
 
+    // section dédodeurs
+    sa:=uppercase(section_DecPers_ch);
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_dec_pers:=true;
+      compile_dec_pers;
+    end;
+
+
     // section placement
     sa:=uppercase(section_placement_ch);
     if pos(sa,s)<>0 then
@@ -3353,7 +3495,7 @@ var AncAdresse,index,adresse,erreur : integer;
 begin
   index:=index_feu(lc)-1;
   s:=Uppercase(FormConfig.RichSig.Lines[index]);   // ligne cliquée
-  if s='' then 
+  if s='' then
   begin
     RE_ColorLine(Formconfig.RichSig,ligneclicSig,ClAqua);
     ligneclicSig:=-1;
@@ -3482,6 +3624,7 @@ begin
   RadioButtonXpress.Checked:=protocole=1;
   RadioButtonDcc.Checked:=protocole=2;
 
+  
   clicListe:=true;  // empeche le traitement de l'evt text
   EditDroit_BD.Text:='';
   EditPointe_BG.Text:='';
@@ -3532,10 +3675,23 @@ begin
   // signaux
   RichSig.clear;
   ComboBoxDec.items.Clear;
+
+  for i:=0 to 11 do
+  begin
+    ComboBoxAsp.items.add(Aspects[i]);
+  end;
+  // décodeurs de base
   for i:=1 to NbDecodeur do
   begin
     ComboBoxDec.items.add(decodeur[i-1]);
   end;
+  // décodeurs personalisés
+  for i:=1 to NbreDecPers do
+  begin
+    s:=decodeur_pers[i].nom;
+    formconfig.ComboBoxDec.Items.add(s);
+  end;
+
 
   for i:=1 to NbreFeux do
   begin
@@ -3613,14 +3769,83 @@ begin
       Lines.Add(Train_tablo(i));
     end;
   end;
-
+  LabelNbDecPers.caption:=intToSTR(NbreDecPers);
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
   activ:=false;
 end;
 
+// met à jour le décodeur courant dans le tableau de config
+procedure maj_decodeurs;
+var nAdr,i,j,a,nation : integer;
+begin
+  begin
+    // si pas de décodeur courant, on rend invisible toutes les adresses
+    if decCourant=0 then nAdr:=0 else
+    begin
+      formConfig.ComboBoxNation.itemindex:=decodeur_pers[decCourant].nation-1;
+      nAdr:=decodeur_pers[decCourant].NbreAdr;
+      FormConfig.EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
+      nation:=decodeur_pers[decCourant].nation;
+    end;
+
+    for i:=1 to nAdr do
+    begin
+
+      comboL1[i].Items.Clear;
+      comboL2[i].Items.Clear;
+      if nation=1 then
+      begin
+        for j:=0 to 20 do
+        begin
+          comboL1[i].Items.add(Etats[j]);
+          comboL2[i].Items.add(Etats[j]);
+        end;
+      end
+      else
+      for j:=0 to 9 do
+      begin
+        begin
+          comboL1[i].Items.add(EtatSignBelge[j]);
+          comboL2[i].Items.add(EtatSignBelge[j]);
+        end;
+      end;
+      a:=decodeur_pers[decCourant].desc[i].etat1;
+      ComboL1[i].itemIndex:=a;
+      ComboL1[i].Visible:=true;
+
+      a:=decodeur_pers[decCourant].desc[i].etat2;
+      ComboL2[i].Itemindex:=a;
+      ComboL2[i].Visible:=true;
+
+      EditT[i].Text:=intToSTR(decodeur_pers[decCourant].desc[i].offsetAdresse);
+      EditT[i].Visible:=true;
+      a:=decodeur_pers[decCourant].desc[i].sortie1;
+      ComboTS1[i].Itemindex:=a-1;
+      ComboTS1[i].Visible:=true;
+      a:=decodeur_pers[decCourant].desc[i].sortie2;
+      ComboTS2[i].Itemindex:=a-1;
+      ComboTS2[i].Visible:=true;
+      ShapeT[i].Visible:=true;
+
+    end;
+    for i:=nADr+1 to 10 do
+    begin
+      ComboL1[i].Visible:=false;
+      ComboL2[i].Visible:=false;
+      EditT[i].Visible:=false;
+      ComboTS1[i].Visible:=false;
+      ComboTS2[i].Visible:=false;
+      ShapeT[i].Visible:=false;
+
+    end;
+  end;
+end;
+
 
 procedure TFormConfig.FormCreate(Sender: TObject);
+var i,j,y : integer;
+    s : string;
 begin
   if debug=1 then Affiche('Création fenêtre config',clLime);
   clicListe:=true;
@@ -3637,6 +3862,119 @@ begin
   groupBox21.Top:=304;
   GroupBox21.Left:=8;
   if debug=1 then Affiche('Fin création fenêtre config',clLime);
+
+  EditNbreAdr.Text:='2';
+
+  // création des champs dynamiques de l'onglet décodeurs
+  for i:=1 to 10 do
+  begin
+    y:=i*40+20;
+
+    // rectangle
+    ShapeT[i]:=Tshape.create(FormConfig.TabSheetDecodeurs);
+    with ShapeT[i] do
+    begin
+      name:='Ligne'+intToSTR(i);
+      left:=5;width:=350; top:=y;height:=42;
+      brush.Style:=bsSolid;
+      brush.Color:=clBtnFace;
+      pen.color:=clBlack;
+      shape:=stRectangle;
+      parent:=TabSheetDecodeurs;
+    end;
+
+    ComboL1[i]:=TcomboBox.create(FormConfig.TabSheetDecodeurs);
+    with ComboL1[i] do
+    begin
+      Name:='ComboL1'+intToSTR(i);
+      text:='';
+      left:=10;Top:=y;Width:=150;Height:=15;
+      parent:=TabSheetDecodeurs;
+      itemIndex:=-1;
+      for j:=0 to 19 do items.add(etats[j]);
+      onChange:=formConfig.modif_ComboL;
+      Style:=csDropDownList;
+      visible:=false;
+    end;
+
+    ComboL2[i]:=Tcombobox.create(FormConfig.TabSheetDecodeurs);
+    with ComboL2[i] do
+    begin
+      Name:='ComboL2'+intToSTR(i);
+      text:='';
+      left:=10;Top:=y+20;Width:=150;Height:=15;
+      parent:=TabSheetDecodeurs;
+      itemIndex:=-1;
+      for j:=0 to 19 do items.add(etats[j]);
+      onChange:=formConfig.modif_ComboL;
+      Style:=csDropDownList;
+      visible:=false;
+    end;
+
+    EditT[i]:=TEdit.create(FormConfig.TabSheetDecodeurs);
+    with EditT[i] do
+    begin
+      Name:='EditT'+intToSTR(i);
+      left:=180;Top:=y+10;Width:=30;Height:=15;
+      text:='';
+      parent:=TabSheetDecodeurs;
+      visible:=false;
+      Text:=intToSTR(i-1);
+      onChange:=formConfig.modif_editT;
+    end;
+
+    ComboTS1[i]:=TComboBox.create(FormConfig.TabSheetDecodeurs);
+    with ComboTS1[i] do
+    begin
+      Name:='ComboTS1'+intToSTR(i);
+      left:=240;Top:=y;Width:=110;Height:=13;
+      text:='';
+      parent:=TabSheetDecodeurs;
+      itemIndex:=-1;
+      items.add('-  1 rouge dévié');
+      items.add('+ 2 vert   droit');
+      if (i-1) mod 2=0 then s:='Sortie 1' else s:='Sortie 2';
+      Hint:=s;
+      ShowHint:=true;
+      visible:=false;
+      Style:=csDropDownList;
+      onChange:=formConfig.modif_ComboTS;
+    end;
+
+    ComboTS2[i]:=TComboBox.create(FormConfig.TabSheetDecodeurs);
+    with ComboTS2[i] do
+    begin
+      Name:='ComboBoxTS2'+intToSTR(i);
+      left:=240;Top:=y+20;Width:=110;Height:=13;
+      text:='';
+      parent:=TabSheetDecodeurs;
+      itemIndex:=-1;
+      items.add('-  1 rouge dévié');
+      items.add('+ 2 vert  droit');
+      if (i-1) mod 2=0 then s:='Sortie 1' else s:='Sortie 2';
+      Hint:=s;
+      ShowHint:=true;
+      visible:=false;
+      Style:=csDropDownList;
+      onChange:=formConfig.modif_ComboTS;
+    end;
+
+  
+  end;
+
+  for i:=1 to NbreDecPers do
+  begin
+    s:=decodeur_pers[i].nom;
+    formconfig.ComboBoxDecodeurPerso.Items.add(s);
+  end;
+  if NbreDecPers>0 then
+  begin
+    decCourant:=1;
+    formconfig.ComboBoxDecodeurPerso.ItemIndex:=0;
+    ComboBoxNation.ItemHeight:=decodeur_pers[decCourant].nation;
+  end
+  else formconfig.ComboBoxDecodeurPerso.ItemIndex:=-1;
+  maj_decodeurs;
 end;
 
 
@@ -4096,7 +4434,7 @@ var i,j,l,d,p,k,nc,decodeur : integer;
     s : string;
 begin
   if Affevt then affiche('Aff_champs_sig_feux('+intToSTR(index)+')',clyellow);
-  if index<0 then exit;
+  if index<1 then exit;
   clicListe:=true;
   i:=index;
   FormConfig.EditAdrSig.text:=InttoSTr(feux[i].adresse);
@@ -4299,6 +4637,9 @@ begin
       MemoCarre.Perform(EM_SCROLLCARET,0,0);
     end;
   end;
+
+  // vérifier les incompatibilités
+  
   clicListe:=false;
 end;
 
@@ -5148,10 +5489,71 @@ begin
   begin
     aiguillage[Index].vitesse:=60;
     aiguillage[Index].modifie:=true;
-  end;  
+  end;
   s:=encode_aig(index);
   formconfig.RichAig.Lines[ligneclicAig]:=s;
 end;
+
+function verif_dec_sig(aff : boolean) : boolean;
+var Adr,i,dec,aspect,indexAspect : integer;
+begin
+  result:=true;  // ok
+  for i:=1 to NbreFeux do
+  begin
+    dec:=feux[i].decodeur;
+    aspect:=feux[i].aspect;
+    case aspect of
+      2 : indexAspect:=0;
+      3 : indexAspect:=1;
+      4 : indexAspect:=2;
+      5 : indexAspect:=3;
+      7 : indexAspect:=4;
+      9 : indexAspect:=5;
+     12 : indexAspect:=6;
+     13 : indexAspect:=7;
+     14 : indexAspect:=8;
+     15 : indexAspect:=9;
+     16 : indexAspect:=10;
+     20 : indexAspect:=11;
+    end;
+    Adr:=feux[i].adresse;
+    //Affiche(IntToSTR(i)+' '+intToSTR(indexAspect)+' '+inttoSTR(dec),clred);
+    case dec of
+    // digital bahn
+    1: if aspect=20 then begin result:=false;if aff then Affiche('Erreur 340 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // cdf
+    2: if (aspect>10) and (aspect<20) then begin result:=false;if aff then Affiche('Erreur 341 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // ls dec sncf
+    3 : if (aspect>10) then begin result:=false;if aff then Affiche('Erreur 342 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // LEB
+    4 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 343 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // dijikeijs
+    5 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 344 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // paco unisemaf
+    6 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 345 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // Stéphane ravaux
+    7 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 346 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // Arcomora
+    8 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 347 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // LS DEC NMBS
+    9 : if aspect<>20 then begin result:=false;if aff then Affiche('Erreur 348 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    // B-models
+    10 : if aspect<>20 then begin result:=false;if aff then Affiche('Erreur 349 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    end;
+    // personnalisé
+    if (dec>=NbDecodeurdeBase) then
+    begin
+      // nationalité du décodeur
+      if ((decodeur_pers[dec-NbDecodeurdeBase+1].nation=2) and (aspect<>20)) or
+         ((decodeur_pers[dec-NbDecodeurdeBase+1].nation=1) and (aspect=20)) then
+      begin
+        result:=false;
+        if aff then Affiche('Erreur 350 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);
+      end;
+    end;
+  end;
+end;
+
 
 procedure TFormConfig.ComboBoxDecChange(Sender: TObject);
 var s: string;
@@ -5162,9 +5564,21 @@ begin
 
   if NbreFeux<ligneclicSig+1 then exit;
   i:=ligneclicSig+1;
-  if i<1 then exit;
+  if i<1 then
+  begin
+    ComboBoxDec.ItemIndex:=-1;
+    if NbreFeux=0 then s:='Crééz un signal ou ';
+    s:='sélectionnez un signal dans la liste';
+    LabelInfo.Caption:=s;
+    exit;
+  end;
+
   decodeur:=ComboBoxDec.ItemIndex;
+
+  if decodeur>NbDecodeur+NbreDecPers then exit;
+
   feux[i].decodeur:=decodeur;
+
   Maj_Hint_Signal(i);
 
   case decodeur of
@@ -5187,6 +5601,8 @@ begin
   s:=encode_sig_feux(i);
   formconfig.RichSig.Lines[ligneclicSig]:=s;
   aff_champs_sig_feux(i);
+  if not(verif_dec_sig(false)) then FormConfig.labelInfo.Caption:='Combinaison décodeur / aspect incompatible';
+
   if affevt then Affiche('Evt ComboBox Decodeur',clOrange);
 end;
 
@@ -5197,11 +5613,12 @@ var lc,i : integer;
 begin
   clicliste:=true;
   raz_champs_sig;
-  
+
   with Formconfig.RichSig do
   begin
     i:=Selstart;
     lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
+    ligne_signal:=lc;
     clicListeSignal(feux[lc+1].adresse);
   end;  
 
@@ -5248,7 +5665,7 @@ procedure Suiv1;
 begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt Element suivant1',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
@@ -5944,7 +6361,7 @@ begin
       LabelInfo.caption:=' ';
       aiguillage[index].adresse:=i;
       aiguillage[index].modifie:=true;
-      s:=encode_aig(index);  
+      s:=encode_aig(index);
       formconfig.RichAig.Lines[ligneclicAig]:=s;
     end;
     if (modele=tjd) or (modele=tjs) then  
@@ -5995,14 +6412,24 @@ begin
   else aspect:=i+6;
   end;
   index:=ligneClicSig+1;  // index du feu
-  if index<1 then exit;
+  if index<1 then
+  begin
+    ComboBoxAsp.ItemIndex:=-1;
+    if NbreFeux=0 then s:='Crééz un signal ou ';
+    s:='sélectionnez un signal dans la liste';
+    LabelInfo.Caption:=s;
+    exit;
+  end;
   if NbreFeux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
 
   feux[index].aspect:=aspect;
+
   s:=encode_sig_feux(index);
   RichSig.Lines[ligneClicSig]:=s;
   aff_champs_sig_feux(index); // redessine les champs et le feu
+
+  if not(verif_dec_sig(false)) then labelInfo.Caption:='Combinaison décodeur / aspect incompatible';
 
   // change l'image du feu dans la feuille graphique principale
   bm:=Select_dessin_feu(feux[index].aspect);
@@ -6827,11 +7254,8 @@ begin
       Top:=(HtImg+espY+20)*((IndexFeu-1) div NbreImagePLigne);   // détermine les points d'origine
       Left:=10+ (LargImg+5)*((IndexFeu-1) mod (NbreImagePLigne));
       Name:='ImageFeu'+IntToSTR(adresse);
-      s:='Index='+IntToSTR(IndexFeu)+' @='+inttostr(feux[IndexFeu].Adresse)+' Décodeur='+intToSTR(feux[IndexFeu].Decodeur)+
-       ' Adresse détecteur associé='+intToSTR(feux[IndexFeu].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(feux[IndexFeu].Adr_el_suiv1);
-      if feux[IndexFeu].Btype_suiv1=aig then s:=s+' (aig)';
-      Hint:=s;
+      Maj_Hint_Signal(indexFeu);
+
     end;
     with feux[IndexFeu].Lbl do
     begin
@@ -6980,8 +7404,8 @@ begin
     93,94,95,96,97,98,99 : nc:=4;
     end;
   end;
-  if dec=7 then nc:=8;           // sr
-  if dec=8 then
+  if dec=7 then nc:=8;           // SR
+  if dec=8 then                  // arcomora
   begin
     case x of
     3 : nc:=3;
@@ -6990,10 +7414,11 @@ begin
     9 : nc:=5;
     end;
   end;
-  if dec=9 then nc:=2;
-  if dec=10 then nc:=feux[i].Na;
+  if dec=9 then nc:=2;               // LS-DEC-NMBS
+  if dec=10 then nc:=feux[i].Na;     // Bmodels
   nombre_adresses_signal:=nc;
 end;
+
 
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
@@ -7820,6 +8245,9 @@ begin
 
     end;
   end;
+
+  // vérification des compatibilités des décodeurs de signaux et des aspects
+  if not(verif_dec_sig(true)) then ok:=false;
 
   verif_coherence:=ok;
 end;
@@ -10543,19 +10971,305 @@ begin
     // maj le signal dans la fenetre principale
     Feux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
     adr:=feux[ligneClicSig+1].adresse;
-    if feux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clign) else Maj_Etat_Signal(adr,clign or setRaz_F);
+    if feux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clignote_f or bita1_F) else Maj_Etat_Signal(adr,clignote_F);
     dessine_feu_mx(Feux[ligneClicSig+1].Img.Canvas,0,0,1,1,feux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
-
-
   end;
+end;
 
+// modif editT
+procedure Tformconfig.modif_editT(Sender : TObject);
+var te : tEdit;
+    adr,i,erreur :integer;
+begin
+  if deccourant=0 then exit;
+  te:=Sender as Tedit;
+  adr:=extract_int(te.name);
+  val(te.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    labelInfo.caption:='Erreur adresse';
+    exit;
+  end;
+  labelInfo.caption:='';
+  decodeur_pers[deccourant].desc[adr].offsetAdresse:=i;
+end;
 
+// changement combobox choix sorties 1 ou 2
+procedure Tformconfig.modif_ComboTS(Sender : TObject);
+var co : tComboBox;
+    i,idx,adresse,erreur : integer;
+    s : string;
+begin
+  if deccourant=0 then exit;
+  co:=Sender as TCombobox;
+  //i:=co.itemIndex;
+  i:=extract_int(co.name);
+  s:=intToSTR(i);
+  idx:=co.itemIndex;
 
+  val(s[1],i,erreur);        // rang
+  delete(s,1,1);
+  val(s,adresse,erreur);  // adresse
 
+  if i=1 then decodeur_pers[deccourant].desc[adresse].sortie1:=idx+1;
+  if i=2 then decodeur_pers[deccourant].desc[adresse].sortie2:=idx+1;
+end;
+
+// changement combobox Etats
+procedure Tformconfig.modif_ComboL(Sender : TObject);
+var co : tComboBox;
+    idx,i,adresse,erreur : integer;
+    s : string;
+begin
+  if deccourant=0 then exit;
+  co:=Sender as TCombobox;
+  //i:=co.itemIndex;
+  i:=extract_int(co.name);
+  s:=intToSTR(i);
+  idx:=co.itemIndex;
+  val(s[1],i,erreur);      // rang
+  delete(s,1,1);
+  val(s,adresse,erreur);  // adresse
+
+  if i=1 then decodeur_pers[deccourant].desc[adresse].etat1:=idx;
+  if i=2 then decodeur_pers[deccourant].desc[adresse].etat2:=idx;
 end;
 
 
-
+procedure rend_visible;
+var i,erreur,nombre : integer;
+begin
+  val(formconfig.EditNbreAdr.Text,nombre,erreur);
+  if (erreur<>0) or (nombre>10) then exit;
+
+  decCourant:=formconfig.ComboBoxDecodeurPerso.ItemIndex+1;
+  if decCourant<1 then exit;
+  decodeur_pers[decCourant].nbreAdr:=nombre;
+
+  decodeur_pers[decCourant].nom:=formconfig.ComboBoxDecodeurPerso.items[decCourant-1];
+
+  maj_decodeurs;
+  exit;
+
+  for i:=1 to nombre do
+  begin
+    ComboTS1[i].Visible:=true;
+    ComboTS2[i].Visible:=true;
+    EditT[i].visible:=true;
+    ComboL1[i].Visible:=true;
+    ComboL2[i].Visible:=true;
+  end;
+
+  for i:=nombre+1 to 10 do
+  begin
+    ComboTS1[i].Visible:=false;
+    ComboTS2[i].Visible:=false;
+    EditT[i].visible:=false;
+    ComboL1[i].Visible:=false;
+    ComboL2[i].Visible:=false;
+
+  end;
+
+end;
+
+// nouveau décodeur personnalisé
+procedure TFormConfig.BoutonNouveauClick(Sender: TObject);
+var s: string;
+    cb : TcomboBox;
+    te : Tedit;
+    i,nombre,erreur,decCourant : integer;
+begin
+  if NbreDecPers>=NbreMaxiDecPers then exit;
+
+
+  inc(NbreDecPers);
+  s:='Personnalisé '+intToSTR(NbreDecPers);
+  decodeur_pers[NbreDecPers].nom:=s;
+  decodeur_pers[NbreDecPers].Nation:=1;
+  nombre:=4;
+  decodeur_pers[NbreDecPers].NbreAdr:=nombre;
+  formconfig.EditNbreAdr.Text:=intToSTR(nombre);
+
+  ComboBoxDecodeurPerso.Items.Add(s);
+  ComboBoxDecodeurPerso.ItemIndex:=NbreDecPers-1;
+
+  decCourant:=formconfig.ComboBoxDecodeurPerso.ItemIndex+1;
+
+  for i:=1 to Nombre do
+  begin
+    editT[i].Text:=IntToSTR(i-1);
+    decodeur_pers[decCourant].desc[i].offsetAdresse:=i-1;
+  end;
+
+  rend_visible;
+  // ajouter aux décodeurs personalisés
+  s:=decodeur_pers[decCourant].nom;
+  formconfig.ComboBoxDec.Items.add(s);
+  config_modifie:=true;
+  // ajouter aux décodeurs
+  inc(NbDecodeur);
+  decodeur[NbDecodeur]:=s;
+  LabelNbDecPers.caption:=intToSTR(NbreDecPers);
+
+  //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
+  for i:=1 to NbreFeux do
+  begin
+    if feux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
+  end;
+end;
+
+procedure TFormConfig.EditNbreAdrChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(EditNbreAdr.text,i,erreur);
+  if (erreur<>0) or (i<1) or (i>10) then
+  begin
+    LabelInfo.Caption:='Nombre d''adresses valides de 1 à 10';
+    exit;
+  end;
+  LabelInfo.Caption:='';
+  rend_visible;
+end;
+
+
+procedure TFormConfig.ComboBoxDecodeurPersoChange(Sender: TObject);
+var i,nAdr,a : integer;
+    s: string;
+begin
+  if affevt then Affiche('Evt ComboBoxDecodeurPerso',clyellow);
+
+  a:=ComboBoxDecodeurPerso.ItemIndex;
+  if a=-1 then
+  begin
+    // changement du nom
+    if decCourant=0 then exit;
+    s:=ComboBoxDecodeurPerso.Text;
+    ComboBoxDecodeurPerso.items[decCourant-1]:=s;
+    decodeur_pers[decCourant].nom:=s;
+    decodeur[NbDecodeurdeBase+DecCourant-1]:=s;
+    ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;
+
+    //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
+    for i:=1 to NbreFeux do
+    begin
+      if feux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
+    end;
+
+    exit;
+  end;
+  decCourant:=a+1;
+  EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
+  //Affiche('Décodeur courant = '+intToSTR(decCourant),clyellow);
+  maj_decodeurs;
+
+end;
+
+// renvoie vrai si chaine est dans le combobox 'combo' et renvoie son index
+function trouve_entree_combo(combo : Tcombobox;chaine : string;var index : integer) : boolean;
+var i,maxi : integer;
+    trouve : boolean;
+begin
+  i:=0;
+  maxi:=combo.items.Count;
+  repeat
+    trouve:=combo.Items[i]=chaine;
+    inc(i);
+  until trouve or (i=maxi);
+  result:=trouve;
+  index:=i-1;
+end;
+
+procedure TFormConfig.ButtonSupClick(Sender: TObject);
+var s : string;
+    i,ma,deco,supp : integer;
+    aff : boolean;
+begin
+  // supprimer des décodeurs personalisés
+  if decCourant=0 then exit;
+
+  s:='Voulez vous supprimer le décodeur personnalisé '#13+decodeur_pers[decCourant].nom+' ?';
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  //supprimer de la liste des décodeurs peronnalisés
+  s:=decodeur_pers[decCourant].nom;
+  if trouve_entree_combo(ComboBoxDec,s,i) then ComboBoxDec.Items.Delete(i)
+    else exit;
+
+  supp:=i;
+  Affiche('Suppression décodeur '+intToSTR(supp-1)+' '+s,clOrange);
+
+  //supprimer de la liste des décodeurs si elle est affectée
+  if trouve_entree_combo(ComboBoxDecodeurPerso,s,i) then ComboBoxDecodeurPerso.Items.Delete(i)
+    else affiche('Anomalie 1',clred);
+
+  //if decCourant>0 then dec(decCourant);
+  decCourant:=0;
+  ComboBoxDecodeurPerso.ItemIndex:=-1;
+
+  inc(i);
+  ma:=i;
+  // et supprimer la base
+  for i:=ma to NbreDecPers-1 do
+  begin
+    decodeur_pers[i]:=decodeur_pers[i+1];
+  end;
+  dec(NbreDecPers);
+  if NbreDecPers=0 then ComboBoxDecodeurPerso.Text:='';
+  config_modifie:=true;
+  maj_decodeurs;
+
+  // supprimer des décodeurs
+  decodeur[NbDecodeur]:='';
+  dec(NbDecodeur);
+  LabelNbDecPers.caption:=intToSTR(NbreDecPers);
+
+  // si le décodeur est attribué aux signaux, les passer en rien
+  aff:=false;
+  for i:=1 to NbreFeux do
+  begin
+    deco:=feux[i].decodeur;
+    if deco=supp then
+    begin
+      Affiche('Le décodeur du signal '+intToSTR(Feux[i].adresse)+' a été réaffacté à rien',clOrange);
+      feux[i].decodeur:=0;
+      if i=ligne_signal+1 then aff_champs_sig_feux(ligne_signal+1);
+      aff:=true;
+    end;
+    if deco>supp then
+    begin
+      dec(feux[i].decodeur);  // et décrémenter les autres décodeurs personnalisés de rang supérieur
+      aff:=true;
+    end;
+
+  end;
+
+  // réafficher le richedit des signaux
+  if aff then
+  begin
+    richSig.Clear;
+    for i:=1 to NbreFeux do
+    begin
+      s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
+      if s<>'' then
+      begin
+        RichSig.Lines.Add(s);
+        RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
+        Feux[i].modifie:=false;
+      end;
+    end;
+  end;
+end;
+
+procedure TFormConfig.ComboBoxNationChange(Sender: TObject);
+var nation : integer;
+begin
+  if deccourant=0 then exit;
+  nation:=ComboBoxNation.itemIndex+1;
+  decodeur_pers[decCourant].nation:=nation;
+  maj_decodeurs;
+end;
+
+begin
 end.
 
 

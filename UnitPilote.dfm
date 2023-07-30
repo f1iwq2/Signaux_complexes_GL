@@ -50,10 +50,11 @@ object FormPilote: TFormPilote
     Caption = 'Nombre de feux '#224' allumer'
   end
   object LabelDec: TLabel
-    Left = 208
+    Left = 200
     Top = 192
-    Width = 72
+    Width = 129
     Height = 19
+    Alignment = taCenter
     Caption = 'LabelDec'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -61,6 +62,7 @@ object FormPilote: TFormPilote
     Font.Name = 'Arial'
     Font.Style = [fsBold]
     ParentFont = False
+    Layout = tlCenter
   end
   object Label1: TLabel
     Left = 240
@@ -126,7 +128,7 @@ object FormPilote: TFormPilote
       Top = 96
       Width = 161
       Height = 17
-      Caption = 'S'#233'maphore clignotant'
+      Caption = 'Rouge cli'
       TabOrder = 5
       OnClick = RadioRougeCliClick
     end
@@ -239,8 +241,8 @@ object FormPilote: TFormPilote
     OnClick = CheckVerrouCarreClick
   end
   object GroupBox3: TGroupBox
-    Left = 8
-    Top = 224
+    Left = 120
+    Top = 40
     Width = 193
     Height = 73
     Caption = 'Signalisation combin'#233'e'

@@ -5215,7 +5215,7 @@ begin
   begin
     HorzScrollBar.Range:=DimX;
     HorzScrollBar.Tracking:=true;
-    HorzScrollBar.Smooth:=false;   // ne pas mettre true sinon figeage dans W11 si onclique sur la trackbar!!
+    HorzScrollBar.Smooth:=false;   // ne pas mettre true sinon figeage dans W11 si on clique sur la trackbar!!
     VertScrollBar.Range:=DimY;
     VertScrollBar.Tracking:=true;
     VertScrollBar.Smooth:=false;
@@ -5243,9 +5243,7 @@ begin
 
         r:=rect(x1,y1,x1+LargeurCell,y1+HauteurCell);
         FillRect(r);
-
       end;
-
   end;
 
   //afficher les cellules sauf les signaux
@@ -5293,7 +5291,6 @@ begin
   offsetSourisY:=-10;
   offsetSourisX:=-10;
   caption:='TCO';
-  AvecGrille:=true;
   TCO_modifie:=false;
   rangUndo:=1;
   XclicCell:=1;

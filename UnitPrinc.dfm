@@ -2224,8 +2224,8 @@ object FormPrinc: TFormPrinc
     Top = 65528
   end
   object SaveDialog: TSaveDialog
-    Left = 888
-    Top = 16
+    Left = 832
+    Top = 65528
   end
   object PopupMenuFenRich: TPopupMenu
     Left = 208
