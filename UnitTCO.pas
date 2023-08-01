@@ -1233,7 +1233,7 @@ end;
 
 // essai courbe
 procedure dessin_2C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
     r : Trect;
     fond : tcolor;
 
@@ -2051,7 +2051,7 @@ begin
   fond:=TCO[x,y].CouleurFond;
 
   // mode rond
-  x1:=x0-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2);
+  x1:=x0-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2)+4;
   x2:=xf+largeurCell+(largeurcell div 3);y2:=yc;
   x3:=x0;y3:=y0;
   x4:=xf;y4:=yc;
@@ -2125,7 +2125,6 @@ end;
 // coin supérieur gauche (Element 6)
 procedure dessin_6L(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2154,7 +2153,6 @@ end;
 // coin supérieur gauche (Element 6)
 procedure dessin_6C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2194,7 +2192,6 @@ end;
 // Element 7
 procedure dessin_7L(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2223,7 +2220,6 @@ end;
 
 procedure dessin_7C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2266,7 +2262,6 @@ end;
 // courbe: droit vers bas  -\  Element 8
 procedure dessin_8L(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2295,7 +2290,6 @@ end;
 
 procedure dessin_8C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2339,7 +2333,6 @@ end;
 // courbe bas gauche vers droit  Elément 9
 procedure dessin_9l(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2370,7 +2363,6 @@ end;
 // courbe bas gauche vers droit  Elément 9
 procedure dessin_9c(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2414,8 +2406,6 @@ end;
 // élément 10
 procedure dessin_10(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var Adr, x0,y0: integer;
-    r : Trect;
-    fond : Tcolor;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2462,7 +2452,6 @@ end;
 // élément 11
 procedure dessin_11(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var Adr, x0,y0 : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2510,7 +2499,6 @@ end;
 // Element 12
 procedure dessin_12L(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
-    r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
@@ -2637,7 +2625,6 @@ end;
 
 procedure dessin_12C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
-    r : Trect;
     fond : tcolor;
    procedure trajet_droit;
    begin
@@ -3288,7 +3275,6 @@ end;
 // Element 15
 procedure dessin_15L(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,position : integer;
-    r : Trect;
     fond : Tcolor;
 
    procedure trajet_droit;
@@ -3412,7 +3398,6 @@ end;
 
 procedure dessin_15C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
-    r : Trect;
     fond : Tcolor;
 
 procedure trajet_droit;
@@ -3542,7 +3527,6 @@ end;
 // Element 16
 procedure dessin_16L(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3572,7 +3556,6 @@ end;
 
 procedure dessin_16C(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3615,7 +3598,6 @@ end;
 // Element 17
 procedure dessin_17l(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3642,7 +3624,6 @@ end;
 // Element 17
 procedure dessin_17c(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3681,7 +3662,6 @@ end;
 // Elément 18
 procedure dessin_18l(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3707,7 +3687,6 @@ end;
 
 procedure dessin_18c(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3746,7 +3725,6 @@ end;
 // Element 19
 procedure dessin_19l(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3772,7 +3750,6 @@ end;
 
 procedure dessin_19c(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3858,7 +3835,7 @@ begin
     Brush.Color:=couleur;
     pen.color:=couleur;
 
-    jx1:=y0+(HauteurCell div 2);
+    //jx1:=y0+(HauteurCell div 2);
     Pen.Width:=epaisseur;
 
     MoveTo(xc,y0);LineTo(xc,y0+HauteurCell);
@@ -3868,7 +3845,6 @@ end;
 // Element 21 - croisement - TJD
 procedure dessin_21(Canvas : Tcanvas;x,y,mode : integer);
 var x0,y0,xc,yc,trajet : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -4250,7 +4226,6 @@ end;
 // Element 25  croisement
 procedure dessin_25(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xf,yf,xc,yc,trajet : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -5189,10 +5164,9 @@ end;
 
 // affiche le tco suivant le tableau TCO
 procedure Affiche_TCO ;
-var x,y,x1,y1,x2,y2,DimX,DimY : integer;
+var x,y,x1,y1,DimX,DimY : integer;
     s : string;
     r : Trect;
-    coul : tcolor;
 begin
   if affevt then affiche('Affiche_tco',clLime);
   if pImageTCO=nil then exit;
@@ -5877,170 +5851,52 @@ begin
 end;
 
 procedure dessine_icones;
-var w,h,ancH,ancW : integer;
+var w,h,ancH,ancW,i : integer;
+    ip : TImage;
 begin
   with formTCO do
   begin
+    // dessine le fond des icones
+    for i:=1 to 25 do
+    begin
+      ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+      if ip<>nil then
+      begin
+        with ip do
+        begin
+          w:=width;
+          h:=height;
+          with canvas do
+          begin
+            Pen.Color:=clFond;
+            Brush.color:=clFond;
+            Rectangle(0,0,w,h);
+          end;
+        end;
+      end;
+    end;
+
+    ip:=findComponent('ImagePalette31') as Timage;
+    if ip<>nil then
+    begin
+      with ip do
+      begin
+        w:=width;
+        h:=height;
+        with canvas do
+        begin
+          Pen.Color:=clFond;
+          Brush.color:=clFond;
+          Rectangle(0,0,w,h);
+        end;
+      end;
+    end;
+
+    epaisseur:=5;
     ancw:=LargeurCell;
     AncH:=hauteurCell;
     HauteurCell:=ImagePalette1.Height;
     LargeurCell:=ImagePalette1.Width;
-
-  // dessiner les icônes
-    epaisseur:=5;
-    // effacer le fond des icones
-    w:=ImagePalette1.width;
-    h:=ImagePalette1.height;
-    with ImagePalette1.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette2.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette3.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette4.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette5.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette6.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette7.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette8.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette9.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette10.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette11.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette12.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette13.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette14.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette15.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette16.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette17.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette18.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette19.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette20.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette21.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette22.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette24.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette25.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
-    with ImagePalette31.Canvas do
-    begin
-      Pen.Color:=clFond;
-      Brush.color:=clFond;
-      Rectangle(0,0,w,h);
-    end;
     dessin_5(ImagePalette5.Canvas,1,1,0);  //posX,posY,état,position
     dessin_2(ImagePalette2.Canvas,1,1,0);
     dessin_3(ImagePalette3.Canvas,1,1,0);
@@ -7286,7 +7142,7 @@ end;
 // premier : si c'est le premier élément
 // dernier : si c'est le dernier élément
 function replace(x,y,el,quadrant : integer;premier,dernier : boolean) : integer;
-var bim,BimS : integer;
+var bim : integer;
 begin
   if debugTCO then Affiche('Quadrant '+intToSTR(quadrant),clred);
   result:=0;
@@ -7579,7 +7435,6 @@ end;
 procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
 var position : Tpoint;
     i,Bimage,xt,yt,xf,yf : integer;
-    s : string;
 begin
   if button=mbLeft then
   begin
@@ -7783,8 +7638,7 @@ end;
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
 var r : Trect;
-    cellX,cellY,XSel1,YSel1,XSel2,YSel2,Bimage,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP,
-    cx,cy : integer;
+    cellX,cellY,XSel1,YSel1,XSel2,YSel2,Bimage,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
     ok : boolean;
 begin
   if affevt then Affiche('ImageTCOMouseMove',clLime);

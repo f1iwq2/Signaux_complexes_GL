@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 30/7 11
+// 1/8 20h
 (********************************************
   programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -40,7 +40,7 @@ Unit UnitPrinc;
 //
 // En mode centrale connectée à signaux complexes (autonome)
 // si on bouge un aiguillage à la raquette, on récupère bien sa position par XpressNet.
-// Une loco sur un détecteur au lancement ne renvoie pas son état. Seuls les changements
+// Une loco sur un détecteur au lancement ne renvoie pas son état statique. Seuls les changements
 // d'état sont renvoyés par la centrale.
 
 //{$Q-}  // pas de vérification du débordement des opérations de calcul
@@ -423,6 +423,13 @@ TSignal = record
                                   Adresse : integer;    // aiguillage
                                   posAig : char;
                                end;
+                 CondFeuBlanc : array[1..6] of array of record  // conditions supplémentaires d'aiguillages en position pour le blanc
+                                  // attention les données sont stockées en adresse 1 du tableau dynamique
+                                  Adresse : integer;    // aiguillage
+                                  posAig : char;
+                               end;
+
+
                  SR : array[1..19] of record   // configuration du décodeur Stéphane Ravaut ou digikeijs ou cdf
                                    sortie1,sortie0 : integer;
                                    end;
@@ -1310,7 +1317,7 @@ end; // AffTexteIncliBordeTexture
 
 // inverse une image horz et la met dans dest
 procedure inverse_image(imageDest,ImageSrc : Timage);
-var r,mrect,nrect : trect;
+var mrect,nrect : trect;
     larg,haut : integer;
 begin
   larg:=ImageSrc.Width;
@@ -1858,6 +1865,7 @@ begin
   adresse:=feux[rang].adresse;
   Feux[rang].Img:=Timage.create(Formprinc.ScrollBox1);
   if feux[rang].Img=nil then begin affiche('Erreur 900 : impossible de créer une image',clred);exit;end;
+
   with Feux[rang].Img do
   begin
     if debug=1 then affiche('Image '+intToSTR(rang)+' créée',clLime);
@@ -2487,7 +2495,7 @@ begin
 end;
 
 procedure Maj_Etat_Signal_Belge(adresse,aspect : integer);
-var i,code,combine : integer;
+var i : integer;
     etats : word;
 // La signalisation combinée est à partir du bit 10 (chiffre, chevron)
 begin
@@ -3707,7 +3715,7 @@ end;
 // l'adresse du signal doit être un multiple de 8 +1
 // un signal peut occuper 1 3 4 ou 5 adresses
 procedure envoi_b_models(adresse : integer);
-var na,code,aspect,combine,mode : integer;
+var na,code,aspect,combine : integer;
     afb,recht,i : integer;
     s : string;
 begin
@@ -3827,7 +3835,7 @@ vert
 blanc
 }
 procedure envoi_ldt_nmbs(adresse : integer);
-var code,aspect,combine,mode : integer;
+var code,aspect,combine : integer;
     i : integer;
     s : string;
 begin
@@ -6237,6 +6245,59 @@ begin
 end;
 
 
+// renvoie vrai si les aiguillages déclarés pour le feu blanc sont bien positionnés
+function cond_feuBlanc(adresse : integer) : boolean;
+var i,l,k,NCondCarre,adrAig,index : integer;
+    resultatET,resultatOU: boolean;
+    s : string;
+begin
+  i:=index_feu(adresse);
+  if i=0 then
+  begin
+    s:='Erreur 602 - Signal '+IntToSTR(adresse)+' non trouvé';
+    Affiche(s,clred);
+    if NivDebug=3 then AfficheDebug(s,clred);
+    cond_feuBlanc:=false;
+    exit;
+  end;
+
+  NCondCarre:=Length(feux[i].condFeuBlanc[1]);
+
+  l:=1;
+  resultatOU:=false;
+
+  while NcondCarre<>0 do
+  begin
+    if Ncondcarre<>0 then dec(Ncondcarre);
+    resultatET:=true;
+    for k:=1 to NcondCarre do
+    begin
+      //s2:=s2+'A'+IntToSTR(feux[i].condFeuBlanc[l][k].Adresse)+feux[i].condFeuBlanc[l][k].PosAig+' ';
+      AdrAig:=feux[i].condFeuBlanc[l][k].Adresse;
+      index:=index_aig(adrAig);
+      if index<>0 then
+      begin
+        if nivDebug=3 then AfficheDebug('Contrôle aiguillage '+IntToSTR(AdrAig),clyellow);
+        resultatET:=((aiguillage[index].position=const_devie) and (feux[i].condFeuBlanc[l][k].PosAig='S') or (aiguillage[index].position=const_droit) and (feux[i].condFeuBlanc[l][k].PosAig='D'))
+                  and resultatET;
+      end;
+    end;
+    //if resultatET then Affiche('VRAI',clyellow) else affiche('FAUX',clred);
+    inc(l);
+    resultatOU:=resultatOU or resultatET;
+    NCondCarre:=Length(feux[i].condFeuBlanc[l]);
+  end;
+  //if resultatOU then Affiche('VRAI final',clyellow) else affiche('FAUX final',clred);
+  if NivDebug=3 then
+  begin
+    s:='Conditions supp. de feu blanc suivant aiguillages: ';
+    if ResultatOU then s:=s+'vrai : le signal doit afficher blanc' else s:=s+' : le signal ne doit pas afficher de feu blanc';
+    AfficheDebug(s,clyellow);
+  end;
+  cond_feuBlanc:=ResultatOU;
+end;
+
+
 // renvoie vrai si les aiguillages déclarés dans la définition du signal sont mal positionnés
 // (conditions suppplémentares)
 function cond_carre(adresse : integer) : boolean;
@@ -7451,7 +7512,7 @@ end;
 
 // met à jour l'état du signel belge selon l'environnement des aiguillages et des trains
 procedure signal_belge(Adrfeu : integer;detect : boolean);
-var adrAig,adr_det,adr_el_suiv,AdrTrainLoc,voie,indexAig,aiguille,etat,AdrSignalsuivant : integer;
+var adrAig,adr_det,adr_el_suiv,AdrTrainLoc,voie,indexAig,etat,AdrSignalsuivant : integer;
     Btype_el_suivant : TEquipement;
     car,presTrain,reserveTrainTiers,Aff_Semaphore : boolean;
     s: string;
@@ -7607,6 +7668,8 @@ begin
     exit;
   end;
 
+  // ici signal français
+
     Adr_det:=Feux[index].Adr_det1;  // détecteur sur le signal
     Adr_El_Suiv:=Feux[index].Adr_el_suiv1; // adresse élément suivant au feu
     Btype_el_suivant:=Feux[index].Btype_suiv1;
@@ -7646,7 +7709,8 @@ begin
       end
       else
       begin
-        if test_memoire_zones(AdrFeu) then Maj_Etat_Signal(AdrFeu,violet)  // test si présence train après signal
+        if not(cond_FeuBlanc(AdrFeu)) and test_memoire_zones(AdrFeu) then Maj_Etat_Signal(AdrFeu,violet)  // test si présence train après signal
+
         else Maj_Etat_Signal(AdrFeu,blanc);
 
         envoi_signal(AdrFeu);
@@ -7678,8 +7742,7 @@ begin
       //if AffSignal and car then AfficheDebug('le signal a des aiguilles en talon aval mal positionnées',clYellow);
       if AffSignal and feux[index].VerrouilleCarre then AfficheDebug('le signal est verrouillé au carré',clYellow);
 
-      if (modele>=4) and Feux[index].VerrouCarre and
-                         ( (not(PresTrain) or car or feux[index].Verrouillecarre) ) then Maj_Etat_Signal(AdrFeu,carre)
+      if (modele>=4) and  ((not(PresTrain) and feux[index].Verrouillecarre) or car ) then Maj_Etat_Signal(AdrFeu,carre)
       else
       begin
         // si on quitte le détecteur on affiche un sémaphore :  tester le sens de circulation
@@ -7698,15 +7761,20 @@ begin
         end
         else
         begin
-          Aig:=Aiguille_deviee(Adrfeu);
-          // si aiguille locale déviée
-          if (aig<>0) and (feux[index].aspect>=9) then // si le signal peut afficher un rappel et aiguille déviée
+          if cond_feuBlanc(AdrFeu) then
+            Maj_Etat_Signal(AdrFeu,blanc)
+          else
           begin
-            indexAig:=Index_aig(aig);
-            if AffSignal then AfficheDebug('Aiguille '+intToSTR(aig)+' du signal '+intToSTR(AdrFeu)+' déviée',clYellow);
-            feux[index].EtatSignal:=0;
-            if (aiguillage[indexAig].vitesse=30) or (aiguillage[indexAig].vitesse=0) then Maj_Etat_Signal(AdrFeu,rappel_30);
-            if aiguillage[indexAig].vitesse=60 then Maj_Etat_Signal(AdrFeu,rappel_60);
+
+            Aig:=Aiguille_deviee(Adrfeu);
+            // si aiguille locale déviée
+            if (aig<>0) and (feux[index].aspect>=9) then // si le signal peut afficher un rappel et aiguille déviée
+            begin
+              indexAig:=Index_aig(aig);
+              if AffSignal then AfficheDebug('Aiguille '+intToSTR(aig)+' du signal '+intToSTR(AdrFeu)+' déviée',clYellow);
+              feux[index].EtatSignal:=0;
+              if (aiguillage[indexAig].vitesse=30) or (aiguillage[indexAig].vitesse=0) then Maj_Etat_Signal(AdrFeu,rappel_30);
+              if aiguillage[indexAig].vitesse=60 then Maj_Etat_Signal(AdrFeu,rappel_60);
 
             // si signal suivant affiche rappel ou rouge
             if (TestBit(etat,rappel_60)) or (testBit(etat,rappel_30)) or (testBit(etat,carre)) or (testBit(etat,semaphore))
@@ -7782,6 +7850,7 @@ begin
                     //if affsignal then AfficheDebug('Mise du feu au vert',clyellow);
                   end;
                 end;
+              end;
               end;
             end;
           end;
@@ -12074,7 +12143,7 @@ begin
   Application.ProcessMessages;
   // Initialisation des images des signaux
   procetape('Création des signaux');
-  NbreImagePLigne:=Formprinc.ScrollBox1.Width div (largImg+5);
+  NbreImagePLigne:=(Formprinc.ScrollBox1.Width div (largImg+5)) -1;
   if NbreImagePLigne=0 then NbreImagePLigne:=1;
 
   // ajoute les images des signaux dynamiquement
@@ -14339,7 +14408,7 @@ end;
 
 procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
 var s: string;
-    nation,etat,index,i,k,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie : integer;
+    nation,etat,index,i,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie : integer;
     reserveTrainTiers : boolean;
     code : word;
 begin

@@ -22,8 +22,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1133
-    647)
+    1125
+    639)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel

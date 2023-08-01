@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetDecodeurs
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3007,9 +3007,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox12: TGroupBox
         Left = 336
-        Top = 32
-        Width = 281
-        Height = 441
+        Top = 24
+        Width = 289
+        Height = 449
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
@@ -3054,12 +3054,17 @@ object FormConfig: TFormConfig
         end
         object Label17: TLabel
           Left = 8
-          Top = 315
-          Width = 228
-          Height = 26
+          Top = 326
+          Width = 131
+          Height = 39
+          Hint = 
+            'Permet d'#39'afficher un carr'#233' si les aiguillages sont dans les posi' +
+            'tions d'#233'crites ci dessous'
           Caption = 
             'Conditions suppl'#233'mentaires d'#39'affichage du carr'#233' par les aiguilla' +
             'ges :'
+          ParentShowHint = False
+          ShowHint = True
           WordWrap = True
         end
         object Label24: TLabel
@@ -3142,12 +3147,31 @@ object FormConfig: TFormConfig
           Font.Style = []
           ParentFont = False
         end
+        object Label69: TLabel
+          Left = 152
+          Top = 328
+          Width = 122
+          Height = 39
+          Hint = 
+            'Permet d'#39'afficher un feu blanc si les aiguillages sont dans les ' +
+            'positions d'#233'crites ci dessous, si le signal ne doit pas afficher' +
+            ' de rouge'
+          Caption = 'Conditions d'#39'affichage du feu blanc par les aiguillages:'
+          ParentShowHint = False
+          ShowHint = True
+          WordWrap = True
+        end
         object MemoCarre: TMemo
           Left = 8
-          Top = 344
-          Width = 265
-          Height = 89
+          Top = 368
+          Width = 137
+          Height = 73
+          Hint = 
+            'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
+            's en OU'
+          ParentShowHint = False
           ScrollBars = ssBoth
+          ShowHint = True
           TabOrder = 12
           WordWrap = False
           OnChange = MemoCarreChange
@@ -3158,7 +3182,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3262,7 +3286,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -3353,6 +3377,20 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 20
           OnClick = CheckBoxContreVoieClick
+        end
+        object MemoBlanc: TMemo
+          Left = 152
+          Top = 368
+          Width = 129
+          Height = 73
+          Hint = 
+            'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
+            's en OU'
+          ParentShowHint = False
+          ScrollBars = ssBoth
+          ShowHint = True
+          TabOrder = 21
+          OnChange = MemoBlancChange
         end
       end
       object RichSig: TRichEdit
@@ -3536,7 +3574,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end

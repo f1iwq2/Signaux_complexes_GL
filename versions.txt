@@ -172,6 +172,7 @@ version 6.2  : Déplacement du curseur du TCO avec les touches curseur.
 version 6.3  : Choix du graphisme du TCO en lignes brisées ou courbes.
 version 6.4  : Gestion des signaux belges (avec chevron et réduction de vitesse).
 version 7.0  : Possibilité de créer des décodeurs spécifiques de signaux.
+               Affichage du feu blanc sur les signaux sur position spécifique d'aiguillages.
 
 
 

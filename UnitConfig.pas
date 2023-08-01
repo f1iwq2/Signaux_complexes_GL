@@ -356,6 +356,8 @@ type
     ButtonSup: TButton;
     Label68: TLabel;
     LabelNbDecPers: TLabel;
+    MemoBlanc: TMemo;
+    Label69: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -527,6 +529,7 @@ type
     procedure ComboBoxDecodeurPersoChange(Sender: TObject);
     procedure ButtonSupClick(Sender: TObject);
     procedure ComboBoxNationChange(Sender: TObject);
+    procedure MemoBlancChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -578,6 +581,9 @@ EnvAigDccpp_ch='EnvAigDccpp';
 AdrBaseDetDccpp_ch='AdrBaseDetDccpp';
 AvecVerifIconesTCO_ch='AvecVerifIconesTCO';
 NomModuleCDM_ch='NomModuleCDM';
+Nba_ch='NombreAdresses';
+nation_ch='Nation';
+nom_dec_pers_ch='Nom_dec_pers';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -589,8 +595,7 @@ section_initpp_ch='[init_dcc++]';
 section_trains_ch='[section_trains]';
 section_placement_ch='[section_placement]';
 section_DecPers_ch='[section_decodeurs]';
-Nba_ch='NombreAdresses';
-nation_ch='Nation';
+
 
 var
   FormConfig: TFormConfig;
@@ -993,7 +998,7 @@ end;
 // transforme le signal du tableau feux[] en texte
 function encode_sig_feux(i : integer): string;
 var s : string;
-    adresse,aspect,j,k,NfeuxDir,CondCarre,nc : integer;
+    adresse,aspect,j,k,NfeuxDir,CondCarre,CondFeuBlanc,nc : integer;
 begin
   // adresse
   adresse:=feux[i].adresse;
@@ -1051,6 +1056,25 @@ begin
         s:=s+')';
       end;
     end;
+
+    // conditions supplémentaires pour le feu blanc
+    for nc:=1 to 6 do
+    begin
+      CondFeuBlanc:=Length(feux[i].CondFeuBlanc[nc]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
+      dec(CondFeuBlanc);
+      if CondFeuBlanc>0 then
+      begin
+        s:=s+',CFB(';
+        for k:=1 to CondFeuBlanc do
+        begin
+          s:=s+'A'+IntToSTR(feux[i].CondFeuBlanc[nc][k].Adresse)+feux[i].CondFeuBlanc[nc][k].PosAig;
+          if k<CondFeuBlanc then s:=s+',';
+        end;
+        s:=s+')';
+      end;
+    end;
+
+
 
     // décodeur SR
     if feux[i].decodeur=7 then
@@ -1403,6 +1427,44 @@ begin
           until t<>1;
           if length(s)>1 then if s[1]=',' then delete(s,1,1);
 
+          // si conditions supplémentaires de feu blanc (CFB)
+          l:=1;  // nombre de parenthèses
+          repeat
+            t:=pos('CFB(',s);
+            if t=1 then
+            begin
+              //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
+              k:=pos(')',s);
+              sa:=copy(s,t+4,k-4); // contient l'intérieur des parenthèses sans les parenthèses
+              delete(s,1,k+1);//Affiche(s,clYellow);
+
+              // boucle dans la parenthèse
+              bd:=0;
+              repeat
+                inc(bd);
+                setlength(feux[i].condFeuBlanc[l],bd+1);  // une condition en plus
+                k:=pos(',',sa);
+                if k<>0 then
+                  chaine:=copy(sa,1,k-1)   // premier champ  ()
+                  else                     // le reste
+                  chaine:=sa;
+
+                if chaine[1]='A' then
+                begin
+                  delete(chaine,1,1);
+                  val(chaine,adresse,erreur);
+                  feux[i].condFeuBlanc[l][bd].Adresse:=adresse;
+                  if erreur<>0 then feux[i].condFeuBlanc[l][bd].PosAig:=chaine[erreur] else
+                  Affiche('Erreur 683 Définition du signal '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de feu blanc des aiguillages',clred);
+                end;
+
+                k:=pos(',',sa);if k<>0 then delete(sa,1,k);
+              until k=0;
+              inc(l);
+            end;
+          until t<>1;
+          if length(s)>1 then if s[1]=',' then delete(s,1,1);
+
           // champ SR
           if length(s)>2 then
             if copy(s,1,2)='SR' then
@@ -1697,12 +1759,12 @@ begin
   writeln(fichierN,section_DecPers_ch);
   for i:=1 to NbreDecPers do
   begin
-    writeln(fichierN,decodeur_pers[i].nom);
+    writeln(fichierN,nom_dec_pers_ch+'='+decodeur_pers[i].nom); 
     n:=decodeur_pers[i].NbreAdr;
-    s:='NombreAdresses='+intToSTR(n);
+    s:=Nba_ch+'='+intToSTR(n);
     writeln(fichierN,s);
     n:=decodeur_pers[i].nation;
-    s:='Nation='+intToSTR(n);
+    s:=nation_ch+'='+intToSTR(n);
     writeln(fichierN,s);
 
     for j:=1 to decodeur_pers[i].NbreAdr do
@@ -2416,65 +2478,82 @@ procedure compile_dec_pers;
 var nv,i,j,k,l,adr : integer;
 begin
   Nligne:=1;
-  nv:=0;
-  repeat
-    s:=lit_ligne;
-    inc(Nligne);
-    if s<>'0' then
-    begin
-      if NbreDecPers<NbreMaxiDecPers then
+  repeat    // boucle de décodeurs
+    nv:=0;  // compteur nombre de variables
+    repeat  // boucle d'un décodeur
+      s:=lit_ligne;
+      inc(Nligne);
+      if s<>'0' then
       begin
-        inc(NbreDecPers);
-        decodeur_pers[NbreDecPers].nom:=sOrigine;
-        decodeur[NbDecodeurdeBase+NbreDecPers-1]:=sOrigine;
-        // nombre d'adresses
-        s:=lit_ligne;
-        k:=pos(uppercase(nba_ch)+'=',s);
-        if k=1 then
+        if NbreDecPers<NbreMaxiDecPers then
         begin
-          delete(s,1,length(nba_ch)+1);
-          val(s,j,erreur);                        // ne pas écraser j
-          decodeur_pers[NbreDecPers].NbreAdr:=j;
-        end;
-        // nation
-        s:=lit_ligne;
-        k:=pos(uppercase(nation_ch)+'=',s);
-        if k=1 then
-        begin
-          delete(s,1,length(nation_ch)+1);
-          val(s,k,erreur);
-          if (k=0) or (k>2) then k:=1;
-          decodeur_pers[NbreDecPers].Nation:=k;
-        end;
-
-        adr:=1;
-        repeat
-            s:=lit_ligne;
-            k:=pos(',',s);
-            val(s,l,erreur);
-            delete(s,1,k);
-            decodeur_pers[NbreDecPers].desc[adr].etat1:=l;
-            k:=pos(',',s);
-            val(s,l,erreur);
-            delete(s,1,k);
-            decodeur_pers[NbreDecPers].desc[adr].etat2:=l;
-            k:=pos(',',s);
-            val(s,l,erreur);
-            delete(s,1,k);
-            decodeur_pers[NbreDecPers].desc[adr].offsetadresse:=l;
-            k:=pos(',',s);
-            val(s,l,erreur);
-            delete(s,1,k);
-            decodeur_pers[NbreDecPers].desc[adr].sortie1:=l;
-            k:=pos(',',s);
-            val(s,l,erreur);
-            delete(s,1,k);
-            decodeur_pers[NbreDecPers].desc[adr].sortie2:=l;
+          // nom du décodeur
+          k:=pos(uppercase(nom_dec_pers_ch)+'=',s);
+          if k=1 then
+          begin
+            delete(sOrigine,1,length(nom_dec_pers_ch)+1);
             s:='';
-          inc(adr);
-        until (adr>j);
+            inc(NbreDecPers);
+            decodeur_pers[NbreDecPers].nom:=sOrigine;
+            decodeur[NbDecodeurdeBase+NbreDecPers-1]:=sOrigine;
+            inc(nv);
+          end;
+
+          // nombre d'adresses
+          k:=pos(uppercase(nba_ch)+'=',s);
+          if (k=1) and (NbreDecPers>0) then
+          begin
+            delete(s,1,length(nba_ch)+1);
+            val(s,j,erreur);                        // ne pas écraser j
+            decodeur_pers[NbreDecPers].NbreAdr:=j;
+            inc(nv);
+          end;
+
+          // nation
+          k:=pos(uppercase(nation_ch)+'=',s);
+          if (k=1) and (NbreDecPers>0) then
+          begin
+            delete(s,1,length(nation_ch)+1);
+            val(s,k,erreur);
+            if (k=0) or (k>2) then k:=1;
+            decodeur_pers[NbreDecPers].Nation:=k;
+            inc(nv);
+          end;
+        end;
       end;
-    end;
+    until eof(fichier) or (s='0') or (nv=3); // on sort de la boucle si on a lu les 3 variables
+
+    adr:=1;
+    if s<>'0' then
+    repeat
+      s:=lit_ligne;
+      if s<>'0' then
+      begin
+        k:=pos(',',s);
+        val(s,l,erreur);
+        delete(s,1,k);
+        decodeur_pers[NbreDecPers].desc[adr].etat1:=l;
+        k:=pos(',',s);
+        val(s,l,erreur);
+        delete(s,1,k);
+        decodeur_pers[NbreDecPers].desc[adr].etat2:=l;
+        k:=pos(',',s);
+        val(s,l,erreur);
+        delete(s,1,k);
+        decodeur_pers[NbreDecPers].desc[adr].offsetadresse:=l;
+        k:=pos(',',s);
+        val(s,l,erreur);
+        delete(s,1,k);
+        decodeur_pers[NbreDecPers].desc[adr].sortie1:=l;
+        k:=pos(',',s);
+        val(s,l,erreur);
+        delete(s,1,k);
+        decodeur_pers[NbreDecPers].desc[adr].sortie2:=l;
+        s:='';
+        inc(adr);
+      end
+      else Affiche('Section décodeurs - Nombre de descriptions du décodeur "'+decodeur_pers[NbreDecPers].nom+'" différents du nombre des adresses déclarées',clred);
+    until (adr>j) or (s='0');
   until eof(fichier) or (s='0');
 end;
 
@@ -2588,6 +2667,25 @@ begin
     trains[i].y:=-999999;
   end;  
     
+end;
+
+// trie les signaux
+procedure trier_sig;
+var i,j : integer;
+    temp : TSignal;
+begin
+  for i:=1 to NbreFeux do
+  begin
+    for j:=i+1 to NbreFeux do
+    begin
+      if feux[i].Adresse>feux[j].adresse then
+      begin
+        temp:=feux[i];
+        feux[i]:=feux[j];
+        feux[j]:=temp;
+      end;
+    end;
+  end;
 end;
 
 procedure lit_flux;
@@ -3058,6 +3156,7 @@ begin
     begin
       trouve_section_sig:=true;
       compile_signaux;
+      trier_sig;
     end;
 
     // section actionneurs
@@ -4452,6 +4551,7 @@ begin
   with formconfig do
   begin
     MemoCarre.Lines.Clear;
+    MemoBlanc.Lines.Clear;
     EditDet2.Text:=''; EditSuiv2.Text:='';
     EditDet3.Text:=''; EditSuiv3.Text:='';
     EditDet4.Text:=''; EditSuiv4.Text:='';
@@ -4505,11 +4605,24 @@ begin
     end;
 
     // affiche ou non les checkbox en fonction de l'aspect
-    if (((d=2) or (d>=5)) and (d<10)) or (d=20) then checkBoxFB.Visible:=true else checkBoxFB.Visible:=false;
+    if (((d=2) or (d>=5)) and (d<10)) or (d=20) then
+    begin
+      checkBoxFB.Visible:=true;
+      Label69.Visible:=true;
+      MemoBlanc.Visible:=true;
+    end
+    else
+    begin
+      checkBoxFB.Visible:=false;
+      Label69.Visible:=false;
+      MemoBlanc.Visible:=false;
+    end;
+
     if d>2 then
     begin
       checkFVC.Visible:=true;
       checkFRC.Visible:=true;
+
     end
     else
     begin
@@ -4547,7 +4660,7 @@ begin
     if (d<10) or (d>=20) then
     begin
       Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
-      Label17.Width:=228;
+      label17.Width:=131;
       LabelDetAss.visible:=true;
       LabelElSuiv.visible:=true;
       label43.Visible:=true;
@@ -4604,10 +4717,32 @@ begin
       // scrolle le MemoCarre sur la première ligne
       MemoCarre.SelStart:=0;
       MemoCarre.Perform(EM_SCROLLCARET,0,0);
+
+       // conditions supplémentaires du feu blanc par aiguillages
+      l:=1;
+      repeat
+        nc:=Length(feux[i].condFeuBlanc[l])-1 ;
+        if nc<>-1 then
+        begin
+          s:='';
+          for k:=1 to nc do
+          begin
+            s:=s+'A'+IntToSTR(feux[i].condFeuBlanc[l][k].Adresse)+feux[i].condFeuBlanc[l][k].PosAig;
+            if k<nc then s:=s+',';
+          end;
+          MemoBlanc.Lines.Add(s);
+        end;
+        inc(l);
+      until (nc<=0) or (l>6);
+      // scrolle le MemoCarre sur la première ligne
+      MemoBlanc.SelStart:=0;
+      MemoBlanc.Perform(EM_SCROLLCARET,0,0);
+
     end
     else
     begin // directionnel
       Label17.Caption:='Conditions d''affichage du feu directionnel :';
+      label17.Width:=131;
       label43.Visible:=false;
       LabelDetAss.visible:=false;
       LabelElSuiv.visible:=false;
@@ -4638,8 +4773,6 @@ begin
     end;
   end;
 
-  // vérifier les incompatibilités
-  
   clicListe:=false;
 end;
 
@@ -4910,7 +5043,6 @@ begin
             EditZdet1V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ1O);
             EditZdet2V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ2O);
           end;
-
         end;
       end;  
     end;  
@@ -5282,14 +5414,10 @@ begin
       end;
       EditPointe_BG.Hint:=TypeElAIg_to_char(adr,B);
     end
-      else
-        LabelInfo.caption:='Erreur pointe aiguillage '+intToSTR(AdrAig);
-    end;  
-
+    else LabelInfo.caption:='Erreur pointe aiguillage '+intToSTR(AdrAig);
+  end;  
 end;
 
-
- 
 procedure TFormConfig.EditDevieS2KeyPress(Sender: TObject; var Key: Char);
 var AdrAig,adr,erreur,index : integer;
     b : char;
@@ -5960,7 +6088,7 @@ end;
 
 procedure TFormConfig.EditActChange(Sender: TObject);
 var s,s2 : string;
-    act,erreur,det1,det2,suiv : integer;
+    act,erreur,det2,suiv : integer;
     elsuiv : tEquipement;
     de : boolean;
 begin
@@ -5982,9 +6110,6 @@ begin
       if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=2) then s2:='Aiguillage ';
 
       EditAct.Hint:=s2+intToSTR(act);
-
-
-
 
       de:=pos('Z',s)<>0;    // si détecteur
       if de then delete(s,erreur,1);
@@ -7003,6 +7128,7 @@ begin
   end;
 end;
 
+
 procedure supprime_act;
 var i,debut,longueur,fin,ltot,lignedeb,lignefin,l : integer;
     s: string;
@@ -7370,7 +7496,7 @@ begin
 end;
 
 function nombre_adresses_signal(adr : integer) : integer;
-var x,dec,nc,i : integer;
+var x,dec,nc,i,j : integer;
 begin
   nc:=0;
   i:=index_feu(adr);
@@ -7416,6 +7542,12 @@ begin
   end;
   if dec=9 then nc:=2;               // LS-DEC-NMBS
   if dec=10 then nc:=feux[i].Na;     // Bmodels
+  if dec>=NbDecodeurdeBase then
+  begin
+    j:=dec-NbDecodeurdeBase+1;
+    nc:=decodeur_pers[j].NbreAdr;
+  end;
+
   nombre_adresses_signal:=nc;
 end;
 
@@ -10953,7 +11085,6 @@ end;
 
 procedure TFormConfig.CheckBoxContreVoieClick(Sender: TObject);
 var s : string;
-    bm : Tbitmap;
     adr : integer;
 begin
   if clicliste or (ligneClicSig<0) then exit;
@@ -11075,9 +11206,7 @@ end;
 // nouveau décodeur personnalisé
 procedure TFormConfig.BoutonNouveauClick(Sender: TObject);
 var s: string;
-    cb : TcomboBox;
-    te : Tedit;
-    i,nombre,erreur,decCourant : integer;
+    i,nombre,decCourant : integer;
 begin
   if NbreDecPers>=NbreMaxiDecPers then exit;
 
@@ -11133,7 +11262,7 @@ end;
 
 
 procedure TFormConfig.ComboBoxDecodeurPersoChange(Sender: TObject);
-var i,nAdr,a : integer;
+var i,a : integer;
     s: string;
 begin
   if affevt then Affiche('Evt ComboBoxDecodeurPerso',clyellow);
@@ -11269,7 +11398,65 @@ begin
   maj_decodeurs;
 end;
 
+procedure TFormConfig.MemoBlancChange(Sender: TObject);
+var s,sO: string;
+    j,erreur,adr,ligne,aspect : integer;
+    c : char;
 begin
-end.
+  if (ligneClicSig<0) or clicListe then exit;
+  if affevt then affiche('Evt MemoBlanc change',clyellow);
+  j:=MemoCarre.Selstart;
+  clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,j,0);     // numéro de la ligne du curseur
+  aspect:=feux[ligneClicSig+1].aspect;
+
+
+  if (clicMemo>5) then
+  begin
+    clicListe:=true;
+    LabelInfo.Caption:='Erreur 6 conditions maxi';
+    MemoCarre.Lines.Delete(clicMemo);
+    clicListe:=false;
+    exit;
+  end;
+  
+
+  // signal normal
+    // boucle de ligne
+    for ligne:=1 to 6 do
+    begin
+      s:=uppercase(MemoBlanc.Lines[ligne-1]);
+      clicListe:=true;
+      MemoBlanc.Lines[ligne-1]:=s;
+      clicListe:=false;
+      sO:=s;
+      j:=1;
+      if s<>'' then 
+      repeat
+        if s[1]<>'A' then begin LabelInfo.Caption:='Erreur manque A : '+sO;exit;end;
+        delete(s,1,1);
+        val(s,adr,erreur);  // adresse
+        if adr=0 then exit;
+        c:=#0;
+        if erreur<>0 then c:=s[erreur];       // S ou D
+        if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
+        setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],j+1);
+        feux[ligneClicSig+1].condFeuBlanc[ligne][j].PosAig:=c;
+        feux[ligneClicSig+1].condFeuBlanc[ligne][j].Adresse:=adr;
+        delete(s,1,erreur);   // supprime jusque D
+        if length(s)<>0 then if s[1]=',' then delete(s,1,1);
+        inc(j);
+      until s=''
+      else
+        setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],0);
+    end;    
+
+  s:=encode_sig_feux(ligneClicSig+1);
+  RichSig.Lines[ligneClicSig]:=s;
+  LabelInfo.Caption:='';
+  clicListe:=false;
+end;
+
+begin
+end.
 
 

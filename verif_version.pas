@@ -158,7 +158,7 @@ end;
 
 // renvoie le numéro de version depuis le forum CDM
 function verifie_version : real;
-var s,s2,s3,Version_p,Url,LocalFile,nomfichier,UrlGIT : string;
+var s,s2,s3,Version_p,Url,LocalFile,nomfichier : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;
     fichier : text;
     i,j,erreur,Ncomm,i2,i3,l : integer;

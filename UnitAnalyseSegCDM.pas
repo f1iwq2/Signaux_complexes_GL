@@ -1265,7 +1265,7 @@ end;
 procedure peindre(Indextrain,x,y : integer;Zoom : single);
 var
   XFormScale,XFormRot,XFormXLat,XForm,XFormOld  : TXForm;  //  matrice
-  GMode,x0,y0,x1,y1,x2,y2,x3,y3,c1,c2,larg,haut,ax,ay,l2,h2       : Integer;
+  GMode,x0,y0,x1,y1,x2,y2,x3,y3,larg,haut,ax,ay,l2,h2       : Integer;
   d,alpha,angle,z : double;
   sinA,cosA : extended;
   tv : array[0..3] of integer;
@@ -3328,7 +3328,6 @@ end;
 procedure Compilation;
 var s : string;
     nombre,position : integer;
-    resultat : integer;
 begin
   s:=lowercase(Formprinc.fenRich.Lines[0]);
   if pos('module',s)=0 then
@@ -3377,7 +3376,7 @@ begin
       compile_periph;
     end;
     inc(nligne);
-  until (nligne>nombre); // or (nligne=1311) ;
+  until (nligne>nombre);
   //Affiche('fin de la compilation',cllime);
 
   Affichage(false);
@@ -3388,7 +3387,7 @@ begin
   Affiche('Compilation terminée. Nombre de segments='+intToSTR(nSeg),clWhite);
 
   remplit_Aig_cdm;
-  Affiche('nombre de d''aiguillages: '+intToSTR(Naig_cdm),clyellow);
+  Affiche('nombre d''aiguillages: '+intToSTR(Naig_cdm),clyellow);
 
   // sauvegarde
   sauve_ficher_cdm;
