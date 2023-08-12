@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 332
-  Top = 149
+  Left = 319
+  Top = 128
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1584,7 +1584,7 @@ object FormConfig: TFormConfig
       Caption = 'CDM Rail'
       object Label36: TLabel
         Left = 24
-        Top = 456
+        Top = 448
         Width = 369
         Height = 13
         Caption = 
@@ -2029,7 +2029,7 @@ object FormConfig: TFormConfig
       ImageIndex = 1
       object Label9: TLabel
         Left = 16
-        Top = 456
+        Top = 448
         Width = 294
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
@@ -3182,7 +3182,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3286,7 +3286,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -3930,7 +3930,7 @@ object FormConfig: TFormConfig
             object EditTempo: TEdit
               Left = 112
               Top = 38
-              Width = 33
+              Width = 41
               Height = 21
               TabOrder = 0
               OnChange = EditTempoChange
@@ -3997,7 +3997,7 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 152
+          Left = 200
           Top = 16
           Width = 233
           Height = 401

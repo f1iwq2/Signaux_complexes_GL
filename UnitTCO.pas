@@ -1,5 +1,5 @@
 unit UnitTCO;
-
+// na pas utiliser les éléments 30 et 31 qui sont les anciens signaux et quais
 interface
 
 uses
@@ -10,7 +10,7 @@ uses
 type
   TFormTCO = class(TForm)
     LabelCoord: TLabel;
-    Label2: TLabel;
+    LabelCellule: TLabel;
     PopupMenu1: TPopupMenu;
     MenuCouper: TMenuItem;
     N1: TMenuItem;
@@ -25,41 +25,41 @@ type
     Pos_vert: TMenuItem;
     TrackBarZoom: TTrackBar;
     Panel1: TPanel;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
     Label8: TLabel;
     Label9: TLabel;
-    Label16: TLabel;
-    Label17: TLabel;
-    Label18: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label50: TLabel;
     ButtonSauveTCO: TButton;
     ButtonRedessine: TButton;
     Button1: TButton;
     Button2: TButton;
-    Label19: TLabel;
+    LabelZoom: TLabel;
     ButtonConfigTCO: TButton;
     Annulercouper: TMenuItem;
     N5: TMenuItem;
-    Label20: TLabel;
-    Label3: TLabel;
-    Label21: TLabel;
-    Label22: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
     ButtonSimu: TButton;
-    Label24: TLabel;
-    Label25: TLabel;
-    Label26: TLabel;
-    Label27: TLabel;
-    Label28: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
+    Label20: TLabel;
     ButtonMasquer: TButton;
     ButtonAfficheBandeau: TButton;
-    Label29: TLabel;
-    Label30: TLabel;
-    Label31: TLabel;
+    Label21: TLabel;
+    Label22: TLabel;
+    Label51: TLabel;
     FontDialog1: TFontDialog;
     N2: TMenuItem;
     Signalgauchedelavoie1: TMenuItem;
@@ -68,15 +68,15 @@ type
     Signal1: TMenuItem;
     N4: TMenuItem;
     GroupBox1: TGroupBox;
-    Label4: TLabel;
+    Label41: TLabel;
     EditAdrElement: TEdit;
     EditTypeImage: TEdit;
-    Label15: TLabel;
+    Label71: TLabel;
     ButtonFonte: TButton;
-    Label23: TLabel;
+    Label230: TLabel;
     EditTexte: TEdit;
     ComboRepr: TComboBox;
-    Label1: TLabel;
+    Label65: TLabel;
     CheckPinv: TCheckBox;
     N6: TMenuItem;
     Inserer: TMenuItem;
@@ -93,8 +93,8 @@ type
     ButtonCoulFond: TButton;
     ColorDialog1: TColorDialog;
     ShapeCoulFond: TShape;
-    Label5: TLabel;
-    Label32: TLabel;
+    Label24: TLabel;
+    Label25: TLabel;
     ImagePalette1: TImage;
     ImagePalette2: TImage;
     ImagePalette3: TImage;
@@ -118,14 +118,30 @@ type
     ImagePalette25: TImage;
     ImagePalette10: TImage;
     ImagePalette11: TImage;
-    ImagePalette31: TImage;
-    ImagePalette30: TImage;
+    ImagePalette51: TImage;
+    ImagePalette50: TImage;
     ImagePalette8: TImage;
     ImageTemp: TImage;
     ImageTemp2: TImage;
     outslectionner1: TMenuItem;
     ButtonDessiner: TButton;
     ButtonTrajet: TButton;
+    ImagePalette26: TImage;
+    Label26: TLabel;
+    ImagePalette23: TImage;
+    Label23: TLabel;
+    Label27: TLabel;
+    ImagePalette27: TImage;
+    ImagePalette28: TImage;
+    Label28: TLabel;
+    Label29: TLabel;
+    ImagePalette29: TImage;
+    Label32: TLabel;
+    ImagePalette32: TImage;
+    Label33: TLabel;
+    ImagePalette33: TImage;
+    Label34: TLabel;
+    ImagePalette34: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -168,7 +184,6 @@ type
     procedure MenuCopierClick(Sender: TObject);
     procedure MenuCollerClick(Sender: TObject);
     procedure ButtonRedessineClick(Sender: TObject);
-    procedure grille;
     procedure EditAdrElementChange(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -180,8 +195,8 @@ type
     procedure ImagePalette11MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ButtonConfigTCOClick(Sender: TObject);
-    procedure ImagePalette30EndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ImagePalette30MouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ImagePalette50EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette50MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Tourner90GClick(Sender: TObject);
     procedure Tourner90DClick(Sender: TObject);
@@ -281,15 +296,15 @@ type
       Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ImagePalette11DragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette30DragOver(Sender, Source: TObject; X,
+    procedure ImagePalette50DragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
     procedure Panel1DragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
-    procedure ImagePalette31DragOver(Sender, Source: TObject; X,
+    procedure ImagePalette51DragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette31EndDrag(Sender, Target: TObject; X,
+    procedure ImagePalette51EndDrag(Sender, Target: TObject; X,
       Y: Integer);
-    procedure ImagePalette31MouseDown(Sender: TObject;
+    procedure ImagePalette51MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ButtonFonteClick(Sender: TObject);
     procedure FontDialog1Show(Sender: TObject);
@@ -332,14 +347,65 @@ type
     procedure outslectionner1Click(Sender: TObject);
     procedure ButtonDessinerClick(Sender: TObject);
     procedure ButtonTrajetClick(Sender: TObject);
-
-  private
+    procedure ImagePalette26DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette26MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette23EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette23DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette23MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette27MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette28DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette28EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette28MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette29DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette29EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette29MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette32DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette32EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette32MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette33DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette33EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette33MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette34DragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette34EndDrag(Sender, Target: TObject; X,
+      Y: Integer);
+    procedure ImagePalette34MouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure EditAdrElementClick(Sender: TObject);
+
+  private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
 
 const
+  licone=35;
+  hicone=35;
   maxUndo=30;
   ZoomMax=50;ZoomMin=15;
   MaxCellX=150;MaxCellY=70;
@@ -357,16 +423,19 @@ const
   AvecGrille_ch='AvecGrille';
   ModeCouleurCanton_ch='ModeCouleurCanton';
   Graphisme_ch='Graphisme';
-  // liaisons des voies pour chaque icone par bit (0=NO 1=Nors 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
-  Liaisons : array[0..31] of integer=
-     (0,$88,$c8,$8c,$98,$89,$9,$84,$90,$48,$44,$11,$19,$c4,$91,$4c,$21,$24,$42,$12,$22,$cc,$99,$00,$23,$33,0,0,0,0,0,0) ;
+  // liaisons des voies pour chaque icone par bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
+  Liaisons : array[0..51] of integer=
+     //   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27 28  29 30 31
+     (0,$88,$c8,$8c,$98,$89,$9,$84,$90,$48,$44,$11,$19,$c4,$91,$4c,$21,$24,$42,$12,$22,$cc,$99,$66,$23,$33,$26,$62,$32,$31,0,0,
+     // 32  33  34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51
+       $62,$13,$46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) ;
 type
   // structure du TCO
   TTCO = record
            Adresse     : integer;     // adresse du détecteur ou de l'aiguillage ou du feu
-           BImage      : integer;     // 0=rien 1=voie 2=aiguillage gauche gauche ... 30=feu
+           BImage      : integer;     // 0=rien 1=voie 2=aiguillage gauche gauche ... 50=feu
            mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur en fonction du train
-           trajet      : integer;     // décrit le trajet ouvert sur la voie (cas d'un croisement ou d'ue tjd/S)
+           trajet      : integer;     // décrit le trajet ouvert sur la voie (cas d'un croisement ou d'une tjd/S)
            inverse     : boolean;     // aiguillage piloté inversé
            repr        : integer;     // position de la représentation texte 0 = rien 1=centrale 2=Haut  3=Bas
            Texte       : string;      // texte de la cellule
@@ -378,6 +447,7 @@ type
            // pour les signaux seulement
            PiedFeu     : integer;     // type de pied au signal : signal à gauche=1 ou à droite=2 de la voie
            x,y         : integer;     // coordonnées pixels relativés du coin sup gauche du signal pour le décalage par rapport au 0,0 cellule
+           Xundo,Yundo : integer;     // coordonnées x,y de la cellule pour le undo
            FeuOriente  : integer;     // orientation du signal : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
            liaisons    : integer;     // quadrants des liaisons
          end;
@@ -389,7 +459,7 @@ var
 
   Forminit,SelectionAffichee,TamponAffecte,entoure,TCO_modifie,clicsouris,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,formConfCellTCOAff,
-  drag,TCOActive,TCOCree,modeTrace,ancienok,dbleClicTCO : boolean;
+  drag,TCOActive,TCOCree,modeTrace,ancienok,dbleClicTCO,auto_tcurs : boolean;
 
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
@@ -404,11 +474,7 @@ var
 
   Undo : array[1..MaxUndo] of record
            nombre : integer;
-           element : array[1..100] of
-           record
-             x,y,Bimage : integer;
-             texte : string;
-           end;
+           element : array[1..100] of TTCO ;
          end;
 
   // pour copier coller
@@ -451,6 +517,7 @@ procedure change_couleur_fond;
 function verif_cellule(x,y,Bim : integer) : boolean;
 procedure dessine_icones;
 procedure echange(var a,b : integer);
+procedure Efface_Cellule(Canvas : Tcanvas;x,y : integer;Mode : TPenMode);
 
 implementation
 
@@ -489,7 +556,7 @@ begin
     NbreCellX:=35;NbreCellY:=20;LargeurCell:=35;HauteurCell:=35;
     largeurCelld2:=largeurCell div 2;HauteurCelld2:=HauteurCell div 2;
     RatioC:=10;
-    ClFond:=$202050;
+    ClFond:=$000040;
     ClVoies:=$0077FF;
     ClAllume:=$00FFFF;
     ClGrille:=$404040;
@@ -503,7 +570,21 @@ begin
     SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
     for x:=1 to NbreCellX do
       for y:=1 to NbreCellY do
-        tco[x,y].CouleurFond:=clfond;
+        with tco[x,y] do
+        begin
+          CouleurFond:=clfond;
+          Adresse:=0;
+          Bimage:=0;
+          repr:=0;
+          Texte:='';
+          fonte:='';
+          fontSTyle:='';
+          piedFeu:=0;
+          x:=0;
+          y:=0;
+          FeuOriente:=0;
+          Liaisons:=0;
+        end;
     exit;
   end;
   {$I-}
@@ -756,7 +837,8 @@ begin
         i:=pos(',',s);
         if i=0 then begin Affiche('ETCO6',clred);closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin Affiche('ETCO7',clred);closefile(fichier);exit;end;
-        if valeur=23 then begin valeur:=31;sauve_tco:=true;end; // nouvelle version icone 23 passe à 31
+        if valeur=30 then begin valeur:=50;sauve_tco:=true;end;
+        if valeur=31 then begin valeur:=51;sauve_tco:=true;end;
         tco[x,y].Bimage:=valeur;
         tco[x,y].liaisons:=liaisons[valeur];
         delete(s,1,i);
@@ -781,9 +863,9 @@ begin
         delete(s,1,i);
 
         // si c'est un signal, remplir les paramètres du signal
-        if tco[x,y].Bimage=30 then
+        if tco[x,y].Bimage=50 then
         begin
-          i:=index_feu(adresse);
+          i:=Index_Signal(adresse);
           if i<>0 then
           begin
             //Affiche('Feu '+IntToSTR(Adresse)+' aspect='+intToSTR(aspect),clyellow);
@@ -911,7 +993,7 @@ begin
 
       if TCO[x,y].inverse then s:=s+'1,' else s:=s+'0,';
 
-      if TCO[x,y].BImage=30 then
+      if TCO[x,y].BImage=50 then
       begin
         s:=s+IntToSTR(TCO[x,y].FeuOriente)+','+IntToSTR(TCO[x,y].PiedFeu)+',';
       end
@@ -970,29 +1052,6 @@ begin;
 end;
 
 
-procedure TformTCO.grille;
-var x,y : integer;
-begin
-  if not(AvecGrille) then exit;
-  With PCanvasTCO do
-  begin
-    pen.color:=ClGrille;
-    pen.Width:=1;
-    Brush.Color:=ClFond;
-    pen.mode:=PmCopy;
-    // lignes verticales
-    for x:=1 to NbreCellX do
-    begin
-      moveto(x*LargeurCell,1);
-      LineTo(x*LargeurCell,HauteurCell*NbreCelly);
-    end;
-    for y:=1 to NbreCelly do
-    begin
-      moveto(1,y*HauteurCell);
-      LineTo(LargeurCell*NbreCellX,y*HauteurCell);
-    end;
-  end;
-end;
 
 function positionTCO(x,y : integer) : integer;
 var position,i : integer;
@@ -2878,7 +2937,6 @@ end;
 
 procedure dessin_13C(Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
-    r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
@@ -3564,7 +3622,6 @@ begin
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
   // mode rond
-  // mode rond
   x1:=x0-(2*largeurCell)-(largeurcell div 2);y1:=y0-(hauteurCell div 3);
   x2:=x0+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
   x3:=xc;y3:=yf;
@@ -3892,7 +3949,6 @@ end;
 // Element 22
 procedure dessin_22(Canvas : Tcanvas;x,y,mode : integer);
 var x0,y0,xc,yc,trajet : integer;
-    r : Trect;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3939,8 +3995,8 @@ begin
   end;
 end;
 
-// Element 23 (31)
-procedure dessin_31(Canvas : Tcanvas;x,y,mode: integer);
+// Element 51 (quai)
+procedure dessin_51(Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,x1,x2,jy1,jy2 : integer;
     r : Trect;
 begin
@@ -4017,7 +4073,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
        moveto(xc,y0);lineto(xc,yf);    // verticale complete
        moveTo(x0,y0);lineto(xc,yc);    // partie déviée
      end;
-     
+
      if (mode=1) or (mode=2) then
      with canvas do
      begin
@@ -4033,7 +4089,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
        moveto(x0,y0);LineTo(xc,yc);LineTo(xc,yf);  // trajet déviée
      end;
    end;
-     
+
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -4068,14 +4124,14 @@ begin
       trajet_droit;
     end;
 
-    
+
     if (position=const_Devie) then
     begin
      // effacement du morceau
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      jy1:=yc - Epaisseur-1; 
+      jy1:=yc - Epaisseur-1;
       jx1:=xc-(Epaisseur div 2);
       pen.width:=1;
       Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1+epaisseur,jy1-epaisseur),Point(jx1,jy1-epaisseur)]);
@@ -4155,7 +4211,7 @@ begin
   x2:=x0+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
   x3:=xc;y3:=yf;
   x4:=x0;y4:=y0;
-
+  
   with canvas do
   begin
     Pen.Width:=1;
@@ -4217,6 +4273,59 @@ begin
   end;
 end;
 
+// Element 23  croisement
+procedure dessin_23(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,xf,yf,xc,yc,trajet : integer;
+begin
+  x0:=(x-1)*LargeurCell;
+  y0:=(y-1)*HauteurCell;
+  xc:=x0+(LargeurCell div 2);
+  yc:=y0+(hauteurCell div 2);
+  xf:=x0+LargeurCell;
+  yf:=y0+HauteurCell;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=TCO[x,y].CouleurFond;
+    //r:=Rect(x0,y0,x0+LargeurCell,y0+HauteurCell);
+    //FillRect(r);
+
+    Brush.Color:=clvoies;
+    pen.color:=clvoies;
+    pen.width:=epaisseur;
+
+    moveto(xf,y0);lineTo(x0,yf); // diagonale
+    moveTo(xc,y0);LineTo(xc,yf); // verticale
+
+    // regarder d'ou on vient de la route du tco
+    if mode>0 then
+    begin
+      trajet:=tco[x,y].trajet;
+      case mode of
+      0: couleur:=clVoies;
+      1: couleur:=ClCanton;
+      2: couleur:=couleurtrain[index_couleur];
+      end;
+      Brush.Color:=couleur;
+      pen.color:=couleur;
+      if trajet=1 then begin moveTo(xc,y0);LineTo(xc,yf);end; // verticale    
+      if trajet=2 then begin moveto(xf,y0);lineTo(x0,yf);end; // diagonale
+      if trajet=3 then
+      begin
+        moveto(xf,y0);LineTo(xc,yc);lineTo(xc,yf);  //
+      end;
+      if trajet=4 then
+      begin
+        moveto(xc,y0);LineTo(xc,yc);lineTo(x0,yf); // -\
+      end;
+
+    end;
+  end;
+end;
+
+
+
 procedure dessin_24(Canvas : Tcanvas;x,y : integer;Mode : integer);
 begin
   if graphisme=1 then dessin_24L(Canvas,x,y,Mode);
@@ -4274,7 +4383,1781 @@ begin
   end;
 end;
 
+// Element 26
+procedure dessin_26L(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
+    r : Trect;
+    fond: tcolor;
 
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+       moveto(xf,y0);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xf,y0);lineto(xc,yc);    // partie déviée éteinte
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // 2eme partie droite toujours allumée
+       moveto(xc,yf);LineTo(xc,yc);
+
+       // 1ere partie en fonction de la position
+       if position=const_devie then 
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xc,y0);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(xf,y0);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie horz d en couleur de voie
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);LineTo(xc,yc);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(xf,y0);LineTo(xc,yc);LineTo(xc,yf);  // trajet déviée
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jy1:=yc - 2*Epaisseur-1;
+      jx1:=xc- (Epaisseur div 2);
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+2*epaisseur)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc+(Epaisseur div 2)+1;
+      r:=rect(jx1,yc-15,jx1+Epaisseur,yc+10);
+      FillRect(r);
+    end;
+  end;
+end;
+
+// Element 26
+procedure dessin_26C(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,xc,yc,jx1,jy1,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position : integer;
+    r : Trect;
+    fond: tcolor;
+
+procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+
+     
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  // mode rond
+  x1:=x0+(largeurcell div 2);y1:=y0-(hauteurCell div 3);
+  x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
+  x3:=xf;y3:=y0;
+  x4:=xc;y4:=yf;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jx1:=xc-(Epaisseur div 2); jy1:=yc - Epaisseur-5;
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+4*epaisseur)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc+(Epaisseur div 2);
+      r:=rect(jx1+1,yc-15,jx1+Epaisseur,yf);
+      FillRect(r);
+    end;
+  end;
+end;
+
+procedure dessin_26(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_26L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_26C(Canvas,x,y,Mode);
+end;
+
+// Element 27
+procedure dessin_27L(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position : integer;
+    r : Trect;
+    fond: tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+       moveto(x0,yf);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,yf);lineto(xc,yc);    // partie déviée éteinte
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // 2eme partie droite toujours allumée
+       moveto(xc,y0);LineTo(xc,yc);
+
+       // 1ere partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xc,yf);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(x0,yf);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yf);LineTo(xc,yc);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(x0,yf);LineTo(xc,yc);LineTo(xc,y0);  // trajet déviée
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur+2;
+      jx2:=jx1+epaisseur;jy2:=jy1-epaisseur;
+      jx3:=jx2;jy3:=yc+2*epaisseur;
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc-(Epaisseur div 2);
+      r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
+      FillRect(r);
+    end;
+  end;
+end;
+
+// Element 27
+procedure dessin_27C(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,xc,yc,jx1,jy1,jx2,jy2,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,
+    jx3,jy3 : integer;
+    r : Trect;
+    fond: tcolor;
+
+procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  // mode rond       
+  x1:=x0-(2*largeurCell)-(largeurcell div 3);y1:=y0-hauteurcell-(hauteurCell div 3);
+  x2:=xc;y2:=yf+(hauteurCell div 3);    // div 3 permet d'avoir un angle a 45° plutot que div 2
+
+  x3:=x0;y3:=yf;
+  x4:=xc;y4:=y0;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur;
+      jx2:=jx1+epaisseur;jy2:=jy1-3*epaisseur;
+      jx3:=jx2;jy3:=yc+2*epaisseur;
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc-(Epaisseur div 2);
+      r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
+      FillRect(r);
+    end;
+  end;
+end;
+
+procedure dessin_27(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_27L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_27C(Canvas,x,y,Mode);
+end;
+
+// Element 28
+procedure dessin_28L(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position : integer;
+    r : Trect;
+    fond: tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+       moveto(xf,yf);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xf,yf);lineto(xc,yc);    // partie déviée éteinte
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // 2eme partie droite toujours allumée
+       moveto(xc,y0);LineTo(xc,yc);
+
+       // 1ere partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xc,yf);
+
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(xf,yf);lineto(xc,yc);    // partie déviée
+     end;
+
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yf);LineTo(xc,yc);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(xf,yf);LineTo(xc,yc);LineTo(xc,y0);  // trajet déviée
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jx1:=xc-(Epaisseur div 2); jy1:=yc + (Epaisseur div 2);
+      jx2:=jx1+epaisseur;jy2:=jy1+epaisseur;
+      jx3:=jx2;jy3:=yc+2*epaisseur;
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc+(Epaisseur div 2)+1;
+      r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
+      FillRect(r);
+    end;
+  end;
+end;
+
+// Element 28
+procedure dessin_28C(Canvas : Tcanvas;x,y,mode: integer);
+var x0,y0,xc,yc,jx1,jy1,jx2,jy2,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,
+    jx3,jy3 : integer;
+    r : Trect;
+    fond: tcolor;
+
+procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(xc,y0);lineto(xc,yf);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  // mode rond
+  x1:=x0+(largeurcell div 2);y1:=y0-hauteurCell-(hauteurCell div 3);
+  x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
+  x3:=xc;y3:=y0;
+  x4:=xf;y4:=yf;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=Fond;;
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jx1:=xc-(Epaisseur div 2); jy1:=yc - (2*Epaisseur );
+      jx2:=jx1+epaisseur;jy2:=yc+epaisseur;
+      jx3:=jx2;jy3:=yc+2*epaisseur;
+      pen.width:=1;
+      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jx1:=xc+(Epaisseur div 2);
+      r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
+      FillRect(r);
+    end;
+  end;
+end;
+
+procedure dessin_28(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_28L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_28C(Canvas,x,y,Mode);
+end;
+
+// Element 29
+procedure dessin_29L(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    fond : tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,y0);lineto(xf,yf);    // diag complete
+       moveto(xc,yc);lineto(xc,yf);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie droite couleur voies
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yc);lineto(xc,yf);    // partie droite
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // première partie haute toujours allumée
+       moveto(x0,y0);LineTo(xc,yc);
+
+       // 2eme partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xf,yf);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,y0);lineto(xf,yf);    // diag complete
+       moveto(xc,yc);lineto(xc,yf);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie sup en couleur de voie
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yc);LineTo(xf,yf);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(x0,y0);LineTo(xc,yc);LineTo(xc,yf);
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.width:=1;
+      x1:=xc+(epaisseur div 2)+1;y1:=yc-epaisseur;
+      x2:=x1+epaisseur;y2:=y1;
+      x3:=x2;y3:=y2+4*epaisseur;
+      x4:=x1;y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.Width:=1;
+      x1:=xc-(epaisseur div 2);y1:=yc+(epaisseur div 2);
+      x2:=x1+epaisseur;y2:=y1+epaisseur;
+      x3:=x2;y3:=y2+(epaisseur div 2);
+      x4:=x1;y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_29C(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    fond : tcolor;
+   procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xf,yf);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  // mode rond
+  x1:=x0-(2*largeurCell)-(largeurcell div 2);y1:=y0-(hauteurCell div 3);
+  x2:=x0+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
+  x3:=xc;y3:=yf;
+  x4:=x0;y4:=y0;
+
+
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+      // effacement du morceau
+      pen.width:=1;
+      x1:=xc-round(epaisseur*1);y1:=yc-round(2.2*epaisseur);
+      x2:=xc+round(epaisseur*0.7);y2:=y1;
+      x3:=x2-round(epaisseur*0.2);y3:=yc+round(1.8*epaisseur);
+      x4:=x1;y4:=yc-round(1.5*epaisseur);
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.Width:=1;
+      x1:=xc-round(epaisseur*2.3);y1:=yc-round(epaisseur*1.4);
+      x2:=x1+3*epaisseur;y2:=y1+3*epaisseur;
+      x3:=x2;y3:=y2+(epaisseur div 2);
+      x4:=x1;y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_29(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_29L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_29C(Canvas,x,y,Mode);
+end;
+
+// Elément 32
+procedure dessin_32L(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position : integer;
+    r : Trect;
+    fond : tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,yf);lineto(xf,y0);    // diag complete
+       moveto(xc,yf);lineto(xc,yc);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie horz couleur voies
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yf);lineto(xc,yc);    // partie déviée
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // première partie basse toujours allumée
+       moveto(x0,yf);LineTo(xc,yc);
+
+       // 2eme partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xf,y0);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,yf);lineto(xf,y0);    // diag complete
+       moveto(xc,yf);lineto(xc,yc);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie en couleur de voie
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yc);LineTo(x0,yf);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(xc,yf);LineTo(xc,yc);LineTo(xf,y0);
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc-2*epaisseur-5;y1:=yc+(epaisseur div 2)+1;
+      x2:=xc+epaisseur+10;y2:=y1+epaisseur;
+      r:=rect(x1,y1,x2,y2);
+      rectangle(r);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc-(epaisseur div 2)+1;y1:=yc-(epaisseur div 2)-1;
+      x2:=x1-epaisseur-1;
+      x3:=x2-epaisseur;y3:=yc+(epaisseur div 2)+1;
+      x4:=x1-epaisseur-1;
+      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
+    end;
+  end;
+end;
+
+procedure dessin_32C(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    fond : tcolor;
+
+   procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xf,y0);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  // mode rond
+  x1:=x0+(largeurcell div 2);y1:=y0-(hauteurCell div 3);
+  x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
+  x3:=xf;y3:=y0;
+  x4:=xc;y4:=yf;
+
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+
+    if (position=const_Devie) then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc-round(0.7*epaisseur);y1:=yc-round(1.6*epaisseur);
+      x2:=xc+round(0.9*epaisseur);y2:=y1;
+      x3:=xc-round(0.3*epaisseur);y3:=yc+round(1.4*epaisseur);
+      x4:=xc-round(0.7*epaisseur);y4:=y3;
+      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc+round(2.8*epaisseur);y1:=yc-(2*epaisseur);
+      x2:=xc+(4*epaisseur);
+      x3:=xc+(1*epaisseur);y3:=yc+(epaisseur);
+      x4:=xc-round(0.2*epaisseur);y4:=y3;
+      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_32(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_32L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_32C(Canvas,x,y,Mode);
+end;
+
+// Element 34
+procedure dessin_33L(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    r : Trect;
+    fond : tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,y0);lineto(xf,yf);    // diag complete
+       moveto(xc,y0);lineto(xc,yc);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie droite couleur voies
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,y0);lineto(xc,yc);    // partie droite
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // première partie basse toujours allumée
+       moveto(xf,yf);LineTo(xc,yc);
+
+       // 2eme partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(x0,y0);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,y0);lineto(xf,yf);    // diag complete
+       moveto(xc,y0);lineto(xc,yc);    // partie verticale
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie sup en couleur de voie
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,y0);LineTo(xc,yc);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(xf,yf);LineTo(xc,yc);LineTo(xc,y0);
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+   if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.width:=1;
+      x1:=xc-2*epaisseur;y1:=yc-(3*epaisseur);
+      x2:=xc-(epaisseur div 2);y2:=yc+epaisseur;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      r:=rect(x1,y1,x2,y2);
+      rectangle(r);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.Width:=1;
+      x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur) ;
+      x2:=xc+round(0.6*epaisseur);y2:=y1;
+      x3:=xc+round(2.5*epaisseur);y3:=yc+(epaisseur div 2);
+      x4:=xc+round(1.2*epaisseur);y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_33c(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    r : Trect;
+    fond : tcolor;
+
+procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xf,yf);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  // mode rond
+  x1:=x0+(largeurcell div 2);y1:=y0-hauteurCell-(hauteurCell div 3);
+  x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
+  x3:=xc;y3:=y0;
+  x4:=xf;y4:=yf;
+
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.width:=1;
+      x1:=xc-round(1.5*epaisseur);y1:=yc-round(2.5*epaisseur);
+      x2:=xc-round(0.6*epaisseur);y2:=y1;
+      x3:=xc+round(1.3*epaisseur);y3:=yc+2*epaisseur;
+      x4:=xc+round(0.4*epaisseur);y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      r:=rect(x1,y1,x2,y2);
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.Width:=1;
+      x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur);
+      x2:=xc+round(0.9*epaisseur);y2:=y1;
+      x3:=xc+round(3.5*epaisseur);y3:=yc+2*epaisseur;
+      x4:=xc+round(2.9*epaisseur);y4:=y3;
+      pen.color:=fond;
+      Brush.Color:=fond;
+      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_33(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_33L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_33C(Canvas,x,y,Mode);
+end;
+
+// Element 34
+procedure dessin_34L(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    fond : Tcolor;
+
+   procedure trajet_droit;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,yf);lineto(xf,y0);    // diag complete
+       moveto(xc,yc);lineto(xc,y0);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie droite couleur voies
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yc);lineto(xc,y0);    // partie droite
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       // première partie basse toujours allumée
+       moveto(x0,yf);LineTo(xc,yc);
+
+       // 2eme partie en fonction de la position
+       if position=const_devie then
+       begin
+         pen.color:=clvoies;
+         Brush.Color:=clvoies;
+       end;
+       LineTo(xf,y0);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     if mode=0 then
+     with canvas do
+     begin
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(x0,yf);lineto(xf,y0);    // diag complete
+       moveto(xc,yc);lineto(xc,y0);    // partie droite
+     end;
+     if (mode=1) or (mode=2) then
+     with canvas do
+     begin
+       // partie sup en couleur de voie
+       pen.color:=clvoies;
+       Brush.Color:=clvoies;
+       moveto(xc,yc);LineTo(xf,y0);
+
+       if mode=1 then couleur:=ClCanton;
+       if mode=2 then couleur:=couleurtrain[index_couleur];
+       pen.color:=couleur;
+       Brush.Color:=couleur;
+       moveto(x0,yf);LineTo(xc,yc);LineTo(xc,y0);
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if (position=const_Devie) or (position=const_inconnu) then
+    begin
+      trajet_devie;    // affiche la position de la branche déviée
+    end;
+
+    if (position=const_droit) or (position=const_inconnu) then
+    begin
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc+round(0.5*epaisseur);y1:=yc-round(3*epaisseur);
+      x2:=xc+round(1.5*epaisseur);y2:=yc+epaisseur;
+      polygon([point(x1,y1),point(x2,y1),point(x2,y2),point(x1,y2)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      x1:=xc-round(0.5*epaisseur);y1:=yc-round(2*epaisseur);
+      x2:=xc+round(0.5*epaisseur);y2:=y1;
+      x3:=x2;y3:=yc-round(1.3*epaisseur);
+      x4:=x1;y4:=yc-round(0.3*epaisseur);
+      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_34C(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+    fond : Tcolor;
+
+procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xf,y0);    // partie droite
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
+     end;
+   end;
+
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  // mode rond
+  x1:=x0-(2*largeurCell)-(largeurcell div 2);y1:=y0-hauteurCell-(hauteurCell div 3);
+  x2:=x0+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
+  x3:=x0;y3:=yf;
+  x4:=xc;y4:=y0;
+
+  position:=positionTCO(x,y);
+  fond:=TCO[x,y].CouleurFond;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+    //r:=Rect(x0,y0,xf,yf);
+    //FillRect(r);      // efface la cellule
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      x1:=xc+round(0.1*epaisseur);y1:=yc-round(1*epaisseur);
+      x2:=xc+round(2*epaisseur);y2:=y1;
+      x3:=xc-round(0.5*epaisseur);y3:=yc+round(3*epaisseur);
+      x4:=xc-round(2*epaisseur);y4:=y3;
+      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      x1:=xc-round(2.3*epaisseur);y1:=yc-round(2*epaisseur);
+      x2:=xc+round(epaisseur);y2:=y1;
+      x3:=x2;y3:=yc-round(2*epaisseur);
+      x4:=x1;y4:=yc+round(1.1*epaisseur);
+      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+    end;
+  end;
+end;
+
+procedure dessin_34(Canvas : Tcanvas;x,y : integer;Mode : integer);
+begin
+  if graphisme=1 then dessin_34L(Canvas,x,y,Mode);
+  if graphisme=2 then dessin_34C(Canvas,x,y,Mode);
+end;
 
 // calcul des facteurs de réductions X et Y pour l'adapter à l'image de destination
 procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY,DimOrgX,DimOrgY : integer);
@@ -4708,7 +6591,7 @@ begin
   Orientation:=TCO[x,y].FeuOriente;
   if Orientation=0 then Orientation:=1;  // cas d'un signal non encore renseigné
 
-  index:=index_feu(adresse);
+  index:=Index_Signal(adresse);
   aspect:=feux[index].aspect;
   if aspect=0 then aspect:=9;
   //if aspect>9 then exit;
@@ -4901,10 +6784,19 @@ begin
    20 : dessin_20(PCanvasTCO,X,Y,mode);
    21 : dessin_21(PCanvasTCO,X,Y,mode);
    22 : dessin_22(PCanvasTCO,X,Y,mode);
-   23,31 : dessin_31(PCanvasTCO,X,Y,mode);
+   23 : dessin_23(PCanvasTCO,X,Y,mode);
    24 : dessin_24(PCanvasTCO,X,Y,mode);
    25 : dessin_25(PCanvasTCO,X,Y,mode);
-   30 : dessin_Signal(PCanvasTCO,X,Y);
+   26 : dessin_26(PCanvasTCO,X,Y,mode);
+   27 : dessin_27(PCanvasTCO,X,Y,mode);
+   28 : dessin_28(PCanvasTCO,X,Y,mode);
+   29 : dessin_29(PCanvasTCO,X,Y,mode);
+   32 : dessin_32(PCanvasTCO,X,Y,mode);
+   33 : dessin_33(PCanvasTCO,X,Y,mode);
+   34 : dessin_34(PCanvasTCO,X,Y,mode);
+
+   50 : dessin_Signal(PCanvasTCO,X,Y);
+   51 : dessin_51(PCanvasTCO,X,Y,mode);
    end;
 
   PCanvasTCO.font.Size:=(LargeurCell div 10)+4  ;
@@ -4912,9 +6804,10 @@ begin
 
   // affiche le texte des aiguillages
   if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or
-      (BImage=15) or (BImage=21) or (BImage=22) or (BImage=24) or (BImage=25)) and (adresse<>0) then
+      (BImage=15) or
+      ((BImage>=21) and (BImage<=34) )) and (adresse<>0) then
   begin
-    if adresse<>0 then s:='A'+s else s:=' ';
+    if adresse<>0 then s:='A'+s+' ' else s:=' ';
     with PCanvasTCO do
     begin
       Brush.Color:=tco[x,y].CouleurFond;
@@ -4935,6 +6828,15 @@ begin
       if Bimage=22 then begin xt:=3;yt:=HauteurCell-round(15*frYGlob);end;
       if Bimage=24 then begin xt:=LargeurCell-round(20*frXGlob);yt:=HauteurCell-round(15*frYGlob);end;
       if Bimage=25 then begin xt:=1;yt:=HauteurCell-round(15*frYGlob);end;
+      if Bimage=26 then begin xt:=1;yt:=HauteurCell-round(15*frYGlob);end;
+      if Bimage=27 then begin xt:=1;yt:=1;end;
+      if Bimage=28 then begin xt:=1;yt:=1;end;
+      if Bimage=29 then begin xt:=LargeurCell div 2;yt:=1;end;
+      if Bimage=32 then begin xt:=1;yt:=1;end;
+      if Bimage=33 then begin xt:=1;yt:=HauteurCell-round(15*frYGlob);end;
+      if Bimage=34 then begin xt:=LargeurCell-round(30*frXGlob);yt:=HauteurCell-round(15*frYGlob);end;
+
+
       TextOut(xOrg+xt,yOrg+yt,s);
     end;
   end;
@@ -5015,9 +6917,9 @@ begin
   end;
 
   // adresse des signaux
-  if (BImage=30) and (adresse<>0) then
+  if (BImage=50) and (adresse<>0) then
   begin
-    index:=index_feu(adresse);
+    index:=Index_Signal(adresse);
     aspect:=feux[index].Aspect;
     oriente:=TCO[x,y].FeuOriente;
     pied:=TCO[x,y].PiedFeu;
@@ -5137,7 +7039,7 @@ begin
   y0:=(y-1)*hauteurcell;
   //PCanvasTCO.Brush.Style:=bsSolid;
 
-  if (TCO[x,y].BImage=23) or (TCO[x,y].BImage=31) then PCanvasTCO.Brush.Color:=clQuai else PCanvasTCO.Brush.Color:=tco[x,y].CouleurFond;
+  if (TCO[x,y].BImage=51) then PCanvasTCO.Brush.Color:=clQuai else PCanvasTCO.Brush.Color:=tco[x,y].CouleurFond;
   //PCanvasTCO.pen.color:=clyellow;
   PcanvasTCO.Font.Color:=tco[x,y].CoulFonte;
   ss:=tco[x,y].fonte;
@@ -5224,7 +7126,7 @@ begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if TCO[x,y].BImage<>30 then
+        if TCO[x,y].BImage<>50 then
         begin
           affiche_cellule(x,y);
         end;
@@ -5234,7 +7136,7 @@ begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if TCO[x,y].BImage=30 then
+        if TCO[x,y].BImage=50 then
         begin
           affiche_cellule(x,y);
         end;
@@ -5260,10 +7162,10 @@ end;
 
 procedure TFormTCO.FormCreate(Sender: TObject);
 begin
-  if affevt then Affiche('FormTCO create',clyellow);
-  if debug=1 then Affiche('Création fenêtre TCO',clLime);
+  if affevt or (debug=1) then Affiche('FormTCO create',clyellow);
   offsetSourisY:=-10;
   offsetSourisX:=-10;
+  auto_tcurs:=true;
   caption:='TCO';
   TCO_modifie:=false;
   rangUndo:=1;
@@ -5349,7 +7251,7 @@ procedure Erreur_TCO(x,y : integer);
 var s : string;
     i,adresse : integer;
 begin
-  s:='Erreur TCO: ';
+  s:='Erreur 92 TCO : cellule '+intToSTR(x)+','+intToSTR(y)+' ';
   adresse:=tco[x,y].Adresse;
   i:=index_aig(adresse);
   if i=0 then s:=s+'aiguillage '+intToSTR(adresse)+' inconnu';
@@ -5366,7 +7268,7 @@ end;
 procedure zone_TCO(det1,det2,mode: integer);
 var direction,i,j,x,y,xn,yn,ancienY,ancienX,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adresse,
     pos,pos2,ir,ax,ay,sx,sy: integer;
-    memtrouve,sortir,horz,diag : boolean;
+    memtrouve,sortir,horz,diag,casok : boolean;
     mdl : Tequipement;
     s : string;
 begin
@@ -5378,8 +7280,6 @@ begin
   trouve_det(det2,Xdet2,Ydet2);
   if (Xdet2=0) or (Ydet2=0) then exit;
 
-  // inverser coordonnées des détecteurs si à l'envers en X
-
   if debugTCO then
   begin
     AfficheDebug('trouvé '+intToSTR(det1)+' en '+IntToSTR(xDet1)+'/'+intToSTR(ydet1),clyellow);
@@ -5388,39 +7288,46 @@ begin
 
   memtrouve:=false;
 
-  Direction:=1;
+  Direction:=1;    // on teste 4 directions: 1=SE 2=NO 3=SO 4=NE
   repeat  // boucle de test de direction
     sortir:=false;
     x:=xDet1;y:=Ydet1;
     xn:=x;yn:=y;
     ir:=1;    // index de la route du tco
-    i:=0;
+    i:=0;     // itérations
     if debugTCO then afficheDebug('Direction '+intToSTR(direction),clOrange);
+
+    // initialiser les points d'où l'on vient
     if direction=1 then
     begin
-       // commencer par descendre et à droite
+       // descendre et à droite
+       casok:=true;
        ancieny:=ydet1+1;
        ancienx:=xdet1+1;
     end;
     if direction=2 then
     begin
-      // commencer par monter et à gauche
+      // monter et à gauche
+      casok:=true;
       ancieny:=ydet1-1;
       ancienx:=xdet1-1;
     end;
     if direction=3 then
     begin
-      // commencer par descendre et à droite
+      // commencer par descendre et à gauche
+      casok:=true;
       ancieny:=ydet1+1;
-      ancienx:=xdet1+1;
+      ancienx:=xdet1-1;
     end;
     if direction=4 then
     begin
       // commencer par monter et à droite
+      casok:=true;
       ancieny:=ydet1-1;
       ancienx:=xdet1+1;
     end;
-    
+
+
     // boucle de remplissage du tableau routeTCO de det1 à det2
     repeat
       routeTCO[ir].x:=x;
@@ -5434,7 +7341,7 @@ begin
 
       adresse:=TCO[x,y].Adresse ;
       Bimage:=TCO[x,y].Bimage;
-
+      casok:=false;
       // vers case suivante: trouver le trajet pour rejoindre det1 à det2
       case Bimage of
       // voie
@@ -5450,43 +7357,43 @@ begin
       2 : begin
             //if debugTCO then AfficheDebug('El 2',clyellow);
             pos:=positionTCO(x,y);
-            if (ancienX<x) and (ancienY=y) then xn:=x+1;
+            if (ancienX<x) and (ancienY=y) then begin xn:=x+1;end;
             if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y+1;end;
-            if (ancienX<x) and (ancienY>y) then xn:=x+1;
+            if (ancienX<x) and (ancienY>y) then begin xn:=x+1; end;
             if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
           end;
       3 : begin
             //if debugTCO then AfficheDebug('El 3',clyellow);
             pos:=positionTCO(x,y);
             if (ancienX<x) then begin xn:=x+1;if pos=const_devie then yn:=y-1;end;
-            if (ancienX>x) and (ancienY=Y) then xn:=x-1;
-            if (ancienX>x) and (ancienY<y) then xn:=x-1;
+            if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
+            if (ancienX>x) and (ancienY<y) then begin xn:=x-1;end;
             if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
           end;
       4 : begin
             //if debugTCO then AfficheDebug('El 4',clyellow);
             pos:=positionTCO(x,y);
             if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;if pos=const_devie then yn:=y+1;end;
-            if (ancienX>x) and (ancienY=Y) then xn:=x-1;
-            if (ancienX>x) and (ancienY>y) then xn:=x-1;
+            if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
+            if (ancienX>x) and (ancienY>y) then begin xn:=x-1;end;
             if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
           end;
     5 : begin
           //if debugTCO then AfficheDebug('El 5',clyellow);
           pos:=positionTCO(x,y);
-          if (ancienX<x) and (ancienY=Y) then xn:=x+1;
-          if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y-1;end;    
-          if (ancienX<x) and (ancienY<y) then xn:=x+1;
+          if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;end;
+          if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y-1;end;
+          if (ancienX<x) and (ancienY<y) then begin ;xn:=x+1;end;
           if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;;
         end;
     6 : begin
          //if debugTCO then AfficheDebug('El 6',clyellow);
-         if ancienX<x then xn:=x+1
+         if ancienX<x then begin xn:=x+1;end
            else begin xn:=x-1;yn:=y-1;end;
-         end;  
-    7 : if ancienx<x then begin xn:=x+1;yn:=y-1; end else xn:=x-1;
-    8 : if ancienX<x then begin xn:=x+1;yn:=y+1; end else xn:=x-1;
-    9 : if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y+1;end;
+         end;
+    7 : if ancienx<x then begin xn:=x+1;yn:=y-1; end else begin xn:=x-1;end;
+    8 : if ancienX<x then begin xn:=x+1;yn:=y+1; end else begin xn:=x-1;end;
+    9 : if ancienX<x then begin xn:=x+1;end else begin xn:=x-1;yn:=y+1;end;
     10 : begin
            //if debugTCO then AfficheDebug('El 10',clyellow);
            if ancienX<x then begin xn:=x+1;yn:=y-1;end else begin xn:=x-1;yn:=y+1;end;
@@ -5499,7 +7406,7 @@ begin
            //if debugTCO then AfficheDebug('El 12',clyellow);
            pos:=positionTCO(x,y);
            if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;if pos=const_droit then yn:=y+1;end;
-           if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;yn:=y-1;end;    
+           if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;yn:=y-1;end;
            if (ancienX>x) and (ancienY>y) then begin xn:=x-1;yn:=y-1;end;
            if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
          end;
@@ -5507,7 +7414,7 @@ begin
            //if debugTCO then AfficheDebug('El 13',clyellow);
            pos:=positionTCO(x,y);
            if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;yn:=y-1;end;
-           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;if pos=const_droit then yn:=y+1;end;    
+           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;if pos=const_droit then yn:=y+1;end;
            if (ancienX<x) and (ancienY>y) then begin xn:=x+1;yn:=y-1;end;
            if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
          end;
@@ -5523,19 +7430,26 @@ begin
            //if debugTCO then AfficheDebug('El 15',clyellow);
            pos:=positionTCO(x,y);
            if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;if pos=const_droit then yn:=y-1;end;
-           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;    
+           if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;
            if (ancienX>x) and (ancienY=y) then begin xn:=x-1;yn:=y+1;end;
            if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
          end;
-    16 : if ancienX<x then yn:=y+1 else begin xn:=x-1;yn:=y-1;end;
-    17 : if ancienY<y then begin yn:=y+1;end else begin xn:=x+1;yn:=y-1;end;
-    18 : if AncienX<x then yn:=y-1 else begin yn:=y+1;xn:=x-1;end;
+    16 : if ancienX<x then begin casok:=true;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
+    17 : if ancienY<y then begin casok:=true;yn:=y+1;end else begin xn:=x+1;yn:=y-1;end;
+    18 : if AncienX<x then begin casok:=true;yn:=y-1;end else begin yn:=y+1;xn:=x-1;end;
     19 : begin
            //if debugTCO then AfficheDebug('El 19',clyellow);
+           casok:=true;
            if ancienY<y then begin xn:=x+1;yn:=y+1;end else yn:=y-1;
-         end; 
+         end;
     20 : begin
+            if debugTCO then
+            begin
+              s:='El 20';if adresse<>0 then s:=s+'adr='+intToStr(adresse);
+              AfficheDebug(s,clyellow);
+            end;
            xn:=x;
+           casok:=true;
            if (ancienY<y) then yn:=y+1 else yn:=y-1;
          end;
     21 : begin
@@ -5551,19 +7465,20 @@ begin
                pos:=aiguillage[j].position;
                if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
 
-               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=4) then
+               if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                begin
                  j:=Index_Aig(aiguillage[j].Ddroit);
                  pos2:=aiguillage[j].position; // 2eme adresse de la TJD
                  if (pos2=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
                  if (pos=const_droit) and (pos2=const_droit) then
                  begin
+                   casok:=true;
                    if ancienX<x then xn:=x+1 else xn:=x-1;
                  end;
                  if (pos=const_devie) and (pos2=const_devie) then
                  begin
                    if ancienX<x then begin xn:=x+1;yn:=y-1;end
-                   else begin xn:=x-1;yn:=y+1;end;
+                   else begin casok:=true;xn:=x-1;yn:=y+1;end;
                  end;
                  if (pos=const_droit) and (pos2=const_devie) then
                  begin
@@ -5576,7 +7491,7 @@ begin
                  end;
                end;
 
-               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=2) then
+               if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=2) then
                begin
                  if (pos=const_droit) then
                  begin
@@ -5584,6 +7499,7 @@ begin
                  end;
                  if (pos=const_devie) then
                  begin
+                   casok:=true;
                    if ancienX<x then begin xn:=x+1;yn:=y-1;end
                                 else begin xn:=x-1;yn:=y+1;end ;
                  end;
@@ -5595,11 +7511,18 @@ begin
            // croisement
            begin
              if DebugTCO then AfficheDebug('Croisement',clyellow);
-             if (ancienX<x) and (ancienY=Y) then xn:=x+1;
-             if (ancienX>x) and (ancienY=Y) then xn:=x-1;
+             if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;end;
+             if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
              if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
              if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;
            end;
+           if (mdl=aig) then
+           begin
+             Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+             Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
+             exit;
+           end;
+
          end;
     // TJD ou croisement
     22 : begin
@@ -5615,7 +7538,7 @@ begin
                pos:=aiguillage[j].position;
                if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
 
-               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=4) then
+               if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                begin
                  j:=Index_Aig(aiguillage[j].Ddroit);
                  pos2:=aiguillage[j].position; // 2eme adresse de la TJD
@@ -5637,7 +7560,7 @@ begin
                    if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y-1;end;
                  end;
                end;
-               if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=2) then
+               if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=2) then
                begin
                  if (pos=const_droit) then
                  begin
@@ -5655,12 +7578,90 @@ begin
            // croisement
            begin
              if DebugTCO then AfficheDebug('croisement',clyellow);
-             if (ancienX<x) and (ancienY=Y) then xn:=x+1;
-             if (ancienX>x) and (ancienY=Y) then xn:=x-1;
-             if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
-             if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
+             if (ancienX<x) and (ancienY=Y) then begin casok:=true;xn:=x+1;end;
+             if (ancienX>x) and (ancienY=Y) then begin casok:=true;xn:=x-1;end;
+             if (ancienX>x) and (ancienY>Y) then begin casok:=true;xn:=x-1;yn:=y-1;end;
+             if (ancienX<x) and (ancienY<Y) then begin casok:=true;xn:=x+1;yn:=y+1;end;
+           end;
+           if (mdl=aig) then
+           begin
+             Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+             Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
+             exit;
            end;
          end;
+
+         // tjd ou croisement
+         23 : begin
+               if debugTCO then AfficheDebug('El 23',clyellow);
+                mdl:=rien;
+                if adresse<>0 then
+                begin
+                  j:=Index_Aig(adresse);
+                  mdl:=aiguillage[j].modele;
+                  // tjd ou tjs
+                  if (mdl=tjd) or (mdl=tjs) then
+                  begin
+                    pos:=aiguillage[j].position;
+                    if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+
+                    if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
+                    begin
+                      j:=Index_Aig(aiguillage[j].Ddroit);
+                      pos2:=aiguillage[j].position; // 2eme adresse de la TJD
+                      if (pos2=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+                      if (pos=const_droit) and (pos2=const_droit) then
+                      begin
+                        if ancienX<x then begin xn:=x+1;yn:=y-1;end else begin xn:=x-1;yn:=y+1;end;
+                      end;
+                      if (pos=const_devie) and (pos2=const_devie) then
+                      begin
+                        xn:=x;
+                        if ancieny<y then yn:=y+1 else yn:=y-1;
+                      end;
+                      if (pos=const_droit) and (pos2=const_devie) then
+                      begin
+                        if ancieny<y then begin xn:=x;yn:=y+1;end else begin xn:=x+1;yn:=yn-1;end ;
+                      end;
+                      if (pos=const_devie) and (pos2=const_droit) then
+                      begin
+                        if ancieny<y then begin
+                        xn:=x-1;yn:=y+1;end else begin
+                        xn:=x;yn:=y-1;end;
+                      end;
+                    end;
+
+                    if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=2) then
+                    begin
+                      if (pos=const_droit) then
+                      begin
+                        if ancienX<x then xn:=x+1 else xn:=x-1;
+                      end ;
+                      if (pos=const_devie) then
+                      begin
+                        if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end
+                     end;
+                    end;
+                  end;
+                end;
+                if (adresse=0) or (mdl=crois) then
+                // croisement
+                begin
+                  if DebugTCO then AfficheDebug('Croisement',clyellow);
+                  if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=yn+1;end;
+                  if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;yn:=yn-1;end;
+                  if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
+                  if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
+                end;
+                if (mdl=aig) then
+                begin
+                  Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+                  Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
+                  exit;
+                end;
+
+              end;
+
 
          24 : begin
                if debugTCO then AfficheDebug('El 24',clyellow);
@@ -5696,7 +7697,7 @@ begin
                     pos:=aiguillage[j].position;
                     if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
 
-                    if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=4) then
+                    if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                     begin
                       j:=Index_Aig(aiguillage[j].Ddroit);
                       pos2:=aiguillage[j].position; // 2eme adresse de la TJD
@@ -5718,7 +7719,7 @@ begin
                         if ancienX<x then xn:=x+1 else begin xn:=x-1;yn:=y-1;end;
                       end;
                     end;
-                    if (mdl=tjd) or (mdl=tjs) and (aiguillage[j].EtatTJD=2) then
+                    if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=2) then
                     begin
                       if (pos=const_droit) then
                       begin
@@ -5735,32 +7736,153 @@ begin
                 // croisement
                 begin
                   if DebugTCO then AfficheDebug('Croisement',clyellow);
-                  if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=yn+1;end;
-                  if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=yn-1;end;
-                  if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
-                  if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
+                  if (ancienX<x) and (ancienY<Y) then begin casok:=true;xn:=x+1;yn:=yn+1;end;
+                  if (ancienX>x) and (ancienY>Y) then begin casok:=true;xn:=x-1;yn:=yn-1;end;
+                  if (ancienX=x) and (ancienY<Y) then begin casok:=true;xn:=x;yn:=y+1;end;
+                  if (ancienX=x) and (ancienY>Y) then begin casok:=true;xn:=x;yn:=y-1;end;
                 end;
+                if (mdl=aig) then
+                begin
+                  Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+                  Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
+                  exit;
+                end;
+              end;
 
-              end
+         26 : begin
+               if debugTCO then AfficheDebug('El 26',clyellow);
+               pos:=positionTCO(x,y);
+               // on vient d'en bas
+               if (ancienY>y) and (ancienX=x) then
+               begin
+                 yn:=y-1;if pos=const_devie then xn:=x+1 else xn:=x;
+               end;
+               // on vient d'en haut
+               if (ancienY<y) and (ancienX=x) then
+               begin
+                 yn:=y+1;xn:=x;
+               end;
+               // on vient d'en haut droite
+               if (ancienY<y) and (ancienX>x) then
+               begin
+                 yn:=y+1;xn:=x;
+               end;
+               if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+              end;
+         27 : begin
+               if debugTCO then AfficheDebug('El 27',clyellow);
+               pos:=positionTCO(x,y);
+               // on vient d'en bas
+               if (ancienY>y) and (ancienX=x) then
+               begin
+                 yn:=y-1;xn:=x;
+               end;
+               // on vient d'en haut
+               if (ancienY<y) and (ancienX=x) then
+               begin
+                 yn:=y+1;if pos=const_devie then xn:=x-1 else xn:=x;
+               end;
+               // on vient d'en bas gauche
+               if (ancienY>y) and (ancienX<x) then
+               begin
+                 yn:=y-1;xn:=x;
+               end;
+               if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+              end;
+         28 : begin                
+               if debugTCO then AfficheDebug('El 28',clyellow);
+               pos:=positionTCO(x,y);
+               // on vient d'en bas
+               if (ancienY>y) and (ancienX=x) then
+               begin
+                 yn:=y-1;xn:=x;
+               end;
+               // on vient d'en haut
+               if (ancienY<y) and (ancienX=x) then
+               begin
+                 yn:=y+1;if pos=const_devie then xn:=x+1 else xn:=x;
+               end;
+               // on vient d'en bas droite
+               if (ancienY>y) and (ancienX>x) then
+               begin
+                 yn:=y-1;xn:=x;
+               end;
+               if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+              end;
+    29 : begin
+           //if debugTCO then AfficheDebug('El 12',clyellow);
+           pos:=positionTCO(x,y);
+           // on vient à de haut à gauche
+           if (ancienX<x) and (ancienY<Y) then
+           begin
+             yn:=y+1;
+             if pos=const_droit then xn:=x+1 else xn:=x;
+           end;
+           // on vient de bas droite
+           if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
+           // on vient de bas
+           if (ancienX=x) and (ancienY>y) then begin xn:=x-1;yn:=y-1;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+         end;
+   32 :  begin
+           if debugTCO then AfficheDebug('El 32',clyellow);
+           pos:=positionTCO(x,y);
+           // on vient d'en bas à gauche
+           if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
+           // on vient d'en bas
+           if (ancienX=x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
+           // on vient d'en haut à droite
+           if (ancienX>x) and (ancienY<y) then begin yn:=y+1;if pos=const_devie then xn:=x else xn:=x-1;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+         end;
+    33 : begin
+           //if debugTCO then AfficheDebug('El 14',clyellow);
+           pos:=positionTCO(x,y);
+           // on vient de haut
+           if (ancienX=x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
+           // on vient de haut gauche
+           if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
+           //on vient de bas droite
+           if (ancienX>x) and (ancienY>y) then begin yn:=y-1;if pos=const_droit then xn:=x-1 else xn:=x;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+         end;
+    34 : begin
+           pos:=positionTCO(x,y);
+           // on vient du SE
+           if (ancienX<x) and (ancienY>y) then begin yn:=y-1;if pos=const_droit then xn:=x+1 else xn:=x;end;
+           // on vient du N
+           if (ancienX=x) and (ancienY<y) then begin xn:=x-1;yn:=y+1;end;
+           // on vient du NE
+           if (ancienX>x) and (ancienY<y) then begin xn:=x-1;yn:=y+1;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(x,y);exit;end;
+         end;
+
          else
 
          begin
            // fausse route, sortir
            //if DebugTCO then
-           //  AfficheDebug('Sortie de calcul route TCO par élement '+intToSTR(Bimage)+' inconnu en x='+intToSTR(x)+' y='+intToSTR(y)+' sur route '+intToSTR(det1)+' à '+intToSTR(det2),clOrange);
+           //  Affichedebug('Sortie de calcul route TCO par élement '+intToSTR(Bimage)+' inconnu en x='+intToSTR(x)+' y='+intToSTR(y)+' sur route '+intToSTR(det1)+' à '+intToSTR(det2),clOrange);
            sortir:=true;
          end;
       end;
       inc(i);
-      if adresse=det2 then memTrouve:=true;
-      ancienX:=X;
+      if (adresse=det2) then memTrouve:=true;
+      ancienX:=x;
       ancienY:=y;
       x:=xn;
       y:=yn;
-    until (memTrouve) or (i>NbCellulesTCO) or (x>NbreCellX) or (y>NbreCellY) or (x=0) or (y=0) or sortir;
+    until (memTrouve) or (i>NbCellulesTCO) or (x>NbreCellX) or (y>NbreCellY) or (x=0) or (y=0) or sortir; // or not(casok) ;
+
+   { if not(casok) then
+    begin
+      Affiche('Erreur TCO incohérence tracé cellule '+intToSTR(x)+','+intToSTR(y),clred);
+      exit;
+    end;  }
+    if (i>NbCellulesTCO) then AfficheDebug('Erreur 1000 TCO : dépassement d''itérations - Route de '+IntToSTR(det1)+' à '+IntToSTR(det2),clred);
     inc(direction)
   until (direction=5) or memtrouve ;
-  
+
   //Affiche(intToSTR(x),clLime);
   if i>NbCellulesTCO then
   begin
@@ -5773,6 +7895,8 @@ begin
     if DebugTCO then AfficheDebug('Pas de liaison entre '+IntToSTR(det1)+' à '+IntToSTR(det2),clred);
     exit;
   end;
+
+  if DebugTCO then AfficheDebug('trouvé liaison de '+IntToSTR(det1)+' à '+IntToSTR(det2),clLime);
 
   dec(ir);
   // et affichage de la route
@@ -5828,6 +7952,26 @@ begin
     end;
 
     // croisement
+    if (bimage=23) and (i>1) then
+    begin
+      j:=index_aig(adresse);
+      mdl:=aiguillage[j].modele;
+      ax:=routeTCO[i-1].x;  // précédent
+      ay:=routeTCO[i-1].y;
+      sx:=routeTCO[i+1].x;  // suivant
+      sy:=routeTCO[i+1].y;
+      if (ax-x=0)  and (ay-y=-1) and (sx-x=0)  and (sy-y=1)  then tco[x,y].trajet:=1;   // de haut à bas
+      if (ax-x=0)  and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[x,y].trajet:=1;   // de bas à haut
+      if (ax-x=1)  and (ay-y=-1) and (sx-x=-1) and (sy-y=1)  then tco[x,y].trajet:=2;   // de haut droit vers bas gauche
+      if (ax-x=-1) and (ay-y=1)  and (sx-x=1)  and (sy-y=-1) then tco[x,y].trajet:=2;   // de bas gauche vers haut droit
+      if (ax-x=1)  and (ay-y=-1) and (sx-x=0)  and (sy-y=1)  then tco[x,y].trajet:=3;   // de haut droit vers bas
+      if (ax-x=0)  and (ay-y=1)  and (sx-x=1)  and (sy-y=-1) then tco[x,y].trajet:=3;   // de bas vers haut droit
+      if (ax-x=0)  and (ay-y=-1) and (sx-x=-1) and (sy-y=1)  then tco[x,y].trajet:=4;   // de haut vers bas gauche
+      if (ax-x=-1) and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[x,y].trajet:=4;   // de bas gauche vers haut
+      if tco[x,y].trajet=0 then affiche('Erreur 52 TCO',clred);
+    end;
+
+    // croisement
     if (bimage=25) and (i>1) then
     begin
       j:=index_aig(adresse);
@@ -5844,55 +7988,98 @@ begin
       if (ax-x=0)  and (ay-y=1)  and (sx-x=-1) and (sy-y=-1) then tco[x,y].trajet:=3;   // de bas vers haut gauche
       if (ax-x=0)  and (ay-y=-1) and (sx-x=1)  and (sy-y=1)  then tco[x,y].trajet:=4;   // de haut vers bas droite
       if (ax-x=-1) and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[x,y].trajet:=4;   // de bas droit vers haut
-      if tco[x,y].trajet=0 then affiche('Erreur 52 TCO',clred);
+      if tco[x,y].trajet=0 then affiche('Erreur 53 TCO',clred);
     end;
     Affiche_cellule(x,y);
   end;
 end;
 
-procedure dessine_icones;
-var w,h,ancH,ancW,i : integer;
-    ip : TImage;
+procedure dessine_icone(ip : timage;lbl : tlabel;i : integer);
+const NbElLi=12;
+var s : string;
 begin
-  with formTCO do
-  begin
-    // dessine le fond des icones
-    for i:=1 to 25 do
-    begin
-      ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
-      if ip<>nil then
+  if i=50 then i:=35;  // pour affichage en XY
+  if i=51 then i:=36;
+  if ip<>nil then
       begin
         with ip do
         begin
-          w:=width;
-          h:=height;
+          width:=licone;
+          height:=hicone;
+          left:=((i-1) mod NbElLi)*(licone+20)+230;
+          top:= ((i-1) div NbElLi)*(hicone+10)+8;
           with canvas do
           begin
             Pen.Color:=clFond;
             Brush.color:=clFond;
-            Rectangle(0,0,w,h);
+            Rectangle(0,0,licone,hicone);
           end;
         end;
       end;
+      if lbl<>nil then
+      begin
+        with lbl do
+        begin
+          if (i=35) or (i=36) then s:=intToSTR(i+15) else
+            s:=intToSTR(i);
+          if i<10 then s:='  '+s;
+          caption:=s;
+          left:=((i-1) mod NbElLi)*(licone+20)+212;
+          top:= ((i-1) div NbElLi)*(hicone+10)+16;
+        end;
+      end;
+end;
+
+
+
+// dessine les icones du tco et les aligne
+procedure dessine_icones;
+var ancH,ancW,i,lf,hf: integer;
+    ip : TImage;
+    lbl : Tlabel;
+begin
+  with formTCO do
+  begin
+    for i:=1 to 29 do
+    begin
+      ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+      lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
+      dessine_icone(ip,lbl,i);
     end;
 
-    ip:=findComponent('ImagePalette31') as Timage;
+    for i:=32 to 34 do
+    begin
+      ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+      lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
+      dessine_icone(ip,lbl,i);
+    end;
+
+
+    i:=50;
+    ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+    lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
+    dessine_icone(ip,lbl,i);
+    i:=51;
+    ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+    lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
+    dessine_icone(ip,lbl,i);
+
+    // signal
+    ip:=findComponent('ImagePalette51') as Timage;
     if ip<>nil then
     begin
       with ip do
       begin
-        w:=width;
-        h:=height;
         with canvas do
         begin
           Pen.Color:=clFond;
           Brush.color:=clFond;
-          Rectangle(0,0,w,h);
+          Rectangle(0,0,licone,hicone);
         end;
       end;
     end;
 
-    epaisseur:=5;
+    epaisseur:=4;
     ancw:=LargeurCell;
     AncH:=hauteurCell;
     HauteurCell:=ImagePalette1.Height;
@@ -5919,9 +8106,36 @@ begin
     dessin_20(ImagePalette20.canvas,1,1,0);
     dessin_21(ImagePalette21.canvas,1,1,0);
     dessin_22(ImagePalette22.canvas,1,1,0);
-    dessin_31(ImagePalette31.canvas,1,1,0);
+    dessin_23(ImagePalette23.canvas,1,1,0);
     dessin_24(ImagePalette24.canvas,1,1,0);
     dessin_25(ImagePalette25.canvas,1,1,0);
+    dessin_26(ImagePalette26.canvas,1,1,0);
+    dessin_27(ImagePalette27.canvas,1,1,0);
+    dessin_28(ImagePalette28.canvas,1,1,0);
+    dessin_29(ImagePalette29.canvas,1,1,0);
+    dessin_32(ImagePalette32.canvas,1,1,0);
+    dessin_33(ImagePalette33.canvas,1,1,0);
+    dessin_34(ImagePalette34.canvas,1,1,0);
+
+    dessin_51(ImagePalette51.canvas,1,1,0); //quai
+
+    LargeurCell:=20;
+
+    with formprinc.Image9Feux do
+    begin
+      lf:=width;
+      hf:=height;
+    end;
+    With ImagePalette50 do
+    begin
+      Picture.Bitmap.TransparentMode:=tmAuto;
+      Picture.Bitmap.TransparentColor:=clblue;
+      Transparent:=true;
+    end;
+      //Picture.Bitmap:=Formprinc.Image9feux.Picture.Bitmap;
+      TransparentBlt(ImagePalette50.canvas.Handle,8,0,largeurCell,Hauteurcell,
+                 formprinc.Image9Feux.Canvas.Handle,0,0,50,90,clBlue);
+  //  end;
   end;
   LargeurCell:=ancW;
   HauteurCell:=ancH;
@@ -5980,6 +8194,14 @@ begin
     ImagePalette14.Hint:=s;ImagePalette14.ShowHint:=true;
     ImagePalette15.Hint:=s;ImagePalette15.ShowHint:=true;
     ImagePalette24.Hint:=s;ImagePalette24.ShowHint:=true;
+    ImagePalette26.Hint:=s;ImagePalette26.ShowHint:=true;
+    ImagePalette27.Hint:=s;ImagePalette27.ShowHint:=true;
+    ImagePalette28.Hint:=s;ImagePalette28.ShowHint:=true;
+    ImagePalette29.Hint:=s;ImagePalette29.ShowHint:=true;
+    ImagePalette32.Hint:=s;ImagePalette32.ShowHint:=true;
+    ImagePalette33.Hint:=s;ImagePalette33.ShowHint:=true;
+    ImagePalette34.Hint:=s;ImagePalette34.ShowHint:=true;
+
 
     s:='Croisement ou TJD ou TJS';
     ImagePalette21.Hint:=s;ImagePalette21.ShowHint:=true;
@@ -6001,14 +8223,7 @@ begin
     PImageTemp:=FormTCO.ImageTemp;
     PImageTemp.Canvas.Rectangle(0,0,PImageTemp.Width,PimageTemp.Height);
 
-    With ImagePalette30 do
-    begin
-      Picture.Bitmap.TransparentMode:=tmAuto;
-      Picture.Bitmap.TransparentColor:=clblue;
-      Transparent:=true;
-      Picture.Bitmap:=Formprinc.Image9feux.Picture.Bitmap;
 
-    end;
 
     //Affiche_tco par  r
     trackBarZoom.Position:=(ZoomMax+Zoommin) div 2;
@@ -6032,7 +8247,6 @@ begin
 end;
 
 
-
 // vérifie que les icones adjacentes sont cohérentes
 function verif_cellule(x,y,Bim : integer) : boolean;
 var res,verif : boolean;
@@ -6040,7 +8254,7 @@ var res,verif : boolean;
 begin
   result:=true;
   verif:=false;
-  if (bim=23) or (bim>=30) or (AvecVerifIconesTCO=0) then exit;
+  if (bim>=50) or (AvecVerifIconesTCO=0) then exit;
   //exit;
   res:=true;
   bl:=liaisons[Bim];
@@ -6197,10 +8411,10 @@ begin
         begin
           xPlace:=xCoupe+x-TamponTCO_Org.x1;   // destination
           yPlace:=yCoupe+y-TamponTCO_Org.y1;
-          if (xPlace<=NbreCellX) and (yPlace<=NbreCellY) then 
+          if (xPlace<=NbreCellX) and (yPlace<=NbreCellY) then
           begin
             tco[xPlace,yPlace]:=tamponTCO[x,y];
-            if tco[xPlace,yPlace].Bimage=30 then
+            if tco[xPlace,yPlace].Bimage=50 then
             begin
               adresse:=tco[xPlace,yPlace].Adresse;
             end;
@@ -6218,21 +8432,13 @@ begin
     dec(rangUndo);
     for i:=1 to undo[rangUndo].nombre do
     begin
-      with undo[rangUndo].element[i] do
-      begin
-        xu:=x;
-        yu:=y;
-        if (xu<=NbreCellX) and (yu<=NbreCellY) then
-        begin
-          tco[xu,yu].BImage:=Bimage;
-          tco[xu,yu].Texte:=texte;
-        end;
-      end;
+      xu:=undo[rangUndo].element[i].Xundo;
+      yu:=undo[rangUndo].element[i].Yundo;
+      if (xu<=NbreCellX) and (yu<=NbreCellY) then tco[xu,yu]:=undo[rangUndo].element[i];
     end;
     Affiche_tco;
     exit;
   end;
-
 end;
 
 
@@ -6251,14 +8457,118 @@ begin
   screen.cursor:=crDefault;
 end;
 
+procedure grille;
+var x,y : integer;
+begin
+  if not(AvecGrille) then exit;
+  With PCanvasTCO do
+  begin
+    pen.color:=ClGrille;
+    pen.Width:=1;
+    Brush.Color:=ClFond;
+    pen.mode:=PmCopy;
+    // lignes verticales
+    for x:=1 to NbreCellX do
+    begin
+      moveto(x*LargeurCell,1);
+      LineTo(x*LargeurCell,HauteurCell*NbreCelly);
+    end;
+    for y:=1 to NbreCelly do
+    begin
+      moveto(1,y*HauteurCell);
+      LineTo(LargeurCell*NbreCellX,y*HauteurCell);
+    end;
+  end;
+end;
+
+
+procedure copier;
+var x,y : integer;
+begin
+  if SelectionAffichee then
+  begin
+    TamponTCO_org.NbreCellX:=NbreCellX;
+    TamponTCO_org.NbreCellY:=NbreCellY;
+
+    TamponTCO_Org.x1:=XminiSel div LargeurCell +1;
+    TamponTCO_Org.x2:=XmaxiSel div LargeurCell +1;
+    TamponTCO_Org.y1:=yminiSel div HauteurCell +1;
+    TamponTCO_Org.y2:=ymaxiSel div HauteurCell +1;
+    for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
+      for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
+        tamponTCO[x,y]:=tco[x,y];
+    TamponAffecte:=true;
+  end;
+end;
+
+
+procedure couper;
+var x,y,XCell1,YCell1,xCell2,yCell2 : integer;
+begin
+  with formTCO do
+  begin
+    TamponTCO_org.NbreCellX:=NbreCellX;
+    TamponTCO_org.NbreCellY:=NbreCellY;
+    EditAdrElement.Text:='';
+    EditTypeImage.Text:='';
+    EditTexte.Text:='';
+  end;
+
+  // couper sans sélection : on coupe une seule cellule
+  if not(SelectionAffichee) then
+  begin
+    tamponTCO[XclicCell,YclicCell]:=tco[XclicCell,YclicCell]; // pour pouvoir faire annuler couper
+    TamponTCO_org.x1:=XclicCell;TamponTCO_org.y1:=YclicCell;
+    TamponTCO_org.x2:=XclicCell;TamponTCO_org.y2:=YclicCell;
+
+    tco[XclicCell,YClicCell].Adresse:=0;
+    tco[XclicCell,YClicCell].Bimage:=0;
+    tco[XclicCell,YClicCell].liaisons:=0;
+    tco[XclicCell,YClicCell].Texte:='';
+
+    efface_entoure;
+    efface_cellule(formTCO.ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+    TamponAffecte:=true;
+    xCoupe:=XclicCell;yCoupe:=YclicCell;
+    Affiche_tco;
+    exit;
+  end;
+
+  TCO_modifie:=true;
+  copier;
+  SelectionAffichee:=false;
+
+  xCell1:=XminiSel div LargeurCell +1;
+  xCell2:=XmaxiSel div LargeurCell +1;
+  yCell1:=yminiSel div HauteurCell +1;
+  yCell2:=ymaxiSel div HauteurCell +1;
+
+  xCoupe:=XCell1;yCoupe:=yCell1;
+  for y:=yCell1 to yCell2 do
+    for x:=xCell1 to xCell2 do
+    begin
+      tco[x,y].Adresse:=0;
+      tco[x,y].BImage:=0;
+      tco[x,y].liaisons:=0;
+      tco[x,y].Texte:='';
+      //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
+      efface_entoure;
+      efface_cellule(formTCO.ImageTCO.Canvas,X,Y,PmCopy);
+      if avecGrille then grille;
+    end;
+end;
+
+
+// pour avoir les evts keydown, il faut dévalider les propriétés tabstop des boutons de la form.
 procedure TFormTCO.FormKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
 var s,d : integer;
     procede : boolean;
 begin
   if affevt then Affiche('TCO.FormKeyDown',clOrange);
 
-  procede:=false;
+  procede:=false;  // indicateur on a tapé une touche de curseur
   //Affiche(intToSTR(key),clyellow);
+  if auto_tcurs then
   case Key of
      VK_right : if XClicCell<NbreCellX then
                 begin
@@ -6309,6 +8619,8 @@ begin
      VK_ESCAPE  : begin
                     stop_modetrace;
                   end;
+     VK_DELETE : couper;
+
      end;
 
      if (ssCtrl in Shift) and (Key = Ord('Z')) then
@@ -6326,7 +8638,7 @@ begin
     EditAdrElement.Text:=IntToSTR(tco[XClicCell,YClicCell].Adresse);
     actualise;
     clicTCO:=false;
-  end;  
+  end;
 end;
 
 procedure Elmentdroit1Click(Sender: TObject);
@@ -6365,14 +8677,17 @@ begin
 end;
 
 procedure debut_drag(image : TImage);
+var h,l : integer;
 begin
   image.BeginDrag(true);
+  l:=image.Width;
+  h:=image.height;
   StretchBlt(formTCO.ImageTemp.canvas.Handle,0,0,largeurCell,HauteurCell,   // destination avec mise à l'échelle
-             image.Canvas.Handle,0,0,41,41,srccopy);
+             image.Canvas.Handle,0,0,l,h,srccopy);
 
   BitBlt(OldBmp.Canvas.Handle,0,0,LargeurCell,HauteurCell,FormTCO.ImageTCO.Canvas.Handle,offsetSourisX,offsetSourisY,SRCCOPY);
   StretchBlt(Vbm.Handle,0,0,largeurCell,HauteurCell,   // destination masque avec mise à l'échelle
-             image.Canvas.Handle,0,0,41,41,srccopy);
+             image.Canvas.Handle,0,0,l,h,srccopy);
   drag:=true;
   oldx:=offsetSourisX;oldy:=offsetSourisY;
 end;
@@ -6403,7 +8718,7 @@ begin
   undo[rangUndo].nombre:=i;
   if rangUndo<maxUndo then inc(rangUndo) else
   begin
-    // si le tempon undo est plein, on décale
+    // si le tampon undo est plein, on décale
     for k:=1 to maxundo-1 do
     begin
       undo[k]:=undo[k+1];
@@ -6415,14 +8730,13 @@ end;
 // sauve le tracé dans undo avant modif du tracé
 procedure stocke_undo(i,xu,yu : integer);
 begin
-  if i<100 then
-  with undo[rangUndo].element[i] do
-  begin
-    Bimage:=tco[xu,yu].bimage;
-    x:=xu;
-    y:=yu;
-    texte:=tco[xu,yu].Texte;
-  end;
+  if i>=100 then exit;
+
+  tco[xu,yu].Xundo:=xu;  // stocke les coordonnées de la cellule concernée
+  tco[xu,yu].Yundo:=yu;
+
+  undo[rangUndo].element[i]:=tco[xu,yu];
+  //affiche('Rang undo='+intToSTR(rangundo),clYellow);
 end;
 
 procedure TFormTCO.ImagePalette5EndDrag(Sender, Target: TObject; X,Y: Integer);
@@ -7051,25 +9365,6 @@ begin
   TCO_modifie:=true;
 end;
 
-procedure copier;
-var x,y : integer;
-begin
-  if SelectionAffichee then
-  begin
-    TamponTCO_org.NbreCellX:=NbreCellX;
-    TamponTCO_org.NbreCellY:=NbreCellY;
-
-    TamponTCO_Org.x1:=XminiSel div LargeurCell +1;
-    TamponTCO_Org.x2:=XmaxiSel div LargeurCell +1;
-    TamponTCO_Org.y1:=yminiSel div HauteurCell +1;
-    TamponTCO_Org.y2:=ymaxiSel div HauteurCell +1;
-    for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
-      for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
-        tamponTCO[x,y]:=tco[x,y];
-    TamponAffecte:=true;
-  end;
-
-end;
 
 procedure TFormTCO.MenuCopierClick(Sender: TObject);
 begin
@@ -7078,54 +9373,8 @@ end;
 
 // supprimer la sélection
 procedure TFormTCO.MenuCouperClick(Sender: TObject);
-var  x,y,XCell1,YCell1,xCell2,yCell2 : integer;
 begin
-  TamponTCO_org.NbreCellX:=NbreCellX;
-  TamponTCO_org.NbreCellY:=NbreCellY;
-  
-  // couper sans sélection : on coupe une seule cellule
-  if not(SelectionAffichee) then
-  begin
-    tamponTCO[XclicCell,YclicCell]:=tco[XclicCell,YclicCell]; // pour pouvoir faire annuler couper
-    TamponTCO_org.x1:=XclicCell;TamponTCO_org.y1:=YclicCell;
-    TamponTCO_org.x2:=XclicCell;TamponTCO_org.y2:=YclicCell;
-
-    tco[XclicCell,YClicCell].Adresse:=0;
-    tco[XclicCell,YClicCell].Bimage:=0;
-    tco[XclicCell,YClicCell].liaisons:=0;
-    tco[XclicCell,YClicCell].Texte:='';
-
-    efface_entoure;
-    efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
-    TamponAffecte:=true;
-    xCoupe:=XclicCell;yCoupe:=YclicCell;
-
-    Affiche_tco;
-    exit;
-  end;
-
-  TCO_modifie:=true;
-  copier;
-  SelectionAffichee:=false;
-
-  xCell1:=XminiSel div LargeurCell +1;
-  xCell2:=XmaxiSel div LargeurCell +1;
-  yCell1:=yminiSel div HauteurCell +1;
-  yCell2:=ymaxiSel div HauteurCell +1;
-
-  xCoupe:=XCell1;yCoupe:=yCell1;
-  for y:=yCell1 to yCell2 do
-    for x:=xCell1 to xCell2 do
-    begin
-      tco[x,y].Adresse:=0;
-      tco[x,y].BImage:=0;
-      tco[x,y].liaisons:=0;
-      tco[x,y].Texte:='';
-      //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
-      efface_entoure;
-      efface_cellule(ImageTCO.Canvas,X,Y,PmCopy);
-      if avecGrille then grille;
-    end;
+  couper;
 end;
 
 
@@ -7138,13 +9387,14 @@ end;
 // exemple : deux lignes qui se croisent renvoie un croisement
 // el  = élement à remplacer
 // Bim = élément d'origine
-// quadrant du tracé (1=N 2=NE 3=Est 4=SE  )
-// premier : si c'est le premier élément
-// dernier : si c'est le dernier élément
+// quadrant du tracé (2=NE 3=Est 4=SE 5=S )
+// premier : si c'est le premier élément du tracé
+// dernier : si c'est le dernier élément du tracé
+// on regarde si l'élément est connecté par testbit(tco[x,y].liaisons,numbit) numbit=0=NO 1=N 2=NE 3=E 4=SE 5=S 6=SO 7=O
 function replace(x,y,el,quadrant : integer;premier,dernier : boolean) : integer;
 var bim : integer;
 begin
-  if debugTCO then Affiche('Quadrant '+intToSTR(quadrant),clred);
+  //if debugTCO then Affiche('Quadrant '+intToSTR(quadrant),clred);
   result:=0;
   bim:=tco[x,y].BImage;
   // élément d'origine
@@ -7294,9 +9544,17 @@ begin
          end;
          if quadrant=5 then
          begin
-           if premier then result:=17;
-           if dernier then result:=18;
-
+           if premier then
+           begin
+             //       SO
+             if testbit(tco[x-1,y+1].liaisons,2) then result:=32 else result:=17;
+           end;
+           if dernier then
+           begin
+              //       NE
+             if testbit(tco[x+1,y-1].liaisons,6) then result:=34 else result:=18;
+           end;
+           if not(premier) and not(dernier) then result:=23;
          end;
        end;
   11 : begin
@@ -7314,15 +9572,23 @@ begin
              if testbit(tco[x-1,y-1].liaisons,4) and not(testbit(tco[x+1,y+1].liaisons,0)) then result:=5;
            end;
          end;
-         if (quadrant=4) then result:=11;
+         if quadrant=4 then result:=11;
          if quadrant=5 then
          begin
-           if dernier then result:=19;
-           if premier then result:=16;
+           if dernier then
+           begin
+             //       NO
+             if testbit(tco[x-1,y-1].liaisons,4) then result:=33 else result:=19;
+           end;
+           if premier then
+           begin
+             //       SE
+             if testbit(tco[x+1,y+1].liaisons,0) then result:=29 else result:=16;
+           end;
            if not(premier) and not(dernier) then result:=25;
          end;
        end;
-   12 : begin
+  12 : begin
          if quadrant=4 then result:=12;
          if quadrant=3 then
          begin
@@ -7331,7 +9597,7 @@ begin
            if not(premier) and not(dernier) then result:=22;
          end;
        end;
-   13 : begin
+  13 : begin
          if quadrant=2 then result:=13;
          if quadrant=3 then
          begin
@@ -7340,7 +9606,7 @@ begin
            if not(premier) and not(dernier) then result:=21;
          end;
        end;
-   14 : begin
+  14 : begin
          if quadrant=4 then result:=14;
          if quadrant=3 then
          begin
@@ -7350,7 +9616,7 @@ begin
          end;
        end;
 
-   15 : begin
+  15 : begin
          if quadrant=2 then result:=15;
          if quadrant=3 then
          begin
@@ -7358,12 +9624,15 @@ begin
            if premier then result:=15;
            if not(premier) and not(dernier) then result:=21;
          end;
+
        end;
 
-   16 : begin
+  16 : begin
           if quadrant=4 then
           begin
+            if premier then result:=29;
             if dernier then result:=16;
+            if not(premier) and not(dernier) then result:=29;
           end;
           if quadrant=5 then
           begin
@@ -7371,26 +9640,60 @@ begin
           end;
        end;
 
-    17 : begin
-          if quadrant=2 then result:=17;
-          if quadrant=5 then result:=17;
+  17 : begin
+          if quadrant=2 then
+          begin
+            if premier then result:=17;
+            if dernier then result:=32;
+            if not(premier) and not(dernier) then result:=32;
+          end;
+          if quadrant=5 then
+          begin
+            if premier then result:=17;
+            if dernier then result:=26;
+            if not(premier) and not(dernier) then result:=26;
+          end;
         end;
 
-    18 : begin
-          if quadrant=2 then result:=18;
-          if quadrant=5 then result:=18;
+  18 : begin
+          if quadrant=2 then result:=34;
+          if quadrant=5 then
+          begin
+            if premier then result:=27;
+            if dernier then
+            begin
+              if testbit(tco[x,y+1].liaisons,1) then result:=21;result:=18;
+            end;
+            if not(premier) and not(dernier) then result:=27;
+          end;
         end;
 
-    19 : begin
+  19 : begin
           if quadrant=4 then result:=19;
-          if quadrant=5 then result:=19;
+          if quadrant=5 then
+          begin
+            result:=28;
+          end;
         end;
 
-   20 : begin
+  20 : begin
           if (quadrant=2) then
           begin
-            if premier and not(testbit(tco[x,y-1].liaisons,5)) then result:=17;
-            if dernier then result:=18;
+            if premier then
+            begin
+              //                    /N
+              if not(testbit(tco[x,y-1].liaisons,5)) then result:=17 else result:=26;
+              //                    SO
+              if (testbit(tco[x-1,y+1].liaisons,2)) then result:=23;
+              //                    /SO                               N
+              if not(testbit(tco[x-1,y+1].liaisons,2)) and testbit(tco[x-1,y].liaisons,5) then result:=26;
+            end;
+            if dernier then
+            begin
+               //           /S
+               if not(testbit(tco[x,y+1].liaisons,1)) then result:=18 else result:=27;
+            end;
+            if not(premier) and not(dernier) then result:=23;
           end;
           if quadrant=4 then
           begin
@@ -7403,7 +9706,11 @@ begin
             if premier then
             begin
               if (testbit(tco[x-1,y-1].liaisons,4)) then result:=25;
-              if not(testbit(tco[x-1,y-1].liaisons,4)) then result:=19;
+              //         /NO                                          /S
+              if not(testbit(tco[x-1,y-1].liaisons,4)) and not(testbit(tco[x,y+1].liaisons,1)) then result:=19;
+              //         /NO                                          S
+              if not(testbit(tco[x-1,y-1].liaisons,4)) and (testbit(tco[x,y+1].liaisons,1)) then result:=28;
+
             end;
             if not(premier) and not(dernier) then result:=25;
           end;
@@ -7411,6 +9718,7 @@ begin
         end;
    21 : result:=21;
    22 : result:=22;
+   23 : result:=23;
    24 : begin
           if quadrant=4 then
           begin
@@ -7425,8 +9733,93 @@ begin
           if quadrant=5 then result:=24;
         end;
   25 : result:=25;
+  26 : begin
+         if quadrant=2 then
+         begin
+           if premier then result:=26;
+           if dernier then result:=23;
+           if not(premier) and not(dernier) then result:=23;
+         end;
+       end;
+
+   27 : begin
+         if quadrant=2 then
+         begin
+           if premier then result:=23;
+           if dernier then result:=27;
+           if not(premier) and not(dernier) then result:=23;
+         end;
+         if quadrant=5 then result:=27;
+       end;
+
+    28 : begin
+         if quadrant=4 then
+         begin
+           if premier then result:=28;
+           if dernier then
+           begin
+             if (testbit(tco[x,y-1].liaisons,5)) and (testbit(tco[x+1,y+1].liaisons,0))  and (testbit(tco[x,y+1].liaisons,1)) then result:=25 else result:=28;
+           end;
+           if not(premier) and not(dernier) then result:=25;
+         end;
+         if quadrant=5 then result:=28;
+       end;
+  29 : begin
+         if quadrant=4 then result:=29;
+         if quadrant=5 then
+         begin
+           if dernier then result:=25;
+           if premier then result:=29;
+           if not(premier) and not(dernier) then result:=25;
+         end;
+       end;
+  32 : begin
+         if quadrant=2 then result:=32;
+         if quadrant=5 then
+         begin
+           if dernier then result:=23;
+           if premier then
+           begin
+             //            N
+             if (testbit(tco[x,y-1].liaisons,5)) then result:=23 else result:=32;
+           end;
+           if not(premier) and not(dernier) then
+           begin
+             //            N
+             if (testbit(tco[x,y-1].liaisons,5)) then result:=23 else result:=32;
+           end;
+         end;
+       end;
+  33 : begin
+         if quadrant=1 then
+         begin
+           if premier then result:=32;
+           if dernier then result:=25;
+           if not(premier) and not(dernier) then result:=25;
+         end;
+         if quadrant=5 then
+         begin
+           if premier then result:=25;
+           if dernier then result:=33;
+           if not(premier) and not(dernier) then result:=25;
+         end;
+         if quadrant=4 then result:=33;
+       end;
+  34 : begin
+         if quadrant=2 then result:=34;
+         if quadrant=5 then
+         begin
+           if dernier then result:=34;
+           if premier then result:=23;
+           if not(premier) and not(dernier) then result:=23;
+         end;
+       end;
    end;
    tco[x,y].coulFonte:=clyellow;
+   if result=1 then
+   begin
+     tco[x,y].repr:=2;
+   end;
 end;
 
 
@@ -7440,6 +9833,7 @@ begin
   begin
     if affEvt then Affiche('TCO Souris clicG enfoncée',clYellow);
     if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
+    auto_tcurs:=true;
     clicsouris:=true;
     GetCursorPos(Position);
     Position:=formTCO.ImageTCO.screenToCLient(Position);
@@ -7462,7 +9856,7 @@ begin
 
       if indextrace=1 then
       begin
-          // vérifier coordonnées valides
+        // vérifier coordonnées valides
         if ( abs(XClicCell-traceXY[1].x)=abs(YClicCell-traceXY[1].y) ) or
           ( XClicCell-traceXY[1].x=0 ) or ( YClicCell-traceXY[1].y=0 ) then
         begin
@@ -7609,6 +10003,7 @@ begin
   if button=mbRight then
   begin
     if affEvt then Affiche('TCO Souris clicD enfoncée',clLime);
+    auto_tcurs:=true;
 
     if modetrace then
     begin
@@ -7644,7 +10039,7 @@ begin
   if affevt then Affiche('ImageTCOMouseMove',clLime);
   if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
   if Temposouris>0 then begin exit;end;
- // Affiche('*',cllime);
+  // Affiche('*',cllime);
   SourisX.Caption:=IntToSTR(x);
   SourisY.Caption:=IntToSTR(y);
   //affiche(intToSTR(x),clorange);
@@ -7668,55 +10063,46 @@ begin
   if modeTrace then
   begin
     if indexTrace>0 then
+    begin
+      with ImageTCO.canvas do
       begin
+        Pen.Mode:=pmXor;
+        Pen.Color:=clwhite;
+        Pen.Width:=2;
+        // efface le précédent
+        if traceXY[indextrace+1].x<>0 then
         begin
-          with ImageTCO.canvas do
-          begin
-            Pen.Mode:=pmXor;
-            Pen.Color:=clwhite;
-            Pen.Width:=2;
-            // efface le précédent
-            if traceXY[indextrace+1].x<>0 then
-            begin
-              if debugTCO then Affiche('Efface précédent',clyellow);
-              if ancienok then Pen.color:=clyellow else pen.color:=clGray;
-              MoveTo(traceXY[indexTrace].x*largeurCell-LargeurCelld2,traceXY[indexTrace].y*hauteurCell-HauteurCelld2);
-              LineTo(ancienTraceX*largeurcell-largeurCelld2,ancienTraceY*HauteurCell-HauteurCelld2);
-            end;
-            if debugTCO then Affiche('Trace',clyellow);
+          if debugTCO then Affiche('Efface précédent',clyellow);
+          if ancienok then Pen.color:=clyellow else pen.color:=clGray;
+          MoveTo(traceXY[indexTrace].x*largeurCell-LargeurCelld2,traceXY[indexTrace].y*hauteurCell-HauteurCelld2);
+          LineTo(ancienTraceX*largeurcell-largeurCelld2,ancienTraceY*HauteurCell-HauteurCelld2);
+        end;
+        if debugTCO then Affiche('Trace',clyellow);
+        ancienTraceX:=cellx;
+        ancienTraceY:=celly;
+        ok:=( abs(cellX-traceXY[indexTrace].x)=abs(cellY-traceXY[indexTrace].y) ) or
+            ( cellX-traceXY[indexTrace].x=0 ) or ( cellY-traceXY[indexTrace].y=0 )  ;
 
-            ancienTraceX:=cellx;
-            ancienTraceY:=celly;
+        if (ancienok=false) and ok then screen.cursor:=crUpArrow;
+        if ancienok and (ok=false) then screen.cursor:=crNoDrop;
+        Ancienok:=ok;
+        if ok then Pen.color:=clyellow else pen.color:=clGray;
 
-            ok:=( abs(cellX-traceXY[indexTrace].x)=abs(cellY-traceXY[indexTrace].y) ) or
-                ( cellX-traceXY[indexTrace].x=0 ) or ( cellY-traceXY[indexTrace].y=0 )  ;
+        MoveTo(traceXY[indexTrace].x*largeurCell-LargeurCelld2,traceXY[indexTrace].y*hauteurCell-HauteurCelld2);
+        LineTo(cellX*largeurCell-largeurCelld2,CellY*hauteurCell-HauteurCelld2);
 
-            if (ancienok=false) and ok then screen.cursor:=crUpArrow;
-            if ancienok and (ok=false) then screen.cursor:=crNoDrop;
-
-            Ancienok:=ok;
-            if ok then Pen.color:=clyellow else pen.color:=clGray;
-
-
-
-
-            MoveTo(traceXY[indexTrace].x*largeurCell-LargeurCelld2,traceXY[indexTrace].y*hauteurCell-HauteurCelld2);
-            LineTo(cellX*largeurCell-largeurCelld2,CellY*hauteurCell-HauteurCelld2);
-
-            if ok then
-            begin
-              traceXY[indextrace+1].x:=cellX;
-              traceXY[indextrace+1].y:=cellY;
-            end;
-          end;
+        if ok then
+        begin
+          traceXY[indextrace+1].x:=cellX;
+          traceXY[indextrace+1].y:=cellY;
         end;
       end;
+    end;
     exit;
   end;
 
   if not(clicsouris) or (temposouris>0) then exit;
 
-  //Affiche('haaa',clyellow);
   xMiniSel:=(XclicCell-1)*LargeurCell;
   yMiniSel:=(YclicCell-1)*HauteurCell;
   xMaxiSel:=(cellX-1)*LargeurCell;
@@ -7785,11 +10171,23 @@ end;
 // changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
 var Adr,erreur,index : integer;
+    s: string;
 begin
   //Affiche('Chgt adresse',clyellow);
   if clicTCO or not(formConfCellTCOAff) then exit;
-  Val(EditAdrElement.Text,Adr,erreur);
+  clicTCO:=true;
+  auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les tuouches curseur s'applique au Tedit)
+
+  s:=EditAdrElement.Text;
+  if length(s)>1 then
+  begin
+    if (s[1]='A') or (s[1]='a') then delete(s,1,1);  
+    EditAdrElement.Text:=s;
+  end;
+
+  Val(s,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
+  clicTCO:=false;
 
   if Adr=0 then tco[XClicCell,YClicCell].repr:=2;
 
@@ -7799,9 +10197,9 @@ begin
   tco_Modifie:=true;
 
   // si signal
-  if tco[XClicCell,YClicCell].BImage=30 then
+  if tco[XClicCell,YClicCell].BImage=50 then
   begin
-    index:=Index_feu(adr);
+    index:=Index_Signal(adr);
     if index=0 then exit
     else
       begin
@@ -7914,7 +10312,7 @@ begin
   defocusControl(ButtonConfigTCO,true);
 end;
 
-procedure TFormTCO.ImagePalette30EndDrag(Sender, Target: TObject; X, Y: Integer);
+procedure TFormTCO.ImagePalette50EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
   if not(Target is TImage) then exit;
   if (Target as TImage).Name<>'ImageTCO' then exit;
@@ -7928,7 +10326,7 @@ begin
   stocke_undo(1,XClicCell,YClicCell);
   maj_undo(1);
   efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
-  tco[XClicCell,YClicCell].BImage:=30;
+  tco[XClicCell,YClicCell].BImage:=50;
   tco[XClicCell,YClicCell].liaisons:=0;
   tco[XClicCell,YClicCell].Adresse:=0;
   tco[XClicCell,YClicCell].FeuOriente:=1;
@@ -7943,12 +10341,12 @@ begin
 end;
 
 
-procedure TFormTCO.ImagePalette30MouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
+procedure TFormTCO.ImagePalette50MouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
 var l,h : integer;
 begin
   l:=Formprinc.Image9feux.width;    //57
   h:=Formprinc.Image9feux.height;   //105
-  ImagePalette30.BeginDrag(true);
+  ImagePalette50.BeginDrag(true);
   BitBlt(OldBmp.Canvas.Handle,0,0,LargeurCell,HauteurCell,ImageTCO.Canvas.Handle,offsetSourisX,offsetSourisY,SRCCOPY);
   drag:=true;
   oldx:=offsetSourisX;oldy:=offsetSourisY;
@@ -7974,7 +10372,7 @@ var BImage : integer;
 begin
   if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
-  if Bimage<>30 then exit;
+  if Bimage<>50 then exit;
 
   TCO_modifie:=true;
 
@@ -8013,12 +10411,12 @@ var BImage,aspect,adresse : integer;
 begin
   if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
-  if Bimage<>30 then exit;
+  if Bimage<>50 then exit;
 
   TCO_modifie:=true;
 
   adresse:=TCO[XClicCell,YClicCell].Adresse;
-  aspect:=feux[index_feu(adresse)].Aspect;
+  aspect:=feux[Index_Signal(adresse)].Aspect;
   if aspect=0 then aspect:=9;
 
   // ancien signal orienté orienté 90D
@@ -8058,11 +10456,11 @@ begin
   if actualize then exit;
   BImage:=TCO[XClicCell,YClicCell].Bimage;
   // si c'est autre chose qu'un signal, sortir
-  if Bimage<>30 then exit;
+  if Bimage<>50 then exit;
 
   TCO_modifie:=true;
   adresse:=TCO[XClicCell,YClicCell].Adresse;
-  aspect:=feux[index_feu(adresse)].Aspect;
+  aspect:=feux[Index_Signal(adresse)].Aspect;
   if aspect=0 then aspect:=9;
 
   // effacement de l'ancien signal
@@ -8123,6 +10521,8 @@ procedure TFormTCO.EditTexteChange(Sender: TObject);
 begin
   if clicTCO then exit;
   if affevt then Affiche('TCO.EditTextChange',clOrange);
+  auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les tuouches curseur s'applique au Tedit)
+
   PCanvasTCO.Brush.Color:=Clfond;
   efface_entoure;
 
@@ -8140,18 +10540,18 @@ end;
 
 procedure TFormTCO.ButtonSimuClick(Sender: TObject);
 begin
-  aiguillage[Index_Aig(1)].position:=const_droit;
+  aiguillage[Index_Aig(1)].position:=const_devie;
   aiguillage[Index_Aig(2)].position:=const_devie;
   aiguillage[Index_Aig(3)].position:=const_droit;
   aiguillage[Index_Aig(4)].position:=const_devie;
   aiguillage[Index_Aig(5)].position:=const_devie;
-  aiguillage[Index_Aig(8)].position:=const_devie;
-  aiguillage[Index_Aig(9)].position:=const_droit;
+  aiguillage[Index_Aig(8)].position:=const_droit;
+  aiguillage[Index_Aig(9)].position:=const_devie;
   aiguillage[Index_Aig(7)].position:=const_devie;
   aiguillage[Index_Aig(12)].position:=const_devie;
   aiguillage[Index_Aig(20)].position:=const_droit;
   aiguillage[Index_Aig(21)].position:=const_droit;
-  aiguillage[Index_Aig(26)].position:=const_devie;
+  aiguillage[Index_Aig(26)].position:=const_droit;
   aiguillage[Index_Aig(28)].position:=const_droit;
   index_couleur:=1;
   aiguillage[Index_Aig(81)].position:=const_droit;
@@ -8161,13 +10561,13 @@ begin
   aiguillage[Index_Aig(116)].position:=const_droit;
   aiguillage[Index_Aig(117)].position:=const_devie;
 
-  zone_TCO(530,520,1);
-  zone_TCO(515,517,1);
-  zone_tco(518,523,1);
-  zone_tco(522,527,1);
+  //debugTco:=true;
+  zone_tco(518,514,1);
+ //   zone_tco(518,515,1);
 
-  zone_tco(599,527,1);
+  //zone_tco(522,514,1);
 
+  //zone_tco(514,522,1);
 end;
 
 procedure TFormTCO.CheckPinvClick(Sender: TObject);
@@ -8209,6 +10609,8 @@ var Bimage,Adresse,i : integer;
 begin
   if affEvt then Affiche('Double clic',clYellow);
   clicsouris:=false;
+  auto_tcurs:=true;  // autorise le déplacement du des touches curseur encadré du TCO 
+
   Bimage:=Tco[xClicCell,yClicCell].BImage;
   Adresse:=Tco[xClicCell,yClicCell].Adresse;
   if adresse=0 then exit;
@@ -8222,14 +10624,16 @@ begin
 
   tjdC:=false;
   // commande tjd/c
-  if (Bimage=21) or (Bimage=22) or (Bimage=25) then
+  if (Bimage=21) or (Bimage=22) or (Bimage=23) or (Bimage=25) then
   begin
+    i:=Index_aig(Adresse);
     tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
   end;
 
   // commande aiguillage
   if (Bimage=2) or (Bimage=3) or (Bimage=4) or (Bimage=5) or (Bimage=12) or
-     (Bimage=13) or (Bimage=14) or (Bimage=15) or (Bimage=24) or TJDc then
+     (Bimage=13) or (Bimage=14) or (Bimage=15) or (Bimage=24) or ((Bimage>=26) and (Bimage<=34)) or
+           TJDc then
   begin
     aiguille:=Adresse;
     i:=Index_aig(Adresse);
@@ -8247,10 +10651,10 @@ begin
   end;
 
   // commande de signal
-  if Bimage=30 then
+  if Bimage=50 then
   begin
     AdrPilote:=adresse;
-    i:=Index_feu(adresse);
+    i:=Index_Signal(adresse);
     if i=0 then exit;
     TFormPilote.Create(Self);
     with formPilote do
@@ -8370,7 +10774,7 @@ begin
   accept:=true;
 end;
 
-procedure TFormTCO.ImagePalette31DragOver(Sender, Source: TObject; X,
+procedure TFormTCO.ImagePalette51DragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 begin
   accept:=true;
@@ -8395,7 +10799,7 @@ begin
 end;
 
 
-procedure TFormTCO.ImagePalette31EndDrag(Sender, Target: TObject; X,
+procedure TFormTCO.ImagePalette51EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   if not(Target is TImage) then exit;
@@ -8408,10 +10812,10 @@ begin
   XclicCell:=Xclic div largeurCell +1;
   YclicCell:=Yclic div hauteurCell +1;
   efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
-  Dessin_31(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  Dessin_51(ImageTCO.Canvas,XClicCell,YClicCell,0);
   stocke_undo(1,XClicCell,YClicCell);
   maj_undo(1);
-  tco[XClicCell,YClicCell].BImage:=31;
+  tco[XClicCell,YClicCell].BImage:=51;
   tco[XClicCell,YClicCell].liaisons:=0;
   tco[XClicCell,YClicCell].Adresse:=0;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
@@ -8441,6 +10845,7 @@ begin
   tco[XClicCell,YClicCell].BImage:=24;
   tco[XClicCell,YClicCell].liaisons:=liaisons[24];
   tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
@@ -8466,6 +10871,7 @@ begin
   tco[XClicCell,YClicCell].BImage:=25;
   tco[XClicCell,YClicCell].liaisons:=liaisons[25];
   tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
   EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
@@ -8495,10 +10901,10 @@ begin
   EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
 end;
 
-procedure TFormTCO.ImagePalette31MouseDown(Sender: TObject;
+procedure TFormTCO.ImagePalette51MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  debut_drag(ImagePalette31);
+  debut_drag(ImagePalette51);
 end;
 
 procedure TFormTCO.ImagePalette24MouseDown(Sender: TObject;
@@ -8579,7 +10985,7 @@ begin
   accept:=true;
 end;
 
-procedure TFormTCO.ImagePalette30DragOver(Sender, Source: TObject; X,
+procedure TFormTCO.ImagePalette50DragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 begin
   accept:=true;
@@ -8649,7 +11055,7 @@ end;
 procedure signalD;
 begin
   if actualize then exit;
-  if TCO[XClicCell,YClicCell].Bimage=30 then
+  if TCO[XClicCell,YClicCell].Bimage=50 then
   begin
     TCO[XClicCell,YClicCell].PiedFeu:=2;
     Affiche_TCO;
@@ -8666,7 +11072,7 @@ end;
 procedure signalG;
 begin
   if actualize then exit;
-  if TCO[XClicCell,YClicCell].Bimage=30 then
+  if TCO[XClicCell,YClicCell].Bimage=50 then
   begin
     TCO[XClicCell,YClicCell].PiedFeu:=1;
     Affiche_TCO;
@@ -8694,7 +11100,7 @@ begin
   PopUpMenu1.Items[10][1].Caption:='Colonne '+intToSTR(XclicCell);
 
   // grise ou non l'entrée signal du menu
-  if tco[XClicCell,YClicCell].Bimage=30 then
+  if tco[XClicCell,YClicCell].Bimage=50 then
   begin
     PopUpMenu1.Items[6].Enabled:=true;
     oriente:=tco[XClicCell,YClicCell].Feuoriente;
@@ -8943,7 +11349,7 @@ begin
   dec(NbreCellX);
   SetLength(TCO,NbreCellX+1,NbreCellY+1);  // ajuste taille
   SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);  // ajuste taille
-  
+
   affiche_TCO;
 end;
 
@@ -9095,7 +11501,7 @@ begin
   if affevt then Affiche('TCO evt editTypeImageChange',clorange);
   if actualize then exit;
   Val(EditTypeImage.Text,Bimage,erreur);
-  if (erreur<>0) or not(Bimage in[0..22,24..25,30,31]) then
+  if (erreur<>0) or not(Bimage in[0..22,24..25,50,51]) then
   begin
     exit;
   end;
@@ -9142,11 +11548,6 @@ begin
   defocusControl(buttonDessiner,true);
 end;
 
-
-
-
-
-
 procedure TFormTCO.ButtonTrajetClick(Sender: TObject);
 var c : Tcanvas;
 begin
@@ -9161,10 +11562,323 @@ begin
   TCO[9,3].Adresse:=1;dessin_14(c,9,3,1);
   TCO[11,3].Adresse:=1;dessin_15(c,11,3,1);
   TCO[5,5].Adresse:=1;dessin_24(c,5,5,1);
-
+  
 
 end;
 
 
+
+procedure TFormTCO.ImagePalette26DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette26EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,26)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+
+  Dessin_26(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=26;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[26];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette26MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette26);
+end;
+
+procedure TFormTCO.ImagePalette23EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,23)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+  Dessin_23(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=23;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[23];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette23DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette23MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette23);
+end;
+
+procedure TFormTCO.ImagePalette27DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette27MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette27);
+end;
+
+procedure TFormTCO.ImagePalette27EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,27)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+
+  Dessin_27(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=27;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[27];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette28DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette28EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,28)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+
+  Dessin_28(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=28;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[28];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+
+end;
+
+procedure TFormTCO.ImagePalette28MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette28);
+end;
+
+procedure TFormTCO.ImagePalette29DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+ accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette29EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,29)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+  Dessin_29(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=29;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[29];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette29MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette29);
+end;
+
+procedure TFormTCO.ImagePalette32DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette32EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,32)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+  Dessin_32(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=32;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[32];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette32MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette32);
+end;
+
+procedure TFormTCO.ImagePalette33DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette33EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,33)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+  Dessin_33(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=33;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[33];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette33MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette33);
+end;
+
+procedure TFormTCO.ImagePalette34DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  accept:=true;
+end;
+
+procedure TFormTCO.ImagePalette34EndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if not(Target is TImage) then exit;
+  if (Target as TImage).Name<>'ImageTCO' then exit;
+  if (x=0) and (y=0) then exit;
+  BitBlt(imageTCO.canvas.handle,oldx,oldy,LargeurCell,HauteurCell,oldbmp.canvas.handle,0,0,SRCCOPY);
+  efface_entoure;
+  imageTCO.repaint;
+  Xclic:=X;YClic:=Y;
+  XclicCell:=Xclic div largeurCell +1;
+  YclicCell:=Yclic div hauteurCell +1;
+  if not(verif_cellule(XclicCell,YclicCell,34)) then exit;
+  efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
+  TCO_modifie:=true;
+  Dessin_34(ImageTCO.Canvas,XClicCell,YClicCell,0);
+  stocke_undo(1,XClicCell,YClicCell);
+  maj_undo(1);
+  tco[XClicCell,YClicCell].BImage:=34;
+  tco[XClicCell,YClicCell].liaisons:=liaisons[34];
+  tco[XClicCell,YClicCell].Adresse:=0;
+  tco[xClicCell,YClicCell].CoulFonte:=clYellow;
+  EditAdrElement.Text:=IntToSTR( tco[XClicCell,YClicCell].Adresse);
+  EdittypeImage.Text:=IntToSTR(tco[XClicCell,YClicCell].BImage);
+end;
+
+procedure TFormTCO.ImagePalette34MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  debut_drag(ImagePalette34);
+end;
+
+procedure TFormTCO.EditAdrElementClick(Sender: TObject);
+begin
+  auto_tcurs:=false;
+end;
 
 end.

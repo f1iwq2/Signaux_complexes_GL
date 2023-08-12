@@ -52,7 +52,7 @@ object FormPilote: TFormPilote
   object LabelDec: TLabel
     Left = 200
     Top = 192
-    Width = 129
+    Width = 72
     Height = 19
     Alignment = taCenter
     Caption = 'LabelDec'

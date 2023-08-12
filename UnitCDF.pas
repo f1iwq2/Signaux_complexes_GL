@@ -103,7 +103,7 @@ procedure TFormCDF.FormActivate(Sender: TObject);
 var erreur : integer;
 begin
   Val(FormConfig.EditAdrSig.text,Adresse,erreur);
-  index:=index_feu(Adresse);
+  index:=index_Signal(Adresse);
   LabelTitre.caption:='Adresse du signal: '+intToSTR(adresse);
   erreur:=feux[index].decodeur;
   feux[0]:=feux[index];

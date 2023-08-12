@@ -69,34 +69,36 @@ uses UnitPrinc;
 procedure actualise;
 var Bimage,oriente,piedFeu : integer;
     s : string;
+    ip : Timage;
+    r : trect;
 begin
-     Bimage:=tco[XClicCell,YClicCell].Bimage;
+  Bimage:=tco[XClicCell,YClicCell].Bimage;
 
-    if formConfCellTCOAff then
+  if formConfCellTCOAff then
+  begin
+    // si aiguillage, mettre à jour l'option de pilotage inverse
+    if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
+       or (bimage=14) or (bimage=15) or (bimage=24) then
     begin
-      // si aiguillage, mettre à jour l'option de pilotage inverse
-      if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
-         or (bimage=14) or (bimage=15) or (bimage=24) then
-      begin
 
-        // aiguillage inversé
-        with FormConfCellTCO.CheckPinv do
-        begin
-          enabled:=true;
-          checked:=TCO[XClicCell,YClicCell].inverse;
-        end;
-        FormTCO.CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
-        FormTCO.CheckPinv.enabled:=true ;
-      end
-      else
+      // aiguillage inversé
+      with FormConfCellTCO.CheckPinv do
       begin
-        FormTCO.CheckPinv.enabled:=false;
-        FormConfCellTCO.checkPinv.enabled:=false;
+        enabled:=true;
+        checked:=TCO[XClicCell,YClicCell].inverse;
       end;
+      FormTCO.CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
+      FormTCO.CheckPinv.enabled:=true ;
+    end
+    else
+    begin
+      FormTCO.CheckPinv.enabled:=false;
+      FormConfCellTCO.checkPinv.enabled:=false;
     end;
+  end;
 
     // si voie ou rien ou signal ou quai
-    if (Bimage=1) or (Bimage=0) or (Bimage=23) or (Bimage=31) or (Bimage=30) then
+    if (Bimage=1) or (Bimage=0) or (Bimage=50) or (Bimage=51) then
     begin
       s:=Tco[XClicCell,YClicCell].Texte;
       with formTCO do
@@ -134,7 +136,7 @@ begin
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
 
   // si signal
-  if Bimage<30 then
+  if Bimage=50 then
   With formConfCellTCO.ImagePalette do
   begin
     Height:=FormTCO.ImagePalette1.Picture.Height;
@@ -143,7 +145,7 @@ begin
   end;
 
   // si pas signal
-  if Bimage<>30 then
+  if Bimage<>50 then
   with formConfCellTCO do
   begin
     RadioButtonV.Enabled:=false;
@@ -154,101 +156,95 @@ begin
   end;
 
   //mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
-  with formConfCellTCO.ImagePalette.Picture do
-  case Bimage of
-  1: Assign(FormTCO.ImagePalette1.Picture);
-  2: Assign(FormTCO.ImagePalette2.Picture);
-  3: Assign(FormTCO.ImagePalette3.Picture);
-  4: Assign(FormTCO.ImagePalette4.Picture);
-  5: Assign(FormTCO.ImagePalette5.Picture);
-  6: Assign(FormTCO.ImagePalette6.Picture);
-  7: Assign(FormTCO.ImagePalette7.Picture);
-  8: Assign(FormTCO.ImagePalette8.Picture);
-  9: Assign(FormTCO.ImagePalette9.Picture);
- 10: Assign(FormTCO.ImagePalette10.Picture);
- 11: Assign(FormTCO.ImagePalette11.Picture);
- 12: Assign(FormTCO.ImagePalette12.Picture);
- 13: Assign(FormTCO.ImagePalette13.Picture);
- 14: Assign(FormTCO.ImagePalette14.Picture);
- 15: Assign(FormTCO.ImagePalette15.Picture);
- 16: Assign(FormTCO.ImagePalette16.Picture);
- 17: Assign(FormTCO.ImagePalette17.Picture);
- 18: Assign(FormTCO.ImagePalette18.Picture);
- 19: Assign(FormTCO.ImagePalette19.Picture);
- 20: Assign(FormTCO.ImagePalette20.Picture);
- 21: Assign(FormTCO.ImagePalette21.Picture);
- 22: Assign(FormTCO.ImagePalette22.Picture);
- 23,31: Assign(FormTCO.ImagePalette31.Picture);
- 24: Assign(FormTCO.ImagePalette24.Picture);
- 25: Assign(FormTCO.ImagePalette25.Picture);
- 30: begin
-       With formConfCellTCO.ImagePalette do
-       begin
-         Height:=FormTCO.ImagePalette30.Height;
-         Width:=FormTCO.ImagePalette30.Width;
+  if Bimage=0 then
+  begin
+    with FormConfCellTCO.ImagePalette do
+    begin
+      r:=Rect(0,0,width,height);
+      with canvas do
+      begin
+        Pen.Mode:=pmCopy;
+        Pen.Width:=1;
+        Pen.color:=tco[XClicCell,YClicCell].CouleurFond;
+        Brush.Color:=tco[XClicCell,YClicCell].CouleurFond;
+        Brush.style:=bsSolid;
+        fillRect(r);
+      end;
+    end;
 
-         Picture.Assign(FormTCO.ImagePalette30.Picture);
-         Picture.Bitmap.TransparentMode:=tmAuto;
-         Picture.Bitmap.TransparentColor:=clblue;
-         Transparent:=true;
-       end;
-       with formconfCellTCO do
-       begin
-         RadioButtonV.Enabled:=true;
-         RadioButtonHG.Enabled:=true;
-         RadioButtonHD.Enabled:=true;
-         RadioButtonG.Enabled:=true;
-         RadioButtonD.Enabled:=true;
-         oriente:=tco[XClicCell,YClicCell].Feuoriente;
-         if oriente=1 then
-         begin
-           RadioButtonV.checked:=true;
-           RadioButtonHG.checked:=false;
-           RadioButtonHD.checked:=false;
-         end;
-         if oriente=2 then
-         begin
+    with formConfCellTCO do
+    begin
+      RadioButtonV.Enabled:=false;
+      RadioButtonHG.Enabled:=false;
+      RadioButtonHD.Enabled:=false;
+      RadioButtonG.Enabled:=false;
+      RadioButtonD.Enabled:=false;
+    end;
+  end
+
+  else
+
+  begin
+    ip:=formTCO.findComponent('ImagePalette'+intToSTR(Bimage)) as Timage;
+    if ip=nil then exit;
+    formConfCellTCO.ImagePalette.picture.Assign(ip.picture);
+
+    if Bimage=50 then
+    begin     // signal
+      With formConfCellTCO.ImagePalette do
+      begin
+        Height:=FormTCO.ImagePalette50.Height;
+        Width:=FormTCO.ImagePalette50.Width;
+        //Picture.Assign(FormTCO.ImagePalette50.Picture);
+        Picture.Bitmap.TransparentMode:=tmAuto;
+        Picture.Bitmap.TransparentColor:=clblue;
+        Transparent:=true;
+      end;
+      with formconfCellTCO do
+      begin
+        RadioButtonV.Enabled:=true;
+        RadioButtonHG.Enabled:=true;
+        RadioButtonHD.Enabled:=true;
+        RadioButtonG.Enabled:=true;
+        RadioButtonD.Enabled:=true;
+        oriente:=tco[XClicCell,YClicCell].Feuoriente;
+        if oriente=1 then
+        begin
+          RadioButtonV.checked:=true;
+          RadioButtonHG.checked:=false;
+          RadioButtonHD.checked:=false;
+        end;
+        if oriente=2 then
+        begin
            RadioButtonV.checked:=false;
            RadioButtonHG.checked:=true;
            RadioButtonHD.checked:=false;
-         end;
-         if oriente=3 then
-         begin
-           RadioButtonV.checked:=false;
-           RadioButtonHG.checked:=false;
-           RadioButtonHD.checked:=true;
-         end;
+        end;
+        if oriente=3 then
+        begin
+          RadioButtonV.checked:=false;
+          RadioButtonHG.checked:=false;
+          RadioButtonHD.checked:=true;
+        end;
 
-         PiedFeu:=tco[XClicCell,YClicCell].PiedFeu;
-         if PiedFeu=1 then
-         begin
-           RadioButtonG.checked:=true;
-           RadioButtonD.checked:=false;
-         end;
-         if PiedFeu=2 then
-         begin
-           RadioButtonG.checked:=false;
-           RadioButtonD.checked:=true;
-         end;
-       end;
-     end
-   else
-   begin
-     with formConfCellTCO do
-     begin
-       ImagePalette.Picture:=nil;
-       RadioButtonV.Enabled:=false;
-       RadioButtonHG.Enabled:=false;
-       RadioButtonHD.Enabled:=false;
-       RadioButtonG.Enabled:=false;
-       RadioButtonD.Enabled:=false;
-     end;
-   end;
+        PiedFeu:=tco[XClicCell,YClicCell].PiedFeu;
+        if PiedFeu=1 then
+        begin
+          RadioButtonG.checked:=true;
+          RadioButtonD.checked:=false;
+        end;
+        if PiedFeu=2 then
+        begin
+          RadioButtonG.checked:=false;
+          RadioButtonD.checked:=true;
+        end;
+      end;
+    end;
   end;
 
   // aiguillage
   if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or
-      (BImage=15) or (BImage=21) or (BImage=22) or (BImage=24) or (BImage=25)) then
+      (BImage=15) or (BImage=21) or (BImage=22) or (BImage>=24) ) and (Bimage<50) then
     formConfCellTCO.checkPinv.Enabled:=true
     else formConfCellTCO.checkPinv.Enabled:=false;
 
@@ -277,9 +273,9 @@ begin
   formTCO.EditAdrElement.Text:=intToSTR(adr);
 
 
-  if tco[XClicCell,YClicCell].BImage=30 then
+  if tco[XClicCell,YClicCell].BImage=50 then
   begin
-    index:=Index_feu(adr);
+    index:=Index_Signal(adr);
     if index=0 then exit
     else
       begin
@@ -341,32 +337,9 @@ begin
         begin
           Parent:=FormConfCellTCO;
           Name:='i'+IntToSTR(i);   // nom de l'image - sert à identifier le composant si on fait clic droit.
-          case i of
-          1 : ImageSRC:=FormTCO.ImagePalette1;
-          2 : ImageSRC:=FormTCO.ImagePalette2;
-          3 : ImageSRC:=FormTCO.ImagePalette3;
-          4 : ImageSRC:=FormTCO.ImagePalette4;
-          5 : ImageSRC:=FormTCO.ImagePalette5;
-          6 : ImageSRC:=FormTCO.ImagePalette6;
-          7 : ImageSRC:=FormTCO.ImagePalette7;
-          8 : ImageSRC:=FormTCO.ImagePalette8;
-          9 : ImageSRC:=FormTCO.ImagePalette9;
-          10 : ImageSRC:=FormTCO.ImagePalette10;
-          11 : ImageSRC:=FormTCO.ImagePalette11;
-          12 : ImageSRC:=FormTCO.ImagePalette12;
-          13 : ImageSRC:=FormTCO.ImagePalette13;
-          14 : ImageSRC:=FormTCO.ImagePalette14;
-          15 : ImageSRC:=FormTCO.ImagePalette15;
-          16 : ImageSRC:=FormTCO.ImagePalette16;
-          17 : ImageSRC:=FormTCO.ImagePalette17;
-          18 : ImageSRC:=FormTCO.ImagePalette18;
-          19 : ImageSRC:=FormTCO.ImagePalette19;
-          20 : ImageSRC:=FormTCO.ImagePalette20;
-          21 : ImageSRC:=FormTCO.ImagePalette21;
-          22 : ImageSRC:=FormTCO.ImagePalette22;
-          23,31 : ImageSRC:=FormTCO.ImagePalette31;
-          24 : ImageSRC:=FormTCO.ImagePalette30;
-          end;
+
+          ImageSRC:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
+
           picture.Bitmap:=ImageSRC.picture.BitMap;
           width:=ImageSRC.Width;
           height:=ImageSRC.Height;
@@ -460,7 +433,7 @@ begin
   if clicTCO or not(formConfCellTCOAff) or actualize then exit;
   if affevt then Affiche('TCO evt editTypeImageKeyPress',clorange);
   Val(EditTypeImage.Text,Bimage,erreur);
-  if (erreur<>0) or not(Bimage in[0..22,24..25,30,31]) then
+  if (erreur<>0) or not(Bimage in[0..29,32..34,50,51]) then
   begin
     exit;
   end;
@@ -469,6 +442,7 @@ begin
   FormTCO.EditTypeImage.text:=intToSTR(BImage);
   actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
   efface_entoure;
+  Efface_Cellule(FormTCO.ImageTCO.Canvas,XClicCell,yClicCell,pmCopy);
   affiche_cellule(XClicCell,YClicCell);
 
 end;

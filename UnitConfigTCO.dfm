@@ -281,7 +281,7 @@ object FormConfigTCO: TFormConfigTCO
   object RadioGroup1: TRadioGroup
     Left = 16
     Top = 96
-    Width = 281
+    Width = 273
     Height = 57
     Caption = 'Graphisme'
     TabOrder = 8

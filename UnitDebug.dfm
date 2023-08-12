@@ -1,9 +1,10 @@
 object FormDebug: TFormDebug
-  Left = 209
-  Top = 192
+  Left = 321
+  Top = 0
   Width = 864
-  Height = 788
+  Height = 718
   VertScrollBar.Increment = 67
+  VertScrollBar.Position = 98
   VertScrollBar.Tracking = True
   Caption = 'Fen'#234'tre de d'#233'bug'
   Color = clWindow
@@ -21,12 +22,12 @@ object FormDebug: TFormDebug
   OnKeyPress = FormKeyPress
   DesignSize = (
     839
-    757)
+    687)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 595
-    Top = 4
+    Top = -94
     Width = 108
     Height = 13
     Anchors = [akTop, akRight]
@@ -42,7 +43,7 @@ object FormDebug: TFormDebug
   end
   object Label2: TLabel
     Left = 443
-    Top = 2
+    Top = -96
     Width = 131
     Height = 18
     Anchors = [akTop, akRight]
@@ -56,7 +57,7 @@ object FormDebug: TFormDebug
   end
   object EditNivDebug: TEdit
     Left = 754
-    Top = 2
+    Top = -96
     Width = 49
     Height = 21
     Anchors = [akTop, akRight]
@@ -72,7 +73,7 @@ object FormDebug: TFormDebug
   end
   object ButtonEcrLog: TButton
     Left = 442
-    Top = 328
+    Top = 230
     Width = 97
     Height = 29
     Anchors = [akTop, akRight]
@@ -82,7 +83,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTampon: TButton
     Left = 442
-    Top = 360
+    Top = 262
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -93,7 +94,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCherche: TButton
     Left = 442
-    Top = 296
+    Top = 198
     Width = 97
     Height = 25
     Hint = 'Cherche la cha'#238'ne "erreur"'
@@ -106,7 +107,7 @@ object FormDebug: TFormDebug
   end
   object ButtonAffEvtChrono: TButton
     Left = 442
-    Top = 256
+    Top = 158
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -117,7 +118,7 @@ object FormDebug: TFormDebug
   end
   object ButtonCop: TButton
     Left = 442
-    Top = 208
+    Top = 110
     Width = 97
     Height = 41
     Anchors = [akTop, akRight]
@@ -134,7 +135,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazLog: TButton
     Left = 442
-    Top = 400
+    Top = 302
     Width = 97
     Height = 33
     Anchors = [akTop, akRight]
@@ -145,7 +146,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox1: TGroupBox
     Left = 448
-    Top = 600
+    Top = 502
     Width = 369
     Height = 185
     Anchors = [akTop, akRight]
@@ -283,9 +284,11 @@ object FormDebug: TFormDebug
         Width = 185
         Height = 25
         Hint = 
-          'Renvoie l'#39#233'l'#233'ment suivant aux deux '#233'l'#233'ments (d'#233'tecteurs ou aigui' +
-          'llages) '
+          'Renvoie l'#39#233'l'#233'ment suivant aux deux '#233'l'#233'ments contigus (d'#233'tecteurs' +
+          ' ou aiguillages) '
         Caption = 'Element suivant aux '#233'l'#233'ments'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 3
         OnClick = ButtonElSuivClick
       end
@@ -293,7 +296,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox2: TGroupBox
     Left = 440
-    Top = 20
+    Top = -78
     Width = 401
     Height = 149
     Anchors = [akTop, akRight]
@@ -485,9 +488,9 @@ object FormDebug: TFormDebug
   end
   object RichDebug: TRichEdit
     Left = 8
-    Top = 8
+    Top = -90
     Width = 425
-    Height = 741
+    Height = 671
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
       'RichDebug')
@@ -498,7 +501,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox5: TGroupBox
     Left = 448
-    Top = 488
+    Top = 390
     Width = 372
     Height = 57
     Anchors = [akTop, akRight]
@@ -565,7 +568,7 @@ object FormDebug: TFormDebug
   end
   object ButtonRazTout: TButton
     Left = 443
-    Top = 176
+    Top = 78
     Width = 97
     Height = 25
     Hint = 
@@ -580,7 +583,7 @@ object FormDebug: TFormDebug
   end
   object GroupBox6: TGroupBox
     Left = 448
-    Top = 552
+    Top = 454
     Width = 372
     Height = 41
     Anchors = [akTop, akRight]
@@ -657,7 +660,7 @@ object FormDebug: TFormDebug
   end
   object MemoEvtDet: TRichEdit
     Left = 544
-    Top = 174
+    Top = 76
     Width = 281
     Height = 307
     Anchors = [akTop, akRight]

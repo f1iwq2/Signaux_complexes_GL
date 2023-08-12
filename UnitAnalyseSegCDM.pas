@@ -574,7 +574,6 @@ begin
     exit;
   end;
 
-  //turnout_3way
   if segType='turnout_sym' then
   begin
     s2:=isole_valeur(s,'radius:');
@@ -827,7 +826,7 @@ begin
 end;
 
 
-// trouve si le point (x,y) est sur le segment x1,y1 x2,y2
+// trouve si le point (x,y) est sur le segment (droit) x1,y1 x2,y2
 // s*l = distance du point au segment
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 var l,r,s : Double;
@@ -4173,8 +4172,7 @@ begin
 end;
 
 procedure TFormAnalyseCDM.ButtonAnimeClick(Sender: TObject);
-var bmp : tbitmap;
-    zom,ang : single;
+var zom,ang : single;
     x,y : integer;
 begin
   x:=100;y:=200;

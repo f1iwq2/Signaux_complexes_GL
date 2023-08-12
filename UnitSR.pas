@@ -183,7 +183,7 @@ procedure TFormSR.FormActivate(Sender: TObject);
 var erreur,etat1,etat2 : integer;
 begin
   Val(FormConfig.EditAdrSig.text,Adr,erreur);
-  indexSig:=index_feu(Adr);
+  indexSig:=index_Signal(Adr);
   if IndexSig=0 then LabelErreur.caption:='Erreur feu inexistant'
   else
   begin

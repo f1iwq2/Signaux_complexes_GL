@@ -357,7 +357,7 @@ begin
       // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
       if adrFeu<>0 then
       begin
-        id:=index_feu(AdrFeu);
+        id:=index_Signal(AdrFeu);
         a:=feux[id].EtatSignal;
         if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) then rouge:=true;
       end;

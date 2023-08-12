@@ -118,7 +118,7 @@ procedure dessine_feu_pilote;
 var i : integer;
     Vcanvas : Tcanvas;
 begin
-  i:=Index_feu(AdrPilote);    // adresse du feu d'origine
+  i:=Index_Signal(AdrPilote);    // adresse du feu d'origine
   if i<>0 then
   
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
@@ -261,7 +261,7 @@ end;
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
 var i,index,e : integer;
 begin
-  index:=index_feu(AdrPilote);
+  index:=index_Signal(AdrPilote);
   if (feux[index].aspect>10) and (feux[index].aspect<20 )then
   begin
     val(EditNbreFeux.Text,i,e);
@@ -296,7 +296,7 @@ procedure TFormPilote.FormActivate(Sender: TObject);
 var n,i,d : integer;
 begin
   // mise à jour du champ décodeur
-  i:=index_feu(AdrPilote);
+  i:=Index_Signal(AdrPilote);
   d:=feux[i].decodeur;
   n:=feux[i].aspect;
   LabelDec.Caption:=decodeur[d];
@@ -378,7 +378,7 @@ end;
 procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);
 var i : integer;
 begin
-  i:=index_feu(AdrPilote);
+  i:=Index_Signal(AdrPilote);
   feux[i].VerrouilleCarre:=checkVerrouCarre.Checked=true;
   if feux[i].VerrouilleCarre then
   begin

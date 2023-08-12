@@ -24,7 +24,7 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
 
-Const  Version='7.0';  // sert à la comparaison de la version publiée
+Const  Version='7.1';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -140,7 +140,7 @@ begin
               InternetReadFile(hService,@lpBuffer,1024,dwBytesRead);
               fs.WriteBuffer(lpBuffer,dwBytesRead);
               t:=t+dwBytesRead;
-               if dwBytesRead=0 then break;
+              if dwBytesRead=0 then break;
             end;
             Result := True;
             taille:=t;
@@ -319,7 +319,6 @@ begin
           else formVersion.Free;
         end;
         result:=V_publie;
-
       end;
     end
     else

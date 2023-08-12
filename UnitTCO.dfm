@@ -1,7 +1,7 @@
 object FormTCO: TFormTCO
-  Left = 4
-  Top = 99
-  Width = 1141
+  Left = 197
+  Top = 29
+  Width = 1142
   Height = 678
   VertScrollBar.Visible = False
   Caption = 'FormTCO'
@@ -22,8 +22,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1125
-    639)
+    1134
+    647)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -39,7 +39,7 @@ object FormTCO: TFormTCO
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Label2: TLabel
+  object LabelCellule: TLabel
     Left = 8
     Top = 0
     Width = 49
@@ -66,8 +66,8 @@ object FormTCO: TFormTCO
     Height = 13
     Caption = '0'
   end
-  object Label19: TLabel
-    Left = 1077
+  object LabelZoom: TLabel
+    Left = 1078
     Top = 391
     Width = 32
     Height = 13
@@ -93,9 +93,9 @@ object FormTCO: TFormTCO
     Height = 121
   end
   object ScrollBox: TScrollBox
-    Left = 8
-    Top = 18
-    Width = 827
+    Left = 16
+    Top = 26
+    Width = 828
     Height = 351
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
@@ -107,12 +107,12 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      823
+      824
       347)
     object ImageTCO: TImage
-      Left = 0
-      Top = 0
-      Width = 715
+      Left = 48
+      Top = 32
+      Width = 716
       Height = 305
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
@@ -127,7 +127,7 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1077
+    Left = 1078
     Top = 18
     Width = 41
     Height = 350
@@ -144,9 +144,9 @@ object FormTCO: TFormTCO
     OnChange = TrackBarZoomChange
   end
   object Panel1: TPanel
-    Left = 0
+    Left = 8
     Top = 464
-    Width = 1123
+    Width = 1124
     Height = 173
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -159,9 +159,9 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1123
+      1124
       173)
-    object Label6: TLabel
+    object Label1: TLabel
       Left = 216
       Top = 22
       Width = 9
@@ -174,8 +174,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label7: TLabel
-      Left = 288
+    object Label2: TLabel
+      Left = 272
       Top = 22
       Width = 9
       Height = 19
@@ -187,8 +187,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label10: TLabel
-      Left = 504
+    object Label5: TLabel
+      Left = 440
       Top = 22
       Width = 9
       Height = 19
@@ -200,7 +200,7 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label11: TLabel
+    object Label6: TLabel
       Left = 216
       Top = 70
       Width = 9
@@ -213,8 +213,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label12: TLabel
-      Left = 288
+    object Label7: TLabel
+      Left = 272
       Top = 70
       Width = 9
       Height = 19
@@ -226,8 +226,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label13: TLabel
-      Left = 360
+    object Label8: TLabel
+      Left = 328
       Top = 70
       Width = 9
       Height = 19
@@ -239,9 +239,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label14: TLabel
-      Left = 432
-      Top = 70
+    object Label9: TLabel
+      Left = 384
+      Top = 62
       Width = 9
       Height = 19
       Caption = '9'
@@ -252,8 +252,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label8: TLabel
-      Left = 360
+    object Label3: TLabel
+      Left = 328
       Top = 22
       Width = 9
       Height = 19
@@ -265,8 +265,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label9: TLabel
-      Left = 432
+    object Label4: TLabel
+      Left = 384
       Top = 22
       Width = 9
       Height = 19
@@ -278,7 +278,7 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label16: TLabel
+    object Label10: TLabel
       Left = 208
       Top = 118
       Width = 18
@@ -291,8 +291,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label17: TLabel
-      Left = 280
+    object Label11: TLabel
+      Left = 272
       Top = 118
       Width = 17
       Height = 19
@@ -304,12 +304,12 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label18: TLabel
-      Left = 352
-      Top = 118
+    object Label50: TLabel
+      Left = 680
+      Top = 110
       Width = 18
       Height = 19
-      Caption = '30'
+      Caption = '50'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -317,8 +317,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label20: TLabel
-      Left = 568
+    object Label12: TLabel
+      Left = 488
       Top = 22
       Width = 18
       Height = 19
@@ -330,8 +330,8 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label3: TLabel
-      Left = 640
+    object Label13: TLabel
+      Left = 552
       Top = 22
       Width = 18
       Height = 19
@@ -343,9 +343,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label21: TLabel
-      Left = 712
-      Top = 22
+    object Label14: TLabel
+      Left = 608
+      Top = 14
       Width = 18
       Height = 19
       Caption = '14'
@@ -356,9 +356,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label22: TLabel
-      Left = 784
-      Top = 22
+    object Label15: TLabel
+      Left = 664
+      Top = 14
       Width = 18
       Height = 19
       Caption = '15'
@@ -369,9 +369,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label24: TLabel
-      Left = 496
-      Top = 70
+    object Label16: TLabel
+      Left = 432
+      Top = 62
       Width = 18
       Height = 19
       Caption = '16'
@@ -382,9 +382,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label25: TLabel
-      Left = 568
-      Top = 70
+    object Label17: TLabel
+      Left = 488
+      Top = 62
       Width = 18
       Height = 19
       Caption = '17'
@@ -395,9 +395,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label26: TLabel
-      Left = 640
-      Top = 70
+    object Label18: TLabel
+      Left = 544
+      Top = 62
       Width = 18
       Height = 19
       Caption = '18'
@@ -408,9 +408,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label27: TLabel
-      Left = 712
-      Top = 70
+    object Label19: TLabel
+      Left = 608
+      Top = 62
       Width = 18
       Height = 19
       Caption = '19'
@@ -421,9 +421,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label28: TLabel
-      Left = 784
-      Top = 70
+    object Label20: TLabel
+      Left = 664
+      Top = 62
       Width = 18
       Height = 19
       Caption = '20'
@@ -434,9 +434,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label29: TLabel
-      Left = 856
-      Top = 22
+    object Label21: TLabel
+      Left = 728
+      Top = 14
       Width = 18
       Height = 19
       Caption = '21'
@@ -447,9 +447,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label30: TLabel
-      Left = 928
-      Top = 22
+    object Label22: TLabel
+      Left = 784
+      Top = 14
       Width = 18
       Height = 19
       Caption = '22'
@@ -460,12 +460,12 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label31: TLabel
-      Left = 424
-      Top = 118
+    object Label51: TLabel
+      Left = 720
+      Top = 110
       Width = 18
       Height = 19
-      Caption = '31'
+      Caption = '51'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -473,9 +473,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label5: TLabel
-      Left = 856
-      Top = 70
+    object Label24: TLabel
+      Left = 728
+      Top = 62
       Width = 18
       Height = 19
       Caption = '24'
@@ -486,9 +486,9 @@ object FormTCO: TFormTCO
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label32: TLabel
-      Left = 928
-      Top = 70
+    object Label25: TLabel
+      Left = 792
+      Top = 62
       Width = 18
       Height = 19
       Caption = '25'
@@ -502,98 +502,98 @@ object FormTCO: TFormTCO
     object ImagePalette1: TImage
       Left = 232
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette1DragOver
       OnEndDrag = ImagePalette1EndDrag
       OnMouseDown = ImagePalette1MouseDown
     end
     object ImagePalette2: TImage
-      Left = 304
+      Left = 288
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette2DragOver
       OnEndDrag = ImagePalette2EndDrag
       OnMouseDown = ImagePalette2MouseDown
     end
     object ImagePalette3: TImage
-      Left = 376
+      Left = 344
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette3DragOver
       OnEndDrag = ImagePalette3EndDrag
       OnMouseDown = ImagePalette3MouseDown
     end
     object ImagePalette4: TImage
-      Left = 448
+      Left = 400
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette4DragOver
       OnEndDrag = ImagePalette4EndDrag
       OnMouseDown = ImagePalette4MouseDown
     end
     object ImagePalette5: TImage
-      Left = 520
+      Left = 448
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette5DragOver
       OnEndDrag = ImagePalette5EndDrag
       OnMouseDown = ImagePalette5MouseDown
     end
     object ImagePalette12: TImage
-      Left = 592
+      Left = 512
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette12DragOver
       OnEndDrag = ImagePalette12EndDrag
       OnMouseDown = ImagePalette12MouseDown
     end
     object ImagePalette13: TImage
-      Left = 664
+      Left = 576
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette13DragOver
       OnEndDrag = ImagePalette13EndDrag
       OnMouseDown = ImagePalette13MouseDown
     end
     object ImagePalette14: TImage
-      Left = 736
+      Left = 624
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette14DragOver
       OnEndDrag = ImagePalette14EndDrag
       OnMouseDown = ImagePalette14MouseDown
     end
     object ImagePalette15: TImage
-      Left = 808
+      Left = 688
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette15DragOver
       OnEndDrag = ImagePalette15EndDrag
       OnMouseDown = ImagePalette15MouseDown
     end
     object ImagePalette21: TImage
-      Left = 880
+      Left = 752
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette21DragOver
       OnEndDrag = ImagePalette21EndDrag
       OnMouseDown = ImagePalette21MouseDown
     end
     object ImagePalette22: TImage
-      Left = 952
+      Left = 808
       Top = 8
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette22DragOver
       OnEndDrag = ImagePalette22EndDrag
       OnMouseDown = ImagePalette22MouseDown
@@ -601,89 +601,89 @@ object FormTCO: TFormTCO
     object ImagePalette6: TImage
       Left = 232
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette6DragOver
       OnEndDrag = ImagePalette6EndDrag
       OnMouseDown = ImagePalette6MouseDown
     end
     object ImagePalette7: TImage
-      Left = 304
+      Left = 288
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette7DragOver
       OnEndDrag = ImagePalette7EndDrag
       OnMouseDown = ImagePalette7MouseDown
     end
     object ImagePalette9: TImage
-      Left = 448
+      Left = 400
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette9DragOver
       OnEndDrag = ImagePalette9EndDrag
       OnMouseDown = ImagePalette9MouseDown
     end
     object ImagePalette16: TImage
-      Left = 520
+      Left = 448
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette16DragOver
       OnEndDrag = ImagePalette16EndDrag
       OnMouseDown = ImagePalette16MouseDown
     end
     object ImagePalette17: TImage
-      Left = 592
+      Left = 504
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette17DragOver
       OnEndDrag = ImagePalette17EndDrag
       OnMouseDown = ImagePalette17MouseDown
     end
     object ImagePalette18: TImage
-      Left = 664
+      Left = 576
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette18DragOver
       OnEndDrag = ImagePalette18EndDrag
       OnMouseDown = ImagePalette18MouseDown
     end
     object ImagePalette19: TImage
-      Left = 736
+      Left = 624
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette19DragOver
       OnEndDrag = ImagePalette19EndDrag
       OnMouseDown = ImagePalette19MouseDown
     end
     object ImagePalette20: TImage
-      Left = 808
+      Left = 688
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette20DragOver
       OnEndDrag = ImagePalette20EndDrag
       OnMouseDown = ImagePalette20MouseDown
     end
     object ImagePalette24: TImage
-      Left = 880
+      Left = 752
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette24DragOver
       OnEndDrag = ImagePalette24EndDrag
       OnMouseDown = ImagePalette24MouseDown
     end
     object ImagePalette25: TImage
-      Left = 952
+      Left = 808
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette25DragOver
       OnEndDrag = ImagePalette25EndDrag
       OnMouseDown = ImagePalette25MouseDown
@@ -691,35 +691,35 @@ object FormTCO: TFormTCO
     object ImagePalette10: TImage
       Left = 232
       Top = 104
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette10DragOver
       OnEndDrag = ImagePalette10EndDrag
       OnMouseDown = ImagePalette10MouseDown
     end
     object ImagePalette11: TImage
-      Left = 304
+      Left = 288
       Top = 104
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette11DragOver
       OnEndDrag = ImagePalette11EndDrag
       OnMouseDown = ImagePalette11MouseDown
     end
-    object ImagePalette31: TImage
-      Left = 448
+    object ImagePalette51: TImage
+      Left = 736
       Top = 104
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       Hint = 'Quai'
       ParentShowHint = False
       ShowHint = True
-      OnDragOver = ImagePalette31DragOver
-      OnEndDrag = ImagePalette31EndDrag
-      OnMouseDown = ImagePalette31MouseDown
+      OnDragOver = ImagePalette51DragOver
+      OnEndDrag = ImagePalette51EndDrag
+      OnMouseDown = ImagePalette51MouseDown
     end
-    object ImagePalette30: TImage
-      Left = 384
+    object ImagePalette50: TImage
+      Left = 696
       Top = 104
       Width = 25
       Height = 41
@@ -727,23 +727,199 @@ object FormTCO: TFormTCO
       ParentShowHint = False
       ShowHint = True
       Stretch = True
-      OnDragOver = ImagePalette30DragOver
-      OnEndDrag = ImagePalette30EndDrag
-      OnMouseDown = ImagePalette30MouseDown
+      OnDragOver = ImagePalette50DragOver
+      OnEndDrag = ImagePalette50EndDrag
+      OnMouseDown = ImagePalette50MouseDown
     end
     object ImagePalette8: TImage
-      Left = 376
+      Left = 344
       Top = 56
-      Width = 41
-      Height = 41
+      Width = 33
+      Height = 33
       OnDragOver = ImagePalette8DragOver
       OnEndDrag = ImagePalette8EndDrag
       OnMouseDown = ImagePalette8MouseDown
     end
+    object ImagePalette26: TImage
+      Left = 344
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette26DragOver
+      OnEndDrag = ImagePalette26EndDrag
+      OnMouseDown = ImagePalette26MouseDown
+    end
+    object Label26: TLabel
+      Left = 320
+      Top = 118
+      Width = 18
+      Height = 19
+      Caption = '26'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette23: TImage
+      Left = 496
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette23DragOver
+      OnEndDrag = ImagePalette23EndDrag
+      OnMouseDown = ImagePalette23MouseDown
+    end
+    object Label23: TLabel
+      Left = 480
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '23'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label27: TLabel
+      Left = 376
+      Top = 118
+      Width = 18
+      Height = 19
+      Caption = '27'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette27: TImage
+      Left = 400
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette27DragOver
+      OnEndDrag = ImagePalette27EndDrag
+      OnMouseDown = ImagePalette27MouseDown
+    end
+    object ImagePalette28: TImage
+      Left = 448
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette28DragOver
+      OnEndDrag = ImagePalette28EndDrag
+      OnMouseDown = ImagePalette28MouseDown
+    end
+    object Label28: TLabel
+      Left = 432
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '28'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label29: TLabel
+      Left = 536
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '29'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette29: TImage
+      Left = 552
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette29DragOver
+      OnEndDrag = ImagePalette29EndDrag
+      OnMouseDown = ImagePalette29MouseDown
+    end
+    object Label32: TLabel
+      Left = 584
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '32'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette32: TImage
+      Left = 600
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette32DragOver
+      OnEndDrag = ImagePalette32EndDrag
+      OnMouseDown = ImagePalette32MouseDown
+    end
+    object Label33: TLabel
+      Left = 632
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '33'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette33: TImage
+      Left = 648
+      Top = 104
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette33DragOver
+      OnEndDrag = ImagePalette33EndDrag
+      OnMouseDown = ImagePalette33MouseDown
+    end
+    object Label34: TLabel
+      Left = 208
+      Top = 150
+      Width = 18
+      Height = 19
+      Caption = '34'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object ImagePalette34: TImage
+      Left = 232
+      Top = 136
+      Width = 33
+      Height = 33
+      OnDragOver = ImagePalette34DragOver
+      OnEndDrag = ImagePalette34EndDrag
+      OnMouseDown = ImagePalette34MouseDown
+    end
     object ButtonSauveTCO: TButton
-      Left = 1015
+      Left = 1025
       Top = 48
-      Width = 92
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Sauvegarder TCO'
@@ -753,9 +929,9 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1015
+      Left = 1025
       Top = 8
-      Width = 92
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Redessine'
@@ -764,8 +940,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 496
-      Top = 136
+      Left = 928
+      Top = 56
       Width = 89
       Height = 25
       Caption = 'Simu det 1'
@@ -773,8 +949,8 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 496
-      Top = 104
+      Left = 928
+      Top = 32
       Width = 89
       Height = 25
       Caption = 'Simu Det 0'
@@ -782,9 +958,9 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1015
+      Left = 1025
       Top = 88
-      Width = 92
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Configuration TCO'
@@ -793,8 +969,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 592
-      Top = 128
+      Left = 728
+      Top = 136
       Width = 113
       Height = 25
       Caption = 'Simu canton occup'#233
@@ -802,9 +978,9 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1015
+      Left = 1025
       Top = 128
-      Width = 92
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Masquer bandeau'
@@ -826,7 +1002,7 @@ object FormTCO: TFormTCO
       Font.Style = []
       ParentFont = False
       TabOrder = 7
-      object Label4: TLabel
+      object Label41: TLabel
         Left = 8
         Top = 16
         Width = 103
@@ -839,7 +1015,7 @@ object FormTCO: TFormTCO
         Font.Style = []
         ParentFont = False
       end
-      object Label15: TLabel
+      object Label71: TLabel
         Left = 8
         Top = 38
         Width = 93
@@ -852,7 +1028,7 @@ object FormTCO: TFormTCO
         Font.Style = []
         ParentFont = False
       end
-      object Label23: TLabel
+      object Label230: TLabel
         Left = 56
         Top = 64
         Width = 27
@@ -865,7 +1041,7 @@ object FormTCO: TFormTCO
         Font.Style = []
         ParentFont = False
       end
-      object Label1: TLabel
+      object Label65: TLabel
         Left = 8
         Top = 88
         Width = 75
@@ -897,6 +1073,7 @@ object FormTCO: TFormTCO
         ParentFont = False
         TabOrder = 0
         OnChange = EditAdrElementChange
+        OnClick = EditAdrElementClick
       end
       object EditTypeImage: TEdit
         Left = 144
@@ -975,9 +1152,9 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 911
+      Left = 920
       Top = 128
-      Width = 92
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
@@ -987,8 +1164,8 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 592
-      Top = 104
+      Left = 848
+      Top = 136
       Width = 75
       Height = 25
       Caption = 'Calibrage'
@@ -996,9 +1173,9 @@ object FormTCO: TFormTCO
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 816
-      Top = 128
-      Width = 89
+      Left = 920
+      Top = 88
+      Width = 96
       Height = 33
       Hint = 
         'Dessine le TCO '#224' la souris. Clic droit pour lever le pointeur. T' +
@@ -1012,8 +1189,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonDessinerClick
     end
     object ButtonTrajet: TButton
-      Left = 712
-      Top = 128
+      Left = 936
+      Top = 8
       Width = 75
       Height = 25
       Caption = 'Trajets'
@@ -1022,7 +1199,7 @@ object FormTCO: TFormTCO
     end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1069
+    Left = 1070
     Top = 415
     Width = 57
     Height = 33

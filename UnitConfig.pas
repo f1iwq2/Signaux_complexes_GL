@@ -2475,7 +2475,7 @@ end;
 
 // compile les décodeurs personnalisés
 procedure compile_dec_pers;
-var nv,i,j,k,l,adr : integer;
+var nv,j,k,l,adr : integer;
 begin
   Nligne:=1;
   repeat    // boucle de décodeurs
@@ -2665,8 +2665,8 @@ begin
   begin
     trains[i].x:=-999999;
     trains[i].y:=-999999;
-  end;  
-    
+  end;
+
 end;
 
 // trie les signaux
@@ -3592,7 +3592,7 @@ procedure clicListeSignal(lc : integer);
 var AncAdresse,index,adresse,erreur : integer;
     s : string;
 begin
-  index:=index_feu(lc)-1;
+  index:=index_Signal(lc)-1;
   s:=Uppercase(FormConfig.RichSig.Lines[index]);   // ligne cliquée
   if s='' then
   begin
@@ -3936,7 +3936,6 @@ begin
       ComboTS1[i].Visible:=false;
       ComboTS2[i].Visible:=false;
       ShapeT[i].Visible:=false;
-
     end;
   end;
 end;
@@ -4057,8 +4056,6 @@ begin
       Style:=csDropDownList;
       onChange:=formConfig.modif_ComboTS;
     end;
-
-  
   end;
 
   for i:=1 to NbreDecPers do
@@ -4084,7 +4081,7 @@ var erreur,i : integer;
 begin
   if s='' then begin B:='?';adr:=0;exit;end;
   if (s[1]='P') or (s[1]='S') or (s[1]='D') then delete(s,1,1);
-  if s='' then 
+  if s='' then
   begin
     adr:=0;
     B:='Z';
@@ -4168,7 +4165,7 @@ begin
         else LabelInfo.Caption:='Nombre d''états de la TJD/S inconnu';
       end;
 
-      if tjs then 
+      if tjs then
       begin
         ComboBoxAig.ItemIndex:=2;
         EditL.Visible:=true;
@@ -4209,7 +4206,7 @@ begin
       // milieu haut gauche
       EditP1.Text:=intToSTR(adresse)+aiguillage[Index].DDroitB; 
       // milieu bas gauche
-      EditP2.Text:=intToSTR(adresse)+aiguillage[Index].DDevieB;   
+      EditP2.Text:=intToSTR(adresse)+aiguillage[Index].DDevieB;
     
       // milieu haut droit
       EditP3.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DDevieB;
@@ -4233,7 +4230,7 @@ begin
       begin
         // droit haut
         EditDevie_HD.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DdevieB; 
-        EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Ddevie,aiguillage[index].DdevieB); 
+        EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Ddevie,aiguillage[index].DdevieB);
         LabelTJD1.Caption:=IntToSTR(adresse);
       
         // droit bas
@@ -4267,7 +4264,7 @@ begin
       labelTJD2.Visible:=false;
       labelcrois.Visible:=true;
     end;
-    
+
     // aiguillage normal ou tri
     if (not(tjd) and not(tjs) and not(croi)) or tri then
     begin
@@ -4275,12 +4272,12 @@ begin
       Label20.Visible:=false;
       LabelL.Visible:=false;
       ComboBoxAig.ItemIndex:=0;
-      if not(tri) then 
+      if not(tri) then
       begin
         ImageAffiche.Picture.BitMap:=Imageaig.Picture.Bitmap;
         EditDevieS2.Visible:=false;
         EditAigTriple.Visible:=false;
-      end;  
+      end;
       labelBG.Caption:='P';
       EditPointe_BG.ReadOnly:=false;
       Edit_HG.Visible:=false;
@@ -4291,7 +4288,7 @@ begin
       EditP4.Visible:=false;
       labelTJD1.Visible:=false;
       LabelTJD2.Visible:=false;
-      
+
       Label18.Visible:=false;
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
       if aiguillage[Index].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
@@ -4302,18 +4299,17 @@ begin
       else
       begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true;RadioButton60kmh.checked:=false;end ;
 
-
       EditPointe_BG.Text:=intToSTR(aiguillage[index].Apointe)+aiguillage[index].ApointeB;
       EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].Apointe,aiguillage[index].ApointeB);
 
       EditDevie_HD.Text:=intToSTR(aiguillage[index].Adevie)+aiguillage[index].AdevieB;
-      EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Adevie,aiguillage[index].AdevieB); 
+      EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Adevie,aiguillage[index].AdevieB);
 
       EditDroit_BD.Text:=intToSTR(aiguillage[index].Adroit)+aiguillage[index].AdroitB;
       EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[index].AdroitB);
-      if tri then 
+      if tri then
       begin
-        ComboBoxAig.ItemIndex:=3; //  0=n'existe pas  1=aiguillage 2=TJD 3=TJS 4=aiguillage triple
+        ComboBoxAig.ItemIndex:=3; //  index de la combobox 0=aiguillage 1=TJD 2=TJS 3=aiguillage triple
         EditAigTriple.Visible:=true;
         labelTJD1.Visible:=false;
         LabelTJD2.Visible:=false;
@@ -4327,7 +4323,7 @@ begin
         i:=aiguillage[index].Adrtriple;
         EditAigTriple.Text:=intToSTR(i);
         if i=0 then EditAigTriple.Color:=clred else EditAigTriple.Color:=clWindow;
-      end;  
+      end;
     end;
   end;
 
@@ -4337,7 +4333,7 @@ begin
   if position=const_devie then formconfig.ComboBoxDD.ItemIndex:=0;
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
-  
+
   clicListe:=false;
 end;
 
@@ -4691,7 +4687,7 @@ begin
         EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(feux[i].Btype_suiv4)+IntToSTR(feux[i].Adr_el_suiv4);
         EditSuiv4.Hint:=chaine_element(feux[i].Btype_suiv4,feux[i].Adr_el_suiv4);
       end
-      else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;  
+      else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;
 
       checkVerrouCarre.Checked:=feux[i].VerrouCarre;
       checkBoxFB.Checked:=feux[i].FeuBlanc;
@@ -4843,23 +4839,6 @@ begin
   if Tablo_actionneur[i].act then
   begin
     champs_type_act;
-    {
-    case typ of
-    0 : with formconfig do
-    begin
-      //radioButtonActDet.Checked:=true;
-      //radioButtonZones.Checked:=false;
-      //editAct2.Visible:=false;
-    end;
-    1 : with formconfig do
-    begin
-    end;
-    2 : with formconfig do
-    begin
-    end;
-    end;
-    }
-
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
@@ -4889,7 +4868,7 @@ begin
       radioButtonActDet.Checked:=true;
       radioButtonZones.Checked:=false;
       editAct2.Visible:=false;
-      LabelActionneur.Caption:='Actionneur Détecteur'; 
+      LabelActionneur.Caption:='Actionneur Détecteur';
     end;
     if typ=1 then with formconfig do
     begin
@@ -5048,7 +5027,7 @@ begin
     end;  
   end
 end;
-  
+
 procedure raz_champs_act;
 begin
   with formConfig do
@@ -5351,7 +5330,7 @@ begin
       s:=encode_aig(index);
       formconfig.RichAig.Lines[index-1]:=s;
     end;
-    
+
   end;
 
 end;
@@ -6085,7 +6064,6 @@ begin
   Suiv4;
 end;
 
-
 procedure TFormConfig.EditActChange(Sender: TObject);
 var s,s2 : string;
     act,erreur,det2,suiv : integer;
@@ -6302,7 +6280,7 @@ begin
   if ligneClicAct<0 then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
-  begin 
+  begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
       fichier:=EditSon.Text;
@@ -6432,7 +6410,7 @@ begin
       EditAdrSig.Color:=clred;
       LabelInfo.caption:='Erreur adresse signal ';exit;
     end;
-    if (index_feu(i)<>0) then
+    if (index_Signal(i)<>0) then
     begin
       EditAdrSig.Color:=clred;
       LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
@@ -6567,7 +6545,7 @@ begin
     for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if TCO[x,y].BImage=30 then
+        if TCO[x,y].BImage=50 then
         begin
           AdresseFeu:=feux[index].adresse;
           if tco[x,y].Adresse=AdresseFeu then affiche_tco;
@@ -6626,7 +6604,7 @@ begin
 end;
 
 procedure TFormConfig.RadioButtonLocClick(Sender: TObject);
-var  champ,i,erreur : integer;
+var champ,i,erreur : integer;
     s : string;
 begin
   // rendre visible le groupbox Actionneur fonction F loco
@@ -6637,8 +6615,8 @@ begin
   Tablo_Actionneur[i].loco:=true;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
-  champs_type_loco; 
-  
+  champs_type_loco;
+
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
@@ -6698,7 +6676,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=true;
-  
+
   champs_type_son;  
  
   val(editact.Text,champ,erreur);
@@ -7499,7 +7477,7 @@ function nombre_adresses_signal(adr : integer) : integer;
 var x,dec,nc,i,j : integer;
 begin
   nc:=0;
-  i:=index_feu(adr);
+  i:=index_Signal(adr);
   dec:=feux[i].decodeur;
   x:=feux[i].aspect;
 
@@ -8254,10 +8232,10 @@ begin
       for x:=1 to NbreCellX do
       begin
         i:=TCO[x,y].BImage;
-        if i=30 then
+        if i=50 then
         begin
           adr:=TCO[x,y].adresse;
-          if index_feu(adr)=0 then
+          if index_Signal(adr)=0 then
           begin
             Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
             ok:=false;
@@ -8374,7 +8352,6 @@ begin
         s:='Erreur 18: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' est enclenché par les détecteurs '+intToSTR(adresse)+' ' +intToSTR(adresse2)+' qui ne sont pas contigus';
         Affiche(s,clred);
       end;
-
     end;
   end;
 
