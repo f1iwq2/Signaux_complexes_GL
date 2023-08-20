@@ -3,7 +3,7 @@ object FormConfigTCO: TFormConfigTCO
   Top = 218
   BorderStyle = bsDialog
   Caption = 'Configuration du TCO'
-  ClientHeight = 277
+  ClientHeight = 293
   ClientWidth = 665
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -65,7 +65,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object ButtonDessine: TButton
     Left = 16
-    Top = 240
+    Top = 256
     Width = 75
     Height = 25
     Caption = 'Redessine'
@@ -79,6 +79,7 @@ object FormConfigTCO: TFormConfigTCO
     Height = 17
     Caption = 'dessine grille'
     TabOrder = 1
+    OnClick = CheckDessineGrilleClick
   end
   object EditNbCellX: TEdit
     Left = 184
@@ -87,6 +88,7 @@ object FormConfigTCO: TFormConfigTCO
     Height = 21
     TabOrder = 2
     Text = 'EditNbCellX'
+    OnChange = EditNbCellXChange
   end
   object EditNbCellY: TEdit
     Left = 184
@@ -95,12 +97,13 @@ object FormConfigTCO: TFormConfigTCO
     Height = 21
     TabOrder = 3
     Text = 'EditNbCellY'
+    OnChange = EditNbCellYChange
   end
   object GroupBox1: TGroupBox
     Left = 304
     Top = 8
     Width = 353
-    Height = 265
+    Height = 273
     Caption = 'Couleurs '
     TabOrder = 4
     object Label5: TLabel
@@ -177,7 +180,7 @@ object FormConfigTCO: TFormConfigTCO
     end
     object Label10: TLabel
       Left = 48
-      Top = 240
+      Top = 248
       Width = 258
       Height = 13
       Caption = 'Cliquez sur l'#39'ic'#244'ne pour changer la couleur de l'#39#233'l'#233'ment'
@@ -240,11 +243,12 @@ object FormConfigTCO: TFormConfigTCO
       Height = 17
       Caption = 'Couleur du canton activ'#233' par la couleur du train'
       TabOrder = 0
+      OnClick = CheckCouleurClick
     end
   end
   object Memo1: TMemo
     Left = 16
-    Top = 168
+    Top = 184
     Width = 273
     Height = 65
     BevelInner = bvLowered
@@ -270,8 +274,8 @@ object FormConfigTCO: TFormConfigTCO
     Text = 'EditRatio'
   end
   object BitBtnOk: TBitBtn
-    Left = 208
-    Top = 240
+    Left = 216
+    Top = 256
     Width = 75
     Height = 25
     TabOrder = 7
@@ -280,7 +284,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object RadioGroup1: TRadioGroup
     Left = 16
-    Top = 96
+    Top = 120
     Width = 273
     Height = 57
     Caption = 'Graphisme'
@@ -288,19 +292,33 @@ object FormConfigTCO: TFormConfigTCO
   end
   object RadioButtonLignes: TRadioButton
     Left = 40
-    Top = 112
+    Top = 136
     Width = 113
     Height = 17
     Caption = 'Lignes bris'#233'es'
     TabOrder = 9
+    OnClick = RadioButtonLignesClick
   end
   object RadioButtonCourbes: TRadioButton
     Left = 40
-    Top = 128
+    Top = 152
     Width = 113
     Height = 17
     Caption = 'Lignes courbes'
     TabOrder = 10
+    OnClick = RadioButtonCourbesClick
+  end
+  object CheckBoxCreerEvt: TCheckBox
+    Left = 16
+    Top = 96
+    Width = 281
+    Height = 17
+    Hint = 'Pour simuler l'#39'action d'#39'une locomotive sur un d'#233'tecteur'
+    Caption = 'Cr'#233'er '#233'v'#232'nement d'#233'tecteur sur double clic d'#233'tecteur'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 11
+    OnClick = CheckBoxCreerEvtClick
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show

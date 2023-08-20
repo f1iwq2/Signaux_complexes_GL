@@ -180,6 +180,7 @@ procedure affichage(imprime : boolean);
 procedure Aff_train(adr: integer;train:string;x1,y1,x2,y2 :integer);
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
                 rayon: Integer; StartDegres, StopDegres: Double);
+function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 
 implementation
 

@@ -174,12 +174,14 @@ begin
         if (prec<9990) then
         begin
           inc(it);
-
+          {
           detecteur[detect].etat:=true;
           detecteur[detect].AdrTrain:=trains[i].adresse;
           detecteur[detect].train:=placement[i].train;
           detecteur[detect].IndexTrain:=i;
 
+
+          
           MemZone[prec,detect].etat:=true;
           MemZone[prec,detect].train:=placement[i].train;
           MemZone[prec,detect].Adrtrain:=trains[i].adresse;
@@ -192,9 +194,16 @@ begin
           event_det_train[it].det[1].etat:=false;
           event_det_train[it].nom_train:=placement[i].train;
 
+              inc(N_trains);
+          }
+          // essai-------------------------
+          Event_Detecteur(detect,true,nomtrain);
+          detecteur[detect].AdrTrain:=trains[i].adresse;
+          // -----------------------------
+          
           Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
 
-          inc(N_trains);
+      
         end
         else
         begin
@@ -342,7 +351,7 @@ begin
   end;
 
   trouve:=false;
-  // explorer les détecteurs pour lancer les trains
+  // explorer les détecteurs pour lancer les trains si le détecteur est affecté à un train
   for i:=1 to NDetecteurs do
   begin
     adrDet:=Adresse_detecteur[i];
@@ -365,7 +374,7 @@ begin
       if not(rouge) then
       begin
         j:=index_train_adresse(AdrTrain);
-        vitesse_loco('',adrTrain,trains[j].VitNominale,not(placement[j].inverse));
+        vitesse_loco('',adrTrain,j,trains[j].VitNominale,not(placement[j].inverse),true);
 
         maj_feux(true);  // avec détecteurs
         s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
@@ -398,7 +407,7 @@ begin
   Affiche('Arrêt du roulage de tous les trains',clorange);
   Formprinc.LabelTitre.caption:=titre+' ';
   for i:=1 to ntrains do
-    vitesse_loco('',trains[i].adresse,0,true);
+    vitesse_loco('',i,trains[i].adresse,0,true,true);
 end;
 
 procedure TFormPlace.CheckInverse1Click(Sender: TObject);
@@ -534,7 +543,7 @@ begin
   Affiche('Arrêt du roulage de tous les trains et libération des aiguillages',clorange);
   Formprinc.LabelTitre.caption:=titre+' ';
   for i:=1 to ntrains do
-    vitesse_loco('',trains[i].adresse,0,true);
+    vitesse_loco('',i,trains[i].adresse,0,true,true);
   raz_tout;
 end;
 

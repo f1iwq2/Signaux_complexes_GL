@@ -17,7 +17,6 @@ type
     GroupBox2: TGroupBox;
     Label15: TLabel;
     EditTypeImage: TEdit;
-    ImagePalette: TImage;
     CheckPinv: TCheckBox;
     Label2: TLabel;
     GroupBox3: TGroupBox;
@@ -30,6 +29,7 @@ type
     EditAdrElement: TEdit;
     ButtonFond: TButton;
     BitBtnOk: TBitBtn;
+    ImagePaletteCC: TImage;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -46,6 +46,8 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure BitBtnOkClick(Sender: TObject);
     procedure EditTypeImageChange(Sender: TObject);
+    procedure ImagePaletteCCMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     { Déclarations privées }
   public
@@ -55,13 +57,15 @@ type
 var
   FormConfCellTCO: TFormConfCellTCO;
   actualize : boolean;
-
+  IconeX,IconeY : integer;
+  
 procedure actualise;
 
 implementation
 
 
-uses UnitPrinc;
+uses UnitPrinc,UnitAnalyseSegCDM,
+  UnitConfigTCO;
 
 {$R *.dfm}
 
@@ -70,10 +74,12 @@ procedure actualise;
 var Bimage,oriente,piedFeu : integer;
     s : string;
     ip : Timage;
+    Bm : Tbitmap;
     r : trect;
 begin
+  Bm:=formConfCellTCO.imagepalettecc.Picture.Bitmap;
   Bimage:=tco[XClicCell,YClicCell].Bimage;
-
+ 
   if formConfCellTCOAff then
   begin
     // si aiguillage, mettre à jour l'option de pilotage inverse
@@ -98,7 +104,7 @@ begin
   end;
 
     // si voie ou rien ou signal ou quai
-    if (Bimage=1) or (Bimage=0) or (Bimage=50) or (Bimage=51) then
+    if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=51) then
     begin
       s:=Tco[XClicCell,YClicCell].Texte;
       with formTCO do
@@ -136,16 +142,16 @@ begin
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
 
   // si signal
-  if Bimage=50 then
-  With formConfCellTCO.ImagePalette do
+  if Bimage=Id_signal then
+  With formConfCellTCO.ImagePaletteCC do
   begin
-    Height:=FormTCO.ImagePalette1.Picture.Height;
-    Width:=FormTCO.ImagePalette1.Picture.Width;
+    //Height:=FormTCO.ImagePalette1.Picture.Height;
+    //ziziWidth:=FormTCO.ImagePalette1.Picture.Width;
     Transparent:=false;
   end;
 
   // si pas signal
-  if Bimage<>50 then
+  if Bimage<>Id_signal then
   with formConfCellTCO do
   begin
     RadioButtonV.Enabled:=false;
@@ -153,16 +159,18 @@ begin
     RadioButtonHD.Enabled:=false;
     RadioButtonG.Enabled:=false;
     RadioButtonD.Enabled:=false;
+    ImagePaletteCC.transparent:=false;
   end;
 
-  //mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
+  // mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
   if Bimage=0 then
   begin
-    with FormConfCellTCO.ImagePalette do
+    with FormConfCellTCO.ImagePaletteCC do
     begin
       r:=Rect(0,0,width,height);
       with canvas do
       begin
+        // effacer l'icone
         Pen.Mode:=pmCopy;
         Pen.Width:=1;
         Pen.color:=tco[XClicCell,YClicCell].CouleurFond;
@@ -184,17 +192,33 @@ begin
 
   else
 
+  // Bimage non nulle
   begin
     ip:=formTCO.findComponent('ImagePalette'+intToSTR(Bimage)) as Timage;
     if ip=nil then exit;
-    formConfCellTCO.ImagePalette.picture.Assign(ip.picture);
 
-    if Bimage=50 then
+    // affiche l'icone cliquée dans la fenetre -----------------------------------------------
+    // pour que le stretchBlt soit visible, il faut mettre à jour la taille du bitmap
+    with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
+    begin
+      width:=iconeX;
+      Height:=iconeY;
+    end;
+
+    ip:=formTCO.findComponent('ImagePalette'+intToSTR(Bimage)) as Timage; // image source
+
+    // destination masque avec mise à l'échelle
+    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,   
+                ip.Canvas.Handle,0,0,ip.Width,ip.Height,srccopy);
+    FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
+    //-----------------------------------------------------------------------------------------
+    
+    if Bimage=Id_signal then
     begin     // signal
-      With formConfCellTCO.ImagePalette do
+      With formConfCellTCO.ImagePaletteCC do
       begin
-        Height:=FormTCO.ImagePalette50.Height;
-        Width:=FormTCO.ImagePalette50.Width;
+       // Height:=FormTCO.ImagePalette50.Height;
+       // Width:=FormTCO.ImagePalette50.Width;
         //Picture.Assign(FormTCO.ImagePalette50.Picture);
         Picture.Bitmap.TransparentMode:=tmAuto;
         Picture.Bitmap.TransparentColor:=clblue;
@@ -273,7 +297,7 @@ begin
   formTCO.EditAdrElement.Text:=intToSTR(adr);
 
 
-  if tco[XClicCell,YClicCell].BImage=50 then
+  if tco[XClicCell,YClicCell].BImage=Id_signal then
   begin
     index:=Index_Signal(adr);
     if index=0 then exit
@@ -321,9 +345,11 @@ begin
   actualize:=false;
   formConfCellTCOAff:=true;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
-  exit;
-
+  iconeX:=50;  // taille de l'icone
+  iconeY:=50;
+  
   // dessine les composants - non utilisé
+  {
   i:=1;
   //Affiche('formconfcellTCO create',clYellow);
   begin
@@ -352,7 +378,8 @@ begin
         inc(i);
       end;
     end;
-  end;
+  end; }
+//  FormConfCellTCO.ImagePaletteCC.OnMouseDown:=ImagePaletteCCMouseDown;
 end;
 
 procedure TFormConfCellTCO.ComboReprChange(Sender: TObject);
@@ -427,6 +454,27 @@ begin
   close
 end;
 
+// extraire les points de connexion de l'icone (de 0 à 7)
+procedure extrait_connect(numero : integer;var connect1,connect2,connect3,connect4 : integer);
+var i,j : integer;
+begin
+  connect1:=-1;connect2:=-1;connect3:=-1;connect4:=-1;
+  j:=0;
+  for i:=0 to 7 do
+  begin
+    if testBit(liaisons[numero],i) then
+    begin
+      case j of
+      0 : connect1:=i;
+      1 : connect2:=i;
+      2 : connect3:=i;
+      3 : connect4:=i;
+      end;
+      inc(j);
+    end;
+  end;
+end;
+
 procedure TFormConfCellTCO.EditTypeImageChange(Sender: TObject);
 var Bimage,erreur : integer;
 begin
@@ -447,5 +495,93 @@ begin
 
 end;
 
+procedure copie_cellule;
+begin
+// affiche l'icone cliquée dans la fenetre -----------------------------------------------
+    // pour que le stretchBlt soit visible, il faut mettre à jour la taille du bitmap
+    with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
+    begin
+      width:=iconeX;
+      Height:=iconeY;
+    end;
+
+    // destination masque avec mise à l'échelle
+    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,   
+                PcanvasTCO.Handle,(xClicCell-1)*largeurCell,(yClicCell-1)*hauteurCell,largeurCell,hauteurCell,srccopy);
+    FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
+end;
+
+procedure TFormConfCellTCO.ImagePaletteCCMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var c,x0,y0,xc,yc,xf,yf,element,i,erreur,x1,y1,x2,y2,c1,c2,c3,c4 : integer;
+begin
+  x0:=0;       // x origine
+  y0:=0;       // y origine
+  yc:=y0+(iconeY div 2);  // y centre
+  xc:=x0+(iconeX div 2);  // x centre
+  xf:=x0+iconeX;          // x fin
+  yf:=y0+iconeY;          // y fin
+
+  //Affiche(IntToSTR(x)+' '+IntToSTR(y),clyellow);
+  val(editTypeImage.text,element,erreur);
+  
+  if erreur<>0 then exit;
+
+  extrait_connect(element,c1,c2,c3,c4);
+
+  // scanner les 4 ports de connexion c1 c2 c3 c4
+  for i:=1 to 4 do
+  begin
+    case i of
+    1 : c:=c1;
+    2 : c:=c2;
+    3 : c:=c3;
+    4 : c:=c4;
+    end;
+    if c<>-1 then
+    begin
+      case c of
+      0 : begin x1:=x0;y1:=y0;end;
+      1 : begin x1:=xc;y1:=y0;end;
+      2 : begin x1:=xf;y1:=y0;end;
+      3 : begin x1:=xf;y1:=yc;end;
+      4 : begin x1:=xf;y1:=yf;end;
+      5 : begin x1:=xc;y1:=yf;end;
+      6 : begin x1:=x0;y1:=yf;end;
+      7 : begin x1:=x0;y1:=yc;end;
+      end;
+      // x1,y1 désigne le permier point du segment
+      if point_Sur_Segment(x,y,x1,y1,xc,yc) then
+      begin
+        if not(testbit(tco[xClicCell,yClicCell].epaisseurs,c)) then
+        with ImagePaletteCC.Picture.Bitmap.Canvas  do
+        begin
+          efface_entoure;
+          tco[xClicCell,yClicCell].epaisseurs:=setbit(tco[xClicCell,yClicCell].epaisseurs,c);
+          efface_cellule(PCanvasTCO,xClicCell,yClicCell,PmCopy);
+          dessine_icone(PCanvasTCO,element,xClicCell,yClicCell,0);
+          copie_cellule;
+        end
+        else
+        with ImagePaletteCC.Picture.Bitmap.Canvas  do
+        begin
+          efface_entoure;
+          tco[xClicCell,yClicCell].epaisseurs:=Razbit(tco[xClicCell,yClicCell].epaisseurs,c);
+          efface_cellule(PCanvasTCO,xClicCell,yClicCell,PmCopy);
+          dessine_icone(PCanvasTCO,element,xClicCell,yClicCell,0);
+          copie_cellule;
+        end                                                
+      end;
+
+    end;
+  end;
+
+end;
+
+
+
+
+
 begin
 end.
+

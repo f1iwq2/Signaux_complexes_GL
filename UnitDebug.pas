@@ -137,7 +137,7 @@ begin
   end;
 end;
 
-
+// affiche un texte coloré dans la fenêtre evt
 procedure affiche_evt(s: string;lacouleur : TColor);
 begin
   if DebugAffiche then
@@ -405,14 +405,14 @@ begin
 end;
 
 procedure TFormDebug.Button2Click(Sender: TObject);
-var Adr,erreur,ancdebug : integer ;
+var Adr,erreur,ancdebug,train : integer ;
     reservetraintiers : boolean;
 begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
   Cond_Carre(Adr);
-  carre_signal(adr,0,reservetraintiers);
+  carre_signal(adr,0,reservetraintiers,train);
   NivDebug:=AncDebug;
 end;
 

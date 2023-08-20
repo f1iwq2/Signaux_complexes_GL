@@ -47,6 +47,7 @@ type
     RadioGroup1: TRadioGroup;
     RadioButtonLignes: TRadioButton;
     RadioButtonCourbes: TRadioButton;
+    CheckBoxCreerEvt: TCheckBox;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -59,6 +60,13 @@ type
     procedure ImageQuaiClick(Sender: TObject);
     procedure ImagePiedFeuClick(Sender: TObject);
     procedure BitBtnOkClick(Sender: TObject);
+    procedure CheckBoxCreerEvtClick(Sender: TObject);
+    procedure EditNbCellXChange(Sender: TObject);
+    procedure EditNbCellYChange(Sender: TObject);
+    procedure CheckDessineGrilleClick(Sender: TObject);
+    procedure CheckCouleurClick(Sender: TObject);
+    procedure RadioButtonLignesClick(Sender: TObject);
+    procedure RadioButtonCourbesClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -241,19 +249,6 @@ begin
       ok:=false;
     end;
 
-    {
-    Val(LabelTailleX.caption,LargeurCell,erreur);
-    nokLg:=erreur<>0;
-    if nokLg then LabelErreur.caption:='Erreur largeur de cellules';
-    nokLg:=nokLg or (LargeurCell<20) or (LargeurCell>50)  ;
-    if nokLg then LabelErreur.caption:='Erreur: Tailles des cellules - largeur cellules mini=20 maxi=50';
-
-    Val(LabelTailleY.caption,HauteurCell,erreur);
-    nokHt:=erreur<>0;
-    if nokHt then LabelErreur.caption:='Erreur hauteur de cellules';
-    nokHt:=nokHt or (HauteurCell<20) or (HauteurCell>50)  ;
-    if nokHt then LabelErreur.caption:='Erreur: Tailles des cellules - hauteur cellules mini=20 maxi=50';
-    }
     val(EditRatio.text,RatioC,erreur);
 
     AvecGrille:=checkDessineGrille.Checked;
@@ -292,6 +287,7 @@ begin
   checkCouleur.Checked:=ModeCouleurCanton=1;
   labelMaxX.caption:='Max='+intToSTR(MaxCellX);
   labelMaxY.caption:='Max='+intToSTR(MaxCellY);
+  CheckBoxCreerEvt.checked:=EvtClicDet;
   dessine_icones_config;
   s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
@@ -479,6 +475,42 @@ begin
       close;
    end;
   end;
+end;
+
+procedure TFormConfigTCO.CheckBoxCreerEvtClick(Sender: TObject);
+begin
+  EvtClicDet:=CheckBoxCreerEvt.checked;
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.EditNbCellXChange(Sender: TObject);
+begin
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.EditNbCellYChange(Sender: TObject);
+begin
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.CheckDessineGrilleClick(Sender: TObject);
+begin
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.CheckCouleurClick(Sender: TObject);
+begin
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.RadioButtonLignesClick(Sender: TObject);
+begin
+  TCO_modifie:=true;
+end;
+
+procedure TFormConfigTCO.RadioButtonCourbesClick(Sender: TObject);
+begin
+  TCO_modifie:=true;
 end;
 
 begin

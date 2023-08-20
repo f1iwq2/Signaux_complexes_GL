@@ -345,7 +345,7 @@ begin
   if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
   begin
     checkVerrouCarre.Visible:=true;
-    checkVerrouCarre.Checked:=feux[i].VerrouilleCarre;
+    checkVerrouCarre.Checked:=feux[i].VerrouCarre;
   end;
 
     ImagePilote.Parent:=FormPilote;
@@ -379,9 +379,9 @@ procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);
 var i : integer;
 begin
   i:=Index_Signal(AdrPilote);
-  feux[i].VerrouilleCarre:=checkVerrouCarre.Checked=true;
-  if feux[i].VerrouilleCarre then
+  if feux[i].VerrouCarre then
   begin
+    feux[i].EtatVerrouCarre:=checkVerrouCarre.Checked=true;
     Maj_Etat_Signal(AdrPilote,carre);
     envoi_signal(Adrpilote);
     Maj_Etat_Signal(0,carre);

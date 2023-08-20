@@ -322,7 +322,6 @@ type
     Label58: TLabel;
     EditFiltrDet: TEdit;
     CheckBoxVerifXpressNet: TCheckBox;
-    LabelCrois: TLabel;
     ImageTrain: TImage;
     ButtonPFCDM: TButton;
     Label59: TLabel;
@@ -358,6 +357,7 @@ type
     LabelNbDecPers: TLabel;
     MemoBlanc: TMemo;
     Label69: TLabel;
+    LabelCrois: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -814,11 +814,11 @@ begin
     val(s,vitesse,i);
     if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
        (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) then
-       begin
-         Affiche('Vitesse COM ('+intToSTR(vitesse)+') incorrecte',clred);
-         result:=false;
-         exit;
-       end;
+    begin
+      Affiche('Vitesse COM ('+intToSTR(vitesse)+') incorrecte',clred);
+      result:=false;
+      exit;
+    end;
   end
   else
   begin
@@ -3384,7 +3384,6 @@ begin
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
-
 end;
 
 
@@ -3643,10 +3642,6 @@ begin
   EditDevieS2.Visible:=false;
   Label18.Visible:=false;
   Label20.Visible:=false;
-  GroupBoxPN.Visible:=false;
-  GroupBoxAct.Visible:=false;
-  GroupBoxRadio.Visible:=false;
-  GroupBoxEtatTJD.Visible:=false;
 
   EditP1.ReadOnly:=false;
   EditP2.ReadOnly:=false;
@@ -3723,151 +3718,9 @@ begin
   RadioButtonXpress.Checked:=protocole=1;
   RadioButtonDcc.Checked:=protocole=2;
 
-  
   clicListe:=true;  // empeche le traitement de l'evt text
-  EditDroit_BD.Text:='';
-  EditPointe_BG.Text:='';
-  EditDevie_HD.Text:='';
   editLAY.Text:=lay;
-  ligneclicSig:=-1;
-  AncLigneClicSig:=-1;
-  ligneclicAct:=-1;
-  AncLigneClicAct:=-1;
-  ligneclicAig:=-1;
-  AncLigneClicAig:=-1;
-  lignecliqueePN:=-1;
-  AncLigneCliqueePN:=-1;
-
-  // remplit les 4 fenêtres de config des aiguillages branches signaux, actionneurs
-
-  // aiguillages
-  RichAig.Clear;
-  for i:=1 to MaxAiguillage do
-  begin
-    s:=encode_aig(i);
-    RichAig.Lines.Add(s);
-    RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
-    Aiguillage[i].modifie:=false;
-  end;
-  // pour positionner sur la 1ere ligne
-  With RichAig do
-  begin
-    SelStart:=0;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-
-  // branches
-  clicListe:=true;
-  RichBranche.clear;
-  for i:=1 to NbreBranches do
-  begin
-    s:=Branche[i];
-    RichBranche.Lines.Add(s);
-    RE_ColorLine(RichBranche,RichBranche.lines.count-1,ClAqua);
-  end;
-  With RichBranche do
-  begin
-    SelStart:=0;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-
-  // signaux
-  RichSig.clear;
-  ComboBoxDec.items.Clear;
-
-  for i:=0 to 11 do
-  begin
-    ComboBoxAsp.items.add(Aspects[i]);
-  end;
-  // décodeurs de base
-  for i:=1 to NbDecodeur do
-  begin
-    ComboBoxDec.items.add(decodeur[i-1]);
-  end;
-  // décodeurs personalisés
-  for i:=1 to NbreDecPers do
-  begin
-    s:=decodeur_pers[i].nom;
-    formconfig.ComboBoxDec.Items.add(s);
-  end;
-
-
-  for i:=1 to NbreFeux do
-  begin
-    s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
-    //Affiche(s,clwhite);
-    if s<>'' then
-    begin
-      RichSig.Lines.Add(s);
-      RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
-      Feux[i].modifie:=false;
-    end;
-  end;
-  With RichSig do
-  begin
-    SelStart:=0;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-
-  // actionneurs Train ou accessoire
-  RichAct.Clear;
-  for i:=1 to maxTablo_act do
-  begin
-    s:=encode_act_loc_son(i);
-    if s<>'' then
-    begin
-      RichAct.Lines.Add(s);
-      RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua);
-    end;
-  end;
-  With RichAct do
-  begin
-    SelStart:=0;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-
-  // actionneurs PN
-  RichPN.Clear;
-  for i:=1 to NbrePN do
-  begin
-    s:=encode_act_pn(i);
-    if s<>'' then
-    begin
-      RichPN.Lines.Add(s);
-      RE_ColorLine(RichPN,RichPN.lines.count-1,ClAqua);
-    end;
-  end;
-  With RichPN do
-  begin
-    SelStart:=0;
-    Perform(EM_SCROLLCARET,0,0);
-  end;
-
-  if clicproprietes then clicListeSignal(Adressefeuclic);
-  clicproprietes:=false;
-
-  i:=1;
-  RichCdeDCCpp.clear;
-  repeat
-    if CdeDccpp[i]<>'' then
-    begin
-      RichCdeDccpp.Lines.add(CdeDccpp[i]);
-      RE_ColorLine(RichCdeDccpp,RichCdeDccpp.lines.count-1,ClAqua);
-    end;
-    inc(i);
-  until (CdeDccpp[i]='') or (i>MaxCdeDccpp);
-
-  CheckEnvAigDccpp.Checked:=EnvAigDccpp=1;
-  EditBase.Text:=intToSTR(AdrBaseDetDccpp);
-
-  with RicheditTrains do
-  begin
-    clear;
-    for i:=1 to ntrains do
-    begin
-      Lines.Add(Train_tablo(i));
-    end;
-  end;
+ 
   LabelNbDecPers.caption:=intToSTR(NbreDecPers);
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
@@ -4058,6 +3911,7 @@ begin
     end;
   end;
 
+  // remplit les 4 fenêtres de config des aiguillages branches signaux, actionneurs
   for i:=1 to NbreDecPers do
   begin
     s:=decodeur_pers[i].nom;
@@ -4071,6 +3925,149 @@ begin
   end
   else formconfig.ComboBoxDecodeurPerso.ItemIndex:=-1;
   maj_decodeurs;
+
+  // aiguillages
+  RichAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    RichAig.Lines.Add(s);
+    RE_ColorLine(RichAig,RichAig.lines.count-1,ClAqua);
+    Aiguillage[i].modifie:=false;
+  end;
+  // pour positionner sur la 1ere ligne
+  With RichAig do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+     
+    
+  // branches
+  clicListe:=true;
+  RichBranche.clear;
+  for i:=1 to NbreBranches do
+  begin
+    s:=Branche[i];
+    RichBranche.Lines.Add(s);
+    RE_ColorLine(RichBranche,RichBranche.lines.count-1,ClAqua);
+  end;
+  With RichBranche do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+
+  // signaux
+  RichSig.clear;
+  ComboBoxDec.items.Clear;
+
+  for i:=0 to 11 do
+  begin
+    ComboBoxAsp.items.add(Aspects[i]);
+  end;
+  // décodeurs de base
+  for i:=1 to NbDecodeur do
+  begin
+    ComboBoxDec.items.add(decodeur[i-1]);
+  end;
+  // décodeurs personalisés
+  for i:=1 to NbreDecPers do
+  begin
+    s:=decodeur_pers[i].nom;
+    formconfig.ComboBoxDec.Items.add(s);
+  end;
+
+
+  for i:=1 to NbreFeux do
+  begin
+    s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
+    //Affiche(s,clwhite);
+    if s<>'' then
+    begin
+      RichSig.Lines.Add(s);
+      RE_ColorLine(RichSig,RichSig.lines.count-1,ClAqua);
+      Feux[i].modifie:=false;
+    end;
+  end;
+  With RichSig do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+
+  // actionneurs Train ou accessoire
+  RichAct.Clear;
+  for i:=1 to maxTablo_act do
+  begin
+    s:=encode_act_loc_son(i);
+    if s<>'' then
+    begin
+      RichAct.Lines.Add(s);
+      RE_ColorLine(RichAct,RichAct.lines.count-1,ClAqua);
+    end;
+  end;
+  With RichAct do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+
+  // actionneurs PN
+  RichPN.Clear;
+  for i:=1 to NbrePN do
+  begin
+    s:=encode_act_pn(i);
+    if s<>'' then
+    begin
+      RichPN.Lines.Add(s);
+      RE_ColorLine(RichPN,RichPN.lines.count-1,ClAqua);
+    end;
+  end;
+  With RichPN do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+  GroupBoxRadio.Visible:=false;
+  GroupBoxAct.Visible:=false;
+  GroupBoxPN.Visible:=false;
+
+  if clicproprietes then clicListeSignal(Adressefeuclic);
+  clicproprietes:=false;
+
+  i:=1;
+  RichCdeDCCpp.clear;
+  repeat
+    if CdeDccpp[i]<>'' then
+    begin
+      RichCdeDccpp.Lines.add(CdeDccpp[i]);
+      RE_ColorLine(RichCdeDccpp,RichCdeDccpp.lines.count-1,ClAqua);
+    end;
+    inc(i);
+  until (CdeDccpp[i]='') or (i>MaxCdeDccpp);
+
+  CheckEnvAigDccpp.Checked:=EnvAigDccpp=1;
+  EditBase.Text:=intToSTR(AdrBaseDetDccpp);
+
+  with RicheditTrains do
+  begin
+    clear;
+    for i:=1 to ntrains do
+    begin
+      Lines.Add(Train_tablo(i));
+    end;
+  end;
+  
+  ligneclicAig:=-1;
+  AncLigneClicAig:=-1;
+  ligneClicSig:=-1;
+  AncligneClicSig:=-1;
+  ligneClicBr:=-1;
+  AncligneClicBr:=-1;
+  ligneClicAct:=-1;
+  AncLigneClicAct:=-1;
+  
 end;
 
 
@@ -4268,6 +4265,7 @@ begin
     // aiguillage normal ou tri
     if (not(tjd) and not(tjs) and not(croi)) or tri then
     begin
+      labelcrois.Visible:=false;
       EditL.Visible:=false;
       Label20.Visible:=false;
       LabelL.Visible:=false;

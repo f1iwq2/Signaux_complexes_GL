@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 319
-  Top = 128
+  Left = 243
+  Top = 134
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2402,13 +2402,14 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelCrois: TLabel
-          Left = 32
-          Top = 320
+          Left = 56
+          Top = 280
           Width = 187
           Height = 26
           Caption = 
             'Les croisements re'#231'oivent une adresse m'#234'me s'#39'ils ne sont pas pil' +
             'ot'#233's'
+          Visible = False
           WordWrap = True
         end
         object GroupBox10: TGroupBox
@@ -2746,7 +2747,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox21: TGroupBox
           Left = 8
-          Top = 352
+          Top = 312
           Width = 273
           Height = 97
           Caption = 'Initialisation de l'#39'aiguillage en mode autonome'
@@ -3641,7 +3642,7 @@ object FormConfig: TFormConfig
         Left = 352
         Top = 32
         Width = 257
-        Height = 441
+        Height = 433
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object GroupBoxRadio: TGroupBox

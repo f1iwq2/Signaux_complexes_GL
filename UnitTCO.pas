@@ -125,7 +125,6 @@ type
     ImageTemp2: TImage;
     outslectionner1: TMenuItem;
     ButtonDessiner: TButton;
-    ButtonTrajet: TButton;
     ImagePalette26: TImage;
     Label26: TLabel;
     ImagePalette23: TImage;
@@ -346,9 +345,8 @@ type
     procedure EditTypeImageChange(Sender: TObject);
     procedure outslectionner1Click(Sender: TObject);
     procedure ButtonDessinerClick(Sender: TObject);
-    procedure ButtonTrajetClick(Sender: TObject);
     procedure ImagePalette26DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
+      Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ImagePalette26EndDrag(Sender, Target: TObject; X,
       Y: Integer);
     procedure ImagePalette26MouseDown(Sender: TObject;
@@ -420,9 +418,12 @@ const
   Cellule_ch='Cellule';
   ClCanton_ch='CoulCanton';
   Ratio_ch='Ratio';
+  EvtClicDet_ch='EvtClicDet';
   AvecGrille_ch='AvecGrille';
   ModeCouleurCanton_ch='ModeCouleurCanton';
   Graphisme_ch='Graphisme';
+  Id_signal=50;
+  
   // liaisons des voies pour chaque icone par bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
   Liaisons : array[0..51] of integer=
      //   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27 28  29 30 31
@@ -450,6 +451,7 @@ type
            Xundo,Yundo : integer;     // coordonnées x,y de la cellule pour le undo
            FeuOriente  : integer;     // orientation du signal : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit
            liaisons    : integer;     // quadrants des liaisons
+           epaisseurs  : integer;     // épaisseur des liaisons : si le bit n est à 1 : liaison fine
          end;
 
 var
@@ -459,7 +461,7 @@ var
 
   Forminit,SelectionAffichee,TamponAffecte,entoure,TCO_modifie,clicsouris,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,formConfCellTCOAff,
-  drag,TCOActive,TCOCree,modeTrace,ancienok,dbleClicTCO,auto_tcurs : boolean;
+  drag,TCOActive,TCOCree,modeTrace,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet : boolean;
 
   HtImageTCO,LargImageTCO,XclicCell,YclicCell,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel ,AncienYMiniSel,AncienYMaxiSel,
@@ -518,10 +520,11 @@ function verif_cellule(x,y,Bim : integer) : boolean;
 procedure dessine_icones;
 procedure echange(var a,b : integer);
 procedure Efface_Cellule(Canvas : Tcanvas;x,y : integer;Mode : TPenMode);
+procedure dessine_icone(PCanvasTCO : tcanvas;Bimage,X,Y,mode : integer);
 
 implementation
 
-uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO;
+uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO ;
 
 {$R *.dfm}
 
@@ -566,8 +569,8 @@ begin
     ClCanton:=$00FFFF;
     AvecGrille:=true;
     Graphisme:=1;
-    SetLength(TCO,NbreCellX+1,NbreCellY+1);
-    SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+    SetLength(TCO,NbreCellX+2,NbreCellY+2); // +2 pour éviter les erreurs d'index sur +1 et -1
+    SetLength(TamponTCO,NbreCellX+2,NbreCellY+2);
     for x:=1 to NbreCellX do
       for y:=1 to NbreCellY do
         with tco[x,y] do
@@ -732,7 +735,6 @@ begin
       val(s,i,erreur);
       AvecGrille:=i=1;
     end;
-    //----------------------------------------------------------------
 
     // taille de la matrice
     sa:=uppercase(Matrice_ch)+'=';
@@ -747,7 +749,6 @@ begin
       Val(s,NbreCellY,erreur)
     end;
 
-
     // ratio
     sa:=uppercase(Ratio_ch)+'=';
     i:=pos(sa,s);
@@ -759,6 +760,18 @@ begin
       val(s,i,erreur);
       RatioC:=i;
     end;
+
+    // evt clic det
+    sa:=uppercase(EvtClicDet_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      EvtClicDet:=i=1;
+    end;
+
 
   until (pos('[MATRICE]',uppercase(s))<>0) or (eof(fichier));
 
@@ -776,11 +789,11 @@ begin
   end;
 
   try
-    SetLength(TCO,NbreCellX+1,NbreCellY+1);
+    SetLength(TCO,NbreCellX+2,NbreCellY+2);
   except
     Affiche('TCO:Mémoire insuffisante pour'+intToSTR(NbreCellX)+' '+intToSTR(NbreCellY),clred);
     NbreCellX:=20;NbreCellY:=12;
-    SetLength(TCO,NbreCellX+1,NbreCellY+1);
+    SetLength(TCO,NbreCellX+2,NbreCellY+2);
   end;
 
   try
@@ -788,7 +801,7 @@ begin
   except
     Affiche('TamponTCO:Mémoire insuffisante',clred);
     NbreCellX:=20;NbreCellY:=12;
-    SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
+    SetLength(TamponTCO,NbreCellX+2,NbreCellY+2);
   end;
 
 
@@ -837,7 +850,7 @@ begin
         i:=pos(',',s);
         if i=0 then begin Affiche('ETCO6',clred);closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin Affiche('ETCO7',clred);closefile(fichier);exit;end;
-        if valeur=30 then begin valeur:=50;sauve_tco:=true;end;
+        if valeur=30 then begin valeur:=Id_signal;sauve_tco:=true;end;
         if valeur=31 then begin valeur:=51;sauve_tco:=true;end;
         tco[x,y].Bimage:=valeur;
         tco[x,y].liaisons:=liaisons[valeur];
@@ -863,7 +876,7 @@ begin
         delete(s,1,i);
 
         // si c'est un signal, remplir les paramètres du signal
-        if tco[x,y].Bimage=50 then
+        if tco[x,y].Bimage=Id_signal then
         begin
           i:=Index_Signal(adresse);
           if i<>0 then
@@ -926,10 +939,12 @@ begin
           delete(s,1,i-1);    //ne pas supprimer la virgule
         end;
 
+        // 13 réserve
         if npar=13 then
         begin
-          delete(s,1,1); // supprimer la virgule
+          delete(s,1,1); // supprimer la virgule du paramètre optionnel
           val(s,i,erreur);
+          tco[x,y].epaisseurs:=i;
         end;
         i:=pos(')',s);
         if i<>0 then delete(s,1,i);
@@ -976,14 +991,14 @@ begin
   if avecGrille then s:='1' else s:='0';
   Writeln(fichier,Avecgrille_ch+'='+s);
   writeln(fichier,Graphisme_ch+'=',graphisme);
-
-  writeln(fichier,'/ Taille de la matrice x,y');
+  if EvtClicDet then s:='1' else s:='0';
+  Writeln(fichier,EvtClicDet_ch+'='+s);
+  
   writeln(fichier,matrice_ch+'='+IntToSTR(NbreCellX)+','+intToSTR(NbreCellY));
-  writeln(fichier,'/ Ratio d''affichage celluleX/CelluleY');
   writeln(fichier,Ratio_ch+'='+intToSTR(ratioC));
   writeln(fichier,'/Matrice TCO');
   writeln(fichier,'[Matrice]');
-  writeln(fichier,'/ couleur fond,adresse,image,inversion aiguillage,Orientation du signal, pied du signal , [texte], representation, fonte, taille fonte, couleur fonte, style, réserve ');
+  writeln(fichier,'/ couleur fond,adresse,image,inversion aiguillage,Orientation du signal, pied du signal , [texte], representation, fonte, taille fonte, couleur fonte, style, épaisseurs ');
   for y:=1 to NbreCellY do
   begin
     s:='';
@@ -993,7 +1008,7 @@ begin
 
       if TCO[x,y].inverse then s:=s+'1,' else s:=s+'0,';
 
-      if TCO[x,y].BImage=50 then
+      if TCO[x,y].BImage=Id_signal then
       begin
         s:=s+IntToSTR(TCO[x,y].FeuOriente)+','+IntToSTR(TCO[x,y].PiedFeu)+',';
       end
@@ -1011,7 +1026,7 @@ begin
       couleurfonte:=TCO[x,y].coulFonte;
       s:=s+','+intTohex(couleurFonte,6);
       s:=s+','+TCO[x,y].FontStyle;
-      s:=s+',0';
+      s:=s+','+intToSTR(TCO[x,y].epaisseurs);
       s:=s+')';
     end;
     writeln(fichier,s);
@@ -1166,72 +1181,103 @@ begin
 end;
 
 
-procedure dessin_2L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,jy2,xf,yf,position : integer;
+// essai pour dessiner les icones de façon paramétrées en fonction du numéro de dessin
+// et des points de connexion
+// numéro = numéro d'icone
+procedure dessin(Canvas : Tcanvas;x,y,Mode,numero : integer);
+var i,j,x0,y0,xc,yc,jy2,xf,yf,position,jy1,connect1,connect2,connect3,connect4 : integer;
     r : Trect;
     fond : tcolor;
 
+  procedure trace_point(canvas : Tcanvas;i : integer);
+  begin
+    with canvas do
+    begin
+      case i of
+        0 : moveto(x0,y0);
+        1 : moveto(xc,y0);
+        2 : moveto(xf,y0);
+        3 : moveto(xf,yc);
+        4 : moveto(xf,yf);
+        5 : moveto(xc,yf);
+        6 : moveto(x0,yf);
+        7 : moveto(x0,yc);
+      end;
+    end;
+  end;
+
+  procedure trace_ligne(canvas : Tcanvas;i : integer);
+  begin
+    with canvas do
+    begin
+      case i of
+        0 : lineto(x0,y0);
+        1 : lineto(xc,y0);
+        2 : lineto(xf,y0);
+        3 : lineto(xf,yc);
+        4 : lineto(xf,yf);
+        5 : lineto(xc,yf);
+        6 : lineto(x0,yf);
+        7 : lineto(x0,yc);
+      end;
+    end;
+  end;
+
+
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
-       moveto(x0,yf);lineto(xc,yc);    // partie déviée
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xc,yc);    // partie déviée
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,yc);LineTo(xf,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(x0,yc);
+     end;
+
+     with canvas do
+     begin
+       pen.color:=couleur;
+       pen.Width:=epaisseur;
+       {case numero of
+       2 : begin moveto(x0,yc);lineto(xf,yc);end;    // partie droite
+       end;}
+       //ou
+
+       // trace le premier point
+       trace_point(canvas,connect1);
+       lineto(xc,yc);
+       // trace le 2eme point
+       trace_ligne(canvas,connect1);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do 
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // horizontale complete
-       moveto(x0,yf);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie horz g en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yf);LineTo(xc,yc);LineTo(xf,yc);  // trajet déviée
+       pen.Width:=epaisseur;
+       {case numero of
+       2 : begin moveto(x0,yf);lineto(xc,yc);lineto(xf,yc);end;
+       end; }
+       trace_point(canvas,connect1);
+       lineto(xc,yc);
+       // trace le 2eme point
+       trace_ligne(canvas,connect1);
      end;
    end;
-
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -1243,26 +1289,52 @@ begin
   fond:=TCO[x,y].CouleurFond;
   position:=positionTCO(x,y);
 
+  // extraire les points de connexion de l'icone (de 0 à 7)
+  connect1:=0;connect2:=0;connect3:=0;connect4:=0;
+  j:=0;
+  for i:=0 to 7 do
+  begin
+    if testBit(liaisons[numero],i) then
+    begin
+      case j of
+      0 : connect1:=i;
+      1 : connect2:=i;
+      2 : connect3:=i;
+      3 : connect4:=i;
+      end;
+      inc(j);
+    end;
+  end;
+
+
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -1290,9 +1362,11 @@ begin
   end;
 end;
 
-// essai courbe
-procedure dessin_2C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+
+
+// sert de référence11
+procedure dessin_2L(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,jy2,xf,yf,position,jy1,ep : integer;
     r : Trect;
     fond : tcolor;
 
@@ -1310,8 +1384,129 @@ var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
 
      with canvas do
      begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
+     end;
+   end;
+
+   procedure trajet_devie;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+     
+     with canvas do
+     begin
+       pen.color:=couleur;
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
+     end;
+   end;
+
+begin
+  x0:=(x-1)*LargeurCell;       // x origine
+  y0:=(y-1)*HauteurCell;       // y origine
+  yc:=y0+(HauteurCell div 2);  // y centre
+  xc:=x0+(LargeurCell div 2);  // x centre
+  xf:=x0+largeurCell;          // x fin
+  yf:=y0+HauteurCell;          // y fin
+  fond:=TCO[x,y].CouleurFond;
+  position:=positionTCO(x,y);
+  ep:=tco[x,y].epaisseurs;
+
+  with canvas do
+  begin
+    Pen.Width:=1;
+    Brush.Color:=fond;
+    Pen.Color:=fond;
+
+    Pen.Width:=epaisseur;
+    Brush.Color:=clVoies;
+    Pen.Color:=clVoies;
+    Pen.Mode:=pmCopy;
+
+    if mode>0 then
+    begin
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+    begin
+      trajet_devie;
+      trajet_droit;
+    end;
+
+    if (position=const_Devie) then
+    begin
+     // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.width:=1;
+      jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
+      pen.width:=1;
+      Polygon([point(x0+1,y0+hauteurCell-epaisseur),Point(xc-(epaisseur div 2),jy1),Point(xc-epaisseur-epaisseur,jy1),Point(x0+1,y0+hauteurcell-epaisseur-epaisseur)]);
+    end;
+
+    if position=const_droit then
+    begin
+      // effacement du morceau
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=1;
+      jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
+      r:=rect(x0+1,jy2+1,x0+largeurCell-1,jy2+epaisseur);
+      FillRect(r);
+    end;
+
+  end;
+end;
+
+
+//  courbe
+procedure dessin_2C(Canvas : Tcanvas;x,y : integer;Mode : integer);
+var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
+    r : Trect;
+    fond : tcolor;
+
+   procedure trajet_droit;
+   begin
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
@@ -1330,6 +1525,7 @@ var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -1343,6 +1539,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   fond:=TCO[x,y].CouleurFond;
   position:=positionTCO(x,y);
+  ep:=tco[x,y].epaisseurs;
 
   // mode rond
   x1:=xf-x0;
@@ -1416,71 +1613,53 @@ begin
 end;
 
 procedure dessin_3L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,xf,yf,position : integer;
+var x0,y0,xc,yc,jy1,xf,yf,position,ep : integer;
     fond : Tcolor;
     r : Trect;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
-       moveto(xc,yc);lineto(xf,y0);    // partie déviée
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xf,y0);    // partie déviée
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie gauche toujours allumée
-       moveto(x0,yc);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,yc);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // horizontale complete
-       moveto(xc,yc);lineto(xf,y0);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie horz droite en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yc);LineTo(xc,yc);LineTo(xf,y0);  // partie déviée
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(xf,y0);lineto(xc,yc);
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(x0,yc);
      end;
    end;
-     
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -1489,32 +1668,40 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
-  position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  position:=positionTCO(x,y);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
-      trajet_droit;   
+      trajet_devie;
+      trajet_droit;
     end;
-
     if (position=const_Devie) then
     begin
      // effacement du morceau
@@ -1539,7 +1726,7 @@ begin
 end;
 
 procedure dessin_3C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
     fond : Tcolor;
     r : Trect;
 
@@ -1557,8 +1744,11 @@ var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
 
      with canvas do
      begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
@@ -1577,6 +1767,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4 : integer;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -1588,6 +1779,7 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
+  ep:=tco[x,y].epaisseurs;
 
   // mode rond
   x1:=x0-largeurCell-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2);
@@ -1673,70 +1865,52 @@ begin
   if graphisme=1  then dessin_3L(Canvas,x,y,Mode);
   if graphisme=2 then dessin_3C(Canvas,x,y,Mode);
 end;
-
+                  
 procedure dessin_4L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
-
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
-       moveto(xc,yc);lineto(xf,yf);    // partie déviée
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xf,yf);    // partie déviée
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie gauche toujours allumée
-       moveto(x0,yc);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,yc);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // horizontale complete
-       moveto(xc,yc);lineto(xf,yf);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie horz droite en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yc);LineTo(xc,yc);LineTo(xf,yf);  // trajet dévié
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(xf,yf);lineto(xc,yc);
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(x0,yc);
      end;
    end;
 
@@ -1747,32 +1921,41 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
-  position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  position:=positionTCO(x,y);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
-
+    
     if (position=const_Devie) then
     begin
      // effacement du morceau
@@ -1802,7 +1985,7 @@ begin
 end;
 
 procedure dessin_4C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
@@ -1821,7 +2004,10 @@ var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
@@ -1840,6 +2026,7 @@ var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -1852,6 +2039,7 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
+  ep:=tco[x,y].epaisseurs;
 
   // mode rond
   x1:=x0-largeurCell-(largeurCell div 3);y1:=yc;
@@ -1927,74 +2115,56 @@ begin
   if graphisme=1 then dessin_4L(Canvas,x,y,Mode);
   if graphisme=2 then dessin_4C(Canvas,x,y,Mode);
 end;
-
+                    
 procedure dessin_5L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
-       moveto(x0,y0);lineto(xc,yc);    // partie déviée
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xc,yc);    // partie déviée
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,yc);LineTo(xf,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(x0,yc);
+     end;
+
+     with canvas do                       
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xf,yc);    // horizontale complete
-       moveto(x0,y0);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie horz g en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);LineTo(xc,yc);
 
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
+     with canvas do
+     begin              
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,y0);LineTo(xc,yc);LineTo(xf,yc);  // trajet dévié
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,y0);lineto(xc,yc);
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
-
-
+   
 begin
   x0:=(x-1)*LargeurCell;       // x origine
   y0:=(y-1)*HauteurCell;       // y origine
@@ -2002,29 +2172,38 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
-  position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  position:=positionTCO(x,y);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -2057,7 +2236,7 @@ begin
 end;
 
 procedure dessin_5C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
@@ -2075,8 +2254,11 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
 
      with canvas do
      begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(x0,yc);lineto(xf,yc);    // partie droite
+       moveto(x0,yc);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);
      end;
    end;
 
@@ -2095,6 +2277,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -2108,6 +2291,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=tco[x,y].epaisseurs;
 
   // mode rond
   x1:=x0-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2)+4;
@@ -2183,12 +2367,14 @@ end;
 
 // coin supérieur gauche (Element 6)
 procedure dessin_6L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
+  
   with canvas do
   begin
     Brush.Color:=TCO[x,y].CouleurFond;
@@ -2205,13 +2391,17 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    MoveTo(x0,y0);LineTo(xc,yc);Lineto(x0+largeurCell,yc);
+
+    if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    moveto(x0,y0);lineto(xc,yc);
+    if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    Lineto(x0+largeurCell,yc);
   end;
 end;
 
 // coin supérieur gauche (Element 6)
 procedure dessin_6C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2219,6 +2409,8 @@ begin
   yc:=y0+(hauteurCell div 2);
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
+  ep:=tco[x,y].epaisseurs;
+  
   // mode rond
   x1:=x0-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2);
   x2:=xf+largeurCell+(largeurcell div 3);y2:=yc;
@@ -2250,12 +2442,13 @@ end;
 
 // Element 7
 procedure dessin_7L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -2272,13 +2465,17 @@ begin
     Brush.Color:=Couleur;
     pen.color:=couleur;
     Pen.Mode:=pmCopy;
-    Pen.Width:=epaisseur;
-    MoveTo(x0,yc);LineTo(xc,yc);lineto(x0+largeurCell,y0);
+   
+    if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    moveto(x0,yc);lineto(xc,yc);
+    if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    lineto(x0+largeurCell,y0);
+    
   end;
 end;
 
 procedure dessin_7C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2286,6 +2483,7 @@ begin
   yc:=y0+(hauteurCell div 2);
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
+  ep:=tco[x,y].epaisseurs;
   // mode rond
   x1:=x0-largeurCell-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2);
   x2:=xf+(largeurcell div 3)+3;y2:=yc;
@@ -2320,12 +2518,13 @@ end;
 
 // courbe: droit vers bas  -\  Element 8
 procedure dessin_8L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -2342,13 +2541,16 @@ begin
     Brush.Color:=Couleur;
     Pen.Mode:=pmCopy;
     pen.color:=Couleur;
-    pen.Width:=epaisseur;
-    moveto(x0,yc);lineto(xc,yc);lineto(x0+largeurCell,y0+hauteurCell);
+  
+    if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    moveto(x0,yc);lineto(xc,yc);
+    if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    lineto(x0+largeurCell,y0+hauteurCell);
   end;
 end;
 
 procedure dessin_8C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2361,6 +2563,7 @@ begin
   x2:=xf+(largeurcell div 3);y2:=yf+2*hauteurcell+(hauteurcell div 2);
   x3:=xf;y3:=yf;
   x4:=x0;y4:=yc;
+  ep:=tco[x,y].epaisseurs;
 
 
   with canvas do
@@ -2391,12 +2594,13 @@ end;
 
 // courbe bas gauche vers droit  Elément 9
 procedure dessin_9l(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -2413,15 +2617,19 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    pen.width:=epaisseur;
-    MoveTo(x0,y0+hauteurCell);LineTo(xc,yc);LineTo(x0+largeurCell,yc);
+    
+    if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    MoveTo(x0,y0+hauteurCell);lineto(xc,yc);
+    if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    LineTo(x0+largeurCell,yc);
+    
   end;
 end;
 
 
 // courbe bas gauche vers droit  Elément 9
 procedure dessin_9c(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -2429,6 +2637,7 @@ begin
   yc:=y0+(hauteurCell div 2);
   xf:=x0+largeurCell;
   yf:=y0+HauteurCell;
+  ep:=tco[x,y].epaisseurs;
     // mode rond
   x1:=xf-x0;
   x1:=x0-(x1 div 3);y1:=yc;
@@ -2451,7 +2660,8 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    pen.width:=epaisseur;
+    if testbit(ep,6) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+    
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -2464,10 +2674,11 @@ end;
 
 // élément 10
 procedure dessin_10(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var Adr, x0,y0: integer;
+var Adr, x0,y0,ep: integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -2496,25 +2707,26 @@ begin
     end;
 
     // voie
-    Pen.Width:=epaisseur;
-
     case mode of
     0 : couleur:=clVoies;
     1 : couleur:=clAllume;
     2 : couleur:=couleurtrain[index_couleur];
     end;
     pen.color:=couleur;
+
+    if testbit(ep,6) or testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(x0+largeurCell,y0);LineTo(x0,y0+hauteurCell);
   end;
 end;
 
 // élément 11
 procedure dessin_11(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var Adr, x0,y0 : integer;
+var Adr, x0,y0,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
-
+  ep:=tco[x,y].epaisseurs;
+  
   with canvas do
   begin
     Brush.Color:=TCO[x,y].CouleurFond;
@@ -2542,84 +2754,70 @@ begin
     end;
 
     // voie
-    Pen.Width:=epaisseur;
-
     case mode of
     0 : couleur:=clVoies;
     1 : couleur:=clAllume;
     2 : couleur:=couleurtrain[index_couleur];
     end;
     pen.color:=couleur;
+
+    if testbit(ep,0) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(x0,y0);LineTo(x0+largeurCell,y0+hauteurCell);
   end;
 end;
 
 
-// Element 12
+// Element 12       
 procedure dessin_12L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie haute toujours allumée
-       moveto(x0,y0);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,yf);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);              
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,yf);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,y0);LineTo(xc,yc);LineTo(xf,yc);
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);  
+       
      end;
    end;
+   
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -2630,6 +2828,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -2683,7 +2882,7 @@ begin
 end;
 
 procedure dessin_12C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
    procedure trajet_droit;
    begin
@@ -2700,7 +2899,11 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,y0);lineto(xf,yf);    // partie droite
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);  
      end;
    end;
 
@@ -2719,6 +2922,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -2732,6 +2936,7 @@ begin
   xc:=x0+(LargeurCell div 2);  // x centre
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
+  ep:=tco[x,y].epaisseurs;
   // mode rond
   x1:=x0-(largeurCell div 3);y1:=y0-2*hauteurCell-(hauteurCell div 2);
   x2:=xf+largeurCell+(largeurcell div 3);y2:=yc;
@@ -2810,71 +3015,52 @@ end;
 
 // Elément 13
 procedure dessin_13L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(x0,yc);lineto(xc,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie horz couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xc,yc);    // partie horz
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(x0,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
+       pen.color:=couleur;
        moveto(x0,yf);lineto(xf,y0);    // diag complete
        moveto(x0,yc);lineto(xc,yc);    // partie droite
      end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie inf en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(x0,yf);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yc);LineTo(xc,yc);LineTo(xf,y0);
-     end;
    end;
-
+   
 begin
   x0:=(x-1)*LargeurCell;       // x origine
   y0:=(y-1)*HauteurCell;       // y origine
@@ -2936,7 +3122,7 @@ begin
 end;
 
 procedure dessin_13C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
 
    procedure trajet_droit;
@@ -2954,7 +3140,11 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,yf);lineto(xf,y0);    // partie droite
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(xf,yf);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(x0,y0);
      end;
    end;
 
@@ -3063,72 +3253,53 @@ end;
 
 // Element 14
 procedure dessin_14l(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(x0,yc);lineto(xc,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yc);lineto(xc,yc);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(xf,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(x0,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
+     couleur:=clvoies;
+     if mode>0 then
+     begin
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
+     end;
+
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
+       pen.color:=couleur;
        moveto(x0,y0);lineto(xf,yf);    // diag complete
        moveto(x0,yc);lineto(xc,yc);    // partie droite
      end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(xf,yf);LineTo(xc,yc);LineTo(x0,yc);
-     end;
    end;
-
-
+   
+  
 begin
   x0:=(x-1)*LargeurCell;       // x origine
   y0:=(y-1)*HauteurCell;       // y origine
@@ -3330,69 +3501,52 @@ begin
 end;
 
 
-// Element 15
+// Element 15 fait
 procedure dessin_15L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,position,ep : integer;
     fond : Tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(x0,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yc);lineto(xf,yc);    // partie droite
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,y0);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yf);LineTo(xc,yc);LineTo(xf,yc);
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yc);    // partie droite
      end;
    end;
 
@@ -3405,6 +3559,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3419,13 +3574,23 @@ begin
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -3454,8 +3619,9 @@ begin
   end;
 end;
 
+// fait
 procedure dessin_15C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : Tcolor;
 
 procedure trajet_droit;
@@ -3473,7 +3639,11 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,yf);lineto(xf,y0);    // partie droite
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
@@ -3492,6 +3662,7 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -3513,16 +3684,12 @@ begin
 
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
-
+  ep:=TCO[x,y].epaisseurs;
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
-    Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
@@ -3582,14 +3749,15 @@ begin
 end;
 
 
-// Element 16
+// Element 16 fait
 procedure dessin_16L(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3606,14 +3774,14 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.width:=epaisseur;
+    if testbit(ep,0) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur ;
     MoveTo(x0,y0);lineTo(xc,yc);LineTo(xc,y0+hauteurCell);
   end;
 end;
 
-
+// fait
 procedure dessin_16C(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3626,6 +3794,7 @@ begin
   x2:=x0+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
   x3:=xc;y3:=yf;
   x4:=x0;y4:=y0;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3639,7 +3808,7 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.width:=epaisseur;
+    if testbit(ep,0) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -3652,14 +3821,15 @@ begin
 end;
 
 
-// Element 17
+// Element 17 fait
 procedure dessin_17l(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3670,17 +3840,17 @@ begin
       1: couleur:=ClCanton;
       2: couleur:=couleurtrain[index_couleur];
     end;
-    Pen.Width:=epaisseur;
     Brush.Color:=couleur;
     pen.color:=couleur;
     Pen.Mode:=pmCopy;
+    if testbit(ep,2) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(x0+LargeurCell,y0);LineTo(xc,yc);LineTo(xc,y0+hauteurCell);
   end;
 end;
 
-// Element 17
+// Element 17 fait
 procedure dessin_17c(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3692,6 +3862,7 @@ begin
   x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
   x3:=xf;y3:=y0;
   x4:=xc;y4:=yf;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3702,10 +3873,10 @@ begin
       1: couleur:=ClCanton;
       2: couleur:=couleurtrain[index_couleur];
     end;
-    Pen.Width:=epaisseur;
     Brush.Color:=couleur;
     pen.color:=couleur;
     Pen.Mode:=pmCopy;
+    if testbit(ep,2) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -3716,14 +3887,15 @@ begin
   if graphisme=2 then dessin_17C(Canvas,x,y,Mode);
 end;
 
-// Elément 18
+// Elément 18 fait
 procedure dessin_18l(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3737,13 +3909,14 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.Width:=epaisseur;
+    if testbit(ep,1) or testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(x0,y0+hauteurCell);LineTo(xc,yc);LineTo(xc,y0);
   end;
 end;
 
+// fait
 procedure dessin_18c(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3755,6 +3928,7 @@ begin
   x2:=x0+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
   x3:=x0;y3:=yf;
   x4:=xc;y4:=y0;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3768,7 +3942,7 @@ begin
     Brush.Color:=clfond;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.Width:=epaisseur;
+    if testbit(ep,1) or testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -3780,13 +3954,15 @@ begin
 end;
 
 // Element 19
+// fait
 procedure dessin_19l(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc : integer;
+var x0,y0,xc,yc,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurcell div 2);
   yc:=y0+(Hauteurcell div 2);
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3800,13 +3976,14 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.width:=epaisseur;
+    if testbit(ep,1) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     moveto(xc,y0);LineTo(xc,yc);LineTo(x0+largeurCell,y0+HauteurCell);
   end;
 end;
 
+// fait
 procedure dessin_19c(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf : integer;
+var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
@@ -3818,6 +3995,7 @@ begin
   x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
   x3:=xc;y3:=y0;
   x4:=xf;y4:=yf;
+  ep:=tco[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3832,7 +4010,7 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-    Pen.width:=epaisseur;
+    if testbit(ep,1) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -3844,15 +4022,16 @@ begin
 end;
 
 
-// Element 20
+// Element 20 fait
 procedure dessin_20(Canvas : Tcanvas;x,y,mode: integer);
-var jx1,jx2,x0,y0,xc,adr : integer;
+var jx1,jx2,x0,y0,xc,adr,ep : integer;
     r : Trect;
     couleur : tcolor;
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3879,7 +4058,7 @@ begin
       jx1:=x0+(LargeurCell div 2)-round(6*frxGlob); // pos Y de la bande sup
       jx2:=x0+(LargeurCell div 2)+round(6*frxGlob); // pos Y de la bande inf
       if avecGrille then r:=Rect(jx1,y0+1,jx2,y0+HauteurCell-1) else
-        r:=Rect(jx1,y0,jx2,y0+HauteurCell) ;
+      r:=Rect(jx1,y0,jx2,y0+HauteurCell) ;
       FillRect(r);
     end;
 
@@ -3892,21 +4071,45 @@ begin
     Brush.Color:=couleur;
     pen.color:=couleur;
 
-    //jx1:=y0+(HauteurCell div 2);
-    Pen.Width:=epaisseur;
-
+    if testbit(ep,1) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(xc,y0);LineTo(xc,y0+HauteurCell);
   end;
 end;
 
-// Element 21 - croisement - TJD
+// Element 21 - croisement - TJD   fait
 procedure dessin_21(Canvas : Tcanvas;x,y,mode : integer);
-var x0,y0,xc,yc,trajet : integer;
+var x0,y0,xc,yc,xf,yf,trajet,ep : integer;
+  procedure horizontale;
+  begin
+    with canvas do
+    begin
+      if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      moveTo(x0,yc);LineTo(xc,yc);
+      if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      LineTo(xf,yc);
+    end;
+  end;
+
+  procedure diagonale;
+  begin
+    with canvas do
+    begin
+      if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      moveTo(x0,yf);LineTo(xc,yc);
+      if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      LineTo(xf,y0);
+    end;
+  end;
+
+
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(largeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  xf:=x0+largeurCell;
+  yf:=y0+HauteurCell;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3917,9 +4120,9 @@ begin
 
     Brush.Color:=clvoies;
     pen.color:=clvoies;
-    pen.width:=epaisseur;
-    moveTo(x0,y0+hauteurCell);LineTo(x0+LargeurCell,y0);  // diagonale
-    moveTo(x0,yc);LineTo(x0+largeurCell,yc);    // horizontale
+
+    horizontale;
+    diagonale;
 
     // regarder d'ou on vient de la route du tco
     if mode>0 then
@@ -3932,28 +4135,60 @@ begin
       end;
       Brush.Color:=couleur;
       pen.color:=couleur;
-      if trajet=1 then begin moveTo(x0,yc);LineTo(x0+largeurCell,yc);end; // horizontale
-      if trajet=2 then begin moveTo(x0,y0+hauteurCell);LineTo(x0+LargeurCell,y0);end;  // diagonale
+      if trajet=1 then horizontale; // horizontale
+      if trajet=2 then diagonale;  // diagonale
       if trajet=3 then
       begin
-        moveto(x0,y0+HauteurCell);LineTo(xc,yc);lineTo(x0+largeurCell,yc);
+        if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        moveto(x0,yf);LineTo(xc,yc);
+        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        lineTo(xf,yc);
       end;
       if trajet=4 then
       begin
-        moveto(x0,yc);LineTo(xc,yc);lineTo(x0+largeurCell,y0);
+        if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        moveto(x0,yc);LineTo(xc,yc);
+        if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        lineTo(xf,y0);
       end;
     end;
   end;
 end;
 
-// Element 22
+// Element 22 fait
 procedure dessin_22(Canvas : Tcanvas;x,y,mode : integer);
-var x0,y0,xc,yc,trajet : integer;
+var x0,y0,xc,yc,xf,yf,trajet,ep : integer;
+
+ procedure horizontale;
+  begin
+    with canvas do
+    begin
+      if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      moveTo(x0,yc);LineTo(xc,yc);
+      if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      LineTo(xf,yc);
+    end;
+  end;
+
+  procedure diagonale;
+  begin
+    with canvas do
+    begin
+      if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      moveTo(x0,y0);LineTo(xc,yc);
+      if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      LineTo(xf,yf);
+    end;
+  end;
+
 begin
   x0:=(x-1)*LargeurCell;
   y0:=(y-1)*HauteurCell;
   xc:=x0+(LargeurCell div 2);
   yc:=y0+(hauteurCell div 2);
+  xf:=x0+largeurCell;
+  yf:=y0+HauteurCell;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -3966,8 +4201,8 @@ begin
     pen.color:=clvoies;
     pen.width:=epaisseur;
 
-    moveto(x0,y0);lineTo(x0+largeurCell,y0+hauteurCell); // diagonale
-    moveTo(x0,yc);LineTo(x0+largeurCell,yc); // horizontale
+    diagonale;
+    horizontale;
 
     // regarder d'ou on vient de la route du tco
     if mode>0 then
@@ -3980,17 +4215,22 @@ begin
       end;
       Brush.Color:=couleur;
       pen.color:=couleur;
-      if trajet=1 then begin moveTo(x0,yc);LineTo(x0+largeurCell,yc);end; // horizontale
-      if trajet=2 then begin moveto(x0,y0);lineTo(x0+largeurCell,y0+hauteurCell);end; // diagonale
+      if trajet=1 then horizontale;
+      if trajet=2 then diagonale;
       if trajet=3 then
       begin
-        moveto(x0,y0);LineTo(xc,yc);lineTo(x0+largeurCell,yc);
+        if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        moveto(x0,y0);LineTo(xc,yc);
+        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        lineTo(xf,yc);
       end;
       if trajet=4 then
       begin
-        moveto(x0,yc);LineTo(xc,yc);lineTo(x0+largeurCell,y0+hauteurcell);
+        if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        moveto(x0,yc);LineTo(xc,yc);
+        if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+        lineTo(xf,yf);
       end;
-
     end;
   end;
 end;
@@ -4022,74 +4262,55 @@ begin
   end;
 end;
 
-// Element 24
+// Element 24 fait
 procedure dessin_24L(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
+var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
     r : Trect;
     fond: tcolor;
 
-   procedure trajet_droit;
+  procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // partie droite
-       moveto(x0,y0);lineto(xc,yc);    // partie déviée
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xc,yc);    // partie déviée éteinte
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,yf);LineTo(xc,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then 
-       begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
-       end;
-       LineTo(xc,y0);
+       moveto(xc,y0);lineto(xc,yc);
+       if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // verticale complete
-       moveTo(x0,y0);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       // partie horz g en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,y0);LineTo(xc,yc);LineTo(xc,yf);  // trajet déviée
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,y0);lineto(xc,yc);
+       if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);
      end;
    end;
-
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -4099,6 +4320,7 @@ begin
   xf:=x0+largeurCell;          // x fin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
+  ep:=TCO[x,y].epaisseurs;
   fond:=TCO[x,y].CouleurFond;
 
   with canvas do
@@ -4106,24 +4328,31 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=Fond;;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
 
-    if (position=const_droit) or (position=const_inconnu) then
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
-
 
     if (position=const_Devie) then
     begin
@@ -4152,7 +4381,7 @@ end;
 
 // Element 24
 procedure dessin_24C(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,jx1,jy1,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,jx1,jy1,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond: tcolor;
 
@@ -4171,7 +4400,10 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(xc,y0);lineto(xc,yf);    // partie droite
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(xc,y0);lineto(xc,yc);
+       if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);    // partie droite
      end;
    end;
 
@@ -4190,12 +4422,11 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
 
-
-     
 begin
   x0:=(x-1)*LargeurCell;       // x origine
   y0:=(y-1)*HauteurCell;       // y origine
@@ -4205,24 +4436,20 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=TCO[x,y].epaisseurs;
 
   // mode rond
   x1:=x0-(2*largeurCell)-(largeurcell div 2);y1:=y0-(hauteurCell div 3);
   x2:=x0+(largeurcell div 2);y2:=yf+hauteurcell+(hauteurCell div 3);
   x3:=xc;y3:=yf;
   x4:=x0;y4:=y0;
-  
+
   with canvas do
   begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=Fond;;
-    {
-    pen.Width:=1;
-    pen.color:=clyellow;
-    moveto(x1,y1);lineTo(x2,y2);
-    ellipse(x1,y1,x2,y2);
-    }
+
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies;
     Pen.Color:=clVoies;
@@ -4319,12 +4546,9 @@ begin
       begin
         moveto(xc,y0);LineTo(xc,yc);lineTo(x0,yf); // -\
       end;
-
     end;
   end;
 end;
-
-
 
 procedure dessin_24(Canvas : Tcanvas;x,y : integer;Mode : integer);
 begin
@@ -4378,76 +4602,55 @@ begin
       begin
         moveto(xc,y0);LineTo(xc,yc);lineTo(xf,yf); // -\
       end;
-
     end;
   end;
 end;
 
 // Element 26
 procedure dessin_26L(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xc,yc,jx1,jy1,xf,yf,position : integer;
+var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
     r : Trect;
     fond: tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // partie droite
-       moveto(xf,y0);lineto(xc,yc);    // partie déviée
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xf,y0);lineto(xc,yc);    // partie déviée éteinte
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,yf);LineTo(xc,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then 
-       begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
-       end;
-       LineTo(xc,y0);
+       moveto(xc,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // verticale complete
-       moveTo(xf,y0);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       // partie horz d en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(xf,y0);LineTo(xc,yc);LineTo(xc,yf);  // trajet déviée
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(xf,y0);lineto(xc,yc);    // partie déviée
      end;
    end;
 
@@ -4635,68 +4838,49 @@ end;
 
 // Element 27
 procedure dessin_27L(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position : integer;
+var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
     r : Trect;
     fond: tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // partie droite
-       moveto(x0,yf);lineto(xc,yc);    // partie déviée
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xc,yc);    // partie déviée éteinte
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,y0);LineTo(xc,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then
-       begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
-       end;
-       LineTo(xc,yf);
+       moveto(xc,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // verticale complete
-       moveTo(x0,yf);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yf);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yf);LineTo(xc,yc);LineTo(xc,y0);  // trajet déviée
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(x0,yf);lineto(xc,yc);    // partie déviée
      end;
    end;
 
@@ -4887,69 +5071,49 @@ end;
 
 // Element 28
 procedure dessin_28L(Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position : integer;
+var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
     r : Trect;
     fond: tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // partie droite
-       moveto(xf,yf);lineto(xc,yc);    // partie déviée
+       if position=const_droit then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xf,yf);lineto(xc,yc);    // partie déviée éteinte
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       // 2eme partie droite toujours allumée
-       moveto(xc,y0);LineTo(xc,yc);
-
-       // 1ere partie en fonction de la position
-       if position=const_devie then
-       begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
-       end;
-       LineTo(xc,yf);
-
+       moveto(xc,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yf);    // verticale complete
-       moveTo(xf,yf);lineto(xc,yc);    // partie déviée
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
 
-     if (mode=1) or (mode=2) then
      with canvas do
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yf);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(xf,yf);LineTo(xc,yc);LineTo(xc,y0);  // trajet déviée
+       moveto(xc,y0);lineto(xc,yf);    // verticale complete
+       moveTo(xf,yf);lineto(xc,yc);    // partie déviée
      end;
    end;
 
@@ -5139,69 +5303,51 @@ end;
 
 // Element 29
 procedure dessin_29L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,yc);lineto(xc,yf);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xc,yf);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie haute toujours allumée
-       moveto(x0,y0);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,yf);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,yc);lineto(xc,yf);    // partie droite
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,yf);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,y0);LineTo(xc,yc);LineTo(xc,yf);
+       moveto(x0,y0);lineto(xf,yf);   
+       moveto(xc,yc);lineto(xc,yf);   
      end;
    end;
+
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -5390,70 +5536,52 @@ end;
 
 // Elément 32
 procedure dessin_32L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yf);lineto(xc,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie horz couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yf);lineto(xc,yc);    // partie déviée
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(x0,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yf);lineto(xc,yc);    // partie droite
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(x0,yf);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(xc,yf);LineTo(xc,yc);LineTo(xf,y0);
+       moveto(x0,yf);lineto(xf,y0); 
+       moveto(xc,yf);lineto(xc,yc);   
      end;
    end;
+   
 
 begin
   x0:=(x-1)*LargeurCell;       // x origine
@@ -5516,9 +5644,9 @@ begin
 end;
 
 procedure dessin_32C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
-
+    
    procedure trajet_droit;
    begin
      couleur:=clvoies;
@@ -5534,7 +5662,10 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,yf);lineto(xf,y0);    // partie droite
+       if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,y0);lineto(xc,yc);    
+       if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);
      end;
    end;
 
@@ -5641,70 +5772,54 @@ begin
   if graphisme=2 then dessin_32C(Canvas,x,y,Mode);
 end;
 
-// Element 34
+// Element 33 fait
 procedure dessin_33L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,y0);lineto(xc,yc);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,y0);lineto(xc,yc);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(xf,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(x0,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,y0);lineto(xc,yc);
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);lineto(xf,yf);    // diag complete
-       moveto(xc,y0);lineto(xc,yc);    // partie verticale
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,y0);LineTo(xc,yc);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(xf,yf);LineTo(xc,yc);LineTo(xc,y0);
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(xf,yf);lineto(xc,yc);
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,y0);
+
      end;
    end;
 
@@ -5718,6 +5833,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -5779,8 +5895,9 @@ begin
   end;
 end;
 
+// fait
 procedure dessin_33c(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
     fond : tcolor;
 
@@ -5799,7 +5916,10 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,y0);lineto(xf,yf);    // partie droite
+       if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,y0);lineto(xc,yc);
+       if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,yf);
      end;
    end;
 
@@ -5818,6 +5938,7 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -5835,6 +5956,7 @@ begin
   x2:=xf+(2*largeurCell)+(largeurcell div 2);y2:=yf+(hauteurCell div 3);
   x3:=xc;y3:=y0;
   x4:=xf;y4:=yf;
+  ep:=TCO[x,y].epaisseurs;
 
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
@@ -5908,69 +6030,52 @@ begin
   if graphisme=2 then dessin_33C(Canvas,x,y,Mode);
 end;
 
-// Element 34
+// Element 34   fait
 procedure dessin_34L(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : Tcolor;
 
    procedure trajet_droit;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yc);lineto(xc,y0);    // partie droite
-     end;
-     if (mode=1) or (mode=2) then
-     with canvas do
-     begin
-       // partie droite couleur voies
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);lineto(xc,y0);    // partie droite
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
-       pen.color:=couleur;
-       Brush.Color:=couleur;
-       // première partie basse toujours allumée
-       moveto(x0,yf);LineTo(xc,yc);
-
-       // 2eme partie en fonction de la position
-       if position=const_devie then
+       if position=const_droit then
        begin
-         pen.color:=clvoies;
-         Brush.Color:=clvoies;
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
        end;
-       LineTo(xf,y0);
+     end;
+
+     with canvas do
+     begin
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       pen.color:=couleur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
    procedure trajet_devie;
    begin
-     if mode=0 then
-     with canvas do
+     couleur:=clvoies;
+     if mode>0 then
      begin
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(x0,yf);lineto(xf,y0);    // diag complete
-       moveto(xc,yc);lineto(xc,y0);    // partie droite
+       if position=const_devie then
+       begin
+         if mode=1 then couleur:=clcanton;
+         if mode=2 then couleur:=couleurtrain[index_couleur];
+       end;
      end;
-     if (mode=1) or (mode=2) then
+
      with canvas do
      begin
-       // partie sup en couleur de voie
-       pen.color:=clvoies;
-       Brush.Color:=clvoies;
-       moveto(xc,yc);LineTo(xf,y0);
-
-       if mode=1 then couleur:=ClCanton;
-       if mode=2 then couleur:=couleurtrain[index_couleur];
        pen.color:=couleur;
-       Brush.Color:=couleur;
-       moveto(x0,yf);LineTo(xc,yc);LineTo(xc,y0);
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,yf);lineto(xc,yc);    // diag complete
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xc,y0);    // partie droite
      end;
    end;
 
@@ -5983,6 +6088,7 @@ begin
   yf:=y0+HauteurCell;          // y fin
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -6033,8 +6139,9 @@ begin
   end;
 end;
 
+//fait
 procedure dessin_34C(Canvas : Tcanvas;x,y : integer;Mode : integer);
-var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position : integer;
+var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : Tcolor;
 
 procedure trajet_droit;
@@ -6052,7 +6159,10 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
-       moveto(x0,yf);lineto(xf,y0);    // partie droite
+       if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       moveto(x0,yf);lineto(xc,yc);
+       if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+       lineto(xf,y0);
      end;
    end;
 
@@ -6071,6 +6181,7 @@ procedure trajet_droit;
      with canvas do
      begin
        pen.color:=couleur;
+       if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
@@ -6091,6 +6202,7 @@ begin
 
   position:=positionTCO(x,y);
   fond:=TCO[x,y].CouleurFond;
+  ep:=TCO[x,y].epaisseurs;
 
   with canvas do
   begin
@@ -6737,29 +6849,9 @@ begin
   style:=fs;
 end;
 
-// affiche la cellule x et y en cases
-// index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
-procedure affiche_cellule(x,y : integer);
-var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
-    inverse : boolean;
-    s : string;
+// dessine l'icone n° Bimage dans le canvas PcanvasTCO, aux coordonnées cellules x,y en mode
+procedure dessine_icone(PCanvasTCO : tcanvas;Bimage,X,Y,mode : integer);
 begin
-  //if tco[x,y].BImage=0 then exit;
-  //Affiche('Affiche_cellule',clLime);
-  PcanvasTCO.pen.Mode:=PmCopy;
-  //pcanvasTCO.Brush.Style:=BsClear;
-  adresse:=tco[x,y].Adresse;
-  BImage:=tco[x,y].BImage;
-  mode:=tco[x,y].mode;
-  repr:=tco[x,y].repr;
-
-  Xorg:=(x-1)*LargeurCell;
-  Yorg:=(y-1)*HauteurCell;
-
-  // ------------- affichage de l'adresse ------------------
-  s:=IntToSTR(adresse);
-
-  // affiche d'abord l'icone de la cellule et colore la voie si zone ou détecteur actionnée selon valeur mode
   case Bimage of
    // 0 : efface_cellule(PCanvasTCO,x,y,pmcopy);
     1 : dessin_voie(PCanvasTCO,X,Y,mode);
@@ -6797,7 +6889,33 @@ begin
 
    50 : dessin_Signal(PCanvasTCO,X,Y);
    51 : dessin_51(PCanvasTCO,X,Y,mode);
-   end;
+   end;  
+end;    
+
+// affiche la cellule x et y en cases
+// index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
+procedure affiche_cellule(x,y : integer);
+var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied : integer;
+    inverse : boolean;
+    s : string;
+begin
+  //if tco[x,y].BImage=0 then exit;
+  //Affiche('Affiche_cellule',clLime);
+  PcanvasTCO.pen.Mode:=PmCopy;
+  //pcanvasTCO.Brush.Style:=BsClear;
+  adresse:=tco[x,y].Adresse;
+  BImage:=tco[x,y].BImage;
+  mode:=tco[x,y].mode;
+  repr:=tco[x,y].repr;
+
+  Xorg:=(x-1)*LargeurCell;
+  Yorg:=(y-1)*HauteurCell;
+
+  // ------------- affichage de l'adresse ------------------
+  s:=IntToSTR(adresse);
+
+  // affiche d'abord l'icone de la cellule et colore la voie si zone ou détecteur actionnée selon valeur mode
+  dessine_icone(PCanvasTCO,Bimage,X,Y,mode);
 
   PCanvasTCO.font.Size:=(LargeurCell div 10)+4  ;
   //Affiche(intToSTR( (LargeurCell div 30)+6),clyellow);
@@ -6917,7 +7035,7 @@ begin
   end;
 
   // adresse des signaux
-  if (BImage=50) and (adresse<>0) then
+  if (BImage=Id_signal) and (adresse<>0) then
   begin
     index:=Index_Signal(adresse);
     aspect:=feux[index].Aspect;
@@ -7032,7 +7150,7 @@ begin
 end;
 
 procedure affiche_texte(x,y : integer);
-var x0,y0,yt,repr : integer;
+var x0,y0,yt,repr,taillefont : integer;
     ss,s : string;
 begin
   x0:=(x-1)*Largeurcell;
@@ -7050,15 +7168,15 @@ begin
   PcanvasTCO.Font.Style:=style(ss);
 
   repr:=tco[x,y].repr;
-  taillefonte:=tco[x,y].TailleFonte;
+  taillefont:=tco[x,y].TailleFonte;    
   case repr of
-    0,1 : yt:=(HauteurCell div 2)-round(tailleFonte*fryGlob);   // milieu
+    0,1 : yt:=(HauteurCell div 2)-round(tailleFont*fryGlob);   // milieu
       2 : yt:=1;  // haut
-      3 : yt:=HauteurCell-round(2*TailleFonte*frYGlob);   // bas
+      3 : yt:=HauteurCell-round(2*TailleFont*frYGlob);   // bas
   end;
 
-  if taillefonte=0 then taillefonte:=8;
-  PCanvasTCO.font.Size:=(taillefonte*LargeurCell) div 40;
+  if taillefont=0 then taillefont:=8;
+  PCanvasTCO.font.Size:=(taillefont*LargeurCell) div 40;
 
   s:=tco[x,y].Texte+'  ';
   PcanvasTCO.Textout(x0+2,y0+yt,s);
@@ -7084,9 +7202,6 @@ begin
   PBitMapTCO.Height:=DimY;
   PBitMapTCO.Width:=DimX;
 
-
-  //PScrollBoxTCO.HorzScrollBar.Range:=DimX;
-  //PScrollBoxTCO.
   with formTCO.ScrollBox do
   begin
     HorzScrollBar.Range:=DimX;
@@ -7104,6 +7219,7 @@ begin
   //Affiche(formatfloat('0.000000',frxGlob),clyellow);
 
   //effacer tout
+
   with PcanvasTCO do
   begin
     Pen.width:=1;
@@ -7136,7 +7252,7 @@ begin
   for y:=1 to NbreCellY do
     for x:=1 to NbreCellX do
       begin
-        if TCO[x,y].BImage=50 then
+        if TCO[x,y].BImage=Id_signal then
         begin
           affiche_cellule(x,y);
         end;
@@ -7149,6 +7265,7 @@ begin
   begin
     Entoure_cell(Xentoure,Yentoure);
   end;
+
 end;
 
 procedure grise_ligne_tco;
@@ -7994,11 +8111,12 @@ begin
   end;
 end;
 
-procedure dessine_icone(ip : timage;lbl : tlabel;i : integer);
+// dessine l'icone d'image ip et la place en x y d'après son index
+procedure positionne_icone(ip : timage;lbl : tlabel;i : integer);
 const NbElLi=12;
 var s : string;
 begin
-  if i=50 then i:=35;  // pour affichage en XY
+  if i=Id_signal then i:=35;  // pour affichage en XY
   if i=51 then i:=36;
   if ip<>nil then
       begin
@@ -8044,25 +8162,25 @@ begin
     begin
       ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
       lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
-      dessine_icone(ip,lbl,i);
+      positionne_icone(ip,lbl,i);
     end;
 
     for i:=32 to 34 do
     begin
       ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
       lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
-      dessine_icone(ip,lbl,i);
+      positionne_icone(ip,lbl,i);
     end;
 
 
-    i:=50;
+    i:=Id_signal;
     ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
     lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
-    dessine_icone(ip,lbl,i);
+    positionne_icone(ip,lbl,i);
     i:=51;
     ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
     lbl:=findComponent('Label'+intToSTR(i)) as Tlabel;
-    dessine_icone(ip,lbl,i);
+    positionne_icone(ip,lbl,i);
 
     // signal
     ip:=findComponent('ImagePalette51') as Timage;
@@ -8154,7 +8272,6 @@ begin
     ButtonSimu.Visible:=not(Diffusion);
     ImageTemp.Visible:=not(Diffusion);
     ImageTemp2.Visible:=not(Diffusion);
-    ButtonTrajet.visible:=not(diffusion);
     SourisX.Visible:=not(Diffusion);
     SourisY.Visible:=not(Diffusion);
     ButtonAfficheBandeau.visible:=false;
@@ -8243,6 +8360,9 @@ begin
       ScrollBox.Height:=ClientHeight-Panel1.Height-30;
     end;
   end;
+
+  //scrollBox.Width:=800;
+  
   TCOActive:=true;
 end;
 
@@ -8254,7 +8374,7 @@ var res,verif : boolean;
 begin
   result:=true;
   verif:=false;
-  if (bim>=50) or (AvecVerifIconesTCO=0) then exit;
+  if (bim>=Id_signal) or (AvecVerifIconesTCO=0) then exit;
   //exit;
   res:=true;
   bl:=liaisons[Bim];
@@ -8414,7 +8534,7 @@ begin
           if (xPlace<=NbreCellX) and (yPlace<=NbreCellY) then
           begin
             tco[xPlace,yPlace]:=tamponTCO[x,y];
-            if tco[xPlace,yPlace].Bimage=50 then
+            if tco[xPlace,yPlace].Bimage=Id_signal then
             begin
               adresse:=tco[xPlace,yPlace].Adresse;
             end;
@@ -10038,7 +10158,7 @@ var r : Trect;
 begin
   if affevt then Affiche('ImageTCOMouseMove',clLime);
   if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
-  if Temposouris>0 then begin exit;end;
+  if Temposouris>0 then exit;
   // Affiche('*',cllime);
   SourisX.Caption:=IntToSTR(x);
   SourisY.Caption:=IntToSTR(y);
@@ -10197,7 +10317,7 @@ begin
   tco_Modifie:=true;
 
   // si signal
-  if tco[XClicCell,YClicCell].BImage=50 then
+  if tco[XClicCell,YClicCell].BImage=Id_signal then
   begin
     index:=Index_Signal(adr);
     if index=0 then exit
@@ -10326,7 +10446,7 @@ begin
   stocke_undo(1,XClicCell,YClicCell);
   maj_undo(1);
   efface_cellule(ImageTCO.Canvas,XclicCell,YClicCell,PmCopy);
-  tco[XClicCell,YClicCell].BImage:=50;
+  tco[XClicCell,YClicCell].BImage:=Id_signal;
   tco[XClicCell,YClicCell].liaisons:=0;
   tco[XClicCell,YClicCell].Adresse:=0;
   tco[XClicCell,YClicCell].FeuOriente:=1;
@@ -10618,7 +10738,8 @@ begin
   // double clic sur détecteur : inversion
   if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and (adresse<>0) then
   begin
-    detecteur[adresse].etat:=not(detecteur[adresse].etat);
+    if EvtClicDet then event_detecteur(adresse,not(detecteur[adresse].etat),'')
+    else detecteur[adresse].etat:=not(detecteur[adresse].etat);
     Affiche_tco;
   end;
 
@@ -10651,7 +10772,7 @@ begin
   end;
 
   // commande de signal
-  if Bimage=50 then
+  if Bimage=Id_signal then
   begin
     AdrPilote:=adresse;
     i:=Index_Signal(adresse);
@@ -11055,7 +11176,7 @@ end;
 procedure signalD;
 begin
   if actualize then exit;
-  if TCO[XClicCell,YClicCell].Bimage=50 then
+  if TCO[XClicCell,YClicCell].Bimage=Id_signal then
   begin
     TCO[XClicCell,YClicCell].PiedFeu:=2;
     Affiche_TCO;
@@ -11072,7 +11193,7 @@ end;
 procedure signalG;
 begin
   if actualize then exit;
-  if TCO[XClicCell,YClicCell].Bimage=50 then
+  if TCO[XClicCell,YClicCell].Bimage=Id_signal then
   begin
     TCO[XClicCell,YClicCell].PiedFeu:=1;
     Affiche_TCO;
@@ -11090,7 +11211,6 @@ procedure TFormTCO.PopupMenu1Popup(Sender: TObject);
 var oriente,piedFeu : integer;
 begin
   if affevt then Affiche('on popup',clyellow);
- // if modetrace then Abort;
   PopUpMenu1.Items[9][0].Caption:='Ligne au dessus de la '+intToSTR(YclicCell);
   PopUpMenu1.Items[9][1].Caption:='Ligne en dessous de la '+intToSTR(YclicCell);
   PopUpMenu1.Items[9][3].Caption:='Colonne à gauche de la '+intToSTR(XclicCell);
@@ -11100,7 +11220,7 @@ begin
   PopUpMenu1.Items[10][1].Caption:='Colonne '+intToSTR(XclicCell);
 
   // grise ou non l'entrée signal du menu
-  if tco[XClicCell,YClicCell].Bimage=50 then
+  if tco[XClicCell,YClicCell].Bimage=Id_signal then
   begin
     PopUpMenu1.Items[6].Enabled:=true;
     oriente:=tco[XClicCell,YClicCell].Feuoriente;
@@ -11152,9 +11272,9 @@ end;
 begin
   if NbreCellY>=MaxCellY then exit;
   TamponAffecte:=false;
-  SetLength(TCO,NbreCellX+1,NbreCellY+2);  // ajoute une ligne en Y
-  SetLength(TamponTCO,NbreCellX+1,NbreCellY+2);
-  
+  SetLength(TCO,NbreCellX+2,NbreCellY+3);  // ajoute une ligne en Y
+  SetLength(TamponTCO,NbreCellX+2,NbreCellY+3);
+
   for y:=NbreCellY-1 downto YClicCell do
   begin
     for x:=1 to NbreCellX do
@@ -11183,8 +11303,8 @@ var x,y : integer;
 begin
   if NbreCellY>=MaxCellY then exit;
   TamponAffecte:=false;
-  SetLength(TCO,NbreCellX+1,NbreCellY+2); // ajoute une ligne en Y
-  SetLength(TamponTCO,NbreCellX+1,NbreCellY+2); // ajoute une ligne en Y
+  SetLength(TCO,NbreCellX+2,NbreCellY+3); // ajoute une ligne en Y
+  SetLength(TamponTCO,NbreCellX+2,NbreCellY+3); // ajoute une ligne en Y
 
   for y:=NbreCellY downto YClicCell+1 do
   begin
@@ -11245,9 +11365,9 @@ begin
     tco[x,NbreCellY].FeuOriente:=0;
   end;
   dec(NbreCellY);
-  SetLength(TCO,NbreCellX+1,NbreCellY+1);  // ajuste la taille du tableau
-  SetLength(TamponTCO,NbreCellX+1,NbreCellY+1); // ajoute une ligne en Y
-  
+  SetLength(TCO,NbreCellX+2,NbreCellY+2);  // ajuste la taille du tableau
+  SetLength(TamponTCO,NbreCellX+2,NbreCellY+2); // ajoute une ligne en Y
+
   affiche_TCO;
 end;
 
@@ -11256,9 +11376,9 @@ procedure TFormTCO.Colonnegauche1Click(Sender: TObject);
 begin
   if NbreCellX>=MaxCellX then exit;
   TamponAffecte:=false;
-  SetLength(TCO,NbreCellX+2,NbreCellY+1);  // ajoute taille X
-  SetLength(TamponTCO,NbreCellX+2,NbreCellY+1); 
-  
+  SetLength(TCO,NbreCellX+3,NbreCellY+2);  // ajoute taille X
+  SetLength(TamponTCO,NbreCellX+3,NbreCellY+2);
+
   for x:=NbreCellX downto XClicCell do
   begin
     for y:=1 to NbreCellY do tco[x+1,y]:=tco[x,y];
@@ -11284,9 +11404,9 @@ procedure TFormTCO.Colonnedroite1Click(Sender: TObject);
 begin
   if NbreCellX>=MaxCellX then exit;
   TamponAffecte:=false;
-  SetLength(TCO,NbreCellX+2,NbreCellY+1);  // ajoute taille X
-  SetLength(TamponTCO,NbreCellX+2,NbreCellY+1);  // ajoute taille X
-  
+  SetLength(TCO,NbreCellX+3,NbreCellY+2);  // ajoute taille X
+  SetLength(TamponTCO,NbreCellX+3,NbreCellY+2);  // ajoute taille X
+
   for x:=NbreCellX downto XClicCell+1 do
   begin
     for y:=1 to NbreCellY do tco[x+1,y]:=tco[x,y];
@@ -11347,8 +11467,8 @@ begin
     tco[NbreCellx,y].FeuOriente:=0;
   end;
   dec(NbreCellX);
-  SetLength(TCO,NbreCellX+1,NbreCellY+1);  // ajuste taille
-  SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);  // ajuste taille
+  SetLength(TCO,NbreCellX+2,NbreCellY+2);  // ajuste taille
+  SetLength(TamponTCO,NbreCellX+2,NbreCellY+2);  // ajuste taille
 
   affiche_TCO;
 end;
@@ -11547,25 +11667,6 @@ begin
   else stop_modetrace;
   defocusControl(buttonDessiner,true);
 end;
-
-procedure TFormTCO.ButtonTrajetClick(Sender: TObject);
-var c : Tcanvas;
-begin
-  c:=FormTCO.ImageTCO.canvas;
-  //efface_cellule(c,5,1,pmcopy);
-  TCO[5,1].Adresse:=1;dessin_2(c,5,1,1);
-  TCO[7,1].Adresse:=1;dessin_3(c,7,1,1);
-  TCO[9,1].Adresse:=1;dessin_4(c,9,1,1);
-  TCO[11,1].Adresse:=1;dessin_5(c,11,1,1);
-  TCO[5,3].Adresse:=1;dessin_12(c,5,3,1);
-  TCO[7,3].Adresse:=1;dessin_13(c,7,3,1);
-  TCO[9,3].Adresse:=1;dessin_14(c,9,3,1);
-  TCO[11,3].Adresse:=1;dessin_15(c,11,3,1);
-  TCO[5,5].Adresse:=1;dessin_24(c,5,5,1);
-  
-
-end;
-
 
 
 procedure TFormTCO.ImagePalette26DragOver(Sender, Source: TObject; X,
@@ -11880,5 +11981,7 @@ procedure TFormTCO.EditAdrElementClick(Sender: TObject);
 begin
   auto_tcurs:=false;
 end;
+
+
 
 end.

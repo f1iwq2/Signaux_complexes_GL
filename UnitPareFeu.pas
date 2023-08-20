@@ -1,5 +1,7 @@
 unit UnitPareFeu;
 
+// créée une règle dans le parefeu windows pour autoriser tous les ports entre CDM et Signaux_complexes
+
 interface
 function verifie_regle : integer;
 function cree_regle : boolean;

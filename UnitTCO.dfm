@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 197
-  Top = 29
+  Left = 82
+  Top = 114
   Width = 1142
   Height = 678
   VertScrollBar.Visible = False
@@ -22,8 +22,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1134
-    647)
+    1126
+    640)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelCoord: TLabel
@@ -917,7 +917,7 @@ object FormTCO: TFormTCO
       OnMouseDown = ImagePalette34MouseDown
     end
     object ButtonSauveTCO: TButton
-      Left = 1025
+      Left = 1017
       Top = 48
       Width = 96
       Height = 33
@@ -929,7 +929,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1025
+      Left = 1017
       Top = 8
       Width = 96
       Height = 33
@@ -940,7 +940,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 928
+      Left = 920
       Top = 56
       Width = 89
       Height = 25
@@ -949,7 +949,7 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 928
+      Left = 912
       Top = 32
       Width = 89
       Height = 25
@@ -958,7 +958,7 @@ object FormTCO: TFormTCO
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1025
+      Left = 1017
       Top = 88
       Width = 96
       Height = 33
@@ -978,7 +978,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1025
+      Left = 1017
       Top = 128
       Width = 96
       Height = 33
@@ -1152,7 +1152,7 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 920
+      Left = 912
       Top = 128
       Width = 96
       Height = 33
@@ -1164,7 +1164,7 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 848
+      Left = 840
       Top = 136
       Width = 75
       Height = 25
@@ -1173,7 +1173,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 920
+      Left = 912
       Top = 88
       Width = 96
       Height = 33
@@ -1187,15 +1187,6 @@ object FormTCO: TFormTCO
       TabOrder = 10
       TabStop = False
       OnClick = ButtonDessinerClick
-    end
-    object ButtonTrajet: TButton
-      Left = 936
-      Top = 8
-      Width = 75
-      Height = 25
-      Caption = 'Trajets'
-      TabOrder = 11
-      OnClick = ButtonTrajetClick
     end
   end
   object ButtonAfficheBandeau: TButton

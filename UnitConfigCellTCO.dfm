@@ -11,6 +11,7 @@ object FormConfCellTCO: TFormConfCellTCO
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   OnActivate = FormActivate
   OnCreate = FormCreate
@@ -102,17 +103,6 @@ object FormConfCellTCO: TFormConfCellTCO
       Font.Style = []
       ParentFont = False
     end
-    object ImagePalette: TImage
-      Left = 112
-      Top = 24
-      Width = 41
-      Height = 41
-      Hint = 'Voie pouvant porter un d'#233'tecteur'
-      DragMode = dmAutomatic
-      ParentShowHint = False
-      ShowHint = True
-      Stretch = True
-    end
     object Label2: TLabel
       Left = 168
       Top = 14
@@ -125,6 +115,13 @@ object FormConfCellTCO: TFormConfCellTCO
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
+    end
+    object ImagePaletteCC: TImage
+      Left = 112
+      Top = 24
+      Width = 49
+      Height = 49
+      OnMouseDown = ImagePaletteCCMouseDown
     end
     object EditTypeImage: TEdit
       Left = 32

@@ -174,7 +174,13 @@ version 6.4  : Gestion des signaux belges (avec chevron et réduction de vitesse)
 version 7.0  : Possibilité de créer des décodeurs spécifiques de signaux.
                Affichage du feu blanc sur les signaux sur position spécifique d'aiguillages.
 version 7.1  : Nouveaux éléments graphiques pour le TCO.
+version 7.11 : Renvoi de la consigne de vitesse au trains après 1s en mode roulage.
+               Correction d'un bug sur le verrouillage au carré des signaux.
+               Possibilité de générer des évènements détecteurs depuis le TCO.
+version 7.2  : Possibilité de dessiner des voies fines et épaisses dans le TCO
+               par exemple pour distinguer les voies principales et les bretelles.
 
+               
 
 
 
