@@ -276,7 +276,8 @@ procedure Maj_DB;
 var s : string;
 begin
   s:=encode_sig_feux(indexSig);
-  formconfig.RichSig.Lines[indexSig-1]:=s;
+  formconfig.ListBoxSig.items[indexSig-1]:=s;
+  formconfig.ListBoxSig.selected[ligneClicSig]:=true;
   aff_champs_sig_feux(indexSig);
 end;  
 

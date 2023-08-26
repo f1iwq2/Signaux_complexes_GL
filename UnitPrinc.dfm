@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 22
-  Top = 241
-  Width = 1227
-  Height = 671
+  Left = 64
+  Top = 216
+  Width = 1222
+  Height = 652
   Caption = 'Signaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,8 +17,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1219
-    620)
+    1206
+    594)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1187,7 +1187,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelEtat: TLabel
-    Left = 454
+    Left = 449
     Top = 8
     Width = 152
     Height = 18
@@ -1203,7 +1203,7 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 598
+    Height = 572
   end
   object ImageSignal20: TImage
     Left = 384
@@ -1445,10 +1445,10 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object ScrollBox1: TScrollBox
-    Left = 630
+    Left = 625
     Top = 200
     Width = 563
-    Height = 392
+    Height = 373
     HorzScrollBar.Increment = 48
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -1459,7 +1459,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 0
   end
   object GroupBox1: TGroupBox
-    Left = 630
+    Left = 625
     Top = 5
     Width = 265
     Height = 52
@@ -1507,8 +1507,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 598
-    Width = 1219
+    Top = 572
+    Width = 1206
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1524,7 +1524,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Panel1: TPanel
-    Left = 918
+    Left = 913
     Top = 5
     Width = 282
     Height = 148
@@ -1629,7 +1629,7 @@ object FormPrinc: TFormPrinc
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 568
+    Top = 549
     Width = 14
     Height = 17
     Anchors = [akLeft, akBottom]
@@ -1637,7 +1637,7 @@ object FormPrinc: TFormPrinc
     TabOrder = 5
   end
   object GroupBox2: TGroupBox
-    Left = 647
+    Left = 642
     Top = 64
     Width = 265
     Height = 105
@@ -1699,7 +1699,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object GroupBox3: TGroupBox
-    Left = 630
+    Left = 625
     Top = 64
     Width = 265
     Height = 129
@@ -1935,7 +1935,7 @@ object FormPrinc: TFormPrinc
     end
   end
   object ButtonEnv: TButton
-    Left = 1078
+    Left = 1073
     Top = 160
     Width = 113
     Height = 33
@@ -1946,7 +1946,7 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonEnvClick
   end
   object EditEnvoi: TEdit
-    Left = 950
+    Left = 945
     Top = 168
     Width = 121
     Height = 21
@@ -1955,7 +1955,7 @@ object FormPrinc: TFormPrinc
     Text = '<1>'
   end
   object Button1: TButton
-    Left = 494
+    Left = 489
     Top = 0
     Width = 75
     Height = 25

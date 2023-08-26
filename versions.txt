@@ -179,8 +179,8 @@ version 7.11 : Renvoi de la consigne de vitesse au trains après 1s en mode roula
                Possibilité de générer des évènements détecteurs depuis le TCO.
 version 7.2  : Possibilité de dessiner des voies fines et épaisses dans le TCO
                par exemple pour distinguer les voies principales et les bretelles.
-
-               
+version 7.3  : Correction d'un bug sur le pilotage des aiguillages via CDM rail
+                
 
 
 

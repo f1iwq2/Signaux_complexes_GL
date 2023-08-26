@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 17/8 10h
+// 23/8 16h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -1849,12 +1849,12 @@ end;
 // créée une image dynamiquement pour un nouveau signal déclaré dans le fichier de config
 // rang commence à 1
 procedure cree_image(rang : integer);
-var adresse,TypeFeu : integer;
+var adresse,TypeSignal : integer;
     s : string;
     T_BP : TBitMap;
 begin
-  TypeFeu:=feux[rang].aspect;
-  if typeFeu<=0 then exit;
+  TypeSignal:=feux[rang].aspect;
+  if typeSignal<=0 then exit;
   adresse:=feux[rang].adresse;
   Feux[rang].Img:=Timage.create(Formprinc.ScrollBox1);
   if feux[rang].Img=nil then begin affiche('Erreur 900 : impossible de créer une image',clred);exit;end;
@@ -1884,7 +1884,7 @@ begin
     PopUpMenu:=Formprinc.PopupMenuFeu;  // affectation popupmenu sur clic droit
 
     // affecter le type d'image de feu dans l'image créée
-    T_BP:=Select_dessin_feu(TypeFeu);
+    T_BP:=Select_dessin_feu(TypeSignal);
     if T_BP=nil then
     begin
       Affiche('Erreur 418 : sélection type signal incorrecte pour signal '+intToSTR(adresse),clred);
@@ -1898,13 +1898,13 @@ begin
     Transparent:=true;
 
     // mettre rouge par défaut
-    if TypeFeu=2 then feux[rang].EtatSignal:=violet_F;
-    if TypeFeu=3 then feux[rang].EtatSignal:=semaphore_F;
-    if (TypeFeu>3) and (TypeFeu<10) and feux[rang].VerrouCarre then feux[rang].EtatSignal:=carre_F;
-    if (TypeFeu>3) and (TypeFeu<10) and not(feux[rang].VerrouCarre) then feux[rang].EtatSignal:=semaphore_F;
-    if (TypeFeu>10) and (typeFeu<20) then feux[rang].EtatSignal:=0;
+    if TypeSignal=2 then feux[rang].EtatSignal:=violet_F;
+    if TypeSignal=3 then feux[rang].EtatSignal:=semaphore_F;
+    if (TypeSignal>3) and (TypeSignal<10) and feux[rang].VerrouCarre then feux[rang].EtatSignal:=carre_F;
+    if (TypeSignal>3) and (TypeSignal<10) and not(feux[rang].VerrouCarre) then feux[rang].EtatSignal:=semaphore_F;
+    if (TypeSignal>10) and (TypeSignal<20) then feux[rang].EtatSignal:=0;
 
-    if typeFeu=20 then
+    if TypeSignal=20 then // signal belge
     begin
       feux[rang].EtatSignal:=semaphore_F;
       if feux[rang].contrevoie then
@@ -1950,7 +1950,7 @@ begin
   else Feux[rang].checkFB:=nil;
 end;
 
-// ajoute en bout de chaine le checksum d'une trame
+// ajoute en bout de chaine le checksum d'une trame (pour XpressNet)
 Function Checksum(s : string) : string;
 var i : integer;
     check : byte;
@@ -2143,6 +2143,7 @@ begin
   o	3: dévié gauche
   o	4: pos. droite #2 (TJD 4 états)
   o	5: pos. déviée #2 (TJD 4 états)
+  en fait seules les fonctions 1 et 2 fonctionnent...
   }
   so:=place_id('C-C-01-0004-CMDACC-DCCAC');
   s:=s+'AD='+format('%.*d',[1,adresse])+';';
@@ -2443,7 +2444,7 @@ begin
     trains[index].vitesse:=vitesse;
     trains[index].compteur_consigne:=10;
   end;  
-  
+
 end;
 
 // renvoie la chaîne de l'état du signal
@@ -10303,15 +10304,15 @@ end;
 
 // pilotage d'un accessoire (décodeur d'aiguillage, de signal) et génère l'event aig
 // par CDM ou interface
-// octet = 1 (dévié) ou 2 (droit)
+// octet = 1 (dévié) ou 2 (droit) si 0 on ne traite pas
+// uniquement en mode autonome:
 // si acc=Taig, alors la sortie "octet" est mise à 1 puis à 0
 // si acc=feu,  alors la sortie "octet" est mise à 1 uniquement.
 // Résultat true si ok
 function pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire): boolean;
 var  groupe,temp,indexAig,AdrTrain : integer ;
-     fonction,pilotage : byte;
+     fonction,pilotage,pilotageCDM : byte;
      s : string;
-label mise0;
 begin
   //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
 
@@ -10339,18 +10340,14 @@ begin
     //AfficheDebug(intToSTR(adresse),clred);
     if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
     if aff_acc then Affiche('Accessoire '+intToSTR(adresse)+' à '+intToSTR(pilotage),clorange);
-    s:=chaine_CDM_Acc(adresse,pilotage);
-    envoi_CDM(s);
-    if (acc=feu) and not(Raz_Acc_signaux) then exit;
+    if pilotage=1 then pilotageCDM:=1;     // 3 = wrong state or value
+    if pilotage=2 then pilotageCDM:=2;
 
-    sleep(50);
-    if debug_dec_sig and (acc=feu) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' 0',clorange);
-    if aff_acc then Affiche('Accessoire '+intToSTR(adresse)+' à 0',clorange);
-    s:=chaine_CDM_Acc(adresse,0);
+    s:=chaine_CDM_Acc(adresse,pilotageCDM);
     envoi_CDM(s);
     event_aig(adresse,pilotage);
     result:=true;
-    exit;
+    exit;  
   end;
 
   if (pilotage=0) or (pilotage>2) then exit;
@@ -11375,7 +11372,7 @@ begin
   end;
 end;
 
-// renvoie le handle de la frnêtre du programme de processID (CDMrail)
+// renvoie le handle de la fenêtre du programme de processID (CDMrail)
 Function GetWindowFromID(ProcessID : Cardinal): THandle;
 Var TestID  : Cardinal;
     TestHandle : Thandle;
@@ -12662,11 +12659,9 @@ begin
     exit;
   end;
 
-  if pilote_acc(adr,const_droit,aigP) then
-  begin
-    s:='accessoire '+IntToSTR(adr)+' droit';
-    Affiche(s,clyellow);
-  end;
+  pilote_acc(adr,const_droit,aigP);
+  s:='accessoire '+IntToSTR(adr)+' droit';
+  Affiche(s,clyellow);
   Self.ActiveControl:=nil;
 end;
 
@@ -14291,7 +14286,6 @@ end;
 
 procedure TFormPrinc.Etatdessignaux1Click(Sender: TObject);
 var Adr,etat,i : integer;
-    aspect,combine,nation : integer;
     s : string;
 begin
   for i:=1 to NbreFeux do
@@ -14908,10 +14902,10 @@ begin
   if v_publie>0 then
   begin
     val(version,V_utile,erreur);
-    if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' est à jour',clLime);
+    if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' publiée le '+date_creation+' est à jour',clLime);
     if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end
-  else Affiche('Site CDM-Rail inateignable',clred);
+  else Affiche('Site github.com inatteignable - réessayer plus tard',clred);
 end;
 
 procedure TFormPrinc.Analyser1Click(Sender: TObject);
@@ -14921,7 +14915,7 @@ begin
   s1:=lowercase(fenRich.Lines[0]);
   if pos('module',s1)=0 then
   begin
-    Affiche('Pas de module détecté',clyellow);
+    Affiche('Pas de module réseau CDM détecté.',clyellow);
     Affiche('Procédure: dans CDM RAIL ouvrez votre réseau ; Menu ... / TrackDrawing  / Module Display',clLime);
     Affiche('Attention : nécessite la version >=23.05 de CDM',clLime);
     Affiche('Cela ouvre une fenêtre DEBUG dans cdm',clLime);

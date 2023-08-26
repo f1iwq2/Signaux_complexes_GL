@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 243
-  Top = 134
+  Left = 164
+  Top = 114
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -2374,13 +2374,6 @@ object FormConfig: TFormConfig
           'Liste de mod'#233'lisation des aiguillages - cliquez sur une ligne po' +
           'ur afficher la description de l'#39'aiguillage'
       end
-      object Label28: TLabel
-        Left = 88
-        Top = 208
-        Width = 52
-        Height = 13
-        Caption = 'LabelTJD1'
-      end
       object GroupBox11: TGroupBox
         Left = 328
         Top = 32
@@ -2771,6 +2764,11 @@ object FormConfig: TFormConfig
             Top = 48
             Width = 41
             Height = 21
+            Hint = 
+              'Temporisation de dur'#233'e de l'#39'impulsion de pilotage - Uniquement e' +
+              'n mode autonome'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 0
             OnChange = EditTempo10Change
           end
@@ -2822,33 +2820,13 @@ object FormConfig: TFormConfig
           end
         end
       end
-      object RichAig: TRichEdit
-        Left = 0
-        Top = 64
-        Width = 321
-        Height = 385
-        Color = clBlack
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clYellow
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        HideSelection = False
-        ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssBoth
-        TabOrder = 1
-        WordWrap = False
-        OnKeyDown = RichAigKeyDown
-        OnMouseDown = RichAigMouseDown
-      end
       object ButtonNouvAig: TButton
         Left = 0
         Top = 32
         Width = 65
         Height = 17
         Caption = 'Nouveau'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = ButtonNouvAigClick
       end
       object BoutSupAig: TButton
@@ -2857,7 +2835,7 @@ object FormConfig: TFormConfig
         Width = 65
         Height = 17
         Caption = 'Supprime'
-        TabOrder = 3
+        TabOrder = 2
         OnClick = BoutSupAigClick
       end
       object ButtonAjSup: TButton
@@ -2866,8 +2844,28 @@ object FormConfig: TFormConfig
         Width = 121
         Height = 17
         Caption = 'Ajoute l'#39'aig supprim'#233
-        TabOrder = 4
+        TabOrder = 3
         OnClick = ButtonAjSupClick
+      end
+      object ListBoxAig: TListBox
+        Left = 0
+        Top = 56
+        Width = 305
+        Height = 353
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        PopupMenu = PopupMenuListes
+        TabOrder = 4
+        OnDrawItem = ListBoxAigDrawItem
+        OnKeyDown = ListBoxAigKeyDown
+        OnMouseDown = ListBoxAigMouseDown
       end
     end
     object TabSheetBranches: TTabSheet
@@ -2955,7 +2953,7 @@ object FormConfig: TFormConfig
         Lines.Strings = (
           'RichBranche')
         ParentFont = False
-        PopupMenu = PopupMenuConfig
+        PopupMenu = PopupMenuBranches
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
@@ -3170,6 +3168,7 @@ object FormConfig: TFormConfig
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
+          Color = clScrollBar
           ParentShowHint = False
           ScrollBars = ssBoth
           ShowHint = True
@@ -3387,6 +3386,7 @@ object FormConfig: TFormConfig
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
+          Color = clScrollBar
           ParentShowHint = False
           ScrollBars = ssBoth
           ShowHint = True
@@ -3394,35 +3394,13 @@ object FormConfig: TFormConfig
           OnChange = MemoBlancChange
         end
       end
-      object RichSig: TRichEdit
-        Left = 0
-        Top = 56
-        Width = 329
-        Height = 345
-        Color = clBlack
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clYellow
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        HideSelection = False
-        Lines.Strings = (
-          'RichSig')
-        ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssBoth
-        TabOrder = 1
-        WordWrap = False
-        OnKeyDown = RichSigKeyDown
-        OnMouseDown = RichSigMouseDown
-      end
       object ButtonNouvFeu: TButton
         Left = 0
         Top = 32
         Width = 65
         Height = 17
         Caption = 'Nouveau'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = ButtonNouvFeuClick
       end
       object ButtonSupFeu: TButton
@@ -3431,7 +3409,7 @@ object FormConfig: TFormConfig
         Width = 65
         Height = 17
         Caption = 'Supprime'
-        TabOrder = 3
+        TabOrder = 2
         OnClick = ButtonSupFeuClick
       end
       object ButtonInsFeu: TButton
@@ -3440,7 +3418,7 @@ object FormConfig: TFormConfig
         Width = 153
         Height = 17
         Caption = 'Ajouter le signal supprim'#233
-        TabOrder = 4
+        TabOrder = 3
         OnClick = ButtonInsFeuClick
       end
       object CheckBoxRazSignaux: TCheckBox
@@ -3452,15 +3430,34 @@ object FormConfig: TFormConfig
         Caption = 'Raz signaux apr'#232's commande'
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 5
+        TabOrder = 4
       end
       object EditTempoFeu: TEdit
         Left = 0
         Top = 440
         Width = 33
         Height = 21
-        TabOrder = 6
+        TabOrder = 5
         OnChange = EditTempoFeuChange
+      end
+      object ListBoxSig: TListBox
+        Left = 0
+        Top = 56
+        Width = 321
+        Height = 337
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        PopupMenu = PopupMenuListes
+        TabOrder = 6
+        OnKeyDown = ListBoxSigKeyDown
+        OnMouseDown = ListBoxSigMouseDown
       end
     end
     object TabSheetDecodeurs: TTabSheet
@@ -3575,7 +3572,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3593,12 +3590,10 @@ object FormConfig: TFormConfig
           Top = 176
           Width = 145
           Height = 21
+          Style = csDropDownList
           ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
-          Items.Strings = (
-            'Fran'#231'aise'
-            'Belge')
         end
         object BoutonNouveau: TButton
           Left = 86
@@ -3998,7 +3993,7 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPN: TGroupBox
-          Left = 200
+          Left = 32
           Top = 16
           Width = 233
           Height = 401
@@ -4360,6 +4355,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'D'#233'tecteur 2 zone de fermeture'
             TabOrder = 29
+            OnChange = EditZdet2V4FChange
           end
           object EditZdet1V4O: TEdit
             Left = 152
@@ -4498,25 +4494,24 @@ object FormConfig: TFormConfig
           TabOrder = 1
           OnClick = ButtonSupAccClick
         end
-        object RichAct: TRichEdit
+        object ListBoxAct: TListBox
           Left = 8
           Top = 48
           Width = 329
           Height = 161
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
-          Font.Color = clYellow
+          Font.Color = clAqua
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          HideSelection = False
+          ItemHeight = 13
+          MultiSelect = True
           ParentFont = False
-          ReadOnly = True
-          ScrollBars = ssBoth
+          PopupMenu = PopupMenuListes
           TabOrder = 2
-          WordWrap = False
-          OnKeyDown = RichActKeyDown
-          OnMouseDown = RichActMouseDown
+          OnKeyDown = ListBoxActKeyDown
+          OnMouseDown = ListBoxActMouseDown
         end
       end
       object GroupBox17: TGroupBox
@@ -4547,25 +4542,24 @@ object FormConfig: TFormConfig
           TabOrder = 1
           OnClick = ButtonSupPNClick
         end
-        object RichPN: TRichEdit
+        object ListBoxPN: TListBox
           Left = 8
           Top = 48
           Width = 329
           Height = 137
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
-          Font.Color = clYellow
+          Font.Color = clAqua
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          HideSelection = False
+          ItemHeight = 13
+          MultiSelect = True
           ParentFont = False
-          ReadOnly = True
-          ScrollBars = ssBoth
+          PopupMenu = PopupMenuListes
           TabOrder = 2
-          WordWrap = False
-          OnKeyDown = RichPNKeyDown
-          OnMouseDown = RichPNMouseDown
+          OnKeyDown = ListBoxPNKeyDown
+          OnMouseDown = ListBoxPNMouseDown
         end
       end
     end
@@ -4583,7 +4577,7 @@ object FormConfig: TFormConfig
       end
       object Image2: TImage
         Left = 248
-        Top = 408
+        Top = 400
         Width = 105
         Height = 65
         Picture.Data = {
@@ -4726,7 +4720,7 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 64
         Width = 577
-        Height = 225
+        Height = 217
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -4741,9 +4735,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox23: TGroupBox
         Left = 8
-        Top = 328
+        Top = 320
         Width = 577
-        Height = 81
+        Height = 73
         Caption = 'Options'
         TabOrder = 1
         object Label29: TLabel
@@ -4778,7 +4772,7 @@ object FormConfig: TFormConfig
       end
       object ButtonEnv: TButton
         Left = 8
-        Top = 296
+        Top = 288
         Width = 129
         Height = 25
         Hint = 'Envoi les commandes si l'#39'interface DCC++ est connect'#233'e'
@@ -4930,31 +4924,13 @@ object FormConfig: TFormConfig
           FFFFFFFFFFFFFFFFFF0000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00}
         Transparent = True
       end
-      object RichEditTrains: TRichEdit
-        Left = 8
-        Top = 64
-        Width = 289
-        Height = 385
-        Color = clBlack
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clAqua
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        HideSelection = False
-        ParentFont = False
-        ReadOnly = True
-        TabOrder = 0
-        OnKeyDown = RichEditTrainsKeyDown
-        OnMouseDown = RichEditTrainsMouseDown
-      end
       object GroupBox24: TGroupBox
         Left = 312
         Top = 64
         Width = 297
         Height = 161
         Caption = 'Trains'
-        TabOrder = 1
+        TabOrder = 0
         object Label51: TLabel
           Left = 16
           Top = 48
@@ -5052,7 +5028,7 @@ object FormConfig: TFormConfig
         Width = 73
         Height = 17
         Caption = 'Nouveau'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = ButtonNTClick
       end
       object ButtonSupprime: TButton
@@ -5061,8 +5037,27 @@ object FormConfig: TFormConfig
         Width = 75
         Height = 17
         Caption = 'Supprime'
-        TabOrder = 3
+        TabOrder = 2
         OnClick = ButtonSupprimeClick
+      end
+      object ListBoxTrains: TListBox
+        Left = 8
+        Top = 64
+        Width = 281
+        Height = 345
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        PopupMenu = PopupMenuListes
+        TabOrder = 3
+        OnKeyDown = ListBoxTrainsKeyDown
+        OnMouseDown = ListBoxTrainsMouseDown
       end
     end
   end
@@ -5082,7 +5077,7 @@ object FormConfig: TFormConfig
     Left = 668
     Top = 468
   end
-  object PopupMenuConfig: TPopupMenu
+  object PopupMenuBranches: TPopupMenu
     Left = 728
     Top = 88
     object Copier1: TMenuItem
@@ -5092,6 +5087,36 @@ object FormConfig: TFormConfig
     object Coller1: TMenuItem
       Caption = 'Coller'
       OnClick = Coller1Click
+    end
+  end
+  object PopupMenuListes: TPopupMenu
+    Left = 800
+    Top = 88
+    object Slectionnertout1: TMenuItem
+      Caption = 'S'#233'lectionner tout'
+      Hint = 'S'#233'lectionne toutes les lignes'
+      OnClick = Slectionnertout1Click
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Nouveau1: TMenuItem
+      Caption = 'Nouveau'
+      Hint = 'Cr'#233#233'e un nouvel '#233'l'#233'ment'
+      OnClick = Nouveau1Click
+    end
+    object Supprimer1: TMenuItem
+      Caption = 'Supprimer'
+      Hint = 'Supprime un ou des '#233'l'#233'ments s'#233'lectionn'#233's'
+      OnClick = Supprimer1Click
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object outcopierentatquetexte1: TMenuItem
+      Caption = 'Tout copier en tant que texte'
+      Hint = 'Copie tout le contenu en tant que texte dans le presse-papier'
+      OnClick = outcopierentatquetexte1Click
     end
   end
 end

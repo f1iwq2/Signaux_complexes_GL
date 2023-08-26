@@ -337,8 +337,6 @@ begin
 end;
 
 procedure TFormConfCellTCO.FormCreate(Sender: TObject);
-var i,x,y : integer;
-    image,imagesrc : Timage;
 begin
   // fenetre toujours dessus
   if affevt then Affiche('FormConfCellTCO create',clyellow);
@@ -513,7 +511,7 @@ end;
 
 procedure TFormConfCellTCO.ImagePaletteCCMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var c,x0,y0,xc,yc,xf,yf,element,i,erreur,x1,y1,x2,y2,c1,c2,c3,c4 : integer;
+var c,x0,y0,xc,yc,xf,yf,element,i,erreur,x1,y1,c1,c2,c3,c4 : integer;
 begin
   x0:=0;       // x origine
   y0:=0;       // y origine

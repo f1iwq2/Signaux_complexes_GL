@@ -204,7 +204,8 @@ procedure Maj_DB;
 var s : string;
 begin
   s:=encode_sig_feux(index);
-  formconfig.RichSig.Lines[index-1]:=s;
+  formconfig.ListBoxSig.items[index-1]:=s;
+  formconfig.ListBoxSig.selected[ligneClicSig]:=true;
   aff_champs_sig_feux(index);
 end;
 
