@@ -1,10 +1,10 @@
 object FormTCO: TFormTCO
-  Left = 82
-  Top = 114
-  Width = 1142
-  Height = 678
+  Left = 118
+  Top = 115
+  Width = 1209
+  Height = 580
   VertScrollBar.Visible = False
-  Caption = 'FormTCO'
+  Caption = 'c'
   Color = clBtnFace
   DragMode = dmAutomatic
   Font.Charset = DEFAULT_CHARSET
@@ -22,81 +22,41 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1126
-    640)
+    1193
+    542)
   PixelsPerInch = 96
   TextHeight = 13
-  object LabelCoord: TLabel
-    Left = 64
-    Top = 0
-    Width = 18
-    Height = 16
-    Caption = '0,0'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Arial'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object LabelCellule: TLabel
-    Left = 8
-    Top = 0
-    Width = 49
-    Height = 16
-    Caption = 'Cellule'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object SourisX: TLabel
-    Left = 128
-    Top = 2
-    Width = 6
-    Height = 13
-    Caption = '0'
-  end
-  object SourisY: TLabel
-    Left = 168
-    Top = 2
-    Width = 6
-    Height = 13
-    Caption = '0'
-  end
   object LabelZoom: TLabel
-    Left = 1078
-    Top = 391
+    Left = 1164
+    Top = 3
     Width = 32
     Height = 13
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop, akRight]
     Caption = 'Zoom'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -12
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 952
-    Top = 64
+    Left = 731
+    Top = 123
     Width = 121
     Height = 121
   end
   object ImageTemp2: TImage
-    Left = 952
-    Top = 200
+    Left = 731
+    Top = 252
     Width = 121
     Height = 121
   end
   object ScrollBox: TScrollBox
-    Left = 16
-    Top = 26
-    Width = 828
-    Height = 351
+    Left = 10
+    Top = 15
+    Width = 943
+    Height = 330
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -107,13 +67,13 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      824
-      347)
+      939
+      326)
     object ImageTCO: TImage
       Left = 48
-      Top = 32
-      Width = 716
-      Height = 305
+      Top = 25
+      Width = 642
+      Height = 143
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -127,11 +87,11 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1078
+    Left = 1154
     Top = 18
     Width = 41
-    Height = 350
-    Anchors = [akTop, akRight, akBottom]
+    Height = 311
+    Anchors = [akTop, akRight]
     Ctl3D = True
     Max = 50
     Min = 20
@@ -144,10 +104,10 @@ object FormTCO: TFormTCO
     OnChange = TrackBarZoomChange
   end
   object Panel1: TPanel
-    Left = 8
-    Top = 464
-    Width = 1124
-    Height = 173
+    Left = 2
+    Top = 360
+    Width = 1085
+    Height = 185
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
     Font.Charset = ANSI_CHARSET
@@ -159,8 +119,8 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1124
-      173)
+      1085
+      185)
     object Label1: TLabel
       Left = 216
       Top = 22
@@ -909,15 +869,40 @@ object FormTCO: TFormTCO
     end
     object ImagePalette34: TImage
       Left = 232
-      Top = 136
+      Top = 144
       Width = 33
       Height = 33
       OnDragOver = ImagePalette34DragOver
       OnEndDrag = ImagePalette34EndDrag
       OnMouseDown = ImagePalette34MouseDown
     end
+    object ImagePalette52: TImage
+      Left = 808
+      Top = 104
+      Width = 33
+      Height = 33
+      Hint = 'Action'
+      ParentShowHint = False
+      ShowHint = True
+      OnDragOver = ImagePalette52DragOver
+      OnEndDrag = ImagePalette52EndDrag
+      OnMouseDown = ImagePalette52MouseDown
+    end
+    object Label52: TLabel
+      Left = 776
+      Top = 110
+      Width = 18
+      Height = 19
+      Caption = '52'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object ButtonSauveTCO: TButton
-      Left = 1017
+      Left = 979
       Top = 48
       Width = 96
       Height = 33
@@ -929,7 +914,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonRedessine: TButton
-      Left = 1017
+      Left = 979
       Top = 8
       Width = 96
       Height = 33
@@ -940,25 +925,27 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 920
-      Top = 56
-      Width = 89
+      Left = 860
+      Top = 96
+      Width = 57
       Height = 25
+      Anchors = [akTop, akRight]
       Caption = 'Simu det 1'
       TabOrder = 2
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 912
-      Top = 32
-      Width = 89
+      Left = 860
+      Top = 64
+      Width = 57
       Height = 25
+      Anchors = [akTop, akRight]
       Caption = 'Simu Det 0'
       TabOrder = 3
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 1017
+      Left = 979
       Top = 88
       Width = 96
       Height = 33
@@ -969,16 +956,17 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 728
+      Left = 740
       Top = 136
       Width = 113
       Height = 25
+      Anchors = [akTop, akRight]
       Caption = 'Simu canton occup'#233
       TabOrder = 5
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1017
+      Left = 979
       Top = 128
       Width = 96
       Height = 33
@@ -997,7 +985,7 @@ object FormTCO: TFormTCO
       Caption = 'Configuration cellule'
       Font.Charset = ANSI_CHARSET
       Font.Color = clBackground
-      Font.Height = -9
+      Font.Height = -12
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
@@ -1005,12 +993,12 @@ object FormTCO: TFormTCO
       object Label41: TLabel
         Left = 8
         Top = 16
-        Width = 103
-        Height = 16
+        Width = 120
+        Height = 20
         Caption = 'Adresse de l'#39#233'l'#233'ment: '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -13
+        Font.Height = -15
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
@@ -1018,12 +1006,12 @@ object FormTCO: TFormTCO
       object Label71: TLabel
         Left = 8
         Top = 38
-        Width = 93
-        Height = 16
+        Width = 111
+        Height = 20
         Caption = 'Image de l'#39#233'l'#233'ment: '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -13
+        Font.Height = -15
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
@@ -1031,12 +1019,12 @@ object FormTCO: TFormTCO
       object Label230: TLabel
         Left = 56
         Top = 64
-        Width = 27
-        Height = 16
+        Width = 32
+        Height = 20
         Caption = 'Texte'
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -13
+        Font.Height = -15
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
@@ -1044,12 +1032,12 @@ object FormTCO: TFormTCO
       object Label65: TLabel
         Left = 8
         Top = 88
-        Width = 75
-        Height = 16
+        Width = 89
+        Height = 20
         Caption = 'position du texte'
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -15
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
@@ -1121,7 +1109,8 @@ object FormTCO: TFormTCO
           'Sans'
           'Centrale'
           'Haut'
-          'Bas')
+          'Bas'
+          'R'#233'parti')
       end
       object CheckPinv: TCheckBox
         Left = 8
@@ -1147,14 +1136,20 @@ object FormTCO: TFormTCO
         Width = 81
         Height = 18
         Caption = 'Couleur de fond'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBackground
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 6
         OnClick = ButtonCoulFondClick
       end
     end
     object buttonRaz: TButton
-      Left = 912
+      Left = 873
       Top = 128
-      Width = 96
+      Width = 97
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
@@ -1164,18 +1159,19 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 840
+      Left = 852
       Top = 136
       Width = 75
       Height = 25
+      Anchors = [akTop, akRight]
       Caption = 'Calibrage'
       TabOrder = 9
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 912
+      Left = 873
       Top = 88
-      Width = 96
+      Width = 97
       Height = 33
       Hint = 
         'Dessine le TCO '#224' la souris. Clic droit pour lever le pointeur. T' +
@@ -1188,13 +1184,24 @@ object FormTCO: TFormTCO
       TabStop = False
       OnClick = ButtonDessinerClick
     end
+    object ButtonAffSC: TButton
+      Left = 873
+      Top = 48
+      Width = 97
+      Height = 33
+      Anchors = [akTop, akRight]
+      Caption = 'Afficher Signaux Complexes'
+      TabOrder = 11
+      WordWrap = True
+      OnClick = ButtonAffSCClick
+    end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 1070
-    Top = 415
-    Width = 57
-    Height = 33
-    Anchors = [akRight, akBottom]
+    Left = 876
+    Top = 408
+    Width = 56
+    Height = 32
+    Anchors = [akTop, akRight]
     Caption = 'Affiche Bandeau'
     TabOrder = 3
     WordWrap = True

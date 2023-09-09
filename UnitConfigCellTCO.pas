@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, UnitTCO, ExtCtrls,
+  Dialogs, StdCtrls, ExtCtrls,
   Buttons;
 
 type
@@ -19,17 +19,23 @@ type
     EditTypeImage: TEdit;
     CheckPinv: TCheckBox;
     Label2: TLabel;
-    GroupBox3: TGroupBox;
+    GroupBoxOrientation: TGroupBox;
     RadioButtonHG: TRadioButton;
     RadioButtonV: TRadioButton;
     RadioButtonHD: TRadioButton;
-    GroupBox4: TGroupBox;
+    GroupBoxImplantation: TGroupBox;
     RadioButtonG: TRadioButton;
     RadioButtonD: TRadioButton;
     EditAdrElement: TEdit;
     ButtonFond: TButton;
     BitBtnOk: TBitBtn;
     ImagePaletteCC: TImage;
+    RadioGroupSel: TRadioGroup;
+    GroupBoxAction: TGroupBox;
+    RadioButtonAffTCO: TRadioButton;
+    EditNumTCO: TEdit;
+    RadioButtonSC: TRadioButton;
+    RadioButtonCDM: TRadioButton;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -48,6 +54,11 @@ type
     procedure EditTypeImageChange(Sender: TObject);
     procedure ImagePaletteCCMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure RadioButtonAffTCOClick(Sender: TObject);
+    procedure EditNumTCOChange(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure RadioButtonSCClick(Sender: TObject);
+    procedure RadioButtonCDMClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -56,49 +67,129 @@ type
 
 var
   FormConfCellTCO: TFormConfCellTCO;
-  actualize : boolean;
+  actualize,ConfCellTCO : boolean;
   IconeX,IconeY : integer;
   
-procedure actualise;
+procedure actualise(indexTCO : integer);
 
 implementation
 
 
-uses UnitPrinc,UnitAnalyseSegCDM,
-  UnitConfigTCO;
+uses UnitPrinc,UnitAnalyseSegCDM,UnitConfigTCO,UnitTCO;
 
 {$R *.dfm}
 
 // actualise le contenu de la fenetre et de la zone tco
-procedure actualise;
-var Bimage,oriente,piedFeu : integer;
+procedure actualise(indexTCO : integer);
+var Bimage,oriente,piedFeu,xclic,yclic : integer;
     s : string;
     ip : Timage;
     Bm : Tbitmap;
     r : trect;
 begin
+  if (indexTCO=0) or (formConfCellTCO=nil) then exit;
+  if affevt then affiche('FormConfigCellTCO actualise',clyellow);
+
+  xclic:=XclicCell[indexTCO];
+  yclic:=YclicCell[indexTCO];
+
   Bm:=formConfCellTCO.imagepalettecc.Picture.Bitmap;
-  Bimage:=tco[XClicCell,YClicCell].Bimage;
- 
-  if formConfCellTCOAff then
+  //with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
+  with FormConfCellTCO.ImagePaletteCC do
+  begin
+      // efface l'icone
+      Picture.Bitmap.width:=iconeX;
+      Picture.bitmap.height:=iconeY;
+      // effacer l'icone
+      r:=Rect(0,0,iconeX,iconeY);
+      //with FormConfCellTCO.ImagePaletteCC.canvas do
+      with Picture.Bitmap.Canvas do
+      // with Picture.Bitmap.Canvas do
+      begin
+        Pen.Mode:=pmCopy;
+        Pen.Width:=1;
+        Pen.color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond;
+        Brush.Color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].couleurFond;
+        Brush.style:=bsSolid;
+        fillRect(r);
+      end;
+  end;
+  FormConfCellTCO.ImagePaletteCC.Repaint;
+  Bimage:=tco[indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage;
+
+  if Bimage=Id_Action then
+  begin
+    with formConfCellTCO do
+    begin
+      GroupBoxOrientation.visible:=false;
+      GroupBoxImplantation.visible:=false;
+      with GroupBoxAction do
+      begin
+        visible:=true;
+        top:=152;
+        left:=8;
+        width:=249;
+        RadioButtonAffTCO.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=1;
+        RadioButtonSC.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=2;
+        RadioButtonCDM.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=3;
+        editNumTCO.Text:=intToSTR(tco[indexTCO,Xclic,Yclic].FeuOriente);
+      end;
+    end;
+  end
+  else
+  begin
+    with formConfCellTCO do
+    begin
+      with GroupBoxOrientation do
+      begin
+        visible:=true;
+        left:=8;
+        top:=152;
+      end;
+      GroupBoxImplantation.visible:=true;
+      GroupBoxAction.visible:=false;
+    end;
+  end;
+  
+
+  if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
+  begin
+    if tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].buttoir<>0 then
+    begin
+      formConfCellTCO.EditAdrElement.enabled:=false;
+      formTCO[indexTCO].EditAdrElement.enabled:=false;
+      tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Adresse:=0;
+    end
+    else
+    begin
+      formConfCellTCO.EditAdrElement.enabled:=true;
+      formTCO[indexTCO].EditAdrElement.enabled:=true;
+    end;
+  end
+  else
+  begin
+    formConfCellTCO.EditAdrElement.enabled:=true;
+    formTCO[indexTCO].EditAdrElement.enabled:=true;
+  end;
+
+  if ConfCellTCO then // si la form confcelltco est affichée
   begin
     // si aiguillage, mettre à jour l'option de pilotage inverse
-    if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13)
-       or (bimage=14) or (bimage=15) or (bimage=24) then
+    if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) or
+       (bimage=14) or (bimage=15) or (bimage=24) then
     begin
-
       // aiguillage inversé
       with FormConfCellTCO.CheckPinv do
       begin
         enabled:=true;
-        checked:=TCO[XClicCell,YClicCell].inverse;
+        checked:=TCO[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].inverse;
       end;
-      FormTCO.CheckPinv.checked:=TCO[XClicCell,YClicCell].inverse;
-      FormTCO.CheckPinv.enabled:=true ;
+      FormTCO[indexTCO].CheckPinv.checked:=TCO[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].inverse;
+      FormTCO[indexTCO].CheckPinv.enabled:=true ;
     end
     else
     begin
-      FormTCO.CheckPinv.enabled:=false;
+      FormTCO[indexTCO].CheckPinv.enabled:=false;
       FormConfCellTCO.checkPinv.enabled:=false;
     end;
   end;
@@ -106,8 +197,8 @@ begin
     // si voie ou rien ou signal ou quai
     if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=51) then
     begin
-      s:=Tco[XClicCell,YClicCell].Texte;
-      with formTCO do
+      s:=Tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Texte;
+      with formTCO[indexTCO] do
       begin
         EditTexte.Text:=s;
         EditTexte.Visible:=true;
@@ -116,29 +207,28 @@ begin
     end
     else
     begin
-      formTCO.EditTexte.Visible:=false;
-      formTCO.comboRepr.Enabled:=false;
+      formTCO[indexTCO].EditTexte.Visible:=false;
+      formTCO[indexTCO].comboRepr.Enabled:=false;
     end;
 
-    s:=IntToSTR(XclicCell)+','+IntToSTR(YclicCell);
-    FormTCO.LabelCoord.caption:=s;
-    FormTCO.GroupBox1.Caption:='Configuration cellule '+s;
-    XclicCellInserer:=XClicCell;
-    YclicCellInserer:=YClicCell;
-    FormTCO.EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
-    FormTCO.EdittypeImage.Text:=IntToSTR(BImage);
-    FormTCO.ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
-    FormTCO.ShapeCoulFond.Brush.Color:=tco[XClicCell,yClicCell].CouleurFond;
+    s:=IntToSTR(Xclic)+','+intToSTR(yClic);
+    FormTCO[indexTCO].GroupBox1.Caption:='Configuration cellule '+s;
+    XclicCellInserer:=XclicCell[indexTCO];
+    YclicCellInserer:=YclicCell[indexTCO];
+    FormTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
+    FormTCO[indexTCO].EdittypeImage.Text:=IntToSTR(BImage);
+    FormTCO[indexTCO].ComboRepr.ItemIndex:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].repr;
+    FormTCO[indexTCO].ShapeCoulFond.Brush.Color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond;
 
-    s:='El='+intToSTR(tco[XClicCell,YClicCell].BImage);
-    if tco[XClicCell,YClicCell].adresse<>0 then s:=s+' Adr='+intToSTR(tco[XClicCell,YClicCell].adresse);
+    s:='El='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage);
+    if tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse);
     //hint:=s;
 
 
-  if not(formConfCellTCOAff) then exit;
+  if not(ConfCellTCO) then exit;
   actualize:=true;  // évite les évènements parasites
-  FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XClicCell)+','+intToSTR(YClicCell);
-  Bimage:=TCO[XClicCell,YClicCell].Bimage;
+  FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XclicCell[indexTCO])+','+intToSTR(YclicCell[indexTCO])+' TCO '+intToSTR(IndexTCO);
+  Bimage:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Bimage;
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
 
   // si signal
@@ -146,7 +236,7 @@ begin
   With formConfCellTCO.ImagePaletteCC do
   begin
     //Height:=FormTCO.ImagePalette1.Picture.Height;
-    //ziziWidth:=FormTCO.ImagePalette1.Picture.Width;
+    //Width:=FormTCO.ImagePalette1.Picture.Width;
     Transparent:=false;
   end;
 
@@ -165,21 +255,6 @@ begin
   // mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
   if Bimage=0 then
   begin
-    with FormConfCellTCO.ImagePaletteCC do
-    begin
-      r:=Rect(0,0,width,height);
-      with canvas do
-      begin
-        // effacer l'icone
-        Pen.Mode:=pmCopy;
-        Pen.Width:=1;
-        Pen.color:=tco[XClicCell,YClicCell].CouleurFond;
-        Brush.Color:=tco[XClicCell,YClicCell].CouleurFond;
-        Brush.style:=bsSolid;
-        fillRect(r);
-      end;
-    end;
-
     with formConfCellTCO do
     begin
       RadioButtonV.Enabled:=false;
@@ -194,7 +269,7 @@ begin
 
   // Bimage non nulle
   begin
-    ip:=formTCO.findComponent('ImagePalette'+intToSTR(Bimage)) as Timage;
+    ip:=formTCO[indexTCO].findComponent('ImagePalette'+intToSTR(Bimage)) as Timage;
     if ip=nil then exit;
 
     // affiche l'icone cliquée dans la fenetre -----------------------------------------------
@@ -205,14 +280,12 @@ begin
       Height:=iconeY;
     end;
 
-    ip:=formTCO.findComponent('ImagePalette'+intToSTR(Bimage)) as Timage; // image source
+    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,   // destination
+               formTCO[indexTCO].ImageTCO.Canvas.Handle,(XclicCell[indexTCO]-1)*largeurCell[indexTCO] ,(YclicCell[indexTCO]-1)*Hauteurcell[indexTCO],largeurCell[indexTCO],Hauteurcell[indexTCO],srccopy);                 // source }
 
-    // destination masque avec mise à l'échelle
-    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,   
-                ip.Canvas.Handle,0,0,ip.Width,ip.Height,srccopy);
     FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
     //-----------------------------------------------------------------------------------------
-    
+
     if Bimage=Id_signal then
     begin     // signal
       With formConfCellTCO.ImagePaletteCC do
@@ -231,7 +304,7 @@ begin
         RadioButtonHD.Enabled:=true;
         RadioButtonG.Enabled:=true;
         RadioButtonD.Enabled:=true;
-        oriente:=tco[XClicCell,YClicCell].Feuoriente;
+        oriente:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Feuoriente;
         if oriente=1 then
         begin
           RadioButtonV.checked:=true;
@@ -240,9 +313,9 @@ begin
         end;
         if oriente=2 then
         begin
-           RadioButtonV.checked:=false;
-           RadioButtonHG.checked:=true;
-           RadioButtonHD.checked:=false;
+          RadioButtonV.checked:=false;
+          RadioButtonHG.checked:=true;
+          RadioButtonHD.checked:=false;
         end;
         if oriente=3 then
         begin
@@ -251,7 +324,7 @@ begin
           RadioButtonHD.checked:=true;
         end;
 
-        PiedFeu:=tco[XClicCell,YClicCell].PiedFeu;
+        PiedFeu:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].PiedFeu;
         if PiedFeu=1 then
         begin
           RadioButtonG.checked:=true;
@@ -274,66 +347,94 @@ begin
 
   with formConfCellTCO do
   begin
-    EditTexteCCTCO.Text:=Tco[XClicCell,YClicCell].Texte;
-    EditAdrElement.Text:=IntToSTR(tco[XClicCellInserer,YClicCellInserer].Adresse);
-    ComboRepr.ItemIndex:=tco[XClicCell,yClicCell].repr;
+    EditTexteCCTCO.Text:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Texte;
+    EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
+    ComboRepr.ItemIndex:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].repr;
   end;
+
+  // Epaisseur ou pont
+  FormConfCellTCO.RadioGroupSel.visible:=false;
+  if (Bimage=21) or (Bimage=22) or (Bimage=23) or (Bimage=25) then
+  begin
+    FormConfCellTCO.RadioGroupSel.visible:=true;
+    FormConfCellTCO.RadioGroupSel.Items[1]:='Pont';
+  end ;
+
+  // voie pouvant avoir un buttoir
+  if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
+  begin
+    FormConfCellTCO.RadioGroupSel.visible:=true;
+    FormConfCellTCO.RadioGroupSel.Items[1]:='Buttoir';
+  end;
+
   actualize:=false;
 end;
 
 
 procedure TFormConfCellTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,index : integer;
+var Adr,erreur,index,Bimage : integer;
 begin
-  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
   if affevt then Affiche('TFormConfCellTCO.EditAdrElementChange',clyellow);
+  clicTCO:=true;
+  Bimage:=tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].BImage;
+  if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
+  begin
+    if tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].buttoir<>0 then
+    begin
+      EditAdrElement.Text:='';
+      clicTCO:=false;
+      exit;
+    end;
+  end;
 
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
 
-  if Adr=0 then tco[XClicCell,YClicCell].repr:=2;
+  if Adr=0 then tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].repr:=2;
 
-  tco[XClicCell,YClicCell].Adresse:=Adr;
-  formTCO.EditAdrElement.Text:=intToSTR(adr);
+  tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Adresse:=Adr;
+  formTCO[indexTCOcourant].EditAdrElement.Text:=intToSTR(adr);
 
+  clicTCO:=false;
 
-  if tco[XClicCell,YClicCell].BImage=Id_signal then
+  if tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].BImage=Id_signal then
   begin
     index:=Index_Signal(adr);
     if index=0 then exit
     else
       begin
        //Affiche('Feu '+intToSTR(Adr),clyellow);
-       affiche_tco;
+       affiche_tco(indexTCOcourant);
      end;
   end;
-  if not(selectionaffichee) then efface_entoure;
-  Affiche_cellule(XclicCell,YclicCell);
-  if not(selectionaffichee) then _entoure_cell_clic;
+  if not(selectionaffichee[indexTCOcourant]) then efface_entoure(indexTCOcourant);
+  Affiche_cellule(indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]);
+  if not(selectionaffichee[indexTCOcourant]) then _entoure_cell_clic(indexTCOcourant);
 
 end;
 
 procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 begin
-  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
-  PCanvasTCO.Brush.Color:=clfond;
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
+  PCanvasTCO[indexTCOCourant].Brush.Color:=clfond;
 
-  if Tco[XClicCell,YClicCell].texte='' then
+  if tco[indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].texte='' then
   begin
-    Tco[XClicCell,YClicCell].CoulFonte:=clTexte;
-    Tco[XClicCell,YClicCell].TailleFonte:=8;
+    tco[indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].CoulFonte:=clTexte;
+    tco[indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].TailleFonte:=8;
   end;
-  Tco[XClicCell,YClicCell].Texte:=EditTexteCCTCO.Text;
+  tco[indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].Texte:=EditTexteCCTCO.Text;
   if not(clicTCO) then TCO_modifie:=true;
-  if not(selectionaffichee) then efface_entoure;
-  affiche_texte(XClicCell,YClicCell);
-  formTCO.EditTexte.Text:=EditTexteCCTCO.text;
-  if not(selectionaffichee) then _entoure_cell_clic;
+  if not(selectionaffichee[indexTCOcourant]) then efface_entoure(indexTCOCourant);
+  affiche_texte(indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
+  formTCO[indexTCOCourant].EditTexte.Text:=EditTexteCCTCO.text;
+  if not(selectionaffichee[indexTCOcourant]) then _entoure_cell_clic(indexTCOCourant);
 end;
 
 procedure TFormConfCellTCO.ButtonFonteClick(Sender: TObject);
 begin
-  change_fonte;
+  change_fonte(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.FormCreate(Sender: TObject);
@@ -341,11 +442,12 @@ begin
   // fenetre toujours dessus
   if affevt then Affiche('FormConfCellTCO create',clyellow);
   actualize:=false;
-  formConfCellTCOAff:=true;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   iconeX:=50;  // taille de l'icone
   iconeY:=50;
-  
+  ImagePaletteCC.Width:=iconeX;
+  ImagePaletteCC.Height:=iconeY;
+  RadioGroupSel.itemIndex:=0;
   // dessine les composants - non utilisé
   {
   i:=1;
@@ -382,64 +484,66 @@ end;
 
 procedure TFormConfCellTCO.ComboReprChange(Sender: TObject);
 begin
-  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
-  tco[XClicCell,YClicCell].Repr:=comborepr.ItemIndex;
-  efface_entoure;SelectionAffichee:=false;
-  FormTCO.ComboRepr.ItemIndex:=ComboRepr.ItemIndex;
-  //affiche_cellule(XClicCell,yClicCell);
-  affiche_tco;
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
+  tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Repr:=comborepr.ItemIndex;
+  efface_entoure(indexTCOcourant);
+  SelectionAffichee[indexTCOcourant]:=false;
+  FormTCO[indexTCOcourant].ComboRepr.ItemIndex:=ComboRepr.ItemIndex;
+  //affiche_cellule(XclicCell[indexTCO],YclicCell[indexTCO]);
+  affiche_tco(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.CheckPinvClick(Sender: TObject);
 var Bimage : integer;
 begin
-  if (xClicCell=0) or (xClicCell>NbreCellX) or (yClicCell=0) or (yClicCell>NbreCelly) then exit;
-  Bimage:=Tco[xClicCell,yClicCell].Bimage;
+  if (XclicCell[indexTCOcourant]=0) or (XclicCell[indexTCOcourant]>NbreCellX[indexTCOcourant]) or (YclicCell[indexTCOcourant]=0) or (YclicCell[indexTCOcourant]>NbreCelly[indexTCOcourant]) then exit;
+  Bimage:=tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Bimage;
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) or
      (bimage=14) or (bimage=15) or (bimage=24)
   then
   begin
-       TCO[xClicCell,yClicCell].inverse:=CheckPinv.checked;
-       formTCO.CheckPinv.checked:=CheckPinv.checked;
-       TCO_modifie:=true;
+    tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].inverse:=CheckPinv.checked;
+    formTCO[indexTCOcourant].CheckPinv.checked:=CheckPinv.checked;
+    TCO_modifie:=true;
   end;
 end;
 
 procedure TFormConfCellTCO.RadioButtonVClick(Sender: TObject);
 begin
-  Vertical;
+  Vertical(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.RadioButtonHGClick(Sender: TObject);
 begin
-  tourne90G;
+  tourne90G(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.RadioButtonHDClick(Sender: TObject);
 begin
-  tourne90D;
+  tourne90D(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.RadioButtonGClick(Sender: TObject);
 begin
-  signalG;
+  signalG(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.RadioButtonDClick(Sender: TObject);
 begin
-  signalD;
+  signalD(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.ButtonFondClick(Sender: TObject);
 begin
-  change_couleur_fond;
+  change_couleur_fond(indexTCOcourant);
 end;
 
 procedure TFormConfCellTCO.FormActivate(Sender: TObject);
 begin
   if affevt then Affiche('FormConfCellTCO activate',clyellow);
-  if selectionaffichee then ButtonFond.caption:='Couleur de fond de la sélection'
+  if selectionaffichee[indexTCOcourant] then ButtonFond.caption:='Couleur de fond de la sélection'
   else ButtonFond.caption:='Couleur de fond de la cellule';
+  ConfCellTCO:=true;
 end;
 
 procedure TFormConfCellTCO.FormKeyPress(Sender: TObject; var Key: Char);
@@ -449,10 +553,16 @@ end;
 
 procedure TFormConfCellTCO.BitBtnOkClick(Sender: TObject);
 begin
-  close
+  if affevt then Affiche('BitBtnOk',clyellow);
+  ConfCellTCO:=false;
+  close;
 end;
 
-// extraire les points de connexion de l'icone (de 0 à 7)
+// extraire les 4 points de connexion de l'icone (de 0 à 7)
+// il y a au maximum 4 points de connexion de la voie sur une TJD/S ou un croisement.
+// Un aiguillage a 3 points de connexion
+// un élément de voie a 2 points de connexion.
+// Si un élément de connexion n'existe pas, il a la valeur -1.
 procedure extrait_connect(numero : integer;var connect1,connect2,connect3,connect4 : integer);
 var i,j : integer;
 begin
@@ -476,24 +586,21 @@ end;
 procedure TFormConfCellTCO.EditTypeImageChange(Sender: TObject);
 var Bimage,erreur : integer;
 begin
-  if clicTCO or not(formConfCellTCOAff) or actualize then exit;
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
   if affevt then Affiche('TCO evt editTypeImageKeyPress',clorange);
   Val(EditTypeImage.Text,Bimage,erreur);
-  if (erreur<>0) or not(Bimage in[0..29,32..34,50,51]) then
-  begin
-    exit;
-  end;
+  if (erreur<>0) or not(Bimage in[0..29,32..34,50,51]) then exit;
   TCO_modifie:=true;
-  tco[XClicCell,YClicCell].Bimage:=Bimage;
-  FormTCO.EditTypeImage.text:=intToSTR(BImage);
-  actualise; // pour mise à jour de l'image de la fenetre FormConfCellTCO
-  efface_entoure;
-  Efface_Cellule(FormTCO.ImageTCO.Canvas,XClicCell,yClicCell,pmCopy);
-  affiche_cellule(XClicCell,YClicCell);
+  tco[IndexTCOCourant,XclicCell[IndexTCOCourant],YclicCell[IndexTCOCourant]].Bimage:=Bimage;
+  FormTCO[IndexTCOCourant].EditTypeImage.text:=intToSTR(BImage);
+  actualise(IndexTCOCourant); // pour mise à jour de l'image de la fenetre FormConfCellTCO
+  efface_entoure(IndexTCOCourant);
+  Efface_Cellule(IndexTCOCourant,FormTCO[IndexTCOCourant].ImageTCO.Canvas,XclicCell[IndexTCOCourant],YclicCell[IndexTCOCourant],pmCopy);
+  affiche_cellule(IndexTCOCourant,XclicCell[IndexTCOCourant],YclicCell[IndexTCOCourant]);
 
 end;
 
-procedure copie_cellule;
+procedure copie_cellule(index : integer);
 begin
 // affiche l'icone cliquée dans la fenetre -----------------------------------------------
     // pour que le stretchBlt soit visible, il faut mettre à jour la taille du bitmap
@@ -504,14 +611,16 @@ begin
     end;
 
     // destination masque avec mise à l'échelle
-    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,   
-                PcanvasTCO.Handle,(xClicCell-1)*largeurCell,(yClicCell-1)*hauteurCell,largeurCell,hauteurCell,srccopy);
+    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,
+                PcanvasTCO[index].Handle,(XclicCell[index]-1)*largeurCell[index],(YclicCell[index]-1)*hauteurCell[index],largeurCell[index],hauteurCell[index],srccopy);
     FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
 end;
 
 procedure TFormConfCellTCO.ImagePaletteCCMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var c,x0,y0,xc,yc,xf,yf,element,i,erreur,x1,y1,c1,c2,c3,c4 : integer;
+var c,x0,y0,xc,yc,xf,yf,element,i,j,erreur,x1,y1,c1,c2,c3,c4,
+    Xclic,Yclic : integer;
+    crois,IconeBut : boolean;
 begin
   x0:=0;       // x origine
   y0:=0;       // y origine
@@ -519,10 +628,14 @@ begin
   xc:=x0+(iconeX div 2);  // x centre
   xf:=x0+iconeX;          // x fin
   yf:=y0+iconeY;          // y fin
+  Xclic:=XclicCell[indexTCOCourant];
+  Yclic:=YclicCell[indexTCOCourant];
+
 
   //Affiche(IntToSTR(x)+' '+IntToSTR(y),clyellow);
   val(editTypeImage.text,element,erreur);
-  
+
+
   if erreur<>0 then exit;
 
   extrait_connect(element,c1,c2,c3,c4);
@@ -551,35 +664,166 @@ begin
       // x1,y1 désigne le permier point du segment
       if point_Sur_Segment(x,y,x1,y1,xc,yc) then
       begin
-        if not(testbit(tco[xClicCell,yClicCell].epaisseurs,c)) then
-        with ImagePaletteCC.Picture.Bitmap.Canvas  do
-        begin
-          efface_entoure;
-          tco[xClicCell,yClicCell].epaisseurs:=setbit(tco[xClicCell,yClicCell].epaisseurs,c);
-          efface_cellule(PCanvasTCO,xClicCell,yClicCell,PmCopy);
-          dessine_icone(PCanvasTCO,element,xClicCell,yClicCell,0);
-          copie_cellule;
-        end
-        else
-        with ImagePaletteCC.Picture.Bitmap.Canvas  do
-        begin
-          efface_entoure;
-          tco[xClicCell,yClicCell].epaisseurs:=Razbit(tco[xClicCell,yClicCell].epaisseurs,c);
-          efface_cellule(PCanvasTCO,xClicCell,yClicCell,PmCopy);
-          dessine_icone(PCanvasTCO,element,xClicCell,yClicCell,0);
-          copie_cellule;
-        end                                                
-      end;
+        iconeBut:=(Element=1) or (Element=10) or (Element=11) or (Element=20); // icones pouvant afficher un buttoir
+        crois:=(element=21) or (element=22) or (element=23) or (element=25) ;
 
+        // traitement des épaisseurs :  mode épaisseur
+        if (not(iconeBut) and not(crois) or (IconeBut and (FormConfCellTCO.RadioGroupSel.Itemindex=0)) ) or
+           (crois and (FormConfCellTCO.RadioGroupSel.Itemindex=0))
+        then
+        begin
+          efface_entoure(IndexTCOCourant);
+          if not(testbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs,c)) then
+            // mise à 1 du bit si pas croisement et sélection sur épaisseurs
+            begin
+              // si élément à 2 connexions, allumer les deux bits
+              case Element of
+                1 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$88; 
+                6 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$09;
+                7 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$84;
+                8 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$90;
+                9 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$48;
+               10 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$44;
+               11 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$11;
+               16 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$21;
+               17 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$24;
+               18 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$42;
+               19 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$14;
+               20 : tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=$22;
+              else
+                tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=setbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs,c);
+              end;
+            end
+          else
+            begin
+              // si élément à 2 connexions, razer les deux bits
+              if (Element=1) or (Element=6) or (Element=7) or (Element=8) or (Element=9) or (Element=10) or
+                 (Element=11) or (Element=16) or (Element=17) or (Element=18) or (Element=19) or (Element=20) then
+                  tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=0
+              else
+                tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs:=Razbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].epaisseurs,c);
+            end;
+        end;
+
+        // traitement des buttoirs :  mode buttoir supporté par les éléments 1 10 11 20
+        if  ((element=1) or (element=10) or (element=11) or (element=20)) and (FormConfCellTCO.RadioGroupSel.Itemindex=1) then
+        begin
+          efface_entoure(IndexTCOCourant);
+          if not(testbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].buttoir,c)) then
+          begin
+            // mise à 1 du bit si pas buttoir et sélection sur buttoir
+            tco[IndexTCOCourant,Xclic,Yclic].buttoir:=0;
+            tco[IndexTCOCourant,Xclic,Yclic].buttoir:=setbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].buttoir,c)
+          end
+          else
+          begin
+            tco[IndexTCOCourant,Xclic,Yclic].buttoir:=0;
+          end;
+        end;
+
+        // traitement des ponts : croisement et mode croisement
+        if crois and (FormConfCellTCO.RadioGroupSel.Itemindex=1) then
+        begin
+          efface_entoure(IndexTCOCourant);
+          // si pas croisement et sélection sur épaisseurs
+          if not(testbit(tco[IndexTCOCourant,Xclic,Yclic].pont,c)) then
+          begin
+            tco[IndexTCOCourant,Xclic,Yclic].pont:=0;  // raz de tous les autres
+            tco[IndexTCOCourant,Xclic,Yclic].pont:=setbit(tco[IndexTCOCourant,Xclic,Yclic].pont,c);
+          end
+          else
+            begin
+              // la raz du bit c doit mettre à 0 le bit opposé aussi
+              tco[IndexTCOCourant,Xclic,Yclic].pont:=Razbit(tco[IndexTCOCourant,Xclic,Yclic].pont,c);
+              case c of
+                0 : j:=4;
+                1 : j:=5;
+                2 : j:=6;
+                3 : j:=7;
+                4 : j:=0;
+                5 : j:=1;
+                6 : j:=2;
+                7 : j:=3;
+              end;
+              tco[IndexTCOCourant,Xclic,Yclic].pont:=Razbit(tco[IndexTCOCourant,Xclic,Yclic].pont,j);
+            end;
+        end;
+        efface_cellule(IndexTCOCourant,PCanvasTCO[IndexTCOCourant],Xclic,Yclic,PmCopy);
+        dessine_icone(IndexTCOCourant,PCanvasTCO[IndexTCOCourant],element,Xclic,Yclic,0);
+        copie_cellule(IndexTCOCourant);
+       end;
     end;
   end;
+end;
 
+procedure TFormConfCellTCO.RadioButtonAffTCOClick(Sender: TObject);
+var x,y : integer;
+begin
+  if clicTCO or actualize then exit;
+  if RadioButtonAffTCO.Checked then
+  begin
+    x:=XClicCell[IndexTCOCourant];
+    y:=yClicCell[IndexTCOCourant];
+    tco[IndexTCOCourant,X,Y].PiedFeu:=1;
+    efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
+    affiche_cellule(IndexTCOCourant,x,Y);
+    actualise(indexTCOCourant);
+  end;
+end;
+
+procedure TFormConfCellTCO.RadioButtonSCClick(Sender: TObject);
+var x,y : integer;
+begin
+  if clicTCO or actualize then exit;
+  if RadioButtonSC.Checked then
+  begin
+    x:=XClicCell[IndexTCOCourant];
+    y:=yClicCell[IndexTCOCourant];
+    tco[IndexTCOCourant,X,Y].PiedFeu:=2;
+    efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
+    affiche_cellule(IndexTCOCourant,x,Y);
+    actualise(indexTCOCourant);
+  end;
+end;
+
+procedure TFormConfCellTCO.EditNumTCOChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  if clicTCO then exit;
+
+  val(EditNumTCO.Text,i,erreur);
+  if erreur<>0 then exit;
+  if i>NbreTCO then
+  begin
+    EditNumTCO.Text:=intToSTR(NbreTCO);
+    i:=NbreTCO;
+  end;
+  tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].FeuOriente:=i;
 end;
 
 
+procedure TFormConfCellTCO.FormHide(Sender: TObject);
+begin
+  if affevt then Affiche('FormFoncCellTCO hide',clyellow);
+  ConfCellTCO:=false;
+end;
 
-
+procedure TFormConfCellTCO.RadioButtonCDMClick(Sender: TObject);
+var x,y : integer;
+begin
+  if clicTCO or actualize then exit;
+  if RadioButtonCDM.Checked then
+  begin
+    x:=XClicCell[IndexTCOCourant];
+    y:=yClicCell[IndexTCOCourant];
+    tco[IndexTCOCourant,X,Y].PiedFeu:=3;
+    efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
+    affiche_cellule(IndexTCOCourant,x,Y);
+    actualise(indexTCOCourant);
+  end;
+end;
 
 begin
 end.
+
 

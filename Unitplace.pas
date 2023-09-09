@@ -132,7 +132,7 @@ begin
 end;
 
 procedure TFormPlace.ButtonPlaceClick(Sender: TObject);
-var Suiv,prec,detect,erreur,i,it : integer;
+var Suiv,prec,detect,erreur,i,it,indexTCO : integer;
     s,Ssuiv,NomTrain : string;
 begin
   if cdm_connecte then
@@ -223,9 +223,10 @@ begin
     end;
   end;
 
-  if formTCO.Showing then
+  indexTCO:=1;
+  if formTCO[indexTCO].Showing then
   begin
-    affiche_tco;
+    affiche_tco(1);
   end;
   maj_feux(true);
   maj_feux(true);

@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 23/8 16h
+// 07/09 22h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -175,6 +175,38 @@ type
     ButtonAffAnalyseCDM: TButton;
     Affiche_fenetre_CDM: TMenuItem;
     ImageSignal20: TImage;
+    COs1: TMenuItem;
+    AffichertouslesTCO1: TMenuItem;
+    N10: TMenuItem;
+    Mosaquehorizontale1: TMenuItem;
+    Mosaqueverticale1: TMenuItem;
+    N11: TMenuItem;
+    Mosaiquecarre1: TMenuItem;
+    N12: TMenuItem;
+    AfficherTCO11: TMenuItem;
+    AfficherTCO21: TMenuItem;
+    AfficherTCO31: TMenuItem;
+    AfficherTCO41: TMenuItem;
+    AfficherTCO51: TMenuItem;
+    AfficherTCO61: TMenuItem;
+    AfficherTCO71: TMenuItem;
+    AfficherTCO81: TMenuItem;
+    AfficherTCO91: TMenuItem;
+    AfficherTCO101: TMenuItem;
+    N13: TMenuItem;
+    NouveauTCO1: TMenuItem;
+    SupprimerTCO1: TMenuItem;
+    CO11: TMenuItem;
+    CO21: TMenuItem;
+    CO31: TMenuItem;
+    CO41: TMenuItem;
+    CO51: TMenuItem;
+    CO61: TMenuItem;
+    CO71: TMenuItem;
+    CO81: TMenuItem;
+    CO91: TMenuItem;
+    CO101: TMenuItem;
+    ButtonCDM: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -258,6 +290,32 @@ type
     procedure Coller1Click(Sender: TObject);
     procedure ButtonAffAnalyseCDMClick(Sender: TObject);
     procedure Affiche_fenetre_CDMClick(Sender: TObject);
+    procedure AffichertouslesTCO1Click(Sender: TObject);
+    procedure Mosaquehorizontale1Click(Sender: TObject);
+    procedure Mosaqueverticale1Click(Sender: TObject);
+    procedure Mosaiquecarre1Click(Sender: TObject);
+    procedure AfficherTCO11Click(Sender: TObject);
+    procedure AfficherTCO21Click(Sender: TObject);
+    procedure AfficherTCO41Click(Sender: TObject);
+    procedure AfficherTCO51Click(Sender: TObject);
+    procedure AfficherTCO61Click(Sender: TObject);
+    procedure AfficherTCO71Click(Sender: TObject);
+    procedure AfficherTCO81Click(Sender: TObject);
+    procedure AfficherTCO91Click(Sender: TObject);
+    procedure AfficherTCO101Click(Sender: TObject);
+    procedure AfficherTCO31Click(Sender: TObject);
+    procedure NouveauTCO1Click(Sender: TObject);
+    procedure CO11Click(Sender: TObject);
+    procedure CO21Click(Sender: TObject);
+    procedure CO31Click(Sender: TObject);
+    procedure CO41Click(Sender: TObject);
+    procedure CO51Click(Sender: TObject);
+    procedure CO61Click(Sender: TObject);
+    procedure CO71Click(Sender: TObject);
+    procedure CO81Click(Sender: TObject);
+    procedure CO91Click(Sender: TObject);
+    procedure CO101Click(Sender: TObject);
+    procedure ButtonCDMClick(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -457,7 +515,7 @@ var
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
-  avec_splitter,fichier_module_cdm,Diffusion : boolean;
+  avec_splitter,fichier_module_cdm,Diffusion,cdmDevant : boolean;
 
   tick,Premier_tick : longint;
 
@@ -477,6 +535,11 @@ var
     tempo0   : integer;    // tempo de retombée à 0 du détecteur (filtrage)
     IndexTrain : integer;  // index du train
   end;
+
+  Ecran : array[1..10] of record
+           x0,y0,larg,haut : integer;
+           end;
+
 
   TypeGen : TEquipement;
 
@@ -643,12 +706,12 @@ var
 function Index_Signal(adresse : integer) : integer;
 function Index_Aig(adresse : integer) : integer;
 procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
 procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
-procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer;adresse : integer);
+procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
 procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
 procedure Maj_Etat_Signal(adresse,aspect : integer);
 procedure Maj_Etat_Signal_Belge(adresse,aspect : integer);
@@ -697,11 +760,13 @@ Function SetBit(n : word;position : integer) : word;
 Function RazBit(n : word;position : integer) : word;
 procedure inverse_image(imageDest,ImageSrc : Timage) ;
 function extract_int(s : string) : integer;
+Procedure Menu_tco(i : integer);
+procedure Affiche_fenetre_TCO(i : integer);
 
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
-  Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM;
+  Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM, UnitConfigCellTCO;
 
 {
 procedure menu_interface(MA : TMA);
@@ -819,6 +884,60 @@ begin
                      16                  17                      18                   19     }
 end;
 
+// renvoie la chaîne de l'état du signal
+function chaine_signal(adresse : word) : string;
+var a,i,aspect,etat,combine,nation : integer;
+    s : string;
+begin
+  i:=Index_Signal(adresse);
+  etat:=feux[i].EtatSignal  ;
+  nation:=1;
+  a:=feux[i].aspect;
+  if a=20 then nation:=2;
+
+  if nation=2 then
+  begin
+    // en signalisation belge, on peut avoir plusieurs bits à 1 simultanément en combine
+    aspect:=etat and $3f;
+    combine:=etat and $1c0;
+    aspect:=PremBitNum(aspect) ;
+    s:=EtatSignBelge[Aspect+1];
+    if combine<>0 then
+    begin
+      if testBit(combine,chiffre) then s:=s+'+'+EtatSignBelge[chiffre+1];
+      if testBit(combine,chevron) then s:=s+'+'+EtatSignBelge[chevron+1];
+    end;
+    result:=s;
+    exit;
+  end;
+
+  // signalisation française
+  if (a>10) and (a<17) then
+  begin
+    // directionnel
+    s:=intToSTR(etat)+' feu';
+    if etat>1 then s:=s+'x';
+    result:=s;
+    exit;
+  end;
+
+  code_to_aspect(etat,aspect,combine);
+  s:='';
+
+  if (aspect=16) then s:='' else begin if aspect<>-1 then s:=etatSign[aspect];end;
+  if combine<>16 then
+  begin
+    if (aspect<>16) and (combine<>-1) then
+    begin
+      if aspect<>-1 then s:=s+'+';
+      s:=s+etatSign[combine];
+    end;
+  end;
+  chaine_signal:=s;
+end;
+
+
+
 // dessine un cercle plein dans le feu
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
 begin
@@ -886,12 +1005,16 @@ begin
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
-    LgImage,HtImage,code,combine : integer;
+    LgImage,HtImage,code,combine,AncCode,AncCombine : integer;
     ech : real;
 begin
+//  Affiche('dessine_feu3',clred);
   code_to_aspect(Etatsignal,code,combine);
+  code_to_aspect(AncienEtat,Anccode,Anccombine);
+  //Affiche(intToSTR(ancienEtat),clred);
+
   rayon:=round(6*frX);
 
   LgImage:=Formprinc.Image3feux.Picture.Bitmap.Width;
@@ -922,10 +1045,21 @@ begin
   Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
   XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
 
+{  if code=jaune_CLI then Affiche('JC',clyellow);
+  if code=vert_cli then Affiche('VC',clyellow);
+  if code=semaphore_CLI then Affiche('SC',clyellow);
+
+  if Anccode=jaune_CLI then Affiche('AJC',clyellow);
+  if Anccode=vert_cli then Affiche('AVC',clyellow);
+  if Anccode=semaphore_CLI then Affiche('ASC',clyellow);
+}
+
+
   // extinctions
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
-  if not((code=vert_cli)  and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+
+  if not((code=jaune_cli) and clignotant) and not(ancCode=jaune_cli) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if not((code=vert_cli)  and clignotant) and not(ancCode=vert_cli) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  if not((code=semaphore_cli) and clignotant) and not(ancCode=semaphore_cli) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
 
   // allumages
   if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
@@ -976,7 +1110,7 @@ begin
   Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
   XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
   Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
- 
+
   //extinctions
   cercle(ACanvas,Xcarre,yCarre,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,GrisF);
@@ -1330,14 +1464,18 @@ end;
 
 // dessine les feux sur une cible belge à 5 feux
 // cette image peut être inversée (contre voie)
-procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer;adresse : integer);
+procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
 var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Yrouge,largeur,
     index,Temp,rayon,LgImage,HtImage,code,combine,x1,y1,x2,y2,x3,y3,xChiffre,yChiffre,xfin,yfin,angle,
-    AdrAig,IndexAig,vitesse : integer;
+    AdrAig,IndexAig,vitesse,indexTCO : integer;
     ech : real;
     inverse,etatChevron,EtatChiffre,codeClignote : boolean;
     r : Trect;
+    c : tcomponent;
+    t : hwnd;
+    s : string;
 begin
+
   code:=etatSignal and $3f;
   combine:=etatSignal and $1c0;
   // LDT-DEC-NMBS ou b-model
@@ -1492,7 +1630,7 @@ begin
       with font do
       begin
         Font.Color:=clWhite;
-        font.Size:=(LargeurCell div 5)+4;
+        font.Size:=taillechiffre;
         font.Style:=[fsbold];
       end;
 
@@ -1765,14 +1903,14 @@ begin
   begin
     aspect:=feux[i].aspect ;
     case aspect of
-    // feux de signalisation
-     2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     20 : dessine_feu20(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,feux[i].adresse);
+     // feux de signalisation
+      2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,feux[i].AncienEtat,orientation);
+      4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     20 : dessine_feu20(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,feux[i].adresse,10);
      // indicateurs de direction
      12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,aspect-10);
     end;
@@ -2447,56 +2585,6 @@ begin
 
 end;
 
-// renvoie la chaîne de l'état du signal
-function chaine_signal(etat,adresse : word) : string;
-var a,i,aspect,combine,nation : integer;
-    s : string;
-begin
-  i:=Index_Signal(adresse);
-  nation:=1;
-  a:=feux[i].aspect;
-  if a=20 then nation:=2;
-
-  if nation=2 then
-  begin
-    // en signalisation belge, on peut avoir plusieurs bits à 1 simultanément en combine
-    aspect:=etat and $3f;
-    combine:=etat and $1c0;
-    aspect:=PremBitNum(aspect) ;
-    s:=EtatSignBelge[Aspect+1];
-    if combine<>0 then
-    begin
-      if testBit(combine,chiffre) then s:=s+'+'+EtatSignBelge[chiffre+1];
-      if testBit(combine,chevron) then s:=s+'+'+EtatSignBelge[chevron+1];
-    end;
-    result:=s;
-    exit;
-  end;
-
-  // signalisation française
-  if (a>10) and (a<17) then
-  begin
-    // directionnel
-    s:=intToSTR(etat)+' feu';
-    if etat>1 then s:=s+'x';
-    result:=s;
-    exit;
-  end;
-
-  code_to_aspect(etat,aspect,combine);
-  s:='';
-
-  if (aspect=16) then s:='' else begin if aspect<>-1 then s:=etatSign[aspect];end;
-  if combine<>16 then
-  begin
-    if (aspect<>16) and (combine<>-1) then
-    begin
-      if aspect<>-1 then s:=s+'+';
-      s:=s+etatSign[combine];
-    end;
-  end;
-  chaine_signal:=s;
-end;
 
 procedure Maj_Etat_Signal_Belge(adresse,aspect : integer);
 var i : integer;
@@ -2867,12 +2955,12 @@ begin
     code:=feux[i].EtatSignal;
     nombre:=feux[i].Na;          // nombre d'adresses occupées par le signal
     code_to_aspect(code,aspect,combine);
-    s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal CDF: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2922,12 +3010,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     //code_to_aspect(code,aspect,combine);
-    s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal SR: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -2988,12 +3076,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal LEB: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3042,12 +3130,12 @@ begin
     code:=feux[index].EtatSignal;
     asp:=feux[index].aspect;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Arcomora: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal Arcomora: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3161,12 +3249,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal NMRA: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3211,12 +3299,12 @@ begin
   begin
     code:=feux[index].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal Unisemaf: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[index].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
     // pour Unisemaf, la cible est définie dans le champ Unisemaf de la structure feux
@@ -3725,12 +3813,12 @@ begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
     combine:=code and $fc00;
-    s:='Signal b_models: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal b_models: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
     na:=feux[i].Na;  // nombre d'adresses
@@ -3844,12 +3932,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal LDT_NMBS: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal LDT_NMBS: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
     if aspect=vert          then begin pilote_acc(adresse,2,feu);end;
@@ -3879,12 +3967,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(code,NbDecodeurdeBase+NbreDecPers-1);
+    s:='Signal LDT: ad'+IntToSTR(adresse)+'='+chaine_signal(NbDecodeurdeBase+NbreDecPers-1);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -3936,7 +4024,7 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal virtuel: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
   end;
@@ -4025,12 +4113,12 @@ begin
     code:=feux[i].EtatSignal;
     nombre:=feux[i].Na;          // nombre d'adresses occupées par le signal
     code_to_aspect(code,aspect,combine);
-    s:='Signal digikeijs 4018: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal digikeijs 4018: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
 
@@ -4083,12 +4171,12 @@ begin
   begin
     code:=feux[i].EtatSignal;
     code_to_aspect(code,aspect,combine);
-    s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+    s:='Signal Bahn: ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     if traceSign then affiche(s,clOrange);
     if Affsignal or traceListe then afficheDebug(s,clOrange);
     if AffDetSig then
     begin
-      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(feux[i].EtatSignal,adresse);
+      s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
     end;
     //Affiche(IntToSTR(aspect)+' '+inttoSTR(combine),clOrange);
@@ -4143,7 +4231,7 @@ begin
     d:=feux[i].decodeur;
     dp:=d-NbDecodeurdeBase+NbreDecPers-1;
     if dp<0 then exit;
-    s:='Signal '+decodeur_pers[dp].nom+' : ad'+IntToSTR(adresse)+'='+chaine_signal(etat,adresse);
+    s:='Signal '+decodeur_pers[dp].nom+' : ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
     Affiche(s,clOrange);
 
     asp:=feux[i].aspect;
@@ -4276,7 +4364,8 @@ end;
 
 // pilotage d'un signal, et mise à jour du graphisme du feu dans les 3 fenetres
 procedure envoi_signal(Adr : integer);
-var i,it,j,index_train,adresse,detect,detsuiv,a,b,aspect,x,y,TailleX,TailleY,Orientation,AdrTrain,dec : integer;
+var i,it,j,index_train,adresse,detect,detsuiv,a,b,aspect,x,y,TailleX,TailleY,Orientation,
+    indexTCO,AdrTrain,dec : integer;
     ImageFeu : TImage;
     frX,frY : real;
     s : string;
@@ -4378,12 +4467,13 @@ begin
     // allume les signaux du feu dans le TCO
     if TCOACtive then
     begin
-     for y:=1 to NbreCellY do
-     for x:=1 to NbreCellX do
+     indexTCO:=1;
+     for y:=1 to NbreCellY[indexTCO] do
+     for x:=1 to NbreCellX[indexTCO] do
      begin
-       if TCO[x,y].Bimage=50 then
+       if TCO[indexTCO,x,y].Bimage=Id_signal then
        begin
-         adresse:=TCO[x,y].adresse;      // vérifie si le feu existe dans le TCO
+         adresse:=TCO[IndexTCO,x,y].adresse;      // vérifie si le feu existe dans le TCO
          aspect:=feux[Index_Signal(adresse)].Aspect;
          case aspect of
                2 :  ImageFeu:=Formprinc.Image2feux;
@@ -4402,11 +4492,11 @@ begin
          end;
          TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
          TailleX:=ImageFeu.picture.BitMap.Width;
-         Orientation:=TCO[x,y].FeuOriente;
+         Orientation:=tco[indextco,x,y].FeuOriente;
          // réduction variable en fonction de la taille des cellules
-         calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
+         calcul_reduction(frx,fry,round(TailleX*LargeurCell[indexTCO]/ZoomMax),round(tailleY*HauteurCell[indexTCO]/ZoomMax),TailleX,TailleY);
          // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-         Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
+         Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
         end;
       end;
     end;
@@ -8319,10 +8409,10 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(det2,det3,0);    // désactivation
+            zone_TCO(1,det2,det3,0);    // désactivation
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
+            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -8519,8 +8609,8 @@ begin
           if TCOActive then
           begin
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-            else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
+            else zone_TCO(1,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
           exit; // sortir absolument
         end
@@ -8581,8 +8671,8 @@ begin
             if TCOActive then
             begin
               // activation
-              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
-              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
+              if ModeCouleurCanton=0 then zone_TCO(1,det1,det3,1)
+              else zone_TCO(1,det1,det3,2);  // affichage avec la couleur de index_couleur du train
             end;
           end;
         end;
@@ -8765,10 +8855,10 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(det2,det3,0);    // désactivation
+            zone_TCO(1,det2,det3,0);    // désactivation
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
+            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -8883,10 +8973,10 @@ begin
         if AffAigDet then AfficheDebug(s,couleur);
         if TCOActive then
         begin
-          zone_TCO(det1,det2,0);    // désactivation
+          zone_TCO(1,det1,det2,0);    // désactivation
           // activation
-          if ModeCouleurCanton=0 then zone_TCO(det2,det3,1)
-          else zone_TCO(det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          if ModeCouleurCanton=0 then zone_TCO(1,det2,det3,1)
+          else zone_TCO(1,det2,det3,2);  // affichage avec la couleur de index_couleur du train
         end;
         exit; // sortir absolument
       end
@@ -9199,8 +9289,8 @@ begin
         if TCOActive then
         begin
           // activation
-          if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-          else zone_TCO(det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+          if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
+          else zone_TCO(1,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
         end;
         exit; // sortir absolument
       end
@@ -9261,8 +9351,8 @@ begin
             if TCOActive then
             begin
               // activation
-              if ModeCouleurCanton=0 then zone_TCO(det1,det3,1)
-              else zone_TCO(det1,det3,2);  // affichage avec la couleur de index_couleur du train
+              if ModeCouleurCanton=0 then zone_TCO(1,det1,det3,1)
+              else zone_TCO(1,det1,det3,2);  // affichage avec la couleur de index_couleur du train
             end;
           end;
         end;
@@ -9430,10 +9520,10 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(det2,det3,0);    // désactivation
+            zone_TCO(1,det2,det3,0);    // désactivation
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(det3,AdrSuiv,1)
-            else zone_TCO(det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
+            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -9561,10 +9651,10 @@ begin
         if AffAigDet then AfficheDebug(s,couleur);
         if TCOActive then
         begin
-          zone_TCO(det1,det2,0);    // désactivation
+          zone_TCO(1,det1,det2,0);    // désactivation
           // activation
-          if ModeCouleurCanton=0 then zone_TCO(det2,det3,1)
-          else zone_TCO(det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          if ModeCouleurCanton=0 then zone_TCO(1,det2,det3,1)
+          else zone_TCO(1,det2,det3,2);  // affichage avec la couleur de index_couleur du train
         end;
         exit; // sortir absolument
       end
@@ -10201,7 +10291,7 @@ begin
   // Mettre à jour le TCO
   if TcoActive then
   begin
-    formTCO.Maj_TCO(Adresse);
+    Maj_TCO(1,Adresse);
   end;
 end;
 
@@ -10262,7 +10352,8 @@ begin
     event_det_tick[N_event_tick].etat:=pos;
 
     // Mettre à jour le TCO
-    if TCOActive then formTCO.Maj_TCO(Adresse);
+    if TCOActive then
+      for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
 
     // l'évaluation des routes est à faire selon conditions
     if faire_event and not(confignulle) then begin evalue;evalue;end;
@@ -11649,7 +11740,7 @@ end;
 
 // supprime les events, les trains etc
 Procedure Raz_tout;
-var i,j : integer;
+var i,j,index : integer;
 begin
   N_Event_tick:=0;
   N_event_det:=0;
@@ -11716,9 +11807,14 @@ begin
     Tablo_Pn[i].compteur:=0;
   end;
 
-  for i:=1 to NbreCellx do
-    for j:=1 to NbreCelly do tco[i,j].mode:=0;
-      if TCOActive then affiche_TCO;
+  for index:=1 to NbreTCO do
+  begin
+    for i:=1 to NbreCellx[index] do
+      for j:=1 to NbreCelly[index] do
+        tco[index,i,j].mode:=0;
+
+    if TCOActive then affiche_TCO(index);
+  end;
 
   {  ralentit au démarrage
   for i:=1 to NbreFeux do
@@ -11905,10 +12001,10 @@ end;
 
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
-var i : integer;
+var i,j,index : integer;
     s : string;
 begin
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion+' beta test';
   Caption:=AF;
   TraceSign:=True;
   configPrete:=false; // form config prete
@@ -11918,6 +12014,7 @@ begin
   ntrains_cdm:=0;
   protocole:=1;
   filtrageDet0:=3;
+  cdmHd:=0;
 
   // services commIP CDM par défaut
   Srvc_Aig:=true;
@@ -11927,7 +12024,7 @@ begin
   Srvc_sig:=false;
 
   DebugAffiche:=false;
-  formConfCellTCOAff:=false;
+  ConfCellTCO:=false;
   confasauver:=false;
   config_modifie:=false;
   chaine_recue:='';
@@ -11945,8 +12042,8 @@ begin
   ScrollBox1.Left:=633;
 
   procetape('');  //0
-  
 
+  NbreTCO:=1;
   N_Trains:=0;
   NivDebug:=0;
   ncrois:=0;
@@ -11991,12 +12088,12 @@ begin
   end;  
   // version d'OS pour info
   application.ProcessMessages;
-  
+
   if OsBits=64 then s:='OS 64 Bits' else s:='OS 32 Bits';
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
   Affiche(s,clLime);
   LabelEtat.Caption:='Initialisations en cours';
-  
+
   With ScrollBox1 do
   begin
     HorzScrollBar.Tracking:=true;
@@ -12087,7 +12184,7 @@ begin
   FenRich.Height:=Height-150;
   ScrollBox1.Height:=Height-280;
   StaticText.AutoSize:=true;
-  StaticText.Top:=panel2.Height+Panel2.Top+10;
+  StaticText.Top:=panel2.Height+Panel2.Top+6;
   //----------------------------------------
 
   ferme:=false;
@@ -12118,10 +12215,15 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
+  Menu_tco(NbreTCO);
   procetape('Lecture du TCO');
-  lire_fichier_tco;
-  verif_coherence;
+  for i:=1 to NbreTCO do
+  begin
+    EcranTCO[i]:=1;
+    lire_fichier_tco(i);
+  end;
 
+  verif_coherence;
   procetape('La configuration a été lue');
 
   if protocole=1 then
@@ -12151,16 +12253,49 @@ begin
 
   if debug=1 then Affiche('Création TCO',clLime);
   // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
+
+  for i:=0 to Screen.MonitorCount-1 do
   begin
-    //créée la fenêtre TCO non modale
-    FormTCO:=TformTCO.Create(nil);
+    //Affiche('Ecran '+intToSTR(i),clyellow);
+    ecran[i+1].x0:=Screen.Monitors[i].BoundsRect.Left;
+    ecran[i+1].y0:=Screen.Monitors[i].BoundsRect.Top;
+    ecran[i+1].larg:=Screen.Monitors[i].BoundsRect.right-Screen.Monitors[i].BoundsRect.left;
+    ecran[i+1].Haut:=Screen.Monitors[i].BoundsRect.bottom-Screen.Monitors[i].BoundsRect.top;
+
+   { Affiche('left='+intToSTR(Screen.Monitors[i].BoundsRect.left)+' top='+intToSTR(Screen.Monitors[i].BoundsRect.Top)+' '+
+            'right='+intToSTR(Screen.Monitors[i].BoundsRect.right)+' bottom='+intToSTR(Screen.Monitors[i].BoundsRect.bottom),clLime);
+
+    Affiche(intToSTR(ecran[i+1].x0)+' '+intToSTR(ecran[i+1].y0)+' '+
+            intToSTR(ecran[i+1].larg)+' '+intToSTR(ecran[i+1].haut),clyellow); }
+  end;
+
+  for index:=1 to nbreTCO do
+  //for j:=1 to 2 do
+  begin
+    begin
+      IndexTCOCreate:=index;
+      formTCO[index]:=TformTCO.Create(self);
+      formTCO[index].Name:='FormTCO'+intToSTR(index);
+      formTCO[index].Caption:='TCO'+intToSTR(index);
+    end;
+
     i:=0;
     repeat
+      sleep(100);
       application.processmessages;
       inc(i);
     until (TcoCree) or (i>20);
+    TcoCree:=false;
     Application.processmessages;
-    if avecTCO then FormTCO.show;    // créer fiche dynamique (projet/fichier)
+    if avecTCO then
+    begin
+      //if NbreTCO=1 then FormTCO.show     // créer fiche dynamique (projet/fichier)
+      //else
+      begin
+        Affiche_Fenetre_TCO(index);
+      end;
+    end;
+    //tcocree:=true;
   end;
 
   if debug=1 then Affiche('Initialisations',clLime);
@@ -12244,6 +12379,8 @@ begin
     //Menu_interface(valide);
   end;
 
+
+
   //DoubleBuffered:=true;
   {
     aiguillage[index_aig(1)].position:=const_droit;
@@ -12301,7 +12438,9 @@ begin
     ReadOnly:=true;
   end; }
   //Affiche(GetMACAddress,clred);
+  ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
+
 end;
 
 
@@ -12323,7 +12462,7 @@ begin
      comEventFrame : Affiche('Erreur trame',clOrange);     // Erreur de trame
      comEventOverrun : Affiche('Données perdues',clOrange);   // Des données ont été perdues
      comEventRxOver   : Affiche('Tampon Rx saturé',clOrange);  // Tampon de réception saturé
-     comEventRxParity  : Affiche('Erreur parité',clOrange);    //Erreur de parité
+     comEventRxParity  : Affiche('111Erreur parité',clOrange);    //Erreur de parité
      comEventTxFull    : Affiche('Tampon Tx saturé',clOrange); //Tampon d’envoi saturé
      comEventDCB      : Affiche('Erreur DCB',clOrange); //Erreur de réception DCB (jamais vu)
 
@@ -12370,10 +12509,10 @@ begin
   timer1.Enabled:=false;
   if TCO_modifie then
   begin
-    res:=MessageDlg('Le TCO a été modifié. Voulez-vous le sauvegarder ?',mtConfirmation,[mbYes,mbNo,mbCancel],0);
-    if res=mrYes then sauve_fichier_tco;
+    res:=MessageDlg('Un des TCO a été modifié. Voulez-vous les sauvegarder ?',mtConfirmation,[mbYes,mbNo,mbCancel],0);
+    if res=mrYes then sauve_fichiers_tco;
     if res=mrCancel then abort;
-  end;  
+  end;
   if config_modifie then
   begin
     res:=MessageDlg('La configuration a été modifiée. Voulez-vous la sauvegarder ?',mtConfirmation,[mbYes,mbNo,mbCancel],0);
@@ -12381,19 +12520,24 @@ begin
     if res=mrCancel then abort;
   end;
   if confasauver then sauve_config;
-  if sauve_tco then sauve_fichier_tco;
+  if sauve_tco then sauve_fichiers_tco;
   Application.ProcessMessages;
 end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var aspect,i,a,x,y,Bimage,combine,adresse,TailleX,TailleY,orientation : integer;
+var aspect,i,a,x,y,Bimage,combine,adresse,TailleX,TailleY,orientation,indexTCO : integer;
    imageFeu : Timage;
    frx,fry : real;
    faire : boolean;
     s : string;
 begin
   inc(tick);
+  if (tick=30) or (tick=100) then
+  begin
+    // raz du flag "fenetre confcellTCO affichée"
+    ConfCellTCO:=false;
+  end;
   // envoi timeout
   if parSocketLenz and (AntiTimeoutEthLenz=1) then
   begin
@@ -12431,9 +12575,9 @@ begin
       begin
         // signal belge
         if TestBit(a,clignote) or feux[i].contrevoie then
-           begin
-           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
-           end;
+        begin
+          Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+        end;
       end
       else
       begin
@@ -12441,54 +12585,59 @@ begin
         if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
            testBit(a,vert_cli)  or testbit(a,blanc_cli) then
-           Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
-          //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
+           begin
+             Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+            //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
+           end;
       end;
     end;
 
     // signaux du TCO-----------------------------------------------
     if TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
-      // parcourir les feux du TCO
-      for y:=1 to NbreCellY do
-      for x:=1 to NbreCellX do
+      for IndexTCO:=1 to NbreTCO do
       begin
-        PcanvasTCO.pen.mode:=pmCOpy;
-        BImage:=TCO[x,y].bImage;
-        if Bimage=50 then
+        // parcourir les feux du TCO
+        for y:=1 to NbreCellY[indexTCO] do
+        for x:=1 to NbreCellX[indexTCO] do
         begin
-          adresse:=TCO[x,y].adresse;
-          i:=Index_Signal(adresse);
-          a:=feux[i].EtatSignal;     // a = état binaire du feu
-          faire:=false;
-          if feux[i].aspect<>20 then
-            faire:=TestBit(a,jaune_cli) or TestBit(a,ral_60) or
-            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
-            testBit(a,vert_cli) or testbit(a,blanc_cli)
-          else
+          PcanvasTCO[IndexTCO].pen.mode:=pmCOpy;
+          BImage:=TCO[indexTCO,x,y].bImage;
+          if Bimage=Id_signal then
           begin
-            combine:=a and $fc00;
-            faire:=testBit(combine,clignote);
-          end;
-          if faire then
-          begin
-            aspect:=feux[Index_Signal(adresse)].Aspect;
-            case aspect of
-             2 :  ImageFeu:=Formprinc.Image2feux;
-             3 :  ImageFeu:=Formprinc.Image3feux;
-             4 :  ImageFeu:=Formprinc.Image4feux;
-             5 :  ImageFeu:=Formprinc.Image5feux;
-             7 :  ImageFeu:=Formprinc.Image7feux;
-             9 :  ImageFeu:=Formprinc.Image9feux;
-            else  ImageFeu:=Formprinc.Image3feux;
+            adresse:=TCO[indexTCO,x,y].adresse;
+            i:=Index_Signal(adresse);
+            a:=feux[i].EtatSignal;     // a = état binaire du feu
+            faire:=false;
+            if feux[i].aspect<>20 then
+              faire:=TestBit(a,jaune_cli) or TestBit(a,ral_60) or
+              TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
+              testBit(a,vert_cli) or testbit(a,blanc_cli)
+            else
+            begin
+              combine:=a and $fc00;
+              faire:=testBit(combine,clignote);
             end;
+            if faire then
+            begin
+              aspect:=feux[Index_Signal(adresse)].Aspect;
+              case aspect of
+               2 :  ImageFeu:=Formprinc.Image2feux;
+               3 :  ImageFeu:=Formprinc.Image3feux;
+               4 :  ImageFeu:=Formprinc.Image4feux;
+               5 :  ImageFeu:=Formprinc.Image5feux;
+               7 :  ImageFeu:=Formprinc.Image7feux;
+               9 :  ImageFeu:=Formprinc.Image9feux;
+              else  ImageFeu:=Formprinc.Image3feux;
+              end;
 
-            TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-            TailleX:=ImageFeu.picture.BitMap.Width;
-            Orientation:=TCO[x,y].FeuOriente;
-            // réduction variable en fonction de la taille des cellules
-            calcul_reduction(frx,fry,round(TailleX*LargeurCell/ZoomMax),round(tailleY*HauteurCell/ZoomMax),TailleX,TailleY);
-            Dessine_feu_mx(PCanvasTCO,tco[x,y].x,tco[x,y].y,frx,fry,adresse,orientation);
+              TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
+              TailleX:=ImageFeu.picture.BitMap.Width;
+              Orientation:=TCO[indexTCO,x,y].FeuOriente;
+              // réduction variable en fonction de la taille des cellules
+              calcul_reduction(frx,fry,round(TailleX*LargeurCell[indexTCO]/ZoomMax),round(tailleY*HauteurCell[indexTCO]/ZoomMax),TailleX,TailleY);
+              Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indexTCO,x,y].y,frx,fry,adresse,orientation);
+            end;
           end;
         end;
       end;
@@ -12503,7 +12652,10 @@ begin
         if TestBit(a,jaune_cli) or TestBit(a,ral_60) or
            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
            testBit(a,vert_cli) or testbit(a,blanc_cli) then
-           Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+           begin
+             //if clignotant then affiche('1',clyellow) else affiche('0',clwhite);
+             Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+           end;
       end
       else
       begin
@@ -14027,7 +14179,7 @@ begin
   Affiche('Lecture CV',clyellow);
 
   val(EditCV.Text,cv,erreur);
-  if (erreur<>0) or (cv>255) or (cv<0) then 
+  if (erreur<>0) or (cv>255) or (cv<0) then
   begin
     EditCV.Text:='1';
     exit;
@@ -14229,10 +14381,14 @@ begin
 end;
 
 procedure TFormPrinc.ButtonAffTCOClick(Sender: TObject);
+var i : integer;
 begin
-  formTCO.windowState:=wsNormal; //Maximized;
-  formTCO.show;
-  formTCO.BringToFront;
+  for i:=1 to NbreTCO do
+  begin
+    formTCO[i].windowState:=wsNormal; //Maximized;
+    formTCO[i].show;
+    formTCO[i].BringToFront;
+  end;
 end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
@@ -14293,7 +14449,7 @@ begin
     Adr:=Feux[i].Adresse;
     Etat:=Feux[i].EtatSignal;
     s:='Signal '+IntToSTR(Adr)+' Etat=';
-    s:=s+chaine_signal(etat,adr);
+    s:=s+chaine_signal(adr);
     Affiche(s,clYellow);
   end;
 end;
@@ -14444,12 +14600,12 @@ begin
   if n=20 then nation:=2 else nation:=1;
   code:=feux[i].EtatSignal;
   code_to_aspect(code,aspect,combine);
-  s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(code,adresse);
+  s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
   Affiche(s,clYellow);
   //Affiche(IntToSTR(aspect),clred);
   //Affiche(IntToSTR(combine),clred);
 
-  s:='Le signal '+intToSTR(adresse)+' présente '+chaine_signal(code,adresse)+' car ';
+  s:='Le signal '+intToSTR(adresse)+' présente '+chaine_signal(adresse)+' car ';
   // carré
   if (aspect=carre) and (nation=1) then
   begin
@@ -14491,7 +14647,7 @@ begin
   if ((aspect=jaune) and (n<>20)) or ((aspect=deux_jaunes) and (n=20)) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,AdrSignalsuivant),clyellow);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalsuivant),clyellow);
   end;
 
   // avertissement cli
@@ -14499,20 +14655,20 @@ begin
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,adresse),clyellow);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
   end;
   // ralen 30
   if (combine=10) and (nation=1) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,adresse),clyellow);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
   end;
   if (combine=11)  and (nation=1) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(i,adresse),clyellow);
+    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
   end;
   if ((combine=rappel_30) or (combine=rappel_60)) and (nation=1) then
   begin
@@ -14986,5 +15142,753 @@ begin
 end;
 
 
-end.
+procedure TFormPrinc.AffichertouslesTCO1Click(Sender: TObject);
+var i : integer;
+begin
+  for i:=1 to NbreTCO do
+  begin
+    formTCO[i].windowState:=wsNormal; //Maximized;
+    formTCO[i].show;
+    formTCO[i].BringToFront;
+  end;
+end;
+
+procedure mosaiqueH;
+var NombreEcrans,e,i,largEcran,hautEcran,topEcran,LeftEcran,LargTCO,HautTCO : integer;
+    nbTCOE : array[1..10] of integer; // nombre de TCO par écran
+    CeTCO  : array[1..10] of integer; // nombre de TCO en cours d'affchage par écran
+begin
+  for i:=1 to 10 do begin nbTCOE[i]:=0;CeTCO[i]:=0;end;
+  for i:=1 to NbreTCO do
+  begin
+    e:=ECranTCO[i]; // écran du tco i
+    if (e>=1) and (e<=10) then inc(nbTCOE[e]);  //nbTCOE[2]=3 signifie que l'écran 2 contient 3 TCO
+  end;
+
+  NombreEcrans:=Screen.MonitorCount;
+  if NombreEcrans=1 then NbTCOE[1]:=NbreTCO;
+
+  for i:=1 to NbreTCO do
+  begin
+
+    HautTCO:=HautEcran;
+    for e:=1 to NombreEcrans do
+    begin
+
+      if (ecranTCO[i]=e) or (NombreEcrans=1) then  // si l'écran TCO doit aller sur e
+      begin
+        with formtco[i] do
+        begin
+        windowState:=wsNormal;
+        show;
+        BringToFront;
+        end;
+
+        inc(CeTCO[e]);
+        largEcran:=ecran[e].larg;
+        hautEcran:=ecran[e].haut;
+        TopEcran:=ecran[e].y0;
+        LeftEcran:=ecran[e].x0;
+        largTCO:=largEcran ;
+        HautTCO:=HautEcran div NbTCOE[e];;
+
+        with formtco[i] do
+        begin
+          Top:=((CeTCO[e]-1)*HautTCO)+Topecran;
+          Left:=leftECran;
+          width:=largTCO+8;
+          height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TFormPrinc.Mosaquehorizontale1Click(Sender: TObject);
+begin
+  mosaiqueH;
+end;
+
+procedure TFormPrinc.Mosaqueverticale1Click(Sender: TObject);
+var e,topEcran,LeftEcran,i,largEcran,hautEcran,LargTCO,HautTCO,NombreEcrans : integer;
+    nbTCOE : array[1..10] of integer; // nombre de TCO par écran
+    CeTCO  : array[1..10] of integer; // nombre de TCO en cours d'affchage par écran
+begin
+  for i:=1 to 10 do begin nbTCOE[i]:=0;CeTCO[i]:=0;end;
+  for i:=1 to NbreTCO do
+  begin
+    e:=ECranTCO[i]; // écran du tco i
+    if (e>=1) and (e<=10) then inc(nbTCOE[e]);  //nbTCOE[2]=3 signifie que l'écran 2 contient 3 TCO
+  end;
+
+  NombreEcrans:=Screen.MonitorCount;
+  if NombreEcrans=1 then NbTCOE[1]:=NbreTCO;
+
+  for i:=1 to NbreTCO do
+  begin
+
+    HautTCO:=HautEcran;
+    for e:=1 to NombreEcrans do
+    begin
+
+      if (ecranTCO[i]=e) or (NombreEcrans=1) then  // si l'écran TCO doit aller sur e
+      begin
+        inc(CeTCO[e]);
+        largEcran:=ecran[e].larg;
+        hautEcran:=ecran[e].haut;
+        TopEcran:=ecran[e].y0;
+        LeftEcran:=ecran[e].x0;
+        largTCO:=largEcran div NbTCOE[e];
+        HautTCO:=HautEcran;
+
+        with formtco[i] do
+        begin
+          windowState:=wsNormal;
+          Top:=Topecran;
+          Left:=((CeTCO[e]-1)*largTCO)+leftECran;
+          width:=largTCO+8;
+          height:=HautTCO;
+          show;
+          BringToFront;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TFormPrinc.Mosaiquecarre1Click(Sender: TObject);
+var topEcran,LeftEcran,i,largEcran,hautEcran,LargTCO,HautTCO : integer;
+begin
+  largEcran:=Screen.WorkAreaWidth;
+  hautEcran:=Screen.WorkAreaHeight;
+  TopEcran:=screen.WorkAreaTop;
+  LeftEcran:=screen.WorkAreaLeft;
+
+  case NbreTCO of
+  1 : begin
+        formTCO[1].windowState:=wsNormal;
+        formTCO[1].show;
+        formTCO[1].BringToFront;
+      end;
+  2 : mosaiqueH;
+  3 : begin
+        HautTCO:=HautEcran div 2;
+        with formtco[1] do
+        begin
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        largTCO:=largEcran div 2;
+
+        with formtco[2] do
+        begin
+          Top:=Topecran+HautTCO;    Left:=0;
+          width:=largTCO+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        with formtco[3] do
+        begin
+          Top:=Topecran+HautTCO;    Left:=largTCO;
+          width:=largTCO+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+      end;
+  4 : begin
+        HautTCO:=HautEcran div 2;
+        largTCO:=largEcran div 2;
+        for i:=1 to 4 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+     end;
+
+   5 : begin
+        HautTCO:=HautEcran div 3;
+        largTCO:=largEcran div 2;
+        with formtco[1] do
+        begin
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        for i:=2 to 5 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+      end;
+
+   6 : begin
+        HautTCO:=HautEcran div 3;
+        largTCO:=largEcran div 2;
+        for i:=1 to 6 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+     end;
+
+  7 : begin
+        HautTCO:=HautEcran div 4;
+        largTCO:=largEcran div 2;
+        with formtco[1] do
+        begin
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        for i:=2 to 7 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+      end;
+
+  8 : begin
+        HautTCO:=HautEcran div 3;
+        largTCO:=largEcran div 2;
+        with formtco[1] do
+        begin
+          Top:=Topecran;      Left:=0;
+          width:=largTCO+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        with formtco[2] do
+        begin
+          Top:=Topecran;      Left:=largTCO;
+          width:=largTCO+8; height:=HautTCO;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+        end;
+        largTCO:=largEcran div 3;
+        for i:=3 to 8 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+HautTCO+((i-3) div 3)*HautTCO;  Left:=((i-3) mod 3)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+      end;
+
+   9 : begin
+        HautTCO:=HautEcran div 3;
+        largTCO:=largEcran div 3;
+        for i:=1 to 9 do
+        begin
+          with formtco[i] do
+          begin
+            Top:=Topecran+((i-1) div 3)*HautTCO;  Left:=((i-1) mod 3)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
+            windowState:=wsNormal;
+            show;
+            BringToFront;
+          end;
+        end;
+     end;
+  end;
+end;
+
+procedure Affiche_Fenetre_TCO(i : integer);
+var e : integer;
+begin
+  if i>NbreTCO then exit;
+
+  formTCO[i].show;
+  formTCO[i].BringToFront;
+  e:=ecranTCO[i];
+  if e>Screen.MonitorCount then exit;
+  formTCO[i].Left:=Ecran[e].x0;
+  formTCO[i].Top:=Ecran[e].y0;
+  formTCO[i].windowState:=wsMaximized;
+end;
+
+procedure TFormPrinc.AfficherTCO11Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(1);
+end;
+
+procedure TFormPrinc.AfficherTCO21Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(2);
+end;
+
+procedure TFormPrinc.AfficherTCO31Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(3);
+end;
+
+procedure TFormPrinc.AfficherTCO41Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(4);
+end;
+
+procedure TFormPrinc.AfficherTCO51Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(5);
+end;
+
+procedure TFormPrinc.AfficherTCO61Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(6);
+end;
+
+procedure TFormPrinc.AfficherTCO71Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(7);
+end;
+
+procedure TFormPrinc.AfficherTCO81Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(8);
+end;
+
+procedure TFormPrinc.AfficherTCO91Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(9);
+end;
+
+procedure TFormPrinc.AfficherTCO101Click(Sender: TObject);
+begin
+  Affiche_Fenetre_TCO(10);
+end;
+
+// mise à jour des menus TCO
+Procedure Menu_tco(i : integer);
+begin
+  with formprinc do
+  begin
+    if i=0 then
+    begin
+      AfficherTCO11.Enabled:=false;
+      AfficherTCO21.Enabled:=false;
+      AfficherTCO31.Enabled:=false;
+      AfficherTCO41.Enabled:=false;
+      AfficherTCO51.Enabled:=false;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=false;
+      CO21.Enabled:=false;
+      CO31.Enabled:=false;
+      CO41.Enabled:=false;
+      CO51.Enabled:=false;
+    end;
+    if i=1 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=false;
+      AfficherTCO31.Enabled:=false;
+      AfficherTCO41.Enabled:=false;
+      AfficherTCO51.Enabled:=false;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=false;
+      CO31.Enabled:=false;
+      CO41.Enabled:=false;
+      CO51.Enabled:=false;
+      CO61.Enabled:=false;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=2 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=false;
+      AfficherTCO41.Enabled:=false;
+      AfficherTCO51.Enabled:=false;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=false;
+      CO41.Enabled:=false;
+      CO51.Enabled:=false;
+      CO61.Enabled:=false;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=3 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=false;
+      AfficherTCO51.Enabled:=false;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=false;
+      CO51.Enabled:=false;
+      CO61.Enabled:=false;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=4 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=false;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=false;
+      CO61.Enabled:=false;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=5 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=false;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=false;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=6 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=true;
+      AfficherTCO71.Enabled:=false;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=true;
+      CO71.Enabled:=false;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=7 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=true;
+      AfficherTCO71.Enabled:=true;
+      AfficherTCO81.Enabled:=false;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=true;
+      CO71.Enabled:=true;
+      CO81.Enabled:=false;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=8 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=true;
+      AfficherTCO71.Enabled:=true;
+      AfficherTCO81.Enabled:=true;
+      AfficherTCO91.Enabled:=false;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=true;
+      CO71.Enabled:=true;
+      CO81.Enabled:=true;
+      CO91.Enabled:=false;
+      CO101.Enabled:=false;
+    end;
+    if i=9 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=true;
+      AfficherTCO71.Enabled:=true;
+      AfficherTCO81.Enabled:=true;
+      AfficherTCO91.Enabled:=true;
+      AfficherTCO101.Enabled:=false;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=true;
+      CO71.Enabled:=true;
+      CO81.Enabled:=true;
+      CO91.Enabled:=true;
+      CO101.Enabled:=false;
+    end;
+    if i=10 then
+    begin
+      AfficherTCO11.Enabled:=true;
+      AfficherTCO21.Enabled:=true;
+      AfficherTCO31.Enabled:=true;
+      AfficherTCO41.Enabled:=true;
+      AfficherTCO51.Enabled:=true;
+      AfficherTCO61.Enabled:=true;
+      AfficherTCO71.Enabled:=true;
+      AfficherTCO81.Enabled:=true;
+      AfficherTCO91.Enabled:=true;
+      AfficherTCO101.Enabled:=true;
+      CO11.Enabled:=true;
+      CO21.Enabled:=true;
+      CO31.Enabled:=true;
+      CO41.Enabled:=true;
+      CO51.Enabled:=true;
+      CO61.Enabled:=true;
+      CO71.Enabled:=true;
+      CO81.Enabled:=true;
+      CO91.Enabled:=true;
+      CO101.Enabled:=true;
+    end;
+  end;
+end;
+
+
+procedure TFormPrinc.NouveauTCO1Click(Sender: TObject);
+begin
+  if NbreTCO>=10 then
+  begin
+    Affiche('Nombre maximum de TCO atteint',clred);
+    exit;
+  end;
+
+  TCOActive:=false;
+  inc(nbreTCO);
+  IndexTCOCreate:=nbreTCO;
+  formTCO[nbreTCO]:=TformTCO.Create(self);
+  formTCO[nbreTCO].Name:='FormTCO'+intToSTR(nbreTCO);
+  formTCO[nbreTCO].Caption:='TCO'+intToSTR(nbreTCO);
+  Forminit[nbreTCO]:=false;
+  init_TCO(nbreTCO);
+  menu_tco(NbreTCO);
+  TCO_modifie:=true;
+  config_modifie:=true;
+end;
+
+procedure Supprimer_TCO(TcoS : integer);
+var i,SauvNbreTCO : integer;
+    s : string;
+begin
+  if Tcos>NbreTCO then exit;
+  s:='Voulez-vous supprimer le TCO '+intToSTR(TcoS)+' ('+NomFichierTCO[tcoS]+')';
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer
+  NbreTCO:=0;
+  TCOActive:=false;
+
+  Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
+  FormTCO[tcos].close;
+  FormTCO[tcos].free;    // annuler le pointeur et raz les mémoires de la form
+
+  for i:=tCos to SauvNbreTCO-1 do
+  begin
+    NomFichierTCO[i]:=NomFichierTCO[i+1];
+
+    FormTCO[i]:=FormTCO[i+1];
+    FormTCO[i].Name:='TCO'+intToSTR(i);  // renommer le TCO
+    TCO[i]:=Tco[i+1]; // déplacer les données
+    PcanvasTCO[i]:=PcanvasTCO[i+1];
+    PBitMapTCO[i]:=PBitMapTCO[i+1];
+    PImageTCO[i]:=PImageTCO[i+1];
+    PImageTemp[i]:=PImageTemp[i+1];
+    frXGlob[i]:=frXGlob[i+1];
+    frYGlob[i]:=frYGlob[i+1];
+    SelectionAffichee[i]:=SelectionAffichee[i+1];
+    forminit[i]:=forminit[i+1];
+    modeTrace[i]:=modeTrace[i+1];
+    entoure[i]:=entoure[i+1];
+    avecGrille[i]:=avecGrille[i+1];
+    NbreCellX[i]:=NbreCellX[i+1];
+    NbreCellY[i]:=NbreCellY[i+1];
+    largeurCelld2[i]:=largeurCelld2[i+1];
+    HauteurCelld2[i]:=HauteurCelld2[i+1];
+    largeurCell[i]:=largeurCell[i+1];
+    HauteurCell[i]:=HauteurCell[i+1];
+    EcranTCO[i]:=EcranTCO[i+1];
+    Forminit[i]:=false;
+
+  end;
+  setlength(TCO[SauvNbreTCO],0);
+  dec(SauvNbreTCO);
+  Menu_tco(SauvNbreTCO);
+  config_modifie:=true;
+  if SauvNbreTCO<>0 then Affiche('La nouvelle liste des noms des fichiers des TCO est la suivante:',ClLime);
+
+  for i:=1 to SauvNbreTCO do
+  begin
+    Affiche(IntToSTR(i)+'  '+NomFichierTCO[i],clLime);
+  end;
+  NbreTCO:=SauvNbreTCO;
+end;
+
+procedure TFormPrinc.CO11Click(Sender: TObject);
+begin
+  Supprimer_TCO(1);
+end;
+
+procedure TFormPrinc.CO21Click(Sender: TObject);
+begin
+  Supprimer_TCO(2);
+end;
+
+procedure TFormPrinc.CO31Click(Sender: TObject);
+begin
+  Supprimer_TCO(3);
+end;
+
+procedure TFormPrinc.CO41Click(Sender: TObject);
+begin
+  Supprimer_TCO(4);
+end;
+
+procedure TFormPrinc.CO51Click(Sender: TObject);
+begin
+  Supprimer_TCO(5);
+end;
+
+procedure TFormPrinc.CO61Click(Sender: TObject);
+begin
+  Supprimer_TCO(6);
+end;
+
+procedure TFormPrinc.CO71Click(Sender: TObject);
+begin
+  Supprimer_TCO(7);
+end;
+
+procedure TFormPrinc.CO81Click(Sender: TObject);
+begin
+  Supprimer_TCO(8);
+end;
+
+procedure TFormPrinc.CO91Click(Sender: TObject);
+begin
+  Supprimer_TCO(9);
+end;
+
+procedure TFormPrinc.CO101Click(Sender: TObject);
+begin
+  Supprimer_TCO(10);
+end;
+
+procedure TFormPrinc.ButtonCDMClick(Sender: TObject);
+begin
+  if cdmHd=0 then exit;
+  if not(cdmDevant) then ShowWindow(CDMhd,SW_MINIMIZE) else ShowWindow(CDMhd,SW_MAXIMIZE);
+  cdmDevant:=not(cdmDevant);
+end;
+
+end.
 

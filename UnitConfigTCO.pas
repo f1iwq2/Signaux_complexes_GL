@@ -5,16 +5,11 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls , UnitTCO, ExtCtrls, Menus,
-  Buttons;
+  Buttons, Grids;
 
 type
   TFormConfigTCO = class(TForm)
-    Label3: TLabel;
-    Label4: TLabel;
     ButtonDessine: TButton;
-    CheckDessineGrille: TCheckBox;
-    EditNbCellX: TEdit;
-    EditNbCellY: TEdit;
     LabelErreur: TLabel;
     ColorDialog1: TColorDialog;
     GroupBox1: TGroupBox;
@@ -33,13 +28,8 @@ type
     ImageTexte: TImage;
     Label11: TLabel;
     Label12: TLabel;
-    LabelMaxX: TLabel;
-    LabelMaxY: TLabel;
     ImageQuai: TImage;
     Label13: TLabel;
-    EditRatio: TEdit;
-    Ratio: TLabel;
-    Label14: TLabel;
     CheckCouleur: TCheckBox;
     Label1: TLabel;
     ImagePiedFeu: TImage;
@@ -47,7 +37,24 @@ type
     RadioGroup1: TRadioGroup;
     RadioButtonLignes: TRadioButton;
     RadioButtonCourbes: TRadioButton;
+    GroupBox3: TGroupBox;
+    Label3: TLabel;
+    Label4: TLabel;
+    GroupBox2: TGroupBox;
+    StringGridTCO: TStringGrid;
+    EditNbCellX: TEdit;
+    EditNbCellY: TEdit;
+    labelMaxX: TLabel;
+    labelMaxY: TLabel;
+    Ratio: TLabel;
+    EditRatio: TEdit;
+    Label14: TLabel;
     CheckBoxCreerEvt: TCheckBox;
+    Label15: TLabel;
+    Label2: TLabel;
+    CheckDessineGrille: TCheckBox;
+    EditEcran: TEdit;
+    Label16: TLabel;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -67,6 +74,7 @@ type
     procedure CheckCouleurClick(Sender: TObject);
     procedure RadioButtonLignesClick(Sender: TObject);
     procedure RadioButtonCourbesClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -74,13 +82,13 @@ type
   end;
 
 var  FormConfigTCO: TFormConfigTCO;
-     AvecGrille : boolean;
+     clicConf : boolean;
      titre_couleur : string;
      graphisme : integer;
 
 implementation
 
-uses UnitPrinc ;
+uses UnitPrinc,unitconfig ;
 
 
 {$R *.dfm}
@@ -109,7 +117,7 @@ begin
   end;
 end;
 
-procedure dessine_icones_config;
+procedure dessine_icones_config(indexTCO : integer);
 var r : Trect;
     x1,y1,x2,y2,jy1,jy2,larg,haut : integer;
 begin
@@ -189,8 +197,8 @@ begin
     canvas.pen.color:=clQuai;
     x1:=0;
     x2:=x1+width;
-    jy1:=(Haut div 2)-round(12*frYGlob); // pos Y de la bande sup
-    jy2:=(Haut div 2)+round(12*frYGlob); // pos Y de la bande inf
+    jy1:=(Haut div 2)-round(12*fryGlob[indexTCO]); // pos Y de la bande sup
+    jy2:=(Haut div 2)+round(12*fryGlob[indexTCO]); // pos Y de la bande inf
 
     canvas.PolyGon([point(x1,jy1),point(x2,jy1),point(x2,jy2),point(x1,jy2)]);
   end;
@@ -207,14 +215,14 @@ begin
     x1:=Larg div 2;
     y1:=0;
     canvas.moveTo(x1,y1);
-    y2:=HauteurCell div 2;
+    y2:=HauteurCell[indexTCO] div 2;
     canvas.LineTo(x1,y2);
     canvas.LineTo(x1-10,y2);
   end;
 
 end;
 
-function verif_config_TCO : boolean;  // renvoie true si ok
+function verif_config_TCO(indexTCO : integer) : boolean;  // renvoie true si ok
 var erreur,mx,my : integer;
     ok : boolean;
 begin
@@ -227,7 +235,7 @@ begin
       LabelErreur.caption:='Erreur: nombre de cellules X: mini=20 maxi='+IntToSTR(MaxCellX);
       ok:=false;
     end
-    else NbreCellX:=mx;
+    else NbreCellX[indexTCO]:=mx;
 
     Val(EditNbCellY.Text,my,erreur);
     if (my<10) or (my>MaxCellY) then
@@ -235,15 +243,15 @@ begin
       LabelErreur.caption:='Erreur: nombre de cellules Y: mini=10 maxi='+IntToSTR(MaxCellY);
       ok:=false;
     end
-    else NbreCellY:=my;
+    else NbreCellY[indexTCO]:=my;
 
-    if LargeurCell*NbreCellX>8192 then
+    if LargeurCell[indexTCO]*NbreCellX[indexTCO]>8192 then
     begin
       LabelErreur.caption:='Erreur: nombre de cellules X';
       ok:=false;
     end;
 
-    if HauteurCell*NbreCellY>8192 then
+    if HauteurCell[indexTCO]*NbreCellY[indexTCO]>8192 then
     begin
       LabelErreur.caption:='Erreur: nombre de cellules Y';
       ok:=false;
@@ -251,46 +259,56 @@ begin
 
     val(EditRatio.text,RatioC,erreur);
 
-    AvecGrille:=checkDessineGrille.Checked;
+    AvecGrille[IndexTCO]:=checkDessineGrille.Checked;
     if checkCouleur.checked then ModeCouleurCanton:=1 else ModeCouleurCanton:=0;
 
   end;
   verif_config_TCO:=ok;
-  NbCellulesTCO:=NbreCellX*NbreCellY;
+  NbCellulesTCO[indexTCO]:=NbreCellX[indexTCO]*NbreCellY[indexTCO];
 end;
 
 
 procedure TFormConfigTCO.ButtonDessineClick(Sender: TObject);
 begin
-  if verif_config_TCO then
+  if verif_config_TCO(indexTCOCourant) then
   begin
-    with formTCO do
+    with formTCO[indexTCOCourant] do
     begin
-      ImageTCO.Width:=LargeurCell*NbreCellX;
-      ImageTCO.Height:=HauteurCell*NbreCellY;
+      ImageTCO.Width:=LargeurCell[indexTCOCourant]*NbreCellX[indexTCOCourant];
+      ImageTCO.Height:=HauteurCell[indexTCOCourant]*NbreCellY[indexTCOCourant];
     end;
-    calcul_cellules;
-    affiche_TCO;
+    calcul_cellules(indexTCOCourant);
+    affiche_TCO(indexTCOCourant);
   end;
 end;
 
 
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
 var s: string;
+    i : integer;
 begin
-  EditNbCellX.Text:=IntToSTR(NbreCellX);
-  EditNbCellY.Text:=IntToSTR(NbreCellY);
+  clicConf:=true;
+  caption:='Configuration du tco '+inttostr(indextcocourant)+' Fichier '+NomFichierTCO[indextcocourant];
+  groupBox3.caption:='Configuration du tco '+inttostr(indextcocourant);
+  EditNbCellX.Text:=IntToSTR(NbreCellX[indexTCOcourant]);
+  EditNbCellY.Text:=IntToSTR(NbreCellY[indexTCOcourant]);
   EditRatio.text:=IntToSTR(RatioC);
+  EditEcran.Text:=intToSTR(EcranTCO[indexTCOcourant]);
   RadioButtonCourbes.checked:=graphisme=2;
   RadioButtonLignes.checked:=graphisme=1;
-  checkDessineGrille.Checked:=AvecGrille;
+  checkDessineGrille.Checked:=AvecGrille[IndexTCOCourant];
   checkCouleur.Checked:=ModeCouleurCanton=1;
   labelMaxX.caption:='Max='+intToSTR(MaxCellX);
   labelMaxY.caption:='Max='+intToSTR(MaxCellY);
+  Label15.caption:='Nbre de TCOs : '+intToSTR(NbreTCO);
   CheckBoxCreerEvt.checked:=EvtClicDet;
-  dessine_icones_config;
+  dessine_icones_config(indexTCOCourant);
   s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
+  for i:=1 to 10 do
+    stringGridTCO.Cells[1,i]:=NomFichierTCO[i];
+//  stringGridTCO.canvas.Font.Style:=[fsBOld];
+    clicConf:=false;
 end;
 
 
@@ -306,7 +324,7 @@ begin
   begin
     clVoies:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -322,7 +340,7 @@ begin
   begin
     clfond:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -339,7 +357,7 @@ begin
   begin
     ClGrille:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -356,7 +374,7 @@ begin
   begin
     ClAllume:=ColorDialog1.Color;
     TCO_modifie:=true;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -368,7 +386,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClCanton:=ColorDialog1.Color;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -380,7 +398,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClTexte:=ColorDialog1.Color;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -392,7 +410,7 @@ begin
   if ColorDialog1.execute then
   begin
     ClQuai:=ColorDialog1.Color;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -404,7 +422,7 @@ begin
   if ColorDialog1.execute then
   begin
     clPiedSignal:=ColorDialog1.Color;
-    dessine_icones_config;
+    dessine_icones_config(indexTCOCourant);
   end;
 end;
 
@@ -416,42 +434,38 @@ end;
 
 procedure TFormConfigTCO.BitBtnOkClick(Sender: TObject);
 var ok : boolean;
-    x,y : integer;
+    index,i,x,y,erreur : integer;
+    s : string;
 begin
   ok:=true;
+  index:=indexTCOCourant;
 
-  if verif_config_TCO then
+  if verif_config_TCO(indexTCOCourant) then
   begin
-    with FormTCO.ImageTCO do
+    with FormTCO[index].ImageTCO do
     begin
-      Width:=LargeurCell*NbreCellX;
-      Height:=HauteurCell*NbreCellY;
+      Width:=LargeurCell[index]*NbreCellX[index];
+      Height:=HauteurCell[index]*NbreCellY[index];
     end;
 
     try
-      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+      begin
+        SetLength(TCO[index],NbreCellX[index]+1,NbreCellY[index]+1);
+        init_tampon_copiercoller;
+      end;
     except
       LabelErreur.caption:='TCO Mémoire insuffisante';
-      NbreCellX:=20;NbreCellY:=12;
-      SetLength(TCO,NbreCellX+1,NbreCellY+1);
+      NbreCellX[index]:=20;NbreCellY[index]:=12;
+      SetLength(TCO[index],NbreCellX[index]+1,NbreCellY[index]+1);
+      init_tampon_copiercoller;
       ok:=false;
     end;
 
-    for y:=1 to NbreCellY do
-      for x:=1 to NbreCellX do
+    for y:=1 to NbreCellY[index] do
+      for x:=1 to NbreCellX[index] do
         begin
-          if tco[x,y].CouleurFond=0 then tco[x,y].CouleurFond:=clfond;
+          if tco[index,x,y].CouleurFond=0 then tco[index,x,y].CouleurFond:=clfond;
         end;
-
-    try
-      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
-    except
-      LabelErreur.caption:='TamponTCO Mémoire insuffisante';
-      NbreCellX:=20;NbreCellY:=12;
-      SetLength(TamponTCO,NbreCellX+1,NbreCellY+1);
-      ok:=false;
-    end;
-
 
     if RadioButtonLignes.Checked then
     begin
@@ -464,13 +478,30 @@ begin
       graphisme:=2;
     end;
 
-    AvecGrille:=checkDessineGrille.Checked;
+    val(editEcran.Text,i,erreur);
+    if i<1 then i:=1;
+    if i<>EcranTCO[indexTCOcourant] then tco_modifie:=true;
+    EcranTCO[indexTCOcourant]:=i;
+    AvecGrille[IndexTCOCourant]:=checkDessineGrille.Checked;
     if ok then
     begin
-      calcul_cellules;
-      affiche_TCO;
-      
-      dessine_icones;
+      for i:=1 to 10 do
+      begin
+        if NomFichierTCO[i]<>stringGridTCO.Cells[1,i] then
+        begin
+          config_modifie:=true;
+          s:=stringGridTCO.Cells[1,i];
+          // on peut vérifier le .cfg mais bon
+          Affiche('Le nom du fichier '+NomFichierTCO[i]+' sera sauvegardé en '+s,clyellow);
+          NomFichierTCO[i]:=s;
+        end
+        else
+        NomFichierTCO[i]:=stringGridTCO.Cells[1,i];
+      end;
+      calcul_cellules(IndexTCOcourant);
+      affiche_TCO(indexTCOcourant);
+
+      dessine_icones(index);
       LabelErreur.caption:='';
       close;
    end;
@@ -480,38 +511,64 @@ end;
 procedure TFormConfigTCO.CheckBoxCreerEvtClick(Sender: TObject);
 begin
   EvtClicDet:=CheckBoxCreerEvt.checked;
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.EditNbCellXChange(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.EditNbCellYChange(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.CheckDessineGrilleClick(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.CheckCouleurClick(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.RadioButtonLignesClick(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
 procedure TFormConfigTCO.RadioButtonCourbesClick(Sender: TObject);
 begin
-  TCO_modifie:=true;
+  if not(clicConf) then TCO_modifie:=true;
 end;
 
+procedure TFormConfigTCO.FormCreate(Sender: TObject);
+var i : integer;
 begin
+
+  for i := 0 to stringGridTCO.RowCount - 1 do
+  with stringGridTCO do
+  begin
+    RowHeights[i]:=15;
+    Cells[0,i+1]:=intToSTR(i+1);
+  end;
+
+  with stringGridTCO do
+  begin
+    Options := stringGridTCO.Options + [goEditing];
+    ColWidths[0]:=30;
+    ColWidths[1]:=200;
+    ColWidths[2]:=15;
+    Cells[0,0]:='Num';
+    Cells[1,0]:='Nom fichier';
+  end;
+
+end;
+
+
+
+
+
 end.

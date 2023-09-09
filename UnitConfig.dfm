@@ -1571,7 +1571,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1650,12 +1650,12 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 128
         Width = 273
-        Height = 193
+        Height = 209
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
         object Label13: TLabel
           Left = 8
-          Top = 144
+          Top = 160
           Width = 242
           Height = 13
           Caption = 'Nom du fichier LAY '#224' utiliser au d'#233'marrage de CDM'
@@ -1678,7 +1678,7 @@ object FormConfig: TFormConfig
         end
         object CheckLanceCDM: TCheckBox
           Left = 8
-          Top = 120
+          Top = 128
           Width = 241
           Height = 25
           Caption = 'Lancer et connecter CDM Rail au d'#233'marrage'
@@ -1687,8 +1687,8 @@ object FormConfig: TFormConfig
         end
         object CheckAvecTCO: TCheckBox
           Left = 8
-          Top = 80
-          Width = 89
+          Top = 88
+          Width = 73
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
           Caption = 'Avec TCO'
@@ -1709,7 +1709,7 @@ object FormConfig: TFormConfig
         end
         object CheckBandeauTCO: TCheckBox
           Left = 8
-          Top = 96
+          Top = 104
           Width = 129
           Height = 17
           Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
@@ -1720,7 +1720,7 @@ object FormConfig: TFormConfig
         end
         object EditLAY: TEdit
           Left = 8
-          Top = 160
+          Top = 176
           Width = 249
           Height = 21
           Hint = 'Nom du LAY avec .lay'
@@ -1870,21 +1870,21 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 328
+        Top = 344
         Width = 273
-        Height = 113
+        Height = 97
         Caption = 'Services CommIP CDM Rail'
         TabOrder = 4
         object Label6: TLabel
           Left = 8
-          Top = 26
+          Top = 18
           Width = 215
           Height = 13
           Caption = 'Liste des '#233'v'#232'nements demand'#233's '#224' CDM Rail:'
         end
         object CheckBoxServAig: TCheckBox
           Left = 8
-          Top = 48
+          Top = 40
           Width = 113
           Height = 17
           Caption = 'Aiguillages'
@@ -1892,7 +1892,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxServDet: TCheckBox
           Left = 8
-          Top = 64
+          Top = 56
           Width = 89
           Height = 17
           Caption = 'D'#233'tecteurs'
@@ -1900,7 +1900,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxServAct: TCheckBox
           Left = 8
-          Top = 80
+          Top = 72
           Width = 81
           Height = 17
           Caption = 'Actionneurs'
@@ -1908,7 +1908,7 @@ object FormConfig: TFormConfig
         end
         object CheckServPosTrains: TCheckBox
           Left = 120
-          Top = 48
+          Top = 40
           Width = 145
           Height = 17
           Hint = 
@@ -1921,7 +1921,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxSrvSig: TCheckBox
           Left = 120
-          Top = 64
+          Top = 56
           Width = 113
           Height = 17
           Caption = 'Signaux (non utilis'#233')'
@@ -3182,7 +3182,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3286,7 +3286,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -4487,7 +4487,7 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 65
           Height = 17
-          Hint = 'Supprime l'#39'actionneur cliqu'#233' (en jaune)'
+          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
           Caption = 'Supprime'
           ParentShowHint = False
           ShowHint = True
@@ -4535,7 +4535,7 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 65
           Height = 17
-          Hint = 'Supprime l'#39'actionneur cliqu'#233' (en jaune)'
+          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
           Caption = 'Supprime'
           ParentShowHint = False
           ShowHint = True

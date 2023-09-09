@@ -169,24 +169,25 @@ begin
   Edit18.Text:=intToSTR(Feux[index].SR[18].sortie1);
   Edit19.Text:=intToSTR(Feux[index].SR[19].sortie1);
 
-  editNadresses.text:=intToSTR(feux[index].NA); 
+  editNadresses.text:=intToSTR(feux[index].NA);
 end;
 
 procedure dessine_feu_CDF;
-var i : integer;
+var i,ancienEtat : integer;
     Vcanvas : Tcanvas;
 begin
   i:=0;
 
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
   EtatFeuPilote:=feux[i].EtatSignal;
+  AncienEtat:=feux[i].AncienEtat;
   dessineCDF:=true; // demande dessin CDF pour les clignotements
   Vcanvas:=FormCDF.ImageDigi.picture.bitmap.Canvas;
-  
+
   case feux[i].aspect of
   // feux de signalisation
    2 : dessine_feu2(Vcanvas,0,0,1,1,EtatFeupilote,1);
-   3 : dessine_feu3(Vcanvas,0,0,1,1,EtatFeupilote,1);
+   3 : dessine_feu3(Vcanvas,0,0,1,1,EtatFeupilote,AncienEtat,1);
    4 : dessine_feu4(VCanvas,0,0,1,1,EtatFeupilote,1);
    5 : dessine_feu5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_feu7(VCanvas,0,0,1,1,EtatFeupilote,1);

@@ -4,7 +4,7 @@ object FormPilote: TFormPilote
   BorderStyle = bsDialog
   Caption = 'Pilotage'
   ClientHeight = 350
-  ClientWidth = 331
+  ClientWidth = 337
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,30 +17,26 @@ object FormPilote: TFormPilote
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
-  DesignSize = (
-    331
-    350)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitrePilote: TLabel
     Left = 8
     Top = 8
-    Width = 249
-    Height = 34
+    Width = 242
+    Height = 32
     Caption = 'Pilotage du signal'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -29
+    Font.Height = -28
     Font.Name = 'Arial'
     Font.Style = [fsBold, fsItalic]
     ParentFont = False
   end
   object ImagePilote: TImage
-    Left = 224
+    Left = 225
     Top = 56
     Width = 81
     Height = 105
-    Anchors = []
   end
   object LabelNbFeux: TLabel
     Left = 208
@@ -241,9 +237,9 @@ object FormPilote: TFormPilote
     OnClick = CheckVerrouCarreClick
   end
   object GroupBox3: TGroupBox
-    Left = 120
+    Left = 101
     Top = 40
-    Width = 193
+    Width = 192
     Height = 73
     Caption = 'Signalisation combin'#233'e'
     TabOrder = 5

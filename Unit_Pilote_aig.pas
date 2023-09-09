@@ -92,7 +92,8 @@ end;
 procedure TFormAig.ButtonDevClick(Sender: TObject);
 var s : string;
 begin
-  efface_entoure;SelectionAffichee:=false;
+  efface_entoure(indexTCOCourant);
+  SelectionAffichee[indexTCOCourant]:=false;
   pilote_acc(aiguille,const_devie,aigP);
   s:='accessoire '+IntToSTR(aiguille)+' dévié';
   Affiche(s,clyellow);
@@ -102,7 +103,8 @@ end;
 procedure TFormAig.ButtonDroitClick(Sender: TObject);
 var s : string;
 begin
-  efface_entoure;SelectionAffichee:=false;
+  efface_entoure(indexTCOcourant);
+  SelectionAffichee[indexTCOcourant]:=false;
   pilote_acc(aiguille,const_droit,aigP);
   s:='accessoire '+IntToSTR(aiguille)+' droit';
   Affiche(s,clyellow);
@@ -112,7 +114,8 @@ end;
 procedure TFormAig.ButtonDev2Click(Sender: TObject);
 var s : string;
 begin
-  efface_entoure;SelectionAffichee:=false;
+  efface_entoure(indexTCOcourant);
+  SelectionAffichee[indexTCOcourant]:=false;
   pilote_acc(aiguille2,const_devie,aigP);
   s:='accessoire '+IntToSTR(aiguille2)+' dévié';
   Affiche(s,clyellow);
@@ -121,8 +124,10 @@ end;
 
 procedure TFormAig.ButtonDroit2Click(Sender: TObject);
 var s : string;
+    index : integer;
 begin
-  efface_entoure;SelectionAffichee:=false;
+  efface_entoure(indexTCOCOurant);
+  SelectionAffichee[indexTCOcourant]:=false;
   pilote_acc(aiguille2,const_droit,aigP);
   s:='accessoire '+IntToSTR(aiguille2)+' droit';
   Affiche(s,clyellow);

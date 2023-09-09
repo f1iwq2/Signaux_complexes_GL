@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
-  MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd ;
+  MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd,
+  Grids ;
 
 type
   TFormConfig = class(TForm)
@@ -582,6 +583,7 @@ INTER_CAR_ch='Inter_car';
 Tempo_maxi_ch='Tempo_maxi';
 Entete_ch='Entete';
 TCO_ch='TCO';
+Nb_TCO_ch='NbreTCO';
 MasqueBandeauTCO_ch='MasqueBandeauTCO';
 CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
@@ -602,6 +604,7 @@ NomModuleCDM_ch='NomModuleCDM';
 Nba_ch='NombreAdresses';
 nation_ch='Nation';
 nom_dec_pers_ch='Nom_dec_pers';
+Nom_fich_TCO_ch='Nom_fichier_TCO';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -1720,6 +1723,16 @@ begin
   if AvecTCO then s:='1' else s:='0';
   writeln(fichierN,TCO_ch+'=',s);
 
+  // nombre de TCO
+  writeln(fichierN,Nb_TCO_ch+'=',NbreTCO);
+
+  for i:=1 to 10 do
+  begin
+    s:=NomFichierTCO[i];
+    if s='' then s:='TCO'+intToSTR(i);
+    writeln(fichierN,Nom_fich_TCO_ch+intToSTR(i)+'=',s);
+  end;
+
   if MasqueBandeauTCO then s:='1' else s:='0';
   writeln(fichierN,MasqueBandeauTCO_ch+'=',s);
 
@@ -1778,7 +1791,7 @@ begin
   writeln(fichierN,section_DecPers_ch);
   for i:=1 to NbreDecPers do
   begin
-    writeln(fichierN,nom_dec_pers_ch+'='+decodeur_pers[i].nom); 
+    writeln(fichierN,nom_dec_pers_ch+'='+decodeur_pers[i].nom);
     n:=decodeur_pers[i].NbreAdr;
     s:=Nba_ch+'='+intToSTR(n);
     writeln(fichierN,s);
@@ -1905,8 +1918,8 @@ var s,sa,SOrigine: string;
       if debug=1 then affiche(s,clLime);
     end;
 
-procedure compile_signaux;
-begin
+  procedure compile_signaux;
+  begin
   //Affiche('Définition des signaux',clyellow);
   i:=1;Nligne:=1;
   NbreFeux:=0;
@@ -1924,16 +1937,16 @@ begin
         if decode_ligne_feux(s,i) then    // décode la chaine et stocke en tableau feux
         begin
           inc(i);
-        end  
+        end
         else
-          Affiche('Erreur 9 : signal '+s+' en doublon a été ignoré',clred);  
+          Affiche('Erreur 9 : signal '+s+' en doublon a été ignoré',clred);
       end;
     end;
-  until (s='0') or eof(fichier);
-end;
+    until (s='0') or eof(fichier);
+  end;
 
-procedure compile_branches;
-begin
+  procedure compile_branches;
+  begin
   // branches
   NDetecteurs:=0;
   Nligne:=1;
@@ -1954,11 +1967,11 @@ begin
   until (s='0') or eof(fichier) or (i>=MaxBranches);
   if i>MaxBranches then Affiche('Nombre maximal de branches atteint',clRed);
   NbreBranches:=i-1;
-end;
+  end;
 
-procedure compile_actionneurs;
-var i : integer;
-begin
+  procedure compile_actionneurs;
+  var i : integer;
+  begin
   // raz des actionneurs
   for i:=1 to Max_actionneurs do
   begin
@@ -2240,10 +2253,10 @@ begin
     end;
   until (s='0') or eof(fichier) ;
   dec(maxTablo_act);
-end;
+  end;
 
-procedure compile_aiguillages;
-begin
+  procedure compile_aiguillages;
+  begin
   //Affiche('Définition des aiguillages',clyellow);
   maxaiguillage:=0;
   Nligne:=1;
@@ -2489,13 +2502,13 @@ begin
       until (enregistrement='') or (itl>3);
       if itl>4 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);exit;end;
     end;
-  until (sOrigine='0');
-end;
+    until (sOrigine='0');
+  end;
 
-// compile les décodeurs personnalisés
-procedure compile_dec_pers;
-var nv,j,k,l,adr : integer;
-begin
+  // compile les décodeurs personnalisés
+  procedure compile_dec_pers;
+  var nv,j,k,l,adr : integer;
+  begin
   Nligne:=1;
   repeat    // boucle de décodeurs
     nv:=0;  // compteur nombre de variables
@@ -2573,12 +2586,12 @@ begin
       end
       else Affiche('Section décodeurs - Nombre de descriptions du décodeur "'+decodeur_pers[NbreDecPers].nom+'" différents du nombre des adresses déclarées',clred);
     until (adr>j) or (s='0');
-  until eof(fichier) or (s='0');
-end;
+    until eof(fichier) or (s='0');
+  end;
 
-procedure compile_dccpp;
-var nv,i  : integer;
-begin
+  procedure compile_dccpp;
+  var nv,i  : integer;
+  begin
   Nligne:=1;
   nv:=0;
   repeat
@@ -2619,12 +2632,12 @@ begin
       until eof(fichier) or (s='') or (s='0') or (nLigne>MaxCdeDccpp);
     end;
 
-  until eof(fichier) or (s='0');
-end;
+    until eof(fichier) or (s='0');
+  end;
 
-procedure compile_trains;
-var i,erreur : integer;
-begin
+  procedure compile_trains;
+  var i,erreur : integer;
+  begin
   ntrains:=0;
   repeat
     lit_ligne;
@@ -2688,11 +2701,11 @@ begin
 
 end;
 
-// trie les signaux
-procedure trier_sig;
-var i,j : integer;
+  // trie les signaux
+  procedure trier_sig;
+  var i,j : integer;
     temp : TSignal;
-begin
+  begin
   for i:=1 to NbreFeux do
   begin
     for j:=i+1 to NbreFeux do
@@ -2705,14 +2718,13 @@ begin
       end;
     end;
   end;
-end;
+  end;
 
-procedure lit_flux;
+  procedure lit_flux;
     label ici1,ici2,ici3,ici4 ;
     var i : integer;
 
-// début de la procédure lit_config
-begin
+  begin
   // valeurs par défaut
   Nb_cantons_Sig:=3;
   nv:=0; it:=0;
@@ -2734,6 +2746,17 @@ begin
     begin
       delete(s,i,length(sa));
       val(s,Verif_AdrXpressNet,erreur);
+    end;
+
+    sa:=uppercase(Nom_fich_TCO_ch);
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,1,length(sa));
+      i:=extract_int(s);
+      j:=pos('=',s);
+      delete(s,1,j);
+      if (i>0) and (i<11) then NomfichierTCO[i]:=s;
     end;
 
     sa:=uppercase(Filtrage_det_ch)+'=';
@@ -2937,7 +2960,7 @@ begin
       AvecDemandeAiguillages:=s='1';
     end;
 
-    // avec demande de connexion en COM USB au démarrage     
+    // avec demande de connexion en COM USB au démarrage
     sa:=uppercase(Init_dem_interfaceUSBCOM_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -3064,6 +3087,18 @@ begin
       val(s,i,erreur);
       AvecTCO:=i=1;
     end;
+
+    sa:=uppercase(Nb_TCO_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      if (i<1) or (i>10) then i:=1;
+      NbreTCO:=i;
+    end;
+
 
     sa:=uppercase(MasqueBandeauTCO_ch)+'=';
     i:=pos(sa,s);
@@ -3252,8 +3287,9 @@ begin
 
   until (eof(fichier));
 
-end;
-// procédure lit_config
+  end;  // fin de lit_flux
+
+// début de la procédure lit_config
 begin
   debugConfig:=false;
   trouve_NbDetDist:=false;
@@ -3285,6 +3321,11 @@ begin
   trouve_Algo_Uni:=false;
   trouve_Nb_cantons_Sig:=false;
   AvecVerifIconesTCO:=1;
+  NomfichierTCO[1]:='tco.cfg';  // pour compatibilité anciennes versions
+  for i:=2 to 10 do
+  begin
+    NomfichierTCO[i]:='tco'+intToSTR(i)+'.cfg';
+  end;
 
   //trouve_FVR:=false;
 
@@ -3605,9 +3646,10 @@ begin
   end;
 end;
 
+// affiche les champs du signal lc
 // LC=Adresse du signal
 procedure clicListeSignal(lc : integer);
-var AncAdresse,index,adresse,erreur : integer;
+var i,AncAdresse,index,adresse,erreur : integer;
     s : string;
 begin
   index:=index_Signal(lc)-1;
@@ -3616,6 +3658,12 @@ begin
   begin
     ligneclicSig:=-1;
     exit;
+  end;
+
+  with FormConfig.ListBoxSig do
+  begin
+    for i:=0 to Count-1 do Selected[i]:=false;
+    FormConfig.ListBoxSig.Selected[index]:=true;
   end;
 
   Feu_Sauve:=feux[index+1];  // sauvegarde
@@ -3640,6 +3688,7 @@ end;
 
 
 procedure TFormConfig.FormActivate(Sender: TObject);
+var i : integer;
 begin
   if affevt then affiche('FormConfig activate',clLime);
   activ:=true;
@@ -3741,6 +3790,10 @@ begin
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
   activ:=false;
+
+  if clicproprietes then clicListeSignal(Adressefeuclic);
+  clicproprietes:=false;
+
 end;
 
 // met à jour le décodeur courant dans le tableau de config
@@ -6520,11 +6573,12 @@ begin
 end;
 
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
-var x,y,i,index,aspect,adresseFeu : integer;
+var indexTCO,x,y,i,index,aspect,adresseFeu : integer;
     s : string;
     bm :tbitmap;
 begin
   if clicListe then exit;
+  indexTCO:=index_TCO(sender);
   if affevt then Affiche('Evt aspect',clOrange);
   i:=ComboBoxAsp.ItemIndex;
   //Affiche(IntToSTR(i),clyellow);
@@ -6564,15 +6618,15 @@ begin
   Feux[index].Img.picture.Bitmap:=bm;
   dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
   // et dans le TCO
-  if formTCO.Showing then
+  if formTCO[indexTCO].Showing then
   begin
-    for y:=1 to NbreCellY do
-    for x:=1 to NbreCellX do
+    for y:=1 to NbreCellY[indexTCO] do
+    for x:=1 to NbreCellX[indexTCO] do
       begin
-        if TCO[x,y].BImage=50 then
+        if TCO[1,x,y].BImage=Id_Signal then      // &&& balayer tous les tco
         begin
           AdresseFeu:=feux[index].adresse;
-          if tco[x,y].Adresse=AdresseFeu then affiche_tco;
+          if tco[1,x,y].Adresse=AdresseFeu then affiche_tco(indexTCO);
         end;
       end;
   end;
@@ -7565,7 +7619,7 @@ end;
 
 
 function verif_coherence : boolean;
-var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,
+var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,
     x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2 : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
@@ -7857,7 +7911,7 @@ begin
           begin
             ok:=false;
             Affiche('Erreur 9.12: signal '+intToSTR(feux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non contigüs ',clred);
-          end;          
+          end;
         end;
       end;
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
@@ -8022,7 +8076,7 @@ begin
               if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
             end;
             if c='P' then
-            begin 
+            begin
               extr:=aiguillage[index2].APointe;
               if adr<>extr then Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
             end;
@@ -8073,7 +8127,7 @@ begin
             if c='D' then
             begin
               extr:=aiguillage[index2].ADroit;
-              if adr<>extr then Affiche('Erreur 10.33: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.33: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred);
             end;
             if c='S' then
             begin
@@ -8262,23 +8316,34 @@ begin
   // 9. vérifier la cohérence TCO
   if avecTCO then
   begin
-    for y:=1 to NbreCellY do
-      for x:=1 to NbreCellX do
+    indexTCO:=1;
+    for y:=1 to NbreCellY[indexTCO] do
+      for x:=1 to NbreCellX[indexTCO] do
       begin
-        i:=TCO[x,y].BImage;
-        if i=50 then
+        i:=TCO[indexTCO,x,y].BImage;
+        adr:=TCO[indexTCO,x,y].adresse;
+        if i=Id_signal then
         begin
-          adr:=TCO[x,y].adresse;
           if index_Signal(adr)=0 then
           begin
             Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
             ok:=false;
           end;
         end;
-        if (i=2) or (i=3) or (i=4) or (i=5) or (i=12) or (i=13) or (i=14) or (i=15) or (i=21) or (i=22) then
+        if (i=21) or (i=22)  or (i=23) or (i=25) then
         begin
-          adr:=TCO[x,y].adresse;
-          if index_aig(adr)=0 then
+          if (adr<>0) and (tco[indexTCO,x,y].pont<>0) then
+          begin
+            Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adr)+' est décrite comme un croisement ou TJD/S car elle présente une adresse',clred);
+            Affiche('mais la cellule représente un pont',clred);
+            ok:=false;
+          end;
+        end;
+
+        if isAigTCO(i) then
+        begin
+          adr:=TCO[indexTCO,x,y].adresse;
+          if (index_aig(adr)=0) and (adr<>0) then
           begin
             Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
             ok:=false;
@@ -8286,7 +8351,7 @@ begin
         end;
         if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
         begin
-          adr:=TCO[x,y].adresse;
+          adr:=TCO[indexTCO,x,y].adresse;
           if adr<>0 then
           begin
             j:=1;
@@ -8301,11 +8366,13 @@ begin
             end;
           end;
         end;
-        if not(verif_cellule(x,y,i)) then
+        if not(verif_cellule(indexTCO,x,y,i)) then
         begin
           Affiche('TCO: Erreur de proximité composants incompatibles: cellules TCO['+intToSTR(x)+','+intToSTR(y)+'] ',clred);
           ok:=false;
         end;
+
+
       end;
   end;
 

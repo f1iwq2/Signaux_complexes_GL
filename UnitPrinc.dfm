@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 64
-  Top = 216
+  Left = 55
+  Top = 227
   Width = 1222
   Height = 652
   Caption = 'Signaux complexes'
@@ -17,8 +17,8 @@ object FormPrinc: TFormPrinc
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    1206
-    594)
+    1214
+    601)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1203,7 +1203,7 @@ object FormPrinc: TFormPrinc
   object SplitterH: TSplitter
     Left = 0
     Top = 0
-    Height = 572
+    Height = 579
   end
   object ImageSignal20: TImage
     Left = 384
@@ -1507,8 +1507,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 572
-    Width = 1206
+    Top = 579
+    Width = 1214
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1593,9 +1593,9 @@ object FormPrinc: TFormPrinc
       OnClick = ButtonLanceCDMClick
     end
     object ButtonLocCV: TButton
-      Left = 104
-      Top = 8
-      Width = 83
+      Left = 8
+      Top = 88
+      Width = 89
       Height = 33
       Hint = 'Affichage du panneau de contr'#244'le des trains ou des CV'
       Caption = 'Trains / CVs'
@@ -1626,10 +1626,20 @@ object FormPrinc: TFormPrinc
       WordWrap = True
       OnClick = ButtonAffAnalyseCDMClick
     end
+    object ButtonCDM: TButton
+      Left = 104
+      Top = 8
+      Width = 81
+      Height = 33
+      Caption = 'Affiche/Cache CDM Rail'
+      TabOrder = 7
+      WordWrap = True
+      OnClick = ButtonCDMClick
+    end
   end
   object StaticText: TStaticText
     Left = 16
-    Top = 549
+    Top = 557
     Width = 14
     Height = 17
     Anchors = [akLeft, akBottom]
@@ -2195,6 +2205,124 @@ object FormPrinc: TFormPrinc
       object Vrifiernouvelleversion1: TMenuItem
         Caption = 'V'#233'rifier nouvelle version'
         OnClick = Vrifiernouvelleversion1Click
+      end
+    end
+    object COs1: TMenuItem
+      Caption = 'TCOs'
+      object AffichertouslesTCO1: TMenuItem
+        Caption = 'Afficher tous les TCO'
+        OnClick = AffichertouslesTCO1Click
+      end
+      object N10: TMenuItem
+        Caption = '-'
+      end
+      object Mosaquehorizontale1: TMenuItem
+        Caption = 'Mosa'#239'que horizontale'
+        OnClick = Mosaquehorizontale1Click
+      end
+      object Mosaqueverticale1: TMenuItem
+        Caption = 'Mosa'#239'que verticale'
+        OnClick = Mosaqueverticale1Click
+      end
+      object N11: TMenuItem
+        Caption = '-'
+      end
+      object Mosaiquecarre1: TMenuItem
+        Caption = 'Mosaique carr'#233'e'
+        OnClick = Mosaiquecarre1Click
+      end
+      object N12: TMenuItem
+        Caption = '-'
+      end
+      object AfficherTCO11: TMenuItem
+        Caption = 'Afficher TCO1'
+        OnClick = AfficherTCO11Click
+      end
+      object AfficherTCO21: TMenuItem
+        Caption = 'Afficher TCO2'
+        OnClick = AfficherTCO21Click
+      end
+      object AfficherTCO31: TMenuItem
+        Caption = 'Afficher TCO3'
+        OnClick = AfficherTCO31Click
+      end
+      object AfficherTCO41: TMenuItem
+        Caption = 'Afficher TCO4'
+        OnClick = AfficherTCO41Click
+      end
+      object AfficherTCO51: TMenuItem
+        Caption = 'Afficher TCO5'
+        OnClick = AfficherTCO51Click
+      end
+      object AfficherTCO61: TMenuItem
+        Caption = 'Afficher TCO6'
+        OnClick = AfficherTCO61Click
+      end
+      object AfficherTCO71: TMenuItem
+        Caption = 'Afficher TCO7'
+        OnClick = AfficherTCO71Click
+      end
+      object AfficherTCO81: TMenuItem
+        Caption = 'Afficher TCO8'
+        OnClick = AfficherTCO81Click
+      end
+      object AfficherTCO91: TMenuItem
+        Caption = 'Afficher TCO9'
+        OnClick = AfficherTCO91Click
+      end
+      object AfficherTCO101: TMenuItem
+        Caption = 'Afficher TCO10'
+        OnClick = AfficherTCO101Click
+      end
+      object N13: TMenuItem
+        Caption = '-'
+      end
+      object NouveauTCO1: TMenuItem
+        Caption = 'Nouveau TCO'
+        OnClick = NouveauTCO1Click
+      end
+      object SupprimerTCO1: TMenuItem
+        Caption = 'Supprimer TCO'
+        object CO11: TMenuItem
+          Caption = 'TCO1'
+          OnClick = CO11Click
+        end
+        object CO21: TMenuItem
+          Caption = 'TCO2'
+          OnClick = CO21Click
+        end
+        object CO31: TMenuItem
+          Caption = 'TCO3'
+          OnClick = CO31Click
+        end
+        object CO41: TMenuItem
+          Caption = 'TCO4'
+          OnClick = CO41Click
+        end
+        object CO51: TMenuItem
+          Caption = 'TCO5'
+          OnClick = CO51Click
+        end
+        object CO61: TMenuItem
+          Caption = 'TCO6'
+          OnClick = CO61Click
+        end
+        object CO71: TMenuItem
+          Caption = 'TCO7'
+          OnClick = CO71Click
+        end
+        object CO81: TMenuItem
+          Caption = 'TCO8'
+          OnClick = CO81Click
+        end
+        object CO91: TMenuItem
+          Caption = 'TCO9'
+          OnClick = CO91Click
+        end
+        object CO101: TMenuItem
+          Caption = 'TCO10'
+          OnClick = CO101Click
+        end
       end
     end
     object Roulage1: TMenuItem
