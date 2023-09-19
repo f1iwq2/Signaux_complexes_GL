@@ -365,6 +365,7 @@ type
     N1: TMenuItem;
     N2: TMenuItem;
     outcopierentatquetexte1: TMenuItem;
+    CheckBoxAffMemo: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -588,6 +589,7 @@ MasqueBandeauTCO_ch='MasqueBandeauTCO';
 CDM_ch='CDM';
 Serveur_interface_ch='Serveur_interface';
 fenetre_ch='Fenetre';
+AffMemoFenetre_ch='AffMemoFenetre';
 Tempo_aig_ch='Tempo_Aig';
 Nb_cantons_Sig_ch='Nb_cantons_Sig';
 Tempo_Feu_ch='Tempo_Feu';
@@ -605,6 +607,12 @@ Nba_ch='NombreAdresses';
 nation_ch='Nation';
 nom_dec_pers_ch='Nom_dec_pers';
 Nom_fich_TCO_ch='Nom_fichier_TCO';
+LargeurF_ch='LargeurF';
+HauteurF_ch='HauteurF';
+OffsetXF_ch='OffsetX';
+OffsetYF_ch='OffsetY';
+etatF_ch='EtatF';
+PosSplitter_ch='Splitter';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -627,7 +635,7 @@ var
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant : integer;
+  ligneDCC,decCourant,AffMemoFenetre : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
@@ -1642,6 +1650,13 @@ begin
   // copie_commentaire;
   s:='/ Fichier de configuration de signaux_complexes_GL version '+version+sousversion;
   writeln(fichierN,s);
+  writeln(fichierN,largeurF_ch+'=',largeurF);
+  writeln(fichierN,hauteurF_ch+'=',hauteurF);
+  writeln(fichierN,OffsetXF_ch+'=',OffsetXF);
+  writeln(fichierN,OffsetYF_ch+'=',OffsetYF);
+  writeln(fichierN,EtatF_ch+'=',EtatF);
+  writeln(fichierN,PosSplitter_ch+'=',PosSplitter);
+
   writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
@@ -1707,6 +1722,9 @@ begin
 
   // plein écran
   writeln(fichierN,Fenetre_ch+'=',fenetre);
+
+  // mémo
+  writeln(fichierN,AffMemoFenetre_ch+'=',AffMemoFenetre);
 
   // Nombre maxi de détecteurs considérés distants
   writeln(fichierN,nb_det_dist_ch+'=',Nb_Det_Dist);
@@ -2759,6 +2777,55 @@ end;
       if (i>0) and (i<11) then NomfichierTCO[i]:=s;
     end;
 
+
+    sa:=uppercase(LargeurF_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,LargeurF,erreur);
+    end;
+
+    sa:=uppercase(HauteurF_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,HauteurF,erreur);
+    end;
+
+    sa:=uppercase(OffsetXF_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,OffsetXF,erreur);
+    end;
+
+    sa:=uppercase(OffsetYF_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,OffsetYF,erreur);
+    end;
+
+    sa:=uppercase(EtatF_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,EtatF,erreur);
+    end;
+
+    sa:=uppercase(PosSplitter_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      delete(s,i,length(sa));
+      val(s,PosSplitter,erreur);
+    end;
+
     sa:=uppercase(Filtrage_det_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2804,7 +2871,7 @@ end;
       if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
       with FormPrinc.FenRich do
       begin
-        clear;
+        //clear;
         Font.Size:=TailleFonte;
       end;
     end;
@@ -2992,6 +3059,16 @@ end;
       delete(s,i,length(sa));
       val(s,fenetre,erreur);
       if fenetre=1 then Formprinc.windowState:=wsMaximized;
+    end;
+
+    // mémo fenetre    
+    sa:=uppercase(AffMemoFenetre_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,AffMemoFenetre,erreur);
     end;
 
     // Nombre de cantons avant signal
@@ -3339,7 +3416,6 @@ begin
   if not(trouve_verif_version) then s:=verif_version_ch;
   if not(trouve_fonte) then s:=fonte_ch;
 
-
   Nb_Det_Dist:=3;
   // initialisation des aiguillages avec des valeurs par défaut
   for i:=1 to NbreMaxiAiguillages do
@@ -3363,7 +3439,6 @@ begin
     Detecteur[i].IndexTrain:=0;
     Ancien_detecteur[i]:=false;
   end;
-
   //Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
   try
     assign(fichier,NomConfig);
@@ -3444,6 +3519,18 @@ begin
   if not(trouve_section_aig) then Affiche('Manque section '+section_aig_ch,clred);
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
+
+  // fenetre
+  {
+  if largeurF>0 then formPrinc.width:=LargeurF;
+  if HauteurF>0 then formPrinc.Height:=hauteurF;
+  formPrinc.left:=offsetXF;
+  formPrinc.top:=offsetYF;
+  if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
+  begin
+    formprinc.fenRich.Width:=PosSplitter;
+    //positionne_elements(PosSplitter);
+  end;}
 end;
 
 
@@ -3574,6 +3661,7 @@ begin
 
     LanceCDM:=CheckLanceCDM.Checked;
     if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
+    if CheckBoxAffMemo.checked then AffMemoFenetre:=1 else AffMemoFenetre:=0;
 
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
@@ -3714,6 +3802,7 @@ begin
   EditDroit_BD.ReadOnly:=false;
   Edit_HG.ReadOnly:=false;
 
+  CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
   EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
   EditTempoFeu.Text:=IntToSTR(Tempo_feu);
   EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
@@ -8160,7 +8249,7 @@ begin
               Affiche('Erreur 10.41: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;    
-   
+           
             // tjs ou tjs à 4 états
             if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=4)) then
             begin
@@ -8316,64 +8405,62 @@ begin
   // 9. vérifier la cohérence TCO
   if avecTCO then
   begin
-    indexTCO:=1;
-    for y:=1 to NbreCellY[indexTCO] do
-      for x:=1 to NbreCellX[indexTCO] do
-      begin
-        i:=TCO[indexTCO,x,y].BImage;
-        adr:=TCO[indexTCO,x,y].adresse;
-        if i=Id_signal then
+    for indexTCO:=1 to NbreTCO do
+      for y:=1 to NbreCellY[indexTCO] do
+        for x:=1 to NbreCellX[indexTCO] do
         begin
-          if index_Signal(adr)=0 then
-          begin
-            Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
-            ok:=false;
-          end;
-        end;
-        if (i=21) or (i=22)  or (i=23) or (i=25) then
-        begin
-          if (adr<>0) and (tco[indexTCO,x,y].pont<>0) then
-          begin
-            Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adr)+' est décrite comme un croisement ou TJD/S car elle présente une adresse',clred);
-            Affiche('mais la cellule représente un pont',clred);
-            ok:=false;
-          end;
-        end;
-
-        if isAigTCO(i) then
-        begin
+          i:=TCO[indexTCO,x,y].BImage;
           adr:=TCO[indexTCO,x,y].adresse;
-          if (index_aig(adr)=0) and (adr<>0) then
+          if i=Id_signal then
           begin
-            Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
-            ok:=false;
-          end;
-        end;
-        if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
-        begin
-          adr:=TCO[indexTCO,x,y].adresse;
-          if adr<>0 then
-          begin
-            j:=1;
-            repeat
-              trouveSuiv:=adr=Adresse_detecteur[j];
-              inc(j);
-            until (j>NDetecteurs) or trouveSuiv;
-            if not(trouveSuiv) then
+            if index_Signal(adr)=0 then
             begin
-              Affiche('Un détecteur '+IntToSTR(adr)+' est déclaré dans le TCO['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+              Affiche('Un signal '+IntToSTR(adr)+' est déclaré dans le TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
               ok:=false;
             end;
           end;
-        end;
-        if not(verif_cellule(indexTCO,x,y,i)) then
-        begin
-          Affiche('TCO: Erreur de proximité composants incompatibles: cellules TCO['+intToSTR(x)+','+intToSTR(y)+'] ',clred);
-          ok:=false;
-        end;
+          if (i=21) or (i=22)  or (i=23) or (i=25) then
+          begin
+            if (adr<>0) and (tco[indexTCO,x,y].pont<>0) then
+            begin
+              Affiche('Erreur 48 TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] d''adresse '+intToSTR(Adr)+' décrite comme un croisement ou TJD/S car elle présente une adresse',clred);
+              Affiche('mais la cellule représente un pont',clred);
+             ok:=false;
+            end;
+          end;
 
-
-      end;
+          if isAigTCO(i) then
+          begin
+            adr:=TCO[indexTCO,x,y].adresse;
+            if (index_aig(adr)=0) and (adr<>0) then
+            begin
+              Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+              ok:=false;
+            end;
+          end;
+          if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
+          begin
+            adr:=TCO[indexTCO,x,y].adresse;
+            if adr<>0 then
+            begin
+              j:=1;
+              repeat
+                trouveSuiv:=adr=Adresse_detecteur[j];
+                inc(j);
+              until (j>NDetecteurs) or trouveSuiv;
+              if not(trouveSuiv) then
+              begin
+                Affiche('Un détecteur '+IntToSTR(adr)+' est déclaré dans le TCO '+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
+                ok:=false;
+              end;
+            end;
+          end;
+          if not(verif_cellule(indexTCO,x,y,i)) then
+          begin
+            Affiche('TCO: Erreur de proximité composants incompatibles: cellules TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] ',clred);
+            ok:=false;
+          end;
+        end;
   end;
 
   // 11 Divers

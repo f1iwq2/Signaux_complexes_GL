@@ -407,11 +407,12 @@ type
   end;
 
 const
+  MaxCellX=150;MaxCellY=70;
   licone=35;
   hicone=35;
   maxUndo=30;
-  ZoomMax=50;ZoomMin=15;
-  MaxCellX=150;MaxCellY=70;
+  ZoomMax=(8191 div MaxCellX)-1;  // pour ne pas dépasser un canvas de 8191 pixel maxi
+  ZoomMin=15;
   ClFond_ch='CoulFond';
   clVoies_ch='CoulVoies';
   clAllume_ch='CoulAllume';
@@ -434,7 +435,7 @@ const
 
   // liaisons des voies pour chaque icone par bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
   Liaisons : array[0..52] of integer=
-     //   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28 29 30 31
+   // 0   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28 29 30 31
      (0,$88,$c8,$8c,$98,$89,$9,$84,$90,$48,$44,$11,$19,$c4,$91,$4c,$21,$24,$42,$12,$22,$cc,$99,$66,$23,$33,$26,$62,$32,$31,0,0,
      // 32  33  34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52
        $64,$13,$46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) ;
@@ -467,7 +468,6 @@ type
 var
   clAllume,clVoies,clFond,couleurAdresse,clGrille,cltexte,clQuai,CoulFonte,ClCanton,clPiedSignal : Tcolor;
 
-  //FormTCO: TFormTCO;
   formTCO : array[1..10] of TformTCO;
 
   TamponAffecte,TCO_modifie,clicsouris,
@@ -477,7 +477,7 @@ var
   HtImageTCO,LargImageTCO,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,RatioC,ModeCouleurCanton,
-  AncienXClicCell,AncienYClicCell,
+  AncienXClicCell,AncienYClicCell,TCODrag,
   Epaisseur,oldX,oldY,offsetSourisY,offsetSourisX,AvecVerifIconesTCO,indexTrace,IndexTCOCourant,
   ancienTraceX,ancienTraceY,rangUndo,NbreTCO,IndexTCOCreate: integer;
 
@@ -524,7 +524,7 @@ var
   AvecGrille,SelectionAffichee,forminit,modeTrace,entoure : array[1..10] of boolean;
 
 
-procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY,DimOrgX,DimOrgY : integer);
+procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY : integer);
 procedure calcul_cellules(indextco : integer);
 procedure sauve_fichiers_tco;
 procedure zone_TCO(indexTCO,det1,det2,mode: integer);
@@ -560,6 +560,8 @@ uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO ;
 {$R *.dfm}
 
 // renvoie l'index du tco d'après le nom de la forme (TCO1 TCO2)
+// ne fonctionne que si t est un composant dont on peut remonter jusqu'à la form parent
+// Exemple : si T est un popup menu, ca ne marche pas!!!
 function index_TCO(t : Tobject) : integer;
 var s : string;
     trouve : boolean;
@@ -568,7 +570,7 @@ var s : string;
 begin
   s:=(t as Tcomponent).name;
   // Affiche(s,clWhite);
-  // popup menu ne marche pas!!!
+
   f:=getparentForm(t as Tcontrol);
   s:=(f as Tcomponent).Name;
   //Affiche(s,clYellow);
@@ -603,45 +605,45 @@ end;
 procedure Init_TCO(indexTCO : integer);
 var x,y : integer;
 begin
-    sauve_tco:=true;
-    Affiche('Nouveau tco '+intToSTr(indexTCO),clyellow);
-    NbreCellX[indexTCO]:=35;NbreCellY[indexTCO]:=20;LargeurCell[indexTCO]:=35;HauteurCell[indexTCO]:=35;
-    largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;HauteurCelld2[indexTCO]:=HauteurCell[indexTCO] div 2;
-    EcranTCO[indexTCO]:=1;
-    RatioC:=10;
-    ClFond:=$000040;
-    ClVoies:=$0077FF;
-    ClAllume:=$00FFFF;
-    ClGrille:=$404040;
-    ClTexte:=$00FF00;
-    ClQuai:=$808080;
-    clPiedSignal:=$4080FF;
-    ClCanton:=$00FFFF;
-    AvecGrille[indexTCO]:=true;
-    Graphisme:=1;
-    SetLength(TCO[indexTCO],NbreCellX[indexTCO]+2,NbreCellY[indexTCO]+2); // +2 pour éviter les erreurs d'index sur +1 et -1
-    init_tampon_copiercoller;
+  sauve_tco:=true;
+  Affiche('Nouveau tco '+intToSTr(indexTCO),clyellow);
+  NbreCellX[indexTCO]:=35;NbreCellY[indexTCO]:=20;LargeurCell[indexTCO]:=35;HauteurCell[indexTCO]:=35;
+  largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;HauteurCelld2[indexTCO]:=HauteurCell[indexTCO] div 2;
+  EcranTCO[indexTCO]:=1;
+  RatioC:=10;
+  ClFond:=$000040;
+  ClVoies:=$0077FF;
+  ClAllume:=$00FFFF;
+  ClGrille:=$404040;
+  ClTexte:=$00FF00;
+  ClQuai:=$808080;
+  clPiedSignal:=$4080FF;
+  ClCanton:=$00FFFF;
+  AvecGrille[indexTCO]:=true;
+  Graphisme:=1;
+  SetLength(TCO[indexTCO],NbreCellX[indexTCO]+2,NbreCellY[indexTCO]+2); // +2 pour éviter les erreurs d'index sur +1 et -1
+  init_tampon_copiercoller;
 
-    for x:=1 to NbreCellX[indexTCO] do
-      for y:=1 to NbreCellY[indexTCO] do
-        with tco[indextco,x,y] do
-        begin
-          CouleurFond:=clfond;
-          Adresse:=0;
-          Bimage:=0;
-          repr:=0;
-          Texte:='';
-          fonte:='Arial';
-          fontSTyle:='';
-          piedFeu:=0;
-          x:=0;
-          y:=0;
-          FeuOriente:=0;
-          Liaisons:=0;
-          Epaisseur:=0;
-          Buttoir:=0;
-        end;
-end;        
+  for x:=1 to NbreCellX[indexTCO] do
+    for y:=1 to NbreCellY[indexTCO] do
+      with tco[indextco,x,y] do
+      begin
+        CouleurFond:=clfond;
+        Adresse:=0;
+        Bimage:=0;
+        repr:=0;
+        Texte:='';
+        fonte:='Arial';
+        fontSTyle:='';
+        piedFeu:=0;
+        x:=0;
+        y:=0;
+        FeuOriente:=0;
+        Liaisons:=0;
+        Epaisseur:=0;
+        Buttoir:=0;
+      end;
+end;
 
 procedure lire_fichier_tco(indexTCO : integer);
 var fichier : textfile;
@@ -797,7 +799,7 @@ begin
       trouve_ModeCanton:=true;
       delete(s,i,length(sa));
       val(s,i,erreur);
-      ModeCouleurCanton:=i;   
+      ModeCouleurCanton:=i;
     end;
 
     sa:=uppercase(Graphisme_ch)+'=';
@@ -1083,7 +1085,6 @@ begin
     inc(y);x:=1;
   end;
   closefile(fichier);
-
   e:=sizeof(Tco) div 1024;
   //Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' / '+IntToSTR(e)+'Ko',clyellow);
   if not(trouve_clPiedSignal) then clPiedSignal:=Clvoies;
@@ -1179,8 +1180,12 @@ begin
 end;
 
 procedure calcul_cellules(indexTCO : integer);
+var pos : integer;
 begin
-  LargeurCell[indexTCO]:=ZoomMax-FormTCO[indexTCO].TrackBarZoom.Position+ZoomMin;
+  pos:=ZoomMax-FormTCO[indexTCO].TrackBarZoom.Position+ZoomMin;
+  //Affiche('Position TrackBar°'+intToSTR(indexTCO)+'='+intToSTR(pos),clyellow);
+  LargeurCell[indexTCO]:=pos;
+
   //Affiche('LargeurCell TCO N°'+intToSTR(indexTCO)+'='+intToSTR(largeurcell[indexTCO]),clyellow);
   hauteurCell[indexTCO]:=(LargeurCell[indexTCO] * RatioC) div 10;
   largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;
@@ -1436,9 +1441,13 @@ var b,x0,y0,xt,yt,repr,taillefont,tf : integer;
     ss,s : string;
     c : Tcanvas;
 begin
+
   x0:=(x-1)*LargeurCell[indexTCO];
   y0:=(y-1)*hauteurCell[indexTCO];
   //PCanvasTCO.Brush.Style:=bsSolid;
+  s:=tco[indextco,x,y].Texte;
+//  if s='' then exit;
+
   c:=PcanvasTCO[indextco];
 
   b:=tco[indextco,x,y].BImage;
@@ -1454,15 +1463,8 @@ begin
 
   repr:=tco[indextco,x,y].repr;
   taillefont:=tco[indextco,x,y].TailleFonte;
-  case repr of
-    0,1 : yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // milieu
-      2 : yt:=1;  // haut
-      3 : yt:=hauteurCell[indexTCO]-round(2*TailleFont*fryGlob[indexTCO]);   // bas
-  end;
 
-  s:=tco[indextco,x,y].Texte;
-  xt:=0;
-  if b=52 then xt:=6 else s:=s+'   ';
+  xt:=0;yt:=0;
 
   if taillefont=0 then taillefont:=8;
   tf:=(taillefont*LargeurCell[indexTCO]) div 40;
@@ -1471,9 +1473,21 @@ begin
   //affiche(intToSTR(taillefont*LargeurCell[indexTCO] div 40),clyellow);
   // champ texte
 
+   case repr of
+    0,1 : yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // milieu
+      2 : yt:=1;  // haut
+      3 : yt:=hauteurCell[indexTCO]-round(2*TailleFont*fryGlob[indexTCO]);   // bas
+      5 : begin  // double centré
+            xt:=(largeurCell[indexTCO] div 2)-(round(length(s)*(taillefont)*frxGlob[indexTCO]) div 3);
+            yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // texte centré
+          end;
+    end;
+
+  if b=Id_Quai then xt:=6;
+  if (b<>Id_Quai) and (b<>Id_action) then s:=s+'   ';
+
   if repr=4 then texte_reparti(s,indextco,x,y,tf) else
     c.Textout(x0+xt,y0+yt,s);
-     //PcanvasTCO[indextco].Textout(x0+xt,y0+yt,s);
 end;
 
 
@@ -1666,8 +1680,6 @@ begin
     end;
   end;
 end;
-
-
 
 // sert de référence11
 procedure dessin_2L(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
@@ -4809,20 +4821,20 @@ begin
 
     if TCOActive then
     begin
+      tco[indexTCO,x,y].repr:=5;
       act:=tco[indexTCO,x,y].PiedFeu;
       if act=1 then
       begin
         s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);
         tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].repr:=1;
+
         tco[indexTCO,x,y].TailleFonte:=8;
         tco[indexTCO,x,y].FontStyle:='G';
       end;
       if act=2 then
       begin
-        s:=' SC';
+        s:='SC';
         tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].repr:=1;
         tco[indexTCO,x,y].TailleFonte:=8;
         tco[indexTCO,x,y].FontStyle:='G';
       end;
@@ -4830,7 +4842,6 @@ begin
       begin
         s:='CDM';
         tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].repr:=1;
         tco[indexTCO,x,y].TailleFonte:=8;
         tco[indexTCO,x,y].FontStyle:='G';
       end;
@@ -7111,10 +7122,12 @@ begin
 end;
 
 // calcul des facteurs de réductions X et Y pour l'adapter à l'image de destination
-procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY,DimOrgX,DimOrgY : integer);
+procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY : integer);
 begin
-  frX:=DimDestX/DimOrgX;
-  frY:=DimDestY/DimOrgY;
+  //frX:=DimDestX/DimOrgX;
+  //frY:=DimDestY/DimOrgY;
+  frx:=DimDestX/50;
+  fry:=DimDestY/50;
   //Affiche(formatfloat('0.000000',frY),clyellow);
 end;
 
@@ -7529,14 +7542,17 @@ end;
 
 // Dessine un signal dans le canvasDest en x,y , dont l'adresse se trouve à la cellule x,y
 procedure dessin_Signal(indexTCO : integer;CanvasDest : Tcanvas;x,y : integer );
-var  index,x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY : integer;
+var  index,x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY,larg,haut : integer;
      ImageFeu : Timage;
      frX,frY : real;
 begin
   if (x>NbreCellX[indexTCO]) or (y>NbreCellY[indexTCO]) or (x<1) or (y<1) then exit;
 
-  xp:=(x-1)*LargeurCell[indexTCO];
-  yp:=(y-1)*hauteurCell[indexTCO];
+  larg:=LargeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+
+  xp:=(x-1)*larg;
+  yp:=(y-1)*haut;
   Adresse:=tco[indextco,x,y].Adresse;
 
   Orientation:=tco[indextco,x,y].FeuOriente;
@@ -7570,7 +7586,7 @@ begin
   PiedFeu:=tco[indextco,x,y].PiedFeu;  // gauche ou droite de la voie
 
   // réduction variable en fonction de la taille des cellules. 50 est le Zoom Maxi
-  calcul_reduction(frx,fry,round(TailleX*LargeurCell[indexTCO]/ZoomMax),round(tailleY*hauteurCell[indexTCO]/ZoomMax),TailleX,TailleY);
+  calcul_reduction(frx,fry,Larg,haut);
 
   x0:=0;y0:=0; // pour les signaux directionnels
   if orientation=3 then  //D
@@ -8012,7 +8028,7 @@ begin
 
 
 
-  calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO],ZoomMax,ZoomMax);
+  calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
   //Affiche(formatfloat('0.000000',frxGlob[indexTCO]),clyellow);
 
   //effacer tout
@@ -8095,6 +8111,7 @@ begin
   Buttonmasquer.TabStop:=false;
   ButtonRaz.TabStop:=false;
   ButtonDessiner.TabStop:=false;
+  TrackBarZoom.position:=78;
 
   Clfond:=$000040;
   couleurAdresse:=Cyan;
@@ -9176,16 +9193,13 @@ begin
     ImageTemp.Visible:=not(Diffusion);
     ImageTemp2.Visible:=not(Diffusion);
     ButtonAfficheBandeau.visible:=false;
-    TrackBarZoom.Max:=ZoomMax;
-    TrackBarZoom.Min:=ZoomMin;
 
     hauteurCell[indexTCO]:=ImagePalette1.Height;
     LargeurCell[indexTCO]:=ImagePalette1.Width;
     LargeurCelld2[indexTCO]:=LargeurCell[indexTCO] div 2;hauteurCelld2[indexTCO]:=hauteurCell[indexTCO] div 2;
-    calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO],ZoomMax,ZoomMax);
+    calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
 
     dessine_icones(indexTCO);
-
 
     NbCellulesTCO[indexTCO]:=NbreCellX[indexTCO]*NbreCellY[indexTCO];
     ImageTCO.Width:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
@@ -9202,12 +9216,11 @@ begin
     PImageTemp[indextco]:=FormTCO[indextco].ImageTemp;
     PImageTemp[indextco].Canvas.Rectangle(0,0,PImageTemp[indextco].Width,PimageTemp[indextco].Height);
 
-    //Affiche_tco
-    with trackBarZoom do
-    begin
-      Position:=(ZoomMax+Zoommin) div 2;
-      //left:=clLarge-50;
-    end;
+
+    //déclenche l'Affiche_tco
+    TrackBarZoom.Max:=ZoomMax;
+    TrackBarZoom.Min:=ZoomMin;
+    TrackBarZoom.position:=34;
 
     // height est la taille utile de la fenetre = taille fenetre-32
     clLarge:=formTCO[indexTCO].Width;
@@ -9562,23 +9575,82 @@ begin
     end;
 end;
 
+procedure selection_bleue(indexTCO,cellX,cellY : integer);
+var XSel1,YSel1,XSel2,YSel2,xMiniSelP,yminiSelP,xMaxiSelP,ymaxiSelP : integer;
+    r : Trect;
+begin
+// zone de sélection bleue en coords pixels
+  xMiniSel:=(Xentoure[indexTCO]-1)*LargeurCell[indexTCO];;
+  yMiniSel:=(Yentoure[indexTCO]-1)*HauteurCell[indexTCO];;
+  xMaxiSel:=(cellX-1)*LargeurCell[indexTCO];
+  yMaxiSel:=(cellY-1)*hauteurCell[indexTCO];
+
+  xminiSelP:=min(xminiSel,xMaxiSel);
+  yminiSelP:=min(yminiSel,yMaxiSel);
+  xmaxiSelP:=max(xminiSel,xMaxiSel);
+  ymaxiSelP:=max(yminiSel,yMaxiSel);
+
+  xminiSel:=xMiniSelP;
+  yminiSel:=yMiniSelP;
+  xMaxiSel:=xMaxiSelP;
+  yMaxiSel:=yMaxiSelP;
+
+  //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+
+  // efface l'ancien rectangle de sélection
+  if SelectionAffichee[indexTCO] then
+  with formTCO[indexTCO].ImageTCO.canvas do
+  begin
+    Pen.Mode:=PmXor;
+    Pen.color:=clGrille;
+    Brush.Color:=clblue;
+    Rectangle(rAncien);
+  end;
+
+  if piloteAig then begin SelectionAffichee[indexTCO]:=false;piloteAig:=false;exit;end;
+
+  r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
+
+  XSel1:=Xminisel div LargeurCell[indexTCO] + 1;
+  YSel1:=Yminisel div hauteurCell[indexTCO] + 1;
+  XSel2:=Xmaxisel div LargeurCell[indexTCO] + 1;
+  YSel2:=Ymaxisel div hauteurCell[indexTCO] + 1;
+
+  //Affiche(intToSTR(Xsel1)+' '+intToStr(Ysel1)+' '+intToSTR(Xsel2)+' '+intToStr(Ysel2),clYellow);
+  // Affiche le nouveau rectangle de sélection
+  Rancien:=r;
+  with formTCO[indexTCO].ImageTCO.canvas do
+  begin
+    Pen.Mode:=PmXor;
+    Pen.color:=clGrille;
+    Brush.Color:=clblue;
+    //FillRect(r);
+    Rectangle(r);
+  end;
+  SelectionAffichee[indexTCO]:=true;
+end;
 
 // pour avoir les evts keydown, il faut dévalider les propriétés tabstop des boutons de la form.
 procedure TFormTCO.FormKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
-var s,d,indexTCO : integer;
+var s,d,indexTCO,x,y : integer;
     procede : boolean;
 begin
   if affevt then Affiche('TCO.FormKeyDown',clOrange);
+  if not(auto_tcurs) then exit;
   indexTCO:=index_TCO(Sender);
   procede:=false;  // indicateur on a tapé une touche de curseur
   //Affiche(intToSTR(key),clyellow);
-  if auto_tcurs then
+
+  x:=XClicCell[indexTCO];
+  y:=YClicCell[indexTCO];
 
   with formTCO[indexTCO] do
   begin
+    if not(ssShift in Shift) then
     case Key of
-     VK_right : if XClicCell[indexTCO]<NbreCellX[indexTCO] then
+     VK_right : if x<NbreCellX[indexTCO] then
                 begin
+                  Affiche('droit sans shift',clred);
                   inc(XClicCell[indexTCO]);
                   d:=(xClicCell[indexTCO]+1)*LargeurCell[indexTCO];
                   s:=scrollBox.HorzScrollBar.Position;
@@ -9627,15 +9699,80 @@ begin
                     stop_modetrace(indexTCO);
                   end;
      VK_DELETE : couper(indexTCO);
+     end;
 
+     if (ssShift in Shift) then
+     case key of
+     VK_right :  begin
+                   if XClicCell[indexTCO]<NbreCellX[indexTCO] then
+                   begin
+                     inc(XClicCell[indexTCO]);
+                     d:=(xClicCell[indexTCO]+1)*LargeurCell[indexTCO];
+                     s:=scrollBox.HorzScrollBar.Position;
+                     if d-s>ScrollBox.Width then scrollBox.HorzScrollBar.Position:=s+LargeurCell[indexTCO];
+                     procede:=true;
+                   end
+                   else exit;
+                   selection_bleue(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
+                   exit;
+                 end;
+     VK_down :  begin
+                   if YClicCell[indexTCO]<NbreCellY[indexTCO] then
+                   begin
+                     inc(YClicCell[indexTCO]);
+                     d:=(yClicCell[indexTCO]+1)*hauteurCell[indexTCO];
+                     s:=scrollBox.VertScrollBar.Position;
+                     if d-s>ScrollBox.Height then scrollBox.VertScrollBar.Position:=s+hauteurCell[indexTCO];
+                     procede:=true;
+                   end
+                   else exit;
+                   selection_bleue(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
+                   exit;
+                 end;
+     VK_up   :  begin
+                if YClicCell[indexTCO]>1 then
+                begin
+                  dec(YClicCell[indexTCO]);
+                  d:=(yClicCell[indexTCO]-1)*hauteurCell[indexTCO];
+                  s:=scrollBox.VertScrollBar.Position;
+                  if d<s then
+                  begin
+                    s:=s-hauteurCell[indexTCO];
+                    if s<hauteurCell[indexTCO] then s:=0;
+                    scrollBox.VertScrollBar.Position:=s;
+                  end;
+                  procede:=true;
+                end
+                else exit;
+                selection_bleue(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
+                exit;
+                end;
+     VK_left  : begin
+                if XClicCell[indexTCO]>1 then
+                begin
+                  dec(XClicCell[indexTCO]);
+                  d:=(xClicCell[indexTCO]-1)*LargeurCell[indexTCO];
+                  s:=scrollBox.HorzScrollBar.Position;
+                  if d<=s then
+                  begin
+                    s:=s-LargeurCell[indexTCO];
+                    if s<LargeurCell[indexTCO] then s:=0;
+                    scrollBox.HorzScrollBar.Position:=s;
+                  end;
+                  procede:=true;
+                end
+                else exit;
+                selection_bleue(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
+                exit;
+                end;
      end;
    end;
 
-     if (ssCtrl in Shift) and (Key = Ord('Z')) then
-     begin
-       annule(indexTCO);
-       exit;
-     end;
+   if (ssCtrl in Shift) and (Key = Ord('Z')) then
+   begin
+     annule(indexTCO);
+     exit;
+   end;
 
      //VK_delete : affiche('delete',clorange);
   if procede then
@@ -9711,6 +9848,7 @@ begin
   StretchBlt(Vbm.Handle,0,0,LargeurCell[indexTCO],hauteurCell[indexTCO],   // destination masque avec mise à l'échelle
              image.Canvas.Handle,0,0,l,h,srccopy);
   drag:=true;
+  TCODrag:=indexTCO;
   oldx:=offsetSourisX;oldy:=offsetSourisY;
 end;
 
@@ -9719,9 +9857,15 @@ procedure TFormTCO.ImageTCODragOver(Sender, Source: TObject; X, Y: Integer;State
 var indexTCO,xl,yl : integer;
 begin
   indexTCO:=Index_tco(sender);
+  if affevt then Affiche('TCO'+intToSTR(IndexTCO)+' DragOver',clyellow);
+  if TCODrag<>indexTCO then
+  begin
+    accept:=false;
+    exit; // le drag source et destination sont diférents
+  end;
   xl:=x+offsetSourisX;
   yl:=y+offsetSourisY;
-  // Accept:=source is TImage;
+  Accept:=source is TImage;
   if drag then
   begin
     BitBlt(PImageTCO[indexTCO].canvas.handle,oldx,oldy,LargeurCell[indexTCO],hauteurCell[indexTCO],oldbmp.canvas.handle,0,0,SRCCOPY); // remettre la sauvegarde du bitmap à l'ancienne position souris
@@ -10591,7 +10735,7 @@ begin
                     show;
                     BringToFront;
                   end;
-      if (i=3) and (CDMhd<>0) then ShowWindow(CDMhd,SW_MAXIMIZE);
+      if (i=3) and (CDMhd<>0) then begin ShowWindow(CDMhd,SW_MAXIMIZE);end;
     end;
 
     TempoSouris:=2 ; // démarre la tempo souris
@@ -10738,7 +10882,6 @@ begin
           Pen.Mode:=PmXor;
           Pen.color:=clGrille;
           Brush.Color:=clblue;
-          //FillRect(r);
           Rectangle(rAncien);
         end;
         SelectionAffichee[n]:=false;
@@ -10848,6 +10991,7 @@ begin
 
   if not(clicsouris) or (temposouris>0) then exit;
 
+  // zone de sélection bleue en coordonnées souris
   xMiniSel:=(XclicCell[indexTCO]-1)*LargeurCell[indexTCO];
   yMiniSel:=(YclicCell[indexTCO]-1)*hauteurCell[indexTCO];
   xMaxiSel:=(cellX-1)*LargeurCell[indexTCO];
@@ -10864,6 +11008,7 @@ begin
   yMaxiSel:=yMaxiSelP;
 
   //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+  //Affiche('XclicCell='+intToSTR(XclicCell[indexTCO])+' YclicCell='+intToSTR(XclicCell[indexTCO]),clorange);
 
   // efface l'ancien rectangle de sélection
   if SelectionAffichee[indexTCO] then
@@ -11233,8 +11378,9 @@ end;
 procedure TFormTCO.TrackBarZoomChange(Sender: TObject);
 var indextco : integer;
 begin
-  if affevt then Affiche('TrackVBarZoomChange',clyellow);
+  if affevt then Affiche('TrackBarZoomChange',clyellow);
   indexTCO:=index_tco(sender);
+//  Affiche(intToSTR(TrackBarZoom.position),clred);
   calcul_cellules(indexTCO);
   Affiche_TCO(indexTCO);
   SelectionAffichee[indexTCO]:=false;
@@ -11907,20 +12053,22 @@ begin
   if NbreCellY[indexTCO]<=1 then exit;
   TamponAffecte:=false;
   // tampon de sauvegarde
+  TamponTCO_org.numTCO:=indexTCO;
   TamponTCO_Org.NbreCellX:=NbreCellX[indexTCO];
   TamponTCO_Org.NbreCellY:=NbreCellY[indexTCO];
   TamponTCO_Org.x1:=1;
   TamponTCO_Org.x2:=NbreCellX[indexTCO];
-  TamponTCO_Org.y1:=1;
-  TamponTCO_Org.y2:=NbreCellY[indexTCO];
+  TamponTCO_Org.y1:=YClicCell[indexTCO];
+  TamponTCO_Org.y2:=YClicCell[indexTCO];
   xcoupe:=1;ycoupe:=1;
   for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
       begin
         //Affiche(intToSTR(x)+' '+intToSTR(y),clyellow);
         tampontco[x,y]:=tco[indextco,x,y];
-      end;  
-  //TamponAffecte:=true;
+      end;                       
+  TamponAffecte:=true;
+
 
   // supression ligne
   for y:=YClicCell[indexTCO] to NbreCellY[indexTCO]-1 do
@@ -12029,15 +12177,15 @@ begin
   // tampon de sauvegarde
   TamponTCO_Org.NbreCellX:=NbreCellX[indexTCO];
   TamponTCO_Org.NbreCellY:=NbreCellY[indexTCO];
-  TamponTCO_Org.x1:=1;
-  TamponTCO_Org.x2:=NbreCellX[indexTCO];
+  TamponTCO_Org.x1:=xClicCell[indexTCO];
+  TamponTCO_Org.x2:=xClicCell[indexTCO];
   TamponTCO_Org.y1:=1;
   TamponTCO_Org.y2:=NbreCellY[indexTCO];
   xcoupe:=1;ycoupe:=1;
   for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
       tampontco[x,y]:=tco[indextco,x,y];
- // TamponAffecte:=true;
+  TamponAffecte:=true;
 
   // supression colonne
   for x:=xClicCell[indexTCO] to NbreCellx[indexTCO]-1 do
@@ -12128,7 +12276,7 @@ begin
    x:=0;
    y:=0;
    indexTCO:=index_tco(sender);
-   calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO],ZoomMax,ZoomMax);
+   calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
    with imageTCO.Canvas do
    begin
      pen.color:=clyellow;
@@ -12201,7 +12349,6 @@ procedure TFormTCO.ImagePalette1MouseDown(Sender: TObject;Button: TMouseButton; 
 begin
   debut_drag(ImagePalette1);
 end;
-
 
 procedure TFormTCO.FormDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
@@ -12267,7 +12414,7 @@ begin
     traceXY[1].y:=0;
     traceXY[2].x:=0;
     traceXY[2].x:=0;
-    FormTCO[indexTCO].Caption:='** Mode dessin **  Clic droit pour lever le pointeur. Touche Echap pour quitter le mode tracé. CTRL-Z ou annuler pour annuler les derniers tracés.';
+    FormTCO[indexTCO].Caption:='TCO'+intToSTR(indexTCO)+' ** Mode dessin **  Clic droit pour lever le pointeur. Touche Echap pour quitter le mode tracé. CTRL-Z ou annuler pour annuler les derniers tracés.';
     screen.cursor:=crUpArrow;
   end
   else stop_modetrace(indexTCO);

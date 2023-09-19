@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 07/09 22h
+// 13/9 11h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -58,11 +58,7 @@ type
   TFormPrinc = class(TForm)
     Timer1: TTimer;
     LabelTitre: TLabel;
-    ScrollBox1: TScrollBox;
     ClientSocketInterface: TClientSocket;
-    GroupBox1: TGroupBox;
-    EditAdresse: TEdit;
-    Label2: TLabel;
     MainMenu1: TMainMenu;
     Interface1: TMenuItem;
     MenuConnecterUSB: TMenuItem;
@@ -104,13 +100,7 @@ type
     Config: TMenuItem;
     Codificationdesactionneurs1: TMenuItem;
     OuvrirunfichiertramesCDM1: TMenuItem;
-    Panel1: TPanel;
-    BoutonRaf: TButton;
-    ButtonArretSimu: TButton;
-    ButtonDroit: TButton;
     LabelEtat: TLabel;
-    ButtonAffTCO: TButton;
-    ButtonLanceCDM: TButton;
     Affichefentredebug1: TMenuItem;
     StaticText: TStaticText;
     PopupMenuFenRich: TPopupMenu;
@@ -118,40 +108,17 @@ type
     Etatdessignaux1: TMenuItem;
     N6: TMenuItem;
     Apropos1: TMenuItem;
-    ButtonDevie: TButton;
-    GroupBox2: TGroupBox;
-    ButtonEcrCV: TButton;
-    ButtonLitCV: TButton;
-    EditCV: TEdit;
-    Label3: TLabel;
-    LabelVCV: TLabel;
-    EditVal: TEdit;
     PopupMenuFeu: TPopupMenu;
     Proprits1: TMenuItem;
     N8: TMenuItem;
     Vrifierlacohrence: TMenuItem;
-    GroupBox3: TGroupBox;
-    loco: TButton;
-    ButtonLocCV: TButton;
-    EditAdrTrain: TEdit;
-    Label4: TLabel;
-    Label5: TLabel;
-    EditVitesse: TEdit;
-    ComboTrains: TComboBox;
-    LabelFonction: TLabel;
-    EditNumFonction: TEdit;
-    ButtonFonction: TButton;
-    EditFonc01: TEdit;
-    Label6: TLabel;
     Etatdeszonespartrain1: TMenuItem;
     N7: TMenuItem;
     Demanderversiondelacentrale1: TMenuItem;
     Demanderlaversiondelacentrale1: TMenuItem;
     RepriseDCC1: TMenuItem;
-    BoutonRazTrains: TButton;
     Demandetataccessoires1: TMenuItem;
     LancerCDMrail1: TMenuItem;
-    TrackBarVit: TTrackBar;
     ButtonEnv: TButton;
     EditEnvoi: TEdit;
     Roulage1: TMenuItem;
@@ -161,18 +128,10 @@ type
     Button1: TButton;
     Evenementsdetecteurspartrain1: TMenuItem;
     RazResa: TMenuItem;
-    SBMarcheArretLoco: TSpeedButton;
-    Label1: TLabel;
-    LabelNbTrains: TLabel;
-    SplitterH: TSplitter;
-    Panel2: TPanel;
-    FenRich: TRichEdit;
-    SplitterV: TSplitter;
     Vrifiernouvelleversion1: TMenuItem;
     N9: TMenuItem;
     Analyser1: TMenuItem;
     Coller1: TMenuItem;
-    ButtonAffAnalyseCDM: TButton;
     Affiche_fenetre_CDM: TMenuItem;
     ImageSignal20: TImage;
     COs1: TMenuItem;
@@ -206,7 +165,50 @@ type
     CO81: TMenuItem;
     CO91: TMenuItem;
     CO101: TMenuItem;
+    Panel2: TPanel;
+    FenRich: TRichEdit;
+    SplitterV: TSplitter;
+    ScrollBox1: TScrollBox;
+    GroupBox1: TGroupBox;
+    Label2: TLabel;
+    EditAdresse: TEdit;
+    ButtonDroit: TButton;
+    ButtonDevie: TButton;
+    GroupBox3: TGroupBox;
+    Label4: TLabel;
+    Label5: TLabel;
+    LabelFonction: TLabel;
+    Label6: TLabel;
+    SBMarcheArretLoco: TSpeedButton;
+    loco: TButton;
+    EditAdrTrain: TEdit;
+    EditVitesse: TEdit;
+    ComboTrains: TComboBox;
+    EditNumFonction: TEdit;
+    ButtonFonction: TButton;
+    EditFonc01: TEdit;
+    TrackBarVit: TTrackBar;
+    Panel1: TPanel;
+    Label1: TLabel;
+    LabelNbTrains: TLabel;
+    BoutonRaf: TButton;
+    ButtonArretSimu: TButton;
+    ButtonAffTCO: TButton;
+    ButtonLanceCDM: TButton;
+    ButtonLocCV: TButton;
+    BoutonRazTrains: TButton;
+    ButtonAffAnalyseCDM: TButton;
     ButtonCDM: TButton;
+    GroupBox2: TGroupBox;
+    Label3: TLabel;
+    LabelVCV: TLabel;
+    ButtonEcrCV: TButton;
+    ButtonLitCV: TButton;
+    EditCV: TEdit;
+    EditVal: TEdit;
+    Affichagenormal1: TMenuItem;
+    N14: TMenuItem;
+    Sauvegarderla1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -316,6 +318,9 @@ type
     procedure CO91Click(Sender: TObject);
     procedure CO101Click(Sender: TObject);
     procedure ButtonCDMClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure Affichagenormal1Click(Sender: TObject);
+    procedure Sauvegarderla1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -505,7 +510,8 @@ var
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
-  TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase : integer;
+  TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
+  LargeurF,HauteurF,OffsetXF,OffsetYF,etatF,PosSplitter : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -762,6 +768,7 @@ procedure inverse_image(imageDest,ImageSrc : Timage) ;
 function extract_int(s : string) : integer;
 Procedure Menu_tco(i : integer);
 procedure Affiche_fenetre_TCO(i : integer);
+procedure positionne_elements(i : integer);
 
 implementation
 
@@ -2086,6 +2093,41 @@ begin
     end;
   end
   else Feux[rang].checkFB:=nil;
+end;
+
+procedure Affiche_signaux;
+var i : integer;
+begin
+  i:=(Formprinc.ScrollBox1.Width div (largImg+5)) -1;
+  if i=NbreImagePLigne then exit;
+  NbreImagePLigne:=i;
+  for i:=1 to NbreFeux do
+  begin
+    with Feux[i].img do
+    begin
+      Top:=(HtImg+espY+20)*((i-1) div NbreImagePLigne);   // détermine les points d'origine
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+      repaint;
+    end;
+
+    with Feux[i].lbl do
+    begin
+      Top:=HtImg+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+      repaint;
+    end;
+
+    if feux[i].FeuBlanc then
+    with Feux[i].checkFB do
+    begin
+      Top:=HtImg+15+((HtImg+EspY+20)*((i-1) div NbreImagePLigne));
+      Left:=10+ (LargImg+5)*((i-1) mod (NbreImagePLigne));
+      repaint;
+    end;
+
+
+  end;
+
 end;
 
 // ajoute en bout de chaine le checksum d'une trame (pour XpressNet)
@@ -4494,7 +4536,7 @@ begin
          TailleX:=ImageFeu.picture.BitMap.Width;
          Orientation:=tco[indextco,x,y].FeuOriente;
          // réduction variable en fonction de la taille des cellules
-         calcul_reduction(frx,fry,round(TailleX*LargeurCell[indexTCO]/ZoomMax),round(tailleY*HauteurCell[indexTCO]/ZoomMax),TailleX,TailleY);
+         calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
          // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
          Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
         end;
@@ -11999,12 +12041,30 @@ begin
     Result:='mac non trouvée';
 end;
 
+procedure positionne_elements(i : integer);
+begin
+  with formprinc do
+  begin
+    GroupBox1.Left:=i+12;
+    GroupBox2.Left:=i+12;
+    GroupBox3.Left:=i+12;
+    ScrollBox1.Left:=i+12;
+    ScrollBox1.width:=panel2.Width-i-5;
+    Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
+    Panel1.top:=9;
+    GroupBox1.Top:=5;
+    Affiche_signaux;
+
+    if not(avec_Splitter) then Panel2.Width:=i;
+  end;
+end;
+
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
-var i,j,index : integer;
+var i,index,OrgMilieu : integer;
     s : string;
 begin
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion+' beta test';
+  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
   Caption:=AF;
   TraceSign:=True;
   configPrete:=false; // form config prete
@@ -12058,7 +12118,7 @@ begin
   etape:=1;
   affevt:=false;
   EvtClicDet:=false;
-  avec_splitter:=false;
+  avec_splitter:=true;
   Algo_localisation:=1;     // normal
   AntiTimeoutEthLenz:=0;
   Verif_AdrXpressNet:=1;
@@ -12102,90 +12162,7 @@ begin
     VertScrollBar.Smooth:=false;
   end;
 
-  with panel2 do
-  begin
-    Panel2.Top:=32;
-    Panel2.Left:=8;
-    Width:=610;
-    Height:=520;
-    Anchors:=[akLeft,akTop,akRight,akBottom];
-  end;
 
-  if avec_splitter then
-  begin
-    with Fenrich do
-    begin
-      parent:=panel2;
-      Align:=alLeft;
-      left:=0;
-      top:=0;
-      width:=panel2.Width-20;
-      height:=520;
-      Anchors:=[akLeft,akTop,akRight,akBottom];
-    end;
-
-    with splitterV do
-    begin
-      Parent:=panel2;
-      Left:=FenRich.left+FenRich.Width+1;
-      //Align:=Fenrich.Align;
-      //MinSize:=200;
-      Visible:=true;
-    end;
-
-    with panel2 do
-    begin
-      //align:=alLeft;
-      //Left:=SplitterV.left+10;
-    end;
-
-    with ScrollBox1 do
-    begin
-      //Parent:=formprinc;
-      //align:=alclient;
-      Anchors:=[];
-      top:=200;
-    end;
-
-    splitterH.Visible:=false;
-   { with splitterH do
-    begin
-      Parent:=formprinc;
-      //top:=FenRich.top+FenRich.height+1;
-      Width:=FenRich.width;
-      Align:=alBottom;
-      MinSize:=200;
-      Visible:=true;
-    end;
-   }
-
-  end
-  else
-  begin
-    splitterV.Visible:=false;
-    splitterH.Visible:=false;
-    with panel2 do
-    begin
-      Anchors:=[akLeft,akTop,akRight,akBottom];
-    end;
-    with Fenrich do
-    begin
-      parent:=panel2;
-      Align:=alLeft;
-      left:=0;
-      top:=0;
-      width:=panel2.Width;
-      height:=panel2.Height;
-      Anchors:=[akLeft,akTop,akRight,akBottom];
-    end;
-  end;
-
-  // pour Rad studio------------------------
-  FenRich.Height:=Height-150;
-  ScrollBox1.Height:=Height-280;
-  StaticText.AutoSize:=true;
-  StaticText.Top:=panel2.Height+Panel2.Top+6;
-  //----------------------------------------
 
   ferme:=false;
   CDM_connecte:=false;
@@ -12198,7 +12175,6 @@ begin
   NumTrameCDM:=0;
   protocole:=1;
   procetape('');  //1
-
   for i:=1 to NbMemZone do
   begin
     Ancien_detecteur[i]:=false;
@@ -12211,9 +12187,11 @@ begin
   Application.HintPause:=400;
   //visible:=true;  // rend la form visible plus tot
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
+
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
+
 
   Menu_tco(NbreTCO);
   procetape('Lecture du TCO');
@@ -12269,8 +12247,94 @@ begin
             intToSTR(ecran[i+1].larg)+' '+intToSTR(ecran[i+1].haut),clyellow); }
   end;
 
+  OrgMilieu:=formprinc.width div 2;
+
+  with Panel2 do
+    begin
+      left:=5;
+      //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
+      top:=formprinc.LabelTitre.Height+20;
+      width:=formprinc.width-30;
+      height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
+      //height:=400;
+      Anchors:=[akLeft,akTop,akRight,akBottom];
+    end;
+
+
+  if avec_splitter then
+  begin
+    with Fenrich do
+    begin
+      left:=5;
+      Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
+      top:=formprinc.LabelTitre.Height+20;
+      width:=(OrgMilieu)-left-10;
+      //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
+      Anchors:=[akLeft,akTop,akRight,akBottom];
+    end;
+
+    with splitterV do
+    begin
+      Left:=FenRich.left+FenRich.Width-25;
+      MinSize:=200;
+      Parent:=Panel2;
+      align:=fenrich.align;   // dessine le splitter à droite de la fenetre Fenrich
+      Visible:=true;
+    end;
+
+    with ScrollBox1 do
+    begin
+      Parent:=Panel2;
+      Anchors:=[akTop,akRight,akBottom];
+      width:=panel2.Width-SplitterV.Width-5;
+      height:=panel2.Height-groupBox3.height-groupBox3.top-25;
+      top:=GroupBox3.Top+GroupBox3.Height+5;
+    end;
+
+    positionne_elements(splitterV.left);
+
+  end
+
+  // ---------sans splitter -------------
+  else
+  begin
+    splitterV.Visible:=false;
+    with Fenrich do
+    begin
+     // parent:=paànel2;
+      Align:=alLeft;
+      left:=5;
+      top:=0;
+
+      width:=panel2.Width-orgMilieu-10;
+      height:=panel2.Height;
+      //Anchors:=[akLeft,akTop,akRight,akBottom];
+      GroupBox1.Left:=orgMilieu+12;
+      GroupBox3.Left:=orgMilieu+12;
+      ScrollBox1.Left:=orgMilieu+12;
+      ScrollBox1.width:=panel2.Width-orgMilieu-5;
+      ScrollBox1.top:=GroupBox3.Top+GroupBox3.Height+5;
+      ScrollBox1.Anchors:=[akTop,akRight,akBottom];
+      Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
+    end;
+  end;
+
+
+  // pour Rad studio------------------------
+  //FenRich.Height:=Height-150;
+  //ScrollBox1.Height:=Height-280;
+  StaticText.AutoSize:=true;
+  StaticText.Top:=panel2.Height+Panel2.Top+4;
+  //----------------------------------------
+
+    if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
+    begin
+      fenRich.Width:=PosSplitter;
+      positionne_elements(PosSplitter);
+    end;
+
+
   for index:=1 to nbreTCO do
-  //for j:=1 to 2 do
   begin
     begin
       IndexTCOCreate:=index;
@@ -12279,22 +12343,17 @@ begin
       formTCO[index].Caption:='TCO'+intToSTR(index);
     end;
 
+    {
     i:=0;
     repeat
       sleep(100);
       application.processmessages;
       inc(i);
     until (TcoCree) or (i>20);
-    TcoCree:=false;
+    TcoCree:=false;  
     Application.processmessages;
-    if avecTCO then
-    begin
-      //if NbreTCO=1 then FormTCO.show     // créer fiche dynamique (projet/fichier)
-      //else
-      begin
-        Affiche_Fenetre_TCO(index);
-      end;
-    end;
+    }
+    if avecTCO then Affiche_Fenetre_TCO(index);
     //tcocree:=true;
   end;
 
@@ -12380,7 +12439,6 @@ begin
   end;
 
 
-
   //DoubleBuffered:=true;
   {
     aiguillage[index_aig(1)].position:=const_droit;
@@ -12438,8 +12496,10 @@ begin
     ReadOnly:=true;
   end; }
   //Affiche(GetMACAddress,clred);
+  formPrinc.left:=-1000;
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
+
 
 end;
 
@@ -12521,7 +12581,7 @@ begin
   end;
   if confasauver then sauve_config;
   if sauve_tco then sauve_fichiers_tco;
-  Application.ProcessMessages;
+  //Application.ProcessMessages;
 end;
 
 // timer à 100 ms
@@ -12533,6 +12593,23 @@ var aspect,i,a,x,y,Bimage,combine,adresse,TailleX,TailleY,orientation,indexTCO :
     s : string;
 begin
   inc(tick);
+  if (tick=10) then
+  begin
+    // fenetre
+    if AffMemoFenetre=1 then
+    begin
+      if largeurF>0 then formPrinc.width:=LargeurF;
+      if HauteurF>0 then formPrinc.Height:=hauteurF;
+      formPrinc.left:=offsetXF;
+      formPrinc.top:=offsetYF;
+
+      if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
+      begin
+        fenRich.Width:=PosSplitter;
+        positionne_elements(PosSplitter);
+      end;
+    end;  
+  end;
   if (tick=30) or (tick=100) then
   begin
     // raz du flag "fenetre confcellTCO affichée"
@@ -12635,7 +12712,7 @@ begin
               TailleX:=ImageFeu.picture.BitMap.Width;
               Orientation:=TCO[indexTCO,x,y].FeuOriente;
               // réduction variable en fonction de la taille des cellules
-              calcul_reduction(frx,fry,round(TailleX*LargeurCell[indexTCO]/ZoomMax),round(tailleY*HauteurCell[indexTCO]/ZoomMax),TailleX,TailleY);
+              calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
               Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indexTCO,x,y].y,frx,fry,adresse,orientation);
             end;
           end;
@@ -15022,19 +15099,12 @@ end;
 
 
 procedure TFormPrinc.SplitterVMoved(Sender: TObject);
-var pdroite : integer;
+var i : integer;
 begin
-  Affiche(intToSTR(splitterV.Left),clred);
-  exit;
-  //fenrich.width:=splitterV.left;
-
-  if not(avec_splitter) then exit;
-  //Affiche('splittermoved',clyellow);
-
-
-  pdroite:=SplitterV.Left+40;
-
-  panel2.Width:=pdroite;
+  i:=SplitterV.Left;
+  //Affiche(IntToSTR(i),clred);
+  if i<200 then SplitterV.Left:=201;
+  positionne_elements(SplitterV.Left);
 end;
 
 procedure TFormPrinc.PopupMenuFeuPopup(Sender: TObject);
@@ -15171,7 +15241,6 @@ begin
   for i:=1 to NbreTCO do
   begin
 
-    HautTCO:=HautEcran;
     for e:=1 to NombreEcrans do
     begin
 
@@ -15179,9 +15248,9 @@ begin
       begin
         with formtco[i] do
         begin
-        windowState:=wsNormal;
-        show;
-        BringToFront;
+          windowState:=wsNormal;
+          show;
+          BringToFront;
         end;
 
         inc(CeTCO[e]);
@@ -15230,7 +15299,6 @@ begin
   for i:=1 to NbreTCO do
   begin
 
-    HautTCO:=HautEcran;
     for e:=1 to NombreEcrans do
     begin
 
@@ -15437,15 +15505,17 @@ end;
 procedure Affiche_Fenetre_TCO(i : integer);
 var e : integer;
 begin
-  if i>NbreTCO then exit;
+  if (i<1) or (i>NbreTCO) then exit;
+  e:=ecranTCO[i];
+  if e>Screen.MonitorCount then e:=1;
 
   formTCO[i].show;
   formTCO[i].BringToFront;
-  e:=ecranTCO[i];
-  if e>Screen.MonitorCount then exit;
   formTCO[i].Left:=Ecran[e].x0;
   formTCO[i].Top:=Ecran[e].y0;
   formTCO[i].windowState:=wsMaximized;
+
+
 end;
 
 procedure TFormPrinc.AfficherTCO11Click(Sender: TObject);
@@ -15756,6 +15826,7 @@ end;
 
 
 procedure TFormPrinc.NouveauTCO1Click(Sender: TObject);
+var i : integer;
 begin
   if NbreTCO>=10 then
   begin
@@ -15766,14 +15837,25 @@ begin
   TCOActive:=false;
   inc(nbreTCO);
   IndexTCOCreate:=nbreTCO;
-  formTCO[nbreTCO]:=TformTCO.Create(self);
+
+  formTCO[NbreTCO]:=nil;
+  try
+     formTCO[nbreTCO]:=TformTCO.Create(self);
+  except
+     Affiche('Erreur 6800 Impossible de créer la fenêtre du TCO',clred);
+     exit;
+  end;
+
   formTCO[nbreTCO].Name:='FormTCO'+intToSTR(nbreTCO);
   formTCO[nbreTCO].Caption:='TCO'+intToSTR(nbreTCO);
   Forminit[nbreTCO]:=false;
+
   init_TCO(nbreTCO);
   menu_tco(NbreTCO);
   TCO_modifie:=true;
   config_modifie:=true;
+  formTCO[nbreTCO].show;     // génère formActivate ce qui implique que le nom de la form soit à jour, et que le TCO soit initialisé
+
 end;
 
 procedure Supprimer_TCO(TcoS : integer);
@@ -15789,8 +15871,9 @@ begin
   TCOActive:=false;
 
   Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
+  //FormTCO[tcos].close;
+  FormTCO[tcos].Release; //  pas free FreeInstance;    // annuler le pointeur et raz les mémoires de la form
   FormTCO[tcos].close;
-  FormTCO[tcos].free;    // annuler le pointeur et raz les mémoires de la form
 
   for i:=tCos to SauvNbreTCO-1 do
   begin
@@ -15818,8 +15901,8 @@ begin
     HauteurCell[i]:=HauteurCell[i+1];
     EcranTCO[i]:=EcranTCO[i+1];
     Forminit[i]:=false;
-
   end;
+
   setlength(TCO[SauvNbreTCO],0);
   dec(SauvNbreTCO);
   Menu_tco(SauvNbreTCO);
@@ -15889,6 +15972,34 @@ begin
   if not(cdmDevant) then ShowWindow(CDMhd,SW_MINIMIZE) else ShowWindow(CDMhd,SW_MAXIMIZE);
   cdmDevant:=not(cdmDevant);
 end;
+
+
+procedure TFormPrinc.FormResize(Sender: TObject);
+begin
+  // pour éviter de coincer le splitter à gauche fenetre réduite et on le glisse complètement à gauche
+  splitterV.Left:=FenRich.left+FenRich.Width-5;
+end;
+
+procedure TFormPrinc.Affichagenormal1Click(Sender: TObject);
+begin
+  FenRich.Width:=panel2.Width div 2;
+  splitterV.Left:=FenRich.left+FenRich.Width-5;
+  positionne_elements(splitterV.Left);
+end;
+
+procedure TFormPrinc.Sauvegarderla1Click(Sender: TObject);
+begin
+  LargeurF:=width;
+  HauteurF:=Height;
+  OffsetXF:=left;
+  OffsetYF:=top;
+  etatF:=0;
+  PosSplitter:=splitterV.Left;
+  AffMemoFenetre:=1;
+  sauve_config;
+end;
+
+
 
 end.
 

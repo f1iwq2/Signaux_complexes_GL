@@ -245,13 +245,13 @@ begin
     end
     else NbreCellY[indexTCO]:=my;
 
-    if LargeurCell[indexTCO]*NbreCellX[indexTCO]>8192 then
+    if ZoomMax*NbreCellX[indexTCO]>8192 then
     begin
       LabelErreur.caption:='Erreur: nombre de cellules X';
       ok:=false;
     end;
 
-    if HauteurCell[indexTCO]*NbreCellY[indexTCO]>8192 then
+    if ZoomMax*NbreCellY[indexTCO]>8192 then
     begin
       LabelErreur.caption:='Erreur: nombre de cellules Y';
       ok:=false;
@@ -434,37 +434,36 @@ end;
 
 procedure TFormConfigTCO.BitBtnOkClick(Sender: TObject);
 var ok : boolean;
-    index,i,x,y,erreur : integer;
+    i,x,y,erreur : integer;
     s : string;
 begin
   ok:=true;
-  index:=indexTCOCourant;
 
   if verif_config_TCO(indexTCOCourant) then
   begin
-    with FormTCO[index].ImageTCO do
+    with FormTCO[indexTCOCourant].ImageTCO do
     begin
-      Width:=LargeurCell[index]*NbreCellX[index];
-      Height:=HauteurCell[index]*NbreCellY[index];
+      Width:=LargeurCell[indexTCOCourant]*NbreCellX[indexTCOCourant];
+      Height:=HauteurCell[indexTCOCourant]*NbreCellY[indexTCOCourant];
     end;
 
     try
       begin
-        SetLength(TCO[index],NbreCellX[index]+1,NbreCellY[index]+1);
+        SetLength(TCO[indexTCOCourant],NbreCellX[indexTCOCourant]+1,NbreCellY[indexTCOCourant]+1);
         init_tampon_copiercoller;
       end;
     except
       LabelErreur.caption:='TCO Mémoire insuffisante';
-      NbreCellX[index]:=20;NbreCellY[index]:=12;
-      SetLength(TCO[index],NbreCellX[index]+1,NbreCellY[index]+1);
+      NbreCellX[indexTCOCourant]:=20;NbreCellY[indexTCOCourant]:=12;
+      SetLength(TCO[indexTCOCourant],NbreCellX[indexTCOCourant]+1,NbreCellY[indexTCOCourant]+1);
       init_tampon_copiercoller;
       ok:=false;
     end;
 
-    for y:=1 to NbreCellY[index] do
-      for x:=1 to NbreCellX[index] do
+    for y:=1 to NbreCellY[indexTCOCourant] do
+      for x:=1 to NbreCellX[indexTCOCourant] do
         begin
-          if tco[index,x,y].CouleurFond=0 then tco[index,x,y].CouleurFond:=clfond;
+          if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond;
         end;
 
     if RadioButtonLignes.Checked then
@@ -501,7 +500,7 @@ begin
       calcul_cellules(IndexTCOcourant);
       affiche_TCO(indexTCOcourant);
 
-      dessine_icones(index);
+      dessine_icones(indexTCOCourant);
       LabelErreur.caption:='';
       close;
    end;
@@ -537,11 +536,13 @@ end;
 procedure TFormConfigTCO.RadioButtonLignesClick(Sender: TObject);
 begin
   if not(clicConf) then TCO_modifie:=true;
+  graphisme:=1;
 end;
 
 procedure TFormConfigTCO.RadioButtonCourbesClick(Sender: TObject);
 begin
   if not(clicConf) then TCO_modifie:=true;
+  graphisme:=2;
 end;
 
 procedure TFormConfigTCO.FormCreate(Sender: TObject);
@@ -563,6 +564,8 @@ begin
     ColWidths[2]:=15;
     Cells[0,0]:='Num';
     Cells[1,0]:='Nom fichier';
+    Cells[2,0]:='X';
+
   end;
 
 end;

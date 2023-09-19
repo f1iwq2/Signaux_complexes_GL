@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation : string;
 
-Const  Version='8.0';  // sert à la comparaison de la version publiée
+Const  Version='8.1';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -125,6 +125,18 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,nombre_tel,date_creat
     taille : longint;
     comm : array[1..10] of string;
 
+    function supprime_anti(s : string) : string;
+    var i : integer;
+    begin
+    // supprimer tous les \ dans la chaine
+      i:=0;
+      repeat
+        i:=posEx('\',s,i+1);
+        if i<>0 then delete(s,i,1);
+      until i=0;
+      result:=s;
+    end;
+
     function extrait_champ(ss : string) : string;
     var i,j : integer;
     begin
@@ -133,9 +145,16 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,nombre_tel,date_creat
       i:=pos(ss,s);
       if i<>0 then
       begin
+        i:=posEx('":',s,i+1);
+        //delete(s,1,i+1);i:=0;
         i:=posEx('"',s,i+1);
-        i:=posEx('"',s,i+1);
-        j:=posex('"',s,i+1);
+
+        j:=i;
+        // ne pas tenir compte du \" qui correspond à un " effectif dans la chaîne
+        repeat
+          j:=posex('"',s,j+1);
+        until s[j-1]<>'\' ;
+
         result:=copy(s,i+1,j-i-1);
       end;
     end;
@@ -150,7 +169,6 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,nombre_tel,date_creat
       begin
         i:=posEx(':',s,i+1);
         j:=posEx(',',s,i+1);
-        //j:=posex('"',s,i+1);
         result:=copy(s,i+1,j-i-1);
       end;
     end;
@@ -171,6 +189,7 @@ begin
       while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
       begin
         readln(fichier,s);
+        s:=utf8Decode(s);
         //Affiche(s,clyellow);
 
         // adresse de téléchargement
@@ -206,7 +225,7 @@ begin
         description:=extrait_champ('body');
         if description<>'' then
         begin
-          description:=utf8Decode(description);
+          //description:=utf8Decode(description);
           i:=1 ; j:=1;
           // couper en chaînes
           while j<>0 do
@@ -226,7 +245,7 @@ begin
             end;
 
           end;
-          comm[i]:=description;
+          comm[i]:=supprime_anti(description);
           ncomm:=i;
 
         end;

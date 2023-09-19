@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 164
-  Top = 114
+  Left = 178
+  Top = 109
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1662,7 +1662,7 @@ object FormConfig: TFormConfig
         end
         object CheckVerifVersion: TCheckBox
           Left = 8
-          Top = 48
+          Top = 56
           Width = 249
           Height = 17
           Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
@@ -1670,7 +1670,7 @@ object FormConfig: TFormConfig
         end
         object CheckInfoVersion: TCheckBox
           Left = 8
-          Top = 64
+          Top = 72
           Width = 241
           Height = 17
           Caption = 'Information sur la version actuelle'
@@ -1687,7 +1687,7 @@ object FormConfig: TFormConfig
         end
         object CheckAvecTCO: TCheckBox
           Left = 8
-          Top = 88
+          Top = 96
           Width = 73
           Height = 17
           Hint = 'Affiche le TCO au d'#233'marrage'
@@ -1709,7 +1709,7 @@ object FormConfig: TFormConfig
         end
         object CheckBandeauTCO: TCheckBox
           Left = 8
-          Top = 104
+          Top = 112
           Width = 129
           Height = 17
           Hint = 'Masque le bandeau de param'#233'trage du TCO au d'#233'marrage'
@@ -1730,6 +1730,19 @@ object FormConfig: TFormConfig
           Text = 'Nom du fichier LAY avec .lay'
           OnChange = EditLAYChange
           OnExit = EditLAYExit
+        end
+        object CheckBoxAffMemo: TCheckBox
+          Left = 8
+          Top = 40
+          Width = 233
+          Height = 17
+          Hint = 
+            'Affiche la fenetre '#224' la position m'#233'moris'#233'e depuis le menu "Sauve' +
+            'garder la configuration de la fen'#234'tre"'
+          Caption = 'Afficher la fen'#234'tre sur la position m'#233'moris'#233'e'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
         end
       end
       object GroupBox6: TGroupBox

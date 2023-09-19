@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 118
-  Top = 115
+  Left = 84
+  Top = 164
   Width = 1209
-  Height = 580
+  Height = 575
   VertScrollBar.Visible = False
   Caption = 'c'
   Color = clBtnFace
@@ -23,7 +23,7 @@ object FormTCO: TFormTCO
   OnMouseWheel = FormMouseWheel
   DesignSize = (
     1193
-    542)
+    536)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -56,7 +56,7 @@ object FormTCO: TFormTCO
     Left = 10
     Top = 15
     Width = 943
-    Height = 330
+    Height = 325
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -68,12 +68,12 @@ object FormTCO: TFormTCO
     TabOrder = 1
     DesignSize = (
       939
-      326)
+      321)
     object ImageTCO: TImage
       Left = 48
       Top = 25
       Width = 642
-      Height = 143
+      Height = 138
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -93,11 +93,11 @@ object FormTCO: TFormTCO
     Height = 311
     Anchors = [akTop, akRight]
     Ctl3D = True
-    Max = 50
-    Min = 20
+    Max = 100
+    Min = 15
     Orientation = trVertical
     ParentCtl3D = False
-    Position = 20
+    Position = 78
     TabOrder = 0
     TabStop = False
     TickMarks = tmTopLeft
@@ -105,7 +105,7 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 2
-    Top = 360
+    Top = 355
     Width = 1085
     Height = 185
     Anchors = [akLeft, akRight, akBottom]
@@ -979,78 +979,78 @@ object FormTCO: TFormTCO
     end
     object GroupBox1: TGroupBox
       Left = 16
-      Top = 8
+      Top = 0
       Width = 185
-      Height = 153
+      Height = 169
       Caption = 'Configuration cellule'
       Font.Charset = ANSI_CHARSET
       Font.Color = clBackground
-      Font.Height = -12
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -15
+      Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
       TabOrder = 7
       object Label41: TLabel
         Left = 8
-        Top = 16
-        Width = 120
-        Height = 20
+        Top = 24
+        Width = 103
+        Height = 16
         Caption = 'Adresse de l'#39#233'l'#233'ment: '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -15
+        Font.Height = -13
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
       end
       object Label71: TLabel
         Left = 8
-        Top = 38
-        Width = 111
-        Height = 20
+        Top = 46
+        Width = 93
+        Height = 16
         Caption = 'Image de l'#39#233'l'#233'ment: '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -15
+        Font.Height = -13
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
       end
       object Label230: TLabel
         Left = 56
-        Top = 64
-        Width = 32
-        Height = 20
+        Top = 72
+        Width = 27
+        Height = 16
         Caption = 'Texte'
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -15
+        Font.Height = -13
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
       end
       object Label65: TLabel
         Left = 8
-        Top = 88
-        Width = 89
-        Height = 20
+        Top = 96
+        Width = 75
+        Height = 16
         Caption = 'position du texte'
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
-        Font.Height = -15
+        Font.Height = -13
         Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
       end
       object ShapeCoulFond: TShape
         Left = 160
-        Top = 130
+        Top = 146
         Width = 18
         Height = 18
       end
       object EditAdrElement: TEdit
         Left = 144
-        Top = 12
+        Top = 20
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -1065,7 +1065,7 @@ object FormTCO: TFormTCO
       end
       object EditTypeImage: TEdit
         Left = 144
-        Top = 36
+        Top = 44
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -1080,7 +1080,7 @@ object FormTCO: TFormTCO
       end
       object ButtonFonte: TButton
         Left = 8
-        Top = 64
+        Top = 72
         Width = 41
         Height = 17
         Caption = 'Fonte'
@@ -1089,19 +1089,31 @@ object FormTCO: TFormTCO
       end
       object EditTexte: TEdit
         Left = 88
-        Top = 60
+        Top = 70
         Width = 89
         Height = 21
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBackground
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 3
         OnChange = EditTexteChange
       end
       object ComboRepr: TComboBox
         Left = 88
-        Top = 84
+        Top = 96
         Width = 89
         Height = 21
         Style = csDropDownList
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBackground
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 13
+        ParentFont = False
         TabOrder = 4
         TabStop = False
         OnChange = ComboReprChange
@@ -1110,19 +1122,20 @@ object FormTCO: TFormTCO
           'Centrale'
           'Haut'
           'Bas'
-          'R'#233'parti')
+          'R'#233'parti'
+          'Centr'#233)
       end
       object CheckPinv: TCheckBox
         Left = 8
-        Top = 110
+        Top = 126
         Width = 113
         Height = 17
         Hint = 'Cocher si l'#39'aiguillage est repr'#233'sent'#233' invers'#233
         Caption = 'aiguillage invers'#233
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
-        Font.Height = -9
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -13
+        Font.Name = 'Arial Narrow'
         Font.Style = []
         ParentFont = False
         ParentShowHint = False
@@ -1132,7 +1145,7 @@ object FormTCO: TFormTCO
       end
       object ButtonCoulFond: TButton
         Left = 80
-        Top = 130
+        Top = 146
         Width = 81
         Height = 18
         Caption = 'Couleur de fond'

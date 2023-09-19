@@ -183,6 +183,10 @@ version 7.3  : Correction d'un bug sur le pilotage des aiguillages via CDM rail
 version 8.0  : Gestion des voies chevauchantes (ponts) et des buttoirs dans le TCO.
                Création d'un bouton "action" dans les TCOs.
                Possibilité d'utiliser jusqu'à 10 TCOs.
+version 8.1  : Gestion d'un splitter sur l'affichage principal pour séparer l'écran à la demande.
+               Possibilité de sauvegarder les paramètres de la fenêtre principale.
+               Améliorations diverses.
+
           
 
 

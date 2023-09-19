@@ -150,7 +150,7 @@ begin
       GroupBoxAction.visible:=false;
     end;
   end;
-  
+
 
   if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
   begin
@@ -339,9 +339,8 @@ begin
     end;
   end;
 
-  // aiguillage
-  if ((BImage=2) or (BImage=3) or (BImage=4) or (BImage=5) or (BImage=12) or (BImage=13) or (BImage=14) or
-      (BImage=15) or (BImage=21) or (BImage=22) or (BImage>=24) ) and (Bimage<50) then
+  // aiguillage ou TJD
+  if IsAigTCO(Bimage) then
     formConfCellTCO.checkPinv.Enabled:=true
     else formConfCellTCO.checkPinv.Enabled:=false;
 
@@ -600,20 +599,21 @@ begin
 
 end;
 
+// copie la cellule cliquée du TCO pour la mettre dans la imagePaletteCC
 procedure copie_cellule(index : integer);
 begin
-// affiche l'icone cliquée dans la fenetre -----------------------------------------------
-    // pour que le stretchBlt soit visible, il faut mettre à jour la taille du bitmap
-    with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
-    begin
-      width:=iconeX;
-      Height:=iconeY;
-    end;
+  // affiche l'icone cliquée dans la fenetre -----------------------------------------------
+  // pour que le stretchBlt soit visible, il faut mettre à jour la taille du bitmap
+  with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
+  begin
+    width:=iconeX;
+    Height:=iconeY;
+  end;
 
-    // destination masque avec mise à l'échelle
-    StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,
-                PcanvasTCO[index].Handle,(XclicCell[index]-1)*largeurCell[index],(YclicCell[index]-1)*hauteurCell[index],largeurCell[index],hauteurCell[index],srccopy);
-    FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
+  // destination masque avec mise à l'échelle
+  StretchBlt(FormConfCellTCO.ImagePaletteCC.canvas.Handle,0,0,iconeX,iconeY,
+             PcanvasTCO[index].Handle,(XclicCell[index]-1)*largeurCell[index],(YclicCell[index]-1)*hauteurCell[index],largeurCell[index],hauteurCell[index],srccopy);
+  FormConfCellTCO.ImagePaletteCC.repaint;  // obligatoire sinon il ne s'affiche pas
 end;
 
 procedure TFormConfCellTCO.ImagePaletteCCMouseDown(Sender: TObject;
@@ -816,9 +816,9 @@ begin
   begin
     x:=XClicCell[IndexTCOCourant];
     y:=yClicCell[IndexTCOCourant];
-    tco[IndexTCOCourant,X,Y].PiedFeu:=3;
+    tco[IndexTCOCourant,x,y].PiedFeu:=3;
     efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
-    affiche_cellule(IndexTCOCourant,x,Y);
+    affiche_cellule(IndexTCOCourant,x,y);
     actualise(indexTCOCourant);
   end;
 end;

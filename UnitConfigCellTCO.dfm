@@ -59,7 +59,8 @@ object FormConfCellTCO: TFormConfCellTCO
         'Centrale'
         'Haut'
         'Bas'
-        'R'#233'parti')
+        'R'#233'parti'
+        'Centr'#233)
     end
     object ButtonFonte: TButton
       Left = 160
@@ -290,8 +291,8 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 5
     end
     object GroupBoxAction: TGroupBox
-      Left = 56
-      Top = 176
+      Left = 24
+      Top = 184
       Width = 249
       Height = 105
       Caption = 'Action'

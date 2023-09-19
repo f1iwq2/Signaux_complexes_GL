@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 55
-  Top = 227
+  Left = 74
+  Top = 202
   Width = 1222
   Height = 652
   Caption = 'Signaux complexes'
@@ -16,9 +16,10 @@ object FormPrinc: TFormPrinc
   Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
+  OnResize = FormResize
   DesignSize = (
-    1214
-    601)
+    1206
+    593)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1200,11 +1201,6 @@ object FormPrinc: TFormPrinc
     Font.Style = []
     ParentFont = False
   end
-  object SplitterH: TSplitter
-    Left = 0
-    Top = 0
-    Height = 579
-  end
   object ImageSignal20: TImage
     Left = 384
     Top = 8
@@ -1444,71 +1440,10 @@ object FormPrinc: TFormPrinc
       FCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFC000000}
     Visible = False
   end
-  object ScrollBox1: TScrollBox
-    Left = 625
-    Top = 200
-    Width = 563
-    Height = 373
-    HorzScrollBar.Increment = 48
-    HorzScrollBar.Tracking = True
-    VertScrollBar.Smooth = True
-    VertScrollBar.Tracking = True
-    Anchors = [akTop, akRight, akBottom]
-    Color = clSilver
-    ParentColor = False
-    TabOrder = 0
-  end
-  object GroupBox1: TGroupBox
-    Left = 625
-    Top = 5
-    Width = 265
-    Height = 52
-    Anchors = [akTop, akRight]
-    Caption = 'Commande d'#39'accessoires'
-    TabOrder = 1
-    object Label2: TLabel
-      Left = 7
-      Top = 24
-      Width = 58
-      Height = 13
-      Caption = 'adresse acc'
-    end
-    object EditAdresse: TEdit
-      Left = 72
-      Top = 20
-      Width = 49
-      Height = 21
-      Hint = 'Adresse accessoire'
-      TabOrder = 0
-      Text = '1'
-    end
-    object ButtonDroit: TButton
-      Left = 132
-      Top = 16
-      Width = 53
-      Height = 25
-      Hint = 'Ecriture des accessoires DCC'
-      Caption = 'droit'
-      TabOrder = 1
-      WordWrap = True
-      OnClick = ButtonDroitClick
-    end
-    object ButtonDevie: TButton
-      Left = 192
-      Top = 16
-      Width = 57
-      Height = 25
-      Hint = 'Ecriture des accessoires DCC'
-      Caption = 'devi'#233
-      TabOrder = 2
-      WordWrap = True
-      OnClick = ButtonDevieClick
-    end
-  end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 579
-    Width = 1214
+    Top = 571
+    Width = 1206
     Height = 22
     Panels = <>
     SimplePanel = True
@@ -1523,120 +1458,6 @@ object FormPrinc: TFormPrinc
       2143341208000000ED030000ED03000001568A64000006000000010000040000
       00020000802500000000080000000000000000003F00000011000000}
   end
-  object Panel1: TPanel
-    Left = 913
-    Top = 5
-    Width = 282
-    Height = 148
-    Anchors = [akTop, akRight]
-    TabOrder = 4
-    object Label1: TLabel
-      Left = 64
-      Top = 128
-      Width = 89
-      Height = 13
-      Caption = 'Nombre de trains : '
-    end
-    object LabelNbTrains: TLabel
-      Left = 240
-      Top = 124
-      Width = 9
-      Height = 19
-      Caption = '0'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clBlack
-      Font.Height = -16
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object BoutonRaf: TButton
-      Left = 8
-      Top = 8
-      Width = 89
-      Height = 33
-      Hint = 
-        'Mise '#224' jour des signaux suivant les zones occup'#233'es et les aiguil' +
-        'lages'
-      Caption = 'Rafraichissement'
-      TabOrder = 0
-      OnClick = BoutonRafClick
-    end
-    object ButtonArretSimu: TButton
-      Left = 192
-      Top = 88
-      Width = 81
-      Height = 33
-      Caption = 'Arret simulation'
-      TabOrder = 1
-      Visible = False
-      WordWrap = True
-      OnClick = ButtonArretSimuClick
-    end
-    object ButtonAffTCO: TButton
-      Left = 104
-      Top = 48
-      Width = 81
-      Height = 33
-      Caption = 'Affiche TCO'
-      TabOrder = 2
-      OnClick = ButtonAffTCOClick
-    end
-    object ButtonLanceCDM: TButton
-      Left = 192
-      Top = 8
-      Width = 81
-      Height = 33
-      Hint = 'Lance CDM Rail'
-      Caption = 'Lance CDM rail'
-      TabOrder = 3
-      OnClick = ButtonLanceCDMClick
-    end
-    object ButtonLocCV: TButton
-      Left = 8
-      Top = 88
-      Width = 89
-      Height = 33
-      Hint = 'Affichage du panneau de contr'#244'le des trains ou des CV'
-      Caption = 'Trains / CVs'
-      TabOrder = 4
-      OnClick = ButtonLocCVClick
-    end
-    object BoutonRazTrains: TButton
-      Left = 192
-      Top = 48
-      Width = 81
-      Height = 33
-      Hint = 
-        'Supprime les trains d'#233'tect'#233's ou en cas de nouveau RUN, permet de' +
-        ' partir de 0'
-      Caption = 'Raz trains ou nouveau RUN'
-      TabOrder = 5
-      WordWrap = True
-      OnClick = BoutonRazTrainsClick
-    end
-    object ButtonAffAnalyseCDM: TButton
-      Left = 8
-      Top = 48
-      Width = 89
-      Height = 33
-      Caption = 'Affiche le r'#233'seau CDM'
-      TabOrder = 6
-      Visible = False
-      WordWrap = True
-      OnClick = ButtonAffAnalyseCDMClick
-    end
-    object ButtonCDM: TButton
-      Left = 104
-      Top = 8
-      Width = 81
-      Height = 33
-      Caption = 'Affiche/Cache CDM Rail'
-      TabOrder = 7
-      WordWrap = True
-      OnClick = ButtonCDMClick
-    end
-  end
   object StaticText: TStaticText
     Left = 16
     Top = 557
@@ -1644,305 +1465,7 @@ object FormPrinc: TFormPrinc
     Height = 17
     Anchors = [akLeft, akBottom]
     Caption = 'xx'
-    TabOrder = 5
-  end
-  object GroupBox2: TGroupBox
-    Left = 642
-    Top = 64
-    Width = 265
-    Height = 105
-    Anchors = [akTop, akRight]
-    Caption = 'Variables CV'
-    TabOrder = 6
-    object Label3: TLabel
-      Left = 208
-      Top = 34
-      Width = 14
-      Height = 13
-      Caption = 'CV'
-      WordWrap = True
-    end
-    object LabelVCV: TLabel
-      Left = 208
-      Top = 55
-      Width = 47
-      Height = 13
-      Caption = 'Valeur CV'
-      WordWrap = True
-    end
-    object ButtonEcrCV: TButton
-      Left = 8
-      Top = 16
-      Width = 153
-      Height = 33
-      Hint = 'Ecriture CV en mode direct sur voie de  programmation'
-      Caption = 'Ecriture CV - 1 '#224' 255  par interface'
-      TabOrder = 0
-      WordWrap = True
-      OnClick = ButtonEcrCVClick
-    end
-    object ButtonLitCV: TButton
-      Left = 8
-      Top = 64
-      Width = 153
-      Height = 33
-      Hint = 'Lecture CV en mode direct sur voie de  programmation'
-      Caption = 'Lecture CV - 1 '#224' 255 par interface'
-      Enabled = False
-      TabOrder = 1
-      WordWrap = True
-      OnClick = ButtonLitCVClick
-    end
-    object EditCV: TEdit
-      Left = 168
-      Top = 32
-      Width = 33
-      Height = 21
-      TabOrder = 2
-    end
-    object EditVal: TEdit
-      Left = 168
-      Top = 52
-      Width = 33
-      Height = 21
-      TabOrder = 3
-    end
-  end
-  object GroupBox3: TGroupBox
-    Left = 625
-    Top = 64
-    Width = 265
-    Height = 129
-    Anchors = [akTop, akRight]
-    Caption = 'Commande aux trains'
-    TabOrder = 7
-    object Label4: TLabel
-      Left = 8
-      Top = 22
-      Width = 67
-      Height = 13
-      Caption = 'Adresse train :'
-    end
-    object Label5: TLabel
-      Left = 8
-      Top = 44
-      Width = 74
-      Height = 13
-      Caption = 'Vitesse train % :'
-    end
-    object LabelFonction: TLabel
-      Left = 144
-      Top = 44
-      Width = 47
-      Height = 13
-      Caption = 'Fonction: '
-    end
-    object Label6: TLabel
-      Left = 224
-      Top = 44
-      Width = 9
-      Height = 13
-      Caption = #224' '
-    end
-    object SBMarcheArretLoco: TSpeedButton
-      Left = 96
-      Top = 88
-      Width = 73
-      Height = 33
-      Hint = 'Arr'#234't de tous les trains'
-      Glyph.Data = {
-        020E0000424D020E000000000000360400002800000049000000210000000100
-        080000000000CC090000C40E0000C40E00000001000000000000000000000000
-        80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
-        A6000020400000206000002080000020A0000020C0000020E000004000000040
-        20000040400000406000004080000040A0000040C0000040E000006000000060
-        20000060400000606000006080000060A0000060C0000060E000008000000080
-        20000080400000806000008080000080A0000080C0000080E00000A0000000A0
-        200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
-        200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
-        200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
-        20004000400040006000400080004000A0004000C0004000E000402000004020
-        20004020400040206000402080004020A0004020C0004020E000404000004040
-        20004040400040406000404080004040A0004040C0004040E000406000004060
-        20004060400040606000406080004060A0004060C0004060E000408000004080
-        20004080400040806000408080004080A0004080C0004080E00040A0000040A0
-        200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
-        200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
-        200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
-        20008000400080006000800080008000A0008000C0008000E000802000008020
-        20008020400080206000802080008020A0008020C0008020E000804000008040
-        20008040400080406000804080008040A0008040C0008040E000806000008060
-        20008060400080606000806080008060A0008060C0008060E000808000008080
-        20008080400080806000808080008080A0008080C0008080E00080A0000080A0
-        200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
-        200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
-        200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
-        2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
-        2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
-        2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
-        2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
-        2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
-        2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
-        2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
-        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F60E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0EFFFF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0EFF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E
-        0E0E0E0E0E0E0E0E0E0E5FAFAFA70E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E5FAFAFA70E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0E0E0E5FFFFFFFFFFFFFAF0E0E0E0E
-        0E0E0E0E0EFFFF560E0E0E0E0E0E0E0E0E0EFFFFFFFFFFFFA70E0E0E0E0E0EAF
-        FFEF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0E0E5F
-        FFFFFFFFFFFFFFFFEF0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0E0E16FFFFFF
-        FFFFFFFFFFAF0E0E0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF00
-        00000E0E0E0E0E0E0E0E0EFFFFFFF6A75FAFFFFFFF560E0E0E0E0E0E0EF6FF56
-        0E0E0E0E0E0E0E0EFFFFFFEF5E56A7FFFFFF5F0E0E0E0EAFFFAF0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0EAFFFFFA70E0E0E0E0EF6
-        FFEF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EAFFFFF5F0E0E0E0E0EFFFFFF0E
-        0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E
-        0E0EF6FFEF0E0E0E0E0E0E16FFFF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EFF
-        FFAF0E0E0E0E0E0E0EFFFFA70E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0EEF0000000E0E0E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0EF6FF160E0E0E0E0E
-        0EF6FF560E0E0E0E0E0E5FFFFF0E0E0E0E0E0E0E0EEFFFF60E0E0EAFFFAF0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E56FFFF0E0E0E0E
-        0E0E0E0EEFFF560E0E0E0E0E0EF6FF560E0E0E0E0E0EEFFFAF0E0E0E0E0E0E0E
-        0E56FFFF0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E
-        0E0E0E0E0E5FFFF60E0E0E0E0E0E0E0EF6FF560E0E0E0E0E0EF6FF560E0E0E0E
-        0E0EFFFF560E0E0E0E0E0E0E0E0EFFFF5E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EFFFF0E0E
-        0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0E0E0EEFFFA70E0EAF
-        FFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0EF6FFFF0E0E0E0E0E0E0EF6FF560E0E0E0E0E56FFFF0E0E0E0E
-        0E0E0E0E0E0EAFFFEF0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF00
-        00000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E5FFFFFFFEF0E0E0E0E0E0E0EF6FF56
-        0E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FFEF0E0EAFFFFFFFFFFFFFFFF6
-        A70E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0EAFFFFFFFFF
-        FF0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FF
-        080E0EAFFFFFFFFFFFFFFFFFFF080E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E
-        0E0E0E0E0EEFFFFFFFFFFFFF560E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5FFFF6
-        0E0E0E0E0E0E0E0E0E0EA7FF080E0EAFFFFFFFFFFFFFFFFFFFFFA70E0E0E0E0E
-        0E0EEF0000000E0E0E0E0E0E0E0E0E0EFFFFFFFFFFFFEF0E0E0E0E0E0E0E0E0E
-        0EF6FF560E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FF080E0EAFFFAF0E0E
-        0E0E0E5FFFFFFF0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0EF6FFFFFFF6
-        A70E0E0E0E0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5EFFF60E0E0E0E0E0E0E0E
-        0E0EA7FFEF0E0EAFFFAF0E0E0E0E0E0E56FFFF160E0E0E0E0E0EEF0000000E0E
-        0E0E0E0E0E0E56FFFFF6560E0E0E0E0E0E0E0E0E0E0E0E0E0EF6FF560E0E0E0E
-        0E16FFFF0E0E0E0E0E0E0E0E0E0EEFFFAF0E0EAFFFAF0E0E0E0E0E0E0EF6FFA7
-        0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EAFFFF60E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0E0E0EF6FFA70E0EAF
-        FFAF0E0E0E0E0E0E0EEFFFAF0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EEFFF
-        A70E0E0E0E0E0E0E5F560E0E0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF5F0E0E0E
-        0E0E0E0E0E0EFFFF560E0EAFFFAF0E0E0E0E0E0E0EEFFFAF0E0E0E0E0E0EEF00
-        00000E0E0E0E0E0E0E0E07FF5E0E0E0E0E0E0E5FFFF60E0E0E0E0E0E0EF6FF56
-        0E0E0E0E0E0EEFFFEF0E0E0E0E0E0E0E0E5FFFFF0E0E0EAFFFAF0E0E0E0E0E0E
-        0EEFFFAF0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EEFFF5F0E0E0E0E0E0EA7
-        FFEF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E5FFFFF0E0E0E0E0E0E0E0EF6FFEF
-        0E0E0EAFFFAF0E0E0E0E0E0E0EF6FFA70E0E0E0E0E0EEF0000000E0E0E0E0E0E
-        0E0EA7FFEF0E0E0E0E0E0EFFFFA70E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EFF
-        FFEF0E0E0E0E0E0E5FFFFF560E0E0EAFFFAF0E0E0E0E0E0E56FFFF560E0E0E0E
-        0E0EEF0000000E0E0E0E0E0E0E0E16FFFF5F0E0E0E0EEFFFFF0E0E0E0E0E0E0E
-        0EF6FF560E0E0E0E0E0E0EA7FFFFEF0E0E0E0E5FFFFFF60E0E0E0EAFFFAF0E0E
-        0E0E0E56FFFFFF0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0EF6FFFFF6EF
-        EFFFFFFFEF0E0E0EFFFFFFFFFFFFFFFFFFFFFFFFAF0E0E0EF6FFFFFFAFA7F6FF
-        FFFF0E0E0E0E0EAFFFFFFFFFFFFFFFFFFFFFA70E0E0E0E0E0E0EEF0000000E0E
-        0E0E0E0E0E0E0E0EFFFFFFFFFFFFFFFF0E0E0E0EFFFFFFFFFFFFFFFFFFFFFFFF
-        AF0E0E0E0EFFFFFFFFFFFFFFFF5E0E0E0E0E0EAFFFFFFFFFFFFFFFFFFFF60E0E
-        0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0EF6FFFFFFFFEF0E0E0E0E0E
-        FFF6F6F6F6F6F6F6F6F6F6FFA70E0E0E0E0EEFFFFFFFFFF6160E0E0E0E0E0EA7
-        FFF6F6F6F6F6F6EFA70E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E
-        0E0E0E5F5E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        5E5F0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF00
-        00000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0EF6000000}
-      Layout = blGlyphBottom
-      ParentShowHint = False
-      ShowHint = True
-      Visible = False
-      OnClick = SBMarcheArretLocoClick
-    end
-    object loco: TButton
-      Left = 6
-      Top = 88
-      Width = 83
-      Height = 33
-      Caption = 'Envoi vitesse '#224' loco'
-      TabOrder = 0
-      WordWrap = True
-      OnClick = locoClick
-    end
-    object EditAdrTrain: TEdit
-      Left = 80
-      Top = 16
-      Width = 25
-      Height = 21
-      TabOrder = 1
-      OnChange = EditAdrTrainChange
-    end
-    object EditVitesse: TEdit
-      Left = 80
-      Top = 40
-      Width = 25
-      Height = 21
-      TabOrder = 2
-      Text = '30'
-      OnChange = EditVitesseChange
-    end
-    object ComboTrains: TComboBox
-      Left = 112
-      Top = 16
-      Width = 145
-      Height = 21
-      ItemHeight = 13
-      TabOrder = 3
-      OnChange = ComboTrainsChange
-    end
-    object EditNumFonction: TEdit
-      Left = 192
-      Top = 40
-      Width = 25
-      Height = 21
-      Hint = 'Fonction de 0 '#224' 12 ou 28'
-      TabOrder = 4
-    end
-    object ButtonFonction: TButton
-      Left = 176
-      Top = 88
-      Width = 81
-      Height = 33
-      Caption = 'Envoi fonction '#224' loco'
-      TabOrder = 6
-      WordWrap = True
-      OnClick = ButtonFonctionClick
-    end
-    object EditFonc01: TEdit
-      Left = 240
-      Top = 40
-      Width = 17
-      Height = 21
-      TabOrder = 5
-    end
-    object TrackBarVit: TTrackBar
-      Left = 24
-      Top = 64
-      Width = 233
-      Height = 21
-      Hint = 'Vitesse loco en %'
-      Ctl3D = False
-      Max = 100
-      ParentCtl3D = False
-      TabOrder = 7
-      OnChange = TrackBarVitChange
-    end
+    TabOrder = 2
   end
   object ButtonEnv: TButton
     Left = 1073
@@ -1951,7 +1474,7 @@ object FormPrinc: TFormPrinc
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Envoi vers centrale DCC++'
-    TabOrder = 8
+    TabOrder = 3
     WordWrap = True
     OnClick = ButtonEnvClick
   end
@@ -1961,7 +1484,7 @@ object FormPrinc: TFormPrinc
     Width = 121
     Height = 21
     Anchors = [akTop, akRight]
-    TabOrder = 9
+    TabOrder = 4
     Text = '<1>'
   end
   object Button1: TButton
@@ -1971,29 +1494,38 @@ object FormPrinc: TFormPrinc
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Button1'
-    TabOrder = 10
+    TabOrder = 5
     Visible = False
     OnClick = Button1Click
   end
   object Panel2: TPanel
     Left = 8
-    Top = 80
-    Width = 609
-    Height = 449
-    TabOrder = 11
+    Top = 32
+    Width = 1122
+    Height = 513
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 6
+    DesignSize = (
+      1122
+      513)
     object SplitterV: TSplitter
       Left = 1
       Top = 1
-      Width = 8
-      Height = 447
-      Beveled = True
+      Width = 9
+      Height = 511
+      Hint = 'Splitter d'#39'agrandissement/r'#233'duissement'
+      Align = alNone
+      Color = clGray
+      MinSize = 200
+      ParentColor = False
+      ResizeStyle = rsUpdate
       OnMoved = SplitterVMoved
     end
     object FenRich: TRichEdit
-      Left = 8
-      Top = 56
-      Width = 593
-      Height = 465
+      Left = 48
+      Top = 48
+      Width = 553
+      Height = 441
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clYellow
@@ -2008,6 +1540,479 @@ object FormPrinc: TFormPrinc
       WordWrap = False
       OnChange = FenRichChange
       OnMouseDown = FenRichMouseDown
+    end
+    object ScrollBox1: TScrollBox
+      Left = 615
+      Top = 140
+      Width = 563
+      Height = 373
+      HorzScrollBar.Increment = 48
+      HorzScrollBar.Tracking = True
+      VertScrollBar.Smooth = True
+      VertScrollBar.Tracking = True
+      Anchors = [akTop, akRight]
+      Color = clSilver
+      ParentColor = False
+      TabOrder = 1
+    end
+    object GroupBox1: TGroupBox
+      Left = 626
+      Top = 5
+      Width = 265
+      Height = 52
+      Anchors = [akTop, akRight]
+      Caption = 'Commande d'#39'accessoires'
+      TabOrder = 2
+      object Label2: TLabel
+        Left = 7
+        Top = 24
+        Width = 58
+        Height = 13
+        Caption = 'adresse acc'
+      end
+      object EditAdresse: TEdit
+        Left = 72
+        Top = 20
+        Width = 49
+        Height = 21
+        Hint = 'Adresse accessoire'
+        TabOrder = 0
+        Text = '1'
+      end
+      object ButtonDroit: TButton
+        Left = 132
+        Top = 16
+        Width = 53
+        Height = 25
+        Hint = 'Ecriture des accessoires DCC'
+        Caption = 'droit'
+        TabOrder = 1
+        WordWrap = True
+        OnClick = ButtonDroitClick
+      end
+      object ButtonDevie: TButton
+        Left = 192
+        Top = 16
+        Width = 57
+        Height = 25
+        Hint = 'Ecriture des accessoires DCC'
+        Caption = 'devi'#233
+        TabOrder = 2
+        WordWrap = True
+        OnClick = ButtonDevieClick
+      end
+    end
+    object GroupBox3: TGroupBox
+      Left = 626
+      Top = 64
+      Width = 265
+      Height = 129
+      Anchors = [akTop, akRight]
+      Caption = 'Commande aux trains'
+      TabOrder = 3
+      object Label4: TLabel
+        Left = 8
+        Top = 22
+        Width = 67
+        Height = 13
+        Caption = 'Adresse train :'
+      end
+      object Label5: TLabel
+        Left = 8
+        Top = 44
+        Width = 74
+        Height = 13
+        Caption = 'Vitesse train % :'
+      end
+      object LabelFonction: TLabel
+        Left = 144
+        Top = 44
+        Width = 47
+        Height = 13
+        Caption = 'Fonction: '
+      end
+      object Label6: TLabel
+        Left = 224
+        Top = 44
+        Width = 9
+        Height = 13
+        Caption = #224' '
+      end
+      object SBMarcheArretLoco: TSpeedButton
+        Left = 96
+        Top = 88
+        Width = 73
+        Height = 33
+        Hint = 'Arr'#234't de tous les trains'
+        Glyph.Data = {
+          020E0000424D020E000000000000360400002800000049000000210000000100
+          080000000000CC090000C40E0000C40E00000001000000000000000000000000
+          80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+          A6000020400000206000002080000020A0000020C0000020E000004000000040
+          20000040400000406000004080000040A0000040C0000040E000006000000060
+          20000060400000606000006080000060A0000060C0000060E000008000000080
+          20000080400000806000008080000080A0000080C0000080E00000A0000000A0
+          200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
+          200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
+          200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
+          20004000400040006000400080004000A0004000C0004000E000402000004020
+          20004020400040206000402080004020A0004020C0004020E000404000004040
+          20004040400040406000404080004040A0004040C0004040E000406000004060
+          20004060400040606000406080004060A0004060C0004060E000408000004080
+          20004080400040806000408080004080A0004080C0004080E00040A0000040A0
+          200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
+          200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
+          200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
+          20008000400080006000800080008000A0008000C0008000E000802000008020
+          20008020400080206000802080008020A0008020C0008020E000804000008040
+          20008040400080406000804080008040A0008040C0008040E000806000008060
+          20008060400080606000806080008060A0008060C0008060E000808000008080
+          20008080400080806000808080008080A0008080C0008080E00080A0000080A0
+          200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
+          200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
+          200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
+          2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
+          2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
+          2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
+          2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
+          2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
+          2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
+          2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F60E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0EFFFF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0EFF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E
+          0E0E0E0E0E0E0E0E0E0E5FAFAFA70E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E5FAFAFA70E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0E0E0E5FFFFFFFFFFFFFAF0E0E0E0E
+          0E0E0E0E0EFFFF560E0E0E0E0E0E0E0E0E0EFFFFFFFFFFFFA70E0E0E0E0E0EAF
+          FFEF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0E0E5F
+          FFFFFFFFFFFFFFFFEF0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0E0E16FFFFFF
+          FFFFFFFFFFAF0E0E0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF00
+          00000E0E0E0E0E0E0E0E0EFFFFFFF6A75FAFFFFFFF560E0E0E0E0E0E0EF6FF56
+          0E0E0E0E0E0E0E0EFFFFFFEF5E56A7FFFFFF5F0E0E0E0EAFFFAF0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E0E0EAFFFFFA70E0E0E0E0EF6
+          FFEF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EAFFFFF5F0E0E0E0E0EFFFFFF0E
+          0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EAF0000000E0E0E0E0E0E
+          0E0EF6FFEF0E0E0E0E0E0E16FFFF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EFF
+          FFAF0E0E0E0E0E0E0EFFFFA70E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0EEF0000000E0E0E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0EF6FF160E0E0E0E0E
+          0EF6FF560E0E0E0E0E0E5FFFFF0E0E0E0E0E0E0E0EEFFFF60E0E0EAFFFAF0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E56FFFF0E0E0E0E
+          0E0E0E0EEFFF560E0E0E0E0E0EF6FF560E0E0E0E0E0EEFFFAF0E0E0E0E0E0E0E
+          0E56FFFF0E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E
+          0E0E0E0E0E5FFFF60E0E0E0E0E0E0E0EF6FF560E0E0E0E0E0EF6FF560E0E0E0E
+          0E0EFFFF560E0E0E0E0E0E0E0E0EFFFF5E0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EFFFF0E0E
+          0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0E0E0EEFFFA70E0EAF
+          FFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0EF6FFFF0E0E0E0E0E0E0EF6FF560E0E0E0E0E56FFFF0E0E0E0E
+          0E0E0E0E0E0EAFFFEF0E0EAFFFAF0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF00
+          00000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E5FFFFFFFEF0E0E0E0E0E0E0EF6FF56
+          0E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FFEF0E0EAFFFFFFFFFFFFFFFF6
+          A70E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0EAFFFFFFFFF
+          FF0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FF
+          080E0EAFFFFFFFFFFFFFFFFFFF080E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E
+          0E0E0E0E0EEFFFFFFFFFFFFF560E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5FFFF6
+          0E0E0E0E0E0E0E0E0E0EA7FF080E0EAFFFFFFFFFFFFFFFFFFFFFA70E0E0E0E0E
+          0E0EEF0000000E0E0E0E0E0E0E0E0E0EFFFFFFFFFFFFEF0E0E0E0E0E0E0E0E0E
+          0EF6FF560E0E0E0E0E5FFFF60E0E0E0E0E0E0E0E0E0EA7FF080E0EAFFFAF0E0E
+          0E0E0E5FFFFFFF0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0EF6FFFFFFF6
+          A70E0E0E0E0E0E0E0E0E0E0E0EF6FF560E0E0E0E0E5EFFF60E0E0E0E0E0E0E0E
+          0E0EA7FFEF0E0EAFFFAF0E0E0E0E0E0E56FFFF160E0E0E0E0E0EEF0000000E0E
+          0E0E0E0E0E0E56FFFFF6560E0E0E0E0E0E0E0E0E0E0E0E0E0EF6FF560E0E0E0E
+          0E16FFFF0E0E0E0E0E0E0E0E0E0EEFFFAF0E0EAFFFAF0E0E0E0E0E0E0EF6FFA7
+          0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EAFFFF60E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF0E0E0E0E0E0E0E0E0E0EF6FFA70E0EAF
+          FFAF0E0E0E0E0E0E0EEFFFAF0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EEFFF
+          A70E0E0E0E0E0E0E5F560E0E0E0E0E0E0EF6FF560E0E0E0E0E0EFFFF5F0E0E0E
+          0E0E0E0E0E0EFFFF560E0EAFFFAF0E0E0E0E0E0E0EEFFFAF0E0E0E0E0E0EEF00
+          00000E0E0E0E0E0E0E0E07FF5E0E0E0E0E0E0E5FFFF60E0E0E0E0E0E0EF6FF56
+          0E0E0E0E0E0EEFFFEF0E0E0E0E0E0E0E0E5FFFFF0E0E0EAFFFAF0E0E0E0E0E0E
+          0EEFFFAF0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0EEFFF5F0E0E0E0E0E0EA7
+          FFEF0E0E0E0E0E0E0EF6FF560E0E0E0E0E0E5FFFFF0E0E0E0E0E0E0E0EF6FFEF
+          0E0E0EAFFFAF0E0E0E0E0E0E0EF6FFA70E0E0E0E0E0EEF0000000E0E0E0E0E0E
+          0E0EA7FFEF0E0E0E0E0E0EFFFFA70E0E0E0E0E0E0EF6FF560E0E0E0E0E0E0EFF
+          FFEF0E0E0E0E0E0E5FFFFF560E0E0EAFFFAF0E0E0E0E0E0E56FFFF560E0E0E0E
+          0E0EEF0000000E0E0E0E0E0E0E0E16FFFF5F0E0E0E0EEFFFFF0E0E0E0E0E0E0E
+          0EF6FF560E0E0E0E0E0E0EA7FFFFEF0E0E0E0E5FFFFFF60E0E0E0EAFFFAF0E0E
+          0E0E0E56FFFFFF0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0EF6FFFFF6EF
+          EFFFFFFFEF0E0E0EFFFFFFFFFFFFFFFFFFFFFFFFAF0E0E0EF6FFFFFFAFA7F6FF
+          FFFF0E0E0E0E0EAFFFFFFFFFFFFFFFFFFFFFA70E0E0E0E0E0E0EEF0000000E0E
+          0E0E0E0E0E0E0E0EFFFFFFFFFFFFFFFF0E0E0E0EFFFFFFFFFFFFFFFFFFFFFFFF
+          AF0E0E0E0EFFFFFFFFFFFFFFFF5E0E0E0E0E0EAFFFFFFFFFFFFFFFFFFFF60E0E
+          0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0EF6FFFFFFFFEF0E0E0E0E0E
+          FFF6F6F6F6F6F6F6F6F6F6FFA70E0E0E0E0EEFFFFFFFFFF6160E0E0E0E0E0EA7
+          FFF6F6F6F6F6F6EFA70E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E
+          0E0E0E5F5E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          5E5F0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF00
+          00000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0EEF0000000E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
+          0E0EF6000000}
+        Layout = blGlyphBottom
+        ParentShowHint = False
+        ShowHint = True
+        Visible = False
+        OnClick = SBMarcheArretLocoClick
+      end
+      object loco: TButton
+        Left = 6
+        Top = 88
+        Width = 83
+        Height = 33
+        Caption = 'Envoi vitesse '#224' loco'
+        TabOrder = 0
+        WordWrap = True
+        OnClick = locoClick
+      end
+      object EditAdrTrain: TEdit
+        Left = 80
+        Top = 16
+        Width = 25
+        Height = 21
+        TabOrder = 1
+        OnChange = EditAdrTrainChange
+      end
+      object EditVitesse: TEdit
+        Left = 80
+        Top = 40
+        Width = 25
+        Height = 21
+        TabOrder = 2
+        Text = '30'
+        OnChange = EditVitesseChange
+      end
+      object ComboTrains: TComboBox
+        Left = 112
+        Top = 16
+        Width = 145
+        Height = 21
+        ItemHeight = 13
+        TabOrder = 3
+        OnChange = ComboTrainsChange
+      end
+      object EditNumFonction: TEdit
+        Left = 192
+        Top = 40
+        Width = 25
+        Height = 21
+        Hint = 'Fonction de 0 '#224' 12 ou 28'
+        TabOrder = 4
+      end
+      object ButtonFonction: TButton
+        Left = 176
+        Top = 88
+        Width = 81
+        Height = 33
+        Caption = 'Envoi fonction '#224' loco'
+        TabOrder = 6
+        WordWrap = True
+        OnClick = ButtonFonctionClick
+      end
+      object EditFonc01: TEdit
+        Left = 240
+        Top = 40
+        Width = 17
+        Height = 21
+        TabOrder = 5
+      end
+      object TrackBarVit: TTrackBar
+        Left = 24
+        Top = 64
+        Width = 233
+        Height = 21
+        Hint = 'Vitesse loco en %'
+        Ctl3D = False
+        Max = 100
+        ParentCtl3D = False
+        TabOrder = 7
+        OnChange = TrackBarVitChange
+      end
+    end
+    object Panel1: TPanel
+      Left = 906
+      Top = 5
+      Width = 296
+      Height = 148
+      Anchors = [akTop, akRight]
+      TabOrder = 4
+      object Label1: TLabel
+        Left = 64
+        Top = 128
+        Width = 89
+        Height = 13
+        Caption = 'Nombre de trains : '
+      end
+      object LabelNbTrains: TLabel
+        Left = 240
+        Top = 124
+        Width = 9
+        Height = 19
+        Caption = '0'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -16
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object BoutonRaf: TButton
+        Left = 8
+        Top = 8
+        Width = 89
+        Height = 33
+        Hint = 
+          'Mise '#224' jour des signaux suivant les zones occup'#233'es et les aiguil' +
+          'lages'
+        Caption = 'Rafraichissement'
+        TabOrder = 0
+        OnClick = BoutonRafClick
+      end
+      object ButtonArretSimu: TButton
+        Left = 192
+        Top = 88
+        Width = 89
+        Height = 33
+        Caption = 'Arret simulation'
+        TabOrder = 1
+        Visible = False
+        WordWrap = True
+        OnClick = ButtonArretSimuClick
+      end
+      object ButtonAffTCO: TButton
+        Left = 104
+        Top = 48
+        Width = 81
+        Height = 33
+        Caption = 'Affiche TCO'
+        TabOrder = 2
+        OnClick = ButtonAffTCOClick
+      end
+      object ButtonLanceCDM: TButton
+        Left = 192
+        Top = 8
+        Width = 89
+        Height = 33
+        Hint = 'Lance CDM Rail'
+        Caption = 'Lance CDM rail'
+        TabOrder = 3
+        OnClick = ButtonLanceCDMClick
+      end
+      object ButtonLocCV: TButton
+        Left = 8
+        Top = 88
+        Width = 89
+        Height = 33
+        Hint = 'Affichage du panneau de contr'#244'le des trains ou des CV'
+        Caption = 'Trains / CVs'
+        TabOrder = 4
+        OnClick = ButtonLocCVClick
+      end
+      object BoutonRazTrains: TButton
+        Left = 192
+        Top = 48
+        Width = 89
+        Height = 33
+        Hint = 
+          'Supprime les trains d'#233'tect'#233's ou en cas de nouveau RUN, permet de' +
+          ' partir de 0'
+        Caption = 'Raz trains ou nouveau RUN'
+        TabOrder = 5
+        WordWrap = True
+        OnClick = BoutonRazTrainsClick
+      end
+      object ButtonAffAnalyseCDM: TButton
+        Left = 8
+        Top = 48
+        Width = 89
+        Height = 33
+        Caption = 'Affiche le r'#233'seau CDM'
+        TabOrder = 6
+        Visible = False
+        WordWrap = True
+        OnClick = ButtonAffAnalyseCDMClick
+      end
+      object ButtonCDM: TButton
+        Left = 104
+        Top = 8
+        Width = 81
+        Height = 33
+        Caption = 'Affiche/Cache CDM Rail'
+        TabOrder = 7
+        WordWrap = True
+        OnClick = ButtonCDMClick
+      end
+    end
+    object GroupBox2: TGroupBox
+      Left = 626
+      Top = 48
+      Width = 265
+      Height = 105
+      Anchors = [akTop, akRight]
+      Caption = 'Variables CV'
+      TabOrder = 5
+      object Label3: TLabel
+        Left = 208
+        Top = 34
+        Width = 14
+        Height = 13
+        Caption = 'CV'
+        WordWrap = True
+      end
+      object LabelVCV: TLabel
+        Left = 208
+        Top = 55
+        Width = 47
+        Height = 13
+        Caption = 'Valeur CV'
+        WordWrap = True
+      end
+      object ButtonEcrCV: TButton
+        Left = 8
+        Top = 16
+        Width = 153
+        Height = 33
+        Hint = 'Ecriture CV en mode direct sur voie de  programmation'
+        Caption = 'Ecriture CV - 1 '#224' 255  par interface'
+        TabOrder = 0
+        WordWrap = True
+        OnClick = ButtonEcrCVClick
+      end
+      object ButtonLitCV: TButton
+        Left = 8
+        Top = 64
+        Width = 153
+        Height = 33
+        Hint = 'Lecture CV en mode direct sur voie de  programmation'
+        Caption = 'Lecture CV - 1 '#224' 255 par interface'
+        Enabled = False
+        TabOrder = 1
+        WordWrap = True
+        OnClick = ButtonLitCVClick
+      end
+      object EditCV: TEdit
+        Left = 168
+        Top = 32
+        Width = 33
+        Height = 21
+        TabOrder = 2
+      end
+      object EditVal: TEdit
+        Left = 168
+        Top = 52
+        Width = 33
+        Height = 21
+        TabOrder = 3
+      end
     end
   end
   object Timer1: TTimer
@@ -2030,6 +2035,19 @@ object FormPrinc: TFormPrinc
     Left = 560
     object Afficher1: TMenuItem
       Caption = 'Afficher'
+      object Affichagenormal1: TMenuItem
+        Caption = 'Affichage normal'
+        Hint = 'Permet de r'#233'cup'#233'r'#233'r l'#39'affichage en deux parties'
+        OnClick = Affichagenormal1Click
+      end
+      object Sauvegarderla1: TMenuItem
+        Caption = 'Sauvegarder la configuration de la fen'#234'tre'
+        Hint = 'Sauvegarde la position de la fen'#234'tre et du splitter'
+        OnClick = Sauvegarderla1Click
+      end
+      object N14: TMenuItem
+        Caption = '-'
+      end
       object Etatdesdtecteurs1: TMenuItem
         Caption = 'Etat des d'#233'tecteurs'
         Hint = 'Affiche l'#39#233'tat des d'#233'tecteurs'
