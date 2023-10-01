@@ -429,6 +429,7 @@ const
   ModeCouleurCanton_ch='ModeCouleurCanton';
   Graphisme_ch='Graphisme';
   Ecran_ch='Ecran';
+  Epaisseur_voies_ch='EpVoies';
   Id_signal=50;
   Id_Quai=51;
   Id_action=52;
@@ -477,14 +478,11 @@ var
   HtImageTCO,LargImageTCO,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,RatioC,ModeCouleurCanton,
-  AncienXClicCell,AncienYClicCell,TCODrag,
+  AncienXClicCell,AncienYClicCell,TCODrag,epaisseur_voies,
   Epaisseur,oldX,oldY,offsetSourisY,offsetSourisX,AvecVerifIconesTCO,indexTrace,IndexTCOCourant,
   ancienTraceX,ancienTraceY,rangUndo,NbreTCO,IndexTCOCreate: integer;
 
-
-
   titre_Fonte : string;
-
 
   TCO : array[1..10] of
            array of array of TTco ; // tco[x,y].variable
@@ -620,7 +618,7 @@ begin
   clPiedSignal:=$4080FF;
   ClCanton:=$00FFFF;
   AvecGrille[indexTCO]:=true;
-  Graphisme:=1;
+  if indexTCO=1 then Graphisme:=2;
   SetLength(TCO[indexTCO],NbreCellX[indexTCO]+2,NbreCellY[indexTCO]+2); // +2 pour éviter les erreurs d'index sur +1 et -1
   init_tampon_copiercoller;
 
@@ -824,6 +822,17 @@ begin
       EcranTCO[indexTCO]:=i;
     end;
 
+
+    sa:=uppercase(Epaisseur_voies_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      if (i<1) or (i>10) then i:=5;
+      Epaisseur_voies:=i;
+    end;
 
     sa:=uppercase(AvecGrille_ch)+'=';
     i:=pos(sa,s);
@@ -1133,6 +1142,7 @@ begin
     Writeln(fichier,Avecgrille_ch+'='+s);
     writeln(fichier,Graphisme_ch+'=',graphisme);
     writeln(fichier,Ecran_ch+'=',EcranTCO[i]);
+    writeln(fichier,Epaisseur_voies_ch+'=',Epaisseur_voies);
     if EvtClicDet then s:='1' else s:='0';
     Writeln(fichier,EvtClicDet_ch+'='+s);
 
@@ -1190,7 +1200,8 @@ begin
   hauteurCell[indexTCO]:=(LargeurCell[indexTCO] * RatioC) div 10;
   largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;
   HauteurCelld2[indexTCO]:=HauteurCell[indexTCO] div 2;
-  Epaisseur:=LargeurCell[indexTCO] div 7;   // épaisseur du trait pour PEN
+  Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;   // épaisseur du trait pour PEN
+  //Affiche(intToSTR(LargeurCell[indexTCO])+' '+intToSTR(epaisseur),clyellow);
 end;
 
 procedure entoure_cell_grille(indexTCO,x,y : integer);
@@ -2106,7 +2117,6 @@ begin
 
   position:=positionTCO(indexTCO,x,y);
   fond:=tco[indextco,x,y].CouleurFond;
-  //&&& remonter au parent depuis le canvas.....pour trouver l'index du TCO
   efface_selection(1);
 
   with canvas do
@@ -4311,7 +4321,7 @@ begin
   xf:=x0+LargeurCell[indexTCO];
   yf:=y0+hauteurCell[indexTCO];
   x1:=x0-(2*LargeurCell[indexTCO])-(LargeurCell[indexTCO] div 2);y1:=y0-hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 3);
-  x2:=x0+(LargeurCell[indexTCO] div 2);y2:=yf+(hauteurCell[indexTCO] div 3);
+  x2:=x0+(LargeurCell[indexTCO] div 2);y2:=yf+round(hauteurCell[indexTCO] / 2.5);
   x3:=x0;y3:=yf;
   x4:=xc;y4:=y0;
   ep:=tco[indextco,x,y].epaisseurs;
@@ -4378,7 +4388,7 @@ begin
   xf:=x0+LargeurCell[indexTCO];
   yf:=y0+hauteurCell[indexTCO];
   x1:=x0+(LargeurCell[indexTCO] div 2);y1:=y0-hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 3);
-  x2:=xf+(2*LargeurCell[indexTCO])+(LargeurCell[indexTCO] div 2);y2:=yf+(hauteurCell[indexTCO] div 3);
+  x2:=xf+(2*LargeurCell[indexTCO])+(LargeurCell[indexTCO] div 2);y2:=yf+round(hauteurCell[indexTCO] / 3);
   x3:=xc;y3:=y0;
   x4:=xf;y4:=yf;
   ep:=tco[indextco,x,y].epaisseurs;
@@ -5783,7 +5793,7 @@ procedure trajet_droit;
      begin
        if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(xc,y0);lineto(xc,yc);    
+       moveto(xc,y0);lineto(xc,yc);
        if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xc,yf);
      end;
@@ -5820,9 +5830,9 @@ begin
   fond:=tco[indextco,x,y].CouleurFond;
   ep:=tco[indextco,x,y].epaisseurs;
 
-  // mode rond       
+  // mode rond
   x1:=x0-(2*LargeurCell[indexTCO])-(LargeurCell[indexTCO] div 3);y1:=y0-hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 3);
-  x2:=xc;y2:=yf+(hauteurCell[indexTCO] div 3);    // div 3 permet d'avoir un angle a 45° plutot que div 2
+  x2:=xc;y2:=yf+round(hauteurCell[indexTCO] / 2.9);   
 
   x3:=x0;y3:=yf;
   x4:=xc;y4:=y0;
@@ -7689,7 +7699,7 @@ begin
   end;
 
   // allumage des feux du signal -----------------
-  dessine_feu_mx(canvasDest,x0,y0,frX,frY,adresse,orientation);
+  dessine_signal_mx(canvasDest,x0,y0,frX,frY,adresse,orientation);
 end;
 
 
@@ -7779,7 +7789,7 @@ begin
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       xt:=0;yt:=0;
-      if Bimage=2  then begin xt:=3;yt:=1;end;
+      if Bimage=2  then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
       if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;
       if Bimage=4  then begin xt:=3;yt:=1;end;
       if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;
@@ -7790,7 +7800,7 @@ begin
       if Bimage=21 then begin xt:=3;yt:=1;end;
       if Bimage=22 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=24 then begin xt:=LargeurCell[indexTCO]-round(20*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
-      if Bimage=25 then begin xt:=1;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
+      if Bimage=25 then begin xt:=(LargeurCell[indexTCO] div 2) + round(6*frxGlob[indexTCO]);yt:=(hauteurCell[indexTCO] div 2)-round(15*fryGlob[indexTCO]);end;
       if Bimage=26 then begin xt:=1;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=27 then begin xt:=1;yt:=1;end;
       if Bimage=28 then begin xt:=1;yt:=1;end;
@@ -7889,22 +7899,26 @@ begin
     pied:=tco[indextco,x,y].PiedFeu;
     inverse:=feux[index].contrevoie;
     xt:=0;yt:=0;
-    if (aspect=20) and (Oriente=1) then
+    // signal belge
+    if (aspect=20) then
     begin
-      if inverse then begin xt:=2;yt:=2*hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
-      else
-      begin xt:=(LargeurCell[indexTCO] div 2)+round(5*frxGlob[indexTCO]);yt:=2*hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]); end;
-    end;
-    if (aspect=20) and (Oriente=2) then
-    begin
-      if inverse then begin xt:=round(20*frxGlob[indexTCO]);yt:=round(3*fryGlob[indexTCO]);end
-      else
-      begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end;
-    end;
-    if (aspect=20) and (Oriente=3) then
-    begin
-      if inverse then begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
-      else begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=round(1*fryGlob[indexTCO]);end;
+      if (Oriente=1) then
+      begin
+        if inverse then begin xt:=2;yt:=2*hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
+        else
+        begin xt:=(LargeurCell[indexTCO] div 2)+round(5*frxGlob[indexTCO]);yt:=2*hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]); end;
+      end;
+      if (Oriente=2) then
+      begin
+        if inverse then begin xt:=round(20*frxGlob[indexTCO]);yt:=round(3*fryGlob[indexTCO]);end
+        else
+        begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end;
+      end;
+      if (Oriente=3) then
+      begin
+        if inverse then begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
+        else begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=round(1*fryGlob[indexTCO]);end;
+      end;
     end;
     if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=2*hauteurCell[indexTCO]-round(25*fryGlob[indexTCO]);end;
     if (aspect=9) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);end;    // orientation G
@@ -7926,6 +7940,7 @@ begin
     if (aspect=2) and (Oriente=1) and (pied=1) then begin xt:=round(45*frxGlob[indexTCO]);yt:=1;end;  // signal à gauche
     if (aspect=2) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;  // orientation G
     if (aspect=2) and (Oriente=3) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;  // orientation D
+    // signaux directionnels
     if (aspect>10) and (aspect<20) and(oriente=1) then begin xt:=1;yt:=hauteurCell[indexTCO]-round(14*fryGlob[indexTCO]);end;
     if (aspect>10) and (aspect<20) and (oriente=2) then begin xt:=LargeurCell[indexTCO]-round(15*frxGlob[indexTCO]);yt:=0;end;
     if (aspect>10) and (aspect<20) and (oriente=3) then begin xt:=LargeurCell[indexTCO]-round(15*frxGlob[indexTCO]);yt:=0;end;
@@ -8026,8 +8041,6 @@ begin
     VertScrollBar.Smooth:=false;
   end;
 
-
-
   calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
   //Affiche(formatfloat('0.000000',frxGlob[indexTCO]),clyellow);
 
@@ -8040,7 +8053,7 @@ begin
     pen.color:=clyellow;
 
     for y:=1 to NbreCellY[indexTCO] do
-    for x:=1 to NbreCellX[indexTCO] do
+      for x:=1 to NbreCellX[indexTCO] do
       begin
         x1:=(x-1)*LargeurCell[indexTCO];
         y1:=(y-1)*hauteurCell[indexTCO];
@@ -8084,10 +8097,7 @@ end;
 procedure grise_ligne_tco(indexTCO : integer);
 var x : integer;
 begin
-  for x:=1 to NbreCellX[indexTCO] do
-  begin
-    Affiche_Cellule(indexTCO,x,YClicCell[indexTCO]);
-  end;
+  for x:=1 to NbreCellX[indexTCO] do Affiche_Cellule(indexTCO,x,YClicCell[indexTCO]);
 end;
 
 procedure TFormTCO.FormCreate(Sender: TObject);
@@ -8099,6 +8109,7 @@ begin
   auto_tcurs:=true;
   TCO_modifie:=false;
   rangUndo:=1;
+  epaisseur_voies:=5;
   XclicCell[indexTCOCreate]:=1;
   YclicCell[indexTCOCreate]:=1;
   xCoupe:=0;yCoupe:=0;
@@ -9254,7 +9265,6 @@ begin
 
     //Panel1.top:=scrollBox.top+ScrollBox.height;
 
-
     FormInit[indexTCO]:=true;
   end;
   if indexTCO=NbreTCO then TCOActive:=true;
@@ -9650,7 +9660,6 @@ begin
     case Key of
      VK_right : if x<NbreCellX[indexTCO] then
                 begin
-                  Affiche('droit sans shift',clred);
                   inc(XClicCell[indexTCO]);
                   d:=(xClicCell[indexTCO]+1)*LargeurCell[indexTCO];
                   s:=scrollBox.HorzScrollBar.Position;
@@ -11443,7 +11452,7 @@ begin
   aiguillage[Index_Aig(117)].position:=const_devie;
 
   //debugTco:=true;
-  zone_tco(1,550,551,1);
+  zone_tco(1,518,514,1);
  //   zone_tco(518,515,1);
 
   //zone_tco(522,514,1);

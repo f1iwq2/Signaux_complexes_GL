@@ -186,6 +186,12 @@ version 8.0  : Gestion des voies chevauchantes (ponts) et des buttoirs dans le T
 version 8.1  : Gestion d'un splitter sur l'affichage principal pour séparer l'écran à la demande.
                Possibilité de sauvegarder les paramètres de la fenêtre principale.
                Améliorations diverses.
+version 8.2  : Optimisation de la rapidité de traitement lors des recherches d'index.
+               Epaisseur des voies des TCOs paramétrable.
+               Possibilité d'envoyer des commandes sur un port COM/USB sur évènement 
+               actionneur/détecteur/aiguillage.
+
+
 
           
 

@@ -124,7 +124,6 @@ end;
 
 procedure TFormAig.ButtonDroit2Click(Sender: TObject);
 var s : string;
-    index : integer;
 begin
   efface_entoure(indexTCOCOurant);
   SelectionAffichee[indexTCOcourant]:=false;

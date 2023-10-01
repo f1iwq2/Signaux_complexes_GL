@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 13/9 11h
+// 30/9 22h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -8,6 +8,7 @@ Unit UnitPrinc;
   sinon une exception surgira au moment de l'ouverture du com
   Dans projet/option/fiches : fiches disponibles : formtco uniquement
  ********************************************
+ pour tmscomm : impossible de générer une instance dynamiquement (avec CreateOleObject) à cause de la licence
  Attention si le répertoire d'install n'est pas autorisé, windows10-11 va sauver les fichiers dans
  C:\Users\moi\AppData\Local\VirtualStore\Program Files (x86)\Signaux_complexes
  il faut autoriser l'utilisateur: Utilisateurs (nom\utilisateurs)
@@ -52,7 +53,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem , registry,
-  Buttons, NB30;
+  Buttons, NB30 ;
 
 type
   TFormPrinc = class(TForm)
@@ -102,7 +103,6 @@ type
     OuvrirunfichiertramesCDM1: TMenuItem;
     LabelEtat: TLabel;
     Affichefentredebug1: TMenuItem;
-    StaticText: TStaticText;
     PopupMenuFenRich: TPopupMenu;
     Copier1: TMenuItem;
     Etatdessignaux1: TMenuItem;
@@ -209,8 +209,12 @@ type
     Affichagenormal1: TMenuItem;
     N14: TMenuItem;
     Sauvegarderla1: TMenuItem;
+    ButtonIndex: TButton;
+    MSCommCde1: TMSComm;
+    MSCommCde2: TMSComm;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
+
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Timer1Timer(Sender: TObject);
     procedure ButtonDroitClick(Sender: TObject);
@@ -321,6 +325,12 @@ type
     procedure FormResize(Sender: TObject);
     procedure Affichagenormal1Click(Sender: TObject);
     procedure Sauvegarderla1Click(Sender: TObject);
+    procedure ButtonIndexClick(Sender: TObject);
+    procedure StatusBar1DrawPanel(StatusBar: TStatusBar;
+      Panel: TStatusPanel; const Rect: TRect);
+    procedure MSCommCde1Comm(Sender: TObject);
+    procedure MSCommCde2Comm(Sender: TObject);
+//    procedure MSCommCdeComm(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -350,6 +360,7 @@ NbreMaxiAiguillages=200;
 NbreMaxiSignaux=200;
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
 LargImg=50;HtImg=91;  // Dimensions image des feux
+MaxComUSBCde=2;       // Nombre maxi de périphériques USB commande
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
 const_devie=1;        // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;   // positions aiguillages transmises par cdm
@@ -444,6 +455,7 @@ Taiguillage = record
 
                  // si modifié en mode config
                  modifie : boolean ;
+                 NumBranche,IndexBranche : integer;  // index dans les branches
               end;
 
 TSignal = record
@@ -511,7 +523,7 @@ var
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
-  LargeurF,HauteurF,OffsetXF,OffsetYF,etatF,PosSplitter : integer;
+  LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -535,22 +547,27 @@ var
   Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
   detecteur : array[0..NbMemZone] of  // détecteurs indexés par l'adresse
   record
-    etat : boolean;        // état 0/1 du déecteur
-    train : string;        // nom du train ayant enclenché le détecteur (CDM - pas fiable)
-    AdrTrain : integer;    // adresse du train "train"
-    tempo0   : integer;    // tempo de retombée à 0 du détecteur (filtrage)
-    IndexTrain : integer;  // index du train
+    etat : boolean;          // état 0/1 du déecteur
+    train : string;          // nom du train ayant enclenché le détecteur (CDM - pas fiable)
+    AdrTrain : integer;      // adresse du train "train"
+    tempo0   : integer;      // tempo de retombée à 0 du détecteur (filtrage)
+    IndexTrain : integer;    // index du train
+    NumBranche,IndexBranche : integer; // ou se trouve le détecteur dans les branches
   end;
 
   Ecran : array[1..10] of record
            x0,y0,larg,haut : integer;
            end;
 
+  Tablo_com_cde : array[1..10] of record
+                   portOuvert: boolean;
+                   NumPort: integer;
+                   tamponRx : string;
+                   end;
 
   TypeGen : TEquipement;
 
   Adresse_detecteur : array[0..NbMaxDet] of integer; // adresses des détecteurs par index
-
 
   // Historique des zones d'occupation par train
 
@@ -572,6 +589,8 @@ var
     etat : integer ; // état du détecteur de l'aiguillage ou de l'actionneur
     reaffecte : integer ;   // =1 réaffecté au bon train dans le cas de 2 détecteurs contigus qui ne s'enchainent pas bien =2 réaffecté par changement aiguillage
   end;
+
+  Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
   croisement : array[1..20] of
@@ -595,13 +614,17 @@ var
 
   Tablo_actionneur : array[0..Max_actionneurs] of
   record
-    loco,act,son: boolean;     // destinataire loco acessoire ou son
+    loco,act,son,cde: boolean;     // destinataire loco acessoire ou son
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
-    etat,fonction,tempo,TempoCourante,
+    etat,
+    fonction,    // fonction F de train ou COM
+    tempo,TempoCourante,
     accessoire,sortie,
     typdeclenche  : integer;  // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
     Raz : boolean;
-    FichierSon,trainDecl,TrainDest,TrainCourant : string;
+    FichierSon,trainDecl,
+    TrainDest,    // train destinataire ou Commande
+    TrainCourant : string;
   end;
 
   decodeur_pers : array[1..NbreMaxiDecPers] of
@@ -711,13 +734,13 @@ var
 // utilisation des procédures et fonctions dans les autres unités
 function Index_Signal(adresse : integer) : integer;
 function Index_Aig(adresse : integer) : integer;
-procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
-procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
-procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
+procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
+procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
+procedure dessine_signal20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
 procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,N : integer);
 procedure Maj_Etat_Signal(adresse,aspect : integer);
 procedure Maj_Etat_Signal_Belge(adresse,aspect : integer);
@@ -725,9 +748,11 @@ procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
 procedure connecte_USB;
+function connecte_port_usb_cde(index : integer) : boolean;
+procedure deconnecte_usb_cde(index : integer);
 procedure deconnecte_usb;
 function IsWow64Process: Boolean;
-procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
+procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
 procedure Pilote_acc0_X(adresse : integer;octet : byte);
 Function pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire) : boolean;
 function etat_signal_suivant(Adresse,rang : integer;var AdrSignalsuivant : integer) : integer;
@@ -801,7 +826,7 @@ procedure Tformprinc.DoHint(Sender : Tobject);
 var s: string;
 begin
   s:=Application.Hint;
-  StatusBar1.Simpletext:=s;
+  StatusBar1.Panels[0].text:=s;
 end;
 
 // fonctions sur les bits
@@ -896,7 +921,8 @@ function chaine_signal(adresse : word) : string;
 var a,i,aspect,etat,combine,nation : integer;
     s : string;
 begin
-  i:=Index_Signal(adresse);
+  //i:=Index_Signal(adresse);
+  i:=index_accessoire[adresse];
   etat:=feux[i].EtatSignal  ;
   nation:=1;
   a:=feux[i].aspect;
@@ -966,7 +992,7 @@ end;
 // frX, frY : facteurs de réduction (pour agrandissement)
 // EtatSignal : état du signal
 // orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite
-procedure dessine_feu2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -1012,7 +1038,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_feu3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage,code,combine,AncCode,AncCombine : integer;
     ech : real;
@@ -1076,7 +1102,7 @@ end;
 
 // dessine les feux sur une cible à 4 feux
 // orientation=1 vertical
-procedure dessine_feu4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -1136,7 +1162,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 5 feux
-procedure dessine_feu5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
     Temp,rayon,LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -1205,7 +1231,7 @@ end;
 
 
 // dessine les feux sur une cible à 7 feux
-procedure dessine_feu7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Temp,rayon,LgImage,HtImage,code,combine  : integer;
     ech : real;
@@ -1288,7 +1314,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 9 feux
-procedure dessine_feu9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
+procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : real;etatsignal : word;orientation : integer);
 var rayon,
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp,LgImage,HtImage,xt,yt,code,combine  : integer;
@@ -1471,7 +1497,7 @@ end;
 
 // dessine les feux sur une cible belge à 5 feux
 // cette image peut être inversée (contre voie)
-procedure dessine_feu20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
+procedure dessine_signal20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse,tailleChiffre : integer);
 var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Yrouge,largeur,
     index,Temp,rayon,LgImage,HtImage,code,combine,x1,y1,x2,y2,x3,y3,xChiffre,yChiffre,xfin,yfin,angle,
     AdrAig,IndexAig,vitesse,indexTCO : integer;
@@ -1506,7 +1532,8 @@ begin
   XChiffre:=14;Ychiffre:=76;
   Xfin:=26;yFin:=99;
 
-  index:=index_signal(adresse);
+  //index:=index_signal(adresse);
+  index:=index_accessoire[adresse];
   if feux[index].contrevoie then
   begin
     xvert:=largeur-xvert;
@@ -1875,7 +1902,7 @@ end;
 
 // renvoie l'index du signal dans le tableau feux[] en fonction de son adresse
 // si pas trouvé renvoie 0
-function Index_signal(adresse : integer) : integer;
+function Index_signal_V1(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
@@ -1884,12 +1911,18 @@ begin
     trouve:=feux[i].adresse=adresse;
     if not(trouve) then inc(i);
   until (trouve) or (i>NbreFeux);
-  if trouve then Index_Signal:=i else Index_Signal:=0 ;
+  if trouve then result:=i else result:=0 ;
+end;
+
+function index_signal(adresse : integer) : integer;
+begin
+  if adresse>MaxAcc then result:=0 else
+  result:=Index_Accessoire[adresse];
 end;
 
 // renvoie l'index de l'aiguillage dans le tableau aiguillages[] en fonction de son adresse
 // si pas trouvé renvoie 0
-function Index_Aig(adresse : integer) : integer;
+function Index_Aig_V1(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
@@ -1898,11 +1931,30 @@ begin
     trouve:=aiguillage[i].adresse=adresse;
     if not(trouve) then inc(i);
   until (trouve) or (i>MaxAiguillage);
-  if trouve then Index_Aig:=i else Index_Aig:=0 ;
+  if trouve then result:=i else result:=0 ;
+end;
+
+function Index_Aig(adresse : integer) : integer;
+begin
+  if adresse>MaxAcc then result:=0 else
+  result:=Index_Accessoire[adresse];
+end;
+
+function Index_com(NumPort : integer) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  result:=0;
+  i:=1;
+  repeat
+    trouve:=Tablo_com_cde[i].NumPort=NumPort;
+    if not(trouve) then inc(i);
+  until (trouve) or (i>10);
+  if trouve then result:=i;
 end;
 
 // dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
-procedure Dessine_feu_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
+procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
 var i,aspect : integer;
 begin
   i:=Index_Signal(adresse);
@@ -1911,13 +1963,13 @@ begin
     aspect:=feux[i].aspect ;
     case aspect of
      // feux de signalisation
-      2 : dessine_feu2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-      3 : dessine_feu3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,feux[i].AncienEtat,orientation);
-      4 : dessine_feu4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-      5 : dessine_feu5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-      7 : dessine_feu7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-      9 : dessine_feu9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-     20 : dessine_feu20(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,feux[i].adresse,10);
+      2 : dessine_signal2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      3 : dessine_signal3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,feux[i].AncienEtat,orientation);
+      4 : dessine_signal4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      5 : dessine_signal5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      7 : dessine_signal7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+      9 : dessine_signal9(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
+     20 : dessine_signal20(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,feux[i].adresse,10);
      // indicateurs de direction
      12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation,aspect-10);
     end;
@@ -2058,7 +2110,7 @@ begin
         feux[rang].EtatSignal:=feux[rang].EtatSignal+clignote_F;
       end;
     end;
-    dessine_feu_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
+    dessine_signal_mx(Feux[rang].Img.Canvas,0,0,1,1,feux[rang].adresse,1);
     //if feux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
   end;
 
@@ -2777,7 +2829,7 @@ begin
           end;
     end;
     feux[i].EtatSignal:=code;
-    Dessine_feu_mx(Feux[Index_Signal(adr)].Img.Canvas,0,0,1,1,adr,1);
+    Dessine_signal_mx(Feux[Index_Signal(adr)].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
 
@@ -4504,7 +4556,7 @@ begin
     feux[i].AncienEtat:=feux[i].EtatSignal;
 
     // allume les signaux du feu dans la fenêtre de droite
-    Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
+    Dessine_signal_mx(Feux[i].Img.Canvas,0,0,1,1,adr,1);
 
     // allume les signaux du feu dans le TCO
     if TCOACtive then
@@ -4538,7 +4590,7 @@ begin
          // réduction variable en fonction de la taille des cellules
          calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
          // décalage en X pour mettre la tete du feu alignée sur le bord droit de la cellule pour les feux tournés à 90G
-         Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
+         Dessine_signal_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
         end;
       end;
     end;
@@ -4697,15 +4749,17 @@ begin
   end;
 end;
 
-// trouve un élément dans les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
+// trouve un élément en balayant les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
-procedure trouve_element(el: integer; TypeEl : TEquipement; Offset : integer);
+// explore les branches
+procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset : integer);
 var i,adr,Branche : integer ;
     s : string;
     BT : TEquipement;
     sort : boolean;
 begin
   if debug=3 then formprinc.Caption:='Trouve_element '+IntToSTR(el);
+
   Branche:=Offset;
   branche_trouve:=0;
   IndexBranche_trouve:=0;
@@ -4729,6 +4783,49 @@ begin
              if NivDebug>=1 then AfficheDebug(s,clred);
        end;
   if debug=3 then formprinc.Caption:='';
+
+end;
+
+// trouve un élément dans les branches depuis les index.
+// Plus rapide que la procédure précédente. Renvoie  branche_trouve IndexBranche_trouve
+// el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
+// offset ne sert pas!!!
+// avec cet algorithme, un détecteur et un aiguillage ne peut se trouver qu'à un seul endroit.
+procedure trouve_element(el: integer; TypeEl : TEquipement; Offset : integer);
+var s : string;
+begin
+  if debug=3 then formprinc.Caption:='Trouve_element '+IntToSTR(el);
+
+  branche_trouve:=0;
+  IndexBranche_trouve:=0;
+
+  if typeEL=det then
+  begin
+    //Affiche('det ',clred);
+    branche_trouve:=detecteur[el].NumBranche;              // le détecteur det se trouve dans
+    indexBranche_trouve:=detecteur[el].IndexBranche;       // NumBranche et Indexbranche
+  end;
+
+  if typeEL=aig then
+  begin
+    //Affiche('aig ',clred);
+    branche_trouve:=aiguillage[el].NumBranche;            // l'aiguillage aig se trouve dans
+    indexBranche_trouve:=aiguillage[el].IndexBranche;     // NumBranche et Indexbranche
+  end;
+
+  //Affiche_Suivi(intToSTR(el),clred);
+
+
+  if IndexBranche_trouve=0 then
+  begin
+    s:='Erreur 175 : élément '+intToSTR(el)+' ';
+    s:=s+BTypeToChaine(TypeEl);
+    s:=s+' non trouvé';Affiche(s,clred);
+    branche_trouve:=0; IndexBranche_trouve:=0;
+    if NivDebug>=1 then AfficheDebug(s,clred);
+  end;
+  if debug=3 then formprinc.Caption:='';
+
 end;
 
 // renvoie l'élément suivant des deux éléments dans le sens (prec,typeElprec) -> (actuel,typeElActuel) quels qu'ils soient mais contigus
@@ -4839,11 +4936,13 @@ begin
     if (btypePrec=aig) then // car btype dans les branches vaut det, aig, buttoir mais jamais tjd ni tjs
     begin
       // changer l'adresse du précédent par l'autre adresse de la TJD/S
-      index:=index_aig(prec);
+      // V1 index:=index_aig(prec);
+      index:=index_accessoire[prec];
       md:=aiguillage[index].modele;
       if (md=tjs) or (md=tjd) then
       begin
-        prec:=Aiguillage[index_aig(prec)].Ddroit;
+        //V1 prec:=Aiguillage[index_aig(prec)].Ddroit;
+        prec:=Aiguillage[index_accessoire[prec]].Ddroit;
         if NivDebug=3 then AfficheDebug('Le précedent est une TJD/S - substitution du precédent par la pointe de la TJD qui est '+intToSTR(prec),clYellow);
       end;
     end;
@@ -4859,11 +4958,12 @@ begin
       exit;
     end;
     goto recommence;
-  end;                                                                 
+  end;
 
   if (Bt=aig) or (Bt=buttoir) then  // aiguillage ou buttoir
   begin
-    index:=index_aig(adr);
+    //V1 index:=index_aig(adr);
+    index:=index_accessoire[adr];
     if index=0 then
     begin
       if bt=aig then
@@ -4906,6 +5006,7 @@ begin
           begin
             if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
             trouve_element(adr,typeEl,1); // branche_trouve  IndexBranche_trouve
+            if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
             typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
           end
           else
@@ -4917,7 +5018,7 @@ begin
         if aiguillage[index].position=const_devie then
         begin
           if NivDebug=3 then AfficheDebug('133 - aiguillage '+intToSTR(Adr)+' Pris en pointe dévié',clyellow);
-          if (alg and 8)=8 then // on demande d'arreter si l'aiguillage pris en pointe est dévié
+          if (alg and 8)=8 then // on demande d'arreter sur un aiguillage pris en pointe est dévié
           begin
             typeGen:=rien;
             AdrDevie:=Adr;
@@ -4937,6 +5038,7 @@ begin
           begin
             if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig)
             trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+            if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
             typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
           end
             else typeGen:=buttoir;
@@ -4961,7 +5063,8 @@ begin
           if aiguillage[index].position=const_droit then
           begin
             // si TJD (modele=2) sur le précédent, alors substituer avec la 2eme adresse de la TJD
-            md:=aiguillage[index_aig(prec)].modele;
+            // V1 md:=aiguillage[index_aig(prec)].modele;
+            md:=aiguillage[index_accessoire[prec]].modele;
             if (md=tjd) or (md=tjs) then prec:=aiguillage[index_aig(prec)].DDroit;
             if prec<>aiguillage[index_aig(Adr)].Adroit then     //Adroit
             begin
@@ -4979,7 +5082,7 @@ begin
             // si TJD (modele=2) sur le précédent, alors substituer avec la 2eme adresse de la TJD
             md:=aiguillage[index_aig(prec)].modele;
             if (md=tjd) or (md=tjs) then prec:=aiguillage[index_aig(prec)].Ddevie;
-            if prec<>aiguillage[index].Adevie then 
+            if prec<>aiguillage[index].Adevie then
             begin
               if NivDebug=3 then AfficheDebug('135.3 Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
               suivant_alg3:=9998;
@@ -5008,9 +5111,10 @@ begin
           //  Affiche('trouvé '+intToSTR(adr),clyellow);
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
           trouve_element(adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+          if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
           typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].Btype;
         end
-          else TypeGen:=Buttoir;  
+          else TypeGen:=Buttoir;
         suivant_alg3:=adr;
         exit;
       end;
@@ -5037,7 +5141,9 @@ begin
 
       // récupérer les élements de la TJD/S
       AdrTjdP:=aiguillage[index].Ddroit; // 2eme adresse de la TJD/S
-      index2:=index_aig(AdrTjdP);
+      // V1 index2:=index_aig(AdrTjdP);
+      index2:=index_accessoire[AdrTjdP];
+
       tjdC:=aiguillage[index].modele=tjd;
       tjsC:=aiguillage[index].modele=tjs;
       tjsc1:=aiguillage[index].tjsint;   // adresses de la courbe de la TJS
@@ -5088,7 +5194,7 @@ begin
       if (NetatTJD=2) and tjdC then
       begin
         if aiguillage[index].position=const_droit then
-        begin                      
+        begin
           // d'où vient t-on de la tjd
           if BtypePrec=Aig then
           begin
@@ -5318,7 +5424,7 @@ begin
         if (aiguillage[index].position=const_droit)
           and (aiguillage[index2].position=const_devie) and tjdC then
         begin
-          // d'où vient ton sur la tjd
+          // d'où vient t-on sur la tjd
           if BtypePrec=Aig then
           begin
             if ( ((aiguillage[index].AdevieB)='S') and (aiguillage[index_aig(prec)].position=const_devie) ) or
@@ -5520,6 +5626,7 @@ begin
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;  //TypeEL=(1=détécteur 2=aig
           if adr=0 then TypeEl:=buttoir;
           trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+          if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
           typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;  //??
           suivant_alg3:=adr;
           exit;
@@ -5532,6 +5639,7 @@ begin
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;
           if adr=0 then TypeEl:=buttoir;
           trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+          if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
           typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
           suivant_alg3:=adr;exit;
         end;
@@ -5542,6 +5650,7 @@ begin
           Adr:=aiguillage[index].Adevie2;
           if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;
           trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+          if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
           typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
           suivant_alg3:=adr;
           exit;
@@ -5603,6 +5712,7 @@ begin
         Adr:=aiguillage[index].Apointe;
         if (A='Z') or (a=#0) then TypeEl:=det else TypeEL:=aig;
         trouve_element(Adr,TypeEl,1); // branche_trouve  IndexBranche_trouve
+        if branche_trouve=0 then begin suivant_alg3:=9999;exit;end;
         typeGen:=BrancheN[branche_trouve,IndexBranche_trouve].BType;
         suivant_alg3:=Adr;
         exit;
@@ -6431,7 +6541,7 @@ end;
 
 
 // renvoie vrai si les aiguillages déclarés dans la définition du signal sont mal positionnés
-// (conditions suppplémentares)
+// (conditions supplémentaires)
 function cond_carre(adresse : integer) : boolean;
 var i,l,k,NCondCarre,adrAig,index : integer;
     resultatET,resultatOU: boolean;
@@ -7092,7 +7202,7 @@ begin
   begin
     dec(i,2);   // i correspond au nombre de feux à allumer
     pilote_direction(Adr,i);
-  end;                 
+  end;
 
 end;
 
@@ -7150,9 +7260,9 @@ begin
       TypeActuel:=feux[i].Btype_suiv4;
     end;  // détecteur sur le signal courant
 
-    if prec=0 then
+    if (actuel=0) or (actuel>NbMemZone) or (prec=0) or (prec>NbMemZone) then
     begin
-      // sortie si aucun détecteur déclaré sur le feu
+      // sortie si aucun détecteur déclaré sur le signal
       test_memoire_zones:=Pres_train;
       if debug=3 then formprinc.Caption:='';
       exit;
@@ -7513,7 +7623,13 @@ begin
       Typeprec:=feux[i].Btype_suiv4;
     end;  // détecteur sur le signal courant
 
-    pres_Train:=Detecteur[actuel].etat and detect;
+    if actuel>NbMemZone then
+    begin
+      Affiche('Erreur 179 : détecteur '+intToSTR(actuel)+' trop élevé sur signal '+intToSTR(adresse),clred);
+      result:=false;
+      exit;
+    end;
+    pres_Train:=Detecteur[actuel].etat and detect;   
     if pres_train and (nivDebug=3) then AfficheDebug('Présence train sur dét '+intToSTR(actuel),clyellow);
     if pres_train and (AdrTr=0) then AdrTr:=Detecteur[actuel].AdrTrain;
 
@@ -9980,7 +10096,7 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
+var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,index : integer;
     s,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
@@ -10070,6 +10186,25 @@ begin
       Affiche(st+' son '+Tablo_actionneur[i].FichierSon,clyellow);
       PlaySound(pchar(Tablo_actionneur[i].FichierSon),0,SND_ASYNC);
     end;
+
+    // commande COM/USB
+    if adresseOK and (Tablo_actionneur[i].cde) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    begin
+      v:=Tablo_actionneur[i].fonction; // numéro du port com (ex12)
+      index:=index_COM(v);
+      if index=0 then exit;
+      if Tablo_com_cde[index].PortOuvert then
+      begin
+        trainDest:=Tablo_actionneur[i].trainDest;
+        if avecCR=1 then trainDest:=TrainDest+#13;
+        if index=1 then Formprinc.MSCommCde1.Output:=TrainDest;
+        if index=2 then Formprinc.MSCommCde2.Output:=TrainDest;
+        Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clyellow);
+      end
+        else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
+    end;
+
+
   end;
 
   // dans le tableau des PN
@@ -10153,7 +10288,7 @@ Procedure affiche_memoire;
 var s: string;
 begin
   s:='Mémoire évènements '+IntToSTR(100*N_Event_tick div Max_Event_det_tick)+' %';
-  Formprinc.statictext.caption:=s;
+  FormPrinc.StatusBar1.Panels[1].text:=s;
 end;
 
 procedure evalue;
@@ -11238,6 +11373,7 @@ begin
     end;
     Affiche('CDM rail déconnecté',Cyan);
     AfficheDebug('CDM rail déconnecté',Cyan);
+    Formprinc.StatusBar1.Panels[2].text:='CDM déconnecté';
     filtrageDet0:=SauvefiltrageDet0;
   end;
 end;
@@ -11340,12 +11476,78 @@ begin
     end
 end;
 
-// connecte un port usb. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
+
+// connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
+function connecte_port_usb_cde(index : integer) : boolean;
+var i,j,numport : integer;
+    trouve : boolean;
+    s,sc : string;
+    com : TMSComm;
+begin
+  if (index<0) or (index>10) then
+  begin
+    affiche('Erreur index portCom cde acc',clred);
+    exit;
+  end;
+
+  numport:=tablo_com_cde[index].NumPort;
+  if (numport<1) or (numport>255) then
+  begin
+    affiche('Erreur portCom cde acc',clred);
+    exit;
+  end;
+  trouve:=false;
+
+  case index of
+  1 : com:=formprinc.MSCommCde1;
+  2 : com:=formprinc.MSCommCde2;
+  end;
+
+  With com do
+    begin
+
+      if debug=1 then Affiche('Test port com cde'+intToSTR(port),clLime);
+      i:=pos(':',portComcde);
+      j:=pos(',',PortComcde);
+      j:=posEx(',',PortComcde,j+1);
+      j:=posEx(',',PortComcde,j+1);
+      //j:=posEx(',',PortComcde,j+1);
+
+      sc:=copy(portCom,i+1,j-i-1);
+      Settings:=sc;   // vitesse,n,8,1
+      Handshaking:=0; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+      SThreshold:=1;
+      RThreshold:=1;
+      InputLen:=0;
+      CommPort:=numport;
+      DTREnable:=false; // évite de reset de l'arduino à la connexion
+      RTSEnable:=false; //pour la genli
+      InputMode:=comInputModeBinary;
+    end;
+
+  tablo_com_cde[index].PortOuvert:=true;
+  try
+     com.portopen:=true;
+  except
+    tablo_com_cde[index].PortOuvert:=false;
+  end;
+
+  if tablo_com_cde[index].PortOuvert then
+  begin
+   // portComCmd[index].MsComm.OnComm:=formprinc.Event_MsComm;
+
+    s:='COM'+intToSTR(numport)+':'+sc;
+    Formprinc.StatusBar1.Panels[3].Text:=s;
+  end;
+  result:=tablo_com_cde[index].PortOuvert;
+end;
+
+// connecte un port usb interface. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
 // le numéro de port
 function connecte_port_usb(port : integer) : integer;
 var i,j : integer;
     trouve : boolean;
-    s : string;
+    s,sc : string;
 begin
   result:=0;
   trouve:=false;
@@ -11359,8 +11561,8 @@ begin
       j:=posEx(',',PortCom,j+1);
       j:=posEx(',',PortCom,j+1);
 
-      s:=copy(portCom,i+1,j-i-1);
-      Settings:=s;   // vitesse,n,8,1
+      sc:=copy(portCom,i+1,j-i-1);
+      Settings:=sc;   // vitesse,n,8,1
       if prot_serie>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
         else Handshaking:=prot_serie;
       SThreshold:=1;
@@ -11384,7 +11586,10 @@ begin
 
   if portCommOuvert then
   begin
-    Affiche('Port COM'+intToSTR(port)+' ouvert',clLime);
+    s:='COM'+intToSTR(port)+' ouvert';
+    Affiche(s,clLime);
+    s:='COM'+intToSTR(port)+':'+sc;
+    Formprinc.StatusBar1.Panels[3].Text:=s;
     sleep(1000);
     trouve:=test_protocole;
     if not(trouve) then
@@ -11482,6 +11687,7 @@ begin
     if protocole=1 then s:=s+'XpressNet';
     if protocole=2 then s:=s+'DCC++';
     Affiche(s+' trouvée sur les ports COM de 1 à '+intToSTR(MaxPortCom),clOrange);
+    Formprinc.StatusBar1.Panels[3].Text:='';
   end
   else
   begin
@@ -11576,13 +11782,13 @@ begin
   MA:=Hi(GetAsyncKeyState(VK_MENU))>127;
   MS:=Hi(GetAsyncKeyState(VK_SHIFT))>127;
 
-  // Simulation des touches de contrôle 
+  // Simulation des touches de contrôle
   if Ctrl<>MC then keybd_event(VK_CONTROL,0,Byte(MC)*KEYEVENTF_KEYUP,0);
   if Alt<>MA then keybd_event(VK_MENU,0,Byte(MA)*KEYEVENTF_KEYUP,0);
   if Shift<>MS then keybd_event(VK_SHIFT,0,Byte(MS)*KEYEVENTF_KEYUP,0);
 
   // Appui sur les touches
-  keybd_event(VK,0,0,0);  
+  keybd_event(VK,0,0,0);
   keybd_event(VK,0,KEYEVENTF_KEYUP,0);
 
 //  keybd_event(MapVirtualKeyA(VK,0),0,0,0);
@@ -11597,7 +11803,7 @@ end;
 // conversion d'une chaine standard en chaîne VK (virtual key) pour envoyer des évènements clavier
 // 112=F1 .. 135=F20    136 à  143 rien    145 à 159 : spécifique ou non utilisé
 // $A0 .. $B0 : contrôles curseur
-// $BA : spécifique au pays 
+// $BA : spécifique au pays
 // $6A à $6F * + espace  - . /
 // BB à BE  + - .   attention la description diffère
 function convert_VK(LAY : string) : string;
@@ -12126,6 +12332,7 @@ begin
   formatY:=-1;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique + debug mise au point etc
+  ButtonIndex.Visible:=not(avecInit);
   roulage1.visible:=false;
   FenRich.MaxLength:=$7FFFFFF0;
 
@@ -12135,6 +12342,7 @@ begin
   Decodeur[5]:='Digikeijs 4018';Decodeur[6]:='Unisemaf Paco';Decodeur[7]:='Stéphane Ravaut';Decodeur[8]:='Arcomora';
   Decodeur[9]:='LS-DEC-NMBS';Decodeur[10]:='B-models';
 
+  portComcde:='COMX:115200,n,8,1';
   OsBits:=0;
   if IsWow64Process then 
   begin
@@ -12161,8 +12369,6 @@ begin
     VertScrollBar.Tracking:=true;
     VertScrollBar.Smooth:=false;
   end;
-
-
 
   ferme:=false;
   CDM_connecte:=false;
@@ -12192,6 +12398,13 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
+  // ouvre com commandes actionneurs, car on a lu les com dans la config
+  for i:=1 to NbreComCde do
+  begin
+    if connecte_port_usb_cde(i) then
+      Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs ouvert',clLime)
+    else Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs non ouvert',clOrange);
+  end;
 
   Menu_tco(NbreTCO);
   procetape('Lecture du TCO');
@@ -12248,14 +12461,26 @@ begin
   end;
 
   OrgMilieu:=formprinc.width div 2;
+  with statusbar1 do
+  begin
+    SimplePanel:=false;  // pour afficher plusieurs panels dans la Statusbar
+
+    Panels[0].Text:='';
+
+    Panels[1].Text:='';
+    Panels[2].Text:='';
+    Panels[3].Text:='';
+    Panels[4].Text:='';
+    //Panels[3].Style:=psOwnerDraw;  // pour déclencher l'évenement onDraw
+  end;
 
   with Panel2 do
     begin
       left:=5;
       //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
-      top:=formprinc.LabelTitre.Height+20;
+      top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
       width:=formprinc.width-30;
-      height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
+      height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-63;
       //height:=400;
       Anchors:=[akLeft,akTop,akRight,akBottom];
     end;
@@ -12267,7 +12492,7 @@ begin
     begin
       left:=5;
       Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
-      top:=formprinc.LabelTitre.Height+20;
+      top:=5;  // par rapport au panel
       width:=(OrgMilieu)-left-10;
       //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
       Anchors:=[akLeft,akTop,akRight,akBottom];
@@ -12319,13 +12544,6 @@ begin
     end;
   end;
 
-
-  // pour Rad studio------------------------
-  //FenRich.Height:=Height-150;
-  //ScrollBox1.Height:=Height-280;
-  StaticText.AutoSize:=true;
-  StaticText.Top:=panel2.Height+Panel2.Top+4;
-  //----------------------------------------
 
     if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
     begin
@@ -12564,6 +12782,10 @@ begin
     portCommOuvert:=false;
     MSCommUSBLenz.Portopen:=false;
   end;
+  for res:=1 to 10 do
+  begin
+    deconnecte_USB_cde(res);
+  end;
   ClientSocketCDM.close;
   ClientSocketInterface.close;
   timer1.Enabled:=false;
@@ -12653,7 +12875,7 @@ begin
         // signal belge
         if TestBit(a,clignote) or feux[i].contrevoie then
         begin
-          Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+          Dessine_signal_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
         end;
       end
       else
@@ -12663,7 +12885,7 @@ begin
            TestBit(a,rappel_60) or testBit(a,semaphore_cli) or
            testBit(a,vert_cli)  or testbit(a,blanc_cli) then
            begin
-             Dessine_feu_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
+             Dessine_signal_mx(Feux[i].Img.Canvas,0,0,1,1,adresse,1);
             //Affiche('Clignote feu '+IntToSTR(adresse),clyellow);
            end;
       end;
@@ -12674,7 +12896,7 @@ begin
     begin
       for IndexTCO:=1 to NbreTCO do
       begin
-        // parcourir les feux du TCO
+        // parcourir les signaux du TCO
         for y:=1 to NbreCellY[indexTCO] do
         for x:=1 to NbreCellX[indexTCO] do
         begin
@@ -12713,14 +12935,14 @@ begin
               Orientation:=TCO[indexTCO,x,y].FeuOriente;
               // réduction variable en fonction de la taille des cellules
               calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
-              Dessine_feu_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indexTCO,x,y].y,frx,fry,adresse,orientation);
+              Dessine_signal_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indexTCO,x,y].y,frx,fry,adresse,orientation);
             end;
           end;
         end;
       end;
     end;
 
-    // fenêtre de pilotage manuel du feu -------------------
+    // fenêtre de pilotage manuel du signal -------------------
     if AdrPilote<>0 then
     begin
       a:=feux[0].EtatSignal;
@@ -12731,7 +12953,7 @@ begin
            testBit(a,vert_cli) or testbit(a,blanc_cli) then
            begin
              //if clignotant then affiche('1',clyellow) else affiche('0',clwhite);
-             Dessine_feu_pilote;  // dessiner le feu en fonction du bit "clignotant"
+             Dessine_feu_pilote;  // dessiner le signal en fonction du bit "clignotant"
            end;
       end
       else
@@ -12831,7 +13053,7 @@ begin
       begin
         s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
         Event_Detecteur(Tablo_simule[i_simule].adresse, Tablo_simule[i_simule].etat=1,'');  // créer évt détecteur
-        StaticText.caption:=s;
+        StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
       end;
 
@@ -12840,7 +13062,7 @@ begin
       begin
         s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
         Event_Aig(Tablo_simule[i_simule].Adresse,Tablo_simule[i_simule].etat);  // créer évt aiguillage
-        StaticText.caption:=s;
+        StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
       end;
 
@@ -12852,7 +13074,7 @@ begin
         MsgSim:=false;
         filtrageDet0:=SauvefiltrageDet0;
         Affiche('Fin de simulation',Cyan);
-        StaticText.caption:='';
+        StatusBar1.Panels[1].text:='';
       end;
     end;
     inc(intervalle_courant);
@@ -12944,6 +13166,7 @@ begin
      affiche(s,clOrange);
    end;
    parSocketLenz:=false;
+   Formprinc.StatusBar1.Panels[4].Text:='';
    ErrorCode:=0;
 end;
 
@@ -13081,6 +13304,7 @@ begin
     portCommOuvert:=false;
     Formprinc.MSCommUSBLenz.Portopen:=false;
     Affiche('Port USB déconnecté',clyellow);
+    Formprinc.StatusBar1.Panels[3].Text:='';
   end;
 
   portCommOuvert:=false;
@@ -13091,6 +13315,18 @@ begin
     DeConnecterUSB.enabled:=false;
     ConnecterCDMRail.enabled:=true;
     DeConnecterCDMRail.enabled:=false;
+  end;
+end;
+
+procedure deconnecte_usb_cde(index : integer);
+begin
+  if tablo_com_cde[index].PortOuvert then
+  begin
+    tablo_com_cde[index].PortOuvert:=false;
+    if index=1 then Formprinc.MscommCde1.Portopen:=false;
+    if index=2 then Formprinc.MscommCde2.Portopen:=false;
+    if debug>0 then Affiche('Port COM'+intToSTR(tablo_com_cde[index].NumPort)+' actionneurs déconnecté',clyellow);
+    Formprinc.StatusBar1.Panels[3].Text:='';
   end;
 end;
 
@@ -13261,6 +13497,7 @@ begin
   ButtonLitCV.Enabled:=true;
   LireunfichierdeCV1.enabled:=true;
   LabelTitre.caption:=titre+' Interface connectée par Ethernet';
+  Formprinc.StatusBar1.Panels[4].Text:=ClientSocketInterface.Address;
   etat_init_interface:=11; // socket connecté
   trouve:=test_protocole; // appelle l'état des détécteurs
 
@@ -13304,6 +13541,7 @@ begin
   s:='Socket CDM rail connecté';
   LabelTitre.caption:=titre+' '+s;
   Affiche(s,clYellow);
+  StatusBar1.Panels[2].text:='CDM connecté';
   CDM_connecte:=True;
   MenuConnecterUSB.enabled:=false;
   DeConnecterUSB.enabled:=false;
@@ -14151,6 +14389,7 @@ procedure TFormPrinc.ClientSocketInterfaceDisconnect(Sender: TObject;
   Socket: TCustomWinSocket);
 begin
   parSocketLenz:=False;
+  Formprinc.StatusBar1.Panels[4].Text:='';
 end;
 
 procedure TFormPrinc.FichierSimuClick(Sender: TObject);
@@ -15826,7 +16065,6 @@ end;
 
 
 procedure TFormPrinc.NouveauTCO1Click(Sender: TObject);
-var i : integer;
 begin
   if NbreTCO>=10 then
   begin
@@ -15843,6 +16081,7 @@ begin
      formTCO[nbreTCO]:=TformTCO.Create(self);
   except
      Affiche('Erreur 6800 Impossible de créer la fenêtre du TCO',clred);
+     dec(NbreTCO);
      exit;
   end;
 
@@ -15866,14 +16105,12 @@ begin
   s:='Voulez-vous supprimer le TCO '+intToSTR(TcoS)+' ('+NomFichierTCO[tcoS]+')';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
-  SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer
+  SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer sinon il peut tenter d'allumer un feu sur le TCO qu'on supprime->violation
   NbreTCO:=0;
   TCOActive:=false;
 
   Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
-  //FormTCO[tcos].close;
-  FormTCO[tcos].Release; //  pas free FreeInstance;    // annuler le pointeur et raz les mémoires de la form
-  FormTCO[tcos].close;
+  FormTCO[tcos].Release;   // annuler le pointeur et raz les mémoires de la form
 
   for i:=tCos to SauvNbreTCO-1 do
   begin
@@ -15882,6 +16119,7 @@ begin
     FormTCO[i]:=FormTCO[i+1];
     FormTCO[i].Name:='TCO'+intToSTR(i);  // renommer le TCO
     TCO[i]:=Tco[i+1]; // déplacer les données
+    // et toutes les variables du tco
     PcanvasTCO[i]:=PcanvasTCO[i+1];
     PBitMapTCO[i]:=PBitMapTCO[i+1];
     PImageTCO[i]:=PImageTCO[i+1];
@@ -15993,13 +16231,85 @@ begin
   HauteurF:=Height;
   OffsetXF:=left;
   OffsetYF:=top;
-  etatF:=0;
   PosSplitter:=splitterV.Left;
   AffMemoFenetre:=1;
   sauve_config;
 end;
 
 
+procedure TFormPrinc.ButtonIndexClick(Sender: TObject);
+var i,v : integer;
+begin
+  for i:=1 to MaxAcc do
+  begin
+    v:=index_accessoire[i];
+    if v<>0 then affiche('adresse='+intToSTR(i)+' index = '+intToSTR(v),clLime);
+  end;
+
+end;
+
+procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
+var
+  RectForText: TRect;
+begin
+  if (Panel = StatusBar.Panels[3]) then
+  begin
+    StatusBar1.Canvas.Font.Color := clwhite;
+    StatusBar1.Canvas.Brush.color:=clGreen;
+    RectForText:=Rect;
+    StatusBar1.Canvas.FillRect(RectForText);
+    DrawText(StatusBar1.Canvas.Handle, PChar(Panel.Text), -1, RectForText,
+      DT_SINGLELINE or DT_VCENTER or DT_LEFT);
+  end;
+end;
+
+procedure TFormPrinc.MSCommCde1Comm(Sender: TObject);
+var recu : string;
+   tablo : array of byte;  // tableau rx usb
+   c : char;
+   i : integer;
+begin
+  if MSCommCde1.commEvent=ComEvReceive then
+  begin
+    tablo:=MSCommCde1.Input;
+    recu:='';
+    for i:=0 to length(tablo)-1 do
+    begin
+      c:=char(tablo[i]);
+      //Affiche(intToSTR(ord(c)),clorange);
+      if c=#13 then
+      begin
+        affiche(tablo_com_cde[1].tamponrx,clyellow);
+        tablo_com_cde[1].tamponrx:='';
+      end;
+      if (c>#31) and (c<#128) then tablo_com_cde[1].tamponrx:=tablo_com_cde[1].tamponrx+c;;
+    end;
+  end;
+end;
+
+procedure TFormPrinc.MSCommCde2Comm(Sender: TObject);
+var recu : string;
+   tablo : array of byte;  // tableau rx usb
+   c : char;
+   i : integer;
+begin
+  if MSCommCde2.commEvent=ComEvReceive then
+  begin
+    tablo:=MSCommCde2.Input;
+    recu:='';
+    for i:=0 to length(tablo)-1 do
+    begin
+      c:=char(tablo[i]);
+      //Affiche(intToSTR(ord(c)),clorange);
+      if c=#13 then
+      begin
+        affiche(tablo_com_cde[2].tamponrx,clyellow);
+        tablo_com_cde[2].tamponrx:='';
+      end;
+      if (c>#31) and (c<#128) then tablo_com_cde[2].tamponrx:=tablo_com_cde[2].tamponrx+c;;
+    end;
+  end;
+end;
 
 end.
 

@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls , UnitTCO, ExtCtrls, Menus,
-  Buttons, Grids;
+  Buttons, Grids,
+  ComCtrls;
 
 type
   TFormConfigTCO = class(TForm)
@@ -55,6 +56,9 @@ type
     CheckDessineGrille: TCheckBox;
     EditEcran: TEdit;
     Label16: TLabel;
+    TrackBarEpaisseur: TTrackBar;
+    Label17: TLabel;
+    Label18: TLabel;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -75,6 +79,7 @@ type
     procedure RadioButtonLignesClick(Sender: TObject);
     procedure RadioButtonCourbesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure TrackBarEpaisseurChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -298,6 +303,7 @@ begin
   RadioButtonLignes.checked:=graphisme=1;
   checkDessineGrille.Checked:=AvecGrille[IndexTCOCourant];
   checkCouleur.Checked:=ModeCouleurCanton=1;
+  trackbarEpaisseur.Position:=Epaisseur_voies;
   labelMaxX.caption:='Max='+intToSTR(MaxCellX);
   labelMaxY.caption:='Max='+intToSTR(MaxCellY);
   Label15.caption:='Nbre de TCOs : '+intToSTR(NbreTCO);
@@ -477,6 +483,8 @@ begin
       graphisme:=2;
     end;
 
+    epaisseur_voies:=trackBarEpaisseur.Position;
+
     val(editEcran.Text,i,erreur);
     if i<1 then i:=1;
     if i<>EcranTCO[indexTCOcourant] then tco_modifie:=true;
@@ -526,6 +534,8 @@ end;
 procedure TFormConfigTCO.CheckDessineGrilleClick(Sender: TObject);
 begin
   if not(clicConf) then TCO_modifie:=true;
+  AvecGrille[IndexTCOcourant]:=checkDessineGrille.Checked;
+  affiche_tco(indexTCOCourant);
 end;
 
 procedure TFormConfigTCO.CheckCouleurClick(Sender: TObject);
@@ -548,7 +558,6 @@ end;
 procedure TFormConfigTCO.FormCreate(Sender: TObject);
 var i : integer;
 begin
-
   for i := 0 to stringGridTCO.RowCount - 1 do
   with stringGridTCO do
   begin
@@ -565,12 +574,18 @@ begin
     Cells[0,0]:='Num';
     Cells[1,0]:='Nom fichier';
     Cells[2,0]:='X';
-
   end;
-
 end;
 
-
+procedure TFormConfigTCO.TrackBarEpaisseurChange(Sender: TObject);
+var i : integer;
+begin
+  i:=trackbarEpaisseur.Position;
+  Epaisseur_voies:=i;
+  calcul_cellules(indexTCOCourant);
+  affiche_tco(indexTCOcourant);
+  TrackBarEpaisseur.Hint:='Epaisseur = '+IntToSTR(i);
+end;
 
 
 

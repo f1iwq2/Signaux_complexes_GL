@@ -3329,10 +3329,19 @@ procedure Compilation;
 var s : string;
     nombre,position : integer;
 begin
-  s:=lowercase(Formprinc.fenRich.Lines[0]);
-  if pos('module',s)=0 then
+  nombre:=Formprinc.FenRich.Lines.Count;
+  if nombre>0 then
   begin
-    Affiche('Pas de module détecté',clred);
+    s:=lowercase(Formprinc.fenRich.Lines[0]);
+    if pos('module',s)=0 then
+    begin
+      Affiche('Pas de module CDM détecté',clred);
+      exit;
+    end;
+  end
+  else
+  begin
+    Affiche('Tampon vide',clred);
     exit;
   end;
 
@@ -3346,7 +3355,7 @@ begin
   nligne:=0; nSeg:=0;
   DernAdrAig:=0;
   xminiCDM:=0;yMiniCDM:=0;xmaxiCDM:=0;yMaxiCDM:=0;
-  nombre:=Formprinc.FenRich.Lines.Count;
+
   NomModuleCDM:=AnsiLowerCase(Lignes[0]+'.cdm');
   formAnalyseCDM.Caption:='Squelette du réseau '+NomModuleCDM;
   formAnalyseCDM.Show;

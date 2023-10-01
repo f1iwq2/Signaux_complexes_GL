@@ -925,8 +925,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonRedessineClick
     end
     object Button1: TButton
-      Left = 860
-      Top = 96
+      Left = 900
+      Top = 8
       Width = 57
       Height = 25
       Anchors = [akTop, akRight]
@@ -935,8 +935,8 @@ object FormTCO: TFormTCO
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 860
-      Top = 64
+      Left = 844
+      Top = 8
       Width = 57
       Height = 25
       Anchors = [akTop, akRight]
@@ -956,8 +956,8 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 740
-      Top = 136
+      Left = 644
+      Top = 152
       Width = 113
       Height = 25
       Anchors = [akTop, akRight]
@@ -1172,8 +1172,8 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 852
-      Top = 136
+      Left = 764
+      Top = 152
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
@@ -1210,8 +1210,8 @@ object FormTCO: TFormTCO
     end
   end
   object ButtonAfficheBandeau: TButton
-    Left = 876
-    Top = 408
+    Left = 1132
+    Top = 328
     Width = 56
     Height = 32
     Anchors = [akTop, akRight]

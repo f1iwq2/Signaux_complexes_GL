@@ -366,6 +366,11 @@ type
     N2: TMenuItem;
     outcopierentatquetexte1: TMenuItem;
     CheckBoxAffMemo: TCheckBox;
+    RadioButtonCde: TRadioButton;
+    Label28: TLabel;
+    EditPortCde: TEdit;
+    ButtonOuvreCom: TButton;
+    CheckBoxCR: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -549,6 +554,9 @@ type
     procedure Supprimer1Click(Sender: TObject);
     procedure Nouveau1Click(Sender: TObject);
     procedure outcopierentatquetexte1Click(Sender: TObject);
+    procedure RadioButtonCdeClick(Sender: TObject);
+    procedure ButtonOuvreComClick(Sender: TObject);
+    procedure CheckBoxCRClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -563,6 +571,7 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+ProtocolePortCde_ch='ProtocolePortCde';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
@@ -580,6 +589,7 @@ Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
 IPV4_INTERFACE_ch='Ipv4_interface';
 PROTOCOLE_SERIE_ch='Protocole_serie';
+CR_ch='Cr';
 INTER_CAR_ch='Inter_car';
 Tempo_maxi_ch='Tempo_maxi';
 Entete_ch='Entete';
@@ -611,7 +621,6 @@ LargeurF_ch='LargeurF';
 HauteurF_ch='HauteurF';
 OffsetXF_ch='OffsetX';
 OffsetYF_ch='OffsetY';
-etatF_ch='EtatF';
 PosSplitter_ch='Splitter';
 
 // sections de config
@@ -628,19 +637,20 @@ section_DecPers_ch='[section_decodeurs]';
 
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
+  AdresseIPCDM,AdresseIP,PortCom,portComCde,recuCDM,residuCDM,trainsauve : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant,AffMemoFenetre : integer;
+  ligneDCC,decCourant,AffMemoFenetre,NbreComCde,avecCR : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
   fichier : text;
+
 
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
@@ -1158,6 +1168,7 @@ begin
 end;
 
 // décode la ligne de signal et la stocke dans l'index i du tableau feux
+// sortie vrai si le signal a été stocké - faux si doublon
 function decode_ligne_feux(chaine_signal : string;i : integer) : boolean;
 var s,chaine,sa : string;
     j,k,l,t,id,adresse,adr,erreur ,asp,bd: integer;
@@ -1187,6 +1198,7 @@ begin
           end;
         end;
         inc(nbreFeux);
+        index_accessoire[adresse]:=i;
 
         Delete(s,1,j);
         feux[i].adresse:=adresse;
@@ -1306,6 +1318,12 @@ begin
                    if (j=4) then feux[i].Btype_Suiv4:=det;
                  end;
                  Val(s,adr,erreur);
+                 if Adr>NbMemZone then
+                 begin
+                   Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
+                   Adr:=NbMemZone;
+                 end;
+
                  if (j=1) then feux[i].Adr_el_suiv1:=Adr;
                  if (j=2) then feux[i].Adr_el_suiv2:=Adr;
                  if (j=3) then feux[i].Adr_el_suiv3:=Adr;
@@ -1551,7 +1569,7 @@ begin
   // adresse
   adresse:=Tablo_Actionneur[i].adresse;
 
-  // type actionneur
+  // type déclencheur
   case Tablo_Actionneur[i].typdeclenche of
   0 :
   begin
@@ -1583,6 +1601,9 @@ begin
 
   if Tablo_Actionneur[i].son then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].FichierSon+'"';
+
+  if Tablo_Actionneur[i].cde then
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',COM'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
 
   encode_act_loc_son:=s;
 end;
@@ -1654,7 +1675,6 @@ begin
   writeln(fichierN,hauteurF_ch+'=',hauteurF);
   writeln(fichierN,OffsetXF_ch+'=',OffsetXF);
   writeln(fichierN,OffsetYF_ch+'=',OffsetYF);
-  writeln(fichierN,EtatF_ch+'=',EtatF);
   writeln(fichierN,PosSplitter_ch+'=',PosSplitter);
 
   writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
@@ -1691,6 +1711,12 @@ begin
 
   // port com
   writeln(fichierN,Protocole_serie_ch+'=',portcom);
+
+  // porotocole COM cde accessoires
+  writeln(fichierN,ProtocolePortCde_ch+'=',portComcde);
+
+  // avec CR
+  writeln(fichierN,CR_ch+'=',avecCR);
 
   // temporisation caractère TempoOctet
   writeln(fichierN,Inter_Car_ch+'=',IntToSTR(TempoOctet));
@@ -1903,6 +1929,33 @@ begin
 
 end;
 
+// affecte un index à un com dans le tableau tablo_com_cde
+function affecte_index_com(NumCom : integer) : boolean;
+var j : integer;
+    trouve : boolean;
+begin
+        j:=1;
+        repeat
+          trouve:=Tablo_com_cde[j].NumPort=NumCom;
+          if not(trouve) then inc(j);
+        until (Trouve) or (j>10);
+        // le com n'a pas été stocké, le stocker et incrémenter l'indice du tableau
+        if not(trouve) then
+        begin
+          if NbreComCde<MaxComUSBCde then
+          begin
+            inc(NbreComCde);
+            tablo_com_cde[NbreComCde].NumPort:=NumCom;
+            result:=true;
+          end
+          else
+          begin
+            affiche('Nombre maxi de com/usb actionneurs atteint ('+intToSTR(MaxComUSBCde)+') le COM'+intToSTR(NumCom)+' ne sera pas traité',clred);
+            result:=false;
+          end;
+        end;
+end;
+
 procedure lit_config;
 var s,sa,SOrigine: string;
     c : char;
@@ -1911,7 +1964,7 @@ var s,sa,SOrigine: string;
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
-    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
+    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth,trouve   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
     ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
@@ -2006,10 +2059,14 @@ var s,sa,SOrigine: string;
     Tablo_actionneur[i].loco:=false;
     Tablo_actionneur[i].act:=false;
     Tablo_actionneur[i].son:=false;
+    Tablo_actionneur[i].cde:=false;
+
   end;
 
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
+  NbreComCde:=0;
+  for i:=1 to 10 do tablo_com_cde[i].NumPort:=0;
 
   // définition des actionneurs
   repeat
@@ -2018,6 +2075,7 @@ var s,sa,SOrigine: string;
     begin
       //Affiche(s,clyellow);
       sa:=s; sOrigine:=s;
+
 
       if s[1]='A' then
       begin
@@ -2070,6 +2128,8 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].son:=true;
         Tablo_actionneur[maxtablo_act].loco:=false;
+        Tablo_actionneur[maxtablo_act].cde:=false;
+
         i:=pos(',',s);
         if i<>0 then
         begin
@@ -2094,6 +2154,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
         Tablo_actionneur[maxtablo_act].loco:=false;
+        Tablo_actionneur[maxtablo_act].cde:=false;
 
         i:=pos(',',s);
         if i<>0 then
@@ -2140,6 +2201,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].loco:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
+        Tablo_actionneur[maxtablo_act].cde:=false;
 
         // 815,1,CC406526,F2,450
         i:=pos(',',s);
@@ -2177,6 +2239,37 @@ var s,sa,SOrigine: string;
           end;
           s:='';i:=0;
         end;
+      end;
+
+      if length(sa)>3 then if copy(sa,1,3)='COM' then
+      // -----------------fonction commande COM
+      begin
+        Tablo_actionneur[maxtablo_act].act:=false;
+        Tablo_actionneur[maxtablo_act].loco:=false;
+        Tablo_actionneur[maxtablo_act].son:=false;
+        Tablo_actionneur[maxtablo_act].cde:=true;
+
+        // 815,1,CC406526,F2,450
+        i:=pos(',',s);
+        val(s,j,erreur);
+        Tablo_actionneur[maxTablo_act].etat:=j;
+        Delete(s,1,erreur);
+
+          i:=pos(',',s);
+          Tablo_actionneur[maxTablo_act].trainDecl:=copy(s,1,i-1);
+          Delete(s,1,i);
+
+
+        delete(sa,1,3);
+        val(sa,i,erreur);  // com
+        tablo_actionneur[maxTablo_act].fonction:=i;  // numéro de COM
+
+        affecte_index_com(i);
+
+        i:=pos(',',sa);
+        delete(sa,1,i);
+        tablo_actionneur[maxTablo_act].trainDest:=sa;
+        inc(maxTablo_act);          // incrémenter index de stockage du tableau des actionneurs
       end;
 
       // Passage à niveau
@@ -2299,12 +2392,13 @@ var s,sa,SOrigine: string;
       postjd:=pos('TJD',enregistrement);tjdC:=postjd<>0;if tjdC then delete(enregistrement,postjd,3);
       postjs:=pos('TJS',enregistrement);tjsC:=postjs<>0;if tjsC then delete(enregistrement,postjs,3);
       poscroi:=pos('CROI',enregistrement);croi:=poscroi<>0;if croi then delete(enregistrement,poscroi,4);
-      
+
       // adresse de l'aiguillage
       Val(enregistrement,adraig,erreur); // adraig = adresse de l'aiguillage
+
       if erreur<>0 then Affiche('Erreur aiguillage '+intToSTR(adraig)+' ; caractère '+enregistrement[erreur]+' inconnu',clred);
       if debugConfig then Affiche('Adresse='+IntToSTR(adraig)+' enregistrement='+Enregistrement,clyellow);
-
+      Index_accessoire[adrAig]:=maxAiguillage;
       aiguillage[maxaiguillage].adresse:=adraig;
       aiguillage[maxaiguillage].AdroitB:='Z'; aiguillage[maxaiguillage].AdevieB:='Z';
       aiguillage[maxaiguillage].DdroitB:='Z'; aiguillage[maxaiguillage].DdevieB:='Z';
@@ -2810,14 +2904,6 @@ end;
       val(s,OffsetYF,erreur);
     end;
 
-    sa:=uppercase(EtatF_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,EtatF,erreur);
-    end;
-
     sa:=uppercase(PosSplitter_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2951,7 +3037,19 @@ end;
       if (MaxPortCom<1) or (MaxPortCom>255) then MaxPortCom:=30;
     end;
 
-    // configuration du port com
+
+    sa:=uppercase(CR_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,avecCR,erreur);
+      if erreur<>0 then Affiche('Erreur CR: '+sOrigine,clred);
+      if (avecCR<0) or (avecCR>1) then avecCR:=0;
+    end;
+
+    // configuration du port com interface
     sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -2964,7 +3062,18 @@ end;
       portcom:=s;
     end;
 
-    // temporisatflion entre 2 caractères
+    // configuration du port com interface commande accessoires
+    sa:=uppercase(ProtocolePortCde_ch)+'=';
+    i:=pos(sa,s);
+    if i=1 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      portcomcde:=s;
+    end;
+
+
+    // temporisation entre 2 caractères
     sa:=uppercase(INTER_CAR_ch)+'=';
     i:=pos(sa,s);
     if i=1 then
@@ -3446,6 +3555,7 @@ begin
   except
     Affiche('Fichier '+NomConfig+' non trouvé : création d''un fichier vide par défaut',clred);
     portcom:='COM3:57600,N,8,1,2';
+    portComCde:='COM5:115200,n,8,1';
     adresseIPCDM:='127.0.0.1';portCDM:=9999;
     adresseIP:='192.168.1.23';portInterface:=5550;
     verifVersion:=true;
@@ -3547,7 +3657,7 @@ begin
 end;
 
 function verifie_panneau_config : boolean;
-var ChangeCDM,changeInterface,changeUSB,change_srv,ok : boolean;
+var ChangeCDM,changeInterface,changeUSB,changeUSBcde,change_srv,ok : boolean;
     i,erreur : integer;
     s : string;
 begin
@@ -3611,6 +3721,12 @@ begin
     changeUSB:=portcom<>s;
     portcom:=s;
 
+    s:=EditPortCDE.Text;
+    if s='' then s:='COMX:115200,N,8,1';
+    changeUSBcde:=portcomcde<>s;
+    portcomcde:=s;
+
+
     val(EditTempoOctetUSB.text,i,erreur);
     if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';ok:=false;end;
     TempoOctet:=i;
@@ -3656,6 +3772,14 @@ begin
       connecte_USB;
     end;
 
+    {
+    if changeUSBcde then
+    begin
+      deconnecte_USB_cde(1);  // &&& a revoir 
+      connecte_port_usb_cde(1);
+    end;
+    }
+
     verifVersion:=CheckVerifVersion.Checked;
     notificationVersion:=CheckInfoVersion.Checked;
 
@@ -3663,6 +3787,7 @@ begin
     if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
     if CheckBoxAffMemo.checked then AffMemoFenetre:=1 else AffMemoFenetre:=0;
 
+    if checkBoxCR.Checked then avecCR:=1 else avecCR:=0;
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
     lay:=editLay.Text;
@@ -3737,7 +3862,7 @@ end;
 // affiche les champs du signal lc
 // LC=Adresse du signal
 procedure clicListeSignal(lc : integer);
-var i,AncAdresse,index,adresse,erreur : integer;
+var AncAdresse,index,adresse,erreur : integer;
     s : string;
 begin
   index:=index_Signal(lc)-1;
@@ -3748,11 +3873,13 @@ begin
     exit;
   end;
 
+  { ne pas déselectionner tout!!
   with FormConfig.ListBoxSig do
   begin
     for i:=0 to Count-1 do Selected[i]:=false;
     FormConfig.ListBoxSig.Selected[index]:=true;
   end;
+  }
 
   Feu_Sauve:=feux[index+1];  // sauvegarde
 
@@ -3776,7 +3903,6 @@ end;
 
 
 procedure TFormConfig.FormActivate(Sender: TObject);
-var i : integer;
 begin
   if affevt then affiche('FormConfig activate',clLime);
   activ:=true;
@@ -3814,6 +3940,7 @@ begin
   EditFiltrDet.text:=intToSTR(filtrageDet0);
 
   EditComUSB.Text:=PortCom;
+  EditPortCde.Text:=portcomcde;
   EditFonte.text:=IntToSTR(TailleFonte);
   editdebug.Text:=IntToSTR(debug);
   CheckBoxVerifXpressNet.Checked:=Verif_AdrXpressNet=1;
@@ -3836,6 +3963,7 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
+  checkBoxCR.Checked:=avecCR=1;
 
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
@@ -4506,7 +4634,7 @@ begin
   begin
     GroupBoxRadio.Visible:=false;
     GroupBoxAct.Visible:=false;
-    GroupBoxPN.Top:=24;
+    GroupBoxPN.Top:=16;
     GroupBoxPN.Left:=16;
     GroupBoxPN.Visible:=true;
     Visible:=true;
@@ -4528,13 +4656,14 @@ begin
     GroupBoxRadio.Visible:=true;
     GroupBoxRadio.top:=16;
     GroupBoxRadio.Left:=16;
-    GroupBoxAct.Top:=92;
+    GroupBoxAct.Top:=GroupBoxRadio.Top+GroupBoxRadio.Height+8;
     GroupBoxAct.Left:=16;
-    GroupBoxAct.Height:=340;
+    GroupBoxAct.Height:=310;
     GroupBox18.Top:=16;
     GroupBox18.Height:=150;
-    GroupBox19.Top:=190;
+    GroupBox19.Top:=GroupBox18.Top+GroupBox18.Height+8;
     GroupBox19.Height:=96;
+    ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
   end;
 end;
 
@@ -4543,15 +4672,21 @@ begin
   with formconfig do
   begin
     positionne;
-
+    ButtonOuvreCom.Visible:=false;
     CheckRaz.Visible:=false;
     GroupBoxAct.Caption:='Action pour fonction F de locomotive';
+    EditFonctionAccess.Hint:='Numéro de fonction du décodeur du train (0 à 12 ou 28)';
+    editTrainDest.Hint:='Train destinataire de la fonction F';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Fonction';
     RadioButtonLoc.Checked:=true;
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.Checked:=false;
+    RadioButtonCde.Checked:=false;
+    EditFonctionAccess.Top:=14;
+    LabelFonction.Top:=18;
+
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
     EditSon.Visible:=false;
@@ -4561,6 +4696,46 @@ begin
     LabelNomSon.Visible:=false;
     editTrainDest.Visible:=true;
     label42.Visible:=true;
+    Label42.caption:='Train dest';
+  end;
+end;
+
+procedure champs_type_Cde;
+begin
+  with formconfig do
+  begin
+    positionne;
+    editTrainDest.Hint:='Commande ASCII';
+    EditFonctionAccess.Hint:='Port Com/Usb d''envoi de la commande';
+
+    CheckRaz.Visible:=false;
+    GroupBoxAct.Caption:='Action pour commande sur COM/USB';
+    LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
+    LabelFonction.visible:=true;
+    LabelFonction.caption:='Port COM/USB :';
+    LabelFonction.Top:=22;
+
+    EditFonctionAccess.Visible:=true;
+    EditFonctionAccess.Top:=20;
+
+    RadioButtonLoc.Checked:=false;
+    RadioButtonAccess.Checked:=false;
+    RadioButtonSon.Checked:=false;
+    RadioButtonCde.Checked:=true;
+    GroupBoxAct.Visible:=true;
+    GroupBoxPN.Visible:=false;
+    EditSon.Visible:=false;
+    SpeedButtonJoue.Visible:=false;
+    SpeedButtonCharger.Visible:=false;
+
+    LabelNomSon.Visible:=false;
+    LabelTempo.Visible:=false;
+    editTrainDest.Visible:=true;
+    EditTempo.Visible:=false;
+    label42.Visible:=true;
+    Label42.caption:='Commande';
+    ButtonOuvreCom.Top:=GroupBox19.Top+GroupBox19.Height+8;
+    ButtonOuvreCom.Visible:=true;
   end;
 end;
 
@@ -4572,6 +4747,7 @@ begin
 
     GroupBoxAct.Caption:='Action pour accessoire';
     CheckRaz.Visible:=true;
+    ButtonOuvreCom.Visible:=false;
     LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
     LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Accessoire';
@@ -4580,6 +4756,8 @@ begin
     RadioButtonAccess.Checked:=true;
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
+    EditFonctionAccess.Top:=14;
+    LabelFonction.Top:=18;
     EditSon.Visible:=false;
     SpeedButtonJoue.Visible:=false;
     SpeedButtonCharger.Visible:=false;
@@ -4597,9 +4775,11 @@ begin
     Positionne;
     GroupBoxAct.Caption:='Action pour son';
     CheckRaz.Visible:=true;
+    ButtonOuvreCom.Visible:=false;
 
     LabelTempo.Visible:=false; EditTempo.visible:=false;
-
+    EditFonctionAccess.Top:=14;
+    LabelFonction.Top:=18;
     editEtatFoncSortie.visible:=false;
     LabelA.Visible:=false;
     LabelFonction.visible:=false;
@@ -4613,6 +4793,7 @@ begin
     RadioButtonLoc.Checked:=false;
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.checked:=true;
+    RadioButtonCde.Checked:=false;
 
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
@@ -4957,6 +5138,10 @@ begin
     0 :
     begin
       champs_decl_actdet;
+      editAct.Text:=intToSTR(Tablo_actionneur[i].adresse);
+      editEtatActionneur.Text:=intToSTR(Tablo_actionneur[i].etat);
+      editEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].sortie);
+      EditTrainDecl.Text:=Tablo_actionneur[i].trainDecl;
     end;
     3 :
     begin
@@ -5057,6 +5242,18 @@ begin
       EditEtatActionneur.Text:=IntToSTR(etatAct);
     end;
   end;
+
+  if Tablo_actionneur[i].cde then
+  begin
+    champs_type_cde;
+    with formConfig do
+    begin
+      EditFonctionAccess.text:=inttostr(Tablo_actionneur[i].fonction);
+      EditEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].etat);
+      EditTrainDest.text:=Tablo_actionneur[i].TrainDest;
+    end;
+  end;
+
 end;
 
 procedure raz_champs_pn;
@@ -6240,7 +6437,7 @@ begin
   with Formconfig do
   begin
     s:=EditAct.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked  or radioButtonCde.checked then
     begin
       Val(s,act,erreur);
       if s='' then exit;
@@ -6319,7 +6516,7 @@ end;
 
 procedure TFormConfig.ListBoxActMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var ligne,i : integer;
+var i : integer;
 begin
   clicliste:=true;
   if maxTablo_act<1 then exit;
@@ -6350,7 +6547,7 @@ begin
   with Formconfig do
   begin
     s:=upperCase(EditEtatActionneur.Text);
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or RadioButtonCde.Checked then
     begin
       typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
       if (typ=2) and (s<>'') then  // aiguillage
@@ -6411,7 +6608,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
-    if radioButtonLoc.Checked then
+    if radioButtonLoc.Checked or RadioButtonCde.Checked then
     begin
       train:=EditTrainDest.Text;
       if train='' then
@@ -6464,7 +6661,7 @@ begin
   with Formconfig do
   begin
     s:=EditFonctionAccess.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonCde.Checked then
     begin
       Val(s,fonction,erreur);
       if erreur<>0 then
@@ -6472,7 +6669,7 @@ begin
         LabelInfo.caption:='Erreur fonction actionneur';exit
       end else LabelInfo.caption:=' ';
       
-      if radioButtonLoc.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
+      if radioButtonLoc.Checked or RadioButtonCde.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
       if RadioButtonAccess.Checked then Tablo_Actionneur[ligneClicAct+1].accessoire:=fonction;
       
       s:=encode_act_loc_son(ligneClicAct+1);
@@ -6580,6 +6777,7 @@ begin
     EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
     feux[ligneClicSig+1].adresse:=i;
+    index_accessoire[i]:=ligneClicSig+1;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -6627,6 +6825,7 @@ begin
       LabelInfo.caption:=' ';
       aiguillage[index].adresse:=i;
       aiguillage[index].modifie:=true;
+      index_accessoire[i]:=index;
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[ligneclicAig]:=s;
       formconfig.ListBoxAig.selected[ligneclicAig]:=true;
@@ -6705,7 +6904,7 @@ begin
   bm:=Select_dessin_feu(feux[index].aspect);
   if bm=nil then exit;
   Feux[index].Img.picture.Bitmap:=bm;
-  dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
+  dessine_signal_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
   // et dans le TCO
   if formTCO[indexTCO].Showing then
   begin
@@ -6767,7 +6966,7 @@ begin
     Maj_Hint_Signal(index);
     // change l'image du feu dans la feuille graphique principale
     Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
-    dessine_feu_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
+    dessine_signal_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
     clicListe:=false;
   end;
 end;
@@ -6784,6 +6983,7 @@ begin
   Tablo_Actionneur[i].loco:=true;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
+  Tablo_Actionneur[i].Cde:=false;
   champs_type_loco;
 
   val(editact.Text,champ,erreur);
@@ -6815,6 +7015,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=true;
   Tablo_Actionneur[i].Son:=false;
+  Tablo_Actionneur[i].Cde:=false;
   champs_type_act;  
   
   val(editact.Text,champ,erreur);
@@ -6847,6 +7048,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=true;
+  Tablo_Actionneur[i].Cde:=false;
 
   champs_type_son;
  
@@ -6867,9 +7069,41 @@ begin
   ListBoxAct.Selected[ligneClicAct]:=true;
 end;
 
+procedure TFormConfig.RadioButtonCdeClick(Sender: TObject);
+var  champ,i,erreur : integer;
+    s : string;
+begin
+  if clicListe or (ligneclicAct<0) then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioCde '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].loco:=false;
+  Tablo_Actionneur[i].Act:=false;
+  Tablo_Actionneur[i].Son:=false;
+  Tablo_Actionneur[i].Cde:=true;
+  champs_type_Cde;
+
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
+
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  //val(editEtatFoncSortie.Text,champ,erreur);
+  //Tablo_actionneur[i].sortie:=champ;
+  //val(editTempo.Text,champ,erreur);
+  //Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].TrainDest:=editTrainDest.Text;
+
+  s:=encode_act_loc_son(i);
+  ListBoxAct.Items[ligneClicAct]:=s;
+  ListBoxAct.Selected[ligneClicAct]:=true;
+end;
+
 procedure TFormConfig.RichPNMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,ligne : integer;
+var ligne : integer;
 begin
   clicliste:=true;
 
@@ -7716,6 +7950,16 @@ var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,ind
     ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
     s : string;
 begin
+  // validation des index signaux et détecteurs
+  for i:=1 to NbreFeux do
+  begin
+    index_accessoire[feux[i].adresse]:=i;
+  end;
+  for i:=1 to maxAiguillage do
+  begin
+    index_accessoire[aiguillage[i].adresse]:=i;
+  end;
+ 
   // vérification de la cohérence1
   // parcoure les branches jusqu'à trouver un aiguillage pour voir s'il a été décrit
   ok:=true;
@@ -9152,6 +9396,7 @@ begin
 end;
 
 // compile une branche de réseau sous forme de texte, et la stocke dans le tableau des branches
+// crée les index dans la structure détecteurs et des aiguillages
 // i = index de la branche à stocker
 function compile_branche(s : string;i : integer) : boolean;
 var offset,j,bd,detect,erreur,adresse,erreur2 : integer;
@@ -9196,6 +9441,8 @@ begin
          end;
          BrancheN[i,j].adresse:=adresse;
          BrancheN[i,j].btype:=aig; // ident aiguillage
+         aiguillage[adresse].NumBranche:=i;
+         aiguillage[adresse].IndexBranche:=j;
        end
        else
        begin
@@ -9215,6 +9462,9 @@ begin
        end;
        BrancheN[i,j].adresse:=detect;          // adresse
        BrancheN[i,j].btype:=det;// ident détecteur
+       detecteur[detect].NumBranche:=i;
+       detecteur[detect].IndexBranche:=j;
+
        if detect=0 then begin BrancheN[i,j].btype:=buttoir;end; // buttoir
        // vérifier si le détecteur est déja stocké
        bd:=0;
@@ -9726,10 +9976,8 @@ begin
   val(EditEtatActionneur.Text,Etat,erreur);
   val(EditAct.Text,Adr,erreur);
   val(EditAct2.Text,Adr2,erreur);
-  if erreur=0 then
-  begin
-    Event_act(adr,adr2,etat,'');
-  end;  
+  Ancien_actionneur[adr]:=0;
+  Event_act(adr,adr2,etat,'');
 end;
 
 procedure TFormConfig.RadioButtonActDetClick(Sender: TObject);
@@ -10687,8 +10935,7 @@ end;
 
 procedure TFormConfig.ListBoxTrainsMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var j : integer;
-    s : string;
+var s : string;
 begin
   //affiche('RichEditTrainChange',clyellow);
   clicListe:=true;
@@ -10895,7 +11142,6 @@ end;
 
 procedure TFormConfig.ListBoxActKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var i : integer;
 begin
   if key=VK_delete then supprime_act;
 
@@ -10941,7 +11187,7 @@ end;
 
 procedure TFormConfig.RichPNKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var lc,curseur,i : integer;
+var lc : integer;
 begin
   if ord(Key)=VK_DELETE then supprime_pn;
   if ord(Key)=VK_UP then
@@ -10988,7 +11234,6 @@ end;
 
 procedure TFormConfig.ListBoxTrainsKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var curseur,i : integer;
 begin
   if ord(key)=VK_DELETE then supprime_train;
   if ord(Key)=VK_UP then
@@ -11155,7 +11400,7 @@ begin
     Feux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
     adr:=feux[ligneClicSig+1].adresse;
     if feux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clignote_f or bita1_F) else Maj_Etat_Signal(adr,clignote_F);
-    dessine_feu_mx(Feux[ligneClicSig+1].Img.Canvas,0,0,1,1,feux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
+    dessine_signal_mx(Feux[ligneClicSig+1].Img.Canvas,0,0,1,1,feux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
   end;
 end;
 
@@ -11636,7 +11881,6 @@ end;
 
 procedure TFormConfig.ListBoxSigMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i : integer;
 begin
   clicliste:=true;
   if NbreFeux<1 then exit;
@@ -11652,7 +11896,6 @@ end;
 
 procedure TFormConfig.ListBoxSigKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-  var curseur,i : integer;
 begin
   if NbreFeux<1 then exit;
   if key=VK_delete then supprime_sig;
@@ -11700,7 +11943,7 @@ end;
 
 procedure TFormConfig.ListBoxPNMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var ligne,i : integer;
+var i : integer;
 begin
   clicliste:=true;
   LabelInfo.caption:='';
@@ -11766,7 +12009,6 @@ end;
 
 procedure TFormConfig.Slectionnertout1Click(Sender: TObject);
 var tl: TListBox;
-    s : string;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   //Affiche(tl.name,clLime);
@@ -11836,10 +12078,40 @@ end;
 
 procedure TFormConfig.outcopierentatquetexte1Click(Sender: TObject);
 var tl: TListBox;
-    s : string;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   ClipBoard.SetTextBuf(tl.Items.GetText);
+end;
+
+procedure TFormConfig.ButtonOuvreComClick(Sender: TObject);
+var i : integer;
+begin
+  // recrée les indexs des com
+  NbreComCde:=0;
+  for i:=1 to 10 do tablo_com_cde[i].NumPort:=0;
+  for i:=1 to maxTablo_act do
+  begin
+    if Tablo_actionneur[i].cde then
+    begin
+       affecte_index_com(tablo_actionneur[i].fonction);
+    end;
+  end;
+
+  for i:=1 to 10 do
+  begin
+    deconnecte_usb_cde(i);
+  end;
+  for i:=1 to NbreComCde do
+  begin
+    if connecte_port_usb_cde(i) then
+      Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs ouvert',clLime)
+    else Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs non ouvert',clOrange);
+  end;
+end;
+
+procedure TFormConfig.CheckBoxCRClick(Sender: TObject);
+begin
+  if checkBoxCR.Checked then avecCR:=1 else avecCR:=0;
 end;
 
 begin

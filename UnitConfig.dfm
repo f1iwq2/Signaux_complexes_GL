@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 178
-  Top = 109
+  Left = 255
+  Top = 125
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1748,7 +1748,7 @@ object FormConfig: TFormConfig
       object GroupBox6: TGroupBox
         Left = 312
         Top = 8
-        Width = 281
+        Width = 297
         Height = 169
         Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
@@ -1828,8 +1828,8 @@ object FormConfig: TFormConfig
       object GroupBox7: TGroupBox
         Left = 312
         Top = 184
-        Width = 281
-        Height = 89
+        Width = 297
+        Height = 65
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ'
         TabOrder = 3
         object RadioButton13: TRadioButton
@@ -1843,39 +1843,39 @@ object FormConfig: TFormConfig
         object RadioButton14: TRadioButton
           Left = 8
           Top = 40
-          Width = 217
+          Width = 81
           Height = 17
           Caption = 'LI-USB'
           TabOrder = 1
         end
         object RadioButton15: TRadioButton
-          Left = 152
+          Left = 112
           Top = 40
-          Width = 105
+          Width = 73
           Height = 17
           Caption = 'LI-101F'
           TabOrder = 2
         end
         object RadioButton16: TRadioButton
-          Left = 8
-          Top = 56
+          Left = 200
+          Top = 40
           Width = 89
           Height = 17
           Caption = 'LI-100F'
           TabOrder = 3
         end
         object RadioButton17: TRadioButton
-          Left = 152
-          Top = 56
+          Left = 200
+          Top = 24
           Width = 89
           Height = 17
           Caption = 'LI-100'
           TabOrder = 4
         end
         object RadioButton18: TRadioButton
-          Left = 152
+          Left = 112
           Top = 24
-          Width = 113
+          Width = 65
           Height = 17
           Caption = 'Genli'
           TabOrder = 5
@@ -1943,9 +1943,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox15: TGroupBox
         Left = 312
-        Top = 288
-        Width = 281
-        Height = 137
+        Top = 256
+        Width = 297
+        Height = 185
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1975,6 +1975,13 @@ object FormConfig: TFormConfig
           Width = 32
           Height = 13
           Caption = 'Debug'
+        end
+        object Label28: TLabel
+          Left = 8
+          Top = 134
+          Width = 163
+          Height = 13
+          Caption = 'Protocole COM/USB actionneurs :'
         end
         object EditNbDetDist: TEdit
           Left = 240
@@ -2022,7 +2029,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 112
+          Top = 108
           Width = 233
           Height = 17
           Hint = 
@@ -2034,6 +2041,30 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 4
           OnClick = CheckBoxVerifXpressNetClick
+        end
+        object EditPortCde: TEdit
+          Left = 176
+          Top = 128
+          Width = 113
+          Height = 21
+          Hint = 'Vitesse et protocole liaison COM/USB d'#233'clench'#233's par actionneurs'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+        end
+        object CheckBoxCR: TCheckBox
+          Left = 8
+          Top = 152
+          Width = 153
+          Height = 17
+          Hint = 
+            'Ajoute un CR apr'#232's l'#39'envoi de la cha'#238'ne sur le COM/USB d'#233'clench'#233 +
+            ' par un actionneur'
+          Caption = 'Envoyer CR (retour chariot)'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          OnClick = CheckBoxCRClick
         end
       end
     end
@@ -2508,6 +2539,9 @@ object FormConfig: TFormConfig
           Top = 20
           Width = 33
           Height = 21
+          Hint = 'Adresse de l'#39'aiguillage'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 2
           OnChange = EditAdrAigChange
         end
@@ -3290,6 +3324,9 @@ object FormConfig: TFormConfig
           Top = 18
           Width = 33
           Height = 21
+          Hint = 'Adresse du signal'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 0
           OnChange = EditAdrSigChange
         end
@@ -3657,7 +3694,7 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 16
           Width = 225
-          Height = 73
+          Height = 89
           Caption = 'Type d'#39'action'
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
@@ -3687,12 +3724,21 @@ object FormConfig: TFormConfig
             TabOrder = 2
             OnClick = RadioButtonSonClick
           end
+          object RadioButtonCde: TRadioButton
+            Left = 24
+            Top = 64
+            Width = 137
+            Height = 17
+            Caption = 'Commande COM/USB'
+            TabOrder = 3
+            OnClick = RadioButtonCdeClick
+          end
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 84
+          Top = 96
           Width = 233
-          Height = 341
+          Height = 321
           Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
@@ -3804,9 +3850,9 @@ object FormConfig: TFormConfig
           end
           object GroupBox19: TGroupBox
             Left = 8
-            Top = 184
+            Top = 176
             Width = 217
-            Height = 129
+            Height = 137
             Caption = 'Destinataire de l'#39'action '
             TabOrder = 1
             object LabelTempo: TLabel
@@ -3834,8 +3880,8 @@ object FormConfig: TFormConfig
               Caption = #224
             end
             object LabelNomSon: TLabel
-              Left = 16
-              Top = 32
+              Left = 0
+              Top = 56
               Width = 91
               Height = 13
               Caption = 'Nom du fichier son:'
@@ -3973,15 +4019,15 @@ object FormConfig: TFormConfig
               OnChange = EditEtatFoncSortieChange
             end
             object EditSon: TEdit
-              Left = 32
-              Top = 64
+              Left = 16
+              Top = 88
               Width = 161
               Height = 21
               TabOrder = 4
               OnChange = EditSonChange
             end
             object EditTrainDest: TEdit
-              Left = 72
+              Left = 80
               Top = 64
               Width = 129
               Height = 21
@@ -3993,8 +4039,8 @@ object FormConfig: TFormConfig
             end
           end
           object ButtonTestAct: TButton
-            Left = 64
-            Top = 306
+            Left = 16
+            Top = 294
             Width = 89
             Height = 20
             Hint = 'Test de l'#39'actionneur/d'#233'tecteur en mode RUN'
@@ -4004,10 +4050,22 @@ object FormConfig: TFormConfig
             TabOrder = 2
             OnClick = ButtonTestActClick
           end
+          object ButtonOuvreCom: TButton
+            Left = 120
+            Top = 296
+            Width = 75
+            Height = 20
+            Hint = 'R'#233'ouvre les ports COMs demand'#233's'
+            Caption = 'Ouvre COMs'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            OnClick = ButtonOuvreComClick
+          end
         end
         object GroupBoxPN: TGroupBox
-          Left = 32
-          Top = 16
+          Left = 216
+          Top = 24
           Width = 233
           Height = 401
           Caption = 'Action gestion passage '#224' niveau'

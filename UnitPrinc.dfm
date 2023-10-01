@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 74
-  Top = 202
+  Left = 63
+  Top = 148
   Width = 1222
-  Height = 652
+  Height = 653
   Caption = 'Signaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +19,12 @@ object FormPrinc: TFormPrinc
   OnResize = FormResize
   DesignSize = (
     1206
-    593)
+    595)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
     Left = 8
-    Top = 8
+    Top = 2
     Width = 173
     Height = 18
     Caption = 'Signaux complexes GL'
@@ -1442,14 +1442,34 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 571
+    Top = 573
     Width = 1206
     Height = 22
-    Panels = <>
-    SimplePanel = True
+    Panels = <
+      item
+        Text = 'AideHint'
+        Width = 600
+      end
+      item
+        Text = 'SimuMemoire'
+        Width = 200
+      end
+      item
+        Text = 'CDM'
+        Width = 100
+      end
+      item
+        Text = 'USB'
+        Width = 120
+      end
+      item
+        Text = 'IP'
+        Width = 70
+      end>
+    OnDrawPanel = StatusBar1DrawPanel
   end
   object MSCommUSBLenz: TMSComm
-    Left = 1160
+    Left = 1144
     Top = 192
     Width = 32
     Height = 32
@@ -1458,15 +1478,6 @@ object FormPrinc: TFormPrinc
       2143341208000000ED030000ED03000001568A64000006000000010000040000
       00020000802500000000080000000000000000003F00000011000000}
   end
-  object StaticText: TStaticText
-    Left = 16
-    Top = 557
-    Width = 14
-    Height = 17
-    Anchors = [akLeft, akBottom]
-    Caption = 'xx'
-    TabOrder = 2
-  end
   object ButtonEnv: TButton
     Left = 1073
     Top = 160
@@ -1474,7 +1485,7 @@ object FormPrinc: TFormPrinc
     Height = 33
     Anchors = [akTop, akRight]
     Caption = 'Envoi vers centrale DCC++'
-    TabOrder = 3
+    TabOrder = 2
     WordWrap = True
     OnClick = ButtonEnvClick
   end
@@ -1484,7 +1495,7 @@ object FormPrinc: TFormPrinc
     Width = 121
     Height = 21
     Anchors = [akTop, akRight]
-    TabOrder = 4
+    TabOrder = 3
     Text = '<1>'
   end
   object Button1: TButton
@@ -1494,7 +1505,7 @@ object FormPrinc: TFormPrinc
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Button1'
-    TabOrder = 5
+    TabOrder = 4
     Visible = False
     OnClick = Button1Click
   end
@@ -1504,7 +1515,7 @@ object FormPrinc: TFormPrinc
     Width = 1122
     Height = 513
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 6
+    TabOrder = 5
     DesignSize = (
       1122
       513)
@@ -1513,7 +1524,7 @@ object FormPrinc: TFormPrinc
       Top = 1
       Width = 9
       Height = 511
-      Hint = 'Splitter d'#39'agrandissement/r'#233'duissement'
+      Hint = 'Splitter de s'#233'paration ajustable'
       Align = alNone
       Color = clGray
       MinSize = 200
@@ -1522,8 +1533,8 @@ object FormPrinc: TFormPrinc
       OnMoved = SplitterVMoved
     end
     object FenRich: TRichEdit
-      Left = 48
-      Top = 48
+      Left = 24
+      Top = 8
       Width = 553
       Height = 441
       Color = clBlack
@@ -2014,6 +2025,35 @@ object FormPrinc: TFormPrinc
         TabOrder = 3
       end
     end
+  end
+  object ButtonIndex: TButton
+    Left = 720
+    Top = 8
+    Width = 75
+    Height = 25
+    Caption = 'Indexs'
+    TabOrder = 6
+    OnClick = ButtonIndexClick
+  end
+  object MSCommCde1: TMSComm
+    Left = 1144
+    Top = 272
+    Width = 32
+    Height = 32
+    OnComm = MSCommCde1Comm
+    ControlData = {
+      2143341208000000ED030000ED03000001568A64000006000000010000040000
+      00020000802500000000080000000000000000003F00000001000000}
+  end
+  object MSCommCde2: TMSComm
+    Left = 1144
+    Top = 304
+    Width = 32
+    Height = 32
+    OnComm = MSCommCde2Comm
+    ControlData = {
+      2143341208000000ED030000ED03000001568A64000006000000010000040000
+      00020000802500000000080000000000000000003F00000001000000}
   end
   object Timer1: TTimer
     Interval = 100
