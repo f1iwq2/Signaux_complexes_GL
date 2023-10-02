@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 63
-  Top = 148
+  Left = 55
+  Top = 179
   Width = 1222
   Height = 653
   Caption = 'Signaux complexes'
@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1206
-    595)
+    1214
+    602)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1442,8 +1442,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 573
-    Width = 1206
+    Top = 580
+    Width = 1214
     Height = 22
     Panels = <
       item

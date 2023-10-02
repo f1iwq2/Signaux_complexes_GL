@@ -4835,7 +4835,7 @@ begin
       act:=tco[indexTCO,x,y].PiedFeu;
       if act=1 then
       begin
-        s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);
+        s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);  // feuoriente contient le numéro du TCO
         tco[indexTCO,x,y].texte:=s;
 
         tco[indexTCO,x,y].TailleFonte:=8;
@@ -9194,7 +9194,8 @@ begin
   IndexTCOCourant:=indexTCO;
   if affevt then Affiche('Form TCO'+intToSTR(indexTCO)+' activate',clyellow);
   Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
-  if not(Forminit[indexTCO]) then
+
+  //if not(Forminit[indexTCO]) then
   begin
 
     Button1.Visible:=not(Diffusion);
@@ -10737,7 +10738,7 @@ begin
     begin
       i:=tco[indextco,xclic,yclic].piedfeu;
       n:=tco[indextco,xclic,yclic].feuoriente;
-      if i=1 then Affiche_fenetre_TCO(n);
+      if i=1 then Affiche_fenetre_TCO(n,true);
       if i=2 then with formprinc do
                   begin
                     windowState:=wsNormal; //Maximized;

@@ -359,6 +359,7 @@ MaxElBranches=200;
 NbreMaxiAiguillages=200;
 NbreMaxiSignaux=200;
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
+NbAccMaxi_USBCOM=10;  // nombre maxi d'accessoires COM
 LargImg=50;HtImg=91;  // Dimensions image des feux
 MaxComUSBCde=2;       // Nombre maxi de périphériques USB commande
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
@@ -523,7 +524,7 @@ var
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
-  LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter : integer;
+  LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbAcc_USBCOM : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -561,7 +562,7 @@ var
 
   Tablo_com_cde : array[1..10] of record
                    portOuvert: boolean;
-                   NumPort: integer;
+                   NumAcc: integer;   // numéro accessoire tableau tablo_acc_comusb
                    tamponRx : string;
                    end;
 
@@ -590,7 +591,13 @@ var
     reaffecte : integer ;   // =1 réaffecté au bon train dans le cas de 2 détecteurs contigus qui ne s'enchainent pas bien =2 réaffecté par changement aiguillage
   end;
 
-  Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux
+  Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux sur le bus DCC
+
+  // tableau des accessoires
+  Tablo_acc_COMUSB : array[1..NbAccMaxi_USBCOM] of record
+                      nom : string;
+                      NumCom : integer;  // numéro de port COM
+                    end;
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
   croisement : array[1..20] of
@@ -617,7 +624,7 @@ var
     loco,act,son,cde: boolean;     // destinataire loco acessoire ou son
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,
-    fonction,    // fonction F de train ou COM
+    fonction,    // fonction F de train ou accessoire
     tempo,TempoCourante,
     accessoire,sortie,
     typdeclenche  : integer;  // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
@@ -792,7 +799,7 @@ Function RazBit(n : word;position : integer) : word;
 procedure inverse_image(imageDest,ImageSrc : Timage) ;
 function extract_int(s : string) : integer;
 Procedure Menu_tco(i : integer);
-procedure Affiche_fenetre_TCO(i : integer);
+procedure Affiche_Fenetre_TCO(i : integer;laisseOuvert : boolean);
 procedure positionne_elements(i : integer);
 
 implementation
@@ -1940,6 +1947,7 @@ begin
   result:=Index_Accessoire[adresse];
 end;
 
+{
 function Index_com(NumPort : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -1952,6 +1960,7 @@ begin
   until (trouve) or (i>10);
   if trouve then result:=i;
 end;
+}
 
 // dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
 procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
@@ -2064,7 +2073,7 @@ begin
     align:=alNone;
     Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
     //formprinc.ScrollBox1.Color:=ClGreen;
-    Name:='ImageFeu'+IntToSTR(adresse);   // nom de l'image - sert à identifier le composant si on fait clic droit.
+    Name:='ImageFeu'+IntToSTR(rang);   // nom de l'image - sert à identifier le composant si on fait clic droit.
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
     width:=LargImg;
@@ -10096,7 +10105,7 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,index : integer;
+var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,index,numacc : integer;
     s,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
@@ -10190,10 +10199,12 @@ begin
     // commande COM/USB
     if adresseOK and (Tablo_actionneur[i].cde) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
-      v:=Tablo_actionneur[i].fonction; // numéro du port com (ex12)
-      index:=index_COM(v);
-      if index=0 then exit;
-      if Tablo_com_cde[index].PortOuvert then
+      numacc:=Tablo_actionneur[i].fonction; // numéro d'accessoire
+      if numacc=0 then exit;
+      v:=Tablo_acc_COMUSB[numacc].NumCom;  // numéro de com
+
+      if v=0 then exit;
+      if Tablo_com_cde[numacc].PortOuvert then
       begin
         trainDest:=Tablo_actionneur[i].trainDest;
         if avecCR=1 then trainDest:=TrainDest+#13;
@@ -11478,22 +11489,24 @@ end;
 
 
 // connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
+// index= index du tableau tablo_com_cde
 function connecte_port_usb_cde(index : integer) : boolean;
 var i,j,numport : integer;
     trouve : boolean;
     s,sc : string;
     com : TMSComm;
 begin
-  if (index<0) or (index>10) then
+  if (index<0) or (index>MaxComUSBCde) then
   begin
-    affiche('Erreur index portCom cde acc',clred);
+    affiche('Le nombre maxi de portCom acc comusb est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
+    result:=false;
     exit;
   end;
 
-  numport:=tablo_com_cde[index].NumPort;
+  numport:=tablo_acc_comusb[index].NumCom;
   if (numport<1) or (numport>255) then
   begin
-    affiche('Erreur portCom cde acc',clred);
+    affiche('Erreur portCom cde acc <0 ou >255',clred);
     exit;
   end;
   trouve:=false;
@@ -12316,6 +12329,7 @@ begin
   EnvAigDccpp:=0;
   debugtrames:=false;
   algo_Unisemaf:=1;
+  NbAcc_USBCOM:=0;
   MaxPortCom:=30;
   roulage:=false;
   espY:=15;
@@ -12401,9 +12415,10 @@ begin
   // ouvre com commandes actionneurs, car on a lu les com dans la config
   for i:=1 to NbreComCde do
   begin
+    //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
     if connecte_port_usb_cde(i) then
-      Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs ouvert',clLime)
-    else Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs non ouvert',clOrange);
+      Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs ouvert',clLime)
+    else Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs non ouvert',clOrange);
   end;
 
   Menu_tco(NbreTCO);
@@ -12545,12 +12560,11 @@ begin
   end;
 
 
-    if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
-    begin
-      fenRich.Width:=PosSplitter;
-      positionne_elements(PosSplitter);
-    end;
-
+  if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
+  begin
+    fenRich.Width:=PosSplitter;
+    positionne_elements(PosSplitter);
+  end;
 
   for index:=1 to nbreTCO do
   begin
@@ -12560,18 +12574,7 @@ begin
       formTCO[index].Name:='FormTCO'+intToSTR(index);
       formTCO[index].Caption:='TCO'+intToSTR(index);
     end;
-
-    {
-    i:=0;
-    repeat
-      sleep(100);
-      application.processmessages;
-      inc(i);
-    until (TcoCree) or (i>20);
-    TcoCree:=false;  
-    Application.processmessages;
-    }
-    if avecTCO then Affiche_Fenetre_TCO(index);
+    Affiche_Fenetre_TCO(index,avecTCO);
     //tcocree:=true;
   end;
 
@@ -12892,7 +12895,7 @@ begin
     end;
 
     // signaux du TCO-----------------------------------------------
-    if TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
+    if false and TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
       for IndexTCO:=1 to NbreTCO do
       begin
@@ -12900,6 +12903,7 @@ begin
         for y:=1 to NbreCellY[indexTCO] do
         for x:=1 to NbreCellX[indexTCO] do
         begin
+          //affiche(intToSTR(indexTCO),clred);
           PcanvasTCO[IndexTCO].pen.mode:=pmCOpy;
           BImage:=TCO[indexTCO,x,y].bImage;
           if Bimage=Id_signal then
@@ -13325,7 +13329,7 @@ begin
     tablo_com_cde[index].PortOuvert:=false;
     if index=1 then Formprinc.MscommCde1.Portopen:=false;
     if index=2 then Formprinc.MscommCde2.Portopen:=false;
-    if debug>0 then Affiche('Port COM'+intToSTR(tablo_com_cde[index].NumPort)+' actionneurs déconnecté',clyellow);
+    if debug>0 then Affiche('Port COM'+intToSTR(tablo_acc_comusb[index].NumCom)+' actionneurs déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
 end;
@@ -14901,16 +14905,15 @@ end;
 
 procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
 var s: string;
-    nation,etat,index,i,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie,AdrTrainRes : integer;
+    nation,etat,i,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie,AdrTrainRes : integer;
     reserveTrainTiers : boolean;
     code : word;
 begin
   clicliste:=false;
   s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'adresse du feu (ex: ImageFeu260)
-  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu260)
-  adresse:=extract_int(s);   // extraire l'adresse (ex 260)
-
-  i:=Index_Signal(Adresse);
+  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu2)
+  i:=extract_int(s);   // extraire l'index (ex 2)
+  adresse:=feux[i].adresse;
   n:=feux[i].aspect;
   if (n>10) and (n<20) then exit;
   if n=20 then nation:=2 else nation:=1;
@@ -15741,70 +15744,72 @@ begin
   end;
 end;
 
-procedure Affiche_Fenetre_TCO(i : integer);
+procedure Affiche_Fenetre_TCO(i : integer;laisseOuvert : boolean);
 var e : integer;
 begin
   if (i<1) or (i>NbreTCO) then exit;
   e:=ecranTCO[i];
   if e>Screen.MonitorCount then e:=1;
 
-  formTCO[i].show;
-  formTCO[i].BringToFront;
+  formTCO[i].show;    // on est obligé d'afficher la fenetre TCO pour provoquer OnActivate pour valider les pointeurs
+
   formTCO[i].Left:=Ecran[e].x0;
   formTCO[i].Top:=Ecran[e].y0;
   formTCO[i].windowState:=wsMaximized;
+  formTCO[i].BringToFront;
 
+  if not(laisseOuvert) then formTCO[i].Close; // .. et si on en veut pas, on la ferme.
 
 end;
 
 procedure TFormPrinc.AfficherTCO11Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(1);
+  Affiche_Fenetre_TCO(1,true);
 end;
 
 procedure TFormPrinc.AfficherTCO21Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(2);
+  Affiche_Fenetre_TCO(2,true);
 end;
 
 procedure TFormPrinc.AfficherTCO31Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(3);
+  Affiche_Fenetre_TCO(3,true);
 end;
 
 procedure TFormPrinc.AfficherTCO41Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(4);
+  Affiche_Fenetre_TCO(4,true);
 end;
 
 procedure TFormPrinc.AfficherTCO51Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(5);
+  Affiche_Fenetre_TCO(5,true);
 end;
 
 procedure TFormPrinc.AfficherTCO61Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(6);
+  Affiche_Fenetre_TCO(6,true);
 end;
 
 procedure TFormPrinc.AfficherTCO71Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(7);
+  Affiche_Fenetre_TCO(7,true);
 end;
 
 procedure TFormPrinc.AfficherTCO81Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(8);
+  Affiche_Fenetre_TCO(8,true);
 end;
 
 procedure TFormPrinc.AfficherTCO91Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(9);
+  Affiche_Fenetre_TCO(9,true);
 end;
 
 procedure TFormPrinc.AfficherTCO101Click(Sender: TObject);
 begin
-  Affiche_Fenetre_TCO(10);
+  Affiche_Fenetre_TCO(10,true);
 end;
 
 // mise à jour des menus TCO

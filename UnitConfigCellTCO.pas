@@ -539,6 +539,7 @@ end;
 
 procedure TFormConfCellTCO.FormActivate(Sender: TObject);
 begin
+  if indexTCOcourant=0 then exit;
   if affevt then Affiche('FormConfCellTCO activate',clyellow);
   if selectionaffichee[indexTCOcourant] then ButtonFond.caption:='Couleur de fond de la sélection'
   else ButtonFond.caption:='Couleur de fond de la cellule';
@@ -585,7 +586,7 @@ end;
 procedure TFormConfCellTCO.EditTypeImageChange(Sender: TObject);
 var Bimage,erreur : integer;
 begin
-  if clicTCO or not(ConfCellTCO) or actualize then exit;
+  if clicTCO or not(ConfCellTCO) or actualize or (IndexTCOCourant=0) then exit;
   if affevt then Affiche('TCO evt editTypeImageKeyPress',clorange);
   Val(EditTypeImage.Text,Bimage,erreur);
   if (erreur<>0) or not(Bimage in[0..29,32..34,50,51]) then exit;

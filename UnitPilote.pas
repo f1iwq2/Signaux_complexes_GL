@@ -6,7 +6,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls, UnitPrinc;
+  Dialogs, ExtCtrls, StdCtrls, UnitPrinc,
+  jpeg;
 
 type
    TFormPilote = class(TForm)
@@ -38,6 +39,7 @@ type
     CheckChiffre: TCheckBox;
     CheckChevron: TCheckBox;
     CheckClignote: TCheckBox;
+    ImageSignaux: TImage;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);

@@ -369,8 +369,20 @@ type
     RadioButtonCde: TRadioButton;
     Label28: TLabel;
     EditPortCde: TEdit;
-    ButtonOuvreCom: TButton;
     CheckBoxCR: TCheckBox;
+    TabSheetAccessoires: TTabSheet;
+    ListBoxAcc: TListBox;
+    ButtonAjAccCom: TButton;
+    ButtonSupAccCom: TButton;
+    GroupBox27: TGroupBox;
+    Label71: TLabel;
+    EditNomAcc: TEdit;
+    Label72: TLabel;
+    EditPortCom: TEdit;
+    ComboBoxAccComUSB: TComboBox;
+    ButtonOuvreCom: TButton;
+    Label73: TLabel;
+    LabelInfoAcc: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -557,6 +569,13 @@ type
     procedure RadioButtonCdeClick(Sender: TObject);
     procedure ButtonOuvreComClick(Sender: TObject);
     procedure CheckBoxCRClick(Sender: TObject);
+    procedure ButtonAjAccComClick(Sender: TObject);
+    procedure EditNomAccChange(Sender: TObject);
+    procedure EditPortComChange(Sender: TObject);
+    procedure ListBoxAccMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ComboBoxAccComUSBChange(Sender: TObject);
+    procedure ButtonSupAccComClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -633,6 +652,7 @@ section_initpp_ch='[init_dcc++]';
 section_trains_ch='[section_trains]';
 section_placement_ch='[section_placement]';
 section_DecPers_ch='[section_decodeurs]';
+section_accCOM_ch='[section_accCOMUSB]';
 
 
 var
@@ -644,10 +664,10 @@ var
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant,AffMemoFenetre,NbreComCde,avecCR : integer;
+  ligneDCC,decCourant,AffMemoFenetre,NbreComCde,avecCR,ligneClicAccCOM,AncligneClicAccCOM : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
-  modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,
+  modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
   fichier : text;
 
@@ -892,6 +912,14 @@ begin
   if i<>0 then delete(sa,1,3);
   val(sa,Numport,erreur);
   config_com:=not( (i=0) or (NumPort>MaxPortCom) or (prot_serie=-1) or (prot_serie>4) or (i=0) );
+end;
+
+function encode_AccCOM(index : integer) : string;
+var s : string;
+begin
+  s:=Tablo_acc_COMUSB[index].nom;
+  s:=s+','+inttoSTR(Tablo_acc_COMUSB[index].NumCom);
+  result:=s;
 end;
 
 // transforme l'aiguillage de la base de données aiguillage en texte
@@ -1603,7 +1631,7 @@ begin
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].FichierSon+'"';
 
   if Tablo_Actionneur[i].cde then
-    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',COM'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',ACC'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
 
   encode_act_loc_son:=s;
 end;
@@ -1922,38 +1950,18 @@ begin
     end;
   writeln(fichierN,'0');
 
-
-
+  // accessoires comusb
+  writeln(fichierN,'/------------');
+  writeln(fichierN,section_accCOM_ch);
+  for i:=1 to NbAcc_USBCOM do
+  begin
+    s:=Tablo_acc_COMUSB[i].nom+','+inttostr(Tablo_acc_COMUSB[i].NumCom);
+    writeln(fichierN,s);
+  end;
+  writeln(fichierN,'0');
 
   closefile(fichierN);
 
-end;
-
-// affecte un index à un com dans le tableau tablo_com_cde
-function affecte_index_com(NumCom : integer) : boolean;
-var j : integer;
-    trouve : boolean;
-begin
-        j:=1;
-        repeat
-          trouve:=Tablo_com_cde[j].NumPort=NumCom;
-          if not(trouve) then inc(j);
-        until (Trouve) or (j>10);
-        // le com n'a pas été stocké, le stocker et incrémenter l'indice du tableau
-        if not(trouve) then
-        begin
-          if NbreComCde<MaxComUSBCde then
-          begin
-            inc(NbreComCde);
-            tablo_com_cde[NbreComCde].NumPort:=NumCom;
-            result:=true;
-          end
-          else
-          begin
-            affiche('Nombre maxi de com/usb actionneurs atteint ('+intToSTR(MaxComUSBCde)+') le COM'+intToSTR(NumCom)+' ne sera pas traité',clred);
-            result:=false;
-          end;
-        end;
 end;
 
 procedure lit_config;
@@ -2066,7 +2074,7 @@ var s,sa,SOrigine: string;
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
   NbreComCde:=0;
-  for i:=1 to 10 do tablo_com_cde[i].NumPort:=0;
+  for i:=1 to 10 do tablo_com_cde[i].NumAcc:=0;
 
   // définition des actionneurs
   repeat
@@ -2148,7 +2156,7 @@ var s,sa,SOrigine: string;
         end;
       end;
 
-      if length(sa)>1 then if (sa[1]='A') then
+      if length(sa)>1 then if (sa[1]='A') and (sa[2]<>'C') then  // pour différencier ACC
       // -----------------accessoire
       begin
         Tablo_actionneur[maxtablo_act].act:=true;
@@ -2241,7 +2249,7 @@ var s,sa,SOrigine: string;
         end;
       end;
 
-      if length(sa)>3 then if copy(sa,1,3)='COM' then
+      if length(sa)>3 then if copy(sa,1,3)='ACC' then
       // -----------------fonction commande COM
       begin
         Tablo_actionneur[maxtablo_act].act:=false;
@@ -2262,10 +2270,9 @@ var s,sa,SOrigine: string;
 
         delete(sa,1,3);
         val(sa,i,erreur);  // com
-        tablo_actionneur[maxTablo_act].fonction:=i;  // numéro de COM
+        tablo_actionneur[maxTablo_act].fonction:=i;  // numéro d'accessoire
 
-        affecte_index_com(i);
-
+  
         i:=pos(',',sa);
         delete(sa,1,i);
         tablo_actionneur[maxTablo_act].trainDest:=sa;
@@ -2810,8 +2817,29 @@ var s,sa,SOrigine: string;
     trains[i].x:=-999999;
     trains[i].y:=-999999;
   end;
+  end;
 
-end;
+  procedure compile_acc_comusb;
+  var i,erreur : integer;
+  begin
+    NbAcc_USBCOM:=0;
+    repeat
+      lit_ligne;
+      if s<>'0' then
+      begin
+        inc(NbAcc_USBCOM);
+        sa:=sOrigine;
+        i:=pos(',',sa);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].nom:=copy(sa,1,i-1);
+        delete(sa,1,i);
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].NumCom:=i;
+        Tablo_com_cde[NbAcc_USBCOM].NumAcc:=NbAcc_USBCOM;
+      end;
+      NbreComCde:=NbAcc_USBCOM;
+    until (sOrigine='0') or (NbAcc_USBCOM>=NbAccMaxi_USBCOM);
+   end;
+
 
   // trie les signaux
   procedure trier_sig;
@@ -3469,6 +3497,15 @@ end;
       until (s='0') or eof(fichier);
     end;
 
+    // section accesoires comusb
+    sa:=uppercase(section_accCOM_ch);
+    if pos(sa,s)<>0 then
+    begin
+      trouve_section_acccomusb:=true;
+      compile_acc_comusb;
+    end;
+
+
     inc(it);
 
   until (eof(fichier));
@@ -3483,6 +3520,7 @@ begin
   trouve_ipv4_PC:=false;
   trouve_retro:=false;
   trouve_sec_init:=false;
+  trouve_section_acccomusb:=false;
   trouve_init_aig:=false;
   trouve_dem_aig:=false;
   trouve_tempo_aig:=false;
@@ -3866,6 +3904,7 @@ var AncAdresse,index,adresse,erreur : integer;
     s : string;
 begin
   index:=index_Signal(lc)-1;
+  if index<1 then exit;
   s:=Uppercase(FormConfig.ListBoxSig.Items[index]);   // ligne cliquée
   if s='' then
   begin
@@ -4004,6 +4043,8 @@ begin
   editLAY.Text:=lay;
  
   LabelNbDecPers.caption:=intToSTR(NbreDecPers);
+
+
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
   activ:=false;
@@ -4197,7 +4238,7 @@ begin
     end;
   end;
 
-  // remplit les 4 fenêtres de config des aiguillages branches signaux, actionneurs
+  // remplit les 5 fenêtres de config des aiguillages branches signaux, actionneurs, accessoires comusb
   for i:=1 to NbreDecPers do
   begin
     s:=decodeur_pers[i].nom;
@@ -4352,7 +4393,25 @@ begin
       items.Add(Train_tablo(i));
     end;
   end;
-  
+
+  with listBoxAcc do
+  begin
+    clear;
+    formConfig.ComboBoxAccComUSB.Clear;
+    for i:=1 to NbAcc_USBCOM do
+    begin
+      items.Add(encode_AccCOM(i));
+      formConfig.ComboBoxAccComUSB.Items.Add(Tablo_acc_COMUSB[i].nom+' (COM'+intToSTR(Tablo_acc_COMUSB[i].NumCom)+')');
+    end;
+  end;
+  if NbAcc_USBCOM>MaxComUSBCde then LabelInfoAcc.caption:='Nombre maxi de com atteint : '+intToStr(MaxComUSBCde);
+
+  {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
+  else
+    Affiche('Manque fichier "Image_Signaux.jpg"',clOrange);
+  }
+  ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
+
   ligneclicAig:=-1;
   AncLigneClicAig:=-1;
   ligneClicSig:=-1;
@@ -4361,6 +4420,8 @@ begin
   AncligneClicBr:=-1;
   ligneClicAct:=-1;
   AncLigneClicAct:=-1;
+  ligneClicAccCOM:=-1;
+  AncligneClicAccCOM:=-1;
 end;
 
 
@@ -4388,7 +4449,17 @@ begin
     if s[erreur]='P' then begin B:='P';exit;end;
     if s[erreur]='D' then begin B:='D';exit;end;
   end;
+
   B:='Z';
+end;
+
+procedure Aff_champs_accCOMUSB_tablo(index : integer);
+begin
+  if (index<1) or (index>NbAccMaxi_USBCOM) then exit;
+  clicliste:=true;
+  formConfig.editNomAcc.Text:=Tablo_acc_COMUSB[index].nom;
+  formConfig.editPortCom.Text:=intToSTR(Tablo_acc_COMUSB[index].NumCom);
+  clicliste:=false;
 end;
 
 // affiche le graphisme de l'aiguillage en fonction du tablo en index
@@ -4664,6 +4735,7 @@ begin
     GroupBox19.Top:=GroupBox18.Top+GroupBox18.Height+8;
     GroupBox19.Height:=96;
     ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
+   // ComboBoxAccComUSB.top:=
   end;
 end;
 
@@ -4674,6 +4746,7 @@ begin
     positionne;
     ButtonOuvreCom.Visible:=false;
     CheckRaz.Visible:=false;
+    ComboBoxAccComUSB.Visible:=false;
     GroupBoxAct.Caption:='Action pour fonction F de locomotive';
     EditFonctionAccess.Hint:='Numéro de fonction du décodeur du train (0 à 12 ou 28)';
     editTrainDest.Hint:='Train destinataire de la fonction F';
@@ -4706,17 +4779,15 @@ begin
   begin
     positionne;
     editTrainDest.Hint:='Commande ASCII';
-    EditFonctionAccess.Hint:='Port Com/Usb d''envoi de la commande';
-
+    EditFonctionAccess.visible:=false;
+    ComboBoxAccComUSB.Visible:=true;
     CheckRaz.Visible:=false;
     GroupBoxAct.Caption:='Action pour commande sur COM/USB';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
-    LabelFonction.caption:='Port COM/USB :';
-    LabelFonction.Top:=22;
-
-    EditFonctionAccess.Visible:=true;
-    EditFonctionAccess.Top:=20;
+    LabelFonction.caption:='Accessoire COM/USB';
+    LabelFonction.Top:=18;
+    ComboBoxAccComUSB.Top:=32;
 
     RadioButtonLoc.Checked:=false;
     RadioButtonAccess.Checked:=false;
@@ -4744,9 +4815,10 @@ begin
   with formconfig do
   begin
     positionne;
-
+    ComboBoxAccComUSB.Visible:=false;
     GroupBoxAct.Caption:='Action pour accessoire';
     CheckRaz.Visible:=true;
+
     ButtonOuvreCom.Visible:=false;
     LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
     LabelFonction.visible:=true;
@@ -4776,7 +4848,7 @@ begin
     GroupBoxAct.Caption:='Action pour son';
     CheckRaz.Visible:=true;
     ButtonOuvreCom.Visible:=false;
-
+    ComboBoxAccComUSB.Visible:=false;
     LabelTempo.Visible:=false; EditTempo.visible:=false;
     EditFonctionAccess.Top:=14;
     LabelFonction.Top:=18;
@@ -5248,7 +5320,7 @@ begin
     champs_type_cde;
     with formConfig do
     begin
-      EditFonctionAccess.text:=inttostr(Tablo_actionneur[i].fonction);
+      ComboBoxAccComUSB.ItemIndex:=Tablo_actionneur[i].fonction-1;
       EditEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].etat);
       EditTrainDest.text:=Tablo_actionneur[i].TrainDest;
     end;
@@ -5468,8 +5540,6 @@ begin
     Aig_sauve:=Aiguillage[lc+1];  // sauvegarde
     AncligneclicAig:=ligneclicAig;
     ligneclicAig:=lc;
-
-
   end;
 
   Val(s,Adresse,erreur);  // Adresse de l'aguillage
@@ -6668,8 +6738,8 @@ begin
       begin
         LabelInfo.caption:='Erreur fonction actionneur';exit
       end else LabelInfo.caption:=' ';
-      
-      if radioButtonLoc.Checked or RadioButtonCde.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
+
+      if radioButtonLoc.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
       if RadioButtonAccess.Checked then Tablo_Actionneur[ligneClicAct+1].accessoire:=fonction;
       
       s:=encode_act_loc_son(ligneClicAct+1);
@@ -8754,6 +8824,18 @@ begin
           Affiche('Erreur 15: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
           Affiche('qui se trouve dans la plage des accessoires DCC interdits (257-272) en Xpressnet',clred);
         end;
+      end;
+      if Tablo_actionneur[i].cde then
+      begin
+        j:=Tablo_actionneur[i].fonction;
+        if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
+        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);ok:=false;end;
+        if (j>0) and (j<11) and (Tablo_acc_COMUSB[j].NumCom=0) then
+        begin
+          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);
+          ok:=false;
+        end;
+
       end;
     end;
 
@@ -10933,6 +11015,7 @@ begin
   end;
 end;
 
+
 procedure TFormConfig.ListBoxTrainsMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var s : string;
@@ -12018,32 +12101,129 @@ begin
   end;
 end;
 
+procedure supprime_acc;
+var ss,s : string;
+    n,i,j : integer;
+begin
+  ss:='';
+  n:=0;
+  for i:=0 to NbAcc_USBCOM-1 do
+  begin
+    if formconfig.ListBoxAcc.selected[i] then
+    begin
+      ss:=ss+ tablo_acc_comusb[i+1].nom+' ';
+      inc(n);
+    end;
+  end;
+  if ss='' then exit;
+
+  s:='Voulez-vous supprimer ';
+  if n=1 then s:=s+' l''accessoire COM/USB ' else s:=s+' les accessoires COM/USB ';
+  s:=s+ss+' ?';
+
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  clicliste:=true;
+  formConfig.editNomAcc.text:='';
+  formConfig.editPortCom.Text:='';
+
+  // suppression
+  n:=0;
+  i:=1;
+  repeat
+    if formconfig.ListBoxAcc.selected[i-1] then
+    begin
+
+      for j:=i to NbAcc_USBCOM-1 do
+      begin
+        formconfig.ListBoxAcc.selected[j-1]:=formconfig.ListBoxAcc.selected[j];
+        tablo_acc_comusb[j]:=tablo_acc_comusb[j+1];
+      end;
+      dec(NbAcc_USBCOM);
+      tablo_acc_comusb[NbAcc_USBCOM+1].NumCom:=0;
+      i:=0;
+    end;
+    inc(i);
+  until i>NbAcc_USBCOM;
+
+  if NbAcc_USBCOM<=MaxComUSBCde then formConfig.LabelInfoAcc.caption:='';
+  NbreComCde:=NbAcc_USBCOM;
+
+  config_modifie:=true;
+  FormConfig.ListBoxAcc.Clear;
+  formConfig.ComboBoxAccComUSB.Clear;
+
+  // réafficher la liste
+  for i:=1 to NbAcc_USBCOM do
+  begin
+    s:=encode_AccCOM(i);
+    if s<>'' then
+    begin
+      Tablo_com_cde[i].NumAcc:=i;
+      FormConfig.ListBoxAcc.items.Add(s);
+      formConfig.ComboBoxAccComUSB.Items.Add(Tablo_acc_COMUSB[i].nom+' (COM'+intToSTR(Tablo_acc_COMUSB[i].NumCom)+')');
+    end;
+  end;      
+  ligneclicAccCom:=-1;
+  AncligneclicAccCom:=-1;
+  clicliste:=false;
+end;
+
+procedure ajoute_acc;
+var i : integer;
+    s : string;
+begin
+  if NbAcc_USBCOM>=NbAccMaxi_USBCOM then
+  begin
+    Affiche('Nombre maximal d''accessoires COM/USB',clRed);
+    exit;
+  end;
+  clicliste:=true;
+
+  // désélectionne tout
+  with formconfig.ListBoxAcc do
+    for i:=0 to items.Count-1 do Selected[i]:=false;
+
+  inc(NbAcc_USBCOM);
+  if NbAcc_USBCOM>MaxComUSBCde then formConfig.LabelInfoAcc.caption:='Nombre maxi de com atteint : '+intToStr(MaxComUSBCde);
+
+  i:=NbAcc_USBCOM;
+  Tablo_acc_COMUSB[i].nom:='';
+  Tablo_acc_COMUSB[i].NumCom:=0;
+
+  s:=encode_AccCOM(i);
+  // scroller à la fin et sélectionner
+  with formconfig.ListBoxAcc do
+  begin
+    items.add(s);
+    selected[i-1]:=true;
+    SetFocus;
+    perform(WM_VSCROLL,SB_BOTTOM,0);
+  end;
+
+  formconfig.LabelInfo.caption:='Accessoire COM/USB créé';
+  ligneClicAccCOM:=i-1;
+  AncligneClicAccCOM:=ligneClicAccCom;
+  Aff_champs_accCOMUSB_tablo(i);
+  formConfig.ComboBoxAccComUSB.Items.Add('nouveau');
+  clicliste:=false;
+  config_modifie:=true;
+end;
+
+
+
 procedure TFormConfig.Supprimer1Click(Sender: TObject);
 var tl: TListBox;
     s : string;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   s:=tl.name;
-  if s='ListBoxAct' then
-  begin
-    supprime_act;
-  end;
-  if s='ListBoxPN' then
-  begin
-    supprime_PN;
-  end;
-  if s='ListBoxSig' then
-  begin
-    supprime_sig;
-  end;
-  if s='ListBoxAig' then
-  begin
-    supprime_aig;
-  end;
-  if s='ListBoxTrains' then
-  begin
-    supprime_Train;
-  end;
+  if s='ListBoxAct' then supprime_act;
+  if s='ListBoxPN' then supprime_PN;
+  if s='ListBoxSig' then supprime_sig;
+  if s='ListBoxAig' then supprime_aig;
+  if s='ListBoxTrains' then supprime_Train;
+  if s='ListBoxAcc' then supprime_acc;
 
 end;
 
@@ -12073,7 +12253,7 @@ begin
   begin
     ajoute_train;
   end;
-
+  if s='ListBoxAcc' then ajoute_acc;
 end;
 
 procedure TFormConfig.outcopierentatquetexte1Click(Sender: TObject);
@@ -12084,28 +12264,21 @@ begin
 end;
 
 procedure TFormConfig.ButtonOuvreComClick(Sender: TObject);
-var i : integer;
+var i,index : integer;
 begin
-  // recrée les indexs des com
-  NbreComCde:=0;
-  for i:=1 to 10 do tablo_com_cde[i].NumPort:=0;
-  for i:=1 to maxTablo_act do
-  begin
-    if Tablo_actionneur[i].cde then
-    begin
-       affecte_index_com(tablo_actionneur[i].fonction);
-    end;
-  end;
+//  Affiche(intToSTr(componentcount),clyellow); 
 
   for i:=1 to 10 do
   begin
     deconnecte_usb_cde(i);
   end;
+
   for i:=1 to NbreComCde do
   begin
-    if connecte_port_usb_cde(i) then
-      Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs ouvert',clLime)
-    else Affiche('COM'+intToSTR(tablo_com_cde[i].numport)+' commande actionneurs non ouvert',clOrange);
+    index:=tablo_com_cde[i].NumAcc;
+    if connecte_port_usb_cde(index) then
+      Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' commande actionneurs ouvert',clLime)
+    else Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' commande actionneurs non ouvert',clOrange);
   end;
 end;
 
@@ -12114,7 +12287,93 @@ begin
   if checkBoxCR.Checked then avecCR:=1 else avecCR:=0;
 end;
 
+procedure TFormConfig.ButtonAjAccComClick(Sender: TObject);
 begin
-end.
+  ajoute_acc;
+end;
+
+procedure TFormConfig.EditNomAccChange(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicAccCOM<0) then exit;
+  if affevt then affiche('Evt Edit act Change',clyellow);
+  with Formconfig do
+  begin
+    s:=EditNomAcc.Text;
+    Tablo_acc_COMUSB[ligneClicAccCOM+1].nom:=s;
+    ComboBoxAccComUSB.Items[ligneClicAccCOM]:=s+' (COM'+intToSTR(Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom)+')';
+    s:=encode_AccCOM(ligneClicAccCOM+1);
+    ListBoxAcc.Items[ligneClicAccCOM]:=s;
+    ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+  end;
+end;
+
+procedure TFormConfig.EditPortComChange(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+begin
+  if clicliste or (ligneClicAccCOM<0) then exit;
+  if affevt then affiche('Evt Edit port Change',clyellow);
+  with Formconfig do
+  begin
+    val(EditPortCom.Text,i,erreur);
+    if (i<1) or (i>255) then exit;
+    Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom:=i;
+    s:=encode_AccCOM(ligneClicAccCOM+1);
+    ListBoxAcc.Items[ligneClicAccCOM]:=s;
+    ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+    s:=EditNomAcc.Text;
+    ComboBoxAccComUSB.Items[ligneClicAccCOM]:=s+' (COM'+intToSTR(Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom)+')';
+  end;
+end;
+
+procedure TFormConfig.ListBoxAccMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var i,lc : integer;
+    s : string;
+begin
+  clicliste:=true;
+  if NbAcc_USBCOM<1 then exit;
+
+  with Formconfig.ListBoxAcc do
+  begin
+    i:=0;
+    lc:=itemindex;
+    //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
+    s:=Uppercase(items[lc]);   // ligne cliquée
+    if s='' then
+    begin
+      ligneclicAccCom:=-1;
+      exit;
+    end;
+
+    AncligneclicAccCom:=ligneclicAccCom;
+    ligneclicAccCom:=lc;
+  end;
+
+
+  Aff_champs_accCOMUSB_tablo(lc+1);
+  clicliste:=false;
+end;
+
+
+
+procedure TFormConfig.ComboBoxAccComUSBChange(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicAct<0) then exit;
+  if affevt then affiche('Evt Edit port Change',clyellow);
+  Tablo_Actionneur[ligneClicAct+1].fonction:=ComboBoxAccComUSB.ItemIndex+1;
+  s:=encode_act_loc_son(ligneClicAct+1);
+  ListBoxAct.Items[ligneClicAct]:=s;
+  ListBoxAct.Selected[ligneClicAct]:=true;
+end;
+
+procedure TFormConfig.ButtonSupAccComClick(Sender: TObject);
+begin
+  supprime_acc;
+end;
+
+end.
 
 
