@@ -562,7 +562,7 @@ var
 
   Tablo_com_cde : array[1..10] of record
                    portOuvert: boolean;
-                   NumAcc: integer;   // numéro accessoire tableau tablo_acc_comusb
+                   NumAcc: integer;   // numéro périphérique tableau tablo_acc_comusb
                    tamponRx : string;
                    end;
 
@@ -597,7 +597,7 @@ var
   Tablo_acc_COMUSB : array[1..NbAccMaxi_USBCOM] of record
                       nom : string;
                       NumCom : integer;  // numéro de port COM
-                      ScvAig,ScvDet,ScvAct : boolean ;  // services
+                      ScvAig,ScvDet,ScvAct,ScvVis : boolean ;  // services
                     end;
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
@@ -10298,14 +10298,17 @@ begin
   if (adr>650) then
   for i:=1 to NbAcc_USBCOM do
   begin
-    // envoyer event det à accessoire
-    if Tablo_acc_COMUSB[i].ScvAct then
+    if tablo_com_cde[i].portOuvert then
     begin
-      s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
-      if avecCR=1 then s:=s+#13;
-      Affiche(s,clOrange);
-      if i=1 then Formprinc.MSCommCde1.Output:=s;
-      if i=2 then Formprinc.MSCommCde2.Output:=s;
+      // envoyer event det à accessoire
+      if Tablo_acc_COMUSB[i].ScvAct then
+      begin
+        s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
+        if avecCR=1 then s:=s+#13;
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
+        if i=1 then Formprinc.MSCommCde1.Output:=s;
+        if i=2 then Formprinc.MSCommCde2.Output:=s;
+      end;
     end;
   end;
 
@@ -10500,7 +10503,7 @@ begin
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
         if avecCR=1 then s:=s+#13;
-        Affiche(s,clOrange);
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
       end;
@@ -10599,7 +10602,7 @@ begin
       begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
         if avecCR=1 then s:=s+#13;
-        Affiche(s,clOrange);
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
      end;

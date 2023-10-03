@@ -655,7 +655,6 @@ section_placement_ch='[section_placement]';
 section_DecPers_ch='[section_decodeurs]';
 section_accCOM_ch='[section_accCOMUSB]';
 
-
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,portComCde,recuCDM,residuCDM,trainsauve : string;
@@ -674,7 +673,7 @@ var
 
   // composants dynamiques
   Gp1 : TGroupBox;
-  Cb1,Cb2,Cb3 : TCheckBox;
+  Cb1,Cb2,Cb3,CbVis : TCheckBox;
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
   ShapeT : array[1..10] of TShape;
@@ -925,7 +924,7 @@ begin
   if Tablo_acc_COMUSB[index].ScvAig then s:=s+',1' else s:=s+',0';
   if Tablo_acc_COMUSB[index].ScvDet then s:=s+',1' else s:=s+',0';
   if Tablo_acc_COMUSB[index].ScvAct then s:=s+',1' else s:=s+',0';
-
+  if Tablo_acc_COMUSB[index].ScvVis then s:=s+',1' else s:=s+',0';
   result:=s;
 end;
 
@@ -2855,6 +2854,11 @@ var s,sa,SOrigine: string;
         val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].ScvAct:=i=1;
 
+        i:=pos(',',sa);Delete(sa,1,i);
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].ScvVis:=i=1;
+
+
       end;
       NbreComCde:=NbAcc_USBCOM;
     until (sOrigine='0') or (NbAcc_USBCOM>=NbAccMaxi_USBCOM);
@@ -4148,10 +4152,11 @@ begin
   if clicliste or (ligneClicAccCOM<0) then exit;
   cb:=(sender as Tcheckbox);
   s := cb.Name;
-  //Affiche(s,clyellow);
+  Affiche(s,clyellow);
   if pos('Aig',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAig:=cb.Checked;
   if pos('Det',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvDet:=cb.Checked;
   if pos('Act',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAct:=cb.Checked;
+  if pos('Vis',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvVis:=cb.Checked;
 
   s:=encode_AccCOM(ligneClicAccCOM+1);
   ListBoxAcc.Items[ligneClicAccCOM]:=s;
@@ -4489,6 +4494,18 @@ begin
     onclick:=formconfig.cb_onclick;
   end;
 
+  cbVis:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  with cbVis do
+  begin
+    Left:=110;Top:=45;Width:=100;Height:=12;
+    caption:='Mode visible';
+    name:='cbVis';
+    parent:=gp1;
+    hint:='Affiche le texte à l''écran lors de l''envoi';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+
 
   {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
   else
@@ -4546,6 +4563,7 @@ begin
   cb1.Checked:=Tablo_acc_COMUSB[index].ScvAig;
   cb2.Checked:=Tablo_acc_COMUSB[index].ScvDet;
   cb3.Checked:=Tablo_acc_COMUSB[index].ScvAct;
+  cbVis.Checked:=Tablo_acc_COMUSB[index].ScvVis;
   clicliste:=false;
 end;
 
@@ -4872,7 +4890,7 @@ begin
     GroupBoxAct.Caption:='Action pour commande sur COM/USB';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
-    LabelFonction.caption:='Accessoire COM/USB';
+    LabelFonction.caption:='Périphérique COM/USB';
     LabelFonction.Top:=18;
     ComboBoxAccComUSB.Top:=32;
 

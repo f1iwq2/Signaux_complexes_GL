@@ -2326,7 +2326,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2433,7 +2433,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2719,7 +2719,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2738,7 +2738,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3139,7 +3139,7 @@ object FormConfig: TFormConfig
               Width = 169
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "accessoires COM/USB"'
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -4228,7 +4228,7 @@ object FormConfig: TFormConfig
       end
     end
     object TabSheetAccessoires: TTabSheet
-      Caption = 'Accessoires COM/USB'
+      Caption = 'P'#233'riph'#233'riques COM/USB'
       ImageIndex = 9
       object Label73: TLabel
         Left = 8
@@ -4291,9 +4291,9 @@ object FormConfig: TFormConfig
         object Label71: TLabel
           Left = 10
           Top = 32
-          Width = 95
+          Width = 98
           Height = 13
-          Caption = 'Nom de l'#39'accessoire'
+          Caption = 'Nom du p'#233'riph'#233'rique'
         end
         object Label72: TLabel
           Left = 10
@@ -4307,7 +4307,7 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 121
           Height = 21
-          Hint = 'Nom de l'#39'accessoire'
+          Hint = 'Nom au choix du p'#233'riph'#233'rique'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0

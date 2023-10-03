@@ -1,8 +1,8 @@
 
  Start         Length     Name                   Class
- 0001:00000000 00178F28H .text                   CODE
+ 0001:00000000 00179218H .text                   CODE
  0002:00000000 00002BF4H .data                   DATA
- 0002:00002BF4 041A0599H .bss                    BSS
+ 0002:00002BF4 041A059DH .bss                    BSS
 
 
 Detailed map of segments
@@ -93,12 +93,12 @@ Detailed map of segments
  0001:000EDAE4 000027D4 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
  0001:000F02B8 000015C7 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
  0001:000F1880 0000114C C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
- 0001:000F29CC 0003DA68 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
- 0001:00130434 00002904 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
- 0001:00132D38 00000C00 C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
- 0001:00133938 00002558 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
- 0001:00135E90 00042C08 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
- 0001:00178A98 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
+ 0001:000F29CC 0003DCC8 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
+ 0001:00130694 00002904 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
+ 0001:00132F98 00000C00 C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
+ 0001:00133B98 00002558 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
+ 0001:001360F0 00042C98 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
+ 0001:00178D88 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
  0002:00000000 000000CC C=DATA     S=.data    G=DGROUP   M=System   ACBP=A9
  0002:000000CC 00000020 C=DATA     S=.data    G=DGROUP   M=SysInit  ACBP=A9
  0002:000000EC 00000254 C=DATA     S=.data    G=DGROUP   M=SysUtils ACBP=A9
@@ -217,11 +217,11 @@ Detailed map of segments
  0002:00049A30 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitCDF  ACBP=A9
  0002:00049A44 00000014 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
  0002:00049A58 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
- 0002:00049A5C 00000398 C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
- 0002:00049DF4 00000028 C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
- 0002:00049E1C 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
- 0002:00049E28 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
- 0002:00049E30 04159768 C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
+ 0002:00049A5C 0000039C C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
+ 0002:00049DF8 00000028 C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
+ 0002:00049E20 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
+ 0002:00049E2C 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
+ 0002:00049E34 04159768 C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
 
 Bound resource files
 
@@ -247,4 +247,4 @@ Signaux_complexes_GL.res
 Signaux_complexes_GL.drf
 
 
-Program entry point at 0001:00178DA8
+Program entry point at 0001:00179098
