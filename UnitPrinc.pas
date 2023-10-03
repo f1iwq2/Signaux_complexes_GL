@@ -597,6 +597,7 @@ var
   Tablo_acc_COMUSB : array[1..NbAccMaxi_USBCOM] of record
                       nom : string;
                       NumCom : integer;  // numéro de port COM
+                      ScvAig,ScvDet,ScvAct : boolean ;  // services
                     end;
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
@@ -10105,7 +10106,7 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,index,numacc : integer;
+var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,numacc : integer;
     s,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
@@ -10208,8 +10209,8 @@ begin
       begin
         trainDest:=Tablo_actionneur[i].trainDest;
         if avecCR=1 then trainDest:=TrainDest+#13;
-        if index=1 then Formprinc.MSCommCde1.Output:=TrainDest;
-        if index=2 then Formprinc.MSCommCde2.Output:=TrainDest;
+        if numacc=1 then Formprinc.MSCommCde1.Output:=TrainDest;
+        if numacc=2 then Formprinc.MSCommCde2.Output:=TrainDest;
         Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clyellow);
       end
         else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -10293,6 +10294,21 @@ begin
       end;
     end;
   end;
+
+  if (adr>650) then
+  for i:=1 to NbAcc_USBCOM do
+  begin
+    // envoyer event det à accessoire
+    if Tablo_acc_COMUSB[i].ScvAct then
+    begin
+      s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
+      if avecCR=1 then s:=s+#13;
+      Affiche(s,clOrange);
+      if i=1 then Formprinc.MSCommCde1.Output:=s;
+      if i=2 then Formprinc.MSCommCde2.Output:=s;
+    end;
+  end;
+
 end;
 
 Procedure affiche_memoire;
@@ -10474,6 +10490,23 @@ begin
     FormDebug.MemoEvtDet.lines.add('Raz sur débordement');
   end;
 
+  // vers accessoires
+  for i:=1 to NbAcc_USBCOM do
+  begin
+    // envoyer event act à accessoire
+    if tablo_com_cde[i].portOuvert then
+    begin
+      if Tablo_acc_COMUSB[i].ScvDet then
+      begin
+        s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
+        if avecCR=1 then s:=s+#13;
+        Affiche(s,clOrange);
+        if i=1 then Formprinc.MSCommCde1.Output:=s;
+        if i=2 then Formprinc.MSCommCde2.Output:=s;
+      end;
+    end;
+  end;
+
   // attention à partir de cette section le code est susceptible de ne pas être exécuté??
 
   // Mettre à jour le TCO
@@ -10555,6 +10588,23 @@ begin
     typ:=Tablo_actionneur[i].typdeclenche;
     if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
   end;
+
+  // pour accessoires
+  for i:=1 to NbAcc_USBCOM do
+  begin
+    // envoyer event act à accessoire
+    if tablo_com_cde[i].portOuvert then
+    begin
+      if Tablo_acc_COMUSB[i].ScvAig then
+      begin
+        s:='T'+intToSTR(adresse)+','+intToSTR(pos);
+        if avecCR=1 then s:=s+#13;
+        Affiche(s,clOrange);
+        if i=1 then Formprinc.MSCommCde1.Output:=s;
+        if i=2 then Formprinc.MSCommCde2.Output:=s;
+     end;
+   end;
+ end;  
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)

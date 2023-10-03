@@ -380,9 +380,9 @@ type
     Label72: TLabel;
     EditPortCom: TEdit;
     ComboBoxAccComUSB: TComboBox;
-    ButtonOuvreCom: TButton;
     Label73: TLabel;
     LabelInfoAcc: TLabel;
+    ButtonOuvreCom: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -584,6 +584,7 @@ type
     procedure modif_editT(Sender : TObject);
     procedure modif_ComboTS(Sender : TObject);
     procedure modif_ComboL(Sender : TObject);
+    procedure cb_onclick(Sender : Tobject);
   end;
 
 const
@@ -671,7 +672,9 @@ var
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
   fichier : text;
 
-
+  // composants dynamiques
+  Gp1 : TGroupBox;
+  Cb1,Cb2,Cb3 : TCheckBox;
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
   ShapeT : array[1..10] of TShape;
@@ -919,6 +922,10 @@ var s : string;
 begin
   s:=Tablo_acc_COMUSB[index].nom;
   s:=s+','+inttoSTR(Tablo_acc_COMUSB[index].NumCom);
+  if Tablo_acc_COMUSB[index].ScvAig then s:=s+',1' else s:=s+',0';
+  if Tablo_acc_COMUSB[index].ScvDet then s:=s+',1' else s:=s+',0';
+  if Tablo_acc_COMUSB[index].ScvAct then s:=s+',1' else s:=s+',0';
+
   result:=s;
 end;
 
@@ -1955,7 +1962,7 @@ begin
   writeln(fichierN,section_accCOM_ch);
   for i:=1 to NbAcc_USBCOM do
   begin
-    s:=Tablo_acc_COMUSB[i].nom+','+inttostr(Tablo_acc_COMUSB[i].NumCom);
+    s:=encode_AccCOM(i);
     writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
@@ -2835,6 +2842,19 @@ var s,sa,SOrigine: string;
         val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].NumCom:=i;
         Tablo_com_cde[NbAcc_USBCOM].NumAcc:=NbAcc_USBCOM;
+        i:=pos(',',sa); delete(sa,1,i);
+
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].ScvAig:=i=1;
+        i:=pos(',',sa);Delete(sa,1,i);
+
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].ScvDet:=i=1;
+        i:=pos(',',sa);Delete(sa,1,i);
+
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].ScvAct:=i=1;
+
       end;
       NbreComCde:=NbAcc_USBCOM;
     until (sOrigine='0') or (NbAcc_USBCOM>=NbAccMaxi_USBCOM);
@@ -4120,6 +4140,24 @@ begin
   end;
 end;
 
+procedure TformConfig.cb_onclick(sender : TObject);
+var s : string;
+    cb : TCheckBox;
+    etat : string;
+begin
+  if clicliste or (ligneClicAccCOM<0) then exit;
+  cb:=(sender as Tcheckbox);
+  s := cb.Name;
+  //Affiche(s,clyellow);
+  if pos('Aig',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAig:=cb.Checked;
+  if pos('Det',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvDet:=cb.Checked;
+  if pos('Act',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAct:=cb.Checked;
+
+  s:=encode_AccCOM(ligneClicAccCOM+1);
+  ListBoxAcc.Items[ligneClicAccCOM]:=s;
+  ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+
+end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,y,l,LongestLength,PixelLength : integer;
@@ -4394,6 +4432,7 @@ begin
     end;
   end;
 
+  // accessoires
   with listBoxAcc do
   begin
     clear;
@@ -4405,6 +4444,51 @@ begin
     end;
   end;
   if NbAcc_USBCOM>MaxComUSBCde then LabelInfoAcc.caption:='Nombre maxi de com atteint : '+intToStr(MaxComUSBCde);
+
+  //--------- groupbox
+  gp1:=TgroupBox.Create(FormConfig.TabSheetAccessoires);
+  with gp1 do
+  begin
+    Left:=264;Top:=232;Width:=groupBox27.Width;Height:=70;
+    parent:=TabSheetAccessoires;
+    caption:='Services envoyés à l''accessoire';
+    Name:='Gp1';
+  end;
+
+  cb1:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  with cb1 do
+  begin
+    Left:=10;Top:=25;Width:=100;Height:=12;
+    caption:='Aiguillages';
+    name:='cbAig';
+    parent:=gp1;
+    hint:='Envoie les évènements aiguillages';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+  cb2:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  with cb2 do
+  begin
+    Left:=110;Top:=25;Width:=100;Height:=12;
+    caption:='Détecteurs';
+    name:='cbDet';
+    parent:=gp1;
+    hint:='Envoie les évènements détecteurs';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+  cb3:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  with cb3 do
+  begin
+    Left:=10;Top:=45;Width:=100;Height:=12;
+    caption:='Actionneurs';
+    name:='cbAct';
+    parent:=gp1;
+    hint:='Envoie les évènements actionneurs';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+
 
   {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
   else
@@ -4459,6 +4543,9 @@ begin
   clicliste:=true;
   formConfig.editNomAcc.Text:=Tablo_acc_COMUSB[index].nom;
   formConfig.editPortCom.Text:=intToSTR(Tablo_acc_COMUSB[index].NumCom);
+  cb1.Checked:=Tablo_acc_COMUSB[index].ScvAig;
+  cb2.Checked:=Tablo_acc_COMUSB[index].ScvDet;
+  cb3.Checked:=Tablo_acc_COMUSB[index].ScvAct;
   clicliste:=false;
 end;
 

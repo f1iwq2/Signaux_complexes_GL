@@ -4285,7 +4285,7 @@ object FormConfig: TFormConfig
         Left = 264
         Top = 96
         Width = 329
-        Height = 113
+        Height = 129
         Caption = 'Description de l'#39'accessoire'
         TabOrder = 3
         object Label71: TLabel
@@ -4307,6 +4307,9 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 121
           Height = 21
+          Hint = 'Nom de l'#39'accessoire'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 0
           OnChange = EditNomAccChange
         end
@@ -4318,18 +4321,18 @@ object FormConfig: TFormConfig
           TabOrder = 1
           OnChange = EditPortComChange
         end
-      end
-      object ButtonOuvreCom: TButton
-        Left = 272
-        Top = 256
-        Width = 75
-        Height = 20
-        Hint = 'R'#233'ouvre les ports COMs demand'#233's'
-        Caption = 'Ouvre COMs'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 4
-        OnClick = ButtonOuvreComClick
+        object ButtonOuvreCom: TButton
+          Left = 14
+          Top = 93
+          Width = 75
+          Height = 20
+          Hint = 'R'#233'ouvre les ports COMs demand'#233's'
+          Caption = 'Ouvre COMs'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnClick = ButtonOuvreComClick
+        end
       end
     end
   end
