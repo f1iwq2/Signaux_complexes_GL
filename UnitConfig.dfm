@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 209
-  Top = 203
+  Left = 260
+  Top = 147
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAccessoires
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1042,7 +1042,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 256
         Width = 297
-        Height = 185
+        Height = 145
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1072,13 +1072,6 @@ object FormConfig: TFormConfig
           Width = 32
           Height = 13
           Caption = 'Debug'
-        end
-        object Label28: TLabel
-          Left = 8
-          Top = 134
-          Width = 163
-          Height = 13
-          Caption = 'Protocole COM/USB actionneurs :'
         end
         object EditNbDetDist: TEdit
           Left = 240
@@ -1138,30 +1131,6 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 4
           OnClick = CheckBoxVerifXpressNetClick
-        end
-        object EditPortCde: TEdit
-          Left = 176
-          Top = 128
-          Width = 113
-          Height = 21
-          Hint = 'Vitesse et protocole liaison COM/USB d'#233'clench'#233's par actionneurs'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 5
-        end
-        object CheckBoxCR: TCheckBox
-          Left = 8
-          Top = 152
-          Width = 153
-          Height = 17
-          Hint = 
-            'Ajoute un CR apr'#232's l'#39'envoi de la cha'#238'ne sur le COM/USB d'#233'clench'#233 +
-            ' par un actionneur'
-          Caption = 'Envoyer CR (retour chariot)'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 6
-          OnClick = CheckBoxCRClick
         end
       end
     end
@@ -2326,7 +2295,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2433,7 +2402,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2719,7 +2688,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2738,7 +2707,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3139,7 +3108,7 @@ object FormConfig: TFormConfig
               Width = 169
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "accessoires COM/USB"'
-              ItemHeight = 13
+              ItemHeight = 0
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -4247,9 +4216,9 @@ object FormConfig: TFormConfig
       end
       object ListBoxAcc: TListBox
         Left = 8
-        Top = 96
+        Top = 64
         Width = 233
-        Height = 249
+        Height = 281
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -4265,7 +4234,7 @@ object FormConfig: TFormConfig
       end
       object ButtonAjAccCom: TButton
         Left = 8
-        Top = 72
+        Top = 40
         Width = 65
         Height = 17
         Caption = 'Nouveau'
@@ -4274,18 +4243,18 @@ object FormConfig: TFormConfig
       end
       object ButtonSupAccCom: TButton
         Left = 80
-        Top = 72
+        Top = 40
         Width = 65
         Height = 17
         Caption = 'Supprime'
         TabOrder = 2
         OnClick = ButtonSupAccComClick
       end
-      object GroupBox27: TGroupBox
+      object GroupBoxDesc: TGroupBox
         Left = 264
-        Top = 96
+        Top = 64
         Width = 329
-        Height = 129
+        Height = 113
         Caption = 'Description de l'#39'accessoire'
         TabOrder = 3
         object Label71: TLabel
@@ -4294,13 +4263,6 @@ object FormConfig: TFormConfig
           Width = 98
           Height = 13
           Caption = 'Nom du p'#233'riph'#233'rique'
-        end
-        object Label72: TLabel
-          Left = 10
-          Top = 64
-          Width = 133
-          Height = 13
-          Caption = 'Port COM/USB (de 1 '#224' 255)'
         end
         object EditNomAcc: TEdit
           Left = 168
@@ -4313,26 +4275,18 @@ object FormConfig: TFormConfig
           TabOrder = 0
           OnChange = EditNomAccChange
         end
-        object EditPortCom: TEdit
-          Left = 256
-          Top = 56
-          Width = 33
-          Height = 21
-          TabOrder = 1
-          OnChange = EditPortComChange
-        end
-        object ButtonOuvreCom: TButton
-          Left = 14
-          Top = 93
-          Width = 75
-          Height = 20
-          Hint = 'R'#233'ouvre les ports COMs demand'#233's'
-          Caption = 'Ouvre COMs'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnClick = ButtonOuvreComClick
-        end
+      end
+      object ButtonOuvreCom: TButton
+        Left = 14
+        Top = 357
+        Width = 75
+        Height = 20
+        Hint = 'R'#233'ouvre les ports COMs demand'#233's'
+        Caption = 'Ouvre COMs'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
+        OnClick = ButtonOuvreComClick
       end
     end
   end

@@ -367,18 +367,13 @@ type
     outcopierentatquetexte1: TMenuItem;
     CheckBoxAffMemo: TCheckBox;
     RadioButtonCde: TRadioButton;
-    Label28: TLabel;
-    EditPortCde: TEdit;
-    CheckBoxCR: TCheckBox;
     TabSheetAccessoires: TTabSheet;
     ListBoxAcc: TListBox;
     ButtonAjAccCom: TButton;
     ButtonSupAccCom: TButton;
-    GroupBox27: TGroupBox;
+    GroupBoxDesc: TGroupBox;
     Label71: TLabel;
     EditNomAcc: TEdit;
-    Label72: TLabel;
-    EditPortCom: TEdit;
     ComboBoxAccComUSB: TComboBox;
     Label73: TLabel;
     LabelInfoAcc: TLabel;
@@ -568,10 +563,8 @@ type
     procedure outcopierentatquetexte1Click(Sender: TObject);
     procedure RadioButtonCdeClick(Sender: TObject);
     procedure ButtonOuvreComClick(Sender: TObject);
-    procedure CheckBoxCRClick(Sender: TObject);
     procedure ButtonAjAccComClick(Sender: TObject);
     procedure EditNomAccChange(Sender: TObject);
-    procedure EditPortComChange(Sender: TObject);
     procedure ListBoxAccMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ComboBoxAccComUSBChange(Sender: TObject);
@@ -585,13 +578,13 @@ type
     procedure modif_ComboTS(Sender : TObject);
     procedure modif_ComboL(Sender : TObject);
     procedure cb_onclick(Sender : Tobject);
+    procedure tb_onChange(sender : TObject);
   end;
 
 const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
-ProtocolePortCde_ch='ProtocolePortCde';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
@@ -609,7 +602,6 @@ Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
 IPV4_INTERFACE_ch='Ipv4_interface';
 PROTOCOLE_SERIE_ch='Protocole_serie';
-CR_ch='Cr';
 INTER_CAR_ch='Inter_car';
 Tempo_maxi_ch='Tempo_maxi';
 Entete_ch='Entete';
@@ -657,14 +649,14 @@ section_accCOM_ch='[section_accCOMUSB]';
 
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,portComCde,recuCDM,residuCDM,trainsauve : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant,AffMemoFenetre,NbreComCde,avecCR,ligneClicAccCOM,AncligneClicAccCOM : integer;
+  ligneDCC,decCourant,AffMemoFenetre,NbreComCde,ligneClicAccCOM,AncligneClicAccCOM : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
@@ -673,7 +665,9 @@ var
 
   // composants dynamiques
   Gp1 : TGroupBox;
-  Cb1,Cb2,Cb3,CbVis : TCheckBox;
+  CheckBoxCR,Cb1,Cb2,Cb3,CbVis : TCheckBox;
+  EditPortCde: Tedit;
+  LabelPortCde : Tlabel;
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
   ShapeT : array[1..10] of TShape;
@@ -920,11 +914,13 @@ function encode_AccCOM(index : integer) : string;
 var s : string;
 begin
   s:=Tablo_acc_COMUSB[index].nom;
-  s:=s+','+inttoSTR(Tablo_acc_COMUSB[index].NumCom);
   if Tablo_acc_COMUSB[index].ScvAig then s:=s+',1' else s:=s+',0';
   if Tablo_acc_COMUSB[index].ScvDet then s:=s+',1' else s:=s+',0';
   if Tablo_acc_COMUSB[index].ScvAct then s:=s+',1' else s:=s+',0';
   if Tablo_acc_COMUSB[index].ScvVis then s:=s+',1' else s:=s+',0';
+  if Tablo_acc_COMUSB[index].cr then s:=s+',1' else s:=s+',0';
+  s:=s+','+Tablo_acc_COMUSB[index].protocole;
+
   result:=s;
 end;
 
@@ -1745,12 +1741,6 @@ begin
 
   // port com
   writeln(fichierN,Protocole_serie_ch+'=',portcom);
-
-  // porotocole COM cde accessoires
-  writeln(fichierN,ProtocolePortCde_ch+'=',portComcde);
-
-  // avec CR
-  writeln(fichierN,CR_ch+'=',avecCR);
 
   // temporisation caractère TempoOctet
   writeln(fichierN,Inter_Car_ch+'=',IntToSTR(TempoOctet));
@@ -2839,18 +2829,14 @@ var s,sa,SOrigine: string;
         Tablo_acc_COMUSB[NbAcc_USBCOM].nom:=copy(sa,1,i-1);
         delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbAcc_USBCOM].NumCom:=i;
-        Tablo_com_cde[NbAcc_USBCOM].NumAcc:=NbAcc_USBCOM;
-        i:=pos(',',sa); delete(sa,1,i);
 
-        val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].ScvAig:=i=1;
         i:=pos(',',sa);Delete(sa,1,i);
 
         val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].ScvDet:=i=1;
-        i:=pos(',',sa);Delete(sa,1,i);
 
+        i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].ScvAct:=i=1;
 
@@ -2858,7 +2844,19 @@ var s,sa,SOrigine: string;
         val(sa,i,erreur);
         Tablo_acc_COMUSB[NbAcc_USBCOM].ScvVis:=i=1;
 
+        i:=pos(',',sa);Delete(sa,1,i);
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].cr:=i=1;
 
+        i:=pos(',',sa);Delete(sa,1,i);
+        val(sa,i,erreur);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].protocole:=sa;
+
+        // extraire le numéro de com5:9600,n,8,1
+        i:=extract_int(sa);
+        if i=0 then Affiche('Erreur COM nul : '+sOrigine,clred);
+        Tablo_acc_COMUSB[NbAcc_USBCOM].NumCom:=i;
+        Tablo_com_cde[NbAcc_USBCOM].NumAcc:=NbAcc_USBCOM;
       end;
       NbreComCde:=NbAcc_USBCOM;
     until (sOrigine='0') or (NbAcc_USBCOM>=NbAccMaxi_USBCOM);
@@ -3090,17 +3088,6 @@ var s,sa,SOrigine: string;
     end;
 
 
-    sa:=uppercase(CR_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      val(s,avecCR,erreur);
-      if erreur<>0 then Affiche('Erreur CR: '+sOrigine,clred);
-      if (avecCR<0) or (avecCR>1) then avecCR:=0;
-    end;
-
     // configuration du port com interface
     sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
     i:=pos(sa,s);
@@ -3113,17 +3100,6 @@ var s,sa,SOrigine: string;
       if (NumPort>MaxPortCom) then Affiche('Le port com est supérieur au nombre de COMx à explorer dans le fichier de configuraion',clred);
       portcom:=s;
     end;
-
-    // configuration du port com interface commande accessoires
-    sa:=uppercase(ProtocolePortCde_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      portcomcde:=s;
-    end;
-
 
     // temporisation entre 2 caractères
     sa:=uppercase(INTER_CAR_ch)+'=';
@@ -3617,7 +3593,6 @@ begin
   except
     Affiche('Fichier '+NomConfig+' non trouvé : création d''un fichier vide par défaut',clred);
     portcom:='COM3:57600,N,8,1,2';
-    portComCde:='COM5:115200,n,8,1';
     adresseIPCDM:='127.0.0.1';portCDM:=9999;
     adresseIP:='192.168.1.23';portInterface:=5550;
     verifVersion:=true;
@@ -3783,12 +3758,6 @@ begin
     changeUSB:=portcom<>s;
     portcom:=s;
 
-    s:=EditPortCDE.Text;
-    if s='' then s:='COMX:115200,N,8,1';
-    changeUSBcde:=portcomcde<>s;
-    portcomcde:=s;
-
-
     val(EditTempoOctetUSB.text,i,erreur);
     if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation octet incorrecte';ok:=false;end;
     TempoOctet:=i;
@@ -3849,7 +3818,6 @@ begin
     if CheckFenEt.checked then fenetre:=1 else fenetre:=0;
     if CheckBoxAffMemo.checked then AffMemoFenetre:=1 else AffMemoFenetre:=0;
 
-    if checkBoxCR.Checked then avecCR:=1 else avecCR:=0;
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
     lay:=editLay.Text;
@@ -4003,7 +3971,6 @@ begin
   EditFiltrDet.text:=intToSTR(filtrageDet0);
 
   EditComUSB.Text:=PortCom;
-  EditPortCde.Text:=portcomcde;
   EditFonte.text:=IntToSTR(TailleFonte);
   editdebug.Text:=IntToSTR(debug);
   CheckBoxVerifXpressNet.Checked:=Verif_AdrXpressNet=1;
@@ -4026,7 +3993,6 @@ begin
   CheckLanceCDM.Checked:=LanceCDM;
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
-  checkBoxCR.Checked:=avecCR=1;
 
   RadioButton4.Checked:=ServeurInterfaceCDM=0;
   RadioButton5.Checked:=ServeurInterfaceCDM=1;
@@ -4152,17 +4118,38 @@ begin
   if clicliste or (ligneClicAccCOM<0) then exit;
   cb:=(sender as Tcheckbox);
   s := cb.Name;
-  Affiche(s,clyellow);
   if pos('Aig',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAig:=cb.Checked;
   if pos('Det',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvDet:=cb.Checked;
   if pos('Act',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAct:=cb.Checked;
   if pos('Vis',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvVis:=cb.Checked;
-
+  if s='CheckBoxCR'  then Tablo_acc_COMUSB[ligneClicAccCOM+1].CR:=cb.Checked;
   s:=encode_AccCOM(ligneClicAccCOM+1);
   ListBoxAcc.Items[ligneClicAccCOM]:=s;
   ListBoxAcc.Selected[ligneClicAccCOM]:=true;
-
 end;
+
+procedure TformConfig.tb_onChange(sender : TObject);
+var s,te : string;
+    tb : Tedit;
+    i : integer;
+begin
+  if clicliste or (ligneClicAccCOM<0) then exit;
+  tb:=(sender as Tedit);
+  s:=tb.Name;
+  te:=tb.text;
+  if s='EditPortCde' then Tablo_acc_COMUSB[ligneClicAccCOM+1].Protocole:=te;
+  s:=encode_AccCOM(ligneClicAccCOM+1);
+  ListBoxAcc.Items[ligneClicAccCOM]:=s;
+  i:=pos(':',te);if i=0 then begin LabelInfo.caption:='Syntaxe incorrecte';exit;end;
+  te:=copy(te,1,i);
+  i:=extract_int(te);
+  if i=0 then begin LabelInfo.caption:='Erreur COM nul';exit;end;
+  LabelInfo.caption:='';
+  Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom:=i;
+  Tablo_com_cde[ligneClicAccCOM+1].NumAcc:=ligneClicAccCOM+1;
+  ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+end;
+
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,y,l,LongestLength,PixelLength : integer;
@@ -4454,7 +4441,7 @@ begin
   gp1:=TgroupBox.Create(FormConfig.TabSheetAccessoires);
   with gp1 do
   begin
-    Left:=264;Top:=232;Width:=groupBox27.Width;Height:=70;
+    Left:=264;Top:=groupBoxDesc.top+groupBoxDesc.Height+10;Width:=groupBoxDesc.Width;Height:=70;
     parent:=TabSheetAccessoires;
     caption:='Services envoyés à l''accessoire';
     Name:='Gp1';
@@ -4504,6 +4491,41 @@ begin
     hint:='Affiche le texte à l''écran lors de l''envoi';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
+  end;
+
+  CheckBoxCR:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  with CheckBoxCR do
+  begin
+    Left:=10;Top:=56;Width:=170;Height:=12;
+    caption:='Envoyer CR (retour chariot)';
+    name:='CheckBoxCR';
+    parent:=GroupBoxDesc;
+    hint:='Envoie un CR après toute chaîne';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+
+  EditPortCde:=TEdit.Create(FormConfig.TabSheetAccessoires);
+  with EditPortCde do
+  begin
+    Left:=150;Top:=76;Width:=170;Height:=12;
+    name:='EditPortCde';
+    text:='';
+    parent:=GroupBoxDesc;
+    hint:='Protocole de communication';
+    ShowHint:=true;
+    OnChange:=formconfig.tb_onChange;
+  end;
+
+  LabelPortCde:=TLabel.Create(FormConfig.TabSheetAccessoires);
+  with LabelPortCde do
+  begin
+    Left:=10;Top:=78;Width:=170;Height:=12;
+    caption:='Protocole de communication';
+    name:='LabelPortCde';
+    parent:=GroupBoxDesc;
+    hint:='Protocole de communication';
+    ShowHint:=true;
   end;
 
 
@@ -4559,11 +4581,11 @@ begin
   if (index<1) or (index>NbAccMaxi_USBCOM) then exit;
   clicliste:=true;
   formConfig.editNomAcc.Text:=Tablo_acc_COMUSB[index].nom;
-  formConfig.editPortCom.Text:=intToSTR(Tablo_acc_COMUSB[index].NumCom);
   cb1.Checked:=Tablo_acc_COMUSB[index].ScvAig;
   cb2.Checked:=Tablo_acc_COMUSB[index].ScvDet;
   cb3.Checked:=Tablo_acc_COMUSB[index].ScvAct;
   cbVis.Checked:=Tablo_acc_COMUSB[index].ScvVis;
+  EditPortCde.text:=Tablo_acc_COMUSB[index].protocole;
   clicliste:=false;
 end;
 
@@ -12230,7 +12252,6 @@ var ss,s : string;
 
   clicliste:=true;
   formConfig.editNomAcc.text:='';
-  formConfig.editPortCom.Text:='';
 
   // suppression
   n:=0;
@@ -12382,15 +12403,11 @@ begin
   begin
     index:=tablo_com_cde[i].NumAcc;
     if connecte_port_usb_cde(index) then
-      Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' commande actionneurs ouvert',clLime)
-    else Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' commande actionneurs non ouvert',clOrange);
+      Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique ouvert',clLime)
+    else Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique non ouvert',clOrange);
   end;
 end;
 
-procedure TFormConfig.CheckBoxCRClick(Sender: TObject);
-begin
-  if checkBoxCR.Checked then avecCR:=1 else avecCR:=0;
-end;
 
 procedure TFormConfig.ButtonAjAccComClick(Sender: TObject);
 begin
@@ -12413,24 +12430,7 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditPortComChange(Sender: TObject);
-var s : string;
-    i,erreur : integer;
-begin
-  if clicliste or (ligneClicAccCOM<0) then exit;
-  if affevt then affiche('Evt Edit port Change',clyellow);
-  with Formconfig do
-  begin
-    val(EditPortCom.Text,i,erreur);
-    if (i<1) or (i>255) then exit;
-    Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom:=i;
-    s:=encode_AccCOM(ligneClicAccCOM+1);
-    ListBoxAcc.Items[ligneClicAccCOM]:=s;
-    ListBoxAcc.Selected[ligneClicAccCOM]:=true;
-    s:=EditNomAcc.Text;
-    ComboBoxAccComUSB.Items[ligneClicAccCOM]:=s+' (COM'+intToSTR(Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom)+')';
-  end;
-end;
+
 
 procedure TFormConfig.ListBoxAccMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

@@ -597,7 +597,8 @@ var
   Tablo_acc_COMUSB : array[1..NbAccMaxi_USBCOM] of record
                       nom : string;
                       NumCom : integer;  // numéro de port COM
-                      ScvAig,ScvDet,ScvAct,ScvVis : boolean ;  // services
+                      ScvAig,ScvDet,ScvAct,ScvVis,cr : boolean ;  // services, visible, avecCR
+                      protocole: string;
                     end;
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
@@ -10208,7 +10209,7 @@ begin
       if Tablo_com_cde[numacc].PortOuvert then
       begin
         trainDest:=Tablo_actionneur[i].trainDest;
-        if avecCR=1 then trainDest:=TrainDest+#13;
+        if Tablo_acc_COMUSB[numacc].cr then trainDest:=TrainDest+#13;
         if numacc=1 then Formprinc.MSCommCde1.Output:=TrainDest;
         if numacc=2 then Formprinc.MSCommCde2.Output:=TrainDest;
         Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clyellow);
@@ -10304,7 +10305,7 @@ begin
       if Tablo_acc_COMUSB[i].ScvAct then
       begin
         s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
-        if avecCR=1 then s:=s+#13;
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
@@ -10502,7 +10503,7 @@ begin
       if Tablo_acc_COMUSB[i].ScvDet then
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
-        if avecCR=1 then s:=s+#13;
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
@@ -10601,7 +10602,7 @@ begin
       if Tablo_acc_COMUSB[i].ScvAig then
       begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
-        if avecCR=1 then s:=s+#13;
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
@@ -11544,9 +11545,9 @@ end;
 // connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
 // index= index du tableau tablo_com_cde
 function connecte_port_usb_cde(index : integer) : boolean;
-var i,j,numport : integer;
+var i,j,numport,vitesse,erreur : integer;
     trouve : boolean;
-    s,sc : string;
+    s,sc,portComCde : string;
     com : TMSComm;
 begin
   if (index<0) or (index>MaxComUSBCde) then
@@ -11563,6 +11564,7 @@ begin
     exit;
   end;
   trouve:=false;
+  portComCde:=tablo_acc_comusb[index].protocole;
 
   case index of
   1 : com:=formprinc.MSCommCde1;
@@ -11577,9 +11579,17 @@ begin
       j:=pos(',',PortComcde);
       j:=posEx(',',PortComcde,j+1);
       j:=posEx(',',PortComcde,j+1);
-      //j:=posEx(',',PortComcde,j+1);
 
-      sc:=copy(portCom,i+1,j-i-1);
+      sc:=copy(portComCde,i+1,j-i+1);
+      val(sc,vitesse,erreur);
+      if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
+       (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) then
+      begin
+        Affiche('Vitesse périphérique COM ('+intToSTR(vitesse)+') incorrecte',clred);
+        tablo_com_cde[index].PortOuvert:=false;
+        result:=false;
+        exit;
+      end;
       Settings:=sc;   // vitesse,n,8,1
       Handshaking:=0; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
       SThreshold:=1;
@@ -12409,7 +12419,6 @@ begin
   Decodeur[5]:='Digikeijs 4018';Decodeur[6]:='Unisemaf Paco';Decodeur[7]:='Stéphane Ravaut';Decodeur[8]:='Arcomora';
   Decodeur[9]:='LS-DEC-NMBS';Decodeur[10]:='B-models';
 
-  portComcde:='COMX:115200,n,8,1';
   OsBits:=0;
   if IsWow64Process then 
   begin
