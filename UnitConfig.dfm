@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 260
-  Top = 147
+  Left = 331
+  Top = 136
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAccessoires
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1119,7 +1119,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 108
+          Top = 116
           Width = 233
           Height = 17
           Hint = 
@@ -2295,7 +2295,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2402,7 +2402,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2688,7 +2688,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2707,7 +2707,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2758,7 +2758,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
-          Top = 16
+          Top = 24
           Width = 225
           Height = 89
           Caption = 'Type d'#39'action'
@@ -2793,16 +2793,16 @@ object FormConfig: TFormConfig
           object RadioButtonCde: TRadioButton
             Left = 24
             Top = 64
-            Width = 137
+            Width = 177
             Height = 17
-            Caption = 'Commande COM/USB'
+            Caption = 'Commande COM/USB/Socket'
             TabOrder = 3
             OnClick = RadioButtonCdeClick
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 8
-          Top = 96
+          Left = 16
+          Top = 128
           Width = 233
           Height = 321
           Caption = 'Action fonction de locomotive '
@@ -2864,7 +2864,8 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 
                 'Train d'#233'clencheur pour lequel la condition s'#39'applique (mettre X ' +
-                'pour tous les trains) - d'#233'clenchement par actionneur uniquement'
+                'pour tous les trains) #13 d'#233'clenchement par actionneur uniquemen' +
+                't'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 2
@@ -3103,12 +3104,13 @@ object FormConfig: TFormConfig
               OnChange = EditTrainDestChange
             end
             object ComboBoxAccComUSB: TComboBox
-              Left = 24
+              Left = 8
               Top = 32
-              Width = 169
+              Width = 201
               Height = 21
-              Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "accessoires COM/USB"'
-              ItemHeight = 0
+              Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
+              Style = csDropDownList
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3128,128 +3130,48 @@ object FormConfig: TFormConfig
             OnClick = ButtonTestActClick
           end
         end
+        object GroupBoxPNA: TGroupBox
+          Left = 32
+          Top = 120
+          Width = 169
+          Height = 121
+          Caption = 'Actionneurs PN simples'
+          TabOrder = 2
+        end
+        object GroupBoxPNZ: TGroupBox
+          Left = 56
+          Top = 136
+          Width = 169
+          Height = 65
+          Caption = 'Zones de d'#233'tection'
+          TabOrder = 3
+        end
         object GroupBoxPN: TGroupBox
-          Left = 216
-          Top = 24
-          Width = 233
-          Height = 401
+          Left = 8
+          Top = 112
+          Width = 241
+          Height = 193
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
           ShowHint = False
-          TabOrder = 2
+          TabOrder = 4
           object Label21: TLabel
             Left = 8
-            Top = 20
+            Top = 84
             Width = 100
             Height = 13
             Caption = 'Adresse de fermeture'
           end
           object Label22: TLabel
             Left = 8
-            Top = 44
+            Top = 108
             Width = 94
             Height = 13
             Caption = 'Adresse d'#39'ouverture'
           end
-          object Label23: TLabel
-            Left = 8
-            Top = 116
-            Width = 30
-            Height = 13
-            Caption = 'Voie 1'
-          end
-          object LabelV2: TLabel
-            Left = 8
-            Top = 140
-            Width = 30
-            Height = 13
-            Caption = 'Voie 2'
-          end
-          object LabelV3: TLabel
-            Left = 8
-            Top = 164
-            Width = 30
-            Height = 13
-            Caption = 'Voie 3'
-          end
-          object Shape1: TShape
-            Left = 64
-            Top = 105
-            Width = 137
-            Height = 2
-          end
-          object Label39: TLabel
-            Left = 8
-            Top = 188
-            Width = 30
-            Height = 13
-            Caption = 'Voie 4'
-          end
-          object Label45: TLabel
-            Left = 64
-            Top = 240
-            Width = 54
-            Height = 13
-            Caption = 'Zone ferme'
-          end
-          object Label46: TLabel
-            Left = 152
-            Top = 240
-            Width = 55
-            Height = 13
-            Caption = 'Zone ouvre'
-          end
-          object Label47: TLabel
-            Left = 8
-            Top = 268
-            Width = 30
-            Height = 13
-            Caption = 'Voie 1'
-          end
-          object Label48: TLabel
-            Left = 8
-            Top = 292
-            Width = 30
-            Height = 13
-            Caption = 'Voie 2'
-          end
-          object Label49: TLabel
-            Left = 8
-            Top = 316
-            Width = 30
-            Height = 13
-            Caption = 'Voie 3'
-          end
-          object Label50: TLabel
-            Left = 8
-            Top = 340
-            Width = 30
-            Height = 13
-            Caption = 'Voie 4'
-          end
-          object Shape2: TShape
-            Left = 64
-            Top = 257
-            Width = 150
-            Height = 2
-          end
-          object Label59: TLabel
-            Left = 8
-            Top = 212
-            Width = 30
-            Height = 13
-            Caption = 'Voie 5'
-          end
-          object Label60: TLabel
-            Left = 8
-            Top = 364
-            Width = 30
-            Height = 13
-            Caption = 'Voie 5'
-          end
           object EditAdrFerme: TEdit
             Left = 120
-            Top = 16
+            Top = 80
             Width = 41
             Height = 21
             TabOrder = 0
@@ -3257,26 +3179,26 @@ object FormConfig: TFormConfig
           end
           object EditAdrOuvre: TEdit
             Left = 120
-            Top = 40
+            Top = 104
             Width = 41
             Height = 21
             TabOrder = 2
             OnChange = EditAdrOuvreChange
           end
-          object EditCmdFerme: TEdit
+          object EditCdeFerme: TEdit
             Left = 168
-            Top = 16
+            Top = 80
             Width = 25
             Height = 21
             Hint = 'Commande de fermeture (0 '#224' 2)'
             ParentShowHint = False
             ShowHint = True
             TabOrder = 1
-            OnChange = EditCmdFermeChange
+            OnChange = EditCdeFermeChange
           end
           object EditCdeOuvre: TEdit
             Left = 168
-            Top = 40
+            Top = 104
             Width = 25
             Height = 21
             Hint = 'Commande d'#39'ouverture (0 '#224' 2)'
@@ -3285,259 +3207,33 @@ object FormConfig: TFormConfig
             TabOrder = 3
             OnChange = EditCdeOuvreChange
           end
-          object EditV1F: TEdit
-            Left = 64
-            Top = 112
-            Width = 41
-            Height = 21
-            Hint = 'Actionneur 1 fermeture'
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 4
-            OnChange = EditV1FChange
-          end
-          object StaticText1: TStaticText
-            Left = 64
-            Top = 88
-            Width = 49
-            Height = 17
-            Caption = 'Act ferme'
-            TabOrder = 14
-          end
-          object StaticText2: TStaticText
-            Left = 152
-            Top = 88
-            Width = 50
-            Height = 17
-            Caption = 'Act ouvre'
-            TabOrder = 15
-          end
-          object EditV2F: TEdit
-            Left = 64
-            Top = 136
-            Width = 41
-            Height = 21
-            TabOrder = 6
-            OnChange = EditV2FChange
-          end
-          object EditV3F: TEdit
-            Left = 64
-            Top = 160
-            Width = 41
-            Height = 21
-            TabOrder = 8
-            OnChange = EditV3FChange
-          end
-          object EditV1O: TEdit
-            Left = 152
-            Top = 112
-            Width = 41
-            Height = 21
-            Hint = 'Actionneur 1 ouverture'
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 5
-            OnChange = EditV1OChange
-          end
-          object EditV2O: TEdit
-            Left = 152
-            Top = 136
-            Width = 41
-            Height = 21
-            TabOrder = 7
-            OnChange = EditV2OChange
-          end
-          object EditV3O: TEdit
-            Left = 152
-            Top = 160
-            Width = 41
-            Height = 21
-            TabOrder = 9
-            OnChange = EditV3OChange
-          end
-          object EditV4F: TEdit
-            Left = 64
-            Top = 184
-            Width = 41
-            Height = 21
-            TabOrder = 10
-            OnChange = EditV4FChange
-          end
-          object EditV4O: TEdit
-            Left = 152
-            Top = 184
-            Width = 41
-            Height = 21
-            TabOrder = 11
-            OnChange = EditV4OChange
-          end
-          object EditZdet1V1F: TEdit
-            Left = 64
-            Top = 264
-            Width = 33
-            Height = 21
-            TabOrder = 16
-            OnChange = EditZdet1V1FChange
-          end
-          object EditZdet1V1O: TEdit
-            Left = 152
-            Top = 264
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
-            TabOrder = 18
-            OnChange = EditZdet1V1OChange
-          end
-          object EditZdet2V1F: TEdit
-            Left = 96
-            Top = 264
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone de fermeture'
-            TabOrder = 17
-            OnChange = EditZdet2V1FChange
-          end
-          object EditZdet2V1O: TEdit
-            Left = 184
-            Top = 264
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
-            TabOrder = 19
-            OnChange = EditZdet2V1OChange
-          end
-          object EditZdet1V2F: TEdit
-            Left = 64
-            Top = 288
-            Width = 33
-            Height = 21
-            TabOrder = 20
-            OnChange = EditZdet1V2FChange
-          end
-          object EditZdet2V2F: TEdit
-            Left = 96
-            Top = 288
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone de fermeture'
-            TabOrder = 21
-            OnChange = EditZdet2V2FChange
-          end
-          object EditZdet1V2O: TEdit
-            Left = 152
-            Top = 288
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
-            TabOrder = 22
-            OnChange = EditZdet1V2OChange
-          end
-          object EditZdet2V2O: TEdit
-            Left = 184
-            Top = 288
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
-            TabOrder = 23
-            OnChange = EditZdet2V2OChange
-          end
-          object EditZdet1V3F: TEdit
-            Left = 64
-            Top = 312
-            Width = 33
-            Height = 21
-            TabOrder = 24
-            OnChange = EditZdet1V3FChange
-          end
-          object EditZdet2V3F: TEdit
-            Left = 96
-            Top = 312
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone de fermeture'
-            TabOrder = 25
-            OnChange = EditZdet2V3FChange
-          end
-          object EditZdet1V3O: TEdit
-            Left = 152
-            Top = 312
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
-            TabOrder = 26
-            OnChange = EditZdet1V3OChange
-          end
-          object EditZdet2V3O: TEdit
-            Left = 184
-            Top = 312
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
-            TabOrder = 27
-            OnChange = EditZdet2V3OChange
-          end
-          object EditZdet1V4F: TEdit
-            Left = 64
-            Top = 336
-            Width = 33
-            Height = 21
-            TabOrder = 28
-            OnChange = EditZdet1V4FChange
-          end
-          object EditZdet2V4F: TEdit
-            Left = 96
-            Top = 336
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone de fermeture'
-            TabOrder = 29
-            OnChange = EditZdet2V4FChange
-          end
-          object EditZdet1V4O: TEdit
-            Left = 152
-            Top = 336
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
-            TabOrder = 30
-            OnChange = EditZdet1V4OChange
-          end
-          object EditZdet2V4O: TEdit
-            Left = 184
-            Top = 336
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
-            TabOrder = 31
-            OnChange = EditZdet2V4OChange
-          end
           object ButtonTestFerme: TButton
             Left = 200
-            Top = 16
+            Top = 80
             Width = 27
             Height = 21
             Hint = 'Test de fermeture (mode CDM ou connect'#233' '#224' l'#39'interface)'
             Caption = 'test'
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 36
+            TabOrder = 4
             OnClick = ButtonTestFermeClick
           end
           object ButtonTestOuvre: TButton
             Left = 200
-            Top = 40
+            Top = 104
             Width = 27
             Height = 21
             Hint = 'Test d'#39'ouverture (mode CDM ou connect'#233' '#224' l'#39'interface)'
             Caption = 'test'
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 37
+            TabOrder = 5
             OnClick = ButtonTestOuvreClick
           end
           object CheckPnPulse: TCheckBox
             Left = 8
-            Top = 64
+            Top = 128
             Width = 97
             Height = 17
             Hint = 
@@ -3546,59 +3242,60 @@ object FormConfig: TFormConfig
             Caption = 'Impulsionnel'
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 38
+            TabOrder = 6
             OnClick = CheckPnPulseClick
           end
-          object EditV5F: TEdit
-            Left = 64
-            Top = 208
-            Width = 41
-            Height = 21
-            TabOrder = 12
-            OnChange = EditV5FChange
+          object RadioButtonSimple: TRadioButton
+            Left = 24
+            Top = 152
+            Width = 113
+            Height = 17
+            Hint = 'PN command'#233' par actionneurs'
+            Caption = 'Actionneurs simples'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 7
+            OnClick = RadioButtonSimpleClick
           end
-          object EditV5O: TEdit
-            Left = 152
-            Top = 208
-            Width = 41
-            Height = 21
-            TabOrder = 13
-            OnChange = EditV5OChange
+          object RadioButtonZone: TRadioButton
+            Left = 24
+            Top = 168
+            Width = 113
+            Height = 17
+            Hint = 'PN command'#233' par m'#233'moires de zone'
+            Caption = 'Zones de d'#233'tection'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 8
+            OnClick = RadioButtonZoneClick
           end
-          object EditZdet1V5F: TEdit
-            Left = 64
-            Top = 360
-            Width = 33
-            Height = 21
-            TabOrder = 32
-            OnChange = EditZdet1V5FChange
+          object RadioGroupActPN: TRadioGroup
+            Left = 8
+            Top = 16
+            Width = 217
+            Height = 57
+            Hint = 'action par accessoire DCC ou commande COM/USB'
+            Caption = 'Type d'#39'action'
+            Items.Strings = (
+              'Accessoire'
+              'Commande COM/USB ou Socket')
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 9
+            OnClick = RadioGroupActPNClick
           end
-          object EditZdet2V5F: TEdit
-            Left = 96
-            Top = 360
-            Width = 33
+          object ComboBoxPNCom: TComboBox
+            Left = 8
+            Top = 104
+            Width = 129
             Height = 21
-            Hint = 'D'#233'tecteur 2 zone de fermeture'
-            TabOrder = 33
-            OnChange = EditZdet2V5FChange
-          end
-          object EditZdet1V5O: TEdit
-            Left = 152
-            Top = 360
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 1 zone d'#39'ouverture'
-            TabOrder = 34
-            OnChange = EditZdet1V5OChange
-          end
-          object EditZdet2V5O: TEdit
-            Left = 184
-            Top = 360
-            Width = 33
-            Height = 21
-            Hint = 'D'#233'tecteur 2 zone d'#39'ouverture'
-            TabOrder = 35
-            OnChange = EditZdet2V5OChange
+            Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
+            Style = csDropDownList
+            ItemHeight = 13
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 10
+            OnChange = ComboBoxPNComChange
           end
         end
       end
@@ -3655,7 +3352,7 @@ object FormConfig: TFormConfig
         Top = 272
         Width = 345
         Height = 193
-        Caption = 'Actionneurs passage '#224' niveau'
+        Caption = 'Actionneurs/d'#233'tecteurs passage '#224' niveau'
         TabOrder = 2
         object ButtonNouvPN: TButton
           Left = 8
@@ -4197,16 +3894,16 @@ object FormConfig: TFormConfig
       end
     end
     object TabSheetAccessoires: TTabSheet
-      Caption = 'P'#233'riph'#233'riques COM/USB'
+      Caption = 'COM/USB/Socket'
       ImageIndex = 9
       object Label73: TLabel
         Left = 8
         Top = 8
-        Width = 355
+        Width = 574
         Height = 13
         Caption = 
-          'Les accessoires COM/USB sont utilis'#233's pour '#234'tre activ'#233's par un a' +
-          'ctionneur'
+          'Les p'#233'riph'#233'riques COM/USB ou Sockets sont utilis'#233's pour '#234'tre act' +
+          'iv'#233's par un actionneur et leur envoyer des ordres ASCII'
       end
       object LabelInfoAcc: TLabel
         Left = 272
@@ -4230,6 +3927,7 @@ object FormConfig: TFormConfig
         ParentFont = False
         PopupMenu = PopupMenuListes
         TabOrder = 0
+        OnKeyDown = ListBoxAccKeyDown
         OnMouseDown = ListBoxAccMouseDown
       end
       object ButtonAjAccCom: TButton
@@ -4254,12 +3952,12 @@ object FormConfig: TFormConfig
         Left = 264
         Top = 64
         Width = 329
-        Height = 113
-        Caption = 'Description de l'#39'accessoire'
+        Height = 129
+        Caption = 'Description du p'#233'riph'#233'rique'
         TabOrder = 3
         object Label71: TLabel
           Left = 10
-          Top = 32
+          Top = 28
           Width = 98
           Height = 13
           Caption = 'Nom du p'#233'riph'#233'rique'
@@ -4281,7 +3979,7 @@ object FormConfig: TFormConfig
         Top = 357
         Width = 75
         Height = 20
-        Hint = 'R'#233'ouvre les ports COMs demand'#233's'
+        Hint = 'R'#233'ouvre les ports COMs et Sockets demand'#233's'
         Caption = 'Ouvre COMs'
         ParentShowHint = False
         ShowHint = True

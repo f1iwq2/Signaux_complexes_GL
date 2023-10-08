@@ -212,6 +212,8 @@ type
     ButtonIndex: TButton;
     MSCommCde1: TMSComm;
     MSCommCde2: TMSComm;
+    ClientSocketCde1: TClientSocket;
+    ClientSocketCde2: TClientSocket;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
 
@@ -330,6 +332,20 @@ type
       Panel: TStatusPanel; const Rect: TRect);
     procedure MSCommCde1Comm(Sender: TObject);
     procedure MSCommCde2Comm(Sender: TObject);
+    procedure ClientSocketCde1Connect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure ClientSocketCde1Error(Sender: TObject;
+      Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
+      var ErrorCode: Integer);
+    procedure ClientSocketCde1Read(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure ClientSocketCde2Connect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure ClientSocketCde2Error(Sender: TObject;
+      Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
+      var ErrorCode: Integer);
+    procedure ClientSocketCde2Read(Sender: TObject;
+      Socket: TCustomWinSocket);
 //    procedure MSCommCdeComm(Sender: TObject);
   private
     { Déclarations privées }
@@ -359,7 +375,7 @@ MaxElBranches=200;
 NbreMaxiAiguillages=200;
 NbreMaxiSignaux=200;
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
-NbAccMaxi_USBCOM=10;  // nombre maxi d'accessoires COM
+NbMaxi_Periph=10;  // nombre maxi de périphériques
 LargImg=50;HtImg=91;  // Dimensions image des feux
 MaxComUSBCde=2;       // Nombre maxi de périphériques USB commande
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
@@ -524,7 +540,7 @@ var
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
-  LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbAcc_USBCOM : integer;
+  LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -594,9 +610,10 @@ var
   Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux sur le bus DCC
 
   // tableau des accessoires
-  Tablo_acc_COMUSB : array[1..NbAccMaxi_USBCOM] of record
+  Tablo_acc_COMUSB : array[1..NbMaxi_Periph] of record
                       nom : string;
-                      NumCom : integer;  // numéro de port COM
+                      NumCom : integer;  // numéro de port COM si c'est une liaison com usb
+                      numComposant : integer ; // numéro de composant MSCOM ou clientSocket
                       ScvAig,ScvDet,ScvAct,ScvVis,cr : boolean ;  // services, visible, avecCR
                       protocole: string;
                     end;
@@ -623,17 +640,17 @@ var
 
   Tablo_actionneur : array[0..Max_actionneurs] of
   record
-    loco,act,son,cde: boolean;     // destinataire loco acessoire ou son
+    loco,act,son,cde     : boolean;     // destinataire loco acessoire son ou périphérique
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,
-    fonction,    // fonction F de train ou accessoire
+    fonction,                  // fonction F de train ou périphérique
     tempo,TempoCourante,
     accessoire,sortie,
-    typdeclenche  : integer;  // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
+    typdeclenche         : integer;  // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
     Raz : boolean;
     FichierSon,trainDecl,
     TrainDest,    // train destinataire ou Commande
-    TrainCourant : string;
+    TrainCourant         : string;
   end;
 
   decodeur_pers : array[1..NbreMaxiDecPers] of
@@ -652,12 +669,14 @@ var
   KeyInputs: array of TInput;
   Tablo_PN : array[0..Max_actionneurs] of
   record
-    AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture
+    AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture  ou numéro de périphérique pour pilotage usb
     commandeFerme : integer;  // commande de fermeture (1 ou 2)
     AdresseOuvre  : integer;  // adresse de pilotage DCC pour l'ouverture
     commandeOuvre : integer;  // commande d'ouverture (1 ou 2)
     NbVoies       : integer;  // Nombre de voies du PN
     Pulse         : integer;  // 0=commande maintenue  1=Impulsionnel
+    TypeCde       : integer;  // 0=par accessoire / 1=par COMUSB
+    commandeF,CommandeO : string;
     compteur      : integer;  // comptage actionneurs fermeture et décomptage actionneurs ouverture
     Voie : array [1..5] of record
              ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et l'ouverture
@@ -757,8 +776,10 @@ procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
 procedure connecte_USB;
-function connecte_port_usb_cde(index : integer) : boolean;
-procedure deconnecte_usb_cde(index : integer);
+function connecte_port_usb_acc(index : integer) : boolean;
+procedure deconnecte_usb_periph(index : integer);
+procedure connecte_socket_acc(index : integer);
+procedure deconnecte_socket_periph(index : integer);
 procedure deconnecte_usb;
 function IsWow64Process: Boolean;
 procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
@@ -803,6 +824,11 @@ function extract_int(s : string) : integer;
 Procedure Menu_tco(i : integer);
 procedure Affiche_Fenetre_TCO(i : integer;laisseOuvert : boolean);
 procedure positionne_elements(i : integer);
+procedure ouvre_pn_usb(i : integer);
+procedure ferme_pn_usb(i : integer);
+procedure ouvre_pn_socket(i : integer);
+procedure ferme_pn_socket(i : integer);
+function com_socket(i : integer) : integer;
 
 implementation
 
@@ -10104,10 +10130,109 @@ begin
 end;
 
 
+// ouvre le PN index dans le tablo_pn
+procedure ferme_pn_usb(i : integer);
+var numacc,v : integer;
+    s : string;
+begin
+    numacc:=Tablo_pn[i].AdresseFerme; // numéro de périphérique
+    if numacc=0 then exit;
+    v:=Tablo_acc_COMUSB[numacc].NumCom;  // numéro de com
+    if v=0 then exit;
+    if Tablo_com_cde[numacc].PortOuvert then
+    begin
+      s:=Tablo_PN[i].CommandeF;
+      if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+      if numacc=1 then Formprinc.MSCommCde1.Output:=s;
+      if numacc=2 then Formprinc.MSCommCde2.Output:=s;
+      Affiche('Envoie port COM'+intToSTR(v)+' commande: '+s,clWhite);
+    end
+      else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
+end;
+
+procedure ouvre_pn_usb(i : integer);
+var numacc,v : integer;
+    s : string;
+begin
+    numacc:=Tablo_pn[i].AdresseFerme; // numéro d'accessoire
+    if numacc=0 then exit;
+    v:=Tablo_acc_COMUSB[numacc].NumCom;  // numéro de com
+    if v=0 then exit;
+    if Tablo_com_cde[numacc].PortOuvert then
+    begin
+      s:=Tablo_PN[i].CommandeO;
+      if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+      if numacc=1 then Formprinc.MSCommCde1.Output:=s;
+      if numacc=2 then Formprinc.MSCommCde2.Output:=s;
+      Affiche('Envoie port COM'+intToSTR(v)+' commande: '+s,clWhite);
+    end
+      else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
+end;
+
+procedure ouvre_pn_socket(i : integer);
+var numacc : integer;
+    s : string;
+begin
+    numacc:=Tablo_pn[i].AdresseFerme; // numéro d'accessoire
+    if numacc=0 then exit;
+    s:=Tablo_PN[i].CommandeO;
+    if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+    if numacc=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+    if numacc=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+    Affiche('Envoie socket'+intToSTR(numacc)+' commande: '+s,clWhite);
+end;
+
+procedure ferme_pn_socket(i : integer);
+var numacc : integer;
+    s : string;
+begin
+    numacc:=Tablo_pn[i].AdresseFerme; // numéro d'accessoire
+    if numacc=0 then exit;
+    s:=Tablo_PN[i].CommandeF;
+    if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+    if numacc=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+    if numacc=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+    Affiche('Envoie socket'+intToSTR(numacc)+' commande: '+s,clWhite);
+end;
+
+
+procedure envoi_periph_usb(i : integer);
+var numacc,v : integer;
+    s : string;
+begin
+  numacc:=Tablo_actionneur[i].fonction; // numéro de périphérique
+  if numacc=0 then exit;
+      v:=Tablo_acc_COMUSB[numacc].NumCom;  // numéro de com
+
+      if v=0 then exit;
+      if Tablo_com_cde[numacc].PortOuvert then
+      begin
+        s:=Tablo_actionneur[i].trainDest;
+        if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+        if numacc=1 then Formprinc.MSCommCde1.Output:=s;
+        if numacc=2 then Formprinc.MSCommCde2.Output:=s;
+      end
+        else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
+end;
+
+// envoi le texte traindest de l'accessoire sur le socket du périphérique i
+procedure envoi_socket_periph(i : integer);
+var v,numacc : integer;
+    s : string;
+begin
+  v:=Tablo_actionneur[i].fonction; // numéro de périphérique
+  numacc:=Tablo_acc_COMUSB[v].numComposant;   //numéro de composant
+  s:=Tablo_actionneur[i].trainDest;
+  if Tablo_acc_COMUSB[numacc].cr then s:=s+#13;
+  if numacc=1 then Formprinc.ClientSocketCde1.socket.SendText(s);
+  if numacc=2 then Formprinc.ClientSocketCde2.socket.SendText(s);
+  Affiche('Envoi socket '+s,clYellow);
+end;
+
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
-var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O,numacc : integer;
+var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     s,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
@@ -10198,26 +10323,15 @@ begin
       PlaySound(pchar(Tablo_actionneur[i].FichierSon),0,SND_ASYNC);
     end;
 
-    // commande COM/USB
+    // commande COM/USB socket
     if adresseOK and (Tablo_actionneur[i].cde) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
-      numacc:=Tablo_actionneur[i].fonction; // numéro d'accessoire
-      if numacc=0 then exit;
-      v:=Tablo_acc_COMUSB[numacc].NumCom;  // numéro de com
-
-      if v=0 then exit;
-      if Tablo_com_cde[numacc].PortOuvert then
-      begin
-        trainDest:=Tablo_actionneur[i].trainDest;
-        if Tablo_acc_COMUSB[numacc].cr then trainDest:=TrainDest+#13;
-        if numacc=1 then Formprinc.MSCommCde1.Output:=TrainDest;
-        if numacc=2 then Formprinc.MSCommCde2.Output:=TrainDest;
-        Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clyellow);
-      end
-        else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
+      v:=tablo_actionneur[i].fonction;
+      af:=com_socket(v);
+      if af=1 then envoi_periph_usb(i);     // numéro d'actionneur
+      if af=2 then envoi_socket_periph(i); // numéro de périphérique,numéro d'actionneur
+      Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clWhite);
     end;
-
-
   end;
 
   // dans le tableau des PN
@@ -10237,8 +10351,18 @@ begin
           if tablo_pn[i].compteur=1 then  // compteur du nombre de trains sur le PN
           begin
             Affiche('Ouverture PN'+intToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')',clOrange);
-            if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
-            pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,ts);
+            if tablo_pn[i].TypeCde=0 then
+            begin
+              if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
+              pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,ts);
+            end
+            else
+            begin
+              typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
+              typ:=com_socket(v);
+              if typ=1 then ouvre_pn_usb(i);
+              if typ=2 then ouvre_pn_socket(i);
+            end;
           end;
           if tablo_pn[i].compteur>0 then dec(tablo_pn[i].compteur);
         end;
@@ -10250,8 +10374,18 @@ begin
           begin
             s:='Fermeture PN'+IntToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')';
             Affiche(s,clOrange);
-            if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
-            pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
+            if tablo_pn[i].TypeCde=0 then
+            begin
+              if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
+              pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
+            end
+            else
+            begin
+              typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
+              typ:=com_socket(v);
+              if typ=1 then ferme_pn_usb(i);
+              if typ=2 then ferme_pn_socket(i);
+            end;
           end;
         end;
       end
@@ -10274,8 +10408,18 @@ begin
             s:='Ouverture PN'+intToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2);
             Affiche(s,clorange);
             //if AffAigDet then AfficheDebug(s,clorange);
-            if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
-            pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,ts);
+            if tablo_pn[i].TypeCde=0 then
+            begin
+              if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
+              pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,ts);
+            end
+            else
+            begin
+              typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
+              typ:=com_socket(v);
+              if typ=1 then ouvre_pn_usb(i);
+              if typ=2 then ouvre_pn_socket(i);
+            end;
             if tablo_pn[i].compteur>0 then dec(tablo_pn[i].compteur);
           end;
         end;
@@ -10287,30 +10431,56 @@ begin
           begin
             s:='Fermeture PN'+IntToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2)+' (train voie '+IntToSTR(v)+')';
             affiche(s,clorange);
-            //if AffAigDet then AfficheDebug(s,clorange);
-            if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
-            pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
+            if tablo_pn[i].TypeCde=0 then
+            begin
+              if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
+              pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
+            end
+            else
+            begin
+              typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
+              typ:=com_socket(v);
+              if typ=1 then ferme_pn_usb(i);
+              if typ=2 then ferme_pn_socket(i);
+            end;
           end;
         end;
       end;
     end;
   end;
 
+  // service actionneur
   if (adr>650) then
-  for i:=1 to NbAcc_USBCOM do
+  for i:=1 to NbPeriph do
   begin
-    if tablo_com_cde[i].portOuvert then
+    v:=com_socket(i);
+    if v=1 then
     begin
-      // envoyer event det à accessoire
-      if Tablo_acc_COMUSB[i].ScvAct then
+      if tablo_com_cde[i].portOuvert then
+      begin
+        // envoyer event det à accessoire
+        if Tablo_acc_COMUSB[i].ScvAct then
+        begin
+          s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
+          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+          if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
+          if i=1 then Formprinc.MSCommCde1.Output:=s;
+          if i=2 then Formprinc.MSCommCde2.Output:=s;
+        end;
+      end;
+    end;
+
+    if v=2 then
+    begin
+      if (Tablo_acc_COMUSB[i].ScvDet) then
       begin
         s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
         if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-        if i=1 then Formprinc.MSCommCde1.Output:=s;
-        if i=2 then Formprinc.MSCommCde2.Output:=s;
+        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
       end;
-    end;
+    end;  
   end;
 
 end;
@@ -10494,21 +10664,35 @@ begin
     FormDebug.MemoEvtDet.lines.add('Raz sur débordement');
   end;
 
-  // vers accessoires
-  for i:=1 to NbAcc_USBCOM do
+  // vers périphériques
+  for i:=1 to NbPeriph do
   begin
-    // envoyer event act à accessoire
-    if tablo_com_cde[i].portOuvert then
+    dr:=com_socket(i);
+    // envoyer event act au périphérique
+    if dr=1 then
     begin
-      if Tablo_acc_COMUSB[i].ScvDet then
+      if (tablo_com_cde[i].portOuvert) and (Tablo_acc_COMUSB[i].ScvDet) then
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
         if Tablo_acc_COMUSB[i].cr then s:=s+#13;
-        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
         if i=1 then Formprinc.MSCommCde1.Output:=s;
         if i=2 then Formprinc.MSCommCde2.Output:=s;
       end;
     end;
+    if dr=2 then
+    begin
+      if (Tablo_acc_COMUSB[i].ScvDet) then
+      begin
+        s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
+        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+      end;
+    end;
+
+
   end;
 
   // attention à partir de cette section le code est susceptible de ne pas être exécuté??
@@ -10593,22 +10777,37 @@ begin
     if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
   end;
 
-  // pour accessoires
-  for i:=1 to NbAcc_USBCOM do
+  // pour périphériques
+  for i:=1 to NbPeriph do
   begin
     // envoyer event act à accessoire
-    if tablo_com_cde[i].portOuvert then
+    typ:=com_socket(i);
+    if typ=1 then
+    begin
+      if tablo_com_cde[i].portOuvert then
+      begin
+        if Tablo_acc_COMUSB[i].ScvAig then
+        begin
+          s:='T'+intToSTR(adresse)+','+intToSTR(pos);
+          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+          if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
+          if i=1 then Formprinc.MSCommCde1.Output:=s;
+          if i=2 then Formprinc.MSCommCde2.Output:=s;
+        end;
+      end;
+    end;
+    if typ=2 then
     begin
       if Tablo_acc_COMUSB[i].ScvAig then
       begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
         if Tablo_acc_COMUSB[i].cr then s:=s+#13;
-        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clOrange);
-        if i=1 then Formprinc.MSCommCde1.Output:=s;
-        if i=2 then Formprinc.MSCommCde2.Output:=s;
-     end;
-   end;
- end;  
+        if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
+        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+      end;
+    end;
+  end;
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
@@ -11544,7 +11743,7 @@ end;
 
 // connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
 // index= index du tableau tablo_com_cde
-function connecte_port_usb_cde(index : integer) : boolean;
+function connecte_port_usb_acc(index : integer) : boolean;
 var i,j,numport,vitesse,erreur : integer;
     trouve : boolean;
     s,sc,portComCde : string;
@@ -11616,6 +11815,50 @@ begin
     Formprinc.StatusBar1.Panels[3].Text:=s;
   end;
   result:=tablo_com_cde[index].PortOuvert;
+end;
+
+// détermine si l'accessoire i est un comusb ou un socket
+// =1 comusb
+// =2 socket
+function com_socket(i : integer) : integer;
+var s : string;
+begin
+  result:=0;
+  s:=Tablo_acc_COMUSB[i].protocole;
+  if length(s)>1 then if upcase(s[1])='C' then result:=1 else result:=2;
+end;
+
+procedure connecte_socket_acc(index :integer);
+var s: string;
+    i,erreur,NumSocket : integer;
+    com : TClientSocket;
+begin
+  if (index<0) or (index>10) then
+  begin
+    affiche('Le nombre maxi de portCom acc comusb est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
+    exit;
+  end;
+
+  // déterminer dans l'index le numéro de client
+  NumSocket:=0;
+  for i:=1 to index do
+  begin
+    if com_socket(i)=2 then inc(NumSocket);
+  end;
+
+  case numSocket of
+  1 : com:=formprinc.ClientsocketCde1;
+  2 : com:=formprinc.ClientSocketCde2;
+  end;
+
+  s:=tablo_acc_comusb[index].protocole;
+  i:=pos(':',s);
+  com.address:=copy(s,1,i-1);
+  delete(s,1,i);
+  val(s,i,erreur);
+  com.port:=i;
+  com.open;
+  Affiche('Demande d''ouverture du socket '+tablo_acc_comusb[index].protocole,clYellow);
 end;
 
 // connecte un port usb interface. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
@@ -12384,7 +12627,6 @@ begin
   ScrollBox1.Left:=633;
 
   procetape('');  //0
-
   NbreTCO:=1;
   N_Trains:=0;
   NivDebug:=0;
@@ -12392,7 +12634,7 @@ begin
   EnvAigDccpp:=0;
   debugtrames:=false;
   algo_Unisemaf:=1;
-  NbAcc_USBCOM:=0;
+  NbPeriph:=0;
   MaxPortCom:=30;
   roulage:=false;
   espY:=15;
@@ -12420,7 +12662,7 @@ begin
   Decodeur[9]:='LS-DEC-NMBS';Decodeur[10]:='B-models';
 
   OsBits:=0;
-  if IsWow64Process then 
+  if IsWow64Process then
   begin
     OsBits:=64;
     CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES(X86)');
@@ -12429,7 +12671,7 @@ begin
   begin
     OsBits:=32;
     CheminProgrammes:=GetCurrentProcessEnvVar('PROGRAMFILES');
-  end;  
+  end;
   // version d'OS pour info
   application.ProcessMessages;
 
@@ -12475,12 +12717,20 @@ begin
   lit_config;
 
   // ouvre com commandes actionneurs, car on a lu les com dans la config
-  for i:=1 to NbreComCde do
+  for i:=1 to NbPeriph do
   begin
     //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
-    if connecte_port_usb_cde(i) then
-      Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs ouvert',clLime)
-    else Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs non ouvert',clOrange);
+    index:=com_socket(i);   // comusb ou socket ?
+    if index=1 then
+    begin
+      if connecte_port_usb_acc(i) then
+        Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs ouvert',clLime)
+      else Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs non ouvert',clOrange);
+    end;
+    if index=2 then
+    begin
+      connecte_socket_acc(i);
+    end;
   end;
 
   Menu_tco(NbreTCO);
@@ -12838,7 +13088,7 @@ begin
 end;
 
 procedure TFormPrinc.FormClose(Sender: TObject; var Action: TCloseAction);
-var res : integer  ;
+var i,res : integer  ;
 begin
   Ferme:=true;
 
@@ -12849,7 +13099,9 @@ begin
   end;
   for res:=1 to 10 do
   begin
-    deconnecte_USB_cde(res);
+    i:=com_socket(res);
+    if i=1 then deconnecte_USB_periph(res);
+    if i=2 then deconnecte_socket_periph(res);
   end;
   ClientSocketCDM.close;
   ClientSocketInterface.close;
@@ -13384,14 +13636,27 @@ begin
   end;
 end;
 
-procedure deconnecte_usb_cde(index : integer);
+procedure deconnecte_usb_periph(index : integer);
 begin
   if tablo_com_cde[index].PortOuvert then
   begin
     tablo_com_cde[index].PortOuvert:=false;
     if index=1 then Formprinc.MscommCde1.Portopen:=false;
     if index=2 then Formprinc.MscommCde2.Portopen:=false;
-    if debug>0 then Affiche('Port COM'+intToSTR(tablo_acc_comusb[index].NumCom)+' actionneurs déconnecté',clyellow);
+    if debug>0 then Affiche('Port COM'+intToSTR(tablo_acc_comusb[index].NumCom)+' périphérique déconnecté',clyellow);
+    Formprinc.StatusBar1.Panels[3].Text:='';
+  end;
+end;
+
+// déconnecte le périphérique socket 
+procedure deconnecte_socket_periph(index : integer);
+begin
+  if tablo_com_cde[index].PortOuvert then
+  begin
+    tablo_com_cde[index].PortOuvert:=false;
+    if index=1 then Formprinc.ClientSocketCde1.Close;
+    if index=2 then Formprinc.ClientSocketCde1.close;
+    if debug>0 then Affiche('Socket '+intToSTR(tablo_acc_comusb[index].NumCom)+' périphérique déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
 end;
@@ -16312,7 +16577,6 @@ begin
     v:=index_accessoire[i];
     if v<>0 then affiche('adresse='+intToSTR(i)+' index = '+intToSTR(v),clLime);
   end;
-
 end;
 
 procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
@@ -16376,6 +16640,70 @@ begin
       if (c>#31) and (c<#128) then tablo_com_cde[2].tamponrx:=tablo_com_cde[2].tamponrx+c;;
     end;
   end;
+end;
+
+procedure TFormPrinc.ClientSocketCde1Connect(Sender: TObject;
+  Socket: TCustomWinSocket);
+begin
+  Affiche('Socket '+ClientSocketCde1.Address+':'+intToSTR(ClientSocketCde1.port)+' connecté ',clYellow);
+
+end;
+
+procedure TFormPrinc.ClientSocketCde1Error(Sender: TObject;
+  Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;var ErrorCode: Integer);
+var s : string;
+begin
+  s:='Erreur '+IntToSTR(ErrorCode)+' socket '+ClientSocketCde1.Address+':'+intToSTR(ClientSocketCde1.port);
+  case ErrorCode of
+   10053 : s:=s+': Connexion avortée - Timeout';
+   10054 : s:=s+': Connexion avortée par un tiers';
+   10060 : s:=s+': Timeout';
+   10061 : s:=s+': Connexion refusée';
+   10065 : s:=s+': Port non connecté';
+   end;
+   if nivDebug=3 then
+   begin
+     afficheDebug(s,clOrange);
+   end;
+   affiche(s,clOrange);
+   ErrorCode:=0;
+end;
+
+procedure TFormPrinc.ClientSocketCde1Read(Sender: TObject; Socket: TCustomWinSocket);
+begin
+  Affiche(CLientSocketCde1.Socket.ReceiveText,clWhite);
+end;
+
+procedure TFormPrinc.ClientSocketCde2Connect(Sender: TObject;Socket: TCustomWinSocket);
+begin
+  Affiche('Socket '+ClientSocketCde2.Address+':'+intToSTR(ClientSocketCde2.port)+' connecté ',clYellow);
+end;
+
+procedure TFormPrinc.ClientSocketCde2Error(Sender: TObject;
+  Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;var ErrorCode: Integer);
+var s : string;
+begin
+  s:='Erreur '+IntToSTR(ErrorCode)+' socket '+ClientSocketCde2.Address+':'+intToSTR(ClientSocketCde2.port);
+  case ErrorCode of
+   10053 : s:=s+': Connexion avortée - Timeout';
+   10054 : s:=s+': Connexion avortée par un tiers';
+   10060 : s:=s+': Timeout';
+   10061 : s:=s+': Connexion refusée';
+   10065 : s:=s+': Port non connecté';
+   end;
+   if nivDebug=3 then
+   begin
+     afficheDebug(s,clOrange);
+   end;
+   affiche(s,clOrange);
+   ErrorCode:=0;
+end;
+
+
+procedure TFormPrinc.ClientSocketCde2Read(Sender: TObject;
+  Socket: TCustomWinSocket);
+begin
+  Affiche(CLientSocketCde2.Socket.ReceiveText,clWhite);
 end;
 
 end.

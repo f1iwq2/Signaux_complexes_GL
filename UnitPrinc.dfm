@@ -2437,4 +2437,24 @@ object FormPrinc: TFormPrinc
       OnClick = Informationsdusignal1Click
     end
   end
+  object ClientSocketCde1: TClientSocket
+    Active = False
+    ClientType = ctNonBlocking
+    Port = 0
+    OnConnect = ClientSocketCde1Connect
+    OnRead = ClientSocketCde1Read
+    OnError = ClientSocketCde1Error
+    Left = 1152
+    Top = 344
+  end
+  object ClientSocketCde2: TClientSocket
+    Active = False
+    ClientType = ctNonBlocking
+    Port = 0
+    OnConnect = ClientSocketCde2Connect
+    OnRead = ClientSocketCde2Read
+    OnError = ClientSocketCde2Error
+    Left = 1152
+    Top = 384
+  end
 end

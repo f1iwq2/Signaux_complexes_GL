@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation : string;
 
-Const  Version='8.2';  // sert à la comparaison de la version publiée
+Const  Version='8.21';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -72,15 +72,15 @@ var
   i : integer;
   t : longint;
 begin
-  Result := False;
+  Result:=False;
   t:=0;
-  Try Fs := TFileStream.Create(s,fmCreate);
+  Try Fs:=TFileStream.Create(s,fmCreate);
     //hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
-    hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY, nil, nil, 0);
+    hSession:=InternetOpen('MyApp',INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY,nil,nil,0);
     try
       if Assigned(hSession) then
       begin
-        hService := InternetOpenUrl(hSession, PChar(aUrl), nil, 0, INTERNET_FLAG_RELOAD, 0);
+        hService:=InternetOpenUrl(hSession,PChar(aUrl),nil,0,INTERNET_FLAG_RELOAD,0);
         i:=getLastError;
         if i<>0 then
         case i of
