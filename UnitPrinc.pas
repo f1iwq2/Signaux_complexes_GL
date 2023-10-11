@@ -21,7 +21,7 @@ Unit UnitPrinc;
 
  vitesse port com lenz=57600
 
- ligne de commande en mode administrateur pour valider le socket:
+ ligne de commande en mode administrateur pour valider le socket du pare feu:
  netsh advfirewall firewall add rule name="cdm rail" dir=in action=allow program="C:\Program Files (x86)\CDM-Rail\cdr.exe" enable=yes
 *)
 
@@ -119,8 +119,6 @@ type
     RepriseDCC1: TMenuItem;
     Demandetataccessoires1: TMenuItem;
     LancerCDMrail1: TMenuItem;
-    ButtonEnv: TButton;
-    EditEnvoi: TEdit;
     Roulage1: TMenuItem;
     Placerlestrains1: TMenuItem;
     Demandetatdtecteurs1: TMenuItem;
@@ -214,6 +212,8 @@ type
     MSCommCde2: TMSComm;
     ClientSocketCde1: TClientSocket;
     ClientSocketCde2: TClientSocket;
+    EditEnvoi: TEdit;
+    ButtonEnv: TButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBLenzComm(Sender: TObject);
 
@@ -377,7 +377,8 @@ NbreMaxiSignaux=200;
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
 NbMaxi_Periph=10;  // nombre maxi de périphériques
 LargImg=50;HtImg=91;  // Dimensions image des feux
-MaxComUSBCde=2;       // Nombre maxi de périphériques USB commande
+MaxComUSBPeriph=2;       // Nombre maxi de périphériques USB périphériques
+MaxComSocketPeriph=2;
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
 const_devie=1;        // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;   // positions aiguillages transmises par cdm
@@ -390,7 +391,7 @@ ClBleuClair=$FF7070 ;
 clRose=$AAAAFF;
 Cyan=$FF6060;
 clviolet=$FF00FF;
-GrisF=$414141;
+GrisF=$333333;
 clOrange=$0077FF;
 couleurTrain : array[0..NbCouleurTrain] of Tcolor = (clRose,clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
 Max_Simule=10000;
@@ -640,7 +641,7 @@ var
 
   Tablo_actionneur : array[0..Max_actionneurs] of
   record
-    loco,act,son,cde     : boolean;     // destinataire loco acessoire son ou périphérique
+    loco,act,son,periph     : boolean;     // destinataire loco acessoire son ou périphérique
     adresse,adresse2,          // adresse: adresse de base ; adresse2=cas d'une Zone
     etat,
     fonction,                  // fonction F de train ou périphérique
@@ -776,9 +777,9 @@ procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
 procedure connecte_USB;
-function connecte_port_usb_acc(index : integer) : boolean;
+function connecte_port_usb_periph(index : integer) : boolean;
 procedure deconnecte_usb_periph(index : integer);
-procedure connecte_socket_acc(index : integer);
+function connecte_socket_periph(index : integer) : boolean;
 procedure deconnecte_socket_periph(index : integer);
 procedure deconnecte_usb;
 function IsWow64Process: Boolean;
@@ -829,6 +830,7 @@ procedure ferme_pn_usb(i : integer);
 procedure ouvre_pn_socket(i : integer);
 procedure ferme_pn_socket(i : integer);
 function com_socket(i : integer) : integer;
+function liste_portcom : tStrings;
 
 implementation
 
@@ -1005,7 +1007,6 @@ begin
 end;
 
 
-
 // dessine un cercle plein dans le feu
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
 begin
@@ -1017,7 +1018,7 @@ begin
     pen.Width:=1;
     pen.Mode:=pmCopy;
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
-  end; 
+  end;
 end;
 
 // dessine les feux sur une cible à 2 feux dans le canvas spécifié
@@ -1519,6 +1520,7 @@ begin
 end;
 
 // inverse une image horizontale (miroir) et la met dans dest
+// Utilisé pour les signaux belges
 procedure inverse_image(imageDest,ImageSrc : Timage);
 var mrect,nrect : trect;
     larg,haut : integer;
@@ -1762,7 +1764,7 @@ begin
         HtImage:=Height;
       end;
   5 : with Formprinc.Image5Dir.Picture.Bitmap do
-      begin 
+      begin
         LgImage:=Width;
         HtImage:=Height;
       end;
@@ -1816,8 +1818,8 @@ begin
   if EtatSignal=1 then
   begin
     cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,GrisF);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
+    cercle(ACanvas,x2,y2,rayon,grisF);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,grisF);
     if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
     if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
     if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
@@ -10215,8 +10217,8 @@ begin
         else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
 end;
 
-// envoi le texte traindest de l'accessoire sur le socket du périphérique i
-procedure envoi_socket_periph(i : integer);
+// envoi le texte traindest de l'accessoire sur le socket de l'actionneur i
+procedure envoi_socket_periph_act(i : integer);
 var v,numacc : integer;
     s : string;
 begin
@@ -10324,13 +10326,15 @@ begin
     end;
 
     // commande COM/USB socket
-    if adresseOK and (Tablo_actionneur[i].cde) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
-    begin
-      v:=tablo_actionneur[i].fonction;
+    if adresseOK and (Tablo_actionneur[i].periph) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    begin           // zizi
+      trainDest:=Tablo_actionneur[i].trainDest;
+      v:=tablo_actionneur[i].fonction;   // numéro d'accessoire
+      Affiche(st+' TrainDecl='+trainDecl+' Envoi commande '+TrainDest,clWhite);
       af:=com_socket(v);
-      if af=1 then envoi_periph_usb(i);     // numéro d'actionneur
-      if af=2 then envoi_socket_periph(i); // numéro de périphérique,numéro d'actionneur
-      Affiche(st+' TrainDecl='+trainDecl+' Envoie port COM'+intToSTR(v)+' commande: '+TrainDest,clWhite);
+      if af=1 then envoi_periph_usb(i);    // numéro d'actionneur
+      if af=2 then envoi_socket_periph_act(i); // numéro d'actionneur
+
     end;
   end;
 
@@ -10453,34 +10457,31 @@ begin
   if (adr>650) then
   for i:=1 to NbPeriph do
   begin
-    v:=com_socket(i);
-    if v=1 then
+    s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
+    if Tablo_acc_COMUSB[i].ScvAct then
     begin
-      if tablo_com_cde[i].portOuvert then
+      v:=com_socket(i);
+      if v=1 then
       begin
-        // envoyer event det à accessoire
-        if Tablo_acc_COMUSB[i].ScvAct then
+        if tablo_com_cde[i].portOuvert then
         begin
-          s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
-          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
           if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-          if i=1 then Formprinc.MSCommCde1.Output:=s;
-          if i=2 then Formprinc.MSCommCde2.Output:=s;
+          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+          typ:=Tablo_acc_COMUSB[i].numComposant;
+          if typ=1 then Formprinc.MSCommCde1.Output:=s;
+          if typ=2 then Formprinc.MSCommCde2.Output:=s;
         end;
       end;
-    end;
 
-    if v=2 then
-    begin
-      if (Tablo_acc_COMUSB[i].ScvDet) then
+      if v=2 then
       begin
-        s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
-        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+        typ:=Tablo_acc_COMUSB[i].numComposant;
+        if typ=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if typ=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
       end;
-    end;  
+    end;
   end;
 
 end;
@@ -10674,10 +10675,11 @@ begin
       if (tablo_com_cde[i].portOuvert) and (Tablo_acc_COMUSB[i].ScvDet) then
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
-        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-        if i=1 then Formprinc.MSCommCde1.Output:=s;
-        if i=2 then Formprinc.MSCommCde2.Output:=s;
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+        index:=Tablo_acc_COMUSB[i].NumComposant;
+        if index=1 then Formprinc.MSCommCde1.Output:=s;
+        if index=2 then Formprinc.MSCommCde2.Output:=s;
       end;
     end;
     if dr=2 then
@@ -10685,10 +10687,11 @@ begin
       if (Tablo_acc_COMUSB[i].ScvDet) then
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
-        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+        index:=Tablo_acc_COMUSB[i].NumComposant;
+        if index=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if index=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
       end;
     end;
 
@@ -10789,10 +10792,11 @@ begin
         if Tablo_acc_COMUSB[i].ScvAig then
         begin
           s:='T'+intToSTR(adresse)+','+intToSTR(pos);
-          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
           if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-          if i=1 then Formprinc.MSCommCde1.Output:=s;
-          if i=2 then Formprinc.MSCommCde2.Output:=s;
+          if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+          index:=Tablo_acc_COMUSB[i].NumComposant;
+          if index=1 then Formprinc.MSCommCde1.Output:=s;
+          if index=2 then Formprinc.MSCommCde2.Output:=s;
         end;
       end;
     end;
@@ -10801,10 +10805,11 @@ begin
       if Tablo_acc_COMUSB[i].ScvAig then
       begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
-        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
         if Tablo_acc_COMUSB[i].ScvVis then Affiche(s,clWhite);
-        if i=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if i=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if Tablo_acc_COMUSB[i].cr then s:=s+#13;
+        index:=Tablo_acc_COMUSB[i].NumComposant;
+        if index=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if index=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
       end;
     end;
   end;
@@ -11743,15 +11748,15 @@ end;
 
 // connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
 // index= index du tableau tablo_com_cde
-function connecte_port_usb_acc(index : integer) : boolean;
+function connecte_port_usb_periph(index : integer) : boolean;
 var i,j,numport,vitesse,erreur : integer;
     trouve : boolean;
     s,sc,portComCde : string;
     com : TMSComm;
 begin
-  if (index<0) or (index>MaxComUSBCde) then
+  if (index<0) or (index>MaxComUSBPeriph) then
   begin
-    affiche('Le nombre maxi de portCom acc comusb est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
+    affiche('Le nombre maxi de portCom périphériques est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
     result:=false;
     exit;
   end;
@@ -11768,6 +11773,13 @@ begin
   case index of
   1 : com:=formprinc.MSCommCde1;
   2 : com:=formprinc.MSCommCde2;
+  end;
+
+  if index>MaxComUSBPeriph then
+  begin
+    affiche('Le nombre maxi de portCom périphériques est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
+    result:=false;
+    exit;
   end;
 
   With com do
@@ -11828,14 +11840,14 @@ begin
   if length(s)>1 then if upcase(s[1])='C' then result:=1 else result:=2;
 end;
 
-procedure connecte_socket_acc(index :integer);
+function connecte_socket_periph(index :integer) : boolean;
 var s: string;
     i,erreur,NumSocket : integer;
     com : TClientSocket;
 begin
   if (index<0) or (index>10) then
   begin
-    affiche('Le nombre maxi de portCom acc comusb est atteint - Le port COM'+inttostr(tablo_acc_comusb[index].NumCom)+' ne sera pas ouvert',clred);
+    affiche('Le nombre maxi de Sockets périphériques est atteint - Le socket '+Tablo_acc_COMUSB[index].protocole+' ne sera pas ouvert',clred);
     exit;
   end;
 
@@ -11851,6 +11863,13 @@ begin
   2 : com:=formprinc.ClientSocketCde2;
   end;
 
+  if NumSocket>MaxComSocketPeriph then
+  begin
+    affiche('Le nombre maxi de Sockets périphériques est atteint - Le socket '+Tablo_acc_COMUSB[index].protocole+' ne sera pas ouvert',clred);
+    result:=false;
+    exit;
+  end;
+
   s:=tablo_acc_comusb[index].protocole;
   i:=pos(':',s);
   com.address:=copy(s,1,i-1);
@@ -11858,7 +11877,8 @@ begin
   val(s,i,erreur);
   com.port:=i;
   com.open;
-  Affiche('Demande d''ouverture du socket '+tablo_acc_comusb[index].protocole,clYellow);
+//  Affiche('Demande d''ouverture du socket '+tablo_acc_comusb[index].protocole,clYellow);
+  result:=true;
 end;
 
 // connecte un port usb interface. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
@@ -12723,13 +12743,16 @@ begin
     index:=com_socket(i);   // comusb ou socket ?
     if index=1 then
     begin
-      if connecte_port_usb_acc(i) then
-        Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs ouvert',clLime)
-      else Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande actionneurs non ouvert',clOrange);
+      if connecte_port_usb_periph(i) then
+        Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande périphérique ouvert',clLime)
+      else Affiche('COM'+intToSTR(tablo_acc_comusb[i].numcom)+' commande périphérique non ouvert',clOrange);
     end;
     if index=2 then
     begin
-      connecte_socket_acc(i);
+      if connecte_socket_periph(i) then
+        Affiche('Socket '+tablo_acc_comusb[i].protocole+' demande ouverture ',clLime)
+      else
+      Affiche('Socket '+tablo_acc_comusb[i].protocole+' commande périphérique non ouvert',clOrange)
     end;
   end;
 
@@ -13125,7 +13148,7 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var aspect,i,a,x,y,Bimage,combine,adresse,TailleX,TailleY,orientation,indexTCO : integer;
+var i,a,combine,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
    imageFeu : Timage;
    frx,fry : real;
    faire : boolean;
@@ -15221,9 +15244,9 @@ procedure TFormPrinc.Proprits1Click(Sender: TObject);
 var s: string;
 begin
   clicliste:=false;
-  s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'adresse du feu (ex: ImageFeu260)
-  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu260)
-  adresseFeuClic:=extract_int(s);   // extraire l'adresse (ex 260)
+  s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'index du feu (ex: ImageFeu2)
+  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu2)
+  IndexFeuClic:=extract_int(s);   // extraire l'adresse (ex 2)
   formconfig.PageControl.ActivePage:=formconfig.TabSheetSig;
   clicproprietes:=true;
   formconfig.showmodal;
@@ -15581,12 +15604,39 @@ end;
 
 procedure TFormPrinc.Button1Click(Sender: TObject);
 begin
-  placement_trains;
+//  placement_trains;
   //ouvre_simulation('C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
   //ouvre_simulation('C:\Program Files\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
-  ouvre_simulation('C:\temp\Signaux_complexes_GL\2trains_autonome.txt');
+//  ouvre_simulation('C:\temp\Signaux_complexes_GL\2trains_autonome.txt');
 end;
 
+
+function liste_portcom : tStrings;
+var
+     reg:  TRegistry;
+     I:Integer;
+     ts : tStrings;
+begin
+   Reg := TRegistry.Create(KEY_READ);
+   try
+     Reg.RootKey := HKEY_LOCAL_MACHINE;
+     if Reg.OpenKey('HARDWARE\DEVICEMAP\SERIALCOMM', false) then       //Ordinateur\HKEY_LOCAL_MACHINE\HARDWARE\DEVICEMAP\SERIALCOMM
+     begin
+       ts:=TStringList.Create;
+       Reg.GetValueNames(ts);
+       for I := 0 to ts.Count - 1 do
+       begin
+         ts[i]:= Reg.ReadString(ts[i]);
+         Affiche(ts[i],clWhite);
+       end;
+     end;
+   finally
+     Reg.Free;
+   end;
+   if ts.count=0 then Affiche('Aucun port COM/USB',clyellow);
+
+   result:=tS;
+end;
 
 procedure TFormPrinc.Evenementsdetecteurspartrain1Click(Sender: TObject);
 var i,j,train,pos : integer;
@@ -15697,6 +15747,7 @@ begin
   if v_publie>0 then
   begin
     val(version,V_utile,erreur);
+    Affiche('Nt='+nombre_tel,clLime);
     if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' publiée le '+date_creation+' est à jour',clLime);
     if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end
@@ -16705,6 +16756,8 @@ procedure TFormPrinc.ClientSocketCde2Read(Sender: TObject;
 begin
   Affiche(CLientSocketCde2.Socket.ReceiveText,clWhite);
 end;
+
+
 
 end.
 

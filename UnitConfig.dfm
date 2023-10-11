@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAccessoires
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2295,7 +2295,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2402,7 +2402,7 @@ object FormConfig: TFormConfig
           Width = 129
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2688,7 +2688,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2707,7 +2707,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2916,8 +2916,8 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 8
-            Top = 176
+            Left = 16
+            Top = 136
             Width = 217
             Height = 137
             Caption = 'Destinataire de l'#39'action '
@@ -2930,7 +2930,7 @@ object FormConfig: TFormConfig
               Caption = 'Tempo (ms)'
             end
             object LabelFonction: TLabel
-              Left = 24
+              Left = 8
               Top = 18
               Width = 80
               Height = 13
@@ -3110,7 +3110,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 13
+              ItemHeight = 0
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3148,7 +3148,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxPN: TGroupBox
           Left = 8
-          Top = 112
+          Top = 56
           Width = 241
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
@@ -3291,7 +3291,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3893,17 +3893,20 @@ object FormConfig: TFormConfig
         OnMouseDown = ListBoxTrainsMouseDown
       end
     end
-    object TabSheetAccessoires: TTabSheet
+    object TabSheetPeriph: TTabSheet
       Caption = 'COM/USB/Socket'
       ImageIndex = 9
       object Label73: TLabel
         Left = 8
         Top = 8
-        Width = 574
-        Height = 13
+        Width = 580
+        Height = 26
         Caption = 
           'Les p'#233'riph'#233'riques COM/USB ou Sockets sont utilis'#233's pour '#234'tre act' +
-          'iv'#233's par un actionneur et leur envoyer des ordres ASCII'
+          'iv'#233's par un actionneur et leur envoyer des ordres ASCII. On peut' +
+          ' '#233'galement leur envoyer des informations sur les '#233'v'#232'nements aigu' +
+          'illage, d'#233'tecteurs et actionneurs via les services.'
+        WordWrap = True
       end
       object LabelInfoAcc: TLabel
         Left = 272
@@ -3913,9 +3916,9 @@ object FormConfig: TFormConfig
       end
       object ListBoxAcc: TListBox
         Left = 8
-        Top = 64
+        Top = 72
         Width = 233
-        Height = 281
+        Height = 273
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -3932,7 +3935,7 @@ object FormConfig: TFormConfig
       end
       object ButtonAjAccCom: TButton
         Left = 8
-        Top = 40
+        Top = 48
         Width = 65
         Height = 17
         Caption = 'Nouveau'
@@ -3941,7 +3944,7 @@ object FormConfig: TFormConfig
       end
       object ButtonSupAccCom: TButton
         Left = 80
-        Top = 40
+        Top = 48
         Width = 65
         Height = 17
         Caption = 'Supprime'
@@ -3950,7 +3953,7 @@ object FormConfig: TFormConfig
       end
       object GroupBoxDesc: TGroupBox
         Left = 264
-        Top = 64
+        Top = 72
         Width = 329
         Height = 129
         Caption = 'Description du p'#233'riph'#233'rique'
@@ -3963,9 +3966,9 @@ object FormConfig: TFormConfig
           Caption = 'Nom du p'#233'riph'#233'rique'
         end
         object EditNomAcc: TEdit
-          Left = 168
+          Left = 150
           Top = 24
-          Width = 121
+          Width = 170
           Height = 21
           Hint = 'Nom au choix du p'#233'riph'#233'rique'
           ParentShowHint = False

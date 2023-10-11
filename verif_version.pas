@@ -23,7 +23,7 @@ var
   FormVersion: TFormVersion;
   Lance_verif : integer;
   verifVersion,notificationVersion : boolean;
-  date_creation : string;
+  date_creation,nombre_tel : string;
 
 Const  Version='8.21';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
@@ -115,7 +115,7 @@ end;
 
 // renvoie le numéro de version depuis le site github
 function verifie_version : real;
-var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,nombre_tel,date_creation_ang
+var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang
      : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;
     fichier : text;

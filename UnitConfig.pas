@@ -311,7 +311,7 @@ type
     outcopierentatquetexte1: TMenuItem;
     CheckBoxAffMemo: TCheckBox;
     RadioButtonCde: TRadioButton;
-    TabSheetAccessoires: TTabSheet;
+    TabSheetPeriph: TTabSheet;
     ListBoxAcc: TListBox;
     ButtonAjAccCom: TButton;
     ButtonSupAccCom: TButton;
@@ -515,6 +515,7 @@ type
     procedure modif_ComboL(Sender : TObject);
     procedure cb_onclick(Sender : Tobject);
     procedure tb_onChange(sender : TObject);
+    procedure Bt_onclick(sender : Tobject);
   end;
 
 const
@@ -590,7 +591,7 @@ var
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
-  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Adressefeuclic,NumTrameCDM,
+  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Indexfeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccCOM,AncligneClicAccCOM : integer;
 
@@ -611,6 +612,7 @@ var
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5 : Tlabel;
   shape1,ShapeZ : Tshape;
+  BoutonCom : Tbutton;
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
   ShapeT : array[1..10] of TShape;
@@ -633,6 +635,8 @@ function decodeDCC(s : string) : string;
 implementation
 
 uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote;
+
+var ListCom : tstrings;
 
 {$R *.dfm}
 
@@ -1575,7 +1579,7 @@ begin
   if Tablo_Actionneur[i].son then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].FichierSon+'"';
 
-  if Tablo_Actionneur[i].cde then
+  if Tablo_Actionneur[i].periph then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',ACC'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
 
   encode_act_loc_son:=s;
@@ -2018,7 +2022,7 @@ var s,sa,SOrigine: string;
     Tablo_actionneur[i].loco:=false;
     Tablo_actionneur[i].act:=false;
     Tablo_actionneur[i].son:=false;
-    Tablo_actionneur[i].cde:=false;
+    Tablo_actionneur[i].periph:=false;
 
   end;
 
@@ -2095,7 +2099,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].loco:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].cde:=false;
+        Tablo_actionneur[maxtablo_act].periph:=false;
 
         delete(s,1,1);
         val(s,j,erreur);
@@ -2118,7 +2122,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].loco:=false;
         Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].cde:=true;
+        Tablo_actionneur[maxtablo_act].periph:=true;
 
         delete(s,1,3);
         val(s,j,erreur);
@@ -2146,7 +2150,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].son:=true;
         Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].cde:=false;
+        Tablo_actionneur[maxtablo_act].periph:=false;
         delete(s,1,1);
         i:=pos('"',s);
         s:=copy(s,1,i-1);
@@ -2161,7 +2165,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].act:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
         Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].cde:=false;
+        Tablo_actionneur[maxtablo_act].periph:=false;
 
         delete(s,1,1);
         val(s,j,erreur);
@@ -3826,33 +3830,32 @@ begin
   end;
 end;
 
-// affiche les champs du signal lc
-// LC=Adresse du signal
-procedure clicListeSignal(lc : integer);
-var AncAdresse,index,adresse,erreur : integer;
+// affiche les champs du signal index
+// LC=index du signal
+procedure clicListeSignal(index : integer);
+var AncAdresse,adresse,erreur,i : integer;
     s : string;
 begin
-  index:=index_Signal(lc)-1;
   if index<1 then exit;
-  s:=Uppercase(FormConfig.ListBoxSig.Items[index]);   // ligne cliquée
+  s:=Uppercase(FormConfig.ListBoxSig.Items[index-1]);   // ligne cliquée
   if s='' then
   begin
     ligneclicSig:=-1;
     exit;
   end;
 
-  { ne pas déselectionner tout!!
+  // ne pas déselectionner tout!!
   with FormConfig.ListBoxSig do
   begin
     for i:=0 to Count-1 do Selected[i]:=false;
-    FormConfig.ListBoxSig.Selected[index]:=true;
+    FormConfig.ListBoxSig.Selected[index-1]:=true;
   end;
-  }
 
-  Feu_Sauve:=feux[index+1];  // sauvegarde
+
+  Feu_Sauve:=feux[index];  // sauvegarde
 
   AncLigneClicSig:=ligneclicSig;
-  ligneClicSig:=index;
+  ligneClicSig:=index-1;
 
   // Mettre en rouge le signal modifié quand on clique sur un autre signal
   if AncligneclicSig<>-1 then
@@ -3865,7 +3868,7 @@ begin
 
   FormConfig.EditAdrSig.Color:=clWindow;
 
-  aff_champs_sig_feux(index+1);   // affiche les champs du feu
+  aff_champs_sig_feux(index);   // affiche les champs du feu
   clicliste:=false;
 end;
 
@@ -3977,7 +3980,7 @@ begin
   clicListe:=false;
   activ:=false;
 
-  if clicproprietes then clicListeSignal(Adressefeuclic);
+  if clicproprietes then clicListeSignal(Indexfeuclic);
   clicproprietes:=false;
 
 end;
@@ -4046,6 +4049,11 @@ begin
       ShapeT[i].Visible:=false;
     end;
   end;
+end;
+
+procedure TformConfig.Bt_onclick(sender : TObject);
+begin
+ liste_portcom;
 end;
 
 procedure TformConfig.cb_onclick(sender : TObject);
@@ -4138,14 +4146,14 @@ begin
     if v=1 then
     begin
       inc(NbPeriph_COMUSB);
-      if NbPeriph_COMUSB>MaxComUSBCde then labelInfo.Caption:='Nombre maxi de périphériques COM/USB atteint';
+      if NbPeriph_COMUSB>MaxComUSBPeriph then labelInfo.Caption:='Nombre maxi de périphériques COM/USB atteint';
       Tablo_acc_COMUSB[i].numComposant:=NbPeriph_COMUSB;
       Tablo_com_cde[i].NumAcc:=NbPeriph_COMUSB;
     end;
     if v=2 then
     begin
       inc(NbPeriph_Socket);
-      if NbPeriph_Socket>2 then labelInfo.Caption:='Nombre maxi de périphériques socket atteint';
+      if NbPeriph_Socket>MaxComSocketPeriph then labelInfo.Caption:='Nombre maxi de périphériques socket atteint';
       Tablo_acc_COMUSB[NbPeriph].numComposant:=NbPeriph_socket;
       Tablo_com_cde[i].NumAcc:=NbPeriph_Socket;
     end;
@@ -4816,7 +4824,7 @@ begin
   GroupBoxAct.Visible:=false;
   GroupBoxPN.Visible:=false;
 
-  if clicproprietes then clicListeSignal(Adressefeuclic);
+  if clicproprietes then clicListeSignal(Indexfeuclic);
   clicproprietes:=false;
 
   i:=1;
@@ -4854,16 +4862,16 @@ begin
 
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
   //--------- groupbox
-  gp1:=TgroupBox.Create(FormConfig.TabSheetAccessoires);
+  gp1:=TgroupBox.Create(FormConfig.TabSheetPeriph);
   with gp1 do
   begin
     Left:=264;Top:=groupBoxDesc.top+groupBoxDesc.Height+10;Width:=groupBoxDesc.Width;Height:=90;
-    parent:=TabSheetAccessoires;
+    parent:=TabSheetPeriph;
     caption:='Services envoyés au périphérique';
     Name:='Gp1';
   end;
 
-  cb2:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  cb2:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb2 do
   begin
     Left:=10;Top:=25;Width:=100;Height:=12;
@@ -4874,7 +4882,7 @@ begin
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
-  cb3:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  cb3:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb3 do
   begin
     Left:=10;Top:=45;Width:=100;Height:=12;
@@ -4885,22 +4893,59 @@ begin
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
-  cb1:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  cb1:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb1 do
   begin
-    Left:=10;Top:=65;Width:=100;Height:=12;
-    caption:='Aiguillages';
+    Left:=10;Top:=65;Width:=170;Height:=12;
+    caption:='Aiguillages et accessoires';
     name:='cbAig';
     parent:=gp1;
-    hint:='Envoie les évènements aiguillages';
+    hint:='Envoie les évènements aiguillages (accessoires)';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
 
-  CheckBoxCR:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  BoutonCom:=Tbutton.Create(FormConfig.TabSheetPeriph);
+  with BoutonCom do
+  begin
+    Left:=100;Top:=357;Width:=75;Height:=20;
+    caption:='Lister COMs';
+    name:='BoutonCom';
+    parent:=FormConfig.TabSheetPeriph;
+    hint:='Affiche les ports COM/USB disponibles';
+    ShowHint:=true;
+    onclick:=formconfig.Bt_onclick;
+  end;
+
+  EditPortCde:=TEdit.Create(FormConfig.TabSheetPeriph);
+  with EditPortCde do
+  begin
+    Left:=150;Top:=EditNomAcc.top+30;Width:=170;Height:=12;
+    name:='EditPortCde';
+    text:='';
+    parent:=GroupBoxDesc;
+    hint:='Port COM/USB : COMX:vitesse,parité,nombre de bits de données, nombre de bits de stop ou'+#13+
+          '________________________________'+#13+#13+ 
+          'Socket : AdresseIPV4:port';
+    ShowHint:=true;
+    OnChange:=formconfig.tb_onChange;
+  end;
+
+  LabelPortCde:=TLabel.Create(FormConfig.TabSheetPeriph);
+  with LabelPortCde do
+  begin
+    Left:=10;Top:=EditNomAcc.top+32;Width:=170;Height:=12;
+    caption:='Protocole de communication';
+    name:='LabelPortCde';
+    parent:=GroupBoxDesc;
+    hint:='Protocole de communication';
+    ShowHint:=true;
+  end;
+
+  CheckBoxCR:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with CheckBoxCR do
   begin
-    Left:=10;Top:=56;Width:=170;Height:=12;
+    Left:=10;Top:=LabelPortCde.Top+30;width:=150;Height:=12;
     caption:='Envoyer CR (retour chariot)';
     name:='CheckBoxCR';
     parent:=GroupBoxDesc;
@@ -4909,42 +4954,17 @@ begin
     onclick:=formconfig.cb_onclick;
   end;
 
-  EditPortCde:=TEdit.Create(FormConfig.TabSheetAccessoires);
-  with EditPortCde do
-  begin
-    Left:=150;Top:=95;Width:=170;Height:=12;
-    name:='EditPortCde';
-    text:='';
-    parent:=GroupBoxDesc;
-    hint:='COMX:vitesse,parité,nombre de bits de données, nombre de bits de stop ou'+#13+
-          'AdresseIPV4:port';
-    ShowHint:=true;
-    OnChange:=formconfig.tb_onChange;
-  end;
-
-  LabelPortCde:=TLabel.Create(FormConfig.TabSheetAccessoires);
-  with LabelPortCde do
-  begin
-    Left:=10;Top:=98;Width:=170;Height:=12;
-    caption:='Protocole de communication';
-    name:='LabelPortCde';
-    parent:=GroupBoxDesc;
-    hint:='Protocole de communication';
-    ShowHint:=true;
-  end;
-
-  cbVis:=TCheckBox.Create(FormConfig.TabSheetAccessoires);
+  cbVis:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cbVis do
   begin
     parent:=groupBoxDesc;
-    Left:=10;Top:=75;Width:=100;Height:=12;
+    Left:=10;Top:=CheckBoxCR.top+20;Width:=100;Height:=12;
     caption:='Mode visible';
     name:='cbVis';
     hint:='Affiche le texte à l''écran lors des envoi';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
-
 
 
   {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
@@ -4967,6 +4987,7 @@ end;
 
 
 // décode un morceau d'une chaine d'aiguillage ('P5S')
+// 
 // si erreur, B='?'
 procedure decodeAig(s : string;var adr : integer;var B : char);
 var erreur,i : integer;
@@ -5864,7 +5885,7 @@ begin
     end;
   end;
 
-  if Tablo_actionneur[i].cde then
+  if Tablo_actionneur[i].periph then
   begin
     champs_type_cde;
     with formConfig do
@@ -5988,7 +6009,7 @@ begin
     until trouve or (i>NbrePN);
     if not(trouve) then exit;
 
-    with formConfig do                  //zizi
+    with formConfig do     
     begin
       RadioGroupActPN.itemindex:=Tablo_PN[i].TypeCde;
 
@@ -7584,6 +7605,8 @@ begin
 
   if not(verif_dec_sig(false)) then labelInfo.Caption:='Combinaison décodeur / aspect incompatible';
 
+  ListBoxSig.Selected[ligneClicSig]:=true;
+
   // change l'image du feu dans la feuille graphique principale
   bm:=Select_dessin_feu(feux[index].aspect);
   if bm=nil then exit;
@@ -7667,7 +7690,7 @@ begin
   Tablo_Actionneur[i].loco:=true;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].Cde:=false;
+  Tablo_Actionneur[i].periph:=false;
   champs_type_loco;
 
   val(editact.Text,champ,erreur);
@@ -7699,7 +7722,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=true;
   Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].Cde:=false;
+  Tablo_Actionneur[i].periph:=false;
   champs_type_act;  
   
   val(editact.Text,champ,erreur);
@@ -7732,7 +7755,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=true;
-  Tablo_Actionneur[i].Cde:=false;
+  Tablo_Actionneur[i].periph:=false;
 
   champs_type_son;
  
@@ -7763,7 +7786,7 @@ begin
   Tablo_Actionneur[i].loco:=false;
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].Cde:=true;
+  Tablo_Actionneur[i].periph:=true;
   champs_type_Cde;
 
   val(editact.Text,champ,erreur);
@@ -8177,7 +8200,6 @@ begin
   AncLigneCliqueePN:=-1;
   ligneclicAct:=-1;
   AncligneclicAct:=-1;
-
 
   clicliste:=false;
 end;
@@ -8838,7 +8860,7 @@ begin
         begin
           ok:=false;
           Affiche('Erreur 9.6: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
-        end;  
+        end;
       end;
     end;
 
@@ -8926,7 +8948,7 @@ begin
               extr:=aiguillage[index2].ADroit;
               if adr<>extr then Affiche('Erreur 10.23: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
             end;
-            if c='S' then 
+            if c='S' then
             begin
               extr:=aiguillage[index2].ADevie;
               if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
@@ -9279,7 +9301,7 @@ begin
         end;
       end;
 
-      if Tablo_actionneur[i].cde then
+      if Tablo_actionneur[i].periph then
       begin
         j:=Tablo_actionneur[i].fonction;
         if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
@@ -9309,7 +9331,7 @@ begin
   // actionneurs
   for i:=1 to maxTablo_act do
   begin
-    if tablo_actionneur[i].cde then
+    if tablo_actionneur[i].periph then
     begin
       adresse:=tablo_actionneur[i].fonction;
       if adresse>NbPeriph then
@@ -9762,7 +9784,7 @@ begin
       //aiguillage[index].DdroitB:=B;
       aiguillage[index].Ddevie:=adr;
       aiguillage[index].DdevieB:=B;
-      
+
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[ligneClicAig]:=s;
 
@@ -10386,6 +10408,7 @@ begin
 end;
 
 procedure TFormConfig.PageControlChange(Sender: TObject);
+var i : integer;
 begin
   Label20.Visible:=false;
   LabelInfo.caption:='';
@@ -11800,120 +11823,6 @@ begin
   clicListe:=false;
 end;
 
-{
-procedure TFormConfig.ListBoxAigKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var lc,curseur,i : integer;
-begin
-  if key=VK_delete then supprime_aig;
-
-  if ord(Key)=VK_UP then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt ListBoxAig keydown',clyellow);
-    with Formconfig.ListBoxAig do
-    begin
-      i:=Selstart;
-      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-      if lc>0 then
-      begin
-        dec(lc);
-        AncligneClicAig:=ligneClicAig;
-        ligneClicAig:=lc;
-        curseur:=SelStart;  // position initiale du curseur
-        if AncligneClicAig<>ligneClicAig then
-        begin
-          if AncligneClicAig<>-1 then
-          begin
-            RE_ColorLine(ListBoxAig,AncligneClicAig,ClAqua);
-          end;
-          RE_ColorLine(ListBoxAig,ligneClicAig,ClYellow);
-          selStart:=curseur;  // remettre le curseur en position initiale
-          aff_champs_Aig_tablo(lc+1);
-        end;
-      end;
-   end;
-  end;
-
-  if ord(Key)=VK_DOWN then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt ListBoxAig keydown',clyellow);
-    with Formconfig.ListBoxAig do
-    begin
-      i:=Selstart;
-      lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-      if lc<maxaiguillage-1 then
-      begin
-        inc(lc);
-        AncligneClicAig:=ligneClicAig;
-        ligneClicAig:=lc;
-        curseur:=SelStart;  // position initiale du curseur
-        if AncligneClicAig<>ligneClicAig then
-        begin
-          if AncligneClicAig<>-1 then
-          begin
-            RE_ColorLine(ListBoxAig,AncligneClicAig,ClAqua);
-          end;
-          RE_ColorLine(ListBoxAig,ligneClicAig,ClYellow);
-          selStart:=curseur;  // remettre le curseur en position initiale
-          aff_champs_Aig_tablo(lc+1);
-        end;
-      end;
-   end;
-  end;
-  clicListe:=false;
-end;
-}
-{
-
-procedure TFormConfig.ListBoxAigMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,lc,adresse,erreur : integer;
-    s : string;
-begin
-  clicliste:=true;
- // HideCaret(ListBoxAig.Handle);
-  raz_champs_aig;
-  ComboBoxAig.ItemIndex:=-1;
-  formconfig.ComboBoxDD.ItemIndex:=-1;
-
-  with Formconfig.ListBoxAig do
-  begin
-    i:=Selstart;
-    lc:=Perform(EM_LINEFROMCHAR,i,0);  // numéro de la lignée cliquée
-    //Affiche('numéro de la ligne cliquée '+intToStr(lc),clyellow);
-    s:=Uppercase(Lines[lc]);   // ligne cliquée
-    if s='' then
-    begin
-      RE_ColorLine(Formconfig.ListBoxAig,ligneclicAig,ClAqua);
-      ligneclicAig:=-1;
-      exit;
-    end;
-
-    Aig_sauve:=Aiguillage[lc+1];  // sauvegarde
-    AncligneclicAig:=ligneclicAig;
-    ligneclicAig:=lc;
-
-    if AncligneclicAig<>-1 then
-    begin
-      if aiguillage[ligneclicAig+1].modifie then RE_ColorLine(Formconfig.ListBoxAig,AncligneclicAig,ClWhite) else
-      RE_ColorLine(Formconfig.ListBoxAig,AncligneclicAig,ClAqua);
-    end;
-  end;
-
-  Val(s,Adresse,erreur);  // Adresse de l'aguillage
-  if adresse=0 then exit;
-
-  RE_ColorLine(Formconfig.ListBoxAig,ligneclicAig,Clyellow);
-  i:=index_aig(Adresse);
-
-  aff_champs_Aig_tablo(i);
-  clicliste:=false;
-end;
-}
 
 procedure TFormConfig.ListBoxAigDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -11937,7 +11846,7 @@ begin
   with Formconfig.ListBoxSig do
   begin
     ligneClicSig:=itemindex;
-    clicListeSignal(feux[ligneClicSig+1].adresse);
+    clicListeSignal(ligneClicSig+1);
   end;
 end;
 
@@ -12059,11 +11968,7 @@ procedure TFormConfig.Slectionnertout1Click(Sender: TObject);
 var tl: TListBox;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
-  //Affiche(tl.name,clLime);
-  with tl do
-  begin
-    SelectAll;
-  end;
+  tl.SelectAll;
 end;
 
 // supprimer un périphérique
@@ -12084,7 +11989,7 @@ var ss,s : string;
   if ss='' then exit;
 
   s:='Voulez-vous supprimer ';
-  if n=1 then s:=s+' l''accessoire COM/USB ' else s:=s+' les accessoires COM/USB ';
+  if n=1 then s:=s+' le périphérique ' else s:=s+' les périphériques ';
   s:=s+ss+' ?';
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
@@ -12166,18 +12071,17 @@ begin
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
-  formconfig.LabelInfo.caption:='Accessoire COM/USB créé';
+  formconfig.LabelInfo.caption:='Périphérique COM/USB/Socket créé';
   ligneClicAccCOM:=i-1;
   AncligneClicAccCOM:=ligneClicAccCom;
   Aff_champs_accCOMUSB_tablo(i);
-  s:='nouveau';
+  s:='Nouveau périphérique';
   formConfig.ComboBoxAccComUSB.Items.Add(s);
   formconfig.ComboBoxPNCom.Items.Add(s);
   formconfig.EditNomAcc.text:=s;
   clicliste:=false;
   config_modifie:=true;
 end;
-
 
 
 procedure TFormConfig.Supprimer1Click(Sender: TObject);
@@ -12248,17 +12152,18 @@ begin
   begin
     index:=tablo_com_cde[i].NumAcc;
 
-    if com_socket(i)=1 then
+    if com_socket(i)=1 then  // si port comusb
     begin
-      if connecte_port_usb_acc(index) then
+      if connecte_port_usb_periph(index) then
         Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique ouvert',clLime)
       else Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique non ouvert',clOrange);
     end
     else
-    begin
-      connecte_socket_acc(i);
+    begin  // si port com socket
+      if connecte_socket_periph(i) then Affiche('Socket '+tablo_acc_comusb[i].protocole+' demande ouverture ',clLime)
+      else
+        Affiche('Socket '+tablo_acc_comusb[i].protocole+' commande périphérique non ouvert',clOrange);
     end;
-
   end;
 end;
 
@@ -12284,8 +12189,6 @@ begin
   end;
 end;
 
-
-
 procedure TFormConfig.ListBoxAccMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i,lc : integer;
@@ -12309,11 +12212,9 @@ begin
     ligneclicAccCom:=lc;
   end;
 
-
   Aff_champs_accCOMUSB_tablo(lc+1);
   clicliste:=false;
 end;
-
 
 
 procedure TFormConfig.ComboBoxAccComUSBChange(Sender: TObject);

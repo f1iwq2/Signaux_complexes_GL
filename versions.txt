@@ -192,6 +192,6 @@ version 8.2  : Optimisation de la rapidité de traitement lors des recherches d'i
                actionneur/détecteur/aiguillage.
 version 8.21 : Correction passage en majuscule de la commande port COM/USB.
                Ajout du pilotage des passage à niveaux par COM/USB.
-               Ajout de l'envoi des commandes sur un socket (réseau Ethernet/wifi)
+               Ajout de l'envoi des commandes/services sur un socket (réseau Ethernet/wifi)
 
 
