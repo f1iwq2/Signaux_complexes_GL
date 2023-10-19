@@ -35,7 +35,10 @@ object FormImportation: TFormImportation
       Top = 32
       Width = 113
       Height = 17
+      Hint = 'Affiche le debug importation en page Debug'
       Caption = 'Debug importation'
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 0
       OnClick = CheckDebugAnalyseClick
     end
@@ -44,7 +47,10 @@ object FormImportation: TFormImportation
       Top = 56
       Width = 97
       Height = 17
+      Hint = 'Affiche le debug branches en page Debug'
       Caption = 'Debug branches'
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
       OnClick = CheckDebugBranchesClick
     end

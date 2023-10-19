@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.21';  // sert à la comparaison de la version publiée
+Const  Version='8.24';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -56,7 +56,7 @@ begin
   else
   begin
     SetLength(result,nSize-1);
-    if GetEnvironmentVariable(PChar(VariableName), PChar(result), nSize) <> nSize - 1 then
+    if GetEnvironmentVariable(PChar(VariableName),PChar(result),nSize) <> nSize-1 then
       raise Exception.Create(SysErrorMessage(GetlastError))
   end;
 end;
@@ -200,7 +200,7 @@ begin
         nombre_tel:=extrait_champ_simple('download_count');
 
         // date de création
-        date_creation_ang:=extrait_champ('created_at');
+        date_creation_ang:=extrait_champ('published_at');
         if date_creation_ang<>'' then
         begin
           //Affiche(date_creation_ang,clyellow);

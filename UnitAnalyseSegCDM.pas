@@ -169,7 +169,7 @@ var Segment : array of Tsegment;
     reducX,reducY,ArcTanHautLargTrain : double;
     FormAnalyseCDM: TFormAnalyseCDM;
     sBranche,NomModuleCDM : string;
-    debugBranche,debugAnalyse,clic,premaff : boolean;
+    clic,premaff : boolean;
     Aig_CDM : array[0..NbreMaxiAiguillages] of TAig_CDM;
     Det_CDM : array[1..500] of integer;
     FWICImage : tBitmap;
@@ -377,8 +377,8 @@ begin
   s2:=isole_valeur(s,'connect status:');
   Segment[nSeg-1].port[nPort-1].connecte:=s2='connected';
 
-  if Segment[nSeg-1].port[nPort-1].typ='dummy_port' then
-    exit;
+  if Segment[nSeg-1].port[nPort-1].typ='dummy_port' then exit;
+  if not(Segment[nSeg-1].port[nPort-1].connecte) then exit;
 
   inc(nligne);
   s:=AnsiLowerCase(lignes[nligne]);
@@ -831,9 +831,11 @@ end;
 // s*l = distance du point au segment
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 var l,r,s : Double;
+    p : integer;
 begin
   Result:=False;
-  l:=sqrt(((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)));
+  p:=((x2-x1)*(x2-x1))+((y2-y1)*(y2-y1));
+  l:=sqrt(p);
   if l<>0 then
   begin
     r:=((y1-y)*(y1-y2)-(x1-x)*(x2-x1))/(l*l);
@@ -1990,7 +1992,7 @@ end;
 
 // fonction récursive
 // explore le port,segment jusqu'a trouver une adresse d'aiguillage, de croisement, ou de détecteur
-// renvoie l'adresse de l'aiguillage ou du détecteur et dans C le port (P D S)
+// renvoie l'adresse de l'aiguillage ou du détecteur et dans C le port (P D S ou Z pour un détecteur)
 function explore_port(seg,port : integer;var c : string) : integer;
 var i,j,IdSeg,IdPort,NombrePeriph,port1,port2,portSuivant,segSuivant,portLocal,
     xp,yp,xd,yd,detect,nb_det : integer;
@@ -2201,8 +2203,9 @@ begin
         s:='  Port '+intToSTR(j)+' ';
         // explorer les ports de l'aiguillage
         element:=explore_port(numsegment,segment[i].port[j].numero,c);
+        if length(c)=0 then c:='Z';
 
-        case j of
+        case j of // j=numéro de port
         0 : begin s:=s+'D';Aig_cdm[nAig_cdm].ddroit:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].ddroitB:=c[1];end;
         1 : begin s:=s+'S';Aig_cdm[nAig_cdm].dDevie:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].ddevieB:=c[1];end;
         2 : begin s:=s+'D';Aig_cdm[nAig_cdm].ADroit:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].aDroitB:=c[1];end;
@@ -2315,6 +2318,8 @@ begin
 
          // explorer les ports de l'aiguillage
           element:=explore_port(numsegment,segment[i].port[j].numero,c);
+          if length(c)=0 then c:='Z';
+
           s:=s+' Element : '+intToStr(element)+c;
           if debugAnalyse then AfficheDebug(s,clorange);
 
@@ -2364,6 +2369,7 @@ begin
      end;
     end;
   end;
+  if nAig_CDM=0 then affiche('Aucun aiguillage avec adresse',clyellow);
 end;
 
 // trouve le port de destination sur un segment en fonction du port d'origine 'port'
@@ -2479,6 +2485,13 @@ begin
   end;
 end;
 
+// vérifier si un détecteur est dans le champ d'une ligne
+// exemple s='A21,533,568,566' det=533 résultat vrai
+function presence_detecteur(s : string;det : integer) : boolean;
+begin
+  result:=pos(','+intToSTR(det),s)<>0;
+end;
+
 
 // renvoie le dernier champ d'une chaine séparés par des virgules
 // s='aa,bb,ccc,ddd,ee'  : renvoie ee
@@ -2506,13 +2519,14 @@ end;
 
 
 // créée la branche depuis un aiguillage dont un des ports est un détecteur
-// indexSeg,port : index su segment et port de départ
+// indexSeg,port : index du segment et port de départ
 // AdrAig : adresse de l'aiguillage qui a servi de départ
+// et remplit la branche (sBranche)
 procedure cree_branche_aig(indexSeg,Indexport,adrAig,NbreMaxiAigRencontres : integer);
-var i,j,k,naig,IndexportSuivant,indexSegSuivant,NombrePeriph,
+var i,j,k,l,naig,IndexportSuivant,indexSegSuivant,NombrePeriph,
     detecteur,indexElBranche,AdrAigRencontre,numSegment,
     rien,erreur,det2,nb_det,xp,yp,xd,yd,Adr2,AdrDer,idx : integer;
-    trouve : boolean;
+    trouve,doublon : boolean;
     s,ss,ctype,derch: string;
     sdetect : Tdetect_cdm;
 begin
@@ -2548,7 +2562,7 @@ begin
       if segment_aig(ctype) then
       begin
         AdrAigRencontre:=segment[indexSegSuivant].adresse;
-        if NivDebug=3 then Affichedebug('aig '+intTostr(adrAigRencontre),clyellow);
+        if debugBranche then Affichedebug('Aiguillage '+intTostr(adrAigRencontre),clyellow);
         if (ctype='dbl_slip_switch') and (segment[indexSegSuivant].adresse2<>0) then
         begin
           // dernier élément rencontré
@@ -2557,7 +2571,6 @@ begin
           derch:=dernier_champ(sBranche);
           if derch[1]='A' then begin derch:=copy(derch,2,length(derch)-1);end;
           val(derch,AdrDer,erreur);
-         // if AdrDer=ADrAigRencontre then
 
           idx:=index_aig(AdrAigRencontre);
           // trouver de quel côté on va à la TJD
@@ -2570,7 +2583,9 @@ begin
                 sbranche:=sbranche+',A'+intToSTR(adr2)+',A'+intToSTR(AdrAigRencontre)
             else
             begin
-              Affiche('TJD '+intToSTR(Adr2)+'/'+intToSTR(adrAigRencontre)+'non résolue en branche '+intToSTR(nbreBranches)+'. Une vérification manuelle est nécessaire.',clred);
+              s:='TJD '+intToSTR(Adr2)+'/'+intToSTR(adrAigRencontre)+'non résolue en branche '+intToSTR(nbreBranches)+'. Une vérification manuelle est nécessaire.';
+              Affiche(s,clred);
+              if debugBranche then AfficheDebug(s,clred);
               sbranche:=sbranche+',A??,A??';
             end;
           end;
@@ -2591,7 +2606,7 @@ begin
       if ctype='crossing' then
       begin
         sBranche:=sBranche+',A'+intToSTR(segment[indexSegSuivant].adresse);
-        if NivDebug=3 then Affichedebug('croisement',clyellow);
+        if debugBranche then Affichedebug('croisement',clyellow);
         //if debugBranche then AfficheDebug('Croisement '+intToSTR(segment[indexSegSuivant].adresse),clorange);
         raz_detect(sdetect);
       end;
@@ -2630,7 +2645,7 @@ begin
               detecteur:=segment[indexSegSuivant].periph[j].adresse;
               if detecteur<>0 then
               begin
-                if NivDebug=3 then Affichedebug('Détecteur '+inttoStr(detecteur),clyellow);
+                if debugBranche then Affichedebug('Détecteur '+inttoStr(detecteur),clyellow);
                 // incrémenter le compteur du détecteur rencontré
                 inc(nb_det);
                 sDetect[nb_det].adresse:=detecteur ;
@@ -2647,25 +2662,39 @@ begin
             inc(j);
           until (j>NombrePeriph-1) ;
 
-          // trier les détecteurs du segment dans l'ordre de la distance de la plus
-          // courte à la plus grande au port
           if nb_det<>0 then
           begin
+            // trier les détecteurs du segment dans l'ordre de la distance de la plus
+            // courte à la plus grande au port
             trier(Sdetect,nb_det);
 
             for j:=1 to nb_det do
             begin
+              // vérifier si le détecteur est déja dans la branche
+              // nouveau détecteur doublon
               detecteur:=sDetect[j].adresse;
-              ss:=dernier_champ(sbranche);
+              doublon:=presence_detecteur(sbranche,detecteur);
+              if not(doublon) then
+              begin
+                sbranche:=sbranche+','+intToSTR(detecteur);
+                if debugBranche then Affichedebug('Détecteur '+intToSTR(j)+'/'+intToSTR(nb_det)+': pris en compte : '+intToSTR(detecteur),clyellow);
+              end
+              else
+              begin
+                if debugBranche then Affichedebug('Détecteur '+intToSTR(j)+'/'+intToSTR(nb_det)+': non pris en compte : '+intToSTR(detecteur),clOrange);
+              end;
+
+             { ss:=dernier_champ(sbranche);
               k:=0;
               val(ss,k,erreur);
               if ss<>'' then if not(ss[1] in['0'..'9']) then k:=0;
-              // vérifier si le détecteur est déja en fin de branche
-              if k<>detecteur then
+              // vérifier si le détecteur est déja en fin de branche et que si on est au 2eme élément du tableau, on ne doit pas rencontrer le meme détecteur
+              if (k<>detecteur) then
               begin
-                sbranche:=sbranche+','+intToSTR(detecteur);
-                if NivDebug=3 then Affichedebug('Détecteur pris en compte : '+intToSTR(detecteur),clyellow);
-              end;
+                  sbranche:=sbranche+','+intToSTR(detecteur);
+                  if debugBranche then Affichedebug('Détecteur '+intToSTR(j)+'/'+intToSTR(nb_det)+': pris en compte : '+intToSTR(detecteur),clyellow);
+              end; }
+
               inc(indexElBranche);
             end;
           end;
@@ -2749,9 +2778,9 @@ begin
     if debugBranche then
     begin
       AfficheDebug('La branche '+sBranche,clorange);
-      AfficheDebug('est inutile car un de ses détecteurs '+intToSTR(detecteur)+' existe dans la branche '+intToSTR(i-1),clOrange);
-      exit;
+      AfficheDebug('est inutile car un de ses détecteurs '+intToSTR(detecteur)+' existe déjà dans la branche '+intToSTR(i-1),clOrange);
     end;
+    exit;
   end;
 
   // ok
@@ -2772,7 +2801,6 @@ begin
   essai_port:
   if debugBranche then
   begin
-    AfficheDebug('------------------',clyellow);
     AfficheDebug('Créée branche détecteur '+intToSTR(detecteur)+' sur port '+intToSTR(indexPort),clOrange);
   end;
   trouve:=trouve_IndexSegPortDetecteur(detecteur,indexSeg,indexPeriph);
@@ -2848,7 +2876,7 @@ var i,j,k,adresse,detecteur,indexSeg,det2,erreur : integer;
     trouve : boolean;
     c : char;
     s : string;
-begin
+begin        
   // l'origine d'une branche est la pointe d'un aiguillage connecté à un détecteur ----------
   NbreBranches:=0;
 
@@ -2935,7 +2963,11 @@ begin
     end;
     if not(trouve) then
     begin
-      if debugBranche then AfficheDebug('le détecteur '+intToSTR(detecteur)+' est absent des branches ',clOrange);
+      if debugBranche then
+      begin
+        AfficheDebug('------------------',clyellow);
+        AfficheDebug('Le détecteur '+intToSTR(detecteur)+' est absent des branches, création d''une branche le contenant ',clOrange);
+      end;
       cree_branche_det(detecteur);
       //if debugBranche then AfficheDebug(sbranche,clWhite);
     end;
@@ -3050,7 +3082,7 @@ begin
   closefile(f);
   Affiche('Le fichier de segments CDM : '+NomModuleCDM+' a été créé',clYellow);
   formprinc.Affiche_fenetre_CDM.enabled:=true;
-  confasauver:=true;
+  config_modifie:=true;
 end;
 
 procedure lit_fichier_segments_cdm;
@@ -3268,6 +3300,7 @@ end;
 // et crée les branches
 procedure Importation;
 var i : integer;
+    s: string;
 begin
   if MaxAiguillage<>0 then
   begin
@@ -3310,8 +3343,26 @@ begin
   end;
   MaxAiguillage:=NAig_CDM;
   trier_aig;
+  // construit les index des aiguillages
+  for i:=1 to maxAiguillage do
+  begin
+    index_accessoire[aiguillage[i].adresse]:=i;
+  end;
 
-  // créer les branches
+  // remplit la list box les aiguillages
+  formconfig.ListBoxAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    formconfig.ListBoxAig.Items.AddObject(s, Pointer(clRed));
+    Aiguillage[i].modifie:=false;
+  end;
+  FormConfig.ListBoxAig.itemindex:=0;
+  AncligneclicAig:=-1;
+  ligneclicAig:=-1;
+
+  // créer les branches. Pour créer les branches, les aiguillages doivent être présents et leurs index construits
+  NbreBranches:=0;
   creee_branches;
 
   Affiche('Validation des branches',ClLime);
@@ -3322,6 +3373,7 @@ begin
   Affiche('Importation terminée',clWhite);
   Affiche('Vérification de la cohérence :',clWhite);
   if verif_coherence then Affiche('Configuration cohérente',clLime);
+  if debugbranche or debugAnalyse then formDebug.Show;
 end;
 
 // compile le fichier Texte de CDM et l'importe
@@ -3351,8 +3403,14 @@ begin
   ndet_cdm:=0;
   //debugAnalyse:=true;
   //debugBranche:=true;
+
+  if DebugAnalyse or DebugBranche then formDebug.RichDebug.Clear;
   Lignes:=Formprinc.FenRich.Lines;
-  nligne:=0; nSeg:=0;
+  nligne:=0;
+  nSeg:=0;
+  nPort:=0;
+  nPeriph:=0;
+  nInter:=0;
   DernAdrAig:=0;
   xminiCDM:=0;yMiniCDM:=0;xmaxiCDM:=0;yMaxiCDM:=0;
 
@@ -3361,6 +3419,7 @@ begin
   formAnalyseCDM.Show;
 
   Affiche('Compilation en cours',clWhite);
+  // on compile: on crée la base de données
   if DebugBranche then AfficheDebug('Compilation des segments, ports, inter et périphériques de CDM rail',ClWhite);
   repeat
     s:=supprime_espaces(lignes[nligne]);
@@ -3401,7 +3460,10 @@ begin
   // sauvegarde
   sauve_ficher_cdm;
 
-  Importation;
+  // crée les branches
+  if nAig_CDM=0 then Affiche('Aucun aiguillage avec adresse, les branches ne peuvent pas être créées',clOrange)
+  else
+    Importation;
 end;
 
 

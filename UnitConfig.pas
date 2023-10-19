@@ -273,7 +273,7 @@ type
     CheckBoxVerifXpressNet: TCheckBox;
     ImageTrain: TImage;
     ButtonPFCDM: TButton;
-    PopupMenuBranches: TPopupMenu;
+    PopupMenuRichedit: TPopupMenu;
     Copier1: TMenuItem;
     Coller1: TMenuItem;
     CheckBoxVersContrevoie: TCheckBox;
@@ -283,12 +283,12 @@ type
     TabSheetDecodeurs: TTabSheet;
     Label61: TLabel;
     Label62: TLabel;
-    Label63: TLabel;
-    Label66: TLabel;
+    LabelDecal: TLabel;
+    LabelSorties: TLabel;
     GroupBox26: TGroupBox;
     Label67: TLabel;
     ComboBoxDecodeurPerso: TComboBox;
-    Label65: TLabel;
+    LabelNa: TLabel;
     EditNbreAdr: TEdit;
     Label64: TLabel;
     ComboBoxNation: TComboBox;
@@ -312,7 +312,7 @@ type
     CheckBoxAffMemo: TCheckBox;
     RadioButtonCde: TRadioButton;
     TabSheetPeriph: TTabSheet;
-    ListBoxAcc: TListBox;
+    ListBoxPeriph: TListBox;
     ButtonAjAccCom: TButton;
     ButtonSupAccCom: TButton;
     GroupBoxDesc: TGroupBox;
@@ -338,6 +338,13 @@ type
     RadioButtonZone: TRadioButton;
     RadioGroupActPN: TRadioGroup;
     ComboBoxPNCom: TComboBox;
+    RadioCdeDec: TRadioGroup;
+    ComboBoxDecCde: TComboBox;
+    LabelTypCde: TLabel;
+    N3: TMenuItem;
+    outslectionner1: TMenuItem;
+    EditChercher: TEdit;
+    ButtonCherche: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -495,18 +502,23 @@ type
     procedure ButtonOuvreComClick(Sender: TObject);
     procedure ButtonAjAccComClick(Sender: TObject);
     procedure EditNomAccChange(Sender: TObject);
-    procedure ListBoxAccMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ListBoxPeriphMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ComboBoxAccComUSBChange(Sender: TObject);
     procedure ButtonSupAccComClick(Sender: TObject);
-    procedure ListBoxAccKeyDown(Sender: TObject; var Key: Word;
+    procedure ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure RadioButtonSimpleClick(Sender: TObject);
     procedure RadioButtonZoneClick(Sender: TObject);
     procedure RadioGroupActPNClick(Sender: TObject);
     procedure ComboBoxPNComChange(Sender: TObject);
+    procedure ComboBoxDecCdeChange(Sender: TObject);
+    procedure RadioCdeDecClick(Sender: TObject);
+    procedure Toutslectionner1Click(Sender: TObject);
+    procedure ButtonChercheClick(Sender: TObject);
+    procedure EditChercherChange(Sender: TObject);
 
-  private
+  private
     { Déclarations privées }
   public
     { Déclarations publiques }
@@ -516,6 +528,7 @@ type
     procedure cb_onclick(Sender : Tobject);
     procedure tb_onChange(sender : TObject);
     procedure Bt_onclick(sender : Tobject);
+    procedure tbCde_onchange(Sender : Tobject);
   end;
 
 const
@@ -564,6 +577,8 @@ AvecVerifIconesTCO_ch='AvecVerifIconesTCO';
 NomModuleCDM_ch='NomModuleCDM';
 Nba_ch='NombreAdresses';
 nation_ch='Nation';
+Periph_ch='Periph';
+comm_ch='Commande';
 nom_dec_pers_ch='Nom_dec_pers';
 Nom_fich_TCO_ch='Nom_fichier_TCO';
 LargeurF_ch='LargeurF';
@@ -593,7 +608,7 @@ var
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Indexfeuclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant,AffMemoFenetre,ligneClicAccCOM,AncligneClicAccCOM : integer;
+  ligneDCC,decCourant,AffMemoFenetre,ligneClicAccCOM,AncligneClicAccCOM,ligneCherche,compt_Ligne : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
@@ -608,7 +623,7 @@ var
   EditZdet1V2F,EditZdet2V2F,EditZdet1V2O,EditZdet2V2O,
   EditZdet1V3F,EditZdet2V3F,EditZdet1V3O,EditZdet2V3O,
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
-  EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O  :Tedit;
+  EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O  : Tedit;
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5 : Tlabel;
   shape1,ShapeZ : Tshape;
@@ -616,6 +631,8 @@ var
   EditT  : Array[1..10] of Tedit;
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
   ShapeT : array[1..10] of TShape;
+  LabelDecCde : array[1..19] of TLabel;
+  TextBoxCde : array[1..19] of Tedit;
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
@@ -631,6 +648,7 @@ function encode_sig_feux(i : integer): string;
 procedure valide_branches;
 procedure trier_aig;
 function decodeDCC(s : string) : string;
+function encode_aig(index : integer): string;
 
 implementation
 
@@ -860,13 +878,13 @@ end;
 function encode_Periph(index : integer) : string;
 var s : string;
 begin
-  s:=Tablo_acc_COMUSB[index].nom;
-  if Tablo_acc_COMUSB[index].ScvAig then s:=s+',1' else s:=s+',0';
-  if Tablo_acc_COMUSB[index].ScvDet then s:=s+',1' else s:=s+',0';
-  if Tablo_acc_COMUSB[index].ScvAct then s:=s+',1' else s:=s+',0';
-  if Tablo_acc_COMUSB[index].ScvVis then s:=s+',1' else s:=s+',0';
-  if Tablo_acc_COMUSB[index].cr     then s:=s+',1' else s:=s+',0';
-  s:=s+','+Tablo_acc_COMUSB[index].protocole;
+  s:=Tablo_periph[index].nom;
+  if Tablo_periph[index].ScvAig then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].ScvDet then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].ScvAct then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].ScvVis then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].cr     then s:=s+',1' else s:=s+',0';
+  s:=s+','+Tablo_periph[index].protocole;
 
   result:=s;
 end;
@@ -894,17 +912,17 @@ begin
      // P
      s:=s+'P';s:=s+intToSTR(aiguillage[index].Apointe);
      c:=aiguillage[index].APointeB ;
-     if (c<>'Z') and (c<>#0) then s:=s+c;
+     if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      //if c=#0 then s:=s+'Z';
      // D
      s:=s+',D';s:=s+intToSTR(aiguillage[index].Adroit);
      c:=aiguillage[index].ADroitB ;
-     if (c<>'Z') and (c<>#0) then s:=s+c;
+     if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      //if c=#0 then s:=s+'Z';
      // S
      s:=s+',S';s:=s+intToSTR(aiguillage[index].Adevie);
      c:=aiguillage[index].AdevieB ;
-     if (c<>'Z') and (c<>#0) then s:=s+c;
+     if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      //if c=#0 then s:=s+'Z';
      // S2 aiguillage triple
      if triC then
@@ -912,7 +930,7 @@ begin
        s:=s+',S2-';
        s:=s+intToSTR(aiguillage[index].Adevie2);
        c:=aiguillage[index].Adevie2B ;
-       if (c<>'Z') and (c<>#0) then s:=s+c;
+       if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
        //if c=#0 then s:=s+'Z';
      end;
    end;
@@ -922,31 +940,31 @@ begin
    begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
 
-     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDroit);
 
-     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      s:=s+'),';
      s:=s+'S('+intToSTR(aiguillage[index].Adevie);
 
-     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDevie);
 
-     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) and (c<>' ') then s:=s+c;
      s:=s+')';
    end;
 
    if croi then
    begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
-     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].AdroitB;if (c<>'Z') and (c<>#0) and (c<>' ')then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDroit);
-     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].DDroitB;if (c<>'Z') and (c<>#0) and (c<>' ')then s:=s+c;
      s:=s+'),';
      s:=s+'S('+intToSTR(aiguillage[index].Adevie);
-     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].AdevieB;if (c<>'Z') and (c<>#0) and (c<>' ')then s:=s+c;
      s:=s+','+intToSTR(aiguillage[index].DDevie);
-     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) then s:=s+c;
+     c:=aiguillage[index].DDevieB;if (c<>'Z') and (c<>#0) and (c<>' ')then s:=s+c;
      s:=s+')';
    end;
 
@@ -1651,7 +1669,7 @@ end;
 procedure genere_config;
 var s: string;
     fichierN : text;
-    i,j,n : integer;
+    i,j,n,k : integer;
 begin
   assign(fichierN,NomConfig);
   rewrite(fichierN);
@@ -1814,7 +1832,7 @@ begin
 
   writeln(fichierN,'/------------');
 
-  // décodeurs de signaux personnalisés (sauver avant les signaux pour avoir la liste des décodeurs personnalisés
+  // décodeurs de signaux personnalisés (sauver avant les signaux pour avoir la liste des décodeurs personnalisés)
   writeln(fichierN,section_DecPers_ch);
   for i:=1 to NbreDecPers do
   begin
@@ -1825,14 +1843,39 @@ begin
     n:=decodeur_pers[i].nation;
     s:=nation_ch+'='+intToSTR(n);
     writeln(fichierN,s);
-
-    for j:=1 to decodeur_pers[i].NbreAdr do
-    begin
-      s:=intToSTR(decodeur_pers[i].desc[j].etat1)+','+intToSTR(decodeur_pers[i].desc[j].etat2)+','+
-         intToSTR(decodeur_pers[i].desc[j].offsetAdresse)+','+intToSTR(decodeur_pers[i].desc[j].sortie1)+','+
-         intToSTR(decodeur_pers[i].desc[j].sortie2);
-       writeln(fichierN,s);
-    end;
+    s:=comm_ch+'='+intToSTR(decodeur_pers[i].commande);
+    writeln(fichierN,s);
+    s:=Periph_ch+'='+intToSTR(decodeur_pers[i].Peripherique);
+    writeln(fichierN,s);
+    // commande par centrale
+    if decodeur_pers[i].commande=0 then
+      for j:=1 to decodeur_pers[i].NbreAdr do
+      begin
+        s:=intToSTR(decodeur_pers[i].desc[j].etat1)+','+intToSTR(decodeur_pers[i].desc[j].etat2)+','+
+           intToSTR(decodeur_pers[i].desc[j].offsetAdresse)+','+intToSTR(decodeur_pers[i].desc[j].sortie1)+','+
+           intToSTR(decodeur_pers[i].desc[j].sortie2);
+         writeln(fichierN,s);
+      end;
+      // commande par périphérique
+      if decodeur_pers[i].commande=1 then
+      begin
+        k:=decodeur_Pers[i].nation;
+        if k=1 then
+        for j:=1 to 19 do
+        begin
+          s:=etats[j]+','+decodeur_pers[i].desc[j].Chcommande;
+          writeln(fichierN,s);
+        end;
+        if k=2 then
+        begin
+          for j:=1 to 9 do 
+          begin
+            s:=EtatSignBelge[j]+','+decodeur_pers[i].desc[j].Chcommande;
+            writeln(fichierN,s);
+          end;  
+          for j:=10 to 19 do writeln(fichierN,' ,');
+        end;
+      end;  
   end;
   writeln(fichierN,'0');
 
@@ -2023,7 +2066,6 @@ var s,sa,SOrigine: string;
     Tablo_actionneur[i].act:=false;
     Tablo_actionneur[i].son:=false;
     Tablo_actionneur[i].periph:=false;
-
   end;
 
   maxTablo_act:=1;
@@ -2441,11 +2483,7 @@ var s,sa,SOrigine: string;
             tec:=erreur<>0;  // ne supprimer que le 2
             if (tec) then delete(s,erreur+1,1);
 
-            //val(enregistrement,detect,erreur);  //  extraction de l'adresse
             decodeAig(s,detect,c);
-            //if ((detect=0) and (erreur=0)) then Affiche('Erreur pas d''adresse dans section S: '+s,clred);
-            //c:='Z';
-            //if (erreur<>0) then begin delete(enregistrement,1,erreur-1);c:=enregistrement[1];end;
 
             if not(S2) and not(tec) then begin aiguillage[maxaiguillage].Adevie:=detect;aiguillage[maxaiguillage].AdevieB:=c;end;
             if     S2  and not(tec) then begin aiguillage[maxaiguillage].Adevie2:=detect;aiguillage[maxaiguillage].Adevie2B:=c;end;
@@ -2542,13 +2580,14 @@ var s,sa,SOrigine: string;
 
   // compile les décodeurs personnalisés
   procedure compile_dec_pers;
-  var nv,j,k,l,adr : integer;
+  var nv,j,k,l,adr,c : integer;
   begin
   Nligne:=1;
+  s:='';
   repeat    // boucle de décodeurs
     nv:=0;  // compteur nombre de variables
-    repeat  // boucle d'un décodeur
-      s:=lit_ligne;
+    c:=0;   // commande par centrale
+    repeat  // boucle d'entete d'un décodeur
       inc(Nligne);
       if s<>'0' then
       begin
@@ -2558,20 +2597,22 @@ var s,sa,SOrigine: string;
           k:=pos(uppercase(nom_dec_pers_ch)+'=',s);
           if k=1 then
           begin
-            delete(sOrigine,1,length(nom_dec_pers_ch)+1);
             s:='';
             inc(NbreDecPers);
-            decodeur_pers[NbreDecPers].nom:=sOrigine;
-            decodeur[NbDecodeurdeBase+NbreDecPers-1]:=sOrigine;
+            k:=pos('=',sOrigine);
+            decodeur_pers[NbreDecPers].nom:=copy(sOrigine,k+1,length(sOrigine)-k+1);
+            decodeur[NbDecodeurdeBase+NbreDecPers-1]:=copy(sOrigine,k+1,length(sOrigine)-k+1);
             inc(nv);
           end;
 
+                  
           // nombre d'adresses
           k:=pos(uppercase(nba_ch)+'=',s);
           if (k=1) and (NbreDecPers>0) then
           begin
             delete(s,1,length(nba_ch)+1);
-            val(s,j,erreur);                        // ne pas écraser j
+            val(s,j,erreur);                        // ne pas écraser j il va être lu après
+            if j>10 then j:=10;
             decodeur_pers[NbreDecPers].NbreAdr:=j;
             inc(nv);
           end;
@@ -2586,42 +2627,77 @@ var s,sa,SOrigine: string;
             decodeur_pers[NbreDecPers].Nation:=k;
             inc(nv);
           end;
+
+          // commande comm_ch
+          k:=pos(uppercase(comm_ch)+'=',s);
+          if (k=1) and (NbreDecPers>0) then
+          begin
+            delete(s,1,length(comm_ch)+1);
+            val(s,c,erreur);
+            if (c<0) or (c>1) then c:=0;
+            decodeur_pers[NbreDecPers].commande:=c;     // ne pas écraser c
+            if c=1 then j:=19;   // dire que la boucle des commandes est de 19 paramètres
+            inc(nv);
+          end;
+
+          // périphérique
+          k:=pos(uppercase(Periph_ch)+'=',s);
+          if (k=1) and (NbreDecPers>0) then
+          begin
+            delete(s,1,length(periph_ch)+1);
+            val(s,k,erreur);
+            decodeur_pers[NbreDecPers].Peripherique:=k;
+            inc(nv);
+          end;
         end;
       end;
-    until eof(fichier) or (s='0') or (nv=3); // on sort de la boucle si on a lu les 3 variables
+      s:=lit_ligne;
+    until eof(fichier) or (pos('=',sOrigine)=0) or (nv=5); // on sort de la boucle si on a lu les 5 variables
 
     adr:=1;
-    if s<>'0' then
+    if sOrigine<>'0' then
     repeat
-      s:=lit_ligne;
       if s<>'0' then
       begin
-        k:=pos(',',s);
-        val(s,l,erreur);
-        delete(s,1,k);
-        decodeur_pers[NbreDecPers].desc[adr].etat1:=l;
-        k:=pos(',',s);
-        val(s,l,erreur);
-        delete(s,1,k);
-        decodeur_pers[NbreDecPers].desc[adr].etat2:=l;
-        k:=pos(',',s);
-        val(s,l,erreur);
-        delete(s,1,k);
-        decodeur_pers[NbreDecPers].desc[adr].offsetadresse:=l;
-        k:=pos(',',s);
-        val(s,l,erreur);
-        delete(s,1,k);
-        decodeur_pers[NbreDecPers].desc[adr].sortie1:=l;
-        k:=pos(',',s);
-        val(s,l,erreur);
-        delete(s,1,k);
-        decodeur_pers[NbreDecPers].desc[adr].sortie2:=l;
-        s:='';
-        inc(adr);
-      end
-      else Affiche('Section décodeurs - Nombre de descriptions du décodeur "'+decodeur_pers[NbreDecPers].nom+'" différents du nombre des adresses déclarées',clred);
+        if c=0 then   //type commande 0=par centrale 1=com/socket
+        begin
+          k:=pos(',',s);
+          val(s,l,erreur);
+          delete(s,1,k);
+          decodeur_pers[NbreDecPers].desc[adr].etat1:=l;
+          k:=pos(',',s);
+          val(s,l,erreur);
+          delete(s,1,k);
+          decodeur_pers[NbreDecPers].desc[adr].etat2:=l;
+          k:=pos(',',s);
+          val(s,l,erreur);
+          delete(s,1,k);
+          decodeur_pers[NbreDecPers].desc[adr].offsetadresse:=l;
+          k:=pos(',',s);
+          val(s,l,erreur);
+          delete(s,1,k);
+          decodeur_pers[NbreDecPers].desc[adr].sortie1:=l;
+          k:=pos(',',s);
+          val(s,l,erreur);
+          delete(s,1,k);
+          decodeur_pers[NbreDecPers].desc[adr].sortie2:=l;
+          s:='';
+          inc(adr);
+        end;
+        if c=1 then
+        begin
+          k:=pos(',',sOrigine);
+          decodeur_pers[NbreDecPers].desc[adr].Chcommande:=copy(sOrigine,k+1,length(sOrigine)-k+1);
+          s:='';
+          inc(adr);
+        end;  
+      end;
+      s:=lit_ligne;
+        
+      //else Affiche('Section décodeurs - Nombre de descriptions du décodeur "'+decodeur_pers[NbreDecPers].nom+'" différents du nombre des adresses déclarées',clred);
     until (adr>j) or (s='0');
-    until eof(fichier) or (s='0');
+
+   until eof(fichier) or (s='0');
   end;
 
   procedure compile_dccpp;
@@ -2748,47 +2824,47 @@ var s,sa,SOrigine: string;
         inc(NbPeriph);
         sa:=sOrigine;
         i:=pos(',',sa);
-        Tablo_acc_COMUSB[NbPeriph].nom:=copy(sa,1,i-1);
+        Tablo_periph[NbPeriph].nom:=copy(sa,1,i-1);
         delete(sa,1,i);
         val(sa,i,erreur);
 
-        Tablo_acc_COMUSB[NbPeriph].ScvAig:=i=1;
+        Tablo_periph[NbPeriph].ScvAig:=i=1;
         i:=pos(',',sa);Delete(sa,1,i);
 
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbPeriph].ScvDet:=i=1;
+        Tablo_periph[NbPeriph].ScvDet:=i=1;
 
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbPeriph].ScvAct:=i=1;
+        Tablo_periph[NbPeriph].ScvAct:=i=1;
 
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbPeriph].ScvVis:=i=1;
+        Tablo_periph[NbPeriph].ScvVis:=i=1;
 
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbPeriph].cr:=i=1;
+        Tablo_periph[NbPeriph].cr:=i=1;
 
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_acc_COMUSB[NbPeriph].protocole:=sa;
+        Tablo_periph[NbPeriph].protocole:=sa;
         i:=com_socket(NbPeriph);
         if i=1 then
         begin
           inc(NbPeriph_COMUSB);
-          Tablo_acc_COMUSB[NbPeriph].numComposant:=NbPeriph_COMUSB;
+          Tablo_periph[NbPeriph].numComposant:=NbPeriph_COMUSB;
         end;
         if i=2 then
         begin
           inc(NbPeriph_socket);
-          Tablo_acc_COMUSB[NbPeriph].numComposant:=NbPeriph_socket;
+          Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
         end;
 
         // extraire le numéro de com5:9600,n,8,1
         i:=extract_int(sa);
         if i=0 then Affiche('Erreur COM nul : '+sOrigine,clred);
-        Tablo_acc_COMUSB[NbPeriph].NumCom:=i;
+        Tablo_periph[NbPeriph].NumCom:=i;
         Tablo_com_cde[NbPeriph].NumAcc:=NbPeriph;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
@@ -3985,9 +4061,117 @@ begin
 
 end;
 
+procedure champs_dec_centrale;  
+var i,nombre : integer;
+begin
+  if decCourant<1 then exit;
+  decodeur_pers[decCourant].commande:=0;
+  nombre:=decodeur_pers[decCourant].nbreAdr;
+  for i:=1 to nombre do     
+  begin
+    ComboTS1[i].Visible:=true;
+    ComboTS2[i].Visible:=true;
+    EditT[i].visible:=true;
+    ComboL1[i].Visible:=true;
+    ComboL2[i].Visible:=true;
+    ShapeT[i].Visible:=true;
+  end;
+  for i:=nombre+1 to 10 do     
+  begin
+    ComboTS1[i].Visible:=false;
+    ComboTS2[i].Visible:=false;
+    EditT[i].visible:=false;
+    ComboL1[i].Visible:=false;
+    ComboL2[i].Visible:=false;
+    ShapeT[i].Visible:=false;
+  end;
+  
+  with FormConfig do 
+  begin
+    ComboBoxDecCde.Visible:=false;
+    LabelTypCde.Visible:=false;
+    LabelNA.Visible:=true;
+    EditNbreAdr.Visible:=true;
+  end;
+
+  for i:=1 to 19 do
+  begin
+    LabelDecCde[i].Visible:=false;
+    TextBoxCde[i].Visible:=false;
+  end;
+
+  with formconfig do
+  begin
+    labelDecal.caption:='Décalage'+#13+'d''adresse';
+    LabelDecal.Left:=168;
+    LabelSorties.visible:=true;
+  end;
+end;
+
+procedure Champs_dec_Com;
+var i,n : integer;
+begin
+  if decCourant<1 then exit;
+  decodeur_pers[decCourant].commande:=1;
+  decodeur_pers[decCourant].NbreAdr:=10;
+  for i:=1 to 10 do
+  begin
+    ComboTS1[i].Visible:=false;
+    ComboTS2[i].Visible:=false;
+    EditT[i].visible:=false;
+    ComboL1[i].Visible:=false;
+    ComboL2[i].Visible:=false;
+    ShapeT[i].Visible:=false;
+  end;
+  with FormConfig do begin
+    ComboBoxDecCde.Visible:=true;
+    LabelTypCde.Visible:=true;
+    LabelNA.Visible:=false;
+    EditNbreAdr.Visible:=false;
+  end;
+
+  for i:=1 to 19 do
+  begin
+    LabelDecCde[i].Visible:=true;
+    TextBoxCde[i].Visible:=true;
+    TextBoxCde[i].Text:=decodeur_pers[decCourant].desc[i].Chcommande;
+  end;
+
+  n:=decodeur_pers[decCourant].nation;
+  if n=2 then
+  begin
+    for i:=1 to 9 do
+    begin
+      LabelDecCde[i].caption:=EtatSignBelge[i];
+      LabelDecCde[i].visible:=true;
+    end;
+    for i:=10 to 19 do
+    begin
+      LabelDecCde[i].visible:=false;
+      TextBoxCde[i].Visible:=false;
+    end;
+
+  end;
+
+  if n=1 then
+  for i:=1 to 19 do
+  begin
+    LabelDecCde[i].caption:=Etats[i];
+    LabelDecCde[i].visible:=true;
+  end;
+
+  with formconfig do
+  begin
+    ComboBoxDecCde.ItemIndex:=decodeur_pers[DecCourant].Peripherique-1;
+    formconfig.labelDecal.caption:='Commande'+#13+'Ascii';
+    LabelDecal.Left:=150;
+    formconfig.LabelSorties.visible:=false;
+  end;
+end;
+
 // met à jour le décodeur courant dans le tableau de config
 procedure maj_decodeurs;
-var nAdr,i,j,a,nation : integer;
+var nAdr,i,j,a,nation,typ : integer;
 begin
   begin
     // si pas de décodeur courant, on rend invisible toutes les adresses
@@ -3997,58 +4181,68 @@ begin
       nAdr:=decodeur_pers[decCourant].NbreAdr;
       FormConfig.EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
       nation:=decodeur_pers[decCourant].nation;
+      typ:=decodeur_pers[decCourant].commande; //0=centrale 1=com/usb
     end;
 
-    for i:=1 to nAdr do
-    begin
+    if typ=0 then
+    begin 
+      for i:=1 to nAdr do
+      begin
+        comboL1[i].Items.Clear;
+        comboL2[i].Items.Clear;
+        if nation=1 then
+        begin
+          for j:=0 to 20 do
+          begin
+            comboL1[i].Items.add(Etats[j]);
+            comboL2[i].Items.add(Etats[j]);
+          end;
+        end
+        else
+        for j:=0 to 9 do
+        begin
+          begin
+            comboL1[i].Items.add(EtatSignBelge[j]);
+            comboL2[i].Items.add(EtatSignBelge[j]);
+          end;
+        end;
+        a:=decodeur_pers[decCourant].desc[i].etat1;
+        ComboL1[i].itemIndex:=a;
+        ComboL1[i].Visible:=true;
 
-      comboL1[i].Items.Clear;
-      comboL2[i].Items.Clear;
-      if nation=1 then
-      begin
-        for j:=0 to 20 do
-        begin
-          comboL1[i].Items.add(Etats[j]);
-          comboL2[i].Items.add(Etats[j]);
-        end;
-      end
-      else
-      for j:=0 to 9 do
-      begin
-        begin
-          comboL1[i].Items.add(EtatSignBelge[j]);
-          comboL2[i].Items.add(EtatSignBelge[j]);
-        end;
+        a:=decodeur_pers[decCourant].desc[i].etat2;
+        ComboL2[i].Itemindex:=a;
+        ComboL2[i].Visible:=true;
+     
+        EditT[i].Text:=intToSTR(decodeur_pers[decCourant].desc[i].offsetAdresse);
+        EditT[i].Visible:=true;
+        a:=decodeur_pers[decCourant].desc[i].sortie1;
+        ComboTS1[i].Itemindex:=a-1;
+        ComboTS1[i].Visible:=true;
+        a:=decodeur_pers[decCourant].desc[i].sortie2;
+        ComboTS2[i].Itemindex:=a-1;
+        ComboTS2[i].Visible:=true;
+        ShapeT[i].Visible:=true;
+  
       end;
-      a:=decodeur_pers[decCourant].desc[i].etat1;
-      ComboL1[i].itemIndex:=a;
-      ComboL1[i].Visible:=true;
 
-      a:=decodeur_pers[decCourant].desc[i].etat2;
-      ComboL2[i].Itemindex:=a;
-      ComboL2[i].Visible:=true;
-
-      EditT[i].Text:=intToSTR(decodeur_pers[decCourant].desc[i].offsetAdresse);
-      EditT[i].Visible:=true;
-      a:=decodeur_pers[decCourant].desc[i].sortie1;
-      ComboTS1[i].Itemindex:=a-1;
-      ComboTS1[i].Visible:=true;
-      a:=decodeur_pers[decCourant].desc[i].sortie2;
-      ComboTS2[i].Itemindex:=a-1;
-      ComboTS2[i].Visible:=true;
-      ShapeT[i].Visible:=true;
-
+      for i:=nADr+1 to 10 do
+      begin
+        ComboL1[i].Visible:=false;
+        ComboL2[i].Visible:=false;
+        EditT[i].Visible:=false;
+        ComboTS1[i].Visible:=false;
+        ComboTS2[i].Visible:=false;
+        ShapeT[i].Visible:=false;
+      end;
     end;
-    for i:=nADr+1 to 10 do
-    begin
-      ComboL1[i].Visible:=false;
-      ComboL2[i].Visible:=false;
-      EditT[i].Visible:=false;
-      ComboTS1[i].Visible:=false;
-      ComboTS2[i].Visible:=false;
-      ShapeT[i].Visible:=false;
-    end;
+
+    
+  FormConfig.RadioCdeDec.ItemIndex:=typ;
+  if typ=0 then Champs_Dec_Centrale;
+  if typ=1 then Champs_dec_Com;
   end;
+
 end;
 
 procedure TformConfig.Bt_onclick(sender : TObject);
@@ -4064,43 +4258,41 @@ begin
   if clicliste or (ligneClicAccCOM<0) then exit;
   cb:=(sender as Tcheckbox);
   s := cb.Name;
-  if pos('Aig',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAig:=cb.Checked;
-  if pos('Det',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvDet:=cb.Checked;
-  if pos('Act',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvAct:=cb.Checked;
-  if pos('Vis',s)<>0 then Tablo_acc_COMUSB[ligneClicAccCOM+1].ScvVis:=cb.Checked;
-  if s='CheckBoxCR'  then Tablo_acc_COMUSB[ligneClicAccCOM+1].CR:=cb.Checked;
+  if pos('Aig',s)<>0 then Tablo_periph[ligneClicAccCOM+1].ScvAig:=cb.Checked;
+  if pos('Det',s)<>0 then Tablo_periph[ligneClicAccCOM+1].ScvDet:=cb.Checked;
+  if pos('Act',s)<>0 then Tablo_periph[ligneClicAccCOM+1].ScvAct:=cb.Checked;
+  if pos('Vis',s)<>0 then Tablo_periph[ligneClicAccCOM+1].ScvVis:=cb.Checked;
+  if s='CheckBoxCR'  then Tablo_periph[ligneClicAccCOM+1].CR:=cb.Checked;
   s:=encode_Periph(ligneClicAccCOM+1);
-  ListBoxAcc.Items[ligneClicAccCOM]:=s;
-  ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+  ListBoxPeriph.Items[ligneClicAccCOM]:=s;
+  ListBoxPeriph.Selected[ligneClicAccCOM]:=true;
 end;
 
+// ajoute les champs des périphériques dans les combos
 procedure ajoute_champs_combos(i : integer);
 var j : integer;
     s : string;
 begin
-      j:=com_socket(i);
-      if j=1 then
-      begin
-        s:=Tablo_acc_COMUSB[i].nom+' (COM'+intToSTR(Tablo_acc_COMUSB[i].NumCom)+')';
-        formConfig.ComboBoxAccComUSB.Items.Add(s);
-        formconfig.ComboBoxPNCom.Items.Add(s);
-      end;
-      if j=2 then
-      begin
-        s:=Tablo_acc_COMUSB[i].nom+' ('+Tablo_acc_COMUSB[i].protocole+')';
-        formconfig.ComboBoxAccComUSB.Items.Add(s);
-        formconfig.ComboBoxPNCom.Items.Add(s);
-      end;
+  j:=com_socket(i);
+  if j=1 then s:=Tablo_periph[i].nom+' (COM'+intToSTR(Tablo_periph[i].NumCom)+')';
+  if j=2 then s:=Tablo_periph[i].nom+' ('+Tablo_periph[i].protocole+')';
+  With formconfig do
+  begin
+    ComboBoxAccComUSB.Items.Add(s);
+    ComboBoxPNCom.Items.Add(s);
+    ComboBoxDecCde.Items.Add(s);
+  end;
 end;
 
 
+// met à jour le nom d'un champ d'index i dans les combos
 procedure maj_champs_combos(i: integer);
 var j,n : integer;
     s : string;
 begin
   j:=com_socket(i);
-  if j=1 then s:=Tablo_acc_COMUSB[i].nom+' (COM'+intToSTR(Tablo_acc_COMUSB[i].NumCom)+')';
-  if j=2 then s:=Tablo_acc_COMUSB[i].nom+' ('+Tablo_acc_COMUSB[i].protocole+')';
+  if j=1 then s:=Tablo_periph[i].nom+' (COM'+intToSTR(Tablo_periph[i].NumCom)+')';
+  if j=2 then s:=Tablo_periph[i].nom+' ('+Tablo_periph[i].protocole+')';
   with formconfig do
   begin
     n:=comboBoxACCComUSB.Items.Count;
@@ -4108,7 +4300,8 @@ begin
     if n<i then affiche('Anomalie 7',clred);
     if ComboBoxPNCom.items.Count=0 then exit;
     ComboBoxAccComUSB.Items[i-1]:=s;
-    ComboBoxPNCom.items[i-1];
+    ComboBoxPNCom.items[i-1]:=s;
+    ComboBoxDecCde.Items.Add(s);
   end;
 end;
 
@@ -4122,20 +4315,21 @@ begin
   tb:=(sender as Tedit);
   s:=tb.Name;
   te:=tb.text;
-  if s='EditPortCde' then Tablo_acc_COMUSB[ligneClicAccCOM+1].Protocole:=te;
+  if s='EditPortCde' then Tablo_periph[ligneClicAccCOM+1].Protocole:=te;
   s:=encode_Periph(ligneClicAccCOM+1);
-  ListBoxAcc.Items[ligneClicAccCOM]:=s;
+  ListBoxPeriph.Items[ligneClicAccCOM]:=s;
   i:=pos(':',te);if i=0 then begin LabelInfo.caption:='Syntaxe incorrecte';exit;end;
   te:=copy(te,1,i);
   i:=extract_int(te);
   if i=0 then begin LabelInfo.caption:='Erreur COM nul';exit;end;
   LabelInfo.caption:='';
 
+  Tablo_periph[ligneClicAccCOM+1].NumCom:=i;
+  Tablo_com_cde[ligneClicAccCOM+1].NumAcc:=ligneClicAccCOM+1;
+  ListBoxPeriph.Selected[ligneClicAccCOM]:=true;
+
   maj_champs_combos(ligneClicAccCOM+1);
 
-  Tablo_acc_COMUSB[ligneClicAccCOM+1].NumCom:=i;
-  Tablo_com_cde[ligneClicAccCOM+1].NumAcc:=ligneClicAccCOM+1;
-  ListBoxAcc.Selected[ligneClicAccCOM]:=true;
   // recalculer le nombre de sockets et de comusb
   // et réaffecter les numéros de composants
   NbPeriph_COMUSB:=0;
@@ -4147,19 +4341,34 @@ begin
     begin
       inc(NbPeriph_COMUSB);
       if NbPeriph_COMUSB>MaxComUSBPeriph then labelInfo.Caption:='Nombre maxi de périphériques COM/USB atteint';
-      Tablo_acc_COMUSB[i].numComposant:=NbPeriph_COMUSB;
+      Tablo_periph[i].numComposant:=NbPeriph_COMUSB;
       Tablo_com_cde[i].NumAcc:=NbPeriph_COMUSB;
     end;
     if v=2 then
     begin
       inc(NbPeriph_Socket);
       if NbPeriph_Socket>MaxComSocketPeriph then labelInfo.Caption:='Nombre maxi de périphériques socket atteint';
-      Tablo_acc_COMUSB[NbPeriph].numComposant:=NbPeriph_socket;
+      Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
       Tablo_com_cde[i].NumAcc:=NbPeriph_Socket;
     end;
   end;
 end;
 
+// on change dus textBoxCde des décodeurs
+procedure TformConfig.tbCde_onchange(sender : Tobject);
+var tb : tEdit;
+    s,te : string;
+    i : integer;
+begin
+  if affevt then affiche('tbCde_onchange',clyellow);
+  tb:=(sender as Tedit);
+  s:=tb.Name;
+  te:=tb.text;
+  i:=extract_int(s);
+  if (i<1) or (i>19) or (decCourant<1) then exit;
+  decodeur_pers[decCourant].desc[i].Chcommande:=te;
+  
+end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,y,l,LongestLength,PixelLength : integer;
@@ -4174,6 +4383,8 @@ begin
   Feu_Supprime.Adresse:=0;
   Feu_sauve.adresse:=0;
   clicListe:=false;
+  ligneCherche:=0;
+  Compt_ligne:=0;
   
   ConfigPrete:=true;
   richBranche.HideSelection:=false; // pour pouvoir copier coller la fenetre
@@ -4278,8 +4489,37 @@ begin
     end;
   end;
 
+  // composants dynamiques des décodeurs pilotés par périph
+  
+  for i:=1 to 19 do 
+  begin
+    y:=i*21+20;
+    LabelDecCde[i]:=Tlabel.Create(FormConfig.TabSheetDecodeurs);
+    with LabelDecCde[i] do
+    begin
+      Name:='LabelDecCde'+intToSTR(i);
+      left:=20;Top:=y+20;Width:=110;Height:=13;
+      caption:=etats[i];
+      parent:=TabSheetDecodeurs;
+      ShowHint:=false;
+      visible:=false;
+    end;  
+    TextBoxCde[i]:=Tedit.Create(FormConfig.TabSheetDecodeurs);
+    with TextBoxCde[i] do
+    begin
+      Name:='TextBoxCde'+intToSTR(i);
+      left:=150;Top:=y+20;Width:=120;Height:=15;
+      text:='';
+      parent:=TabSheetDecodeurs;
+      ShowHint:=false;
+      visible:=false;
+      onChange:=formconfig.tbCde_onchange;
+    end;
+  end; 
+
+  
   GroupBoxPN.Top:=16;
-  // composants passage à niveau
+  // composants onglet passage à niveau
   with GroupBoxPNA do
   begin
     Left:=8;
@@ -4328,6 +4568,8 @@ begin
     left:=64;Top:=50;Width:=41;Height:=21;
     text:='';
     parent:=GroupBoxPNA;
+    hint:='Actionneur de fermeture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditV1O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4336,6 +4578,8 @@ begin
     Name:='EditV1O';
     left:=152;Top:=50;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4355,6 +4599,8 @@ begin
     Name:='EditV2F';
     left:=64;Top:=74;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4364,6 +4610,8 @@ begin
     Name:='EditV2O';
     left:=152;Top:=74;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4382,6 +4630,8 @@ begin
     Name:='EditV3F';
     left:=64;Top:=98;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4391,6 +4641,8 @@ begin
     Name:='EditV3O';
     left:=152;Top:=98;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4409,6 +4661,8 @@ begin
     Name:='EditV4F';
     left:=64;Top:=122;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4418,6 +4672,8 @@ begin
     Name:='EditV4O';
     left:=152;Top:=122;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4438,6 +4694,8 @@ begin
     left:=64;Top:=146;Width:=41;Height:=21;
     text:='';
     parent:=GroupBoxPNA;
+    hint:='Actionneur de fermeture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditV5O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4446,6 +4704,8 @@ begin
     Name:='EditV5O';
     left:=152;Top:=146;Width:=41;Height:=21;
     text:='';
+    hint:='Actionneur d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
@@ -4481,6 +4741,8 @@ begin
     Name:='EditZDet1V1F';
     left:=64;Top:=50;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4490,6 +4752,8 @@ begin
     Name:='EditZDet2V1F';
     left:=100;Top:=50;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4499,6 +4763,8 @@ begin
     Name:='EditZDet1V1O';
     left:=152;Top:=50;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4508,6 +4774,8 @@ begin
     Name:='EditZDet2V1O';
     left:=190;Top:=50;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4526,6 +4794,8 @@ begin
     Name:='EditZDet1V2F';
     left:=64;Top:=74;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4535,6 +4805,8 @@ begin
     Name:='EditZDet2V2F';
     left:=100;Top:=74;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4544,6 +4816,8 @@ begin
     Name:='EditZDet1V2O';
     left:=152;Top:=74;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4553,6 +4827,8 @@ begin
     Name:='EditZDet2V2O';
     left:=190;Top:=74;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 d''ouverture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4572,6 +4848,8 @@ begin
     Name:='EditZDet1V3F';
     left:=64;Top:=98;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4581,6 +4859,8 @@ begin
     Name:='EditZDet2V3F';
     left:=100;Top:=98;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4591,6 +4871,8 @@ begin
     left:=152;Top:=98;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 1 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditZDet2V3O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4600,6 +4882,8 @@ begin
     left:=190;Top:=98;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 2 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   // voie 4
@@ -4617,6 +4901,8 @@ begin
     Name:='EditZDet1V4F';
     left:=64;Top:=122;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 1 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4626,6 +4912,8 @@ begin
     Name:='EditZDet2V4F';
     left:=100;Top:=122;Width:=35;Height:=21;
     text:='';
+    hint:='Détecteur 2 de fermeture';
+    showhint:=true;
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
@@ -4636,6 +4924,8 @@ begin
     left:=152;Top:=122;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 1 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditZDet2V4O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4645,6 +4935,8 @@ begin
     left:=190;Top:=122;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 2 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   // voie 5
@@ -4663,6 +4955,8 @@ begin
     left:=64;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 1 de fermeture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditZDet2V5F:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4672,6 +4966,8 @@ begin
     left:=100;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 2 de fermeture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditZDet1V5O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4681,6 +4977,8 @@ begin
     left:=152;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 1 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
   EditZDet2V5O:=TEdit.create(FormConfig.GroupBoxPNA);
@@ -4690,10 +4988,13 @@ begin
     left:=190;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
+    hint:='Détecteur 2 d''ouverture';
+    showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
 
   // remplit les 5 fenêtres de config des aiguillages branches signaux, actionneurs, accessoires comusb
+  formconfig.ComboBoxDecodeurPerso.AutoComplete:=false; // mettre absolument à false sinon remplissage auto quand on tape et l'index sélec peut changer!!!
   for i:=1 to NbreDecPers do
   begin
     s:=decodeur_pers[i].nom;
@@ -4707,6 +5008,7 @@ begin
   end
   else formconfig.ComboBoxDecodeurPerso.ItemIndex:=-1;
   maj_decodeurs;
+
 
   // aiguillages
   ListBoxAig.Clear;
@@ -4848,7 +5150,7 @@ begin
   end;
 
   // périphériques
-  with listBoxAcc do
+  with listBoxPeriph do
   begin
     clear;
     formConfig.ComboBoxAccComUSB.Clear;
@@ -4983,16 +5285,21 @@ begin
   AncLigneClicAct:=-1;
   ligneClicAccCOM:=-1;
   AncligneClicAccCOM:=-1;
+
 end;
 
 
 // décode un morceau d'une chaine d'aiguillage ('P5S')
-// 
+//
 // si erreur, B='?'
 procedure decodeAig(s : string;var adr : integer;var B : char);
 var erreur,i : integer;
 begin
-  if s='' then begin B:='?';adr:=0;exit;end;
+  if s='' then
+  begin
+    B:='?';adr:=0;
+    exit;
+  end;
   if (s[1]='P') or (s[1]='S') or (s[1]='D') then delete(s,1,1);
   if s='' then
   begin
@@ -5019,13 +5326,13 @@ procedure Aff_champs_accCOMUSB_tablo(index : integer);
 begin
   if (index<1) or (index>NbPeriph) then exit;
   clicliste:=true;
-  formConfig.editNomAcc.Text:=Tablo_acc_COMUSB[index].nom;
-  cb1.Checked:=Tablo_acc_COMUSB[index].ScvAig;
-  cb2.Checked:=Tablo_acc_COMUSB[index].ScvDet;
-  cb3.Checked:=Tablo_acc_COMUSB[index].ScvAct;
-  cbVis.Checked:=Tablo_acc_COMUSB[index].ScvVis;
-  CheckBoxCR.Checked:=Tablo_acc_COMUSB[index].cr;
-  EditPortCde.text:=Tablo_acc_COMUSB[index].protocole;
+  formConfig.editNomAcc.Text:=Tablo_periph[index].nom;
+  cb1.Checked:=Tablo_periph[index].ScvAig;
+  cb2.Checked:=Tablo_periph[index].ScvDet;
+  cb3.Checked:=Tablo_periph[index].ScvAct;
+  cbVis.Checked:=Tablo_periph[index].ScvVis;
+  CheckBoxCR.Checked:=Tablo_periph[index].cr;
+  EditPortCde.text:=Tablo_periph[index].protocole;
   clicliste:=false;
 end;
 
@@ -5166,7 +5473,6 @@ begin
         EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Ddroit,aiguillage[index].DdroitB); 
         LabelTJD2.Caption:=IntToSTR(adresse);
       end;
-  
 
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
       
@@ -5270,6 +5576,14 @@ procedure champs_type_pn;
 begin
   with formconfig do
   begin
+    GroupBoxPN.width:=GroupBox13.width-15;
+    RadioGroupActPN.Width:=GroupBoxPN.Width-15;
+    GroupBoxPNA.width:=GroupBox13.Width-15;
+    GroupBoxPNZ.width:=GroupBox13.Width-15;
+
+    ButtonTestFerme.Left:=215;
+    ButtonTestOuvre.Left:=215;
+
     GroupBoxRadio.Visible:=false;
     GroupBoxAct.Visible:=false;
     GroupBoxPN.Top:=16;
@@ -5294,15 +5608,28 @@ begin
   begin
     GroupBoxRadio.Visible:=true;
     GroupBoxRadio.top:=16;
-    GroupBoxRadio.Left:=16;
+    GroupBoxRadio.Left:=8;
+    GroupBoxRadio.Width:=GroupBox13.width-15;
+
+    GroupBox13.Width:=266;
+
     GroupBoxAct.Top:=GroupBoxRadio.Top+GroupBoxRadio.Height+8;
-    GroupBoxAct.Left:=16;
+    GroupBoxAct.Left:=8;
     GroupBoxAct.Height:=310;
+    GroupBoxAct.Width:=GroupBox13.width-15;
+
     GroupBox18.Top:=16;
+    GroupBox18.Width:=GroupBoxAct.Width-15;
     GroupBox18.Height:=150;
+
     GroupBox19.Top:=GroupBox18.Top+GroupBox18.Height+8;
+    GroupBox19.Left:=8;
+    GroupBox19.Width:=GroupBoxAct.Width-15;
     GroupBox19.Height:=96;
     ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
+
+    RadioGroup1.Width:=GroupBox18.width-15;
+    RadioGroup1.Height:=74;
   end;
 end;
 
@@ -5353,7 +5680,7 @@ begin
     GroupBoxAct.Caption:='Action pour commande sur COM/USB';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
-    LabelFonction.caption:='Périphérique COM/USB';
+    LabelFonction.caption:='Périphérique COM/USB/Socket';
     LabelFonction.Top:=18;
     ComboBoxAccComUSB.Top:=32;
 
@@ -5950,36 +6277,38 @@ begin
   end;
 end;
 
-procedure champs_pn_COMUSB;
+procedure champs_pn_COMUSBSockets;
 var s : string;
 begin
   with formConfig do
   begin
     comboBoxPNCom.Visible:=true;
+    ComboBoxPNCom.Width:=150;
+    ComboBoxPNCom.Left:=4;
     EditAdrFerme.visible:=false;
     editAdrOuvre.Visible:=false;
     CheckPnPulse.Visible:=false;
-    EditCdeOuvre.width:=65;
-    editCdeFerme.width:=65;
+    EditCdeOuvre.width:=50;
+    editCdeFerme.width:=50;
     editCdeFerme.top:=128;
-    editCdeFerme.Left:=144;
-    editCdeOuvre.Left:=144;
+    editCdeFerme.Left:=160;
+    editCdeOuvre.Left:=160;
     ButtonTestFerme.Hint:='Test de fermeture (par interface COM/USB)';
     ButtonTestOuvre.Hint:='Test d''ouverture (par interface COM/USB)';
     editcdeFerme.Hint:='Commande ASCII de fermeture';
     EditCdeOuvre.Hint:='Commande ASCII d''ouverture';
     Label22.visible:=false;
     ButtonTestFerme.Top:=128;
-    Label21.Caption:='Périphérique COM/USB       Commandes';
+    Label21.Caption:='Périphérique COM/USB/Socket   Commandes';
     EditCdeFerme.Text:=Tablo_PN[lignecliqueePN+1].CommandeF;
     EditCdeOuvre.Text:=Tablo_PN[lignecliqueePN+1].CommandeO;
-    ComboBoxPnCom.ItemIndex:=Tablo_PN[lignecliqueePN+1].AdresseFerme;
+    ComboBoxPnCom.ItemIndex:=Tablo_PN[lignecliqueePN+1].AdresseFerme-1;
   end;
 end;
 
 // affiche les champs de l'actionneur PN en fonction de l'index du tableau
 procedure aff_champs_PN(i : integer);
-var adresse,erreur,j,v : integer;
+var adresse,erreur,j,v,periph : integer;
     trouve : boolean;
     s : string;
 begin
@@ -5998,23 +6327,24 @@ begin
   if s[1]='(' then
   begin
     champs_type_pn;
-    // trouver l'index dans le tableau
-    i:=pos('PN(',s);
-    delete(s,1,i+2);
-    val(s,adresse,erreur);
+    // trouver le numéro de périphérique 
+    v:=pos('PN(',s);
+    delete(s,1,v+2);
+    val(s,periph,erreur);
+    {
     i:=0;
     repeat
       inc(i);
       trouve:=(Tablo_PN[i].AdresseFerme=adresse);
     until trouve or (i>NbrePN);
-    if not(trouve) then exit;
+    if not(trouve) then exit;}
 
-    with formConfig do     
+    with formConfig do
     begin
       RadioGroupActPN.itemindex:=Tablo_PN[i].TypeCde;
 
       if Tablo_PN[i].TypeCde=0 then champs_pn_act;
-      if Tablo_PN[i].TypeCde=1 then champs_pn_comusb;
+      if Tablo_PN[i].TypeCde=1 then champs_pn_comusbSockets;
 
       if Tablo_PN[i].Pulse=1 then trouve:=true else trouve:=false;
       CheckPnPulse.Checked:=trouve;
@@ -6673,7 +7003,7 @@ end;
 function verif_dec_sig(aff : boolean) : boolean;
 var Adr,i,dec,aspect,indexAspect : integer;
 begin
-  result:=true;  // ok
+  result:=true;  
   for i:=1 to NbreFeux do
   begin
     dec:=feux[i].decodeur;
@@ -6784,8 +7114,6 @@ begin
 end;
 
 
-
-
 procedure TFormConfig.EditDet1Change(Sender: TObject);
 var s : string;
     i,erreur : integer;
@@ -6867,7 +7195,6 @@ procedure TFormConfig.EditSuiv1Change(Sender: TObject);
 begin
   Suiv1;
 end;
-
 
 procedure Det2;
 var s : string;
@@ -7004,7 +7331,6 @@ begin
   if clicliste or (ligneClicSig<0) then exit;
   det3;
 end;
-
 
 procedure Suiv3;
 var s : string;
@@ -7177,11 +7503,9 @@ begin
           else LabelInfo.Caption:='';
       end
       else LabelInfo.Caption:='';
-
     end;
   end;
 end;
-
 
 procedure TFormConfig.EditAct2Change(Sender: TObject);
 var s : string;
@@ -7571,7 +7895,7 @@ var indexTCO,x,y,i,index,aspect,adresseFeu : integer;
     bm :tbitmap;
 begin
   if clicListe then exit;
-  indexTCO:=index_TCO(sender);
+
   if affevt then Affiche('Evt aspect',clOrange);
   i:=ComboBoxAsp.ItemIndex;
   //Affiche(IntToSTR(i),clyellow);
@@ -7612,18 +7936,22 @@ begin
   if bm=nil then exit;
   Feux[index].Img.picture.Bitmap:=bm;
   dessine_signal_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
-  // et dans le TCO
-  if formTCO[indexTCO].Showing then
+
+  // et dans les TCOs 
+  for IndexTCO:=1 to NbreTCO do
   begin
-    for y:=1 to NbreCellY[indexTCO] do
-    for x:=1 to NbreCellX[indexTCO] do
+    if formTCO[indexTCO]<>nil then
+    begin
+      for y:=1 to NbreCellY[indexTCO] do
+      for x:=1 to NbreCellX[indexTCO] do
       begin
-        if TCO[1,x,y].BImage=Id_Signal then      // &&& balayer tous les tco
+        if TCO[indexTCO,x,y].BImage=Id_Signal then      // &&& balayer tous les tco
         begin
           AdresseFeu:=feux[index].adresse;
-          if tco[1,x,y].Adresse=AdresseFeu then affiche_tco(indexTCO);
+          if tco[IndexTCO,x,y].Adresse=AdresseFeu then affiche_tco(indexTCO);
         end;
       end;
+    end;
   end;
 end;
 
@@ -8504,7 +8832,7 @@ begin
   begin
     index_accessoire[aiguillage[i].adresse]:=i;
   end;
- 
+
   // vérification de la cohérence1
   // parcoure les branches jusqu'à trouver un aiguillage pour voir s'il a été décrit
   ok:=true;
@@ -8999,7 +9327,7 @@ begin
               ok:=false;
             end;
           end;
-       
+
           if (model2=aig) or (model2=triple) then
           begin
             if c='D' then
@@ -9047,7 +9375,7 @@ begin
               if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                  (adr<>aiguillage[index3].ADevie) and (adr<>aiguillage[index3].Adroit) then
               begin
-                Affiche('Erreur 10.42: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+                Affiche('Erreur 10.42: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
                 ok:=false;
               end;
             end;
@@ -9071,7 +9399,7 @@ begin
               end;
             end; 
           end;  
-        end;  
+        end;
       end;
     end;
   end;
@@ -9306,7 +9634,7 @@ begin
         j:=Tablo_actionneur[i].fonction;
         if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
         if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);ok:=false;end;
-        if (j>0) and (j<11) and (Tablo_acc_COMUSB[j].NumCom=0) then
+        if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
         begin
           Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);
           ok:=false;
@@ -9345,6 +9673,7 @@ begin
     begin
       adresse:=Tablo_actionneur[i].Adresse;
       adresse2:=Tablo_actionneur[i].Adresse2;
+      //Affiche('Det_contigu '+intToSTR(adresse)+' '+intToSTR(adresse2),clred);
       det_contigu(adresse,adresse2,suivant,SuivModel);
       if (suivant=0) or (suivant>9995) then
       begin
@@ -9358,6 +9687,33 @@ begin
   // vérification des compatibilités des décodeurs de signaux et des aspects
   if not(verif_dec_sig(true)) then ok:=false;
 
+  // vérifie dans les branches si on a pas de doublon de détecteur
+  for i:=1 to NbreBranches do
+  begin
+    j:=1;
+    repeat
+      detect:=BrancheN[i][j].Adresse;
+      model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
+
+      if model=det then
+      begin
+        k:=j+1;
+        repeat
+           if BrancheN[i][k].Btype=det then
+           begin
+             l:=BrancheN[i][k].Adresse;
+             if detect=l then
+             begin
+               Affiche('Erreur 20 : détecteur '+intToSTR(detect)+' défini plusieurs fois en branche '+intToSTR(i),clred);
+               ok:=false;
+             end;
+           end;
+           inc(k);
+        until (BrancheN[i,k].BType=rien) and (BrancheN[i,k].Adresse=0);
+      end;
+      j:=j+1;
+    until((model=rien) and (detect=0));
+  end;
 
   verif_coherence:=ok;
 end;
@@ -10010,8 +10366,8 @@ begin
          end;
          BrancheN[i,j].adresse:=adresse;
          BrancheN[i,j].btype:=aig; // ident aiguillage
-         aiguillage[adresse].NumBranche:=i;
-         aiguillage[adresse].IndexBranche:=j;
+         aiguillage[index_aig(adresse)].NumBranche:=i;    // aiguillage[] est indexé par un index
+         aiguillage[index_aig(adresse)].IndexBranche:=j;
        end
        else
        begin
@@ -10031,7 +10387,7 @@ begin
        end;
        BrancheN[i,j].adresse:=detect;          // adresse
        BrancheN[i,j].btype:=det;// ident détecteur
-       detecteur[detect].NumBranche:=i;
+       detecteur[detect].NumBranche:=i;    // detecteur[] est indexé par le détecteur
        detecteur[detect].IndexBranche:=j;
 
        if detect=0 then begin BrancheN[i,j].btype:=buttoir;end; // buttoir
@@ -10419,9 +10775,8 @@ end;
 
 procedure TFormConfig.SpeedButtonJoueClick(Sender: TObject);
 begin
-   if (ligneclicAct<0) then exit;
-   if PlaySound(pchar(EditSon.Text),0,SND_ASYNC)=false then
-        labelInfo.Caption:='Erreur';
+ if (ligneclicAct<0) then exit;
+ if PlaySound(pchar(EditSon.Text),0,SND_ASYNC)=false then labelInfo.Caption:='Erreur';
 end;
 
 
@@ -10672,6 +11027,12 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxAig.SelectAll;
+  end;
+
   clicListe:=false;
 
 end;
@@ -10683,8 +11044,6 @@ begin
   ok:=verifie_panneau_config;
   if ok then Sauve_config;
 end;
-
-
 
 procedure TFormConfig.ButtonTestFermeClick(Sender: TObject);
 var i,adr,cmd,erreur : integer;
@@ -10704,7 +11063,7 @@ begin
   else
   begin
     cmd:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
-    cmd:=com_socket(cmd);
+    cmd:=com_socket(cmd);           // si cmd ou socket
     if cmd=1 then ferme_pn_usb(i);
     if cmd=2 then ferme_pn_socket(i);
   end;
@@ -10907,12 +11266,10 @@ begin
   ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 
-
   i:=formprinc.ComboTrains.ItemIndex;
   if i<0 then exit;
   formprinc.ComboTrains.Items[ligneclicTrain]:=EditNomTrain.text;
   if i=ligneclicTrain then formprinc.ComboTrains.Text:=EditNomTrain.text;
-
 end;
 
 procedure TFormConfig.EditAdresseTrainChange(Sender: TObject);
@@ -11120,6 +11477,9 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then ListBoxAct.SelectAll;
+
   clicListe:=false;
 end;
 
@@ -11211,6 +11571,9 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then ListBoxTrains.SelectAll;
+
   clicListe:=false;
 end;
 
@@ -11259,14 +11622,18 @@ procedure TFormConfig.EditLAYExit(Sender: TObject);
 end;
 
 procedure TFormConfig.Copier1Click(Sender: TObject);
-begin
-  RichBranche.CopyToClipboard;
-  RichBranche.SetFocus;
+var tc : Trichedit;
+begin
+  tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
+  tc.CopyToClipboard;
+  tc.SetFocus;
 end;
 
 procedure TFormConfig.Coller1Click(Sender: TObject);
-begin
-  With RichBranche do
+var tc : Trichedit;
+begin
+  tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
+  With tc do
   begin
     PasteFromClipboard;
     SetFocus;
@@ -11298,6 +11665,12 @@ begin
 
     LabelInfo.caption:=decodeDCC(lines[ligneDCC]);
   end;
+
+  if (Shift=[ssCtrl]) and (key=ord('A')) then
+  begin
+    RichCdeDccpp.SelectAll;
+  end;
+
 end;
 
 
@@ -11483,7 +11856,6 @@ begin
         if not(V5Valide) then tablo_PN[i].NbVoies:=4;
       end;
 
-
       s:=encode_act_PN(i);
       ListBoxPN.items[lignecliqueePN]:=s;
       ListBoxPN.Selected[lignecliqueePN]:=true;
@@ -11565,7 +11937,6 @@ begin
     EditT[i].visible:=false;
     ComboL1[i].Visible:=false;
     ComboL2[i].Visible:=false;
-
   end;
 
 end;
@@ -11577,11 +11948,12 @@ end;
 begin
   if NbreDecPers>=NbreMaxiDecPers then exit;
 
-
   inc(NbreDecPers);
   s:='Personnalisé '+intToSTR(NbreDecPers);
   decodeur_pers[NbreDecPers].nom:=s;
   decodeur_pers[NbreDecPers].Nation:=1;
+  decodeur_pers[NbreDecPers].Commande:=0;
+
   nombre:=4;
   decodeur_pers[NbreDecPers].NbreAdr:=nombre;
   formconfig.EditNbreAdr.Text:=intToSTR(nombre);
@@ -11635,6 +12007,9 @@ begin
   if affevt then Affiche('Evt ComboBoxDecodeurPerso',clyellow);
 
   a:=ComboBoxDecodeurPerso.ItemIndex;
+  if a>=0 then decCourant:=a+1;
+
+  //Affiche(intToSTR(a+1)+' courant='+intToSTR(decCourant),clred);
   if a=-1 then
   begin
     // changement du nom
@@ -11653,7 +12028,7 @@ begin
 
     exit;
   end;
-  decCourant:=a+1;
+  
   EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
   //Affiche('Décodeur courant = '+intToSTR(decCourant),clyellow);
   maj_decodeurs;
@@ -11736,7 +12111,6 @@ begin
       dec(feux[i].decodeur);  // et décrémenter les autres décodeurs personnalisés de rang supérieur
       aff:=true;
     end;
-
   end;
 
   // réafficher le richedit des signaux
@@ -11787,34 +12161,34 @@ begin
   
 
   // signal normal
-    // boucle de ligne
-    for ligne:=1 to 6 do
-    begin
-      s:=uppercase(MemoBlanc.Lines[ligne-1]);
-      clicListe:=true;
-      MemoBlanc.Lines[ligne-1]:=s;
-      clicListe:=false;
-      sO:=s;
-      j:=1;
-      if s<>'' then 
-      repeat
-        if s[1]<>'A' then begin LabelInfo.Caption:='Erreur manque A : '+sO;exit;end;
-        delete(s,1,1);
-        val(s,adr,erreur);  // adresse
-        if adr=0 then exit;
-        c:=#0;
-        if erreur<>0 then c:=s[erreur];       // S ou D
-        if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
-        setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],j+1);
-        feux[ligneClicSig+1].condFeuBlanc[ligne][j].PosAig:=c;
-        feux[ligneClicSig+1].condFeuBlanc[ligne][j].Adresse:=adr;
-        delete(s,1,erreur);   // supprime jusque D
-        if length(s)<>0 then if s[1]=',' then delete(s,1,1);
-        inc(j);
-      until s=''
-      else
-        setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],0);
-    end;    
+  // boucle de ligne
+  for ligne:=1 to 6 do
+  begin
+    s:=uppercase(MemoBlanc.Lines[ligne-1]);
+    clicListe:=true;
+    MemoBlanc.Lines[ligne-1]:=s;
+    clicListe:=false;
+    sO:=s;
+    j:=1;
+    if s<>'' then
+    repeat
+      if s[1]<>'A' then begin LabelInfo.Caption:='Erreur manque A : '+sO;exit;end;
+      delete(s,1,1);
+      val(s,adr,erreur);  // adresse
+      if adr=0 then exit;
+      c:=#0;
+      if erreur<>0 then c:=s[erreur];       // S ou D
+      if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
+      setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],j+1);
+      feux[ligneClicSig+1].condFeuBlanc[ligne][j].PosAig:=c;
+      feux[ligneClicSig+1].condFeuBlanc[ligne][j].Adresse:=adr;
+      delete(s,1,erreur);   // supprime jusque D
+      if length(s)<>0 then if s[1]=',' then delete(s,1,1);
+      inc(j);
+    until s=''
+    else
+      setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],0);
+  end;
 
   s:=encode_sig_feux(ligneClicSig+1);
   ListBoxSig.Items[ligneClicSig]:=s;
@@ -11893,6 +12267,12 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxSig.SelectAll;
+  end;
+
   clicListe:=false;
 
 end;
@@ -11907,7 +12287,6 @@ begin
 
   if nbrePN<1 then exit;
   for i:=0 to ListBoxAct.items.Count-1 do ListBoxAct.selected[i]:=false;
-
 
   lignecliqueePN:=listBoxPN.ItemIndex;
   if lignecliqueePN<0 then exit;
@@ -11960,6 +12339,9 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then ListBoxPN.SelectAll;
+
   clicListe:=false;
 end;
 
@@ -11980,9 +12362,9 @@ var ss,s : string;
   n:=0;
   for i:=0 to NbPeriph-1 do
   begin
-    if formconfig.ListBoxAcc.selected[i] then
+    if formconfig.ListBoxPeriph.selected[i] then
     begin
-      ss:=ss+ tablo_acc_comusb[i+1].nom+' ';
+      ss:=ss+ Tablo_periph[i+1].nom+' ';
       inc(n);
     end;
   end;
@@ -12001,16 +12383,16 @@ var ss,s : string;
   n:=0;
   i:=1;
   repeat
-    if formconfig.ListBoxAcc.selected[i-1] then
+    if formconfig.ListBoxPeriph.selected[i-1] then
     begin
 
       for j:=i to NbPeriph-1 do
       begin
-        formconfig.ListBoxAcc.selected[j-1]:=formconfig.ListBoxAcc.selected[j];
-        tablo_acc_comusb[j]:=tablo_acc_comusb[j+1];
+        formconfig.ListBoxPeriph.selected[j-1]:=formconfig.ListBoxPeriph.selected[j];
+        Tablo_periph[j]:=Tablo_periph[j+1];
       end;
       dec(NbPeriph);
-      tablo_acc_comusb[NbPeriph+1].NumCom:=0;
+      Tablo_periph[NbPeriph+1].NumCom:=0;
       i:=0;
     end;
     inc(i);
@@ -12019,9 +12401,11 @@ var ss,s : string;
   if NbPeriph<=NbMaxi_periph then formConfig.LabelInfoAcc.caption:='';
 
   config_modifie:=true;
-  FormConfig.ListBoxAcc.Clear;
+  FormConfig.ListBoxPeriph.Clear;
+  //supprimer les champs des combos
   formConfig.ComboBoxAccComUSB.Clear;
   formconfig.ComboBoxPNCom.Clear;
+  formConfig.comboBoxDecCde.Clear;
 
   // réafficher la liste
   for i:=1 to NbPeriph do
@@ -12030,8 +12414,8 @@ var ss,s : string;
     if s<>'' then
     begin
       Tablo_com_cde[i].NumAcc:=i;
-      FormConfig.ListBoxAcc.items.Add(s);
-      maj_champs_combos(i);
+      FormConfig.ListBoxPeriph.items.Add(s);
+      ajoute_champs_combos(i);
     end;
   end;
   ligneclicAccCom:=-1;
@@ -12039,7 +12423,7 @@ var ss,s : string;
   clicliste:=false;
 end;
 
-procedure ajoute_acc;
+procedure ajoute_Periph;
 var i : integer;
     s : string;
 begin
@@ -12051,19 +12435,19 @@ begin
   clicliste:=true;
 
   // désélectionne tout
-  with formconfig.ListBoxAcc do
+  with formconfig.ListBoxPeriph do
     for i:=0 to items.Count-1 do Selected[i]:=false;
 
-  inc(NbPeriph);    
+  inc(NbPeriph);
   if NbPeriph>10 then formConfig.LabelInfoAcc.caption:='Nombre maxi de périphériques atteint : '+intToStr(NbPeriph);
 
   i:=NbPeriph;
-  Tablo_acc_COMUSB[i].nom:='';
-  Tablo_acc_COMUSB[i].NumCom:=0;
+  Tablo_periph[i].nom:='';
+  Tablo_periph[i].NumCom:=0;
 
   s:=encode_Periph(i);
   // scroller à la fin et sélectionner
-  with formconfig.ListBoxAcc do
+  with formconfig.ListBoxPeriph do
   begin
     items.add(s);
     selected[i-1]:=true;
@@ -12078,7 +12462,7 @@ begin
   s:='Nouveau périphérique';
   formConfig.ComboBoxAccComUSB.Items.Add(s);
   formconfig.ComboBoxPNCom.Items.Add(s);
-  formconfig.EditNomAcc.text:=s;
+  formconfig.EditNomAcc.text:=s;     // ???
   clicliste:=false;
   config_modifie:=true;
 end;
@@ -12095,7 +12479,7 @@ begin
   if s='ListBoxSig' then supprime_sig;
   if s='ListBoxAig' then supprime_aig;
   if s='ListBoxTrains' then supprime_Train;
-  if s='ListBoxAcc' then supprime_periph;
+  if s='ListBoxPeriph' then supprime_periph;
 
 end;
 
@@ -12105,27 +12489,12 @@ var tl: TListBox;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   s:=tl.name;
-  if s='ListBoxAct' then
-  begin
-    ajoute_actionneur;
-  end;
-  if s='ListBoxPN' then
-  begin
-    ajoute_PN;
-  end;
-  if s='ListBoxSig' then
-  begin
-    ajoute_signal;
-  end;
-  if s='ListBoxAig' then
-  begin
-    ajoute_aiguillage;
-  end;
-  if s='ListBoxTrains' then
-  begin
-    ajoute_train;
-  end;
-  if s='ListBoxAcc' then ajoute_acc;
+  if s='ListBoxAct' then ajoute_actionneur;
+  if s='ListBoxPN' then ajoute_PN;
+  if s='ListBoxSig' then ajoute_signal;
+  if s='ListBoxAig' then ajoute_aiguillage;
+  if s='ListBoxTrains' then ajoute_train;
+  if s='ListBoxPeriph' then ajoute_periph;
 end;
 
 procedure TFormConfig.outcopierentatquetexte1Click(Sender: TObject);
@@ -12150,19 +12519,17 @@ begin
 
   for i:=1 to NbPeriph do
   begin
-    index:=tablo_com_cde[i].NumAcc;
-
     if com_socket(i)=1 then  // si port comusb
     begin
-      if connecte_port_usb_periph(index) then
-        Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique ouvert',clLime)
-      else Affiche('COM'+intToSTR(tablo_acc_comusb[index].numcom)+' périphérique non ouvert',clOrange);
+      if connecte_port_usb_periph(i) then
+        Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique ouvert',clLime)
+      else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique non ouvert',clOrange);
     end
     else
     begin  // si port com socket
-      if connecte_socket_periph(i) then Affiche('Socket '+tablo_acc_comusb[i].protocole+' demande ouverture ',clLime)
+      if connecte_socket_periph(i) then Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
       else
-        Affiche('Socket '+tablo_acc_comusb[i].protocole+' commande périphérique non ouvert',clOrange);
+        Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange);
     end;
   end;
 end;
@@ -12170,7 +12537,7 @@ end;
 
 procedure TFormConfig.ButtonAjAccComClick(Sender: TObject);
 begin
-  ajoute_acc;
+  ajoute_Periph;
 end;
 
 procedure TFormConfig.EditNomAccChange(Sender: TObject);
@@ -12181,22 +12548,22 @@ begin
   with Formconfig do
   begin
     s:=EditNomAcc.Text;
-    Tablo_acc_COMUSB[ligneClicAccCOM+1].nom:=s;
+    Tablo_periph[ligneClicAccCOM+1].nom:=s;
     maj_champs_combos(ligneClicAccCOM+1);
     s:=encode_Periph(ligneClicAccCOM+1);
-    ListBoxAcc.Items[ligneClicAccCOM]:=s;
-    ListBoxAcc.Selected[ligneClicAccCOM]:=true;
+    ListBoxPeriph.Items[ligneClicAccCOM]:=s;
+    ListBoxPeriph.Selected[ligneClicAccCOM]:=true;
   end;
 end;
 
-procedure TFormConfig.ListBoxAccMouseDown(Sender: TObject;
+procedure TFormConfig.ListBoxPeriphMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i,lc : integer;
     s : string;
 begin
   clicliste:=true;
   if NbPeriph<1 then exit;
-  with Formconfig.ListBoxAcc do
+  with Formconfig.ListBoxPeriph do
   begin
     i:=0;
     lc:=itemindex;
@@ -12230,10 +12597,10 @@ end;
 
 procedure TFormConfig.ButtonSupAccComClick(Sender: TObject);
 begin
-  supprime_periph
+  supprime_periph;
 end;
 
-procedure TFormConfig.ListBoxAccKeyDown(Sender: TObject; var Key: Word;
+procedure TFormConfig.ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if NbPeriph<1 then exit;
@@ -12242,8 +12609,8 @@ begin
   begin
     if clicListe then exit;
     clicListe:=true;
-    if affevt then affiche('Evt ListBoxAcc.Items keydown',clyellow);
-    with Formconfig.ListBoxAcc.Items do
+    if affevt then affiche('Evt ListBoxPeriph.Items keydown',clyellow);
+    with Formconfig.ListBoxPeriph.Items do
     begin
       if ligneclicAccCom>0 then
       begin
@@ -12261,8 +12628,8 @@ begin
   begin
     if clicListe then exit;
     clicListe:=true;
-    if affevt then affiche('Evt ListBoxAcc.Items keydown',clyellow);
-    with Formconfig.ListBoxAcc.Items do
+    if affevt then affiche('Evt ListBoxPeriph.Items keydown',clyellow);
+    with Formconfig.ListBoxPeriph.Items do
     begin
       if ligneclicAccCom<NbPeriph-1 then
       begin
@@ -12275,6 +12642,12 @@ begin
       end;
    end;
   end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxPeriph.SelectAll;
+  end;
+
   clicListe:=false;
 
 end;
@@ -12307,7 +12680,7 @@ var s : string;
     if RadioGroupActPN.itemindex=1 then
     begin
       tablo_PN[lignecliqueePN+1].TypeCde:=1;
-      champs_PN_COMUSB;
+      champs_PN_COMUSBSockets;
     end;
     s:=encode_act_PN(lignecliqueePN+1);
     ListBoxPN.items[lignecliqueePN]:=s;
@@ -12324,6 +12697,69 @@ procedure TFormConfig.ComboBoxPNComChange(Sender: TObject);
   s:=encode_act_PN(lignecliqueePN+1);
   ListBoxPN.Items[lignecliqueePN]:=s;
   ListBoxPN.Selected[lignecliqueePN]:=true;
+end;
+
+procedure TFormConfig.ComboBoxDecCdeChange(Sender: TObject);
+begin
+  if affevt then affiche('Evt ComboDecCde',clyellow);
+  if decCourant=0 then exit;
+  Decodeur_pers[decCourant].Peripherique:=ComboBoxDecCde.ItemIndex+1;
+end;
+
+procedure TFormConfig.RadioCdeDecClick(Sender: TObject);
+begin
+  if radioCdeDec.ItemIndex=0 then Champs_dec_Centrale;
+  if radioCdeDec.ItemIndex=1 then Champs_dec_Com;
+end;
+ 
+procedure TFormConfig.Toutslectionner1Click(Sender: TObject);
+var tc : Trichedit;
+begin
+  tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
+  tc.SelectAll;
+end;
+
+
+procedure TFormConfig.ButtonChercheClick(Sender: TObject);
+var  s,sc : string;
+    l,i : integer;
+    trouve : boolean;
+begin
+  sc:=lowercase(editchercher.Text);
+  with RichBranche do
+  begin
+    repeat
+      s:=lowercase(Lines[ligneCherche]);
+      positionErreur:=pos(sc,s);
+      trouve:=positionErreur<>0;
+      inc(LigneCherche);
+    until (LigneCherche>=Lines.Count) or trouve;
+
+    if trouve then
+    begin
+      inc(compt_Ligne);
+      //Affiche('trouvé en '+Lines[ligneErreur-1],clred);
+      l:=0;
+      for i:=0 to ligneCherche-1 do
+      begin
+        l:=l+length(Lines[i])+2;
+      end;
+      SelStart:= l-length(s)+positionErreur-3;
+      SelLength:=length(sc);
+      //SetFocus;      // afficher la sélection
+      Perform(EM_SCROLLCARET,0,0); // et scroller à l'endroit de la sélection
+    end
+    else
+    begin
+      LigneCherche:=0;
+    end;
+  end;
+
+end;
+
+procedure TFormConfig.EditChercherChange(Sender: TObject);
+begin
+  ligneCherche:=0;
 end;
 
 end.

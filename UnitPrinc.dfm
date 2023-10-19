@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 51
-  Top = 236
+  Left = 178
+  Top = 243
   Width = 1222
   Height = 653
   Caption = 'Signaux complexes'
@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1214
-    602)
+    1206
+    594)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -226,7 +226,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image7feux: TImage
-    Left = 144
+    Left = 376
     Top = 0
     Width = 57
     Height = 105
@@ -1442,8 +1442,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 580
-    Width = 1214
+    Top = 572
+    Width = 1206
     Height = 22
     Panels = <
       item
@@ -1492,12 +1492,12 @@ object FormPrinc: TFormPrinc
   object Panel2: TPanel
     Left = 0
     Top = 32
-    Width = 1057
+    Width = 1129
     Height = 473
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     DesignSize = (
-      1057
+      1129
       473)
     object SplitterV: TSplitter
       Left = 1
@@ -1533,10 +1533,10 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object ScrollBox1: TScrollBox
-      Left = 550
+      Left = 488
       Top = 192
-      Width = 563
-      Height = 321
+      Width = 497
+      Height = 249
       HorzScrollBar.Increment = 48
       HorzScrollBar.Tracking = True
       VertScrollBar.Smooth = True
@@ -1548,7 +1548,7 @@ object FormPrinc: TFormPrinc
     end
     object GroupBox1: TGroupBox
       Left = 489
-      Top = 5
+      Top = 13
       Width = 265
       Height = 52
       Anchors = [akTop, akRight]
@@ -1577,6 +1577,8 @@ object FormPrinc: TFormPrinc
         Height = 25
         Hint = 'Ecriture des accessoires DCC'
         Caption = 'droit'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 1
         WordWrap = True
         OnClick = ButtonDroitClick
@@ -1588,14 +1590,16 @@ object FormPrinc: TFormPrinc
         Height = 25
         Hint = 'Ecriture des accessoires DCC'
         Caption = 'devi'#233
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 2
         WordWrap = True
         OnClick = ButtonDevieClick
       end
     end
     object GroupBox3: TGroupBox
-      Left = 505
-      Top = 32
+      Left = 489
+      Top = 56
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -1830,7 +1834,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object Panel1: TPanel
-      Left = 753
+      Left = 761
       Top = 5
       Width = 296
       Height = 180
@@ -1868,6 +1872,8 @@ object FormPrinc: TFormPrinc
           'Mise '#224' jour des signaux suivant les zones occup'#233'es et les aiguil' +
           'lages'
         Caption = 'Rafraichissement'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 0
         OnClick = BoutonRafClick
       end
@@ -1898,6 +1904,8 @@ object FormPrinc: TFormPrinc
         Height = 33
         Hint = 'Lance CDM Rail'
         Caption = 'Lance CDM rail'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 3
         OnClick = ButtonLanceCDMClick
       end
@@ -1908,6 +1916,8 @@ object FormPrinc: TFormPrinc
         Height = 33
         Hint = 'Affichage du panneau de contr'#244'le des trains ou des CV'
         Caption = 'Trains / CVs'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 4
         OnClick = ButtonLocCVClick
       end
@@ -1920,6 +1930,8 @@ object FormPrinc: TFormPrinc
           'Supprime les trains d'#233'tect'#233's ou en cas de nouveau RUN, permet de' +
           ' partir de 0'
         Caption = 'Raz trains ou nouveau RUN'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 5
         WordWrap = True
         OnClick = BoutonRazTrainsClick
@@ -1930,6 +1942,8 @@ object FormPrinc: TFormPrinc
         Width = 89
         Height = 33
         Caption = 'Affiche le r'#233'seau CDM'
+        ParentShowHint = False
+        ShowHint = False
         TabOrder = 6
         Visible = False
         WordWrap = True
@@ -1967,8 +1981,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 489
-      Top = 64
+      Left = 521
+      Top = 40
       Width = 265
       Height = 105
       Anchors = [akTop, akRight]
@@ -2417,8 +2431,15 @@ object FormPrinc: TFormPrinc
     Top = 65528
   end
   object PopupMenuFenRich: TPopupMenu
-    Left = 208
-    Top = 16
+    Left = 192
+    Top = 8
+    object outslectionner1: TMenuItem
+      Caption = 'Tout s'#233'lectionner'
+      OnClick = outslectionner1Click
+    end
+    object N15: TMenuItem
+      Caption = '-'
+    end
     object Copier1: TMenuItem
       Caption = 'Copier'
       OnClick = Copier1Click

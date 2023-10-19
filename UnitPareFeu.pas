@@ -24,7 +24,7 @@ Const
   NET_FW_MODIFY_STATE_INBOUND_BLOCKED=2;
   nom_regle_cdm='CDM rail';
 
-// Ajoute une règle à un programme en utilisant Microsoft Windows Firewall APIs.
+// Ajoute une règle au pare feu pour un programme en utilisant Microsoft Windows Firewall APIs.
 function AddApplicationRule : boolean;
 var
   CurrentProfiles,fwPolicy2,RulesObject,NewRule : OleVariant;
@@ -32,7 +32,7 @@ var
   r : boolean;
 begin
   fichier:=CheminProgrammes+'\CDM-Rail\cdr.exe';
-  
+
   // Crée l'objet FwPolicy2
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;

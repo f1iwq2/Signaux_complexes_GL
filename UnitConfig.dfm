@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 331
-  Top = 136
+  Left = 278
+  Top = 142
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetPeriph
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1995,7 +1995,7 @@ object FormConfig: TFormConfig
       end
       object Label34: TLabel
         Left = 472
-        Top = 192
+        Top = 200
         Width = 136
         Height = 26
         Caption = 'Tapez CTRL-Z pour annuler une modification r'#233'cente'
@@ -2012,12 +2012,12 @@ object FormConfig: TFormConfig
         Left = 464
         Top = 24
         Width = 153
-        Height = 161
+        Height = 169
         Caption = 'Commandes'
         TabOrder = 0
         object LabelResult: TLabel
           Left = 11
-          Top = 112
+          Top = 136
           Width = 3
           Height = 13
           Caption = '-'
@@ -2050,6 +2050,29 @@ object FormConfig: TFormConfig
           WordWrap = True
           OnClick = ButtonVerifConfigClick
         end
+        object EditChercher: TEdit
+          Left = 8
+          Top = 104
+          Width = 57
+          Height = 21
+          Hint = 'Chercher une cha'#238'ne'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnChange = EditChercherChange
+        end
+        object ButtonCherche: TButton
+          Left = 72
+          Top = 104
+          Width = 75
+          Height = 20
+          Hint = 'Cherche une chaine'
+          Caption = 'Cherche'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+          OnClick = ButtonChercheClick
+        end
       end
       object RichBranche: TRichEdit
         Left = 0
@@ -2066,7 +2089,7 @@ object FormConfig: TFormConfig
         Lines.Strings = (
           'RichBranche')
         ParentFont = False
-        PopupMenu = PopupMenuBranches
+        PopupMenu = PopupMenuRichedit
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
@@ -2075,9 +2098,9 @@ object FormConfig: TFormConfig
       end
       object Memo5: TMemo
         Left = 464
-        Top = 232
+        Top = 240
         Width = 153
-        Height = 209
+        Height = 201
         Lines.Strings = (
           'Une ligne doit commencer par '
           'un aiguillage (ou un buttoir) et '
@@ -2111,8 +2134,8 @@ object FormConfig: TFormConfig
           'fficher la description du signal'
       end
       object Label35: TLabel
-        Left = 40
-        Top = 444
+        Left = 72
+        Top = 436
         Width = 201
         Height = 13
         Caption = 'Temporisation entre deux commandes (ms)'
@@ -2281,7 +2304,7 @@ object FormConfig: TFormConfig
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
-          Color = clScrollBar
+          Color = cl3DLight
           ParentShowHint = False
           ScrollBars = ssBoth
           ShowHint = True
@@ -2292,10 +2315,10 @@ object FormConfig: TFormConfig
         object ComboBoxDec: TComboBox
           Left = 144
           Top = 48
-          Width = 129
+          Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2399,10 +2422,10 @@ object FormConfig: TFormConfig
         object ComboBoxAsp: TComboBox
           Left = 144
           Top = 72
-          Width = 129
+          Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2502,7 +2525,7 @@ object FormConfig: TFormConfig
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
-          Color = clScrollBar
+          Color = cl3DLight
           ParentShowHint = False
           ScrollBars = ssBoth
           ShowHint = True
@@ -2538,7 +2561,7 @@ object FormConfig: TFormConfig
         OnClick = ButtonInsFeuClick
       end
       object CheckBoxRazSignaux: TCheckBox
-        Left = 0
+        Left = 24
         Top = 402
         Width = 169
         Height = 17
@@ -2549,8 +2572,8 @@ object FormConfig: TFormConfig
         TabOrder = 4
       end
       object EditTempoFeu: TEdit
-        Left = 0
-        Top = 440
+        Left = 16
+        Top = 432
         Width = 33
         Height = 21
         TabOrder = 5
@@ -2581,7 +2604,7 @@ object FormConfig: TFormConfig
       ImageIndex = 8
       object Label61: TLabel
         Left = 13
-        Top = 4
+        Top = 12
         Width = 173
         Height = 13
         Caption = 'D'#233'codeurs personnalis'#233's de signaux'
@@ -2605,7 +2628,7 @@ object FormConfig: TFormConfig
         Font.Style = []
         ParentFont = False
       end
-      object Label63: TLabel
+      object LabelDecal: TLabel
         Left = 168
         Top = 32
         Width = 49
@@ -2619,7 +2642,7 @@ object FormConfig: TFormConfig
         ParentFont = False
         WordWrap = True
       end
-      object Label66: TLabel
+      object LabelSorties: TLabel
         Left = 248
         Top = 40
         Width = 32
@@ -2635,9 +2658,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox26: TGroupBox
         Left = 376
-        Top = 64
+        Top = 40
         Width = 241
-        Height = 393
+        Height = 401
         Caption = 'Commandes'
         TabOrder = 0
         object Label67: TLabel
@@ -2653,9 +2676,9 @@ object FormConfig: TFormConfig
           Font.Style = [fsBold]
           ParentFont = False
         end
-        object Label65: TLabel
+        object LabelNa: TLabel
           Left = 19
-          Top = 96
+          Top = 304
           Width = 126
           Height = 39
           Alignment = taRightJustify
@@ -2664,37 +2687,45 @@ object FormConfig: TFormConfig
         end
         object Label64: TLabel
           Left = 64
-          Top = 160
+          Top = 248
           Width = 105
           Height = 13
           Caption = 'Signalisation nationale'
         end
         object Label68: TLabel
-          Left = 23
-          Top = 356
+          Left = 15
+          Top = 84
           Width = 178
           Height = 13
           Caption = 'Nombre de d'#233'codeurs personnalis'#233's :'
         end
         object LabelNbDecPers: TLabel
-          Left = 208
-          Top = 356
+          Left = 200
+          Top = 84
           Width = 6
           Height = 13
           Caption = '0'
+        end
+        object LabelTypCde: TLabel
+          Left = 40
+          Top = 200
+          Width = 152
+          Height = 13
+          Caption = 'P'#233'riph'#233'rique COM/USB/Socket'
         end
         object ComboBoxDecodeurPerso: TComboBox
           Left = 24
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          AutoComplete = False
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
         object EditNbreAdr: TEdit
           Left = 168
-          Top = 104
+          Top = 312
           Width = 49
           Height = 21
           TabOrder = 1
@@ -2703,17 +2734,17 @@ object FormConfig: TFormConfig
         end
         object ComboBoxNation: TComboBox
           Left = 48
-          Top = 176
+          Top = 272
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
         object BoutonNouveau: TButton
-          Left = 86
-          Top = 216
+          Left = 14
+          Top = 360
           Width = 75
           Height = 25
           Hint = 'Ajouter un nouveau d'#233'codeur personnalis'#233
@@ -2724,8 +2755,8 @@ object FormConfig: TFormConfig
           OnClick = BoutonNouveauClick
         end
         object ButtonSup: TButton
-          Left = 86
-          Top = 248
+          Left = 150
+          Top = 360
           Width = 75
           Height = 25
           Hint = 'Supprimer le d'#233'codeur personnalis'#233
@@ -2734,6 +2765,28 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 4
           OnClick = ButtonSupClick
+        end
+        object RadioCdeDec: TRadioGroup
+          Left = 8
+          Top = 112
+          Width = 225
+          Height = 65
+          Caption = 'Type de commande'
+          Items.Strings = (
+            'Command'#233' par la centrale'
+            'Command'#233' par port COM/USB/Socket')
+          TabOrder = 5
+          OnClick = RadioCdeDecClick
+        end
+        object ComboBoxDecCde: TComboBox
+          Left = 24
+          Top = 216
+          Width = 193
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 6
+          OnChange = ComboBoxDecCdeChange
         end
       end
     end
@@ -2752,14 +2805,14 @@ object FormConfig: TFormConfig
       object GroupBox13: TGroupBox
         Left = 352
         Top = 32
-        Width = 257
+        Width = 265
         Height = 433
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
           Top = 24
-          Width = 225
+          Width = 249
           Height = 89
           Caption = 'Type d'#39'action'
           TabOrder = 0
@@ -2801,17 +2854,17 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxAct: TGroupBox
-          Left = 16
-          Top = 128
-          Width = 233
+          Left = 8
+          Top = 120
+          Width = 249
           Height = 321
           Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
             Top = 16
-            Width = 217
-            Height = 153
+            Width = 233
+            Height = 161
             Caption = 'D'#233'clencheur '
             TabOrder = 0
             object LabelActionneur: TLabel
@@ -2874,7 +2927,7 @@ object FormConfig: TFormConfig
             object RadioGroup1: TRadioGroup
               Left = 8
               Top = 16
-              Width = 193
+              Width = 217
               Height = 73
               Caption = 'Type de d'#233'clenchement'
               TabOrder = 3
@@ -2916,9 +2969,9 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 16
+            Left = 8
             Top = 136
-            Width = 217
+            Width = 233
             Height = 137
             Caption = 'Destinataire de l'#39'action '
             TabOrder = 1
@@ -3110,7 +3163,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3131,25 +3184,25 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 32
-          Top = 120
+          Left = 88
+          Top = 72
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 2
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 56
-          Top = 136
+          Left = 120
+          Top = 64
           Width = 169
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 8
-          Top = 56
-          Width = 241
+          Left = 136
+          Top = 24
+          Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
@@ -3208,7 +3261,7 @@ object FormConfig: TFormConfig
             OnChange = EditCdeOuvreChange
           end
           object ButtonTestFerme: TButton
-            Left = 200
+            Left = 208
             Top = 80
             Width = 27
             Height = 21
@@ -3220,7 +3273,7 @@ object FormConfig: TFormConfig
             OnClick = ButtonTestFermeClick
           end
           object ButtonTestOuvre: TButton
-            Left = 200
+            Left = 208
             Top = 104
             Width = 27
             Height = 21
@@ -3287,11 +3340,11 @@ object FormConfig: TFormConfig
           object ComboBoxPNCom: TComboBox
             Left = 8
             Top = 104
-            Width = 129
+            Width = 145
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3561,6 +3614,7 @@ object FormConfig: TFormConfig
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+        PopupMenu = PopupMenuRichedit
         TabOrder = 0
         OnChange = RichCdeDccppChange
         OnKeyDown = RichCdeDccppKeyDown
@@ -3914,7 +3968,7 @@ object FormConfig: TFormConfig
         Width = 3
         Height = 13
       end
-      object ListBoxAcc: TListBox
+      object ListBoxPeriph: TListBox
         Left = 8
         Top = 72
         Width = 233
@@ -3930,8 +3984,8 @@ object FormConfig: TFormConfig
         ParentFont = False
         PopupMenu = PopupMenuListes
         TabOrder = 0
-        OnKeyDown = ListBoxAccKeyDown
-        OnMouseDown = ListBoxAccMouseDown
+        OnKeyDown = ListBoxPeriphKeyDown
+        OnMouseDown = ListBoxPeriphMouseDown
       end
       object ButtonAjAccCom: TButton
         Left = 8
@@ -4007,9 +4061,16 @@ object FormConfig: TFormConfig
     Left = 668
     Top = 468
   end
-  object PopupMenuBranches: TPopupMenu
+  object PopupMenuRichedit: TPopupMenu
     Left = 728
     Top = 88
+    object outslectionner1: TMenuItem
+      Caption = 'Tout s'#233'lectionner'
+      OnClick = Toutslectionner1Click
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
     object Copier1: TMenuItem
       Caption = 'Copier'
       OnClick = Copier1Click

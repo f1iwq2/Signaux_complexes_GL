@@ -577,7 +577,7 @@ begin
   repeat
     inc(i);
     trouve:=s[i] in ['0'..'9'];
-  until trouve or (i>length(s));
+  until trouve or (i>=length(s));
   if trouve then
   begin
     delete(s,1,i-1);
@@ -1189,9 +1189,11 @@ begin
 
 end;
 
+// calcule les Hauteur et Largeur des cellules en fonction du Zoom
 procedure calcul_cellules(indexTCO : integer);
 var pos : integer;
 begin
+  if affevt then affiche('Calcul_cellules',clyellow);
   pos:=ZoomMax-FormTCO[indexTCO].TrackBarZoom.Position+ZoomMin;
   //Affiche('Position TrackBar°'+intToSTR(indexTCO)+'='+intToSTR(pos),clyellow);
   LargeurCell[indexTCO]:=pos;
@@ -7556,7 +7558,7 @@ var  index,x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY,larg,h
      ImageFeu : Timage;
      frX,frY : real;
 begin
-  if (x>NbreCellX[indexTCO]) or (y>NbreCellY[indexTCO]) or (x<1) or (y<1) then exit;
+  if (x>NbreCellX[indexTCO]) or (y>NbreCellY[indexTCO]) or (x<1) or (y<1) or (NbreFeux=0) then exit;
 
   larg:=LargeurCell[indexTCO];
   haut:=hauteurCell[indexTCO];
@@ -7569,6 +7571,8 @@ begin
   if Orientation=0 then Orientation:=1;  // cas d'un signal non encore renseigné
 
   index:=Index_Signal(adresse);
+  if index=0 then exit;
+
   aspect:=feux[index].aspect;
   if aspect=0 then aspect:=9;
   //if aspect>9 then exit;
@@ -7644,7 +7648,7 @@ begin
     // si inversion
     if feux[index].contrevoie then
     begin
-      inverse_image(FormTCO[index].ImageTemp,ImageFeu);
+      inverse_image(FormTCO[indexTCO].ImageTemp,ImageFeu);
       // copie avec mise à l'échelle de l'image du signal
       TransparentBlt(canvasDest.Handle,x0,y0,round(TailleX*frX),round(TailleY*frY),
                    FormTCO[indexTCO].ImageTemp.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
@@ -7990,25 +7994,24 @@ end;
 procedure _entoure_cell_clic(indexTCO: integer);
 begin
   if not(entoure[indexTCO]) then
+  begin
+    Entoure_cell(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
+    Xentoure[indexTCO]:=XClicCell[indexTCO];
+    Yentoure[indexTCO]:=YclicCell[indexTCO];
+    entoure[indexTCO]:=true;
+  end
+  else
+  begin
+    Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);   // efface l'ancien
+    // si on clique sur le même on l'efface sans afficher un nouveau
+    if (Xentoure[indexTCO]<>XclicCell[indexTCO]) or (Yentoure[indexTCO]<>YClicCell[indexTCO]) then
     begin
       Entoure_cell(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
-      Xentoure[indexTCO]:=XClicCell[indexTCO];
-      Yentoure[indexTCO]:=YclicCell[indexTCO];
-      entoure[indexTCO]:=true;
     end
-    else
-    begin
-      Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);   // efface l'ancien
-      // si on clique sur le même on l'efface sans afficher un nouveau
-      if (Xentoure[indexTCO]<>XclicCell[indexTCO]) or (Yentoure[indexTCO]<>YClicCell[indexTCO]) then
-      begin
-        Entoure_cell(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
-      end
-      else entoure[indexTCO]:=false;
-
-      Xentoure[indexTCO]:=XClicCell[indexTCO];
-      Yentoure[indexTCO]:=YclicCell[indexTCO];
-    end;
+    else entoure[indexTCO]:=false;
+    Xentoure[indexTCO]:=XClicCell[indexTCO];
+    Yentoure[indexTCO]:=YclicCell[indexTCO];
+  end;
 end;
 
 
@@ -8156,7 +8159,7 @@ begin
   modeTrace[indexTCOCreate]:=false;   // pour tracer les voies à la souris
   //controlStyle:=controlStyle+[csOpaque];
 
-  TCOCree:=true;
+  //TCOCree:=true;
 
   s:='Voie';
     ImagePalette6.Hint:=s;ImagePalette6.ShowHint:=true;
@@ -8203,7 +8206,7 @@ begin
     ImagePalette23.Hint:=s;ImagePalette22.ShowHint:=true;
     ImagePalette25.Hint:=s;ImagePalette25.ShowHint:=true;
 
-  
+  tcoCree:=true;
   if debug=1 then Affiche('Fin création fenêtre TCO',clLime);
 end;
 
@@ -9195,7 +9198,8 @@ begin
   if affevt then Affiche('Form TCO'+intToSTR(indexTCO)+' activate',clyellow);
   Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
 
-  //if not(Forminit[indexTCO]) then
+  {initalisation des dimensions du tco - à ne faire qu'une fois}
+  if not(Forminit[indexTCO]) then
   begin
 
     Button1.Visible:=not(Diffusion);
@@ -12283,17 +12287,18 @@ end;
 procedure TFormTCO.ButtonCalibrageClick(Sender: TObject);
 var indexTCO,x,y : integer;
 begin
-   x:=0;
-   y:=0;
-   indexTCO:=index_tco(sender);
-   calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
-   with imageTCO.Canvas do
-   begin
-     pen.color:=clyellow;
-     moveTo( round(x),round(y*fryGlob[indexTCO]) );
-     LineTo( round((x+LargeurCell[indexTCO])),round(y+hauteurCell[indexTCO]*ratioC/10) );
-   end;
-   Affiche(formatfloat('0.000000',fryGlob[indexTCO]),clyellow);
+  x:=0;
+  y:=0;
+  indexTCO:=index_tco(sender);
+  Affiche('Calibrage='+intToSTR(largeurCell[indexTCO]),clyellow);
+  calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
+  with imageTCO.Canvas do
+  begin
+    pen.color:=clyellow;
+    moveTo( round(x),round(y*fryGlob[indexTCO]) );
+    LineTo( round((x+LargeurCell[indexTCO])),round(y+hauteurCell[indexTCO]*ratioC/10) );
+  end;
+  Affiche(formatfloat('0.000000',frxGlob[indexTCO]),clyellow);
 end;
 
 procedure change_couleur_fond(indexTCO : integer);

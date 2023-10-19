@@ -191,7 +191,13 @@ version 8.2  : Optimisation de la rapidité de traitement lors des recherches d'i
                Possibilité d'envoyer des commandes sur un port COM/USB sur évènement 
                actionneur/détecteur/aiguillage.
 version 8.21 : Correction passage en majuscule de la commande port COM/USB.
-               Ajout du pilotage des passage à niveaux par COM/USB.
+               Ajout du pilotage des passage à niveaux par COM/USB/Socket
                Ajout de l'envoi des commandes/services sur un socket (réseau Ethernet/wifi)
+version 8.22 : Corrections diverses, dont un problème d'importation réseau CDM avec des détecteurs confondus et aiguillages inexistants (régression)
+version 8.23 : Correction bug si changement aspect du signal.
+               Pilotage des décodeurs de signaux personnalisés par COM/USB/Sockets
+version 8.24 : Traitement de cas particuliers de l'importation de réseaux CDM rail.
+
+
 
 

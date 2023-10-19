@@ -248,9 +248,9 @@ var i,l,positionErreur : integer;
     s : string;
     trouve : boolean;
 begin
-  // faire avec 
   with RichDebug do
   begin
+    ligneErreur:=0;
     repeat
       s:=lowercase(Lines[ligneErreur]);
       positionErreur:=pos('erreur',s);
