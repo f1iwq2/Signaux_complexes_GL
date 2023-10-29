@@ -1306,13 +1306,12 @@ begin
 // angle:=angleX;
 
   GMode:=SetGraphicsMode(ACanvas.Handle, GM_ADVANCED);
-  if GetWorldTransform(ACanvas.Handle, XFormOld) then   // renvoie la matrice courante dans XformOld
+  if GetWorldTransform(ACanvas.Handle, XFormOld) then  // renvoie la matrice courante dans XformOld
   begin
     // faire les transformations
-    XFormRot:=XForm_Rotation(Angle,Point(l2,h2));    // rotation autour du centre
-    //XFormScale:=XForm_Echelle(Zoom,Zoom,Point(0,0));   // Zoom
+    XFormRot:=XForm_Rotation(Angle,Point(l2,h2));      // rotation autour du centre
     XFormScale:=XForm_Echelle(Zoom,Zoom,point(l2,h2));   // Zoom au point central
-    XFormXLat:=XForm_Translation(x-l2,y-h2);    // décalage
+    XFormXLat:=XForm_Translation(x-l2,y-h2);          // décalage
 
     // Combiner les 3 transformations
     CombineTransform(XForm,XFormRot,XFormScale);     // Xform<-- f(XformRot,XformScale)
@@ -1346,7 +1345,7 @@ begin
     inc(x2);inc(y2);
     inc(x3);dec(y3);
 
-    // rectangle contenant l'icone
+    // rectangle droit contenant l'icone
     tv[0]:=x0; tv[1]:=x1; tv[2]:=x2; tv[3]:=x3;
     x0:=minIntValue(tv);
     x1:=maxIntValue(tv);
@@ -4247,7 +4246,7 @@ procedure TFormAnalyseCDM.ButtonAnimeClick(Sender: TObject);
 var zom,ang : single;
     x,y : integer;
 begin
-  x:=100;y:=200;
+  x:=50;y:=50;
   zom:=1.2;
   ang:=0;
 
@@ -4257,7 +4256,9 @@ begin
     //peindre(2,500-x,y,0,zom);
     //zom:=zom+0.005;
     x:=x+10;
-    ang:=ang+0.04;
+    y:=y+3;
+    ang:=ang+0.02;
+    zom:=zom+0.01;
     sleep(40);
     Application.processMessages;
   until x>800;

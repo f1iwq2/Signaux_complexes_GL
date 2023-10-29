@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-      Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc,
-      ShellAPI;
+  Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc,
+  ShellAPI;
 
 type
   TFormVersion = class(TForm)
@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.24';  // sert à la comparaison de la version publiée
+Const  Version='8.25';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -246,7 +246,7 @@ begin
 
           end;
           comm[i]:=supprime_anti(description);
-          ncomm:=i;
+          ncomm:=i-1;
 
         end;
 
@@ -291,7 +291,7 @@ begin
           FormVersion.Left:=10;
           FormVersion.show;
           s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;
-          if length(description)>0 then
+          if nComm>0 then
           begin
             FormVersion.Memo1.lines.Clear;
             Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL du '+date_creation);

@@ -36,7 +36,7 @@ object FormConfigTCO: TFormConfigTCO
     Top = 8
     Width = 353
     Height = 281
-    Caption = 'Couleurs '
+    Caption = 'Couleurs du TCO'
     TabOrder = 1
     object Label5: TLabel
       Left = 21
@@ -211,7 +211,7 @@ object FormConfigTCO: TFormConfigTCO
     Top = 296
     Width = 353
     Height = 57
-    Caption = 'Graphisme'
+    Caption = 'Graphisme de tous les TCOs'
     TabOrder = 4
   end
   object RadioButtonLignes: TRadioButton
@@ -281,6 +281,7 @@ object FormConfigTCO: TFormConfigTCO
       Height = 21
       TabOrder = 0
       Text = 'EditNbCellX'
+      OnChange = EditNbCellXChange
     end
     object EditNbCellY: TEdit
       Left = 176
@@ -316,7 +317,7 @@ object FormConfigTCO: TFormConfigTCO
     Top = 104
     Width = 289
     Height = 273
-    Caption = 'Configuration de tous les TCO'
+    Caption = 'Configuration de tous les TCOs'
     TabOrder = 8
     object Ratio: TLabel
       Left = 8

@@ -317,7 +317,7 @@ type
     ButtonSupAccCom: TButton;
     GroupBoxDesc: TGroupBox;
     Label71: TLabel;
-    EditNomAcc: TEdit;
+    EditNomPeriph: TEdit;
     ComboBoxAccComUSB: TComboBox;
     Label73: TLabel;
     LabelInfoAcc: TLabel;
@@ -345,6 +345,8 @@ type
     outslectionner1: TMenuItem;
     EditChercher: TEdit;
     ButtonCherche: TButton;
+    SBMonte: TSpeedButton;
+    SBDesc: TSpeedButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -501,7 +503,7 @@ type
     procedure RadioButtonCdeClick(Sender: TObject);
     procedure ButtonOuvreComClick(Sender: TObject);
     procedure ButtonAjAccComClick(Sender: TObject);
-    procedure EditNomAccChange(Sender: TObject);
+    procedure EditNomPeriphChange(Sender: TObject);
     procedure ListBoxPeriphMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ComboBoxAccComUSBChange(Sender: TObject);
@@ -517,6 +519,8 @@ type
     procedure Toutslectionner1Click(Sender: TObject);
     procedure ButtonChercheClick(Sender: TObject);
     procedure EditChercherChange(Sender: TObject);
+    procedure SBMonteClick(Sender: TObject);
+    procedure SBDescClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -618,6 +622,7 @@ var
   // composants dynamiques
   Gp1 : TGroupBox;
   CheckBoxCR,Cb1,Cb2,Cb3,CbVis : TCheckBox;
+  MemoPeriph : Tmemo;
   EditPortCde,EditV1F,EditV1O,EditV2F,EditV2O,EditV3F,EditV3O,EditV4F,EditV4O,EditV5F,EditV5O,
   EditZdet1V1F,EditZdet2V1F,EditZdet1V1O,EditZdet2V1O,
   EditZdet1V2F,EditZdet2V2F,EditZdet1V2O,EditZdet2V2O,
@@ -625,7 +630,7 @@ var
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O  : Tedit;
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
-  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5 : Tlabel;
+  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP : Tlabel;
   shape1,ShapeZ : Tshape;
   BoutonCom : Tbutton;
   EditT  : Array[1..10] of Tedit;
@@ -1107,8 +1112,6 @@ begin
         s:=s+')';
       end;
     end;
-
-
 
     // décodeur SR
     if feux[i].decodeur=7 then
@@ -1970,7 +1973,7 @@ var s,sa,SOrigine: string;
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
-    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth,trouve   : boolean;
+    trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
     ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
@@ -3702,7 +3705,7 @@ begin
 end;
 
 function verifie_panneau_config : boolean;
-var ChangeCDM,changeInterface,changeUSB,changeUSBcde,change_srv,ok : boolean;
+var ChangeCDM,changeInterface,changeUSB,change_srv,ok : boolean;
     i,erreur : integer;
     s : string;
 begin
@@ -3909,7 +3912,7 @@ end;
 // affiche les champs du signal index
 // LC=index du signal
 procedure clicListeSignal(index : integer);
-var AncAdresse,adresse,erreur,i : integer;
+var AncAdresse,adresse,erreur : integer;
     s : string;
 begin
   if index<1 then exit;
@@ -3919,14 +3922,6 @@ begin
     ligneclicSig:=-1;
     exit;
   end;
-
-  // ne pas déselectionner tout!!
-  with FormConfig.ListBoxSig do
-  begin
-    for i:=0 to Count-1 do Selected[i]:=false;
-    FormConfig.ListBoxSig.Selected[index-1]:=true;
-  end;
-
 
   Feu_Sauve:=feux[index];  // sauvegarde
 
@@ -4253,7 +4248,6 @@ end;
 procedure TformConfig.cb_onclick(sender : TObject);
 var s : string;
     cb : TCheckBox;
-    etat : string;
 begin
   if clicliste or (ligneClicAccCOM<0) then exit;
   cb:=(sender as Tcheckbox);
@@ -4285,6 +4279,28 @@ begin
 end;
 
 
+// fabrique les combos des périphériques
+procedure fabrique_combos_periph;
+var i : integer;
+    s : string;
+begin
+
+  with FormConfig.ListBoxPeriph,FormConfig do
+  begin
+    ComboBoxAccComUSB.Clear;
+    ComboBoxPNCom.clear;
+    ComboBoxDecCde.clear;
+    for i:=0 to Count-1 do
+    begin
+      s:=items[i];
+      ajoute_champs_combos(i+1);
+    end;
+  end;  
+end;
+
+
+
+
 // met à jour le nom d'un champ d'index i dans les combos
 procedure maj_champs_combos(i: integer);
 var j,n : integer;
@@ -4305,14 +4321,92 @@ begin
   end;
 end;
 
+// réaffecte mes index des combos dans la base de donnée
+procedure reaffecte_index_combos(ancien1,ancien2,nouveau1,nouveau2 : integer);
+var i : integer;
+    s : string;
+begin
+  i:=1;
+  repeat
+    if tablo_actionneur[i].periph then
+    begin
+      if tablo_actionneur[i].fonction=ancien1 then  //numéro périph
+      begin
+        tablo_actionneur[i].fonction:=nouveau1;
+        s:=encode_act_loc_son(i);
+        FormConfig.ListBoxAct.Items[i-1]:=s;
+        inc(i);
+      end
+      else
+      if tablo_actionneur[i].fonction=ancien2 then
+      begin
+        tablo_actionneur[i].fonction:=nouveau2;
+        s:=encode_act_loc_son(i);
+        FormConfig.ListBoxAct.Items[i-1]:=s;
+        inc(i);
+      end
+      else
+       inc(i);
+    end
+      else inc(i);
+  until i>maxTablo_act ;
+
+  i:=1;
+  repeat
+    // commande par périphérique
+    if Tablo_PN[i].typeCde=1 then
+    begin
+      if tablo_pn[i].AdresseFerme=ancien1 then // numéro périph
+      begin
+        tablo_pn[i].AdresseFerme:=nouveau1;
+        s:=encode_act_PN(i);
+        FormConfig.ListBoxPN.Items[i-1]:=s;
+        inc(i);
+      end
+      else
+      if tablo_pn[i].AdresseFerme=ancien2 then // numéro périph
+      begin
+        tablo_pn[i].AdresseFerme:=nouveau2;
+        s:=encode_act_PN(i);
+        FormConfig.ListBoxPN.Items[i-1]:=s;
+        inc(i);
+      end
+      else
+        inc(i);
+    end
+    else inc(i);
+  until i>nbrePN ;
+
+  i:=1;
+  repeat
+    if decodeur_pers[i].commande=1 then
+    begin
+      if decodeur_pers[i].peripherique=ancien1 then // numéro périph
+      begin
+        decodeur_pers[i].peripherique:=nouveau1;
+        inc(i);
+      end
+      else
+      if decodeur_pers[i].peripherique=ancien2 then // numéro périph
+      begin
+        decodeur_pers[i].peripherique:=nouveau2;
+        inc(i);
+      end
+      else
+        inc(i);
+    end
+    else inc(i);
+  until i>NbreDecPers;
+end;
+
 // textbox du protocole
 procedure TformConfig.tb_onChange(sender : TObject);
 var s,te : string;
     tb : Tedit;
-    p,i,v : integer;
+    i,v : integer;
 begin
   if clicliste or (ligneClicAccCOM<0) then exit;
-  tb:=(sender as Tedit);
+  tb:=sender as Tedit;
   s:=tb.Name;
   te:=tb.text;
   if s='EditPortCde' then Tablo_periph[ligneClicAccCOM+1].Protocole:=te;
@@ -4361,13 +4455,13 @@ var tb : tEdit;
     i : integer;
 begin
   if affevt then affiche('tbCde_onchange',clyellow);
-  tb:=(sender as Tedit);
+  tb:=sender as Tedit;
   s:=tb.Name;
   te:=tb.text;
   i:=extract_int(s);
   if (i<1) or (i>19) or (decCourant<1) then exit;
   decodeur_pers[decCourant].desc[i].Chcommande:=te;
-  
+
 end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
@@ -4489,9 +4583,8 @@ begin
     end;
   end;
 
-  // composants dynamiques des décodeurs pilotés par périph
-  
-  for i:=1 to 19 do 
+  // composants dynamiques des décodeurs personnalisés pilotés par périphériques
+  for i:=1 to 19 do
   begin
     y:=i*21+20;
     LabelDecCde[i]:=Tlabel.Create(FormConfig.TabSheetDecodeurs);
@@ -4503,7 +4596,7 @@ begin
       parent:=TabSheetDecodeurs;
       ShowHint:=false;
       visible:=false;
-    end;  
+    end;
     TextBoxCde[i]:=Tedit.Create(FormConfig.TabSheetDecodeurs);
     with TextBoxCde[i] do
     begin
@@ -4515,9 +4608,9 @@ begin
       visible:=false;
       onChange:=formconfig.tbCde_onchange;
     end;
-  end; 
+  end;
 
-  
+
   GroupBoxPN.Top:=16;
   // composants onglet passage à niveau
   with GroupBoxPNA do
@@ -5087,7 +5180,7 @@ begin
   comboBoxNation.Items.add('Française');
   comboBoxNation.Items.add('Belge');
 
-  EdittrainDecl.Hint:='déclencheur pour lequel la condition s''applique (mettre X pour tous les trains)'+#13+'déclenchement par actionneur uniquement';
+  EdittrainDecl.Hint:='Déclencheur pour lequel la condition s''applique (mettre X pour tous les trains)'+#13+'déclenchement par actionneur uniquement';
 
   // actionneurs Train ou accessoire
   ListBoxAct.Clear;
@@ -5163,11 +5256,17 @@ begin
   end;
 
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
+  // Bouton monte le périphérique
+
+
   //--------- groupbox
   gp1:=TgroupBox.Create(FormConfig.TabSheetPeriph);
   with gp1 do
   begin
-    Left:=264;Top:=groupBoxDesc.top+groupBoxDesc.Height+10;Width:=groupBoxDesc.Width;Height:=90;
+    Left:=GroupBoxDesc.Left;
+    Top:=groupBoxDesc.top+groupBoxDesc.Height+10;
+    Width:=groupBoxDesc.Width;
+    Height:=90;
     parent:=TabSheetPeriph;
     caption:='Services envoyés au périphérique';
     Name:='Gp1';
@@ -5195,6 +5294,7 @@ begin
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
+
   cb1:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb1 do
   begin
@@ -5205,6 +5305,35 @@ begin
     hint:='Envoie les évènements aiguillages (accessoires)';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
+  end;
+
+  LabelMP:=Tlabel.Create(Formconfig.TabSheetPeriph);
+  with LabelMP do
+  begin
+    left:=gp1.Left-20;
+    top:=gp1.Top+gp1.Height+10;
+    height:=10;
+    width:=40;
+    caption:='Références croisées de l''utilisation des périphériques';
+    Name:='LabelMP';
+    parent:=TabSheetPeriph;
+  end;
+
+  MemoPeriph:=Tmemo.Create(Formconfig.TabSheetPeriph);
+  with MemoPeriph do
+  begin
+    left:=gp1.Left-30;
+    top:=LabelMP.Top+15;
+    width:=gp1.Width+30;
+    height:=100;
+    parent:=TabSheetPeriph;
+    Name:='MemoPeriph';
+    readOnly:=true;
+    color:=clBtnFace;
+    //Font.Color:=clAqua;
+    clear;
+    Hint:='Références croisées de l''utilisation des périphériques';
+    ShowHint:=true;
   end;
 
   BoutonCom:=Tbutton.Create(FormConfig.TabSheetPeriph);
@@ -5222,12 +5351,12 @@ begin
   EditPortCde:=TEdit.Create(FormConfig.TabSheetPeriph);
   with EditPortCde do
   begin
-    Left:=150;Top:=EditNomAcc.top+30;Width:=170;Height:=12;
+    Left:=150;Top:=EditNomPeriph.top+30;Width:=170;Height:=12;
     name:='EditPortCde';
     text:='';
     parent:=GroupBoxDesc;
     hint:='Port COM/USB : COMX:vitesse,parité,nombre de bits de données, nombre de bits de stop ou'+#13+
-          '________________________________'+#13+#13+ 
+          '________________________________'+#13+#13+
           'Socket : AdresseIPV4:port';
     ShowHint:=true;
     OnChange:=formconfig.tb_onChange;
@@ -5236,7 +5365,7 @@ begin
   LabelPortCde:=TLabel.Create(FormConfig.TabSheetPeriph);
   with LabelPortCde do
   begin
-    Left:=10;Top:=EditNomAcc.top+32;Width:=170;Height:=12;
+    Left:=10;Top:=EditNomPeriph.top+32;Width:=170;Height:=12;
     caption:='Protocole de communication';
     name:='LabelPortCde';
     parent:=GroupBoxDesc;
@@ -5263,7 +5392,7 @@ begin
     Left:=10;Top:=CheckBoxCR.top+20;Width:=100;Height:=12;
     caption:='Mode visible';
     name:='cbVis';
-    hint:='Affiche le texte à l''écran lors des envoi';
+    hint:='Affiche le texte à l''écran lors des envois';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
@@ -5322,17 +5451,72 @@ begin
   B:='Z';
 end;
 
+// Affiche les utilisateurs des périphériques en fonction de la sélection du périphériques
+function utilisateurs_peripheriques : string;
+var i,j : integer;
+   s : string;
+begin
+  s:='';
+  for i:=1 to maxTablo_act do
+  begin
+    if tablo_actionneur[i].periph then
+    begin
+      for j:=0 to NbPeriph-1 do
+      begin
+        if formconfig.ListBoxPeriph.selected[j] then
+        begin
+          if tablo_actionneur[i].fonction=j+1 then s:=s+'Le périphérique '+intToSTR(j+1)+' est utilisé par l''actionneur '+intToSTR(tablo_actionneur[i].adresse)+#13;
+        end;
+      end;
+    end;
+  end;
+
+  for i:=1 to nbrePN do
+  begin
+    // commande par périphérique
+    if Tablo_PN[i].typeCde=1 then
+    begin
+      for j:=0 to NbPeriph-1 do
+      begin
+        if formconfig.ListBoxPeriph.selected[j] then
+        begin
+          if Tablo_PN[i].AdresseFerme=j+1 then s:=s+'Le périphérique '+intToSTR(j+1)+' est utilisé par le PN '+intToSTR(Tablo_PN[i].voie[1].ActFerme)+#13;
+        end;
+      end;
+    end;
+  end;
+
+  for i:=1 to NbreDecPers do
+  begin
+    if decodeur_pers[i].commande=1 then
+    begin
+      for j:=0 to NbPeriph-1 do
+      begin
+        if formconfig.ListBoxPeriph.selected[j] then
+        begin
+          if decodeur_pers[i].Peripherique=j+1 then s:=s+'Le périphérique '+intToSTR(j+1)+' est utilisé par le décodeur personnalisé '+decodeur_pers[i].Nom+#13;
+        end;
+      end;
+    end;
+  end;
+
+  if s='' then s:='Pas d''utilisation'+#13;
+  utilisateurs_peripheriques:=s;
+end;
+
+
 procedure Aff_champs_accCOMUSB_tablo(index : integer);
 begin
   if (index<1) or (index>NbPeriph) then exit;
   clicliste:=true;
-  formConfig.editNomAcc.Text:=Tablo_periph[index].nom;
+  formConfig.EditNomPeriph.Text:=Tablo_periph[index].nom;
   cb1.Checked:=Tablo_periph[index].ScvAig;
   cb2.Checked:=Tablo_periph[index].ScvDet;
   cb3.Checked:=Tablo_periph[index].ScvAct;
   cbVis.Checked:=Tablo_periph[index].ScvVis;
   CheckBoxCR.Checked:=Tablo_periph[index].cr;
   EditPortCde.text:=Tablo_periph[index].protocole;
+  MemoPeriph.Clear;
   clicliste:=false;
 end;
 
@@ -6245,7 +6429,6 @@ begin
 end;
 
 procedure champs_pn_act;
-var s : string;
 begin
   with formConfig do
   begin
@@ -6278,7 +6461,6 @@ begin
 end;
 
 procedure champs_pn_COMUSBSockets;
-var s : string;
 begin
   with formConfig do
   begin
@@ -6308,7 +6490,7 @@ end;
 
 // affiche les champs de l'actionneur PN en fonction de l'index du tableau
 procedure aff_champs_PN(i : integer);
-var adresse,erreur,j,v,periph : integer;
+var erreur,j,v,periph : integer;
     trouve : boolean;
     s : string;
 begin
@@ -8468,8 +8650,7 @@ begin
 end;
 
 procedure supprime_pn;
-var n,i,j,index,adr : integer;
-    ac,pn : boolean;
+var n,i,j : integer;
     ss,s: string;
 begin
   if affevt then affiche('Evt bouton Sup PN',clyellow);
@@ -8593,7 +8774,7 @@ begin
 end;
 
 procedure supprime_sig;
-var n,adresse,i,j,indexFeu,l : integer;
+var n,i,j : integer;
     s,ss : string;
 begin
   ss:='';
@@ -9684,6 +9865,20 @@ begin
     end;
   end;
 
+  // PN
+  for i:=1 to NbrePN do
+  begin
+    if tablo_pn[i].TypeCde=1 then
+    begin
+      adresse:=tablo_pn[i].AdresseFerme;
+      if adresse>NbPeriph then
+      begin
+        Affiche('Erreur 20 : le PN '+intToSTR(tablo_pn[i].voie[1].ActFerme)+' est lié à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
+        ok:=false;
+      end;
+    end;
+  end;
+
   // vérification des compatibilités des décodeurs de signaux et des aspects
   if not(verif_dec_sig(true)) then ok:=false;
 
@@ -10764,7 +10959,6 @@ begin
 end;
 
 procedure TFormConfig.PageControlChange(Sender: TObject);
-var i : integer;
 begin
   Label20.Visible:=false;
   LabelInfo.caption:='';
@@ -12353,6 +12547,7 @@ begin
   tl.SelectAll;
 end;
 
+
 // supprimer un périphérique
 procedure supprime_periph;
 var ss,s : string;
@@ -12364,20 +12559,24 @@ var ss,s : string;
   begin
     if formconfig.ListBoxPeriph.selected[i] then
     begin
-      ss:=ss+ Tablo_periph[i+1].nom+' ';
+      ss:=ss+ intToSTr(i+1)+' '+Tablo_periph[i+1].nom+' ';
       inc(n);
     end;
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez-vous supprimer';
   if n=1 then s:=s+' le périphérique ' else s:=s+' les périphériques ';
-  s:=s+ss+' ?';
+  s:=s+ss+' ?'+#13;
+
+  // vérifier si le périphérique est utilisé
+
+  s:=s+utilisateurs_peripheriques;
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
-  formConfig.editNomAcc.text:='';
+  formConfig.EditNomPeriph.text:='';
 
   // suppression
   n:=0;
@@ -12418,6 +12617,7 @@ var ss,s : string;
       ajoute_champs_combos(i);
     end;
   end;
+  MemoPeriph.Clear;
   ligneclicAccCom:=-1;
   AncligneclicAccCom:=-1;
   clicliste:=false;
@@ -12462,7 +12662,7 @@ begin
   s:='Nouveau périphérique';
   formConfig.ComboBoxAccComUSB.Items.Add(s);
   formconfig.ComboBoxPNCom.Items.Add(s);
-  formconfig.EditNomAcc.text:=s;     // ???
+  formconfig.EditNomPeriph.text:=s;     
   clicliste:=false;
   config_modifie:=true;
 end;
@@ -12480,7 +12680,6 @@ begin
   if s='ListBoxAig' then supprime_aig;
   if s='ListBoxTrains' then supprime_Train;
   if s='ListBoxPeriph' then supprime_periph;
-
 end;
 
 procedure TFormConfig.Nouveau1Click(Sender: TObject);
@@ -12506,7 +12705,6 @@ end;
 
 procedure TFormConfig.ButtonOuvreComClick(Sender: TObject);
 var i,index : integer;
-    s : string;
 begin
 //  Affiche(intToSTr(componentcount),clyellow);
 
@@ -12540,14 +12738,14 @@ begin
   ajoute_Periph;
 end;
 
-procedure TFormConfig.EditNomAccChange(Sender: TObject);
+procedure TFormConfig.EditNomPeriphChange(Sender: TObject);
 var s : string;
 begin
   if clicliste or (ligneClicAccCOM<0) then exit;
   if affevt then affiche('Evt Edit act Change',clyellow);
   with Formconfig do
   begin
-    s:=EditNomAcc.Text;
+    s:=EditNomPeriph.Text;
     Tablo_periph[ligneClicAccCOM+1].nom:=s;
     maj_champs_combos(ligneClicAccCOM+1);
     s:=encode_Periph(ligneClicAccCOM+1);
@@ -12559,7 +12757,7 @@ end;
 procedure TFormConfig.ListBoxPeriphMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i,lc : integer;
-    s : string;
+    s,sc : string;
 begin
   clicliste:=true;
   if NbPeriph<1 then exit;
@@ -12580,6 +12778,18 @@ begin
   end;
 
   Aff_champs_accCOMUSB_tablo(lc+1);
+  s:=utilisateurs_peripheriques;
+  MemoPeriph.Clear;
+  repeat
+    i:=pos(#13,s);
+    if i<>0 then
+    begin
+      sc:=copy(s,1,i-1);
+      MemoPeriph.Lines.add(sc);
+      delete(s,1,i);
+    end;
+  until i=0;
+
   clicliste:=false;
 end;
 
@@ -12760,6 +12970,111 @@ end;
 procedure TFormConfig.EditChercherChange(Sender: TObject);
 begin
   ligneCherche:=0;
+end;
+
+procedure raz_selection_periph;
+begin
+  ligneClicAccCOM:=-1;
+  AncligneClicAccCOM:=-1;
+  with formConfig do
+  begin
+    EditNomPeriph.text:='';
+    EditPortCde.text:='';
+    CheckBoxCR.checked:=false;
+    CbVis.checked:=false;
+    cb1.checked:=false;
+    cb2.checked:=false;
+    cb3.checked:=false;
+  end;
+end;
+
+procedure TFormConfig.SBMonteClick(Sender: TObject);
+var i,n,IndexListe : integer;
+    Periph : TPeripherique;
+    trouve : boolean;
+    s : string;
+begin
+  n:=ListBoxPeriph.Count;
+  if n<=1 then exit;
+  i:=0;
+  repeat
+    trouve:=ListBoxPeriph.Selected[i];
+    inc(i);
+  until (i=n) or trouve;
+  if not(trouve) then exit;
+  dec(i);
+  if i=0 then exit;
+
+  IndexListe:=i;
+  s:=ListBoxPeriph.Items[i-1];
+  ListBoxPeriph.Items[i-1]:=ListBoxPeriph.Items[i];
+  ListBoxPeriph.Items[i]:=s;
+
+  inc(i);
+
+  Periph:=Tablo_periph[i-1];
+  Tablo_periph[i-1]:=Tablo_periph[i];
+  Tablo_periph[i]:=Periph;
+
+  for i:=0 to n-1 do
+  begin
+    ListBoxPeriph.Selected[i]:=false;
+  end;
+  ListBoxPeriph.Selected[IndexListe-1]:=true;
+
+  ligneClicAccCOM:=IndexListe-1;
+  Aff_champs_accCOMUSB_tablo(indexListe);
+
+  fabrique_combos_periph;
+  reaffecte_index_combos(indexListe+1,IndexListe,IndexListe,IndexListe+1);
+
+  config_modifie:=true;
+end;
+
+procedure TFormConfig.SBDescClick(Sender: TObject);
+var i,n,IndexListe : integer;
+    trouve : boolean;
+    Periph : Tperipherique;
+    s : string;
+begin
+  n:=ListBoxPeriph.Count;
+  if n<=1 then exit;
+  i:=0;
+  repeat
+    trouve:=ListBoxPeriph.Selected[i];
+    inc(i);
+  until (i=n) or trouve;
+  if not(trouve) then exit;
+  dec(i);
+  if i=n-1 then exit;
+  IndexListe:=i;
+
+   // inverse les deux entrées de la listebox
+  s:=ListBoxPeriph.Items[i+1];
+  ListBoxPeriph.Items[i+1]:=ListBoxPeriph.Items[i];
+  ListBoxPeriph.Items[i]:=s;
+
+  inc(i);
+
+  // inverse les deux entrées des périphériques
+  Periph:=Tablo_periph[i+1];
+  Tablo_periph[i+1]:=Tablo_periph[i];
+  Tablo_periph[i]:=Periph;
+
+  for i:=0 to n-1 do
+  begin
+    ListBoxPeriph.Selected[i]:=false;
+  end;
+  ListBoxPeriph.Selected[IndexListe+1]:=true;
+
+  ligneClicAccCOM:=IndexListe+1;
+  Aff_champs_accCOMUSB_tablo(indexListe+2);
+
+  fabrique_combos_periph;
+  reaffecte_index_combos(indexListe+1,IndexListe+2,IndexListe+2,IndexListe+1);
+
+  config_modifie:=true;
+
 end;
 
 end.

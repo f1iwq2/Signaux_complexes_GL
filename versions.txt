@@ -197,6 +197,8 @@ version 8.22 : Corrections diverses, dont un problème d'importation réseau CDM a
 version 8.23 : Correction bug si changement aspect du signal.
                Pilotage des décodeurs de signaux personnalisés par COM/USB/Sockets
 version 8.24 : Traitement de cas particuliers de l'importation de réseaux CDM rail.
+version 8.25 : Intégration d'un outil graphique de sélection dans le TCO.
+               Intégration d'un menu dans la fenêtre du TCO.
 
 
 

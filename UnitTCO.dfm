@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 84
-  Top = 164
-  Width = 1209
-  Height = 575
+  Left = 108
+  Top = 119
+  Width = 1212
+  Height = 580
   VertScrollBar.Visible = False
   Caption = 'c'
   Color = clBtnFace
@@ -13,6 +13,7 @@ object FormTCO: TFormTCO
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   KeyPreview = True
+  Menu = MainMenuTCO
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
@@ -22,12 +23,12 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1193
-    536)
+    1204
+    529)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
-    Left = 1164
+    Left = 1167
     Top = 3
     Width = 32
     Height = 13
@@ -47,16 +48,16 @@ object FormTCO: TFormTCO
     Height = 121
   end
   object ImageTemp2: TImage
-    Left = 731
-    Top = 252
+    Left = 995
+    Top = 76
     Width = 121
     Height = 121
   end
   object ScrollBox: TScrollBox
     Left = 10
-    Top = 15
-    Width = 943
-    Height = 325
+    Top = 7
+    Width = 946
+    Height = 258
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -67,13 +68,13 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      939
-      321)
+      942
+      254)
     object ImageTCO: TImage
-      Left = 48
-      Top = 25
-      Width = 642
-      Height = 138
+      Left = 56
+      Top = 33
+      Width = 745
+      Height = 168
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -87,7 +88,7 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1154
+    Left = 1157
     Top = 18
     Width = 41
     Height = 311
@@ -105,8 +106,8 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 2
-    Top = 355
-    Width = 1085
+    Top = 332
+    Width = 1143
     Height = 185
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -119,7 +120,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = Panel1DragOver
     DesignSize = (
-      1085
+      1143
       185)
     object Label1: TLabel
       Left = 216
@@ -902,8 +903,8 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 979
-      Top = 48
+      Left = 1037
+      Top = 64
       Width = 96
       Height = 33
       Anchors = [akTop, akRight]
@@ -913,73 +914,65 @@ object FormTCO: TFormTCO
       WordWrap = True
       OnClick = ButtonSauveTCOClick
     end
-    object ButtonRedessine: TButton
-      Left = 979
-      Top = 8
-      Width = 96
-      Height = 33
-      Anchors = [akTop, akRight]
-      Caption = 'Redessine'
-      TabOrder = 1
-      TabStop = False
-      OnClick = ButtonRedessineClick
-    end
     object Button1: TButton
-      Left = 900
-      Top = 8
+      Left = 478
+      Top = 152
       Width = 57
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Simu det 1'
-      TabOrder = 2
+      TabOrder = 1
+      TabStop = False
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 844
-      Top = 8
+      Left = 414
+      Top = 152
       Width = 57
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Simu Det 0'
-      TabOrder = 3
+      TabOrder = 2
+      TabStop = False
       OnClick = Button2Click
     end
     object ButtonConfigTCO: TButton
-      Left = 979
-      Top = 88
+      Left = 1037
+      Top = 104
       Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Configuration TCO'
-      TabOrder = 4
+      TabOrder = 3
       TabStop = False
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 644
+      Left = 566
       Top = 152
       Width = 113
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Simu canton occup'#233
-      TabOrder = 5
+      TabOrder = 4
+      TabStop = False
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 979
-      Top = 128
+      Left = 1037
+      Top = 144
       Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Masquer bandeau'
-      TabOrder = 6
+      TabOrder = 5
       TabStop = False
       WordWrap = True
       OnClick = ButtonMasquerClick
     end
     object GroupBox1: TGroupBox
       Left = 16
-      Top = 0
+      Top = 8
       Width = 185
       Height = 169
       Caption = 'Configuration cellule'
@@ -989,7 +982,7 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
-      TabOrder = 7
+      TabOrder = 6
       object Label41: TLabel
         Left = 8
         Top = 24
@@ -1160,30 +1153,31 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 873
-      Top = 128
+      Left = 931
+      Top = 144
       Width = 97
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
-      TabOrder = 8
+      TabOrder = 7
       TabStop = False
       WordWrap = True
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 764
+      Left = 686
       Top = 152
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Calibrage'
-      TabOrder = 9
+      TabOrder = 8
+      TabStop = False
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 873
-      Top = 88
+      Left = 931
+      Top = 104
       Width = 97
       Height = 33
       Hint = 
@@ -1193,32 +1187,41 @@ object FormTCO: TFormTCO
       Caption = 'Dessiner le TCO'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 10
+      TabOrder = 9
       TabStop = False
       OnClick = ButtonDessinerClick
     end
     object ButtonAffSC: TButton
-      Left = 873
-      Top = 48
+      Left = 931
+      Top = 64
       Width = 97
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Afficher Signaux Complexes'
-      TabOrder = 11
+      TabOrder = 10
+      TabStop = False
       WordWrap = True
       OnClick = ButtonAffSCClick
     end
-  end
-  object ButtonAfficheBandeau: TButton
-    Left = 1132
-    Top = 328
-    Width = 56
-    Height = 32
-    Anchors = [akTop, akRight]
-    Caption = 'Affiche Bandeau'
-    TabOrder = 3
-    WordWrap = True
-    OnClick = ButtonAfficheBandeauClick
+    object RadioGroupSel: TRadioGroup
+      Left = 959
+      Top = 8
+      Width = 169
+      Height = 49
+      Anchors = [akTop, akRight]
+      Caption = 'Outil de s'#233'lection'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -9
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      Items.Strings = (
+        'Cellules s'#233'lectionn'#233'es'
+        'fen'#234'tre d'#233'pla'#231'able')
+      ParentFont = False
+      TabOrder = 11
+      OnClick = RadioGroupSelClick
+    end
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
@@ -1335,5 +1338,56 @@ object FormTCO: TFormTCO
     OnShow = ColorDialog1Show
     Left = 448
     Top = 432
+  end
+  object MainMenuTCO: TMainMenu
+    Left = 1000
+    Top = 48
+    object MenuTCO: TMenuItem
+      Caption = 'TCO'
+      object SauvegarderleTCO1: TMenuItem
+        Caption = 'Sauvegarder le TCO'
+        OnClick = SauvegarderleTCO1Click
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
+      object DessinerleTCO1: TMenuItem
+        Caption = 'Dessiner le TCO'
+        OnClick = DessinerleTCO1Click
+      end
+      object ConfigurationduTCO1: TMenuItem
+        Caption = 'Configuration du TCO'
+        OnClick = ConfigurationduTCO1Click
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
+      object Redessine1: TMenuItem
+        Caption = 'Redessine'
+        OnClick = Redessine1Click
+      end
+    end
+    object Affichebandeau1: TMenuItem
+      Caption = 'Affiche bandeau'
+      OnClick = Affichebandeau1Click
+    end
+    object Affichage1: TMenuItem
+      Caption = 'Affichage'
+      object Mosaquehorizontale1: TMenuItem
+        Caption = 'Mosa'#239'que horizontale'
+        OnClick = Mosaquehorizontale1Click
+      end
+      object Mosaqueverticale1: TMenuItem
+        Caption = 'Mosa'#239'que verticale'
+        OnClick = Mosaqueverticale1Click
+      end
+      object N10: TMenuItem
+        Caption = '-'
+      end
+      object AfficherSignauxComplexes1: TMenuItem
+        Caption = 'Afficher Signaux Complexes'
+        OnClick = AfficherSignauxComplexes1Click
+      end
+    end
   end
 end

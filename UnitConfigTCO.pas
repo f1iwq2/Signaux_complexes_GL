@@ -104,12 +104,12 @@ var r : Trect;
 begin
   with FormConfigTCO.ImageAig do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCOCourant];
+    canvas.Brush.Color:=clfond[indexTCOCourant];
     canvas.Rectangle(0,0,Width,Height);
 
-    canvas.pen.color:=clVoies;
-    canvas.brush.color:=clvoies;
+    canvas.pen.color:=clVoies[indexTCOCourant];
+    canvas.brush.color:=clvoies[indexTCOCourant];
     // bande horizontale
     r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
     canvas.FillRect(r);
@@ -133,35 +133,35 @@ begin
   begin
     larg:=width ;
     haut:=height;
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
   end;
   // 3
   with formConfigTCO.ImageGrille do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
-    canvas.Pen.color:=ClGrille;
+    canvas.Pen.color:=ClGrille[IndexTCO];
     canvas.moveto(0,5); canvas.LineTo(width,5);
     canvas.moveto(27,0); canvas.LineTo(27,Height);
   end;
   // 4 détecteur
   with formConfigTCO.ImageDetAct do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
 
-    canvas.Brush.Color:=clAllume;
-    canvas.pen.color:=clAllume;
+    canvas.Brush.Color:=clAllume[indexTCO];
+    canvas.pen.color:=clAllume[indexTCO];
     canvas.Pen.Mode:=pmCopy;
     r:=Rect(1,(height div 2)-6,width-1,(height div 2)+6);
     canvas.FillRect(r);
 
-    canvas.pen.color:=clVoies;
-    canvas.brush.color:=clVoies;
+    canvas.pen.color:=clVoies[indexTCO];
+    canvas.brush.color:=clVoies[indexTCO];
     // bande horizontale
     r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
     canvas.FillRect(r);
@@ -170,12 +170,12 @@ begin
   // 5 canton
   with formCOnfigTCO.Imagecanton do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
 
-    canvas.pen.color:=clCanton;
-    canvas.brush.color:=clCanton;
+    canvas.pen.color:=clCanton[indexTCO];
+    canvas.brush.color:=clCanton[indexTCO];
     // bande horizontale
     r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
     canvas.FillRect(r);
@@ -184,8 +184,8 @@ begin
   // 6 texte
   with formCOnfigTCO.ImageTexte do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
     canvas.Font.color:=clTexte;
     canvas.Pen.mode:=pmCopy;
@@ -195,11 +195,11 @@ begin
   // Quai
   with formconfigTCO.ImageQuai do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
-    canvas.Brush.Color:=clQuai;
-    canvas.pen.color:=clQuai;
+    canvas.Brush.Color:=clQuai[indexTCO];
+    canvas.pen.color:=clQuai[indexTCO];
     x1:=0;
     x2:=x1+width;
     jy1:=(Haut div 2)-round(12*fryGlob[indexTCO]); // pos Y de la bande sup
@@ -211,11 +211,11 @@ begin
   // pied signal
   with formconfigTCO.ImagePiedFeu do
   begin
-    canvas.Pen.color:=clfond;
-    canvas.Brush.Color:=clfond;
+    canvas.Pen.color:=clfond[indexTCO];
+    canvas.Brush.Color:=clfond[indexTCO];
     canvas.Rectangle(0,0,Width,Height);
-    canvas.Brush.Color:=clPiedSignal;
-    canvas.pen.color:=clPiedSignal;
+    canvas.Brush.Color:=clPiedSignal[indexTCO];
+    canvas.pen.color:=clPiedSignal[indexTCO];
     canvas.Pen.Width:=2;
     x1:=Larg div 2;
     y1:=0;
@@ -293,8 +293,11 @@ var s: string;
     i : integer;
 begin
   clicConf:=true;
-  caption:='Configuration du tco '+inttostr(indextcocourant)+' Fichier '+NomFichierTCO[indextcocourant];
-  groupBox3.caption:='Configuration du tco '+inttostr(indextcocourant);
+  s:='Configuration du tco '+inttostr(indextcocourant)+' Fichier '+NomFichierTCO[indextcocourant];
+  caption:=s;
+  
+  groupBox3.caption:='Configuration du TCO '+inttostr(indextcocourant);
+  GroupBox1.Caption:='Couleurs du TCO '+inttostr(indextcocourant);
   EditNbCellX.Text:=IntToSTR(NbreCellX[indexTCOcourant]);
   EditNbCellY.Text:=IntToSTR(NbreCellY[indexTCOcourant]);
   EditRatio.text:=IntToSTR(RatioC);
@@ -309,7 +312,7 @@ begin
   Label15.caption:='Nbre de TCOs : '+intToSTR(NbreTCO);
   CheckBoxCreerEvt.checked:=EvtClicDet;
   dessine_icones_config(indexTCOCourant);
-  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  s:='ColorA='+IntToHex(clfond[indexTCOcourant],6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
   for i:=1 to 10 do
     stringGridTCO.Cells[1,i]:=NomFichierTCO[i];
@@ -322,13 +325,13 @@ procedure TFormConfigTCO.ImageAigClick(Sender: TObject);
 var s : string;
 begin
   titre_couleur:='Changer la couleur des voies';
-  ColorDialog1.Color:=clVoies;
+  ColorDialog1.Color:=clVoies[indexTCOcourant];
 
-  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
   if ColorDialog1.execute then
   begin
-    clVoies:=ColorDialog1.Color;
+    clVoies[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
   end;
@@ -339,12 +342,12 @@ var s : string;
 begin
   titre_couleur:='Changer la couleur de fond';
 
-  s:='ColorA='+IntToHex(clfond,6);  // pour rajouter aux couleurs personnalisées
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // pour rajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
 
   if ColorDialog1.execute then
   begin
-    clfond:=ColorDialog1.Color;
+    clfond[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
   end;
@@ -354,14 +357,14 @@ procedure TFormConfigTCO.ImageGrilleClick(Sender: TObject);
 var s: string;
 begin
   titre_couleur:='Changer la couleur de la grille';
-  ColorDialog1.Color:=clGrille;
+  ColorDialog1.Color:=clGrille[IndexTCOCourant];
 
-  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
 
   if ColorDialog1.execute then
   begin
-    ClGrille:=ColorDialog1.Color;
+    ClGrille[IndexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
   end;
@@ -371,14 +374,13 @@ procedure TFormConfigTCO.ImageDetActClick(Sender: TObject);
 var s: string;
 begin
   titre_couleur:='Changer la couleur de détecteur activé';
-  ColorDialog1.Color:=clAllume;
+  ColorDialog1.Color:=clAllume[indexTCOCourant];
 
-  s:='ColorA='+IntToHex(clfond,6);  // ajouter aux couleurs personnalisées
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
-
   if ColorDialog1.execute then
   begin
-    ClAllume:=ColorDialog1.Color;
+    ClAllume[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
   end;
@@ -387,11 +389,11 @@ end;
 procedure TFormConfigTCO.ImagecantonClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur de canton activé';
-  ColorDialog1.Color:=clAllume;
+  ColorDialog1.Color:=clCanton[indexTCOCourant];
 
   if ColorDialog1.execute then
   begin
-    ClCanton:=ColorDialog1.Color;
+    ClCanton[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
   end;
 end;
@@ -411,11 +413,11 @@ end;
 procedure TFormConfigTCO.ImageQuaiClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur du quai';
-  ColorDialog1.Color:=clQuai;
+  ColorDialog1.Color:=clQuai[indexTCOCourant];
 
   if ColorDialog1.execute then
   begin
-    ClQuai:=ColorDialog1.Color;
+    ClQuai[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
   end;
 end;
@@ -423,11 +425,11 @@ end;
 procedure TFormConfigTCO.ImagePiedFeuClick(Sender: TObject);
 begin
   titre_couleur:='Changer la couleur du pied du signal';
-  ColorDialog1.Color:=clPiedSignal;
+  ColorDialog1.Color:=clPiedSignal[indexTCOCourant];
 
   if ColorDialog1.execute then
   begin
-    clPiedSignal:=ColorDialog1.Color;
+    clPiedSignal[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
   end;
 end;
@@ -453,23 +455,10 @@ begin
       Height:=HauteurCell[indexTCOCourant]*NbreCellY[indexTCOCourant];
     end;
 
-    try
-      begin
-        SetLength(TCO[indexTCOCourant],NbreCellX[indexTCOCourant]+1,NbreCellY[indexTCOCourant]+1);
-        init_tampon_copiercoller;
-      end;
-    except
-      LabelErreur.caption:='TCO Mémoire insuffisante';
-      NbreCellX[indexTCOCourant]:=20;NbreCellY[indexTCOCourant]:=12;
-      SetLength(TCO[indexTCOCourant],NbreCellX[indexTCOCourant]+1,NbreCellY[indexTCOCourant]+1);
-      init_tampon_copiercoller;
-      ok:=false;
-    end;
-
     for y:=1 to NbreCellY[indexTCOCourant] do
       for x:=1 to NbreCellX[indexTCOCourant] do
         begin
-          if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond;
+          if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond[indexTCOCourant];
         end;
 
     if RadioButtonLignes.Checked then

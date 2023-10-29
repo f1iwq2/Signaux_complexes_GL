@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1542,8 +1542,8 @@ object FormConfig: TFormConfig
             Width = 73
             Height = 17
             Hint = 
-              'Affiche un ralen30/rappel30 sur le signal implant'#233' avant cet aig' +
-              'uillage'
+              'Affiche un ralen30/rappel30 sur les signaux implant'#233's avant cet ' +
+              'aiguillage'
             Caption = '30 km/h'
             ParentShowHint = False
             ShowHint = True
@@ -1556,8 +1556,8 @@ object FormConfig: TFormConfig
             Width = 73
             Height = 17
             Hint = 
-              'Affiche un ralen60/rappel60 sur le signal implant'#233' avant cet aig' +
-              'uillage'
+              'Affiche un ralen60/rappel60 sur les signaux implant'#233's avant cet ' +
+              'aiguillage'
             Caption = '60 km/h'
             ParentShowHint = False
             ShowHint = True
@@ -2318,7 +2318,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2425,7 +2425,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2719,7 +2719,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           AutoComplete = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2738,7 +2738,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2784,7 +2784,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3163,7 +3163,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 13
+              ItemHeight = 0
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3184,8 +3184,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 88
-          Top = 72
+          Left = 56
+          Top = 64
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
@@ -3344,7 +3344,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3968,6 +3968,54 @@ object FormConfig: TFormConfig
         Width = 3
         Height = 13
       end
+      object SBMonte: TSpeedButton
+        Left = 240
+        Top = 160
+        Width = 25
+        Height = 33
+        Hint = 
+          'Monte d'#39'un cran le p'#233'riph'#233'rique et r'#233'affecte les index des utili' +
+          'sateurs'
+        Glyph.Data = {
+          42010000424D4201000000000000760000002800000011000000110000000100
+          040000000000CC00000000000000000000001000000000000000000000000000
+          8000008000000080800080000000800080008080000080808000C0C0C0000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
+          FFFFF0000000F000000000000000F0000000FF0000000000000FF0000000FF00
+          00000000000FF0000000FFF00000000000FFF0000000FFF00000000000FFF000
+          0000FFFF000000000FFFF0000000FFFF000000000FFFF0000000FFFFF0000000
+          FFFFF0000000FFFFF0000000FFFFF0000000FFFFFF00000FFFFFF0000000FFFF
+          FF00000FFFFFF0000000FFFFFFF000FFFFFFF0000000FFFFFFF000FFFFFFF000
+          0000FFFFFFFF0FFFFFFFF0000000FFFFFFFF0FFFFFFFF0000000FFFFFFFFFFFF
+          FFFFF0000000}
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SBMonteClick
+      end
+      object SBDesc: TSpeedButton
+        Left = 240
+        Top = 200
+        Width = 25
+        Height = 33
+        Hint = 
+          'Descend d'#39'un cran le p'#233'riph'#233'rique et r'#233'affecte les index des uti' +
+          'lisateurs'
+        Glyph.Data = {
+          42010000424D4201000000000000760000002800000011000000110000000100
+          040000000000CC00000000000000000000001000000000000000000000000000
+          8000008000000080800080000000800080008080000080808000C0C0C0000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
+          FFFFF0000000FFFFFFFF0FFFFFFFF0000000FFFFFFFF0FFFFFFFF0000000FFFF
+          FFF000FFFFFFF0000000FFFFFFF000FFFFFFF0000000FFFFFF00000FFFFFF000
+          0000FFFFFF00000FFFFFF0000000FFFFF0000000FFFFF0000000FFFFF0000000
+          FFFFF0000000FFFF000000000FFFF0000000FFFF000000000FFFF0000000FFF0
+          0000000000FFF0000000FFF00000000000FFF0000000FF0000000000000FF000
+          0000FF0000000000000FF0000000F000000000000000F0000000FFFFFFFFFFFF
+          FFFFF0000000}
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SBDescClick
+      end
       object ListBoxPeriph: TListBox
         Left = 8
         Top = 72
@@ -3982,7 +4030,9 @@ object FormConfig: TFormConfig
         ItemHeight = 13
         MultiSelect = True
         ParentFont = False
+        ParentShowHint = False
         PopupMenu = PopupMenuListes
+        ShowHint = False
         TabOrder = 0
         OnKeyDown = ListBoxPeriphKeyDown
         OnMouseDown = ListBoxPeriphMouseDown
@@ -4006,7 +4056,7 @@ object FormConfig: TFormConfig
         OnClick = ButtonSupAccComClick
       end
       object GroupBoxDesc: TGroupBox
-        Left = 264
+        Left = 280
         Top = 72
         Width = 329
         Height = 129
@@ -4019,7 +4069,7 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = 'Nom du p'#233'riph'#233'rique'
         end
-        object EditNomAcc: TEdit
+        object EditNomPeriph: TEdit
           Left = 150
           Top = 24
           Width = 170
@@ -4028,7 +4078,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
-          OnChange = EditNomAccChange
+          OnChange = EditNomPeriphChange
         end
       end
       object ButtonOuvreCom: TButton

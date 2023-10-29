@@ -1,7 +1,7 @@
 object FormPrinc: TFormPrinc
-  Left = 178
-  Top = 243
-  Width = 1222
+  Left = 47
+  Top = 346
+  Width = 1133
   Height = 653
   Caption = 'Signaux complexes'
   Color = clBtnFace
@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1206
-    594)
+    1125
+    602)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -667,8 +667,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 1104
-    Top = 8
+    Left = 1064
+    Top = 104
     Width = 33
     Height = 57
     Picture.Data = {
@@ -1188,7 +1188,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelEtat: TLabel
-    Left = 449
+    Left = 360
     Top = 8
     Width = 152
     Height = 18
@@ -1442,8 +1442,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 572
-    Width = 1206
+    Top = 580
+    Width = 1125
     Height = 22
     Panels = <
       item
@@ -1459,6 +1459,7 @@ object FormPrinc: TFormPrinc
         Width = 100
       end
       item
+        Style = psOwnerDraw
         Text = 'USB'
         Width = 120
       end
@@ -1469,7 +1470,7 @@ object FormPrinc: TFormPrinc
     OnDrawPanel = StatusBar1DrawPanel
   end
   object MSCommUSBLenz: TMSComm
-    Left = 1144
+    Left = 1064
     Top = 192
     Width = 32
     Height = 32
@@ -1479,7 +1480,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Button1: TButton
-    Left = 489
+    Left = 400
     Top = 0
     Width = 75
     Height = 25
@@ -1492,12 +1493,12 @@ object FormPrinc: TFormPrinc
   object Panel2: TPanel
     Left = 0
     Top = 32
-    Width = 1129
+    Width = 1065
     Height = 473
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     DesignSize = (
-      1129
+      1065
       473)
     object SplitterV: TSplitter
       Left = 1
@@ -1515,7 +1516,7 @@ object FormPrinc: TFormPrinc
     object FenRich: TRichEdit
       Left = 16
       Top = 16
-      Width = 425
+      Width = 473
       Height = 409
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -1533,9 +1534,9 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object ScrollBox1: TScrollBox
-      Left = 488
+      Left = 424
       Top = 192
-      Width = 497
+      Width = 465
       Height = 249
       HorzScrollBar.Increment = 48
       HorzScrollBar.Tracking = True
@@ -1547,7 +1548,7 @@ object FormPrinc: TFormPrinc
       TabOrder = 1
     end
     object GroupBox1: TGroupBox
-      Left = 489
+      Left = 505
       Top = 13
       Width = 265
       Height = 52
@@ -1598,8 +1599,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox3: TGroupBox
-      Left = 489
-      Top = 56
+      Left = 433
+      Top = 32
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -1834,14 +1835,14 @@ object FormPrinc: TFormPrinc
       end
     end
     object Panel1: TPanel
-      Left = 761
-      Top = 5
-      Width = 296
+      Left = 729
+      Top = -3
+      Width = 288
       Height = 180
       Anchors = [akTop, akRight]
       TabOrder = 4
       DesignSize = (
-        296
+        288
         180)
       object Label1: TLabel
         Left = 152
@@ -1960,7 +1961,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonCDMClick
       end
       object EditEnvoi: TEdit
-        Left = 7
+        Left = -1
         Top = 127
         Width = 121
         Height = 21
@@ -1969,7 +1970,7 @@ object FormPrinc: TFormPrinc
         Text = '<1>'
       end
       object ButtonEnv: TButton
-        Left = 8
+        Left = 0
         Top = 88
         Width = 88
         Height = 33
@@ -1981,8 +1982,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 521
-      Top = 40
+      Left = 449
+      Top = 72
       Width = 265
       Height = 105
       Anchors = [akTop, akRight]
@@ -2053,7 +2054,7 @@ object FormPrinc: TFormPrinc
     OnClick = ButtonIndexClick
   end
   object MSCommCde1: TMSComm
-    Left = 1144
+    Left = 1064
     Top = 272
     Width = 32
     Height = 32
@@ -2063,7 +2064,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000001000000}
   end
   object MSCommCde2: TMSComm
-    Left = 1144
+    Left = 1064
     Top = 304
     Width = 32
     Height = 32
@@ -2075,8 +2076,8 @@ object FormPrinc: TFormPrinc
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    Left = 1168
-    Top = 224
+    Left = 1064
+    Top = 232
   end
   object ClientSocketInterface: TClientSocket
     Active = False
@@ -2468,7 +2469,7 @@ object FormPrinc: TFormPrinc
     OnConnect = ClientSocketCde1Connect
     OnRead = ClientSocketCde1Read
     OnError = ClientSocketCde1Error
-    Left = 1152
+    Left = 1072
     Top = 344
   end
   object ClientSocketCde2: TClientSocket
@@ -2478,7 +2479,7 @@ object FormPrinc: TFormPrinc
     OnConnect = ClientSocketCde2Connect
     OnRead = ClientSocketCde2Read
     OnError = ClientSocketCde2Error
-    Left = 1152
-    Top = 384
+    Left = 1072
+    Top = 376
   end
 end

@@ -74,7 +74,6 @@ procedure actualise(indexTCO : integer);
 
 implementation
 
-
 uses UnitPrinc,UnitAnalyseSegCDM,UnitConfigTCO,UnitTCO;
 
 {$R *.dfm}
@@ -416,7 +415,7 @@ end;
 procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 begin
   if clicTCO or not(ConfCellTCO) or actualize then exit;
-  PCanvasTCO[indexTCOCourant].Brush.Color:=clfond;
+  PCanvasTCO[indexTCOCourant].Brush.Color:=clfond[indexTCOCourant];
 
   if tco[indexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].texte='' then
   begin

@@ -462,7 +462,7 @@ Taiguillage = record
                  DDroit : integer;          // destination de la TJD en position droite
                  DDroitB : char ;
 
-                 DDevie : integer;          // destination de la TJD en position déviée
+                 DDevie : integer;          // destination de la TJD en position déviée ou 2eme adresse de la TJD
                  DDevieB : char ;
 
                  tjsint   : integer;        // pour TJS
@@ -531,6 +531,14 @@ TSignal = record
                                    end;
                  Na : integer;                 // nombre d'adresses du feu occupées par le décodeur CDF/digikeijs
                end;
+
+        TPeripherique =  record
+                      nom : string;
+                      NumCom : integer;  // numéro de port COM si c'est une liaison com usb
+                      numComposant : integer ; // numéro de composant MSCOM ou clientSocket
+                      ScvAig,ScvDet,ScvAct,ScvVis,cr : boolean ;  // services, visible, avecCR
+                      protocole: string;
+                end;
 
 
 var
@@ -614,13 +622,7 @@ var
   Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux sur le bus DCC
 
   // tableau des périphériques
-  Tablo_periph : array[1..NbMaxi_Periph] of record
-                      nom : string;
-                      NumCom : integer;  // numéro de port COM si c'est une liaison com usb
-                      numComposant : integer ; // numéro de composant MSCOM ou clientSocket
-                      ScvAig,ScvDet,ScvAct,ScvVis,cr : boolean ;  // services, visible, avecCR
-                      protocole: string;
-                    end;
+  Tablo_periph : array[1..NbMaxi_Periph] of TPeripherique;
 
   // tableau des croisement rencontrés par la fonction suivant_alg3
   croisement : array[1..20] of
@@ -840,6 +842,9 @@ procedure ouvre_pn_socket(i : integer);
 procedure ferme_pn_socket(i : integer);
 function com_socket(i : integer) : integer;
 function liste_portcom : tStrings;
+procedure mosaiqueH;
+procedure mosaiqueV;
+function InfoSignal(adresse : integer) : string;
 
 implementation
 
@@ -1920,6 +1925,17 @@ begin
   end;
 end;
 
+procedure Affiche_CR(s: string;lacouleur : Tcolor);
+var i : integer;
+begin
+
+  repeat
+    i:=pos(#13,s);
+    Affiche(copy(s,1,i-1),lacouleur);
+    delete(s,1,i);
+  until (i=0);
+end;
+
 // trouve l'index d'un train par son nom
 function index_train_nom(nom : string) : integer;
 var i : integer;
@@ -1963,7 +1979,9 @@ end;
 function index_signal(adresse : integer) : integer;
 begin
   if adresse>MaxAcc then result:=0 else
-  result:=Index_Accessoire[adresse]; 
+  result:=Index_Accessoire[adresse];
+  // vérifier si l'index correspond à un signal
+  if feux[result].adresse<>adresse then result:=0;
 end;
 
 // renvoie l'index de l'aiguillage dans le tableau aiguillages[] en fonction de son adresse
@@ -1984,6 +2002,8 @@ function Index_Aig(adresse : integer) : integer;
 begin
   if adresse>MaxAcc then result:=0 else
   result:=Index_Accessoire[adresse];
+  // vérifier si l'index correspond à un aiguillage
+  if Aiguillage[result].adresse<>adresse then result:=0;
 end;
 
 {
@@ -5271,8 +5291,11 @@ begin
           else
           begin
             // si TJD (modele=2) sur le précédent, alors substituer avec la 2eme adresse de la TJD
-            md:=aiguillage[index_aig(prec)].modele;
-            if (md=tjd) or (md=tjs) then prec:=aiguillage[index_aig(prec)].Ddevie;
+            if TypeElPrec<>det then
+            begin
+              md:=aiguillage[index_aig(prec)].modele;
+              if (md=tjd) or (md=tjs) then prec:=aiguillage[index_aig(prec)].Ddevie;
+            end;
             if prec<>aiguillage[index].Adevie then
             begin
               if NivDebug=3 then AfficheDebug('135.3 Aiguillage '+intToSTR(adr)+' mal positionné',clyellow);
@@ -7122,7 +7145,7 @@ var num_feu,etat,AdrFeu,i,j,prec,AdrSuiv,index2,voie : integer;
 begin
   if NivDebug>=2 then AfficheDebug('Cherche état du signal suivant au '+IntToSTR(adresse),clyellow);
   i:=Index_Signal(adresse);
-  if i=0 then
+  if (i=0) then
   begin
     if NivDebug>=2 then AfficheDebug('Signal '+IntToSTR(adresse)+' non trouvé',clyellow);
     etat_signal_suivant:=0;
@@ -11904,21 +11927,14 @@ begin
 end;
 
 
-// connecte un port usb pour la comm actionneurs. Si le port n'est pas ouvert, renvoie false
+// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
 // index= index du tableau tablo_com_cde
 function connecte_port_usb_periph(index : integer) : boolean;
-var i,j,numport,vitesse,erreur : integer;
+var i,j,nc,numport,vitesse,erreur : integer;
     trouve : boolean;
     s,sc,portComCde : string;
     com : TMSComm;
 begin
-  if (index<0) or (index>MaxComUSBPeriph) then
-  begin
-    affiche('Le nombre maxi de portCom périphériques est atteint - Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
-    result:=false;
-    exit;
-  end;
-
   numport:=Tablo_periph[index].NumCom;
   if (numport<1) or (numport>255) then
   begin
@@ -11928,14 +11944,15 @@ begin
   trouve:=false;
   portComCde:=Tablo_periph[index].protocole;
 
-  case index of
+  nc:=Tablo_periph[index].NumComposant;
+  case nc of
   1 : com:=formprinc.MSCommCde1;
   2 : com:=formprinc.MSCommCde2;
   end;
 
-  if index>MaxComUSBPeriph then
+  if nc>MaxComUSBPeriph then
   begin
-    affiche('Le nombre maxi de portCom périphériques est atteint - Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
+    affiche('Le nombre maxi de portCom périphériques est atteint. Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
     result:=false;
     exit;
   end;
@@ -11966,21 +11983,20 @@ begin
       InputLen:=0;
       CommPort:=numport;
       DTREnable:=false; // évite de reset de l'arduino à la connexion
-      RTSEnable:=false; //pour la genli
+      RTSEnable:=false; // pour la genli
       InputMode:=comInputModeBinary;
     end;
 
+  FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
   tablo_com_cde[index].PortOuvert:=true;
   try
-     com.portopen:=true;
+    com.portopen:=true;
   except
     tablo_com_cde[index].PortOuvert:=false;
   end;
 
   if tablo_com_cde[index].PortOuvert then
   begin
-   // portComCmd[index].MsComm.OnComm:=formprinc.Event_MsComm;
-
     s:='COM'+intToSTR(numport)+':'+sc;
     Formprinc.StatusBar1.Panels[3].Text:=s;
   end;
@@ -12080,9 +12096,11 @@ begin
 
   if portCommOuvert then
   begin
+    FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
     s:='COM'+intToSTR(port)+' ouvert';
     Affiche(s,clLime);
     s:='COM'+intToSTR(port)+':'+sc;
+
     Formprinc.StatusBar1.Panels[3].Text:=s;
     sleep(1000);
     trouve:=test_protocole;
@@ -12891,26 +12909,6 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-  // ouvre com commandes actionneurs, car on a lu les com dans la config
-  for i:=1 to NbPeriph do
-  begin
-    //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
-    index:=com_socket(i);   // comusb ou socket ?
-    if index=1 then
-    begin
-      if connecte_port_usb_periph(i) then
-        Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique ouvert',clLime)
-      else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique non ouvert',clOrange);
-    end;
-    if index=2 then
-    begin
-      if connecte_socket_periph(i) then
-        Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
-      else
-      Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
-    end;
-  end;
-
   Menu_tco(NbreTCO);
   procetape('Lecture du TCO');
   for i:=1 to NbreTCO do
@@ -12998,7 +12996,7 @@ begin
       left:=5;
       Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
       top:=5;  // par rapport au panel
-      width:=(OrgMilieu)-left-10;
+      Width:=panel2.Width-Panel1.Width-GroupBox1.Width-25;
       //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
       Anchors:=[akLeft,akTop,akRight,akBottom];
     end;
@@ -13031,7 +13029,6 @@ begin
     splitterV.Visible:=false;
     with Fenrich do
     begin
-     // parent:=paànel2;
       Align:=alLeft;
       left:=5;
       top:=0;
@@ -13069,6 +13066,26 @@ begin
       until tcoCree; 
     end;
     Affiche_Fenetre_TCO(index,avecTCO);
+  end;
+
+  // ouvre com commandes actionneurs, car on a lu les com dans la config
+  for i:=1 to NbPeriph do
+  begin
+    //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
+    index:=com_socket(i);   // comusb ou socket ?
+    if index=1 then
+    begin
+      if connecte_port_usb_periph(i) then
+        Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique ouvert',clLime)
+      else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique non ouvert',clOrange);
+    end;
+    if index=2 then
+    begin
+      if connecte_socket_periph(i) then
+        Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
+      else
+      Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
+    end;
   end;
 
   if debug=1 then Affiche('Initialisations',clLime);
@@ -13390,7 +13407,7 @@ begin
     end;
 
     // signaux du TCO-----------------------------------------------
-    if false and TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
+    if TCOActive then  // évite d'accéder à la variable FormTCO si elle est pas encore ouverte
     begin
       for IndexTCO:=1 to NbreTCO do
       begin
@@ -15397,7 +15414,7 @@ begin
   Affiche('En orange : pilotage des signaux / erreurs mineures',ClWhite);
   Affiche('En bleu : pilotage des aiguillages',ClWhite);
   Affiche('En jaune : rétrosignalisation reçue depuis l''interface',ClWhite);
-  Affiche('Taille du TCO : '+intToSTR(length(tco))+'x'+intToSTR(length(tco[1])),clorange);
+  //Affiche('Taille du TCO : '+intToSTR(length(tco))+'x'+intToSTR(length(tco[1])),clorange);
   Affiche('Taille des aiguillages : '+intToSTR(SizeOf(aiguillage) div 1024)+' ko',clorange);
   Affiche('Taille des signaux : '+intToSTR(SizeOf(feux) div 1024)+' ko',clorange);
   Affiche('Taille des branches : '+intToSTR(SizeOf(brancheN) div 1024)+' ko',clorange);
@@ -15421,38 +15438,34 @@ begin
   formconfig.close;
 end;
 
-procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
-var s: string;
-    nation,etat,i,aspect,n,combine,adresse,aig,trainReserve,AdrSignalsuivant,voie,AdrTrainRes : integer;
+function InfoSignal(adresse : integer) : string;
+var s : string;
+    nation,etat,i,aspect,n,combine,aig,trainReserve,AdrSignalsuivant,voie,AdrTrainRes : integer;
     reserveTrainTiers : boolean;
     code : word;
 begin
-  clicliste:=false;
-  s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'adresse du feu (ex: ImageFeu260)
-  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu2)
-  i:=extract_int(s);   // extraire l'index (ex 2)
-  adresse:=feux[i].adresse;
+  i:=index_signal(adresse);
   n:=feux[i].aspect;
   if (n>10) and (n<20) then exit;
   if n=20 then nation:=2 else nation:=1;
   code:=feux[i].EtatSignal;
   code_to_aspect(code,aspect,combine);
-  s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
-  Affiche(s,clYellow);
+  //s:='Signal ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
+  //Affiche(s,clYellow);
   //Affiche(IntToSTR(aspect),clred);
   //Affiche(IntToSTR(combine),clred);
 
-  s:='Le signal '+intToSTR(adresse)+' présente '+chaine_signal(adresse)+' car ';
+  s:='Le signal '+intToSTR(adresse)+' présente '+chaine_signal(adresse)+#13;
   // carré
   if (aspect=carre) and (nation=1) then
   begin
-    Affiche(s,clyellow);  
-    if carre_signal(Adresse,trainreserve,reserveTrainTiers,AdrTrainRes) then affiche('les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues',clyellow) ;
-    if reserveTrainTiers then affiche('un aiguillage ou un croisement en aval du signal sont réservés par un autre train (@'+intToSTR(AdrTrainRes)+')',clyellow);
-    if Cond_Carre(Adresse) then affiche_suivi('les aiguillages déclarés dans la définition du signal sont mal positionnés',clyellow);
-    if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,false,TrainReserve,voie)) then affiche('le signal est verrouillable au carré et aucun train n''est présent avant le signal',clyellow);
-    if test_memoire_zones(Adresse) then affiche('présence train dans canton suivant le signal',clyellow);
-    if feux[i].EtatVerrouCarre then affiche('le signal est verrouillé au carré dans la fenêtre de pilotage',clYellow);
+    //Affiche(s,clyellow);
+    if carre_signal(Adresse,trainreserve,reserveTrainTiers,AdrTrainRes) then s:=s+'les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues'+#13;
+    if reserveTrainTiers then s:=s+'un aiguillage ou un croisement en aval du signal sont réservés par un autre train (@'+intToSTR(AdrTrainRes)+')'+#13;
+    if Cond_Carre(Adresse) then s:=s+'les aiguillages déclarés dans la définition du signal sont mal positionnés'+#13;
+    if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,false,TrainReserve,voie)) then s:=s+'le signal est verrouillable au carré et aucun train n''est présent avant le signal'+#13;
+    if test_memoire_zones(Adresse) then s:=s+'présence train dans canton suivant le signal'+#13;
+    if feux[i].EtatVerrouCarre then s:=s+'le signal est verrouillé au carré dans la fenêtre de pilotage'+#13;
   end;
 
   if (aspect=vert_jaune_H) and (nation=2) then
@@ -15460,31 +15473,29 @@ begin
     etat:=etat_signal_suivant(Adresse,1,AdrSignalsuivant) ;  // état du signal suivant + adresse du signal suivant dans Signal_Suivant
     if testbit(etat,chiffre) then
     begin
-      s:=s+'le signal suivant '+intToSTR(adrSignalSuivant)+' affiche une réduction de vitesse ';
-      Affiche(s,clyellow);
+      s:=s+'le signal suivant '+intToSTR(adrSignalSuivant)+' affiche une réduction de vitesse '+#13;
     end;
   end;
 
   if ((aspect=semaphore) and (nation=1)) or ((aspect=rouge) and (nation=2)) then
   begin
-    Affiche(s,clyellow);
-    if test_memoire_zones(Adresse)  then affiche_suivi('présence train dans canton après le signal',clyellow);
+    if test_memoire_zones(Adresse) then s:=s+'présence train dans canton après le signal'+#13;
     if n=20 then
     begin
       // signal belge
-      if carre_signal(Adresse,trainreserve,reserveTrainTiers,AdrTrainRes) then affiche('les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues',clyellow) ;
-      if reserveTrainTiers then affiche('un aiguillage ou un croisement en aval du signal sont réservés par un autre train (@'+intToSTR(AdrTrainRes)+')',clyellow);
-      if Cond_Carre(Adresse) then affiche_suivi('les aiguillages déclarés dans la définition du signal sont mal positionnés',clyellow);
-      if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,false,TrainReserve,voie)) then affiche('le signal est verrouillable au carré et aucun train n''est présent avant le signal',clyellow);
-      if test_memoire_zones(Adresse) then affiche('présence train dans canton suivant le signal',clyellow);
-      if feux[i].EtatVerrouCarre then affiche('le signal est verrouillé au rouge dans la fenêtre de pilotage',clYellow);
+      if carre_signal(Adresse,trainreserve,reserveTrainTiers,AdrTrainRes) then s:=s+'les aiguillages en aval du signal sont mal positionnés ou leur positions inconnues'+#13;
+      if reserveTrainTiers then s:=s+'un aiguillage ou un croisement en aval du signal sont réservés par un autre train (@'+intToSTR(AdrTrainRes)+')'+#13;
+      if Cond_Carre(Adresse) then s:=s+'les aiguillages déclarés dans la définition du signal sont mal positionnés'+#13;
+      if feux[i].VerrouCarre and not(PresTrainPrec(Adresse,Nb_cantons_Sig,false,TrainReserve,voie)) then s:=s+'le signal est verrouillable au carré et aucun train n''est présent avant le signal'+#13;
+      if test_memoire_zones(Adresse) then s:=s+'présence train dans canton suivant le signal'+#13;
+      if feux[i].EtatVerrouCarre then s:=s+'le signal est verrouillé au rouge dans la fenêtre de pilotage'+#13;
     end;
   end;
   // avertissement ou deux-jaunes (belge)
   if ((aspect=jaune) and (n<>20)) or ((aspect=deux_jaunes) and (n=20)) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalsuivant),clyellow);
+    s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalsuivant)+#13;
   end;
 
   // avertissement cli
@@ -15492,27 +15503,29 @@ begin
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
+    s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalSuivant)+#13;
   end;
   // ralen 30
   if (combine=10) and (nation=1) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
+    s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalSuivant)+#13;
   end;
   if (combine=11)  and (nation=1) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
     index:=Index_Signal(AdrSignalSuivant);
-    Affiche(s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(adresse),clyellow);
+    s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalSuivant)+#13;
   end;
   if ((combine=rappel_30) or (combine=rappel_60)) and (nation=1) then
   begin
     Aig:=Aiguille_deviee(Adresse);
     // si aiguille locale déviée
-    if (aig<>0) then Affiche(s+'l''aiguillage suivant '+intToSTR(Aig)+' est dévié',clyellow);
+    if (aig<>0) then s:=s+'l''aiguillage suivant '+intToSTR(Aig)+' est dévié'+#13;
   end;
+
+  if aspect=vert then s:=s+'la voie en aval est libre'+#13;
 
   // chiffre et signal belge
   if nation=2 then
@@ -15522,15 +15535,31 @@ begin
     begin
       aig:=feux[i].Adr_el_suiv1;
       aig:=index_aig(aig);
-      Affiche(s+'le signal doit être franchi à <'+intToSTR(aiguillage[aig].vitesse)+'km/h',clyellow);
+      s:=s+'le signal doit être franchi à <'+intToSTR(aiguillage[aig].vitesse)+'km/h'+#13;
     end;
     if testbit(combine,chevron) then
     begin
       aig:=feux[i].Adr_el_suiv1;
       aig:=index_aig(aig);
-      Affiche(s+'l''aiguillage mène à une voie en contresens',clyellow);
+      s:=s+'l''aiguillage mène à une voie en contresens'+#13;
     end;
   end;
+  infoSignal:=s;
+end;
+
+procedure TFormPrinc.Informationsdusignal1Click(Sender: TObject);
+var s: string;
+    i,adresse : integer;
+begin
+  clicliste:=false;
+  s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pout récupérer l'adresse du feu (ex: ImageFeu260)
+  //Affiche(s,clOrange);     // nom de l'image du signal (ex: ImageFeu2)
+  i:=extract_int(s);   // extraire l'index (ex 2)
+  adresse:=feux[i].adresse;
+
+  s:=InfoSignal(adresse);
+  Affiche_CR(s,clyellow);
+
 end;
 
 procedure TFormPrinc.VrifierlacohrenceClick(Sender: TObject);
@@ -16082,12 +16111,7 @@ begin
   end;
 end;
 
-procedure TFormPrinc.Mosaquehorizontale1Click(Sender: TObject);
-begin
-  mosaiqueH;
-end;
-
-procedure TFormPrinc.Mosaqueverticale1Click(Sender: TObject);
+procedure MosaiqueV;
 var e,topEcran,LeftEcran,i,largEcran,hautEcran,LargTCO,HautTCO,NombreEcrans : integer;
     nbTCOE : array[1..10] of integer; // nombre de TCO par écran
     CeTCO  : array[1..10] of integer; // nombre de TCO en cours d'affchage par écran
@@ -16131,6 +16155,16 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TFormPrinc.Mosaquehorizontale1Click(Sender: TObject);
+begin
+  mosaiqueH;
+end;
+
+procedure TFormPrinc.Mosaqueverticale1Click(Sender: TObject);
+begin
+  mosaiqueV;
 end;
 
 procedure TFormPrinc.Mosaiquecarre1Click(Sender: TObject);
@@ -16789,7 +16823,8 @@ end;
 
 procedure TFormPrinc.Affichagenormal1Click(Sender: TObject);
 begin
-  FenRich.Width:=panel2.Width div 2;
+  //FenRich.Width:=panel2.Width div 2;
+  FenRich.Width:=panel2.Width-Panel1.Width-GroupBox1.Width-25;
   splitterV.Left:=FenRich.left+FenRich.Width-5;
   positionne_elements(splitterV.Left);
 end;
@@ -16818,16 +16853,19 @@ end;
 
 procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
 var
-  RectForText: TRect;
+  RectForText: TRect;    
+  i : integer;
 begin
   if (Panel = StatusBar.Panels[3]) then
   begin
-    StatusBar1.Canvas.Font.Color := clwhite;
-    StatusBar1.Canvas.Brush.color:=clGreen;
-    RectForText:=Rect;
-    StatusBar1.Canvas.FillRect(RectForText);
-    DrawText(StatusBar1.Canvas.Handle, PChar(Panel.Text), -1, RectForText,
-      DT_SINGLELINE or DT_VCENTER or DT_LEFT);
+    if Panel.Text<>'' then
+    begin
+      StatusBar1.Canvas.Font.Color := clwhite;
+      StatusBar1.Canvas.Brush.color:=clGreen;
+      RectForText:=Rect;
+      StatusBar1.Canvas.FillRect(RectForText);
+      DrawText(StatusBar1.Canvas.Handle, PChar(Panel.Text), -1, RectForText,DT_SINGLELINE or DT_VCENTER or DT_LEFT);
+    end;
   end;
 end;
 
