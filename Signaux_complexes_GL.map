@@ -1,8 +1,8 @@
 
  Start         Length     Name                   Class
- 0001:00000000 00166354H .text                   CODE
- 0002:00000000 00002C10H .data                   DATA
- 0002:00002C10 041C8BF9H .bss                    BSS
+ 0001:00000000 0016718CH .text                   CODE
+ 0002:00000000 00002BE8H .data                   DATA
+ 0002:00002BE8 041CBB51H .bss                    BSS
 
 
 Detailed map of segments
@@ -88,17 +88,17 @@ Detailed map of segments
  0001:000B5290 00002690 C=CODE     S=.text    G=(none)   M=UnitConfigTCO ACBP=A9
  0001:000B7920 000009C0 C=CODE     S=.text    G=(none)   M=Unit_Pilote_aig ACBP=A9
  0001:000B82E0 00003458 C=CODE     S=.text    G=(none)   M=UnitConfigCellTCO ACBP=A9
- 0001:000BB738 0002CEBC C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
- 0001:000E85F4 00002C18 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
- 0001:000EB20C 00002404 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
- 0001:000ED610 000015DB C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
- 0001:000EEBEC 0000114C C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
- 0001:000EFD38 00037300 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
- 0001:00127038 0000290C C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
- 0001:00129944 00000C00 C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
- 0001:0012A544 00002390 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
- 0001:0012C8D4 000395F0 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
- 0001:00165EC4 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
+ 0001:000BB738 0002DB7C C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
+ 0001:000E92B4 00002C18 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
+ 0001:000EBECC 00002404 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
+ 0001:000EE2D0 000015D3 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
+ 0001:000EF8A4 0000114C C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
+ 0001:000F09F0 00037308 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
+ 0001:00127CF8 0000290C C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
+ 0001:0012A604 00000C00 C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
+ 0001:0012B204 00002390 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
+ 0001:0012D594 00039768 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
+ 0001:00166CFC 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
  0002:00000000 000000CC C=DATA     S=.data    G=DGROUP   M=System   ACBP=A9
  0002:000000CC 00000020 C=DATA     S=.data    G=DGROUP   M=SysInit  ACBP=A9
  0002:000000EC 00000254 C=DATA     S=.data    G=DGROUP   M=SysUtils ACBP=A9
@@ -125,12 +125,12 @@ Detailed map of segments
  0002:00001234 00000030 C=DATA     S=.data    G=DGROUP   M=ComObj   ACBP=A9
  0002:00001264 0000002C C=DATA     S=.data    G=DGROUP   M=OleCtrls ACBP=A9
  0002:00001290 00000908 C=DATA     S=.data    G=DGROUP   M=jpeg     ACBP=A9
- 0002:00001B98 00000080 C=DATA     S=.data    G=DGROUP   M=MSCommLib_TLB ACBP=A9
- 0002:00001C18 00000009 C=DATA     S=.data    G=DGROUP   M=MaskUtils ACBP=A9
- 0002:00001C24 00000004 C=DATA     S=.data    G=DGROUP   M=Mask     ACBP=A9
- 0002:00001C28 00000006 C=DATA     S=.data    G=DGROUP   M=Grids    ACBP=A9
- 0002:00001C30 000000D4 C=DATA     S=.data    G=DGROUP   M=UnitTCO  ACBP=A9
- 0002:00001D04 0000060D C=DATA     S=.data    G=DGROUP   M=UnitPrinc ACBP=A9
+ 0002:00001B98 00000058 C=DATA     S=.data    G=DGROUP   M=MSCommLib_TLB ACBP=A9
+ 0002:00001BF0 00000009 C=DATA     S=.data    G=DGROUP   M=MaskUtils ACBP=A9
+ 0002:00001BFC 00000004 C=DATA     S=.data    G=DGROUP   M=Mask     ACBP=A9
+ 0002:00001C00 00000006 C=DATA     S=.data    G=DGROUP   M=Grids    ACBP=A9
+ 0002:00001C08 000000D4 C=DATA     S=.data    G=DGROUP   M=UnitTCO  ACBP=A9
+ 0002:00001CDC 0000060D C=DATA     S=.data    G=DGROUP   M=UnitPrinc ACBP=A9
  0002:00003000 00000664 C=BSS      S=.bss     G=DGROUP   M=System   ACBP=A9
  0002:00003664 00000010 C=BSS      S=.bss     G=DGROUP   M=SysInit  ACBP=A9
  0002:00003674 00000004 C=BSS      S=.bss     G=DGROUP   M=Types    ACBP=A9
@@ -212,16 +212,16 @@ Detailed map of segments
  0002:00007C40 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitConfigTCO ACBP=A9
  0002:00007C54 00000014 C=BSS      S=.bss     G=DGROUP   M=Unit_Pilote_aig ACBP=A9
  0002:00007C68 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitConfigCellTCO ACBP=A9
- 0002:00007C7C 00041F90 C=BSS      S=.bss     G=DGROUP   M=UnitTCO  ACBP=A9
- 0002:00049C0C 00000010 C=BSS      S=.bss     G=DGROUP   M=UnitSR   ACBP=A9
- 0002:00049C1C 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitCDF  ACBP=A9
- 0002:00049C30 00000018 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
- 0002:00049C48 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
- 0002:00049C4C 000004F8 C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
- 0002:0004A144 0000002C C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
- 0002:0004A170 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
- 0002:0004A17C 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
- 0002:0004A184 04181A74 C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
+ 0002:00007C7C 00044EE8 C=BSS      S=.bss     G=DGROUP   M=UnitTCO  ACBP=A9
+ 0002:0004CB64 00000010 C=BSS      S=.bss     G=DGROUP   M=UnitSR   ACBP=A9
+ 0002:0004CB74 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitCDF  ACBP=A9
+ 0002:0004CB88 00000018 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
+ 0002:0004CBA0 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
+ 0002:0004CBA4 000004F8 C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
+ 0002:0004D09C 0000002C C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
+ 0002:0004D0C8 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
+ 0002:0004D0D4 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
+ 0002:0004D0DC 04181A74 C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
 
 Bound resource files
 
@@ -247,4 +247,4 @@ Signaux_complexes_GL.res
 Signaux_complexes_GL.drf
 
 
-Program entry point at 0001:001661D4
+Program entry point at 0001:0016700C

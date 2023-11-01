@@ -1153,7 +1153,7 @@ begin
     for j:=1 to NfeuxDir+1 do
     begin
       s:=s+'(';
-      for k:=1 to Length(feux[i].AigDirection[j])-1 do    // boum
+      for k:=1 to Length(feux[i].AigDirection[j])-1 do
       begin
         s:=s+'A'+IntToSTR(feux[i].AigDirection[j][k].adresse) + feux[i].AigDirection[j][k].posaig;
         if k<Length(feux[i].AigDirection[j])-1 then s:=s+',';
@@ -2064,7 +2064,6 @@ var s,sa,SOrigine: string;
     Tablo_actionneur[i].accessoire:=0;
     Tablo_actionneur[i].sortie:=0;
     Tablo_actionneur[i].fichierSon:='';
-   // Tablo_actionneur[i].det:=false;
     Tablo_actionneur[i].loco:=false;
     Tablo_actionneur[i].act:=false;
     Tablo_actionneur[i].son:=false;
@@ -3196,7 +3195,7 @@ var s,sa,SOrigine: string;
       delete(s,i,length(sa));
       AvecDemandeInterfaceEth:=s='1';
     end;
-    
+
     // taille de la fenetre
     sa:=uppercase(fenetre_ch)+'=';
     i:=pos(sa,s);
@@ -3299,6 +3298,7 @@ var s,sa,SOrigine: string;
       inc(nv);
       delete(s,i,length(sa)+1);
       val(s,AvecVerifIconesTCO,erreur);
+      AvecVerifIconesTCO:=0;  // forcé à 0
       s:='';
     end;
 
@@ -4295,10 +4295,8 @@ begin
       s:=items[i];
       ajoute_champs_combos(i+1);
     end;
-  end;  
+  end;
 end;
-
-
 
 
 // met à jour le nom d'un champ d'index i dans les combos
@@ -4815,7 +4813,7 @@ begin
   ShapeZ:=TShape.Create(formconfig.GroupBoxPNZ);
   with ShapeZ do
   begin
-    Left:=64;Top:=40;Width:=150;Height:=2;
+    Left:=64;Top:=40;Width:=170;Height:=2;
     name:='ShapeZ';
     parent:=GroupBoxPNZ;
   end;
@@ -5555,7 +5553,7 @@ begin
     GroupBoxEtatTJD.Visible:=false;
     GroupBox21.Visible:=true;
     GroupBox10.Visible:=true;
-    checkInverse.Visible:=true; 
+    checkInverse.Visible:=true;
 
     // tjd
     if tjd or tjs or croi then
@@ -6509,7 +6507,7 @@ begin
   if s[1]='(' then
   begin
     champs_type_pn;
-    // trouver le numéro de périphérique 
+    // trouver le numéro de périphérique
     v:=pos('PN(',s);
     delete(s,1,v+2);
     val(s,periph,erreur);
@@ -7270,19 +7268,19 @@ begin
   Maj_Hint_Signal(i);
 
   case decodeur of
-  6 : begin
-        labelUni.Caption:='Spec Unisemaf';LabelUni.Visible:=true;
-        EditSpecUni.Visible:=true;
-      end;
-  9 : begin
-     s:='Décodeur pour signaux belges SNCB - 4 aspects uniquement: ';
-     labelInfo.Caption:=s+'vert - rouge - double jaune - rouge blanc';
-     end;
+   6 : begin
+         labelUni.Caption:='Spec Unisemaf';LabelUni.Visible:=true;
+         EditSpecUni.Visible:=true;
+       end;
+   9 : begin
+         s:='Décodeur pour signaux belges SNCB - 4 aspects uniquement: ';
+         labelInfo.Caption:=s+'vert - rouge - double jaune - rouge blanc';
+       end;
   10 : begin
-       s:='Décodeur pour signaux belges SNCB - 6 aspects + chiffre + V ';
-       labelInfo.Caption:=s;
-       labelUni.Caption:='Nombre d''adresses';LabelUni.Visible:=true;
-       EditSpecUni.Visible:=true;
+         s:='Décodeur pour signaux belges SNCB - 6 aspects + chiffre + V ';
+         labelInfo.Caption:=s;
+         labelUni.Caption:='Nombre d''adresses';LabelUni.Visible:=true;
+         EditSpecUni.Visible:=true;
        end
   else labelInfo.Caption:='';
   end;
@@ -9161,7 +9159,7 @@ begin
       begin
         affiche('Erreur 9.1 : signal '+intToSTR(adr)+' ('+intToSTR(nc)+' adresses) et aiguillage '+intToSTR(adr2)+' se chevauchent',clred);
         ok:=false;
-      end;  
+      end;
     end;
     
     for i:=j+1 to NbreFeux do

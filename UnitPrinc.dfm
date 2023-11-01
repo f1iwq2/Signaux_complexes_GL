@@ -1,8 +1,9 @@
 object FormPrinc: TFormPrinc
-  Left = 47
-  Top = 346
+  Left = 91
+  Top = 235
   Width = 1133
   Height = 653
+  Anchors = [akLeft, akTop, akRight]
   Caption = 'Signaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -1490,7 +1491,7 @@ object FormPrinc: TFormPrinc
     Visible = False
     OnClick = Button1Click
   end
-  object Panel2: TPanel
+  object GrandPanel: TPanel
     Left = 0
     Top = 32
     Width = 1065
@@ -1982,8 +1983,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 449
-      Top = 72
+      Left = 457
+      Top = 144
       Width = 265
       Height = 105
       Anchors = [akTop, akRight]

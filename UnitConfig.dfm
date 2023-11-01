@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetPeriph
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -927,7 +927,7 @@ object FormConfig: TFormConfig
         Top = 184
         Width = 297
         Height = 65
-        Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ'
+        Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ / XpressNet'
         TabOrder = 3
         object RadioButton13: TRadioButton
           Left = 8

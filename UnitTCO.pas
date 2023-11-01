@@ -454,6 +454,8 @@ const
   Graphisme_ch='Graphisme';
   Ecran_ch='Ecran';
   Epaisseur_voies_ch='EpVoies';
+  ZoomInit_ch='ZoomInit';
+  XYInit_ch='XYInit';
   Id_signal=50;
   Id_Quai=51;
   Id_action=52;
@@ -469,7 +471,8 @@ type
   TTCO = record
            Adresse     : integer;     // adresse du détecteur ou de l'aiguillage ou du feu
            BImage      : integer;     // icone: 0=rien 1=voie 2=aiguillage gauche  ... 50=feu
-           mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur en fonction du train
+           mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur dans le champ train
+           train       : integer;     // numéro du train
            trajet      : integer;     // décrit le trajet ouvert sur la voie (cas d'un croisement ou d'une tjd/S)
            inverse     : boolean;     // aiguillage piloté inversé
            repr        : integer;     // position de la représentation texte 0 = rien 1=centrale 2=Haut  3=Bas 4=réparti
@@ -550,7 +553,7 @@ var
   // liste des variables par tco
   largeurCelld2,HauteurCelld2,NbCellulesTCO,NbreCellX,NbreCellY,LargeurCell,HauteurCell,
   Xentoure,Yentoure,XclicCell,YclicCell,EcranTCO,clGrille,clFond,ClAllume,ClVoies,
-  ClCanton,clPiedSignal,ClQuai,ClBarriere : array[1..10] of integer;
+  ClCanton,clPiedSignal,ClQuai,ClBarriere,ZoomInit,Xinit,Yinit : array[1..10] of integer;
   PcanvasTCO : array[1..10] of Tcanvas;
   PBitMapTCO : array[1..10] of TbitMap;
   PImageTCO,PImageTemp : array[1..10] of Timage;
@@ -940,15 +943,12 @@ begin
      end;
      exit;
    end;
-
    screen.cursor:=crDefault;
-
 end;
 
 procedure Init_TCO(indexTCO : integer);
 var x,y : integer;
 begin
-
   sauve_tco:=true;
   Affiche('Nouveau tco '+intToSTr(indexTCO),clyellow);
   NbreCellX[indexTCO]:=35;NbreCellY[indexTCO]:=20;LargeurCell[indexTCO]:=35;HauteurCell[indexTCO]:=35;
@@ -1067,6 +1067,29 @@ begin
       delete(s,i,length(sa));
       val('$'+s,i,erreur);
       clVoies[indexTCO]:=i;
+    end;
+
+    sa:=uppercase(ZoomInit_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      ZoomInit[indexTCO]:=i;
+    end;
+
+    sa:=uppercase(XYInit_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));
+      val(s,i,erreur);
+      XInit[indexTCO]:=i;
+      delete(s,1,erreur);
+      val(s,i,erreur);
+      YInit[indexTCO]:=i;
     end;
 
     sa:=uppercase(clAllume_ch)+'=';
@@ -1475,6 +1498,8 @@ begin
     AssignFile(fichier,nomfichierTCO[i]);
     rewrite(fichier);
     Writeln(fichier,'/ Définitions TCO version '+version+sousversion);
+    writeln(fichier,ZoomInit_ch+'=',ZoomInit[i]);
+    writeln(fichier,XYInit_ch+'=',XInit[i],',',Yinit[i]);
     Writeln(fichier,clFond_ch+'='+IntToHex(clfond[i],6));
     Writeln(fichier,clVoies_ch+'='+IntToHex(ClVoies[i],6));
     Writeln(fichier,clAllume_ch+'='+IntToHex(ClAllume[i],6));
@@ -1540,7 +1565,9 @@ procedure calcul_cellules(indexTCO : integer);
 var pos : integer;
 begin
   if affevt then affiche('Calcul_cellules',clyellow);
-  pos:=ZoomMax-FormTCO[indexTCO].TrackBarZoom.Position+ZoomMin;
+  
+
+  pos:=ZoomMax-ZoomInit[indexTCO]+ZoomMin;
   //Affiche('Position TrackBar°'+intToSTR(indexTCO)+'='+intToSTR(pos),clyellow);
   LargeurCell[indexTCO]:=pos;
 
@@ -1675,10 +1702,11 @@ begin
 
     if but<>0 then
     begin
+
       case mode of
         0 : couleur:=clVoies[indexTCO];
         1 : couleur:=clAllume[indexTCO];
-        2 : couleur:=couleurtrain[index_couleur];
+        2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       pen.color:=couleur;
       if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -1725,9 +1753,9 @@ begin
     jy1:=y0+(HauteurCell[indexTCO] div 2);
 
     case mode of
-    0 : couleur:=clVoies[indexTCO];
-    1 : couleur:=clAllume[indexTCO];
-    2 : couleur:=couleurtrain[index_couleur];
+      0 : couleur:=clVoies[indexTCO];
+      1 : couleur:=clAllume[indexTCO];
+      2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     pen.color:=couleur;
     if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 2 else
@@ -1917,7 +1945,7 @@ var i,j,x0,y0,xc,yc,jy2,xf,yf,position,jy1,connect1,connect2,connect3,connect4 :
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -1946,7 +1974,7 @@ var i,j,x0,y0,xc,yc,jy2,xf,yf,position,jy1,connect1,connect2,connect3,connect4 :
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2070,7 +2098,7 @@ var x0,y0,xc,yc,jy2,xf,yf,position,jy1,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2092,7 +2120,7 @@ var x0,y0,xc,yc,jy2,xf,yf,position,jy1,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2188,7 +2216,7 @@ var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2210,7 +2238,7 @@ var x0,y0,xc,yc,jy2,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2317,7 +2345,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2339,7 +2367,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2430,7 +2458,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2452,7 +2480,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,x1,y1,x2,y2,x3,y3,x4,y4,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2569,7 +2597,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2591,7 +2619,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2653,10 +2681,10 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc+(epaisseur div 2);y1:=yc-(epaisseur div 2)-1;
-      x2:=x1+8;y2:=y1;
-      x3:=x2+6;y3:=y2+7;
-      x4:=x1+6;y4:=y3;
+      x1:=xc+round(0.3*epaisseur);y1:=yc-(epaisseur div 2)-1;
+      x2:=x1+epaisseur;y2:=y1;
+      x3:=x2+epaisseur;y3:=y2+epaisseur;
+      x4:=x1+epaisseur;y4:=y3;
       Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
     end;
 
@@ -2668,7 +2696,7 @@ begin
       pen.Width:=1;
       // efface le morceau
       x1:=xc-epaisseur-1;y1:=yc+(epaisseur div 2)+1;
-      x2:=x1+21;y2:=y1+5;
+      x2:=x1+25;y2:=y1+5;
       r:=rect(x1,y1,x2,y2);
       rectangle(r);
     end;
@@ -2688,7 +2716,7 @@ var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2710,7 +2738,7 @@ var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2780,9 +2808,9 @@ begin
       pen.width:=1;
       x1:=xc-12;y1:=yc-(epaisseur div 2)-1;
       x2:=x1+15;y2:=y1;
-      x3:=x2+6;y3:=y2+7;
+      x3:=x2+6;y3:=y2+8;
       x4:=x1+12;y4:=y3;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      Polygon([point(xc-round(2.1*epaisseur),yc-epaisseur-1),point(xc,yc-epaisseur-1),point(xc+3*epaisseur,yc+epaisseur),point(xc+round(2.0*epaisseur),yc+epaisseur)]);
     end;
 
     if position=const_droit then
@@ -2792,7 +2820,7 @@ begin
       Brush.Color:=fond;
       pen.Width:=1;
       // efface le morceau
-      x1:=xc-2*epaisseur;y1:=yc+(epaisseur div 2)+1;
+      x1:=xc-3*epaisseur;y1:=yc+(epaisseur div 2)+1;
       x2:=xc+2*epaisseur+2;y2:=y1+5;
       r:=rect(x1,y1,x2,y2);
       rectangle(r);
@@ -2820,7 +2848,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2842,7 +2870,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2939,7 +2967,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -2961,7 +2989,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3074,7 +3102,7 @@ begin
     case mode of
         0: couleur:=clVoies[indexTCO];
         1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+        2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Pen.Width:=epaisseur;
     Brush.Color:=Couleur;
@@ -3111,9 +3139,9 @@ begin
     Pen.Width:=1;
 
     case mode of
-        0: couleur:=clVoies[indexTCO];
-        1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+      0: couleur:=clVoies[indexTCO];
+      1: couleur:=ClCanton[indexTCO];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
 
     if testbit(ep,0) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -3150,17 +3178,17 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=couleur;
     Pen.Mode:=pmCopy;
-   
+
     if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     moveto(x0,yc);lineto(xc,yc);
     if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     lineto(x0+LargeurCell[indexTCO],y0);
-    
+
   end;
 end;
 
@@ -3190,7 +3218,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=couleur;
@@ -3226,7 +3254,7 @@ begin
     case mode of
         0: couleur:=clVoies[indexTCO];
         1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+        2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     Pen.Mode:=pmCopy;
@@ -3266,7 +3294,7 @@ begin
     case mode of
         0: couleur:=clVoies[indexTCO];
         1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+        2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     Pen.Mode:=pmCopy;
@@ -3302,7 +3330,7 @@ begin
     case mode of
         0: couleur:=clVoies[indexTCO];
         1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+        2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -3345,7 +3373,7 @@ begin
     case mode of
         0: couleur:=clVoies[indexTCO];
         1: couleur:=ClCanton[indexTCO];
-        2: couleur:=couleurtrain[index_couleur];
+        2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -3388,7 +3416,7 @@ begin
       case mode of
         0 : couleur:=clVoies[indexTCO];
         1 : couleur:=clAllume[indexTCO];
-        2 : couleur:=couleurtrain[index_couleur];
+        2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       pen.color:=couleur;
       if testbit(ep,2) or testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -3431,7 +3459,7 @@ begin
     case mode of
     0 : couleur:=clVoies[indexTCO];
     1 : couleur:=clAllume[indexTCO];
-    2 : couleur:=couleurtrain[index_couleur];
+    2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     pen.color:=couleur;
 
@@ -3463,7 +3491,7 @@ begin
       case mode of
         0 : couleur:=clVoies[indexTCO];
         1 : couleur:=clAllume[indexTCO];
-        2 : couleur:=couleurtrain[index_couleur];
+        2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       pen.color:=couleur;
       if testbit(ep,0) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -3508,7 +3536,7 @@ begin
     case mode of
     0 : couleur:=clVoies[indexTCO];
     1 : couleur:=clAllume[indexTCO];
-    2 : couleur:=couleurtrain[index_couleur];
+    2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     pen.color:=couleur;
 
@@ -3531,7 +3559,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3553,7 +3581,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3565,10 +3593,8 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        moveto(x0,y0);lineto(xc,yc);
        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xf,yc);
-
      end;
    end;
-
 
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine
@@ -3643,7 +3669,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3666,7 +3692,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3677,8 +3703,6 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
-
-
 
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine
@@ -3720,13 +3744,11 @@ begin
         trajet_droit;
       end;
     end
-
     else
     begin
       trajet_devie;
       trajet_droit;
     end;
-
 
     if (position=const_Devie) then
     begin
@@ -3764,7 +3786,7 @@ begin
 end;
 
 
-// Elément 13 fait
+// Elément 13
 procedure dessin_13L(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
     r : Trect;
@@ -3778,7 +3800,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3800,7 +3822,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3875,7 +3897,6 @@ begin
   end;
 end;
 
-// fait
 procedure dessin_13C(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : tcolor;
@@ -3888,7 +3909,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3911,7 +3932,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -3922,8 +3943,6 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
-
-
 
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine
@@ -4022,7 +4041,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4044,7 +4063,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4141,7 +4160,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4160,7 +4179,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4272,7 +4291,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4294,7 +4313,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4389,7 +4408,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4412,7 +4431,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -4423,7 +4442,6 @@ procedure trajet_droit;
        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
      end;
    end;
-
 
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine
@@ -4506,7 +4524,7 @@ begin
 end;
 
 
-// Element 16 fait
+// Element 16
 procedure dessin_16L(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,ep : integer;
 begin
@@ -4526,7 +4544,7 @@ begin
      case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -4536,7 +4554,6 @@ begin
   end;
 end;
 
-// fait
 procedure dessin_16C(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
@@ -4560,7 +4577,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -4578,7 +4595,7 @@ begin
 end;
 
 
-// Element 17 fait
+// Element 17
 procedure dessin_17l(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,ep : integer;
 begin
@@ -4595,7 +4612,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=couleur;
     pen.color:=couleur;
@@ -4628,7 +4645,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=couleur;
     pen.color:=couleur;
@@ -4661,7 +4678,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -4693,7 +4710,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=clfond[indexTCO];
     pen.color:=Couleur;
@@ -4710,7 +4727,6 @@ begin
 end;
 
 // Element 19
-// fait
 procedure dessin_19l(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,ep : integer;
 begin
@@ -4727,7 +4743,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -4737,7 +4753,6 @@ begin
   end;
 end;
 
-// fait
 procedure dessin_19c(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,x1,y1,x2,y2,x3,y3,x4,y4,xf,yf,ep : integer;
 begin
@@ -4761,7 +4776,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=Couleur;
     pen.color:=Couleur;
@@ -4777,8 +4792,7 @@ begin
   if graphisme=2 then dessin_19C(indexTco,Canvas,x,y,Mode);
 end;
 
-
-// Element 20 fait
+// Element 20
 procedure dessin_20(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var jx1,jx2,x0,y0,xc,xf,yf,yc,adr,ep,but : integer;
     r : Trect;
@@ -4803,7 +4817,7 @@ begin
       case mode of
         0 : couleur:=clVoies[indexTCO];
         1 : couleur:=clAllume[indexTCO];
-        2 : couleur:=couleurtrain[index_couleur];
+        2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       pen.color:=couleur;
       if testbit(ep,1) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -4853,7 +4867,7 @@ begin
     case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     Brush.Color:=couleur;
     pen.color:=couleur;
@@ -4978,7 +4992,7 @@ begin
       case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       Brush.Color:=couleur;
       pen.color:=couleur;
@@ -5119,7 +5133,7 @@ begin
       case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       Brush.Color:=couleur;
       pen.color:=couleur;
@@ -5244,7 +5258,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5266,7 +5280,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5361,7 +5375,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5383,7 +5397,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5587,7 +5601,7 @@ begin
       case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
       Brush.Color:=couleur;
       pen.color:=couleur;
@@ -5728,7 +5742,6 @@ begin
       moveto(x1,y1);lineTo(x2,y2);
     end;
 
-
     // regarder d'ou on vient de la route du tco
     if mode>0 then
     begin
@@ -5736,7 +5749,7 @@ begin
       case mode of
       0: couleur:=clVoies[indexTCO];
       1: couleur:=ClCanton[indexTCO];
-      2: couleur:=couleurtrain[index_couleur];
+      2: couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
       end;
 
       Brush.Color:=couleur;
@@ -5761,7 +5774,7 @@ begin
   end;
 end;
 
-// Element 26 fait
+// Element 26
 procedure dessin_26L(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
     r : Trect;
@@ -5775,7 +5788,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5797,7 +5810,7 @@ var x0,y0,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5896,7 +5909,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -5918,7 +5931,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6022,7 +6035,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6044,7 +6057,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6144,7 +6157,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6166,7 +6179,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6273,7 +6286,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6295,7 +6308,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6385,7 +6398,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6407,7 +6420,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6512,7 +6525,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6534,7 +6547,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6622,7 +6635,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6644,7 +6657,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6751,7 +6764,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6773,7 +6786,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6871,7 +6884,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -6893,7 +6906,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7004,7 +7017,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7026,7 +7039,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7126,7 +7139,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7148,7 +7161,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7260,7 +7273,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7282,7 +7295,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7356,7 +7369,6 @@ begin
   end;
 end;
 
-//fait
 procedure dessin_34C(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     fond : Tcolor;
@@ -7369,7 +7381,7 @@ procedure trajet_droit;
        if position=const_droit then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -7391,7 +7403,7 @@ procedure trajet_droit;
        if position=const_devie then
        begin
          if mode=1 then couleur:=clcanton[indexTCO];
-         if mode=2 then couleur:=couleurtrain[index_couleur];
+         if mode=2 then couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
        end;
      end;
 
@@ -8127,7 +8139,7 @@ begin
   //pcanvasTCO.Brush.Style:=BsClear;
   adresse:=tco[indextco,x,y].Adresse;
   BImage:=tco[indextco,x,y].BImage;
-  mode:=tco[indextco,x,y].mode;
+  mode:=tco[indextco,x,y].mode; // mode pour la couleur
   repr:=tco[indextco,x,y].repr;
 
   Xorg:=(x-1)*LargeurCell[indexTCO];
@@ -8434,7 +8446,7 @@ begin
   if AvecGrille[indexTCO] then
   begin
     y1:=HauteurCell[IndexTCO]*NbreCellY[indexTCO];
-    PcanvasTCO[indexTCO].pen.color:=clGrille[IndexTCO];
+    with PcanvasTCO[indexTCO] do pen.color:=clGrille[IndexTCO];
 
     //Affiche(intToSTr(clGrille[IndexTCO]),clred);
     with PcanvasTCO[indexTCO] do
@@ -8509,7 +8521,7 @@ begin
   Buttonmasquer.TabStop:=false;
   ButtonRaz.TabStop:=false;
   ButtonDessiner.TabStop:=false;
-  TrackBarZoom.position:=78;
+  //TrackBarZoom.position:=78;
 
   couleurAdresse:=Cyan;
   xMiniSel:=99999;yMiniSel:=99999;
@@ -8586,16 +8598,13 @@ begin
 
   tcoCree:=true;
   if debug=1 then Affiche('Fin création fenêtre TCO',clLime);
-
-
-
 end;
 
 
 // trouve le détecteur det dans le TCO et renvoie x et y
 // si on le trouve pas, renvoie x=0,y=0
 procedure trouve_det(indexTCO,det : integer;var x,y : integer);
-var xc,yc : integer;
+var xc,yc,b : integer;
     trouve : boolean;
 begin
   yc:=1;
@@ -8603,7 +8612,9 @@ begin
     xc:=0;
     repeat
       inc(xc);
-      trouve:=tco[indextco,xc,yc].Adresse=det;
+      b:=tco[indextco,xc,yc].Bimage;
+      trouve:=(tco[indextco,xc,yc].Adresse=det) and
+              ( (b=1) or  (b=10) or (b=11) or (b=20) );  // trouvé détecteur- obligé de regarder le type d'objet car un détecteur et un signal peuvent avoir la même adresse!
     until (xc=NbreCellX[indexTCO]) or trouve;
     inc(yc);
   until (yc=NbreCellY[indexTCO]) or trouve;
@@ -8624,7 +8635,7 @@ procedure Erreur_TCO(indexTCO,x,y : integer);
 var s : string;
     i,adresse : integer;
 begin
-  s:='Erreur 92 TCO : cellule '+intToSTR(x)+','+intToSTR(y)+' ';
+  s:='Erreur 92 TCO - Cellule '+intToSTR(x)+','+intToSTR(y)+' ';
   adresse:=tco[indextco,x,y].Adresse;
   i:=index_aig(adresse);
   if i=0 then s:=s+'aiguillage '+intToSTR(adresse)+' inconnu';
@@ -8646,7 +8657,7 @@ var direction,i,j,x,y,xn,yn,ancienY,ancienX,Xdet1,Ydet1,Xdet2,Ydet2,Bimage,adres
     s : string;
 begin
   // trouver le détecteur det1
-  if debugTCO then AfficheDebug('Zone_TCO det1='+intToSTR(det1)+' det2='+intToSTR(det2)+' mode='+intToSTR(mode)+' couleur='+intToSTR(index_couleur),clyellow);
+  if debugTCO then AfficheDebug('Zone_TCO det1='+intToSTR(det1)+' det2='+intToSTR(det2)+' mode='+intToSTR(mode),clyellow);
   trouve_det(indexTCO,det1,Xdet1,Ydet1);
   if (Xdet1=0) or (Ydet1=0) then exit;
 
@@ -8733,7 +8744,7 @@ begin
             if (ancienX<x) and (ancienY=y) then begin xn:=x+1;end;
             if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y+1;end;
             if (ancienX<x) and (ancienY>y) then begin xn:=x+1; end;
-            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
           end;
       3 : begin
             //if debugTCO then AfficheDebug('El 3',clyellow);
@@ -8741,7 +8752,7 @@ begin
             if (ancienX<x) then begin xn:=x+1;if pos=const_devie then yn:=y-1;end;
             if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
             if (ancienX>x) and (ancienY<y) then begin xn:=x-1;end;
-            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
           end;
       4 : begin
             //if debugTCO then AfficheDebug('El 4',clyellow);
@@ -8749,7 +8760,7 @@ begin
             if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;if pos=const_devie then yn:=y+1;end;
             if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
             if (ancienX>x) and (ancienY>y) then begin xn:=x-1;end;
-            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+            if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
           end;
     5 : begin
           //if debugTCO then AfficheDebug('El 5',clyellow);
@@ -8757,7 +8768,7 @@ begin
           if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;end;
           if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;if pos=const_devie then yn:=y-1;end;
           if (ancienX<x) and (ancienY<y) then begin ;xn:=x+1;end;
-          if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;;
+          if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
         end;
     6 : begin
          //if debugTCO then AfficheDebug('El 6',clyellow);
@@ -8781,7 +8792,7 @@ begin
            if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;if pos=const_droit then yn:=y+1;end;
            if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;yn:=y-1;end;
            if (ancienX>x) and (ancienY>y) then begin xn:=x-1;yn:=y-1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     13 : begin
            //if debugTCO then AfficheDebug('El 13',clyellow);
@@ -8789,7 +8800,7 @@ begin
            if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;yn:=y-1;end;
            if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;if pos=const_droit then yn:=y+1;end;
            if (ancienX<x) and (ancienY>y) then begin xn:=x+1;yn:=y-1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     14 : begin
            //if debugTCO then AfficheDebug('El 14',clyellow);
@@ -8797,7 +8808,7 @@ begin
            if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;yn:=y+1;end;
            if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
            if (ancienX>x) and (ancienY>y) then begin xn:=x-1;if pos=const_droit then yn:=y-1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     15 : begin
            //if debugTCO then AfficheDebug('El 15',clyellow);
@@ -8805,7 +8816,7 @@ begin
            if (ancienX<x) and (ancienY>Y) then begin xn:=x+1;if pos=const_droit then yn:=y-1;end;
            if (ancienX>x) and (ancienY<Y) then begin xn:=x-1;yn:=y+1;end;
            if (ancienX>x) and (ancienY=y) then begin xn:=x-1;yn:=y+1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     16 : if ancienX<x then begin casok:=true;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
     17 : if ancienY<y then begin casok:=true;yn:=y+1;end else begin xn:=x+1;yn:=y-1;end;
@@ -8836,13 +8847,13 @@ begin
              begin
                // tjd ou tjs
                pos:=aiguillage[j].position;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
 
                if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                begin
                  j:=Index_Aig(aiguillage[j].Ddroit);
                  pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-                 if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                 if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
                  if (pos=const_droit) and (pos2=const_droit) then
                  begin
                    casok:=true;
@@ -8891,7 +8902,7 @@ begin
            end;
            if (mdl=aig) then
            begin
-             Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+             Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
              Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
              exit;
            end;
@@ -8909,13 +8920,13 @@ begin
              if (mdl=tjd) or (mdl=tjs) then
              begin
                pos:=aiguillage[j].position;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
 
                if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                begin
                  j:=Index_Aig(aiguillage[j].Ddroit);
                  pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-                 if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                 if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
                  if (pos=const_droit) and (pos2=const_droit) then
                  begin
                    if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
@@ -8958,7 +8969,7 @@ begin
            end;
            if (mdl=aig) then
            begin
-             Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+             Affiche('Erreur 49 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
              Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
              exit;
            end;
@@ -8976,13 +8987,13 @@ begin
                   if (mdl=tjd) or (mdl=tjs) then
                   begin
                     pos:=aiguillage[j].position;
-                    if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                    if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
 
                     if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                     begin
                       j:=Index_Aig(aiguillage[j].Ddroit);
                       pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-                      if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                      if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
                       if (pos=const_droit) and (pos2=const_droit) then
                       begin
                         if ancienX<x then begin xn:=x+1;yn:=y-1;end else begin xn:=x-1;yn:=y+1;end;
@@ -9028,7 +9039,7 @@ begin
                 end;
                 if (mdl=aig) then
                 begin
-                  Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+                  Affiche('Erreur 50 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
                   Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
                   exit;
                 end;
@@ -9054,7 +9065,7 @@ begin
                begin
                  yn:=y+1;xn:=x;
                end;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
              end;
 
          // tjd ou croisement
@@ -9068,13 +9079,13 @@ begin
                   if (mdl=tjd) or (mdl=tjs) then
                   begin
                     pos:=aiguillage[j].position;
-                    if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                    if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
 
                     if ((mdl=tjd) or (mdl=tjs)) and (aiguillage[j].EtatTJD=4) then
                     begin
                       j:=Index_Aig(aiguillage[j].Ddroit);
                       pos2:=aiguillage[j].position; // 2eme adresse de la TJD
-                      if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+                      if (pos2=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
                       if (pos=const_droit) and (pos2=const_droit) then
                       begin
                         if ancienX<x then begin xn:=x+1;yn:=y+1;end else begin xn:=x-1;yn:=y-1;end;
@@ -9116,7 +9127,7 @@ begin
                 end;
                 if (mdl=aig) then
                 begin
-                  Affiche('Erreur 48 TCO : la cellule '+intToSTR(x)+'/'+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
+                  Affiche('Erreur 51 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
                   Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
                   exit;
                 end;
@@ -9140,7 +9151,7 @@ begin
                begin
                  yn:=y+1;xn:=x;
                end;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
               end;
          27 : begin
                if debugTCO then AfficheDebug('El 27',clyellow);
@@ -9160,9 +9171,9 @@ begin
                begin
                  yn:=y-1;xn:=x;
                end;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
               end;
-         28 : begin                
+         28 : begin
                if debugTCO then AfficheDebug('El 28',clyellow);
                pos:=positionTCO(indexTCO,x,y);
                // on vient d'en bas
@@ -9180,7 +9191,7 @@ begin
                begin
                  yn:=y-1;xn:=x;
                end;
-               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+               if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
               end;
     29 : begin
            //if debugTCO then AfficheDebug('El 12',clyellow);
@@ -9195,7 +9206,7 @@ begin
            if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
            // on vient de bas
            if (ancienX=x) and (ancienY>y) then begin xn:=x-1;yn:=y-1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
    32 :  begin
            if debugTCO then AfficheDebug('El 32',clyellow);
@@ -9206,7 +9217,7 @@ begin
            if (ancienX=x) and (ancienY>Y) then begin xn:=x+1;yn:=y-1;end;
            // on vient d'en haut à droite
            if (ancienX>x) and (ancienY<y) then begin yn:=y+1;if pos=const_devie then xn:=x else xn:=x-1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     33 : begin
            //if debugTCO then AfficheDebug('El 14',clyellow);
@@ -9217,7 +9228,7 @@ begin
            if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
            //on vient de bas droite
            if (ancienX>x) and (ancienY>y) then begin yn:=y-1;if pos=const_droit then xn:=x-1 else xn:=x;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
     34 : begin
            pos:=positionTCO(indexTCO,x,y);
@@ -9227,7 +9238,7 @@ begin
            if (ancienX=x) and (ancienY<y) then begin xn:=x-1;yn:=y+1;end;
            // on vient du NE
            if (ancienX>x) and (ancienY<y) then begin xn:=x-1;yn:=y+1;end;
-           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);exit;end;
+           if (pos=const_inconnu) then begin Erreur_TCO(indexTCO,x,y);sortir:=true;end;
          end;
 
          else
@@ -9241,6 +9252,7 @@ begin
       end;
       inc(i);
       if (adresse=det2) then memTrouve:=true;
+      if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and ((adresse<>det2) and (adresse<>det1) and (adresse<>0)) then sortir:=true;
       ancienX:=x;
       ancienY:=y;
       x:=xn;
@@ -9277,7 +9289,8 @@ begin
   begin
     x:=routetco[i].x;
     y:=routetco[i].y;
-    tco[indextco,x,y].mode:=mode;
+    tco[Indextco,x,y].mode:=mode;//zizi //mode;  // pour la couleur
+    TCO[IndexTCO,x,y].train:=index_couleur;
     //Affiche(intToSTR(x)+' '+intToSTR(y),clorange);
 
     bimage:=tco[indextco,x,y].BImage;
@@ -9293,6 +9306,7 @@ begin
       ay:=routetco[i-1].y;
       sx:=routetco[i+1].x;  // suivant
       sy:=routetco[i+1].y;
+      tco[indextco,x,y].trajet:=0;
       if (ax-x=-1) and (ay-y=0)  and  (sx-x=1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de gauche à droite
       if (ax-x=1)  and (ay-y=0)  and  (sx-x=-1) and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de droite à gauche
       if (ax-x=-1) and (ay-y=1)  and  (sx-x=1)  and (sy-y=-1) then tco[indextco,x,y].trajet:=2;   // de bas gauche vers haut droit
@@ -9301,7 +9315,7 @@ begin
       if (ax-x=1)  and (ay-y=-1) and (sx-x=-1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=4;   // de haut droite vers gauche
       if (ax-x=-1) and (ay-y=1)  and (sx-x=1)   and (sy-y=0)  then tco[indextco,x,y].trajet:=3;   // de bas gauche vers droite
       if (ax-x=1)  and (ay-y=0)  and (sx-x=-1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=3;   // de gauche vers haut droite
-      if tco[indextco,x,y].trajet=0 then affiche('Erreur 50 TCO',clred);
+      if tco[indextco,x,y].trajet=0 then affiche('Erreur 70 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
 
     // croisement
@@ -9313,6 +9327,7 @@ begin
       ay:=routetco[i-1].y;
       sx:=routetco[i+1].x;  // suivant
       sy:=routetco[i+1].y;
+      tco[indextco,x,y].trajet:=0;
       if (ax-x=-1) and (ay-y=0)  and  (sx-x=1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de gauche à droite
       if (ax-x=1)  and (ay-y=0)  and  (sx-x=-1) and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de droite à gauche
       if (ax-x=-1) and (ay-y=-1) and  (sx-x=1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=2;   // de haut gauche vers bas droit
@@ -9321,7 +9336,7 @@ begin
       if (ax-x=-1) and (ay-y=-1) and (sx-x=1)   and (sy-y=0)  then tco[indextco,x,y].trajet:=3;   // de haut à gauche vers droit
       if (ax-x=1)  and (ay-y=1)  and (sx-x=-1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=4;   // de bas à droite vers gauche
       if (ax-x=-1) and (ay-y=0)  and (sx-x=1)   and (sy-y=1)  then tco[indextco,x,y].trajet:=4;   // de gauche vers en bas a droite
-      if tco[indextco,x,y].trajet=0 then affiche('Erreur 51 TCO',clred);
+      if tco[indextco,x,y].trajet=0 then affiche('Erreur 71 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
 
     // croisement
@@ -9333,6 +9348,7 @@ begin
       ay:=routetco[i-1].y;
       sx:=routetco[i+1].x;  // suivant
       sy:=routetco[i+1].y;
+      tco[indextco,x,y].trajet:=0;
       if (ax-x=0)  and (ay-y=-1) and (sx-x=0)  and (sy-y=1)  then tco[indextco,x,y].trajet:=1;   // de haut à bas
       if (ax-x=0)  and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[indextco,x,y].trajet:=1;   // de bas à haut
       if (ax-x=1)  and (ay-y=-1) and (sx-x=-1) and (sy-y=1)  then tco[indextco,x,y].trajet:=2;   // de haut droit vers bas gauche
@@ -9341,7 +9357,7 @@ begin
       if (ax-x=0)  and (ay-y=1)  and (sx-x=1)  and (sy-y=-1) then tco[indextco,x,y].trajet:=3;   // de bas vers haut droit
       if (ax-x=0)  and (ay-y=-1) and (sx-x=-1) and (sy-y=1)  then tco[indextco,x,y].trajet:=4;   // de haut vers bas gauche
       if (ax-x=-1) and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[indextco,x,y].trajet:=4;   // de bas gauche vers haut
-      if tco[indextco,x,y].trajet=0 then affiche('Erreur 52 TCO',clred);
+      if tco[indextco,x,y].trajet=0 then affiche('Erreur 72 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
 
     // croisement
@@ -9353,6 +9369,7 @@ begin
       ay:=routetco[i-1].y;
       sx:=routetco[i+1].x;  // suivant
       sy:=routetco[i+1].y;
+      tco[indextco,x,y].trajet:=0;
       if (ax-x=0)  and (ay-y=-1) and (sx-x=0)  and (sy-y=1)  then tco[indextco,x,y].trajet:=1;   // de haut à bas
       if (ax-x=0)  and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[indextco,x,y].trajet:=1;   // de bas à haut
       if (ax-x=-1) and (ay-y=-1) and (sx-x=1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=2;   // de haut gauche vers bas droit
@@ -9361,7 +9378,7 @@ begin
       if (ax-x=0)  and (ay-y=1)  and (sx-x=-1) and (sy-y=-1) then tco[indextco,x,y].trajet:=3;   // de bas vers haut gauche
       if (ax-x=0)  and (ay-y=-1) and (sx-x=1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=4;   // de haut vers bas droite
       if (ax-x=-1) and (ay-y=1)  and (sx-x=0)  and (sy-y=-1) then tco[indextco,x,y].trajet:=4;   // de bas droit vers haut
-      if tco[indextco,x,y].trajet=0 then affiche('Erreur 53 TCO',clred);
+      if tco[indextco,x,y].trajet=0 then affiche('Erreur 73 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
     Affiche_cellule(indexTCO,x,y);
   end;
@@ -9450,7 +9467,7 @@ end;
 
 // dessine les icones du tco et les aligne
 procedure dessine_icones(indexTCO : integer);
-var ancH,ancW,i,lf,hf: integer;
+var ancH,ancW,i,lf,hf,sauv_ep: integer;
     ip : TImage;
     lbl : Tlabel;
 begin
@@ -9502,6 +9519,7 @@ begin
     end;
 
     // et puis on les dessine
+    sauv_ep:=epaisseur;
     epaisseur:=4;
     ancw:=LargeurCell[indexTCO];
     AncH:=hauteurCell[indexTCO];
@@ -9563,6 +9581,7 @@ begin
   end;
   LargeurCell[indexTCO]:=ancW;
   hauteurCell[indexTCO]:=ancH;
+  epaisseur:=sauv_ep;
 end;
 
 procedure positionne(indexTCO : integer);
@@ -9642,9 +9661,9 @@ begin
 
 
     //déclenche l'Affiche_tco
+    if ZoomInit[indexTCO]<>0 then FormTCO[indexTCO].TrackBarZoom.Position:=ZoomInit[indexTCO] else TrackBarZoom.position:=34;
     TrackBarZoom.Max:=ZoomMax;
     TrackBarZoom.Min:=ZoomMin;
-    TrackBarZoom.position:=34;
 
     positionne(indexTCO);
 
@@ -9982,7 +10001,7 @@ begin
 end;
 
 procedure selection_bleue(indexTCO,cellX,cellY : integer);
-var XSel1,YSel1,XSel2,YSel2,xMiniSelP,yminiSelP,xMaxiSelP,ymaxiSelP : integer;
+var xMiniSelP,yminiSelP,xMaxiSelP,ymaxiSelP : integer;
     r : Trect;
 begin
 // zone de sélection bleue en coords pixels
@@ -10017,12 +10036,6 @@ begin
 
   r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
 
-  XSel1:=Xminisel div LargeurCell[indexTCO] + 1;
-  YSel1:=Yminisel div hauteurCell[indexTCO] + 1;
-  XSel2:=Xmaxisel div LargeurCell[indexTCO] + 1;
-  YSel2:=Ymaxisel div hauteurCell[indexTCO] + 1;
-
-  //Affiche(intToSTR(Xsel1)+' '+intToStr(Ysel1)+' '+intToSTR(Xsel2)+' '+intToStr(Ysel2),clYellow);
   // Affiche le nouveau rectangle de sélection
   Rancien:=r;
   with formTCO[indexTCO].ImageTCO.canvas do
@@ -10390,7 +10403,7 @@ begin
   tco[indextco,XClic,YClic].liaisons:=liaisons[icone];
   tco[indextco,xClic,YClic].CoulFonte:=clYellow;
   formTCO[indexTCO].EditAdrElement.Text:=IntToSTR( tco[indextco,XClic,YClic].Adresse);
-  formTCO[indexTCO].EdittypeImage.Text:=IntToSTR(tco[indextco,XClic,YClic].BImage); 
+  formTCO[indexTCO].EdittypeImage.Text:=IntToSTR(tco[indextco,XClic,YClic].BImage);
 end;
 
 procedure TFormTCO.ImagePalette5EndDrag(Sender, Target: TObject; X,Y: Integer);
@@ -11373,9 +11386,8 @@ begin
               end;
             end;
           end
-        else
-          s:='Croisement '+intToSTR(adresse);
-        end;
+        end
+        else s:='Croisement '+intToSTR(adresse);
       end;
       ImageTCO.Hint:=s;
     end
@@ -11415,7 +11427,7 @@ end;
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
 var r : Trect;
-    indexTCO,XSel1,YSel1,XSel2,YSel2,Bimage,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
+    indexTCO,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
     ok : boolean;
 begin
   if affevt then Affiche('ImageTCOMouseMove',clLime);
@@ -11449,7 +11461,6 @@ begin
   if CellX>NbreCellX[indexTCO] then exit;
   if CellY>NbreCellY[indexTCO] then exit;
 
-  Bimage:=tco[indextco,cellX,cellY].BImage;
 
   if modeTrace[indexTCO] then
   begin
@@ -11528,16 +11539,8 @@ begin
 
   r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
 
-  XSel1:=Xminisel div LargeurCell[indexTCO] + 1;
-  YSel1:=Yminisel div hauteurCell[indexTCO] + 1;
-  XSel2:=Xmaxisel div LargeurCell[indexTCO] + 1;
-  YSel2:=Ymaxisel div hauteurCell[indexTCO] + 1;
-
-  //Affiche(intToSTR(Xsel1)+' '+intToStr(Ysel1)+' '+intToSTR(Xsel2)+' '+intToStr(Ysel2),clYellow);
-  // Affiche le nouveau rectangle de sélection
   Rancien:=r;
   Affiche_selection(indexTCO);
-
 
   SelectionAffichee[indexTCO]:=true;
   //Affiche('Sélection affichée',clLime);
@@ -11889,7 +11892,8 @@ var indextco : integer;
 begin
   if affevt then Affiche('TrackBarZoomChange',clyellow);
   indexTCO:=index_tco(sender);
-//  Affiche(intToSTR(TrackBarZoom.position),clred);
+  ZoomInit[indexTCO]:=TrackBarZoom.Position;
+  //Affiche(intToSTR(TrackBarZoom.position),clred);
   calcul_cellules(indexTCO);
   Affiche_TCO(indexTCO);
   SelectionAffichee[indexTCO]:=false;
@@ -12487,9 +12491,8 @@ begin
   init_tampon_copiercoller;
 
   for y:=NbreCellY[indexTCO]-1 downto YClicCell[indexTCO] do
-  begin
     for x:=1 to NbreCellX[indexTCO] do tco[indextco,x,y+1]:=tco[indextco,x,y];
-  end;
+
   for x:=1 to NbreCellX[indexTCO] do
   begin
     tco[indextco,x,YClicCell[indexTCO]].Adresse:=0;
@@ -12812,9 +12815,7 @@ begin
         selectionaffichee[indexTCO]:=false;
         for y:=Ymini to Ymaxi do
           for x:=Xmini to Xmaxi do
-          begin
             tco[indextco,x,y].CouleurFond:=ColorDialog1.Color;
-          end;
       end
       else tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond:=ColorDialog1.Color;
 

@@ -163,7 +163,7 @@ type
     CO81: TMenuItem;
     CO91: TMenuItem;
     CO101: TMenuItem;
-    Panel2: TPanel;
+    GrandPanel: TPanel;
     FenRich: TRichEdit;
     SplitterV: TSplitter;
     ScrollBox1: TScrollBox;
@@ -1138,10 +1138,8 @@ begin
 }
 
 
-  // extinctions
-
-  if not((code=jaune_cli) and clignotant)  then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
-  if not((code=vert_cli)  and clignotant)  then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant)      then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if not((code=vert_cli)  and clignotant)      then cercle(ACanvas,xVert,yVert,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant)  then cercle(ACanvas,xSem,ySem,rayon,GrisF);
 
   // allumages
@@ -1541,8 +1539,8 @@ var mrect,nrect : trect;
 begin
   larg:=ImageSrc.Width;
   haut:=ImageSrc.Height;
-  mRect:= rect(0,0,larg,haut);
-  nRect:= rect(larg-1,0,-1,haut);
+  mRect:=rect(0,0,larg,haut);
+  nRect:=rect(larg-1,0,-1,haut);
   ImageDest.canvas.CopyRect(mRect,ImageSrc.canvas,nRect);
 end;
 
@@ -1555,9 +1553,6 @@ var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Y
     ech : real;
     inverse,etatChevron,EtatChiffre,codeClignote : boolean;
     r : Trect;
-    c : tcomponent;
-    t : hwnd;
-    s : string;
 begin
 
   code:=etatSignal and $3f;
@@ -2032,7 +2027,7 @@ begin
     case aspect of
      // feux de signalisation
       2 : dessine_signal2(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
-      3 : dessine_signal3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,feux[i].AncienEtat,orientation);
+      3 : dessine_signal3(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,feux[i].AncienEtat,orientation);      // essai
       4 : dessine_signal4(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
       5 : dessine_signal5(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
       7 : dessine_signal7(CanvasDest,x,y,frx,fry,feux[i].EtatSignal,orientation);
@@ -4383,7 +4378,7 @@ end;
 // pilote un signal par un décodeur personnalisé
 procedure envoi_decodeur_pers(Adresse : integer);
 var s : string;
-    d,dp,i,j,k,etat,asp,combine,aspect,nAdresses,numcom,v,numacc,cmd : integer;
+    d,dp,i,j,k,etat,asp,combine,aspect,nAdresses,v,numacc,cmd : integer;
     trouve1,trouve2,trouve3,trouve4 : boolean;
 begin
   i:=Index_Signal(adresse);
@@ -5657,7 +5652,8 @@ begin
               if (nivdebug>1) or traceliste then AfficheDebug('135.7- TJD '+intToSTR(adr)+' mal positionnée cas 3.1',clyellow);
               if (alg and 2)=2 then
               begin
-                suivant_alg3:=9998;exit;
+                suivant_alg3:=9998;
+                exit;
               end;
             end;
           end;
@@ -5671,7 +5667,8 @@ begin
               begin
                 typeGen:=rien;
                 AdrDevie:=Adr;
-                suivant_alg3:=9997;exit;
+                suivant_alg3:=9997;
+                exit;
               end;
             end
             else
@@ -5679,7 +5676,8 @@ begin
               if (nivdebug>1) or traceliste then AfficheDebug('135.8- TJD '+intToSTR(adr)+' mal positionnée cas 3.2',clyellow);
               if (alg and 2)=2 then
               begin
-                suivant_alg3:=9998;exit;
+                suivant_alg3:=9998;
+                exit;
               end;
             end;
           end;
@@ -8608,8 +8606,9 @@ end;
 
 
 // le traitement d'un détecteur à 0 est temporisé car il peut électriquement rebondir à cause des mauvais contacts.
+// non utilisé ***************
 procedure traite_det0(adresse : integer);
-var i,j,k,EtatSig,det1,det2,det3,det4,det_suiv,adrSuiv,AdrTrainLoc,n : integer;
+var i,j,k,EtatSig,det1,t,det2,det3,det4,det_suiv,adrSuiv,AdrTrainLoc,n : integer;
     suivOk,CasAig : boolean;
     s,train_ch : string;
 begin
@@ -8779,10 +8778,13 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(1,det2,det3,0);    // désactivation
-            // activation
-            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
-            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+             for t:=1 to nbreTCO do
+             begin
+              zone_TCO(t,det2,det3,0);    // désactivation
+              // activation
+              if ModeCouleurCanton=0 then zone_TCO(t,det3,AdrSuiv,1)
+              else zone_TCO(t,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            end;
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -8831,7 +8833,7 @@ end;
 // adresse: adresse du detecteur, front: état du détecteur
 procedure calcul_zones_V1(adresse: integer;etat : boolean);
 var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,i,i2,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,etatSig : integer ;
+    id_couleur,det_suiv,nc,etatSig,tco : integer ;
     traite,trouve,SuivOk,casaig,rebond : boolean;
     couleur : tcolor;
     TypeSuiv : tEquipement;
@@ -8979,8 +8981,11 @@ begin
           if TCOActive then
           begin
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
-            else zone_TCO(1,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            for tco:=1 to nbreTCO do
+            begin
+              if ModeCouleurCanton=0 then zone_TCO(tco,det3,AdrSuiv,1)
+              else zone_TCO(tco,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            end;
           end;
           exit; // sortir absolument
         end
@@ -9040,9 +9045,12 @@ begin
             Affiche_Evt(s,clWhite);
             if TCOActive then
             begin
-              // activation
-              if ModeCouleurCanton=0 then zone_TCO(1,det1,det3,1)
-              else zone_TCO(1,det1,det3,2);  // affichage avec la couleur de index_couleur du train
+               // activation
+               for tco:=1 to nbreTCO do
+               begin
+                 if ModeCouleurCanton=0 then zone_TCO(tco,det1,det3,1)
+                 else zone_TCO(tco,det1,det3,2);  // affichage avec la couleur de index_couleur du train
+               end;
             end;
           end;
         end;
@@ -9225,10 +9233,13 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(1,det2,det3,0);    // désactivation
-            // activation
-            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
-            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            for tco:=1 to nbreTCO do
+            begin
+              zone_TCO(tco,det2,det3,0);    // désactivation
+              // activation
+              if ModeCouleurCanton=0 then zone_TCO(tco,det3,AdrSuiv,1)
+              else zone_TCO(tco,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            end;
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -9343,10 +9354,12 @@ begin
         if AffAigDet then AfficheDebug(s,couleur);
         if TCOActive then
         begin
-          zone_TCO(1,det1,det2,0);    // désactivation
-          // activation
-          if ModeCouleurCanton=0 then zone_TCO(1,det2,det3,1)
-          else zone_TCO(1,det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          for tco:=1 to nbreTCO do
+          begin
+            // activation
+            if ModeCouleurCanton=0 then zone_TCO(tco,det2,det3,1)
+            else zone_TCO(tco,det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          end;
         end;
         exit; // sortir absolument
       end
@@ -9523,7 +9536,7 @@ end;
 // adresse: adresse du detecteur, front: état du détecteur
 procedure calcul_zones_V2(adresse: integer;etat : boolean);
 var m,AdrFeu,AdrDetFeu,AdrTrainLoc,Nbre,i,j,k,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,etatSig : integer ;
+    id_couleur,det_suiv,nc,etatSig,t : integer ;
     traite,trouve,SuivOk,casaig,rebond : boolean;
     couleur : tcolor;
     TypeSuiv : tEquipement;
@@ -9659,8 +9672,11 @@ begin
         if TCOActive then
         begin
           // activation
-          if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
-          else zone_TCO(1,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+          for t:=1 to nbreTCO do
+          begin
+            if ModeCouleurCanton=0 then zone_TCO(t,det3,AdrSuiv,1)
+            else zone_TCO(t,det3,adrSuiv,2);  // affichage avec la couleur de index_couleur du train
+          end;
         end;
         exit; // sortir absolument
       end
@@ -9721,8 +9737,11 @@ begin
             if TCOActive then
             begin
               // activation
-              if ModeCouleurCanton=0 then zone_TCO(1,det1,det3,1)
-              else zone_TCO(1,det1,det3,2);  // affichage avec la couleur de index_couleur du train
+               for t:=1 to nbreTCO do
+               begin
+                if ModeCouleurCanton=0 then zone_TCO(t,det1,det3,1)
+                else zone_TCO(t,det1,det3,2);  // affichage avec la couleur de index_couleur du train
+              end;
             end;
           end;
         end;
@@ -9890,10 +9909,13 @@ begin
           end;
           if TCOActive then
           begin
-            zone_TCO(1,det2,det3,0);    // désactivation
-            // activation
-            if ModeCouleurCanton=0 then zone_TCO(1,det3,AdrSuiv,1)
-            else zone_TCO(1,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            for t:=1 to nbreTCO do
+            begin
+              //zone_TCO(tco,det2,det3,0);    // désactivation
+              // activation
+              if ModeCouleurCanton=0 then zone_TCO(t,det3,AdrSuiv,1)
+              else zone_TCO(t,det3,AdrSuiv,2);  // affichage avec la couleur de index_couleur du train
+            end;
           end;
 
           // mettre à jour si présence signal sur det3 pour le passer au rouge de suite
@@ -10021,10 +10043,13 @@ begin
         if AffAigDet then AfficheDebug(s,couleur);
         if TCOActive then
         begin
-          zone_TCO(1,det1,det2,0);    // désactivation
-          // activation
-          if ModeCouleurCanton=0 then zone_TCO(1,det2,det3,1)
-          else zone_TCO(1,det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          for t:=1 to nbreTCO do
+          begin
+            //zone_TCO(tco,det1,det2,0);    // désactivation
+            // activation
+            if ModeCouleurCanton=0 then zone_TCO(t,det2,det3,1)
+            else zone_TCO(t,det2,det3,2);  // affichage avec la couleur de index_couleur du train
+          end;
         end;
         exit; // sortir absolument
       end
@@ -12767,19 +12792,19 @@ begin
     GroupBox2.Left:=i+12;
     GroupBox3.Left:=i+12;
     ScrollBox1.Left:=i+12;
-    ScrollBox1.width:=panel2.Width-i-5;
+    ScrollBox1.width:=GrandPanel.Width-i-5;
     Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
     Panel1.top:=9;
     GroupBox1.Top:=5;
     Affiche_signaux;
 
-    if not(avec_Splitter) then Panel2.Width:=i;
+    if not(avec_Splitter) then GrandPanel.Width:=i;
   end;
 end;
 
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
-var i,index,OrgMilieu : integer;
+var t,i,index,OrgMilieu : integer;
     s : string;
 begin
   AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
@@ -12967,9 +12992,7 @@ begin
   with statusbar1 do
   begin
     SimplePanel:=false;  // pour afficher plusieurs panels dans la Statusbar
-
     Panels[0].Text:='';
-
     Panels[1].Text:='';
     Panels[2].Text:='';
     Panels[3].Text:='';
@@ -12977,16 +13000,15 @@ begin
     //Panels[3].Style:=psOwnerDraw;  // pour déclencher l'évenement onDraw
   end;
 
-  with Panel2 do
-    begin
-      left:=5;
-      //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
-      top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
-      width:=formprinc.width-30;
-      height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-63;
-      //height:=400;
-      Anchors:=[akLeft,akTop,akRight,akBottom];
-    end;
+  with GrandPanel do
+  begin
+    left:=5;
+    //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
+    top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
+    width:=formprinc.width-30;
+    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-63;
+    Anchors:=[akLeft,akTop,akRight,akBottom];
+  end;
 
 
   if avec_splitter then
@@ -12996,7 +13018,7 @@ begin
       left:=5;
       Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
       top:=5;  // par rapport au panel
-      Width:=panel2.Width-Panel1.Width-GroupBox1.Width-25;
+      Width:=GrandPanel.Width-Panel1.Width-GroupBox1.Width-25;
       //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
       Anchors:=[akLeft,akTop,akRight,akBottom];
     end;
@@ -13005,17 +13027,17 @@ begin
     begin
       Left:=FenRich.left+FenRich.Width-25;
       MinSize:=200;
-      Parent:=Panel2;
+      Parent:=GrandPanel;
       align:=fenrich.align;   // dessine le splitter à droite de la fenetre Fenrich
       Visible:=true;
     end;
 
     with ScrollBox1 do
     begin
-      Parent:=Panel2;
+      Parent:=GrandPanel;
       Anchors:=[akTop,akRight,akBottom];
-      width:=panel2.Width-SplitterV.Width-5;
-      height:=panel2.Height-groupBox3.height-groupBox3.top-25;
+      width:=GrandPanel.Width-SplitterV.Width-5;
+      height:=GrandPanel.Height-groupBox3.height-groupBox3.top-25;
       top:=GroupBox3.Top+GroupBox3.Height+5;
     end;
 
@@ -13033,13 +13055,13 @@ begin
       left:=5;
       top:=0;
 
-      width:=panel2.Width-orgMilieu-10;
-      height:=panel2.Height;
+      width:=GrandPanel.Width-orgMilieu-10;
+      height:=GrandPanel.Height;
       //Anchors:=[akLeft,akTop,akRight,akBottom];
       GroupBox1.Left:=orgMilieu+12;
       GroupBox3.Left:=orgMilieu+12;
       ScrollBox1.Left:=orgMilieu+12;
-      ScrollBox1.width:=panel2.Width-orgMilieu-5;
+      ScrollBox1.width:=GrandPanel.Width-orgMilieu-5;
       ScrollBox1.top:=GroupBox3.Top+GroupBox3.Height+5;
       ScrollBox1.Anchors:=[akTop,akRight,akBottom];
       Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
@@ -13055,36 +13077,40 @@ begin
 
   for index:=1 to nbreTCO do
   begin
+    tcoCree:=false;
+    IndexTCOCreate:=index;
+    formTCO[index]:=TformTCO.Create(self);
+    formTCO[index].Name:='FormTCO'+intToSTR(index);
+    formTCO[index].Caption:='TCO'+intToSTR(index);
+    t:=0;
+    repeat
+      Application.ProcessMessages;
+      inc(t);
+    until tcoCree or (t>10);
+    if t>10 then
     begin
-      tcoCree:=false;
-      IndexTCOCreate:=index;
-      formTCO[index]:=TformTCO.Create(self);
-      formTCO[index].Name:='FormTCO'+intToSTR(index);
-      formTCO[index].Caption:='TCO'+intToSTR(index);
-      repeat
-        Application.ProcessMessages;
-      until tcoCree; 
-    end;
-    Affiche_Fenetre_TCO(index,avecTCO);
+      Affiche('Erreur 850 : TCO non créé',clred);
+      formTCO[index]:=nil;
+    end
+    else
+      Affiche_Fenetre_TCO(index,avecTCO);
   end;
 
-  // ouvre com commandes actionneurs, car on a lu les com dans la config
+
+  // ouvre périphériques commandes actionneurs, car on a lu les com dans la config
   for i:=1 to NbPeriph do
   begin
     //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
     index:=com_socket(i);   // comusb ou socket ?
     if index=1 then
     begin
-      if connecte_port_usb_periph(i) then
-        Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique ouvert',clLime)
+      if connecte_port_usb_periph(i) then Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique ouvert',clLime)
       else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique non ouvert',clOrange);
     end;
     if index=2 then
     begin
-      if connecte_socket_periph(i) then
-        Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
-      else
-      Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
+      if connecte_socket_periph(i) then Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
+      else Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
     end;
   end;
 
@@ -13157,7 +13183,7 @@ begin
     begin
       Affiche('Positionnement des signaux',clYellow);
       init_aiguillages;   // initialisation des aiguillages
-      envoi_signauxCplx;  // initialisation des feux
+      envoi_signauxCplx;  // initialisation des signaux
     end;
     if not(AvecInitAiguillages) and not(ferme) and (parSocketLenz or portCommOuvert)
        and AvecDemandeAiguillages then
@@ -13171,31 +13197,52 @@ begin
 
 
   //DoubleBuffered:=true;
-  {
+   {
     aiguillage[index_aig(1)].position:=const_droit;
+    aiguillage[index_aig(2)].position:=const_droit;
     aiguillage[index_aig(3)].position:=const_devie;
     aiguillage[index_aig(4)].position:=const_devie;
     aiguillage[index_aig(5)].position:=const_droit;
     aiguillage[index_aig(6)].position:=const_devie;
-    aiguillage[index_aig(7)].position:=const_devie;
-    aiguillage[index_aig(8)].position:=const_devie;
+    aiguillage[index_aig(7)].position:=const_droit;
+    aiguillage[index_aig(8)].position:=const_droit;
     aiguillage[index_aig(10)].position:=const_devie;
-    aiguillage[index_aig(11)].position:=const_devie;
-    aiguillage[index_aig(12)].position:=const_droit;
+    aiguillage[index_aig(11)].position:=const_droit;
+    aiguillage[index_aig(12)].position:=const_devie;
     aiguillage[index_aig(18)].position:=const_devie;
     aiguillage[index_aig(19)].position:=const_devie;
-    aiguillage[index_aig(20)].position:=const_droit;
+    aiguillage[index_aig(20)].position:=const_devie;
     aiguillage[index_aig(21)].position:=const_droit;
     aiguillage[index_aig(26)].position:=const_droit;
     aiguillage[index_aig(27)].position:=const_droit;
     aiguillage[index_aig(28)].position:=const_devie;
     aiguillage[index_aig(29)].position:=const_droit;
+    aiguillage[index_aig(30)].position:=const_droit;
     aiguillage[index_aig(31)].position:=const_devie;
     aiguillage[index_aig(25)].position:=const_droit;
     aiguillage[index_aig(9)].position:=const_droit;
+    {zone_tco(1,519,527,1);
+    zone_tco(1,521,527,2);
+     
+     Event_Detecteur(524,true,'A');
+     Event_Detecteur(524,false,'A');
+
+     Event_Detecteur(521,true,'A');
+     Event_Detecteur(521,false,'A');
+
+     Event_Detecteur(527,true,'A');
+     Event_Detecteur(527,false,'A');
+
+     Event_Detecteur(524,true,'B');
+     Event_Detecteur(524,false,'B');
+
+     Event_Detecteur(521,true,'B');
+     Event_Detecteur(521,false,'B');
+
+   }
+
+
   //    roulage:=true;
-     det_contigu(526,515,i,teq);
-     Affiche(intToSTR(i),clred);  }
  { formatY:=2;
      ‹y 00001010000101000111010000>     format 0
   //  ‹y 0A0147405801CE..40›             format 1 quartets renversés
@@ -13217,15 +13264,6 @@ begin
   end
     else Affiche_fenetre_CDM.Enabled:=false;
 
- { With FenRich do
-  begin
-    ReadOnly:=false;
-    clear;
-    Affiche('',clYellow);
-    PasteFromClipboard;
-    SetFocus;
-    ReadOnly:=true;
-  end; }
   //Affiche(GetMACAddress,clred);
   formPrinc.left:=-1000;
   ConfCellTCO:=false;
@@ -13430,8 +13468,8 @@ begin
               testBit(a,vert_cli) or testbit(a,blanc_cli)
             else
             begin
-              combine:=a and $fc00;
-              faire:=testBit(combine,clignote);
+              // signal belge
+              faire:=testBit(a,clignote);
             end;
             if faire then
             begin
@@ -13935,6 +13973,7 @@ begin
     model:=aiguillage[i].modele ;
     if (model<>rien) then
     begin
+
       if model<>crois then
       begin
         s:='Aiguillage '+IntToSTR(aiguillage[i].Adresse)+' : ';
@@ -13955,6 +13994,7 @@ begin
       end;
 
       if (model=Crois) then s:='Croisement '+IntToSTR(aiguillage[i].Adresse);
+
       r:=aiguillage[i].AdrTrain;
       if r<>0 then s:=s+': réservé par train @'+intToSTR(r);
       if s<>'' then Affiche(s,clWhite);
@@ -15111,7 +15151,7 @@ end;
 
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
 var i,typ,adract,etatAct,fonction,v,acc,sortie : integer;
-    loc,act,son : boolean;
+    loc,act,son,periph : boolean;
     s,s2 : string;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
@@ -15133,6 +15173,7 @@ begin
     loc:=Tablo_actionneur[i].loco;
     act:=Tablo_actionneur[i].act;
     son:=Tablo_actionneur[i].son;
+    periph:=Tablo_actionneur[i].periph;
     typ:=Tablo_actionneur[i].typdeclenche;
 
     if typ=3 then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
@@ -15146,8 +15187,11 @@ begin
       s:='Accessoire Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' Adresse='+IntToSTR(acc)+
               ' sortie='+intToSTR(sortie);
     if son then
-      s:='Son Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+
+      s:='Son        Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+
          '  Fichier:'+Tablo_actionneur[i].FichierSon;
+
+    if periph then
+      s:='Périphérique Déclencheur='+s;
 
     Affiche(s,clYellow);
   end;
@@ -16824,7 +16868,7 @@ end;
 procedure TFormPrinc.Affichagenormal1Click(Sender: TObject);
 begin
   //FenRich.Width:=panel2.Width div 2;
-  FenRich.Width:=panel2.Width-Panel1.Width-GroupBox1.Width-25;
+  FenRich.Width:=GrandPanel.Width-Panel1.Width-GroupBox1.Width-25;
   splitterV.Left:=FenRich.left+FenRich.Width-5;
   positionne_elements(splitterV.Left);
 end;
@@ -16852,9 +16896,7 @@ begin
 end;
 
 procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
-var
-  RectForText: TRect;    
-  i : integer;
+var RectForText: TRect;
 begin
   if (Panel = StatusBar.Panels[3]) then
   begin

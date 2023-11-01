@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.25';  // sert à la comparaison de la version publiée
+Const  Version='8.26';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -228,12 +228,12 @@ begin
           //description:=utf8Decode(description);
           i:=1 ; j:=1;
           // couper en chaînes
-          while j<>0 do
-          begin
+          repeat 
             j:=pos('\r',description);
             if j<>0 then
             begin
               comm[i]:=copy(description,1,j-1);
+
               inc(i);
               delete(description,1,j+1);
             end;
@@ -244,10 +244,11 @@ begin
               delete(description,j,2);
             end;
 
-          end;
+          until j=0;
+          //
+          ncomm:=i;
           comm[i]:=supprime_anti(description);
-          ncomm:=i-1;
-
+             
         end;
 
       end;

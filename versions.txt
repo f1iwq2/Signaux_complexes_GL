@@ -199,7 +199,7 @@ version 8.23 : Correction bug si changement aspect du signal.
 version 8.24 : Traitement de cas particuliers de l'importation de réseaux CDM rail.
 version 8.25 : Intégration d'un outil graphique de sélection dans le TCO.
                Intégration d'un menu dans la fenêtre du TCO.
-
-
+version 8.26 : Amélioration de l'affichage du suivi des trains dans les TCOs.
+               Restitution du Zoom du TCO lors de sa sauvegarde.
 
 
