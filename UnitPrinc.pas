@@ -390,13 +390,12 @@ const_droit_CDM=0;    // positions aiguillages transmises par cdm
 const_inconnu=9;      // position inconnue
 NbCouleurTrain=8;
 MaxCdeDccpp=20;
-ClBleuClair=$FF7070 ;
 clRose=$AAAAFF;
-Cyan=$FF6060;
+clCyan=$FFA0A0;
 clviolet=$FF00FF;
 GrisF=$333333;
 clOrange=$0077FF;
-couleurTrain : array[0..NbCouleurTrain] of Tcolor = (clRose,clYellow,clLime,clOrange,clAqua,clFuchsia,clLtGray,clred,clWhite);
+couleurTrain : array[0..NbCouleurTrain] of Tcolor = (clRose,clYellow,clLime,ClCyan,clAqua,clFuchsia,clLtGray,clred,clWhite);
 Max_Simule=10000;
 Max_Event_det_tick=30000;
 EtatSign : array[0..13] of string[20] =('carré','sémaphore','sémaphore cli','vert','vert cli','violet',
@@ -841,7 +840,7 @@ procedure ferme_pn_usb(i : integer);
 procedure ouvre_pn_socket(i : integer);
 procedure ferme_pn_socket(i : integer);
 function com_socket(i : integer) : integer;
-function liste_portcom : tStrings;
+procedure liste_portcom;
 procedure mosaiqueH;
 procedure mosaiqueV;
 function InfoSignal(adresse : integer) : string;
@@ -4837,10 +4836,11 @@ begin
 end;
 
 // trouve l'index d'un détecteur dans une branche
-// si pas trouvé, renvoie 0
+// si pas trouvé, renvoie 0 sinon renvoie l'index du détecteur dans la branche
 function index_detecteur(detecteur,Num_branche : integer) : integer;
 var i,adr : integer;
     trouve : boolean;
+    // trouve si detecteur est dans la branche num_branche à partir de l'index i
     procedure recherche;
     begin
       repeat
@@ -4853,11 +4853,13 @@ var i,adr : integer;
     end;
 begin
   if debug=3 then formprinc.Caption:='index_detecteur '+IntToSTR(detecteur);
+  {
   i:=1;index2_det:=0;
   recherche;
   if trouve then result:=i else result:=0;
   //affiche(inttostr(ai+1),clOrange);
-  i:=2; // à voir
+  }
+  i:=1;
   //affiche('------------------------',clWhite);
   recherche;
   //affiche('------------------------',clGreen);
@@ -6282,7 +6284,7 @@ begin
   dernier:=0;
 
   // faire en incrément
-  if afdeb then afficheDebug('incrément',cyan);
+  if afdeb then afficheDebug('incrément',clcyan);
   suiv1:=BrancheN[Branche_Det,indexBranche_det+1].adresse;
   type1:=BrancheN[Branche_Det,indexBranche_det+1].Btype;  // det aig buttoir
 
@@ -6309,7 +6311,7 @@ begin
   end;
 
   // faire en décrément
-  if afdeb then afficheDebug('décrément',cyan);
+  if afdeb then afficheDebug('décrément',clcyan);
   if not(trouve) then
   begin
     suiv1:=BrancheN[Branche_Det,indexBranche_det-1].adresse;
@@ -9294,8 +9296,8 @@ begin
         if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) then
         begin
           //*** route validée ***
-          MemZone[det1,det2].etat:=false;
-          MemZone[det2,det1].etat:=False;     // on dévalide la zone inverse
+          //MemZone[det1,det2].etat:=false;
+         // MemZone[det2,det1].etat:=False;     // on dévalide la zone inverse non car sinon ne marche pas quand 2 trains se suivent
           MemZone[det2,det3].etat:=TRUE;      // valide la nouvelle zone
           MemZone[det3,det2].etat:=False;     // on dévalide la zone inverse
           //Train_Ch:=event_det_train[i].nom_train;
@@ -11064,17 +11066,20 @@ begin
   if (acc=aigP) then
   begin
     indexAig:=index_aig(adresse);
-    AdrTrain:=aiguillage[indexAig].AdrTrain;
-    if AdrTrain<>0 then
+    if indexAig<>0 then
     begin
-      Affiche('Pilotage impossible, l''aiguillage '+intToSTR(adresse)+' est réservé par le train @'+intToSTR(AdrTrain),clred);
-      Result:=false;
-      exit;
-    end;
-    if (aiguillage[indexAig].inversionCDM=1) then
-    begin
-      if octet=1 then pilotage:=2 else pilotage:=1;
-    end;
+      AdrTrain:=aiguillage[indexAig].AdrTrain;
+      if AdrTrain<>0 then
+      begin
+        Affiche('Pilotage impossible, l''aiguillage '+intToSTR(adresse)+' est réservé par le train @'+intToSTR(AdrTrain),clred);
+        Result:=false;
+        exit;
+      end;
+      if (aiguillage[indexAig].inversionCDM=1) then
+      begin
+        if octet=1 then pilotage:=2 else pilotage:=1;
+      end;
+    end;  
   end;
 
   // pilotage par CDM rail -----------------
@@ -11846,8 +11851,8 @@ begin
         editadrtrain.Text:=inttostr(trains[1].adresse);
       end;
     end;
-    Affiche('CDM rail déconnecté',Cyan);
-    AfficheDebug('CDM rail déconnecté',Cyan);
+    Affiche('CDM rail déconnecté',clCyan);
+    AfficheDebug('CDM rail déconnecté',clCyan);
     Formprinc.StatusBar1.Panels[2].text:='CDM déconnecté';
     filtrageDet0:=SauvefiltrageDet0;
   end;
@@ -11964,6 +11969,7 @@ begin
   if (numport<1) or (numport>255) then
   begin
     affiche('Erreur portCom cde acc <0 ou >255',clred);
+    result:=false;
     exit;
   end;
   trouve:=false;
@@ -12048,6 +12054,7 @@ begin
   if (index<0) or (index>10) then
   begin
     affiche('Le nombre maxi de périphériques est atteint - Le socket '+Tablo_periph[index].protocole+' ne sera pas ouvert',clred);
+    result:=false;
     exit;
   end;
 
@@ -12642,7 +12649,7 @@ begin
           else
           s:=s+' non positionné';
         end;
-        Affiche(s,cyan);
+        Affiche(s,clcyan);
         aiguillage[index].position:=pos;
       end;
     end;
@@ -13197,7 +13204,7 @@ begin
 
 
   //DoubleBuffered:=true;
-   {
+    {
     aiguillage[index_aig(1)].position:=const_droit;
     aiguillage[index_aig(2)].position:=const_droit;
     aiguillage[index_aig(3)].position:=const_devie;
@@ -13209,6 +13216,7 @@ begin
     aiguillage[index_aig(10)].position:=const_devie;
     aiguillage[index_aig(11)].position:=const_droit;
     aiguillage[index_aig(12)].position:=const_devie;
+    aiguillage[index_aig(17)].position:=const_devie;
     aiguillage[index_aig(18)].position:=const_devie;
     aiguillage[index_aig(19)].position:=const_devie;
     aiguillage[index_aig(20)].position:=const_devie;
@@ -13221,9 +13229,9 @@ begin
     aiguillage[index_aig(31)].position:=const_devie;
     aiguillage[index_aig(25)].position:=const_droit;
     aiguillage[index_aig(9)].position:=const_droit;
-    {zone_tco(1,519,527,1);
-    zone_tco(1,521,527,2);
-     
+   // zone_tco(1,519,527,1);
+   // zone_tco(1,521,527,2);
+    {
      Event_Detecteur(524,true,'A');
      Event_Detecteur(524,false,'A');
 
@@ -13232,16 +13240,17 @@ begin
 
      Event_Detecteur(527,true,'A');
      Event_Detecteur(527,false,'A');
+     aiguillage[index_aig(7)].position:=const_devie;
+     }
+     //zone_TCO(1,560,562,1);
 
-     Event_Detecteur(524,true,'B');
-     Event_Detecteur(524,false,'B');
+     //zone_TCO_V2(1,527,519,1);
 
-     Event_Detecteur(521,true,'B');
-     Event_Detecteur(521,false,'B');
+   //  Event_Detecteur(524,true,'B');
+     //(524,false,'B');
 
-   }
-
-
+   //  Event_Detecteur(521,true,'B');
+   //  Event_Detecteur(521,false,'B');
   //    roulage:=true;
  { formatY:=2;
      ‹y 00001010000101000111010000>     format 0
@@ -13361,7 +13370,7 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var i,a,combine,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
+var i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
    imageFeu : Timage;
    frx,fry : real;
    faire : boolean;
@@ -13593,7 +13602,7 @@ begin
   begin
     if not(MsgSim) then
     begin
-      Affiche('Simulation en cours ',Cyan);MsgSim:=true;
+      Affiche('Simulation en cours ',clCyan);MsgSim:=true;
     end;
 
     if intervalle_courant>=Intervalle then
@@ -13627,7 +13636,7 @@ begin
         I_Simule:=0;
         MsgSim:=false;
         filtrageDet0:=SauvefiltrageDet0;
-        Affiche('Fin de simulation',Cyan);
+        Affiche('Fin de simulation',clCyan);
         StatusBar1.Panels[1].text:='';
       end;
     end;
@@ -14006,8 +14015,8 @@ procedure TFormPrinc.Codificationdesaiguillages1Click(Sender: TObject);
 var i,adr : integer ;
     s : string;
 begin
-  Affiche('Codification interne des aiguillages',Cyan);
-  Affiche('D=position droite S=position déviée P=pointe Z=détecteur',Cyan);
+  Affiche('Codification interne des aiguillages',clCyan);
+  Affiche('D=position droite S=position déviée P=pointe Z=détecteur',clCyan);
   for i:=1 to MaxAiguillage do
   begin
     adr:=aiguillage[i].adresse;
@@ -15156,11 +15165,11 @@ var i,typ,adract,etatAct,fonction,v,acc,sortie : integer;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
   begin
-    Affiche('Aucun actionneur déclaré',Cyan);
+    Affiche('Aucun actionneur déclaré',clCyan);
     exit;
   end;
 
-  Affiche('Codification interne des actionneurs',Cyan);
+  Affiche('Codification interne des actionneurs',clCyan);
   for i:=1 to maxTablo_act do
   begin
     s:=Tablo_actionneur[i].trainDecl;
@@ -15237,7 +15246,7 @@ begin
   MsgSim:=false;
   filtrageDet0:=SauvefiltrageDet0;
   StopSimu:=true;
-  Affiche('Fin de simulation',Cyan);
+  Affiche('Fin de simulation',clCyan);
 end;
 
 procedure TFormPrinc.OuvrirunfichiertramesCDM1Click(Sender: TObject);
@@ -15382,7 +15391,7 @@ begin
       aff:=MemZone[i,j].etat;
       if aff then
       begin
-        Affiche('MemZone['+intToSTR(i)+','+intToSTR(j)+'] '+MemZone[i,j].train+' @='+intToSTR(MemZone[i,j].AdrTrain)+' Train n°'+intToSTR(MemZone[i,j].Numtrain),clYellow);
+        Affiche('MemZone['+intToSTR(i)+','+intToSTR(j)+'] '+MemZone[i,j].train+' @='+intToSTR(MemZone[i,j].AdrTrain)+' Train n°'+intToSTR(MemZone[i,j].Numtrain),couleurTrain[MemZone[i,j].Numtrain]);
         rien:=false;
       end;
       inc(j);
@@ -15403,14 +15412,14 @@ begin
     if n<>0 then s:=s+' @'+intToSTR(n);
     ss:=event_det_train[i].nom_train;
     if ss<>'' then s:=s+' '+ss;
-    Affiche(s,clOrange);
+    Affiche(s,couleurTrain[i]);
 
     n:=event_det_train[i].signal_rouge;
     if n<>0 then Affiche('Arreté devant signal '+intToSTR(n),clyellow);
     for j:=1 to event_det_train[i].NbEl do
     begin
       s:=intToSTR(event_det_train[i].Det[j].adresse);
-      Affiche(s,clyellow);
+      Affiche(s,couleurTrain[i]);
     end;
   end;
 
@@ -15880,7 +15889,7 @@ begin
   if i=0 then Affiche('Aucun port com',clyellow);
 end;
 
-function liste_portcom : tStrings;
+procedure liste_portcom ;
 begin
   try
     CoInitialize(nil);

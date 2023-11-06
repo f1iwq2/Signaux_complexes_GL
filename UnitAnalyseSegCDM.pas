@@ -897,7 +897,7 @@ begin
   with FormAnalyseCdm.ImageCDM.canvas do
   begin
     pen.Width:=1;
-    pen.color:=Cyan;
+    pen.color:=clCyan;
     TextOut(x,y,s);
     Moveto(0,0);
     LineTo(x,y);

@@ -4,7 +4,7 @@ object FormConfCellTCO: TFormConfCellTCO
   BorderStyle = bsDialog
   Caption = 'FormConfCellTCO'
   ClientHeight = 430
-  ClientWidth = 282
+  ClientWidth = 284
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -291,10 +291,10 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 5
     end
     object GroupBoxAction: TGroupBox
-      Left = 24
-      Top = 184
+      Left = 8
+      Top = 80
       Width = 249
-      Height = 105
+      Height = 129
       Caption = 'Action'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -303,6 +303,20 @@ object FormConfCellTCO: TFormConfCellTCO
       Font.Style = []
       ParentFont = False
       TabOrder = 6
+      object Label3: TLabel
+        Left = 104
+        Top = 74
+        Width = 38
+        Height = 13
+        Caption = 'Adresse'
+      end
+      object Labela: TLabel
+        Left = 184
+        Top = 74
+        Width = 6
+        Height = 13
+        Caption = #224
+      end
       object RadioButtonAffTCO: TRadioButton
         Left = 8
         Top = 24
@@ -337,6 +351,34 @@ object FormConfCellTCO: TFormConfCellTCO
         Caption = 'Afficher CDM rail'
         TabOrder = 3
         OnClick = RadioButtonCDMClick
+      end
+      object RadioButtonAction: TRadioButton
+        Left = 8
+        Top = 72
+        Width = 89
+        Height = 17
+        Caption = 'Activer sortie'
+        TabOrder = 4
+        OnClick = RadioButtonActionClick
+      end
+      object EditAdrSortie: TEdit
+        Left = 144
+        Top = 68
+        Width = 33
+        Height = 21
+        TabOrder = 5
+        OnChange = EditAdrSortieChange
+      end
+      object EditEtat: TEdit
+        Left = 200
+        Top = 68
+        Width = 25
+        Height = 21
+        Hint = '1 ou 2'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 6
+        OnChange = EditEtatChange
       end
     end
   end

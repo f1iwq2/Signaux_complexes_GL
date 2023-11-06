@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAutonome
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1465,7 +1465,7 @@ object FormConfig: TFormConfig
           Top = 16
           Width = 25
           Height = 21
-          Hint = 'Temps de filtrage d'#39'un d'#233'tecteur qui passe '#224' 0'
+          Hint = 'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2318,7 +2318,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2425,7 +2425,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2719,7 +2719,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           AutoComplete = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2738,7 +2738,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2784,7 +2784,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3163,7 +3163,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3344,7 +3344,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10

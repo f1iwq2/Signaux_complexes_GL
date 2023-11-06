@@ -805,7 +805,7 @@ begin
   end
   else
   begin
-    if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,cyan);
+    if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,clcyan);
   end;
 end;
 

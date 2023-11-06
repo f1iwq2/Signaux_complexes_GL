@@ -446,7 +446,6 @@ var ok : boolean;
     s : string;
 begin
   ok:=true;
-
   if verif_config_TCO(indexTCOCourant) then
   begin
     with FormTCO[indexTCOCourant].ImageTCO do

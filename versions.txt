@@ -201,5 +201,9 @@ version 8.25 : Intégration d'un outil graphique de sélection dans le TCO.
                Intégration d'un menu dans la fenêtre du TCO.
 version 8.26 : Amélioration de l'affichage du suivi des trains dans les TCOs.
                Restitution du Zoom du TCO lors de sa sauvegarde.
+version 8.27 : Nouvel algorithme de suivi des trains dans les TCO.
+               Correction suivi de deux trains consécutifs. 
+               Création d'une action TCO "pilotage d'accessoire"
+               
 
 

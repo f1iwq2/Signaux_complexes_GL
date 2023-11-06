@@ -36,6 +36,11 @@ type
     EditNumTCO: TEdit;
     RadioButtonSC: TRadioButton;
     RadioButtonCDM: TRadioButton;
+    RadioButtonAction: TRadioButton;
+    Label3: TLabel;
+    EditAdrSortie: TEdit;
+    EditEtat: TEdit;
+    Labela: TLabel;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -59,6 +64,9 @@ type
     procedure FormHide(Sender: TObject);
     procedure RadioButtonSCClick(Sender: TObject);
     procedure RadioButtonCDMClick(Sender: TObject);
+    procedure EditAdrSortieChange(Sender: TObject);
+    procedure EditEtatChange(Sender: TObject);
+    procedure RadioButtonActionClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -69,7 +77,7 @@ var
   FormConfCellTCO: TFormConfCellTCO;
   actualize,ConfCellTCO : boolean;
   IconeX,IconeY : integer;
-  
+
 procedure actualise(indexTCO : integer);
 
 implementation
@@ -131,7 +139,18 @@ begin
         RadioButtonAffTCO.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=1;
         RadioButtonSC.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=2;
         RadioButtonCDM.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=3;
+        RadioButtonAction.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=4;
         editNumTCO.Text:=intToSTR(tco[indexTCO,Xclic,Yclic].FeuOriente);
+        if RadioButtonAction.Checked then
+        begin
+          EditAdrSortie.Text:=intToSTR(tco[indexTCO,Xclic,Yclic].Adresse);
+          EditEtat.Text:=intToSTR(tco[indexTCO,Xclic,Yclic].sortie);
+        end
+        else
+        begin
+          EditAdrSortie.Text:='';
+          EditEtat.Text:='';
+        end;
       end;
     end;
   end
@@ -817,6 +836,44 @@ begin
     x:=XClicCell[IndexTCOCourant];
     y:=yClicCell[IndexTCOCourant];
     tco[IndexTCOCourant,x,y].PiedFeu:=3;
+    efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
+    affiche_cellule(IndexTCOCourant,x,y);
+    actualise(indexTCOCourant);
+  end;
+end;
+
+procedure TFormConfCellTCO.EditAdrSortieChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  if clicTCO then exit;
+
+  val(EditAdrSortie.Text,i,erreur);
+  if erreur<>0 then exit;
+
+  tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].adresse:=i;
+end;
+
+procedure TFormConfCellTCO.EditEtatChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  if clicTCO then exit;
+
+  val(EditEtat.Text,i,erreur);
+  if erreur<>0 then exit;
+
+  tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].sortie:=i;
+end;
+
+
+procedure TFormConfCellTCO.RadioButtonActionClick(Sender: TObject);
+var x,y : integer;
+begin
+  if clicTCO or actualize then exit;
+  if RadioButtonAction.Checked then
+  begin
+    x:=XClicCell[IndexTCOCourant];
+    y:=yClicCell[IndexTCOCourant];
+    tco[IndexTCOCourant,x,y].PiedFeu:=4;
     efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
     affiche_cellule(IndexTCOCourant,x,y);
     actualise(indexTCOCourant);
