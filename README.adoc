@@ -12,3 +12,5 @@ Fichiers sources.
 
 * {lien}[Lien vers le fil] -- Forum de CDM rail
 * {cdm}[Lien vers CDM rail] -- Site de CDM rail  
+
+image::https://ligneduhautbugey.fr/design/images_doc/signalisation/sigpresentation.gif[]
