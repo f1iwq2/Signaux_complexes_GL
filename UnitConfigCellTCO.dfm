@@ -363,7 +363,7 @@ object FormConfCellTCO: TFormConfCellTCO
       end
       object EditAdrSortie: TEdit
         Left = 144
-        Top = 68
+        Top = 70
         Width = 33
         Height = 21
         TabOrder = 5
@@ -371,7 +371,7 @@ object FormConfCellTCO: TFormConfCellTCO
       end
       object EditEtat: TEdit
         Left = 200
-        Top = 68
+        Top = 70
         Width = 25
         Height = 21
         Hint = '1 ou 2'

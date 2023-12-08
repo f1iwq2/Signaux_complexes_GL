@@ -44,7 +44,10 @@ begin
     LabelAdr1.Visible:=false;
     ButtonDev2.Visible:=false;
     ButtonDroit2.Visible:=false;
-    ButtonOk.Visible:=false;
+    ButtonOk.Visible:=true;
+    buttonDev.Visible:=true;
+    buttonDroit.Visible:=true;
+
     ButtonDev.Left:=48;
     ButtonDroit.Left:=216;
   end;
@@ -55,6 +58,22 @@ var i : integer;
     s : string;
 begin
   i:=Index_aig(Aiguille);
+  if aiguillage[i].AdrTrain<>0 then
+  begin
+    tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
+    if tjdC then s:='Pilotage de la TJD/S '+intToSTR(aiguille) else s:='Pilotage de l''aiguillage '+intToSTR(aiguille);
+    Label1.Caption:=s;
+    if tjdC then s:='La TJD/S '+intToSTR(aiguille)+' est réservée ' else s:='L''aiguillage '+intToSTR(aiguille)+' est réservé ';
+    labelAdr1.caption:=s+'par le train '+intToSTR(aiguillage[i].AdrTrain);
+    labelAdr1.Visible:=true;
+    buttonDev.Visible:=false;
+    buttonDroit.Visible:=false;
+    buttonDev2.Visible:=false;
+    buttonDroit2.Visible:=false;
+    LabelAdr2.Visible:=false;
+    exit;
+  end;
+
   aigC:=(aiguillage[i].modele=aig);
   tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
   if aigC then
@@ -79,6 +98,10 @@ begin
       ButtonDroit2.Visible:=true;
       ButtonDev.Left:=8;
       ButtonDroit.Left:=88;
+
+      buttonDroit.Visible:=true;
+      buttonDev.Visible:=true;
+
     end;
   end;
   if aiguillage[i].EtatTJD=2 then

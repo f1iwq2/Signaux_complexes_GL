@@ -40,16 +40,16 @@ object FormPilote: TFormPilote
   end
   object LabelNbFeux: TLabel
     Left = 208
-    Top = 248
+    Top = 256
     Width = 120
     Height = 13
     Caption = 'Nombre de feux '#224' allumer'
   end
   object LabelDec: TLabel
-    Left = 200
-    Top = 192
-    Width = 72
-    Height = 19
+    Left = 208
+    Top = 184
+    Width = 113
+    Height = 41
     Alignment = taCenter
     Caption = 'LabelDec'
     Font.Charset = ANSI_CHARSET
@@ -59,17 +59,18 @@ object FormPilote: TFormPilote
     Font.Style = [fsBold]
     ParentFont = False
     Layout = tlCenter
+    WordWrap = True
   end
   object Label1: TLabel
     Left = 240
-    Top = 176
+    Top = 168
     Width = 50
     Height = 13
     Caption = 'D'#233'codeur:'
   end
   object ImageSignaux: TImage
     Left = 168
-    Top = 96
+    Top = 72
     Width = 153
     Height = 105
     Picture.Data = {
@@ -1130,7 +1131,7 @@ object FormPilote: TFormPilote
   end
   object EditNbreFeux: TEdit
     Left = 240
-    Top = 264
+    Top = 272
     Width = 57
     Height = 21
     TabOrder = 3
@@ -1139,7 +1140,7 @@ object FormPilote: TFormPilote
   end
   object CheckVerrouCarre: TCheckBox
     Left = 216
-    Top = 216
+    Top = 240
     Width = 113
     Height = 17
     Caption = 'Verrouiller au carr'#233

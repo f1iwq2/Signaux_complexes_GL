@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 14
-  Top = 171
+  Left = 89
+  Top = 111
   Width = 1212
   Height = 580
   VertScrollBar.Visible = False
@@ -23,8 +23,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1204
-    529)
+    1196
+    521)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -42,22 +42,24 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 731
-    Top = 123
+    Left = 1020
+    Top = 3
     Width = 121
     Height = 121
+    Anchors = [akTop, akRight]
   end
   object ImageTemp2: TImage
-    Left = 995
-    Top = 76
+    Left = 1019
+    Top = 132
     Width = 121
     Height = 121
+    Anchors = [akTop, akRight]
   end
   object ScrollBox: TScrollBox
     Left = 10
-    Top = 7
-    Width = 946
-    Height = 258
+    Top = 15
+    Width = 687
+    Height = 266
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -68,13 +70,13 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      942
-      254)
+      683
+      262)
     object ImageTCO: TImage
-      Left = 56
-      Top = 33
-      Width = 745
-      Height = 168
+      Left = 120
+      Top = 41
+      Width = 486
+      Height = 176
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -1260,8 +1262,12 @@ object FormTCO: TFormTCO
         OnClick = Tourner90DClick
       end
       object Pos_vert: TMenuItem
-        Caption = 'Signal vertical'
+        Caption = 'Signal vertical 0'#176
         OnClick = Pos_vertClick
+      end
+      object Signalvertical180: TMenuItem
+        Caption = 'Signal vertical 180'#176
+        OnClick = Signalvertical180Click
       end
       object N4: TMenuItem
         Caption = '-'
@@ -1278,9 +1284,9 @@ object FormTCO: TFormTCO
     object N2: TMenuItem
       Caption = '-'
     end
-    object outslectionner1: TMenuItem
+    object Toutslectionner1: TMenuItem
       Caption = 'Tout s'#233'lectionner'
-      OnClick = outslectionner1Click
+      OnClick = Toutslectionner1Click
     end
     object Inserer: TMenuItem
       Caption = 'Inserer'
@@ -1331,8 +1337,8 @@ object FormTCO: TFormTCO
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    Left = 256
-    Top = 432
+    Left = 264
+    Top = 408
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
@@ -1353,19 +1359,17 @@ object FormTCO: TFormTCO
       end
       object DessinerleTCO1: TMenuItem
         Caption = 'Dessiner le TCO'
+        Hint = 'Dessine le TCO '#224' la souris'
         OnClick = DessinerleTCO1Click
       end
       object ConfigurationduTCO1: TMenuItem
         Caption = 'Configuration du TCO'
         OnClick = ConfigurationduTCO1Click
       end
-      object N9: TMenuItem
-        Caption = '-'
-      end
-      object Redessine1: TMenuItem
-        Caption = 'Redessine'
-        OnClick = Redessine1Click
-      end
+    end
+    object RafrachirleTCO1: TMenuItem
+      Caption = 'Rafra'#238'chir le TCO'
+      OnClick = Redessine1Click
     end
     object Affichebandeau1: TMenuItem
       Caption = 'Affiche bandeau'

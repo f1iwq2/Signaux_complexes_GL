@@ -502,7 +502,6 @@ begin
     exit;
   end;
 
-  // modif pour signaux complexes
   if (segType='turnout') or (segType='turnout_3way') or (segType='dbl_slip_switch') then
   begin
     inc(nligne);
@@ -1229,10 +1228,10 @@ begin
 end;
 
 // rotation matricielle autour de Centre
-function XForm_Rotation(AAngle : Single;Centre : TPoint) : TXForm;
+function XForm_Rotation(Angle : Single;Centre : TPoint) : TXForm;
 var SinA,CosA: Extended;
 begin
-  SinCos(AAngle,SinA,CosA);
+  SinCos(Angle,SinA,CosA);
   Result.eM11:=CosA;
   Result.eM12:=SinA;
   Result.eM21:=-SinA;

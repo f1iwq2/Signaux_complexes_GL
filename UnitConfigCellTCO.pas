@@ -91,7 +91,6 @@ procedure actualise(indexTCO : integer);
 var Bimage,oriente,piedFeu,xclic,yclic : integer;
     s : string;
     ip : Timage;
-    Bm : Tbitmap;
     r : trect;
 begin
   if (indexTCO=0) or (formConfCellTCO=nil) then exit;
@@ -100,7 +99,6 @@ begin
   xclic:=XclicCell[indexTCO];
   yclic:=YclicCell[indexTCO];
 
-  Bm:=formConfCellTCO.imagepalettecc.Picture.Bitmap;
   //with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
   with FormConfCellTCO.ImagePaletteCC do
   begin
@@ -213,7 +211,7 @@ begin
   end;
 
     // si voie ou rien ou signal ou quai
-    if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=51) then
+    if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=Id_Quai) then
     begin
       s:=Tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Texte;
       with formTCO[indexTCO] do
@@ -812,12 +810,13 @@ begin
 
   val(EditNumTCO.Text,i,erreur);
   if erreur<>0 then exit;
-  if i>NbreTCO then
+  if (i>NbreTCO) or (i<1) then
   begin
     EditNumTCO.Text:=intToSTR(NbreTCO);
     i:=NbreTCO;
   end;
   tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].FeuOriente:=i;
+  Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
 end;
 
 
@@ -851,6 +850,7 @@ begin
   if erreur<>0 then exit;
 
   tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].adresse:=i;
+  Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
 end;
 
 procedure TFormConfCellTCO.EditEtatChange(Sender: TObject);
@@ -862,6 +862,7 @@ begin
   if erreur<>0 then exit;
 
   tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].sortie:=i;
+  Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
 end;
 
 

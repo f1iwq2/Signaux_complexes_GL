@@ -63,6 +63,8 @@ type
     Button0: TButton;
     MemoEvtDet: TRichEdit;
     CheckDetSIg: TCheckBox;
+    CheckBoxPrinc: TCheckBox;
+    ButtonReserve: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -101,6 +103,8 @@ type
     procedure FormActivate(Sender: TObject);
     procedure MemoEvtDetChange(Sender: TObject);
     procedure CheckDetSIgClick(Sender: TObject);
+    procedure CheckBoxPrincClick(Sender: TObject);
+    procedure ButtonReserveClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -110,7 +114,8 @@ type
 var
   FormDebug: TFormDebug;
   NivDebug,signalDebug,compt_erreur,positionErreur,LigneErreur : integer;
-  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg : boolean;
+  AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg,
+  ProcPrinc : boolean;
   N_event_det : integer; // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
@@ -399,7 +404,7 @@ begin
   Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  if PresTrainPrec(Adr,Nb_cantons_Sig,false,voie,adrtrain) then AfficheDebug('Présence train',clYellow) else
+  if PresTrainPrec(Adr,Nb_cantons_Sig,false,voie,adrtrain) then AfficheDebug('Présence train '+intToSTR(AdrTrain),clYellow) else
     AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
 end;
@@ -630,5 +635,25 @@ end;
 
 
 
+
+procedure TFormDebug.CheckBoxPrincClick(Sender: TObject);
+begin
+  ProcPrinc:=checkBoxPrinc.checked;
+end;
+
+procedure TFormDebug.ButtonReserveClick(Sender: TObject);
+var i,adr,erreur,AncDebug,det1,det2 : integer;
+begin
+  {Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  i:=index_feu(adr);
+  feux[i].Adr_det1;
+  Cond_Carre(Adr);
+  d
+  reserve_canton(
+  NivDebug:=AncDebug;     }
+  reserve_canton(524,521,1,1,3);
+end;
 
 end.

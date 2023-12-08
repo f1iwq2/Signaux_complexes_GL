@@ -361,6 +361,7 @@ begin
       rouge:=false;
       trouve:=true;
       roulage:=true;
+      avecResa:=false;  // pour adrTrain ou NumTrain
       AdrTrain:=detecteur[AdrDet].AdrTrain;
       AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du signal correspondant au détecteur
 
@@ -381,7 +382,7 @@ begin
         s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
         Affiche(s,clYellow);
         if traceListe then AfficheDebug(s,clyellow);
-        reserve_canton(AdrDet,placement[j].detdir,adrtrain);
+        reserve_canton(AdrDet,placement[j].detdir,adrtrain,0,2);
 
       end
       Else Affiche('Le signal '+intToSTR(AdrFeu)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
@@ -405,6 +406,7 @@ procedure TFormPlace.ButtonArretTrainsClick(Sender: TObject);
 var i : integer;
 begin
   roulage:=false;
+  avecRESA:=formConfig.CheckBoxRESA.Checked;
   Affiche('Arrêt du roulage de tous les trains',clorange);
   Formprinc.LabelTitre.caption:=titre+' ';
   for i:=1 to ntrains do

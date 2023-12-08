@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 91
-  Top = 235
+  Left = 84
+  Top = 223
   Width = 1133
   Height = 653
   Anchors = [akLeft, akTop, akRight]
@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1125
-    602)
+    1117
+    595)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -37,8 +37,8 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object Image9feux: TImage
-    Left = 944
-    Top = -8
+    Left = 1064
+    Top = 0
     Width = 57
     Height = 105
     Picture.Data = {
@@ -227,7 +227,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image7feux: TImage
-    Left = 376
+    Left = 504
     Top = 0
     Width = 57
     Height = 105
@@ -1081,7 +1081,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 1016
+    Left = 960
     Top = 0
     Width = 81
     Height = 25
@@ -1203,8 +1203,8 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object ImageSignal20: TImage
-    Left = 1016
-    Top = 0
+    Left = 1072
+    Top = 96
     Width = 57
     Height = 105
     Picture.Data = {
@@ -1443,8 +1443,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 580
-    Width = 1125
+    Top = 573
+    Width = 1117
     Height = 22
     Panels = <
       item
@@ -1470,18 +1470,18 @@ object FormPrinc: TFormPrinc
       end>
     OnDrawPanel = StatusBar1DrawPanel
   end
-  object MSCommUSBLenz: TMSComm
+  object MSCommUSBInterface: TMSComm
     Left = 1064
     Top = 192
     Width = 32
     Height = 32
-    OnComm = MSCommUSBLenzComm
+    OnComm = MSCommUSBInterfaceComm
     ControlData = {
       2143341208000000ED030000ED03000001568A64000006000000010000040000
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Button1: TButton
-    Left = 400
+    Left = 408
     Top = 0
     Width = 75
     Height = 25
@@ -1600,8 +1600,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox3: TGroupBox
-      Left = 433
-      Top = 32
+      Left = 497
+      Top = 104
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -1782,10 +1782,10 @@ object FormPrinc: TFormPrinc
       object EditVitesse: TEdit
         Left = 80
         Top = 40
-        Width = 25
+        Width = 33
         Height = 21
         TabOrder = 2
-        Text = '30'
+        Text = '0'
         OnChange = EditVitesseChange
       end
       object ComboTrains: TComboBox
@@ -1830,6 +1830,7 @@ object FormPrinc: TFormPrinc
         Hint = 'Vitesse loco en %'
         Ctl3D = False
         Max = 100
+        Min = -100
         ParentCtl3D = False
         TabOrder = 7
         OnChange = TrackBarVitChange
@@ -1983,8 +1984,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 457
-      Top = 144
+      Left = 505
+      Top = 24
       Width = 265
       Height = 105
       Anchors = [akTop, akRight]
@@ -2046,8 +2047,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object ButtonIndex: TButton
-    Left = 712
-    Top = 0
+    Left = 840
+    Top = 176
     Width = 75
     Height = 25
     Caption = 'Indexs'
@@ -2127,6 +2128,11 @@ object FormPrinc: TFormPrinc
       object Evenementsdetecteurspartrain1: TMenuItem
         Caption = 'Evenements detecteurs par train'
         OnClick = Evenementsdetecteurspartrain1Click
+      end
+      object Listedesclientsconnects1: TMenuItem
+        Caption = 'Liste des clients connect'#233's'
+        Hint = 'Affiche la liste des clients connect'#233's par COM-IP'
+        OnClick = Listedesclientsconnects1Click
       end
       object N3: TMenuItem
         Caption = '-'
@@ -2412,6 +2418,10 @@ object FormPrinc: TFormPrinc
         Caption = 'Mise '#224' z'#233'ro des r'#233'servations des aiguillages'
         OnClick = RazResaClick
       end
+      object Copierltatdesaiguillageseninitialisation1: TMenuItem
+        Caption = 'Copier l'#39#233'tat actuel des aiguillages en initialisation'
+        OnClick = Copierltatdesaiguillageseninitialisation1Click
+      end
     end
   end
   object ClientSocketCDM: TClientSocket
@@ -2437,7 +2447,7 @@ object FormPrinc: TFormPrinc
     Top = 8
     object outslectionner1: TMenuItem
       Caption = 'Tout s'#233'lectionner'
-      OnClick = outslectionner1Click
+      OnClick = Toutslectionner1Click
     end
     object N15: TMenuItem
       Caption = '-'
@@ -2482,5 +2492,14 @@ object FormPrinc: TFormPrinc
     OnError = ClientSocketCde2Error
     Left = 1072
     Top = 376
+  end
+  object ServerSocket: TServerSocket
+    Active = False
+    Port = 0
+    ServerType = stNonBlocking
+    OnAccept = ServerSocketAccept
+    OnClientDisconnect = ServerSocketClientDisconnect
+    OnClientRead = ServerSocketClientRead
+    Left = 368
   end
 end

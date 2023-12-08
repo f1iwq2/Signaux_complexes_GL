@@ -136,7 +136,7 @@ begin
    5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1);
    9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1);
-  20 : dessine_signal20(VCanvas,0,0,1,1,EtatFeupilote,1,feux[i].adresse,12);
+  20 : dessine_signal20(VCanvas,0,0,1,1,EtatFeupilote,1,feux[i].adresse);
   // indicateurs de direction
   12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
   13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
@@ -316,10 +316,17 @@ begin
   i:=Index_Signal(AdrPilote);
   d:=feux[i].decodeur;
   n:=feux[i].aspect;
-  LabelDec.Caption:=decodeur[d];
+  with LabelDec do
+  begin
+    Caption:=decodeur[d];
+    width:=114;
+    height:=42;
+  end;
   feux[0].decodeur:=d;
   feux[0].aspect:=n;
   feux[0].contrevoie:=feux[i].contrevoie;
+
+
   // signal belge
   if (n=20) then
   begin
@@ -329,6 +336,7 @@ begin
     RadioJauneCli.Caption:='Deux jaunes clignotants';
     RadioBlanc.caption:='Rouge Blanc';
     RadioBlancCli.caption:='Rouge Blanc clignotants';
+    RadioRouge.caption:='Rouge';
 
     radiovertcli.visible:=false;
     radioJaunecli.visible:=false;
@@ -346,6 +354,7 @@ begin
     groupBox3.Visible:=false;
     Radiocarre.Caption:='Carré';
     Radioviolet.Caption:='Violet';
+    RadioRouge.Caption:='Sémaphore';
     RadioJauneCli.Caption:='Avertissement clignotant';
     RadioJaune.Caption:='Avertissement';
     RadioBlanc.caption:='Blanc';
@@ -354,18 +363,17 @@ begin
     radioJaunecli.visible:=true;
     radioRougecli.visible:=true;
     radioBlanccli.visible:=true;
-
   end;
 
 
   // checkcarré
   if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
   begin
-    checkVerrouCarre.Visible:=true;
+    checkVerrouCarre.Visible:=false; //true;
     checkVerrouCarre.Checked:=feux[i].VerrouCarre;
   end;
 
-  with imagePIlote do
+  with imagePilote do
   begin
     Parent:=FormPilote;
     Picture.Bitmap.TransparentMode:=tmAuto;
@@ -374,26 +382,43 @@ begin
     Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
     //left:=groupBox1.width+50;
   end;
-    LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
-    feux[0].EtatSignal:=feux[i].EtatSignal;
 
-    if (feux[i].aspect>10) and (feux[i].aspect<20) then
-    begin
-      // signaux directionnels
-      GroupBox1.Visible:=false;
-      GroupBox2.Visible:=false;
-      LabelNbFeux.Visible:=true;
-      EditNbreFeux.Visible:=true;
-      EditNbreFeux.Text:='1';
-    end
-    else
-    begin
-      LabelNbFeux.Visible:=False;
-      EditNbreFeux.Visible:=false;
-      GroupBox1.Visible:=true;
-      if (feux[i].aspect<10) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
-    end;
+  LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
+  feux[0].EtatSignal:=feux[i].EtatSignal;
 
+  if (feux[i].aspect>10) and (feux[i].aspect<20) then
+  begin
+    // signaux directionnels
+    GroupBox1.Visible:=false;
+    GroupBox2.Visible:=false;
+    LabelNbFeux.Visible:=true;
+    EditNbreFeux.Visible:=true;
+    EditNbreFeux.Text:='1';
+  end
+  else
+  begin
+    LabelNbFeux.Visible:=False;
+    EditNbreFeux.Visible:=false;
+    GroupBox1.Visible:=true;
+    if (feux[i].aspect<10) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
+  end;
+
+  radioVert.Checked:=false;
+  radioVertCli.Checked:=false;
+  radioJaune.Checked:=false;
+  radioJauneCli.Checked:=false;
+  radioRouge.Checked:=false;
+  radioRougeCli.Checked:=false;
+  radiocarre.Checked:=false;
+  radioBlanc.Checked:=false;
+  radioViolet.Checked:=false;
+  radioRalen30.Checked:=false;
+  radioRappel30.Checked:=false;
+  radioRalen60.Checked:=false;
+  radioRappel60.Checked:=false;
+  CheckChiffre.Checked:=false;
+  CheckChevron.Checked:=false;
+  CheckClignote.Checked:=false;
 end;
 
 procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);

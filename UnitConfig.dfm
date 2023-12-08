@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 278
-  Top = 142
+  Left = 247
+  Top = 117
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -693,7 +693,7 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 8
         Width = 273
-        Height = 113
+        Height = 81
         Caption = 'Socket de comm. CDM Rail <--> Signaux complexes'
         TabOrder = 0
         object Label1: TLabel
@@ -717,35 +717,19 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 0
-          Text = 'EditAdrIPCDM'
         end
         object EditPortCDM: TEdit
-          Left = 176
+          Left = 200
           Top = 48
-          Width = 81
+          Width = 57
           Height = 21
           TabStop = False
           TabOrder = 1
-          Text = 'EditPortCDM'
-        end
-        object ButtonPFCDM: TButton
-          Left = 16
-          Top = 72
-          Width = 241
-          Height = 25
-          Hint = 
-            'Ajoute une r'#232'gle d'#39'autorisation de communication du socket vers ' +
-            'CDM rail dans le pare-feu'
-          Caption = 'Ajouter une autorisation au pare-feu windows'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnClick = ButtonPFCDMClick
         end
       end
       object GroupBox5: TGroupBox
         Left = 16
-        Top = 128
+        Top = 96
         Width = 273
         Height = 209
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
@@ -980,7 +964,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 344
+        Top = 312
         Width = 273
         Height = 97
         Caption = 'Services CommIP CDM Rail'
@@ -1042,7 +1026,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 256
         Width = 297
-        Height = 145
+        Height = 161
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1072,6 +1056,13 @@ object FormConfig: TFormConfig
           Width = 32
           Height = 13
           Caption = 'Debug'
+        end
+        object Label28: TLabel
+          Left = 8
+          Top = 136
+          Width = 182
+          Height = 13
+          Caption = 'Port du serveur de Signaux Complexes'
         end
         object EditNbDetDist: TEdit
           Left = 240
@@ -1119,7 +1110,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 116
+          Top = 108
           Width = 233
           Height = 17
           Hint = 
@@ -1132,6 +1123,32 @@ object FormConfig: TFormConfig
           TabOrder = 4
           OnClick = CheckBoxVerifXpressNetClick
         end
+        object EditPortServeur: TEdit
+          Left = 224
+          Top = 130
+          Width = 49
+          Height = 21
+          Hint = 'Port de 1 '#224' 65535'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          OnChange = EditPortServeurChange
+          OnExit = EditPortServeurExit
+        end
+      end
+      object ButtonPFCDM: TButton
+        Left = 40
+        Top = 416
+        Width = 241
+        Height = 25
+        Hint = 
+          'Ajoute une r'#232'gle d'#39'autorisation de communication du socket vers ' +
+          'CDM rail dans le pare-feu'
+        Caption = 'Ajouter les autorisations au pare-feu windows'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 6
+        OnClick = ButtonPFCDMClick
       end
     end
     object TabSheetAutonome: TTabSheet
@@ -1279,9 +1296,8 @@ object FormConfig: TFormConfig
         BorderStyle = bsNone
         Lines.Strings = (
           '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet. '
-          'COM de 1 '#224' 99 - Si COMX : Signaux complexes d'#233'tecte le '
-          'port automatiquement (mais le d'#233'marrage est plus long)'
-          ' ')
+          'COM de 1 '#224' 255 - Si COMX : Signaux complexes d'#233'tecte le '
+          'port automatiquement (mais le d'#233'marrage est plus long)')
         ReadOnly = True
         TabOrder = 3
       end
@@ -1415,6 +1431,20 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 5
         end
+        object CheckBoxResa: TCheckBox
+          Left = 16
+          Top = 136
+          Width = 265
+          Height = 17
+          Hint = 
+            'Permet de r'#233'server les aiguillages, les TJD/S et les croisements' +
+            ' sur le parcours d'#39'un train'
+          Caption = 'Mode r'#233'servation des aiguillages par les trains'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          OnClick = CheckBoxResaClick
+        end
       end
       object GroupBox22: TGroupBox
         Left = 312
@@ -1478,11 +1508,17 @@ object FormConfig: TFormConfig
       object Label12: TLabel
         Left = 0
         Top = 8
-        Width = 468
+        Width = 575
         Height = 13
         Caption = 
           'Liste de mod'#233'lisation des aiguillages - cliquez sur une ligne po' +
           'ur afficher la description de l'#39'aiguillage'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object GroupBox11: TGroupBox
         Left = 328
@@ -1987,11 +2023,17 @@ object FormConfig: TFormConfig
       object Label14: TLabel
         Left = 0
         Top = 8
-        Width = 508
+        Width = 622
         Height = 13
         Caption = 
           'Liste de mod'#233'lisation des branches - Cliquer sur une ligne pour ' +
           'la modifier - Valider la ligne apr'#232's modification'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object Label34: TLabel
         Left = 472
@@ -2127,11 +2169,17 @@ object FormConfig: TFormConfig
       object Label15: TLabel
         Left = 0
         Top = 8
-        Width = 434
+        Width = 531
         Height = 13
         Caption = 
           'Liste de mod'#233'lisation des signaux - cliquez sur une ligne pour a' +
           'fficher la description du signal'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object Label35: TLabel
         Left = 72
@@ -2318,7 +2366,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2400,8 +2448,8 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 17
           Hint = 
-            'Passe le feu au carr'#233' ci aucun train n'#39'est pr'#233'sent 3 cantons ava' +
-            'nt le signal'
+            'Passe le signal au carr'#233' ci aucun train n'#39'est pr'#233'sent 3 cantons ' +
+            'avant le signal'
           Caption = 'Verrouillable au carr'#233
           ParentShowHint = False
           ShowHint = True
@@ -2425,7 +2473,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2605,14 +2653,14 @@ object FormConfig: TFormConfig
       object Label61: TLabel
         Left = 13
         Top = 12
-        Width = 173
+        Width = 208
         Height = 13
         Caption = 'D'#233'codeurs personnalis'#233's de signaux'
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
-        Font.Style = []
+        Font.Style = [fsBold]
         ParentFont = False
       end
       object Label62: TLabel
@@ -2719,7 +2767,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           AutoComplete = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2738,7 +2786,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2784,7 +2832,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -2796,11 +2844,17 @@ object FormConfig: TFormConfig
       object Label16: TLabel
         Left = 0
         Top = 8
-        Width = 459
+        Width = 562
         Height = 13
         Caption = 
           'Liste de mod'#233'lisation des actionneurs - cliquez sur une ligne po' +
           'ur afficher la description de l'#39'action'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object GroupBox13: TGroupBox
         Left = 352
@@ -2811,7 +2865,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
-          Top = 24
+          Top = 120
           Width = 249
           Height = 89
           Caption = 'Type d'#39'action'
@@ -2855,14 +2909,14 @@ object FormConfig: TFormConfig
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 120
+          Top = 24
           Width = 249
           Height = 321
           Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
-            Top = 16
+            Top = 24
             Width = 233
             Height = 161
             Caption = 'D'#233'clencheur '
@@ -2969,8 +3023,8 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 8
-            Top = 136
+            Left = 56
+            Top = 32
             Width = 233
             Height = 137
             Caption = 'Destinataire de l'#39'action '
@@ -3163,7 +3217,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 13
+              ItemHeight = 0
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3184,24 +3238,24 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 56
-          Top = 64
+          Left = 104
+          Top = 160
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 2
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 120
-          Top = 64
+          Left = 64
+          Top = 48
           Width = 169
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 136
-          Top = 24
+          Left = 40
+          Top = 48
           Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
@@ -3344,7 +3398,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3595,11 +3649,17 @@ object FormConfig: TFormConfig
       object Label19: TLabel
         Left = 8
         Top = 8
-        Width = 538
+        Width = 531
         Height = 26
         Caption = 
           'Configuration de l'#39'interface DCC++ pour le mode autonome (n'#233'cess' +
           'ite de cocher le protocole DCC++ dans l'#39'onglet "Mode autonome")'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
         WordWrap = True
       end
       object RichCdeDccpp: TRichEdit
@@ -3676,11 +3736,17 @@ object FormConfig: TFormConfig
       object Label54: TLabel
         Left = 16
         Top = 8
-        Width = 392
+        Width = 475
         Height = 13
         Caption = 
           'Liste des trains d'#233'clar'#233's du r'#233'seau - Pour utilisation en mode a' +
           'utonome uniquement'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object LabelInfVitesse: TLabel
         Left = 320
@@ -3953,13 +4019,15 @@ object FormConfig: TFormConfig
       object Label73: TLabel
         Left = 8
         Top = 8
-        Width = 580
-        Height = 26
-        Caption = 
-          'Les p'#233'riph'#233'riques COM/USB ou Sockets sont utilis'#233's pour '#234'tre act' +
-          'iv'#233's par un actionneur et leur envoyer des ordres ASCII. On peut' +
-          ' '#233'galement leur envoyer des informations sur les '#233'v'#232'nements aigu' +
-          'illage, d'#233'tecteurs et actionneurs via les services.'
+        Width = 208
+        Height = 13
+        Caption = 'P'#233'riph'#233'riques COM/USB ou Sockets'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
         WordWrap = True
       end
       object LabelInfoAcc: TLabel
@@ -3970,7 +4038,7 @@ object FormConfig: TFormConfig
       end
       object SBMonte: TSpeedButton
         Left = 240
-        Top = 160
+        Top = 176
         Width = 25
         Height = 33
         Hint = 
@@ -3994,7 +4062,7 @@ object FormConfig: TFormConfig
       end
       object SBDesc: TSpeedButton
         Left = 240
-        Top = 200
+        Top = 216
         Width = 25
         Height = 33
         Hint = 
@@ -4016,9 +4084,21 @@ object FormConfig: TFormConfig
         ShowHint = True
         OnClick = SBDescClick
       end
+      object Label23: TLabel
+        Left = 8
+        Top = 28
+        Width = 570
+        Height = 26
+        Caption = 
+          'Ils sont utilis'#233's pour '#234'tre activ'#233's par un actionneur et leur en' +
+          'voyer des ordres ASCII. On peut '#233'galement leur envoyer des infor' +
+          'mations sur les '#233'v'#232'nements aiguillage, d'#233'tecteurs et actionneurs' +
+          ' via les services.'
+        WordWrap = True
+      end
       object ListBoxPeriph: TListBox
         Left = 8
-        Top = 72
+        Top = 88
         Width = 233
         Height = 273
         Color = clBlack
@@ -4039,7 +4119,7 @@ object FormConfig: TFormConfig
       end
       object ButtonAjAccCom: TButton
         Left = 8
-        Top = 48
+        Top = 64
         Width = 65
         Height = 17
         Caption = 'Nouveau'
@@ -4048,7 +4128,7 @@ object FormConfig: TFormConfig
       end
       object ButtonSupAccCom: TButton
         Left = 80
-        Top = 48
+        Top = 64
         Width = 65
         Height = 17
         Caption = 'Supprime'
@@ -4057,7 +4137,7 @@ object FormConfig: TFormConfig
       end
       object GroupBoxDesc: TGroupBox
         Left = 280
-        Top = 72
+        Top = 80
         Width = 329
         Height = 129
         Caption = 'Description du p'#233'riph'#233'rique'
@@ -4083,7 +4163,7 @@ object FormConfig: TFormConfig
       end
       object ButtonOuvreCom: TButton
         Left = 14
-        Top = 357
+        Top = 365
         Width = 75
         Height = 20
         Hint = 'R'#233'ouvre les ports COMs et Sockets demand'#233's'

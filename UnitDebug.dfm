@@ -181,9 +181,9 @@ object FormDebug: TFormDebug
         ParentFont = False
       end
       object ButtonSigSuiv: TButton
-        Left = 16
+        Left = 8
         Top = 16
-        Width = 57
+        Width = 49
         Height = 49
         Hint = 'Etat du signal suivant'
         Caption = 'Etat signal suivant'
@@ -194,7 +194,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonSigSuivClick
       end
       object ButtonCanSuivSig: TButton
-        Left = 80
+        Left = 56
         Top = 16
         Width = 65
         Height = 49
@@ -217,7 +217,7 @@ object FormDebug: TFormDebug
         TabOrder = 2
       end
       object ButtonCP: TButton
-        Left = 152
+        Left = 120
         Top = 16
         Width = 81
         Height = 49
@@ -227,14 +227,24 @@ object FormDebug: TFormDebug
         OnClick = ButtonCPClick
       end
       object Button2: TButton
-        Left = 240
+        Left = 200
         Top = 16
-        Width = 65
+        Width = 57
         Height = 49
         Caption = 'Cond Carr'#233' aiguillages'
         TabOrder = 4
         WordWrap = True
         OnClick = Button2Click
+      end
+      object ButtonReserve: TButton
+        Left = 256
+        Top = 16
+        Width = 49
+        Height = 49
+        Caption = 'R'#233'serve canton signal'
+        TabOrder = 5
+        WordWrap = True
+        OnClick = ButtonReserveClick
       end
     end
     object GroupBox4: TGroupBox
@@ -360,6 +370,9 @@ object FormDebug: TFormDebug
       Top = 96
       Width = 233
       Height = 17
+      Hint = 
+        'Affiche les trames de la centrale XpressNet ou les trames CDM-Ra' +
+        'il (COM_IP)'
       Caption = 'Trames '#233'chang'#233'es avec l'#39'interface ou CDM'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -367,6 +380,8 @@ object FormDebug: TFormDebug
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 3
       OnClick = CheckTrameClick
     end
@@ -484,6 +499,22 @@ object FormDebug: TFormDebug
       ShowHint = True
       TabOrder = 10
       OnClick = CheckDetSIgClick
+    end
+    object CheckBoxPrinc: TCheckBox
+      Left = 264
+      Top = 96
+      Width = 121
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Proc Principales'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 11
+      OnClick = CheckBoxPrincClick
     end
   end
   object RichDebug: TRichEdit

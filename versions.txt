@@ -204,6 +204,10 @@ version 8.26 : Amélioration de l'affichage du suivi des trains dans les TCOs.
 version 8.27 : Nouvel algorithme de suivi des trains dans les TCO.
                Correction suivi de deux trains consécutifs. 
                Création d'une action TCO "pilotage d'accessoire"
-               
-
+version 8.28 : Amélioration de l'affichage du suivi des trains dans les TCOs.
+               Affichage des TJD dans le TCO. 
+version 8.3  : Possibilité d'afficher des signaux à 180° sur le TCO.
+               Création d'un mode sélectionnable de réservation des aiguillages par les trains.          
+               Création d'un serveur de données socket pour la transmission des évènements.    
+               Possibilité de télécommander Signaux_Complexes depuis les périphériques ou le serveur socket.
 

@@ -293,7 +293,7 @@ var s: string;
     i : integer;
 begin
   clicConf:=true;
-  s:='Configuration du tco '+inttostr(indextcocourant)+' Fichier '+NomFichierTCO[indextcocourant];
+  s:='Configuration du tco '+inttostr(indextcocourant)+' - Fichier '+NomFichierTCO[indextcocourant];
   caption:=s;
   
   groupBox3.caption:='Configuration du TCO '+inttostr(indextcocourant);
@@ -315,7 +315,10 @@ begin
   s:='ColorA='+IntToHex(clfond[indexTCOcourant],6);  // ajouter aux couleurs personnalisées
   colorDialog1.CustomColors.Add(s);
   for i:=1 to 10 do
+  begin
     stringGridTCO.Cells[1,i]:=NomFichierTCO[i];
+    if i<=nbreTCO then stringGridTCO.Cells[2,i]:='X' else stringGridTCO.Cells[2,i]:=' ';
+  end;
 //  stringGridTCO.canvas.Font.Style:=[fsBOld];
     clicConf:=false;
 end;
