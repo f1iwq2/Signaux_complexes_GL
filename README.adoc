@@ -21,6 +21,6 @@ Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.
 * {cdm}[Lien vers CDM rail] -- Site de CDM rail  
 
 
-image::sImtitre.jpg[]
+image::Imtitre.jpg[]
 image::tcon.png[]
 image::sigpresentation.gif[]
