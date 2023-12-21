@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 84
-  Top = 223
+  Left = 79
+  Top = 256
   Width = 1133
   Height = 653
   Anchors = [akLeft, akTop, akRight]
@@ -20,7 +20,7 @@ object FormPrinc: TFormPrinc
   OnResize = FormResize
   DesignSize = (
     1117
-    595)
+    594)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -227,7 +227,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image7feux: TImage
-    Left = 504
+    Left = 440
     Top = 0
     Width = 57
     Height = 105
@@ -395,8 +395,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5feux: TImage
-    Left = 280
-    Top = 0
+    Left = 728
+    Top = -8
     Width = 41
     Height = 89
     Picture.Data = {
@@ -495,8 +495,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image4feux: TImage
-    Left = 240
-    Top = 8
+    Left = 704
+    Top = 0
     Width = 41
     Height = 97
     Picture.Data = {
@@ -1188,23 +1188,9 @@ object FormPrinc: TFormPrinc
       0000}
     Visible = False
   end
-  object LabelEtat: TLabel
-    Left = 360
-    Top = 8
-    Width = 152
-    Height = 18
-    Anchors = [akTop, akRight]
-    Caption = 'Initialisations en cours'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Arial'
-    Font.Style = []
-    ParentFont = False
-  end
   object ImageSignal20: TImage
-    Left = 1072
-    Top = 96
+    Left = 1048
+    Top = 416
     Width = 57
     Height = 105
     Picture.Data = {
@@ -1443,7 +1429,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 573
+    Top = 572
     Width = 1117
     Height = 22
     Panels = <
@@ -1481,8 +1467,8 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Button1: TButton
-    Left = 408
-    Top = 0
+    Left = 728
+    Top = 8
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
@@ -1550,7 +1536,7 @@ object FormPrinc: TFormPrinc
     end
     object GroupBox1: TGroupBox
       Left = 505
-      Top = 13
+      Top = 21
       Width = 265
       Height = 52
       Anchors = [akTop, akRight]
@@ -1985,7 +1971,7 @@ object FormPrinc: TFormPrinc
     end
     object GroupBox2: TGroupBox
       Left = 505
-      Top = 24
+      Top = 16
       Width = 265
       Height = 105
       Anchors = [akTop, akRight]
@@ -2089,7 +2075,7 @@ object FormPrinc: TFormPrinc
     OnDisconnect = ClientSocketInterfaceDisconnect
     OnRead = ClientSocketInterfaceRead
     OnError = ClientSocketInterfaceError
-    Left = 320
+    Left = 264
   end
   object MainMenu1: TMainMenu
     Left = 560
@@ -2432,7 +2418,7 @@ object FormPrinc: TFormPrinc
     OnDisconnect = ClientSocketCDMDisconnect
     OnRead = ClientSocketCDMRead
     OnError = ClientSocketCDMError
-    Left = 344
+    Left = 296
   end
   object OpenDialog: TOpenDialog
     Left = 944
@@ -2500,6 +2486,6 @@ object FormPrinc: TFormPrinc
     OnAccept = ServerSocketAccept
     OnClientDisconnect = ServerSocketClientDisconnect
     OnClientRead = ServerSocketClientRead
-    Left = 368
+    Left = 320
   end
 end

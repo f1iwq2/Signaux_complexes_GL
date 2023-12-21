@@ -607,7 +607,7 @@ begin
     end;
     if protocole=2 then AfficheDebug('D11: Commande DCC++ pas encore implantée',clred) 
   end;
-  
+
   Self.ActiveControl:=nil;
 end;
 
@@ -631,9 +631,6 @@ procedure TFormDebug.CheckDetSIgClick(Sender: TObject);
 begin
   AFfDetSIg:=checkDetSig.checked;
 end;
-
-
-
 
 
 procedure TFormDebug.CheckBoxPrincClick(Sender: TObject);

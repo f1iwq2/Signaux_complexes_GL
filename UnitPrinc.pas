@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 1/12 10h
+// 14/12 10h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -102,7 +102,6 @@ type
     Config: TMenuItem;
     Codificationdesactionneurs1: TMenuItem;
     OuvrirunfichiertramesCDM1: TMenuItem;
-    LabelEtat: TLabel;
     Affichefentredebug1: TMenuItem;
     PopupMenuFenRich: TPopupMenu;
     Copier1: TMenuItem;
@@ -378,28 +377,30 @@ type
 const
 titre='Signaux complexes GL ';
 MaxAcc=2048;          // adresse maxi d'accessoire XpressNet
-NbMaxDet=100;         // nombre maximal de détecteurs d'un réseau
-NbMemZone=2048;       // adresse maximale des détecteurs
+NbMaxDet=513+128;     // indice maximal de détecteurs d'un réseau (nombre en XpressNet=128)
 Max_Trains=100;       // nombre maximal de train de CDM ou déclarés ou en circulation
 MaxZones=250;         // nombre de zones de détecteurs activés par les trains
 MaxTrainZone=40;      // nombre maximal de trains pour le tableau d'historique des zones
+Mtd=128;              // nombre maxi de détecteurs précédents stockés
 Max_event_det=4000;   // nombre maximal d'évenements détecteurs
-Max_actionneurs=100;
-MaxBranches=200;
-MaxElBranches=200;
-NbreMaxiAiguillages=200;
-NbreMaxiSignaux=200;
+Max_actionneurs=100;  // nombre maximal d'actionneurs
+Maxelements=100;      // nombre maxi d'éléments scannés/réservés
+MaxBranches=200;      // nombre maxi de branches
+MaxElBranches=200;    // nombre maxi d'éléments par branche
+NbreMaxiAiguillages=MaxAcc; // nombre maxi d'aiguillages
+NbreMaxiSignaux=200;  // nombre maxi de signaux
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
-NbMaxi_Periph=10;     // nombre maxi de périphériques
-LargImg=50;HtImg=91;  // Dimensions image des feux
-MaxComUSBPeriph=2;       // Nombre maxi de périphériques USB périphériques
-MaxComSocketPeriph=2;
+NbMaxi_Periph=10;     // nombre maxi de périphériques COM/USB/Socket
+LargImg=50;HtImg=91;  // Dimensions image des signaux (le plus grand, le 9 feux)
+MaxComUSBPeriph=2;    // Nombre maxi d'objets périphériques périphériques USB Tmscom
+MaxComSocketPeriph=2; // Nombre maxi d'objets périphériques périphériques socket TClientsocket
 const_droit=2;        // positions aiguillages transmises par la centrale LENZ
 const_devie=1;        // positions aiguillages transmises par la centrale LENZ
 const_devieG_CDM=3;   // positions aiguillages transmises par cdm
 const_devieD_CDM=2;   // positions aiguillages transmises par cdm
 const_droit_CDM=0;    // positions aiguillages transmises par cdm
 const_inconnu=9;      // position inconnue
+IdClients=10;         // Index maxi de clients
 NbCouleurTrain=8;
 MaxCdeDccpp=20;
 clRose=$AAAAFF;
@@ -451,45 +452,38 @@ TBranche      = record
                 end;
 
 Taiguillage = record
-                 Adresse : integer;         // adresse de l'aiguillage
-                 modele : TEquipement;      // rien, aig, tjd ...
-                 position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
-                 posInit,                   // position d'initialisation 1=dévié 2=droit 9=non positionné
-                 Adrtriple,                 // 2eme adresse pour un aiguillage triple
-                 temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms
-                 InversionCDM : integer ;   // pour les aiguillages déclarés inversés dans CDM, utilisé en mode autonome (paramètre I1)
-                 vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
-                 AdrTrain : integer;        // adresse du train qui a réservé l'aiguillage
+                Adresse : integer;         // adresse de l'aiguillage
+                modele : TEquipement;      // rien, aig, tjd ...
+                position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
+                posInit,                   // position d'initialisation 1=dévié 2=droit 9=non positionné
+                Adrtriple,                 // 2eme adresse pour un aiguillage triple
+                temps,                     // temps de pilotage (durée de l'impulsion en x 100 ms
+                InversionCDM : integer ;   // pour les aiguillages déclarés inversés dans CDM, utilisé en mode autonome (paramètre I1)
+                vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
+                AdrTrain : integer;        // adresse du train qui a réservé l'aiguillage
+                           ADroit : integer ;         // adresse (TJD:identifiant extérieur) connecté sur la position droite en talon
+                ADroitB : char ;           // P D S Z
+                          ADevie : integer ;         // adresse (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
+                ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
+                          APointe : integer;         // adresse de l'élément connecté en position droite ;
+                APointeB : char;           // P D S Z
+                          DDroit : integer;          // destination de la TJD en position droite
+                DDroitB : char ;
+                          DDevie : integer;          // destination de la TJD en position déviée ou 2eme adresse de la TJD
+                DDevieB : char ;
+                          tjsint   : integer;        // pour TJS
+                tjsintb  : char ;
+                            // éléments connectés sur la branche déviée 2 (cas d'un aiguillage triple)
+                Adevie2 : integer;
+                Adevie2B : char ;
+                // états d'une TJD (2 ou 4, 4 par défaut)
+                EtatTJD : integer;
 
-                 ADroit : integer ;         // adresse (TJD:identifiant extérieur) connecté sur la position droite en talon
-                 ADroitB : char ;           // P D S Z
-
-                 ADevie : integer ;         // adresse (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
-                 ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
-
-                 APointe : integer;         // adresse de l'élément connecté en position droite ;
-                 APointeB : char;           // P D S Z
-
-                 DDroit : integer;          // destination de la TJD en position droite
-                 DDroitB : char ;
-
-                 DDevie : integer;          // destination de la TJD en position déviée ou 2eme adresse de la TJD
-                 DDevieB : char ;
-
-                 tjsint   : integer;        // pour TJS
-                 tjsintb  : char ;
-
-                  // éléments connectés sur la branche déviée 2 (cas d'un aiguillage triple)
-                 Adevie2 : integer;
-                 Adevie2B : char ;
-                 // états d'une TJD (2 ou 4, 4 par défaut)
-                 EtatTJD : integer;
-
-                 // si modifié en mode config
-                 modifie : boolean ;
-                 NumBranche,IndexBranche : integer;  // index dans les branches
+                // si modifié en mode config
+                modifie : boolean ;
+                NumBranche,IndexBranche : integer;  // index dans les branches
               end;
-TtabloDet = array[1..10] of integer;
+TtabloDet = array[1..Mtd] of integer;
 TSignal = record
                  adresse, aspect : integer;  // adresse du signal, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)  (11=signal belge 1)
                  Img : TImage;               // Pointeur sur structure TImage du feu
@@ -507,14 +501,14 @@ TSignal = record
                  Adr_det2 : integer;         // adresse du détecteur2 sur lequel il est implanté (si un signal est pour plusieurs voies)
                  Adr_det3 : integer;         // adresse du détecteur3 sur lequel il est implanté (si un signal est pour plusieurs voies)
                  Adr_det4 : integer;         // adresse du détecteur4 sur lequel il est implanté (si un signal est pour plusieurs voies)
-                 Adr_el_suiv1 : integer;     // adresse de l'élément1 suivant
-                 Adr_el_suiv2 : integer;     // adresse de l'élément2 suivant (si un signal est pour plusieurs voies)
-                 Adr_el_suiv3 : integer;     // adresse de l'élément3 suivant (si un signal est pour plusieurs voies)
-                 Adr_el_suiv4 : integer;     // adresse de l'élément4 suivant (si un signal est pour plusieurs voies)
-                 Btype_suiv1 : TEquipement ; // type de l'élément suivant ne prend que les valeurs rien, det ou aig
-                 Btype_suiv2 : TEquipement ; //
-                 Btype_suiv3 : TEquipement ; //
-                 Btype_suiv4 : TEquipement ; //
+                 Adr_el_suiv1 : integer;     // adresse de l'élément1 suivant voie 1
+                 Adr_el_suiv2 : integer;     // adresse de l'élément2 suivant voie 2 (si un signal est pour plusieurs voies)
+                 Adr_el_suiv3 : integer;     // adresse de l'élément3 suivant voie 3 (si un signal est pour plusieurs voies)
+                 Adr_el_suiv4 : integer;     // adresse de l'élément4 suivant voie 4 (si un signal est pour plusieurs voies)
+                 Btype_suiv1 : TEquipement ; // type de l'élément suivant voie 1 - Ne prend que les valeurs rien, det ou aig
+                 Btype_suiv2 : TEquipement ; // type de l'élément suivant voie 2 - Ne prend que les valeurs rien, det ou aig
+                 Btype_suiv3 : TEquipement ; // type de l'élément suivant voie 3 - Ne prend que les valeurs rien, det ou aig
+                 Btype_suiv4 : TEquipement ; // type de l'élément suivant voie 4 - Ne prend que les valeurs rien, det ou aig
                  VerrouCarre : boolean ;     // si vrai, le feu se verrouille au carré si pas de train avant le signal
                  EtatVerrouCarre : boolean ; // si vrai, le feu est verrouillé au carré
                  modifie     : boolean;      // feu modifié
@@ -535,10 +529,8 @@ TSignal = record
                                   Adresse : integer;    // aiguillage
                                   posAig : char;
                                end;
-
-
-                 SR : array[1..19] of record   // configuration du décodeur Stéphane Ravaut ou digikeijs ou cdf
-                                   sortie1,sortie0 : integer;
+                 SR : array[1..19] of record   // configuration des sorties du décodeur Stéphane Ravaut ou digikeijs ou cdf pour chacun des 19 états
+                                   sortie1,sortie0 : integer;     // ex SR[1]=[carre] (voir tableau Etats)
                                    end;
                  Na : integer;               // nombre d'adresses du feu occupées par le décodeur CDF/digikeijs
                  DetAmont : TtabloDet;       // tableau des détecteurs amonts, calculés à la lecture du fichier de config
@@ -575,7 +567,7 @@ var
   TraceListe,clignotant,nack,Maj_feux_cours,configNulle,LanceCDM,AvecInitAiguillages,
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
-  avec_splitter,fichier_module_cdm,Diffusion,cdmDevant,avecRESA : boolean;
+  avec_splitter,fichier_module_cdm,Diffusion,cdmDevant,avecRESA,serveurIPCDM_Touche : boolean;
 
   tick,Premier_tick : longint;
 
@@ -586,8 +578,8 @@ var
   Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,Lay,
   CheminProgrammes : string;
 
-  Ancien_detecteur : array[0..NbMemZone] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
-  detecteur : array[0..NbMemZone] of  // détecteurs indexés par l'adresse
+  Ancien_detecteur : array[0..NbMaxDet] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
+  detecteur : array[0..NbMaxDet] of  // détecteurs indexés par l'adresse
   record
     Etat : boolean;          // état 0/1 du détecteur
     Train : string;          // nom du train ayant enclenché le détecteur (CDM - pas fiable)
@@ -598,27 +590,25 @@ var
   end;
   Adresse_detecteur : array[0..NbMaxDet] of integer; // adresses des détecteurs par index
 
-  Ecran : array[1..10] of record
-           x0,y0,larg,haut : integer;
-           end;
+  Ecran : array[1..10] of record     // écrans du pc
+            x0,y0,larg,haut : integer;
+          end;
 
-  Tablo_com_cde : array[1..10] of record
-                   portOuvert: boolean;
-                   NumAcc: integer;   // numéro périphérique tableau tablo_acc_comusb
-                   tamponRx : string;
-                   end;
+  // tableau des ports COM des périphériqies
+  Tablo_com_cde : array[1..NbMaxi_Periph] of record
+                    portOuvert: boolean;
+                    NumPeriph: integer;   // numéro périphérique USB
+                    tamponRx : string;
+                  end;
 
-  Liste_clients : array[0..10] of record
-                 adresse : string;
-                 PortDistant,PortLocal : integer;
-                end;
-
+  Liste_clients : array[0..IdClients] of record
+                    adresse : string;
+                    PortDistant,PortLocal : integer;
+                  end;
 
   TypeGen : TEquipement;
 
-  
   // Historique des zones d'occupation par train
-
   TrainZone : array[1..MaxTrainZone] of  // train, index
               record
                 train : string;
@@ -643,19 +633,8 @@ var
   // tableau des périphériques
   Tablo_periph : array[1..NbMaxi_Periph] of TPeripherique;
 
-  // tableau des croisement rencontrés par la fonction suivant_alg3
-  croisement : array[1..20] of
-  record
-    adresse,                 // adresse du croisement
-    entree,sortie,           // point d'entrée et de sortie
-    affect_train : integer;  // numéro du train affecté
-  end;
-
-  // Prévision des zones suivantes (en fonction de la position aiguillages)
-  TrainPrevZone : array[1..20] of array[1..5] of integer;   // non utilisé
-
   // Zones d'occupations actuelles
-  MemZone : array[0..NbMemZone,0..NbMemZone] of
+  MemZone : array[0..NbMaxDet,0..NbMaxDet] of
   record
     etat : boolean;  // mémoires de zones des détecteurs
     train : string;
@@ -674,10 +653,11 @@ var
     typdeclenche            : integer;     // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
     Raz                     : boolean;
     FichierSon,trainDecl,
-    TrainDest,                             // train destinataire ou Commande
+    TrainDest,                             // train destinataire ou Commande au périphérique
     TrainCourant            : string;
   end;
 
+  // décodeurs personnalisés de signaux
   decodeur_pers : array[1..NbreMaxiDecPers] of
   record
     nom                    : string;
@@ -694,7 +674,7 @@ var
     end;
   end;
 
-  Ancien_actionneur : array[0..1024] of integer;
+  Ancien_actionneur : array[0..MaxAcc] of integer;
 
   KeyInputs: array of TInput;
   Tablo_PN : array[0..Max_actionneurs] of
@@ -752,7 +732,7 @@ var
            end;
 
   // éléments scannés et/ou verrouillés
-  elements : array[1..20] of
+  elements : array[1..Maxelements] of
              record
                adresse : integer;
                typ : Tequipement;
@@ -783,7 +763,6 @@ var
                        etat : boolean;
                        end;
                     end;
-
 
   decodeur : array[0..30] of string[20];
 
@@ -1275,9 +1254,9 @@ var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
 begin
   code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
-  XBlanc:=13; YBlanc:=22;
+  XBlanc:=13; YBlanc:=11;
   xJaune:=13; yJaune:=55;
-  Xcarre:=13; Ycarre:=11;
+  Xcarre:=13; Ycarre:=22;
   XSem:=13;   Ysem:=44;
   XVert:=13;  YVert:=33;
 
@@ -1632,7 +1611,7 @@ begin
   DeleteObject(NouvBrush);
 end;
 
-// inverse une image horizontale (miroir) et la met dans dest
+// inverse une image (miroir horizontal) et la met dans dest
 // Utilisé pour les signaux belges
 procedure inverse_image(imageDest,ImageSrc : Timage);
 var mrect,nrect : trect;
@@ -3429,68 +3408,68 @@ begin
     if asp=2 then
     begin
       case aspect of
-      violet        : begin offset:=0;sortie:=2;end;
-      blanc         : begin offset:=0;sortie:=1;end;
-      blanc_cli     : begin offset:=1;sortie:=1;end;
+        violet        : begin offset:=0;sortie:=2;end;
+        blanc         : begin offset:=0;sortie:=1;end;
+        blanc_cli     : begin offset:=1;sortie:=1;end;
       end;
     end;
 
     if asp=3 then
     begin
       case aspect of
-      vert          : begin offset:=0;sortie:=1;end;
-      jaune         : begin offset:=0;sortie:=2;end;
-      semaphore     : begin offset:=1;sortie:=1;end;
-      vert_cli      : begin offset:=1;sortie:=2;end;
-      semaphore_cli : begin offset:=2;sortie:=1;end;
-      jaune_cli     : begin offset:=2;sortie:=2;end;
+        vert          : begin offset:=0;sortie:=1;end;
+        jaune         : begin offset:=0;sortie:=2;end;
+        semaphore     : begin offset:=1;sortie:=1;end;
+        vert_cli      : begin offset:=1;sortie:=2;end;
+        semaphore_cli : begin offset:=2;sortie:=1;end;
+        jaune_cli     : begin offset:=2;sortie:=2;end;
       end;
     end;
 
     if (asp=4) or (asp=5) then
     begin
       case aspect of
-      vert          : begin offset:=0;sortie:=1;end;
-      jaune         : begin offset:=0;sortie:=2;end;
-      semaphore     : begin offset:=1;sortie:=1;end;
-      carre         : begin offset:=1;sortie:=2;end;
-      vert_cli      : begin offset:=2;sortie:=1;end;
-      jaune_cli     : begin offset:=2;sortie:=2;end;
-      semaphore_cli : begin offset:=3;sortie:=1;end;
+        vert          : begin offset:=0;sortie:=1;end;
+        jaune         : begin offset:=0;sortie:=2;end;
+        semaphore     : begin offset:=1;sortie:=1;end;
+        carre         : begin offset:=1;sortie:=2;end;
+        vert_cli      : begin offset:=2;sortie:=1;end;
+        jaune_cli     : begin offset:=2;sortie:=2;end;
+        semaphore_cli : begin offset:=3;sortie:=1;end;
       end;
     end;
 
     if (asp=7) then
     begin
       case aspect of
-      vert          : begin offset:=0;sortie:=1;end;
-      jaune         : begin offset:=0;sortie:=2;end;
-      semaphore     : begin offset:=1;sortie:=1;end;
-      carre         : begin offset:=1;sortie:=2;end;
-      vert_cli      : begin offset:=4;sortie:=1;end;
-      semaphore_cli : begin offset:=4;sortie:=2;end;
+        vert          : begin offset:=0;sortie:=1;end;
+        jaune         : begin offset:=0;sortie:=2;end;
+        semaphore     : begin offset:=1;sortie:=1;end;
+        carre         : begin offset:=1;sortie:=2;end;
+        vert_cli      : begin offset:=4;sortie:=1;end;
+        semaphore_cli : begin offset:=4;sortie:=2;end;
       end;
       case combine of
-      ral_30        : begin offset:=2;sortie:=1;end;
-      ral_60        : begin offset:=3;sortie:=1;end;
+        ral_30        : begin offset:=2;sortie:=1;end;
+        ral_60        : begin offset:=3;sortie:=1;end;
       end;
     end;
 
     if (asp=9) then
     begin
       case aspect of
-      vert          : begin offset:=0;sortie:=1;end;
-      jaune         : begin offset:=0;sortie:=2;end;
-      semaphore     : begin offset:=1;sortie:=1;end;
-      carre         : begin offset:=1;sortie:=2;end;
-      vert_cli      : begin offset:=4;sortie:=1;end;
-      semaphore_cli : begin offset:=4;sortie:=2;end;
+        vert          : begin offset:=0;sortie:=1;end;
+        jaune         : begin offset:=0;sortie:=2;end;
+        semaphore     : begin offset:=1;sortie:=1;end;
+        carre         : begin offset:=1;sortie:=2;end;
+        vert_cli      : begin offset:=4;sortie:=1;end;
+        semaphore_cli : begin offset:=4;sortie:=2;end;
       end;
       case combine of
-      ral_30        : begin offset:=2;sortie:=1;end;
-      rappel_30     : begin offset:=2;sortie:=2;end;
-      ral_60        : begin offset:=3;sortie:=1;end;
-      rappel_60     : begin offset:=3;sortie:=2;end;
+        ral_30        : begin offset:=2;sortie:=1;end;
+        rappel_30     : begin offset:=2;sortie:=2;end;
+        ral_60        : begin offset:=3;sortie:=1;end;
+        rappel_60     : begin offset:=3;sortie:=2;end;
       end;
     end;
 
@@ -3602,28 +3581,26 @@ begin
     // pilotage qui marche chez JEF
     if algo_Unisemaf=1 then
     begin
-        if modele=2 then // 2 feux
-        begin
-          if aspect=blanc then      pilote_acc(adresse,1,feu);
-          if aspect=blanc_cli then  pilote_acc(adresse,1,feu);
-          if aspect=violet then     pilote_acc(adresse,2,feu);
-        end;
+      if modele=2 then // 2 feux
+      begin
+        if aspect=blanc then      pilote_acc(adresse,1,feu);
+        if aspect=blanc_cli then  pilote_acc(adresse,1,feu);
+        if aspect=violet then     pilote_acc(adresse,2,feu);
+      end;
 
-        if modele=3 then // 3 feux
-        begin
-          if aspect=vert then       pilote_acc(adresse,1,feu);
-          if aspect=vert_cli then   pilote_acc(adresse,1,feu);
+      if modele=3 then // 3 feux
+      begin
+        if aspect=vert then       pilote_acc(adresse,1,feu);
+        if aspect=vert_cli then   pilote_acc(adresse,1,feu);
+        if aspect=semaphore then  pilote_acc(adresse,2,feu);
+        if aspect=semaphore_cli then pilote_acc(adresse,2,feu);
 
-          if aspect=semaphore then  pilote_acc(adresse,2,feu);
-          if aspect=semaphore_cli then pilote_acc(adresse,2,feu);
-
-          if aspect=jaune then      pilote_acc(adresse+1,1,feu);
-          if aspect=jaune_cli then  pilote_acc(adresse+1,1,feu);
-        end;
-
-        if modele=4 then
-        begin
-          case aspect of
+        if aspect=jaune then      pilote_acc(adresse+1,1,feu);
+        if aspect=jaune_cli then  pilote_acc(adresse+1,1,feu);
+      end;
+      if modele=4 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3633,10 +3610,10 @@ begin
           carre                 : pilote_acc(adresse+1,2,feu);
           end;
         end;
-        // 51=carré + blanc
-        if modele=51 then
-        begin
-          case aspect of
+      // 51=carré + blanc
+      if modele=51 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3646,12 +3623,12 @@ begin
           carre                 : pilote_acc(adresse+1,2,feu);
           blanc                 : pilote_acc(adresse+2,1,feu);
           blanc_cli             : pilote_acc(adresse+2,1,feu);
-          end;
         end;
-        // 52=VJR + blanc + violet
-        if modele=52 then
-        begin
-          case aspect of
+      end;
+      // 52=VJR + blanc + violet
+      if modele=52 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3661,39 +3638,25 @@ begin
           violet                : pilote_acc(adresse+2,1,feu);
           blanc                 : pilote_acc(adresse+1,2,feu);
           blanc_cli             : pilote_acc(adresse+1,2,feu);
-          end;
         end;
-        // 71=VJR + ralentissement 30
-        if modele=71 then
-        begin
-          case aspect of
+      end;
+      // 71=VJR + ralentissement 30
+      if modele=71 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
           jaune_cli             : pilote_acc(adresse,2,feu);
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
-          end;
-          if combine=ral_30 then pilote_acc(adresse+1,2,feu);
         end;
-        // 72=VJR + carré + ralentissement 30
-        if modele=72 then
-        begin
-          case aspect of
-          vert                  : pilote_acc(adresse,1,feu);
-          vert_cli              : pilote_acc(adresse,1,feu);
-          jaune                 : pilote_acc(adresse,2,feu);
-          jaune_cli             : pilote_acc(adresse,2,feu);
-          semaphore             : pilote_acc(adresse+1,1,feu);
-          semaphore_cli         : pilote_acc(adresse+1,1,feu);
-          carre                 : pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=ral_30 then pilote_acc(adresse+2,1,feu);
-        end;
-        // 73=VJR + carré + ralentissement 60
-        if modele=73 then
-        begin
-          case aspect of
+        if combine=ral_30 then pilote_acc(adresse+1,2,feu);
+      end;
+      // 72=VJR + carré + ralentissement 30
+      if modele=72 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3701,13 +3664,13 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=ral_60 then pilote_acc(adresse+2,1,feu);
         end;
-        // 91=VJR + carré + rappel 30
-        if modele=91 then
-        begin
-          case aspect of
+        if combine=ral_30 then pilote_acc(adresse+2,1,feu);
+      end;
+      // 73=VJR + carré + ralentissement 60
+      if modele=73 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3715,14 +3678,13 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=rappel_30 then pilote_acc(adresse+2,1,feu);
         end;
-
-        // 92=VJR + carré + rappel 60
-        if modele=92 then
-        begin
-          case aspect of
+        if combine=ral_60 then pilote_acc(adresse+2,1,feu);
+      end;
+      // 91=VJR + carré + rappel 30
+      if modele=91 then
+      begin
+        case aspect of
           vert                  : pilote_acc(adresse,1,feu);
           vert_cli              : pilote_acc(adresse,1,feu);
           jaune                 : pilote_acc(adresse,2,feu);
@@ -3730,143 +3692,154 @@ begin
           semaphore             : pilote_acc(adresse+1,1,feu);
           semaphore_cli         : pilote_acc(adresse+1,1,feu);
           carre                 : pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=rappel_60 then pilote_acc(adresse+2,1,feu);
         end;
+        if combine=rappel_30 then pilote_acc(adresse+2,1,feu);
+      end;
 
-        // 93=VJR + carré + ral30 + rappel 30
-        if modele=93 then
-        begin
-          if combine=-1 then //pas de sig combinée
-          begin
-            if aspect=vert                  then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
-            if aspect=jaune                 then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
-            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_30             then pilote_acc(adresse+2,2,feu);
-          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+      // 92=VJR + carré + rappel 60
+      if modele=92 then
+      begin
+        case aspect of
+          vert                  : pilote_acc(adresse,1,feu);
+          vert_cli              : pilote_acc(adresse,1,feu);
+          jaune                 : pilote_acc(adresse,2,feu);
+          jaune_cli             : pilote_acc(adresse,2,feu);
+          semaphore             : pilote_acc(adresse+1,1,feu);
+          semaphore_cli         : pilote_acc(adresse+1,1,feu);
+          carre                 : pilote_acc(adresse+1,2,feu);
         end;
+        if combine=rappel_60 then pilote_acc(adresse+2,1,feu);
+      end;
 
-        // 94=VJR + carré + ral60 + rappel60
-        if modele=94 then
+      // 93=VJR + carré + ral30 + rappel 30
+      if modele=93 then
+      begin
+        if combine=-1 then //pas de sig combinée
         begin
-          if combine=-1 then
-          begin
-            if aspect=vert                  then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
-            if aspect=jaune                 then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
-            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=ral_60                then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
-          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if aspect=vert                  then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+          if aspect=jaune                 then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+          if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+          if aspect=carre                 then pilote_acc(adresse+1,2,feu);
         end;
+        if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_30             then pilote_acc(adresse+2,2,feu);
+        if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+      end;
 
-        // 95=VJR + carré + ral30 + rappel 60
-        if modele=95 then
+      // 94=VJR + carré + ral60 + rappel60
+      if modele=94 then
+      begin
+        if combine=-1 then
         begin
-          if combine=-1 then
-          begin
-            if aspect=vert                  then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
-            if aspect=jaune                 then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
-            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
-          end;
-          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
-          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if aspect=vert                  then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+          if aspect=jaune                 then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+          if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+          if aspect=carre                 then pilote_acc(adresse+1,2,feu);
         end;
+        if combine=ral_60                then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+        if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+      end;
+      // 95=VJR + carré + ral30 + rappel 60
+      if modele=95 then
+      begin
+        if combine=-1 then
+        begin
+          if aspect=vert                  then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+          if aspect=jaune                 then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+          if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+          if aspect=carre                 then pilote_acc(adresse+1,2,feu);
+        end;
+        if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+        if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+      end;
+      // 96=VJR + blanc + carré + ral30 + rappel30
+      if modele=96 then
+      begin
+        if combine=-1 then
+        begin
+          if aspect=vert               then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli           then pilote_acc(adresse,1,feu);
+          if aspect=jaune              then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli          then pilote_acc(adresse,2,feu);
+          if aspect=semaphore          then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli      then pilote_acc(adresse+1,1,feu);
+          if aspect=carre              then pilote_acc(adresse+1,2,feu);
+          if aspect=blanc              then pilote_acc(adresse+3,2,feu);
+          if aspect=blanc_cli          then pilote_acc(adresse+3,2,feu);
+        end;
+        if combine=ral_30             then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_30          then pilote_acc(adresse+2,2,feu);
+        if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+      end;
+      // 97=VJR + blanc + carré + ral30 + rappel60
+      if modele=97 then
+      begin
+        if combine=-1 then
+        begin
+          if aspect=vert                  then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+          if aspect=jaune                 then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+          if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+          if aspect=carre                 then pilote_acc(adresse+1,2,feu);
+          if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
+          if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
+        end;
+        if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+        if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+      end;
 
-        // 96=VJR + blanc + carré + ral30 + rappel30
-        if modele=96 then
+      // 98=VJR + blanc + violet + ral30 + rappel30
+      if modele=98 then
+      begin
+        if combine=-1 then
         begin
-          if combine=-1 then
-          begin
-            if aspect=vert               then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli           then pilote_acc(adresse,1,feu);
-            if aspect=jaune              then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli          then pilote_acc(adresse,2,feu);
-            if aspect=semaphore          then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli      then pilote_acc(adresse+1,1,feu);
-            if aspect=carre              then pilote_acc(adresse+1,2,feu);
-            if aspect=blanc              then pilote_acc(adresse+3,2,feu);
-            if aspect=blanc_cli          then pilote_acc(adresse+3,2,feu);
-          end;
-          if combine=ral_30             then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_30          then pilote_acc(adresse+2,2,feu);
-          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+          if aspect=vert then               pilote_acc(adresse,1,feu);
+          if aspect=vert_cli then           pilote_acc(adresse,1,feu);
+          if aspect=jaune then              pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli then          pilote_acc(adresse,2,feu);
+          if aspect=semaphore then          pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli then      pilote_acc(adresse+1,1,feu);
+          if aspect=violet then             pilote_acc(adresse+1,2,feu);
+          if aspect=blanc then              pilote_acc(adresse+3,2,feu);
+          if aspect=blanc_cli then          pilote_acc(adresse+3,2,feu);
         end;
-
-        // 97=VJR + blanc + carré + ral30 + rappel60
-        if modele=97 then
+        if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
+        if combine=ral_30 then             pilote_acc(adresse+2,1,feu);
+        if combine=rappel_30 then          pilote_acc(adresse+2,2,feu);
+      end;
+      // 99=VJR + blanc + violet + ral30 + rappel60
+      if modele=99 then
+      begin
+        if combine=-1 then
         begin
-          if combine=-1 then
-          begin
-            if aspect=vert                  then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
-            if aspect=jaune                 then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
-            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if aspect=carre                 then pilote_acc(adresse+1,2,feu);
-            if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
-            if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
-          end;
-          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
-          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+          if aspect=vert                  then pilote_acc(adresse,1,feu);
+          if aspect=vert_cli              then pilote_acc(adresse,1,feu);
+          if aspect=jaune                 then pilote_acc(adresse,2,feu);
+          if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
+          if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
+          if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
+          if aspect=violet                then pilote_acc(adresse+1,2,feu);
+          if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
+          if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
         end;
-
-        // 98=VJR + blanc + violet + ral30 + rappel30
-        if modele=98 then
-        begin
-          if combine=-1 then
-          begin
-            if aspect=vert then               pilote_acc(adresse,1,feu);
-            if aspect=vert_cli then           pilote_acc(adresse,1,feu);
-            if aspect=jaune then              pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli then          pilote_acc(adresse,2,feu);
-            if aspect=semaphore then          pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli then      pilote_acc(adresse+1,1,feu);
-            if aspect=violet then             pilote_acc(adresse+1,2,feu);
-            if aspect=blanc then              pilote_acc(adresse+3,2,feu);
-            if aspect=blanc_cli then          pilote_acc(adresse+3,2,feu);
-          end;
-          if (aspect=jaune) and (combine=rappel_30) then pilote_acc(adresse+3,1,feu);
-          if combine=ral_30 then             pilote_acc(adresse+2,1,feu);
-          if combine=rappel_30 then          pilote_acc(adresse+2,2,feu);
-        end;
-
-        // 99=VJR + blanc + violet + ral30 + rappel60
-        if modele=99 then
-        begin
-          if combine=-1 then
-          begin
-            if aspect=vert                  then pilote_acc(adresse,1,feu);
-            if aspect=vert_cli              then pilote_acc(adresse,1,feu);
-            if aspect=jaune                 then pilote_acc(adresse,2,feu);
-            if aspect=jaune_cli             then pilote_acc(adresse,2,feu);
-            if aspect=semaphore             then pilote_acc(adresse+1,1,feu);
-            if aspect=semaphore_cli         then pilote_acc(adresse+1,1,feu);
-            if aspect=violet                then pilote_acc(adresse+1,2,feu);
-            if aspect=blanc                 then pilote_acc(adresse+3,2,feu);
-            if aspect=blanc_cli             then pilote_acc(adresse+3,2,feu);
-          end;
-          if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
-          if combine=ral_30                then pilote_acc(adresse+2,1,feu);
-          if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
-        end;
+        if (aspect=jaune) and (combine=rappel_60) then pilote_acc(adresse+3,1,feu);
+        if combine=ral_30                then pilote_acc(adresse+2,1,feu);
+        if combine=rappel_60             then pilote_acc(adresse+2,2,feu);
+      end;
     end;
 
     // algo de la doc qui ne marche pas chez JEF
@@ -4064,23 +4037,23 @@ begin
           if combine=rappel_30      then begin pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
           if ((aspect=jaune) or (aspect=jaune_cli)) and (combine=rappel_30)
                                     then begin pilote_acc(adresse,1,feu);pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
-         end;
+      end;
 
-        // 99=VJR + blanc + violet + ral30 + rappel60
-        if modele=99 then
-        begin
-          case aspect of
-            vert,vert_cli         : begin pilote_acc(adresse+1,1,feu);pilote_acc(adresse+3,2,feu);end;
-            jaune,jaune_cli       : begin pilote_acc(adresse,1,feu);pilote_acc(adresse+3,2,feu);end;
-            semaphore,semaphore_cli: begin pilote_acc(adresse,2,feu);pilote_acc(adresse+3,2,feu);end;
-            blanc,blanc_cli       : pilote_acc(adresse+1,2,feu);
-            violet                : pilote_acc(adresse+3,1,feu);
-            end;
-          if combine=ral_30         then begin pilote_acc(adresse+2,1,feu);pilote_acc(adresse+3,2,feu);end;
-          if combine=rappel_60      then begin pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
-          if ((aspect=jaune) or (aspect=jaune_cli)) and (combine=rappel_60)
-                                    then begin pilote_acc(adresse,1,feu);pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
+      // 99=VJR + blanc + violet + ral30 + rappel60
+      if modele=99 then
+      begin
+        case aspect of
+          vert,vert_cli         : begin pilote_acc(adresse+1,1,feu);pilote_acc(adresse+3,2,feu);end;
+          jaune,jaune_cli       : begin pilote_acc(adresse,1,feu);pilote_acc(adresse+3,2,feu);end;
+          semaphore,semaphore_cli: begin pilote_acc(adresse,2,feu);pilote_acc(adresse+3,2,feu);end;
+          blanc,blanc_cli       : pilote_acc(adresse+1,2,feu);
+          violet                : pilote_acc(adresse+3,1,feu);
         end;
+        if combine=ral_30         then begin pilote_acc(adresse+2,1,feu);pilote_acc(adresse+3,2,feu);end;
+        if combine=rappel_60      then begin pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
+        if ((aspect=jaune) or (aspect=jaune_cli)) and (combine=rappel_60)
+                                    then begin pilote_acc(adresse,1,feu);pilote_acc(adresse+2,2,feu);pilote_acc(adresse+3,2,feu);end;
+      end;
     end;
   end;
 end;
@@ -4202,7 +4175,7 @@ end;
 
 {==========================================================================
 envoie les données au décodeur LDT_nmbs (belge)
-seulement 4 aspects !!
+ce décodeur ne permet seulement que 4 aspects !!
 rouge
 vert
 2 jaune (slow approch de la doc ldt)
@@ -4354,11 +4327,10 @@ var
   combine,nombre,aspect,code : integer;
   i : integer;
   s : string;
-procedure ecrire(v : integer);
+
+  procedure ecrire(v : integer);
   var j,k : integer;
   begin
-    //if InverseMotif then
-    //v:=inverse(v);
     // bits 7 6
     k:=0;
     if nombre>=5 then
@@ -4368,7 +4340,7 @@ procedure ecrire(v : integer);
       inc(k);
     end;
 
-    // bit 5 4
+    // bits 5 4
     if nombre>=3 then
     begin
       if (v and $30)=$20 then j:=2 else j:=1;
@@ -4376,7 +4348,7 @@ procedure ecrire(v : integer);
       inc(k);
     end;
 
-    // bit 3 2           // bit 5 4
+    // bits 3 2
     if nombre>=2 then
     begin
       if (v and $c)=$8 then j:=2 else j:=1;
@@ -4384,6 +4356,7 @@ procedure ecrire(v : integer);
       inc(k);
     end;
 
+    // bits 1 0
     if nombre>=1 then
     begin
       if (v and $3)=$2 then j:=2 else j:=1;
@@ -4609,6 +4582,11 @@ begin
       begin
         j:=1;
         numAcc:=decodeur_pers[dp].Peripherique;
+        if numAcc>NbMaxi_Periph then
+        begin
+          Affiche('Erreur 54 : numéro de périphérique hors limite pour décodeur personnalisé '+intToSTR(dp),clred);
+          exit;
+        end;
         code_to_aspect(etat,aspect,combine);
         if combine=-1 then
         begin
@@ -4700,6 +4678,11 @@ begin
       if decodeur_pers[dp].commande=1 then
       begin
         numAcc:=decodeur_pers[dp].Peripherique;
+        if numAcc>NbMaxi_Periph then
+        begin
+          Affiche('Erreur 55 : numéro de périphérique hors limite pour décodeur personnalisé '+intToSTR(dp),clred);
+          exit;
+        end;
         // trouver l'état dans le décodeur
         for j:=0 to 8 do
         begin     // balayer les bits de 0 à 8
@@ -4939,13 +4922,13 @@ end;
 
 // pilotage des signaux
 procedure envoi_signauxCplx;
-var i,signalCplx : integer;
+var i,adr : integer;
 begin
   //Affiche('Envoi des signaux (envoi_signauxCplx)',ClGreen);
   for i:=1 to NbreFeux do
   begin
-   signalCplx:=feux[i].adresse;
-   if not(ferme) and (signalCplx<>0) then envoi_signal(signalCplx);
+    adr:=feux[i].adresse;
+    if not(ferme) and (adr<>0) then envoi_signal(adr);
   end;
 end;
 
@@ -5088,7 +5071,7 @@ begin
   end
   else
   begin
-    Affiche('Erreur Signal '+intToSTR(adresse)+' inconnu',clred);
+    Affiche('Erreur 395 : Signal '+intToSTR(adresse)+' inconnu',clred);
     Verif_Unisemaf:=3;
   end;
 end;
@@ -5974,13 +5957,6 @@ begin
       if (nivdebug>1) then Affichedebug('le port de destination du croisement '+intToSTR(aiguillage[index].adresse)+' est '+IntToSTR(adr)+a,clyellow);
       // Affiche('croisement '+intToSTR(prec)+' '+intToSTR(actuel),clLime);
       // mémoriser dans un tableau l'entrée et la sortie du croisement
-      if ncrois<20 then
-      begin
-        inc(ncrois);
-        croisement[ncrois].adresse:=aiguillage[index].adresse;
-        croisement[ncrois].entree:=prec;
-        croisement[ncrois].sortie:=adr;
-      end;
       exit;
     end;
 
@@ -6586,20 +6562,20 @@ begin
   until dir=3;
 end;
 
-// renvoie l'adresse des détecteurs précédents un signal après les aiguillages
+// renvoie l'adresse des détecteurs convergents précédents un signal après les aiguillages
 // renvoie dans le tableau TabloDet
 procedure det_prec_signal(adresse : integer;var tabloDet : TTabloDet);
 var el1,el2,i,i2,index,it,voie : integer;
     tq1,tq2 : tEquipement;
 
-  // explore un aiguillage
+  // explore les connexions d'un aiguillage - récursif
   procedure explore_branche(prec,adrAig : integer);
   var i,el1,el2 : integer;
       c: char;
       typ : tEquipement;
   begin
     inc(it);
-    if it>20 then begin Affiche('Erreur 95',clred);exit;end;
+    if it>40 then begin Affiche('Erreur récursive 95',clred);exit;end;
     i:=index_aig(adrAig);
     typ:=aiguillage[i].modele;
 
@@ -6814,6 +6790,7 @@ var el1,el2,i,i2,index,it,voie : integer;
         tabloDet[index]:=el2;inc(index);
       end;
     end;
+
     if typ=aig then
     begin
       // pris en pointe?
@@ -6831,7 +6808,8 @@ var el1,el2,i,i2,index,it,voie : integer;
         else
         begin
           //Affiche(IntToSTR(el2),clLime);
-          tabloDet[index]:=el2;inc(index);
+          tabloDet[index]:=el2;
+          inc(index);
         end;
 
         //Affiche('Aig'+inttostr(adraig)+' pointe dévié',clyellow);
@@ -6846,7 +6824,8 @@ var el1,el2,i,i2,index,it,voie : integer;
         else
         begin
           //Affiche(IntToSTR(el2),clLime);
-          tabloDet[index]:=el2;inc(index);
+          tabloDet[index]:=el2;
+          inc(index);
         end;
       end
       else
@@ -6870,8 +6849,8 @@ var el1,el2,i,i2,index,it,voie : integer;
   end;
 
 begin
-  // trouver élément avant le signal
-  for i:=1 to 10 do tabloDet[i]:=0;
+  // trouver éléments avant le signal
+  for i:=1 to Mtd do tabloDet[i]:=0;
   i:=index_signal(adresse);
   if i=0 then affiche('Erreur 842 : signal '+intToSTR(adresse)+' inconnu',clred);
 
@@ -6909,12 +6888,14 @@ begin
     if el2<>0 then
     begin
       it:=0;
+      // élément avant le signal
       suivant:=suivant_alg3(el1,tq1,el2,det,0); //typeGen
+      // si aiguillage
       if (typeGen=aig) or (typeGen=tjd) or (typeGen=tjs) or (typeGen=triple) then explore_branche(el2,suivant);
       if typeGen=det then begin tabloDet[1]:=suivant;index:=2;end;
     end;
   end;
-  tabloDet[index]:=0;
+  if index<=Mtd then tabloDet[index]:=0 else Affiche('Dépassement TabloDet signal '+intToSTR(Adresse),clred);
   {
   for i:=1 to Index do
   begin
@@ -7717,7 +7698,7 @@ begin
       prec:=actuel;TypePrec:=TypeActuel;
       actuel:=AdrSuiv;TypeActuel:=typeGen;
 
-      if idEl<20 then
+      if idEl<Maxelements then
       begin
         // rectifier le type de l'élément
         elements[idEl].adresse:=actuel;
@@ -8002,7 +7983,7 @@ begin
       TypeActuel:=feux[i].Btype_suiv4;
     end;  // détecteur sur le signal courant
 
-    if (actuel=0) or (actuel>NbMemZone) or (prec=0) or (prec>NbMemZone) then
+    if (actuel=0) or (actuel>NbMaxDet) or (prec=0) or (prec>NbMaxDet) then
     begin
       // sortie si aucun détecteur déclaré sur le signal
       test_memoire_zones:=Pres_train;
@@ -8255,7 +8236,7 @@ begin
         prec:=actuel;TypePrec:=TypeActuel;
         actuel:=AdrSuiv;TypeActuel:=typeGen;
 
-        if idEl<20 then
+        if idEl<Maxelements then
         begin
           elements[idEl].adresse:=actuel;
           elements[idEl].typ:=typeActuel;
@@ -8379,7 +8360,7 @@ begin
       Typeprec:=feux[i].Btype_suiv4;
     end;  // détecteur sur le signal courant
 
-    if actuel>NbMemZone then
+    if actuel>NbMaxDet then
     begin
       Affiche('Erreur 179 : détecteur '+intToSTR(actuel)+' trop élevé sur signal '+intToSTR(adresse),clred);
       result:=false;
@@ -8421,7 +8402,7 @@ begin
         if (NivDebug=3) and MemZone[d,actuel].etat then AfficheDebug('Trouvé train '+intToSTR(AdrTr)+' sur mémoire de zone '+intToSTR(d)+','+intToSTR(actuel),clyellow);
       end;
       inc(k);
-    until (d=0) or (k=11);
+    until (d=0) or (k=Mtd);
 
     dernierdet:=actuel;
     j:=0;
@@ -8538,7 +8519,7 @@ begin
                     end;
                   end;
                   inc(k);
-                until (d=0) or (k=11);
+                until (d=0) or (k=Mtd);
               end
               else
               begin
@@ -8703,7 +8684,6 @@ begin
       end;
     end;
   end;
-
 
   if signalDebug=AdrFeu then begin AffSignal:=false;nivDebug:=0;end;
   if debug=3 then formprinc.Caption:='';
@@ -9408,7 +9388,7 @@ begin
           AdrSuiv:=detecteur_suivant_el(det1,det,det3,det,1);
           det4:=detecteur_suivant_EL(det3,det,AdrSuiv,det,1);
           //*** route validée ***
-          if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) and (adrSuiv<NbMemZone) then
+          if (det1<NbMaxDet) and (det2<NbMaxDet) and (det3<NbMaxDet) and (adrSuiv<NbMaxDet) then
           begin
             MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
             MemZone[det1,det3].train:='';
@@ -9513,7 +9493,7 @@ begin
           until (j>6) or trouve;
           dec(j);
           //si début de démarrage train i
-          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMemZone) and (det3<NbMemZone) then
+          if trouve and (TrainZone[i].Nbre=0) and (det1<NbMaxDet) and (det3<NbMaxDet) then
           begin
             //Affiche('on a trouvé le train '+intToSTR(j),clYellow);
 
@@ -9615,7 +9595,7 @@ begin
               exit;
             end;
           end;}
-          if (det2<NbMemZone) and (det3<NbMemZone) and (AdrSuiv<NbMemZone) then
+          if (det2<NbMaxDet) and (det3<NbMaxDet) and (AdrSuiv<NbMaxDet) then
           begin
             //*** route validée ***
             train_ch:=event_det_train[i].nom_train;
@@ -9665,9 +9645,6 @@ begin
                 Zone[n].det2:=AdrSuiv;
                 Nbre:=n;
               end;
-              // zone suivante en prévision
-              det4:=detecteur_suivant_EL(det3,det,AdrSuiv,det,1);
-              TrainPrevZone[i][1]:=det4;
             end;
 
             event_act(det2,det3,0,'');        // désactivation zone
@@ -9676,9 +9653,9 @@ begin
           else
           begin
             s:='Erreur 740 : Adresse détecteur trop élevé ';
-            if det2>NbMemZone then s:=s+inttostr(det2)+' ';
-            if det3>NbMemZone then s:=s+inttostr(det2)+' ';
-            if AdrSuiv>NbMemZone then s:=s+inttostr(det2);
+            if det2>NbMaxDet then s:=s+inttostr(det2)+' ';
+            if det3>NbMaxDet then s:=s+inttostr(det2)+' ';
+            if AdrSuiv>NbMaxDet then s:=s+inttostr(det2);
             Affiche(s,clred);
           end;
 
@@ -9779,7 +9756,7 @@ begin
       begin
         event_det_tick[N_event_tick].train:=i;
         if TraceListe then AfficheDebug('La route est valide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' sont contigus',couleur);
-        if (det1<NbMemZone) and (det2<NbMemZone) and (det3<NbMemZone) then
+        if (det1<NbMaxDet) and (det2<NbMaxDet) and (det3<NbMaxDet) then
         begin
           //*** route validée ***
           // on ne dévalide pas la zone précédente car sinon ne marche pas quand 2 trains se suivent
@@ -9811,9 +9788,9 @@ begin
         else
         begin
           s:='Erreur 740 : Adresse détecteur trop élevé ';
-          if det2>NbMemZone then s:=s+inttostr(det2)+' ';
-          if det3>NbMemZone then s:=s+inttostr(det2)+' ';
-          if AdrSuiv>NbMemZone then s:=s+inttostr(det2);
+          if det2>NbMaxDet then s:=s+inttostr(det2)+' ';
+          if det3>NbMaxDet then s:=s+inttostr(det2)+' ';
+          if AdrSuiv>NbMaxDet then s:=s+inttostr(det2);
           Affiche(s,clred);
         end;
         // stockage dans historique de zones sauf s'il est déja stocké
@@ -9830,9 +9807,6 @@ begin
               TrainZone[i].Zone[n].det1:=det2;
               TrainZone[i].Zone[n].det2:=det3;
               TrainZone[i].Nbre:=n;
-              // zone suivante en prévision
-              det4:=detecteur_suivant_EL(det2,det,det3,det,1);
-              TrainPrevZone[i][1]:=det4;
             end;
           end;
         end;
@@ -9890,7 +9864,7 @@ begin
     for i:=1 to N_trains do
     begin
       i2:=event_det_train[i].Suivant;
-      if i2>NbMemZone then begin AfficheDebug('Erreur 715 : détecteur '+intToSTR(i2)+' trop grand',clred);exit;end;
+      if i2>NbMaxDet then begin AfficheDebug('Erreur 715 : détecteur '+intToSTR(i2)+' trop grand',clred);exit;end;
       SuivOk:=event_det_train[i].Det[2].etat ;
       det_adj(det3);
       if (adj1=i2) or (adj2=i2) then
@@ -9956,7 +9930,7 @@ begin
         if AdrPrec=0 then
         begin
           if TraceListe then Affiche('FD - Le signal '+IntToSTR(AdrFeu)+' est précédé d''un buttoir',clyellow);
-          if AdrDetFeu<NbMemZone then
+          if AdrDetFeu<NbMaxDet then
             MemZone[0,AdrDetFeu].etat:=false
           else
             Affiche('Erreur 741: Adresse détecteur signal trop élevé: '+intToSTR(AdrDetFeu),clred);
@@ -10142,13 +10116,18 @@ begin
   end;
 end;
 
-// ouvre le PN index dans le tablo_pn
+// ferme le pn par port com usb
 procedure ferme_pn_usb(i : integer);
 var v,cmd,numacc : integer;
     s : string;
 begin
     numacc:=Tablo_pn[i].AdresseFerme; // numéro de périphérique
     if numacc=0 then exit;
+    if (numAcc>NbMaxi_Periph) or (numacc=0) then
+    begin
+      Affiche('Erreur 56 : numéro de périphérique hors limite pour PN '+intToSTR(i),clred);
+      exit;
+    end;
     v:=Tablo_periph[numacc].NumCom;  // numéro de com
     if v=0 then exit;
     if Tablo_com_cde[numacc].PortOuvert then
@@ -10163,12 +10142,17 @@ begin
       else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
 end;
 
+// ouvre le pn par port com usb
 procedure ouvre_pn_usb(i : integer);
 var v,cmd,numacc : integer;
     s : string;
 begin
     numacc:=Tablo_pn[i].AdresseFerme; // numéro d'accessoire
-    if numacc=0 then exit;
+    if (numAcc>NbMaxi_Periph) or (numacc=0) then
+    begin
+      Affiche('Erreur 57 : numéro de périphérique hors limite pour PN '+intToSTR(i),clred);
+      exit;
+    end;
     v:=Tablo_periph[numacc].NumCom;  // numéro de com
     if v=0 then exit;
     if Tablo_com_cde[numacc].PortOuvert then
@@ -10183,7 +10167,7 @@ begin
       else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
 end;
 
-// i = index tablo_pn
+// ouvre le pn par socket i = index tablo_pn
 procedure ouvre_pn_socket(i : integer);
 var numacc,cmd : integer;
     s : string;
@@ -10198,7 +10182,7 @@ begin
     Affiche('Envoie socket'+intToSTR(numacc)+' commande: '+s,clWhite);
 end;
 
-// i = index tablo_pn
+// ferme le pn par socket i = index tablo_pn
 procedure ferme_pn_socket(i : integer);
 var numacc,cmd : integer;
     s : string;
@@ -10220,7 +10204,11 @@ var numacc,v,cmd : integer;
     s : string;
 begin
   numacc:=Tablo_actionneur[i].fonction; // numéro de périphérique
-  if numacc=0 then exit;
+  if (numAcc>NbMaxi_Periph) or (numacc=0) then
+  begin
+    Affiche('Erreur 58 : numéro de périphérique hors limite '+intToSTR(i),clred);
+    exit;
+  end;
   v:=Tablo_periph[numacc].NumCom;  // numéro de com
   if v=0 then exit;
   if Tablo_com_cde[numacc].PortOuvert then
@@ -10242,6 +10230,11 @@ var v,numacc : integer;
 begin
   v:=Tablo_actionneur[i].fonction; // numéro de périphérique
   numacc:=Tablo_periph[v].numComposant;   //numéro de composant
+  if (numAcc>NbMaxi_Periph) or (numacc=0) then
+  begin
+    Affiche('Erreur 59 : numéro de périphérique hors limite',clred);
+    exit;
+  end;
   s:=Tablo_actionneur[i].trainDest;
   if Tablo_periph[numacc].cr then s:=s+#13;
   if numacc=1 then Formprinc.ClientSocketCde1.socket.SendText(s);
@@ -10249,22 +10242,47 @@ begin
   if Tablo_periph[numacc].ScvVis then Affiche('Envoi socket '+s,clYellow);
 end;
 
+// envoie un texte vers tous les clients, connectés au serveur signaux_complexes
 procedure envoi_serveur(s : string);
 var i : integer;
 begin
-  for i:=0 to Formprinc.serverSocket.Socket.ActiveConnections-1 do
+  with Formprinc.serverSocket.Socket do
   begin
-    if i<=10 then
-    if Liste_Clients[i].adresse<>'' then Formprinc.ServerSocket.Socket.connections[i].SendText(s);
+    for i:=0 to ActiveConnections-1 do
+    begin
+      if i<=IdClients then
+      if Liste_Clients[i].adresse<>'' then connections[i].SendText(s+#13);
+    end;
   end;
 end;
 
+// test si "train" est dans la liste des trains combinés traincombine
+// ex : TrainCombine='BB1542+CC6500' train='CC6500' renvoie vrai
+function test_train_decl(TrainCombine,train: string) : boolean;
+var i : integer;
+    trainUnique : string;
+    trouve : boolean;
+begin
+  trouve:=false;
+  repeat
+    i:=pos('+',Traincombine);
+    if i<>0 then
+    begin
+      TrainUnique:=Copy(Traincombine,1,i-1);
+      delete(traincombine,1,i);
+      trouve:=trainUnique=train;
+    end
+    else trouve:=traincombine=train;
+  until (i=0) or trouve;
+  result:=trouve;
+end;
 
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
+// trainDecl : composé de X, d'un train ou de plusieurs, séparés par +
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
-    s,st,trainDest : string;
+    sDecl,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
 begin
@@ -10287,8 +10305,8 @@ begin
   //    1      0     FD
   //    2      0     FD
 
-  fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant
-  fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant
+  fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant (FD)
+  fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant (FM)
 
   ancien_actionneur[adr]:=etat;
   if not(fd) and not(fm) then exit;
@@ -10299,7 +10317,7 @@ begin
   // dans tableau des actionneurs
   for i:=1 to maxTablo_act do
   begin
-    s:=Tablo_actionneur[i].trainDecl;
+    sDecl:=Tablo_actionneur[i].trainDecl;
     etatAct:=Tablo_actionneur[i].etat ;  // état à réagir
     etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);
     typ:=Tablo_actionneur[i].typdeclenche;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
@@ -10307,26 +10325,26 @@ begin
     begin
       st:='Détecteur/actionneur '+intToSTR(adr);
     end;
+    if typ=2 then
+    begin
+      st:='Aiguillage '+intToSTR(adr);
+    end;
     if typ=3 then
     begin
       adresseok:=adresseOk and (Tablo_actionneur[i].adresse2=adr2);
       st:='Mémoire de zone '+intToSTR(adr)+' '+intToStr(adr2);
-    end;
-    if typ=2 then
-    begin
-      st:='Aiguillage '+intToSTR(adr);
     end;
 
     adresseok:=( ((Tablo_actionneur[i].adresse=adr) and (adr2=0) ) and ((typ=0) or (typ=2)) ) or
                ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2) ) and (typ=1) );
 
     // actionneur pour fonction train
-    if adresseOk and (Tablo_actionneur[i].loco) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    if adresseOk and (Tablo_actionneur[i].loco) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       trainDest:=Tablo_actionneur[i].trainDest;
       // exécution de la fonction F vers CDM
       if (trainDest='X') or (trainDest='') then traindest:=traindecl;
-      if (trainDest='X') then traindest:=s;
+      //if (trainDest='X') then traindest:=sDecl;
       Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
       envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,trainDest);
       tablo_actionneur[i].TrainCourant:=trainDest;  // pour mémoriser le train pour la retombée de la fonction
@@ -10334,7 +10352,7 @@ begin
     end;
 
     // actionneur pour accessoire
-    if adresseOk and (Tablo_actionneur[i].act) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    if adresseOk and (Tablo_actionneur[i].act) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       access:=Tablo_actionneur[i].accessoire;
       sortie:=Tablo_actionneur[i].sortie;
@@ -10346,7 +10364,7 @@ begin
     end;
 
     // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide)
+    if adresseOk and (Tablo_actionneur[i].Son) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide)
     then
     begin
       if typ<>2 then st:=st+' Train='+trainDecl;
@@ -10355,7 +10373,7 @@ begin
     end;
 
     // commande COM/USB socket
-    if adresseOK and (Tablo_actionneur[i].periph) and ((s=trainDecl) or (s='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    if adresseOK and (Tablo_actionneur[i].periph) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       trainDest:=Tablo_actionneur[i].trainDest;
       v:=tablo_actionneur[i].fonction;   // numéro d'accessoire
@@ -10363,7 +10381,6 @@ begin
       af:=com_socket(v);
       if af=1 then envoi_periph_usb(i);    // numéro d'actionneur
       if af=2 then envoi_socket_periph_act(i); // numéro d'actionneur
-
     end;
   end;
 
@@ -10405,8 +10422,8 @@ begin
           inc(tablo_pn[i].compteur);
           if tablo_pn[i].compteur=1 then
           begin
-            s:='Fermeture PN'+IntToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')';
-            Affiche(s,clOrange);
+            sDecl:='Fermeture PN'+IntToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')';
+            Affiche(sDecl,clOrange);
             if tablo_pn[i].TypeCde=0 then
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
@@ -10438,8 +10455,8 @@ begin
         begin
           if Tablo_PN[i].compteur=1 then
           begin
-            s:='Ouverture PN'+intToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2);
-            Affiche(s,clorange);
+            sDecl:='Ouverture PN'+intToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2);
+            Affiche(sDecl,clorange);
             //if AffAigDet then AfficheDebug(s,clorange);
             if tablo_pn[i].TypeCde=0 then
             begin
@@ -10462,8 +10479,8 @@ begin
           inc(Tablo_PN[i].compteur);
           if tablo_pn[i].compteur=1 then
           begin
-            s:='Fermeture PN'+IntToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2)+' (train voie '+IntToSTR(v)+')';
-            affiche(s,clorange);
+            sDecl:='Fermeture PN'+IntToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2)+' (train voie '+IntToSTR(v)+')';
+            affiche(sDecl,clorange);
             if tablo_pn[i].TypeCde=0 then
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
@@ -10486,7 +10503,7 @@ begin
   if (adr>650) then
   for i:=1 to NbPeriph do
   begin
-    s:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
+    sDecl:='A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl;
     if Tablo_periph[i].ScvAct then
     begin
       v:=com_socket(i);
@@ -10494,29 +10511,27 @@ begin
       begin
         if tablo_com_cde[i].portOuvert then
         begin
-          if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
-          if Tablo_periph[i].cr then s:=s+#13;
+          if Tablo_periph[i].ScvVis then Affiche(sDecl,clWhite);
+          if Tablo_periph[i].cr then sDecl:=sDecl+#13;
           typ:=Tablo_periph[i].numComposant;
-          if typ=1 then Formprinc.MSCommCde1.Output:=s;
-          if typ=2 then Formprinc.MSCommCde2.Output:=s;
+          if typ=1 then Formprinc.MSCommCde1.Output:=sDecl;
+          if typ=2 then Formprinc.MSCommCde2.Output:=sDecl;
         end;
       end;
 
       if v=2 then
       begin
-        if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
-        if Tablo_periph[i].cr then s:=s+#13;
+        if Tablo_periph[i].ScvVis then Affiche(sDecl,clWhite);
+        if Tablo_periph[i].cr then sDecl:=sDecl+#13;
         typ:=Tablo_periph[i].numComposant;
-        if typ=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if typ=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if typ=1 then Formprinc.ClientSocketCde1.Socket.SendText(sDecl);
+        if typ=2 then Formprinc.ClientSocketCde2.Socket.SendText(sDecl);
       end;
     end;
   end;
 
   // Serveur envoi au clients
   Envoi_serveur('A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl);
-
-
 end;
 
 Procedure affiche_memoire;
@@ -10539,7 +10554,7 @@ var dr,i,AdrSuiv,AdrFeu,AdrDetfeu,index,Etat01,AdrPrec : integer;
     typeSuiv : tequipement;
     s : string;
 begin
-  if adresse>NbMemZone then
+  if adresse>NbMaxDet then
   begin
     Affiche('Erreur 82 : reçu adresse de détecteur trop grande : '+intToSTR(adresse),clred);
     exit;
@@ -10997,25 +11012,27 @@ end;
 
 // le décodage de la rétro est appelé sur une réception d'une trame de la rétrosignalisation de la centrale.
 // On déclenche ensuite les évènements détecteurs ou aiguillages.
-// modeStkRetro=false = stockage sur changement d'état, et génère évènement détecteur
-//              true  = stockage de l'état sans évènement
+// valeur = ITTN ZZZZ
+// var globale modeStkRetro=false = stockage sur changement d'état, et génère évènement détecteur
+//                          true  = stockage de l'état sans évènement
 procedure decode_retro_XpressNet(adresse,valeur : integer);
 var  s : string;
-     adraig,bitsITT,i : integer;
+     adraig,bitsTT,i,n : integer;
      etat : boolean;
 begin
   //afficheDebug(IntToSTR(adresse)+' '+intToSTR(valeur),clorange);
-  bitsITT:=valeur and $40;
+  bitsTT:=valeur and $60;  // 0110 0000
+  n:=valeur and $10;
   // bit à 010X XXXX = c'est un module de rétrosignalisation (pas un aiguillage)
   // doc LENZ Xpressnet protocol description page 31
   detecteur_chgt:=0;
 
-  // ---------- Cas N=1
-  if (valeur and $10)=$10 then // si bit N=1, les 4 bits de poids faible sont les 4 bits de poids fort du décodeur
+  // ---------- Cas N=1, les 4 bits de poids faible sont les 4 bits de poids fort du décodeur
+  if n=$10 then
   begin
     // détermine le détecteur qui a changé d'état
     // -------état du détecteur
-    if bitsITT=$40 then // module de rétro = détecteur
+    if bitsTT and $40=$40 then // TT=10 l'adresse est un module de rétro = détecteur
     begin
       // affecter l'état des détecteurs
       i:=adresse*8+8;
@@ -11054,7 +11071,7 @@ begin
     end;
 
     // état de l'aiguillage
-    if bitsITT=$00 then // module d'aiguillages, N=1
+    if (bitsTT=$00) or (bitsTT=$20) then // TT=00 ou TT=01 l'adresse est un décodeur d'accessoires sans(TT=00)/avec(TT=01) rétrosignalisation, avec N=1
     begin
       adraig:=((adresse * 4)+1 ); // *4 car N=1, c'est le "poids fort"
       if (valeur and $C)=$8 then
@@ -11084,10 +11101,10 @@ begin
   end;
 
   // ---------- Cas N=0
-  if (valeur and $10)=$00 then // si bit N=0, les 4 bits de poids faible sont les 4 bits de poids faible du décodeur
+  if n=0 then // si bit N=0, les 4 bits de poids faible sont les 4 bits de poids faible du décodeur
   begin
     //Affiche('N=0',clYellow);
-    if bitsITT=$40 then // module de rétro
+    if (bitsTT and $40)=$40 then  // TT=10 l'adresse est un module de rétro = détecteur avec N=0
     begin
       // affecter l'état des détecteurs
       i:=adresse*8+4;
@@ -11122,9 +11139,9 @@ begin
       end;
       if modeStkRetro then detecteur[i].etat:=etat;
       retEtatDet:=true;  // marqueur "reçu état détecteur"
-
     end;
-    if bitsITT=$00 then // module d'aiguillages
+
+    if (bitsTT=$00) or (bitsTT=$20) then // TT=00 ou TT=01 l'adresse est un décodeur d'accessoires sans(TT=00)/avec(TT=01) rétrosignalisation, avec N=0
     begin
       adraig:=(adresse * 4)+1;
       if (valeur and $C)=$8 then
@@ -11593,7 +11610,7 @@ begin
     exit;
   end;
 
-  //E3 40 ah al A0
+  // E3 40 ah al A0
   if chaineInt[1]=#$E3 then
   begin
     // la loco ah al est pilotée par le PC
@@ -11801,12 +11818,16 @@ begin
 end;
 
 // connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
-// index= index du tableau tablo_com_cde
 function connecte_port_usb_periph(index : integer) : boolean;
 var i,j,nc,numport,vitesse,erreur : integer;
     s,sc,portComCde : string;
     com : TMSComm;
 begin
+  if (index>NbMaxi_Periph) or (index=0) then
+  begin
+    Affiche('Erreur 60 : numéro de périphérique hors limite '+intToSTR(index),clred);
+    exit;
+  end;
   numport:=Tablo_periph[index].NumCom;
   if (numport<1) or (numport>255) then
   begin
@@ -11876,13 +11897,15 @@ begin
 end;
 
 // détermine si le périphérique i est un comusb ou un socket
+// =0 erreur
 // =1 comusb
 // =2 socket
-// i = index de Tablo_acc_ComUSB
 function com_socket(i : integer) : integer;
 var s : string;
 begin
   result:=0;
+  if i>NbMaxi_Periph then exit;
+
   s:=Tablo_periph[i].protocole;
   if length(s)>1 then if upcase(s[1])='C' then result:=1 else result:=2;
 end;
@@ -11921,7 +11944,6 @@ begin
   val(s,i,erreur);
   com.port:=i;
   com.open;
-//  Affiche('Demande d''ouverture du socket '+tablo_acc_comusb[index].protocole,clYellow);
   result:=true;
 end;
 
@@ -12245,7 +12267,7 @@ begin
   s:='';
   if lay<>'' then s:='-f '+lay;  // lay
 
-  s:=s+' -s COMIPC';             // démarre serveur comipc
+  if not(serveurIPCDM_Touche) then s:=s+' -COMIPC';             // démarre serveur comipc
 
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
@@ -12275,34 +12297,38 @@ begin
     // On a lancé CDM, déconnecter l'USB
     deconnecte_USB;
     Affiche('Lance les fonctions automatiques de CDM',clyellow);
-    Sleep(2000);       // attend le lancement de CDM
+    SetForegroundWindow(formprinc.Handle); // met SC devant
+    Sleep(1500);       // attend le lancement de CDM
+    if serveurIPCDM_touche then sleep(1000);
     ProcessRunning(s); // récupérer le handle de CDM
     SetForegroundWindow(CDMhd);            // met CDM en premier plan pour le télécommander par le clavier simulé
+    SetActiveWindow(CdmHd);
     Application.ProcessMessages;
+    if serveurIPCDM_Touche then sleep(1000);
 
-    {
-    // démarre le serveur IP : il faut avoir chargé un réseau sinon le permier menu est fermé------------------------------------
-    // prépare le tableau pour sendinput
-    KeybdInput(VK_MENU,0);                 // enfonce Alt
-    KeybdInput(Ord('C'),0);                // enfonce C
-    KeybdInput(Ord('C'),KEYEVENTF_KEYUP);  // relache C        pointe premier menu "Configuration train"
+    if serveurIPCDM_Touche then
+    begin
+      // démarre le serveur IP : il faut avoir chargé un réseau sinon le permier menu est fermé------------------------------------
+      // prépare le tableau pour sendinput
+      KeybdInput(VK_MENU,0);                 // enfonce Alt
+      KeybdInput(Ord('C'),0);                // enfonce C
+      KeybdInput(Ord('C'),KEYEVENTF_KEYUP);  // relache C        pointe premier menu "Configuration train"
 
-    KeybdInput(VK_MENU,KEYEVENTF_KEYUP);   // relache ALT
+      KeybdInput(VK_MENU,KEYEVENTF_KEYUP);   // relache ALT
 
-    KeybdInput(Ord('C'),0);
-    KeybdInput(Ord('C'),KEYEVENTF_KEYUP);  // pointe sur 2eme menu "comm ip"
+      KeybdInput(Ord('C'),0);
+      KeybdInput(Ord('C'),KEYEVENTF_KEYUP);  // pointe sur 2eme menu "comm ip"
 
-    KeybdInput(VK_RETURN,0);               // valide démarrer comm ip
-    KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
-    KeybdInput(VK_RETURN,0);
-    KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+      KeybdInput(VK_RETURN,0);               // valide démarrer comm ip
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+      KeybdInput(VK_RETURN,0);
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
 
-    // envoie les touches
-    i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
-    Sleep(300);
-    Application.ProcessMessages;
-    }
-
+      // envoie les touches
+      i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
+      Sleep(400);
+      Application.ProcessMessages;
+    end;
     KeybdInput(VK_RETURN,0);
     KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
     SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  //fermer la fenetre
@@ -12328,7 +12354,7 @@ begin
       KeybdInput(VK_RETURN,0);
       KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);     // affiche la fenetre d'interface
-      Sleep(300);
+      Sleep(400);
 
       // descendre le curseur n fois pour sélectionner le serveur
       for i:=1 to ServeurInterfaceCDM-1 do
@@ -12341,8 +12367,8 @@ begin
       KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
       KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP);
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-      Sleep(200);
-
+      Sleep(400);
+        
       // Interface
       if (ServeurInterfaceCDM=1) or (ServeurInterfaceCDM=7) then
       begin
@@ -12357,7 +12383,7 @@ begin
         KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
 
-        Sleep(200);
+        Sleep(400);
         KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
       end;
@@ -12392,7 +12418,7 @@ begin
     event_det_tick[i].etat:=-1;
     event_det_tick[i].reaffecte:=0 ;
   end;
-  for i:=1 to NbMemZone do
+  for i:=1 to NbMaxDet do
   begin
     detecteur[i].etat:=false;
     detecteur[i].train:='';
@@ -12400,8 +12426,8 @@ begin
     detecteur[i].IndexTrain:=0;
     ancien_detecteur[i]:=false;
   end;
-  for i:=1 to NbMemZone do
-    for j:=1 to NbMemZone do
+  for i:=1 to NbMaxDet do
+    for j:=1 to NbMaxDet do
     begin
       MemZone[i,j].etat:=false;
       MemZone[i,j].train:='';
@@ -12656,7 +12682,7 @@ end;
 
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
-var t,i,index,OrgMilieu : integer;
+var n,t,i,index,OrgMilieu : integer;
     s : string;
 begin
   AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
@@ -12697,7 +12723,7 @@ begin
   ScrollBox1.Left:=633;
 
   procetape('');  //0
-  NbreTCO:=1;
+  NbreTCO:=0;
   N_Trains:=0;
   NivDebug:=0;
   ncrois:=0;
@@ -12722,6 +12748,7 @@ begin
   avecRoulage:=0;
   formatY:=-1;
   avecResa:=false;          // réservation des aiguillages en mode normal
+  serveurIPCDM_Touche:=false;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique + debug mise au point etc
   ButtonIndex.Visible:=not(avecInit);
@@ -12751,7 +12778,6 @@ begin
   if OsBits=64 then s:='OS 64 Bits' else s:='OS 32 Bits';
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
   Affiche(s,clLime);
-  LabelEtat.Caption:='Initialisations en cours';
 
   With ScrollBox1 do
   begin
@@ -12772,13 +12798,13 @@ begin
   NumTrameCDM:=0;
   protocole:=1;
   procetape('');  //1
-  for i:=1 to NbMemZone do
+  for i:=1 to NbMaxDet do
   begin
     Ancien_detecteur[i]:=false;
     detecteur[i].etat:=false;
     detecteur[i].train:='';
   end;
-  for i:=0 to 10 do
+  for i:=0 to IdClients do
   begin
     Liste_clients[i].adresse:='';
     Liste_Clients[i].PortLocal:=0;
@@ -12838,7 +12864,9 @@ begin
   if debug=1 then Affiche('Création TCO',clLime);
   // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
 
-  for i:=0 to Screen.MonitorCount-1 do
+  n:=Screen.MonitorCount-1;
+  if n>9 then n:=9;
+  for i:=0 to n do
   begin
     //Affiche('Ecran '+intToSTR(i),clyellow);
     ecran[i+1].x0:=Screen.Monitors[i].BoundsRect.Left;
@@ -12967,7 +12995,6 @@ begin
   // ouvre périphériques commandes actionneurs, car on a lu les com dans la config
   for i:=1 to NbPeriph do
   begin
-    //index:=tablo_acc_comUSB[i].NumAcc;  // numéro d'accessoire
     index:=com_socket(i);   // comusb ou socket ?
     if index=1 then
     begin
@@ -12990,7 +13017,6 @@ begin
   NombreImages:=0;
 
   //Affiche('Fin des initialisations',clyellow);
-  LabelEtat.Caption:=' ';
   Affiche_memoire;
   modeStkRetro:=false;
 
@@ -13057,7 +13083,6 @@ begin
       procetape('demande etats accessoires');
       demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
     end;
-    LabelEtat.Caption:=' ';
     //Menu_interface(valide);
   end;
 
@@ -13500,7 +13525,7 @@ begin
   end;
 
   // temporisation détecteur à 0
-  for i:=1 to NbMemZone do    // i=index détecteur
+  for i:=1 to NbMaxDet do    // i=index détecteur
   begin
     a:=detecteur[i].tempo0;
     if a<>0 then
@@ -13742,6 +13767,11 @@ end;
 
 procedure deconnecte_usb_periph(index : integer);
 begin
+  if (index>NbMaxi_Periph) or (index=0) then
+  begin
+    Affiche('Erreur 61 : numéro de périphérique hors limite ',clred);
+    exit;
+  end;
   if tablo_com_cde[index].PortOuvert then
   begin
     tablo_com_cde[index].PortOuvert:=false;
@@ -13756,6 +13786,11 @@ end;
 // déconnecte le périphérique socket
 procedure deconnecte_socket_periph(index : integer);
 begin
+  if (index>NbMaxi_Periph) or (index=0) then
+  begin
+    Affiche('Erreur 62 : numéro de périphérique hors limite ',clred);
+    exit;
+  end;
   if tablo_com_cde[index].PortOuvert then
   begin
     tablo_com_cde[index].PortOuvert:=false;
@@ -13967,7 +14002,6 @@ begin
         procetape('demande etats accessoires');
         demande_etat_acc;   // demande l'état des accessoires (position des aiguillages)
       end;
-      LabelEtat.Caption:=' ';
     end;
   end;
   if not(trouve) then ClientSocketInterface.Close;
@@ -14157,7 +14191,7 @@ begin
         begin
           ss:=copy(commandeCDM,i+5,l-i-5);
           val(ss,trains_cdm[ntrains_cdm].vitmax,erreur);
-          //s:='AD='+IntToSTR(adr);
+          //s:='AD='+IntToSTR(adr)f;
           Delete(commandeCDM,i,l-i+1);
         end;
       end;
@@ -14445,7 +14479,7 @@ begin
         end;
         
         if AffAigDet then
-          AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+intToSTR(name)+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
+          AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+nom+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
         Event_act(adr,0,etat,train); // déclenche évent actionneur
       end;
 
@@ -14785,7 +14819,7 @@ begin
           s:=s+IntToSTR(d)+' ';
         end;
         inc(k);
-      until (d=0) or (k=11);
+      until (d=0) or (k=Mtd); 
 
     end
 
@@ -15228,7 +15262,6 @@ begin
       s:=s+' index='+intToSTR(i);
       s:=s+' '+intToSTR(TrainZone[train].Zone[i].det1);
       s:=s+' '+intToSTR(TrainZone[train].Zone[i].det2);
-      if i=n then s:=s+' Prev='+intToSTR(TrainPrevZone[train][1]);
       couleur:=((train - 1) mod NbCouleurTrain) +1;
       Affiche(s,CouleurTrain[couleur]);
     end;
@@ -15245,9 +15278,9 @@ begin
         rien:=false;
       end;
       inc(j);
-    until (j>NbMemZone);
+    until (j>NbMaxDet);
     inc(i);
-  until (i>NbMemZone);
+  until (i>NbMaxDet);
 
   Affiche('Derniers éléments scannés:',clWhite);
   for i:=1 to idEl do
@@ -15332,7 +15365,7 @@ begin
   Affiche(' ',clyellow);
 end;
 
-// cliqué droit sur un feu puis sur le menu propriétés
+// cliqué droit sur un signal puis sur le menu propriétés
 procedure TFormPrinc.Proprits1Click(Sender: TObject);
 var s: string;
 begin
@@ -15787,6 +15820,7 @@ begin
 
   // requete 2 pour les com sur usb
   FWbemObjectSet:=FWMIService.ExecQuery('SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 0','WQL',wbemFlagForwardOnly);   // retourne les infos des ports série
+
   oEnum:=IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
   i:=0;
   while oEnum.Next(1,FWbemObject,iValue)=0 do
@@ -15803,11 +15837,11 @@ end;
 procedure liste_portcom ;
 begin
   try
-    CoInitialize(nil);
+    CoInitialize(nil);           // on va utiliser Ole
     try
-      GetWin32_SerialPortInfo;
+      GetWin32_SerialPortInfo;   // chercher les ports com avec Ole
     finally
-      CoUninitialize;
+      CoUninitialize;            // on a fini d'utiliser Ole
     end;
 
   except
@@ -15815,7 +15849,7 @@ begin
         Affiche(Format('EOleException %s %x', [E.Message,E.ErrorCode]),clyellow);
     on E:Exception do
         Affiche(E.Classname+ ':'+ E.Message,clyellow);
- end; 
+ end;
 end;
 
 procedure TFormPrinc.Evenementsdetecteurspartrain1Click(Sender: TObject);
@@ -15907,12 +15941,11 @@ begin
 end;
 
 procedure TFormPrinc.PopupMenuFeuPopup(Sender: TObject);
-var s : string;
-    ob : TPopupMenu;
+var ob : TPopupMenu;
 begin
   // AdrPilote est récupéré de l'event OnMouseDown de l'image du signal qui se produit avant
+  if Affevt then Affiche('PopupMenuFeu',clYellow);
   ob:=Sender as Tpopupmenu;
-  s:=ob.Items[0].Caption;
   ob.Items[0].Caption:='Propriétés du signal '+intToSTR(AdrPilote);
   ob.Items[1].Caption:='Informations du signal '+intToSTR(AdrPilote);
 end;
@@ -15931,7 +15964,6 @@ begin
     if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' publiée le '+date_creation+' est à jour',clLime);
     if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end
-  else Affiche('Site github.com inatteignable - réessayer plus tard',clred);
 end;
 
 procedure TFormPrinc.Analyser1Click(Sender: TObject);
@@ -16039,6 +16071,7 @@ begin
   end;
 
   NombreEcrans:=Screen.MonitorCount;
+  if NombreEcrans>10 then NombreEcrans:=10;
   if NombreEcrans=1 then NbTCOE[1]:=NbreTCO;
 
   for i:=1 to NbreTCO do
@@ -16092,14 +16125,13 @@ begin
   end;
 
   NombreEcrans:=Screen.MonitorCount;
+  if NombreEcrans>10 then NombreEcrans:=10;
   if NombreEcrans=1 then NbTCOE[1]:=NbreTCO;
 
   for i:=1 to NbreTCO do
   begin
-
     for e:=1 to NombreEcrans do
     begin
-
       if (ecranTCO[i]=e) or (NombreEcrans=1) then  // si l'écran TCO doit aller sur e
       begin
         inc(CeTCO[e]);
@@ -16316,6 +16348,7 @@ var e : integer;
 begin
   if (i<1) or (i>NbreTCO) then exit;
   e:=ecranTCO[i];
+  if e>10 then e:=10;
   if e>Screen.MonitorCount then e:=1;
 
   formTCO[i].show;    // on est obligé d'afficher la fenetre TCO pour provoquer OnActivate pour valider les pointeurs
@@ -16971,7 +17004,6 @@ var s : string;
 begin
   s:=ClientSocketCde1.Socket.ReceiveText;
   if not(telecommande(s)) then Affiche(s,clWhite);
-
 end;
 
 procedure TFormPrinc.ClientSocketCde2Connect(Sender: TObject;Socket: TCustomWinSocket);
@@ -17027,7 +17059,7 @@ procedure TFormPrinc.ServerSocketAccept(Sender: TObject;
 var n : integer;
 begin
   n:=serverSocket.Socket.ActiveConnections;
-  if n<=10 then
+  if n<=IdClients then
   begin
     Liste_clients[n-1].Adresse:=Socket.remoteAddress;
     Liste_clients[n-1].PortLocal:=Socket.LocalPort;
@@ -17049,7 +17081,7 @@ end;
 procedure TFormPrinc.ServerSocketClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
 var n : integer;
 begin
-  for n:=0 to 10 do
+  for n:=0 to IdClients do
   begin
     if (Liste_clients[n].adresse=socket.remoteAddress) and (Liste_clients[n].portDistant=socket.remotePort) and (Liste_clients[n].portLocal=socket.LocalPort) then
     begin
@@ -17063,7 +17095,7 @@ procedure TFormPrinc.Listedesclientsconnects1Click(Sender: TObject);
 var i,n : integer;
 begin
   n:=0;
-  for i:=0 to 10 do
+  for i:=0 to IdClients do
   begin
     if Liste_clients[n].adresse<>'' then
     begin

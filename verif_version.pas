@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.3';  // sert à la comparaison de la version publiée
+Const  Version='8.32';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -84,6 +84,7 @@ begin
         i:=getLastError;
         if i<>0 then
         case i of
+        12007 : Affiche('Erreur de résolution DNS',clred);
         12037 : Affiche('Erreur validité de certificat',clred);
         12157 : Affiche('Erreur canal sécurisé SSL 2.0',clred);
         else affiche('Erreur '+intToSTR(i),clred);
@@ -114,6 +115,7 @@ begin
 end;
 
 // renvoie le numéro de version depuis le site github
+// si 0
 function verifie_version : real;
 var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang
      : string;
@@ -228,7 +230,7 @@ begin
           //description:=utf8Decode(description);
           i:=1 ; j:=1;
           // couper en chaînes
-          repeat 
+          repeat
             j:=pos('\r',description);
             if j<>0 then
             begin
@@ -248,7 +250,7 @@ begin
           //
           ncomm:=i;
           comm[i]:=supprime_anti(description);
-             
+
         end;
 
       end;
@@ -322,14 +324,16 @@ begin
         result:=V_publie;
       end
       else
-      affiche('Le dépôt github ne comprend aucune version diffusée.',clOrange);
-      
+      begin
+        result:=-1;
+        affiche('Le dépôt github ne comprend aucune version diffusée.',clOrange);
+      end;
     end
     else
-      begin
-        result:=0;
-        if notificationVersion then Affiche('Pas d''accès au site github.com ou échec téléchargement',clorange);
-      end;
+    begin
+      result:=0;
+      Affiche('Pas d''accès au site github.com ou échec téléchargement',clorange);
+    end;
 end;
 
 

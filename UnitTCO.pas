@@ -8417,12 +8417,12 @@ begin
       i:=index_aig(adresse);
       AdrTr:=aiguillage[i].AdrTrain;
       typ:=aiguillage[i].modele;
-      
+
       if AdrTr=0 then
       begin
         Brush.Color:=tco[indextco,x,y].CouleurFond;
         //SetBkMode(PCanvasTCO[indexTCO].Handle,TRANSPARENT);
-        s:=s+'   '; // efface l'adresse de réservation
+        if avecRESA or roulage then s:=s+'  '; // efface l'adresse de réservation
       end
       else
       begin
@@ -8573,7 +8573,7 @@ begin
         else begin xt:=round(2*frxGlob[indexTCO]);yt:=round(1*fryGlob[indexTCO]);end;
       end;
     end;
-    if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=2*hauteurCell[indexTCO]-round(25*fryGlob[indexTCO]);end;
+    if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=round(60*fryGlob[indexTCO]);end;
     if (aspect=9) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);end;    // orientation G
     if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+round(25*frxGlob[indexTCO]);yt:=1;end;
     if (aspect=9) and (Oriente=4) and (pied=1) then begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
@@ -8627,8 +8627,6 @@ begin
       TextOut(xOrg+xt,yOrg+yt,s);
     end;
   end;
-
-  //if AvecGrille entoure_cell_grille(x,y);   // grille devant
 end;
 
 
@@ -8683,8 +8681,6 @@ begin
     Yentoure[indexTCO]:=YclicCell[indexTCO];
   end;
 end;
-
-
 
 // affiche le tco suivant le tableau TCO
 procedure Affiche_TCO(indexTCO : integer) ;
@@ -8790,7 +8786,6 @@ begin
   if entoure[indexTCO] then Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);
   if rect_select.NumTCO<>0 then Affiche_Rectangle(IndexTCO,Rect_select);
   if selectionaffichee[indexTCO] then Affiche_selection(indexTCO);
-
 end;
 
 
@@ -8822,7 +8817,7 @@ begin
   xMiniSel:=99999;yMiniSel:=99999;
   xMaxiSel:=0;yMaxiSel:=0;
   SelectionAffichee[indexTCOCreate]:=false;
-//  ImageTCO.Canvas.font.Name:='Arial';  <--- peut générer exception out of ressource!!
+  //ImageTCO.Canvas.font.Name:='Arial';  //<--- peut générer exception out of ressource!!
   clTexte:=ClLime;
   // évite le clignotement pendant les affichages mais ne marche pas
   //DoubleBuffered:=true;
@@ -10721,7 +10716,6 @@ begin
   {initalisation des dimensions du tco - à ne faire qu'une fois}
   if not(Forminit[indexTCO]) then
   begin
-
     Button1.Visible:=not(Diffusion);
     Button2.Visible:=not(Diffusion);
     ButtonCalibrage.Visible:=not(diffusion);
@@ -11799,10 +11793,9 @@ begin
   Annule(indexTCO);
 end;
 
-// renvoie un élément du TCO par l'icone en fonction des 4 tracés désirés
+// renvoie une icone en fonction des 4 tracés désirés
 // exemple : deux lignes qui se croisent renvoie un croisement
 // el  = élement à remplacer
-// Bim = élément d'origine
 // quadrant des 4 tracés (2=NE 3=Est 4=SE 5=S )
 // premier : si c'est le premier élément du tracé
 // dernier : si c'est le dernier élément du tracé
@@ -12769,7 +12762,7 @@ end;
 
 // affiche les cellules des tco dont l'adresse d'aiguillage est adresse
 Procedure Texte_aig_fond(adresse : integer);
-var ntco,i,x,y,Bim : integer;
+var ntco,x,y,Bim : integer;
 begin
   for ntco:=1 to NbreTCO do
   begin
@@ -12789,9 +12782,6 @@ begin
   end;
 end;
 
-
-
-
 procedure TFormTCO.Button1Click(Sender: TObject);
 begin
   Detecteur[569].etat:=true;
@@ -12803,7 +12793,6 @@ begin
   Detecteur[569].etat:=false;
   Maj_tco(index_TCO(sender),569);
 end;
-
 
 procedure TFormTCO.ImagePalette10EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin

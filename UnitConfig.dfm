@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 247
-  Top = 117
+  Left = 117
+  Top = 189
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1240,9 +1240,9 @@ object FormConfig: TFormConfig
         object RadioButton2: TRadioButton
           Left = 8
           Top = 40
-          Width = 225
+          Width = 241
           Height = 17
-          Caption = '1 : Ent'#234'te FF FE (interfaces natives USB)'
+          Caption = '1 : Ent'#234'te FF FE/FD (interfaces natives USB)'
           TabOrder = 1
         end
       end
@@ -2332,7 +2332,7 @@ object FormConfig: TFormConfig
         end
         object Label69: TLabel
           Left = 152
-          Top = 328
+          Top = 326
           Width = 122
           Height = 39
           Hint = 
@@ -2766,7 +2766,6 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          AutoComplete = False
           ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
@@ -2865,7 +2864,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
-          Top = 120
+          Top = 24
           Width = 249
           Height = 89
           Caption = 'Type d'#39'action'
@@ -2909,14 +2908,14 @@ object FormConfig: TFormConfig
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 24
+          Top = 120
           Width = 249
           Height = 321
           Caption = 'Action fonction de locomotive '
           TabOrder = 1
           object GroupBox18: TGroupBox
             Left = 8
-            Top = 24
+            Top = 16
             Width = 233
             Height = 161
             Caption = 'D'#233'clencheur '
@@ -2970,9 +2969,9 @@ object FormConfig: TFormConfig
               Width = 129
               Height = 21
               Hint = 
-                'Train d'#233'clencheur pour lequel la condition s'#39'applique (mettre X ' +
-                'pour tous les trains) #13 d'#233'clenchement par actionneur uniquemen' +
-                't'
+                'Train(s) d'#233'clencheur(s) s'#233'par'#233's par des virgules pour lequel la ' +
+                'condition s'#39'applique (mettre X pour tous les trains) #13 d'#233'clenc' +
+                'hement par actionneur uniquement'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 2
@@ -3023,8 +3022,8 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 56
-            Top = 32
+            Left = 8
+            Top = 168
             Width = 233
             Height = 137
             Caption = 'Destinataire de l'#39'action '
@@ -3217,7 +3216,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3238,24 +3237,24 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 104
-          Top = 160
+          Left = 168
+          Top = 152
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 2
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 64
-          Top = 48
+          Left = 88
+          Top = 320
           Width = 169
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 40
-          Top = 48
+          Left = 184
+          Top = 24
           Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
@@ -3378,7 +3377,7 @@ object FormConfig: TFormConfig
           end
           object RadioGroupActPN: TRadioGroup
             Left = 8
-            Top = 16
+            Top = 24
             Width = 217
             Height = 57
             Hint = 'action par accessoire DCC ou commande COM/USB'
@@ -3398,7 +3397,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -4087,13 +4086,13 @@ object FormConfig: TFormConfig
       object Label23: TLabel
         Left = 8
         Top = 28
-        Width = 570
+        Width = 606
         Height = 26
         Caption = 
-          'Ils sont utilis'#233's pour '#234'tre activ'#233's par un actionneur et leur en' +
-          'voyer des ordres ASCII. On peut '#233'galement leur envoyer des infor' +
-          'mations sur les '#233'v'#232'nements aiguillage, d'#233'tecteurs et actionneurs' +
-          ' via les services.'
+          'Les p'#233'riph'#233'riques sont utilis'#233's pour '#234'tre activ'#233's par un actionn' +
+          'eur et pour leur envoyer des ordres ASCII. On peut '#233'galement leu' +
+          'r envoyer des informations sur les '#233'v'#232'nements aiguillage, d'#233'tect' +
+          'eurs et actionneurs via les services.'
         WordWrap = True
       end
       object ListBoxPeriph: TListBox
@@ -4163,7 +4162,7 @@ object FormConfig: TFormConfig
       end
       object ButtonOuvreCom: TButton
         Left = 14
-        Top = 365
+        Top = 421
         Width = 75
         Height = 20
         Hint = 'R'#233'ouvre les ports COMs et Sockets demand'#233's'

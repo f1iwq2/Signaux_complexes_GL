@@ -25,6 +25,8 @@ Const
 
 
 // Ajoute une règle au pare feu pour un programme en utilisant Microsoft Windows Firewall APIs.
+// sp=Nom indicatif du programme (nom de la règle qui sera insérée dans le par-feu
+// chemin : chemin partiel et executable
 function AddApplicationRule(sp,chemin : string) : boolean;
 var
   CurrentProfiles,fwPolicy2,RulesObject,NewRule : OleVariant;
@@ -42,8 +44,8 @@ begin
   //Crée l'objet de la règle.
   NewRule:=CreateOleObject('HNetCfg.FWRule');
 
-  NewRule.Name:=sp;             // CDM rail
-  NewRule.Description:='Autorise le socket de/vers CDM rail'+sp;
+  NewRule.Name:=sp;           
+  NewRule.Description:='Autorise le socket de/vers '+sp;
 
   NewRule.Applicationname:=fichier;
   NewRule.Protocol:=NET_FW_IP_PROTOCOL_TCP;
@@ -60,7 +62,7 @@ begin
     r:=true;
   except
     begin
-      s:='Erreur: impossible d''accéder au pare feu windows. Le pare feu est géré par un programme tiers.';
+      s:='Erreur: impossible d''accéder au pare feu Windows. Le pare feu est géré par un programme tiers.';
       Affiche(s,clred);
       formconfig.Labelinfo.caption:=s;
       r:=false;

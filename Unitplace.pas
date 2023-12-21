@@ -142,7 +142,7 @@ begin
   end;
 
   raz_tout;
-  for detect:=1 to NbMemZone do
+  for detect:=1 to NbMaxDet do
   begin
     detecteur[detect].train:='';
     detecteur[detect].AdrTrain:=0;
@@ -167,7 +167,7 @@ begin
       val(s,detect,erreur);
       val(Ssuiv,Suiv,erreur);
       NomTrain:=trains[i].nom_train;
-      if (detect>NbMemZone )then LabelTexte.caption:='Erreur détecteur train '+intToSTR(i);
+      if (detect>NbMaxDet )then LabelTexte.caption:='Erreur détecteur train '+intToSTR(i);
       if detect<>0 then
       begin
         prec:=det_suiv_cont(Suiv,detect,1);  // détecteur précédent (d'ou vient la loco) arret sur suivant

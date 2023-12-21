@@ -546,6 +546,7 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+serveurIPCDM_Touche_ch='serveurIPCDM_Touche';
 PortServeur_ch='Port_Serveur';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
@@ -614,7 +615,7 @@ section_accCOM_ch='[section_accCOMUSB]';
 
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,trainsauve : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string; //,trainsauve : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,PortServeur,
@@ -626,27 +627,36 @@ var
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
+
   fichier : text;
 
   // composants dynamiques
   Gp1 : TGroupBox;
+
   CheckBoxCR,Cb1,Cb2,Cb3,CbVis : TCheckBox;
+
   MemoPeriph : Tmemo;
+
   EditPortCde,EditV1F,EditV1O,EditV2F,EditV2O,EditV3F,EditV3O,EditV4F,EditV4O,EditV5F,EditV5O,
   EditZdet1V1F,EditZdet2V1F,EditZdet1V1O,EditZdet2V1O,
   EditZdet1V2F,EditZdet2V2F,EditZdet1V2O,EditZdet2V2O,
   EditZdet1V3F,EditZdet2V3F,EditZdet1V3O,EditZdet2V3O,
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O  : Tedit;
-  LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
-  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP : Tlabel;
-  shape1,ShapeZ : Tshape;
-  BoutonCom : Tbutton;
   EditT  : Array[1..10] of Tedit;
-  ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
-  ShapeT : array[1..10] of TShape;
-  LabelDecCde : array[1..19] of TLabel;
   TextBoxCde : array[1..19] of Tedit;
+
+  LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
+  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP : Tlabel;
+  LabelDecCde : array[1..19] of TLabel;
+
+  shape1,ShapeZ : Tshape;
+  ShapeT : array[1..10] of TShape;
+
+  BoutonCom : Tbutton;
+
+  ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
+
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
@@ -1298,10 +1308,10 @@ begin
               begin
                 val(s,adr,erreur); // extraire l'adresse
                 Delete(s,1,k);
-                if Adr>NbMemZone then
+                if Adr>NbMaxDet then
                 begin
                   Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
-                  Adr:=NbMemZone;
+                  Adr:=NbMaxDet;
                 end;
               end;
               inc(j);
@@ -1326,10 +1336,10 @@ begin
                 if (j=4) then feux[i].Btype_Suiv4:=det;
               end;
               Val(s,adr,erreur);
-              if Adr>NbMemZone then
+              if Adr>NbMaxDet then
               begin
                 Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
-                Adr:=NbMemZone;
+                Adr:=NbMaxDet;
               end;
               if (j=1) then feux[i].Adr_el_suiv1:=Adr;
               if (j=2) then feux[i].Adr_el_suiv2:=Adr;
@@ -1674,6 +1684,8 @@ begin
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
+  if serveurIPCDM_Touche then s:='1' else s:='0';
+  writeln(fichierN,serveurIPCDM_Touche_ch+'='+s); 
   writeln(fichierN,PortServeur_ch+'=',PortServeur);
   writeln(fichierN,Filtrage_det_ch+'=',filtrageDet0);
   writeln(fichierN,AntiTimeoutEthLenz_ch+'=',AntiTimeoutEthLenz);
@@ -1826,6 +1838,8 @@ begin
   writeln(fichierN,section_DecPers_ch);
   for i:=1 to NbreDecPers do
   begin
+    s:=utf8encode('/ décodeur n°'+intToSTR(i));
+    Writeln(fichierN,s);
     writeln(fichierN,nom_dec_pers_ch+'='+decodeur_pers[i].nom);
     n:=decodeur_pers[i].NbreAdr;
     s:=Nba_ch+'='+intToSTR(n);
@@ -2060,7 +2074,7 @@ var s,sa,SOrigine: string;
 
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
-  for i:=1 to 10 do tablo_com_cde[i].NumAcc:=0;
+  for i:=1 to 10 do tablo_com_cde[i].NumPeriph:=0;
 
   // définition des actionneurs
   repeat
@@ -2072,6 +2086,8 @@ var s,sa,SOrigine: string;
       // MEM         = zone
       // Aaiguillage = aiguillage
       s:=sOrigine;  // travailler en min/maj
+
+      // évènement actionneur par aiguillage
       if (upcase(s[1])='A') then
       begin
         Tablo_actionneur[maxtablo_act].typdeclenche:=2;  // type aiguillage
@@ -2083,7 +2099,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].etat:=j;
         delete(s,1,erreur);
         i:=pos(',',s);
-        Tablo_actionneur[maxtablo_act].traindecl:=copy(s,1,i-1);  // inutile mais stocké
+        //Tablo_actionneur[maxtablo_act].traindecl:=copy(s,1,i-1);  // inutile mais stocké
         delete(s,1,i);
       end
       else
@@ -2102,7 +2118,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].etat:=j;
         delete(s,1,erreur);
         i:=pos(',',s);
-        Tablo_actionneur[maxtablo_act].traindecl:=copy(s,1,i-1);  // inutile mais stocké
+        //Tablo_actionneur[maxtablo_act].traindecl:=copy(s,1,i-1);  // inutile mais stocké
         delete(s,1,i);
       end
       else
@@ -2595,7 +2611,7 @@ var s,sa,SOrigine: string;
             inc(nv);
           end;
 
-                  
+
           // nombre d'adresses
           k:=pos(uppercase(nba_ch)+'=',s);
           if (k=1) and (NbreDecPers>0) then
@@ -2680,10 +2696,10 @@ var s,sa,SOrigine: string;
           decodeur_pers[NbreDecPers].desc[adr].Chcommande:=copy(sOrigine,k+1,length(sOrigine)-k+1);
           s:='';
           inc(adr);
-        end;  
+        end;
       end;
       s:=lit_ligne;
-        
+
       //else Affiche('Section décodeurs - Nombre de descriptions du décodeur "'+decodeur_pers[NbreDecPers].nom+'" différents du nombre des adresses déclarées',clred);
     until (adr>j) or (s='0');
 
@@ -2855,7 +2871,7 @@ var s,sa,SOrigine: string;
         i:=extract_int(sa);
         if i=0 then Affiche('Erreur COM nul : '+sOrigine,clred);
         Tablo_periph[NbPeriph].NumCom:=i;
-        Tablo_com_cde[NbPeriph].NumAcc:=NbPeriph;
+        Tablo_com_cde[NbPeriph].NumPeriph:=NbPeriph;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
    end;
@@ -2864,673 +2880,676 @@ var s,sa,SOrigine: string;
   // trie les signaux
   procedure trier_sig;
   var i,j : integer;
-    temp : TSignal;
+      temp : TSignal;
   begin
-  for i:=1 to NbreFeux do
-  begin
-    for j:=i+1 to NbreFeux do
+    for i:=1 to NbreFeux do
     begin
-      if feux[i].Adresse>feux[j].adresse then
+      for j:=i+1 to NbreFeux do
       begin
-        temp:=feux[i];
-        feux[i]:=feux[j];
-        feux[j]:=temp;
+        if feux[i].Adresse>feux[j].adresse then
+        begin
+          temp:=feux[i];
+          feux[i]:=feux[j];
+          feux[j]:=temp;
+        end;
       end;
     end;
-  end;
   end;
 
   procedure lit_flux;
-    label ici1,ici2,ici3,ici4 ;
-    var i : integer;
+  label ici1,ici2,ici3,ici4 ;
+  var i : integer;
 
   begin
-  // valeurs par défaut
-  Nb_cantons_Sig:=3;
-  nv:=0; it:=0;
-  // taille de fonte
-  repeat
-    s:=lit_ligne;
+    // valeurs par défaut
+    Nb_cantons_Sig:=3;
+    nv:=0; it:=0;
+    // taille de fonte
+    repeat
+      s:=lit_ligne;
 
-    sa:=uppercase(debug_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,debug,erreur);
-    end;
-
-    sa:=uppercase(PortServeur_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,portServeur,erreur);
-      if (portServeur<1) or (portServeur>65535) then
+      sa:=uppercase(debug_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
       begin
-        Affiche('Erreur port serveur : '+intToSTR(portServeur),clred);
-        portServeur:=5000;
+        delete(s,i,length(sa));
+        val(s,debug,erreur);
       end;
-    end;
 
 
-    sa:=uppercase(Verif_AdrXpressNet_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,Verif_AdrXpressNet,erreur);
-    end;
-
-    sa:=uppercase(Nom_fich_TCO_ch);
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,1,length(sa));
-      i:=extract_int(s);
-      j:=pos('=',s);
-      delete(s,1,j);
-      if (i>0) and (i<11) then NomfichierTCO[i]:=s;
-    end;
-
-
-    sa:=uppercase(LargeurF_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,LargeurF,erreur);
-    end;
-
-    sa:=uppercase(HauteurF_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,HauteurF,erreur);
-    end;
-
-    sa:=uppercase(OffsetXF_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,OffsetXF,erreur);
-    end;
-
-    sa:=uppercase(OffsetYF_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,OffsetYF,erreur);
-    end;
-
-    sa:=uppercase(PosSplitter_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,PosSplitter,erreur);
-    end;
-
-    sa:=uppercase(Filtrage_det_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,filtrageDet0,erreur);
-    end;
-
-    sa:=uppercase(AntiTimeoutEthLenz_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,AntiTimeoutEthLenz,erreur);
-    end;
-
-    sa:=uppercase(Algo_localisation_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,Algo_localisation,erreur);
-      if Algo_localisation<>1 then Affiche('Avertissement: Algo_localisation='+intToSTR(algo_localisation)+' est expérimental et non garanti',clorange);
-    end;
-
-    sa:=uppercase(Avec_roulage_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      delete(s,i,length(sa));
-      val(s,AvecRoulage,erreur);
-      if avecRoulage=1 then Formprinc.roulage1.visible:=true;
-    end;
-
-    sa:=uppercase(Fonte_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_fonte:=true;
-      delete(s,i,length(sa));
-      val(s,TailleFonte,erreur);
-      if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
-      with FormPrinc.FenRich do
+      sa:=uppercase(serveurIPCDM_Touche_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
       begin
-        //clear;
-        Font.Size:=TailleFonte;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        serveurIPCDM_Touche:=i=1;
       end;
-    end;
 
-    sa:=uppercase(Protocole_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_protocole:=true;
-      delete(s,i,length(sa));
-      val(s,Protocole,erreur);
-      if (Protocole<1) or (Protocole>2) then Protocole:=1;  //1=xpressnet 2=DCC+
-    end;
-
-    // adresse ip et port de CDM
-    sa:=uppercase(IpV4_PC_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_ipv4_PC:=true;
-      delete(s,i,length(sa));
-      i:=pos(':',s);
-      if i<>0 then
+      sa:=uppercase(PortServeur_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
       begin
-        adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);
-        val(s,portCDM,erreur);
-        if (portCDM=0) or (portCDM>65535) or (erreur<>0) then affiche('Erreur port CDM : '+s,clred);
-      end
-      else affiche('Erreur adresse ip cdm rail '+s,clred);
-    end;
-
-    // Services CDM
-    sa:=uppercase(ServicesCDM_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      Srvc_aig:=testbit(i,0);
-      Srvc_act:=testbit(i,1);
-      Srvc_det:=testbit(i,2);
-      Srvc_pos:=testbit(i,3);
-      Srvc_sig:=testbit(i,4);
-      Srvc_tdcc:=false;
-    end;
-
-    // adresse ip et port de la centrale
-    sa:=uppercase(IPV4_INTERFACE_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_IPV4_INTERFACE:=true;
-      delete(s,i,length(sa));
-      i:=pos(':',s);
-      if i<>0 then
-      begin
-        adresseIP:=copy(s,1,i-1);Delete(s,1,i);portInterface:=StrToINT(s);
-        if (adresseIP<>'0') and (portInterface=0) then affiche('Erreur port nul : '+sOrigine,clRed);
-      end
-      else begin adresseIP:='0';parSocketLenz:=false;end;
-    end;
-
-    // nombre max de port série à explorer
-    // configuration du port com
-    sa:=uppercase(MaxCom_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_MaxPort:=true;
-      val(s,MaxPortCom,erreur);
-      if erreur<>0 then Affiche('Erreur MaxCom: '+sOrigine,clred);
-      if (MaxPortCom<1) or (MaxPortCom>255) then MaxPortCom:=30;
-    end;
-
-
-    // configuration du port com interface
-    sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_PROTOCOLE_SERIE:=true;
-      delete(s,i,length(sa));
-      if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
-      if (NumPort>MaxPortCom) then Affiche('Le port com est supérieur au nombre de COMx à explorer dans le fichier de configuraion',clred);
-      portcom:=s;
-    end;
-
-    // temporisation entre 2 caractères
-    sa:=uppercase(INTER_CAR_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_INTER_CAR:=true;
-      val(s,TempoOctet,erreur);
-      if erreur<>0 then Affiche('Erreur temporisation entre 2 octets',clred);
-    end;
-
-    // temporisation attente maximale interface
-    sa:=uppercase(TEMPO_MAXI_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_Tempo_maxi:=true;
-      val(s,TimoutMaxInterface,erreur);
-      if erreur<>0 then Affiche('Erreur temporisation maximale interface',clred);
-    end;
-
-    // entete
-    sa:=uppercase(ENTETE_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_Entete:=true;
-      val(s,Valeur_entete,erreur);
-      entete:='';suffixe:='';
-      if Valeur_entete=1 then begin entete:=#$FF+#$FE;suffixe:='';end;
-      if (erreur<>0) or (valeur_entete>1) then Affiche('Erreur déclaration '+entete_ch,clred);
-    end;
-
-    // avec ou sans initialisation des aiguillages
-    sa:=uppercase(INIT_AIG_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      trouve_init_aig:=true;
-      inc(nv);
-      delete(s,i,length(sa));
-      AvecInitAiguillages:=s='1';
-    end;
-
-    // avec demande de position des aiguillages en mode autonome au démarrage
-    sa:=uppercase(Init_dem_aig_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      trouve_dem_aig:=true;
-      inc(nv);
-      delete(s,i,length(sa));
-      AvecDemandeAiguillages:=s='1';
-    end;
-
-    // avec demande de connexion en COM USB au démarrage
-    sa:=uppercase(Init_dem_interfaceUSBCOM_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      trouve_demcnxCOMUSB:=true;
-      inc(nv);
-      delete(s,i,length(sa));
-      AvecDemandeInterfaceUSB:=s='1';
-    end;
-
-    // avec demande de connexion en ethernet au démarrage
-    sa:=uppercase(Init_dem_interfaceEth_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      trouve_demcnxEth:=true;
-      inc(nv);
-      delete(s,i,length(sa));
-      AvecDemandeInterfaceEth:=s='1';
-    end;
-
-    // taille de la fenetre
-    sa:=uppercase(fenetre_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_fenetre:=true;
-      delete(s,i,length(sa));
-      val(s,fenetre,erreur);
-      if fenetre=1 then Formprinc.windowState:=wsMaximized;
-    end;
-
-    // mémo fenetre
-    sa:=uppercase(AffMemoFenetre_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      val(s,AffMemoFenetre,erreur);
-    end;
-
-    // Nombre de cantons avant signal
-    sa:=uppercase(Nb_cantons_Sig_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_Nb_cantons_Sig:=true;
-      delete(s,i,length(sa));
-      val(s,Nb_cantons_Sig,erreur);
-      if (Nb_cantons_Sig<3) or (Nb_cantons_Sig>5) then Nb_cantons_Sig:=3;
-    end;
-
-    // temporisation aiguillages
-    sa:=uppercase(Tempo_Aig_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_Tempo_aig:=true;
-      delete(s,i,length(sa));
-      val(s,Tempo_Aig,erreur);
-    end;
-
-    // temporisation décodeurs de feux
-    sa:=uppercase(Tempo_Feu_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_Tempo_feu:=true;
-      delete(s,i,length(sa));
-      val(s,Tempo_Feu,erreur);
-      if tempo_Feu=0 then Tempo_feu:=100;
-    end;
-
-    // algo unisemaf
-    sa:=uppercase(Algo_unisemaf_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_Algo_Uni:=true;
-      delete(s,i,length(sa));
-      val(s,algo_Unisemaf,erreur);
-      if (algo_Unisemaf<0) or (algo_Unisemaf>2) then algo_Unisemaf:=1;
-    end;
-
-    sa:=uppercase(verif_version_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      trouve_verif_version:=true;
-      inc(nv);
-      delete(s,i,length(sa));
-      // vérification de la version au démarrage
-      verifVersion:=true;
-      val(s,i,erreur);
-      if erreur=0 then verifVersion:=i=1;
-    end;
-
-    sa:=uppercase(NOTIF_VERSION_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_NOTIF_VERSION:=true;
-      // vérification de la version au démarrage
-      val(s,i,erreur);
-      notificationVersion:=i=1;
-    end;
-
-    sa:=uppercase(AvecVerifIconesTCO_ch);
-    i:=pos(sa,s);
-    if i<>0 then
-    begin
-      trouveAvecVerifIconesTCO:=true;
-      inc(nv);
-      delete(s,i,length(sa)+1);
-      val(s,AvecVerifIconesTCO,erreur);
-      AvecVerifIconesTCO:=0;  // forcé à 0
-      s:='';
-    end;
-
-    sa:=uppercase(TCO_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_TCO:=true;
-      val(s,i,erreur);
-      AvecTCO:=i=1;
-    end;
-
-    sa:=uppercase(Nb_TCO_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      if (i<1) or (i>10) then i:=1;
-      NbreTCO:=i;
-    end;
-
-
-    sa:=uppercase(MasqueBandeauTCO_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      trouve_MasqueTCO:=true;
-      val(s,i,erreur);
-      MasqueBandeauTCO:=i=1;
-    end;
-
-    sa:=uppercase(CDM_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_CDM:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      LanceCDM:=i=1;
-    end;
-
-    sa:=uppercase(LAY_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_lay:=true;
-      delete(s,i,length(sa));
-      lay:=s;
-    end;
-
-    sa:=uppercase(NomModuleCDM_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,i,length(sa));
-      NomModuleCDM:=s;
-    end;
-
-    sa:=uppercase(ModeResa_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      delete(s,1,length(sa));
-      AvecResa:=s='1'
-    end;
-
-    sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_serveur_interface:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      ServeurInterfaceCDM:=i;
-    end;
-
-    sa:=uppercase(RETRO_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_retro:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      ServeurRetroCDM:=i;
-    end;
-
-    sa:=uppercase(nb_det_dist_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_NbDetDist:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      if i<2 then begin i:=2;Affiche('Attention '+nb_det_dist_ch+' ramené à '+IntToSTR(i),clOrange); end;
-      Nb_Det_Dist:=i;
-    end;
-  
-    sa:=uppercase(Raz_signaux_ch)+'=';
-    i:=pos(sa,s);
-    if i=1 then
-    begin
-      inc(nv);
-      trouve_NbDetDist:=true;
-      delete(s,i,length(sa));
-      val(s,i,erreur);
-      if i>1 then i:=1;
-      Raz_Acc_signaux:=i=1;
-    end;
-
-    // section aiguillages
-    sa:=uppercase(section_aig_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_aig:=true;
-      compile_aiguillages;
-      trier_aig;
-    end;
-
-    // section branche
-    sa:=uppercase(section_branches_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_branche:=true;
-      compile_branches;
-    end;
-
-    // section signaux
-    sa:=uppercase(section_sig_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_sig:=true;
-      compile_signaux;
-      trier_sig;
-    end;
-
-    // section actionneurs
-    sa:=uppercase(section_act_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_act:=true;
-      compile_actionneurs;
-    end;
-
-    // section dcc++
-    sa:=uppercase(section_dccpp_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_dccpp:=true;
-      compile_dccpp;
-    end;
-
-    // section trains
-    sa:=uppercase(section_trains_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_trains:=true;
-      compile_trains;
-    end;
-
-    // section dédodeurs
-    sa:=uppercase(section_DecPers_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_dec_pers:=true;
-      compile_dec_pers;
-    end;
-
-
-    // section placement
-    sa:=uppercase(section_placement_ch);
-    if pos(sa,s)<>0 then
-    begin
-      i:=1;
-      repeat
-        lit_ligne;
-        if s<>'0' then
+        delete(s,i,length(sa));
+        val(s,portServeur,erreur);
+        if (portServeur<1) or (portServeur>65535) then
         begin
-          j:=pos(',',s);
-          if j<>0 then
+          Affiche('Erreur port serveur : '+intToSTR(portServeur),clred);
+        portServeur:=5000;
+        end;
+      end;
+
+      sa:=uppercase(Verif_AdrXpressNet_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,Verif_AdrXpressNet,erreur);
+      end;
+
+      sa:=uppercase(Nom_fich_TCO_ch);
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,1,length(sa));
+        i:=extract_int(s);
+        j:=pos('=',s);
+        delete(s,1,j);
+        if (i>0) and (i<11) then NomfichierTCO[i]:=s;
+      end;
+
+      sa:=uppercase(LargeurF_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,LargeurF,erreur);
+      end;
+
+      sa:=uppercase(HauteurF_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,HauteurF,erreur);
+      end;
+
+      sa:=uppercase(OffsetXF_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,OffsetXF,erreur);
+      end;
+
+      sa:=uppercase(OffsetYF_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,OffsetYF,erreur);
+      end;
+
+      sa:=uppercase(PosSplitter_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,PosSplitter,erreur);
+      end;
+
+      sa:=uppercase(Filtrage_det_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,filtrageDet0,erreur);
+      end;
+
+      sa:=uppercase(AntiTimeoutEthLenz_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,AntiTimeoutEthLenz,erreur);
+      end;
+
+      sa:=uppercase(Algo_localisation_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,Algo_localisation,erreur);
+        if Algo_localisation<>1 then Affiche('Avertissement: Algo_localisation='+intToSTR(algo_localisation)+' est expérimental et non garanti',clorange);
+      end;
+
+      sa:=uppercase(Avec_roulage_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,AvecRoulage,erreur);
+        if avecRoulage=1 then Formprinc.roulage1.visible:=true;
+      end;
+
+      sa:=uppercase(Fonte_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_fonte:=true;
+        delete(s,i,length(sa));
+        val(s,TailleFonte,erreur);
+        if (TailleFonte<8) or (tailleFonte>25) then taillefonte:=10;
+        with FormPrinc.FenRich do
+        begin
+          //clear;
+          Font.Size:=TailleFonte;
+        end;
+      end;
+
+      sa:=uppercase(Protocole_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_protocole:=true;
+        delete(s,i,length(sa));
+        val(s,Protocole,erreur);
+        if (Protocole<1) or (Protocole>2) then Protocole:=1;  //1=xpressnet 2=DCC+
+      end;
+
+      // adresse ip et port de CDM
+      sa:=uppercase(IpV4_PC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_ipv4_PC:=true;
+        delete(s,i,length(sa));
+        i:=pos(':',s);
+        if i<>0 then
+        begin
+          adresseIPCDM:=copy(s,1,i-1);Delete(s,1,i);
+          val(s,portCDM,erreur);
+          if (portCDM=0) or (portCDM>65535) or (erreur<>0) then affiche('Erreur port CDM : '+s,clred);
+        end
+        else affiche('Erreur adresse ip cdm rail '+s,clred);
+      end;
+
+      // Services CDM
+      sa:=uppercase(ServicesCDM_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        Srvc_aig:=testbit(i,0);
+        Srvc_act:=testbit(i,1);
+        Srvc_det:=testbit(i,2);
+        Srvc_pos:=testbit(i,3);
+        Srvc_sig:=testbit(i,4);
+        Srvc_tdcc:=false;
+      end;
+
+      // adresse ip et port de la centrale
+      sa:=uppercase(IPV4_INTERFACE_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_IPV4_INTERFACE:=true;
+        delete(s,i,length(sa));
+        i:=pos(':',s);
+        if i<>0 then
+        begin
+          adresseIP:=copy(s,1,i-1);Delete(s,1,i);portInterface:=StrToINT(s);
+          if (adresseIP<>'0') and (portInterface=0) then affiche('Erreur port nul : '+sOrigine,clRed);
+        end
+        else begin adresseIP:='0';parSocketLenz:=false;end;
+      end;
+
+        // nombre max de port série à explorer
+      // configuration du port com
+      sa:=uppercase(MaxCom_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_MaxPort:=true;
+        val(s,MaxPortCom,erreur);
+        if erreur<>0 then Affiche('Erreur MaxCom: '+sOrigine,clred);
+        if (MaxPortCom<1) or (MaxPortCom>255) then MaxPortCom:=30;
+      end;
+
+      // configuration du port com interface
+      sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_PROTOCOLE_SERIE:=true;
+        delete(s,i,length(sa));
+        if not(config_com(s)) then Affiche('Erreur port com mal déclaré : '+s,clred);
+        if (NumPort>MaxPortCom) then Affiche('Le port com est supérieur au nombre de COMx à explorer dans le fichier de configuraion',clred);
+        portcom:=s;
+      end;
+
+      // temporisation entre 2 caractères
+      sa:=uppercase(INTER_CAR_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_INTER_CAR:=true;
+        val(s,TempoOctet,erreur);
+        if erreur<>0 then Affiche('Erreur temporisation entre 2 octets',clred);
+      end;
+
+      // temporisation attente maximale interface
+      sa:=uppercase(TEMPO_MAXI_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_Tempo_maxi:=true;
+        val(s,TimoutMaxInterface,erreur);
+        if erreur<>0 then Affiche('Erreur temporisation maximale interface',clred);
+      end;
+
+      // entete
+      sa:=uppercase(ENTETE_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_Entete:=true;
+        val(s,Valeur_entete,erreur);
+        entete:='';suffixe:='';
+        if Valeur_entete=1 then begin entete:=#$FF+#$FE;suffixe:='';end;
+        if (erreur<>0) or (valeur_entete>1) then Affiche('Erreur déclaration '+entete_ch,clred);
+      end;
+
+      // avec ou sans initialisation des aiguillages
+      sa:=uppercase(INIT_AIG_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        trouve_init_aig:=true;
+        inc(nv);
+        delete(s,i,length(sa));
+        AvecInitAiguillages:=s='1';
+      end;
+
+      // avec demande de position des aiguillages en mode autonome au démarrage
+      sa:=uppercase(Init_dem_aig_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        trouve_dem_aig:=true;
+        inc(nv);
+        delete(s,i,length(sa));
+        AvecDemandeAiguillages:=s='1';
+      end;
+
+      // avec demande de connexion en COM USB au démarrage
+      sa:=uppercase(Init_dem_interfaceUSBCOM_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        trouve_demcnxCOMUSB:=true;
+        inc(nv);
+        delete(s,i,length(sa));
+        AvecDemandeInterfaceUSB:=s='1';
+      end;
+
+      // avec demande de connexion en ethernet au démarrage
+      sa:=uppercase(Init_dem_interfaceEth_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        trouve_demcnxEth:=true;
+        inc(nv);
+        delete(s,i,length(sa));
+        AvecDemandeInterfaceEth:=s='1';
+      end;
+
+      // taille de la fenetre
+      sa:=uppercase(fenetre_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_fenetre:=true;
+        delete(s,i,length(sa));
+        val(s,fenetre,erreur);
+        if fenetre=1 then Formprinc.windowState:=wsMaximized;
+      end;
+
+      // mémo fenetre
+      sa:=uppercase(AffMemoFenetre_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,AffMemoFenetre,erreur);
+      end;
+
+      // Nombre de cantons avant signal
+      sa:=uppercase(Nb_cantons_Sig_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Nb_cantons_Sig:=true;
+        delete(s,i,length(sa));
+        val(s,Nb_cantons_Sig,erreur);
+        if (Nb_cantons_Sig<3) or (Nb_cantons_Sig>5) then Nb_cantons_Sig:=3;
+      end;
+
+      // temporisation aiguillages
+      sa:=uppercase(Tempo_Aig_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Tempo_aig:=true;
+        delete(s,i,length(sa));
+        val(s,Tempo_Aig,erreur);
+      end;
+
+      // temporisation décodeurs de feux
+      sa:=uppercase(Tempo_Feu_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Tempo_feu:=true;
+        delete(s,i,length(sa));
+        val(s,Tempo_Feu,erreur);
+        if tempo_Feu=0 then Tempo_feu:=100;
+      end;
+
+      // algo unisemaf
+      sa:=uppercase(Algo_unisemaf_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Algo_Uni:=true;
+        delete(s,i,length(sa));
+        val(s,algo_Unisemaf,erreur);
+        if (algo_Unisemaf<0) or (algo_Unisemaf>2) then algo_Unisemaf:=1;
+      end;
+
+      sa:=uppercase(verif_version_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        trouve_verif_version:=true;
+        inc(nv);
+        delete(s,i,length(sa));
+        // vérification de la version au démarrage
+        verifVersion:=true;
+        val(s,i,erreur);
+        if erreur=0 then verifVersion:=i=1;
+      end;
+
+      sa:=uppercase(NOTIF_VERSION_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_NOTIF_VERSION:=true;
+        // vérification de la version au démarrage
+        val(s,i,erreur);
+        notificationVersion:=i=1;
+      end;
+
+      sa:=uppercase(AvecVerifIconesTCO_ch);
+      i:=pos(sa,s);
+      if i<>0 then
+      begin
+        trouveAvecVerifIconesTCO:=true;
+        inc(nv);
+        delete(s,i,length(sa)+1);
+        val(s,AvecVerifIconesTCO,erreur);
+        AvecVerifIconesTCO:=0;  // forcé à 0
+        s:='';
+      end;
+
+      sa:=uppercase(TCO_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_TCO:=true;
+        val(s,i,erreur);
+        AvecTCO:=i=1;
+      end;
+
+      sa:=uppercase(Nb_TCO_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        if (i<0) or (i>10) then i:=1;
+        NbreTCO:=i;
+      end;
+
+      sa:=uppercase(MasqueBandeauTCO_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        trouve_MasqueTCO:=true;
+        val(s,i,erreur);
+        MasqueBandeauTCO:=i=1;
+      end;
+
+      sa:=uppercase(CDM_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_CDM:=true;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        LanceCDM:=i=1;
+      end;
+
+      sa:=uppercase(LAY_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_lay:=true;
+        delete(s,i,length(sa));
+        lay:=s;
+      end;
+
+      sa:=uppercase(NomModuleCDM_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        NomModuleCDM:=s;
+      end;
+
+      sa:=uppercase(ModeResa_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,1,length(sa));
+        AvecResa:=s='1'
+      end;
+
+      sa:=uppercase(SERVEUR_INTERFACE_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_serveur_interface:=true;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        ServeurInterfaceCDM:=i;
+      end;
+
+      sa:=uppercase(RETRO_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_retro:=true;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+      ServeurRetroCDM:=i;
+      end;
+
+      sa:=uppercase(nb_det_dist_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_NbDetDist:=true;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        if i<2 then begin i:=2;Affiche('Attention '+nb_det_dist_ch+' ramené à '+IntToSTR(i),clOrange); end;
+        Nb_Det_Dist:=i;
+      end;
+
+      sa:=uppercase(Raz_signaux_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_NbDetDist:=true;
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        if i>1 then i:=1;
+        Raz_Acc_signaux:=i=1;
+      end;
+
+      // section aiguillages
+      sa:=uppercase(section_aig_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_aig:=true;
+        compile_aiguillages;
+        trier_aig;
+      end ;
+
+       // section branche
+      sa:=uppercase(section_branches_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_branche:=true;
+        compile_branches;
+      end;
+
+      // section signaux
+      sa:=uppercase(section_sig_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_sig:=true;
+        compile_signaux;
+        trier_sig;
+      end;
+
+      // section actionneurs
+      sa:=uppercase(section_act_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_act:=true;
+        compile_actionneurs;
+      end;
+
+      // section dcc++
+      sa:=uppercase(section_dccpp_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_dccpp:=true;
+        compile_dccpp;
+      end;
+
+      // section trains
+      sa:=uppercase(section_trains_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_trains:=true;
+        compile_trains;
+      end;
+
+      // section dédodeurs
+      sa:=uppercase(section_DecPers_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_dec_pers:=true;
+        compile_dec_pers;
+      end;
+
+      // section placement
+      sa:=uppercase(section_placement_ch);
+      if pos(sa,s)<>0 then
+      begin
+        i:=1;
+        repeat
+          lit_ligne;
+          if s<>'0' then
           begin
-            placement[i].train:=copy(s,1,j-1);
-            delete(s,1,j);
-            val(s,j,erreur);
-            placement[i].detecteur:=j;
             j:=pos(',',s);
             if j<>0 then
             begin
+              placement[i].train:=copy(s,1,j-1);
               delete(s,1,j);
               val(s,j,erreur);
-              placement[i].detdir:=j;
+              placement[i].detecteur:=j;
               j:=pos(',',s);
               if j<>0 then
               begin
                 delete(s,1,j);
                 val(s,j,erreur);
-                placement[i].inverse:=j=1;
+                placement[i].detdir:=j;
+                j:=pos(',',s);
+                if j<>0 then
+                begin
+                  delete(s,1,j);
+                  val(s,j,erreur);
+                  placement[i].inverse:=j=1;
+                end;
               end;
             end;
+            inc(i);
+            s:='';
           end;
-          inc(i);
-          s:='';
-        end;
-      until (s='0') or eof(fichier);
-    end;
+        until (s='0') or eof(fichier);
+      end;
 
-    // section accesoires comusb
-    sa:=uppercase(section_accCOM_ch);
-    if pos(sa,s)<>0 then
-    begin
-      trouve_section_acccomusb:=true;
-      compile_periph;
-    end;
+      // section accesoires comusb
+      sa:=uppercase(section_accCOM_ch);
+      if pos(sa,s)<>0 then
+      begin
+        trouve_section_acccomusb:=true;
+        compile_periph;
+      end;
 
+      inc(it);
+    until (eof(fichier));
 
-    inc(it);
-
-  until (eof(fichier));
-
-  end;  // fin de lit_flux
+    end;  // fin de lit_flux
 
 // début de la procédure lit_config
 begin
@@ -3597,7 +3616,7 @@ begin
     Aiguillage[i].EtatTJD:=4;
     Aiguillage[i].vitesse:=0;
   end;
-  for i:=1 to 1024 do
+  for i:=1 to NbMaxDet do
   begin
     Detecteur[i].etat:=false;
     Detecteur[i].train:='';
@@ -4108,7 +4127,7 @@ begin
   end;
 end;
 
-procedure Champs_dec_Com;
+procedure Champs_dec_Periph;
 var i,n : integer;
 begin
   if decCourant<1 then exit;
@@ -4150,7 +4169,6 @@ begin
       LabelDecCde[i].visible:=false;
       TextBoxCde[i].Visible:=false;
     end;
-
   end;
 
   if n=1 then
@@ -4236,7 +4254,7 @@ begin
 
   FormConfig.RadioCdeDec.ItemIndex:=typ;
   if typ=0 then Champs_Dec_Centrale;
-  if typ=1 then Champs_dec_Com;
+  if typ=1 then Champs_dec_Periph;
 end;
 
 procedure TformConfig.Bt_onclick(sender : TObject);
@@ -4314,8 +4332,15 @@ begin
     if n<i then affiche('Anomalie ComboBox 7',clred);
     if ComboBoxPNCom.items.Count=0 then exit;
     ComboBoxAccComUSB.Items[i-1]:=s;
+    // réaffiche le champ modifié dans le comboboxAccComUSB
+    if Tablo_Actionneur[ligneclicAct+1].periph then if tablo_actionneur[ligneclicAct+1].fonction=i then ComboBoxAccComUSB.ItemIndex:=i-1;
+
+
     ComboBoxPNCom.items[i-1]:=s;
+    if tablo_PN[lignecliqueePN+1].TypeCde=1 then if tablo_PN[lignecliqueePN+1].AdresseFerme=i then ComboBoxPNCom.ItemIndex:=i-1;
+
     ComboBoxDecCde.Items[i-1]:=s;
+    if decodeur_pers[decCourant].commande=1 then if decodeur_pers[decCourant].peripherique=i then ComboBoxDecCde.ItemIndex:=i-1;
   end;
 end;
 
@@ -4417,9 +4442,9 @@ begin
   LabelInfo.caption:='';
 
   Tablo_periph[ligneClicAccPeriph+1].NumCom:=i;
-  Tablo_com_cde[ligneClicAccPeriph+1].NumAcc:=ligneClicAccPeriph+1;
+  Tablo_com_cde[ligneClicAccPeriph+1].NumPeriph:=ligneClicAccPeriph+1;
   ListBoxPeriph.Selected[ligneClicAccPeriph]:=true;
-
+  
   maj_champs_combos(ligneClicAccPeriph+1);
 
   // recalculer le nombre de sockets et de comusb
@@ -4434,14 +4459,14 @@ begin
       inc(NbPeriph_COMUSB);
       if NbPeriph_COMUSB>MaxComUSBPeriph then labelInfo.Caption:='Nombre maxi de périphériques COM/USB atteint';
       Tablo_periph[i].numComposant:=NbPeriph_COMUSB;
-      Tablo_com_cde[i].NumAcc:=NbPeriph_COMUSB;
+      Tablo_com_cde[i].NumPeriph:=NbPeriph_COMUSB;
     end;
     if v=2 then
     begin
       inc(NbPeriph_Socket);
       if NbPeriph_Socket>MaxComSocketPeriph then labelInfo.Caption:='Nombre maxi de périphériques socket atteint';
       Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
-      Tablo_com_cde[i].NumAcc:=NbPeriph_Socket;
+      Tablo_com_cde[i].NumPeriph:=NbPeriph_Socket;
     end;
   end;
 end;
@@ -5178,7 +5203,7 @@ begin
   comboBoxNation.Items.add('Française');
   comboBoxNation.Items.add('Belge');
 
-  EdittrainDecl.Hint:='Déclencheur pour lequel la condition s''applique (mettre X pour tous les trains)'+#13+'déclenchement par actionneur uniquement';
+  EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique'+#13+' (mettre X pour tous les trains)'+#13+'déclenchement par actionneur uniquement';
 
   // actionneurs Train ou accessoire
   ListBoxAct.Clear;
@@ -5321,7 +5346,7 @@ begin
     left:=gp1.Left-30;
     top:=LabelMP.Top+15;
     width:=gp1.Width+30;
-    height:=100;
+    height:=110;
     parent:=TabSheetPeriph;
     Name:='MemoPeriph';
     readOnly:=true;
@@ -5342,6 +5367,16 @@ begin
     hint:='Affiche les ports COM/USB disponibles';
     ShowHint:=true;
     onclick:=formconfig.Bt_onclick;
+  end;
+
+  LabelNumeroP:=Tlabel.Create(Formconfig.TabSheetPeriph);
+  with LabelNumeroP do
+  begin
+    Left:=12;Top:=ListBoxPeriph.top+ListBoxPeriph.Height+8;Width:=200;Height:=12;
+    caption:='Périphérique';
+    parent:=FormConfig.TabSheetPeriph;
+    name:='LabelNumeroP';
+
   end;
 
   EditPortCde:=TEdit.Create(FormConfig.TabSheetPeriph);
@@ -5829,7 +5864,7 @@ begin
     ComboBoxAccComUSB.Visible:=false;
     GroupBoxAct.Caption:='Action pour fonction F de locomotive';
     EditFonctionAccess.Hint:='Numéro de fonction du décodeur du train (0 à 12 ou 28)';
-    editTrainDest.Hint:='Train destinataire de la fonction F';
+    editTrainDest.Hint:='Train(s) destinataire(s) de la fonction F';
     LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
     LabelFonction.visible:=true;
     LabelFonction.caption:='Action : Fonction';
@@ -5855,7 +5890,7 @@ begin
   end;
 end;
 
-procedure champs_type_Cde;
+procedure champs_type_periph;
 begin
   with formconfig do
   begin
@@ -6275,8 +6310,8 @@ end;
 
 // mise à jour des champs graphiques des actionneurs d'après l'index du tableau
 Procedure aff_champs_act(i : integer);
-var etatact, adresse,sortie,fonction,tempo,access,typ : integer;
-    s,s2,adr : string;
+var j,etatact, adresse,sortie,fonction,tempo,access,typ : integer;
+    trainDecl,s,s2,adr : string;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
   if i<1 then exit;
@@ -6286,6 +6321,11 @@ begin
   fonction:=Tablo_actionneur[i].fonction;
   Access:=Tablo_actionneur[i].accessoire;
   typ:=Tablo_actionneur[i].typdeclenche;
+
+  trainDecl:=Tablo_actionneur[i].traindecl;
+
+  for j:=1 to length(trainDecl) do
+    if trainDecl[j]='+' then trainDecl[j]:=',';
 
   // déclencheurs
   with formconfig do
@@ -6297,7 +6337,7 @@ begin
       editAct.Text:=intToSTR(Tablo_actionneur[i].adresse);
       editEtatActionneur.Text:=intToSTR(Tablo_actionneur[i].etat);
       editEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].sortie);
-      EditTrainDecl.Text:=Tablo_actionneur[i].trainDecl;
+      EditTrainDecl.Text:=TrainDecl;
     end;
     3 :
     begin
@@ -6321,8 +6361,8 @@ begin
 
     etatAct:=Tablo_actionneur[i].etat;
     Adresse:=Tablo_actionneur[i].adresse;
-    s2:=Tablo_actionneur[i].trainDecl;
-    trainsauve:=s2;
+    //s2:=Tablo_actionneur[i].trainDecl;
+    //trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
 
     with formconfig do
@@ -6332,7 +6372,8 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       editEtatActionneur.Text:=IntToSTR(etatAct);
-      EditTrainDecl.Text:=s2;
+      //EditTrainDecl.Text:=s2;
+      EditTrainDecl.Text:=trainDecl;
       EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
       editFonctionAccess.Text:=intToSTR(fonction);
       editTempo.Text:=intToSTR(tempo);
@@ -6346,8 +6387,8 @@ begin
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
-    s2:=Tablo_actionneur[i].trainDecl;
-    trainsauve:=s2;
+    //s2:=Tablo_actionneur[i].trainDecl;
+    //trainsauve:=s2;
     tempo:=tablo_actionneur[i].Tempo;
     with formconfig do
     begin
@@ -6355,7 +6396,8 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      EditTrainDecl.Text:=s2;
+      //EditTrainDecl.Text:=s2;
+      EditTrainDecl.Text:=trainDecl;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
       editFonctionAccess.Text:=intToSTR(Access);
       editEtatFoncSortie.Text:=intToSTR(sortie);
@@ -6385,7 +6427,7 @@ begin
     etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].trainDecl;
-    trainsauve:=s2;
+    //trainsauve:=s2;
     s:=Tablo_actionneur[i].FichierSon;
     with formconfig do
     begin
@@ -6393,7 +6435,8 @@ begin
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      EditTrainDecl.Text:=s2;
+      //EditTrainDecl.Text:=s2;
+      EditTrainDecl.Text:=trainDecl;
       EditSon.Text:=s;
       EditEtatActionneur.Text:=IntToSTR(etatAct);
     end;
@@ -6401,12 +6444,13 @@ begin
 
   if Tablo_actionneur[i].periph then
   begin
-    champs_type_cde;
+    champs_type_periph;
     with formConfig do
     begin
       ComboBoxAccComUSB.ItemIndex:=Tablo_actionneur[i].fonction-1;
       EditEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].etat);
       EditTrainDest.text:=Tablo_actionneur[i].TrainDest;
+      EditTrainDecl.Text:=trainDecl;
     end;
   end;
 
@@ -7795,6 +7839,7 @@ end;
 
 procedure TFormConfig.EditTrainDeclChange(Sender: TObject);
 var s,train : string;
+    i : integer;
 begin
   if clicliste or (ligneclicAct<0) then exit;
   if affevt then affiche('Evt Edit TrainDecl Change',clyellow);
@@ -7802,6 +7847,11 @@ begin
   with Formconfig do
   begin
     train:=EditTrainDecl.Text;
+    // remplacer les , par des + pour le stockage
+    for i:=1 to length(train) do
+    begin
+      if train[i]=',' then train[i]:='+';
+    end;
     if train='' then
     begin
       LabelInfo.caption:='Erreur train';exit
@@ -8192,8 +8242,8 @@ begin
 end;
 
 procedure TFormConfig.RadioButtonLocClick(Sender: TObject);
-var champ,i,erreur : integer;
-    s : string;
+var champ,j,i,erreur : integer;
+    train,s : string;
 begin
   // rendre visible le groupbox Actionneur fonction F loco
   if clicListe or (ligneclicAct<0) then exit;
@@ -8210,7 +8260,9 @@ begin
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
+  train:=EditTrainDecl.Text;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  Tablo_actionneur[i].trainDecl:=train;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -8224,8 +8276,8 @@ begin
 end;
 
 procedure TFormConfig.RadioButtonAccessClick(Sender: TObject);
-var  champ,i,erreur : integer;
-    s : string;
+var champ,i,j,erreur : integer;
+    train,s : string;
 begin
   // rendre visible le groupbox Actionneur fonction F loco
   if clicListe or (ligneclicAct<0) then exit;
@@ -8237,12 +8289,14 @@ begin
   Tablo_Actionneur[i].Son:=false;
   Tablo_Actionneur[i].periph:=false;
   champs_type_act;
-  
+
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
+  train:=EditTrainDecl.Text;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  Tablo_actionneur[i].trainDecl:=train;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -8257,8 +8311,8 @@ end;
 
 
 procedure TFormConfig.RadioButtonSonClick(Sender: TObject);
-var  champ,i,erreur : integer;
-    s : string;
+var j, champ,i,erreur : integer;
+    s,train : string;
 begin
   // rendre visible le groupbox Actionneur fonction F loco
   if clicListe or (ligneclicAct<0) then exit;
@@ -8271,12 +8325,14 @@ begin
   Tablo_Actionneur[i].periph:=false;
 
   champs_type_son;
- 
+
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
+  train:=EditTrainDecl.Text;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  Tablo_actionneur[i].trainDecl:=train;
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
   val(editEtatFoncSortie.Text,champ,erreur);
@@ -8290,8 +8346,8 @@ begin
 end;
 
 procedure TFormConfig.RadioButtonCdeClick(Sender: TObject);
-var  champ,i,erreur : integer;
-    s : string;
+var j,champ,i,erreur : integer;
+    s,train : string;
 begin
   if clicListe or (ligneclicAct<0) then exit;
   i:=ligneClicAct+1;
@@ -8300,13 +8356,16 @@ begin
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
   Tablo_Actionneur[i].periph:=true;
-  champs_type_Cde;
+  champs_type_periph;
 
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
   Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
+  train:=EditTrainDecl.Text;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  tablo_actionneur[i].TrainDecl:=train;
+
 
   val(editFonctionAccess.Text,champ,erreur);
   Tablo_actionneur[i].fonction:=champ;
@@ -8315,6 +8374,7 @@ begin
   //val(editTempo.Text,champ,erreur);
   //Tablo_actionneur[i].tempo:=champ;
   tablo_actionneur[i].TrainDest:=editTrainDest.Text;
+
 
   s:=encode_act_loc_son(i);
   ListBoxAct.Items[ligneClicAct]:=s;
@@ -9023,7 +9083,7 @@ begin
     repeat
       detect:=BrancheN[i][j].Adresse;
 
-      if detect>NbMemZone then
+      if detect>NbMaxDet then
       begin
         Affiche('Erreur 1: adresse détecteur trop grand: '+intToSTR(detect),clred);
         ok:=false;
@@ -9408,7 +9468,7 @@ begin
     adr:=aiguillage[indexaig].Adresse;
     model:=aiguillage[indexaig].modele;
     
-    if adr>NbMemZone then
+    if adr>NbMaxDet then
     begin
       Affiche('Erreur 9.11: adresse aiguillage trop grand: '+intToSTR(adr),clred);
       ok:=false;
@@ -9814,10 +9874,10 @@ begin
       begin
         j:=Tablo_actionneur[i].fonction;
         if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
-        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);ok:=false;end;
+        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
         if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
         begin
-          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clOrange);
+          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
           ok:=false;
         end;
       end;
@@ -9944,6 +10004,7 @@ begin
   aiguillage[i].position:=const_inconnu;
   aiguillage[i].InversionCDM:=0;
   aiguillage[i].vitesse:=0;
+  aiguillage[i].IndexBranche:=0;
 
   s:=encode_Aig(i);
   // scroller à la fin et sélectionner
@@ -9962,6 +10023,9 @@ begin
   clicliste:=false;
   config_modifie:=true;
   Aig_sauve.Adresse:=0;
+
+  // encoder l'index
+  Index_accessoire[i]:=aiguillage[i].Adresse;
 end;
 
 procedure TFormConfig.ButtonNouvAigClick(Sender: TObject);
@@ -10553,10 +10617,10 @@ begin
            Affiche('Erreur 17 champ '+se+' ligne '+s,clred);
            code:=false;
          end;
-         if adresse>NbMemZone then
+         if adresse>NbMaxDet then
          begin
            Affiche('Erreur 18 ligne '+s+' : adresse aiguillage trop grand: '+intToSTR(adresse),clred);
-           adresse:=NbMemZone;
+           adresse:=NbMaxDet;
            code:=false;
          end;
          BrancheN[i,j].adresse:=adresse;
@@ -10574,10 +10638,10 @@ begin
      // détecteur
      if erreur=0 then
      begin
-       if detect>NbMemZone then
+       if detect>NbMaxDet then
        begin
          Affiche('Erreur 20 ligne '+s+' : adresse détecteur trop grand: '+intToSTR(detect),clred);
-         detect:=NbMemZone;
+         detect:=NbMaxDet;
          code:=false;
        end;
        BrancheN[i,j].adresse:=detect;          // adresse
@@ -10987,8 +11051,8 @@ begin
 end;
 
 procedure TFormConfig.RadioButtonActDetClick(Sender: TObject);
-var i,champ,erreur : integer;
-    s : string;
+var i,j,champ,erreur : integer;
+    s,train : string;
 begin
   if clicListe or (ligneclicAct<0) then exit;
   i:=ligneClicAct+1;
@@ -10999,8 +11063,13 @@ begin
   EditTrainDecl.Visible:=true;
   LabelTrain.Visible:=true;
   EditEtatActionneur.Hint:='Etat 0 ou 1';
-  Tablo_Actionneur[i].trainDecl:=trainSauve;
-  EditTrainDecl.Text:=trainSauve;
+  //Tablo_Actionneur[i].trainDecl:=trainSauve;
+  //EditTrainDecl.Text:=trainSauve;
+
+  train:=Tablo_Actionneur[i].trainDecl;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  EditTrainDecl.text:=train;
+
 
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
@@ -11038,7 +11107,7 @@ begin
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
 
   EditEtatActionneur.Hint:='Etat 0 ou 1';
-  Tablo_actionneur[i].trainDecl:='X';
+//  Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
@@ -11073,7 +11142,7 @@ begin
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
 
   EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
-  Tablo_actionneur[i].trainDecl:='X';
+  //Tablo_actionneur[i].trainDecl:='X';
   val(editact.Text,champ,erreur);
   Tablo_actionneur[i].adresse:=champ ;
   val(editEtatActionneur.Text,champ,erreur);
@@ -12200,21 +12269,26 @@ end;
 
 
 procedure TFormConfig.ComboBoxDecodeurPersoChange(Sender: TObject);
-var i,a : integer;
+var it,i : integer;
     s: string;
 begin
   if affevt then Affiche('Evt ComboBoxDecodeurPerso',clyellow);
 
-  a:=ComboBoxDecodeurPerso.ItemIndex;
-  if a>=0 then decCourant:=a+1;
+  it:=ComboBoxDecodeurPerso.ItemIndex;
 
-  //Affiche(intToSTR(a+1)+' courant='+intToSTR(decCourant),clred);
-  if a=-1 then
+  if it>=0 then decCourant:=it+1;
+  //Affiche(intToSTR(decCourant)+' '+intToSTR(it)+' '+ComboBoxDecodeurPerso.Text,clred);
+
+  //if a=-1 then
+  if decCourant>=0 then
   begin
     // changement du nom
     if decCourant=0 then exit;
     s:=ComboBoxDecodeurPerso.Text;
-    ComboBoxDecodeurPerso.items[decCourant-1]:=s;
+
+    ComboBoxDecodeurPerso.items[decCourant-1]:=s;             // efface
+    ComboBoxDecodeurPerso.itemIndex:=it;                      // remet
+
     decodeur_pers[decCourant].nom:=s;
     decodeur[NbDecodeurdeBase+DecCourant-1]:=s;
     ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;
@@ -12225,12 +12299,11 @@ begin
       if feux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
     end;
 
-    exit;
   end;
-  
+
   EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
   //Affiche('Décodeur courant = '+intToSTR(decCourant),clyellow);
-  maj_decodeurs;
+  if it=-1 then maj_decodeurs;
 
 end;
 
@@ -12270,7 +12343,7 @@ begin
 
   //supprimer de la liste des décodeurs si elle est affectée
   if trouve_entree_combo(ComboBoxDecodeurPerso,s,i) then ComboBoxDecodeurPerso.Items.Delete(i)
-    else affiche('Anomalie 1',clred);
+    else affiche('Anomalie ComboBox 1',clred);
 
   //if decCourant>0 then dec(decCourant);
   decCourant:=0;
@@ -12445,7 +12518,7 @@ begin
           aff_champs_sig_feux(ligneClicSig+1);
         end;
       end;
-   end;
+    end;
   end;
 
   if ord(Key)=VK_DOWN then
@@ -12464,7 +12537,7 @@ begin
           aff_champs_sig_feux(ligneClicSig+1);
         end;
       end;
-   end;
+    end;
   end;
 
   if (Shift = [ssCtrl]) and (key = ord('A')) then
@@ -12582,6 +12655,7 @@ var ss,s : string;
 
   clicliste:=true;
   formConfig.EditNomPeriph.text:='';
+  LabelNumeroP.Caption:='Périphérique ';
 
   // suppression
   n:=0;
@@ -12617,7 +12691,7 @@ var ss,s : string;
     s:=encode_Periph(i);
     if s<>'' then
     begin
-      Tablo_com_cde[i].NumAcc:=i;
+      Tablo_com_cde[i].NumPeriph:=i;
       FormConfig.ListBoxPeriph.items.Add(s);
       ajoute_champs_combos(i);
     end;
@@ -12647,6 +12721,7 @@ begin
   if NbPeriph>10 then formConfig.LabelInfoAcc.caption:='Nombre maxi de périphériques atteint : '+intToStr(NbPeriph);
 
   i:=NbPeriph;
+  LabelNumeroP.Caption:='Périphérique '+intToSTR(NbPeriph);
   Tablo_periph[i].nom:='';
   Tablo_periph[i].NumCom:=0;
 
@@ -12786,6 +12861,8 @@ begin
     ligneClicAccPeriph:=lc;
   end;
 
+  LabelNumeroP.Caption:='Périphérique '+intToSTR(lc+1);
+
   Aff_champs_accPeriph_tablo(lc+1);
   s:=utilisateurs_peripheriques;
   MemoPeriph.Clear;
@@ -12838,9 +12915,10 @@ begin
         if AncligneClicAccPeriph<>ligneClicAccPeriph then
         begin
           Aff_champs_accPeriph_tablo(ligneClicAccPeriph+1);
+          LabelNumeroP.Caption:='Périphérique '+intToSTR(ligneClicAccPeriph+1);
         end;
       end;
-   end;
+    end;
   end;
 
   if ord(Key)=VK_DOWN then
@@ -12857,6 +12935,7 @@ begin
         if AncligneClicAccPeriph<>ligneClicAccPeriph then
         begin
           Aff_champs_accPeriph_tablo(ligneClicAccPeriph+1);
+          LabelNumeroP.Caption:='Périphérique '+intToSTR(ligneClicAccPeriph+1);
         end;
       end;
    end;
@@ -12928,9 +13007,9 @@ end;
 procedure TFormConfig.RadioCdeDecClick(Sender: TObject);
 begin
   if radioCdeDec.ItemIndex=0 then Champs_dec_Centrale;
-  if radioCdeDec.ItemIndex=1 then Champs_dec_Com;
+  if radioCdeDec.ItemIndex=1 then Champs_dec_Periph;
 end;
- 
+
 procedure TFormConfig.Toutslectionner1Click(Sender: TObject);
 var tc : Trichedit;
 begin
@@ -13014,6 +13093,7 @@ begin
   dec(i);
   if i=0 then exit;
 
+  LabelNumeroP.Caption:='';
   IndexListe:=i;
   s:=ListBoxPeriph.Items[i-1];
   ListBoxPeriph.Items[i-1]:=ListBoxPeriph.Items[i];
@@ -13062,6 +13142,7 @@ begin
   dec(i);
   if i=n-1 then exit;
   IndexListe:=i;
+  LabelNumeroP.caption:='';
 
    // inverse les deux entrées de la listebox
   s:=ListBoxPeriph.Items[i+1];

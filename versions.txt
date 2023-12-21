@@ -210,4 +210,6 @@ version 8.3  : Possibilité d'afficher des signaux à 180° sur le TCO.
                Création d'un mode sélectionnable de réservation des aiguillages par les trains.          
                Création d'un serveur de données socket pour la transmission des évènements.    
                Possibilité de télécommander Signaux_Complexes depuis les périphériques ou le serveur socket.
-
+version 8.31 : Correction d'un bug sur les détecteurs amonts des signaux.
+version 8.32 : Un actionneur seul peut être déclenché par plusieurs trains.
+               Correction du lancement du serveur COM-IP pour CDMRail V20.12
