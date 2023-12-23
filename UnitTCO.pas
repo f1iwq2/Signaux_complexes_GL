@@ -746,7 +746,7 @@ var dx,dy : integer;
 begin
   rien:=not(prise_droit) and not(prise_bas) and not(prise_gauche) and not(prise_haut) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO);
 
-  //poignée haut
+  // poignée haut
   r:=Rect_Select.rN;
   if ((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_haut then
   begin
@@ -957,7 +957,6 @@ begin
 end;
 
 // créée un nouveau TCO qui n'existait pas
-
 procedure Init_TCO(indexTCO : integer);
 var x,y : integer;
 begin
@@ -1338,7 +1337,7 @@ begin
         tco[indexTCO,x,y].adresse:=adresse;
         delete(s,1,i);
 
-        //3 Bimage
+        // 3 Bimage
         i:=pos(',',s);
         if i=0 then begin Affiche('ETCO6',clred);closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin Affiche('ETCO7',clred);closefile(fichier);exit;end;
@@ -1348,7 +1347,7 @@ begin
         tco[indexTCO,x,y].liaisons:=liaisons[valeur];
         delete(s,1,i);
 
-        //4 Inverse
+        // 4 Inverse
         i:=pos(',',s);
         if i=0 then begin Affiche('ETCO8',clred);closefile(fichier);exit;end;
         val(copy(s,1,i-1),valeur,erreur);if erreur<>0 then begin Affiche('ETCO9',clred);closefile(fichier);exit;end;
@@ -1427,7 +1426,7 @@ begin
         tco[indexTCO,x,y].coulFonte:=coulFonte;
         delete(s,1,i);
 
-        //12 style
+        // 12 style
         if (s[1]<>')') and (s[1]<>',') then
         begin
           // style GISB
@@ -1500,7 +1499,7 @@ begin
   b:=i;
 end;
 
-// donne l'équation de droite y=ax+b passant par (x1,y1) (x2,y2)
+// donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
 procedure droite(x1,y1,x2,y2: integer;var a,b: double);
 begin
   if x2<>x1 then a:=(y2-y1)/(x2-x1) else a:=99999;
@@ -1889,15 +1888,15 @@ begin
   //affiche(intToSTR(taillefont*LargeurCell[indexTCO] div 40),clyellow);
   // champ texte
   //Affiche(nf+' '+intToSTR(tf)+' '+s,clred);
-   case repr of
-    0,1 : yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // au milieu
-      2 : yt:=1;  // haut
-      3 : yt:=hauteurCell[indexTCO]-round(2*TailleFont*fryGlob[indexTCO]);   // bas
-      5 : begin  // double centré XY
-            xt:=(largeurCell[indexTCO] div 2)-(round(length(s)*(taillefont)*frxGlob[indexTCO]) div 2);
-            yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // texte centré
-          end;
-    end;
+  case repr of
+   0,1 : yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // au milieu
+     2 : yt:=1;  // haut
+     3 : yt:=hauteurCell[indexTCO]-round(2*TailleFont*fryGlob[indexTCO]);   // bas
+     5 : begin  // double centré XY
+           xt:=(largeurCell[indexTCO] div 2)-(round(length(s)*(taillefont)*frxGlob[indexTCO]) div 2);
+           yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // texte centré
+         end;
+  end;
 
   if b=Id_Quai then xt:=6;
   if (b<>Id_Quai) and (b<>Id_action) then s:=s+'   ';
@@ -12269,16 +12268,20 @@ begin
     begin
       i:=tco[indextco,xclic,yclic].piedfeu;
       n:=tco[indextco,xclic,yclic].feuoriente;
-      if i=1 then Affiche_fenetre_TCO(n,true);
-      if i=2 then with formprinc do
+      if i=1 then Affiche_fenetre_TCO(n,true);  // affiche le TCO n°n
+      if i=2 then with formprinc do             // afficher signaux complexes
       begin
         windowState:=wsNormal; //Maximized;
         show;
         BringToFront;
       end;
-      if (i=3) and (CDMhd<>0) then begin ShowWindow(CDMhd,SW_MAXIMIZE);end;
-      // action
-      if i=4 then
+      if (i=3) and (CDMhd<>0) then
+      begin                                     // afficher CDM rail
+        ShowWindow(CDMhd,SW_MAXIMIZE);
+        SetForegroundWindow(CDMhd);             // met CDM en premier plan
+        SetActiveWindow(CdmHd);
+      end;
+      if i=4 then                               // action accessoire
       begin
         // pilotage impulsionnel
         pilote_acc(tco[indextco,xclic,yclic].Adresse,tco[indextco,xclic,yclic].sortie,AigP);
@@ -12691,8 +12694,7 @@ var Adr,erreur,index,indexTCO : integer;
     s: string;
 begin
   //Affiche('Chgt adresse',clyellow);
-  if clicTCO then exit;
-  if (ConfCellTCO) then exit;
+  if clicTCO or ConfCellTCO then exit;
   clicTCO:=true;
   auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les touches curseur s'applique au Tedit)
   indexTCO:=index_TCO(sender);
@@ -14070,7 +14072,6 @@ begin
     screen.cursor:=crUpArrow;
   end
   else stop_modetrace(indexTCO);
-
 end;
 
 procedure TFormTCO.ButtonDessinerClick(Sender: TObject);
@@ -14350,11 +14351,6 @@ begin
     BringToFront;
   end;
 end;
-
-
-
-
-
 
 end.
 

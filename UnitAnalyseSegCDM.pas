@@ -3341,11 +3341,6 @@ begin
   end;
   MaxAiguillage:=NAig_CDM;
   trier_aig;
-  // construit les index des aiguillages
-  for i:=1 to maxAiguillage do
-  begin
-    index_accessoire[aiguillage[i].adresse]:=i;
-  end;
 
   // remplit la list box les aiguillages
   formconfig.ListBoxAig.Clear;

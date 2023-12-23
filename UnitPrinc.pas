@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 14/12 10h
+// 22/12 22
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -548,7 +548,7 @@ TSignal = record
 var
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
   N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
-  NbreImagePligne,NbreBranches,Index2_det,Index2_aig,branche_det,ntrains_cdm,
+  NbreImagePligne,NbreBranches,Index2_aig,branche_det,ntrains_cdm,
   I_simule,maxTablo_act,NbreVoies,El_suivant,N_modules_dcc,NbDet1,ncrois,
   tempsCli,NbreFeux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_feu,etat_init_interface,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
@@ -1213,7 +1213,7 @@ begin
     Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
   end;
 
-   if (orientation=4) then
+  if (orientation=4) then
   begin
     //rotation 180°
     Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
@@ -1289,7 +1289,7 @@ begin
     Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
   end;
 
-   if (orientation=4) then
+  if (orientation=4) then
   begin
     //rotation 180°
     Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
@@ -1559,11 +1559,11 @@ procedure AffTexteIncliBordeTexture(C : TCanvas; X,Y : integer; Fonte : tFont;
 //          Texture = BitMap de texture : Si Texture = Nil alors la face sera de la couleur de Fonte avec un contour de clBord si EpBord > 0.
 //          Texte   = Texte à écrire.
 //          AngleDD = Angle d'inclinaison en Dixièmes de degré.
-var	      dc     : Hdc;
-          lgFont : Logfont;
-          AncFonte,NouvFonte : Hfont;
-	        AncPen,NouvPen     : Hpen;
-          AncBrush,NouvBrush : Hbrush;
+var dc     : Hdc;
+    lgFont : Logfont;
+    AncFonte,NouvFonte : Hfont;
+    AncPen,NouvPen     : Hpen;
+    AncBrush,NouvBrush : Hbrush;
 begin
   C.Pen.Mode:=PenMode;
   dc:=C.Handle;
@@ -1945,7 +1945,7 @@ begin
     if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
     if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
   end;                  
-  if EtatSignal=3 then 
+  if EtatSignal=3 then
   begin
     cercle(ACanvas,x1,y1,rayon,clWhite);
     cercle(ACanvas,x2,y2,rayon,clWhite);
@@ -2023,6 +2023,7 @@ begin
   end;
 end;
 
+// affiche un texte contenu dans une chaine avec plusieurs CR, et le découpe à l'affichage.
 procedure Affiche_CR(s: string;lacouleur : Tcolor);
 var i : integer;
 begin
@@ -2118,7 +2119,7 @@ begin
 end;
 }
 
-// dessine l'aspect du feu en fonction de son adresse dans la partie droite de droite
+// dessine l'aspect du signal en fonction de son adresse dans la partie droite de droite
 procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : real;adresse : integer;orientation : integer);
 var i,aspect : integer;
 begin
@@ -2834,8 +2835,9 @@ begin
 
   if cdm_connecte then
   begin
+    // il faut qu'on soit en RUN pour que les vitesses trains soient prises en compte
     s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
-    //s:=chaine_CDM_vitesseINT(vitesse,adr_loco);    // par adresse du train: ne fonctionne pas
+    //s:=chaine_CDM_vitesseINT(vitesse,adr_loco);    // par adresse du train
     envoi_CDM(s);
     //affiche(s,clLime);
   end;
@@ -4979,9 +4981,9 @@ begin
   }
   i:=1;
   //affiche('------------------------',clWhite);
-  recherche;
+  recherche;  
   //affiche('------------------------',clGreen);
-  if trouve then index2_det:=i else index2_det:=0;
+  if trouve then result:=i else result:=0;
   //affiche('index2='+IntToSTR(index2_det),clWhite);
   if debug=3 then formprinc.Caption:='';
 end;
@@ -5014,7 +5016,7 @@ begin
   //affiche('index2='+IntToSTR(index2_det),clWhite);
 end;
 
-// trouve le détecteur dans les branches (branche_trouve, Indexbranche_trouve)
+// trouve le détecteur dans les branches  et stocke le résultat des index dans branche_trouve, Indexbranche_trouve)
 // si pas trouvé, IndexBranche_trouve=0
 procedure trouve_detecteur(detecteur : integer);
 var NBranche,i : integer;
@@ -6852,8 +6854,11 @@ begin
   // trouver éléments avant le signal
   for i:=1 to Mtd do tabloDet[i]:=0;
   i:=index_signal(adresse);
-  if i=0 then affiche('Erreur 842 : signal '+intToSTR(adresse)+' inconnu',clred);
-
+  if i=0 then
+  begin
+    affiche('Erreur 842 : signal '+intToSTR(adresse)+' inconnu',clred);
+    exit;
+  end;
   index:=1;
   for voie:=1 to 4 do
   begin
@@ -8961,37 +8966,6 @@ begin
   end;
 end;
 
-// trouve l'index d'un détecteur dans une branche depuis la fin de la branche
-// si pas trouvé, renvoie 0
-// non utilisé
-function index_detecteur_fin(detecteur,Num_branche : integer) : integer;
-var dernier,i,j : integer;
-    trouve : boolean;
-    procedure recherche;
-    begin
-      repeat
-        if BrancheN[Num_Branche,i].Btype=det then   // cherche un détecteur
-        begin
-          j:=BrancheN[Num_Branche,i].adresse;
-          trouve:=detecteur=j;
-        end;
-        if not(trouve) then dec(i);
-      until trouve or (j=0)
-    end;
-begin
-  // déterminer la fin de la branche
-  i:=1;
-  repeat
-    inc(i);
-  until (BrancheN[Num_Branche,i].adresse=0) and (BrancheN[Num_Branche,i].btype=rien);
-  dernier:=i-1;
-  // rechercher le détecteur depuis l'index i
-  i:=dernier;index2_det:=0;
-  recherche;
-  if trouve then result:=i else result:=0;
-  recherche;
-  if trouve then index2_det:=i else index2_det:=0;
-end;
 
 // trouve si le détecteur adr est contigu à un buttoir
 function buttoir_adjacent(adr : integer) : boolean;

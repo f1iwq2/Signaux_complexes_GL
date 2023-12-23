@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.32';  // sert à la comparaison de la version publiée
+Const  Version='8.33';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;

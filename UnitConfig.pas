@@ -410,7 +410,6 @@ type
     procedure ButtonConfigSRClick(Sender: TObject);
     procedure EditDet1Change(Sender: TObject);
     procedure EditSuiv1Change(Sender: TObject);
-    procedure EditAdrSigChange(Sender: TObject);
     procedure EditDet2Change(Sender: TObject);
     procedure EditSuiv2Change(Sender: TObject);
     procedure EditDet3Change(Sender: TObject);
@@ -528,6 +527,7 @@ type
     procedure CheckBoxResaClick(Sender: TObject);
     procedure EditPortServeurExit(Sender: TObject);
     procedure EditPortServeurChange(Sender: TObject);
+    procedure EditAdrSigChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1218,7 +1218,7 @@ begin
       end;
     end;
     inc(nbreFeux);
-    index_accessoire[adresse]:=i;
+
     Delete(s,1,j);
     feux[i].adresse:=adresse;
     j:=pos(',',s);
@@ -1961,10 +1961,54 @@ begin
     writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
-
   closefile(fichierN);
-
 end;
+
+// trie les aiguillages
+procedure trier_aig;
+var i,j : integer;
+    temp : TAiguillage;
+begin
+  for i:=1 to MaxAiguillage do
+  begin
+    for j:=i+1 to MaxAiguillage do
+    begin
+      if aiguillage[i].Adresse>aiguillage[j].adresse then
+      begin
+        temp:=aiguillage[i];
+        aiguillage[i]:=aiguillage[j];
+        aiguillage[j]:=temp;
+      end;
+    end;
+  end;
+
+  for i:=1 to MaxAiguillage do
+    index_accessoire[aiguillage[i].adresse]:=i;
+end;
+
+// trie les signaux
+procedure trier_sig;
+var i,j : integer;
+    temp : TSignal;
+begin
+  for i:=1 to NbreFeux do
+  begin
+    for j:=i+1 to NbreFeux do
+    begin
+      if feux[i].Adresse>feux[j].adresse then
+      begin
+        temp:=feux[i];
+        feux[i]:=feux[j];
+        feux[j]:=temp;
+      end;
+    end;
+  end;
+  for i:=1 to NbreFeux do
+  begin
+    index_accessoire[feux[i].adresse]:=i;
+  end;
+end;
+
 
 procedure lit_config;
 var s,sa,SOrigine: string;
@@ -2369,8 +2413,7 @@ var s,sa,SOrigine: string;
 
       if erreur<>0 then Affiche('Erreur aiguillage '+intToSTR(adraig)+' ; caractère '+enregistrement[erreur]+' inconnu',clred);
       if debugConfig then Affiche('Adresse='+IntToSTR(adraig)+' enregistrement='+Enregistrement,clyellow);
-      Index_accessoire[adrAig]:=maxAiguillage;
-      aiguillage[maxaiguillage].adresse:=adraig;
+      aiguillage[maxaiguillage].Adresse:=adraig;
       aiguillage[maxaiguillage].AdroitB:='Z'; aiguillage[maxaiguillage].AdevieB:='Z';
       aiguillage[maxaiguillage].DdroitB:='Z'; aiguillage[maxaiguillage].DdevieB:='Z';
 
@@ -2874,27 +2917,9 @@ var s,sa,SOrigine: string;
         Tablo_com_cde[NbPeriph].NumPeriph:=NbPeriph;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
-   end;
-
-
-  // trie les signaux
-  procedure trier_sig;
-  var i,j : integer;
-      temp : TSignal;
-  begin
-    for i:=1 to NbreFeux do
-    begin
-      for j:=i+1 to NbreFeux do
-      begin
-        if feux[i].Adresse>feux[j].adresse then
-        begin
-          temp:=feux[i];
-          feux[i]:=feux[j];
-          feux[j]:=temp;
-        end;
-      end;
-    end;
   end;
+
+
 
   procedure lit_flux;
   label ici1,ici2,ici3,ici4 ;
@@ -8014,41 +8039,6 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditAdrSigChange(Sender: TObject);
-var s : string;
-    i, erreur : integer;
-begin
-  if clicliste then exit;
-  if affevt then Affiche('Evt adresse signal',clOrange);
-  // attention interférence avec clic droit propriétés sur un signal qui génère un evt sur ce contrôle
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
-  with Formconfig do
-  begin
-    s:=EditAdrSig.Text;
-    if (s='') or (ligneClicSig<0) then exit;
-    Val(s,i,erreur);
-    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
-    begin
-      EditAdrSig.Color:=clred;
-      LabelInfo.caption:='Erreur adresse signal ';exit;
-    end;
-    if (index_Signal(i)<>0) then
-    begin
-      EditAdrSig.Color:=clred;
-      LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
-    end;
-
-    EditAdrSig.Color:=clWindow;
-    LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].adresse:=i;
-    index_accessoire[i]:=ligneClicSig+1;
-    s:=encode_sig_feux(ligneClicSig+1);
-    ListBoxSig.Items[ligneClicSig]:=s;
-    ListBoxSig.selected[ligneClicSig]:=true;
-    Maj_Hint_Signal(ligneClicSig+1);
-   end;
-end;
-
 
 procedure TFormConfig.EditAdrAigChange(Sender: TObject);
   var s : string;
@@ -8623,26 +8613,6 @@ end;
 procedure TFormConfig.ButtonNouvPNClick(Sender: TObject);
 begin
   ajoute_pn;
-end;
-
-
-// trie les aiguillages
-procedure trier_aig;
-var i,j : integer;
-    temp : TAiguillage;
-begin
-  for i:=1 to MaxAiguillage do
-  begin
-    for j:=i+1 to MaxAiguillage do
-    begin
-      if aiguillage[i].Adresse>aiguillage[j].adresse then
-      begin
-        temp:=aiguillage[i];
-        aiguillage[i]:=aiguillage[j];
-        aiguillage[j]:=temp;
-      end;
-    end;
-  end;
 end;
 
 
@@ -9830,58 +9800,62 @@ begin
   AdrOk:=True;
   if Verif_AdrXpressNet=1 then
   begin
-
-    for i:=1 to maxaiguillage do
+    for k:=1 to NDetecteurs do
     begin
-      adresse:=aiguillage[i].Adresse ;
-      if (adresse>=257) and (adresse<=272) then
-      begin
-        AdrOk:=false;
-        ok:=false;
-        Affiche('Erreur 13: l''aiguillage '+IntToSTR(adresse)+' se trouve dans la plage des accessoires DCC interdits (257-272) en Xpressnet',clred);
-      end;
-    end;
-    for i:=1 to NbreFeux do
-    begin
-      adresse:=feux[i].Adresse;
-      nc:=Nombre_adresses_signal(adresse);
+      adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257
 
-      if (adresse>=257) and (adresse<=272) or ((adresse+nc-1>=257) and (adresse+nc<=272)) then
+      for i:=1 to maxaiguillage do
       begin
-        AdrOk:=false;
-        ok:=false;
-        Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' se trouve dans la plage des accessoires DCC interdits (257-272)',clred);
-        Affiche('en Xpressnet car son décodeur '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+' à '+intToSTR(adresse+nc-1),clred);
-      end;
-    end;
-
-    // actionneurs
-    for i:=1 to maxTablo_act do
-    begin
-      if Tablo_actionneur[i].act then
-      begin
-        adresse:=Tablo_actionneur[i].accessoire;
-        if (adresse>=257) and (adresse<=272) then
+        adresse:=aiguillage[i].Adresse ;
+        if adresse=adr then
         begin
           AdrOk:=false;
           ok:=false;
-          Affiche('Erreur 15: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
-          Affiche('qui se trouve dans la plage des accessoires DCC interdits (257-272) en Xpressnet',clred);
+          Affiche('Erreur 13: l''aiguillage '+IntToSTR(adresse)+' chevauche le détecteur '+intToSTR(adresse_detecteur[k]),clred);
         end;
       end;
 
-      if Tablo_actionneur[i].periph then
+      for i:=1 to NbreFeux do
       begin
-        j:=Tablo_actionneur[i].fonction;
-        if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
-        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
-        if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
+        adresse:=feux[i].Adresse;
+        nc:=Nombre_adresses_signal(adresse);
+
+        if (adresse=adr) or ((adresse+nc-1>=adr) and (adresse+nc<=adr)) then
         begin
-          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
+          dec:=feux[i].decodeur;
+          AdrOk:=false;
           ok:=false;
+          Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' chevauche le détecteur '+intToStr(adresse_detecteur[k]),clred);
+          Affiche('en Xpressnet car son décodeur '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+' à '+intToSTR(adresse+nc-1),clred);
         end;
       end;
+      // actionneurs
+      for i:=1 to maxTablo_act do
+      begin
+        if Tablo_actionneur[i].act then
+        begin
+          adresse:=Tablo_actionneur[i].accessoire;
+          if (adresse=adr) then
+          begin
+            AdrOk:=false;
+            ok:=false;
+            Affiche('Erreur 15: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
+            Affiche('et chevauche le détecteur '+intToStr(adresse_detecteur[k])+' interdit en XpressNet',clred);
+          end;
+        end;
 
+        if Tablo_actionneur[i].periph then
+        begin
+          j:=Tablo_actionneur[i].fonction;
+          if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
+          if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
+          if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
+          begin
+            Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
+            ok:=false;
+          end;
+        end;
+      end;
     end;
 
     if not(AdrOk) then
@@ -13196,6 +13170,43 @@ procedure TFormConfig.EditPortServeurChange(Sender: TObject);
   if activ=false then config_modifie:=true;
 end;
 
-end.
+procedure TFormConfig.EditAdrSigChange(Sender: TObject);
+var s : string;
+    i, erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then Affiche('Evt adresse signal',clOrange);
+  // attention interférence avec clic droit propriétés sur un signal qui génère un evt sur ce contrôle
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditAdrSig.Text;
+    if (s='') or (ligneClicSig<0) then exit;
+    Val(s,i,erreur);
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
+    begin
+      EditAdrSig.Color:=clred;
+      LabelInfo.caption:='Erreur adresse signal ';exit;
+    end;
+    if (index_Signal(i)<>0) then
+    begin
+      EditAdrSig.Color:=clred;
+      LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
+    end;
+
+    EditAdrSig.Color:=clWindow;
+    LabelInfo.caption:=' ';
+    feux[ligneClicSig+1].adresse:=i;
+    Feux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
+    index_accessoire[i]:=ligneClicSig+1;
+    s:=encode_sig_feux(ligneClicSig+1);
+    ListBoxSig.Items[ligneClicSig]:=s;
+    ListBoxSig.selected[ligneClicSig]:=true;
+    Maj_Hint_Signal(ligneClicSig+1);
+   end;
+end;
+
+
+end.
 
 
