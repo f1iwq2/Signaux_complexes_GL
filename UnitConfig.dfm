@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 215
-  Top = 91
+  Left = 503
+  Top = 109
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 497
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -746,7 +746,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 249
           Height = 17
-          Caption = 'V'#233'rifications de nouvelle version au d'#233'marrage'
+          Caption = 'V'#233'rification de nouvelle version au d'#233'marrage'
           TabOrder = 0
         end
         object CheckInfoVersion: TCheckBox
@@ -833,7 +833,7 @@ object FormConfig: TFormConfig
         Height = 169
         Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
-        object RadioButton4: TRadioButton
+        object RadioButtonSS: TRadioButton
           Left = 8
           Top = 16
           Width = 185
@@ -841,7 +841,7 @@ object FormConfig: TFormConfig
           Caption = 'Ne pas d'#233'marrer de serveur'
           TabOrder = 0
         end
-        object RadioButton5: TRadioButton
+        object RadioButtonXN: TRadioButton
           Left = 8
           Top = 32
           Width = 225
@@ -849,7 +849,7 @@ object FormConfig: TFormConfig
           Caption = 'XpressNet (lenz.roco)'
           TabOrder = 1
         end
-        object RadioButton6: TRadioButton
+        object RadioButtonP50: TRadioButton
           Left = 8
           Top = 48
           Width = 217
@@ -857,7 +857,7 @@ object FormConfig: TFormConfig
           Caption = 'P50X intellibox'
           TabOrder = 2
         end
-        object RadioButton7: TRadioButton
+        object RadioButtonSP: TRadioButton
           Left = 8
           Top = 64
           Width = 249
@@ -865,44 +865,44 @@ object FormConfig: TFormConfig
           Caption = 'Sprog'
           TabOrder = 3
         end
-        object RadioButton8: TRadioButton
+        object RadioButtonFIS: TRadioButton
           Left = 8
           Top = 80
-          Width = 113
+          Width = 177
           Height = 17
-          Caption = 'HSI88/HSI88-USB'
+          Caption = 'FIS88/HSI88/HSI88-USB'
           TabOrder = 4
         end
-        object RadioButton9: TRadioButton
-          Left = 8
-          Top = 96
-          Width = 193
-          Height = 17
-          Caption = 'ECOS ESU'
-          TabOrder = 5
-        end
-        object RadioButton10: TRadioButton
+        object RadioButtonECOS: TRadioButton
           Left = 8
           Top = 128
           Width = 233
           Height = 17
-          Caption = 'FIS88 FeedBack (S88/S88N)'
-          TabOrder = 6
+          Caption = 'Ecos ESU'
+          TabOrder = 5
         end
-        object RadioButton11: TRadioButton
+        object RadioButtonRS: TRadioButton
           Left = 8
-          Top = 112
+          Top = 96
           Width = 209
           Height = 17
           Caption = 'RS2PC (Rs FeedBack interface)'
-          TabOrder = 7
+          TabOrder = 6
         end
-        object RadioButton12: TRadioButton
+        object RadioButtonDCCpl: TRadioButton
           Left = 8
           Top = 144
           Width = 209
           Height = 17
           Caption = 'DCC++'
+          TabOrder = 7
+        end
+        object RadioButtonDCCpp: TRadioButton
+          Left = 8
+          Top = 112
+          Width = 161
+          Height = 17
+          Caption = 'DCCpp'
           TabOrder = 8
         end
       end
@@ -910,7 +910,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 184
         Width = 297
-        Height = 65
+        Height = 81
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ / XpressNet'
         TabOrder = 3
         object RadioButton13: TRadioButton
@@ -960,6 +960,14 @@ object FormConfig: TFormConfig
           Height = 17
           Caption = 'Genli'
           TabOrder = 5
+        end
+        object CheckBoxZ21: TCheckBox
+          Left = 8
+          Top = 56
+          Width = 97
+          Height = 17
+          Caption = 'Z21'
+          TabOrder = 6
         end
       end
       object GroupBox8: TGroupBox
@@ -1024,7 +1032,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox15: TGroupBox
         Left = 312
-        Top = 256
+        Top = 280
         Width = 297
         Height = 161
         Caption = 'Divers'
@@ -1072,7 +1080,6 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = False
           TabOrder = 0
-          Text = 'EditNbDetDist'
         end
         object EditFonte: TEdit
           Left = 240
@@ -1094,7 +1101,6 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 2
-          Text = 'EditNbCantons'
         end
         object EditDebug: TEdit
           Left = 240
@@ -1201,7 +1207,6 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 0
-          Text = 'EditcomUSB'
         end
         object EditTempoOctetUSB: TEdit
           Left = 232
@@ -1210,7 +1215,6 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 1
-          Text = 'EditTempoOctetUSB'
         end
         object EditTempoReponse: TEdit
           Left = 232
@@ -1219,7 +1223,6 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 2
-          Text = 'EditTempoReponse'
         end
       end
       object GroupBox4: TGroupBox
@@ -1274,7 +1277,6 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 0
-          Text = 'EditIPLenz'
         end
         object EditportLenz: TEdit
           Left = 176
@@ -1283,7 +1285,6 @@ object FormConfig: TFormConfig
           Height = 21
           TabStop = False
           TabOrder = 1
-          Text = 'EditportLenz'
         end
       end
       object Memo1: TMemo
@@ -1388,7 +1389,6 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
-          Text = 'EditTempoAig'
         end
         object CheckPosAig: TCheckBox
           Left = 16
@@ -2366,7 +2366,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2473,7 +2473,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2936,11 +2936,11 @@ object FormConfig: TFormConfig
               Caption = #224
             end
             object LabelTrain: TLabel
-              Left = 16
+              Left = 8
               Top = 126
-              Width = 49
+              Width = 60
               Height = 13
-              Caption = 'Train D'#233'cl'
+              Caption = 'Train(s) D'#233'cl'
             end
             object EditAct: TEdit
               Left = 72
@@ -2966,7 +2966,7 @@ object FormConfig: TFormConfig
             object EditTrainDecl: TEdit
               Left = 72
               Top = 124
-              Width = 129
+              Width = 153
               Height = 21
               Hint = 
                 'Train(s) d'#233'clencheur(s) s'#233'par'#233's par des virgules pour lequel la ' +
@@ -3237,8 +3237,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 168
-          Top = 152
+          Left = 72
+          Top = 104
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'

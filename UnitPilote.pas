@@ -124,11 +124,11 @@ begin
   if i<>0 then
 
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
-  EtatFeuPilote:=feux[0].EtatSignal;
-  AncienEtat:=Feux[0].ancienEtat;
+  EtatFeuPilote:=Signaux[0].EtatSignal;
+  AncienEtat:=Signaux[0].ancienEtat;
   Vcanvas:=FormPilote.ImagePilote.picture.bitmap.Canvas;
 
-  case feux[i].aspect of
+  case Signaux[i].aspect of
   // feux de signalisation
    2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1);
    3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,AncienEtat,1);
@@ -136,7 +136,7 @@ begin
    5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1);
    9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1);
-  20 : dessine_signal20(VCanvas,0,0,1,1,EtatFeupilote,1,feux[i].adresse);
+  20 : dessine_signal20(VCanvas,0,0,1,1,EtatFeupilote,1,Signaux[i].adresse);
   // indicateurs de direction
   12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
   13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
@@ -151,8 +151,8 @@ function nation : integer;
 var i,dec,asp : integer;
 begin
   i:=1;
-  dec:=feux[0].decodeur;
-  asp:=feux[0].aspect;
+  dec:=Signaux[0].decodeur;
+  asp:=Signaux[0].aspect;
   if asp=20 then i:=2;
   // si décodeur personalisé
   if (dec>=NbDecodeurdeBase) and (dec<NbDecodeurdeBase+NbreDecPers) then
@@ -165,70 +165,70 @@ end;
 
 procedure TFormPilote.RadioVertClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,vert) else Maj_Etat_Signal(0,vertB) ;
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioVertCliClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,vert_cli);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioJauneClick(Sender: TObject);
 begin
-    feux[0].AncienEtat:=feux[0].EtatSignal;
+    Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,jaune) else Maj_Etat_Signal(0,deux_jaunes);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioJaunecliClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,jaune_cli);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioRougeClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioRougeCliClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore_cli);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioCarreClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,carre) else Maj_Etat_Signal(0,vert_jaune_H);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioBlancClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,blanc) else Maj_Etat_Signal(0,rouge_blanc);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioVioletClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,violet) else Maj_Etat_Signal(0,vert_jaune_V);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioBlancCliClick(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,blanc_cli);
   dessine_feu_pilote;
 end;
@@ -241,7 +241,7 @@ end;
 
 procedure TFormPilote.RadioRalen30Click(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,ral_30);
   dessine_feu_pilote;
 end;
@@ -249,7 +249,7 @@ end;
 
 procedure TFormPilote.RadioRappel60Click(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,rappel_60);
   dessine_feu_pilote;
 end;
@@ -257,14 +257,14 @@ end;
 
 procedure TFormPilote.RadioRalen60Click(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,ral_60);
   dessine_feu_pilote;
 end;
 
 procedure TFormPilote.RadioRappel30Click(Sender: TObject);
 begin
-  feux[0].AncienEtat:=feux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,rappel_30);
   dessine_feu_pilote;
 end;
@@ -279,13 +279,13 @@ procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
 var i,index,e : integer;
 begin
   index:=index_Signal(AdrPilote);
-  if (feux[index].aspect>10) and (feux[index].aspect<20 )then
+  if (Signaux[index].aspect>10) and (Signaux[index].aspect<20 )then
   begin
     val(EditNbreFeux.Text,i,e);
-    feux[0].EtatSignal:=i;
+    Signaux[0].EtatSignal:=i;
     pilote_direction(AdrPilote,i);
   end;
-  feux[index].EtatSignal:=feux[0].EtatSignal;
+  Signaux[index].EtatSignal:=Signaux[0].EtatSignal;
   envoi_signal(AdrPilote);
 end;
 
@@ -300,7 +300,7 @@ if ord(Key) = VK_RETURN then
     begin
       if (i>=0) and (i<=6) then
       begin
-        feux[0].EtatSignal:=i;
+        Signaux[0].EtatSignal:=i;
         dessine_feu_pilote;
       end;
       if (i<0) and (i>6) then EditNbreFeux.text:='1';
@@ -314,17 +314,17 @@ var n,i,d : integer;
 begin
   // mise à jour du champ décodeur
   i:=Index_Signal(AdrPilote);
-  d:=feux[i].decodeur;
-  n:=feux[i].aspect;
+  d:=Signaux[i].decodeur;
+  n:=Signaux[i].aspect;
   with LabelDec do
   begin
     Caption:=decodeur[d];
     width:=114;
     height:=42;
   end;
-  feux[0].decodeur:=d;
-  feux[0].aspect:=n;
-  feux[0].contrevoie:=feux[i].contrevoie;
+  Signaux[0].decodeur:=d;
+  Signaux[0].aspect:=n;
+  Signaux[0].contrevoie:=Signaux[i].contrevoie;
 
 
   // signal belge
@@ -370,7 +370,7 @@ begin
   if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
   begin
     checkVerrouCarre.Visible:=false; //true;
-    checkVerrouCarre.Checked:=feux[i].VerrouCarre;
+    checkVerrouCarre.Checked:=Signaux[i].VerrouCarre;
   end;
 
   with imagePilote do
@@ -379,14 +379,14 @@ begin
     Picture.Bitmap.TransparentMode:=tmAuto;
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
-    Picture.BitMap:=Feux[i].Img.Picture.Bitmap;
+    Picture.BitMap:=Signaux[i].Img.Picture.Bitmap;
     //left:=groupBox1.width+50;
   end;
 
   LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
-  feux[0].EtatSignal:=feux[i].EtatSignal;
+  Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
 
-  if (feux[i].aspect>10) and (feux[i].aspect<20) then
+  if (Signaux[i].aspect>10) and (Signaux[i].aspect<20) then
   begin
     // signaux directionnels
     GroupBox1.Visible:=false;
@@ -400,7 +400,7 @@ begin
     LabelNbFeux.Visible:=False;
     EditNbreFeux.Visible:=false;
     GroupBox1.Visible:=true;
-    if (feux[i].aspect<10) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
+    if (Signaux[i].aspect<10) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
   end;
 
   radioVert.Checked:=false;
@@ -425,9 +425,9 @@ procedure TFormPilote.CheckVerrouCarreClick(Sender: TObject);
 var i : integer;
 begin
   i:=Index_Signal(AdrPilote);
-  if feux[i].VerrouCarre then
+  if Signaux[i].VerrouCarre then
   begin
-    feux[i].EtatVerrouCarre:=checkVerrouCarre.Checked=true;
+    Signaux[i].EtatVerrouCarre:=checkVerrouCarre.Checked=true;
     Maj_Etat_Signal(AdrPilote,carre);
     envoi_signal(Adrpilote);
     Maj_Etat_Signal(0,carre);

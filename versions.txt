@@ -214,3 +214,7 @@ version 8.31 : Correction d'un bug sur les détecteurs amonts des signaux.
 version 8.32 : Un actionneur seul peut être déclenché par plusieurs trains.
                Correction du lancement du serveur COM-IP pour CDMRail V20.12.
 version 8.33 : Correction d'un bug sur le calcul d'index.
+version 8.34 : Correction signal Unisemaf
+               Ajout de la Z21 dans le choix des interfaces au lancement de CDM rail.
+ 
+

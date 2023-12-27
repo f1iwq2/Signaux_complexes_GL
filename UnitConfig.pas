@@ -27,15 +27,14 @@ type
     CheckLanceCDM: TCheckBox;
     CheckAvecTCO: TCheckBox;
     GroupBox6: TGroupBox;
-    RadioButton4: TRadioButton;
-    RadioButton5: TRadioButton;
-    RadioButton6: TRadioButton;
-    RadioButton7: TRadioButton;
-    RadioButton8: TRadioButton;
-    RadioButton9: TRadioButton;
-    RadioButton10: TRadioButton;
-    RadioButton11: TRadioButton;
-    RadioButton12: TRadioButton;
+    RadioButtonSS: TRadioButton;
+    RadioButtonXN: TRadioButton;
+    RadioButtonP50: TRadioButton;
+    RadioButtonSP: TRadioButton;
+    RadioButtonFIS: TRadioButton;
+    RadioButtonECOS: TRadioButton;
+    RadioButtonRS: TRadioButton;
+    RadioButtonDCCpl: TRadioButton;
     GroupBox7: TGroupBox;
     RadioButton13: TRadioButton;
     RadioButton14: TRadioButton;
@@ -351,6 +350,8 @@ type
     Label28: TLabel;
     EditPortServeur: TEdit;
     ButtonPFCDM: TButton;
+    CheckBoxZ21: TCheckBox;
+    RadioButtonDCCpp: TRadioButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -557,6 +558,7 @@ nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
 ServicesCDM_ch='ServicesCDM';
 retro_ch='retro';
+Z21_ch='Z21';
 Init_aig_ch='Init_Aig';
 LAY_ch='Lay';
 Maxcom_ch='MaxCom';
@@ -671,8 +673,10 @@ function compile_branche(s : string;i : integer) : boolean;
 function encode_sig_feux(i : integer): string;
 procedure valide_branches;
 procedure trier_aig;
+procedure trier_detecteurs;
 function decodeDCC(s : string) : string;
 function encode_aig(index : integer): string;
+function Ipok(s : string) : boolean;
 
 implementation
 
@@ -717,12 +721,12 @@ procedure Maj_Hint_Signal(indexFeu : integer);
 var s : string;
 begin
   // ne pas supprimer le @= qui sert de marqueur pour identifier le feu
-  s:='Index='+IntToSTR(IndexFeu)+' @='+inttostr(feux[IndexFeu].Adresse)+' Décodeur='+decodeur[feux[IndexFeu].Decodeur]+
-       ' Adresse détecteur associé='+intToSTR(feux[IndexFeu].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(feux[IndexFeu].Adr_el_suiv1);
-  if feux[IndexFeu].Btype_suiv1=aig then s:=s+' (aig)';
+  s:='Index='+IntToSTR(IndexFeu)+' @='+inttostr(Signaux[IndexFeu].Adresse)+' Décodeur='+decodeur[Signaux[IndexFeu].Decodeur]+
+       ' Adresse détecteur associé='+intToSTR(Signaux[IndexFeu].Adr_det1)+
+       ' Adresse élement suivant='+intToSTR(Signaux[IndexFeu].Adr_el_suiv1);
+  if Signaux[IndexFeu].Btype_suiv1=aig then s:=s+' (aig)';
 
-  feux[indexFeu].Img.Hint:=s;
+  Signaux[indexFeu].Img.Hint:=s;
 end;
 
 // demande les services Com-IP à CDM
@@ -838,10 +842,10 @@ begin
   begin
     i:=pos('.',s);
     if i=0 then begin IpOK:=false;exit;end;
-    val(copy(s,1,i-1),octet,erreur);if (erreur<>0) or (octet>255) then begin IpOK:=false;exit;end;
+    val(copy(s,1,i-1),octet,erreur);if (erreur<>0) or (octet<0) or (octet>255) then begin IpOK:=false;exit;end;
     delete(s,1,i);
   end;
-  val(s,octet,erreur);if (erreur<>0) or (octet>255) then begin IpOK:=false;exit;end;
+  val(s,octet,erreur);if (octet<0) or (octet>255) then begin IpOK:=false;exit;end;
   ipOK:=true;
 end;
 
@@ -1056,62 +1060,62 @@ begin
   TypeElAIg_to_char:=s;
 end;
 
-// transforme le signal du tableau feux[] en texte
+// transforme le signal du tableau Signaux[] en texte
 function encode_sig_feux(i : integer): string;
 var s : string;
     adresse,aspect,j,k,NfeuxDir,CondCarre,CondFeuBlanc,nc : integer;
 begin
   // adresse
-  adresse:=feux[i].adresse;
+  adresse:=Signaux[i].adresse;
   if affevt then Affiche('Encode_sig_feux('+IntToSTR(i)+') : adresse='+IntToSTR(adresse),clyellow);
 
   if adresse=0 then begin encode_sig_feux:='';exit;end;
 
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
-  aspect:=feux[i].aspect;
+  aspect:=Signaux[i].aspect;
   if (aspect<10) or (aspect>=20) then s:=s+IntToSTR(aspect)+',' else s:=s+'D'+intToSTR(aspect-10)+',';
 
   // bouton feu blanc, n'existe pas pour un feu directionnel (aspect>10)
-  if (aspect<10) or (aspect>=20) then begin if feux[i].feublanc then s:=s+'1,' else s:=s+'0,';end;
+  if (aspect<10) or (aspect>=20) then begin if Signaux[i].feublanc then s:=s+'1,' else s:=s+'0,';end;
 
   // décodeur
-  s:=s+IntToSTR(feux[i].decodeur)+',';
+  s:=s+IntToSTR(Signaux[i].decodeur)+',';
 
   // detecteur et élement suivant (4 maxi)
   // signal non directionnel
   if (aspect<10) or (aspect>=20) then
   begin
-    s:=s+'('+IntToSTR(feux[i].Adr_det1)+','+TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
-    j:=feux[i].Adr_det2;
-    if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det2)+','+TypeEl_To_char(feux[i].Btype_suiv2)+IntToSTR(feux[i].Adr_el_suiv2);
-    j:=feux[i].Adr_det3;
-    if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det3)+','+TypeEl_To_char(feux[i].Btype_suiv3)+IntToSTR(feux[i].Adr_el_suiv3);
-    j:=feux[i].Adr_det4;
-    if j<>0 then s:=s+','+IntToSTR(feux[i].Adr_det4)+','+TypeEl_To_char(feux[i].Btype_suiv4)+IntToSTR(feux[i].Adr_el_suiv4);
+    s:=s+'('+IntToSTR(Signaux[i].Adr_det1)+','+TypeEl_To_char(Signaux[i].Btype_suiv1)+IntToSTR(Signaux[i].Adr_el_suiv1);
+    j:=Signaux[i].Adr_det2;
+    if j<>0 then s:=s+','+IntToSTR(Signaux[i].Adr_det2)+','+TypeEl_To_char(Signaux[i].Btype_suiv2)+IntToSTR(Signaux[i].Adr_el_suiv2);
+    j:=Signaux[i].Adr_det3;
+    if j<>0 then s:=s+','+IntToSTR(Signaux[i].Adr_det3)+','+TypeEl_To_char(Signaux[i].Btype_suiv3)+IntToSTR(Signaux[i].Adr_el_suiv3);
+    j:=Signaux[i].Adr_det4;
+    if j<>0 then s:=s+','+IntToSTR(Signaux[i].Adr_det4)+','+TypeEl_To_char(Signaux[i].Btype_suiv4)+IntToSTR(Signaux[i].Adr_el_suiv4);
     s:=s+'),';
 
     //verrouillage au carré
-    if feux[i].verrouCarre then s:=s+'1' else s:=s+'0';
+    if Signaux[i].verrouCarre then s:=s+'1' else s:=s+'0';
     // feu vert cli
-    if feux[i].checkFV then s:=s+',FVC1' else s:=s+',FVC0';
+    if Signaux[i].checkFV then s:=s+',FVC1' else s:=s+',FVC0';
     // feu rouge cli
-    if feux[i].checkFR then s:=s+',FRC1' else s:=s+',FRC0';
+    if Signaux[i].checkFR then s:=s+',FRC1' else s:=s+',FRC0';
 
     // si unisemaf, paramètre supplémentaire
-    if (feux[i].decodeur=6) then s:=s+',U'+intToSTR(feux[i].unisemaf);
+    if (Signaux[i].decodeur=6) then s:=s+',U'+intToSTR(Signaux[i].unisemaf);
 
     // conditions supplémentaires pour le carré
     for nc:=1 to 6 do
     begin
-      CondCarre:=Length(feux[i].condcarre[nc]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
+      CondCarre:=Length(Signaux[i].condcarre[nc]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
       dec(condcarre);
       if condCarre>0 then
       begin
         s:=s+',(';
         for k:=1 to condcarre do
         begin
-          s:=s+'A'+IntToSTR(feux[i].condcarre[nc][k].Adresse)+feux[i].condcarre[nc][k].PosAig;
+          s:=s+'A'+IntToSTR(Signaux[i].condcarre[nc][k].Adresse)+Signaux[i].condcarre[nc][k].PosAig;
           if k<condcarre then s:=s+',';
         end;
         s:=s+')';
@@ -1121,14 +1125,14 @@ begin
     // conditions supplémentaires pour le feu blanc
     for nc:=1 to 6 do
     begin
-      CondFeuBlanc:=Length(feux[i].CondFeuBlanc[nc]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
+      CondFeuBlanc:=Length(Signaux[i].CondFeuBlanc[nc]);  // nombre de conditions (nombre de parenthèses ex 3 pour (A21S,A6D)(A30S,A20D)(A1D,A2S,A3D)
       dec(CondFeuBlanc);
       if CondFeuBlanc>0 then
       begin
         s:=s+',CFB(';
         for k:=1 to CondFeuBlanc do
         begin
-          s:=s+'A'+IntToSTR(feux[i].CondFeuBlanc[nc][k].Adresse)+feux[i].CondFeuBlanc[nc][k].PosAig;
+          s:=s+'A'+IntToSTR(Signaux[i].CondFeuBlanc[nc][k].Adresse)+Signaux[i].CondFeuBlanc[nc][k].PosAig;
           if k<CondFeuBlanc then s:=s+',';
         end;
         s:=s+')';
@@ -1136,36 +1140,36 @@ begin
     end;
 
     // décodeur SR
-    if feux[i].decodeur=7 then
+    if Signaux[i].decodeur=7 then
     begin
       s:=s+',SR(';
       for nc:=1 to 8 do
       begin
-        s:=s+intToSTR(feux[i].SR[nc].sortie1)+',';
-        s:=s+intToSTR(feux[i].SR[nc].sortie0);
+        s:=s+intToSTR(Signaux[i].SR[nc].sortie1)+',';
+        s:=s+intToSTR(Signaux[i].SR[nc].sortie0);
         if nc<8 then s:=s+',' else s:=s+')';
       end;
     end;
 
     // décodeur CDF ou digikeijs
-    if (feux[i].decodeur=2) or (feux[i].decodeur=5) then
+    if (Signaux[i].decodeur=2) or (Signaux[i].decodeur=5) then
     begin
       s:=s+',MOT(';
       for nc:=1 to 19 do
       begin
-        s:=s+intToSTR(feux[i].SR[nc].sortie1);
+        s:=s+intToSTR(Signaux[i].SR[nc].sortie1);
         if nc<19 then s:=s+',' else s:=s+')';
       end;
-      s:=s+',NA'+intToSTR(feux[i].na);
+      s:=s+',NA'+intToSTR(Signaux[i].na);
     end;
 
     // signal belge
-    if (feux[i].aspect=20) then
+    if (Signaux[i].aspect=20) then
     begin
-      s:=s+',NA'+intToSTR(feux[i].na)+',VCV';
-      if feux[i].verscontrevoie then s:=s+'1' else s:=s+'0';
+      s:=s+',NA'+intToSTR(Signaux[i].na)+',VCV';
+      if Signaux[i].verscontrevoie then s:=s+'1' else s:=s+'0';
       s:=s+',CV';
-      if feux[i].contrevoie then s:=s+'1' else s:=s+'0';
+      if Signaux[i].contrevoie then s:=s+'1' else s:=s+'0';
     end;
   end
   else
@@ -1175,10 +1179,10 @@ begin
     for j:=1 to NfeuxDir+1 do
     begin
       s:=s+'(';
-      for k:=1 to Length(feux[i].AigDirection[j])-1 do
+      for k:=1 to Length(Signaux[i].AigDirection[j])-1 do
       begin
-        s:=s+'A'+IntToSTR(feux[i].AigDirection[j][k].adresse) + feux[i].AigDirection[j][k].posaig;
-        if k<Length(feux[i].AigDirection[j])-1 then s:=s+',';
+        s:=s+'A'+IntToSTR(Signaux[i].AigDirection[j][k].adresse) + Signaux[i].AigDirection[j][k].posaig;
+        if k<Length(Signaux[i].AigDirection[j])-1 then s:=s+',';
       end;
       s:=s+')';
     end;
@@ -1209,18 +1213,19 @@ begin
     val(s,adresse,erreur);
     if adresse=0 then begin affiche('Erreur 671 ligne '+s,clred);exit;end;
     // vérifier si le signal existe pour ne pas le stocker
-    for id:=1 to NbreFeux do
+    for id:=1 to NbreSignaux do
     begin
-      if feux[id].adresse=adresse then
+      if Signaux[id].adresse=adresse then
       begin
         decode_ligne_feux:=false;
         exit;
       end;
     end;
-    inc(nbreFeux);
+    inc(NbreSignaux);
 
     Delete(s,1,j);
-    feux[i].adresse:=adresse;
+    Signaux[i].adresse:=adresse;
+    Index_Accessoire[adresse]:=i; // stocker l'index provisoire avant tri
     j:=pos(',',s);
     if j>1 then
     begin
@@ -1236,10 +1241,10 @@ begin
           Affiche('Erreur 672 ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
           exit;
         end;
-        feux[i].aspect:=l+10;Delete(s,1,j);
+        Signaux[i].aspect:=l+10;Delete(s,1,j);
         // décodeur
         val(s,adr,erreur);
-        Feux[i].decodeur:=adr;
+        Signaux[i].decodeur:=adr;
         if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
         j:=pos(',',s);Delete(s,1,j);
         // liste des aiguillages
@@ -1254,9 +1259,9 @@ begin
             val(s,adr,erreur);  // adresse
             c:=#0;
             if erreur<>0 then c:=s[erreur];          // type
-            setlength(feux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
-            feux[i].AigDirection[k][j].PosAig:=c;
-            feux[i].AigDirection[k][j].Adresse:=adr;
+            setlength(Signaux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
+            Signaux[i].AigDirection[k][j].PosAig:=c;
+            Signaux[i].AigDirection[k][j].Adresse:=adr;
             delete(s,1,erreur);   // supprime jusque S
             //Affiche(s,clLime);
             if s[1]=',' then delete(s,1,1);
@@ -1281,17 +1286,17 @@ begin
           Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
           asp:=2;
         end;
-        feux[i].aspect:=asp;Delete(s,1,j);
+        Signaux[i].aspect:=asp;Delete(s,1,j);
         j:=pos(',',s);
-        if j>1 then begin Feux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
+        if j>1 then begin Signaux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
         j:=pos(',',s);
-        val(s,Feux[i].decodeur,erreur);
+        val(s,Signaux[i].decodeur,erreur);
 
-        if (Feux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Feux[i].decodeur),clred);
+        if (Signaux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Signaux[i].decodeur),clred);
         if j<>0 then delete(s,1,j);
-        feux[i].Adr_el_suiv1:=0;feux[i].Adr_el_suiv2:=0;feux[i].Adr_el_suiv3:=0;feux[i].Adr_el_suiv4:=0;
-        feux[i].Btype_Suiv1:=rien;feux[i].Btype_Suiv2:=rien;feux[i].Btype_Suiv3:=rien;feux[i].Btype_Suiv4:=rien;
-        feux[i].Adr_det1:=0;feux[i].Adr_det2:=0;feux[i].Adr_det3:=0;feux[i].Adr_det4:=0;
+        Signaux[i].Adr_el_suiv1:=0;Signaux[i].Adr_el_suiv2:=0;Signaux[i].Adr_el_suiv3:=0;Signaux[i].Adr_el_suiv4:=0;
+        Signaux[i].Btype_Suiv1:=rien;Signaux[i].Btype_Suiv2:=rien;Signaux[i].Btype_Suiv3:=rien;Signaux[i].Btype_Suiv4:=rien;
+        Signaux[i].Adr_det1:=0;Signaux[i].Adr_det2:=0;Signaux[i].Adr_det3:=0;Signaux[i].Adr_det4:=0;
         // éléments optionnels des voies supplémentaires
         if j<>0 then
         begin
@@ -1315,25 +1320,25 @@ begin
                 end;
               end;
               inc(j);
-              if (j=1) then feux[i].Adr_det1:=adr;
-              if (j=2) then feux[i].Adr_det2:=adr;
-              if (j=3) then feux[i].Adr_det3:=adr;
-              if (j=4) then feux[i].Adr_det4:=adr;
+              if (j=1) then Signaux[i].Adr_det1:=adr;
+              if (j=2) then Signaux[i].Adr_det2:=adr;
+              if (j=3) then Signaux[i].Adr_det3:=adr;
+              if (j=4) then Signaux[i].Adr_det4:=adr;
               //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
               if s[1]='A' then
               begin
-                if (j=1) then feux[i].Btype_Suiv1:=aig;
-                if (j=2) then feux[i].Btype_Suiv2:=aig;
-                if (j=3) then feux[i].Btype_Suiv3:=aig;
-                if (j=4) then feux[i].Btype_Suiv4:=aig;
+                if (j=1) then Signaux[i].Btype_Suiv1:=aig;
+                if (j=2) then Signaux[i].Btype_Suiv2:=aig;
+                if (j=3) then Signaux[i].Btype_Suiv3:=aig;
+                if (j=4) then Signaux[i].Btype_Suiv4:=aig;
                 delete(s,1,1);
               end
               else
               begin  // détecteur
-                if (j=1) then feux[i].Btype_Suiv1:=det;
-                if (j=2) then feux[i].Btype_Suiv2:=det;
-                if (j=3) then feux[i].Btype_Suiv3:=det;
-                if (j=4) then feux[i].Btype_Suiv4:=det;
+                if (j=1) then Signaux[i].Btype_Suiv1:=det;
+                if (j=2) then Signaux[i].Btype_Suiv2:=det;
+                if (j=3) then Signaux[i].Btype_Suiv3:=det;
+                if (j=4) then Signaux[i].Btype_Suiv4:=det;
               end;
               Val(s,adr,erreur);
               if Adr>NbMaxDet then
@@ -1341,10 +1346,10 @@ begin
                 Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
                 Adr:=NbMaxDet;
               end;
-              if (j=1) then feux[i].Adr_el_suiv1:=Adr;
-              if (j=2) then feux[i].Adr_el_suiv2:=Adr;
-              if (j=3) then feux[i].Adr_el_suiv3:=Adr;
-              if (j=4) then feux[i].Adr_el_suiv4:=Adr;
+              if (j=1) then Signaux[i].Adr_el_suiv1:=Adr;
+              if (j=2) then Signaux[i].Adr_el_suiv2:=Adr;
+              if (j=3) then Signaux[i].Adr_el_suiv3:=Adr;
+              if (j=4) then Signaux[i].Adr_el_suiv4:=Adr;
               delete(s,1,erreur-1);
               if s[1]=',' then delete(s,1,1);
               fini:=s[1]=')';
@@ -1361,19 +1366,19 @@ begin
        delete(s,1,k);
        //Affiche('s='+s,clyellow);
        if length(s)=0 then begin Affiche('Erreur 679: fichier de configuration ligne erronnée : '+chaine_signal,clred); closefile(fichier);exit;end;
-       feux[i].VerrouCarre:=s[1]='1';
+       Signaux[i].VerrouCarre:=s[1]='1';
        delete(s,1,1);
        if length(s)>0 then if s[1]=',' then delete(s,1,1);
        if copy(s,1,3)='FVC' then
        begin
          delete(s,1,3);
-         if length(s)>0 then begin feux[i].checkFV:=s[1]='1';delete(s,1,1);end;
+         if length(s)>0 then begin Signaux[i].checkFV:=s[1]='1';delete(s,1,1);end;
        end;
        if length(s)>0 then if s[1]=',' then delete(s,1,1);
        if copy(s,1,3)='FRC' then
        begin
          delete(s,1,3);
-         if length(s)>0 then begin feux[i].checkFR:=s[1]='1';delete(s,1,1);end;
+         if length(s)>0 then begin Signaux[i].checkFR:=s[1]='1';delete(s,1,1);end;
        end;
        if length(s)>0 then if s[1]=',' then delete(s,1,1);
        if length(s)>0 then
@@ -1387,7 +1392,7 @@ begin
            begin
              j:=5;affiche('Paramètre NA incorrect dans ligne '+chaine_signal,clred)
            end;
-           feux[i].na:=j;
+           Signaux[i].na:=j;
          end;
        end;
 
@@ -1403,7 +1408,7 @@ begin
            begin
              j:=0;affiche('Paramètre VCV incorrect dans ligne '+chaine_signal,clred)
            end;
-           feux[i].verscontrevoie:=j=1;
+           Signaux[i].verscontrevoie:=j=1;
          end;
        end;
        if length(s)>0 then if s[1]=',' then delete(s,1,1);
@@ -1418,23 +1423,23 @@ begin
            begin
              j:=0;affiche('Paramètre CV incorrect dans ligne '+chaine_signal,clred)
            end;
-           feux[i].contrevoie:=j=1;
+           Signaux[i].contrevoie:=j=1;
          end;
        end;
       if length(s)>0 then if s[1]='U' then delete(s,1,1);
       // si décodeur UniSemaf (6) champ supplémentaire U
-      if (Feux[i].decodeur=6) then
+      if (Signaux[i].decodeur=6) then
       begin
         Val(s,k,erreur);
         delete(s,1,erreur);
         if k=0 then
         begin
-          if Feux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal+' Manque définition décodeur UniSemaf signal '+intToSTR(adresse),clred);end;
+          if Signaux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal+' Manque définition décodeur UniSemaf signal '+intToSTR(adresse),clred);end;
         end
         else
           begin
-            Feux[i].UniSemaf:=k;
-            if Feux[i].decodeur=6 then
+            Signaux[i].UniSemaf:=k;
+            if Signaux[i].decodeur=6 then
             begin
               erreur:=verif_UniSemaf(adresse,k);
               if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal+' Erreur code Unisemaf',clred);end;
@@ -1460,16 +1465,16 @@ begin
          bd:=0;
          repeat
            inc(bd);
-           setlength(feux[i].condCarre[l],bd+1);  // une condition en plus
+           setlength(Signaux[i].condCarre[l],bd+1);  // une condition en plus
            k:=pos(',',sa);
            if k<>0 then chaine:=copy(sa,1,k-1) else chaine:=sa;
            if chaine[1]='A' then
            begin
              delete(chaine,1,1);
              val(chaine,adresse,erreur);
-             feux[i].condCarre[l][bd].Adresse:=adresse;
-             if erreur<>0 then feux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
-             Affiche('Erreur 683 Définition du signal '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
+             Signaux[i].condCarre[l][bd].Adresse:=adresse;
+             if erreur<>0 then Signaux[i].condCarre[l][bd].PosAig:=chaine[erreur] else
+             Affiche('Erreur 683 Définition du signal '+IntToSTR(Signaux[i].adresse)+': Manque D ou S dans les conditions de carré des aiguillages',clred);
            end;
            k:=pos(',',sa);if k<>0 then delete(sa,1,k);
          until k=0;
@@ -1493,7 +1498,7 @@ begin
            bd:=0;
            repeat
              inc(bd);
-             setlength(feux[i].condFeuBlanc[l],bd+1);  // une condition en plus
+             setlength(Signaux[i].condFeuBlanc[l],bd+1);  // une condition en plus
              k:=pos(',',sa);
              if k<>0 then chaine:=copy(sa,1,k-1)   // premier champ  ()
                else                     // le reste
@@ -1502,9 +1507,9 @@ begin
              begin
                delete(chaine,1,1);
                val(chaine,adresse,erreur);
-               feux[i].condFeuBlanc[l][bd].Adresse:=adresse;
-               if erreur<>0 then feux[i].condFeuBlanc[l][bd].PosAig:=chaine[erreur] else
-                 Affiche('Erreur 683 Définition du signal '+IntToSTR(feux[i].adresse)+': Manque D ou S dans les conditions de feu blanc des aiguillages',clred);
+               Signaux[i].condFeuBlanc[l][bd].Adresse:=adresse;
+               if erreur<>0 then Signaux[i].condFeuBlanc[l][bd].PosAig:=chaine[erreur] else
+                 Affiche('Erreur 683 Définition du signal '+IntToSTR(Signaux[i].adresse)+': Manque D ou S dans les conditions de feu blanc des aiguillages',clred);
              end;
              k:=pos(',',sa);if k<>0 then delete(sa,1,k);
            until k=0;
@@ -1523,12 +1528,12 @@ begin
            k:=pos(',',s);
            val(s,j,erreur);
            delete(s,1,k);
-           feux[i].SR[l].sortie1:=j;
+           Signaux[i].SR[l].sortie1:=j;
 
            k:=pos(',',s);
            val(s,j,erreur);
            delete(s,1,k);
-           feux[i].SR[l].sortie0:=j;
+           Signaux[i].SR[l].sortie0:=j;
          end;
        end;
 
@@ -1541,7 +1546,7 @@ begin
            k:=pos(',',s);
            val(s,j,erreur);
            delete(s,1,k);
-           feux[i].SR[l].sortie1:=j;
+           Signaux[i].SR[l].sortie1:=j;
          end;
          j:=pos('NA',s);
          if j<>1 then affiche('Manque paramètre NA dans ligne '+chaine_signal,clred)
@@ -1553,7 +1558,7 @@ begin
            begin
              j:=5;affiche('Paramètre NA incorrect dans ligne '+chaine_signal,clred)
           end;
-          feux[i].na:=j;
+          Signaux[i].na:=j;
         end;
       end;
     end;
@@ -1795,6 +1800,10 @@ begin
   // Serveur de rétrosignalisation Lenz de CDM
   writeln(fichierN,retro_ch+'=',intToSTR(ServeurRetroCDM));
 
+  // Z21
+  if Z21 then s:='1' else s:='0';
+  writeln(fichierN,Z21_ch+'='+s);
+
   // Raz Signaux
   if Raz_Acc_signaux then s:='1' else s:='0';
   writeln(fichierN,Raz_signaux_ch+'='+s);
@@ -1886,13 +1895,13 @@ begin
   writeln(fichierN,'/------------');
   writeln(fichierN,section_sig_ch);
   // feux
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
     s:=encode_sig_feux(i);
     // transformer le tableau feux en ligne
     //Affiche(s,clLime);
     if s='' then Affiche('Erreur 700 - Encodage du feu index='+IntToSTR(i),clRed);
-    feux[i].modifie:=false;       // sauvegarde en cours, on démarque
+    Signaux[i].modifie:=false;       // sauvegarde en cours, on démarque
     writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
@@ -1964,6 +1973,24 @@ begin
   closefile(fichierN);
 end;
 
+// trier les détecteurs
+procedure trier_detecteurs;
+var i,j,temp : integer;
+begin
+  for i:=1 to NDetecteurs do
+  begin
+    for j:=i+1 to NDetecteurs do
+    begin
+      if Adresse_detecteur[i]>Adresse_detecteur[j] then
+      begin
+        temp:=Adresse_detecteur[i];
+        Adresse_detecteur[i]:=Adresse_detecteur[j];
+        Adresse_detecteur[j]:=temp;
+      end;
+    end;
+  end;
+end;
+
 // trie les aiguillages
 procedure trier_aig;
 var i,j : integer;
@@ -1991,21 +2018,21 @@ procedure trier_sig;
 var i,j : integer;
     temp : TSignal;
 begin
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    for j:=i+1 to NbreFeux do
+    for j:=i+1 to NbreSignaux do
     begin
-      if feux[i].Adresse>feux[j].adresse then
+      if Signaux[i].Adresse>Signaux[j].adresse then
       begin
-        temp:=feux[i];
-        feux[i]:=feux[j];
-        feux[j]:=temp;
+        temp:=Signaux[i];
+        Signaux[i]:=Signaux[j];
+        Signaux[j]:=temp;
       end;
     end;
   end;
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    index_accessoire[feux[i].adresse]:=i;
+    index_accessoire[Signaux[i].adresse]:=i;
   end;
 end;
 
@@ -2048,13 +2075,13 @@ var s,sa,SOrigine: string;
   begin
   //Affiche('Définition des signaux',clyellow);
   i:=1;Nligne:=1;
-  NbreFeux:=0;
+  NbreSignaux:=0;
   repeat
     inc(Nligne);
     s:=lit_ligne;
     if s<>'0' then
     begin
-      if NbreFeux>=NbreMaxiSignaux then
+      if NbreSignaux>=NbreMaxiSignaux then
       begin
         Affiche('Nombre maximal de signaux atteint',clRed);
       end
@@ -2654,7 +2681,6 @@ var s,sa,SOrigine: string;
             inc(nv);
           end;
 
-
           // nombre d'adresses
           k:=pos(uppercase(nba_ch)+'=',s);
           if (k=1) and (NbreDecPers>0) then
@@ -2909,16 +2935,16 @@ var s,sa,SOrigine: string;
           inc(NbPeriph_socket);
           Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
         end;
+        if i=0 then Affiche('Erreur 96 : le périphérique '+Tablo_periph[NbPeriph].nom+' n''est pas reconnu comme COM/USB ou socket',clred);
 
         // extraire le numéro de com5:9600,n,8,1
         i:=extract_int(sa);
-        if i=0 then Affiche('Erreur COM nul : '+sOrigine,clred);
+        if i=0 then Affiche('Erreur 97 - Port COM nul : '+sOrigine,clred);
         Tablo_periph[NbPeriph].NumCom:=i;
         Tablo_com_cde[NbPeriph].NumPeriph:=NbPeriph;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
   end;
-
 
 
   procedure lit_flux;
@@ -3444,6 +3470,16 @@ var s,sa,SOrigine: string;
       ServeurRetroCDM:=i;
       end;
 
+      sa:=uppercase(Z21_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        Z21:=i=1;
+      end;
+
       sa:=uppercase(nb_det_dist_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
@@ -3483,6 +3519,7 @@ var s,sa,SOrigine: string;
       begin
         trouve_section_branche:=true;
         compile_branches;
+        trier_detecteurs;
       end;
 
       // section signaux
@@ -3688,7 +3725,7 @@ begin
   lit_flux;
   close(fichier);
 
-  configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (Nbrefeux=0);
+  configNulle:=(maxAiguillage=0) and (NbreBranches=0) and (NbreSignaux=0);
   if configNulle then Affiche('Fonctionnement en config nulle',ClYellow);
 
   s:='';//Affiche(intToSTR(Nv),clred);
@@ -3733,11 +3770,11 @@ begin
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
 
   // trouver les détecteurs amont des signaux et les range dans la structure des signaux
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    adr:=feux[i].adresse;
+    adr:=Signaux[i].adresse;
     det_prec_signal(adr,TabloDet);
-    feux[i].DetAmont:=TabloDet;
+    Signaux[i].DetAmont:=TabloDet;
   end;
 
 end;
@@ -3888,22 +3925,22 @@ begin
     AvecTCO:=CheckAvecTCO.checked;
     MasqueBandeauTCO:=CheckBandeauTCO.checked;
     lay:=editLay.Text;
-    if RadioButton4.Checked then ServeurInterfaceCDM:=0;
-    if RadioButton5.Checked then ServeurInterfaceCDM:=1;
-    if RadioButton6.Checked then ServeurInterfaceCDM:=2;
-    if RadioButton7.Checked then ServeurInterfaceCDM:=3;
-    if RadioButton8.Checked then ServeurInterfaceCDM:=4;
-    if RadioButton9.Checked then ServeurInterfaceCDM:=5;
-    if RadioButton10.Checked then ServeurInterfaceCDM:=6;
-    if RadioButton11.Checked then ServeurInterfaceCDM:=7;
-    if RadioButton12.Checked then ServeurInterfaceCDM:=8;
-    if RadioButton12.Checked then ServeurInterfaceCDM:=13;
+    if RadioButtonSS.Checked then ServeurInterfaceCDM:=0;
+    if RadioButtonXn.Checked then ServeurInterfaceCDM:=1;
+    if RadioButtonp50.Checked then ServeurInterfaceCDM:=2;
+    if RadioButtonSP.Checked then ServeurInterfaceCDM:=3;
+    if RadioButtonFIS.Checked then ServeurInterfaceCDM:=4;
+    if RadioButtonRS.Checked then ServeurInterfaceCDM:=5;
+    if RadioButtonDCCpp.Checked then ServeurInterfaceCDM:=6;
+    if RadioButtonECOS.Checked then ServeurInterfaceCDM:=7;
+    if RadioButtonDccpl.Checked then ServeurInterfaceCDM:=8;
     if RadioButton13.Checked then ServeurRetroCDM:=1;
     if RadioButton14.Checked then ServeurRetroCDM:=2;
     if RadioButton15.Checked then ServeurRetroCDM:=3;
     if RadioButton16.Checked then ServeurRetroCDM:=4;
     if RadioButton17.Checked then ServeurRetroCDM:=5;
     if RadioButton18.Checked then ServeurRetroCDM:=6;
+    Z21:=CheckBoxZ21.Checked;
 
     // changement sur les services CDM
     change_srv:=Srvc_Aig<>CheckBoxServAig.checked;
@@ -3970,7 +4007,7 @@ begin
     exit;
   end;
 
-  Feu_Sauve:=feux[index];  // sauvegarde
+  Feu_Sauve:=Signaux[index];  // sauvegarde
 
   AncLigneClicSig:=ligneclicSig;
   ligneClicSig:=index-1;
@@ -4055,22 +4092,22 @@ begin
   CheckAvecTCO.checked:=avecTCO;
   CheckBandeauTCO.Checked:=MasqueBandeauTCO;
 
-  RadioButton4.Checked:=ServeurInterfaceCDM=0;
-  RadioButton5.Checked:=ServeurInterfaceCDM=1;
-  RadioButton6.Checked:=ServeurInterfaceCDM=2;
-  RadioButton7.Checked:=ServeurInterfaceCDM=3;
-  RadioButton8.Checked:=ServeurInterfaceCDM=4;
-  RadioButton9.Checked:=ServeurInterfaceCDM=5;
-  RadioButton10.Checked:=ServeurInterfaceCDM=6;
-  RadioButton11.Checked:=ServeurInterfaceCDM=7;
-  RadioButton12.Checked:=ServeurInterfaceCDM=8;
-  RadioButton12.Checked:=ServeurInterfaceCDM=13;
+  RadioButtonSS.Checked:=ServeurInterfaceCDM=0;
+  RadioButtonXN.Checked:=ServeurInterfaceCDM=1;
+  RadioButtonP50.Checked:=ServeurInterfaceCDM=2;
+  RadioButtonSP.Checked:=ServeurInterfaceCDM=3;
+  RadioButtonFIS.Checked:=ServeurInterfaceCDM=4;
+  RadioButtonRS.Checked:=ServeurInterfaceCDM=5;
+  RadioButtonDCCpp.Checked:=ServeurInterfaceCDM=6;
+  RadioButtonECOS.Checked:=ServeurInterfaceCDM=7;
+  RadioButtonDCCpl.Checked:=ServeurInterfaceCDM=8;
   RadioButton13.Checked:=ServeurRetroCDM=1;
   RadioButton14.Checked:=ServeurRetroCDM=2;
   RadioButton15.Checked:=ServeurRetroCDM=3;
   RadioButton16.Checked:=ServeurRetroCDM=4;
   RadioButton17.Checked:=ServeurRetroCDM=5;
   RadioButton18.Checked:=ServeurRetroCDM=6;
+  checkBoxZ21.Checked:=Z21;
 
   CheckBoxServAig.checked:=Srvc_Aig;
   CheckBoxServDet.checked:=Srvc_Det;
@@ -5198,7 +5235,7 @@ begin
   end;
 
   longestLength:=0;
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
     s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
     //Affiche(s,clwhite);
@@ -5212,7 +5249,7 @@ begin
         LongestString:=s;
         LongestLength:=l;
       end;
-      Feux[i].modifie:=false;
+      Signaux[i].modifie:=false;
     end;
   end;
   PixelLength:=ListboxSig.Canvas.TextWidth(LongestString);
@@ -5228,7 +5265,8 @@ begin
   comboBoxNation.Items.add('Française');
   comboBoxNation.Items.add('Belge');
 
-  EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique'+#13+' (mettre X pour tous les trains)'+#13+'déclenchement par actionneur uniquement';
+  EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
+               +#13+'Mettre X pour tous les trains.'+#13+'Déclenchement par actionneur uniquement';
 
   // actionneurs Train ou accessoire
   ListBoxAct.Clear;
@@ -6092,17 +6130,17 @@ begin
   if index<1 then exit;
   clicListe:=true;
   i:=index;
-  FormConfig.EditAdrSig.text:=InttoSTr(feux[i].adresse);
+  FormConfig.EditAdrSig.text:=InttoSTr(Signaux[i].adresse);
 
   with formconfig.ImageSignal do
   begin
     Picture.Bitmap.TransparentMode:=tmAuto;
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
-    picture.Bitmap:=Select_dessin_feu(feux[i].aspect);
+    picture.Bitmap:=Select_dessin_feu(Signaux[i].aspect);
   end;
 
-  if feux[i].contrevoie then inverse_image(formCOnfig.ImageSignal,Formprinc.ImageSignal20);
+  if Signaux[i].contrevoie then inverse_image(formCOnfig.ImageSignal,Formprinc.ImageSignal20);
 
   with formconfig do
   begin
@@ -6111,9 +6149,9 @@ begin
     EditDet2.Text:=''; EditSuiv2.Text:='';
     EditDet3.Text:=''; EditSuiv3.Text:='';
     EditDet4.Text:=''; EditSuiv4.Text:='';
-    ComboBoxDec.ItemIndex:=feux[i].decodeur;
+    ComboBoxDec.ItemIndex:=Signaux[i].decodeur;
 
-    decodeur:=feux[i].decodeur;
+    decodeur:=Signaux[i].decodeur;
     ButtonConfigSR.Visible:=false;
 
    case decodeur of
@@ -6123,7 +6161,7 @@ begin
         EditSpecUni.Visible:=true;
         LabelUni.Caption:='Spec Unisemaf';
         LabelUni.Visible:=true;
-        EditSpecUni.Text:=IntToSTR(feux[i].Unisemaf);
+        EditSpecUni.Text:=IntToSTR(Signaux[i].Unisemaf);
         editSpecUni.Hint:='Paramètre de description supplémentaire du décodeur Unisemaf';
         editSpecUni.ShowHint:=true;
       end;
@@ -6138,7 +6176,7 @@ begin
        editSpecUni.Hint:='Nombre d''adresses occupées par le signal';
        editSpecUni.ShowHint:=true;
        EditSpecUni.Visible:=true;
-       EditSpecUni.Text:=IntToSTR(feux[i].Na);
+       EditSpecUni.Text:=IntToSTR(Signaux[i].Na);
        end
   else labelInfo.Caption:='';
   end;
@@ -6147,7 +6185,7 @@ begin
       begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
 
 
-    d:=feux[i].aspect;
+    d:=Signaux[i].aspect;
     case d of
     2 : ComboBoxAsp.ItemIndex:=0;
     3 : ComboBoxAsp.ItemIndex:=1;
@@ -6191,10 +6229,10 @@ begin
     begin
       CheckBoxVersContrevoie.Visible:=true;
       CheckBoxContrevoie.Visible:=true;
-      CheckBoxContrevoie.Checked:=feux[i].contrevoie;
-      CheckBoxVersContrevoie.Checked:=feux[i].Verscontrevoie;
+      CheckBoxContrevoie.Checked:=Signaux[i].contrevoie;
+      CheckBoxVersContrevoie.Checked:=Signaux[i].Verscontrevoie;
 
-      if Feux[i].Btype_suiv1=Aig then s:='Permet d''afficher le chevron sur le signal si l''aiguillage '+intToSTR(Feux[i].Adr_el_suiv1)+' est dévié'
+      if Signaux[i].Btype_suiv1=Aig then s:='Permet d''afficher le chevron sur le signal si l''aiguillage '+intToSTR(Signaux[i].Adr_el_suiv1)+' est dévié'
       else s:='Permet d''afficher le chevron sur le signal si son aiguillage est dévié;'+char(13)+'mais ce signal n''est pas suivi d''un aiguillage';
       CheckBoxversContrevoie.Hint:=s;
       CheckBoxFB.caption:='Avec demande Blanc rouge';
@@ -6224,46 +6262,46 @@ begin
       EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
       EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
       Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
-      EditDet1.Text:=IntToSTR(feux[i].Adr_det1);
-      EditSuiv1.Text:=TypeEl_To_char(feux[i].Btype_suiv1)+IntToSTR(feux[i].Adr_el_suiv1);
+      EditDet1.Text:=IntToSTR(Signaux[i].Adr_det1);
+      EditSuiv1.Text:=TypeEl_To_char(Signaux[i].Btype_suiv1)+IntToSTR(Signaux[i].Adr_el_suiv1);
     
-      EditSuiv1.Hint:=chaine_element(feux[i].Btype_suiv1,feux[i].Adr_el_suiv1);
-      j:=feux[i].Adr_det2;
+      EditSuiv1.Hint:=chaine_element(Signaux[i].Btype_suiv1,Signaux[i].Adr_el_suiv1);
+      j:=Signaux[i].Adr_det2;
       if j<>0 then 
       begin
-        Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(feux[i].Btype_suiv2)+IntToSTR(feux[i].Adr_el_suiv2);
-        EditSuiv2.Hint:=chaine_element(feux[i].Btype_suiv2,feux[i].Adr_el_suiv2);
+        Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(Signaux[i].Btype_suiv2)+IntToSTR(Signaux[i].Adr_el_suiv2);
+        EditSuiv2.Hint:=chaine_element(Signaux[i].Btype_suiv2,Signaux[i].Adr_el_suiv2);
       end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;
-      j:=feux[i].Adr_det3;
+      j:=Signaux[i].Adr_det3;
       if j<>0 then
       begin
-        EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(feux[i].Btype_suiv3)+IntToSTR(feux[i].Adr_el_suiv3);
-        EditSuiv3.Hint:=chaine_element(feux[i].Btype_suiv3,feux[i].Adr_el_suiv3);
+        EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(Signaux[i].Btype_suiv3)+IntToSTR(Signaux[i].Adr_el_suiv3);
+        EditSuiv3.Hint:=chaine_element(Signaux[i].Btype_suiv3,Signaux[i].Adr_el_suiv3);
       end 
       else begin EditDet3.Text:='';EditSuiv3.Text:='';EditSuiv3.Hint:='';end;
-      j:=feux[i].Adr_det4;
+      j:=Signaux[i].Adr_det4;
       if j<>0 then 
       begin
-        EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(feux[i].Btype_suiv4)+IntToSTR(feux[i].Adr_el_suiv4);
-        EditSuiv4.Hint:=chaine_element(feux[i].Btype_suiv4,feux[i].Adr_el_suiv4);
+        EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(Signaux[i].Btype_suiv4)+IntToSTR(Signaux[i].Adr_el_suiv4);
+        EditSuiv4.Hint:=chaine_element(Signaux[i].Btype_suiv4,Signaux[i].Adr_el_suiv4);
       end
       else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;
 
-      checkVerrouCarre.Checked:=feux[i].VerrouCarre;
-      checkBoxFB.Checked:=feux[i].FeuBlanc;
-      checkFVC.Checked:=feux[i].checkFV;
-      checkFRC.Checked:=feux[i].checkFR;
+      checkVerrouCarre.Checked:=Signaux[i].VerrouCarre;
+      checkBoxFB.Checked:=Signaux[i].FeuBlanc;
+      checkFVC.Checked:=Signaux[i].checkFV;
+      checkFRC.Checked:=Signaux[i].checkFR;
 
       // conditions supplémentaires du carré par aiguillages
       l:=1;
       repeat
-        nc:=Length(feux[i].condcarre[l])-1 ;
+        nc:=Length(Signaux[i].condcarre[l])-1 ;
         if nc<>-1 then
         begin
           s:='';
           for k:=1 to nc do
           begin
-            s:=s+'A'+IntToSTR(feux[i].condcarre[l][k].Adresse)+feux[i].condcarre[l][k].PosAig;
+            s:=s+'A'+IntToSTR(Signaux[i].condcarre[l][k].Adresse)+Signaux[i].condcarre[l][k].PosAig;
             if k<nc then s:=s+',';
           end;
           MemoCarre.Lines.Add(s);
@@ -6277,13 +6315,13 @@ begin
        // conditions supplémentaires du feu blanc par aiguillages
       l:=1;
       repeat
-        nc:=Length(feux[i].condFeuBlanc[l])-1 ;
+        nc:=Length(Signaux[i].condFeuBlanc[l])-1 ;
         if nc<>-1 then
         begin
           s:='';
           for k:=1 to nc do
           begin
-            s:=s+'A'+IntToSTR(feux[i].condFeuBlanc[l][k].Adresse)+feux[i].condFeuBlanc[l][k].PosAig;
+            s:=s+'A'+IntToSTR(Signaux[i].condFeuBlanc[l][k].Adresse)+Signaux[i].condFeuBlanc[l][k].PosAig;
             if k<nc then s:=s+',';
           end;
           MemoBlanc.Lines.Add(s);
@@ -6311,14 +6349,14 @@ begin
       Label24.Visible:=false; Label25.Visible:=false;Label26.Visible:=false;Label27.Visible:=false;
 
       // conditions d'affichage du signal directionnel
-      L:=feux[i].aspect-10; //nombre de feux du signal directionnel
+      L:=Signaux[i].aspect-10; //nombre de feux du signal directionnel
       for p:=1 to L+1 do
       begin
         s:='';
-        nc:=Length(feux[i].AigDirection[p])-1;
+        nc:=Length(Signaux[i].AigDirection[p])-1;
         for k:=1 to nc do
         begin
-          s:=s+'A'+IntToSTR(feux[i].AigDirection[p][k].adresse) + feux[i].AigDirection[p][k].posaig;
+          s:=s+'A'+IntToSTR(Signaux[i].AigDirection[p][k].adresse) + Signaux[i].AigDirection[p][k].posaig;
           if k<nc then s:=s+',';
         end;
         MemoCarre.Lines.Add(s);
@@ -7258,10 +7296,10 @@ function verif_dec_sig(aff : boolean) : boolean;
 var Adr,i,dec,aspect,indexAspect : integer;
 begin
   result:=true;  
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    dec:=feux[i].decodeur;
-    aspect:=feux[i].aspect;
+    dec:=Signaux[i].decodeur;
+    aspect:=Signaux[i].aspect;
     case aspect of
       2 : indexAspect:=0;
       3 : indexAspect:=1;
@@ -7276,7 +7314,7 @@ begin
      16 : indexAspect:=10;
      20 : indexAspect:=11;
     end;
-    Adr:=feux[i].adresse;
+    Adr:=Signaux[i].adresse;
     //Affiche(IntToSTR(i)+' '+intToSTR(indexAspect)+' '+inttoSTR(dec),clred);
     case dec of
     // digital bahn
@@ -7322,12 +7360,12 @@ begin
 //  Affiche(IntToStr(ComboBoxDec.ItemIndex),clyellow);
   if clicListe then exit;
 
-  if NbreFeux<ligneclicSig+1 then exit;
+  if NbreSignaux<ligneclicSig+1 then exit;
   i:=ligneclicSig+1;
   if i<1 then
   begin
     ComboBoxDec.ItemIndex:=-1;
-    if NbreFeux=0 then s:='Crééz un signal ou ';
+    if NbreSignaux=0 then s:='Crééz un signal ou ';
     s:='sélectionnez un signal dans la liste';
     LabelInfo.Caption:=s;
     exit;
@@ -7337,7 +7375,7 @@ begin
 
   if decodeur>NbDecodeur+NbreDecPers then exit;
 
-  feux[i].decodeur:=decodeur;
+  Signaux[i].decodeur:=decodeur;
 
   Maj_Hint_Signal(i);
 
@@ -7382,11 +7420,11 @@ begin
     Val(s,i,erreur);
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_det1:=i;
+    Signaux[ligneClicSig+1].Adr_det1:=i;
     maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
 end;
@@ -7436,8 +7474,8 @@ begin
       bt:=rien;
     end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_el_suiv1:=i;
-    feux[ligneClicSig+1].Btype_suiv1:=bt;
+    Signaux[ligneClicSig+1].Adr_el_suiv1:=i;
+    Signaux[ligneClicSig+1].Btype_suiv1:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -7464,12 +7502,12 @@ begin
     Val(s,i,erreur);
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_det2:=i;
+    Signaux[ligneClicSig+1].Adr_det2:=i;
     maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -7487,11 +7525,11 @@ begin
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].VerrouCarre:=checkVerrouCarre.Checked;
+    Signaux[ligneClicSig+1].VerrouCarre:=checkVerrouCarre.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -7503,11 +7541,11 @@ begin
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].FeuBlanc:=checkBoxFB.Checked;
+    Signaux[ligneClicSig+1].FeuBlanc:=checkBoxFB.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -7543,8 +7581,8 @@ begin
       bt:=rien;
     end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_el_suiv2:=i;
-    feux[ligneClicSig+1].Btype_suiv2:=bt;
+    Signaux[ligneClicSig+1].Adr_el_suiv2:=i;
+    Signaux[ligneClicSig+1].Btype_suiv2:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -7571,12 +7609,12 @@ begin
     Val(s,i,erreur);
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_det3:=i;
+    Signaux[ligneClicSig+1].Adr_det3:=i;
     maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -7619,8 +7657,8 @@ begin
       bt:=rien;
     end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_el_suiv3:=i;
-    feux[ligneClicSig+1].Btype_suiv3:=bt;
+    Signaux[ligneClicSig+1].Adr_el_suiv3:=i;
+    Signaux[ligneClicSig+1].Btype_suiv3:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -7647,12 +7685,12 @@ begin
     Val(s,i,erreur);
     if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_det4:=i;
+    Signaux[ligneClicSig+1].Adr_det4:=i;
     maj_hint_Signal(ligneClicSig+1);
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -7695,8 +7733,8 @@ begin
       bt:=rien;
     end;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].Adr_el_suiv4:=i;
-    feux[ligneClicSig+1].Btype_suiv4:=bt;
+    Signaux[ligneClicSig+1].Adr_el_suiv4:=i;
+    Signaux[ligneClicSig+1].Btype_suiv4:=bt;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -8138,15 +8176,15 @@ begin
   if index<1 then
   begin
     ComboBoxAsp.ItemIndex:=-1;
-    if NbreFeux=0 then s:='Crééz un signal ou ';
+    if NbreSignaux=0 then s:='Crééz un signal ou ';
     s:='sélectionnez un signal dans la liste';
     LabelInfo.Caption:=s;
     exit;
   end;
-  if NbreFeux<index then exit;
+  if NbreSignaux<index then exit;
   //Affiche('Ligne cliquée='+IntToSTR(index),clyellow);
 
-  feux[index].aspect:=aspect;
+  Signaux[index].aspect:=aspect;
 
   s:=encode_sig_feux(index);
   ListBoxSig.Items[ligneClicSig]:=s;
@@ -8157,10 +8195,10 @@ begin
   ListBoxSig.Selected[ligneClicSig]:=true;
 
   // change l'image du feu dans la feuille graphique principale
-  bm:=Select_dessin_feu(feux[index].aspect);
+  bm:=Select_dessin_feu(Signaux[index].aspect);
   if bm=nil then exit;
-  Feux[index].Img.picture.Bitmap:=bm;
-  dessine_signal_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
+  Signaux[index].Img.picture.Bitmap:=bm;
+  dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
 
   // et dans les TCOs 
   for IndexTCO:=1 to NbreTCO do
@@ -8172,7 +8210,7 @@ begin
       begin
         if TCO[indexTCO,x,y].BImage=Id_Signal then   
         begin
-          AdresseFeu:=feux[index].adresse;
+          AdresseFeu:=Signaux[index].adresse;
           if tco[IndexTCO,x,y].Adresse=AdresseFeu then affiche_tco(indexTCO);
         end;
       end;
@@ -8196,16 +8234,16 @@ begin
     s:=EditAdrSig.Text;
     Val(s,Adr,erreur); // Adresse signal
     // vérification code unisemaf
-    decodeur:=feux[ligneClicSig+1].decodeur;
+    decodeur:=Signaux[ligneClicSig+1].decodeur;
     if decodeur=6 then
     begin
       erreur:=verif_unisemaf(Adr,i);
       if erreur=1 then begin LabelInfo.caption:='Erreur code Unisemaf';exit;end;
       if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
       LabelInfo.caption:=' ';
-      feux[ligneClicSig+1].Unisemaf:=i;
+      Signaux[ligneClicSig+1].Unisemaf:=i;
     end;
-    if decodeur=10 then feux[ligneClicSig+1].Na:=i;
+    if decodeur=10 then Signaux[ligneClicSig+1].Na:=i;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -8219,14 +8257,14 @@ begin
   begin
     clicListe:=true;
     index:=ligneClicSig+1;
-    feux[index]:=Feu_sauve;
+    Signaux[index]:=Feu_sauve;
     ListBoxSig.Items[ligneClicSig]:=encode_sig_feux(index);
     ListBoxSig.selected[ligneClicSig]:=true;
     aff_champs_sig_feux(index);  // réaffiche les champs
     Maj_Hint_Signal(index);
     // change l'image du feu dans la feuille graphique principale
-    Feux[index].Img.picture.Bitmap:=Select_dessin_feu(feux[index].aspect);
-    dessine_signal_mx(Feux[index].Img.Canvas,0,0,1,1,feux[index].adresse,1);  // dessine les feux du signal
+    Signaux[index].Img.picture.Bitmap:=Select_dessin_feu(Signaux[index].aspect);
+    dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
     clicListe:=false;
   end;
 end;
@@ -8753,7 +8791,7 @@ var i,AdrMax : integer;
     s : string;
 begin
   clicliste:=true;
-  if NbreFeux>=NbreMaxiSignaux then
+  if NbreSignaux>=NbreMaxiSignaux then
   begin
     Affiche('Nombre maximal de signaux atteint',clRed);
     exit;
@@ -8762,19 +8800,19 @@ begin
   with formconfig.ListBoxSig do
     for i:=0 to items.Count-1 do Selected[i]:=false;
 
-  inc(NbreFeux);
+  inc(NbreSignaux);
 
   AdrMax:=0;
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    if AdrMax<feux[i].adresse then AdrMax:=feux[i].adresse;
+    if AdrMax<Signaux[i].adresse then AdrMax:=Signaux[i].adresse;
   end;
 
-  i:=NbreFeux;
-  feux[i].Adresse:=AdrMax+20;
-  feux[i].Aspect:=3;
-  feux[i].decodeur:=0;
-  feux[i].verrouCarre:=false;
+  i:=NbreSignaux;
+  Signaux[i].Adresse:=AdrMax+20;
+  Signaux[i].Aspect:=3;
+  Signaux[i].decodeur:=0;
+  Signaux[i].verrouCarre:=false;
 
   cree_image(i);
   //Affiche('Feu 999 créé',clyellow);
@@ -8786,7 +8824,7 @@ begin
     items.add(s);
     selected[i-1]:=true;
     SetFocus;
-    perform(WM_VSCROLL,SB_BOTTOM,0);
+    perform(WM_VSCROLL,SB_BOTTOM,0);                
   end;
 
   formCOnfig.LabelInfo.caption:='';
@@ -8796,6 +8834,9 @@ begin
   clicliste:=false;
   Feu_sauve.Adresse:=0;
   config_modifie:=true;
+
+  // encoder l'index
+  Index_accessoire[i]:=Signaux[i].Adresse;
 end;
 
 procedure TFormConfig.ButtonNouvFeuClick(Sender: TObject);
@@ -8803,17 +8844,17 @@ begin
   ajoute_signal;
 end;
 
-procedure supprime_sig;
+procedure supprime_sig;                
 var n,i,j : integer;
     s,ss : string;
 begin
   ss:='';
   n:=0;
-  for i:=0 to NbreFeux-1 do
+  for i:=0 to NbreSignaux-1 do
   begin
     if formconfig.ListBoxSig.selected[i] then
     begin
-      ss:=ss+ intToSTR(feux[i+1].adresse)+' ';
+      ss:=ss+ intToSTR(Signaux[i+1].adresse)+' ';
       inc(n);
     end;
   end;
@@ -8834,59 +8875,59 @@ begin
   repeat
     if formconfig.ListBoxSig.selected[i-1] then
     begin
-      Feu_supprime:=feux[i];  // sauvegarde le supprimé
+      Feu_supprime:=Signaux[i];  // sauvegarde le signal supprimé
       feu_sauve.adresse:=0;       // dévalider sa définition
-      FormConfig.ButtonInsFeu.Caption:='Ajouter le signal '+intToSTR(feux[i].adresse)+' supprimé';
+      FormConfig.ButtonInsFeu.Caption:='Ajouter le signal '+intToSTR(Signaux[i].adresse)+' supprimé';
 
       // supprimer le signal i
-      Affiche('supprime signal '+intToSTR(feux[i].adresse),clOrange);
+      Affiche('supprime signal '+intToSTR(Signaux[i].adresse),clOrange);
 
 
       formconfig.ListBoxSig.Items.Delete(i-1);
 
-      feux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
-      Feux[i].Lbl.free;  // supprime le label
-      if Feux[i].checkFB<>nil then begin Feux[i].checkFB.Free;Feux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
+      Signaux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
+      Signaux[i].Lbl.free;  // supprime le label
+      if Signaux[i].checkFB<>nil then begin Signaux[i].checkFB.Free;Signaux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
 
-      for j:=i to NbreFeux-1 do
+      for j:=i to NbreSignaux-1 do
       begin
-        feux[j]:=feux[j+1];
-        if feux[j].img=nil then affiche('erreur',clred);
+        Signaux[j]:=Signaux[j+1];
+        if Signaux[j].img=nil then affiche('erreur',clred);
 
-        with feux[j].Img do
+        with Signaux[j].Img do
         begin
           Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
           Top:=(HtImg+espY+20)*((j-1) div NbreImagePLigne);   // détermine les points d'origine
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
-          Name:='ImageFeu'+IntToSTR(feux[j].adresse);
+          Name:='ImageFeu'+IntToSTR(Signaux[j].adresse);
           Maj_Hint_Signal(j);
         end;
-        with feux[j].Lbl do
+        with Signaux[j].Lbl do
         begin
           Top:=HtImg+((HtImg+EspY+20)*((j-1) div NbreImagePLigne));
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
-          caption:='@'+IntToSTR(Feux[j].adresse);
+          caption:='@'+IntToSTR(Signaux[j].adresse);
         end;
-        if Feux[j].checkFB<>nil then
-        with Feux[j].CheckFB do
+        if Signaux[j].checkFB<>nil then
+        with Signaux[j].CheckFB do
         begin
-          Name:='CheckBoxFB'+intToSTR(Feux[j].adresse);
+          Name:='CheckBoxFB'+intToSTR(Signaux[j].adresse);
           Hint:='Feu blanc';
           Top:=HtImg+15+((HtImg+EspY+20)*((j-1) div NbreImagePLigne));
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
         end;
       end;
-      dec(NbreFeux);
+      dec(NbreSignaux);
       i:=0;
     end;
     inc(i);
-  until i>NbreFeux;
+  until i>NbreSignaux;
 
   config_modifie:=true;
   FormConfig.ListBoxSig.Clear;
 
   // réafficher la liste
-  for i:=1 to Nbrefeux do
+  for i:=1 to NbreSignaux do
   begin
     s:=encode_sig_feux(i);
     if s<>'' then
@@ -8896,6 +8937,7 @@ begin
   end;
   ligneClicSig:=-1;
   AncligneClicSig:=-1;
+  trier_sig; // recalcule les index
   clicliste:=false;
 
 end;
@@ -8913,25 +8955,25 @@ begin
   if feu_supprime.adresse<>0 then
   begin
     clicliste:=true;
-    inc(NbreFeux);
-    feux[NbreFeux]:=Feu_supprime;
+    inc(NbreSignaux);
+    Signaux[NbreSignaux]:=Feu_supprime;
     Feu_Supprime.adresse:=0;  // dévalider le feu sauvegardé
     Feu_supprime.aspect:=0;
-    cree_image(nbrefeux);
+    cree_image(NbreSignaux);
     config_modifie:=true;
     // réafficher le rechedit
-    s:=encode_Sig_Feux(NbreFeux);
+    s:=encode_Sig_Feux(NbreSignaux);
     if s<>'' then
     begin
       with ListBoxSig.Items do
       begin
         ButtonInsFeu.Caption:='Ajouter le feu supprimé';
         Add(s);
-        ligneClicSig:=NbreFeux-1;
+        ligneClicSig:=NbreSignaux-1;
         AncligneClicSig:=-1;
         SetFocus;
       end;
-      Aff_champs_sig_feux(NbreFeux);
+      Aff_champs_sig_feux(NbreSignaux);
     end;
     clicListe:=false;
   end;
@@ -8973,8 +9015,8 @@ var x,dec,nc,i,j : integer;
 begin
   nc:=0;
   i:=index_Signal(adr);
-  dec:=feux[i].decodeur;
-  x:=feux[i].aspect;
+  dec:=Signaux[i].decodeur;
+  x:=Signaux[i].aspect;
 
   // signal directionnel
   if x>10 then
@@ -8984,15 +9026,15 @@ begin
   end;
 
   // nc=nombre d'adresses du signal
-  if dec=0 then nc:=0;           // rien
-  if dec=1 then nc:=14;          // digitalbahn
-  if dec=2 then nc:=5;           // leb
-  if dec=3 then nc:=8;           // ldt
-  if dec=4 then nc:=feux[i].Na;  // cdf
-  if dec=5 then nc:=feux[i].Na;  // digikeijs
-  if dec=6 then                  // paco unisemaf
+  if dec=0 then nc:=0;               // rien
+  if dec=1 then nc:=14;              // digitalbahn
+  if dec=2 then nc:=signaux[i].Na;   // cdf
+  if dec=3 then nc:=8;               // ldt LS dec sncf
+  if dec=4 then nc:=5;               // leb
+  if dec=5 then nc:=Signaux[i].Na;   // digikeijs
+  if dec=6 then                      // paco unisemaf
   begin
-    x:=feux[index].Unisemaf;     // modèle
+    x:=Signaux[index].Unisemaf;      // modèle
     case x of
     2 : nc:=1;
     3,4 : nc:=2;
@@ -9003,8 +9045,8 @@ begin
     93,94,95,96,97,98,99 : nc:=4;
     end;
   end;
-  if dec=7 then nc:=8;           // SR
-  if dec=8 then                  // arcomora
+  if dec=7 then nc:=8;               // SR
+  if dec=8 then                      // arcomora
   begin
     case x of
     3 : nc:=3;
@@ -9014,7 +9056,7 @@ begin
     end;
   end;
   if dec=9 then nc:=2;               // LS-DEC-NMBS
-  if dec=10 then nc:=feux[i].Na;     // Bmodels
+  if dec=10 then nc:=Signaux[i].Na;  // Bmodels
   if dec>=NbDecodeurdeBase then
   begin
     j:=dec-NbDecodeurdeBase+1;
@@ -9031,13 +9073,13 @@ var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,ind
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     vitesse : longint;
-    ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
+    OkSignal,ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
     s : string;
 begin
   // validation des index signaux et détecteurs
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    index_accessoire[feux[i].adresse]:=i;
+    index_accessoire[Signaux[i].adresse]:=i;
   end;
   for i:=1 to maxAiguillage do
   begin
@@ -9101,8 +9143,8 @@ begin
         ok:=false;
       end;
     end;
-    // vérifier si l'aiguillage est dans les branches
-    if aiguillage[Indexaig].modele<>rien then
+    // vérifier si l'aiguillage est dans les branches inutile
+    {if aiguillage[Indexaig].modele<>rien then
     begin
       trouve_aiguillage(aiguillage[Indexaig].adresse); // passe l'adresse de l'aiguillage à trouver
       if (IndexBranche_trouve=0) then
@@ -9110,7 +9152,7 @@ begin
         Affiche('Avertissement 6: aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' décrit dans les aiguillages ; absent dans la description des branches',clOrange);
         ok:=false;
       end;
-    end;
+    end;}
     adr:=aiguillage[Indexaig].Adroit;
     if (aiguillage[Indexaig].AdroitB='Z') or (aiguillage[Indexaig].AdroitB=#0) then
     begin
@@ -9179,9 +9221,9 @@ begin
   end;
 
   // cohérence 4 : vérifie si doublon signal ou si recouvrement avec un autre signal ou un aiguillage
-  for j:=1 to NbreFeux do
+  for j:=1 to NbreSignaux do
   begin
-    adr:=feux[j].Adresse;
+    adr:=Signaux[j].Adresse;
     nc:=nombre_adresses_signal(adr);
 
     for i:=1 to maxaiguillage do
@@ -9193,10 +9235,10 @@ begin
         ok:=false;
       end;
     end;
-    
-    for i:=j+1 to NbreFeux do
+
+    for i:=j+1 to NbreSignaux do
     begin
-      adr2:=feux[i].Adresse;    
+      adr2:=Signaux[i].Adresse;
       nc2:=nombre_adresses_signal(adr2);
       if ((adr>adr2)      and (adr     <adr2+nc2-1)) or
          ((adr+nc-1>adr2) and (adr+nc-1<adr2+nc2-1))
@@ -9210,34 +9252,34 @@ begin
 
   // cohérence 5 ; vérifie si aiguillages définis en condition supplémentaires de carré existent
   // vérifie aussi le décodeur digikeijs
-  for j:=1 to NbreFeux do
+  for j:=1 to NbreSignaux do
   begin
     l:=1;
-    nc:=feux[j].decodeur;
+    nc:=Signaux[j].decodeur;
     if nc=5 then // digikeijs
     begin
-      if feux[j].Na=0 then
+      if Signaux[j].Na=0 then
       begin
-        Affiche('Erreur 9.3 : signal '+intToSTR(feux[j].adresse)+' : Le nombre d''adresses du décodeur digiKeijs est nul',clred);
+        Affiche('Erreur 9.3 : signal '+intToSTR(Signaux[j].adresse)+' : Le nombre d''adresses du décodeur digiKeijs est nul',clred);
         ok:=false;
       end;
     end;
     if nc=2 then // cdf
     begin
-      if feux[j].Na=0 then
+      if Signaux[j].Na=0 then
       begin
-        Affiche('Erreur 9.4 : signal '+intToSTR(feux[j].adresse)+' : Le nombre d''adresses du décodeur CDF est nul',clred);
+        Affiche('Erreur 9.4 : signal '+intToSTR(Signaux[j].adresse)+' : Le nombre d''adresses du décodeur CDF est nul',clred);
         ok:=false;
       end;
     end;
     repeat
-      nc:=Length(feux[j].condcarre[l])-1 ;
+      nc:=Length(Signaux[j].condcarre[l])-1 ;
       for k:=1 to nc do
       begin
-        adr:=feux[j].condcarre[l][k].Adresse; // adresse de l'aiguillage
+        adr:=Signaux[j].condcarre[l][k].Adresse; // adresse de l'aiguillage
         if index_aig(adr)=0 then
         begin
-          Affiche('Avertissement : Aig '+intToSTR(adr)+' défini dans les cond de carré du signal '+intToSTR(feux[j].adresse)+' mais non existant',clOrange);
+          Affiche('Avertissement : Aig '+intToSTR(adr)+' défini dans les cond de carré du signal '+intToSTR(Signaux[j].adresse)+' mais non existant',clOrange);
           ok:=false;
         end;
       end;
@@ -9246,63 +9288,63 @@ begin
   end;
 
   // cohérence 6 : vérifier si les détecteurs et les aiguillages associés aux signaux existent
-  for j:=1 to NbreFeux do
+  for j:=1 to NbreSignaux do
   begin
-    i:=feux[j].Adr_det1;
+    i:=Signaux[j].Adr_det1;
     if i<>0 then
     begin
       trouve_detecteur(i);
       if IndexBranche_trouve=0 then
       begin
         ok:=false;
-        Affiche('Erreur 8.1: Détecteur '+intToSTR(i)+' non existant dans les branches mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.1: Détecteur '+intToSTR(i)+' non existant dans les branches mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
       end;
     end
     else
     begin
-      if feux[j].Aspect<10 then
+      if Signaux[j].Aspect<10 then
       begin
         ok:=false;
-        Affiche('Erreur 8.2: Détecteur inconnu ('+intToSTR(i)+') sur signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.2: Détecteur inconnu ('+intToSTR(i)+') sur signal '+IntToSTR(Signaux[j].adresse),clred);
       end;
     end;
 
-    i:=feux[j].Adr_det2;
+    i:=Signaux[j].Adr_det2;
     if i<>0 then
     begin
       trouve_detecteur(i);
       if IndexBranche_trouve=0 then
       begin
         ok:=false;
-        Affiche('Erreur 8.3: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.3: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
       end;
     end;
 
-    i:=feux[j].Adr_det3;
+    i:=Signaux[j].Adr_det3;
     if i<>0 then
     begin
       trouve_detecteur(i);
       if IndexBranche_trouve=0 then
       begin
         ok:=false;
-        Affiche('Erreur 8.4: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.4: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
       end;
     end;
 
-    i:=feux[j].Adr_det4;
+    i:=Signaux[j].Adr_det4;
     if i<>0 then
     begin
       trouve_detecteur(i);
       if IndexBranche_trouve=0 then
       begin
         ok:=false;
-        Affiche('Erreur 8.5: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+        Affiche('Erreur 8.5: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
       end;
     end;
 
     // élement suivant 1
-    i:=feux[j].Adr_el_suiv1;
-    km:=feux[j].Btype_suiv1;
+    i:=Signaux[j].Adr_el_suiv1;
+    km:=Signaux[j].Btype_suiv1;
     if i<>0 then
     begin
       if km=det then   // détecteur
@@ -9311,12 +9353,12 @@ begin
         if IndexBranche_trouve=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.1: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.1: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end
         else
         begin
           // vérifier si les deux détecteurs du signal sont contigüs (l et i)
-          l:=feux[j].Adr_det1;
+          l:=Signaux[j].Adr_det1;
           trouve_detecteur(i);
           det1Br:=branche_trouve;
           det1Index:=IndexBranche_trouve;
@@ -9327,7 +9369,7 @@ begin
           if (det1Br<>Det2Br) or (abs(det1Index-det2Index)>1) then
           begin
             ok:=false;
-            Affiche('Erreur 9.12: signal '+intToSTR(feux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non contigüs ',clred);
+            Affiche('Erreur 9.12: signal '+intToSTR(Signaux[j].adresse)+' : détecteurs '+intToSTR(i)+' et '+intToSTR(l)+' non contigüs ',clred);
           end;
         end;
       end;
@@ -9338,24 +9380,24 @@ begin
         if k=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.2: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.2: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end
         else
         begin
           // vérifier si le détecteur du signal et l'aiguillage sont consécutifs
-          l:=feux[j].Adr_det1;
+          l:=Signaux[j].Adr_det1;
           if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
           begin
             ok:=false;
-            Affiche('Erreur 9.21: signal '+intToSTR(feux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
+            Affiche('Erreur 9.21: signal '+intToSTR(Signaux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
           end;
         end;
       end;
     end;
 
     // élement suivant 2
-    i:=feux[j].Adr_el_suiv2;
-    km:=feux[j].Btype_suiv2;
+    i:=Signaux[j].Adr_el_suiv2;
+    km:=Signaux[j].Btype_suiv2;
     if i<>0 then
     begin
       if km=det then   // détecteur
@@ -9364,7 +9406,7 @@ begin
         if IndexBranche_trouve=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.3: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.3: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;
       end;
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
@@ -9373,14 +9415,14 @@ begin
         if index_aig(i)=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.4: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.4: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;  
       end;
     end;
 
     // élement suivant 3
-    i:=feux[j].Adr_el_suiv3;
-    km:=feux[j].Btype_suiv3;
+    i:=Signaux[j].Adr_el_suiv3;
+    km:=Signaux[j].Btype_suiv3;
     if i<>0 then
     begin
       if km=det then   // détecteur
@@ -9389,7 +9431,7 @@ begin
         if IndexBranche_trouve=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.5: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.5: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;
       end;
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
@@ -9398,14 +9440,14 @@ begin
         if index_aig(i)=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.6: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.6: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;
       end;
     end;
 
     // élement suivant 4
-    i:=feux[j].Adr_el_suiv4;
-    km:=feux[j].Btype_suiv4;
+    i:=Signaux[j].Adr_el_suiv4;
+    km:=Signaux[j].Btype_suiv4;
     if i<>0 then
     begin
       if km=det then   // détecteur
@@ -9414,7 +9456,7 @@ begin
         if IndexBranche_trouve=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.7: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.7: Détecteur '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;
       end;
       if ((km=aig) or (km=tjs) or (km=tjd) or (km=triple)) then
@@ -9423,7 +9465,7 @@ begin
         if index_aig(i)=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.10: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(feux[j].adresse),clred);
+          Affiche('Erreur 9.10: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end;
       end;
     end;
@@ -9576,7 +9618,7 @@ begin
             begin
               Affiche('Erreur 10.41: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
-            end;    
+            end;
            
             // tjs ou tjs à 4 états
             if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=4)) then
@@ -9731,9 +9773,9 @@ begin
   end;
 
   // 9. vérifier la cohérence TCO
-  if avecTCO then
+  for indexTCO:=1 to NbreTCO do
   begin
-    for indexTCO:=1 to NbreTCO do
+    begin
       for y:=1 to NbreCellY[indexTCO] do
         for x:=1 to NbreCellX[indexTCO] do
         begin
@@ -9789,6 +9831,7 @@ begin
             ok:=false;
           end;
         end;
+    end;
   end;
 
   // 11 Divers
@@ -9796,17 +9839,19 @@ begin
   val(copy(portcom,i+1,j-i),vitesse,l);
   if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
 
-  // si xpressnet, pas d'accesoires entre 257 à 272
+  // si xpressnet, pas d'accesoires interférant avec les détecteurs
   AdrOk:=True;
   if Verif_AdrXpressNet=1 then
   begin
-    for k:=1 to NDetecteurs do
-    begin
-      adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257
 
-      for i:=1 to maxaiguillage do
+    for i:=1 to maxaiguillage do
+    begin
+      adresse:=aiguillage[i].Adresse ;
+
+      for k:=1 to NDetecteurs do
       begin
-        adresse:=aiguillage[i].Adresse ;
+        adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257)
+
         if adresse=adr then
         begin
           AdrOk:=false;
@@ -9814,27 +9859,48 @@ begin
           Affiche('Erreur 13: l''aiguillage '+IntToSTR(adresse)+' chevauche le détecteur '+intToSTR(adresse_detecteur[k]),clred);
         end;
       end;
+    end;
 
-      for i:=1 to NbreFeux do
+    for i:=1 to NbreSignaux do
+    begin
+      okSignal:=true;
+      s:='';
+      adresse:=Signaux[i].Adresse;
+      nc:=Nombre_adresses_signal(adresse);
+
+      for k:=1 to NDetecteurs do
       begin
-        adresse:=feux[i].Adresse;
-        nc:=Nombre_adresses_signal(adresse);
+        adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257)
 
-        if (adresse=adr) or ((adresse+nc-1>=adr) and (adresse+nc<=adr)) then
+        //if (adresse=adr) or ((adresse+nc-1>=adr) and (adresse+nc<=adr)) then
+        if (adr>=adresse) and (adr<=adresse+nc-1) then
         begin
-          dec:=feux[i].decodeur;
+          dec:=Signaux[i].decodeur;
           AdrOk:=false;
           ok:=false;
-          Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' chevauche le détecteur '+intToStr(adresse_detecteur[k]),clred);
-          Affiche('en Xpressnet car son décodeur '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+' à '+intToSTR(adresse+nc-1),clred);
+          okSignal:=false;
+          s:=s+intToSTR(adresse_detecteur[k])+' ';
         end;
       end;
-      // actionneurs
-      for i:=1 to maxTablo_act do
+
+      if not(oksignal) then
       begin
-        if Tablo_actionneur[i].act then
+        Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+
+         ' à '+intToSTR(adresse+nc-1)+' et chevauche le(s) détecteur(s) ',clred);
+        affiche(s,clred);
+      end;
+    end;
+
+    // actionneurs
+    for i:=1 to maxTablo_act do
+    begin
+      if Tablo_actionneur[i].act then
+      begin
+        adresse:=Tablo_actionneur[i].accessoire;
+        for k:=1 to NDetecteurs do
         begin
-          adresse:=Tablo_actionneur[i].accessoire;
+          adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257)
+
           if (adresse=adr) then
           begin
             AdrOk:=false;
@@ -9843,24 +9909,24 @@ begin
             Affiche('et chevauche le détecteur '+intToStr(adresse_detecteur[k])+' interdit en XpressNet',clred);
           end;
         end;
+      end;
 
-        if Tablo_actionneur[i].periph then
+      if Tablo_actionneur[i].periph then
+      begin
+        j:=Tablo_actionneur[i].fonction;
+        if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
+        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
+        if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
         begin
-          j:=Tablo_actionneur[i].fonction;
-          if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
-          if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
-          if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
-          begin
-            Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
-            ok:=false;
-          end;
+          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
+          ok:=false;
         end;
       end;
     end;
 
     if not(AdrOk) then
     begin
-      j:=MessageDlg('Une adresse DCC via XpressNet a été trouvée dans la plage interdite.'+#13+
+      j:=MessageDlg('Une adresse ou des adresses DCC via XpressNet interfère avec des détecteurs.'+#13+
                     'Si vous n''utilisez pas XpressNet, vous devez choisir d''ignorer cette erreur.'+#13+#13+
                     'Voulez vous ignorer cette erreur à l''avenir? ',mtConfirmation,[mbNo,mbYes],0) ;
       if j=mrYes then
@@ -10068,6 +10134,7 @@ begin
       FormConfig.ListBoxAig.items.Add(s);
     end;
   end;
+  trier_aig; // recalcule les index
   ligneClicAig:=-1;
   AncligneClicAig:=-1;
   clicliste:=false;
@@ -10708,7 +10775,7 @@ begin
   if affevt then affiche('Evt MemoCarre change',clyellow);
   j:=MemoCarre.Selstart;
   clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,j,0);     // numéro de la ligne du curseur
-  aspect:=feux[ligneClicSig+1].aspect;
+  aspect:=Signaux[ligneClicSig+1].aspect;
   dir:=aspect>10;
 
   if dir and (clicMemo>aspect-10) then 
@@ -10748,15 +10815,15 @@ begin
         c:=#0;
         if erreur<>0 then c:=s[erreur];       // S ou D
         if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
-        setlength(feux[ligneClicSig+1].AigDirection[ligne],j+1);  // augmenter le tableau dynamique
-        feux[ligneClicSig+1].AigDirection[ligne][j].PosAig:=c;
-        feux[ligneClicSig+1].AigDirection[ligne][j].Adresse:=adr;
+        setlength(Signaux[ligneClicSig+1].AigDirection[ligne],j+1);  // augmenter le tableau dynamique
+        Signaux[ligneClicSig+1].AigDirection[ligne][j].PosAig:=c;
+        Signaux[ligneClicSig+1].AigDirection[ligne][j].Adresse:=adr;
         delete(s,1,erreur);   // supprime jusque D
         if length(s)<>0 then if s[1]=',' then delete(s,1,1);
         inc(j);
       until s=''
       else
-        setlength(feux[ligneClicSig+1].AigDirection[ligne],0);
+        setlength(Signaux[ligneClicSig+1].AigDirection[ligne],0);
     end;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
@@ -10784,15 +10851,15 @@ begin
         c:=#0;
         if erreur<>0 then c:=s[erreur];       // S ou D
         if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
-        setlength(feux[ligneClicSig+1].condCarre[ligne],j+1);  
-        feux[ligneClicSig+1].condCarre[ligne][j].PosAig:=c;
-        feux[ligneClicSig+1].condCarre[ligne][j].Adresse:=adr;
+        setlength(Signaux[ligneClicSig+1].condCarre[ligne],j+1);  
+        Signaux[ligneClicSig+1].condCarre[ligne][j].PosAig:=c;
+        Signaux[ligneClicSig+1].condCarre[ligne][j].Adresse:=adr;
         delete(s,1,erreur);   // supprime jusque D
         if length(s)<>0 then if s[1]=',' then delete(s,1,1);
         inc(j);
       until s=''
       else
-        setlength(feux[ligneClicSig+1].condCarre[ligne],0);
+        setlength(Signaux[ligneClicSig+1].condCarre[ligne],0);
     end;    
   end;
 
@@ -10945,13 +11012,13 @@ begin
   end;  
   modif_branches:=false;
 
-  for index:=1 to NbreFeux do
+  for index:=1 to NbreSignaux do
   begin
     // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
-    if feux[index].FeuBlanc and (feux[index].checkFB=nil) then
+    if Signaux[index].FeuBlanc and (Signaux[index].checkFB=nil) then
     begin
-      feux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
-      with Feux[index].CheckFB do
+      Signaux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
+      with Signaux[index].CheckFB do
       begin
         onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
         Hint:=intToSTR(index);
@@ -10964,10 +11031,10 @@ begin
       end;
     end;
     // supprimer les checkBox de feux blancs si ils ont été décochés
-    if not(feux[index].FeuBlanc) and (feux[index].checkFB<>nil) then
+    if not(Signaux[index].FeuBlanc) and (Signaux[index].checkFB<>nil) then
     begin
-      Feux[index].CheckFB.free;
-      Feux[index].CheckFB:=nil;
+      Signaux[index].CheckFB.free;
+      Signaux[index].CheckFB:=nil;
     end;
   end;
 
@@ -10981,7 +11048,7 @@ procedure TFormConfig.ButtonConfigSRClick(Sender: TObject);
 var decodeur : integer;
 begin
   clicListe:=true;
-  decodeur:=feux[ligneClicSig+1].decodeur;
+  decodeur:=Signaux[ligneClicSig+1].decodeur;
   if decodeur=7 then  // SR
   begin
     formSR.showmodal;
@@ -11293,7 +11360,7 @@ begin
     val(editAdrFerme.Text,adr,erreur);if erreur<>0 then exit;
     val(editCdeFerme.Text,cmd,erreur);if erreur<>0 then exit;
     aff_acc:=true;
-    if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=feu;
+    if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=signal;
     pilote_acc(adr,cmd,ts);
     aff_acc:=false;
   end
@@ -11317,7 +11384,7 @@ begin
     val(editAdrOuvre.Text,adr,erreur);if erreur<>0 then exit;
     val(editCdeOuvre.Text,cmd,erreur);if erreur<>0 then exit;
     aff_acc:=true;
-    if Tablo_PN[ligneCliqueePN+1].pulse=1 then ts:=aigP else ts:=feu;
+    if Tablo_PN[ligneCliqueePN+1].pulse=1 then ts:=aigP else ts:=signal;
     pilote_acc(adr,cmd,ts);
     aff_acc:=false;
   end
@@ -11355,11 +11422,11 @@ begin
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].checkFV:=checkFVC.Checked;
+    Signaux[ligneClicSig+1].checkFV:=checkFVC.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -11371,11 +11438,11 @@ begin
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].checkFR:=checkFRC.Checked;
+    Signaux[ligneClicSig+1].checkFR:=checkFRC.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -11924,11 +11991,11 @@ procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].verscontrevoie:=checkBoxVersContreVoie.Checked;
+    Signaux[ligneClicSig+1].verscontrevoie:=checkBoxVersContreVoie.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
   end;
 end;
 
@@ -11941,19 +12008,19 @@ begin
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
-    feux[ligneClicSig+1].contrevoie:=checkBoxContreVoie.Checked;
+    Signaux[ligneClicSig+1].contrevoie:=checkBoxContreVoie.Checked;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
-    feux[ligneClicSig+1].modifie:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
 
     aff_champs_sig_feux(ligneClicSig+1); // redessine les champs et le feu  - contient l'inversion de l'image
 
     // maj le signal dans la fenetre principale
-    Feux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
-    adr:=feux[ligneClicSig+1].adresse;
-    if feux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clignote_f or bita1_F) else Maj_Etat_Signal(adr,clignote_F);
-    dessine_signal_mx(Feux[ligneClicSig+1].Img.Canvas,0,0,1,1,feux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
+    Signaux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
+    adr:=Signaux[ligneClicSig+1].adresse;
+    if Signaux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clignote_f or bita1_F) else Maj_Etat_Signal(adr,clignote_F);
+    dessine_signal_mx(Signaux[ligneClicSig+1].Img.Canvas,0,0,1,1,Signaux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
   end;
 end;
 
@@ -12222,9 +12289,9 @@ end;
   LabelNbDecPers.caption:=intToSTR(NbreDecPers);
 
   //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    if feux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
+    if Signaux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
   end;
 end;
 
@@ -12268,9 +12335,9 @@ begin
     ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;
 
     //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
-    for i:=1 to NbreFeux do
+    for i:=1 to NbreSignaux do
     begin
-      if feux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
+      if Signaux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
     end;
 
   end;
@@ -12342,19 +12409,19 @@ begin
 
   // si le décodeur est attribué aux signaux, les passer en rien
   aff:=false;
-  for i:=1 to NbreFeux do
+  for i:=1 to NbreSignaux do
   begin
-    deco:=feux[i].decodeur;
+    deco:=Signaux[i].decodeur;
     if deco=supp then
     begin
-      Affiche('Le décodeur du signal '+intToSTR(Feux[i].adresse)+' a été réaffacté à rien',clOrange);
-      feux[i].decodeur:=0;
+      Affiche('Le décodeur du signal '+intToSTR(Signaux[i].adresse)+' a été réaffacté à rien',clOrange);
+      Signaux[i].decodeur:=0;
       if i=ligneClicSig+1 then aff_champs_sig_feux(ligneClicSig+1);
       aff:=true;
     end;
     if deco>supp then
     begin
-      dec(feux[i].decodeur);  // et décrémenter les autres décodeurs personnalisés de rang supérieur
+      dec(Signaux[i].decodeur);  // et décrémenter les autres décodeurs personnalisés de rang supérieur
       aff:=true;
     end;
   end;
@@ -12363,13 +12430,13 @@ begin
   if aff then
   begin
     ListBoxSig.Items.Clear;
-    for i:=1 to NbreFeux do
+    for i:=1 to NbreSignaux do
     begin
       s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
       if s<>'' then
       begin
         ListBoxSig.Items.Add(s);
-        Feux[i].modifie:=false;
+        Signaux[i].modifie:=false;
       end;
     end;
   end;
@@ -12393,7 +12460,7 @@ begin
   if affevt then affiche('Evt MemoBlanc change',clyellow);
   j:=MemoCarre.Selstart;
   clicMemo:=MemoCarre.Perform(EM_LINEFROMCHAR,j,0);     // numéro de la ligne du curseur
-  aspect:=feux[ligneClicSig+1].aspect;
+  aspect:=Signaux[ligneClicSig+1].aspect;
 
 
   if (clicMemo>5) then
@@ -12425,15 +12492,15 @@ begin
       c:=#0;
       if erreur<>0 then c:=s[erreur];       // S ou D
       if (c<>'D') and (c<>'S') then begin LabelInfo.Caption:='Erreur manque D ou S : '+sO;exit;end;
-      setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],j+1);
-      feux[ligneClicSig+1].condFeuBlanc[ligne][j].PosAig:=c;
-      feux[ligneClicSig+1].condFeuBlanc[ligne][j].Adresse:=adr;
+      setlength(Signaux[ligneClicSig+1].condFeuBlanc[ligne],j+1);
+      Signaux[ligneClicSig+1].condFeuBlanc[ligne][j].PosAig:=c;
+      Signaux[ligneClicSig+1].condFeuBlanc[ligne][j].Adresse:=adr;
       delete(s,1,erreur);   // supprime jusque D
       if length(s)<>0 then if s[1]=',' then delete(s,1,1);
       inc(j);
     until s=''
     else
-      setlength(feux[ligneClicSig+1].condFeuBlanc[ligne],0);
+      setlength(Signaux[ligneClicSig+1].condFeuBlanc[ligne],0);
   end;
 
   s:=encode_sig_feux(ligneClicSig+1);
@@ -12459,7 +12526,7 @@ procedure TFormConfig.ListBoxSigMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   clicliste:=true;
-  if NbreFeux<1 then exit;
+  if NbreSignaux<1 then exit;
 
   raz_champs_sig;
 
@@ -12473,7 +12540,7 @@ end;
 procedure TFormConfig.ListBoxSigKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if NbreFeux<1 then exit;
+  if NbreSignaux<1 then exit;
   if key=VK_delete then supprime_sig;
 
   if ord(Key)=VK_UP then
@@ -12502,7 +12569,7 @@ begin
     if affevt then affiche('Evt ListBoxSig.Items keydown',clyellow);
     with Formconfig.ListBoxSig.Items do
     begin
-      if ligneClicSig<NbreFeux-1 then
+      if ligneClicSig<NbreSignaux-1 then
       begin
         inc(ligneClicSig);
         if AncligneClicSig<>ligneClicSig then
@@ -12637,7 +12704,6 @@ var ss,s : string;
   repeat
     if formconfig.ListBoxPeriph.selected[i-1] then
     begin
-
       for j:=i to NbPeriph-1 do
       begin
         formconfig.ListBoxPeriph.selected[j-1]:=formconfig.ListBoxPeriph.selected[j];
@@ -12661,7 +12727,7 @@ var ss,s : string;
 
   // réafficher la liste
   for i:=1 to NbPeriph do
-  begin
+  begin  
     s:=encode_Periph(i);
     if s<>'' then
     begin
@@ -12725,7 +12791,7 @@ begin
   config_modifie:=true;
 end;
 
-
+// menu contextuel des listBox
 procedure TFormConfig.Supprimer1Click(Sender: TObject);
 var tl: TListBox;
     s : string;
@@ -12740,6 +12806,7 @@ begin
   if s='ListBoxPeriph' then supprime_periph;
 end;
 
+// menu contextuel des listBox
 procedure TFormConfig.Nouveau1Click(Sender: TObject);
 var tl: TListBox;
     s : string;
@@ -12752,7 +12819,7 @@ begin
   if s='ListBoxAig' then ajoute_aiguillage;
   if s='ListBoxTrains' then ajoute_train;
   if s='ListBoxPeriph' then ajoute_periph;
-end;
+end;   
 
 procedure TFormConfig.outcopierentatquetexte1Click(Sender: TObject);
 var tl: TListBox;
@@ -12765,7 +12832,6 @@ procedure TFormConfig.ButtonOuvreComClick(Sender: TObject);
 var i,index : integer;
 begin
 //  Affiche(intToSTr(componentcount),clyellow);
-
   for i:=1 to NbMaxi_Periph do
   begin
     index:=com_socket(i);
@@ -13196,8 +13262,8 @@ begin
 
     EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
-    feux[ligneClicSig+1].adresse:=i;
-    Feux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
+    Signaux[ligneClicSig+1].adresse:=i;
+    Signaux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
     index_accessoire[i]:=ligneClicSig+1;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
@@ -13206,7 +13272,6 @@ begin
    end;
 end;
 
-
-end.
+end.
 
 

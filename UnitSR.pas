@@ -196,75 +196,75 @@ begin
     LabelAdrSR7.caption:=intToSTR(Adr+6);
     LabelAdrSR8.caption:=intToSTR(Adr+7);
 
-    ComboBoxAdr1.ItemIndex:=feux[indexSig].SR[1].sortie1;
-    ComboBoxAdr2.ItemIndex:=feux[indexSig].SR[1].sortie0;
-    ComboBoxAdr3.ItemIndex:=feux[indexSig].SR[2].sortie1;
-    ComboBoxAdr4.ItemIndex:=feux[indexSig].SR[2].sortie0;
-    ComboBoxAdr5.ItemIndex:=feux[indexSig].SR[3].sortie1;
-    ComboBoxAdr6.ItemIndex:=feux[indexSig].SR[3].sortie0;
-    ComboBoxAdr7.ItemIndex:=feux[indexSig].SR[4].sortie1;
-    ComboBoxAdr8.ItemIndex:=feux[indexSig].SR[4].sortie0;
-    ComboBoxAdr9.ItemIndex:=feux[indexSig].SR[5].sortie1;
-    ComboBoxAdr10.ItemIndex:=feux[indexSig].SR[5].sortie0;
-    ComboBoxAdr11.ItemIndex:=feux[indexSig].SR[6].sortie1;
-    ComboBoxAdr12.ItemIndex:=feux[indexSig].SR[6].sortie0;
-    ComboBoxAdr13.ItemIndex:=feux[indexSig].SR[7].sortie1;
-    ComboBoxAdr14.ItemIndex:=feux[indexSig].SR[7].sortie0;
-    ComboBoxAdr15.ItemIndex:=feux[indexSig].SR[8].sortie1;
-    ComboBoxAdr16.ItemIndex:=feux[indexSig].SR[8].sortie0;
+    ComboBoxAdr1.ItemIndex:=Signaux[indexSig].SR[1].sortie1;
+    ComboBoxAdr2.ItemIndex:=Signaux[indexSig].SR[1].sortie0;
+    ComboBoxAdr3.ItemIndex:=Signaux[indexSig].SR[2].sortie1;
+    ComboBoxAdr4.ItemIndex:=Signaux[indexSig].SR[2].sortie0;
+    ComboBoxAdr5.ItemIndex:=Signaux[indexSig].SR[3].sortie1;
+    ComboBoxAdr6.ItemIndex:=Signaux[indexSig].SR[3].sortie0;
+    ComboBoxAdr7.ItemIndex:=Signaux[indexSig].SR[4].sortie1;
+    ComboBoxAdr8.ItemIndex:=Signaux[indexSig].SR[4].sortie0;
+    ComboBoxAdr9.ItemIndex:=Signaux[indexSig].SR[5].sortie1;
+    ComboBoxAdr10.ItemIndex:=Signaux[indexSig].SR[5].sortie0;
+    ComboBoxAdr11.ItemIndex:=Signaux[indexSig].SR[6].sortie1;
+    ComboBoxAdr12.ItemIndex:=Signaux[indexSig].SR[6].sortie0;
+    ComboBoxAdr13.ItemIndex:=Signaux[indexSig].SR[7].sortie1;
+    ComboBoxAdr14.ItemIndex:=Signaux[indexSig].SR[7].sortie0;
+    ComboBoxAdr15.ItemIndex:=Signaux[indexSig].SR[8].sortie1;
+    ComboBoxAdr16.ItemIndex:=Signaux[indexSig].SR[8].sortie0;
 
-    etat_SR(feux[indexSig].SR[1].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[1].sortie1,etat1,etat2);
     labelCV1.Caption:='CV='+IntToSTR(etat1);
     labelCV2.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[1].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[1].sortie0,etat1,etat2);
     labelCV3.Caption:='CV='+IntToSTR(etat1);
     labelCV4.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[2].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[2].sortie1,etat1,etat2);
     labelCV5.Caption:='CV='+IntToSTR(etat1);
     labelCV6.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[2].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[2].sortie0,etat1,etat2);
     labelCV7.Caption:='CV='+IntToSTR(etat1);
     labelCV8.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[3].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[3].sortie1,etat1,etat2);
     labelCV9.Caption:='CV='+IntToSTR(etat1);
     labelCV10.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[3].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[3].sortie0,etat1,etat2);
     labelCV11.Caption:='CV='+IntToSTR(etat1);
     labelCV12.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[4].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[4].sortie1,etat1,etat2);
     labelCV13.Caption:='CV='+IntToSTR(etat1);
     labelCV14.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[4].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[4].sortie0,etat1,etat2);
     labelCV15.Caption:='CV='+IntToSTR(etat1);
     labelCV16.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[5].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[5].sortie1,etat1,etat2);
     labelCV17.Caption:='CV='+IntToSTR(etat1);
     labelCV18.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[5].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[5].sortie0,etat1,etat2);
     labelCV19.Caption:='CV='+IntToSTR(etat1);
     labelCV20.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[6].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[6].sortie1,etat1,etat2);
     labelCV21.Caption:='CV='+IntToSTR(etat1);
     labelCV22.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[6].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[6].sortie0,etat1,etat2);
     labelCV23.Caption:='CV='+IntToSTR(etat1);
     labelCV24.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[7].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[7].sortie1,etat1,etat2);
     labelCV25.Caption:='CV='+IntToSTR(etat1);
     labelCV26.Caption:='CV='+IntToSTR(etat2);
-    etat_SR(feux[indexSig].SR[7].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[7].sortie0,etat1,etat2);
     labelCV27.Caption:='CV='+IntToSTR(etat1);
     labelCV28.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[8].sortie1,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[8].sortie1,etat1,etat2);
     labelCV29.Caption:='CV='+IntToSTR(etat1);
     labelCV30.Caption:='CV='+IntToSTR(etat2);
 
-    etat_SR(feux[indexSig].SR[8].sortie0,etat1,etat2);
+    etat_SR(Signaux[indexSig].SR[8].sortie0,etat1,etat2);
     labelCV31.Caption:='CV='+IntToSTR(etat1);
     labelCV32.Caption:='CV='+IntToSTR(etat2);
    
@@ -289,7 +289,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV1.Caption:='CV='+IntToSTR(etat1);
   labelCV2.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[1].sortie1:=i;
+  Signaux[indexSig].SR[1].sortie1:=i;
   maj_db;
 end;
 
@@ -301,7 +301,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV3.Caption:='CV='+IntToSTR(etat1);
   labelCV4.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[1].sortie0:=i;
+  Signaux[indexSig].SR[1].sortie0:=i;
   maj_db;
 end;
 
@@ -313,7 +313,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV5.Caption:='CV='+IntToSTR(etat1);
   labelCV6.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[2].sortie1:=i;
+  Signaux[indexSig].SR[2].sortie1:=i;
   maj_db;
 end;
 
@@ -325,7 +325,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV7.Caption:='CV='+IntToSTR(etat1);
   labelCV8.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[2].sortie0:=i;
+  Signaux[indexSig].SR[2].sortie0:=i;
   maj_db;
 end;
 
@@ -337,7 +337,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV9.Caption:='CV='+IntToSTR(etat1);
   labelCV10.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[3].sortie1:=i;
+  Signaux[indexSig].SR[3].sortie1:=i;
   maj_db;
 end;
 
@@ -349,7 +349,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV11.Caption:='CV='+IntToSTR(etat1);
   labelCV12.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[3].sortie0:=i;
+  Signaux[indexSig].SR[3].sortie0:=i;
   maj_db;
 end;
 
@@ -361,7 +361,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV13.Caption:='CV='+IntToSTR(etat1);
   labelCV14.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[4].sortie1:=i;
+  Signaux[indexSig].SR[4].sortie1:=i;
   maj_db;
 end;
 
@@ -372,7 +372,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV15.Caption:='CV='+IntToSTR(etat1);
   labelCV16.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[4].sortie0:=i;
+  Signaux[indexSig].SR[4].sortie0:=i;
   maj_db;
 end;
 
@@ -383,7 +383,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV17.Caption:='CV='+IntToSTR(etat1);
   labelCV18.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[5].sortie1:=i;
+  Signaux[indexSig].SR[5].sortie1:=i;
   maj_db;
 end;
 
@@ -394,7 +394,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV19.Caption:='CV='+IntToSTR(etat1);
   labelCV20.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[5].sortie0:=i;
+  Signaux[indexSig].SR[5].sortie0:=i;
   maj_db;
 end;
 
@@ -405,7 +405,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV21.Caption:='CV='+IntToSTR(etat1);
   labelCV22.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[6].sortie1:=i;
+  Signaux[indexSig].SR[6].sortie1:=i;
   maj_db;
 end;
 
@@ -416,7 +416,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV23.Caption:='CV='+IntToSTR(etat1);
   labelCV24.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[6].sortie0:=i;
+  Signaux[indexSig].SR[6].sortie0:=i;
   maj_db;
 end;
 
@@ -427,7 +427,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV25.Caption:='CV='+IntToSTR(etat1);
   labelCV26.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[7].sortie1:=i;
+  Signaux[indexSig].SR[7].sortie1:=i;
   maj_db;
 end;
 
@@ -438,7 +438,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV27.Caption:='CV='+IntToSTR(etat1);
   labelCV28.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[7].sortie0:=i;
+  Signaux[indexSig].SR[7].sortie0:=i;
   maj_db;
 end;
 
@@ -449,7 +449,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV29.Caption:='CV='+IntToSTR(etat1);
   labelCV30.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[8].sortie1:=i;
+  Signaux[indexSig].SR[8].sortie1:=i;
   maj_db;
 end;
 
@@ -460,7 +460,7 @@ begin
   etat_SR(i,etat1,etat2);
   labelCV31.Caption:='CV='+IntToSTR(etat1);
   labelCV32.Caption:='CV='+IntToSTR(etat2);
-  feux[indexSig].SR[8].sortie0:=i;
+  Signaux[indexSig].SR[8].sortie0:=i;
   maj_db;
 end;
 

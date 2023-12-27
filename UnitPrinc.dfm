@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1117
-    594)
+    1125
+    602)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 572
-    Width = 1117
+    Top = 580
+    Width = 1125
     Height = 22
     Panels = <
       item

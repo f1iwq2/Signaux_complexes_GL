@@ -3363,6 +3363,7 @@ begin
   for i:=1 to NbreBranches do
     compile_branche(Branche[i],i);
 
+  trier_detecteurs;  
   Affiche('Importation terminée',clWhite);
   Affiche('Vérification de la cohérence :',clWhite);
   if verif_coherence then Affiche('Configuration cohérente',clLime);

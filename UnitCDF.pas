@@ -105,9 +105,9 @@ begin
   Val(FormConfig.EditAdrSig.text,Adresse,erreur);
   index:=index_Signal(Adresse);
   LabelTitre.caption:='Adresse du signal: '+intToSTR(adresse);
-  erreur:=feux[index].decodeur;
-  feux[0]:=feux[index];
-  //Asp:=feux[index].aspect;
+  erreur:=Signaux[index].decodeur;
+  Signaux[0]:=Signaux[index];
+  //Asp:=Signaux[index].aspect;
   if erreur=5 then
   begin
     caption:='Configuration du décodeur Digikeijs';
@@ -149,27 +149,27 @@ begin
   end;
   ImageDigi.Transparent:=true;
 
-  Edit1.Text:=intToSTR(Feux[index].SR[1].sortie1);  // carré
-  Edit2.Text:=intToSTR(Feux[index].SR[2].sortie1);  // sémaphore
-  Edit3.Text:=intToSTR(Feux[index].SR[3].sortie1);  // sémaphore cli
-  Edit4.Text:=intToSTR(Feux[index].SR[4].sortie1);
-  Edit5.Text:=intToSTR(Feux[index].SR[5].sortie1);
-  Edit6.Text:=intToSTR(Feux[index].SR[6].sortie1);
-  Edit7.Text:=intToSTR(Feux[index].SR[7].sortie1);
-  Edit8.Text:=intToSTR(Feux[index].SR[8].sortie1);
-  Edit9.Text:=intToSTR(Feux[index].SR[9].sortie1);
-  Edit10.Text:=intToSTR(Feux[index].SR[10].sortie1);
-  Edit11.Text:=intToSTR(Feux[index].SR[11].sortie1);
-  Edit12.Text:=intToSTR(Feux[index].SR[12].sortie1);
-  Edit13.Text:=intToSTR(Feux[index].SR[13].sortie1);
-  Edit14.Text:=intToSTR(Feux[index].SR[14].sortie1);
-  Edit15.Text:=intToSTR(Feux[index].SR[15].sortie1);
-  Edit16.Text:=intToSTR(Feux[index].SR[16].sortie1);
-  Edit17.Text:=intToSTR(Feux[index].SR[17].sortie1);
-  Edit18.Text:=intToSTR(Feux[index].SR[18].sortie1);
-  Edit19.Text:=intToSTR(Feux[index].SR[19].sortie1);
+  Edit1.Text:=intToSTR(Signaux[index].SR[1].sortie1);  // carré
+  Edit2.Text:=intToSTR(Signaux[index].SR[2].sortie1);  // sémaphore
+  Edit3.Text:=intToSTR(Signaux[index].SR[3].sortie1);  // sémaphore cli
+  Edit4.Text:=intToSTR(Signaux[index].SR[4].sortie1);
+  Edit5.Text:=intToSTR(Signaux[index].SR[5].sortie1);
+  Edit6.Text:=intToSTR(Signaux[index].SR[6].sortie1);
+  Edit7.Text:=intToSTR(Signaux[index].SR[7].sortie1);
+  Edit8.Text:=intToSTR(Signaux[index].SR[8].sortie1);
+  Edit9.Text:=intToSTR(Signaux[index].SR[9].sortie1);
+  Edit10.Text:=intToSTR(Signaux[index].SR[10].sortie1);
+  Edit11.Text:=intToSTR(Signaux[index].SR[11].sortie1);
+  Edit12.Text:=intToSTR(Signaux[index].SR[12].sortie1);
+  Edit13.Text:=intToSTR(Signaux[index].SR[13].sortie1);
+  Edit14.Text:=intToSTR(Signaux[index].SR[14].sortie1);
+  Edit15.Text:=intToSTR(Signaux[index].SR[15].sortie1);
+  Edit16.Text:=intToSTR(Signaux[index].SR[16].sortie1);
+  Edit17.Text:=intToSTR(Signaux[index].SR[17].sortie1);
+  Edit18.Text:=intToSTR(Signaux[index].SR[18].sortie1);
+  Edit19.Text:=intToSTR(Signaux[index].SR[19].sortie1);
 
-  editNadresses.text:=intToSTR(feux[index].NA);
+  editNadresses.text:=intToSTR(Signaux[index].NA);
 end;
 
 procedure dessine_feu_CDF;
@@ -179,12 +179,12 @@ begin
   i:=0;
 
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
-  EtatFeuPilote:=feux[i].EtatSignal;
-  AncienEtat:=feux[i].AncienEtat;
+  EtatFeuPilote:=Signaux[i].EtatSignal;
+  AncienEtat:=Signaux[i].AncienEtat;
   dessineCDF:=true; // demande dessin CDF pour les clignotements
   Vcanvas:=FormCDF.ImageDigi.picture.bitmap.Canvas;
 
-  case feux[i].aspect of
+  case Signaux[i].aspect of
   // feux de signalisation
    2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1);
    3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,AncienEtat,1);
@@ -215,7 +215,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit1.Text,Feux[index].SR[1].sortie1,erreur);
+    val(Edit1.Text,Signaux[index].SR[1].sortie1,erreur);
     Maj_DB;
     if label1.Caption=etats[1] then Maj_Etat_Signal(0,carre);
     dessine_feu_CDF;
@@ -227,7 +227,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit2.Text,Feux[index].SR[2].sortie1,erreur);
+    val(Edit2.Text,Signaux[index].SR[2].sortie1,erreur);
     Maj_DB;
     if label2.Caption=etats[2] then Maj_Etat_Signal(0,semaphore);
     dessine_feu_CDF;
@@ -239,7 +239,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit3.Text,Feux[index].SR[3].sortie1,erreur);
+    val(Edit3.Text,Signaux[index].SR[3].sortie1,erreur);
     Maj_DB;
     if label3.Caption=etats[3] then Maj_Etat_Signal(0,semaphore_cli);
     dessine_feu_CDF;
@@ -251,7 +251,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit4.Text,Feux[index].SR[4].sortie1,erreur);
+    val(Edit4.Text,Signaux[index].SR[4].sortie1,erreur);
     Maj_DB;
     if label4.Caption=etats[4] then Maj_Etat_Signal(0,vert);
     dessine_feu_CDF;
@@ -263,7 +263,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit5.Text,Feux[index].SR[5].sortie1,erreur);
+    val(Edit5.Text,Signaux[index].SR[5].sortie1,erreur);
     Maj_DB;
     if label5.Caption=etats[5] then Maj_Etat_Signal(0,vert_cli);
     dessine_feu_CDF;
@@ -275,7 +275,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit6.Text,Feux[index].SR[6].sortie1,erreur);
+    val(Edit6.Text,Signaux[index].SR[6].sortie1,erreur);
     Maj_DB;
     if label6.Caption=etats[6] then Maj_Etat_Signal(0,violet);
     dessine_feu_CDF;
@@ -287,7 +287,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit7.Text,Feux[index].SR[7].sortie1,erreur);
+    val(Edit7.Text,Signaux[index].SR[7].sortie1,erreur);
     Maj_DB;
     if label7.Caption=etats[7] then Maj_Etat_Signal(0,blanc);
     dessine_feu_CDF;
@@ -299,7 +299,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit8.Text,Feux[index].SR[8].sortie1,erreur);
+    val(Edit8.Text,Signaux[index].SR[8].sortie1,erreur);
     Maj_DB;
     if label8.Caption=etats[8] then Maj_Etat_Signal(0,blanc_cli);
     dessine_feu_CDF;
@@ -311,7 +311,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit9.Text,Feux[index].SR[9].sortie1,erreur);
+    val(Edit9.Text,Signaux[index].SR[9].sortie1,erreur);
     Maj_DB;
     if label9.Caption=etats[9] then  begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,jaune);end;
     dessine_feu_CDF;
@@ -323,7 +323,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit10.Text,Feux[index].SR[10].sortie1,erreur);
+    val(Edit10.Text,Signaux[index].SR[10].sortie1,erreur);
     Maj_DB;
     if label10.Caption=etats[10] then
     begin
@@ -339,7 +339,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit11.Text,Feux[index].SR[11].sortie1,erreur);
+    val(Edit11.Text,Signaux[index].SR[11].sortie1,erreur);
     Maj_DB;
     if label11.Caption=etats[11] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_30);end;
     dessine_feu_CDF;
@@ -351,7 +351,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit12.Text,Feux[index].SR[12].sortie1,erreur);
+    val(Edit12.Text,Signaux[index].SR[12].sortie1,erreur);
     Maj_DB;
     if label12.Caption=etats[12] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_60);end;
     dessine_feu_CDF;
@@ -363,7 +363,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit13.Text,Feux[index].SR[13].sortie1,erreur);
+    val(Edit13.Text,Signaux[index].SR[13].sortie1,erreur);
     Maj_DB;
     if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,ral_60);Maj_Etat_Signal(0,jaune_cli);end;
     dessine_feu_CDF;
@@ -375,7 +375,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit14.Text,Feux[index].SR[14].sortie1,erreur);
+    val(Edit14.Text,Signaux[index].SR[14].sortie1,erreur);
     Maj_DB;
     if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_30);end;
     dessine_feu_CDF;
@@ -387,7 +387,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit15.Text,Feux[index].SR[15].sortie1,erreur);
+    val(Edit15.Text,Signaux[index].SR[15].sortie1,erreur);
     Maj_DB;
     if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
     dessine_feu_CDF;
@@ -399,7 +399,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit16.Text,Feux[index].SR[16].sortie1,erreur);
+    val(Edit16.Text,Signaux[index].SR[16].sortie1,erreur);
     Maj_DB;
     if label16.Caption=etats[16] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune);end;
     dessine_feu_CDF;
@@ -411,7 +411,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit17.Text,Feux[index].SR[17].sortie1,erreur);
+    val(Edit17.Text,Signaux[index].SR[17].sortie1,erreur);
     Maj_DB;
     if label17.Caption=etats[17] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune_cli);end;
     dessine_feu_CDF;
@@ -423,7 +423,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit18.Text,Feux[index].SR[18].sortie1,erreur);
+    val(Edit18.Text,Signaux[index].SR[18].sortie1,erreur);
     Maj_DB;
     if label18.Caption=etats[18] then begin Maj_Etat_Signal(0,rappel_60); Maj_Etat_Signal(0,jaune);end;
     dessine_feu_CDF;
@@ -435,7 +435,7 @@ var erreur : integer;
 begin
   if index<>0 then
   begin
-    val(Edit19.Text,Feux[index].SR[19].sortie1,erreur);
+    val(Edit19.Text,Signaux[index].SR[19].sortie1,erreur);
     Maj_DB;
     if label19.Caption=etats[19] then begin Maj_Etat_Signal(0,rappel_60);  Maj_Etat_Signal(0,jaune_cli);end;
     dessine_feu_CDF;
@@ -450,7 +450,7 @@ begin
     val(EditNAdresses.Text,i,erreur);
     if (i>0) and (i<6) then
     begin
-      Feux[index].Na:=i;
+      Signaux[index].Na:=i;
       Maj_DB;
     end;  
   end;

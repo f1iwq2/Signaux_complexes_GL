@@ -8155,7 +8155,7 @@ var  index,x0,y0,xp,yp,orientation,adresse,aspect,PiedFeu,TailleX,TailleY,larg,h
      Contrevoie : boolean;
      frX,frY : real;
 begin
-  if (x>NbreCellX[indexTCO]) or (y>NbreCellY[indexTCO]) or (x<1) or (y<1) or (NbreFeux=0) then exit;
+  if (x>NbreCellX[indexTCO]) or (y>NbreCellY[indexTCO]) or (x<1) or (y<1) or (NbreSignaux=0) then exit;
 
   larg:=LargeurCell[indexTCO];
   haut:=hauteurCell[indexTCO];
@@ -8168,7 +8168,7 @@ begin
   if Orientation=0 then Orientation:=1;  // cas d'un signal non encore renseigné
 
   index:=Index_Signal(adresse);
-  aspect:=feux[index].aspect;
+  aspect:=Signaux[index].aspect;
 
   if aspect=0 then aspect:=9;
   //if aspect>9 then exit;
@@ -8250,13 +8250,13 @@ begin
   tco[indextco,x,y].x:=x0;
   tco[indextco,x,y].y:=y0;
 
-  Contrevoie:=feux[index].contrevoie;
+  Contrevoie:=Signaux[index].contrevoie;
 
   // affichage du signal et du pied - orientation verticale
   if (Orientation=1) then
   begin
     // si inversion
-    if feux[index].contrevoie then
+    if Signaux[index].contrevoie then
     begin
       inverse_image(FormTCO[indexTCO].ImageTemp,ImageFeu);
       // copie avec mise à l'échelle de l'image du signal
@@ -8541,10 +8541,10 @@ begin
   if (BImage=Id_signal) and (adresse<>0) then
   begin
     index:=Index_Signal(adresse);
-    aspect:=feux[index].Aspect;
+    aspect:=Signaux[index].Aspect;
     oriente:=tco[indextco,x,y].FeuOriente;
     pied:=tco[indextco,x,y].PiedFeu;
-    inverse:=feux[index].contrevoie;    // pour signal belge
+    inverse:=Signaux[index].contrevoie;    // pour signal belge
     xt:=0;yt:=0;
     // signal belge
     if (aspect=20) then
@@ -12939,7 +12939,7 @@ begin
   TCO_modifie:=true;
 
   adresse:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Adresse;
-  aspect:=feux[Index_Signal(adresse)].Aspect;
+  aspect:=Signaux[Index_Signal(adresse)].Aspect;
   if aspect=0 then aspect:=9;
 
   // ancien signal orienté orienté 90D
@@ -12989,7 +12989,7 @@ begin
 
   TCO_modifie:=true;
   adresse:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Adresse;
-  aspect:=feux[Index_Signal(adresse)].Aspect;
+  aspect:=Signaux[Index_Signal(adresse)].Aspect;
   if aspect=0 then aspect:=9;
 
   // effacement de l'ancien signal
@@ -13033,7 +13033,7 @@ begin
 
   TCO_modifie:=true;
   adresse:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Adresse;
-  aspect:=feux[Index_Signal(adresse)].Aspect;
+  aspect:=Signaux[Index_Signal(adresse)].Aspect;
   if aspect=0 then aspect:=9;
 
   // effacement de l'ancien signal
@@ -13248,9 +13248,9 @@ begin
       ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
       ImagePilote.Transparent:=true;
 
-      ImagePilote.Picture.BitMap:=feux[i].Img.Picture.Bitmap;
+      ImagePilote.Picture.BitMap:=Signaux[i].Img.Picture.Bitmap;
       LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(Adresse);
-      feux[0].EtatSignal:=feux[i].EtatSignal;
+      Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
 
       LabelNbFeux.Visible:=False;
       EditNbreFeux.Visible:=false;
@@ -13259,7 +13259,7 @@ begin
       efface_entoure(indexTCO);
       SelectionAffichee[indexTCO]:=false;
 
-      if (feux[i].aspect>10) and (feux[i].aspect<20) then
+      if (Signaux[i].aspect>10) and (Signaux[i].aspect<20) then
       begin
         GroupBox1.Visible:=false;
         GroupBox2.Visible:=false;
@@ -13272,7 +13272,7 @@ begin
         LabelNbFeux.Visible:=False;
         EditNbreFeux.Visible:=false;
         GroupBox1.Visible:=true;
-        if (feux[i].aspect<20) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
+        if (Signaux[i].aspect<20) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
       end;
     end;
   end;

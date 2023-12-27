@@ -48,8 +48,8 @@ object FormPilote: TFormPilote
   object LabelDec: TLabel
     Left = 208
     Top = 184
-    Width = 113
-    Height = 41
+    Width = 72
+    Height = 19
     Alignment = taCenter
     Caption = 'LabelDec'
     Font.Charset = ANSI_CHARSET

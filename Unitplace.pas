@@ -369,7 +369,7 @@ begin
       if adrFeu<>0 then
       begin
         id:=index_Signal(AdrFeu);
-        a:=feux[id].EtatSignal;
+        a:=Signaux[id].EtatSignal;
         if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) then rouge:=true;
       end;
 
