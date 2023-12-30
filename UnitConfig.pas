@@ -407,7 +407,6 @@ type
     procedure EditP4KeyPress(Sender: TObject; var Key: Char);
     procedure EditP1KeyPress(Sender: TObject; var Key: Char);
     procedure EditP2KeyPress(Sender: TObject; var Key: Char);
-    procedure EditDevieS2KeyPress(Sender: TObject; var Key: Char);
     procedure ButtonConfigSRClick(Sender: TObject);
     procedure EditDet1Change(Sender: TObject);
     procedure EditSuiv1Change(Sender: TObject);
@@ -529,6 +528,11 @@ type
     procedure EditPortServeurExit(Sender: TObject);
     procedure EditPortServeurChange(Sender: TObject);
     procedure EditAdrSigChange(Sender: TObject);
+    procedure EditP3Exit(Sender: TObject);
+    procedure EditP4Exit(Sender: TObject);
+    procedure EditP1Exit(Sender: TObject);
+    procedure EditP2Exit(Sender: TObject);
+    procedure EditDevieS2Change(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -681,8 +685,6 @@ function Ipok(s : string) : boolean;
 implementation
 
 uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote;
-
-var ListCom : tstrings;
 
 {$R *.dfm}
 
@@ -966,7 +968,7 @@ begin
      end;
    end;
 
-   // tjd 2/4 états ou tjs
+   // tjd-s 2/4 états
    if (tjdC or tjsC) then
    begin
      s:=s+'D('+intToSTR(aiguillage[index].Adroit);
@@ -1027,7 +1029,7 @@ begin
      s:=s+IntToSTR(aiguillage[index].temps)+')';
    end;
 
-   if tjdC then
+   if tjdC or tjsC then
    begin
      if aiguillage[index].EtatTJD=2 then s:=s+',E2' else s:=s+',E4';
    end;
@@ -1193,13 +1195,13 @@ end;
 
 // décode la ligne de signal et la stocke dans l'index i du tableau feux
 // sortie vrai si le signal a été stocké - faux si doublon
-function decode_ligne_feux(chaine_signal : string;i : integer) : boolean;
+function decode_ligne_signal(chaine_signal : string;i : integer) : boolean;
 var s,chaine,sa : string;
     j,k,l,t,id,adresse,adr,erreur ,asp,bd: integer;
     c : char;
     multiple,fini : boolean;
 begin
-  decode_ligne_feux:=true;  // pas de doublon
+  decode_ligne_signal:=true;  // pas de doublon
   if i=0 then
   begin
     AfficheDebug('Erreur 670 : index nul',clred);
@@ -1217,145 +1219,150 @@ begin
     begin
       if Signaux[id].adresse=adresse then
       begin
-        decode_ligne_feux:=false;
+        decode_ligne_signal:=false;
         exit;
       end;
     end;
-    inc(NbreSignaux);
 
     Delete(s,1,j);
-    Signaux[i].adresse:=adresse;
-    Index_Accessoire[adresse]:=i; // stocker l'index provisoire avant tri
-    j:=pos(',',s);
-    if j>1 then
-    begin
-      sa:=copy(s,1,j-1);
-      if sa[1]='D' then
-      // feu directionnel ------------------------------------------
-      begin
-        delete(sa,1,1);
-        j:=pos(',',s);
-        val(sa,l,erreur); // nombre de feux du signal directionnel
-        if l>6 then
-        begin
-          Affiche('Erreur 672 ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
-          exit;
-        end;
-        Signaux[i].aspect:=l+10;Delete(s,1,j);
-        // décodeur
-        val(s,adr,erreur);
-        Signaux[i].decodeur:=adr;
-        if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
-        j:=pos(',',s);Delete(s,1,j);
-        // liste des aiguillages
-        k:=1; // numéro de feu directionnel
-        repeat
-          // boucle de direction
-          delete(s,1,1); // supprimer ( ou le ,
-          j:=1; // Nombre de descriptions d'aiguillages dans le feu
-          repeat
-            if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
-            delete(s,1,1);
-            val(s,adr,erreur);  // adresse
-            c:=#0;
-            if erreur<>0 then c:=s[erreur];          // type
-            setlength(Signaux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
-            Signaux[i].AigDirection[k][j].PosAig:=c;
-            Signaux[i].AigDirection[k][j].Adresse:=adr;
-            delete(s,1,erreur);   // supprime jusque S
-            //Affiche(s,clLime);
-            if s[1]=',' then delete(s,1,1);
-            inc(j);
-          until s[1]=')';
-          delete(s,1,1);
-          inc(k);
-        until length(s)<1;
-        dec(k);
-        if k<>l+1 then
-        begin
-          Affiche('Erreur 675 ligne '+chaine_signal,clred);
-          Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
-        end;
-      end
-      else
-      // feu de signalisation---------------------------------
-      begin
-        val(sa,asp,erreur);  //aspect
-        if (asp<2) or (asp=6) or (asp=8) or (asp>20) then
-        begin
-          Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
-          asp:=2;
-        end;
-        Signaux[i].aspect:=asp;Delete(s,1,j);
-        j:=pos(',',s);
-        if j>1 then begin Signaux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
-        j:=pos(',',s);
-        val(s,Signaux[i].decodeur,erreur);
 
-        if (Signaux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Signaux[i].decodeur),clred);
-        if j<>0 then delete(s,1,j);
-        Signaux[i].Adr_el_suiv1:=0;Signaux[i].Adr_el_suiv2:=0;Signaux[i].Adr_el_suiv3:=0;Signaux[i].Adr_el_suiv4:=0;
-        Signaux[i].Btype_Suiv1:=rien;Signaux[i].Btype_Suiv2:=rien;Signaux[i].Btype_Suiv3:=rien;Signaux[i].Btype_Suiv4:=rien;
-        Signaux[i].Adr_det1:=0;Signaux[i].Adr_det2:=0;Signaux[i].Adr_det3:=0;Signaux[i].Adr_det4:=0;
-        // éléments optionnels des voies supplémentaires
-        if j<>0 then
+    if adresse>MaxAcc then
+      affiche('Erreur 637 : adresse signal '+intToSTR(adresse)+' trop élevée (maxi='+intToSTR(MaxAcc)+')',clred)
+    else
+    begin
+      inc(NbreSignaux);
+      Signaux[i].adresse:=adresse;
+      tablo_Index_Signal[adresse]:=i; // stocker l'index provisoire avant tri
+      j:=pos(',',s);
+      if j>1 then
+      begin
+        sa:=copy(s,1,j-1);
+        if sa[1]='D' then
+        // feu directionnel ------------------------------------------
         begin
-          sa:=s;
-          multiple:=s[1]='(';
-          if multiple then
+          delete(sa,1,1);
+          j:=pos(',',s);
+          val(sa,l,erreur); // nombre de feux du signal directionnel
+          if l>6 then
           begin
-            delete(s,1,1);
-            j:=0;
+            Affiche('Erreur 672 ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
+            exit;
+          end;
+          Signaux[i].aspect:=l+10;Delete(s,1,j);
+          // décodeur
+          val(s,adr,erreur);
+          Signaux[i].decodeur:=adr;
+          if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
+          j:=pos(',',s);Delete(s,1,j);
+          // liste des aiguillages
+          k:=1; // numéro de feu directionnel
+          repeat
+            // boucle de direction
+            delete(s,1,1); // supprimer ( ou le ,
+            j:=1; // Nombre de descriptions d'aiguillages dans le feu
             repeat
-              adr:=0;
-              k:=pos(',',s);
-              if k>1 then
-              begin
-                val(s,adr,erreur); // extraire l'adresse
-                Delete(s,1,k);
+              if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
+              delete(s,1,1);
+              val(s,adr,erreur);  // adresse
+              c:=#0;
+              if erreur<>0 then c:=s[erreur];          // type
+              setlength(Signaux[i].AigDirection[k],j+1);  // augmenter le tableau dynamique
+              Signaux[i].AigDirection[k][j].PosAig:=c;
+              Signaux[i].AigDirection[k][j].Adresse:=adr;
+              delete(s,1,erreur);   // supprime jusque S
+              //Affiche(s,clLime);
+              if s[1]=',' then delete(s,1,1);
+              inc(j);
+            until s[1]=')';
+            delete(s,1,1);
+            inc(k);
+          until length(s)<1;
+          dec(k);
+          if k<>l+1 then
+          begin
+            Affiche('Erreur 675 ligne '+chaine_signal,clred);
+            Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
+          end;
+        end
+        else
+        // feu de signalisation---------------------------------
+        begin
+          val(sa,asp,erreur);  //aspect
+          if (asp<2) or (asp=6) or (asp=8) or (asp>20) then
+          begin
+            Affiche('Erreur 676: configuration aspect ('+intToSTR(asp)+') signal incorrect à la ligne '+chaine_signal,clRed);
+            asp:=2;
+          end;
+          Signaux[i].aspect:=asp;Delete(s,1,j);
+          j:=pos(',',s);
+          if j>1 then begin Signaux[i].FeuBlanc:=(copy(s,1,j-1))='1';delete(s,1,j);end;
+          j:=pos(',',s);
+          val(s,Signaux[i].decodeur,erreur);
+
+          if (Signaux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Signaux[i].decodeur),clred);
+          if j<>0 then delete(s,1,j);
+          Signaux[i].Adr_el_suiv1:=0;Signaux[i].Adr_el_suiv2:=0;Signaux[i].Adr_el_suiv3:=0;Signaux[i].Adr_el_suiv4:=0;
+          Signaux[i].Btype_Suiv1:=rien;Signaux[i].Btype_Suiv2:=rien;Signaux[i].Btype_Suiv3:=rien;Signaux[i].Btype_Suiv4:=rien;
+          Signaux[i].Adr_det1:=0;Signaux[i].Adr_det2:=0;Signaux[i].Adr_det3:=0;Signaux[i].Adr_det4:=0;
+          // éléments optionnels des voies supplémentaires
+          if j<>0 then
+          begin
+            sa:=s;
+            multiple:=s[1]='(';
+            if multiple then
+            begin
+              delete(s,1,1);
+              j:=0;
+              repeat
+                adr:=0;
+                k:=pos(',',s);
+                if k>1 then
+                begin
+                  val(s,adr,erreur); // extraire l'adresse
+                  Delete(s,1,k);
+                  if Adr>NbMaxDet then
+                  begin
+                    Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
+                    Adr:=NbMaxDet;
+                  end;
+                end;
+                inc(j);
+                if (j=1) then Signaux[i].Adr_det1:=adr;
+                if (j=2) then Signaux[i].Adr_det2:=adr;
+                if (j=3) then Signaux[i].Adr_det3:=adr;
+                if (j=4) then Signaux[i].Adr_det4:=adr;
+                //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
+                if s[1]='A' then
+                begin
+                  if (j=1) then Signaux[i].Btype_Suiv1:=aig;
+                  if (j=2) then Signaux[i].Btype_Suiv2:=aig;
+                  if (j=3) then Signaux[i].Btype_Suiv3:=aig;
+                  if (j=4) then Signaux[i].Btype_Suiv4:=aig;
+                  delete(s,1,1);
+                end
+                else
+                begin  // détecteur
+                  if (j=1) then Signaux[i].Btype_Suiv1:=det;
+                  if (j=2) then Signaux[i].Btype_Suiv2:=det;
+                  if (j=3) then Signaux[i].Btype_Suiv3:=det;
+                  if (j=4) then Signaux[i].Btype_Suiv4:=det;
+                end;
+                Val(s,adr,erreur);
                 if Adr>NbMaxDet then
                 begin
-                  Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
+                  Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
                   Adr:=NbMaxDet;
                 end;
-              end;
-              inc(j);
-              if (j=1) then Signaux[i].Adr_det1:=adr;
-              if (j=2) then Signaux[i].Adr_det2:=adr;
-              if (j=3) then Signaux[i].Adr_det3:=adr;
-              if (j=4) then Signaux[i].Adr_det4:=adr;
-              //type de l'élément suivant (1=détecteur 2=aig ou TJD ou TJS  4=tri
-              if s[1]='A' then
-              begin
-                if (j=1) then Signaux[i].Btype_Suiv1:=aig;
-                if (j=2) then Signaux[i].Btype_Suiv2:=aig;
-                if (j=3) then Signaux[i].Btype_Suiv3:=aig;
-                if (j=4) then Signaux[i].Btype_Suiv4:=aig;
-                delete(s,1,1);
-              end
-              else
-              begin  // détecteur
-                if (j=1) then Signaux[i].Btype_Suiv1:=det;
-                if (j=2) then Signaux[i].Btype_Suiv2:=det;
-                if (j=3) then Signaux[i].Btype_Suiv3:=det;
-                if (j=4) then Signaux[i].Btype_Suiv4:=det;
-              end;
-              Val(s,adr,erreur);
-              if Adr>NbMaxDet then
-              begin
-                Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
-                Adr:=NbMaxDet;
-              end;
-              if (j=1) then Signaux[i].Adr_el_suiv1:=Adr;
-              if (j=2) then Signaux[i].Adr_el_suiv2:=Adr;
-              if (j=3) then Signaux[i].Adr_el_suiv3:=Adr;
-              if (j=4) then Signaux[i].Adr_el_suiv4:=Adr;
-              delete(s,1,erreur-1);
-              if s[1]=',' then delete(s,1,1);
-              fini:=s[1]=')';
-            until (fini) or (j>4);
+                if (j=1) then Signaux[i].Adr_el_suiv1:=Adr;
+                if (j=2) then Signaux[i].Adr_el_suiv2:=Adr;
+                if (j=3) then Signaux[i].Adr_el_suiv3:=Adr;
+                if (j=4) then Signaux[i].Adr_el_suiv4:=Adr;
+                delete(s,1,erreur-1);
+                if s[1]=',' then delete(s,1,1);
+                fini:=s[1]=')';
+              until (fini) or (j>4);
+           end;
          end;
-       end;
        if (j>4) or (not(multiple)) then
        begin
          Affiche('Erreur 678: fichier de configuration ligne erronnée : '+chaine_signal,clred);
@@ -1560,6 +1567,7 @@ begin
           end;
           Signaux[i].na:=j;
         end;
+      end;
       end;
     end;
   end;
@@ -1900,7 +1908,7 @@ begin
     s:=encode_sig_feux(i);
     // transformer le tableau feux en ligne
     //Affiche(s,clLime);
-    if s='' then Affiche('Erreur 700 - Encodage du feu index='+IntToSTR(i),clRed);
+    if s='' then Affiche('Erreur 700 - Encodage du signal index='+IntToSTR(i),clRed);
     Signaux[i].modifie:=false;       // sauvegarde en cours, on démarque
     writeln(fichierN,s);
   end;
@@ -1977,7 +1985,7 @@ end;
 procedure trier_detecteurs;
 var i,j,temp : integer;
 begin
-  for i:=1 to NDetecteurs do
+  for i:=1 to NDetecteurs-1 do
   begin
     for j:=i+1 to NDetecteurs do
     begin
@@ -1991,12 +1999,12 @@ begin
   end;
 end;
 
-// trie les aiguillages
+// trier les aiguillages
 procedure trier_aig;
 var i,j : integer;
     temp : TAiguillage;
 begin
-  for i:=1 to MaxAiguillage do
+  for i:=1 to MaxAiguillage-1 do
   begin
     for j:=i+1 to MaxAiguillage do
     begin
@@ -2010,7 +2018,7 @@ begin
   end;
 
   for i:=1 to MaxAiguillage do
-    index_accessoire[aiguillage[i].adresse]:=i;
+    tablo_index_aiguillage[aiguillage[i].adresse]:=i;
 end;
 
 // trie les signaux
@@ -2018,7 +2026,7 @@ procedure trier_sig;
 var i,j : integer;
     temp : TSignal;
 begin
-  for i:=1 to NbreSignaux do
+  for i:=1 to NbreSignaux-1 do
   begin
     for j:=i+1 to NbreSignaux do
     begin
@@ -2032,7 +2040,7 @@ begin
   end;
   for i:=1 to NbreSignaux do
   begin
-    index_accessoire[Signaux[i].adresse]:=i;
+    tablo_index_signal[Signaux[i].adresse]:=i;
   end;
 end;
 
@@ -2087,7 +2095,7 @@ var s,sa,SOrigine: string;
       end
       else
       begin
-        if decode_ligne_feux(s,i) then    // décode la chaine et stocke en tableau feux
+        if decode_ligne_signal(s,i) then    // décode la chaine et stocke en tableau feux
         begin
           inc(i);
         end
@@ -5661,15 +5669,15 @@ begin
     // tjd
     if tjd or tjs or croi then
     begin
-      if not(croi) then Label20.Visible:=true;
-      if tjd then 
+      if not(croi) then begin Label20.Visible:=true; labelcrois.Visible:=false;end;
+      if tjd or tjs then
       begin
         ComboBoxAig.ItemIndex:=1;
         EditL.Visible:=false;
         LabelL.Visible:=false;
         GroupBoxEtatTJD.Visible:=true;
         if aiguillage[ind].EtatTJD=2 then
-        begin 
+        begin
           RadioButtonTJD2.Checked:=true;RadioButtonTJD4.Checked:=false;
           EditP1.Visible:=false;EditP2.Visible:=false;EditP3.Visible:=false;EditP4.Visible:=false;
           LabelTJD1.Visible:=false;LabelTJD2.Visible:=false;
@@ -5687,59 +5695,57 @@ begin
 
       if tjs then
       begin
+       // GroupBoxEtatTJD.Visible:=true;
         ComboBoxAig.ItemIndex:=2;
         EditL.Visible:=true;
         LabelL.Visible:=true;
         LabelL.Caption:='L';
         EditL.Text:=IntToSTR(aiguillage[ind].tjsint)+aiguillage[ind].tjsintB;
       end;
+
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
       labelBG.Caption:='S';
       Edit_HG.Visible:=true;
       EditAigTriple.Visible:=false;
-     
+
       Edit_HG.ReadOnly:=false;
-      EditPointe_BG.ReadOnly:=false;  
+      EditPointe_BG.ReadOnly:=false;
       EditDevie_HD.ReadOnly:=false;
       EditDroit_BD.ReadOnly:=false;
       tjd:=true;
       labelHG.Visible:=true;
-     
+
       CheckInverse.Visible:=true;
       EditDevieS2.Visible:=false;
       Label18.Visible:=false;
       adr2:=aiguillage[Index_Aig(adresse)].DDevie;
       id2:=Index_Aig(adr2);
-      
+
       // champ en haut à gauche
-      b:=aiguillage[Index_Aig(adresse)].ADroitB;
-      if b='Z' then b:=#0;
-      Edit_HG.Text:=intToSTR(aiguillage[index].ADroit)+b;  
-      Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,b);
+      Edit_HG.Text:=intToSTR(aiguillage[index].ADroit)+aiguillage[Index_Aig(adresse)].ADroitB;
+      Edit_HG.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[Index_Aig(adresse)].ADroitB);
 
       // champ en bas à gauche
-      b:=aiguillage[Index].ADevieB;
-      if b='Z' then b:=#0;
-      EditPointe_BG.Text:=intToSTR(aiguillage[index].ADevie)+b;
-      EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].ADevie,b);
+      EditPointe_BG.Text:=intToSTR(aiguillage[index].ADevie)+aiguillage[Index].ADevieB;;
+      EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].ADevie,aiguillage[Index].ADevieB);
 
       // milieu haut gauche
-      EditP1.Text:=intToSTR(adresse)+aiguillage[Index].DDroitB; 
+      EditP1.Text:=intToSTR(adresse)+aiguillage[Index].DDroitB;
       // milieu bas gauche
       EditP2.Text:=intToSTR(adresse)+aiguillage[Index].DDevieB;
-    
+
       // milieu haut droit
       EditP3.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DDevieB;
       // milieu bas droit
-      EditP4.Text:=intToSTR(aiguillage[index].Ddroit)+aiguillage[index].DdroitB; 
+      EditP4.Text:=intToSTR(aiguillage[index].Ddroit)+aiguillage[index].DdroitB;
 
       if (aiguillage[ind].EtatTJD=4) or tjs then
       begin
         // droit haut
-        EditDevie_HD.Text:=intToSTR(aiguillage[id2].Adevie)+aiguillage[id2].AdevieB; 
-        EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[id2].Adevie,aiguillage[id2].AdevieB); 
+        EditDevie_HD.Text:=intToSTR(aiguillage[id2].Adevie)+aiguillage[id2].AdevieB;
+        EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[id2].Adevie,aiguillage[id2].AdevieB);
         LabelTJD1.Caption:=IntToSTR(adresse);
-      
+
         // droit bas
         EditDroit_BD.Text:=intToSTR(aiguillage[id2].Adroit)+aiguillage[Id2].AdroitB;
         EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[id2].ADroit,aiguillage[Id2].AdroitB);
@@ -5749,7 +5755,7 @@ begin
       if ((aiguillage[ind].EtatTJD=2) and tjd) or croi then
       begin
         // droit haut
-        EditDevie_HD.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DdevieB; 
+        EditDevie_HD.Text:=intToSTR(aiguillage[index].Ddevie)+aiguillage[index].DdevieB;
         EditDevie_HD.Hint:=TypeElAIg_to_char(aiguillage[index].Ddevie,aiguillage[index].DdevieB);
         LabelTJD1.Caption:=IntToSTR(adresse);
       
@@ -6781,7 +6787,6 @@ begin
   ComboBoxAig.ItemIndex:=-1;
   formconfig.ComboBoxDD.ItemIndex:=-1;
 
-
   with Formconfig.ListBoxAig do
   begin
     i:=0;
@@ -6905,7 +6910,11 @@ begin
       begin
         adr2:=aiguillage[index].DDroit;  // adresse homologue
         index:=Index_aig(adr2);
-        if index=0 then exit;
+        if index=0 then
+        begin
+          labelInfo.Caption:='Renseignez le champ vert droit pour l''adresse homologue';
+          exit;
+        end;
         aiguillage[index].Adevie:=adr;
         aiguillage[index].AdevieB:=B;
         LabelInfo.caption:='Modification de la TJD homologe ('+IntToSTR(adr2)+')';
@@ -7077,19 +7086,22 @@ begin
   end;  
 end;
 
-procedure TFormConfig.EditDevieS2KeyPress(Sender: TObject; var Key: Char);
+procedure TFormConfig.EditDevieS2Change(Sender: TObject);
 var AdrAig,adr,erreur,index : integer;
     b : char;
     s : string;
 begin
   // cliqué sur le edit droit aiguillage
   // ne pas traiter si on a cliqué sur la liste
-  if clicliste or (ligneClicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  if clicliste or (ligneClicAig<0)
+   // or (ord(Key)<>VK_RETURN)
+   then exit;
   if affevt then affiche('Evt change S2',clyellow);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
+    clicListe:=true;
     s:=formconfig.ListBoxAig.items[ligneclicAig];
     Val(s,adrAig,erreur);
     //vérifier la syntaxe de P
@@ -7114,7 +7126,8 @@ begin
     begin
       LabelInfo.caption:='Erreur S2 aiguillage '+intToSTR(AdrAig);
     end;
-  end;  
+  end;
+  clicListe:=false;
 end;
 
 
@@ -7177,9 +7190,10 @@ begin
   if index<>0 then
   begin
     aiguillage[index].etatTJD:=2;
+    s:=encode_aig(index);
+    formconfig.ListBoxAig.items[index-1]:=s;
   end;
-  s:=encode_aig(index);
-  formconfig.ListBoxAig.items[index-1]:=s;
+
   formconfig.ListBoxAig.selected[ligneclicAig]:=true;
 end;
 
@@ -7210,9 +7224,10 @@ begin
   begin
     aiguillage[index].etatTJD:=4;
     aiguillage[index].modifie:=true;
+    s:=encode_aig(index);
+    formconfig.ListBoxAig.items[index-1]:=s;
   end;
-  s:=encode_aig(index);
-  formconfig.ListBoxAig.items[index-1]:=s;
+
   formconfig.ListBoxAig.selected[ligneclicAig]:=true;
 end;
 
@@ -8080,7 +8095,7 @@ end;
 
 procedure TFormConfig.EditAdrAigChange(Sender: TObject);
   var s : string;
-    i,vide,erreur,index,adr2 : integer;
+    nEtat,i,vide,erreur,index,adr2 : integer;
     modele: TEquipement;
     c : char;
 begin
@@ -8102,39 +8117,49 @@ begin
 
     modele:=aiguillage[index].modele;
     // si normal ou triple
-    if (modele=aig) or (modele=triple) then
-    begin
-      if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
-      //  vérifier si l'adresse de l'aiguillage existe déja
-      if (aiguillage[Index_Aig(i)].modele<>rien) then
-      begin
-        EditAdrAig.Color:=clred;
-        LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
-        exit;
-      end;
+    if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
+    //  vérifier si l'adresse de l'aiguillage existe déja
 
+    if (aiguillage[Index_Aig(i)].modele<>rien) then
+    begin
+      EditAdrAig.Color:=clred;
+      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
+      exit;
+    end;
+
+    EditAdrAig.Color:=clWindow;
+    LabelInfo.caption:=' ';
+
+    if (modele=aig) or (modele=triple) or (modele=crois) then
+    begin
       EditAdrAig.Color:=clWindow;
       LabelInfo.caption:=' ';
       aiguillage[index].adresse:=i;
       aiguillage[index].modifie:=true;
-      index_accessoire[i]:=index;
+      tablo_index_aiguillage[i]:=index;
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[ligneclicAig]:=s;
       formconfig.ListBoxAig.selected[ligneclicAig]:=true;
     end;
+
     if (modele=tjd) or (modele=tjs) then
     begin
       clicListe:=true;
+      nEtat:=aiguillage[index].EtatTJD;
+      if nEtat=4 then
+      begin
       // modifier les champs P1 et P2 avec la nouvelle adresse
-      val(editP1.Text,vide,erreur);
-      if erreur<>0 then c:=editP1.text[erreur] else c:='D';
-      editP1.Text:=IntToSTR(i)+c;
-      val(editP2.Text,vide,erreur);
-      if erreur<>0 then c:=editP2.text[erreur] else c:='D';
-      editP2.Text:=IntToSTR(i)+c;
-
+        val(editP1.Text,vide,erreur);
+        if erreur<>0 then c:=editP1.text[erreur] else c:='D';
+        editP1.Text:=IntToSTR(i)+c;
+        val(editP2.Text,vide,erreur);
+        if erreur<>0 then c:=editP2.text[erreur] else c:='D';
+        editP2.Text:=IntToSTR(i)+c;
+      end;
       clicListe:=false;
+
       aiguillage[index].adresse:=i;
+      tablo_index_aiguillage[i]:=index;
       aiguillage[index].modifie:=true;
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[index-1]:=s;
@@ -8143,10 +8168,13 @@ begin
       // modif homologue
       adr2:=aiguillage[index].Ddroit;
       index:=index_aig(adr2);
-      aiguillage[index].dDroit:=i;
-      aiguillage[index].dDevie:=i;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[index-1]:=s;
+      if index<>0 then
+      begin
+        aiguillage[index].dDroit:=i;
+        aiguillage[index].dDevie:=i;
+        s:=encode_aig(index);
+        formconfig.ListBoxAig.items[index-1]:=s;
+      end;
       ListBoxSig.selected[ligneClicSig]:=true;
     end;
   end;
@@ -8836,7 +8864,7 @@ begin
   config_modifie:=true;
 
   // encoder l'index
-  Index_accessoire[i]:=Signaux[i].Adresse;
+  tablo_index_signal[Signaux[i].Adresse]:=i;
 end;
 
 procedure TFormConfig.ButtonNouvFeuClick(Sender: TObject);
@@ -8844,7 +8872,7 @@ begin
   ajoute_signal;
 end;
 
-procedure supprime_sig;                
+procedure supprime_sig;
 var n,i,j : integer;
     s,ss : string;
 begin
@@ -8880,7 +8908,7 @@ begin
       FormConfig.ButtonInsFeu.Caption:='Ajouter le signal '+intToSTR(Signaux[i].adresse)+' supprimé';
 
       // supprimer le signal i
-      Affiche('supprime signal '+intToSTR(Signaux[i].adresse),clOrange);
+      Affiche('Supprime signal '+intToSTR(Signaux[i].adresse),clOrange);
 
 
       formconfig.ListBoxSig.Items.Delete(i-1);
@@ -8892,16 +8920,18 @@ begin
       for j:=i to NbreSignaux-1 do
       begin
         Signaux[j]:=Signaux[j+1];
-        if Signaux[j].img=nil then affiche('erreur',clred);
+        tablo_index_signal[signaux[j].adresse]:=j;
+        if Signaux[j].img=nil then affiche('erreur',clred)
+        else
+          with Signaux[j].Img do
+          begin
+            Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
+            Top:=(HtImg+espY+20)*((j-1) div NbreImagePLigne);   // détermine les points d'origine
+            Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
+            Name:='ImageFeu'+IntToSTR(Signaux[j].adresse);
+            Maj_Hint_Signal(j);
+          end;
 
-        with Signaux[j].Img do
-        begin
-          Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
-          Top:=(HtImg+espY+20)*((j-1) div NbreImagePLigne);   // détermine les points d'origine
-          Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
-          Name:='ImageFeu'+IntToSTR(Signaux[j].adresse);
-          Maj_Hint_Signal(j);
-        end;
         with Signaux[j].Lbl do
         begin
           Top:=HtImg+((HtImg+EspY+20)*((j-1) div NbreImagePLigne));
@@ -9068,7 +9098,7 @@ end;
 
 
 function verif_coherence : boolean;
-var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,
+var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
     x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2 : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
@@ -9079,11 +9109,11 @@ begin
   // validation des index signaux et détecteurs
   for i:=1 to NbreSignaux do
   begin
-    index_accessoire[Signaux[i].adresse]:=i;
+    tablo_index_signal[Signaux[i].adresse]:=i;
   end;
   for i:=1 to maxAiguillage do
   begin
-    index_accessoire[aiguillage[i].adresse]:=i;
+    tablo_index_aiguillage[aiguillage[i].adresse]:=i;
   end;
 
   // vérification de la cohérence1
@@ -9153,34 +9183,89 @@ begin
         ok:=false;
       end;
     end;}
+
+    // vérifier si le détecteur sur la position droite est dans les branches
     adr:=aiguillage[Indexaig].Adroit;
     if (aiguillage[Indexaig].AdroitB='Z') or (aiguillage[Indexaig].AdroitB=#0) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 21: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clred);
+        Affiche('Erreur 21.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clred);
         ok:=false;
+      end
+      else
+      begin
+        AdrAig:=aiguillage[IndexAig].Adresse;
+        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
+        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+        begin
+          Affiche('Erreur 21.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+          s:='branche '+intToSTR(Branche_trouve)+' entre';
+          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det1br)+' et ';
+          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det2br);
+          Affiche(s,clred);
+          ok:=false;
+        end;
       end;
     end;
+    // vérifier si le détecteur sur la position déviée est dans les branches
     adr:=aiguillage[Indexaig].Adevie;
     if (aiguillage[Indexaig].AdevieB='Z') or (aiguillage[Indexaig].AdevieB=#0) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 31: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+        Affiche('Erreur 22.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
+      end
+      else
+      begin
+        AdrAig:=aiguillage[IndexAig].Adresse;
+        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
+        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+        begin
+          Affiche('Erreur 22.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+          s:='branche '+intToSTR(Branche_trouve)+' entre';
+          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det1br)+' et ';
+          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det2br);
+          Affiche(s,clred);
+          ok:=false;
+        end;
       end;
     end;
+    // vérifier si le détecteur sur la pointe est dans les branches
     adr:=aiguillage[Indexaig].Apointe;
     if ( ((aiguillage[Indexaig].ApointeB='Z') or (aiguillage[Indexaig].ApointeB=#0)) and (aiguillage[Indexaig].modele=aig) ) then
     begin
       trouve_detecteur(adr);
       if IndexBranche_trouve=0 then
       begin
-        Affiche('Erreur 4 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+        Affiche('Erreur 23.1 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
         ok:=false;
+      end
+      else
+      begin
+        AdrAig:=aiguillage[IndexAig].Adresse;
+        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
+        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+        begin
+          Affiche('Erreur 23.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+          s:='branche '+intToSTR(Branche_trouve)+' entre';
+          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det1br)+' et ';
+          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+          s:=s+intToSTR(det2br);
+          Affiche(s,clred);
+          ok:=false;
+        end;
       end;
     end;
     if (aiguillage[Indexaig].modele=triple) then // aiguillage triple
@@ -10046,6 +10131,9 @@ begin
   aiguillage[i].vitesse:=0;
   aiguillage[i].IndexBranche:=0;
 
+  // encoder l'index
+  tablo_index_aiguillage[aiguillage[i].Adresse]:=i;
+
   s:=encode_Aig(i);
   // scroller à la fin et sélectionner
   with formconfig.ListBoxAig do
@@ -10064,8 +10152,7 @@ begin
   config_modifie:=true;
   Aig_sauve.Adresse:=0;
 
-  // encoder l'index
-  Index_accessoire[i]:=aiguillage[i].Adresse;
+
 end;
 
 procedure TFormConfig.ButtonNouvAigClick(Sender: TObject);
@@ -10108,6 +10195,7 @@ begin
   repeat
     if formconfig.ListBoxAig.selected[i-1] then
     begin
+      Affiche('Supprime aiguillage '+intToSTR(aiguillage[i].Adresse),clOrange);
       Aig_supprime:=aiguillage[i]; // sauve l'aiguillage supprimé
       FormConfig.ButtonAjSup.Caption:='Ajouter l''aig '+intToSTR(aiguillage[i].adresse)+' supprimé';
 
@@ -10115,6 +10203,7 @@ begin
       begin
         formconfig.ListBoxAig.selected[j-1]:=formconfig.ListBoxAig.selected[j];
         Aiguillage[j]:=Aiguillage[j+1];
+        tablo_index_aiguillage[aiguillage[j].Adresse]:=j;
       end;
       dec(MaxAiguillage);
       i:=0;
@@ -10145,216 +10234,232 @@ begin
   Supprime_aig;
 end;
 
-procedure TFormConfig.EditP1KeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index,id2 : integer;
+procedure adresse_p1;
+var AdrAig,adr,erreur,index,adr2 : integer;
     b,c : char;
+    model: Tequipement;
     s : string;
 begin
-  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P1',clyellow);
-  
+  if clicliste or (ligneclicAig<0) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=formconfig.ListBoxAig.items[ligneClicAig];
     Val(s,adrAig,erreur);
-      
-    //vérifier la syntaxe de P
+
+    //vérifier la syntaxe
     s:=EditP1.text;
     if RightStr(s,1)<>'D' then
     begin
+      val(s,adr,erreur);
       clicListe:=true;
-      s:=s+'D';
+      if erreur=0 then s:=intToSTR(adr)+'D'
+      else
+      begin
+        delete(s,length(s),1);
+        s:=s+'D';
+      end;
       editP1.text:=s;
       clicListe:=false;
     end;
-    
+
     decodeAig(s,adr,B);
-    if (B='D') and (adr<>0) then 
-    begin
-      LabelInfo.caption:='';
-      Index:=Index_Aig(AdrAig);
-          
-      Aiguillage[index].modifie:=true;
-      LabelInfo.caption:='';
-      // modifier la base de données de l'aiguillage
-      if b=#0 then b:='Z';
-
-      adr2:=aiguillage[index].DDevie;  // ancien aiguillage associé à la tjd
-      clicliste:=true;
-      if B='D' then c:='S';
-      if B='S' then c:='D';
-      EditP2.Text:=IntToSTR(adr)+c;
-      clicliste:=false;
-      LabelInfo.caption:='Changement de l''adresse de la TJD de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
-
-      id2:=Index_Aig(Adr);
-      if (aiguillage[id2].modele<>rien) then 
-      begin
-        LabelInfo.caption:='aiguillage '+IntToSTR(adr)+' existe déja - ne sera pas écrasé' ;
-        exit;
-      end ;
-      aiguillage[index].Adresse:=adr;
-      clicliste:=true;
-      editAdrAig.Text:=IntToSTR(adr);
-      clicListe:=false;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[ligneClicAig]:=s;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[ligneClicAig]:=s;
-      // changer l'homologue
-      adr2:=aiguillage[index].Ddroit;
-      index:=index_aig(Adr2);
-      aiguillage[index].Ddroit:=adr;
-      aiguillage[index].Ddevie:=adr;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[index-1]:=s;
-    end
-      else
-        LabelInfo.caption:='Erreur P1 TJD '+intToSTR(AdrAig);
-    end;  
-end;
-
-procedure TFormConfig.EditP2KeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index,id2 : integer;
-    b,c : char;
-    s : string;
-begin
-  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
-  if affevt then affiche('Evt change P2',clyellow);
-
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
-  with Formconfig do
-  begin
-    s:=formconfig.ListBoxAig.items[ligneClicAig];
-    Val(s,adrAig,erreur);
-      
-    //vérifier la syntaxe
-    s:=EditP2.text;
-    if RightStr(s,1)<>'S' then
-    begin
-      clicListe:=true;
-      s:=s+'S';
-      editP2.text:=s;
-      clicListe:=false;
-    end;
-    
-    decodeAig(s,adr,B);
-    if (B='S') and (adr<>0) then 
-    begin
-      LabelInfo.caption:='';
-      Index:=Index_Aig(AdrAig);
-          
-      Aiguillage[index].modifie:=true;
-      LabelInfo.caption:='';
-      // modifier la base de données de l'aiguillage
-      if b=#0 then b:='Z';
-
-      adr2:=aiguillage[index].DDevie;  // ancien aiguillage associé à la tjd
-      clicliste:=true;
-      if B='D' then c:='S';
-      if B='S' then c:='D';
-      EditP1.Text:=IntToSTR(adr)+c;
-      clicliste:=false;
-
-      LabelInfo.caption:='Changement de l''adresse de la TJD de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
-
-      id2:=Index_Aig(Adr);
-      if (aiguillage[id2].modele<>rien) then 
-      begin
-        LabelInfo.caption:='aiguillage '+IntToSTR(adr)+' existe déja - ne sera pas écrasé' ;
-        exit;
-      end ;
-      aiguillage[index].Adresse:=adr;
-      clicliste:=true;
-      editAdrAig.Text:=IntToSTR(adr);
-      clicListe:=false;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[ligneClicAig]:=s;
-      // changer l'homologue
-      adr2:=aiguillage[index].Ddroit;
-      index:=index_aig(Adr2);
-      aiguillage[index].Ddroit:=adr;
-      aiguillage[index].Ddevie:=adr;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[index-1]:=s;
-    end
-      else
-        LabelInfo.caption:='Erreur P2 TJD '+intToSTR(AdrAig);
-    end;  
-end;
-
-procedure TFormConfig.EditP3KeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index : integer;
-    model: Tequipement;
-    b,c : char;
-    s : string;
-begin
-  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
-  if affevt then affiche('Evt change P3',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
-  with Formconfig do
-  begin
-    s:=formconfig.ListBoxAig.items[ligneClicAig];
-    Val(s,adrAig,erreur);           // adrAig est l'adresse de l'aiguillage modifié
-      
-    //vérifier la syntaxe
-    s:=EditP3.text;
-    if RightStr(s,1)<>'S' then
-    begin
-      clicListe:=true;
-      s:=s+'S';
-      editP3.text:=s;
-      clicListe:=false;
-    end;
-    
-    decodeAig(s,adr,B);            // adr est le contenu du champ P3
-    if (B='S') and (adr<>0) then 
+    if (B='D') and (adr<>0) then
     begin
       LabelInfo.caption:='';
       Index:=Index_Aig(AdrAig);
       model:=aiguillage[Index].modele;
 
-      if model=tjs then // TJS
-      begin
-        LabelL.caption:=IntToSTR(adr);
-        aiguillage[index].tjsint:=adr;
-      end;
-
-      
       Aiguillage[index].modifie:=true;
       LabelInfo.caption:='';
       // modifier la base de données de l'aiguillage
       if b=#0 then b:='Z';
 
-      adr2:=aiguillage[index].DDevie;  // ancien aiguillage associé à la tjd
+      clicliste:=true;
+      if B='D' then c:='S';
+      if B='S' then c:='D';
+      EditP2.Text:=IntToSTR(adr)+c;
+
+      // existe, vérifier si c'est bien une TJD/S
+      if (model=tjd) or (model=tjs) then
+      begin
+        if model=tjd then labelInfo.Caption:='Mise à jour de la TJD '+IntToSTR(adr);
+        if model=tjs then labelInfo.Caption:='Mise à jour de la TJS '+IntToSTR(adr);
+        aiguillage[Index].modele:=model;
+        adr2:=aiguillage[index].adresse; // adresse avant modif
+        tablo_index_aiguillage[adr2]:=0; // supprimer l'index de l'ancienne adresse
+
+        aiguillage[index].adresse:=adr;     // met la nouvelle adresse à jour
+        tablo_index_aiguillage[adr]:=index;
+        s:=encode_aig(index);
+        formconfig.ListBoxAig.items[index-1]:=s;
+
+        adr2:=aiguillage[index].dDroit;   // adresse de la tjd homologue
+        index:=tablo_index_aiguillage[adr2];
+        if index<>0 then
+        begin
+          aiguillage[index].DDroit:=adr;   // mettre la nouvelle adresse dans la tjd/s homologue
+          aiguillage[index].DDevie:=adr;
+          s:=encode_aig(index);
+          formconfig.ListBoxAig.items[index-1]:=s;
+        end;
+      end;
+    end
+      else
+        LabelInfo.caption:='Erreur P1 TJD/S '+intToSTR(AdrAig);
+    end;
+  clicliste:=false;
+end;
+
+
+procedure adresse_p2;
+var AdrAig,adr,adr2,erreur,index : integer;
+    b,c : char;
+    model: Tequipement;
+    s : string;
+begin
+  if affevt then affiche('Evt change P2',clyellow);
+  if clicliste or (ligneclicAig<0) then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  with Formconfig do
+  begin
+    s:=formconfig.ListBoxAig.items[ligneClicAig];
+    Val(s,adrAig,erreur);
+
+    //vérifier la syntaxe
+    s:=EditP2.text;
+    if RightStr(s,1)<>'S' then
+    begin
+      val(s,adr,erreur);
+      clicListe:=true;
+      if erreur=0 then s:=intToSTR(adr)+'S'
+      else
+      begin
+        delete(s,length(s),1);
+        s:=s+'S';
+      end;
+      editP2.text:=s;
+      clicListe:=false;
+    end;
+
+    decodeAig(s,adr,B);
+    if (B='S') and (adr<>0) then
+    begin
+      LabelInfo.caption:='';
+      Index:=Index_Aig(AdrAig);
+      model:=aiguillage[Index].modele;
+
+      Aiguillage[index].modifie:=true;
+      LabelInfo.caption:='';
+      // modifier la base de données de l'aiguillage
+      if b=#0 then b:='Z';
+
+      clicliste:=true;
+      if B='D' then c:='S';
+      if B='S' then c:='D';
+      EditP1.Text:=IntToSTR(adr)+c;
+
+      // existe, vérifier si c'est bien une TJD/S
+      if (model=tjd) or (model=tjs) then
+      begin
+        if model=tjd then labelInfo.Caption:='Mise à jour de la TJD '+IntToSTR(adr);
+        if model=tjs then labelInfo.Caption:='Mise à jour de la TJS '+IntToSTR(adr);
+        aiguillage[Index].modele:=model;
+        adr2:=aiguillage[index].adresse; // adresse avant modif
+        tablo_index_aiguillage[adr2]:=0; // supprimer l'index de l'ancienne adresse
+
+        aiguillage[index].adresse:=adr;     // met la nouvelle adresse à jour
+        tablo_index_aiguillage[adr]:=index;
+        s:=encode_aig(index);
+        formconfig.ListBoxAig.items[index-1]:=s;
+
+        adr2:=aiguillage[index].dDroit;   // adresse de la tjd homologue
+        index:=tablo_index_aiguillage[adr2];
+        if index<>0 then
+        begin
+          aiguillage[index].DDroit:=adr;   // mettre la nouvelle adresse dans la tjd/s homologue
+          aiguillage[index].DDevie:=adr;
+          s:=encode_aig(index);
+          formconfig.ListBoxAig.items[index-1]:=s;
+        end;
+      end;
+    end
+      else
+        LabelInfo.caption:='Erreur P1 TJD/S '+intToSTR(AdrAig);
+    end;
+  clicliste:=false;
+end;
+
+procedure adresse_p3;
+var AdrAig,adr,erreur,index,adr2 : integer;
+    b,c : char;
+    model: Tequipement;
+    s : string;
+begin
+  if affevt then affiche('Evt change P3',clyellow);
+  if clicliste or (ligneclicAig<0) then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  with Formconfig do
+  begin
+    s:=formconfig.ListBoxAig.items[ligneClicAig];
+    Val(s,adrAig,erreur);
+
+    //vérifier la syntaxe
+    s:=EditP3.text;
+    if RightStr(s,1)<>'S' then
+    begin
+      val(s,adr,erreur);
+      clicListe:=true;
+      if erreur=0 then s:=intToSTR(adr)+'S'
+      else
+      begin
+        delete(s,length(s),1);
+        s:=s+'S';
+      end;
+      editP3.text:=s;
+      clicListe:=false;
+    end;
+
+    decodeAig(s,adr,B);
+    if (B='S') and (adr<>0) then
+    begin
+      LabelInfo.caption:='';
+      Index:=Index_Aig(AdrAig);
+      model:=aiguillage[Index].modele;
+
+      Aiguillage[index].modifie:=true;
+      LabelInfo.caption:='';
+      // modifier la base de données de l'aiguillage
+      if b=#0 then b:='Z';
+
       clicliste:=true;
       if B='D' then c:='S';
       if B='S' then c:='D';
       EditP4.Text:=IntToSTR(adr)+c;
-      clicliste:=false;
-      LabelInfo.caption:='Changement de la TJD homologue de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
 
-      adr2:=aiguillage[index].Ddroit;  // 'ancienne' adresse homologue avant écrasement
+      adr2:=aiguillage[index].Ddroit;  // 'ancienne' adresse avant écrasement
       aiguillage[index].Ddroit:=adr;
       //aiguillage[index].DdroitB:=B;
       aiguillage[index].Ddevie:=adr;
-      aiguillage[index].DdevieB:=B;
-      
+      aiguillage[index].DdevieB:=c;
+
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[ligneClicAig]:=s;
 
-      // changer l'homologue
-      index:=index_aig(Adr);
+      // index avant changement
+      index:=index_aig(Adr2);
+
       if index=0 then    // si elle n'existe pas la créer
       begin
         // créer homologue
         if model=tjd then labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
         if model=tjs then labelInfo.Caption:='Création de la TJS homologue '+IntToSTR(adr);
-        
+
         inc(MaxAiguillage);
         index:=MaxAiguillage;
         aiguillage[index].Adresse:=Adr;
+        tablo_index_aiguillage[adr]:=index;
         aiguillage[Index].modele:=model;
         aiguillage[Index].Adroit:=0;
         aiguillage[Index].AdroitB:='D';
@@ -10366,93 +10471,181 @@ begin
         aiguillage[Index].DdevieB:='S';
         aiguillage[Index].APointeB:='Z';
         aiguillage[Index].tjsINTB:='S';
-        
+
         s:=encode_aig(index);
-        formconfig.ListBoxAig.items[index-1]:=s;
+        formconfig.ListBoxAig.items.add(s);
         // scroller à la fin
-        ListBoxAig.SetFocus;
+        ListBoxAig.SetFocus;    // génère evt adresse_p4 donc clicListe doit être à false
       end  // fin de la création
-      else 
+      else
       begin
-        // existe, vérifier si c'est bien une TJD/S
+        // si l'ancienne adresse = la nouvelle, on a rien changé, sortir absolument sinon on va remetre l'index à 0
+        if adr=adr2 then begin clicListe:=false;exit;end;
         model:=aiguillage[Index].modele;
+        // existe, vérifier si c'est bien une TJD/S
         if (model=tjd) or (model=tjs) then
         begin
+          if model=tjd then labelInfo.Caption:='Mise à jour de la TJD homologue '+IntToSTR(adr);
+          if model=tjs then labelInfo.Caption:='Mise à jour de la TJS homologue '+IntToSTR(adr);
+          aiguillage[Index].modele:=model;
           aiguillage[index].adresse:=adr;
+          tablo_index_aiguillage[adr]:=index;
+          tablo_index_aiguillage[adr2]:=0;   // raz l'ancien index
           s:=encode_aig(index);
           formconfig.ListBoxAig.items[index-1]:=s;
-        end
-        else 
-          labelInfo.caption:='L''aiguillage '+IntToSTR(adr)+' existe, il ne sera pas écrasé';
-      end;    
+        end;
+      end;
     end
       else
         LabelInfo.caption:='Erreur P3 TJD '+intToSTR(AdrAig);
-    end;  
+    end;
+  clicliste:=false;
 end;
 
-
-procedure TFormConfig.EditP4KeyPress(Sender: TObject; var Key: Char);
-var AdrAig,adr,adr2,erreur,index : integer;
+procedure adresse_p4;
+var AdrAig,adr,erreur,index,adr2 : integer;
     b,c : char;
+    model: Tequipement;
     s : string;
 begin
-  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
   if affevt then affiche('Evt change P4',clyellow);
-
+  if clicliste or (ligneclicAig<0) then exit;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
   with Formconfig do
   begin
     s:=formconfig.ListBoxAig.items[ligneClicAig];
     Val(s,adrAig,erreur);
-      
+
     //vérifier la syntaxe
     s:=EditP4.text;
     if RightStr(s,1)<>'D' then
     begin
+      val(s,adr,erreur);
       clicListe:=true;
-      s:=s+'D';
+      if erreur=0 then s:=intToSTR(adr)+'D'
+      else
+      begin
+        delete(s,length(s),1);
+        s:=s+'D';
+      end;
       editP4.text:=s;
       clicListe:=false;
     end;
-    
+
     decodeAig(s,adr,B);
-    if (B='D') and (adr<>0) then 
+    if (B='D') and (adr<>0) then
     begin
       LabelInfo.caption:='';
       Index:=Index_Aig(AdrAig);
-          
+      model:=aiguillage[Index].modele;
+
       Aiguillage[index].modifie:=true;
       LabelInfo.caption:='';
       // modifier la base de données de l'aiguillage
       if b=#0 then b:='Z';
 
-      adr2:=aiguillage[index].DDevie;  // ancien aiguillage associé à la tjd
       clicliste:=true;
       if B='D' then c:='S';
       if B='S' then c:='D';
       EditP3.Text:=IntToSTR(adr)+c;
-      clicliste:=false;
-      LabelInfo.caption:='Changement de la TJD homologue de '+IntToSTR(adr2)+' à '+intToSTR(adr) ;
 
-      adr2:=aiguillage[index].Ddroit;  // 'ancienne' adresse homologue avant écrasement
+      adr2:=aiguillage[index].Ddroit;  // 'ancienne' adresse avant écrasement
       aiguillage[index].Ddroit:=adr;
       //aiguillage[index].DdroitB:=B;
       aiguillage[index].Ddevie:=adr;
-      aiguillage[index].DdevieB:=B;
+      aiguillage[index].DdevieB:=c;
 
       s:=encode_aig(index);
       formconfig.ListBoxAig.items[ligneClicAig]:=s;
 
-      // changer l'homologue
+      // index de l'ancienne adresse
       index:=index_aig(Adr2);
-      aiguillage[index].adresse:=adr;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[index-1]:=s;
+
+      if index=0 then    // si elle n'existe pas la créer
+      begin
+        // créer homologue
+        if model=tjd then labelInfo.Caption:='Création de la TJD homologue '+IntToSTR(adr);
+        if model=tjs then labelInfo.Caption:='Création de la TJS homologue '+IntToSTR(adr);
+
+        inc(MaxAiguillage);
+        index:=MaxAiguillage;
+        aiguillage[index].Adresse:=Adr;
+        tablo_index_aiguillage[adr]:=index;
+        aiguillage[Index].modele:=model;
+        aiguillage[Index].Adroit:=0;
+        aiguillage[Index].AdroitB:='D';
+        aiguillage[Index].Adevie:=0;
+        aiguillage[Index].AdevieB:='D';
+        aiguillage[Index].Ddroit:=adrAig;
+        aiguillage[Index].DdroitB:='D';
+        aiguillage[Index].Ddevie:=adrAig;
+        aiguillage[Index].DdevieB:='S';
+        aiguillage[Index].APointeB:='Z';
+        aiguillage[Index].tjsINTB:='S';
+
+        s:=encode_aig(index);
+        formconfig.ListBoxAig.items.add(s);
+        // scroller à la fin
+        ListBoxAig.SetFocus;    // génère evt adresse_p4 donc clicListe doit être à false
+      end  // fin de la création
+      else
+      begin
+        // si l'ancienne adresse = la nouvelle, on a rien changé, sortir absolument sinon on va remetre l'index à 0
+        if adr=adr2 then begin clicListe:=false;exit;end;
+        model:=aiguillage[Index].modele;
+        // existe, vérifier si c'est bien une TJD/S
+        if (model=tjd) or (model=tjs) then
+        begin
+          if model=tjd then labelInfo.Caption:='Mise à jour de la TJD homologue '+IntToSTR(adr);
+          if model=tjs then labelInfo.Caption:='Mise à jour de la TJS homologue '+IntToSTR(adr);
+
+          aiguillage[index].adresse:=adr;
+          tablo_index_aiguillage[adr]:=index;
+          tablo_index_aiguillage[adr2]:=0;   // supprimer l'ancien index
+          s:=encode_aig(index);
+          formconfig.ListBoxAig.items[index-1]:=s;
+        end;
+      end;
     end
       else
         LabelInfo.caption:='Erreur P4 TJD '+intToSTR(AdrAig);
-    end;  
+    end;
+  clicliste:=false;
+end;
+
+procedure TFormConfig.EditP1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  adresse_p1;
+end;
+
+procedure TFormConfig.EditP2KeyPress(Sender: TObject; var Key: Char);
+begin
+  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  adresse_p2;
+end;
+
+procedure TFormConfig.EditP3Exit(Sender: TObject);
+begin
+  adresse_p3;
+end;
+
+procedure TFormConfig.EditP4Exit(Sender: TObject);
+begin
+  adresse_p4;
+end;
+
+procedure TFormConfig.EditP3KeyPress(Sender: TObject; var Key: Char);
+begin
+  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  adresse_P3;
+end;
+
+
+procedure TFormConfig.EditP4KeyPress(Sender: TObject; var Key: Char);
+begin
+  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  adresse_p4;
 end;
 
 procedure TFormConfig.ButtonAjSupClick(Sender: TObject);
@@ -10463,7 +10656,7 @@ begin
     inc(MaxAiguillage);
     aiguillage[MaxAiguillage]:=Aig_supprime;
     Aig_Supprime.adresse:=0;  // dévalider l'aiguillage sauvegardé
-    Aig_Supprime.modele:=rien;  
+    Aig_Supprime.modele:=rien;
     clicListe:=true;
     config_modifie:=true;
 
@@ -10479,9 +10672,9 @@ begin
       SetFocus;
       //Selstart:=ListBoxAig.GetTextLen-1;
       Perform(EM_SCROLLCARET,0,0);
-    end; 
+    end;
     Aff_champs_aig_tablo(MaxAiguillage);
-  end;  
+  end;
   clicListe:=false;
 end;
 
@@ -10497,12 +10690,12 @@ begin
     ListBoxAig.items[ligneclicAig]:=encode_Aig(index);
     aff_champs_Aig_tablo(index);  // réaffiche les champs 
     clicListe:=false;
-  end;  
+  end;
 end;
 
 procedure TFormConfig.ComboBoxAigChange(Sender: TObject);
 var s: string;
-    i : integer;
+    i,i2 : integer;
 begin
   if clicListe then exit;
   if MaxAiguillage<ligneclicAig+1 then exit;
@@ -10518,10 +10711,25 @@ begin
   else aiguillage[i].modele:=rien;
   end;
 
+  clicListe:=true;
+
   if (aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs) then
   begin
     if not(radioButtonTJD2.Checked) and not(radioButtonTJD4.Checked) then radioButtonTJD2.Checked:=true;
     if (aiguillage[i].tjsIntB<>'S') and (aiguillage[i].tjsIntB<>'D') then aiguillage[i].tjsIntB:='D';
+    if aiguillage[i].EtatTJD=4 then
+    begin
+      // si la tjd homologue existe, changer son type aussi
+      i2:=aiguillage[i].dDroit;
+      i2:=tablo_index_aiguillage[i2];  // index tjd homologue
+      if i2<>0 then
+      begin
+        LabelInfo.Caption:='Mise à jour TJD/S homologue';
+        aiguillage[i2].modele:=aiguillage[i].modele;  // type vers homologue
+        s:=encode_aig(i2);
+        formconfig.ListBoxAig.items[i2-1]:=s;
+      end;
+    end;
   end;
 
   if aiguillage[i].modele=crois then LabelCrois.Visible:=true else LabelCrois.Visible:=false;
@@ -10529,7 +10737,6 @@ begin
   s:=encode_aig(i);
   formconfig.ListBoxAig.items[ligneclicAig]:=s;
   formconfig.ListBoxAig.selected[ligneclicAig]:=true;
-  clicliste:=true;
   Aff_champs_aig_tablo(i);
   clicliste:=false;
 end;
@@ -10980,16 +11187,20 @@ begin
     s:=EditL.Text;
     if s='' then exit;
     val(s,i,erreur);
-    if erreur<>0 then
-    if (s[erreur]<>'S') and (s[erreur]<>'D') then
+    if (erreur<>0) then
+      if (s[erreur]<>'S') and (s[erreur]<>'D') then
+      begin
+        LabelInfo.caption:='Erreur Champ L manque D ou S terminal';
+        exit
+      end
+    else
     begin
-      LabelInfo.caption:='Erreur Champ L manque D ou S';exit
-    end
-    else LabelInfo.caption:='';
-    aiguillage[ligneclicAig+1].tjsint:=i;
-    aiguillage[ligneclicAig+1].tjsintb:=s[erreur];
-    s:=encode_aig(ligneclicAig+1);
-    ListBoxAig.items[ligneclicAig]:=s;
+      LabelInfo.caption:='';
+      aiguillage[ligneclicAig+1].tjsint:=i;
+      aiguillage[ligneclicAig+1].tjsintb:=s[erreur];
+      s:=encode_aig(ligneclicAig+1);
+      ListBoxAig.items[ligneclicAig]:=s;
+    end;
   end;
 end;
 
@@ -13263,15 +13474,27 @@ begin
     EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].adresse:=i;
+    tablo_index_signal[i]:=ligneClicSig+1;
+
     Signaux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
-    index_accessoire[i]:=ligneClicSig+1;
     s:=encode_sig_feux(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Maj_Hint_Signal(ligneClicSig+1);
-   end;
+  end;
 end;
 
-end.
+procedure TFormConfig.EditP1Exit(Sender: TObject);
+begin
+ adresse_P1;
+end;
+
+procedure TFormConfig.EditP2Exit(Sender: TObject);
+begin
+  adresse_P2;
+end;
+
+
+end.
 
 

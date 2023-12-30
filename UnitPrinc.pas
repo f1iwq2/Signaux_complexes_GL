@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 23/12 12h
+// 29/12 10h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -207,7 +207,6 @@ type
     Affichagenormal1: TMenuItem;
     N14: TMenuItem;
     Sauvegarderla1: TMenuItem;
-    ButtonIndex: TButton;
     MSCommCde1: TMSComm;
     MSCommCde2: TMSComm;
     ClientSocketCde1: TClientSocket;
@@ -332,7 +331,6 @@ type
     procedure FormResize(Sender: TObject);
     procedure Affichagenormal1Click(Sender: TObject);
     procedure Sauvegarderla1Click(Sender: TObject);
-    procedure ButtonIndexClick(Sender: TObject);
     procedure StatusBar1DrawPanel(StatusBar: TStatusBar;
       Panel: TStatusPanel; const Rect: TRect);
     procedure MSCommCde1Comm(Sender: TObject);
@@ -376,8 +374,8 @@ type
 
 const
 titre='Signaux complexes GL ';
-MaxAcc=2048;          // adresse maxi d'accessoire XpressNet
-NbMaxDet=513+128;     // indice maximal de détecteurs d'un réseau (nombre en XpressNet=128)
+MaxAcc=1024;          // adresse maxi d'accessoire XpressNet (testé à la LH100)
+NbMaxDet=2048;        // indice maximal de détecteurs d'un réseau
 Max_Trains=100;       // nombre maximal de train de CDM ou déclarés ou en circulation
 MaxZones=250;         // nombre de zones de détecteurs activés par les trains
 MaxTrainZone=40;      // nombre maximal de trains pour le tableau d'historique des zones
@@ -629,7 +627,8 @@ var
     reaffecte : integer ;   // =1 réaffecté au bon train dans le cas de 2 détecteurs contigus qui ne s'enchainent pas bien =2 réaffecté par changement aiguillage
   end;
 
-  Index_Accessoire : array[0..MaxAcc] of integer; // tableau d'index des accessoires aiguillages et signaux sur le bus DCC
+  tablo_Index_Signal : array[0..MaxAcc] of integer; // tableau d'index des accessoires signaux sur le bus DCC
+  tablo_Index_Aiguillage : array[0..MaxAcc] of integer; // tableau d'index des aiguillages sur le bus DCC
 
   // tableau des périphériques
   Tablo_periph : array[1..NbMaxi_Periph] of TPeripherique;
@@ -707,11 +706,14 @@ var
 
   // modélisations des fichiers config
   branche : array [1..MaxBranches] of string;
-  // l'indice du tableau aiguillage n'est pas son adresse
-  aiguillage : array[0..NbreMaxiAiguillages] of Taiguillage;
+
+  // Pour les tableaux aiguillage et signaux : l'indice du tableau aiguillage n'est pas son adresse
+  // ils sont stockés dans les tableaux tablo_Index_Signal[adresse]=index  et tablo_Index_Aiguillage[adresse]=index
+  Aiguillage : array[0..NbreMaxiAiguillages] of Taiguillage;
   // signaux - L'index du tableau n'est pas son adresse
-  CdeDccpp : array[1..MaxCdeDccpp] of string;
   Signaux :  array[0..NbreMaxiSignaux] of TSignal;
+
+  CdeDccpp : array[1..MaxCdeDccpp] of string;
   trains_cdm : array[1..Max_Trains] of record
               nom_train : string;
               adresse,vitmax : integer;
@@ -976,8 +978,8 @@ function chaine_signal(adresse : word) : string;
 var a,i,aspect,etat,combine,nation : integer;
     s : string;
 begin
-  //i:=Index_Signal(adresse);
-  i:=index_accessoire[adresse];
+  i:=Index_Signal(adresse);
+  //i:=index_accessoire[adresse];
   etat:=Signaux[i].EtatSignal  ;
   nation:=1;
   a:=Signaux[i].aspect;
@@ -1659,8 +1661,7 @@ begin
   XChiffre:=14;Ychiffre:=76;
   Xfin:=26;yFin:=99;
 
-  //index:=index_signal(adresse);
-  index:=index_accessoire[adresse];
+  index:=index_signal(adresse);
   if Signaux[index].contrevoie then
   begin
     xvert:=largeur-xvert;
@@ -2078,7 +2079,8 @@ end;
 function index_signal(adresse : integer) : integer;
 begin
   if adresse>MaxAcc then result:=0 else
-  result:=Index_Accessoire[adresse];
+  //result:=Index_Accessoire[adresse];
+  result:=Tablo_Index_Signal[adresse];
   // vérifier si l'index correspond à un signal
   if Signaux[result].adresse<>adresse then result:=0;
 end;
@@ -2100,7 +2102,7 @@ end;
 function Index_Aig(adresse : integer) : integer;
 begin
   if adresse>MaxAcc then result:=0 else
-  result:=Index_Accessoire[adresse];
+  result:=tablo_index_aiguillage[adresse];
   // vérifier si l'index correspond à un aiguillage
   if Aiguillage[result].adresse<>adresse then result:=0;
 end;
@@ -2280,7 +2282,11 @@ begin
     end;
     dessine_signal_mx(Signaux[rang].Img.Canvas,0,0,1,1,Signaux[rang].adresse,1);
     //if Signaux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
+    refresh;
+    Picture.Bitmap.Modified:=True;
+
   end;
+
 
   // créée le label pour afficher son adresse
   Signaux[rang].Lbl:=Tlabel.create(Formprinc.ScrollBox1);
@@ -5271,12 +5277,12 @@ begin
     begin
       // changer l'adresse du précédent par l'autre adresse de la TJD/S
       // V1 index:=index_aig(prec);
-      index:=index_accessoire[prec];
+      index:=tablo_index_aiguillage[prec];
       md:=aiguillage[index].modele;
       if (md=tjs) or (md=tjd) then
       begin
         //V1 prec:=Aiguillage[index_aig(prec)].Ddroit;
-        prec:=Aiguillage[index_accessoire[prec]].Ddroit;
+        prec:=Aiguillage[tablo_index_aiguillage[prec]].Ddroit;
         if NivDebug=3 then AfficheDebug('Le précedent est une TJD/S - substitution du precédent par la pointe de la TJD qui est '+intToSTR(prec),clYellow);
       end;
     end;
@@ -5297,7 +5303,7 @@ begin
   if (Bt=aig) or (Bt=buttoir) then  // aiguillage ou buttoir
   begin
     //V1 index:=index_aig(adr);
-    index:=index_accessoire[adr];
+    index:=tablo_index_aiguillage[adr];
     if index=0 then
     begin
       if bt=aig then
@@ -5399,7 +5405,7 @@ begin
           begin
             // si TJD (modele=2) sur le précédent, alors substituer avec la 2eme adresse de la TJD
             // V1 md:=aiguillage[index_aig(prec)].modele;
-            md:=aiguillage[index_accessoire[prec]].modele;
+            md:=aiguillage[tablo_index_aiguillage[prec]].modele;
             if (md=tjd) or (md=tjs) then prec:=aiguillage[index_aig(prec)].DDroit;
             if prec<>aiguillage[index_aig(Adr)].Adroit then     //Adroit
             begin
@@ -5483,7 +5489,7 @@ begin
       // récupérer les élements de la TJD/S
       AdrTjdP:=aiguillage[index].Ddroit; // 2eme adresse de la TJD/S
       // V1 index2:=index_aig(AdrTjdP);
-      index2:=index_accessoire[AdrTjdP];
+      index2:=tablo_index_aiguillage[AdrTjdP];
 
       tjdC:=aiguillage[index].modele=tjd;
       tjsC:=aiguillage[index].modele=tjs;
@@ -12717,7 +12723,6 @@ begin
   serveurIPCDM_Touche:=false;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique + debug mise au point etc
-  ButtonIndex.Visible:=not(avecInit);
   roulage1.visible:=false;
   FenRich.MaxLength:=$7FFFFFF0;
 
@@ -12744,7 +12749,6 @@ begin
   if OsBits=64 then s:='OS 64 Bits' else s:='OS 32 Bits';
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
   Affiche(s,clLime);
-
   With ScrollBox1 do
   begin
     HorzScrollBar.Tracking:=true;
@@ -12782,7 +12786,6 @@ begin
   Application.HintPause:=400;
   //visible:=true;  // rend la form visible plus tot
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
-
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
@@ -12813,6 +12816,7 @@ begin
     EditEnvoi.Visible:=true;
   end;
 
+
   Application.ProcessMessages;
   // Initialisation des images des signaux
   procetape('Création des signaux');
@@ -12825,6 +12829,7 @@ begin
     if debug=1 then affiche('Création du signal '+intToSTR(i)+' ----------',clLime);
     cree_image(i);  // et initialisation tableaux signaux
   end;
+  
   Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
 
   if debug=1 then Affiche('Création TCO',clLime);
@@ -12846,7 +12851,6 @@ begin
     Affiche(intToSTR(ecran[i+1].x0)+' '+intToSTR(ecran[i+1].y0)+' '+
             intToSTR(ecran[i+1].larg)+' '+intToSTR(ecran[i+1].haut),clyellow); }
   end;
-
   OrgMilieu:=formprinc.width div 2;
   with statusbar1 do
   begin
@@ -12959,6 +12963,7 @@ begin
     else
       Affiche_Fenetre_TCO(index,avecTCO);
   end;
+  show;
 
 
   // ouvre les périphériques commandes actionneurs, car on a lu les com dans la config
@@ -12976,6 +12981,7 @@ begin
       else Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
     end;
   end;
+
 
   if debug=1 then Affiche('Initialisations',clLime);
   raz_tout;
@@ -13021,6 +13027,7 @@ begin
       connecte_interface_ethernet; // la connexion du socket ne se fait qu'a la sortie de cette procédure create
     end;
   end;
+
 
   if debug=1 then Affiche('Tentative ouverture liaison centrale',clLime);
   if portCommOuvert or parSocketLenz then
@@ -13133,11 +13140,11 @@ begin
     else Affiche_fenetre_CDM.Enabled:=false;
 
   //Affiche(GetMACAddress,clred);
-  formPrinc.left:=-1000;
+  //formPrinc.left:=-1000;
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
 
-  //reserve_canton(521,527,1,1);
+ 
 end;
 
 
@@ -13892,7 +13899,7 @@ begin
   begin
     adr:=aiguillage[i].adresse;
     begin
-      s:=IntToSTR(i)+' Adr='+IntToSTR(adr);
+      s:=IntToSTR(i)+' i='+intToSTR(tablo_index_aiguillage[adr])+' Adr='+IntToSTR(adr);
       if aiguillage[i].modele=aig then s:=s+' Pointe=';
 
       if (aiguillage[i].modele=crois) then
@@ -14731,7 +14738,7 @@ begin
   for i:=1 to NbreSignaux do
   begin
     // feu de signalisation
-    s:=IntToSTR(i)+' Adr='+IntToSTR(Signaux[i].Adresse);
+    s:=IntToSTR(i)+' i='+intToSTR(tablo_index_signal[Signaux[i].Adresse])+' Adr='+IntToSTR(Signaux[i].Adresse);
     s:=s+' décodeur='+IntToStr(Signaux[i].decodeur);
     asp:=Signaux[i].aspect;
     if asp<>20 then nation:=1 else nation:=2;
@@ -16822,16 +16829,6 @@ begin
   sauve_config;
 end;
 
-
-procedure TFormPrinc.ButtonIndexClick(Sender: TObject);
-var i,v : integer;
-begin
-  for i:=1 to MaxAcc do
-  begin
-    v:=index_accessoire[i];
-    if v<>0 then affiche('adresse='+intToSTR(i)+' index = '+intToSTR(v),clLime);
-  end;
-end;
 
 procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
 var RectForText: TRect;

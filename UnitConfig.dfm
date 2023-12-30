@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 503
-  Top = 109
+  Left = 251
+  Top = 157
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -667,8 +667,8 @@ object FormConfig: TFormConfig
     Left = 8
     Top = 8
     Width = 633
-    Height = 497
-    ActivePage = TabSheetCDM
+    Height = 505
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1541,7 +1541,7 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelCrois: TLabel
-          Left = 56
+          Left = 88
           Top = 280
           Width = 187
           Height = 26
@@ -1749,7 +1749,7 @@ object FormConfig: TFormConfig
             Caption = 'LabelTJD1'
           end
           object LabelTJD2: TLabel
-            Left = 176
+            Left = 168
             Top = 76
             Width = 52
             Height = 13
@@ -1794,8 +1794,12 @@ object FormConfig: TFormConfig
             Top = 28
             Width = 33
             Height = 21
+            Hint = '1'#232're adresse de la TJD/S'
             Color = clLime
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 2
+            OnExit = EditP1Exit
             OnKeyPress = EditP1KeyPress
           end
           object EditP2: TEdit
@@ -1803,8 +1807,12 @@ object FormConfig: TFormConfig
             Top = 48
             Width = 33
             Height = 21
+            Hint = '1'#232're adresse de la TJD/S'
             Color = clLime
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 3
+            OnExit = EditP2Exit
             OnKeyPress = EditP2KeyPress
           end
           object EditP3: TEdit
@@ -1812,8 +1820,12 @@ object FormConfig: TFormConfig
             Top = 22
             Width = 33
             Height = 21
+            Hint = '2'#232'me adresse de la TJD/S'
             Color = clLime
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 4
+            OnExit = EditP3Exit
             OnKeyPress = EditP3KeyPress
           end
           object EditP4: TEdit
@@ -1821,8 +1833,12 @@ object FormConfig: TFormConfig
             Top = 44
             Width = 33
             Height = 21
+            Hint = '2'#232'me adresse de la TJD/S'
             Color = clLime
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 5
+            OnExit = EditP4Exit
             OnKeyPress = EditP4KeyPress
           end
           object EditDevie_HD: TEdit
@@ -1850,9 +1866,8 @@ object FormConfig: TFormConfig
             Top = 68
             Width = 33
             Height = 21
-            Color = clLime
             TabOrder = 8
-            OnKeyPress = EditDevieS2KeyPress
+            OnChange = EditDevieS2Change
           end
           object EditL: TEdit
             Left = 32
@@ -1941,7 +1956,7 @@ object FormConfig: TFormConfig
           Top = 80
           Width = 89
           Height = 73
-          Caption = 'Type TJD'
+          Caption = 'Type TJD-TJS'
           TabOrder = 8
           object RadioButtonTJD2: TRadioButton
             Left = 8

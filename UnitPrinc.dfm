@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1125
-    602)
+    1117
+    595)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 580
-    Width = 1125
+    Top = 573
+    Width = 1117
     Height = 22
     Panels = <
       item
@@ -1521,7 +1521,7 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object ScrollBox1: TScrollBox
-      Left = 424
+      Left = 512
       Top = 192
       Width = 465
       Height = 249
@@ -2031,15 +2031,6 @@ object FormPrinc: TFormPrinc
         TabOrder = 3
       end
     end
-  end
-  object ButtonIndex: TButton
-    Left = 840
-    Top = 176
-    Width = 75
-    Height = 25
-    Caption = 'Indexs'
-    TabOrder = 4
-    OnClick = ButtonIndexClick
   end
   object MSCommCde1: TMSComm
     Left = 1064
