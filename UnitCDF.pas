@@ -81,6 +81,7 @@ type
     procedure EditNAdressesChange(Sender: TObject);
     procedure BitBtnOkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -95,12 +96,28 @@ var
 {$R *.dfm}
 
 procedure dessine_feu_CDF;
+procedure couleurs_cdf;
 
 implementation
 
+procedure couleurs_cdf;
+var i : integer;
+    c : tComponent;
+begin
+  if sombre then with formCDF do
+  begin
+    Color:=Couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,clWhite);
+    end;
+  end;
+end;
 
 procedure TFormCDF.FormActivate(Sender: TObject);
-var erreur : integer;
+var i,erreur : integer;
+    c : tcomponent;
 begin
   Val(FormConfig.EditAdrSig.text,Adresse,erreur);
   index:=index_Signal(Adresse);
@@ -170,6 +187,8 @@ begin
   Edit19.Text:=intToSTR(Signaux[index].SR[19].sortie1);
 
   editNadresses.text:=intToSTR(Signaux[index].NA);
+
+
 end;
 
 procedure dessine_feu_CDF;
@@ -464,6 +483,11 @@ end;
 procedure TFormCDF.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   dessineCDF:=false;
+end;
+
+procedure TFormCDF.FormCreate(Sender: TObject);
+begin
+  couleurs_cdf;
 end;
 
 end.

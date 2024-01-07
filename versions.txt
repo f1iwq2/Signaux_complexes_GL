@@ -219,4 +219,6 @@ version 8.34 : Correction signal Unisemaf.
 version 8.35 : Correction ajout de signaux et d'aiguillages.
                Renforcement de la vérification de la cohérence.
                Amélioration de l'édition des TJD.
+version 8.36 : Création d'un mode de fond sombre modifiable pour l'affichage.
+               Amélioration édition des lignes et colonnes du TCO.
 

@@ -10,7 +10,7 @@ type
   TFormDebug = class(TForm)
     EditNivDebug: TEdit;
     Label1: TLabel;
-    Label2: TLabel;
+    LabelTitreDebug: TLabel;
     SaveDialog: TSaveDialog;
     ButtonEcrLog: TButton;
     ButtonRazTampon: TButton;
@@ -124,6 +124,7 @@ procedure AfficheDebug(s : string;lacouleur : TColor);
 procedure AfficheDebug_suivi(s : string;lacouleur : TColor);
 procedure RE_ColorLine(ARichEdit: TRichEdit; ARow: Integer; AColor: TColor);
 procedure affiche_evt(s: string;lacouleur : TColor);
+procedure couleurs_debug;
 
 implementation
 
@@ -163,6 +164,21 @@ begin
   end;
 end;
 
+procedure couleurs_debug;
+var c : tcomponent;
+    i : integer;
+begin
+  if sombre then with formdebug do
+  begin
+    Color:=Couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
+  end;
+end;
+
 procedure AfficheDebug_suivi(s : string;lacouleur : TColor);
 var i : integer;
 begin
@@ -192,6 +208,8 @@ begin
   compt_erreur:=0;
   LigneErreur:=0;
   if debug=1 then Affiche('Fin création fenêtre debug',clLime);
+
+  couleurs_debug;
 end;
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);

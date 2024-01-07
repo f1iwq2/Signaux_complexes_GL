@@ -453,6 +453,8 @@ begin
 end;
 
 procedure TFormConfCellTCO.FormCreate(Sender: TObject);
+var i : integer;
+    c : tcomponent;
 begin
   // fenetre toujours dessus
   if affevt then Affiche('FormConfCellTCO create',clyellow);
@@ -463,6 +465,17 @@ begin
   ImagePaletteCC.Width:=iconeX;
   ImagePaletteCC.Height:=iconeY;
   RadioGroupSel.itemIndex:=0;
+
+  if sombre then
+  begin
+    Color:=Couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
+  end;
+
   // dessine les composants - non utilisé
   {
   i:=1;

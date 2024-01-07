@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 251
-  Top = 157
+  Left = 238
+  Top = 145
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
       Caption = 'CDM Rail'
       object Label36: TLabel
         Left = 24
-        Top = 448
+        Top = 456
         Width = 369
         Height = 13
         Caption = 
@@ -1032,49 +1032,49 @@ object FormConfig: TFormConfig
       end
       object GroupBox15: TGroupBox
         Left = 312
-        Top = 280
+        Top = 272
         Width = 297
-        Height = 161
+        Height = 177
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
           Left = 8
-          Top = 24
+          Top = 22
           Width = 204
           Height = 13
           Caption = 'Seuil du nombre de d'#233'tecteurs trop distants'
         end
         object Label41: TLabel
           Left = 8
-          Top = 68
+          Top = 64
           Width = 188
           Height = 13
           Caption = 'Taille de la fonte de la fen'#234'tre principale'
         end
         object Label44: TLabel
           Left = 8
-          Top = 45
+          Top = 43
           Width = 223
           Height = 13
           Caption = 'Nombre de cantons pr'#233'sence train avant signal'
         end
         object Label55: TLabel
           Left = 8
-          Top = 90
+          Top = 86
           Width = 32
           Height = 13
           Caption = 'Debug'
         end
         object Label28: TLabel
           Left = 8
-          Top = 136
+          Top = 110
           Width = 182
           Height = 13
           Caption = 'Port du serveur de Signaux Complexes'
         end
         object EditNbDetDist: TEdit
           Left = 240
-          Top = 20
+          Top = 18
           Width = 25
           Height = 21
           ParentShowHint = False
@@ -1083,7 +1083,7 @@ object FormConfig: TFormConfig
         end
         object EditFonte: TEdit
           Left = 240
-          Top = 64
+          Top = 62
           Width = 25
           Height = 21
           ParentShowHint = False
@@ -1092,7 +1092,7 @@ object FormConfig: TFormConfig
         end
         object EditNbCantons: TEdit
           Left = 240
-          Top = 41
+          Top = 39
           Width = 25
           Height = 21
           Hint = 
@@ -1104,7 +1104,7 @@ object FormConfig: TFormConfig
         end
         object EditDebug: TEdit
           Left = 240
-          Top = 88
+          Top = 86
           Width = 25
           Height = 21
           Hint = 
@@ -1116,7 +1116,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 108
+          Top = 150
           Width = 233
           Height = 17
           Hint = 
@@ -1130,8 +1130,8 @@ object FormConfig: TFormConfig
           OnClick = CheckBoxVerifXpressNetClick
         end
         object EditPortServeur: TEdit
-          Left = 224
-          Top = 130
+          Left = 216
+          Top = 110
           Width = 49
           Height = 21
           Hint = 'Port de 1 '#224' 65535'
@@ -1141,9 +1141,33 @@ object FormConfig: TFormConfig
           OnChange = EditPortServeurChange
           OnExit = EditPortServeurExit
         end
+        object CheckBoxSombre: TCheckBox
+          Left = 8
+          Top = 132
+          Width = 209
+          Height = 17
+          Hint = 
+            'Red'#233'marrer signaux_complexes pour prise en compte apr'#232's changeme' +
+            'nt'
+          Caption = 'Affichage mode sombre'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+        end
+        object ButtonCouleur: TButton
+          Left = 144
+          Top = 130
+          Width = 25
+          Height = 17
+          Caption = '...'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
+          OnClick = ButtonCouleurClick
+        end
       end
       object ButtonPFCDM: TButton
-        Left = 40
+        Left = 32
         Top = 416
         Width = 241
         Height = 25
@@ -1448,7 +1472,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox22: TGroupBox
         Left = 312
-        Top = 376
+        Top = 368
         Width = 297
         Height = 65
         Caption = 'Protocole de connexion '#224' la centrale ou '#224' l'#39'interface'
@@ -1478,14 +1502,14 @@ object FormConfig: TFormConfig
       end
       object GroupBox25: TGroupBox
         Left = 312
-        Top = 320
+        Top = 304
         Width = 297
-        Height = 49
+        Height = 57
         Caption = 'Divers'
         TabOrder = 9
         object Label58: TLabel
-          Left = 24
-          Top = 24
+          Left = 16
+          Top = 20
           Width = 155
           Height = 13
           Caption = 'Filtrage des d'#233'tecteurs (x100 ms)'
@@ -2267,7 +2291,7 @@ object FormConfig: TFormConfig
         end
         object Label24: TLabel
           Left = 104
-          Top = 120
+          Top = 124
           Width = 8
           Height = 13
           Caption = '1'
@@ -2280,7 +2304,7 @@ object FormConfig: TFormConfig
         end
         object Label25: TLabel
           Left = 104
-          Top = 144
+          Top = 148
           Width = 8
           Height = 13
           Caption = '2'
@@ -2293,7 +2317,7 @@ object FormConfig: TFormConfig
         end
         object Label26: TLabel
           Left = 104
-          Top = 168
+          Top = 172
           Width = 8
           Height = 13
           Caption = '3'
@@ -2306,7 +2330,7 @@ object FormConfig: TFormConfig
         end
         object Label27: TLabel
           Left = 104
-          Top = 192
+          Top = 196
           Width = 8
           Height = 13
           Caption = '4'
@@ -2381,7 +2405,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2488,7 +2512,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2570,9 +2594,9 @@ object FormConfig: TFormConfig
         end
         object CheckBoxContreVoie: TCheckBox
           Left = 120
-          Top = 294
+          Top = 296
           Width = 137
-          Height = 25
+          Height = 17
           Hint = 'Signal clignotant'
           Caption = 'Signal de contrevoie'
           ParentShowHint = False
@@ -2781,7 +2805,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2800,7 +2824,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2846,7 +2870,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3231,7 +3255,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3412,7 +3436,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -4151,7 +4175,7 @@ object FormConfig: TFormConfig
       end
       object GroupBoxDesc: TGroupBox
         Left = 280
-        Top = 80
+        Top = 88
         Width = 329
         Height = 129
         Caption = 'Description du p'#233'riph'#233'rique'
@@ -4253,5 +4277,10 @@ object FormConfig: TFormConfig
       Hint = 'Copie tout le contenu en tant que texte dans le presse-papier'
       OnClick = outcopierentatquetexte1Click
     end
+  end
+  object ColorDialogFond: TColorDialog
+    OnShow = ColorDialogFondShow
+    Left = 696
+    Top = 376
   end
 end

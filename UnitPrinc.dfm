@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 79
-  Top = 256
-  Width = 1133
-  Height = 653
+  Left = 107
+  Top = 224
+  Width = 1149
+  Height = 689
   Anchors = [akLeft, akTop, akRight]
   Caption = 'Signaux complexes'
   Color = clBtnFace
@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1117
-    595)
+    1141
+    638)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 573
-    Width = 1117
+    Top = 616
+    Width = 1141
     Height = 22
     Panels = <
       item
@@ -1467,7 +1467,7 @@ object FormPrinc: TFormPrinc
       00020000802500000000080000000000000000003F00000011000000}
   end
   object Button1: TButton
-    Left = 728
+    Left = 744
     Top = 8
     Width = 75
     Height = 25
@@ -1478,15 +1478,14 @@ object FormPrinc: TFormPrinc
     OnClick = Button1Click
   end
   object GrandPanel: TPanel
-    Left = 0
-    Top = 32
-    Width = 1065
-    Height = 473
-    Anchors = [akLeft, akTop, akRight]
+    Left = 8
+    Top = 48
+    Width = 1025
+    Height = 476
     TabOrder = 3
     DesignSize = (
-      1065
-      473)
+      1025
+      476)
     object SplitterV: TSplitter
       Left = 1
       Top = 1
@@ -1521,8 +1520,8 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object ScrollBox1: TScrollBox
-      Left = 512
-      Top = 192
+      Left = 504
+      Top = 176
       Width = 465
       Height = 249
       HorzScrollBar.Increment = 48
@@ -1535,7 +1534,7 @@ object FormPrinc: TFormPrinc
       TabOrder = 1
     end
     object GroupBox1: TGroupBox
-      Left = 505
+      Left = 465
       Top = 21
       Width = 265
       Height = 52
@@ -1555,6 +1554,12 @@ object FormPrinc: TFormPrinc
         Width = 49
         Height = 21
         Hint = 'Adresse accessoire'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
         TabOrder = 0
         Text = '1'
       end
@@ -1586,7 +1591,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox3: TGroupBox
-      Left = 497
+      Left = 457
       Top = 104
       Width = 265
       Height = 129
@@ -1752,7 +1757,10 @@ object FormPrinc: TFormPrinc
         Top = 88
         Width = 83
         Height = 33
+        Hint = 'Envoie la vitesse au train'
         Caption = 'Envoi vitesse '#224' loco'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 0
         WordWrap = True
         OnClick = locoClick
@@ -1809,7 +1817,7 @@ object FormPrinc: TFormPrinc
         TabOrder = 5
       end
       object TrackBarVit: TTrackBar
-        Left = 24
+        Left = 16
         Top = 64
         Width = 233
         Height = 21
@@ -1818,12 +1826,14 @@ object FormPrinc: TFormPrinc
         Max = 100
         Min = -100
         ParentCtl3D = False
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 7
         OnChange = TrackBarVitChange
       end
     end
     object Panel1: TPanel
-      Left = 729
+      Left = 689
       Top = -3
       Width = 288
       Height = 180
@@ -1970,16 +1980,16 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 505
-      Top = 16
+      Left = 577
+      Top = 104
       Width = 265
-      Height = 105
+      Height = 129
       Anchors = [akTop, akRight]
       Caption = 'Variables CV'
       TabOrder = 5
       object Label3: TLabel
         Left = 208
-        Top = 34
+        Top = 42
         Width = 14
         Height = 13
         Caption = 'CV'
@@ -1987,7 +1997,7 @@ object FormPrinc: TFormPrinc
       end
       object LabelVCV: TLabel
         Left = 208
-        Top = 55
+        Top = 71
         Width = 47
         Height = 13
         Caption = 'Valeur CV'
@@ -1995,7 +2005,7 @@ object FormPrinc: TFormPrinc
       end
       object ButtonEcrCV: TButton
         Left = 8
-        Top = 16
+        Top = 24
         Width = 153
         Height = 33
         Hint = 'Ecriture CV en mode direct sur voie de  programmation'
@@ -2006,7 +2016,7 @@ object FormPrinc: TFormPrinc
       end
       object ButtonLitCV: TButton
         Left = 8
-        Top = 64
+        Top = 80
         Width = 153
         Height = 33
         Hint = 'Lecture CV en mode direct sur voie de  programmation'
@@ -2018,17 +2028,35 @@ object FormPrinc: TFormPrinc
       end
       object EditCV: TEdit
         Left = 168
-        Top = 32
+        Top = 40
         Width = 33
         Height = 21
         TabOrder = 2
       end
       object EditVal: TEdit
         Left = 168
-        Top = 52
+        Top = 68
         Width = 33
         Height = 21
         TabOrder = 3
+      end
+    end
+    object PanelBouton: TPanel
+      Left = 952
+      Top = 200
+      Width = 64
+      Height = 67
+      BorderStyle = bsSingle
+      Color = clGreen
+      TabOrder = 6
+      Visible = False
+      object SpeedButton1: TSpeedButton
+        Left = 0
+        Top = 0
+        Width = 57
+        Height = 57
+        Caption = 'bouton maison'
+        Flat = True
       end
     end
   end

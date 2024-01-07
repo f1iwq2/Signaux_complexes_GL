@@ -352,6 +352,9 @@ type
     ButtonPFCDM: TButton;
     CheckBoxZ21: TCheckBox;
     RadioButtonDCCpp: TRadioButton;
+    CheckBoxSombre: TCheckBox;
+    ButtonCouleur: TButton;
+    ColorDialogFond: TColorDialog;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -533,6 +536,8 @@ type
     procedure EditP1Exit(Sender: TObject);
     procedure EditP2Exit(Sender: TObject);
     procedure EditDevieS2Change(Sender: TObject);
+    procedure ButtonCouleurClick(Sender: TObject);
+    procedure ColorDialogFondShow(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -551,6 +556,8 @@ const
 // constantes du fichier de configuration
 NomConfig='ConfigGenerale.cfg';
 Debug_ch='Debug';
+Sombre_ch='Mode_Sombre';
+couleur_fond_ch='coul_fond';
 serveurIPCDM_Touche_ch='serveurIPCDM_Touche';
 PortServeur_ch='Port_Serveur';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
@@ -681,6 +688,7 @@ procedure trier_detecteurs;
 function decodeDCC(s : string) : string;
 function encode_aig(index : integer): string;
 function Ipok(s : string) : boolean;
+procedure couleurs_config;
 
 implementation
 
@@ -1697,6 +1705,9 @@ begin
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
+  if sombre then s:='1' else s:='0';
+  writeln(fichierN,sombre_ch+'=',s);
+  writeln(fichierN,couleur_fond_ch+'='+IntToHex(couleurFond,6));
   if serveurIPCDM_Touche then s:='1' else s:='0';
   writeln(fichierN,serveurIPCDM_Touche_ch+'='+s); 
   writeln(fichierN,PortServeur_ch+'=',PortServeur);
@@ -2975,6 +2986,22 @@ var s,sa,SOrigine: string;
         val(s,debug,erreur);
       end;
 
+      sa:=uppercase(sombre_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        sombre:=i=1;
+      end;
+
+      sa:=uppercase(couleur_fond_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin                
+        delete(s,i,length(sa));
+        val('$'+s,CouleurFond,erreur);
+      end;
 
       sa:=uppercase(serveurIPCDM_Touche_ch)+'=';
       i:=pos(sa,s);
@@ -3967,6 +3994,7 @@ begin
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
+    sombre:=CheckBoxSombre.Checked;
     protocole:=1;
     if RadioButtonXpress.Checked then
     begin
@@ -4029,7 +4057,7 @@ begin
   Val(s,Adresse,erreur);  // Adresse du signal
   if adresse=0 then exit;
 
-  FormConfig.EditAdrSig.Color:=clWindow;
+  if sombre then Formconfig.editAdrSig.Color:=couleurfond else FormConfig.EditAdrSig.Color:=clWindow;
 
   aff_champs_sig_feux(index);   // affiche les champs du feu
   clicliste:=false;
@@ -4128,6 +4156,7 @@ begin
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
   CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
+  CheckBoxSombre.Checked:=sombre;
 
   RadioButtonXpress.Checked:=protocole=1;
   RadioButtonDcc.Checked:=protocole=2;
@@ -4514,7 +4543,7 @@ begin
   Tablo_periph[ligneClicAccPeriph+1].NumCom:=i;
   Tablo_com_cde[ligneClicAccPeriph+1].NumPeriph:=ligneClicAccPeriph+1;
   ListBoxPeriph.Selected[ligneClicAccPeriph]:=true;
-  
+
   maj_champs_combos(ligneClicAccPeriph+1);
 
   // recalculer le nombre de sockets et de comusb
@@ -4541,6 +4570,52 @@ begin
   end;
 end;
 
+procedure couleurs_config;
+var i : integer;
+    c : tcomponent;
+begin
+  if sombre then
+  with formconfig do
+  begin
+    Color:=Couleurfond;
+    // page principale
+    for i:=0 to formconfig.ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurfond,couleurTexte);
+    end;
+
+    // onglet cdmrail
+    for i:=0 to TabSheetCDM.ComponentCount-1 do
+    begin
+      c:=TabSheetCDM.Components[i];
+      Affiche(c.Name,clred);
+      composant(c,couleurfond,couleurTexte);
+    end;
+
+    // onglet décodeurs
+    for i:=0 to TabSheetDecodeurs.ComponentCount-1 do
+    begin
+      c:=TabSheetDecodeurs.Components[i];
+      composant(c,couleurfond,couleurTexte);
+    end;
+
+    // PN
+    for i:=0 to GroupBoxPNA.ComponentCount-1 do
+    begin
+      c:=GroupBoxPNA.Components[i];
+      composant(c,couleurfond,couleurTexte);
+    end;
+
+    // périphériques
+    for i:=0 to TabSheetPeriph.ComponentCount-1 do
+    begin
+      c:=TabSheetPeriph.Components[i];
+      composant(c,couleurfond,couleurTexte);
+    end;
+  end;
+end;
+
 // on change textBoxCde des décodeurs
 procedure TformConfig.tbCde_onchange(sender : Tobject);
 var tb : tEdit;
@@ -4559,10 +4634,17 @@ end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,y,l,LongestLength,PixelLength : integer;
-    s,LongestString : string;
+    cs,s,LongestString : string;
 begin
   if debug=1 then Affiche('Création fenêtre config',clLime);
   clicListe:=true;
+
+  cs:='ColorA='+IntToHex(couleurFond,6);  // pour rajouter aux couleurs personnalisées de la fenetre couleur
+  colorDialogFond.CustomColors.Add(cs);
+  ButtonCouleur.Hint:='Change la couleur de fond de toutes les fenêtres de Signaux_Complexes.'+#13+
+                      'Utilisez la couleur personnalisée n°1 et après modification,'+#13+
+                      'cliquer sur "ajouter aux couleurs personnalisées" qui seule sera sauvegardée';
+
   Affiche_avert:=false;
   if affevt then affiche('FormConfig create',clLime);
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
@@ -4593,7 +4675,6 @@ begin
       name:='Ligne'+intToSTR(i);
       left:=5;width:=350; top:=y;height:=42;
       brush.Style:=bsSolid;
-      brush.Color:=clBtnFace;
       pen.color:=clBlack;
       shape:=stRectangle;
       parent:=TabSheetDecodeurs;
@@ -4690,6 +4771,7 @@ begin
       ShowHint:=false;
       visible:=false;
     end;
+
     TextBoxCde[i]:=Tedit.Create(FormConfig.TabSheetDecodeurs);
     with TextBoxCde[i] do
     begin
@@ -5350,8 +5432,8 @@ begin
   end;
 
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
-   // onglet accessoires COM/USB/Socket
-  //--------- groupbox
+  // onglet périphériques COM/USB/Socket
+  //--------- groupbox   
   gp1:=TgroupBox.Create(FormConfig.TabSheetPeriph);
   with gp1 do
   begin
@@ -5447,7 +5529,6 @@ begin
     caption:='Périphérique';
     parent:=FormConfig.TabSheetPeriph;
     name:='LabelNumeroP';
-
   end;
 
   EditPortCde:=TEdit.Create(FormConfig.TabSheetPeriph);
@@ -5458,7 +5539,7 @@ begin
     text:='';
     parent:=GroupBoxDesc;
     hint:='Port COM/USB : COMX:vitesse,parité,nombre de bits de données, nombre de bits de stop '+#13+
-          'ou'+#13+#13+
+          'ou'+#13+
           'Socket : AdresseIPV4:port';
     ShowHint:=true;
     OnChange:=formconfig.tb_onChange;
@@ -5517,6 +5598,7 @@ begin
   ligneClicAccPeriph:=-1;
   AncligneClicAccPeriph:=-1;
 
+  couleurs_config;
 end;
 
 
@@ -5635,7 +5717,6 @@ var Adresse,Adr2,ind,id2,erreur,position : integer;
     tjd,tri,tjs,croi : boolean;
     s,ss : string;
     i : integer;
-    B : char;
 begin
   if index<1 then exit;
   s:=Uppercase(formConfig.ListBoxAig.items[index-1]);
@@ -5650,6 +5731,7 @@ begin
 
   ss:=InttoSTr(Adresse);
   formconfig.EditAdrAig.text:= ss;
+  if sombre then formConfig.editAdrAig.Color:=couleurfond else FormConfig.EditAdrAig.Color:=clWindow;
 
   tjd:=pos('TJD',s)<>0 ;
   tri:=pos('TRI',s)<>0 ;
@@ -5657,7 +5739,6 @@ begin
   croi:=pos('CROI',s)<>0 ;
   with formconfig do
   begin
-    EditAdrAig.Color:=clWindow;
     ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
     ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
     ImageAffiche.Transparent:=true;
@@ -6744,7 +6825,8 @@ begin
   with formConfig do
   begin
     LabelInfo.caption:='';
-    EditAdrAig.Text:='';EditAigTriple.Text:='';
+    EditAdrAig.Text:='';
+    EditAigTriple.Text:='';
     Edit_HG.text:='';
     editDevie_HD.Text:='';
     editDroit_BD.Text:='';
@@ -8123,11 +8205,11 @@ begin
     if (aiguillage[Index_Aig(i)].modele<>rien) then
     begin
       EditAdrAig.Color:=clred;
-      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
+      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déjà - ne sera pas écrasé' ;
       exit;
     end;
 
-    EditAdrAig.Color:=clWindow;
+    if sombre then editAdrAig.Color:=couleurfond else EditAdrAig.Color:=clWindow;
     LabelInfo.caption:=' ';
 
     if (modele=aig) or (modele=triple) or (modele=crois) then
@@ -12746,6 +12828,7 @@ begin
     ligneClicSig:=itemindex;
     clicListeSignal(ligneClicSig+1);
   end;
+  clicliste:=false;
 end;
 
 procedure TFormConfig.ListBoxSigKeyDown(Sender: TObject; var Key: Word;
@@ -13052,7 +13135,7 @@ begin
 
   for i:=1 to NbPeriph do
   begin
-    if com_socket(i)=1 then  // si port comusb
+    if com_socket(i)=1 then  // si port com$usb
     begin
       if connecte_port_usb_periph(i) then
         Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique ouvert',clLime)
@@ -13471,7 +13554,7 @@ begin
       LabelInfo.caption:='Signal '+intToSTR(i)+' existe, il ne sera pas écrasé';exit;
     end;
 
-    EditAdrSig.Color:=clWindow;
+    if sombre then editAdrSig.Color:=couleurfond else EditAdrSig.Color:=clWindow;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].adresse:=i;
     tablo_index_signal[i]:=ligneClicSig+1;
@@ -13495,6 +13578,22 @@ procedure TFormConfig.EditP2Exit(Sender: TObject);
 end;
 
 
-end.
+procedure TFormConfig.ButtonCouleurClick(Sender: TObject);
+begin
+  if colorDialogFond.execute then
+  begin
+    Couleurfond:=colorDialogFond.Color;
+    Maj_couleurs;
+  end;
+end;
+
+procedure TFormConfig.ColorDialogFondShow(Sender: TObject);
+var s : string;
+begin
+  s:='Couleur de fond de Signaux_complexes';
+  SetWindowText(ColorDialogFond.Handle,pchar(s));
+end;
+
+end.
 
 

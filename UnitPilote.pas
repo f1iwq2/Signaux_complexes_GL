@@ -111,6 +111,7 @@ var
   AdrPilote : integer;
 
 procedure dessine_feu_pilote;
+procedure couleurs_pilote;
 
 implementation
 
@@ -269,10 +270,24 @@ begin
   dessine_feu_pilote;
 end;
 
+procedure couleurs_pilote;
+var i : integer;
+    c : tcomponent;
+begin
+  if sombre then with formPilote do
+  begin
+    Color:=Couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
+  end;
+end;
+
 procedure TFormPilote.FormCreate(Sender: TObject);
 begin
-//  radioVert.Checked:=false;
-//  radioVertCli.Checked:=false;
+  couleurs_pilote;
 end;
 
 procedure TFormPilote.ButtonPiloteClick(Sender: TObject);

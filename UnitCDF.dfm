@@ -14,6 +14,7 @@ object FormCDF: TFormCDF
   OldCreateOrder = False
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label20: TLabel

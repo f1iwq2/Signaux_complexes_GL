@@ -36,7 +36,6 @@ type
     ImagePiedFeu: TImage;
     BitBtnOk: TBitBtn;
     RadioGroup1: TRadioGroup;
-    RadioButtonLignes: TRadioButton;
     RadioButtonCourbes: TRadioButton;
     GroupBox3: TGroupBox;
     Label3: TLabel;
@@ -59,6 +58,7 @@ type
     TrackBarEpaisseur: TTrackBar;
     Label17: TLabel;
     Label18: TLabel;
+    RadioButtonLignes: TRadioButton;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -204,7 +204,6 @@ begin
     x2:=x1+width;
     jy1:=(Haut div 2)-round(12*fryGlob[indexTCO]); // pos Y de la bande sup
     jy2:=(Haut div 2)+round(12*fryGlob[indexTCO]); // pos Y de la bande inf
-
     canvas.PolyGon([point(x1,jy1),point(x2,jy1),point(x2,jy2),point(x1,jy2)]);
   end;
 
@@ -220,11 +219,10 @@ begin
     x1:=Larg div 2;
     y1:=0;
     canvas.moveTo(x1,y1);
-    y2:=HauteurCell[indexTCO] div 2;
+    y2:=haut div 2;
     canvas.LineTo(x1,y2);
     canvas.LineTo(x1-10,y2);
   end;
-
 end;
 
 function verif_config_TCO(indexTCO : integer) : boolean;  // renvoie true si ok
@@ -317,6 +315,7 @@ begin
   for i:=1 to 10 do
   begin
     stringGridTCO.Cells[1,i]:=NomFichierTCO[i];
+
     if i<=nbreTCO then stringGridTCO.Cells[2,i]:='X' else stringGridTCO.Cells[2,i]:=' ';
   end;
 //  stringGridTCO.canvas.Font.Style:=[fsBOld];
@@ -548,8 +547,9 @@ end;
 
 procedure TFormConfigTCO.FormCreate(Sender: TObject);
 var i : integer;
+    c : tcomponent;
 begin
-  for i := 0 to stringGridTCO.RowCount - 1 do
+  for i:=0 to stringGridTCO.RowCount - 1 do
   with stringGridTCO do
   begin
     RowHeights[i]:=15;
@@ -565,6 +565,17 @@ begin
     Cells[0,0]:='Num';
     Cells[1,0]:='Nom fichier';
     Cells[2,0]:='X';
+    font.Color:=clBlack;
+  end;
+
+  if sombre then
+  begin
+    Color:=Couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
   end;
 end;
 
@@ -577,6 +588,8 @@ begin
   affiche_tco(indexTCOcourant);
   TrackBarEpaisseur.Hint:='Epaisseur = '+IntToSTR(i);
 end;
+
+
 
 
 

@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 29/12 10h
+// 5/1 9h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -44,6 +44,15 @@ Unit UnitPrinc;
 // si on bouge un aiguillage à la raquette, on récupère bien sa position par XpressNet.
 // Une loco sur un détecteur au lancement ne renvoie pas son état statique. Seuls les changements
 // d'état sont renvoyés par la centrale.
+//
+// Notes pour compilation sous Embarcadero : --------------------------------------------------
+// Pour compilation avec Rad Studio (Delphi11): Projet / Options // Application / Apparence /
+// Embarcadero technologies / carbon ou Auric
+//
+// Pour le mode sombre sous embarcadero, il faut sélectionner:
+// Projet / Options // Application / manifeste /  fichier manifeste : personnaliser
+// à la sauvegarde, ce champ appraitra sous "générer automatiquement"
+// et : décocher "activer les thèmes d'exécution"
 
 //{$Q-}  // pas de vérification du débordement des opérations de calcul
 //{$R-}  // pas de vérification des limites d'index du tableau et des variables
@@ -218,6 +227,8 @@ type
     Copierltatdesaiguillageseninitialisation1: TMenuItem;
     ServerSocket: TServerSocket;
     Listedesclientsconnects1: TMenuItem;
+    PanelBouton: TPanel;
+    SpeedButton1: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure MSCommUSBInterfaceComm(Sender: TObject);
 
@@ -401,6 +412,7 @@ const_inconnu=9;      // position inconnue
 IdClients=10;         // Index maxi de clients
 NbCouleurTrain=8;
 MaxCdeDccpp=20;
+couleurTexte=$A0FFFF;
 clRose=$AAAAFF;
 clCyan=$FFA0A0;
 clviolet=$FF00FF;
@@ -566,7 +578,7 @@ var
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
   avec_splitter,fichier_module_cdm,Diffusion,cdmDevant,avecRESA,serveurIPCDM_Touche,
-  Z21 : boolean;
+  Z21,sombre,serveur_ouvert : boolean;
 
   tick,Premier_tick : longint;
 
@@ -702,7 +714,7 @@ var
   end;
 
   tablo_CV : array [1..255] of integer;
-  couleur : Tcolor;
+  couleur,Couleurfond : Tcolor;
 
   // modélisations des fichiers config
   branche : array [1..MaxBranches] of string;
@@ -850,12 +862,16 @@ procedure mosaiqueH;
 procedure mosaiqueV;
 function InfoSignal(adresse : integer) : string;
 procedure det_prec_signal(adresse : integer;var tabloDet : TTabloDet);
+procedure composant(c : tComponent;fond,texte : tColor);
+procedure maj_couleurs;
+
 
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
   Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM, UnitConfigCellTCO,
-  UnitConfigTCO;
+  UnitConfigTCO,
+  UnitSR;
 
 {
 procedure menu_interface(MA : TMA);
@@ -879,11 +895,35 @@ begin
   inc(etape);
 end;
 
-procedure Tformprinc.DoHint(Sender : Tobject);
-var s: string;
+procedure Tformprinc.DoHint(Sender : Tobject);     // le sender est tApplication
+var s,nomForm: string;
+    c : tcomponent;
+    FormeTCO : boolean;
 begin
-  s:=Application.Hint;
+  s:=Application.Hint;       // texte du hint
   StatusBar1.Panels[0].text:=s;
+
+  // détection d'un hint provoqué dans formtco
+  NomForm:=uppercase(Screen.activeform.Name);
+  formeTCO:=copy(NomForm,1,7)='FORMTCO';
+
+  // dessine les encadrés de colonne/ligne dans le tco suivant sélection du popup menu, en fonction du hint qu'on accroche
+  if formeTCO then
+  begin
+    // hints des colonnes
+    if (s=s101) or (s=s93) or (s=s94) then
+    begin
+      if not(colonneAffiche) then encadre_colonne;
+    end
+    else if colonneAffiche then encadre_colonne;
+
+    // hints des lignes
+    if (s=s90) or (s=s91) or (s=s100) then
+    begin
+      if not(ligneAffiche) then encadre_ligne;
+    end
+    else if ligneAffiche then encadre_ligne;
+  end;
 end;
 
 // fonctions sur les bits
@@ -2284,16 +2324,16 @@ begin
     //if Signaux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
     refresh;
     Picture.Bitmap.Modified:=True;
-
   end;
-
 
   // créée le label pour afficher son adresse
   Signaux[rang].Lbl:=Tlabel.create(Formprinc.ScrollBox1);
   with Signaux[rang].Lbl do
   begin
+    Name:='LabelFeu'+intToSTR(Signaux[rang].adresse);
     caption:='@'+IntToSTR(Signaux[rang].adresse);
     Parent:=Formprinc.ScrollBox1;
+    font.color:=clBlack;
     width:=100;height:=20;
     Top:=HtImg+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
@@ -2311,6 +2351,7 @@ begin
       Hint:='Feu blanc';
       Name:='CheckBoxFB'+intToSTR(adresse);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
       caption:='dem FB';
+      font.color:=clBlack;
       Parent:=Formprinc.ScrollBox1;
       width:=100;height:=15;
       Top:=HtImg+15+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
@@ -7357,6 +7398,17 @@ begin
       3: begin prec:=Signaux[i].Adr_det3; actuel:=Signaux[i].Adr_el_suiv3; TypeElActuel:=Signaux[i].Btype_suiv3; end;
       4: begin prec:=Signaux[i].Adr_det4; actuel:=Signaux[i].Adr_el_suiv4; TypeElActuel:=Signaux[i].Btype_suiv4; end;
       end;
+      if (prec=0) then
+      begin
+        s:='Erreur 780 : détecteur nul déclaré sur signal '+intToSTR(adresse);
+        Affiche(s,clred);
+        affichedebug(s,clred);
+        result:=0;
+        reserveTrainTiers:=false;
+        AdrTrain:=0;
+        exit;
+      end;
+
       TypeElPrec:=Det;
     end
     else
@@ -7519,7 +7571,7 @@ begin
   TypePrec:=det;
   if prec=0 then
   begin
-    Affiche('Msg 601 - feu '+intToSTR(prec)+' détecteur non renseigné ',clOrange);
+    Affiche('Msg 601 - Signal '+intToSTR(prec)+' détecteur non renseigné ',clOrange);
     if NivDebug=3 then AfficheDebug('Msg 602 - détecteur '+intToSTR(prec)+' non renseigné ',clOrange);
     signal_suivant_det:=0;
     if debug=3 then formprinc.Caption:='';
@@ -10672,8 +10724,8 @@ begin
           begin
             if aiguillage[index].position=const_inconnu then
             begin
-              Affiche('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
-              AfficheDebug('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',clred);
+              Affiche('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',ClOrange);
+              AfficheDebug('Attention : position de l''aiguillage '+IntToSTR(i)+' inconnue',ClOrange);
             end;
           end;
         end;
@@ -12634,6 +12686,7 @@ begin
 end;
 
 // positionne les composants de la fenêtre principale
+// i : position X du splitter
 procedure positionne_elements(i : integer);
 begin
   with formprinc do
@@ -12642,7 +12695,7 @@ begin
     GroupBox2.Left:=i+12;
     GroupBox3.Left:=i+12;
     ScrollBox1.Left:=i+12;
-    ScrollBox1.width:=GrandPanel.Width-i-5;
+    ScrollBox1.width:=GrandPanel.Width-i-20;        
     Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
     Panel1.top:=9;
     GroupBox1.Top:=5;
@@ -12650,6 +12703,144 @@ begin
 
     if not(avec_Splitter) then GrandPanel.Width:=i;
   end;
+end;
+
+procedure composant(c : tComponent;fond,texte : tColor);
+var cGB : TGroupBox;
+    cTE : tEdit;
+    cCB : tComboBox;
+    cPa : tPanel;
+    cLa : tLabel;
+    cSc : tScrollBox;
+    cSB : tcheckBox;
+    cSh : tShape;
+    cMe : tMemo;
+    cBu : Tbutton;
+    cRa : tRadioGroup;
+    cRb : tRadioButton;
+begin
+  if c is Tshape then
+  begin
+    csH:=c as tShape;
+    csH.Brush.Color:=fond;
+    exit;
+  end;
+  if c is TGroupBox then
+  begin
+    cGB:=c as TgroupBox;
+    cGB.color:=fond;
+    cGB.font.color:=texte;
+    exit;
+  end;
+  if c is TRadioGroup then
+  begin
+    cRa:=c as TRadioGroup;
+    cRa.color:=fond;
+    cRa.font.color:=texte;
+    exit;
+  end;
+  if c is TRadioButton then
+  begin
+    cRb:=c as tRadioButton;
+    cRb.color:=fond;
+    cRb.font.color:=texte;
+    exit;
+  end;
+  if c is TMemo then
+  begin
+    cMe:=c as TMemo;
+    cMe.color:=fond;
+    cMe.font.color:=texte;
+    exit;
+  end;
+  if c is TGroupBox then
+  begin
+    cGB:=c as TgroupBox;
+    cGB.color:=fond;
+    cGB.font.color:=texte;
+    cGB.Repaint;
+    exit;
+  end;
+  if c is TEdit then
+  begin
+    cTE:=c as tEdit;
+    cTE.color:=fond;
+    cTE.Font.Color:=texte;
+    exit;
+  end;
+  if c is tComboBox then
+  begin
+    cCB:=c as tComboBox;
+    cCB.color:=fond;
+    cCb.Font.Color:=clWhite;
+    exit;
+  end;
+  if c is tPanel then
+  begin
+    cPa:=c as tPanel;
+    cPA.Color:=fond;
+    cPA.Font.Color:=texte;
+    exit;
+  end;
+  if c is tLabel then
+  begin
+    cLa:=c as tLabel;
+    cLa.Color:=fond;
+    cLa.Font.Color:=texte;
+    exit;
+  end;
+  if c is tCheckBox then
+  begin
+    cSb:=c as tCheckBox;
+    cSb.Color:=fond;
+    cSB.Font.Color:=texte;
+    exit;
+  end;
+end;
+
+procedure couleurs_Princ;
+var
+    fond,texte : tColor;
+    i : integer;
+    c : Tcomponent;
+    cSc: tScrollBox;
+begin
+  fond:=couleurFond;
+  texte:=couleurTexte;
+  if sombre then
+  begin
+    formprinc.Color:=fond;
+    for i:=0 to formprinc.ComponentCount-1 do
+    begin
+      c:=formprinc.Components[i];
+      //Affiche(c.Name,clyellow);
+      composant(c,fond,texte);
+    end;
+
+    cSc:=Formprinc.FindComponent('ScrollBox1') as tScrollBox;
+    if assigned(cSc) then
+    begin
+      texte:=clBlack;
+      fond:=Formprinc.ScrollBox1.Color;
+      for i:=0 to formprinc.ScrollBox1.ComponentCount-1 do
+      begin
+        c:=formprinc.ScrollBox1.Components[i];
+        //Affiche(c.Name,clLime);
+        composant(c,fond,texte);
+      end;
+    end;
+  end;
+end;
+
+procedure maj_couleurs;
+begin
+  couleurs_princ;
+  Couleurs_config;
+  couleurs_debug;
+  couleurs_SR;
+  couleurs_cdf;
+  couleurs_place;
+  couleurs_pilote;
 end;
 
 // démarrage principal du programme signaux_complexes
@@ -12668,6 +12859,7 @@ begin
   protocole:=1;
   filtrageDet0:=3;
   cdmHd:=0;
+  CouleurFond:=$404040 ;
 
   // services commIP CDM par défaut
   Srvc_Aig:=true;
@@ -12721,6 +12913,7 @@ begin
   formatY:=-1;
   avecResa:=false;          // réservation des aiguillages en mode normal
   serveurIPCDM_Touche:=false;
+  sombre:=false;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique + debug mise au point etc
   roulage1.visible:=false;
@@ -12790,9 +12983,15 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
+  serveur_ouvert:=true;
   serverSocket.Port:=PortServeur;
-  ServerSocket.Open;
-  ServerSocket.Active:=true;
+  try
+    ServerSocket.Open;
+  except
+    serveur_ouvert:=false;
+    Affiche('Serveur signaux_complexes non ouvert, le port '+intToSTR(PortServeur)+' est utilisé',clred);
+  end;
+  if serveur_ouvert then ServerSocket.Active:=true;
 
   Menu_tco(NbreTCO);
   procetape('Lecture du TCO');
@@ -12816,7 +13015,6 @@ begin
     EditEnvoi.Visible:=true;
   end;
 
-
   Application.ProcessMessages;
   // Initialisation des images des signaux
   procetape('Création des signaux');
@@ -12829,7 +13027,7 @@ begin
     if debug=1 then affiche('Création du signal '+intToSTR(i)+' ----------',clLime);
     cree_image(i);  // et initialisation tableaux signaux
   end;
-  
+
   Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
 
   if debug=1 then Affiche('Création TCO',clLime);
@@ -12869,10 +13067,9 @@ begin
     //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
     top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
     width:=formprinc.width-30;
-    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-63;
+    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-66;
     Anchors:=[akLeft,akTop,akRight,akBottom];
   end;
-
 
   if avec_splitter then
   begin
@@ -12900,10 +13097,9 @@ begin
       Parent:=GrandPanel;
       Anchors:=[akTop,akRight,akBottom];
       width:=GrandPanel.Width-SplitterV.Width-5;
-      height:=GrandPanel.Height-groupBox3.height-groupBox3.top-25;
+      height:=GrandPanel.Height-groupBox3.height-groupBox3.top-10;
       top:=GroupBox3.Top+GroupBox3.Height+5;
     end;
-
     positionne_elements(splitterV.left);
 
   end
@@ -12930,7 +13126,6 @@ begin
       Panel1.Left:=GroupBox1.Left+GroupBox1.Width+5;
     end;
   end;
-
 
   if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
   begin
@@ -12982,6 +13177,10 @@ begin
     end;
   end;
 
+  couleurs_princ;
+  //formprinc.panel2.Color:=clred;
+  SpeedButton1.Align:=alClient;
+
 
   if debug=1 then Affiche('Initialisations',clLime);
   raz_tout;
@@ -13027,7 +13226,6 @@ begin
       connecte_interface_ethernet; // la connexion du socket ne se fait qu'a la sortie de cette procédure create
     end;
   end;
-
 
   if debug=1 then Affiche('Tentative ouverture liaison centrale',clLime);
   if portCommOuvert or parSocketLenz then
@@ -13144,7 +13342,6 @@ begin
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
 
- 
 end;
 
 
@@ -15661,8 +15858,29 @@ begin
 end;
 
 procedure TFormPrinc.TrackBarVitChange(Sender: TObject);
+var s : string;
+    i,adr,vit,erreur : integer;
+    sens : boolean;
 begin
   EditVitesse.Text:=intToSTR(TrackBarVit.position);
+  s:=editAdrTrain.Text;
+  val(s,adr,erreur);
+  if (erreur<>0) or (adr<0) then exit;
+  //if not(portCommOuvert) and not(parSocketLenz) and not(CDM_Connecte) then exit;
+  s:=editVitesse.Text;
+  val(s,vit,erreur);
+  if (erreur<>0) or (vit<-100) or (vit>100) then exit;
+  i:=0;s:='';
+  if combotrains.itemindex<>-1 then
+  begin
+    s:=combotrains.Items[combotrains.itemindex];
+    i:=index_train_nom(s);
+  end;
+
+  //Affiche('Commande vitesse train '+s+' ('+intToSTR(adr)+') à '+IntToSTR(vit)+'%',cllime);
+  sens:=vit>0;
+  vitesse_loco(s,i,adr,vit,sens,true);
+  if s='' then s:=intToSTR(adr);
 end;
 
 procedure TFormPrinc.EditVitesseChange(Sender: TObject);
@@ -17093,6 +17311,8 @@ begin
   if n=1 then affiche('1 client connecté',clyellow);
   if n>1 then affiche(intToSTR(n)+' clients connectés',clyellow);
 end;
+
+
 
 end.
 

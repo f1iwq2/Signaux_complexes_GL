@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 89
-  Top = 111
+  Left = 104
+  Top = 226
   Width = 1212
-  Height = 580
+  Height = 661
   VertScrollBar.Visible = False
   Caption = 'c'
   Color = clBtnFace
@@ -23,8 +23,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1196
-    521)
+    1204
+    610)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -59,7 +59,7 @@ object FormTCO: TFormTCO
     Left = 10
     Top = 15
     Width = 687
-    Height = 266
+    Height = 347
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -71,12 +71,12 @@ object FormTCO: TFormTCO
     TabOrder = 1
     DesignSize = (
       683
-      262)
+      343)
     object ImageTCO: TImage
       Left = 120
       Top = 41
       Width = 486
-      Height = 176
+      Height = 257
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -108,7 +108,7 @@ object FormTCO: TFormTCO
   end
   object Panel1: TPanel
     Left = 2
-    Top = 332
+    Top = 413
     Width = 1143
     Height = 185
     Anchors = [akLeft, akRight, akBottom]
@@ -1227,7 +1227,7 @@ object FormTCO: TFormTCO
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
-    Left = 368
+    Left = 944
     Top = 8
     object MenuCouper: TMenuItem
       Caption = 'Couper'
@@ -1245,7 +1245,7 @@ object FormTCO: TFormTCO
       Caption = '-'
     end
     object Annulercouper: TMenuItem
-      Caption = 'Annuler    ctrl+Z'
+      Caption = 'Annuler                  ctrl+Z'
       OnClick = AnnulercouperClick
     end
     object N1: TMenuItem
@@ -1285,7 +1285,7 @@ object FormTCO: TFormTCO
       Caption = '-'
     end
     object Toutslectionner1: TMenuItem
-      Caption = 'Tout s'#233'lectionner'
+      Caption = 'Tout s'#233'lectionner  ctrl+A'
       OnClick = Toutslectionner1Click
     end
     object Inserer: TMenuItem
@@ -1297,6 +1297,7 @@ object FormTCO: TFormTCO
       end
       object LigneDessous: TMenuItem
         Caption = 'Ligne en dessous'
+        Hint = 'ins'#232're une ligne en dessous'
         OnClick = LigneDessousClick
       end
       object N7: TMenuItem
@@ -1304,10 +1305,12 @@ object FormTCO: TFormTCO
       end
       object Colonnegauche1: TMenuItem
         Caption = 'Colonne '#224' gauche'
+        Hint = 'ins'#232're une colonne '#224' gauche'
         OnClick = Colonnegauche1Click
       end
       object Colonnedroite1: TMenuItem
         Caption = 'Colonne '#224' droite'
+        Hint = 'ins'#232're une colonne '#224' droite'
         OnClick = Colonnedroite1Click
       end
     end
@@ -1315,10 +1318,12 @@ object FormTCO: TFormTCO
       Caption = 'Supprimer'
       object SupprimeLigne: TMenuItem
         Caption = 'Ligne'
+        Hint = 'supprime la ligne point'#233'e'
         OnClick = SupprimeLigneClick
       end
       object Colonne: TMenuItem
         Caption = 'Colonne'
+        Hint = 'supprime la colonne point'#233'e'
         OnClick = ColonneClick
       end
     end
@@ -1337,17 +1342,17 @@ object FormTCO: TFormTCO
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    Left = 264
-    Top = 408
+    Left = 880
+    Top = 8
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show
-    Left = 448
-    Top = 432
+    Left = 848
+    Top = 8
   end
   object MainMenuTCO: TMainMenu
-    Left = 1000
-    Top = 48
+    Left = 912
+    Top = 8
     object MenuTCO: TMenuItem
       Caption = 'TCO'
       object SauvegarderleTCO1: TMenuItem

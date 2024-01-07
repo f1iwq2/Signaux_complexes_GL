@@ -212,24 +212,21 @@ object FormConfigTCO: TFormConfigTCO
     Width = 353
     Height = 57
     Caption = 'Graphisme de tous les TCOs'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 4
   end
-  object RadioButtonLignes: TRadioButton
-    Left = 376
-    Top = 312
-    Width = 113
-    Height = 17
-    Caption = 'Lignes bris'#233'es'
-    TabOrder = 5
-    OnClick = RadioButtonLignesClick
-  end
   object RadioButtonCourbes: TRadioButton
-    Left = 376
+    Left = 392
     Top = 328
     Width = 113
     Height = 17
     Caption = 'Lignes courbes'
-    TabOrder = 6
+    TabOrder = 5
     OnClick = RadioButtonCourbesClick
   end
   object GroupBox3: TGroupBox
@@ -238,7 +235,7 @@ object FormConfigTCO: TFormConfigTCO
     Width = 289
     Height = 89
     Caption = 'Configuration du TCO '
-    TabOrder = 7
+    TabOrder = 6
     object Label3: TLabel
       Left = 16
       Top = 20
@@ -318,7 +315,7 @@ object FormConfigTCO: TFormConfigTCO
     Width = 289
     Height = 273
     Caption = 'Configuration de tous les TCOs'
-    TabOrder = 8
+    TabOrder = 7
     object Ratio: TLabel
       Left = 8
       Top = 208
@@ -369,6 +366,7 @@ object FormConfigTCO: TFormConfigTCO
       Width = 273
       Height = 161
       ColCount = 3
+      FixedColor = clAppWorkSpace
       RowCount = 11
       TabOrder = 0
       ColWidths = (
@@ -425,6 +423,21 @@ object FormConfigTCO: TFormConfigTCO
       TickMarks = tmTopLeft
       OnChange = TrackBarEpaisseurChange
     end
+  end
+  object RadioButtonLignes: TRadioButton
+    Left = 392
+    Top = 312
+    Width = 113
+    Height = 17
+    Caption = 'Lignes bris'#233'es'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 8
+    OnClick = RadioButtonLignesClick
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show

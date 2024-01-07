@@ -126,6 +126,7 @@ var
   FormSR: TFormSR;
   Adr,IndexSig : integer;
   
+procedure couleurs_SR;
 
 implementation
 
@@ -464,8 +465,24 @@ begin
   maj_db;
 end;
 
+procedure couleurs_SR;
+var i : integer;
+    c : tComponent;
+begin
+  if sombre then with formSR do
+  begin
+    color:=couleurfond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
+  end;
+end;
+
 procedure TFormSR.FormCreate(Sender: TObject);
 var i : integer;
+    c : tcomponent;
 begin
   for i:=0 to 19 do
   begin
@@ -486,6 +503,7 @@ begin
     ComboBoxAdr15.items.add(etats[i]);
     ComboBoxAdr16.items.add(etats[i]);
   end;
+  couleurs_SR;
 end;
 
 procedure TFormSR.BitBtnokClick(Sender: TObject);

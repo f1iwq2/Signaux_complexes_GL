@@ -83,6 +83,8 @@ type
 var
   FormPlace: TFormPlace;
 
+procedure couleurs_place;
+
 implementation
 
 uses UnitConfig, UnitTCO;
@@ -529,9 +531,27 @@ begin
   placement[6].detdir:=i;
 end;
 
+procedure couleurs_place;
+var i : integer;
+    c : tComponent;
+begin
+  if sombre then with formPlace do
+  begin
+    color:=couleurFond;
+    for i:=0 to ComponentCount-1 do
+    begin
+      c:=Components[i];
+      composant(c,couleurFond,couleurTexte);
+    end;
+  end;
+end;
+
 procedure TFormPlace.FormCreate(Sender: TObject);
+var c : tcomponent;
+    i : integer;
 begin
   PlaceAffiche:=true;
+  couleurs_place;
 end;
 
 procedure TFormPlace.BitBtn1Click(Sender: TObject);
