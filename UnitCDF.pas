@@ -95,7 +95,7 @@ var
 
 {$R *.dfm}
 
-procedure dessine_feu_CDF;
+procedure dessine_signal_CDF;
 procedure couleurs_cdf;
 
 implementation
@@ -191,7 +191,7 @@ begin
 
 end;
 
-procedure dessine_feu_CDF;
+procedure dessine_signal_CDF;
 var i,ancienEtat : integer;
     Vcanvas : Tcanvas;
 begin
@@ -223,10 +223,10 @@ end;
 procedure Maj_DB;
 var s : string;
 begin
-  s:=encode_sig_feux(index);
+  s:=encode_signal(index);
   formconfig.ListBoxSig.items[index-1]:=s;
   formconfig.ListBoxSig.selected[ligneClicSig]:=true;
-  aff_champs_sig_feux(index);
+  aff_champs_signaux(index);
 end;
 
 procedure TFormCDF.Edit1Change(Sender: TObject);
@@ -237,7 +237,7 @@ begin
     val(Edit1.Text,Signaux[index].SR[1].sortie1,erreur);
     Maj_DB;
     if label1.Caption=etats[1] then Maj_Etat_Signal(0,carre);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -249,7 +249,7 @@ begin
     val(Edit2.Text,Signaux[index].SR[2].sortie1,erreur);
     Maj_DB;
     if label2.Caption=etats[2] then Maj_Etat_Signal(0,semaphore);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -261,7 +261,7 @@ begin
     val(Edit3.Text,Signaux[index].SR[3].sortie1,erreur);
     Maj_DB;
     if label3.Caption=etats[3] then Maj_Etat_Signal(0,semaphore_cli);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -273,7 +273,7 @@ begin
     val(Edit4.Text,Signaux[index].SR[4].sortie1,erreur);
     Maj_DB;
     if label4.Caption=etats[4] then Maj_Etat_Signal(0,vert);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -285,7 +285,7 @@ begin
     val(Edit5.Text,Signaux[index].SR[5].sortie1,erreur);
     Maj_DB;
     if label5.Caption=etats[5] then Maj_Etat_Signal(0,vert_cli);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -297,7 +297,7 @@ begin
     val(Edit6.Text,Signaux[index].SR[6].sortie1,erreur);
     Maj_DB;
     if label6.Caption=etats[6] then Maj_Etat_Signal(0,violet);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -309,7 +309,7 @@ begin
     val(Edit7.Text,Signaux[index].SR[7].sortie1,erreur);
     Maj_DB;
     if label7.Caption=etats[7] then Maj_Etat_Signal(0,blanc);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -321,7 +321,7 @@ begin
     val(Edit8.Text,Signaux[index].SR[8].sortie1,erreur);
     Maj_DB;
     if label8.Caption=etats[8] then Maj_Etat_Signal(0,blanc_cli);
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -333,7 +333,7 @@ begin
     val(Edit9.Text,Signaux[index].SR[9].sortie1,erreur);
     Maj_DB;
     if label9.Caption=etats[9] then  begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,jaune);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -349,7 +349,7 @@ begin
       Maj_Etat_Signal(0,semaphore);
       Maj_Etat_Signal(0,jaune_cli);
     end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -361,7 +361,7 @@ begin
     val(Edit11.Text,Signaux[index].SR[11].sortie1,erreur);
     Maj_DB;
     if label11.Caption=etats[11] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_30);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -373,7 +373,7 @@ begin
     val(Edit12.Text,Signaux[index].SR[12].sortie1,erreur);
     Maj_DB;
     if label12.Caption=etats[12] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_60);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -385,7 +385,7 @@ begin
     val(Edit13.Text,Signaux[index].SR[13].sortie1,erreur);
     Maj_DB;
     if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,ral_60);Maj_Etat_Signal(0,jaune_cli);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -397,7 +397,7 @@ begin
     val(Edit14.Text,Signaux[index].SR[14].sortie1,erreur);
     Maj_DB;
     if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_30);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -409,7 +409,7 @@ begin
     val(Edit15.Text,Signaux[index].SR[15].sortie1,erreur);
     Maj_DB;
     if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -421,7 +421,7 @@ begin
     val(Edit16.Text,Signaux[index].SR[16].sortie1,erreur);
     Maj_DB;
     if label16.Caption=etats[16] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -433,7 +433,7 @@ begin
     val(Edit17.Text,Signaux[index].SR[17].sortie1,erreur);
     Maj_DB;
     if label17.Caption=etats[17] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune_cli);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -445,7 +445,7 @@ begin
     val(Edit18.Text,Signaux[index].SR[18].sortie1,erreur);
     Maj_DB;
     if label18.Caption=etats[18] then begin Maj_Etat_Signal(0,rappel_60); Maj_Etat_Signal(0,jaune);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -457,7 +457,7 @@ begin
     val(Edit19.Text,Signaux[index].SR[19].sortie1,erreur);
     Maj_DB;
     if label19.Caption=etats[19] then begin Maj_Etat_Signal(0,rappel_60);  Maj_Etat_Signal(0,jaune_cli);end;
-    dessine_feu_CDF;
+    dessine_signal_CDF;
   end;
 end;
 
@@ -487,7 +487,9 @@ end;
 
 procedure TFormCDF.FormCreate(Sender: TObject);
 begin
+  if debug=1 then Affiche('Fin création fenetre CDF',clLime);
   couleurs_cdf;
+  if debug=1 then Affiche('Fin création fenetre CDF',clLime);
 end;
 
 end.

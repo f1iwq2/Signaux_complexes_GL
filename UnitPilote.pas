@@ -110,14 +110,14 @@ var
   EtatFeuPilote : word;
   AdrPilote : integer;
 
-procedure dessine_feu_pilote;
+procedure dessine_signal_pilote;
 procedure couleurs_pilote;
 
 implementation
 
 {$R *.dfm}
 
-procedure dessine_feu_pilote;
+procedure dessine_signal_pilote;
 var i,ancienEtat : integer;
     Vcanvas : Tcanvas;
 begin
@@ -168,70 +168,70 @@ procedure TFormPilote.RadioVertClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,vert) else Maj_Etat_Signal(0,vertB) ;
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioVertCliClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,vert_cli);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioJauneClick(Sender: TObject);
 begin
     Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,jaune) else Maj_Etat_Signal(0,deux_jaunes);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioJaunecliClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,jaune_cli);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioRougeClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioRougeCliClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore_cli);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioCarreClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,carre) else Maj_Etat_Signal(0,vert_jaune_H);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioBlancClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,blanc) else Maj_Etat_Signal(0,rouge_blanc);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioVioletClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,violet) else Maj_Etat_Signal(0,vert_jaune_V);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioBlancCliClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,blanc_cli);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -244,7 +244,7 @@ procedure TFormPilote.RadioRalen30Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,ral_30);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 
@@ -252,7 +252,7 @@ procedure TFormPilote.RadioRappel60Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,rappel_60);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 
@@ -260,14 +260,14 @@ procedure TFormPilote.RadioRalen60Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,ral_60);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioRappel30Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,rappel_30);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure couleurs_pilote;
@@ -316,7 +316,7 @@ if ord(Key) = VK_RETURN then
       if (i>=0) and (i<=6) then
       begin
         Signaux[0].EtatSignal:=i;
-        dessine_feu_pilote;
+        dessine_signal_pilote;
       end;
       if (i<0) and (i>6) then EditNbreFeux.text:='1';
     end
@@ -446,7 +446,7 @@ begin
     Maj_Etat_Signal(AdrPilote,carre);
     envoi_signal(Adrpilote);
     Maj_Etat_Signal(0,carre);
-    dessine_feu_pilote;
+    dessine_signal_pilote;
   end;
 end;
 
@@ -458,19 +458,19 @@ end;
 procedure TFormPilote.CheckChiffreClick(Sender: TObject);
 begin
   if checkChiffre.Checked then Maj_Etat_Signal_belge(0,chiffre_F or bita1_F) else Maj_Etat_Signal_belge(0,chiffre_F);
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.CheckChevronClick(Sender: TObject);
 begin
   if checkChevron.Checked then Maj_Etat_Signal(0,chevron_F or bita1_F) else Maj_Etat_Signal(0,chevron_F );
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 procedure TFormPilote.CheckClignoteClick(Sender: TObject);
 begin
   if checkclignote.Checked then Maj_Etat_Signal(0,clignote_F or bita1_F) else Maj_Etat_Signal(0,clignote_F );
-  dessine_feu_pilote;
+  dessine_signal_pilote;
 end;
 
 begin

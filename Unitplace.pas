@@ -230,9 +230,8 @@ begin
   begin
     affiche_tco(1);
   end;
-  maj_feux(true);
-  maj_feux(true);
-  maj_feux(true);
+  Maj_Signaux(true);
+  Maj_Signaux(true);
 end;
 
 procedure TFormPlace.Edit1Change(Sender: TObject);
@@ -343,7 +342,7 @@ begin
 end;
 
 procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
-var a,i,j,id,adrDet,AdrTrain,AdrFeu : integer;
+var a,i,j,id,adrDet,AdrTrain,AdrSignal : integer;
     trouve,rouge : boolean;
     var s: string;
 begin
@@ -365,12 +364,12 @@ begin
       roulage:=true;
       avecResa:=false;  // pour adrTrain ou NumTrain
       AdrTrain:=detecteur[AdrDet].AdrTrain;
-      AdrFeu:=signal_detecteur(AdrDet); // trouve l'adresse du signal correspondant au détecteur
+      AdrSignal:=signal_detecteur(AdrDet); // trouve l'adresse du signal correspondant au détecteur
 
       // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
-      if adrFeu<>0 then
+      if AdrSignal<>0 then
       begin
-        id:=index_Signal(AdrFeu);
+        id:=index_Signal(AdrSignal);
         a:=Signaux[id].EtatSignal;
         if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) then rouge:=true;
       end;
@@ -380,21 +379,21 @@ begin
         j:=index_train_adresse(AdrTrain);
         vitesse_loco('',adrTrain,j,trains[j].VitNominale,not(placement[j].inverse),true);
 
-        maj_feux(true);  // avec détecteurs
+        Maj_Signaux(true);  // avec détecteurs
         s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
         Affiche(s,clYellow);
         if traceListe then AfficheDebug(s,clyellow);
         reserve_canton(AdrDet,placement[j].detdir,adrtrain,0,2);
 
       end
-      Else Affiche('Le signal '+intToSTR(AdrFeu)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
+      Else Affiche('Le signal '+intToSTR(AdrSignal)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
     end;
   end;
 
   // au moins un train démarre
   if trouve then
   begin
-    Maj_feux(true);
+    Maj_Signaux(true);
     Formprinc.LabelTitre.caption:=titre+' - Mode roulage en cours';
     with Formprinc.SBMarcheArretLoco do
     begin
@@ -550,8 +549,10 @@ procedure TFormPlace.FormCreate(Sender: TObject);
 var c : tcomponent;
     i : integer;
 begin
+  if debug=1 then Affiche('Début création fenetre Place',clLime);
   PlaceAffiche:=true;
   couleurs_place;
+  if debug=1 then Affiche('Fin création fenetre Place',clLime);
 end;
 
 procedure TFormPlace.BitBtn1Click(Sender: TObject);

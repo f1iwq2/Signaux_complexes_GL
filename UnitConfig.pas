@@ -572,7 +572,6 @@ retro_ch='retro';
 Z21_ch='Z21';
 Init_aig_ch='Init_Aig';
 LAY_ch='Lay';
-Maxcom_ch='MaxCom';
 Init_dem_aig_ch='Init_Dem_Aig';
 Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
 Init_dem_interfaceEth_ch='Init_demETH';
@@ -590,7 +589,7 @@ fenetre_ch='Fenetre';
 AffMemoFenetre_ch='AffMemoFenetre';
 Tempo_aig_ch='Tempo_Aig';
 Nb_cantons_Sig_ch='Nb_cantons_Sig';
-Tempo_Feu_ch='Tempo_Feu';
+Tempo_Signal_ch='Tempo_Feu';
 Algo_Unisemaf_ch='Alg_Unisemaf';
 NOTIF_VERSION_ch='notif_version';
 verif_version_ch='verif_version';
@@ -633,7 +632,7 @@ var
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,PortServeur,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
-  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,Indexfeuclic,NumTrameCDM,
+  ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,IndexSignalclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,compt_Ligne : integer;
 
@@ -678,10 +677,10 @@ function place_id(s : string) : string;
 procedure decodeAig(s : string;var adr : integer;var B : char);
 function sauve_config : boolean;
 procedure lit_config;
-Procedure aff_champs_sig_feux(index : integer);
+Procedure aff_champs_signaux(index : integer);
 function verif_coherence : boolean;
 function compile_branche(s : string;i : integer) : boolean;
-function encode_sig_feux(i : integer): string;
+function encode_signal(i : integer): string;
 procedure valide_branches;
 procedure trier_aig;
 procedure trier_detecteurs;
@@ -727,16 +726,16 @@ begin
   place_id:=s;
 end;
 
-procedure Maj_Hint_Signal(indexFeu : integer);
+procedure Maj_Hint_Signal(indexSignal : integer);
 var s : string;
 begin
   // ne pas supprimer le @= qui sert de marqueur pour identifier le feu
-  s:='Index='+IntToSTR(IndexFeu)+' @='+inttostr(Signaux[IndexFeu].Adresse)+' Décodeur='+decodeur[Signaux[IndexFeu].Decodeur]+
-       ' Adresse détecteur associé='+intToSTR(Signaux[IndexFeu].Adr_det1)+
-       ' Adresse élement suivant='+intToSTR(Signaux[IndexFeu].Adr_el_suiv1);
-  if Signaux[IndexFeu].Btype_suiv1=aig then s:=s+' (aig)';
+  s:='Index='+IntToSTR(indexSignal)+' @='+inttostr(Signaux[indexSignal].Adresse)+' Décodeur='+decodeur[Signaux[indexSignal].Decodeur]+
+       ' Adresse détecteur associé='+intToSTR(Signaux[indexSignal].Adr_det1)+
+       ' Adresse élement suivant='+intToSTR(Signaux[indexSignal].Adr_el_suiv1);
+  if Signaux[indexSignal].Btype_suiv1=aig then s:=s+' (aig)';
 
-  Signaux[indexFeu].Img.Hint:=s;
+  Signaux[indexSignal].Img.Hint:=s;
 end;
 
 // demande les services Com-IP à CDM
@@ -1071,7 +1070,7 @@ begin
 end;
 
 // transforme le signal du tableau Signaux[] en texte
-function encode_sig_feux(i : integer): string;
+function encode_signal(i : integer): string;
 var s : string;
     adresse,aspect,j,k,NfeuxDir,CondCarre,CondFeuBlanc,nc : integer;
 begin
@@ -1079,7 +1078,7 @@ begin
   adresse:=Signaux[i].adresse;
   if affevt then Affiche('Encode_sig_feux('+IntToSTR(i)+') : adresse='+IntToSTR(adresse),clyellow);
 
-  if adresse=0 then begin encode_sig_feux:='';exit;end;
+  if adresse=0 then begin encode_signal:='';exit;end;
 
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
@@ -1183,7 +1182,7 @@ begin
     end;
   end
   else
-  // feux directionnels
+  // signaux directionnels
   begin
     NfeuxDir:=aspect-10;
     for j:=1 to NfeuxDir+1 do
@@ -1198,10 +1197,10 @@ begin
     end;
   end;
 
-  encode_sig_feux:=s;
+  encode_signal:=s;
 end;
 
-// décode la ligne de signal et la stocke dans l'index i du tableau feux
+// décode la ligne de signal et la stocke dans l'index i du tableau signaux
 // sortie vrai si le signal a été stocké - faux si doublon
 function decode_ligne_signal(chaine_signal : string;i : integer) : boolean;
 var s,chaine,sa : string;
@@ -1246,7 +1245,7 @@ begin
       begin
         sa:=copy(s,1,j-1);
         if sa[1]='D' then
-        // feu directionnel ------------------------------------------
+        // signal directionnel ------------------------------------------
         begin
           delete(sa,1,1);
           j:=pos(',',s);
@@ -1263,11 +1262,11 @@ begin
           if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
           j:=pos(',',s);Delete(s,1,j);
           // liste des aiguillages
-          k:=1; // numéro de feu directionnel
+          k:=1; // numéro de feux directionnels
           repeat
             // boucle de direction
             delete(s,1,1); // supprimer ( ou le ,
-            j:=1; // Nombre de descriptions d'aiguillages dans le feu
+            j:=1; // Nombre de descriptions d'aiguillages dans le signal
             repeat
               if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
               delete(s,1,1);
@@ -1472,7 +1471,7 @@ begin
        t:=pos('(',s);
        if t=1 then
        begin
-         //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
+         //Affiche('Conditions supplémentaires pour le signal '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
          k:=pos(')',s);
          sa:=copy(s,t+1,k-t); // contient l'intérieur des parenthèses sans les parenthèses
          delete(s,1,k+1);//Affiche(s,clYellow);
@@ -1504,7 +1503,7 @@ begin
          t:=pos('CFB(',s);
          if t=1 then
          begin
-         //Affiche('Conditions supplémentaires pour le feu '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
+         //Affiche('Conditions supplémentaires pour le signal '+IntToSTR(adresse)+' parenthèse '+intToSTR(l),clyellow);
            k:=pos(')',s);
            sa:=copy(s,t+4,k-4); // contient l'intérieur des parenthèses sans les parenthèses
            delete(s,1,k+1);//Affiche(s,clYellow);
@@ -1736,9 +1735,6 @@ begin
   // adresse ip interface XpressNet
   writeln(fichierN,IPV4_Interface_ch+'=',adresseIP+':'+intToSTR(portInterface));
 
-  // max com
-  writeln(fichierN,Maxcom_ch+'=',MaxPortCom);
-
   // port com
   writeln(fichierN,Protocole_serie_ch+'=',portcom);
 
@@ -1827,8 +1823,8 @@ begin
   if Raz_Acc_signaux then s:='1' else s:='0';
   writeln(fichierN,Raz_signaux_ch+'='+s);
 
-  // temporisation entre 2 commandes décodeurs feu
-  writeln(fichierN,Tempo_feu_ch+'=',IntToSTR(Tempo_feu));
+  // temporisation entre 2 commandes décodeurs signaux
+  writeln(fichierN,Tempo_signal_ch+'=',IntToSTR(Tempo_Signal));
 
   // Nombre de cantons avant signal
   writeln(fichierN,Nb_cantons_Sig_ch+'=',intToSTR(Nb_cantons_Sig));
@@ -1913,11 +1909,11 @@ begin
 
   writeln(fichierN,'/------------');
   writeln(fichierN,section_sig_ch);
-  // feux
+  // signaux
   for i:=1 to NbreSignaux do
   begin
-    s:=encode_sig_feux(i);
-    // transformer le tableau feux en ligne
+    s:=encode_signal(i);
+    // transformer le tableau signal en ligne
     //Affiche(s,clLime);
     if s='' then Affiche('Erreur 700 - Encodage du signal index='+IntToSTR(i),clRed);
     Signaux[i].modifie:=false;       // sauvegarde en cours, on démarque
@@ -2014,6 +2010,7 @@ end;
 procedure trier_aig;
 var i,j : integer;
     temp : TAiguillage;
+    s : string;
 begin
   for i:=1 to MaxAiguillage-1 do
   begin
@@ -2030,11 +2027,25 @@ begin
 
   for i:=1 to MaxAiguillage do
     tablo_index_aiguillage[aiguillage[i].adresse]:=i;
+
+  // réaffecte la listebox aiguillages
+  if formconfig<>nil then
+  begin
+    formconfig.ListBoxAig.Clear;
+    for i:=1 to MaxAiguillage do
+    begin
+      s:=encode_aig(i);
+      formConfig.ListBoxAig.Items.AddObject(s, Pointer(clRed));
+      Aiguillage[i].modifie:=false;
+    end;
+    formconfig.ListBoxAig.itemindex:=0;
+  end;
 end;
 
 // trie les signaux
 procedure trier_sig;
-var i,j : integer;
+var i,j,l,longestLength,pixelLength : integer;
+    s,LongestString : string;
     temp : TSignal;
 begin
   for i:=1 to NbreSignaux-1 do
@@ -2049,10 +2060,40 @@ begin
       end;
     end;
   end;
+
+  // calcule les index
   for i:=1 to NbreSignaux do
   begin
     tablo_index_signal[Signaux[i].adresse]:=i;
   end;
+
+  if formconfig<>nil then
+  begin
+    formconfig.ListBoxSig.Clear;
+    longestLength:=0;
+    for i:=1 to NbreSignaux do
+    begin
+      s:=encode_signal(i);  // encode la ligne depuis le tableau feux
+      //Affiche(s,clwhite);
+      if s<>'' then
+      begin
+        formconfig.ListBoxSig.Items.Add(s);
+        // trouver la chaine la plus longue pour la future scrollbar
+        l:=Length(s);
+        if l>LongestLength then
+        begin
+          LongestString:=s;
+          LongestLength:=l;
+        end;
+        Signaux[i].modifie:=false;
+      end;
+    end;
+
+    PixelLength:=formconfig.ListboxSig.Canvas.TextWidth(LongestString);
+    // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
+    SendMessage(formconfig.ListBoxSig.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
+  end;
+
 end;
 
 
@@ -2063,7 +2104,7 @@ var s,sa,SOrigine: string;
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
     trouve_Tempo_maxi,trouve_Entete,trouve_tco,trouve_cdm,trouve_Serveur_interface,trouve_fenetre,trouve_MasqueTCO,
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
-    trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_feu,
+    trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_signal,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
     ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,
@@ -2106,7 +2147,7 @@ var s,sa,SOrigine: string;
       end
       else
       begin
-        if decode_ligne_signal(s,i) then    // décode la chaine et stocke en tableau feux
+        if decode_ligne_signal(s,i) then    // décode la chaine et stocke en tableau signal
         begin
           inc(i);
         end
@@ -2460,6 +2501,7 @@ var s,sa,SOrigine: string;
       if erreur<>0 then Affiche('Erreur aiguillage '+intToSTR(adraig)+' ; caractère '+enregistrement[erreur]+' inconnu',clred);
       if debugConfig then Affiche('Adresse='+IntToSTR(adraig)+' enregistrement='+Enregistrement,clyellow);
       aiguillage[maxaiguillage].Adresse:=adraig;
+      tablo_index_aiguillage[adrAig]:=maxaiguillage;   // stockage index avant tri
       aiguillage[maxaiguillage].AdroitB:='Z'; aiguillage[maxaiguillage].AdevieB:='Z';
       aiguillage[maxaiguillage].DdroitB:='Z'; aiguillage[maxaiguillage].DdevieB:='Z';
 
@@ -3196,20 +3238,6 @@ var s,sa,SOrigine: string;
         else begin adresseIP:='0';parSocketLenz:=false;end;
       end;
 
-        // nombre max de port série à explorer
-      // configuration du port com
-      sa:=uppercase(MaxCom_ch)+'=';
-      i:=pos(sa,s);
-      if i=1 then
-      begin
-        inc(nv);
-        delete(s,i,length(sa));
-        trouve_MaxPort:=true;
-        val(s,MaxPortCom,erreur);
-        if erreur<>0 then Affiche('Erreur MaxCom: '+sOrigine,clred);
-        if (MaxPortCom<1) or (MaxPortCom>255) then MaxPortCom:=30;
-      end;
-
       // configuration du port com interface
       sa:=uppercase(PROTOCOLE_SERIE_ch)+'=';
       i:=pos(sa,s);
@@ -3350,16 +3378,16 @@ var s,sa,SOrigine: string;
         val(s,Tempo_Aig,erreur);
       end;
 
-      // temporisation décodeurs de feux
-      sa:=uppercase(Tempo_Feu_ch)+'=';
+      // temporisation décodeurs de signal
+      sa:=uppercase(Tempo_Signal_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
       begin
         inc(nv);
-        trouve_Tempo_feu:=true;
+        trouve_Tempo_signal:=true;
         delete(s,i,length(sa));
-        val(s,Tempo_Feu,erreur);
-        if tempo_Feu=0 then Tempo_feu:=100;
+        val(s,Tempo_Signal,erreur);
+        if Tempo_Signal=0 then Tempo_Signal:=100;
       end;
 
       // algo unisemaf
@@ -3660,7 +3688,7 @@ begin
   trouve_init_aig:=false;
   trouve_dem_aig:=false;
   trouve_tempo_aig:=false;
-  trouve_tempo_feu:=false;
+  trouve_tempo_signal:=false;
   trouve_INTER_CAR:=false;
   trouve_entete:=false;
   trouve_IPV4_INTERFACE:=false;
@@ -3689,10 +3717,10 @@ begin
 
   //trouve_FVR:=false;
 
-  if not(trouve_tempo_feu) then
+  if not(trouve_tempo_signal) then
   begin
-    s:=tempo_feu_ch;
-    tempo_feu:=100;
+    s:=tempo_signal_ch;
+    Tempo_Signal:=100;
     s:='';
   end;
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
@@ -3746,7 +3774,7 @@ begin
     AvecDemandeInterfaceEth:=true;
     lay:='';
     Tempo_Aig:=100;
-    Tempo_feu:=100;
+    Tempo_Signal:=100;
     ServeurInterfaceCDM:=1;
     Nb_cantons_Sig:=3;
     ServeurRetroCDM:=1;
@@ -3784,10 +3812,10 @@ begin
   if not(trouve_demcnxEth) then s:=Init_dem_interfaceEth_ch;
   if not(trouveAvecVerifIconesTCO) then confasauver:=true;
 
-  if not(trouve_tempo_feu) then
+  if not(trouve_tempo_signal) then
   begin
-    s:=tempo_feu_ch;
-    tempo_feu:=100;
+    s:=tempo_signal_ch;
+    Tempo_Signal:=100;
     s:='';
   end;
   if not(trouve_NOTIF_VERSION) then s:=NOTIF_VERSION_ch;
@@ -4043,7 +4071,7 @@ begin
     exit;
   end;
 
-  Feu_Sauve:=Signaux[index];  // sauvegarde
+  Signal_Sauve:=Signaux[index];  // sauvegarde
 
   AncLigneClicSig:=ligneclicSig;
   ligneClicSig:=index-1;
@@ -4059,12 +4087,14 @@ begin
 
   if sombre then Formconfig.editAdrSig.Color:=couleurfond else FormConfig.EditAdrSig.Color:=clWindow;
 
-  aff_champs_sig_feux(index);   // affiche les champs du feu
+  aff_champs_signaux(index);   // affiche les champs du feu
   clicliste:=false;
 end;
 
 
 procedure TFormConfig.FormActivate(Sender: TObject);
+var i : integer;
+    s : string;
 begin
   if affevt then affiche('FormConfig activate',clLime);
   activ:=true;
@@ -4093,7 +4123,7 @@ begin
 
   CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
   EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
-  EditTempoFeu.Text:=IntToSTR(Tempo_feu);
+  EditTempoFeu.Text:=IntToSTR(Tempo_Signal);
   EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
@@ -4174,8 +4204,19 @@ begin
   clicListe:=false;
   activ:=false;
 
-  if clicproprietes then clicListeSignal(Indexfeuclic);
+  if clicproprietes then clicListeSignal(IndexSignalClic);
   clicproprietes:=false;
+
+  // aiguillages
+  ListBoxAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    ListBoxAig.Items.AddObject(s, Pointer(clRed));
+    Aiguillage[i].modifie:=false;
+  end;
+  ListBoxAig.itemindex:=0;
+
 
 end;
 
@@ -4649,8 +4690,8 @@ begin
   if affevt then affiche('FormConfig create',clLime);
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   Aig_supprime.Adresse:=0;
-  Feu_Supprime.Adresse:=0;
-  Feu_sauve.adresse:=0;
+  Signal_Supprime.Adresse:=0;
+  Signal_sauve.adresse:=0;
   clicListe:=false;
   ligneCherche:=0;
   Compt_ligne:=0;
@@ -5277,18 +5318,6 @@ begin
   else formconfig.ComboBoxDecodeurPerso.ItemIndex:=-1;
   maj_decodeurs;
 
-
-  // aiguillages
-  ListBoxAig.Clear;
-  for i:=1 to MaxAiguillage do
-  begin
-    s:=encode_aig(i);
-    ListBoxAig.Items.AddObject(s, Pointer(clRed));
-    Aiguillage[i].modifie:=false;
-  end;
-  ListBoxAig.itemindex:=0;
-
-
   // branches
   clicListe:=true;
   RichBranche.clear;
@@ -5307,7 +5336,6 @@ begin
   // signaux
   ListBoxSig.Items.clear;
   ComboBoxDec.items.Clear;
-
   for i:=0 to 11 do
   begin
     ComboBoxAsp.items.add(Aspects[i]);
@@ -5317,6 +5345,7 @@ begin
   begin
     ComboBoxDec.items.add(decodeur[i-1]);
   end;
+
   // décodeurs personalisés
   for i:=1 to NbreDecPers do
   begin
@@ -5327,7 +5356,7 @@ begin
   longestLength:=0;
   for i:=1 to NbreSignaux do
   begin
-    s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
+    s:=encode_signal(i);  // encode la ligne depuis le tableau feux
     //Affiche(s,clwhite);
     if s<>'' then
     begin
@@ -5342,6 +5371,7 @@ begin
       Signaux[i].modifie:=false;
     end;
   end;
+
   PixelLength:=ListboxSig.Canvas.TextWidth(LongestString);
   // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
   SendMessage(ListBoxSig.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
@@ -5395,7 +5425,7 @@ begin
   GroupBoxAct.Visible:=false;
   GroupBoxPN.Visible:=false;
 
-  if clicproprietes then clicListeSignal(Indexfeuclic);
+  if clicproprietes then clicListeSignal(IndexSignalClic);
   clicproprietes:=false;
 
   i:=1;
@@ -6209,7 +6239,7 @@ begin
 end;
 
 // mise à jour des champs du signal d'après le tableau feux
-Procedure aff_champs_sig_feux(index : integer);
+Procedure aff_champs_signaux(index : integer);
 var i,j,l,d,p,k,nc,decodeur : integer;
     s : string;
 begin
@@ -6224,7 +6254,7 @@ begin
     Picture.Bitmap.TransparentMode:=tmAuto;
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
-    picture.Bitmap:=Select_dessin_feu(Signaux[i].aspect);
+    picture.Bitmap:=Select_dessin_Signal(Signaux[i].aspect);
   end;
 
   if Signaux[i].contrevoie then inverse_image(formCOnfig.ImageSignal,Formprinc.ImageSignal20);
@@ -7493,10 +7523,10 @@ begin
        end
   else labelInfo.Caption:='';
   end;
-  s:=encode_sig_feux(i);
+  s:=encode_signal(i);
   formconfig.ListBoxSig.Items[ligneclicSig]:=s;
   ListBoxSig.selected[ligneClicSig]:=true;
-  aff_champs_sig_feux(i);
+  aff_champs_signaux(i);
   if not(verif_dec_sig(false)) then FormConfig.labelInfo.Caption:='Combinaison décodeur / aspect incompatible';
 
   if affevt then Affiche('Evt ComboBox Decodeur',clOrange);
@@ -7519,7 +7549,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det1:=i;
     maj_hint_Signal(ligneClicSig+1);
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     Signaux[ligneClicSig+1].modifie:=true;
     ListBoxSig.selected[ligneClicSig]:=true;
@@ -7534,7 +7564,7 @@ begin
   Val(s,i,erreur);
   if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur temporisation décodeurs ';exit;end;
   LabelInfo.caption:=' ';
-  tempo_feu:=i;
+  Tempo_Signal:=i;
 end;
 
 
@@ -7573,7 +7603,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_el_suiv1:=i;
     Signaux[ligneClicSig+1].Btype_suiv1:=bt;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
@@ -7601,7 +7631,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det2:=i;
     maj_hint_Signal(ligneClicSig+1);
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -7623,7 +7653,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].VerrouCarre:=checkVerrouCarre.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -7639,7 +7669,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].FeuBlanc:=checkBoxFB.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -7680,7 +7710,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_el_suiv2:=i;
     Signaux[ligneClicSig+1].Btype_suiv2:=bt;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
@@ -7708,7 +7738,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det3:=i;
     maj_hint_Signal(ligneClicSig+1);
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -7756,7 +7786,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_el_suiv3:=i;
     Signaux[ligneClicSig+1].Btype_suiv3:=bt;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
@@ -7784,7 +7814,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det4:=i;
     maj_hint_Signal(ligneClicSig+1);
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -7832,7 +7862,7 @@ begin
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_el_suiv4:=i;
     Signaux[ligneClicSig+1].Btype_suiv4:=bt;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
@@ -8296,16 +8326,16 @@ begin
 
   Signaux[index].aspect:=aspect;
 
-  s:=encode_sig_feux(index);
+  s:=encode_signal(index);
   ListBoxSig.Items[ligneClicSig]:=s;
-  aff_champs_sig_feux(index); // redessine les champs et le feu
+  aff_champs_signaux(index); // redessine les champs et le feu
 
   if not(verif_dec_sig(false)) then labelInfo.Caption:='Combinaison décodeur / aspect incompatible';
 
   ListBoxSig.Selected[ligneClicSig]:=true;
 
   // change l'image du feu dans la feuille graphique principale
-  bm:=Select_dessin_feu(Signaux[index].aspect);
+  bm:=Select_dessin_Signal(Signaux[index].aspect);
   if bm=nil then exit;
   Signaux[index].Img.picture.Bitmap:=bm;
   dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
@@ -8354,7 +8384,7 @@ begin
       Signaux[ligneClicSig+1].Unisemaf:=i;
     end;
     if decodeur=10 then Signaux[ligneClicSig+1].Na:=i;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end;
@@ -8363,17 +8393,17 @@ end;
 procedure TFormConfig.ButtonrestaureClick(Sender: TObject);
 var index : integer;
 begin
-  if (Feu_sauve.adresse<>0) and (ligneClicSig>=0) then
+  if (Signal_sauve.adresse<>0) and (ligneClicSig>=0) then
   begin
     clicListe:=true;
     index:=ligneClicSig+1;
-    Signaux[index]:=Feu_sauve;
-    ListBoxSig.Items[ligneClicSig]:=encode_sig_feux(index);
+    Signaux[index]:=Signal_sauve;
+    ListBoxSig.Items[ligneClicSig]:=encode_signal(index);
     ListBoxSig.selected[ligneClicSig]:=true;
-    aff_champs_sig_feux(index);  // réaffiche les champs
+    aff_champs_signaux(index);  // réaffiche les champs
     Maj_Hint_Signal(index);
     // change l'image du feu dans la feuille graphique principale
-    Signaux[index].Img.picture.Bitmap:=Select_dessin_feu(Signaux[index].aspect);
+    Signaux[index].Img.picture.Bitmap:=Select_dessin_Signal(Signaux[index].aspect);
     dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
     clicListe:=false;
   end;
@@ -8925,8 +8955,7 @@ begin
   Signaux[i].verrouCarre:=false;
 
   cree_image(i);
-  //Affiche('Feu 999 créé',clyellow);
-  s:=encode_sig_feux(i);
+  s:=encode_signal(i);
 
   // scroller à la fin et sélectionner
   with formConfig.ListBoxSig do
@@ -8940,9 +8969,9 @@ begin
   formCOnfig.LabelInfo.caption:='';
   ligneClicSig:=i-1;
   AncligneClicSig:=ligneClicSig;
-  Aff_champs_Sig_feux(i);
+  aff_champs_signaux(i);
   clicliste:=false;
-  Feu_sauve.Adresse:=0;
+  Signal_sauve.Adresse:=0;
   config_modifie:=true;
 
   // encoder l'index
@@ -8985,8 +9014,9 @@ begin
   repeat
     if formconfig.ListBoxSig.selected[i-1] then
     begin
-      Feu_supprime:=Signaux[i];  // sauvegarde le signal supprimé
-      feu_sauve.adresse:=0;       // dévalider sa définition
+      Signal_supprime:=Signaux[i];  // sauvegarde le signal supprimé
+      Signal_sauve.adresse:=0;       // dévalider sa définition
+
       FormConfig.ButtonInsFeu.Caption:='Ajouter le signal '+intToSTR(Signaux[i].adresse)+' supprimé';
 
       // supprimer le signal i
@@ -8997,7 +9027,11 @@ begin
 
       Signaux[i].Img.free;  // supprime l'image, ce qui efface le feu du tableau graphique
       Signaux[i].Lbl.free;  // supprime le label
-      if Signaux[i].checkFB<>nil then begin Signaux[i].checkFB.Free;Signaux[i].CheckFB:=nil;end;  // supprime le check du feu blanc s'il existait
+      Tablo_Index_Signal[Signaux[i].adresse]:=0;
+      if Signaux[i].checkFB<>nil then
+      begin
+        Signaux[i].checkFB.Free;Signaux[i].CheckFB:=nil;
+      end;  // supprime le check du feu blanc s'il existait
 
       for j:=i to NbreSignaux-1 do
       begin
@@ -9041,7 +9075,7 @@ begin
   // réafficher la liste
   for i:=1 to NbreSignaux do
   begin
-    s:=encode_sig_feux(i);
+    s:=encode_signal(i);
     if s<>'' then
     begin
       FormConfig.ListBoxSig.items.Add(s);
@@ -9049,7 +9083,13 @@ begin
   end;
   ligneClicSig:=-1;
   AncligneClicSig:=-1;
-  trier_sig; // recalcule les index
+
+  // calcule les index - ne pas trier les signaux, il faudrait trier la fenetre graphique
+  for i:=1 to NbreSignaux do
+  begin
+    tablo_index_signal[Signaux[i].adresse]:=i;
+  end;
+
   clicliste:=false;
 
 end;
@@ -9064,17 +9104,18 @@ end;
 procedure TFormConfig.ButtonInsFeuClick(Sender: TObject);
 var s : string;
 begin
-  if feu_supprime.adresse<>0 then
+  if Signal_supprime.adresse<>0 then
   begin
     clicliste:=true;
     inc(NbreSignaux);
-    Signaux[NbreSignaux]:=Feu_supprime;
-    Feu_Supprime.adresse:=0;  // dévalider le feu sauvegardé
-    Feu_supprime.aspect:=0;
+    Signaux[NbreSignaux]:=Signal_supprime;
+    Tablo_Index_Signal[Signaux[NbreSignaux].adresse]:=NbreSignaux;   // index
+    Signal_supprime.adresse:=0;  // dévalider le feu sauvegardé
+    Signal_supprime.aspect:=0;
     cree_image(NbreSignaux);
     config_modifie:=true;
     // réafficher le rechedit
-    s:=encode_Sig_Feux(NbreSignaux);
+    s:=encode_signal(NbreSignaux);
     if s<>'' then
     begin
       with ListBoxSig.Items do
@@ -9085,7 +9126,7 @@ begin
         AncligneClicSig:=-1;
         SetFocus;
       end;
-      Aff_champs_sig_feux(NbreSignaux);
+      aff_champs_signaux(NbreSignaux);
     end;
     clicListe:=false;
   end;
@@ -10737,6 +10778,7 @@ begin
   begin
     inc(MaxAiguillage);
     aiguillage[MaxAiguillage]:=Aig_supprime;
+    Tablo_Index_aiguillage[aiguillage[maxAiguillage].adresse]:=maxAiguillage;   // index
     Aig_Supprime.adresse:=0;  // dévalider l'aiguillage sauvegardé
     Aig_Supprime.modele:=rien;
     clicListe:=true;
@@ -11114,7 +11156,7 @@ begin
       else
         setlength(Signaux[ligneClicSig+1].AigDirection[ligne],0);
     end;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
   end
@@ -11152,7 +11194,7 @@ begin
     end;    
   end;
 
-  s:=encode_sig_feux(ligneClicSig+1);
+  s:=encode_signal(ligneClicSig+1);
   ListBoxSig.Items[ligneClicSig]:=s;
   LabelInfo.Caption:='';
   clicListe:=false;
@@ -11716,7 +11758,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].checkFV:=checkFVC.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -11732,7 +11774,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].checkFR:=checkFRC.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -12285,7 +12327,7 @@ procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].verscontrevoie:=checkBoxVersContreVoie.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
@@ -12302,12 +12344,12 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   begin
     Signaux[ligneClicSig+1].contrevoie:=checkBoxContreVoie.Checked;
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
 
-    aff_champs_sig_feux(ligneClicSig+1); // redessine les champs et le feu  - contient l'inversion de l'image
+    aff_champs_signaux(ligneClicSig+1); // redessine les champs et le feu  - contient l'inversion de l'image
 
     // maj le signal dans la fenetre principale
     Signaux[ligneClicSig+1].Img.picture.Bitmap:=ImageSIgnal.Picture.Bitmap;  // et recopie le feu
@@ -12709,7 +12751,7 @@ begin
     begin
       Affiche('Le décodeur du signal '+intToSTR(Signaux[i].adresse)+' a été réaffacté à rien',clOrange);
       Signaux[i].decodeur:=0;
-      if i=ligneClicSig+1 then aff_champs_sig_feux(ligneClicSig+1);
+      if i=ligneClicSig+1 then aff_champs_signaux(ligneClicSig+1);
       aff:=true;
     end;
     if deco>supp then
@@ -12725,7 +12767,7 @@ begin
     ListBoxSig.Items.Clear;
     for i:=1 to NbreSignaux do
     begin
-      s:=encode_sig_feux(i);  // encode la ligne depuis le tableau feux
+      s:=encode_signal(i);  // encode la ligne depuis le tableau feux
       if s<>'' then
       begin
         ListBoxSig.Items.Add(s);
@@ -12796,7 +12838,7 @@ begin
       setlength(Signaux[ligneClicSig+1].condFeuBlanc[ligne],0);
   end;
 
-  s:=encode_sig_feux(ligneClicSig+1);
+  s:=encode_signal(ligneClicSig+1);
   ListBoxSig.Items[ligneClicSig]:=s;
   ListBoxSig.selected[ligneClicSig]:=true;
   LabelInfo.Caption:='';
@@ -12850,7 +12892,7 @@ begin
         if AncligneClicSig<>ligneClicSig then
         begin
           AncligneClicSig:=ligneClicSig;
-          aff_champs_sig_feux(ligneClicSig+1);
+          aff_champs_signaux(ligneClicSig+1);
         end;
       end;
     end;
@@ -12869,7 +12911,7 @@ begin
         if AncligneClicSig<>ligneClicSig then
         begin
           AncligneClicSig:=ligneClicSig;
-          aff_champs_sig_feux(ligneClicSig+1);
+          aff_champs_signaux(ligneClicSig+1);
         end;
       end;
     end;
@@ -13560,7 +13602,7 @@ begin
     tablo_index_signal[i]:=ligneClicSig+1;
 
     Signaux[ligneClicSig+1].Lbl.caption:='@'+IntToSTR(i);
-    s:=encode_sig_feux(ligneClicSig+1);
+    s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
     Maj_Hint_Signal(ligneClicSig+1);

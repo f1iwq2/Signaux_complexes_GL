@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1141
-    638)
+    1133
+    630)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 616
-    Width = 1141
+    Top = 608
+    Width = 1133
     Height = 22
     Panels = <
       item
@@ -2466,8 +2466,8 @@ object FormPrinc: TFormPrinc
       OnClick = Coller1Click
     end
   end
-  object PopupMenuFeu: TPopupMenu
-    OnPopup = PopupMenuFeuPopup
+  object PopupMenuSignal: TPopupMenu
+    OnPopup = PopupMenuSignalPopup
     Left = 896
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's du signal'

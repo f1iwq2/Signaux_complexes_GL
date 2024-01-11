@@ -8791,7 +8791,7 @@ end;
 procedure TFormTCO.FormCreate(Sender: TObject);
 var s : string;
 begin
-  if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clyellow);
+  if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
   //Screen.OnActiveControlChange := ActiveControlChanged;
   offsetSourisY:=-10; // permet de tenir l'icone au milieu quand on fait un glisser
   offsetSourisX:=-10;
@@ -13772,7 +13772,7 @@ begin
 end;
 
 procedure TFormTCO.LigneDessousClick(Sender: TObject);
-var x,y,indexTCO : integer;
+var indexTCO : integer;
     c : tcomponent;
 begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
@@ -13824,8 +13824,8 @@ begin
 end;
 
 procedure TFormTCO.Colonnedroite1Click(Sender: TObject);
-  var x,y,indexTCO : integer;
-  c : tcomponent;
+var indexTCO : integer;
+    c : tcomponent;
 begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
   c:=c.GetParentComponent;           // scrollBox

@@ -549,6 +549,7 @@ procedure TFormConfigTCO.FormCreate(Sender: TObject);
 var i : integer;
     c : tcomponent;
 begin
+  if debug=1 then Affiche('Création fenetre configTCO',clLime);
   for i:=0 to stringGridTCO.RowCount - 1 do
   with stringGridTCO do
   begin
@@ -577,6 +578,7 @@ begin
       composant(c,couleurFond,couleurTexte);
     end;
   end;
+  if debug=1 then Affiche('Fin création fenetre configTCO',clLime);
 end;
 
 procedure TFormConfigTCO.TrackBarEpaisseurChange(Sender: TObject);

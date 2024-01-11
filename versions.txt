@@ -221,4 +221,5 @@ version 8.35 : Correction ajout de signaux et d'aiguillages.
                Amélioration de l'édition des TJD.
 version 8.36 : Création d'un mode de fond sombre modifiable pour l'affichage.
                Amélioration édition des lignes et colonnes du TCO.
-
+version 8.37 : Correction des calculs des index des aiguillages et des signaux lors de leur suppression.
+               Correction présence trains avant signal.  

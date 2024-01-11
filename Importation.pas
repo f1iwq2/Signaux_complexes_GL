@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls, unitConfig, UnitPrinc;
 
 type
   TFormImportation = class(TForm)
@@ -47,10 +47,13 @@ end;
 
 procedure TFormImportation.FormCreate(Sender: TObject);
 begin
+  if debug=1 then Affiche('Création fenetre compilation réseau CDM',clLime);
   radioCroisBase.Checked:=true;
   radioCroisSuite.checked:=false;
   BaseCroisement:=100;
   EditBaseCrois.Text:=IntToSTR(BaseCroisement);
+  if debug=1 then Affiche('Fin création fenetre compilation réseau CDM',clLime);
+  formprinc.SetFocus;           // fin d'init de signaux complexes, on active la form principale
 end;
 
 procedure TFormImportation.CheckDebugAnalyseClick(Sender: TObject);

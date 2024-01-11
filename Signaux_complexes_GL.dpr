@@ -18,7 +18,6 @@ uses
   UnitPareFeu in 'UnitPareFeu.pas',
   UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
   Importation in 'Importation.pas' {FormImportation};
-
 {$R *.res}
 
 begin

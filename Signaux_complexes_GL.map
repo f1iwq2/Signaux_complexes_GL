@@ -1,6 +1,6 @@
 
  Start         Length     Name                   Class
- 0001:00000000 001A20F8H .text                   CODE
+ 0001:00000000 001A254CH .text                   CODE
  0002:00000000 00002C7CH .data                   DATA
  0002:00002C7C 045DE035H .bss                    BSS
 
@@ -83,22 +83,22 @@ Detailed map of segments
  0001:0009A6E4 00002108 C=CODE     S=.text    G=(none)   M=Mask     ACBP=A9
  0001:0009C7EC 0000924C C=CODE     S=.text    G=(none)   M=Grids    ACBP=A9
  0001:000A5A38 00001980 C=CODE     S=.text    G=(none)   M=UnitPilote ACBP=A9
- 0001:000A73B8 000004D0 C=CODE     S=.text    G=(none)   M=Importation ACBP=A9
- 0001:000A7888 00013ACC C=CODE     S=.text    G=(none)   M=UnitAnalyseSegCDM ACBP=A9
- 0001:000BB354 00002CA4 C=CODE     S=.text    G=(none)   M=UnitConfigTCO ACBP=A9
- 0001:000BDFF8 00000D10 C=CODE     S=.text    G=(none)   M=Unit_Pilote_aig ACBP=A9
- 0001:000BED08 00004DD8 C=CODE     S=.text    G=(none)   M=UnitConfigCellTCO ACBP=A9
- 0001:000C3AE0 00045748 C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
- 0001:00109228 00003160 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
- 0001:0010C388 00002880 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
- 0001:0010EC08 000431B4 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
- 0001:00151DBC 00001833 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
- 0001:001535F0 000011D0 C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
- 0001:001547C0 00002BC8 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
- 0001:00157388 00000D2C C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
- 0001:001580B4 00002604 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
- 0001:0015A6B8 000475B0 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
- 0001:001A1C68 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
+ 0001:000A73B8 00000574 C=CODE     S=.text    G=(none)   M=Importation ACBP=A9
+ 0001:000A792C 00013B38 C=CODE     S=.text    G=(none)   M=UnitAnalyseSegCDM ACBP=A9
+ 0001:000BB464 00002D20 C=CODE     S=.text    G=(none)   M=UnitConfigTCO ACBP=A9
+ 0001:000BE184 00000D10 C=CODE     S=.text    G=(none)   M=Unit_Pilote_aig ACBP=A9
+ 0001:000BEE94 00004DD8 C=CODE     S=.text    G=(none)   M=UnitConfigCellTCO ACBP=A9
+ 0001:000C3C6C 00045748 C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
+ 0001:001093B4 00003160 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
+ 0001:0010C514 000028D4 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
+ 0001:0010EDE8 00001833 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
+ 0001:0011061C 000011D0 C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
+ 0001:001117EC 00043384 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
+ 0001:00154B70 00002BC8 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
+ 0001:00157738 00000D2C C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
+ 0001:00158464 00002678 C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
+ 0001:0015AADC 000475E0 C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
+ 0001:001A20BC 0000048D C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
  0002:00000000 000000CC C=DATA     S=.data    G=DGROUP   M=System   ACBP=A9
  0002:000000CC 00000020 C=DATA     S=.data    G=DGROUP   M=SysInit  ACBP=A9
  0002:000000EC 00000254 C=DATA     S=.data    G=DGROUP   M=SysUtils ACBP=A9
@@ -215,9 +215,9 @@ Detailed map of segments
  0002:00015760 00418704 C=BSS      S=.bss     G=DGROUP   M=UnitTCO  ACBP=A9
  0002:0042DE64 00000010 C=BSS      S=.bss     G=DGROUP   M=UnitSR   ACBP=A9
  0002:0042DE74 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitCDF  ACBP=A9
- 0002:0042DE88 000004FC C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
- 0002:0042E384 00000018 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
- 0002:0042E39C 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
+ 0002:0042DE88 00000018 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
+ 0002:0042DEA0 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
+ 0002:0042DEA4 000004FC C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
  0002:0042E3A0 0000002C C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
  0002:0042E3CC 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
  0002:0042E3D8 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
@@ -237,8 +237,8 @@ UnitConfigCellTCO.dfm
 UnitTCO.dfm
 UnitSR.dfm
 UnitCDF.dfm
-UnitConfig.dfm
 verif_version.dfm
+UnitConfig.dfm
 UnitDebug.dfm
 UnitSimule.dfm
 Unitplace.dfm
@@ -247,4 +247,4 @@ Signaux_complexes_GL.res
 Signaux_complexes_GL.drf
 
 
-Program entry point at 0001:001A1F78
+Program entry point at 0001:001A23CC

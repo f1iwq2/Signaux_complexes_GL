@@ -276,10 +276,10 @@ end;
 procedure Maj_DB;
 var s : string;
 begin
-  s:=encode_sig_feux(indexSig);
+  s:=encode_signal(indexSig);
   formconfig.ListBoxSig.items[indexSig-1]:=s;
   formconfig.ListBoxSig.selected[ligneClicSig]:=true;
-  aff_champs_sig_feux(indexSig);
+  aff_champs_signaux(indexSig);
 end;  
 
 procedure TFormSR.ComboBoxAdr1Change(Sender: TObject);

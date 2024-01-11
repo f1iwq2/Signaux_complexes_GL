@@ -1577,8 +1577,13 @@ begin
         coords(x1,y1);
         if formAnalyseCDM.CheckConnexions.checked then
         begin
-          canvas.pen.width:=1;
-          canvas.Ellipse(x1-5,y1-5,x1+5,y1+5);
+          with canvas do
+          begin
+            pen.Color:=clOrange;
+            pen.width:=1;
+            Ellipse(x1-5,y1-5,x1+5,y1+5);
+            canvas.pen.Color:=clWhite;
+          end;
         end;
         if j<40 then
         begin
@@ -1767,7 +1772,7 @@ begin
   end;
 end;
 
-// renvoie si le segment est de tye aiguillage
+// renvoie si le segment est de type aiguillage
 function segment_aig(s : string) : boolean;
 begin
   segment_aig:=(s='turnout') or (s='dbl_slip_switch') or (s='turnout_sym') or
@@ -1817,7 +1822,7 @@ begin
 end;
 
 
-// trouve les indexs Segment et port contenant le détecteur est detecteur
+// trouve les index Segment et port contenant le détecteur est detecteur
 function trouve_IndexSegPortDetecteur(detecteur : integer;var indexSeg,indexPeriph : integer) : boolean;
 var i,j,p,np : integer;
     trouve : boolean;
@@ -2630,7 +2635,7 @@ begin
       //else
 
       begin
-        // y a til un détecteur
+        // y a t-il un détecteur?
         NombrePeriph:=segment[indexSegSuivant].nperiph;
 
         j:=0;detecteur:=0;
@@ -3316,10 +3321,11 @@ begin
 
   Affiche('Importation des aiguillages et des branches',clWhite);
 
-  // recopier les aiguillages
+  // recopier les aiguillages CDM dans signaux_complexes
   for i:=1 to NAig_CDM do
   begin
     Aiguillage[i].adresse:=Aig_CDM[i].adresse;
+    tablo_index_aiguillage[aiguillage[i].Adresse]:=i;
     Aiguillage[i].adrtriple:=Aig_CDM[i].adrtriple;
     Aiguillage[i].modele:=Aig_Cdm[i].modele;
     Aiguillage[i].temps:=Aig_cdm[i].temps;
@@ -3504,7 +3510,7 @@ end;
 
 procedure TFormAnalyseCDM.FormCreate(Sender: TObject);
 begin
-  if debug=1 then Affiche('Création fenêtre CDM',clLime);
+  if debug=1 then Affiche('Création fenêtre réseau CDM',clLime);
   IndexClic:=0;
   checkPorts.Checked:=false;
   CheckAdresses.checked:=true;
@@ -3534,7 +3540,7 @@ begin
     hauteurTrain:=Height;
   end;
   ArcTanHautLargTrain:=ArcTan(HauteurTrain/LargeurTrain);
-  if debug=1 then Affiche('Fin création fenetre CDM',clLime);
+  if debug=1 then Affiche('Fin création fenetre réseau CDM',clLime);
 end;
 
 
