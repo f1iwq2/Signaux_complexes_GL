@@ -1,6 +1,6 @@
 object FormAnalyseCDM: TFormAnalyseCDM
-  Left = 206
-  Top = 0
+  Left = 212
+  Top = 69
   AutoScroll = False
   Caption = 'Fen'#234'tre r'#233'seau CDM'
   ClientHeight = 648

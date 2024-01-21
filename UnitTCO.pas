@@ -20,7 +20,7 @@ type
     Tourner90D: TMenuItem;
     Pos_vert: TMenuItem;
     TrackBarZoom: TTrackBar;
-    Panel1: TPanel;
+    PanelBas: TPanel;
     Label1: TLabel;
     Label2: TLabel;
     Label5: TLabel;
@@ -34,8 +34,6 @@ type
     Label11: TLabel;
     Label50: TLabel;
     ButtonSauveTCO: TButton;
-    Button1: TButton;
-    Button2: TButton;
     LabelZoom: TLabel;
     ButtonConfigTCO: TButton;
     Annulercouper: TMenuItem;
@@ -145,7 +143,7 @@ type
     N8: TMenuItem;
     DessinerleTCO1: TMenuItem;
     ConfigurationduTCO1: TMenuItem;
-    Affichebandeau1: TMenuItem;
+    Bandeau: TMenuItem;
     Affichage1: TMenuItem;
     Mosaquehorizontale1: TMenuItem;
     Mosaqueverticale1: TMenuItem;
@@ -308,7 +306,7 @@ type
       Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ImagePalette50DragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure Panel1DragOver(Sender, Source: TObject; X, Y: Integer;
+    procedure PanelBasDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure ImagePalette51DragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
@@ -417,7 +415,7 @@ type
     procedure DessinerleTCO1Click(Sender: TObject);
     procedure ConfigurationduTCO1Click(Sender: TObject);
     procedure Redessine1Click(Sender: TObject);
-    procedure Affichebandeau1Click(Sender: TObject);
+    procedure BandeauClick(Sender: TObject);
     procedure Mosaquehorizontale1Click(Sender: TObject);
     procedure Mosaqueverticale1Click(Sender: TObject);
     procedure AfficherSignauxComplexes1Click(Sender: TObject);
@@ -432,8 +430,9 @@ type
 
 const
   MaxCellX=150;MaxCellY=70;
-  licone=35;
-  hicone=35;
+  licone=26;   // largeur icone du bas 35
+  hicone=licone;
+  Xicones=40;  //début de la zone icones
   maxUndo=30;
   ZoomMax=(8191 div MaxCellX)-1;  // pour ne pas dépasser un canvas de 8191 pixel maxi
   ZoomMin=15;
@@ -554,7 +553,7 @@ var
             end;
 
   rAncien : TRect;
-  VBm,OldBmp : TBitMap;
+  OldBmp : TBitMap;
   PScrollBoxTCO : TScrollBox;
 
   // liste des variables par tco
@@ -1599,7 +1598,7 @@ begin
   hauteurCell[indexTCO]:=(LargeurCell[indexTCO] * RatioC) div 10;
   largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;
   HauteurCelld2[indexTCO]:=HauteurCell[indexTCO] div 2;
-  Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;   // épaisseur du trait pour PEN
+
   //Affiche(intToSTR(LargeurCell[indexTCO])+' '+intToSTR(epaisseur),clyellow);
 end;
 
@@ -1750,6 +1749,7 @@ begin
     Adr:=tco[indextco,x,y].adresse;
     if adr<>0 then
     begin
+      pen.Width:=1;
       if detecteur[Adr].etat then
       begin
         brush.Color:=clAllume[indexTCO];
@@ -1760,8 +1760,8 @@ begin
         pen.color:=tco[indextco,x,y].CouleurFond;
         brush.color:=tco[indextco,x,y].CouleurFond;
       end;
-      jy1:=y0+(HauteurCell[indexTCO] div 2)-round(6*fryGlob[indexTCO]); // pos Y de la bande sup
-      jy2:=y0+(HauteurCell[indexTCO] div 2)+round(6*fryGlob[indexTCO]); // pos Y de la bande inf
+      jy1:=y0+(HauteurCell[indexTCO] div 2)-round(7*fryGlob[indexTCO]); // pos Y de la bande sup
+      jy2:=y0+(HauteurCell[indexTCO] div 2)+round(7*fryGlob[indexTCO]); // pos Y de la bande inf
       if avecGrille[indexTCO] then r:=Rect(x0+1,jy1,xf-1,jy2) else
       r:=Rect(x0,jy1,x0+LargeurCell[indexTCO],jy2) ;
       FillRect(r);
@@ -1773,8 +1773,7 @@ begin
       2 : couleur:=couleurTrain[TCO[IndexTCO,x,y].train];
     end;
     pen.color:=couleur;
-    if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 2 else
-      pen.Width:=epaisseur;
+    if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     moveTo(x0,yc);LineTo(xf,yc);
   end;
 end;
@@ -3341,7 +3340,6 @@ begin
         pen.color:=tco[indextco,x,y].CouleurFond;
         brush.color:=tco[indextco,x,y].CouleurFond;
       end;
-     // if avecGrille then r:=Rect(x0+1,jy1,x0+LargeurCell[indexTCO]-1,jy2) else
       pen.Width:=epaisseur+3;
       MoveTo(x0,y0);LineTo(x0+LargeurCell[indexTCO],y0+hauteurCell[indexTCO]);
     end;
@@ -4667,8 +4665,8 @@ begin
         Brush.Color:=couleur;
         pen.color:=couleur;
       end;
-      jx1:=x0+(LargeurCell[indexTCO] div 2)-round(6*frxGlob[indexTCO]); // pos Y de la bande sup
-      jx2:=x0+(LargeurCell[indexTCO] div 2)+round(6*frxGlob[indexTCO]); // pos Y de la bande inf
+      jx1:=x0+(LargeurCell[indexTCO] div 2)-round(7*frxGlob[indexTCO]); // pos Y de la bande sup
+      jx2:=x0+(LargeurCell[indexTCO] div 2)+round(7*frxGlob[indexTCO]); // pos Y de la bande inf
       if avecGrille[indexTCO] then r:=Rect(jx1,y0+1,jx2,y0+hauteurCell[indexTCO]-1) else
       r:=Rect(jx1,y0,jx2,y0+hauteurCell[indexTCO]) ;
       FillRect(r);
@@ -8394,6 +8392,7 @@ begin
   BImage:=tco[indextco,x,y].BImage;
   mode:=tco[indextco,x,y].mode; // mode pour la couleur
   repr:=tco[indextco,x,y].repr;
+  Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;  
 
   Xorg:=(x-1)*LargeurCell[indexTCO];
   Yorg:=(y-1)*hauteurCell[indexTCO];
@@ -8498,7 +8497,7 @@ begin
   end;
 
   // autres détecteurs
-  if ((Bimage=7) or (Bimage=8) or (Bimage=9) or (Bimage=10) or (Bimage=17)  or (Bimage=20)) and (adresse<>0) then
+  if ((Bimage=7) or (Bimage=8) or (Bimage=9) or (Bimage=10) or (Bimage=17)  ) and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO[indexTCO] do
     begin
@@ -8507,6 +8506,22 @@ begin
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       Font.Color:=tco[indextco,x,y].coulFonte;
       TextOut(xOrg+round(2*frxGlob[indexTCO]),yOrg+round(2*fryGlob[indexTCO]),s);
+    end;
+  end;
+
+  // écriture adresse à 90°
+  if (Bimage=20) and (adresse<>0) then
+  begin
+    with PCanvasTCO[indexTCO] do
+    begin
+      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      Font.Name:='Arial';
+      Font.Style:=style(tco[indextco,x,y].FontStyle);
+      Font.Color:=tco[indextco,x,y].coulFonte;
+      PCanvasTCO[indexTCO].font.Size:=PCanvasTCO[indexTCO].font.Size+1;
+      //TextOut(xOrg+round(2*frxGlob[indexTCO]),yOrg+round(2*fryGlob[indexTCO]),s);
+      AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],Xorg,yOrg+round(30*fryGlob[indexTCO]),
+                                PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,nil,s,910);
     end;
   end;
 
@@ -8563,13 +8578,13 @@ begin
       end;
       if (Oriente=3) then
       begin
-        if inverse then begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
-        else begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=round(1*fryGlob[indexTCO]);end;
+        if inverse then begin xt:=round(10*frxGlob[indexTCO]);yt:=round(50*frxGlob[indexTCO]);end
+        else begin xt:=round(60*frxGlob[indexTCO]);yt:=round(1*frxGlob[indexTCO])end;
       end;
       if (oriente=4) then
       begin
-        if inverse then begin xt:=LargeurCell[indexTCO]+round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(16*fryGlob[indexTCO]);end
-        else begin xt:=round(2*frxGlob[indexTCO]);yt:=round(1*fryGlob[indexTCO]);end;
+        if inverse then begin xt:=round(40*frxGlob[indexTCO]);yt:=round(40*fryGlob[indexTCO]);end
+        else begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*fryGlob[indexTCO]);end;
       end;
     end;
     if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=round(60*fryGlob[indexTCO]);end;
@@ -8590,7 +8605,6 @@ begin
     if (aspect=5) and (Oriente=4) and (pied=1) then begin xt:=round(35*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
     if (aspect=5) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
-
     if (aspect=4) and (Oriente=1) then begin xt:=1;yt:=hauteurCell[indexTCO]+round(20*fryGlob[indexTCO]);end;
     if (aspect=4) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;
     if (aspect=4) and (Oriente=3) then begin xt:=round(10*frxGlob[indexTCO]);yt:=-round(14*fryGlob[indexTCO]);end;
@@ -8605,12 +8619,11 @@ begin
     if (aspect=3) and (Oriente=4) and (pied=1) then begin xt:=round(35*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
     if (aspect=3) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
-
     if (aspect=2) and (Oriente=1) and (pied=2) then begin xt:=round(-15*frxGlob[indexTCO]);yt:=1;end;  // signal à droite
     if (aspect=2) and (Oriente=1) and (pied=1) then begin xt:=round(45*frxGlob[indexTCO]);yt:=1;end;  // signal à gauche
     if (aspect=2) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;  // orientation G
     if (aspect=2) and (Oriente=3) then begin xt:=round(20*frxGlob[indexTCO]);yt:=round(40*fryGlob[indexTCO]);end;  // orientation D
-    if (aspect=2) and (Oriente=4) then begin xt:=round(35*frxGlob[indexTCO]);yt:=round(2*fryglob[indexTCO]);end;  // orientation 180
+    if (aspect=2) and (Oriente=4) then begin xt:=round(40*frxGlob[indexTCO]);yt:=round(10*fryglob[indexTCO]);end;  // orientation 180
 
     // signaux directionnels
     if (aspect>10) and (aspect<20) and(oriente=1) then begin xt:=1;yt:=hauteurCell[indexTCO]-round(14*fryGlob[indexTCO]);end;
@@ -8691,6 +8704,7 @@ begin
   if pImageTCO[indexTCO]=nil then exit;
   DimX:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
   DimY:=hauteurCell[indexTCO]*NbreCellY[indexTCO];
+  Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;
   // DimX DimY maxi 8191 pixels pour les bitmap
   if (dimX>8192) then begin Affiche('Espace TCO X trop grand',clred); exit; end;
   if (dimY>8192) then begin Affiche('Espace TCO Y trop grand',clred); exit; end;
@@ -8833,9 +8847,6 @@ begin
     Top:=0;
     Left:=0;
   end;
-  VBm:=TbitMap.Create;          // masque
-  Vbm.Width:=100;
-  Vbm.Height:=100;
   oldbmp:=Tbitmap.Create;
   oldbmp.width:=100;
   oldbmp.Height:=100;
@@ -10488,6 +10499,7 @@ begin
 end;
 
 
+// positionne l'icone du groupe G2 (signal, quai, action)
 procedure positionne_icone_G2(IndexTCO : integer;ip : timage;lbl : tlabel;i : integer);
 const NbElLi=12;
 var s : string;
@@ -10502,7 +10514,7 @@ begin
         begin
           width:=licone;
           height:=hicone;
-          left:=((i-1) mod NbElLi)*(licone+20)+l+50;
+          left:=((i-1) mod NbElLi)*(licone+20)+l+xicones;
           top:= ((i-1) div NbElLi)*(hicone+10)+8;
           with canvas do
           begin
@@ -10519,53 +10531,53 @@ begin
           s:=intToSTR(i+17);
           if i<10 then s:='  '+s;
           caption:=s;
-          left:=((i-1) mod NbElLi)*(licone+20)+l+32;
+          left:=((i-1) mod NbElLi)*(licone+20)+l+xicones-18;
           top:= ((i-1) div NbElLi)*(hicone+10)+16;
         end;
       end;
 end;
 
-// dessine l'icone d'image ip et la place en x y d'après son index
+// positionne l'icone d'image ip et la place en x y d'après son index i
 procedure positionne_iconeLbIm(IndexTCO : integer;ip : timage;lbl : tlabel;i : integer);
 const NbElLi=12;
 var s : string;
-     l : integer;
+    l : integer;
 begin
   l:=formTCO[1].groupBox1.Width;
 
   if (i>=32) and (i<=34) then dec(i,2);
 
   if ip<>nil then
+  begin
+    with ip do
+    begin
+      width:=licone;
+      height:=hicone;
+      left:=((i-1) mod NbElLi)*(licone+20)+l+Xicones;
+      top:= ((i-1) div NbElLi)*(hicone+10)+8;
+      with canvas do
       begin
-        with ip do
-        begin
-          width:=licone;
-          height:=hicone;
-          left:=((i-1) mod NbElLi)*(licone+20)+l+50;
-          top:= ((i-1) div NbElLi)*(hicone+10)+8;
-          with canvas do
-          begin
-            Pen.Color:=clFond[IndexTCO];
-            Brush.color:=clFond[IndexTCO];
-            Rectangle(0,0,licone,hicone);
-          end;
-        end;
+        Pen.Color:=clFond[IndexTCO];
+        Brush.color:=clFond[IndexTCO];
+        Rectangle(0,0,licone,hicone);
       end;
-      if lbl<>nil then
-      begin
-        with lbl do
-        begin
-          if (i=35) or (i=36) or (i=37) then s:=intToSTR(i+15) else
-          if (i>=30) and (i<=32) then
-          s:=intToSTR(i+2)
-          else
-            s:=intToSTR(i);
-          if i<10 then s:='  '+s;
-          caption:=s;
-          left:=((i-1) mod NbElLi)*(licone+20)+l+32;
-          top:= ((i-1) div NbElLi)*(hicone+10)+16;
-        end;
-      end;
+    end;
+  end;
+  if lbl<>nil then
+  begin
+    with lbl do
+    begin
+      if (i=35) or (i=36) or (i=37) then s:=intToSTR(i+15) else
+      if (i>=30) and (i<=32) then
+      s:=intToSTR(i+2)
+      else
+        s:=intToSTR(i);
+      if i<10 then s:='  '+s;
+      caption:=s;
+      left:=((i-1) mod NbElLi)*(licone+20)+l+Xicones-18;
+      top:= ((i-1) div NbElLi)*(hicone+10)+16;
+    end;
+  end;
 end;
 
 // dessine les icones du tco et les aligne
@@ -10577,6 +10589,8 @@ begin
   // d'abord on positionne les icones
   with formTCO[indexTCO] do
   begin
+
+    // groupe 1 les voies, les aiguillages, les TJD
     for i:=1 to 29 do
     begin
       ip:=findComponent('ImagePalette'+intToSTR(i)) as Timage;
@@ -10623,7 +10637,7 @@ begin
 
     // et puis on les dessine
     sauv_ep:=epaisseur;
-    epaisseur:=4;
+    epaisseur:=3;
     ancw:=LargeurCell[indexTCO];
     AncH:=hauteurCell[indexTCO];
     hauteurCell[indexTCO]:=ImagePalette1.Height;
@@ -10695,8 +10709,8 @@ begin
     clLarge:=Width;
     clHaut:=Height;
 
-    panel1.width:=clLarge-20;
-    Panel1.Top:=clHaut-Panel1.Height-64; // 64=entete de la fenetre
+    panelBas.width:=clLarge-5;
+    PanelBas.Top:=clHaut-PanelBas.Height-50; // 50=entete de la fenetre
 
     with ScrollBox do
     begin
@@ -10709,16 +10723,16 @@ begin
     if MasqueBandeauTCO then
     begin
       BandeauMasque:=true;
-      Panel1.Hide;
-      ScrollBox.Height:=clHaut-32;
+      PanelBas.Hide;
+      ScrollBox.Height:=clientHeight;
     end
     else
     begin
       BandeauMasque:=false;
-      Panel1.show;
-      ScrollBox.Height:=ClHaut-Panel1.Height-ScrollBox.Top-64;
+      PanelBas.show;
+      ScrollBox.Height:=ClHaut-PanelBas.Height-ScrollBox.Top-54;
     end;
-  end;  
+  end;
 end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
@@ -10733,8 +10747,6 @@ begin
   {initalisation des dimensions du tco - à ne faire qu'une fois}
   if not(Forminit[indexTCO]) then
   begin
-    Button1.Visible:=not(Diffusion);
-    Button2.Visible:=not(Diffusion);
     ButtonCalibrage.Visible:=not(diffusion);
     ButtonSimu.Visible:=not(Diffusion);
     ImageTemp.Visible:=not(Diffusion);
@@ -11427,12 +11439,16 @@ begin
 
   l:=image.Width;
   h:=image.height;
+
+  // ImageTemp <- imageicone    
   StretchBlt(formTCO[indexTCO].ImageTemp.canvas.Handle,0,0,LargeurCell[indexTCO],hauteurCell[indexTCO],   // destination avec mise à l'échelle
              image.Canvas.Handle,0,0,l,h,srccopy);
 
+  //dessin_1(indexTCO,formTCO[indexTCO].ImageTemp.Canvas ,1,1,0);
+
+  // OldBMP<-ImageTCO ; sauve le bitmap sous le pointeur de la souris
   BitBlt(OldBmp.Canvas.Handle,0,0,LargeurCell[indexTCO],hauteurCell[indexTCO],FormTCO[IndexTCO].ImageTCO.Canvas.Handle,offsetSourisX,offsetSourisY,SRCCOPY);
-  StretchBlt(Vbm.Handle,0,0,LargeurCell[indexTCO],hauteurCell[indexTCO],   // destination masque avec mise à l'échelle
-             image.Canvas.Handle,0,0,l,h,srccopy);
+
   drag:=true;
   TCODrag:=indexTCO;
   oldx:=offsetSourisX;
@@ -11455,11 +11471,13 @@ begin
   Accept:=source is TImage;
   if drag then
   begin
+    // canvasTCO<-oldBMP  restitue l'ancien en oldx,oldy fond avant le nouveau
     BitBlt(PImageTCO[indexTCO].canvas.handle,oldx,oldy,LargeurCell[indexTCO],hauteurCell[indexTCO],oldbmp.canvas.handle,0,0,SRCCOPY); // remettre la sauvegarde du bitmap à l'ancienne position souris
+    // oldbmp(0,0)<-canvasTCO(x1,y1)  sauve le nouveau bitmap en x1,y1
     BitBlt(oldbmp.canvas.handle,0,0,LargeurCell[indexTCO],hauteurCell[indexTCO],PImageTCO[IndexTCO].canvas.handle,xl,yl,SRCCOPY); // sauvegarder le bitmap actuel sous la souris
     oldx:=xl; oldy:=yl;
-    BitBlt(PImageTCO[indexTCO].canvas.handle,xl,yl,LargeurCell[indexTCO],hauteurCell[indexTCO],Vbm.canvas.handle,0,0,SRCAND);   // prendre le masque de l'icone vers la souris, ne change rien...
-    BitBlt(PImageTCO[indexTCO].canvas.handle,xl,yl,LargeurCell[indexTCO],hauteurCell[indexTCO],formTCO[indexTCO].ImageTemp.canvas.handle,0,0,SRCPAINT);  // copier l'icone vers la souris
+    // canvasTCO(x1,y1)<-ImageTemp(0,0)
+    BitBlt(PImageTCO[indexTCO].canvas.handle,xl,yl,LargeurCell[indexTCO],hauteurCell[indexTCO],formTCO[indexTCO].ImageTemp.canvas.handle,0,0,SRCCOPY);  // copier l'icone vers la souris
     PImageTCO[IndexTCO].Repaint;
   end;
 end;
@@ -11793,12 +11811,13 @@ begin
     c:=c.GetParentComponent;           // formTCO
     indexTCO:=index_tco(c);
     for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do       // rectangle de la sélection
-     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
-     begin
-       xPlace:=XclicCell[indexTCO]+x-TamponTCO_Org.x1;   // destination
-       yPlace:=YclicCell[indexTCO]+y-TamponTCO_Org.y1;
-       if (xPlace<=NbreCellX[indexTCO]) and (yPlace<=NbreCellY[indexTCO]) then tco[indextco,xPlace,yPlace]:=tampontco[x,y];
-     end;
+      for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
+      begin
+        xPlace:=XclicCell[indexTCO]+x-TamponTCO_Org.x1;   // destination
+        yPlace:=YclicCell[indexTCO]+y-TamponTCO_Org.y1;
+        if (xPlace<=NbreCellX[indexTCO]) and (yPlace<=NbreCellY[indexTCO]) then tco[indextco,xPlace,yPlace]:=tampontco[x,y];
+      end;
+    selectionaffichee[indexTCO]:=false;  
     Affiche_TCO(indexTCO);
     TCO_modifie:=true;
     ligne_supprime:=0;
@@ -12877,21 +12896,23 @@ begin
   defocusControl(ButtonConfigTCO,true);
 end;
 
+// dépose un signal
 procedure TFormTCO.ImagePalette50EndDrag(Sender, Target: TObject; X, Y: Integer);
 var indexTCO,Xclic,Yclic : integer;
 begin
   if not(Target is TImage) then exit;
   if (x=0) and (y=0) then exit;
   indexTCO:=index_TCO(sender);
+
+  xclicCell[indexTCO]:=(x div LargeurCell[indexTCO]) +1;
+  yclicCell[indexTCO]:=(y div LargeurCell[indexTCO]) +1;
+
   xclic:=xclicCell[indexTCO];
   yclic:=yclicCell[indexTCO];
 
   BitBlt(formTCO[indexTCO].imageTCO.canvas.handle,oldx,oldy,LargeurCell[indexTCO],hauteurCell[indexTCO],oldbmp.canvas.handle,0,0,SRCCOPY);
   efface_entoure(indexTCO);
   TCO_modifie:=true;
-  Xclic:=X;YClic:=Y;
-  Xclic:=Xclic div LargeurCell[indexTCO] +1;
-  Yclic:=Yclic div hauteurCell[indexTCO] +1;
   stocke_undo(indexTCO,1,XClic,YClic);
   maj_undo(1);
   efface_cellule(indexTCO,formTCO[indexTCO].ImageTCO.Canvas,XClic,YClic,PmCopy);
@@ -12900,7 +12921,9 @@ begin
   tco[indextco,XClic,YClic].FeuOriente:=1;
   tco[indextco,XClic,YClic].PiedFeu:=1;
   tco[indextco,XClic,YClic].coulFonte:=clWhite;
-  // ne pas convertir l'adresse sinon evt changement du composant et on écrase l'aspect EditAdrElement.Text:=IntToSTR( tco[indextco,XClicCell,YClicCell].Adresse);
+  clicTCO:=true;
+  editAdrElement.Text:='';
+  clicTCO:=false;
   EdittypeImage.Text:=IntToSTR(tco[indextco,XClic,YClic].BImage);
   Dessin_Signal(indexTCO,formTCO[indexTCO].ImageTCO.Canvas,XClic,YClic);
 end;
@@ -13229,7 +13252,7 @@ end;
 
 procedure TFormTCO.ButtonMasquerClick(Sender: TObject);
 begin
-  Panel1.Hide;
+  PanelBas.Hide;
   ScrollBox.Height:=ClientHeight-32;
   BandeauMasque:=true;
   defocusControl(ButtonMasquer,true);
@@ -13435,7 +13458,7 @@ end;
 procedure TFormTCO.ImagePalette51EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
-  end_drag(51,x,y,sender,target);
+  end_drag(id_Quai,x,y,sender,target);
 end;
 
 
@@ -13547,7 +13570,7 @@ begin
   accept:=true;
 end;
 
-procedure TFormTCO.Panel1DragOver(Sender, Source: TObject; X, Y: Integer;
+procedure TFormTCO.PanelBasDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
   accept:=true;
@@ -14385,13 +14408,26 @@ begin
   Affiche_TCO(indexTCO);
 end;
 
-procedure TFormTCO.Affichebandeau1Click(Sender: TObject);
+procedure TFormTCO.BandeauClick(Sender: TObject);
 var indexTCO : integer;
 begin
   indexTCO:=index_TCOMainMenu;
-  Panel1.Show;
-  positionne(indexTCO);
-  BandeauMasque:=false;
+  if bandeauMasque then
+  begin
+    PanelBas.Show;
+    BandeauMasque:=false;
+    positionne(indexTCO);
+    Bandeau.Caption:='Masquer le bandeau';
+    exit;
+  end
+  else
+  begin
+    PanelBas.Hide;
+    ScrollBox.Height:=ClientHeight;
+    BandeauMasque:=true;
+    defocusControl(ButtonMasquer,true);
+    Bandeau.Caption:='Afficher le bandeau';
+  end;
 end;
 
 procedure TFormTCO.Mosaquehorizontale1Click(Sender: TObject);

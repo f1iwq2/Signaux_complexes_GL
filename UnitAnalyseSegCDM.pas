@@ -107,6 +107,10 @@ type
      Adevie2B : char ;
      // états d'une TJD (2 ou 4, 4 par défaut)
      EtatTJD : integer;
+     // si l'aiguillage provient d'une traversée double jonction
+     bdj : boolean;
+     adrCDM : integer;  // adresse de la bjd dans cdm
+     IndexSeg : integer; //
 
     end;
 
@@ -140,6 +144,7 @@ type
        location : integer; // ?? en %
        adresse : integer;
        status : integer;
+       OnDevicePort : integer;
      end;
 
      Tsegment =
@@ -157,13 +162,13 @@ type
        // turnout curve
        xc0,yc0,DeltaDev2,xc,yc : integer;
        // pour signaux complexes
-       adresse,adresse2,duree : integer;
+       adresse,adresse2,duree,adr_CDM : integer;
      end;
 
 
 var Segment : array of Tsegment;
     nInter,nPeriph,nSeg,nPort,nligne,XminiCDM,XmaxiCDM,YminiCDM,YmaxiCDM,NAig_CDM,Ndet_CDM,
-    DernAdrAig,SeqAdrCroisement,nb_det,IndexClic,xAig,yAig,cadre,largeur_voie,
+    DernAdrAig,SeqAdrCroisement,nb_det,IndexClic,xAig,yAig,cadre,largeur_voie,dernierSeg,
     largeurTrain,HauteurTrain : integer;
     lignes : TStrings;
     reducX,reducY,ArcTanHautLargTrain : double;
@@ -189,16 +194,33 @@ uses Importation;
 
 {$R *.dfm}
 
+//
+function index_aigCdm(adresse : integer) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  i:=1;
+  repeat
+    trouve:=aig_cdm[i].adresse=adresse;
+    inc(i);
+  until trouve or (i>nAig_cdm);
+  if trouve then result:=i-1 else result:=0;
+end;
+
 // cherche, isole et restreint la chaine s qui contient "chercher"
-function isole_valeur(var s : string; chercher : string) : string;
+function isole_valeur(var s : string; chercher : string;afficheErr : boolean) : string;
 var i : integer;
     serr : string;
 begin
   i:=pos(chercher,s);
-  if i=0 then begin
-    serr:='Erreur : pas de chaine '+chercher+' dans "'+s+'" Segment '+intToSTR(segment[nSeg-1].numero);
-    Affiche(serr,clred);
-    AfficheDebug(serr,clred);
+  if i=0 then
+  begin
+    if afficheErr then
+    begin
+      serr:='Erreur : pas de chaine '+chercher+' dans "'+s+'" Segment '+intToSTR(segment[nSeg-1].numero);
+      Affiche(serr,clred);
+      AfficheDebug(serr,clred);
+    end;
     isole_valeur:='';
     exit;
   end;
@@ -223,55 +245,57 @@ begin
   setlength(segment[nSeg-1].Periph,nPeriph);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'periph #');
+  s2:=isole_valeur(s,'periph #',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].numero:=i;
   if debugAnalyse then AfficheDebug('Compile periph '+intToSTR(i),clYellow);
 
-  s2:=isole_valeur(s,'obj type');
+  s2:=isole_valeur(s,'obj type',true);
   Segment[nSeg-1].periph[nperiph-1].typ:=s2;
   inc(nLigne);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'father #');
+  s2:=isole_valeur(s,'father #',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].pere:=i;
   inc(nLigne);
 
   s:=AnsiLowerCase(lignes[nligne]);
   inc(nLigne);
-  s2:=isole_valeur(s,'x=');
+  s2:=isole_valeur(s,'x=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].x:=i;
 
-  s2:=isole_valeur(s,'y=');
+  s2:=isole_valeur(s,'y=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].y:=i;
 
-  s2:=isole_valeur(s,'z=');
+  s2:=isole_valeur(s,'z=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].z:=i;
 
-  s2:=isole_valeur(s,'angle=');
+  s2:=isole_valeur(s,'angle=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].angle:=i;
 
   s:=AnsiLowerCase(lignes[nligne]);
   inc(nLigne);
-  s2:=isole_valeur(s,'bright =');
+  s2:=isole_valeur(s,'bright =',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].bRight:=i;
 
-  s2:=isole_valeur(s,'bdown =');
+  s2:=isole_valeur(s,'bdown =',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].bDown:=i;
 
-  s2:=isole_valeur(s,'location =');
+  s2:=isole_valeur(s,'location =',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].location:=i;
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'address');
+  inc(nLigne);
+
+  s2:=isole_valeur(s,'address',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].Adresse:=i;
   if (Segment[nSeg-1].periph[nperiph-1].typ='detector') and (i<>0) then
@@ -289,9 +313,21 @@ begin
     end;
   end;
 
-  s2:=isole_valeur(s,'status');
+  s2:=isole_valeur(s,'status',true);
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].status:=i;
+
+  // peut être suivi de 'On device port'
+  Segment[nSeg-1].periph[nperiph-1].OnDevicePort:=-1; // marqueur d'invalidité
+  s:=AnsiLowerCase(lignes[nligne]);
+  if pos('on device port',s)<>0 then
+  begin
+    s2:=isole_valeur(s,'on device port #',true);
+    inc(nLigne);
+    val(s2,i,erreur);
+    Segment[nSeg-1].periph[nperiph-1].OnDevicePort:=i;
+  end;
+
 end;
 
 procedure compile_inter;
@@ -306,24 +342,24 @@ begin
 
   s:=AnsiLowerCase(lignes[nligne]);
   inc(nLigne);
-  s2:=isole_valeur(s,'x=');
+  s2:=isole_valeur(s,'x=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].inter[nInter-1].x:=i;
 
-  s2:=isole_valeur(s,'y=');
+  s2:=isole_valeur(s,'y=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].inter[nInter-1].y:=i;
 
-  s2:=isole_valeur(s,'z=');
+  s2:=isole_valeur(s,'z=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].inter[nInter-1].z:=i;
 
-  s2:=isole_valeur(s,'type:');
+  s2:=isole_valeur(s,'type:',true);
   Segment[nSeg-1].inter[nInter-1].typ:=s2;
 
   s:=AnsiLowerCase(lignes[nligne]);
   inc(nLigne);
-  s2:=isole_valeur(s,'z=');
+  s2:=isole_valeur(s,'z=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].inter[nInter-1].MirrorZ:=i;
 end;
@@ -345,10 +381,10 @@ begin
   Segment[nSeg-1].port[nPort-1].numero:=i;
   if debugAnalyse then AfficheDebug('Compile port '+intToSTR(i),clLime);
 
-  s2:=isole_valeur(s,'obj type');
+  s2:=isole_valeur(s,'obj type',true);
   Segment[nSeg-1].port[nPort-1].typ:=s2; // port  dummy_port
 
-  s2:=isole_valeur(s,'local #');
+  s2:=isole_valeur(s,'local #',true);
   if s2='' then begin Affiche('Erreur structure n°14',clOrange);exit;end;
   val(s,i,erreur);
   Segment[nSeg-1].port[nPort-1].local:=i;
@@ -356,25 +392,25 @@ begin
 
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'x=');
+  s2:=isole_valeur(s,'x=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].x:=i;
 
-  s2:=isole_valeur(s,'y=');
+  s2:=isole_valeur(s,'y=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].y:=i;
 
-  s2:=isole_valeur(s,'z=');
+  s2:=isole_valeur(s,'z=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].z:=i;
 
-  s2:=isole_valeur(s,'angle=');
+  s2:=isole_valeur(s,'angle=',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].angle:=i;
 
   inc(nligne);
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'connect status:');
+  s2:=isole_valeur(s,'connect status:',true);
   Segment[nSeg-1].port[nPort-1].connecte:=s2='connected';
 
   if Segment[nSeg-1].port[nPort-1].typ='dummy_port' then exit;
@@ -382,15 +418,16 @@ begin
 
   inc(nligne);
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'connected to port #');
+  s2:=isole_valeur(s,'connected to port #',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].ConnecteAuPort:=i;
 
-  s2:=isole_valeur(s,'segment #');
+  s2:=isole_valeur(s,'segment #',true);
   val(s2,i,erreur);
   Segment[nSeg-1].port[nPort-1].ConnecteAuSeg:=i;
 end;
 
+// compile le segment, tableau dans lignes[]
 procedure compile_segment;
 var i,erreur : integer;
     s,s2,segType,serr: string;
@@ -407,8 +444,8 @@ begin
   Segment[nSeg-1].nInter:=0;
   s:=AnsiLowerCase(lignes[nligne]);
   i:=pos('#',s);
-  if i=0 then 
-  begin 
+  if i=0 then
+  begin
     serr:='Erreur structure n°2';
     Affiche(serr,clOrange);
     AfficheDebug(serr,clOrange);
@@ -417,96 +454,142 @@ begin
   delete(s,1,i);
   val(s,i,erreur);
   segment[nSeg-1].numero:=i;
+  if i>dernierSeg then dernierSeg:=i;
 
   if debugAnalyse then AfficheDebug('Compile segment '+intToSTR(i),claqua);
 
   delete(s,1,erreur);
 
-  s2:=isole_valeur(s,'obj type: ');
+  s2:=isole_valeur(s,'obj type: ',true);
   if s2<>'segment' then begin Affiche('Erreur structure n°3',clOrange);exit;end;
-  s2:=isole_valeur(s,'seg type: ');
+  s2:=isole_valeur(s,'seg type: ',true);
   if s2='' then begin Affiche('Erreur structure n°4',clOrange);exit;end;
   segType:=s2;
   segment[nSeg-1].typ:=s2;     // ARC TURNOUT(champ suppl)
   inc(nligne);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'module :');
+  s2:=isole_valeur(s,'module :',true);
   inc(nligne);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'nb ports:');
+  s2:=isole_valeur(s,'nb ports:',true);
   val(s2,i,erreur);
   segment[nSeg-1].nport:=i;
 
   s:=lignes[nligne];
-  s2:=isole_valeur(s,'nb periphs:');
+  s2:=isole_valeur(s,'nb periphs:',true);
   val(s2,i,erreur);
   segment[nSeg-1].nperiph:=i;
   inc(nligne);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'zone[0]:');
-  s2:=isole_valeur(s,'zone[1]:');
+  s2:=isole_valeur(s,'zone[0]:',true);
+  s2:=isole_valeur(s,'zone[1]:',true);
   inc(nligne,2);
 
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'xmin =');
+  s2:=isole_valeur(s,'xmin =',true);
   val(s2,i,erreur);
   segment[nSeg-1].XMin:=i;
   if i<xminiCDM then XminiCDM:=i;
 
-  s2:=isole_valeur(s,'ymin =');
+  s2:=isole_valeur(s,'ymin =',true);
   val(s2,i,erreur);
   segment[nSeg-1].YMin:=i;
   if i<yminiCDM then YminiCDM:=i;
 
-  s2:=isole_valeur(s,'xmax =');
+  s2:=isole_valeur(s,'xmax =',true);
   val(s2,i,erreur);
   segment[nSeg-1].XMax:=i;
   if i>xMaxiCDM then xMaxiCDM:=i;
 
-  s2:=isole_valeur(s,'ymax =');
+  s2:=isole_valeur(s,'ymax =',true);
   val(s2,i,erreur);
   segment[nSeg-1].Ymax:=i;
   if i>yMaxiCDM then yMaxiCDM:=i;
 
+  // champs variables en fonction du type
   if segType='turntable' then
   begin
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'start angle:');
+    s2:=isole_valeur(s,'start angle:',true);
     val(s2,i,erreur);
     segment[nSeg-1].startangle:=i;
-    s2:=isole_valeur(s,'length:');
+    s2:=isole_valeur(s,'length:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
-    s2:=isole_valeur(s,'lengthdev');
+    s2:=isole_valeur(s,'lengthdev',true);
     val(s2,i,erreur);
     segment[nSeg-1].lengthdev:=i;
 
     inc(nligne,2);    // 1 ligne vide
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'xc0:');
+    s2:=isole_valeur(s,'xc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc0:=i;
-    s2:=isole_valeur(s,'yc0:');
+    s2:=isole_valeur(s,'yc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc0:=i;
-    s2:=isole_valeur(s,'xc:');
+    s2:=isole_valeur(s,'xc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc:=i;
-    s2:=isole_valeur(s,'yc:');
+    s2:=isole_valeur(s,'yc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc:=i;
     exit;
   end;
 
-  if (segType='turnout') or (segType='turnout_3way') or (segType='dbl_slip_switch') then
+  if (segType='turnout') or (segType='turnout_3way') or (segType='dbl_slip_switch') or (segType='dbl_cross_over') then
   begin
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'adresse =');
+
+    // en DB_DumpSegmentInfo V3 il y a 3 lignes en plus
+    s2:=isole_valeur(s,'start angle:',false);
+    if s2<>'' then
+    begin
+      val(s2,i,erreur);
+      segment[nSeg-1].StartAngle:=i;
+
+      s2:=isole_valeur(s,'arc angle:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].ArcAngle:=i;
+
+      s2:=isole_valeur(s,'radius:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].Rayon:=i;
+
+      inc(nligne);
+      s:=AnsiLowerCase(lignes[nligne]);
+
+      s:=AnsiLowerCase(lignes[nligne]);
+      s2:=isole_valeur(s,'length:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].longueur:=i;
+
+      s2:=isole_valeur(s,'lengthdev:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].longueurDev:=i;
+
+      s2:=isole_valeur(s,'deltadev:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].deltadev:=i;
+
+      inc(nligne);
+      s:=AnsiLowerCase(lignes[nligne]);
+
+      s2:=isole_valeur(s,'curve offset:',true);
+      val(s2,i,erreur);
+      segment[nSeg-1].curveoffset:=i;
+
+      inc(nligne);
+      s:=AnsiLowerCase(lignes[nligne]);
+    end;
+
+    // V2
+    s2:=isole_valeur(s,'adresse =',true);
     val(s2,i,erreur);
     segment[nSeg-1].adresse:=i;
     if i=0 then
@@ -519,13 +602,13 @@ begin
     if (segType='dbl_slip_switch') or (segType='turnout_3way') then
     begin
       s:=AnsiLowerCase(lignes[nligne]);
-      s2:=isole_valeur(s,'adresse2 =');
+      s2:=isole_valeur(s,'adresse2 =',true);
       val(s2,i,erreur);
       segment[nSeg-1].adresse2:=i;
       if i>DernAdrAig then DernAdrAig:=i;
     end;
 
-    s2:=isole_valeur(s,'duree =');
+    s2:=isole_valeur(s,'duree =',true);
     val(s2,i,erreur);
     segment[nSeg-1].duree:=i;
     exit;
@@ -538,37 +621,37 @@ begin
   // les autres aiguillages  (TURNOUT_SYM...)
   inc(nligne);
   s:=AnsiLowerCase(lignes[nligne]);
-  s2:=isole_valeur(s,'start angle:');
+  s2:=isole_valeur(s,'start angle:',true);
   val(s2,i,erreur);
   segment[nSeg-1].StartAngle:=i;
 
-  s2:=isole_valeur(s,'arc angle:');
+  s2:=isole_valeur(s,'arc angle:',true);
   val(s2,i,erreur);
   segment[nSeg-1].ArcAngle:=i;
 
   if segType='crossing' then
   begin
-    s2:=isole_valeur(s,'radius:');
+    s2:=isole_valeur(s,'radius:',true);
     val(s2,i,erreur);
     segment[nSeg-1].Rayon:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'length:');
+    s2:=isole_valeur(s,'length:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
 
-    s2:=isole_valeur(s,'lengthdev:');
+    s2:=isole_valeur(s,'lengthdev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueurDev:=i;
 
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].deltadev:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'curve offset:');
+    s2:=isole_valeur(s,'curve offset:',true);
     val(s2,i,erreur);
     segment[nSeg-1].curveoffset:=i;
     exit;
@@ -576,22 +659,22 @@ begin
 
   if segType='turnout_sym' then
   begin
-    s2:=isole_valeur(s,'radius:');
+    s2:=isole_valeur(s,'radius:',true);
     val(s2,i,erreur);
     segment[nSeg-1].Rayon:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'lengthdev:');
+    s2:=isole_valeur(s,'lengthdev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].DeltaDev:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'curve offset:');
+    s2:=isole_valeur(s,'curve offset:',true);
     val(s2,i,erreur);
     segment[nSeg-1].Curveoffset:=i;
 
@@ -599,12 +682,12 @@ begin
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
 
-    s2:=isole_valeur(s,'adresse =');
+    s2:=isole_valeur(s,'adresse =',true);
     val(s2,i,erreur);
     segment[nSeg-1].adresse:=i;
     if i>DernAdrAig then DernAdrAig:=i;
 
-    s2:=isole_valeur(s,'duree =');
+    s2:=isole_valeur(s,'duree =',true);
     val(s2,i,erreur);
     segment[nSeg-1].duree:=i;
     exit;
@@ -614,113 +697,106 @@ begin
   begin
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'radius0:');
+    s2:=isole_valeur(s,'radius0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].radius0:=i;
-    s2:=isole_valeur(s,'radius:');
+    s2:=isole_valeur(s,'radius:',true);
     val(s2,i,erreur);
     segment[nSeg-1].rayon:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'angle0:');
+    s2:=isole_valeur(s,'angle0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].angle0:=i;
-    s2:=isole_valeur(s,'angle:');
+    s2:=isole_valeur(s,'angle:',true);
     val(s2,i,erreur);
     segment[nSeg-1].angle:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'length:');
+    s2:=isole_valeur(s,'length:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
-    s2:=isole_valeur(s,'deltadev0:');
+    s2:=isole_valeur(s,'deltadev0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].deltadev0:=i;
-    s2:=isole_valeur(s,'xc0:');
+    s2:=isole_valeur(s,'xc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc0:=i;
-    s2:=isole_valeur(s,'yc0:');
+    s2:=isole_valeur(s,'yc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc0:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'lengthdev:');
+    s2:=isole_valeur(s,'lengthdev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].lengthdev:=i;
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].deltadev:=i;
-     s2:=isole_valeur(s,'xc:');
+    s2:=isole_valeur(s,'xc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc:=i;
-    s2:=isole_valeur(s,'yc:');
+    s2:=isole_valeur(s,'yc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
 
-    s2:=isole_valeur(s,'adresse =');
+    s2:=isole_valeur(s,'adresse =',true);
     val(s2,i,erreur);
     if i>DernAdrAig then DernAdrAig:=i;
 
     segment[nSeg-1].adresse:=i;
-    s2:=isole_valeur(s,'duree =');
+    s2:=isole_valeur(s,'duree =',true);
     val(s2,i,erreur);
     segment[nSeg-1].duree:=i;
     exit;
   end;
 
-  if segType='dbl_cross_over' then
-  begin
-    Affiche('Bretelle double jonction non gérée',clred);
-    AfficheDebug('Bretelle double jonction non gérée',clred);
-  end;
-
-
   if segType='turnout_curved' then
   begin
-    s2:=isole_valeur(s,'radius:');
+    s2:=isole_valeur(s,'radius:',true);
     val(s2,i,erreur);
     segment[nSeg-1].Rayon:=i;
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
 
-    s2:=isole_valeur(s,'length:');
+    s2:=isole_valeur(s,'length:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
 
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].DeltaDev:=i;
 
-    s2:=isole_valeur(s,'xc0:');
+    s2:=isole_valeur(s,'xc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc0:=i;
 
-    s2:=isole_valeur(s,'yc0:');
+    s2:=isole_valeur(s,'yc0:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc0:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
 
-    s2:=isole_valeur(s,'lengthdev:');
+    s2:=isole_valeur(s,'lengthdev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueurDev:=i;
 
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].DeltaDev2:=i;
 
-    s2:=isole_valeur(s,'xc:');
+    s2:=isole_valeur(s,'xc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].xc:=i;
 
-    s2:=isole_valeur(s,'yc:');
+    s2:=isole_valeur(s,'yc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].yc:=i;
 
@@ -728,18 +804,18 @@ begin
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
 
-    s2:=isole_valeur(s,'adresse =');
+    s2:=isole_valeur(s,'adresse =',true);
     val(s2,i,erreur);
     segment[nSeg-1].adresse:=i;
     if i>DernAdrAig then DernAdrAig:=i;
 
-    s2:=isole_valeur(s,'duree =');
+    s2:=isole_valeur(s,'duree =',true);
     val(s2,i,erreur);
     segment[nSeg-1].duree:=i;
     exit;
   end;
 
-  s2:=isole_valeur(s,'radius:');
+  s2:=isole_valeur(s,'radius:',true);
   val(s2,i,erreur);
   segment[nSeg-1].Rayon:=i;
   inc(nligne);
@@ -747,32 +823,32 @@ begin
 
   if segment[nseg-1].typ='turnout' then
   begin
-    s2:=isole_valeur(s,'length:');
+    s2:=isole_valeur(s,'length:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueur:=i;
 
-    s2:=isole_valeur(s,'lengthdev:');
+    s2:=isole_valeur(s,'lengthdev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].longueurDev:=i;
 
-    s2:=isole_valeur(s,'deltadev:');
+    s2:=isole_valeur(s,'deltadev:',true);
     val(s2,i,erreur);
     segment[nSeg-1].DeltaDev:=i;
 
     inc(nligne);
     s:=AnsiLowerCase(lignes[nligne]);
-    s2:=isole_valeur(s,'curve offset:');
+    s2:=isole_valeur(s,'curve offset:',true);
     val(s2,i,erreur);
     segment[nSeg-1].CurveOffset:=i;
   end;
 
   if (SegType='arc') or (Segtype='curve') then
   begin
-    s2:=isole_valeur(s,'lxc:');
+    s2:=isole_valeur(s,'lxc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].lXc:=i;
 
-    s2:=isole_valeur(s,'lyc:');
+    s2:=isole_valeur(s,'lyc:',true);
     val(s2,i,erreur);
     segment[nSeg-1].lYc:=i;
   end;
@@ -1569,6 +1645,7 @@ begin
       Canvas.Textout(x1,y1,s);
     end;
 
+    // balayer les ports du segment
     for j:=0 to nPort-1 do
     begin
       x1:=segment[i].port[j].X;
@@ -1617,16 +1694,20 @@ begin
     with Canvas do
     begin
       pen.width:=largeur_voie;
-      if (segtype='crossing') or (segType='dbl_slip_switch') then
+      if (segtype='crossing')  or (segType='dbl_slip_switch') then
       begin
         if imprime then pen.Color:=ClBlack else
         begin
           if coloration_diff then pen.color:=clLime else pen.color:=clWhite;
         end;
-        moveto(portsSeg[0].x,portsSeg[0].y);
-        LineTo(portsSeg[2].x,portsSeg[2].y);
-        moveto(portsSeg[1].x,portsSeg[1].y);
-        LineTo(portsSeg[3].x,portsSeg[3].y);
+        // ne pas afficher crossing si il vient d'une BJD
+        if ((segtype='crossing') and (segment[i].adr_CDM=0)) or (segType='dbl_slip_switch') then
+        begin
+          moveto(portsSeg[0].x,portsSeg[0].y);
+          LineTo(portsSeg[2].x,portsSeg[2].y);
+          moveto(portsSeg[1].x,portsSeg[1].y);
+          LineTo(portsSeg[3].x,portsSeg[3].y);
+        end;
         if formAnalyseCDM.CheckAdresses.checked then coords_aff_aig(canvas,i);
       end
       else
@@ -1772,11 +1853,11 @@ begin
   end;
 end;
 
-// renvoie si le segment est de type aiguillage
+// renvoie si le segment est de type aiguillage et contient une adresse
 function segment_aig(s : string) : boolean;
 begin
   segment_aig:=(s='turnout') or (s='dbl_slip_switch') or (s='turnout_sym') or
-               (s='turnout_curved') or (s='turnout_curved_2r') or (s='turnout_3way');
+               (s='turnout_curved') or (s='turnout_curved_2r') or (s='turnout_3way') ; 
 end;
 
 // trouve l'index du port du segment courant connecté au segment dont l'index est Indexconnecte
@@ -1824,13 +1905,15 @@ end;
 
 // trouve les index Segment et port contenant le détecteur est detecteur
 function trouve_IndexSegPortDetecteur(detecteur : integer;var indexSeg,indexPeriph : integer) : boolean;
-var i,j,p,np : integer;
+var i,j,p,np,ns : integer;
     trouve : boolean;
 begin
   i:=0;
   trouve:=false;
   repeat
     j:=0;
+    //ns:=segment[i].numero;
+    //Affiche(intToSTR(ns),clred);
     np:=segment[i].nperiph; // nombre de périphériques
     repeat
       if np>0 then
@@ -1894,9 +1977,10 @@ begin
     j:=0;
     np:=segment[i].nport; // nombre de ports
     ns:=segment[i].numero;
+    //Affiche(intToSTR(ns),clYellow);
     repeat
       p:=segment[i].port[j].numero;
-     //Affiche(intToSTR(p),clwhite);
+      //Affiche(intToSTR(p),clwhite);
       trouve:=(port=p) and (seg=ns);
       inc(j);
     until (j>np-1) or trouve;
@@ -1929,7 +2013,7 @@ begin
     inc(i);
   until (i>np-1) or trouve;
   dec(i);
-  result:=i;
+  if trouve then result:=i else result:=-1;
 end;
 
 // trouve les index du port dans la liste des segments
@@ -1994,21 +2078,22 @@ end;
 
 
 // fonction récursive
-// explore le port,segment jusqu'a trouver une adresse d'aiguillage, de croisement, ou de détecteur
+// explore le port,segment jusqu'à trouver une adresse d'aiguillage, de croisement, ou de détecteur
+// un détecteur peut être sur un port de l'aiguillage
 // renvoie l'adresse de l'aiguillage ou du détecteur et dans C le port (P D S ou Z pour un détecteur)
 function explore_port(seg,port : integer;var c : string) : integer;
 var i,j,IdSeg,IdPort,NombrePeriph,port1,port2,portSuivant,segSuivant,portLocal,
     xp,yp,xd,yd,detect,nb_det : integer;
     typeP,serr : string;
     sdetect : Tdetect_cdm;
+    trouveDet : boolean;
 begin
   if seg=0 then
   begin
     explore_port:=0;
     exit;  // laisser sinon mauvais transfert de variable dans la pile dans l'itération suivante!!
   end;
-  trouve_IndexSegPort(seg,port,idSeg,IdPort);
-  if idseg=-1 then
+  if not(trouve_IndexSegPort(seg,port,idSeg,IdPort)) then
   begin
     serr:='Erreur 1 pas trouvé le port '+intToSTR(port)+' dans la liste des segments';
     Affiche(serr,clred);
@@ -2018,12 +2103,30 @@ begin
     exit;
   end;
 
+  
+  // le port a il t-il des périphériques portant des détecteurs
+  NombrePeriph:=segment[idSeg].nperiph;
+  if NombrePeriph<>0 then
+  begin
+    i:=0;
+    repeat
+      if segment[idSeg].periph[i].typ='detector' then
+      begin
+        if segment[idSeg].periph[i].OnDevicePort=Idport then  // le port du périphérique correspond au port exploré
+        begin
+          result:=segment[idSeg].periph[i].adresse;
+          c:='Z';
+          exit;
+        end;
+      end;
+      inc(i);
+    until (i>NombrePeriph-1) or (trouveDet);
+  end;
+
   // trouver le segment contigu connecté au port de connexion
   segSuivant:=segment[idseg].port[idport].ConnecteAuSeg;
   portSuivant:=segment[idseg].port[idport].ConnecteAuPort;
-  trouve_IndexSegPort(segSuivant,portSuivant,idSeg,IdPort);
-  //Affiche('segsuiv='+intToSTr(segsuivant),clred);
-  if idSeg=-1 then
+  if not(trouve_IndexSegPort(segSuivant,portSuivant,idSeg,IdPort)) then
   begin
     serr:='Erreur 2 pas trouvé le port '+intToSTR(port)+' dans la liste des segments';
     Affiche(serr,clred);
@@ -2032,7 +2135,6 @@ begin
     explore_port:=0;
     exit;
   end;
-
 
   // remonter au segment pour voir si c'est un aiguillage
   typeP:=segment[idSeg].typ;
@@ -2145,6 +2247,7 @@ begin
   if (port2<>portSuivant) and (segment[idSeg].port[1].connecte) then i:=explore_port(SegSuivant,port2,c);
 
   explore_port:=i;
+  if typeP='bumper_stop' then c:='';
   exit;
 
   typeP:=segment[idSeg].typ;
@@ -2168,8 +2271,10 @@ end;
 
 // stocke les aiguillages et les croisement dans le tableau Aig_CDM
 procedure remplit_Aig_cdm;
-  var i,j,NumSegment,IndexSegment,IndexPort,
-  adresse,adresse2,element,AdrCroisement : integer;
+var i,j,NumSegment,IndexSegment,IndexPort,index,index2,g,
+  adresse,Adr,AdrAig,AdrAig2,adresse2,element,AdrCroisement,adrcrois,adrCDM : integer;
+  t : tequipement;
+  trouve : boolean;
   s,segType,c,serr : string;
 begin
   // 1er segment, 1er port
@@ -2183,12 +2288,15 @@ begin
   NAig_CDM:=0;
   SeqAdrCroisement:=0;
   inc(DernAdrAig);
+
+  // croisement
   for i:=0 to nseg-1 do
   begin
     segType:=segment[i].typ;
     if segType='crossing' then
     begin
       numSegment:=segment[i].numero;
+
       if formImportation.radioCroisSuite.checked then AdrCroisement:=DernAdrAig+SeqAdrCroisement;
       if formImportation.radioCroisBase.checked then AdrCroisement:=BaseCroisement+SeqAdrCroisement;
 
@@ -2196,6 +2304,7 @@ begin
       inc(nAig_CDM);
       Aig_CDM[nAig_CDM].adresse:=AdrCroisement;
       Aig_CDM[nAig_CDM].modele:=crois;
+      Aig_CDM[nAig_CDM].adrCDM:=segment[i].adr_CDM;
 
       s:='Segment '+intToSTR(numSegment)+' type='+segtype+' Adresse='+intToSTR(AdrCroisement);
       inc(SeqAdrCroisement);
@@ -2208,7 +2317,7 @@ begin
         element:=explore_port(numsegment,segment[i].port[j].numero,c);
         if length(c)=0 then c:='Z';
 
-        case j of // j=numéro de port
+        case j of // j=numéro de port du croisement (0 à 3)
         0 : begin s:=s+'D';Aig_cdm[nAig_cdm].ddroit:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].ddroitB:=c[1];end;
         1 : begin s:=s+'S';Aig_cdm[nAig_cdm].dDevie:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].ddevieB:=c[1];end;
         2 : begin s:=s+'D';Aig_cdm[nAig_cdm].ADroit:=element;if length(c)<>0 then Aig_cdm[nAig_cdm].aDroitB:=c[1];end;
@@ -2219,7 +2328,6 @@ begin
         if debugAnalyse then afficheDebug(s,clorange);
 
       end;
-
     end;
   end;
 
@@ -2228,6 +2336,7 @@ begin
     AfficheDebug('Liste des aiguillages',clWhite);
     AfficheDebug('--------------------------------',clWhite);
   end;
+
   for i:=0 to nseg-1 do
   begin
     segType:=segment[i].typ;
@@ -2251,7 +2360,9 @@ begin
         inc(nAig_CDM);
         Aig_CDM[nAig_CDM].adresse:=adresse;
         Aig_CDM[nAig_CDM].temps:=segment[i].duree;
+        Aig_CDM[nAig_CDM].bdj:=false;
 
+        // TJD
         if (SegType='dbl_slip_switch') then
         begin
           adresse2:=segment[i].adresse2;
@@ -2280,14 +2391,23 @@ begin
             Aig_CDM[nAig_CDM].dDevieB:='S';
             Aig_CDM[nAig_CDM].etatTJD:=4;
           end;
-
         end;
 
-        if (SegType='turnout') or (SegType='turnout_sym') or (SegType='turnout_curved') or (SegType='turnout_curved_2r') then Aig_CDM[nAig_CDM].modele:=aig;
+        if (SegType='turnout') or (SegType='turnout_sym') or (SegType='turnout_curved') or (SegType='turnout_curved_2r') then
+        begin
+          Aig_CDM[nAig_CDM].modele:=aig;
+          Aig_CDM[nAig_CDM].adrCDM:=segment[i].adr_CDM;
+        end;
         if (SegType='turnout_3way') then
         begin
           Aig_CDM[nAig_CDM].modele:=triple;
           Aig_CDM[nAig_CDM].adrTriple:=segment[i].adresse2;
+        end;
+
+
+        if (segType='dbl_cross_over') then
+        begin
+          Affiche('Anomalie 65 : bretelle double jonction résiduelle adresse='+intToSTR(Aig_CDM[nAig_CDM].adresse),clred);
         end;
 
         // remplir les ports de connexion (aig et tjd)
@@ -2296,9 +2416,9 @@ begin
           s:='  Port '+intToSTR(j)+' ';
           if (SegType<>'dbl_slip_switch') and (Segtype<>'turnout_3way') then
           case j of
-          0 : s:=s+'P';
-          1 : s:=s+'D';
-          2 : s:=s+'S';
+          0 : s:=s+'P';  // le port 0 est la pointe
+          1 : s:=s+'D';  // le port 1 est la position droite
+          2 : s:=s+'S';  // le port 2 est la position déviée
           end;
 
          if (SegType='dbl_slip_switch') then //or (SegType='crossing') then
@@ -2319,7 +2439,7 @@ begin
           3 : s:=s+'S2';
           end;
 
-         // explorer les ports de l'aiguillage
+          // explorer les ports de l'aiguillage
           element:=explore_port(numsegment,segment[i].port[j].numero,c);
           if length(c)=0 then c:='Z';
 
@@ -2372,6 +2492,122 @@ begin
      end;
     end;
   end;
+
+  // balayer pour voir si il y a des croisement de bjd
+  // si oui, remplir les champs droits encore manquants des 4 aiguillages créés
+  for i:=1 to NAig_CDM do
+  begin
+    t:=aig_cdm[i].modele;
+    if (t=crois) and (aig_cdm[i].AdrCDM<>0) then     // si c'est un croisement et que son adresse cdm<>0 (c'est une BJD)
+    begin
+      // un croisement dispose de 4 ports
+      adrcrois:=aig_cdm[i].Adresse;  // adresse croisement
+      AdrCDM:=aig_cdm[i].adrCDM;
+
+      // -------extrémités 1 et 2 du croisement
+      adr:=aig_cdm[i].ADevie;     // adresse de l'aiguillage connecté à extr 1
+      c:=aig_cdm[i].ADevieB;
+
+      index:=index_aigCDM(adr);
+      adrAig:=aig_cdm[index].adresse;  // adresse du premier aiguillage
+
+      adr:=aig_cdm[i].Ddroit;     // adresse de l'aiguillage connecté à extr 2
+      c:=aig_cdm[i].DdroitB;
+
+      index2:=index_aigCDM(adr);
+      adrAig2:=aig_cdm[index2].adresse;  // adresse du 2ème aiguillage
+
+      aig_CDM[index].Adroit:=adrAig2;
+      aig_CDM[index].AdroitB:='D';
+
+      aig_CDM[index2].Adroit:=adrAig;
+      aig_CDM[index2].AdroitB:='D';
+
+      // -------extrémités 3 et 4 du croisement
+      adr:=aig_cdm[i].ADroit;     // adresse de l'aiguillage connecté à extr 3  =1
+      c:=aig_cdm[i].ADroitB;
+
+      index:=index_aigCDM(adr);
+      adrAig:=aig_cdm[index].adresse;  // adresse du premier aiguillage =1
+
+      adr:=aig_cdm[i].Ddevie;     // adresse de l'aiguillage connecté à extr 4  = 12
+      c:=aig_cdm[i].DdevieB;
+
+      index2:=index_aigCDM(adr);
+      adrAig2:=aig_cdm[index2].adresse;  // adresse du 2ème aiguillage  = 12
+
+      aig_CDM[index].Adroit:=adrAig2;
+      aig_CDM[index].AdroitB:='D';
+
+
+      aig_CDM[index2].Adroit:=adrAig;
+      aig_CDM[index2].AdroitB:='D';
+
+   end;
+  end;
+
+  // finir balayer les aiguillages pour voir si une extrémité est connectée à une bjd
+  for i:=1 to NAig_CDM do
+  begin
+    t:=aig_cdm[i].modele;
+    if (t=aig) then // or (t=crois) or (t=tjd) or (t=triple) then
+    begin
+      adr:=aig_cdm[i].adresse;
+      g:=ord(aig_cdm[i].AdroitB);
+      if (g>=ord('0')) and (g<=ord('9')) then
+      begin
+        // rebalayer les aiguillages qui ont une adresseCDM<>0 et dont l'adresse est = à celle de l'aiguillage
+        j:=1;
+        repeat
+          trouve:=(aig_cdm[j].Apointe=adr) and (aig_cdm[j].modele=aig);
+          inc(j);
+        until (j>NAig_CDM) or trouve;
+        if trouve then
+        begin
+          dec(j);
+          aig_cdm[i].Adroit:=aig_cdm[j].adresse;
+          aig_cdm[i].AdroitB:='P';
+        end;
+      end;
+
+      g:=ord(aig_cdm[i].AdevieB);
+      if (g>=ord('0')) and (g<=ord('9')) then
+      begin
+         // rebalayer les aiguillages qui ont une adresseCDM<>0 et dont l'adresse est = à celle de l'aiguillage
+        j:=1;
+        repeat
+          trouve:=(aig_cdm[j].Apointe=adr) and (aig_cdm[j].modele=aig);
+          inc(j);
+        until (j>NAig_CDM) or trouve;
+        if trouve then
+        begin
+          dec(j);
+          aig_cdm[i].Adevie:=aig_cdm[j].adresse;
+          aig_cdm[i].AdevieB:='P';
+        end;
+      end;
+
+      // si c'est la pointe qui est connectée à une bjd
+      g:=ord(aig_cdm[i].APointeB);
+      if (g>=ord('0')) and (g<=ord('9')) then
+      begin
+        // rebalayer les aiguillages qui ont une adresseCDM<>0 et dont l'adresse est = à celle de l'aiguillage
+        j:=1;
+        repeat
+          trouve:=(aig_cdm[j].Apointe=adr) and (aig_cdm[j].modele=aig);
+          inc(j);
+        until (j>NAig_CDM) or trouve;
+        if trouve then
+        begin
+          dec(j);
+          aig_cdm[i].APointe:=aig_cdm[j].adresse;
+          aig_cdm[i].APointeB:='P';
+        end;
+      end;
+
+    end;
+  end;
+
   if nAig_CDM=0 then affiche('Aucun aiguillage avec adresse',clyellow);
 end;
 
@@ -2445,6 +2681,13 @@ function trouve_seg_suivant(IndexSeg,Indexport : integer;var IndexSegSuiv,Indexp
 var PortSuiv,NumSegment,ips,SegSuiv,np : integer;
     ctype : string;
 begin
+  //Affiche('trouve le seg suivant au index '+intToSTR(IndexSeg)+' port '+intToSTR(Indexport),clyellow);
+  if indexSeg<0 then
+  begin
+    Affiche('Erreur indexSeg<0',clred);
+    result:=false;
+    exit;
+  end;
   numSegment:=segment[indexSeg].numero;
   numport:=segment[indexSeg].port[indexPort].numero;
   if nivDebug=3 then AfficheDebug('trouve le seg suivant au '+intToSTR(numSegment)+' port '+intToSTR(numport),clyellow);
@@ -2522,11 +2765,11 @@ end;
 
 
 // créée la branche depuis un aiguillage dont un des ports est un détecteur
-// indexSeg,port : index du segment et port de départ
+// indexSeg,port : index du segment et port de départ (0=pointe,1=droit,2=dévié)
 // AdrAig : adresse de l'aiguillage qui a servi de départ
 // et remplit la branche (sBranche)
 procedure cree_branche_aig(indexSeg,Indexport,adrAig,NbreMaxiAigRencontres : integer);
-var i,j,k,l,naig,IndexportSuivant,indexSegSuivant,NombrePeriph,
+var i,j,k,l,n,nper,nport,naig,IndexportSuivant,indexSegSuivant,NombrePeriph,
     detecteur,indexElBranche,AdrAigRencontre,numSegment,
     rien,erreur,det2,nb_det,xp,yp,xd,yd,Adr2,AdrDer,idx : integer;
     trouve,doublon : boolean;
@@ -2538,13 +2781,33 @@ begin
   AdrAigRencontre:=0;
   i:=0; Naig:=0;
   repeat
+    // trouver le port du détecteur
+    nper:=Segment[indexSeg].nperiph; // y a t-il des périph (recherche det)
+    if nper<>0 then
+    begin
+      n:=0;
+      repeat
+        k:=Segment[indexSeg].periph[n].OnDevicePort;      // numéro de port sur lequel est le détecteur
+        if k=IndexPort then // si le port contenant le det est celui qu'on explore 
+        begin
+          if Segment[indexSeg].periph[nperiph].typ='detector' then
+          begin
+            detecteur:=Segment[indexSeg].periph[nperiph].adresse;
+            if debugBranche then Affiche('Cet aiguillage porte le détecteur '+intToSTR(detecteur),clYellow);
+            sBranche:='A'+intToSTR(segment[indexSeg].adresse)+','+intToSTR(detecteur);
+          end;
+        end;
+        inc(n);
+      until (n>nper-1) or (k<>-1);
+    end;
+
     if nivdebug=3 then
     begin
       numsegment:=segment[indexSeg].numero;
       NumPort:=segment[indexSeg].port[IndexPort].numero;
       AfficheDebug(intToSTR(i)+' Trouve suivant au= '+intToSTR(numSegment)+' '+intToSTR(NumPort),clOrange);
     end;
-    trouve:=trouve_Seg_suivant(indexSeg,indexport,IndexSegSuivant,IndexportSuivant);   // indexSeg=48
+    trouve:=trouve_Seg_suivant(indexSeg,indexport,IndexSegSuivant,IndexportSuivant);
     if not(trouve) then
     begin
       s:='Pas de segment suivant à '+intToSTR(numSegment)+' '+intToSTR(NumPort);
@@ -2566,6 +2829,7 @@ begin
       begin
         AdrAigRencontre:=segment[indexSegSuivant].adresse;
         if debugBranche then Affichedebug('Aiguillage '+intTostr(adrAigRencontre),clyellow);
+
         if (ctype='dbl_slip_switch') and (segment[indexSegSuivant].adresse2<>0) then
         begin
           // dernier élément rencontré
@@ -2799,6 +3063,7 @@ var i,NumSegment,rien,indexSeg,IndexPeriph,indexPort,IndexSegSuivant,portSuivant
     trouve,fg : boolean;
     label essai_port;
 begin
+  sbranche:='';
   indexPort:=0; // essayer sur port 0 du détecteur
   fg:=false;
   essai_port:
@@ -2807,79 +3072,111 @@ begin
     AfficheDebug('Créée branche détecteur '+intToSTR(detecteur)+' sur port '+intToSTR(indexPort),clOrange);
   end;
   trouve:=trouve_IndexSegPortDetecteur(detecteur,indexSeg,indexPeriph);
-  numSegment:=Segment[indexSeg].numero;
-  if nivdebug=3 then AfficheDebug('Le segment porteur du détecteur est le '+intToSTR(numSegment)+' Periph '+intToSTR(Segment[indexSeg].periph[indexperiph].numero),clyellow);
-
-  // parcourir les segments jusqu'au prochain aiguillage
-  i:=0;
-  repeat
-    //if trouve then Affiche(intToSTR(numSegment)+' '+intToSTR(indexPeriph),clyellow);
-    inc(i);
-    trouve:=trouve_Seg_suivant(indexSeg,indexport,IndexSegSuivant,IndexportSuivant);
-    if not(trouve) then
-    begin
-      s:='Erreur 678 : Pas trouvé d''aiguillage ou de buttoir après le segment / port '+intToSTR(numSegment)+'/'+intToSTR(Segment[indexSeg].port[indexPort].numero);
-      AfficheDebug(s,clred);
-      Affiche(s,clred);
-      sBranche:='';
-      exit;
-    end;
-    numSegment:=Segment[indexSegSuivant].numero;
-    portSuivant:=Segment[indexSegSuivant].port[IndexPortSuivant].numero;
-    if nivdebug=3 then AfficheDebug('Suivant= '+intToSTR(numSegment)+' indexport '+intToSTR(IndexportSuivant),clYellow);
-    ctype:=segment[IndexSegSuivant].typ;
-    if ctype='bumper_stop' then
-    begin
-      // repartir en sens inverse
-      if indexPortSuivant=0 then indexPortSuivant:=1 else indexPortSuivant:=0;
-      portSuivant:=Segment[indexSegSuivant].port[IndexPortSuivant].numero;
-    end;
-    // si on rencontre une table, çà revient dans l'autre sens
-
-    trouve:=segment_aig(ctype);  // est-ce un aiguillage ???
-
-    // prépare suivant
-    if not(trouve) then
-    begin
-      IndexSeg:=IndexSegSuivant;
-      port:=trouve_port_suivant(indexSegSuivant,portSuivant);
-      trouve_IndexSegPort(Numsegment,port,rien,indexPort);
-    end;
-  until (i=50) or trouve;
-
   if not(trouve) then
   begin
-    s:='68 : Pas trouvé d''aiguillage à proximité du détecteur '+intToSTR(detecteur);
+    s:='Erreur 677 : Pas trouvé le segment / port du détecteur '+intToSTR(detecteur);
     AfficheDebug(s,clred);
-    Affiche(s,clred);  // et donc essayer sur le port 1 !!
-    if fg then
-    begin
-      S:='Pas trouvé d''aguillage de chaque côté du détecteur '+intToSTR(detecteur);
-      AfficheDebug(s,clred);
-      Affiche(s,clred);
-      exit;
-    end;
-    indexport:=1;
-    fg:=true;
-    goto essai_port;
+    Affiche(s,clred);
+    sBranche:='';
+    exit;
   end;
 
-  //partir de IndexSegSuivant, IndexPort
-  adresse:=segment[IndexSegSuivant].adresse;
-  sBranche:='A'+intToSTR(Adresse);
+
+  numSegment:=Segment[indexSeg].numero;
+  ctype:=segment[indexSeg].typ;
+  if DebugBranche then AfficheDebug('Le segment porteur du détecteur est le '+intToSTR(numSegment)+' Periph '+intToSTR(Segment[indexSeg].periph[indexperiph].numero)+' '+Ctype,clyellow);
+  {
+  if segment_aig(ctype) then // cas si c'est déja un aiguillage
+  begin
+    IndexSegSuivant:=IndexSeg;
+    // trouver le port du détecteur
+    i:=Segment[indexSeg].periph[indexperiph].OnDevicePort;      // numéro de port sur lequel est le détecteur
+    PortSuivant:=Segment[indexSeg].port[i].numero;
+    sBranche:='A'+intToSTR(segment[indexSeg].adresse)+','+intToSTR(detecteur);
+  end
+  else}
+  begin
+    // parcourir les segments jusqu'au prochain aiguillage
+    i:=0;
+    repeat
+      //if trouve then Affiche(intToSTR(numSegment)+' '+intToSTR(indexPeriph),clyellow);
+      inc(i);
+      trouve:=trouve_Seg_suivant(indexSeg,indexport,IndexSegSuivant,IndexportSuivant);
+      if not(trouve) then
+      begin
+        s:='Erreur 678 : Pas trouvé d''aiguillage ou de buttoir après le segment / port '+intToSTR(numSegment)+'/'+intToSTR(Segment[indexSeg].port[indexPort].numero);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        sBranche:='';
+        exit;
+      end;
+      numSegment:=Segment[indexSegSuivant].numero;
+      portSuivant:=Segment[indexSegSuivant].port[IndexPortSuivant].numero;
+      ctype:=segment[IndexSegSuivant].typ;
+
+      if DebugBranche then AfficheDebug('Seg suivant='+intToSTR(numSegment)+' port='+intToSTR(portSuivant)+' '+ctype+' @='+intToSTR(segment[indexSegSuivant].adresse),clYellow);
+
+      if ctype='bumper_stop' then
+      begin
+        // repartir en sens inverse
+        if indexPortSuivant=0 then indexPortSuivant:=1 else indexPortSuivant:=0;
+        portSuivant:=Segment[indexSegSuivant].port[IndexPortSuivant].numero;
+      end;
+      // si on rencontre une table, çà revient dans l'autre sens
+
+      trouve:=segment_aig(ctype);  // est-ce un aiguillage ???
+
+      // prépare suivant
+      if not(trouve) then
+      begin
+        IndexSeg:=IndexSegSuivant;
+        port:=trouve_port_suivant(indexSegSuivant,portSuivant);
+        trouve_IndexSegPort(Numsegment,port,rien,indexPort);
+      end;
+    until (i=50) or trouve;
+
+    if not(trouve) then
+    begin
+      s:='68 : Pas trouvé d''aiguillage à proximité du détecteur '+intToSTR(detecteur);
+      AfficheDebug(s,clred);
+      Affiche(s,clred);  // et donc essayer sur le port 1 !!
+      if fg then
+      begin
+        S:='Pas trouvé d''aguillage de chaque côté du détecteur '+intToSTR(detecteur);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        exit;
+      end;
+      indexport:=1;
+      fg:=true;
+      goto essai_port;
+    end;
+
+    //partir de IndexSegSuivant, IndexPort
+    adresse:=segment[IndexSegSuivant].adresse;
+    sBranche:='A'+intToSTR(Adresse);
+  end;
+
   //convertir le port en index
   IndexPort:=trouve_IndexPort_Segment(IndexSegSuivant,portSuivant);
-
-  Cree_branche_aig(IndexSegSuivant,IndexPort,adresse,1);  // 1 aiguillage rencontré maxi
+  if IndexPort=-1 then
+  begin
+    s:='Pas trouvé index port de '+intToSTR(IndexSegSuivant)+'/'+intToSTR(portSuivant);
+    AfficheDebug(s,clred);
+    Affiche(s,clred);
+    exit;
+  end;
+  // Crée branche depuis aiguillage
+  Cree_branche_aig(IndexSegSuivant,IndexPort,adresse,1) ;  // 1 aiguillage rencontré maxi
 end;
 
 // procédure principale de création des branches
 procedure creee_branches;
-var i,j,k,adresse,detecteur,indexSeg,det2,erreur : integer;
-    trouve : boolean;
+var i,j,k,adresse,detecteur,indexSeg,det2,erreur,index : integer;
+    trouve,bjd : boolean;
     c : char;
     s : string;
-begin        
+begin
   // l'origine d'une branche est la pointe d'un aiguillage connecté à un détecteur ----------
   NbreBranches:=0;
 
@@ -2900,16 +3197,20 @@ begin
         AfficheDebug('Début de branche n°'+intToSTR(NbreBranches+1)+' : aiguillage '+intToSTR(adresse)+' Pointe='+intToSTR(detecteur),clyellow);
       end;
 
-      trouve:=trouve_IdSegment_aig(adresse,indexSeg);
-      if not(trouve) then afficheDebug('Erreur 417 : Aig '+intToSTR(adresse)+' non trouvé ',clred);
-      //Affiche(IntToSTR(segment[indexSeg].numero),clYellow);
+      trouve:=trouve_IdSegment_aig(adresse,indexSeg);   // trouve l'aiguillage dans les segments
 
       if trouve then
       begin
         port:=segment[indexSeg].port[0].numero; // on commence par le port 0 (pointe) de l'aiguillage
         sBranche:='A'+intToSTR(adresse);
+        // créée la branche depuis l'aiguillage
         cree_branche_aig(indexSeg,0,adresse,100);  // branche dans sBranche
         if nivdebug=3 then AfficheDebug(sbranche,clwhite);
+      end
+      else
+      begin
+        // ne pas afficher de message pour un aiguillage non trouvé en segment s'il s'agit d'un aiguillage créé depuis une bretelle (BDJ)
+        if aiguillage[i].AdrCDM=0 then afficheDebug('Erreur 417 : Aig '+intToSTR(adresse)+' non trouvé ',clred);
       end;
     end;
     inc(i); // aiguillage suivant
@@ -2971,7 +3272,7 @@ begin
         AfficheDebug('------------------',clyellow);
         AfficheDebug('Le détecteur '+intToSTR(detecteur)+' est absent des branches, création d''une branche le contenant ',clOrange);
       end;
-      cree_branche_det(detecteur);
+      cree_branche_det(detecteur) ;
       //if debugBranche then AfficheDebug(sbranche,clWhite);
     end;
   end;
@@ -3298,11 +3599,26 @@ begin
   formprinc.Affiche_fenetre_CDM.enabled:=true;
 end;
 
+// trouve l'adresse signaux complexes du croisement de la BDJ d'adresse CDM adresse
+function adr_croisement_cdm(adresse : integer) : integer;
+var i : integer;
+begin
+  i:=1;
+  result:=0;
+  repeat
+    if (aig_cdm[i].adrCDM=adresse) and (aig_cdm[i].modele=crois) then
+      result:=aig_cdm[i].adresse;
+    inc(i);
+  until (i>nAig_CDM) ;
+end;
+
 
 // importe la base de données CDM dans la base de données Signaux complexes
 // et crée les branches
 procedure Importation;
-var i : integer;
+var Adr,AdrAig,AdrDet,i,j,n,baseBJD,segId,seg,PeriphId,NumPort : integer;
+    c : char;
+    t : tequipement;
     s: string;
 begin
   if MaxAiguillage<>0 then
@@ -3318,7 +3634,7 @@ begin
   end;
 
   MaxAiguillage:=0;
-
+  n:=0;
   Affiche('Importation des aiguillages et des branches',clWhite);
 
   // recopier les aiguillages CDM dans signaux_complexes
@@ -3340,6 +3656,7 @@ begin
     Aiguillage[i].DDevie:=Aig_CDM[i].DDevie;
     Aiguillage[i].DDevieB:=Aig_CDM[i].DDevieB;
     Aiguillage[i].EtatTJD:=Aig_CDM[i].EtatTJD;
+    Aiguillage[i].AdrCDM:=aig_cdm[i].adrCDM;
 
     Aiguillage[i].posInit:=9;
     aiguillage[i].InversionCDM:=0;
@@ -3369,17 +3686,166 @@ begin
   for i:=1 to NbreBranches do
     compile_branche(Branche[i],i);
 
-  trier_detecteurs;  
+  trier_detecteurs;
   Affiche('Importation terminée',clWhite);
   Affiche('Vérification de la cohérence :',clWhite);
   if verif_coherence then Affiche('Configuration cohérente',clLime);
   if debugbranche or debugAnalyse then formDebug.Show;
 end;
 
+procedure cree_croisement(i,adresse : integer);
+begin
+  inc(nSeg);
+  inc(DernierSeg);
+  Affiche('Création croisement Segment '+intToSTR(DernierSeg),clyellow);
+  setlength(segment,nSeg);
+  Segment[nSeg-1].nport:=0;
+  Segment[nSeg-1].nperiph:=0;
+  Segment[nSeg-1].nInter:=0;
+  Segment[nSeg-1].adresse:=adresse;
+  Segment[nSeg-1].adr_CDM:=adresse;
+
+  Segment[nSeg-1].numero:=DernierSeg;
+  Segment[nSeg-1].typ:='crossing';
+  Segment[nSeg-1].nport:=4;
+  Segment[nSeg-1].nperiph:=0;
+
+  Segment[nSeg-1].XMin:=segment[i].XMin;
+  Segment[nSeg-1].YMin:=segment[i].YMin;
+  Segment[nSeg-1].XMax:=segment[i].XMax;
+  Segment[nSeg-1].YMax:=segment[i].YMax;
+
+  Segment[nSeg-1].StartAngle:=segment[i].StartAngle;
+  Segment[nSeg-1].ArcAngle:=segment[i].ArcAngle;
+  Segment[nSeg-1].Rayon:=segment[i].rayon;
+
+  Segment[nSeg-1].longueur:=segment[i].longueur;
+  Segment[nSeg-1].lengthdev:=segment[i].lengthdev;
+  Segment[nSeg-1].DeltaDev:=segment[i].deltadev;
+  Segment[nSeg-1].Curveoffset:=segment[i].Curveoffset;
+
+  // créer les 4 ports
+  setlength(segment[nSeg-1].port,4);
+  inc(DernierSeg);
+  Segment[nSeg-1].port[0].numero:=DernierSeg;
+  Segment[nSeg-1].port[0].typ:='port';
+  Segment[nSeg-1].port[0].local:=0; // port 0
+  Segment[nSeg-1].port[0].x:=segment[i].port[2].x;
+  Segment[nSeg-1].port[0].y:=segment[i].port[2].y;
+  Segment[nSeg-1].port[0].z:=0;
+  Segment[nSeg-1].port[0].angle:=0;
+  Segment[nSeg-1].port[0].connecte:=true;
+  Segment[nSeg-1].port[0].ConnecteAuPort:=990;   // le port 0 est la pointe
+  Segment[nSeg-1].port[0].ConnecteAuSeg:=990;
+
+  inc(DernierSeg);
+  Segment[nSeg-1].port[1].numero:=DernierSeg;
+  Segment[nSeg-1].port[1].typ:='port';
+  Segment[nSeg-1].port[1].local:=1;
+  Segment[nSeg-1].port[1].x:=segment[i].port[3].x;
+  Segment[nSeg-1].port[1].y:=segment[i].port[3].y;
+  Segment[nSeg-1].port[1].z:=0;
+  Segment[nSeg-1].port[1].angle:=0;
+  Segment[nSeg-1].port[1].connecte:=true;
+  Segment[nSeg-1].port[1].ConnecteAuPort:=991;   // le port 0 est la pointe
+  Segment[nSeg-1].port[1].ConnecteAuSeg:=991;
+
+  inc(DernierSeg);
+  Segment[nSeg-1].port[2].numero:=DernierSeg;
+  Segment[nSeg-1].port[2].typ:='port';
+  Segment[nSeg-1].port[2].local:=2;
+  Segment[nSeg-1].port[2].x:=segment[i].port[1].x;
+  Segment[nSeg-1].port[2].y:=segment[i].port[1].y;
+  Segment[nSeg-1].port[2].z:=0;
+  Segment[nSeg-1].port[2].angle:=0;
+  Segment[nSeg-1].port[2].connecte:=true;
+  Segment[nSeg-1].port[2].ConnecteAuPort:=992;   // le port 0 est la pointe
+  Segment[nSeg-1].port[2].ConnecteAuSeg:=992;
+
+  inc(DernierSeg);
+  Segment[nSeg-1].port[3].numero:=DernierSeg;
+  Segment[nSeg-1].port[3].typ:='port';
+  Segment[nSeg-1].port[3].local:=3;
+  Segment[nSeg-1].port[3].x:=segment[i].port[0].x;
+  Segment[nSeg-1].port[3].y:=segment[i].port[0].y;
+  Segment[nSeg-1].port[3].z:=0;
+  Segment[nSeg-1].port[3].angle:=0;
+  Segment[nSeg-1].port[3].connecte:=true;
+  Segment[nSeg-1].port[3].ConnecteAuPort:=993;   // le port 0 est la pointe
+  Segment[nSeg-1].port[3].ConnecteAuSeg:=993;
+
+end;
+
+// crée un aiguillage au seglent nSeg, à partir du segment i
+procedure cree_aiguillage(i,adresse,AdrCDM : integer);
+begin
+  inc(nSeg);             //index de segment
+  inc(DernierSeg);       //numéro de segment
+  Affiche('Création aiguillage Segment '+intToSTR(DernierSeg),clyellow);
+  setlength(segment,nSeg);
+  Segment[nSeg-1].nport:=0;
+  Segment[nSeg-1].nperiph:=0;
+  Segment[nSeg-1].nInter:=0;
+
+  Segment[nSeg-1].numero:=DernierSeg;
+  Segment[nSeg-1].typ:='turnout';
+  Segment[nSeg-1].nport:=3;
+  Segment[nSeg-1].nperiph:=0;
+
+  Segment[nSeg-1].XMin:=segment[i].XMin;
+  Segment[nSeg-1].YMin:=segment[i].YMin;
+  Segment[nSeg-1].XMax:=segment[i].XMax;
+  Segment[nSeg-1].YMax:=segment[i].YMax;
+
+  Segment[nSeg-1].adresse:=adresse;
+  Segment[nSeg-1].Adr_Cdm:=AdrCDM;
+  Segment[nSeg-1].duree:=segment[i].duree;
+
+  // créer les 3 ports
+  setlength(segment[nSeg-1].port,3);
+  inc(DernierSeg);
+  Segment[nSeg-1].port[0].numero:=DernierSeg;
+  Segment[nSeg-1].port[0].typ:='port';
+  Segment[nSeg-1].port[0].local:=0;
+  Segment[nSeg-1].port[0].x:=0;
+  Segment[nSeg-1].port[0].y:=0;
+  Segment[nSeg-1].port[0].z:=0;
+  Segment[nSeg-1].port[0].angle:=0;
+  Segment[nSeg-1].port[0].connecte:=true;
+  Segment[nSeg-1].port[0].ConnecteAuPort:=990;   // le port 0 est la pointe
+  Segment[nSeg-1].port[0].ConnecteAuSeg:=990;
+
+  inc(DernierSeg);
+  Segment[nSeg-1].port[1].numero:=DernierSeg;
+  Segment[nSeg-1].port[1].typ:='port';
+  Segment[nSeg-1].port[1].local:=1;
+  Segment[nSeg-1].port[1].x:=0;
+  Segment[nSeg-1].port[1].y:=0;
+  Segment[nSeg-1].port[1].z:=0;
+  Segment[nSeg-1].port[1].angle:=0;
+  Segment[nSeg-1].port[1].connecte:=true;
+  Segment[nSeg-1].port[1].ConnecteAuPort:=991;   // le port 0 est la pointe
+  Segment[nSeg-1].port[1].ConnecteAuSeg:=991;
+
+  inc(DernierSeg);
+  Segment[nSeg-1].port[2].numero:=DernierSeg;
+  Segment[nSeg-1].port[2].typ:='port';
+  Segment[nSeg-1].port[2].local:=2;
+  Segment[nSeg-1].port[2].x:=0;
+  Segment[nSeg-1].port[2].y:=0;
+  Segment[nSeg-1].port[2].z:=0;
+  Segment[nSeg-1].port[2].angle:=0;
+  Segment[nSeg-1].port[2].connecte:=true;
+  Segment[nSeg-1].port[2].ConnecteAuPort:=992;   // le port 0 est la pointe
+  Segment[nSeg-1].port[2].ConnecteAuSeg:=992;
+
+end;
+
 // compile le fichier Texte de CDM et l'importe
 procedure Compilation;
 var s : string;
-    nombre,position : integer;
+    nombre,position,adresse,i,j,n,ISegA1,ISegA2,ISegA3,ISegA4,ISegCrois,SegBJD,
+    IndexSeg,IndexPort,SegConn,PortConn : integer;
 begin
   nombre:=Formprinc.FenRich.Lines.Count;
   if nombre>0 then
@@ -3412,6 +3878,7 @@ begin
   nPeriph:=0;
   nInter:=0;
   DernAdrAig:=0;
+  dernierSeg:=0;
   xminiCDM:=0;yMiniCDM:=0;xmaxiCDM:=0;yMaxiCDM:=0;
 
   NomModuleCDM:=AnsiLowerCase(Lignes[0]+'.cdm');
@@ -3445,17 +3912,266 @@ begin
     end;
     inc(nligne);
   until (nligne>nombre);
-  //Affiche('fin de la compilation',cllime);
+  Affiche('fin de la compilation des segments',cllime);
+
+  // balayer les segments pour transformer les bjd en créant 1 croisement et 4 aiguillages dans les segments, puis on supprime la bjd des segments
+  i:=0;
+  repeat
+    if segment[i].typ='dbl_cross_over' then
+    begin
+      adresse:=segment[i].adresse;
+      SegBJD:=segment[i].numero;
+      s:='La BJD '+intToSTR(adresse)+' a été éclatée en un croisement et 4 aiguillages d''adresse '+intToSTR(DernAdrAig+1)+' a '+intToSTR(DernAdrAig+4);
+      Affiche(s,clYellow);
+      if DebugAnalyse then AfficheDebug(s,clYellow);
+
+      ISegCrois:=Nseg;
+      Cree_croisement(i,adresse);
+      inc(DernAdrAig);
+      // si la BJD comporte des périphériques, les réintroduire dans le croisement
+      n:=segment[i].nperiph;
+      if n<>0 then
+      begin
+        s:='La BJD '+intToSTR(adresse)+' comporte des périphériques, réintégration dans le croisement Segment n°'+intToSTR(Segment[IsegCrois].numero);
+        Affiche(s,clyellow);
+        if debugAnalyse then AfficheDebug(s,clyellow);
+        segment[IsegCrois].nperiph:=n;
+        setlength(segment[IsegCrois].Periph,n);
+        segment[IsegCrois].periph:=segment[i].periph;
+        // mise à jour des champs
+        for j:=0 to n do
+        begin
+          segment[ISegCrois].periph[j].pere:=segment[iSegCrois].numero;
+        end;
+      end;
+
+      // créer aiguillage 1 (SO) c'est le port 0 de la BJS depuis l'index i des segments
+      ISegA1:=Nseg; // dernier index de segment
+      cree_aiguillage(i,DernAdrAig,adresse);
+      // remplir les coordonnées x y de chaque port
+      Segment[iSegA1].port[0].x:=segment[iSegCrois].port[3].x;      // SO : port 0 de la bjs
+      Segment[iSegA1].port[0].y:=segment[iSegCrois].port[3].y;
+      // port 1 : port droit : milieu
+      Segment[iSegA1].port[1].x:=(segment[iSegCrois].port[3].x+segment[iSegCrois].port[0].x) div 2;
+      Segment[iSegA1].port[1].y:=(segment[iSegCrois].port[3].y+segment[iSegCrois].port[0].y) div 2;
+      // port 2 : port devie : milieu
+      Segment[iSegA1].port[2].x:=(segment[iSegCrois].port[3].x+segment[iSegCrois].port[1].x) div 2;
+      Segment[iSegA1].port[2].y:=(segment[iSegCrois].port[3].y+segment[iSegCrois].port[1].y) div 2;
+      inc(DernAdrAig);
+
+      // créer aiguillage 2 (NO) c'est le port 1 de la BJS depuis l'index i des segments
+      ISegA2:=Nseg;
+      cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 2 depuis l'index i des segments
+      Segment[IsegA2].port[0].x:=segment[iSegCrois].port[2].x;      // NO : port 1 de la bjs
+      Segment[IsegA2].port[0].y:=segment[iSegCrois].port[2].y;
+      // port 1 : port droit : milieu
+      Segment[IsegA2].port[1].x:=(segment[iSegCrois].port[2].x+segment[iSegCrois].port[1].x) div 2;
+      Segment[IsegA2].port[1].y:=(segment[iSegCrois].port[2].y+segment[iSegCrois].port[1].y) div 2;
+      // port 2 : port devie : milieu
+      Segment[IsegA2].port[2].x:=(segment[iSegCrois].port[2].x+segment[iSegCrois].port[0].x) div 2;
+      Segment[IsegA2].port[2].y:=(segment[iSegCrois].port[2].y+segment[iSegCrois].port[0].y) div 2;
+      inc(DernAdrAig);    
+
+      // créer aiguillage 3 (NE) c'est le port 3 de la BJS depuis l'index i des segments
+      ISegA3:=Nseg;
+      cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 3 depuis l'index i des segments
+      Segment[ISegA3].port[0].x:=segment[iSegCrois].port[1].x;      // NE : port 3 de la bjs
+      Segment[ISegA3].port[0].y:=segment[iSegCrois].port[1].y;
+      // port 1 : port droit : milieu
+      Segment[ISegA3].port[1].x:=(segment[iSegCrois].port[1].x+segment[iSegCrois].port[2].x) div 2;
+      Segment[ISegA3].port[1].y:=(segment[iSegCrois].port[1].y+segment[iSegCrois].port[2].y) div 2;
+      // port 2 : port devie : milieu
+      Segment[ISegA3].port[2].x:=(segment[iSegCrois].port[1].x+segment[iSegCrois].port[3].x) div 2;
+      Segment[ISegA3].port[2].y:=(segment[iSegCrois].port[1].y+segment[iSegCrois].port[3].y) div 2;
+      inc(DernAdrAig);
+
+      // créer aiguillage 4 (SE) c'est le port 2 de la BJS depuis l'index i des segments
+      ISegA4:=Nseg;
+      cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 3 depuis l'index i des segments
+      Segment[ISegA4].port[0].x:=segment[iSegCrois].port[0].x;      // NE : port 2 de la bjs
+      Segment[ISegA4].port[0].y:=segment[iSegCrois].port[0].y;
+      // port 1 : port droit : milieu
+      Segment[ISegA4].port[1].x:=(segment[iSegCrois].port[0].x+segment[iSegCrois].port[3].x) div 2;
+      Segment[ISegA4].port[1].y:=(segment[iSegCrois].port[0].y+segment[iSegCrois].port[3].y) div 2;
+      // port 2 : port devie : milieu
+      Segment[ISegA4].port[2].x:=(segment[iSegCrois].port[0].x+segment[iSegCrois].port[2].x) div 2;
+      Segment[ISegA4].port[2].y:=(segment[iSegCrois].port[0].y+segment[iSegCrois].port[2].y) div 2;
+      inc(DernAdrAig);
+
+
+      // mettre à jour les ports du croisement
+      // les indices des ports opposés des croisements sont 0-2 et 1-3
+      // croisement port 0 connecté à l'aig 1 port 2 (dévié)
+      // attention les ports opposés de la bjd sont 0-3 et 1-2
+      segment[ISegCrois].port[0].ConnecteAuPort:=segment[iSegA1].port[2].numero;
+      segment[ISegCrois].port[0].ConnecteAuSeg:=segment[ISegA1].numero;
+
+
+
+      // croisement port 1 connecté à l'aig 2 port 2 (dévié)
+      segment[ISegCrois].port[1].ConnecteAuPort:=segment[iSegA2].port[2].numero;
+      segment[ISegCrois].port[1].ConnecteAuSeg:=segment[ISegA2].numero;
+
+      // croisement port 2 connecté à l'aig 3 port 2 (dévié)
+      segment[ISegCrois].port[2].ConnecteAuPort:=segment[iSegA3].port[2].numero;
+      segment[ISegCrois].port[2].ConnecteAuSeg:=segment[ISegA3].numero;
+
+      // croisement port 3 connecté à l'aig 4 port 2 (dévié)
+      segment[ISegCrois].port[3].ConnecteAuPort:=segment[iSegA4].port[2].numero;
+      segment[ISegCrois].port[3].ConnecteAuSeg:=segment[ISegA4].numero;
+
+
+      // aiguillage 1, port 0 (pointe)
+      segment[ISegA1].port[0].ConnecteAuPort:=segment[i].port[0].ConnecteAuPort;
+      segment[ISegA1].port[0].ConnecteAuSeg:=segment[i].port[0].ConnecteAuSeg;
+      // aiguillage 1, port 1 (droit) au port 1 (droit) de l'aig 4
+      segment[ISegA1].port[1].ConnecteAuPort:=segment[iSegA4].port[1].numero;
+      segment[ISegA1].port[1].ConnecteAuSeg:=segment[ISegA4].numero;
+      // aiguillage 1, port 2 (dévié) au port 0 du croisement
+      segment[ISegA1].port[2].ConnecteAuPort:=segment[iSegCrois].port[0].numero;
+      segment[ISegA1].port[2].ConnecteAuSeg:=segment[ISegCrois].numero;
+
+      // aiguillage 2, port 0 (pointe)
+      segment[ISegA2].port[0].ConnecteAuPort:=segment[i].port[1].ConnecteAuPort;;
+      segment[ISegA2].port[0].ConnecteAuSeg:=segment[i].port[1].ConnecteAuSeg;
+      // aiguillage 2, port 1 (droit) au port 1 (droit) de l'aig 3
+      segment[ISegA2].port[1].ConnecteAuPort:=segment[iSegA3].port[1].numero;
+      segment[ISegA2].port[1].ConnecteAuSeg:=segment[ISegA3].numero;
+      // aiguillage 2, port 2 (dévié) au port 1 du croisement
+      segment[ISegA2].port[2].ConnecteAuPort:=segment[iSegCrois].port[1].numero;
+      segment[ISegA2].port[2].ConnecteAuSeg:=segment[ISegCrois].numero;
+
+      // aiguillage 3, port 0 (pointe) extérieur
+      segment[ISegA3].port[0].ConnecteAuPort:=segment[i].port[3].ConnecteAuPort;
+      segment[ISegA3].port[0].ConnecteAuSeg:=segment[i].port[3].ConnecteAuSeg;
+      // aiguillage 3, port 1 (droit) au port 1 (droit) de l'aig 2
+      segment[ISegA3].port[1].ConnecteAuPort:=segment[iSegA2].port[1].numero;
+      segment[ISegA3].port[1].ConnecteAuSeg:=segment[ISegA2].numero;
+      // aiguillage 3, port 2 (dévié) au port 2 du croisement
+      segment[ISegA3].port[2].ConnecteAuPort:=segment[iSegCrois].port[2].numero;
+      segment[ISegA3].port[2].ConnecteAuSeg:=segment[ISegCrois].numero;
+
+      // aiguillage 4, port 0 (pointe)
+      segment[ISegA4].port[0].ConnecteAuPort:=segment[i].port[2].ConnecteAuPort;;
+      segment[ISegA4].port[0].ConnecteAuSeg:=segment[i].port[2].ConnecteAuSeg;
+      // aiguillage 4, port 1 (droit) au port 1 (droit) de l'aig 1
+      segment[ISegA4].port[1].ConnecteAuPort:=segment[iSegA1].port[1].numero;
+      segment[ISegA4].port[1].ConnecteAuSeg:=segment[ISegA1].numero;
+      // aiguillage 4, port 2 (dévié) au port 3 du croisement
+      segment[ISegA4].port[2].ConnecteAuPort:=segment[iSegCrois].port[3].numero;
+      segment[ISegA4].port[2].ConnecteAuSeg:=segment[ISegCrois].numero;
+
+
+      if DebugAnalyse then
+      begin
+        AfficheDebug('Crois : Seg='+intToSTR(segment[IsegCrois].numero),clOrange);
+        for j:=0 to 3 do AfficheDebug('port '+intToSTR(j)+'/'+intToSTR(segment[IsegCrois].port[j].numero)+
+                 ' connecté au Seg '+intToSTR(segment[IsegCrois].port[j].ConnecteAuSeg)+
+                 ' connecté au port '+intToSTR(segment[IsegCrois].port[j].ConnecteAuPort),clYellow);
+
+        AfficheDebug('Aig1 : Seg='+intToSTR(segment[ISegA1].numero),clOrange);
+        for j:=0 to 2 do AfficheDebug('port '+intToSTR(j)+'/'+intToSTR(segment[IsegA1].port[j].numero)+
+                                 ' connecté au Seg '+intToSTR(segment[ISegA1].port[j].ConnecteAuSeg)+
+                                 ' connecté au port '+intToSTR(segment[ISegA1].port[j].ConnecteAuPort),clYellow);
+
+        AfficheDebug('Aig2 : Seg='+intToSTR(segment[ISegA2].numero),clOrange);
+        for j:=0 to 2 do AfficheDebug('port '+intToSTR(j)+'/'+intToSTR(segment[IsegA2].port[j].numero)+
+                                 ' connecté au Seg '+intToSTR(segment[ISegA2].port[j].ConnecteAuSeg)+
+                                 ' connecté au port '+intToSTR(segment[ISegA2].port[j].ConnecteAuPort),clYellow);
+
+        AfficheDebug('Aig3 : Seg='+intToSTR(segment[ISegA3].numero),clOrange);
+        for j:=0 to 2 do AfficheDebug('port '+intToSTR(j)+'/'+intToSTR(segment[IsegA3].port[j].numero)+
+                                 ' connecté au Seg '+intToSTR(segment[ISegA3].port[j].ConnecteAuSeg)+
+                                 ' connecté au port '+intToSTR(segment[ISegA3].port[j].ConnecteAuPort),clYellow);
+
+        AfficheDebug('Aig4 : Seg='+intToSTR(segment[ISegA4].numero),clOrange);
+        for j:=0 to 2 do AfficheDebug('port '+intToSTR(j)+'/'+intToSTR(segment[IsegA4].port[j].numero)+
+                                 ' connecté au Seg '+intToSTR(segment[ISegA4].port[j].ConnecteAuSeg)+
+                                 ' connecté au port '+intToSTR(segment[ISegA4].port[j].ConnecteAuPort),clYellow);
+      end;
+
+      // Le port 0 de la bjd est maintenant représenté par le port 0 de l'aiguillage 1
+      SegConn:=segment[i].port[0].ConnecteAuSeg;
+      PortConn:=segment[i].port[0].ConnecteAuPort;
+      if not(trouve_IndexSegPort(SegConn,PortConn,IndexSeg,IndexPort)) then // index de l'élément connecté au port 0 de la bjd
+      begin
+        s:='Erreur 80 : pas trouvé index Segment/Port de '+intToSTR(SegConn)+'/'+intToSTR(portconn);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        exit;
+      end;
+
+      segment[IndexSeg].port[IndexPort].ConnecteAuSeg:=segment[ISegA1].numero;
+      segment[IndexSeg].port[IndexPort].ConnecteAuPort:=segment[ISegA1].port[0].numero;
+
+      // Le port 1 de la bjd est maintenant représenté par le port 0 de l'aiguillage 2
+      SegConn:=segment[i].port[1].ConnecteAuSeg;
+      PortConn:=segment[i].port[1].ConnecteAuPort;
+      if not(trouve_IndexSegPort(SegConn,PortConn,IndexSeg,IndexPort)) then // index de l'élément connecté au port 0 de la bjd
+      begin
+        s:='Erreur 81 : pas trouvé index Segment/Port de '+intToSTR(SegConn)+'/'+intToSTR(portconn);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        exit;
+      end;
+      segment[IndexSeg].port[IndexPort].ConnecteAuSeg:=segment[ISegA2].numero;
+      segment[IndexSeg].port[IndexPort].ConnecteAuPort:=segment[ISegA2].port[0].numero;
+
+      // Le port 2 de la bjd est maintenant représenté par le port 0 de l'aiguillage 4
+      SegConn:=segment[i].port[2].ConnecteAuSeg;
+      PortConn:=segment[i].port[2].ConnecteAuPort;
+      if not(trouve_IndexSegPort(SegConn,PortConn,IndexSeg,IndexPort)) then // index de l'élément connecté au port 0 de la bjd
+      begin
+        s:='Erreur 82 : pas trouvé index Segment/Port de '+intToSTR(SegConn)+'/'+intToSTR(portconn);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        exit;
+      end;
+      segment[IndexSeg].port[IndexPort].ConnecteAuSeg:=segment[ISegA4].numero;
+      segment[IndexSeg].port[IndexPort].ConnecteAuPort:=segment[ISegA4].port[0].numero;
+
+      // Le port 3 de la bjd est maintenant représenté par le port 0 de l'aiguillage 3
+      SegConn:=segment[i].port[3].ConnecteAuSeg;
+      PortConn:=segment[i].port[3].ConnecteAuPort;
+      if not(trouve_IndexSegPort(SegConn,PortConn,IndexSeg,IndexPort)) then // index de l'élément connecté au port 0 de la bjd
+      begin
+        s:='Erreur 83 : pas trouvé index Segment/Port de '+intToSTR(SegConn)+'/'+intToSTR(portconn);
+        AfficheDebug(s,clred);
+        Affiche(s,clred);
+        exit;
+      end;
+      segment[IndexSeg].port[IndexPort].ConnecteAuSeg:=segment[ISegA3].numero;
+      segment[IndexSeg].port[IndexPort].ConnecteAuPort:=segment[ISegA3].port[0].numero;
+
+    end;
+
+    inc(i);
+  until i>=nSeg;
+
+  // supprimer les segments bjd à voir si 2 bjd adjacentes en index
+  i:=0;
+  repeat
+    if segment[i].typ='dbl_cross_over' then
+    begin
+      s:='Suppression bjd '+intToSTR(segment[i].adresse)+' des segments';
+      Affiche(s,clOrange);
+      if DebugAnalyse then AfficheDebug(s,clOrange);
+      for j:=i to nseg-2 do segment[j]:=segment[j+1];
+      dec(nseg);
+    end;
+    inc(i);
+  until i>=nseg-1;
 
   Affichage(false);
-  Affiche('nombre de détecteurs: '+intToSTR(NDet_cdm),clyellow);
+  Affiche('nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
 
   formAnalyseCDM.Show;
   formprinc.ButtonAffAnalyseCDM.Visible:=true;
   Affiche('Compilation terminée. Nombre de segments='+intToSTR(nSeg),clWhite);
 
-  remplit_Aig_cdm;
-  Affiche('nombre d''aiguillages: '+intToSTR(Naig_cdm),clyellow);
+  remplit_Aig_cdm; //fabrique les aiguillages
+  Affiche('Nombre d''aiguillages='+intToSTR(Naig_cdm),clyellow);
+  Affiche('Dernière adresse d''aiguillage='+intToSTR(DernAdrAig),clyellow);
 
   // sauvegarde
   sauve_ficher_cdm;
@@ -3534,6 +4250,9 @@ begin
   premaff:=true;
   buttonAnime.Visible:=not(diffusion);
 
+  reducX:=1;
+  reducY:=1; // évite la division par 0
+  
   with FwicImage do
   begin
     largeurTrain:=Width;   // largeur de l'icone du train
@@ -3552,7 +4271,7 @@ end;
 
 procedure clic_image;
 var pt : Tpoint;
-   xSouris,ySouris,x1,y1,x2,y2,i,centreX,centrey,rayon,numero: integer;
+   xSouris,ySouris,x1,y1,x2,y2,i,j,centreX,centrey,rayon,numero: integer;
    StartAngle,StopAngle : double;
    trouve : boolean;
    debug : boolean;
@@ -3566,17 +4285,17 @@ begin
 
   canvas:=FormAnalyseCDM.ImageCDM.Canvas;
 
-  //index_segment(6713,i);
   i:=0;
   repeat
     numero:=segment[i].numero;
     debug:=false;
-    // debug:=(numero=6989) or (numero=6980);
+
     if debug then Affiche('Segment'+inttoSTR(segment[i].numero),clYellow);
     //Affiche(intToSTR(x1)+' '+intToSTR(y1)+' / '+intToSTR(x2)+' '+intToSTR(y2),clYellow);
 
     ctype:=Segment[i].typ;
 
+    // aiguillage à 3 ports (turnout)
     if segment_aig(ctype) and (ctype<>'dbl_slip_switch') then
     begin
       x1:=segment[i].port[0].x;
@@ -3588,19 +4307,27 @@ begin
       trouve:=point_Sur_Segment(Xsouris,Ysouris,x1,y1,x2,y2);
       if trouve then
       begin
-        Canvas.Pen.Width:=largeur_voie;
-        Canvas.pen.Color:=clred;
-        canvas.MoveTo(x1,y1);
-        canvas.LineTo(x2,y2);
+        with canvas do
+        begin
+          Pen.Width:=largeur_voie;
+          pen.Color:=clred;
+          MoveTo(x1,y1);
+          LineTo(x2,y2);
+          TextOut(x1,y1+5,'P0:'+intToSTR(segment[i].port[0].numero));
+          TextOut(x2,y2+5,'P1:'+intToSTR(segment[i].port[1].numero));
+        end;
 
         x1:=(x1+x2) div 2;
         y1:=(y1+y2) div 2;
         x2:=segment[i].port[2].x;
         y2:=segment[i].port[2].y;
         coords(x2,y2);
-        canvas.MoveTo(x1,y1);
-        canvas.LineTo(x2,y2);
-
+        with canvas do
+        begin
+          MoveTo(x1,y1);
+          LineTo(x2,y2);
+          TextOut(x2,y2+5,'P2:'+intToSTR(segment[i].port[2].numero));
+        end;
         if ctype='turnout_3way' then
         begin
           canvas.moveTo(x1,y1);
@@ -3651,8 +4378,13 @@ begin
         y2:=segment[i].port[3].y;
         coords(x1,y1);
         coords(x2,y2);
-        canvas.MoveTo(x1,y1);
-        canvas.LineTo(x2,y2);
+        with canvas do
+        begin
+          MoveTo(x1,y1);
+          LineTo(x2,y2);
+          TextOut(x1,y1+5,'P1:'+intToSTR(segment[i].port[1].numero));
+          TextOut(x2,y2+5,'P3:'+intToSTR(segment[i].port[3].numero));
+        end;
 
         x1:=segment[i].port[0].x;
         y1:=segment[i].port[0].y;
@@ -3660,8 +4392,13 @@ begin
         y2:=segment[i].port[2].y;
         coords(x1,y1);
         coords(x2,y2);
-        canvas.MoveTo(x1,y1);
-        canvas.LineTo(x2,y2);
+        with canvas do
+        begin
+          MoveTo(x1,y1);
+          LineTo(x2,y2);
+          TextOut(x1,y1+5,'P0:'+intToSTR(segment[i].port[0].numero));
+          TextOut(x2,y2+5,'P2:'+intToSTR(segment[i].port[2].numero));
+        end;
 
         xAig:=x1;yAig:=y1-5;
       end;
@@ -3745,6 +4482,10 @@ begin
       begin
         s:=s+#13+'Adr='+intToSTR(x1);
         if Segment[i].adresse2<>0 then s:=s+'/'+intToSTR(Segment[i].adresse2);
+        for j:=0 to segment[i].nport-1 do
+        begin
+          s:=s+#13+'Port '+intToSTR(j)+' : '+intToSTR(Segment[i].port[j].numero);
+        end;
       end;
       Hint:=s;
       showHint:=true;

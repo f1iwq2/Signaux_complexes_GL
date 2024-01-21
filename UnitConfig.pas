@@ -1041,6 +1041,8 @@ begin
      if aiguillage[index].EtatTJD=2 then s:=s+',E2' else s:=s+',E4';
    end;
 
+   s:=s+',C'+intToSTR(aiguillage[index].AdrCDM);
+
    encode_aig:=s;
 end;
 
@@ -2669,7 +2671,7 @@ var s,sa,SOrigine: string;
           aiguillage[maxaiguillage].tjsInt:=adr;
           c:=#0;
           if erreur<>0 then c:=enregistrement[erreur];
-          if ((c<>'S') and (c<>'D')) then 
+          if ((c<>'S') and (c<>'D')) then
           begin
             c:=' ';Affiche('Erreur paramètre L '+sOrigine,clred);
           end;
@@ -2688,7 +2690,7 @@ var s,sa,SOrigine: string;
           i:=pos(',',enregistrement);
           if i<>0 then delete(enregistrement,1,i);
           Val(enregistrement,j,erreur);
-          aiguillage[maxaiguillage].temps:=j;     
+          aiguillage[maxaiguillage].temps:=j;
           aiguillage[maxaiguillage].posinit:=position;
           i:=pos(')',enregistrement);
           delete(enregistrement,1,i);
@@ -2707,6 +2709,17 @@ var s,sa,SOrigine: string;
           virgule:=pos(',',enregistrement);if virgule=0 then virgule:=length(s)+1;
           delete(enregistrement,1,virgule);
         end;
+
+        if (length(enregistrement)<>0) then
+        if enregistrement[1]='C' then
+        begin
+          delete(enregistrement,1,1);
+          Val(enregistrement,adr,erreur);
+          aiguillage[maxaiguillage].AdrCDM:=adr;
+          virgule:=pos(',',enregistrement);if virgule=0 then virgule:=length(s)+1;
+          delete(enregistrement,1,virgule);
+        end;
+
 
         inc(itl);
       until (enregistrement='') or (itl>3);
@@ -5753,6 +5766,7 @@ begin
   //Affiche(s,clLime);
   if s='' then exit;
 
+  formconfig.labelInfo.caption:='';
   Val(s,Adresse,erreur);  // Récupérer l'adresse de l'aiguillage
   if adresse=0 then exit;
 
@@ -5760,7 +5774,7 @@ begin
   clicliste:=true;
 
   ss:=InttoSTr(Adresse);
-  formconfig.EditAdrAig.text:= ss;
+  formconfig.EditAdrAig.text:=ss;
   if sombre then formConfig.editAdrAig.Color:=couleurfond else FormConfig.EditAdrAig.Color:=clWindow;
 
   tjd:=pos('TJD',s)<>0 ;
@@ -5877,14 +5891,14 @@ begin
       end;
 
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
-      
+
       if aiguillage[Index_Aig(adresse)].vitesse=0  then begin RadioButtonSans.checked:=true; RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
       if aiguillage[Index_Aig(adresse)].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true; RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
       if aiguillage[Index_Aig(adresse)].vitesse=40 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;end;
       if aiguillage[Index_Aig(adresse)].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end;
     end;
 
-    if croi then 
+    if croi then
     begin
       GroupBox21.Visible:=false;
       GroupBox10.Visible:=false;
@@ -5971,6 +5985,11 @@ begin
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
   formconfig.EditTempo10.text:=InttoSTr(aiguillage[index].temps);
 
+  if aiguillage[index].AdrCDM<>0 then
+  begin
+    if croi then s:='Croisement ' else s:='Aiguillage ';
+    formconfig.labelInfo.caption:=s+'décrivant la BJS '+intToSTR(aiguillage[index].AdrCDM);
+  end;
   clicListe:=false;
 end;
 
@@ -9280,8 +9299,9 @@ begin
   // et les tjd pour voir si pb de cohérence
   for Indexaig:=1 to maxaiguillage do
   begin
+    modAig:=aiguillage[Indexaig].modele;
     // tjd ou tjs
-    if ((aiguillage[Indexaig].modele=tjd) and (aiguillage[Indexaig].EtatTJD=4)) or (aiguillage[Indexaig].modele=tjs) then
+    if ((modAig=tjd) and (aiguillage[Indexaig].EtatTJD=4)) or (modAig=tjs) then
     begin
       if aiguillage[Indexaig].Ddroit<>aiguillage[Indexaig].Ddevie then
       begin
@@ -9296,6 +9316,7 @@ begin
         ok:=false;
       end;
     end;
+
     // vérifier si l'aiguillage est dans les branches inutile
     {if aiguillage[Indexaig].modele<>rien then
     begin
@@ -9307,100 +9328,119 @@ begin
       end;
     end;}
 
-    // vérifier si le détecteur sur la position droite est dans les branches
-    adr:=aiguillage[Indexaig].Adroit;
-    if (aiguillage[Indexaig].AdroitB='Z') or (aiguillage[Indexaig].AdroitB=#0) then
+    // exclure les TJD/S
+    if (modAig<>tjd) and (modAig<>tjs) then
     begin
-      trouve_detecteur(adr);
-      if IndexBranche_trouve=0 then
+      // vérifier si le détecteur sur la position droite est dans les branches
+      adr:=aiguillage[Indexaig].Adroit;
+      if (aiguillage[Indexaig].AdroitB='Z') or (aiguillage[Indexaig].AdroitB=#0) then
       begin
-        Affiche('Erreur 21.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clred);
-        ok:=false;
-      end
-      else
-      begin
-        AdrAig:=aiguillage[IndexAig].Adresse;
-        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
-        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
-        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
-        begin
-          Affiche('Erreur 21.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
-          s:='branche '+intToSTR(Branche_trouve)+' entre';
-          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det1br)+' et ';
-          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det2br);
-          Affiche(s,clred);
-          ok:=false;
-        end;
-      end;
-    end;
-    // vérifier si le détecteur sur la position déviée est dans les branches
-    adr:=aiguillage[Indexaig].Adevie;
-    if (aiguillage[Indexaig].AdevieB='Z') or (aiguillage[Indexaig].AdevieB=#0) then
-    begin
-      trouve_detecteur(adr);
-      if IndexBranche_trouve=0 then
-      begin
-        Affiche('Erreur 22.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
-        ok:=false;
-      end
-      else
-      begin
-        AdrAig:=aiguillage[IndexAig].Adresse;
-        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
-        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
-        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
-        begin
-          Affiche('Erreur 22.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
-          s:='branche '+intToSTR(Branche_trouve)+' entre';
-          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det1br)+' et ';
-          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det2br);
-          Affiche(s,clred);
-          ok:=false;
-        end;
-      end;
-    end;
-    // vérifier si le détecteur sur la pointe est dans les branches
-    adr:=aiguillage[Indexaig].Apointe;
-    if ( ((aiguillage[Indexaig].ApointeB='Z') or (aiguillage[Indexaig].ApointeB=#0)) and (aiguillage[Indexaig].modele=aig) ) then
-    begin
-      trouve_detecteur(adr);
-      if IndexBranche_trouve=0 then
-      begin
-        Affiche('Erreur 23.1 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
-        ok:=false;
-      end
-      else
-      begin
-        AdrAig:=aiguillage[IndexAig].Adresse;
-        det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
-        det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
-        if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
-        begin
-          Affiche('Erreur 23.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
-          s:='branche '+intToSTR(Branche_trouve)+' entre';
-          if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det1br)+' et ';
-          if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
-          s:=s+intToSTR(det2br);
-          Affiche(s,clred);
-          ok:=false;
-        end;
-      end;
-    end;
-    if (aiguillage[Indexaig].modele=triple) then // aiguillage triple
-    begin
-      if (aiguillage[Indexaig].Adevie2B='Z') or (aiguillage[Indexaig].Adevie2B=#0)  then
-      begin
-        adr:=aiguillage[Indexaig].Adevie2;
         trouve_detecteur(adr);
         if IndexBranche_trouve=0 then
         begin
-          Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+          Affiche('Erreur 21.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clred);
           ok:=false;
+        end
+        else
+        begin
+          AdrAig:=aiguillage[IndexAig].Adresse;
+          if indexBranche_Trouve>1 then det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse // adresse avant détecteur
+          else det1br:=0;
+          det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+          if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+          begin
+            Affiche('Erreur 21.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+            s:='branche '+intToSTR(Branche_trouve)+' entre';
+            if indexBranche_trouve>1 then
+              if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det1br)+' et ';
+            if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det2br);
+            Affiche(s,clred);
+            ok:=false;
+          end;
+        end;
+      end;
+
+    // vérifier si le détecteur sur la position déviée est dans les branches
+
+      adr:=aiguillage[Indexaig].Adevie;
+      if (aiguillage[Indexaig].AdevieB='Z') or (aiguillage[Indexaig].AdevieB=#0) then
+      begin
+        trouve_detecteur(adr);
+        if IndexBranche_trouve=0 then
+        begin
+          Affiche('Erreur 22.1: détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+          ok:=false;
+        end
+        else
+        begin
+          AdrAig:=aiguillage[IndexAig].Adresse;
+          if indexBranche_trouve>1 then det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse // adresse avant détecteur
+          else det1br:=0;
+          det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+          if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+          begin
+            Affiche('Erreur 22.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+            s:='branche '+intToSTR(Branche_trouve)+' entre';
+            if indexBranche_trouve>1 then
+              if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det1br)+' et ';
+            if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det2br);
+            Affiche(s,clred);
+            ok:=false;
+          end;
+        end;
+      end;
+
+      // vérifier si le détecteur sur la pointe est dans les branches
+      adr:=aiguillage[Indexaig].Apointe;
+      if ( ((aiguillage[Indexaig].ApointeB='Z') or (aiguillage[Indexaig].ApointeB=#0)) and (aiguillage[Indexaig].modele=aig) ) then
+      begin
+        trouve_detecteur(adr);
+        if IndexBranche_trouve=0 then
+        begin
+          Affiche('Erreur 23.1 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+          ok:=false;
+        end
+        else
+        begin
+          AdrAig:=aiguillage[IndexAig].Adresse;
+          if indexBranche_trouve>1 then
+          begin
+            det1br:=brancheN[branche_trouve,indexBranche_trouve-1].Adresse; // adresse avant détecteur
+            model:=brancheN[branche_trouve,indexBranche_trouve-1].Btype;
+          end
+          else begin det1br:=0;model:=det;end;
+
+          det2br:=brancheN[branche_trouve,indexBranche_trouve+1].Adresse; // adresse après détecteur
+          model2:=brancheN[branche_trouve,indexBranche_trouve+1].Btype;
+          if (det1br<>AdrAig) and (model=det) and (det2br<>AdrAig) and (model2=det) and (adr<>0) then
+          begin
+            Affiche('Erreur 23.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
+            s:='branche '+intToSTR(Branche_trouve)+' entre';
+            if indexBranche_trouve>1 then
+              if brancheN[branche_trouve,indexBranche_trouve-1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det1br)+' et ';
+            if brancheN[branche_trouve,indexBranche_trouve+1].BType=aig then s:=s+' l''aiguillage ' else s:=s+' le détecteur ';
+            s:=s+intToSTR(det2br);
+            Affiche(s,clred);
+            ok:=false;
+          end;
+        end;
+      end;
+      if (aiguillage[Indexaig].modele=triple) then // aiguillage triple
+      begin
+        if (aiguillage[Indexaig].Adevie2B='Z') or (aiguillage[Indexaig].Adevie2B=#0)  then
+        begin
+          adr:=aiguillage[Indexaig].Adevie2;
+          trouve_detecteur(adr);
+          if IndexBranche_trouve=0 then
+          begin
+            Affiche('Erreur 5 : détecteur '+intToSTR(adr)+' décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais absent dans la description des branches',clRed);
+            ok:=false;
+          end;
         end;
       end;
     end;
@@ -9735,20 +9775,20 @@ begin
             if c='D' then
             begin
               extr:=aiguillage[index2].ADroit;
-              if adr<>extr then Affiche('Erreur 10.23: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.23: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred);
             end;
             if c='S' then
             begin
               extr:=aiguillage[index2].ADevie;
-              if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
+              if adr<>extr then Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
             end;
             if c='P' then
             begin
               extr:=aiguillage[index2].APointe;
-              if adr<>extr then Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
             end;
           end;
-        end;  
+        end;
       end;
 
       adr2:=aiguillage[indexaig].Adevie;  // adresse de ce qui est connecté sur la position déviée
@@ -9773,7 +9813,7 @@ begin
             begin
               Affiche('Erreur 10.31: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
-            end;    
+            end;
           end;
 
           // tjs ou tjs à 4 états
@@ -9784,7 +9824,7 @@ begin
             if (adr<>aiguillage[index2].Adevie) and (adr<>aiguillage[index2].ADroit) and
                (adr<>aiguillage[index3].ADevie) and (adr<>aiguillage[index3].Adroit) then
             begin
-              Affiche('Erreur 10.32: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred); 
+              Affiche('Erreur 10.32: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;
           end;
@@ -9799,17 +9839,17 @@ begin
             if c='S' then
             begin
               extr:=aiguillage[index2].ADevie;
-              if adr<>extr then Affiche('Erreur 10.34: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.34: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
             end;
             if c='P' then
             begin
               extr:=aiguillage[index2].APointe;
-              if adr<>extr then Affiche('Erreur 10.35: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred); 
+              if adr<>extr then Affiche('Erreur 10.35: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
             end;
-          end; 
-        end;  
+          end;
+        end;
       end;
-    
+
       adr2:=aiguillage[indexaig].APointe;  // adresse de ce qui est connecté sur la pointe
       c:=aiguillage[indexaig].ApointeB;
       if (c='D') or (c='S') or (c='P') then
@@ -9827,7 +9867,7 @@ begin
               Affiche('Erreur 10.41: Discordance de déclaration aiguillage '+intToSTR(adr)+': '+intToSTR(adr2),clred);
               ok:=false;
             end;
-           
+
             // tjs ou tjs à 4 états
             if (((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=4)) then
             begin
@@ -9840,23 +9880,23 @@ begin
                 ok:=false;
               end;
             end;
-       
+
             if (model2=aig) or (model2=triple) then
             begin
               if c='D' then
               begin
                 extr:=aiguillage[index2].ADroit;
-                if adr<>extr then Affiche('Erreur 10.43: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred); 
+                if adr<>extr then Affiche('Erreur 10.43: Discordance de déclaration aiguillages '+intToSTR(adr)+'P: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred);
               end;
               if c='S' then
               begin
                 extr:=aiguillage[index2].ADevie;
-                if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
+                if adr<>extr then Affiche('Erreur 10.44: Discordance de déclaration aiguillages '+intToSTR(adr)+'P: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
               end;
               if c='P' then
-              begin 
+              begin
                 extr:=aiguillage[index2].APointe;
-                if adr<>extr then Affiche('Erreur 10.45: Discordance de déclaration aiguillages '+intToSTR(adr)+'S: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
+                if adr<>extr then Affiche('Erreur 10.45: Discordance de déclaration aiguillages '+intToSTR(adr)+'P: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
               end;
             end; 
           end;  
@@ -12356,6 +12396,7 @@ begin
     adr:=Signaux[ligneClicSig+1].adresse;
     if Signaux[ligneClicSig+1].contrevoie then Maj_Etat_Signal(adr,clignote_f or bita1_F) else Maj_Etat_Signal(adr,clignote_F);
     dessine_signal_mx(Signaux[ligneClicSig+1].Img.Canvas,0,0,1,1,Signaux[ligneClicSig+1].adresse,1);  // dessine les feux du signal
+    for adr:=1 to NbreTCO do affiche_tco(adr);
   end;
 end;
 

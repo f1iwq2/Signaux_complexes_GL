@@ -223,3 +223,6 @@ version 8.36 : Création d'un mode de fond sombre modifiable pour l'affichage.
                Amélioration édition des lignes et colonnes du TCO.
 version 8.37 : Correction des calculs des index des aiguillages et des signaux lors de leur suppression.
                Correction présence trains avant signal.  
+version 8.38 : Ajout de l'importation depuis le réseau CDM rail des bretelles double jonction, ce qui crée 4 aiguillages et un croisement.
+               Amélioration du traitement des trames inconnues en XpressNet.
+  

@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 107
-  Top = 224
+  Left = 112
+  Top = 157
   Width = 1149
   Height = 689
   Anchors = [akLeft, akTop, akRight]
@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1133
-    630)
+    1141
+    638)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 608
-    Width = 1133
+    Top = 616
+    Width = 1141
     Height = 22
     Panels = <
       item
@@ -1480,11 +1480,11 @@ object FormPrinc: TFormPrinc
   object GrandPanel: TPanel
     Left = 8
     Top = 48
-    Width = 1025
+    Width = 1057
     Height = 476
     TabOrder = 3
     DesignSize = (
-      1025
+      1057
       476)
     object SplitterV: TSplitter
       Left = 1
@@ -1520,7 +1520,7 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object ScrollBox1: TScrollBox
-      Left = 504
+      Left = 536
       Top = 176
       Width = 465
       Height = 249
@@ -1534,7 +1534,7 @@ object FormPrinc: TFormPrinc
       TabOrder = 1
     end
     object GroupBox1: TGroupBox
-      Left = 465
+      Left = 497
       Top = 21
       Width = 265
       Height = 52
@@ -1591,7 +1591,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox3: TGroupBox
-      Left = 457
+      Left = 489
       Top = 104
       Width = 265
       Height = 129
@@ -1833,7 +1833,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object Panel1: TPanel
-      Left = 689
+      Left = 761
       Top = -3
       Width = 288
       Height = 180
@@ -1980,7 +1980,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 577
+      Left = 609
       Top = 104
       Width = 265
       Height = 129

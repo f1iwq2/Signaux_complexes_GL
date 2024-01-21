@@ -668,7 +668,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2405,7 +2405,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2512,7 +2512,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end

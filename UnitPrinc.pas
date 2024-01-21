@@ -492,6 +492,7 @@ Taiguillage = record
                 // si modifié en mode config
                 modifie : boolean ;
                 NumBranche,IndexBranche : integer;  // index dans les branches
+                AdrCDM : integer; // adresse de l'aiguillage dans CDM, si c'est une BDJ (bretelle double jonction)
               end;
 TtabloDet = array[1..Mtd] of integer;
 TSignal = record
@@ -864,7 +865,9 @@ function InfoSignal(adresse : integer) : string;
 procedure det_prec_signal(adresse : integer;var tabloDet : TTabloDet);
 procedure composant(c : tComponent;fond,texte : tColor);
 procedure maj_couleurs;
-
+procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
+                                    clBord : TColor; EpBord : integer; PenMode : TPenMode;
+                                    Texture : tBitMap; texte : string; AngleDD : longint);
 
 implementation
 
@@ -1081,13 +1084,12 @@ begin
   end;
 end;
 
-// dessine les feux sur une cible à 2 feux dans le canvas spécifié
+// dessine les 2 feux sur la cible dans le canvas spécifié
 // x,y : offset en pixels du coin supérieur gauche du feu
 // Acanvas : canvas de destination
-// x,y : point d'origine de destination
 // frX, frY : facteurs de réduction (pour agrandissement)
 // EtatSignal : état du signal
-// orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite
+// orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite  4=180°
 procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage,code,combine : integer;
@@ -1116,8 +1118,8 @@ begin
 
   if (orientation=3) then
   begin
-    //rotation 90° vers la droite des feux
-    // calcul des facteurs de réduction pour la rotation
+    // rotation 90° vers la droite des feux
+    // inversion des facteurs de réduction pour la rotation
     ech:=frY;frY:=frX;FrX:=ech;
     Temp:=LgImage-XBlanc;Xblanc:=Yblanc;Yblanc:=Temp;
     Temp:=LgImage-Xviolet;Xviolet:=Yviolet;Yviolet:=Temp;
@@ -1130,8 +1132,8 @@ begin
     Xviolet:=LgIMage-Xviolet;Yviolet:=HtImage-Yviolet;
   end;
 
-  XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+Y;
-  XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+Y;
+  XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+y;
+  XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+y;
 
   // extinctions
   if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
@@ -1265,7 +1267,6 @@ begin
     Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
   end;
 
-
   XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
   Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
   XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
@@ -1341,7 +1342,6 @@ begin
     Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
     Xblanc:=LgImage-Xblanc;Yblanc:=HtImage-YBlanc;
   end;
-
 
   XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
   Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
@@ -1473,7 +1473,6 @@ var rayon,
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp,LgImage,HtImage,xt,yt,code,combine  : integer;
     ech : real;
-
 begin
   rayon:=round(6*frX);
   code_to_aspect(Etatsignal,code,combine); // et aspect
@@ -1538,7 +1537,6 @@ begin
     Xrap2:=LgImage-Xrap2;  Yrap2:=HtImage-Yrap2;
   end;
 
-
   XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
   Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
   XRal1:=round(XRal1*FrX)+x;    YRal1:=round(YRal1*FrY)+Y;
@@ -1590,9 +1588,6 @@ begin
 end;
 
 // Ecrire sur un canvas un texte avec un angle, avec ou sans bordure, monochrome ou à face texturée
-procedure AffTexteIncliBordeTexture(C : TCanvas; X,Y : integer; Fonte : tFont;
-                                     clBord : TColor; EpBord : integer; PenMode : TPenMode;
-                                     Texture : tBitMap; Texte : string; AngleDD : longint);
 // params : C       = Canvas-cible
 //          X,Y     = Coordonnées angle supérieur gauche du début du texte.
 //          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
@@ -1602,27 +1597,30 @@ procedure AffTexteIncliBordeTexture(C : TCanvas; X,Y : integer; Fonte : tFont;
 //          Texture = BitMap de texture : Si Texture = Nil alors la face sera de la couleur de Fonte avec un contour de clBord si EpBord > 0.
 //          Texte   = Texte à écrire.
 //          AngleDD = Angle d'inclinaison en Dixièmes de degré.
-var dc     : Hdc;
-    lgFont : Logfont;
+procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
+                                    clBord : TColor; EpBord : integer; PenMode : TPenMode;
+                                    Texture : tBitMap; texte : string; AngleDD : longint);
+var dc : Hdc;
+    lgFont : Logfont;           // structure d'attributs de police
     AncFonte,NouvFonte : Hfont;
-    AncPen,NouvPen     : Hpen;
+    AncPen,NouvPen : Hpen;
     AncBrush,NouvBrush : Hbrush;
 begin
   C.Pen.Mode:=PenMode;
   dc:=C.Handle;
 
   // Initialisation de la fonte
-  zeroMemory(@lgFont,sizeOf(lgFont));
-  strPCopy(lgFont.lfFaceName,Fonte.Name);
-  lgFont.lfHeight := Fonte.Height;
-  if Fonte.style=[]       then lgFont.lfWeight:=FW_REGULAR; // Normal
+  zeroMemory(@lgFont,sizeOf(lgFont));      // remplit la structure de 0
+  strPCopy(lgFont.lfFaceName,Fonte.Name);  // copie la chaîne dans le nom de la fonte depuis le paramètre
+  lgFont.lfHeight:=Fonte.Height;           // la taille
+  if Fonte.style=[] then lgFont.lfWeight:=FW_REGULAR; // Normal
   if Fonte.style=[fsBold] then lgFont.lfWeight:=FW_BOLD;    // Gras
 
   if fsItalic in Fonte.style    then lgFont.lfItalic:=1;
   if fsUnderline in Fonte.style then lgFont.lfUnderline:=1;
   if fsStrikeout in Fonte.style then lgFont.lfStrikeout:=1;
 
-  lgFont.lfEscapement:=AngleDD; // Modification de l'inclinaison
+  lgFont.lfEscapement:=AngleDD; // Angle d'inclinaison en dixièmes de degrés
 
   NouvFonte:=CreateFontInDirect(lgFont);
   AncFonte:=SelectObject(dc,NouvFonte);
@@ -1672,7 +1670,7 @@ end;
 procedure dessine_signal20(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,adresse : integer);
 var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Yrouge,largeur,
     index,Temp,rayon,LgImage,HtImage,code,combine,x1,y1,x2,y2,x3,y3,xChiffre,yChiffre,xfin,yfin,angle,
-    AdrAig,IndexAig,vitesse,indexTCO,tailleFonte : integer;
+    AdrAig,IndexAig,vitesse,indexTCO,tailleFonte,xTexte,yTexte : integer;
     ech : real;
     inverse,etatChevron,EtatChiffre,codeClignote : boolean;
     r : Trect;
@@ -1697,9 +1695,12 @@ begin
   x1:=9;y1:=3;
   x2:=16;y2:=10;
   x3:=x2+(x2-x1);y3:=y1;
-  // texte
-  XChiffre:=14;Ychiffre:=76;
-  Xfin:=26;yFin:=99;
+  // effacement du chiffre
+  XChiffre:=11;Ychiffre:=77;
+  Xfin:=27;yFin:=102;
+  // texte du chiffre
+  xTexte:=xChiffre+2;
+  yTexte:=yChiffre+1;
 
   index:=index_signal(adresse);
   if Signaux[index].contrevoie then
@@ -1714,6 +1715,7 @@ begin
     x3:=largeur-x3;
     Xchiffre:=32;
     Xfin:=44;
+    Xtexte:=Xchiffre+1;
     codeclignote:=true;
   end;
 
@@ -1739,6 +1741,7 @@ begin
     Temp:=HtImage-y2;Y2:=X2;X2:=Temp;
     Temp:=HtImage-y3;Y3:=X3;X3:=Temp;
     Temp:=HtImage-yChiffre;YChiffre:=XChiffre;XChiffre:=Temp;
+    Temp:=HtImage-yTexte;YTexte:=XTexte;XTexte:=Temp;
     Temp:=HtImage-yfin;Yfin:=Xfin;Xfin:=Temp;
   end;
 
@@ -1758,6 +1761,7 @@ begin
     Temp:=LgImage-X3;X3:=Y3;Y3:=Temp;
     Temp:=LgImage-XChiffre;XChiffre:=YChiffre;YChiffre:=Temp;
     Temp:=LgImage-Xfin;Xfin:=Yfin;Yfin:=Temp;
+    Temp:=LgImage-XTexte;XTexte:=YTexte;YTexte:=Temp;
   end;
 
   if orientation=4 then
@@ -1773,6 +1777,7 @@ begin
     X3:=LgImage-X3;Y3:=HtImage-Y3;
     XChiffre:=LgImage-XChiffre;YChiffre:=HtImage-YChiffre;
     XFin:=LgImage-Xfin;Yfin:=HtImage-yFin;
+    xTexte:=LgImage-XTexte;YTexte:=HtImage-YTexte;
   end;
 
   XJauneBas:=round(XjauneBas*Frx)+x;  YJauneBas:=round(YjauneBas*Fry)+Y;
@@ -1781,6 +1786,7 @@ begin
   Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
   Xrouge:=round(Xrouge*FrX)+x;  Yrouge:=round(Yrouge*FrY)+Y;
   xchiffre:=round(Xchiffre*frx)+x;  ychiffre:=round(ychiffre*fry)+y;
+  xTexte:=round(XTexte*frx)+x;  yTexte:=round(yTexte*fry)+y;
   xfin:=round(Xfin*frx)+x;  yfin:=round(yfin*fry)+y;
   x1:=round(X1*frx)+x;  y1:=round(y1*fry)+y;
   x2:=round(X2*frx)+x;  y2:=round(y2*fry)+y;
@@ -1864,7 +1870,7 @@ begin
         IndexAig:=index_aig(adrAig);
         vitesse:=aiguillage[IndexAig].vitesse div 10;
 
-        if orientation=1 then Textout(XChiffre,Ychiffre,intToSTR(vitesse))
+        if orientation=1 then Textout(XTexte,YTexte,intToSTR(vitesse))
         else
         begin
           case orientation of
@@ -1872,7 +1878,7 @@ begin
           3 : angle:=900;
           4 : angle:=1800;
           end;
-          AffTexteIncliBordeTexture(Acanvas,Xchiffre,Ychiffre,Acanvas.Font,clYellow,0,pmcopy,nil,intToSTR(vitesse),angle);
+          AffTexteIncliBordeTexture(Acanvas,XTexte,YTexte,Acanvas.Font,clYellow,0,pmcopy,nil,intToSTR(vitesse),angle);
         end;
       end;
     end
@@ -1881,8 +1887,8 @@ begin
       // éteint le chiffre
       Brush.Color:=clblack;
       Pen.Color:=clblack;
-      r.Left:=xchiffre+1;r.Top:=Ychiffre+1;
-      r.Right:=Xfin-2;r.Bottom:=Yfin-1;
+      r.Left:=xchiffre;r.Top:=Ychiffre;
+      r.Right:=Xfin;r.Bottom:=Yfin;
       Fillrect(r);
     end;
   end;
@@ -2120,7 +2126,7 @@ begin
   if adresse>MaxAcc then result:=0 else
   //result:=Index_Accessoire[adresse];
   result:=Tablo_Index_Signal[adresse];
-  // vérifier si l'index correspond à un signal
+  // vérifier si l'adresse correspond
   if Signaux[result].adresse<>adresse then result:=0;
 end;
 
@@ -2142,7 +2148,7 @@ function Index_Aig(adresse : integer) : integer;
 begin
   if adresse>MaxAcc then result:=0 else
   result:=tablo_index_aiguillage[adresse];
-  // vérifier si l'index correspond à un aiguillage
+  // vérifier si l'adresse correspond
   if Aiguillage[result].adresse<>adresse then result:=0;
 end;
 
@@ -2197,8 +2203,11 @@ begin
     i:=pos('@',s);  if i<>0 then delete(s,1,i);
     i:=pos('=',s);  if i<>0 then delete(s,i,1);
     i:=pos(' ',s);
-    if i<>0 then s:=copy(s,1,i-1);
-    val(s,AdrPilote,erreur);
+    if i<>0 then
+    begin
+      s:=copy(s,1,i-1);
+      val(s,AdrPilote,erreur);
+    end;  
   end;
 end;
 
@@ -10790,10 +10799,10 @@ end;
 // pos = const_droit=2 ou const_devie=1
 procedure Event_Aig(adresse,pos : integer);
 var s: string;
-    faire_event,inv : boolean;
-    prov,index,i,etatact,typ,adr : integer;
+    faire_event,inv,bjd : boolean;
+    AdrCDM,prov,index,i,id,etatact,typ,adr : integer;
 begin
-  if nivDebug=1 then AfficheDebug('Event Aig '+intToSTR(adresse),clorange);
+  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
   index:=index_aig(adresse);
   if index<>0 then
   begin
@@ -10843,10 +10852,6 @@ begin
     begin
       evalue;evalue;evalue;
     end;
-
-    // Mettre à jour les TCOs
-    if TCOActive then
-      for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
   end;
 
   // evt actionneur d'aiguillage
@@ -10872,9 +10877,9 @@ begin
           s:='T'+intToSTR(adresse)+','+intToSTR(pos);
           if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
           if Tablo_periph[i].cr then s:=s+#13;
-          index:=Tablo_periph[i].NumComposant;
-          if index=1 then Formprinc.MSCommCde1.Output:=s;
-          if index=2 then Formprinc.MSCommCde2.Output:=s;
+          id:=Tablo_periph[i].NumComposant;
+          if id=1 then Formprinc.MSCommCde1.Output:=s;
+          if id=2 then Formprinc.MSCommCde2.Output:=s;
         end;
       end;
     end;
@@ -10885,9 +10890,9 @@ begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
         if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
         if Tablo_periph[i].cr then s:=s+#13;
-        index:=Tablo_periph[i].NumComposant;
-        if index=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if index=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        id:=Tablo_periph[i].NumComposant;
+        if id=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
+        if id=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
       end;
     end;
   end;
@@ -10895,6 +10900,23 @@ begin
   // Serveur envoi au clients
   Envoi_serveur('T'+intToSTR(adresse)+','+intToSTR(pos));
 
+  // Si aiguillage de bjd
+  bjd:=false;
+  begin
+    for i:=1 to MaxAiguillage do
+    begin
+      if (aiguillage[i].AdrCDM=adresse) then
+      begin
+        bjd:=true;
+        aiguillage[i].position:=pos;    // stockage de la nouvelle position de l'aiguillage
+      end;
+    end;
+    if bjd then evalue;
+  end;
+
+  // Mettre à jour les TCOs
+  if TCOActive then
+    for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
@@ -11584,7 +11606,7 @@ begin
     exit;
   end;
 
-  if chaineINT[1]=#$42 then
+  if chaineINT[1]=#$42 then    // accessory decodeur information response  4 octets
   begin
     check(chaineINT,4);
     delete(chaineInt,1,1);
@@ -11594,7 +11616,7 @@ begin
     exit;
   end;
 
-  if chaineINT[1]=#$81 then
+  if chaineINT[1]=#$81 then    // arrêt urgence  3 octets
   begin
     check(chaineINT,3);
     delete(chaineInt,1,3);
@@ -11604,43 +11626,43 @@ begin
     exit;
   end;
 
-  if chaineINT[1]=#$46 then
+  if chaineINT[1]=#$46 then      // non doc
   begin
     //FF FD 46 43 40 41 40 40 49 4D non documentée
     //FF FD 46 43 50 41 50 40 50 54 non documentée
     //      46 43 40 41 40 40 48 4C
     //      46 43 50 41 54 40 50 50
 
+    // supprimer jusque FF ou fin de chaine
     check(chaineINT,8);
+    i:=0;
+    repeat
+      inc(i);
+    until (i>length(chaineINT)) or (chaineINT[i]=#$FF);
+    delete(chaineINT,1,i-1);
+
     Affiche('reprise puissance ',clLime);
-    delete(chaineInt,1,8);
     Hors_tension:=false;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
-  i:=pos(#$46+#$43+#$50,chaineInt);
-  if (i<>0) and (length(chaineInt)>=3) then
-  begin
-    check(chaineINT,3);
-    delete(chaineInt,1,3);
-    Affiche('Reprise msg 2',clOrange);
-    Hors_tension:=false;
-    decode_chaine_retro_Xpress:=chaineINT;
-    exit;
-  end;
-
-  if chaineInt[1]=#$81 then
+  if chaineInt[1]=#$81 then  // non documentée
   begin
     check(chaineINT,2);
-    delete(chaineInt,1,2);
+    i:=0;
+    repeat
+      inc(i);
+    until (i>length(chaineINT)) or (chaineINT[i]=#$FF);
+    delete(chaineINT,1,i-1);
+
     Affiche('Court circuit msg 1',clRed);
     Hors_tension:=true;
     decode_chaine_retro_Xpress:=chaineINT;
     exit;
   end;
 
-  // E3 40 ah al A0
+  // E3 40 ah al xor
   if chaineInt[1]=#$E3 then
   begin
     // la loco ah al est pilotée par le PC
@@ -11650,6 +11672,7 @@ begin
     exit;
   end;
 
+  // E4 id speed FcA FcB xor    loco information
   if chaineInt[1]=#$E4 then
   begin
     check(chaineINT,6);
@@ -11665,7 +11688,13 @@ begin
   ack:=false;
   nack:=true;
   affiche('Erreur 7, chaîne rétrosig. inconnue recue:'+chaine_HEX(chaineINT),clred);
-  decode_chaine_retro_Xpress:='';
+  i:=0;
+  repeat
+    inc(i);
+  until (i>length(chaineINT)) or (chaineINT[i]=#$FF);
+  delete(chaineINT,1,i-1);
+
+  decode_chaine_retro_Xpress:=chaineINT;
 end;
 
 // procédure appellée après réception sur le port USB ou socket
@@ -15501,12 +15530,14 @@ procedure TFormPrinc.Apropos1Click(Sender: TObject);
 var i,t,t1 : integer;
 begin
   Affiche(' ',clyellow);
-  Affiche('Signaux complexes GL version '+version+sousVersion+' (C) 2022-23 F1IWQ Gily TDR',clWhite);
+  Affiche('Signaux complexes GL version '+version+sousVersion+' (C) 2022-24 F1IWQ Gily TDR',clWhite);
+  Affiche('Double cliquez sur un des liens ci-dessous',clWhite);
 
   FenRich.SelStart:=length(FenRich.Text);
   FenRich.SelAttributes.Style:=[fsUnderline];
   FenRich.lines.add('https://github.com/f1iwq2/Signaux_complexes_GL');
   RE_ColorLine(FenRich,FenRich.lines.count-1,clAqua);
+
   FenRich.SelStart:=length(FenRich.Text);
   FenRich.SelAttributes.Style:=[fsUnderline];
   FenRich.Lines.add('https://github.com/f1iwq2/Signaux_complexes_GL/releases');
@@ -15518,7 +15549,7 @@ begin
   RE_ColorLine(FenRich,FenRich.lines.count-1,clAqua);
 
   Affiche('Ce programme pilote des signaux complexes et les trains de façon autonome ou avec CDM rail ',ClYellow);
-  Affiche('En fonction des détecteurs mis à 1 ou 0 par des locomotives',ClYellow);
+  Affiche('en fonction des détecteurs mis à 1 ou 0 par des locomotives',ClYellow);
   Affiche('en circulation sur le réseau',ClYellow);
   Affiche('En vert : Trames envoyées à l''interface',ClWhite);
   Affiche('En blanc : Trames brutes reçues de l''interface',ClWhite);
@@ -15705,8 +15736,7 @@ begin
 end;
 
 // cliqué gauche dans la fenetre Fenrich
-procedure TFormPrinc.FenRichMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TFormPrinc.FenRichMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var lc,i : integer;
     s : string;
 begin
@@ -15728,7 +15758,7 @@ begin
       lc:=Perform(EM_LINEFROMCHAR,i,0);
       s:=lines[lc];
     end;
-    if pos('http',s)<>0 then ShellExecute(0,'open',Pchar(s),nil,nil,sw_shownormal);
+    if pos('http',s)=1 then ShellExecute(0,'open',Pchar(s),nil,nil,sw_shownormal);
   end;
 end;
 
@@ -15958,11 +15988,11 @@ begin
 end;
 
 procedure TFormPrinc.Button1Click(Sender: TObject);
+var s : string;
 begin
-//  placement_trains;
-  //ouvre_simulation('C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
-  //ouvre_simulation('C:\Program Files\Borland\Delphi7\Projects\Signaux_complexes_GL\2trains_autonome.txt');
-//  ouvre_simulation('C:\temp\Signaux_complexes_GL\2trains_autonome.txt');
+  s:=#$46+#$43+#$40+#$41+#$40+#$40+#$49+#$4D+#$FF;
+  decode_chaine_retro_Xpress(s);
+
 end;
 
 procedure affiche_com(s : string;var n : integer);
