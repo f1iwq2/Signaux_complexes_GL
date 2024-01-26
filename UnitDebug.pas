@@ -657,7 +657,6 @@ begin
 end;
 
 procedure TFormDebug.ButtonReserveClick(Sender: TObject);
-var i,adr,erreur,AncDebug,det1,det2 : integer;
 begin
   {Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
   ancdebug:=NivDebug;

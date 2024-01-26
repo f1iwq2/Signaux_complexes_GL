@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 112
-  Top = 157
+  Left = 107
+  Top = 204
   Width = 1149
   Height = 689
   Anchors = [akLeft, akTop, akRight]
@@ -19,8 +19,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1141
-    638)
+    1133
+    631)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,8 +1429,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 616
-    Width = 1141
+    Top = 609
+    Width = 1133
     Height = 22
     Panels = <
       item
@@ -2102,7 +2102,7 @@ object FormPrinc: TFormPrinc
       Caption = 'Afficher'
       object Affichagenormal1: TMenuItem
         Caption = 'Affichage normal'
-        Hint = 'Permet de r'#233'cup'#233'r'#233'r l'#39'affichage en deux parties'
+        Hint = 'Permet de r'#233'cup'#233'rer l'#39'affichage en deux parties'
         OnClick = Affichagenormal1Click
       end
       object Sauvegarderla1: TMenuItem

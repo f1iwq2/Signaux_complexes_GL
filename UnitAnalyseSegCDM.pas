@@ -150,7 +150,7 @@ type
      Tsegment =
      record
        numero : integer;
-       typ    : string[20]; // arc aiguillage,...
+       typ    : string[20]; // arc, turnout, ...
        nport,nperiph,nInter : integer;  // nombre de ports et de peripheriques et d'intersections
        port    : array of TPort;
        periph  : array of TPeriph;
@@ -190,7 +190,6 @@ function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 implementation
 
 uses Importation;
-
 
 {$R *.dfm}
 
@@ -873,7 +872,7 @@ end;
 
 function degtoRad(angle : double) : double;
 begin
-  degtoRad:=angle*pi/180;
+  degtoRad:=angle*pisur180;
 end;
 
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
@@ -1194,6 +1193,7 @@ procedure dessine_aig_courbe(canvas : Tcanvas;i : integer);
 var numseg,milieuX,milieuY,centreX,centreY,x0,y0,x1,y1,x2,y2,rayon : integer;
     b,pente,rayonD,alpha : double;
     coul : Tcolor;
+    s : string;
 begin
   numseg:=segment[i].numero;
   //Affiche('----'+intToSTR(numseg)+' aig '+intToSTR(segment[i].adresse),clorange);
@@ -1219,13 +1219,16 @@ begin
 
   //
   // méthode calculée
+  str(pente:2:2, s);
+  Affiche(intToSTR(segment[i].numero)+' Pente='+s,clLime);
+
   alpha:=arctan(pente);
-  rayonD:=5500;
+  rayonD:=5750;
   centreX:=round(rayonD*cos(alpha))+MilieuX;
   centreY:=round(pente*centreX+b);
-  canvas.pen.Width:=1;
+  canvas.pen.Width:=2;
   canvas.pen.color:=clred;
-  ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
+  //ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
   arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
 
@@ -1233,11 +1236,9 @@ begin
   centreY:=round(pente*centreX+b);
   canvas.pen.Width:=1;
   canvas.pen.color:=clyellow;
-  ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
+  //ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
   arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
-
-
   exit;
 
   // méthode directe
@@ -1905,7 +1906,7 @@ end;
 
 // trouve les index Segment et port contenant le détecteur est detecteur
 function trouve_IndexSegPortDetecteur(detecteur : integer;var indexSeg,indexPeriph : integer) : boolean;
-var i,j,p,np,ns : integer;
+var i,j,p,np : integer;
     trouve : boolean;
 begin
   i:=0;
@@ -2788,7 +2789,7 @@ begin
       n:=0;
       repeat
         k:=Segment[indexSeg].periph[n].OnDevicePort;      // numéro de port sur lequel est le détecteur
-        if k=IndexPort then // si le port contenant le det est celui qu'on explore 
+        if k=IndexPort then // si le port contenant le det est celui qu'on explore
         begin
           if Segment[indexSeg].periph[nperiph].typ='detector' then
           begin
@@ -3172,8 +3173,8 @@ end;
 
 // procédure principale de création des branches
 procedure creee_branches;
-var i,j,k,adresse,detecteur,indexSeg,det2,erreur,index : integer;
-    trouve,bjd : boolean;
+var i,j,k,adresse,detecteur,indexSeg,det2,erreur : integer;
+    trouve : boolean;
     c : char;
     s : string;
 begin
@@ -3616,9 +3617,7 @@ end;
 // importe la base de données CDM dans la base de données Signaux complexes
 // et crée les branches
 procedure Importation;
-var Adr,AdrAig,AdrDet,i,j,n,baseBJD,segId,seg,PeriphId,NumPort : integer;
-    c : char;
-    t : tequipement;
+var i,n : integer;
     s: string;
 begin
   if MaxAiguillage<>0 then
@@ -3912,7 +3911,7 @@ begin
     end;
     inc(nligne);
   until (nligne>nombre);
-  Affiche('fin de la compilation des segments',cllime);
+  Affiche('Fin de la compilation des segments',cllime);
 
   // balayer les segments pour transformer les bjd en créant 1 croisement et 4 aiguillages dans les segments, puis on supprime la bjd des segments
   i:=0;
@@ -4163,7 +4162,7 @@ begin
   until i>=nseg-1;
 
   Affichage(false);
-  Affiche('nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
+  Affiche('Nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
 
   formAnalyseCDM.Show;
   formprinc.ButtonAffAnalyseCDM.Visible:=true;
@@ -4263,7 +4262,6 @@ begin
 end;
 
 
-
 procedure TFormAnalyseCDM.CheckPortsClick(Sender: TObject);
 begin
   Affichage(false);
@@ -4276,14 +4274,14 @@ var pt : Tpoint;
    trouve : boolean;
    debug : boolean;
    ctype,s : string;
-   canvas : Tcanvas;
+   canvasI : Tcanvas;
 begin
   clic:=true;
   pt:= formAnalyseCDM.ImageCDM.ScreenToClient(Mouse.CursorPos);  // coordonnées par rapport à l'image
   xSouris:=pt.x;
   ySouris:=pt.y;
 
-  canvas:=FormAnalyseCDM.ImageCDM.Canvas;
+  canvasI:=FormAnalyseCDM.ImageCDM.Canvas;
 
   i:=0;
   repeat
@@ -4307,14 +4305,12 @@ begin
       trouve:=point_Sur_Segment(Xsouris,Ysouris,x1,y1,x2,y2);
       if trouve then
       begin
-        with canvas do
+        with canvasI do
         begin
           Pen.Width:=largeur_voie;
           pen.Color:=clred;
           MoveTo(x1,y1);
           LineTo(x2,y2);
-          TextOut(x1,y1+5,'P0:'+intToSTR(segment[i].port[0].numero));
-          TextOut(x2,y2+5,'P1:'+intToSTR(segment[i].port[1].numero));
         end;
 
         x1:=(x1+x2) div 2;
@@ -4322,19 +4318,18 @@ begin
         x2:=segment[i].port[2].x;
         y2:=segment[i].port[2].y;
         coords(x2,y2);
-        with canvas do
+        with canvasI do
         begin
           MoveTo(x1,y1);
           LineTo(x2,y2);
-          TextOut(x2,y2+5,'P2:'+intToSTR(segment[i].port[2].numero));
         end;
         if ctype='turnout_3way' then
         begin
-          canvas.moveTo(x1,y1);
+          canvasI.moveTo(x1,y1);
           x2:=segment[i].port[3].x;
           y2:=segment[i].port[3].y;
           coords(x2,y2);
-          canvas.LineTo(x2,y2);
+          canvasI.LineTo(x2,y2);
         end;
 
         xAig:=x1;yAig:=y1-5;
@@ -4361,16 +4356,15 @@ begin
       trouve:=point_Sur_Segment(Xsouris,Ysouris,x1,y1,x2,y2);
       if trouve then
       begin
-
-        s:=intToSTR(Segment[i].adresse);
+         s:=intToSTR(Segment[i].adresse);
         if Segment[i].adresse2<>0 then s:=s+'/'+intToSTR(Segment[i].adresse2);
         formAnalyseCDM.EditAdresse.Text:=s;
         s:='Ports 0/1/2/3 = '+IntToSTR(Segment[i].port[0].numero)+'/'+IntToSTR(Segment[i].port[1].numero)+'/'+
                               IntToSTR(Segment[i].port[2].numero)+'/'+IntToSTR(Segment[i].port[3].numero);
         formAnalyseCDM.LabelPorts.Caption:=s;
 
-        Canvas.Pen.Width:=largeur_voie;
-        Canvas.pen.Color:=clred;
+        CanvasI.Pen.Width:=largeur_voie;
+        CanvasI.pen.Color:=clred;
 
         x1:=segment[i].port[1].x;
         y1:=segment[i].port[1].y;
@@ -4378,12 +4372,10 @@ begin
         y2:=segment[i].port[3].y;
         coords(x1,y1);
         coords(x2,y2);
-        with canvas do
+        with canvasI do
         begin
           MoveTo(x1,y1);
           LineTo(x2,y2);
-          TextOut(x1,y1+5,'P1:'+intToSTR(segment[i].port[1].numero));
-          TextOut(x2,y2+5,'P3:'+intToSTR(segment[i].port[3].numero));
         end;
 
         x1:=segment[i].port[0].x;
@@ -4392,16 +4384,15 @@ begin
         y2:=segment[i].port[2].y;
         coords(x1,y1);
         coords(x2,y2);
-        with canvas do
+        with canvasI do
         begin
           MoveTo(x1,y1);
           LineTo(x2,y2);
-          TextOut(x1,y1+5,'P0:'+intToSTR(segment[i].port[0].numero));
-          TextOut(x2,y2+5,'P2:'+intToSTR(segment[i].port[2].numero));
         end;
 
         xAig:=x1;yAig:=y1-5;
       end;
+
     end;
 
     // le précurve est un type droit!!
@@ -4420,10 +4411,13 @@ begin
         s:='Ports 0/1 = '+InttoSTR(Segment[i].port[0].numero)+'/'+IntToSTR(Segment[i].port[1].numero);
         formAnalyseCDM.LabelPorts.Caption:=s;
 
-        Canvas.Pen.Width:=largeur_voie;
-        Canvas.pen.Color:=clred;
-        canvas.MoveTo(x1,y1);
-        canvas.LineTo(x2,y2);
+        with canvasI do
+        begin
+          Pen.Width:=largeur_voie;
+          pen.Color:=clred;
+          MoveTo(x1,y1);
+          LineTo(x2,y2);
+        end;
       end;
     end;
 
@@ -4439,8 +4433,8 @@ begin
 
       //Affiche('Segment index '+intToSTR(i)+' Numéro='+intToSTR(numero),clOrange);
       if stopAngle<0 then
-        canvas.Pen.color:=clred
-         else canvas.Pen.color:=clOrange;
+        canvasI.Pen.color:=clred
+         else canvasI.Pen.color:=clOrange;
 
       trouve:=point_sur_arc(xSouris,ySouris,CentreX,centreY,rayon,StartAngle,StopAngle,debug) ;
       if trouve then
@@ -4451,9 +4445,10 @@ begin
 
          if not(debug) then
          begin
-           Canvas.Pen.Width:=largeur_voie;
-           Canvas.pen.Color:=clred;
-           D_arc(formAnalyseCDM.ImageCDM.Canvas,centreX,centreY,rayon,StartAngle,StopAngle);
+           CanvasI.Pen.Width:=largeur_voie;
+           CanvasI.pen.Color:=clred;
+           D_arc(CanvasI,centreX,centreY,rayon,StartAngle,StopAngle);
+
          end;
        end;
      end;
@@ -4482,10 +4477,14 @@ begin
       begin
         s:=s+#13+'Adr='+intToSTR(x1);
         if Segment[i].adresse2<>0 then s:=s+'/'+intToSTR(Segment[i].adresse2);
-        for j:=0 to segment[i].nport-1 do
-        begin
-          s:=s+#13+'Port '+intToSTR(j)+' : '+intToSTR(Segment[i].port[j].numero);
-        end;
+      end;
+      for j:=0 to segment[i].nport-1 do
+      begin
+        s:=s+#13+'Port '+intToSTR(j)+' : '+intToSTR(Segment[i].port[j].numero);
+        x1:=Segment[i].port[j].x;
+        y1:=Segment[i].port[j].y;
+        coords(x1,y1);
+        canvasI.TextOut(x1,y1+5,'P'+intToSTR(j)+':'+intToSTR(Segment[i].port[j].numero));
       end;
       Hint:=s;
       showHint:=true;

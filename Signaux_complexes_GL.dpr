@@ -37,5 +37,9 @@ begin
   Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
   Application.CreateForm(TFormImportation, FormImportation);
+  {$IF CompilerVersion >= 28.0}
+  //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
+  change_style;
+  {$IFEND}
   Application.Run;
 end.

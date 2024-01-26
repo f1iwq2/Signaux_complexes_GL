@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 83
-  Top = 123
+  Left = 65
+  Top = 39
   Width = 1212
   Height = 661
   VertScrollBar.Visible = False
@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1196
-    602)
+    1204
+    610)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -110,7 +110,7 @@ object FormTCO: TFormTCO
   object PanelBas: TPanel
     Left = 2
     Top = 461
-    Width = 1143
+    Width = 1199
     Height = 140
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -123,7 +123,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = PanelBasDragOver
     DesignSize = (
-      1143
+      1199
       140)
     object Label1: TLabel
       Left = 240
@@ -906,11 +906,11 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 1037
+      Left = 1090
       Top = 8
       Width = 96
       Height = 33
-      Anchors = [akTop]
+      Anchors = [akTop, akRight]
       Caption = 'Sauvegarder TCO'
       TabOrder = 0
       TabStop = False
@@ -918,18 +918,18 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonConfigTCO: TButton
-      Left = 1037
+      Left = 1090
       Top = 48
       Width = 96
       Height = 33
-      Anchors = [akTop]
+      Anchors = [akTop, akRight]
       Caption = 'Configuration TCO'
       TabOrder = 1
       TabStop = False
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 822
+      Left = 878
       Top = 80
       Width = 113
       Height = 25
@@ -940,11 +940,11 @@ object FormTCO: TFormTCO
       OnClick = ButtonSimuClick
     end
     object ButtonMasquer: TButton
-      Left = 1037
+      Left = 1090
       Top = 88
       Width = 96
       Height = 33
-      Anchors = [akTop]
+      Anchors = [akTop, akRight]
       Caption = 'Masquer bandeau'
       TabOrder = 3
       TabStop = False
@@ -1134,7 +1134,7 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 931
+      Left = 987
       Top = 88
       Width = 97
       Height = 33
@@ -1146,7 +1146,7 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 862
+      Left = 918
       Top = 56
       Width = 75
       Height = 25
@@ -1157,7 +1157,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 931
+      Left = 987
       Top = 48
       Width = 97
       Height = 33
@@ -1173,7 +1173,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonDessinerClick
     end
     object ButtonAffSC: TButton
-      Left = 931
+      Left = 987
       Top = 8
       Width = 97
       Height = 33
@@ -1185,7 +1185,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonAffSCClick
     end
     object RadioGroupSel: TRadioGroup
-      Left = 783
+      Left = 839
       Top = 8
       Width = 138
       Height = 49

@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 238
-  Top = 145
+  Left = 230
+  Top = 120
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -639,6 +639,19 @@ object FormConfig: TFormConfig
     Visible = False
     WordWrap = True
   end
+  object LabelD11: TLabel
+    Left = 752
+    Top = 64
+    Width = 40
+    Height = 31
+    Caption = 'D11'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -27
+    Font.Name = 'Arial Narrow'
+    Font.Style = [fsBold, fsItalic]
+    ParentFont = False
+  end
   object ButtonAppliquerEtFermer: TButton
     Left = 240
     Top = 520
@@ -830,7 +843,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 8
         Width = 297
-        Height = 169
+        Height = 121
         Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
         object RadioButtonSS: TRadioButton
@@ -874,9 +887,9 @@ object FormConfig: TFormConfig
           TabOrder = 4
         end
         object RadioButtonECOS: TRadioButton
-          Left = 8
-          Top = 128
-          Width = 233
+          Left = 192
+          Top = 32
+          Width = 89
           Height = 17
           Caption = 'Ecos ESU'
           TabOrder = 5
@@ -884,23 +897,23 @@ object FormConfig: TFormConfig
         object RadioButtonRS: TRadioButton
           Left = 8
           Top = 96
-          Width = 209
+          Width = 177
           Height = 17
           Caption = 'RS2PC (Rs FeedBack interface)'
           TabOrder = 6
         end
         object RadioButtonDCCpl: TRadioButton
-          Left = 8
-          Top = 144
-          Width = 209
+          Left = 192
+          Top = 16
+          Width = 73
           Height = 17
           Caption = 'DCC++'
           TabOrder = 7
         end
         object RadioButtonDCCpp: TRadioButton
-          Left = 8
-          Top = 112
-          Width = 161
+          Left = 192
+          Top = 48
+          Width = 89
           Height = 17
           Caption = 'DCCpp'
           TabOrder = 8
@@ -908,7 +921,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox7: TGroupBox
         Left = 312
-        Top = 184
+        Top = 136
         Width = 297
         Height = 81
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ / XpressNet'
@@ -1030,11 +1043,11 @@ object FormConfig: TFormConfig
           TabOrder = 4
         end
       end
-      object GroupBox15: TGroupBox
+      object GroupBoxDivers: TGroupBox
         Left = 312
-        Top = 272
+        Top = 224
         Width = 297
-        Height = 177
+        Height = 217
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1120,9 +1133,8 @@ object FormConfig: TFormConfig
           Width = 233
           Height = 17
           Hint = 
-            'Contr'#244'le si une adresse DCC se trouve dans la plage 257-272 si o' +
-            'n utilise Xpressnet. Ne pas cocher si XpressNet n'#39'est pas utilis' +
-            #233
+            'Contr'#244'le si une adresse DCC se trouve '#224' partir de 257 si on util' +
+            'ise Xpressnet. Ne pas cocher si XpressNet n'#39'est pas utilis'#233
           Caption = 'V'#233'rification des adresses XpressNet'
           ParentShowHint = False
           ShowHint = True
@@ -1261,7 +1273,7 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 225
           Height = 17
-          Caption = '0 : Sans ent'#234'te (interfaces s'#233'rie)'
+          Caption = '0 : Sans ent'#234'te (interfaces s'#233'rie, Genli...)'
           TabOrder = 0
         end
         object RadioButton2: TRadioButton
@@ -1361,30 +1373,13 @@ object FormConfig: TFormConfig
         ReadOnly = True
         TabOrder = 5
       end
-      object Memo4: TMemo
-        Left = 312
-        Top = 240
-        Width = 297
-        Height = 49
-        BevelInner = bvLowered
-        BevelKind = bkFlat
-        BorderStyle = bsNone
-        Lines.Strings = (
-          
-            '4. Pour l'#39'utilisation d'#39'interfaces s'#233'rie (GENLI), cette valeur d' +
-            'oit '
-          #234'tre '#224' 0. Pour les interfaces utilisant nativement de l'#39'USB, '
-          'cette valeur doit '#234'tre '#224' 1. ')
-        ReadOnly = True
-        TabOrder = 6
-      end
       object GroupBox9: TGroupBox
         Left = 8
         Top = 280
         Width = 297
         Height = 161
         Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
-        TabOrder = 7
+        TabOrder = 6
         object Label32: TLabel
           Left = 14
           Top = 42
@@ -1472,11 +1467,11 @@ object FormConfig: TFormConfig
       end
       object GroupBox22: TGroupBox
         Left = 312
-        Top = 368
+        Top = 320
         Width = 297
         Height = 65
         Caption = 'Protocole de connexion '#224' la centrale ou '#224' l'#39'interface'
-        TabOrder = 8
+        TabOrder = 7
         object RadioButtonDCC: TRadioButton
           Left = 8
           Top = 40
@@ -1502,21 +1497,21 @@ object FormConfig: TFormConfig
       end
       object GroupBox25: TGroupBox
         Left = 312
-        Top = 304
+        Top = 248
         Width = 297
-        Height = 57
+        Height = 65
         Caption = 'Divers'
-        TabOrder = 9
+        TabOrder = 8
         object Label58: TLabel
           Left = 16
-          Top = 20
+          Top = 24
           Width = 155
           Height = 13
           Caption = 'Filtrage des d'#233'tecteurs (x100 ms)'
         end
         object EditFiltrDet: TEdit
           Left = 224
-          Top = 16
+          Top = 20
           Width = 25
           Height = 21
           Hint = 'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'
@@ -1548,7 +1543,7 @@ object FormConfig: TFormConfig
         Left = 328
         Top = 32
         Width = 289
-        Height = 417
+        Height = 441
         Caption = 'Description de l'#39'aiguillage'
         TabOrder = 0
         object LabelAdresse: TLabel
@@ -1565,8 +1560,8 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelCrois: TLabel
-          Left = 88
-          Top = 280
+          Left = 96
+          Top = 312
           Width = 187
           Height = 26
           Caption = 
@@ -1577,7 +1572,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox10: TGroupBox
           Left = 8
-          Top = 80
+          Top = 112
           Width = 177
           Height = 73
           Caption = 'Vitesse de franchissement d'#233'vi'#233' :'
@@ -1650,7 +1645,7 @@ object FormConfig: TFormConfig
         end
         object CheckInverse: TCheckBox
           Left = 16
-          Top = 277
+          Top = 317
           Width = 137
           Height = 17
           Hint = 'Cocher si l'#39'aiguillage est invers'#233' dans CDM rail'
@@ -1670,11 +1665,12 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 2
           OnChange = EditAdrAigChange
+          OnExit = EditAdrAigExit
         end
         object ComboBoxAig: TComboBox
-          Left = 8
+          Left = 16
           Top = 48
-          Width = 145
+          Width = 161
           Height = 21
           Style = csDropDownList
           ItemHeight = 13
@@ -1689,7 +1685,7 @@ object FormConfig: TFormConfig
         end
         object GroupBox16: TGroupBox
           Left = 8
-          Top = 160
+          Top = 192
           Width = 273
           Height = 113
           Caption = 'Repr'#233'sentation'
@@ -1904,8 +1900,8 @@ object FormConfig: TFormConfig
           end
         end
         object ButtonRestaureAig: TButton
-          Left = 200
-          Top = 48
+          Left = 16
+          Top = 80
           Width = 75
           Height = 25
           Hint = 
@@ -1928,28 +1924,28 @@ object FormConfig: TFormConfig
         end
         object GroupBox21: TGroupBox
           Left = 8
-          Top = 312
+          Top = 344
           Width = 273
-          Height = 97
+          Height = 89
           Caption = 'Initialisation de l'#39'aiguillage en mode autonome'
           TabOrder = 7
           object Label37: TLabel
             Left = 8
-            Top = 26
+            Top = 34
             Width = 66
             Height = 13
             Caption = 'D'#233'vi'#233' ou droit'
           end
           object Label38: TLabel
             Left = 8
-            Top = 50
+            Top = 58
             Width = 129
             Height = 13
             Caption = 'Temporisation  (1/10'#232'me s)'
           end
           object EditTempo10: TEdit
             Left = 160
-            Top = 48
+            Top = 56
             Width = 41
             Height = 21
             Hint = 
@@ -1962,7 +1958,7 @@ object FormConfig: TFormConfig
           end
           object ComboBoxDD: TComboBox
             Left = 160
-            Top = 24
+            Top = 32
             Width = 97
             Height = 21
             Style = csDropDownList
@@ -1977,7 +1973,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxEtatTJD: TGroupBox
           Left = 192
-          Top = 80
+          Top = 112
           Width = 89
           Height = 73
           Caption = 'Type TJD-TJS'
@@ -2006,6 +2002,21 @@ object FormConfig: TFormConfig
             TabOrder = 1
             OnClick = RadioButtonTJD4Click
           end
+        end
+        object ButtonPropage: TButton
+          Left = 192
+          Top = 56
+          Width = 89
+          Height = 49
+          Hint = 
+            'Change les adresses dans les points de connexions des aiguillage' +
+            's et des branches si on a chang'#233' l'#39'adresse d'#39'un aiguillage'
+          Caption = 'Propager le changement d'#39'adresse'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 9
+          WordWrap = True
+          OnClick = ButtonPropageClick
         end
       end
       object ButtonNouvAig: TButton
@@ -2903,7 +2914,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
-          Top = 24
+          Top = 16
           Width = 249
           Height = 89
           Caption = 'Type d'#39'action'
@@ -3061,7 +3072,7 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 8
+            Left = 32
             Top = 168
             Width = 233
             Height = 137
@@ -3276,8 +3287,8 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 72
-          Top = 104
+          Left = 64
+          Top = 96
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
@@ -3292,7 +3303,7 @@ object FormConfig: TFormConfig
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 184
+          Left = 8
           Top = 24
           Width = 249
           Height = 193
@@ -3416,7 +3427,7 @@ object FormConfig: TFormConfig
           end
           object RadioGroupActPN: TRadioGroup
             Left = 8
-            Top = 24
+            Top = 16
             Width = 217
             Height = 57
             Hint = 'action par accessoire DCC ou commande COM/USB'
@@ -4230,8 +4241,7 @@ object FormConfig: TFormConfig
     Top = 468
   end
   object PopupMenuRichedit: TPopupMenu
-    Left = 728
-    Top = 88
+    Left = 688
     object outslectionner1: TMenuItem
       Caption = 'Tout s'#233'lectionner'
       OnClick = Toutslectionner1Click
@@ -4249,8 +4259,7 @@ object FormConfig: TFormConfig
     end
   end
   object PopupMenuListes: TPopupMenu
-    Left = 800
-    Top = 88
+    Left = 728
     object Slectionnertout1: TMenuItem
       Caption = 'S'#233'lectionner tout'
       Hint = 'S'#233'lectionne toutes les lignes'

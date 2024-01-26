@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 11/1 16h
+// 25/1 22h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -56,14 +56,17 @@ Unit UnitPrinc;
 
 //{$Q-}  // pas de vérification du débordement des opérations de calcul
 //{$R-}  // pas de vérification des limites d'index du tableau et des variables
-
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem ,
-  Buttons, NB30, comObj, activeX;
+  Buttons, NB30, comObj, activeX
+  {$IF CompilerVersion >= 28.0}
+  ,Vcl.Themes
+  {$IFEND}
+  ;
 
 type
   TFormPrinc = class(TForm)
@@ -463,6 +466,7 @@ TBranche      = record
 
 Taiguillage = record
                 Adresse : integer;         // adresse de l'aiguillage
+                AncienAdresse : integer;
                 modele : TEquipement;      // rien, aig, tjd ...
                 position,                  // position actuelle : 1=dévié  2=droit (centrale LENZ)
                 posInit,                   // position d'initialisation 1=dévié 2=droit 9=non positionné
@@ -471,17 +475,17 @@ Taiguillage = record
                 InversionCDM : integer ;   // pour les aiguillages déclarés inversés dans CDM, utilisé en mode autonome (paramètre I1)
                 vitesse : integer;         // vitesse de franchissement de l'aiguillage en position déviée (60 ou 90)
                 AdrTrain : integer;        // adresse du train qui a réservé l'aiguillage
-                           ADroit : integer ;         // adresse (TJD:identifiant extérieur) connecté sur la position droite en talon
+                ADroit : integer ;         // adresse (TJD:identifiant extérieur) connecté sur la position droite en talon
                 ADroitB : char ;           // P D S Z
-                          ADevie : integer ;         // adresse (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
+                ADevie : integer ;         // adresse (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
                 ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
-                          APointe : integer;         // adresse de l'élément connecté en position droite ;
+                APointe : integer;         // adresse de l'élément connecté en position droite ;
                 APointeB : char;           // P D S Z
-                          DDroit : integer;          // destination de la TJD en position droite
+                DDroit : integer;          // destination de la TJD en position droite
                 DDroitB : char ;
-                          DDevie : integer;          // destination de la TJD en position déviée ou 2eme adresse de la TJD
+                DDevie : integer;          // destination de la TJD en position déviée ou 2eme adresse de la TJD
                 DDevieB : char ;
-                          tjsint   : integer;        // pour TJS
+                tjsint   : integer;        // pour TJS
                 tjsintb  : char ;
                             // éléments connectés sur la branche déviée 2 (cas d'un aiguillage triple)
                 Adevie2 : integer;
@@ -507,7 +511,7 @@ TSignal = record
                  contrevoie : boolean;       // signal de contrevoie (SNCB)
                  Verscontrevoie : boolean;   // signal vers contrevoie (SNCB)
                  FeuBlanc : boolean ;        // avec checkbox ou pas
-                 decodeur : integer;         // type du décodeur  // 'rien','DigitalBahn','CDF','LDT','LEB','Digikeijs','Unisemaf','SR'
+                 decodeur : integer;         // type du décodeur  // 'rien','DigitalBahn','CDF','LS-DEC-SNCF','LEB','Digikeijs','Unisemaf','SR','Arcomora',LS_DEC_NMBS,Bmodels, puis les perso
                  Adr_det1 : integer;         // adresse du détecteur1 sur lequel il est implanté
                  Adr_det2 : integer;         // adresse du détecteur2 sur lequel il est implanté (si un signal est pour plusieurs voies)
                  Adr_det3 : integer;         // adresse du détecteur3 sur lequel il est implanté (si un signal est pour plusieurs voies)
@@ -525,6 +529,7 @@ TSignal = record
                  modifie     : boolean;      // feu modifié
                  EtatSignal  : word  ;       // état du signal
                  AncienEtat  : word  ;       // ancien état du signal
+                 AncienAff   : word  ;       // état ancien affichage
                  UniSemaf : integer ;        // définition supplémentaire de la cible pour les décodeurs UNISEMAF
                  AigDirection : array[1..7] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
                                   Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages +1 position 0
@@ -792,7 +797,7 @@ var
 function Index_Signal(adresse : integer) : integer;
 function Index_Aig(adresse : integer) : integer;
 procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
-procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
 procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
@@ -868,6 +873,7 @@ procedure maj_couleurs;
 procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
                                     clBord : TColor; EpBord : integer; PenMode : TPenMode;
                                     Texture : tBitMap; texte : string; AngleDD : longint);
+procedure change_style;
 
 implementation
 
@@ -891,6 +897,24 @@ begin
 end;
 }
 
+// change le style en fonction de Style_aff
+// Cette procédure doit être appellée depuis le module principal UnitPrinc
+procedure change_style;
+begin
+  {$IF CompilerVersion >= 28.0}
+  if Ancien_Style<>Style_Aff then
+  begin
+    TStyleManager.TrySetStyle(TStyleManager.StyleNames[0]);   // repasse en windows pour éviter exception
+    TStyleManager.TrySetStyle(TStyleManager.StyleNames[Style_Aff]);
+    // permet que le richedit affiche en couleurs
+    Formprinc.FenRich.StyleName:='Windows';
+    if formDebug<>nil then FormDebug.RichDebug.StyleName:='Windows';
+    if formConfig<>nil then FormConfig.RichBranche.StyleName:='Windows';
+    Ancien_style:=Style_aff;
+  end;
+  {$IFEND}
+end;
+
 procedure procetape(s : string);
 begin
   if debug<>2 then exit;
@@ -900,7 +924,6 @@ end;
 
 procedure Tformprinc.DoHint(Sender : Tobject);     // le sender est tApplication
 var s,nomForm: string;
-    c : tcomponent;
     FormeTCO : boolean;
 begin
   s:=Application.Hint;       // texte du hint
@@ -1145,14 +1168,88 @@ begin
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal,AncienEtat : word;orientation : integer);
+procedure dessine_signal3x(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,index : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
-    LgImage,HtImage,code,combine,AncCode,AncCombine : integer;
+    LgImage,HtImage,code,combine : integer;
+    ech : real;
+begin
+  code_to_aspect(Etatsignal,code,combine);
+ // Affiche('nouveau='+intToSTR(Etatsignal)+' ancien='+intToSTR(ancienEtat),clred);
+
+  rayon:=round(6*frX);
+
+  with Formprinc.Image3feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+  Xvert:=13;  Yvert:=11;
+  xSem:=13;   ySem:=22;
+  xJaune:=13; yJaune:=33;
+
+  if (orientation=2) then
+  begin
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des signaux
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+  end;
+
+  if (orientation=4) then
+  begin
+    //rotation 180°
+    Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
+    XSem:=LgImage-XSem;    YSem:=HtImage-YSem;
+    XVert:=LgImage-Xvert;  Yvert:=HtImage-Yvert;
+  end;
+
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xSem,ySem,rayon,GrisF);
+    cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  if (code=vert_cli) and not(clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+
+  if (code=vert_cli) and not(clignotant) then Affiche('efface vert',clred);
+  if (code=jaune_cli) and not(clignotant) then Affiche('efface jaune',clred);
+  if (code=semaphore_cli) and not(clignotant) then Affiche('efface rouge',clred);
+
+
+  // allumages
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
+end;
+
+// dessine les feux sur une cible à 3 feux
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation : integer);
+var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
+    LgImage,HtImage,code,combine,AncCode : integer;
     ech : real;
 begin
 //  Affiche('dessine_feu3',clred);
   code_to_aspect(Etatsignal,code,combine);
-  code_to_aspect(AncienEtat,Anccode,Anccombine);
   //Affiche(intToSTR(ancienEtat),clred);
 
   rayon:=round(6*frX);
@@ -1215,6 +1312,7 @@ begin
   if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clOrange);
   if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
 end;
+
 
 // dessine les feux sur une cible à 4 feux
 // orientation=1 vertical
@@ -2178,7 +2276,7 @@ begin
     case aspect of
       // signaux
       2 : dessine_signal2(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      3 : dessine_signal3(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,Signaux[i].AncienEtat,orientation);      // essai
+      3 : dessine_signal3(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
       4 : dessine_signal4(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
       5 : dessine_signal5(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
       7 : dessine_signal7(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
@@ -2503,7 +2601,11 @@ begin
         Sleep(TempoOctet);
       end;
     end;
-    if (prot_serie=0) then FormPrinc.MSCommUSBInterface.Output:=s;
+    if (prot_serie=0) then
+    begin
+      FormPrinc.MSCommUSBInterface.Output:=s;
+      Sleep(TempoOctet);
+    end;
   end;
 
   // par socket (ethernet)
@@ -10800,7 +10902,7 @@ end;
 procedure Event_Aig(adresse,pos : integer);
 var s: string;
     faire_event,inv,bjd : boolean;
-    AdrCDM,prov,index,i,id,etatact,typ,adr : integer;
+    prov,index,i,id,etatact,typ,adr : integer;
 begin
   if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
   index:=index_aig(adresse);
@@ -10956,7 +11058,11 @@ var  groupe,temp,indexAig,AdrTrain : integer ;
      s : string;
 begin
   //Affiche(IntToSTR(adresse)+' '+intToSTr(octet),clYellow);
-
+  if adresse=0 then
+  begin
+    result:=false;
+    exit;
+  end;
   pilotage:=octet;
   // test si pilotage aiguillage inversé
   if (acc=aigP) then
@@ -11962,8 +12068,7 @@ function com_socket(i : integer) : integer;
 var s : string;
 begin
   result:=0;
-  if i>NbMaxi_Periph then exit;
-
+  if (i=0) or (i>NbMaxi_Periph) then exit;
   s:=Tablo_periph[i].protocole;
   if pos('COM',uppercase(s))<>0 then result:=1;
   if Ipok(s) then result:=2;
@@ -12736,11 +12841,9 @@ var cGB : TGroupBox;
     cCB : tComboBox;
     cPa : tPanel;
     cLa : tLabel;
-    cSc : tScrollBox;
     cSB : tcheckBox;
     cSh : tShape;
     cMe : tMemo;
-    cBu : Tbutton;
     cRa : tRadioGroup;
     cRb : tRadioButton;
 begin
@@ -12873,8 +12976,11 @@ procedure TFormPrinc.FormCreate(Sender: TObject);
 var n,t,i,index,OrgMilieu : integer;
     s : string;
 begin
-  AF:='Client TCP-IP CDM Rail ou USB - système XpressNet DCC++ Version '+Version+sousVersion;
-  Caption:=AF;
+  af:='Client TCP-IP ou USB CDM Rail - système XpressNet DCC++ Version '+Version+sousVersion;
+  {$IF CompilerVersion >= 28.0}
+  af:=af+' D11';
+  {$IFEND}
+  Caption:=af;
   TraceSign:=True;
   configPrete:=false; // form config prete
   PremierFD:=false;
@@ -13365,6 +13471,9 @@ begin
   //Affiche(GetMACAddress,clred);
   //formPrinc.left:=-1000;
   ConfCellTCO:=false;
+
+ 
+
   if debug=1 then Affiche('Fini',clLime);
 end;
 
@@ -15238,6 +15347,9 @@ begin
   if ConfigPrete then
   begin
     formconfig.showmodal;
+    {$IF CompilerVersion >= 28.0}
+    change_style;
+    {$IFEND}
     // ne pas faire close : déja provoqué par le self de la fermeture
   end;
 end;
@@ -15366,14 +15478,15 @@ procedure TFormPrinc.ButtonAffTCOClick(Sender: TObject);
 var i : integer;
 begin
   for i:=1 to NbreTCO do
-  begin
+ { begin
     if formTCO[i]<>nil then
     begin
       formTCO[i].windowState:=wsNormal; //Maximized;
       formTCO[i].show;
       formTCO[i].BringToFront;
-    end;  
-  end;
+    end;
+  end;}
+  Affiche_Fenetre_TCO(i,true);
 end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
@@ -15528,9 +15641,16 @@ end;
 
 procedure TFormPrinc.Apropos1Click(Sender: TObject);
 var i,t,t1 : integer;
+    s: string;
 begin
   Affiche(' ',clyellow);
-  Affiche('Signaux complexes GL version '+version+sousVersion+' (C) 2022-24 F1IWQ Gily TDR',clWhite);
+  s:='Signaux complexes GL version '+version+sousVersion;
+  {$IF CompilerVersion >= 28.0}
+  s:=s+' D11';
+  {$IFEND}
+  s:=s+' (C) 2022-24 F1IWQ Gily TDR';
+  Affiche(s,clWhite);
+
   Affiche('Double cliquez sur un des liens ci-dessous',clWhite);
 
   FenRich.SelStart:=length(FenRich.Text);
@@ -16277,15 +16397,7 @@ end;
 procedure TFormPrinc.AffichertouslesTCO1Click(Sender: TObject);
 var i : integer;
 begin
-  for i:=1 to NbreTCO do
-  begin
-    if formTCO[i]<>nil then
-    begin
-      formTCO[i].windowState:=wsNormal; //Maximized;
-      formTCO[i].show;
-      formTCO[i].BringToFront;
-    end;
-  end;
+  for i:=1 to NbreTCO do Affiche_fenetre_TCO(i,true);
 end;
 
 procedure mosaiqueH;
@@ -16585,8 +16697,11 @@ begin
 
   formTCO[i].Left:=Ecran[e].x0;
   formTCO[i].Top:=Ecran[e].y0;
-  formTCO[i].windowState:=wsMaximized;
   formTCO[i].BringToFront;
+
+  // pour maximiser la fenêtre, obligé de faire wsnormal avant
+  formTCO[i].windowState:=wsNormal;
+  formTCO[i].windowState:=wsMaximized;
 
   if not(laisseOuvert) then formTCO[i].Close; // .. et si on en veut pas, on la ferme.
 end;
@@ -17335,6 +17450,8 @@ begin
   if n=1 then affiche('1 client connecté',clyellow);
   if n>1 then affiche(intToSTR(n)+' clients connectés',clyellow);
 end;
+
+
 
 
 

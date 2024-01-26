@@ -225,4 +225,6 @@ version 8.37 : Correction des calculs des index des aiguillages et des signaux l
                Correction présence trains avant signal.  
 version 8.38 : Ajout de l'importation depuis le réseau CDM rail des bretelles double jonction, ce qui crée 4 aiguillages et un croisement.
                Amélioration du traitement des trames inconnues en XpressNet.
+version 8.4  : Création de la version D11 (deux exécutables disponibles après installation) qui permet de choisir des styles d'affichage.
+               Lire la documentation pages 6 et 7.
   

@@ -132,7 +132,7 @@ begin
   case Signaux[i].aspect of
   // feux de signalisation
    2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1);
-   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,AncienEtat,1);
+   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1);
    4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1);
    5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1);
@@ -274,6 +274,7 @@ procedure couleurs_pilote;
 var i : integer;
     c : tcomponent;
 begin
+  {$IFNDEF DELPHI11}
   if sombre then with formPilote do
   begin
     Color:=Couleurfond;
@@ -283,10 +284,12 @@ begin
       composant(c,couleurFond,couleurTexte);
     end;
   end;
+  {$ENDIF}
 end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
 begin
+  position:=poMainFormCenter;
   couleurs_pilote;
 end;
 

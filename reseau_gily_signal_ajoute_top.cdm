@@ -8,7 +8,7 @@ Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
 lXc=24160 lYc=8709 Longueur=0 longueurDev=0
 DeltaDev=0 CurveOffset=-1 xc0=0 yc0=-1
 DeltaDev2=0 xc=0 yc=-1
-Adresse=126 Adresse2=0 Duree=0
+Adresse=0 Adresse2=0 Duree=0
   Port=3 port x=27731 y=12280 z=0
   Angle=13500 Local=0 Connecte=1
   ConnecteAuPort=15 ConnecteAuSegment=13
@@ -160,7 +160,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=2  Adresse=518  Status=1
 
 Segment=172 arc
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-2817 Ymin=3909 Xmax=1081 Ymax=5992
 StartAngle=-13500 ArcAngle=4500 Rayon=4380 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -177,15 +177,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2271 Type=signal Pere=172 x=-731 y=4543 z=0
   Angle=-10881  Bright=0  Bdown=0
   Location=58  Adresse=47  Status=1
-  Periph=2272 Type=detector Pere=172 x=-731 y=4543 z=0
-  Angle=-10881  Bright=0  Bdown=0
-  Location=58  Adresse=0  Status=0
   Periph=2757 Type=detector Pere=172 x=-731 y=4543 z=0
   Angle=-10907  Bright=1  Bdown=1
   Location=58  Adresse=518  Status=1
-  Periph=4544 Type=actuator Pere=172 x=-212 y=4401 z=0
-  Angle=-10176  Bright=0  Bdown=0
-  Location=73  Adresse=817  Status=23
 
 Segment=202 crossing
 Nport=4 Nperiph=0 Ninter=0
@@ -210,7 +204,7 @@ Adresse=100 Adresse2=0 Duree=0
   ConnecteAuPort=2102 ConnecteAuSegment=2099
 
 Segment=213 straight
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=3641 Ymin=3909 Xmax=7791 Ymax=4709
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -227,15 +221,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=966 Type=signal Pere=213 x=5232 y=4309 z=0
   Angle=-9000  Bright=1  Bdown=1
   Location=35  Adresse=0  Status=0
-  Periph=967 Type=detector Pere=213 x=5232 y=4309 z=0
-  Angle=-9000  Bright=1  Bdown=1
-  Location=35  Adresse=0  Status=0
   Periph=4542 Type=actuator Pere=213 x=4816 y=4309 z=0
   Angle=-9000  Bright=0  Bdown=0
   Location=23  Adresse=813  Status=23
 
 Segment=218 straight
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=2028 Ymin=3253 Xmax=6178 Ymax=4054
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -252,15 +243,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2259 Type=signal Pere=218 x=2865 y=3654 z=0
   Angle=-9002  Bright=0  Bdown=1
   Location=13  Adresse=57  Status=1
-  Periph=2260 Type=detector Pere=218 x=2865 y=3654 z=0
-  Angle=-9002  Bright=0  Bdown=1
-  Location=13  Adresse=0  Status=0
   Periph=3655 Type=actuator Pere=218 x=2718 y=3654 z=0
   Angle=-9002  Bright=1  Bdown=1
   Location=8  Adresse=808  Status=23
-  Periph=2758 Type=detector Pere=218 x=3930 y=3654 z=0
-  Angle=-9002  Bright=0  Bdown=0
-  Location=44  Adresse=519  Status=1
 
 Segment=257 straight
 Nport=2 Nperiph=0 Ninter=0
@@ -298,7 +283,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=33  Adresse=523  Status=1
 
 Segment=266 arc
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=27331 Ymin=1389 Xmax=29610 Ymax=5760
 StartAngle=-4500 ArcAngle=4500 Rayon=5050 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -313,9 +298,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=-9000 Local=1 Connecte=1
   ConnecteAuPort=1255 ConnecteAuSegment=1254
   Periph=1534 Type=signal Pere=266 x=28724 y=3197 z=0
-  Angle=-2536  Bright=1  Bdown=0
-  Location=43  Adresse=0  Status=0
-  Periph=1535 Type=detector Pere=266 x=28724 y=3197 z=0
   Angle=-2536  Bright=1  Bdown=0
   Location=43  Adresse=0  Status=0
   Periph=3656 Type=actuator Pere=266 x=29052 y=4102 z=0
@@ -339,7 +321,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=267 ConnecteAuSegment=266
 
 Segment=275 arc
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=26847 Ymin=1843 Xmax=28930 Ymax=5740
 StartAngle=-4500 ArcAngle=4500 Rayon=4380 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -356,15 +338,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2273 Type=signal Pere=275 x=28523 y=5097 z=0
   Angle=-318  Bright=0  Bdown=0
   Location=92  Adresse=53  Status=1
-  Periph=2274 Type=detector Pere=275 x=28523 y=5097 z=0
-  Angle=-318  Bright=0  Bdown=0
-  Location=92  Adresse=0  Status=0
   Periph=2749 Type=detector Pere=275 x=28358 y=4126 z=0
   Angle=-1661  Bright=1  Bdown=1
   Location=64  Adresse=526  Status=1
-  Periph=5500 Type=actuator Pere=275 x=28377 y=4193 z=0
-  Angle=-1518  Bright=1  Bdown=0
-  Location=66  Adresse=820  Status=23
 
 Segment=278 arc
 Nport=2 Nperiph=0 Ninter=0
@@ -421,7 +397,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=49  Adresse=526  Status=1
 
 Segment=287 straight
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=10178 Ymin=3250 Xmax=14328 Ymax=4051
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -436,9 +412,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=17998 Local=1 Connecte=1
   ConnecteAuPort=2145 ConnecteAuSegment=2144
   Periph=1674 Type=signal Pere=287 x=13569 y=3650 z=0
-  Angle=-9002  Bright=0  Bdown=0
-  Location=89  Adresse=0  Status=0
-  Periph=1675 Type=detector Pere=287 x=13569 y=3650 z=0
   Angle=-9002  Bright=0  Bdown=0
   Location=89  Adresse=0  Status=0
 
@@ -462,7 +435,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=97  Adresse=523  Status=1
 
 Segment=298 arc
-Nport=2 Nperiph=5 Ninter=0
+Nport=2 Nperiph=3 Ninter=0
 Xmin=17041 Ymin=2822 Xmax=20464 Ymax=4709
 StartAngle=4500 ArcAngle=4500 Rayon=3710 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -479,13 +452,7 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1722 Type=signal Pere=298 x=17945 y=4275 z=0
   Angle=8220  Bright=0  Bdown=1
   Location=82  Adresse=37  Status=1
-  Periph=1723 Type=detector Pere=298 x=17945 y=4275 z=0
-  Angle=8220  Bright=0  Bdown=1
-  Location=82  Adresse=0  Status=0
   Periph=2703 Type=signal Pere=298 x=17945 y=4275 z=0
-  Angle=8017  Bright=0  Bdown=0
-  Location=82  Adresse=0  Status=0
-  Periph=2704 Type=detector Pere=298 x=17945 y=4275 z=0
   Angle=8017  Bright=0  Bdown=0
   Location=82  Adresse=0  Status=0
   Periph=2774 Type=actuator Pere=298 x=18767 y=4064 z=0
@@ -592,7 +559,7 @@ Adresse=11 Adresse2=0 Duree=2
   MirrorZ=1000 MirrorParent=0
 
 Segment=884 straight
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=3564 Ymin=9607 Xmax=10486 Ymax=13130
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -609,15 +576,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1530 Type=signal Pere=884 x=5743 y=11939 z=0
   Angle=6602  Bright=0  Bdown=0
   Location=70  Adresse=0  Status=0
-  Periph=1531 Type=detector Pere=884 x=5743 y=11939 z=0
-  Angle=6602  Bright=0  Bdown=0
-  Location=70  Adresse=0  Status=0
   Periph=2772 Type=actuator Pere=884 x=4622 y=12437 z=0
   Angle=6602  Bright=0  Bdown=1
   Location=89  Adresse=802  Status=23
 
 Segment=1016 straight
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=28810 Ymin=6640 Xmax=29610 Ymax=9110
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -634,9 +598,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2275 Type=signal Pere=1016 x=29210 y=7843 z=0
   Angle=18000  Bright=0  Bdown=0
   Location=51  Adresse=77  Status=1
-  Periph=2276 Type=detector Pere=1016 x=29210 y=7843 z=0
-  Angle=18000  Bright=0  Bdown=0
-  Location=51  Adresse=0  Status=0
 
 Segment=1021 straight
 Nport=2 Nperiph=0 Ninter=0
@@ -655,7 +616,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=22 ConnecteAuSegment=20
 
 Segment=1026 straight
-Nport=2 Nperiph=3 Ninter=2
+Nport=2 Nperiph=2 Ninter=2
 Xmin=18720 Ymin=13360 Xmax=24560 Ymax=14161
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -672,9 +633,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1726 Type=signal Pere=1026 x=19187 y=13760 z=0
   Angle=-8999  Bright=0  Bdown=0
   Location=1  Adresse=49  Status=1
-  Periph=1727 Type=detector Pere=1026 x=19187 y=13760 z=0
-  Angle=-8999  Bright=0  Bdown=0
-  Location=1  Adresse=0  Status=0
   Periph=2762 Type=detector Pere=1026 x=21522 y=13760 z=0
   Angle=-8999  Bright=1  Bdown=1
   Location=47  Adresse=524  Status=1
@@ -684,7 +642,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=1000 MirrorParent=0
 
 Segment=1043 arc
-Nport=2 Nperiph=3 Ninter=4
+Nport=2 Nperiph=2 Ninter=4
 Xmin=25962 Ymin=6690 Xmax=28622 Ymax=9523
 StartAngle=1996 ArcAngle=4500 Rayon=3600 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -701,9 +659,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1737 Type=signal Pere=1043 x=27285 y=8502 z=0
   Angle=4718  Bright=0  Bdown=1
   Location=60  Adresse=0  Status=0
-  Periph=1738 Type=detector Pere=1043 x=27285 y=8502 z=0
-  Angle=4718  Bright=0  Bdown=1
-  Location=60  Adresse=0  Status=0
   Periph=3029 Type=actuator Pere=1043 x=28111 y=7360 z=0
   Angle=2461  Bright=0  Bdown=0
   Location=10  Adresse=810  Status=23
@@ -717,7 +672,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=1000 MirrorParent=0
 
 Segment=1090 straight
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=5315 Ymin=4577 Xmax=10245 Ymax=5377
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -734,18 +689,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2263 Type=signal Pere=1090 x=6820 y=4977 z=0
   Angle=-9000  Bright=0  Bdown=1
   Location=26  Adresse=55  Status=1
-  Periph=2264 Type=detector Pere=1090 x=6820 y=4977 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=26  Adresse=0  Status=0
   Periph=2754 Type=detector Pere=1090 x=6820 y=4977 z=0
   Angle=-9000  Bright=0  Bdown=0
   Location=26  Adresse=515  Status=1
-  Periph=4545 Type=actuator Pere=1090 x=5769 y=4977 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=1  Adresse=818  Status=23
 
 Segment=1097 straight
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=5187 Ymin=5220 Xmax=8987 Ymax=6020
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -762,18 +711,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2261 Type=signal Pere=1097 x=7760 y=5620 z=0
   Angle=-9000  Bright=0  Bdown=1
   Location=72  Adresse=0  Status=0
-  Periph=2262 Type=detector Pere=1097 x=7760 y=5620 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=72  Adresse=0  Status=0
   Periph=3017 Type=detector Pere=1097 x=5669 y=5620 z=0
   Angle=-9000  Bright=0  Bdown=0
   Location=2  Adresse=514  Status=1
-  Periph=3030 Type=actuator Pere=1097 x=6219 y=5620 z=0
-  Angle=-9000  Bright=0  Bdown=0
-  Location=21  Adresse=816  Status=23
 
 Segment=1145 straight
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=6739 Ymin=5863 Xmax=11539 Ymax=6663
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -790,9 +733,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1858 Type=signal Pere=1145 x=8845 y=6263 z=0
   Angle=-9000  Bright=0  Bdown=1
   Location=42  Adresse=43  Status=1
-  Periph=1859 Type=detector Pere=1145 x=8845 y=6263 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=42  Adresse=0  Status=0
   Periph=3015 Type=detector Pere=1145 x=8845 y=6263 z=0
   Angle=-9000  Bright=0  Bdown=0
   Location=42  Adresse=516  Status=1
@@ -911,7 +851,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=1000 MirrorParent=0
 
 Segment=1335 curve
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=27222 Ymin=8820 Xmax=28930 Ymax=11812
 StartAngle=4500 ArcAngle=-4500 Rayon=3100 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -926,9 +866,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=9000 Local=1 Connecte=1
   ConnecteAuPort=1342 ConnecteAuSegment=1336
   Periph=964 Type=signal Pere=1335 x=27898 y=11096 z=0
-  Angle=-14275  Bright=1  Bdown=0
-  Location=17  Adresse=0  Status=0
-  Periph=965 Type=detector Pere=1335 x=27898 y=11096 z=0
   Angle=-14275  Bright=1  Bdown=0
   Location=17  Adresse=0  Status=0
   Periph=3024 Type=actuator Pere=1335 x=28529 y=9295 z=0
@@ -1160,7 +1097,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=0 MirrorParent=0
 
 Segment=1449 straight
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=7110 Ymin=12026 Xmax=14607 Ymax=12826
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1177,15 +1114,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1532 Type=signal Pere=1449 x=8257 y=12426 z=0
   Angle=9000  Bright=0  Bdown=0
   Location=88  Adresse=59  Status=1
-  Periph=1533 Type=detector Pere=1449 x=8257 y=12426 z=0
-  Angle=9000  Bright=0  Bdown=0
-  Location=88  Adresse=0  Status=0
   Periph=3022 Type=actuator Pere=1449 x=8809 y=12426 z=0
   Angle=9000  Bright=1  Bdown=0
   Location=80  Adresse=804  Status=23
-  Periph=2765 Type=detector Pere=1449 x=8257 y=12426 z=0
-  Angle=9000  Bright=1  Bdown=1
-  Location=88  Adresse=528  Status=1
 
 Segment=1452 arc
 Nport=2 Nperiph=0 Ninter=0
@@ -1223,7 +1154,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=97  Adresse=528  Status=1
 
 Segment=1466 arc
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=19737 Ymin=4647 Xmax=21338 Ymax=5938
 StartAngle=6602 ArcAngle=-1500 Rayon=3599 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1240,13 +1171,7 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7084 Type=signal Pere=1466 x=20799 y=5155 z=0
   Angle=-12619  Bright=0  Bdown=0
   Location=81  Adresse=41  Status=1
-  Periph=7085 Type=detector Pere=1466 x=20799 y=5155 z=0
-  Angle=-12619  Bright=0  Bdown=0
-  Location=81  Adresse=0  Status=0
   Periph=7088 Type=signal Pere=1466 x=20799 y=5155 z=0
-  Angle=-12631  Bright=0  Bdown=1
-  Location=81  Adresse=0  Status=0
-  Periph=7089 Type=detector Pere=1466 x=20799 y=5155 z=0
   Angle=-12631  Bright=0  Bdown=1
   Location=81  Adresse=0  Status=0
 
@@ -1267,7 +1192,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=2189 ConnecteAuSegment=2188
 
 Segment=1681 arc
-Nport=2 Nperiph=2 Ninter=1
+Nport=2 Nperiph=1 Ninter=1
 Xmin=16491 Ymin=5224 Xmax=20473 Ymax=7342
 StartAngle=-9000 ArcAngle=4500 Rayon=4500 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1284,9 +1209,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2746 Type=detector Pere=1681 x=18015 y=5767 z=0
   Angle=-7553  Bright=0  Bdown=0
   Location=32  Adresse=522  Status=1
-  Periph=3018 Type=detector Pere=1681 x=17297 y=5642 z=0
-  Angle=-8283  Bright=1  Bdown=1
-  Location=11  Adresse=514  Status=1
   x=18890 y=6093 z=0
   MirrorZ=1000 MirrorParent=0
 
@@ -1307,7 +1229,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=1872 ConnecteAuSegment=1867
 
 Segment=1810 straight
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=2059 Ymin=5863 Xmax=5859 Ymax=6663
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1324,12 +1246,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1860 Type=signal Pere=1810 x=4752 y=6263 z=0
   Angle=9000  Bright=0  Bdown=1
   Location=23  Adresse=45  Status=1
-  Periph=1861 Type=detector Pere=1810 x=4752 y=6263 z=0
-  Angle=9000  Bright=0  Bdown=1
-  Location=23  Adresse=0  Status=0
 
 Segment=1862 arc
-Nport=2 Nperiph=2 Ninter=3
+Nport=2 Nperiph=1 Ninter=3
 Xmin=26081 Ymin=8754 Xmax=28554 Ymax=11227
 StartAngle=2000 ArcAngle=5000 Rayon=2800 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1346,9 +1265,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2747 Type=detector Pere=1862 x=27278 y=10378 z=0
   Angle=4961  Bright=0  Bdown=0
   Location=62  Adresse=522  Status=1
-  Periph=6125 Type=actuator Pere=1862 x=28130 y=9218 z=0
-  Angle=2140  Bright=1  Bdown=1
-  Location=2  Adresse=821  Status=23
   x=27723 y=9928 z=0
   MirrorZ=1000 MirrorParent=0
   x=27726 y=9641 z=0
@@ -1373,7 +1289,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=1870 ConnecteAuSegment=1868
 
 Segment=1868 curve
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=22839 Ymin=9708 Xmax=26881 Ymax=11413
 StartAngle=13500 ArcAngle=-6500 Rayon=3090 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1390,9 +1306,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=1526 Type=signal Pere=1868 x=23517 y=10354 z=0
   Angle=-5188  Bright=0  Bdown=0
   Location=10  Adresse=51  Status=1
-  Periph=1527 Type=detector Pere=1868 x=23517 y=10354 z=0
-  Angle=-5188  Bright=0  Bdown=0
-  Location=10  Adresse=0  Status=0
 
 Segment=1869 pre_curve
 Nport=2 Nperiph=0 Ninter=0
@@ -1544,7 +1457,7 @@ Adresse=7 Adresse2=0 Duree=3
   ConnecteAuPort=6720 ConnecteAuSegment=6715
 
 Segment=2137 straight
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=5378 Ymin=3251 Xmax=10978 Ymax=4053
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1561,9 +1474,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2759 Type=detector Pere=2137 x=9479 y=3651 z=0
   Angle=-9002  Bright=1  Bdown=1
   Location=77  Adresse=519  Status=1
-  Periph=3657 Type=actuator Pere=2137 x=6765 y=3653 z=0
-  Angle=-9002  Bright=1  Bdown=1
-  Location=20  Adresse=800  Status=23
 
 Segment=2144 straight
 Nport=2 Nperiph=0 Ninter=0
@@ -1630,7 +1540,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=2201 ConnecteAuSegment=2199
 
 Segment=2199 curve
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=16688 Ymin=2084 Xmax=20295 Ymax=4048
 StartAngle=8996 ArcAngle=-4496 Rayon=3973 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1647,15 +1557,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=2776 Type=signal Pere=2199 x=18268 y=3468 z=0
   Angle=-10733  Bright=0  Bdown=1
   Location=38  Adresse=39  Status=1
-  Periph=2777 Type=detector Pere=2199 x=18268 y=3468 z=0
-  Angle=-10733  Bright=0  Bdown=1
-  Location=38  Adresse=0  Status=0
   Periph=3644 Type=detector Pere=2199 x=18268 y=3468 z=0
   Angle=-10795  Bright=1  Bdown=0
   Location=38  Adresse=527  Status=1
-  Periph=7102 Type=actuator Pere=2199 x=18160 y=3500 z=0
-  Angle=-10570  Bright=1  Bdown=1
-  Location=34  Adresse=833  Status=23
 
 Segment=2200 pre_curve
 Nport=2 Nperiph=0 Ninter=0
@@ -1728,7 +1632,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=3698 ConnecteAuSegment=3696
 
 Segment=3696 curve
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-2763 Ymin=11441 Xmax=-680 Ymax=13109
 StartAngle=13500 ArcAngle=-2185 Rayon=4085 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1745,15 +1649,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=3760 Type=signal Pere=3696 x=-1631 y=12422 z=0
   Angle=-5813  Bright=1  Bdown=0
   Location=60  Adresse=0  Status=0
-  Periph=3761 Type=detector Pere=3696 x=-1631 y=12422 z=0
-  Angle=-5813  Bright=1  Bdown=0
-  Location=60  Adresse=0  Status=0
   Periph=7100 Type=actuator Pere=3696 x=-1173 y=12668 z=0
   Angle=-6542  Bright=0  Bdown=1
   Location=93  Adresse=832  Status=23
-  Periph=9948 Type=detector Pere=3696 x=-1631 y=12422 z=0
-  Angle=-5681  Bright=1  Bdown=1
-  Location=60  Adresse=531  Status=1
 
 Segment=3697 pre_curve
 Nport=2 Nperiph=0 Ninter=0
@@ -1934,7 +1832,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=4884 ConnecteAuSegment=4882
 
 Segment=4882 arc
-Nport=2 Nperiph=3 Ninter=1
+Nport=2 Nperiph=2 Ninter=1
 Xmin=23739 Ymin=9801 Xmax=27778 Ymax=12826
 StartAngle=2102 ArcAngle=6898 Rayon=3469 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1951,9 +1849,6 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=4901 Type=signal Pere=4882 x=25055 y=12303 z=0
   Angle=7469  Bright=0  Bdown=1
   Location=77  Adresse=0  Status=0
-  Periph=4902 Type=detector Pere=4882 x=25055 y=12303 z=0
-  Angle=7469  Bright=0  Bdown=1
-  Location=77  Adresse=0  Status=0
   Periph=4905 Type=actuator Pere=4882 x=26673 y=11326 z=0
   Angle=4308  Bright=0  Bdown=0
   Location=31  Adresse=819  Status=23
@@ -1961,7 +1856,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=0 MirrorParent=0
 
 Segment=4893 arc
-Nport=2 Nperiph=3 Ninter=3
+Nport=2 Nperiph=2 Ninter=3
 Xmin=23248 Ymin=10409 Xmax=27875 Ymax=13838
 StartAngle=2102 ArcAngle=6898 Rayon=4100 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -1976,9 +1871,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=0 Local=1 Connecte=1
   ConnecteAuPort=6237 ConnecteAuSegment=6236
   Periph=4903 Type=signal Pere=4893 x=25972 y=12716 z=0
-  Angle=5547  Bright=0  Bdown=1
-  Location=49  Adresse=0  Status=0
-  Periph=4904 Type=detector Pere=4893 x=25972 y=12716 z=0
   Angle=5547  Bright=0  Bdown=1
   Location=49  Adresse=0  Status=0
   Periph=7092 Type=actuator Pere=4893 x=27447 y=10881 z=0
@@ -2142,7 +2034,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=0 MirrorParent=0
 
 Segment=6239 straight
-Nport=2 Nperiph=5 Ninter=10
+Nport=2 Nperiph=3 Ninter=10
 Xmin=3248 Ymin=13038 Xmax=14048 Ymax=13838
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2159,15 +2051,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7042 Type=signal Pere=6239 x=4798 y=13438 z=0
   Angle=9000  Bright=0  Bdown=0
   Location=88  Adresse=63  Status=1
-  Periph=7043 Type=detector Pere=6239 x=4798 y=13438 z=0
-  Angle=9000  Bright=0  Bdown=0
-  Location=88  Adresse=535  Status=1
   Periph=7062 Type=detector Pere=6239 x=13597 y=13438 z=0
   Angle=9000  Bright=0  Bdown=0
   Location=0  Adresse=535  Status=1
-  Periph=7072 Type=signal Pere=6239 x=4798 y=13438 z=0
-  Angle=9000  Bright=0  Bdown=1
-  Location=88  Adresse=0  Status=0
   Periph=7073 Type=detector Pere=6239 x=4798 y=13438 z=0
   Angle=9000  Bright=0  Bdown=1
   Location=88  Adresse=535  Status=1
@@ -2288,7 +2174,7 @@ Adresse=31 Adresse2=0 Duree=5
   ConnecteAuPort=6256 ConnecteAuSegment=6254
 
 Segment=6281 arc
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-7803 Ymin=13725 Xmax=-3977 Ymax=16532
 StartAngle=-11271 ArcAngle=-2169 Rayon=9650 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2305,15 +2191,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7056 Type=detector Pere=6281 x=-4486 y=14171 z=0
   Angle=6626  Bright=1  Bdown=0
   Location=3  Adresse=534  Status=1
-  Periph=7097 Type=actuator Pere=6281 x=-5114 y=14470 z=0
-  Angle=6246  Bright=0  Bdown=1
-  Location=22  Adresse=827  Status=23
   Periph=9830 Type=signal Pere=6281 x=-5525 y=14698 z=0
   Angle=5967  Bright=0  Bdown=1
   Location=35  Adresse=79  Status=1
-  Periph=9831 Type=detector Pere=6281 x=-5525 y=14698 z=0
-  Angle=5967  Bright=0  Bdown=1
-  Location=35  Adresse=0  Status=0
 
 Segment=6284 pre_curve
 Nport=2 Nperiph=0 Ninter=0
@@ -2506,7 +2386,7 @@ Adresse=0 Adresse2=0 Duree=0
   Location=0  Adresse=533  Status=1
 
 Segment=6460 curve
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-17257 Ymin=16473 Xmax=-12896 Ymax=17947
 StartAngle=6000 ArcAngle=4200 Rayon=5031 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2523,15 +2403,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7022 Type=signal Pere=6460 x=-15752 y=17547 z=0
   Angle=8933  Bright=0  Bdown=0
   Location=69  Adresse=71  Status=1
-  Periph=7023 Type=detector Pere=6460 x=-15752 y=17547 z=0
-  Angle=8933  Bright=0  Bdown=0
-  Location=69  Adresse=0  Status=0
   Periph=7054 Type=detector Pere=6460 x=-15253 y=17516 z=0
   Angle=8363  Bright=1  Bdown=1
   Location=56  Adresse=533  Status=1
-  Periph=7096 Type=actuator Pere=6460 x=-15907 y=17546 z=0
-  Angle=9109  Bright=0  Bdown=0
-  Location=74  Adresse=831  Status=23
 
 Segment=6461 pre_curve
 Nport=2 Nperiph=0 Ninter=0
@@ -2664,7 +2538,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=6709 ConnecteAuSegment=6706
 
 Segment=6713 pre_curve
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=1318 Ymin=2467 Xmax=13616 Ymax=3267
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2681,18 +2555,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7038 Type=signal Pere=6713 x=2411 y=2867 z=0
   Angle=-9000  Bright=0  Bdown=1
   Location=6  Adresse=35  Status=1
-  Periph=7039 Type=detector Pere=6713 x=2411 y=2867 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=6  Adresse=0  Status=0
   Periph=7060 Type=detector Pere=6713 x=2411 y=2867 z=0
   Angle=-9000  Bright=1  Bdown=0
   Location=6  Adresse=520  Status=1
-  Periph=7061 Type=detector Pere=6713 x=8678 y=2867 z=0
-  Angle=-9000  Bright=0  Bdown=1
-  Location=60  Adresse=520  Status=1
 
 Segment=6714 curve
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=12816 Ymin=2467 Xmax=15756 Ymax=3692
 StartAngle=-9000 ArcAngle=2247 Rayon=5598 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2707,9 +2575,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=-15753 Local=1 Connecte=1
   ConnecteAuPort=6721 ConnecteAuSegment=6715
   Periph=7064 Type=signal Pere=6714 x=14051 y=2930 z=0
-  Angle=-8142  Bright=0  Bdown=0
-  Location=38  Adresse=0  Status=0
-  Periph=7065 Type=detector Pere=6714 x=14051 y=2930 z=0
   Angle=-8142  Bright=0  Bdown=0
   Location=38  Adresse=0  Status=0
 
@@ -2746,7 +2611,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=6725 ConnecteAuSegment=6723
 
 Segment=6723 curve
-Nport=2 Nperiph=5 Ninter=0
+Nport=2 Nperiph=3 Ninter=0
 Xmin=-5323 Ymin=6381 Xmax=-2206 Ymax=13128
 StartAngle=11403 ArcAngle=10346 Rayon=3908 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2763,21 +2628,15 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7036 Type=signal Pere=6723 x=-2792 y=12640 z=0
   Angle=11705  Bright=0  Bdown=1
   Location=2  Adresse=61  Status=1
-  Periph=7037 Type=detector Pere=6723 x=-2792 y=12640 z=0
-  Angle=11705  Bright=0  Bdown=1
-  Location=2  Adresse=0  Status=0
   Periph=7057 Type=detector Pere=6723 x=-2792 y=12640 z=0
   Angle=11904  Bright=1  Bdown=0
   Location=2  Adresse=517  Status=1
-  Periph=7058 Type=detector Pere=6723 x=-4803 y=8196 z=0
-  Angle=-16574  Bright=0  Bdown=1
-  Location=77  Adresse=517  Status=1
   Periph=7068 Type=actuator Pere=6723 x=-3282 y=12343 z=0
   Angle=12545  Bright=1  Bdown=1
   Location=11  Adresse=809  Status=23
 
 Segment=6724 pre_curve
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-4515 Ymin=5211 Xmax=-2818 Ymax=7181
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2792,9 +2651,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=-5251 Local=1 Connecte=1
   ConnecteAuPort=6726 ConnecteAuSegment=6723
   Periph=7066 Type=signal Pere=6724 x=-3241 y=5641 z=0
-  Angle=3749  Bright=0  Bdown=1
-  Location=2  Adresse=0  Status=0
-  Periph=7067 Type=detector Pere=6724 x=-3241 y=5641 z=0
   Angle=3749  Bright=0  Bdown=1
   Location=2  Adresse=0  Status=0
   Periph=7069 Type=actuator Pere=6724 x=-3294 y=5710 z=0
@@ -2824,7 +2680,7 @@ Adresse=21 Adresse2=0 Duree=2
   Location=0  Adresse=825  Status=23
 
 Segment=6800 arc
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-20782 Ymin=13306 Xmax=-18763 Ymax=16662
 StartAngle=13200 ArcAngle=4500 Rayon=3700 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2839,9 +2695,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=8700 Local=1 Connecte=1
   ConnecteAuPort=6804 ConnecteAuSegment=6803
   Periph=7016 Type=signal Pere=6800 x=-19544 y=15862 z=0
-  Angle=14056  Bright=0  Bdown=1
-  Location=19  Adresse=0  Status=0
-  Periph=7017 Type=detector Pere=6800 x=-19544 y=15862 z=0
   Angle=14056  Bright=0  Bdown=1
   Location=19  Adresse=0  Status=0
   Periph=7099 Type=actuator Pere=6800 x=-19290 y=16142 z=0
@@ -2913,7 +2766,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=6815 ConnecteAuSegment=6813
 
 Segment=6813 curve
-Nport=2 Nperiph=4 Ninter=1
+Nport=2 Nperiph=2 Ninter=1
 Xmin=-14612 Ymin=10363 Xmax=-6109 Ymax=14151
 StartAngle=13200 ArcAngle=-4159 Rayon=11636 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -2930,15 +2783,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7032 Type=signal Pere=6813 x=-10151 y=13140 z=0
   Angle=-7133  Bright=0  Bdown=0
   Location=56  Adresse=75  Status=1
-  Periph=7033 Type=detector Pere=6813 x=-10151 y=13140 z=0
-  Angle=-7133  Bright=0  Bdown=0
-  Location=56  Adresse=0  Status=0
   Periph=7050 Type=detector Pere=6813 x=-6538 y=13751 z=0
   Angle=-8945  Bright=1  Bdown=1
   Location=99  Adresse=538  Status=1
-  Periph=7051 Type=detector Pere=6813 x=-14209 y=10766 z=0
-  Angle=-4802  Bright=0  Bdown=0
-  Location=0  Adresse=538  Status=1
   x=-7681 y=13684 z=0
   MirrorZ=1000 MirrorParent=0
 
@@ -3141,7 +2988,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=6982 ConnecteAuSegment=6980
 
 Segment=6980 curve
-Nport=2 Nperiph=5 Ninter=0
+Nport=2 Nperiph=3 Ninter=0
 Xmin=-24168 Ymin=5680 Xmax=-15071 Ymax=16941
 StartAngle=13200 ArcAngle=16050 Rayon=6001 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3158,21 +3005,15 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7010 Type=signal Pere=6980 x=-23762 y=12345 z=0
   Angle=17748  Bright=0  Bdown=1
   Location=28  Adresse=65  Status=1
-  Periph=7011 Type=detector Pere=6980 x=-23762 y=12345 z=0
-  Angle=17748  Bright=0  Bdown=1
-  Location=28  Adresse=0  Status=0
   Periph=7044 Type=detector Pere=6980 x=-23042 y=14942 z=0
   Angle=15148  Bright=1  Bdown=0
   Location=12  Adresse=529  Status=1
-  Periph=7047 Type=detector Pere=6980 x=-22800 y=8813 z=0
-  Angle=-14701  Bright=0  Bdown=1
-  Location=50  Adresse=529  Status=1
   Periph=7093 Type=actuator Pere=6980 x=-23343 y=14299 z=0
   Angle=15831  Bright=0  Bdown=1
   Location=16  Adresse=822  Status=23
 
 Segment=6981 pre_curve
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-15871 Ymin=6137 Xmax=-11627 Ymax=8363
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3187,9 +3028,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=2250 Local=1 Connecte=1
   ConnecteAuPort=6983 ConnecteAuSegment=6980
   Periph=7008 Type=signal Pere=6981 x=-13002 y=7559 z=0
-  Angle=11250  Bright=0  Bdown=1
-  Location=28  Adresse=0  Status=0
-  Periph=7009 Type=detector Pere=6981 x=-13002 y=7559 z=0
   Angle=11250  Bright=0  Bdown=1
   Location=28  Adresse=0  Status=0
   Periph=9297 Type=actuator Pere=6981 x=-13032 y=7547 z=0
@@ -3213,7 +3051,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=6991 ConnecteAuSegment=6989
 
 Segment=6989 curve
-Nport=2 Nperiph=5 Ninter=0
+Nport=2 Nperiph=3 Ninter=0
 Xmin=-23705 Ymin=6799 Xmax=-16686 Ymax=14486
 StartAngle=16200 ArcAngle=11850 Rayon=5261 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3230,21 +3068,15 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7012 Type=signal Pere=6989 x=-23141 y=13762 z=0
   Angle=16567  Bright=0  Bdown=1
   Location=3  Adresse=67  Status=1
-  Periph=7013 Type=detector Pere=6989 x=-23141 y=13762 z=0
-  Angle=16567  Bright=0  Bdown=1
-  Location=3  Adresse=0  Status=0
   Periph=7045 Type=detector Pere=6989 x=-23141 y=13762 z=0
   Angle=16863  Bright=1  Bdown=0
   Location=3  Adresse=530  Status=1
-  Periph=7048 Type=detector Pere=6989 x=-20422 y=7767 z=0
-  Angle=-11687  Bright=0  Bdown=1
-  Location=68  Adresse=530  Status=1
   Periph=7094 Type=actuator Pere=6989 x=-23106 y=13892 z=0
   Angle=16421  Bright=0  Bdown=1
   Location=1  Adresse=823  Status=23
 
 Segment=6990 pre_curve
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-17486 Ymin=6887 Xmax=-11701 Ymax=8611
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3259,9 +3091,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=1050 Local=1 Connecte=1
   ConnecteAuPort=6992 ConnecteAuSegment=6989
   Periph=7006 Type=signal Pere=6990 x=-12866 y=8069 z=0
-  Angle=10050  Bright=0  Bdown=1
-  Location=15  Adresse=0  Status=0
-  Periph=7007 Type=detector Pere=6990 x=-12866 y=8069 z=0
   Angle=10050  Bright=0  Bdown=1
   Location=15  Adresse=0  Status=0
   Periph=9296 Type=actuator Pere=6990 x=-13089 y=8028 z=0
@@ -3285,7 +3114,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=7000 ConnecteAuSegment=6998
 
 Segment=6998 curve
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-23228 Ymin=7731 Xmax=-15702 Ymax=14897
 StartAngle=16200 ArcAngle=13053 Rayon=4863 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3302,18 +3131,12 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=7014 Type=signal Pere=6998 x=-22828 y=12942 z=0
   Angle=-17939  Bright=0  Bdown=1
   Location=14  Adresse=69  Status=1
-  Periph=7015 Type=detector Pere=6998 x=-22828 y=12942 z=0
-  Angle=-17939  Bright=0  Bdown=1
-  Location=14  Adresse=0  Status=0
   Periph=7046 Type=detector Pere=6998 x=-22828 y=12942 z=0
   Angle=-17684  Bright=1  Bdown=0
   Location=14  Adresse=537  Status=1
-  Periph=7095 Type=actuator Pere=6998 x=-22821 y=13256 z=0
-  Angle=17691  Bright=1  Bdown=1
-  Location=11  Adresse=824  Status=23
 
 Segment=6999 pre_curve
-Nport=2 Nperiph=3 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=-16502 Ymin=8102 Xmax=-5375 Ymax=13186
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3328,9 +3151,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=2253 Local=1 Connecte=1
   ConnecteAuPort=7001 ConnecteAuSegment=6998
   Periph=7034 Type=signal Pere=6999 x=-6172 y=12621 z=0
-  Angle=11253  Bright=0  Bdown=1
-  Location=3  Adresse=0  Status=0
-  Periph=7035 Type=detector Pere=6999 x=-6172 y=12621 z=0
   Angle=11253  Bright=0  Bdown=1
   Location=3  Adresse=0  Status=0
   Periph=7049 Type=detector Pere=6999 x=-15556 y=8728 z=0
@@ -3386,7 +3206,7 @@ Adresse=30 Adresse2=0 Duree=5
   MirrorZ=1000 MirrorParent=0
 
 Segment=8782 straight
-Nport=2 Nperiph=4 Ninter=0
+Nport=2 Nperiph=2 Ninter=0
 Xmin=7506 Ymin=12675 Xmax=12806 Ymax=13477
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3403,15 +3223,9 @@ Adresse=0 Adresse2=0 Duree=0
   Periph=8828 Type=signal Pere=8782 x=9528 y=13076 z=0
   Angle=-8997  Bright=0  Bdown=1
   Location=36  Adresse=73  Status=1
-  Periph=8829 Type=detector Pere=8782 x=9528 y=13076 z=0
-  Angle=-8997  Bright=0  Bdown=1
-  Location=36  Adresse=0  Status=0
   Periph=8830 Type=detector Pere=8782 x=9528 y=13076 z=0
   Angle=-8997  Bright=1  Bdown=0
   Location=36  Adresse=513  Status=1
-  Periph=8831 Type=actuator Pere=8782 x=8132 y=13075 z=0
-  Angle=-8997  Bright=0  Bdown=1
-  Location=5  Adresse=805  Status=23
 
 Segment=8800 straight
 Nport=2 Nperiph=0 Ninter=1
@@ -3450,7 +3264,7 @@ Adresse=0 Adresse2=0 Duree=0
   MirrorZ=1000 MirrorParent=0
 
 Segment=8823 straight
-Nport=2 Nperiph=3 Ninter=1
+Nport=2 Nperiph=2 Ninter=1
 Xmin=10465 Ymin=13355 Xmax=12815 Ymax=14156
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3465,9 +3279,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=-17996 Local=1 Connecte=1
   ConnecteAuPort=112 ConnecteAuSegment=110
   Periph=962 Type=signal Pere=8823 x=12374 y=13756 z=0
-  Angle=-8996  Bright=0  Bdown=1
-  Location=97  Adresse=0  Status=0
-  Periph=963 Type=detector Pere=8823 x=12374 y=13756 z=0
   Angle=-8996  Bright=0  Bdown=1
   Location=97  Adresse=0  Status=0
   Periph=9829 Type=actuator Pere=8823 x=11811 y=13756 z=0
@@ -3544,7 +3355,7 @@ Adresse=0 Adresse2=0 Duree=0
   ConnecteAuPort=9816 ConnecteAuSegment=9813
 
 Segment=9821 straight
-Nport=2 Nperiph=2 Ninter=0
+Nport=2 Nperiph=1 Ninter=0
 Xmin=-22448 Ymin=17290 Xmax=-20670 Ymax=18298
 StartAngle=0 ArcAngle=0 Rayon=0 Radius0=0
 Angle0=0 Angle=0 Lengthdev=0 Deltadev0=0
@@ -3559,9 +3370,6 @@ Adresse=0 Adresse2=0 Duree=0
   Angle=1201 Local=1 Connecte=1
   ConnecteAuPort=9825 ConnecteAuSegment=9824
   Periph=9827 Type=signal Pere=9821 x=-21349 y=17839 z=0
-  Angle=10200  Bright=0  Bdown=1
-  Location=28  Adresse=0  Status=0
-  Periph=9828 Type=detector Pere=9821 x=-21349 y=17839 z=0
   Angle=10200  Bright=0  Bdown=1
   Location=28  Adresse=0  Status=0
 

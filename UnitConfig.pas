@@ -6,7 +6,12 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
   MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd,
-  Grids ;
+  Grids
+
+  {$IF CompilerVersion >= 28.0}
+  ,Vcl.Themes
+  {$IFEND}
+  ;
 
 type
   TFormConfig = class(TForm)
@@ -77,7 +82,6 @@ type
     Memo1: TMemo;
     Memo2: TMemo;
     Memo3: TMemo;
-    Memo4: TMemo;
     GroupBox9: TGroupBox;
     GroupBox11: TGroupBox;
     LabelAdresse: TLabel;
@@ -118,7 +122,7 @@ type
     CheckInverse: TCheckBox;
     RadioButtonAccess: TRadioButton;
     CheckFenEt: TCheckBox;
-    GroupBox15: TGroupBox;
+    GroupBoxDivers: TGroupBox;
     EditNbDetDist: TEdit;
     Label31: TLabel;
     CheckBoxInitAig: TCheckBox;
@@ -355,6 +359,8 @@ type
     CheckBoxSombre: TCheckBox;
     ButtonCouleur: TButton;
     ColorDialogFond: TColorDialog;
+    LabelD11: TLabel;
+    ButtonPropage: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -420,7 +426,6 @@ type
     procedure EditDet4Change(Sender: TObject);
     procedure EditSuiv4Change(Sender: TObject);
     procedure EditSpecUniChange(Sender: TObject);
-    procedure EditAdrAigChange(Sender: TObject);
     procedure EditAigTripleChange(Sender: TObject);
     procedure EditPointe_BGChange(Sender: TObject);
     procedure EditDroit_BDChange(Sender: TObject);
@@ -538,6 +543,9 @@ type
     procedure EditDevieS2Change(Sender: TObject);
     procedure ButtonCouleurClick(Sender: TObject);
     procedure ColorDialogFondShow(Sender: TObject);
+    procedure ButtonPropageClick(Sender: TObject);
+    procedure EditAdrAigExit(Sender: TObject);
+    procedure EditAdrAigChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -550,6 +558,9 @@ type
     procedure tb_onChange(sender : TObject);
     procedure Bt_onclick(sender : Tobject);
     procedure tbCde_onchange(Sender : Tobject);
+    {$IF CompilerVersion >= 28.0}
+    procedure modif_ComboStyle(Sender : Tobject);
+    {$IFEND}
   end;
 
 const
@@ -601,6 +612,7 @@ EnvAigDccpp_ch='EnvAigDccpp';
 AdrBaseDetDccpp_ch='AdrBaseDetDccpp';
 AvecVerifIconesTCO_ch='AvecVerifIconesTCO';
 NomModuleCDM_ch='NomModuleCDM';
+Style_ch='Style';
 Nba_ch='NombreAdresses';
 nation_ch='Nation';
 Periph_ch='Periph';
@@ -634,7 +646,8 @@ var
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,IndexSignalclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
-  ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,compt_Ligne : integer;
+  ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
+  compt_Ligne,Style_aff,Ancien_Style : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
@@ -659,7 +672,9 @@ var
   TextBoxCde : array[1..19] of Tedit;
 
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
-  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP : Tlabel;
+  LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP,
+  LabelStyle : Tlabel;
+
   LabelDecCde : array[1..19] of TLabel;
 
   shape1,ShapeZ : Tshape;
@@ -668,7 +683,7 @@ var
   BoutonCom : Tbutton;
 
   ComboL1,ComboL2,ComboTS1,ComboTS2 : Array[1..10] of TComboBox;
-
+  ComboStyle : TcomboBox;
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
@@ -1717,7 +1732,7 @@ begin
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
   FormPrinc.FenRich.Font.Size:=TailleFonte;
-
+  writeln(fichierN,Style_ch+'=',Style_aff);
   writeln(fichierN,Protocole_ch+'=',protocole);
 
   writeln(fichierN,Verif_AdrXpressNet_ch+'=',Verif_AdrXpressNet);
@@ -2478,7 +2493,7 @@ var s,sa,SOrigine: string;
   repeat
     s:=lit_ligne;
     inc(Nligne);
-    //Affiche(s,ClLime);
+    //Affiche(s,ClLime);                
     //chaine:=s;
     if debugconfig then Affiche(s,ClLime);
     if (s<>'0') then
@@ -2503,6 +2518,7 @@ var s,sa,SOrigine: string;
       if erreur<>0 then Affiche('Erreur aiguillage '+intToSTR(adraig)+' ; caractère '+enregistrement[erreur]+' inconnu',clred);
       if debugConfig then Affiche('Adresse='+IntToSTR(adraig)+' enregistrement='+Enregistrement,clyellow);
       aiguillage[maxaiguillage].Adresse:=adraig;
+      aiguillage[maxaiguillage].AncienAdresse:=adraig;
       tablo_index_aiguillage[adrAig]:=maxaiguillage;   // stockage index avant tri
       aiguillage[maxaiguillage].AdroitB:='Z'; aiguillage[maxaiguillage].AdevieB:='Z';
       aiguillage[maxaiguillage].DdroitB:='Z'; aiguillage[maxaiguillage].DdevieB:='Z';
@@ -3171,6 +3187,18 @@ var s,sa,SOrigine: string;
         delete(s,i,length(sa));
         val(s,AvecRoulage,erreur);
         if avecRoulage=1 then Formprinc.roulage1.visible:=true;
+      end;
+
+      sa:=uppercase(Style_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,Style_aff,erreur);
+        {$IF CompilerVersion >= 28.0}
+        i:=length(TStyleManager.StyleNames);
+        if Style_Aff>i then Style_Aff:=i-1;
+        {$IFEND}
       end;
 
       sa:=uppercase(Fonte_ch)+'=';
@@ -4100,7 +4128,7 @@ begin
 
   if sombre then Formconfig.editAdrSig.Color:=couleurfond else FormConfig.EditAdrSig.Color:=clWindow;
 
-  aff_champs_signaux(index);   // affiche les champs du feu
+  aff_champs_signaux(index);   // affiche les champs du signal
   clicliste:=false;
 end;
 
@@ -4145,6 +4173,9 @@ begin
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditFiltrDet.text:=intToSTR(filtrageDet0);
 
+  {$IF CompilerVersion >= 28.0}
+  ComboStyle.itemIndex:=Style_Aff;
+  {$IFEND}
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
   editdebug.Text:=IntToSTR(debug);
@@ -4575,6 +4606,18 @@ begin
   until i>NbreDecPers;
 end;
 
+// ComboBox du changement de style (Delphi11)
+{$IF CompilerVersion >= 28.0}
+procedure TformConfig.modif_ComboStyle(Sender : Tobject);
+var i : integer;
+begin
+  if clicListe then exit;
+  i:=ComboStyle.ItemIndex;
+  // il faut changer le style dans la fenetre principale, sinon çà plante si on choisit windows.
+  Style_Aff:=i;
+end;
+{$IFEND}
+
 // textbox du protocole
 procedure TformConfig.tb_onChange(sender : TObject);
 var s,te : string;
@@ -4692,7 +4735,7 @@ var i,j,y,l,LongestLength,PixelLength : integer;
 begin
   if debug=1 then Affiche('Création fenêtre config',clLime);
   clicListe:=true;
-
+  position:=poMainFormCenter;
   cs:='ColorA='+IntToHex(couleurFond,6);  // pour rajouter aux couleurs personnalisées de la fenetre couleur
   colorDialogFond.CustomColors.Add(cs);
   ButtonCouleur.Hint:='Change la couleur de fond de toutes les fenêtres de Signaux_Complexes.'+#13+
@@ -4708,11 +4751,13 @@ begin
   clicListe:=false;
   ligneCherche:=0;
   Compt_ligne:=0;
-
   ConfigPrete:=true;
   richBranche.HideSelection:=false; // pour pouvoir copier coller la fenetre
   groupBox21.Top:=304;
   GroupBox21.Left:=8;
+  ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+                      'des aiguillages, des branches et des signaux'+#13+
+                      'si on a changé l''adresse d''un aiguillage';
   if debug=1 then Affiche('Fin création fenêtre config',clLime);
 
   EditNbreAdr.Text:='2';
@@ -5623,12 +5668,62 @@ begin
     onclick:=formconfig.cb_onclick;
   end;
 
+  // compilation avec D11----------------------------------------
+  {$IF CompilerVersion >= 28.0}
+  labelD11.Visible:=true;
+  //  Styles (Embarcadero Dephi11)
+  LabelStyle:=TLabel.Create(FormConfig.GroupBoxDivers);
+  with LabelStyle do
+  begin
+    Left:=10;Top:=CheckBoxVerifXpressNet.top+24;Width:=170;Height:=12;
+    caption:='Styles d''affichage';
+    name:='LabelStyle';
+    parent:=GroupBoxDivers;
+    hint:='Styles d''affichage';
+    ShowHint:=true;
+  end;
+  ComboStyle:=TComboBox.create(FormConfig.TabSheetDecodeurs);
+  with ComboStyle do
+  begin
+    Name:='ComboStyle'+intToSTR(i);
+    left:=130;Top:=LabelStyle.top-2;Width:=150;Height:=13;
+    text:='';
+    parent:=GroupBoxDivers;
+    itemIndex:=-1;
+    s:='Sélection du style d''affichage - Le style sera changé à la fermeture de la fenêtre';
+    Hint:=s;
+    ShowHint:=true;
+    visible:=true;
+    Style:=csDropDownList;
+    onChange:=formConfig.modif_ComboStyle;
+  end;
+
+  // remplir la combobox avec les styles disponibles
+  for s in TStyleManager.StyleNames do
+    ComboStyle.Items.Add(s);
+
+  ComboStyle.itemIndex:=Style_Aff;
+
+  CheckBoxSombre.Visible:=false;
+  ButtonCouleur.Visible:=false;
+
+  {$ELSE} //- Delphi7 -----------------------------------------
+  labelD11.Visible:=false;
+  GroupBoxDivers.Height:=180;
+  {$IFEND}
 
   {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
   else
     Affiche('Manque fichier "Image_Signaux.jpg"',clOrange);
   }
   ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
+
+  EditComUSB.Hint:='COMX:vitesse,parité,nombre de bits,bits de stop,protocole'+#13+
+                   'procotole = 0 : sans protocole, avec temporisation d''envoi (Genli, LZV200)'+#13+
+                   '          = 1 ou 3  : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
+                   '          = 2 : protocole matériel RTS-CTS sans temporisation d''envoi (Interfaces Lenz LI)'+#13+
+                   '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi';
+  EditComUSB.showHint:=true;
 
   ligneclicAig:=-1;
   AncLigneClicAig:=-1;
@@ -6276,7 +6371,7 @@ begin
     picture.Bitmap:=Select_dessin_Signal(Signaux[i].aspect);
   end;
 
-  if Signaux[i].contrevoie then inverse_image(formCOnfig.ImageSignal,Formprinc.ImageSignal20);
+  if Signaux[i].contrevoie then inverse_image(formConfig.ImageSignal,Formprinc.ImageSignal20);
 
   with formconfig do
   begin
@@ -6290,7 +6385,7 @@ begin
     decodeur:=Signaux[i].decodeur;
     ButtonConfigSR.Visible:=false;
 
-   case decodeur of
+    case decodeur of
     2,7 : ButtonConfigSR.Visible:=true;
     5 : ButtonConfigSR.Visible:=true ; // digikeijs
     6 : begin
@@ -6320,9 +6415,10 @@ begin
   if (decodeur<>6) and (decodeur<>10) then
       begin EditSpecUni.Visible:=false;LabelUni.Visible:=false;end;
 
+  // plus tard !!  if decodeur>=11 then ButtonConfigSR.Visible:=true;
 
-    d:=Signaux[i].aspect;
-    case d of
+  d:=Signaux[i].aspect;
+  case d of
     2 : ComboBoxAsp.ItemIndex:=0;
     3 : ComboBoxAsp.ItemIndex:=1;
     4 : ComboBoxAsp.ItemIndex:=2;
@@ -6330,178 +6426,170 @@ begin
     7 : ComboBoxAsp.ItemIndex:=4;
     9 : ComboBoxAsp.ItemIndex:=5;
     20 : ComboBoxAsp.ItemIndex:=11;
-    else
-      ComboBoxAsp.ItemIndex:=d-10+4;
-    end;
+  else
+    ComboBoxAsp.ItemIndex:=d-10+4;
+  end;
 
-    // affiche ou non les checkbox en fonction de l'aspect
-    if (((d=2) or (d>=5)) and (d<10)) or (d=20) then
-    begin
-      checkBoxFB.Visible:=true;
-      Label69.Visible:=true;
-      MemoBlanc.Visible:=true;
-    end
-    else
-    begin
-      checkBoxFB.Visible:=false;
-      Label69.Visible:=false;
-      MemoBlanc.Visible:=false;
-    end;
+  // affiche ou non les checkbox en fonction de l'aspect
+  if (((d=2) or (d>=5)) and (d<10)) or (d=20) then
+  begin
+    checkBoxFB.Visible:=true;
+    Label69.Visible:=true;
+    MemoBlanc.Visible:=true;
+  end
+  else
+  begin
+    checkBoxFB.Visible:=false;
+    Label69.Visible:=false;
+    MemoBlanc.Visible:=false;
+  end;
 
-    if d>2 then
-    begin
-      checkFVC.Visible:=true;
-      checkFRC.Visible:=true;
+  if d>2 then
+  begin
+    checkFVC.Visible:=true;
+    checkFRC.Visible:=true;
+     end
+  else
+  begin
+    checkFVC.Visible:=false;
+    checkFRC.Visible:=false;
+  end;
 
-    end
-    else
-    begin
-      checkFVC.Visible:=false;
-      checkFRC.Visible:=false;
-    end;
-
-    if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
-    if d=20 then
-    begin
-      CheckBoxVersContrevoie.Visible:=true;
-      CheckBoxContrevoie.Visible:=true;
-      CheckBoxContrevoie.Checked:=Signaux[i].contrevoie;
-      CheckBoxVersContrevoie.Checked:=Signaux[i].Verscontrevoie;
-
-      if Signaux[i].Btype_suiv1=Aig then s:='Permet d''afficher le chevron sur le signal si l''aiguillage '+intToSTR(Signaux[i].Adr_el_suiv1)+' est dévié'
+  if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
+  if d=20 then
+  begin
+    CheckBoxVersContrevoie.Visible:=true;
+    CheckBoxContrevoie.Visible:=true;
+    CheckBoxContrevoie.Checked:=Signaux[i].contrevoie;
+    CheckBoxVersContrevoie.Checked:=Signaux[i].Verscontrevoie;
+    if Signaux[i].Btype_suiv1=Aig then s:='Permet d''afficher le chevron sur le signal si l''aiguillage '+intToSTR(Signaux[i].Adr_el_suiv1)+' est dévié'
       else s:='Permet d''afficher le chevron sur le signal si son aiguillage est dévié;'+char(13)+'mais ce signal n''est pas suivi d''un aiguillage';
-      CheckBoxversContrevoie.Hint:=s;
-      CheckBoxFB.caption:='Avec demande Blanc rouge';
-      checkVerrouCarre.Caption:='verrouillable au rouge';
-      checkVerrouCarre.Hint:='Positionne le feu au rouge si aucun train n''est présent 3 cantons avant le signal';
-      checkFVC.visible:=false;
-      checkFRC.visible:=false;
-    end
-    else
+    CheckBoxversContrevoie.Hint:=s;
+    CheckBoxFB.caption:='Avec demande Blanc rouge';
+    checkVerrouCarre.Caption:='verrouillable au rouge';
+    checkVerrouCarre.Hint:='Positionne le feu au rouge si aucun train n''est présent 3 cantons avant le signal';
+    checkFVC.visible:=false;
+    checkFRC.visible:=false;
+  end
+  else
+  begin
+    CheckBoxVersContrevoie.Visible:=false;
+    CheckBoxContrevoie.Visible:=false;
+    CheckBoxFB.caption:='Avec demande feu blanc';
+    checkVerrouCarre.Caption:='verrouillable au carré';
+    checkVerrouCarre.Hint:='Positionne le feu au carré si aucun train n''est présent 3 cantons avant le signal';
+  end;
+
+  // signal normal
+  if (d<10) or (d>=20) then
+  begin
+    Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
+    label17.Width:=131;
+    LabelDetAss.visible:=true;
+    LabelElSuiv.visible:=true;
+    label43.Visible:=true;
+
+    EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
+    EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
+    Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
+    EditDet1.Text:=IntToSTR(Signaux[i].Adr_det1);
+    EditSuiv1.Text:=TypeEl_To_char(Signaux[i].Btype_suiv1)+IntToSTR(Signaux[i].Adr_el_suiv1);
+
+    EditSuiv1.Hint:=chaine_element(Signaux[i].Btype_suiv1,Signaux[i].Adr_el_suiv1);
+    j:=Signaux[i].Adr_det2;
+    if j<>0 then
     begin
-      CheckBoxVersContrevoie.Visible:=false;
-      CheckBoxContrevoie.Visible:=false;
-      CheckBoxFB.caption:='Avec demande feu blanc';
-      checkVerrouCarre.Caption:='verrouillable au carré';
-      checkVerrouCarre.Hint:='Positionne le feu au carré si aucun train n''est présent 3 cantons avant le signal';
-    end;
-
-    // signal normal
-    if (d<10) or (d>=20) then
+      Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(Signaux[i].Btype_suiv2)+IntToSTR(Signaux[i].Adr_el_suiv2);
+      EditSuiv2.Hint:=chaine_element(Signaux[i].Btype_suiv2,Signaux[i].Adr_el_suiv2);
+    end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;
+    j:=Signaux[i].Adr_det3;
+    if j<>0 then
     begin
-      Label17.Caption:='Conditions supplémentaires d''affichage du carré par les aiguillages :';
-      label17.Width:=131;
-      LabelDetAss.visible:=true;
-      LabelElSuiv.visible:=true;
-      label43.Visible:=true;
-      
-      EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
-      EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
-      Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
-      EditDet1.Text:=IntToSTR(Signaux[i].Adr_det1);
-      EditSuiv1.Text:=TypeEl_To_char(Signaux[i].Btype_suiv1)+IntToSTR(Signaux[i].Adr_el_suiv1);
-    
-      EditSuiv1.Hint:=chaine_element(Signaux[i].Btype_suiv1,Signaux[i].Adr_el_suiv1);
-      j:=Signaux[i].Adr_det2;
-      if j<>0 then 
-      begin
-        Editdet2.Text:=IntToSTR(j);EditSuiv2.Text:=TypeEl_To_char(Signaux[i].Btype_suiv2)+IntToSTR(Signaux[i].Adr_el_suiv2);
-        EditSuiv2.Hint:=chaine_element(Signaux[i].Btype_suiv2,Signaux[i].Adr_el_suiv2);
-      end else begin EditDet2.Text:='';EditSuiv2.Text:='';EditSuiv2.Hint:='';end;
-      j:=Signaux[i].Adr_det3;
-      if j<>0 then
-      begin
-        EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(Signaux[i].Btype_suiv3)+IntToSTR(Signaux[i].Adr_el_suiv3);
-        EditSuiv3.Hint:=chaine_element(Signaux[i].Btype_suiv3,Signaux[i].Adr_el_suiv3);
-      end 
-      else begin EditDet3.Text:='';EditSuiv3.Text:='';EditSuiv3.Hint:='';end;
-      j:=Signaux[i].Adr_det4;
-      if j<>0 then 
-      begin
-        EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(Signaux[i].Btype_suiv4)+IntToSTR(Signaux[i].Adr_el_suiv4);
-        EditSuiv4.Hint:=chaine_element(Signaux[i].Btype_suiv4,Signaux[i].Adr_el_suiv4);
-      end
-      else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;
-
-      checkVerrouCarre.Checked:=Signaux[i].VerrouCarre;
-      checkBoxFB.Checked:=Signaux[i].FeuBlanc;
-      checkFVC.Checked:=Signaux[i].checkFV;
-      checkFRC.Checked:=Signaux[i].checkFR;
-
-      // conditions supplémentaires du carré par aiguillages
-      l:=1;
-      repeat
-        nc:=Length(Signaux[i].condcarre[l])-1 ;
-        if nc<>-1 then
-        begin
-          s:='';
-          for k:=1 to nc do
-          begin
-            s:=s+'A'+IntToSTR(Signaux[i].condcarre[l][k].Adresse)+Signaux[i].condcarre[l][k].PosAig;
-            if k<nc then s:=s+',';
-          end;
-          MemoCarre.Lines.Add(s);
-        end;
-        inc(l);
-      until (nc<=0) or (l>6);
-      // scrolle le MemoCarre sur la première ligne
-      MemoCarre.SelStart:=0;
-      MemoCarre.Perform(EM_SCROLLCARET,0,0);
-
-       // conditions supplémentaires du feu blanc par aiguillages
-      l:=1;
-      repeat
-        nc:=Length(Signaux[i].condFeuBlanc[l])-1 ;
-        if nc<>-1 then
-        begin
-          s:='';
-          for k:=1 to nc do
-          begin
-            s:=s+'A'+IntToSTR(Signaux[i].condFeuBlanc[l][k].Adresse)+Signaux[i].condFeuBlanc[l][k].PosAig;
-            if k<nc then s:=s+',';
-          end;
-          MemoBlanc.Lines.Add(s);
-        end;
-        inc(l);
-      until (nc<=0) or (l>6);
-      // scrolle le MemoCarre sur la première ligne
-      MemoBlanc.SelStart:=0;
-      MemoBlanc.Perform(EM_SCROLLCARET,0,0);
-
+      EditDet3.Text:=IntToSTR(j);EditSuiv3.Text:=TypeEl_To_char(Signaux[i].Btype_suiv3)+IntToSTR(Signaux[i].Adr_el_suiv3);
+      EditSuiv3.Hint:=chaine_element(Signaux[i].Btype_suiv3,Signaux[i].Adr_el_suiv3);
     end
-    else
-    begin // directionnel
-      Label17.Caption:='Conditions d''affichage du feu directionnel :';
-      label17.Width:=131;
-      label43.Visible:=false;
-      LabelDetAss.visible:=false;
-      LabelElSuiv.visible:=false;
-      EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
-      EditSuiv1.Visible:=false;EditSuiv2.Visible:=false;EditSuiv3.Visible:=false;EditSuiv4.Visible:=false;
-      CheckVerrouCarre.Visible:=false;
-      checkFVC.visible:=false;
-      checkFRC.visible:=false;
-
-      Label24.Visible:=false; Label25.Visible:=false;Label26.Visible:=false;Label27.Visible:=false;
-
-      // conditions d'affichage du signal directionnel
-      L:=Signaux[i].aspect-10; //nombre de feux du signal directionnel
-      for p:=1 to L+1 do
+    else begin EditDet3.Text:='';EditSuiv3.Text:='';EditSuiv3.Hint:='';end;
+    j:=Signaux[i].Adr_det4;
+    if j<>0 then
+    begin
+      EditDet4.Text:=IntToSTR(j);EditSuiv4.Text:=TypeEl_To_char(Signaux[i].Btype_suiv4)+IntToSTR(Signaux[i].Adr_el_suiv4);
+      EditSuiv4.Hint:=chaine_element(Signaux[i].Btype_suiv4,Signaux[i].Adr_el_suiv4);
+    end
+    else begin EditDet4.Text:='';EditSuiv4.Text:='';EditSuiv4.Hint:='';end;
+       checkVerrouCarre.Checked:=Signaux[i].VerrouCarre;
+    checkBoxFB.Checked:=Signaux[i].FeuBlanc;
+    checkFVC.Checked:=Signaux[i].checkFV;
+    checkFRC.Checked:=Signaux[i].checkFR;
+       // conditions supplémentaires du carré par aiguillages
+    l:=1;
+    repeat
+      nc:=Length(Signaux[i].condcarre[l])-1 ;
+      if nc<>-1 then
       begin
         s:='';
-        nc:=Length(Signaux[i].AigDirection[p])-1;
         for k:=1 to nc do
         begin
-          s:=s+'A'+IntToSTR(Signaux[i].AigDirection[p][k].adresse) + Signaux[i].AigDirection[p][k].posaig;
+          s:=s+'A'+IntToSTR(Signaux[i].condcarre[l][k].Adresse)+Signaux[i].condcarre[l][k].PosAig;
           if k<nc then s:=s+',';
         end;
         MemoCarre.Lines.Add(s);
       end;
-      // scrolle le MemoCarre sur la première ligne
-      MemoCarre.SelStart:=0;
-      MemoCarre.Perform(EM_SCROLLCARET,0,0);
+      inc(l);
+    until (nc<=0) or (l>6);
+    // scrolle le MemoCarre sur la première ligne
+    MemoCarre.SelStart:=0;
+    MemoCarre.Perform(EM_SCROLLCARET,0,0);
+        // conditions supplémentaires du feu blanc par aiguillages
+    l:=1;
+    repeat
+      nc:=Length(Signaux[i].condFeuBlanc[l])-1 ;
+      if nc<>-1 then
+      begin
+        s:='';
+        for k:=1 to nc do
+        begin
+          s:=s+'A'+IntToSTR(Signaux[i].condFeuBlanc[l][k].Adresse)+Signaux[i].condFeuBlanc[l][k].PosAig;
+          if k<nc then s:=s+',';
+        end;
+        MemoBlanc.Lines.Add(s);
+      end;
+      inc(l);
+    until (nc<=0) or (l>6);
+    // scrolle le MemoCarre sur la première ligne
+    MemoBlanc.SelStart:=0;
+    MemoBlanc.Perform(EM_SCROLLCARET,0,0);
+     end
+  else
+  begin // directionnel
+    Label17.Caption:='Conditions d''affichage du feu directionnel :';
+    label17.Width:=131;
+    label43.Visible:=false;
+    LabelDetAss.visible:=false;
+    LabelElSuiv.visible:=false;
+    EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
+    EditSuiv1.Visible:=false;EditSuiv2.Visible:=false;EditSuiv3.Visible:=false;EditSuiv4.Visible:=false;
+    CheckVerrouCarre.Visible:=false;
+    checkFVC.visible:=false;
+    checkFRC.visible:=false;
+    Label24.Visible:=false; Label25.Visible:=false;Label26.Visible:=false;Label27.Visible:=false;
+    // conditions d'affichage du signal directionnel
+    L:=Signaux[i].aspect-10; //nombre de feux du signal directionnel
+    for p:=1 to L+1 do
+    begin
+     s:='';
+     nc:=Length(Signaux[i].AigDirection[p])-1;
+      for k:=1 to nc do
+      begin
+        s:=s+'A'+IntToSTR(Signaux[i].AigDirection[p][k].adresse) + Signaux[i].AigDirection[p][k].posaig;
+        if k<nc then s:=s+',';
+      end;
+      MemoCarre.Lines.Add(s);
     end;
+    // scrolle le MemoCarre sur la première ligne
+    MemoCarre.SelStart:=0;
+    MemoCarre.Perform(EM_SCROLLCARET,0,0);
   end;
+end;
 
   clicListe:=false;
 end;
@@ -6778,7 +6866,7 @@ begin
       CheckPnPulse.Checked:=trouve;
 
       // par actionneur
-      if Tablo_PN[i].voie[1].ActFerme<>0 then
+      if Tablo_PN[i].voie[1].detZ2F=0 then
       begin
         RadioButtonSimple.Checked:=true;
         RadioButtonZone.Checked:=false;
@@ -8224,93 +8312,6 @@ begin
 end;
 
 
-procedure TFormConfig.EditAdrAigChange(Sender: TObject);
-  var s : string;
-    nEtat,i,vide,erreur,index,adr2 : integer;
-    modele: TEquipement;
-    c : char;
-begin
-  if clicliste then exit;
-  if ligneclicAig<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
-  with Formconfig do
-  begin
-    s:=EditAdrAig.Text;
-    Val(s,i,erreur);
-    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
-    begin
-      EditAdrAig.Color:=clred;
-      LabelInfo.caption:='Erreur adresse Aiguillage ';exit;
-    end;
-
-    index:=ligneclicAig+1;
-    if index=0 then exit;
-
-    modele:=aiguillage[index].modele;
-    // si normal ou triple
-    if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
-    //  vérifier si l'adresse de l'aiguillage existe déja
-
-    if (aiguillage[Index_Aig(i)].modele<>rien) then
-    begin
-      EditAdrAig.Color:=clred;
-      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déjà - ne sera pas écrasé' ;
-      exit;
-    end;
-
-    if sombre then editAdrAig.Color:=couleurfond else EditAdrAig.Color:=clWindow;
-    LabelInfo.caption:=' ';
-
-    if (modele=aig) or (modele=triple) or (modele=crois) then
-    begin
-      EditAdrAig.Color:=clWindow;
-      LabelInfo.caption:=' ';
-      aiguillage[index].adresse:=i;
-      aiguillage[index].modifie:=true;
-      tablo_index_aiguillage[i]:=index;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[ligneclicAig]:=s;
-      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
-    end;
-
-    if (modele=tjd) or (modele=tjs) then
-    begin
-      clicListe:=true;
-      nEtat:=aiguillage[index].EtatTJD;
-      if nEtat=4 then
-      begin
-      // modifier les champs P1 et P2 avec la nouvelle adresse
-        val(editP1.Text,vide,erreur);
-        if erreur<>0 then c:=editP1.text[erreur] else c:='D';
-        editP1.Text:=IntToSTR(i)+c;
-        val(editP2.Text,vide,erreur);
-        if erreur<>0 then c:=editP2.text[erreur] else c:='D';
-        editP2.Text:=IntToSTR(i)+c;
-      end;
-      clicListe:=false;
-
-      aiguillage[index].adresse:=i;
-      tablo_index_aiguillage[i]:=index;
-      aiguillage[index].modifie:=true;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[index-1]:=s;
-      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
-
-      // modif homologue
-      adr2:=aiguillage[index].Ddroit;
-      index:=index_aig(adr2);
-      if index<>0 then
-      begin
-        aiguillage[index].dDroit:=i;
-        aiguillage[index].dDevie:=i;
-        s:=encode_aig(index);
-        formconfig.ListBoxAig.items[index-1]:=s;
-      end;
-      ListBoxSig.selected[ligneClicSig]:=true;
-    end;
-  end;
-end;
-
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
 var indexTCO,x,y,i,index,aspect,adresseFeu : integer;
     s : string;
@@ -8797,8 +8798,17 @@ begin
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
-  formconfig.GroupBoxRadio.Visible:=false;
-  formconfig.LabelInfo.caption:='';
+  with formConfig do
+  begin
+    GroupBoxPNA.Visible:=true;
+    GroupBoxPNZ.Visible:=false;
+
+    RadioButtonSimple.Checked:=true;
+    RadioButtonZone.Checked:=false;
+
+    GroupBoxRadio.Visible:=false;
+    LabelInfo.caption:='';
+  end;
   LigneCliqueePN:=NbrePN-1;
   AncLigneCliqueePN:=LigneCliqueePN;
   tablo_PN[lignecliqueePN+1].Pulse:=1;
@@ -11056,8 +11066,8 @@ begin
          detect:=NbMaxDet;
          code:=false;
        end;
-       BrancheN[i,j].adresse:=detect;          // adresse
-       BrancheN[i,j].btype:=det;// ident détecteur
+       BrancheN[i,j].adresse:=detect;      // adresse
+       BrancheN[i,j].btype:=det;           // ident détecteur
        detecteur[detect].NumBranche:=i;    // detecteur[] est indexé par le détecteur
        detecteur[detect].IndexBranche:=j;
 
@@ -11434,6 +11444,13 @@ begin
     formCDF.showmodal;
     formCDF.close;
   end;
+
+  if decodeur>=11 then
+  begin
+    FormConfig.PageControl.ActivePage:=TabSheetDecodeurs;
+    ComboBoxDecodeurPerso.ItemIndex:=decodeur-11;
+  end;
+
   ListBoxSig.selected[ligneClicSig]:=true;
   clicListe:=false;
 end;
@@ -11730,6 +11747,7 @@ var i,adr,cmd,erreur : integer;
 begin
   i:=ligneCliqueePN+1;
   if i<1 then exit;
+  // pilotage DCC
   if Tablo_PN[i].TypeCde=0 then
   begin
     val(editAdrFerme.Text,adr,erreur);if erreur<>0 then exit;
@@ -11740,6 +11758,7 @@ begin
     aff_acc:=false;
   end
   else
+  // par socket
   begin
     cmd:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
     cmd:=com_socket(cmd);           // si cmd ou socket
@@ -12686,7 +12705,7 @@ end;
 
 
 procedure TFormConfig.ComboBoxDecodeurPersoChange(Sender: TObject);
-var it,i : integer;
+var it,i,k : integer;
     s: string;
 begin
   if affevt then Affiche('Evt ComboBoxDecodeurPerso',clyellow);
@@ -12708,14 +12727,16 @@ begin
 
     decodeur_pers[decCourant].nom:=s;
     decodeur[NbDecodeurdeBase+DecCourant-1]:=s;
-    ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;
+
+    k:=comBoBoxDec.ItemIndex;
+    ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;   // combobox du décodeur, onglet signaux  - change son itemindex
+    ComboBoxDec.ItemIndex:=k;
 
     //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
     for i:=1 to NbreSignaux do
     begin
       if Signaux[i].decodeur=NbDecodeurdeBase+decCourant-1 then Maj_Hint_Signal(i);
     end;
-
   end;
 
   EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
@@ -13675,6 +13696,271 @@ procedure TFormConfig.ColorDialogFondShow(Sender: TObject);
 begin
   s:='Couleur de fond de Signaux_complexes';
   SetWindowText(ColorDialogFond.Handle,pchar(s));
+end;
+
+procedure TFormConfig.ButtonPropageClick(Sender: TObject);
+var i,adresse,AncienAdresse,AdresseBr,v,erreur : integer;
+    typ : tEquipement;
+    s,Nb : string;
+begin
+  adresse:=aiguillage[ligneclicAig+1].Adresse;
+  if adresse=0 then exit;
+  index:=Index_Aig(Adresse);
+  AncienAdresse:=aiguillage[index].AncienAdresse;
+  if Adresse=AncienAdresse then exit;
+  
+  Affiche('Propagation de l''adresse '+intToSTR(adresse)+' en remplacement de l''ancienne adresse '+intToSTR(AncienAdresse),clOrange);
+
+  // --------- aiguillages -----------
+  for i:=1 to maxaiguillage do
+  begin
+    typ:=aiguillage[i].modele;
+    if (typ=aig) or (typ=triple) then
+    begin
+      if aiguillage[i].ADroit=AncienAdresse then
+      begin
+        aiguillage[i].ADroit:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' droit',clyellow);
+        config_modifie:=true;
+      end;
+      if aiguillage[i].ADevie=AncienAdresse then
+      begin
+        aiguillage[i].ADevie:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' dévié',clyellow);
+        config_modifie:=true;
+      end;
+      if aiguillage[i].APointe=AncienAdresse then
+      begin
+        aiguillage[i].APointe:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' pointe',clyellow);
+        config_modifie:=true;
+      end;
+    end;
+    if typ=triple then if aiguillage[index].AdrTriple=AncienAdresse then
+      begin
+        aiguillage[i].AdrTriple:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' triple',clyellow);
+        config_modifie:=true;
+      end;
+    if (typ=tjd) or (typ=tjs) or (typ=crois) then
+    begin
+      if aiguillage[i].ADroit=AncienAdresse then
+      begin
+        aiguillage[i].ADroit:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' Adroit',clyellow);
+        config_modifie:=true;
+      end;
+      if aiguillage[i].ADevie=AncienAdresse then
+      begin
+        aiguillage[i].ADevie:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' Ddevie',clyellow);
+        config_modifie:=true;
+      end;
+      if aiguillage[i].DDroit=AncienAdresse then
+      begin
+        aiguillage[i].DDroit:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' Ddroit',clyellow);
+        config_modifie:=true;
+      end;
+      if aiguillage[i].DDevie=AncienAdresse then
+      begin
+        aiguillage[i].DDevie:=adresse;
+        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' Ddevie',clyellow);
+        config_modifie:=true;
+      end;
+    end;
+  end;
+
+  // réaffecte la listebox aiguillages
+  formconfig.ListBoxAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    formConfig.ListBoxAig.Items.AddObject(s, Pointer(clYellow));
+    Aiguillage[i].modifie:=false;
+  end;
+  formconfig.ListBoxAig.itemindex:=0;
+
+  // branches ----------------------------------
+  for i:=1 to NbreBranches do
+  begin
+    Nb:='';v:=0;
+    s:=Branche[i];
+    repeat
+      v:=posEX(',',s,v+1);
+      if s[1]='A' then
+      begin
+        delete(s,1,1);
+        val(s,adresseBr,erreur);
+        if adresseBr=ancienAdresse then
+        begin
+          Affiche('Changement dans branche '+intToSTR(i),clYellow);
+          AdresseBr:=Adresse;
+          config_modifie:=true;
+        end;
+        Nb:=Nb+'A'+intToSTR(adresseBr)+',';
+      end
+      else
+      begin
+        val(s,adresseBr,erreur);
+        Nb:=Nb+intToSTR(adresseBr)+',';
+      end;
+
+      v:=pos(',',s);
+      delete(s,1,v);
+
+    until (v=0);
+    delete(Nb,length(nb),1);
+    branche[i]:=nb;
+    compile_branche(nb,i);
+  end;
+
+  clicListe:=true;
+  RichBranche.clear;
+  for i:=1 to NbreBranches do
+  begin
+    s:=Branche[i];
+    RichBranche.Lines.Add(s);
+    RE_ColorLine(RichBranche,RichBranche.lines.count-1,ClAqua);
+  end;
+  With RichBranche do
+  begin
+    SelStart:=0;
+    Perform(EM_SCROLLCARET,0,0);
+  end;
+
+  // --------- signaux
+  for i:=1 to NbreSignaux do
+  begin
+    if (signaux[i].Adr_el_suiv1=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    begin
+      signaux[i].Adr_el_suiv1:=adresse;
+      Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
+      config_modifie:=true;
+    end;  
+    if (signaux[i].Adr_el_suiv2=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    begin
+      signaux[i].Adr_el_suiv2:=adresse;
+      Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
+      config_modifie:=true;
+    end;  
+    if (signaux[i].Adr_el_suiv3=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    begin
+      signaux[i].Adr_el_suiv3:=adresse;
+      Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
+      config_modifie:=true;
+    end;  
+    if (signaux[i].Adr_el_suiv4=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    begin
+      signaux[i].Adr_el_suiv4:=adresse;
+      Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
+      config_modifie:=true;
+    end;  
+  end;
+  
+  clicListe:=false;
+end;
+
+procedure change_adr_aig;
+var s : string;
+    nEtat,i,vide,erreur,index,adr2 : integer;
+    modele: TEquipement;
+    c : char;
+begin
+  if clicliste then exit;
+  if ligneclicAig<0 then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  with Formconfig do
+  begin
+    s:=EditAdrAig.Text;
+    Val(s,i,erreur);
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
+    begin
+      EditAdrAig.Color:=clred;
+      LabelInfo.caption:='Erreur adresse Aiguillage ';exit;
+    end;
+
+    index:=ligneclicAig+1;
+    if index=0 then exit;
+
+    modele:=aiguillage[index].modele;
+    // si normal ou triple
+    if (erreur<>0) or (i>MaxAcc) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
+    //  vérifier si l'adresse de l'aiguillage existe déja
+
+    if (aiguillage[Index_Aig(i)].modele<>rien) then
+    begin
+      EditAdrAig.Color:=clred;
+      LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déjà - ne sera pas écrasé' ;
+      exit;
+    end;
+
+    if sombre then editAdrAig.Color:=couleurfond else EditAdrAig.Color:=clWindow;
+    LabelInfo.caption:=' ';
+
+    if (modele=aig) or (modele=triple) or (modele=crois) then
+    begin
+      EditAdrAig.Color:=clWindow;
+      LabelInfo.caption:=' ';
+      aiguillage[index].adresse:=i;
+      aiguillage[index].modifie:=true;
+      tablo_index_aiguillage[i]:=index;
+      s:=encode_aig(index);
+      formconfig.ListBoxAig.items[ligneclicAig]:=s;
+      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
+    end;
+
+    if (modele=tjd) or (modele=tjs) then
+    begin
+      clicListe:=true;
+      nEtat:=aiguillage[index].EtatTJD;
+      if nEtat=4 then
+      begin
+      // modifier les champs P1 et P2 avec la nouvelle adresse
+        val(editP1.Text,vide,erreur);
+        if erreur<>0 then c:=editP1.text[erreur] else c:='D';
+        editP1.Text:=IntToSTR(i)+c;
+        val(editP2.Text,vide,erreur);
+        if erreur<>0 then c:=editP2.text[erreur] else c:='D';
+        editP2.Text:=IntToSTR(i)+c;
+      end;
+      clicListe:=false;
+
+      aiguillage[index].adresse:=i;
+      tablo_index_aiguillage[i]:=index;
+      aiguillage[index].modifie:=true;
+      s:=encode_aig(index);
+      formconfig.ListBoxAig.items[index-1]:=s;
+      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
+
+      // modif homologue
+      adr2:=aiguillage[index].Ddroit;
+      index:=index_aig(adr2);
+      if index<>0 then
+      begin
+        aiguillage[index].dDroit:=i;
+        aiguillage[index].dDevie:=i;
+        s:=encode_aig(index);
+        formconfig.ListBoxAig.items[index-1]:=s;
+      end;
+      ListBoxSig.selected[ligneClicSig]:=true;
+    end;
+  end;
+end;
+
+procedure TFormConfig.EditAdrAigExit(Sender: TObject);
+begin
+  exit;
+  change_adr_aig;
+end;
+
+
+procedure TFormConfig.EditAdrAigChange(Sender: TObject);
+var i : integer;
+begin
+  i:=ligneclicAig+1;
+  if (i<1) or (i>MaxAiguillage) then exit;
+  change_adr_aig;
 end;
 
 end.

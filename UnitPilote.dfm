@@ -1,6 +1,6 @@
 object FormPilote: TFormPilote
-  Left = 464
-  Top = 227
+  Left = 465
+  Top = 228
   BorderStyle = bsDialog
   Caption = 'Pilotage'
   ClientHeight = 350

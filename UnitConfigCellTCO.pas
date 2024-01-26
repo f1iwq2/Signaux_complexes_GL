@@ -457,6 +457,7 @@ var i : integer;
     c : tcomponent;
 begin
   // fenetre toujours dessus
+  position:=poMainFormCenter;
   if affevt then Affiche('FormConfCellTCO create',clyellow);
   actualize:=false;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);

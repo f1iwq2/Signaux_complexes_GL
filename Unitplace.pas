@@ -546,10 +546,9 @@ begin
 end;
 
 procedure TFormPlace.FormCreate(Sender: TObject);
-var c : tcomponent;
-    i : integer;
 begin
   if debug=1 then Affiche('Début création fenetre Place',clLime);
+  position:=poMainFormCenter;
   PlaceAffiche:=true;
   couleurs_place;
   if debug=1 then Affiche('Fin création fenetre Place',clLime);

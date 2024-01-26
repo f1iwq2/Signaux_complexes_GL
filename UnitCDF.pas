@@ -116,8 +116,7 @@ begin
 end;
 
 procedure TFormCDF.FormActivate(Sender: TObject);
-var i,erreur : integer;
-    c : tcomponent;
+var erreur : integer;
 begin
   Val(FormConfig.EditAdrSig.text,Adresse,erreur);
   index:=index_Signal(Adresse);
@@ -206,7 +205,7 @@ begin
   case Signaux[i].aspect of
   // feux de signalisation
    2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1);
-   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,AncienEtat,1);
+   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1);
    4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1);
    5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1);
    7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1);
@@ -487,6 +486,7 @@ end;
 
 procedure TFormCDF.FormCreate(Sender: TObject);
 begin
+  position:=poMainFormCenter;
   if debug=1 then Affiche('Fin création fenetre CDF',clLime);
   couleurs_cdf;
   if debug=1 then Affiche('Fin création fenetre CDF',clLime);

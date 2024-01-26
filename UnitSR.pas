@@ -482,8 +482,8 @@ end;
 
 procedure TFormSR.FormCreate(Sender: TObject);
 var i : integer;
-    c : tcomponent;
 begin
+  position:=poMainFormCenter;
   for i:=0 to 19 do
   begin
     ComboBoxAdr1.items.add(etats[i]);

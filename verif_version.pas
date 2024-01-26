@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion : boolean;
   date_creation,nombre_tel : string;
 
-Const  Version='8.38';  // sert à la comparaison de la version publiée
+Const  Version='8.4';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
@@ -85,8 +85,8 @@ begin
         if i<>0 then
         case i of
         12007 : Affiche('Erreur de résolution DNS',clred);
-        12037 : Affiche('Erreur validité de certificat',clred);
-        12157 : Affiche('Erreur canal sécurisé SSL 2.0',clred);
+        12037 : Affiche('Erreur validité de certificat - Mettre windows à jour',clred);
+        12157 : Affiche('Erreur canal sécurisé SSL 2.0 - Mettre windows à jour',clred);
         else affiche('Erreur '+intToSTR(i),clred);
         end;
         if Assigned(hService) then

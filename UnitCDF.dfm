@@ -1,6 +1,6 @@
 object FormCDF: TFormCDF
-  Left = 368
-  Top = 141
+  Left = 369
+  Top = 142
   BorderStyle = bsDialog
   Caption = 'Configuration du d'#233'codeur CDF'
   ClientHeight = 466

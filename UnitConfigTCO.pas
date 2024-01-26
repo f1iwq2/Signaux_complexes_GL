@@ -550,6 +550,7 @@ var i : integer;
     c : tcomponent;
 begin
   if debug=1 then Affiche('Création fenetre configTCO',clLime);
+  position:=poMainFormCenter;
   for i:=0 to stringGridTCO.RowCount - 1 do
   with stringGridTCO do
   begin
