@@ -582,6 +582,7 @@ procedure Tourne90G(indexTCO : integer);
 procedure Tourne90D(indexTCO : integer);
 procedure Maj_TCO(indexTCO,Adresse : integer);
 procedure Vertical(indexTCO : integer);
+procedure Vertical180(indexTCO : integer);
 procedure signalG(indexTCO : integer);
 procedure signalD(indexTCO : integer);
 procedure lire_fichier_tco(indexTCO : integer);
@@ -1026,8 +1027,7 @@ begin
   //Affiche(GetCurrentDir,clYellow);
   {$I+}
   try
-   // assign(fichier,fichierTCO[indexTCO]);
-    assign(fichier,NomfichierTCO[indexTCO]);
+    assignFile(fichier,NomfichierTCO[indexTCO]);
     reset(fichier);
   except
     init_tco(indexTCO);
@@ -8615,7 +8615,7 @@ begin
     if (aspect=3) and (Oriente=1) and (pied=1) then begin xt:=round(45*frxGlob[indexTCO]);yt:=1;end;  // signal à gauche
     if (aspect=3) and (Oriente=2) and (pied=1) then begin xt:=round(10*frxGlob[indexTCO]);yt:=round(40*fryGlob[indexTCO]);end;   // signal à G
     if (aspect=3) and (Oriente=2) and (pied=2) then begin xt:=round(20*frxGlob[indexTCO]);yt:=0;end;   // signal à droite
-    if (aspect=3) and (Oriente=3) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;
+    if (aspect=3) and (Oriente=3) then begin xt:=round(40*frxGlob[indexTCO]);yt:=round(36*fryGlob[indexTCO]);end;
     if (aspect=3) and (Oriente=4) and (pied=1) then begin xt:=round(35*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
     if (aspect=3) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
@@ -13051,7 +13051,7 @@ begin
   tourne90D(indextco);
 end;
 
-procedure vertical_180(indexTCO : integer);
+procedure vertical180(indexTCO : integer);
 var BImage ,aspect,Adresse : integer;
 begin
   if actualize then exit;
@@ -13153,7 +13153,7 @@ begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
   c:=c.GetParentComponent;           // scrollBox
   c:=c.GetParentComponent;           // formTCO
-  vertical_180(index_tco(c));
+  vertical180(index_tco(c));
 end;
 
 procedure TFormTCO.TrackBarZoomChange(Sender: TObject);
@@ -13256,6 +13256,7 @@ begin
   ScrollBox.Height:=ClientHeight-32;
   BandeauMasque:=true;
   defocusControl(ButtonMasquer,true);
+  Bandeau.Caption:='Afficher le bandeau';
 end;
 
 procedure TFormTCO.ImageTCODblClick(Sender: TObject);
@@ -13331,7 +13332,7 @@ begin
       efface_entoure(indexTCO);
       SelectionAffichee[indexTCO]:=false;
 
-      if (Signaux[i].aspect>10) and (Signaux[i].aspect<20) then
+      if isDirectionnel(i) then
       begin
         GroupBox1.Visible:=false;
         GroupBox2.Visible:=false;

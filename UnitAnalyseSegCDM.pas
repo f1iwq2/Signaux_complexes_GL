@@ -334,7 +334,7 @@ var i,erreur : integer;
     s,s2: string;
 begin
    //------------------------Lecture inter----------------------------
-  if debugAnalyse then AfficheDebug('Compile inter',clWhite);
+  if debugAnalyse then AfficheDebug('Compile intersections',clWhite);
   inc(nInter);
   segment[nSeg-1].ninter:=nInter;
   setlength(segment[nSeg-1].inter,ninter);
@@ -1814,7 +1814,7 @@ begin
     nInter:=Segment[i].nInter;
     for j:=0 to nInter-1 do
     begin
-      s:='Inter '+Segment[i].Inter[j].typ;
+      s:='Intersection '+Segment[i].Inter[j].typ;
       //Affiche(s,ClYellow);
     end;
   end;

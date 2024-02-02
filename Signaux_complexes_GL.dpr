@@ -23,6 +23,7 @@ uses
 begin
   // la form TCO ne doit pas etre créée ici!!
   Application.Initialize;
+  Application.Title := 'Signaux complexes GL';
   Application.CreateForm(TFormPrinc, FormPrinc);
   Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormPilote, FormPilote);

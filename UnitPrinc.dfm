@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 107
-  Top = 204
+  Left = 113
+  Top = 196
   Width = 1149
-  Height = 689
+  Height = 699
   Anchors = [akLeft, akTop, akRight]
   Caption = 'Signaux complexes'
   Color = clBtnFace
@@ -13,14 +13,13 @@ object FormPrinc: TFormPrinc
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poScreenCenter
   Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
     1133
-    631)
+    641)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,7 +1428,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 609
+    Top = 619
     Width = 1133
     Height = 22
     Panels = <
@@ -1591,8 +1590,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox3: TGroupBox
-      Left = 489
-      Top = 104
+      Left = 497
+      Top = 64
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -1980,8 +1979,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBox2: TGroupBox
-      Left = 609
-      Top = 104
+      Left = 721
+      Top = 56
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2039,24 +2038,6 @@ object FormPrinc: TFormPrinc
         Width = 33
         Height = 21
         TabOrder = 3
-      end
-    end
-    object PanelBouton: TPanel
-      Left = 952
-      Top = 200
-      Width = 64
-      Height = 67
-      BorderStyle = bsSingle
-      Color = clGreen
-      TabOrder = 6
-      Visible = False
-      object SpeedButton1: TSpeedButton
-        Left = 0
-        Top = 0
-        Width = 57
-        Height = 57
-        Caption = 'bouton maison'
-        Flat = True
       end
     end
   end

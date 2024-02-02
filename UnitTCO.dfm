@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 65
-  Top = 39
+  Left = 73
+  Top = 79
   Width = 1212
   Height = 661
   VertScrollBar.Visible = False
@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1204
-    610)
+    1196
+    602)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -955,7 +955,7 @@ object FormTCO: TFormTCO
       Left = 8
       Top = 3
       Width = 225
-      Height = 125
+      Height = 134
       Caption = 'Configuration cellule'
       Font.Charset = ANSI_CHARSET
       Font.Color = clBackground
@@ -965,8 +965,8 @@ object FormTCO: TFormTCO
       ParentFont = False
       TabOrder = 4
       object Label41: TLabel
-        Left = 64
-        Top = 20
+        Left = 72
+        Top = 18
         Width = 103
         Height = 16
         Caption = 'Adresse de l'#39#233'l'#233'ment: '
@@ -978,7 +978,7 @@ object FormTCO: TFormTCO
         ParentFont = False
       end
       object Label71: TLabel
-        Left = 72
+        Left = 80
         Top = 36
         Width = 93
         Height = 16
@@ -991,7 +991,7 @@ object FormTCO: TFormTCO
         ParentFont = False
       end
       object Label230: TLabel
-        Left = 88
+        Left = 48
         Top = 56
         Width = 27
         Height = 16
@@ -1005,7 +1005,7 @@ object FormTCO: TFormTCO
       end
       object Label65: TLabel
         Left = 40
-        Top = 74
+        Top = 80
         Width = 75
         Height = 16
         Caption = 'position du texte'
@@ -1018,13 +1018,13 @@ object FormTCO: TFormTCO
       end
       object ShapeCoulFond: TShape
         Left = 200
-        Top = 98
+        Top = 106
         Width = 18
         Height = 18
       end
       object EditAdrElement: TEdit
-        Left = 176
-        Top = 20
+        Left = 184
+        Top = 14
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -1038,8 +1038,8 @@ object FormTCO: TFormTCO
         OnClick = EditAdrElementClick
       end
       object EditTypeImage: TEdit
-        Left = 176
-        Top = 36
+        Left = 184
+        Top = 34
         Width = 33
         Height = 21
         Font.Charset = ANSI_CHARSET
@@ -1053,8 +1053,8 @@ object FormTCO: TFormTCO
         OnChange = EditTypeImageChange
       end
       object ButtonFonte: TButton
-        Left = 32
-        Top = 58
+        Left = 8
+        Top = 56
         Width = 41
         Height = 17
         Caption = 'Fonte'
@@ -1062,9 +1062,9 @@ object FormTCO: TFormTCO
         OnClick = ButtonFonteClick
       end
       object EditTexte: TEdit
-        Left = 120
+        Left = 80
         Top = 54
-        Width = 89
+        Width = 137
         Height = 21
         Font.Charset = ANSI_CHARSET
         Font.Color = clBackground
@@ -1077,7 +1077,7 @@ object FormTCO: TFormTCO
       end
       object ComboRepr: TComboBox
         Left = 120
-        Top = 72
+        Top = 78
         Width = 89
         Height = 21
         Style = csDropDownList
@@ -1101,7 +1101,7 @@ object FormTCO: TFormTCO
       end
       object CheckPinv: TCheckBox
         Left = 8
-        Top = 98
+        Top = 106
         Width = 113
         Height = 17
         Hint = 'Cocher si l'#39'aiguillage est repr'#233'sent'#233' invers'#233
@@ -1119,7 +1119,7 @@ object FormTCO: TFormTCO
       end
       object ButtonCoulFond: TButton
         Left = 120
-        Top = 98
+        Top = 106
         Width = 81
         Height = 18
         Caption = 'Couleur de fond'

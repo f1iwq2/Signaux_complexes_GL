@@ -64,7 +64,6 @@ type
     MemoEvtDet: TRichEdit;
     CheckDetSIg: TCheckBox;
     CheckBoxPrinc: TCheckBox;
-    ButtonReserve: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -104,7 +103,6 @@ type
     procedure MemoEvtDetChange(Sender: TObject);
     procedure CheckDetSIgClick(Sender: TObject);
     procedure CheckBoxPrincClick(Sender: TObject);
-    procedure ButtonReserveClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -116,7 +114,7 @@ var
   NivDebug,signalDebug,compt_erreur,positionErreur,LigneErreur : integer;
   AffSignal,AffAffect,initform,AffFD,debug_dec_sig,debugTCO,DebugAffiche,AFfDetSIg,
   ProcPrinc : boolean;
-  N_event_det : integer; // index du dernier évènement (de 1 à 20)
+  N_event_det : integer;   // index du dernier évènement (de 1 à 20)
   N_Event_tick : integer ; // dernier index
 
 
@@ -579,7 +577,7 @@ begin
     end;
     if protocole=2 then AfficheDebug('D10: Commande DCC++ pas encore implantée',clred);
   end;
-  
+
   Self.ActiveControl:=nil;
 end;
 
@@ -623,7 +621,7 @@ begin
       s:=checksum(s);
       envoi(s);     // envoi de la trame et attente Ack
     end;
-    if protocole=2 then AfficheDebug('D11: Commande DCC++ pas encore implantée',clred) 
+    if protocole=2 then AfficheDebug('D11: Commande DCC++ pas encore implantée',clred)
   end;
 
   Self.ActiveControl:=nil;
@@ -656,18 +654,5 @@ begin
   ProcPrinc:=checkBoxPrinc.checked;
 end;
 
-procedure TFormDebug.ButtonReserveClick(Sender: TObject);
-begin
-  {Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
-  ancdebug:=NivDebug;
-  NivDebug:=3;
-  i:=index_feu(adr);
-  feux[i].Adr_det1;
-  Cond_Carre(Adr);
-  d
-  reserve_canton(
-  NivDebug:=AncDebug;     }
-  reserve_canton(524,521,1,1,3);
-end;
 
 end.

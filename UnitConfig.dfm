@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -744,12 +744,12 @@ object FormConfig: TFormConfig
         Left = 16
         Top = 96
         Width = 273
-        Height = 209
+        Height = 225
         Caption = 'Au d'#233'marrage de Signaux_Complexes '
         TabOrder = 1
         object Label13: TLabel
           Left = 8
-          Top = 160
+          Top = 176
           Width = 242
           Height = 13
           Caption = 'Nom du fichier LAY '#224' utiliser au d'#233'marrage de CDM'
@@ -814,7 +814,7 @@ object FormConfig: TFormConfig
         end
         object EditLAY: TEdit
           Left = 8
-          Top = 176
+          Top = 192
           Width = 249
           Height = 21
           Hint = 'Nom du LAY avec .lay'
@@ -985,7 +985,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox8: TGroupBox
         Left = 16
-        Top = 312
+        Top = 328
         Width = 273
         Height = 97
         Caption = 'Services CommIP CDM Rail'
@@ -1047,7 +1047,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 224
         Width = 297
-        Height = 217
+        Height = 201
         Caption = 'Divers'
         TabOrder = 5
         object Label31: TLabel
@@ -1156,7 +1156,7 @@ object FormConfig: TFormConfig
         object CheckBoxSombre: TCheckBox
           Left = 8
           Top = 132
-          Width = 209
+          Width = 137
           Height = 17
           Hint = 
             'Red'#233'marrer signaux_complexes pour prise en compte apr'#232's changeme' +
@@ -1179,8 +1179,8 @@ object FormConfig: TFormConfig
         end
       end
       object ButtonPFCDM: TButton
-        Left = 32
-        Top = 416
+        Left = 336
+        Top = 430
         Width = 241
         Height = 25
         Hint = 
@@ -1330,7 +1330,6 @@ object FormConfig: TFormConfig
         Height = 49
         BevelInner = bvLowered
         BevelKind = bkFlat
-        BorderStyle = bsNone
         Lines.Strings = (
           '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet. '
           'COM de 1 '#224' 255 - Si COMX : Signaux complexes d'#233'tecte le '
@@ -1342,27 +1341,25 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 64
         Width = 297
-        Height = 73
+        Height = 81
         BevelInner = bvLowered
         BevelKind = bkFlat
-        BorderStyle = bsNone
         Lines.Strings = (
           '2. Valeur de temporisation entre deux octets transf'#233'r'#233's '#224' '
           'l'#39'interface. Elle peut '#234'tre nulle. '
-          'Pour les interfaces s'#233'rie sans protocole (0) comme le GENLI, il '
-          'est conseill'#233' de mettre 30 (ms). Pour les interfaces avec '
+          'Pour les interfaces s'#233'rie sans protocole (0) comme le GENLI, '
+          'il est conseill'#233' de mettre 30 (ms). Pour les interfaces avec '
           'protocole mat'#233'riel RTS-CTS (2) cette variable est ignor'#233'e.')
         ReadOnly = True
         TabOrder = 4
       end
       object Memo3: TMemo
         Left = 312
-        Top = 144
+        Top = 152
         Width = 297
         Height = 89
         BevelInner = bvLowered
         BevelKind = bkFlat
-        BorderStyle = bsNone
         Lines.Strings = (
           '3. Valeur maximale par tranche de 100 ms qui d'#233'finit le temps '
           'd'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '

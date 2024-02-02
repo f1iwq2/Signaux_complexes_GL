@@ -13,6 +13,7 @@ object FormPlace: TFormPlace
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
+  Position = poMainFormCenter
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress

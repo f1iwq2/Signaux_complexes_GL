@@ -131,6 +131,7 @@ begin
   EditDir6.Text:=IntToSTR(placement[6].detdir);
   Edit6.text:=intToSTR(placement[6].detecteur);
   CheckInverse6.Checked:=placement[6].inverse;
+  defocusControl(ButtonInitAig,false);
 end;
 
 procedure TFormPlace.ButtonPlaceClick(Sender: TObject);

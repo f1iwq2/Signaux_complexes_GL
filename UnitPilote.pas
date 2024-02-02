@@ -297,7 +297,7 @@ procedure TFormPilote.ButtonPiloteClick(Sender: TObject);
 var i,index,e : integer;
 begin
   index:=index_Signal(AdrPilote);
-  if (Signaux[index].aspect>10) and (Signaux[index].aspect<20 )then
+  if isDirectionnel(index) then
   begin
     val(EditNbreFeux.Text,i,e);
     Signaux[0].EtatSignal:=i;
@@ -404,7 +404,7 @@ begin
   LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
   Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
 
-  if (Signaux[i].aspect>10) and (Signaux[i].aspect<20) then
+  if isDirectionnel(i) then
   begin
     // signaux directionnels
     GroupBox1.Visible:=false;

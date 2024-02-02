@@ -147,7 +147,7 @@ object FormConfCellTCO: TFormConfCellTCO
       Left = 8
       Top = 152
       Width = 249
-      Height = 73
+      Height = 57
       Caption = 'Orientation du signal'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -172,9 +172,9 @@ object FormConfCellTCO: TFormConfCellTCO
         OnClick = RadioButtonHGClick
       end
       object RadioButtonV: TRadioButton
-        Left = 16
-        Top = 48
-        Width = 169
+        Left = 136
+        Top = 16
+        Width = 105
         Height = 17
         Caption = 'Vertical'
         Font.Charset = DEFAULT_CHARSET
@@ -201,10 +201,19 @@ object FormConfCellTCO: TFormConfCellTCO
         TabOrder = 2
         OnClick = RadioButtonHDClick
       end
+      object RadioButtonV180: TRadioButton
+        Left = 136
+        Top = 32
+        Width = 97
+        Height = 17
+        Caption = 'Vertical 180'#176
+        TabOrder = 3
+        OnClick = RadioButtonV180Click
+      end
     end
     object GroupBoxImplantation: TGroupBox
       Left = 8
-      Top = 232
+      Top = 224
       Width = 249
       Height = 57
       Caption = 'Implantation du signal'
@@ -291,8 +300,8 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 5
     end
     object GroupBoxAction: TGroupBox
-      Left = 8
-      Top = 80
+      Left = 16
+      Top = 240
       Width = 249
       Height = 129
       Caption = 'Action'

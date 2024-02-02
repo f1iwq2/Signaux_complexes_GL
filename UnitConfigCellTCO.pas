@@ -41,6 +41,7 @@ type
     EditAdrSortie: TEdit;
     EditEtat: TEdit;
     Labela: TLabel;
+    RadioButtonV180: TRadioButton;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -67,6 +68,7 @@ type
     procedure EditAdrSortieChange(Sender: TObject);
     procedure EditEtatChange(Sender: TObject);
     procedure RadioButtonActionClick(Sender: TObject);
+    procedure RadioButtonV180Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -261,10 +263,12 @@ begin
   with formConfCellTCO do
   begin
     RadioButtonV.Enabled:=false;
+    RadioButtonV180.Enabled:=false;
     RadioButtonHG.Enabled:=false;
     RadioButtonHD.Enabled:=false;
     RadioButtonG.Enabled:=false;
     RadioButtonD.Enabled:=false;
+
     ImagePaletteCC.transparent:=false;
   end;
 
@@ -274,6 +278,7 @@ begin
     with formConfCellTCO do
     begin
       RadioButtonV.Enabled:=false;
+      RadioButtonV180.Enabled:=false;
       RadioButtonHG.Enabled:=false;
       RadioButtonHD.Enabled:=false;
       RadioButtonG.Enabled:=false;
@@ -316,28 +321,37 @@ begin
       with formconfCellTCO do
       begin
         RadioButtonV.Enabled:=true;
+        RadioButtonV180.Enabled:=true;
         RadioButtonHG.Enabled:=true;
         RadioButtonHD.Enabled:=true;
         RadioButtonG.Enabled:=true;
         RadioButtonD.Enabled:=true;
         oriente:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Feuoriente;
-        if oriente=1 then
-        begin
+        case oriente of
+        1: begin
           RadioButtonV.checked:=true;
+          RadioButtonV180.checked:=false;
           RadioButtonHG.checked:=false;
           RadioButtonHD.checked:=false;
         end;
-        if oriente=2 then
-        begin
+        2: begin
           RadioButtonV.checked:=false;
+          RadioButtonV180.checked:=false;
           RadioButtonHG.checked:=true;
           RadioButtonHD.checked:=false;
         end;
-        if oriente=3 then
-        begin
+        3: begin
           RadioButtonV.checked:=false;
+          RadioButtonV180.checked:=false;
           RadioButtonHG.checked:=false;
           RadioButtonHD.checked:=true;
+        end;
+        4: begin
+          RadioButtonV.checked:=false;
+          RadioButtonV180.checked:=true;
+          RadioButtonHG.checked:=false;
+          RadioButtonHD.checked:=false;
+        end;
         end;
 
         PiedFeu:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].PiedFeu;
@@ -540,6 +554,11 @@ end;
 procedure TFormConfCellTCO.RadioButtonVClick(Sender: TObject);
 begin
   Vertical(indexTCOcourant);
+end;
+
+procedure TFormConfCellTCO.RadioButtonV180Click(Sender: TObject);
+begin
+  Vertical180(indexTCOCourant);
 end;
 
 procedure TFormConfCellTCO.RadioButtonHGClick(Sender: TObject);
@@ -896,6 +915,8 @@ begin
 end;
 
 begin
+
+
 end.
 
 

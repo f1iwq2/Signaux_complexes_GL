@@ -193,7 +193,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonSigSuivClick
       end
       object ButtonCanSuivSig: TButton
-        Left = 56
+        Left = 72
         Top = 16
         Width = 65
         Height = 49
@@ -216,7 +216,7 @@ object FormDebug: TFormDebug
         TabOrder = 2
       end
       object ButtonCP: TButton
-        Left = 120
+        Left = 152
         Top = 16
         Width = 81
         Height = 49
@@ -226,7 +226,7 @@ object FormDebug: TFormDebug
         OnClick = ButtonCPClick
       end
       object Button2: TButton
-        Left = 200
+        Left = 248
         Top = 16
         Width = 57
         Height = 49
@@ -234,16 +234,6 @@ object FormDebug: TFormDebug
         TabOrder = 4
         WordWrap = True
         OnClick = Button2Click
-      end
-      object ButtonReserve: TButton
-        Left = 256
-        Top = 16
-        Width = 49
-        Height = 49
-        Caption = 'R'#233'serve canton signal'
-        TabOrder = 5
-        WordWrap = True
-        OnClick = ButtonReserveClick
       end
     end
     object GroupBox4: TGroupBox
