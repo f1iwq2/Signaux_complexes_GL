@@ -556,7 +556,7 @@ var
   OldBmp : TBitMap;
   PScrollBoxTCO : TScrollBox;
 
-  // liste des variables par tco
+  // liste des variables par tco de 1 à 10
   largeurCelld2,HauteurCelld2,NbCellulesTCO,NbreCellX,NbreCellY,LargeurCell,HauteurCell,
   Xentoure,Yentoure,XclicCell,YclicCell,EcranTCO,clGrille,clFond,ClAllume,ClVoies,
   ClCanton,clPiedSignal,ClQuai,ClBarriere,ZoomInit,Xinit,Yinit : array[1..10] of integer;
@@ -8485,14 +8485,18 @@ begin
             2 : yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);   // bas
       end;  }
 
-      i:=detecteur[adresse].AdrTrain;
-      if i<>0 then
+
       begin
-        i:=index_train_adresse(i);
-        if i<>0 then s:=s+' '+trains[i].nom_train;
+        i:=detecteur[adresse].AdrTrain;
+        if i<>0 then
+        begin
+          i:=index_train_adresse(i);   // trouve le nom du train par son adresse
+          if i<>0 then s:=s+' '+trains[i].nom_train;
+        end
+        else if roulage then s:=s+'                         ';
+        //PCanvasTCO[indexTCO].font.Size:=(LargeurCell[indexTCO] div 13)+4  ;
+        TextOut(xOrg+xt,Yorg+yt,s+' ');
       end;
-      //PCanvasTCO[indexTCO].font.Size:=(LargeurCell[indexTCO] div 13)+4  ;
-      TextOut(xOrg+xt,Yorg+yt,s+' ');
     end;
   end;
 
@@ -8966,6 +8970,12 @@ procedure efface_trajet(det,train : integer);
 var i,j,t,n,Bimage,x,y : integer;
     trouve : boolean;
 begin
+  if Train>Max_Trains then
+  begin
+    Affiche('Erreur 85: paramètre maximal train atteint',clred);
+    exit;
+  end;
+
   for t:=1 to NbreTCO do
   begin
     n:=Trace_Train[t].train[train].nombre;
@@ -12608,6 +12618,7 @@ begin
     YclicCellInserer:=YClic;
     EditAdrElement.Text:=IntToSTR(tco[indextco,XClicCellInserer,YClicCellInserer].Adresse);
     EditTypeImage.Text:=IntToSTR(tco[indextco,XClicCellInserer,YClicCellInserer].Bimage);
+    CheckPinv.Checked:=tco[indextco,XClicCellInserer,YClicCellInserer].inverse;
   end;
 end;
 

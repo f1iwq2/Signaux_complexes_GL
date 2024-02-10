@@ -37,6 +37,7 @@ implementation
 {$R *.dfm}
 
 procedure commande_simple;
+var i : integer;
 begin
   with formAig do
   begin
@@ -50,9 +51,22 @@ begin
 
     ButtonDev.Left:=48;
     ButtonDroit.Left:=216;
+
+    i:=Index_aig(Aiguille);
+    i:=aiguillage[i].position;
+    if i=const_devie then
+    begin
+      buttonDev.SetFocus;
+    end;
+    if i=const_droit then
+    begin
+      buttonDroit.SetFocus;
+    end;
+
   end;
 end;
 
+// activation de la form, l'aiguillage à piloter est dans la variable globale "Aiguille"
 procedure TFormAig.FormActivate(Sender: TObject);
 var i : integer;
     s : string;

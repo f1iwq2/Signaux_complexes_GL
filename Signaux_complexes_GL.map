@@ -1,104 +1,104 @@
 
  Start         Length     Name                   Class
- 0001:00000000 00193814H .text                   CODE
- 0002:00000000 00002C58H .data                   DATA
- 0002:00002C58 045E3399H .bss                    BSS
+ 0001:00000000 001AF198H .text                   CODE
+ 0002:00000000 00002CB0H .data                   DATA
+ 0002:00002CB0 045E33F1H .bss                    BSS
 
 
 Detailed map of segments
 
- 0001:00000000 00005EC7 C=CODE     S=.text    G=(none)   M=System   ACBP=A9
- 0001:00005EC8 00000140 C=CODE     S=.text    G=(none)   M=SysInit  ACBP=A9
- 0001:00006008 00000108 C=CODE     S=.text    G=(none)   M=Types    ACBP=A9
- 0001:00006110 00000F10 C=CODE     S=.text    G=(none)   M=Windows  ACBP=A9
- 0001:00007020 00000038 C=CODE     S=.text    G=(none)   M=Messages ACBP=A9
- 0001:00007058 00000338 C=CODE     S=.text    G=(none)   M=SysConst ACBP=A9
- 0001:00007390 00006E28 C=CODE     S=.text    G=(none)   M=SysUtils ACBP=A9
- 0001:0000E1B8 0000081B C=CODE     S=.text    G=(none)   M=VarUtils ACBP=A9
- 0001:0000E9D4 0000809A C=CODE     S=.text    G=(none)   M=Variants ACBP=A9
- 0001:00016A70 000001A0 C=CODE     S=.text    G=(none)   M=RTLConsts ACBP=A9
- 0001:00016C10 0000083C C=CODE     S=.text    G=(none)   M=TypInfo  ACBP=A9
- 0001:0001744C 00000358 C=CODE     S=.text    G=(none)   M=ActiveX  ACBP=A9
- 0001:000177A4 0000A7EA C=CODE     S=.text    G=(none)   M=Classes  ACBP=A9
- 0001:00021F90 00000370 C=CODE     S=.text    G=(none)   M=Consts   ACBP=A9
- 0001:00022300 00009BFB C=CODE     S=.text    G=(none)   M=Graphics ACBP=A9
- 0001:0002BEFC 00000124 C=CODE     S=.text    G=(none)   M=Math     ACBP=A9
- 0001:0002C020 000002B8 C=CODE     S=.text    G=(none)   M=Contnrs  ACBP=A9
- 0001:0002C2D8 00000198 C=CODE     S=.text    G=(none)   M=CommCtrl ACBP=A9
- 0001:0002C470 00000787 C=CODE     S=.text    G=(none)   M=MultiMon ACBP=A9
- 0001:0002CBF8 00000038 C=CODE     S=.text    G=(none)   M=Imm      ACBP=A9
- 0001:0002CC30 00000FF8 C=CODE     S=.text    G=(none)   M=HelpIntfs ACBP=A9
- 0001:0002DC28 00000058 C=CODE     S=.text    G=(none)   M=WinSpool ACBP=A9
- 0001:0002DC80 000010C8 C=CODE     S=.text    G=(none)   M=Printers ACBP=A9
- 0001:0002ED48 0000031F C=CODE     S=.text    G=(none)   M=FlatSB   ACBP=A9
- 0001:0002F068 000003F0 C=CODE     S=.text    G=(none)   M=SyncObjs ACBP=A9
- 0001:0002F458 000009BB C=CODE     S=.text    G=(none)   M=UxTheme  ACBP=A9
- 0001:0002FE14 00000038 C=CODE     S=.text    G=(none)   M=RichEdit ACBP=A9
- 0001:0002FE4C 00000038 C=CODE     S=.text    G=(none)   M=ToolWin  ACBP=A9
- 0001:0002FE84 00000040 C=CODE     S=.text    G=(none)   M=ShellAPI ACBP=A9
- 0001:0002FEC4 00000038 C=CODE     S=.text    G=(none)   M=RegStr   ACBP=A9
- 0001:0002FEFC 00000058 C=CODE     S=.text    G=(none)   M=WinInet  ACBP=A9
- 0001:0002FF54 00000038 C=CODE     S=.text    G=(none)   M=UrlMon   ACBP=A9
- 0001:0002FF8C 0000006C C=CODE     S=.text    G=(none)   M=ShlObj   ACBP=A9
- 0001:0002FFF8 00000060 C=CODE     S=.text    G=(none)   M=CommDlg  ACBP=A9
- 0001:00030058 00000038 C=CODE     S=.text    G=(none)   M=Dlgs     ACBP=A9
- 0001:00030090 000036D1 C=CODE     S=.text    G=(none)   M=Dialogs  ACBP=A9
- 0001:00033764 00004ADA C=CODE     S=.text    G=(none)   M=ExtCtrls ACBP=A9
- 0001:00038240 00000090 C=CODE     S=.text    G=(none)   M=ComStrs  ACBP=A9
- 0001:000382D0 000007A0 C=CODE     S=.text    G=(none)   M=Clipbrd  ACBP=A9
- 0001:00038A70 00000128 C=CODE     S=.text    G=(none)   M=StrUtils ACBP=A9
- 0001:00038B98 00003821 C=CODE     S=.text    G=(none)   M=Buttons  ACBP=A9
- 0001:0003C3BC 00000038 C=CODE     S=.text    G=(none)   M=ExtDlgs  ACBP=A9
- 0001:0003C3F4 00000068 C=CODE     S=.text    G=(none)   M=IniFiles ACBP=A9
- 0001:0003C45C 00000068 C=CODE     S=.text    G=(none)   M=Registry ACBP=A9
- 0001:0003C4C4 0000006C C=CODE     S=.text    G=(none)   M=Mapi     ACBP=A9
- 0001:0003C530 00000058 C=CODE     S=.text    G=(none)   M=ExtActns ACBP=A9
- 0001:0003C588 00000038 C=CODE     S=.text    G=(none)   M=ListActns ACBP=A9
- 0001:0003C5C0 00009948 C=CODE     S=.text    G=(none)   M=ComCtrls ACBP=A9
- 0001:00045F08 00000EA0 C=CODE     S=.text    G=(none)   M=Themes   ACBP=A9
- 0001:00046DA8 0000C698 C=CODE     S=.text    G=(none)   M=StdCtrls ACBP=A9
- 0001:00053440 00000168 C=CODE     S=.text    G=(none)   M=StdActns ACBP=A9
- 0001:000535A8 00000D1F C=CODE     S=.text    G=(none)   M=WinHelpViewer ACBP=A9
- 0001:000542C8 00011403 C=CODE     S=.text    G=(none)   M=Controls ACBP=A9
- 0001:000656CC 00001292 C=CODE     S=.text    G=(none)   M=ActnList ACBP=A9
- 0001:00066960 00001B9C C=CODE     S=.text    G=(none)   M=ImgList  ACBP=A9
- 0001:000684FC 000066E1 C=CODE     S=.text    G=(none)   M=Menus    ACBP=A9
- 0001:0006EBE0 0000CF8C C=CODE     S=.text    G=(none)   M=Forms    ACBP=A9
- 0001:0007BB6C 00000060 C=CODE     S=.text    G=(none)   M=ComConst ACBP=A9
- 0001:0007BBCC 00001259 C=CODE     S=.text    G=(none)   M=ComObj   ACBP=A9
- 0001:0007CE28 00000038 C=CODE     S=.text    G=(none)   M=StdVCL   ACBP=A9
- 0001:0007CE60 00001793 C=CODE     S=.text    G=(none)   M=AxCtrls  ACBP=A9
- 0001:0007E5F4 00000060 C=CODE     S=.text    G=(none)   M=OleConst ACBP=A9
- 0001:0007E654 00003519 C=CODE     S=.text    G=(none)   M=OleCtrls ACBP=A9
- 0001:00081B70 00000050 C=CODE     S=.text    G=(none)   M=JConsts  ACBP=A9
- 0001:00081BC0 000133EC C=CODE     S=.text    G=(none)   M=jpeg     ACBP=A9
- 0001:00094FAC 00000314 C=CODE     S=.text    G=(none)   M=TlHelp32 ACBP=A9
- 0001:000952C0 00000128 C=CODE     S=.text    G=(none)   M=WinSock  ACBP=A9
- 0001:000953E8 00003A78 C=CODE     S=.text    G=(none)   M=ScktComp ACBP=A9
- 0001:00098E60 000008EA C=CODE     S=.text    G=(none)   M=OleServer ACBP=A9
- 0001:0009974C 00000598 C=CODE     S=.text    G=(none)   M=MSCommLib_TLB ACBP=A9
- 0001:00099CE4 00000040 C=CODE     S=.text    G=(none)   M=MMSystem ACBP=A9
- 0001:00099D24 00000038 C=CODE     S=.text    G=(none)   M=Nb30     ACBP=A9
- 0001:00099D5C 00000A18 C=CODE     S=.text    G=(none)   M=MaskUtils ACBP=A9
- 0001:0009A774 00002108 C=CODE     S=.text    G=(none)   M=Mask     ACBP=A9
- 0001:0009C87C 0000924C C=CODE     S=.text    G=(none)   M=Grids    ACBP=A9
- 0001:000A5AC8 0000191C C=CODE     S=.text    G=(none)   M=UnitPilote ACBP=A9
- 0001:000A73E4 00000574 C=CODE     S=.text    G=(none)   M=Importation ACBP=A9
- 0001:000A7958 000192C0 C=CODE     S=.text    G=(none)   M=UnitAnalyseSegCDM ACBP=A9
- 0001:000C0C18 00002D2C C=CODE     S=.text    G=(none)   M=UnitConfigTCO ACBP=A9
- 0001:000C3944 00000D10 C=CODE     S=.text    G=(none)   M=Unit_Pilote_aig ACBP=A9
- 0001:000C4654 00004F10 C=CODE     S=.text    G=(none)   M=UnitConfigCellTCO ACBP=A9
- 0001:000C9564 00045880 C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
- 0001:0010EDE4 000031F0 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
- 0001:00111FD4 00002950 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
- 0001:00114924 0003ADE0 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
- 0001:0014F704 00001863 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
- 0001:00150F68 000011D0 C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
- 0001:00152138 00002B74 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
- 0001:00154CAC 00000D2C C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
- 0001:001559D8 0000269C C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
- 0001:00158074 0003B2DF C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
- 0001:00193354 000004C0 C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
+ 0001:00000000 00005F07 C=CODE     S=.text    G=(none)   M=System   ACBP=A9
+ 0001:00005F08 00000140 C=CODE     S=.text    G=(none)   M=SysInit  ACBP=A9
+ 0001:00006048 00000108 C=CODE     S=.text    G=(none)   M=Types    ACBP=A9
+ 0001:00006150 00000F38 C=CODE     S=.text    G=(none)   M=Windows  ACBP=A9
+ 0001:00007088 00000038 C=CODE     S=.text    G=(none)   M=Messages ACBP=A9
+ 0001:000070C0 00000338 C=CODE     S=.text    G=(none)   M=SysConst ACBP=A9
+ 0001:000073F8 00006FF8 C=CODE     S=.text    G=(none)   M=SysUtils ACBP=A9
+ 0001:0000E3F0 0000081B C=CODE     S=.text    G=(none)   M=VarUtils ACBP=A9
+ 0001:0000EC0C 0000809E C=CODE     S=.text    G=(none)   M=Variants ACBP=A9
+ 0001:00016CAC 000001A0 C=CODE     S=.text    G=(none)   M=RTLConsts ACBP=A9
+ 0001:00016E4C 0000083C C=CODE     S=.text    G=(none)   M=TypInfo  ACBP=A9
+ 0001:00017688 00000358 C=CODE     S=.text    G=(none)   M=ActiveX  ACBP=A9
+ 0001:000179E0 0000A7EA C=CODE     S=.text    G=(none)   M=Classes  ACBP=A9
+ 0001:000221CC 00000370 C=CODE     S=.text    G=(none)   M=Consts   ACBP=A9
+ 0001:0002253C 00009BFB C=CODE     S=.text    G=(none)   M=Graphics ACBP=A9
+ 0001:0002C138 00000124 C=CODE     S=.text    G=(none)   M=Math     ACBP=A9
+ 0001:0002C25C 000002B8 C=CODE     S=.text    G=(none)   M=Contnrs  ACBP=A9
+ 0001:0002C514 00000198 C=CODE     S=.text    G=(none)   M=CommCtrl ACBP=A9
+ 0001:0002C6AC 00000787 C=CODE     S=.text    G=(none)   M=MultiMon ACBP=A9
+ 0001:0002CE34 00000038 C=CODE     S=.text    G=(none)   M=Imm      ACBP=A9
+ 0001:0002CE6C 00000FF8 C=CODE     S=.text    G=(none)   M=HelpIntfs ACBP=A9
+ 0001:0002DE64 00000058 C=CODE     S=.text    G=(none)   M=WinSpool ACBP=A9
+ 0001:0002DEBC 000010C8 C=CODE     S=.text    G=(none)   M=Printers ACBP=A9
+ 0001:0002EF84 0000031F C=CODE     S=.text    G=(none)   M=FlatSB   ACBP=A9
+ 0001:0002F2A4 000003F0 C=CODE     S=.text    G=(none)   M=SyncObjs ACBP=A9
+ 0001:0002F694 000009BB C=CODE     S=.text    G=(none)   M=UxTheme  ACBP=A9
+ 0001:00030050 00000038 C=CODE     S=.text    G=(none)   M=RichEdit ACBP=A9
+ 0001:00030088 00000038 C=CODE     S=.text    G=(none)   M=ToolWin  ACBP=A9
+ 0001:000300C0 00000048 C=CODE     S=.text    G=(none)   M=ShellAPI ACBP=A9
+ 0001:00030108 00000038 C=CODE     S=.text    G=(none)   M=RegStr   ACBP=A9
+ 0001:00030140 00000058 C=CODE     S=.text    G=(none)   M=WinInet  ACBP=A9
+ 0001:00030198 00000038 C=CODE     S=.text    G=(none)   M=UrlMon   ACBP=A9
+ 0001:000301D0 0000007C C=CODE     S=.text    G=(none)   M=ShlObj   ACBP=A9
+ 0001:0003024C 00000060 C=CODE     S=.text    G=(none)   M=CommDlg  ACBP=A9
+ 0001:000302AC 00000038 C=CODE     S=.text    G=(none)   M=Dlgs     ACBP=A9
+ 0001:000302E4 000036D1 C=CODE     S=.text    G=(none)   M=Dialogs  ACBP=A9
+ 0001:000339B8 00004ADA C=CODE     S=.text    G=(none)   M=ExtCtrls ACBP=A9
+ 0001:00038494 00000090 C=CODE     S=.text    G=(none)   M=ComStrs  ACBP=A9
+ 0001:00038524 000007A0 C=CODE     S=.text    G=(none)   M=Clipbrd  ACBP=A9
+ 0001:00038CC4 00000128 C=CODE     S=.text    G=(none)   M=StrUtils ACBP=A9
+ 0001:00038DEC 00003821 C=CODE     S=.text    G=(none)   M=Buttons  ACBP=A9
+ 0001:0003C610 00000038 C=CODE     S=.text    G=(none)   M=ExtDlgs  ACBP=A9
+ 0001:0003C648 00000068 C=CODE     S=.text    G=(none)   M=IniFiles ACBP=A9
+ 0001:0003C6B0 00000068 C=CODE     S=.text    G=(none)   M=Registry ACBP=A9
+ 0001:0003C718 0000006C C=CODE     S=.text    G=(none)   M=Mapi     ACBP=A9
+ 0001:0003C784 00000058 C=CODE     S=.text    G=(none)   M=ExtActns ACBP=A9
+ 0001:0003C7DC 00000038 C=CODE     S=.text    G=(none)   M=ListActns ACBP=A9
+ 0001:0003C814 00009948 C=CODE     S=.text    G=(none)   M=ComCtrls ACBP=A9
+ 0001:0004615C 00000EA0 C=CODE     S=.text    G=(none)   M=Themes   ACBP=A9
+ 0001:00046FFC 0000C698 C=CODE     S=.text    G=(none)   M=StdCtrls ACBP=A9
+ 0001:00053694 00000168 C=CODE     S=.text    G=(none)   M=StdActns ACBP=A9
+ 0001:000537FC 00000D1F C=CODE     S=.text    G=(none)   M=WinHelpViewer ACBP=A9
+ 0001:0005451C 00011403 C=CODE     S=.text    G=(none)   M=Controls ACBP=A9
+ 0001:00065920 00001292 C=CODE     S=.text    G=(none)   M=ActnList ACBP=A9
+ 0001:00066BB4 00001B9C C=CODE     S=.text    G=(none)   M=ImgList  ACBP=A9
+ 0001:00068750 000066E1 C=CODE     S=.text    G=(none)   M=Menus    ACBP=A9
+ 0001:0006EE34 0000CF8C C=CODE     S=.text    G=(none)   M=Forms    ACBP=A9
+ 0001:0007BDC0 00000060 C=CODE     S=.text    G=(none)   M=ComConst ACBP=A9
+ 0001:0007BE20 00001259 C=CODE     S=.text    G=(none)   M=ComObj   ACBP=A9
+ 0001:0007D07C 00000038 C=CODE     S=.text    G=(none)   M=StdVCL   ACBP=A9
+ 0001:0007D0B4 00001793 C=CODE     S=.text    G=(none)   M=AxCtrls  ACBP=A9
+ 0001:0007E848 00000060 C=CODE     S=.text    G=(none)   M=OleConst ACBP=A9
+ 0001:0007E8A8 00003519 C=CODE     S=.text    G=(none)   M=OleCtrls ACBP=A9
+ 0001:00081DC4 00000050 C=CODE     S=.text    G=(none)   M=JConsts  ACBP=A9
+ 0001:00081E14 000133EC C=CODE     S=.text    G=(none)   M=jpeg     ACBP=A9
+ 0001:00095200 00000314 C=CODE     S=.text    G=(none)   M=TlHelp32 ACBP=A9
+ 0001:00095514 00000128 C=CODE     S=.text    G=(none)   M=WinSock  ACBP=A9
+ 0001:0009563C 00003A78 C=CODE     S=.text    G=(none)   M=ScktComp ACBP=A9
+ 0001:000990B4 000008EA C=CODE     S=.text    G=(none)   M=OleServer ACBP=A9
+ 0001:000999A0 00000598 C=CODE     S=.text    G=(none)   M=MSCommLib_TLB ACBP=A9
+ 0001:00099F38 00000040 C=CODE     S=.text    G=(none)   M=MMSystem ACBP=A9
+ 0001:00099F78 00000038 C=CODE     S=.text    G=(none)   M=Nb30     ACBP=A9
+ 0001:00099FB0 00000A18 C=CODE     S=.text    G=(none)   M=MaskUtils ACBP=A9
+ 0001:0009A9C8 00002108 C=CODE     S=.text    G=(none)   M=Mask     ACBP=A9
+ 0001:0009CAD0 0000924C C=CODE     S=.text    G=(none)   M=Grids    ACBP=A9
+ 0001:000A5D1C 0000191C C=CODE     S=.text    G=(none)   M=UnitPilote ACBP=A9
+ 0001:000A7638 00000574 C=CODE     S=.text    G=(none)   M=Importation ACBP=A9
+ 0001:000A7BAC 000192C0 C=CODE     S=.text    G=(none)   M=UnitAnalyseSegCDM ACBP=A9
+ 0001:000C0E6C 00002D2C C=CODE     S=.text    G=(none)   M=UnitConfigTCO ACBP=A9
+ 0001:000C3B98 00000D78 C=CODE     S=.text    G=(none)   M=Unit_Pilote_aig ACBP=A9
+ 0001:000C4910 00004FA0 C=CODE     S=.text    G=(none)   M=UnitConfigCellTCO ACBP=A9
+ 0001:000C98B0 00045960 C=CODE     S=.text    G=(none)   M=UnitTCO  ACBP=A9
+ 0001:0010F210 000031F0 C=CODE     S=.text    G=(none)   M=UnitSR   ACBP=A9
+ 0001:00112400 00002950 C=CODE     S=.text    G=(none)   M=UnitCDF  ACBP=A9
+ 0001:00114D50 000029E7 C=CODE     S=.text    G=(none)   M=verif_version ACBP=A9
+ 0001:00117738 000011D0 C=CODE     S=.text    G=(none)   M=UnitPareFeu ACBP=A9
+ 0001:00118908 00046C78 C=CODE     S=.text    G=(none)   M=UnitConfig ACBP=A9
+ 0001:0015F580 00002B74 C=CODE     S=.text    G=(none)   M=UnitDebug ACBP=A9
+ 0001:001620F4 00000D2C C=CODE     S=.text    G=(none)   M=UnitSimule ACBP=A9
+ 0001:00162E20 000029DC C=CODE     S=.text    G=(none)   M=Unitplace ACBP=A9
+ 0001:001657FC 000494DB C=CODE     S=.text    G=(none)   M=UnitPrinc ACBP=A9
+ 0001:001AECD8 000004C0 C=CODE     S=.text    G=(none)   M=Signaux_complexes_GL ACBP=A9
  0002:00000000 000000CC C=DATA     S=.data    G=DGROUP   M=System   ACBP=A9
  0002:000000CC 00000020 C=DATA     S=.data    G=DGROUP   M=SysInit  ACBP=A9
  0002:000000EC 00000254 C=DATA     S=.data    G=DGROUP   M=SysUtils ACBP=A9
@@ -109,28 +109,29 @@ Detailed map of segments
  0002:00000518 00000080 C=DATA     S=.data    G=DGROUP   M=Classes  ACBP=A9
  0002:00000598 0000030C C=DATA     S=.data    G=DGROUP   M=Graphics ACBP=A9
  0002:000008A4 00000004 C=DATA     S=.data    G=DGROUP   M=Printers ACBP=A9
- 0002:000008A8 00000180 C=DATA     S=.data    G=DGROUP   M=Dialogs  ACBP=A9
- 0002:00000A28 0000018C C=DATA     S=.data    G=DGROUP   M=ExtCtrls ACBP=A9
- 0002:00000BB4 0000009E C=DATA     S=.data    G=DGROUP   M=Buttons  ACBP=A9
- 0002:00000C54 00000008 C=DATA     S=.data    G=DGROUP   M=IniFiles ACBP=A9
- 0002:00000C5C 00000008 C=DATA     S=.data    G=DGROUP   M=Registry ACBP=A9
- 0002:00000C64 00000008 C=DATA     S=.data    G=DGROUP   M=Mapi     ACBP=A9
- 0002:00000C6C 000000B9 C=DATA     S=.data    G=DGROUP   M=ComCtrls ACBP=A9
- 0002:00000D28 00000068 C=DATA     S=.data    G=DGROUP   M=Themes   ACBP=A9
- 0002:00000D90 00000154 C=DATA     S=.data    G=DGROUP   M=StdCtrls ACBP=A9
- 0002:00000EE4 0000013C C=DATA     S=.data    G=DGROUP   M=Controls ACBP=A9
- 0002:00001020 00000020 C=DATA     S=.data    G=DGROUP   M=ImgList  ACBP=A9
- 0002:00001040 000000EC C=DATA     S=.data    G=DGROUP   M=Menus    ACBP=A9
- 0002:0000112C 00000124 C=DATA     S=.data    G=DGROUP   M=Forms    ACBP=A9
- 0002:00001250 00000030 C=DATA     S=.data    G=DGROUP   M=ComObj   ACBP=A9
- 0002:00001280 0000002C C=DATA     S=.data    G=DGROUP   M=OleCtrls ACBP=A9
- 0002:000012AC 00000908 C=DATA     S=.data    G=DGROUP   M=jpeg     ACBP=A9
- 0002:00001BB4 00000058 C=DATA     S=.data    G=DGROUP   M=MSCommLib_TLB ACBP=A9
- 0002:00001C0C 00000009 C=DATA     S=.data    G=DGROUP   M=MaskUtils ACBP=A9
- 0002:00001C18 00000004 C=DATA     S=.data    G=DGROUP   M=Mask     ACBP=A9
- 0002:00001C1C 00000006 C=DATA     S=.data    G=DGROUP   M=Grids    ACBP=A9
- 0002:00001C24 000000D4 C=DATA     S=.data    G=DGROUP   M=UnitTCO  ACBP=A9
- 0002:00001CF8 0000060D C=DATA     S=.data    G=DGROUP   M=UnitPrinc ACBP=A9
+ 0002:000008A8 00000010 C=DATA     S=.data    G=DGROUP   M=ShlObj   ACBP=A9
+ 0002:000008B8 00000180 C=DATA     S=.data    G=DGROUP   M=Dialogs  ACBP=A9
+ 0002:00000A38 0000018C C=DATA     S=.data    G=DGROUP   M=ExtCtrls ACBP=A9
+ 0002:00000BC4 0000009E C=DATA     S=.data    G=DGROUP   M=Buttons  ACBP=A9
+ 0002:00000C64 00000008 C=DATA     S=.data    G=DGROUP   M=IniFiles ACBP=A9
+ 0002:00000C6C 00000008 C=DATA     S=.data    G=DGROUP   M=Registry ACBP=A9
+ 0002:00000C74 00000008 C=DATA     S=.data    G=DGROUP   M=Mapi     ACBP=A9
+ 0002:00000C7C 000000B9 C=DATA     S=.data    G=DGROUP   M=ComCtrls ACBP=A9
+ 0002:00000D38 00000068 C=DATA     S=.data    G=DGROUP   M=Themes   ACBP=A9
+ 0002:00000DA0 00000154 C=DATA     S=.data    G=DGROUP   M=StdCtrls ACBP=A9
+ 0002:00000EF4 0000013C C=DATA     S=.data    G=DGROUP   M=Controls ACBP=A9
+ 0002:00001030 00000020 C=DATA     S=.data    G=DGROUP   M=ImgList  ACBP=A9
+ 0002:00001050 000000EC C=DATA     S=.data    G=DGROUP   M=Menus    ACBP=A9
+ 0002:0000113C 00000124 C=DATA     S=.data    G=DGROUP   M=Forms    ACBP=A9
+ 0002:00001260 00000030 C=DATA     S=.data    G=DGROUP   M=ComObj   ACBP=A9
+ 0002:00001290 0000002C C=DATA     S=.data    G=DGROUP   M=OleCtrls ACBP=A9
+ 0002:000012BC 00000908 C=DATA     S=.data    G=DGROUP   M=jpeg     ACBP=A9
+ 0002:00001BC4 00000080 C=DATA     S=.data    G=DGROUP   M=MSCommLib_TLB ACBP=A9
+ 0002:00001C44 00000009 C=DATA     S=.data    G=DGROUP   M=MaskUtils ACBP=A9
+ 0002:00001C50 00000004 C=DATA     S=.data    G=DGROUP   M=Mask     ACBP=A9
+ 0002:00001C54 00000006 C=DATA     S=.data    G=DGROUP   M=Grids    ACBP=A9
+ 0002:00001C5C 000000D4 C=DATA     S=.data    G=DGROUP   M=UnitTCO  ACBP=A9
+ 0002:00001D30 0000060D C=DATA     S=.data    G=DGROUP   M=UnitPrinc ACBP=A9
  0002:00003000 00000664 C=BSS      S=.bss     G=DGROUP   M=System   ACBP=A9
  0002:00003664 00000010 C=BSS      S=.bss     G=DGROUP   M=SysInit  ACBP=A9
  0002:00003674 00000004 C=BSS      S=.bss     G=DGROUP   M=Types    ACBP=A9
@@ -215,13 +216,13 @@ Detailed map of segments
  0002:00018770 00418700 C=BSS      S=.bss     G=DGROUP   M=UnitTCO  ACBP=A9
  0002:00430E70 00000010 C=BSS      S=.bss     G=DGROUP   M=UnitSR   ACBP=A9
  0002:00430E80 00000014 C=BSS      S=.bss     G=DGROUP   M=UnitCDF  ACBP=A9
- 0002:00430E94 0000050C C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
- 0002:004313A0 00000018 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
- 0002:004313B8 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
- 0002:004313BC 0000002C C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
- 0002:004313E8 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
- 0002:004313F4 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
- 0002:004313FC 041B4F9C C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
+ 0002:00430E94 00000020 C=BSS      S=.bss     G=DGROUP   M=verif_version ACBP=A9
+ 0002:00430EB4 00000004 C=BSS      S=.bss     G=DGROUP   M=UnitPareFeu ACBP=A9
+ 0002:00430EB8 00000558 C=BSS      S=.bss     G=DGROUP   M=UnitConfig ACBP=A9
+ 0002:00431410 0000002C C=BSS      S=.bss     G=DGROUP   M=UnitDebug ACBP=A9
+ 0002:0043143C 0000000C C=BSS      S=.bss     G=DGROUP   M=UnitSimule ACBP=A9
+ 0002:00431448 00000008 C=BSS      S=.bss     G=DGROUP   M=Unitplace ACBP=A9
+ 0002:00431450 041B4FA0 C=BSS      S=.bss     G=DGROUP   M=UnitPrinc ACBP=A9
 
 Bound resource files
 
@@ -237,8 +238,8 @@ UnitConfigCellTCO.dfm
 UnitTCO.dfm
 UnitSR.dfm
 UnitCDF.dfm
-UnitConfig.dfm
 verif_version.dfm
+UnitConfig.dfm
 UnitDebug.dfm
 UnitSimule.dfm
 Unitplace.dfm
@@ -247,4 +248,4 @@ Signaux_complexes_GL.res
 Signaux_complexes_GL.drf
 
 
-Program entry point at 0001:00193664
+Program entry point at 0001:001AEFE8

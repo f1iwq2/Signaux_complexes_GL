@@ -237,6 +237,7 @@ begin
     FormTCO[indexTCO].EdittypeImage.Text:=IntToSTR(BImage);
     FormTCO[indexTCO].ComboRepr.ItemIndex:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].repr;
     FormTCO[indexTCO].ShapeCoulFond.Brush.Color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond;
+    FormTCO[indexTCO].CheckPinv.Checked:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].inverse;
 
     s:='El='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage);
     if tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse);

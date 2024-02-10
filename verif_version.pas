@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc,
-  ShellAPI;
+  ShellAPI , comObj , ShlObj , ActiveX ;
 
 type
   TFormVersion = class(TForm)
@@ -22,15 +22,23 @@ type
 var
   FormVersion: TFormVersion;
   Lance_verif : integer;
-  verifVersion,notificationVersion : boolean;
-  date_creation,nombre_tel : string;
+  verifVersion,notificationVersion,essai : boolean;
+  chemin_Dest,chemin_src,date_creation,nombre_tel : string;
 
-Const  Version='8.41';  // sert à la comparaison de la version publiée
+Const  Version='8.42';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
+       // pour unzip
+       SHCONTCH_NOPROGRESSBOX = 4;
+       SHCONTCH_AUTORENAME = 8;
+       SHCONTCH_RESPONDYESTOALL = 16;
+       SHCONTF_INCLUDEHIDDEN = 128;
+       SHCONTF_FOLDERS = 32;
+       SHCONTF_NONFOLDERS = 64;
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
 function verifie_version : real;
 function DownloadURL_NOCache(aUrl: string;s : string;var taille : longint): Boolean;
+function Unzip(zipfile : oleVariant): boolean;
 
 implementation
 
@@ -114,11 +122,195 @@ begin
   end;
 end;
 
+procedure copie_fichier(s : string);
+var fs,fd : string;
+    i : integer;
+begin
+  fd:=chemin_dest+s;
+  fs:=chemin_src+s;
+  //Affiche(fd,clOrange);
+  //Affiche(fs,clOrange);
+
+  if not(copyfile(pchar(fs),pchar(fd),false)) then
+  begin
+    fs:=' non copié';    // true évite de le recopier
+    i:=getLastError;
+    Affiche('Erreur '+s,clred);
+    Affiche('non copié. Erreur '+intToSTR(i)+': '+SysErrorMessage(i),clred);
+  end
+  else
+  Affiche(s+' copié',clLime);
+end;
+
+procedure cree_raccourci(nom_exe : string);
+var
+  LinkName : WideString;
+  TargetName : String;
+  IObject : IUnknown;
+  ISLink : IShellLink;
+  IPFile : IPersistFile;
+  PIDL : PItemIDList;
+  InFolder : array[0..MAX_PATH] of Char;
+begin
+  TargetName:=CheminProgrammes+'\Signaux_complexes\'+nom_exe;
+  IObject:=CreateComObject(CLSID_ShellLink);
+  ISLink:=IObject as IShellLink;
+  IPFile:=IObject as IPersistFile;
+
+  with ISLink do begin
+    SetPath(pChar(TargetName));
+    SetWorkingDirectory(pChar(ExtractFilePath(TargetName)));
+  end;
+
+  // on veut placer le lien sur le bureau
+  SHGetSpecialFolderLocation(0,CSIDL_DESKTOPDIRECTORY,PIDL);
+  SHGetPathFromIDList(PIDL,InFolder);
+
+  if nom_exe='signaux_complexes_gl.exe' then LinkName:=InFolder + '\Signaux Complexes.lnk';
+  if nom_exe='signaux_complexes_gl_d11.exe' then LinkName:=InFolder + '\Signaux Complexes D11.lnk';
+
+  IPFile.Save(PWChar(LinkName),false);
+end;
+
+
+// dézipe copie les fichiers et lance la nouvelle version
+procedure dezipe_copie(s : string);
+var fichier,nomPDF : string;
+    dirList : tStrings;
+    SR      : TSearchRec;
+    nombre,i,attributes : integer;
+    pdf,ok : boolean;
+begin
+  Aff('Téléchargement réussi, décompression');
+  formVersion.close;
+
+  Affiche('Décompression du zip '+s,clLime);
+  if not(unzip(s)) then
+  begin
+    Affiche('Erreur à la décompression du zip',clred);
+    exit;
+  end;
+
+  chemin_src:=s;
+  i:=pos('.zip',chemin_src);
+  if i=0 then
+  begin
+    affiche('Zip invalide',clred);
+    exit;
+  end;
+  delete(chemin_src,i,4);
+
+  // Vérifier si répertoire dest existe
+  chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
+  if not(directoryExists(chemin_Dest)) then
+  begin
+    Affiche('Création du répertoire '+chemin_dest,clLime);
+    mkDir(chemin_dest);
+  end;
+  chemin_dest:=chemin_dest+'\';
+  chemin_src:=chemin_src+'\';
+
+
+  // remplit dirlist avec les noms de fichiers du chemin dest
+  nombre:=0;
+  DirList:=TStringList.Create;
+  if FindFirst(chemin_dest+ '*.*', faAnyFile, SR) = 0 then
+  begin
+    repeat
+      s:=sr.Name;
+      if (s<>'.') and (s<>'..') then
+      begin
+        DirList.Add(SR.Name); //Fill the list
+        inc(nombre);
+      end;
+    until FindNext(SR) <> 0;
+    FindClose(SR);
+  end;
+
+  // supprimer les fichiers signaux_complexes_gl.Exe et versions.txt et pdf
+  nomPdf:='';
+  for i:=0 to nombre-1 do
+  begin
+    s:=DirList.Strings[i];
+    s:=lowercase(s);
+    pdf:=pos('.pdf',s)<>0;
+    if pdf then
+     nomPDF:=s;
+
+    //Affiche(s,clyellow);
+    // fichiers à supprimer dans répertoire destination
+    if (pos('.exe',s)<>0) or (s='versions.txt') or (s='signaux_complexes_gl_d11.exe') or pdf then
+    begin
+      fichier:=chemin_dest+s;
+      if sysutils.FileExists((fichier)) then
+      begin
+        Affiche('Suppression de '+fichier,clorange);
+        Attributes:=FileGetAttr(pchar(fichier));
+        Attributes := Attributes and not (faReadOnly or faHidden);
+        SetFileAttributes(pchar(fichier),Attributes);
+        ok:=sysutils.DeleteFile(pchar(fichier));
+        if not(OK) then Affiche('Erreur : Pas réussi à supprimer '+fichier,clred);
+      end;
+    end;
+  end;
+
+  // copie les fichiers du répertoire zip vers le rep installé
+  copie_fichier('signaux_complexes_gl.exe');
+  copie_fichier('signaux_complexes_gl_d11.exe');
+  copie_fichier('versions.txt');
+
+  // trouver du nom du pdf
+  nombre:=0;
+  // remplit dirlist avec les noms de fichiers du chemin src
+  if FindFirst(chemin_src+ '*.*', faAnyFile, SR) = 0 then
+  begin
+    repeat
+      s:=sr.Name;
+      if (s<>'.') and (s<>'..') then
+      begin
+        DirList.Add(SR.Name); //Fill the list
+        if pos('.pdf',sr.Name)<>0 then NomPdf:=sr.name;
+        inc(nombre);
+      end;
+    until FindNext(SR) <> 0;
+    FindClose(SR);
+  end;
+  DirList.Destroy;
+
+  if nomPdf<>'' then copie_fichier(nomPdf);
+
+  Affiche('Création des raccourcis sur le bureau',cllime);
+  cree_raccourci('signaux_complexes_gl.exe');
+  cree_raccourci('signaux_complexes_gl_d11.exe');
+
+  if essai then exit;
+
+  s:='';
+  Affiche('Lancement de la nouvelle version',clyellow);
+  Application.processMessages;
+  Sleep(3000);
+  i:=ShellExecute(Formprinc.Handle,'open',
+                    Pchar('signaux_complexes_gl_d11.exe'),
+                    Pchar(s),  // paramètre
+                    PChar(chemin_dest)  // répertoire
+                    ,SW_SHOWNORMAL);
+  if i>32 then
+  begin
+    Affiche('lancement ok',cllime);
+    Application.Terminate;
+  end
+  else
+  begin
+    Affiche('Erreur '+intToSTR(i),clred);
+    exit;
+  end;
+
+end;
+
 // renvoie le numéro de version depuis le site github
 // si 0
 function verifie_version : real;
-var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang
-     : string;
+var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;
     fichier : text;
     i,j,erreur,Ncomm,i2,l : integer;
@@ -301,21 +493,34 @@ begin
             aff(' ');
             for i:=1 to ncomm do aff(comm[i]);
           end;
-          if MessageDlg(s+'. Voulez-vous la télécharger?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
+          if MessageDlg(s+#13+'Voulez-vous la télécharger, l''installer et l''exécuter?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
           begin
             // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
             s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\'+Nomfichier;
-            Aff('Téléchargement de '+s3+' dans ');
-            Aff(s);
+
+            essai:=false;
+
+            if not(essai) then
+            begin
+              Aff('Téléchargement de '+s3+' dans ');
+              Aff(s);
+              Affiche('Téléchargement de '+s3+' dans '+s,clLime);
+            end;
+
+            if essai then
+            begin
+              Affiche('*** mode essai ***',clOrange);
+              dezipe_copie(s);
+              exit;
+            end;
 
             if DownloadURL_NOCache(s3,s,taille) then
             begin
               if taille>700000 then
               begin
-                Aff('Téléchargement réussi');
-                Aff('Vous pouvez ouvrir le dossier de téléchargement, décomprimer le zip et l''installer');
+                dezipe_copie(s);
               end
-                else Aff('Echec 2 de téléchargement');
+              else Aff('Echec 2 de téléchargement - taille invalide');
             end
               else Aff('Echec 1 de téléchargement');
           end
@@ -367,6 +572,76 @@ begin
     end;
   end;
 end;
+
+
+procedure DeleteDirectory(const DirName: string);
+var
+  FileFolderOperation: TSHFileOpStruct;
+begin
+  FillChar(FileFolderOperation, SizeOf(FileFolderOperation), 0);
+  FileFolderOperation.wFunc := FO_DELETE;
+  FileFolderOperation.pFrom := PChar(ExcludeTrailingPathDelimiter(DirName) + #0);
+  FileFolderOperation.fFlags := FOF_SILENT or FOF_NOERRORUI or FOF_NOCONFIRMATION;
+  SHFileOperation(FileFolderOperation);
+end;
+
+//  https://github.com/sx2008/Delphi-Test-Apps/blob/master/ShellZipTest/ShellZipTool.pas
+function Unzip(zipfile : oleVariant): boolean;
+var
+  shellobj,srcfldr, destfldr, shellfldritems,repertoire: Olevariant;
+  filtre: string;
+  i : integer;
+  erreur : integer;
+begin
+  filtre:='';
+  zipfile:=lowercase(zipfile);
+  i:=pos('.zip',zipfile);
+  if i=0 then exit;
+  filtre:=zipfile;
+  delete(filtre,i,4);
+
+  if directoryExists(filtre) then DeleteDirectory(filtre);
+
+  {$I-}
+  MkDir(filtre);
+  erreur:=IoResult;
+  {$I+}
+  if erreur<>0 then
+  begin
+    Affiche('Impossible de créer répertoire',clred);
+    exit;
+  end;
+
+
+  repertoire:=filtre;  // mettre dans olevariant
+
+  filtre:='';
+  shellobj:=CreateOleObject('Shell.Application');
+
+  srcfldr:=ShellObj.NameSpace(Zipfile);
+  if not ((VarType(srcfldr)=varDispatch) and Assigned(TVarData(srcfldr).VDispatch)) then
+  begin
+    Affiche(zipfile+ ' invalide ou absent',clred);
+    result:=false;
+    exit;
+  end;
+
+  destfldr:=ShellObj.NameSpace(repertoire);
+  if not ((VarType(destfldr)=varDispatch) and Assigned(TVarData(destfldr).VDispatch)) then
+  begin
+    Affiche(' répertoire destination invalide : '+ repertoire,clred);
+    result:=false;
+    exit;
+  end;
+
+  shellfldritems:=srcfldr.Items;
+  if (filtre<>'') then shellfldritems.Filter(SHCONTF_INCLUDEHIDDEN or SHCONTF_NONFOLDERS or SHCONTF_FOLDERS,filtre);
+
+  //destfldr.CopyHere(shellfldritems, SHCONTCH_NOPROGRESSBOX or SHCONTCH_RESPONDYESTOALL);
+  destfldr.CopyHere(shellfldritems,  SHCONTCH_RESPONDYESTOALL);
+  result:=true;
+end;
+
 
 begin
 end.

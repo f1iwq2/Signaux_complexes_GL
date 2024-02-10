@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 113
-  Top = 196
+  Left = 114
+  Top = 237
   Width = 1149
   Height = 699
   Anchors = [akLeft, akTop, akRight]
@@ -18,8 +18,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1133
-    641)
+    1141
+    648)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1428,8 +1428,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 619
-    Width = 1133
+    Top = 626
+    Width = 1141
     Height = 22
     Panels = <
       item

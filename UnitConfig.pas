@@ -123,8 +123,6 @@ type
     RadioButtonAccess: TRadioButton;
     CheckFenEt: TCheckBox;
     GroupBoxDivers: TGroupBox;
-    EditNbDetDist: TEdit;
-    Label31: TLabel;
     CheckBoxInitAig: TCheckBox;
     EditAdrSig: TEdit;
     Label32: TLabel;
@@ -213,7 +211,7 @@ type
     Label35: TLabel;
     Label36: TLabel;
     ButtonTestAct: TButton;
-    RadioGroup1: TRadioGroup;
+    RadioGroupDecl: TRadioGroup;
     RadioButtonActDet: TRadioButton;
     RadioButtonZones: TRadioButton;
     EditAct2: TEdit;
@@ -224,8 +222,6 @@ type
     Label42: TLabel;
     Label43: TLabel;
     CheckBandeauTCO: TCheckBox;
-    EditNbCantons: TEdit;
-    Label44: TLabel;
     CheckPosAig: TCheckBox;
     ButtonEnregistre: TButton;
     CheckBoxDemarUSB: TCheckBox;
@@ -270,9 +266,6 @@ type
     EditVitNom: TEdit;
     LabelInfVitesse: TLabel;
     CheckRoulage: TCheckBox;
-    GroupBox25: TGroupBox;
-    Label58: TLabel;
-    EditFiltrDet: TEdit;
     CheckBoxVerifXpressNet: TCheckBox;
     ImageTrain: TImage;
     PopupMenuRichedit: TPopupMenu;
@@ -353,7 +346,6 @@ type
     Label23: TLabel;
     Label28: TLabel;
     EditPortServeur: TEdit;
-    ButtonPFCDM: TButton;
     CheckBoxZ21: TCheckBox;
     RadioButtonDCCpp: TRadioButton;
     CheckBoxSombre: TCheckBox;
@@ -361,6 +353,10 @@ type
     ColorDialogFond: TColorDialog;
     LabelD11: TLabel;
     ButtonPropage: TButton;
+    ButtonPFCDM: TButton;
+    TabAvance: TTabSheet;
+    Label31: TLabel;
+    Label39: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -574,7 +570,10 @@ PortServeur_ch='Port_Serveur';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
+nCantons_Res_ch='nCantonsRes';
+MaxSignalSens_ch='Max_Signal_Sens';
 Algo_localisation_ch='Algo_localisation';
+mode_reserve_ch='Mode_reservation';
 Avec_roulage_ch='Avec_roulage';
 nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
@@ -648,7 +647,7 @@ var
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,IndexSignalclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
-  compt_Ligne,Style_aff,Ancien_Style,Ecran_SC : integer;
+  compt_Ligne,Style_aff,Ancien_Style,Ecran_SC,Mode_reserve,Max_Signal_Sens,nCantonsRes : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
@@ -657,7 +656,7 @@ var
   fichier : text;
 
   // composants dynamiques
-  Gp1 : TGroupBox;
+  Gp1,GroupBoxAvance,GroupBoxExpert : TGroupBox;
 
   CheckBoxCR,Cb1,Cb2,Cb3,CbVis : TCheckBox;
 
@@ -668,13 +667,19 @@ var
   EditZdet1V2F,EditZdet2V2F,EditZdet1V2O,EditZdet2V2O,
   EditZdet1V3F,EditZdet2V3F,EditZdet1V3O,EditZdet2V3O,
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
-  EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran  : Tedit;
+  EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran,
+  EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,
+  EditMaxSignalSens,EditnCantonsRes  : Tedit;
+
   EditT  : Array[1..10] of Tedit;
   TextBoxCde : array[1..19] of Tedit;
 
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP,
-  LabelStyle,LabelOuvreEcran : Tlabel;
+  LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,
+  LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes : Tlabel;
+
+  RadioReserve : TradioGroup;
 
   LabelDecCde : array[1..19] of TLabel;
 
@@ -1037,7 +1042,7 @@ begin
       30 : s:=s+',V30';
       60 : s:=s+',V60';
       else begin
-             s:=s+',V'+formconfig.EditSpecifique.Text;
+             s:=s+',V'+intToSTR(aiguillage[index].vitesse);
            end;
      end;
 
@@ -1725,6 +1730,10 @@ begin
 
   writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
   writeln(fichierN,Algo_localisation_ch+'=',Algo_localisation);
+  writeln(fichierN,MaxSignalSens_ch+'=',Max_Signal_Sens);
+
+  writeln(fichierN,mode_reserve_ch+'=',mode_reserve);
+
   writeln(fichierN,Avec_roulage_ch+'=',avecRoulage);
   writeln(fichierN,debug_ch+'=',debug);
   if sombre then s:='1' else s:='0';
@@ -1734,6 +1743,7 @@ begin
   writeln(fichierN,serveurIPCDM_Touche_ch+'='+s); 
   writeln(fichierN,PortServeur_ch+'=',PortServeur);
   writeln(fichierN,Filtrage_det_ch+'=',filtrageDet0);
+  writeln(fichierN,nCantons_Res_ch+'=',nCantonsRes);
   writeln(fichierN,AntiTimeoutEthLenz_ch+'=',AntiTimeoutEthLenz);
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
@@ -3171,6 +3181,15 @@ var s,sa,SOrigine: string;
         val(s,filtrageDet0,erreur);
       end;
 
+      sa:=uppercase(nCantons_Res_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        if (i<1) or (i>5) then i:=2;
+        val(s,nCantonsRes,erreur);
+      end;
+
       sa:=uppercase(AntiTimeoutEthLenz_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
@@ -3187,6 +3206,26 @@ var s,sa,SOrigine: string;
         val(s,Algo_localisation,erreur);
         if Algo_localisation<>1 then Affiche('Avertissement: Algo_localisation='+intToSTR(algo_localisation)+' est expérimental et non garanti',clorange);
       end;
+
+      sa:=uppercase(MaxSignalSens_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        if (i<0) or (i>50) then i:=5;
+        val(s,Max_Signal_Sens,erreur);
+      end;
+
+
+      sa:=uppercase(mode_reserve_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        if (i<0) or (i>1) then i:=0;
+        val(s,mode_reserve,erreur);
+      end;
+
 
       sa:=uppercase(Avec_roulage_ch)+'=';
       i:=pos(sa,s);
@@ -3987,6 +4026,10 @@ begin
     if (i<0) or (i>10) then i:=3;
     filtrageDet0:=i;
 
+    val(EditnCantonsRes.Text,i,erreur);
+    if (i<1) or (i>5) then i:=2;
+    nCantonsRes:=i;
+
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
@@ -4110,6 +4153,14 @@ begin
     val(EditBase.Text,AdrBaseDetDccpp,erreur);
      if (AdrBaseDetDccpp<0) or (AdrBaseDetDccpp>2048) then AdrBaseDetDccpp:=513;
 
+    mode_Reserve:=RadioReserve.ItemIndex;  // 0 = par canton - 1=par détecteurs
+    val(EditAlgo.Text,i,erreur);
+    Algo_localisation:=i;
+
+    val(EditMaxSignalSens.Text,i,erreur);
+    Max_Signal_Sens:=i;
+
+
   end;
   if change_srv then services_CDM;
   verifie_panneau_config:=ok;
@@ -4132,7 +4183,7 @@ procedure clicListeSignal(index : integer);
 var AncAdresse,adresse,erreur : integer;
     s : string;
 begin
-  if index<1 then exit;
+  if (index<1) or (index>FormConfig.ListBoxSig.Items.Count) then exit;
   s:=Uppercase(FormConfig.ListBoxSig.Items[index-1]);   // ligne cliquée
   if s='' then
   begin
@@ -4200,6 +4251,7 @@ begin
   EditportLenz.text:=IntToSTR(PortInterface);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditFiltrDet.text:=intToSTR(filtrageDet0);
+  EditnCantonsRes.Text:=intToSTR(nCantonsRes);
 
   {$IF CompilerVersion >= 28.0}
   ComboStyle.itemIndex:=Style_Aff;
@@ -4290,6 +4342,9 @@ begin
   end;
   ListBoxAig.itemindex:=0;
 
+  RadioReserve.ItemIndex:=mode_Reserve;
+  editAlgo.Text:=intToSTR(Algo_localisation);
+  EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
 
 end;
 
@@ -4739,6 +4794,13 @@ begin
       c:=TabSheetPeriph.Components[i];
       composant(c,couleurfond,couleurTexte);
     end;
+
+    // avancé
+    for i:=0 to TabAvance.ComponentCount-1 do
+    begin
+      c:=TabAvance.Components[i];
+      composant(c,couleurfond,couleurTexte);
+    end;
   end;
 end;
 
@@ -4759,10 +4821,11 @@ begin
 end;
 
 procedure TFormConfig.FormCreate(Sender: TObject);
-var i,j,y,l,LongestLength,PixelLength : integer;
+var i,j,x,y,l,LongestLength,PixelLength : integer;
     cs,s,LongestString : string;
 begin
   if debug=1 then Affiche('Création fenêtre config',clLime);
+  
   clicListe:=true;
   position:=poMainFormCenter;
   cs:='ColorA='+IntToHex(couleurFond,6);  // pour rajouter aux couleurs personnalisées de la fenetre couleur
@@ -5487,7 +5550,6 @@ begin
   // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
   SendMessage(ListBoxSig.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
-
   //comboBoxNation.Items.addObject('Française',Formprinc.Image9feux.Picture.Graphic);
   //comboBoxNation.Items.addObject('Belge',Formprinc.ImageSignal20.Picture.Graphic);
   //https://www.developpez.net/forums/d487670/environnements-developpement/delphi/composants-vcl/combobox-image-devant-ligne/
@@ -5574,7 +5636,7 @@ begin
 
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
   // onglet périphériques COM/USB/Socket
-  //--------- groupbox   
+  //--------- groupbox
   gp1:=TgroupBox.Create(FormConfig.TabSheetPeriph);
   with gp1 do
   begin
@@ -5590,7 +5652,7 @@ begin
   cb2:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb2 do
   begin
-    Left:=10;Top:=25;Width:=100;Height:=12;
+    Left:=10;Top:=25;Width:=100;Height:=17;
     caption:='Détecteurs';
     name:='cbDet';
     parent:=gp1;
@@ -5601,7 +5663,7 @@ begin
   cb3:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb3 do
   begin
-    Left:=10;Top:=45;Width:=100;Height:=12;
+    Left:=10;Top:=45;Width:=100;Height:=17;
     caption:='Actionneurs';
     name:='cbAct';
     parent:=gp1;
@@ -5613,7 +5675,7 @@ begin
   cb1:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with cb1 do
   begin
-    Left:=10;Top:=65;Width:=170;Height:=12;
+    Left:=10;Top:=65;Width:=170;Height:=17;
     caption:='Aiguillages et accessoires';
     name:='cbAig';
     parent:=gp1;
@@ -5700,7 +5762,7 @@ begin
   CheckBoxCR:=TCheckBox.Create(FormConfig.TabSheetPeriph);
   with CheckBoxCR do
   begin
-    Left:=10;Top:=LabelPortCde.Top+30;width:=150;Height:=12;
+    Left:=10;Top:=LabelPortCde.Top+30;width:=150;Height:=17;
     caption:='Envoyer CR (retour chariot)';
     name:='CheckBoxCR';
     parent:=GroupBoxDesc;
@@ -5713,7 +5775,7 @@ begin
   with cbVis do
   begin
     parent:=groupBoxDesc;
-    Left:=10;Top:=CheckBoxCR.top+20;Width:=100;Height:=12;
+    Left:=10;Top:=CheckBoxCR.top+20;Width:=100;Height:=17;
     caption:='Mode visible';
     name:='cbVis';
     hint:='Affiche le texte à l''écran lors des envois';
@@ -5728,7 +5790,7 @@ begin
   LabelStyle:=TLabel.Create(FormConfig.GroupBoxDivers);
   with LabelStyle do
   begin
-    Left:=10;Top:=CheckBoxVerifXpressNet.top+24;Width:=170;Height:=12;
+    Left:=10;Top:=130;Width:=170;Height:=12;
     caption:='Styles d''affichage';
     name:='LabelStyle';
     parent:=GroupBoxDivers;
@@ -5756,7 +5818,6 @@ begin
     ComboStyle.Items.Add(s);
 
   ComboStyle.itemIndex:=Style_Aff;
-
   CheckBoxSombre.Visible:=false;
   ButtonCouleur.Visible:=false;
 
@@ -5765,6 +5826,172 @@ begin
   GroupBoxDivers.Height:=180;
   {$IFEND}
 
+  // onglet avancé
+  LabelAvance1:=TLabel.Create(FormConfig.TabAvance);
+  with LabelAvance1 do
+  begin
+    Left:=10;Top:=10;Width:=170;Height:=12;
+    caption:='Paramètres avancés et experts';
+    name:='LabelAvance1';
+    Font.Style:=[fsBold];
+    Font.Size:=10;
+    parent:=TabAvance;
+  end;
+
+  GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
+  with GroupBoxAvance do
+  begin
+    Left:=20;Top:=40;Width:=350;Height:=120;   // maxi=580
+    caption:='Jeu de paramètres avancés';
+    name:='GroupBoxAvance';
+    parent:=TabAvance;
+  end;
+
+  x:=GroupBoxAvance.width-50;
+  LabelTD:=TLabel.Create(FormConfig.TabAvance);
+  with LabelTD do
+  begin
+    Left:=10;Top:=30;Width:=170;Height:=12;
+    caption:='Seuil du nombre de détecteurs trop distants';
+    name:='LabelTD';
+    Font.Size:=9;
+    parent:=GroupBoxAvance;
+  end;
+  EditNbDetDist:=TEdit.Create(FormConfig.TabAvance);
+  with EditNbDetDist do
+  begin
+    Left:=x;Top:=28;Width:=30;Height:=15;
+    name:='EditNbDetDist';
+    text:='';
+    parent:=GroupBoxAvance;
+    hint:='Nombre de détecteurs considérés comme trop distants'+#13+
+          'Cette valeur dépend de la taille du réseau';
+    ShowHint:=true;
+  end;
+
+  LabelNC:=TLabel.Create(FormConfig.TabAvance);
+  with LabelNC do
+  begin
+    Left:=10;Top:=50;Width:=170;Height:=12;
+    caption:='Nombre de cantons présence train avant signal';
+    name:='LabelNC';
+    parent:=GroupBoxAvance;
+  end;
+  EditNbCantons:=TEdit.Create(TabAvance);
+  with EditNbCantons do
+  begin
+    Left:=x;Top:=48;Width:=30;Height:=15;
+    name:='EditNbCantons';
+    text:='';
+    parent:=GroupBoxAvance;
+    hint:='Nombre de cantons présence train avant un signal pour le déclarer verrouillé';
+    ShowHint:=true;
+  end;
+
+  LabelFiltre:=TLabel.Create(FormConfig.TabAvance);
+  with LabelFiltre do
+  begin
+    Left:=10;Top:=70;Width:=170;Height:=12;
+    caption:='Filtrage des détecteurs (x100 ms)';
+    name:='LabelFiltre';
+    parent:=GroupBoxAvance;
+  end;
+  EditFiltrDet:=TEdit.Create(TabAvance);
+  with EditFiltrDet do
+  begin
+    Left:=x;Top:=68;Width:=30;Height:=15;
+    name:='EditFiltrDet';
+    text:='';
+    parent:=GroupBoxAvance;
+    hint:='Temps de filtrage des détecteurs qui passent à 0';
+    ShowHint:=true;
+  end;
+
+  LabelnCantonsRes:=TLabel.Create(FormConfig.TabAvance);
+  with LabelnCantonsRes do
+  begin
+    Left:=10;Top:=90;Width:=170;Height:=12;
+    caption:='Nombre de cantons à réserver en avant du train';
+    name:='LabelnCantonsRes';
+    parent:=GroupBoxAvance;
+  end;
+  EditnCantonsRes:=TEdit.Create(TabAvance);
+  with EditnCantonsRes do
+  begin
+    Left:=x;Top:=88;Width:=30;Height:=15;
+    name:='EditnCantonsRes';
+    text:='';
+    parent:=GroupBoxAvance;
+    hint:='Nombre de cantons à réserver (1 à 5) en avant du train.'+#13+
+          'Utilisé en mode roulage ou réservation [sous mode réservation par canton (ci-dessous)].'+#13+
+          'Cette valeur dépend de la taille du réseau.';
+    ShowHint:=true;
+  end;
+
+  RadioReserve:=TRadioGroup.Create(TabAvance);
+  with RadioReserve do
+  begin
+    Left:=20;Top:=GroupBoxAvance.top+GroupBoxAvance.Height+20;Width:=GroupBoxAvance.width;Height:=60;
+    name:='RadioReserve';
+    Caption:='Réservation des aiguillages';
+    parent:=TabAvance;
+    hint:='Choix du mode de réservation des aiguillages par les trains.'+#13+
+          'La réservation des aiguillages est fonctionelle en mode roulage (mode autonome) ou en mode réservation';
+    ShowHint:=true;
+    items.Add('Réservation par canton');
+    items.Add('Réservation par détecteurs');
+  end;
+  GroupBoxExpert:=TGroupBox.Create(FormConfig.TabAvance);
+  with GroupBoxExpert do
+  begin
+    Left:=20;;Width:=350;Height:=100;   // maxi=580
+    Top:=RadioReserve.Top+RadioReserve.Height+20 ;
+    caption:='Jeu de paramètres experts';
+    name:='GroupBoxExpert';
+    parent:=TabAvance;
+  end;
+  LabelAlgo:=TLabel.Create(FormConfig.TabAvance);
+  with LabelAlgo do
+  begin
+    Left:=10;Top:=30;Width:=170;Height:=12;
+    caption:='Algorithme de localisation des trains';
+    name:='LabelAlgo';
+    Font.Size:=9;
+    parent:=GroupBoxExpert;
+  end;
+  EditAlgo:=TEdit.Create(FormConfig.TabAvance);
+  with EditAlgo do
+  begin
+    Left:=x;Top:=28;Width:=30;Height:=15;
+    name:='EditAlgo';
+    text:='';
+    parent:=GroupBoxExpert;
+    hint:='Algorithme de localisation des trains';
+    ShowHint:=true;
+  end;
+
+  LabelNbSignBS:=TLabel.Create(FormConfig.TabAvance);
+  with LabelNbSignBS do
+  begin
+    Left:=10;Top:=50;Width:=100;Height:=30;
+    caption:='Nombre maxi d''éléments de recherche lors'+#13+'d''un signal dans le bon sens';
+    name:='LabelNbSignBS';
+    Font.Size:=9;
+    wordwrap:=true;
+    parent:=GroupBoxExpert;
+  end;
+  EditMaxSignalSens:=TEdit.Create(FormConfig.TabAvance);
+  with EditMaxSignalSens do
+  begin
+    Left:=x;Top:=48;Width:=30;Height:=15;
+    name:='EditMaxSignalSens';
+    text:='';
+    parent:=GroupBoxExpert;
+    hint:='Nombre maxi d''éléments de recherche lors d''un signal dans le bon sens';
+    ShowHint:=true;
+  end;
+
+  // oui
   {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
   else
     Affiche('Manque fichier "Image_Signaux.jpg"',clOrange);
@@ -5826,13 +6053,14 @@ begin
   B:='Z';
 end;
 
-// Affiche les utilisateurs des périphériques en fonction de la sélection du périphérique
+// renvoie les utilisateurs des périphériques en fonction de la sélection du périphérique
 function utilisateurs_peripheriques : string;
 var i,j,n : integer;
    s : string;
 begin
   n:=0;
   s:='Périphérique '+intToSTR(ligneClicAccPeriph+1)+' : '+Tablo_periph[ligneClicAccPeriph+1].nom+#13;
+  s:=s+'------------------------'+#13;
   for i:=1 to maxTablo_act do
   begin
     if tablo_actionneur[i].periph then
@@ -5907,7 +6135,7 @@ procedure Aff_champs_aig_tablo(index : integer);
 var Adresse,Adr2,ind,id2,erreur,position : integer;
     tjd,tri,tjs,croi : boolean;
     s,ss : string;
-    i : integer;
+    i,vitesse : integer;
 begin
   if index<1 then exit;
   s:=Uppercase(formConfig.ListBoxAig.items[index-1]);
@@ -6040,10 +6268,18 @@ begin
 
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
 
-      if aiguillage[Index_Aig(adresse)].vitesse=0  then begin RadioButtonSans.checked:=true; RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index_Aig(adresse)].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true; RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index_Aig(adresse)].vitesse=40 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;end;
-      if aiguillage[Index_Aig(adresse)].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end;
+      vitesse:=aiguillage[Index_Aig(adresse)].vitesse;
+      EditSpecifique.text:=intToSTR(vitesse);
+      if vitesse=0  then begin RadioButtonSans.checked:=true; RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      else
+      if vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true; RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      else
+      if vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end
+      else
+                         begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;
+
+                         end;
+
     end;
 
     if croi then
@@ -6090,13 +6326,16 @@ begin
 
       Label18.Visible:=false;
       CheckInverse.checked:=aiguillage[Index_Aig(adresse)].inversionCDM=1;
-      if aiguillage[Index].vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      vitesse:=aiguillage[Index].vitesse;
+      EditSpecifique.text:=intToSTR(vitesse);
+      if vitesse=0 then begin RadioButtonSans.checked:=true;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
       else
-      if aiguillage[Index].vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
+      if vitesse=30 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=true;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=false;end
       else
-      if aiguillage[Index].vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end
+      if vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end
       else
-      begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true;RadioButton60kmh.checked:=false;end ;
+      begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true;RadioButton60kmh.checked:=false;
+      end ;
 
       EditPointe_BG.Text:=intToSTR(aiguillage[index].Apointe)+aiguillage[index].ApointeB;
       EditPointe_BG.Hint:=TypeElAIg_to_char(aiguillage[index].Apointe,aiguillage[index].ApointeB);
@@ -6197,8 +6436,12 @@ begin
     GroupBox19.Height:=96;
     ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
 
-    RadioGroup1.Width:=GroupBox18.width-15;
-    RadioGroup1.Height:=74;
+    with RadioGroupDecl do
+    begin
+      top:=GroupBox18.Top;
+      Width:=GroupBox18.width-15;
+      Height:=74;
+    end;
   end;
 end;
 
@@ -6575,7 +6818,7 @@ begin
     checkBoxFB.Checked:=Signaux[index].FeuBlanc;
     checkFVC.Checked:=Signaux[index].checkFV;
     checkFRC.Checked:=Signaux[index].checkFR;
-       // conditions supplémentaires du carré par aiguillages
+    // conditions supplémentaires du carré par aiguillages
     l:=1;
     repeat
       nc:=Length(Signaux[index].condcarre[l])-1 ;
@@ -6594,7 +6837,7 @@ begin
     // scrolle le MemoCarre sur la première ligne
     MemoCarre.SelStart:=0;
     MemoCarre.Perform(EM_SCROLLCARET,0,0);
-        // conditions supplémentaires du feu blanc par aiguillages
+    // conditions supplémentaires du feu blanc par aiguillages
     l:=1;
     repeat
       nc:=Length(Signaux[index].condFeuBlanc[l])-1 ;

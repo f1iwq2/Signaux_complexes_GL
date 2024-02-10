@@ -177,36 +177,36 @@ begin
         if (prec<9990) then
         begin
           inc(it);
-          {
+
           detecteur[detect].etat:=true;
           detecteur[detect].AdrTrain:=trains[i].adresse;
           detecteur[detect].train:=placement[i].train;
           detecteur[detect].IndexTrain:=i;
 
-
-          
+          // valider zone précédente
           MemZone[prec,detect].etat:=true;
           MemZone[prec,detect].train:=placement[i].train;
           MemZone[prec,detect].Adrtrain:=trains[i].adresse;
-          MemZone[prec,detect].NumTrain:=i;
+          MemZone[prec,detect].IndexTrain:=i;
           //Affiche(inttostr(prec)+' '+intToSTR(detect),clorange);
 
+          // remplir 1er élément du tableau
           event_det_train[it].NbEl:=1 ;
           event_det_train[it].AdrTrain:=trains[i].adresse;
           event_det_train[it].det[1].adresse:=prec;
           event_det_train[it].det[1].etat:=false;
           event_det_train[it].nom_train:=placement[i].train;
 
-              inc(N_trains);
-          }
+          inc(N_trains);
+
           // essai-------------------------
           Event_Detecteur(detect,true,nomtrain);
           detecteur[detect].AdrTrain:=trains[i].adresse;
           // -----------------------------
-          
+
           Affiche('Positionnement train '+detecteur[detect].train+' sur détecteur '+intToSTR(detect)+' vers '+Ssuiv,clLime);
 
-      
+
         end
         else
         begin
@@ -384,7 +384,7 @@ begin
         s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
         Affiche(s,clYellow);
         if traceListe then AfficheDebug(s,clyellow);
-        reserve_canton(AdrDet,placement[j].detdir,adrtrain,0,2);
+        reserve_canton(AdrDet,placement[j].detdir,adrtrain,0,nCantonsRes);
 
       end
       Else Affiche('Le signal '+intToSTR(AdrSignal)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
