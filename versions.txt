@@ -232,4 +232,6 @@ version 8.41 : Améliorations diverses dans les traitements.
                Auto-installation des nouvelles versions au choix.
 version 8.42 : Création d'un onglet de paramètres avancés.
                Fichier d'aide affichable depuis le menu.
+version 8.43 : Correction d'un bug sur l'importation des détecteurs depuis CDM rail.
+
   

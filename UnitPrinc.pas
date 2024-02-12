@@ -13331,8 +13331,7 @@ begin
     cheminWin:=GetCurrentProcessEnvVar('windir')+'\System32';
   end;
 
-  //DirList:=TStringList.Create;
-  if FindFirst(chemin_dest+ '*.*', faAnyFile, SR) = 0 then
+  if FindFirst('*.*', faAnyFile, SR) = 0 then
   begin
     repeat
       s:=sr.Name;
@@ -13863,14 +13862,15 @@ begin
         fenRich.Width:=PosSplitter;
         positionne_elements(PosSplitter);
       end;
-    end;  
+    end;
   end;
   if (tick=30) or (tick=100) then
   begin
     // raz du flag "fenetre confcellTCO affichée"
     ConfCellTCO:=false;
   end;
-  // envoi timeout
+
+  // envoi timeout socket ethernet centrale lenz
   if parSocketLenz and (AntiTimeoutEthLenz=1) then
   begin
     dec(TpsTimeoutSL);
@@ -13880,6 +13880,7 @@ begin
       ClientSocketInterface.Socket.SendText(' ');
     end;
   end;
+
   if tempoSouris>0 then dec(Temposouris);
   if Tdoubleclic>0 then dec(Tdoubleclic);
   if Tempo_init>0 then dec(Tempo_init);

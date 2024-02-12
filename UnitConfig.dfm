@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAct
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3884,35 +3884,35 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object Label51: TLabel
           Left = 16
-          Top = 48
+          Top = 50
           Width = 38
           Height = 13
           Caption = 'Adresse'
         end
         object Label52: TLabel
           Left = 16
-          Top = 120
+          Top = 122
           Width = 80
           Height = 13
           Caption = 'Vitesse maximale'
         end
         object Label53: TLabel
           Left = 16
-          Top = 24
+          Top = 26
           Width = 22
           Height = 13
           Caption = 'Nom'
         end
         object Label56: TLabel
           Left = 16
-          Top = 72
+          Top = 74
           Width = 215
           Height = 13
           Caption = 'Vitesse '#224' l'#39'avertissement ou au ralentissement'
         end
         object Label57: TLabel
           Left = 16
-          Top = 96
+          Top = 98
           Width = 79
           Height = 13
           Caption = 'Vitesse nominale'

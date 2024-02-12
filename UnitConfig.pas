@@ -669,14 +669,14 @@ var
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran,
   EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,
-  EditMaxSignalSens,EditnCantonsRes  : Tedit;
+  EditMaxSignalSens,EditnCantonsRes,EditAntiTO  : Tedit;
 
   EditT  : Array[1..10] of Tedit;
   TextBoxCde : array[1..19] of Tedit;
 
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP,
-  LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,
+  LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,LabelAntiTO,
   LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes : Tlabel;
 
   RadioReserve : TradioGroup;
@@ -4030,6 +4030,10 @@ begin
     if (i<1) or (i>5) then i:=2;
     nCantonsRes:=i;
 
+    val(EditAntiTO.Text,i,erreur);
+    if (i<0) or (i>1) then i:=0;
+    AntiTimeoutEthLenz:=i;
+
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
@@ -4252,6 +4256,7 @@ begin
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditFiltrDet.text:=intToSTR(filtrageDet0);
   EditnCantonsRes.Text:=intToSTR(nCantonsRes);
+  EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
 
   {$IF CompilerVersion >= 28.0}
   ComboStyle.itemIndex:=Style_Aff;
@@ -5841,7 +5846,7 @@ begin
   GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxAvance do
   begin
-    Left:=20;Top:=40;Width:=350;Height:=120;   // maxi=580
+    Left:=20;Top:=40;Width:=350;Height:=150;   // maxi=580
     caption:='Jeu de paramètres avancés';
     name:='GroupBoxAvance';
     parent:=TabAvance;
@@ -5928,6 +5933,26 @@ begin
     ShowHint:=true;
   end;
 
+  LabelAntiTO:=TLabel.Create(FormConfig.TabAvance);
+  with LabelAntiTO do
+  begin
+    Left:=10;Top:=110;Width:=170;Height:=12;
+    caption:='Utilisation de l''anti timeout Lenz Ethernet';
+    name:='LabelAntiTO';
+    parent:=GroupBoxAvance;
+  end;
+  EditAntiTO:=TEdit.Create(TabAvance);
+  with EditAntiTO do
+  begin
+    Left:=x;Top:=108;Width:=30;Height:=15;
+    name:='EditAntiTO';
+    text:='';
+    parent:=GroupBoxAvance;
+    hint:='Si 1, envoie un caractère chaque minute à la centrale '+#13+
+          'pour éviter sa déconnexion (uniquement en Ethernet)';
+    ShowHint:=true;
+  end;
+
   RadioReserve:=TRadioGroup.Create(TabAvance);
   with RadioReserve do
   begin
@@ -5936,7 +5961,7 @@ begin
     Caption:='Réservation des aiguillages';
     parent:=TabAvance;
     hint:='Choix du mode de réservation des aiguillages par les trains.'+#13+
-          'La réservation des aiguillages est fonctionelle en mode roulage (mode autonome) ou en mode réservation';
+          'La réservation des aiguillages est fonctionnelle en mode roulage (mode autonome) ou en mode réservation';
     ShowHint:=true;
     items.Add('Réservation par canton');
     items.Add('Réservation par détecteurs');

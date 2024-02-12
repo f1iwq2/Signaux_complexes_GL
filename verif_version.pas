@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion,essai : boolean;
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
 
-Const  Version='8.42';  // sert à la comparaison de la version publiée
+Const  Version='8.43';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -174,6 +174,7 @@ end;
 
 
 // dézipe copie les fichiers et lance la nouvelle version
+// s : chemin etfichier à déziper
 procedure dezipe_copie(s : string);
 var fichier,nomPDF : string;
     dirList : tStrings;
@@ -195,10 +196,10 @@ begin
   i:=pos('.zip',chemin_src);
   if i=0 then
   begin
-    affiche('Zip invalide',clred);
+    affiche('nom du zip invalide',clred);
     exit;
   end;
-  delete(chemin_src,i,4);
+  delete(chemin_src,i,4);  // transforme en chemin
 
   // Vérifier si répertoire dest existe
   chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
@@ -209,7 +210,6 @@ begin
   end;
   chemin_dest:=chemin_dest+'\';
   chemin_src:=chemin_src+'\';
-
 
   // remplit dirlist avec les noms de fichiers du chemin dest
   nombre:=0;
@@ -227,19 +227,18 @@ begin
     FindClose(SR);
   end;
 
-  // supprimer les fichiers signaux_complexes_gl.Exe et versions.txt et pdf
+  // supprimer les fichiers *.Exe et versions.txt et pdf
   nomPdf:='';
   for i:=0 to nombre-1 do
   begin
     s:=DirList.Strings[i];
     s:=lowercase(s);
     pdf:=pos('.pdf',s)<>0;
-    if pdf then
-     nomPDF:=s;
+    if pdf then nomPDF:=s;
 
     //Affiche(s,clyellow);
     // fichiers à supprimer dans répertoire destination
-    if (pos('.exe',s)<>0) or (s='versions.txt') or (s='signaux_complexes_gl_d11.exe') or pdf then
+    if (pos('.exe',s)<>0) or (s='versions.txt') or pdf then
     begin
       fichier:=chemin_dest+s;
       if sysutils.FileExists((fichier)) then
@@ -259,7 +258,7 @@ begin
   copie_fichier('signaux_complexes_gl_d11.exe');
   copie_fichier('versions.txt');
 
-  // trouver du nom du pdf
+  // trouver du nom du pdf dans le chemin source
   nombre:=0;
   // remplit dirlist avec les noms de fichiers du chemin src
   if FindFirst(chemin_src+ '*.*', faAnyFile, SR) = 0 then
@@ -531,7 +530,13 @@ begin
       else
       begin
         result:=-1;
-        affiche('Le dépôt github ne comprend aucune version diffusée.',clOrange);
+        affiche('Le dépôt ',clOrange);
+
+        formprinc.FenRich.SelStart:=length(formprinc.FenRich.Text);
+        formprinc.FenRich.SelAttributes.Style:=[fsUnderline];
+        Affiche('https://github.com/f1iwq2/Signaux_complexes_GL/releases',clAqua);
+
+        Affiche('ne comprend aucune version diffusée.',clOrange);
       end;
     end
     else

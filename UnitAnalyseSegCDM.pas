@@ -1,8 +1,8 @@
 unit UnitAnalyseSegCDM;
 // importation des données de CDM
 // Affichage de la page du réseau CDM
-// les Tjs ne sont pas traitées, de même que les bretelles double jonction
-//
+// les Tjs ne sont pas traitées
+// fichier source CDM générateur de l'export : cd_cdb.c version 2.0
 interface
 
 uses
@@ -292,7 +292,7 @@ begin
   Segment[nSeg-1].periph[nperiph-1].location:=i;
 
   s:=AnsiLowerCase(lignes[nligne]);
-  inc(nLigne);
+  // ne pas faire inc(nligne) car on va regarder la ligne suivante en indiçant en +1
 
   s2:=isole_valeur(s,'address',true);
   val(s2,i,erreur);
@@ -318,9 +318,14 @@ begin
 
   // peut être suivi de 'On device port'
   Segment[nSeg-1].periph[nperiph-1].OnDevicePort:=-1; // marqueur d'invalidité
-  s:=AnsiLowerCase(lignes[nligne]);
+  s:=AnsiLowerCase(lignes[nligne+1]);
   if pos('on device port',s)<>0 then
   begin
+    if nDet_cdm<>0 then
+    begin
+      Affiche('Detecteur '+intToSTR(Det_CDM[nDet_cdm])+' sur appareil de voie ',clorange);
+      AfficheDebug('Detecteur '+intToSTR(Det_CDM[nDet_cdm])+' sur appareil de voie ',clorange);
+    end;
     s2:=isole_valeur(s,'on device port #',true);
     inc(nLigne);
     val(s2,i,erreur);
@@ -4163,7 +4168,12 @@ begin
 
   Affichage(false);
   Affiche('Nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
-
+  if debugAnalyse then
+  begin
+    AfficheDebug('Nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
+    for i:=1 to Ndet_cdm do AfficheDebug(intToSTR(Det_cdm[i]),clYellow);
+  end;
+  
   formAnalyseCDM.Show;
   formprinc.ButtonAffAnalyseCDM.Visible:=true;
   Affiche('Compilation terminée. Nombre de segments='+intToSTR(nSeg),clWhite);
