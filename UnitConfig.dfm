@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 347
-  Top = 101
+  Left = 246
+  Top = 114
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetTrains
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1163,7 +1163,7 @@ object FormConfig: TFormConfig
       ImageIndex = 1
       object Label9: TLabel
         Left = 16
-        Top = 448
+        Top = 456
         Width = 294
         Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
@@ -1228,14 +1228,14 @@ object FormConfig: TFormConfig
       end
       object GroupBox4: TGroupBox
         Left = 8
-        Top = 128
+        Top = 208
         Width = 297
         Height = 65
         Caption = '4. Ent'#234'te des trames XpressNet vers l'#39'interface'
         TabOrder = 1
         object RadioButton1: TRadioButton
           Left = 8
-          Top = 24
+          Top = 20
           Width = 225
           Height = 17
           Caption = '0 : Sans ent'#234'te (interfaces s'#233'rie, Genli...)'
@@ -1252,7 +1252,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox3: TGroupBox
         Left = 8
-        Top = 200
+        Top = 128
         Width = 297
         Height = 73
         Caption = 'Acc'#232's r'#233'seau '#224' l'#39'interface vers la centrale'
@@ -1337,7 +1337,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox9: TGroupBox
         Left = 8
-        Top = 280
+        Top = 282
         Width = 297
         Height = 161
         Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
@@ -1429,7 +1429,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox22: TGroupBox
         Left = 312
-        Top = 256
+        Top = 248
         Width = 297
         Height = 65
         Caption = 'Protocole de connexion '#224' la centrale ou '#224' l'#39'interface'
@@ -3009,8 +3009,8 @@ object FormConfig: TFormConfig
             end
           end
           object GroupBox19: TGroupBox
-            Left = 48
-            Top = 144
+            Left = 24
+            Top = 152
             Width = 233
             Height = 137
             Caption = 'Destinataire de l'#39'action '
@@ -3150,7 +3150,7 @@ object FormConfig: TFormConfig
               OnChange = EditTempoChange
             end
             object CheckRAZ: TCheckBox
-              Left = 32
+              Left = 40
               Top = 48
               Width = 145
               Height = 17
@@ -3197,13 +3197,13 @@ object FormConfig: TFormConfig
               OnChange = EditTrainDestChange
             end
             object ComboBoxAccComUSB: TComboBox
-              Left = 8
-              Top = 32
+              Left = 24
+              Top = 64
               Width = 201
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 13
+              ItemHeight = 0
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3224,24 +3224,24 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 152
-          Top = 240
+          Left = 32
+          Top = 40
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 2
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 88
-          Top = 320
+          Left = 72
+          Top = 368
           Width = 169
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 152
-          Top = 24
+          Left = 24
+          Top = 32
           Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
@@ -3378,13 +3378,13 @@ object FormConfig: TFormConfig
             OnClick = RadioGroupActPNClick
           end
           object ComboBoxPNCom: TComboBox
-            Left = 8
-            Top = 104
+            Left = 72
+            Top = 128
             Width = 145
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10

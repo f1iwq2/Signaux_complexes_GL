@@ -649,9 +649,9 @@ var
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
   compt_Ligne,Style_aff,Ancien_Style,Ecran_SC,Mode_reserve,Max_Signal_Sens,nCantonsRes : integer;
 
-  ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
+  ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,fermeSC,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
-  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21 : boolean;
 
   fichier : text;
 
@@ -693,7 +693,7 @@ var
 
 function config_com(s : string) : boolean;
 function envoi_CDM(s : string) : boolean;
-procedure connecte_CDM;
+function connecte_CDM : boolean;
 function place_id(s : string) : string;
 procedure decodeAig(s : string;var adr : integer;var B : char);
 function sauve_config : boolean;
@@ -729,7 +729,7 @@ begin
   repeat
     inc(temps);Sleep(100);
     Application.processMessages;
-  until ferme or ackCDM or nackCDM or (temps>30); // CDM répond < 1s
+  until fermeSC or ackCDM or nackCDM or (temps>30); // CDM répond < 1s
 
   if not(ackCDM) or nack then
   begin
@@ -803,16 +803,17 @@ begin
   ack_cdm:=false;
 end;
 
-procedure connecte_CDM;
+function connecte_CDM : boolean;
 var s : string;
     i : integer;
 begin
+  result:=false;
   // déconnexion de l'ancienne liaison éventuelle
   Formprinc.ClientSocketCDM.Close;
 
-  if (AdresseIPCDM<>'0') then
+  if (AdresseIPCDM<>'0') and IpOk(AdresseIPCDM) then
   begin
-    if(ProcessRunning('CDR')) then
+    if (ProcessRunning('CDR')) then
     begin
       // ouverture du socket CDM
       with Formprinc do
@@ -854,13 +855,14 @@ begin
         Application.ProcessMessages;
         SauvefiltrageDet0:=filtrageDet0;
         filtrageDet0:=0;
+        result:=true;
       end;
     end;
-    //else Affiche('CDM Rail non lancé',clOrange);
   end
   else
   begin
     if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,clcyan);
+    if not(IpOk(AdresseIPCDM)) then Affiche('Adresse IP CDM incorrecte : '+AdresseIPCDM,clcyan);
   end;
 end;
 
@@ -1927,7 +1929,7 @@ begin
         if k=1 then
         for j:=1 to 19 do
         begin
-          s:=etats[j]+','+decodeur_pers[i].desc[j].Chcommande;
+          s:=utf8encode(etats[j])+','+decodeur_pers[i].desc[j].Chcommande;
           writeln(fichierN,s);
         end;
         if k=2 then
@@ -2869,8 +2871,9 @@ var s,sa,SOrigine: string;
         end;
         if c=1 then
         begin
-          k:=pos(',',sOrigine);
-          decodeur_pers[NbreDecPers].desc[adr].Chcommande:=copy(sOrigine,k+1,length(sOrigine)-k+1);
+          k:=pos(',',sOrigine);    // on ne tient compte que du 2ème champ
+          s:=copy(sOrigine,k+1,length(sOrigine)-k+1);  // on ne copie que le 2eme champ
+          decodeur_pers[NbreDecPers].desc[adr].Chcommande:=s;
           s:='';
           inc(adr);
         end;
@@ -3631,7 +3634,6 @@ var s,sa,SOrigine: string;
         Ecran_SC:=i;
       end;
 
-
       sa:=uppercase(Z21_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
@@ -4158,7 +4160,9 @@ begin
      if (AdrBaseDetDccpp<0) or (AdrBaseDetDccpp>2048) then AdrBaseDetDccpp:=513;
 
     mode_Reserve:=RadioReserve.ItemIndex;  // 0 = par canton - 1=par détecteurs
+
     val(EditAlgo.Text,i,erreur);
+    if (i<1) or (i>1) then i:=1;
     Algo_localisation:=i;
 
     val(EditMaxSignalSens.Text,i,erreur);
@@ -4454,8 +4458,8 @@ begin
   with formconfig do
   begin
     ComboBoxDecCde.ItemIndex:=decodeur_pers[DecCourant].Peripherique-1;
-    formconfig.labelDecal.caption:='Commande'+#13+'Ascii';
-    LabelDecal.Left:=150;
+    formconfig.labelDecal.caption:='Commandes'+#13+'Ascii';
+    LabelDecal.Left:=160;
     formconfig.LabelSorties.visible:=false;
   end;
 end;
@@ -4535,13 +4539,14 @@ begin
   liste_portcom;
 end;
 
+// cliqué sur les checkbox de l'onglet des périphériques
 procedure TformConfig.cb_onclick(sender : TObject);
 var s : string;
     cb : TCheckBox;
 begin
   if clicliste or (ligneClicAccPeriph<0) then exit;
   cb:=(sender as Tcheckbox);
-  s := cb.Name;
+  s:=cb.Name;
   if pos('Aig',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvAig:=cb.Checked;
   if pos('Det',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvDet:=cb.Checked;
   if pos('Act',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvAct:=cb.Checked;
@@ -4574,7 +4579,6 @@ procedure fabrique_combos_periph;
 var i : integer;
     s : string;
 begin
-
   with FormConfig.ListBoxPeriph,FormConfig do
   begin
     ComboBoxAccComUSB.Clear;
@@ -4607,7 +4611,6 @@ begin
     ComboBoxAccComUSB.Items[i-1]:=s;
     // réaffiche le champ modifié dans le comboboxAccComUSB
     if Tablo_Actionneur[ligneclicAct+1].periph then if tablo_actionneur[ligneclicAct+1].fonction=i then ComboBoxAccComUSB.ItemIndex:=i-1;
-
 
     ComboBoxPNCom.items[i-1]:=s;
     if tablo_PN[lignecliqueePN+1].TypeCde=1 then if tablo_PN[lignecliqueePN+1].AdresseFerme=i then ComboBoxPNCom.ItemIndex:=i-1;
@@ -4702,7 +4705,7 @@ var i : integer;
 begin
   if clicListe then exit;
   i:=ComboStyle.ItemIndex;
-  // il faut changer le style dans la fenetre principale, sinon çà plante si on choisit windows.
+  // il faut changer le style dans la fenetre principale (formPrinc), sinon çà plante si on choisit windows.
   Style_Aff:=i;
 end;
 {$IFEND}
@@ -4928,10 +4931,11 @@ begin
       visible:=false;
     end;
 
+    // décalage d'adresse
     EditT[i]:=TEdit.create(FormConfig.TabSheetDecodeurs);
     with EditT[i] do
     begin
-      Name:='EditT'+intToSTR(i);
+      Name:='EditDecalT'+intToSTR(i);
       left:=180;Top:=y+10;Width:=30;Height:=15;
       text:='';
       parent:=TabSheetDecodeurs;
@@ -5870,7 +5874,8 @@ begin
     text:='';
     parent:=GroupBoxAvance;
     hint:='Nombre de détecteurs considérés comme trop distants'+#13+
-          'Cette valeur dépend de la taille du réseau';
+          'Cette valeur dépend de la taille du réseau:'+#13+
+          '3 pour les petits réseaux jusque 5 ou 6 pour les grands';
     ShowHint:=true;
   end;
 
@@ -6016,11 +6021,7 @@ begin
     ShowHint:=true;
   end;
 
-  // oui
-  {if FileExists('Image_Signaux.jpg') then ImageSignaux.Picture.LoadFromFile('Image_Signaux.jpg')
-  else
-    Affiche('Manque fichier "Image_Signaux.jpg"',clOrange);
-  }
+
   ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
 
   EditComUSB.Hint:='COMX:vitesse,parité,nombre de bits,bits de stop,protocole'+#13+
@@ -6067,14 +6068,19 @@ begin
   i:=pos(',',s);
   if i<>0 then delete(s,i,length(s)-i+1);
   val(s,adr,erreur);
-  if adr<0 then begin B:='?';adr:=0;exit;end;
-  if erreur<>0 then
+  if (adr<0) then begin B:='?';adr:=0;exit;end;
+  if (erreur<>0) and (erreur<=length(s)) then
   begin
     if s[erreur]='S' then begin B:='S';exit;end;
     if s[erreur]='P' then begin B:='P';exit;end;
     if s[erreur]='D' then begin B:='D';exit;end;
   end;
-
+  if erreur>length(s) then
+  begin
+    adr:=0;
+    B:='?';
+    exit;
+  end;
   B:='Z';
 end;
 
@@ -7975,7 +7981,7 @@ begin
   begin
     s:=EditDet1.Text;
     Val(s,i,erreur);
-    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
+    if (s='') or (erreur<>0) or (i<1) then begin LabelInfo.caption:='Erreur détecteur1 ';exit;end;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det1:=i;
     maj_hint_Signal(ligneClicSig+1);
@@ -7992,7 +7998,7 @@ var i,erreur : integer;
 begin
   s:=editTempoFeu.Text;
   Val(s,i,erreur);
-  if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur temporisation décodeurs ';exit;end;
+  if (s='') or (erreur<>0) or (i<0) then begin LabelInfo.caption:='Erreur temporisation décodeurs ';exit;end;
   LabelInfo.caption:=' ';
   Tempo_Signal:=i;
 end;
@@ -8013,13 +8019,15 @@ begin
     if s<>'' then
     begin
       Val(s,i,erreur);
-      if erreur<>0 then
+      if (i<0) then begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
+      if (erreur<>0) and (erreur<=length(s)) then
       begin
         if (s[erreur]='A') and (erreur=1) then
         begin
           bt:=aig;
           delete(s,erreur,1);
           Val(s,i,erreur);
+          if i<0 then begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
         end
         else begin LabelInfo.caption:='Erreur élément suivant 1';exit;end;
       end
@@ -8057,7 +8065,7 @@ begin
   begin
     s:=EditDet2.Text;
     Val(s,i,erreur);
-    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
+    if (s='') or (erreur<>0) or (i<1) then begin LabelInfo.caption:='Erreur détecteur2 ';exit;end;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det2:=i;
     maj_hint_Signal(ligneClicSig+1);
@@ -8120,13 +8128,15 @@ begin
     if s<>'' then
     begin
       Val(s,i,erreur);
-      if erreur<>0 then
+      if (i<0) then begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
+      if (erreur<>0) and (erreur<=length(s)) then
       begin
         if (s[erreur]='A') and (erreur=1) then
         begin
           bt:=aig; 
           delete(s,erreur,1);
           Val(s,i,erreur);
+          if i<0 then begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
         end
         else begin LabelInfo.caption:='Erreur élément suivant 2';exit;end;
       end
@@ -8155,16 +8165,16 @@ end;
 procedure det3;
 var s : string;
     i,erreur : integer;
-begin    
+begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt detecteur 3',clOrange);
-  
+
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
   with Formconfig do
   begin
     s:=EditDet3.Text;
     Val(s,i,erreur);
-    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
+    if (s='') or (erreur<>0) or (i<1) then begin LabelInfo.caption:='Erreur détecteur3 ';exit;end;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det3:=i;
     maj_hint_Signal(ligneClicSig+1);
@@ -8196,13 +8206,15 @@ begin
     if s<>'' then
     begin
       Val(s,i,erreur);
-      if erreur<>0 then
+      if (i<0) then begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
+      if (erreur<>0) and (erreur<=length(s)) then
       begin
         if (s[erreur]='A') and (erreur=1) then
         begin
           bt:=aig; 
           delete(s,erreur,1);
           Val(s,i,erreur);
+          if i<0 then begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
         end
         else begin LabelInfo.caption:='Erreur élément suivant 3';exit;end;
       end
@@ -8240,7 +8252,7 @@ begin
   begin
     s:=EditDet4.Text;
     Val(s,i,erreur);
-    if (s<>'') and (erreur<>0) then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
+    if (s='') or (erreur<>0) or (i<1) then begin LabelInfo.caption:='Erreur détecteur4 ';exit;end;
     LabelInfo.caption:=' ';
     Signaux[ligneClicSig+1].Adr_det4:=i;
     maj_hint_Signal(ligneClicSig+1);
@@ -8272,13 +8284,16 @@ begin
     if s<>'' then
     begin
       Val(s,i,erreur);
-      if erreur<>0 then
+      if (i<0) then begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
+
+      if (erreur<>0) and (erreur<=length(s)) then
       begin
         if (s[erreur]='A') and (erreur=1) then
         begin
           bt:=aig; 
           delete(s,erreur,1);
           Val(s,i,erreur);
+          if i<0 then begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
         end
         else begin LabelInfo.caption:='Erreur élément suivant 4';exit;end;
       end
@@ -8320,7 +8335,7 @@ begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked  or radioButtonCde.checked then
     begin
       Val(s,act,erreur);
-      if s='' then exit;
+      if (s='') or (act<1) then exit;
 
       // 0=actionneur/détecteur  2=evt aig  3=MemZone
       if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=3) or (Tablo_Actionneur[ligneClicAct+1].typdeclenche=0) then
@@ -8371,7 +8386,7 @@ begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
       Val(s,det2,erreur);
-      if s='' then exit;
+      if (s='') or (det2<1) then exit;
       if erreur<>0 then
       begin
         LabelInfo.caption:='Erreur adresse détecteur';exit
@@ -8383,7 +8398,7 @@ begin
 
       // vérifier si les détecteurs sont contigus
       Val(EditAct.Text,det1,erreur);
-      if erreur<>0 then exit;
+      if (erreur<>0) or (det1<1) then exit;
       det_contigu(det1,det2,suiv,elSuiv);
       if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(det1)+' et '+intToSTR(det2)+' ne sont pas contigus'
       else LabelInfo.Caption:='';
@@ -8548,7 +8563,7 @@ begin
     if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonCde.Checked then
     begin
       Val(s,fonction,erreur);
-      if erreur<>0 then
+      if (erreur<>0) or (fonction<1) then
       begin
         LabelInfo.caption:='Erreur fonction actionneur';exit
       end else LabelInfo.caption:=' ';
@@ -8603,7 +8618,7 @@ begin
     if radioButtonLoc.Checked then
     begin
       Val(s,tempo,erreur);
-      if erreur<>0 then
+      if (erreur<>0) or (tempo<0) then
       begin
         LabelInfo.caption:='Erreur Tempo actionneur';exit
       end else LabelInfo.caption:=' ';
@@ -8929,7 +8944,7 @@ begin
   begin 
     s:=EditAdrFerme.Text;
     Val(s,act,erreur);
-    if erreur<>0 then
+    if (erreur<>0) or (act<1) then
     begin
       LabelInfo.caption:='Erreur adresse actionneur ferme';exit
     end else LabelInfo.caption:=' ';
@@ -8978,7 +8993,7 @@ begin
   begin
     s:=EditAdrOuvre.Text;
     Val(s,act,erreur);
-    if erreur<>0 then
+    if (erreur<>0) or (act<1) then
     begin
       LabelInfo.caption:='Erreur adresse actionneur ouvre';exit
     end else LabelInfo.caption:=' ';
@@ -9393,10 +9408,10 @@ begin
         else
           with Signaux[j].Img do
           begin
-            Parent:=Formprinc.ScrollBox1;   // dire que l'image est dans la scrollBox1
+            Parent:=Formprinc.ScrollBoxSig;   // dire que l'image est dans la scrollBox1
             Top:=(HtImg+espY+20)*((j-1) div NbreImagePLigne);   // détermine les points d'origine
             Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
-            Name:='ImageFeu'+IntToSTR(Signaux[j].adresse);
+            Name:='ImageSignal'+IntToSTR(Signaux[j].adresse);
             Maj_Hint_Signal(j);
           end;
 
@@ -11679,7 +11694,7 @@ begin
       s:=encode_aig(ligneclicAig+1);
       ListBoxAig.items[ligneclicAig]:=s;
       formconfig.ListBoxAig.selected[ligneclicAig]:=true;
-    end ;
+    end;
   end; 
 end;
 
@@ -11749,13 +11764,13 @@ begin
     // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
     if Signaux[index].FeuBlanc and (Signaux[index].checkFB=nil) then
     begin
-      Signaux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBox1);  // crée le handle
+      Signaux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBoxSig);  // crée le handle
       with Signaux[index].CheckFB do
       begin
         onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
         Hint:=intToSTR(index);
         caption:='dem FB';
-        Parent:=Formprinc.ScrollBox1;
+        Parent:=Formprinc.ScrollBoxSig;
         width:=100;height:=15;
         Top:=HtImg+15+((HtImg+EspY+20)*((index-1) div NbreImagePLigne));
         Left:=10+ (LargImg+5)*((index-1) mod (NbreImagePLigne));
@@ -12318,29 +12333,33 @@ begin
 end;
 
 procedure TFormConfig.EditAdresseTrainChange(Sender: TObject);
-var erreur :integer;
+var erreur,i :integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change adresse train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
-  val(EditAdresseTrain.text,trains[ligneclicTrain+1].adresse,erreur);
+  val(EditAdresseTrain.text,i,erreur);
+  if i<1 then exit;
+  trains[ligneclicTrain+1].adresse:=i;
   formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
 procedure TFormConfig.EditVitesseMaxiChange(Sender: TObject);
-var erreur :integer;
+var erreur,i :integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse maxi train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
-  val(EditVitesseMaxi.text,trains[ligneclicTrain+1].vitmax,erreur);
+  val(EditVitesseMaxi.text,i,erreur);
+  if i<1 then exit;
+  trains[ligneclicTrain+1].vitmax:=i;
   formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
   formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
 procedure TFormConfig.EditVitNomChange(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse nominale train',clyellow);
@@ -12348,14 +12367,16 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
   with Formconfig do
   begin
-    val(EditVitNom.text,trains[ligneclicTrain+1].vitNominale,erreur);
+    val(EditVitNom.text,i,erreur);
+    if i<1 then exit;
+    trains[ligneclicTrain+1].vitNominale:=i;
     ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
     ListBoxTrains.selected[ligneclicTrain]:=true;
   end;
 end;
 
 procedure TFormConfig.EditVitRalentiChange(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse ralenti train',clyellow);
@@ -12363,7 +12384,9 @@ end;
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetTrains then
   with Formconfig do
   begin
-    val(EditVitRalenti.text,trains[ligneclicTrain+1].vitRalenti,erreur);
+    val(EditVitRalenti.text,i,erreur);
+    if i<1 then exit;
+    trains[ligneclicTrain+1].vitRalenti:=i;
     ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
     ListBoxTrains.selected[ligneclicTrain]:=true;
   end;
@@ -12771,16 +12794,16 @@ procedure Tformconfig.modif_editT(Sender : TObject);
 var te : tEdit;
     adr,i,NbVoies,erreur,act,voie,det,numDet :integer;
     ouvre,ferme,v2Valide,v3valide,v4valide,v5valide : boolean;
-    s : string;
+    s,sb : string;
 begin
   if deccourant=0 then exit;
   te:=Sender as Tedit;
   s:=lowercase(te.Name);
+  sb:=te.Text;
 
-  if pos('EditOuvreEcran',s)<>0 then
+  if pos('editouvreecran',s)<>0 then
   begin
-    adr:=extract_int(s);
-    val(s,i,erreur);
+    val(sb,i,erreur);
     if (erreur<>0) or (i<1) then
     begin
       labelInfo.caption:='Erreur écran';
@@ -12791,11 +12814,11 @@ begin
     exit;
   end;
 
-  if pos('tditt',s)<>0 then
+  if pos('editdecalt',s)<>0 then
   begin
     adr:=extract_int(s);
-    val(s,i,erreur);
-    if erreur<>0 then
+    val(sb,i,erreur);
+    if (erreur<>0) or (i<0) then
     begin
       labelInfo.caption:='Erreur adresse';
       exit;
@@ -12809,17 +12832,16 @@ begin
   if pos('editv',s)<>0 then
   begin
     i:=lignecliqueePN+1;
-    voie:=extract_int(s);
-    ouvre:=pos('o',s)<>0;
-    ferme:=pos('f',s)<>0;
+    voie:=extract_int(s);     // numéro de voie modifiée
+    ouvre:=pos('o',s)<>0;     // champ ouvre
+    ferme:=pos('f',s)<>0;     // champ ferme
     if clicliste or (lignecliqueePN<0) then exit;
     if affevt then affiche('Evt EditVXX Change',clyellow);
     if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
     with Formconfig do
     begin
-      s:=te.Text;
-      Val(s,act,erreur);
-      if (erreur<>0) then
+      Val(sb,act,erreur);
+      if (erreur<>0) or (act<=0) then
       begin
         LabelInfo.caption:='Erreur adresse actionneur';
         if ferme then tablo_PN[i].voie[voie].ActFerme:=0;
@@ -12882,7 +12904,7 @@ begin
 
       s:=te.Text;
       Val(s,det,erreur);
-      if (erreur<>0) then
+      if (erreur<>0) or (det<=0) then
       begin
         LabelInfo.caption:='Erreur adresse détecteur';exit
       end else LabelInfo.caption:=' ';
@@ -13092,7 +13114,6 @@ begin
     k:=comBoBoxDec.ItemIndex;
     ComboBoxDec.Items[NbDecodeurdeBase+DecCourant-1]:=s;   // combobox du décodeur, onglet signaux  - change son itemindex
     ComboBoxDec.ItemIndex:=k;
-
     //vérifier si le décodeur est utilisé dans les signaux pour changer son hint
     for i:=1 to NbreSignaux do
     begin
@@ -13102,7 +13123,7 @@ begin
 
   EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
   //Affiche('Décodeur courant = '+intToSTR(decCourant),clyellow);
-  if it=-1 then maj_decodeurs;
+  maj_decodeurs;
 
 end;
 
@@ -14273,7 +14294,7 @@ begin
 
     if (modele=aig) or (modele=triple) or (modele=crois) then
     begin
-      EditAdrAig.Color:=clWindow;
+      if sombre then editAdrAig.Color:=couleurfond else EditAdrAig.Color:=clWindow;
       LabelInfo.caption:=' ';
       aiguillage[index].adresse:=i;
       aiguillage[index].modifie:=true;

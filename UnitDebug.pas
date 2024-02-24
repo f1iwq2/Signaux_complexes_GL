@@ -206,7 +206,10 @@ begin
   compt_erreur:=0;
   LigneErreur:=0;
   if debug=1 then Affiche('Fin création fenêtre debug',clLime);
-
+  // && débug=====================
+  //CheckBoxEvtDetAig.Checked:=true;
+  //CheckTrame.checked:=true;
+  // fin debug====================
   couleurs_debug;
 end;
 
@@ -377,8 +380,7 @@ begin
   ancdebug:=NivDebug;
   NivDebug:=3;
   Val(EditSigSuiv.Text,adr,erreur);
-  if erreur<>0 then exit;
-  etat_signal_suivant(Adr,1,AdrSigSuivant) ;
+  if (erreur<>0) and (adr>0) then etat_signal_suivant(Adr,1,AdrSigSuivant) ;
   NivDebug:=AncDebug;
 end;
 
@@ -394,8 +396,10 @@ begin
   if (s1='') or (s2='') then exit;
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
-  Val(s1,prec,erreur); if erreur<>0 then exit;
-  Val(s2,Actuel,erreur); if erreur<>0 then exit;
+  Val(s1,prec,erreur);
+  if (erreur<>0) or (prec<1) then exit;
+  Val(s2,Actuel,erreur);
+  if (erreur<>0) or (actuel<1) then exit;
   Adr:=detecteur_suivant_El(prec,type1,actuel,type2,1);
   if Adr<9996 then AfficheDebug('Le détecteur suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr),clyellow)
   else AfficheDebug('Pas trouvé de détecteur suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
@@ -407,7 +411,8 @@ var Adr,erreur,ancdebug : integer ;
 begin
   ancdebug:=NivDebug;
   NivDebug:=3;
-  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur=0) or (adr<1) then exit;
   if test_memoire_zones(Adr) then AfficheDebug('Présence train',clYellow) else
     AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
@@ -417,7 +422,8 @@ end;
 procedure TFormDebug.ButtonCPClick(Sender: TObject);
 var Adr,erreur,ancdebug,adrtrain,voie : integer ;
 begin
-  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur<>0) or (adr<1) then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
   if PresTrainPrec(Adr,Nb_cantons_Sig,false,voie,adrtrain) then AfficheDebug('Présence train '+intToSTR(AdrTrain),clYellow) else
@@ -429,7 +435,8 @@ procedure TFormDebug.Button2Click(Sender: TObject);
 var Adr,erreur,ancdebug,train : integer ;
     reservetraintiers : boolean;
 begin
-  Val(EditSigSuiv.Text,Adr,erreur); if erreur<>0 then exit;
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur<>0) or (Adr<1) then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
   Cond_Carre(Adr);
@@ -454,28 +461,28 @@ procedure TFormDebug.ButtonSimuDet0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then Event_Detecteur(det,false,'');
+  if (erreur=0) and (det>0) then Event_Detecteur(det,false,'');
 end;
 
 procedure TFormDebug.ButtonSimuDet1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then Event_Detecteur(det,true,'');
+  if (erreur=0) and (det>0) then Event_Detecteur(det,true,'');
 end;
 
 procedure TFormDebug.ButtonSimuAct1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then Event_Act(det,0,1,'');
+  if (erreur=0) and (det>0) then Event_Act(det,0,1,'');
 end;
 
 procedure TFormDebug.ButtonSimuAct0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if erreur=0 then Event_Act(det,0,0,'');
+  if (erreur=0) and (det>0)  then Event_Act(det,0,0,'');
 end;
 
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
@@ -512,8 +519,10 @@ begin
   if (s1='') or (s2='') then exit;
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
-  Val(s1,prec,erreur); if erreur<>0 then exit;
-  Val(s2,Actuel,erreur); if erreur<>0 then exit;
+  Val(s1,prec,erreur);
+  if (erreur<>0) or (prec<1) then exit;
+  Val(s2,Actuel,erreur);
+  if (erreur<>0) or (actuel<1) then exit;
   Adr:=suivant_Alg3(prec,type1,actuel,type2,1);
   if Adr<9995 then
   begin

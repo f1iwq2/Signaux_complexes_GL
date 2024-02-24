@@ -3,7 +3,7 @@ object FormSR: TFormSR
   Top = 73
   BorderStyle = bsDialog
   Caption = 'Configuration du d'#233'codeur du signal St'#233'phane Ravaut'
-  ClientHeight = 562
+  ClientHeight = 540
   ClientWidth = 475
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,21 +18,21 @@ object FormSR: TFormSR
   TextHeight = 13
   object LabelAdrSR1: TLabel
     Left = 24
-    Top = 64
+    Top = 72
     Width = 63
     Height = 13
     Caption = 'LabelAdrSR1'
   end
   object Label1: TLabel
     Left = 120
-    Top = 48
+    Top = 56
     Width = 15
     Height = 13
     Caption = '+ 2'
   end
   object Label2: TLabel
     Left = 120
-    Top = 72
+    Top = 80
     Width = 12
     Height = 13
     Caption = '- 1'
@@ -78,33 +78,33 @@ object FormSR: TFormSR
   end
   object Shape1: TShape
     Left = 16
-    Top = 96
+    Top = 104
     Width = 409
     Height = 1
   end
   object LabelAdrSR2: TLabel
     Left = 24
-    Top = 120
+    Top = 128
     Width = 63
     Height = 13
     Caption = 'LabelAdrSR2'
   end
   object Label7: TLabel
     Left = 120
-    Top = 104
+    Top = 112
     Width = 15
     Height = 13
     Caption = '+ 2'
   end
   object Label8: TLabel
     Left = 120
-    Top = 128
+    Top = 136
     Width = 12
     Height = 13
     Caption = '- 1'
   end
   object Label6: TLabel
-    Left = 336
+    Left = 344
     Top = 24
     Width = 21
     Height = 16
@@ -118,56 +118,56 @@ object FormSR: TFormSR
   end
   object LabelCV1: TLabel
     Left = 320
-    Top = 48
+    Top = 56
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV2: TLabel
     Left = 384
-    Top = 48
+    Top = 56
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV3: TLabel
     Left = 320
-    Top = 72
+    Top = 80
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV4: TLabel
     Left = 384
-    Top = 72
+    Top = 80
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV5: TLabel
     Left = 320
-    Top = 110
+    Top = 118
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV6: TLabel
     Left = 384
-    Top = 110
+    Top = 118
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV7: TLabel
     Left = 320
-    Top = 134
+    Top = 142
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV8: TLabel
     Left = 384
-    Top = 134
+    Top = 142
     Width = 20
     Height = 13
     Caption = 'CV='
@@ -449,55 +449,55 @@ object FormSR: TFormSR
   end
   object Shape7: TShape
     Left = 16
-    Top = 448
+    Top = 440
     Width = 409
     Height = 1
   end
   object LabelAdrSR8: TLabel
     Left = 24
-    Top = 472
+    Top = 464
     Width = 63
     Height = 13
     Caption = 'LabelAdrSR2'
   end
   object Label20: TLabel
     Left = 120
-    Top = 456
+    Top = 448
     Width = 15
     Height = 13
     Caption = '+ 2'
   end
   object Label21: TLabel
     Left = 120
-    Top = 480
+    Top = 472
     Width = 12
     Height = 13
     Caption = '- 1'
   end
   object LabelCV29: TLabel
     Left = 320
-    Top = 460
+    Top = 452
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV30: TLabel
     Left = 384
-    Top = 460
+    Top = 452
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV31: TLabel
     Left = 320
-    Top = 484
+    Top = 476
     Width = 20
     Height = 13
     Caption = 'CV='
   end
   object LabelCV32: TLabel
     Left = 384
-    Top = 484
+    Top = 476
     Width = 20
     Height = 13
     Caption = 'CV='
@@ -511,7 +511,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr1: TComboBox
     Left = 160
-    Top = 48
+    Top = 56
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -521,7 +521,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr2: TComboBox
     Left = 160
-    Top = 72
+    Top = 80
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -531,7 +531,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr3: TComboBox
     Left = 160
-    Top = 104
+    Top = 112
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -541,7 +541,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr4: TComboBox
     Left = 160
-    Top = 128
+    Top = 136
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -651,7 +651,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr15: TComboBox
     Left = 160
-    Top = 456
+    Top = 448
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -661,7 +661,7 @@ object FormSR: TFormSR
   end
   object ComboBoxAdr16: TComboBox
     Left = 160
-    Top = 480
+    Top = 472
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -670,8 +670,8 @@ object FormSR: TFormSR
     OnChange = ComboBoxAdr16Change
   end
   object BitBtnok: TBitBtn
-    Left = 16
-    Top = 520
+    Left = 24
+    Top = 504
     Width = 75
     Height = 25
     TabOrder = 16

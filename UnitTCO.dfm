@@ -1,8 +1,8 @@
 object FormTCO: TFormTCO
-  Left = 73
-  Top = 79
-  Width = 1212
-  Height = 661
+  Left = 114
+  Top = 116
+  Width = 1218
+  Height = 594
   VertScrollBar.Visible = False
   Caption = 'c'
   Color = clBtnFace
@@ -24,13 +24,13 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1196
-    602)
+    1210
+    543)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
-    Left = 1167
-    Top = 3
+    Left = 1168
+    Top = 0
     Width = 32
     Height = 13
     Anchors = [akTop, akRight]
@@ -43,24 +43,24 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 1020
-    Top = 3
+    Left = 1021
+    Top = 0
     Width = 121
     Height = 121
     Anchors = [akTop, akRight]
   end
   object ImageTemp2: TImage
-    Left = 1019
-    Top = 132
+    Left = 1020
+    Top = 129
     Width = 121
     Height = 121
     Anchors = [akTop, akRight]
   end
   object ScrollBox: TScrollBox
-    Left = 10
-    Top = 15
-    Width = 687
-    Height = 410
+    Left = 8
+    Top = 12
+    Width = 690
+    Height = 347
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
@@ -71,13 +71,13 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      683
-      406)
+      686
+      343)
     object ImageTCO: TImage
       Left = 120
       Top = 41
-      Width = 486
-      Height = 320
+      Width = 489
+      Height = 257
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
       ParentShowHint = False
@@ -91,8 +91,8 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1157
-    Top = 18
+    Left = 1166
+    Top = 15
     Width = 41
     Height = 311
     Anchors = [akTop, akRight]
@@ -108,9 +108,9 @@ object FormTCO: TFormTCO
     OnChange = TrackBarZoomChange
   end
   object PanelBas: TPanel
-    Left = 2
-    Top = 461
-    Width = 1199
+    Left = 0
+    Top = 395
+    Width = 1202
     Height = 140
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -123,7 +123,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = PanelBasDragOver
     DesignSize = (
-      1199
+      1202
       140)
     object Label1: TLabel
       Left = 240
@@ -906,7 +906,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 1090
+      Left = 1093
       Top = 8
       Width = 96
       Height = 33
@@ -918,7 +918,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonConfigTCO: TButton
-      Left = 1090
+      Left = 1093
       Top = 48
       Width = 96
       Height = 33
@@ -929,7 +929,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 878
+      Left = 881
       Top = 80
       Width = 113
       Height = 25
@@ -938,18 +938,6 @@ object FormTCO: TFormTCO
       TabOrder = 2
       TabStop = False
       OnClick = ButtonSimuClick
-    end
-    object ButtonMasquer: TButton
-      Left = 1090
-      Top = 88
-      Width = 96
-      Height = 33
-      Anchors = [akTop, akRight]
-      Caption = 'Masquer bandeau'
-      TabOrder = 3
-      TabStop = False
-      WordWrap = True
-      OnClick = ButtonMasquerClick
     end
     object GroupBox1: TGroupBox
       Left = 8
@@ -963,7 +951,7 @@ object FormTCO: TFormTCO
       Font.Name = 'Arial Narrow'
       Font.Style = []
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 3
       object Label41: TLabel
         Left = 72
         Top = 18
@@ -1134,30 +1122,30 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 987
+      Left = 1094
       Top = 88
       Width = 97
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
-      TabOrder = 5
+      TabOrder = 4
       TabStop = False
       WordWrap = True
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 918
+      Left = 921
       Top = 56
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Calibrage'
-      TabOrder = 6
+      TabOrder = 5
       TabStop = False
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 987
+      Left = 990
       Top = 48
       Width = 97
       Height = 33
@@ -1168,24 +1156,24 @@ object FormTCO: TFormTCO
       Caption = 'Dessiner le TCO'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 7
+      TabOrder = 6
       TabStop = False
       OnClick = ButtonDessinerClick
     end
     object ButtonAffSC: TButton
-      Left = 987
+      Left = 990
       Top = 8
       Width = 97
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Afficher Signaux Complexes'
-      TabOrder = 8
+      TabOrder = 7
       TabStop = False
       WordWrap = True
       OnClick = ButtonAffSCClick
     end
     object RadioGroupSel: TRadioGroup
-      Left = 839
+      Left = 842
       Top = 8
       Width = 138
       Height = 49
@@ -1200,7 +1188,7 @@ object FormTCO: TFormTCO
         'Cellules s'#233'lectionn'#233'es'
         'fen'#234'tre d'#233'pla'#231'able')
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 8
       OnClick = RadioGroupSelClick
     end
   end

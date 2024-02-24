@@ -301,7 +301,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object GroupBoxAction: TGroupBox
       Left = 16
-      Top = 240
+      Top = 144
       Width = 249
       Height = 129
       Caption = 'Action'
@@ -314,14 +314,14 @@ object FormConfCellTCO: TFormConfCellTCO
       TabOrder = 6
       object Label3: TLabel
         Left = 104
-        Top = 74
+        Top = 73
         Width = 38
         Height = 13
         Caption = 'Adresse'
       end
       object Labela: TLabel
-        Left = 184
-        Top = 74
+        Left = 192
+        Top = 73
         Width = 6
         Height = 13
         Caption = #224
@@ -371,7 +371,7 @@ object FormConfCellTCO: TFormConfCellTCO
         OnClick = RadioButtonActionClick
       end
       object EditAdrSortie: TEdit
-        Left = 144
+        Left = 152
         Top = 70
         Width = 33
         Height = 21
@@ -379,15 +379,27 @@ object FormConfCellTCO: TFormConfCellTCO
         OnChange = EditAdrSortieChange
       end
       object EditEtat: TEdit
-        Left = 200
+        Left = 208
         Top = 70
-        Width = 25
+        Width = 17
         Height = 21
         Hint = '1 ou 2'
         ParentShowHint = False
         ShowHint = True
         TabOrder = 6
         OnChange = EditEtatChange
+      end
+      object RadioButtonStop: TRadioButton
+        Left = 8
+        Top = 88
+        Width = 177
+        Height = 17
+        Hint = 'Arr'#234'te tous les trains (mode autonome et CDM)'
+        Caption = 'Arr'#234'ter toutes les trains'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 7
+        OnClick = RadioButtonStopClick
       end
     end
   end

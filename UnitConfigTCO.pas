@@ -80,6 +80,7 @@ type
     procedure RadioButtonCourbesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrackBarEpaisseurChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Déclarations privées }
   public
@@ -262,12 +263,18 @@ begin
     end;
 
     val(EditRatio.text,RatioC,erreur);
+    if (ratioC<5) or (ratioC>15) then
+    begin
+      LabelErreur.caption:='Erreur: ratio';
+      ok:=false;
+    end;
 
     AvecGrille[IndexTCO]:=checkDessineGrille.Checked;
     if checkCouleur.checked then ModeCouleurCanton:=1 else ModeCouleurCanton:=0;
 
   end;
   verif_config_TCO:=ok;
+  if ok then formConfigTCO.LabelErreur.caption:='';
   NbCellulesTCO[indexTCO]:=NbreCellX[indexTCO]*NbreCellY[indexTCO];
 end;
 
@@ -444,66 +451,8 @@ begin
 end;
 
 procedure TFormConfigTCO.BitBtnOkClick(Sender: TObject);
-var ok : boolean;
-    i,x,y,erreur : integer;
-    s : string;
 begin
-  ok:=true;
-  if verif_config_TCO(indexTCOCourant) then
-  begin
-    with FormTCO[indexTCOCourant].ImageTCO do
-    begin
-      Width:=LargeurCell[indexTCOCourant]*NbreCellX[indexTCOCourant];
-      Height:=HauteurCell[indexTCOCourant]*NbreCellY[indexTCOCourant];
-    end;
-
-    for y:=1 to NbreCellY[indexTCOCourant] do
-      for x:=1 to NbreCellX[indexTCOCourant] do
-        begin
-          if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond[indexTCOCourant];
-        end;
-
-    if RadioButtonLignes.Checked then
-    begin
-      if graphisme=2 then TCO_modifie:=true;
-      graphisme:=1 ;
-    end;
-    if RadioButtonCourbes.Checked then
-    begin
-      if graphisme=1 then TCO_modifie:=true;
-      graphisme:=2;
-    end;
-
-    epaisseur_voies:=trackBarEpaisseur.Position;
-
-    val(editEcran.Text,i,erreur);
-    if i<1 then i:=1;
-    if i<>EcranTCO[indexTCOcourant] then tco_modifie:=true;
-    EcranTCO[indexTCOcourant]:=i;
-    AvecGrille[IndexTCOCourant]:=checkDessineGrille.Checked;
-    if ok then
-    begin
-      for i:=1 to 10 do
-      begin
-        if NomFichierTCO[i]<>stringGridTCO.Cells[1,i] then
-        begin
-          config_modifie:=true;
-          s:=stringGridTCO.Cells[1,i];
-          // on peut vérifier le .cfg mais bon
-          Affiche('Le nom du fichier '+NomFichierTCO[i]+' sera sauvegardé en '+s,clyellow);
-          NomFichierTCO[i]:=s;
-        end
-        else
-        NomFichierTCO[i]:=stringGridTCO.Cells[1,i];
-      end;
-      calcul_cellules(IndexTCOcourant);
-      affiche_TCO(indexTCOcourant);
-
-      dessine_icones(indexTCOCourant);
-      LabelErreur.caption:='';
-      close;
-   end;
-  end;
+  close;
 end;
 
 procedure TFormConfigTCO.CheckBoxCreerEvtClick(Sender: TObject);
@@ -593,8 +542,68 @@ begin
   TrackBarEpaisseur.Hint:='Epaisseur = '+IntToSTR(i);
 end;
 
+procedure TFormConfigTCO.FormClose(Sender: TObject;var Action: TCloseAction);
+var ok : boolean;
+    i,x,y,erreur : integer;
+    s : string;
+begin
+  ok:=true;
+  if verif_config_TCO(indexTCOCourant) then
+  begin
+    with FormTCO[indexTCOCourant].ImageTCO do
+    begin
+      Width:=LargeurCell[indexTCOCourant]*NbreCellX[indexTCOCourant];
+      Height:=HauteurCell[indexTCOCourant]*NbreCellY[indexTCOCourant];
+    end;
 
+    for y:=1 to NbreCellY[indexTCOCourant] do
+      for x:=1 to NbreCellX[indexTCOCourant] do
+        begin
+          if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond[indexTCOCourant];
+        end;
 
+    if RadioButtonLignes.Checked then
+    begin
+      if graphisme=2 then TCO_modifie:=true;
+      graphisme:=1 ;
+    end;
+    if RadioButtonCourbes.Checked then
+    begin
+      if graphisme=1 then TCO_modifie:=true;
+      graphisme:=2;
+    end;
 
+    epaisseur_voies:=trackBarEpaisseur.Position;
 
+    val(editEcran.Text,i,erreur);
+    if i<1 then i:=1;
+    if i<>EcranTCO[indexTCOcourant] then tco_modifie:=true;
+    EcranTCO[indexTCOcourant]:=i;
+    AvecGrille[IndexTCOCourant]:=checkDessineGrille.Checked;
+    if ok then
+    begin
+      for i:=1 to 10 do
+      begin
+        if NomFichierTCO[i]<>stringGridTCO.Cells[1,i] then
+        begin
+          config_modifie:=true;
+          s:=stringGridTCO.Cells[1,i];
+          // on peut vérifier le .cfg mais bon
+          Affiche('Le nom du fichier '+NomFichierTCO[i]+' sera sauvegardé en '+s,clyellow);
+          NomFichierTCO[i]:=s;
+        end
+        else
+        NomFichierTCO[i]:=stringGridTCO.Cells[1,i];
+      end;
+      menu_tco(nbreTCO);
+      calcul_cellules(IndexTCOcourant);
+      affiche_TCO(indexTCOcourant);
+      dessine_icones(indexTCOCourant);
+      LabelErreur.caption:='';
+    end;
+  end
+  else action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
+end;
+
+begin
 end.

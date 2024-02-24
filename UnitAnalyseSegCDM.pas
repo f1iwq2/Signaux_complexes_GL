@@ -4221,6 +4221,7 @@ procedure TFormAnalyseCDM.ButtonAffPortClick(Sender: TObject);
 var i,j,numport,erreur : integer;
 begin
   val(editPort.text,numport,erreur);
+  if numport<1 then exit;
   trouve_IndexPort(numport,i,j);
   if i<>-1 then
   begin
@@ -4523,6 +4524,7 @@ begin
     val(s,adresse2,erreur);
     erreur:=0;
   end;
+  if (adresse<1) or (adresse2<0) then exit;
 
   if erreur=0 then
   begin
@@ -4937,6 +4939,7 @@ procedure TFormAnalyseCDM.ButtonAffDetClick(Sender: TObject);
 var i,erreur : integer;
 begin
   val(EditDetecteur.text,i,erreur);
+  if i<1 then exit;
   if erreur=0 then dessine_det(i);
 end;
 
@@ -5018,8 +5021,6 @@ begin
 
 
 end;
-
-
 
 
 

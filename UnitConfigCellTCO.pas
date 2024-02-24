@@ -42,6 +42,7 @@ type
     EditEtat: TEdit;
     Labela: TLabel;
     RadioButtonV180: TRadioButton;
+    RadioButtonStop: TRadioButton;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -69,6 +70,7 @@ type
     procedure EditEtatChange(Sender: TObject);
     procedure RadioButtonActionClick(Sender: TObject);
     procedure RadioButtonV180Click(Sender: TObject);
+    procedure RadioButtonStopClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -140,6 +142,8 @@ begin
         RadioButtonSC.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=2;
         RadioButtonCDM.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=3;
         RadioButtonAction.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=4;
+        RadioButtonStop.Checked:=tco[indexTCO,Xclic,Yclic].PiedFeu=5;
+
         editNumTCO.Text:=intToSTR(tco[indexTCO,Xclic,Yclic].FeuOriente);
         if RadioButtonAction.Checked then
         begin
@@ -212,36 +216,36 @@ begin
     end;
   end;
 
-    // si voie ou rien ou signal ou quai
-    if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=Id_Quai) then
+  // si voie ou rien ou signal ou quai
+  if (Bimage=1) or (Bimage=0) or (Bimage=Id_signal) or (Bimage=Id_Quai) then
+  begin
+    s:=Tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Texte;
+    with formTCO[indexTCO] do
     begin
-      s:=Tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].Texte;
-      with formTCO[indexTCO] do
-      begin
-        EditTexte.Text:=s;
-        EditTexte.Visible:=true;
-        ComboRepr.Enabled:=true;
-      end;
-    end
-    else
-    begin
-      formTCO[indexTCO].EditTexte.Visible:=false;
-      formTCO[indexTCO].comboRepr.Enabled:=false;
+      EditTexte.Text:=s;
+      EditTexte.Visible:=true;
+      ComboRepr.Enabled:=true;
     end;
+  end
+  else
+  begin
+    formTCO[indexTCO].EditTexte.Visible:=false;
+    formTCO[indexTCO].comboRepr.Enabled:=false;
+  end;
 
-    s:=IntToSTR(Xclic)+','+intToSTR(yClic);
-    FormTCO[indexTCO].GroupBox1.Caption:='Configuration cellule '+s;
-    XclicCellInserer:=XclicCell[indexTCO];
-    YclicCellInserer:=YclicCell[indexTCO];
-    FormTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
-    FormTCO[indexTCO].EdittypeImage.Text:=IntToSTR(BImage);
-    FormTCO[indexTCO].ComboRepr.ItemIndex:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].repr;
-    FormTCO[indexTCO].ShapeCoulFond.Brush.Color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond;
-    FormTCO[indexTCO].CheckPinv.Checked:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].inverse;
+  s:=IntToSTR(Xclic)+','+intToSTR(yClic);
+  FormTCO[indexTCO].GroupBox1.Caption:='Configuration cellule '+s;
+  XclicCellInserer:=XclicCell[indexTCO];
+  YclicCellInserer:=YclicCell[indexTCO];
+  FormTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
+  FormTCO[indexTCO].EdittypeImage.Text:=IntToSTR(BImage);
+  FormTCO[indexTCO].ComboRepr.ItemIndex:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].repr;
+  FormTCO[indexTCO].ShapeCoulFond.Brush.Color:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].CouleurFond;
+  FormTCO[indexTCO].CheckPinv.Checked:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].inverse;
 
-    s:='El='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage);
-    if tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse);
-    //hint:=s;
+  s:='El='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage);
+  if tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].adresse);
+  //hint:=s;
 
 
   if not(ConfCellTCO) then exit;
@@ -682,10 +686,8 @@ begin
   Xclic:=XclicCell[indexTCOCourant];
   Yclic:=YclicCell[indexTCOCourant];
 
-
   //Affiche(IntToSTR(x)+' '+IntToSTR(y),clyellow);
   val(editTypeImage.text,element,erreur);
-
 
   if erreur<>0 then exit;
 
@@ -875,6 +877,8 @@ begin
   end;
 end;
 
+
+
 procedure TFormConfCellTCO.EditAdrSortieChange(Sender: TObject);
 var i,erreur : integer;
 begin
@@ -915,9 +919,22 @@ begin
   end;
 end;
 
+procedure TFormConfCellTCO.RadioButtonStopClick(Sender: TObject);
+var x,y : integer;
 begin
+  if clicTCO or actualize then exit;
+  if RadioButtonStop.Checked then
+  begin
+    x:=XClicCell[IndexTCOCourant];
+    y:=yClicCell[IndexTCOCourant];
+    tco[IndexTCOCourant,x,y].PiedFeu:=5;
+    efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
+    affiche_cellule(IndexTCOCourant,x,y);
+    actualise(indexTCOCourant);
+  end;
+end;
 
-
+begin
 end.
 
 

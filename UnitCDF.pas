@@ -128,13 +128,13 @@ begin
   begin
     caption:='Configuration du décodeur Digikeijs';
     label20.caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur Digikeijs';
-    label24.Caption:='1 à 5';
+    label24.Caption:='1 à 5  - Aspects de 0 à 255';
   end;
   if erreur=2 then
   begin
     caption:='Configuration du décodeur CDF';
     label20.Caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur CDF';
-    label24.Caption:='1 à 4';
+    label24.Caption:='1 à 4 - Aspects de 0 à 255';
   end;
 
   Label1.caption:=etats[1];
@@ -229,11 +229,13 @@ begin
 end;
 
 procedure TFormCDF.Edit1Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit1.Text,Signaux[index].SR[1].sortie1,erreur);
+    val(Edit1.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[1].sortie1:=i;
     Maj_DB;
     if label1.Caption=etats[1] then Maj_Etat_Signal(0,carre);
     dessine_signal_CDF;
@@ -241,11 +243,13 @@ begin
 end;
 
 procedure TFormCDF.Edit2Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit2.Text,Signaux[index].SR[2].sortie1,erreur);
+    val(Edit2.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[2].sortie1:=i;
     Maj_DB;
     if label2.Caption=etats[2] then Maj_Etat_Signal(0,semaphore);
     dessine_signal_CDF;
@@ -253,11 +257,13 @@ begin
 end;
 
 procedure TFormCDF.Edit3Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit3.Text,Signaux[index].SR[3].sortie1,erreur);
+    val(Edit3.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[2].sortie1:=i;
     Maj_DB;
     if label3.Caption=etats[3] then Maj_Etat_Signal(0,semaphore_cli);
     dessine_signal_CDF;
@@ -265,11 +271,13 @@ begin
 end;
 
 procedure TFormCDF.Edit4Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit4.Text,Signaux[index].SR[4].sortie1,erreur);
+    val(Edit4.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[4].sortie1:=i;
     Maj_DB;
     if label4.Caption=etats[4] then Maj_Etat_Signal(0,vert);
     dessine_signal_CDF;
@@ -277,11 +285,13 @@ begin
 end;
 
 procedure TFormCDF.Edit5Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit5.Text,Signaux[index].SR[5].sortie1,erreur);
+    val(Edit5.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[5].sortie1:=i;
     Maj_DB;
     if label5.Caption=etats[5] then Maj_Etat_Signal(0,vert_cli);
     dessine_signal_CDF;
@@ -289,11 +299,13 @@ begin
 end;
 
 procedure TFormCDF.Edit6Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit6.Text,Signaux[index].SR[6].sortie1,erreur);
+    val(Edit6.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[6].sortie1:=i;
     Maj_DB;
     if label6.Caption=etats[6] then Maj_Etat_Signal(0,violet);
     dessine_signal_CDF;
@@ -301,11 +313,13 @@ begin
 end;
 
 procedure TFormCDF.Edit7Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit7.Text,Signaux[index].SR[7].sortie1,erreur);
+    val(Edit7.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[7].sortie1:=i;
     Maj_DB;
     if label7.Caption=etats[7] then Maj_Etat_Signal(0,blanc);
     dessine_signal_CDF;
@@ -313,11 +327,13 @@ begin
 end;
 
 procedure TFormCDF.Edit8Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit8.Text,Signaux[index].SR[8].sortie1,erreur);
+    val(Edit8.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[8].sortie1:=i;
     Maj_DB;
     if label8.Caption=etats[8] then Maj_Etat_Signal(0,blanc_cli);
     dessine_signal_CDF;
@@ -325,23 +341,31 @@ begin
 end;
 
 procedure TFormCDF.Edit9Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit9.Text,Signaux[index].SR[9].sortie1,erreur);
+    val(Edit9.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[9].sortie1:=i;
     Maj_DB;
-    if label9.Caption=etats[9] then  begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,jaune);end;
+    if label9.Caption=etats[9] then
+    begin
+      Maj_Etat_Signal(0,semaphore);
+      Maj_Etat_Signal(0,jaune);
+    end;
     dessine_signal_CDF;
   end;
 end;
 
 procedure TFormCDF.Edit10Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit10.Text,Signaux[index].SR[10].sortie1,erreur);
+    val(Edit10.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[10].sortie1:=i;
     Maj_DB;
     if label10.Caption=etats[10] then
     begin
@@ -353,11 +377,13 @@ begin
 end;
 
 procedure TFormCDF.Edit11Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit11.Text,Signaux[index].SR[11].sortie1,erreur);
+    val(Edit11.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[11].sortie1:=i;
     Maj_DB;
     if label11.Caption=etats[11] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_30);end;
     dessine_signal_CDF;
@@ -365,11 +391,13 @@ begin
 end;
 
 procedure TFormCDF.Edit12Change(Sender: TObject);
-var erreur : integer;
+var erreur,i: integer;
 begin
   if index<>0 then
   begin
-    val(Edit12.Text,Signaux[index].SR[12].sortie1,erreur);
+    val(Edit12.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[12].sortie1:=i;
     Maj_DB;
     if label12.Caption=etats[12] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,ral_60);end;
     dessine_signal_CDF;
@@ -377,11 +405,13 @@ begin
 end;
 
 procedure TFormCDF.Edit13Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit13.Text,Signaux[index].SR[13].sortie1,erreur);
+    val(Edit13.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[13].sortie1:=i;
     Maj_DB;
     if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,ral_60);Maj_Etat_Signal(0,jaune_cli);end;
     dessine_signal_CDF;
@@ -389,11 +419,13 @@ begin
 end;
 
 procedure TFormCDF.Edit14Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit14.Text,Signaux[index].SR[14].sortie1,erreur);
+    val(Edit14.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[14].sortie1:=i;
     Maj_DB;
     if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_30);end;
     dessine_signal_CDF;
@@ -401,11 +433,13 @@ begin
 end;
 
 procedure TFormCDF.Edit15Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit15.Text,Signaux[index].SR[15].sortie1,erreur);
+    val(Edit15.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[15].sortie1:=i;
     Maj_DB;
     if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
     dessine_signal_CDF;
@@ -413,11 +447,13 @@ begin
 end;
 
 procedure TFormCDF.Edit16Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit16.Text,Signaux[index].SR[16].sortie1,erreur);
+    val(Edit16.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[16].sortie1:=i;
     Maj_DB;
     if label16.Caption=etats[16] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune);end;
     dessine_signal_CDF;
@@ -425,11 +461,13 @@ begin
 end;
 
 procedure TFormCDF.Edit17Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit17.Text,Signaux[index].SR[17].sortie1,erreur);
+    val(Edit17.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[17].sortie1:=i;
     Maj_DB;
     if label17.Caption=etats[17] then begin Maj_Etat_Signal(0,rappel_30); Maj_Etat_Signal(0,jaune_cli);end;
     dessine_signal_CDF;
@@ -437,11 +475,13 @@ begin
 end;
 
 procedure TFormCDF.Edit18Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit18.Text,Signaux[index].SR[18].sortie1,erreur);
+    val(Edit18.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[18].sortie1:=i;
     Maj_DB;
     if label18.Caption=etats[18] then begin Maj_Etat_Signal(0,rappel_60); Maj_Etat_Signal(0,jaune);end;
     dessine_signal_CDF;
@@ -449,13 +489,19 @@ begin
 end;
 
 procedure TFormCDF.Edit19Change(Sender: TObject);
-var erreur : integer;
+var erreur,i : integer;
 begin
   if index<>0 then
   begin
-    val(Edit19.Text,Signaux[index].SR[19].sortie1,erreur);
+    val(Edit19.Text,i,erreur);
+    if (i<0) or (i>255) or (erreur<>0) then exit;
+    Signaux[index].SR[19].sortie1:=i;
     Maj_DB;
-    if label19.Caption=etats[19] then begin Maj_Etat_Signal(0,rappel_60);  Maj_Etat_Signal(0,jaune_cli);end;
+    if label19.Caption=etats[19] then
+    begin
+      Maj_Etat_Signal(0,rappel_60);
+      Maj_Etat_Signal(0,jaune_cli);
+    end;
     dessine_signal_CDF;
   end;
 end;

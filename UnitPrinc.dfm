@@ -1,10 +1,11 @@
 object FormPrinc: TFormPrinc
-  Left = 114
-  Top = 237
-  Width = 1149
-  Height = 699
+  Left = 27
+  Top = 202
   Anchors = [akLeft, akTop, akRight]
+  BorderStyle = bsSingle
   Caption = 'Signaux complexes'
+  ClientHeight = 648
+  ClientWidth = 1133
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,18 +14,20 @@ object FormPrinc: TFormPrinc
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
+  Position = poDefault
   Scaled = False
+  Visible = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1141
+    1133
     648)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
     Left = 8
-    Top = 2
+    Top = 10
     Width = 173
     Height = 18
     Caption = 'Signaux complexes GL'
@@ -37,7 +40,7 @@ object FormPrinc: TFormPrinc
   end
   object Image9feux: TImage
     Left = 1064
-    Top = 0
+    Top = 8
     Width = 57
     Height = 105
     Picture.Data = {
@@ -227,7 +230,7 @@ object FormPrinc: TFormPrinc
   end
   object Image7feux: TImage
     Left = 440
-    Top = 0
+    Top = 8
     Width = 57
     Height = 105
     Picture.Data = {
@@ -395,7 +398,7 @@ object FormPrinc: TFormPrinc
   end
   object Image5feux: TImage
     Left = 728
-    Top = -8
+    Top = 0
     Width = 41
     Height = 89
     Picture.Data = {
@@ -495,7 +498,7 @@ object FormPrinc: TFormPrinc
   end
   object Image4feux: TImage
     Left = 704
-    Top = 0
+    Top = 8
     Width = 41
     Height = 97
     Picture.Data = {
@@ -587,7 +590,7 @@ object FormPrinc: TFormPrinc
   end
   object Image3feux: TImage
     Left = 600
-    Top = 8
+    Top = 16
     Width = 33
     Height = 57
     Picture.Data = {
@@ -668,7 +671,7 @@ object FormPrinc: TFormPrinc
   end
   object Image2feux: TImage
     Left = 1064
-    Top = 104
+    Top = 112
     Width = 33
     Height = 57
     Picture.Data = {
@@ -742,7 +745,7 @@ object FormPrinc: TFormPrinc
   end
   object Image2Dir: TImage
     Left = 656
-    Top = 0
+    Top = 8
     Width = 41
     Height = 25
     Picture.Data = {
@@ -817,7 +820,7 @@ object FormPrinc: TFormPrinc
   end
   object Image3Dir: TImage
     Left = 848
-    Top = 0
+    Top = 8
     Width = 49
     Height = 25
     Picture.Data = {
@@ -895,7 +898,7 @@ object FormPrinc: TFormPrinc
   end
   object Image4Dir: TImage
     Left = 792
-    Top = 0
+    Top = 8
     Width = 57
     Height = 25
     Picture.Data = {
@@ -983,7 +986,7 @@ object FormPrinc: TFormPrinc
   end
   object Image5Dir: TImage
     Left = 880
-    Top = 0
+    Top = 8
     Width = 65
     Height = 25
     Picture.Data = {
@@ -1081,7 +1084,7 @@ object FormPrinc: TFormPrinc
   end
   object Image6Dir: TImage
     Left = 960
-    Top = 0
+    Top = 8
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1189,7 +1192,7 @@ object FormPrinc: TFormPrinc
   end
   object ImageSignal20: TImage
     Left = 1048
-    Top = 416
+    Top = 424
     Width = 57
     Height = 105
     Picture.Data = {
@@ -1429,7 +1432,7 @@ object FormPrinc: TFormPrinc
   object StatusBar1: TStatusBar
     Left = 0
     Top = 626
-    Width = 1141
+    Width = 1133
     Height = 22
     Panels = <
       item
@@ -1457,7 +1460,7 @@ object FormPrinc: TFormPrinc
   end
   object MSCommUSBInterface: TMSComm
     Left = 1064
-    Top = 192
+    Top = 200
     Width = 32
     Height = 32
     OnComm = MSCommUSBInterfaceComm
@@ -1467,7 +1470,7 @@ object FormPrinc: TFormPrinc
   end
   object Button1: TButton
     Left = 744
-    Top = 8
+    Top = 16
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
@@ -1478,7 +1481,7 @@ object FormPrinc: TFormPrinc
   end
   object GrandPanel: TPanel
     Left = 8
-    Top = 48
+    Top = 56
     Width = 1057
     Height = 476
     TabOrder = 3
@@ -1518,7 +1521,7 @@ object FormPrinc: TFormPrinc
       OnChange = FenRichChange
       OnMouseDown = FenRichMouseDown
     end
-    object ScrollBox1: TScrollBox
+    object ScrollBoxSig: TScrollBox
       Left = 536
       Top = 176
       Width = 465
@@ -1532,7 +1535,7 @@ object FormPrinc: TFormPrinc
       ParentColor = False
       TabOrder = 1
     end
-    object GroupBox1: TGroupBox
+    object GroupBoxAcc: TGroupBox
       Left = 497
       Top = 21
       Width = 265
@@ -1589,7 +1592,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonDevieClick
       end
     end
-    object GroupBox3: TGroupBox
+    object GroupBoxTrains: TGroupBox
       Left = 497
       Top = 64
       Width = 265
@@ -1967,7 +1970,7 @@ object FormPrinc: TFormPrinc
         Text = '<1>'
       end
       object ButtonEnv: TButton
-        Left = 0
+        Left = 8
         Top = 88
         Width = 88
         Height = 33
@@ -1978,9 +1981,9 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonEnvClick
       end
     end
-    object GroupBox2: TGroupBox
-      Left = 721
-      Top = 56
+    object GroupBoxCV: TGroupBox
+      Left = 481
+      Top = -8
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2043,7 +2046,7 @@ object FormPrinc: TFormPrinc
   end
   object MSCommCde1: TMSComm
     Left = 1064
-    Top = 272
+    Top = 280
     Width = 32
     Height = 32
     OnComm = MSCommCde1Comm
@@ -2053,7 +2056,7 @@ object FormPrinc: TFormPrinc
   end
   object MSCommCde2: TMSComm
     Left = 1064
-    Top = 304
+    Top = 312
     Width = 32
     Height = 32
     OnComm = MSCommCde2Comm

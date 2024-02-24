@@ -239,7 +239,11 @@ procedure TFormPlace.Edit1Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit1.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 1';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -254,7 +258,11 @@ procedure TFormPlace.Edit2Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit2.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 2';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -269,7 +277,11 @@ procedure TFormPlace.Edit3Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit3.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 3';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -284,7 +296,11 @@ procedure TFormPlace.Edit4Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit4.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 4';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -299,7 +315,11 @@ procedure TFormPlace.Edit5Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit5.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 5';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -314,7 +334,11 @@ procedure TFormPlace.Edit6Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(edit6.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then
+  begin
+    LabelTexte.caption:='Erreur détecteur 6';
+    exit;
+  end;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -449,7 +473,7 @@ procedure TFormPlace.EditDir1Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir1.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -463,7 +487,7 @@ procedure TFormPlace.EditDir2Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir2.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -477,7 +501,7 @@ procedure TFormPlace.EditDir3Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir3.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -487,13 +511,11 @@ begin
   placement[3].detdir:=i;
 end;
 
-
-
 procedure TFormPlace.EditDir4Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir4.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -507,7 +529,7 @@ procedure TFormPlace.EditDir5Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir5.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
@@ -521,7 +543,7 @@ procedure TFormPlace.EditDir6Change(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editDir6.Text,i,erreur);
-  if erreur<>0 then exit;
+  if (erreur<>0) or (i<0) then exit;
   if index_adresse_detecteur(i)=0 then
   begin
     LabelTexte.caption:='Détecteur '+intToSTR(i)+' inexistant';
