@@ -25,7 +25,7 @@ var
   verifVersion,notificationVersion,essai : boolean;
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
 
-Const  Version='8.5';  // sert à la comparaison de la version publiée
+Const  Version='8.51';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -590,7 +590,6 @@ begin
   SHFileOperation(FileFolderOperation);
 end;
 
-//  https://github.com/sx2008/Delphi-Test-Apps/blob/master/ShellZipTest/ShellZipTool.pas
 function Unzip(zipfile : oleVariant): boolean;
 var
   shellobj,srcfldr, destfldr, shellfldritems,repertoire: Olevariant;
@@ -616,7 +615,6 @@ begin
     Affiche('Impossible de créer répertoire',clred);
     exit;
   end;
-
 
   repertoire:=filtre;  // mettre dans olevariant
 

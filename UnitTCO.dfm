@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 114
-  Top = 116
+  Left = 113
+  Top = 72
   Width = 1218
   Height = 594
   VertScrollBar.Visible = False
@@ -1322,6 +1322,10 @@ object FormTCO: TFormTCO
     Top = 8
     object MenuTCO: TMenuItem
       Caption = 'TCO'
+      object RechargerleTCOdepuislefichier1: TMenuItem
+        Caption = 'Recharger le TCO depuis le fichier'
+        OnClick = RechargerleTCOdepuislefichier1Click
+      end
       object SauvegarderleTCO1: TMenuItem
         Caption = 'Sauvegarder le TCO'
         OnClick = SauvegarderleTCO1Click

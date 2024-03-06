@@ -477,7 +477,7 @@ var i : integer;
 begin
   // fenetre toujours dessus
   position:=poMainFormCenter;
-  if affevt then Affiche('FormConfCellTCO create',clyellow);
+  if affevt then Affiche('FormConfCellTCO create',clLime);
   actualize:=false;
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   iconeX:=50;  // taille de l'icone
@@ -594,7 +594,7 @@ end;
 procedure TFormConfCellTCO.FormActivate(Sender: TObject);
 begin
   if indexTCOcourant=0 then exit;
-  if affevt then Affiche('FormConfCellTCO activate',clyellow);
+  if affevt then Affiche('FormConfCellTCO activate',clLime);
   if selectionaffichee[indexTCOcourant] then ButtonFond.caption:='Couleur de fond de la sélection'
   else ButtonFond.caption:='Couleur de fond de la cellule';
   ConfCellTCO:=true;

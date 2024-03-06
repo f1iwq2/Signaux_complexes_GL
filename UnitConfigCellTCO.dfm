@@ -338,7 +338,7 @@ object FormConfCellTCO: TFormConfCellTCO
       object EditNumTCO: TEdit
         Left = 104
         Top = 20
-        Width = 33
+        Width = 25
         Height = 21
         TabOrder = 1
         OnChange = EditNumTCOChange
@@ -366,7 +366,10 @@ object FormConfCellTCO: TFormConfCellTCO
         Top = 72
         Width = 89
         Height = 17
+        Hint = 'Active un accessoire de fa'#231'on impulsionelle'
         Caption = 'Activer sortie'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 4
         OnClick = RadioButtonActionClick
       end
@@ -392,10 +395,10 @@ object FormConfCellTCO: TFormConfCellTCO
       object RadioButtonStop: TRadioButton
         Left = 8
         Top = 88
-        Width = 177
+        Width = 137
         Height = 17
         Hint = 'Arr'#234'te tous les trains (mode autonome et CDM)'
-        Caption = 'Arr'#234'ter toutes les trains'
+        Caption = 'Arr'#234'ter tous les trains'
         ParentShowHint = False
         ShowHint = True
         TabOrder = 7

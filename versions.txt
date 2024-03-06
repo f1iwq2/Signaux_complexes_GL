@@ -233,15 +233,15 @@ version 8.41 : Améliorations diverses dans les traitements.
 version 8.42 : Création d'un onglet de paramètres avancés.
                Fichier d'aide affichable depuis le menu.
 version 8.43 : Correction d'un bug sur l'importation des détecteurs depuis CDM rail.
-version 8.44 : Gestion de la centrale Z21 en mode autonome en Xpressnet.
+version 8.5  : Gestion de la centrale Z21 en mode autonome en Xpressnet.
                Amélioration des réservations des aiguillages.
                Amélioration affichages des trajets dans les TCOs.
                Amélioration des réceptions des trames XpressNet.
                Ajout d'une action "arrêt des trains" pour les TCOs
+version 8.51 : Améliorations sur l'affichage des fenêtres aux démarrage.
+               Création commandes des lignes DTR et RTS sur les périphériques COM/USB.
+               Gestion des déconnexions matérielles des ports COM/USB.
 
-                
-			   
 
 
 
-  

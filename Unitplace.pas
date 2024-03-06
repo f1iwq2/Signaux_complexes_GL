@@ -107,6 +107,7 @@ end;
 
 procedure TFormPlace.FormActivate(Sender: TObject);
 begin
+  if affevt then affiche('FormPlace activate',clLime);
   LabelTrain1.Caption:=trains[1].nom_train;
   Edit1.text:=intToSTR(placement[1].detecteur);
   EditDir1.Text:=IntToSTR(placement[1].detdir);
@@ -570,6 +571,7 @@ end;
 
 procedure TFormPlace.FormCreate(Sender: TObject);
 begin
+  if affevt then affiche('FormPlace Create',clLime);
   if debug=1 then Affiche('Début création fenetre Place',clLime);
   position:=poMainFormCenter;
   PlaceAffiche:=true;

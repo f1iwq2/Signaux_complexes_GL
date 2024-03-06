@@ -358,7 +358,6 @@ type
     Label31: TLabel;
     Label39: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -542,6 +541,7 @@ type
     procedure ButtonPropageClick(Sender: TObject);
     procedure EditAdrAigExit(Sender: TObject);
     procedure EditAdrAigChange(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -658,7 +658,7 @@ var
   // composants dynamiques
   Gp1,GroupBoxAvance,GroupBoxExpert : TGroupBox;
 
-  CheckBoxCR,Cb1,Cb2,Cb3,CbVis : TCheckBox;
+  CheckBoxCR,Cb1,Cb2,Cb3,CbVis,cbDTR,cbRTS : TCheckBox;
 
   MemoPeriph : Tmemo;
 
@@ -679,7 +679,7 @@ var
   LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,LabelAntiTO,
   LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes : Tlabel;
 
-  RadioReserve : TradioGroup;
+  RadioReserve,RadioServeurCDM : TradioGroup;
 
   LabelDecCde : array[1..19] of TLabel;
 
@@ -896,7 +896,7 @@ begin
     delete(s,1,i);
     val(s,vitesse,i);
     if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
-       (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) then
+       (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
     begin
       Affiche('Vitesse COM ('+intToSTR(vitesse)+') incorrecte',clred);
       result:=false;
@@ -947,6 +947,8 @@ begin
   if Tablo_periph[index].ScvAct then s:=s+',1' else s:=s+',0';
   if Tablo_periph[index].ScvVis then s:=s+',1' else s:=s+',0';
   if Tablo_periph[index].cr     then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].dtr    then s:=s+',1' else s:=s+',0';
+  if Tablo_periph[index].rts    then s:=s+',1' else s:=s+',0';
   s:=s+','+Tablo_periph[index].protocole;
 
   result:=s;
@@ -1183,6 +1185,7 @@ begin
         s:=s+intToSTR(Signaux[i].SR[nc].sortie0);
         if nc<8 then s:=s+',' else s:=s+')';
       end;
+      s:=s+',NA'+intToSTR(Signaux[i].na);
     end;
 
     // décodeur CDF ou digikeijs
@@ -1578,6 +1581,15 @@ begin
            val(s,j,erreur);
            delete(s,1,k);
            Signaux[i].SR[l].sortie0:=j;
+         end;
+         if length(s)>2 then
+         if copy(s,1,2)='NA' then
+         begin
+           delete(s,1,2);
+           val(s,j,erreur);
+           delete(s,1,erreur);
+           Signaux[i].na:=j;
+
          end;
        end;
 
@@ -2242,7 +2254,6 @@ var s,sa,SOrigine: string;
 
   maxTablo_act:=1;
   NbrePN:=0;Nligne:=1;
-  for i:=1 to 10 do tablo_com_cde[i].NumPeriph:=0;
 
   // définition des actionneurs
   repeat
@@ -3032,9 +3043,22 @@ var s,sa,SOrigine: string;
         val(sa,i,erreur);
         Tablo_periph[NbPeriph].cr:=i=1;
 
+        // nouveaux champ dtr
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
-        Tablo_periph[NbPeriph].protocole:=sa;
+
+        if (i<2) and (upcase(sa[1])<>'C') then // adresse ip ou Com
+        begin
+          val(sa,i,erreur);
+          Tablo_periph[NbPeriph].dtr:=i=1;
+          i:=pos(',',sa);Delete(sa,1,i);
+
+          val(sa,i,erreur);
+          Tablo_periph[NbPeriph].rts:=i=1;
+          i:=pos(',',sa);Delete(sa,1,i);
+        end;
+
+        Tablo_periph[NbPeriph].protocole:=uppercase(sa);
         i:=com_socket(NbPeriph);
         if i=1 then
         begin
@@ -3052,7 +3076,6 @@ var s,sa,SOrigine: string;
         i:=extract_int(sa);
         if i=0 then Affiche('Erreur 97 - Port COM nul : '+sOrigine,clred);
         Tablo_periph[NbPeriph].NumCom:=i;
-        Tablo_com_cde[NbPeriph].NumPeriph:=NbPeriph;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
   end;
@@ -4160,6 +4183,7 @@ begin
      if (AdrBaseDetDccpp<0) or (AdrBaseDetDccpp>2048) then AdrBaseDetDccpp:=513;
 
     mode_Reserve:=RadioReserve.ItemIndex;  // 0 = par canton - 1=par détecteurs
+    serveurIPCDM_Touche:=radioServeurCDM.ItemIndex=0;
 
     val(EditAlgo.Text,i,erreur);
     if (i<1) or (i>1) then i:=1;
@@ -4220,150 +4244,14 @@ begin
 end;
 
 
-procedure TFormConfig.FormActivate(Sender: TObject);
-var i : integer;
-    s : string;
-begin
-  if affevt then affiche('FormConfig activate',clLime);
-  activ:=true;
-  clicListe:=false;
-  Edit_HG.Visible:=false;
-  labelHG.Visible:=false;
-  EditP1.Visible:=false;
-  EditP2.Visible:=false;
-  EditP3.Visible:=false;
-  EditP4.Visible:=false;
-  LabelTJD1.Visible:=false;
-  LabelTJD2.Visible:=false;
-  EditDevieS2.Visible:=false;
-  Label18.Visible:=false;
-  Label20.Visible:=false;
-  if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
 
-  EditP1.ReadOnly:=false;
-  EditP2.ReadOnly:=false;
-  EditP3.ReadOnly:=false;
-  EditP4.ReadOnly:=false;
-  EditPointe_BG.ReadOnly:=false;
-  EditDevie_HD.ReadOnly:=false;
-  EditDroit_BD.ReadOnly:=false;
-  Edit_HG.ReadOnly:=false;
-
-  CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
-  EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
-  EditTempoFeu.Text:=IntToSTR(Tempo_Signal);
-  EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
-  EditAdrIPCDM.text:=adresseIPCDM;
-  EditPortCDM.Text:=IntToSTR(portCDM);
-  EditIPLenz.text:=AdresseIP;
-  EditportLenz.text:=IntToSTR(PortInterface);
-  EditTempoAig.Text:=IntToSTR(Tempo_Aig);
-  EditFiltrDet.text:=intToSTR(filtrageDet0);
-  EditnCantonsRes.Text:=intToSTR(nCantonsRes);
-  EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
-
-  {$IF CompilerVersion >= 28.0}
-  ComboStyle.itemIndex:=Style_Aff;
-  {$IFEND}
-  EditOuvreEcran.Text:=intToSTR(ecran_SC);
-  EditComUSB.Text:=PortCom;
-  EditFonte.text:=IntToSTR(TailleFonte);
-  editdebug.Text:=IntToSTR(debug);
-  CheckBoxVerifXpressNet.Checked:=Verif_AdrXpressNet=1;
-  editPortServeur.Text:=intToSTR(portServeur);
-  checkRoulage.Checked:=AvecRoulage=1;
-  EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
-  EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
-  RadioButton1.checked:=false;
-  RadioButton2.checked:=false;
-  if Valeur_entete=0 then RadioButton1.checked:=true;
-  if Valeur_entete=1 then RadioButton2.checked:=true;
-  LabelInfo.Width:=240;LabelInfo.Height:=65;LabelInfo.AutoSize:=false;
-  LabelResult.width:=137;LabelResult.Height:=25;
-  LabelNomSon.top:=16;LabelNomSon.Left:=48;
-  SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
-  EditSon.Top:=38;EditSon.Left:=16;
-
-  CheckBoxResa.Checked:=AvecResa;
-  CheckVerifVersion.Checked:=verifVersion;
-  CheckFenEt.Checked:=Fenetre=1;
-  CheckInfoVersion.Checked:=notificationVersion;
-  CheckLanceCDM.Checked:=LanceCDM;
-  CheckAvecTCO.checked:=avecTCO;
-  CheckBandeauTCO.Checked:=MasqueBandeauTCO;
-
-  RadioButtonSS.Checked:=ServeurInterfaceCDM=0;
-  RadioButtonXN.Checked:=ServeurInterfaceCDM=1;
-  RadioButtonP50.Checked:=ServeurInterfaceCDM=2;
-  RadioButtonSP.Checked:=ServeurInterfaceCDM=3;
-  RadioButtonFIS.Checked:=ServeurInterfaceCDM=4;
-  RadioButtonRS.Checked:=ServeurInterfaceCDM=5;
-  RadioButtonDCCpp.Checked:=ServeurInterfaceCDM=6;
-  RadioButtonECOS.Checked:=ServeurInterfaceCDM=7;
-  RadioButtonDCCpl.Checked:=ServeurInterfaceCDM=8;
-  RadioButton13.Checked:=ServeurRetroCDM=1;
-  RadioButton14.Checked:=ServeurRetroCDM=2;
-  RadioButton15.Checked:=ServeurRetroCDM=3;
-  RadioButton16.Checked:=ServeurRetroCDM=4;
-  RadioButton17.Checked:=ServeurRetroCDM=5;
-  RadioButton18.Checked:=ServeurRetroCDM=6;
-  checkBoxZ21.Checked:=Z21;
-
-  CheckBoxServAig.checked:=Srvc_Aig;
-  CheckBoxServDet.checked:=Srvc_Det;
-  CheckBoxServAct.checked:=Srvc_Act;
-  CheckServPosTrains.checked:=Srvc_Pos;
-  CheckBoxSrvSig.Checked:=Srvc_Sig;
-
-  CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
-  CheckBoxInitAig.checked:=AvecInitAiguillages;
-  CheckPosAig.checked:=AvecDemandeAiguillages;
-  CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
-  CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
-  CheckBoxSombre.Checked:=sombre;
-
-  RadioButtonXpress.Checked:=protocole=1;
-  RadioButtonDcc.Checked:=protocole=2;
-
-  if NbreDecPers>0 then
-    ComboBoxNation.Itemindex:=decodeur_pers[1].nation-1;
-
-  clicListe:=true;  // empeche le traitement de l'evt text
-  editLAY.Text:=lay;
- 
-  LabelNbDecPers.caption:=intToSTR(NbreDecPers);
-
-
-  //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
-  clicListe:=false;
-  activ:=false;
-
-  if clicproprietes then clicListeSignal(IndexSignalClic);
-  clicproprietes:=false;
-
-  // aiguillages
-  ListBoxAig.Clear;
-  for i:=1 to MaxAiguillage do
-  begin
-    s:=encode_aig(i);
-    ListBoxAig.Items.AddObject(s, Pointer(clRed));
-    Aiguillage[i].modifie:=false;
-  end;
-  ListBoxAig.itemindex:=0;
-
-  RadioReserve.ItemIndex:=mode_Reserve;
-  editAlgo.Text:=intToSTR(Algo_localisation);
-  EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
-
-end;
-
-procedure champs_dec_centrale;  
+procedure champs_dec_centrale;
 var i,nombre : integer;
 begin
   if decCourant<1 then exit;
   decodeur_pers[decCourant].commande:=0;
   nombre:=decodeur_pers[decCourant].nbreAdr;
-  for i:=1 to nombre do     
+  for i:=1 to nombre do
   begin
     ComboTS1[i].Visible:=true;
     ComboTS2[i].Visible:=true;
@@ -4372,7 +4260,7 @@ begin
     ComboL2[i].Visible:=true;
     ShapeT[i].Visible:=true;
   end;
-  for i:=nombre+1 to 10 do     
+  for i:=nombre+1 to 10 do
   begin
     ComboTS1[i].Visible:=false;
     ComboTS2[i].Visible:=false;
@@ -4551,6 +4439,9 @@ begin
   if pos('Det',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvDet:=cb.Checked;
   if pos('Act',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvAct:=cb.Checked;
   if pos('Vis',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].ScvVis:=cb.Checked;
+  if pos('DTR',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].dtr:=cb.Checked;;
+  if pos('RTS',s)<>0 then Tablo_periph[ligneClicAccPeriph+1].rts:=cb.Checked;
+
   if s='CheckBoxCR'  then Tablo_periph[ligneClicAccPeriph+1].CR:=cb.Checked;
   s:=encode_Periph(ligneClicAccPeriph+1);
   ListBoxPeriph.Items[ligneClicAccPeriph]:=s;
@@ -4730,7 +4621,6 @@ begin
   LabelInfo.caption:='';
 
   Tablo_periph[ligneClicAccPeriph+1].NumCom:=i;
-  Tablo_com_cde[ligneClicAccPeriph+1].NumPeriph:=ligneClicAccPeriph+1;
   ListBoxPeriph.Selected[ligneClicAccPeriph]:=true;
 
   maj_champs_combos(ligneClicAccPeriph+1);
@@ -4747,14 +4637,12 @@ begin
       inc(NbPeriph_COMUSB);
       if NbPeriph_COMUSB>MaxComUSBPeriph then labelInfo.Caption:='Nombre maxi de périphériques COM/USB atteint';
       Tablo_periph[i].numComposant:=NbPeriph_COMUSB;
-      Tablo_com_cde[i].NumPeriph:=NbPeriph_COMUSB;
     end;
     if v=2 then
     begin
       inc(NbPeriph_Socket);
       if NbPeriph_Socket>MaxComSocketPeriph then labelInfo.Caption:='Nombre maxi de périphériques socket atteint';
       Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
-      Tablo_com_cde[i].NumPeriph:=NbPeriph_Socket;
     end;
   end;
 end;
@@ -4832,8 +4720,9 @@ procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,x,y,l,LongestLength,PixelLength : integer;
     cs,s,LongestString : string;
 begin
-  if debug=1 then Affiche('Création fenêtre config',clLime);
-  
+  if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
+
+  visible:=false;
   clicListe:=true;
   position:=poMainFormCenter;
   cs:='ColorA='+IntToHex(couleurFond,6);  // pour rajouter aux couleurs personnalisées de la fenetre couleur
@@ -4886,7 +4775,8 @@ begin
     ShowHint:=false;
     visible:=true;
   end;
-   // création des champs dynamiques de l'onglet décodeurs
+
+  // création des champs dynamiques de l'onglet décodeurs
   for i:=1 to 10 do
   begin
     y:=i*40+20;
@@ -5708,9 +5598,9 @@ begin
   MemoPeriph:=Tmemo.Create(Formconfig.TabSheetPeriph);
   with MemoPeriph do
   begin
-    left:=gp1.Left-30;
+    left:=gp1.Left-20;
     top:=LabelMP.Top+15;
-    width:=gp1.Width+30;
+    width:=gp1.Width+20;
     height:=110;
     parent:=TabSheetPeriph;
     Name:='MemoPeriph';
@@ -5725,12 +5615,13 @@ begin
   BoutonCom:=Tbutton.Create(FormConfig.TabSheetPeriph);
   with BoutonCom do
   begin
-    Left:=100;Top:=ButtonOuvreCom.top;Width:=75;Height:=20;
+    Left:=100;Top:=ButtonOuvreCom.top;Width:=75;Height:=36;
     caption:='Lister COMs';
     name:='BoutonCom';
     parent:=FormConfig.TabSheetPeriph;
     hint:='Affiche les ports COM/USB disponibles';
     ShowHint:=true;
+    wordwrap:=true;
     onclick:=formconfig.Bt_onclick;
   end;
 
@@ -5792,6 +5683,31 @@ begin
     onclick:=formconfig.cb_onclick;
   end;
 
+  cbDTR:=TCheckBox.Create(FormConfig.TabSheetPeriph);
+  with cbDTR do
+  begin
+    parent:=groupBoxDesc;
+    Left:=200;Top:=LabelPortCde.Top+30;Width:=100;Height:=17;
+    caption:='DTR';
+    name:='cbDTR';
+    hint:='COM/USB uniquement.'+#13+'Décoché: mise à 0 de ligne DTR et évite le reset de la plupart des arduinos,'+#13+'ou peut bloquer la transmission sur d''autres.';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+
+  cbRTS:=TCheckBox.Create(FormConfig.TabSheetPeriph);
+  with cbRTS do
+  begin
+    parent:=groupBoxDesc;
+    Left:=200;Top:=cbDTR.top+20;Width:=100;Height:=17;
+    caption:='RTS';
+    name:='cbRTS';
+    hint:='COM/USB uniquement : mise à 0 ou 1 de ligne RTS';
+    ShowHint:=true;
+    onclick:=formconfig.cb_onclick;
+  end;
+
+
   // compilation avec D11----------------------------------------
   {$IF CompilerVersion >= 28.0}
   labelD11.Visible:=true;
@@ -5839,7 +5755,7 @@ begin
   LabelAvance1:=TLabel.Create(FormConfig.TabAvance);
   with LabelAvance1 do
   begin
-    Left:=10;Top:=10;Width:=170;Height:=12;
+    Left:=10;Top:=10;Width:=180;Height:=12;
     caption:='Paramètres avancés et experts';
     name:='LabelAvance1';
     Font.Style:=[fsBold];
@@ -5850,7 +5766,7 @@ begin
   GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxAvance do
   begin
-    Left:=20;Top:=40;Width:=350;Height:=150;   // maxi=580
+    Left:=3;Top:=40;Width:=300;Height:=150;   // maxi=580
     caption:='Jeu de paramètres avancés';
     name:='GroupBoxAvance';
     parent:=TabAvance;
@@ -5961,7 +5877,7 @@ begin
   RadioReserve:=TRadioGroup.Create(TabAvance);
   with RadioReserve do
   begin
-    Left:=20;Top:=GroupBoxAvance.top+GroupBoxAvance.Height+20;Width:=GroupBoxAvance.width;Height:=60;
+    Left:=5;Top:=GroupBoxAvance.top+GroupBoxAvance.Height+10;Width:=GroupBoxAvance.width;Height:=60;
     name:='RadioReserve';
     Caption:='Réservation des aiguillages';
     parent:=TabAvance;
@@ -5971,11 +5887,12 @@ begin
     items.Add('Réservation par canton');
     items.Add('Réservation par détecteurs');
   end;
+
   GroupBoxExpert:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxExpert do
   begin
-    Left:=20;;Width:=350;Height:=100;   // maxi=580
-    Top:=RadioReserve.Top+RadioReserve.Height+20 ;
+    Left:=GroupBoxAvance.Left;Width:=GroupBoxAvance.width;Height:=100;   // maxi=580
+    Top:=RadioReserve.Top+RadioReserve.Height+10 ;
     caption:='Jeu de paramètres experts';
     name:='GroupBoxExpert';
     parent:=TabAvance;
@@ -6021,6 +5938,19 @@ begin
     ShowHint:=true;
   end;
 
+  RadioServeurCDM:=TRadioGroup.Create(TabAvance);
+  with RadioServeurCDM do     
+  begin
+    Left:=GroupBoxAvance.Left;Top:=GroupBoxExpert.top+GroupBoxExpert.Height+10;Width:=GroupBoxAvance.width;Height:=60;
+    name:='RadioServeurCDM';
+    Caption:='Méthode de démarrage du serveur de CDM rail';
+    parent:=TabAvance;
+    hint:='Démarrage du serveur COM-IP de CDMRail';
+    ShowHint:=true;
+    items.Add('Par simulation de touches');
+    items.Add('Par ligne de commande');
+
+  end;
 
   ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
 
@@ -6155,7 +6085,11 @@ begin
   cb2.Checked:=Tablo_periph[index].ScvDet;
   cb3.Checked:=Tablo_periph[index].ScvAct;
   cbVis.Checked:=Tablo_periph[index].ScvVis;
+  cbDTR.Checked:=Tablo_periph[index].dtr;
+  cbRTS.Checked:=Tablo_periph[index].rts;
+
   CheckBoxCR.Checked:=Tablo_periph[index].cr;
+
   EditPortCde.text:=Tablo_periph[index].protocole;
   MemoPeriph.Clear;
   clicliste:=false;
@@ -6163,7 +6097,7 @@ end;
 
 // affiche le graphisme de l'aiguillage en fonction du tablo en index
 procedure Aff_champs_aig_tablo(index : integer);
-var Adresse,Adr2,ind,id2,erreur,position : integer;
+var Adresse,Adr2,ind,id2,erreur,position,AncienAdresse : integer;
     tjd,tri,tjs,croi : boolean;
     s,ss : string;
     i,vitesse : integer;
@@ -6408,6 +6342,17 @@ begin
     if croi then s:='Croisement ' else s:='Aiguillage ';
     formconfig.labelInfo.caption:=s+'décrivant la BJS '+intToSTR(aiguillage[index].AdrCDM);
   end;
+
+  adresse:=aiguillage[ligneclicAig+1].Adresse;
+  if adresse=0 then exit;
+  index:=Index_Aig(Adresse);
+  AncienAdresse:=aiguillage[index].AncienAdresse;
+  if adresse<>AncienAdresse then
+  FormConfig.ButtonPropage.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
+                         'des aiguillages et des branches par l''adresse '+intToSTR(adresse)
+  else FormConfig.ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+                      'des aiguillages, des branches et des signaux'+#13+
+                      'si on a changé l''adresse d''un aiguillage';
   clicListe:=false;
 end;
 
@@ -9320,6 +9265,32 @@ begin
   Signaux[i].Aspect:=3;
   Signaux[i].decodeur:=0;
   Signaux[i].verrouCarre:=false;
+  Signaux[i].SR[1].sortie0:=1;
+  Signaux[i].SR[1].sortie1:=6;
+  Signaux[i].SR[2].sortie0:=2;
+  Signaux[i].SR[2].sortie1:=3;
+  Signaux[i].SR[3].sortie0:=9;
+  Signaux[i].SR[3].sortie1:=10;
+  Signaux[i].SR[4].sortie0:=4;
+  Signaux[i].SR[4].sortie1:=5;
+  Signaux[i].SR[5].sortie0:=7;
+  Signaux[i].SR[5].sortie1:=8;
+  Signaux[i].SR[6].sortie0:=0;
+  Signaux[i].SR[6].sortie1:=0;
+  Signaux[i].SR[7].sortie0:=16;
+  Signaux[i].SR[7].sortie1:=18;
+  Signaux[i].SR[8].sortie0:=19;
+  Signaux[i].SR[8].sortie1:=0;
+  Signaux[i].Na:=4;
+
+
+
+
+
+
+
+
+
 
   cree_image(i);
   s:=encode_signal(i);
@@ -9565,7 +9536,7 @@ begin
     93,94,95,96,97,98,99 : nc:=4;
     end;
   end;
-  if dec=7 then nc:=8;               // SR
+  if dec=7 then nc:=Signaux[i].Na;   // SR
   if dec=8 then                      // arcomora
   begin
     case x of
@@ -13509,7 +13480,6 @@ var ss,s : string;
     s:=encode_Periph(i);
     if s<>'' then
     begin
-      Tablo_com_cde[i].NumPeriph:=i;
       FormConfig.ListBoxPeriph.items.Add(s);
       ajoute_champs_combos(i);
     end;
@@ -13621,7 +13591,7 @@ begin
   begin
     if com_socket(i)=1 then  // si port com$usb
     begin
-      if connecte_port_usb_periph(i) then
+      if connecte_usb_periph(i) then
         Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique ouvert',clLime)
       else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique non ouvert',clOrange);
     end
@@ -13908,6 +13878,7 @@ begin
     inc(i);
   until (i=n) or trouve;
   if not(trouve) then exit;
+
   dec(i);
   if i=0 then exit;
 
@@ -14252,12 +14223,16 @@ begin
       end;
   end;
 
+  ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+                      'des aiguillages, des branches et des signaux'+#13+
+                      'si on a changé l''adresse d''un aiguillage';
+
   clicListe:=false;
 end;
 
 procedure change_adr_aig;
 var s : string;
-    nEtat,i,vide,erreur,index,adr2 : integer;
+    nEtat,i,vide,erreur,index,adr2,AncienAdresse : integer;
     modele: TEquipement;
     c : char;
 begin
@@ -14339,6 +14314,14 @@ begin
       end;
       ListBoxSig.selected[ligneClicSig]:=true;
     end;
+
+    adresse:=aiguillage[ligneclicAig+1].Adresse;
+    if adresse=0 then exit;
+    index:=Index_Aig(Adresse);
+    AncienAdresse:=aiguillage[index].AncienAdresse;
+    if adresse<>AncienAdresse then
+    ButtonPropage.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
+                         'des aiguillages et des branches par l''adresse '+intToSTR(adresse);
   end;
 end;
 
@@ -14357,8 +14340,145 @@ begin
   change_adr_aig;
 end;
 
+procedure TFormConfig.FormActivate(Sender: TObject);
+  var i : integer;
+    s : string;
+begin
+  if affevt or (debug=1) then affiche('FormConfig activate',clLime);
+  activ:=true;
+  clicListe:=false;
+  Edit_HG.Visible:=false;
+  labelHG.Visible:=false;
+  EditP1.Visible:=false;
+  EditP2.Visible:=false;
+  EditP3.Visible:=false;
+  EditP4.Visible:=false;
+  LabelTJD1.Visible:=false;
+  LabelTJD2.Visible:=false;
+  EditDevieS2.Visible:=false;
+  Label18.Visible:=false;
+  Label20.Visible:=false;
+  if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
 
-
+  EditP1.ReadOnly:=false;
+  EditP2.ReadOnly:=false;
+  EditP3.ReadOnly:=false;
+  EditP4.ReadOnly:=false;
+  EditPointe_BG.ReadOnly:=false;
+  EditDevie_HD.ReadOnly:=false;
+  EditDroit_BD.ReadOnly:=false;
+  Edit_HG.ReadOnly:=false;
+
+  CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
+  EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
+  EditTempoFeu.Text:=IntToSTR(Tempo_Signal);
+  EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
+  EditAdrIPCDM.text:=adresseIPCDM;
+  EditPortCDM.Text:=IntToSTR(portCDM);
+  EditIPLenz.text:=AdresseIP;
+  EditportLenz.text:=IntToSTR(PortInterface);
+  EditTempoAig.Text:=IntToSTR(Tempo_Aig);
+  EditFiltrDet.text:=intToSTR(filtrageDet0);
+  EditnCantonsRes.Text:=intToSTR(nCantonsRes);
+  EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
+
+  {$IF CompilerVersion >= 28.0}
+  ComboStyle.itemIndex:=Style_Aff;
+  {$IFEND}
+  EditOuvreEcran.Text:=intToSTR(ecran_SC);
+  EditComUSB.Text:=PortCom;
+  EditFonte.text:=IntToSTR(TailleFonte);
+  editdebug.Text:=IntToSTR(debug);
+  CheckBoxVerifXpressNet.Checked:=Verif_AdrXpressNet=1;
+  editPortServeur.Text:=intToSTR(portServeur);
+  checkRoulage.Checked:=AvecRoulage=1;
+  EditTempoOctetUSB.text:=IntToSTR(TempoOctet);
+  EditTempoReponse.Text:=IntToSTR(TimoutMaxInterface);
+  RadioButton1.checked:=false;
+  RadioButton2.checked:=false;
+  if Valeur_entete=0 then RadioButton1.checked:=true;
+  if Valeur_entete=1 then RadioButton2.checked:=true;
+  LabelInfo.Width:=240;LabelInfo.Height:=65;LabelInfo.AutoSize:=false;
+  LabelResult.width:=137;LabelResult.Height:=25;
+  LabelNomSon.top:=16;LabelNomSon.Left:=48;
+  SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
+  EditSon.Top:=38;EditSon.Left:=16;
+
+  CheckBoxResa.Checked:=AvecResa;
+  CheckVerifVersion.Checked:=verifVersion;
+  CheckFenEt.Checked:=Fenetre=1;
+  CheckInfoVersion.Checked:=notificationVersion;
+  CheckLanceCDM.Checked:=LanceCDM;
+  CheckAvecTCO.checked:=avecTCO;
+  CheckBandeauTCO.Checked:=MasqueBandeauTCO;
+
+  RadioButtonSS.Checked:=ServeurInterfaceCDM=0;
+  RadioButtonXN.Checked:=ServeurInterfaceCDM=1;
+  RadioButtonP50.Checked:=ServeurInterfaceCDM=2;
+  RadioButtonSP.Checked:=ServeurInterfaceCDM=3;
+  RadioButtonFIS.Checked:=ServeurInterfaceCDM=4;
+  RadioButtonRS.Checked:=ServeurInterfaceCDM=5;
+  RadioButtonDCCpp.Checked:=ServeurInterfaceCDM=6;
+  RadioButtonECOS.Checked:=ServeurInterfaceCDM=7;
+  RadioButtonDCCpl.Checked:=ServeurInterfaceCDM=8;
+  RadioButton13.Checked:=ServeurRetroCDM=1;
+  RadioButton14.Checked:=ServeurRetroCDM=2;
+  RadioButton15.Checked:=ServeurRetroCDM=3;
+  RadioButton16.Checked:=ServeurRetroCDM=4;
+  RadioButton17.Checked:=ServeurRetroCDM=5;
+  RadioButton18.Checked:=ServeurRetroCDM=6;
+  checkBoxZ21.Checked:=Z21;
+
+  CheckBoxServAig.checked:=Srvc_Aig;
+  CheckBoxServDet.checked:=Srvc_Det;
+  CheckBoxServAct.checked:=Srvc_Act;
+  CheckServPosTrains.checked:=Srvc_Pos;
+  CheckBoxSrvSig.Checked:=Srvc_Sig;
+
+  CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+  CheckBoxInitAig.checked:=AvecInitAiguillages;
+  CheckPosAig.checked:=AvecDemandeAiguillages;
+  CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
+  CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
+  CheckBoxSombre.Checked:=sombre;
+
+  RadioButtonXpress.Checked:=protocole=1;
+  RadioButtonDcc.Checked:=protocole=2;
+
+  if NbreDecPers>0 then
+    ComboBoxNation.Itemindex:=decodeur_pers[1].nation-1;
+
+  clicListe:=true;  // empeche le traitement de l'evt text
+  editLAY.Text:=lay;
+
+  LabelNbDecPers.caption:=intToSTR(NbreDecPers);
+
+
+  //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
+  clicListe:=false;
+  activ:=false;
+
+  if clicproprietes then clicListeSignal(IndexSignalClic);
+  clicproprietes:=false;
+
+  // aiguillages
+  ListBoxAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    ListBoxAig.Items.AddObject(s, Pointer(clRed));
+    Aiguillage[i].modifie:=false;
+  end;
+  ListBoxAig.itemindex:=0;
+
+  RadioReserve.ItemIndex:=mode_Reserve;
+  if serveurIPCDM_Touche then RadioServeurCDM.ItemIndex:=0 else RadioServeurCDM.ItemIndex:=1;
+  editAlgo.Text:=intToSTR(Algo_localisation);
+  EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
+
+end;
+
+
 end.
 
 

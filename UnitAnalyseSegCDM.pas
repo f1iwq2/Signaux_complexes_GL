@@ -1,7 +1,7 @@
 unit UnitAnalyseSegCDM;
 // importation des données de CDM
 // Affichage de la page du réseau CDM
-// les Tjs ne sont pas traitées
+// les Tjs ne sont pas traitées (de toute façon CDM ne les gère pas)
 // fichier source CDM générateur de l'export : cd_cdb.c version 2.0
 interface
 
@@ -11,18 +11,16 @@ uses
   math, Printers ;
 
 const
-   max_db = 20;  // 20 détecteurs maxi entre 2 aiguillages
+   max_db = 20;               // 20 détecteurs maxi entre 2 aiguillages
    pisur180=pi/180 ;
    _180surpi=180/pi;
-
-   // décalages d'affichages
-   yCrOffset=-5;
+   yCrOffset=-5;              // décalages d'affichages pour les adresses
    yCrOffset2=-14;
    yTurnoutOffset=-16;
-   Zmini=50;
-   Zmaxi=100;
-   fond_cdm=$303000;
-   precision_clic=4; // précision du clic sur un élément
+   Zmini=50;                  // zoom mini
+   Zmaxi=100;                 // zoom maxi
+   fond_cdm=$303000;          // couleur de fond de la fenêtre
+   precision_clic=4;          // précision en pixels du clic sur un élément
 
 type
   TFormAnalyseCDM = class(TForm)
@@ -79,91 +77,86 @@ type
     { Déclarations publiques }
   end;
 
+  // tableau des détecteurs sur un segment
   TdetSeg= array[1..10] of record
             index,periph : integer;
-            end;
+           end;
 
   Trec_cdm = record adresse : integer;
                   distance : integer;  // distance au port d'entrée
              end;
   tDetect_cdm= array[1..max_db] of Trec_cdm;
 
+  // structure d'aiguillage de CDM
   TAig_CDM = record
-     adresse,adrtriple,temps : integer;
-     modele : TEquipement ;
-     ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
-     ADroitB : char ;           // P D S Z
+    adresse,adrtriple,temps : integer;
+    modele : TEquipement ;
+    ADroit : integer ;         // (TJD:identifiant extérieur) connecté sur la position droite en talon
+    ADroitB : char ;           // P D S Z
+    ADevie : integer ;         // (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
+    ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
+    APointe : integer;         // adresse de l'élément connecté en position droite ;
+    APointeB : char;
+    DDroit : integer;          // destination de la TJD en position droite
+    DDroitB : char ;
+    DDevie : integer;          // destination de la TJD en position déviée
+    DDevieB : char ;
 
-     ADevie : integer ;         // (TJD:identifiant extérieur) adresse de l'élément connecté en position déviée
-     ADevieB : char;            // caractère (D ou S)si aiguillage de l'élément connecté en position déviée
-     APointe : integer;         // adresse de l'élément connecté en position droite ;
-     APointeB : char;
-     DDroit : integer;          // destination de la TJD en position droite
-     DDroitB : char ;
-     DDevie : integer;          // destination de la TJD en position déviée
-     DDevieB : char ;
+    Adevie2 : integer;
+    Adevie2B : char ;
+    // états d'une TJD (2 ou 4, 4 par défaut)
+    EtatTJD : integer;
+    bdj : boolean;             // si l'aiguillage provient d'une traversée double jonction
+    adrCDM : integer;          // adresse de la bjd dans cdm
+    IndexSeg : integer;
+  end;
 
-     Adevie2 : integer;
-     Adevie2B : char ;
-     // états d'une TJD (2 ou 4, 4 par défaut)
-     EtatTJD : integer;
-     // si l'aiguillage provient d'une traversée double jonction
-     bdj : boolean;
-     adrCDM : integer;  // adresse de la bjd dans cdm
-     IndexSeg : integer; //
+  // structure segment, port et periph de CDM
+  TInter = record
+    x,y,z : integer;
+    typ   : string[20];
+    MirrorZ : integer;
+    MirrorParent : integer;
+  end;
 
-    end;
+  Tport = record
+    numero : integer;  // numéro du port
+    typ    : string[20];
+    x,y,z,angle : integer;
+    local : integer;    // numéro de port local
+    connecte : boolean;
+    ConnecteAuPort : integer; // connecté au port
+    ConnecteAuSeg  : integer; // connecté au segment
+  end;
 
-     // structure segment, port et periph de CDM
-     TInter =
-     record
-       x,y,z : integer;
-       typ   : string[20];
-       MirrorZ : integer;
-       MirrorParent : integer;
-     end;
+  TPeriph = record
+    numero : integer;  // numéro du port
+    typ    : string[20];
+    pere   : integer;
+    x,y,z,angle : integer;
+    bright,bdown : integer;// sens et position par rapport à la voie
+    location : integer; // ?? en %
+    adresse : integer;
+    status : integer;
+    OnDevicePort : integer;
+  end;
 
-     Tport =
-     record
-       numero : integer;  // numéro du port
-       typ    : string[20];
-       x,y,z,angle : integer;
-       local : integer;    // numéro de port local
-       connecte : boolean;
-       ConnecteAuPort : integer; // connecté au port
-       ConnecteAuSeg  : integer; // connecté au segment
-     end;
-
-     TPeriph =
-     record
-       numero : integer;  // numéro du port
-       typ    : string[20];
-       pere   : integer;
-       x,y,z,angle : integer;
-       bright,bdown : integer;// sens et position par rapport à la voie
-       location : integer; // ?? en %
-       adresse : integer;
-       status : integer;
-       OnDevicePort : integer;
-     end;
-
-     Tsegment =
-     record
-       numero : integer;
-       typ    : string[20]; // arc, turnout, ...
-       nport,nperiph,nInter : integer;  // nombre de ports et de peripheriques et d'intersections
-       port    : array of TPort;
-       periph  : array of TPeriph;
-       inter   : array of TInter;
-       XMin,Ymin,XMax,Ymax,StartAngle,ArcAngle,Rayon,radius0,angle0,angle,lengthdev,deltadev0 : integer;
-       lXc,lYc : integer;
-       // turnout
-       longueur,longueurDev,DeltaDev,Curveoffset : integer;
-       // turnout curve
-       xc0,yc0,DeltaDev2,xc,yc : integer;
-       // pour signaux complexes
-       adresse,adresse2,duree,adr_CDM : integer;
-     end;
+  Tsegment = record
+    numero : integer;
+    typ    : string[20]; // arc, turnout, ...
+    nport,nperiph,nInter : integer;  // nombre de ports, de peripheriques et d'intersections
+    port    : array of TPort;
+    periph  : array of TPeriph;
+    inter   : array of TInter;
+    XMin,Ymin,XMax,Ymax,StartAngle,ArcAngle,Rayon,radius0,angle0,angle,lengthdev,deltadev0 : integer;
+    lXc,lYc : integer;
+    // turnout
+    longueur,longueurDev,DeltaDev,Curveoffset : integer;
+    // turnout curve
+    xc0,yc0,DeltaDev2,xc,yc : integer;
+    // pour signaux complexes
+    adresse,adresse2,duree,adr_CDM : integer;
+  end;
 
 
 var Segment : array of Tsegment;
@@ -193,7 +186,7 @@ uses Importation;
 
 {$R *.dfm}
 
-//
+// renvoie l'index d'un aiguillage CDM d'adresse "adresse"
 function index_aigCdm(adresse : integer) : integer;
 var i : integer;
     trouve : boolean;
@@ -206,7 +199,10 @@ begin
   if trouve then result:=i-1 else result:=0;
 end;
 
-// cherche, isole et restreint la chaine s qui contient "chercher"
+// cherche, isole et restreint la chaine s qui contient "chercher", et réduit s
+// ex:  isole_valeur('  periph #135 ','periph #',true)
+// renvoie '135' et s='periph'
+
 function isole_valeur(var s : string; chercher : string;afficheErr : boolean) : string;
 var i : integer;
     serr : string;
@@ -316,7 +312,7 @@ begin
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].status:=i;
 
-  // peut être suivi de 'On device port'
+  // peut être suivi de 'On device port' si une adresse de détecteur ou d'actionneur se trouve sur l'appareil de voie
   Segment[nSeg-1].periph[nperiph-1].OnDevicePort:=-1; // marqueur d'invalidité
   s:=AnsiLowerCase(lignes[nligne+1]);
   if pos('on device port',s)<>0 then
@@ -880,6 +876,7 @@ begin
   degtoRad:=angle*pisur180;
 end;
 
+// dessine un arc dans le canvas, dont le centre est CenterX,Y de rayon , angle de départ et de stop en degrés
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
                 rayon: Integer; StartDegres, StopDegres: Double);
 var
@@ -1009,7 +1006,7 @@ end;
 // trace un arc selon les coordonnées CDM
 procedure angle_cdm(canvas : Tcanvas;centreX,centreY:integer;debut,fin : double ;rayon : integer);
 begin
-  coords(centreX,centreY);
+  coords(centreX,centreY);     // transforme en coords windows
   rayon:=round(rayon*reducX) div 1000;
   D_arc(Canvas,centreX,centreY,rayon,debut,fin);
 end;
@@ -1081,7 +1078,7 @@ end;
 
 // dessine un arc orienté de xa,ya à xb,yb dans le canvas image (pas imprimante)
 // coordonnées CDM
-procedure arc_xy(canvas : tcanvas;centreX,centreY,rayon,xa,ya,xb,yb : integer);
+procedure arc_xy_CDM(canvas : tcanvas;centreX,centreY,rayon,xa,ya,xb,yb : integer);
 var x1,y1,x2,y2: integer  ;
     arcXa,arcYa,arcxb,arcYb,angleA,angleB,
     cosA,SinA,CosB,SinB,vectoriel,AngleAB: double;
@@ -1235,7 +1232,7 @@ begin
   canvas.pen.color:=clred;
   //ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
-  arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
+  arc_xy_CDM(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
 
   centreX:=round(-rayonD*cos(alpha))+MilieuX;
   centreY:=round(pente*centreX+b);
@@ -1243,7 +1240,7 @@ begin
   canvas.pen.color:=clyellow;
   //ligneCDM(canvas,milieuX,milieuY,centreX,centreY);
   //ligneCDM(canvas,x0,y0,x1,y1);
-  arc_xy(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
+  arc_xy_CDM(canvas,centreX,centreY,round(rayonD)+250,x1,y1,x0,y0);
   exit;
 
   // méthode directe
@@ -1284,7 +1281,7 @@ begin
   centreX:=x0+5000;
   centreY:=round(pente*centreX+b);
   rayon:=round(sqrt(sqr(centreX-x0)+sqr(centreY-y0)));
-  arc_xy(canvas,centreX,centreY,rayon,x2,y2,x0,y0);
+  arc_xy_CDM(canvas,centreX,centreY,rayon,x2,y2,x0,y0);
 
   // point de départ en vert
   canvas.pen.color:=clLime;
@@ -1309,7 +1306,7 @@ begin
   TmpBmp.Free;
 end;
 
-// rotation matricielle autour de Centre
+// rotation matricielle de l'angle (en radians) autour de Centre
 function XForm_Rotation(Angle : Single;Centre : TPoint) : TXForm;
 var SinA,CosA: Extended;
 begin
@@ -1389,10 +1386,10 @@ begin
   GMode:=SetGraphicsMode(ACanvas.Handle, GM_ADVANCED);
   if GetWorldTransform(ACanvas.Handle, XFormOld) then  // renvoie la matrice courante dans XformOld
   begin
-    // faire les transformations
+    // faire les 3 transformations
     XFormRot:=XForm_Rotation(Angle,Point(l2,h2));      // rotation autour du centre
-    XFormScale:=XForm_Echelle(Zoom,Zoom,point(l2,h2));   // Zoom au point central
-    XFormXLat:=XForm_Translation(x-l2,y-h2);          // décalage
+    XFormScale:=XForm_Echelle(Zoom,Zoom,point(l2,h2)); // Zoom au point central
+    XFormXLat:=XForm_Translation(x-l2,y-h2);           // décalage
 
     // Combiner les 3 transformations
     CombineTransform(XForm,XFormRot,XFormScale);     // Xform<-- f(XformRot,XformScale)
@@ -1401,7 +1398,7 @@ begin
     // calcule les coordonnées des 4 points de coins de l'icone qui a tourné et zoomé
     // x0,y0               x3,y3
     // x1,y1               x2,y2
-    d:=sqrt( sqr(l2)+ sqr(h2));
+    d:=sqrt(sqr(l2)+ sqr(h2));
     //c1:=round(zoom*l2);  // pour faire la rotation à la tete du train
     //c2:=round(zoom*h2);
     z:=zoom*d;
@@ -3845,7 +3842,7 @@ begin
 
 end;
 
-// compile le fichier Texte de CDM et l'importe
+// compile le fichier Texte de CDM se trouvant en fenêtre principale et l'importe
 procedure Compilation;
 var s : string;
     nombre,position,adresse,i,j,n,ISegA1,ISegA2,ISegA3,ISegA4,ISegCrois,SegBJD,
@@ -4638,8 +4635,6 @@ begin
   result:=itablo>0;
 end;
 
-
-
 // allume la zone du détecteur "adresse"
 procedure dessine_det(adresse : integer);
 var p,centreX,CentreY,rayon,i,index,x,y,x1,y1,x2,y2,x3,y3,x4,y4,np,NindexR,NumPort,IndexportSuiv,NumSeg,indexport,
@@ -4705,7 +4700,7 @@ begin
       x2:=segment[ind1].periph[per2].x;
       y2:=segment[ind1].periph[per2].y;
       canvas.pen.Color:=clred;
-      arc_xy(canvas,centreX,centreY,rayon,x1,y1,x2,y2);
+      arc_xy_CDM(canvas,centreX,centreY,rayon,x1,y1,x2,y2);
 
       coords(centreX,centreY);
       {coords(x2,y2);
@@ -4842,7 +4837,7 @@ begin
         xs:=Segment[index].port[IndexPort].x;
         ys:=Segment[index].port[IndexPort].y;
         // donc tracer un arc de (x,y) détecteur à (xs,ys) port
-        arc_xy(canvas,centreX,centreY,rayon,x,y,xs,ys);
+        arc_xy_CDM(canvas,centreX,centreY,rayon,x,y,xs,ys);
       end;
       if (ctyp='straight') or (ctyp='pre_curve') or (ctyp='bumper_stop')  then
       begin
@@ -4917,7 +4912,7 @@ begin
         xs:=Segment[index].port[IndexPort].x;
         ys:=Segment[index].port[IndexPort].y;
         // donc tracer un arc de (x,y) (détecteur) à (xs,ys) port
-        arc_xy(canvas,centreX,centreY,rayon,x,y,xs,ys);
+        arc_xy_CDM(canvas,centreX,centreY,rayon,x,y,xs,ys);
       end;
       if (ctyp='straight') or (ctyp='pre_curve') or (ctyp='bumper_stop')  then
       begin

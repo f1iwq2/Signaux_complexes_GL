@@ -70,6 +70,7 @@ procedure TFormImportation.EditBaseCroisChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(editBaseCrois.text,i,erreur);
+  if i<0 then i:=0;
   if erreur=0 then BaseCroisement:=i;
 end;
 

@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1266,14 +1266,14 @@ object FormConfig: TFormConfig
         end
         object Label8: TLabel
           Left = 14
-          Top = 50
+          Top = 48
           Width = 82
           Height = 13
           Caption = 'Port de l'#39'interface'
         end
         object EditIPLenz: TEdit
           Left = 176
-          Top = 24
+          Top = 20
           Width = 81
           Height = 21
           TabStop = False
@@ -1281,7 +1281,7 @@ object FormConfig: TFormConfig
         end
         object EditportLenz: TEdit
           Left = 176
-          Top = 48
+          Top = 44
           Width = 81
           Height = 21
           TabStop = False
@@ -1944,7 +1944,7 @@ object FormConfig: TFormConfig
           Left = 192
           Top = 56
           Width = 89
-          Height = 49
+          Height = 41
           Hint = 
             'Change les adresses dans les points de connexions des aiguillage' +
             's et des branches si on a chang'#233' l'#39'adresse d'#39'un aiguillage'
@@ -4035,7 +4035,7 @@ object FormConfig: TFormConfig
         Height = 13
       end
       object SBMonte: TSpeedButton
-        Left = 240
+        Left = 256
         Top = 184
         Width = 25
         Height = 33
@@ -4059,7 +4059,7 @@ object FormConfig: TFormConfig
         OnClick = SBMonteClick
       end
       object SBDesc: TSpeedButton
-        Left = 240
+        Left = 256
         Top = 224
         Width = 25
         Height = 33
@@ -4097,7 +4097,7 @@ object FormConfig: TFormConfig
       object ListBoxPeriph: TListBox
         Left = 8
         Top = 96
-        Width = 233
+        Width = 249
         Height = 273
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
@@ -4134,8 +4134,8 @@ object FormConfig: TFormConfig
         OnClick = ButtonSupAccComClick
       end
       object GroupBoxDesc: TGroupBox
-        Left = 280
-        Top = 88
+        Left = 288
+        Top = 72
         Width = 329
         Height = 129
         Caption = 'Description du p'#233'riph'#233'rique'
@@ -4148,9 +4148,9 @@ object FormConfig: TFormConfig
           Caption = 'Nom du p'#233'riph'#233'rique'
         end
         object EditNomPeriph: TEdit
-          Left = 150
+          Left = 128
           Top = 24
-          Width = 170
+          Width = 192
           Height = 21
           Hint = 'Nom au choix du p'#233'riph'#233'rique'
           ParentShowHint = False
@@ -4163,12 +4163,13 @@ object FormConfig: TFormConfig
         Left = 14
         Top = 421
         Width = 75
-        Height = 20
+        Height = 36
         Hint = 'R'#233'ouvre les ports COMs et Sockets demand'#233's'
-        Caption = 'Ouvre COMs'
+        Caption = 'Ouvre COMs Sockets'
         ParentShowHint = False
         ShowHint = True
         TabOrder = 4
+        WordWrap = True
         OnClick = ButtonOuvreComClick
       end
     end

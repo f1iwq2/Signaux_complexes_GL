@@ -1,11 +1,10 @@
 object FormPrinc: TFormPrinc
-  Left = 27
-  Top = 202
+  Left = 180
+  Top = 135
+  Width = 1148
+  Height = 618
   Anchors = [akLeft, akTop, akRight]
-  BorderStyle = bsSingle
-  Caption = 'Signaux complexes'
-  ClientHeight = 648
-  ClientWidth = 1133
+  Caption = 'SIgnaux complexes'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,13 +20,13 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1133
-    648)
+    1132
+    560)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
     Left = 8
-    Top = 10
+    Top = 2
     Width = 173
     Height = 18
     Caption = 'Signaux complexes GL'
@@ -1431,8 +1430,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 626
-    Width = 1133
+    Top = 538
+    Width = 1132
     Height = 22
     Panels = <
       item
@@ -1458,24 +1457,14 @@ object FormPrinc: TFormPrinc
       end>
     OnDrawPanel = StatusBar1DrawPanel
   end
-  object MSCommUSBInterface: TMSComm
-    Left = 1064
-    Top = 200
-    Width = 32
-    Height = 32
-    OnComm = MSCommUSBInterfaceComm
-    ControlData = {
-      2143341208000000ED030000ED03000001568A64000006000000010000040000
-      00020000802500000000080000000000000000003F00000011000000}
-  end
   object Button1: TButton
-    Left = 744
+    Left = 751
     Top = 16
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Button1'
-    TabOrder = 2
+    TabOrder = 1
     Visible = False
     OnClick = Button1Click
   end
@@ -1484,7 +1473,7 @@ object FormPrinc: TFormPrinc
     Top = 56
     Width = 1057
     Height = 476
-    TabOrder = 3
+    TabOrder = 2
     DesignSize = (
       1057
       476)
@@ -1982,8 +1971,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 481
-      Top = -8
+      Left = 665
+      Top = -24
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2043,26 +2032,6 @@ object FormPrinc: TFormPrinc
         TabOrder = 3
       end
     end
-  end
-  object MSCommCde1: TMSComm
-    Left = 1064
-    Top = 280
-    Width = 32
-    Height = 32
-    OnComm = MSCommCde1Comm
-    ControlData = {
-      2143341208000000ED030000ED03000001568A64000006000000010000040000
-      00020000802500000000080000000000000000003F00000001000000}
-  end
-  object MSCommCde2: TMSComm
-    Left = 1064
-    Top = 312
-    Width = 32
-    Height = 32
-    OnComm = MSCommCde2Comm
-    ControlData = {
-      2143341208000000ED030000ED03000001568A64000006000000010000040000
-      00020000802500000000080000000000000000003F00000001000000}
   end
   object Timer1: TTimer
     Interval = 100

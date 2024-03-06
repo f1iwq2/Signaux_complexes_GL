@@ -8,19 +8,47 @@ uses
 
 type
   TFormDebug = class(TForm)
-    EditNivDebug: TEdit;
-    Label1: TLabel;
-    LabelTitreDebug: TLabel;
     SaveDialog: TSaveDialog;
-    ButtonEcrLog: TButton;
-    ButtonRazTampon: TButton;
-    ButtonCherche: TButton;
-    ButtonAffEvtChrono: TButton;
-    ButtonCop: TButton;
     PopupMenuRE: TPopupMenu;
     copier1: TMenuItem;
+    PopupMenuRD: TPopupMenu;
+    Copier2: TMenuItem;
+    ScrollBoxDebug: TScrollBox;
+    RichDebug: TRichEdit;
+    ButtonRazTout: TButton;
+    ButtonCop: TButton;
+    ButtonAffEvtChrono: TButton;
+    ButtonCherche: TButton;
+    ButtonEcrLog: TButton;
+    ButtonRazTampon: TButton;
     ButtonRazLog: TButton;
-    GroupBox1: TGroupBox;
+    MemoEvtDet: TRichEdit;
+    GroupBox5: TGroupBox;
+    EditSimuDet: TEdit;
+    ButtonSimuDet0: TButton;
+    ButtonSimuDet1: TButton;
+    ButtonSimuAct0: TButton;
+    ButtonSimuAct1: TButton;
+    GroupBox6: TGroupBox;
+    Label3: TLabel;
+    Label5: TLabel;
+    EditAdresse: TEdit;
+    EditSortie: TEdit;
+    Button1: TButton;
+    Button0: TButton;
+    GroupBoxPrim: TGroupBox;
+    GroupBox3: TGroupBox;
+    Label4: TLabel;
+    ButtonSigSuiv: TButton;
+    ButtonCanSuivSig: TButton;
+    EditSigSuiv: TEdit;
+    ButtonCP: TButton;
+    Button2: TButton;
+    GroupBox4: TGroupBox;
+    ButtonDetSuiv: TButton;
+    EditPrec: TEdit;
+    EditActuel: TEdit;
+    ButtonElSuiv: TButton;
     GroupBox2: TGroupBox;
     CheckAffSig: TCheckBox;
     CheckBoxEvtDetAig: TCheckBox;
@@ -28,42 +56,16 @@ type
     CheckTrame: TCheckBox;
     CheckBoxAffFD: TCheckBox;
     CheckBoxAffDebDecSig: TCheckBox;
-    GroupBox3: TGroupBox;
-    ButtonSigSuiv: TButton;
-    ButtonCanSuivSig: TButton;
-    EditSigSuiv: TEdit;
-    Label4: TLabel;
-    GroupBox4: TGroupBox;
-    ButtonDetSuiv: TButton;
-    EditPrec: TEdit;
-    EditActuel: TEdit;
-    ButtonCP: TButton;
-    Button2: TButton;
-    RichDebug: TRichEdit;
-    PopupMenuRD: TPopupMenu;
-    Copier2: TMenuItem;
-    GroupBox5: TGroupBox;
-    ButtonSimuDet0: TButton;
-    ButtonSimuDet1: TButton;
-    EditSimuDet: TEdit;
-    ButtonRazTout: TButton;
     EditDebugSignal: TEdit;
     CheckBoxTiers: TCheckBox;
-    ButtonSimuAct0: TButton;
-    ButtonSimuAct1: TButton;
-    ButtonElSuiv: TButton;
     CheckBox1: TCheckBox;
     CheckDebugTCO: TCheckBox;
-    GroupBox6: TGroupBox;
-    EditAdresse: TEdit;
-    Label3: TLabel;
-    Label5: TLabel;
-    EditSortie: TEdit;
-    Button1: TButton;
-    Button0: TButton;
-    MemoEvtDet: TRichEdit;
     CheckDetSIg: TCheckBox;
     CheckBoxPrinc: TCheckBox;
+    LabelTitreDebug: TLabel;
+    Label1: TLabel;
+    EditNivDebug: TEdit;
+    ButtonAigDevie: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
     procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
@@ -103,6 +105,8 @@ type
     procedure MemoEvtDetChange(Sender: TObject);
     procedure CheckDetSIgClick(Sender: TObject);
     procedure CheckBoxPrincClick(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure ButtonAigDevieClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -172,7 +176,10 @@ begin
     for i:=0 to ComponentCount-1 do
     begin
       c:=Components[i];
-      composant(c,couleurFond,couleurTexte);
+      if c is tScrollBox then
+      begin
+        (c as tScrollBox).Color:=color;
+      end;
     end;
   end;
 end;
@@ -193,16 +200,38 @@ end;
 procedure TFormDebug.FormCreate(Sender: TObject);
 var s: string;
 begin
-  if affevt then affiche('FormDebug create',clLime);
-  if debug=1 then Affiche('Création fenêtre debug',clLime);
+  if affevt or (debug=1) then affiche('FormDebug create',clLime);
   EditNivDebug.Text:='0';
   RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   RichDebug.color:=$33;
+  //constraints.MaxHeight:=800;  // taille Y maxi
   initform:=false;
+  visible:=false;
   RichDebug.clear;
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
-  Autoscroll:=true; // permet l'affichage de l'ascenseur dans radstudio
+  // l'ascenseur de la fenetre dans D11 ------------
+  // ne fonctionne que si le style est windows !!! (bug du VCL)
+  // obligé d'utiliser une scrollBox
+
   DebugAffiche:=true;
+
+  RichDebug.Height:=scrollBoxdebug.Height-30;
+  RichDebug.Anchors:=[akLeft,akTop,akRight,akBottom];
+
+  with scrollBoxdebug do
+  begin
+    Anchors:=[akLeft,akTop,akRight,akBottom];
+    VertScrollBar.Smooth:=false;   // ne pas mettre true sinon figeage dans W11 si on clique sur la trackbar!!
+    VertScrollBar.Tracking:=true;
+    HorzScrollBar.Visible:=false;
+    autoScroll:=true;
+    autoSize:=false;
+  end;
+
+  checkTrame.hint:='Affiche les trames de la centrale XpressNet'+#13+'ou les trames CDM-Rail (COM_IP)';
+  checkBoxTiers.hint:='Nécessite d''activer les services'+#13+'"signaux" et "position des trains"'+#13+
+                      'dans la configuration générale';
+
   compt_erreur:=0;
   LigneErreur:=0;
   if debug=1 then Affiche('Fin création fenêtre debug',clLime);
@@ -212,6 +241,13 @@ begin
   // fin debug====================
   couleurs_debug;
 end;
+
+procedure TFormDebug.FormActivate(Sender: TObject);
+begin
+  if affevt then affiche('FormDebug activate',clLime);
+  formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
+end;
+
 
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
 var s : string;
@@ -377,10 +413,11 @@ end;
 procedure TFormDebug.ButtonSigSuivClick(Sender: TObject);
 var adr,erreur,ancdebug,AdrSigSuivant : integer ;
 begin
+  Val(EditSigSuiv.Text,adr,erreur);
+  if (erreur<>0) or (adr<1) then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  Val(EditSigSuiv.Text,adr,erreur);
-  if (erreur<>0) and (adr>0) then etat_signal_suivant(Adr,1,AdrSigSuivant) ;
+  etat_signal_suivant(Adr,1,AdrSigSuivant) ;
   NivDebug:=AncDebug;
 end;
 
@@ -393,26 +430,26 @@ begin
   NivDebug:=3;
   s1:=EditPrec.Text;
   s2:=EditActuel.Text;
-  if (s1='') or (s2='') then exit;
+  if (s1='') or (s2='') then begin NivDebug:=AncDebug;exit;end;
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
   Val(s1,prec,erreur);
-  if (erreur<>0) or (prec<1) then exit;
+  if (erreur<>0) or (prec<1) then begin NivDebug:=AncDebug;exit;end;
   Val(s2,Actuel,erreur);
-  if (erreur<>0) or (actuel<1) then exit;
+  if (erreur<>0) or (actuel<1) then begin NivDebug:=AncDebug;exit;end;
   Adr:=detecteur_suivant_El(prec,type1,actuel,type2,1);
   if Adr<9996 then AfficheDebug('Le détecteur suivant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel)+' est '+IntToSTR(Adr),clyellow)
-  else AfficheDebug('Pas trouvé de détecteur suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow); 
+  else AfficheDebug('Pas trouvé de détecteur suvant aux éléments '+IntToSTR(prec)+'/'+IntToSTR(actuel),clyellow);
   NivDebug:=AncDebug;
 end;
 
 procedure TFormDebug.ButtonCanSuivSigClick(Sender: TObject);
 var Adr,erreur,ancdebug : integer ;
 begin
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur<>0) or (adr<1) then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  Val(EditSigSuiv.Text,Adr,erreur);
-  if (erreur=0) or (adr<1) then exit;
   if test_memoire_zones(Adr) then AfficheDebug('Présence train',clYellow) else
     AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
@@ -516,13 +553,13 @@ begin
   NivDebug:=3;
   s1:=EditPrec.Text;
   s2:=EditActuel.Text;
-  if (s1='') or (s2='') then exit;
+  if (s1='') or (s2='') then begin NivDebug:=AncDebug;exit;end;
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
   Val(s1,prec,erreur);
-  if (erreur<>0) or (prec<1) then exit;
+  if (erreur<>0) or (prec<1) then begin NivDebug:=AncDebug;exit;end;;
   Val(s2,Actuel,erreur);
-  if (erreur<>0) or (actuel<1) then exit;
+  if (erreur<>0) or (actuel<1) then begin NivDebug:=AncDebug;exit;end;;
   Adr:=suivant_Alg3(prec,type1,actuel,type2,1);
   if Adr<9995 then
   begin
@@ -641,12 +678,6 @@ begin
   if key=chr(27) then close;
 end;
 
-procedure TFormDebug.FormActivate(Sender: TObject);
-begin
-  if affevt then affiche('FormConfig activate',clLime);
-  formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
-end;
-
 procedure TFormDebug.MemoEvtDetChange(Sender: TObject);
 begin
   SendMessage(MemoEvtDet.handle,WM_VSCROLL,SB_BOTTOM,0);
@@ -663,5 +694,25 @@ begin
   ProcPrinc:=checkBoxPrinc.checked;
 end;
 
+
+
+
+
+procedure TFormDebug.Button3Click(Sender: TObject);
+begin
+  ScrollBoxDebug.VertScrollBar.Position:=0;
+end;
+
+
+procedure TFormDebug.ButtonAigDevieClick(Sender: TObject);
+var Adr,erreur,ancDebug : integer;
+begin
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur<>0) or (Adr<1) then exit;
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  Aiguille_deviee(Adr);
+  NivDebug:=AncDebug;
+end;
 
 end.

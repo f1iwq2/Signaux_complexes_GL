@@ -289,6 +289,7 @@ end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
 begin
+  if affevt then affiche('FormPilote create',clLime);
   position:=poMainFormCenter;
   couleurs_pilote;
 end;
@@ -331,6 +332,7 @@ procedure TFormPilote.FormActivate(Sender: TObject);
 var n,i,d : integer;
 begin
   // mise à jour du champ décodeur
+  if affevt then affiche('FormPilote activate',clLime);
   i:=Index_Signal(AdrPilote);
   d:=Signaux[i].decodeur;
   n:=Signaux[i].aspect;

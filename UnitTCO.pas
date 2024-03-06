@@ -150,6 +150,7 @@ type
     AfficherSignauxComplexes1: TMenuItem;
     Signalvertical180: TMenuItem;
     RafrachirleTCO1: TMenuItem;
+    RechargerleTCOdepuislefichier1: TMenuItem;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -419,6 +420,7 @@ type
     procedure Mosaqueverticale1Click(Sender: TObject);
     procedure AfficherSignauxComplexes1Click(Sender: TObject);
     procedure Signalvertical180Click(Sender: TObject);
+    procedure RechargerleTCOdepuislefichier1Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -492,7 +494,7 @@ type
            sortie      : integer;     // si action sortie : état
          end;
 
-  // Outil graphique de sélection
+  // rectangle graphique de sélection
   Trect_Select= record
                   NumTCO : integer;   // affectation du rectangle à ce tco
                   Gd,                 // grand rectangle
@@ -507,9 +509,9 @@ var
   TamponAffecte,TCO_modifie,clicsouris,prise_N,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,prise_droit,prise_haut,
   prise_bas,prise_gauche,prise_NE,prise_NO,prise_SE,prise_SO,ligneAffiche,colonneAffiche,
-  drag,TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet : boolean;
+  drag,TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet,SelecBouge : boolean;
 
-  HtImageTCO,LargImageTCO,XminiSel,YminiSel,XCoupe,Ycoupe,Temposouris,ligne_supprime,
+  HtImageTCO,LargImageTCO,XminiSel,YminiSel,Temposouris,ligne_supprime,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel,AncienYMiniSel,AncienYMaxiSel,
   Xclic,Yclic,XClicCellInserer,YClicCellInserer,RatioC,ModeCouleurCanton,
   AncienXClicCell,AncienYClicCell,TCODrag,epaisseur_voies,Ax,Ay,TpsBougeSouris,
@@ -533,10 +535,13 @@ var
   // pour copier coller
   TamponTCO : array of array of TTco ;
   TamponTCO_Org : record
-                   numTCO,x1,y1,x2,y2,NbreCellX,NbreCellY : integer;
+                   numTCO,
+                   x1,y1,x2,y2,     // coordoonnées rectangulaires de la sélection
+                   NbreCellX,NbreCellY,
+                   Xorg,Yorg : integer; // point d'origine de la sélection
                  end;
 
-  Rect_select : Trect_Select;
+  Rect_select : Trect_Select;  // rectangle de sélection graphique
   Sauv_rect_select : Trect;
 
   // tracé du train dans les TCO
@@ -741,16 +746,20 @@ begin
 end;
 
 // Accroche les poignées et bouge le rectangle de sélection graphique
+// ici, la souris est enfoncée et est entrain de bouger en x,y
 procedure Accroche_Rectangle_selection(indexTCO,x,y : integer);
-var dx,dy : integer;
+var dx,dy,maxX,maxY : integer;
     r : Trect;
     rien : boolean;
 begin
   rien:=not(prise_droit) and not(prise_bas) and not(prise_gauche) and not(prise_haut) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO);
 
+  maxX:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
+  maxY:=HauteurCell[indexTCO]*NbreCellY[indexTCO];
+
   // poignée haut
   r:=Rect_Select.rN;
-  if ((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_haut then
+  if ( ((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_haut) and (y>0) then
   begin
     screen.cursor:=crSizeNS;
     //if (not(prise_droit) and not(prise_bas) and not(prise_gauche) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO)) and clicsouris  then
@@ -776,7 +785,7 @@ begin
 
   // poignée droite
   r:=Rect_Select.re;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_droit) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_droit) then //and (x<MaxX) then
   begin
     screen.cursor:=crSizeWE;
     //if (not(prise_haut) and not(prise_bas) and not(prise_gauche) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO)) and clicsouris then
@@ -802,7 +811,7 @@ begin
 
   // poignée bas
   r:=Rect_Select.rS;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_bas) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_bas) then //and (y<MaxY) then
   begin
     screen.cursor:=crSizeNS;
     if (rien and clicsouris) or prise_bas then
@@ -826,8 +835,9 @@ begin
   end;
 
   // poignée gauche
-  r:=Rect_Select.rO;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_gauche) then
+  r:=Rect_Select.rO;  // rectangle ouest=poignée gauche
+  // si x est dans le rectangle
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_gauche) then //and (x>0) then
   begin
     screen.cursor:=crSizeWE;
     if (rien and clicsouris) or prise_gauche then
@@ -835,7 +845,7 @@ begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
       prise_gauche:=true;
-      if x<rect_select.Gd.Right then
+      if (x<rect_select.Gd.Right) then
       begin
         rect_Select.gd.left:=x;
       end
@@ -846,13 +856,13 @@ begin
       end;
       init_rectangle(indexTCO,rect_select);
       Affiche_Rectangle(indexTCO,rect_Select);
-   end;
-   exit;
+    end;
+    exit;
   end;
 
   // poignée NE
   r:=Rect_Select.rNE;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NE) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NE) then //and (x<MaxX) and (y>0) then
   begin
     screen.cursor:=crSizeNESW;
     if (rien and clicsouris) or prise_NE then
@@ -870,7 +880,7 @@ begin
 
   // poignée NO
   r:=Rect_Select.rNO;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NO) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NO) then //and (x>0) and (y>0) then
   begin
     screen.cursor:=crSizeNWSE;
     if (rien and clicsouris) or prise_NO then
@@ -888,7 +898,7 @@ begin
 
   // poignée SE
   r:=Rect_Select.rSE;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SE) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SE) then //and (x<MaxX) and (y<MaxY) then
   begin
     screen.cursor:=crSizeNWSE;
     if (rien and clicsouris) or prise_SE then
@@ -906,7 +916,7 @@ begin
 
   // poignée SO
   r:=Rect_Select.rSO;
-  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SO) then
+  if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SO) then //and (x>0) and (y<MaxY) then
   begin
     screen.cursor:=crSizeNESW;
     if (rien and clicsouris) or prise_SO then
@@ -924,7 +934,7 @@ begin
 
   // selec rectangle : bouger en toutes directions
   r:=Rect_select.Gd;
-  if ((y>r.top) and (y<r.bottom) and (x>r.Left) and (x<r.Right)) or prise_N then
+  if ((y>r.top) and (y<r.bottom) and (x>r.Left) and (x<r.Right) and (x>0) and (x<MaxX) and (y>0) and (y<maxY)) or prise_N then
   begin
     screen.cursor:=crSizeAll;
     if not(prise_N) and clicSOuris then
@@ -1610,11 +1620,12 @@ begin;
   if not(AvecGrille[indexTCO]) then exit;
   Xorg:=(x-1)*LargeurCell[indexTCO];
   Yorg:=(y-1)*HauteurCell[indexTCO];
+  if PcanvasTCO[indexTCO]<>nil then
   With PcanvasTCO[indexTCO] do
   begin
     Pen.Color:=clGrille[IndexTCO];
     Pen.mode:=PmCopy;
-    Pen.width:=1;
+    Pen.width:=3;
     MoveTo(Xorg,YOrg);
     LineTo(Xorg+LargeurCell[indexTCO],YOrg);
     LineTo(Xorg+LargeurCell[indexTCO],YOrg+HauteurCell[indexTCO]);
@@ -1666,15 +1677,22 @@ end;
 // affiche la sélection bleue des cellules
 procedure affiche_selection(indexTCO : integer);
 var r : Trect;
+    larg,haut : integer;
 begin
-with PImageTCO[indexTCO].Canvas do
+  if FormTCO[indexTCO].RadioGroupSel.ItemIndex=0 then
   begin
-    Pen.Mode:=PmXor;
-    Pen.color:=clGrille[IndexTCO];
-    Brush.Color:=clblue;
-    //FillRect(r);
-    r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
-    Rectangle(r);
+    larg:=largeurCell[indexTCO];
+    haut:=HauteurCell[indexTCO];
+
+    with PImageTCO[indexTCO].Canvas do
+    begin
+      Pen.Mode:=PmXor;
+      Pen.color:=clGrille[IndexTCO];
+      Brush.Color:=clblue;
+      //FillRect(r);
+      r:=Rect((xminiSel-1)*Larg,(YminiSel-1)*Haut,(XmaxiSel)*larg,(yMaxiSel)*haut);
+      Rectangle(r);
+    end;
   end;
 end;
 
@@ -1857,13 +1875,13 @@ var b,x0,y0,xt,yt,repr,taillefont,tf : integer;
     ss,s,nf : string;
     c : Tcanvas;
 begin
+  c:=PcanvasTCO[indextco];
+  if c=nil then exit;
 
   x0:=(x-1)*LargeurCell[indexTCO];
   y0:=(y-1)*hauteurCell[indexTCO];
   //PCanvasTCO.Brush.Style:=bsSolid;
   s:=tco[indextco,x,y].Texte;
-
-  c:=PcanvasTCO[indextco];
 
   b:=tco[indextco,x,y].BImage;
   if (b=51) then PCanvasTCO[indextco].Brush.Color:=clQuai[indexTCO] else PCanvasTCO[indextco].Brush.Color:=tco[indextco,x,y].CouleurFond;
@@ -5071,6 +5089,8 @@ var x0,y0,xf,yf,act : integer;
     r : Trect;
     s : string;
 begin
+  if PcanvasTCO[indexTCO]=nil then exit;
+
   x0:=(x-1)*LargeurCell[indexTCO]+2;
   y0:=(y-1)*hauteurCell[indexTCO]+2;
   xf:=x0+LargeurCell[indexTCO]-4;
@@ -5086,59 +5106,54 @@ begin
     r:=rect(x0,y0,xf,yf);
     rectangle(r);
 
-    if TCOActive then
+    s:=tco[indexTCO,x,y].Fonte;
+    if s='' then tco[indexTCO,x,y].Fonte:='Arial';
+    //s:=tco[indexTCO,x,y].texte;
+    s:='';
+    if s='' then tco[indexTCO,x,y].repr:=5; // centré en X et Y
+    act:=tco[indexTCO,x,y].PiedFeu;
+    if act=1 then
     begin
-      s:=tco[indexTCO,x,y].Fonte;
-      if s='' then tco[indexTCO,x,y].Fonte:='Arial';
-      //s:=tco[indexTCO,x,y].texte;
-      s:='';
-      if s='' then tco[indexTCO,x,y].repr:=5; // centré en X et Y
-      act:=tco[indexTCO,x,y].PiedFeu;
-      if act=1 then
-      begin
-        if s='' then s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);  // feuoriente contient le numéro du TCO
+      if s='' then s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);  // feuoriente contient le numéro du TCO
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+    if act=2 then
+    begin
+      if s='' then s:='SC';
         tco[indexTCO,x,y].texte:=s;
         tco[indexTCO,x,y].TailleFonte:=8;
         tco[indexTCO,x,y].FontStyle:='G';
-      end;
-      if act=2 then
-      begin
-        if s='' then s:='SC';
-          tco[indexTCO,x,y].texte:=s;
-          tco[indexTCO,x,y].TailleFonte:=8;
-          tco[indexTCO,x,y].FontStyle:='G';
-      end;
-      if act=3 then
-      begin
-        if s='' then s:='CDM';
-        tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].TailleFonte:=8;
-        tco[indexTCO,x,y].FontStyle:='G';
-      end;
-      if act=4 then
-      begin
-        if s='' then s:=intToSTR(tco[indexTCO,x,y].adresse);
-        tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].TailleFonte:=8;
-        tco[indexTCO,x,y].FontStyle:='G';
-      end;
-      if act=5 then
-      begin
-        if s='' then s:='STOP';
-        tco[indexTCO,x,y].texte:=s;
-        tco[indexTCO,x,y].TailleFonte:=8;
-        tco[indexTCO,x,y].FontStyle:='G';
-      end;
-
-      //tf:=(tco[indexTCO,x,y].TailleFonte*LargeurCell[indexTCO]) div 40;
-      //tf:=(8*LargeurCell[indexTCO]) div 40;;
+    end;
+    if act=3 then
+    begin
+      if s='' then s:='CDM';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+    if act=4 then
+    begin
+      if s='' then s:=intToSTR(tco[indexTCO,x,y].adresse);
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+    if act=5 then
+    begin
+      if s='' then s:='STOP';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+    //tf:=(tco[indexTCO,x,y].TailleFonte*LargeurCell[indexTCO]) div 40;
+    //tf:=(8*LargeurCell[indexTCO]) div 40;;
 
       //Font.Color:=clwhite;
       //font.Name:='Arial';
       //texte_reparti(s,indexTCO,x,y,tf);
-      affiche_texte(indextco,x,y);
-    end;
-
+    affiche_texte(indextco,x,y);
   end;
 end;
 
@@ -7548,7 +7563,6 @@ begin
   end
   else
     PlgBlt(PImageTemp[index].Canvas.Handle,p,ImageSource.Canvas.Handle,0,0,TailleX,TailleY,0,0,0);
-  //PimageTemp.Visible:=true;
   // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparennt
   TransparentBlt(PcanvasTCO[index].Handle,x,y,round(TailleY*FrY),round(TailleX*FrX),   // destination
                  PImageTemp[index].Canvas.Handle,0,0,TailleY,TailleX,clBlue);    // source - clblue est la couleur de transparence
@@ -8657,8 +8671,8 @@ procedure Entoure_cell(indexTCO,x,y : integer);
 var r : Trect;
     x0,y0 : integer;
 begin
-  x0:=(x-1)*LargeurCell[indexTCO]+1;
-  y0:=(y-1)*hauteurCell[indexTCO]+1;
+  x0:=(x-1)*LargeurCell[indexTCO];
+  y0:=(y-1)*hauteurCell[indexTCO];
   with PcanvasTCO[indexTCO] do
   begin
     Pen.width:=3;
@@ -8808,7 +8822,7 @@ begin
 
   // afficher les sélections si elles sont présentes
   if entoure[indexTCO] then Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);
-  if rect_select.NumTCO<>0 then Affiche_Rectangle(IndexTCO,Rect_select);
+  if (rect_select.NumTCO<>0) and (IndexTCO=rect_select.NumTCO) then Affiche_Rectangle(IndexTCO,Rect_select);    // rectangle graphique
   if selectionaffichee[indexTCO] then Affiche_selection(indexTCO);
 end;
 
@@ -8819,7 +8833,7 @@ begin
   if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
   //Screen.OnActiveControlChange := ActiveControlChanged;
   visible:=false;  // ne s'affiche pas par défaut et évite l'effet fenetre fantome.
-
+  PCanvasTCO[indexTCOCreate]:=nil;
   offsetSourisY:=-10; // permet de tenir l'icone au milieu quand on fait un glisser
   offsetSourisX:=-10;
   RadioGroupSel.ItemIndex:=0;
@@ -8831,7 +8845,8 @@ begin
   epaisseur_voies:=5;
   XclicCell[indexTCOCreate]:=1;
   YclicCell[indexTCOCreate]:=1;
-  xCoupe:=0;yCoupe:=0;
+  TamponTCO_org.Xorg:=0;
+  TamponTCO_org.Yorg:=0;
   indexTrace:=0;
   KeyPreview:=true; // valide les évènements clavier
   TrackBarZoom.Tabstop:=false;     // permet d'avoir les evts curseurs
@@ -8839,10 +8854,11 @@ begin
   ButtonConfigTCO.TabStop:=false;
   ButtonRaz.TabStop:=false;
   ButtonDessiner.TabStop:=false;
+  SelecBouge:=false;
   //TrackBarZoom.position:=78;
 
   couleurAdresse:=clCyan;
-  xMiniSel:=99999;yMiniSel:=99999;
+  xMiniSel:=99999;yMiniSel:=99999;   // coordonnées cellules
   xMaxiSel:=0;yMaxiSel:=0;
   SelectionAffichee[indexTCOCreate]:=false;
   //ImageTCO.Canvas.font.Name:='Arial';  //<--- peut générer exception out of ressource!!
@@ -8982,27 +8998,30 @@ begin
 
   for t:=1 to NbreTCO do
   begin
-    n:=Trace_Train[t].train[train].nombre;
-    if n=0 then exit;
-    i:=n;
-    repeat
-      x:=Trace_Train[t].train[train].route[i].x;
-      y:=Trace_Train[t].train[train].route[i].y;
-      Bimage:=tco[t,x,y].BImage;
-      trouve:=isAigTCO(Bimage);
-      dec(i);
-    until trouve or (i=0);
-
-    if trouve then
+    if PcanvasTCO[t]<>nil then
     begin
-      for j:=i+1 downto 1 do
+      n:=Trace_Train[t].train[train].nombre;
+      if n=0 then exit;
+      i:=n;
+      repeat
+        x:=Trace_Train[t].train[train].route[i].x;
+        y:=Trace_Train[t].train[train].route[i].y;
+        Bimage:=tco[t,x,y].BImage;
+        trouve:=isAigTCO(Bimage);
+        dec(i);
+      until trouve or (i=0);
+
+      if trouve then
       begin
-        x:=Trace_Train[t].train[train].route[j].x;
-        y:=Trace_Train[t].train[train].route[j].y;
-        tco[t,x,y].mode:=0;
-        Affiche_cellule(t,x,y);
+        for j:=i+1 downto 1 do
+        begin
+          x:=Trace_Train[t].train[train].route[j].x;
+          y:=Trace_Train[t].train[train].route[j].y;
+          tco[t,x,y].mode:=0;
+          Affiche_cellule(t,x,y);
+        end;
       end;
-    end;
+   end;
   end;
 end;
 
@@ -9128,8 +9147,7 @@ end;
 // Ne nécessite pas que les aiguillages aoient bien positionnés entre det1 et det2
 // procédure récursive quand on passe par un aiguillage en pointe pour explorer les éléments opposés
 procedure zone_tco(indexTCO,det1,det2,train,mode: integer);
-var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteration,indexIr,
-    sx,sy,position  : integer;
+var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteration,indexIr : integer;
     memtrouve,sortir,casok,indextrouve : boolean;
     s : string;
 
@@ -9166,8 +9184,8 @@ var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteratio
   // récursivité suivante leur valeur, mais elles reprennent leur valeurs initiales à la remontée vers la résursivité appellante.
   Procedure El_tco(x,y,train : integer; ir : integer);
   var mdl : Tequipement;
-      i,j,index  :integer;
-      posAig : boolean;
+      i,j,index,position : integer;
+      posAig,SortirBoucle : boolean;
   begin
     posAig:=true;
     // répète la route depuis un aiguillage
@@ -9176,6 +9194,7 @@ var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteratio
 
     i:=0;
     repeat
+      sortirBoucle:=false;
       maj_route(indextco,x,y,train,ir);
       adresse:=tco[indextco,x,y].Adresse ;
       index:=index_aig(adresse);
@@ -9851,10 +9870,10 @@ var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteratio
      inc(i);
      if (adresse=det2) and (adresse<>0) then memTrouve:=true;
      if (adresse=0) and (det2=0) and (tco[indexTCO,x,y].buttoir<>0) then memTrouve:=true;
-     if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and ((adresse<>det2) and (adresse<>det1) and (adresse<>0)) then sortir:=true;
+     if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and ((adresse<>det2) and (adresse<>det1) and (adresse<>0)) then sortirBoucle:=true;
      if (i>200) or (iteration>200) then sortir:=true;
      Maj_coords(AncienX,AncienY,x,y);
-   until sortir or memtrouve;
+   until sortir or memtrouve or SortirBoucle;
    if DebugTCO and not(memtrouve) then AfficheDebug('Fin de boucle dét '+intToSTR(det2)+' non trouvé',clOrange);
 
    //mémoriser l'index de route si on a trouvé det2, et uniquement sur la première itération quand on l'a trouvé
@@ -9872,6 +9891,7 @@ var i,ir,adresse,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteratio
 // Début de la procédure zone_tco
 begin
   if debugTCO then AfficheDebug('Zone_TCO'+intToSTR(indexTCO)+' det1='+intToSTR(det1)+' det2='+intToSTR(det2)+' Train'+intToSTR(Train)+' mode='+intToSTR(mode),clWhite);
+  if PcanvasTCO[indexTCO]=nil then exit;
   trouve_det(indexTCO,det1,Xdet1,Ydet1);
   if (Xdet1=0) or (Ydet1=0) then exit;
 
@@ -10180,7 +10200,7 @@ var indextco : integer;
 begin
   indextco:=index_TCO(sender);
   IndexTCOCourant:=indexTCO;
-  if affevt then Affiche('Form TCO'+intToSTR(indexTCO)+' activate',clyellow);
+  if affevt or (debug=1) then Affiche('Form TCO'+intToSTR(indexTCO)+' activate',clyellow);
   Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
   if indexTCO=0 then exit;
   {initalisation des dimensions du tco - à ne faire qu'une fois}
@@ -10196,7 +10216,6 @@ begin
     LargeurCelld2[indexTCO]:=LargeurCell[indexTCO] div 2;hauteurCelld2[indexTCO]:=hauteurCell[indexTCO] div 2;
     calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
 
-    dessine_icones(indexTCO);
 
     NbCellulesTCO[indexTCO]:=NbreCellX[indexTCO]*NbreCellY[indexTCO];
     ImageTCO.Width:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
@@ -10213,19 +10232,8 @@ begin
 
     // initialiser le pointeur image temporaire du TCO
     PImageTemp[indextco]:=FormTCO[indextco].ImageTemp;
-    // peindre l'image en bleu pour la transparence , nécessaire en cas de décalage des signaux à 180° mais correction apportée dans feu_180
-    with PImageTemp[indextco].Canvas do
-    begin
-      Pen.Color:=ClBlue;
-      Brush.Color:=CLBlue;
-     // FillRect(Rect(0,0,100,100));
-    end;
 
-    //PImageTemp[indextco].Canvas.Rectangle(0,0,PImageTemp[indextco].Width,PimageTemp[indextco].Height);
-    //PImageTemp[indextco].Picture.Bitmap.TransparentMode:=tmAuto;
-    //PImageTemp[indextco].Picture.Bitmap.TransparentColor:=clblue;
-    //PImageTemp[indextco].Transparent:=true;
-
+    dessine_icones(indexTCO);
 
     //déclenche l'Affiche_tco
     if ZoomInit[indexTCO]<>0 then FormTCO[indexTCO].TrackBarZoom.Position:=ZoomInit[indexTCO] else TrackBarZoom.position:=34;
@@ -10460,13 +10468,13 @@ begin
 
   if TamponAffecte then
   begin
-    if (xCoupe<>0) and (ycoupe<>0) then
+    if (TamponTCO_org.Xorg<>0) and (TamponTCO_org.Yorg<>0) then
     begin
       for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do       // rectangle de la sélection
         for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
         begin
-          xPlace:=xCoupe+x-TamponTCO_Org.x1;   // destination
-          yPlace:=yCoupe+y-TamponTCO_Org.y1;
+          xPlace:=TamponTCO_org.Xorg+x-TamponTCO_Org.x1;   // destination
+          yPlace:=TamponTCO_org.Yorg+y-TamponTCO_Org.y1;
 
           if (xPlace<=NbreCellX[indexTCO]) and (yPlace<=NbreCellY[indexTCO]) then
           begin
@@ -10542,31 +10550,69 @@ end;
 
 
 procedure copier(indexTCO : integer);
-var x,y : integer;
+var x,y,xmax,ymax,larg,haut : integer;
 begin
   if SelectionAffichee[indexTCO] then
   begin
+    if FormTCO[indexTCO].RadioGroupSel.ItemIndex=1 then
+    begin
+      larg:=largeurCell[indexTCO];
+      haut:=hauteurCell[indexTCO];
+      xMax:=larg*NbreCellX[indexTCO];
+      yMax:=haut*NbreCellY[indexTCO];
+
+      xMiniSel:=(Rect_select.Gd.Left div larg)+1;
+      yMiniSel:=(Rect_select.Gd.top div haut)+1;
+      xMaxiSel:=(Rect_select.Gd.right div larg)+1;
+      yMaxiSel:=(Rect_select.Gd.bottom div haut)+1;
+      if xminiSel>xMaxiSel then echange(xminiSel,xMaxiSel);
+      if yminiSel>yMaxiSel then echange(yminiSel,yMaxiSel);
+      if xMiniSel<1 then xMiniSel:=1;
+      if xMiniSel>xMax then xMiniSel:=xMax;
+      if yMiniSel<1 then yMiniSel:=1;
+      if yMiniSel>yMax then yMiniSel:=yMax;
+      if xMaxiSel>xMax then xmaxiSel:=xMax;
+      if yMaxiSel>yMax then ymaxiSel:=yMax;
+    end;
+
     TamponTCO_org.numTCO:=indexTCO;
-    TamponTCO_Org.x1:=XminiSel div LargeurCell[indexTCO] +1;
-    TamponTCO_Org.x2:=XmaxiSel div LargeurCell[indexTCO] +1;
-    TamponTCO_Org.y1:=yminiSel div hauteurCell[indexTCO] +1;
-    TamponTCO_Org.y2:=ymaxiSel div hauteurCell[indexTCO] +1;
+    tamponTCO_Org.Xorg:=xMiniSel;
+    tamponTCO_Org.Yorg:=yMiniSel;
+    TamponTCO_Org.x1:=XminiSel ;
+    TamponTCO_Org.x2:=XmaxiSel ;
+    TamponTCO_Org.y1:=yminiSel ;
+    TamponTCO_Org.y2:=ymaxiSel ;
     for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
       for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
       begin
-        //Affiche(intToSTR(x)+' '+intToSTR(y),clred);
         tampontco[x,y]:=tco[indextco,x,y];
       end;
     TamponAffecte:=true;
+  end
+
+  else
+
+  // copie sans sélection : on coupe une seule cellule
+  begin
+    tampontco[XclicCell[indexTCO],YclicCell[indexTCO]]:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]]; // pour pouvoir faire annuler couper
+    TamponTCO_org.x1:=XclicCell[indexTCO];TamponTCO_org.y1:=YclicCell[indexTCO];
+    TamponTCO_org.x2:=XclicCell[indexTCO];TamponTCO_org.y2:=YclicCell[indexTCO];
+    TamponTCO_org.numTCO:=indexTCO;
+    TamponAffecte:=true;
+    TamponTCO_org.xOrg:=XclicCell[indexTCO];
+    TamponTCO_org.yOrg:=YclicCell[indexTCO];
   end;
 end;
 
 procedure couper(indexTCO: integer);
-var x,y,XCell1,YCell1,xCell2,yCell2 : integer;
+var x,y,xMax,Ymax,XCell1,YCell1,xCell2,yCell2,haut,larg : integer;
 begin
+  larg:=largeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+
   if (XclicCell[indexTCO]=0) or (YclicCell[indexTCO]=0) then exit;
   //Affiche(intToSTR(ancienXclic)+' '+intToSTR(XclicCell[indexTCO]),clred);
-  if (AncienXclic=XclicCell[indexTCO]) and (AncienYclic=YclicCell[indexTCO]) then exit;
+  //if (AncienXclic=XclicCell[indexTCO]) and (AncienYclic=YclicCell[indexTCO]) then exit;
   AncienXclic:=XclicCell[indexTCO];
   AncienYclic:=YclicCell[indexTCO];
 
@@ -10580,12 +10626,27 @@ begin
   // couper par la fenetre graphique
   if FormTCO[indexTCO].RadioGroupSel.ItemIndex=1 then
   begin
-    xMiniSel:=Rect_select.Gd.Left;
-    yMiniSel:=Rect_select.Gd.top;
-    xMaxiSel:=Rect_select.Gd.right;
-    yMaxiSel:=Rect_select.Gd.bottom;
+    xMax:=larg*NbreCellX[indexTCO];
+    yMax:=haut*NbreCellY[indexTCO];
+
+    xMiniSel:=(Rect_select.Gd.Left div larg)+1;
+    yMiniSel:=(Rect_select.Gd.top div haut)+1;
+    xMaxiSel:=(Rect_select.Gd.right div larg)+1;
+    yMaxiSel:=(Rect_select.Gd.bottom div haut)+1;
     if xminiSel>xMaxiSel then echange(xminiSel,xMaxiSel);
     if yminiSel>yMaxiSel then echange(yminiSel,yMaxiSel);
+    if xMiniSel<1 then xMiniSel:=1;
+    if xMiniSel>xMax then xMiniSel:=xMax;
+    if yMiniSel<1 then yMiniSel:=1;
+    if yMiniSel>yMax then yMiniSel:=yMax;
+    if xMaxiSel>xMax then xmaxiSel:=xMax;
+    if yMaxiSel>yMax then ymaxiSel:=yMax;
+    TamponTCO_org.xOrg:=xminiSel;
+    TamponTCO_org.yOrg:=yminiSel;
+
+    //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+    //Affiche('xcoupe'+intToSTR(xcoupe),clyellow);
+
     // effacer le rectangle
     Affiche_Rectangle(IndexTCO,Rect_select);
     Rect_select.NumTCO:=0; // indicateur de non affichage
@@ -10599,46 +10660,51 @@ begin
     TamponTCO_org.x2:=XclicCell[indexTCO];TamponTCO_org.y2:=YclicCell[indexTCO];
 
     raz_cellule(indextco,XclicCell[indexTCO],YClicCell[indexTCO]);
-                              
+
     TamponTCO_org.numTCO:=indexTCO;
     efface_entoure(indexTCO);
     efface_cellule(indexTCO,formTCO[indexTCO].ImageTCO.Canvas,XclicCell[indexTCO],YClicCell[indexTCO],PmCopy);
     TamponAffecte:=true;
-    xCoupe:=XclicCell[indexTCO];yCoupe:=YclicCell[indexTCO];
+    TamponTCO_org.xOrg:=XclicCell[indexTCO];
+    TamponTCO_org.yOrg:=YclicCell[indexTCO];
     Affiche_tco(indexTCO);
     exit;
   end;
 
   TCO_modifie:=true;
+
   copier(indexTCO);
   SelectionAffichee[indexTCO]:=false;
 
-  xCell1:=XminiSel div LargeurCell[indexTCO] +1;
-  xCell2:=XmaxiSel div LargeurCell[indexTCO] +1;
-  yCell1:=yminiSel div hauteurCell[indexTCO] +1;
-  yCell2:=ymaxiSel div hauteurCell[indexTCO] +1;
+  xCell1:=XminiSel;
+  xCell2:=XmaxiSel;
+  yCell1:=yminiSel;
+  yCell2:=ymaxiSel;
 
-  xCoupe:=XCell1;yCoupe:=yCell1;
   for y:=yCell1 to yCell2 do
     for x:=xCell1 to xCell2 do
     begin
       raz_cellule(indextco,x,y);
-      //Affiche('Efface cellules '+IntToSTR(X)+' '+intToSTR(y),clyellow);
+      //Affiche('Efface cellules '+IntToSTR(x)+' '+intToSTR(y),clyellow);
       efface_entoure(indexTCO);
       efface_cellule(indexTCO,formTCO[indexTCO].ImageTCO.Canvas,X,Y,PmCopy);
       if avecGrille[indexTCO] then grille(indexTCO);
     end;
 end;
 
+// coordonnées cellules
 procedure selection_bleue(indexTCO,cellX,cellY : integer);
-var xMiniSelP,yminiSelP,xMaxiSelP,ymaxiSelP : integer;
+var xMiniSelP,yminiSelP,xMaxiSelP,ymaxiSelP,larg,haut : integer;
     r : Trect;
 begin
-// zone de sélection bleue en coords pixels
-  xMiniSel:=(Xentoure[indexTCO]-1)*LargeurCell[indexTCO];;
-  yMiniSel:=(Yentoure[indexTCO]-1)*HauteurCell[indexTCO];;
-  xMaxiSel:=(cellX-1)*LargeurCell[indexTCO];
-  yMaxiSel:=(cellY-1)*hauteurCell[indexTCO];
+  larg:=largeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+
+// zone de sélection bleue en cellules
+  xMiniSel:=(Xentoure[indexTCO]);
+  yMiniSel:=(Yentoure[indexTCO]);
+  xMaxiSel:=(cellX);
+  yMaxiSel:=(cellY);
 
   xminiSelP:=min(xminiSel,xMaxiSel);
   yminiSelP:=min(yminiSel,yMaxiSel);
@@ -10651,6 +10717,7 @@ begin
   yMaxiSel:=yMaxiSelP;
 
   //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+  //Affiche('xcoupe'+intToSTR(xcoupe),clyellow);
 
   // efface l'ancien rectangle de sélection
   if SelectionAffichee[indexTCO] then
@@ -10664,7 +10731,7 @@ begin
 
   if piloteAig then begin SelectionAffichee[indexTCO]:=false;piloteAig:=false;exit;end;
 
-  r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
+  r:=Rect((xminiSel-1)*larg,(YminiSel-1)*haut,(XmaxiSel)*larg,(yMaxiSel*haut));
 
   // Affiche le nouveau rectangle de sélection
   Rancien:=r;
@@ -10682,11 +10749,11 @@ end;
 procedure selec_tout(indexTCO : integer);
 begin
   if indexTCO<0 then exit;
-  xminiSel:=0;
-  yminiSel:=0;
-  xMaxiSel:=(NbreCellX[indexTCO]-1)*LargeurCell[indexTCO];
-  yMaxiSel:=(NbreCellY[indexTCO]-1)*hauteurCell[indexTCO];
-  rAncien:=rect(xminiSel,YminiSel,xmaxiSel+LargeurCell[indexTCO],YMaxiSel+hauteurCell[indexTCO]);
+  xminiSel:=1;
+  yminiSel:=1;
+  xMaxiSel:=NbreCellX[indexTCO];
+  yMaxiSel:=NbreCellY[indexTCO];
+  rAncien:=rect(xminiSel,YminiSel,xmaxiSel*LargeurCell[indexTCO],YMaxiSel*hauteurCell[indexTCO]);
 
   SelectionAffichee[indexTCO]:=true;
   with formTCO[indexTCO].imageTCO.Canvas do
@@ -10696,6 +10763,8 @@ begin
     Brush.Color:=clblue;
     Rectangle(rAncien);
   end;
+  TamponTCO_org.xOrg:=1;
+  TamponTCO_org.yOrg:=1;
 end;
 
 
@@ -11014,11 +11083,11 @@ begin
 
   stocke_undo(indexTCO,1,XClic,YClic);
   maj_undo(1);
-  tco[indextco,XClic,YClic].BImage:=icone;
-  tco[indextco,XClic,YClic].liaisons:=liaisons[icone];
+  tco[indextco,XClic,YClic].BImage:=icone;              // Image de la cellule
+  tco[indextco,XClic,YClic].liaisons:=liaisons[icone];  // liaisons des voies
   tco[indextco,xClic,YClic].CoulFonte:=clYellow;
   tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Repr:=2;
-  formTCO[indexTCO].EditAdrElement.Text:=IntToSTR( tco[indextco,XClic,YClic].Adresse);
+  formTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indextco,XClic,YClic].Adresse);
   formTCO[indexTCO].EdittypeImage.Text:=IntToSTR(tco[indextco,XClic,YClic].BImage);
 end;
 
@@ -11261,6 +11330,12 @@ begin
     TCO_modifie:=true;
     ligne_supprime:=0;
     colonne_supprime:=0;
+
+    // efface rectangle graphique
+    if Rect_select.NumTCO=indexTCO then affiche_rectangle(IndexTCO,Rect_select);
+    Rect_select.NumTCO:=0;
+    selectionAffichee[indexTCO]:=false;
+
   end;
 end;
 
@@ -11756,7 +11831,6 @@ begin
 
   if button=mbLeft then
   begin
-    // zizi 
     //Affiche('TCO'+intToSTR(indexTCO)+' souris clicG enfoncée',clYellow);
     if affEvt then Affiche('TCO'+intToSTR(i)+' souris clicG enfoncée',clYellow);
     if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
@@ -11932,15 +12006,36 @@ begin
       exit;
     end;
 
-    // si clic souris en mode fenetre graphique: initialisation
+    // si clic souris en mode fenetre graphique: initialisation du rectangle bleu de sélection graphique
     if (RadioGroupSel.ItemIndex=1) then
     begin
-      if rect_select.NumTCO<>indexTCO then
-      begin
-        affiche_rectangle(rect_select.NumTCO,Rect_select);  // effacer sur l'autre tco
-      end;
       if not(selectionAffichee[indexTCO]) then
       begin
+        // si une zone de sélection est affichée  annuler toutes
+        for n:=1 to NbreTCO do
+        begin
+          // mode cellule
+          if SelectionAffichee[n] then
+          begin
+            //Affiche('efface sélection',clOrange);
+            with formTCO[n].imageTCO.Canvas do
+            begin
+              Pen.Mode:=PmXor;
+              Pen.color:=clGrille[n];
+              Brush.Color:=clblue;
+              Rectangle(rAncien);
+            end;
+          end;
+          // mode graphique
+          if (n<>indexTCO) and (rect_select.NumTCO=n) then
+          begin
+            Affiche('Efface sur TCO'+intToSTR(n),clred);
+            affiche_rectangle(rect_select.NumTCO,Rect_select);  // effacer sur l'autre tco
+            rect_select.NumTCO:=0;
+          end;
+        end;
+
+        // créer nouveau rectangle graphique
         rect_select.NumTCO:=indexTCO;  // indicateur d'affichage
         with Rect_select.Gd do
         begin
@@ -11956,8 +12051,9 @@ begin
     end
     else
     begin
-      xMiniSel:=99999;yMiniSel:=99999;
-      xMaxiSel:=0;yMaxiSel:=0;
+    //  Affiche('HAHA',clred);
+    //  xMiniSel:=99999;yMiniSel:=99999;
+    //  xMaxiSel:=0;yMaxiSel:=0;
 
       // si une zone de sélection est affichée sur un des TCO, annuler toutes
       for n:=1 to NbreTCO do
@@ -12068,7 +12164,7 @@ end;
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
 var r : Trect;
-    indexTCO,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP : integer;
+    indexTCO,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP,larg,haut : integer;
     ok : boolean;
 begin
   if affevt then Affiche('ImageTCOMouseMove',clLime);
@@ -12076,14 +12172,46 @@ begin
   //Affiche(IntToSTR(tempoSouris),clred);
   indexTCO:=index_tco(sender);
 
-  // exécuté uniquement si souris enfoncée et changement position souris
-  if (radioGroupSel.ItemIndex=1) and ((ax<>x) or (ay<>y)) and selectionAffichee[indexTCO] then
+  //Affiche(intToSTR(x)+','+intToSTR(y),clYellow);
+
+  // exécuté uniquement si changement position souris
+  if (ax<>x) or (ay<>y) then
   begin
-    //Affiche(IntToSTR(tick),clred);
-    Accroche_Rectangle_selection(indexTCO,x,y);
-    exit;
+    if (radioGroupSel.ItemIndex=1) then
+    begin
+      //Affiche(IntToSTR(tick),clred);
+      Accroche_Rectangle_selection(indexTCO,x,y);
+      exit;
+    end;
+      {
+      if (radioGroupSel.ItemIndex=0) then
+      begin
+        //if not(clicsouris) then affiche('non',clred);
+        if clicsouris and SelecBouge then
+        begin
+        //zizi
+          x0:=(xMiniSel-1)*LargeurCell[indexTCO];
+          y0:=(yMiniSel-1)*hauteurCell[indexTCO];
+          larg:=((xMaxiSel-xMiniSel)+1)*LargeurCell[indexTCO];
+          haut:=((yMaxiSel-yMiniSel)+1)*HauteurCell[indexTCO];
+          //Affiche(intToSTR(xMiniSel)+',BUBU'+intToSTR(xMaxiSel),clred);
+          BitBlt(formTCO[indexTCO].ImageTCO.canvas.Handle,ax,ay,larg,haut,oldbmp.canvas.handle,0,0,SRCCOPY);    // restitue l'ancien
+          BitBlt(oldbmp.canvas.handle,0,0,larg,haut,FormTCO[IndexTCO].ImageTCO.Canvas.Handle,x,y,SRCCOPY);   //copier le nouveau
+          formTCO[indexTCO].ImageTCO.Repaint;
+
+          //bitBlt(FormTCO[IndexTCO].ImageTemp.canvas.handle,0,0,larg,haut,FormTCO[IndexTCO].ImageTCO.Canvas.Handle,x,y,SRCCOPY);
+          //formTCO[indexTCO].ImageTemp.Repaint;
+
+          ax:=x;
+          ay:=y;
+
+          exit;
+        end; }
   end;
 
+  ax:=x;
+  ay:=y;
+  if selecBouge then exit;
   if Temposouris>0 then exit;
   // Affiche('*',cllime);
   //affiche(intToSTR(y),clorange);
@@ -12145,11 +12273,15 @@ begin
   TpsBougeSouris:=5;
   if not(clicsouris) or (temposouris>0) then exit;
 
-  // zone de sélection bleue en coordonnées souris
-  xMiniSel:=(XclicCell[indexTCO]-1)*LargeurCell[indexTCO];
-  yMiniSel:=(YclicCell[indexTCO]-1)*hauteurCell[indexTCO];
-  xMaxiSel:=(cellX-1)*LargeurCell[indexTCO];
-  yMaxiSel:=(cellY-1)*hauteurCell[indexTCO];
+  //Affiche('ajuste rect',clWhite);
+  larg:=largeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+
+  // zone de sélection bleue en coordonnées cellules
+  xMiniSel:=XclicCell[indexTCO];
+  yMiniSel:=YclicCell[indexTCO];
+  xMaxiSel:=cellX;    // cellX = position cellule souris actuelle
+  yMaxiSel:=cellY;
 
   xminiSelP:=min(xminiSel,xMaxiSel);
   yminiSelP:=min(yminiSel,yMaxiSel);
@@ -12161,8 +12293,8 @@ begin
   xMaxiSel:=xMaxiSelP;
   yMaxiSel:=yMaxiSelP;
 
-  //Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
-  //Affiche('XclicCell='+intToSTR(XclicCell[indexTCO])+' YclicCell='+intToSTR(XclicCell[indexTCO]),clorange);
+ // Affiche('xMiniSel='+IntToSTR(xMiniSel)+' yMiniSel='+IntToSTR(yMiniSel)+' xMaxiSel='+IntToSTR(xMaxiSel)+' yMaxiSel='+IntToSTR(yMaxiSel),clOrange);
+ // Affiche('XclicCell='+intToSTR(XclicCell[indexTCO])+' YclicCell='+intToSTR(XclicCell[indexTCO]),clorange);
 
   // efface l'ancien rectangle de sélection
   if SelectionAffichee[indexTCO] then
@@ -12176,7 +12308,7 @@ begin
 
   if piloteAig then begin SelectionAffichee[indexTCO]:=false;piloteAig:=false;exit;end;
 
-  r:=Rect(xminiSel+1,YminiSel+1,XmaxiSel+LargeurCell[indexTCO],yMaxiSel+hauteurCell[indexTCO]);
+  r:=Rect((xminiSel-1)*larg,(YminiSel-1)*haut,XmaxiSel*larg,yMaxiSel*haut);
 
   Rancien:=r;
   Affiche_selection(indexTCO);
@@ -12186,12 +12318,14 @@ begin
   if entoure[indexTCO] then begin Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);entoure[indexTCO]:=false;end; // efface
 end;
 
-procedure TFormTCO.ImageTCOMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TFormTCO.ImageTCOMouseUp(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
+var indexTCO,lg,ht,xo,yo : integer;
 begin
   if affevt then Affiche('Souris clic relachée',clyellow);
   clicsouris:=false;
-  
+  SelecBouge:=false;
+  indextco:=index_TCO(sender);
+
   prise_droit:=false;
   prise_gauche:=false;
   prise_bas:=false;
@@ -12201,6 +12335,21 @@ begin
   prise_SE:=false;
   prise_NO:=false;
   prise_N:=false;
+
+  // on relache la souris après avoir tiré un rectange de séection
+  if selectionAffichee[indexTCO] and (FormTCO[indexTCO].RadioGroupSel.ItemIndex=0) then
+  //
+  begin
+    xo:=(xMiniSel-1)*LargeurCell[indexTCO];
+    yo:=(yMiniSel-1)*hauteurCell[indexTCO];
+    lg:=((xMaxiSel-xMiniSel)+1)*LargeurCell[indexTCO];
+    ht:=((yMaxiSel-yMiniSel)+1)*HauteurCell[indexTCO];
+    //affiche('relache carré',clWhite);
+    SelecBouge:=true;
+
+    // poubouge dynamique BitBlt(oldbmp.canvas.handle,0,0,lg,ht,FormTCO[IndexTCO].ImageTCO.Canvas.Handle,xo,yo,SRCCOPY);
+
+  end;
 end;
 
 procedure TFormTCO.ButtonRedessineClick(Sender: TObject);
@@ -12223,7 +12372,7 @@ begin
   s:=formTCO[indexTCO].EditAdrElement.Text;
   if length(s)>1 then
   begin
-    if (s[1]='A') or (s[1]='a') then delete(s,1,1);  
+    if (s[1]='A') or (s[1]='a') then delete(s,1,1);
     EditAdrElement.Text:=s;
   end;
 
@@ -12259,6 +12408,7 @@ end;
 procedure Maj_TCO(indexTCO,Adresse : integer);
 var x,y: integer;
 begin
+  if PcanvasTCO[indexTCO]=nil then exit;
   for y:=1 to NbreCellY[indexTCO] do
     for x:=1 to NbreCellX[indexTCO] do
       begin
@@ -12274,6 +12424,7 @@ end;
 procedure Maj_Aig_TCO(indexTCO :integer);
 var x,y: integer;
 begin
+  if PcanvasTCO[indexTCO]=nil then exit;
   for y:=1 to NbreCellY[indexTCO] do
     for x:=1 to NbreCellX[indexTCO] do
       begin
@@ -12291,18 +12442,21 @@ begin
   for ntco:=1 to NbreTCO do
   begin
     // trouver les cellules comportant l'aiguillage adresse
-    for y:=1 to NbreCellY[ntco] do
-      for x:=1 to NbreCellX[ntco] do
-      begin
-        Bim:=TCO[ntco,x,y].BImage;
-        if IsAigTCO(Bim) then
+    if PcanvasTCO[ntco]<>nil then
+    begin
+      for y:=1 to NbreCellY[ntco] do
+        for x:=1 to NbreCellX[ntco] do
         begin
-          if TCO[ntco,x,y].Adresse=adresse then
+          Bim:=TCO[ntco,x,y].BImage;
+          if IsAigTCO(Bim) then
           begin
-            affiche_cellule(ntco,x,y);
+            if TCO[ntco,x,y].Adresse=adresse then
+            begin
+              affiche_cellule(ntco,x,y);
+            end;
           end;
         end;
-      end;
+    end;
   end;
 end;
 
@@ -13340,8 +13494,8 @@ begin
   TamponTCO_Org.y2:=ligne_supprime;
 
   // case de destination
-  xcoupe:=1;
-  ycoupe:=ligne_supprime;
+  TamponTCO_org.xOrg:=1;
+  TamponTCO_org.yOrg:=ligne_supprime;
 
   // remplir tempon de sauvegarde
   for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
@@ -13391,8 +13545,8 @@ begin
   TamponTCO_Org.y2:=NbreCellY[indexTCO];
 
   // cellule de destination
-  xcoupe:=colonne_supprime;
-  ycoupe:=1;
+  TamponTCO_org.xOrg:=colonne_supprime;
+  TamponTCO_org.yOrg:=1;
 
   for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
@@ -13580,7 +13734,7 @@ begin
   //formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
   //actualise(indexTCO); // pour mise à jour de l'image de la fenetre FormConfCellTCO
   efface_entoure(indexTCO);
-  affiche_cellule(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]); 
+  affiche_cellule(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
 end;
 
 
@@ -13592,6 +13746,15 @@ begin
   c:=c.GetParentComponent;           // scrollBox
   c:=c.GetParentComponent;           // formTCO
   indexTCO:=index_tco(c);
+  if indexTCO<1 then exit;
+  // si le rectangle de sélection graphique est affiché dans ce tco, l'effacer
+  if Rect_select.NumTCO=indexTCO then
+  begin
+    affiche_rectangle(IndexTCO,Rect_select);
+    Rect_select.NumTCO:=0;
+    selectionAffichee[indexTCO]:=false;
+  end;
+  RadioGroupSel.ItemIndex:=0; // repasser en mode sélection par cellules
   selec_tout(indexTCO);
 end;
 
@@ -13809,9 +13972,13 @@ begin
   // sélection par cellules
   if RadioGroupSel.ItemIndex=0 then
   begin
-    // si le rectangle est affiché dans ce tco, l'effacer
-    if Rect_select.NumTCO=indexTCO then affiche_rectangle(IndexTCO,Rect_select);
-    Rect_select.NumTCO:=0;
+    screen.cursor:=crDefault;
+    // efface le rectabgle graphique du TCO courant
+    if Rect_select.NumTCO=indexTCO then
+    begin
+      affiche_rectangle(IndexTCO,Rect_select);
+      Rect_select.NumTCO:=0;
+    end;
     selectionAffichee[indexTCO]:=false;
   end;
   // sélection par outil graphique
@@ -13825,12 +13992,13 @@ begin
   defocusControl(RadioGroupSel,true);
 end;
 
+// renvoie le numéro de TCO à l'origine de l'evt du mainmenutco
 function TformTCO.index_TCOMainMenu : integer;
 var t : Tcontrol;
     s : string;
 begin
   t:=FindControl(mainmenuTCO.WindowHandle);  // on ne peut pas remonter au parent d'un mainmenu avec getparentcomponent
-  s:=t.name;
+  s:=t.name;   // nom de la form TCOx
   result:=extract_int(s);
 end;
 
@@ -13843,7 +14011,7 @@ procedure TFormTCO.DessinerleTCO1Click(Sender: TObject);
 var indexTCO : integer;
 
 begin
-  indexTCO:=index_TCOMainMenu;
+  indexTCO:=index_TCOMainMenu; // renvoie le numéro du TCO qui est à l'origine de l'evt menu
   dessinerTCO(indexTCO);
 end;
 
@@ -13903,6 +14071,21 @@ begin
   end;
 end;
 
+procedure TFormTCO.RechargerleTCOdepuislefichier1Click(Sender: TObject);
+var indexTCO,res : integer;
+begin
+  indexTCO:=index_TCOMainMenu;
+  if TCO_modifie then
+  begin
+    res:=MessageDlg('Un des TCO a été modifié. '+#13+'Voulez-vous recharger le TCO : '+nomfichierTCO[indexTCO],mtConfirmation,[mbYes,mbNo,mbCancel],0);
+    if res=mrYes then
+    begin
+      lire_fichier_tco(indexTCO);
+      Affiche_TCO(indexTCO);
+    end;
+    if res=mrCancel then abort;
+  end;
+end;
 
 end.
 

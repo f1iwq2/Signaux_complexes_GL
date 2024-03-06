@@ -2,8 +2,8 @@ program Signaux_complexes_GL;
 
 uses
   Forms,
-  UnitPrinc in 'UnitPrinc.pas' {FormPrinc},
   UnitDebug in 'UnitDebug.pas' {FormDebug},
+  UnitPrinc in 'UnitPrinc.pas' {FormPrinc},
   verif_version in 'verif_version.pas' {FormVersion},
   UnitPilote in 'UnitPilote.pas' {FormPilote},
   UnitSimule in 'UnitSimule.pas' {FormSimulation},
@@ -17,7 +17,8 @@ uses
   Unitplace in 'Unitplace.pas' {FormPlace},
   UnitPareFeu in 'UnitPareFeu.pas',
   UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
-  Importation in 'Importation.pas' {FormImportation};
+  Importation in 'Importation.pas' {FormImportation},
+  MSCommLib_TLB in 'MSCommLib_TLB.pas';
 
 {$R *.res}
 
@@ -26,6 +27,7 @@ begin
   Application.Initialize;
   Application.Title := 'Signaux complexes GL';
   Application.CreateForm(TFormPrinc, FormPrinc);
+  Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
@@ -36,7 +38,6 @@ begin
   Application.CreateForm(TFormConfCellTCO, FormConfCellTCO);
   Application.CreateForm(TFormCDF, FormCDF);
   Application.CreateForm(TFormPlace, FormPlace);
-  Application.CreateForm(TFormDebug, FormDebug);
   Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
   Application.CreateForm(TFormImportation, FormImportation);
   {$IF CompilerVersion >= 28.0}

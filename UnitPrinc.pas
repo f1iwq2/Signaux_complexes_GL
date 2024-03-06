@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 16/2 16h
+// 04/3 20h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -8,7 +8,10 @@ Unit UnitPrinc;
   sinon une exception surgira au moment de l'ouverture du com
   Dans projet/option/fiches : fiches disponibles : formtco uniquement
  ********************************************
- Pour tmscomm : impossible de générer une instance dynamiquement (avec CreateOleObject) à cause de la licence
+
+ Pour TMSCOM : il est nécessaire d'avoir le fichier mscomm32.ocx dans le repertoire system de windows
+ (Pour un Os64, %systemroot%\sysWOW64   pour unOs32 : %systemroot%\system32)
+ et que ce composant soit enregistré (avec regsvr32)
 
  Attention si le répertoire d'install n'est pas autorisé, windows10-11 va sauver les fichiers dans
  C:\Users\moi\AppData\Local\VirtualStore\Program Files (x86)\Signaux_complexes
@@ -63,7 +66,7 @@ uses
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem ,
   Buttons, NB30, comObj, activeX
-  {$IF CompilerVersion >= 28.0}
+  {$IF CompilerVersion >= 28.0}   // si delphi>=11
   ,Vcl.Themes
   {$IFEND}
   ;
@@ -81,7 +84,6 @@ type
     MenuConnecterEthernet: TMenuItem;
     MenuDeconnecterEthernet: TMenuItem;
     StatusBar1: TStatusBar;
-    MSCommUSBInterface: TMSComm;
     Afficher1: TMenuItem;
     Etatdesdtecteurs1: TMenuItem;
     Etatdesaiguillages1: TMenuItem;
@@ -219,8 +221,6 @@ type
     Affichagenormal1: TMenuItem;
     N14: TMenuItem;
     Sauvegarderla1: TMenuItem;
-    MSCommCde1: TMSComm;
-    MSCommCde2: TMSComm;
     ClientSocketCde1: TClientSocket;
     ClientSocketCde2: TClientSocket;
     EditEnvoi: TEdit;
@@ -231,8 +231,9 @@ type
     ServerSocket: TServerSocket;
     Listedesclientsconnects1: TMenuItem;
     procedure FormCreate(Sender: TObject);
-    procedure MSCommUSBInterfaceComm(Sender: TObject);
-
+    procedure RecuInterface(Sender: TObject);
+    procedure RecuPeriph1(Sender: TObject);
+    procedure RecuPeriph2(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Timer1Timer(Sender: TObject);
     procedure ButtonDroitClick(Sender: TObject);
@@ -345,8 +346,6 @@ type
     procedure Sauvegarderla1Click(Sender: TObject);
     procedure StatusBar1DrawPanel(StatusBar: TStatusBar;
       Panel: TStatusPanel; const Rect: TRect);
-    procedure MSCommCde1Comm(Sender: TObject);
-    procedure MSCommCde2Comm(Sender: TObject);
     procedure ClientSocketCde1Connect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure ClientSocketCde1Error(Sender: TObject;
@@ -375,7 +374,7 @@ type
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
   public
-    { Déclarations publiques }
+    { Déclarations publiques des composants dynamiques}
     Procedure ImageOnClick(Sender : TObject);
     procedure ProcOnMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure proc_checkBoxFB(Sender : Tobject);
@@ -460,6 +459,7 @@ EtatSignBelge: array[0..9] of string[30]=
 
 
 type
+Tinterface    = (_interface,periph1,periph2);   // interface USB : interface vers centrale, périphérique 1 ou 2
 Taccessoire   = (aigP,signal);    // aiguillage ou signal
 TEquipement   = (rien,aig,tjd,tjs,triple,det,buttoir,voie,crois,act);   // voie uniquement pour le tco
 TBranche      = record
@@ -551,18 +551,18 @@ TSignal = record
                  SR : array[1..19] of record   // configuration des sorties du décodeur Stéphane Ravaut ou digikeijs ou cdf pour chacun des 19 états
                                    sortie1,sortie0 : integer;     // ex SR[1]=[carre] (voir tableau Etats)
                                    end;
-                 Na : integer;               // nombre d'adresses du feu occupées par le décodeur CDF/digikeijs/Belge
+                 Na : integer;               // nombre d'adresses du signal occupées par le décodeur CDF/SR/digikeijs/Belge
                  DetAmont : TtabloDet;       // tableau des détecteurs amonts, calculés à la lecture du fichier de config
                end;
 
-        TPeripherique =  record
-                      nom : string;
-                      NumCom : integer;      // numéro de port COM si c'est une liaison com usb
-                      numComposant : integer ; // numéro de composant MSCOM ou clientSocket
-                      ScvAig,ScvDet,ScvAct,ScvVis,cr : boolean ;  // services, visible, avecCR
-                      protocole: string;
+TPeripherique = record
+                  nom : string;              // nom du périphérique
+                  NumCom : integer;          // numéro de port COM si c'est une liaison com usb
+                  portouvert : boolean;      // si le port COM est ouvert
+                  numComposant : integer ;   // numéro de composant MSCOM ou clientSocket
+                  ScvAig,ScvDet,ScvAct,ScvVis,cr,dtr,rts : boolean ;  // services, visible, avecCR ...
+                  protocole,tamponRX : string; // protocole COM ou socket, tanpon de réception
                 end;
-
 
 var
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
@@ -591,6 +591,8 @@ var
 
   tick,Premier_tick : longint;
 
+  MSCommUSBInterface,MsCommCde1,MsCommCde2 : TMSComm;
+
   CDMhd : THandle;
 
   FormPrinc: TFormPrinc;
@@ -613,13 +615,6 @@ var
   Ecran : array[1..10] of record     // écrans du pc
             x0,y0,larg,haut : integer;
           end;
-
-  // tableau des ports COM des périphériqies
-  Tablo_com_cde : array[1..NbMaxi_Periph] of record
-                    portOuvert: boolean;
-                    NumPeriph: integer;   // numéro périphérique USB
-                    tamponRx : string;
-                  end;
 
   Liste_clients : array[0..IdClients] of record
                     adresse : string;
@@ -814,7 +809,7 @@ procedure Affiche(s : string;lacouleur : TColor);
 procedure envoi_signal(Adr : integer);
 procedure pilote_direction(Adr,nbre : integer);
 procedure connecte_USB;
-function connecte_port_usb_periph(index : integer) : boolean;
+function connecte_usb_periph(index : integer) : boolean;
 procedure deconnecte_usb_periph(index : integer);
 function connecte_socket_periph(index : integer) : boolean;
 procedure deconnecte_socket_periph(index : integer);
@@ -880,6 +875,7 @@ procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
 procedure change_style;
 function isDirectionnel(index : integer) : boolean;
 procedure stop_trains;
+function Aiguille_deviee(adresse : integer) : integer ;
 
 implementation
 
@@ -933,6 +929,49 @@ begin
   end;
   {$IFEND}
 end;
+
+// envoi une chaine à un périphérique COM/USB en fonction de l'interface
+// non utilisé
+procedure envoi_usb(interf : Tinterface;s : string);
+begin
+  case interf of
+    _interface : MSCommUSBInterface.Output:=s;
+    periph1    : MSCommCde1.Output:=s;
+    periph2    : MSCommCde2.Output:=s;
+  end;
+end;
+
+// envoie une chaine s à un périphérique COM/USB en fonction du composant comp
+// contrôle si le pointeur comp est valide par traitement de l'exception
+procedure envoi_usb_comp(comp : Tmscomm;s : string);
+var i : integer;
+begin
+  if comp=nil then
+  begin
+    Affiche('Erreur 600X: le composant périphérique n''est pas créé',clred);
+    exit;
+  end;
+
+  try
+    comp.output:=s;
+  except
+    on e : exception do
+    begin
+      Affiche(e.message+' COM'+intToSTR(comp.CommPort)+': déconnecté. Fermeture du port ',clred);
+      // passe à faux les indicateurs d'ouverture du port
+      if comp=MSCommUSBInterface then portCommOuvert:=false;
+      for i:=1 to NbMaxi_Periph do
+      begin
+        if (tablo_periph[i].numComposant=1) and (comp=MSCommCde1) then tablo_periph[i].portouvert:=false;
+        if (tablo_periph[i].numComposant=2) and (comp=MSCommCde2) then tablo_periph[i].portouvert:=false;
+      end;
+      // ferme le port
+      comp.PortOpen:=false;
+      Formprinc.StatusBar1.Panels[3].Text:='';
+    end;
+  end;
+end;
+
 
 procedure procetape(s : string);
 begin
@@ -2616,12 +2655,12 @@ begin
           //Application.ProcessMessages;
           inc(timeout);
           Sleep(20);
-        until (Formprinc.MSCommUSBInterface.CTSHolding=true) or (timeout>valto);
+        until (MSCommUSBInterface.CTSHolding=true) or (timeout>valto);
 
         if timeout<=valto then
         begin
           //if formprinc.MSCommUSBLenz.CTSHolding then sa:='CTS=1 ' else sa:='CTS=0 ';
-          FormPrinc.MSCommUSBInterface.Output:=s[i];
+          envoi_usb_comp(MSCommUSBInterface,s[i]);
           if terminal then Affiche(chaine_hex(s[i]),clyellow);
           inc(i);
         end;
@@ -2632,7 +2671,7 @@ begin
     // protocole Rts Cts ou sans temporisation
     if (prot_serie=2) or (tempoOctet=0) then
     begin
-      FormPrinc.MSCommUSBInterface.Output:=s;
+      envoi_usb_comp(MSCommUSBInterface,s);
       exit;
     end;
 
@@ -2641,14 +2680,14 @@ begin
     begin
       for i:=1 to length(s) do
       begin
-        FormPrinc.MSCommUSBInterface.Output:=s[i];
+        envoi_usb_comp(MSCommUSBInterface,s[i]);
         //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
         Sleep(TempoOctet);
       end;
     end;
     if (prot_serie=0) then
     begin
-      FormPrinc.MSCommUSBInterface.Output:=s;
+      envoi_usb_comp(MSCommUSBInterface,s);
       Sleep(TempoOctet);
     end;
   end;
@@ -3481,7 +3520,8 @@ envoie les données au décodeur SR
 procedure envoi_SR(adresse : integer);
 var
   code : word;
-  index,i,etat : integer;
+  index,i,etat,nAdr : integer;
+  s0,s1 : boolean;
   s : string;
 begin
   index:=Index_Signal(adresse);
@@ -3499,27 +3539,56 @@ begin
     end;
 
     etat:=code_to_etat(code);
-
-    //Affiche('Code a chercher='+IntToSTR(etat),clyellow);
+    nAdr:=Signaux[index].Na;
 
     if index<>0 then
     begin
+      {
       i:=0;
       // trouve l'index dans la configuration du signal correspondant à son état demandé
       repeat
         inc(i);
-      until (Signaux[index].SR[i].sortie1=etat) or (Signaux[index].SR[i].sortie0=etat) or (i=8);
+        s0:=etatsDefSR[i]=etat;
+        s1:=false;
+       // s1:=Signaux[index].SR[i].sortie1=etat;
+       // s0:=Signaux[index].SR[i].sortie0=etat;
+      until s0 or s1 or (i=8) or (i=nAdr);
 
-      if (Signaux[index].SR[i].sortie1=etat) then
+      if s0 then
+      begin
+        affiche('trouvé index '+IntToSTR(i-1),clyellow);
+        if index mod 2 = 0 then Pilote_acc(adresse+i-1,2,signal) else Pilote_acc(adresse+i-1,1,signal);
+      end;
+      if s1 then
+      begin
+        affiche('trouvé en sortie1 index '+IntToSTR(i-1),clyellow);
+        Pilote_acc(adresse+i-1,1,signal);
+      end;
+      if not(s0) and not(s1) then
+      Affiche('Erreur 621 : décodeur SR du signal '+intToSTR(adresse)+' pas trouvé l''état demandé dans sa configuration',clOrange);
+      }
+
+      i:=0;
+      // trouve l'index dans la configuration du signal correspondant à son état demandé
+      repeat
+        inc(i);
+        s0:=Signaux[index].SR[i].sortie0=etat;
+        s1:=Signaux[index].SR[i].sortie1=etat;
+      until s1 or s0 or (i=8) or (i=nAdr);
+
+      if s1 then
       begin
         //affiche('trouvé en sortie1 index '+IntToSTR(i),clyellow);
         Pilote_acc(adresse+i-1,2,signal);
       end;
-      if (Signaux[index].SR[i].sortie0=etat) then
+      if s0 then
       begin
         //affiche('trouvé en sortie0 index '+IntToSTR(i),clyellow);
         Pilote_acc(adresse+i-1,1,signal);
       end;
+      if not(s0) and not(s1) then
+        Affiche('Erreur 621 : décodeur SR du signal '+intToSTR(adresse)+' pas trouvé l''état demandé '+chaine_signal(etat)+' dans sa configuration',clOrange);
+
     end;
   end;
 end;
@@ -4835,11 +4904,12 @@ begin
           // com USB
           v:=Tablo_periph[numacc].NumCom;  // numéro de com
           if v=0 then exit;
-          if Tablo_com_cde[numacc].PortOuvert then
+          if tablo_periph[numacc].PortOuvert then
           begin
             cmd:=Tablo_periph[numacc].numComposant;
-            if cmd=1 then Formprinc.MSCommCde1.Output:=s;
-            if cmd=2 then Formprinc.MSCommCde2.Output:=s;
+            if cmd=1 then envoi_usb_comp(MSCommCde1,s);
+            if cmd=2 then envoi_usb_comp(MSCommCde2,s);
+
             if Tablo_periph[numacc].ScvVis then Affiche('Envoi COM'+intToSTR(v)+': '+s,clYellow);
           end
           else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -4910,11 +4980,12 @@ begin
               // com USB
               v:=Tablo_periph[numacc].NumCom;  // numéro de com
               if v=0 then exit;
-              if Tablo_com_cde[numacc].PortOuvert then
+              if tablo_periph[numacc].PortOuvert then
               begin
                 cmd:=Tablo_periph[numacc].numComposant;
-                if cmd=1 then Formprinc.MSCommCde1.Output:=s;
-                if cmd=2 then Formprinc.MSCommCde2.Output:=s;
+                if cmd=1 then envoi_usb_comp(MSCommCde1,s);
+                if cmd=2 then envoi_usb_comp(MsCommCde2,s);
+
                 if Tablo_periph[numacc].ScvVis then Affiche('Envoi COM'+intToSTR(v)+': '+s,clYellow);
               end
               else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -5094,44 +5165,41 @@ begin
     Dessine_signal_mx(Signaux[i].Img.Canvas,0,0,1,1,adr,1);
 
     // allume les feux du signal dans le TCO
-    if TCOActive then
+    for indexTCO:=1 to NbreTCO do
     begin
-      for indexTCO:=1 to NbreTCO do
+      if PcanvasTCO[indexTCO]<>nil then
       begin
-        if formTCO[indexTCO]<>nil then
+        for y:=1 to NbreCellY[indexTCO] do
+        for x:=1 to NbreCellX[indexTCO] do
         begin
-          for y:=1 to NbreCellY[indexTCO] do
-          for x:=1 to NbreCellX[indexTCO] do
+          if TCO[indexTCO,x,y].Bimage=Id_signal then
           begin
-            if TCO[indexTCO,x,y].Bimage=Id_signal then
+            adresse:=TCO[IndexTCO,x,y].adresse;      // vérifie si le signal existe dans le TCO
+            if adresse=adr then
             begin
-              adresse:=TCO[IndexTCO,x,y].adresse;      // vérifie si le signal existe dans le TCO
-              if adresse=adr then
-              begin
-                aspect:=Signaux[Index_Signal(adresse)].Aspect;
-                case aspect of
-                  2 :  ImageSignal:=Formprinc.Image2feux;
-                  3 :  ImageSignal:=Formprinc.Image3feux;
-                  4 :  ImageSignal:=Formprinc.Image4feux;
-                  5 :  ImageSignal:=Formprinc.Image5feux;
-                  7 :  ImageSignal:=Formprinc.Image7feux;
-                  9 :  ImageSignal:=Formprinc.Image9feux;
-                  12 : ImageSignal:=Formprinc.Image2Dir;
-                  13 : ImageSignal:=Formprinc.Image3Dir;
-                  14 : ImageSignal:=Formprinc.Image4Dir;
-                  15 : ImageSignal:=Formprinc.Image5Dir;
-                  16 : ImageSignal:=Formprinc.Image6Dir;
-                  20 : ImageSignal:=formprinc.ImageSignal20;
-                  else ImageSignal:=Formprinc.Image3feux;
-                end;
-                TailleY:=ImageSignal.picture.BitMap.Height; // taille du signal d'origine
-                TailleX:=ImageSignal.picture.BitMap.Width;
-                Orientation:=tco[indextco,x,y].FeuOriente;
-                // réduction variable en fonction de la taille des cellules
-                calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
-                // décalage en X pour mettre la tete du signal alignée sur le bord droit de la cellule pour les signaux tournés à 90G
-                Dessine_signal_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
+              aspect:=Signaux[Index_Signal(adresse)].Aspect;
+              case aspect of
+                2 :  ImageSignal:=Formprinc.Image2feux;
+                3 :  ImageSignal:=Formprinc.Image3feux;
+                4 :  ImageSignal:=Formprinc.Image4feux;
+                5 :  ImageSignal:=Formprinc.Image5feux;
+                7 :  ImageSignal:=Formprinc.Image7feux;
+                9 :  ImageSignal:=Formprinc.Image9feux;
+                12 : ImageSignal:=Formprinc.Image2Dir;
+                13 : ImageSignal:=Formprinc.Image3Dir;
+                14 : ImageSignal:=Formprinc.Image4Dir;
+                15 : ImageSignal:=Formprinc.Image5Dir;
+                16 : ImageSignal:=Formprinc.Image6Dir;
+                20 : ImageSignal:=formprinc.ImageSignal20;
+                else ImageSignal:=Formprinc.Image3feux;
               end;
+              TailleY:=ImageSignal.picture.BitMap.Height; // taille du signal d'origine
+              TailleX:=ImageSignal.picture.BitMap.Width;
+              Orientation:=tco[indextco,x,y].FeuOriente;
+              // réduction variable en fonction de la taille des cellules
+              calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
+              // décalage en X pour mettre la tete du signal alignée sur le bord droit de la cellule pour les signaux tournés à 90G
+              Dessine_signal_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
             end;
           end;
         end;
@@ -5552,7 +5620,7 @@ begin
       if (alg and $4=$4) and (aiguillage[index].AdrTrain<>0) then
       begin
         if NivDebug=3 then AfficheDebug('230 - aiguillage '+intToSTR(adr)+' réservé par train @'+intToSTR(aiguillage[index].AdrTrain),clyellow);
-        suivant_alg3:=9997;
+        suivant_alg3:=9997;     //. attention code incorrect devrait être 9994
         exit;
       end;
 
@@ -5820,6 +5888,13 @@ begin
 
         if aiguillage[index].position=const_devie then
         begin
+          if (alg and 8)=8 then
+          begin
+            typeGen:=rien;
+            AdrDevie:=Adr;
+            suivant_alg3:=9997;
+            exit;
+          end;
           if BtypePrec=Aig then
           begin
             if (aiguillage[index].Ddroit=prec) and
@@ -5936,6 +6011,14 @@ begin
         if (aiguillage[index].position=const_devie)
            and (aiguillage[index2].position=const_droit) and tjdC then
         begin
+          if (alg and 8)=8 then
+          begin
+            typeGen:=rien;
+            AdrDevie:=Adr;
+            suivant_alg3:=9997;
+            exit;
+          end;
+
           // d'où vient ton sur la tjd
           if BtypePrec=Aig then
           begin
@@ -5971,7 +6054,8 @@ begin
               begin
                 typeGen:=rien;
                 AdrDevie:=Adr;
-                suivant_alg3:=9997;exit;
+                suivant_alg3:=9997;
+                exit;
               end;
             end
             else
@@ -6004,9 +6088,15 @@ begin
         end;
 
         // cas 3 TJD
-        if (aiguillage[index].position=const_droit)
-          and (aiguillage[index2].position=const_devie) and tjdC then
+        if (aiguillage[index].position=const_droit) and (aiguillage[index2].position=const_devie) and tjdC then
         begin
+          if (alg and 8)=8 then
+          begin
+            typeGen:=rien;
+            AdrDevie:=Adr;
+            suivant_alg3:=9997;
+            exit;
+          end;
           // d'où vient t-on sur la tjd
           if BtypePrec=Aig then
           begin
@@ -6448,7 +6538,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
   // prec=adresse de det ou aig ; suiv soit être une adresse d'aig
   // aig_suiv(527,7) : renvoie 520 dans suiv_2
   // procédure récursive
-  procedure aig_suiv(prec,suiv : integer) ;
+  procedure aig_suiv(prec,suiv : integer);
   var adr2,index : integer;
       typ : Tequipement;
   begin
@@ -6534,7 +6624,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
           begin
             dernier:=suiv;
             if afdeb then afficheDebug('trouvé ',clLime);
-              exit;
+            exit;
           end;
           if afdeb then afficheDebug('trouvé '+intToSTR(suiv_2)+' mais pas attendu('+intToSTR(det2)+')',clyellow)
         end;
@@ -6624,7 +6714,7 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
         end;
       end;
     end;
-  end;    // fin de la procédure aig_suiv
+  end;    // fin de la procédure récursive aig_suiv
 
 
 begin
@@ -6881,7 +6971,8 @@ var el1,el2,i,i2,index,it,voie : integer;
         else
         begin
           //Affiche(IntToSTR(el2),clLime);
-          tabloDet[index]:=el2;inc(index);
+          tabloDet[index]:=el2;
+          inc(index);
         end;
       end
       else
@@ -6899,7 +6990,8 @@ var el1,el2,i,i2,index,it,voie : integer;
         else
         begin
           //Affiche(IntToSTR(el2),clLime);
-          tabloDet[index]:=el2;inc(index);
+          tabloDet[index]:=el2;
+          inc(index);
         end;
       end;
     end;
@@ -7674,8 +7766,9 @@ begin
       if index<>0 then
       begin
         if nivDebug=3 then AfficheDebug('Contrôle aiguillage '+IntToSTR(AdrAig),clyellow);
-        resultatET:=((aiguillage[index].position=const_devie) and (Signaux[i].condFeuBlanc[l][k].PosAig='S') or (aiguillage[index].position=const_droit) and (Signaux[i].condFeuBlanc[l][k].PosAig='D'))
-                  and resultatET;
+        resultatET:=( (aiguillage[index].position=const_devie) and (Signaux[i].condFeuBlanc[l][k].PosAig='S') or
+                      (aiguillage[index].position=const_droit) and (Signaux[i].condFeuBlanc[l][k].PosAig='D') )
+                     and resultatET;
       end;
     end;
     //if resultatET then Affiche('VRAI',clyellow) else affiche('FAUX',clred);
@@ -7687,7 +7780,7 @@ begin
   if NivDebug=3 then
   begin
     s:='Conditions supp. de feu blanc suivant aiguillages: ';
-    if ResultatOU then s:=s+'vrai : le signal doit afficher blanc' else s:=s+' : le signal ne doit pas afficher de feu blanc';
+    if ResultatOU then s:=s+'le signal doit afficher blanc' else s:=s+'le signal ne doit pas afficher de feu blanc';
     AfficheDebug(s,clyellow);
   end;
   cond_feuBlanc:=ResultatOU;
@@ -7740,7 +7833,7 @@ begin
   if NivDebug=3 then
   begin
     s:='Conditions supp. de carré suivant aiguillages: ';
-    if ResultatOU then s:=s+'vrai : le signal doit afficher carré' else s:=s+'faux : le signal ne doit pas afficher de carré';
+    if ResultatOU then s:=s+'le signal doit afficher carré' else s:=s+'le signal ne doit pas afficher de carré';
     AfficheDebug(s,clyellow);
   end;
   cond_carre:=ResultatOU;
@@ -8079,7 +8172,7 @@ begin
               else
               begin
                 if NivDebug=3 then AfficheDebug('Sur même détecteur, trouvé signal2 '+intToSTR(AdrSignal)+' mais dans le mauvais sens',clOrange);
-                 AdrSignal:=0;
+                AdrSignal:=0;
               end;
             end;
           end;
@@ -8102,7 +8195,6 @@ begin
     result:=aiguillage[index_aig(adresse)].modele;
   end;
 end;
-
 
 
 // renvoie l'état du signal suivant du signal "adresse". Si renvoie 0, pas trouvé le signal suivant.
@@ -8298,7 +8390,7 @@ var AdrSignal,i,j,prec,AdrSuiv,Actuel,index,index2,voie : integer;
    TypePrec,TypeActuel : TEquipement;
     s : string;
 begin
-  if NivDebug>=2 then AfficheDebug('Test si aiguille déviée après signal '+IntToSTR(Adresse),clyellow);
+  if NivDebug>=2 then AfficheDebug('Test si aiguille déviée après signal '+IntToSTR(Adresse),clOrange);
   j:=0;
   i:=Index_Signal(adresse);
   if i=0 then
@@ -8343,16 +8435,16 @@ begin
   until (j=10) or (AdrSuiv>=9990) or (AdrSignal<>0) or (AdrSuiv=0) ;
   if (AdrSuiv=9997) then
   begin
-     s:='le signal '+intToSTR(adresse)+' doit afficher un rappel car l''aiguillage '+intToSTR(AdrDevie);
+     s:='Le signal '+intToSTR(adresse)+' doit afficher un rappel car l''aiguillage '+intToSTR(AdrDevie);
      s:=s+' est dévié';
-     if NivDebug=3 then AfficheDebug(s,clYellow);
+     if NivDebug=3 then AfficheDebug(s,clWhite);
   end;
   if ((AdrSuiv<>9997) or (j=10)) and (NivDebug=3) then
   begin
-    S:='le signal '+intToSTR(adresse)+' ne doit pas afficher de rappel car ';
-    if j<>10 then s:=s+'trouvé un autre signal suivant et pas d''aiguillage dévié'
+    S:='Le signal '+intToSTR(adresse)+' ne doit pas afficher de rappel car ';
+    if j<>10 then s:=s+'trouvé un signal suivant ('+intToSTR(AdrSignal)+') et pas d''aiguillage dévié'
     else s:=s+' signal trop éloigné';
-    AfficheDebug(s,clYellow);
+    AfficheDebug(s,clWhite);
   end;
   Aiguille_deviee:=AdrDevie;
 end;
@@ -8913,7 +9005,7 @@ begin
     k:=1;
     repeat
       d:=Signaux[i].DetAmont[k];
-      if d<>0 then
+      if (d>0) and (d<NbMaxDet) then
       begin
         pres_Train:=MemZone[d,actuel].etat or Pres_Train;
         if MemZone[d,actuel].etat and (adrTr=0) then
@@ -9088,7 +9180,7 @@ begin
   begin
     s:='Traitement du signal '+intToSTR(AdrSignal)+'------------------------------------';
     AfficheDebug(s,clOrange);
-    nivDebug:=3;
+    //nivDebug:=3;
   end;
 
   if affSignal then AfficheDebug('Signal belge',clOrange);
@@ -9233,7 +9325,7 @@ begin
   begin
     s:='Traitement du signal '+intToSTR(AdrSignal)+'------------------------------------';
     AfficheDebug(s,clOrange);
-    if AffSignal then nivDebug:=3;
+    //if AffSignal then nivDebug:=3;
   end;
 
   index:=Index_Signal(AdrSignal);
@@ -9974,9 +10066,9 @@ begin
           Affiche_evt(s,couleur);
           if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
 
-          if TCOActive then
+          for tco:=1 to nbreTCO do
           begin
-            for tco:=1 to nbreTCO do
+            if PcanvasTCO[tco]<>nil then
             begin
               // désactivation
               Zone_TCO(tco,det1,det3,i,0);
@@ -10048,15 +10140,12 @@ begin
             end;
             s:='route ok de '+intToSTR(det1)+' à '+IntToSTR(det3)+' pour train '+intToSTR(i);
             Affiche_Evt(s,clWhite);
-            if TCOActive then
-            begin
-               // activation
-               for tco:=1 to nbreTCO do
-               begin
-                 if ModeCouleurCanton=0 then zone_TCO(tco,det1,det3,i,1)
-                 else zone_TCO(tco,det1,det3,i,2);  // affichage avec la couleur de index_couleur du train
-               end;
-            end;
+            // activation
+            for tco:=1 to nbreTCO do
+             begin
+               if ModeCouleurCanton=0 then zone_TCO(tco,det1,det3,i,1)
+               else zone_TCO(tco,det1,det3,i,2);  // affichage avec la couleur de index_couleur du train
+             end;
           end;
         end;
 
@@ -10198,7 +10287,7 @@ begin
             Affiche(s,clred);
           end;
 
-          // supprimer le 1er et décaler
+          // supprimer le 1er  evt et décaler
           with event_det_train[i] do
           begin
             det[1].adresse:=event_det_train[i].det[2].adresse;
@@ -10234,9 +10323,9 @@ begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
             AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
           end;
-          if TCOActive then
+          for tco:=1 to nbreTCO do
           begin
-            for tco:=1 to nbreTCO do
+            if PcanvasTCO[tco]<>nil then
             begin
               Maj_Aig_TCO(tco);
               zone_TCO(tco,det2,det3,i,0);    // désactivation
@@ -10308,9 +10397,6 @@ begin
             if det_suiv=9996 then affiche_evt('Erreur 2-1 position inconnue aiguillage ',clred)
               else Affiche_evt('Erreur 2-1 '+intToSTR(Det_Suiv)+' : pas de suivant detecteur_suivant_el '+intToSTR(det2)+' '+intToSTR(det3),clred);
           end;
-          // libère canton
-        //  libere_canton(det2,det3);
-         // if TCOActive then for tco:=1 to nbreTCO do Maj_Aig_TCO(tco);  // rafraichit les aiguillages déreservés
         end
         else
         begin
@@ -10342,13 +10428,10 @@ begin
         Affiche_evt(s,couleur);
         if traceListe then AfficheDebug(s,Couleur);
         if AffAigDet then AfficheDebug(s,couleur);
-        if TCOActive then
+        for tco:=1 to nbreTCO do
         begin
-          for tco:=1 to nbreTCO do
-          begin
-            // désactivation du morceau avant l'aiguillage
-            efface_trajet(det3,i);
-          end;
+          // désactivation du morceau avant l'aiguillage
+          efface_trajet(det3,i);
         end;
         exit; // sortir absolument
       end
@@ -10668,13 +10751,14 @@ begin
   end;
   v:=Tablo_periph[numacc].NumCom;  // numéro de com
   if v=0 then exit;
-  if Tablo_com_cde[numacc].PortOuvert then
+  if tablo_periph[numacc].PortOuvert then
   begin
     s:=Tablo_PN[i].CommandeF;
     if Tablo_periph[numacc].cr then s:=s+#13;
     cmd:=Tablo_periph[numacc].numComposant;
-    if cmd=1 then Formprinc.MSCommCde1.Output:=s;
-    if cmd=2 then Formprinc.MSCommCde2.Output:=s;
+    if cmd=1 then envoi_usb_comp(MSCommCde1,s);
+    if cmd=2 then envoi_usb_comp(MSCommCde2,s);
+
     Affiche('Envoie port COM'+intToSTR(v)+' commande: '+s,clWhite);
   end
     else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -10693,13 +10777,14 @@ begin
   end;
   v:=Tablo_periph[numacc].NumCom;  // numéro de com
   if v=0 then exit;
-  if Tablo_com_cde[numacc].PortOuvert then
+  if tablo_periph[numacc].PortOuvert then
   begin
     s:=Tablo_PN[i].CommandeO;
     if Tablo_periph[numacc].cr then s:=s+#13;
     cmd:=Tablo_periph[numacc].numComposant;
-    if cmd=1 then Formprinc.MSCommCde1.Output:=s;
-    if cmd=2 then Formprinc.MSCommCde2.Output:=s;
+    if cmd=1 then envoi_usb_comp(MSCommCde1,s);
+    if cmd=2 then envoi_usb_comp(MSCommCde2,s);
+
     Affiche('Envoie port COM'+intToSTR(v)+' commande: '+s,clWhite);
   end
    else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -10749,13 +10834,14 @@ begin
   end;
   v:=Tablo_periph[numacc].NumCom;  // numéro de com
   if v=0 then exit;
-  if Tablo_com_cde[numacc].PortOuvert then
+  if tablo_periph[numacc].PortOuvert then
   begin
     s:=Tablo_actionneur[i].trainDest;
     if Tablo_periph[numacc].cr then s:=s+#13;
     cmd:=Tablo_periph[numacc].numComposant;
-    if numacc=1 then Formprinc.MSCommCde1.Output:=s;
-    if numacc=2 then Formprinc.MSCommCde2.Output:=s;
+    if numacc=1 then envoi_usb_comp(MSCommCde1,s);
+    if numacc=2 then envoi_usb_comp(MSCommCde2,s);
+
     if Tablo_periph[numacc].ScvVis then Affiche('Envoi COM'+intToSTR(v)+': '+s,clYellow);
   end
     else Affiche('Envoi commande impossible ; COM'+intToSTR(v)+' non détecté',clred);
@@ -11047,13 +11133,13 @@ begin
       v:=com_socket(i);
       if v=1 then
       begin
-        if tablo_com_cde[i].portOuvert then
+        if tablo_periph[i].portOuvert then
         begin
           if Tablo_periph[i].ScvVis then Affiche(sDecl,clWhite);
           if Tablo_periph[i].cr then sDecl:=sDecl+#13;
           typ:=Tablo_periph[i].numComposant;
-          if typ=1 then Formprinc.MSCommCde1.Output:=sDecl;
-          if typ=2 then Formprinc.MSCommCde2.Output:=sDecl;
+          if typ=1 then envoi_usb_comp(MSCommCde1,sDecl);
+          if typ=2 then envoi_usb_comp(MSCommCde2,sDecl);
         end;
       end;
 
@@ -11076,7 +11162,8 @@ Procedure affiche_memoire;
 var s: string;
 begin
   s:='Mém evt: '+IntToSTR(100*N_Event_tick div Max_Event_det_tick)+' %';
-  FormPrinc.StatusBar1.Panels[2].text:=s;     
+  FormPrinc.StatusBar1.Panels[3].Style:=psText; // sans event
+  FormPrinc.StatusBar1.Panels[2].text:=s;
 end;
 
 procedure evalue;
@@ -11262,14 +11349,15 @@ begin
     // envoyer event act au périphérique
     if dr=1 then
     begin
-      if (tablo_com_cde[i].portOuvert) and (Tablo_periph[i].ScvDet) then
+      if (tablo_periph[i].portOuvert) and (Tablo_periph[i].ScvDet) then
       begin
         s:='D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train;
         if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
         if Tablo_periph[i].cr then s:=s+#13;
         index:=Tablo_periph[i].NumComposant;
-        if index=1 then Formprinc.MSCommCde1.Output:=s;
-        if index=2 then Formprinc.MSCommCde2.Output:=s;
+        if index=1 then envoi_usb_comp(MSCommCde1,s);
+        if index=2 then envoi_usb_comp(MSCommCde2,s);
+
       end;
     end;
     if dr=2 then
@@ -11290,7 +11378,10 @@ begin
   Envoi_serveur('D'+intToSTR(adresse)+','+intToSTR(etat01)+','+train);
 
   // Maj TCOs
-  for i:=1 to nbreTCO do Maj_TCO(i,Adresse);
+  for i:=1 to nbreTCO do
+  begin
+    if PCanvasTCO[i]<>nil then Maj_TCO(i,Adresse);
+  end;
 
 end;
 
@@ -11372,7 +11463,7 @@ begin
     typ:=com_socket(i);
     if typ=1 then
     begin
-      if tablo_com_cde[i].portOuvert then
+      if tablo_periph[i].portOuvert then
       begin
         if Tablo_periph[i].ScvAig then
         begin
@@ -11380,8 +11471,11 @@ begin
           if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
           if Tablo_periph[i].cr then s:=s+#13;
           id:=Tablo_periph[i].NumComposant;
-          if id=1 then Formprinc.MSCommCde1.Output:=s;
-          if id=2 then Formprinc.MSCommCde2.Output:=s;
+         //jeans if id=1 then envoi_usb(periph1,s);
+         // if id=2 then envoi_usb(periph2,s);
+         if id=1 then envoi_usb_comp(MSCommCde1,s);
+         if id=2 then envoi_usb_comp(MSCommCde2,s);
+
         end;
       end;
     end;
@@ -11417,8 +11511,7 @@ begin
   end;
 
   // Mettre à jour les TCOs
-  if TCOActive then
-    for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
+  for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
@@ -12119,10 +12212,11 @@ begin
     end
     else
 
-    if (ord(chaineINT[1]) and $F0)=$40 then    // accessory decodeur information response $40+N 40 N=1 à 14
+    // accessory decodeur information response $40+N 40 N=1 à 14
+    if (ord(chaineINT[1]) and $F0)=$40 then
     begin
       connu:=true;
-      n:=ord(chaineINT[1]) and $0F;  // nombre d'octets
+      n:=ord(chaineINT[1]) and $0F;  // nombre d'octets (doit être pair)
       nOctets:=n+2;
       if (l>=nOctets) then
       begin
@@ -12331,6 +12425,7 @@ begin
     // E6  8
 
     // spécifique Z21 : E7 0C 89 00 00 00 00 00 62
+    // on n'en fait rien, c'est un genre d'ack à la réponse de stop loco ?
     if (chaineINT[1]=#$E7) then
     begin
       connu:=true;
@@ -12439,7 +12534,7 @@ begin
     end;
     Affiche('CDM rail déconnecté',clCyan);
     AfficheDebug('CDM rail déconnecté',clCyan);
-    Formprinc.StatusBar1.Panels[2].text:='CDM déconnecté';
+    Formprinc.StatusBar1.Panels[2].text:='';
     filtrageDet0:=SauvefiltrageDet0;
   end;
 end;
@@ -12509,6 +12604,8 @@ begin
       Application.processmessages;
     until (version_Interface<>'') or (temp>15);
 
+    // result:=true;
+    //      exit;
 
     if (temp>15) then
     begin
@@ -12545,7 +12642,7 @@ begin
 end;
 
 // connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
-function connecte_port_usb_periph(index : integer) : boolean;
+function connecte_usb_periph(index : integer) : boolean;
 var i,j,nc,numport,vitesse,erreur : integer;
     s,sc,portComCde : string;
     com : TMSComm;
@@ -12565,9 +12662,23 @@ begin
   portComCde:=Tablo_periph[index].protocole;
 
   nc:=Tablo_periph[index].NumComposant;
+  // voir si le composant est valide
+  if MsCommCde1=nil then
+  begin
+    Affiche('Erreur 6001: le composant périphérique 1 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+  if MsCommCde2=nil then
+  begin
+    Affiche('Erreur 6002: le composant périphérique 2 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+
   case nc of
-  1 : com:=formprinc.MSCommCde1;
-  2 : com:=formprinc.MSCommCde2;
+  1 : com:=MSCommCde1;
+  2 : com:=MSCommCde2;
   end;
 
   if nc>MaxComUSBPeriph then
@@ -12586,15 +12697,15 @@ begin
   sc:=copy(portComCde,i+1,j-i+1);
   val(sc,vitesse,erreur);
   if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
-     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) then
+     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
   begin
     Affiche('Vitesse périphérique COM ('+intToSTR(vitesse)+') incorrecte',clred);
-    tablo_com_cde[index].PortOuvert:=false;
+    tablo_periph[index].PortOuvert:=false;
     result:=false;
     exit;
   end;
 
-  tablo_com_cde[index].PortOuvert:=true;
+  tablo_periph[index].PortOuvert:=true;
   With com do
   begin
     Settings:=sc;   // vitesse,n,8,1
@@ -12603,24 +12714,26 @@ begin
     RThreshold:=1;
     InputLen:=0;
     CommPort:=numport;
-    DTREnable:=false; // évite de reset de l'arduino à la connexion
-    RTSEnable:=false; // pour la genli
+    DTREnable:=Tablo_periph[index].dtr;
+    RTSEnable:=Tablo_periph[index].rts;
+
     InputMode:=comInputModeBinary;
+
   end;
   try
     com.portopen:=true;
   except
-    tablo_com_cde[index].PortOuvert:=false;
+    tablo_periph[index].PortOuvert:=false;
   end;
 
   FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
 
-  if tablo_com_cde[index].PortOuvert then
+  if tablo_periph[index].PortOuvert then
   begin
     s:='COM'+intToSTR(numport)+':'+sc;
     Formprinc.StatusBar1.Panels[3].Text:=s;
   end;
-  result:=tablo_com_cde[index].PortOuvert;
+  result:=tablo_periph[index].PortOuvert;
 end;
 
 // détermine si le périphérique i est un comusb ou un socket
@@ -12638,7 +12751,7 @@ begin
 end;
 
 function connecte_socket_periph(index :integer) : boolean;
-var s: string;
+var s,sc,ip: string;
     i,erreur,NumSocket : integer;
     com : TClientSocket;
 begin
@@ -12665,10 +12778,25 @@ begin
   end;
 
   s:=Tablo_periph[index].protocole;
+  sc:=s;
+
   i:=pos(':',s);
-  com.address:=copy(s,1,i-1);
+  ip:=copy(s,1,i-1);
+  if Ipok(ip)=false then
+  begin
+    Affiche('Erreur 538 : Adresse IP '+sc+' incorrecte',clred);
+    result:=false;
+    exit;
+  end;
+  com.address:=ip;
   delete(s,1,i);
   val(s,i,erreur);
+  if (i<1) or (i>65535) then
+   begin
+    Affiche('Erreur 539 : port de l''adresse ip '+sc+' incorrect',clred);
+    result:=false;
+    exit;
+  end;
   com.port:=i;
   com.open;
   result:=true;
@@ -12676,6 +12804,7 @@ end;
 
 // connecte un port usb interface. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
 // le numéro de port
+// affichage dans panel[3]
 function connecte_port_usb(port : integer) : integer;
 var i,j : integer;
     trouve,portOK : boolean;
@@ -12683,7 +12812,15 @@ var i,j : integer;
 begin
   result:=0;
   trouve:=false;
-  With Formprinc.MSCommUSBInterface do
+
+  if MSCommUSBInterface=nil then
+  begin
+    Affiche('Erreur 6000: le composant interface n''est pas créé',clred);
+    result:=0;
+    exit;
+  end;
+
+  With MSCommUSBInterface do
   begin
     //if debug=1 then Affiche('Test port com'+intToSTR(port),clLime);
     version_interface:='';
@@ -12719,7 +12856,7 @@ begin
   begin
     portCommOuvert:=true;
     try
-       Formprinc.MSCommUSBInterface.portopen:=true;
+       MSCommUSBInterface.portopen:=true;
     except
       portCommOuvert:=false;
     end;
@@ -12738,7 +12875,7 @@ begin
     if not(trouve) then
     begin
       portCommOuvert:=false;
-      Formprinc.MSCommUSBInterface.portopen:=false;
+      MSCommUSBInterface.portopen:=false;
     end;
   end;
   if trouve then result:=port else result:=0;
@@ -12816,7 +12953,7 @@ begin
   begin
     numport:=1;
     repeat
-      With Formprinc.MSCommUSBInterface do
+      With MSCommUSBInterface do
       begin
         //Affiche('Test port com'+intToSTR(numport),clyellow);
         port:=connecte_port_usb(numport);
@@ -12844,11 +12981,6 @@ begin
       ButtonEcrCV.Enabled:=true;
       LireunfichierdeCV1.enabled:=true;
       ButtonLitCV.Enabled:=true;
-    end;
-    if protocole=1 then
-    begin
-      etat_init_interface:=20;  // interface protocole reconnue
-      parSocketLenz:=true;
     end;
     if (protocole=2) then
     begin
@@ -12984,7 +13116,7 @@ begin
   s:='';
   if lay<>'' then s:='-f '+lay;  // lay
 
-  if not(serveurIPCDM_Touche) and avecSocket then s:=s+' -COMIPC';             // démarre serveur comipc
+  if not(serveurIPCDM_Touche) and avecSocket then s:=s+' -COMIPC';             // démarre serveur comipc de CDM par ligne de commande
 
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
@@ -13023,6 +13155,7 @@ begin
     Application.ProcessMessages;
     if serveurIPCDM_Touche then sleep(1000);
 
+    // démarre le serveur IP de CDM par simulation de touches
     if serveurIPCDM_Touche then
     begin
       // démarre le serveur IP : il faut avoir chargé un réseau sinon le permier menu est fermé------------------------------------
@@ -13099,6 +13232,7 @@ begin
         KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
         KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
 
+        // cocher Z21
         if Z21 and (ServeurInterfaceCDM=1) then
         begin
           // 1x monte
@@ -13206,7 +13340,7 @@ begin
       for j:=1 to NbreCelly[index] do
         tco[index,i,j].mode:=0;
 
-    if TCOActive then affiche_TCO(index);
+    if pCanvasTCO[index]<>nil then affiche_TCO(index);
   end;
 
   Maj_signaux(false);
@@ -13222,7 +13356,7 @@ begin
   // faire en 2 fois pour plus de rapidité
   // 1 fois pour initialiser la position dans le tableau
   // 2eme fois pour positionner physiquement les aiguillages
-  // pour générer les evts de position
+  // et générer les evts de position
   // Affiche('Positionnement aiguillages',cyan);
   init_aig_cours:=true;
   for i:=1 to maxaiguillage do
@@ -13573,6 +13707,7 @@ begin
     formTCO[index]:=nil;
   end;
 
+  BorderStyle:=bsSizeable;
   Caption:=af;
   TraceSign:=True;
   configPrete:=false; // form config prete
@@ -13669,6 +13804,45 @@ begin
     cheminWin:=GetCurrentProcessEnvVar('windir')+'\System32';
   end;
 
+  // vérifier ocx tmscomm
+  s:=cheminwin+'\mscomm32.ocx';
+  i:=filesize(s);
+  if (i<>103744) and (i<>-1) then
+  begin
+    s:='Version fichier '+s+' incorrecte';
+    AfficheDebug(s,clOrange);
+    Affiche(s,clOrange);
+  end;
+  if i=-1 then
+  begin
+    s:='Ficher '+s+' inexistant';
+    AfficheDebug(s,clred);
+    Affiche(s,clred);
+  end;
+  // création des composants MSCom (USB COM) -----------------
+  // interface centrale
+  try
+    MSCommUSBInterface:=TMSComm.Create(formprinc);
+  except
+    s:='Erreur 6000 : Composant Interface non créé';
+    AfficheDebug(s,clred);
+    Affiche(s,clred);
+  end;
+
+  if MSCommUSBInterface<>nil then MSCommUSBInterface.onComm:=RecuInterface;
+
+  // pour deux périphériques COM/USB
+  try MSCommCde1:=TMSComm.Create(formprinc);
+  except Affiche('Composant périphérique 1 non créé',clred);
+  end;
+  if MsCommCde1<>nil then MSCommCde1.OnComm:=RecuPeriph1;
+
+  try MSCommCde2:=TMSComm.Create(formprinc);
+  except Affiche('Composant périphérique 2 non créé',clred);
+  end;
+  if MsCommCde2<>nil then MSCommCde2.OnComm:=RecuPeriph2;
+
+
   //s:=GetCurrentDir;
   //Affiche(s,clLime);
   if FindFirst('*.*', faAnyFile, SR) = 0 then
@@ -13702,10 +13876,6 @@ begin
 
     MainMenu1.Items[i-1].Items[0].OnClick:=ProcAide;
   end;
-
-  // vérifier ocx tmscomm
-  i:=filesize(cheminwin+'\mscomm32.ocx');
-  if (i<>103744) and (i<>-1) then Affiche('Version fichier '+cheminwin+'\mscomm32.ocx incorrecte',clred);
 
   // version d'OS pour info
   application.ProcessMessages;
@@ -13822,10 +13992,6 @@ begin
 
   Tempo_init:=5;  // démarre les initialisation des signaux et des aiguillages dans 0,5 s
 
- 
-  // il faut afficher la fenetre TCO pour l'init aiguillage sinon violation
-
-
   OrgMilieu:=formprinc.width div 2;
   with statusbar1 do
   begin
@@ -13838,13 +14004,38 @@ begin
     //Panels[3].Style:=psOwnerDraw;  // pour déclencher l'évenement onDraw
   end;
 
+  // positionnement de la fenêtre principale
+  position:=poDefault;
+
+  if AffMemoFenetre=1 then
+  begin
+    if largeurF>0 then formPrinc.width:=LargeurF;
+    if HauteurF>0 then formPrinc.Height:=hauteurF;
+    formPrinc.left:=offsetXF;
+    formPrinc.top:=offsetYF;
+
+    if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
+    begin
+      fenRich.Width:=PosSplitter;
+      positionne_elements(PosSplitter);
+    end;
+  end
+  else
+  begin
+    formprinc.width:=1100;
+    formPrinc.Height:=700;
+    formPrinc.Left:=(Ecran[Ecran_sc].larg div 2)-(formprinc.width div 2)+Ecran[Ecran_sc].x0;
+    formPrinc.Top:=(Ecran[Ecran_sc].haut div 2)-(formprinc.height div 2)+Ecran[Ecran_sc].y0;
+  end;
+
+  if fenetre=1 then Formprinc.windowState:=wsMaximized ;
+
   with GrandPanel do
   begin
-    left:=5;
-    //Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
+    left:=2;
     top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
-    width:=formprinc.width-30;
-    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-66;
+    width:=formprinc.width-20;
+    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-65;
     Anchors:=[akLeft,akTop,akRight,akBottom];
   end;
 
@@ -13852,7 +14043,7 @@ begin
   begin
     begin
       left:=5;
-      Align:=AlLeft;   // si on ne met pas AlignLeft, alors le splitter n'est pas accrochable
+      Align:=AlLeft;   // si on ne met pas Align à AlLeft, alors le splitter n'est pas accrochable
       top:=5;  // par rapport au panel
       Width:=GrandPanel.Width-Panel1.Width-GroupBoxAcc.Width-25;
       //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
@@ -13861,7 +14052,7 @@ begin
 
     with splitterV do
     begin
-      Left:=FenRich.left+FenRich.Width-25;
+      Left:=FenRich.left+FenRich.Width-30;
       MinSize:=200;
       Parent:=GrandPanel;
       align:=fenrich.align;   // dessine le splitter à droite de la fenetre Fenrich
@@ -13885,13 +14076,7 @@ begin
     positionne_elements(PosSplitter);
   end;
 
-
-  // positionnement de la fenêtre principale
   show;
-  position:=poDesigned;
-  formPrinc.Left:=(Ecran[Ecran_sc].larg div 2)-(formprinc.width div 2)+Ecran[Ecran_sc].x0;
-  formPrinc.Top:=(Ecran[Ecran_sc].haut div 2)-(formprinc.height div 2)+Ecran[Ecran_sc].y0;
-  if fenetre=1 then Formprinc.windowState:=wsMaximized ;
 
   if debug=1 then Affiche('Création TCO',clLime);
   for index:=1 to nbreTCO do
@@ -13912,7 +14097,7 @@ begin
       formTCO[index]:=nil;
     end
     else
-      Affiche_Fenetre_TCO(index,avecTCO);
+    if avecTCO then Affiche_Fenetre_TCO(index,avecTCO);
   end;
 
   // ouvre les périphériques commandes actionneurs, car on a lu les com dans la config
@@ -13921,13 +14106,13 @@ begin
     index:=com_socket(i);   // comusb ou socket ?
     if index=1 then
     begin
-      if connecte_port_usb_periph(i) then Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique ouvert',clLime)
-      else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' commande périphérique non ouvert',clOrange);
+      if connecte_usb_periph(i) then Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique ouvert',clLime)
+      else Affiche('COM'+intToSTR(Tablo_periph[i].numcom)+' périphérique non ouvert',clOrange);
     end;
     if index=2 then
     begin
       if connecte_socket_periph(i) then Affiche('Socket '+Tablo_periph[i].protocole+' demande ouverture ',clLime)
-      else Affiche('Socket '+Tablo_periph[i].protocole+' commande périphérique non ouvert',clOrange)
+      else Affiche('Socket '+Tablo_periph[i].protocole+' périphérique non ouvert',clOrange)
     end;
   end;
 
@@ -14068,15 +14253,15 @@ end;
 
 
 // évènement réception d'une trame sur le port COM USB centrale Xpressnet
-procedure TFormPrinc.MSCommUSBInterfaceComm(Sender: TObject);
+procedure TFormPrinc.RecuInterface(Sender: TObject);
 var i,tev : integer;
     tablo : array of byte;  // tableau rx usb
 begin
   tev:=MSCommUSBInterface.commEvent;
   {
+  // il n'y a pas d'evt de déconnexion !!
   Affiche('Evt '+intToSTR(tev),clOrange);
   Case tev of
-
     //liste des erreurs possibles
      comEventBreak : Affiche('Break',clOrange);     // On a reçu un signal d’interruption (Break)
      comEventCDTO  : Affiche('Timeout Porteuse',clOrange);     // Timeout de la porteuse
@@ -14096,8 +14281,8 @@ begin
      comEvRing : Affiche('Chgt RI',clYellow);         // Changement dans broche RING (sonnerie)
      comEvSend : Affiche('Car a envoyer',clYellow);   // Il y a des caractères à envoyer
      comEvEOF  : Affiche('Recu EOF',clYellow);      //On a reçu le caractère EOF
-  end;
-  }
+  end;}
+
 
   if tev=comEvReceive then
   begin
@@ -14142,6 +14327,7 @@ begin
     portCommOuvert:=false;
     MSCommUSBInterface.Portopen:=false;
   end;
+  // déconnecte les 10 périphériques
   for res:=1 to 10 do
   begin
     i:=com_socket(res);
@@ -14162,23 +14348,7 @@ var i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer
     s : string;
 begin
   inc(tick);
-  if (tick=10) then
-  begin
-    // fenetre
-    if AffMemoFenetre=1 then
-    begin
-      if largeurF>0 then formPrinc.width:=LargeurF;
-      if HauteurF>0 then formPrinc.Height:=hauteurF;
-      formPrinc.left:=offsetXF;
-      formPrinc.top:=offsetYF;
 
-      if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
-      begin
-        fenRich.Width:=PosSplitter;
-        positionne_elements(PosSplitter);
-      end;
-    end;
-  end;
   if (tick=30) or (tick=100) then
   begin
     // raz du flag "fenetre confcellTCO affichée"
@@ -14241,9 +14411,9 @@ begin
     end;
 
     // signaux des TCO-----------------------------------------------
-    if TCOActive then  // évite d'accéder aux variables FormTCO si la form n'est pas encore ouverte
+    for IndexTCO:=1 to NbreTCO do
     begin
-      for IndexTCO:=1 to NbreTCO do
+      if (pCanvasTCO[indexTCO]<>nil) then
       begin
         // parcourir les signaux du TCO
         for y:=1 to NbreCellY[indexTCO] do
@@ -14311,7 +14481,7 @@ begin
         // signal belge
         if TestBit(a,clignote) or Signaux[0].contrevoie then dessine_signal_pilote;
       end;
-
+      
     end;
 
     // fenetre de config du signal CDF
@@ -14651,7 +14821,7 @@ begin
   if portCommOuvert then
   begin
     portCommOuvert:=false;
-    Formprinc.MSCommUSBInterface.Portopen:=false;
+    MSCommUSBInterface.Portopen:=false;
     Affiche('Port USB déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
@@ -14667,18 +14837,21 @@ begin
   end;
 end;
 
+// déconnecte le périphérique n°index
 procedure deconnecte_usb_periph(index : integer);
+var n : integer;
 begin
   if (index>NbMaxi_Periph) or (index=0) then
   begin
     Affiche('Erreur 61 : numéro de périphérique hors limite ',clred);
     exit;
   end;
-  if tablo_com_cde[index].PortOuvert then
+  if tablo_periph[index].PortOuvert then
   begin
-    tablo_com_cde[index].PortOuvert:=false;
-    if index=1 then Formprinc.MscommCde1.Portopen:=false;
-    if index=2 then Formprinc.MscommCde2.Portopen:=false;
+    tablo_periph[index].PortOuvert:=false;
+    n:=Tablo_periph[index].numComposant;
+    if n=1 then MscommCde1.Portopen:=false;
+    if n=2 then MscommCde2.Portopen:=false;
 
     if debug>0 then Affiche('Port COM'+intToSTR(Tablo_periph[index].NumCom)+' périphérique déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
@@ -14693,9 +14866,9 @@ begin
     Affiche('Erreur 62 : numéro de périphérique hors limite ',clred);
     exit;
   end;
-  if tablo_com_cde[index].PortOuvert then
+  if tablo_periph[index].PortOuvert then
   begin
-    tablo_com_cde[index].PortOuvert:=false;
+    tablo_periph[index].PortOuvert:=false;
     if index=1 then Formprinc.ClientSocketCde1.close;
     if index=2 then Formprinc.ClientSocketCde1.close;
     if debug>0 then Affiche('Socket '+intToSTR(Tablo_periph[index].NumCom)+' périphérique déconnecté',clyellow);
@@ -14722,6 +14895,7 @@ end;
 
 procedure TFormPrinc.MenuDeconnecterEthernetClick(Sender: TObject);
 begin
+  Affiche('Déconnexion interface ethernet',clyellow);
   ClientSocketInterface.Close;
 end;
 
@@ -14862,7 +15036,7 @@ begin
     end;
   end;
 end;
-
+// connnecter le socket de interface vers la centrale
 procedure TFormPrinc.ClientSocketInterfaceConnect(Sender: TObject;Socket: TCustomWinSocket);
 var trouve : boolean;
 begin
@@ -14909,13 +15083,15 @@ begin
   if not(trouve) then ClientSocketInterface.Close;
 end;
 
+// CDM rail connecté
 procedure TFormPrinc.ClientSocketCDMConnect(Sender: TObject;Socket: TCustomWinSocket);
 var s : string;
 begin
   s:='Socket CDM rail connecté';
   LabelTitre.caption:=titre+' '+s;
   Affiche(s,clYellow);
-  StatusBar1.Panels[2].text:='CDM connecté';
+  StatusBar1.Panels[2].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
+  StatusBar1.Panels[2].text:=' CDM connecté';
   CDM_connecte:=True;
   MenuConnecterUSB.enabled:=false;
   DeConnecterUSB.enabled:=false;
@@ -16580,7 +16756,7 @@ end;
 
 procedure TFormPrinc.LancerCDMrail1Click(Sender: TObject);
 begin
-  Lance_CDM(true) ;
+  Lance_CDM(true);
 end;
 
 procedure TFormPrinc.TrackBarVitChange(Sender: TObject);
@@ -16782,7 +16958,7 @@ begin
         Affiche(Format('EOleException %s %x', [E.Message,E.ErrorCode]),clyellow);
     on E:Exception do
         Affiche(E.Classname+ ':'+ E.Message,clyellow);
- end;
+  end;
 end;
 
 procedure TFormPrinc.Evenementsdetecteurspartrain1Click(Sender: TObject);
@@ -16809,7 +16985,7 @@ begin
        1 : s:=s+'/S';
        2 : s:=s+'/A';
        3 : s:=s+'/R';
-       4 : s:=s+'/0';
+       4 : s:=s+'/0';  // non utilisé
        end;
       Affiche(s,couleur);
     end;
@@ -17020,13 +17196,6 @@ begin
 
       if (ecranTCO[i]=e) or (NombreEcrans=1) then  // si l'écran TCO doit aller sur e
       begin
-        with formtco[i] do
-        begin
-          windowState:=wsNormal;
-          show;
-          BringToFront;
-        end;
-
         inc(CeTCO[e]);
         largEcran:=ecran[e].larg;
         hautEcran:=ecran[e].haut;
@@ -17039,14 +17208,15 @@ begin
 
         with formtco[i] do
         begin
+          windowState:=wsNormal;
+          show;
+          BringToFront;
+
           Top:=((CeTCO[e]-1)*HautTCO)+Topecran;
           //if i>1 then top:=formTCO[i-1].Top+formTCO[i-1].Height else top:=topEcran;
           Left:=leftECran;
           width:=largTCO;
           height:=HautTCO;
-          windowState:=wsNormal;
-          show;
-          BringToFront;
         end;
       end;
     end;
@@ -17086,12 +17256,13 @@ begin
         with formtco[i] do
         begin
           windowState:=wsNormal;
+          show;
+          BringToFront;
+
           Top:=Topecran;
           Left:=((CeTCO[e]-1)*largTCO)+leftECran;
           width:=largTCO+8;
           height:=HautTCO;
-          show;
-          BringToFront;
         end;
       end;
     end;
@@ -17127,29 +17298,30 @@ begin
         HautTCO:=HautEcran div 2;
         with formtco[1] do
         begin
-          Top:=Topecran;    Left:=0;
-          width:=largEcran+8; height:=HautTCO;
           windowState:=wsNormal;
           show;
           BringToFront;
+
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
         end;
         largTCO:=largEcran div 2;
 
         with formtco[2] do
         begin
-          Top:=Topecran+HautTCO;    Left:=0;
-          width:=largTCO+8; height:=HautTCO;
           windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran+HautTCO;    Left:=0;
+          width:=largTCO+8; height:=HautTCO;
         end;
         with formtco[3] do
         begin
-          Top:=Topecran+HautTCO;    Left:=largTCO;
-          width:=largTCO+8; height:=HautTCO;
           windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran+HautTCO;    Left:=largTCO;
+          width:=largTCO+8; height:=HautTCO;
         end;
       end;
   4 : begin
@@ -17159,11 +17331,11 @@ begin
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
      end;
@@ -17173,21 +17345,21 @@ begin
         largTCO:=largEcran div 2;
         with formtco[1] do
         begin
-          Top:=Topecran;    Left:=0;
-          width:=largEcran+8; height:=HautTCO;
           windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
         end;
         for i:=2 to 5 do
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
       end;
@@ -17199,11 +17371,11 @@ begin
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+((i-1) div 2)*HautTCO;  Left:=((i-1) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
      end;
@@ -17213,21 +17385,21 @@ begin
         largTCO:=largEcran div 2;
         with formtco[1] do
         begin
-          Top:=Topecran;    Left:=0;
-          width:=largEcran+8; height:=HautTCO;
           windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran;    Left:=0;
+          width:=largEcran+8; height:=HautTCO;
         end;
         for i:=2 to 7 do
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+HautTCO+((i-2) div 2)*HautTCO;  Left:=((i-2) mod 2)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
       end;
@@ -17237,30 +17409,30 @@ begin
         largTCO:=largEcran div 2;
         with formtco[1] do
         begin
-          Top:=Topecran;    Left:=0;
-          width:=largTCO+8; height:=HautTCO;
-          windowState:=wsNormal;
+           windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran;    Left:=0;
+          width:=largTCO+8; height:=HautTCO;
         end;
         with formtco[2] do
         begin
-          Top:=Topecran;      Left:=largTCO;
-          width:=largTCO+8; height:=HautTCO;
-          windowState:=wsNormal;
+         windowState:=wsNormal;
           show;
           BringToFront;
+          Top:=Topecran;      Left:=largTCO;
+          width:=largTCO+8; height:=HautTCO;
         end;
         largTCO:=largEcran div 3;
         for i:=3 to 8 do
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+HautTCO+((i-3) div 3)*HautTCO;  Left:=((i-3) mod 3)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+HautTCO+((i-3) div 3)*HautTCO;  Left:=((i-3) mod 3)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
       end;
@@ -17272,11 +17444,11 @@ begin
         begin
           with formtco[i] do
           begin
-            Top:=Topecran+((i-1) div 3)*HautTCO;  Left:=((i-1) mod 3)*LargTCO;
-            width:=largTCO+8; height:=HautTCO+8;
             windowState:=wsNormal;
             show;
             BringToFront;
+            Top:=Topecran+((i-1) div 3)*HautTCO;  Left:=((i-1) mod 3)*LargTCO;
+            width:=largTCO+8; height:=HautTCO+8;
           end;
         end;
      end;
@@ -17295,14 +17467,16 @@ begin
   formTCO[i].show;    // on est obligé d'afficher la fenetre TCO pour provoquer OnActivate pour valider les pointeurs
 
   application.ProcessMessages;
-  formTCO[i].Left:=Ecran[e].x0;
-  formTCO[i].Top:=Ecran[e].y0;
+  if formTCO[i].Left<>Ecran[e].x0 then formTCO[i].Left:=Ecran[e].x0;
+  if formTCO[i].Top<>Ecran[e].y0 then formTCO[i].Top:=Ecran[e].y0;
   formTCO[i].BringToFront;
 
   // pour maximiser la fenêtre, obligé de faire wsnormal avant
-  formTCO[i].windowState:=wsNormal;
-  formTCO[i].windowState:=wsMaximized;
-
+  if formTCO[i].windowState<>wsMaximized then
+  begin
+    formTCO[i].windowState:=wsNormal;
+    formTCO[i].windowState:=wsMaximized;
+  end;
   if not(laisseOuvert) then formTCO[i].Close; // .. et si on en veut pas, on la ferme.
 end;
 
@@ -17706,6 +17880,7 @@ begin
   end;
 
   setlength(TCO[SauvNbreTCO],0);
+  PcanvasTCO[SauvNbreTCO]:=nil;
   dec(SauvNbreTCO);
   Menu_tco(SauvNbreTCO);
   config_modifie:=true;
@@ -17716,6 +17891,7 @@ begin
     Affiche(IntToSTR(i)+'  '+NomFichierTCO[i],clLime);
   end;
   NbreTCO:=SauvNbreTCO;
+  tcoActive:=true;
 end;
 
 procedure TFormPrinc.CO11Click(Sender: TObject);
@@ -17804,7 +17980,7 @@ end;
 procedure TFormPrinc.StatusBar1DrawPanel(StatusBar: TStatusBar;  Panel: TStatusPanel; const Rect: TRect);
 var RectForText: TRect;
 begin
-  if Panel=StatusBar.Panels[3] then
+  if (Panel=StatusBar.Panels[2]) or (Panel=StatusBar.Panels[3]) then
   begin
     if Panel.Text<>'' then
     begin
@@ -17815,6 +17991,7 @@ begin
       DrawText(StatusBar1.Canvas.Handle,PChar(Panel.Text),-1,RectForText,DT_SINGLELINE or DT_VCENTER or DT_LEFT);
     end;
   end;
+
 end;
 
 // télécommande de signaux complexes par les clients
@@ -17873,7 +18050,7 @@ begin
 end;
 
 // réception COM/USB du périphérique 1
-procedure TFormPrinc.MSCommCde1Comm(Sender: TObject);
+procedure TFormPrinc.RecuPeriph1(Sender: TObject);
 var s : string;
    tablo : array of byte;  // tableau rx usb
    c : char;
@@ -17889,18 +18066,18 @@ begin
       //Affiche(intToSTR(ord(c)),clorange);
       if c=#13 then
       begin
-        s:=tablo_com_cde[1].tamponrx;
+        s:=tablo_periph[1].tamponrx;
         affiche(s,clyellow);
-        tablo_com_cde[1].tamponrx:='';
+        tablo_periph[1].tamponrx:='';
         telecommande(s);
       end;
-      if (c>#31) and (c<#128) then tablo_com_cde[1].tamponrx:=tablo_com_cde[1].tamponrx+c;;
+      if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;;
     end;
   end;
 end;
 
 // réception COM/USB du périphérique 2
-procedure TFormPrinc.MSCommCde2Comm(Sender: TObject);
+procedure TFormPrinc.RecuPeriph2(Sender: TObject);
 var s : string;
    tablo : array of byte;  // tableau rx usb
    c : char;
@@ -17915,12 +18092,12 @@ begin
       //Affiche(intToSTR(ord(c)),clorange);
       if c=#13 then
       begin
-        s:=tablo_com_cde[2].tamponrx;
+        s:=tablo_periph[2].tamponrx;
         affiche(s,clyellow);
-        tablo_com_cde[2].tamponrx:='';
+        tablo_periph[2].tamponrx:='';
         telecommande(s);
       end;
-      if (c>#31) and (c<#128) then tablo_com_cde[2].tamponrx:=tablo_com_cde[2].tamponrx+c;;
+      if (c>#31) and (c<#128) then tablo_periph[2].tamponrx:=tablo_periph[2].tamponrx+c;;
     end;
   end;
 end;
