@@ -62,7 +62,8 @@ begin
       //if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
       //  k:=Index_Simule+tick+30 ;
       Tablo_simule[index_simule].tick:=k;
-        // détecteur?
+
+      // détecteur?   Det=528=1 Train=BB16024
       i:=pos('DET',s);
       if i<>0 then
       begin
@@ -78,14 +79,43 @@ begin
           Delete(s,1,i);
           val(s,k,erreur);
           Tablo_simule[index_simule].etat:=k;
-            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-             ' Detecteur='+intToSTR(Tablo_simule[index_simule].Adresse)+
-             '='+intToSTR(Tablo_simule[index_simule].etat);
-            Affiche(s,ClLime); }
-            inc(index_simule);
         end;
+        i:=pos('=',s);
+        if i<>0 then delete(s,1,i);
+        Tablo_simule[index_simule].train:=s;
+
+        inc(index_simule);
       end;
-        // aiguillage?
+
+      // actionneur?   Act=803/0=1 Train=CC406526
+      i:=pos('ACT',s);
+      if i<>0 then
+      begin
+        Delete(s,1,i+2);
+        if s[1]='=' then delete(s,1,1);
+        if s[1]=' ' then delete(s,1,1);
+        val(s,k,erreur);
+        Tablo_simule[index_simule].adresse:=k;
+
+        i:=pos('/',s);
+        if i<>0 then delete(s,1,i);
+        val(s,k,erreur);
+        Tablo_simule[index_simule].adresse2:=k;
+
+        i:=pos('=',s);
+        if i<>0 then delete(s,1,i);
+        val(s,k,erreur);
+
+        Tablo_simule[index_simule].modele:=act;
+        Tablo_simule[index_simule].etat:=k;
+
+        i:=pos('=',s);
+        if i<>0 then delete(s,1,i);
+        Tablo_simule[index_simule].train:=s;
+        inc(index_simule);
+      end;
+
+      // aiguillage?
       i:=pos('AIG',s);
       if i<>0 then
       begin
@@ -102,17 +132,14 @@ begin
           val(s,k,erreur);
           if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
           else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
-            {s:=IntToSTR(Index_simule)+' Tick='+intToSTR(Tablo_simule[index_simule].tick)+
-            ' Aiguillage='+intToSTR(Tablo_simule[index_simule].adresse)+
-             '='+intToSTR(Tablo_simule[index_simule].etat);
-          Affiche(s,ClLime);   }
-            inc(index_simule);
+          inc(index_simule);
         end;
       end;
     end;
     Application.ProcessMessages;
     sortie:=eof(fte) or (index_simule>Max_Simule) or (pos('STOP',s)<>0);
   end ;
+
   if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
   Affiche('Intervalle='+intToSTR(intervalle),clyellow);
   dec(index_simule);   //maxi

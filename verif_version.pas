@@ -1,11 +1,12 @@
 unit verif_version;
 
+
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls , ComCtrls ,WinInet, ExtCtrls , StrUtils, unitPrinc,
-  ShellAPI , comObj , ShlObj , ActiveX ;
+  ShellAPI , comObj , ShlObj , ActiveX  ;
 
 type
   TFormVersion = class(TForm)
@@ -24,8 +25,9 @@ var
   Lance_verif : integer;
   verifVersion,notificationVersion,essai : boolean;
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
+  f : text;
 
-Const  Version='8.51';  // sert à la comparaison de la version publiée
+Const  Version='8.53';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -93,8 +95,8 @@ begin
         if i<>0 then
         case i of
         12007 : Affiche('Erreur de résolution DNS',clred);
-        12037 : Affiche('Erreur validité de certificat - Mettre windows à jour',clred);
-        12157 : Affiche('Erreur canal sécurisé SSL 2.0 - Mettre windows à jour',clred);
+        12037 : Affiche('Erreur validité de certificat - Mettre windows à jour ou version windows obsolète',clred);
+        12157 : Affiche('Erreur canal sécurisé SSL 2.0 - Mettre windows à jour ou version windows obsolète',clred);
         else affiche('Erreur '+intToSTR(i),clred);
         end;
         if Assigned(hService) then
@@ -122,94 +124,70 @@ begin
   end;
 end;
 
+procedure log(s : string;couleur : Tcolor);
+begin
+  Affiche(s,couleur);
+  writeln(f,s);
+end;
+
 procedure copie_fichier(s : string);
 var fs,fd : string;
     i : integer;
 begin
   fd:=chemin_dest+s;
   fs:=chemin_src+s;
-  //Affiche(fd,clOrange);
-  //Affiche(fs,clOrange);
 
-  if not(copyfile(pchar(fs),pchar(fd),false)) then
+  if not(copyfile(pchar(fs),pchar(fd),false)) then   // false force la copie si existant
   begin
-    fs:=' non copié';    // true évite de le recopier
     i:=getLastError;
-    Affiche('Erreur '+s,clred);
-    Affiche('non copié. Erreur '+intToSTR(i)+': '+SysErrorMessage(i),clred);
+    log('Fichier '+s+' non copié. Erreur '+intToSTR(i)+': '+SysErrorMessage(i),clred);
   end
   else
-  Affiche(s+' copié',clLime);
-end;
-
-procedure cree_raccourci(nom_exe : string);
-var
-  LinkName : WideString;
-  TargetName : String;
-  IObject : IUnknown;
-  ISLink : IShellLink;
-  IPFile : IPersistFile;
-  PIDL : PItemIDList;
-  InFolder : array[0..MAX_PATH] of Char;
-begin
-  TargetName:=CheminProgrammes+'\Signaux_complexes\'+nom_exe;
-  IObject:=CreateComObject(CLSID_ShellLink);
-  ISLink:=IObject as IShellLink;
-  IPFile:=IObject as IPersistFile;
-
-  with ISLink do begin
-    SetPath(pChar(TargetName));
-    SetWorkingDirectory(pChar(ExtractFilePath(TargetName)));
-  end;
-
-  // on veut placer le lien sur le bureau
-  SHGetSpecialFolderLocation(0,CSIDL_DESKTOPDIRECTORY,PIDL);
-  SHGetPathFromIDList(PIDL,InFolder);
-
-  if nom_exe='signaux_complexes_gl.exe' then LinkName:=InFolder + '\Signaux Complexes.lnk';
-  if nom_exe='signaux_complexes_gl_d11.exe' then LinkName:=InFolder + '\Signaux Complexes D11.lnk';
-
-  IPFile.Save(PWChar(LinkName),false);
+  log(s+' copié',clLime);
 end;
 
 
 // dézipe copie les fichiers et lance la nouvelle version
-// s : chemin etfichier à déziper
+// s : chemin et fichier à déziper
 procedure dezipe_copie(s : string);
 var fichier,nomPDF : string;
     dirList : tStrings;
     SR      : TSearchRec;
     nombre,i,attributes : integer;
     pdf,ok : boolean;
-begin
-  Aff('Téléchargement réussi, décompression');
-  formVersion.close;
 
-  Affiche('Décompression du zip '+s,clLime);
-  if not(unzip(s)) then
+begin
+  // Vérifier si répertoire dest existe
+  chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
+  if not(directoryExists(chemin_Dest)) then mkDir(chemin_dest);
+
+  i:=pos('.zip',s);
+  if i=0 then
   begin
-    Affiche('Erreur à la décompression du zip',clred);
+    log('nom du zip invalide',clred);
     exit;
   end;
 
   chemin_src:=s;
-  i:=pos('.zip',chemin_src);
-  if i=0 then
-  begin
-    affiche('nom du zip invalide',clred);
-    exit;
-  end;
   delete(chemin_src,i,4);  // transforme en chemin
 
-  // Vérifier si répertoire dest existe
-  chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
-  if not(directoryExists(chemin_Dest)) then
-  begin
-    Affiche('Création du répertoire '+chemin_dest,clLime);
-    mkDir(chemin_dest);
-  end;
   chemin_dest:=chemin_dest+'\';
   chemin_src:=chemin_src+'\';
+
+  AssignFile(f,chemin_dest+'log-install.txt');
+  Rewrite(f);
+
+  log('Mise à jour de signaux complexes V'+version+' le '+DateToStr(date)+' à '+TimeToStr(Time)+' ',clYellow);
+  log('Téléchargement réussi, décompression',clyellow);
+  formVersion.close;
+
+  log('Décompression du zip '+s,clLime);
+  if not(unzip(s)) then
+  begin
+    log('Erreur à la décompression du zip',clred);
+    close(f);
+    exit;
+  end;
 
   // remplit dirlist avec les noms de fichiers du chemin dest
   nombre:=0;
@@ -227,7 +205,7 @@ begin
     FindClose(SR);
   end;
 
-  // supprimer les fichiers *.Exe et versions.txt et pdf
+  // supprimer les fichiers versions.txt copie_sc.exe et pdf
   nomPdf:='';
   for i:=0 to nombre-1 do
   begin
@@ -238,24 +216,23 @@ begin
 
     //Affiche(s,clyellow);
     // fichiers à supprimer dans répertoire destination
-    if (pos('.exe',s)<>0) or (s='versions.txt') or pdf then
+    if (s='versions.txt') or pdf then
     begin
       fichier:=chemin_dest+s;
-      if sysutils.FileExists((fichier)) then
+      if sysutils.FileExists(fichier) then
       begin
-        Affiche('Suppression de '+fichier,clorange);
+        log('Suppression de '+fichier,clorange);
         Attributes:=FileGetAttr(pchar(fichier));
         Attributes := Attributes and not (faReadOnly or faHidden);
         SetFileAttributes(pchar(fichier),Attributes);
         ok:=sysutils.DeleteFile(pchar(fichier));
-        if not(OK) then Affiche('Erreur : Pas réussi à supprimer '+fichier,clred);
+        if not(OK) then log('Erreur : Pas réussi à supprimer '+fichier,clred);
       end;
     end;
   end;
 
   // copie les fichiers du répertoire zip vers le rep installé
-  copie_fichier('signaux_complexes_gl.exe');
-  copie_fichier('signaux_complexes_gl_d11.exe');
+
   copie_fichier('versions.txt');
 
   // trouver du nom du pdf dans le chemin source
@@ -278,36 +255,30 @@ begin
 
   if nomPdf<>'' then copie_fichier(nomPdf);
 
-  Affiche('Création des raccourcis sur le bureau',cllime);
-  cree_raccourci('signaux_complexes_gl.exe');
-  cree_raccourci('signaux_complexes_gl_d11.exe');
-
-  if essai then exit;
-
-  s:='';
+  // lancer copie_sc.exe qui copie les exe et crée les raccourcis et lance SC
+  chdir(chemin_src);
+  s:='"'+chemin_dest+'" "'+chemin_src+'"';
+  log('exécution de copie_sc.exe '+s,clyellow);
+  close(f);
   Affiche('Lancement de la nouvelle version',clyellow);
-  Application.processMessages;
-  Sleep(3000);
+  Sleep(2000);
   i:=ShellExecute(Formprinc.Handle,'open',
-                    Pchar('signaux_complexes_gl_d11.exe'),
+                    Pchar('copie_sc.exe'),
                     Pchar(s),  // paramètre
-                    PChar(chemin_dest)  // répertoire
+                    PChar('')  // répertoire
                     ,SW_SHOWNORMAL);
   if i>32 then
   begin
-    Affiche('lancement ok',cllime);
     Application.Terminate;
   end
   else
   begin
-    Affiche('Erreur '+intToSTR(i),clred);
-    exit;
+    Affiche('Erreur '+intToSTR(i)+' au lancement de copie_sc.exe ',clred);
   end;
 
 end;
 
-// renvoie le numéro de version depuis le site github
-// si 0
+// renvoie le numéro de version depuis le site github, et télécharge... etc
 function verifie_version : real;
 var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : string;
     trouve_version,trouve_zip,zone_comm,LocZip : boolean;
@@ -321,7 +292,7 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : s
     function supprime_anti(s : string) : string;
     var i : integer;
     begin
-    // supprimer tous les \ dans la chaine
+      // supprimer tous les \ dans la chaine
       i:=0;
       repeat
         i:=posEx('\',s,i+1);
@@ -367,183 +338,171 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : s
     end;
 
 begin
-    //Affiche('vérifie version',clLime);
-    Url:='https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';
-    LocalFile:='page.txt';
-    trouve_version:=false;
-    trouve_zip:=false;
-    zone_comm:=false;
-    Ncomm:=0;
-    if DownloadURL_NOCache(Url,localFile,taille) then
+  //Affiche('vérifie version',clLime);
+  Url:='https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';
+  LocalFile:='page.txt';
+  trouve_version:=false;
+  trouve_zip:=false;
+  zone_comm:=false;
+  Ncomm:=0;
+  if DownloadURL_NOCache(Url,localFile,taille) then
+  begin
+    AssignFile(fichier,LocalFile);
+    reset(fichier);
+    while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
     begin
-      AssignFile(fichier,LocalFile);
-      reset(fichier);
+      readln(fichier,s);
+      s:=utf8Decode(s);
+      //Affiche(s,clyellow);
+      // adresse de téléchargement
+      s3:=extrait_champ('browser_download_url');
+      if s3<>'' then trouve_zip:=true;
 
-      while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
+      // nombre de téléchargements
+      nombre_tel:=extrait_champ_simple('download_count');
+
+      // date de création
+      date_creation_ang:=extrait_champ('published_at');
+      if date_creation_ang<>'' then
       begin
-        readln(fichier,s);
-        s:=utf8Decode(s);
-        //Affiche(s,clyellow);
-
-        // adresse de téléchargement
-        s3:=extrait_champ('browser_download_url');
-        if s3<>'' then trouve_zip:=true;
-
-        // nombre de téléchargements
-        nombre_tel:=extrait_champ_simple('download_count');
-
-        // date de création
-        date_creation_ang:=extrait_champ('published_at');
-        if date_creation_ang<>'' then
-        begin
-          //Affiche(date_creation_ang,clyellow);
-          i:=pos('-',date_creation_ang);
-          j:=posex('-',date_creation_ang,i+1);
-          i2:=pos('T',date_creation_ang);
-          date_creation:=copy(date_creation_ang,j+1,i2-j-1);
-          date_creation:=date_creation+'/'+copy(date_creation_ang,i+1,j-i-1);
-          date_creation:=date_creation+'/'+copy(date_creation_ang,1,i-1);
-          date_creation:=date_creation+' '+copy(date_creation_ang,i2+1,length(date_creation_ang)-i2-1);
-          //Affiche(date_creation,clyellow);
-        end;
-
-        // version publiée
-        version_p:=extrait_champ('tag_name');
-        if version_p<>'' then
-        begin
-          trouve_version:=true;
-          if not(version_p[1] in ['0'..'9']) then delete(version_p,1,1);
-        end;
-
-        description:=extrait_champ('body');
-        if description<>'' then
-        begin
-          //description:=utf8Decode(description);
-          i:=1 ; j:=1;
-          // couper en chaînes
-          repeat
-            j:=pos('\r',description);
-            if j<>0 then
-            begin
-              comm[i]:=copy(description,1,j-1);
-
-              inc(i);
-              delete(description,1,j+1);
-            end;
-
-            j:=pos('\n',description);
-            if j<>0 then
-            begin
-              delete(description,j,2);
-            end;
-
-          until j=0;
-          //
-          ncomm:=i;
-          comm[i]:=supprime_anti(description);
-
-        end;
-
+        //Affiche(date_creation_ang,clyellow);
+        i:=pos('-',date_creation_ang);
+        j:=posex('-',date_creation_ang,i+1);
+        i2:=pos('T',date_creation_ang);
+        date_creation:=copy(date_creation_ang,j+1,i2-j-1);
+        date_creation:=date_creation+'/'+copy(date_creation_ang,i+1,j-i-1);
+        date_creation:=date_creation+'/'+copy(date_creation_ang,1,i-1);
+        date_creation:=date_creation+' '+copy(date_creation_ang,i2+1,length(date_creation_ang)-i2-1);
+        //Affiche(date_creation,clyellow);
       end;
-      closefile(fichier);
-
-      if trouve_version and trouve_zip then
+      // version publiée
+      version_p:=extrait_champ('tag_name');
+      if version_p<>'' then
       begin
-        //----------------------------------------------------
-        //isoler le nom du fichier
-        i:=length(s3);
+        trouve_version:=true;
+        if not(version_p[1] in ['0'..'9']) then delete(version_p,1,1);
+      end;
+
+      description:=extrait_champ('body');
+      if description<>'' then
+      begin
+        //description:=utf8Decode(description);
+        i:=1 ; j:=1;
+        // couper en chaînes
         repeat
-          dec(i);
-          locZip:=s3[i]='/';
-        until (i=1) or LocZip;
-        nomfichier:=copy(s3,i+1,length(s3)-i);
-
-        //affiche(nombre_tel,cllime);
-
-        //Affiche(s3,clLime);
-        //Affiche(nomfichier,clred);
-
-        // changer le . en ,
-        s:=Version_p;
-        // i:=pos('.',s);if i<>0 then s[i]:=',';
-        s2:=version;
-        // i:=pos('.',s2);if i<>0 then s2[i]:=',';
-
-        s:=AnsiUppercase(s);
-        l:=length(s);
-        SV_publie:=s[l];
-        if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else begin s:=copy(s,1,l-1);Version_P:=s;end;
-
-        val(s,V_publie,erreur);
-        if erreur<>0 then exit;
-        val(s2,V_utile,erreur);
-        if erreur<>0 then exit;
-        if (V_utile<V_publie) or
-           ((V_utile=V_publie) and (SousVersion<SV_publie)) then
-        begin
-          FormVersion.Top:=10;
-          FormVersion.Left:=10;
-          FormVersion.show;
-          s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;
-          if nComm>0 then
+          j:=pos('\r',description);
+          if j<>0 then
           begin
-            FormVersion.Memo1.lines.Clear;
-            Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL du '+date_creation);
-            aff(' ');
-            for i:=1 to ncomm do aff(comm[i]);
+            comm[i]:=copy(description,1,j-1);
+            inc(i);
+            delete(description,1,j+1);
           end;
-          if MessageDlg(s+#13+'Voulez-vous la télécharger, l''installer et l''exécuter?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
+
+          j:=pos('\n',description);
+          if j<>0 then
           begin
-            // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
-            s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\'+Nomfichier;
-
-            essai:=false;
-
-            if not(essai) then
-            begin
-              Aff('Téléchargement de '+s3+' dans ');
-              Aff(s);
-              Affiche('Téléchargement de '+s3+' dans '+s,clLime);
-            end;
-
-            if essai then
-            begin
-              Affiche('*** mode essai ***',clOrange);
-              dezipe_copie(s);
-              exit;
-            end;
-
-            if DownloadURL_NOCache(s3,s,taille) then
-            begin
-              if taille>700000 then
-              begin
-                dezipe_copie(s);
-              end
-              else Aff('Echec 2 de téléchargement - taille invalide');
-            end
-              else Aff('Echec 1 de téléchargement');
-          end
-          else formVersion.close;
-        end;
-        result:=V_publie;
-      end
-      else
-      begin
-        result:=-1;
-        affiche('Le dépôt ',clOrange);
-
-        formprinc.FenRich.SelStart:=length(formprinc.FenRich.Text);
-        formprinc.FenRich.SelAttributes.Style:=[fsUnderline];
-        Affiche('https://github.com/f1iwq2/Signaux_complexes_GL/releases',clAqua);
-
-        Affiche('ne comprend aucune version diffusée.',clOrange);
+            delete(description,j,2);
+          end;
+        until j=0;
+        //
+        ncomm:=i;
+        comm[i]:=supprime_anti(description);
       end;
+    end;
+    closefile(fichier);
+
+    if trouve_version and trouve_zip then
+    begin
+      //----------------------------------------------------
+      //isoler le nom du fichier
+      i:=length(s3);
+      repeat
+        dec(i);
+        locZip:=s3[i]='/';
+      until (i=1) or LocZip;
+      nomfichier:=copy(s3,i+1,length(s3)-i);
+      //affiche(nombre_tel,cllime);
+      //Affiche(s3,clLime);
+      //Affiche(nomfichier,clred);
+      // changer le . en ,
+      s:=Version_p;
+      // i:=pos('.',s);if i<>0 then s[i]:=',';
+      s2:=version;
+      // i:=pos('.',s2);if i<>0 then s2[i]:=',';
+
+      s:=AnsiUppercase(s);
+      l:=length(s);
+      SV_publie:=s[l];
+      if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else begin s:=copy(s,1,l-1);Version_P:=s;end;
+      val(s,V_publie,erreur);
+      if erreur<>0 then exit;
+      val(s2,V_utile,erreur);
+      if erreur<>0 then exit;
+      if (V_utile<V_publie) or ((V_utile=V_publie) and (SousVersion<SV_publie)) then
+      begin
+        FormVersion.Top:=10;
+        FormVersion.Left:=10;
+        FormVersion.show;
+        s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;
+        if nComm>0 then
+        begin
+          FormVersion.Memo1.lines.Clear;
+          Aff('Nouveautés de la V'+version_p+SV_publie+' de Signaux_Complexes_GL du '+date_creation);
+          Aff(' ');
+          for i:=1 to ncomm do aff(comm[i]);
+        end;
+        if MessageDlg(s+#13+'Voulez-vous la télécharger, l''installer et l''exécuter?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
+        begin
+          // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
+          s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\'+Nomfichier;
+
+          essai:=false;
+
+          // s3=url complete avecnom de fichier      ex : 'https://github.com/f1iwq2/Signaux_complexes_GL/releases/download/V8.51/signaux_complexes_V8.51.zip'
+          // s=répertoire+fichier de téléchargement  ex : 'C:\Users\moi\Downloads\signaux_complexes_V8.51.zip'
+          if not(essai) then
+          begin
+            Aff('Téléchargement de '+s3+' dans ');
+            Aff(s);
+            Affiche('Téléchargement de '+s3+' dans '+s,clLime);
+          end;
+          if essai then
+          begin
+            Affiche('*** mode essai ***',clOrange);
+            dezipe_copie(s);
+            exit;
+          end;
+
+          // télécharge l'url (s3) dans le fichier s
+          if DownloadURL_NOCache(s3,s,taille) then
+          begin
+            if taille>700000 then
+            begin
+              dezipe_copie(s); // dézipe et lance et termine le programme.
+            end
+            else Aff('Echec 2 de téléchargement - taille invalide');
+          end
+          else Aff('Echec 1 de téléchargement');
+        end
+        else formVersion.close;
+      end;
+      result:=V_publie;
     end
     else
     begin
-      result:=0;
-      Affiche('Pas d''accès au site github.com ou échec téléchargement',clorange);
+      result:=-1;
+      affiche('Le dépôt ',clOrange);
+      formprinc.FenRich.SelStart:=length(formprinc.FenRich.Text);
+      formprinc.FenRich.SelAttributes.Style:=[fsUnderline];
+      Affiche('https://github.com/f1iwq2/Signaux_complexes_GL/releases',clAqua);
+      Affiche('ne comprend aucune version diffusée.',clOrange);
     end;
+  end
+  else
+  begin
+    result:=0;
+    Affiche('Pas d''accès au site github.com ou échec téléchargement',clorange);
+  end;
 end;
 
 
@@ -579,6 +538,7 @@ begin
 end;
 
 
+// ne parche pas pour les répertoires non vides
 procedure DeleteDirectory(const DirName: string);
 var
   FileFolderOperation: TSHFileOpStruct;
@@ -588,6 +548,19 @@ begin
   FileFolderOperation.pFrom := PChar(ExcludeTrailingPathDelimiter(DirName) + #0);
   FileFolderOperation.fFlags := FOF_SILENT or FOF_NOERRORUI or FOF_NOCONFIRMATION;
   SHFileOperation(FileFolderOperation);
+end;
+
+function DelDir(Dir: String): Boolean;
+var fos: TSHFileOpStruct;
+begin
+  ZeroMemory(@fos,SizeOf(fos));
+  with fos do
+  begin
+    wFunc:=FO_DELETE;
+    fFlags:=FOF_SILENT or FOF_NOCONFIRMATION;
+    pFrom:=PChar(Dir + #0);
+  end;
+  Result:=(0=ShFileOperation(fos));
 end;
 
 function Unzip(zipfile : oleVariant): boolean;
@@ -604,27 +577,28 @@ begin
   filtre:=zipfile;
   delete(filtre,i,4);
 
-  if directoryExists(filtre) then DeleteDirectory(filtre);
-
-  {$I-}
-  MkDir(filtre);
-  erreur:=IoResult;
-  {$I+}
-  if erreur<>0 then
+  // créer le répertoire destination du zip (obligatoire car la commande de dézippe ne le créée pas)
+  if not(directoryExists(filtre)) then
   begin
-    Affiche('Impossible de créer répertoire',clred);
-    exit;
+    {$I-}
+    MkDir(filtre);
+    erreur:=IoResult;
+    {$I+}
+    if erreur<>0 then
+    begin
+      log('Impossible de créer répertoire '+filtre+' erreur '+intToSTR(erreur),clred);
+      exit;
+    end;
   end;
 
   repertoire:=filtre;  // mettre dans olevariant
 
   filtre:='';
   shellobj:=CreateOleObject('Shell.Application');
-
   srcfldr:=ShellObj.NameSpace(Zipfile);
-  if not ((VarType(srcfldr)=varDispatch) and Assigned(TVarData(srcfldr).VDispatch)) then
+  if not((VarType(srcfldr)=varDispatch) and Assigned(TVarData(srcfldr).VDispatch)) then
   begin
-    Affiche(zipfile+ ' invalide ou absent',clred);
+    log('Fichier '+zipfile+ ' invalide ou absent',clred);
     result:=false;
     exit;
   end;
@@ -632,7 +606,7 @@ begin
   destfldr:=ShellObj.NameSpace(repertoire);
   if not ((VarType(destfldr)=varDispatch) and Assigned(TVarData(destfldr).VDispatch)) then
   begin
-    Affiche(' répertoire destination invalide : '+ repertoire,clred);
+    log('Répertoire destination invalide : '+ repertoire,clred);
     result:=false;
     exit;
   end;

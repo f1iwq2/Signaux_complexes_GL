@@ -1612,27 +1612,6 @@ begin
   //Affiche(intToSTR(LargeurCell[indexTCO])+' '+intToSTR(epaisseur),clyellow);
 end;
 
-procedure entoure_cell_grille(indexTCO,x,y : integer);
-// redessine le carré de grille de la cellule qui a été altéré par la mise à
-// jour de la cellule
-var Xorg,Yorg : integer;
-begin;
-  if not(AvecGrille[indexTCO]) then exit;
-  Xorg:=(x-1)*LargeurCell[indexTCO];
-  Yorg:=(y-1)*HauteurCell[indexTCO];
-  if PcanvasTCO[indexTCO]<>nil then
-  With PcanvasTCO[indexTCO] do
-  begin
-    Pen.Color:=clGrille[IndexTCO];
-    Pen.mode:=PmCopy;
-    Pen.width:=3;
-    MoveTo(Xorg,YOrg);
-    LineTo(Xorg+LargeurCell[indexTCO],YOrg);
-    LineTo(Xorg+LargeurCell[indexTCO],YOrg+HauteurCell[indexTCO]);
-    LineTo(Xorg,YOrg+HauteurCell[indexTCO]);
-    LineTo(Xorg,YOrg);
-  end;
-end;
 
 function positionTCO(indexTCO,x,y : integer) : integer;
 var position,i : integer;
@@ -8666,6 +8645,28 @@ begin
   end;
 end;
 
+procedure entoure_cell_grille(indexTCO,x,y : integer);
+// redessine le carré de grille de la cellule qui a été altéré par la mise à
+// jour de la cellule
+var Xorg,Yorg : integer;
+begin;
+  if not(AvecGrille[indexTCO]) then exit;
+  Xorg:=(x-1)*LargeurCell[indexTCO];
+  Yorg:=(y-1)*HauteurCell[indexTCO];
+  if PcanvasTCO[indexTCO]<>nil then
+  With PcanvasTCO[indexTCO] do
+  begin
+    Pen.Color:=clGrille[IndexTCO];
+    Pen.mode:=PmCopy;
+    Pen.width:=1;
+    MoveTo(Xorg,YOrg);
+    LineTo(Xorg+LargeurCell[indexTCO],YOrg);
+    LineTo(Xorg+LargeurCell[indexTCO],YOrg+HauteurCell[indexTCO]);
+    LineTo(Xorg,YOrg+HauteurCell[indexTCO]);
+    LineTo(Xorg,YOrg);
+  end;
+end;
+
 
 procedure Entoure_cell(indexTCO,x,y : integer);
 var r : Trect;
@@ -8985,7 +8986,7 @@ begin
   Affiche(s,clred);
 end;
 
-// efface le trajet du tco du train depuis le détecteur jusqu'au premier aiguillage
+// efface le trajet du tco du numéro du train depuis le détecteur jusqu'au premier aiguillage
 procedure efface_trajet(det,train : integer);
 var i,j,t,n,Bimage,x,y : integer;
     trouve : boolean;
@@ -12189,7 +12190,7 @@ begin
         //if not(clicsouris) then affiche('non',clred);
         if clicsouris and SelecBouge then
         begin
-        //zizi
+        //
           x0:=(xMiniSel-1)*LargeurCell[indexTCO];
           y0:=(yMiniSel-1)*hauteurCell[indexTCO];
           larg:=((xMaxiSel-xMiniSel)+1)*LargeurCell[indexTCO];
@@ -12409,6 +12410,7 @@ procedure Maj_TCO(indexTCO,Adresse : integer);
 var x,y: integer;
 begin
   if PcanvasTCO[indexTCO]=nil then exit;
+
   for y:=1 to NbreCellY[indexTCO] do
     for x:=1 to NbreCellX[indexTCO] do
       begin
@@ -13652,10 +13654,10 @@ var cs : string;
     x,y,xmini,ymini,xmaxi,ymaxi : integer;
     modeselection : boolean;
 begin
-  xmini:=(XminiSel div LargeurCell[indexTCO]) +1;
-  ymini:=(YminiSel div hauteurCell[indexTCO]) +1;
-  xmaxi:=(XmaxiSel div LargeurCell[indexTCO]) +1;
-  ymaxi:=(YmaxiSel div hauteurCell[indexTCO]) +1;
+  xmini:=XminiSel;
+  ymini:=YminiSel;
+  xmaxi:=XmaxiSel;
+  ymaxi:=YmaxiSel;
   modeSelection:=xmini<xmaxi;
 
   if modeSelection then

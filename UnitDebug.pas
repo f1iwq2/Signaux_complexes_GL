@@ -275,9 +275,9 @@ end;
 procedure TFormDebug.EditNivDebugKeyPress(Sender: TObject; var Key: Char);
   var i,e  : integer;
 begin
- if ord(Key) = VK_RETURN then
+ if ord(Key)=VK_RETURN then
   begin
-    Key := #0; // prevent beeping
+    Key:=#0; // prevent beeping
     val(EditNivDebug.text,i,e);
     if e=0 then
     begin

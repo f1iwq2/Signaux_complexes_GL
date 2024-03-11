@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetPeriph
+    ActivePage = TabSheetAig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1987,7 +1987,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 56
         Width = 305
-        Height = 409
+        Height = 377
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -2002,6 +2002,19 @@ object FormConfig: TFormConfig
         OnDrawItem = ListBoxAigDrawItem
         OnKeyDown = ListBoxAigKeyDown
         OnMouseDown = ListBoxAigMouseDown
+      end
+      object CheckBoxMsgAigInc: TCheckBox
+        Left = 8
+        Top = 448
+        Width = 273
+        Height = 17
+        Hint = 
+          'Affiche un message d'#39'avertissement si un '#233'v'#232'nement est re'#231'u d'#39'un' +
+          ' aiguillage non d'#233'clar'#233
+        Caption = 'Affiche un message sur '#233'vt aiguillage inconnu'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 5
       end
     end
     object TabSheetBranches: TTabSheet
@@ -2353,7 +2366,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2460,7 +2473,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2753,7 +2766,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2772,7 +2785,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2818,7 +2831,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3203,7 +3216,7 @@ object FormConfig: TFormConfig
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 13
               ParentShowHint = False
               ShowHint = True
               TabOrder = 6
@@ -3384,7 +3397,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10

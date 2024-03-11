@@ -714,7 +714,8 @@ var
   record
     tick : longint;
     modele : Tequipement;
-    Adresse,etat : integer ;
+    Adresse,Adresse2,etat : integer ;
+    train : string;
   end;
 
   tablo_CV : array [1..255] of integer;
@@ -5469,7 +5470,7 @@ end;
 // un élément est constitué de son adresse et de son type
 // et renvoie aussi en variable globale: typeGen le type de l'élément (det aig uniquement! pas tjd ni crois)
 //                                     : AigMal = aiguillage mal positionné ou inconnu
-// alg= algorithme 1 à 8 sous forme de bits fonctionnels
+// alg= algorithme 1 à 8 sous forme de bits fonctionnels:
 // bit0 (1)=arret sur suivant qu'il soit un détecteur ou un aiguillage
 // bit1 (2)=arret sur aiguillage en talon mal positionné
 // bit2 (4)=arret sur aiguillage réservé
@@ -5482,11 +5483,13 @@ end;
 // 9996: arrêt sur position inconnue d'aiguillage
 // 9995: arrêt sur buttoir
 // 9994: arrêt sur aiguillage réservé
+// 9993: éléments non consécutifs
+
 // la variable "actuel" peut etre changée en cas de TJD!
 function suivant_alg3(prec : integer;typeELprec : TEquipement;actuel : integer;typeElActuel : TEquipement;alg : integer) : integer;
 var  Adr,AdrPrec,indexBranche_prec,branche_trouve_prec,indexBranche_actuel,branche_trouve_actuel,
      tjsc1,tjsc2,AdrTjdP,Adr2,N_iteration,index,NetatTJD,index2 : integer;
-     tjscourbe1,tjscourbe2,tjdC,tjsC : boolean;
+     tjscourbe1,tjscourbe2,tjdC,tjsC,id : boolean;
      A,Aprec,tjsc1B,tjsc2B,typeprec: char;
      Md,BT,BtypePrec,TypeEL : TEquipement;
      s : string;
@@ -5504,7 +5507,7 @@ begin
     Suivant_alg3:=9999;exit;
   end;
   if (NivDebug=3) then
-    AfficheDebug('Alg3 précédent='+intToSTR(prec)+'/'+BtypeToChaine(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+BtypeToChaine(typeElActuel)+' Alg='+intToSTr(alg),clyellow);
+    AfficheDebug('it='+intToSTR(n_iteration)+' Alg3 précédent='+intToSTR(prec)+'/'+BtypeToChaine(TypeElprec)+' actuel='+intToSTR(actuel)+'/'+BtypeToChaine(typeElActuel)+' Alg='+intToSTr(alg),clyellow);
 
   // trouver les éléments du précédent dans les branches
   trouve_element(prec,TypeELPrec); // branche_trouve  IndexBranche_trouve
@@ -5531,13 +5534,15 @@ begin
   Adr:=actuel;
   Bt:=BrancheN[branche_trouve_actuel,indexBranche_actuel].Btype;
 
-  //Affiche('Btype='+intToSTR(Btype)+' Actuel='+inTToSTR(actuel),clyellow);
+  if nivDebug=3 then AfficheDebug('Btype='+BTypeToChaine(Bt)+' Actuel='+inTToSTR(actuel),clyellow);
 
+  id:=false;
   if Bt=det then  // l'élément actuel est un détecteur
   begin
     // on part de l'actuel pour retomber sur le précédent
     if BrancheN[branche_trouve_actuel,indexBranche_actuel-1].Adresse=prec then // c'est l'autre sens
     begin
+      id:=true;
       if NivDebug=3 then AfficheDebug('40 - trouvé détecteur '+intToSTR(adr)+' en + ',clwhite);
       Prec:=Adr;
       Aprec:=a;
@@ -5554,6 +5559,7 @@ begin
     end;
     if BrancheN[branche_trouve_actuel,indexBranche_actuel+1].Adresse=prec then
     begin
+      id:=true;
       if NivDebug=3 then AfficheDebug('42 - trouvé détecteur '+intToSTR(adr)+' en - ',clwhite);
       Prec:=Adr;
       Aprec:=a;
@@ -5571,6 +5577,7 @@ begin
     // ici, les éléments sont non consécutifs. voir si l'un des deux est une TJD/TJS
     if (btypePrec=aig) then // car btype dans les branches vaut det, aig, buttoir mais jamais tjd ni tjs
     begin
+      id:=true;
       // changer l'adresse du précédent par l'autre adresse de la TJD/S
       // V1 index:=index_aig(prec);
       index:=tablo_index_aiguillage[prec];
@@ -5579,9 +5586,16 @@ begin
       begin
         //V1 prec:=Aiguillage[index_aig(prec)].Ddroit;
         prec:=Aiguillage[tablo_index_aiguillage[prec]].Ddroit;
-        if NivDebug=3 then AfficheDebug('Le précedent est une TJD/S - substitution du precédent par la pointe de la TJD qui est '+intToSTR(prec),clYellow);
+        if NivDebug=3 then AfficheDebug('Le précedent est une TJD/S - substitution du précédent par la pointe de la TJD qui est '+intToSTR(prec),clYellow);
       end;
     end;
+    if not(id) then
+    begin
+      Affiche('Erreur 780 alg3: '+intToSTR(prec)+' '+intToSTR(actuel)+' non consécutifs',clRed);
+      result:=9993;
+      exit;
+    end;
+
     inc(n_iteration);
 
     if n_iteration>50 then
@@ -5620,7 +5634,7 @@ begin
       if (alg and $4=$4) and (aiguillage[index].AdrTrain<>0) then
       begin
         if NivDebug=3 then AfficheDebug('230 - aiguillage '+intToSTR(adr)+' réservé par train @'+intToSTR(aiguillage[index].AdrTrain),clyellow);
-        suivant_alg3:=9997;     //. attention code incorrect devrait être 9994
+        suivant_alg3:=9997;     // attention code incorrect devrait être 9994
         exit;
       end;
 
@@ -6873,7 +6887,7 @@ begin
   end;
   IndexBranche:=IndexBranche_trouve;
   branche:=branche_trouve;
-  Dir:=1 ; //test direction
+  Dir:=1 ; //test direction 1 ou 2 (incrément ou décrément)
 
   repeat
     if (Dir=1) then i:=IndexBranche-1 else i:=IndexBranche+1;
@@ -10081,8 +10095,10 @@ begin
         end
         else
         begin
-          Affiche_evt('1-0 Les éléments '+intToSTR(det1)+' et '+intToSTR(det3)+' ne sont pas contigus',clyellow);
-          for tco:=1 to nbreTCO do maj_tco(i,det3);
+          Affiche_evt('1-0 Train '+intToSTR(i)+' Eléments '+intToSTR(det1)+' et '+intToSTR(det3)+' non contigus',clyellow);
+          
+          for tco:=1 to nbreTCO do
+            maj_tco(tco,det3);
           // det3 et det1 non adjacents
         end;
       end;
@@ -10348,7 +10364,7 @@ begin
       end
       else
       begin
-        //Affiche_Evt('Route invalide: dét '+intToSTR(det2)+' '+intToSTR(det3)+' non contigus',clOrange);
+        Affiche_evt('2-0 Train '+intToSTR(i)+' Eléments '+intToSTR(det2)+' et '+intToSTR(det3)+' non contigus',clyellow);
         if event_det_train[i].det[2].adresse=det3 then
         begin
           s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
@@ -10936,15 +10952,14 @@ begin
   ancien_actionneur[adr]:=etat;
   if not(fd) and not(fm) then exit;
 
-  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act '+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat),clyellow);
-
+  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   // dans tableau des actionneurs
   for i:=1 to maxTablo_act do
   begin
     sDecl:=Tablo_actionneur[i].trainDecl;
     etatAct:=Tablo_actionneur[i].etat ;  // état à réagir
-    etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);
+    etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);      // front montant ou descendant
     typ:=Tablo_actionneur[i].typdeclenche;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
     if typ=0 then
     begin
@@ -11445,7 +11460,9 @@ begin
     begin
       evalue;evalue;evalue;
     end;
-  end;
+  end
+
+  else if AffAigND then affiche('Avertissement 47 : un evt aiguillage '+intToSTR(adresse)+' non déclaré a été reçu',clOrange);
 
   // evt actionneur d'aiguillage
   for i:=1 to maxTablo_act do
@@ -14568,8 +14585,17 @@ begin
       // evt détecteur ?
       if Tablo_simule[I_simule].modele=det then
       begin
-        s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
-        Event_Detecteur(Tablo_simule[i_simule].adresse, Tablo_simule[i_simule].etat=1,'');  // créer évt détecteur
+        s:='Simu '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' det='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
+        Event_Detecteur(Tablo_simule[i_simule].adresse, Tablo_simule[i_simule].etat=1, Tablo_simule[i_simule].train);  // créer évt détecteur
+        StatusBar1.Panels[1].text:=s;
+        //Affiche(s,clyellow);
+      end;
+
+      // evt actionneur ?
+      if Tablo_simule[I_simule].modele=act then
+      begin
+        s:='Simu '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' act='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
+        Event_Act(Tablo_simule[i_simule].adresse,Tablo_simule[i_simule].adresse2,Tablo_simule[i_simule].etat, Tablo_simule[i_simule].train);
         StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
       end;
@@ -14577,7 +14603,7 @@ begin
       // evt aiguillage ?
       if Tablo_simule[I_simule].modele=aig then
       begin
-        s:='Simulation '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
+        s:='Simu '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' aig='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
         Event_Aig(Tablo_simule[i_simule].Adresse,Tablo_simule[i_simule].etat);  // créer évt aiguillage
         StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
@@ -15928,7 +15954,7 @@ end;
 
 procedure TFormPrinc.FichierSimuClick(Sender: TObject);
 begin
-  FormSimulation.showModal;
+  if formSimulation<>nil then FormSimulation.showModal;
 end;
 
 procedure TFormPrinc.ButtonEcrCVClick(Sender: TObject);
@@ -16867,13 +16893,9 @@ begin
 end;
 
 procedure TFormPrinc.Button1Click(Sender: TObject);
-var s : string;
 begin
-  debugTCO:=true;
-  zone_TCO(2,513,514,1,1);
-  Affiche('513-514',clYellow);
-
-  //reserve_dereserve_det(530,534,1,2,1);
+  reserve_dereserve_det(888,561,1,1,0);
+  //libere_canton
 end;
 
 
@@ -17532,7 +17554,6 @@ end;
 
 // mise à jour des menus TCO en fonction du nombre i de TCO
 Procedure Menu_tco(i : integer);
-var j : integer;
 begin
   with formprinc do
   begin

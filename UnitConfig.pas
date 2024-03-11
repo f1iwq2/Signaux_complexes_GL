@@ -357,6 +357,7 @@ type
     TabAvance: TTabSheet;
     Label31: TLabel;
     Label39: TLabel;
+    CheckBoxMsgAigInc: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -578,6 +579,7 @@ Avec_roulage_ch='Avec_roulage';
 nb_det_dist_ch='nb_det_dist';
 IpV4_PC_ch='IpV4_PC';
 ServicesCDM_ch='ServicesCDM';
+AffAigND_ch='AigND';
 retro_ch='retro';
 Ecran_ch='Ecran';
 Z21_ch='Z21';
@@ -651,7 +653,7 @@ var
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,fermeSC,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
-  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21 : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND : boolean;
 
   fichier : text;
 
@@ -1872,6 +1874,9 @@ begin
   // Raz Signaux
   if Raz_Acc_signaux then s:='1' else s:='0';
   writeln(fichierN,Raz_signaux_ch+'='+s);
+
+  if AffAigND then s:='1' else s:='0';
+  writeln(fichierN,AffAigND_ch+'='+s);
 
   // temporisation entre 2 commandes décodeurs signaux
   writeln(fichierN,Tempo_signal_ch+'=',IntToSTR(Tempo_Signal));
@@ -3691,6 +3696,17 @@ var s,sa,SOrigine: string;
         Raz_Acc_signaux:=i=1;
       end;
 
+      sa:=uppercase(AffAigND_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        if i>1 then i:=1;
+        AffAigND:=i=1;
+      end;
+
       // section aiguillages
       sa:=uppercase(section_aig_ch);
       if pos(sa,s)<>0 then
@@ -4159,6 +4175,7 @@ begin
     Srvc_Pos:=CheckServPosTrains.checked;
     Srvc_Sig:=CheckBoxSrvSig.checked;
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
+    AffAigND:=CheckBoxMsgAigInc.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
@@ -5960,6 +5977,7 @@ begin
                    '          = 2 : protocole matériel RTS-CTS sans temporisation d''envoi (Interfaces Lenz LI)'+#13+
                    '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi';
   EditComUSB.showHint:=true;
+  ListBoxAig.Height:=382;
 
   ligneclicAig:=-1;
   AncLigneClicAig:=-1;
@@ -14436,6 +14454,7 @@ begin
   CheckBoxSrvSig.Checked:=Srvc_Sig;
 
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
+  CheckBoxMsgAigInc.checked:=AffAigND;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;

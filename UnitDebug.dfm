@@ -1,13 +1,13 @@
 object FormDebug: TFormDebug
-  Left = 196
-  Top = 37
+  Left = 244
+  Top = 119
   VertScrollBar.Increment = 67
   VertScrollBar.Tracking = True
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Fen'#234'tre de d'#233'bug'
-  ClientHeight = 757
-  ClientWidth = 946
+  ClientHeight = 662
+  ClientWidth = 878
   Color = clWindow
   TransparentColorValue = clTeal
   Font.Charset = DEFAULT_CHARSET
@@ -22,25 +22,25 @@ object FormDebug: TFormDebug
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   DesignSize = (
-    946
-    757)
+    878
+    662)
   PixelsPerInch = 96
   TextHeight = 13
   object ScrollBoxDebug: TScrollBox
     Left = 0
     Top = 0
-    Width = 940
-    Height = 772
+    Width = 872
+    Height = 677
     HorzScrollBar.Visible = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBtnFace
     ParentColor = False
     TabOrder = 0
     DesignSize = (
-      919
-      768)
+      851
+      673)
     object LabelTitreDebug: TLabel
-      Left = 543
+      Left = 475
       Top = 8
       Width = 131
       Height = 18
@@ -54,7 +54,7 @@ object FormDebug: TFormDebug
       ParentFont = False
     end
     object Label1: TLabel
-      Left = 695
+      Left = 627
       Top = 10
       Width = 108
       Height = 13
@@ -72,7 +72,7 @@ object FormDebug: TFormDebug
     object RichDebug: TRichEdit
       Left = 0
       Top = 0
-      Width = 522
+      Width = 454
       Height = 753
       Anchors = [akLeft, akTop, akRight]
       Color = clMaroon
@@ -84,7 +84,7 @@ object FormDebug: TFormDebug
       OnChange = RichDebugChange
     end
     object ButtonRazTout: TButton
-      Left = 533
+      Left = 465
       Top = 216
       Width = 97
       Height = 25
@@ -99,7 +99,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonRazToutClick
     end
     object ButtonCop: TButton
-      Left = 533
+      Left = 465
       Top = 248
       Width = 97
       Height = 41
@@ -116,7 +116,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonCopClick
     end
     object ButtonAffEvtChrono: TButton
-      Left = 533
+      Left = 465
       Top = 296
       Width = 97
       Height = 33
@@ -127,7 +127,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonAffEvtChronoClick
     end
     object ButtonCherche: TButton
-      Left = 533
+      Left = 465
       Top = 336
       Width = 97
       Height = 25
@@ -140,7 +140,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonChercheClick
     end
     object ButtonEcrLog: TButton
-      Left = 533
+      Left = 465
       Top = 184
       Width = 97
       Height = 29
@@ -150,7 +150,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonEcrLogClick
     end
     object ButtonRazTampon: TButton
-      Left = 533
+      Left = 465
       Top = 368
       Width = 97
       Height = 33
@@ -161,7 +161,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonRazTamponClick
     end
     object ButtonRazLog: TButton
-      Left = 533
+      Left = 465
       Top = 408
       Width = 97
       Height = 33
@@ -172,7 +172,7 @@ object FormDebug: TFormDebug
       OnClick = ButtonRazLogClick
     end
     object MemoEvtDet: TRichEdit
-      Left = 638
+      Left = 570
       Top = 186
       Width = 272
       Height = 263
@@ -183,7 +183,7 @@ object FormDebug: TFormDebug
       OnChange = MemoEvtDetChange
     end
     object GroupBox5: TGroupBox
-      Left = 530
+      Left = 462
       Top = 456
       Width = 380
       Height = 57
@@ -250,7 +250,7 @@ object FormDebug: TFormDebug
       end
     end
     object GroupBox6: TGroupBox
-      Left = 530
+      Left = 462
       Top = 520
       Width = 380
       Height = 52
@@ -327,7 +327,7 @@ object FormDebug: TFormDebug
       end
     end
     object GroupBoxPrim: TGroupBox
-      Left = 532
+      Left = 464
       Top = 584
       Width = 378
       Height = 185
@@ -345,12 +345,12 @@ object FormDebug: TFormDebug
       object GroupBox3: TGroupBox
         Left = 8
         Top = 16
-        Width = 353
+        Width = 361
         Height = 73
         Caption = 'Signal'
         TabOrder = 0
         object Label4: TLabel
-          Left = 313
+          Left = 321
           Top = 10
           Width = 32
           Height = 13
@@ -363,7 +363,7 @@ object FormDebug: TFormDebug
           ParentFont = False
         end
         object ButtonSigSuiv: TButton
-          Left = 0
+          Left = 8
           Top = 16
           Width = 49
           Height = 49
@@ -376,7 +376,7 @@ object FormDebug: TFormDebug
           OnClick = ButtonSigSuivClick
         end
         object ButtonCanSuivSig: TButton
-          Left = 48
+          Left = 56
           Top = 16
           Width = 65
           Height = 49
@@ -389,7 +389,7 @@ object FormDebug: TFormDebug
           OnClick = ButtonCanSuivSigClick
         end
         object EditSigSuiv: TEdit
-          Left = 312
+          Left = 320
           Top = 32
           Width = 33
           Height = 21
@@ -399,7 +399,7 @@ object FormDebug: TFormDebug
           TabOrder = 2
         end
         object ButtonCP: TButton
-          Left = 112
+          Left = 120
           Top = 16
           Width = 81
           Height = 49
@@ -412,7 +412,7 @@ object FormDebug: TFormDebug
           OnClick = ButtonCPClick
         end
         object Button2: TButton
-          Left = 192
+          Left = 200
           Top = 16
           Width = 57
           Height = 49
@@ -427,7 +427,7 @@ object FormDebug: TFormDebug
           OnClick = Button2Click
         end
         object ButtonAigDevie: TButton
-          Left = 248
+          Left = 256
           Top = 16
           Width = 57
           Height = 49
@@ -443,7 +443,7 @@ object FormDebug: TFormDebug
       object GroupBox4: TGroupBox
         Left = 8
         Top = 96
-        Width = 353
+        Width = 361
         Height = 81
         Caption = 'D'#233'tecteur/'#233'l'#233'ment suivant'
         TabOrder = 1
@@ -462,7 +462,7 @@ object FormDebug: TFormDebug
           OnClick = ButtonDetSuivClick
         end
         object EditPrec: TEdit
-          Left = 208
+          Left = 216
           Top = 34
           Width = 49
           Height = 21
@@ -472,7 +472,7 @@ object FormDebug: TFormDebug
           TabOrder = 1
         end
         object EditActuel: TEdit
-          Left = 264
+          Left = 272
           Top = 34
           Width = 49
           Height = 21
@@ -498,7 +498,7 @@ object FormDebug: TFormDebug
       end
     end
     object GroupBox2: TGroupBox
-      Left = 534
+      Left = 466
       Top = 28
       Width = 376
       Height = 149
@@ -711,7 +711,7 @@ object FormDebug: TFormDebug
       end
     end
     object EditNivDebug: TEdit
-      Left = 819
+      Left = 751
       Top = 8
       Width = 49
       Height = 21

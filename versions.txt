@@ -241,6 +241,12 @@ version 8.5  : Gestion de la centrale Z21 en mode autonome en Xpressnet.
 version 8.51 : Améliorations sur l'affichage des fenêtres aux démarrage.
                Création commandes des lignes DTR et RTS sur les périphériques COM/USB.
                Gestion des déconnexions matérielles des ports COM/USB.
+version 8.52 : Amélioration de l'installeur automatique.
+version 8.53 : Prise en compte des actionneurs dans le simulateur.
+               Correction d'un bug sur l'affichage des TCO en mode exploitation.
+
+
+
 
 
 

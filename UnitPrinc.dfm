@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 180
-  Top = 135
+  Left = 134
+  Top = 180
   Width = 1148
   Height = 618
   Anchors = [akLeft, akTop, akRight]
@@ -20,8 +20,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1132
-    560)
+    1140
+    567)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1430,8 +1430,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 538
-    Width = 1132
+    Top = 545
+    Width = 1140
     Height = 22
     Panels = <
       item
@@ -2124,6 +2124,7 @@ object FormPrinc: TFormPrinc
       end
       object DeconnecterUSB: TMenuItem
         Caption = 'D'#233'connecter l'#39'interface de l'#39'USB'
+        Enabled = False
         Hint = 'D'#233'connecter l'#39'interface USB'
         OnClick = DeconnecterUSBClick
       end
