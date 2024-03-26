@@ -512,14 +512,14 @@ procedure TFormDebug.ButtonSimuAct1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if (erreur=0) and (det>0) then Event_Act(det,0,1,'');
+  if (erreur=0) and (det>0) then Event_Act(det,0,1,'',false);
 end;
 
 procedure TFormDebug.ButtonSimuAct0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if (erreur=0) and (det>0)  then Event_Act(det,0,0,'');
+  if (erreur=0) and (det>0)  then Event_Act(det,0,0,'',false);
 end;
 
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);

@@ -1,7 +1,7 @@
 object FormTCO: TFormTCO
-  Left = 113
-  Top = 72
-  Width = 1218
+  Left = 58
+  Top = 115
+  Width = 1220
   Height = 594
   VertScrollBar.Visible = False
   Caption = 'c'
@@ -24,12 +24,12 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1210
+    1212
     543)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
-    Left = 1168
+    Left = 1170
     Top = 0
     Width = 32
     Height = 13
@@ -43,14 +43,14 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 1021
+    Left = 1023
     Top = 0
     Width = 121
     Height = 121
     Anchors = [akTop, akRight]
   end
   object ImageTemp2: TImage
-    Left = 1020
+    Left = 1022
     Top = 129
     Width = 121
     Height = 121
@@ -59,7 +59,7 @@ object FormTCO: TFormTCO
   object ScrollBox: TScrollBox
     Left = 8
     Top = 12
-    Width = 690
+    Width = 692
     Height = 347
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
@@ -71,12 +71,12 @@ object FormTCO: TFormTCO
     ParentColor = False
     TabOrder = 1
     DesignSize = (
-      686
+      688
       343)
     object ImageTCO: TImage
       Left = 120
       Top = 41
-      Width = 489
+      Width = 491
       Height = 257
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = True
@@ -91,7 +91,7 @@ object FormTCO: TFormTCO
     end
   end
   object TrackBarZoom: TTrackBar
-    Left = 1166
+    Left = 1168
     Top = 15
     Width = 41
     Height = 311
@@ -110,7 +110,7 @@ object FormTCO: TFormTCO
   object PanelBas: TPanel
     Left = 0
     Top = 395
-    Width = 1202
+    Width = 1204
     Height = 140
     Anchors = [akLeft, akRight, akBottom]
     Color = clActiveBorder
@@ -123,7 +123,7 @@ object FormTCO: TFormTCO
     TabOrder = 2
     OnDragOver = PanelBasDragOver
     DesignSize = (
-      1202
+      1204
       140)
     object Label1: TLabel
       Left = 240
@@ -906,7 +906,7 @@ object FormTCO: TFormTCO
       ParentFont = False
     end
     object ButtonSauveTCO: TButton
-      Left = 1093
+      Left = 1095
       Top = 8
       Width = 96
       Height = 33
@@ -918,7 +918,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonSauveTCOClick
     end
     object ButtonConfigTCO: TButton
-      Left = 1093
+      Left = 1095
       Top = 48
       Width = 96
       Height = 33
@@ -929,7 +929,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonConfigTCOClick
     end
     object ButtonSimu: TButton
-      Left = 881
+      Left = 883
       Top = 80
       Width = 113
       Height = 25
@@ -1122,7 +1122,7 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 1094
+      Left = 1096
       Top = 88
       Width = 97
       Height = 33
@@ -1134,7 +1134,7 @@ object FormTCO: TFormTCO
       OnClick = buttonRazClick
     end
     object ButtonCalibrage: TButton
-      Left = 921
+      Left = 923
       Top = 56
       Width = 75
       Height = 25
@@ -1145,7 +1145,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonCalibrageClick
     end
     object ButtonDessiner: TButton
-      Left = 990
+      Left = 992
       Top = 48
       Width = 97
       Height = 33
@@ -1161,7 +1161,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonDessinerClick
     end
     object ButtonAffSC: TButton
-      Left = 990
+      Left = 992
       Top = 8
       Width = 97
       Height = 33
@@ -1173,7 +1173,7 @@ object FormTCO: TFormTCO
       OnClick = ButtonAffSCClick
     end
     object RadioGroupSel: TRadioGroup
-      Left = 842
+      Left = 844
       Top = 8
       Width = 138
       Height = 49

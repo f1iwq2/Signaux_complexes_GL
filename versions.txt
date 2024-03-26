@@ -244,10 +244,9 @@ version 8.51 : Améliorations sur l'affichage des fenêtres aux démarrage.
 version 8.52 : Amélioration de l'installeur automatique.
 version 8.53 : Prise en compte des actionneurs dans le simulateur.
                Correction d'un bug sur l'affichage des TCO en mode exploitation.
-
-
-
-
-
+version 8.54 : Ajout du choix de pilotage des trains par CDM par adresse ou par nom.
+version 8.6  : Gestion des démarrages des trains sur horaire, en fonction d'une horloge paramétrable.
+               Amélioration de l'importation du réseau depuis CDM Rail.
+               Création d'actionneurs "horloge" et "vitesse train".
 
 

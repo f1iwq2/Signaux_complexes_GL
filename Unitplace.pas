@@ -84,10 +84,11 @@ var
   FormPlace: TFormPlace;
 
 procedure couleurs_place;
+function demarre_index_train(indexTrain  : integer) : boolean;
 
 implementation
 
-uses UnitConfig, UnitTCO;
+uses UnitConfig, UnitTCO , UnitHorloge, unitFicheHoraire;
 
 {$R *.dfm}
 
@@ -367,53 +368,128 @@ begin
   if key=chr(27) then close;
 end;
 
-procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
-var a,i,j,id,adrDet,AdrTrain,AdrSignal : integer;
+// démarre un train si le signal n'est pas au rouge
+function demarre_index_train(indexTrain  : integer) : boolean;
+var det,vitesse,AdrTrain,i,indexPlace,adrSignal,id,a : integer;
     trouve,rouge : boolean;
+    Train,s : string;
+
+begin
+   // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
+  i:=1;
+  AdrTrain:=Trains[indexTrain].adresse;
+  Train:=Trains[indexTrain].nom_train;
+
+  det:=0;
+  while (i<Ndetecteurs) and not(trouve) do
+  begin
+    Det:=Adresse_detecteur[i];
+    trouve:=detecteur[i].AdrTrain=AdrTrain;
+    inc(i);
+  end;
+
+  // le train est sur un détecteur ?
+  if trouve then
+  begin
+   AdrSignal:=signal_detecteur(det); // trouve l'adresse du signal correspondant au détecteur
+   if AdrSignal<>0 then
+    begin
+      id:=index_Signal(AdrSignal);
+      a:=Signaux[id].EtatSignal;
+      // si signal n'est pas rouge, ok
+      rouge:=(a=semaphore_F) or (a=carre_F) and (a=violet_F);
+      if rouge then
+      begin
+        Affiche('Le signal '+intToSTR(AdrSignal)+' étant rouge, le train '+train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
+        result:=false;
+        exit;
+      end;
+    end;
+  end;
+
+  vitesse:=trains[indexTrain].VitNominale;
+  if roulage then
+  begin
+    // trouver le train dans le tableau de placement des trains
+    indexPlace:=1;
+    trouve:=false;
+    while (indexPlace<6) and not(trouve)do
+    begin
+      trouve:=placement[indexPlace].train=train;
+      inc(indexPlace);
+    end;
+    if not(trouve) then
+    begin
+      Affiche('Erreur 280 : Train '+train+' non trouvé en placement',clred);
+      result:=false;
+      exit;
+    end;
+    dec(indexPlace);
+    if (placement[indexPlace].inverse) then vitesse:=-vitesse;
+  end;
+
+  if horloge then
+  begin
+    // trouver le train dans la grille horaire
+    i:=1;
+    trouve:=false;
+    while (i<MaxHoraire) and not(trouve)do
+    begin
+      trouve:=grilleHoraire[i].NomTrain=train;
+      inc(i);
+    end;
+    dec(i);
+    vitesse:=GrilleHoraire[i].vitesse;
+    vitesse_loco(train,indextrain,adrTrain,vitesse,true);
+    exit;
+  end;
+
+
+  // vitesse_loco('',adrTrain,j,trains[j].VitNominale,not(placement[j].inverse),true);
+  vitesse_loco('',indextrain,adrTrain,vitesse,true);
+  Maj_Signaux(true);  // avec détecteurs
+  s:='Lancement du train '+train;
+  if det<>0 then s:=s+' depuis détecteur '+intToSTR(Det);
+  Affiche(s,clYellow);
+  if traceListe then AfficheDebug(s,clyellow);
+  if roulage then reserve_canton(Det,placement[indexPlace].detdir,adrtrain,0,nCantonsRes);
+end;
+
+
+procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
+var vitesse,a,i,j,id,adrDet,AdrTrain : integer;
+    trouve,demarre : boolean;
     var s: string;
 begin
   if cdm_connecte then
   begin
-    Affiche('Placement des trains incompatible en mode CDM rail',clOrange);
+    Affiche('Le placement des trains incompatible en mode CDM rail',clOrange);
     exit;
   end;
+
+  
 
   trouve:=false;
   // explorer les détecteurs pour lancer les trains si le détecteur est affecté à un train
   for i:=1 to NDetecteurs do
   begin
     adrDet:=Adresse_detecteur[i];
+    AdrTrain:=detecteur[AdrDet].AdrTrain;
+    j:=index_train_adresse(AdrTrain);
+
     if Detecteur[adrDet].etat and (detecteur[adrDet].train<>'') then
     begin
-      rouge:=false;
       trouve:=true;
       roulage:=true;
       avecResa:=false;  // pour adrTrain ou NumTrain
-      AdrTrain:=detecteur[AdrDet].AdrTrain;
-      AdrSignal:=signal_detecteur(AdrDet); // trouve l'adresse du signal correspondant au détecteur
 
-      // si il y a un signal sur le détecteur de démarrage du train est il au rouge?
-      if AdrSignal<>0 then
-      begin
-        id:=index_Signal(AdrSignal);
-        a:=Signaux[id].EtatSignal;
-        if ((a=semaphore_F) or (a=carre_F) or (a=violet_F)) then rouge:=true;
-      end;
 
-      if not(rouge) then
-      begin
-        j:=index_train_adresse(AdrTrain);
-        vitesse_loco('',adrTrain,j,trains[j].VitNominale,not(placement[j].inverse),true);
+      trains[j].roulage:=true;
 
-        Maj_Signaux(true);  // avec détecteurs
-        s:='Lancement du train '+detecteur[adrDet].train+' depuis détecteur '+intToSTR(adrDet);
-        Affiche(s,clYellow);
-        if traceListe then AfficheDebug(s,clyellow);
-        reserve_canton(AdrDet,placement[j].detdir,adrtrain,0,nCantonsRes);
-
-      end
-      Else Affiche('Le signal '+intToSTR(AdrSignal)+' étant rouge, le train '+detecteur[adrDet].train+' @'+intToSTR(AdrTrain)+' ne démarre pas',clyellow);
-    end;
+      demarre:=demarre_index_train(j);
+    end
+    else
+      trains[j].roulage:=false;
   end;
 
   // au moins un train démarre
@@ -437,7 +513,7 @@ begin
   Affiche('Arrêt du roulage de tous les trains',clorange);
   Formprinc.LabelTitre.caption:=titre+' ';
   for i:=1 to ntrains do
-    vitesse_loco('',i,trains[i].adresse,0,true,true);
+    vitesse_loco('',i,trains[i].adresse,0,true);
 end;
 
 procedure TFormPlace.CheckInverse1Click(Sender: TObject);
@@ -591,7 +667,7 @@ begin
   Affiche('Arrêt du roulage de tous les trains et libération des aiguillages',clorange);
   Formprinc.LabelTitre.caption:=titre+' ';
   for i:=1 to ntrains do
-    vitesse_loco('',i,trains[i].adresse,0,true,true);
+    vitesse_loco('',i,trains[i].adresse,0,true);
   raz_tout;
 end;
 

@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 04/3 20h
+// 12/03/24
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -37,6 +37,8 @@ Unit UnitPrinc;
 // En mode RUN:
 // CDM renvoie le nom des trains sur les actionneurs à 1, jamais à 0
 // et quelquefois (pas toujours!) sur les détecteurs à 1, jamais à 0
+// Au début du RUN, CDM renvoie les états des détecteurs et en mélangé les aiguillages et on en reçoit les états.
+// Puis on reçoit la position des trains qui bougent. Si un train parqué ne bouge pas, on ne reçoit rien de ce train.
 //
 // En simulation:
 // CDM Rail ne renvoie pas les états des aiguillages en début de simu
@@ -65,7 +67,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem ,
-  Buttons, NB30, comObj, activeX
+  Buttons, NB30, comObj, activeX ,DateUtils 
   {$IF CompilerVersion >= 28.0}   // si delphi>=11
   ,Vcl.Themes
   {$IFEND}
@@ -230,6 +232,14 @@ type
     Copierltatdesaiguillageseninitialisation1: TMenuItem;
     ServerSocket: TServerSocket;
     Listedesclientsconnects1: TMenuItem;
+    Horaires1: TMenuItem;
+    Horloge1: TMenuItem;
+    Ficheshoraires1: TMenuItem;
+    Validationdeshoraires1: TMenuItem;
+    LabelClock: TLabel;
+    Ini1: TMenuItem;
+    N16: TMenuItem;
+    Afficherlhorloge1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure RecuInterface(Sender: TObject);
     procedure RecuPeriph1(Sender: TObject);
@@ -370,9 +380,15 @@ type
     procedure ServerSocketClientDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure Listedesclientsconnects1Click(Sender: TObject);
+    procedure Horloge1Click(Sender: TObject);
+    procedure Ficheshoraires1Click(Sender: TObject);
+    procedure Validationdeshoraires1Click(Sender: TObject);
+    procedure Ini1Click(Sender: TObject);
+    procedure Afficherlhorloge1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
+    procedure WindowPosChanging(var Msg: TWMWindowPosMsg);  message WM_WINDOWPOSCHANGING;
   public
     { Déclarations publiques des composants dynamiques}
     Procedure ImageOnClick(Sender : TObject);
@@ -490,8 +506,8 @@ Taiguillage = record
                 DDevieB : char ;
                 tjsint   : integer;        // pour TJS
                 tjsintb  : char ;
-                            // éléments connectés sur la branche déviée 2 (cas d'un aiguillage triple)
-                Adevie2 : integer;
+                // éléments connectés sur la branche déviée 2 (cas d'un aiguillage triple)
+                Adevie2 : integer;         // aiguilage triple
                 Adevie2B : char ;
                 // états d'une TJD (2 ou 4, 4 par défaut)
                 EtatTJD : integer;
@@ -576,7 +592,7 @@ var
   etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
-  AigMal : integer;
+  AigMal,AncMinute,axFP,ayFP : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -587,7 +603,7 @@ var
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
   fichier_module_cdm,Diffusion,cdmDevant,avecRESA,serveurIPCDM_Touche,
-  sombre,serveur_ouvert,pasChgTBV : boolean;
+  sombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN : boolean;
 
   tick,Premier_tick : longint;
 
@@ -660,13 +676,13 @@ var
 
   Tablo_actionneur : array[0..Max_actionneurs] of
   record
-    loco,act,son,periph     : boolean;     // destinataire loco acessoire son ou périphérique
-    adresse,adresse2,                      // adresse: adresse de base ; adresse2=cas d'une Zone
+    loco,act,son,periph,vit : boolean;     // destinataire loco acessoire son ou périphérique ou vitesse train
+    adresse,adresse2,                      // adresse: adresse de base ou heure ; adresse2=cas d'une Zone  ou minute
     etat,
-    fonction,                              // fonction F de train ou périphérique
+    fonction,                              // fonction F de train ou périphérique ou vitesse train
     tempo,TempoCourante,
     accessoire,sortie,
-    typdeclenche            : integer;     // déclencheur: 0=actionneur/détecteur  2=evt aig  3=MemZone
+    typdeclenche            : integer;     // déclencheur: 0=actionneur/détecteur 1=Horloge 2=evt aig  3=MemZone
     Raz                     : boolean;
     FichierSon,trainDecl,
     TrainDest,                             // train destinataire ou Commande au périphérique
@@ -701,9 +717,10 @@ var
     commandeOuvre : integer;  // commande d'ouverture (1 ou 2)
     NbVoies       : integer;  // Nombre de voies du PN
     Pulse         : integer;  // 0=commande maintenue  1=Impulsionnel
-    TypeCde       : integer;  // 0=par accessoire / 1=par COMUSB/sockets
-    commandeF,CommandeO : string;
+    TypeCde       : integer;  // 0=par accessoire / 1=par COMUSB ou sockets
+    commandeF,CommandeO : string; // commande pour com/usb ou socket
     compteur      : integer;  // comptage actionneurs fermeture et décomptage actionneurs ouverture
+    actionneur    : boolean;  // =vrai par actionneur sinon pae zone
     Voie : array [1..5] of record
              ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et l'ouverture
              detZ1F,detZ2F,detZ1O,detZ2O : integer; // Zones de détection
@@ -714,7 +731,7 @@ var
   record
     tick : longint;
     modele : Tequipement;
-    Adresse,Adresse2,etat : integer ;
+    Adresse,etat : integer ;
     train : string;
   end;
 
@@ -731,21 +748,24 @@ var
   Signaux :  array[0..NbreMaxiSignaux] of TSignal;
 
   CdeDccpp : array[1..MaxCdeDccpp] of string;
+
   trains_cdm : array[1..Max_Trains] of record
               nom_train : string;
               adresse,vitmax : integer;
            end;
 
   // trains en roulage sur le réseau et de la base de données [section_trains]
-  trains : array[1..Max_Trains] of record
+  trains : array[0..Max_Trains] of record
               nom_train : string;
               adresse,vitmax,VitNominale,VitRalenti : integer;
               vitesse : integer;                // vitesse actuelle de pilotage
-              sens   : boolean;
+              sens   : boolean;                 // sens de déplacement
               compteur_consigne : integer;      // compteur de consigne pour envoyer deux fois la vitesse en 10eme de s
               TempoArret : integer;             // tempo d'arret pour le timer
-              TempoDemarre : integer;
+              TempoDemarre : integer;           // tempo de démarrage
               index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
+              roulage : boolean;                // train en roulage
+              //-----------------------------------
               SbitMap : TBitmap ;               // pointeur sur tampon sous l'icone de déplacement du train en page CDM
               ax,ay,x,y : integer;              // coordonnées du train (anciennes et nouvelles) en points windows
               x0,y0,x1,y1 : integer;            // ancien contour du tampon, pour l'animation dans la fenêtre cdm
@@ -827,7 +847,7 @@ function PresTrainPrec(Adresse,NbCtSig : integer;detect : boolean;var AdrTr,voie
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse,TrainReserve : integer;var reserveTrainTiers : boolean;Var AdrTrain : integer) : integer;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
-procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string;hor : boolean);
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
 function Select_dessin_Signal(TypeSignal : integer) : TBitmap;
 procedure cree_image(rang : integer);
@@ -842,7 +862,7 @@ procedure init_dccpp;
 procedure init_aiguillages;
 function index_adresse_detecteur(de : integer) : integer;
 function index_train_adresse(adr : integer) : integer;
-procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vitesse : integer;sens : boolean;repetition : boolean);
+procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vitesse : integer;repetition : boolean);
 procedure Maj_Signaux(detect : boolean);
 procedure Det_Adj(adresse : integer);
 procedure reserve_canton(detecteur1,detecteur2,adrtrain,NumTrain,NCantons : integer);
@@ -877,13 +897,15 @@ procedure change_style;
 function isDirectionnel(index : integer) : boolean;
 procedure stop_trains;
 function Aiguille_deviee(adresse : integer) : integer ;
+function envoi_CDM(s : string) : boolean;
+function place_id(s : string) : string;
+procedure fin_preliminaire;
 
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
   Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM, UnitConfigCellTCO,
-  UnitConfigTCO,
-  UnitSR;
+  UnitConfigTCO,UnitSR,  UnitHorloge,  UnitFicheHoraire,  UnitClock;
 
 {
 procedure menu_interface(MA : TMA);
@@ -929,6 +951,104 @@ begin
     Ancien_style:=Style_aff;
   end;
   {$IFEND}
+end;
+
+procedure positionne_principal;
+begin
+// positionnement de la fenêtre principale
+  with formprinc do
+  begin
+    position:=poDefault;
+
+    if AffMemoFenetre=1 then
+    begin
+      if largeurF>0 then formPrinc.width:=LargeurF;
+      if HauteurF>0 then formPrinc.Height:=hauteurF;
+      formPrinc.left:=offsetXF;
+      formPrinc.top:=offsetYF;
+
+      if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
+      begin
+        fenRich.Width:=PosSplitter;
+        positionne_elements(PosSplitter);
+      end;
+    end
+    else
+    begin
+      formprinc.width:=1100;
+      formPrinc.Height:=700;
+      formPrinc.Left:=(Ecran[Ecran_sc].larg div 2)-(formprinc.width div 2)+Ecran[Ecran_sc].x0;
+      formPrinc.Top:=(Ecran[Ecran_sc].haut div 2)-(formprinc.height div 2)+Ecran[Ecran_sc].y0;
+    end;
+
+    if fenetre=1 then Formprinc.windowState:=wsMaximized ;
+
+    with GrandPanel do
+    begin
+      left:=2;
+      top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
+      width:=formprinc.width-20;
+      height:=formprinc.height-StatusBar1.Height-labeltitre.Height-labelTitre.top-64;
+      Anchors:=[akLeft,akTop,akRight,akBottom];
+    end;
+
+    with Fenrich do
+    begin
+      begin
+        left:=5;
+        Align:=AlLeft;   // si on ne met pas Align à AlLeft, alors le splitter n'est pas accrochable
+        top:=5;  // par rapport au panel
+        Width:=GrandPanel.Width-Panel1.Width-GroupBoxAcc.Width-25;
+        //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
+        Anchors:=[akLeft,akTop,akRight,akBottom];
+      end;
+
+      with splitterV do
+      begin
+        Left:=FenRich.left+FenRich.Width-30;
+        MinSize:=200;
+        Parent:=GrandPanel;
+        align:=fenrich.align;   // dessine le splitter à droite de la fenetre Fenrich
+        Visible:=true;
+      end;
+
+      with ScrollBoxSig do
+      begin
+        Parent:=GrandPanel;
+        Anchors:=[akTop,akRight,akBottom];
+        width:=GrandPanel.Width-SplitterV.Width-5;
+        height:=GrandPanel.Height-GroupBoxTrains.height-GroupBoxTrains.top-10;
+        top:=GroupBoxTrains.Top+GroupBoxTrains.Height+5;
+      end;
+      positionne_elements(splitterV.left);
+    end;
+
+    if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
+    begin
+      fenRich.Width:=PosSplitter;
+      positionne_elements(PosSplitter);
+    end;
+
+    //affichage de la fenêtre principale
+    show;
+  end;
+end;
+
+
+procedure fin_preliminaire;
+begin
+  {$IF CompilerVersion >= 28.0}
+  // en D11, obligé de positionner la fenêtre principale après avoir fixé le style
+  positionne_principal;
+  {$IFEND}
+
+  calcul_pos_horloge;
+  if (versionSC<>'8.53') then
+  begin
+    if AffHorl then Affiche_horloge;
+    if LanceHorl then Demarre_horloge;
+  end;
+  formprinc.SetFocus;
 end;
 
 // envoi une chaine à un périphérique COM/USB en fonction de l'interface
@@ -2723,6 +2843,14 @@ begin
   envoi:=ack;
 end;
 
+// insère l'id pour le serveur CDM dans une chaîne
+function place_id(s : string) : string;
+begin
+  delete(s,5,2);
+  insert(id_cdm,s,5);
+  place_id:=s;
+end;
+
 // chaîne pour une fonction F à un train via CDM
 Function chaine_CDM_Func(fonction,etat : integer;train : string) : string;
 var so,sx,s : string;
@@ -3049,9 +3177,12 @@ begin
 end;
 
 // envoie une vitesse à une loco par XpressNet/Dcc++ ou par CDM
+// index=index du train dans le tableau trains[]
+// vitesse positive ou négative
 // répétition=avec répétition de la commande dans 1s
-procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vitesse : integer;sens,repetition : boolean);
+procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vitesse : integer;repetition : boolean);
 var s : string;
+    sens : boolean;
     v,erreur : integer;
 begin
   if not(hors_tension) and ((portCommOuvert or parSocketLenz)) then
@@ -3069,6 +3200,7 @@ begin
     if protocole=1 then
     begin
       //AfficheDebug('X9 train '+inttostr(loco)+' '+inttostr(vitesse),clOrange);
+      sens:=vitesse>0;
       vitesse:=abs(vitesse);
       if vitesse>127 then vitesse:=127;
       v:=vitesse;
@@ -3088,17 +3220,21 @@ begin
   if cdm_connecte then
   begin
     // il faut qu'on soit en RUN pour que les vitesses trains soient prises en compte
-    s:=chaine_CDM_vitesseST(vitesse,nom_train);  // par nom du train
-    //s:=chaine_CDM_vitesseINT(vitesse,adr_loco);    // par adresse du train
+    if PilotageTrainsCDMNom then
+      s:=chaine_CDM_vitesseST(vitesse,nom_train)  // par nom du train
+    else
+      s:=chaine_CDM_vitesseINT(vitesse,adr_loco);  // par adresse du train
     envoi_CDM(s);
     //affiche(s,clLime);
   end;
 
   // répétition de la consigne dans 1 s
-  if (index<>0) and repetition then
+  if repetition then
   begin
+   // trains[index].nom_train:=Nom_train;
+ //   trains[index].adresse:=adr_loco;
     trains[index].vitesse:=vitesse;
-    trains[index].sens:=sens;
+ //   trains[index].sens:=sens;
     trains[index].compteur_consigne:=10;
   end;
 
@@ -3169,7 +3305,8 @@ begin
     end;
     if (aspect=jaune_cli) then // jaune clignotant
     begin
-      Signaux[i].EtatSignal:=RazBit(Signaux[i].EtatSignal,jaune);   // cas du jaunecli: efface le bit du jaune  (bit 8)
+      Signaux[i].EtatSignal:=RazBit(Signaux[i].EtatSignal,jaune);   // efface le bit du jaune  (bit 8)
+      Signaux[i].EtatSignal:=RazBit(Signaux[i].EtatSignal,ral_30);  // efface ral 30
       Signaux[i].EtatSignal:=Signaux[i].EtatSignal and $FF00;   // et effacer les bits 0 à 7
     end;
     if (aspect=ral_30) then // ralentissement 30
@@ -5156,6 +5293,7 @@ begin
     end
 
     else
+    // signal directionel
     begin
       pilote_direction(Adr,Signaux[i].etatSignal)
     end;
@@ -6022,8 +6160,8 @@ begin
         end;
 
         // cas 2 TJD
-        if (aiguillage[index].position=const_devie)
-           and (aiguillage[index2].position=const_droit) and tjdC then
+        if (aiguillage[index].position=const_devie) and
+           (aiguillage[index2].position=const_droit) and tjdC then
         begin
           if (alg and 8)=8 then
           begin
@@ -9831,7 +9969,7 @@ end;
 // it : numéro du train du réseau (pour la couleur)
 procedure pilote_train(det1,det2,AdrTrain,it : integer);
 var entree_signal,jauneC,rappel30C,rappel60C,rouge : boolean;
-    i,index_train,adresse,adresse2,Etat,voie,i2 : integer;
+    i,index_train,adresse,adresse2,Etat,voie,i2,vitesse : integer;
     couleur : TColor;
     s : string;
 begin
@@ -9887,7 +10025,12 @@ begin
         if traceliste then affichedebug(s,Cllime);
       end;
     end;
-    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',index_train,AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse),true);
+    if (index_train<>0) and (index_train<Max_Trains) then
+    begin
+      vitesse:=trains[index_train].VitRalenti;
+      if placement[index_train].inverse then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
   end;
 
   if (Rappel60C) and not(jauneC) and entree_signal then
@@ -9896,7 +10039,11 @@ begin
     if traceListe then AfficheDebug(s,clLime);
     Affiche(s,clLime);
     if (index_train<>0) and (index_train<Max_Trains) then
-      vitesse_loco('',index_train,AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse),true);
+    begin
+      vitesse:=trains[index_train].VitRalenti;
+      if placement[index_train].inverse then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
   end;
 
   if (testbit(etat,vert) or testbit(etat,vert_cli)) and entree_signal then
@@ -9904,7 +10051,19 @@ begin
     s:='Signal '+intToSTR(adresse)+' Voie libre - Vitesse nominale train @'+intToSTR(AdrTrain);
     if traceListe then AfficheDebug(s,clLime);
     Affiche(s,ClLime);
-    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',index_train,AdrTrain,trains[index_train].VitNominale,not(placement[index_train].inverse),true);
+    if (index_train<>0) and (index_train<Max_Trains) then
+    begin
+      vitesse:=trains[index_train].VitNominale;
+      if placement[index_train].inverse then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
+
+    begin
+      vitesse:=trains[index_train].VitNominale;
+      if (placement[index_train].inverse) then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
+
   end;
 
   if testbit(etat,jaune_Cli) and entree_signal then
@@ -9912,7 +10071,13 @@ begin
     s:='Signal '+intToSTR(adresse)+' Jaune cli - Vitesse nominale train @'+intToSTR(AdrTrain);
     if traceListe then AfficheDebug(s,clLime);
     Affiche(s,Cllime);
-    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',index_train,AdrTrain,trains[index_train].VitNominale,not(placement[index_train].inverse),true);
+    if (index_train<>0) and (index_train<Max_Trains) then
+    begin
+      vitesse:=trains[index_train].VitNominale;
+      if (placement[index_train].inverse) then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
+
   end;
 
   if testbit(etat,semaphore_cli) and entree_signal then
@@ -9920,7 +10085,12 @@ begin
     s:='Signal '+intToSTR(adresse)+' Sémaphore cli - Vitesse réduite train @'+intToSTR(AdrTrain);
     if traceListe then AfficheDebug(s,clLime);
     Affiche(s,clLime);
-    if (index_train<>0) and (index_train<Max_Trains) then vitesse_loco('',index_train,AdrTrain,trains[index_train].VitRalenti,not(placement[index_train].inverse),true);
+    if (index_train<>0) and (index_train<Max_Trains) then
+    begin
+      vitesse:=trains[index_train].VitRalenti;
+      if (placement[index_train].inverse) then vitesse:=-vitesse;
+      vitesse_loco('',index_train,AdrTrain,vitesse,true);
+    end;
   end;
 end;
 
@@ -9944,7 +10114,7 @@ begin
   s:='Le nouveau détecteur est '+IntToSTR(det3);
   if etat then s:=s+' 1' else s:=s+' 0';
   Affiche_evt(s,clwhite) ;
-  if dupliqueEvt then AfficheDebug(s,clyellow) ;
+  if dupliqueEvt then Affiche(s,clyellow) ;
 
   for i:=1 to N_trains do // nombre de trains détectés en circulation
   begin
@@ -9960,7 +10130,7 @@ begin
       //Affiche_evt(s,clwhite);
       event_det_tick[N_event_tick].train:=i;
       event_det_tick[N_event_tick].reaffecte:=3;
-      if dupliqueEvt then AfficheDebug(s,clyellow);
+      if dupliqueEvt then Affiche(s,clyellow);
       rebond:=true;  // possible rebond ?
     end;
 
@@ -10064,7 +10234,7 @@ begin
           if det4<9990 then reserve_canton(AdrSuiv,det4,AdrTrainLoc,i,nCantonsRes)  // réserve canton suivant après maj signaux
           else Affiche_evt('Réservation canton après '+intToSTR(det3)+' '+intToSTR(ADrSuiv)+' impossible (pos? aig)',clOrange);
 
-          event_act(det1,det3,1,'');     // évènement actionneur
+          event_act(det1,det3,1,'',false);     // évènement détecteur de zone - 1
 
           // affichages
           Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
@@ -10075,11 +10245,12 @@ begin
           Affiche_Evt('1-0. Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
           s:=intToSTR(event_det_train[i].det[1].adresse);
           Affiche_Evt(s,couleur);
-          if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
+          if traceliste then AfficheDebug(s,clyellow);
+          if dupliqueEvt then Affiche(s,clyellow);
           s:=intToSTR(event_det_train[i].det[2].adresse);
-          Affiche_evt(s,couleur);
-          if dupliqueEvt or traceliste then AfficheDebug(s,clyellow);
 
+          if TraceListe then AfficheDebug(s,clyellow);
+          if dupliqueEvt then Affiche(s,clyellow);
           for tco:=1 to nbreTCO do
           begin
             if PcanvasTCO[tco]<>nil then
@@ -10166,7 +10337,7 @@ begin
         end;
 
         pilote_train(det1,det3,adrtrainLoc,i);  // pilote le train sur det3
-        event_act(det1,det3,1,'');     // activation zone
+        event_act(det1,det3,1,'',false);     // activation zone - 2
         maj_signaux(false);
         // actualiser le signal du det3
         j:=signal_detecteur(det3);
@@ -10291,8 +10462,8 @@ begin
               end;
             end;
 
-            event_act(det2,det3,0,'');        // désactivation zone
-            event_act(det3,AdrSuiv,1,'');     // activation zone
+            event_act(det2,det3,0,'',false);        // désactivation zone
+            event_act(det3,AdrSuiv,1,'',false);     // activation zone
           end
           else
           begin
@@ -10303,7 +10474,7 @@ begin
             Affiche(s,clred);
           end;
 
-          // supprimer le 1er  evt et décaler
+          // supprimer le 1er evt et décaler
           with event_det_train[i] do
           begin
             det[1].adresse:=event_det_train[i].det[2].adresse;
@@ -10334,11 +10505,12 @@ begin
           Affiche_Evt('1.Tampon train '+intToStr(i)+' '+event_det_train[i].nom_train+'--------',couleur);
           Affiche_Evt(intToSTR(event_det_train[i].det[1].adresse),couleur);
           Affiche_Evt(intToStr(event_det_train[i].det[2].adresse),couleur);
-          if TraceListe or dupliqueEvt then
+          if TraceListe then
           begin
             AfficheDebug(intToSTR(event_det_train[i].det[1].adresse),couleur);
             AfficheDebug(intToSTR(event_det_train[i].det[2].adresse),couleur);
           end;
+
           for tco:=1 to nbreTCO do
           begin
             if PcanvasTCO[tco]<>nil then
@@ -10370,6 +10542,7 @@ begin
           s:='7. Rebond dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
           FormDebug.MemoEvtDet.lines.add(s);
           if dupliqueEvt then AfficheDebug(s,clyellow);
+          if dupliqueEvt then Affiche(s,clyellow);
         end;
       end;
     end;
@@ -10492,11 +10665,12 @@ begin
 
   if etat then
   begin
+   { inutile
     Maj_Signaux(false);                    // les autres signaux  , avec détecteurs
-    // mettre à jour le feu du détecteur
+    // mettre à jour le signal du détecteur
     i2:=signal_detecteur(det3);  // trouve le signal associé au detecteur2
     if i2<>0 then Maj_Signal_P(i2,false);  // avec détecteur
-
+    }
     for i:=1 to N_trains do
     begin
       i2:=event_det_train[i].Suivant;
@@ -10608,8 +10782,8 @@ begin
     Affiche_evt(s,CouleurTrain[id_couleur]);
     if dupliqueEvt then
     begin
-      AfficheDebug('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
-      AfficheDebug(s,clyellow);
+      Affiche('0-0 Création train '+intToStr(N_trains)+' '+detecteur[det3].train+'--------',clyellow);
+      Affiche(s,clyellow);
     end;
     if TraceListe or ProcPrinc then
     begin
@@ -10921,14 +11095,22 @@ end;
 // traitement des évènements actionneurs (detecteurs aussi)
 // adr adr2 : pour mémoire de zone
 // trainDecl : composé de X, d'un train ou de plusieurs, séparés par +
-procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
+// hor : si évt horaire
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string;hor : boolean);
 var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
     sDecl,st,trainDest : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
 begin
   if adr<=0 then exit;
-  //Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
+  if debugPN then
+  begin
+    if (adr=539) and (adr2=529)  then
+    affiche('CAS OUVRE',clred);
+    if (adr=528) and (adr2=522)  then
+    affiche('CAS FERME',clred);
+  end;
+  if debugPN then Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat)+' '+TrainDecl,clyellow);
 
   if adr>1024 then
   begin
@@ -10946,13 +11128,16 @@ begin
   //    1      0     FD
   //    2      0     FD
 
-  fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant (FD)
-  fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant (FM)
+  if not(hor) and (adr2=0) then
+  begin
+    fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant (FD)
+    fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant (FM)
 
-  ancien_actionneur[adr]:=etat;
-  if not(fd) and not(fm) then exit;
+    ancien_actionneur[adr]:=etat;
+    if not(fd) and not(fm) then exit;
+  end;
 
-  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'/'+intToSTR(Adr2)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
+  if AffAigDet and (adr2=0) then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   // dans tableau des actionneurs
   for i:=1 to maxTablo_act do
@@ -10965,6 +11150,11 @@ begin
     begin
       st:='Détecteur/actionneur '+intToSTR(adr);
     end;
+    if typ=1 then
+    begin
+      st:='Horaire '+format('%.2dh%.2d',[adr,adr2]);
+      etatvalide:=true;  // valider systématiquement l'état valide en actionneur horaire
+    end;
     if typ=2 then
     begin
       st:='Aiguillage '+intToSTR(adr);
@@ -10976,7 +11166,8 @@ begin
     end;
 
     adresseok:=( ((Tablo_actionneur[i].adresse=adr) and (adr2=0) ) and ((typ=0) or (typ=2)) ) or
-               ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2) ) and (typ=1) );
+               ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2)  and ((typ=3) or (typ=1))) ) ;
+
 
     // actionneur pour fonction train
     if adresseOk and (Tablo_actionneur[i].loco) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
@@ -10991,6 +11182,19 @@ begin
       tablo_actionneur[i].TempoCourante:=tablo_actionneur[i].Tempo div 100;
     end;
 
+    // pour vitesse
+    if adresseOk and (Tablo_actionneur[i].vit) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    begin
+      trainDest:=Tablo_actionneur[i].trainDest;
+      // exécution de la fonction F vers CDM
+      if (trainDest='X') or (trainDest='') then traindest:=traindecl;
+      //if (trainDest='X') then traindest:=sDecl;
+      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' V'+IntToSTR(Tablo_actionneur[i].fonction),clyellow);
+
+      vitesse_loco(trainDest,0,0,Tablo_actionneur[i].fonction,true);   
+    end;
+
+
     // actionneur pour accessoire
     if adresseOk and (Tablo_actionneur[i].act) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
@@ -11004,8 +11208,7 @@ begin
     end;
 
     // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide)
-    then
+    if adresseOk and (Tablo_actionneur[i].Son) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
     begin
       if typ<>2 then st:=st+' Train='+trainDecl;
       Affiche(st+' son '+Tablo_actionneur[i].FichierSon,clyellow);
@@ -11038,9 +11241,10 @@ begin
 
         if (aO=adr) and (fd) then  // actionneur d'ouverture sur front descendant
         begin
+          if DebugPN then Affiche('Compteur PN'+intToSTR(i)+'='+intToSTR(tablo_pn[i].compteur),clwhite);
           if tablo_pn[i].compteur=1 then  // compteur du nombre de trains sur le PN
           begin
-            Affiche('Ouverture PN'+intToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')',clOrange);
+            Affiche('Ouverture PN'+intToSTR(i)+' par act '+intToSTr(adr)+' (voie '+IntToSTR(v)+')',clwhite);
             if tablo_pn[i].TypeCde=0 then
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=signal;
@@ -11054,17 +11258,22 @@ begin
               if typ=2 then ouvre_pn_socket(i);
             end;
           end;
-          if tablo_pn[i].compteur>0 then dec(tablo_pn[i].compteur);
+          if tablo_pn[i].compteur>0 then
+          begin
+            dec(tablo_pn[i].compteur);
+            if debugPN then Affiche('Compteur PN'+intToSTR(i)+'='+intToSTR(tablo_pn[i].compteur),clwhite);
+          end;
         end;
 
         if (aF=adr) and (fm) then  // actionneur de fermeture sur front montant
         begin
           inc(tablo_pn[i].compteur);
+          if DebugPN then Affiche('Compteur PN'+intToSTR(i)+'='+intToSTR(tablo_pn[i].compteur),clwhite);
           if tablo_pn[i].compteur=1 then
           begin
             sDecl:='Fermeture PN'+IntToSTR(i)+' par act '+intToSTr(adr)+' (train voie '+IntToSTR(v)+')';
-            Affiche(sDecl,clOrange);
-            if tablo_pn[i].TypeCde=0 then
+            Affiche(sDecl,clwhite);
+            if tablo_pn[i].TypeCde=0 then   // par accessoire
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=signal;
               pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
@@ -11081,6 +11290,7 @@ begin
       end
     end
     else
+    if (adr2<>0) then
     begin
       // PN par zone de détection
       // Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat),clyellow);
@@ -11091,14 +11301,14 @@ begin
         dZ2F:=Tablo_PN[i].voie[v].detZ2F;
         dZ1O:=Tablo_PN[i].voie[v].detZ1O;
         dZ2O:=Tablo_PN[i].voie[v].detZ2O;
-        if (dZ1O=adr) and (dZ2O=adr2) and (fd) then  // zone d'ouverture
+        if debugPN then Affiche('test ouvre '+intToSTR(Adr)+' '+intToSTR(adr2)+' '+intToSTR(etat),clwhite);
+        if (dZ1O =adr) and (dZ2O=adr2) and (etat=0) then  // zone d'ouverture
         begin
           if Tablo_PN[i].compteur=1 then
           begin
             sDecl:='Ouverture PN'+intToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2);
-            Affiche(sDecl,clorange);
-            //if AffAigDet then AfficheDebug(s,clorange);
-            if tablo_pn[i].TypeCde=0 then
+            Affiche(sDecl,clwhite);
+            if tablo_pn[i].TypeCde=0 then  // par accessoire
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=signal;
               pilote_acc(Tablo_PN[i].AdresseOuvre,Tablo_PN[i].CommandeOuvre,ts);
@@ -11106,22 +11316,28 @@ begin
             else
             begin
               typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
-              typ:=com_socket(v);
+              typ:=com_socket(typ);
               if typ=1 then ouvre_pn_usb(i);
               if typ=2 then ouvre_pn_socket(i);
             end;
-            if tablo_pn[i].compteur>0 then dec(tablo_pn[i].compteur);
+          end;
+          if tablo_pn[i].compteur>0 then
+          begin
+            dec(tablo_pn[i].compteur);
+            if debugPN then Affiche('Compteur PN'+intToSTR(i)+'='+intToSTR(tablo_pn[i].compteur),clwhite);
           end;
         end;
 
-        if (dZ1F=adr) and (dZ2F=adr2) and (fm) then  // zone de fermeture
+        if debugPN then Affiche('test ferme '+intToSTR(Adr)+' '+intToSTR(adr2)+' '+intToSTR(etat),clwhite);
+        if (dZ1F=adr) and (dZ2F=adr2) and (etat=1) then  // zone de fermeture
         begin
           inc(Tablo_PN[i].compteur);
+          if debugPN then Affiche('Compteur PN'+intToSTR(i)+'='+intToSTR(tablo_pn[i].compteur),clwhite);
           if tablo_pn[i].compteur=1 then
           begin
             sDecl:='Fermeture PN'+IntToSTR(i)+' par zone '+intToSTr(adr)+' '+intToSTR(adr2)+' (train voie '+IntToSTR(v)+')';
-            affiche(sDecl,clorange);
-            if tablo_pn[i].TypeCde=0 then
+            affiche(sDecl,clwhite);
+            if tablo_pn[i].TypeCde=0 then  // par accessoire
             begin
               if Tablo_PN[i].pulse=1 then ts:=aigP else ts:=signal;
               pilote_acc(Tablo_PN[i].AdresseFerme,Tablo_PN[i].CommandeFerme,ts);
@@ -11129,7 +11345,7 @@ begin
             else
             begin
               typ:=Tablo_PN[i].AdresseFerme;  // numéro accessoire
-              typ:=com_socket(v);
+              typ:=com_socket(typ);
               if typ=1 then ferme_pn_usb(i);
               if typ=2 then ferme_pn_socket(i);
             end;
@@ -11211,10 +11427,11 @@ begin
     dr:=detecteur[adresse].tempo0;
     if (detecteur[Adresse].etat and not(etat)) and (dr=0) then
     begin
-      if dr<>0 then exit;
+      // init de la tempo
       detecteur[adresse].tempo0:=filtrageDet0;
       exit;
     end;
+    // si tempo échue (99)
     if dr=99 then detecteur[adresse].tempo0:=0;
 
     // si détecteur passe à 1 et qu'un filtrage à 0 est en cours, annuler le 0
@@ -11302,7 +11519,7 @@ begin
         begin
           If traceListe then AfficheDebug('Le signal '+IntToSTR(AdrSignal)+' est précédé d''un buttoir',clyellow);
           MemZone[0,AdrDetSignal].etat:=true;
-          event_act(0,AdrDetSignal,1,'');             // activation zone
+          event_act(0,AdrDetSignal,1,'',false);             // activation zone
           Maj_Signal_P(AdrSignal,false);
         end;
       end;
@@ -11310,8 +11527,8 @@ begin
 
     // gérer l'évènement actionneur pour action
     if etat then i:=1 else i:=0;
-    event_act(Adresse,0,i,'');
     if not(confignulle) then calcul_zones(adresse,true);
+    event_act(Adresse,0,i,'',false);
   end;
 
   // détection fronts descendants
@@ -11345,8 +11562,8 @@ begin
 
       // gérer l'évènement detecteur pour action
       if etat then i:=1 else i:=0;
-      event_act(Adresse,0,i,train);
       if not(confignulle) then calcul_zones(adresse,false);
+      event_act(Adresse,0,i,train,false);
     end;
   end;
 
@@ -11410,7 +11627,7 @@ var s: string;
     faire_event,inv,bjd : boolean;
     prov,index,i,id,etatact,typ,adr : integer;
 begin
-  if AffAigDet then AfficheDebug('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
+  //if AffAigDet then Affiche('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
   index:=index_aig(adresse);
   if index<>0 then
   begin
@@ -11470,7 +11687,7 @@ begin
     etatAct:=Tablo_actionneur[i].etat ;
     adr:=Tablo_actionneur[i].adresse;
     typ:=Tablo_actionneur[i].typdeclenche;
-    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
+    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,'',false); // évent aig
   end;
 
   // pour périphériques
@@ -11555,6 +11772,32 @@ begin
   end;
 end;
 
+// envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
+function envoi_CDM(s : string) : boolean;
+var temps : integer;
+begin
+  if CDM_connecte=false then begin envoi_CDM:=false;exit;end;
+  if traceTrames then afficheDebug(s,clLime);
+  Formprinc.ClientSocketCDM.Socket.SendText(s);
+  // attend l'ack
+  ackCDM:=false;nackCDM:=false;
+  temps:=0;
+
+  repeat
+    inc(temps);
+    Sleep(50);
+    Application.processMessages;       
+  until fermeSC or ackCDM or nackCDM or (temps>20); // CDM répond < 1s
+  //Affiche(intToSTR(temps),clred);
+  if not(ackCDM) or nack then
+  begin
+    Affiche('Pas de réponse de CDM Rail',clRed);
+  end;
+
+  envoi_CDM:=ackCDM;
+end;
+
+
 // pilotage d'un accessoire (décodeur d'aiguillage, de signal) et génère l'event aig
 // par CDM ou interface
 // octet = 1 (dévié) ou 2 (droit) si 0 on ne traite pas
@@ -11599,12 +11842,14 @@ begin
   begin
     //AfficheDebug(intToSTR(adresse),clred);
     if debug_dec_sig and (acc=signal) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
-    if aff_acc then Affiche('Accessoire '+intToSTR(adresse)+' à '+intToSTR(pilotage),clorange);
+    //if aff_acc then
+    Affiche('Accessoire '+intToSTR(adresse)+' à '+intToSTR(pilotage),clorange);
     if pilotage=1 then pilotageCDM:=1;     // 3 = wrong state or value
     if pilotage=2 then pilotageCDM:=2;
 
     s:=chaine_CDM_Acc(adresse,pilotageCDM);
     envoi_CDM(s);
+
     event_aig(adresse,pilotage);
     result:=true;
     exit;
@@ -13537,6 +13782,7 @@ procedure positionne_elements(i : integer);
 begin
   with formprinc do
   begin
+    LabelClock.Left:=width-120;
     GroupBoxAcc.Left:=i+12;
     GroupBoxCV.Left:=i+12;
     GroupBoxTrains.Left:=i+12;
@@ -13715,7 +13961,7 @@ var n,t,i,index,OrgMilieu : integer;
     Sr : TSearchRec;
     tmP,tmA : tMenuItem;
 begin
-  af:='Client TCP-IP ou USB CDM Rail - système XpressNet DCC++ Version '+Version+sousVersion;
+  af:='Client TCP-IP ou USB CDM Rail - système XpressNet DCC++ Version '+VersionSC+sousVersion;
   {$IF CompilerVersion >= 28.0}
   af:=af+' D11';
   {$IFEND}
@@ -13724,6 +13970,7 @@ begin
     formTCO[index]:=nil;
   end;
 
+
   BorderStyle:=bsSizeable;
   Caption:=af;
   TraceSign:=True;
@@ -13731,6 +13978,7 @@ begin
   PremierFD:=false;
   sauve_tco:=false;
   pasChgTBV:=false;
+  horloge:=false;
   ntrains:=0;
 
   mode_reserve:=0; // mode_reserve  0 = par canton - 1=par détecteurs
@@ -13745,7 +13993,7 @@ begin
   Srvc_Aig:=true;
   Srvc_Det:=true;
   Srvc_Act:=true;
-  Srvc_Pos:=false;
+  Srvc_Pos:=true;
   Srvc_sig:=false;
 
   Z21:=false;
@@ -13774,6 +14022,8 @@ begin
   ncrois:=0;
   EnvAigDccpp:=0;
   debugtrames:=false;
+  horlogeInterne:=true;
+  DureeMinute:=60;
   ProcPrinc:=false;
   algo_Unisemaf:=1;
   NbPeriph:=0;
@@ -13782,6 +14032,9 @@ begin
   espY:=15;
   etat_init_interface:=0;
   debug:=0;
+  heure:=0;
+  minute:=0;
+  seconde:=0;
   etape:=1;
   affevt:=false;
   EvtClicDet:=false;
@@ -13795,6 +14048,7 @@ begin
   formatY:=-1;
   avecResa:=false;          // réservation des aiguillages en mode normal
   serveurIPCDM_Touche:=false;
+  debugPN:=false;
   sombre:=false;
   AvecInit:=true;           // &&&&    avec initialisation des aiguillages ou pas
   Diffusion:=AvecInit;      // mode diffusion publique + debug mise au point etc
@@ -13806,6 +14060,12 @@ begin
   Decodeur[0]:='Rien';Decodeur[1]:='Digital Bahn';Decodeur[2]:='CDF';Decodeur[3]:='LS-DEC-SNCF';Decodeur[4]:='LEB';
   Decodeur[5]:='Digikeijs 4018';Decodeur[6]:='Unisemaf Paco';Decodeur[7]:='Stéphane Ravaut';Decodeur[8]:='Arcomora';
   Decodeur[9]:='LS-DEC-NMBS';Decodeur[10]:='B-models';
+
+  if versionSC='8.53' then
+  begin
+    Horaires1.enabled:=false;
+    LabelClock.Visible:=false;
+  end;
 
   OsBits:=0;
   if IsWow64Process then
@@ -13837,15 +14097,14 @@ begin
     Affiche(s,clred);
   end;
   // création des composants MSCom (USB COM) -----------------
-  // interface centrale
-  try
-    MSCommUSBInterface:=TMSComm.Create(formprinc);
+  // interface centrale - provoque l'apparition de la fenêtre "préparation de l'installation"
+
+  try MSCommUSBInterface:=TMSComm.Create(formprinc);
   except
     s:='Erreur 6000 : Composant Interface non créé';
     AfficheDebug(s,clred);
     Affiche(s,clred);
   end;
-
   if MSCommUSBInterface<>nil then MSCommUSBInterface.onComm:=RecuInterface;
 
   // pour deux périphériques COM/USB
@@ -13940,6 +14199,11 @@ begin
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
+  {$IF CompilerVersion >= 28.0}
+  //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
+  change_style;
+  {$IFEND}
+  init_horloge;
 
   // identifier les écrans
   n:=Screen.MonitorCount-1;
@@ -14021,79 +14285,9 @@ begin
     //Panels[3].Style:=psOwnerDraw;  // pour déclencher l'évenement onDraw
   end;
 
-  // positionnement de la fenêtre principale
-  position:=poDefault;
-
-  if AffMemoFenetre=1 then
-  begin
-    if largeurF>0 then formPrinc.width:=LargeurF;
-    if HauteurF>0 then formPrinc.Height:=hauteurF;
-    formPrinc.left:=offsetXF;
-    formPrinc.top:=offsetYF;
-
-    if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) then
-    begin
-      fenRich.Width:=PosSplitter;
-      positionne_elements(PosSplitter);
-    end;
-  end
-  else
-  begin
-    formprinc.width:=1100;
-    formPrinc.Height:=700;
-    formPrinc.Left:=(Ecran[Ecran_sc].larg div 2)-(formprinc.width div 2)+Ecran[Ecran_sc].x0;
-    formPrinc.Top:=(Ecran[Ecran_sc].haut div 2)-(formprinc.height div 2)+Ecran[Ecran_sc].y0;
-  end;
-
-  if fenetre=1 then Formprinc.windowState:=wsMaximized ;
-
-  with GrandPanel do
-  begin
-    left:=2;
-    top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
-    width:=formprinc.width-20;
-    height:=formprinc.Height-StatusBar1.Height-LabelTitre.Height-65;
-    Anchors:=[akLeft,akTop,akRight,akBottom];
-  end;
-
-  with Fenrich do
-  begin
-    begin
-      left:=5;
-      Align:=AlLeft;   // si on ne met pas Align à AlLeft, alors le splitter n'est pas accrochable
-      top:=5;  // par rapport au panel
-      Width:=GrandPanel.Width-Panel1.Width-GroupBoxAcc.Width-25;
-      //height:=formprinc.Height-StatusBar1.Height-StaticText.Height-LabelTitre.Height-90;
-      Anchors:=[akLeft,akTop,akRight,akBottom];
-    end;
-
-    with splitterV do
-    begin
-      Left:=FenRich.left+FenRich.Width-30;
-      MinSize:=200;
-      Parent:=GrandPanel;
-      align:=fenrich.align;   // dessine le splitter à droite de la fenetre Fenrich
-      Visible:=true;
-    end;
-
-    with ScrollBoxSig do
-    begin
-      Parent:=GrandPanel;
-      Anchors:=[akTop,akRight,akBottom];
-      width:=GrandPanel.Width-SplitterV.Width-5;
-      height:=GrandPanel.Height-GroupBoxTrains.height-GroupBoxTrains.top-10;
-      top:=GroupBoxTrains.Top+GroupBoxTrains.Height+5;
-    end;
-    positionne_elements(splitterV.left);
-  end;
-
-  if (PosSplitter>0) and (PosSPlitter<formPrinc.Width) and (AffMemoFenetre=1) then
-  begin
-    fenRich.Width:=PosSplitter;
-    positionne_elements(PosSplitter);
-  end;
-
-  show;
+  {$IF CompilerVersion < 28.0}
+  positionne_principal;
+  {$IFEND}
 
   if debug=1 then Affiche('Création TCO',clLime);
   for index:=1 to nbreTCO do
@@ -14264,8 +14458,8 @@ begin
   //Affiche(GetMACAddress,clred);
   //formPrinc.left:=-1000;
   ConfCellTCO:=false;
+   if debug=1 then Affiche('Fini',clLime);
 
-  if debug=1 then Affiche('Fini',clLime);
 end;
 
 
@@ -14356,15 +14550,142 @@ begin
   ClientSocketInterface.close;
 end;
 
+// appellé sur réception trame train CDM
+procedure verifie_train_horaire(adresse : integer;train : string;vitesse : integer);
+var i : integer;
+    sens : boolean;
+begin
+  if vitesse>0 then
+  for i:=1 to MaxHoraire do
+  begin
+    if (grilleHoraire[i].NomTrain=train) and (grilleHoraire[i].arretDepart) then
+    begin
+      if (  (grilleHoraire[i].heure<heure) or
+          ((grilleHoraire[i].heure=heure) and (grilleHoraire[i].minute>minute))
+         ) and (seconde<10) then
+      begin
+        Affiche('Arrêt du train '+Train+' hors horaire',clOrange);
+        sens:=true;
+        vitesse_loco(train,i,adresse,0,true);
+      end;
+
+    end;
+  end;
+end;
+
+// appelé par le timer, si l'horloge tourne
+procedure gestion_horaire;
+var i,indexTrain,vitesse : integer;
+   traite : boolean;
+    train : string;
+begin
+  // démarrage des trains à l'horaire
+  for i:=1 to MaxHoraire do
+  begin
+    if (grilleHoraire[i].heure=heure) and (grilleHoraire[i].minute=minute) then
+    begin
+      train:=grilleHoraire[i].NomTrain;
+
+      traite:=true;
+      if roulage then
+      begin
+        indexTrain:=index_train_nom(train);
+        traite:=trains[indexTrain].roulage;
+      end;
+
+      if traite then
+      begin
+        vitesse:=grilleHoraire[i].vitesse;
+        if not(grilleHoraire[i].sens) then vitesse:=-vitesse;
+        Affiche('Démarrage train '+train+' à l''horaire '+format('%.2dh%.2d',[heure,minute]),clyellow);
+        Demarre_index_train(index_train_nom(train));
+        //vitesse_loco(train,0,adr,vitesse,true);
+      end;
+    end;
+
+  end;
+
+  // évènements actionneurs horaires
+  for i:=1 to maxTablo_act do
+  begin
+    if Tablo_actionneur[i].typdeclenche=1 then
+    begin
+//      affiche(intToSTR(Tablo_Actionneur[i].adresse)+' '+Tablo_Actionneur[i].,clLime);
+      if (Tablo_Actionneur[i].adresse=heure) and (Tablo_Actionneur[i].adresse2=minute) then
+      begin
+        event_act(heure,minute,1,'',true);
+      end;
+    end;
+  end;
+end;
+
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
+var vitesse,i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
    imageSignal : Timage;
    frx,fry : real;
    faire : boolean;
-    s : string;
+   h,m,sec,ms : word;
+   s : string;
 begin
   inc(tick);
+
+  // --- horloge système
+  if horloge then
+  begin
+    inc(comptSec);
+    if not(horlogeInterne) then
+    begin
+      if ComptSec=9 then
+      begin
+        comptSec:=0;
+        decodeTime(GetTime,h,m,sec,ms);
+        heure:=h;minute:=m;seconde:=sec;
+        //if seconde-Asec<>1 then Affiche('Erreur s - Ecart='+intToSTR(seconde-Asec),clred);
+        Asec:=seconde;
+        labelClock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
+        Clock.tickercall;
+        if minute<>AncMinute then gestion_horaire;
+        AncMinute:=minute;
+      end;
+    end;
+
+    // --- horloge de signaux complexes
+    if horlogeInterne then
+    begin
+      //if comptSec>=(DureeMinute*5) div 30 then
+      if comptSec>=CompteurDixiemes then
+      begin
+        comptSec:=0;
+        inc(seconde);
+        //if seconde>=DureeMinute then
+        if seconde=60 then
+        begin
+          seconde:=0;
+          inc(minute);
+          if minute=60 then
+          begin
+            minute:=0;
+            inc(heure);
+            if heure=24 then heure:=0;
+          end;
+          gestion_horaire;  // au chgt minute
+          if (heure=RetourHeure) and (minute=RetourMinute) then
+          begin
+            heure:=heureinit;Minute:=minuteInit;
+            Affiche('Horloge en initialisation',clyellow);
+            if not(relanceHorl_init) then
+            begin
+              horloge:=false;
+              Affiche('Arrêt horloge',clyellow);
+            end;
+          end;
+        end;
+        labelClock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
+        Clock.tickercall;
+      end
+    end;
+  end;
 
   if (tick=30) or (tick=100) then
   begin
@@ -14532,6 +14853,7 @@ begin
   // arret loco sur n secondes
   // démarrage loco temporisé
   // renvoi de la consigne
+  // l'index de train 0 est le train courant
   for i:=1 to ntrains do
   begin
     a:=trains[i].TempoArret;
@@ -14539,8 +14861,15 @@ begin
     begin
       dec(a);
       trains[i].TempoArret:=a;
-      if a=0 then vitesse_loco('',i,trains[i].adresse,0,true,false) else
-        if (a mod 10)=0 then vitesse_loco('',i,trains[i].adresse,trains[i].VitRalenti div 2,not(placement[i].inverse),false);
+      if a=0 then vitesse_loco(trains[i].nom_train,i,trains[i].adresse,0,false) else
+        if (a mod 10)=0 then
+        begin
+          vitesse:=trains[i].VitRalenti div 2;
+          if (placement[i].inverse) then vitesse:=-vitesse;
+          //Affiche('train'+intToSTR(i)+' '+intToSTR(vitesse),clred);
+          vitesse_loco(trains[i].nom_train,i,trains[i].adresse,vitesse,false);
+        end;
+
     end;
 
     a:=trains[i].TempoDemarre;
@@ -14550,8 +14879,9 @@ begin
       trains[i].TempoDemarre:=a;
       if a=0 then
       begin
-       //Affiche('Démarrage train @'+intToSTR(trains[i].Adresse),clLime);
-       vitesse_loco('',i,trains[i].Adresse,trains[i].VitNominale,not(placement[i].inverse),false);
+        vitesse:=trains[i].VitNominale;
+        if (placement[i].inverse) then vitesse:=-vitesse;
+        vitesse_loco(trains[i].nom_train,i,trains[i].adresse,vitesse,false);
       end;
     end;
 
@@ -14562,9 +14892,11 @@ begin
       trains[i].compteur_consigne:=a;
       if a=0 then
       begin
-        vitesse_loco(trains[i].nom_train,i,trains[i].adresse,trains[i].vitesse,trains[i].sens,false);
-        //Affiche('vitesse ' +intToSTR(i)+' '+intToSTR(trains[i].vitesse),clred);
+        vitesse:=trains[i].Vitesse;
+        if (placement[i].inverse) then vitesse:=-vitesse;
+        vitesse_loco(trains[i].nom_train,i,trains[i].adresse,vitesse,false);
       end;
+      //Affiche('vitesse ' +intToSTR(i)+' '+intToSTR(trains[i].vitesse),clred);
     end;
   end;
 
@@ -14595,7 +14927,7 @@ begin
       if Tablo_simule[I_simule].modele=act then
       begin
         s:='Simu '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' act='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
-        Event_Act(Tablo_simule[i_simule].adresse,Tablo_simule[i_simule].adresse2,Tablo_simule[i_simule].etat, Tablo_simule[i_simule].train);
+        Event_Act(Tablo_simule[i_simule].adresse,0,Tablo_simule[i_simule].etat, Tablo_simule[i_simule].train,false);
         StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
       end;
@@ -14633,7 +14965,7 @@ begin
       detecteur[i].tempo0:=a;
       if (a=0) then
       begin
-        detecteur[i].tempo0:=99;
+        detecteur[i].tempo0:=99;   // indicateur tempo échue
         event_detecteur(i,false,detecteur[i].train);
       end;
     end;
@@ -15125,6 +15457,10 @@ begin
   DeConnecterCDMRail.enabled:=true;
 end;
 
+
+
+
+
 // décodage d'une trame CDM au protocole IPC
 // la trame_CDM peut contenir 2000 caractères à l'initialisation du RUN.
 procedure Interprete_trameCDM(trame_CDM:string);
@@ -15187,12 +15523,23 @@ begin
       begin
         //fin de la description des trains
         FormPrinc.ComboTrains.Items.Clear;
-        for i:=1 to ntrains_cdm do Formprinc.ComboTrains.Items.Add(trains_cdm[i].nom_train);
+
+        // on remplace les trains du combo et de la base (non stockée)
+        for i:=1 to ntrains_cdm do
+        begin
+          Formprinc.ComboTrains.Items.Add(trains_cdm[i].nom_train);
+          Trains[i].nom_train:=trains_cdm[i].nom_train;
+          Trains[i].adresse:=Trains_cdm[i].adresse;
+          Trains[i].vitmax:=Trains_cdm[i].vitmax;
+        end;
+        ntrains:=ntrains_cdm;
         with formprinc do
         begin
           ComboTrains.ItemIndex:=0;
           editadrtrain.Text:=inttostr(trains_cdm[1].adresse);
         end;
+
+
       end;
       delete(trame_cdm,1,j);
       goto reprise;
@@ -15254,7 +15601,7 @@ begin
         else
         if pos('ERR=500',commandeCDM)<>0 then s:='Erreur CDM : serveur DCC non lancé '
         else
-        if pos('ERR=300',commandeCDM)<>0 then s:='Erreur CDM : train non trouvé '
+        if pos('ERR=300',commandeCDM)<>0 then s:='Erreur CDM : RUN non lancé ou train non trouvé '
         else
         begin
           j:=pos('MSG=',commandeCDM);
@@ -15276,8 +15623,6 @@ begin
         begin
           ss:=copy(commandeCDM,i+5,l-i-5);
           trains_cdm[ntrains_cdm].nom_train:=ss;
-          val(ss,adr,erreur);
-          //s:='NAME='+IntToSTR(adr);
           Delete(commandeCDM,i,l-i+1);
         end;
 
@@ -15286,7 +15631,6 @@ begin
         begin
           ss:=copy(commandeCDM,i+3,l-i-3);
           val(ss,trains_cdm[ntrains_cdm].adresse,erreur);
-          //s:='AD='+IntToSTR(adr);
           Delete(commandeCDM,i,l-i+1);
         end;
 
@@ -15583,7 +15927,7 @@ begin
         end;
         
         if AffAigDet then AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+nom+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
-        Event_act(adr,0,etat,train); // déclenche évent actionneur
+        Event_act(adr,0,etat,train,false); // déclenche évent actionneur
       end;
 
       // évènement position des trains
@@ -15607,7 +15951,7 @@ begin
           train:=copy(commandeCDM,i+5,l-i-5);
           s:=s+' '+train;
           Delete(commandeCDM,i,l-i+1);
-        end;  
+        end;
 
         i:=posEx('SPEED=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
@@ -15626,7 +15970,7 @@ begin
           s:=s+' X='+IntTostr(x);
           Delete(commandeCDM,i,l-i+1);
         end;
-          
+
         i:=posEx('Y=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
         begin
@@ -15644,7 +15988,7 @@ begin
           s:=s+' X2='+IntTostr(x2);
           Delete(commandeCDM,i,l-i+1);
         end;
-        
+
         if (i<>0) and (l<>0) then
         begin
           i:=posEx('Y2=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
@@ -15653,6 +15997,7 @@ begin
           s:=s+' Y2='+IntTostr(y2);
           Delete(commandeCDM,i,l-i+1);
         end;
+        if horloge then verifie_train_horaire(adr,train,vitesse);
         // fait bouger le train dans la fenetre cdm
         if fichier_module_CDM then Aff_train(adr,train,x,y,x2,y2);
         if afftiers then afficheDebug(s,clAqua);
@@ -16287,7 +16632,6 @@ end;
 procedure TFormPrinc.locoClick(Sender: TObject);
 var i,adr,vit,erreur : integer;
     s : string;
-    sens : boolean;
 begin
   // vitesse et direction 18 pas
   s:=editAdrTrain.Text;
@@ -16304,8 +16648,7 @@ begin
     i:=index_train_nom(s);
   end;
   Affiche('Commande vitesse train '+s+' ('+intToSTR(adr)+') à '+IntToSTR(vit)+'%',cllime);
-  sens:=vit>0;
-  vitesse_loco(s,i,adr,vit,sens,true);
+  vitesse_loco(s,i,adr,vit,true);
   if s='' then s:=intToSTR(adr);
 end;
 
@@ -16425,7 +16768,7 @@ var i,t,t1 : integer;
     s: string;
 begin
   Affiche(' ',clyellow);
-  s:='Signaux complexes GL version '+version+sousVersion;
+  s:='Signaux complexes GL version '+versionSC+sousVersion;
   {$IF CompilerVersion >= 28.0}
   s:=s+' D11';
   {$IFEND}
@@ -16678,6 +17021,7 @@ begin
   clicComboTrain:=true;
   i:=ComboTrains.itemIndex+1;
   if (i<>0) and (i<Max_Trains) then
+  //if CDM_connecte then EditAdrTrain.Text:=intToSTR(trains_cdm[i].adresse) else
   EditAdrTrain.Text:=intToSTR(trains[i].adresse);
   clicComboTrain:=false;
 end;
@@ -16856,7 +17200,7 @@ end;
 
 // place les trains, positionne aiguillages et lance le roulage
 procedure placement_trains;
-var adr,AdrTrain,i,j : integer;
+var adr,AdrTrain,i,j,vitesse : integer;
     trouve : boolean;
     s : string;
 begin
@@ -16884,7 +17228,11 @@ begin
       if traceListe then AfficheDebug(s,clyellow);
       AdrTrain:=detecteur[Adr].AdrTrain;
       j:=index_train_adresse(AdrTrain);
-      vitesse_loco('',j,adrTrain,trains[j].VitNominale,not(placement[j].inverse),true);
+
+      vitesse:=trains[j].VitNominale;
+      if (placement[j].inverse) then vitesse:=-vitesse;
+      vitesse_loco('',j,adrTrain,vitesse,true);
+
       trouve:=true;
       roulage:=true;
     end;
@@ -17046,7 +17394,7 @@ begin
     if adr<>0 then
     begin
       Affiche('Arrêt train @'+intToSTR(adr)+' '+Trains[i].nom_train,clyellow);
-      vitesse_loco('',i,adr,0,not(placement[i].inverse),true);
+      vitesse_loco('',i,adr,0,true);
     end;
   end;
 end;
@@ -17099,10 +17447,10 @@ begin
   str(v_publie:2:2,s);
   if v_publie>0 then
   begin
-    val(version,V_utile,erreur);
+    val(versionSC,V_utile,erreur);
     Affiche('Nt='+nombre_tel,clLime);
-    if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' publiée le '+date_creation+' est à jour',clLime);
-    if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
+    if V_utile=V_publie then Affiche('Votre version '+VersionSC+SousVersion+' publiée le '+date_creation+' est à jour',clLime);
+    if V_utile>V_publie then Affiche('Votre version '+versionSC+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end
 end;
 
@@ -17984,14 +18332,34 @@ begin
   FenRich.Width:=GrandPanel.Width-Panel1.Width-GroupBoxAcc.Width-25;
   splitterV.Left:=FenRich.left+FenRich.Width-5;
   positionne_elements(splitterV.Left);
+  FormClock.Width:=250;
+  FormClock.Height:=250;
+  OffsetYFC:=(formprinc.top+formPrinc.height)-250-20;
+  OffsetXFC:=(formprinc.left+formPrinc.width)-250;
+  FormClock.top:=OffsetYFC;
+  FormClock.left:=OffsetXFC;
+  DeltaFPCY:=OffsetYFC-formprinc.top;
+  DeltaFPCX:=OffsetXFC-formprinc.left;
 end;
 
 procedure TFormPrinc.Sauvegarderla1Click(Sender: TObject);
 begin
+  // fenêtre principale
   LargeurF:=width;
   HauteurF:=Height;
   OffsetXF:=left;
   OffsetYF:=top;
+  // fenêtre clock
+  LargeurFC:=formClock.width;
+  HauteurFC:=formClock.Height;
+  OffsetXFC:=formClock.left;
+  OffsetYFC:=formClock.top;
+
+  // écart entre fenetre principale et clock , pour procédure formprinc WindowPosChanging
+  DeltaFPCY:=OffsetYFC-formprinc.top;
+  DeltaFPCX:=OffsetXFC-formprinc.left;
+
+
   PosSplitter:=splitterV.Left;
   AffMemoFenetre:=1;
   sauve_config;
@@ -18263,10 +18631,54 @@ begin
   if n>1 then affiche(intToSTR(n)+' clients connectés',clyellow);
 end;
 
-
+procedure TFormPrinc.Horloge1Click(Sender: TObject);
 begin
+ if formHorloge<>nil then formHorloge.showModal;
+end;
 
+procedure TFormPrinc.Ficheshoraires1Click(Sender: TObject);
+begin
+  if formFicheHoraire<>nil then formFicheHoraire.showModal;
+end;
 
+procedure TFormPrinc.Validationdeshoraires1Click(Sender: TObject);
+begin
+  if not(horloge) then Demarre_horloge
+  else horloge:=false;
+
+  if horloge then Affiche('Horloge validée',clWhite)
+  else Affiche('Horloge dévalidée',clWhite);
+end;
+
+procedure TFormPrinc.Ini1Click(Sender: TObject);
+begin
+  Init_Horloge;
+end;
+
+procedure TFormPrinc.Afficherlhorloge1Click(Sender: TObject);
+begin
+  affiche_horloge;
+end;
+
+procedure TFormPrinc.WindowPosChanging(var Msg: TWMWindowPosMsg);
+begin
+  if not(Verrouille) then exit;
+  if (formclock<>nil) and not(FermeSC) then
+  begin
+    if (axFP<>left) or (ayFP<>top) then
+    begin
+      if affEvt then Affiche('FenPrinc bouge',clYellow);
+      formclock.top:=top+DeltaFPCY;
+      formclock.left:=left+DeltaFPCX;
+     // formclock.Top:=top+height-Formclock.Height-20;
+     // formclock.Left:=left+width-Formclock.width;
+   end;
+   axFP:=left;
+   ayFP:=top;
+
+  end;
+  inherited;
+end;
 
 
 

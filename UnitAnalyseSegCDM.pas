@@ -2734,14 +2734,6 @@ begin
   end;
 end;
 
-// vérifier si un détecteur est dans le champ d'une ligne
-// exemple s='A21,533,568,566' det=533 résultat vrai
-function presence_detecteur(s : string;det : integer) : boolean;
-begin
-  result:=pos(','+intToSTR(det),s)<>0;
-end;
-
-
 // renvoie le dernier champ d'une chaine séparés par des virgules
 // s='aa,bb,ccc,ddd,ee'  : renvoie ee
 function dernier_champ(s : string) : string;
@@ -2764,6 +2756,23 @@ begin
   end;
   result:='';
   exit;
+end;
+
+// vérifier si un détecteur est le dernier d'une branche
+// exemple s='A21,568,533' det=533 résultat vrai
+function presence_detecteur_Fin(s : string;det : integer) : boolean;
+var i,erreur : integer;
+begin
+  s:=dernier_champ(s);
+  val(s,i,erreur);
+  result:=(erreur=0) and (i=det);
+end;
+
+// vérifier si un détecteur est dans le champ d'une ligne
+// exemple s='A21,533,568,566' det=533 résultat vrai
+function presence_detecteur(s : string;det : integer) : boolean;
+begin
+  result:=pos(','+intToSTR(det),s)<>0;
 end;
 
 
@@ -2940,10 +2949,10 @@ begin
 
             for j:=1 to nb_det do
             begin
-              // vérifier si le détecteur est déja dans la branche
+              // vérifier si le détecteur est déja en fin de branche 
               // nouveau détecteur doublon
               detecteur:=sDetect[j].adresse;
-              doublon:=presence_detecteur(sbranche,detecteur);
+              doublon:=presence_detecteur_fin(sbranche,detecteur);
               if not(doublon) then
               begin
                 sbranche:=sbranche+','+intToSTR(detecteur);
@@ -2969,6 +2978,8 @@ begin
             end;
           end;
         end;
+
+        nb_det:=0;
 
         // préparer le suivant , variables : indexSeg et IndexPort
         indexSeg:=indexSegSuivant;
@@ -3658,6 +3669,9 @@ begin
     Aiguillage[i].DDevieB:=Aig_CDM[i].DDevieB;
     Aiguillage[i].EtatTJD:=Aig_CDM[i].EtatTJD;
     Aiguillage[i].AdrCDM:=aig_cdm[i].adrCDM;
+    Aiguillage[i].Adevie2:=Aig_CDM[i].Adevie2;
+    Aiguillage[i].Adevie2B:=Aig_CDM[i].Adevie2B;
+
 
     Aiguillage[i].posInit:=9;
     aiguillage[i].InversionCDM:=0;

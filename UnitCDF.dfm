@@ -219,9 +219,9 @@ object FormCDF: TFormCDF
     ParentFont = False
   end
   object Label24: TLabel
-    Left = 56
+    Left = 48
     Top = 124
-    Width = 24
+    Width = 121
     Height = 13
     Caption = '1 '#224' 4'
   end

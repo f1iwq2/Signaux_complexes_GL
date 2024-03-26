@@ -297,6 +297,7 @@ end;
 procedure TFormConfigTCO.FormActivate(Sender: TObject);
 var s: string;
     i : integer;
+    GridRect: TGridRect;
 begin
   clicConf:=true;
   s:='Configuration du tco '+inttostr(indextcocourant)+' - Fichier '+NomFichierTCO[indextcocourant];
@@ -327,7 +328,15 @@ begin
     if i<=nbreTCO then stringGridTCO.Cells[2,i]:='X' else stringGridTCO.Cells[2,i]:=' ';
   end;
 //  stringGridTCO.canvas.Font.Style:=[fsBOld];
-    clicConf:=false;
+
+  // selection
+  GridRect.Top:= indextcocourant;
+  GridRect.Left:= 1;
+  GridRect.Right:= 1;
+  GridRect.Bottom:= indextcocourant;
+  StringGridTCO.Selection:= GridRect;
+
+  clicConf:=false;
 end;
 
 
@@ -589,7 +598,7 @@ begin
           config_modifie:=true;
           s:=stringGridTCO.Cells[1,i];
           // on peut vérifier le .cfg mais bon
-          Affiche('Le nom du fichier '+NomFichierTCO[i]+' sera sauvegardé en '+s,clyellow);
+          Affiche('Le nom du fichier '+NomFichierTCO[i]+' du TCO'+intToSTR(i)+' sera sauvegardé en '+s,clyellow);
           NomFichierTCO[i]:=s;
         end
         else

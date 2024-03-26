@@ -30,7 +30,4 @@ object FormVersion: TFormVersion
     ParentFont = False
     TabOrder = 0
   end
-  object TimerVerif: TTimer
-    OnTimer = TimerVerifTimer
-  end
 end

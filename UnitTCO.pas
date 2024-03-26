@@ -5,7 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus, UnitPilote, UnitDebug,
-  ComCtrls ,StrUtils, math, unitconfig, UnitAnalyseSegCDM,  Buttons , verif_version ;
+  ComCtrls ,StrUtils, math, unitconfig, UnitAnalyseSegCDM,  Buttons , verif_version,
+  UnitHorloge,
+  ImgList ;
 
 type
   TFormTCO = class(TForm)
@@ -504,8 +506,6 @@ type
 var
   couleurAdresse,cltexte,CoulFonte : Tcolor;
 
-  formTCO : array[1..10] of TformTCO;     // pointeur vers forms
-
   TamponAffecte,TCO_modifie,clicsouris,prise_N,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,prise_droit,prise_haut,
   prise_bas,prise_gauche,prise_NE,prise_NO,prise_SE,prise_SO,ligneAffiche,colonneAffiche,
@@ -565,6 +565,7 @@ var
   largeurCelld2,HauteurCelld2,NbCellulesTCO,NbreCellX,NbreCellY,LargeurCell,HauteurCell,
   Xentoure,Yentoure,XclicCell,YclicCell,EcranTCO,clGrille,clFond,ClAllume,ClVoies,
   ClCanton,clPiedSignal,ClQuai,ClBarriere,ZoomInit,Xinit,Yinit : array[1..10] of integer;
+  formTCO : array[1..10] of TformTCO;     // pointeur vers forms
   PcanvasTCO : array[1..10] of Tcanvas;
   PBitMapTCO : array[1..10] of TbitMap;
   PImageTCO,PImageTemp : array[1..10] of Timage;
@@ -609,7 +610,7 @@ procedure encadre_colonne;
 
 implementation
 
-uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO ;
+uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO, UnitClock ;
 
 {$R *.dfm}
 
@@ -1853,6 +1854,7 @@ procedure affiche_texte(indextco,x,y : integer);
 var b,x0,y0,xt,yt,repr,taillefont,tf : integer;
     ss,s,nf : string;
     c : Tcanvas;
+    r : Trect;
 begin
   c:=PcanvasTCO[indextco];
   if c=nil then exit;
@@ -1890,10 +1892,21 @@ begin
      2 : yt:=1;  // haut
      3 : yt:=hauteurCell[indexTCO]-round(2*TailleFont*fryGlob[indexTCO]);   // bas
      5 : begin  // double centré XY
-           xt:=(largeurCell[indexTCO] div 2)-(round(length(s)*(taillefont)*frxGlob[indexTCO]) div 2)-1;
-           yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // texte centré
+           r.Left:=x0;
+           r.Top:=y0+3;
+           r.Right:=x0+largeurCell[indexTCO];
+           r.bottom:=y0+hauteurCell[indexTCO];
+           // centrage et positionnement:  DT_TOP or DT_CENTER or DT_VCENTER or DT_CENTER
+           // césures de mots : DT_SINGLELINE   DT_WORDBREAK
+           // ? : dt_noclip
+           //DrawText(PcanvasTCO[indexTCO].Handle,PChar(s), -1, R,DT_VCENTER or DT_CENTER or DT_SINGLELINE );
+           //s:='yat'+#13+'bot';
+           DrawText(PcanvasTCO[indexTCO].Handle,PChar(s), -1, R,DT_VCENTER or DT_CENTER or dt_wordbreak );
+
+           exit;
          end;
   end;
+
 
   if b=Id_Quai then xt:=6;
   if (b<>Id_Quai) and (b<>Id_action) then s:=s+'   ';
@@ -2169,7 +2182,7 @@ var x0,y0,xc,yc,jy1,xf,yf,position,ep : integer;
      begin
        if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(x0,yc);lineto(xc,yc);    
+       moveto(x0,yc);lineto(xc,yc);
        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xf,yc);
      end;
@@ -2533,7 +2546,7 @@ var x0,y0,xc,yc,xf,yf,x1,y1,x2,y2,x3,y3,x4,y4,position,ep : integer;
      begin
        pen.color:=couleur;
        if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-       moveto(x0,yc);lineto(xc,yc);    
+       moveto(x0,yc);lineto(xc,yc);
        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xf,yc);
      end;
@@ -3149,7 +3162,7 @@ begin
     MoveTo(x0,y0+hauteurCell[indexTCO]);lineto(xc,yc);
     if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     LineTo(x0+LargeurCell[indexTCO],yc);
-    
+
   end;
 end;
 
@@ -3188,7 +3201,7 @@ begin
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
     if testbit(ep,6) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-    
+
     canvas.Arc(x1,y1,x2,y2,x3,y3,x4,y4);
   end;
 end;
@@ -3420,21 +3433,30 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
     Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_Devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;    // affiche la position de la branche déviée
+      end;
 
-    if (position=const_droit) or (position=const_inconnu) then
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -3668,13 +3690,24 @@ begin
     Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_Devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;
+      end;
 
-    if (position=const_droit) or (position=const_inconnu) then
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -3696,8 +3729,8 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc-(epaisseur div 2)+1;y1:=yc-(epaisseur div 2)-1;
-      x2:=x1-epaisseur-1;
+      x1:=xc-round(0.4*epaisseur);y1:=yc-(epaisseur div 2);
+      x2:=x1-epaisseur;
       x3:=x2-epaisseur;y3:=yc+(epaisseur div 2)+1;
       x4:=x1-epaisseur-1;
       polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
@@ -5064,16 +5097,21 @@ end;
 
 // action
 procedure dessin_Action(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
-var x0,y0,xf,yf,act : integer;
+var x0,y0,xf,yf,act,larg,haut : integer;
     r : Trect;
+    frX,frY : real;
     s : string;
 begin
   if PcanvasTCO[indexTCO]=nil then exit;
 
-  x0:=(x-1)*LargeurCell[indexTCO]+2;
-  y0:=(y-1)*hauteurCell[indexTCO]+2;
-  xf:=x0+LargeurCell[indexTCO]-4;
-  yf:=y0+HauteurCell[indexTCO]-4;
+  larg:=LargeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+
+  x0:=(x-1)*Larg+2;
+  y0:=(y-1)*haut+2;
+  xf:=x0+Larg-4;
+  yf:=y0+Haut-4;
+
 
   with canvas do
   begin
@@ -5091,41 +5129,78 @@ begin
     s:='';
     if s='' then tco[indexTCO,x,y].repr:=5; // centré en X et Y
     act:=tco[indexTCO,x,y].PiedFeu;
-    if act=1 then
+    case act of
+    AcChangeTCO :
     begin
       if s='' then s:='TCO'+intToSTR(tco[indexTCO,x,y].FeuOriente);  // feuoriente contient le numéro du TCO
       tco[indexTCO,x,y].texte:=s;
       tco[indexTCO,x,y].TailleFonte:=8;
       tco[indexTCO,x,y].FontStyle:='G';
     end;
-    if act=2 then
+    AcAffSC :
     begin
       if s='' then s:='SC';
         tco[indexTCO,x,y].texte:=s;
         tco[indexTCO,x,y].TailleFonte:=8;
         tco[indexTCO,x,y].FontStyle:='G';
+        tco[indextco,x,y].repr:=5;
     end;
-    if act=3 then
+    AcAffCDM :
     begin
       if s='' then s:='CDM';
       tco[indexTCO,x,y].texte:=s;
       tco[indexTCO,x,y].TailleFonte:=8;
       tco[indexTCO,x,y].FontStyle:='G';
+      tco[indextco,x,y].repr:=5; // centré
     end;
-    if act=4 then
+    AcActSortie :
     begin
       if s='' then s:=intToSTR(tco[indexTCO,x,y].adresse);
       tco[indexTCO,x,y].texte:=s;
       tco[indexTCO,x,y].TailleFonte:=8;
       tco[indexTCO,x,y].FontStyle:='G';
     end;
-    if act=5 then
+    AcStopTrains :
     begin
       if s='' then s:='STOP';
       tco[indexTCO,x,y].texte:=s;
       tco[indexTCO,x,y].TailleFonte:=8;
       tco[indexTCO,x,y].FontStyle:='G';
     end;
+
+    AcMarche_Horloge :
+    begin
+      if s='' then s:='MA'+#13+'horl';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+
+    AcArret_Horloge :
+    begin
+      if s='' then s:='AR'+#13+'horl';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+
+    AcInit_Horloge :
+    begin
+      if s='' then s:='Init'+#13+'horl';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+
+    AcAff_horloge :
+    begin
+    if s='' then s:='Aff'+#13+'horl';
+      tco[indexTCO,x,y].texte:=s;
+      tco[indexTCO,x,y].TailleFonte:=8;
+      tco[indexTCO,x,y].FontStyle:='G';
+    end;
+    end;
+
     //tf:=(tco[indexTCO,x,y].TailleFonte*LargeurCell[indexTCO]) div 40;
     //tf:=(8*LargeurCell[indexTCO]) div 40;;
 
@@ -5134,6 +5209,16 @@ begin
       //texte_reparti(s,indexTCO,x,y,tf);
     affiche_texte(indextco,x,y);
   end;
+
+    // copier imagelist dans imagetemp2
+ {   formTCO[indexTCO].ImageListTCO.GetBitmap (0, formTCO[indexTCO].ImageTemp2.Picture.Bitmap);
+
+    StretchBlt(pcanvasTCO[indexTCO].Handle,x0,y0,LargeurCell[indexTCO],hauteurCell[indexTCO],   // destination avec mise à l'échelle
+               FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,24,24,srccopy);
+
+
+    formTCO[indexTCO].ImageTemp2.Picture.Bitmap.Modified:=true;
+   }
 end;
 
 // Element 24
@@ -6264,7 +6349,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
      begin
        if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(xc,y0);lineto(xc,yc);    
+       moveto(xc,y0);lineto(xc,yc);
        if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xc,yf);
      end;
@@ -6286,7 +6371,7 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
      begin
        pen.color:=couleur;
        if testbit(ep,1) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-       moveto(xc,y0);lineto(xc,yc);   
+       moveto(xc,y0);lineto(xc,yc);
        if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineTo(xf,yf);
      end;
@@ -6309,21 +6394,28 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=Fond;;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
     Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_Devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;    // affiche la position de la branche déviée
+      end;
 
-    if (position=const_droit) or (position=const_inconnu) then
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -6346,7 +6438,7 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.Width:=1;
-      jx1:=xc+(Epaisseur div 2)+1;
+      jx1:=xc+(Epaisseur div 2);
       r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
       FillRect(r);
     end;
@@ -6503,7 +6595,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
      begin
        if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        pen.color:=couleur;
-       moveto(x0,y0);lineto(xc,yc);    
+       moveto(x0,y0);lineto(xc,yc);
        if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xf,yf);
      end;
@@ -6527,7 +6619,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        moveto(x0,y0);lineto(xc,yc);
        if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-       lineto(xc,yf);   
+       lineto(xc,yf);
      end;
    end;
 
@@ -6548,23 +6640,32 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
     Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_Devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;    // affiche la position de la branche déviée
+      end;
 
-    if (position=const_droit) or (position=const_inconnu) then
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+
+    else
+
     begin
+      trajet_devie;
       trajet_droit;
-    end;
+    end;  
 
     if (position=const_Devie) then
     begin
@@ -6787,9 +6888,6 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
     Pen.Color:=clVoies[indexTCO];
@@ -6817,12 +6915,12 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
+      // effacement du morceau
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc-2*epaisseur-5;y1:=yc+(epaisseur div 2)+1;
-      x2:=xc+epaisseur+10;y2:=y1+epaisseur;
+      x1:=xc-round(1.5*epaisseur);y1:=yc-(epaisseur)+1;
+      x2:=xc-(epaisseur div 2);y2:=y1+4*epaisseur;
       r:=rect(x1,y1,x2,y2);
       rectangle(r);
     end;
@@ -6833,10 +6931,10 @@ begin
       pen.color:=fond;
       Brush.Color:=fond;
       pen.width:=1;
-      x1:=xc-(epaisseur div 2)+1;y1:=yc-(epaisseur div 2)-1;
-      x2:=x1-epaisseur-1;
-      x3:=x2-epaisseur;y3:=yc+(epaisseur div 2)+1;
-      x4:=x1-epaisseur-1;
+      x1:=xc+round(0.9*epaisseur);y1:=yc;
+      x2:=x1+round(1.0*epaisseur);
+      x3:=xc-round(0.5*epaisseur);y3:=y1+round(2.2*epaisseur);
+      x4:=x3-round(0.9*epaisseur);
       polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
     end;
   end;
@@ -7291,21 +7389,28 @@ begin
     Pen.Width:=1;
     Brush.Color:=fond;
     Pen.Color:=fond;
-    //r:=Rect(x0,y0,xf,yf);
-    //FillRect(r);      // efface la cellule
-
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
     Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
-    if (position=const_Devie) or (position=const_inconnu) then
+    if mode>0 then
     begin
-      trajet_devie;    // affiche la position de la branche déviée
-    end;
+      if (position=const_Devie) or (position=const_inconnu) then
+      begin
+        trajet_droit;
+        trajet_devie;    // affiche la position de la branche déviée
+      end;
 
-    if (position=const_droit) or (position=const_inconnu) then
+      if (position=const_droit) then
+      begin
+        trajet_devie;
+        trajet_droit;
+      end;
+    end
+    else
     begin
+      trajet_devie;
       trajet_droit;
     end;
 
@@ -8383,6 +8488,11 @@ var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied,AdrTr :
     s : string;
 begin
   if indexTCO=0 then exit;
+  if indexTCO>nbreTCO then
+  begin
+    Affiche('Erreur 269',clred);
+    exit;
+  end;
   if PcanvasTCO[indexTCO]=nil then exit;
   if tco[indextco,x,y].BImage=0 then exit;
   //Affiche('Affiche_cellule',clLime);
@@ -8437,10 +8547,10 @@ begin
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       xt:=0;yt:=0;
       if Bimage=2  then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
-      if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;
+      if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
       if Bimage=4  then begin xt:=3;yt:=1;end;
-      if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;
-      if Bimage=12 then begin xt:=1;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
+      if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
+      if Bimage=12 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
       if Bimage=13 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=14 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=1;end;
       if Bimage=15 then begin xt:=3;yt:=1;end;
@@ -8449,12 +8559,12 @@ begin
       if Bimage=23 then begin xt:=round(33*frxGlob[indexTCO]);yt:=round(35*fryGlob[indexTCO]);end;
       if Bimage=24 then begin xt:=LargeurCell[indexTCO]-round(20*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=25 then begin xt:=round(34*frxGlob[indexTCO]);yt:=round(8*fryGlob[indexTCO]);end;
-      if Bimage=26 then begin xt:=1;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
-      if Bimage=27 then begin xt:=1;yt:=1;end;
-      if Bimage=28 then begin xt:=1;yt:=1;end;
+      if Bimage=26 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
+      if Bimage=27 then begin xt:=3;yt:=1;end;
+      if Bimage=28 then begin xt:=3;yt:=1;end;
       if Bimage=29 then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
-      if Bimage=32 then begin xt:=1;yt:=1;end;
-      if Bimage=33 then begin xt:=1;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
+      if Bimage=32 then begin xt:=3;yt:=1;end;
+      if Bimage=33 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=34 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       TextOut(xOrg+xt,yOrg+yt,s);
     end;
@@ -8727,6 +8837,11 @@ var x,y,x1,y1,DimX,DimY : integer;
     r : Trect;
 begin
   if affevt then affiche('Affiche_tco',clLime);
+  if indexTCO>nbreTCO then
+  begin
+    Affiche('Erreur 267',clred);
+    exit;
+  end;
   if pImageTCO[indexTCO]=nil then exit;
   DimX:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
   DimY:=hauteurCell[indexTCO]*NbreCellY[indexTCO];
@@ -11853,27 +11968,40 @@ begin
       i:=tco[indextco,xclic,yclic].piedfeu;
       n:=tco[indextco,xclic,yclic].feuoriente;
       //Affiche('Clic bouton action i='+intToSTR(i)+' n='+intToSTR(n),clYellow);
-      if i=1 then Affiche_fenetre_TCO(n,true);  // affiche le TCO n°n
-      if i=2 then with formprinc do             // afficher signaux complexes
+      case i of
+      AcChangeTCO : Affiche_fenetre_TCO(n,true);  // affiche le TCO n°n
+      AcAffSC : with formprinc do             // afficher signaux complexes
       begin
         windowState:=wsNormal; //Maximized;
         show;
         BringToFront;
       end;
-      if (i=3) and (CDMhd<>0) then
-      begin                                     // afficher CDM rail
-        ShowWindow(CDMhd,SW_MAXIMIZE);
-        SetForegroundWindow(CDMhd);             // met CDM en premier plan
-        SetActiveWindow(CdmHd);
+      AcAffCDM :
+      begin
+        if CDMhd<>0 then
+        begin                                 // afficher CDM rail
+          ShowWindow(CDMhd,SW_MAXIMIZE);
+          SetForegroundWindow(CDMhd);             // met CDM en premier plan
+          SetActiveWindow(CdmHd);
+        end;
       end;
-      if i=4 then                               // action accessoire
+      AcActSortie :                               // action accessoire
       begin
         // pilotage impulsionnel
         pilote_acc(tco[indextco,xclic,yclic].Adresse,tco[indextco,xclic,yclic].sortie,AigP);
       end;
-      if i=5 then
+      AcStopTrains :
       begin
         stop_trains;
+      end;
+      AcMarche_Horloge : Demarre_horloge;
+      AcArret_horloge : horloge:=false;
+      AcInit_horloge :
+      begin
+        Init_Horloge;
+      end;
+      AcAff_horloge : affiche_horloge;
+
       end;
     end;
 
@@ -12409,6 +12537,11 @@ end;
 procedure Maj_TCO(indexTCO,Adresse : integer);
 var x,y: integer;
 begin
+  if indexTCO>nbreTCO then
+  begin
+    Affiche('Erreur 268',clred);
+    exit;
+  end;
   if PcanvasTCO[indexTCO]=nil then exit;
 
   for y:=1 to NbreCellY[indexTCO] do
@@ -12608,7 +12741,7 @@ begin
   c:=c.GetParentComponent;           // scrollBox
   c:=c.GetParentComponent;           // formTCO
   indexTCO:=index_tco(c);
-  tourne90G(indextco);
+  tourne90G(indextco);       
 end;
 
 procedure tourne90D(indexTCO : integer);
@@ -13647,21 +13780,29 @@ begin
     LineTo( round((x+LargeurCell[indexTCO])),round(y+hauteurCell[indexTCO]*ratioC/10) );
   end;
   Affiche(formatfloat('0.000000',frxGlob[indexTCO]),clyellow);
+  dessin_Action(1,PcanvasTCO[1],3,3,1);
 end;
 
 procedure change_couleur_fond(indexTCO : integer);
 var cs : string;
     x,y,xmini,ymini,xmaxi,ymaxi : integer;
-    modeselection : boolean;
 begin
   xmini:=XminiSel;
   ymini:=YminiSel;
   xmaxi:=XmaxiSel;
   ymaxi:=YmaxiSel;
-  modeSelection:=xmini<xmaxi;
 
-  if modeSelection then
+
+  if selectionaffichee[indexTCO] then
   begin
+    if (FormTCO[indexTCO].RadioGroupSel.ItemIndex=1) and (Rect_select.NumTCO=indexTCO) then
+    begin
+      xMini:=(Rect_select.Gd.Left div largeurCell[indexTCO])+1;
+      yMini:=(Rect_select.Gd.top div hauteurCell[indexTCO])+1;
+      xMaxi:=(Rect_select.Gd.right div largeurCell[indexTCO])+1;
+      yMaxi:=(Rect_select.Gd.bottom div hauteurCell[indexTCO])+1;
+    end;
+
     cs:='Fond de la sélection ['+intToSTR(Xmini)+','+intToSTR(Ymini)+'] ['+intToSTR(Xmaxi)+','+intToSTR(Ymaxi)+']';
     titre_couleur:=cs;
   end
@@ -13677,9 +13818,16 @@ begin
     colorDialog1.CustomColors.Add(cs);
     if colorDialog1.Execute then
     begin
-      if modeSelection then
+      if selectionaffichee[indexTCO] then
       begin
         selectionaffichee[indexTCO]:=false;
+
+        // efface le rectangle de sélection graphique
+        if (FormTCO[indexTCO].RadioGroupSel.ItemIndex=1) and (Rect_select.NumTCO=indexTCO) then
+        begin
+          affiche_rectangle(IndexTCO,Rect_select);
+          Rect_select.NumTCO:=0;
+        end;
         for y:=Ymini to Ymaxi do
           for x:=Xmini to Xmaxi do
             tco[indextco,x,y].CouleurFond:=ColorDialog1.Color;
@@ -13739,7 +13887,7 @@ begin
   affiche_cellule(indexTCO,XClicCell[indexTCO],YClicCell[indexTCO]);
 end;
 
-
+// popup menu
 procedure TFormTCO.Toutslectionner1Click(Sender: TObject);
 var c: tComponent;
     indexTCO : integer;
@@ -13975,7 +14123,7 @@ begin
   if RadioGroupSel.ItemIndex=0 then
   begin
     screen.cursor:=crDefault;
-    // efface le rectabgle graphique du TCO courant
+    // efface le rectangle graphique du TCO courant
     if Rect_select.NumTCO=indexTCO then
     begin
       affiche_rectangle(IndexTCO,Rect_select);

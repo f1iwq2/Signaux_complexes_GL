@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 134
-  Top = 180
+  Left = 128
+  Top = 170
   Width = 1148
-  Height = 618
+  Height = 624
   Anchors = [akLeft, akTop, akRight]
   Caption = 'SIgnaux complexes'
   Color = clBtnFace
@@ -20,8 +20,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1140
-    567)
+    1132
+    565)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -38,8 +38,8 @@ object FormPrinc: TFormPrinc
     ParentFont = False
   end
   object Image9feux: TImage
-    Left = 1064
-    Top = 8
+    Left = 1072
+    Top = 32
     Width = 57
     Height = 105
     Picture.Data = {
@@ -669,8 +669,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image2feux: TImage
-    Left = 1064
-    Top = 112
+    Left = 1072
+    Top = 144
     Width = 33
     Height = 57
     Picture.Data = {
@@ -1082,8 +1082,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image6Dir: TImage
-    Left = 960
-    Top = 8
+    Left = 928
+    Top = 16
     Width = 81
     Height = 25
     Picture.Data = {
@@ -1428,10 +1428,25 @@ object FormPrinc: TFormPrinc
       FCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFC000000}
     Visible = False
   end
+  object LabelClock: TLabel
+    Left = 936
+    Top = 0
+    Width = 85
+    Height = 22
+    Alignment = taCenter
+    Anchors = [akTop, akRight]
+    Caption = '00h00:00'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 545
-    Width = 1140
+    Top = 543
+    Width = 1132
     Height = 22
     Panels = <
       item
@@ -1458,7 +1473,7 @@ object FormPrinc: TFormPrinc
     OnDrawPanel = StatusBar1DrawPanel
   end
   object Button1: TButton
-    Left = 751
+    Left = 919
     Top = 16
     Width = 75
     Height = 25
@@ -1470,13 +1485,13 @@ object FormPrinc: TFormPrinc
   end
   object GrandPanel: TPanel
     Left = 8
-    Top = 56
+    Top = 48
     Width = 1057
-    Height = 476
+    Height = 484
     TabOrder = 2
     DesignSize = (
       1057
-      476)
+      484)
     object SplitterV: TSplitter
       Left = 1
       Top = 1
@@ -1824,14 +1839,14 @@ object FormPrinc: TFormPrinc
       end
     end
     object Panel1: TPanel
-      Left = 761
+      Left = 768
       Top = -3
-      Width = 288
+      Width = 281
       Height = 180
       Anchors = [akTop, akRight]
       TabOrder = 4
       DesignSize = (
-        288
+        281
         180)
       object Label1: TLabel
         Left = 152
@@ -1950,7 +1965,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonCDMClick
       end
       object EditEnvoi: TEdit
-        Left = -1
+        Left = -8
         Top = 127
         Width = 121
         Height = 21
@@ -1959,7 +1974,7 @@ object FormPrinc: TFormPrinc
         Text = '<1>'
       end
       object ButtonEnv: TButton
-        Left = 8
+        Left = 1
         Top = 88
         Width = 88
         Height = 33
@@ -1971,8 +1986,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 665
-      Top = -24
+      Left = 513
+      Top = 120
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2060,7 +2075,9 @@ object FormPrinc: TFormPrinc
       end
       object Sauvegarderla1: TMenuItem
         Caption = 'Sauvegarder la configuration de la fen'#234'tre'
-        Hint = 'Sauvegarde la position de la fen'#234'tre et du splitter'
+        Hint = 
+          'Sauvegarde la position de la fen'#234'tre principale, de l'#39'horloge et' +
+          ' du splitter'
         OnClick = Sauvegarderla1Click
       end
       object N14: TMenuItem
@@ -2180,6 +2197,32 @@ object FormPrinc: TFormPrinc
       object DeconnecterCDMRail: TMenuItem
         Caption = 'D'#233'connecter CDM rail'
         OnClick = DeconnecterCDMRailClick
+      end
+    end
+    object Horaires1: TMenuItem
+      Caption = 'Horaires'
+      object Ficheshoraires1: TMenuItem
+        Caption = 'Fiche horaire'
+        OnClick = Ficheshoraires1Click
+      end
+      object Afficherlhorloge1: TMenuItem
+        Caption = 'Afficher l'#39'horloge'
+        OnClick = Afficherlhorloge1Click
+      end
+      object N16: TMenuItem
+        Caption = '-'
+      end
+      object Horloge1: TMenuItem
+        Caption = 'Param'#233'trer l'#39'horloge'
+        OnClick = Horloge1Click
+      end
+      object Validationdeshoraires1: TMenuItem
+        Caption = 'Lancer / arr'#234'ter l'#39'horloge'
+        OnClick = Validationdeshoraires1Click
+      end
+      object Ini1: TMenuItem
+        Caption = 'Initialisation de l'#39'horloge'
+        OnClick = Ini1Click
       end
     end
     object Divers1: TMenuItem

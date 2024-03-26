@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 246
-  Top = 114
+  Left = 258
+  Top = 206
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetAct
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -737,7 +737,10 @@ object FormConfig: TFormConfig
           Width = 57
           Height = 21
           TabStop = False
+          BiDiMode = bdLeftToRight
+          ParentBiDiMode = False
           TabOrder = 1
+          Text = '123'
         end
         object ButtonPFCDM: TButton
           Left = 16
@@ -857,7 +860,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 8
         Width = 297
-        Height = 121
+        Height = 105
         Caption = 'Au d'#233'marrage de CDM Rail : serveur'
         TabOrder = 2
         object RadioButtonSS: TRadioButton
@@ -885,16 +888,16 @@ object FormConfig: TFormConfig
           TabOrder = 2
         end
         object RadioButtonSP: TRadioButton
-          Left = 8
+          Left = 192
           Top = 64
-          Width = 249
+          Width = 81
           Height = 17
           Caption = 'Sprog'
           TabOrder = 3
         end
         object RadioButtonFIS: TRadioButton
           Left = 8
-          Top = 80
+          Top = 64
           Width = 177
           Height = 17
           Caption = 'FIS88/HSI88/HSI88-USB'
@@ -910,7 +913,7 @@ object FormConfig: TFormConfig
         end
         object RadioButtonRS: TRadioButton
           Left = 8
-          Top = 96
+          Top = 80
           Width = 177
           Height = 17
           Caption = 'RS2PC (Rs FeedBack interface)'
@@ -935,7 +938,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox7: TGroupBox
         Left = 312
-        Top = 136
+        Top = 114
         Width = 297
         Height = 81
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ / XpressNet'
@@ -1059,9 +1062,9 @@ object FormConfig: TFormConfig
       end
       object GroupBoxDivers: TGroupBox
         Left = 312
-        Top = 224
+        Top = 200
         Width = 297
-        Height = 161
+        Height = 177
         Caption = 'Divers'
         TabOrder = 5
         object Label41: TLabel
@@ -1108,7 +1111,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 102
+          Top = 98
           Width = 233
           Height = 17
           Hint = 
@@ -1147,7 +1150,7 @@ object FormConfig: TFormConfig
         end
         object ButtonCouleur: TButton
           Left = 144
-          Top = 122
+          Top = 124
           Width = 25
           Height = 17
           Caption = '...'
@@ -1975,7 +1978,7 @@ object FormConfig: TFormConfig
         OnClick = BoutSupAigClick
       end
       object ButtonAjSup: TButton
-        Left = 152
+        Left = 144
         Top = 32
         Width = 121
         Height = 17
@@ -2366,7 +2369,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2473,7 +2476,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2766,7 +2769,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2785,7 +2788,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2831,7 +2834,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -2842,7 +2845,7 @@ object FormConfig: TFormConfig
       ImageIndex = 5
       object Label16: TLabel
         Left = 0
-        Top = 8
+        Top = 4
         Width = 562
         Height = 13
         Caption = 
@@ -2857,16 +2860,16 @@ object FormConfig: TFormConfig
       end
       object GroupBox13: TGroupBox
         Left = 352
-        Top = 32
+        Top = 24
         Width = 265
-        Height = 433
+        Height = 441
         Caption = 'Description de l'#39'action'
         TabOrder = 0
         object GroupBoxRadio: TGroupBox
           Left = 8
           Top = 16
           Width = 249
-          Height = 89
+          Height = 105
           Caption = 'Type d'#39'action'
           TabOrder = 0
           object RadioButtonLoc: TRadioButton
@@ -2905,10 +2908,19 @@ object FormConfig: TFormConfig
             TabOrder = 3
             OnClick = RadioButtonCdeClick
           end
+          object RadioButtonVit: TRadioButton
+            Left = 24
+            Top = 80
+            Width = 145
+            Height = 17
+            Caption = 'Vitesse de locomotive'
+            TabOrder = 4
+            OnClick = RadioButtonVitClick
+          end
         end
         object GroupBoxAct: TGroupBox
           Left = 8
-          Top = 112
+          Top = 120
           Width = 249
           Height = 321
           Caption = 'Action fonction de locomotive '
@@ -2917,12 +2929,12 @@ object FormConfig: TFormConfig
             Left = 8
             Top = 16
             Width = 233
-            Height = 161
+            Height = 145
             Caption = 'D'#233'clencheur '
             TabOrder = 0
             object LabelActionneur: TLabel
               Left = 8
-              Top = 96
+              Top = 88
               Width = 54
               Height = 26
               Caption = 'Actionneur D'#233'tecteur'
@@ -2930,21 +2942,21 @@ object FormConfig: TFormConfig
             end
             object Label30: TLabel
               Left = 168
-              Top = 104
+              Top = 96
               Width = 6
               Height = 13
               Caption = #224
             end
             object LabelTrain: TLabel
               Left = 8
-              Top = 126
+              Top = 118
               Width = 60
               Height = 13
               Caption = 'Train(s) D'#233'cl'
             end
             object EditAct: TEdit
               Left = 72
-              Top = 100
+              Top = 92
               Width = 41
               Height = 21
               ParentShowHint = False
@@ -2954,7 +2966,7 @@ object FormConfig: TFormConfig
             end
             object EditEtatActionneur: TEdit
               Left = 184
-              Top = 100
+              Top = 92
               Width = 17
               Height = 21
               Hint = 'Etat '#224' ou 1'
@@ -2965,7 +2977,7 @@ object FormConfig: TFormConfig
             end
             object EditTrainDecl: TEdit
               Left = 72
-              Top = 124
+              Top = 116
               Width = 153
               Height = 21
               Hint = 
@@ -2977,53 +2989,56 @@ object FormConfig: TFormConfig
               TabOrder = 2
               OnChange = EditTrainDeclChange
             end
-            object RadioGroupDecl: TRadioGroup
-              Left = 8
-              Top = 16
-              Width = 217
-              Height = 73
-              Caption = 'Type de d'#233'clenchement'
-              TabOrder = 3
-            end
             object RadioButtonActDet: TRadioButton
-              Left = 32
-              Top = 32
+              Left = 16
+              Top = 16
               Width = 161
               Height = 17
               Caption = 'Actionneur/D'#233'tecteur'
-              TabOrder = 4
+              TabOrder = 3
               OnClick = RadioButtonActDetClick
             end
             object RadioButtonZones: TRadioButton
-              Left = 32
-              Top = 48
+              Left = 16
+              Top = 32
               Width = 161
               Height = 17
               Caption = 'Zones de d'#233'tection'
-              TabOrder = 5
+              TabOrder = 4
               OnClick = RadioButtonZonesClick
             end
             object EditAct2: TEdit
               Left = 120
-              Top = 100
+              Top = 92
               Width = 41
               Height = 21
-              TabOrder = 6
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 5
               OnChange = EditAct2Change
             end
             object RadioButtonAig: TRadioButton
-              Left = 32
-              Top = 64
+              Left = 16
+              Top = 48
               Width = 145
               Height = 17
               Caption = 'Ev'#232'nement aiguillage'
-              TabOrder = 7
+              TabOrder = 6
               OnClick = RadioButtonAigClick
+            end
+            object RadioButtonHorl: TRadioButton
+              Left = 16
+              Top = 64
+              Width = 113
+              Height = 17
+              Caption = 'Horloge'
+              TabOrder = 7
+              OnClick = RadioButtonHorlClick
             end
           end
           object GroupBox19: TGroupBox
-            Left = 24
-            Top = 152
+            Left = 8
+            Top = 168
             Width = 233
             Height = 137
             Caption = 'Destinataire de l'#39'action '
@@ -3045,7 +3060,7 @@ object FormConfig: TFormConfig
               ParentBiDiMode = False
             end
             object Labela: TLabel
-              Left = 144
+              Left = 152
               Top = 20
               Width = 6
               Height = 13
@@ -3164,7 +3179,7 @@ object FormConfig: TFormConfig
             end
             object CheckRAZ: TCheckBox
               Left = 40
-              Top = 48
+              Top = 56
               Width = 145
               Height = 17
               Caption = 'Remise '#224' 0 apr'#232's pilotage'
@@ -3174,7 +3189,7 @@ object FormConfig: TFormConfig
             object EditFonctionAccess: TEdit
               Left = 112
               Top = 14
-              Width = 25
+              Width = 33
               Height = 21
               Hint = 'Num'#233'ro de fonction du d'#233'codeur du train (0 '#224' 12 ou 28)'
               ParentShowHint = False
@@ -3183,7 +3198,7 @@ object FormConfig: TFormConfig
               OnChange = EditFonctionAccessChange
             end
             object EditEtatFoncSortie: TEdit
-              Left = 160
+              Left = 168
               Top = 14
               Width = 25
               Height = 21
@@ -3210,8 +3225,8 @@ object FormConfig: TFormConfig
               OnChange = EditTrainDestChange
             end
             object ComboBoxAccComUSB: TComboBox
-              Left = 24
-              Top = 64
+              Left = 16
+              Top = 80
               Width = 201
               Height = 21
               Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
@@ -3237,24 +3252,24 @@ object FormConfig: TFormConfig
           end
         end
         object GroupBoxPNA: TGroupBox
-          Left = 32
-          Top = 40
+          Left = 96
+          Top = 64
           Width = 169
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 2
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 72
-          Top = 368
+          Left = 192
+          Top = 88
           Width = 169
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 3
         end
         object GroupBoxPN: TGroupBox
-          Left = 24
-          Top = 32
+          Left = 144
+          Top = 24
           Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
@@ -3407,9 +3422,9 @@ object FormConfig: TFormConfig
       end
       object GroupBox14: TGroupBox
         Left = 0
-        Top = 32
+        Top = 24
         Width = 345
-        Height = 225
+        Height = 233
         Caption = 'Actionneurs/d'#233'tecteurs locomotives ou accessoires'
         TabOrder = 1
         object ButtonNouvAcc: TButton

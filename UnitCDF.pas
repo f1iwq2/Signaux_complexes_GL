@@ -128,13 +128,13 @@ begin
   begin
     caption:='Configuration du décodeur Digikeijs';
     label20.caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur Digikeijs';
-    label24.Caption:='1 à 5  - Aspects de 0 à 255';
+    label24.Caption:='1 à 5    - motifs de 0 à 255';
   end;
   if erreur=2 then
   begin
     caption:='Configuration du décodeur CDF';
     label20.Caption:='Tables d''aspects du signal en fonction du motif envoyé au décodeur CDF';
-    label24.Caption:='1 à 4 - Aspects de 0 à 255';
+    label24.Caption:='1 à 4    - motifs de 0 à 255';
   end;
 
   Label1.caption:=etats[1];

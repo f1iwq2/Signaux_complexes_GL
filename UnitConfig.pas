@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
   MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd,
-  Grids
+  Grids , unitHorloge
 
   {$IF CompilerVersion >= 28.0}
   ,Vcl.Themes
@@ -211,7 +211,6 @@ type
     Label35: TLabel;
     Label36: TLabel;
     ButtonTestAct: TButton;
-    RadioGroupDecl: TRadioGroup;
     RadioButtonActDet: TRadioButton;
     RadioButtonZones: TRadioButton;
     EditAct2: TEdit;
@@ -358,6 +357,8 @@ type
     Label31: TLabel;
     Label39: TLabel;
     CheckBoxMsgAigInc: TCheckBox;
+    RadioButtonHorl: TRadioButton;
+    RadioButtonVit: TRadioButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -543,6 +544,8 @@ type
     procedure EditAdrAigExit(Sender: TObject);
     procedure EditAdrAigChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure RadioButtonHorlClick(Sender: TObject);
+    procedure RadioButtonVitClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -584,6 +587,7 @@ retro_ch='retro';
 Ecran_ch='Ecran';
 Z21_ch='Z21';
 Init_aig_ch='Init_Aig';
+PilotageTrainsCDM_ch='PilotageTrainsCDMNom';
 LAY_ch='Lay';
 Init_dem_aig_ch='Init_Dem_Aig';
 Init_dem_interfaceUSBCOM_ch='Init_demUSBCOM';
@@ -621,11 +625,25 @@ Periph_ch='Periph';
 comm_ch='Commande';
 nom_dec_pers_ch='Nom_dec_pers';
 Nom_fich_TCO_ch='Nom_fichier_TCO';
-LargeurF_ch='LargeurF';
+LargeurF_ch='LargeurF'; // largeur de la fenêtre principale
 HauteurF_ch='HauteurF';
-OffsetXF_ch='OffsetX';
+OffsetXF_ch='OffsetX';  // .Left de la fenêtre principale
 OffsetYF_ch='OffsetY';
+LargeurFC_ch='LargeurFC'; // largeur de la fenêtre clock
+HauteurFC_ch='HauteurFC';
+OffsetXFC_ch='OffsetXC';  // .Left de la fenêtre clock
+OffsetYFC_ch='OffsetYC';
+
 PosSplitter_ch='Splitter';
+horlogeInterne_ch='HorlogeInterne';
+LanceHorl_ch='LanceHorl';
+AffHorl_ch='AffHorl';
+HeureInit_ch='HeureInit';
+MinuteInit_ch='MinuteInit';
+RetourHeure_ch='RetourHeure';
+RetourMinute_ch='RetourMinute';
+DureeMinute_ch='DureeMinute';
+relanceHorl_init_ch='relanceHorl_init';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -638,10 +656,11 @@ section_trains_ch='[section_trains]';
 section_placement_ch='[section_placement]';
 section_DecPers_ch='[section_decodeurs]';
 section_accCOM_ch='[section_accCOMUSB]';
+section_horloge_ch='[section horloge]';
 
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM : string; //,trainsauve : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,RepConfig : string; //,trainsauve : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,PortServeur,
@@ -653,7 +672,8 @@ var
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,fermeSC,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
-  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND : boolean;
+  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND,
+  PilotageTrainsCDMNom,LanceHorl : boolean;
 
   fichier : text;
 
@@ -671,7 +691,7 @@ var
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran,
   EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,
-  EditMaxSignalSens,EditnCantonsRes,EditAntiTO  : Tedit;
+  EditMaxSignalSens,EditnCantonsRes,EditAntiTO,EditRep : Tedit;
 
   EditT  : Array[1..10] of Tedit;
   TextBoxCde : array[1..19] of Tedit;
@@ -681,7 +701,7 @@ var
   LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,LabelAntiTO,
   LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes : Tlabel;
 
-  RadioReserve,RadioServeurCDM : TradioGroup;
+  RadioReserve,RadioServeurCDM,rgPilTrains : TradioGroup;
 
   LabelDecCde : array[1..19] of TLabel;
 
@@ -694,9 +714,7 @@ var
   ComboStyle : TcomboBox;
 
 function config_com(s : string) : boolean;
-function envoi_CDM(s : string) : boolean;
 function connecte_CDM : boolean;
-function place_id(s : string) : string;
 procedure decodeAig(s : string;var adr : integer;var B : char);
 function sauve_config : boolean;
 procedure lit_config;
@@ -714,40 +732,10 @@ procedure couleurs_config;
 
 implementation
 
-uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote;
+uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote, unitclock;
 
 {$R *.dfm}
 
-// envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
-function envoi_CDM(s : string) : boolean;
-var temps : integer;
-begin
-  if CDM_connecte=false then begin envoi_CDM:=false;exit;end;
-  if traceTrames then afficheDebug(s,clLime);
-  Formprinc.ClientSocketCDM.Socket.SendText(s);
-  // attend l'ack
-  ackCDM:=false;nackCDM:=false;
-  temps:=0;
-  repeat
-    inc(temps);Sleep(100);
-    Application.processMessages;
-  until fermeSC or ackCDM or nackCDM or (temps>30); // CDM répond < 1s
-
-  if not(ackCDM) or nack then
-  begin
-    Affiche('Pas de réponse de CDM Rail',clRed);
-  end;
-
-  envoi_CDM:=ackCDM;
-end;
-
-// insère l'id pour le serveur CDM dans une chaîne
-function place_id(s : string) : string;
-begin
-  delete(s,5,2);
-  insert(id_cdm,s,5);
-  place_id:=s;
-end;
 
 procedure Maj_Hint_Signal(indexSignal : integer);
 var s : string;
@@ -807,7 +795,7 @@ end;
 
 function connecte_CDM : boolean;
 var s : string;
-    i : integer;
+    i,erreur : integer;
 begin
   result:=false;
   // déconnexion de l'ancienne liaison éventuelle
@@ -841,23 +829,39 @@ begin
       begin
         ack_cdm:=false;
         Id_CDM:=copy(recuCDM,5,2);   // récupère l'ID reçu de CDM, à utiliser dans toutes les futures trames
-        recucdm:='';
-        s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
+        val(id_CDM,i,erreur);
+        if (i>0) and (erreur=0) then
+        begin
+          recucdm:='';
+          s:='Connecté au serveur CDM rail avec l''ID='+Id_CDM;
 
-        Affiche(s,clYellow);
-        CDM_connecte:=true;
+          Affiche(s,clYellow);
+          CDM_connecte:=true;
 
-        // demande des services
-        services_CDM;
-        // demande la description des trains
-        s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
-        ntrains_cdm:=0;
-        envoi_CDM(s);
-        sleep(10);
-        Application.ProcessMessages;
-        SauvefiltrageDet0:=filtrageDet0;
-        filtrageDet0:=0;
-        result:=true;
+          // demande des services
+          services_CDM;
+          // demande la description des trains
+          s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
+          ntrains_cdm:=0;
+          envoi_CDM(s);
+          sleep(10);
+          Application.ProcessMessages;
+          SauvefiltrageDet0:=filtrageDet0;  // en mode cdm,filtrage détecteur à 0
+          filtrageDet0:=0;
+          result:=true;
+        end
+        else
+        begin
+          Affiche('Erreur ID ',clred);
+          cdm_connecte:=false;
+          result:=false;
+        end;
+      end
+      else
+      begin
+        Affiche('Pas de réponse de CDM',clred);
+        cdm_connecte:=false;
+        result:=false;
       end;
     end;
   end
@@ -865,6 +869,8 @@ begin
   begin
     if adresseIPCDM='0' then Affiche('La connexion à CDM n''est pas demandée car l''adresse IP est nulle dans '+NomConfig,clcyan);
     if not(IpOk(AdresseIPCDM)) then Affiche('Adresse IP CDM incorrecte : '+AdresseIPCDM,clcyan);
+    cdm_connecte:=false;
+    result:=false;
   end;
 end;
 
@@ -1283,19 +1289,19 @@ begin
           val(sa,l,erreur); // nombre de feux du signal directionnel
           if l>6 then
           begin
-            Affiche('Erreur 672.1 ligne '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
+            Affiche('Erreur 672.1 : '+chaine_signal+' 6 feux maximum pour un panneau directionnel',clred);
             exit;
           end;
           if l<3 then
           begin
-            Affiche('Erreur 672.2 ligne '+chaine_signal+' 3 feux minimum pour un panneau directionnel',clred);
+            Affiche('Erreur 672.2 : '+chaine_signal+' 3 feux minimum pour un panneau directionnel',clred);
             exit;
           end;
           Signaux[i].aspect:=l+10;Delete(s,1,j);
           // décodeur
           val(s,adr,erreur);
           Signaux[i].decodeur:=adr;
-          if (adr>NbDecodeur-1) then Affiche('Erreur 673 ligne '+chaine_signal+' : erreur décodeur inconnu',clred);
+          if (adr>NbDecodeur-1) then Affiche('Erreur 673 : '+chaine_signal+' : erreur décodeur inconnu',clred);
           j:=pos(',',s);Delete(s,1,j);
           // liste des aiguillages
           k:=1; // numéro de feux directionnels
@@ -1304,7 +1310,7 @@ begin
             delete(s,1,1); // supprimer ( ou le ,
             j:=1; // Nombre de descriptions d'aiguillages dans le signal
             repeat
-              if s[1]<>'A' then begin Affiche('Erreur 674 ligne '+chaine_signal,clred);exit;end;
+              if s[1]<>'A' then begin Affiche('Erreur 674 - manque liste d''aiguillage(s) '+chaine_signal,clred);exit;end;
               delete(s,1,1);
               val(s,adr,erreur);  // adresse
               c:=#0;
@@ -1342,7 +1348,7 @@ begin
           j:=pos(',',s);
           val(s,Signaux[i].decodeur,erreur);
 
-          if (Signaux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 Ligne '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Signaux[i].decodeur),clred);
+          if (Signaux[i].decodeur>NbDecodeurdeBase+NbreDecPers-1) then Affiche('Erreur 677 : '+chaine_signal+' : erreur décodeur inconnu: '+intToSTR(Signaux[i].decodeur),clred);
           if j<>0 then delete(s,1,j);
           Signaux[i].Adr_el_suiv1:=0;Signaux[i].Adr_el_suiv2:=0;Signaux[i].Adr_el_suiv3:=0;Signaux[i].Adr_el_suiv4:=0;
           Signaux[i].Btype_Suiv1:=rien;Signaux[i].Btype_Suiv2:=rien;Signaux[i].Btype_Suiv3:=rien;Signaux[i].Btype_Suiv4:=rien;
@@ -1365,7 +1371,7 @@ begin
                   Delete(s,1,k);
                   if Adr>NbMaxDet then
                   begin
-                    Affiche('Erreur 677A : ligne '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
+                    Affiche('Erreur 677A : '+chaine_signal+' : adresse détecteur trop grand: '+intToSTR(adr),clred);
                     Adr:=NbMaxDet;
                   end;
                 end;
@@ -1393,7 +1399,7 @@ begin
                 Val(s,adr,erreur);
                 if Adr>NbMaxDet then
                 begin
-                  Affiche('Erreur 677B : ligne '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
+                  Affiche('Erreur 677B : '+chaine_signal+' : adresse élément trop grand: '+intToSTR(adr),clred);
                   Adr:=NbMaxDet;
                 end;
                 if (j=1) then Signaux[i].Adr_el_suiv1:=Adr;
@@ -1483,7 +1489,7 @@ begin
         delete(s,1,erreur);
         if k=0 then
         begin
-          if Signaux[i].decodeur=6 then begin Affiche('Erreur 680 Ligne '+chaine_signal+' Manque définition décodeur UniSemaf signal '+intToSTR(adresse),clred);end;
+          if Signaux[i].decodeur=6 then begin Affiche('Erreur 680 : '+chaine_signal+' Manque définition décodeur UniSemaf signal '+intToSTR(adresse),clred);end;
         end
         else
           begin
@@ -1491,10 +1497,10 @@ begin
             if Signaux[i].decodeur=6 then
             begin
               erreur:=verif_UniSemaf(adresse,k);
-              if erreur=1 then begin Affiche('Erreur 681 Ligne '+chaine_signal+' Erreur code Unisemaf',clred);end;
+              if erreur=1 then begin Affiche('Erreur 681 : '+chaine_signal+' Erreur code Unisemaf',clred);end;
               if erreur=2 then
               begin
-                Affiche('Erreur 682 Ligne '+chaine_signal+' Erreur cohérence signal (Adresse='+intToSTR(adresse)+' Aspect='+intToSTR(asp)+' et code Unisemaf=('+intToSTR(k)+')',clred);
+                Affiche('Erreur 682 : '+chaine_signal+' Erreur cohérence signal (Adresse='+intToSTR(adresse)+' Aspect='+intToSTR(asp)+' et code Unisemaf=('+intToSTR(k)+')',clred);
               end;
             end;
           end;
@@ -1624,24 +1630,28 @@ begin
   end;
 end;
 
-// transforme l'actionneur type loco ou actionneur ou son du tableau en texte
+// transforme l'actionneur type loco ou actionneur ou son ou vitesse du tableau en texte
 // paramètre d'entrée : index
 function encode_act_loc_son(i : integer): string;
 var s : string;
-    adresse : integer;
+    adresse,adresse2 : integer;
 begin
   // adresse
   adresse:=Tablo_Actionneur[i].adresse;
+  adresse2:=Tablo_Actionneur[i].adresse2;
 
   // type déclencheur
   case Tablo_Actionneur[i].typdeclenche of
     0 : s:=IntToSTR(adresse);// if tablo_actionneur[i].det then s:=s+'Z';
-    // type mémoire de zone
-    3 : s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].adresse2)+']';
+    // horloge
+    1 : S:='H'+IntToSTR(adresse)+'h'+IntToSTR(adresse2);
     // type aiguillage
     2 : s:='A'+IntToSTR(adresse);
+    // type mémoire de zone
+    3 : s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Actionneur[i].adresse2)+']';
   end;
 
+  // type d'action
   if Tablo_Actionneur[i].loco then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',F'+
              IntToSTR(Tablo_Actionneur[i].fonction)+','+intToSTR(Tablo_Actionneur[i].tempo)+
@@ -1660,6 +1670,10 @@ begin
   if Tablo_Actionneur[i].periph then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',ACC'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
 
+  if Tablo_Actionneur[i].vit then
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',V'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
+
+
   encode_act_loc_son:=s;
 end;
 
@@ -1675,7 +1689,7 @@ begin
     s:='';
 
     // par actionneur
-    if tablo_PN[i].Voie[1].ActFerme<>0 then
+    if tablo_pn[i].actionneur then
     begin
       for voie:=1 to NbVoies do
       begin
@@ -1685,7 +1699,7 @@ begin
     end
 
     else
-    // par détecteur
+    // par zones de détecteur
     begin
       s:='';
       for voie:=1 to NbVoies do
@@ -1736,12 +1750,18 @@ begin
 
   // entête
   // copie_commentaire;
-  s:='/ Fichier de configuration de signaux_complexes_GL version '+version+sousversion;
+  s:='/ Fichier de configuration de signaux_complexes_GL version '+versionSC+sousversion;
   writeln(fichierN,s);
   writeln(fichierN,largeurF_ch+'=',largeurF);
   writeln(fichierN,hauteurF_ch+'=',hauteurF);
   writeln(fichierN,OffsetXF_ch+'=',OffsetXF);
   writeln(fichierN,OffsetYF_ch+'=',OffsetYF);
+
+  writeln(fichierN,largeurFC_ch+'=',largeurFC);
+  writeln(fichierN,hauteurFC_ch+'=',hauteurFC);
+  writeln(fichierN,OffsetXFC_ch+'=',OffsetXFC);
+  writeln(fichierN,OffsetYFC_ch+'=',OffsetYFC);
+
   writeln(fichierN,PosSplitter_ch+'=',PosSplitter);
 
   writeln(fichierN,AvecVerifIconesTCO_ch+'=',AvecVerifIconesTCO);
@@ -1799,6 +1819,10 @@ begin
   // avec ou sans initialisation des aiguillages
   if AvecInitAiguillages then s:='1' else s:='0';
   writeln(fichierN,Init_Aig_ch+'='+s);
+
+  // avec ou sans initialisation des aiguillages
+  if PilotageTrainsCDMNom then s:='1' else s:='0';
+  writeln(fichierN,PilotageTrainsCDM_ch+'='+s);
 
   // avec ou sans demande de la position des aiguillages en mode autonome
   if AvecDemandeAiguillages then s:='1' else s:='0';
@@ -2040,6 +2064,37 @@ begin
     writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
+
+  // horloge
+  writeln(fichierN,'/------------');
+  writeln(fichierN,section_horloge_ch);
+  s:=horlogeInterne_ch+'=';
+  if horlogeInterne then s:=s+'1' else s:=s+'0';
+  writeln(fichierN,s);
+  s:=LanceHorl_ch+'=';
+  if LanceHorl then s:=s+'1' else s:=s+'0';
+  writeln(fichierN,s);
+  s:=AffHorl_ch+'=';
+  if AffHorl then s:=s+'1' else s:=s+'0';
+  writeln(fichierN,s);
+
+  s:=relanceHorl_init_ch+'=';
+  if relanceHorl_init then s:=s+'1' else s:=s+'0';
+  writeln(fichierN,s);
+
+  s:=HeureInit_ch+'='+intToSTR(HeureInit);
+  writeln(fichierN,s);
+  s:=MinuteInit_ch+'='+intToSTR(MinuteInit);
+  writeln(fichierN,s);
+  s:=RetourHeure_ch+'='+intToSTR(RetourHeure);
+  writeln(fichierN,s);
+  s:=RetourMinute_ch+'='+intToSTR(RetourMinute); 
+  writeln(fichierN,s);
+
+  s:=DureeMinute_ch+'='+intToSTR(DureeMinute);
+  writeln(fichierN,s);
+  writeln(fichierN,'0');
+
   closefile(fichierN);
 end;
 
@@ -2271,6 +2326,24 @@ var s,sa,SOrigine: string;
       // Aaiguillage = aiguillage
       s:=sOrigine;  // travailler en min/maj
 
+      // évènement actionneur par horloge
+      if (upcase(s[1])='H') then
+      begin
+        Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type horloge
+        Delete(s,1,1);
+        val(s,j,erreur);
+        Tablo_actionneur[maxtablo_act].adresse:=j; //heure
+        delete(s,1,erreur);
+        val(s,j,erreur);
+        Tablo_actionneur[maxtablo_act].adresse2:=j; // minute
+        delete(s,1,erreur);
+        i:=pos(',',s);
+        delete(s,1,i);
+        i:=pos(',',s);
+        delete(s,1,i);
+      end
+      else
+
       // évènement actionneur par aiguillage
       if (upcase(s[1])='A') then
       begin
@@ -2332,6 +2405,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].loco:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
         Tablo_actionneur[maxtablo_act].periph:=false;
+        Tablo_actionneur[maxtablo_act].vit:=false;
 
         delete(s,1,1);
         val(s,j,erreur);
@@ -2343,10 +2417,33 @@ var s,sa,SOrigine: string;
         Delete(s,1,erreur);
 
         Tablo_actionneur[maxTablo_act].trainDest:=s;
-        s:='';
 
         inc(maxTablo_act);
-      end;
+      end
+      else
+
+      if upcase(s[1])='V' then
+      begin
+        // -----------------vitesse
+        Tablo_actionneur[maxtablo_act].act:=false;
+        Tablo_actionneur[maxtablo_act].loco:=false;
+        Tablo_actionneur[maxtablo_act].son:=false;
+        Tablo_actionneur[maxtablo_act].periph:=false;
+        Tablo_actionneur[maxtablo_act].vit:=true;
+
+        delete(s,1,1);
+        i:=pos(',',s);
+        if i=0 then sa:=s;
+        sa:=copy(s,1,i-1);
+        val(sa,j,erreur);         
+        Tablo_actionneur[maxTablo_act].fonction:=j;
+        Delete(s,1,i);
+
+        Tablo_actionneur[maxTablo_act].trainDest:=s;
+
+        inc(maxTablo_act);
+      end
+      else
 
       if uppercase(copy(s,1,3))='ACC' then
       begin
@@ -2355,6 +2452,7 @@ var s,sa,SOrigine: string;
         Tablo_actionneur[maxtablo_act].loco:=false;
         Tablo_actionneur[maxtablo_act].son:=false;
         Tablo_actionneur[maxtablo_act].periph:=true;
+        Tablo_actionneur[maxtablo_act].vit:=false;
 
         delete(s,1,3);
         val(s,j,erreur);
@@ -2376,13 +2474,14 @@ var s,sa,SOrigine: string;
       end
       else
 
-      if length(s)>0 then if s[1]='"' then
+      if s[1]='"' then
       begin
         // -----------------son
         Tablo_actionneur[maxtablo_act].act:=false;
         Tablo_actionneur[maxtablo_act].son:=true;
         Tablo_actionneur[maxtablo_act].loco:=false;
         Tablo_actionneur[maxtablo_act].periph:=false;
+        Tablo_actionneur[maxtablo_act].vit:=false;
         delete(s,1,1);
         i:=pos('"',s);
         s:=copy(s,1,i-1);
@@ -2392,12 +2491,14 @@ var s,sa,SOrigine: string;
         inc(maxTablo_act);
       end
       else
+      // périphérique
       if length(s)>0 then if (upcase(s[1])='A') and (upcase(s[2])<>'C') then
       begin
         Tablo_actionneur[maxtablo_act].act:=true;
         Tablo_actionneur[maxtablo_act].son:=false;
         Tablo_actionneur[maxtablo_act].loco:=false;
         Tablo_actionneur[maxtablo_act].periph:=false;
+        Tablo_actionneur[maxtablo_act].vit:=false;
 
         delete(s,1,1);
         val(s,j,erreur);
@@ -2430,6 +2531,7 @@ var s,sa,SOrigine: string;
           if (i<j) and (i<>0) then
           begin
             // zone de détection
+            Tablo_PN[NbrePN].actionneur:=false;
             val(s,j,erreur);
             Tablo_PN[NbrePN].voie[NbreVoies].detZ1F:=j;
             delete(s,1,erreur);
@@ -2448,6 +2550,7 @@ var s,sa,SOrigine: string;
           else
           begin
             // actionneurs
+            Tablo_PN[NbrePN].actionneur:=true;
             val(s,j,erreur);
             Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
             //  Affiche('Ferme='+intToSTR(j),clyellow);
@@ -3052,37 +3155,132 @@ var s,sa,SOrigine: string;
         i:=pos(',',sa);Delete(sa,1,i);
         val(sa,i,erreur);
 
-        if (i<2) and (upcase(sa[1])<>'C') then // adresse ip ou Com
+        // si pas de protocole
+        if sa<>'' then
         begin
-          val(sa,i,erreur);
-          Tablo_periph[NbPeriph].dtr:=i=1;
-          i:=pos(',',sa);Delete(sa,1,i);
+          if (i<2) and (upcase(sa[1])<>'C') then // adresse ip ou Com
+          begin
+            val(sa,i,erreur);
+            Tablo_periph[NbPeriph].dtr:=i=1;
+            i:=pos(',',sa);Delete(sa,1,i);
 
-          val(sa,i,erreur);
-          Tablo_periph[NbPeriph].rts:=i=1;
-          i:=pos(',',sa);Delete(sa,1,i);
-        end;
+            val(sa,i,erreur);
+            Tablo_periph[NbPeriph].rts:=i=1;
+            i:=pos(',',sa);Delete(sa,1,i);
+          end;
 
-        Tablo_periph[NbPeriph].protocole:=uppercase(sa);
-        i:=com_socket(NbPeriph);
-        if i=1 then
-        begin
-          inc(NbPeriph_COMUSB);
-          Tablo_periph[NbPeriph].numComposant:=NbPeriph_COMUSB;
-        end;
-        if i=2 then
-        begin
-          inc(NbPeriph_socket);
-          Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
-        end;
-        if i=0 then Affiche('Erreur 96 : le périphérique '+Tablo_periph[NbPeriph].nom+' n''est pas reconnu comme COM/USB ou socket',clred);
+          Tablo_periph[NbPeriph].protocole:=uppercase(sa);
+          i:=com_socket(NbPeriph);
+          if i=1 then
+          begin
+            inc(NbPeriph_COMUSB);
+            Tablo_periph[NbPeriph].numComposant:=NbPeriph_COMUSB;
+          end;
+          if i=2 then
+          begin
+            inc(NbPeriph_socket);
+            Tablo_periph[NbPeriph].numComposant:=NbPeriph_socket;
+          end;
+          if i=0 then Affiche('Erreur 96 : le périphérique '+Tablo_periph[NbPeriph].nom+' n''est pas reconnu comme COM/USB ou socket',clred);
 
-        // extraire le numéro de com5:9600,n,8,1
-        i:=extract_int(sa);
-        if i=0 then Affiche('Erreur 97 - Port COM nul : '+sOrigine,clred);
-        Tablo_periph[NbPeriph].NumCom:=i;
+          // extraire le numéro de com5:9600,n,8,1
+          i:=extract_int(sa);
+          if i=0 then Affiche('Erreur 97 - Port COM nul : '+sOrigine,clred);
+          Tablo_periph[NbPeriph].NumCom:=i;
+        end;
       end;
     until (sOrigine='0') or (NbPeriph>=NbMaxi_Periph);
+  end;
+
+  procedure compile_horloge;
+  begin
+    repeat
+      lit_ligne;
+      if s<>'0' then
+      begin
+        sa:=uppercase(horlogeInterne_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          horlogeInterne:=s[1]='1';
+        end;
+
+        sa:=uppercase(LanceHorl_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          LanceHorl:=s[1]='1';
+        end;
+
+        sa:=uppercase(AffHorl_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          AffHorl:=s[1]='1';
+        end;
+
+        sa:=uppercase(relanceHorl_init_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          relanceHorl_init:=s[1]='1';
+        end;
+
+        sa:=uppercase(RetourHeure_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          val(s,RetourHeure,erreur);
+        end;
+
+        sa:=uppercase(RetourMinute_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          val(s,RetourMinute,erreur);
+        end;
+
+        sa:=uppercase(HeureInit_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          val(s,HeureInit,erreur);
+        end;
+
+        sa:=uppercase(MinuteInit_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          val(s,MinuteInit,erreur);
+        end;
+
+        sa:=uppercase(DureeMinute_ch);
+        i:=pos(sa,s);
+        if i=1 then
+        begin
+          inc(nv);
+          delete(s,i,length(sa)+1);
+          val(s,DureeMinute,erreur);
+        end;
+
+      end;
+    until (sOrigine='0') or (s='');
   end;
 
 
@@ -3195,6 +3393,39 @@ var s,sa,SOrigine: string;
         delete(s,i,length(sa));
         val(s,OffsetYF,erreur);
       end;
+
+      sa:=uppercase(LargeurFC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,LargeurFC,erreur);
+      end;
+
+      sa:=uppercase(HauteurFC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,HauteurFC,erreur);
+      end;
+
+      sa:=uppercase(OffsetXFC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,OffsetXFC,erreur);
+      end;
+
+      sa:=uppercase(OffsetYFC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,OffsetYFC,erreur);
+      end;
+
 
       sa:=uppercase(PosSplitter_ch)+'=';
       i:=pos(sa,s);
@@ -3417,6 +3648,16 @@ var s,sa,SOrigine: string;
         inc(nv);
         delete(s,i,length(sa));
         AvecInitAiguillages:=s='1';
+      end;
+
+      // avec ou sans initialisation des aiguillages
+      sa:=uppercase(PilotageTrainsCDM_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        PilotageTrainsCDMNom:=s='1';
       end;
 
       // avec demande de position des aiguillages en mode autonome au démarrage
@@ -3811,6 +4052,14 @@ var s,sa,SOrigine: string;
         compile_periph;
       end;
 
+      // section horloge
+      sa:=uppercase(section_horloge_ch);
+      if pos(sa,s)<>0 then
+      begin
+        compile_horloge;
+      end;
+
+
       inc(it);
     until (eof(fichier));
 
@@ -3890,7 +4139,11 @@ begin
     Detecteur[i].IndexTrain:=0;
     Ancien_detecteur[i]:=false;
   end;
-  //Affiche('Lecture du fichier de configuration '+NomConfig,clyellow);
+
+  GetDir(0,s);
+  Affiche('Lecture du fichier de configuration du répertoire',clYellow);
+  Affiche(s,clyellow);
+
   try
     assignFile(fichier,NomConfig);
     reset(fichier);
@@ -3911,6 +4164,7 @@ begin
     Srvc_tdcc:=false;
     TimoutMaxInterface:=7;
     AvecInitAiguillages:=true;
+    PilotageTrainsCDMNom:=true;
     AvecDemandeInterfaceUSB:=true;
     AvecDemandeInterfaceEth:=true;
     lay:='';
@@ -4177,6 +4431,7 @@ begin
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
     AffAigND:=CheckBoxMsgAigInc.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
+    PilotageTrainsCDMNom:=rgPilTrains.ItemIndex=1;
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
@@ -4261,7 +4516,6 @@ begin
 end;
 
 
-
 procedure champs_dec_centrale;
 var i,nombre : integer;
 begin
@@ -4286,8 +4540,8 @@ begin
     ComboL2[i].Visible:=false;
     ShapeT[i].Visible:=false;
   end;
-  
-  with FormConfig do 
+
+  with FormConfig do
   begin
     ComboBoxDecCde.Visible:=false;
     LabelTypCde.Visible:=false;
@@ -4506,10 +4760,20 @@ procedure maj_champs_combos(i: integer);
 var j,n : integer;
     s : string;
 begin
-  j:=com_socket(i);
   s:=Tablo_periph[i].nom;
+  j:=com_socket(i);
+  if (j<1) or (j>2) then
+  begin
+    Affiche('Erreur 170 : type périphérique inconnu='+intToSTR(j),clred);
+    exit;
+  end;
+  if i>NbMaxi_Periph then
+  begin
+    Affiche('Erreur 171 : index périphérique dépassé='+intToSTR(i),clred);
+    exit;
+  end;
   if j=1 then s:=s+' (COM'+intToSTR(Tablo_periph[i].NumCom)+')';
-  if j=2 then s:=s+Tablo_periph[i].nom+' ('+Tablo_periph[i].protocole+')';
+  if j=2 then s:=s+' ('+Tablo_periph[i].protocole+')';
   with formconfig do
   begin
     n:=comboBoxACCComUSB.Items.Count;
@@ -4791,6 +5055,24 @@ begin
     parent:=GroupBox5;
     ShowHint:=false;
     visible:=true;
+  end;
+
+  {$IFDEF CompilerVersion < 28.0}} //- Delphi7 -----------------------------------------
+  labelD11.Visible:=false;
+  {$ENDIF}
+
+  rgPilTrains:=TRadioGroup.Create(FormConfig.TabSheetPeriph);
+  with rgPilTrains do
+  begin
+    Left:=GroupBoxDivers.Left;Top:=GroupBoxDivers.top+GroupBoxDivers.Height+10;width:=GroupBoxDivers.width;Height:=55;
+    caption:='Méthode de pilotage des trains vers CDM Rail';
+    name:='gbPilTrains';
+    parent:=TabSheetCDM;
+    hint:='Choix du mode de pilotage des trains'+#13+
+          'par adresse ou par nom';
+    ShowHint:=true;
+    items.Add('par adresse de train');
+    items.Add('par nom de train');
   end;
 
   // création des champs dynamiques de l'onglet décodeurs
@@ -5126,7 +5408,7 @@ begin
     parent:=GroupBoxPNZ;
   end;
 
-  LbZPnVoie1:=Tlabel.create(formconfig.GroupBoxPNA);
+  LbZPnVoie1:=Tlabel.create(formconfig.GroupBoxPNZ);
   with LbZPnVoie1 do
   begin
     Left:=10;Top:=50;Width:=50;Height:=12;
@@ -5134,7 +5416,7 @@ begin
     name:='LbZPnVoie1';
     parent:=GroupBoxPNZ;
   end;
-  EditZDet1V1F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V1F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V1F do
   begin
     Name:='EditZDet1V1F';
@@ -5145,7 +5427,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V1F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V1F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V1F do
   begin
     Name:='EditZDet2V1F';
@@ -5156,7 +5438,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet1V1O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V1O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V1O do
   begin
     Name:='EditZDet1V1O';
@@ -5167,7 +5449,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V1O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V1O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V1O do
   begin
     Name:='EditZDet2V1O';
@@ -5179,7 +5461,7 @@ begin
     onChange:=formConfig.modif_editT;
   end;
 
-  LbZPnVoie2:=Tlabel.create(formconfig.GroupBoxPNA);
+  LbZPnVoie2:=Tlabel.create(formconfig.GroupBoxPNZ);
   with LbZPnVoie2 do
   begin
     Left:=10;Top:=74;Width:=40;Height:=12;
@@ -5187,7 +5469,7 @@ begin
     name:='LbZPnVoie2';
     parent:=GroupBoxPNZ;
   end;
-  EditZDet1V2F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V2F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V2F do
   begin
     Name:='EditZDet1V2F';
@@ -5198,7 +5480,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V2F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V2F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V2F do
   begin
     Name:='EditZDet2V2F';
@@ -5209,7 +5491,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet1V2O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V2O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V2O do
   begin
     Name:='EditZDet1V2O';
@@ -5220,7 +5502,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V2O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V2O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V2O do
   begin
     Name:='EditZDet2V2O';
@@ -5233,7 +5515,7 @@ begin
   end;
 
   // voie 3
-  LbZPnVoie3:=Tlabel.create(formconfig.GroupBoxPNA);
+  LbZPnVoie3:=Tlabel.create(formconfig.GroupBoxPNZ);
   with LbZPnVoie3 do
   begin
     Left:=10;Top:=98;Width:=50;Height:=12;
@@ -5241,7 +5523,7 @@ begin
     name:='LbZPnVoie3';
     parent:=GroupBoxPNZ;
   end;
-  EditZDet1V3F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V3F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V3F do
   begin
     Name:='EditZDet1V3F';
@@ -5252,7 +5534,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V3F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V3F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V3F do
   begin
     Name:='EditZDet2V3F';
@@ -5263,7 +5545,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet1V3O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V3O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V3O do
   begin
     Name:='EditZDet1V3O';
@@ -5274,7 +5556,7 @@ begin
     showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V3O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V3O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V3O do
   begin
     Name:='EditZDet2V3O';
@@ -5286,7 +5568,7 @@ begin
     onChange:=formConfig.modif_editT;
   end;
   // voie 4
-  LbZPnVoie4:=Tlabel.create(formconfig.GroupBoxPNA);
+  LbZPnVoie4:=Tlabel.create(formconfig.GroupBoxPNZ);
   with LbZPnVoie4 do
   begin
     Left:=10;Top:=122;Width:=50;Height:=12;
@@ -5294,7 +5576,7 @@ begin
     name:='LbZPnVoie4';
     parent:=GroupBoxPNZ;
   end;
-  EditZDet1V4F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V4F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V4F do
   begin
     Name:='EditZDet1V4F';
@@ -5305,7 +5587,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V4F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V4F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V4F do
   begin
     Name:='EditZDet2V4F';
@@ -5316,7 +5598,7 @@ begin
     parent:=GroupBoxPNZ;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet1V4O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V4O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V4O do
   begin
     Name:='EditZDet1V4O';
@@ -5327,7 +5609,7 @@ begin
     showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V4O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V4O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V4O do
   begin
     Name:='EditZDet2V4O';
@@ -5339,7 +5621,7 @@ begin
     onChange:=formConfig.modif_editT;
   end;
   // voie 5
-  LbZPnVoie5:=Tlabel.create(formconfig.GroupBoxPNA);
+  LbZPnVoie5:=Tlabel.create(formconfig.GroupBoxPNZ);
   with LbZPnVoie5 do
   begin
     Left:=10;Top:=146;Width:=50;Height:=12;
@@ -5347,7 +5629,7 @@ begin
     name:='LbZPnVoie5';
     parent:=GroupBoxPNZ;
   end;
-  EditZDet1V5F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V5F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V5F do
   begin
     Name:='EditZDet1V5F';
@@ -5358,7 +5640,7 @@ begin
     showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V5F:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V5F:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V5F do
   begin
     Name:='EditZDet2V5F';
@@ -5369,7 +5651,7 @@ begin
     showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet1V5O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet1V5O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet1V5O do
   begin
     Name:='EditZDet1V5O';
@@ -5380,7 +5662,7 @@ begin
     showhint:=true;
     onChange:=formConfig.modif_editT;
   end;
-  EditZDet2V5O:=TEdit.create(FormConfig.GroupBoxPNA);
+  EditZDet2V5O:=TEdit.create(FormConfig.GroupBoxPNZ);
   with EditZDet2V5O do
   begin
     Name:='EditZDet2V5O';
@@ -5719,7 +6001,7 @@ begin
     Left:=200;Top:=cbDTR.top+20;Width:=100;Height:=17;
     caption:='RTS';
     name:='cbRTS';
-    hint:='COM/USB uniquement : mise à 0 ou 1 de ligne RTS';
+    hint:='COM/USB uniquement : mise à 0 ou 1 de la ligne RTS';
     ShowHint:=true;
     onclick:=formconfig.cb_onclick;
   end;
@@ -5762,17 +6044,14 @@ begin
   ComboStyle.itemIndex:=Style_Aff;
   CheckBoxSombre.Visible:=false;
   ButtonCouleur.Visible:=false;
-
-  {$ELSE} //- Delphi7 -----------------------------------------
-  labelD11.Visible:=false;
-  GroupBoxDivers.Height:=180;
   {$IFEND}
+
 
   // onglet avancé
   LabelAvance1:=TLabel.Create(FormConfig.TabAvance);
   with LabelAvance1 do
   begin
-    Left:=10;Top:=10;Width:=180;Height:=12;
+    Left:=10;Top:=10;Width:=208;Height:=12;
     caption:='Paramètres avancés et experts';
     name:='LabelAvance1';
     Font.Style:=[fsBold];
@@ -5789,7 +6068,7 @@ begin
     parent:=TabAvance;
   end;
 
-  x:=GroupBoxAvance.width-50;
+  x:=GroupBoxAvance.width-40;
   LabelTD:=TLabel.Create(FormConfig.TabAvance);
   with LabelTD do
   begin
@@ -5835,7 +6114,7 @@ begin
   with LabelFiltre do
   begin
     Left:=10;Top:=70;Width:=170;Height:=12;
-    caption:='Filtrage des détecteurs (x100 ms)';
+    caption:='Filtrage des détecteurs (x100 ms) - Mode autonome';
     name:='LabelFiltre';
     parent:=GroupBoxAvance;
   end;
@@ -5846,7 +6125,7 @@ begin
     name:='EditFiltrDet';
     text:='';
     parent:=GroupBoxAvance;
-    hint:='Temps de filtrage des détecteurs qui passent à 0';
+    hint:='Temps de filtrage des détecteurs qui passent à 0'+#13+'Mode autonome uniquement';
     ShowHint:=true;
   end;
 
@@ -6430,12 +6709,48 @@ begin
     GroupBox19.Height:=96;
     ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
 
-    with RadioGroupDecl do
-    begin
-      top:=GroupBox18.Top;
-      Width:=GroupBox18.width-15;
-      Height:=74;
-    end;
+  end;
+end;
+
+procedure champs_type_vit;
+begin
+  with formconfig do
+  begin
+    positionne;
+    CheckRaz.Visible:=false;
+    ComboBoxAccComUSB.Visible:=false;
+    GroupBoxAct.Caption:='Action pour vitesse locomotive';
+
+    editTrainDest.Hint:='Train(s) destinataire(s) de la vitesse';
+    LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
+    LabelFonction.visible:=true;
+    LabelFonction.caption:='Vitesse';
+    EditFonctionAccess.Hint:='Une vitesse positive ou négative contrôle le sens'+#13+
+                             'Une vitesse nulle arrête le train';
+
+    RadioButtonLoc.Checked:=false;
+    RadioButtonAccess.Checked:=false;
+    RadioButtonSon.Checked:=false;
+    RadioButtonCde.Checked:=false;
+    RadioButtonVit.Checked:=true;
+
+    EditFonctionAccess.Top:=14;
+    LabelFonction.Top:=18;
+
+    editTempo.Visible:=false;
+    labelTempo.visible:=false;
+    GroupBoxAct.Visible:=true;
+    GroupBoxPN.Visible:=false;
+    GroupBoxPNA.Visible:=false;
+    GroupBoxPNZ.Visible:=false;
+    EditSon.Visible:=false;
+    SpeedButtonJoue.Visible:=false;
+    SpeedButtonCharger.Visible:=false;
+    EditFonctionAccess.Visible:=true;
+    LabelNomSon.Visible:=false;
+    editTrainDest.Visible:=true;
+    label42.Visible:=true;
+    Label42.caption:='Train dest';
   end;
 end;
 
@@ -6456,6 +6771,7 @@ begin
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.Checked:=false;
     RadioButtonCde.Checked:=false;
+    RadioButtonVit.Checked:=false;
     EditFonctionAccess.Top:=14;
     LabelFonction.Top:=18;
 
@@ -6494,6 +6810,7 @@ begin
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.Checked:=false;
     RadioButtonCde.Checked:=true;
+    RadioButtonVit.Checked:=false;
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
     GroupBoxPNA.Visible:=false;
@@ -6526,10 +6843,12 @@ begin
     RadioButtonLoc.Checked:=false;
     RadioButtonSon.checked:=false;
     RadioButtonAccess.Checked:=true;
+    RadioButtonVit.Checked:=false;
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
     GroupBoxPNA.Visible:=false;
     GroupBoxPNZ.Visible:=false;
+
     EditFonctionAccess.Top:=14;
     LabelFonction.Top:=18;
     EditSon.Visible:=false;
@@ -6567,6 +6886,7 @@ begin
     RadioButtonAccess.Checked:=false;
     RadioButtonSon.checked:=true;
     RadioButtonCde.Checked:=false;
+    RadioButtonVit.Checked:=false;
 
     GroupBoxAct.Visible:=true;
     GroupBoxPN.Visible:=false;
@@ -6574,6 +6894,26 @@ begin
     GroupBoxPNZ.Visible:=false;
     editTrainDest.Visible:=false;
     label42.Visible:=false;
+  end;
+end;
+
+procedure champs_decl_horloge;
+begin
+  with formconfig do
+  begin
+    EditTrainDecl.Visible:=false;
+    LabelTrain.Visible:=true;
+    radioButtonActDet.Checked:=false;
+    radioButtonZones.Checked:=false;
+    radioButtonAig.Checked:=false;
+    radioButtonHorl.Checked:=true;
+    editact2.Visible:=true;
+    LabelActionneur.Caption:='Heure'+#13+'Minute';
+    EditEtatActionneur.visible:=false;
+    EditAct.Hint:='Heure ';
+    EditAct2.Hint:='Minute';
+    Label30.visible:=false;
+    LabelTrain.Visible:=false;
   end;
 end;
 
@@ -6586,6 +6926,7 @@ begin
     radioButtonActDet.Checked:=true;
     radioButtonZones.Checked:=false;
     radioButtonAig.Checked:=false;
+    radioButtonHorl.Checked:=false;
     editact2.Visible:=false;
     LabelActionneur.Caption:='Actionneur Détecteur';
     EditEtatActionneur.Hint:='0 ou 1';
@@ -6600,6 +6941,7 @@ begin
     radioButtonActDet.Checked:=false;
     radioButtonZones.Checked:=true;
     radioButtonAig.Checked:=false;
+    radioButtonHorl.Checked:=false;
     EditTrainDecl.Visible:=false;
     LabelTrain.Visible:=false;
     editact2.Visible:=true;
@@ -6616,9 +6958,11 @@ begin
     radioButtonActDet.Checked:=false;
     radioButtonZones.Checked:=false;
     radioButtonAig.Checked:=true;
+    radioButtonHorl.Checked:=false;
     EditAct2.Visible:=false;
     EditTrainDecl.Visible:=false;
     LabelTrain.Visible:=false;
+    editEtatActionneur.Visible:=true;
     editact2.Visible:=false;
     LabelActionneur.Caption:='Aiguillage';
     EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
@@ -6672,10 +7016,12 @@ begin
     ComboBoxDec.ItemIndex:=Signaux[index].decodeur;
 
     decodeur:=Signaux[index].decodeur;
+    d:=Signaux[index].aspect;
     ButtonConfigSR.Visible:=false;
 
     case decodeur of
-    2,7 : ButtonConfigSR.Visible:=true;
+    2 : if not(isDirectionnel(index)) then ButtonConfigSR.Visible:=true; //cdf
+    7 : ButtonConfigSR.Visible:=true;
     5 : ButtonConfigSR.Visible:=true ; // digikeijs
     6 : begin
         EditSpecUni.Visible:=true;
@@ -6706,7 +7052,7 @@ begin
 
   // plus tard !!  if decodeur>=11 then ButtonConfigSR.Visible:=true;
 
-  d:=Signaux[index].aspect;
+
   case d of
     2 : ComboBoxAsp.ItemIndex:=0;
     3 : ComboBoxAsp.ItemIndex:=1;
@@ -6889,7 +7235,7 @@ end;
 
 // mise à jour des champs graphiques des actionneurs d'après l'index du tableau
 Procedure aff_champs_act(i : integer);
-var j,etatact, adresse,sortie,fonction,tempo,access,typ : integer;
+var j,adresse,sortie,fonction,tempo,access,typ : integer;
     trainDecl,s,s2,adr : string;
 begin
   if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
@@ -6910,7 +7256,7 @@ begin
   with formconfig do
   begin
     case typ of
-    0 :
+    0 :        // act det
     begin
       champs_decl_actdet;
       editAct.Text:=intToSTR(Tablo_actionneur[i].adresse);
@@ -6918,14 +7264,17 @@ begin
       editEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].sortie);
       EditTrainDecl.Text:=TrainDecl;
     end;
-    3 :
-    begin
-      champs_decl_zones;
-    end;
-    2 :
-    begin
-      champs_decl_aig;
-    end;
+    1 : begin
+          champs_decl_horloge;
+          EditAct.text:=intToSTR(tablo_actionneur[i].adresse);
+          EditAct2.text:=intToSTR(tablo_actionneur[i].adresse2);
+        end;
+    3 : champs_decl_zones;
+    2 : begin
+         editEtatActionneur.Text:=intToSTR(Tablo_actionneur[i].etat);
+         editAct.text:=intToSTR(Tablo_actionneur[i].adresse);
+         champs_decl_aig;
+        end;
     end;
   end;
 
@@ -6938,7 +7287,6 @@ begin
     champs_type_loco;
     formconfig.editAct2.Text:=IntToSTR(Tablo_actionneur[i].adresse2);
 
-    etatAct:=Tablo_actionneur[i].etat;
     Adresse:=Tablo_actionneur[i].adresse;
     //s2:=Tablo_actionneur[i].trainDecl;
     //trainsauve:=s2;
@@ -6950,8 +7298,7 @@ begin
       adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
       EditAct.text:=adr;
       EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
-      editEtatActionneur.Text:=IntToSTR(etatAct);
-      //EditTrainDecl.Text:=s2;
+      editEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
       EditTrainDecl.Text:=trainDecl;
       EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
       editFonctionAccess.Text:=intToSTR(fonction);
@@ -6963,7 +7310,6 @@ begin
   if Tablo_actionneur[i].act then
   begin
     champs_type_act;
-    etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     sortie:=Tablo_actionneur[i].sortie;
     //s2:=Tablo_actionneur[i].trainDecl;
@@ -6977,7 +7323,7 @@ begin
       CheckRaz.Checked:=Tablo_actionneur[i].Raz;
       //EditTrainDecl.Text:=s2;
       EditTrainDecl.Text:=trainDecl;
-      EditEtatActionneur.Text:=IntToSTR(etatAct);
+      EditEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
       editFonctionAccess.Text:=intToSTR(Access);
       editEtatFoncSortie.Text:=intToSTR(sortie);
       editTempo.Text:=intToSTR(tempo);
@@ -7003,7 +7349,6 @@ begin
       LabelActionneur.Caption:='Mémoire de Zone';
     end;
 
-    etatAct:=Tablo_actionneur[i].etat ;
     Adresse:=Tablo_actionneur[i].adresse;
     s2:=Tablo_actionneur[i].trainDecl;
     //trainsauve:=s2;
@@ -7017,19 +7362,35 @@ begin
       //EditTrainDecl.Text:=s2;
       EditTrainDecl.Text:=trainDecl;
       EditSon.Text:=s;
-      EditEtatActionneur.Text:=IntToSTR(etatAct);
+      EditEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
     end;
   end;
 
+  // périphérique
   if Tablo_actionneur[i].periph then
   begin
     champs_type_periph;
     with formConfig do
     begin
       ComboBoxAccComUSB.ItemIndex:=Tablo_actionneur[i].fonction-1;
+      EditAct.text:=inttostr(Tablo_actionneur[i].adresse);
+      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
       EditEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].etat);
       EditTrainDest.text:=Tablo_actionneur[i].TrainDest;
       EditTrainDecl.Text:=trainDecl;
+    end;
+  end;
+
+  // vitesse
+  if Tablo_actionneur[i].vit then
+  begin
+    champs_type_vit;
+    with formConfig do
+    begin
+    //  EditAct.text:=inttostr(Tablo_actionneur[i].adresse);
+  //    EditTrainDecl.Text:=trainDecl;
+      EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
+      editFonctionAccess.Text:=intToSTR(fonction);
     end;
   end;
 
@@ -7120,10 +7481,19 @@ var erreur,j,v,periph : integer;
     trouve : boolean;
     s : string;
 begin
+
   if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
-  if i<1 then exit;
+  if i<1 then
+  begin
+    clicliste:=false;
+    exit;
+  end;
   s:=Uppercase(FormConfig.ListBoxPN.items[i-1]);
-  if s='' then exit;
+  if s='' then
+  begin
+    clicliste:=false;
+    exit;
+  end;
 
   with formconfig do
   begin
@@ -7158,10 +7528,12 @@ begin
       CheckPnPulse.Checked:=trouve;
 
       // par actionneur
-      if Tablo_PN[i].voie[1].detZ2F=0 then
+      if Tablo_PN[i].actionneur then
       begin
         RadioButtonSimple.Checked:=true;
         RadioButtonZone.Checked:=false;
+        GroupBoxPNA.Visible:=true;
+        GroupBoxPNZ.Visible:=false;
         EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
         EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
         v:=Tablo_PN[i].nbvoies;
@@ -7192,6 +7564,8 @@ begin
         // par zone de détecteurs
         RadioButtonSimple.Checked:=false;
         RadioButtonZone.Checked:=true;
+        GroupBoxPNA.Visible:=false;
+        GroupBoxPNZ.Visible:=true;
         v:=Tablo_PN[i].nbvoies;
         j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then
         begin
@@ -7229,8 +7603,9 @@ begin
           end;
         end;
       end;
-    end;  
-  end
+    end;
+  end;
+  clicliste:=false;
 end;
 
 procedure raz_champs_act;
@@ -7846,7 +8221,7 @@ begin
     // digital bahn
     1: if aspect=20 then begin result:=false;if aff then Affiche('Erreur 340 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
     // cdf
-    2: if (aspect>10) and (aspect<20) then begin result:=false;if aff then Affiche('Erreur 341 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
+    2: if (aspect>=20) then begin result:=false;if aff then Affiche('Erreur 341 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
     // ls dec sncf
     3 : if (aspect>10) then begin result:=false;if aff then Affiche('Erreur 342 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
     // LEB
@@ -8284,7 +8659,7 @@ end;
 
 procedure TFormConfig.EditActChange(Sender: TObject);
 var s,s2 : string;
-    act,erreur,det2,suiv : integer;
+    typ,act,erreur,det2,suiv : integer;
     elsuiv : tEquipement;
     de : boolean;
 begin
@@ -8295,26 +8670,39 @@ begin
   with Formconfig do
   begin
     s:=EditAct.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked  or radioButtonCde.checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or radioButtonCde.checked or RadioButtonVit.checked then
     begin
       Val(s,act,erreur);
       if (s='') or (act<1) then exit;
+      typ:=Tablo_Actionneur[ligneClicAct+1].typdeclenche;
 
-      // 0=actionneur/détecteur  2=evt aig  3=MemZone
-      if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=3) or (Tablo_Actionneur[ligneClicAct+1].typdeclenche=0) then
-        s2:='Actionneur/Détecteur ';
-      if (Tablo_Actionneur[ligneClicAct+1].typdeclenche=2) then s2:='Aiguillage ';
+      // 0=actionneur/détecteur  1=horloge 2=evt aig  3=MemZone
+      if (typ=3) or (typ=0) then s2:='Actionneur/Détecteur ';
+      if (typ=2) then s2:='Aiguillage ';
+      if (typ=1) then s2:='heure ';
 
       EditAct.Hint:=s2+intToSTR(act);
+
+      if typ=1 then
+      begin
+        if (act<0) or (act>23) or (erreur<>0) then
+        begin
+          LabelInfo.caption:='Erreur heure';
+          exit;
+        end;
+      end;
 
       de:=pos('Z',s)<>0;    // si détecteur
       if de then delete(s,erreur,1);
       Val(s,act,erreur);
       if erreur<>0 then
       begin
-        LabelInfo.caption:='Erreur adresse actionneur';exit
-      end else LabelInfo.caption:=' ';
+        LabelInfo.caption:='Erreur adresse actionneur';
+        exit;
+      end;
 
+
+      LabelInfo.caption:=' ';
       tablo_actionneur[ligneClicAct+1].adresse:=act;
       s:=encode_act_loc_son(ligneClicAct+1);
       ListBoxAct.Items[ligneClicAct]:=s;
@@ -8346,26 +8734,40 @@ begin
   with Formconfig do
   begin
     s:=EditAct2.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
+    //if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
     begin
       Val(s,det2,erreur);
       if (s='') or (det2<1) then exit;
+
+      if tablo_actionneur[ligneClicAct+1].typdeclenche=1 then
+      begin
+        if (det2<0) or (det2>60) or (erreur<>0) then
+        begin
+          LabelInfo.caption:='Erreur minute';
+          exit;
+        end;
+      end;
+
       if erreur<>0 then
       begin
-        LabelInfo.caption:='Erreur adresse détecteur';exit
-      end else LabelInfo.caption:=' ';
+        LabelInfo.caption:='Erreur adresse détecteur';
+        exit
+      end;
+      LabelInfo.caption:=' ';
 
       tablo_actionneur[ligneClicAct+1].adresse2:=det2;
       s:=encode_act_loc_son(ligneClicAct+1);
       ListBoxAct.Items[ligneClicAct]:=s;
 
-      // vérifier si les détecteurs sont contigus
-      Val(EditAct.Text,det1,erreur);
-      if (erreur<>0) or (det1<1) then exit;
-      det_contigu(det1,det2,suiv,elSuiv);
-      if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(det1)+' et '+intToSTR(det2)+' ne sont pas contigus'
-      else LabelInfo.Caption:='';
-
+      // vérifier si les détecteurs sont contigus si on est en zone
+      if Tablo_Actionneur[ligneClicAct+1].typdeclenche=3 then
+      begin
+        Val(EditAct.Text,det1,erreur);
+        if (erreur<>0) or (det1<1) then exit;
+        det_contigu(det1,det2,suiv,elSuiv);
+        if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(det1)+' et '+intToSTR(det2)+' ne sont pas contigus'
+        else LabelInfo.Caption:='';
+      end;
     end;
   end;
 end;
@@ -8398,12 +8800,12 @@ var s : string;
     etat,erreur,typ : integer;
 begin
   if clicliste then exit;
-  if affevt then affiche('Evt EditActionneur Change',clyellow);
+  if affevt then affiche('Evt EditEtatActionneur Change',clyellow);
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
     s:=upperCase(EditEtatActionneur.Text);
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or RadioButtonCde.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
     begin
       typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
       if (typ=2) and (s<>'') then  // aiguillage
@@ -8470,7 +8872,7 @@ begin
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
-    if radioButtonLoc.Checked or RadioButtonCde.Checked then
+    if radioButtonLoc.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
     begin
       train:=EditTrainDest.Text;
       if train='' then
@@ -8523,15 +8925,24 @@ begin
   with Formconfig do
   begin
     s:=EditFonctionAccess.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonCde.Checked then
+    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
     begin
+      LabelInfo.caption:=' ';
       Val(s,fonction,erreur);
+      if RadioButtonVit.checked then
+      begin
+        if (erreur<>0) or (abs(fonction)>127) then
+        begin
+          LabelInfo.caption:='Erreur vitesse';exit;
+        end;
+      end
+      else
       if (erreur<>0) or (fonction<1) then
       begin
         LabelInfo.caption:='Erreur fonction actionneur';exit
-      end else LabelInfo.caption:=' ';
+      end;
 
-      if radioButtonLoc.Checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
+      if radioButtonLoc.Checked or RadioButtonVit.checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
       if RadioButtonAccess.Checked then Tablo_Actionneur[ligneClicAct+1].accessoire:=fonction;
       
       s:=encode_act_loc_son(ligneClicAct+1);
@@ -8743,6 +9154,7 @@ begin
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
   Tablo_Actionneur[i].periph:=false;
+  Tablo_Actionneur[i].vit:=false;
   champs_type_loco;
 
   val(editact.Text,champ,erreur);
@@ -8777,6 +9189,7 @@ begin
   Tablo_Actionneur[i].Act:=true;
   Tablo_Actionneur[i].Son:=false;
   Tablo_Actionneur[i].periph:=false;
+  Tablo_Actionneur[i].vit:=false;
   champs_type_act;
 
   val(editact.Text,champ,erreur);
@@ -8812,6 +9225,7 @@ begin
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=true;
   Tablo_Actionneur[i].periph:=false;
+  Tablo_Actionneur[i].vit:=false;
 
   champs_type_son;
 
@@ -8845,6 +9259,8 @@ begin
   Tablo_Actionneur[i].Act:=false;
   Tablo_Actionneur[i].Son:=false;
   Tablo_Actionneur[i].periph:=true;
+  Tablo_Actionneur[i].vit:=false;
+
   champs_type_periph;
 
   val(editact.Text,champ,erreur);
@@ -8869,6 +9285,41 @@ begin
   ListBoxAct.Items[ligneClicAct]:=s;
   ListBoxAct.Selected[ligneClicAct]:=true;
 end;
+
+procedure TFormConfig.RadioButtonVitClick(Sender: TObject);
+var j,champ,i,erreur : integer;
+    s,train : string;
+begin
+  if clicListe or (ligneclicAct<0) then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioVit '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].loco:=false;
+  Tablo_Actionneur[i].Act:=false;
+  Tablo_Actionneur[i].Son:=false;
+  Tablo_Actionneur[i].periph:=false;
+  Tablo_Actionneur[i].vit:=true;
+
+  champs_type_vit;
+
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  train:=EditTrainDecl.Text;
+  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
+  tablo_actionneur[i].TrainDecl:=train;
+
+
+  val(editFonctionAccess.Text,champ,erreur);  // vitesse
+  Tablo_actionneur[i].fonction:=champ;
+  tablo_actionneur[i].TrainDest:=editTrainDest.Text;
+
+  s:=encode_act_loc_son(i);
+  ListBoxAct.Items[ligneClicAct]:=s;
+  ListBoxAct.Selected[ligneClicAct]:=true;
+
+end;
+
 
 procedure TFormConfig.RichPNMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -9849,7 +10300,7 @@ begin
         ok:=false;
       end;
     end;
-    if nc=2 then // cdf
+    if (nc=2) and not(isDirectionnel(j)) then // cdf
     begin
       if Signaux[j].Na=0 then
       begin
@@ -10262,7 +10713,7 @@ begin
       model:=BrancheN[i][j].BType;  // 1= détecteur  2= aiguillage  4=Buttoir
       trouvePrec:=false;
 
-      if (model=aig) or (model=Tjd) or (model=Tjs) then
+      if (model=aig) then
       begin
         k:=index_aig(detect);
         // comparer au précédent
@@ -10276,6 +10727,19 @@ begin
               if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
               if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
               if aiguillage[k].APointe=AncAdr then trouvePrec:=true;
+            end;
+            if aiguillage[k].modele=crois then
+            begin
+              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
+            end;
+            if aiguillage[k].modele=triple then
+            begin
+              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
+              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
+              if aiguillage[k].Adevie2=AncAdr then trouvePrec:=true;
             end;
             if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
             begin
@@ -10297,13 +10761,6 @@ begin
                 if aiguillage[l].Ddevie=AncAdr then trouvePrec:=true;
               end;
             end;
-            if aiguillage[k].modele=crois then
-            begin
-              if aiguillage[k].ADroit=AncAdr then trouvePrec:=true;
-              if aiguillage[k].ADevie=AncAdr then trouvePrec:=true;
-              if aiguillage[k].Ddroit=AncAdr then trouvePrec:=true;
-              if aiguillage[k].Ddevie=AncAdr then trouvePrec:=true;
-            end;
 
             if not(trouvePrec) then
             begin
@@ -10321,6 +10778,13 @@ begin
               if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
               if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
               if aiguillage[k].APointe=SuivAdr then trouveSuiv:=true;
+            end;
+            if aiguillage[k].modele=Triple then
+            begin
+              if aiguillage[k].ADroit=SuivAdr then trouveSuiv:=true;
+              if aiguillage[k].ADevie=SuivAdr then trouveSuiv:=true;
+              if aiguillage[k].APointe=SuivAdr then trouveSuiv:=true;
+              if aiguillage[k].ADevie2=SuivAdr then trouveSuiv:=true;
             end;
             if (aiguillage[k].modele=Tjd) or (aiguillage[k].modele=TjS) then
             begin
@@ -11831,7 +12295,7 @@ begin
   val(EditAct.Text,Adr,erreur);
   val(EditAct2.Text,Adr2,erreur);
   Ancien_actionneur[adr]:=0;
-  Event_act(adr,adr2,etat,'');
+  Event_act(adr,adr2,etat,'',false);
 end;
 
 procedure TFormConfig.RadioButtonActDetClick(Sender: TObject);
@@ -11842,6 +12306,8 @@ begin
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
   Tablo_Actionneur[i].typdeclenche:=0;
+  Label30.Visible:=true;
+  EditEtatActionneur.Visible:=true;
   LabelActionneur.Caption:='Actionneur Détecteur';
   editAct2.Visible:=false;
   EditTrainDecl.Visible:=true;
@@ -11884,6 +12350,8 @@ begin
   i:=ligneClicAct+1;
   if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
   Tablo_Actionneur[i].typdeclenche:=3;
+  Label30.Visible:=true;
+  EditEtatActionneur.Visible:=true;
   LabelActionneur.Caption:='Mémoire de Zone';
   EditTrainDecl.Visible:=false;
   LabelTrain.Visible:=false;
@@ -11923,6 +12391,8 @@ begin
   EditTrainDecl.Visible:=false;
   LabelTrain.Visible:=false;
   editAct2.Visible:=false;
+  Label30.Visible:=true;
+  EditEtatActionneur.Visible:=true;
   //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
 
   EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
@@ -11944,6 +12414,42 @@ begin
   EditAct.Hint:='Aiguillage '+intToSTR(Tablo_actionneur[i].adresse);
 end;
 
+procedure TFormConfig.RadioButtonHorlClick(Sender: TObject);
+var i,champ,erreur : integer;
+    s : string;
+begin
+  if clicListe or (ligneclicAct<0) then exit;
+  i:=ligneClicAct+1;
+  if AffEvt then Affiche('RadioBoutonHorl '+IntToSTR(i),clyellow);
+  Tablo_Actionneur[i].typdeclenche:=1;
+  LabelActionneur.Caption:='Heure'+#13+'Minute';
+  EditTrainDecl.Visible:=false;
+  LabelTrain.Visible:=false;
+  editAct2.Visible:=true;
+  Label30.Visible:=false;
+  EditEtatActionneur.Visible:=false;
+
+  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
+
+  //EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
+  //Tablo_actionneur[i].trainDecl:='X';
+  val(editact.Text,champ,erreur);
+  Tablo_actionneur[i].adresse:=champ ;
+  val(editEtatActionneur.Text,champ,erreur);
+  Tablo_actionneur[i].etat:=champ;
+  val(editFonctionAccess.Text,champ,erreur);
+  Tablo_actionneur[i].fonction:=champ;
+  val(editEtatFoncSortie.Text,champ,erreur);
+  Tablo_actionneur[i].sortie:=champ;
+  val(editTempo.Text,champ,erreur);
+  Tablo_actionneur[i].tempo:=champ;
+  tablo_actionneur[i].Raz:=checkRaz.checked;
+  s:=encode_act_loc_son(i);
+  ListBoxAct.Items[ligneClicAct]:=s;
+  ListBoxAct.Selected[ligneClicAct]:=true;
+  EditAct.Hint:='heure';
+  EditAct2.Hint:='minute';
+end;
 
 procedure TFormConfig.SpeedButtonChargerClick(Sender: TObject);
 var s: string;
@@ -12778,6 +13284,42 @@ begin
   end;
 end;
 
+// vérifie si une voie d'un PN actionneurs est nulle
+function ligne_vide_actPN(voie : integer) : boolean;
+var s : string;
+    t1,t2 : tedit;
+    v1,v2,erreur : integer;
+begin
+  s:='EditV'+intToSTR(voie)+'F';
+  t1:=FormConfig.GroupBoxPNA.findComponent(s) as tedit;
+  s:='EditV'+intToSTR(voie)+'O';
+  t2:=FormConfig.GroupBoxPNA.findComponent(s) as tedit;
+  val(t1.Text,v1,erreur);
+  val(t2.Text,v2,erreur);
+  result:=(v1=0) and (v2=0);
+end;
+
+// vérifie si une voie d'un PN zones de détection est nulle
+function ligne_vide_ZonesPN(voie : integer) : boolean;
+var s : string;
+    t1,t2,t3,t4 : tedit;
+    v1,v2,v3,v4,erreur : integer;
+begin
+  s:='EditZDet1V'+intToSTR(voie)+'F';
+  t1:=FormConfig.GroupBoxPNZ.findComponent(s) as tedit;
+  s:='EditZDet2V'+intToSTR(voie)+'F';
+  t2:=FormConfig.findComponent(s) as tedit;
+  s:='EditZDet1V'+intToSTR(voie)+'O';
+  t3:=FormConfig.findComponent(s) as tedit;
+  s:='EditZDet2V'+intToSTR(voie)+'O';
+  t4:=FormConfig.findComponent(s) as tedit;
+  val(t1.Text,v1,erreur);
+  val(t2.Text,v2,erreur);
+  val(t3.Text,v3,erreur);
+  val(t4.Text,v4,erreur);
+  result:=(v1=0) and (v2=0) and (v3=0) and (v4=0);
+end;
+
 // modif editT
 procedure Tformconfig.modif_editT(Sender : TObject);
 var te : tEdit;
@@ -12785,7 +13327,6 @@ var te : tEdit;
     ouvre,ferme,v2Valide,v3valide,v4valide,v5valide : boolean;
     s,sb : string;
 begin
-  if deccourant=0 then exit;
   te:=Sender as Tedit;
   s:=lowercase(te.Name);
   sb:=te.Text;
@@ -12805,6 +13346,7 @@ begin
 
   if pos('editdecalt',s)<>0 then
   begin
+    if deccourant<1 then exit;
     adr:=extract_int(s);
     val(sb,i,erreur);
     if (erreur<>0) or (i<0) then
@@ -12817,7 +13359,7 @@ begin
     exit;
   end;
 
-  // passage à niveau
+  // passage à niveau - actionneurs
   if pos('editv',s)<>0 then
   begin
     i:=lignecliqueePN+1;
@@ -12830,13 +13372,14 @@ begin
     with Formconfig do
     begin
       Val(sb,act,erreur);
-      if (erreur<>0) or (act<=0) then
+      if ((erreur<>0) or (act<=0)) and (sb<>'') then
       begin
         LabelInfo.caption:='Erreur adresse actionneur';
         if ferme then tablo_PN[i].voie[voie].ActFerme:=0;
         if ouvre then tablo_PN[i].voie[voie].ActOuvre:=0;
         exit;
-      end else LabelInfo.caption:=' ';
+      end
+      else LabelInfo.caption:=' ';
       if ferme then tablo_PN[i].voie[voie].ActFerme:=act;
       if ouvre then tablo_PN[i].voie[voie].ActOuvre:=act;
       NbVoies:=tablo_PN[i].NbVoies;
@@ -12869,10 +13412,18 @@ begin
         if not(V5Valide) then tablo_PN[i].NbVoies:=4;
       end;
 
+      // corriger le nombre de voies
+      if ligne_vide_actPN(5) then tablo_PN[i].NbVoies:=4;
+      if ligne_vide_actPN(4) then tablo_PN[i].NbVoies:=3;
+      if ligne_vide_actPN(3) then tablo_PN[i].NbVoies:=2;
+      if ligne_vide_actPN(2) then tablo_PN[i].NbVoies:=1;
+      if ligne_vide_actPN(1) then tablo_PN[i].NbVoies:=0;
+
       s:=encode_act_PN(i);
       ListBoxPN.items[lignecliqueePN]:=s;
       ListBoxPN.Selected[lignecliqueePN]:=true;
     end;
+
     exit;
   end;
 
@@ -12893,7 +13444,7 @@ begin
 
       s:=te.Text;
       Val(s,det,erreur);
-      if (erreur<>0) or (det<=0) then
+      if ((erreur<>0) or (det<=0)) and (s<>'') then
       begin
         LabelInfo.caption:='Erreur adresse détecteur';exit
       end else LabelInfo.caption:=' ';
@@ -12932,12 +13483,18 @@ begin
         if not(V5Valide) then tablo_PN[i].NbVoies:=4;
       end;
 
+      // corriger le nombre de voies
+      if ligne_vide_zonesPN(5) then tablo_PN[i].NbVoies:=4;
+      if ligne_vide_zonesPN(4) then tablo_PN[i].NbVoies:=3;
+      if ligne_vide_zonesPN(3) then tablo_PN[i].NbVoies:=2;
+      if ligne_vide_zonesPN(2) then tablo_PN[i].NbVoies:=1;
+      if ligne_vide_zonesPN(1) then tablo_PN[i].NbVoies:=0;
+
       s:=encode_act_PN(i);
       ListBoxPN.items[lignecliqueePN]:=s;
       ListBoxPN.Selected[lignecliqueePN]:=true;
     end;
   end;
-
 end;
 
 // changement combobox choix sorties 1 ou 2
@@ -13372,7 +13929,7 @@ begin
   if lignecliqueePN<0 then exit;
   // désactiver la ligne act
 
-  if maxtablo_act<1 then exit;
+  if NbrePN<1 then exit;
   Aff_champs_PN(lignecliqueePN+1);
   clicliste:=false;
 end;
@@ -13380,7 +13937,7 @@ end;
 procedure TFormConfig.ListBoxPNKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
- if key=VK_delete then supprime_act;
+  if key=VK_delete then supprime_act;
 
   if ord(Key)=VK_UP then
   begin
@@ -13758,14 +14315,22 @@ end;
 
 procedure TFormConfig.RadioButtonSimpleClick(Sender: TObject);
 begin
+  if clicliste then exit;
+  if affevt then Affiche('Evt RadioButtonSimple',clyellow);
   GroupBoxPNA.Visible:=true;
   GroupBoxPNZ.Visible:=false;
+  if lignecliqueePN<0 then exit;
+  tablo_pn[lignecliqueePN+1].actionneur:=true;
 end;
 
 procedure TFormConfig.RadioButtonZoneClick(Sender: TObject);
 begin
+  if clicliste then exit;
+  if affevt then Affiche('Evt RadioButtonZone',clyellow);
   GroupBoxPNA.Visible:=false;
   GroupBoxPNZ.Visible:=true;
+  if lignecliqueePN<0 then exit;
+  tablo_pn[lignecliqueePN+1].actionneur:=false;
 end;
 
 
@@ -14399,6 +14964,7 @@ begin
   EditFiltrDet.text:=intToSTR(filtrageDet0);
   EditnCantonsRes.Text:=intToSTR(nCantonsRes);
   EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
+  EditRep.Text:=RepConfig;
 
   {$IF CompilerVersion >= 28.0}
   ComboStyle.itemIndex:=Style_Aff;
@@ -14456,6 +15022,7 @@ begin
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
   CheckBoxMsgAigInc.checked:=AffAigND;
   CheckBoxInitAig.checked:=AvecInitAiguillages;
+  if PilotageTrainsCDMNom then rgPilTrains.ItemIndex:=1 else rgPilTrains.ItemIndex:=0; 
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
   CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
@@ -14495,9 +15062,19 @@ begin
   editAlgo.Text:=intToSTR(Algo_localisation);
   EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
 
+  // trains
+  with ListBoxTrains do
+  begin
+    clear;
+    for i:=1 to ntrains do items.Add(Train_tablo(i));
+  end;
+
 end;
 
 
-end.
+
+
+
+end.
 
 

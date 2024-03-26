@@ -18,7 +18,10 @@ uses
   UnitPareFeu in 'UnitPareFeu.pas',
   UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
   Importation in 'Importation.pas' {FormImportation},
-  MSCommLib_TLB in 'MSCommLib_TLB.pas';
+  MSCommLib_TLB in 'MSCommLib_TLB.pas',
+  UnitHorloge in 'UnitHorloge.pas' {FormHorloge},
+  UnitFicheHoraire in 'UnitFicheHoraire.pas' {FormFicheHoraire},
+  UnitClock in 'UnitClock.pas' {FormClock};
 
 {$R *.res}
 
@@ -28,7 +31,6 @@ begin
   Application.Title := 'Signaux complexes GL';
   Application.CreateForm(TFormPrinc, FormPrinc);
   Application.CreateForm(TFormDebug, FormDebug);
-  Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormPilote, FormPilote);
   Application.CreateForm(TFormSimulation, FormSimulation);
   Application.CreateForm(TFormConfig, FormConfig);
@@ -40,9 +42,10 @@ begin
   Application.CreateForm(TFormPlace, FormPlace);
   Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
   Application.CreateForm(TFormImportation, FormImportation);
-  {$IF CompilerVersion >= 28.0}
-  //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
-  change_style;
-  {$IFEND}
+  Application.CreateForm(TFormFicheHoraire, FormFicheHoraire);
+  Application.CreateForm(TFormVersion, FormVersion);
+  Application.CreateForm(TFormClock, FormClock);
+  Application.CreateForm(TFormHorloge, FormHorloge);
+  fin_preliminaire;
   Application.Run;
 end.

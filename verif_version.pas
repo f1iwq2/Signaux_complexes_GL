@@ -10,7 +10,6 @@ uses
 
 type
   TFormVersion = class(TForm)
-    TimerVerif: TTimer;
     Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure TimerVerifTimer(Sender: TObject);
@@ -27,7 +26,7 @@ var
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
-Const  Version='8.53';  // sert à la comparaison de la version publiée
+Const  VersionSC ='8.6';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -149,7 +148,7 @@ end;
 
 // dézipe copie les fichiers et lance la nouvelle version
 // s : chemin et fichier à déziper
-procedure dezipe_copie(s : string);
+procedure dezipe_copie_lance(s : string);
 var fichier,nomPDF : string;
     dirList : tStrings;
     SR      : TSearchRec;
@@ -189,82 +188,17 @@ begin
     exit;
   end;
 
-  // remplit dirlist avec les noms de fichiers du chemin dest
-  nombre:=0;
-  DirList:=TStringList.Create;
-  if FindFirst(chemin_dest+ '*.*', faAnyFile, SR) = 0 then
-  begin
-    repeat
-      s:=sr.Name;
-      if (s<>'.') and (s<>'..') then
-      begin
-        DirList.Add(SR.Name); //Fill the list
-        inc(nombre);
-      end;
-    until FindNext(SR) <> 0;
-    FindClose(SR);
-  end;
-
-  // supprimer les fichiers versions.txt copie_sc.exe et pdf
-  nomPdf:='';
-  for i:=0 to nombre-1 do
-  begin
-    s:=DirList.Strings[i];
-    s:=lowercase(s);
-    pdf:=pos('.pdf',s)<>0;
-    if pdf then nomPDF:=s;
-
-    //Affiche(s,clyellow);
-    // fichiers à supprimer dans répertoire destination
-    if (s='versions.txt') or pdf then
-    begin
-      fichier:=chemin_dest+s;
-      if sysutils.FileExists(fichier) then
-      begin
-        log('Suppression de '+fichier,clorange);
-        Attributes:=FileGetAttr(pchar(fichier));
-        Attributes := Attributes and not (faReadOnly or faHidden);
-        SetFileAttributes(pchar(fichier),Attributes);
-        ok:=sysutils.DeleteFile(pchar(fichier));
-        if not(OK) then log('Erreur : Pas réussi à supprimer '+fichier,clred);
-      end;
-    end;
-  end;
-
-  // copie les fichiers du répertoire zip vers le rep installé
-
-  copie_fichier('versions.txt');
-
-  // trouver du nom du pdf dans le chemin source
-  nombre:=0;
-  // remplit dirlist avec les noms de fichiers du chemin src
-  if FindFirst(chemin_src+ '*.*', faAnyFile, SR) = 0 then
-  begin
-    repeat
-      s:=sr.Name;
-      if (s<>'.') and (s<>'..') then
-      begin
-        DirList.Add(SR.Name); //Fill the list
-        if pos('.pdf',sr.Name)<>0 then NomPdf:=sr.name;
-        inc(nombre);
-      end;
-    until FindNext(SR) <> 0;
-    FindClose(SR);
-  end;
-  DirList.Destroy;
-
-  if nomPdf<>'' then copie_fichier(nomPdf);
-
+  // Lancer le fichier installeur.exe du dossier décomprimé
   // lancer copie_sc.exe qui copie les exe et crée les raccourcis et lance SC
   chdir(chemin_src);
-  s:='"'+chemin_dest+'" "'+chemin_src+'"';
-  log('exécution de copie_sc.exe '+s,clyellow);
+  //s:='"'+chemin_dest+'" "'+chemin_src+'"';
+  //log('exécution de copie_sc.exe '+s,clyellow);
   close(f);
-  Affiche('Lancement de la nouvelle version',clyellow);
+  Affiche('Installation de la nouvelle version',clyellow);
   Sleep(2000);
   i:=ShellExecute(Formprinc.Handle,'open',
-                    Pchar('copie_sc.exe'),
-                    Pchar(s),  // paramètre
+                    Pchar('installeur.exe'),
+                    Pchar(''),  // paramètre
                     PChar('')  // répertoire
                     ,SW_SHOWNORMAL);
   if i>32 then
@@ -427,7 +361,7 @@ begin
       // changer le . en ,
       s:=Version_p;
       // i:=pos('.',s);if i<>0 then s[i]:=',';
-      s2:=version;
+      s2:=versionSC;
       // i:=pos('.',s2);if i<>0 then s2[i]:=',';
 
       s:=AnsiUppercase(s);
@@ -435,9 +369,18 @@ begin
       SV_publie:=s[l];
       if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else begin s:=copy(s,1,l-1);Version_P:=s;end;
       val(s,V_publie,erreur);
-      if erreur<>0 then exit;
+      if erreur<>0 then
+      begin
+        Affiche('Erreur 701',clred);
+        exit;
+      end;
       val(s2,V_utile,erreur);
-      if erreur<>0 then exit;
+      if erreur<>0 then
+      begin
+        Affiche('Erreur 702',clred);
+        exit;
+      end;
+      //
       if (V_utile<V_publie) or ((V_utile=V_publie) and (SousVersion<SV_publie)) then
       begin
         FormVersion.Top:=10;
@@ -469,7 +412,7 @@ begin
           if essai then
           begin
             Affiche('*** mode essai ***',clOrange);
-            dezipe_copie(s);
+            dezipe_copie_lance(s);
             exit;
           end;
 
@@ -478,7 +421,7 @@ begin
           begin
             if taille>700000 then
             begin
-              dezipe_copie(s); // dézipe et lance et termine le programme.
+              dezipe_copie_lance(s); // dézipe et lance et termine le programme.
             end
             else Aff('Echec 2 de téléchargement - taille invalide');
           end
@@ -507,11 +450,25 @@ end;
 
 
 procedure TFormVersion.FormCreate(Sender: TObject);
+var V_utile,V_publie : real;
+    erreur: integer;
+    s : string;
 begin
   if debug=1 then Affiche('Création fenêtre version',clLime);
-  Timerverif.Interval:=1000;    // timer à 1 seconde
-  Lance_verif:=2;               // lancer la vérification de version dans 3s
   if debug=1 then Affiche('Fin création fenêtre version',clLime);
+
+  if not(AvecInit)     then exit;
+  if not(verifVersion) then exit;
+  if debug=1 then Affiche('Vérification version en ligne',clLime);
+  V_publie:=verifie_version;
+  if notificationVersion and (v_publie>0) then
+  begin
+    val(version,V_utile,erreur);
+    str(v_publie:2:2,s);
+    if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' est à jour',clLime);
+    if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
+  end;
+  
 end;
 
 procedure TFormVersion.TimerVerifTimer(Sender: TObject);
@@ -522,7 +479,6 @@ begin
   if lance_verif>0 then dec(lance_verif);
   if lance_verif=0 then
   begin
-    timerVerif.Enabled:=false;
     if not(AvecInit)     then exit;
     if not(verifVersion) then exit;
     if debug=1 then Affiche('Vérification version en ligne',clLime);

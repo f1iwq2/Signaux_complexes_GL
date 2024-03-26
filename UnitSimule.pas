@@ -100,7 +100,6 @@ begin
         i:=pos('/',s);
         if i<>0 then delete(s,1,i);
         val(s,k,erreur);
-        Tablo_simule[index_simule].adresse2:=k;
 
         i:=pos('=',s);
         if i<>0 then delete(s,1,i);
