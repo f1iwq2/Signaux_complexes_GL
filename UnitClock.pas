@@ -342,17 +342,22 @@ begin
   begin
     LargeurFC:=250;
     HauteurFC:=250;
-    OffsetXFC:=(formprinc.top+formPrinc.height)-FormClock.height-20;
-    OffsetYFC:=(formprinc.left+formPrinc.width)-formClock.width;
+    formclock.width:=LargeurFC;
+    formclock.height:=HauteurFC;
   end;
-  formclock.top:=OffsetYFC;
-  formclock.left:=OffsetXFC;
-  formclock.width:=LargeurFC;
-  formclock.height:=HauteurFC;
+
+  OffsetYFC:=(formprinc.top+formPrinc.height)-FormClock.height-32;
+  OffsetXFC:=(formprinc.left+formPrinc.width)-formClock.width;
+  
   // écart entre fenetre principale et clock
   DeltaFPCY:=OffsetYFC-formprinc.top;
   DeltaFPCX:=OffsetXFC-formprinc.left;
+
+  formclock.top:=OffsetYFC;
+  formclock.left:=OffsetXFC;
+
 end;
+
 
 procedure TFormClock.FormCreate(Sender: TObject);
 begin
@@ -460,6 +465,8 @@ begin
     formClock.BringToFront;
   end;
 end;
+
+
 
 
 procedure TFormClock.ButtonGHClick(Sender: TObject);

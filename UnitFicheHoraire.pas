@@ -24,7 +24,7 @@ type
   end;
 
 const
-  MaxHoraire=20;
+  MaxHoraire=200;
 
 var
   FormFicheHoraire: TFormFicheHoraire;
@@ -106,7 +106,7 @@ begin
     Hint:='Grille horaire';
     ShowHint:=true;
     ColCount:=6;
-    RowCount:=14;
+    RowCount:=MaxHoraire+1;
     Options := stringGridFO.Options + [goEditing];
     ColWidths[0]:=30;
     ColWidths[1]:=200;
@@ -116,7 +116,7 @@ begin
     ColWidths[5]:=60;
 
     Cells[0,0]:='Ligne';
-    Cells[1,0]:='Nom train';
+    Cells[1,0]:='Nom du train';
     Cells[2,0]:='Départ';
     Cells[3,0]:='Vitesse'+#13+'démarrage';
     Cells[4,0]:='Sens'+#13+'(N/R)';

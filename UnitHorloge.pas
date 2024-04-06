@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,unitPrinc, ComCtrls, jpeg, ExtCtrls ;
+  Dialogs, StdCtrls,unitPrinc, ComCtrls, jpeg, ExtCtrls, Spin ;
 
 type
   TFormHorloge = class(TForm)
@@ -17,7 +17,6 @@ type
     ButtonOk: TButton;
     GroupBox3: TGroupBox;
     Label3: TLabel;
-    EditHInit: TEdit;
     EditMInit: TEdit;
     Label4: TLabel;
     TrackBarTemps: TTrackBar;
@@ -34,11 +33,11 @@ type
     CheckBoxRedemarre: TCheckBox;
     ButtonAh: TButton;
     CheckBoxAffiche: TCheckBox;
+    SpinEditHInit: TSpinEdit;
     procedure ButtonOkClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure TrackBarTempsChange(Sender: TObject);
     procedure ButtonInitClick(Sender: TObject);
-    procedure EditHInithange(Sender: TObject);
     procedure EditMInitChange(Sender: TObject);
     procedure RadioButtonHSClick(Sender: TObject);
     procedure RadioButtonHIClick(Sender: TObject);
@@ -50,6 +49,7 @@ type
     procedure CheckBoxRedemarreClick(Sender: TObject);
     procedure ButtonAhClick(Sender: TObject);
     procedure CheckBoxAfficheClick(Sender: TObject);
+    procedure SpinEditHInitChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -77,7 +77,7 @@ begin
   begin
     GroupBox3.Enabled:=true;
     GroupBox2.Enabled:=true;
-    editHinit.Enabled:=true;
+    SpinEditHinit.Enabled:=true;
     editMinit.Enabled:=true;
     ButtonInit.Enabled:=true;
     TrackBarTemps.Enabled:=true;
@@ -92,7 +92,7 @@ begin
   begin
     GroupBox3.Enabled:=false;
     GroupBox2.Enabled:=false;
-    editHinit.Enabled:=false;
+    SpinEditHinit.Enabled:=false;
     editMinit.Enabled:=false;
     ButtonInit.Enabled:=false;
     TrackBarTemps.Enabled:=false;
@@ -157,19 +157,7 @@ begin
   init_horloge;
 end;
 
-procedure TFormHorloge.EditHInithange(Sender: TObject);
-var i,erreur : integer;
-begin
-  val(editHInit.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>23) then
-  begin
-    LabelErreur.Caption:='Erreur heure';
-    exit;
-  end;
-  LabelErreur.Caption:='';
-  HeureInit:=i;
-  config_modifie:=true;
-end;
+
 
 procedure TFormHorloge.EditMInitChange(Sender: TObject);
 var i,erreur : integer;
@@ -264,7 +252,7 @@ begin
   CheckBoxAffiche.checked:=AffHorl;
   CheckBoxRedemarre.Checked:=relanceHorl_init;
   TrackBarTemps.position:=DureeMinute;
-  EditHInit.Text:=intToSTR(HeureInit);
+  SpinEditHInit.Text:=intToSTR(HeureInit);
   EditMInit.Text:=intToSTR(MinuteInit);
   EditRetourHeure.Text:=intToSTR(RetourHeure);
   EditRetourMinute.Text:=intToSTR(RetourMinute);
@@ -293,6 +281,21 @@ end;
 procedure TFormHorloge.CheckBoxAfficheClick(Sender: TObject);
 begin
   AffHorl:=CheckBoxAffiche.checked;
+end;
+
+procedure TFormHorloge.SpinEditHInitChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(spinEditHInit.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>23) then
+  begin
+    LabelErreur.Caption:='Erreur heure';
+    exit;
+  end;
+  LabelErreur.Caption:='';
+  HeureInit:=i;
+  config_modifie:=true;
+
 end;
 
 end.

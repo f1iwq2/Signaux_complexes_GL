@@ -248,5 +248,7 @@ version 8.54 : Ajout du choix de pilotage des trains par CDM par adresse ou par 
 version 8.6  : Gestion des démarrages des trains sur horaire, en fonction d'une horloge paramétrable.
                Amélioration de l'importation du réseau depuis CDM Rail.
                Création d'actionneurs "horloge" et "vitesse train".
+version 8.7  : les actionneurs deviennent les actions, et un déclencheur peut déclencher plusieurs opérations
+
 
 

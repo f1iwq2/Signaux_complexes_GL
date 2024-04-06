@@ -9256,10 +9256,11 @@ begin
 end;
 
 // allume ou éteint (mode=0 ou 1) la voie du train "train", zone de det1 à det2 sur le TCO
+// train est l'index du train qui a été créé par le roulage (tableau event_det_train[train] )
 // det1 et det2 doivent être consécutifs sur le TCO, mais peuvent être séparés par des aiguillages
 // si mode=0 : éteint
 //        =1 : couleur détecteur allumé
-//        =2 : couleur de l'index train  
+//        =2 : couleur de l'index train
 // Ne nécessite pas que les aiguillages aoient bien positionnés entre det1 et det2
 // procédure récursive quand on passe par un aiguillage en pointe pour explorer les éléments opposés
 procedure zone_tco(indexTCO,det1,det2,train,mode: integer);

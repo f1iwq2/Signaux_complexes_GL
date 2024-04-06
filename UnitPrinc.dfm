@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 128
-  Top = 170
+  Left = 134
+  Top = 114
   Width = 1148
   Height = 624
   Anchors = [akLeft, akTop, akRight]
@@ -21,7 +21,7 @@ object FormPrinc: TFormPrinc
   OnResize = FormResize
   DesignSize = (
     1132
-    565)
+    566)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1445,7 +1445,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 543
+    Top = 544
     Width = 1132
     Height = 22
     Panels = <
@@ -1986,8 +1986,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 513
-      Top = 120
+      Left = 585
+      Top = 72
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2119,10 +2119,6 @@ object FormPrinc: TFormPrinc
       object Codificationdessignaux: TMenuItem
         Caption = 'Codification des signaux'
         OnClick = CodificationdessignauxClick
-      end
-      object Codificationdesactionneurs1: TMenuItem
-        Caption = 'Codification des actionneurs'
-        OnClick = Codificationdesactionneurs1Click
       end
       object N5: TMenuItem
         Caption = '-'

@@ -21,7 +21,8 @@ uses
   MSCommLib_TLB in 'MSCommLib_TLB.pas',
   UnitHorloge in 'UnitHorloge.pas' {FormHorloge},
   UnitFicheHoraire in 'UnitFicheHoraire.pas' {FormFicheHoraire},
-  UnitClock in 'UnitClock.pas' {FormClock};
+  UnitClock in 'UnitClock.pas' {FormClock},
+  UnitModifAction in 'UnitModifAction.pas' {FormModifAction};
 
 {$R *.res}
 
@@ -46,6 +47,7 @@ begin
   Application.CreateForm(TFormVersion, FormVersion);
   Application.CreateForm(TFormClock, FormClock);
   Application.CreateForm(TFormHorloge, FormHorloge);
+  Application.CreateForm(TFormModifAction, FormModifAction);
   fin_preliminaire;
   Application.Run;
 end.

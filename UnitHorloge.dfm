@@ -362,7 +362,7 @@ object FormHorloge: TFormHorloge
   object LabelErreur: TLabel
     Left = 288
     Top = 192
-    Width = 3
+    Width = 113
     Height = 13
     Caption = '.'
   end
@@ -375,7 +375,7 @@ object FormHorloge: TFormHorloge
     TabOrder = 0
     object RadioButtonHS: TRadioButton
       Left = 32
-      Top = 24
+      Top = 16
       Width = 113
       Height = 17
       Hint = 'Horloge window, non comprimable'
@@ -387,7 +387,7 @@ object FormHorloge: TFormHorloge
     end
     object RadioButtonHI: TRadioButton
       Left = 32
-      Top = 40
+      Top = 32
       Width = 113
       Height = 17
       Hint = 'Horloge de Signaux_Complexes, comprimable'
@@ -472,14 +472,14 @@ object FormHorloge: TFormHorloge
     Caption = 'Initialisation de l'#39'horloge interne'
     TabOrder = 3
     object Label3: TLabel
-      Left = 70
+      Left = 38
       Top = 28
       Width = 49
       Height = 13
       Caption = 'Initialiser '#224
     end
     object Label4: TLabel
-      Left = 152
+      Left = 144
       Top = 26
       Width = 6
       Height = 13
@@ -499,18 +499,6 @@ object FormHorloge: TFormHorloge
       Height = 13
       Caption = 'h'
     end
-    object EditHInit: TEdit
-      Left = 128
-      Top = 24
-      Width = 25
-      Height = 21
-      Hint = 'Heure de d'#233'marrage de l'#39'horloge interne'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 0
-      Text = '00'
-      OnChange = EditHInithange
-    end
     object EditMInit: TEdit
       Left = 160
       Top = 24
@@ -519,7 +507,7 @@ object FormHorloge: TFormHorloge
       Hint = 'Heure de d'#233'marrage de l'#39'horloge interne'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 1
+      TabOrder = 0
       Text = '00'
       OnChange = EditMInitChange
     end
@@ -529,7 +517,7 @@ object FormHorloge: TFormHorloge
       Width = 59
       Height = 25
       Caption = 'Initialiser'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = ButtonInitClick
     end
     object EditRetourHeure: TEdit
@@ -540,7 +528,7 @@ object FormHorloge: TFormHorloge
       Hint = 'Heure '#224' laquelle l'#39'horloge reprend sa valeur initiale'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 3
+      TabOrder = 2
       Text = '00'
       OnChange = EditRetourHeureChange
     end
@@ -552,7 +540,7 @@ object FormHorloge: TFormHorloge
       Hint = 'Heure '#224' laquelle l'#39'horloge reprend sa valeur initiale'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 4
+      TabOrder = 3
       Text = '00'
       OnChange = EditRetourMinuteChange
     end
@@ -562,8 +550,19 @@ object FormHorloge: TFormHorloge
       Width = 241
       Height = 17
       Caption = 'Red'#233'marrer l'#39'horloge au retour '#224' l'#39'initialisation'
-      TabOrder = 5
+      TabOrder = 4
       OnClick = CheckBoxRedemarreClick
+    end
+    object SpinEditHInit: TSpinEdit
+      Left = 104
+      Top = 24
+      Width = 38
+      Height = 22
+      MaxValue = 23
+      MinValue = 0
+      TabOrder = 5
+      Value = 0
+      OnChange = SpinEditHInitChange
     end
   end
   object ButtonS: TButton
@@ -580,7 +579,7 @@ object FormHorloge: TFormHorloge
   end
   object ButtonAh: TButton
     Left = 312
-    Top = 200
+    Top = 224
     Width = 75
     Height = 33
     Caption = 'Afficher l'#39'horloge'

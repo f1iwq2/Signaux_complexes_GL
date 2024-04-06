@@ -1,5 +1,5 @@
 Unit UnitPrinc;
-// 12/03/24
+// 05/04/2024 22h
 (********************************************
   Programme signaux complexes Graphique Lenz
   Delphi 7 + activeX Tmscomm + clientSocket
@@ -34,11 +34,14 @@ Unit UnitPrinc;
 // il ne renvoie pas non plus le nom des trains sur les actionneurs
 // les noms des trains sont bien renvoyés sur les détecteurs à 1
 //
-// En mode RUN:
+// En mode RUN CDM avec train:
 // CDM renvoie le nom des trains sur les actionneurs à 1, jamais à 0
 // et quelquefois (pas toujours!) sur les détecteurs à 1, jamais à 0
 // Au début du RUN, CDM renvoie les états des détecteurs et en mélangé les aiguillages et on en reçoit les états.
 // Puis on reçoit la position des trains qui bougent. Si un train parqué ne bouge pas, on ne reçoit rien de ce train.
+//
+// En mode RUN TCO CDM (sans trains) : une commande de vitesse à un train n'est pas transmise
+// sur le réseau.
 //
 // En simulation:
 // CDM Rail ne renvoie pas les états des aiguillages en début de simu
@@ -52,7 +55,7 @@ Unit UnitPrinc;
 //
 // Notes pour compilation sous Embarcadero : --------------------------------------------------
 // Pour compilation avec Rad Studio (Delphi11): Projet / Options // Application / Apparence /
-// Embarcadero technologies / carbon ou Auric
+// Embarcadero technologies / carbon ou Auric / et choisir le sytle par défaut : windows
 //
 // Pour le mode sombre sous embarcadero, il faut sélectionner:
 // Projet / Options // Application / manifeste /  fichier manifeste : personnaliser
@@ -67,7 +70,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem ,
-  Buttons, NB30, comObj, activeX ,DateUtils 
+  Buttons, NB30, comObj, activeX ,DateUtils
   {$IF CompilerVersion >= 28.0}   // si delphi>=11
   ,Vcl.Themes
   {$IFEND}
@@ -116,7 +119,6 @@ type
     N5: TMenuItem;
     Quitter1: TMenuItem;
     Config: TMenuItem;
-    Codificationdesactionneurs1: TMenuItem;
     OuvrirunfichiertramesCDM1: TMenuItem;
     Affichefentredebug1: TMenuItem;
     PopupMenuFenRich: TPopupMenu;
@@ -282,7 +284,6 @@ type
     procedure Quitter1Click(Sender: TObject);
     procedure ConfigClick(Sender: TObject);
     procedure ButtonLitCVClick(Sender: TObject);
-    procedure Codificationdesactionneurs1Click(Sender: TObject);
     procedure ButtonArretSimuClick(Sender: TObject);
     procedure OuvrirunfichiertramesCDM1Click(Sender: TObject);
     procedure ButtonAffTCOClick(Sender: TObject);
@@ -471,7 +472,44 @@ EtatSignBelge: array[0..9] of string[30]=
 // dir6 feux   10     16
 // belge       11     20
 
+// Type de déclencheurs
+Decl0=0;
+DeclHorloge=1;
+DeclPeriph=2;
+DeclAccessoire=3;
+DeclDetAct=4;
+DeclZoneDet=5;
 
+// Type d'opération (action)
+Action0=0;
+ActionAffTCO=1;
+ActionAffSC=2;
+ActionAffCDM=3;
+ActionAccessoire=4;
+ActionArretTrains=5;
+ActionLanceHorl=6;
+ActionArretHorl=7;
+ActionInitHorl=8;
+ActionAffHorl=9;
+ActionVitesse=10;
+ActionCdePeriph=11;
+ActionFonctionF=12;
+ActionSon=13;
+ActionTempo=14;
+
+// icones
+IconeTCO=0;
+IconeSC=1;
+IconeCDM=2;
+IconeAccessoire=3;
+IconeStopTrains=4;
+IconeLanceHorl=5;
+IconeArretHorl=6;
+IconeInitHorl=7;
+IconeHorloge=8;
+IconePeriph=10;  //usb
+IconeDet=17;
+IconeZoneDet=18;
 
 
 type
@@ -580,7 +618,48 @@ TPeripherique = record
                   protocole,tamponRX : string; // protocole COM ou socket, tanpon de réception
                 end;
 
+TPn = record
+    AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture  ou numéro de périphérique pour pilotage usb
+    commandeFerme : integer;  // commande de fermeture (1 ou 2)
+    AdresseOuvre  : integer;  // adresse de pilotage DCC pour l'ouverture
+    commandeOuvre : integer;  // commande d'ouverture (1 ou 2)
+    NbVoies       : integer;  // Nombre de voies du PN
+    Pulse         : integer;  // 0=commande maintenue  1=Impulsionnel
+    TypeCde       : integer;  // 0=par accessoire / 1=par COMUSB ou sockets
+    commandeF,CommandeO : string; // commande pour com/usb ou socket
+    compteur      : integer;  // comptage actionneurs fermeture et décomptage actionneurs ouverture
+    actionneur    : boolean;  // =vrai par actionneur sinon pae zone
+    Voie : array [1..5] of record
+             ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et l'ouverture
+             detZ1F,detZ2F,detZ1O,detZ2O : integer; // Zones de détection
+           end;
+  end;
+
+Toperation = record
+               numoperation,heure,minute,
+               adresse,
+               etat,NumTCO,
+               TempoCourante,      // valeur courante de la tempoF
+               vitesse,
+               periph,
+               fonctionF,TempoF    : integer;
+               zero,valide         : boolean;
+               chaine : string;
+               train,traincourant  : string;
+              end;
+
+Tactionneur =
+  record
+    // action
+    NbOperations,declencheur,vitesse,
+    heure,minute,NumPeriph,
+    adresse,etat,adresse2   : integer;  // adresse: adresse de base ou heure ; adresse2=cas d'une Zone  ou minute
+    trainDecl,ordrePeriph,NomAction : string;
+    TabloOp                 : array of Toperation;
+  end;
+
 var
+
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
   N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
   NbreImagePligne,NbreBranches,Index2_aig,branche_det,ntrains_cdm,
@@ -589,10 +668,10 @@ var
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
-  etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,SauvefiltrageDet0,
+  etape,idEl,avecRoulage,intervalle_courant,filtrageDet0,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
-  AigMal,AncMinute,axFP,ayFP : integer;
+  AigMal,AncMinute,axFP,ayFP,NbreOperations,NbreDeclencheurs,index_seqAct : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -674,20 +753,7 @@ var
     AdrTrain : integer;
   end;
 
-  Tablo_actionneur : array[0..Max_actionneurs] of
-  record
-    loco,act,son,periph,vit : boolean;     // destinataire loco acessoire son ou périphérique ou vitesse train
-    adresse,adresse2,                      // adresse: adresse de base ou heure ; adresse2=cas d'une Zone  ou minute
-    etat,
-    fonction,                              // fonction F de train ou périphérique ou vitesse train
-    tempo,TempoCourante,
-    accessoire,sortie,
-    typdeclenche            : integer;     // déclencheur: 0=actionneur/détecteur 1=Horloge 2=evt aig  3=MemZone
-    Raz                     : boolean;
-    FichierSon,trainDecl,
-    TrainDest,                             // train destinataire ou Commande au périphérique
-    TrainCourant            : string;
-  end;
+  Tablo_actionneur : array[0..Max_actionneurs] of Tactionneur;
 
   // décodeurs personnalisés de signaux
   decodeur_pers : array[1..NbreMaxiDecPers] of
@@ -709,23 +775,7 @@ var
   Ancien_actionneur : array[0..MaxAcc] of integer;
 
   KeyInputs: array of TInput;
-  Tablo_PN : array[0..Max_actionneurs] of
-  record
-    AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture  ou numéro de périphérique pour pilotage usb
-    commandeFerme : integer;  // commande de fermeture (1 ou 2)
-    AdresseOuvre  : integer;  // adresse de pilotage DCC pour l'ouverture
-    commandeOuvre : integer;  // commande d'ouverture (1 ou 2)
-    NbVoies       : integer;  // Nombre de voies du PN
-    Pulse         : integer;  // 0=commande maintenue  1=Impulsionnel
-    TypeCde       : integer;  // 0=par accessoire / 1=par COMUSB ou sockets
-    commandeF,CommandeO : string; // commande pour com/usb ou socket
-    compteur      : integer;  // comptage actionneurs fermeture et décomptage actionneurs ouverture
-    actionneur    : boolean;  // =vrai par actionneur sinon pae zone
-    Voie : array [1..5] of record
-             ActFerme,ActOuvre : integer ; // actionneurs provoquant la fermeture et l'ouverture
-             detZ1F,detZ2F,detZ1O,detZ2O : integer; // Zones de détection
-           end;
-  end;
+  Tablo_PN : array[0..Max_actionneurs] of TPn;
 
   Tablo_Simule : array[0..Max_Simule] of
   record
@@ -733,6 +783,28 @@ var
     modele : Tequipement;
     Adresse,etat : integer ;
     train : string;
+  end;
+
+  seq_actionneurs : array[1..30] of
+  record
+    indiceAction,IndiceOp,  // indice à partir duquel reprendre l'exécution
+    op,tick // opération
+     : integer;
+
+  end;
+
+  Declencheurs : array[0..10] of
+  record
+    nom : string;
+    index : integer;
+    famille : integer; // 1=système 2=CDM 3=SC  ne sert qu'a filtrer l'affichage par la combobox
+  end;
+
+  operations : array[0..20] of
+  record
+    nom : string;
+    index : integer;
+    famille : integer;
   end;
 
   tablo_CV : array [1..255] of integer;
@@ -847,7 +919,7 @@ function PresTrainPrec(Adresse,NbCtSig : integer;detect : boolean;var AdrTr,voie
 function cond_carre(adresse : integer) : boolean;
 function carre_signal(adresse,TrainReserve : integer;var reserveTrainTiers : boolean;Var AdrTrain : integer) : integer;
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
-procedure Event_act(adr,adr2,etat : integer;trainDecl : string;hor : boolean);
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 function verif_UniSemaf(adresse,UniSem : integer) : integer;
 function Select_dessin_Signal(TypeSignal : integer) : TBitmap;
 procedure cree_image(rang : integer);
@@ -900,12 +972,17 @@ function Aiguille_deviee(adresse : integer) : integer ;
 function envoi_CDM(s : string) : boolean;
 function place_id(s : string) : string;
 procedure fin_preliminaire;
+function Index_operation(s : string) : integer;
+function Lance_CDM(avecSocket : boolean) : boolean;
+procedure action(action : integer);
+function Signal_precedent(adresse : integer) : integer;
 
 implementation
 
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
   Unitplace, verif_version , UnitCDF, UnitAnalyseSegCDM, UnitConfigCellTCO,
-  UnitConfigTCO,UnitSR,  UnitHorloge,  UnitFicheHoraire,  UnitClock;
+  UnitConfigTCO,UnitSR,  UnitHorloge,  UnitFicheHoraire,  UnitClock,
+  UnitModifAction;
 
 {
 procedure menu_interface(MA : TMA);
@@ -1036,18 +1113,30 @@ begin
 
 
 procedure fin_preliminaire;
+var i : integer;
 begin
   {$IF CompilerVersion >= 28.0}
   // en D11, obligé de positionner la fenêtre principale après avoir fixé le style
   positionne_principal;
   {$IFEND}
-
   calcul_pos_horloge;
   if (versionSC<>'8.53') then
   begin
     if AffHorl then Affiche_horloge;
     if LanceHorl then Demarre_horloge;
   end;
+
+  
+  formConfig.listBoxPeriph.clear;
+  formModifAction.ComboBoxAccComUSB.Clear;
+  formconfig.ComboBoxPNCom.Clear;
+  for i:=1 to NbPeriph do
+  begin
+    formconfig.listBoxPeriph.items.Add(encode_Periph(i));
+    ajoute_champs_combos(i);
+  end;
+  
+  
   formprinc.SetFocus;
 end;
 
@@ -8350,6 +8439,7 @@ end;
 
 
 // renvoie l'état du signal suivant du signal "adresse". Si renvoie 0, pas trouvé le signal suivant.
+// les aiguillages en pointe doivent être positionnés
 // adresse : adresse du signal
 // rang=1 pour signal suivant, 2 pour signal suivant le 1, etc
 // retour dans AdrSignalsuivant : adresse du signal suivant
@@ -8414,7 +8504,11 @@ begin
     else
     begin
       AdrSuiv:=suivant_alg3(prec,TypePrec,actuel,TypeActuel,1); // 1 =
-      if Nivdebug=3 then AfficheDebug('Suivant='+intToSTR(AdrSuiv),clyellow);
+      if Nivdebug=3 then
+      begin
+        if AdrSuiv=9996 then AfficheDebug('position aiguillage inconnue',clorange) else
+        AfficheDebug('Suivant='+intToSTR(AdrSuiv),clyellow);
+      end;
       prec:=actuel;TypePrec:=TypeActuel;
       actuel:=AdrSuiv;TypeActuel:=typeGen;
 
@@ -8872,6 +8966,7 @@ end;
 
 // renvoie l'adresse du signal précédent au signal "adresse"
 // remplit aussi les élements[] rencontrés
+// les positions des aiguillages pris en pointe doivent être connus
 function Signal_precedent(adresse : integer) : integer;
 var
   AdrSuiv,prec,ife,actuel,i,j,ifd,index,
@@ -8944,6 +9039,8 @@ begin
       begin
         if (nivDebug=3) then
         begin
+          if adrSuiv=9996 then AfficheDebug('Position aiguillage inconnue',clOrange)
+          else
           if (AdrSuiv>9990) then AfficheDebug('Erreur 41: Alg3='+intToSTR(AdrSuiv)+' Anomalie',clYellow);
           if AdrSuiv=0 then AfficheDebug('Buttoir',clyellow);
         end;
@@ -10234,7 +10331,7 @@ begin
           if det4<9990 then reserve_canton(AdrSuiv,det4,AdrTrainLoc,i,nCantonsRes)  // réserve canton suivant après maj signaux
           else Affiche_evt('Réservation canton après '+intToSTR(det3)+' '+intToSTR(ADrSuiv)+' impossible (pos? aig)',clOrange);
 
-          event_act(det1,det3,1,'',false);     // évènement détecteur de zone - 1
+          event_act(det1,det3,1,'');     // évènement détecteur de zone - 1
 
           // affichages
           Affiche_Evt('1-0 route ok de '+intToSTR(det1)+' à '+IntToSTR(det3),clWhite);
@@ -10337,7 +10434,7 @@ begin
         end;
 
         pilote_train(det1,det3,adrtrainLoc,i);  // pilote le train sur det3
-        event_act(det1,det3,1,'',false);     // activation zone - 2
+        event_act(det1,det3,1,'');     // activation zone - 2
         maj_signaux(false);
         // actualiser le signal du det3
         j:=signal_detecteur(det3);
@@ -10462,8 +10559,8 @@ begin
               end;
             end;
 
-            event_act(det2,det3,0,'',false);        // désactivation zone
-            event_act(det3,AdrSuiv,1,'',false);     // activation zone
+            event_act(det2,det3,0,'');        // désactivation zone
+            event_act(det3,AdrSuiv,1,'');     // activation zone
           end
           else
           begin
@@ -11011,12 +11108,12 @@ begin
 end;
 
 
-// envoie une chaine de caractères du tablo actionneur index i
-procedure envoi_periph_usb(i : integer);
+// envoie une chaine de caractères du tablo actionneur index i : index action , j : index opération
+procedure envoi_periph_usb(i,j : integer);
 var numacc,v,cmd : integer;
     s : string;
 begin
-  numacc:=Tablo_actionneur[i].fonction; // numéro de périphérique
+  numacc:=Tablo_actionneur[i].TabloOp[j].periph; // numéro de périphérique
   if (numAcc>NbMaxi_Periph) or (numacc=0) then
   begin
     Affiche('Erreur 58 : numéro de périphérique hors limite '+intToSTR(i),clred);
@@ -11026,11 +11123,11 @@ begin
   if v=0 then exit;
   if tablo_periph[numacc].PortOuvert then
   begin
-    s:=Tablo_actionneur[i].trainDest;
+    s:=Tablo_actionneur[i].TabloOp[j].chaine;
     if Tablo_periph[numacc].cr then s:=s+#13;
     cmd:=Tablo_periph[numacc].numComposant;
-    if numacc=1 then envoi_usb_comp(MSCommCde1,s);
-    if numacc=2 then envoi_usb_comp(MSCommCde2,s);
+    if cmd=1 then envoi_usb_comp(MSCommCde1,s);
+    if cmd=2 then envoi_usb_comp(MSCommCde2,s);
 
     if Tablo_periph[numacc].ScvVis then Affiche('Envoi COM'+intToSTR(v)+': '+s,clYellow);
   end
@@ -11038,18 +11135,18 @@ begin
 end;
 
 // envoi le texte traindest de l'accessoire sur le socket de l'actionneur i
-procedure envoi_socket_periph_act(i : integer);
+procedure envoi_socket_periph_act(i,j : integer);
 var v,numacc : integer;
     s : string;
 begin
-  v:=Tablo_actionneur[i].fonction; // numéro de périphérique
+  v:=Tablo_actionneur[i].tabloOp[j].periph; // numéro de périphérique
   numacc:=Tablo_periph[v].numComposant;   //numéro de composant
   if (numAcc>NbMaxi_Periph) or (numacc=0) then
   begin
     Affiche('Erreur 59 : numéro de périphérique hors limite',clred);
     exit;
   end;
-  s:=Tablo_actionneur[i].trainDest;
+  s:=Tablo_actionneur[i].TabloOp[j].chaine;
   if Tablo_periph[numacc].cr then s:=s+#13;
   if numacc=1 then Formprinc.ClientSocketCde1.socket.SendText(s);
   if numacc=2 then Formprinc.ClientSocketCde2.socket.SendText(s);
@@ -11092,33 +11189,195 @@ begin
   result:=trouve;
 end;
 
-// traitement des évènements actionneurs (detecteurs aussi)
+
+// faire l'opération ida de l'action i
+procedure action_operation(i,ida : integer);
+var decl,op,af,access,sortie,t,v,etat : integer;
+    st,trainDest : string;
+    Ts : TAccessoire;
+    tr : double;
+begin
+  st:='Action '+Tablo_actionneur[i].NomAction+' : ';
+  op:=Tablo_actionneur[i].tabloOp[ida].numoperation;
+  if Tablo_actionneur[i].tabloOp[ida].valide then
+  begin
+    decl:=Tablo_actionneur[i].declencheur;
+    if decl=DeclHorloge then
+    begin
+      st:=st+'Horaire '+format('%.2dh%.2d',[t,v]);
+      t:=Tablo_actionneur[i].heure;
+      v:=Tablo_actionneur[i].minute;
+    end;
+
+    // 1 : affiche TCO
+    if (op=ActionAffTCO) then
+    begin
+      af:=Tablo_actionneur[i].tabloOp[ida].NumTCO;
+      Affiche(st+' Affiche TCO'+intToSTR(af),clyellow);
+      Affiche_Fenetre_TCO(af,true);
+    end;
+
+    if (op=ActionAffSC) then
+    begin
+      Affiche(st+' Affiche SC',clyellow);
+      with FormPrinc do
+      begin
+        windowState:=wsNormal; //Maximized;
+        show;
+        BringToFront;
+      end;
+    end;
+
+    if (op=ActionAffCDM) then
+    begin
+      if CDMhd<>0 then
+      begin                                 // afficher CDM rail
+        Affiche(st+' Affiche CDM',clyellow);
+        ShowWindow(CDMhd,SW_MAXIMIZE);
+        SetForegroundWindow(CDMhd);             // met CDM en premier plan
+        SetActiveWindow(CdmHd);
+      end;
+    end;
+
+    // 4 : accessoire
+    if (op=ActionAccessoire) then
+    begin
+      access:=Tablo_actionneur[i].tabloOp[ida].adresse;
+      sortie:=Tablo_actionneur[i].tabloOp[ida].etat;
+      Affiche(st+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
+      // exécution la fonction accessoire vers CDM
+      if Tablo_actionneur[i].tabloOp[ida].zero then Ts:=aigP else Ts:=signal;
+      pilote_acc(access,sortie,Ts);
+    end;
+
+    // 5 : arret des trains
+    if (op=actionArretTrains) then
+    begin
+      Affiche(st+' Arrêt de tous les trains',clYellow);
+      for t:=1 to ntrains do vitesse_loco(trains[t].nom_train,t,trains[t].adresse,0,true);
+    end;
+
+    // 6 : Lance Horloge
+    if op=ActionLanceHorl then
+    begin
+      Affiche(st+' Lancement horloge',clyellow);
+      Demarre_horloge;
+    end;
+
+    // 7 : Arret Horloge
+    if op=ActionArretHorl then
+    begin
+      Affiche(st+' Arret horloge',clyellow);
+      horloge:=false;
+    end;
+
+    // 8 : init Horloge
+    if op=ActionInitHorl then
+    begin
+      Affiche(st+' Init horloge',clyellow);
+      Init_horloge;
+    end;
+
+    // 9 : Affiche Horloge
+    if op=ActionAffHorl then
+    begin
+      Affiche(st+' Affiche horloge',clyellow);
+      Affiche_horloge;
+    end;
+
+    // 10: vitesse
+    if (op=ActionVitesse) then
+    begin
+      traindest:=Tablo_actionneur[i].tabloOp[ida].train;
+      Affiche(st+' Vitesse train='+trainDest+' à '+IntToSTR(Tablo_actionneur[i].tabloOp[ida].vitesse),clyellow);
+      vitesse_loco(trainDest,0,0,Tablo_actionneur[i].tabloOp[ida].vitesse,true);
+    end;
+
+    // 11 : commande COM/USB socket
+    if (op=ActionCdePeriph) then
+    begin
+      v:=tablo_actionneur[i].TabloOp[ida].periph;   // numéro d'accessoire
+      Affiche(st+' Envoi commande',clYellow);
+      af:=com_socket(v);
+      if af=1 then envoi_periph_usb(i,ida);    // numéro d'actionneur
+      if af=2 then envoi_socket_periph_act(i,ida); // numéro d'actionneur
+    end;
+
+    // 12 actionneur pour fonction train
+    if (op=ActionFonctionF) then
+    begin
+      trainDest:=Tablo_actionneur[i].tabloOp[ida].train;
+      // exécution de la fonction F vers CDM
+      etat:=tablo_actionneur[i].tabloop[ida].TempoF;
+      tr:=etat/10;
+      Affiche(st+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].tabloOp[ida].fonctionF)+' t='+Format('%.1f', [tr])+'s',clyellow);
+      envoie_fonction_CDM(Tablo_actionneur[i].TabloOp[ida].fonctionF,etat,trainDest);
+      tablo_actionneur[i].tabloOp[ida].TrainCourant:=trainDest;  // pour mémoriser le train pour la retombée de la fonction
+      tablo_actionneur[i].TabloOp[ida].TempoCourante:=etat;
+    end;
+
+    // 13 : son
+    if (op=ActionSon) then //and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    begin
+      Affiche(st+' son '+Tablo_actionneur[i].tabloop[ida].chaine,clyellow);
+      PlaySound(pchar(Tablo_actionneur[i].tabloop[ida].train),0,SND_ASYNC);
+    end;
+
+    // 14 : tempo
+    if op=ActionTempo then
+    begin
+      etat:=tablo_actionneur[i].tabloop[ida].TempoF;
+      tr:=etat/10;
+      Affiche(st+' Tempo '+Format('%.1f', [tr])+'s',clyellow);
+      tablo_actionneur[i].TabloOp[ida].TempoCourante:=etat;
+      // si on a une tempo, passer la main au timer pour toutes les actions suivantes.
+      if (ida<tablo_actionneur[i].NbOperations  ) then
+      begin
+        inc(index_seqAct);
+        seq_actionneurs[index_seqAct].tick:=tick+tablo_actionneur[i].tabloop[ida].TempoF+1;
+        seq_actionneurs[index_seqAct].indiceAction:=i;
+        seq_actionneurs[index_seqAct].indiceOp:=ida+1;
+      end;
+    end;
+  end
+  else
+    Affiche(st+operations[op].nom+' dévalidée',clOrange);
+end;
+
+// lance les opérations de l'action action
+procedure action(action : integer);
+var i,j,nb : integer;
+    sort : boolean;
+begin
+  nb:=tablo_actionneur[action].NbOperations;
+  i:=1;
+  repeat
+    action_operation(action,i);
+    // si on a une tempo et que c'est pas la dernière action, la main  est passée au timer pour toutes les actions suivantes, donc on sort de la boucle
+    sort:=(tablo_actionneur[action].TabloOp[i].numoperation=ActionTempo) and (i<nb) ;
+    inc(i);
+  until (i>nb) or sort;
+end;
+
+// traitement des évènements actions (detecteurs aussi)
+// autres que horaire et péripériques
 // adr adr2 : pour mémoire de zone
 // trainDecl : composé de X, d'un train ou de plusieurs, séparés par +
-// hor : si évt horaire
-procedure Event_act(adr,adr2,etat : integer;trainDecl : string;hor : boolean);
-var typ,i,v,etatAct,Af,Ao,Access,sortie,dZ1F,dZ2F,dZ1O,dZ2O : integer;
-    sDecl,st,trainDest : string;
+procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
+var typ,i,v,etatAct,Af,Ao,dZ1F,dZ2F,dZ1O,dZ2O : integer;
+    sDecl : string;
     fm,fd,adresseOk,etatvalide : boolean;
     Ts : TAccessoire;
 begin
   if adr<=0 then exit;
-  if debugPN then
-  begin
-    if (adr=539) and (adr2=529)  then
-    affiche('CAS OUVRE',clred);
-    if (adr=528) and (adr2=522)  then
-    affiche('CAS FERME',clred);
-  end;
-  if debugPN then Affiche(intToSTR(adr)+'/'+intToSTR(adr2)+' '+intToSTR(etat)+' '+TrainDecl,clyellow);
 
   if adr>1024 then
   begin
-    Affiche('Erreur 81 : reçu adresse actionneur trop grande : '+intToSTR(adr),clred);
+    Affiche('Erreur 81 : reçu adresse accessoire trop grande : '+intToSTR(adr),clred);
     exit;
   end;
 
-  // Etat actionneur (un état aiguillage peut prendre les valeurs de 1 à 2)
+  // Etat accessoire (un état aiguillage peut prendre les valeurs de 1 à 2)
   // ancien  nouveau
   //    0      1     FM
   //    0      2     FM
@@ -11128,7 +11387,7 @@ begin
   //    1      0     FD
   //    2      0     FD
 
-  if not(hor) and (adr2=0) then
+  if (adr2=0) then
   begin
     fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant (FD)
     fm:=(Ancien_actionneur[adr]<>etat) and (etat<>0);     // front montant (FM)
@@ -11140,92 +11399,48 @@ begin
   if AffAigDet and (adr2=0) then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   // dans tableau des actionneurs
-  for i:=1 to maxTablo_act do
-  begin
+
+  i:=1;
+  repeat
     sDecl:=Tablo_actionneur[i].trainDecl;
     etatAct:=Tablo_actionneur[i].etat ;  // état à réagir
     etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);      // front montant ou descendant
-    typ:=Tablo_actionneur[i].typdeclenche;  // déclencheur: 0=actioneur/détecteur  2=evt aig  3=MemZone
-    if typ=0 then
+    typ:=Tablo_actionneur[i].declencheur;
+
+    {
+    if typ=DeclDetAct then
     begin
       st:='Détecteur/actionneur '+intToSTR(adr);
     end;
-    if typ=1 then
+
+    if typ=DeclAccessoire then
     begin
-      st:='Horaire '+format('%.2dh%.2d',[adr,adr2]);
-      etatvalide:=true;  // valider systématiquement l'état valide en actionneur horaire
+      st:='Accessoire '+intToSTR(adr);
     end;
-    if typ=2 then
-    begin
-      st:='Aiguillage '+intToSTR(adr);
-    end;
-    if typ=3 then
+    if typ=DeclZoneDet then
     begin
       adresseok:=adresseOk and (Tablo_actionneur[i].adresse2=adr2);
       st:='Mémoire de zone '+intToSTR(adr)+' '+intToStr(adr2);
-    end;
+    end; }
 
-    adresseok:=( ((Tablo_actionneur[i].adresse=adr) and (adr2=0) ) and ((typ=0) or (typ=2)) ) or
-               ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2)  and ((typ=3) or (typ=1))) ) ;
+    // si déclencheur par adresse
+    adresseok:=( ((Tablo_actionneur[i].adresse=adr) and (adr2=0) ) and ((typ=declDetAct) or (typ=DeclAccessoire)) ) or
+               ( ((Tablo_actionneur[i].adresse=adr) and (Tablo_actionneur[i].adresse2=adr2)  and ((typ=DeclZoneDet) )));
 
 
-    // actionneur pour fonction train
-    if adresseOk and (Tablo_actionneur[i].loco) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
+    adresseok:=adresseok and
+               (
+                 // par train
+                 ((typ=DeclDetAct) or (typ=DeclZoneDet)) and  test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')
+               ) ;
+
+    if adresseok and etatValide then
     begin
-      trainDest:=Tablo_actionneur[i].trainDest;
-      // exécution de la fonction F vers CDM
-      if (trainDest='X') or (trainDest='') then traindest:=traindecl;
-      //if (trainDest='X') then traindest:=sDecl;
-      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':'+intToSTR(etat),clyellow);
-      envoie_fonction_CDM(Tablo_actionneur[i].fonction,etat,trainDest);
-      tablo_actionneur[i].TrainCourant:=trainDest;  // pour mémoriser le train pour la retombée de la fonction
-      tablo_actionneur[i].TempoCourante:=tablo_actionneur[i].Tempo div 100;
+      //Affiche('Action dans EventAct',clred);
+      action(i); // exécute toutes les opérations de l'actionneur i
     end;
-
-    // pour vitesse
-    if adresseOk and (Tablo_actionneur[i].vit) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
-    begin
-      trainDest:=Tablo_actionneur[i].trainDest;
-      // exécution de la fonction F vers CDM
-      if (trainDest='X') or (trainDest='') then traindest:=traindecl;
-      //if (trainDest='X') then traindest:=sDecl;
-      Affiche(st+' TrainDecl='+trainDecl+' TrainDest='+trainDest+' V'+IntToSTR(Tablo_actionneur[i].fonction),clyellow);
-
-      vitesse_loco(trainDest,0,0,Tablo_actionneur[i].fonction,true);   
-    end;
-
-
-    // actionneur pour accessoire
-    if adresseOk and (Tablo_actionneur[i].act) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
-    begin
-      access:=Tablo_actionneur[i].accessoire;
-      sortie:=Tablo_actionneur[i].sortie;
-
-      Affiche(st+' Train='+trainDecl+' Accessoire '+IntToSTR(access)+':'+intToSTR(sortie),clyellow);
-      // exécution la fonction accessoire vers CDM
-      if Tablo_actionneur[i].RAZ then Ts:=aigP else Ts:=signal;
-      pilote_acc(access,sortie,Ts); // sans RAZ
-    end;
-
-    // actionneur pour son
-    if adresseOk and (Tablo_actionneur[i].Son) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
-    begin
-      if typ<>2 then st:=st+' Train='+trainDecl;
-      Affiche(st+' son '+Tablo_actionneur[i].FichierSon,clyellow);
-      PlaySound(pchar(Tablo_actionneur[i].FichierSon),0,SND_ASYNC);
-    end;
-
-    // commande COM/USB socket
-    if adresseOK and (Tablo_actionneur[i].periph) and ( test_train_decl(sDecl,trainDecl) or (sDecl='X') or (trainDecl='X') or (trainDecl='')) and (etatValide) then
-    begin
-      trainDest:=Tablo_actionneur[i].trainDest;
-      v:=tablo_actionneur[i].fonction;   // numéro d'accessoire
-      Affiche(st+' TrainDecl='+trainDecl+' Envoi commande '+TrainDest,clWhite);
-      af:=com_socket(v);
-      if af=1 then envoi_periph_usb(i);    // numéro d'actionneur
-      if af=2 then envoi_socket_periph_act(i); // numéro d'actionneur
-    end;
-  end;
+    inc(i);
+  until (i>maxTablo_act);
 
   // dans le tableau des PN
   for i:=1 to NbrePN do
@@ -11389,6 +11604,73 @@ begin
   Envoi_serveur('A'+intToSTR(adr)+','+intToSTR(etat)+','+trainDecl);
 end;
 
+// télécommande de signaux complexes par les clients ou les périphériques
+function telecommande(s : string) : boolean;
+var adresse,i,erreur : integer;
+    sa : string;
+begin
+  result:=false;
+  sa:=s;
+  s:=uppercase(s);
+  // --- commandes sans paramètres
+  if pos('<LCDM>',s)<>0 then
+  begin
+    Lance_CDM(true);
+    result:=true;
+  end;
+  if pos('<ACDM>',s)<>0 then
+  begin
+    if cdmHd=0 then exit;
+    if not(cdmDevant) then ShowWindow(CDMhd,SW_MINIMIZE) else ShowWindow(CDMhd,SW_MAXIMIZE);
+    cdmDevant:=not(cdmDevant);
+    result:=true;
+  end;
+  if pos('<ASCO>',s)<>0 then
+  begin
+    with formprinc do
+    begin
+      windowState:=wsNormal; //Maximized;
+      show;
+      BringToFront;
+    end;
+    result:=true;
+  end;
+
+  // --- commandes avec paramètres
+  if copy(s,1,4)='<TCO' then
+  begin
+    delete(s,1,4);
+    val(s,i,erreur);
+    if (i>0) and (i<=10) and (formTCO[i]<>nil) then
+    begin
+      formTCO[i].windowState:=wsNormal; //Maximized;
+      formTCO[i].show;
+      formTCO[i].BringToFront;
+    end;
+    result:=true;
+  end;
+  if copy(s,1,4)='<ACS' then      // ACS3,1
+  begin
+    delete(s,1,4);
+    val(s,adresse,erreur);
+    delete(s,1,erreur);
+    val(s,i,erreur);
+    pilote_acc(adresse,i,aigP);   // impulsionnel
+  end;
+
+  for i:=1 to maxTablo_act do
+  begin
+    if Tablo_actionneur[i].declencheur=DeclPeriph then
+     begin
+      if Tablo_actionneur[i].ordrePeriph=sa then
+      action(i);
+    end;
+  end;
+
+  //FormPrinc.AffEtatDetecteurs(formprinc);
+end;
+
+
 Procedure affiche_memoire;
 var s: string;
 begin
@@ -11422,7 +11704,7 @@ begin
   end;
 
   // vérifier si front descendant pour filtrage
-  if filtrageDet0<>0 then
+  if (filtrageDet0<>0) and not(CDM_connecte) and (i_simule=0) then
   begin
     dr:=detecteur[adresse].tempo0;
     if (detecteur[Adresse].etat and not(etat)) and (dr=0) then
@@ -11445,6 +11727,7 @@ begin
   s:=detecteur[adresse].train;
   if (train='') and (s<>'') then train:=s;
   if Etat then Etat01:=1 else Etat01:=0;
+
   //Affiche('Event Det '+inTToSTR(adresse)+' '+IntToSTR(etat01),Cyan);
   // vérifier si l'état du détecteur est déja stocké, car on peut reçevoir plusieurs évènements pour le même détecteur dans le même état
   // on reçoit un doublon dans deux index consécutifs.
@@ -11519,7 +11802,7 @@ begin
         begin
           If traceListe then AfficheDebug('Le signal '+IntToSTR(AdrSignal)+' est précédé d''un buttoir',clyellow);
           MemZone[0,AdrDetSignal].etat:=true;
-          event_act(0,AdrDetSignal,1,'',false);             // activation zone
+          event_act(0,AdrDetSignal,1,'');             // activation zone
           Maj_Signal_P(AdrSignal,false);
         end;
       end;
@@ -11528,7 +11811,7 @@ begin
     // gérer l'évènement actionneur pour action
     if etat then i:=1 else i:=0;
     if not(confignulle) then calcul_zones(adresse,true);
-    event_act(Adresse,0,i,'',false);
+    event_act(Adresse,0,i,'');
   end;
 
   // détection fronts descendants
@@ -11563,7 +11846,7 @@ begin
       // gérer l'évènement detecteur pour action
       if etat then i:=1 else i:=0;
       if not(confignulle) then calcul_zones(adresse,false);
-      event_act(Adresse,0,i,train,false);
+      event_act(Adresse,0,i,train);
     end;
   end;
 
@@ -11686,36 +11969,27 @@ begin
   begin
     etatAct:=Tablo_actionneur[i].etat ;
     adr:=Tablo_actionneur[i].adresse;
-    typ:=Tablo_actionneur[i].typdeclenche;
-    if (typ=2) and (Adr=adresse) then event_act(Adresse,0,pos,'',false); // évent aig
+    typ:=Tablo_actionneur[i].declencheur;
+    if (typ=DeclAccessoire) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
   end;
 
-  // pour périphériques
+  // pour services aux périphériques
   for i:=1 to NbPeriph do
   begin
-    // envoyer event act à accessoire
-    typ:=com_socket(i);
-    if typ=1 then
+    if Tablo_periph[i].ScvAig then
     begin
-      if tablo_periph[i].portOuvert then
+      // envoyer event act à accessoire
+      typ:=com_socket(i);
+      if typ=1 then
       begin
-        if Tablo_periph[i].ScvAig then
-        begin
-          s:='T'+intToSTR(adresse)+','+intToSTR(pos);
-          if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
-          if Tablo_periph[i].cr then s:=s+#13;
-          id:=Tablo_periph[i].NumComposant;
-         //jeans if id=1 then envoi_usb(periph1,s);
-         // if id=2 then envoi_usb(periph2,s);
-         if id=1 then envoi_usb_comp(MSCommCde1,s);
-         if id=2 then envoi_usb_comp(MSCommCde2,s);
-
-        end;
+        s:='T'+intToSTR(adresse)+','+intToSTR(pos);
+        if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
+        if Tablo_periph[i].cr then s:=s+#13;
+        id:=Tablo_periph[i].NumComposant;
+        if id=1 then envoi_usb_comp(MSCommCde1,s);
+        if id=2 then envoi_usb_comp(MSCommCde2,s);
       end;
-    end;
-    if typ=2 then
-    begin
-      if Tablo_periph[i].ScvAig then
+      if typ=2 then
       begin
         s:='T'+intToSTR(adresse)+','+intToSTR(pos);
         if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
@@ -12797,7 +13071,6 @@ begin
     Affiche('CDM rail déconnecté',clCyan);
     AfficheDebug('CDM rail déconnecté',clCyan);
     Formprinc.StatusBar1.Panels[2].text:='';
-    filtrageDet0:=SauvefiltrageDet0;
   end;
 end;
 
@@ -13953,6 +14226,170 @@ begin
   if i<=32 then Affiche('Impossible d''afficher l''aide '+FichierAide,clred);
 end;
 
+procedure init_operations;
+begin
+  with operations[0] do
+  begin
+    nom:='Pas d''opération';
+    index:=Action0;  // 0
+    famille:=0;
+  end;
+
+  with operations[1] do
+  begin
+    nom:='Affiche TCO';
+    index:=ActionAffTCO;  // 1
+    famille:=1;  // systeme
+  end;
+  with operations[2] do
+  begin
+    nom:='Affiche Signaux Complexes';
+    index:=ActionAffSC;
+    famille:=1;   // système
+  end;
+  with operations[3] do
+  begin
+    nom:='Affiche CDM';
+    index:=ActionAffCDM;
+    famille:=1; // système
+  end;
+  with operations[4] do
+  begin
+    nom:='Commande d''accessoire';
+    index:=ActionAccessoire;
+    famille:=2; // pilotage
+  end;
+  with operations[5] do
+  begin
+    nom:='Arrêter tous les trains';
+    index:=ActionArretTrains;
+    famille:=3; // trains
+  end;
+  with operations[6] do
+  begin
+    nom:='Démarre horloge';
+    index:=ActionLanceHorl;
+    famille:=1;  // système
+  end;
+  with operations[7] do
+  begin
+    nom:='Arrête horloge';
+    index:=ActionArretHorl;
+    famille:=1;  // système
+  end;
+  with operations[8] do
+  begin
+    nom:='Initialise l''horloge';
+    index:=ActionInitHorl;
+    famille:=1;  // système
+  end;
+  with operations[9] do
+  begin
+    nom:='Affiche Horloge';
+    index:=ActionAffHorl;
+    famille:=1;  // système
+  end;
+  with operations[10] do
+  begin
+    nom:='Vitesse train';
+    index:=ActionVitesse;
+    famille:=3; // trains
+  end;
+  with operations[11] do
+  begin
+    nom:='Commande périphérique COMUSB/Socket';
+    index:=ActionCdePeriph;
+    famille:=2;  // pilotage
+  end;
+  with operations[12] do
+  begin
+    nom:='Fonction F vers train';
+    index:=ActionFonctionF;
+    famille:=3; // trains
+  end;
+  with operations[13] do
+  begin
+    nom:='Jouer son';
+    index:=ActionSon;
+    famille:=1;  // système
+  end;
+  with operations[14] do
+  begin
+    nom:='Temporisation';
+    index:=ActionTempo;
+    famille:=1;  // système
+  end;
+
+  NbreOperations:=14;
+end;
+
+function Index_operation(s : string) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  i:=1;
+  result:=0;
+  repeat
+    trouve:=pos(operations[i].nom,s)<>0;
+    inc(i);
+  until trouve or (i>NbreOperations);
+  if trouve then result:=i-1;
+end;
+
+procedure init_declencheurs;
+begin
+  with declencheurs[Decl0] do
+  begin
+    nom:='Declencheur0';
+    index:=Decl0;
+    famille:=0; // système
+  end;
+  with declencheurs[DeclHorloge] do
+  begin
+    nom:='Horloge';
+    index:=DeclHorloge;
+    famille:=1; // système
+  end;
+  with declencheurs[DeclPeriph] do
+  begin
+    nom:='Periphérique COMUSB/Socket';
+    index:=DeclPeriph;
+    famille:=2;   // pilotage
+  end;
+  with declencheurs[DeclAccessoire] do
+  begin
+    nom:='Accessoire';
+    index:=DeclAccessoire;
+    famille:=2; // pilotage
+  end;
+  with declencheurs[DeclDetAct] do
+  begin
+    nom:='Détecteur/actionneur';
+    index:=DeclDetAct;
+    famille:=2;  // pilotage
+  end;
+  with declencheurs[DeclZoneDet] do
+  begin
+    nom:='Zones de détection';
+    index:=DeclZoneDet;
+    famille:=2;
+  end;
+  Nbredeclencheurs:=5;
+end;
+
+function Index_Declencheur(s : string) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  i:=0;
+  result:=0;
+  repeat
+    trouve:=Declencheurs[i].nom=s;
+    inc(i);
+  until trouve or (i>NbreOperations);
+  if trouve then result:=i-1;
+end;
+
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var n,t,i,index,OrgMilieu : integer;
@@ -14014,7 +14451,8 @@ begin
   GroupBoxAcc.Left:=633;
   GroupBoxTrains.visible:=true;
   ScrollBoxSig.Left:=633;
-
+  OffsetXFC:=0;
+  OffsetYFC:=0;
   procetape('');  //0
   NbreTCO:=0;
   N_Trains:=0;
@@ -14024,6 +14462,7 @@ begin
   debugtrames:=false;
   horlogeInterne:=true;
   DureeMinute:=60;
+  index_seqAct:=0;
   ProcPrinc:=false;
   algo_Unisemaf:=1;
   NbPeriph:=0;
@@ -14060,6 +14499,9 @@ begin
   Decodeur[0]:='Rien';Decodeur[1]:='Digital Bahn';Decodeur[2]:='CDF';Decodeur[3]:='LS-DEC-SNCF';Decodeur[4]:='LEB';
   Decodeur[5]:='Digikeijs 4018';Decodeur[6]:='Unisemaf Paco';Decodeur[7]:='Stéphane Ravaut';Decodeur[8]:='Arcomora';
   Decodeur[9]:='LS-DEC-NMBS';Decodeur[10]:='B-models';
+
+  init_operations;
+  init_declencheurs;
 
   if versionSC='8.53' then
   begin
@@ -14608,12 +15050,12 @@ begin
   // évènements actionneurs horaires
   for i:=1 to maxTablo_act do
   begin
-    if Tablo_actionneur[i].typdeclenche=1 then
+    if Tablo_actionneur[i].declencheur=DeclHorloge then
     begin
 //      affiche(intToSTR(Tablo_Actionneur[i].adresse)+' '+Tablo_Actionneur[i].,clLime);
-      if (Tablo_Actionneur[i].adresse=heure) and (Tablo_Actionneur[i].adresse2=minute) then
+      if (Tablo_Actionneur[i].heure=heure) and (Tablo_Actionneur[i].minute=minute) then
       begin
-        event_act(heure,minute,1,'',true);
+        action(i);
       end;
     end;
   end;
@@ -14621,7 +15063,7 @@ end;
 
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
-var vitesse,i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
+var n,vitesse,i,j,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect : integer;
    imageSignal : Timage;
    frx,fry : real;
    faire : boolean;
@@ -14629,6 +15071,27 @@ var vitesse,i,a,adresse,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect :
    s : string;
 begin
   inc(tick);
+
+  // séquencement des actionneurs après tempo
+  if index_seqAct>0 then
+  begin
+    if seq_actionneurs[index_seqAct].tick=tick then
+    begin
+      i:=seq_actionneurs[index_seqAct].indiceAction;
+      j:=seq_actionneurs[index_seqAct].IndiceOp;
+      n:=tablo_actionneur[i].NbOperations;
+      dec(index_seqAct);
+      a:=j;
+      repeat
+        //Affiche('Faire action '+intToSTR(i)+' op '+intToSTR(a),clLime);
+        Action_operation(i,a);
+        faire:=(tablo_actionneur[i].TabloOp[a].numoperation=ActionTempo);
+        inc(a);
+      until (a>n) or faire;
+
+    end;
+  end;
+
 
   // --- horloge système
   if horloge then
@@ -14836,15 +15299,30 @@ begin
   // tempo retombée actionneur
   for i:=1 to maxTablo_act do
   begin
-    if Tablo_actionneur[i].TempoCourante<>0 then
+    n:=Tablo_actionneur[i].NbOperations;
+    for j:=1 to n do
     begin
-      dec(Tablo_actionneur[i].TempoCourante);
-      if Tablo_actionneur[i].TempoCourante=0 then
+      a:=Tablo_actionneur[i].TabloOp[j].TempoCourante;
+      if a<>0 then
       begin
-        A:=Tablo_actionneur[i].adresse;
-        s:=Tablo_actionneur[i].trainCourant;
-        Affiche('Actionneur '+intToSTR(a)+' TrainDest='+s+' F'+IntToSTR(Tablo_actionneur[i].fonction)+':0',clyellow);
-        envoie_fonction_CDM(Tablo_actionneur[i].fonction,0,s);
+        dec(a);
+        Tablo_actionneur[i].TabloOp[j].TempoCourante:=a;
+        if a=0 then
+        begin
+          x:=Tablo_actionneur[i].TabloOp[j].numoperation;
+          case x of
+            actionFonctionF :
+            begin
+              s:=Tablo_actionneur[i].tabloOp[j].trainCourant;
+              Affiche('Action TrainDest='+s+' F'+IntToSTR(Tablo_actionneur[i].TabloOP[j].fonctionF)+':0',clyellow);
+              envoie_fonction_CDM(Tablo_actionneur[i].tabloOP[j].fonctionF,0,s);
+            end;
+            actionTempo :
+            begin
+              Affiche('Fin temporisation action '+intToSTR(i)+' Op '+intToSTR(j)+' '+Tablo_actionneur[i].NomAction,clYellow);
+            end;
+          end;
+        end;
       end;
     end;
   end;
@@ -14927,7 +15405,7 @@ begin
       if Tablo_simule[I_simule].modele=act then
       begin
         s:='Simu '+intToSTR(I_simule)+' Tick='+IntToSTR(tick)+' act='+intToSTR(Tablo_simule[i_simule].adresse)+'='+IntToSTR(Tablo_simule[i_simule].etat);
-        Event_Act(Tablo_simule[i_simule].adresse,0,Tablo_simule[i_simule].etat, Tablo_simule[i_simule].train,false);
+        Event_Act(Tablo_simule[i_simule].adresse,0,Tablo_simule[i_simule].etat, Tablo_simule[i_simule].train);
         StatusBar1.Panels[1].text:=s;
         //Affiche(s,clyellow);
       end;
@@ -14947,7 +15425,6 @@ begin
         Index_Simule:=0;  // fin de simulation
         I_Simule:=0;
         MsgSim:=false;
-        filtrageDet0:=SauvefiltrageDet0;
         Affiche('Fin de simulation',clCyan);
         StatusBar1.Panels[1].text:='';
       end;
@@ -15927,7 +16404,7 @@ begin
         end;
         
         if AffAigDet then AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+nom+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
-        Event_act(adr,0,etat,train,false); // déclenche évent actionneur
+        Event_act(adr,0,etat,train); // déclenche évent actionneur
       end;
 
       // évènement position des trains
@@ -16488,9 +16965,9 @@ begin
   end;
 end;
 
+{
 procedure TFormPrinc.Codificationdesactionneurs1Click(Sender: TObject);
-var i,typ,adract,etatAct,fonction,v,acc,sortie : integer;
-    loc,act,son,periph : boolean;
+var i,decl,adract,etatAct,fonction,v,acc,sortie : integer;
     s,s2 : string;
 begin
   if (maxTablo_act=0) and (NbrePN=0) then
@@ -16509,17 +16986,14 @@ begin
     acc:=Tablo_actionneur[i].accessoire;
     sortie:=Tablo_actionneur[i].sortie;
     fonction:=Tablo_actionneur[i].fonction;
-    loc:=Tablo_actionneur[i].loco;
-    act:=Tablo_actionneur[i].act;
-    son:=Tablo_actionneur[i].son;
-    periph:=Tablo_actionneur[i].periph;
-    typ:=Tablo_actionneur[i].typdeclenche;
+    
+    decl:=Tablo_actionneur[i].typdeclenche;
 
-    if typ=3 then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
-    if typ=0 then s:=intToSTR(adrAct);
-    if typ=2 then s:='Aig '+intToSTR(AdrAct);
+    if decl=DeclZoneDet then s:='Mem '+intToSTR(adrAct)+' '+inttostr(Tablo_actionneur[i].Adresse2);
+    if decl=DeclDetAct then s:=intToSTR(adrAct);
+    if Decl=DeclAccessoire then s:='Acc '+intToSTR(AdrAct);
 
-    if loc then
+    if Decl=Action then
       s:='FonctionF  Déclencheur='+s+' :'+intToSTR(etatAct)+' TrainDécl='+s2+' TrainDest='+Tablo_actionneur[i].TrainDest+' F'+IntToSTR(fonction)+
               ' Temporisation='+intToSTR(tablo_actionneur[i].Tempo);
     if act then
@@ -16567,14 +17041,13 @@ begin
         Affiche(s,clyellow);
       end;
   end;
-end;
+end;    }
 
 procedure TFormPrinc.ButtonArretSimuClick(Sender: TObject);
 begin
   Index_Simule:=0;  // fin de simulation
   I_Simule:=0;
   MsgSim:=false;
-  filtrageDet0:=SauvefiltrageDet0;
   StopSimu:=true;
   Affiche('Fin de simulation',clCyan);
 end;
@@ -18332,14 +18805,8 @@ begin
   FenRich.Width:=GrandPanel.Width-Panel1.Width-GroupBoxAcc.Width-25;
   splitterV.Left:=FenRich.left+FenRich.Width-5;
   positionne_elements(splitterV.Left);
-  FormClock.Width:=250;
-  FormClock.Height:=250;
-  OffsetYFC:=(formprinc.top+formPrinc.height)-250-20;
-  OffsetXFC:=(formprinc.left+formPrinc.width)-250;
-  FormClock.top:=OffsetYFC;
-  FormClock.left:=OffsetXFC;
-  DeltaFPCY:=OffsetYFC-formprinc.top;
-  DeltaFPCX:=OffsetXFC-formprinc.left;
+  LargeurFC:=0;
+  calcul_pos_horloge;
 end;
 
 procedure TFormPrinc.Sauvegarderla1Click(Sender: TObject);
@@ -18383,60 +18850,6 @@ begin
 
 end;
 
-// télécommande de signaux complexes par les clients
-function telecommande(s : string) : boolean;
-var adresse,i,erreur : integer;
-begin
-  result:=false;
-  s:=uppercase(s);
-  // --- commandes sans paramètres
-  if pos('<LCDM>',s)<>0 then
-  begin
-    Lance_CDM(true);
-    result:=true;
-  end;
-  if pos('<ACDM>',s)<>0 then
-  begin
-    if cdmHd=0 then exit;
-    if not(cdmDevant) then ShowWindow(CDMhd,SW_MINIMIZE) else ShowWindow(CDMhd,SW_MAXIMIZE);
-    cdmDevant:=not(cdmDevant);
-    result:=true;
-  end;
-  if pos('<ASCO>',s)<>0 then
-  begin
-    with formprinc do
-    begin
-      windowState:=wsNormal; //Maximized;
-      show;
-      BringToFront;
-    end;
-    result:=true;
-  end;
-
-  // --- commandes avec paramètres
-  if copy(s,1,4)='<TCO' then
-  begin
-    delete(s,1,4);
-    val(s,i,erreur);
-    if (i>0) and (i<=10) and (formTCO[i]<>nil) then
-    begin
-      formTCO[i].windowState:=wsNormal; //Maximized;
-      formTCO[i].show;
-      formTCO[i].BringToFront;
-    end;
-    result:=true;
-  end;
-  if copy(s,1,4)='<ACS' then      // ACS3,1
-  begin
-    delete(s,1,4);
-    val(s,adresse,erreur);
-    delete(s,1,erreur);
-    val(s,i,erreur);
-    pilote_acc(adresse,i,aigP);   // impulsionnel
-  end;
-
-  //FormPrinc.AffEtatDetecteurs(formprinc);
-end;
 
 // réception COM/USB du périphérique 1
 procedure TFormPrinc.RecuPeriph1(Sender: TObject);
@@ -18452,12 +18865,13 @@ begin
     for i:=0 to length(tablo)-1 do
     begin
       c:=char(tablo[i]);
-      //Affiche(intToSTR(ord(c)),clorange);
+      //Affiche(c,clorange);
       if c=#13 then
       begin
         s:=tablo_periph[1].tamponrx;
         affiche(s,clyellow);
         tablo_periph[1].tamponrx:='';
+
         telecommande(s);
       end;
       if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;;
@@ -18679,6 +19093,7 @@ begin
   end;
   inherited;
 end;
+
 
 
 

@@ -12,6 +12,7 @@ object FormFicheHoraire: TFormFicheHoraire
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnActivate = FormActivate
   OnCreate = FormCreate
   PixelsPerInch = 96

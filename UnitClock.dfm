@@ -1,8 +1,8 @@
 object FormClock: TFormClock
-  Left = 965
-  Top = 184
-  Width = 291
-  Height = 293
+  Left = 923
+  Top = 433
+  Width = 250
+  Height = 250
   Caption = 'Horloge'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,13 +15,13 @@ object FormClock: TFormClock
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    275
-    254)
+    234
+    212)
   PixelsPerInch = 96
   TextHeight = 13
   object BitBtnMarHor: TBitBtn
     Left = 10
-    Top = 230
+    Top = 187
     Width = 25
     Height = 25
     Hint = 'Lance l'#39'horloge'
@@ -33,7 +33,7 @@ object FormClock: TFormClock
   end
   object BitBtnArrHorl: TBitBtn
     Left = 40
-    Top = 230
+    Top = 187
     Width = 25
     Height = 25
     Hint = 'Arr'#234'te l'#39'horloge'
@@ -45,7 +45,7 @@ object FormClock: TFormClock
   end
   object BitBtnInitHor: TBitBtn
     Left = 72
-    Top = 230
+    Top = 187
     Width = 25
     Height = 25
     Hint = 'Initialiser l'#39'horloge'
@@ -57,7 +57,7 @@ object FormClock: TFormClock
   end
   object ButtonParametres: TButton
     Left = 102
-    Top = 230
+    Top = 187
     Width = 25
     Height = 25
     Hint = 'Param'#233'trage'
@@ -70,7 +70,7 @@ object FormClock: TFormClock
   end
   object ButtonGH: TButton
     Left = 134
-    Top = 230
+    Top = 187
     Width = 25
     Height = 25
     Hint = 'Grille horaire'

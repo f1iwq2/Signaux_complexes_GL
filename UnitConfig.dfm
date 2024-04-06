@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 258
-  Top = 206
+  Left = 220
+  Top = 130
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -681,7 +681,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAct
+    ActivePage = TabSheet1
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2840,17 +2840,17 @@ object FormConfig: TFormConfig
         end
       end
     end
-    object TabSheetAct: TTabSheet
-      Caption = 'Actionneurs/D'#233'tecteurs'
-      ImageIndex = 5
-      object Label16: TLabel
+    object TabSheet1: TTabSheet
+      Caption = 'Actions'
+      ImageIndex = 6
+      object Label44: TLabel
         Left = 0
-        Top = 4
-        Width = 562
+        Top = 12
+        Width = 537
         Height = 13
         Caption = 
-          'Liste de mod'#233'lisation des actionneurs - cliquez sur une ligne po' +
-          'ur afficher la description de l'#39'action'
+          'Liste de mod'#233'lisation des actions - cliquez sur une ligne pour a' +
+          'fficher la description de l'#39'action'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -11
@@ -2858,6 +2858,121 @@ object FormConfig: TFormConfig
         Font.Style = [fsBold]
         ParentFont = False
       end
+      object GroupBox15: TGroupBox
+        Left = 0
+        Top = 32
+        Width = 609
+        Height = 425
+        Caption = 'Actions'
+        TabOrder = 0
+        object Label48: TLabel
+          Left = 352
+          Top = 16
+          Width = 149
+          Height = 13
+          Caption = 'Op'#233'rations r'#233'alis'#233'es par l'#39'action'
+        end
+        object ListBoxActions: TListBox
+          Left = 16
+          Top = 40
+          Width = 305
+          Height = 193
+          Color = clBlack
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clAqua
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ItemHeight = 13
+          MultiSelect = True
+          ParentFont = False
+          PopupMenu = PopupMenuListes
+          TabOrder = 0
+          OnKeyDown = ListBoxActionsKeyDown
+          OnMouseDown = ListBoxActionsMouseDown
+        end
+        object ListBoxOperations: TListBox
+          Left = 336
+          Top = 40
+          Width = 249
+          Height = 193
+          Hint = 'Double clic pour valider/d'#233'valider une action'
+          Style = lbOwnerDrawVariable
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ItemHeight = 13
+          ParentFont = False
+          ParentShowHint = False
+          PopupMenu = PopupMenuActions
+          ShowHint = True
+          TabOrder = 1
+          OnDblClick = ListBoxOperationsDblClick
+          OnDrawItem = ListBoxOperationsDrawItem
+          OnMouseDown = ListBoxOperationsMouseDown
+        end
+        object ButtonModAction: TButton
+          Left = 344
+          Top = 272
+          Width = 75
+          Height = 25
+          Caption = 'Modifier'
+          TabOrder = 2
+          OnClick = ButtonModActionClick
+        end
+        object RichEditInfo: TRichEdit
+          Left = 16
+          Top = 240
+          Width = 305
+          Height = 185
+          Color = clBlack
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clYellow
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
+          ReadOnly = True
+          ScrollBars = ssVertical
+          TabOrder = 3
+        end
+        object Button1: TButton
+          Left = 16
+          Top = 16
+          Width = 65
+          Height = 17
+          Caption = 'Nouveau'
+          TabOrder = 4
+          OnClick = ButtonNouvAccClick
+        end
+        object Button3: TButton
+          Left = 104
+          Top = 16
+          Width = 65
+          Height = 17
+          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
+          Caption = 'Supprime'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          OnClick = ButtonSupAccClick
+        end
+        object ButtonTestAction: TButton
+          Left = 504
+          Top = 272
+          Width = 75
+          Height = 25
+          Caption = 'Test action'
+          TabOrder = 6
+          OnClick = ButtonTestActionClick
+        end
+      end
+    end
+    object TabSheetPN: TTabSheet
+      Caption = 'PN'
+      ImageIndex = 6
       object GroupBox13: TGroupBox
         Left = 352
         Top = 24
@@ -2865,417 +2980,31 @@ object FormConfig: TFormConfig
         Height = 441
         Caption = 'Description de l'#39'action'
         TabOrder = 0
-        object GroupBoxRadio: TGroupBox
-          Left = 8
-          Top = 16
-          Width = 249
-          Height = 105
-          Caption = 'Type d'#39'action'
-          TabOrder = 0
-          object RadioButtonLoc: TRadioButton
-            Left = 24
-            Top = 16
-            Width = 193
-            Height = 17
-            Caption = 'Fonction F pour locomotive'
-            TabOrder = 0
-            OnClick = RadioButtonLocClick
-          end
-          object RadioButtonAccess: TRadioButton
-            Left = 24
-            Top = 32
-            Width = 161
-            Height = 17
-            Caption = 'Accessoire'
-            TabOrder = 1
-            OnClick = RadioButtonAccessClick
-          end
-          object RadioButtonSon: TRadioButton
-            Left = 24
-            Top = 48
-            Width = 161
-            Height = 17
-            Caption = 'Son'
-            TabOrder = 2
-            OnClick = RadioButtonSonClick
-          end
-          object RadioButtonCde: TRadioButton
-            Left = 24
-            Top = 64
-            Width = 177
-            Height = 17
-            Caption = 'Commande COM/USB/Socket'
-            TabOrder = 3
-            OnClick = RadioButtonCdeClick
-          end
-          object RadioButtonVit: TRadioButton
-            Left = 24
-            Top = 80
-            Width = 145
-            Height = 17
-            Caption = 'Vitesse de locomotive'
-            TabOrder = 4
-            OnClick = RadioButtonVitClick
-          end
-        end
-        object GroupBoxAct: TGroupBox
-          Left = 8
-          Top = 120
-          Width = 249
-          Height = 321
-          Caption = 'Action fonction de locomotive '
-          TabOrder = 1
-          object GroupBox18: TGroupBox
-            Left = 8
-            Top = 16
-            Width = 233
-            Height = 145
-            Caption = 'D'#233'clencheur '
-            TabOrder = 0
-            object LabelActionneur: TLabel
-              Left = 8
-              Top = 88
-              Width = 54
-              Height = 26
-              Caption = 'Actionneur D'#233'tecteur'
-              WordWrap = True
-            end
-            object Label30: TLabel
-              Left = 168
-              Top = 96
-              Width = 6
-              Height = 13
-              Caption = #224
-            end
-            object LabelTrain: TLabel
-              Left = 8
-              Top = 118
-              Width = 60
-              Height = 13
-              Caption = 'Train(s) D'#233'cl'
-            end
-            object EditAct: TEdit
-              Left = 72
-              Top = 92
-              Width = 41
-              Height = 21
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 0
-              OnChange = EditActChange
-            end
-            object EditEtatActionneur: TEdit
-              Left = 184
-              Top = 92
-              Width = 17
-              Height = 21
-              Hint = 'Etat '#224' ou 1'
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 1
-              OnChange = EditEtatActionneurChange
-            end
-            object EditTrainDecl: TEdit
-              Left = 72
-              Top = 116
-              Width = 153
-              Height = 21
-              Hint = 
-                'Train(s) d'#233'clencheur(s) s'#233'par'#233's par des virgules pour lequel la ' +
-                'condition s'#39'applique (mettre X pour tous les trains) #13 d'#233'clenc' +
-                'hement par actionneur uniquement'
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 2
-              OnChange = EditTrainDeclChange
-            end
-            object RadioButtonActDet: TRadioButton
-              Left = 16
-              Top = 16
-              Width = 161
-              Height = 17
-              Caption = 'Actionneur/D'#233'tecteur'
-              TabOrder = 3
-              OnClick = RadioButtonActDetClick
-            end
-            object RadioButtonZones: TRadioButton
-              Left = 16
-              Top = 32
-              Width = 161
-              Height = 17
-              Caption = 'Zones de d'#233'tection'
-              TabOrder = 4
-              OnClick = RadioButtonZonesClick
-            end
-            object EditAct2: TEdit
-              Left = 120
-              Top = 92
-              Width = 41
-              Height = 21
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 5
-              OnChange = EditAct2Change
-            end
-            object RadioButtonAig: TRadioButton
-              Left = 16
-              Top = 48
-              Width = 145
-              Height = 17
-              Caption = 'Ev'#232'nement aiguillage'
-              TabOrder = 6
-              OnClick = RadioButtonAigClick
-            end
-            object RadioButtonHorl: TRadioButton
-              Left = 16
-              Top = 64
-              Width = 113
-              Height = 17
-              Caption = 'Horloge'
-              TabOrder = 7
-              OnClick = RadioButtonHorlClick
-            end
-          end
-          object GroupBox19: TGroupBox
-            Left = 8
-            Top = 168
-            Width = 233
-            Height = 137
-            Caption = 'Destinataire de l'#39'action '
-            TabOrder = 1
-            object LabelTempo: TLabel
-              Left = 48
-              Top = 44
-              Width = 55
-              Height = 13
-              Caption = 'Tempo (ms)'
-            end
-            object LabelFonction: TLabel
-              Left = 8
-              Top = 18
-              Width = 80
-              Height = 13
-              BiDiMode = bdLeftToRight
-              Caption = 'Action : Fonction'
-              ParentBiDiMode = False
-            end
-            object Labela: TLabel
-              Left = 152
-              Top = 20
-              Width = 6
-              Height = 13
-              Caption = #224
-            end
-            object LabelNomSon: TLabel
-              Left = 0
-              Top = 56
-              Width = 91
-              Height = 13
-              Caption = 'Nom du fichier son:'
-            end
-            object SpeedButtonJoue: TSpeedButton
-              Left = 56
-              Top = 88
-              Width = 41
-              Height = 33
-              Hint = 'Joue le son'
-              Flat = True
-              Glyph.Data = {
-                4E010000424D4E010000000000003E0000002800000022000000220000000100
-                010000000000100100000000000000000000020000000000000000000000FFFF
-                FF00FFFFFFFFC0000000FFFFFFFFC0000000FFFFFFFFC0000000C0000000C000
-                0000800000004000000000000000000000001FFFFFFE000000003FFFFFFF0000
-                00003FFFFFFF000000003FFFFFFF000000003FF8FFFF000000003FF03FFF0000
-                00003FF00FFF000000003FF303FF000000003FF3C0FF000000003FF3F07F0000
-                00003FF3FC7F000000003FF3FC7F000000003FF3E07F000000003FF381FF0000
-                00003FF207FF000000003FF01FFF000000003FF07FFF000000003FF9FFFF0000
-                00003FFFFFFF000000003FFFFFFF000000003FFFFFFF000000001FFFFFFE0000
-                000000000000000000008000000040000000C0000000C0000000FFFFFFFFC000
-                0000FFFFFFFFC0000000FFFFFFFFC0000000}
-              ParentShowHint = False
-              ShowHint = True
-              OnClick = SpeedButtonJoueClick
-            end
-            object SpeedButtonCharger: TSpeedButton
-              Left = 120
-              Top = 88
-              Width = 25
-              Height = 34
-              Hint = 'Ouvre un fichier son WAV'
-              Flat = True
-              Glyph.Data = {
-                BA060000424DBA06000000000000360400002800000019000000170000000100
-                0800000000008402000000000000000000000001000000000000000000000000
-                80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
-                A6000020400000206000002080000020A0000020C0000020E000004000000040
-                20000040400000406000004080000040A0000040C0000040E000006000000060
-                20000060400000606000006080000060A0000060C0000060E000008000000080
-                20000080400000806000008080000080A0000080C0000080E00000A0000000A0
-                200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
-                200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
-                200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
-                20004000400040006000400080004000A0004000C0004000E000402000004020
-                20004020400040206000402080004020A0004020C0004020E000404000004040
-                20004040400040406000404080004040A0004040C0004040E000406000004060
-                20004060400040606000406080004060A0004060C0004060E000408000004080
-                20004080400040806000408080004080A0004080C0004080E00040A0000040A0
-                200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
-                200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
-                200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
-                20008000400080006000800080008000A0008000C0008000E000802000008020
-                20008020400080206000802080008020A0008020C0008020E000804000008040
-                20008040400080406000804080008040A0008040C0008040E000806000008060
-                20008060400080606000806080008060A0008060C0008060E000808000008080
-                20008080400080806000808080008080A0008080C0008080E00080A0000080A0
-                200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
-                200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
-                200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
-                2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
-                2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
-                2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
-                2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
-                2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
-                2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
-                2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
-                FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-                FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000FF0A0A00FFFFFFFFFFFF
-                FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000FF272727271C120A00FFFFFFFFFF
-                FFFFFFFFFFFFFFFFFFFFFF000000FF27BF7F77776F2727271D130A0000FFFFFF
-                FFFFFFFFFFFFFF000000FF26F6BFBFBF7F7F7F77776F2F27271D130A0000FFFF
-                FFFFFF000000FF2F6FF6BFBFBFBFBF7F7F7F7F7F7F6F2F2F270AFFFFFFFFFF00
-                0000FF2727F6BFBFBFBFBFBF7F7F7F7F7F7F7F7F7726FFFFFFFFFF000000FF27
-                6FF6BFBFBFBFBFBFBF7F7F7F7F7F7F7F7F2F00FFFFFFFF000000FF27BF6FF6BF
-                BFBFBFBFBFBF7F7F7F7F7F7F7F771CFFFFFFFF000000FF27BF27F6BFBFBFBFBF
-                BFBFBF7F7F7F7F7F7FBF2F00FFFFFF000000FF27BF2FF6BFBFBFBFBFBFBFBFBF
-                7F7F7F7F7FBF7713FFFFFF000000FF277F376FF6BFBFBFBFBFBFBFBFBF7F7F7F
-                7F7FBF2F00FFFF000000FF277F3727F6BFBFBFBFBFBFBFBFBFBF7F7F7F7FBF77
-                0AFFFF000000FF277F372F27276FF6F6F6F6F6BFBFBFBFBF7F7F7FBF2700FF00
-                0000FF277F37373737372F2F27276F77BFBFBFBFBFBFBFBF6F0AFF000000FF27
-                7F373737373737373737372F2F276F6F7777777F7F1DFF000000FF277F373737
-                3737373737373737373737372F6F2F272727FF000000FF277F37373737373737
-                3737373737373737377FBF270A0AFF000000FF277F373737373737377FBFBFBF
-                BFBFBFBFBFF6270AFFFFFF000000FF277F373737373737372666272727272727
-                272752FFFFFFFF000000FF27BFBFBFBFBFBFBFBF25FFFFFFFFFFFFFFFFFFFFFF
-                FFFFFF000000FF266F2727272727276F13FFFFFFFFFFFFFFFFFFFFFFFFFFFF00
-                0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000}
-              ParentShowHint = False
-              ShowHint = True
-              OnClick = SpeedButtonChargerClick
-            end
-            object Label42: TLabel
-              Left = 16
-              Top = 68
-              Width = 49
-              Height = 13
-              Caption = 'Train Dest'
-            end
-            object EditTempo: TEdit
-              Left = 112
-              Top = 38
-              Width = 41
-              Height = 21
-              TabOrder = 0
-              OnChange = EditTempoChange
-            end
-            object CheckRAZ: TCheckBox
-              Left = 40
-              Top = 56
-              Width = 145
-              Height = 17
-              Caption = 'Remise '#224' 0 apr'#232's pilotage'
-              TabOrder = 1
-              OnClick = CheckRAZClick
-            end
-            object EditFonctionAccess: TEdit
-              Left = 112
-              Top = 14
-              Width = 33
-              Height = 21
-              Hint = 'Num'#233'ro de fonction du d'#233'codeur du train (0 '#224' 12 ou 28)'
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 2
-              OnChange = EditFonctionAccessChange
-            end
-            object EditEtatFoncSortie: TEdit
-              Left = 168
-              Top = 14
-              Width = 25
-              Height = 21
-              TabOrder = 3
-              OnChange = EditEtatFoncSortieChange
-            end
-            object EditSon: TEdit
-              Left = 16
-              Top = 88
-              Width = 161
-              Height = 21
-              TabOrder = 4
-              OnChange = EditSonChange
-            end
-            object EditTrainDest: TEdit
-              Left = 80
-              Top = 64
-              Width = 129
-              Height = 21
-              Hint = 'Train destinataire de la fonction F'
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 5
-              OnChange = EditTrainDestChange
-            end
-            object ComboBoxAccComUSB: TComboBox
-              Left = 16
-              Top = 80
-              Width = 201
-              Height = 21
-              Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
-              Style = csDropDownList
-              ItemHeight = 13
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 6
-              OnChange = ComboBoxAccComUSBChange
-            end
-          end
-          object ButtonTestAct: TButton
-            Left = 16
-            Top = 294
-            Width = 89
-            Height = 20
-            Hint = 'Test de l'#39'actionneur/d'#233'tecteur en mode RUN'
-            Caption = 'Test actionneur'
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 2
-            OnClick = ButtonTestActClick
-          end
-        end
         object GroupBoxPNA: TGroupBox
-          Left = 96
-          Top = 64
-          Width = 169
+          Left = 8
+          Top = 224
+          Width = 249
           Height = 121
           Caption = 'Actionneurs PN simples'
-          TabOrder = 2
+          TabOrder = 0
         end
         object GroupBoxPNZ: TGroupBox
-          Left = 192
-          Top = 88
-          Width = 169
+          Left = 8
+          Top = 352
+          Width = 249
           Height = 65
           Caption = 'Zones de d'#233'tection'
-          TabOrder = 3
+          TabOrder = 1
         end
         object GroupBoxPN: TGroupBox
-          Left = 144
+          Left = 8
           Top = 24
           Width = 249
           Height = 193
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
           ShowHint = False
-          TabOrder = 4
+          TabOrder = 2
           object Label21: TLabel
             Left = 8
             Top = 84
@@ -3393,7 +3122,7 @@ object FormConfig: TFormConfig
           object RadioGroupActPN: TRadioGroup
             Left = 8
             Top = 16
-            Width = 217
+            Width = 233
             Height = 57
             Hint = 'action par accessoire DCC ou commande COM/USB'
             Caption = 'Type d'#39'action'
@@ -3406,13 +3135,13 @@ object FormConfig: TFormConfig
             OnClick = RadioGroupActPNClick
           end
           object ComboBoxPNCom: TComboBox
-            Left = 72
+            Left = 80
             Top = 128
             Width = 145
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3420,61 +3149,13 @@ object FormConfig: TFormConfig
           end
         end
       end
-      object GroupBox14: TGroupBox
-        Left = 0
-        Top = 24
-        Width = 345
-        Height = 233
-        Caption = 'Actionneurs/d'#233'tecteurs locomotives ou accessoires'
-        TabOrder = 1
-        object ButtonNouvAcc: TButton
-          Left = 8
-          Top = 24
-          Width = 65
-          Height = 17
-          Caption = 'Nouveau'
-          TabOrder = 0
-          OnClick = ButtonNouvAccClick
-        end
-        object ButtonSupAcc: TButton
-          Left = 80
-          Top = 24
-          Width = 65
-          Height = 17
-          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
-          Caption = 'Supprime'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          OnClick = ButtonSupAccClick
-        end
-        object ListBoxAct: TListBox
-          Left = 8
-          Top = 48
-          Width = 329
-          Height = 161
-          Color = clBlack
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clAqua
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ItemHeight = 13
-          MultiSelect = True
-          ParentFont = False
-          PopupMenu = PopupMenuListes
-          TabOrder = 2
-          OnKeyDown = ListBoxActKeyDown
-          OnMouseDown = ListBoxActMouseDown
-        end
-      end
       object GroupBox17: TGroupBox
         Left = 0
-        Top = 272
+        Top = 16
         Width = 345
-        Height = 193
+        Height = 449
         Caption = 'Actionneurs/d'#233'tecteurs passage '#224' niveau'
-        TabOrder = 2
+        TabOrder = 1
         object ButtonNouvPN: TButton
           Left = 8
           Top = 24
@@ -3500,7 +3181,7 @@ object FormConfig: TFormConfig
           Left = 8
           Top = 48
           Width = 329
-          Height = 137
+          Height = 345
           Color = clBlack
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clAqua
@@ -3519,7 +3200,7 @@ object FormConfig: TFormConfig
     end
     object TabSheetDccpp: TTabSheet
       Caption = 'DCC++'
-      ImageIndex = 6
+      ImageIndex = 7
       ParentShowHint = False
       ShowHint = False
       object Label10: TLabel
@@ -4273,5 +3954,12 @@ object FormConfig: TFormConfig
     OnShow = ColorDialogFondShow
     Left = 696
     Top = 376
+  end
+  object PopupMenuActions: TPopupMenu
+    Left = 768
+    object ModifAction: TMenuItem
+      Caption = 'Modifier l'#39'action'
+      OnClick = ModifActionClick
+    end
   end
 end

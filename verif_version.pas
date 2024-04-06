@@ -26,7 +26,7 @@ var
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
-Const  VersionSC ='8.6';  // sert à la comparaison de la version publiée
+Const  VersionSC ='8.7';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -149,11 +149,8 @@ end;
 // dézipe copie les fichiers et lance la nouvelle version
 // s : chemin et fichier à déziper
 procedure dezipe_copie_lance(s : string);
-var fichier,nomPDF : string;
-    dirList : tStrings;
-    SR      : TSearchRec;
-    nombre,i,attributes : integer;
-    pdf,ok : boolean;
+var
+    i : integer;
 
 begin
   // Vérifier si répertoire dest existe

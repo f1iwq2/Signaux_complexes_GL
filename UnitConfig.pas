@@ -76,8 +76,7 @@ type
     Label14: TLabel;
     TabSheetSig: TTabSheet;
     Label15: TLabel;
-    TabSheetAct: TTabSheet;
-    Label16: TLabel;
+    TabSheetPN: TTabSheet;
     CheckBoxSrvSig: TCheckBox;
     Memo1: TMemo;
     Memo2: TMemo;
@@ -99,9 +98,6 @@ type
     LabelDec: TLabel;
     LabelDetAss: TLabel;
     LabelElSuiv: TLabel;
-    GroupBoxRadio: TGroupBox;
-    RadioButtonLoc: TRadioButton;
-    GroupBoxAct: TGroupBox;
     Label17: TLabel;
     MemoCarre: TMemo;
     ListBoxAig: TListBox;
@@ -120,7 +116,6 @@ type
     EditSuiv4: TEdit;
     CheckVerrouCarre: TCheckBox;
     CheckInverse: TCheckBox;
-    RadioButtonAccess: TRadioButton;
     CheckFenEt: TCheckBox;
     GroupBoxDivers: TGroupBox;
     CheckBoxInitAig: TCheckBox;
@@ -152,30 +147,12 @@ type
     EditSpecUni: TEdit;
     LabelUni: TLabel;
     Buttonrestaure: TButton;
-    GroupBox14: TGroupBox;
-    ButtonNouvAcc: TButton;
-    ButtonSupAcc: TButton;
     GroupBox17: TGroupBox;
     ButtonNouvPN: TButton;
     ButtonSupPN: TButton;
     ButtonNouvFeu: TButton;
     ButtonSupFeu: TButton;
     ButtonInsFeu: TButton;
-    GroupBox18: TGroupBox;
-    EditAct: TEdit;
-    LabelActionneur: TLabel;
-    EditEtatActionneur: TEdit;
-    Label30: TLabel;
-    LabelTrain: TLabel;
-    EditTrainDecl: TEdit;
-    GroupBox19: TGroupBox;
-    LabelTempo: TLabel;
-    EditTempo: TEdit;
-    CheckRAZ: TCheckBox;
-    LabelFonction: TLabel;
-    EditFonctionAccess: TEdit;
-    Labela: TLabel;
-    EditEtatFoncSortie: TEdit;
     ButtonNouvAig: TButton;
     BoutSupAig: TButton;
     ButtonAjSup: TButton;
@@ -202,23 +179,12 @@ type
     GroupBoxEtatTJD: TGroupBox;
     RadioButtonTJD2: TRadioButton;
     RadioButtonTJD4: TRadioButton;
-    RadioButtonSon: TRadioButton;
-    EditSon: TEdit;
-    LabelNomSon: TLabel;
-    SpeedButtonJoue: TSpeedButton;
     CheckBoxRazSignaux: TCheckBox;
     EditTempoFeu: TEdit;
     Label35: TLabel;
     Label36: TLabel;
-    ButtonTestAct: TButton;
-    RadioButtonActDet: TRadioButton;
-    RadioButtonZones: TRadioButton;
-    EditAct2: TEdit;
     OpenDialogSon: TOpenDialog;
-    SpeedButtonCharger: TSpeedButton;
     LabelNumBranche: TLabel;
-    EditTrainDest: TEdit;
-    Label42: TLabel;
     Label43: TLabel;
     CheckBandeauTCO: TCheckBox;
     CheckPosAig: TCheckBox;
@@ -231,7 +197,6 @@ type
     CheckFVC: TCheckBox;
     CheckFRC: TCheckBox;
     Label40: TLabel;
-    RadioButtonAig: TRadioButton;
     GroupBox22: TGroupBox;
     RadioButtonDCC: TRadioButton;
     RadioButtonXpress: TRadioButton;
@@ -294,7 +259,6 @@ type
     Label69: TLabel;
     LabelCrois: TLabel;
     ListBoxSig: TListBox;
-    ListBoxAct: TListBox;
     ListBoxPN: TListBox;
     PopupMenuListes: TPopupMenu;
     Slectionnertout1: TMenuItem;
@@ -304,7 +268,6 @@ type
     N2: TMenuItem;
     outcopierentatquetexte1: TMenuItem;
     CheckBoxAffMemo: TCheckBox;
-    RadioButtonCde: TRadioButton;
     TabSheetPeriph: TTabSheet;
     ListBoxPeriph: TListBox;
     ButtonAjAccCom: TButton;
@@ -312,7 +275,6 @@ type
     GroupBoxDesc: TGroupBox;
     Label71: TLabel;
     EditNomPeriph: TEdit;
-    ComboBoxAccComUSB: TComboBox;
     Label73: TLabel;
     LabelInfoAcc: TLabel;
     ButtonOuvreCom: TButton;
@@ -357,8 +319,19 @@ type
     Label31: TLabel;
     Label39: TLabel;
     CheckBoxMsgAigInc: TCheckBox;
-    RadioButtonHorl: TRadioButton;
-    RadioButtonVit: TRadioButton;
+    TabSheet1: TTabSheet;
+    GroupBox15: TGroupBox;
+    ListBoxActions: TListBox;
+    ListBoxOperations: TListBox;
+    ButtonModAction: TButton;
+    Label44: TLabel;
+    Label48: TLabel;
+    RichEditInfo: TRichEdit;
+    Button1: TButton;
+    Button3: TButton;
+    ButtonTestAction: TButton;
+    PopupMenuActions: TPopupMenu;
+    ModifAction: TMenuItem;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -368,20 +341,9 @@ type
     procedure RadioButton60kmhClick(Sender: TObject);
     procedure ComboBoxDecChange(Sender: TObject);
     procedure CheckVerrouCarreClick(Sender: TObject);
-    procedure EditActChange(Sender: TObject);
-    procedure EditEtatActionneurChange(Sender: TObject);
-    procedure EditTrainDeclChange(Sender: TObject);
-    procedure EditFonctionAccessChange(Sender: TObject);
-    procedure EditEtatFoncSortieChange(Sender: TObject);
-    procedure EditTempoChange(Sender: TObject);
-    procedure CheckRAZClick(Sender: TObject);
     procedure CheckInverseClick(Sender: TObject);
     procedure ComboBoxAspChange(Sender: TObject);
     procedure ButtonrestaureClick(Sender: TObject);
-    procedure RadioButtonLocClick(Sender: TObject);
-    procedure RadioButtonAccessClick(Sender: TObject);
-    procedure RichPNMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure EditAdrFermeChange(Sender: TObject);
     procedure EditCdeFermeChange(Sender: TObject);
     procedure EditAdrOuvreChange(Sender: TObject);
@@ -432,18 +394,9 @@ type
     procedure PageControlChange(Sender: TObject);
     procedure RadioButtonTJD2Click(Sender: TObject);
     procedure RadioButtonTJD4Click(Sender: TObject);
-    procedure RadioButtonSonClick(Sender: TObject);
-    procedure EditSonChange(Sender: TObject);
-    procedure SpeedButtonJoueClick(Sender: TObject);
     procedure EditTempoFeuChange(Sender: TObject);
-    procedure ButtonTestActClick(Sender: TObject);
-    procedure RadioButtonActDetClick(Sender: TObject);
-    procedure RadioButtonZonesClick(Sender: TObject);
-    procedure EditAct2Change(Sender: TObject);
-    procedure SpeedButtonChargerClick(Sender: TObject);
     procedure RichBrancheKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure EditTrainDestChange(Sender: TObject);
     procedure ListBoxAigKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ButtonEnregistreClick(Sender: TObject);
@@ -452,7 +405,6 @@ type
     procedure CheckPnPulseClick(Sender: TObject);
     procedure CheckFVCClick(Sender: TObject);
     procedure CheckFRCClick(Sender: TObject);
-    procedure RadioButtonAigClick(Sender: TObject);
     procedure ButtonEnvClick(Sender: TObject);
     procedure EditBaseChange(Sender: TObject);
     procedure RichCdeDccppChange(Sender: TObject);
@@ -467,8 +419,6 @@ type
     procedure EditVitNomChange(Sender: TObject);
     procedure EditVitRalentiChange(Sender: TObject);
     procedure CheckBoxVerifXpressNetClick(Sender: TObject);
-    procedure RichPNKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ListBoxTrainsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ButtonPFCDMClick(Sender: TObject);
@@ -496,10 +446,6 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure ListBoxSigKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure ListBoxActMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ListBoxActKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ListBoxPNMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ListBoxPNKeyDown(Sender: TObject; var Key: Word;
@@ -508,15 +454,13 @@ type
     procedure Supprimer1Click(Sender: TObject);
     procedure Nouveau1Click(Sender: TObject);
     procedure outcopierentatquetexte1Click(Sender: TObject);
-    procedure RadioButtonCdeClick(Sender: TObject);
     procedure ButtonOuvreComClick(Sender: TObject);
     procedure ButtonAjAccComClick(Sender: TObject);
     procedure EditNomPeriphChange(Sender: TObject);
     procedure ListBoxPeriphMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure ComboBoxAccComUSBChange(Sender: TObject);
     procedure ButtonSupAccComClick(Sender: TObject);
-    procedure ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
+    procedure ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure RadioButtonSimpleClick(Sender: TObject);
     procedure RadioButtonZoneClick(Sender: TObject);
@@ -544,8 +488,18 @@ type
     procedure EditAdrAigExit(Sender: TObject);
     procedure EditAdrAigChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure RadioButtonHorlClick(Sender: TObject);
-    procedure RadioButtonVitClick(Sender: TObject);
+    procedure ButtonModActionClick(Sender: TObject);
+    procedure ListBoxActionsMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ListBoxOperationsDrawItem(Control: TWinControl;
+      Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure ListBoxOperationsMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ButtonTestActionClick(Sender: TObject);
+    procedure ModifActionClick(Sender: TObject);
+    procedure ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure ListBoxOperationsDblClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -649,6 +603,8 @@ relanceHorl_init_ch='relanceHorl_init';
 section_aig_ch='[section_aig]';
 section_sig_ch='[section_sig]';
 section_act_ch='[section_act]';
+section_actV2_ch='[section_actions]';
+section_PN_ch='[section_PN]';
 section_branches_ch='[section_branches]';
 section_dccpp_ch='[section_dcc++]';
 section_initpp_ch='[init_dcc++]';
@@ -729,10 +685,15 @@ function decodeDCC(s : string) : string;
 function encode_aig(index : integer): string;
 function Ipok(s : string) : boolean;
 procedure couleurs_config;
+function encode_actions(i : integer) : string;
+function encode_act_pn(i : integer) : string;
+function encode_Periph(index : integer) : string;
+procedure ajoute_champs_combos(i : integer);
 
 implementation
 
-uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote, unitclock;
+uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote, unitclock,
+  UnitModifAction,  UnitConfigCellTCO;
 
 {$R *.dfm}
 
@@ -846,8 +807,6 @@ begin
           envoi_CDM(s);
           sleep(10);
           Application.ProcessMessages;
-          SauvefiltrageDet0:=filtrageDet0;  // en mode cdm,filtrage détecteur à 0
-          filtrageDet0:=0;
           result:=true;
         end
         else
@@ -1630,8 +1589,63 @@ begin
   end;
 end;
 
+// transforme l'action en chaine
+function encode_actions(i : integer) : string;
+var s : string;
+    decl,action,Nb,j: integer;
+begin
+  if (i<1) or (i>maxTablo_act) then
+  begin
+    encode_actions:='';
+    exit;
+  end;
+
+  s:=Tablo_Actionneur[i].NomAction+',';
+
+  decl:=Tablo_Actionneur[i].declencheur;
+
+  s:=s+'D'+intToSTR(decl)+',';
+  case decl of
+    declHorloge    : s:=s+intToSTR(Tablo_Actionneur[i].heure)+','+intToSTR(Tablo_Actionneur[i].minute)+',';
+    declPeriph     : s:=s+intToSTR(Tablo_Actionneur[i].NumPeriph)+','+Tablo_Actionneur[i].ordrePeriph+',';
+    DeclAccessoire : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].etat)+',';
+    DeclDetAct     : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].etat)+','+Tablo_Actionneur[i].trainDecl+',';
+    DeclZoneDet    : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].adresse2)+','+intToSTR(Tablo_Actionneur[i].etat)+','+Tablo_Actionneur[i].trainDecl+',';
+  end;
+
+  Nb:=Tablo_Actionneur[i].NbOperations;
+  s:=s+'N'+intToSTR(nb)+',';
+
+  for j:=1 to Nb do
+  begin
+    action:=Tablo_Actionneur[i].TabloOp[j].numoperation;
+    s:=s+'A'+intToSTR(action);
+    if Tablo_Actionneur[i].TabloOp[j].valide then s:=s+',1' else s:=s+',0';
+    case action of
+      ActionAffTCO    : s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].NumTCO);
+      ActionAccessoire: begin
+                          s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].adresse)+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].etat)+',';
+                          if tablo_Actionneur[i].tabloOp[j].zero then s:=s+'Z' else s:=s+'S';
+                        end;
+
+      ActionVitesse   : s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].vitesse)+','+Tablo_Actionneur[i].tabloOp[j].train;
+      ActionCdePeriph : s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].periph)+','+Tablo_Actionneur[i].tabloOp[j].chaine;
+      ActionFonctionF : s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].fonctionF)+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].TempoF)+','+Tablo_Actionneur[i].tabloOp[j].train;
+      ActionSon       : s:=s+','+Tablo_Actionneur[i].tabloOp[j].train;  // nom du fichier
+      ActionTempo     : s:=s+','+intToSTR(Tablo_Actionneur[i].tabloOp[j].TempoF);
+    end;
+
+    if j<nb then s:=s+',';
+
+ end;
+
+  encode_actions:=s;
+end;
+
+
 // transforme l'actionneur type loco ou actionneur ou son ou vitesse du tableau en texte
 // paramètre d'entrée : index
+{
 function encode_act_loc_son(i : integer): string;
 var s : string;
     adresse,adresse2 : integer;
@@ -1665,7 +1679,7 @@ begin
   end;
 
   if Tablo_Actionneur[i].son then
-    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].FichierSon+'"';
+    s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',"'+Tablo_Actionneur[i].trainDecl+'"';
 
   if Tablo_Actionneur[i].periph then
     s:=s+','+IntToSTR(Tablo_Actionneur[i].Etat)+','+Tablo_Actionneur[i].trainDecl+',ACC'+IntToSTR(Tablo_Actionneur[i].fonction)+','+Tablo_Actionneur[i].trainDest;
@@ -1676,6 +1690,7 @@ begin
 
   encode_act_loc_son:=s;
 end;
+}
 
 // encode l'actionneur PN du tableau en texte
 function encode_act_pn(i : integer) : string;
@@ -1731,6 +1746,7 @@ begin
   end;
   encode_act_pn:=s;
 end;
+
 
 function Train_tablo(index : integer) : string;
 begin
@@ -2002,6 +2018,7 @@ begin
 
   // Fonctions Fx
   // actionneurs Train ou accessoire
+  {
   writeln(fichierN,'/------------');
   writeln(fichierN,section_act_ch);
   for i:=1 to maxTablo_act do
@@ -2009,13 +2026,25 @@ begin
     s:=encode_act_loc_son(i);
     if s<>'' then writeln(fichierN,s);
   end;
+  }
 
   writeln(fichierN,'/------------');
-  // actionneurs PN
+  writeln(fichierN,section_PN_ch);
+  // PN
   for i:=1 to NbrePN do
   begin
     s:=encode_act_pn(i);
     if s<>'' then if s<>'' then writeln(fichierN,s);
+  end;
+  writeln(fichierN,'0');
+
+  writeln(fichierN,'/------------');
+  // actionnneurs V2
+  writeln(fichierN,section_actV2_ch);
+  for i:=1 to maxTablo_act do
+  begin
+    s:=encode_actions(i);
+    if s<>'' then writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
 
@@ -2291,51 +2320,162 @@ var s,sa,SOrigine: string;
   NbreBranches:=i-1;
   end;
 
+  procedure compile_pn;// Passage à niveau
+  begin
+    repeat
+      s:=lit_ligne;
+      s:=sOrigine;
+      if s<>'0' then
+      begin
+        if pos('PN',uppercase(s))<>0 then
+        begin
+          //if k>0 then Tablo_actionneur[maxTablo_act].TabloOp[k].numoperation:=ActionPN;
+          inc(NbrePN);
+          NbreVoies:=0;
+          repeat
+            inc(NbreVoies);
+            Delete(s,1,1); // supprime (
+            // déterminer si il y a un - avant le )
+            j:=pos(')',s);
+            i:=pos('-',s);
+            if (i<j) and (i<>0) then
+            begin
+              // zone de détection
+              Tablo_PN[NbrePN].actionneur:=false;
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].detZ1F:=j;
+              delete(s,1,erreur);
+
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].detZ2F:=j;
+              delete(s,1,erreur);
+
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].detZ1O:=j;
+              delete(s,1,erreur);
+
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].detZ2O:=j;
+            end
+            else
+            begin
+              // actionneurs
+              Tablo_PN[NbrePN].actionneur:=true;
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
+              //  Affiche('Ferme='+intToSTR(j),clyellow);
+              i:=pos(',',s);
+              Delete(S,1,i);
+              val(s,j,erreur);
+              Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
+              // Affiche('Ouvre='+intToSTR(j),clyellow);
+            end;
+
+            i:=pos(')',s);Delete(S,1,i);
+            i:=pos(',',s);Delete(S,1,i);
+            Tablo_PN[NbrePN].compteur:=0;
+          until (copy(s,1,2)='PN') or (NbreVoies=5);
+
+          Tablo_PN[NbrePN].NbVoies:=NbreVoies;
+          Delete(s,1,3);  // Supprime PN(
+          val(s,j,erreur);
+          Tablo_PN[NbrePN].Adresseferme:=j;   // adresse ferme ou numéro accessoire
+          Delete(s,1,erreur);
+          // prendre le 4 paramètre (commande ACC ou COMUSB
+          i:=pos(',',s);
+          i:=posEx(',',s,i+1);
+          i:=posEx(',',s,i+1);
+          i:=posEx(',',s,i+1);
+          val(copy(s,i+1,1),asp,erreur);
+          if asp=0 then   // S peut peut être un nombre ou une chaine
+          begin
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].CommandeFerme:=j;
+            j:=pos(',',s);
+            Delete(s,1,j); // supprime séparateurs
+
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].AdresseOuvre:=j;
+            Delete(s,1,erreur);
+            val(s,j,erreur);
+            Tablo_PN[NbrePN].CommandeOuvre:=j;
+          end
+          else
+          begin
+            // commande usb
+            i:=pos(',',s);
+            Tablo_PN[NbrePN].CommandeF:=copy(s,1,i-1);
+            delete(s,1,i);
+            i:=pos(',',s);
+            Tablo_PN[NbrePN].CommandeO:=copy(s,1,i-1);
+            delete(s,1,i);
+          end;
+          j:=pos(')',s);
+          Delete(s,1,j); // supprime séparateurs
+          if length(s)>0 then
+          begin
+            // champ impulsion nouvelle syntaxe
+            if s[1]=',' then delete(s,1,1);
+            val(s,i,erreur);
+            Tablo_PN[NbrePN].Pulse:=i;
+            if erreur<>0 then
+            begin
+              delete(s,1,erreur);
+              val(s,i,erreur);
+              Tablo_PN[NbrePN].TypeCde:=i;
+            end;
+            s:='';
+          end;
+        end;
+      end;
+    until s='0';
+  end;
+
+  // anciens
   procedure compile_actionneurs;
   var i : integer;
   begin
+  NbrePN:=0;
+  confasauver:=true;
   // raz des actionneurs
   for i:=1 to Max_actionneurs do
   begin
     Tablo_actionneur[i].trainDecl:='';
-    Tablo_actionneur[i].trainDest:='';
     Tablo_actionneur[i].etat:=0;
     Tablo_actionneur[i].adresse:=0;
     Tablo_actionneur[i].adresse2:=0;
-    Tablo_Actionneur[i].typdeclenche:=0;
-    Tablo_actionneur[i].accessoire:=0;
-    Tablo_actionneur[i].sortie:=0;
-    Tablo_actionneur[i].fichierSon:='';
-    Tablo_actionneur[i].loco:=false;
-    Tablo_actionneur[i].act:=false;
-    Tablo_actionneur[i].son:=false;
-    Tablo_actionneur[i].periph:=false;
+    Tablo_actionneur[i].trainDecl:='';
+    Tablo_actionneur[i].declencheur:=0;
   end;
 
   maxTablo_act:=1;
-  NbrePN:=0;Nligne:=1;
+  Nligne:=1;
 
-  // définition des actionneurs
+  // définition des actionneurs et des PN intégrés anciens
   repeat
     s:=lit_ligne;
-    if (s<>'0') and (s<>'') then
+    if (s<>'0') and (s<>'')  then
     begin
+     if (s[1]<>'(') then
+     begin
+
       // premier champ type de déclencheur--------------------
       // nombre      = actionneur/détecteur
       // MEM         = zone
       // Aaiguillage = aiguillage
       s:=sOrigine;  // travailler en min/maj
+      Tablo_actionneur[maxtablo_act].NomAction:='Action '+intToSTR(maxtablo_act);
 
       // évènement actionneur par horloge
       if (upcase(s[1])='H') then
       begin
-        Tablo_actionneur[maxtablo_act].typdeclenche:=1;  // type horloge
+        Tablo_actionneur[maxtablo_act].declencheur:=DeclHorloge;
         Delete(s,1,1);
         val(s,j,erreur);
-        Tablo_actionneur[maxtablo_act].adresse:=j; //heure
+        Tablo_actionneur[maxtablo_act].heure:=j; //heure
         delete(s,1,erreur);
         val(s,j,erreur);
-        Tablo_actionneur[maxtablo_act].adresse2:=j; // minute
+        Tablo_actionneur[maxtablo_act].minute:=j; // minute
         delete(s,1,erreur);
         i:=pos(',',s);
         delete(s,1,i);
@@ -2344,10 +2484,10 @@ var s,sa,SOrigine: string;
       end
       else
 
-      // évènement actionneur par aiguillage
+      // évènement actionneur par accessoire
       if (upcase(s[1])='A') then
       begin
-        Tablo_actionneur[maxtablo_act].typdeclenche:=2;  // type aiguillage
+        Tablo_actionneur[maxtablo_act].declencheur:=DeclAccessoire;
         Delete(s,1,1);
         val(s,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
@@ -2362,7 +2502,7 @@ var s,sa,SOrigine: string;
       else
       if upcase(s[1])='M' then     //MEM[
       begin
-        Tablo_actionneur[maxtablo_act].typdeclenche:=3;  // type mémoire de zone
+        Tablo_actionneur[maxtablo_act].declencheur:=DeclZoneDet;
         Delete(s,1,4);
         val(s,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
@@ -2382,7 +2522,7 @@ var s,sa,SOrigine: string;
       if (s[1]<>'(') then
       begin
         // nombre
-        Tablo_actionneur[maxtablo_act].typdeclenche:=0;  // type actionneur 0=actionneur/détecteur
+        Tablo_actionneur[maxtablo_act].declencheur:=DeclDetAct;
         val(s,j,erreur);
         Tablo_actionneur[maxtablo_act].adresse:=j;
         delete(s,1,erreur);
@@ -2398,25 +2538,25 @@ var s,sa,SOrigine: string;
       // A,etat,X
       // "fichierson"
       // ACCnum
+      setlength(tablo_actionneur[maxtablo_act].TabloOp,2);
+      tablo_actionneur[maxtablo_act].NbOperations:=1;
+      tablo_actionneur[maxtablo_act].TabloOp[1].valide:=true;
+
       if upcase(s[1])='F' then
       begin
         // -----------------fonction loco
-        Tablo_actionneur[maxtablo_act].act:=false;
-        Tablo_actionneur[maxtablo_act].loco:=true;
-        Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].periph:=false;
-        Tablo_actionneur[maxtablo_act].vit:=false;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].numoperation:=ActionFonctionF;
 
         delete(s,1,1);
         val(s,j,erreur);
-        Tablo_actionneur[maxTablo_act].fonction:=j;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].fonctionF:=j;
         Delete(s,1,erreur);
 
         val(s,j,erreur);
-        Tablo_actionneur[maxTablo_act].tempo:=j;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].TempoF:=j div 100;
         Delete(s,1,erreur);
 
-        Tablo_actionneur[maxTablo_act].trainDest:=s;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].train:=s;
 
         inc(maxTablo_act);
       end
@@ -2425,21 +2565,17 @@ var s,sa,SOrigine: string;
       if upcase(s[1])='V' then
       begin
         // -----------------vitesse
-        Tablo_actionneur[maxtablo_act].act:=false;
-        Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].periph:=false;
-        Tablo_actionneur[maxtablo_act].vit:=true;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].numoperation:=ActionVitesse;
 
         delete(s,1,1);
         i:=pos(',',s);
         if i=0 then sa:=s;
         sa:=copy(s,1,i-1);
-        val(sa,j,erreur);         
-        Tablo_actionneur[maxTablo_act].fonction:=j;
+        val(sa,j,erreur);
+        Tablo_actionneur[maxTablo_act].TabloOp[1].vitesse:=j;
         Delete(s,1,i);
 
-        Tablo_actionneur[maxTablo_act].trainDest:=s;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].train:=s;
 
         inc(maxTablo_act);
       end
@@ -2448,18 +2584,14 @@ var s,sa,SOrigine: string;
       if uppercase(copy(s,1,3))='ACC' then
       begin
         // -----------------fonction commande périphérique com usb
-        Tablo_actionneur[maxtablo_act].act:=false;
-        Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].periph:=true;
-        Tablo_actionneur[maxtablo_act].vit:=false;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].numoperation:=ActionCdePeriph;
 
         delete(s,1,3);
         val(s,j,erreur);
-        Tablo_actionneur[maxTablo_act].fonction:=j; // numéro d'accessoire
+        Tablo_actionneur[maxTablo_act].TabloOp[1].periph:=j;
         Delete(s,1,erreur);
 
-        Tablo_actionneur[maxTablo_act].trainDest:=s;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].chaine:=s;
 
 
         {
@@ -2477,49 +2609,43 @@ var s,sa,SOrigine: string;
       if s[1]='"' then
       begin
         // -----------------son
-        Tablo_actionneur[maxtablo_act].act:=false;
-        Tablo_actionneur[maxtablo_act].son:=true;
-        Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].periph:=false;
-        Tablo_actionneur[maxtablo_act].vit:=false;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].numoperation:=ActionSon;
+
         delete(s,1,1);
         i:=pos('"',s);
         s:=copy(s,1,i-1);
 
-        Tablo_actionneur[maxtablo_act].FichierSon:=s;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].train:=s;
         s:='';
         inc(maxTablo_act);
       end
       else
-      // périphérique
+      // accessoire
       if length(s)>0 then if (upcase(s[1])='A') and (upcase(s[2])<>'C') then
       begin
-        Tablo_actionneur[maxtablo_act].act:=true;
-        Tablo_actionneur[maxtablo_act].son:=false;
-        Tablo_actionneur[maxtablo_act].loco:=false;
-        Tablo_actionneur[maxtablo_act].periph:=false;
-        Tablo_actionneur[maxtablo_act].vit:=false;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].numoperation:=ActionAccessoire;
 
         delete(s,1,1);
         val(s,j,erreur);
-        Tablo_actionneur[maxTablo_act].accessoire:=j;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].adresse:=j;
         delete(s,1,erreur);
 
         val(s,j,erreur);
-        Tablo_actionneur[maxTablo_act].sortie:=j;
+        Tablo_actionneur[maxTablo_act].TabloOp[1].etat:=j;
         Delete(s,1,erreur);
 
-        Tablo_actionneur[maxTablo_act].RAZ:=s[1]='Z';
+        Tablo_actionneur[maxTablo_act].TabloOp[1].zero:=s[1]='Z';
         inc(maxTablo_act);
 
         s:='';
      end;
 
      inc(Nligne);
-
-      // Passage à niveau
+    end;
+    // Passage à niveau-----------------------------------------
       if (pos('PN',s)<>0) then
       begin
+        s:=sOrigine;
         inc(NbrePN);
         NbreVoies:=0;
         repeat
@@ -2555,7 +2681,7 @@ var s,sa,SOrigine: string;
             Tablo_PN[NbrePN].voie[NbreVoies].ActFerme:=j;
             //  Affiche('Ferme='+intToSTR(j),clyellow);
             i:=pos(',',s);
-            Delete(S,1,i);
+             Delete(S,1,i);
             val(s,j,erreur);
             Tablo_PN[NbrePN].voie[NbreVoies].ActOuvre:=j;
             // Affiche('Ouvre='+intToSTR(j),clyellow);
@@ -2564,7 +2690,7 @@ var s,sa,SOrigine: string;
           i:=pos(')',s);Delete(S,1,i);
           i:=pos(',',s);Delete(S,1,i);
           Tablo_PN[NbrePN].compteur:=0;
-        until (copy(s,1,2)='PN') or (NbreVoies=5);
+        until (uppercase(copy(s,1,2))='PN') or (NbreVoies=5);
 
         Tablo_PN[NbrePN].NbVoies:=NbreVoies;
         Delete(s,1,3);  // Supprime PN(
@@ -2622,6 +2748,194 @@ var s,sa,SOrigine: string;
     end;
   until (s='0') or eof(fichier) ;
   dec(maxTablo_act);
+
+  end;
+
+  // nouveaux
+  procedure compile_actions;
+  var n,k,l : integer;
+  begin
+    maxTablo_act:=1;
+    Nligne:=1;
+
+    // définition des actions
+    repeat
+      s:=lit_ligne;
+      s:=sOrigine;
+      if (s<>'0') and (s<>'') then
+      begin
+        i:=pos(',',s);
+        sa:=copy(s,1,i-1);
+        if sa='' then sa:='Action '+intToSTR(maxtablo_act);
+        Tablo_actionneur[maxtablo_act].NomAction:=sa;
+        Delete(s,1,i);
+        // déclencheur
+        delete(s,1,1);
+        Val(s,n,erreur);
+        Tablo_actionneur[maxtablo_act].declencheur:=n;
+        Delete(s,1,erreur);
+        case n of
+        Declhorloge :
+          begin
+            Val(s,i,erreur);Delete(s,1,erreur);
+            Tablo_actionneur[maxtablo_act].heure:=i;
+            Val(s,i,erreur);Delete(s,1,erreur);
+            Tablo_actionneur[maxtablo_act].minute:=i;
+          end;
+        DeclPeriph :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].NumPeriph:=i;
+             i:=pos(',',s);
+             sa:=copy(s,1,i-1);delete(s,1,i);
+             Tablo_actionneur[maxtablo_act].ordrePeriph:=sa;
+            end;
+         DeclAccessoire :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].etat:=i;
+           end;
+         DeclDetAct :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].etat:=i;
+             i:=pos(',',s);
+             sa:=copy(s,1,i-1);delete(s,1,i);
+             Tablo_actionneur[maxtablo_act].trainDecl:=sa;
+           end;
+         DeclZoneDet :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].adresse2:=i;
+             Val(s,i,erreur);Delete(s,1,erreur);
+             Tablo_actionneur[maxtablo_act].etat:=i;
+             i:=pos(',',s);
+             sa:=copy(s,1,i-1);delete(s,1,i);
+             Tablo_actionneur[maxtablo_act].trainDecl:=sa;
+           end;
+        end;
+
+        // nombre d'actions
+        delete(s,1,1);
+        Val(s,n,erreur);
+        Tablo_actionneur[maxtablo_act].NbOperations:=n;
+        Delete(s,1,erreur);
+
+        setlength(Tablo_actionneur[maxtablo_act].TabloOp,n+1);
+        for k:=1 to n do
+        begin
+          delete(s,1,1);
+          val(s,j,erreur); delete(s,1,erreur);
+          // numéro de l'opération
+          if (j<0) or (j>NbreOperations) then
+          begin
+            Affiche('Action '+intToSTR(maxtablo_act)+' dans opération n°'+intToSTR(k)+' : op inconnue :'+intToSTR(j),clred);
+          end;
+          Tablo_actionneur[maxtablo_act].tabloOP[k].numoperation:=j;
+          val(s,l,erreur); delete(s,1,erreur);
+          // état validé ou dévalidé
+          Tablo_actionneur[maxtablo_act].tabloOP[k].valide:=l=1;
+          // paramètres des opérations
+          case j of
+            ActionAffTCO :
+            begin
+              Val(s,i,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].NumTCO:=i;
+            end;
+            ActionAffSC : begin end;
+            ActionAffCDM : begin end;
+
+            ActionAccessoire :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].adresse:=i;
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].etat:=i;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloOp[k].zero:=sa='Z';
+              delete(s,1,1);
+            end;
+            ActionArretTrains : begin end;
+            ActionLanceHorl : begin end;
+            ActionArretHorl : begin end;
+            ActionInitHorl : begin end;
+            ActionAffHorl : begin end;
+            ActionVitesse :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].vitesse:=i;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloOp[k].train:=sa;
+            end;
+            ActionCdePeriph :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+
+              Tablo_actionneur[maxtablo_act].tabloOp[k].periph:=i;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloOp[k].chaine:=sa;
+            end;
+            ActionFonctionF :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].fonctionF:=i;
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].TempoF:=i;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloOp[k].train:=sa;
+            end;
+            ActionSon :
+            begin
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloOp[k].train:=sa;
+            end;
+            actionTempo :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloOp[k].TempoF:=i;
+            end;
+          else
+          begin
+            if sOrigine<>'' then Affiche('Erreur 83: Action '+intToSTR(j)+' inconnue '+sOrigine,clred);
+            Tablo_actionneur[maxtablo_act].TabloOp[k].numoperation:=0;
+          end;
+          end;
+        end;
+        inc(maxTablo_act);
+      end;
+    until (s='0') or eof(fichier) ;
+    dec(maxTablo_act);
   end;
 
   procedure compile_aiguillages;
@@ -2632,7 +2946,7 @@ var s,sa,SOrigine: string;
   repeat
     s:=lit_ligne;
     inc(Nligne);
-    //Affiche(s,ClLime);                
+    //Affiche(s,ClLime);
     //chaine:=s;
     if debugconfig then Affiche(s,ClLime);
     if (s<>'0') then
@@ -3975,13 +4289,29 @@ var s,sa,SOrigine: string;
         trier_sig;
       end;
 
-      // section actionneurs
+      // section anciens actionneurs
       sa:=uppercase(section_act_ch);
       if pos(sa,s)<>0 then
       begin
         trouve_section_act:=true;
         compile_actionneurs;
       end;
+
+      // section PN
+      sa:=uppercase(section_PN_ch);
+      if pos(sa,s)<>0 then
+      begin
+        compile_PN;
+      end;
+
+
+      // section actionneurs
+      sa:=uppercase(section_actV2_ch);
+      if pos(sa,s)<>0 then
+      begin
+        compile_actions;
+      end;
+
 
       // section dcc++
       sa:=uppercase(section_dccpp_ch);
@@ -4729,10 +5059,10 @@ begin
   if j=2 then s:=Tablo_periph[i].nom+' ('+Tablo_periph[i].protocole+')';
   With formconfig do
   begin
-    ComboBoxAccComUSB.Items.Add(s);
     ComboBoxPNCom.Items.Add(s);
     ComboBoxDecCde.Items.Add(s);
   end;
+  formModifAction.ComboBoxAccComUSB.Items.Add(s);
 end;
 
 
@@ -4741,9 +5071,9 @@ procedure fabrique_combos_periph;
 var i : integer;
     s : string;
 begin
+  formModifAction.ComboBoxAccComUSB.clear;
   with FormConfig.ListBoxPeriph,FormConfig do
   begin
-    ComboBoxAccComUSB.Clear;
     ComboBoxPNCom.clear;
     ComboBoxDecCde.clear;
     for i:=0 to Count-1 do
@@ -4757,7 +5087,7 @@ end;
 
 // met à jour le nom d'un champ d'index i dans les combos des périphériques
 procedure maj_champs_combos(i: integer);
-var j,n : integer;
+var op,j,n : integer;
     s : string;
 begin
   s:=Tablo_periph[i].nom;
@@ -4776,17 +5106,21 @@ begin
   if j=2 then s:=s+' ('+Tablo_periph[i].protocole+')';
   with formconfig do
   begin
-    n:=comboBoxACCComUSB.Items.Count;
+    n:=formModifAction.comboBoxACCComUSB.Items.Count;
     if n=0 then exit;
     if n<i then affiche('Anomalie ComboBox 7',clred);
     if ComboBoxPNCom.items.Count=0 then exit;
-    ComboBoxAccComUSB.Items[i-1]:=s;
+    formModifAction.ComboBoxAccComUSB.Items[i-1]:=s;
+
     // réaffiche le champ modifié dans le comboboxAccComUSB
-    if Tablo_Actionneur[ligneclicAct+1].periph then if tablo_actionneur[ligneclicAct+1].fonction=i then ComboBoxAccComUSB.ItemIndex:=i-1;
+    for op:=1 to Tablo_Actionneur[ligneclicAct+1].NbOperations do
+      if Tablo_Actionneur[ligneclicAct+1].tabloop[op].numoperation=ActionCdePeriph then if tablo_actionneur[ligneclicAct+1].tabloOp[op].periph=i then formModifAction.ComboBoxAccComUSB.ItemIndex:=i-1;
 
     ComboBoxPNCom.items[i-1]:=s;
-    if tablo_PN[lignecliqueePN+1].TypeCde=1 then if tablo_PN[lignecliqueePN+1].AdresseFerme=i then ComboBoxPNCom.ItemIndex:=i-1;
-
+    if tablo_PN[lignecliqueePN+1].TypeCde=1 then if tablo_PN[lignecliqueePN+1].AdresseFerme=i then
+    begin
+      ComboBoxPNCom.ItemIndex:=i-1;
+    end;
     ComboBoxDecCde.Items[i-1]:=s;
     if decodeur_pers[decCourant].commande=1 then if decodeur_pers[decCourant].peripherique=i then ComboBoxDecCde.ItemIndex:=i-1;
   end;
@@ -4794,32 +5128,35 @@ end;
 
 // réaffecte les index des combos dans la base de donnée
 procedure reaffecte_index_combos(ancien1,ancien2,nouveau1,nouveau2 : integer);
-var i : integer;
+var i,op : integer;
     s : string;
 begin
   i:=1;
   repeat
-    if tablo_actionneur[i].periph then
+    for op:=1 to tablo_actionneur[i].NbOperations do
     begin
-      if tablo_actionneur[i].fonction=ancien1 then  //numéro périph
+      if tablo_actionneur[i].TabloOp[op].numoperation=ActionCdePeriph then
       begin
-        tablo_actionneur[i].fonction:=nouveau1;
-        s:=encode_act_loc_son(i);
-        FormConfig.ListBoxAct.Items[i-1]:=s;
-        inc(i);
+        if tablo_actionneur[i].TabloOp[op].periph=ancien1 then
+        begin
+          tablo_actionneur[i].tabloOp[op].periph:=nouveau1;
+          s:=encode_actions(i);
+          formConfig.ListBoxActions.Items[i-1]:=s;
+          inc(i);
+        end
+        else
+        if tablo_actionneur[i].TabloOp[op].periph=ancien2  then
+        begin
+          tablo_actionneur[i].TabloOp[op].periph:=nouveau2;
+          s:=encode_actions(i);
+          formConfig.ListBoxActions.Items[i-1]:=s;
+          inc(i);
+        end
+        else
+         inc(i);
       end
-      else
-      if tablo_actionneur[i].fonction=ancien2 then
-      begin
-        tablo_actionneur[i].fonction:=nouveau2;
-        s:=encode_act_loc_son(i);
-        FormConfig.ListBoxAct.Items[i-1]:=s;
-        inc(i);
-      end
-      else
-       inc(i);
-    end
       else inc(i);
+    end;
   until i>maxTablo_act ;
 
   i:=1;
@@ -5018,6 +5355,7 @@ begin
   Aig_supprime.Adresse:=0;
   Signal_Supprime.Adresse:=0;
   Signal_sauve.adresse:=0;
+  AncLigneCliqueePN:=-1;
   clicListe:=false;
   ligneCherche:=0;
   Compt_ligne:=0;
@@ -5198,22 +5536,21 @@ begin
     end;
   end;
 
-
-  GroupBoxPN.Top:=16;
+  GroupBoxPN.Top:=20;
   // composants onglet passage à niveau
   with GroupBoxPNA do
   begin
     Left:=8;
     top:=GroupBoxPN.Top+GroupBoxPN.Height+5;
-    width:=240;
+    width:=GroupBoxPN.Width;
     height:=200;
-    visible:=false;
+    visible:=true;
   end;
   with GroupBoxPNZ do
   begin
     Left:=8;
     top:=GroupBoxPN.Top+GroupBoxPN.Height+5;
-    width:=240;
+    width:=GroupBoxPN.Width;
     height:=200;
     visible:=false;
   end;
@@ -5756,19 +6093,30 @@ begin
   comboBoxNation.Items.add('Française');
   comboBoxNation.Items.add('Belge');
 
-  EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
-               +#13+'Mettre X pour tous les trains.'+#13+'Déclenchement par actionneur uniquement';
 
-  // actionneurs Train ou accessoire
-  ListBoxAct.Clear;
+
+  // actionneurs actions
+  ListBoxActions.Clear;
+  longestLength:=0;
   for i:=1 to maxTablo_act do
   begin
-    s:=encode_act_loc_son(i);
+    s:=encode_actions(i);
     if s<>'' then
     begin
-      ListBoxAct.Items.Add(s);
+      ListBoxActions.Items.add(s);
+      // trouver la chaine la plus longue pour la future scrollbar
+      l:=Length(s);
+      if l>LongestLength then
+      begin
+        LongestString:=s;
+        LongestLength:=l;
+      end;
     end;
   end;
+  PixelLength:=ListBoxActions.Canvas.TextWidth(LongestString)+GetSystemMetrics(SM_CXFRAME);
+  // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
+  // marche pas!!
+  SendMessage(ListBoxActions.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
   // actionneurs PN
   ListBoxPN.Clear;
@@ -5792,9 +6140,6 @@ begin
   // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
   SendMessage(ListBoxPN.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
-  GroupBoxRadio.Visible:=false;
-  GroupBoxAct.Visible:=false;
-  GroupBoxPN.Visible:=false;
 
   if clicproprietes then clicListeSignal(IndexSignalClic);
   clicproprietes:=false;
@@ -5819,18 +6164,7 @@ begin
     for i:=1 to ntrains do items.Add(Train_tablo(i));
   end;
 
-  // périphériques
-  with listBoxPeriph do
-  begin
-    clear;
-    formConfig.ComboBoxAccComUSB.Clear;
-    formconfig.ComboBoxPNCom.Clear;
-    for i:=1 to NbPeriph do
-    begin
-      items.Add(encode_Periph(i));
-      ajoute_champs_combos(i);
-    end;
-  end;
+
 
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
   // onglet périphériques COM/USB/Socket
@@ -6313,7 +6647,7 @@ end;
 
 // renvoie les utilisateurs des périphériques en fonction de la sélection du périphérique
 function utilisateurs_peripheriques : string;
-var i,j,n : integer;
+var i,j,n,op : integer;
    s : string;
 begin
   n:=0;
@@ -6321,16 +6655,19 @@ begin
   s:=s+'------------------------'+#13;
   for i:=1 to maxTablo_act do
   begin
-    if tablo_actionneur[i].periph then
+    for op:=1 to tablo_actionneur[i].NbOperations do
     begin
-      for j:=0 to NbPeriph-1 do
+      if tablo_actionneur[i].tabloOp[op].numoperation=ActionCdePeriph then
       begin
-        if formconfig.ListBoxPeriph.selected[j] then
-          if tablo_actionneur[i].fonction=j+1 then
-          begin
-            inc(n);
-            s:=s+'Le périphérique '+intToSTR(j+1)+' est utilisé par l''actionneur '+intToSTR(tablo_actionneur[i].adresse)+#13;
-          end;
+        for j:=0 to NbPeriph-1 do
+        begin
+          if formconfig.ListBoxPeriph.selected[j] then
+            if tablo_actionneur[i].TabloOp[op].periph=j+1 then
+            begin
+              inc(n);
+              s:=s+'Le périphérique '+intToSTR(j+1)+' est utilisé par l''actionneur '+intToSTR(tablo_actionneur[i].adresse)+#13;
+            end;
+        end;
       end;
     end;
   end;
@@ -6653,322 +6990,6 @@ begin
   clicListe:=false;
 end;
 
-procedure champs_type_pn;
-begin
-  with formconfig do
-  begin
-    GroupBoxPN.width:=GroupBox13.width-15;
-    RadioGroupActPN.Width:=GroupBoxPN.Width-15;
-    GroupBoxPNA.width:=GroupBox13.Width-15;
-    GroupBoxPNZ.width:=GroupBox13.Width-15;
-
-    ButtonTestFerme.Left:=215;
-    ButtonTestOuvre.Left:=215;
-
-    GroupBoxRadio.Visible:=false;
-    GroupBoxAct.Visible:=false;
-    GroupBoxPN.Top:=16;
-    GroupBoxPN.Left:=8;
-    GroupBoxPNA.Visible:=true;
-    GroupBoxPN.Visible:=true;
-    Visible:=true;
-    RadioButtonLoc.Checked:=false;
-    RadioButtonAccess.Checked:=false;
-    RadioButtonSon.Checked:=false;
-    EditSon.Visible:=false;
-    SpeedButtonJoue.Visible:=false;
-    SpeedButtonCharger.Visible:=false;
-
-    LabelNomSon.Visible:=false;
-  end;
-end;
-
-procedure positionne;
-begin
-  with formconfig do
-  begin
-    GroupBoxRadio.Visible:=true;
-    GroupBoxRadio.top:=16;
-    GroupBoxRadio.Left:=8;
-    GroupBoxRadio.Width:=GroupBox13.width-15;
-
-    GroupBox13.Width:=266;
-
-    GroupBoxAct.Top:=GroupBoxRadio.Top+GroupBoxRadio.Height+8;
-    GroupBoxAct.Left:=8;
-    GroupBoxAct.Height:=310;
-    GroupBoxAct.Width:=GroupBox13.width-15;
-
-    GroupBox18.Top:=16;
-    GroupBox18.Width:=GroupBoxAct.Width-15;
-    GroupBox18.Height:=150;
-
-    GroupBox19.Top:=GroupBox18.Top+GroupBox18.Height+8;
-    GroupBox19.Left:=8;
-    GroupBox19.Width:=GroupBoxAct.Width-15;
-    GroupBox19.Height:=96;
-    ButtonTestAct.Top:=GroupBox19.Top+GroupBox19.Height+8;
-
-  end;
-end;
-
-procedure champs_type_vit;
-begin
-  with formconfig do
-  begin
-    positionne;
-    CheckRaz.Visible:=false;
-    ComboBoxAccComUSB.Visible:=false;
-    GroupBoxAct.Caption:='Action pour vitesse locomotive';
-
-    editTrainDest.Hint:='Train(s) destinataire(s) de la vitesse';
-    LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
-    LabelFonction.visible:=true;
-    LabelFonction.caption:='Vitesse';
-    EditFonctionAccess.Hint:='Une vitesse positive ou négative contrôle le sens'+#13+
-                             'Une vitesse nulle arrête le train';
-
-    RadioButtonLoc.Checked:=false;
-    RadioButtonAccess.Checked:=false;
-    RadioButtonSon.Checked:=false;
-    RadioButtonCde.Checked:=false;
-    RadioButtonVit.Checked:=true;
-
-    EditFonctionAccess.Top:=14;
-    LabelFonction.Top:=18;
-
-    editTempo.Visible:=false;
-    labelTempo.visible:=false;
-    GroupBoxAct.Visible:=true;
-    GroupBoxPN.Visible:=false;
-    GroupBoxPNA.Visible:=false;
-    GroupBoxPNZ.Visible:=false;
-    EditSon.Visible:=false;
-    SpeedButtonJoue.Visible:=false;
-    SpeedButtonCharger.Visible:=false;
-    EditFonctionAccess.Visible:=true;
-    LabelNomSon.Visible:=false;
-    editTrainDest.Visible:=true;
-    label42.Visible:=true;
-    Label42.caption:='Train dest';
-  end;
-end;
-
-procedure champs_type_loco;
-begin
-  with formconfig do
-  begin
-    positionne;
-    CheckRaz.Visible:=false;
-    ComboBoxAccComUSB.Visible:=false;
-    GroupBoxAct.Caption:='Action pour fonction F de locomotive';
-    EditFonctionAccess.Hint:='Numéro de fonction du décodeur du train (0 à 12 ou 28)';
-    editTrainDest.Hint:='Train(s) destinataire(s) de la fonction F';
-    LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
-    LabelFonction.visible:=true;
-    LabelFonction.caption:='Action : Fonction';
-    RadioButtonLoc.Checked:=true;
-    RadioButtonAccess.Checked:=false;
-    RadioButtonSon.Checked:=false;
-    RadioButtonCde.Checked:=false;
-    RadioButtonVit.Checked:=false;
-    EditFonctionAccess.Top:=14;
-    LabelFonction.Top:=18;
-
-    GroupBoxAct.Visible:=true;
-    GroupBoxPN.Visible:=false;
-    GroupBoxPNA.Visible:=false;
-    GroupBoxPNZ.Visible:=false;
-    EditSon.Visible:=false;
-    SpeedButtonJoue.Visible:=false;
-    SpeedButtonCharger.Visible:=false;
-    EditFonctionAccess.Visible:=true;
-    LabelNomSon.Visible:=false;
-    editTrainDest.Visible:=true;
-    label42.Visible:=true;
-    Label42.caption:='Train dest';
-  end;
-end;
-
-procedure champs_type_periph;
-begin
-  with formconfig do
-  begin
-    positionne;
-    editTrainDest.Hint:='Commande ASCII';
-    EditFonctionAccess.visible:=false;
-    ComboBoxAccComUSB.Visible:=true;
-    CheckRaz.Visible:=false;
-    GroupBoxAct.Caption:='Action pour commande sur COM/USB';
-    LabelTempo.Visible:=true; EditTempo.visible:=true; editEtatFoncSortie.visible:=false;LabelA.Visible:=false;
-    LabelFonction.visible:=true;
-    LabelFonction.caption:='Périphérique COM/USB/Socket';
-    LabelFonction.Top:=18;
-    ComboBoxAccComUSB.Top:=32;
-
-    RadioButtonLoc.Checked:=false;
-    RadioButtonAccess.Checked:=false;
-    RadioButtonSon.Checked:=false;
-    RadioButtonCde.Checked:=true;
-    RadioButtonVit.Checked:=false;
-    GroupBoxAct.Visible:=true;
-    GroupBoxPN.Visible:=false;
-    GroupBoxPNA.Visible:=false;
-    GroupBoxPNZ.Visible:=false;
-    EditSon.Visible:=false;
-    SpeedButtonJoue.Visible:=false;
-    SpeedButtonCharger.Visible:=false;
-
-    LabelNomSon.Visible:=false;
-    LabelTempo.Visible:=false;
-    editTrainDest.Visible:=true;
-    EditTempo.Visible:=false;
-    label42.Visible:=true;
-    Label42.caption:='Commande';
-  end;
-end;
-
-procedure champs_type_act;
-begin
-  with formconfig do
-  begin
-    positionne;
-    ComboBoxAccComUSB.Visible:=false;
-    GroupBoxAct.Caption:='Action pour accessoire';
-    CheckRaz.Visible:=true;
-
-    LabelTempo.Visible:=false; EditTempo.visible:=false;editEtatFoncSortie.visible:=true;LabelA.Visible:=true;
-    LabelFonction.visible:=true;
-    LabelFonction.caption:='Action : Accessoire';
-    RadioButtonLoc.Checked:=false;
-    RadioButtonSon.checked:=false;
-    RadioButtonAccess.Checked:=true;
-    RadioButtonVit.Checked:=false;
-    GroupBoxAct.Visible:=true;
-    GroupBoxPN.Visible:=false;
-    GroupBoxPNA.Visible:=false;
-    GroupBoxPNZ.Visible:=false;
-
-    EditFonctionAccess.Top:=14;
-    LabelFonction.Top:=18;
-    EditSon.Visible:=false;
-    SpeedButtonJoue.Visible:=false;
-    SpeedButtonCharger.Visible:=false;
-    EditFonctionAccess.Visible:=true;
-    LabelNomSon.Visible:=false;
-    editTrainDest.Visible:=false;
-    label42.Visible:=false;
-  end;
-end;
-
-procedure champs_type_son;
-begin
-  with formconfig do
-  begin
-    Positionne;
-    GroupBoxAct.Caption:='Action pour son';
-    CheckRaz.Visible:=true;
-    ComboBoxAccComUSB.Visible:=false;
-    LabelTempo.Visible:=false; EditTempo.visible:=false;
-    EditFonctionAccess.Top:=14;
-    LabelFonction.Top:=18;
-    editEtatFoncSortie.visible:=false;
-    LabelA.Visible:=false;
-    LabelFonction.visible:=false;
-    EditFonctionAccess.Visible:=false;
-    CheckRaz.Visible:=false;
-    EditSon.Visible:=true;
-    SpeedButtonJoue.Visible:=true;
-    SpeedButtonCharger.Visible:=true;
-    LabelNomSon.Visible:=true;
-
-    RadioButtonLoc.Checked:=false;
-    RadioButtonAccess.Checked:=false;
-    RadioButtonSon.checked:=true;
-    RadioButtonCde.Checked:=false;
-    RadioButtonVit.Checked:=false;
-
-    GroupBoxAct.Visible:=true;
-    GroupBoxPN.Visible:=false;
-    GroupBoxPNA.Visible:=false;
-    GroupBoxPNZ.Visible:=false;
-    editTrainDest.Visible:=false;
-    label42.Visible:=false;
-  end;
-end;
-
-procedure champs_decl_horloge;
-begin
-  with formconfig do
-  begin
-    EditTrainDecl.Visible:=false;
-    LabelTrain.Visible:=true;
-    radioButtonActDet.Checked:=false;
-    radioButtonZones.Checked:=false;
-    radioButtonAig.Checked:=false;
-    radioButtonHorl.Checked:=true;
-    editact2.Visible:=true;
-    LabelActionneur.Caption:='Heure'+#13+'Minute';
-    EditEtatActionneur.visible:=false;
-    EditAct.Hint:='Heure ';
-    EditAct2.Hint:='Minute';
-    Label30.visible:=false;
-    LabelTrain.Visible:=false;
-  end;
-end;
-
-procedure champs_decl_actdet;
-begin
-  with formconfig do
-  begin
-    EditTrainDecl.Visible:=true ;
-    LabelTrain.Visible:=true ;
-    radioButtonActDet.Checked:=true;
-    radioButtonZones.Checked:=false;
-    radioButtonAig.Checked:=false;
-    radioButtonHorl.Checked:=false;
-    editact2.Visible:=false;
-    LabelActionneur.Caption:='Actionneur Détecteur';
-    EditEtatActionneur.Hint:='0 ou 1';
-    EditAct.Hint:='Actionneur/Détecteur ';
-  end;
-end;
-
-procedure champs_decl_zones;
-begin
-  with formconfig do
-  begin
-    radioButtonActDet.Checked:=false;
-    radioButtonZones.Checked:=true;
-    radioButtonAig.Checked:=false;
-    radioButtonHorl.Checked:=false;
-    EditTrainDecl.Visible:=false;
-    LabelTrain.Visible:=false;
-    editact2.Visible:=true;
-    LabelActionneur.Caption:='Mémoire de Zone';
-    EditEtatActionneur.Hint:='0 ou 1';
-    EditAct.Hint:='Détecteur ';
-  end;
-end;
-
-procedure champs_decl_aig;
-begin
-  with formconfig do
-  begin
-    radioButtonActDet.Checked:=false;
-    radioButtonZones.Checked:=false;
-    radioButtonAig.Checked:=true;
-    radioButtonHorl.Checked:=false;
-    EditAct2.Visible:=false;
-    EditTrainDecl.Visible:=false;
-    LabelTrain.Visible:=false;
-    editEtatActionneur.Visible:=true;
-    editact2.Visible:=false;
-    LabelActionneur.Caption:='Aiguillage';
-    EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
-    EditAct.Hint:='Aiguillage ';
-  end;
-end;
 
 // transforme une chaine "élément" en une chaine affichable pour le hint
 // ex chaine_element("A32")=aiguillage 32
@@ -7232,170 +7253,6 @@ end;
   clicListe:=false;
 end;
 
-
-// mise à jour des champs graphiques des actionneurs d'après l'index du tableau
-Procedure aff_champs_act(i : integer);
-var j,adresse,sortie,fonction,tempo,access,typ : integer;
-    trainDecl,s,s2,adr : string;
-begin
-  if affevt then affiche('Aff_champs_act('+intToSTR(i)+')',clyellow);
-  if i<1 then exit;
-  s:=Uppercase(FormConfig.ListBoxAct.Items[i-1]);
-  if s='' then exit;
-
-  fonction:=Tablo_actionneur[i].fonction;
-  Access:=Tablo_actionneur[i].accessoire;
-  typ:=Tablo_actionneur[i].typdeclenche;
-
-  trainDecl:=Tablo_actionneur[i].traindecl;
-
-  for j:=1 to length(trainDecl) do
-    if trainDecl[j]='+' then trainDecl[j]:=',';
-
-  // déclencheurs
-  with formconfig do
-  begin
-    case typ of
-    0 :        // act det
-    begin
-      champs_decl_actdet;
-      editAct.Text:=intToSTR(Tablo_actionneur[i].adresse);
-      editEtatActionneur.Text:=intToSTR(Tablo_actionneur[i].etat);
-      editEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].sortie);
-      EditTrainDecl.Text:=TrainDecl;
-    end;
-    1 : begin
-          champs_decl_horloge;
-          EditAct.text:=intToSTR(tablo_actionneur[i].adresse);
-          EditAct2.text:=intToSTR(tablo_actionneur[i].adresse2);
-        end;
-    3 : champs_decl_zones;
-    2 : begin
-         editEtatActionneur.Text:=intToSTR(Tablo_actionneur[i].etat);
-         editAct.text:=intToSTR(Tablo_actionneur[i].adresse);
-         champs_decl_aig;
-        end;
-    end;
-  end;
-
-  s2:=FormConfig.EditAct.Hint;
-  FormConfig.EditAct.Hint:=s2+intToSTR(Tablo_actionneur[i].adresse);
-
-  // Actionneur fonction F loco
-  if Tablo_actionneur[i].loco then
-  begin
-    champs_type_loco;
-    formconfig.editAct2.Text:=IntToSTR(Tablo_actionneur[i].adresse2);
-
-    Adresse:=Tablo_actionneur[i].adresse;
-    //s2:=Tablo_actionneur[i].trainDecl;
-    //trainsauve:=s2;
-    tempo:=tablo_actionneur[i].Tempo;
-
-    with formconfig do
-    begin
-      champs_type_loco;
-      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
-      EditAct.text:=adr;
-      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
-      editEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
-      EditTrainDecl.Text:=trainDecl;
-      EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
-      editFonctionAccess.Text:=intToSTR(fonction);
-      editTempo.Text:=intToSTR(tempo);
-    end;
-  end;
-
-  // Actionneur accessoire
-  if Tablo_actionneur[i].act then
-  begin
-    champs_type_act;
-    Adresse:=Tablo_actionneur[i].adresse;
-    sortie:=Tablo_actionneur[i].sortie;
-    //s2:=Tablo_actionneur[i].trainDecl;
-    //trainsauve:=s2;
-    tempo:=tablo_actionneur[i].Tempo;
-    with formconfig do
-    begin
-      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
-      EditAct.text:=adr;
-      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
-      CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      //EditTrainDecl.Text:=s2;
-      EditTrainDecl.Text:=trainDecl;
-      EditEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
-      editFonctionAccess.Text:=intToSTR(Access);
-      editEtatFoncSortie.Text:=intToSTR(sortie);
-      editTempo.Text:=intToSTR(tempo);
-    end;
-  end;
-
-  // Actionneur son
-  if Tablo_actionneur[i].son then
-  begin
-    champs_type_son;
-    if typ=0 then with formconfig do
-    begin
-      radioButtonActDet.Checked:=true;
-      radioButtonZones.Checked:=false;
-      editAct2.Visible:=false;
-      LabelActionneur.Caption:='Actionneur Détecteur';
-    end;
-    if typ=1 then with formconfig do
-    begin
-      radioButtonActDet.Checked:=false;
-      radioButtonZones.Checked:=true;
-      editAct2.Visible:=true;
-      LabelActionneur.Caption:='Mémoire de Zone';
-    end;
-
-    Adresse:=Tablo_actionneur[i].adresse;
-    s2:=Tablo_actionneur[i].trainDecl;
-    //trainsauve:=s2;
-    s:=Tablo_actionneur[i].FichierSon;
-    with formconfig do
-    begin
-      adr:=IntToSTR(Adresse); //if det then adr:=adr+'Z';
-      EditAct.text:=adr;
-      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
-      //CheckRaz.Checked:=Tablo_actionneur[i].Raz;
-      //EditTrainDecl.Text:=s2;
-      EditTrainDecl.Text:=trainDecl;
-      EditSon.Text:=s;
-      EditEtatActionneur.Text:=IntToSTR(Tablo_actionneur[i].etat);
-    end;
-  end;
-
-  // périphérique
-  if Tablo_actionneur[i].periph then
-  begin
-    champs_type_periph;
-    with formConfig do
-    begin
-      ComboBoxAccComUSB.ItemIndex:=Tablo_actionneur[i].fonction-1;
-      EditAct.text:=inttostr(Tablo_actionneur[i].adresse);
-      EditAct2.Text:=inttostr(Tablo_actionneur[i].adresse2);
-      EditEtatFoncSortie.Text:=intToSTR(Tablo_actionneur[i].etat);
-      EditTrainDest.text:=Tablo_actionneur[i].TrainDest;
-      EditTrainDecl.Text:=trainDecl;
-    end;
-  end;
-
-  // vitesse
-  if Tablo_actionneur[i].vit then
-  begin
-    champs_type_vit;
-    with formConfig do
-    begin
-    //  EditAct.text:=inttostr(Tablo_actionneur[i].adresse);
-  //    EditTrainDecl.Text:=trainDecl;
-      EditTrainDest.Text:=Tablo_actionneur[i].trainDest;
-      editFonctionAccess.Text:=intToSTR(fonction);
-    end;
-  end;
-
-end;
-
 procedure raz_champs_pn;
 begin
   with formconfig do
@@ -7472,155 +7329,7 @@ begin
     EditCdeFerme.Text:=Tablo_PN[lignecliqueePN+1].CommandeF;
     EditCdeOuvre.Text:=Tablo_PN[lignecliqueePN+1].CommandeO;
     ComboBoxPnCom.ItemIndex:=Tablo_PN[lignecliqueePN+1].AdresseFerme-1;
-  end;
-end;
 
-// affiche les champs de l'actionneur PN en fonction de l'index du tableau
-procedure aff_champs_PN(i : integer);
-var erreur,j,v,periph : integer;
-    trouve : boolean;
-    s : string;
-begin
-
-  if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
-  if i<1 then
-  begin
-    clicliste:=false;
-    exit;
-  end;
-  s:=Uppercase(FormConfig.ListBoxPN.items[i-1]);
-  if s='' then
-  begin
-    clicliste:=false;
-    exit;
-  end;
-
-  with formconfig do
-  begin
-    LabelInfo.caption:='';
-    raz_champs_pn;
-  end;
-
-  // actionneur passage à niveau
-  if s[1]='(' then
-  begin
-    champs_type_pn;
-    // trouver le numéro de périphérique
-    v:=pos('PN(',s);
-    delete(s,1,v+2);
-    val(s,periph,erreur);
-    {
-    i:=0;
-    repeat
-      inc(i);
-      trouve:=(Tablo_PN[i].AdresseFerme=adresse);
-    until trouve or (i>NbrePN);
-    if not(trouve) then exit;}
-
-    with formConfig do
-    begin
-      RadioGroupActPN.itemindex:=Tablo_PN[i].TypeCde;
-
-      if Tablo_PN[i].TypeCde=0 then champs_pn_act;
-      if Tablo_PN[i].TypeCde=1 then champs_pn_comusbSockets;
-
-      if Tablo_PN[i].Pulse=1 then trouve:=true else trouve:=false;
-      CheckPnPulse.Checked:=trouve;
-
-      // par actionneur
-      if Tablo_PN[i].actionneur then
-      begin
-        RadioButtonSimple.Checked:=true;
-        RadioButtonZone.Checked:=false;
-        GroupBoxPNA.Visible:=true;
-        GroupBoxPNZ.Visible:=false;
-        EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
-        EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
-        v:=Tablo_PN[i].nbvoies;
-        if v>=2 then
-        begin
-          EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
-          EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
-        end;
-        if v>=3 then
-        begin
-          EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
-          EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
-        end;
-        if v>=4 then
-        begin
-          EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
-          EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
-        end;
-        if v>=5 then
-        begin
-          EditV5F.text:=intToSTR(Tablo_PN[i].voie[5].ActFerme);
-          EditV5O.text:=intToSTR(Tablo_PN[i].voie[5].ActOuvre);
-        end;
-
-      end
-      else
-      begin
-        // par zone de détecteurs
-        RadioButtonSimple.Checked:=false;
-        RadioButtonZone.Checked:=true;
-        GroupBoxPNA.Visible:=false;
-        GroupBoxPNZ.Visible:=true;
-        v:=Tablo_PN[i].nbvoies;
-        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then
-        begin
-          EditZdet1V1F.text:=intToSTR(j);
-          EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
-          EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
-          EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
-          if v>=2 then
-          begin
-            EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
-            EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
-            EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
-            EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
-          end;
-          if v>=3 then
-          begin
-            EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
-            EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
-            EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
-            EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
-          end;
-          if v>=4 then
-          begin
-            EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
-            EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
-            EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
-            EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
-          end;
-          if v>=5 then
-          begin
-            EditZdet1V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ1F);
-            EditZdet2V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ2F);
-            EditZdet1V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ1O);
-            EditZdet2V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ2O);
-          end;
-        end;
-      end;
-    end;
-  end;
-  clicliste:=false;
-end;
-
-procedure raz_champs_act;
-begin
-  with formConfig do
-  begin
-    editAct.Text:='';EditAct2.Text:='';
-    EditEtatActionneur.Text:='';
-    EditTrainDecl.Text:='';
-    EditFonctionAccess.Text:='';
-    EditEtatFoncSortie.Text:='';
-    EditTempo.Text:='';
-    CheckRaz.Checked:=false;
-    editson.Text:='';
-    EditTrainDest.text:='';
   end;
 end;
 
@@ -8657,373 +8366,6 @@ begin
   Suiv4;
 end;
 
-procedure TFormConfig.EditActChange(Sender: TObject);
-var s,s2 : string;
-    typ,act,erreur,det2,suiv : integer;
-    elsuiv : tEquipement;
-    de : boolean;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit act Change',clyellow);
-  if ligneClicAct<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    s:=EditAct.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or radioButtonCde.checked or RadioButtonVit.checked then
-    begin
-      Val(s,act,erreur);
-      if (s='') or (act<1) then exit;
-      typ:=Tablo_Actionneur[ligneClicAct+1].typdeclenche;
-
-      // 0=actionneur/détecteur  1=horloge 2=evt aig  3=MemZone
-      if (typ=3) or (typ=0) then s2:='Actionneur/Détecteur ';
-      if (typ=2) then s2:='Aiguillage ';
-      if (typ=1) then s2:='heure ';
-
-      EditAct.Hint:=s2+intToSTR(act);
-
-      if typ=1 then
-      begin
-        if (act<0) or (act>23) or (erreur<>0) then
-        begin
-          LabelInfo.caption:='Erreur heure';
-          exit;
-        end;
-      end;
-
-      de:=pos('Z',s)<>0;    // si détecteur
-      if de then delete(s,erreur,1);
-      Val(s,act,erreur);
-      if erreur<>0 then
-      begin
-        LabelInfo.caption:='Erreur adresse actionneur';
-        exit;
-      end;
-
-
-      LabelInfo.caption:=' ';
-      tablo_actionneur[ligneClicAct+1].adresse:=act;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-
-      // vérifier si les détecteurs sont contigus si on est en zone
-      if Tablo_Actionneur[ligneClicAct+1].typdeclenche=3 then
-      begin
-        Val(EditAct2.Text,det2,erreur);
-        if erreur<>0 then exit;
-        det_contigu(act,det2,suiv,elSuiv);
-        if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(act)+' et '+intToSTR(det2)+' ne sont pas contigus'
-          else LabelInfo.Caption:='';
-      end
-      else LabelInfo.Caption:='';
-    end;
-  end;
-end;
-
-procedure TFormConfig.EditAct2Change(Sender: TObject);
-var s : string;
-    det1,det2,erreur,suiv : integer;
-    elSuiv : Tequipement;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit act2 Change',clyellow);
-  if ligneClicAct<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    s:=EditAct2.Text;
-    //if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
-    begin
-      Val(s,det2,erreur);
-      if (s='') or (det2<1) then exit;
-
-      if tablo_actionneur[ligneClicAct+1].typdeclenche=1 then
-      begin
-        if (det2<0) or (det2>60) or (erreur<>0) then
-        begin
-          LabelInfo.caption:='Erreur minute';
-          exit;
-        end;
-      end;
-
-      if erreur<>0 then
-      begin
-        LabelInfo.caption:='Erreur adresse détecteur';
-        exit
-      end;
-      LabelInfo.caption:=' ';
-
-      tablo_actionneur[ligneClicAct+1].adresse2:=det2;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-
-      // vérifier si les détecteurs sont contigus si on est en zone
-      if Tablo_Actionneur[ligneClicAct+1].typdeclenche=3 then
-      begin
-        Val(EditAct.Text,det1,erreur);
-        if (erreur<>0) or (det1<1) then exit;
-        det_contigu(det1,det2,suiv,elSuiv);
-        if (suiv=0) or (suiv>9995) then LabelInfo.Caption:='Les détecteurs '+intToSTR(det1)+' et '+intToSTR(det2)+' ne sont pas contigus'
-        else LabelInfo.Caption:='';
-      end;
-    end;
-  end;
-end;
-
-procedure TFormConfig.ListBoxActMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i : integer;
-begin
-  clicliste:=true;
-  if maxTablo_act<1 then exit;
-  LabelInfo.caption:='';
-  raz_champs_act;
-
-  // dévalider la liste des PN (autre tableau)
- // for i:=0 to maxTablo_act-2 do formconfig.ListBoxAct.selected[i]:=false;
-  for i:=0 to ListBoxPN.items.Count-1 do formconfig.ListBoxPN.selected[i]:=false;
-
-  ligneclicAct:=listBoxAct.ItemIndex;
-  if ligneclicAct<0 then exit;
-  // désactiver la ligne PN
-
-  Aff_champs_Act(ligneClicAct+1);
-
-
-  clicliste:=false;
-end;
-
-procedure TFormConfig.EditEtatActionneurChange(Sender: TObject);
-var s : string;
-    etat,erreur,typ : integer;
-begin
-  if clicliste then exit;
-  if affevt then affiche('Evt EditEtatActionneur Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    s:=upperCase(EditEtatActionneur.Text);
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
-    begin
-      typ:=tablo_actionneur[ligneClicAct+1].typdeclenche;
-      if (typ=2) and (s<>'') then  // aiguillage
-      begin
-        if s[1]='S' then s:='1';
-        if s[1]='D' then s:='2';
-      end;
-
-      Val(s,etat,erreur);
-
-      // act det memzone
-      if (typ=0) or (typ=1) or (typ=3) then
-      begin
-        if (etat<0) or (etat>1) then begin LabelInfo.caption:='Erreur état actionneur/détecteur';exit;end;
-      end;
-      // aig
-      if (typ=2) then
-      begin
-        if (etat<1) or (etat>2) then begin LabelInfo.caption:='Erreur position aiguillage';exit;end;
-      end;
-
-      LabelInfo.caption:=' ';
-
-      tablo_actionneur[ligneClicAct+1].etat:=etat;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-procedure TFormConfig.EditTrainDeclChange(Sender: TObject);
-var s,train : string;
-    i : integer;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit TrainDecl Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    train:=EditTrainDecl.Text;
-    // remplacer les , par des + pour le stockage
-    for i:=1 to length(train) do
-    begin
-      if train[i]=',' then train[i]:='+';
-    end;
-    if train='' then
-    begin
-      LabelInfo.caption:='Erreur train';exit
-    end else LabelInfo.caption:=' ';
-
-    tablo_actionneur[ligneClicAct+1].trainDecl:=train;
-    s:=encode_act_loc_son(ligneClicAct+1);
-    ListBoxAct.Items[ligneClicAct]:=s;
-    ListBoxAct.Selected[ligneClicAct]:=true;
-  end;
-end;
-
-procedure TFormConfig.EditTrainDestChange(Sender: TObject);
-var s,train : string;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit TrainDest Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    if radioButtonLoc.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
-    begin
-      train:=EditTrainDest.Text;
-      if train='' then
-      begin
-        LabelInfo.caption:='Erreur train';exit
-      end else LabelInfo.caption:=' ';
-
-      tablo_actionneur[ligneClicAct+1].trainDest:=train;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-
-procedure TFormConfig.EditSonChange(Sender: TObject);
-var s,fichier : string;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit NomFichier Change',clyellow);
-  if ligneClicAct<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonSon.Checked then
-    begin
-      fichier:=EditSon.Text;
-      if fichier='' then
-      begin
-        LabelInfo.caption:='Nom fichier vide';exit
-      end else LabelInfo.caption:=' ';
-      
-      tablo_actionneur[ligneClicAct+1].fichierSon:=fichier;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-procedure TFormConfig.EditFonctionAccessChange(Sender: TObject);
-var s : string;
-    fonction,erreur : integer;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit fonctionAccess Change',clyellow);
-  if ligneClicAct<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    s:=EditFonctionAccess.Text;
-    if radioButtonLoc.Checked or RadioButtonAccess.Checked or RadioButtonCde.Checked or RadioButtonVit.checked then
-    begin
-      LabelInfo.caption:=' ';
-      Val(s,fonction,erreur);
-      if RadioButtonVit.checked then
-      begin
-        if (erreur<>0) or (abs(fonction)>127) then
-        begin
-          LabelInfo.caption:='Erreur vitesse';exit;
-        end;
-      end
-      else
-      if (erreur<>0) or (fonction<1) then
-      begin
-        LabelInfo.caption:='Erreur fonction actionneur';exit
-      end;
-
-      if radioButtonLoc.Checked or RadioButtonVit.checked then tablo_actionneur[ligneClicAct+1].fonction:=fonction;
-      if RadioButtonAccess.Checked then Tablo_Actionneur[ligneClicAct+1].accessoire:=fonction;
-      
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-procedure TFormConfig.EditEtatFoncSortieChange(Sender: TObject);
-var s : string;
-    Etat,erreur : integer;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt Edit FoncSortie Change',clyellow);
-  if ligneClicAct<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin 
-    s:=EditEtatFoncSortie.Text;
-    if radioButtonAccess.Checked then
-    begin
-      Val(s,etat,erreur);
-      if (erreur<>0) or (etat<0) or (etat>2) then
-      begin
-        LabelInfo.caption:='Erreur Etat actionneur';exit
-      end else LabelInfo.caption:=' ';
-
-      tablo_actionneur[ligneClicAct+1].sortie:=etat;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-procedure TFormConfig.EditTempoChange(Sender: TObject);
-var s : string;
-    tempo,erreur : integer;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt TempoChange',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin 
-    s:=EditTempo.Text;
-    if radioButtonLoc.Checked then
-    begin
-      Val(s,tempo,erreur);
-      if (erreur<>0) or (tempo<0) then
-      begin
-        LabelInfo.caption:='Erreur Tempo actionneur';exit
-      end else LabelInfo.caption:=' ';
-      
-      tablo_actionneur[ligneClicAct+1].tempo:=tempo;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-procedure TFormConfig.CheckRAZClick(Sender: TObject);
- var s : string;
-begin
-  if clicliste or (ligneclicAct<0) then exit;
-  if affevt then affiche('Evt CheckRaz Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
-  with Formconfig do
-  begin
-    if radioButtonAccess.Checked then
-    begin
-      tablo_actionneur[ligneClicAct+1].raz:=CheckRAZ.checked;
-      s:=encode_act_loc_son(ligneClicAct+1);
-      ListBoxAct.Items[ligneClicAct]:=s;
-      ListBoxAct.Selected[ligneClicAct]:=true;
-    end;
-  end;
-end;
-
-
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
 var indexTCO,x,y,i,index,aspect,adresseFeu : integer;
     s : string;
@@ -9141,219 +8483,12 @@ begin
   end;
 end;
 
-procedure TFormConfig.RadioButtonLocClick(Sender: TObject);
-var champ,j,i,erreur : integer;
-    train,s : string;
-begin
-  // rendre visible le groupbox Actionneur fonction F loco
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioLoc '+IntToSTR(i),clyellow);
-
-  Tablo_Actionneur[i].loco:=true;
-  Tablo_Actionneur[i].Act:=false;
-  Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].periph:=false;
-  Tablo_Actionneur[i].vit:=false;
-  champs_type_loco;
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  train:=EditTrainDecl.Text;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  Tablo_actionneur[i].trainDecl:=train;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-end;
-
-procedure TFormConfig.RadioButtonAccessClick(Sender: TObject);
-var champ,i,j,erreur : integer;
-    train,s : string;
-begin
-  // rendre visible le groupbox Actionneur fonction F loco
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioAccessoire '+IntToSTR(i),clyellow);
-
-  Tablo_Actionneur[i].loco:=false;
-  Tablo_Actionneur[i].Act:=true;
-  Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].periph:=false;
-  Tablo_Actionneur[i].vit:=false;
-  champs_type_act;
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  train:=EditTrainDecl.Text;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  Tablo_actionneur[i].trainDecl:=train;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-end;
-
-
-procedure TFormConfig.RadioButtonSonClick(Sender: TObject);
-var j, champ,i,erreur : integer;
-    s,train : string;
-begin
-  // rendre visible le groupbox Actionneur fonction F loco
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioSon '+IntToSTR(i),clyellow);
-
-  Tablo_Actionneur[i].loco:=false;
-  Tablo_Actionneur[i].Act:=false;
-  Tablo_Actionneur[i].Son:=true;
-  Tablo_Actionneur[i].periph:=false;
-  Tablo_Actionneur[i].vit:=false;
-
-  champs_type_son;
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  train:=EditTrainDecl.Text;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  Tablo_actionneur[i].trainDecl:=train;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-end;
-
-procedure TFormConfig.RadioButtonCdeClick(Sender: TObject);
-var j,champ,i,erreur : integer;
-    s,train : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioCde '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].loco:=false;
-  Tablo_Actionneur[i].Act:=false;
-  Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].periph:=true;
-  Tablo_Actionneur[i].vit:=false;
-
-  champs_type_periph;
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  train:=EditTrainDecl.Text;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  tablo_actionneur[i].TrainDecl:=train;
-
-
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  //val(editEtatFoncSortie.Text,champ,erreur);
-  //Tablo_actionneur[i].sortie:=champ;
-  //val(editTempo.Text,champ,erreur);
-  //Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].TrainDest:=editTrainDest.Text;
-
-
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-end;
-
-procedure TFormConfig.RadioButtonVitClick(Sender: TObject);
-var j,champ,i,erreur : integer;
-    s,train : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioVit '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].loco:=false;
-  Tablo_Actionneur[i].Act:=false;
-  Tablo_Actionneur[i].Son:=false;
-  Tablo_Actionneur[i].periph:=false;
-  Tablo_Actionneur[i].vit:=true;
-
-  champs_type_vit;
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  train:=EditTrainDecl.Text;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  tablo_actionneur[i].TrainDecl:=train;
-
-
-  val(editFonctionAccess.Text,champ,erreur);  // vitesse
-  Tablo_actionneur[i].fonction:=champ;
-  tablo_actionneur[i].TrainDest:=editTrainDest.Text;
-
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-
-end;
-
-
-procedure TFormConfig.RichPNMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var ligne : integer;
-begin
-  clicliste:=true;
-
-  // désactive la sélection des actionneurs
-  ligneclicAct:=-1;
-
-  with ListBoxPN do
-  begin
-    if ligne<nbrePN then
-    begin
-      AncLigneCliqueePN:=Ligne;
-      ligneCliqueePN:=ligne;
-      Aff_champs_PN(lignecliqueePN+1);
-    end
-    else
-    begin
-      lignecliqueePN:=-1;
-      exit;
-    end;
-  end;
-  clicliste:=false;
-end;
-
 procedure TFormConfig.EditAdrFermeChange(Sender: TObject);
 var s : string;
     act,erreur : integer;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt EditAdrFerme Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin 
     s:=EditAdrFerme.Text;
@@ -9375,7 +8510,6 @@ var s : string;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt EditCmdFerme Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
     s:=EditCdeFerme.Text;
@@ -9402,7 +8536,6 @@ var s : string;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt EditAdrOuvre Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
     s:=EditAdrOuvre.Text;
@@ -9424,7 +8557,6 @@ var s : string;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt EditCmdOuvre Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
     s:=EditCdeOuvre.Text;
@@ -9448,6 +8580,48 @@ begin
 end;
 
 
+procedure ajoute_action;
+var s: string;
+    i : integer;
+begin
+  if affevt then affiche('Evt bouton nouveau acc',clyellow);
+  if maxtablo_act>=Max_actionneurs then
+  begin
+    Affiche('Nombre maximal d''actionneurs atteint',clred);
+    exit;
+  end;
+  clicliste:=true;
+  inc(maxTablo_act);
+
+  with formconfig.ListBoxActions do
+    for i:=0 to items.Count-1 do Selected[i]:=false;
+
+  // désactiver la ligne PN
+  lignecliqueePN:=-1;
+
+  Tablo_actionneur[maxtablo_act].NomAction:='ACTION'+intToSTR(maxtablo_act);
+
+  SetLength(Tablo_actionneur[maxtablo_act].TabloOp,2);
+
+  s:=encode_actions(MaxTablo_act);
+  with formconfig.listBoxActions do
+  begin
+    items.add(s);
+    Selected[maxTablo_act-1]:=true;
+    SetFocus;
+    perform(WM_VSCROLL,SB_BOTTOM,0);
+  end;
+
+  formconfig.LabelInfo.caption:='';
+  LigneClicAct:=MaxTablo_act-1;
+  AncligneClicAct:=ligneClicAct;
+  FormConfig.RichEditInfo.clear;
+  formconfig.ListBoxOperations.Clear;
+
+  clicliste:=false;
+  config_modifie:=true;
+end;
+{
 procedure ajoute_actionneur;
 var s: string;
     i : integer;
@@ -9473,14 +8647,25 @@ begin
   Tablo_actionneur[maxtablo_act].act:=false;
   Tablo_actionneur[maxtablo_act].loco:=true;
 
-  s:=encode_act_loc_son(MaxTablo_act);
+  SetLength(Tablo_actionneur[maxtablo_act].TabloOp,2);
+
+  Tablo_actionneur[maxtablo_act].NbOperations:=1;
 
   // ajouter et scroller en fin
-  with formconfig.listBoxAct do
+  s:=encode_act_loc_son(MaxTablo_act);
+  with formconfig.listBoxActions do
   begin
     items.add(s);
     Selected[maxTablo_act-1]:=true;
     SetFocus;
+    perform(WM_VSCROLL,SB_BOTTOM,0);
+  end;
+
+  s:=encode_actions(MaxTablo_act);
+  with formconfig.listBoxAct do
+  begin
+    items.add(s);
+    Selected[maxTablo_act-1]:=true;
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
@@ -9491,11 +8676,145 @@ begin
   Aff_champs_Act(maxTablo_act);
   clicliste:=false;
   config_modifie:=true;
-end;
+end;      }
+
 
 procedure TFormConfig.ButtonNouvAccClick(Sender: TObject);
 begin
-  ajoute_actionneur;
+  ajoute_action;
+end;
+
+// affiche les champs de l'actionneur PN en fonction de l'index du tableau
+procedure aff_champs_PN(i : integer);
+var erreur,j,v,periph : integer;
+    trouve : boolean;
+    s : string;
+begin
+
+  if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
+  if i<1 then
+  begin
+    clicliste:=false;
+    exit;
+  end;
+  s:=Uppercase(FormConfig.ListBoxPN.items[i-1]);
+  if s='' then
+  begin
+    clicliste:=false;
+    exit;
+  end;
+
+  with formconfig do
+  begin
+    LabelInfo.caption:='';
+    raz_champs_pn;
+  end;
+
+  // actionneur passage à niveau
+  if s[1]='(' then
+  begin
+    //champs_type_pn;
+    // trouver le numéro de périphérique
+    v:=pos('PN(',s);
+    delete(s,1,v+2);
+    val(s,periph,erreur);
+    {
+    i:=0;
+    repeat
+      inc(i);
+      trouve:=(Tablo_PN[i].AdresseFerme=adresse);
+    until trouve or (i>NbrePN);
+    if not(trouve) then exit;}
+
+    with formConfig do
+    begin
+      RadioGroupActPN.itemindex:=Tablo_PN[i].TypeCde;
+
+      if Tablo_PN[i].TypeCde=0 then champs_pn_act;
+      if Tablo_PN[i].TypeCde=1 then champs_pn_comusbSockets;
+
+      if Tablo_PN[i].Pulse=1 then trouve:=true else trouve:=false;
+      CheckPnPulse.Checked:=trouve;
+
+      // par actionneur
+      if Tablo_PN[i].actionneur then
+      begin
+        RadioButtonSimple.Checked:=true;
+        RadioButtonZone.Checked:=false;
+        GroupBoxPNA.Visible:=true;
+        GroupBoxPNZ.Visible:=false;
+        EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
+        EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
+        v:=Tablo_PN[i].nbvoies;
+        if v>=2 then
+        begin
+          EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
+          EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
+        end;
+        if v>=3 then
+        begin
+          EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
+          EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
+        end;
+        if v>=4 then
+        begin
+          EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
+          EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
+        end;
+        if v>=5 then
+        begin
+          EditV5F.text:=intToSTR(Tablo_PN[i].voie[5].ActFerme);
+          EditV5O.text:=intToSTR(Tablo_PN[i].voie[5].ActOuvre);
+        end;
+
+      end
+      else
+      begin
+        // par zone de détecteurs
+        RadioButtonSimple.Checked:=false;
+        RadioButtonZone.Checked:=true;
+        GroupBoxPNA.Visible:=false;
+        GroupBoxPNZ.Visible:=true;
+        v:=Tablo_PN[i].nbvoies;
+        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then
+        begin
+          EditZdet1V1F.text:=intToSTR(j);
+          EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
+          EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
+          EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
+          if v>=2 then
+          begin
+            EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
+            EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
+            EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
+            EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
+          end;
+          if v>=3 then
+          begin
+            EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
+            EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
+            EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
+            EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
+          end;
+          if v>=4 then
+          begin
+            EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
+            EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
+            EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
+            EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
+          end;
+          if v>=5 then
+          begin
+            EditZdet1V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ1F);
+            EditZdet2V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ2F);
+            EditZdet1V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ1O);
+            EditZdet2V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ2O);
+          end;
+        end;
+      end;
+    end;
+  end;
+  clicliste:=false;
 end;
 
 
@@ -9516,8 +8835,6 @@ begin
 
   with formconfig.ListBoxPN do
     for i:=0 to items.Count-1 do Selected[i]:=false;
-  with formconfig.ListBoxAct do
-    for i:=0 to items.Count-1 do Selected[i]:=false;
   ligneclicAct:=-1;
 
   raz_champs_pn;
@@ -9527,6 +8844,7 @@ begin
   tablo_PN[NbrePN].CommandeOuvre:=0;
   tablo_PN[NbrePN].NbVoies:=1;
   tablo_PN[NbrePN].Pulse:=0;
+  tablo_PN[NbrePN].actionneur:=true;
 
   for j:=1 to 4 do
   begin
@@ -9558,7 +8876,6 @@ begin
     RadioButtonSimple.Checked:=true;
     RadioButtonZone.Checked:=false;
 
-    GroupBoxRadio.Visible:=false;
     LabelInfo.caption:='';
   end;
   LigneCliqueePN:=NbrePN-1;
@@ -9574,8 +8891,7 @@ begin
   ajoute_pn;
 end;
 
-
-procedure supprime_act;
+procedure supprime_action;
 var i,j,n : integer;
     ss,s: string;
 begin
@@ -9583,16 +8899,16 @@ begin
   n:=0;
   for i:=0 to maxTablo_act-1 do
   begin
-    if formconfig.ListBoxAct.selected[i] then
+    if formconfig.ListBoxActions.selected[i] then
     begin
-      ss:=ss+intToSTR(Tablo_actionneur[i+1].adresse)+' ';
+      ss:=ss+Tablo_actionneur[i+1].NomAction+' ';
       inc(n);
     end;
   end;
   if ss='' then exit;
 
   s:='Voulez-vous supprimer ';
-  if n=1 then s:=s+' l''actionneur ' else s:=s+' les actionneurs ';
+  if n=1 then s:=s+' l''action ' else s:=s+' les actions ';
   s:=s+ss+' ?';
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
@@ -9603,12 +8919,12 @@ begin
   n:=0;
   i:=1;
   repeat
-    if formconfig.ListBoxAct.selected[i-1] then
+    if formconfig.ListBoxActions.selected[i-1] then
     begin
 
       for j:=i to maxTablo_act-1 do
       begin
-        formconfig.ListBoxAct.selected[j-1]:=formconfig.ListBoxAct.selected[j];
+        formconfig.ListBoxActions.selected[j-1]:=formconfig.ListBoxActions.selected[j];
         tablo_actionneur[j]:=tablo_actionneur[j+1];
       end;
       dec(maxTablo_act);
@@ -9618,14 +8934,14 @@ begin
   until i>maxTablo_act;
 
   config_modifie:=true;
-  FormConfig.ListBoxAct.Clear;
-  raz_champs_act;
+  FormConfig.ListBoxActions.Clear;
 
   // réafficher la liste
   for i:=1 to maxTablo_act do
   begin
-    s:=encode_act_loc_son(i);
-    FormConfig.ListBoxAct.items.Add(s);
+    //s:=encode_act_loc_son(i);
+    s:=encode_actions(i);
+    FormConfig.ListBoxActions.items.Add(s);
   end;
   ligneclicAct:=-1;
   AncligneclicAct:=-1;
@@ -9635,7 +8951,7 @@ end;
 procedure TFormConfig.ButtonSupAccClick(Sender: TObject);
 begin
   if affevt then affiche('Evt bouton Sup acc',clyellow);
-  supprime_act;
+  supprime_action;
 end;
 
 procedure supprime_pn;
@@ -9650,7 +8966,7 @@ begin
   begin
     if formconfig.ListBoxPN.selected[i] then
     begin
-      if tablo_PN[i+1].Voie[1].ActFerme<>0 then ss:=ss+intToSTR(tablo_PN[i+1].Voie[1].ActFerme)
+      if tablo_PN[i+1].Voie[1].ActFerme<>0 then ss:=ss+intToSTR(tablo_PN[i+1].Voie[1].ActFerme)+' '
       else ss:=ss+intToSTR(tablo_PN[i+1].Voie[1].detZ1F)+' ';
       inc(n);
     end;
@@ -10029,7 +9345,7 @@ end;
 
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
-    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2 : integer;
+    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2,op : integer;
     modAig,AncModel,model,km,SuivModel,model2: TEquipement;
     c : char;
     vitesse : longint;
@@ -10945,35 +10261,38 @@ begin
       end;
     end;
 
-    // actionneurs
+    // actions
     for i:=1 to maxTablo_act do
     begin
-      if Tablo_actionneur[i].act then
+      for op:=1 to tablo_actionneur[i].NbOperations do
       begin
-        adresse:=Tablo_actionneur[i].accessoire;
-        for k:=1 to NDetecteurs do
+        if Tablo_actionneur[i].tabloOp[op].numoperation=ActionAccessoire then
         begin
-          adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257)
-
-          if (adresse=adr) then
+          adresse:=Tablo_actionneur[i].tabloOp[op].adresse;
+          for k:=1 to NDetecteurs do
           begin
-            AdrOk:=false;
-            ok:=false;
-            Affiche('Erreur 15: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
-            Affiche('et chevauche le détecteur '+intToStr(adresse_detecteur[k])+' interdit en XpressNet',clred);
-          end;
-        end;
-      end;
+            adr:=((adresse_detecteur[k]-1) div 2) +1;   // transforme l'adresse du détecteur en accessoire (ex 513 devient 257)
 
-      if Tablo_actionneur[i].periph then
-      begin
-        j:=Tablo_actionneur[i].fonction;
-        if j>10 then begin Affiche('Erreur 15.1 pilotage actionneur '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
-        if j=0 then begin Affiche('Erreur 15.2 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
-        if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
-        begin
-          Affiche('Erreur 15.3 L''actionneur '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
-          ok:=false;
+            if (adresse=adr) then
+            begin
+              AdrOk:=false;
+              ok:=false;
+              Affiche('Erreur 15: l''action '+IntToSTR(Tablo_actionneur[i].adresse)+' enclenche l''accessoire '+intToSTR(adresse),clred);
+              Affiche('et chevauche le détecteur '+intToStr(adresse_detecteur[k])+' interdit en XpressNet',clred);
+            end;
+          end;
+
+          if Tablo_actionneur[i].tabloop[op].NumOperation=ActionCdePeriph then
+          begin
+            j:=Tablo_actionneur[i].tabloOp[op].periph;
+            if j>10 then begin Affiche('Erreur 15.1 pilotage action '+intToSTR(Tablo_actionneur[i].adresse),clred);ok:=false;end;
+            if j=0 then begin Affiche('Erreur 15.2 L''action '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);ok:=false;end;
+            if (j>0) and (j<11) and (Tablo_periph[j].NumCom=0) then
+            begin
+              Affiche('Erreur 15.3 L''action '+intToSTR(Tablo_actionneur[i].adresse)+' n''a pas d''accessoire COM/USB d''affecté',clRed);
+              ok:=false;
+            end;
+          end;
         end;
       end;
     end;
@@ -10994,17 +10313,20 @@ begin
   // actionneurs
   for i:=1 to maxTablo_act do
   begin
-    if tablo_actionneur[i].periph then
+    for op:=1 to tablo_actionneur[i].NbOperations do
     begin
-      adresse:=tablo_actionneur[i].fonction;
-      if adresse>NbPeriph then
+      if tablo_actionneur[i].TabloOp[op].numoperation=ActionCdePeriph then
       begin
-        Affiche('Erreur 18 : l''actionneur '+intToSTR(tablo_actionneur[i].adresse)+' est lié à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
-        ok:=false;
+        adresse:=tablo_actionneur[i].TabloOp[op].periph;
+        if adresse>NbPeriph then
+        begin
+          Affiche('Erreur 18 : l''action '+intToSTR(tablo_actionneur[i].adresse)+' est liée à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
+          ok:=false;
+        end;
       end;
     end;
 
-    if Tablo_actionneur[i].typdeclenche=3 then  // si actionneur de zone
+    if Tablo_actionneur[i].declencheur=DeclZoneDet then  // si actionneur de zone
     begin
       adresse:=Tablo_actionneur[i].Adresse;
       adresse2:=Tablo_actionneur[i].Adresse2;
@@ -11013,7 +10335,7 @@ begin
       if (suivant=0) or (suivant>9995) then
       begin
         ok:=false;
-        s:='Erreur 19: l''actionneur '+IntToSTR(Tablo_actionneur[i].adresse)+' est enclenché par les détecteurs '+intToSTR(adresse)+' ' +intToSTR(adresse2)+' qui ne sont pas contigus';
+        s:='Erreur 19: l''action '+IntToSTR(Tablo_actionneur[i].adresse)+' est enclenchée par les détecteurs '+intToSTR(adresse)+' ' +intToSTR(adresse2)+' qui ne sont pas contigus';
         Affiche(s,clred);
       end;
     end;
@@ -12274,198 +11596,10 @@ procedure TFormConfig.PageControlChange(Sender: TObject);
 begin
   Label20.Visible:=false;
   LabelInfo.caption:='';
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then label40.Visible:=true
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetPN then label40.Visible:=true
     else label40.Visible:=false;
 end;
 
-
-procedure TFormConfig.SpeedButtonJoueClick(Sender: TObject);
-begin
- if (ligneclicAct<0) then exit;
- if PlaySound(pchar(EditSon.Text),0,SND_ASYNC)=false then labelInfo.Caption:='Erreur';
-end;
-
-
-procedure TFormConfig.ButtonTestActClick(Sender: TObject);
-Var Adr,adr2,erreur,etat : integer;
-begin
-  if (ligneclicAct<0) then exit;
-  etat:=0;
-  val(EditEtatActionneur.Text,Etat,erreur);
-  val(EditAct.Text,Adr,erreur);
-  val(EditAct2.Text,Adr2,erreur);
-  Ancien_actionneur[adr]:=0;
-  Event_act(adr,adr2,etat,'',false);
-end;
-
-procedure TFormConfig.RadioButtonActDetClick(Sender: TObject);
-var i,j,champ,erreur : integer;
-    s,train : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioBoutonActDet '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typdeclenche:=0;
-  Label30.Visible:=true;
-  EditEtatActionneur.Visible:=true;
-  LabelActionneur.Caption:='Actionneur Détecteur';
-  editAct2.Visible:=false;
-  EditTrainDecl.Visible:=true;
-  LabelTrain.Visible:=true;
-  EditEtatActionneur.Hint:='Etat 0 ou 1';
-  //Tablo_Actionneur[i].trainDecl:=trainSauve;
-  //EditTrainDecl.Text:=trainSauve;
-
-  train:=Tablo_Actionneur[i].trainDecl;
-  for j:=1 to length(train) do if train[j]=',' then train[j]:='+';
-  EditTrainDecl.text:=train;
-
-
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  Tablo_actionneur[i].trainDecl:=EditTrainDecl.Text;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-
-  EditAct.Hint:='Actionneur/Détecteur '+intToSTR(Tablo_actionneur[i].adresse);
-
-end;
-
-
-procedure TFormConfig.RadioButtonZonesClick(Sender: TObject);
-var i,champ,erreur : integer;
-    s : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioBoutonZones '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typdeclenche:=3;
-  Label30.Visible:=true;
-  EditEtatActionneur.Visible:=true;
-  LabelActionneur.Caption:='Mémoire de Zone';
-  EditTrainDecl.Visible:=false;
-  LabelTrain.Visible:=false;
-  editAct2.Visible:=true;
-  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
-
-  EditEtatActionneur.Hint:='Etat 0 ou 1';
-//  Tablo_actionneur[i].trainDecl:='X';
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-
-  EditAct.Hint:='Actionneur/Détecteur '+intToSTR(Tablo_actionneur[i].adresse);
-
-end;
-
-procedure TFormConfig.RadioButtonAigClick(Sender: TObject);
-var i,champ,erreur : integer;
-    s : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioBoutonAig '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typdeclenche:=2;
-  LabelActionneur.Caption:='Aiguillage';
-  EditTrainDecl.Visible:=false;
-  LabelTrain.Visible:=false;
-  editAct2.Visible:=false;
-  Label30.Visible:=true;
-  EditEtatActionneur.Visible:=true;
-  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
-
-  EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
-  //Tablo_actionneur[i].trainDecl:='X';
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-  EditAct.Hint:='Aiguillage '+intToSTR(Tablo_actionneur[i].adresse);
-end;
-
-procedure TFormConfig.RadioButtonHorlClick(Sender: TObject);
-var i,champ,erreur : integer;
-    s : string;
-begin
-  if clicListe or (ligneclicAct<0) then exit;
-  i:=ligneClicAct+1;
-  if AffEvt then Affiche('RadioBoutonHorl '+IntToSTR(i),clyellow);
-  Tablo_Actionneur[i].typdeclenche:=1;
-  LabelActionneur.Caption:='Heure'+#13+'Minute';
-  EditTrainDecl.Visible:=false;
-  LabelTrain.Visible:=false;
-  editAct2.Visible:=true;
-  Label30.Visible:=false;
-  EditEtatActionneur.Visible:=false;
-
-  //editact.Text:=intToSTR(Tablo_actionneur[i].adresse2);
-
-  //EditEtatActionneur.Hint:='1 ou S=dévié  2 ou D=droit';
-  //Tablo_actionneur[i].trainDecl:='X';
-  val(editact.Text,champ,erreur);
-  Tablo_actionneur[i].adresse:=champ ;
-  val(editEtatActionneur.Text,champ,erreur);
-  Tablo_actionneur[i].etat:=champ;
-  val(editFonctionAccess.Text,champ,erreur);
-  Tablo_actionneur[i].fonction:=champ;
-  val(editEtatFoncSortie.Text,champ,erreur);
-  Tablo_actionneur[i].sortie:=champ;
-  val(editTempo.Text,champ,erreur);
-  Tablo_actionneur[i].tempo:=champ;
-  tablo_actionneur[i].Raz:=checkRaz.checked;
-  s:=encode_act_loc_son(i);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-  EditAct.Hint:='heure';
-  EditAct2.Hint:='minute';
-end;
-
-procedure TFormConfig.SpeedButtonChargerClick(Sender: TObject);
-var s: string;
-begin
-  if (ligneclicAct<0) then exit;
-  s:=GetCurrentDir;
-  OpenDialogSon.InitialDir:=s;
-  OpenDialogSon.DefaultExt:='wav';
-  OpenDialogSon.Title:='Ouvrir un fichier son';
-  OpenDialogSon.Filter:='Fichiers wav (*.wav)|*.wav|Tous fichiers (*.*)|*.*';
-  if openDialogSon.Execute then
-  begin
-    s:=openDialogSon.FileName;
-    editson.Text:=s;
-  end;
-end;
 
 procedure TFormConfig.RichBrancheKeyDown(Sender: TObject; var Key: Word;Shift: TShiftState);
 var lc,curseur,i : integer;
@@ -12654,7 +11788,6 @@ var i : integer;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt CheckPnPulse Change',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   with Formconfig do
   begin
     if CheckPnPulse.Checked then i:=1 else i:=0;
@@ -12998,101 +12131,6 @@ procedure TFormConfig.CheckBoxVerifXpressNetClick(Sender: TObject);
 end;
 
 
-procedure TFormConfig.ListBoxActKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if key=VK_delete then supprime_act;
-
-  if ord(Key)=VK_UP then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt RichAct keyup',clyellow);
-    with Formconfig.listBoxAct do
-    begin
-      if ligneclicAct>0 then
-      begin
-        dec(ligneclicAct);
-        if AncligneClicAct<>ligneClicAct then
-        begin
-          AncligneClicAct:=ligneClicAct;
-          aff_champs_Act(ligneclicAct+1);
-        end;
-      end;
-   end;
-  end;
-
-  if ord(Key)=VK_DOWN then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt RichAct keydown',clyellow);
-    with Formconfig.ListBoxAct do
-    begin
-      if ligneclicAct<maxTablo_act-1 then
-      begin
-        inc(ligneclicAct);
-        if AncligneClicAct<>ligneClicAct then
-        begin
-          AncligneClicAct:=ligneClicAct;
-          aff_champs_Act(ligneClicAct+1);
-        end;
-      end;
-   end;
-  end;
-
-  if (Shift = [ssCtrl]) and (key = ord('A')) then ListBoxAct.SelectAll;
-
-  clicListe:=false;
-end;
-
-procedure TFormConfig.RichPNKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var lc : integer;
-begin
-  if ord(Key)=VK_DELETE then supprime_pn;
-  if ord(Key)=VK_UP then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt RichPN keyup',clyellow);
-    with Formconfig.ListBoxPN do
-    begin
-      if lc>0 then
-      begin
-        dec(lc);
-        AncLigneCliqueePN:=LigneCliqueePN;
-        LigneCliqueePN:=lc;
-        if AncLigneCliqueePN<>LigneCliqueePN then
-        begin
-          aff_champs_PN(lc+1);
-        end;
-      end;
-    end;
-  end;
-
-  if ord(Key)=VK_DOWN then
-  begin
-    if clicListe then exit;
-    clicListe:=true;
-    if affevt then affiche('Evt RichPN keydown',clyellow);
-    with Formconfig.ListBoxPN do
-    begin
-      if lc<NbrePN-1 then
-      begin
-        inc(lc);
-        AncLigneCliqueePN:=LigneCliqueePN;
-        LigneCliqueePN:=lc;
-        if AncLigneCliqueePN<>LigneCliqueePN then
-        begin
-          aff_champs_PN(lc+1);
-        end;
-      end;
-    end;
-  end;
-  clicListe:=false;
-end;
-
 procedure TFormConfig.ListBoxTrainsKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -13368,7 +12406,6 @@ begin
     ferme:=pos('f',s)<>0;     // champ ferme
     if clicliste or (lignecliqueePN<0) then exit;
     if affevt then affiche('Evt EditVXX Change',clyellow);
-    if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
     with Formconfig do
     begin
       Val(sb,act,erreur);
@@ -13432,7 +12469,6 @@ begin
   begin
     if clicliste or (lignecliqueePN<0) then exit;
     if affevt then affiche('Evt EditZdetXVX Change',clyellow);
-    if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
     with Formconfig do
     begin
       i:=pos('det1',s);if i<>0 then begin numdet:=1;delete(s,1,i+3);end;
@@ -13916,20 +12952,25 @@ end;
 
 procedure TFormConfig.ListBoxPNMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i : integer;
 begin
   clicliste:=true;
   LabelInfo.caption:='';
   raz_champs_PN;
 
-  if nbrePN<1 then exit;
-  for i:=0 to ListBoxAct.items.Count-1 do ListBoxAct.selected[i]:=false;
+  if nbrePN<1 then
+  begin
+    clicListe:=false;
+    exit;
+  end;
 
+  AnclignecliqueePN:=lignecliqueePN;
   lignecliqueePN:=listBoxPN.ItemIndex;
-  if lignecliqueePN<0 then exit;
-  // désactiver la ligne act
+  if lignecliqueePN<0 then
+  begin
+    clicLIste:=false;
+    exit;
+  end;
 
-  if NbrePN<1 then exit;
   Aff_champs_PN(lignecliqueePN+1);
   clicliste:=false;
 end;
@@ -13937,7 +12978,7 @@ end;
 procedure TFormConfig.ListBoxPNKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if key=VK_delete then supprime_act;
+  if key=VK_delete then supprime_PN;
 
   if ord(Key)=VK_UP then
   begin
@@ -13949,7 +12990,7 @@ begin
       if lignecliqueePN>0 then
       begin
         dec(lignecliqueePN);
-        if AnclignecliqueePN<>lignecliqueePN then
+        //if AnclignecliqueePN<>lignecliqueePN then
         begin
           AnclignecliqueePN:=lignecliqueePN;
           aff_champs_PN(lignecliqueePN+1);
@@ -13965,10 +13006,10 @@ begin
     if affevt then affiche('Evt PN keydown',clyellow);
     with Formconfig.ListBoxPN do
     begin
-      if lignecliqueePN<maxTablo_act-1 then
+      if lignecliqueePN<NbrePN-1 then
       begin
         inc(lignecliqueePN);
-        if AnclignecliqueePN<>lignecliqueePN then
+        //if AnclignecliqueePN<>lignecliqueePN then
         begin
           AnclignecliqueePN:=lignecliqueePN;
           aff_champs_PN(lignecliqueePN+1);
@@ -14045,7 +13086,7 @@ var ss,s : string;
   config_modifie:=true;
   FormConfig.ListBoxPeriph.Clear;
   //supprimer les champs des combos
-  formConfig.ComboBoxAccComUSB.Clear;
+  formModifAction.ComboBoxAccComUSB.Clear;
   formconfig.ComboBoxPNCom.Clear;
   formConfig.comboBoxDecCde.Clear;
 
@@ -14103,7 +13144,7 @@ begin
   AncligneClicAccPeriph:=ligneClicAccPeriph;
   Aff_champs_accPeriph_tablo(i);
   s:='Nouveau périphérique';
-  formConfig.ComboBoxAccComUSB.Items.Add(s);
+  formModifAction.ComboBoxAccComUSB.Items.Add(s);
   formconfig.ComboBoxPNCom.Items.Add(s);
   formconfig.ComboBoxDecCde.Items.Add(s);
 
@@ -14121,7 +13162,7 @@ var tl: TListBox;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   s:=tl.name;
-  if s='ListBoxAct' then supprime_act;
+  if s='ListBoxActions' then supprime_action;
   if s='ListBoxPN' then supprime_PN;
   if s='ListBoxSig' then supprime_sig;
   if s='ListBoxAig' then supprime_aig;
@@ -14136,7 +13177,7 @@ var tl: TListBox;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   s:=tl.name;
-  if s='ListBoxAct' then ajoute_actionneur;
+  if s='ListBoxActions' then ajoute_action;
   if s='ListBoxPN' then ajoute_PN;
   if s='ListBoxSig' then ajoute_signal;
   if s='ListBoxAig' then ajoute_aiguillage;
@@ -14243,17 +13284,8 @@ begin
 end;
 
 
-procedure TFormConfig.ComboBoxAccComUSBChange(Sender: TObject);
-var s : string;
-begin
-  if clicliste or (ligneClicAct<0) then exit;
-  if affevt then affiche('Evt Edit port Change',clyellow);
-  Tablo_Actionneur[ligneClicAct+1].fonction:=ComboBoxAccComUSB.ItemIndex+1;
-  s:=encode_act_loc_son(ligneClicAct+1);
-  ListBoxAct.Items[ligneClicAct]:=s;
-  ListBoxAct.Selected[ligneClicAct]:=true;
-end;
 
+
 procedure TFormConfig.ButtonSupAccComClick(Sender: TObject);
 begin
   supprime_periph;
@@ -14339,7 +13371,6 @@ var s : string;
 begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt radio',clyellow);
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAct then
   begin
     if RadioGroupActPN.itemindex=0 then
     begin
@@ -14491,7 +13522,6 @@ begin
 
   // réaffiche les champs qui contiennent les 3 combobox de périphériques
   maj_decodeurs;
-  aff_champs_Act(ligneclicAct+1);
   Aff_champs_PN(lignecliqueePN+1);
 
   config_modifie:=true;
@@ -14543,7 +13573,7 @@ begin
 
   // réaffiche les champs qui contiennent les 3 combobox de périphériques
   maj_decodeurs;
-  aff_champs_Act(ligneclicAct+1);
+  //aff_champs_Act(ligneclicAct+1);
   Aff_champs_PN(lignecliqueePN+1);
 
   config_modifie:=true;
@@ -14984,9 +14014,6 @@ begin
   if Valeur_entete=1 then RadioButton2.checked:=true;
   LabelInfo.Width:=240;LabelInfo.Height:=65;LabelInfo.AutoSize:=false;
   LabelResult.width:=137;LabelResult.Height:=25;
-  LabelNomSon.top:=16;LabelNomSon.Left:=48;
-  SpeedButtonJoue.Top:=60; SpeedButtonCharger.Top:=60;
-  EditSon.Top:=38;EditSon.Left:=16;
 
   CheckBoxResa.Checked:=AvecResa;
   CheckVerifVersion.Checked:=verifVersion;
@@ -15073,8 +14100,171 @@ end;
 
 
 
-
+procedure TFormConfig.ButtonModActionClick(Sender: TObject);
+begin
+  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
+  OperationAffiche:=0;
+  formModifAction.showModal;
+end;
 
-end.
+procedure Affiche_action;
+var i,j,decl :integer;
+    s : string;
+begin
+  // remplir la listbox en fonction des opérations de l'action cliquée
+  with FormConfig.ListBoxOperations do
+  begin
+    clear;
+    for i:=1 to Tablo_Actionneur[ligneclicAct+1].NbOperations do
+    begin
+      j:=Tablo_Actionneur[ligneclicAct+1].tabloOp[i].numoperation;
+      s:=operations[j].nom;
+      if not(Tablo_Actionneur[ligneclicact+1].tabloOp[i].valide) then s:=s+' [dévalidé]';
+
+      if j<1 then
+        items.Add(Format('%d%s', [0, 'aucune opération']))
+      else
+        items.Add(Format('%d%s', [j-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
+      itemHeight:=17;
+    end;
+  end;
+
+  formConfig.RichEditInfo.clear;
+  decl:=Tablo_Actionneur[ligneclicAct+1].declencheur;
+  if decl>Nbredeclencheurs then
+  begin
+    clicListe:=false;
+    exit;
+  end;
+
+  s:=Info_action(ligneclicAct+1);
+
+  if decl>0 then formConfig.RichEditInfo.Lines.Add(s);
+end;
+
+procedure TFormConfig.ListBoxActionsMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if maxTablo_act<1 then exit;
+  clicliste:=true;
+//  raz_champs_act;
+
+  // dévalider la liste des PN (autre tableau)
+ // for i:=0 to maxTablo_act-2 do formconfig.ListBoxAct.selected[i]:=false;
+  //for i:=0 to ListBoxPN.items.Count-1 do formconfig.ListBoxPN.selected[i]:=false;
+
+  ligneclicAct:=listBoxActions.ItemIndex;
+  if ligneclicAct<0 then
+  begin
+    clicliste:=false;
+    exit;
+  end;
+
+  Affiche_action;
+
+  ClicAction:=-1;
+
+  clicliste:=false;
+end;
+
+procedure TFormConfig.ListBoxOperationsDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  i,erreur: Integer;
+  ItemText: string;
+begin
+  with ListBoxOperations do
+  begin
+    ItemText:=Items[index];
+    val(ItemText,i,erreur);
+    Delete(ItemText,1,erreur-1);
+    Canvas.Fillrect(Rect);
+    formConfCellTCO.ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, i);
+    Canvas.Textout(Rect.Left + formConfCellTCO.ImageListIcones.Width + 2, Rect.Top, ItemText);
+  end;
+end;
+
+procedure TFormConfig.ListBoxOperationsMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ClicAction:=ListBoxOperations.ItemIndex;
+end;
+
+procedure action_relais(i : integer);
+begin
+  action(i);
+end;
+
+procedure TFormConfig.ButtonTestActionClick(Sender: TObject);
+begin
+  if (ligneclicAct<0) then exit;
+  action_relais(ligneclicact+1);   // car action est une fonction d'une form...
+end;
+
+procedure TFormConfig.ModifActionClick(Sender: TObject);
+begin
+  DeclencheurAffiche:=0;
+  OperationAffiche:=clicaction+1;
+  formModifAction.ShowModal;
+end;
+
+procedure TFormConfig.ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (maxTablo_act<1) or clicliste then exit;
+  if key=VK_delete then supprime_action;
+
+  if ord(Key)=VK_UP then
+  begin
+    clicListe:=true;
+    with ListBoxActions.Items do
+    begin
+      if ligneClicAct>0 then
+      begin
+        dec(ligneClicAct);
+        affiche_action;
+      end;
+    end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    if clicListe then exit;
+    clicListe:=true;
+    with Formconfig.ListBoxactions.Items do
+    begin
+      if ligneClicAct<MaxTablo_act-1 then
+      begin
+        inc(ligneClicAct);
+        affiche_action;
+      end;
+    end;
+  end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxActions.SelectAll;
+  end;
+
+  clicListe:=false;
+
+end;
+
+procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
+var s : string;
+    op,icone : integer;
+begin
+  if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
+  Tablo_Actionneur[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Actionneur[ligneclicAct+1].tabloOp[clicaction+1].valide);
+
+  op:=Tablo_Actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  if op<1 then icone:=0  else icone:=op-1;
+
+  s:=operations[op].nom;
+  if not(Tablo_Actionneur[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+' [dévalidé]';
+  listBoxOperations.Items[clicaction]:=Format('%d%s', [icone, s]);
+end;
+
+end.
 
 

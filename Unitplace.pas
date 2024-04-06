@@ -457,17 +457,14 @@ end;
 
 
 procedure TFormPlace.ButtonLanceRoutageClick(Sender: TObject);
-var vitesse,a,i,j,id,adrDet,AdrTrain : integer;
+var i,j,adrDet,AdrTrain : integer;
     trouve,demarre : boolean;
-    var s: string;
 begin
   if cdm_connecte then
   begin
     Affiche('Le placement des trains incompatible en mode CDM rail',clOrange);
     exit;
   end;
-
-  
 
   trouve:=false;
   // explorer les détecteurs pour lancer les trains si le détecteur est affecté à un train

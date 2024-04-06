@@ -107,6 +107,7 @@ type
     procedure CheckBoxPrincClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure ButtonAigDevieClick(Sender: TObject);
+    procedure ButtonSigPrecClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -512,14 +513,14 @@ procedure TFormDebug.ButtonSimuAct1Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if (erreur=0) and (det>0) then Event_Act(det,0,1,'',false);
+  if (erreur=0) and (det>0) then Event_Act(det,0,1,'');
 end;
 
 procedure TFormDebug.ButtonSimuAct0Click(Sender: TObject);
 var det,erreur : integer;
 begin
   val(EditSimuDet.Text,det,erreur);
-  if (erreur=0) and (det>0)  then Event_Act(det,0,0,'',false);
+  if (erreur=0) and (det>0)  then Event_Act(det,0,0,'');
 end;
 
 procedure TFormDebug.ButtonRazToutClick(Sender: TObject);
@@ -714,5 +715,17 @@ begin
   Aiguille_deviee(Adr);
   NivDebug:=AncDebug;
 end;
+
+procedure TFormDebug.ButtonSigPrecClick(Sender: TObject);
+var Adr,erreur,ancDebug : integer;
+begin
+  Val(EditSigSuiv.Text,Adr,erreur);
+  if (erreur<>0) or (Adr<1) then exit;
+  ancdebug:=NivDebug;
+  NivDebug:=3;
+  erreur:=Signal_Precedent(Adr);
+  NivDebug:=AncDebug;
+  AfficheDebug('signal précédent='+intToSTR(erreur),clyellow);
+end;
 
 end.

@@ -646,17 +646,28 @@ begin
     end;
   end;
 
-  // une imagelist c'est 24x24 maxi
-  ListBoxAction.Items.Add(Format('%d%s', [0, 'Afficher TCO'])); // valeur d'index de l'icone dans la ImagelistIcones
-  ListBoxAction.Items.Add(Format('%d%s', [1, 'Afficher Signaux Complexes']));
-  ListBoxAction.Items.Add(Format('%d%s', [2, 'Afficher CDM Rail']));
-  ListBoxAction.Items.Add(Format('%d%s', [3, 'Activer/désactiver sortie']));
-  ListBoxAction.Items.Add(Format('%d%s', [4, 'Arrêter les trains']));
-  ListBoxAction.Items.Add(Format('%d%s', [5, 'Démarrer l''horloge']));
-  ListBoxAction.Items.Add(Format('%d%s', [6, 'Arrêter l''horloge']));
-  ListBoxAction.Items.Add(Format('%d%s', [7, 'Initialiser l''horloge']));
-  ListBoxAction.Items.Add(Format('%d%s', [8, 'Afficher l''horloge']));
-
+  // une imagelist c'est 16x16 maxi
+  with ListBoxAction do
+  begin
+    Items.Add(Format('%d%s', [0, 'Afficher TCO'])); // valeur d'index de l'icone dans la ImagelistIcones
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [1, 'Afficher Signaux Complexes']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [2, 'Afficher CDM Rail']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [3, 'Activer/désactiver sortie']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [4, 'Arrêter les trains']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [5, 'Démarrer l''horloge']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [6, 'Arrêter l''horloge']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [7, 'Initialiser l''horloge']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [8, 'Afficher l''horloge']));
+    itemHeight:=16;
+  end;
 
   // dessine les composants - non utilisé
   {
@@ -1062,7 +1073,6 @@ begin
     Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
   end;
 
-
   end;
 end;
 
@@ -1071,16 +1081,16 @@ end;
 procedure TFormConfCellTCO.ListBoxActionDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
-  IcoIndex: Integer;
+  i,erreur : Integer;
   ItemText: string;
 begin
   with ListBoxAction do
   begin
-    IcoIndex:=StrToIntDef(Items[Index][1], 0);
-    ItemText:=Items[Index];
-    Delete(ItemText,1,1);
+    ItemText:=Items[index];
+    val(ItemText,i,erreur);
+    Delete(ItemText,1,erreur-1);
     Canvas.Fillrect(Rect);
-    ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, IcoIndex);
+    ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, i);
     Canvas.Textout(Rect.Left + ImageListIcones.Width + 2, Rect.Top, ItemText);
   end;
 end;
