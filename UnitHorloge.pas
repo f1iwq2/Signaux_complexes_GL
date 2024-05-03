@@ -67,7 +67,7 @@ procedure Demarre_horloge;
 
 implementation
 
-uses unitconfig, UnitClock;
+uses unitconfig, UnitClock, UnitFicheHoraire;
 
 {$R *.dfm}
 
@@ -144,12 +144,18 @@ begin
 end;
 
 procedure Init_Horloge;
+var i : integer;
 begin
   heure:=HeureInit;
   minute:=MinuteInit;
   seconde:=0;
   if clock<>nil then clock.DrawArrows;
   FormPrinc.labelClock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
+  if formFicheHoraire<>nil then
+  begin
+    for i:=1 to Nombre_horaires do
+      FormFicheHoraire.StringGridFO.Cells[1,i]:=GrilleHoraire[i].NomTrain;
+  end;
 end;
 
 procedure TFormHorloge.ButtonInitClick(Sender: TObject);

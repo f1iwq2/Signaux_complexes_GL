@@ -71,6 +71,7 @@ type
     procedure ImageCDMMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure ButtonAnimeClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -1079,19 +1080,19 @@ end;
 // dessine un arc orienté de xa,ya à xb,yb dans le canvas image (pas imprimante)
 // coordonnées CDM
 procedure arc_xy_CDM(canvas : tcanvas;centreX,centreY,rayon,xa,ya,xb,yb : integer);
-var x1,y1,x2,y2: integer  ;
+var x1,y1,x2,y2 : integer  ;
     arcXa,arcYa,arcxb,arcYb,angleA,angleB,
-    cosA,SinA,CosB,SinB,vectoriel,AngleAB: double;
+    cosA,SinA,CosB,SinB: double;
     inverse,maxA,maxB,deb : boolean;
 begin
   deb:=false;
   if rayon=0 then exit;
-  if deb then Affiche('Xa='+intToSTr(xa)+' Ya='+intToSTr(ya)+' Xb='+intToSTr(xb)+' Yb='+intToSTr(yb),clyellow);
   coords(centreX,centreY);
   coords(xa,ya);
   coords(xb,yb);
-  rayon:=round(rayon*reducX) div 1000;
 
+  if deb then Affiche('Xa='+intToSTr(xa)+' Ya='+intToSTr(ya)+' Xb='+intToSTr(xb)+' Yb='+intToSTr(yb),clyellow);
+  rayon:=round(rayon*reducX) div 1000;
 
   X1:=centreX - rayon;
   Y1:=centreY - rayon;
@@ -1121,8 +1122,22 @@ begin
   if SinB<-1 then SinB:=-1;
   arcYb:=arcsin(SinB)*_180surpi;
 
-  // quadrant des angles
+  if deb then
+  begin
+    affiche('arcXA='+FloatToSTR(ArcXA)+' arcYA='+FloatToSTR(ArcYA)+' arcXB='+FloatToSTR(ArcXB)+' arcYB='+FloatToSTR(ArcYB),clLime);
+    with canvas do
+    begin
+      pen.Width:=1;
+      Textout(xa+10,ya+10,'A');
+      Textout(xb+10,yb+10,'B');
+      MoveTo(xa,ya);LineTo(centreX,centreY);
+      LineTo(xb,yb);
+    end;
+  end;
+
   {
+
+  // quadrant des angles
   quadrantA:=0;QuadrantB:=0;
   if (cosA>=0) and (sinA>=0) then quadrantA:=1;
   if (cosA<=0) and (sinA>=0) then quadrantA:=2;
@@ -1140,20 +1155,10 @@ begin
     Affiche('QuadrantB='+intToSTR(QuadrantB),clyellow);
   end;
   }
-
-  vectoriel:=((rayon*rayon*cosA*cosB)+(rayon*rayon*sinA*sinB)) / (rayon*rayon);
-  if vectoriel>1 then vectoriel:=1;
-  if vectoriel<-1 then vectoriel:=-1;
-  AngleAB:=arccos(vectoriel)*_180surpi;
-  if deb then Affiche('ProdVect='+FloatToSTR(vectoriel*_180surpi)+' AngleAB='+FloatToStr(AngleAB),clYellow);
-
-
-  //arcXb:=0;arcYb:=0;
-
   // en déduire l'angle A et B
-  if arcYa<0 then angleA:=180-ArcXa+180 else angleA:=ArcXa;
-  if arcYb<0 then angleB:=180-ArcXb+180 else angleB:=ArcXb;
-  if angleA>=360 then angleA:=360-angleA;
+  if arcYa<0 then angleA:=360-ArcXa else angleA:=ArcXa;
+  if arcYb<0 then angleB:=360-ArcXb else angleB:=ArcXb;
+  if angleA>360 then angleA:=360-angleA;
 
   if abs(angleA-angleB)>180 then
   begin
@@ -1172,21 +1177,27 @@ begin
     end;
   end;
 
-
   inverse:=angleB>angleA;
-  //inverse:=AngleAB>0;
 
+  //inverse:=AngleAB>0;
   if deb then
   begin
+    if inverse then affiche('Inverse',clOrange) else affiche('Normal',clOrange);
+    affiche('Angle A='+floatToSTR(angleA)+' Angle B='+floatToSTR(angleB),clOrange);
     affiche('AngleXa='+intToSTR(round(ArcXa))+' AngleYa='+intToSTR(round(ArcYa)),clred);
     affiche('AngleXb='+intToSTR(round(ArcXb))+' AngleYb='+intToSTR(round(ArcYb)),clred);
+    affiche('AngleA='+intToSTR(round(AngleA))+' AngleB='+intToSTR(round(AngleB)),clred);
+
   end;
   if angleA<>angleB then
   with Canvas do
   begin
-    setArcDirection(Canvas.Handle,AD_COUNTERCLOCKWISE);
-    if inverse then canvas.Arc(X1,Y1,X2,Y2,xa,ya,xb,yb)
-    else canvas.Arc(X1,Y1,X2,Y2,xb,yb,xa,ya);
+    if deb then rectangle(x1,y1,x2,y2);
+    pen.Width:=largeur_voie;
+    if inverse then setArcDirection(Canvas.Handle,AD_COUNTERCLOCKWISE) else
+    setArcDirection(Canvas.Handle,AD_CLOCKWISE);
+
+    Arc(X1,Y1,X2,Y2,xa,ya,xb,yb)
   end;
 end;
 
@@ -4672,10 +4683,10 @@ begin
   index_segment_det(adresse,tabloDetSeg,nombre);
   circuit_det[1].index:=tabloDetSeg[1].index;
 
-   ind1:=tabloDetSeg[1].index;
-   ind2:=tabloDetSeg[2].index;
-   per1:=tabloDetSeg[1].periph;
-   per2:=tabloDetSeg[2].periph;
+  ind1:=tabloDetSeg[1].index;
+  ind2:=tabloDetSeg[2].index;
+  per1:=tabloDetSeg[1].periph;
+  per2:=tabloDetSeg[2].periph;
 
   //Affiche('Trouvé détecteur sur le segment '+inttoSTR(segment[i1].numero),clYellow);
 
@@ -4847,7 +4858,7 @@ begin
         // déterminer la destination
         // trouve le port connecté au segment suivant
         tp:=index_port_connecte(index,circuit_det[2].index,indexPort);
-        // trouver les coordonnées su x,y sur lequel est connecté le port
+        // trouver les coordonnées x,y sur lequel est connecté le port
         xs:=Segment[index].port[IndexPort].x;
         ys:=Segment[index].port[IndexPort].y;
         // donc tracer un arc de (x,y) détecteur à (xs,ys) port
@@ -5032,6 +5043,11 @@ begin
 end;
 
 
+
+procedure TFormAnalyseCDM.Button1Click(Sender: TObject);
+begin
+  dessine_det(523);
+end;
 
 end.
 

@@ -1,6 +1,6 @@
 object FormModifAction: TFormModifAction
-  Left = 309
-  Top = 112
+  Left = 311
+  Top = 157
   BorderStyle = bsDialog
   Caption = 'Modifier une action'
   ClientHeight = 443
@@ -33,7 +33,7 @@ object FormModifAction: TFormModifAction
   object LabelInfo: TLabel
     Left = 316
     Top = 416
-    Width = 237
+    Width = 3
     Height = 13
   end
   object ButtonOk: TButton
@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetOp
+    ActivePage = TabSheet1
     MultiLine = True
     TabOrder = 2
     object TabSheetDecl: TTabSheet
@@ -79,10 +79,10 @@ object FormModifAction: TFormModifAction
         ParentFont = False
       end
       object ListBoxDeclench: TListBox
-        Left = 16
+        Left = 0
         Top = 60
-        Width = 185
-        Height = 185
+        Width = 201
+        Height = 189
         ItemHeight = 13
         TabOrder = 0
         OnDrawItem = ListBoxDeclenchDrawItem
@@ -100,6 +100,7 @@ object FormModifAction: TFormModifAction
           Width = 38
           Height = 13
           Caption = 'Adresse'
+          WordWrap = True
         end
         object LabelTrain: TLabel
           Left = 8
@@ -171,30 +172,253 @@ object FormModifAction: TFormModifAction
           Value = 0
           OnChange = SpinEditEtatChange
         end
+        object RadioEtatSignal: TRadioGroup
+          Left = 152
+          Top = 24
+          Width = 433
+          Height = 73
+          Caption = 'Etat de changements du signal'
+          Items.Strings = (
+            'Ouverture inconditionnelle du signal (quitte le rouge)'
+            
+              'Ouverture du signal sur VL (passage au vert, vert cli, blanc, bl' +
+              'anc cli)'
+            
+              'Ouverture restreinte du signal (passage '#224' l'#39'avertissement, ralen' +
+              ' ou rappel)'
+            'Fermeture du signal (passage au carr'#233', s'#233'maphore,violet)')
+          TabOrder = 4
+          OnClick = RadioEtatSignalClick
+        end
       end
       object RichEditInf: TRichEdit
         Left = 224
         Top = 216
         Width = 481
-        Height = 49
+        Height = 65
+        ReadOnly = True
         TabOrder = 2
       end
       object ButtonApplDecl: TButton
         Left = 16
-        Top = 256
+        Top = 276
         Width = 75
         Height = 25
         Hint = 'Application du d'#233'clencheur '#224' l'#39'action s'#233'lectionn'#233'e'
-        Caption = 'Appliquer'
+        Caption = 'Appliquer >>>'
         ParentShowHint = False
         ShowHint = True
         TabOrder = 3
         OnClick = ButtonApplDeclClick
       end
     end
+    object TabSheet1: TTabSheet
+      Caption = 'Conditions'
+      ImageIndex = 1
+      object Label4: TLabel
+        Left = 16
+        Top = 24
+        Width = 169
+        Height = 13
+        Caption = 'Liste de conditions diponibles'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Shape2: TShape
+        Left = 216
+        Top = 8
+        Width = 3
+        Height = 293
+        Brush.Color = clBlack
+      end
+      object Label6: TLabel
+        Left = 258
+        Top = 8
+        Width = 118
+        Height = 13
+        Caption = 'Condition '#224' observer'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object ListBoxCondTot: TListBox
+        Left = 0
+        Top = 60
+        Width = 201
+        Height = 185
+        ItemHeight = 13
+        TabOrder = 0
+        OnDrawItem = ListBoxCondTotDrawItem
+      end
+      object ListBoxConditions: TListBox
+        Left = 232
+        Top = 28
+        Width = 217
+        Height = 201
+        Hint = 'Condition de r'#233'alisation du d'#233'clencheur'
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        OnDrawItem = ListBoxConditionsDrawItem
+        OnMouseDown = ListBoxConditionsMouseDown
+      end
+      object GroupBox1: TGroupBox
+        Left = 464
+        Top = 24
+        Width = 249
+        Height = 265
+        Caption = 'Param'#232'tres de la condition'
+        TabOrder = 2
+        object LabelHeureDebut: TLabel
+          Left = 8
+          Top = 86
+          Width = 74
+          Height = 13
+          Caption = 'Heure de d'#233'but'
+        end
+        object LabelHeureFin: TLabel
+          Left = 8
+          Top = 104
+          Width = 58
+          Height = 13
+          Caption = 'Heure de fin'
+        end
+        object LabelEtat2: TLabel
+          Left = 8
+          Top = 136
+          Width = 19
+          Height = 13
+          Caption = 'Etat'
+        end
+        object ChampTrain: TLabeledEdit
+          Left = 24
+          Top = 184
+          Width = 161
+          Height = 21
+          Hint = 'train'
+          EditLabel.Width = 24
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Train'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          OnChange = ChampTrainChange
+        end
+        object Champ1: TLabeledEdit
+          Left = 64
+          Top = 40
+          Width = 41
+          Height = 21
+          EditLabel.Width = 38
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse'
+          EditLabel.WordWrap = True
+          LabelPosition = lpLeft
+          LabelSpacing = 10
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnChange = Champ1Change
+        end
+        object Champ2: TLabeledEdit
+          Left = 176
+          Top = 40
+          Width = 41
+          Height = 21
+          EditLabel.Width = 39
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Champ2'
+          LabelPosition = lpLeft
+          LabelSpacing = 10
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnChange = Champ2Change
+        end
+        object SpinEditHeure1: TSpinEdit
+          Left = 96
+          Top = 80
+          Width = 41
+          Height = 22
+          MaxValue = 23
+          MinValue = 0
+          TabOrder = 3
+          Value = 0
+          OnChange = SpinEditHeure1Change
+        end
+        object SpinEditMn1: TSpinEdit
+          Left = 160
+          Top = 80
+          Width = 41
+          Height = 22
+          MaxValue = 59
+          MinValue = 0
+          TabOrder = 4
+          Value = 0
+          OnChange = SpinEditMn1Change
+        end
+        object SpinEditHeure2: TSpinEdit
+          Left = 96
+          Top = 104
+          Width = 41
+          Height = 22
+          MaxValue = 23
+          MinValue = 0
+          TabOrder = 5
+          Value = 0
+          OnChange = SpinEditHeure2Change
+        end
+        object SpinEditMn2: TSpinEdit
+          Left = 160
+          Top = 104
+          Width = 41
+          Height = 22
+          MaxValue = 59
+          MinValue = 0
+          TabOrder = 6
+          Value = 0
+          OnChange = SpinEditMn2Change
+        end
+        object SpinEditEtat2: TSpinEdit
+          Left = 96
+          Top = 136
+          Width = 33
+          Height = 22
+          MaxValue = 0
+          MinValue = 0
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
+          Value = 0
+          OnChange = SpinEditEtat2Change
+        end
+      end
+      object ButtonAppCond: TButton
+        Left = 16
+        Top = 276
+        Width = 75
+        Height = 25
+        Hint = 
+          'Mise '#224' jour du champ de conditions vers le champ de  la liste de' +
+          's conditions '#224' observer'
+        Caption = 'Appliquer >>>'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        OnClick = ButtonAppCondClick
+      end
+    end
     object TabSheetOp: TTabSheet
       Caption = 'Op'#233'rations'
-      ImageIndex = 1
+      ImageIndex = 2
       object Shape1: TShape
         Left = 216
         Top = 8
@@ -216,11 +440,17 @@ object FormModifAction: TFormModifAction
         ParentFont = False
       end
       object Label2: TLabel
-        Left = 32
+        Left = 16
         Top = 8
-        Width = 67
+        Width = 168
         Height = 13
-        Caption = 'Liste d'#39'actions'
+        Caption = 'Liste d'#39'op'#233'rations disponibles'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object SpeedButtonSupprime: TSpeedButton
         Left = 338
@@ -251,17 +481,17 @@ object FormModifAction: TFormModifAction
       object ComboBoxFamille: TComboBox
         Left = 0
         Top = 32
-        Width = 209
+        Width = 201
         Height = 21
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
       object ListBoxOper: TListBox
         Left = 0
-        Top = 64
+        Top = 60
         Width = 201
-        Height = 193
+        Height = 185
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -288,7 +518,7 @@ object FormModifAction: TFormModifAction
       end
       object GroupBoxParam: TGroupBox
         Left = 464
-        Top = 32
+        Top = 24
         Width = 249
         Height = 265
         Caption = 'Param'#232'tres de l'#39'op'#233'ration'
@@ -389,6 +619,13 @@ object FormModifAction: TFormModifAction
           Height = 13
           Caption = 'P'#233'riph'#233'rique:'
         end
+        object LabelEtatOp: TLabel
+          Left = 128
+          Top = 36
+          Width = 19
+          Height = 13
+          Caption = 'Etat'
+        end
         object LabeledEditTrain: TLabeledEdit
           Left = 24
           Top = 184
@@ -429,26 +666,13 @@ object FormModifAction: TFormModifAction
           TabOrder = 2
           OnChange = LabeledEditFonctionFChange
         end
-        object LabeledEditEtat: TLabeledEdit
-          Left = 144
-          Top = 32
-          Width = 25
-          Height = 21
-          EditLabel.Width = 19
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Etat'
-          LabelPosition = lpLeft
-          LabelSpacing = 10
-          TabOrder = 3
-          OnChange = LabeledEditEtatChange
-        end
         object CheckBoxRAZ: TCheckBox
           Left = 24
           Top = 104
           Width = 145
           Height = 17
           Caption = 'Remise '#224' 0 apr'#232's pilotage'
-          TabOrder = 4
+          TabOrder = 3
           OnClick = CheckBoxRAZClick
         end
         object ComboBoxAccComUSB: TComboBox
@@ -458,10 +682,10 @@ object FormModifAction: TFormModifAction
           Height = 21
           Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 5
+          TabOrder = 4
           OnChange = ComboBoxAccComUSBChange
         end
         object LabeledEditTempoF: TLabeledEdit
@@ -474,8 +698,21 @@ object FormModifAction: TFormModifAction
           EditLabel.Caption = 'Tempo x100ms'
           LabelPosition = lpLeft
           LabelSpacing = 10
-          TabOrder = 6
+          TabOrder = 5
           OnChange = LabeledEditTempoFChange
+        end
+        object SpinEditEtatop: TSpinEdit
+          Left = 152
+          Top = 32
+          Width = 33
+          Height = 22
+          MaxValue = 0
+          MinValue = 0
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          Value = 0
+          OnChange = SpinEditEtatopChange
         end
       end
       object ButtonAjouter: TButton
@@ -545,11 +782,14 @@ object FormModifAction: TFormModifAction
     Top = 36
     Width = 225
     Height = 21
+    Hint = 'Nom de l'#39'action au choix'
     EditLabel.Width = 73
     EditLabel.Height = 13
     EditLabel.Caption = 'Nom de l'#39'action'
     LabelPosition = lpLeft
     LabelSpacing = 5
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 3
     OnChange = LabeledEditNomActChange
   end

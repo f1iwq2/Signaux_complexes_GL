@@ -362,7 +362,7 @@ object FormHorloge: TFormHorloge
   object LabelErreur: TLabel
     Left = 288
     Top = 192
-    Width = 113
+    Width = 3
     Height = 13
     Caption = '.'
   end

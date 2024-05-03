@@ -386,14 +386,14 @@ begin
     radioBlanccli.visible:=true;
   end;
 
-
+  {
   // checkcarré
   if (n<4) or (n>10) then checkVerrouCarre.Visible:=false else
   begin
     checkVerrouCarre.Visible:=false; //true;
     checkVerrouCarre.Checked:=Signaux[i].VerrouCarre;
   end;
-
+  }
   with imagePilote do
   begin
     Parent:=FormPilote;
@@ -448,7 +448,7 @@ begin
   i:=Index_Signal(AdrPilote);
   if Signaux[i].VerrouCarre then
   begin
-    Signaux[i].EtatVerrouCarre:=checkVerrouCarre.Checked=true;
+    //Signaux[i].EtatVerrouCarre:=checkVerrouCarre.Checked=true;
     Maj_Etat_Signal(AdrPilote,carre);
     envoi_signal(Adrpilote);
     Maj_Etat_Signal(0,carre);

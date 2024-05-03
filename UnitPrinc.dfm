@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 134
-  Top = 114
+  Left = 54
+  Top = 186
   Width = 1148
   Height = 624
   Anchors = [akLeft, akTop, akRight]
@@ -1473,8 +1473,8 @@ object FormPrinc: TFormPrinc
     OnDrawPanel = StatusBar1DrawPanel
   end
   object Button1: TButton
-    Left = 919
-    Top = 16
+    Left = 1023
+    Top = 0
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
@@ -1986,8 +1986,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 585
-      Top = 72
+      Left = 713
+      Top = 32
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
@@ -2047,6 +2047,26 @@ object FormPrinc: TFormPrinc
         TabOrder = 3
       end
     end
+  end
+  object Button2: TButton
+    Left = 360
+    Top = 0
+    Width = 75
+    Height = 25
+    Caption = 'Affiche routes'
+    TabOrder = 3
+    Visible = False
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 496
+    Top = 8
+    Width = 75
+    Height = 25
+    Caption = 'Button3'
+    TabOrder = 4
+    Visible = False
+    OnClick = Button3Click
   end
   object Timer1: TTimer
     Interval = 100
@@ -2119,6 +2139,10 @@ object FormPrinc: TFormPrinc
       object Codificationdessignaux: TMenuItem
         Caption = 'Codification des signaux'
         OnClick = CodificationdessignauxClick
+      end
+      object Codificationdescantons1: TMenuItem
+        Caption = 'Codification des cantons'
+        OnClick = Codificationdescantons1Click
       end
       object N5: TMenuItem
         Caption = '-'
@@ -2408,9 +2432,9 @@ object FormPrinc: TFormPrinc
     end
     object Roulage1: TMenuItem
       Caption = 'Roulage'
-      object Placerlestrains1: TMenuItem
-        Caption = 'Placer les trains'
-        OnClick = Placerlestrains1Click
+      object OpRoulage: TMenuItem
+        Caption = 'Op'#233'rations de roulage'
+        OnClick = OpRoulageClick
       end
       object RazResa: TMenuItem
         Caption = 'Mise '#224' z'#233'ro des r'#233'servations des aiguillages'

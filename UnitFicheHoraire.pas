@@ -28,6 +28,7 @@ const
 
 var
   FormFicheHoraire: TFormFicheHoraire;
+  Nombre_horaires : integer;
 
   GrilleHoraire : Array[1..MaxHoraire] of record
                     NomTrain : string ;
@@ -208,6 +209,7 @@ begin
       end;
     end;
   until eof(f) or (ligne>MaxHoraire);
+  Nombre_horaires:=ligne-1;
 
   closefile(f);
   couleurs_Fiche;

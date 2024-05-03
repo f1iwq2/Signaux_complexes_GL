@@ -1,9 +1,9 @@
 object FormAnalyseCDM: TFormAnalyseCDM
-  Left = 198
-  Top = 41
+  Left = 193
+  Top = 60
   AutoScroll = False
   Caption = 'Fen'#234'tre r'#233'seau CDM'
-  ClientHeight = 648
+  ClientHeight = 596
   ClientWidth = 1041
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   OnResize = FormResize
   DesignSize = (
     1041
-    648)
+    596)
   PixelsPerInch = 96
   TextHeight = 13
   object Label4: TLabel
@@ -60,7 +60,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
     Left = 8
     Top = 16
     Width = 986
-    Height = 509
+    Height = 457
     HorzScrollBar.Tracking = True
     Anchors = [akLeft, akTop, akRight, akBottom]
     AutoScroll = False
@@ -80,7 +80,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   end
   object GroupBox1: TGroupBox
     Left = 8
-    Top = 536
+    Top = 484
     Width = 385
     Height = 109
     Anchors = [akLeft, akBottom]
@@ -224,7 +224,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   end
   object GroupBoxSegment: TGroupBox
     Left = 400
-    Top = 536
+    Top = 484
     Width = 145
     Height = 109
     Anchors = [akLeft, akBottom]
@@ -274,7 +274,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   end
   object Memo1: TMemo
     Left = 552
-    Top = 544
+    Top = 492
     Width = 105
     Height = 93
     Anchors = [akLeft, akBottom]
@@ -288,7 +288,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   end
   object ButtonAnime: TButton
     Left = 752
-    Top = 548
+    Top = 496
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]

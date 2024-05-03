@@ -26,7 +26,7 @@ var
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
-Const  VersionSC ='8.7';  // sert à la comparaison de la version publiée
+Const  VersionSC ='8.8';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -149,9 +149,7 @@ end;
 // dézipe copie les fichiers et lance la nouvelle version
 // s : chemin et fichier à déziper
 procedure dezipe_copie_lance(s : string);
-var
-    i : integer;
-
+var i : integer;
 begin
   // Vérifier si répertoire dest existe
   chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
@@ -204,7 +202,7 @@ begin
   end
   else
   begin
-    Affiche('Erreur '+intToSTR(i)+' au lancement de copie_sc.exe ',clred);
+    Affiche('Erreur '+intToSTR(i)+' au lancement de installeur.exe ',clred);
   end;
 
 end;

@@ -228,10 +228,8 @@ type
     EditVitRalenti: TEdit;
     Label57: TLabel;
     EditVitNom: TEdit;
-    LabelInfVitesse: TLabel;
     CheckRoulage: TCheckBox;
     CheckBoxVerifXpressNet: TCheckBox;
-    ImageTrain: TImage;
     PopupMenuRichedit: TPopupMenu;
     Copier1: TMenuItem;
     Coller1: TMenuItem;
@@ -316,7 +314,6 @@ type
     ButtonPropage: TButton;
     ButtonPFCDM: TButton;
     TabAvance: TTabSheet;
-    Label31: TLabel;
     Label39: TLabel;
     CheckBoxMsgAigInc: TCheckBox;
     TabSheet1: TTabSheet;
@@ -332,6 +329,12 @@ type
     ButtonTestAction: TButton;
     PopupMenuActions: TPopupMenu;
     ModifAction: TMenuItem;
+    Label16: TLabel;
+    ImageTrain: TImage;
+    EditIcone: TEdit;
+    SpeedButtonOuvre: TSpeedButton;
+    LabeledEditTempoD: TLabeledEdit;
+    CheckBoxSens: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -500,6 +503,10 @@ type
     procedure ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ListBoxOperationsDblClick(Sender: TObject);
+    procedure SpeedButtonOuvreClick(Sender: TObject);
+    procedure EditIconeChange(Sender: TObject);
+    procedure LabeledEditTempoDChange(Sender: TObject);
+    procedure CheckBoxSensClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -526,6 +533,7 @@ couleur_fond_ch='coul_fond';
 serveurIPCDM_Touche_ch='serveurIPCDM_Touche';
 PortServeur_ch='Port_Serveur';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
+TempoTC_ch='TempoTC';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
 Filtrage_det_ch='Filtrage_det';
 nCantons_Res_ch='nCantonsRes';
@@ -614,6 +622,8 @@ section_DecPers_ch='[section_decodeurs]';
 section_accCOM_ch='[section_accCOMUSB]';
 section_horloge_ch='[section horloge]';
 
+rep_icones='icones';
+
 var
   FormConfig: TFormConfig;
   AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,RepConfig : string; //,trainsauve : string;
@@ -624,7 +634,8 @@ var
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,IndexSignalclic,NumTrameCDM,
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
-  compt_Ligne,Style_aff,Ancien_Style,Ecran_SC,Mode_reserve,Max_Signal_Sens,nCantonsRes : integer;
+  compt_Ligne,Style_aff,Ancien_Style,Ecran_SC,Mode_reserve,Max_Signal_Sens,nCantonsRes,
+  TempoTC,Nbuttoirs : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,fermeSC,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
@@ -647,7 +658,7 @@ var
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran,
   EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,
-  EditMaxSignalSens,EditnCantonsRes,EditAntiTO,EditRep : Tedit;
+  EditMaxSignalSens,EditnCantonsRes,EditAntiTO,EditRep,EditTempoTC : Tedit;
 
   EditT  : Array[1..10] of Tedit;
   TextBoxCde : array[1..19] of Tedit;
@@ -655,7 +666,7 @@ var
   LabelPortCde,LbPnVoie1,LbAPnVoie1,LbAPnVoie2,LbAPnVoie3,LbAPnVoie4,LbAPnVoie5,LbATitre,
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP,
   LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,LabelAntiTO,
-  LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes : Tlabel;
+  LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes,LabelTempoTC : Tlabel;
 
   RadioReserve,RadioServeurCDM,rgPilTrains : TradioGroup;
 
@@ -689,6 +700,7 @@ function encode_actions(i : integer) : string;
 function encode_act_pn(i : integer) : string;
 function encode_Periph(index : integer) : string;
 procedure ajoute_champs_combos(i : integer);
+function verif_trains : boolean;
 
 implementation
 
@@ -1611,6 +1623,25 @@ begin
     DeclAccessoire : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].etat)+',';
     DeclDetAct     : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].etat)+','+Tablo_Actionneur[i].trainDecl+',';
     DeclZoneDet    : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].adresse2)+','+intToSTR(Tablo_Actionneur[i].etat)+','+Tablo_Actionneur[i].trainDecl+',';
+    DeclDemarTrain : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+Tablo_Actionneur[i].trainDecl+',';
+    DeclArretTrain : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+Tablo_Actionneur[i].trainDecl+',';
+    DeclSignal     : s:=s+intToSTR(Tablo_Actionneur[i].adresse)+','+intToSTR(Tablo_Actionneur[i].etat)+',';
+  end;
+
+  // conditions
+  Nb:=Tablo_Actionneur[i].NbCond;
+  s:=s+'B'+IntToSTR(Nb)+',';
+  for j:=1 to Nb do
+  begin
+    action:=Tablo_Actionneur[i].TabloCond[j].numcondition;  // il n'y a qu'une condition (v8.8)
+    s:=s+'C'+intToSTR(action)+',';  // numéro de condition
+    case action of
+      condVitTrain : s:=s+intToSTR(Tablo_Actionneur[i].TabloCond[j].vitmini)+','+intToSTR(Tablo_Actionneur[i].TabloCond[j].vitmaxi)+','+Tablo_Actionneur[i].TabloCond[j].train+',';
+      condPosAcc   : s:=s+intToSTR(Tablo_Actionneur[i].TabloCond[j].accessoire)+','+intToSTR(Tablo_Actionneur[i].TabloCond[j].etat)+',';
+      condHorl     : s:=s+intToSTR(Tablo_Actionneur[i].TabloCond[j].HeureMin)+','+intToSTR(Tablo_Actionneur[i].TabloCond[j].MinuteMin)+','+
+                              intToSTR(Tablo_Actionneur[i].TabloCond[j].HeureMax)+','+intToSTR(Tablo_Actionneur[i].TabloCond[j].MinuteMax)+',';
+      condTrainSig : s:=s+intToSTR(Tablo_Actionneur[i].TabloCond[j].adresse)+','+Tablo_Actionneur[i].TabloCond[j].train+',';
+    end;
   end;
 
   Nb:=Tablo_Actionneur[i].NbOperations;
@@ -1749,10 +1780,13 @@ end;
 
 
 function Train_tablo(index : integer) : string;
+var s: string;
 begin
-  result:=trains[index].nom_train+','+inttostr(trains[index].adresse)+','+
+  s:=trains[index].nom_train+','+inttostr(trains[index].adresse)+','+
   intToSTR(trains[index].vitmax)+','+intToSTR(trains[index].vitnominale)+','+
-  intToSTR(trains[index].vitRalenti);
+  intToSTR(trains[index].vitRalenti)+','+trains[index].NomIcone+','+intToSTR(trains[index].TempsDemarreSig)+',';
+  if trains[index].inverse then s:=s+'1' else s:=s+'0';
+  result:=s;
 end;
 
 // modifie le fichier de config en fonction du paramétrage
@@ -1797,6 +1831,7 @@ begin
   writeln(fichierN,Filtrage_det_ch+'=',filtrageDet0);
   writeln(fichierN,nCantons_Res_ch+'=',nCantonsRes);
   writeln(fichierN,AntiTimeoutEthLenz_ch+'=',AntiTimeoutEthLenz);
+  writeln(fichierN,TempoTC_ch+'=',TempoTC);
   // taille de la fonte
   writeln(fichierN,Fonte_ch+'=',TailleFonte);
   FormPrinc.FenRich.Font.Size:=TailleFonte;
@@ -2075,11 +2110,14 @@ begin
   // placement des trains
   writeln(fichierN,'/------------');
   writeln(fichierN,section_placement_ch);
-  for i:=1 to 6 do
+  for i:=1 to ntrains do
     begin
-      s:=placement[i].train+','+inttoSTR(placement[i].detecteur)+',';
-      s:=s+intToSTR(placement[i].detdir)+',';
-      if placement[i].inverse then s:=s+'1' else s:=s+'0';
+      s:=trains[i].nom_train+',';
+      j:=trains[i].canton;  //numéro du canton
+      s:=s+inttoSTR(j)+',';
+      j:=index_canton_numero(j);
+      if j<>0 then s:=s+intToSTR(canton[j].Sens)+',' else s:=s+'0,';
+      if trains[i].inverse then s:=s+'1' else s:=s+'0';
       writeln(fichierN,s);
     end;
   writeln(fichierN,'0');
@@ -2234,9 +2272,18 @@ begin
   end;
 end;
 
+// compte le nombre de virgules dans la chaine
+function Nbre_virgules(s : string) : integer ;
+var i,c : integer;
+begin
+  c:=0;
+  for i:=1 to length(s) do
+    if s[i]=',' then inc(c);
+  result:=c;
+end;
 
 procedure lit_config;
-var s,sa,SOrigine: string;
+var train,s,sa,SOrigine: string;
     c : char;
     tec,tjdC,tjsC,s2,triC,debugConfig,trouve_NbDetDist,trouve_ipv4_PC,trouve_retro,trouve_protocole,
     trouve_sec_init,trouve_init_aig,trouve_lay,trouve_IPV4_INTERFACE,trouve_PROTOCOLE_SERIE,trouve_INTER_CAR,
@@ -2244,10 +2291,13 @@ var s,sa,SOrigine: string;
     trouve_NOTIF_VERSION,trouve_verif_version,trouve_fonte,trouve_tempo_aig,trouve_raz,trouve_section_aig,
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_signal,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
+
     virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
-    ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,
-    postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi : integer;
+    ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,vers,
+    postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi,idtrain : integer;
     tabloDet : TTabloDet;
+
+    versR : double;
 
  function lit_ligne : string ;
     var esp,l1,l2 : integer;
@@ -2302,6 +2352,7 @@ var s,sa,SOrigine: string;
   NDetecteurs:=0;
   Nligne:=1;
   i_detect:=1;
+  Nbuttoirs:=0;
   i:=1;
   //Affiche('Définition des branches',clyellow);
 
@@ -2465,6 +2516,11 @@ var s,sa,SOrigine: string;
       // Aaiguillage = aiguillage
       s:=sOrigine;  // travailler en min/maj
       Tablo_actionneur[maxtablo_act].NomAction:='Action '+intToSTR(maxtablo_act);
+
+      // Mettre au moins une condition : vrai
+      setlength(tablo_actionneur[maxtablo_act].TabloCond,2);
+      Tablo_Actionneur[maxtablo_act].NbCond:=1;
+      Tablo_actionneur[maxtablo_act].TabloCond[1].numcondition:=CondVrai;
 
       // évènement actionneur par horloge
       if (upcase(s[1])='H') then
@@ -2753,7 +2809,7 @@ var s,sa,SOrigine: string;
 
   // nouveaux
   procedure compile_actions;
-  var n,k,l : integer;
+  var n,k,l,c : integer;
   begin
     maxTablo_act:=1;
     Nligne:=1;
@@ -2767,7 +2823,13 @@ var s,sa,SOrigine: string;
         i:=pos(',',s);
         sa:=copy(s,1,i-1);
         if sa='' then sa:='Action '+intToSTR(maxtablo_act);
+        Tablo_actionneur[maxtablo_act].traite:=false;
         Tablo_actionneur[maxtablo_act].NomAction:=sa;
+        // initialiser la condition toujours vrai par défaut
+        Tablo_Actionneur[maxtablo_act].NbCond:=1;
+        Setlength(Tablo_actionneur[maxtablo_act].TabloCond,2);
+        Tablo_actionneur[maxtablo_act].TabloCond[1].numcondition:=CondVrai;
+
         Delete(s,1,i);
         // déclencheur
         delete(s,1,1);
@@ -2786,7 +2848,7 @@ var s,sa,SOrigine: string;
            begin
              Val(s,i,erreur);Delete(s,1,erreur);
              Tablo_actionneur[maxtablo_act].NumPeriph:=i;
-             i:=pos(',',s);
+             i:=pos(',',s); if i=0 then i:=length(s)+1;
              sa:=copy(s,1,i-1);delete(s,1,i);
              Tablo_actionneur[maxtablo_act].ordrePeriph:=sa;
             end;
@@ -2803,7 +2865,7 @@ var s,sa,SOrigine: string;
              Tablo_actionneur[maxtablo_act].adresse:=i;
              Val(s,i,erreur);Delete(s,1,erreur);
              Tablo_actionneur[maxtablo_act].etat:=i;
-             i:=pos(',',s);
+             i:=pos(',',s);if i=0 then i:=length(s)+1;
              sa:=copy(s,1,i-1);delete(s,1,i);
              Tablo_actionneur[maxtablo_act].trainDecl:=sa;
            end;
@@ -2819,6 +2881,100 @@ var s,sa,SOrigine: string;
              sa:=copy(s,1,i-1);delete(s,1,i);
              Tablo_actionneur[maxtablo_act].trainDecl:=sa;
            end;
+           DeclDemarTrain :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             i:=pos(',',s);if i=0 then i:=length(s)+1;
+             sa:=copy(s,1,i-1);delete(s,1,i);
+             Tablo_actionneur[maxtablo_act].trainDecl:=sa;
+           end;
+           DeclArretTrain :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             i:=pos(',',s);if i=0 then i:=length(s)+1;
+             sa:=copy(s,1,i-1);delete(s,1,i);
+             Tablo_actionneur[maxtablo_act].trainDecl:=sa;
+           end;
+           DeclSignal :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);  // adresse
+             Tablo_actionneur[maxtablo_act].adresse:=i;
+             i:=pos(',',s);
+             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse
+             if (i<0) or (i>1) then i:=0;
+             Tablo_actionneur[maxtablo_act].Etat:=i;
+           end;
+        end;
+
+
+        // conditions
+        if s[1]='B' then
+        begin
+          delete(s,1,1);
+          // nombre de conditions
+          Val(s,n,erreur);
+          Tablo_actionneur[maxtablo_act].NbCond:=n;
+          Delete(s,1,erreur);
+          setlength(Tablo_actionneur[maxtablo_act].TabloCond,n+1);
+          for k:=1 to n do
+          begin
+            delete(s,1,1);
+            val(s,j,erreur); delete(s,1,erreur);
+            // numéro de l'opération
+            if (j<0) or (j>NbreConditions) then
+            begin
+              Affiche('Condition '+intToSTR(maxtablo_act)+' dans opération n°'+intToSTR(k)+' : cond inconnue :'+intToSTR(j),clred);
+            end;
+            Tablo_actionneur[maxtablo_act].tabloCond[k].numCondition:=j;
+            case j of
+            condVitTrain:
+            begin
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].vitmini:=j;
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].vitmaxi:=j;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloCond[k].train:=sa;
+            end;
+            condPosAcc :
+            begin
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].accessoire:=j;
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].etat:=j;
+            end;
+            condHorl :
+            begin
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].HeureMin:=j;
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].MinuteMin:=j;
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].HeureMax:=j;
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].MinuteMax:=j;
+            end;
+            condTrainSig :
+            begin
+              val(s,j,erreur); delete(s,1,erreur);
+              Tablo_actionneur[maxtablo_act].tabloCond[k].adresse:=j;
+              i:=pos(',',s);
+              if i<>0 then
+              begin
+                sa:=copy(s,1,i-1);delete(s,1,i);
+              end
+              else sa:=s;
+              Tablo_actionneur[maxtablo_act].tabloCond[k].train:=sa;
+            end;
+            end;
+          end;
         end;
 
         // nombre d'actions
@@ -2838,9 +2994,14 @@ var s,sa,SOrigine: string;
             Affiche('Action '+intToSTR(maxtablo_act)+' dans opération n°'+intToSTR(k)+' : op inconnue :'+intToSTR(j),clred);
           end;
           Tablo_actionneur[maxtablo_act].tabloOP[k].numoperation:=j;
-          val(s,l,erreur); delete(s,1,erreur);
-          // état validé ou dévalidé
-          Tablo_actionneur[maxtablo_act].tabloOP[k].valide:=l=1;
+
+          // nouvelle version (pour paramètre d'activation)
+          if versR>8.71 then
+          begin
+            val(s,l,erreur); delete(s,1,erreur);
+            // état validé ou dévalidé
+            Tablo_actionneur[maxtablo_act].tabloOP[k].valide:=l=1;
+          end else Tablo_actionneur[maxtablo_act].tabloOP[k].valide:=true;
           // paramètres des opérations
           case j of
             ActionAffTCO :
@@ -3414,20 +3575,52 @@ var s,sa,SOrigine: string;
         delete(s,1,erreur-1);
       end;
 
-      Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        delete(s,i,1);
+        i:=pos(',',s);
+        if i=0 then i:=length(s)+1;
+        trains[ntrains].NomIcone:=copy(s,1,i-1);
+        Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
+        delete(s,1,i-1);
+      end;
+
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        delete(s,i,1);
+        val(s,i,erreur);
+        if (i<0) or (i>20) then i:=0;
+        trains[ntrains].TempsDemarreSig:=i;
+        delete(s,1,erreur-1);
+      end;
+
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        delete(s,i,1);
+        val(s,i,erreur);
+        if (i<0) or (i>1) then i:=0;
+        trains[ntrains].inverse:=i=1;
+        delete(s,1,erreur-1);
+      end;
     end;
-    if ntrains>1 then
+
+  until (sOrigine='0') or (ntrains>=Max_Trains);
+  for i:=1 to ntrains do
+  begin
+    trains[i].canton:=0;
+    trains[i].x:=-999999;
+    trains[i].y:=-999999;
+  end;
+  if ntrains>1 then
     with Formprinc do
     begin
       ComboTrains.ItemIndex:=0;
       editadrtrain.Text:=inttostr(trains[1].adresse);
     end;
-  until (sOrigine='0') or (ntrains>=Max_Trains);
-  for i:=1 to ntrains do
-  begin
-    trains[i].x:=-999999;
-    trains[i].y:=-999999;
-  end;
+
   end;
 
   procedure compile_periph;
@@ -3606,7 +3799,6 @@ var s,sa,SOrigine: string;
     // valeurs par défaut
     Nb_cantons_Sig:=3;
     nv:=0; it:=0;
-    // taille de fonte
     repeat
       s:=lit_ligne;
 
@@ -3630,7 +3822,7 @@ var s,sa,SOrigine: string;
       sa:=uppercase(couleur_fond_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
-      begin                
+      begin
         delete(s,i,length(sa));
         val('$'+s,CouleurFond,erreur);
       end;
@@ -3772,6 +3964,14 @@ var s,sa,SOrigine: string;
       begin
         delete(s,i,length(sa));
         val(s,AntiTimeoutEthLenz,erreur);
+      end;
+
+      sa:=uppercase(TempoTC_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        delete(s,i,length(sa));
+        val(s,tempoTC,erreur);
       end;
 
       sa:=uppercase(Algo_localisation_ch)+'=';
@@ -4337,7 +4537,7 @@ var s,sa,SOrigine: string;
         compile_dec_pers;
       end;
 
-      // section placement
+      // section placement : mis dans les trains
       sa:=uppercase(section_placement_ch);
       if pos(sa,s)<>0 then
       begin
@@ -4349,22 +4549,26 @@ var s,sa,SOrigine: string;
             j:=pos(',',s);
             if j<>0 then
             begin
-              placement[i].train:=copy(s,1,j-1);
+              // train
+              train:=copy(s,1,j-1);
+              idtrain:=index_train_nom(train);
               delete(s,1,j);
+              // numéro de canton (pas index)
               val(s,j,erreur);
-              placement[i].detecteur:=j;
+              trains[idtrain].canton:=j;
               j:=pos(',',s);
               if j<>0 then
               begin
+                // sens
                 delete(s,1,j);
                 val(s,j,erreur);
-                placement[i].detdir:=j;
+                trains[idtrain].sens:=j;
+                // inverse, mais ne pas stocker, déja lu dans compile_trains
                 j:=pos(',',s);
                 if j<>0 then
                 begin
                   delete(s,1,j);
                   val(s,j,erreur);
-                  placement[i].inverse:=j=1;
                 end;
               end;
             end;
@@ -4509,6 +4713,22 @@ begin
     genere_config;
     assignFile(fichier,NomConfig);
     reset(fichier);
+  end;
+  readln(fichier,s);
+  i:=pos('version',s);
+  if i<>0 then
+  begin
+    delete(s,1,i+7);
+    val(s,versR,erreur);
+    if erreur<>0 then
+    begin
+      delete(s,erreur,length(s)-erreur+1);
+      val(s,versR,erreur);
+    end;
+  end else
+  begin
+    versR:=0;
+    Affiche('Version fichier de configuration inconnue',clred);
   end;
   lit_flux;
   close(fichier);
@@ -4658,6 +4878,10 @@ begin
     val(EditAntiTO.Text,i,erreur);
     if (i<0) or (i>1) then i:=0;
     AntiTimeoutEthLenz:=i;
+
+    val(EditTempoTC.Text,i,erreur);
+    if (i<0) or (i>10) then i:=1;
+    TempoTC:=i;
 
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
@@ -5340,6 +5564,10 @@ var i,j,x,y,l,LongestLength,PixelLength : integer;
 begin
   if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
 
+  s:=GetCurrentDir;
+  if not(directoryExists(rep_icones)) then CreateDir(rep_icones);
+  ChDir(s);  // revient au rep initial
+
   visible:=false;
   clicListe:=true;
   position:=poMainFormCenter;
@@ -5369,6 +5597,25 @@ begin
   if debug=1 then Affiche('Fin création fenêtre config',clLime);
 
   EditNbreAdr.Text:='2';
+
+  for i:=1 to nTrains do  //
+  begin
+    cs:=trains[i].NomIcone;
+    s:=GetCurrentDir;
+    s:=s+'\icones';
+    s:=s+'\'+cs;
+    if cs<>'' then
+    begin
+    // lire le fichier icone
+    if fileExists(s) then
+    begin
+      trains[i].icone.Picture.LoadFromFile(s);
+    end
+    else Affiche('Le fichier icône train '+s+' n''a pas été trouvé',clred);
+
+    end;
+  end;
+
 
   // création des champs dynamiques de l'onglet CDM Rail
   EditOuvreEcran:=TEdit.create(GroupBox5);
@@ -6164,8 +6411,6 @@ begin
     for i:=1 to ntrains do items.Add(Train_tablo(i));
   end;
 
-
-
   // composants dynamiques car on ne peut plus ajouter de composants en mode conception!
   // onglet périphériques COM/USB/Socket
   //--------- groupbox
@@ -6396,7 +6641,7 @@ begin
   GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxAvance do
   begin
-    Left:=3;Top:=40;Width:=300;Height:=150;   // maxi=580
+    Left:=3;Top:=40;Width:=300;Height:=160;   // maxi=580
     caption:='Jeu de paramètres avancés';
     name:='GroupBoxAvance';
     parent:=TabAvance;
@@ -6501,6 +6746,27 @@ begin
     parent:=GroupBoxAvance;
     hint:='Si 1, envoie un caractère chaque minute à la centrale '+#13+
           'pour éviter sa déconnexion (uniquement en Ethernet)';
+    ShowHint:=true;
+  end;
+
+  LabelTempoTC:=TLabel.Create(FormConfig.TabAvance);
+  with LabelTempoTC do
+  begin
+    Left:=10;Top:=130;Width:=170;Height:=12;
+    caption:='Facteur de temporisation de télécommande CDM';
+    name:='LabelTempoTC';
+    parent:=GroupBoxAvance;
+  end;
+  EditTempoTC:=TEdit.Create(TabAvance);
+  with EditTempoTC do
+  begin
+    Left:=x;Top:=130;Width:=30;Height:=15;
+    name:='EditTempoTC';
+    text:='';
+    parent:=GroupBoxAvance;
+    s:='Facteur multiplicateur de 1 à 10 pour la temporisation'+#13+
+       'de la télécommande du démarrage de CDM';
+    hint:=s;
     ShowHint:=true;
   end;
 
@@ -8602,7 +8868,13 @@ begin
   Tablo_actionneur[maxtablo_act].NomAction:='ACTION'+intToSTR(maxtablo_act);
 
   SetLength(Tablo_actionneur[maxtablo_act].TabloOp,2);
-
+  SetLength(Tablo_actionneur[maxtablo_act].TabloCond,2);
+  Tablo_actionneur[maxtablo_act].NbCond:=1;
+  Tablo_actionneur[maxtablo_act].NbOperations:=0;
+  
+  Tablo_actionneur[maxtablo_act].TabloCond[1].numcondition:=CondVrai;
+  Tablo_actionneur[maxtablo_act].TabloOP[1].numoperation:=0;
+  
   s:=encode_actions(MaxTablo_act);
   with formconfig.listBoxActions do
   begin
@@ -8935,6 +9207,8 @@ begin
 
   config_modifie:=true;
   FormConfig.ListBoxActions.Clear;
+  FormConfig.ListBoxOperations.clear;
+  formConfig.RichEditInfo.Clear;
 
   // réafficher la liste
   for i:=1 to maxTablo_act do
@@ -9342,6 +9616,27 @@ begin
   nombre_adresses_signal:=nc;
 end;
 
+//vérifie si il n'y a pas de doublon dans l'adresse des trains
+function verif_trains : boolean;
+var i,j,adr : integer;
+    nom : string;
+begin
+  result:=true;
+  for i:=1 to nTrains do
+  begin
+    adr:=trains[i].adresse;
+    nom:=trains[i].nom_train;
+    for j:=i+1 to ntrains do
+    begin
+      if trains[j].Adresse=adr then Affiche('Les trains '+intToSTR(i)+' et '+intToSTR(j)+' ont la même adresse : '+intToSTR(adr),clred);
+      if trains[j].nom_train=nom then Affiche('Les trains '+intToSTR(i)+' et '+intToSTR(j)+' ont le même nom : '+nom,clred);
+
+      result:=false;
+
+    end;
+  end;
+end;
+
 
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
@@ -9371,7 +9666,7 @@ begin
     repeat
       detect:=BrancheN[i][j].Adresse;
 
-      if detect>NbMaxDet then
+      if (detect>NbMaxDet) and (detect<10000) then
       begin
         Affiche('Erreur 1: adresse détecteur trop grand: '+intToSTR(detect),clred);
         ok:=false;
@@ -10203,6 +10498,9 @@ begin
         end;
     end;
   end;
+
+  // 10 trains
+  if not(verif_trains) then ok:=false;
 
   // 11 Divers
   i:=pos(':',portcom);j:=pos(',',portcom);
@@ -11197,7 +11495,7 @@ begin
      // détecteur
      if erreur=0 then
      begin
-       if detect>NbMaxDet then
+       if (detect>NbMaxDet) and (detect<10000) then
        begin
          Affiche('Erreur 20 ligne '+s+' : adresse détecteur trop grand: '+intToSTR(detect),clred);
          detect:=NbMaxDet;
@@ -11208,7 +11506,13 @@ begin
        detecteur[detect].NumBranche:=i;    // detecteur[] est indexé par le détecteur
        detecteur[detect].IndexBranche:=j;
 
-       if detect=0 then begin BrancheN[i,j].btype:=buttoir;end; // buttoir
+       if (detect=0) or (detect>10000) then
+       begin
+         inc(Nbuttoirs);
+         BrancheN[i,j].btype:=buttoir;
+// non         BrancheN[i,j].adresse:=10000+nButtoirs;
+       end;
+
        // vérifier si le détecteur est déja stocké
        bd:=0;
        repeat
@@ -11903,7 +12207,43 @@ begin
   if CheckEnvAigDccpp.checked then EnvAigDccpp:=1 else EnvAigDccpp:=0;
 end;
 
+// affiche l'icone du train index dans le canvas
+procedure Maj_icone_train(Icanvas : Tcanvas;index :integer);
+var h,l,HautDest,LargDest,y : integer;
+    rd : double;
+begin
+  with formConfig do
+    begin
+      // source
+      l:=Trains[index].Icone.width;
+      h:=Trains[index].Icone.Height;
+      if h=0 then exit;
+      rd:=l/h;
+      //Affiche(FloatToSTR(rd),clred);
+
+      // destination : la hauteur est fixée
+      HautDest:=round(ImageTrain.Height);
+      LargDest:=round(Hautdest*rd);
+
+      // si la largeur > que l'image, on fixe la largeur
+      if LargDest>ImageTrain.Width then
+      begin
+        LargDest:=ImageTrain.Width;
+        HautDest:=round(LargDest/rd);
+      end;
+
+      y:=ImageTrain.Height-HautDest;
+
+      TransparentBlt(Icanvas.Handle,0,y,largDest,hautDest,
+                     Trains[index].Icone.canvas.Handle,0,0,l,h,clWhite);
+
+    end;
+  formconfig.ImageTrain.Repaint;
+end;
+
 procedure clicListeTrains(index : integer);
+var s : string;
+
 begin
   if index<1 then exit;
   if Trains[index].nom_train='' then exit;
@@ -11912,8 +12252,16 @@ begin
     editNomTrain.text:=Trains[index].nom_train;
     editAdresseTrain.Text:=intToSTR(trains[index].adresse);
     editVitesseMaxi.Text:=intToSTR(trains[index].vitmax);
+    LabeledEditTempoD.Text:=intToSTR(trains[index].TempsDemarreSig);
     editVitRalenti.Text:=IntToSTR(trains[index].Vitralenti);
     editvitnom.text:=IntToSTR(trains[index].VitNominale);
+    CheckBoxSens.Checked:=trains[index].inverse;
+    s:=trains[index].NomIcone;
+    editIcone.Text:=s;
+
+    ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
+      
+    if s<>'' then Maj_icone_train(formconfig.ImageTrain.Canvas,index);
   end;
 end;
 
@@ -13962,7 +14310,7 @@ begin
   clicListe:=false;
   Edit_HG.Visible:=false;
   labelHG.Visible:=false;
-  EditP1.Visible:=false;
+  EditP1.Visible:=false;          
   EditP2.Visible:=false;
   EditP3.Visible:=false;
   EditP4.Visible:=false;
@@ -13971,7 +14319,7 @@ begin
   EditDevieS2.Visible:=false;
   Label18.Visible:=false;
   Label20.Visible:=false;
-  if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
+ // if AvecRoulage=1 then LabelInfVitesse.Visible:=false else LabelInfVitesse.Visible:=true;
 
   EditP1.ReadOnly:=false;
   EditP2.ReadOnly:=false;
@@ -13994,6 +14342,7 @@ begin
   EditFiltrDet.text:=intToSTR(filtrageDet0);
   EditnCantonsRes.Text:=intToSTR(nCantonsRes);
   EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
+  EditTempoTC.Text:=intToSTR(TempoTC);
   EditRep.Text:=RepConfig;
 
   {$IF CompilerVersion >= 28.0}
@@ -14263,8 +14612,68 @@ procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
   s:=operations[op].nom;
   if not(Tablo_Actionneur[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+' [dévalidé]';
   listBoxOperations.Items[clicaction]:=Format('%d%s', [icone, s]);
+  ListBoxActions.items[ligneClicAct]:=encode_actions(ligneclicAct+1);
 end;
 
+
+procedure TFormConfig.SpeedButtonOuvreClick(Sender: TObject);
+var s,repini :string;
+    i : integer;
+begin
+  if ligneclicTrain<0 then exit;
+  i:=ligneclicTrain+1;
+  s:=rep_icones;
+  repIni:=GetCurrentDir;           // si le repertoire icones n'existe pas, il passe au supérieur
+  OpenDialogSon.InitialDir:=s;     // ça le change de rep !!
+  OpenDialogSon.DefaultExt:='bmp';
+  OpenDialogSon.Title:='Ouvrir un fichier BMP';
+  OpenDialogSon.Filter:='Fichiers BMP (*.BMP)|*.bmp|Tous fichiers (*.*)|*.*';
+  if openDialogSon.execute then
+  begin
+    s:=openDialogSon.filename;
+    trains[i].NomIcone:=ExtractFileName(s);
+    s:=trains[i].NomIcone;
+    EditIcone.Text:=s;
+    trains[i].icone.Picture.LoadFromFile(s);
+    ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
+    Maj_icone_train(formconfig.ImageTrain.Canvas,i);
+    //formconfig.ImageTrain.Picture.assign(trains[i].icone.Picture);
+  end;
+  chDir(RepIni);
+end;
+
+procedure TFormConfig.EditIconeChange(Sender: TObject);
+begin
+  if ligneclicTrain<0 then exit;
+  trains[ligneclicTrain+1].NomIcone:=EditIcone.Text;
+end;
+
+procedure TFormConfig.LabeledEditTempoDChange(Sender: TObject);
+var erreur,i :integer;
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt change temps démarre train',clyellow);
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
+  val(LabeledEditTempoD.text,i,erreur);
+  if i<0 then exit;
+  trains[ligneclicTrain+1].TempsDemarreSig:=i;
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
+end;
+
+procedure TFormConfig.CheckBoxSensClick(Sender: TObject);
+begin
+  if clicliste then exit;
+  if affevt then affiche('Evt inverse train',clyellow);
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
+
+  trains[ligneclicTrain+1].inverse:=CheckBoxSens.Checked;
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
+end;
+
+
+
 end.
 
 

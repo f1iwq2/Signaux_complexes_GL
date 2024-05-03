@@ -14,7 +14,7 @@ uses
   Unit_Pilote_aig in 'Unit_Pilote_aig.pas' {FormAig},
   UnitConfigCellTCO in 'UnitConfigCellTCO.pas' {FormConfCellTCO},
   UnitCDF in 'UnitCDF.pas' {FormCDF},
-  Unitplace in 'Unitplace.pas' {FormPlace},
+  Unitplace in 'Unitplace.pas' {FormRoulage},
   UnitPareFeu in 'UnitPareFeu.pas',
   UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
   Importation in 'Importation.pas' {FormImportation},
@@ -22,7 +22,8 @@ uses
   UnitHorloge in 'UnitHorloge.pas' {FormHorloge},
   UnitFicheHoraire in 'UnitFicheHoraire.pas' {FormFicheHoraire},
   UnitClock in 'UnitClock.pas' {FormClock},
-  UnitModifAction in 'UnitModifAction.pas' {FormModifAction};
+  UnitModifAction in 'UnitModifAction.pas' {FormModifAction},
+  selection_train in 'selection_train.pas' {FormSelTrain};
 
 {$R *.res}
 
@@ -40,7 +41,7 @@ begin
   Application.CreateForm(TFormAig, FormAig);
   Application.CreateForm(TFormConfCellTCO, FormConfCellTCO);
   Application.CreateForm(TFormCDF, FormCDF);
-  Application.CreateForm(TFormPlace, FormPlace);
+  Application.CreateForm(TFormRoulage, FormRoulage);
   Application.CreateForm(TFormAnalyseCDM, FormAnalyseCDM);
   Application.CreateForm(TFormImportation, FormImportation);
   Application.CreateForm(TFormFicheHoraire, FormFicheHoraire);
@@ -48,6 +49,7 @@ begin
   Application.CreateForm(TFormClock, FormClock);
   Application.CreateForm(TFormHorloge, FormHorloge);
   Application.CreateForm(TFormModifAction, FormModifAction);
+  Application.CreateForm(TFormSelTrain, FormSelTrain);
   fin_preliminaire;
   Application.Run;
 end.
