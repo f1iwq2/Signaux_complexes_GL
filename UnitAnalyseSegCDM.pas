@@ -78,7 +78,7 @@ type
     { Déclarations publiques }
   end;
 
-  // tableau des détecteurs sur un segment
+  // tableau des détecteurs ou actionneurs sur un segment
   TdetSeg= array[1..10] of record
             index,periph : integer;
            end;
@@ -180,6 +180,8 @@ procedure Aff_train(adr: integer;train:string;x1,y1,x2,y2 :integer);
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
                 rayon: Integer; StartDegres, StopDegres: Double);
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
+function explore_port_det(seg,port : integer) : integer;
+function index_segment_act(Adresse : integer;var TabloDetSeg : TdetSeg;var nombre : integer) : boolean;
 
 implementation
 
@@ -2117,8 +2119,7 @@ begin
     exit;
   end;
 
-  
-  // le port a il t-il des périphériques portant des détecteurs
+  // le port demandé a t-il déja des périphériques portant des détecteurs
   NombrePeriph:=segment[idSeg].nperiph;
   if NombrePeriph<>0 then
   begin
@@ -2128,9 +2129,12 @@ begin
       begin
         if segment[idSeg].periph[i].OnDevicePort=Idport then  // le port du périphérique correspond au port exploré
         begin
-          result:=segment[idSeg].periph[i].adresse;
-          c:='Z';
-          exit;
+          if segment[idSeg].periph[i].adresse<>0 then
+          begin
+            result:=segment[idSeg].periph[i].adresse;
+            c:='Z';
+            exit;
+          end;
         end;
       end;
       inc(i);
@@ -2153,7 +2157,7 @@ begin
   // remonter au segment pour voir si c'est un aiguillage
   typeP:=segment[idSeg].typ;
 
-  if typeP='dbl_slip_switch' then
+  if typeP='dbl_slip_switch' then  // tjd
   begin
     portlocal:=segment[idSeg].port[idport].local;
     case portlocal of
@@ -2282,6 +2286,190 @@ begin
   explore_Port:=0;
 
 end;
+
+// fonction récursive
+// explore le port,segment jusqu'à trouver une adresse de détecteur
+// un détecteur peut être sur un port de l'aiguillage
+// renvoie l'adresse de l'aiguillage ou du détecteur et dans C le port (P D S ou Z pour un détecteur)
+function explore_port_det(seg,port : integer) : integer;
+var i,j,IdSeg,IdPort,NombrePeriph,port1,port2,portSuivant,segSuivant,portLocal,
+    xp,yp,xd,yd,detect,nb_det : integer;
+    typeP,serr : string;
+    sdetect : Tdetect_cdm;
+    trouveDet : boolean;
+begin
+  if seg=0 then
+  begin
+    explore_port_det:=0;
+    exit;  // laisser sinon mauvais transfert de variable dans la pile dans l'itération suivante!!
+  end;
+  if not(trouve_IndexSegPort(seg,port,idSeg,IdPort)) then
+  begin
+    serr:='Erreur 1 pas trouvé le port '+intToSTR(port)+' dans la liste des segments';
+    Affiche(serr,clred);
+    AfficheDebug(serr,clred);
+    explore_port_det:=0;
+    exit;
+  end;
+
+  // le port a t-il des périphériques portant des détecteurs
+  NombrePeriph:=segment[idSeg].nperiph;
+  if NombrePeriph<>0 then
+  begin
+    i:=0;
+    repeat
+      if segment[idSeg].periph[i].typ='detector' then
+      begin
+        if segment[idSeg].periph[i].OnDevicePort=Idport then  // le port du périphérique correspond au port exploré
+        begin
+          if segment[idSeg].periph[i].adresse<>0 then
+          begin
+            result:=segment[idSeg].periph[i].adresse;
+            exit;
+          end;
+        end;
+      end;
+      inc(i);
+    until (i>NombrePeriph-1) or (trouveDet);
+  end;
+
+  // trouver le segment contigu connecté au port de connexion
+  segSuivant:=segment[idseg].port[idport].ConnecteAuSeg;
+  portSuivant:=segment[idseg].port[idport].ConnecteAuPort;
+  if not(trouve_IndexSegPort(segSuivant,portSuivant,idSeg,IdPort)) then
+  begin
+    serr:='Erreur 2 pas trouvé le port '+intToSTR(port)+' dans la liste des segments';
+    Affiche(serr,clred);
+    AfficheDebug(serr,clred);
+    explore_port_det:=0;
+    exit;
+  end;
+
+  // remonter au segment pour voir si c'est un aiguillage
+  typeP:=segment[idSeg].typ;
+
+  if typeP='dbl_slip_switch' then
+  begin
+    portlocal:=segment[idSeg].port[idport].local;
+
+    // tjd 2 ou 4 états
+    if (portlocal=0) or (portlocal=1) then
+    begin
+      explore_port_det(SegSuivant,segment[idseg].port[2].numero);
+      explore_port_det(SegSuivant,segment[idseg].port[3].numero);
+    end;
+    if (portlocal=2) or (portlocal=3) then
+    begin
+      explore_port_det(SegSuivant,segment[idseg].port[0].numero);
+      explore_port_det(SegSuivant,segment[idseg].port[1].numero);
+    end;
+    exit;
+  end;
+
+  if segment_aig(typeP) then // est-ce un aig
+  //------------- aiguillage
+  begin
+    portlocal:=segment[idSeg].port[idport].local;
+    case portlocal of
+    // port 0 : pris en pointe, explorer les deux autres ports
+    0 : begin
+          explore_port_det(SegSuivant,segment[idseg].port[1].numero);  // explore droit
+          explore_port_det(SegSuivant,segment[idseg].port[2].numero);  // explore dévié
+        end;
+    1,2 : explore_port_det(SegSuivant,segment[idseg].port[0].numero);
+    end;
+    exit;
+  end;
+
+  // --- croisement
+  if typeP='crossing' then
+  begin
+    portlocal:=segment[idSeg].port[idport].local;
+    case portLocal of
+    0 : explore_port_det(SegSuivant,segment[idseg].port[2].numero);
+    1 : explore_port_det(SegSuivant,segment[idseg].port[3].numero);
+    2 : explore_port_det(SegSuivant,segment[idseg].port[0].numero);
+    3 : explore_port_det(SegSuivant,segment[idseg].port[1].numero);
+    end;
+    exit;
+  end;
+
+  // trouver le détecteur le plus proche.
+  NombrePeriph:=segment[idSeg].nperiph;
+  j:=0;detect:=0;nb_det:=0;
+  if NombrePeriph<>0 then
+  begin
+    raz_detect(sDetect);                      // on peut rencontrer des détecteurs non appairés: ex ;  514   522   514   522
+    repeat
+      if segment[idSeg].periph[j].typ='detector' then
+      begin
+        detect:=segment[idSeg].periph[j].adresse;
+        if detect<>0 then
+        begin
+          //if NivDebug=3 then Affichedebug('Détecteur '+inttoStr(detect),clyellow);
+          // incrémenter le compteur du détecteur rencontré
+          inc(nb_det);
+          Affiche('trouvé détecteur '+intToSTR(detect),clYellow);
+          sDetect[nb_det].adresse:=detect ;
+          // coordonnées du port
+          xp:=segment[idSeg].Port[idPort].x;
+          yp:=segment[idSeg].Port[idPort].y;
+          // coordonnées du détecteur
+          xd:=segment[idSeg].periph[j].x;
+          yd:=segment[idSeg].periph[j].y;
+          // calculer la distance du détecteur au port
+          sDetect[nb_det].distance:=round( sqrt( sqr(xp-xd)+sqr(yp-yd) ));
+        end;
+      end;
+      inc(j);
+    until (j>NombrePeriph-1) ;
+    // trier les détecteurs du segment dans l'ordre de la distance de la plus
+    // courte à la plus grande au port
+    if nb_det<>0 then
+    begin
+      trier(Sdetect,nb_det);
+
+      // on prend le premier!!
+      explore_port_det:=sDetect[1].adresse;
+      exit;
+    end;
+  end;
+
+  // trouver l'autre port du segment idseg
+  // sur 2 ports
+  NombrePeriph:=segment[idSeg].nport;
+  if NombrePeriph=0 then
+  begin
+    explore_port_det:=0;
+    exit;
+  end;
+  port1:=segment[idSeg].port[0].numero;
+  port2:=segment[idSeg].port[1].numero;
+  i:=0;
+  if (port1<>portSuivant) and (segment[idSeg].port[0].connecte) then i:=explore_port_det(SegSuivant,port1);
+  if (port2<>portSuivant) and (segment[idSeg].port[1].connecte) then i:=explore_port_det(SegSuivant,port2);
+
+  explore_port_det:=i;
+  exit;
+
+  typeP:=segment[idSeg].typ;
+  // explorer l'autre port
+  if (typeP='straight') or (typeP='arc') or (typeP='curve') or (typeP='pre_curve') then
+  begin
+    port1:=segment[idSeg].port[0].numero;
+    port2:=segment[idSeg].port[1].numero;
+    if port1<>portSuivant then i:=explore_port_det(SegSuivant,port1);
+    if port2<>portSuivant then i:=explore_port_det(SegSuivant,port2);
+    explore_port_det:=i;
+    exit;
+  end;
+
+  Affiche('Segment '+typeP+' non trouvé',clred);
+
+  explore_Port_det:=0;
+end;
+
+
 
 // stocke les aiguillages et les croisement dans le tableau Aig_CDM
 procedure remplit_Aig_cdm;
@@ -2974,17 +3162,6 @@ begin
                 if debugBranche then Affichedebug('Détecteur '+intToSTR(j)+'/'+intToSTR(nb_det)+': non pris en compte : '+intToSTR(detecteur),clOrange);
               end;
 
-             { ss:=dernier_champ(sbranche);
-              k:=0;
-              val(ss,k,erreur);
-              if ss<>'' then if not(ss[1] in['0'..'9']) then k:=0;
-              // vérifier si le détecteur est déja en fin de branche et que si on est au 2eme élément du tableau, on ne doit pas rencontrer le meme détecteur
-              if (k<>detecteur) then
-              begin
-                  sbranche:=sbranche+','+intToSTR(detecteur);
-                  if debugBranche then Affichedebug('Détecteur '+intToSTR(j)+'/'+intToSTR(nb_det)+': pris en compte : '+intToSTR(detecteur),clyellow);
-              end; }
-
               inc(indexElBranche);
             end;
           end;
@@ -3243,7 +3420,7 @@ begin
   until trouve or (i>MaxAiguillage);
 
   // puis créer les branches depuis les positions déviées ---------------------
-  if debugBranche then AfficheDebug('Etape 3.2 création des branches de dévié d''aiguillage',clwhite);
+  if debugBranche then AfficheDebug('Etape 3.2 création des branches depuis dévié d''aiguillage',clwhite);
   i:=1;
   repeat
     c:=aiguillage[i].AdevieB;
@@ -3271,6 +3448,7 @@ begin
     trouve:=false;
   until trouve or (i>MaxAiguillage);
 
+  
   if debugBranche then AfficheDebug('Etape 3.3 Liste de détecteurs absents des branches pour constituer les branches manquantes',clwhite);
   // regarder la liste des détecteurs de CDM qui sont absents des branches--------------------
   for i:=1 to Ndet_cdm do
@@ -3301,6 +3479,7 @@ begin
       //if debugBranche then AfficheDebug(sbranche,clWhite);
     end;
   end;
+
 
   // recopier le tampon des branches dans le richedit de l'onglet branches de la config
   with formconfig do
@@ -4612,9 +4791,60 @@ begin
   SelectionAffichee:=false;}
 end;
 
-// trouve les index du segment qui contiennent le détecteur Adresse
+
+// trouve les index du segment qui contiennent l'actionneur Adresse
 // renvoie dans index les index, et dans periph les numéros de périphériques dans lesquels ils se trouvent
-function index_segment_det(Adresse : integer;var TabloDetSeg : TdetSeg; nombre : integer) : boolean;
+function index_segment_act(Adresse : integer;var TabloDetSeg : TdetSeg;var nombre : integer) : boolean;
+var i,n,ip,itablo : integer;
+begin
+  //trouver les deux segments de l'actionneur
+  if adresse=0 then
+  begin
+    nombre:=0;
+    result:=false;
+    exit;
+  end;
+  for i:=1 to 10 do
+  begin
+    TabloDetSeg[i].index:=-1;
+    TabloDetSeg[i].periph:=-1;
+  end;
+
+  i:=0;
+  itablo:=0;
+  repeat
+    n:=segment[i].nperiph;
+    if n<>0 then
+    begin
+      for ip:=0 to n-1 do
+      begin
+        if segment[i].periph[ip].typ='actuator' then
+        begin
+          if segment[i].periph[ip].adresse=adresse then
+          begin
+            inc(itablo);
+            if itablo>10 then
+            begin
+              AfficheDebug('Erreur 857 : Nbre périphériques>10 Segment '+intToSTR(segment[i].numero),clred);
+              exit;
+            end;
+            TabloDetSeg[itablo].index:=i;
+            TabloDetSeg[itablo].periph:=ip;
+          end;
+        end;
+      end;
+    end;
+    inc(i);
+  until (i>nseg-1);
+  nombre:=itablo;
+  result:=itablo>0;
+end;
+
+
+// trouve les index du segment qui contiennent le détecteur Adresse
+// renvoie l'index du segment dans TabloDetSeg[].index et l'index du périphérique dans TabloDetSeg[].periph
+// leur nombre dans Nombre
+function index_segment_det(Adresse : integer;var TabloDetSeg : TdetSeg;var nombre : integer) : boolean;
 var i,n,ip,itablo : integer;
 begin
   //trouver les deux segments du détecteurs

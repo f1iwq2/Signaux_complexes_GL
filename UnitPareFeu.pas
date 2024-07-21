@@ -38,13 +38,13 @@ begin
   // Crée l'objet FwPolicy2
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;
-  CurrentProfiles:=fwPolicy2.CurrentProfileTypes;
-  //CurrentProfiles:=net_fw_profile2_private or net_fw_profile2_public;
+  // CurrentProfiles:=fwPolicy2.CurrentProfileTypes;
+  CurrentProfiles:=net_fw_profile2_private or net_fw_profile2_public; //autorise les profils privés et publics
 
   //Crée l'objet de la règle.
   NewRule:=CreateOleObject('HNetCfg.FWRule');
 
-  NewRule.Name:=sp;           
+  NewRule.Name:=sp;
   NewRule.Description:='Autorise le socket de/vers '+sp;
 
   NewRule.Applicationname:=fichier;

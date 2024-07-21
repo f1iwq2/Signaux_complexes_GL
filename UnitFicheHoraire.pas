@@ -12,6 +12,7 @@ type
     StringGridFO: TStringGrid;
     Label1: TLabel;
     LabelErreur: TLabel;
+    Label2: TLabel;
     procedure ButtonOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -200,7 +201,6 @@ begin
             stringGridFO.Cells[col,ligne]:=ss;
             if champ<>0 then delete(s,1,champ);
           end;
-
 
           inc(col);
         until (col>stringGridFO.ColCount-1) or (pos(',',s)=0);

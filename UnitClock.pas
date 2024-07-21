@@ -7,7 +7,7 @@ unit UnitClock;
 
   DrawArrow dessine les aiguilles dans ABitmap:
    - le crée, dessine
-   Abitmap.canvas.copyrect(
+   Abitmap.canvas.copyrect()
    - copie dans horloge : canvas.draw(0,0,ABitMap)
 
 }
@@ -155,7 +155,7 @@ end;
 
 function TClock.HourAngle( Hou, Min : word) : real;
 begin
-  HourAngle:=(Hou MOD 12) * pisur6 + (Min*pisur360);
+  HourAngle:=(Hou mod 12) * pisur6 + (Min*pisur360);
 end;
 
 procedure Tclock.TickerCall;
@@ -241,7 +241,7 @@ begin
   dec(Radius,LapStepW+2);
 end;
 
-// Dessine le fond (le tour) de l'horloge sur FbitMap
+// Dessine le fond Fbitmap (le tour) de l'horloge sur FbitMap
 procedure TClock.DrawClockBkg;
 
   // Dessine les tirets minute sur FBitMap
@@ -360,6 +360,7 @@ end;
 
 
 procedure TFormClock.FormCreate(Sender: TObject);
+var off : integer;
 begin
   // inits
 //  Affiche('FormClock create',clYellow);
@@ -377,17 +378,48 @@ begin
     clock.ClkFaceColor:=$e0e0e0;
     clock.ClkArrowColor:=clBlack;
 
+    off:=36;
+    {$IF CompilerVersion >= 28.0}
+    off:=40;
+    {$IFEND}
+
     ImageList24x24.GetBitmap(0,BitBtnMarHor.Glyph);
-    BitBtnMarHor.Height:=26;
-    BitBtnMarHor.Width:=26;
+    with BitBtnMarHor do
+    begin
+      Height:=26;
+      Width:=26;
+      Top:=formClock.Height-BitBtnMarHor.Height-off;
+    end;
 
     ImageList24x24.GetBitmap(1,BitBtnArrHorl.Glyph);
-    BitBtnMarHor.Height:=26;
-    BitBtnMarHor.Width:=26;
+    with BitBtnArrHorl do
+    begin
+      Height:=26;
+      Width:=26;
+      Top:=formClock.Height-BitBtnMarHor.Height-off;
+    end;
 
     ImageList24x24.GetBitmap(2,BitBtnInitHor.Glyph);
-    BitBtnMarHor.Height:=26;
-    BitBtnMarHor.Width:=26;
+    with BitBtnInitHor do
+    begin
+      Height:=26;
+      Width:=26;
+      Top:=formClock.Height-BitBtnMarHor.Height-off;
+    end;
+
+    with ButtonParametres do
+    begin
+      Height:=26;
+      Width:=26;
+      Top:=formClock.Height-BitBtnMarHor.Height-off;
+    end;
+
+    with ButtonGH do
+    begin
+      Height:=26;
+      Width:=26;
+      Top:=formClock.Height-BitBtnMarHor.Height-off;
+    end;
 
     color:=clock.ClkFaceColor;
     SecThick:=2;   MinThick:=10;

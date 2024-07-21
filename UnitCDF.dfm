@@ -221,7 +221,7 @@ object FormCDF: TFormCDF
   object Label24: TLabel
     Left = 48
     Top = 124
-    Width = 121
+    Width = 24
     Height = 13
     Caption = '1 '#224' 4'
   end

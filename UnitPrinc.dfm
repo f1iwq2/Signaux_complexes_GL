@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 54
-  Top = 186
+  Left = 81
+  Top = 253
   Width = 1148
   Height = 624
   Anchors = [akLeft, akTop, akRight]
@@ -20,8 +20,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1132
-    566)
+    1140
+    573)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1429,7 +1429,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 936
+    Left = 1040
     Top = 0
     Width = 85
     Height = 22
@@ -1445,8 +1445,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 544
-    Width = 1132
+    Top = 551
+    Width = 1140
     Height = 22
     Panels = <
       item
@@ -1472,23 +1472,12 @@ object FormPrinc: TFormPrinc
       end>
     OnDrawPanel = StatusBar1DrawPanel
   end
-  object Button1: TButton
-    Left = 1023
-    Top = 0
-    Width = 75
-    Height = 25
-    Anchors = [akTop, akRight]
-    Caption = 'Button1'
-    TabOrder = 1
-    Visible = False
-    OnClick = Button1Click
-  end
   object GrandPanel: TPanel
     Left = 8
     Top = 48
     Width = 1057
     Height = 484
-    TabOrder = 2
+    TabOrder = 1
     DesignSize = (
       1057
       484)
@@ -1518,7 +1507,6 @@ object FormPrinc: TFormPrinc
       Font.Style = []
       ParentFont = False
       PopupMenu = PopupMenuFenRich
-      ReadOnly = True
       ScrollBars = ssBoth
       TabOrder = 0
       WordWrap = False
@@ -2048,24 +2036,13 @@ object FormPrinc: TFormPrinc
       end
     end
   end
-  object Button2: TButton
-    Left = 360
-    Top = 0
-    Width = 75
-    Height = 25
-    Caption = 'Affiche routes'
-    TabOrder = 3
-    Visible = False
-    OnClick = Button2Click
-  end
   object Button3: TButton
-    Left = 496
+    Left = 504
     Top = 8
     Width = 75
     Height = 25
-    Caption = 'Button3'
-    TabOrder = 4
-    Visible = False
+    Caption = 'Route'
+    TabOrder = 2
     OnClick = Button3Click
   end
   object Timer1: TTimer
@@ -2143,6 +2120,10 @@ object FormPrinc: TFormPrinc
       object Codificationdescantons1: TMenuItem
         Caption = 'Codification des cantons'
         OnClick = Codificationdescantons1Click
+      end
+      object Codificationdestrains1: TMenuItem
+        Caption = 'Codification des trains'
+        OnClick = Codificationdestrains1Click
       end
       object N5: TMenuItem
         Caption = '-'
@@ -2432,8 +2413,19 @@ object FormPrinc: TFormPrinc
     end
     object Roulage1: TMenuItem
       Caption = 'Roulage'
+      object Routes1: TMenuItem
+        Caption = 'Fen'#234'tre des routes'
+        OnClick = Routes1Click
+      end
+      object Afficheroutespartrain1: TMenuItem
+        Caption = 'Affiche les routes par train'
+        OnClick = Afficheroutespartrain1Click
+      end
+      object N17: TMenuItem
+        Caption = '-'
+      end
       object OpRoulage: TMenuItem
-        Caption = 'Op'#233'rations de roulage'
+        Caption = 'Positionner les aiguillages en position initiale'
         OnClick = OpRoulageClick
       end
       object RazResa: TMenuItem

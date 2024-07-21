@@ -1,6 +1,5 @@
 unit verif_version;
 
-
 interface
 
 uses
@@ -26,7 +25,7 @@ var
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
-Const  VersionSC ='8.8';  // sert à la comparaison de la version publiée
+Const  VersionSC ='9.0';  // sert à la comparaison de la version publiée
        SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
        // pour unzip
        SHCONTCH_NOPROGRESSBOX = 4;
@@ -171,7 +170,7 @@ begin
   AssignFile(f,chemin_dest+'log-install.txt');
   Rewrite(f);
 
-  log('Mise à jour de signaux complexes V'+version+' le '+DateToStr(date)+' à '+TimeToStr(Time)+' ',clYellow);
+  log('Mise à jour de signaux complexes V'+versionSC+' le '+DateToStr(date)+' à '+TimeToStr(Time)+' ',clYellow);
   log('Téléchargement réussi, décompression',clyellow);
   formVersion.close;
 
@@ -191,11 +190,12 @@ begin
   close(f);
   Affiche('Installation de la nouvelle version',clyellow);
   Sleep(2000);
-  i:=ShellExecute(Formprinc.Handle,'open',
-                    Pchar('installeur.exe'),
-                    Pchar(''),  // paramètre
-                    PChar('')  // répertoire
-                    ,SW_SHOWNORMAL);
+  i:=ShellExecute(Formprinc.Handle,pchar('runas'),        // mode admin
+                  Pchar('installeur.exe'),
+                  Pchar(''),  // paramètre
+                  PChar(''),  // répertoire
+                  SW_SHOWNORMAL);
+
   if i>32 then
   begin
     Application.Terminate;
@@ -216,7 +216,7 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : s
     V_utile,V_publie : real;
     SV_publie : char;
     taille : longint;
-    comm : array[1..10] of string;
+    comm : array[1..20] of string;
 
     function supprime_anti(s : string) : string;
     var i : integer;
@@ -276,8 +276,18 @@ begin
   Ncomm:=0;
   if DownloadURL_NOCache(Url,localFile,taille) then
   begin
+    if not(FileExists(localfile)) then
+    begin
+      Affiche('Erreur fichier dépot non écrit. Vérifiez les droits du répertoire ',clred);
+      Affiche(GetCurrentDir,clred);
+      Affiche('Voir la notice page 9 : Refus de modification des fichiers du dossier par Windows',clred);
+      result:=0;
+      exit;
+    end;
+
     AssignFile(fichier,LocalFile);
     reset(fichier);
+
     while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
     begin
       readln(fichier,s);
@@ -317,7 +327,7 @@ begin
       begin
         //description:=utf8Decode(description);
         i:=1 ; j:=1;
-        // couper en chaînes
+        // couper en chaînes et mettre dans comm[]
         repeat
           j:=pos('\r',description);
           if j<>0 then
@@ -332,7 +342,7 @@ begin
           begin
             delete(description,j,2);
           end;
-        until j=0;
+        until (j=0) or (i>=20);
         //
         ncomm:=i;
         comm[i]:=supprime_anti(description);
@@ -381,7 +391,7 @@ begin
         FormVersion.Top:=10;
         FormVersion.Left:=10;
         FormVersion.show;
-        s:='Vous utilisez la version '+version+SousVersion+' mais il existe la version '+Version_p+SV_publie;
+        s:='Vous utilisez la version '+versionSC+SousVersion+' mais il existe la version '+Version_p+SV_publie;
         if nComm>0 then
         begin
           FormVersion.Memo1.lines.Clear;

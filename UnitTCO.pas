@@ -144,7 +144,7 @@ type
     DessinerleTCO1: TMenuItem;
     ConfigurationduTCO1: TMenuItem;
     Bandeau: TMenuItem;
-    Affichage1: TMenuItem;
+    Affichage: TMenuItem;
     Mosaquehorizontale1: TMenuItem;
     Mosaqueverticale1: TMenuItem;
     N10: TMenuItem;
@@ -157,6 +157,10 @@ type
     Supprimercanton1: TMenuItem;
     N9: TMenuItem;
     Affecterlocomotiveaucanton1: TMenuItem;
+    Routes: TMenuItem;
+    AffRoutes: TMenuItem;
+    ImageDrapVert: TImage;
+    ImageDrapRouge: TImage;
     Button1: TButton;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
@@ -436,6 +440,8 @@ type
     procedure ImagePalette53EndDrag(Sender, Target: TObject; X,
       Y: Integer);
     procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure AffRoutesClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -446,6 +452,7 @@ type
 
 const
   MaxCantons=100;
+  // sens du train ou de circulation dans les cantons
   SensGauche=1;
   SensDroit=2;
   SensHaut=3;
@@ -507,14 +514,16 @@ type
            TailleFonte : integer;
            CouleurFond : Tcolor;      // couleur de fond
            // pour les signaux seulement ou action
-           PiedFeu     : integer;     // type de pied au signal : signal à gauche=1 ou à droite=2 de la voie OU si action: type d'action OU numerocanton
+           PiedFeu     : integer;     // type de pied au signal : signal à gauche=1 ou à droite=2 de la voie OU si action: type d'action
+           NumCanton   : integer;     // numéro de canton, pas son index
            x,y         : integer;     // coordonnées pixels relativés du coin sup gauche du signal pour le décalage par rapport au 0,0 cellule
            Xundo,Yundo : integer;     // coordonnées x,y de la cellule pour le undo
            FeuOriente  : integer;     // orientation du signal : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit  / OU si action : numéro du TCO etc / OU Nbre éléments du canton
            liaisons    : integer;     // quadrants des liaisons
            epaisseurs  : integer;     // épaisseur des liaisons : si le bit n est à 1 : liaison fine
-           pont        : integer;     // définition du pont : si le bit n est à 1 : pont (bits symétriques) OU si canton: alignement train
-           buttoir     : integer;     // définition des buttoirs : si le bit n°n est à 1 : buttoir
+           SensCirc    : integer;     // sens de la circulation des trains dans canton à la lecture du tco, copié dans canton au renseignement du canton tous sens=0  SensGauche=1  SensDroit=2  SensHaut=3  SensBas=4
+           pont        : integer;     // définition du pont : si le bit n est à 1 : pont (bits symétriques) OU si canton: alignement train (0=centré 1=Gauche/haut 2=droite/bas)
+           buttoir     : integer;     // définition des buttoirs : si le bit n°n est à 1 : buttoir ; ou encadre cellule
            sortie      : integer;     // si action sortie : état
          end;
 
@@ -531,7 +540,7 @@ var
   TamponAffecte,TCO_modifie,clicsouris,prise_N,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,prise_droit,prise_haut,deja_calcule,
   prise_bas,prise_gauche,prise_NE,prise_NO,prise_SE,prise_SO,ligneAffiche,colonneAffiche,
-  TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet,SelecBouge : boolean;
+  TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet,SelecBouge,NB : boolean;
 
   HtImageTCO,LargImageTCO,XminiSel,YminiSel,Temposouris,ligne_supprime,
   XmaxiSel,YmaxiSel,AncienXMiniSel,AncienXMaxiSel,AncienYMiniSel,AncienYMaxiSel,
@@ -540,8 +549,9 @@ var
   Epaisseur,oldX,oldY,offsetSourisY,offsetSourisX,AvecVerifIconesTCO,indexTrace,IndexTCOCourant,
   ancienTraceX,ancienTraceY,rangUndo,NbreTCO,IndexTCOCreate,deltaXrect,deltaYrect,
   CellX,CellY,AncienXclic,AncienYclic,xCadre1,yCadre1,xCadre2,yCadre2,colonne_supprime,
-  couleurAction,couleurCanton,Ncantons,Xcanton,Ycanton,IdCantonSelect,AxSC,AySC,Drag,
-  Ldrag,Hdrag,IdCantonDragOrg : integer;
+  couleurAction,couleurCanton,Ncantons,Xcanton,Ycanton,IdCantonSelect,IdCantonClic,AxSC,AySC,Drag,
+  Ldrag,Hdrag,IdCantonDragOrg,sens,idcantonRoute,cantonOrg,cantonDest,AncienIdCantonSelect,
+  indexTrainFR : integer;
 
   Tel1,tel2 : Tequipement;
 
@@ -552,27 +562,33 @@ var
   //TCO[i,x,y].PiedFeu=numéro
   canton : array[1..MaxCantons] of record
              numero        : integer;  // numéro du canton
-             Sens          : integer;  // sens de la loco 1=gauche 2=droit 3=haut 4=bas
+             SensLoco      : integer;  // sens de la loco 1=gauche 2=droit 3=haut 4=bas
              Ntco          : integer;  // numéro du tco
              Nelements     : integer;  // nombre de cellules du canton
              nom           : string;   // nom du canton
              x,y           : integer;  // début du canton dans le TCO
+             // éléments contigus
              el1,el2       : integer;  // éléments contigus au canton el1=gauche/haut el2=droit/bas
-             typ1,typ2     : tEquipement;  // type des éléments contigus au canton
+             typ1,typ2     : tEquipement;  // type des éléments contigus au canton: un des deux doit être un détecteur
              det1,det2     : integer;  // détecteurs contigus, changement en fonction des aiguillages
-             Sens1,Sens2   : integer;  // indique le sens de l'élément par rapport au canton
+             SensEl1,SensEl2 : integer;// indique le sens de l'élément par rapport au canton
+             SensCirc      : integer;  // sens de la circulation des trains dans canton  tous sens=0  SensGauche=1  SensDroit=2  SensHaut=3  SensBas=4
+             //
              signal        : integer;  // adresse du signal associé (le canton est avant le signal)
              NomTrain      : string;   // nom du train sur le canton
              indexTrain    : integer;  // index du train sur le canton
-             adresseTrain  : integer;  // adresse du train sur le canton                                  
-             Gd            : tRect;    // rectangle de sélection
-             rO,rE,rS,rN   : tRect;    // poignées
+             adresseTrain  : integer;  // adresse du train sur le canton
+             Gd            : tRect;    // rectangle de sélection (contour du canton)
+             rO,rE,rS,rN   : tRect;    // rectagles des 4 poignées
              Xicone,yIcone : integer;  // début de l'image du train (coord absolues)
              Licone,HIcone : integer;  // largeur, hauteur icone du train
-             bouton        : integer;  // état du bouton de commande du canton: 0=jaune 1=vert  2=bleu
+             bouton        : integer;  // état du bouton de commande du canton: 0=jaune 1=vert  2=bleu  3=drapeau vert 4=drapeau rouge
              select        : boolean;  // si le canton a été sélectionné par clic souris
              horizontal    : boolean;  // si le canton est horizontal ou verticel
              maxi,mini     : integer;  // valeurs mini et maxi des coordonnées à ne pas dépasser lors d'un tirage des poignées
+             NumcantonOrg,NumCantonDest
+                           : integer;  // canton origine et destination d'une route
+             AdrTrainRoute : integer;  // adresse du train qui a une route, sur le canton départ ou arrivée
            end;
 
   // structure de tous les tco
@@ -626,11 +642,15 @@ var
   NomFichierTCO : array[1..10] of string;
   AvecGrille,SelectionAffichee,forminit,modeTrace,entoure : array[1..10] of boolean;
 
+  {$IF CompilerVersion >= 28.0}
+  BallonHint : TballoonHint;
+  {$IFEND}
+
 
 procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY : integer);
 procedure calcul_cellules(indextco : integer);
 procedure sauve_fichiers_tco;
-procedure zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer);
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
 procedure _entoure_cell_clic(indexTCO: integer);
 procedure Affiche_TCO(indexTCO : integer) ;
 procedure affiche_cellule(indexTCO,x,y : integer);
@@ -663,17 +683,20 @@ procedure encadre_colonne;
 function IsCanton(i : integer) : boolean;
 function index_canton(indexTCO,x,y : integer) : integer;
 function IsCantonH(i : integer) : boolean; overload;
+function IsCantonH(indexTCO,x,y : integer) : boolean;  overload;
 function IsCantonV(i : integer) : boolean; overload;
-procedure dessin_canton(indexTCO : integer;Canvas : Tcanvas;x,y,mode,bouton: integer); overload;
-procedure dessin_canton(IdCanton : integer;mode,bouton: integer) ; overload;
+function IsCantonV(indexTCO,x,y : integer) : boolean;  overload;
+procedure dessin_canton(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer); overload;
+procedure dessin_canton(IdCanton : integer;mode : integer) ; overload;
 procedure supprime_canton(c : integer);
 procedure renseigne_tous_cantons;
-procedure renseigne_canton(i : integer);
+procedure renseigne_canton(i : integer); overload;
 function index_canton_numero(n : integer) : integer;
 
 implementation
 
-uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO, UnitClock, selection_train , unitPlace ;
+uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO, UnitClock, selection_train ,
+  UnitRoute, UnitRouteTrains, UnitInfo;
 
 {$R *.dfm}
 
@@ -689,13 +712,11 @@ begin
   end;
 end;
 
-// renvoie l'index du canton en x,y
-function index_canton(IndexTCO,x,y : integer) : integer;
-var El,i : integer;
-    trouve : boolean;
+// ramener les coordonnées à la première cellule du canton
+procedure coord_canton(indexTCO : integer;var x,y : integer);
+var el : integer;
 begin
   El:=TCO[indexTCO,x,y].BImage;
-  // ramener les coordonnées à la première cellule du canton
   if (El>=Id_cantonH) and (El<=Id_cantonH+9) then
   begin
     x:=x-(el-Id_cantonH);
@@ -704,6 +725,14 @@ begin
   begin
     y:=y-(el-Id_cantonV);
   end;
+end;
+
+// renvoie l'index du canton en x,y
+function index_canton(IndexTCO,x,y : integer) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  coord_canton(indexTCO,x,y);
   i:=1;
   repeat
     trouve:=(canton[i].x=x) and (canton[i].y=y);
@@ -722,7 +751,7 @@ begin
   repeat
     trouve:=canton[i].numero=n;
     inc(i);
-  until (i=Ncantons+1) or trouve;
+  until (i>=Ncantons+1) or trouve;
   if trouve then result:=i-1;
 end;
 
@@ -1086,7 +1115,6 @@ end;
 procedure Init_rectangle_canton(IndexTCO,indexCanton : integer);
 var xp,yp : integer;
 begin
-
   with canton[indexcanton] do
   begin
     // poignée nord (haut)
@@ -1137,7 +1165,7 @@ begin
       color:=clWhite;
       width:=1;
     end;
-    Brush.Color:=clblue;
+    Brush.Color:=clFondCantonV;
 
     Rectangle(canton[indexCanton].Gd);   // Grand rectangle
     h:=canton[indexcanton].horizontal;
@@ -1176,7 +1204,6 @@ begin
 
   // calcule les limites en cas de détecteur
   n:=canton[indexCanton].Nelements;
-  //if ( (adr<>0) or (Bim<>1) ) and not(deja_calcule) then
   if ( (adr<>0)  ) and not(deja_calcule) then
   begin
     //Affiche('recalcul',clYellow);
@@ -1209,9 +1236,6 @@ begin
   AxSC:=x;AySC:=y;
 
   ok:=(Adr=0) and ( (Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
-  //ok:=( (Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
-  //if ok then affiche('O',clLime);
-  //if not(ok) then affiche('N',clred);
   if not(ok) then   // sortir car non ok
   begin
     //result:=true;
@@ -1391,20 +1415,22 @@ begin
   end;
 end;
 
-
-
 // remplit la base des cantons avec les éléments adjacents, et des détecteurs adjacents
 // Cantons uniquement TCO1
 // i : indexCanton
-procedure renseigne_canton(i : integer);
+
+
+// remplit les champs horizontal, el1,el2,typ1,typ2,sens1,sens2 de canton[]
+// et les champs canton1 et canton2 du tableau detecteurs[]
+procedure renseigne_canton(i : integer;Horz :boolean) ; overload;
 var t,x,y,indexTCO : integer;
-    Horz: boolean;
 begin
   if i<1 then exit;
   indexTCO:=canton[i].Ntco;
   if indexTCO>NbreTCO then
   begin
     Affiche('Erreur 32',clred);
+    FormTCO[IndexTCO].Caption:='Erreur 32';
     exit;
   end;
   x:=canton[i].x;
@@ -1412,35 +1438,52 @@ begin
   t:=canton[i].Ntco;
 
   canton[i].horizontal:=tco[indexTCO,x,y].BImage=Id_cantonH;
-  Horz:=canton[i].horizontal;
+  canton[i].SensCirc:=tco[IndexTCO,x,y].SensCirc;
 
   if horz then
   begin
-    zone_tco(t,i,5,0,0,11); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,5,0,0,11,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
-    canton[i].Sens1:=SensGauche;
+    canton[i].SensEl1:=SensGauche;
+    if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,6,0,0,11); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,6,0,0,11,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
-    canton[i].Sens2:=SensDroit;
-
+    canton[i].SensEl2:=SensDroit;
+    if tel1=det then detecteur[xCanton].canton2:=canton[i].numero;
   end
   else
   begin
-    zone_tco(t,i,7,0,0,11); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,7,0,0,11,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
-    canton[i].Sens1:=SensHaut;
+    canton[i].SensEl1:=SensHaut;
+    if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,8,0,0,11); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,8,0,0,11,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
-    canton[i].Sens2:=SensBas;
+    canton[i].SensEl2:=SensBas;
+    if tel1=det then detecteur[xCanton].canton2:=canton[i].numero;
   end;
 
   //Affiche(intToSTR(xCanton)+' '+intToStr(yCanton),clyellow);
+end;
+
+// renseigne le canton index i avec les éléments contigus
+procedure renseigne_canton(i : integer); overload;
+var x,y,it : integer;
+    Horz : boolean;
+begin
+  it:=canton[i].Ntco;
+  x:=canton[i].x;
+  y:=canton[i].y;
+  horz:=tco[it,x,y].BImage=Id_cantonH;
+  canton[i].horizontal:=horz;
+  Horz:=canton[i].horizontal;
+  renseigne_canton(i,Horz);
 end;
 
 procedure renseigne_tous_cantons;
@@ -1488,12 +1531,15 @@ begin
         fonte:='Arial';
         fontSTyle:='';
         piedFeu:=0;
+        NumCanton:=0;
         x:=0;
         y:=0;
         FeuOriente:=0;
         Liaisons:=0;
         Epaisseur:=0;
         Buttoir:=0;
+        sortie:=0;
+        SensCirc:=0;
       end;
 end;
 
@@ -1771,31 +1817,37 @@ begin
   if (NbreCellX[indexTCO]<20) or (NbreCellX[indexTCO]>MaxCellX) then
   begin
     NbreCellX[indexTCO]:=MaxCellX;
-    Affiche('TCO: le nombre de cellules X a été ramené à '+intToSTR(NbreCellX[indexTCO]),clred);
+    s:='TCO: le nombre de cellules X a été ramené à '+intToSTR(NbreCellX[indexTCO]);
+    Affiche(s,clred);
+    FormTCO[IndexTCO].Caption:=s;
   end;
   if (NbreCellY[indexTCO]<5) or (NbreCellY[indexTCO]>MaxCellY) then
   begin
     NbreCellY[indexTCO]:=MaxCellY;
-    Affiche('TCO: le nombre de cellules Y a été ramené à '+intToSTR(NbreCellX[indexTCO]),clred);
+    s:='TCO: le nombre de cellules Y a été ramené à '+intToSTR(NbreCellX[indexTCO]);
+    FormTCO[IndexTCO].Caption:=s;
+    Affiche(s,clred);
   end;
 
   try
     SetLength(TCO[indexTCO],MaxCellX+2,MaxCellY+2)
   except
-    Affiche('TCO:Mémoire insuffisante pour'+intToSTR(MaxCellX)+' '+intToSTR(MaxCellY),clred);
+    s:='TCO:Mémoire insuffisante pour'+intToSTR(MaxCellX)+' '+intToSTR(MaxCellY);
+    Affiche(s,clred);
+    FormTCO[IndexTCO].Caption:=s;
     NbreCellX[indexTCO]:=20;NbreCellY[indexTCO]:=12;
     SetLength(TCO[indexTCO],NbreCellX[indexTCO]+2,NbreCellY[indexTCO]+2);
   end;
 
   try
-
     init_tampon_copiercoller;
   except
-    Affiche('TamponTCO:Mémoire insuffisante',clred);
+    s:='TamponTCO:Mémoire insuffisante';
+    Affiche(s,clred);
+    FormTCO[IndexTCO].Caption:=s;
     NbreCellX[indexTCO]:=20;NbreCellY[indexTCO]:=12;
     init_tampon_copiercoller;
   end;
-
 
   // lire la matrice
   while not eof(fichier) do
@@ -1856,7 +1908,7 @@ begin
           begin
             cuc:=true;    // id canton
             inc(nCantons);
-            // le numéro de canton est lu plus loin, variable PiedFeu
+            // le numéro de canton est lu plus loin
             canton[ncantons].x:=x;
             canton[ncantons].y:=y;
             canton[ncantons].indexTrain:=0;
@@ -1898,7 +1950,7 @@ begin
         begin
          // affiche(inttostr(piedfeu),clyellow);
           //Affiche('indexcanton='+intToSTR(ncantons)+' numcanton lu='+intToSTR(piedFeu),clOrange);
-          tco[indexTCO,x,y].PiedFeu:=PiedFeu;
+          tco[indexTCO,x,y].NumCanton:=PiedFeu;
           if cuc then canton[ncantons].numero:=piedFeu;
         end;
 
@@ -2018,6 +2070,16 @@ begin
           delete(s,1,erreur-1);
         end;
 
+        // 17 nouveau version 8.9 sens circulation du canton
+        if npar>=17 then
+        begin
+          delete(s,1,1); // supprimer la virgule
+          val(s,i,erreur);
+          if (i<0) or (i>4) then i:=0;
+          tco[indexTCO,x,y].SensCirc:=i;
+          delete(s,1,erreur-1);
+        end;
+
         i:=pos(')',s);
         if i<>0 then delete(s,1,i);
 
@@ -2060,7 +2122,7 @@ begin
   begin
     AssignFile(fichier,nomfichierTCO[i]);
     rewrite(fichier);
-    Writeln(fichier,'/ Définitions TCO version '+version+sousversion);
+    Writeln(fichier,'/ Définitions TCO version '+versionSC+sousversion);
     writeln(fichier,ZoomInit_ch+'=',ZoomInit[i]);
     writeln(fichier,XYInit_ch+'=',XInit[i],',',Yinit[i]);
     Writeln(fichier,clFond_ch+'='+IntToHex(clfond[i],6));
@@ -2085,7 +2147,7 @@ begin
     writeln(fichier,'/ Matrice TCO');
     writeln(fichier,'[Matrice]');
     writeln(fichier,
-    '/ couleur fond,adresse,image,inversion aiguillage,Orientation du signal, pied du signal , [texte], representation, fonte, taille fonte, couleur fonte, style, épaisseurs, pont, buttoir ');
+    '/ couleur fond,adresse,image,inversion aiguillage,Orientation du signal, pied du signal , [texte], representation, fonte, taille fonte, couleur fonte, style, épaisseurs, pont, buttoir, sortieAction, sensCirculation ');
     for y:=1 to NbreCellY[i] do
     begin
       s:='';
@@ -2101,10 +2163,12 @@ begin
         // orientation signal ou Nombre éléments cantons
         if (Bimage=Id_CantonH) or (Bimage=Id_cantonV) then s:=s+intToSTR(tco[i,x,y].FeuOriente)
         else s:=s+IntToSTR(tco[i,x,y].FeuOriente);
+        s:=s+',';
 
         // piedFeu ou index canton
+        if (Bimage=Id_CantonH) or (Bimage=Id_cantonV) then s:=s+intToSTR(tco[i,x,y].NumCanton)
+        else s:=s+IntToSTR(tco[i,x,y].PiedFeu);
         s:=s+',';
-        s:=s+IntToSTR(tco[i,x,y].PiedFeu)+',';
 
         // texte
         s:=s+tco[i,x,y].Texte+',';
@@ -2122,6 +2186,7 @@ begin
         s:=s+','+intToSTR(tco[i,x,y].pont);
         s:=s+','+intToSTR(tco[i,x,y].buttoir);
         s:=s+','+intToSTR(tco[i,x,y].sortie);
+        s:=s+','+intToSTR(tco[i,x,y].SensCirc);
         s:=s+')';
       end;
       writeln(fichier,s);
@@ -2326,6 +2391,7 @@ begin
   result:=((i>=Id_cantonH) and (i<=Id_CantonH+9));
 end;
 
+// 2eme forme
 function IsCantonH(indexTCO,x,y : integer) : boolean;  overload;
 var b : integer;
 begin
@@ -2334,11 +2400,12 @@ begin
 end;
 
 // renvoie vrai si l'élément i est un canton V
-function IsCantonV(i : integer) : boolean;
+function IsCantonV(i : integer) : boolean; overload;
 begin
   result:=((i>=Id_cantonV) and (i<Id_CantonV+9));
 end;
 
+// 2eme forme
 function IsCantonV(indexTCO,x,y : integer) : boolean;  overload;
 var b : integer;
 begin
@@ -2421,7 +2488,7 @@ begin
 end;
 
 procedure affiche_texte(indextco,x,y : integer);
-var b,x0,y0,xt,yt,repr,taillefont,tf : integer;
+var b,x0,y0,xt,yt,repr,taillefont,largCell,hautCell,tf : integer;
     ss,s,nf : string;
     c : Tcanvas;
     r : Trect;
@@ -2456,7 +2523,7 @@ begin
   repr:=tco[indextco,x,y].repr;
   taillefont:=tco[indextco,x,y].TailleFonte;
 
-  xt:=0;yt:=0;
+  xt:=round(5*frXGlob[indexTCO]);yt:=0;
 
   if taillefont=0 then taillefont:=8;
   tf:=(taillefont*LargeurCell[indexTCO]) div 40;
@@ -2465,12 +2532,12 @@ begin
 
   if b=Id_cantonH then
   begin
-    repr:=0;xt:=4;yt:=4;s:=intToSTR(TCO[indexTCO,x,y].piedFeu);
+    repr:=0;xt:=4;yt:=4;s:=intToSTR(TCO[indexTCO,x,y].Numcanton);
   end
   else
   if b=Id_cantonV then
   begin
-    repr:=0;xt:=2;yt:=4;s:=intToSTR(TCO[indexTCO,x,y].piedFeu);
+    repr:=0;xt:=2;yt:=4;s:=intToSTR(TCO[indexTCO,x,y].NumCanton);
   end
   else
 
@@ -2488,18 +2555,37 @@ begin
            // césures de mots : DT_SINGLELINE   DT_WORDBREAK
            // ? : dt_noclip
            //DrawText(PcanvasTCO[indexTCO].Handle,PChar(s), -1, R,DT_VCENTER or DT_CENTER or DT_SINGLELINE );
-           //s:='yat'+#13+'bot';
            DrawText(PcanvasTCO[indexTCO].Handle,PChar(s), -1, R,DT_VCENTER or DT_CENTER or dt_wordbreak );
 
            exit;
          end;
   end;
-  
+
   if b=Id_Quai then xt:=6;
   if (b<>Id_Quai) and (b<>Id_action) then s:=s+'   ';
 
   if repr=4 then texte_reparti(s,indextco,x,y,tf) else
     c.Textout(x0+xt,y0+yt,s);
+
+
+  if tco[indextco,x,y].buttoir=1 then
+  begin
+    largCell:=LargeurCell[indexTCO];
+    hautCell:=HauteurCell[indexTCO];
+
+    with PCanvasTCO[indexTCO] do
+    begin
+      pen.width:=(epaisseur div 2);
+      tf:=TextWidth(tco[indextco,x,y].Texte);
+
+      tf:=(tf div largCell)*largCell+largCell;
+      pen.color:=clWhite;
+      moveTo(x0,y0);LineTo(x0+tf,y0);
+      LineTo(x0+tf,y0+hautCell);
+      LineTo(x0,y0+hautCell);
+      LineTo(x0,y0);
+    end;
+  end;  
 end;
 
 procedure dessin_2L(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
@@ -5693,10 +5779,10 @@ begin
   larg:=LargeurCell[indexTCO];
   haut:=hauteurCell[indexTCO];
 
-  x0:=(x-1)*Larg+2;
-  y0:=(y-1)*haut+2;
-  xf:=x0+Larg-4;
-  yf:=y0+Haut-4;
+  x0:=(x-1)*Larg;
+  y0:=(y-1)*haut;
+  xf:=x0+Larg;
+  yf:=y0+Haut;
 
 
   with canvas do
@@ -5839,10 +5925,13 @@ begin
 end;
 
 
-// dessine le canton
-procedure dessin_cantonH(indexTCO : integer;Canvas : Tcanvas;x,y,mode,bouton : integer);
-var i,tailleX,TailleY,x0,y0,yf,yc,larg,haut,xr,xm,LargDest,Hautdest,indexTrain,NumC,
-    offsetY,xf,AdrTrain,Xcentre,yCentre,n,al,r,l,h,HautDestF,LargDestF,LargSrc,HautSrc : integer;
+// dessine le canton H
+// mode=0 canton normal  mode=1 : affiche le canton en mode rectangle de sélection avec les poignées
+//       =3  drapeau vert  =4 drapeau rouge
+procedure dessin_cantonH(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
+var i,xi,yi,x0,y0,yf,yc,xt,yt,dx,dy,larg,haut,xr,xm,LargDest,Hautdest,indexTrain,NumC,
+    offsetY,xf,AdrTrain,Xcentre,yCentre,n,al,r,l,h,HautDestF,LargDestF,LargSrc,HautSrc,OffsetX,
+    bouton : integer;
     frX,frY,rd : real;
     coul : tcolor;
     p : array[0..2] of TPoint;
@@ -5867,21 +5956,24 @@ begin
     s:=tco[indexTCO,x,y].Fonte;
     if s='' then tco[indexTCO,x,y].Fonte:='Arial';
 
-    NumC:=TCO[indexTCO,x,y].PiedFeu; // numéro du canton, pas son index;
+    NumC:=TCO[indexTCO,x,y].NumCanton; // numéro du canton, pas son index;
     i:=index_canton_numero(NumC);    // index du canton "piedfeu"
     if i=0 then begin Affiche('Erreur 19H : index canton nul en TCO'+intToSTR(indexTCO)+' x='+intToSTR(x)+' y='+intToSTR(y),clred);exit;end;
 
     // texte à gauche du canton
-    s:=canton[i].nom;
+{    s:=canton[i].nom;
     Pen.color:=clwhite;
     textOUT(x0-length(s)*8,y0+1,s);
-
+ }
     indexTrain:=TCO[IndexTCO,x,y].train;
     AdrTrain:=canton[i].adresseTrain;
+    //Affiche('Canton '+intToSTR(canton[i].numero)+' adrTrain='+intToSTR(AdrTrain),clLime);
+
     if AdrTrain<>0 then indexTrain:=index_train_adresse(adrTrain);
 
-    if (AdrTrain<>0) or (indexTrain=9999) then Brush.Color:=clFondCantonR      // couleurCanton
-      else Brush.Color:=clFondCantonV;
+    if (AdrTrain<>0) or (indexTrain=9999) then coul:=clFondCantonR      // couleurCanton
+      else coul:=clFondCantonV;
+    Brush.Color:=coul;
 
     // mode=1 : représenter avec les poignées de sélection
     if mode=1 then
@@ -5911,19 +6003,29 @@ begin
     Roundrect(x0,y0,xf,yf,15,15);
 
     // numéro de canton
+    font.color:=clYellow;
     Textout(x0+6,y0+2,intToSTR(canton[i].numero));
 
-
+    // bouton
     Xcentre:=Xf-(larg div 2);
     Ycentre:=Yc;
     r:=larg div 3;
-
+    bouton:=canton[i].bouton;
     case bouton of
       0 : couleur:=clyellow;
       1 : couleur:=clLime;
       2 : couleur:=clAqua;
     end;
-    cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur);
+    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur)
+    else
+    begin
+      if bouton=3 then
+        StretchBlt(PcanvasTCO[indexTCO].Handle,xf-larg,yf-haut,larg,haut,
+                   FormTCO[indexTCO].ImageDrapVert.canvas.Handle,1,1,63,63,srccopy);
+      if bouton=4 then
+        StretchBlt(PcanvasTCO[indexTCO].Handle,xf-larg,yf-haut,larg,haut,
+                   FormTCO[indexTCO].ImageDrapRouge.canvas.Handle,1,1,63,63,srccopy);
+    end;
 
     if (indexTrain=0) or (indexTrain=9999)  then
     begin
@@ -5931,42 +6033,51 @@ begin
       exit;
     end;
 
-    tailleX:=3*larg;
-    tailleY:=Haut;
-
     if (trains[indexTrain].icone=nil) or (Trains[indexTrain].Icone.height=0) then exit;
 
+    //---redimensionnement
     calcul_reduction(frx,fry,Larg,haut);
     HautDest:=round(haut/1.2);
 
     LargSrc:=Trains[indexTrain].Icone.width;
     HautSrc:=Trains[indexTrain].Icone.height;
-    //r:=round(LargSrc/HautSrc);
     rd:=LargSrc/HautSrc;
 
+    offsetX:=15;                    // décalage X de la loco
     largDest:=round(HautDest*rd);
-    if largdest>n*larg then
+    if largdest>((n-1)*larg)-offsetX then  // -1 pour le bouton
     begin
-      largdest:=n*larg;
+      largdest:=(n-1)*larg-offsetX;
       hautDest:=round(largdest/rd);
     end;
-
+    // --------fin du redimensionnement
     offsetY:=(haut div 2)-(hautDest div 2)+1; // centrer l'icone au centre Y
 
-    al:=TCO[indexTCO,x,y].pont; //alignement
-    case al of
-    0 : x0:=x0+((n*larg) div 2)-(largDest div 2); // centré
-    2 : x0:=xf-largdest-larg; // aligné D
-     end;
-    //copie depuis la base vers la destination avec réduction
+    sens:=canton[i].SensLoco;
+    case sens of
+      0,sensGauche : xi:=x0+OffsetX;
+      sensDroit  : xi:=xf-largdest-larg;
+    end;
 
-    Canton[i].Xicone:=x0;
+    // coordonnées du texte de la loco
+    if sens=sensGauche then begin xt:=xi+largDest+round(10*frx);yt:=y0+round(20*fry);dx:=xf-larg;dy:=yf;end; // espace restant
+    if sens=sensdroit then begin xt:=x0+round(20*frx);yt:=y0+round(20*fry);dx:=xi+largdest-larg;dy:=y0+offsety+hautdest;end;
+
+    s:=canton[i].NomTrain;
+    l:=TextWidth(s);
+    if l<dx-xt then
+    begin
+      brush.color:=coul;
+      textout(xt,yt+2,s);
+    end;
+    Canton[i].Xicone:=xi;
     Canton[i].Yicone:=y0;
     Canton[i].Licone:=LargDest;
     Canton[i].Hicone:=HautDest;
 
-    if canton[i].Sens=SensGauche then
+    if canton[i].SensLoco=SensGauche then
     begin
+      // efface l'image temporaire
       with FormTCO[indexTCO].ImageTemp2.Canvas do
       begin
         pen.color:=clwhite;
@@ -5987,22 +6098,24 @@ begin
     //  FormTCO[indexTCO].ImageTemp2.repaint;
 
       // !!! TransparentBLt ne mirroire pas les images. et StretchBlt pour inverser mais assombrit l'image
-      TransparentBlt(PcanvasTCO[indexTCO].Handle,x0,y0+offsetY,largDest,hautDest,
+      TransparentBlt(PcanvasTCO[indexTCO].Handle,xi,y0+offsetY,largDest,hautDest,
                      FormTCO[indexTCO].ImageTemp2.canvas.Handle,0,0,LargSrc,HautSrc,clWhite);
     end
     else
-    TransparentBlt(PcanvasTCO[indexTCO].Handle,x0,y0+offsetY,largDest,hautDest,
+    // sens droit
+    TransparentBlt(PcanvasTCO[indexTCO].Handle,xi,y0+offsetY,largDest,hautDest,
                    Trains[indexTrain].Icone.canvas.Handle,0,0,Trains[indexTrain].Icone.width,Trains[indexTrain].Icone.height,clWhite);
 
     PImageTCO[indexTCO].Picture.Bitmap.Modified:=True;  // rafraichit l'affichage sinon le stretchblt n'apparaît pas.
+
   end;
 end;
 
-procedure dessin_cantonV(indexTCO : integer;Canvas : Tcanvas;x,y,mode,bouton : integer);
-var AdrTrain,i,x0,xc,yc,y0,xf,yf,larg,haut,hautDest,LargDest,LargSrc,HautSrc,yr,ym,
-    xCentre,yCentre,r,indexTrain,n,al : integer;
-    frX,frY : real;
-    couleur : tcolor;
+procedure dessin_cantonV(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
+var AdrTrain,i,xi,yi,xt,yt,x0,xc,yc,y0,xf,yf,dx,dy,larg,haut,hautDest,LargDest,LargSrc,HautSrc,yr,ym,l,
+    xCentre,yCentre,r,indexTrain,n,al,bouton : integer;
+    frX,frY,rd : real;
+    coul : tcolor;
     s : string;
     p : array[0..2] of TPoint;
     TailleY,TailleX : integer;
@@ -6030,20 +6143,22 @@ begin
     s:=tco[indexTCO,x,y].Fonte;
     if s='' then tco[indexTCO,x,y].Fonte:='Arial';
 
-    i:=TCO[indexTCO,x,y].PiedFeu; // numéro du canton
-    i:=index_canton_numero(i);    // index du canton "piedfeu"
+    i:=TCO[indexTCO,x,y].NumCanton; // numéro du canton
+    i:=index_canton_numero(i);    // index du canton
     if i=0 then begin Affiche('Erreur 19V : canton nul',clred);exit;end;
 
+    {
     s:=canton[i].nom;
     Pen.color:=clwhite;
-    textOUT(x0-length(s)*8,y0+1,s);
+    textOUT(x0-length(s)*8,y0+1,s);}
 
     indexTrain:=TCO[IndexTCO,x,y].train;
     AdrTrain:=canton[i].adresseTrain;
     if AdrTrain<>0 then indexTrain:=index_train_adresse(adrTrain);
 
-    if (AdrTrain<>0) or (indexTrain=9999) then Brush.Color:=clFondCantonR      // couleurCanton
-      else Brush.Color:=clFondCantonV;
+    if (AdrTrain<>0) or (indexTrain=9999) then coul:=clFondCantonR      // couleurCanton
+      else coul:=clFondCantonV;
+    Brush.Color:=coul;
 
     // mode=1 représenter avec les poignées de sélection
     if mode=1 then
@@ -6072,18 +6187,34 @@ begin
     Roundrect(x0,y0,xf,yf,15,15);
 
     // numéro de canton
+    pen.Mode:=pmcopy;
+    pen.color:=clyellow;
+    font.Color:=clyellow;
     Textout(x0+2,y0+6,intToSTR(canton[i].numero));
 
     Xcentre:=Xc+1;
     Ycentre:=Yf-(haut div 2);
     r:=larg div 3;
+    bouton:=canton[i].bouton;
     case bouton of
       0 : couleur:=clyellow;
       1 : couleur:=clLime;
       2 : couleur:=ClAqua;
     end;
-    cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur);
-   // Affiche_texte(indexTCO,x,y);
+    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur)
+    else
+    begin
+      if bouton=3 then // drapeau vert
+      begin
+        StretchBlt(PcanvasTCO[indexTCO].Handle,xf-larg,yf-haut,larg,haut,
+                   FormTCO[indexTCO].ImageDrapVert.canvas.Handle,1,1,63,63,srccopy);
+      end;
+      if bouton=4 then // drapeau rouge
+      begin
+        StretchBlt(PcanvasTCO[indexTCO].Handle,xf-larg,yf-haut,larg,haut,
+                   FormTCO[indexTCO].ImageDrapRouge.canvas.Handle,1,1,63,63,srccopy);
+      end;
+    end;
 
 
     if (indexTrain=0) or (indexTrain=9999)  then
@@ -6094,28 +6225,29 @@ begin
     // pas d'icone
     if (trains[indexTrain].icone=nil) or (Trains[indexTrain].Icone.height=0) then exit;
 
+    // ----- prépare l'icone du train
     calcul_reduction(frx,fry,Larg,haut);
     hautdest:=round(haut/1.2);
 
     LargSrc:=Trains[indexTrain].Icone.width;
     HautSrc:=Trains[indexTrain].Icone.height;
 
-
-    r:=round(LargSrc/HautSrc);
-    largDest:=hautdest*r;
+    rd:=LargSrc/HautSrc;
+    largDest:=round(hautdest*rd);
 
     echange(largDest,HautDest);
 
-    if HautDest>TailleY then
+    if hautdest>(n-1)*haut then
     begin
-      hautDest:=tailleY;
-      largDest:=round(HautDest/r);
+      hautdest:=(n-1)*haut;
+      largDest:=round(HautDest/rd);
     end;
+    //---- fin du redimensionnement
 
-    al:=TCO[indexTCO,x,y].pont; //alignement
-    case al of
-    0 : y0:=y0+((n*Haut) div 2)-(HautDest div 2); // centré
-    2 : y0:=yf-Hautdest; // aligné D
+    sens:=canton[i].SensLoco;
+    case sens of
+      0,sensHaut : yi:=y0+10;
+      sensBas  : yi:=yf-Hautdest-haut;
     end;
 
     Canton[i].Xicone:=x0+round(8*frx);
@@ -6123,7 +6255,19 @@ begin
     Canton[i].Licone:=LargDest;
     Canton[i].Hicone:=HautDest;
 
-    if canton[i].Sens=SensHaut then
+    // coordonnées du texte de la loco
+    if sens=sensHaut then begin xt:=x0+round(40*frx);yt:=yi+hautdest+round(10*fry);dx:=xf;dy:=yf-haut;end; // espace restant
+    if sens=sensBas  then begin xt:=x0+round(40*frx);yt:=y0+round(10*fry);dx:=x0+Largdest;dy:=yi-haut;end;
+
+    //PCanvasTCO[indexTCO].font.Size:=PCanvasTCO[indexTCO].font.Size+1;
+    s:=canton[i].NomTrain;
+    l:=TextWidth(s);
+    Brush.Color:=coul;
+    if l<dy-yt then
+    AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xt,yt,
+                              PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,ClBlack,s,-910);
+
+    if canton[i].SensLoco=SensHaut then
     begin
       with FormTCO[indexTCO].ImageTemp2.Canvas do
       begin
@@ -6169,15 +6313,15 @@ begin
       }
 
       PlgBlt(FormTCO[indexTCO].ImageTemp2.Canvas.Handle,p,
-            Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
+             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
        // FormTCO[indexTCO].ImageTemp2.repaint;
       // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparent
-      TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),y0,largDest,hautDest,   // destination avec mise à l'échelle
-                 FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSRC,LargSrc,clWhite);
+      TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),yi,largDest,hautDest,   // destination avec mise à l'échelle
+                   FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSRC,LargSrc,clWhite);
     end
     else
     begin
-      //bas
+      // bas
       // matrice de copie à 90°G sans mise à l'échelle dans l'image provisoire
       p[0].X:=HautSrc;  //90;
       p[0].Y:=0;  //0;
@@ -6189,7 +6333,7 @@ begin
             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
       //  FormTCO[indexTCO].ImageTemp2.repaint;
       // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparent
-      TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),y0,largDest,hautDest,   // destination avec mise à l'échelle
+      TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),yi,largDest,hautDest,   // destination avec mise à l'échelle
                  FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSrc,LargSrc,clWhite);
    end;
   end;
@@ -6197,7 +6341,8 @@ end;
 
 
 //idcanton : indexcanton
-procedure dessin_canton(IdCanton : integer;mode,bouton: integer) ; overload;
+// dessine le canton IdCantonen mode "mode"
+procedure dessin_canton(IdCanton : integer;mode : integer) ; overload;
 var indexTCO,x,y : integer;
 begin
   if IdCanton<1 then exit;
@@ -6208,23 +6353,22 @@ begin
   y:=canton[IdCanton].y;
   if isCantonV(indexTCO,x,y) then
   begin
-    dessin_cantonV(indexTCO,PCanvasTCO[indexTCO],x,y,mode,bouton);
+    dessin_cantonV(indexTCO,PCanvasTCO[indexTCO],x,y,mode);
     exit;
   end;
-  dessin_cantonH(indexTCO,PCanvasTCO[indexTCO],x,y,mode,bouton);
+  dessin_cantonH(indexTCO,PCanvasTCO[indexTCO],x,y,mode);
 end;
 
 // mode=0 canton normal  mode=1 : affiche le canton en mode rectangle de sélection avec les poignées
-// Bouton=0  bouton jaune   bouton=1 bouton vert    bouton=2 bouton bleu
-procedure dessin_canton(indexTCO : integer;Canvas : Tcanvas;x,y,mode,bouton: integer); overload;
+procedure dessin_canton(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer); overload;
 begin
   if PcanvasTCO[indexTCO]=nil then exit;
   if isCantonV(indexTCO,x,y) then
   begin
-    dessin_cantonV(indexTCO,Canvas,x,y,mode,bouton);
+    dessin_cantonV(indexTCO,Canvas,x,y,mode);
     exit;
   end;
-  dessin_cantonH(indexTCO,Canvas,x,y,mode,bouton);
+  dessin_cantonH(indexTCO,Canvas,x,y,mode);
 end;
 
 // Element 24
@@ -8294,7 +8438,6 @@ begin
       trajet_droit;
     end;
 
-
     if (position=const_Devie) then
     begin
      // effacement du morceau
@@ -9387,7 +9530,7 @@ begin
     end;
   end;
 
-  // affichage du feu et du pieds - orientation 90°G
+  // affichage du feu et du pied - orientation 90°G
   if Orientation=2 then
   begin
     Feu_90G(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie); // ici on passe l'origine du signal
@@ -9482,8 +9625,6 @@ begin
    Id_action : dessin_Action(indexTCO,PCanvasTCO,X,Y,mode);
 
    // les cantons sont affichés dans affiche_cellule car il faut dessiner les trains
-
-
    end;
 end;
 
@@ -9491,10 +9632,12 @@ end;
 // affiche la cellule x et y en cases
 // index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
 procedure affiche_cellule(indexTCO,x,y : integer);
-var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied,AdrTr : integer;
+var i,index,repr,Xorg,Yorg,xt,yt,mode,adresse,Bimage,aspect,oriente,pied,AdrTr,
+    HautCell,LargCell : integer;
     typ : tequipement;
     inverse : boolean;
     s : string;
+    clfond : tcolor;
 begin
   if indexTCO=0 then exit;
   if indexTCO>nbreTCO then
@@ -9503,7 +9646,7 @@ begin
     exit;
   end;
   if PcanvasTCO[indexTCO]=nil then exit;
-  if tco[indextco,x,y].BImage=0 then exit;
+
   //Affiche('Affiche_cellule',clLime);
   PcanvasTCO[indexTCO].pen.Mode:=PmCopy;
   //pcanvasTCO.Brush.Style:=BsClear;
@@ -9512,9 +9655,21 @@ begin
   mode:=tco[indextco,x,y].mode; // mode pour la couleur
   repr:=tco[indextco,x,y].repr;
   Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;
-
+  HautCell:=hauteurCell[indexTCO];
+  largCell:=LargeurCell[indexTCO];
+  clFond:=tco[indextco,x,y].CouleurFond;
   Xorg:=(x-1)*LargeurCell[indexTCO];
-  Yorg:=(y-1)*hauteurCell[indexTCO];
+  Yorg:=(y-1)*HautCell;
+
+  with PCanvasTCO[indexTCO] do
+  begin
+    font.Size:=(LargeurCell[indexTCO] div 10)+4;
+    if NB then font.color:=clBlack else
+      Font.Color:=tco[indextco,x,y].coulFonte;
+    Font.Name:='Arial';
+    Font.Style:=style(tco[indextco,x,y].FontStyle);
+  end;
+
 
   // ------------- affichage de l'adresse ------------------
   s:=IntToSTR(adresse);
@@ -9523,9 +9678,9 @@ begin
 
 
   // dessin du train sur le canton
-  if (Bimage=Id_CantonH) or (Bimage=Id_CantonV) then dessin_canton(indexTCO,PCanvasTCO[indexTCO],x,y,0,0);
+  if (Bimage=Id_CantonH) or (Bimage=Id_CantonV) then dessin_canton(indexTCO,PCanvasTCO[indexTCO],x,y,0);
 
-  PCanvasTCO[indexTCO].font.Size:=(LargeurCell[indexTCO] div 10)+4  ;
+
   //Affiche(intToSTR( (LargeurCell[indexTCO] div 30)+6),clyellow);
 
   // affiche le texte des aiguillages
@@ -9543,7 +9698,7 @@ begin
       begin
         Brush.Color:=tco[indextco,x,y].CouleurFond;
         //SetBkMode(PCanvasTCO[indexTCO].Handle,TRANSPARENT);
-        if avecRESA or roulage then s:=s+'  '; // efface l'adresse de réservation
+        if roulage then s:=s+'  '; // efface l'adresse de réservation
       end
       else
       begin
@@ -9555,9 +9710,7 @@ begin
       end;
 
       //Brush.Style:=Bsclear;
-      Font.Color:=tco[indextco,x,y].coulFonte;
-      Font.Name:='Arial';
-      Font.Style:=style(tco[indextco,x,y].FontStyle);
+
       xt:=0;yt:=0;
       if Bimage=2  then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
       if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
@@ -9591,13 +9744,14 @@ begin
     with PCanvasTCO[indexTCO] do
     begin
       Brush.Color:=tco[indextco,x,y].CouleurFond;
-      Font.Color:=tco[indextco,x,y].coulFonte;
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
-      xt:=round(15*frxGlob[indexTCO]);
+      xt:=round(4*frxGlob[indexTCO]);
       case repr of
       1 : yt:=(hauteurCell[indexTCO] div 2)-round(7*fryGlob[indexTCO]);   // milieu
-      2 : yt:=1;  // haut
+      2 : yt:=2;  // haut
       3 : yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);   // bas
       end;
 
@@ -9619,21 +9773,85 @@ begin
       else if roulage then s:=s+'                         ';
       }
       //PCanvasTCO[indexTCO].font.Size:=(LargeurCell[indexTCO] div 13)+4  ;
-      TextOut(xOrg+xt,Yorg+yt,s+' ');
+      AdrTr:=detecteur[adresse].AdrTrainRes;
+      if AdrTr<>0 then
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clBlue;
+        s:=s+' '+intToSTR(AdrTr);
+      end
+      else
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clfond;
+        Pen.color:=clfond;
+        pen.mode:=PmCopy;
+        pen.Width:=1;
+        rectangle(xOrg+xt,Yorg+yt-1,xOrg+LargCell-1,Yorg+yt+round(17*fryGlob[indexTCO]));
+      end;
+      TextOut(xOrg+xt,Yorg+yt,s);
 
     end;
   end;
 
+  if ((Bimage=8) or (Bimage=10)   ) and (adresse<>0) then
+  begin
+    with PCanvasTCO[indexTCO] do
+    begin
+      xt:=round(25*frxGlob[indexTCO]);
+      yt:=round(35*fryGlob[indexTCO]);
+      Font.Name:='Arial';
+      Font.Style:=style(tco[indextco,x,y].FontStyle);
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
+      AdrTr:=detecteur[adresse].AdrTrainRes;
+      if AdrTr<>0 then
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clBlue;
+        s:=s+' '+intToSTR(AdrTr);
+      end
+      else
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clfond;
+        Pen.color:=clfond;
+        pen.mode:=PmCopy;
+        pen.Width:=1;
+        rectangle(xOrg+xt,Yorg+yt,xOrg+LargCell,Yorg+yt+11);
+      end;
+      TextOut(xOrg+xt,yOrg+yt,s);
+    end;
+  end;
+
   // autres détecteurs
-  if ((Bimage=7) or (Bimage=8) or (Bimage=9) or (Bimage=10) or (Bimage=17)  ) and (adresse<>0) then
+  if ((Bimage=7) or (Bimage=9) or (Bimage=17) ) and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      xt:=round(2*frxGlob[indexTCO]);
+      yt:=round(2*fryGlob[indexTCO]);
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
-      Font.Color:=tco[indextco,x,y].coulFonte;
-      TextOut(xOrg+round(2*frxGlob[indexTCO]),yOrg+round(2*fryGlob[indexTCO]),s);
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
+      AdrTr:=detecteur[adresse].AdrTrainRes;
+      if AdrTr<>0 then
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clBlue;
+        s:=s+' '+intToSTR(AdrTr);
+      end
+      else
+      begin
+        Brush.style:=bsSolid;
+        Brush.Color:=clfond;
+        Pen.color:=clfond;
+        pen.mode:=PmCopy;
+        pen.Width:=1;
+        rectangle(xOrg+xt,Yorg+yt,xOrg+LargCell,Yorg+yt+11);
+      end;
+      TextOut(xOrg+xt,yOrg+yt,s);
     end;
   end;
 
@@ -9642,26 +9860,34 @@ begin
   begin
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
-      Font.Color:=tco[indextco,x,y].coulFonte;
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
+      AdrTr:=detecteur[adresse].AdrTrainRes;
+      if (AdrTr<>0) then
+      begin
+        Brush.style:=bsSolid;
+        clfond:=clBlue;
+        s:=s+' '+intToSTR(AdrTr);
+      end;
+
       PCanvasTCO[indexTCO].font.Size:=PCanvasTCO[indexTCO].font.Size+1;
-      //TextOut(xOrg+round(2*frxGlob[indexTCO]),yOrg+round(2*fryGlob[indexTCO]),s);
-      AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],Xorg,yOrg+round(30*fryGlob[indexTCO]),
-                                PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,nil,s,910);
+      AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],Xorg,yOrg+HautCell-round(2*fryGlob[indexTCO]),
+                                PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,clfond,s+'   ',910);
     end;
   end;
 
   // autres détecteurs
-  if (Bimage=18) and (adresse<>0) then
+  if ((Bimage=18) or (Bimage=19)) and (adresse<>0) then
   begin // Adresse de l'élément
     with PCanvasTCO[indexTCO] do
     begin
       Brush.Color:=tco[indextco,x,y].CouleurFond;
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
-      Font.Color:=tco[indextco,x,y].coulFonte;
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
       TextOut(xOrg+round(20*frxGlob[indexTCO]),yOrg+hauteurCell[indexTCO]-round(14*fryGlob[indexTCO]),s);
     end;
   end;
@@ -9672,7 +9898,8 @@ begin
     with PCanvasTCO[indexTCO] do
     begin
       Brush.Color:=tco[indextco,x,y].CouleurFond;
-      Font.Color:=tco[indextco,x,y].coulFonte;;
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       Font.Name:='Arial';
       TextOut(xOrg+round(28*frxGlob[indexTCO]),yOrg+round(2*fryGlob[indexTCO]),s);
@@ -9761,7 +9988,8 @@ begin
     with PCanvasTCO[indexTCO] do
     begin
       Brush.Color:=tco[indextco,x,y].CouleurFond;
-      Font.Color:=tco[indextco,x,y].coulFonte;
+      if NB then font.color:=clblack else
+        Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       Font.Name:='Arial';
       TextOut(xOrg+xt,yOrg+yt,s);
@@ -9957,6 +10185,14 @@ begin
         end;
       end;
 
+  //afficher les cellules vides qui ont un encadré
+  for y:=1 to NbreCellY[indexTCO] do
+    for x:=1 to NbreCellX[indexTCO] do
+      begin
+        Bim:=tco[indextco,x,y].BImage;
+        if (bim=0) and (tco[indextco,x,y].buttoir<>0) then affiche_cellule(indexTCO,x,y);
+      end;
+
   // afficher les sélections si elles sont présentes
   if entoure[indexTCO] then Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);
   if (rect_select.NumTCO<>0) and (IndexTCO=rect_select.NumTCO) then Affiche_Rectangle(IndexTCO,Rect_select);    // rectangle graphique
@@ -9967,13 +10203,26 @@ end;
 procedure TFormTCO.FormCreate(Sender: TObject);
 var s : string;
 begin
+  NB:=false;
   if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
+  procetape('Création fenêtre TCO');
   //Screen.OnActiveControlChange := ActiveControlChanged;
+
+  {$IF CompilerVersion >= 28.0}
+  BallonHint:=TballoonHint.Create(self);
+  with BallonHint do
+  begin
+    parent:=self;
+    name:='BallonHint';
+  end;
+  {$IFEND}
+
   visible:=false;  // ne s'affiche pas par défaut et évite l'effet fenetre fantome.
   ClTexte:=$00FF00;
   clFondCantonV:=$206020;
   clFondCantonR:=$202060;
   IdCantonSelect:=0;
+  indexTrainFR:=0;
   PCanvasTCO[indexTCOCreate]:=nil;
   offsetSourisY:=-10; // permet de tenir l'icone au milieu quand on fait un glisser
   offsetSourisX:=-10;
@@ -10025,7 +10274,6 @@ begin
 
   modeTrace[indexTCOCreate]:=false;   // pour tracer les voies à la souris
   //controlStyle:=controlStyle+[csOpaque];
-
 
   s:='Voie';
   ImagePalette6.Hint:=s;ImagePalette6.ShowHint:=true;
@@ -10081,6 +10329,8 @@ begin
   popupMenu1.Items[10][0].Hint:=s100;
   s101:='Supprime la colonne pointée';
   popupMenu1.Items[10][1].Hint:=s101;
+
+  if MasqueBandeauTCO then bandeauMasque:=true;
 
   tcoCree:=true;
   if debug=1 then Affiche('Fin création fenêtre TCO',clLime);
@@ -10169,56 +10419,44 @@ begin
     bimage:=tco[indextco,x,y].BImage;
     cant:=IsCanton(Bimage);
 
-   { if debugTCO then
+    if debugTCO then
     begin
-      AfficheDebug('x='+intToSTR(x)+' y='+intToSTR(y),clYellow);
-    end; }
+      AfficheDebug('x='+intToSTR(x)+' y='+intToSTR(y),clLime);
+    end;
 
     tco[Indextco,x,y].mode:=mode;  //mode;  // pour la couleur
     idTrain:=0;
     if mode>0 then Idtrain:=index_couleur  // = numéro du train
       else IdTrain:=0; // efface train
 
+    adresse:=tco[indextco,x,y].Adresse;
+    tco[indextco,x,y].trajet:=0;
+
+
     //Affiche('Affiche_trajet: Affecte '+intToSTR(IdTrain)+' au TCO '+intToSTR(indexTCO)+' '+intToSTR(x)+' '+intToSTR(y),clWhite);
     // si pas canton, affectation du train---------------------------
     if not(cant) then TCO[IndexTCO,x,y].train:=IdTrain
     else
     begin
-      IdCanton:=index_canton_numero(TCO[indexTCO,x,y].PiedFeu); // index canton
-      if idTrain<>0 then  // si plus de train en xy tco , on raze
+      // si canton
+      IdCanton:=index_canton_numero(TCO[indexTCO,x,y].NumCanton); // index canton
+      if (idTrain<>0) and (idcanton<>0) then
       begin
-        if idcanton<>0 then // si canton
+        if canton[IdCanton].indexTrain<>0 then  //si train dans canton
         begin
-          if canton[IdCanton].indexTrain<>0 then  //si train dans canton
-          begin
-            if AdrTrain<>0 then canton[idCanton].indexTrain:=Index_Train_Adresse(AdrTrain);
-            IdTrain:=canton[IdCanton].indexTrain;
-            //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].PiedFeu)),clred);
-            affecte_train_canton(AdrTrain,IdCanton);
-          end;
+          if AdrTrain<>0 then canton[idCanton].indexTrain:=Index_Train_Adresse(AdrTrain);
+          IdTrain:=canton[IdCanton].indexTrain;
+          //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].PiedFeu)),clred);
+          affecte_train_canton(AdrTrain,IdCanton);
         end;
-      end
-    end;
-
-    //Affiche(intToSTR(x)+' '+intToSTR(y)+' '+intToSTR(TCO[IndexTCO,x,y].train),clorange);
-
-
-    adresse:=tco[indextco,x,y].Adresse;
-    tco[indextco,x,y].trajet:=0;
-
-    // pour les cantons, mettre à jour les cantons
-    if (cant) then
-    begin
-      if idcanton<>0 then
-      begin
         if idTrain<=Ntrains then                  // dans le cas de la libération d'un canton par un train qui avance,
         begin                                     // IdTrain=0
           AncTrain:=canton[IdCanton].indexTrain;
-          if (idTrain<>0) and (AncTrain=0) and (adrtrain=0) then adrTrain:=9999;   // adresse train inconnue
+          if (idTrain<>0) and (AncTrain=0) and (adrtrain=0) then adrTrain:=0;   //9999 adresse train inconnue
           if (idTrain=0) and (AncTrain=9999) and (adrtrain=0) then adrTrain:=0;
           //if (ancTrain=0) or (IdTrain=0) then   // si le canton est déja affecté à un train et que le nouveau train<>0, on ne réaffecte pas le train qui arrive
             //if idTrain=0 then AdrTrain:=0;
-            //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].PiedFeu)),clorange);
+            //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].NumCanton)),clorange);
           affecte_Train_canton(AdrTrain,IdCanton);
         end;
       end;
@@ -10241,7 +10479,8 @@ begin
       if (ax-x=1)  and (ay-y=-1) and (sx-x=-1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=4;   // de haut droite vers gauche
       if (ax-x=-1) and (ay-y=1)  and (sx-x=1)   and (sy-y=0)  then tco[indextco,x,y].trajet:=3;   // de bas gauche vers droite
       if (ax-x=1)  and (ay-y=0)  and (sx-x=-1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=3;   // de gauche vers haut droite
-      if tco[indextco,x,y].trajet=0 then affiche('Erreur 70 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
+      if tco[indextco,x,y].trajet=0 then
+        affiche('Erreur 70 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
 
     // croisement
@@ -10307,21 +10546,25 @@ begin
 end;
 
 // allume ou éteint (mode=0 ou 1) la voie du train "train", zone de det1 à det2 sur le TCO
+// AdrTrain = adresse du train
 // train est l'index du train qui a été créé par le roulage (tableau event_det_train[train] )
 // det1 et det2 doivent être consécutifs sur le TCO, mais peuvent être séparés par des aiguillages
-// si mode=0 : éteint
-//        =1 : couleur détecteur allumé
-//        =2 : couleur de l'index train
+// si mode=0 : éteint la voie
+//        =1 : allume la voie couleur détecteur allumé
+//        =2 : allume la voie couleur de l'index train
 //        =10 : arrêt sur trouvé canton, et renvoie le x,y du canton dans les variables globales xCanton,yCanton
-//        =11 : det1=indexcanton det2=direction -  renvoie les éléments adjacent du canton dans la direction indiquée dans xCanton
-//        =12 : det1 = détecteur de départ - renvoie l'élément sursuivant (peut être un aiguillage)dans la direction demandée
+//        =11 : det1=indexcanton det2=direction -  renvoie les éléments adjacent du canton dans la direction indiquée dans xCanton et tel1
+//        =12 : det1 = détecteur de départ - renvoie l'élément sursuivant (peut être un aiguillage)dans la direction demandée dans xCanton et tel1
+//              direction: 1=gauche  2=droite  3=bas  4=haut
 // Ne nécessite pas que les aiguillages en talon soient bien positionnés entre det1 et det2
-// passe par les aiguillages en pointe positionnés. Ne passe pas par un aiguillage en pointe inconnu.
-// procédure récursive quand on passe par un aiguillage en pointe pour explorer les éléments opposés
-procedure zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer);
+// PosAig = False:teste toutes les routes en récursif les aiguillages en pointe
+//          True: les aiguillages en pointe doivent être positionnés
+// en sortie : true si det2 a été trouvé
+//
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
 var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteration,indexIr,AdrTr,
     NbTrouve,AdrTr1,adrTr2 : integer;
-    memtrouve,sortir,casok,indextrouve : boolean;
+    memtrouve,sortir,indextrouve : boolean;
     s : string;
 
   // stocke la route dans le tableau, et incrémente l'index
@@ -10335,6 +10578,8 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
       exit;
     end;
 
+    // stocke le tracé
+    if debugTCO then AfficheDebug('Stocke en '+intToSTR(ir),clWhite);
     Trace_Train[indexTCO].train[train].route[ir].x:=x;
     Trace_Train[indexTCO].train[train].route[ir].y:=y;
     Trace_Train[indexTCO].train[train].Nombre:=ir;
@@ -10353,14 +10598,13 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
 
   // El_Tco : trouve l'élément en x,y et constuit la route à l'élément de destination suivant, suivant
   // les variables ancienX et ancienY
-  // x, y et ir sont locales pour des récursivités différentes, donc on les passe en paramètre pour transmettre à la
+  // AncienX,AncienY, x, y et ir sont locales pour des récursivités différentes, donc on les passe en paramètre pour transmettre à la
   // récursivité suivante leur valeur, mais elles reprennent leur valeurs initiales à la remontée vers la résursivité appellante.
-  Procedure El_tco(x,y,train : integer; ir : integer);
+  Procedure El_tco(AncienX,ancienY,x,y,train : integer; ir : integer);
   var mdl : Tequipement;
       i,j,index,position : integer;
-      posAig,SortirBoucle : boolean;
+      SortirBoucle,NePasfaire : boolean;
   begin
-    posAig:=true;
     // répète la route depuis un aiguillage
     inc(iteration);
     if DebugTCO then AfficheDebug('El_TCO',clorange);
@@ -10381,7 +10625,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
       end;
 
       Bimage:=tco[indextco,x,y].Bimage;
-      if adresse=det1 then ir:=1; // index de stockage de trace
+      //if adresse=det1 then ir:=1; // index de stockage de trace
       if debugTCO then
       begin
         s:='x='+intToSTR(x)+' y='+intToSTR(y)+' Elément='+intToSTR(Bimage);
@@ -10389,10 +10633,10 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
         if adresse=det1 then s:=s+' il s''agit du det1';
         AfficheDebug(s,clyellow);
       end;
-      casok:=false;
       // vers case suivante: trouver le trajet pour rejoindre det1 à det2
 
 
+      // si canton, prendre les coordonnées du canton
       if (Bimage>=id_cantonH) and (Bimage<=id_cantonH+9) then
       begin
         //if mode=10 then trouveCanton:=true;
@@ -10411,10 +10655,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
           Ycanton:=y-(Bimage-Id_cantonH);
         end;
         Bimage:=20;
-      end;   
+      end;
 
+      // spécial mode 11 et 12
+      nepasfaire:=(mode=12) and (adresse<>0) and (adresse<>det1);
+      nepasfaire:=(mode=11) and (adresse<>0) or nepasfaire;
+
+      if not(nepasFaire) then
       case Bimage of
-
       // voie
       1 : begin
             if debugTCO then
@@ -10429,7 +10677,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
       2 : begin
             yn:=y;
             if (ancienX<x) and (ancienY=y) then begin xn:=x+1;end;
-            if (ancienX<x) and (ancienY>y) then begin xn:=x+1;xn:=x+1;end;
+            if (ancienX<x) and (ancienY>y) then begin xn:=x+1;yn:=y;end;
             if (ancienX>x) and (ancienY=Y) then
             begin
               if not(posAig) or (posAig and (position=const_droit)) then
@@ -10437,7 +10685,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 ancienX:=x;
                 ancienY:=y;
                 dec(x);
-                el_tco(x,y,train,ir);   // essaye droit
+                el_tco(AncienX,AncienY,x,y,train,ir);   // essaye droit
                 inc(x);
               end;
               // essayer dévié
@@ -10445,20 +10693,20 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 AncienX:=x;AncienY:=y;
                 dec(x);inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
           end;
       3 : begin
-            if (ancienX>x) and (ancienY<=Y) then begin xn:=x-1;end;
+            if (ancienX>x) and (ancienY<=Y) then begin xn:=x-1;yn:=y;end; // pris en pointe
             if (ancienX<x) and (ancienY=y) then
             begin
               if not(posAig) or (posAig and (position=const_droit)) then
               begin
                 ancienX:=x;AncienY:=y;
                 inc(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(x);
               end;
               // essayer dévié
@@ -10466,7 +10714,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;AncienY:=y;
                 inc(x);dec(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10482,7 +10730,8 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 AncienX:=x;AncienY:=y;
                 inc(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
+                dec(x);
               end;
               // essayer dévié
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
@@ -10490,7 +10739,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 // essai dévié
                 AncienX:=x;AncienY:=y;
                 inc(x);inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10504,7 +10753,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienx:=x;ancieny:=y;
                 dec(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(x);
               end;
               // essayer dévié
@@ -10512,7 +10761,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 AncienX:=x;AncienY:=y;
                 dec(x);dec(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10533,7 +10782,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 inc(x);inc(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(x);dec(y);
               end;
               // essayer dévié
@@ -10542,7 +10791,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 // essai dévié
                 ancienX:=x;ancienY:=y;
                 inc(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir);
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10556,7 +10805,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                ancienX:=x;ancienY:=y;
                dec(x);inc(y);
-               el_tco(x,y,train,ir);
+               el_tco(ancienx,ancienY,x,y,train,ir); 
                inc(x);dec(y);
               end;
               // essayer dévié
@@ -10564,7 +10813,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 dec(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir);
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10578,7 +10827,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 dec(x);dec(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(x);inc(y);
               end;
               // essayer dévié
@@ -10587,7 +10836,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 // essai dévié
                 ancienX:=x;ancienY:=y;
                 dec(x);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10600,14 +10849,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                begin
                  ancienX:=x;ancienY:=y;
                  inc(x);dec(y);
-                 el_tco(x,y,train,ir);
+                 el_tco(ancienx,ancienY,x,y,train,ir); 
                  dec(x);inc(y);
                 end;
                 if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
                 begin
-                  ancienX:=x;ancienY:=y;;
+                  ancienX:=x;ancienY:=y;
                   inc(x);
-                  el_tco(x,y,train,ir); // nouvelle itération
+                  el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
                 end;
                 if (position=const_inconnu) and posaig then sortir:=true;
               end;
@@ -10623,7 +10872,6 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 AfficheDebug(s,clyellow);
               end;
              xn:=x;
-             casok:=true;
              if (ancienY<y) then yn:=y+1 else yn:=y-1;
            end;
       21 : begin
@@ -10641,14 +10889,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    // essayer vers E
                    ancienX:=x;ancienY:=y;
                    x:=x+1;
-                   el_tco(x,y,train,ir);
+                   el_tco(ancienx,ancienY,x,y,train,ir); 
                    if not(memtrouve) then
                    begin
                    // essai vers NE
                      AncienY:=y;
                      AncienX:=x-1;
                      y:=y-1;x:=x;
-                     el_tco(x,y,train,ir);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
                  end;
                  if (ancienX>x) and not(Memtrouve) then  // on va à gauche
@@ -10656,14 +10904,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    // essayer vers O
                    ancienX:=x;ancienY:=y;
                    x:=x-1;
-                   el_tco(x,y,train,ir);
+                   el_tco(ancienx,ancienY,x,y,train,ir); 
                    if not(memtrouve) then
                    begin
                    // essai vers SO
                      AncienY:=y;
                      AncienX:=x+1;
                      y:=y+1;x:=x;
-                     el_tco(x,y,train,ir);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
                  end;
                end;
@@ -10700,14 +10948,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    // essayer vers E
                    ancienX:=x;ancienY:=y;
                    x:=x+1;
-                   el_tco(x,y,train,ir);
+                   el_tco(ancienx,ancienY,x,y,train,ir); 
                    if not(memtrouve) then
                    begin
                      // essai vers SE
                      AncienY:=y;
                      AncienX:=x-1;
                      y:=y+1;x:=x;
-                     el_tco(x,y,train,ir);
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
                  end;
                  if (ancienX>x) and not(Memtrouve) then  // on va à gauche
@@ -10715,14 +10963,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    // essayer vers O
                    ancienX:=x;ancienY:=y;
                    x:=x-1;
-                   el_tco(x,y,train,ir);
+                   el_tco(ancienx,ancienY,x,y,train,ir); 
                    if not(memtrouve) then
                    begin
                      // essai vers NO
                      AncienY:=y;
                      AncienX:=x+1;
                      y:=y-1;x:=x;
-                     el_tco(x,y,train,ir);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
                  end;
                end;
@@ -10732,10 +10980,10 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
              // croisement
              begin
                if DebugTCO then AfficheDebug('croisement',clyellow);
-               if (ancienX<x) and (ancienY=Y) then begin casok:=true;xn:=x+1;end;
-               if (ancienX>x) and (ancienY=Y) then begin casok:=true;xn:=x-1;end;
-               if (ancienX>x) and (ancienY>Y) then begin casok:=true;xn:=x-1;yn:=y-1;end;
-               if (ancienX<x) and (ancienY<Y) then begin casok:=true;xn:=x+1;yn:=y+1;end;
+               if (ancienX<x) and (ancienY=Y) then begin xn:=x+1;end;
+               if (ancienX>x) and (ancienY=Y) then begin xn:=x-1;end;
+               if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=y-1;end;
+               if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=y+1;end;
              end;
              if (mdl=aig) then
              begin
@@ -10761,14 +11009,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       // essayer vers S
                       ancienX:=x;ancienY:=y;
                       y:=y+1;
-                      el_tco(x,y,train,ir);
+                      el_tco(ancienx,ancienY,x,y,train,ir); 
                       if not(memtrouve) then
                       begin
                         // essai vers SO
                         AncienY:=y-1;
                         AncienX:=x;
                         x:=x-1;
-                        el_tco(x,y,train,ir);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
                       end;
                     end;
                     if (ancienY>y) and not(Memtrouve) then  // on monte
@@ -10776,14 +11024,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       // essayer vers N
                       ancienX:=x;ancienY:=y;
                       y:=y-1;
-                      el_tco(x,y,train,ir);
+                      el_tco(ancienx,ancienY,x,y,train,ir); 
                       if not(memtrouve) then
                       begin
                         // essai vers NE
                         AncienY:=y+1;
                         AncienX:=x;
                         x:=x+1;
-                        el_tco(x,y,train,ir);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
                       end;
                     end;
                   end;
@@ -10816,14 +11064,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 dec(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 dec(x);dec(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10844,14 +11092,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       // essayer vers S
                       ancienX:=x;ancienY:=y;
                       y:=y+1;
-                      el_tco(x,y,train,ir);
+                      el_tco(ancienx,ancienY,x,y,train,ir); 
                       if not(memtrouve) then
                       begin
                         // essai vers SE
                         AncienY:=y-1;
                         AncienX:=x;
                         x:=x+1;
-                        el_tco(x,y,train,ir);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
                       end;
                     end;
                     if (ancienY>y) and not(Memtrouve) then  // on monte
@@ -10859,14 +11107,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       // essayer vers N
                       ancienX:=x;ancienY:=y;
                       y:=y-1;
-                      el_tco(x,y,train,ir);
+                      el_tco(ancienx,ancienY,x,y,train,ir); 
                       if not(memtrouve) then
                       begin
                         // essai vers NO
                         AncienY:=y+1;
                         AncienX:=x;
                         x:=x-1;
-                        el_tco(x,y,train,ir);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
                       end;
                     end;
                   end;
@@ -10897,14 +11145,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 dec(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 inc(x);dec(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10920,16 +11168,16 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               if not(posAig) or (posAig and (position=const_droit)) then
               begin
                 ancienX:=x;ancienY:=y;
-                y:=y+1;
+                inc(y);
                 // essayer droit
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 dec(x);inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10945,14 +11193,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;ancienY:=y;
                 inc(y);
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 inc(x);inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10969,14 +11217,14 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                 ancienX:=x;ancienY:=y;
                 inc(x);inc(y);
                 // essayer droit
-                el_tco(x,y,train,ir);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(x);dec(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -10993,15 +11241,15 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               if not(posAig) or (posAig and (position=const_droit)) then
               begin
                 ancienX:=x;ancienY:=y;
-                y:=y+1;x:=x-1;
-                el_tco(x,y,train,ir);
+                dec(x);inc(y);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(x);dec(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 inc(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -11017,15 +11265,15 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               if not(posAig) or (posAig and (position=const_droit)) then
               begin
                 ancienX:=x;ancienY:=y;
-                y:=y-1;x:=x-1;
-                el_tco(x,y,train,ir);
+                dec(x);dec(y);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 inc(x);inc(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 dec(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -11039,15 +11287,15 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               if not(posAig) or (posAig and (position=const_droit)) then
               begin
                 ancienX:=x;ancienY:=y;
-                y:=y-1;x:=x+1;
-                el_tco(x,y,train,ir);
+                inc(x);dec(y);
+                el_tco(ancienx,ancienY,x,y,train,ir); 
                 dec(x);inc(y);
               end;
               if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
               begin
                 ancienX:=x;ancienY:=y;
                 dec(y);
-                el_tco(x,y,train,ir); // nouvelle itération
+                el_tco(ancienx,ancienY,x,y,train,ir);  // nouvelle itération
               end;
               if (position=const_inconnu) and posaig then sortir:=true;
             end;
@@ -11059,15 +11307,15 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
            // fausse route, sortir
            if DebugTCO then
              AfficheDebug('Sortie de calcul route TCO'+intToSTR(indexTCO)+' par élement '+intToSTR(Bimage)+' inconnu en x='+intToSTR(x)+' y='+intToSTR(y)+' sur route '+intToSTR(det1)+' à '+intToSTR(det2),clOrange);
-           sortir:=true;
+           sortirBoucle:=true;
          end;
      end;
 
      but:=tco[indexTCO,x,y].buttoir;
 
      inc(i);
-     //if (mode=11) and ( (adresse<>0) and ((Bimage=1) or (Bimage=20)) or (tco[indexTCO,x,y].buttoir<>0)) then
-     if (mode=11) and ( (adresse<>0) and (not(isAigTCO(Bimage)) ) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
+     // éléments adj
+     if (mode=11) and ( (adresse<>0) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
      if (mode=12) and ( ((adresse<>0) and (adresse<>det1))  or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
 
      if (adresse=det2) and (adresse<>0) then memTrouve:=true;
@@ -11076,7 +11324,9 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
      if (i>200) or (iteration>200) then sortir:=true;
      Maj_coords(AncienX,AncienY,x,y);
    until sortir or memtrouve or SortirBoucle;
-   if DebugTCO and not(memtrouve) and not(sortir) then AfficheDebug('Fin de boucle dét '+intToSTR(det2)+' non trouvé',clOrange);
+   result:=memTrouve;
+   if DebugTCO and not(memtrouve) and not(sortir) then
+     AfficheDebug('Fin de boucle dét '+intToSTR(det2)+' non trouvé',clOrange);
 
    //mémoriser l'index de route si on a trouvé det2, et uniquement sur la première itération quand on l'a trouvé
    if memTrouve and not(indextrouve) then
@@ -11099,7 +11349,8 @@ begin
     if mode<>11 then AfficheDebug('Zone_TCO'+intToSTR(indexTCO)+' det1='+intToSTR(det1)+' det2='+intToSTR(det2)+' Train'+intToSTR(Train)+' mode='+intToSTR(mode),clWhite);
     if mode=11 then  AfficheDebug('Zone_TCO'+intToSTR(indexTCO)+' canton='+intToSTR(det1)+' dir='+intToSTR(det2)+' mode='+intToSTR(mode),clWhite);
   end;
-  if (IndexTCO<1) or (IndexTCO>NbreTCO) or (PcanvasTCO[indexTCO]=nil) then exit;
+  if (IndexTCO<1) or (IndexTCO>NbreTCO) then exit;
+  if (PcanvasTCO[indexTCO]=nil) and (mode<10) then exit;
 
   if (mode<=10) then
   begin
@@ -11156,28 +11407,32 @@ begin
       if mode<=10 then
       begin ancieny:=ydet1+1;ancienx:=xdet1+1;end
       else
-      begin ancieny:=det2+1; ancienx:=det1+1; end;
+      // vers gauche
+      begin ancieny:=y; ancienx:=x+1; end;
     end;
     2 : begin
       // du NO
       if mode<=10 then
       begin ancieny:=ydet1-1;ancienx:=xdet1-1;end
       else
-      begin ancieny:=det2-1; ancienx:=det1-1; end;
+      // vers droite
+      begin ancieny:=y; ancienx:=x-1; end;
     end;
     3 : begin
       // du SO
       if mode<=10 then
       begin ancieny:=ydet1+1;ancienx:=xdet1-1;end
       else
-      begin ancieny:=det2+1; ancienx:=det1-1; end;
+      // vers bas
+      begin ancieny:=y-1; ancienx:=x; end;
     end;
     4 : begin
       // du NE
       if mode<=10 then
       begin ancieny:=ydet1-1;ancienx:=xdet1+1;end
       else
-      begin ancieny:=det2-1; ancienx:=det1+1; end;
+      // vers haut
+      begin ancieny:=y+1; ancienx:=x; end;
     end;
 
     // uniquement modes 11/12: recherche élément à gauche
@@ -11209,7 +11464,7 @@ begin
       ycanton:=0;
     end;
 
-    El_tco(x,y,train,ir);  // *********** trouve l'élément suivant, et explore les ports de l'aiguillage en récursif
+    el_tco(ancienx,ancienY,x,y,train,ir);   // *********** trouve l'élément suivant, et explore les ports de l'aiguillage en récursif si posAig=true
 
     if (mode=11) and ((adresse<>0) or (but<>0) or sortir) then
     begin
@@ -11221,6 +11476,7 @@ begin
     if (mode=12) and (adresse<>det1) then
     begin
       Xcanton:=adresse;
+      if isAigTCO(Bimage) then Tel1:=aig else tel1:=det;
       Memtrouve:=true;
     end;
 
@@ -11254,7 +11510,6 @@ begin
         AdrTr:=Adrtr2;
         //Affiche(intToSTR(det1)+' '+intToSTR(det2)+' Mode '+intToSTR(mode)+' Le détecteur2 '+intToSTR(Det2)+ ' est affecté au train @'+intToSTR(AdrTr2),clYellow);
       end;
-      //Affiche_trajet(indexTCO,train,AdrTr,indexIr,mode);     // affiche le trajet dans le TCO
       Affiche_trajet(indexTCO,train,AdrTrain,indexIr,mode);     // affiche le trajet dans le TCO
     end;
   end;
@@ -11489,20 +11744,26 @@ begin
       left:=0;
     end;
 
-    if MasqueBandeauTCO then
+   // if MasqueBandeauTCO then
+    if bandeauMasque then
     begin
-      BandeauMasque:=true;
+      //BandeauMasque:=true;
       PanelBas.Hide;
       //ScrollBox.Height:=clientHeight;
-      ScrollBox.Height:=ClHaut-ScrollBox.Top-10;
+      ScrollBox.Height:=ClHaut-ScrollBox.Top-58;
     end
     else
     begin
       BandeauMasque:=false;
       PanelBas.show;
-      ScrollBox.Height:=ClHaut-PanelBas.Height-ScrollBox.Top-54;
+      ScrollBox.Height:=ClHaut-PanelBas.Height-ScrollBox.Top-58;
     end;
   end;
+end;
+
+procedure titre_fenetre(indexTCO : integer);
+begin
+  FormTCO[IndexTCO].Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
 end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
@@ -11512,7 +11773,7 @@ begin
   indextco:=index_TCO(sender);
   IndexTCOCourant:=indexTCO;
   if affevt or (debug=1) then Affiche('Form TCO'+intToSTR(indexTCO)+' activate',clyellow);
-  Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
+  titre_fenetre(indexTCO);
   if indexTCO=0 then exit;
   {initalisation des dimensions du tco - à ne faire qu'une fois}
   if not(Forminit[indexTCO]) then
@@ -11526,7 +11787,6 @@ begin
     LargeurCell[indexTCO]:=ImagePalette1.Width;
     LargeurCelld2[indexTCO]:=LargeurCell[indexTCO] div 2;hauteurCelld2[indexTCO]:=hauteurCell[indexTCO] div 2;
     calcul_reduction(frxGlob[indexTCO],fryGlob[indexTCO],LargeurCell[indexTCO],hauteurCell[indexTCO]);
-
 
     NbCellulesTCO[indexTCO]:=NbreCellX[indexTCO]*NbreCellY[indexTCO];
     ImageTCO.Width:=LargeurCell[indexTCO]*NbreCellX[indexTCO];
@@ -11569,7 +11829,7 @@ begin
   result:=true;
   verif:=false;
   if (bim>=Id_signal) or (AvecVerifIconesTCO=0) then exit;
-  //exit;
+
   res:=true;
   bl:=liaisons[Bim];
   for i:=0 to 7 do
@@ -11728,7 +11988,7 @@ begin
     begin
       tco[idT,i,yc].BImage:=1;
       tco[idT,i,yc].Texte:='';
-      tco[idT,i,yc].PiedFeu:=0;
+      tco[idT,i,yc].NumCanton:=0;
       tco[idT,i,yc].FeuOriente:=0;
     end;
   end
@@ -11739,7 +11999,7 @@ begin
     begin
       tco[idT,xc,i].BImage:=20;
       tco[idT,xc,i].Texte:='';
-      tco[idT,xc,i].PiedFeu:=0;
+      tco[idT,xc,i].NumCanton:=0;
       tco[idT,xc,i].FeuOriente:=0;
     end;
   end;
@@ -11775,6 +12035,7 @@ begin
   tco[indextco,x,y].CoulFonte:=0;
   // tco[indextco,x,y].CouleurFond:=0;
   tco[indextco,x,y].PiedFeu:=0;
+  tco[indexTCO,x,y].NumCanton:=0;
   tco[indextco,x,y].x:=0;
   tco[indextco,x,y].y:=0;
   tco[indextco,x,y].xUndo:=0;
@@ -11783,35 +12044,69 @@ begin
 end;
 
 procedure insere_colonne(indexTCO,colonne : integer);
-var x,y : integer;
+var x,y,i,Bim : integer;
 begin
   if NbreCellX[indexTCO]>=MaxCellX then exit;
+
+  // balayer les cantons pour corriger leurs coordonnées
+  for i:=1 to nCantons do
+  begin
+    x:=canton[i].x;
+    if x>=colonne then
+      inc(canton[i].x);
+  end;
+
+  // copie pour décaler
   for x:=NbreCellX[indexTCO] downto colonne do
   begin
-    for y:=1 to NbreCellY[indexTCO] do tco[indextco,x+1,y]:=tco[indextco,x,y];
+    for y:=1 to NbreCellY[indexTCO] do
+    begin
+      Bim:=tco[indexTco,x,y].Bimage;
+      if not(isCantonH(Bim)) then tco[indextco,x+1,y]:=tco[indextco,x,y];
+    end;
   end;
+
+  // efface la nouvelle ligne
   for y:=1 to NbreCellY[indexTCO] do
   begin
-    raz_cellule(indextco,colonne,y);
+    Bim:=tco[indexTco,colonne,y].Bimage;
+    if not(isCantonH(Bim)) then raz_cellule(indextco,colonne,y);
     tco[indextco,colonne,y].Couleurfond:=Clfond[IndexTCO];
   end;
+
   inc(NbreCellX[indexTCO]);
   tco_modifie:=true;
 end;
 
 procedure insere_ligne(indexTCO,ligne : integer);
-var x,y : integer;
+var x,y,i,Bim : integer;
 begin
   if NbreCellY[indexTCO]>=MaxCellY then exit;
-  for y:=NbreCellY[indexTCO] downto ligne do
-    for x:=1 to NbreCellX[indexTCO] do tco[indextco,x,y+1]:=tco[indextco,x,y];
 
+  // balayer les cantons pour corriger leurs coordonnées
+  for i:=1 to nCantons do
+  begin
+    y:=canton[i].y;
+    if y>=ligne then inc(canton[i].y);
+  end;
+
+  // insère la ligne
+  for y:=NbreCellY[indexTCO] downto ligne do
+    for x:=1 to NbreCellX[indexTCO] do
+    begin
+      Bim:=tco[indexTco,x,y].Bimage;
+      if not(isCantonV(Bim)) then tco[indextco,x,y+1]:=tco[indextco,x,y];
+    end;
+
+  // efface la nouvelle ligne
   for x:=1 to NbreCellX[indexTCO] do
   begin
-    raz_cellule(indextco,x,ligne);
+    Bim:=tco[indexTco,x,ligne].Bimage;
+    if not(isCantonV(Bim)) then raz_cellule(indextco,x,ligne);
     tco[indextco,x,ligne].Couleurfond:=Clfond[IndexTCO];
   end;
   inc(NbreCellY[indexTCO],1);
+
   tco_modifie:=true;
 end;
 
@@ -11867,7 +12162,6 @@ begin
   end;
 end;
 
-
 procedure stop_modetrace(indexTCO : integer);
 begin
   modetrace[indexTCO]:=false;
@@ -11879,8 +12173,6 @@ begin
   FormTCO[indexTCO].Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
   screen.cursor:=crDefault;
 end;
-
-
 
 procedure grille(indexTCO : integer);
 var x,y : integer;
@@ -11965,23 +12257,25 @@ end;
 
 procedure couper(indexTCO: integer);
 var x,y,xMax,Ymax,XCell1,YCell1,xCell2,yCell2,haut,larg,Bim : integer;
+    raz_canton: boolean;
 begin
   larg:=largeurCell[indexTCO];
   haut:=hauteurCell[indexTCO];
 
+  raz_canton:=false;
   if (XclicCell[indexTCO]=0) or (YclicCell[indexTCO]=0) then exit;
   //Affiche(intToSTR(ancienXclic)+' '+intToSTR(XclicCell[indexTCO]),clred);
   //if (AncienXclic=XclicCell[indexTCO]) and (AncienYclic=YclicCell[indexTCO]) then exit;
   AncienXclic:=XclicCell[indexTCO];
   AncienYclic:=YclicCell[indexTCO];
 
+  {
   with formTCO[indexTCO] do
   begin
     EditAdrElement.Text:='';
     EditTypeImage.Text:='';
     EditTexte.Text:='';
-  end;
-
+  end;  }
 
   // couper par la fenetre graphique
   if FormTCO[indexTCO].RadioGroupSel.ItemIndex=1 then
@@ -12015,19 +12309,20 @@ begin
   // couper sans sélection : on coupe une seule cellule
   if not(SelectionAffichee[indexTCO]) then
   begin
-    // si c'est un canton, le supprimer en remplacent par les voies
+    // si c'est un canton, le supprimer en remplaçant par les voies
     Bim:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage;
     if isCanton(Bim) then
     begin
       bim:=index_canton(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
       supprime_remplace_canton(bim);
+      raz_canton:=true;
     end;
 
     tampontco[XclicCell[indexTCO],YclicCell[indexTCO]]:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]]; // pour pouvoir faire annuler couper
     TamponTCO_org.x1:=XclicCell[indexTCO];TamponTCO_org.y1:=YclicCell[indexTCO];
     TamponTCO_org.x2:=XclicCell[indexTCO];TamponTCO_org.y2:=YclicCell[indexTCO];
 
-    raz_cellule(indextco,XclicCell[indexTCO],YClicCell[indexTCO]);
+    if not(raz_canton) then raz_cellule(indextco,XclicCell[indexTCO],YClicCell[indexTCO]);
 
     TamponTCO_org.numTCO:=indexTCO;
     efface_entoure(indexTCO);
@@ -12320,7 +12615,7 @@ var n,iD,xg,yg : integer;
     horizontal : boolean;
 begin
   if affevt then affiche('Debut_drag_train',clYellow);
-  Id:=Index_canton_numero(Tco[indexTCO,x,y].PiedFeu);
+  Id:=Index_canton_numero(Tco[indexTCO,x,y].NumCanton);
   if id=0 then exit;
   n:=canton[Id].Nelements;
   horizontal:=canton[Id].horizontal;
@@ -12384,14 +12679,14 @@ begin
   if (TCODrag<>indexTCO) then
   begin
     accept:=false;
-    exit; // le drag source et destination sont différents
+    exit; // le drag tco source et destination sont différents
   end;
   xl:=x+offsetSourisX;
   yl:=y+offsetSourisY;
   Accept:=source is TImage;
-  if drag=1 then
+  if drag=1 then // icone de TCO
   begin
-    if affevt then Affiche('TCO'+intToSTR(IndexTCO)+' DragOver type1',clyellow);
+    if affevt then Affiche('TCO'+intToSTR(IndexTCO)+' DragOver type1 x='+intToSTR(x)+' y='+intToSTR(y),clyellow);
     // canvasTCO<-oldBMP  restitue l'ancien en oldx,oldy fond avant le nouveau
     BitBlt(PImageTCO[indexTCO].canvas.handle,oldx,oldy,LargeurCell[indexTCO],hauteurCell[indexTCO],oldbmp.canvas.handle,0,0,SRCCOPY); // remettre la sauvegarde du bitmap à l'ancienne position souris
     // oldbmp(0,0)<-canvasTCO(x1,y1)  sauve le nouveau bitmap en x1,y1
@@ -12401,9 +12696,10 @@ begin
     BitBlt(PImageTCO[indexTCO].canvas.handle,xl,yl,LargeurCell[indexTCO],hauteurCell[indexTCO],FormTCO[indexTCO].imagetemp.canvas.handle,0,0,SRCCOPY);  // copier l'icone vers la souris
     PImageTCO[IndexTCO].Repaint;
   end;
-  if drag=2 then
+  if drag=2 then // loco
   begin
-    if affevt then Affiche('TCO'+intToSTR(IndexTCO)+' DragOver type2',clyellow);
+    //if affevt then
+    //Affiche('TCO'+intToSTR(IndexTCO)+' DragOver type2 x='+intToSTR(x)+' y='+intToSTR(y),clyellow);
     // canvasTCO<-oldBMP  restitue l'ancien en oldx,oldy fond avant le nouveau
     BitBlt(PCanvasTCO[indexTCO].handle,oldx,oldy,LDrag,hDRag,oldbmp.canvas.handle,0,0,SRCCOPY); // remettre la sauvegarde du bitmap à l'ancienne position souris
     // oldbmp(0,0)<-canvasTCO(x1,y1)  sauve le nouveau bitmap en x1,y1
@@ -12412,6 +12708,7 @@ begin
     // canvasTCO(x1,y1)<-ImageTemp(0,0)
     BitBlt(PcanvasTCO[indexTCO].handle,xl,yl,Ldrag,hDrag,FormTCO[indexTCO].imagetemp.canvas.handle,0,0,SRCCOPY);  // copier l'icone vers la souris
     PImageTCO[IndexTCO].Repaint;
+
   end;
 end;
 
@@ -12514,8 +12811,15 @@ begin
       if ((bim<>1) and (bim<>20)) or (Ncantons>=MaxCantons) then
       begin
         Affiche_TCO(indexTCO);
-        exit;
-      end;
+         s:='Un canton doit être déposé sur un élément horizontal ou vertical d''au moins 3 cases';
+         formTCO[indexTCO].Caption:=s;
+         Affiche_TCO(indexTCO);
+         FormInfo.LabelInfo.caption:=s;
+         FormInfo.Top:=Y+20;
+         FormInfo.Left:=X+50;
+         FormInfo.Show;
+         exit;
+       end;
 
       for i:=0 to 2 do
       begin
@@ -12523,7 +12827,13 @@ begin
         begin
           if (tco[indexTCO,Xclic+i,Yclic].BImage<>1) or (tco[indexTCO,Xclic+i,Yclic].Adresse<>0) then
           begin
+            s:='Un canton doit être déposé sur un élément horizontal ou vertical d''au moins 3 cases';
+            formTCO[indexTCO].Caption:=s;
             Affiche_TCO(indexTCO);
+            FormInfo.LabelInfo.caption:=s;
+            FormInfo.Top:=Y+20;
+            FormInfo.Left:=X+50;
+            FormInfo.Show;
             exit;
           end;
         end;
@@ -12531,13 +12841,37 @@ begin
         begin
           if (tco[indexTCO,Xclic,Yclic+i].BImage<>20) or (tco[indexTCO,Xclic,Yclic+i].Adresse<>0) then
           begin
+            s:='Un canton doit être déposé sur un élément horizontal ou vertical d''au moins 3 cases';
+            formTCO[indexTCO].Caption:=s;
             Affiche_TCO(indexTCO);
+            FormInfo.LabelInfo.caption:=s;
+            FormInfo.Top:=Y+20;
+            FormInfo.Left:=X+50;
+            FormInfo.Show;
             exit;
           end;
         end;
       end;
 
-      //pour le numéro de canton,
+      // l'un des deux éléments du canton doit être un détecteur
+      canton[Ncantons+1].Nelements:=3;
+      canton[Ncantons+1].x:=Xclic;
+      canton[Ncantons+1].y:=Yclic;
+      canton[Ncantons+1].Ntco:=indexTCO;
+      renseigne_canton(Ncantons+1,Bim=1);
+      if (canton[Ncantons+1].typ1<>det) and (canton[Ncantons+1].typ2<>det) then
+      begin
+        s:='Un canton doit avoir un détecteur comme élément adjacent';
+        formTCO[indexTCO].Caption:=s;
+        Affiche_TCO(indexTCO);
+        FormInfo.LabelInfo.caption:=s;
+        FormInfo.Top:=Y+20;
+        FormInfo.Left:=X+50;
+        FormInfo.Show;
+        exit;
+      end;
+
+      // pour le numéro de canton,
       maxi:=0;
       for nc:=1 to nCantons do
       begin
@@ -12555,13 +12889,19 @@ begin
       canton[Ncantons].nom:='';
       canton[Ncantons].Ntco:=indexTCO;
       canton[Ncantons].indexTrain:=0;
+      canton[Ncantons].adresseTrain:=0;
+      canton[Ncantons].NomTrain:='';
+      canton[Ncantons].SensLoco:=0;
+      canton[Ncantons].NumcantonOrg:=0;
+      canton[Ncantons].NumCantonDest:=0;
+      canton[Ncantons].bouton:=0;
       tco[indextco,XClic,YClic].Texte:='';
       tco[indexTCO,XClic,YClic].FeuOriente:=3;  // nbre éléments du canton
-      tco[indexTCO,XClic,YClic].PiedFeu:=Maxi;
+      tco[indexTCO,XClic,YClic].NumCanton:=Maxi;
 
       if Bim=1 then for i:=1 to 3 do tco[indextco,XClic+i-1,YClic].BImage:=id_cantonH+i-1;
       if Bim=20 then for i:=1 to 3 do tco[indextco,Xclic,YClic+i-1].BImage:=id_cantonV+i-1;
-      dessin_canton(Ncantons,0,0);
+      dessin_canton(Ncantons,0);
       renseigne_canton(Ncantons);
     end;
   end;
@@ -13339,7 +13679,7 @@ end;
 // sélectionne le canton du tco, qui a été cliqué à la souris
 procedure selec_canton(indexTCO : integer);
 var i,idTrain,Bimage,xt,yt,xclic,yclic : integer;
-    s : string;
+    s,s1,s2 : string;
 begin
   xclic:=XclicCell[indexTCO];
   yclic:=YclicCell[indexTCO];
@@ -13350,54 +13690,73 @@ begin
   begin
     xt:=xClic-(Bimage-Id_cantonH);
     yt:=yClic;
-    IdCantonSelect:=index_canton_numero(TCO[IndexTCO,xt,yt].PiedFeu);
+    IdCantonSelect:=index_canton_numero(TCO[IndexTCO,xt,yt].NumCanton);
   end;
   if IscantonV(Bimage) then
   begin
     yt:=yClic-(Bimage-Id_cantonV);
     xt:=xClic;
-    IdCantonSelect:=index_canton_numero(TCO[IndexTCO,xt,yt].PiedFeu);
+    IdCantonSelect:=index_canton_numero(TCO[IndexTCO,xt,yt].NumCanton);
   end;
-  //Affiche('Selection canton id='+intToSTR(IdCantonSelect)+' num='+intToSTR(TCO[IndexTCO,xt,yt].PiedFeu),clYellow);
+  //Affiche('Selection canton id='+intToSTR(IdCantonSelect)+' num='+intToSTR(TCO[IndexTCO,xt,yt].NumCanton),clYellow);
   if (IdCantonSelect<1) or (IdCantonSelect>ncantons) then begin Affiche('Anomalie 5 : '+intToSTR(IdCantonSelect),clred);exit;end;
   // provoque l'affichage du canton en mode sélection (1)
-  Dessin_canton(IdCantonSelect,1,0);
+  Dessin_canton(IdCantonSelect,1);
 
   canton[IdCantonSelect].maxi:=99999;   // limites d'autorisation de glissage des poignées au maxi
   canton[IdCantonSelect].mini:=0;
   deja_calcule:=false;
-  //adresse:=index_canton_numero(TCO[IndexTCO,xt,yt].PiedFeu);  //???
+  //adresse:=index_canton_numero(TCO[IndexTCO,xt,yt].NumCanton);  //???
   idTrain:=canton[IdCantonSelect].IndexTrain;
 
   actualise_seltrains;
 
+  if idcantonSelect=0 then exit;
   s:='Canton ';
-  if IdCantonSelect<>0 then
+  s:=s+intToSTR(canton[IdCantonSelect].numero)+' '+canton[idcantonselect].nom;
+  s1:=s;
+  i:=canton[IdCantonSelect].indexTrain;
+  if (i>0) and (i<=Ntrains) then
   begin
-    s:=s+intToSTR(canton[IdCantonSelect].numero);
-    i:=canton[IdCantonSelect].indexTrain;
-    if i<>0 then
-    begin
-      s:=s+#13+'Occupé par le train n°'+intToSTR(i)+' '+canton[IdCantonSelect].NomTrain+' '+ #13;
-      s:=s+'Adresse='+intToSTR(trains[i].adresse);
-    end;
+    s2:='Occupé par le train n°'+intToSTR(i)+' '+canton[IdCantonSelect].NomTrain+' '+ #13;
+    s2:=s2+'Adresse='+intToSTR(trains[i].adresse);
   end;
-  formTCO[indexTCO].imageTCO.hint:=s;
+
+  {$IF CompilerVersion < 28.0}
+  formTCO[indexTCO].imageTCO.hint:=s1+#13+s2;
+  {$IFEND}
+
+  {$IF CompilerVersion >= 28.0}
+  with formTCO[indexTCO] do
+  begin
+    BallonHint.Title:=s1;
+    BallonHint.Description:=s2;
+    BallonHint.Style:=bhsBalloon;
+    BallonHint.HideAfter:=4000;
+    x:=canton[IdCantonSelect].x*LargeurCell[indexTCO];
+    y:=canton[IdCantonSelect].y*HauteurCell[indexTCO]-HauteurCell[indexTCO] div 2;
+    ballonhint.ShowHint(formTCO[indexTCO].ClientToScreen(point(x,y))); // affiche le ballonHint
+ end;
+ {$IFEND}
 end;
 
 // évènement qui se produit quand on clique gauche ou droit
 procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
 var position : Tpoint;
-    xt,yt,bt,indexTCO,i,n,adresse,Bimage,xf,yf,xclic,yclic,IdCanton : integer;
+    Numcanton,xt,yt,bt,indexTCO,i,n,adresse,Bimage,xf,yf,xclic,yclic,el1,el2,senscanton,larg,haut,
+    indexTrain,idcantonOrg,AdrTrain : integer;
+    tel1,tel2 : tequipement;
     s : string;
+    presTrain : boolean;
 begin
   indexTCO:=index_tco(sender);
   GetCursorPos(Position);
   Position:=ImageTCO.screenToCLient(Position);
 
+  larg:=LargeurCell[indextco];
+  haut:=HauteurCell[indextco];
   Xclic:=position.X div LargeurCell[indexTCO] + 1;
   Yclic:=position.Y div hauteurCell[indexTCO] + 1;
-
   if button=mbLeft then
   begin
     //Affiche('TCO'+intToSTR(indexTCO)+' souris clicG enfoncée',clYellow);
@@ -13413,25 +13772,200 @@ begin
     clicsouris:=true;
     Bimage:=tco[indextco,xclic,yclic].BImage;
 
+    // clic sur canton
+    if isCanton(Bimage) then
+    begin
+      IdCantonClic:=index_canton(indexTCO,xclic,yclic);
+      if IdCantonClic>0 then
+      begin
+        s:='Canton '+intToSTR(canton[IdCantonClic].numero)+' '+canton[idcantonClic].nom+#13;
+        i:=canton[IdCantonClic].indexTrain;
+        if (i>0) and (i<=Ntrains) then
+        begin
+          s:=s+'Occupé par le train n°'+intToSTR(i)+' '+canton[IdCantonClic].NomTrain+' '+ #13;
+          s:=s+'Adresse='+intToSTR(trains[i].adresse);
+        end;
+        ImageTCO.hint:=s;
+      end;
+    end
+
+    else
+      IdCantonSelect:=0;  // pas cliqué sur un canton
+
+
     // ------------------ si clic sur bouton canton
-    IdCanton:=passe_bouton_canton(indexTCO,x,y);
-    if Idcanton>0 then
+    IdCantonClic:=passe_bouton_canton(indexTCO,x,y);
+    if (IdCantonClic>0) and not(ConfCellTCO) then
     begin
       //Affiche('Clic'+IntToSTR(IdCanton),clYellow);
-      bt:=canton[IdCanton].bouton;
+      bt:=canton[IdCantonClic].bouton;
       case bt of
         0 : bt:=1;
         1 : bt:=2;
         2 : bt:=0;
       end;
-      canton[IdCanton].bouton:=bt;
-      Dessin_canton(Idcanton,0,bt);
+      canton[IdCantonClic].bouton:=bt;
+      Dessin_canton(IdCantonClic,0);     // colore le bouton en bt
+      el1:=canton[IdCantonClic].el1;tel1:=canton[IdCantonClic].typ1;
+      el2:=canton[IdCantonClic].el2;tel2:=canton[IdCantonClic].typ2;
+
+      // coordonnées du bouton en xt,yt
+      n:=canton[IdCantonClic].Nelements;
+      if canton[IdCantonClic].horizontal then
+      begin
+        xt:=(canton[IdCantonClic].x+n-2)*larg;
+        yt:=(canton[IdCantonClic].y-1)*Haut;
+      end
+      else
+      begin
+        xt:=(canton[IdCantonClic].x-1)*LargeurCell[indextco];
+        yt:=(canton[IdCantonClic].y+n-2)*HauteurCell[indexTCO];
+      end;
+
+      // pas de départ en mode CDM
+      if Cdm_Connecte then
+      begin
+        FormTCO[IndexTCO].Caption:='Les routes sont incompatibles en mode CDM rail';
+        exit;
+      end;
+
+      // validation détecteur départ si pas de départ défini
+      if (detdepart=0) and (bt<3) and not(ConfCellTCO) then     //  bt=3 drapeau vert 4=drapeau rouge
+      begin
+        indexTrain:=canton[IdCantonClic].indexTrain;
+        if indexTrain=0 then exit;         // si pas de train affecté au canton
+        if trains[indexTrain].roulage<>0 then
+        begin
+          ImageTCO.hint:='Canton occupé par train '+canton[IdCantonClic].NomTrain;
+          imageTCO.ShowHint:=true;
+          exit; // si route en cours, ne rien faire
+        end;
+        //voir si det1 ou det2 est occupé
+        titre_fenetre(indexTCO);
+        PresTrain:=false;
+        if tel1=det then presTrain:=detecteur[el1].Etat;
+        if tel2=det then presTrain:=detecteur[el2].Etat or PresTrain;
+        if not(PresTrain) then
+        begin
+          FormTCO[IndexTCO].Caption:='Attention, aucun train n''est physiquement présent dans le canton pour définir une route - Aucun des deux détecteurs encadrant le canton n''est à 1';
+          exit;
+        end;
+        if tel1=det then detDepart:=el1;
+        if tel2=det then detDepart:=el2;
+        cantonOrg:=canton[IdCantonClic].numero;
+        canton[IdCantonClic].NumCantonOrg:=cantonOrg;
+        sensCanton:=canton[IdCantonClic].sensLoco;
+        case sensCanton of // sens de la loco dans le canton
+          sensGauche : begin sens:=5;end;
+          sensDroit : begin sens:=6;end;
+          SensHaut : begin sens:=7;end;
+          SensBas : begin sens:=8;end;
+        end;
+        //Affiche('Départ depuis '+intToSTR(detDepart),clLime);
+        formTCO[indexTCO].caption:='Route depuis détecteur '+intToSTR(detDepart);
+        idcantonRoute:=IdCantonClic;
+        ImageTCO.Hint:='Départ depuis canton '+intToSTR(canton[IdCantonClic].numero)+' dét='+intToSTR(detDepart);
+        Screen.Cursor:=crUpArrow; //crHourGlass;
+
+        // image du drapeau vert
+        canton[IdCantonClic].bouton:=3;
+        dessin_canton(IdCantonClic,0);
+        canton[idCantonClic].AdrTrainRoute:=Trains[indexTrain].adresse;
+        //trains[IndexTrain].Det_depart:=DetDepart;
+        formroute.close;
+      end
+      else
+      begin
+        // detdépart validé : valider le det de destination
+        if (detatrouve=0) and (bt<3) and not(ConfCellTCO) then // bt=3 drapeau vert bt=4 drapeau rouge
+        begin
+          if canton[IdCantonClic].adresseTrain<>0 then
+          begin
+            ImageTCO.Hint:='Canton occupé par train '+canton[IdCantonClic].nomtrain;
+            exit;
+          end;
+          if tel1=det then detatrouve:=el1;
+          if tel2=det then detatrouve:=el2;
+          cantonDest:=canton[IdCantonClic].numero;
+          canton[IdCantonClic].NumCantonOrg:=cantonOrg;
+          canton[IdCantonClic].NumCantonDest:=cantonDest; // c'est lui meme
+          idcantonOrg:=index_canton_numero(cantonOrg);
+          canton[idcantonOrg].NumcantonOrg:=cantonOrg;
+          canton[idcantonOrg].NumcantonDest:=cantonDest;
+
+          //Affiche('Arrivée en '+intToSTR(detatrouve),clLime);
+          ImageTCO.Cursor:=crDefault;
+          // trouve les routes  - sens du canton d'origine
+          sensCanton:=canton[IdCantonOrg].sensLoco;
+          case sensCanton of // sens de la loco dans le canton
+            sensGauche : begin sens:=5;end;
+            sensDroit : begin sens:=6;end;
+            SensHaut : begin sens:=7;end;
+            SensBas : begin sens:=8;end;
+          end;
+
+          // affiche la fenetre des routes ou de la route affectée au train,
+          indexTrain:=canton[IdCantonOrg].indexTrain;
+          if indexTrain>9000 then
+          begin
+            Affiche('Anomalie 627',clred);
+            messageBeep(Mb_iconError);
+            exit;
+          end;
+
+          formTCO[indexTCO].Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
+          Screen.cursor:=crDefault;
+
+          // drapeau rouge : 4
+          canton[IdCantonClic].bouton:=4;
+          canton[idCantonClic].AdrTrainRoute:=Trains[indexTrain].adresse;
+          dessin_canton(IdCantonClic,0);
+          FormTCO[IndexTCO].Caption:='Calcul des routes en cours.....................';
+          application.processMessages;
+          prepare_route(detDepart,detAtrouve,sens);   // à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
+          if trains[indexTrain].route[0].adresse<>0 then formRouteTrain.show else formRoute.show;
+          titre_Fenetre(indexTCO);
+          detatrouve:=0;
+          detDepart:=0;
+
+          exit;
+        end;
+        // on clique sur le drapeau vert ou rouge
+        if (bt>=3) then   // canton de départ ou destination
+        begin
+          // est-ce un canton de destination?
+          Numcanton:=canton[IdCantonClic].numero;
+          if canton[IdCantonClic].NumCantonDest=NumCanton then
+          begin
+            Numcanton:=canton[IdCantonClic].NumcantonOrg;   // revenir au canton origine de la route
+            IdCantonClic:=index_canton_numero(NumCanton);
+          end;
+
+          // indexTrainFR:=canton[IdCantonClic].AdrTrainRoute;  // train concerné par la route. Ne pas utiliser car si on clique sur
+          indexTrain:=canton[IdCantonClic].indexTrain;
+          // la route dans la fenêtre des routes alors que le train n'est pas dans le canton (la route est démarrée) alors le
+          // train disparaît du canton ( canton[].indexTrain repasse à 0)
+          //if indexTrainFR<>0 then
+          if indextrain<>0 then
+          begin
+            indexTrainFR:=IndexTrain;  // la formRouteTrain utilise IndexTrainFR
+            if (trains[indexTrain].route[0].adresse<>0) then formRouteTrain.show else formRoute.show;
+          end;
+          AdrTrain:=canton[IdCantonClic].AdrTrainRoute;
+          if AdrTrain<>0 then
+          begin
+            IndexTrain:=index_train_adresse(AdrTrain);
+            ImageTCO.Hint:='Route affectée au train '+Trains[indexTrain].nom_train;
+          end
+        end;
+      end;
       exit;
     end
     else
 
     // ------------------ traitement clic sur canton sélectionné : le désélectionner
-    if IdCantonSelect<>0 then
+    titre_fenetre(indexTCO);
+    if (IdCantonSelect<>0) and not(ConfCellTCO) then
     begin
       if accroche_canton(indexTCO,IdCantonSelect,x,y) then exit;   // on a pas cliqué sur les poignées
       begin
@@ -13440,19 +13974,24 @@ begin
         //Affiche('Desel',clred);
         xt:=canton[IdCantonSelect].x;
         yt:=canton[IdCantonSelect].y;
-        IdCanton:=index_canton_numero(TCO[IndexTCO,xt,yt].PiedFeu);
+        IdCantonClic:=index_canton_numero(TCO[IndexTCO,xt,yt].NumCanton);
         Affiche_rectangle_canton(indexTCO,IdCantonSelect);  // efface la sélection
-        Dessin_canton(Idcanton,0,bt);
+        Dessin_canton(IdCantonClic,0);
+        AncienIdCantonSelect:=IdCantonSelect;
         IdCantonSelect:=0;
+        exit;
       end;
     end;
 
+    // ne pas mettre de else sinon confusion entre le clic et le double clic du canton
     // ------------------ traitement clic sur canton non sélectionné : le sélectionner
     begin
-      if IsCanton(Bimage) then
+      if IsCanton(Bimage) and not(ConfCellTCO) then
       begin
+        formRoute.Close;
         selec_canton(indexTCO);
         actualise(indexTCO);   // actualise la fenetre de paramétrage
+        ImageTCO.Hint:='canton '+intToSTR(canton[IdCantonSelect].numero);
         exit;
       end;
     end;
@@ -13631,7 +14170,7 @@ begin
     end;
 
     // si clic souris en mode fenetre graphique: initialisation du rectangle bleu de sélection graphique
-    if (RadioGroupSel.ItemIndex=1) then
+    if (RadioGroupSel.ItemIndex=1) and not(ConfCellTCO) then
     begin
       if not(selectionAffichee[indexTCO]) then
       begin
@@ -13708,7 +14247,7 @@ begin
       if IsAigTCO(Bimage) then
       begin
         adresse:=tco[IndexTCO,xClic,yClic].Adresse;
-        if adresse=0 then  s:='Aiguillage sans adresse'
+        if adresse=0 then s:='Aiguillage sans adresse'
         else
         begin
           i:=index_aig(adresse);
@@ -13741,16 +14280,16 @@ begin
           // réservation
           n:=aiguillage[i].AdrTrain;
           if n<>0 then s:=s+#13+'Réservé par train '+intToSTR(n);
-      end;
-      ImageTCO.Hint:=s;
-    end
-    else ImageTCO.Hint:='';
+        end;
+        ImageTCO.Hint:=s;
+      end
+      else ImageTCO.Hint:='';
 
-    if Xclic>NbreCellX[indexTCO] then exit;
-    if Yclic>NbreCellY[indexTCO] then exit;
-    //if cantonSelect<>0 then exit;
-    if not(selectionaffichee[indexTCO]) then _entoure_cell_clic(indexTCO);
-    actualise(indexTCO);    // actualise la fenetre de config cellule
+      if Xclic>NbreCellX[indexTCO] then exit;
+      if Yclic>NbreCellY[indexTCO] then exit;
+      //if cantonSelect<>0 then exit;
+      if not(selectionaffichee[indexTCO]) then _entoure_cell_clic(indexTCO);
+      actualise(indexTCO);    // actualise la fenetre de config cellule
     end;
 
     clicTCO:=false;
@@ -13785,12 +14324,13 @@ begin
     CheckPinv.Checked:=tco[indextco,XClicCellInserer,YClicCellInserer].inverse;
     clicTCO:=false;
   end;
+  titre_fenetre(indexTCO);
 end;
 
 
 procedure TFormTCO.ImageTCOMouseMove(Sender: TObject; Shift: TShiftState;X, Y: Integer);
 var r : Trect;
-    idTrain,indexTCO,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP,larg,haut,IdCanton : integer;
+    Bim,idTrain,indexTCO,xMiniSelP,yMiniSelP,xMaxiSelP,yMaxiSelP,larg,haut,IdCanton : integer;
     ok : boolean;
 begin
 //  if affevt then Affiche('ImageTCOMouseMove',clLime);
@@ -13817,6 +14357,7 @@ begin
     // vérifier si sélection canton
     if IdCantonSelect<>0 then
     begin
+      //Affiche('Acc',clOrange);
       if Accroche_canton(IndexTCO,IdCantonSelect,x,y) then exit;
 
       idTrain:=canton[IdCantonSelect].indexTrain;
@@ -13826,7 +14367,6 @@ begin
         exit;
       end;
       exit;
-
     end;
     // vérifier si on passe au dessus d'un bouton canton
     IdCanton:=passe_bouton_canton(indexTCO,x,y);
@@ -13835,16 +14375,16 @@ begin
       PimageTCO[indexTCO].Cursor:=crHandPoint;
     end
     else PimageTCO[indexTCO].Cursor:=CrDefault;
-
   end;
+
+  if idcantonselect<>0 then exit;
 
   aSourisx:=x;
   aSourisy:=y;
 
   if selecBouge then exit;
   if Temposouris>0 then exit;
-  // Affiche('*',cllime);
-  //affiche(intToSTR(y),clorange);
+  //affiche(intToSTR(cellx),clorange);
 
 
   if (AncienXClicCell=CellX) and (AncienYClicCell=CellY) then exit;
@@ -13858,6 +14398,7 @@ begin
   if CellX>NbreCellX[indexTCO] then exit;
   if CellY>NbreCellY[indexTCO] then exit;
 
+  // si dessin voies tco
   if modeTrace[indexTCO] then
   begin
     if indexTrace>0 then
@@ -13902,7 +14443,11 @@ begin
   TpsBougeSouris:=5;
   if not(clicsouris) or (temposouris>0) then exit;
 
-  //Affiche('ajuste rect',clWhite);
+
+  Bim:=Tco[IndexTCO,cellx,celly].Bimage;
+  //Affiche('ajuste rect '+intToSTR(Bim)+' '+intToSTR(cellx)+' '+intToSTR(celly),clWhite);
+  if isCanton(Bim) then exit;      // évite de tirer une sélection bleue depuis un TCO
+
   larg:=largeurCell[indexTCO];
   haut:=hauteurCell[indexTCO];
 
@@ -13988,7 +14533,7 @@ begin
         Nelements:=n;
         tco[indexTCO,xc,yc].Texte:='';
         tco[IndexTCO,NouvX,yc].FeuOriente:=n;  // nouveau nombre d'éléments
-        tco[IndexTCO,NouvX,yc].piedFeu:=canton[IdCantonSelect].numero;
+        tco[IndexTCO,NouvX,yc].NumCanton:=canton[IdCantonSelect].numero;
         Tco[IndexTCO,NouvX,yc].texte:=Tco[IndexTCO,xc,yc].texte;
         Tco[IndexTCO,NouvX,yc].train:=Tco[IndexTCO,xc,yc].train;
         canton[IdCantonSelect].x:=NouvX;
@@ -14022,7 +14567,7 @@ begin
         Nelements:=n;
         tco[indexTCO,xc,yc].Texte:='';
         tco[IndexTCO,xc,NouvY].FeuOriente:=n;
-        tco[IndexTCO,xc,NouvY].piedFeu:=canton[IdCantonSelect].numero;
+        tco[IndexTCO,xc,NouvY].NumCanton:=canton[IdCantonSelect].numero;
         Tco[IndexTCO,xc,Nouvy].train:=Tco[IndexTCO,xc,yc].train;
         Tco[IndexTCO,xc,Nouvy].Texte:=Tco[IndexTCO,xc,yc].texte;
         canton[IdCantonSelect].y:=NouvY;
@@ -14070,8 +14615,9 @@ procedure TFormTCO.EditAdrElementChange(Sender: TObject);
 var Adr,erreur,index,indexTCO : integer;
     s: string;
 begin
+  exit;
   //Affiche('Chgt adresse',clyellow);
-  if clicTCO or ConfCellTCO then exit;
+  if clicTCO or not(ConfCellTCO) then exit;
   clicTCO:=true;
   auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les touches curseur s'applique au Tedit)
   indexTCO:=index_TCO(sender);
@@ -14147,7 +14693,7 @@ begin
       end;
 end;
 
-// affiche les cellules des tco dont l'adresse d'aiguillage est adresse
+// affiche les cellules des tco dont l'adresse d'aiguillage/dét est adresse
 Procedure Texte_aig_fond(adresse : integer);
 var ntco,x,y,Bim : integer;
 begin
@@ -14160,7 +14706,7 @@ begin
         for x:=1 to NbreCellX[ntco] do
         begin
           Bim:=TCO[ntco,x,y].BImage;
-          if IsAigTCO(Bim) then
+          //if IsAigTCO(Bim) then
           begin
             if TCO[ntco,x,y].Adresse=adresse then
             begin
@@ -14481,6 +15027,7 @@ begin
   Affiche_TCO(indexTCO);
   SelectionAffichee[indexTCO]:=false;
   Rect_select.NumTCO:=0;
+  AncienIdCantonSelect:=IdCantonSelect;
   IdCantonSelect:=0;
 
   tabstop:=false;
@@ -14542,7 +15089,7 @@ begin
   aiguillage[Index_Aig(117)].position:=const_devie;
 
   //debugTco:=true;
-  zone_tco(1,527,519,1,0,1);
+  zone_tco(1,527,519,1,0,1,false);
  //   zone_tco(518,515,1);
 
   //zone_tco(522,514,1);
@@ -14581,6 +15128,7 @@ begin
   clicsouris:=false;
   auto_tcurs:=true;  // autorise le déplacement du des touches curseur encadré du TCO
   indexTCO:=index_TCO(sender);
+
   Bimage:=tco[indextco,xClicCell[indexTCO],yClicCell[indexTCO]].BImage;
   Adresse:=tco[indextco,xClicCell[indexTCO],yClicCell[indexTCO]].Adresse;
 
@@ -14627,7 +15175,7 @@ begin
       IndexTCO:=canton[IdCantonSelect].Ntco;   // reprendre l'index du TCO depuis le canton car on a peut etre cliqué sur un autre TCO
       xt:=canton[IdCantonSelect].x;
       yt:=canton[IdCantonSelect].y;
-      IdCanton:=TCO[IndexTCO,xt,yt].PiedFeu;
+      IdCanton:=TCO[IndexTCO,xt,yt].NumCanton;
       formSelTrain.Show;
       exit;
     end;
@@ -15192,7 +15740,7 @@ end;
 
 
 procedure TFormTCO.SupprimeLigneClick(Sender: TObject);
-var x,y,indexTCO : integer;
+var x,y,i,indexTCO,n : integer;
     c : tcomponent;
 begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
@@ -15216,13 +15764,27 @@ begin
   TamponTCO_org.xOrg:=1;
   TamponTCO_org.yOrg:=ligne_supprime;
 
-  // remplir tempon de sauvegarde
+  // remplir tampon de sauvegarde
   for y:=TamponTCO_Org.y1 to TamponTCO_Org.y2 do
     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
       begin
         //Affiche(intToSTR(x)+' '+intToSTR(y),clyellow);
         tampontco[x,y]:=tco[indextco,x,y];
       end;
+
+  // balayer les cantons pour corriger leurs coordonnées
+  for i:=1 to nCantons do
+  begin
+    y:=canton[i].y;
+    n:=canton[i].numero;
+    if (canton[i].horizontal) and (y=ligne_Supprime) then
+    begin
+      //supprimer le canton
+      supprime_remplace_canton(i);
+      Affiche('canton '+intToSTR(n)+' supprimé',clOrange);
+    end
+    else if y>=ligne_Supprime then dec(canton[i].y);
+  end;
 
   // supression ligne
   for y:=YClicCell[indexTCO] to NbreCellY[indexTCO]-1 do
@@ -15239,11 +15801,9 @@ begin
   affiche_TCO(indexTCO);
 end;
 
-
-
 // suppression colonne
 procedure TFormTCO.ColonneClick(Sender: TObject);
-var x,y,indexTCO : integer;
+var x,y,i,indexTCO,n : integer;
     c : tcomponent;
 begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
@@ -15272,6 +15832,21 @@ begin
       tampontco[x,y]:=tco[indextco,x,y];
 
   // supression colonne
+  // balayer les cantons pour corriger leurs coordonnées
+  for i:=1 to nCantons do
+  begin
+    x:=canton[i].x;
+    n:=canton[i].numero;
+    if (not(canton[i].horizontal)) and (x=colonne_Supprime) then
+    begin
+      //supprimer le canton
+      supprime_remplace_canton(i);
+      Affiche('canton '+intToSTR(n)+' supprimé',clOrange);
+    end
+    else
+    if x>=colonne_supprime then dec(canton[i].x);
+  end;
+
   for x:=xClicCell[indexTCO] to NbreCellx[indexTCO]-1 do
   begin
     for y:=1 to NbreCelly[indexTCO] do
@@ -15765,6 +16340,17 @@ begin
   Affiche_TCO(indexTCO);
 end;
 
+procedure masque_bandeau(indexTCO : integer);
+begin
+  with formTCO[indexTCO] do
+  begin
+    PanelBas.Hide;
+    ScrollBox.Height:=ClientHeight;
+    BandeauMasque:=true;
+    Bandeau.Caption:='Afficher le bandeau';
+  end;
+end;
+
 procedure TFormTCO.BandeauClick(Sender: TObject);
 var indexTCO : integer;
 begin
@@ -15772,6 +16358,7 @@ begin
   if bandeauMasque then
   begin
     PanelBas.Show;
+    PanelBas.Visible:=true;
     BandeauMasque:=false;
     positionne(indexTCO);
     Bandeau.Caption:='Masquer le bandeau';
@@ -15779,10 +16366,7 @@ begin
   end
   else
   begin
-    PanelBas.Hide;
-    ScrollBox.Height:=ClientHeight;
-    BandeauMasque:=true;
-    Bandeau.Caption:='Afficher le bandeau';
+    masque_bandeau(indexTCO);
   end;
 end;
 
@@ -15840,7 +16424,7 @@ begin
     if isCantonV(El) then yc:=yc-(El-Id_cantonV);
 
     index:=index_canton(indexTCO,xc,yc);
-    if index<>0 then s:=s+intToSTR(index)+' '+canton[index].nom;
+    if index<>0 then s:=s+intToSTR(canton[index].numero)+' '+canton[index].nom;
     s:=s+' ?';
     if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   end;
@@ -15886,11 +16470,43 @@ begin
   end_drag(53,x,y,Sender,Target);
 end;
 
-// fin de drag des trains dans le canton destination
+procedure raz_canton_org_dest(idcantonDragOrg : integer);
+var idtrain,Norg,Ndest : integer;
+begin
+  idTrain:=canton[idcantonDragOrg].indexTrain;
+  trains[idtrain].canton:=0;
+  Trains[idtrain].route[0].adresse:=0;
+  canton[idcantonDragOrg].NomTrain:='';
+  canton[idcantonDragOrg].indexTrain:=0;
+  canton[idcantonDragOrg].adresseTrain:=0;
+  Norg:=index_canton_numero(canton[idcantonDragOrg].NumcantonOrg);
+  Ndest:=index_canton_numero(canton[idcantonDragOrg].NumcantonDest);
+  canton[idcantonDragOrg].NumcantonOrg:=0;
+  canton[idcantonDragOrg].NumcantonDest:=0;
+  canton[idcantonDragOrg].bouton:=0;
+  if norg>0 then
+  begin
+    canton[Norg].bouton:=0;
+    canton[Norg].NumcantonOrg:=0;
+    canton[Norg].NumCantonDest:=0;
+    dessin_canton(Norg,0);
+  end;
+  if nDest>0 then
+  begin
+    canton[Ndest].bouton:=0;
+    canton[Ndest].NumcantonOrg:=0;
+    canton[Ndest].NumCantonDest:=0;
+    dessin_canton(Ndest,0);
+  end;
+  TCO[canton[idcantonDragOrg].Ntco,canton[idcantonDragOrg].x,canton[idcantonDragOrg].y].train:=0;
+end;
+
+// fin de drag des trains dans le canton de dépose
 procedure TFormTCO.ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
 var s : string;
-    Sens,idCantondest,IdTrain,Bim,xdest,ydest,xOrg,Yorg,indexTCO,prec,suiv,el1,el2: integer;
-    tel1,tel2 : tequipement;
+    Sens,idCantondest,IdTrain,Bim,xdest,ydest,xOrg,Yorg,indexTCO,milieuX_pix,milieuY_pix,
+    xPix,yPix,adresse,AdrTrain,xDrag,yDrag : integer;
+    t : tequipement;
 begin
   if not(Target is TImage) then exit;
   s:=(Target as TImage).Name;
@@ -15899,64 +16515,135 @@ begin
   indexTCO:=Index_tco(sender);
   Drag:=0;
 
-  // origine
+  xDrag:=x;yDrag:=y;
+  // canton origine
   xOrg:=canton[IdCantonDragOrg].x;
   yOrg:=canton[IdCantonDragOrg].y;
 
+  // coordonnnées cellules de la destination
   xdest:=(x div largeurCell[indexTCO])+1;
   ydest:=(y div largeurCell[indexTCO])+1;
+  x:=xdest;
+  y:=ydest;
+  coord_canton(indexTCO,x,y);  // x et y deviennent les coordonnées origine du canton
+
   Bim:=tco[indexTCO,xdest,ydest].BImage;
+  // si on dépose pas sur un canton
   if not(IsCanton(Bim)) then
   begin
+    s:='Voulez vous supprimer le train '+canton[idcantonDragOrg].NomTrain+' du canton '+intToSTR(canton[idcantonDragOrg].numero)+' ?';
+    if Application.MessageBox(pchar(s),pchar('confirmation'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idYes then
+    begin
+      supprime_route_train(canton[idcantonDragOrg].indexTrain);
+      raz_canton_org_dest(idcantonDragOrg);
+    end;
+
     Affiche_TCO(indexTCO);
     exit;
   end;
-  BitBlt(PcanvasTCO[indexTCO].handle,oldx,oldy,LIcone,hIcone,oldbmp.canvas.handle,0,0,SRCCOPY);
 
-  if IscantonH(Bim) then
-  begin
-    xdest:=xdest-(Bim-Id_cantonH);
-    ydest:=ydest;
-  end;
-  if IscantonV(Bim) then
-  begin
-    xdest:=xdest;
-    ydest:=ydest-(Bim-Id_cantonV);
-  end;
-  IdCantonDest:=index_canton_numero(tco[IndexTCO,xdest,ydest].PiedFeu);
+  // dessine le train sur le canton de destination
+  //BitBlt(PcanvasTCO[indexTCO].handle,oldx+50,oldy,LIcone,hIcone,oldbmp.canvas.handle,0,0,SRCCOPY);
 
-  sens:=canton[IdCantonDragOrg].Sens;  // copier le sens
+  // ici on dépose sur un canton
+  IdCantonDest:=index_canton_numero(tco[IndexTCO,x,y].NumCanton);
+
+  AdrTrain:=canton[IdCantonDragOrg].adresseTrain; // train sur le canton source
+  IdTrain:=index_train_adresse(AdrTrain);
+  // si le train du canton source a une route affectée
+  if Trains[IdTrain].route[0].adresse<>0 then
+  begin
+    s:='Le train '+Trains[idTrain].nom_train+' a une route affectée.'+#13;
+    if idcantonDest=idcantonDragOrg then s:=s+'Changer le sens de départ va détruire sa route.'+#13
+    else s:=s+'Changer le train de canton va détruire sa route.'+#13;
+    s:=s+'Voulez vous continuer ?';
+    if Application.MessageBox(pchar(s),pchar('Confirmation'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then
+    begin
+      Affiche_tco(indexTCO);
+      exit;
+    end;
+    supprime_route_train(idTrain);
+  end;
+
+  // voir si gauche ou droit du canton
+  Xpix:=(x-1)*LargeurCell[indexTCO];
+  Ypix:=(y-1)*HauteurCell[indexTCO];
+
+  milieuX_pix:=xpix+(canton[idcantonDest].Nelements*largeurCell[indexTCO] div 2);
+  milieuY_pix:=Ypix+(canton[idcantonDest].Nelements*HauteurCell[indexTCO] div 2);
+
+  if canton[idcantonDest].horizontal then
+  begin
+    if xDrag>milieuX_pix then sens:=sensDroit
+    else sens:=sensGauche;
+  end
+  else
+  begin
+    if yDrag>milieuY_pix then sens:=sensBas
+    else sens:=sensHaut;
+  end;
+
+  // vérifier si le sens de dépose est compatible avec le sens du canton
+  if (canton[idcantonDest].SensCirc<>0) and (canton[idcantonDest].SensCirc<>sens) then
+  begin
+    s:='Le sens de circulation du canton '+intToSTR(canton[idcantonDest].numero)+' ne permet pas de positionner le train dans ce sens';
+    formTCO[indexTCO].Caption:=s;
+    Affiche_TCO(indexTCO);
+    FormInfo.LabelInfo.caption:=s;
+    FormInfo.Top:=Ypix;
+    FormInfo.Left:=Xpix;
+
+    FormInfo.Show;
+    exit;
+  end;
+
+  canton[IdCantonDest].SensLoco:=sens;
+
   // raz train canton d'origine
   IdTrain:=canton[IdCantonDragOrg].indexTrain;
+  supprime_route_train(canton[idcantonDragOrg].indexTrain);
+  Raz_trains_idcanton(IdCantonDragOrg);  // raz du train du canton
 
-  init_route_canton(idCantonDragOrg,idTrain,false);  // raz de la route
-  Raz_trains_idcanton(IdCantonDragOrg);  // raz su train du canton
 
   // affectation train canton destination
   affecte_Train_canton(trains[idTrain].adresse,IdCantonDest);
-
-  // sens source et dest = identiques
-  if canton[idCantondest].Sens=canton[idCantonDragOrg].Sens then
-    canton[IdCantonDest].Sens:=sens
-  else
-  begin
-    // si différents
-    if canton[IdCantonDest].horizontal then canton[IdCantonDest].Sens:=SensGauche
-    else canton[IdCantonDest].Sens:=SensHaut;
-  end;
-
-  // initialise sa route
-  init_route_canton(IdCantonDest,idTrain,true);
+  application.processMessages;
 
   Affiche_TCO(indexTCO);
   XclicCell[indexTCO]:=xDest;
   YclicCell[indexTCO]:=yDest;
 
-  // activer la route
-//  init_route_canton(idcantonDest,idtrain,true);
+  if idcantonDragOrg<>IdCantonDest then
+  begin
+    raz_canton_org_dest(idcantonDragOrg);
+  end;
+  actualise_seltrains;  // actualise la fenetre FormSelTrains
+
+  // Affecter le train au détecteur si l'élément concerné du canton est un détecteur
+  case sens of
+    SensGauche,SensHaut : begin adresse:=canton[idCantonDest].el1; t:=canton[idCantonDest].typ1;end;
+    SensDroit,sensBas   : begin adresse:=canton[idCantonDest].el2; t:=canton[idCantonDest].typ2;end;
+  end;
+  if t=det then
+  begin
+    detecteur[adresse].AdrTrain:=canton[idCantonDest].adresseTrain;
+    detecteur[adresse].Train:=canton[idCantonDest].NomTrain;
+  end;
+  maj_signaux(true);
+end;
 
 
-  actualise_seltrains;
+procedure TFormTCO.AffRoutesClick(Sender: TObject);
+begin
+  formrouteTrain.windowState:=wsNormal; //Maximized;;
+  //formroute.Create(self);
+  formRouteTrain.Show;
+end;
+
+
+procedure TFormTCO.Button1Click(Sender: TObject);
+begin
+  zone_tco(1,523,518,1,0,1,false);
 end;
 
 

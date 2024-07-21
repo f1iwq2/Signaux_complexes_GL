@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 323
-  Top = 128
+  Left = 281
+  Top = 137
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -682,7 +682,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheet1
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1405,31 +1405,6 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 4
         end
-        object CheckRoulage: TCheckBox
-          Left = 16
-          Top = 120
-          Width = 169
-          Height = 17
-          Hint = 'Permet le roulage des trains en mode autonome'
-          Caption = 'Option roulage des trains'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 5
-        end
-        object CheckBoxResa: TCheckBox
-          Left = 16
-          Top = 136
-          Width = 265
-          Height = 17
-          Hint = 
-            'Permet de r'#233'server les aiguillages, les TJD/S et les croisements' +
-            ' sur le parcours d'#39'un train'
-          Caption = 'Mode r'#233'servation des aiguillages par les trains'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 6
-          OnClick = CheckBoxResaClick
-        end
       end
       object GroupBox22: TGroupBox
         Left = 312
@@ -2144,9 +2119,9 @@ object FormConfig: TFormConfig
       end
       object Memo5: TMemo
         Left = 464
-        Top = 240
+        Top = 296
         Width = 153
-        Height = 201
+        Height = 145
         Lines.Strings = (
           'Une ligne doit commencer par '
           'un aiguillage (ou un buttoir) et '
@@ -2157,12 +2132,7 @@ object FormConfig: TFormConfig
           ''
           'Un aiguillage peut se retrouver '
           #224' plusieurs endroits de cette '
-          'section, mais pas un d'#233'tecteur. '
-          ''
-          'Tous les aiguillages d'#233'clar'#233's '
-          'doivent appara'#238'tre au moins '
-          'une fois dans les branches.'
-          '')
+          'section, mais pas un d'#233'tecteur. ')
         ReadOnly = True
         TabOrder = 2
       end
@@ -2315,7 +2285,7 @@ object FormConfig: TFormConfig
         end
         object LabelUni: TLabel
           Left = 8
-          Top = 184
+          Top = 176
           Width = 72
           Height = 13
           Caption = 'Spec Unisemaf'
@@ -2447,9 +2417,9 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv4Change
         end
         object CheckVerrouCarre: TCheckBox
-          Left = 120
+          Left = 136
           Top = 216
-          Width = 145
+          Width = 137
           Height = 17
           Hint = 
             'Passe le signal au carr'#233' ci aucun train n'#39'est pr'#233'sent 3 cantons ' +
@@ -2483,7 +2453,7 @@ object FormConfig: TFormConfig
         end
         object EditSpecUni: TEdit
           Left = 8
-          Top = 200
+          Top = 192
           Width = 33
           Height = 21
           TabOrder = 14
@@ -2491,8 +2461,8 @@ object FormConfig: TFormConfig
           OnChange = EditSpecUniChange
         end
         object Buttonrestaure: TButton
-          Left = 8
-          Top = 224
+          Left = 24
+          Top = 272
           Width = 75
           Height = 25
           Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
@@ -2503,17 +2473,17 @@ object FormConfig: TFormConfig
           OnClick = ButtonrestaureClick
         end
         object CheckBoxFB: TCheckBox
-          Left = 120
+          Left = 136
           Top = 264
-          Width = 153
+          Width = 145
           Height = 17
           Caption = 'Avec demande feu blanc'
           TabOrder = 15
           OnClick = CheckBoxFBClick
         end
         object ButtonConfigSR: TButton
-          Left = 8
-          Top = 256
+          Left = 24
+          Top = 296
           Width = 75
           Height = 25
           Caption = 'Configuration'
@@ -2522,9 +2492,9 @@ object FormConfig: TFormConfig
           OnClick = ButtonConfigSRClick
         end
         object CheckFVC: TCheckBox
-          Left = 120
+          Left = 136
           Top = 232
-          Width = 145
+          Width = 121
           Height = 17
           Hint = 'Remplace le feu vert par un feu vert clignotant'
           Caption = 'Feu vert clignotant'
@@ -2534,9 +2504,9 @@ object FormConfig: TFormConfig
           OnClick = CheckFVCClick
         end
         object CheckFRC: TCheckBox
-          Left = 120
+          Left = 136
           Top = 248
-          Width = 145
+          Width = 129
           Height = 17
           Hint = 'Remplace le s'#233'maphore par un feu rouge clignotant'
           Caption = 'Feu rouge clignotant'
@@ -2546,7 +2516,7 @@ object FormConfig: TFormConfig
           OnClick = CheckFRCClick
         end
         object CheckBoxVersContrevoie: TCheckBox
-          Left = 120
+          Left = 136
           Top = 280
           Width = 137
           Height = 17
@@ -2558,9 +2528,9 @@ object FormConfig: TFormConfig
           OnClick = CheckBoxVersContrevoieClick
         end
         object CheckBoxContreVoie: TCheckBox
-          Left = 120
+          Left = 136
           Top = 296
-          Width = 137
+          Width = 129
           Height = 17
           Hint = 'Signal clignotant'
           Caption = 'Signal de contrevoie'
@@ -2583,6 +2553,21 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 21
           OnChange = MemoBlancChange
+        end
+        object RadioGroupLEB: TRadioGroup
+          Left = 8
+          Top = 224
+          Width = 105
+          Height = 41
+          Caption = 'Pilotage'
+          Items.Strings = (
+            'Mode binaire'
+            'Mode lin'#233'aire')
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 22
+          Visible = False
+          OnClick = RadioGroupLEBClick
         end
       end
       object ButtonNouvFeu: TButton
@@ -2841,7 +2826,7 @@ object FormConfig: TFormConfig
         end
       end
     end
-    object TabSheet1: TTabSheet
+    object TabSheetActions: TTabSheet
       Caption = 'Actions'
       ImageIndex = 6
       object Label44: TLabel
@@ -2863,7 +2848,7 @@ object FormConfig: TFormConfig
         Left = 0
         Top = 32
         Width = 609
-        Height = 425
+        Height = 433
         Caption = 'Actions'
         TabOrder = 0
         object Label48: TLabel
@@ -2976,6 +2961,163 @@ object FormConfig: TFormConfig
         end
       end
     end
+    object TabSheetActionneurs: TTabSheet
+      Caption = 'Actionneurs'
+      ImageIndex = 7
+      object Label30: TLabel
+        Left = 8
+        Top = 8
+        Width = 143
+        Height = 13
+        Caption = 'Actionneurs de CDM Rail'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label31: TLabel
+        Left = 352
+        Top = 296
+        Width = 229
+        Height = 26
+        Caption = 'Les actionneurs doivent '#234'tre compris entre deux d'#233'tecteurs'
+        WordWrap = True
+      end
+      object ListBoxActionneurs: TListBox
+        Left = 0
+        Top = 56
+        Width = 321
+        Height = 361
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        TabOrder = 0
+        OnMouseDown = ListBoxActionneursMouseDown
+      end
+      object ButtonImRCDM: TButton
+        Left = 8
+        Top = 432
+        Width = 81
+        Height = 25
+        Hint = 
+          'Importe les actionneurs depuis le fichier d'#39'importation de CDM r' +
+          'ail'
+        Caption = 'Importer'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        WordWrap = True
+        OnClick = ButtonImRCDMClick
+      end
+      object ButtonNouvAct: TButton
+        Left = 0
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Nouveau'
+        TabOrder = 2
+        OnClick = ButtonNouvActClick
+      end
+      object ButtonSupAct: TButton
+        Left = 72
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Supprime'
+        TabOrder = 3
+        OnClick = ButtonSupActClick
+      end
+      object GroupBoxAct: TGroupBox
+        Left = 336
+        Top = 56
+        Width = 273
+        Height = 153
+        Caption = 'Description de l'#39'actionneur '
+        TabOrder = 4
+        object LabeledEditAdrActionneur: TLabeledEdit
+          Left = 190
+          Top = 40
+          Width = 40
+          Height = 21
+          EditLabel.Width = 38
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 140
+          TabOrder = 0
+          OnChange = LabeledEditAdrActionneurChange
+        end
+      end
+    end
+    object TabSheetDet: TTabSheet
+      Caption = 'D'#233'tecteurs'
+      ImageIndex = 13
+      object Label42: TLabel
+        Left = 8
+        Top = 8
+        Width = 63
+        Height = 13
+        Caption = 'D'#233'tecteurs'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object ListBoxDet: TListBox
+        Left = 0
+        Top = 56
+        Width = 321
+        Height = 361
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        TabOrder = 0
+        OnMouseDown = ListBoxDetMouseDown
+      end
+      object Button4: TButton
+        Left = 0
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Nouveau'
+        TabOrder = 1
+        OnClick = Button4Click
+      end
+      object Button5: TButton
+        Left = 72
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Supprime'
+        TabOrder = 2
+        OnClick = Button5Click
+      end
+      object GroupBoxDet: TGroupBox
+        Left = 336
+        Top = 56
+        Width = 265
+        Height = 161
+        Caption = 'Description'
+        TabOrder = 3
+      end
+    end
     object TabSheetPN: TTabSheet
       Caption = 'PN'
       ImageIndex = 6
@@ -2988,7 +3130,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         object GroupBoxPNA: TGroupBox
           Left = 8
-          Top = 224
+          Top = 240
           Width = 249
           Height = 121
           Caption = 'Actionneurs PN simples'
@@ -2996,7 +3138,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxPNZ: TGroupBox
           Left = 8
-          Top = 352
+          Top = 368
           Width = 249
           Height = 65
           Caption = 'Zones de d'#233'tection'
@@ -3004,30 +3146,30 @@ object FormConfig: TFormConfig
         end
         object GroupBoxPN: TGroupBox
           Left = 8
-          Top = 24
+          Top = 16
           Width = 249
-          Height = 193
+          Height = 217
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
           ShowHint = False
           TabOrder = 2
           object Label21: TLabel
             Left = 8
-            Top = 84
+            Top = 92
             Width = 100
             Height = 13
             Caption = 'Adresse de fermeture'
           end
           object Label22: TLabel
             Left = 8
-            Top = 108
+            Top = 116
             Width = 94
             Height = 13
             Caption = 'Adresse d'#39'ouverture'
           end
           object EditAdrFerme: TEdit
             Left = 120
-            Top = 80
+            Top = 88
             Width = 41
             Height = 21
             TabOrder = 0
@@ -3035,7 +3177,7 @@ object FormConfig: TFormConfig
           end
           object EditAdrOuvre: TEdit
             Left = 120
-            Top = 104
+            Top = 112
             Width = 41
             Height = 21
             TabOrder = 2
@@ -3043,7 +3185,7 @@ object FormConfig: TFormConfig
           end
           object EditCdeFerme: TEdit
             Left = 168
-            Top = 80
+            Top = 88
             Width = 25
             Height = 21
             Hint = 'Commande de fermeture (0 '#224' 2)'
@@ -3054,7 +3196,7 @@ object FormConfig: TFormConfig
           end
           object EditCdeOuvre: TEdit
             Left = 168
-            Top = 104
+            Top = 112
             Width = 25
             Height = 21
             Hint = 'Commande d'#39'ouverture (0 '#224' 2)'
@@ -3065,7 +3207,7 @@ object FormConfig: TFormConfig
           end
           object ButtonTestFerme: TButton
             Left = 208
-            Top = 80
+            Top = 88
             Width = 27
             Height = 21
             Hint = 'Test de fermeture (mode CDM ou connect'#233' '#224' l'#39'interface)'
@@ -3077,7 +3219,7 @@ object FormConfig: TFormConfig
           end
           object ButtonTestOuvre: TButton
             Left = 208
-            Top = 104
+            Top = 112
             Width = 27
             Height = 21
             Hint = 'Test d'#39'ouverture (mode CDM ou connect'#233' '#224' l'#39'interface)'
@@ -3089,7 +3231,7 @@ object FormConfig: TFormConfig
           end
           object CheckPnPulse: TCheckBox
             Left = 8
-            Top = 128
+            Top = 136
             Width = 97
             Height = 17
             Hint = 
@@ -3103,7 +3245,7 @@ object FormConfig: TFormConfig
           end
           object RadioButtonSimple: TRadioButton
             Left = 24
-            Top = 152
+            Top = 174
             Width = 113
             Height = 17
             Hint = 'PN command'#233' par actionneurs'
@@ -3115,7 +3257,7 @@ object FormConfig: TFormConfig
           end
           object RadioButtonZone: TRadioButton
             Left = 24
-            Top = 168
+            Top = 192
             Width = 113
             Height = 17
             Hint = 'PN command'#233' par m'#233'moires de zone'
@@ -3127,7 +3269,7 @@ object FormConfig: TFormConfig
           end
           object RadioGroupActPN: TRadioGroup
             Left = 8
-            Top = 16
+            Top = 24
             Width = 233
             Height = 57
             Hint = 'action par accessoire DCC ou commande COM/USB'
@@ -3141,8 +3283,8 @@ object FormConfig: TFormConfig
             OnClick = RadioGroupActPNClick
           end
           object ComboBoxPNCom: TComboBox
-            Left = 88
-            Top = 128
+            Left = 8
+            Top = 152
             Width = 145
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'

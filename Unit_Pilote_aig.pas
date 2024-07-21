@@ -85,7 +85,7 @@ begin
     buttonDev2.Visible:=false;
     buttonDroit2.Visible:=false;
     LabelAdr2.Visible:=false;
-    exit;
+    if diffusion then exit;   
   end;
 
   aigC:=(aiguillage[i].modele=aig);

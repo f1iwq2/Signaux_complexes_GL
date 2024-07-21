@@ -32,6 +32,13 @@ object FormFicheHoraire: TFormFicheHoraire
     Width = 3
     Height = 13
   end
+  object Label2: TLabel
+    Left = 208
+    Top = 328
+    Width = 296
+    Height = 13
+    Caption = 'Les horaires sont sauvegard'#233's dans le fichier '#39'FicheHoraire.txt"'
+  end
   object ButtonOk: TButton
     Left = 16
     Top = 304

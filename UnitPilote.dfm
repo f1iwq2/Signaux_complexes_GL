@@ -999,7 +999,7 @@ object FormPilote: TFormPilote
       Top = 32
       Width = 169
       Height = 17
-      Caption = 'Voie libre clignotant'
+      Caption = 'vert clignotant'
       TabOrder = 1
       OnClick = RadioVertCliClick
     end
@@ -1017,7 +1017,7 @@ object FormPilote: TFormPilote
       Top = 64
       Width = 169
       Height = 17
-      Caption = 'Avertissement clignotant'
+      Caption = 'Jaune clignotant'
       TabOrder = 3
       OnClick = RadioJaunecliClick
     end
@@ -1035,7 +1035,7 @@ object FormPilote: TFormPilote
       Top = 96
       Width = 161
       Height = 17
-      Caption = 'Rouge cli'
+      Caption = 'Rouge clignotant'
       TabOrder = 5
       OnClick = RadioRougeCliClick
     end
@@ -1148,7 +1148,7 @@ object FormPilote: TFormPilote
     OnClick = CheckVerrouCarreClick
   end
   object GroupBox3: TGroupBox
-    Left = 101
+    Left = 133
     Top = 40
     Width = 192
     Height = 73

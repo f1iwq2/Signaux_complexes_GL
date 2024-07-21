@@ -250,7 +250,13 @@ version 8.6  : Gestion des démarrages des trains sur horaire, en fonction d'une 
                Création d'actionneurs "horloge" et "vitesse train".
 version 8.7  : Les actionneurs deviennent les actions, et un déclencheur peut déclencher plusieurs opérations
 version 8.8  : Création des cantons dans les TCO qui reçoivent une icone de train.
-               Création des icônes de trains -> recopiez le repertoire [icones] dans celui de signaux_commplexes
+               Création des icônes de trains -> recopiez le repertoire [icones] dans celui de signaux_complexes
                Création de nouveaux déclencheurs, conditions et opérations.
-			  
-
+version 8.82 : Ajout d'une zone d'entrée pour le répertoire d'installation de CDM.
+version 8.83 : Améliorations diverses.
+version 9.0  : Pilotage des nouveaux décodeurs de signaux LEB (mode binaire, linéaire)
+               En mode autonome:
+               Pilotage des trains depuis le TCO
+               Proposition des routes possibles depuis un train sur un détecteur de départ vers un détecteur d'arrivée sur le TCO.			  
+               Pilotage des accessoires sans accusé de réception, ce qui fluidifie le trafic XpressNet
+               		   

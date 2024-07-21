@@ -124,6 +124,8 @@ type
     procedure SpinEditEtat2Change(Sender: TObject);
     procedure RadioEtatSignalClick(Sender: TObject);
     procedure SpinEditEtatopChange(Sender: TObject);
+    procedure ListBoxOperationsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -327,30 +329,30 @@ var nop,op,top,decl : integer;
     r : double;
     s :string;
 begin
-  decl:=Tablo_Actionneur[i].declencheur;
+  decl:=Tablo_Action[i].declencheur;
   s:='Le déclencheur ';
   case decl of
   DeclHorloge :
-      s:=s+'horloge à '+format('%.2d',[Tablo_Actionneur[i].heure])+'h'+format('%.2d',[Tablo_Actionneur[i].minute]);
+      s:=s+'horloge à '+format('%.2d',[Tablo_Action[i].heure])+'h'+format('%.2d',[Tablo_Action[i].minute]);
   DeclPeriph :
-      s:=s+'périphérique : '+Tablo_Actionneur[i].ordrePeriph;
+      s:=s+'périphérique : '+Tablo_Action[i].ordrePeriph;
   DeclAccessoire :
-      s:=s+'accessoire '+intToSTR(Tablo_Actionneur[i].adresse);
+      s:=s+'accessoire '+intToSTR(Tablo_Action[i].adresse);
   DeclDetAct :
       begin
-        s:=s+'détecteur/Actionneur '+intToSTR(Tablo_Actionneur[i].adresse);
-        s:=s+' par le train "'+Tablo_Actionneur[i].trainDecl+'"';
+        s:=s+'détecteur/Actionneur '+intToSTR(Tablo_Action[i].adresse);
+        s:=s+' par le train "'+Tablo_Action[i].trainDecl+'"';
       end;
   DeclZoneDet :
-     s:=s+'Zone détection '+intToSTR(Tablo_Actionneur[i].adresse)+' '+intToSTR(Tablo_Actionneur[i].adresse2);
+     s:=s+'Zone détection '+intToSTR(Tablo_Action[i].adresse)+' '+intToSTR(Tablo_Action[i].adresse2);
   DeclDemarTrain :
-     s:=s+'démarrage du train '+Tablo_Actionneur[i].trainDecl+' au seuil de '+intToSTR(Tablo_Actionneur[i].adresse);
+     s:=s+'démarrage du train '+Tablo_Action[i].trainDecl+' au seuil de '+intToSTR(Tablo_Action[i].adresse);
   DeclArretTrain :
-     s:=s+'arrêt du train '+Tablo_Actionneur[i].trainDecl+' au seuil de '+intToSTR(Tablo_Actionneur[i].adresse);
+     s:=s+'arrêt du train '+Tablo_Action[i].trainDecl+' au seuil de '+intToSTR(Tablo_Action[i].adresse);
   DeclSignal :
     begin
-     s:=s+'changement du signal '+intToSTR(Tablo_Actionneur[i].adresse);
-     case Tablo_Actionneur[i].etat of
+     s:=s+'changement du signal '+intToSTR(Tablo_Action[i].adresse);
+     case Tablo_Action[i].etat of
        0 : s:=s+' sur ouverture';
        1 : s:=s+' sur voie libre';
        2 : s:=s+' sur ouverture restreinte';
@@ -361,25 +363,25 @@ begin
 
   // conditions
   s:=s+#13;
-  nop:=tablo_actionneur[i].NbCond;
+  nop:=Tablo_Action[i].NbCond;
   for op:=1 to nop do
   begin
     s:=s+'condition ';
-    top:=tablo_actionneur[i].tabloCond[op].numcondition;
+    top:=Tablo_Action[i].tabloCond[op].numcondition;
     case top of
     CondVrai : s:=s+'toujours vraie ';
     CondFaux : s:=s+'toujours fausse ';
-    CondVitTrain : s:=s+'vitesse train '+tablo_actionneur[i].tabloCond[op].train+' '+intToSTR(tablo_actionneur[i].tabloCond[op].vitmini)+
-                        ' '+intToSTR(tablo_actionneur[i].tabloCond[op].vitMaxi);
-    CondPosAcc : s:=s+' position d''accessoire '+intToSTR(tablo_actionneur[i].tabloCond[op].accessoire)+' état '+intToSTR(tablo_actionneur[i].tabloCond[op].etat);
-    CondHorl : s:=s+' horloge '+intToSTR(tablo_actionneur[i].tabloCond[op].HeureMin)+'h'+intToSTR(tablo_actionneur[i].tabloCond[op].MinuteMin)+' à '+
-                                 intToSTR(tablo_actionneur[i].tabloCond[op].HeureMax)+'h'+intToSTR(tablo_actionneur[i].tabloCond[op].MinuteMax)+' ';
-    condTrainSig : s:=s+'train '+tablo_actionneur[i].tabloCond[op].train+' arrêté au signal '+intToSTR(tablo_actionneur[i].tabloCond[op].Adresse);
+    CondVitTrain : s:=s+'vitesse train '+Tablo_Action[i].tabloCond[op].train+' '+intToSTR(Tablo_Action[i].tabloCond[op].vitmini)+
+                        ' '+intToSTR(Tablo_Action[i].tabloCond[op].vitMaxi);
+    CondPosAcc : s:=s+' position d''accessoire '+intToSTR(Tablo_Action[i].tabloCond[op].accessoire)+' état '+intToSTR(Tablo_Action[i].tabloCond[op].etat);
+    CondHorl : s:=s+' horloge '+intToSTR(Tablo_Action[i].tabloCond[op].HeureMin)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMin)+' à '+
+                                 intToSTR(Tablo_Action[i].tabloCond[op].HeureMax)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMax)+' ';
+    condTrainSig : s:=s+'train '+Tablo_Action[i].tabloCond[op].train+' arrêté au signal '+intToSTR(Tablo_Action[i].tabloCond[op].Adresse);
     end;
     s:=s+#13;
   end;
 
-  nop:=Tablo_Actionneur[i].NbOperations;
+  nop:=Tablo_Action[i].NbOperations;
 
   if nop=0 then s:=s+'ne déclenche aucune opération'+#13;
   if nop=1 then s:=s+'déclenche 1 opération :'+#13;
@@ -389,29 +391,29 @@ begin
 
   for op:=1 to nop do
   begin
-    top:=Tablo_Actionneur[i].tabloop[op].numoperation;
+    top:=Tablo_Action[i].tabloop[op].numoperation;
     case top of
-      ActionAffTCO : s:=s+'Affiche TCO '+intToSTR(Tablo_Actionneur[i].tabloop[op].NumTCO)+#13;
+      ActionAffTCO : s:=s+'Affiche TCO '+intToSTR(Tablo_Action[i].tabloop[op].NumTCO)+#13;
       ActionAffSC : s:=s+'Affiche signaux_complexes'+#13;
       ActionAffCDM : s:=s+'Affiche CDM rail'+#13;
       ActionAccessoire :
       begin
-        s:=s+'Pilote l''accessoire '+intToSTR(Tablo_Actionneur[i].tabloop[op].adresse)+
-             ' à '+intToSTR(Tablo_Actionneur[i].tabloop[op].etat);
-        if Tablo_Actionneur[i].tabloop[op].zero then s:=s+' impulsionnel'+#13 else s:=s+' maintenu'+#13;
+        s:=s+'Pilote l''accessoire '+intToSTR(Tablo_Action[i].tabloop[op].adresse)+
+             ' à '+intToSTR(Tablo_Action[i].tabloop[op].etat);
+        if Tablo_Action[i].tabloop[op].zero then s:=s+' impulsionnel'+#13 else s:=s+' maintenu'+#13;
       end;
       ActionArretTRains : s:=s+'Arrêt des trains'+#13;
       ActionLanceHorl : s:=s+'Lance l''horloge'+#13;
       ActionArretHorl : s:=s+'Arrête l''horloge'+#13;
       ActionInitHorl : s:=s+'Initialise l''horloge'+#13;
       ActionAffHorl : s:=s+'Affiche l''horloge'+#13;
-      ActionVitesse : s:=s+'Modifie la vitesse du train '+Tablo_Actionneur[i].tabloop[op].train+' à '+intToSTR(Tablo_Actionneur[i].tabloop[op].vitesse)+#13;
-      ActionCdePeriph : s:=s+'Pilote le périphérique '+intToSTR(Tablo_Actionneur[i].tabloop[op].periph)+' chaîne : '+Tablo_Actionneur[i].tabloop[op].chaine+#13;
-      ActionFonctionF : s:=s+'Fonction F'+intToSTR(Tablo_Actionneur[i].tabloop[op].fonctionF)+' train dest='+Tablo_Actionneur[i].tabloop[op].train+#13;
-      ActionSon : s:=s+'Son '+Tablo_Actionneur[i].tabloop[op].train+#13;
+      ActionVitesse : s:=s+'Modifie la vitesse du train '+Tablo_Action[i].tabloop[op].train+' à '+intToSTR(Tablo_Action[i].tabloop[op].vitesse)+#13;
+      ActionCdePeriph : s:=s+'Pilote le périphérique '+intToSTR(Tablo_Action[i].tabloop[op].periph)+' chaîne : '+Tablo_Action[i].tabloop[op].chaine+#13;
+      ActionFonctionF : s:=s+'Fonction F'+intToSTR(Tablo_Action[i].tabloop[op].fonctionF)+' train dest='+Tablo_Action[i].tabloop[op].train+#13;
+      ActionSon : s:=s+'Son '+Tablo_Action[i].tabloop[op].train+#13;
       ActionTempo :
       begin
-        nop:=Tablo_Actionneur[i].tabloop[op].tempoF;
+        nop:=Tablo_Action[i].tabloop[op].tempoF;
         r:=nop/10;
         s:=s+'Temporisation '+intToSTR(nop)+' ('+Format('%.1f', [r])+'s)'#13;
       end;
@@ -427,10 +429,11 @@ procedure Aff_champs(index,IndexCond,IndexAction : integer);
 var i,decl,act,cond,Nb,icone : integer;
     s : string;
 begin
-  if (index<1) or clicListe then exit;
+  if (index<1) then exit;
+  if clicListe then exit;
   clicliste:=true;
   // Affiche('Aff_champs('+intToSTR(index)+','+intToSTR(indexAction)+')',clYellow);
-  decl:=Tablo_Actionneur[index].declencheur;
+  decl:=Tablo_Action[index].declencheur;
   formModifAction.ListBoxDeclench.ItemIndex:=decl-1;
 
   // comboboxActions
@@ -453,20 +456,20 @@ begin
     Lines.Add(s);
   end;
 
-  FormModifAction.LabeledEditNomAct.Text:=Tablo_Actionneur[index].NomAction;
+  FormModifAction.LabeledEditNomAct.Text:=Tablo_Action[index].NomAction;
 
   // ListBox opérations
   with FormModifAction.ListBoxOperations do
   begin
     clear;
     formConfig.ListBoxOperations.Clear;
-    for i:=1 to Tablo_Actionneur[index].NbOperations do
+    for i:=1 to Tablo_Action[index].NbOperations do
     begin
-      act:=Tablo_Actionneur[index].tabloOp[i].numoperation;
+      act:=Tablo_Action[index].tabloOp[i].numoperation;
       if act<=NbreOperations then
       begin
         s:=operations[act].nom;
-        if not(Tablo_Actionneur[index].tabloOp[i].valide) then s:=s+' [dévalidé]';
+        if not(Tablo_Action[index].tabloOp[i].valide) then s:=s+' [dévalidé]';
         if act<1 then icone:=0  else icone:=act-1;
 
         items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
@@ -474,18 +477,20 @@ begin
         // listboxOperations de la formConfig
         formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
         itemHeight:=17;
-      end;  
+      end;
     end;
     if indexaction<>0 then itemIndex:=indexaction-1;
   end;
+
+
 
   // listbox conditions
   with FormModifAction.ListBoxConditions do
   begin
     clear;
-    for i:=1 to Tablo_Actionneur[index].NbCond do
+    for i:=1 to Tablo_Action[index].NbCond do
     begin
-      cond:=Tablo_Actionneur[index].tabloCond[i].numcondition;
+      cond:=Tablo_Action[index].tabloCond[i].numcondition;
       s:=conditions[cond].nom;
       case cond of
         CondVrai : icone:=iconeVrai;
@@ -511,7 +516,7 @@ begin
     formConfig.ListBoxActions.Items.add(s);
   end;
 
-  
+
   efface_tous_parametres;
 
   // déclencheurs
@@ -519,8 +524,8 @@ begin
   case decl of
   DeclHorloge :
     begin
-      EditAdr.text:=intToSTR(Tablo_Actionneur[index].heure);
-      EditAdr2.text:=intToSTR(Tablo_Actionneur[index].minute);
+      EditAdr.text:=intToSTR(Tablo_Action[index].heure);
+      EditAdr2.text:=intToSTR(Tablo_Action[index].minute);
       LabelHeure.visible:=true;
       LabelAdresse.visible:=true;
       EditAdr.Visible:=true;
@@ -539,7 +544,7 @@ begin
     end;
   DeclPeriph :
     begin
-      EditTrainDecl.Text:=Tablo_Actionneur[index].ordrePeriph;
+      EditTrainDecl.Text:=Tablo_Action[index].ordrePeriph;
       LabelHeure.visible:=false;
       LabelAdresse.visible:=false;
       EditAdr.Visible:=false;
@@ -562,11 +567,11 @@ begin
     end;
   DeclAccessoire :
     begin
-      EditAdr.text:=intToSTR(Tablo_Actionneur[index].adresse);
+      EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
 
       with SpinEditEtat do
       begin
-        text:=intToSTR(Tablo_Actionneur[index].etat);
+        text:=intToSTR(Tablo_Action[index].etat);
         MaxValue:=2;
         Hint:='Etat de l''accessoire'+#13+
               '0=nul'+#13+
@@ -595,9 +600,9 @@ begin
 
   DeclDetAct :
     begin
-      EditAdr.text:=intToSTR(Tablo_Actionneur[index].adresse);
+      EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
       EditTrainDecl.Visible:=true;
-      EditTrainDecl.Text:=Tablo_Actionneur[index].trainDecl;
+      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
 
       EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
                +#13+'Mettre X pour tous les trains.'+#13+'Déclenchement par actionneur uniquement';
@@ -611,7 +616,7 @@ begin
 
       with SpinEditEtat do
       begin
-        text:=intToSTR(Tablo_Actionneur[index].etat);
+        text:=intToSTR(Tablo_Action[index].etat);
         MaxValue:=1;
         Hint:='Etat du détecteur/actionneur'+#13+
               '0=désactivé'+#13+
@@ -633,10 +638,10 @@ begin
 
    DeclZoneDet :
    begin
-      EditAdr.text:=intToSTR(Tablo_Actionneur[index].adresse);
-      EditAdr2.text:=intToSTR(Tablo_Actionneur[index].adresse2);
+      EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
+      EditAdr2.text:=intToSTR(Tablo_Action[index].adresse2);
 
-      EditTrainDecl.Text:=Tablo_Actionneur[index].trainDecl;
+      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
       EditAdr.Hint:='Adresse1 de la zone de détection du déclencheur';
       EditAdr2.Hint:='Adresse2 de la zone de détection du déclencheur';
       LabelAdresse.visible:=true;
@@ -652,7 +657,7 @@ begin
 
       with SpinEditEtat do
       begin
-        text:=intToSTR(Tablo_Actionneur[index].etat);
+        text:=intToSTR(Tablo_Action[index].etat);
         MaxValue:=1;
         Hint:='Etat de la zone de détection'+#13+
               '0=désactivé'+#13+
@@ -680,8 +685,8 @@ begin
      EdittrainDecl.Hint:='Train déclencheur unique';
 
      EditADR.Hint:='Seuil de vitesse de démarrage du train ';
-     EditTrainDecl.Text:=Tablo_Actionneur[index].trainDecl;
-     EditAdr.Text:=IntToSTR(Tablo_Actionneur[index].adresse);
+     EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
+     EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
      RichEditInf.Lines.Add('Déclenchement par démarrage d''un train à un seuil donné');
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeDemarTrain,ImageIcone.Picture.Bitmap);
@@ -698,8 +703,8 @@ begin
 
      EditAdr.Visible:=true;
      EditADR.Hint:='Seuil de vitesse d''arrêt du train';
-     EditTrainDecl.Text:=Tablo_Actionneur[index].trainDecl;
-     EditAdr.Text:=IntToSTR(Tablo_Actionneur[index].adresse);
+     EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
+     EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
      RichEditInf.Lines.Add('Déclenchement par arrêt d''un train à un seuil donné');
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeArretTrain,ImageIcone.Picture.Bitmap);
@@ -709,8 +714,8 @@ begin
    DeclSignal :
    begin
      LabelAdresse.Visible:=true;
-     EditAdr.text:=intToSTR(Tablo_Actionneur[index].adresse);
-     RadioEtatSignal.ItemIndex:=Tablo_Actionneur[index].Etat;
+     EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
+     RadioEtatSignal.ItemIndex:=Tablo_Action[index].Etat;
      LabelAdresse.Caption:='Adresse';
      EditAdr.Hint:='Adresse de base du signal';
      EditAdr.Visible:=true;
@@ -727,15 +732,15 @@ begin
   // conditions
   if indexCond>0 then
   begin
-    cond:=Tablo_Actionneur[index].tablocond[indexCond].numcondition;
+    cond:=Tablo_Action[index].tablocond[indexCond].numcondition;
     with formModifAction do
     begin
       case cond of
         CondVitTrain :
         begin
-          champ1.Text:=intToSTR(Tablo_actionneur[index].tabloCond[indexCond].vitmini);
-          champ2.Text:=intToSTR(Tablo_actionneur[index].tabloCond[indexCond].vitmaxi);
-          ChampTrain.text:=Tablo_actionneur[index].tabloCond[indexCond].train;
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].vitmini);
+          champ2.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].vitmaxi);
+          ChampTrain.text:=Tablo_Action[index].tabloCond[indexCond].train;
           Champ1.EditLabel.Caption:='Vitesse'+#13+'mini';
           Champ2.EditLabel.Caption:='Vitesse'+#13+'maxi';
           Champ1.Hint:='Vitesse minimale du train pour la condition';
@@ -747,9 +752,9 @@ begin
         end;
         CondPosAcc :
         begin
-          champ1.Text:=intToSTR(Tablo_actionneur[index].tabloCond[indexCond].accessoire);
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].accessoire);
           Champ1.Hint:='Adresse DCC de l''accessoire pour la condition';
-          SpinEditEtat2.Value:=Tablo_actionneur[index].tabloCond[indexCond].etat;
+          SpinEditEtat2.Value:=Tablo_Action[index].tabloCond[indexCond].etat;
           SpinEditEtat2.visible:=true;
           SpinEditEtat2.hint:='Etat de l''accessoire'+#13+
               '0=nul'+#13+
@@ -763,10 +768,10 @@ begin
         end;
         condHorl :
         begin
-          SpinEditHeure1.Value:=Tablo_actionneur[index].tabloCond[indexCond].HeureMin;
-          SpinEditmn1.Value:=Tablo_actionneur[index].tabloCond[indexCond].MinuteMin;
-          SpinEditHeure2.Value:=Tablo_actionneur[index].tabloCond[indexCond].HeureMax;
-          SpinEditmn2.Value:=Tablo_actionneur[index].tabloCond[indexCond].MinuteMax;
+          SpinEditHeure1.Value:=Tablo_Action[index].tabloCond[indexCond].HeureMin;
+          SpinEditmn1.Value:=Tablo_Action[index].tabloCond[indexCond].MinuteMin;
+          SpinEditHeure2.Value:=Tablo_Action[index].tabloCond[indexCond].HeureMax;
+          SpinEditmn2.Value:=Tablo_Action[index].tabloCond[indexCond].MinuteMax;
 
           SpinEditHeure1.visible:=true;
           SpinEditHeure2.visible:=true;
@@ -777,9 +782,9 @@ begin
         end;
         condTrainSig :
         begin
-          champ1.Text:=intToSTR(Tablo_actionneur[index].tabloCond[indexCond].adresse);
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].adresse);
           champ1.editLabel.Caption:='Adresse du signal';
-          champTrain.Text:=Tablo_actionneur[index].tabloCond[indexCond].train;
+          champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
           champTrain.Visible:=true;
         end;
@@ -788,7 +793,7 @@ begin
   end;
 
 
-  Nb:=Tablo_Actionneur[index].NbOperations;
+  Nb:=Tablo_Action[index].NbOperations;
 
   // si pas d'action sélectionnée et que la liste n'est pas nulle, sélectionner la première
   if (Nb>0) and (indexAction=0) then
@@ -801,7 +806,7 @@ begin
   if Nb>=indexAction then
   begin
 
-    Act:=Tablo_actionneur[index].tabloop[indexAction].numoperation;
+    Act:=Tablo_Action[index].tabloop[indexAction].numoperation;
 
     with formModifAction do
     begin
@@ -811,7 +816,7 @@ begin
       begin
         LabeledEditAdresse.Visible:=true;
         LabeledEditAdresse.EditLabel.Caption:='TCO n°';
-        LabeledEditAdresse.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].NumTCO);
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].NumTCO);
       end;
       ActionAccessoire :
       begin
@@ -827,9 +832,9 @@ begin
               '2=droit';
 
         checkBoxRaz.Visible:=true;
-        LabeledEditAdresse.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].adresse);
-        SpinEditEtatop.Value:=Tablo_actionneur[index].tabloop[indexAction].etat;
-        checkBoxRAZ.Checked:=Tablo_actionneur[index].tabloop[indexAction].zero;
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        SpinEditEtatop.Value:=Tablo_Action[index].tabloop[indexAction].etat;
+        checkBoxRAZ.Checked:=Tablo_Action[index].tabloop[indexAction].zero;
       end;
       ActionVitesse :
       begin
@@ -838,8 +843,8 @@ begin
         LabeledEditTrain.Visible:=true;
         LabeledEditTrain.EditLabel.Caption:='Train destinataire';
         LabeledEditTrain.hint:='Nom unique du train';
-        LabeledEditAdresse.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].vitesse);
-        LabeledEditTrain.Text:=Tablo_actionneur[index].tabloop[indexAction].train;
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].vitesse);
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
       end;
       ActionCdePeriph :
       begin
@@ -848,8 +853,8 @@ begin
         LabelPeriph.Visible:=true;
         LabeledEditTrain.EditLabel.Caption:='Commande';
         LabeledEditTrain.Hint:='Commande Ascii';
-        LabeledEditTrain.Text:=Tablo_actionneur[index].tabloop[indexAction].chaine;
-        ComboBoxAccComUSB.itemIndex:=Tablo_actionneur[index].tabloop[indexAction].periph-1;
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].chaine;
+        ComboBoxAccComUSB.itemIndex:=Tablo_Action[index].tabloop[indexAction].periph-1;
       end;
       ActionFonctionF :
       begin
@@ -859,9 +864,9 @@ begin
         LabeledEditFonctionF.EditLabel.Caption:='Fonction F';
         LabeledEditTrain.Visible:=true;
         LabeledEditTrain.hint:='Nom unique du train';
-        LabeledEditFonctionF.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].fonctionF);
-        LabeledEditTempoF.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].TempoF);
-        LabeledEditTrain.Text:=Tablo_actionneur[index].tabloop[indexAction].train;
+        LabeledEditFonctionF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].fonctionF);
+        LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
       end;
       ActionSon :
       begin
@@ -870,13 +875,13 @@ begin
         SpeedButtonCharger.Visible:=true;
         LabeledEditTrain.EditLabel.Caption:='Son';
         LabeledEditTrain.Hint:='fichier son';
-        LabeledEditTrain.Text:=Tablo_actionneur[index].tabloop[indexAction].train;
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
       end;
       ActionTempo :
       begin
         LabeledEditTempoF.Visible:=true;
         LabeledEditTempoF.EditLabel.Caption:='Temporisation (x100 ms)';
-        LabeledEditTempoF.Text:=intToSTR(Tablo_actionneur[index].tabloop[indexAction].TempoF);
+        LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
       end;
     end;
     end;
@@ -934,7 +939,7 @@ begin
   i:=Index_Operation(s);
 
   if (IndexDest<0) then IndexDest:=0;
-  Tablo_Actionneur[ligneClicAct+1].TabloOp[IndexDest+1].numoperation:=i;
+  Tablo_Action[ligneClicAct+1].TabloOp[IndexDest+1].numoperation:=i;
 
   listboxoperations.Items[indexDest]:=ListBoxOper.Items[indexSrc];
 
@@ -954,14 +959,14 @@ begin
   if i=0 then exit;
 
   idBD:=ligneClicAct+1;
-  NbOp:=Tablo_Actionneur[idBD].NbOperations;
-  NbCond:=Tablo_Actionneur[idBD].NbCond;
+  NbOp:=Tablo_Action[idBD].NbOperations;
+  NbCond:=Tablo_Action[idBD].NbCond;
   inc(NbOp);
-  Tablo_Actionneur[idBD].NbOperations:=NbOp;
-  Setlength(Tablo_Actionneur[idBD].tabloOp,NbOp+1);
+  Tablo_Action[idBD].NbOperations:=NbOp;
+  Setlength(Tablo_Action[idBD].tabloOp,NbOp+1);
   // le nouveau numéro d'opération c'est l'index de la listboxOper
-  Tablo_Actionneur[idBD].tabloOp[NbOp].numoperation:=i;
-  Tablo_Actionneur[idBD].tabloOp[NbOp].valide:=true;
+  Tablo_Action[idBD].tabloOp[NbOp].numoperation:=i;
+  Tablo_Action[idBD].tabloOp[NbOp].valide:=true;
 
   Aff_champs(idbd,nbCond,Nbop);
   clicAction:=NbOp-1;
@@ -969,43 +974,48 @@ begin
 
 end;
 
-procedure TFormModifAction.SpeedButtonSupprimeClick(Sender: TObject);
+
+
+procedure supprime_operation;
 var i,indexSrc,idBD,NbOp,NumOp : integer;
     s : string;
 begin
-  indexSrc:=listboxOperations.ItemIndex;
+  indexSrc:=formModifaction.listboxOperations.ItemIndex;
   if indexSrc<0 then exit;
 
   idBD:=ligneClicAct+1;
-  NbOp:=Tablo_Actionneur[idBD].NbOperations;
+  NbOp:=Tablo_Action[idBD].NbOperations;
   if NbOp<1 then exit;
 
-  NumOp:=Tablo_Actionneur[idBD].TabloOp[indexSrc+1].numoperation;
-  s:='Voulez vous supprimer l''action '+#13+operations[NumOp].Nom+' ?';
+  NumOp:=Tablo_Action[idBD].TabloOp[indexSrc+1].numoperation;
+  s:='Voulez vous supprimer l''opération '+#13+operations[NumOp].Nom+' ?';
 
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   // supprimer
-  listboxoperations.Items.Delete(indexSrc);
+  FormModifAction.listboxoperations.Items.Delete(indexSrc);
   for i:=IndexSrc+1 to NbOp-1 do
   begin
-    Tablo_Actionneur[idBD].TabloOp[i]:=Tablo_Actionneur[idBD].TabloOp[i+1];
+    Tablo_Action[idBD].TabloOp[i]:=Tablo_Action[idBD].TabloOp[i+1];
   end;
 
   dec(NbOp);
-  Tablo_Actionneur[idBD].NbOperations:=NbOp;
-  Setlength(Tablo_Actionneur[idBD].tabloOp,NbOp+1);
+  Tablo_Action[idBD].NbOperations:=NbOp;
+  Setlength(Tablo_Action[idBD].tabloOp,NbOp+1);
 
   Aff_champs(idBD,1,IndexSrc+1);
   exit;
 
-
-
-  // réencoder la ligne
+  // réencoder la ligne
   s:=encode_actions(idBD);
   // maj combobox
-  ComboBoxActions.Items[idBD-1]:=s;
-  ComboBoxActions.ItemIndex:=idbd-1;
+  FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
+  FormModifAction.ComboBoxActions.ItemIndex:=idbd-1;
+end;
+
+procedure TFormModifAction.SpeedButtonSupprimeClick(Sender: TObject);
+begin
+  supprime_operation;
 end;
 
 procedure TFormModifAction.SpinButton1UpClick(Sender: TObject);
@@ -1020,9 +1030,9 @@ begin
 
 
   if (indexSrc<1) then exit;
-  top:=Tablo_Actionneur[idBD].TabloOp[idOp-1];
-  Tablo_Actionneur[idBD].TabloOp[idOp-1]:=Tablo_Actionneur[idBD].TabloOp[idOp];
-  Tablo_Actionneur[idBD].TabloOp[idOp]:=top;
+  top:=Tablo_Action[idBD].TabloOp[idOp-1];
+  Tablo_Action[idBD].TabloOp[idOp-1]:=Tablo_Action[idBD].TabloOp[idOp];
+  Tablo_Action[idBD].TabloOp[idOp]:=top;
 
   // réencoder la ligne
   s:=encode_actions(idBD);
@@ -1034,9 +1044,9 @@ begin
   with FormModifAction.ListBoxOperations do
   begin
     clear;
-    for i:=1 to Tablo_Actionneur[idBD].NbOperations do
+    for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
-      no:=Tablo_Actionneur[idBD].tabloOp[i].numoperation;
+      no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
       itemHeight:=17;
     end;
@@ -1060,12 +1070,12 @@ begin
   idop:=indexSrc+1;
 
 
-  no:=Tablo_Actionneur[idBD].NbOperations;
+  no:=Tablo_Action[idBD].NbOperations;
 
   if (indexSrc+1>=No) then exit;
-  top:=Tablo_Actionneur[idBD].TabloOp[idOp+1];
-  Tablo_Actionneur[idBD].TabloOp[idOp+1]:=Tablo_Actionneur[idBD].TabloOp[idOp];
-  Tablo_Actionneur[idBD].TabloOp[idOp]:=top;
+  top:=Tablo_Action[idBD].TabloOp[idOp+1];
+  Tablo_Action[idBD].TabloOp[idOp+1]:=Tablo_Action[idBD].TabloOp[idOp];
+  Tablo_Action[idBD].TabloOp[idOp]:=top;
 
 
   // réencoder la ligne
@@ -1078,9 +1088,9 @@ begin
   with FormModifAction.ListBoxOperations do
   begin
     clear;
-    for i:=1 to Tablo_Actionneur[idBD].NbOperations do
+    for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
-      no:=Tablo_Actionneur[idBD].tabloOp[i].numoperation;
+      no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
       itemHeight:=17;
     end;
@@ -1111,16 +1121,16 @@ begin
   index:=ligneclicAct+1;
   if affevt then Affiche('EditAdrChange',clyellow);
 
-  decl:=Tablo_actionneur[ligneclicAct+1].declencheur;
+  decl:=Tablo_Action[ligneclicAct+1].declencheur;
   val(editAdr.Text,i,erreur);
   if (i<0) or (erreur<>0) then exit;
 
   if decl=DeclHorloge then
   begin
     if (i>23) then exit;
-    Tablo_actionneur[index].heure:=i;
+    Tablo_Action[index].heure:=i;
   end
-  else Tablo_actionneur[index].adresse:=i;
+  else Tablo_Action[index].adresse:=i;
   maj_combocactions(ligneclicAct);
 end;
 
@@ -1130,7 +1140,7 @@ begin
   if (ligneclicAct<0) or clicliste then exit;
   index:=ligneclicAct+1;
 
-  decl:=Tablo_actionneur[ligneclicAct+1].declencheur;
+  decl:=Tablo_Action[ligneclicAct+1].declencheur;
 
   if (decl<>DeclZoneDet) and (decl<>DeclHorloge) then exit;
 
@@ -1140,9 +1150,9 @@ begin
   if decl=DeclHorloge then
   begin
     if (i>59) then exit;
-    Tablo_actionneur[index].minute:=i;
+    Tablo_Action[index].minute:=i;
   end;
-  if decl=DeclZoneDet then Tablo_actionneur[index].adresse2:=i;
+  if decl=DeclZoneDet then Tablo_Action[index].adresse2:=i;
   maj_combocactions(ligneclicAct);
 end;
 
@@ -1152,12 +1162,12 @@ begin
   if (ligneclicAct<0) or clicliste then exit;
   index:=ligneclicAct+1;
 
-  decl:=Tablo_actionneur[ligneclicAct+1].declencheur;
+  decl:=Tablo_Action[ligneclicAct+1].declencheur;
   if (decl<>declAccessoire) and (decl<>DeclDetAct) and (decl<>DeclZoneDet) then exit;
 
   val(SpinEditEtat.Text,i,erreur);
   if (i<0) or (i>2) or (erreur<>0) then exit;
-  Tablo_actionneur[index].etat:=i;
+  Tablo_Action[index].etat:=i;
 
   maj_combocactions(ligneclicAct);
 end;
@@ -1169,13 +1179,13 @@ begin
   if affevt then Affiche('EditTrainDeclChange',clyellow);
   index:=ligneclicAct+1;
 
-  decl:=Tablo_actionneur[ligneclicAct+1].declencheur;
+  decl:=Tablo_Action[ligneclicAct+1].declencheur;
   if (decl<>declDetAct) and (decl<>DeclZoneDet) and (decl<>DeclPeriph) and
      (decl<>DeclDemarTrain) and (decl<>DeclArretTrain) then exit;
 
   if (decl=declDetAct) or (decl=DeclZoneDet) or (decl=DeclDemarTrain) or (decl=DeclArretTrain)
-     then Tablo_actionneur[index].trainDecl:=EditTrainDecl.text;
-  if decl=DeclPeriph then Tablo_actionneur[index].ordrePeriph:=EditTrainDecl.text;
+     then Tablo_Action[index].trainDecl:=EditTrainDecl.text;
+  if decl=DeclPeriph then Tablo_Action[index].ordrePeriph:=EditTrainDecl.text;
 
   maj_combocactions(ligneclicAct);
 end;
@@ -1195,11 +1205,11 @@ var i,erreur,op : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   val(LabeledEditAdresse.Text,i,erreur);
-  op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
-    ActionAffTCO    : Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numTCO:=i;
-    ActionAccessoire: Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
-    ActionVitesse   : Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].vitesse:=i;
+    ActionAffTCO    : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numTCO:=i;
+    ActionAccessoire: Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
+    ActionVitesse   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].vitesse:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1210,10 +1220,10 @@ begin
   if clicAction<0 then exit;
   if (ligneclicAct<0) or clicliste then exit;
   val(LabeledEditFonctionF.Text,i,erreur);
-  op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
-    ActionFonctionF  : Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].FonctionF:=i;
-    ActionTempo : Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].TempoF:=i;
+    ActionFonctionF  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].FonctionF:=i;
+    ActionTempo : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].TempoF:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1223,7 +1233,7 @@ var op : integer;
     s : string;
 begin
   if (clicAction<0) or clicListe then exit;
-  op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   if (op=ActionFonctionF) or (op=ActionVitesse) or (op=ActionSon) then
   begin
     s:=LabeledEditTrain.Text;
@@ -1233,9 +1243,9 @@ begin
       exit;
     end;
     labelInfo.Caption:='';
-    Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].train:=s;
+    Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].train:=s;
   end;
-  if op=ActionCdePeriph then Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].chaine:=LabeledEditTrain.Text;
+  if op=ActionCdePeriph then Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].chaine:=LabeledEditTrain.Text;
   maj_combocactions(ligneclicact);
 end;
 
@@ -1260,8 +1270,8 @@ begin
   begin
     s:=openDialogSon.FileName;
     LabeledEditTrain.Text:=s;
-    op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
-    if op=ActionSon then Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].train:=s;
+    op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+    if op=ActionSon then Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].train:=s;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1270,8 +1280,8 @@ procedure TFormModifAction.CheckBoxRAZClick(Sender: TObject);
 var op : integer;
 begin
   if clicAction<0 then exit;
-  op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
-  if (op=ActionAccessoire) then Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].zero:=CheckBoxRaz.Checked;
+  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  if (op=ActionAccessoire) then Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].zero:=CheckBoxRaz.Checked;
   maj_combocactions(ligneclicAct);
 end;
 
@@ -1417,7 +1427,7 @@ begin
   ClicDeclenche:=ListBoxdeclench.itemindex;
   if clicDeclenche<0 then exit;
   i:=Clicdeclenche+1;
-  Tablo_actionneur[ligneclicAct+1].declencheur:=i;
+  Tablo_Action[ligneclicAct+1].declencheur:=i;
   Aff_champs(ligneclicAct+1,0,0);
 
 end;
@@ -1428,7 +1438,7 @@ begin
   if (ligneclicAct<0) or clicliste then exit;
   index:=ligneclicAct+1;
 
-  Tablo_actionneur[index].NomAction:=LabeledEditNomAct.text;
+  Tablo_Action[index].NomAction:=LabeledEditNomAct.text;
 
   Aff_champs(index,0,0);
 end;
@@ -1441,7 +1451,7 @@ begin
   if (ligneclicAct<0) or clicliste then exit;
   index:=ligneclicAct+1;
   if affevt then affiche('Evt ComboBox Change',clyellow);
-  Tablo_Actionneur[ligneClicAct+1].TabloOp[clicaction+1].periph:=formModifAction.ComboBoxAccComUSB.ItemIndex+1;
+  Tablo_Action[ligneClicAct+1].TabloOp[clicaction+1].periph:=formModifAction.ComboBoxAccComUSB.ItemIndex+1;
   Aff_champs(index,0,clicaction+1);
 end;
 
@@ -1451,14 +1461,14 @@ begin
   if clicAction<0 then exit;
   if (ligneclicAct<0) or clicliste then exit;
   val(LabeledEditTempoF.Text,i,erreur);
-  Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].TempoF:=i;
+  Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].TempoF:=i;
   maj_combocactions(ligneclicAct);
 end;
 
 procedure TFormModifAction.ListBoxOperationsDblClick(Sender: TObject);
 begin
   if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
-  Tablo_Actionneur[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Actionneur[ligneclicAct+1].tabloOp[clicaction+1].valide);
+  Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
   maj_combocactions(ligneclicAct);
 end;
 
@@ -1520,7 +1530,7 @@ begin
   i:=Index_Condition(s);
 
   if (IndexDest<0) then IndexDest:=0;
-  Tablo_Actionneur[ligneClicAct+1].TabloCond[IndexDest+1].numCondition:=i;
+  Tablo_Action[ligneClicAct+1].TabloCond[IndexDest+1].numCondition:=i;
 
   listboxConditions.Items[indexDest]:=ListBoxCondTot.Items[indexSrc];
 
@@ -1535,11 +1545,11 @@ var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   val(Champ1.Text,i,erreur);
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondVitTrain    : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].vitmini:=i;
-    CondPosAcc      : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].accessoire:=i;
-    CondTrainSig    : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
+    CondVitTrain    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].vitmini:=i;
+    CondPosAcc      : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].accessoire:=i;
+    CondTrainSig    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1549,9 +1559,9 @@ var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   val(Champ2.Text,i,erreur);
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondVitTrain    : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].vitmaxi:=i;
+    CondVitTrain    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].vitmaxi:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1561,9 +1571,9 @@ var cond,i : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditHeure1.Value;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondHorl        : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].HeureMin:=i;
+    CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].HeureMin:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1574,9 +1584,9 @@ var cond,i : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditMn1.Value;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondHorl        : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].MinuteMin:=i;
+    CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].MinuteMin:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1586,9 +1596,9 @@ var cond,i : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditHeure2.Value;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondHorl        : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].HeureMax:=i;
+    CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].HeureMax:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1598,9 +1608,9 @@ var cond,i : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditMn2.Value;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondHorl        : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].MinuteMax:=i;
+    CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].MinuteMax:=i;
   end;
   maj_combocactions(ligneclicAct);
 
@@ -1610,9 +1620,9 @@ procedure TFormModifAction.ChampTrainChange(Sender: TObject);
 var cond : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondVitTrain,CondTrainSig   : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].train:=ChampTrain.Text;
+    CondVitTrain,CondTrainSig   : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].train:=ChampTrain.Text;
   end;
   maj_combocactions(ligneclicAct);
 
@@ -1623,9 +1633,9 @@ var cond,i : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditEtat2.Value;
-  cond:=Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].numcondition;
+  cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
-    CondPosAcc       : Tablo_actionneur[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
+    CondPosAcc       : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1637,21 +1647,69 @@ begin
   index:=ligneclicAct+1;
   if affevt then Affiche('EditAdrChange',clyellow);
 
-  Tablo_actionneur[index].etat:=RadioEtatSignal.ItemIndex;
+  Tablo_Action[index].etat:=RadioEtatSignal.ItemIndex;
 
   maj_combocactions(ligneclicAct);
 end;
 
 procedure TFormModifAction.SpinEditEtatopChange(Sender: TObject);
-var i,erreur,op : integer;
+var i,op : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   i:=SpinEditEtatop.Value;
-  op:=Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
-    ActionAccessoire  : Tablo_actionneur[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
+    ActionAccessoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
+
+procedure TFormModifAction.ListBoxOperationsKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+var nb : integer;
+begin
+  nb:=Tablo_Action[ligneclicAct+1].NbOperations;
+  if (nb<1) or clicliste then exit;
+  if key=VK_delete then supprime_operation;
+
+  exit;  // interfére,ce avec montée baisse
+  if ord(Key)=VK_UP then
+  begin
+    clicListe:=true;
+    //with FormModifAction.ListBoxOperations.Items do
+    begin
+      if clicAction>0 then
+      begin
+        dec(clicaction);
+        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
+        Formconfig.ListBoxactions.Itemindex:=clicaction;
+      end;
+    end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    //if clicListe then exit;
+    clicListe:=true;
+    //with Formconfig.ListBoxactions.Items do
+    begin
+      if clicaction<nb-1 then
+      begin
+        inc(clicaction);
+        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
+        Formconfig.ListBoxactions.Itemindex:=clicaction;
+      end;
+    end;
+  end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxOperations.SelectAll;
+  end;
+
+  clicListe:=false;
+end;
+
+
 
 end.

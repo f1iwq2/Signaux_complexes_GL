@@ -42,7 +42,16 @@ type
     BitBtnAnnule: TBitBtn;
     GroupBoxCanton: TGroupBox;
     LabelNumC: TLabel;
-    RadioGroupAlign: TRadioGroup;
+    EditCanton: TEdit;
+    LabelInfo: TLabel;
+    CheckBoxEncadre: TCheckBox;
+    RadioButtonGH: TRadioButton;
+    RadioButtonDB: TRadioButton;
+    RadioButtonDS: TRadioButton;
+    ImageSens: TImage;
+    ImageGD: TImage;
+    ImageHB: TImage;
+    Label4: TLabel;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -72,7 +81,12 @@ type
     procedure BitBtnAnnuleClick(Sender: TObject);
     procedure ListBoxActionKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure RadioGroupAlignClick(Sender: TObject);
+    procedure EditCantonExit(Sender: TObject);
+    procedure EditCantonChange(Sender: TObject);
+    procedure CheckBoxEncadreClick(Sender: TObject);
+    procedure RadioButtonGHClick(Sender: TObject);
+    procedure RadioButtonDBClick(Sender: TObject);
+    procedure RadioButtonDSClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -100,13 +114,11 @@ procedure actualise(indexTCO : integer);
 
 implementation
 
-uses UnitPrinc,UnitAnalyseSegCDM,UnitConfigTCO,UnitTCO;
+uses UnitPrinc,UnitAnalyseSegCDM,UnitConfigTCO,UnitTCO,selection_train;
 
 {$R *.dfm}
 
 //https://codes-sources.commentcamarche.net/forum/affich-1015879-ajouter-un-icon-dans-un-listbox
-
-
 
 // procédure qui met la bd à jour, et réactualise la cellule, ce qui appelle "select elements"
 procedure stocke_bd;
@@ -123,7 +135,6 @@ begin
     affiche_cellule(IndexTCOCourant,x,Y);
     actualise(indexTCOCourant);
   end;
-
 end;
 
 // affiche les élements de l'index dans la fenetre
@@ -190,13 +201,13 @@ begin
   end;
 end;
 
-// actualise le contenu de la fenetre et de la zone tco
+// actualise le contenu de la fenetre et de la zone tco par rapport à la cellule cliquée
 procedure actualise(indexTCO : integer);
-var i,Bimage,oriente,piedFeu,act : integer;
+var i,Bimage,oriente,piedFeu,act,sens : integer;
     s : string;
     ip : Timage;
     r : trect;
-    sauvConfcellTCO : boolean;
+    sauvConfcellTCO,H : boolean;
 begin
   if (indexTCO=0) or (formConfCellTCO=nil) then exit;
   if affevt then affiche('FormConfigCellTCO actualise',clyellow);
@@ -206,61 +217,128 @@ begin
   //with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
   with FormConfCellTCO.ImagePaletteCC do
   begin
-      // efface l'icone
-      Picture.Bitmap.width:=iconeX;
-      Picture.bitmap.height:=iconeY;
-      // effacer l'icone
-      r:=Rect(0,0,iconeX,iconeY);
-      //with FormConfCellTCO.ImagePaletteCC.canvas do
-      with Picture.Bitmap.Canvas do
-      // with Picture.Bitmap.Canvas do
-      begin
-        Pen.Mode:=pmCopy;
-        Pen.Width:=1;
-        Pen.color:=tco[indexTCO,XclicC,YclicC].CouleurFond;
-        Brush.Color:=tco[indexTCO,XclicC,YclicC].couleurFond;
-        Brush.style:=bsSolid;
-        fillRect(r);
-      end;
+    // efface l'icone
+    Picture.Bitmap.width:=iconeX;
+    Picture.bitmap.height:=iconeY;
+    // effacer l'icone
+    r:=Rect(0,0,iconeX,iconeY);
+    //with FormConfCellTCO.ImagePaletteCC.canvas do
+    with Picture.Bitmap.Canvas do
+    // with Picture.Bitmap.Canvas do
+    begin
+      Pen.Mode:=pmCopy;
+      Pen.Width:=1;
+      Pen.color:=tco[indexTCO,XclicC,YclicC].CouleurFond;
+      Brush.Color:=tco[indexTCO,XclicC,YclicC].couleurFond;
+      Brush.style:=bsSolid;
+      fillRect(r);
+    end;
   end;
   FormConfCellTCO.ImagePaletteCC.Repaint;
   Bimage:=tco[indexTCO,XClicC,YClicC].Bimage;
 
+  FormConfCellTCO.CheckBoxEncadre.visible:=Bimage=0;
+
+  formConfCellTCO.GroupBox1.caption:='Texte';
   if isCanton(Bimage) then
   begin
     with formConfCellTCO do
     begin
       // ramener la coordonnée cliquée à l'origine du canton
-      if (Bimage>=Id_cantonH) and (Bimage<=Id_cantonH+9) then xClicC:=xClicC-(Bimage-Id_cantonH);
-      if (Bimage>=Id_cantonV) and (Bimage<=Id_cantonV+9) then yClicC:=yClicC-(Bimage-Id_cantonV);
+      if (Bimage>=Id_cantonH) and (Bimage<=Id_cantonH+9) then
+      begin
+        H:=true;
+        xClicC:=xClicC-(Bimage-Id_cantonH);
+      end;
+      if (Bimage>=Id_cantonV) and (Bimage<=Id_cantonV+9) then
+      begin
+        H:=false;
+        yClicC:=yClicC-(Bimage-Id_cantonV);
+      end;
       XclicCell[indexTCO]:=XclicC;
       YclicCell[indexTCO]:=YclicC;
 
       GroupBoxOrientation.visible:=false;
       GroupBoxImplantation.visible:=false;
       GroupBoxAction.Visible:=false;
+
+      sens:=tco[indexTCO,xClicC,yClicC].SensCirc;
       with GroupBoxCanton do
       begin
         visible:=true;
         left:=16;
-        top:=152;
+        top:=158;
         width:=280;
         height:=130;
         EditTypeImage.Enabled:=false;
-        with RadioGroupAlign do
+        GroupBox1.caption:='Nom du canton';
+      end;
+
+      with RadioButtonGH do   // gauche ou haut
+      begin
+        if H then
         begin
-          ItemIndex:=TCO[indexTCO,Xclicc,YClicC].pont; // Alignement
-          if isCantonH(Bimage) then
+          Caption:='Sens gauche';
+          if sens=SensGauche then
           begin
-            items[1]:='Aligné à gauche';
-            items[2]:='Aligné à droite';
+            ImageSens.Picture:=FormSelTrain.ImageGauche.Picture;
+            checked:=true;
           end
           else
           begin
-            items[1]:='Aligné en haut';
-            items[2]:='Aligné en bas';
+            checked:=false;
           end;
-        end;
+        end
+        else
+        // vertical
+        begin
+          Caption:='Sens haut';
+          if sens=SensHaut then
+          begin
+            ImageSens.Picture:=FormSelTrain.ImageHaut.Picture;
+            checked:=true;
+          end
+          else
+          begin
+            checked:=false;
+          end;
+        end
+      end;
+
+      with RadioButtonDB do     // droit ou bas
+      begin
+        if H then
+        begin
+          Caption:='Sens droit';
+          if sens=SensDroit then
+          begin
+            ImageSens.Picture:=FormSelTrain.ImageDroite.Picture;
+            checked:=true;
+          end
+          else checked:=false;
+        end
+        else
+        begin
+          Caption:='Sens bas';
+          if sens=SensBas then
+          begin
+            ImageSens.Picture:=FormSelTrain.ImageBas.Picture;
+            checked:=true;
+          end
+          else checked:=false;
+        end
+      end;
+      with RadioButtonDS do
+      begin
+        if Sens=0 then
+        begin
+          checked:=true;
+          if H then
+            ImageSens.Picture:=FormConfCellTCO.ImageGD.Picture
+          else
+            ImageSens.Picture:=FormConfCellTCO.ImageHB.Picture;
+        end
+        else checked:=false;
       end;
     end;
   end
@@ -300,6 +378,7 @@ begin
   begin
     with formConfCellTCO do
     begin
+      CheckBoxEncadre.checked:=tco[indexTCO,XclicC,YclicC].Buttoir=1;
       with GroupBoxOrientation do
       begin
         visible:=true;
@@ -312,7 +391,6 @@ begin
       GroupBoxCanton.Visible:=false;
     end;
   end;
-
 
   if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
   begin
@@ -548,7 +626,7 @@ begin
     if (Bimage=Id_cantonV) or (Bimage=Id_cantonH) then
     begin
       i:=index_canton(indexTCO,xclicC,yclicC);
-      if i>0 then FormConfCellTCO.LabelNumC.caption:='Canton n°'+intToSTR(canton[i].numero)
+      if i>0 then FormConfCellTCO.EditCanton.text:=intToSTR(canton[i].numero);
     end
     else FormConfCellTCO.LabelNumC.caption:='Elément de canton';
   end;
@@ -604,6 +682,7 @@ procedure TFormConfCellTCO.EditTexteCCTCOChange(Sender: TObject);
 var i,El,x,y : integer;
 begin
   if clicTCO or not(ConfCellTCO) or actualize then exit;
+  if affevt then Affiche('EditTexteCCTCOChange',clyellow);
   PCanvasTCO[indexTCOCourant].Brush.Color:=clfond[indexTCOCourant];
   x:=XclicCell[indexTCOCourant];
   y:=YclicCell[indexTCOCourant];
@@ -622,7 +701,7 @@ begin
     i:=Index_canton(indexTCOCourant,x,y);
     if i=0 then exit;
     canton[i].nom:=EditTexteCCTCO.Text;
-    Dessin_canton(indexTCOCourant,PcanvasTCO[indexTCOCourant],x,y,0,0);
+    Dessin_canton(indexTCOCourant,PcanvasTCO[indexTCOCourant],x,y,0);
   end
   else
     affiche_texte(indexTCOCourant,x,y);
@@ -630,6 +709,7 @@ begin
   formTCO[indexTCOCourant].EditTexte.Text:=EditTexteCCTCO.text;
   if not(selectionaffichee[indexTCOcourant]) then _entoure_cell_clic(indexTCOCourant);
 end;
+
 
 procedure TFormConfCellTCO.ButtonFonteClick(Sender: TObject);
 begin
@@ -640,6 +720,10 @@ procedure TFormConfCellTCO.FormCreate(Sender: TObject);
 var i : integer;
     c : tcomponent;
 begin
+  //RadioButtonGH.Visible:=not(diffusion);
+  //RadioButtonDB.Visible:=not(diffusion);
+  //RadioButtonDS.Visible:=not(diffusion);
+
   // fenetre toujours dessus
   position:=poMainFormCenter;
   if affevt then Affiche('FormConfCellTCO create',clLime);
@@ -732,6 +816,7 @@ end;
 procedure TFormConfCellTCO.CheckPinvClick(Sender: TObject);
 var Bimage : integer;
 begin
+  if affevt then Affiche('CheckPinvClick',clyellow);
   if (XclicCell[indexTCOcourant]=0) or (XclicCell[indexTCOcourant]>NbreCellX[indexTCOcourant]) or (YclicCell[indexTCOcourant]=0) or (YclicCell[indexTCOcourant]>NbreCelly[indexTCOcourant]) then exit;
   Bimage:=tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Bimage;
   if (bimage=2) or (bimage=3) or (bimage=4) or (bimage=5) or (bimage=12) or (bimage=13) or
@@ -954,7 +1039,7 @@ begin
         end;
 
         // traitement des buttoirs :  mode buttoir supporté par les éléments 1 10 11 20
-        if  ((element=1) or (element=10) or (element=11) or (element=20)) and (FormConfCellTCO.RadioGroupSel.Itemindex=1) then
+        if ((element=1) or (element=10) or (element=11) or (element=20)) and (FormConfCellTCO.RadioGroupSel.Itemindex=1) then
         begin
           efface_entoure(IndexTCOCourant);
           if not(testbit(tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].buttoir,c)) then
@@ -1004,15 +1089,11 @@ begin
   end;
 end;
 
-
-
 procedure TFormConfCellTCO.FormHide(Sender: TObject);
 begin
   if affevt then Affiche('FormFoncCellTCO hide',clyellow);
   ConfCellTCO:=false;
 end;
-
-
 
 procedure TFormConfCellTCO.ListBoxActionMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1079,16 +1160,14 @@ begin
   if clicTCO then exit;
 
   act:=ligneclicAction+1;
-
   case act of
-  AcActSortie :
-  begin
-    val(EditParam2.Text,i,erreur);
-    if erreur<>0 then exit;
-    tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].sortie:=i;
-    Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
-  end;
-
+    AcActSortie :
+    begin
+      val(EditParam2.Text,i,erreur);
+      if erreur<>0 then exit;
+      tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].sortie:=i;
+      Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
+    end;
   end;
 end;
 
@@ -1111,13 +1190,122 @@ begin
   end;
 end;
 
-procedure TFormConfCellTCO.RadioGroupAlignClick(Sender: TObject);
-var idc : integer;
-begin
-  TCO[indexTCOCourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].pont:=RadiogroupAlign.ItemIndex;
-  idc:=TCO[indexTCOCourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].PiedFeu;
-  if (idc>0) and (idc<=ncantons) then dessin_canton(IdC,0,0); 
 
+
+procedure TFormConfCellTCO.EditCantonExit(Sender: TObject);
+var NumC,i,erreur :integer;
+   trouve : boolean;
+begin
+  val(editcanton.Text,NumC,erreur);
+  if erreur<>0 then exit;
+  i:=1;
+  repeat
+    trouve:=canton[i].numero=NumC;
+    inc(i);
+  until trouve or (i>nCantons);
+  if trouve then
+  begin
+    LabelInfo.caption:='Le canton '+intToSTR(NumC)+' existe déja';
+    exit;
+  end;
+  LabelInfo.caption:='';
+
+  erreur:=index_canton(indexTCOcourant,xclicC,yclicC);
+  canton[erreur].numero:=NumC;
+end;
+
+procedure TFormConfCellTCO.EditCantonChange(Sender: TObject);
+var x,y,NumC,i,erreur :integer;
+   trouve : boolean;
+begin
+  val(editcanton.Text,NumC,erreur);
+  if erreur<>0 then exit;
+  i:=1;
+  repeat
+    trouve:=canton[i].numero=NumC;
+    inc(i);
+  until trouve or (i>nCantons);
+  if trouve then
+  begin
+    LabelInfo.caption:='Le canton '+intToSTR(NumC)+' existe déja';
+    exit;
+  end;
+  LabelInfo.caption:='';
+
+  erreur:=index_canton(indexTCOcourant,xclicC,yclicC);
+  canton[erreur].numero:=NumC;
+  x:=canton[erreur].x;
+  y:=canton[erreur].y;
+  TCO[indexTCOCourant,x,y].NumCanton:=NumC;   // mettre à jour le numéro de canton
+end;
+
+procedure TFormConfCellTCO.RadioButtonGHClick(Sender: TObject);
+var idc,x,y,sens : integer;
+    H : boolean;
+begin
+  Idc:=index_canton(indexTCOcourant,xclicC,yclicC);
+  x:=canton[Idc].x;
+  y:=canton[Idc].y;
+  H:=IsCantonH(IndexTCOCourant,x,y);
+  if H then
+  begin
+    ImageSens.Picture:=FormSelTrain.ImageGauche.Picture;
+    sens:=SensGauche;
+  end
+  else
+  begin
+    ImageSens.Picture:=FormSelTrain.ImageHaut.Picture;
+    sens:=SensHaut;
+  end;
+  TCO[indexTCOCourant,x,y].SensCirc:=Sens;
+end;
+
+procedure TFormConfCellTCO.RadioButtonDBClick(Sender: TObject);
+var idc,x,y,sens : integer;
+    H : boolean;
+begin
+  Idc:=index_canton(indexTCOcourant,xclicC,yclicC);
+  x:=canton[Idc].x;
+  y:=canton[Idc].y;
+  H:=IsCantonH(IndexTCOCourant,x,y);
+  if H then
+  begin
+    ImageSens.Picture:=FormSelTrain.ImageDroite.Picture;
+    sens:=SensDroit
+  end
+  else
+  begin
+    ImageSens.Picture:=FormSelTrain.ImageBas.Picture;
+    sens:=SensBas;
+  end;
+  TCO[indexTCOCourant,x,y].SensCirc:=Sens;
+end;
+
+procedure TFormConfCellTCO.RadioButtonDSClick(Sender: TObject);
+var idc,x,y: integer;
+    h : boolean;
+begin
+  Idc:=index_canton(indexTCOcourant,xclicC,yclicC);
+  x:=canton[Idc].x;
+  y:=canton[Idc].y;
+  H:=IsCantonH(IndexTCOCourant,x,y);
+  if H then
+    ImageSens.Picture:=ImageGD.Picture
+  else
+    ImageSens.Picture:=ImageHB.Picture;
+  TCO[indexTCOCourant,x,y].SensCirc:=0;
+end;
+
+procedure TFormConfCellTCO.CheckBoxEncadreClick(Sender: TObject);
+var i : integer;
+begin
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
+  if checkBoxEncadre.Checked then i:=1 else i:=0;
+  tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Buttoir:=i;
+  efface_entoure(indexTCOcourant);
+  SelectionAffichee[indexTCOcourant]:=false;
+  //affiche_cellule(XclicCell[indexTCO],YclicCell[indexTCO]);
+  affiche_tco(indexTCOcourant);
 end;
 
 end.

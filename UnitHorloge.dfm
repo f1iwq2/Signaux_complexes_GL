@@ -579,12 +579,30 @@ object FormHorloge: TFormHorloge
   end
   object ButtonAh: TButton
     Left = 312
-    Top = 224
-    Width = 75
+    Top = 176
+    Width = 81
     Height = 33
     Caption = 'Afficher l'#39'horloge'
     TabOrder = 5
     WordWrap = True
     OnClick = ButtonAhClick
+  end
+  object ButtonLance: TButton
+    Left = 312
+    Top = 216
+    Width = 81
+    Height = 33
+    Caption = 'Lancer l'#39'horloge'
+    TabOrder = 6
+    OnClick = ButtonLanceClick
+  end
+  object ButtonArrete: TButton
+    Left = 312
+    Top = 256
+    Width = 81
+    Height = 33
+    Caption = 'Arr'#234'te l'#39'horloge'
+    TabOrder = 7
+    OnClick = ButtonArreteClick
   end
 end

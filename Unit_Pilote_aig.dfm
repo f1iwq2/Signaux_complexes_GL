@@ -1,6 +1,6 @@
 object FormAig: TFormAig
-  Left = 630
-  Top = 144
+  Left = 496
+  Top = 217
   Width = 363
   Height = 204
   Caption = 'Pilotage de l'#39'aiguillage'

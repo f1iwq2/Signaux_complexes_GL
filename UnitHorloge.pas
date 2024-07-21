@@ -34,6 +34,8 @@ type
     ButtonAh: TButton;
     CheckBoxAffiche: TCheckBox;
     SpinEditHInit: TSpinEdit;
+    ButtonLance: TButton;
+    ButtonArrete: TButton;
     procedure ButtonOkClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure TrackBarTempsChange(Sender: TObject);
@@ -50,6 +52,8 @@ type
     procedure ButtonAhClick(Sender: TObject);
     procedure CheckBoxAfficheClick(Sender: TObject);
     procedure SpinEditHInitChange(Sender: TObject);
+    procedure ButtonLanceClick(Sender: TObject);
+    procedure ButtonArreteClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -302,6 +306,16 @@ begin
   HeureInit:=i;
   config_modifie:=true;
 
+end;
+
+procedure TFormHorloge.ButtonLanceClick(Sender: TObject);
+begin
+  Demarre_horloge;
+end;
+
+procedure TFormHorloge.ButtonArreteClick(Sender: TObject);
+begin
+  horloge:=false;
 end;
 
 end.

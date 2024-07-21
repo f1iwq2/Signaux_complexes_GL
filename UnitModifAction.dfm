@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheet1
+    ActivePage = TabSheetDecl
     MultiLine = True
     TabOrder = 2
     object TabSheetDecl: TTabSheet
@@ -195,7 +195,7 @@ object FormModifAction: TFormModifAction
         Left = 224
         Top = 216
         Width = 481
-        Height = 65
+        Height = 73
         ReadOnly = True
         TabOrder = 2
       end
@@ -229,7 +229,7 @@ object FormModifAction: TFormModifAction
         ParentFont = False
       end
       object Shape2: TShape
-        Left = 216
+        Left = 232
         Top = 8
         Width = 3
         Height = 293
@@ -258,9 +258,9 @@ object FormModifAction: TFormModifAction
         OnDrawItem = ListBoxCondTotDrawItem
       end
       object ListBoxConditions: TListBox
-        Left = 232
+        Left = 248
         Top = 28
-        Width = 217
+        Width = 201
         Height = 201
         Hint = 'Condition de r'#233'alisation du d'#233'clencheur'
         ItemHeight = 13
@@ -271,9 +271,9 @@ object FormModifAction: TFormModifAction
         OnMouseDown = ListBoxConditionsMouseDown
       end
       object GroupBox1: TGroupBox
-        Left = 464
+        Left = 488
         Top = 24
-        Width = 249
+        Width = 225
         Height = 265
         Caption = 'Param'#232'tres de la condition'
         TabOrder = 2
@@ -329,7 +329,7 @@ object FormModifAction: TFormModifAction
           OnChange = Champ1Change
         end
         object Champ2: TLabeledEdit
-          Left = 176
+          Left = 168
           Top = 40
           Width = 41
           Height = 21
@@ -420,7 +420,7 @@ object FormModifAction: TFormModifAction
       Caption = 'Op'#233'rations'
       ImageIndex = 2
       object Shape1: TShape
-        Left = 216
+        Left = 232
         Top = 8
         Width = 3
         Height = 293
@@ -481,7 +481,7 @@ object FormModifAction: TFormModifAction
       object ComboBoxFamille: TComboBox
         Left = 0
         Top = 32
-        Width = 201
+        Width = 217
         Height = 21
         ItemHeight = 0
         TabOrder = 0
@@ -490,7 +490,7 @@ object FormModifAction: TFormModifAction
       object ListBoxOper: TListBox
         Left = 0
         Top = 60
-        Width = 201
+        Width = 217
         Height = 185
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -503,9 +503,9 @@ object FormModifAction: TFormModifAction
         OnDrawItem = ListBoxOperDrawItem
       end
       object ListBoxOperations: TListBox
-        Left = 232
+        Left = 248
         Top = 28
-        Width = 217
+        Width = 225
         Height = 201
         Hint = 'Liste chronologique des op'#233'rations '#224' effectuer'
         ItemHeight = 13
@@ -514,12 +514,13 @@ object FormModifAction: TFormModifAction
         TabOrder = 2
         OnDblClick = ListBoxOperationsDblClick
         OnDrawItem = ListBoxOperationsDrawItem
+        OnKeyDown = ListBoxOperationsKeyDown
         OnMouseDown = ListBoxOperationsMouseDown
       end
       object GroupBoxParam: TGroupBox
-        Left = 464
+        Left = 488
         Top = 24
-        Width = 249
+        Width = 225
         Height = 265
         Caption = 'Param'#232'tres de l'#39'op'#233'ration'
         TabOrder = 3
@@ -627,7 +628,7 @@ object FormModifAction: TFormModifAction
           Caption = 'Etat'
         end
         object LabeledEditTrain: TLabeledEdit
-          Left = 24
+          Left = 16
           Top = 184
           Width = 161
           Height = 21
@@ -676,7 +677,7 @@ object FormModifAction: TFormModifAction
           OnClick = CheckBoxRAZClick
         end
         object ComboBoxAccComUSB: TComboBox
-          Left = 24
+          Left = 16
           Top = 144
           Width = 201
           Height = 21

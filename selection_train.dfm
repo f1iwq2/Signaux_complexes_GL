@@ -5,7 +5,7 @@ object FormSelTrain: TFormSelTrain
   BorderStyle = bsDialog
   Caption = 'S'#233'lection train'
   ClientHeight = 311
-  ClientWidth = 745
+  ClientWidth = 768
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,13 +16,13 @@ object FormSelTrain: TFormSelTrain
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    745
+    768
     311)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelInfo: TLabel
-    Left = 176
-    Top = 280
+    Left = 104
+    Top = 288
     Width = 44
     Height = 13
     Caption = 'LabelInfo'
@@ -35,10 +35,10 @@ object FormSelTrain: TFormSelTrain
     Caption = 'Canton'
   end
   object ImageBas: TImage
-    Left = 488
+    Left = 472
     Top = 8
-    Width = 41
-    Height = 41
+    Width = 57
+    Height = 57
     Picture.Data = {
       07544269746D6170F6070000424DF60700000000000076000000280000003C00
       00003C0000000100040000000000800700000000000000000000100000000000
@@ -329,7 +329,7 @@ object FormSelTrain: TFormSelTrain
     Height = 13
   end
   object ButtonOK: TButton
-    Left = 74
+    Left = 9
     Top = 280
     Width = 75
     Height = 24
@@ -338,26 +338,38 @@ object FormSelTrain: TFormSelTrain
     TabOrder = 0
     OnClick = ButtonOKClick
   end
+  object ComboBoxCanton: TComboBox
+    Left = 64
+    Top = 8
+    Width = 185
+    Height = 21
+    ItemHeight = 13
+    TabOrder = 1
+    OnChange = ComboBoxCantonChange
+  end
   object StringGridTrains: TStringGrid
     Left = 8
-    Top = 40
-    Width = 721
-    Height = 225
+    Top = 64
+    Width = 753
+    Height = 209
     ColCount = 6
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goAlwaysShowEditor]
     ScrollBars = ssVertical
-    TabOrder = 1
+    TabOrder = 2
     OnDrawCell = StringGridTrainsDrawCell
     OnKeyDown = StringGridTrainsKeyDown
     OnSelectCell = StringGridTrainsSelectCell
   end
-  object ComboBoxCanton: TComboBox
-    Left = 64
-    Top = 8
-    Width = 169
-    Height = 21
-    ItemHeight = 13
-    TabOrder = 2
-    OnChange = ComboBoxCantonChange
+  object ButtonSauve: TButton
+    Left = 624
+    Top = 280
+    Width = 129
+    Height = 25
+    Hint = 'Sauvegarde le placement des trains dans les cantons'
+    Caption = 'Sauvegarder'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+    OnClick = ButtonSauveClick
   end
 end

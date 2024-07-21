@@ -186,8 +186,6 @@ begin
   Edit19.Text:=intToSTR(Signaux[index].SR[19].sortie1);
 
   editNadresses.text:=intToSTR(Signaux[index].NA);
-
-
 end;
 
 procedure dessine_signal_CDF;
@@ -263,7 +261,7 @@ begin
   begin
     val(Edit3.Text,i,erreur);
     if (i<0) or (i>255) or (erreur<>0) then exit;
-    Signaux[index].SR[2].sortie1:=i;
+    Signaux[index].SR[3].sortie1:=i;
     Maj_DB;
     if label3.Caption=etats[3] then Maj_Etat_Signal(0,semaphore_cli);
     dessine_signal_CDF;
