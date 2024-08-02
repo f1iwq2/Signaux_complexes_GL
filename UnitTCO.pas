@@ -457,6 +457,17 @@ const
   SensDroit=2;
   SensHaut=3;
   SensBas=4;
+  // sens dans les TCO
+  SensTCO_O=5;  // gauche
+  SensTCO_NO=9; // NO
+  SensTCO_E=6;  // droite
+  SensTCO_N=7;  // haut
+  SensTCO_NE=10; // NE
+  SensTCO_S=8;  // bas
+  SensTCO_SE=11; // SE
+  SensTCO_SO=12; // SO
+  
+  
   MaxCellX=150;MaxCellY=70;
   licone=26;   // largeur icone du bas 35
   hicone=licone;
@@ -525,7 +536,45 @@ type
            pont        : integer;     // définition du pont : si le bit n est à 1 : pont (bits symétriques) OU si canton: alignement train (0=centré 1=Gauche/haut 2=droite/bas)
            buttoir     : integer;     // définition des buttoirs : si le bit n°n est à 1 : buttoir ; ou encadre cellule
            sortie      : integer;     // si action sortie : état
+           suivHG,suivBD : integer;   // suivant haut ou gauche / suivant bas ou droit dans le cas d'une TJD/S
+           typHG,typBD :tequipement;
+           // adjacents aux TJD
+           TjdNO,TjdN,TjdNE,TjdE,TjdSE,TjdS,TjdSO,TjdO : integer;  // adresses de la tjd attachée aux éléments ci dessous
+           suivNO,SuivN,SuivNE,SuivE,SuivSE,SuivS,SuivSO,SuivO : integer;
+           typeNO,typeN,typeNE,typeE,typeSE,typeS,typeSO,typeO : tequipement;
          end;
+
+  // élément graphique "canton"
+  Tcanton = record
+             numero        : integer;  // numéro du canton
+             SensLoco      : integer;  // sens de la loco stockée sur le canton 1=gauche 2=droit 3=haut 4=bas
+             Ntco          : integer;  // numéro du tco
+             Nelements     : integer;  // nombre de cellules du canton
+             nom           : string;   // nom du canton
+             x,y           : integer;  // début du canton dans le TCO
+             // éléments contigus
+             el1,el2       : integer;  // éléments contigus au canton el1=gauche/haut el2=droit/bas
+             typ1,typ2     : tEquipement;  // type des éléments contigus au canton: un des deux doit être un détecteur
+             det1,det2     : integer;  // détecteurs contigus, changement en fonction des aiguillages
+             SensEl1,SensEl2 : integer;// indique le sens de l'élément par rapport au canton
+             SensCirc      : integer;  // sens de la circulation des trains dans canton  tous sens=0  Gauche=1  Droit=2  Haut=3  Bas=4
+             //
+             signal        : integer;  // adresse du signal associé (le canton est avant le signal)
+             NomTrain      : string;   // nom du train sur le canton
+             indexTrain    : integer;  // index du train sur le canton
+             adresseTrain  : integer;  // adresse du train sur le canton
+             Gd            : tRect;    // rectangle de sélection (contour du canton)
+             rO,rE,rS,rN   : tRect;    // rectangles des 4 poignées
+             Xicone,yIcone : integer;  // début de l'image du train (coord absolues)
+             Licone,HIcone : integer;  // largeur, hauteur icone du train
+             bouton        : integer;  // état du bouton de commande du canton: 0=jaune 1=vert  2=bleu  3=drapeau vert 4=drapeau rouge
+             select        : boolean;  // si le canton a été sélectionné par clic souris
+             horizontal    : boolean;  // si le canton est horizontal ou verticel
+             maxi,mini     : integer;  // valeurs mini et maxi des coordonnées à ne pas dépasser lors d'un tirage des poignées
+             NumcantonOrg,NumCantonDest
+                           : integer;  // canton origine et destination d'une route , concerne le canton départ ou arrivée
+             AdrTrainRoute : integer;  // adresse du train qui a une route, concerne le canton départ ou arrivée
+           end;
 
   // rectangle graphique de sélection
   Trect_Select= record
@@ -537,7 +586,7 @@ type
 var
   couleurAdresse,cltexte,CoulFonte,clFondCantonV,clFondCantonR : Tcolor;
 
-  TamponAffecte,TCO_modifie,clicsouris,prise_N,
+  TamponAffecte,TCO_modifie,clicsouris,prise_N,affPosFil,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,prise_droit,prise_haut,deja_calcule,
   prise_bas,prise_gauche,prise_NE,prise_NO,prise_SE,prise_SO,ligneAffiche,colonneAffiche,
   TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet,SelecBouge,NB : boolean;
@@ -560,36 +609,7 @@ var
   // élements dupliqués dans le TCO :
   //TCO[i,x,y].FeuOriente=Nelements
   //TCO[i,x,y].PiedFeu=numéro
-  canton : array[1..MaxCantons] of record
-             numero        : integer;  // numéro du canton
-             SensLoco      : integer;  // sens de la loco 1=gauche 2=droit 3=haut 4=bas
-             Ntco          : integer;  // numéro du tco
-             Nelements     : integer;  // nombre de cellules du canton
-             nom           : string;   // nom du canton
-             x,y           : integer;  // début du canton dans le TCO
-             // éléments contigus
-             el1,el2       : integer;  // éléments contigus au canton el1=gauche/haut el2=droit/bas
-             typ1,typ2     : tEquipement;  // type des éléments contigus au canton: un des deux doit être un détecteur
-             det1,det2     : integer;  // détecteurs contigus, changement en fonction des aiguillages
-             SensEl1,SensEl2 : integer;// indique le sens de l'élément par rapport au canton
-             SensCirc      : integer;  // sens de la circulation des trains dans canton  tous sens=0  SensGauche=1  SensDroit=2  SensHaut=3  SensBas=4
-             //
-             signal        : integer;  // adresse du signal associé (le canton est avant le signal)
-             NomTrain      : string;   // nom du train sur le canton
-             indexTrain    : integer;  // index du train sur le canton
-             adresseTrain  : integer;  // adresse du train sur le canton
-             Gd            : tRect;    // rectangle de sélection (contour du canton)
-             rO,rE,rS,rN   : tRect;    // rectagles des 4 poignées
-             Xicone,yIcone : integer;  // début de l'image du train (coord absolues)
-             Licone,HIcone : integer;  // largeur, hauteur icone du train
-             bouton        : integer;  // état du bouton de commande du canton: 0=jaune 1=vert  2=bleu  3=drapeau vert 4=drapeau rouge
-             select        : boolean;  // si le canton a été sélectionné par clic souris
-             horizontal    : boolean;  // si le canton est horizontal ou verticel
-             maxi,mini     : integer;  // valeurs mini et maxi des coordonnées à ne pas dépasser lors d'un tirage des poignées
-             NumcantonOrg,NumCantonDest
-                           : integer;  // canton origine et destination d'une route
-             AdrTrainRoute : integer;  // adresse du train qui a une route, sur le canton départ ou arrivée
-           end;
+  canton : array[1..MaxCantons] of Tcanton;
 
   // structure de tous les tco
   TCO : array[1..10] of
@@ -650,7 +670,8 @@ var
 procedure calcul_reduction(Var frx,fry : real;DimDestX,DimDestY : integer);
 procedure calcul_cellules(indextco : integer);
 procedure sauve_fichiers_tco;
-function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean; overload;
+function zone_tco(indexTCO,adr : integer;typEl : tequipement;Sens,mode: integer;posAig : boolean) : boolean; overload;
 procedure _entoure_cell_clic(indexTCO: integer);
 procedure Affiche_TCO(indexTCO : integer) ;
 procedure affiche_cellule(indexTCO,x,y : integer);
@@ -692,6 +713,7 @@ procedure supprime_canton(c : integer);
 procedure renseigne_tous_cantons;
 procedure renseigne_canton(i : integer); overload;
 function index_canton_numero(n : integer) : integer;
+procedure renseigne_TJDs;
 
 implementation
 
@@ -764,11 +786,8 @@ var s : string;
     f : tcustomform;
     i,erreur : integer;
 begin
- // s:=(t as Tcomponent).name;
-  // Affiche(s,clWhite);
   f:=getparentForm(t as Tcontrol);
   s:=(f as Tcomponent).Name;
-  //Affiche(s,clYellow);
 
   i:=0;
   repeat
@@ -1374,7 +1393,6 @@ begin
     exit;
   end;
 
-
    // si hors sélection, on remet le curseur normal
   screen.cursor:=crDefault;
   result:=false;
@@ -1418,8 +1436,6 @@ end;
 // remplit la base des cantons avec les éléments adjacents, et des détecteurs adjacents
 // Cantons uniquement TCO1
 // i : indexCanton
-
-
 // remplit les champs horizontal, el1,el2,typ1,typ2,sens1,sens2 de canton[]
 // et les champs canton1 et canton2 du tableau detecteurs[]
 procedure renseigne_canton(i : integer;Horz :boolean) ; overload;
@@ -1494,6 +1510,233 @@ begin
     renseigne_canton(i);
   end;
 end;
+
+// renseigne les éléments contigus des tjd des tco
+procedure renseigne_TJDs;
+var t,x,y,adr1,Bim,Netats,Adr2,index1,index2 : integer;
+    typEL : tequipement;
+    deb : boolean;
+begin
+  deb:=false;
+  for t:=1 to NbreTco do
+  begin
+    for y:=1 to NbreCellY[t] do
+      for x:=1 to NbreCellX[t] do
+      begin
+        Bim:=tco[t,x,y].BImage;
+        adr1:=tco[t,x,y].Adresse;
+        if adr1<>0 then
+        begin
+          index1:=index_aig(adr1);
+          if index1<>0 then
+          begin
+            TypEl:=aiguillage[index1].modele;
+            NEtats:=aiguillage[index1].EtatTJD;
+            if Netats=4 then
+            begin
+              Adr2:=aiguillage[index1].DDroit; // homologue
+              Index2:=index_aig(adr2);
+            end;
+            if (typEL=Tjd) or (typel=Tjs) then
+            begin
+              if deb then Affiche(intToSTR(adr1),clred);
+
+              case Bim of
+              21 : begin
+                     zone_tco(t,adr1,typEl,SensTCO_E,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivE:=xCanton;
+                     tco[t,x,y].TypeE:=tel1;
+                     if deb then Affiche('E='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false);  // chercher 1er élément SO
+                     tco[t,x,y].SuivSO:=xCanton;
+                     tco[t,x,y].TypeSO:=tel1;
+                     if deb then Affiche('SO='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_O,13,false);  // élément à gauche
+                     tco[t,x,y].SuivO:=xCanton;
+                     tco[t,x,y].TypeO:=tel1;
+                     if deb then Affiche('O='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false);  // chercher 1er élément NE
+                     tco[t,x,y].SuivNE:=xCanton;
+                     tco[t,x,y].TypeNE:=tel1;
+                     if deb then Affiche('NE='+intToSTR(xcanton),clLime);
+
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivE) or (aiguillage[index1].Adroit=tco[t,x,y].SuivNE) then
+                     begin
+                       tco[t,x,y].TjdE:=Adr1;
+                       tco[t,x,y].TjdNE:=Adr1;
+                       if deb then Affiche('La partie droite est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivO) or (aiguillage[index1].Adroit=tco[t,x,y].SuivSO) then
+                     begin
+                       tco[t,x,y].TjdO:=Adr1;
+                       tco[t,x,y].TjdSO:=Adr1;
+                       if deb then Affiche('La partie gauche est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivE) or (aiguillage[index2].Adroit=tco[t,x,y].SuivNE) then
+                     begin
+                       tco[t,x,y].TjdE:=Adr2;
+                       tco[t,x,y].TjdNE:=Adr2;
+                       if deb then Affiche('La partie droite est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivO) or (aiguillage[index2].Adroit=tco[t,x,y].SuivSO) then
+                     begin
+                       tco[t,x,y].TjdO:=Adr2;
+                       tco[t,x,y].TjdSO:=Adr2;
+                       if deb then Affiche('La partie gauche est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+
+                   end;
+
+              22 : begin
+                     zone_tco(t,adr1,typEl,SensTCO_E,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivE:=xCanton;
+                     tco[t,x,y].TypeE:=tel1;
+                     if deb then Affiche('E='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivSE:=xCanton;
+                     tco[t,x,y].TypeSE:=tel1;
+                     if deb then Affiche('SE='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_O,13,false);  // élément à gauche
+                     tco[t,x,y].SuivO:=xCanton;
+                     tco[t,x,y].TypeO:=tel1;
+                     if deb then Affiche('O='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivNO:=xCanton;
+                     tco[t,x,y].TypeNO:=tel1;
+                     if deb then Affiche('NO='+intToSTR(xcanton),clLime);
+
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivE) or (aiguillage[index1].Adroit=tco[t,x,y].SuivSE) then
+                     begin
+                       tco[t,x,y].TjdE:=Adr1;
+                       tco[t,x,y].TjdSE:=Adr1;
+                       if deb then Affiche('La partie droite est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivO) or (aiguillage[index1].Adroit=tco[t,x,y].SuivNO) then
+                     begin
+                       tco[t,x,y].TjdO:=Adr1;
+                       tco[t,x,y].TjdNO:=Adr1;
+                       if deb then Affiche('La partie gauche est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivE) or (aiguillage[index2].Adroit=tco[t,x,y].SuivSE) then
+                     begin
+                       tco[t,x,y].TjdE:=Adr2;
+                       tco[t,x,y].TjdSE:=Adr2;
+                       if deb then Affiche('La partie droite est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivO) or (aiguillage[index2].Adroit=tco[t,x,y].SuivNO) then
+                     begin
+                       tco[t,x,y].TjdO:=Adr2;
+                       tco[t,x,y].TjdNO:=Adr2;
+                       if deb then Affiche('La partie gauche est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+                   end;
+              23 : begin
+                     zone_tco(t,adr1,typEl,SensTCO_N,13,false);  // haut
+                     tco[t,x,y].SuivN:=xCanton;
+                     tco[t,x,y].TypeN:=tel1;
+                     if deb then Affiche('N='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_S,13,false);  // élément bas
+                     tco[t,x,y].SuivS:=xCanton;
+                     tco[t,x,y].TypeS:=tel1;
+                     if deb then Affiche('S='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false);
+                     tco[t,x,y].SuivNE:=xCanton;
+                     tco[t,x,y].TypeNE:=tel1;
+                     if deb then Affiche('NE='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false);
+                     tco[t,x,y].SuivSO:=xCanton;
+                     tco[t,x,y].TypeSO:=tel1;
+                     if deb then Affiche('SO='+intToSTR(xcanton),clLime);
+
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivN) or (aiguillage[index1].Adroit=tco[t,x,y].SuivNE) then
+                     begin
+                       tco[t,x,y].TjdN:=Adr1;
+                       tco[t,x,y].TjdNE:=Adr1;
+                       if deb then Affiche('La partie haute est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivS) or (aiguillage[index1].Adroit=tco[t,x,y].SuivSO) then
+                     begin
+                       tco[t,x,y].TjdS:=Adr1;
+                       tco[t,x,y].TjdSO:=Adr1;
+                       if deb then Affiche('La partie basse est attachée à la TJD '+intToSTR(adr1),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivN) or (aiguillage[index2].Adroit=tco[t,x,y].SuivNE) then
+                     begin
+                       tco[t,x,y].TjdN:=Adr2;
+                       tco[t,x,y].TjdNE:=Adr2;
+                       if deb then Affiche('La partie haute est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+                     if (aiguillage[index2].Adroit=tco[t,x,y].SuivS) or (aiguillage[index2].Adroit=tco[t,x,y].SuivSO) then
+                     begin
+                       tco[t,x,y].TjdS:=Adr2;
+                       tco[t,x,y].TjdSO:=Adr2;
+                       if deb then Affiche('La partie basse est attachée à la TJD '+intToSTR(adr2),clCyan);
+                     end;
+                   end;
+
+              25 : begin
+                     zone_tco(t,adr1,typEl,SensTCO_N,13,false);  // haut
+                     tco[t,x,y].SuivN:=xCanton;
+                     tco[t,x,y].TypeN:=tel1;
+                     if deb then Affiche('N='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_S,13,false);  // élément bas
+                     tco[t,x,y].SuivS:=xCanton;
+                     tco[t,x,y].TypeS:=tel1;
+                     if deb then Affiche('S='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivNO:=xCanton;
+                     tco[t,x,y].TypeNO:=tel1;
+                     if deb then Affiche('NO='+intToSTR(xcanton),clLime);
+
+                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false);  // chercher 1er élément à droite - xcanton Tel1
+                     tco[t,x,y].SuivSE:=xCanton;
+                     tco[t,x,y].TypeSE:=tel1;
+                     if deb then Affiche('SE='+intToSTR(xcanton),clLime);
+
+                     if (aiguillage[index1].Adroit=tco[t,x,y].SuivN) or (aiguillage[index1].Adroit=tco[t,x,y].SuivNO) then
+                     begin
+                       tco[t,x,y].TjdN:=Adr1;
+                       tco[t,x,y].TjdNO:=Adr1;
+                       if deb then Affiche('La partie haute est attachée à la TJD '+intToSTR(adr1),clCyan);
+                    end;
+                    if (aiguillage[index1].Adroit=tco[t,x,y].SuivS) or (aiguillage[index1].Adroit=tco[t,x,y].SuivSE) then
+                    begin
+                      tco[t,x,y].TjdS:=Adr1;
+                      tco[t,x,y].TjdSE:=Adr1;
+                      if deb then Affiche('La partie basse est attachée à la TJD '+intToSTR(adr1),clCyan);
+                    end;
+                    if (aiguillage[index2].Adroit=tco[t,x,y].SuivN) or (aiguillage[index2].Adroit=tco[t,x,y].SuivNO) then
+                    begin
+                      tco[t,x,y].TjdN:=Adr2;
+                      tco[t,x,y].TjdNO:=Adr2;
+                      if deb then Affiche('La partie haute est attachée à la TJD '+intToSTR(adr2),clCyan);
+                    end;
+                    if (aiguillage[index2].Adroit=tco[t,x,y].SuivS) or (aiguillage[index2].Adroit=tco[t,x,y].SuivSE) then
+                    begin
+                      tco[t,x,y].TjdS:=Adr2;
+                      tco[t,x,y].TjdSE:=Adr2;
+                      if deb then Affiche('La partie basse est attachée à la TJD '+intToSTR(adr2),clCyan);
+                    end;
+                  end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+end;
+
 
 
 // créée un nouveau TCO qui n'existait pas
@@ -2089,6 +2332,9 @@ begin
     inc(y);x:=1;
   end;
   closefile(fichier);
+  trier_cantons;
+
+
   e:=sizeof(Tco) div 1024;
   //Affiche('Dimensions du tco : '+intToSTR(NbreCellX)+'x'+intToSTR(NbreCellY)+' / '+IntToSTR(e)+'Ko',clyellow);
   if not(trouve_clPiedSignal) then clPiedSignal:=Clvoies;
@@ -2217,6 +2463,7 @@ begin
 end;
 
 
+// renvoie la position de l'aiguillage en position x,y du tco indextco
 function positionTCO(indexTCO,x,y : integer) : integer;
 var position,i : integer;
 begin
@@ -2541,7 +2788,6 @@ begin
   end
   else
 
-
   case repr of
    0,1 : yt:=(hauteurCell[indexTCO] div 2)-round(tailleFont*fryGlob[indexTCO]);   // au milieu
      2 : yt:=1;  // haut
@@ -2681,24 +2927,44 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
-      pen.width:=1;
-      Polygon([point(x0+1,y0+hauteurCell[indexTCO]-epaisseur),Point(xc-(epaisseur div 2),jy1),Point(xc-epaisseur-epaisseur,jy1),Point(x0+1,y0+hauteurCell[indexTCO]-epaisseur-epaisseur)]);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
+        pen.width:=1;
+        Polygon([point(x0+1,y0+hauteurCell[indexTCO]-epaisseur),Point(xc-(epaisseur div 2),jy1),Point(xc-epaisseur-epaisseur,jy1),Point(x0+1,y0+hauteurCell[indexTCO]-epaisseur-epaisseur)]);
+     end;
+     if affPosFil then
+     begin
+       pen.color:=fond;
+       Brush.Color:=fond;
+       pen.width:=epaisseur div 2;
+       moveTo(xf,yc);LineTo(xc,yc);LineTo(x0,yf);
+     end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
-      r:=rect(x0+1,jy2+1,x0+LargeurCell[indexTCO]-1,jy2+epaisseur);
-      FillRect(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
+        r:=rect(x0+1,jy2+1,x0+LargeurCell[indexTCO]-1,jy2+epaisseur);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
 
   end;
@@ -2804,26 +3070,44 @@ begin
     if (position=const_Devie) then
     begin
       // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      pen.width:=1;
-      Polygon([
-      point(x0+3,yf-epaisseur-5),
-      Point(xc+2*epaisseur,yc-epaisseur),
-      Point(xc-epaisseur,yc-epaisseur)]);
-      //Point(x0+1,y0+hauteurCell[indexTCO]-epaisseur-epaisseur)]);
+      if not(affPosFil) then
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        Polygon([
+          point(x0+3,yf-epaisseur-5),
+          Point(xc+2*epaisseur,yc-epaisseur),
+          Point(xc-epaisseur,yc-epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(xc+round(4*frxGlob[indexTCO]),yc);LineTo(x0,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
-      r:=rect(x0+1,jy2+1,x0+LargeurCell[indexTCO]-1,jy2+epaisseur);
-      FillRect(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jy2:=yc+(Epaisseur div 2);   // pos Y de la bande inf
+        r:=rect(x0+1,jy2+1,x0+LargeurCell[indexTCO]-1,jy2+epaisseur);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -2926,23 +3210,43 @@ begin
     end;
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      pen.width:=1;
-      Polygon([point(xc+epaisseur-4,yc+epaisseur-1),point(xc+2*epaisseur-1,yc-epaisseur),point(xc+3*epaisseur,yc-epaisseur),point(xc+2*epaisseur,yc+epaisseur-1)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        pen.width:=1;
+        Polygon([point(xc+epaisseur-4,yc+epaisseur-1),point(xc+2*epaisseur-1,yc-epaisseur),point(xc+3*epaisseur,yc-epaisseur),point(xc+2*epaisseur,yc+epaisseur-1)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc,yc);LineTo(xf,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
-      r:=rect(x0+1,jy1,x0+LargeurCell[indexTCO]-1,jy1-epaisseur);
-      FillRect(r);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
+        r:=rect(x0+1,jy1,x0+LargeurCell[indexTCO]-1,jy1-epaisseur);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -3045,30 +3349,50 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      pen.width:=1;
-      x1:=xc-2*epaisseur;y1:=yc+epaisseur-1;
-      x2:=xc+2*epaisseur-2;y2:=yc-epaisseur;
-      x3:=x2+epaisseur;y3:=y2;
-      x4:=x1+epaisseur;y4:=y1;
-      Polygon([point(x1,y1),
-      point(x2,y2),
-      point(x3,y3),
-      point(x4,y4)]);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        pen.width:=1;
+        x1:=xc-2*epaisseur;y1:=yc+epaisseur-1;
+        x2:=xc+2*epaisseur-2;y2:=yc-epaisseur;
+        x3:=x2+epaisseur;y3:=y2;
+        x4:=x1+epaisseur;y4:=y1;
+        Polygon([point(x1,y1),
+        point(x2,y2),
+        point(x3,y3),
+        point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc-round(4*FrxGlob[indexTCO]),yc);LineTo(xf,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
-      r:=rect(x0+1,jy1,x0+LargeurCell[indexTCO]-1,jy1-epaisseur);
-      FillRect(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jy1:=yc-(Epaisseur div 2);   // pos Y de la bande sup
+        r:=rect(x0+1,jy1,x0+LargeurCell[indexTCO]-1,jy1-epaisseur);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -3172,28 +3496,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+round(0.3*epaisseur);y1:=yc-(epaisseur div 2)-1;
-      x2:=x1+epaisseur;y2:=y1;
-      x3:=x2+epaisseur;y3:=y2+epaisseur;
-      x4:=x1+epaisseur;y4:=y3;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+round(0.3*epaisseur);y1:=yc-(epaisseur div 2)-1;
+        x2:=x1+epaisseur;y2:=y1;
+        x3:=x2+epaisseur;y3:=y2+epaisseur;
+        x4:=x1+epaisseur;y4:=y3;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc,yc);LineTo(xf,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      // efface le morceau
-      x1:=xc-epaisseur-1;y1:=yc+(epaisseur div 2)+1;
-      x2:=x1+25;y2:=y1+5;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        // efface le morceau
+        x1:=xc-epaisseur-1;y1:=yc+(epaisseur div 2)+1;
+        x2:=x1+25;y2:=y1+5;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -3297,28 +3641,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-12;y1:=yc-(epaisseur div 2)-1;
-      x2:=x1+15;y2:=y1;
-      x3:=x2+6;y3:=y2+8;
-      x4:=x1+12;y4:=y3;
-      Polygon([point(xc-round(2.1*epaisseur),yc-epaisseur-1),point(xc,yc-epaisseur-1),point(xc+3*epaisseur,yc+epaisseur),point(xc+round(2.0*epaisseur),yc+epaisseur)]);
+      if not(AffPosfil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-12;y1:=yc-(epaisseur div 2)-1;
+        x2:=x1+15;y2:=y1;
+        x3:=x2+6;y3:=y2+8;
+        x4:=x1+12;y4:=y3;
+        Polygon([point(xc-round(2.1*epaisseur),yc-epaisseur-1),point(xc,yc-epaisseur-1),point(xc+3*epaisseur,yc+epaisseur),point(xc+round(2.0*epaisseur),yc+epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc-round(4*frxGlob[indexTCO]),yc);LineTo(xf,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      // efface le morceau
-      x1:=xc-3*epaisseur;y1:=yc+(epaisseur div 2)+1;
-      x2:=xc+2*epaisseur+2;y2:=y1+5;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not(AffPosfil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        // efface le morceau
+        x1:=xc-3*epaisseur;y1:=yc+(epaisseur div 2)+1;
+        x2:=xc+2*epaisseur+2;y2:=y1+5;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -3423,28 +3787,47 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-(epaisseur div 2);y1:=yc+(epaisseur div 2);
-      x2:=x1-epaisseur;y2:=y1;
-      x3:=x2-epaisseur;y3:=y2-epaisseur-1;
-      x4:=x3+epaisseur;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-(epaisseur div 2);y1:=yc+(epaisseur div 2);
+        x2:=x1-epaisseur;y2:=y1;
+        x3:=x2-epaisseur;y3:=y2-epaisseur-1;
+        x4:=x3+epaisseur;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(xc,yc);LineTo(x0,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      // efface le morceau
-      x1:=xc-(epaisseur div 2)-10;y1:=yc-(epaisseur div 2);
-      x2:=x1+20;y2:=y1-epaisseur;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-(epaisseur div 2)-10;y1:=yc-(epaisseur div 2);
+        x2:=x1+20;y2:=y1-epaisseur;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(x0,yc);
+      end;
     end;
   end;
 end;
@@ -3546,28 +3929,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc+2*epaisseur;y1:=yc+(epaisseur div 2);
-      x2:=x1-3*epaisseur;y2:=y1;
-      x3:=x2;y3:=y2-epaisseur-2;
-      x4:=x3+epaisseur;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3)]);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc+2*epaisseur;y1:=yc+(epaisseur div 2);
+        x2:=x1-3*epaisseur;y2:=y1;
+        x3:=x2;y3:=y2-epaisseur-2;
+        x4:=x3+epaisseur;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(xc+round(5*frxGlob[indexTCO]),yc);LineTo(x0,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      // efface le morceau
-      x1:=xc-(epaisseur div 2)-15;y1:=yc-(epaisseur div 2);
-      x2:=xf;y2:=y1-epaisseur-2;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2-1);
-      rectangle(r);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        // efface le morceau
+        x1:=xc-(epaisseur div 2)-15;y1:=yc-(epaisseur div 2);
+        x2:=xf;y2:=y1-epaisseur-2;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2-1);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;
     end;
   end;
 end;
@@ -4135,29 +4538,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-epaisseur;y1:=yc+(epaisseur div 2)+1;
-      x2:=x1+3*epaisseur;y2:=y1;
-      x3:=x2;y3:=y2+epaisseur;
-      x4:=x1;y4:=y3;
-      pen.color:=fond;
-      Brush.COlor:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not affposfil then
+      begin
+      // effacement du morceau
+        pen.width:=1;
+        x1:=xc-epaisseur;y1:=yc+(epaisseur div 2)+1;
+        x2:=x1+3*epaisseur;y2:=y1;
+        x3:=x2;y3:=y2+epaisseur;
+        x4:=x1;y4:=y3;
+        pen.color:=fond;
+        Brush.COlor:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xc,yc);LineTo(xf,yc);
+      end;
     end;
-
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc+(epaisseur div 2)-2;y1:=yc-(epaisseur div 2)-1;
-      x2:=x1+epaisseur;y2:=y1;
-      x3:=x2+epaisseur+2;y3:=y2+epaisseur+2;
-      x4:=x3-epaisseur;y4:=y3;
-      pen.color:=fond;
-      Brush.COlor:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
-    end;
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc+(epaisseur div 2)-2;y1:=yc-(epaisseur div 2)-1;
+        x2:=x1+epaisseur;y2:=y1;
+        x3:=x2+epaisseur+2;y3:=y2+epaisseur+2;
+        x4:=x3-epaisseur;y4:=y3;
+        pen.color:=fond;
+        Brush.COlor:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;
+    end;  
   end;
 end;
 
@@ -4255,28 +4677,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-2*epaisseur;y1:=yc-(epaisseur);
-      x2:=xc+2*epaisseur;y2:=yc+2;
-      x3:=x2;y3:=yc+(epaisseur div 2)+epaisseur;
-      x4:=x1;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not affPosFil then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-2*epaisseur;y1:=yc-(epaisseur);
+        x2:=xc+2*epaisseur;y2:=yc+2;
+        x3:=x2;y3:=yc+(epaisseur div 2)+epaisseur;
+        x4:=x1;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xc-round(4*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(xf,yc);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      x1:=xc-epaisseur-1;y1:=yc-(2*epaisseur)-1;
-      x2:=x1+epaisseur;y2:=y1;
-      x3:=x2+2*epaisseur+5;y3:=y2+3*epaisseur;
-      x4:=x3-epaisseur;y4:=y3;
-      pen.Width:=1;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        x1:=xc-epaisseur-1;y1:=yc-(2*epaisseur)-1;
+        x2:=x1+epaisseur;y2:=y1;
+        x3:=x2+2*epaisseur+5;y3:=y2+3*epaisseur;
+        x4:=x3-epaisseur;y4:=y3;
+        pen.Width:=1;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;
     end;
   end;
 end;
@@ -4386,27 +4828,46 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-2*epaisseur-5;y1:=yc+(epaisseur div 2)+1;
-      x2:=xc+epaisseur+10;y2:=y1+epaisseur;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not affposFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-2*epaisseur-5;y1:=yc+(epaisseur div 2)+1;
+        x2:=xc+epaisseur+10;y2:=y1+epaisseur;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(xc,yc);LineTo(x0,yc);
+      end;
     end;
-
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-round(0.4*epaisseur);y1:=yc-(epaisseur div 2);
-      x2:=x1-epaisseur;
-      x3:=x2-epaisseur;y3:=yc+(epaisseur div 2)+1;
-      x4:=x1-epaisseur-1;
-      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
+      if not affPosFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-round(0.4*epaisseur);y1:=yc-(epaisseur div 2);
+        x2:=x1-epaisseur;
+        x3:=x2-epaisseur;y3:=yc+(epaisseur div 2)+1;
+        x4:=x1-epaisseur-1;
+        polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(x0,yf);
+      end;
     end;
   end;
 end;
@@ -4509,28 +4970,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+(epaisseur)+3;y1:=yc-(epaisseur);
-      x2:=xc+2*epaisseur+3;y2:=y1;
-      x3:=xc;y3:=yc+epaisseur;
-      x4:=xc-(3*epaisseur);y4:=y3;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not affPosFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+(epaisseur)+3;y1:=yc-(epaisseur);
+        x2:=xc+2*epaisseur+3;y2:=y1;
+        x3:=xc;y3:=yc+epaisseur;
+        x4:=xc-(3*epaisseur);y4:=y3;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(xc+round(6*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(x0,yc);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-(epaisseur div 2);y1:=yc-(2*epaisseur);
-      x2:=xc+epaisseur;
-      x3:=xc-epaisseur-2;y3:=yc+(epaisseur div 2)+1;
-      x4:=xc-2*epaisseur;y4:=y3;
-      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y4)]);
+      if not affposFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-(epaisseur div 2);y1:=yc-(2*epaisseur);
+        x2:=xc+epaisseur;
+        x3:=xc-epaisseur-2;y3:=yc+(epaisseur div 2)+1;
+        x4:=xc-2*epaisseur;y4:=y3;
+        polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(x0,yf);
+      end;
     end;
   end;
 end;
@@ -4636,28 +5117,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-2*epaisseur-5;y1:=yc-(epaisseur div 2);
-      x2:=x1+3*epaisseur;y2:=y1-epaisseur;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not(affposfil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-2*epaisseur-5;y1:=yc-(epaisseur div 2);
+        x2:=x1+3*epaisseur;y2:=y1-epaisseur;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);LineTo(xc,yc);lineto(x0,yc);
+      end;  
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-epaisseur-3;y1:=yc-(epaisseur div 2)-1;
-      x2:=x1-epaisseur;y2:=y1;
-      x3:=x2+epaisseur+2;y3:=y2+epaisseur+2;
-      x4:=x3+epaisseur;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
-    end;
+      if not(affposfil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-epaisseur-3;y1:=yc-(epaisseur div 2)-1;
+        x2:=x1-epaisseur;y2:=y1;
+        x3:=x2+epaisseur+2;y3:=y2+epaisseur+2;
+        x4:=x3+epaisseur;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);lineto(x0,y0);
+      end;
+    end;  
   end;
 end;
 
@@ -4757,30 +5258,50 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-epaisseur-2;y1:=yc-(epaisseur div 2);
-      x2:=xc+epaisseur;y2:=y1;
-      x3:=xc+3*epaisseur+3;y3:=yc+2*epaisseur;
-      x4:=xc+2*epaisseur+4;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2);
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-epaisseur-2;y1:=yc-(epaisseur div 2);
+        x2:=xc+epaisseur;y2:=y1;
+        x3:=xc+3*epaisseur+3;y3:=yc+2*epaisseur;
+        x4:=xc+2*epaisseur+4;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2);
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));lineto(x0,yc);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-(2*epaisseur)+3;y1:=yc-(epaisseur div 2)-1;
-      x2:=xc-(3*epaisseur)+4;y2:=y1;
-      x3:=xc;y3:=yc+2*epaisseur;
-      x4:=xc+epaisseur;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
-    end;
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-(2*epaisseur)+3;y1:=yc-(epaisseur div 2)-1;
+        x2:=xc-(3*epaisseur)+4;y2:=y1;
+        x3:=xc;y3:=yc+2*epaisseur;
+        x4:=xc+epaisseur;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);lineto(x0,y0);
+      end;
+    end;  
   end;
 end;
 
@@ -4887,25 +5408,45 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
-      x2:=xc+epaisseur+10;y2:=yc-epaisseur-3;
-      polygon([point(x1,y1),point(x2,y1),point(x2,y2),point(x1,y2)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
+        x2:=xc+epaisseur+10;y2:=yc-epaisseur-3;
+        polygon([point(x1,y1),point(x2,y1),point(x2,y2),point(x1,y2)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xc,yc);LineTo(xf,yc);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      x1:=xc+(epaisseur div 2);y1:=yc+(epaisseur div 2);
-      x2:=x1+epaisseur-1;y2:=yc-(epaisseur div 2);
-      x3:=x1+10;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y2),point(x3,y1)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        x1:=xc+(epaisseur div 2);y1:=yc+(epaisseur div 2);
+        x2:=x1+epaisseur-1;y2:=yc-(epaisseur div 2);
+        x3:=x1+10;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y2),point(x3,y1)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xf,y0);
+      end;
     end;
   end;
 end;
@@ -5005,28 +5546,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
-      x2:=xc+epaisseur+10;y2:=y1;
-      x3:=xc-epaisseur-5;y3:=yc+epaisseur;
-      x4:=xc-2*epaisseur;y4:=y3;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-epaisseur;y1:=yc-(epaisseur div 2)-1;
+        x2:=xc+epaisseur+10;y2:=y1;
+        x3:=xc-epaisseur-5;y3:=yc+epaisseur;
+        x4:=xc-2*epaisseur;y4:=y3;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));LineTo(xf,yc);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      x1:=xc+(epaisseur)+epaisseur-1;y1:=yc-(epaisseur);
-      x2:=x1+2*epaisseur;y2:=y1;
-      x3:=xc+(epaisseur);y3:=yc+(2*epaisseur);
-      x4:=xc-epaisseur-1;y4:=y3;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        x1:=xc+(epaisseur)+epaisseur-1;y1:=yc-(epaisseur);
+        x2:=x1+2*epaisseur;y2:=y1;
+        x3:=xc+(epaisseur);y3:=yc+(2*epaisseur);
+        x4:=xc-epaisseur-1;y4:=y3;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xf,y0);
+      end;
     end;
   end;
 end;
@@ -5390,9 +5951,10 @@ end;
 
 // Element 21 - croisement - TJD
 procedure dessin_21(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
-var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont : integer;
+var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont,adr1,adr2,
+    index1,index2,etatTJD,position1,position2,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
-    md : tequipement;
+    md,tHG,tBD : tequipement;
   procedure horizontale;
   begin
     with canvas do
@@ -5453,6 +6015,7 @@ begin
   yf:=y0+hauteurCell[indexTCO];
   ep:=tco[indextco,x,y].epaisseurs;
   pont:=tco[indextco,x,y].pont;
+  md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
 
   with canvas do
   begin
@@ -5462,7 +6025,7 @@ begin
 
     horizontale;
     diagonale;
-    md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
+    
     if (md=tjd) or (md=tjs) then
     begin
       tjdbas;
@@ -5562,13 +6125,99 @@ begin
       end;
     end;
   end;
+
+  // dessin position de la tjd
+  adr1:=tco[indexTCO,x,y].Adresse;
+  Index1:=Index_aig(adr1);
+  md:=aiguillage[Index1].modele;
+  if (md=tjd) or (md=tjs) then
+  begin
+    EtatTJD:=aiguillage[index1].EtatTJD;   // nombre d'états de la tjd (2 ou 4)
+    position1:=aiguillage[index1].position;
+    sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
+    sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
+    canvas.pen.color:=clfond[indexTCO];
+    canvas.pen.Width:=epaisseur div 2;
+    if etatTJD=4 then
+    begin
+      adr2:=aiguillage[index1].DDevie;  // homologue
+      Index2:=Index_aig(adr2);
+      position2:=aiguillage[index2].position;
+
+      if (position1=const_devie) and (position2=const_devie) then
+      begin
+        with canvas do begin
+          moveTo(x0,yf);LineTo(xf,y0);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_droit) then
+      begin
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xf,yc);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_devie) then
+      begin
+        if tco[indexTCO,x,y].tjdE=adr1 then
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+        end;
+        if tco[indexTCO,x,y].tjdE=adr2 then 
+        with canvas do begin
+          moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+        end;
+      end;
+      
+      if (position1=const_devie) and (position2=const_droit) then
+      begin
+        if tco[indexTCO,x,y].tjdE=adr1 then 
+        with canvas do begin
+          moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+        end;
+        if tco[indexTCO,x,y].tjdE=adr2 then 
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+        end;
+      end;
+    end;
+    
+    if etatTJD=2 then
+    begin
+      if position1=const_droit then 
+      with canvas do 
+      begin
+        moveTo(x0,yf);LineTo(xf,y0);
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;  
+      if position1=const_devie then 
+      with canvas do 
+      begin                                                              
+        // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
+        droite(xc,yc,xf,y0,a1,b1);
+        //haut
+        moveTo(x0,yc); LineTo(xc-epaisseur,yc); 
+        LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) ); LineTo(xf,y0);
+        //bas
+        moveTo(x0,yf);
+        LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) );
+        lineTo(xc+epaisseur,yc);
+        LineTo(xf,yc);
+      end;  
+    end;
+  end;
+  
+
 end;
 
 // Element 22
 procedure dessin_22(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
-var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep : integer;
-    md : tequipement;
+var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,position1,position2,
+    adr1,adr2,index1,index2,etatTJD,sHG,sBD : integer;
+    md,tHG,tBD : tequipement;
     a1,b1,a2,b2 : double;
+    fond : Tcolor;
  procedure horizontale;
   begin
     with canvas do
@@ -5591,7 +6240,7 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep : integer;
     end;
   end;
 
-  procedure TJDbas;
+  procedure TJDbas; // morceau courbe bas
   begin
     x1:=x0-LargeurCell[indexTCO]-(LargeurCell[indexTCO] div 3);y1:=yc;
     x2:=xf+(LargeurCell[indexTCO] div 3);y2:=yf+2*hauteurCell[indexTCO]+(hauteurCell[indexTCO] div 2);
@@ -5605,7 +6254,7 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep : integer;
     end;
   end;
 
-  procedure TJDHaut;
+  procedure TJDHaut;  // morceau courbe haut
   begin
     x1:=x0-(LargeurCell[indexTCO] div 3);y1:=y0-2*hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 2);
     x2:=xf+LargeurCell[indexTCO]+(LargeurCell[indexTCO] div 3);y2:=yc;
@@ -5627,6 +6276,8 @@ begin
   yf:=y0+hauteurCell[indexTCO];
   ep:=tco[indextco,x,y].epaisseurs;
   pont:=tco[indextco,x,y].pont;
+  fond:=tco[indextco,x,y].CouleurFond;
+  md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
 
   with canvas do
   begin
@@ -5641,7 +6292,7 @@ begin
 
     diagonale;
     horizontale;
-    md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
+
     if (md=tjd) or (md=tjs) then
     begin
       TJDbas;
@@ -5707,6 +6358,7 @@ begin
       y1:=round(a2*x1+b2);
       moveto(x1,y1);lineTo(x2,y2);
     end;
+                   
 
     // regarder d'ou on vient de la route du tco
     if mode>0 then
@@ -5723,22 +6375,93 @@ begin
       if trajet=2 then diagonale;
       if trajet=3 then // NO centre E  \-
       begin
-       { if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-        moveto(x0,y0);LineTo(xc,yc);
-        if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-        lineTo(xf,yc);}
         tjdhaut;
       end;
       if trajet=4 then // O C SE  -\
       begin
-       { if testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-        moveto(x0,yc);LineTo(xc,yc);
-        if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-        lineTo(xf,yf); }
         tjdbas;
       end;
     end;
   end;
+
+  // position de la tjd
+  adr1:=tco[indexTCO,x,y].Adresse;
+  Index1:=Index_aig(adr1);
+  if (md=tjd) or (md=tjs) then
+  begin
+    EtatTJD:=aiguillage[index1].EtatTJD;   // nombre d'états de la tjd (2 ou 4)
+    position1:=aiguillage[index1].position;
+    sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
+    sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
+    canvas.pen.color:=clfond[indexTCO];
+    canvas.pen.Width:=epaisseur div 2;
+    if etatTJD=4 then
+    begin
+      adr2:=aiguillage[index1].DDevie;  // homologue
+      Index2:=Index_aig(adr2);
+      position2:=aiguillage[index2].position;
+
+      if (position1=const_devie) and (position2=const_devie) then
+      begin
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xf,yc);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_droit) then
+      begin
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xf,yf);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_devie) then
+      begin
+        if tco[indexTCO,x,y].tjdE=adr1 then
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xc,yc);Lineto(xf,yc);
+        end;
+        if tco[indexTCO,x,y].tjdE=adr2 then
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,yf);
+        end;
+      end;
+
+      if (position1=const_devie) and (position2=const_droit) then
+      begin
+        if tco[indexTCO,x,y].tjdE=adr1 then 
+        with canvas do begin
+          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,yf);
+        end;
+        if tco[indexTCO,x,y].tjdE=adr2 then 
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xc,yc);Lineto(xf,yc);
+        end;
+      end;
+    end;
+    
+    if etatTJD=2 then
+    begin
+      if position1=const_droit then 
+      with canvas do 
+      begin
+        moveTo(x0,y0);LineTo(xf,yf);
+        moveTo(x0,yc);LineTo(xf,yc);
+      end;  
+      if position1=const_devie then 
+      with canvas do 
+      begin                                                              
+        // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
+        droite(x0,y0,xc,yc,a1,b1);
+        moveTo(x0,y0);LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(xc+epaisseur,yc); LineTo(xf,yc);
+
+        moveTo(x0,yc);lineTo(xc-epaisseur,yc);
+        LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) );
+        LineTo(xf,yf);
+      end;  
+    end;
+  end;
+  
 end;
 
 // Element 51 (quai)
@@ -6465,25 +7188,45 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jy1:=yc - Epaisseur-1;
-      jx1:=xc-(Epaisseur div 2);
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1+epaisseur,jy1-epaisseur),Point(jx1,jy1-epaisseur)]);
+      if not(affposFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jy1:=yc - Epaisseur-1;
+        jx1:=xc-(Epaisseur div 2);
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1+epaisseur,jy1-epaisseur),Point(jx1,jy1-epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,yc);LineTo(x0,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc-(Epaisseur div 2);   // pos Y de la bande inf
-      r:=rect(jx1,yc-10,jx1-Epaisseur,yc+10);
-      FillRect(r);
+      if not(affposFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc-(Epaisseur div 2);   // pos Y de la bande inf
+        r:=rect(jx1,yc-10,jx1-Epaisseur,yc+10);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,y0);
+      end;
     end;
   end;
 end;
@@ -6587,33 +7330,55 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc - Epaisseur+5;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1+epaisseur+10),Point(jx1+epaisseur,jy1-epaisseur),Point(jx1,jy1-epaisseur)]);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc - Epaisseur+5;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1+epaisseur+10),Point(jx1+epaisseur,jy1-epaisseur),Point(jx1,jy1-epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,yc+round(8*fryGlob[indexTCO]));LineTo(x0,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc-(Epaisseur div 2);   // pos Y de la bande inf
-      r:=rect(jx1,yc-15,jx1-Epaisseur,yf);
-      FillRect(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc-(Epaisseur div 2);   // pos Y de la bande inf
+        r:=rect(jx1,yc-15,jx1-Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,y0);
+      end;  
+        
     end;
   end;
 end;
 
 // Element 23  croisement
 procedure dessin_23(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
-var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont : integer;
+var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,
+    adr1,adr2,index1,index2,position1,position2,EtatTJD,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
-    md : tEquipement;
+    md,tHG,tBD: tEquipement;
   procedure verticale;
   begin
     with canvas do
@@ -6789,6 +7554,88 @@ begin
       end;
     end;
   end;
+
+  // dessin position de la tjd
+  adr1:=tco[indexTCO,x,y].Adresse;
+  Index1:=Index_aig(adr1);
+  md:=aiguillage[Index1].modele;
+  if (md=tjd) or (md=tjs) then
+  begin
+    EtatTJD:=aiguillage[index1].EtatTJD;   // nombre d'états de la tjd (2 ou 4)
+    position1:=aiguillage[index1].position;
+    sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
+    sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
+    canvas.pen.color:=clfond[indexTCO];;
+    canvas.pen.Width:=epaisseur div 2;
+    if etatTJD=4 then
+    begin
+      adr2:=aiguillage[index1].DDevie;  // homologue
+      Index2:=Index_aig(adr2);
+      position2:=aiguillage[index2].position;
+      
+      if (position1=const_devie) and (position2=const_devie) then
+      begin
+        with canvas do begin
+          moveTo(xc,y0);LineTo(xc,yf);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_droit) then
+      begin
+        with canvas do begin
+          moveTo(x0,yf);LineTo(xf,y0);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_devie) then
+      begin
+        if tco[indexTCO,x,y].tjdS=adr1 then 
+        with canvas do begin
+          moveTo(xf,y0);LineTo(xc,yc);Lineto(xc,yf);
+        end;
+        if tco[indexTCO,x,y].tjdS=adr2 then 
+        with canvas do begin
+          moveTo(xc,y0);LineTo(xc,yc);Lineto(x0,yf);
+        end;
+      end;
+      
+      if (position1=const_devie) and (position2=const_droit) then
+      begin
+        if tco[indexTCO,x,y].tjdS=adr1 then
+        with canvas do begin
+          moveTo(xc,y0);LineTo(xc,yc);Lineto(x0,yf);
+        end;
+        if tco[indexTCO,x,y].tjdS=adr2 then 
+        with canvas do begin
+          moveTo(xf,y0);LineTo(xc,yc);Lineto(xc,yf);
+        end;
+      end;
+    end;
+    
+    if etatTJD=2 then
+    begin
+      if position1=const_droit then 
+      with canvas do 
+      begin
+        moveTo(xc,y0);LineTo(xc,yf);
+        moveTo(xf,y0);LineTo(x0,yf);
+      end;  
+      if position1=const_devie then 
+      with canvas do 
+      begin                                                              
+        // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
+        droite(xc,yc,x0,yf,a1,b1);
+        //gauche
+        moveTo(xc,y0); LineTo(xc,yc-epaisseur); 
+        LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(x0,yf);
+        //droite
+        moveTo(xc,yf);
+        lineTo(xc,yc+epaisseur);
+        LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) );
+        LineTo(xf,y0);
+      end;  
+    end;
+  end;
 end;
 
 procedure dessin_24(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
@@ -6799,9 +7646,10 @@ end;
 
 // Element 25  croisement
 procedure dessin_25(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
-var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2 : integer;
+var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2,
+    adr1,adr2,index1,index2,position1,position2,EtatTJD,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
-    md : tEquipement;
+    md,tHG,tBD : tEquipement;
   procedure verticale;
   begin
     with canvas do
@@ -6977,6 +7825,89 @@ begin
       end;
     end;
   end;
+
+  // dessin position de la tjd
+  adr1:=tco[indexTCO,x,y].Adresse;
+  Index1:=Index_aig(adr1);
+  md:=aiguillage[Index1].modele;
+  if (md=tjd) or (md=tjs) then
+  begin
+    EtatTJD:=aiguillage[index1].EtatTJD;   // nombre d'états de la tjd (2 ou 4)
+    position1:=aiguillage[index1].position;
+    sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
+    sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
+    canvas.pen.color:=clfond[indexTCO];
+    canvas.pen.Width:=epaisseur div 2;
+    if etatTJD=4 then
+    begin
+      adr2:=aiguillage[index1].DDevie;  // homologue
+      Index2:=Index_aig(adr2);
+      position2:=aiguillage[index2].position;
+      
+      if (position1=const_devie) and (position2=const_devie) then
+      begin
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xf,yf);
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_droit) then
+      begin
+        with canvas do begin
+          moveTo(xc,yf);LineTo(xc,y0);  
+        end;
+      end;
+
+      if (position1=const_droit) and (position2=const_devie) then
+      begin
+        if tco[indexTCO,x,y].tjdS=adr1 then 
+        with canvas do begin
+          moveTo(xc,y0);LineTo(xc,yc);Lineto(xf,yf);
+        end;
+        if tco[indexTCO,x,y].tjdS=adr2 then 
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xc,yc);Lineto(xc,yf);
+        end;
+      end;
+      
+      if (position1=const_devie) and (position2=const_droit) then
+      begin
+        if tco[indexTCO,x,y].tjdS=adr1 then 
+        with canvas do begin
+          moveTo(x0,y0);LineTo(xc,yc);Lineto(xc,yf);
+        end;
+        if tco[indexTCO,x,y].tjdS=adr2 then 
+        with canvas do begin
+          moveTo(xc,y0);LineTo(xc,yc);Lineto(xf,yf);
+        end;
+      end;
+    end;
+    
+    if etatTJD=2 then
+    begin
+      if position1=const_droit then 
+      with canvas do 
+      begin
+        moveTo(xc,y0);LineTo(xc,yf);
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;  
+      if position1=const_devie then 
+      with canvas do 
+      begin                                                              
+        // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
+        droite(x0,y0,xf,yf,a1,b1);
+        //gauche
+        moveTo(xc,yf); LineTo(xc,yc+epaisseur); 
+        LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(x0,y0);
+        //droite
+        moveTo(xc,y0);
+        lineTo(xc,yc-epaisseur);
+        LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) );
+        LineTo(xf,yf);
+      end;  
+    end;
+  end;
+  
 end;
 
 // Element 26
@@ -7077,25 +8008,45 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jy1:=yc - 2*Epaisseur-1;
-      jx1:=xc- (Epaisseur div 2);
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+2*epaisseur)]);
+      if not affposFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jy1:=yc - 2*Epaisseur-1;
+        jx1:=xc- (Epaisseur div 2);
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+2*epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,yc);LineTo(xf,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc+(Epaisseur div 2)+1;
-      r:=rect(jx1,yc-15,jx1+Epaisseur,yc+10);
-      FillRect(r);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc+(Epaisseur div 2)+1;
+        r:=rect(jx1,yc-15,jx1+Epaisseur,yc+10);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,y0);
+      end;
     end;
   end;
 end;
@@ -7198,24 +8149,45 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc - Epaisseur-5;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+4*epaisseur)]);
+      if not AffPosFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc - Epaisseur-5;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx1+epaisseur,jy1),Point(jx1+epaisseur,jy1+epaisseur),Point(jx1,jy1+4*epaisseur)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,yc+round(4*FryGlob[indexTCO]));LineTo(xf,y0);
+      end;
+
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc+(Epaisseur div 2);
-      r:=rect(jx1+1,yc-15,jx1+Epaisseur,yf);
-      FillRect(r);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc+(Epaisseur div 2);
+        r:=rect(jx1+1,yc-15,jx1+Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,yf);LineTo(xc,y0);
+      end;
     end;
   end;
 end;
@@ -7323,26 +8295,46 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur+2;
-      jx2:=jx1+epaisseur;jy2:=jy1-epaisseur;
-      jx3:=jx2;jy3:=yc+2*epaisseur;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      if not affPosFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur+2;
+        jx2:=jx1+epaisseur;jy2:=jy1-epaisseur;
+        jx3:=jx2;jy3:=yc+2*epaisseur;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yc);LineTo(x0,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc-(Epaisseur div 2);
-      r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
-      FillRect(r);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc-(Epaisseur div 2);
+        r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yf);
+      end;
     end;
   end;
 end;
@@ -7447,26 +8439,46 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur;
-      jx2:=jx1+epaisseur;jy2:=jy1-3*epaisseur;
-      jx3:=jx2;jy3:=yc+2*epaisseur;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc + Epaisseur;
+        jx2:=jx1+epaisseur;jy2:=jy1-3*epaisseur;
+        jx3:=jx2;jy3:=yc+2*epaisseur;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yc-round(4*frxGlob[indexTCO]));LineTo(x0,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc-(Epaisseur div 2);
-      r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
-      FillRect(r);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc-(Epaisseur div 2);
+        r:=rect(jx1,yc-3*epaisseur,jx1-Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yf);
+      end;
     end;
   end;
 end;
@@ -7571,26 +8583,46 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc + (Epaisseur div 2);
-      jx2:=jx1+epaisseur;jy2:=jy1+epaisseur;
-      jx3:=jx2;jy3:=yc+2*epaisseur;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      if not(AffPoSFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc + (Epaisseur div 2);
+        jx2:=jx1+epaisseur;jy2:=jy1+epaisseur;
+        jx3:=jx2;jy3:=yc+2*epaisseur;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      end  
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yc);LineTo(xf,yf);  
+      end;  
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc+(Epaisseur div 2);
-      r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
-      FillRect(r);
+      if not(AffPoSFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc+(Epaisseur div 2);
+        r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yf);  
+      end;
     end;
   end;
 end;
@@ -7692,28 +8724,49 @@ begin
       trajet_droit;
     end;
 
+    
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      jx1:=xc-(Epaisseur div 2); jy1:=yc - (2*Epaisseur );
-      jx2:=jx1+epaisseur;jy2:=yc+epaisseur;
-      jx3:=jx2;jy3:=yc+2*epaisseur;
-      pen.width:=1;
-      Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        jx1:=xc-(Epaisseur div 2); jy1:=yc - (2*Epaisseur );
+        jx2:=jx1+epaisseur;jy2:=yc+epaisseur;
+        jx3:=jx2;jy3:=yc+2*epaisseur;
+        pen.width:=1;
+        Polygon([point(jx1,jy1),Point(jx2,jy2),Point(jx3,jy3),Point(jx1,jy3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yc-round(4*fryGlob[indexTCO]));LineTo(xf,yf);  
+      end;  
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      jx1:=xc+(Epaisseur div 2);
-      r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
-      FillRect(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        jx1:=xc+(Epaisseur div 2);
+        r:=rect(jx1,yc-3*epaisseur,jx1+Epaisseur,yf);
+        FillRect(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xc,y0);LineTo(xc,yf); 
+      end;
     end;
   end;
 end;
@@ -7815,32 +8868,51 @@ begin
     begin
       trajet_devie;
       trajet_droit;
-    end;  
+    end;
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc+(epaisseur div 2)+1;y1:=yc-epaisseur;
-      x2:=x1+epaisseur;y2:=y1;
-      x3:=x2;y3:=y2+4*epaisseur;
-      x4:=x1;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc+(epaisseur div 2)+1;y1:=yc-epaisseur;
+        x2:=x1+epaisseur;y2:=y1;
+        x3:=x2;y3:=y2+4*epaisseur;
+        x4:=x1;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);lineTo(xc,yc);LineTo(xc,yf);
+      end;
     end;
-
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-(epaisseur div 2);y1:=yc+(epaisseur div 2);
-      x2:=x1+epaisseur;y2:=y1+epaisseur;
-      x3:=x2;y3:=y2+(epaisseur div 2);
-      x4:=x1;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-(epaisseur div 2);y1:=yc+(epaisseur div 2);
+        x2:=x1+epaisseur;y2:=y1+epaisseur;
+        x3:=x2;y3:=y2+(epaisseur div 2);
+        x4:=x1;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;
     end;
   end;
 end;
@@ -7864,7 +8936,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
      begin
        pen.color:=couleur;
        if testbit(ep,0) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
-       moveto(x0,y0);lineto(xc,yc);    
+       moveto(x0,y0);lineto(xc,yc);
        if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
        lineto(xf,yf);
      end;
@@ -7939,28 +9011,48 @@ begin
 
     if (position=const_Devie) then
     begin
-      // effacement du morceau
-      pen.width:=1;
-      x1:=xc-round(epaisseur*1);y1:=yc-round(2.2*epaisseur);
-      x2:=xc+round(epaisseur*0.7);y2:=y1;
-      x3:=x2-round(epaisseur*0.2);y3:=yc+round(1.8*epaisseur);
-      x4:=x1;y4:=yc-round(1.5*epaisseur);
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-round(epaisseur*1);y1:=yc-round(2.2*epaisseur);
+        x2:=xc+round(epaisseur*0.7);y2:=y1;
+        x3:=x2-round(epaisseur*0.2);y3:=yc+round(1.8*epaisseur);
+        x4:=x1;y4:=yc-round(1.5*epaisseur);
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xc-round(6*FrxGlob[indexTCO]),yc);LineTo(xc,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-round(epaisseur*2.3);y1:=yc-round(epaisseur*1.4);
-      x2:=x1+3*epaisseur;y2:=y1+3*epaisseur;
-      x3:=x2;y3:=y2+(epaisseur div 2);
-      x4:=x1;y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-round(epaisseur*2.3);y1:=yc-round(epaisseur*1.4);
+        x2:=x1+3*epaisseur;y2:=y1+3*epaisseur;
+        x3:=x2;y3:=y2+(epaisseur div 2);
+        x4:=x1;y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;
     end;
   end;
 end;
@@ -8065,27 +9157,47 @@ begin
 
     if (position=const_Devie) then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-round(1.5*epaisseur);y1:=yc-(epaisseur)+1;
-      x2:=xc-(epaisseur div 2);y2:=y1+4*epaisseur;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-round(1.5*epaisseur);y1:=yc-(epaisseur)+1;
+        x2:=xc-(epaisseur div 2);y2:=y1+4*epaisseur;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(xc,yc);LineTo(xc,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+round(0.9*epaisseur);y1:=yc;
-      x2:=x1+round(1.0*epaisseur);
-      x3:=xc-round(0.5*epaisseur);y3:=y1+round(2.2*epaisseur);
-      x4:=x3-round(0.9*epaisseur);
-      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+round(0.9*epaisseur);y1:=yc;
+        x2:=x1+round(1.0*epaisseur);
+        x3:=xc-round(0.5*epaisseur);y3:=y1+round(2.2*epaisseur);
+        x4:=x3-round(0.9*epaisseur);
+        polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y3)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(x0,yf);
+      end;
     end;
   end;
 end;
@@ -8187,28 +9299,48 @@ begin
 
     if (position=const_Devie) then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc-round(0.7*epaisseur);y1:=yc-round(1.6*epaisseur);
-      x2:=xc+round(0.9*epaisseur);y2:=y1;
-      x3:=xc-round(0.3*epaisseur);y3:=yc+round(1.4*epaisseur);
-      x4:=xc-round(0.7*epaisseur);y4:=y3;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc-round(0.7*epaisseur);y1:=yc-round(1.6*epaisseur);
+        x2:=xc+round(0.9*epaisseur);y2:=y1;
+        x3:=xc-round(0.3*epaisseur);y3:=yc+round(1.4*epaisseur);
+        x4:=xc-round(0.7*epaisseur);y4:=y3;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(xc+round(4*frxGlob[indexTCO]),yc);LineTo(xc,yf);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+round(2.8*epaisseur);y1:=yc-(2*epaisseur);
-      x2:=xc+(4*epaisseur);
-      x3:=xc+(1*epaisseur);y3:=yc+(epaisseur);
-      x4:=xc-round(0.2*epaisseur);y4:=y3;
-      polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y4)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+round(2.8*epaisseur);y1:=yc-(2*epaisseur);
+        x2:=xc+(4*epaisseur);
+        x3:=xc+(1*epaisseur);y3:=yc+(epaisseur);
+        x4:=xc-round(0.2*epaisseur);y4:=y3;
+        polygon([point(x1,y1),point(x2,y1),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,y0);LineTo(x0,yf);
+      end;
     end;
   end;
 end;
@@ -8316,28 +9448,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-2*epaisseur;y1:=yc-(3*epaisseur);
-      x2:=xc-(epaisseur div 2);y2:=yc+epaisseur;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2);
-      rectangle(r);
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-2*epaisseur;y1:=yc-(3*epaisseur);
+        x2:=xc-(epaisseur div 2);y2:=yc+epaisseur;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2);
+        rectangle(r);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);lineTo(x0,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur) ;
-      x2:=xc+round(0.6*epaisseur);y2:=y1;
-      x3:=xc+round(2.5*epaisseur);y3:=yc+(epaisseur div 2);
-      x4:=xc+round(1.2*epaisseur);y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
-    end;
+      if not(affPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur) ;
+        x2:=xc+round(0.6*epaisseur);y2:=y1;
+        x3:=xc+round(2.5*epaisseur);y3:=yc+(epaisseur div 2);
+        x4:=xc+round(1.2*epaisseur);y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);LineTo(xc,yc);LineTo(xc,y0);
+      end;
+    end;  
   end;
 end;
 
@@ -8440,29 +9592,49 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.width:=1;
-      x1:=xc-round(1.5*epaisseur);y1:=yc-round(2.5*epaisseur);
-      x2:=xc-round(0.6*epaisseur);y2:=y1;
-      x3:=xc+round(1.3*epaisseur);y3:=yc+2*epaisseur;
-      x4:=xc+round(0.4*epaisseur);y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      r:=rect(x1,y1,x2,y2);
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.width:=1;
+        x1:=xc-round(1.5*epaisseur);y1:=yc-round(2.5*epaisseur);
+        x2:=xc-round(0.6*epaisseur);y2:=y1;
+        x3:=xc+round(1.3*epaisseur);y3:=yc+2*epaisseur;
+        x4:=xc+round(0.4*epaisseur);y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        r:=rect(x1,y1,x2,y2);
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(xf,yf);LineTo(xc+round(4*FrxGlob[indexTCO]),yc);LineTo(xc,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.Width:=1;
-      x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur);
-      x2:=xc+round(0.9*epaisseur);y2:=y1;
-      x3:=xc+round(3.5*epaisseur);y3:=yc+2*epaisseur;
-      x4:=xc+round(2.9*epaisseur);y4:=y3;
-      pen.color:=fond;
-      Brush.Color:=fond;
-      Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      if not(AffPosFil) then
+      begin
+        // effacement du morceau
+        pen.Width:=1;
+        x1:=xc-round(1.3*epaisseur);y1:=yc-(2*epaisseur);
+        x2:=xc+round(0.9*epaisseur);y2:=y1;
+        x3:=xc+round(3.5*epaisseur);y3:=yc+2*epaisseur;
+        x4:=xc+round(2.9*epaisseur);y4:=y3;
+        pen.color:=fond;
+        Brush.Color:=fond;
+        Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,y0);LineTo(xf,yf);
+      end;
     end;
   end;
 end;
@@ -8565,26 +9737,46 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+round(0.5*epaisseur);y1:=yc-round(3*epaisseur);
-      x2:=xc+round(1.5*epaisseur);y2:=yc+epaisseur;
-      polygon([point(x1,y1),point(x2,y1),point(x2,y2),point(x1,y2)]);
+      if not affposFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+round(0.5*epaisseur);y1:=yc-round(3*epaisseur);
+        x2:=xc+round(1.5*epaisseur);y2:=yc+epaisseur;
+        polygon([point(x1,y1),point(x2,y1),point(x2,y2),point(x1,y2)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xc,yc);LineTo(xc,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      x1:=xc-round(0.5*epaisseur);y1:=yc-round(2*epaisseur);
-      x2:=xc+round(0.5*epaisseur);y2:=y1;
-      x3:=x2;y3:=yc-round(1.3*epaisseur);
-      x4:=x1;y4:=yc-round(0.3*epaisseur);
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        x1:=xc-round(0.5*epaisseur);y1:=yc-round(2*epaisseur);
+        x2:=xc+round(0.5*epaisseur);y2:=y1;
+        x3:=x2;y3:=yc-round(1.3*epaisseur);
+        x4:=x1;y4:=yc-round(0.3*epaisseur);
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xf,y0);
+      end;
     end;
   end;
 end;
@@ -8687,28 +9879,48 @@ begin
 
     if (position=const_Devie) then
     begin
-     // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.width:=1;
-      x1:=xc+round(0.1*epaisseur);y1:=yc-round(1*epaisseur);
-      x2:=xc+round(2*epaisseur);y2:=y1;
-      x3:=xc-round(0.5*epaisseur);y3:=yc+round(3*epaisseur);
-      x4:=xc-round(2*epaisseur);y4:=y3;
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not affPosFil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=1;
+        x1:=xc+round(0.1*epaisseur);y1:=yc-round(1*epaisseur);
+        x2:=xc+round(2*epaisseur);y2:=y1;
+        x3:=xc-round(0.5*epaisseur);y3:=yc+round(3*epaisseur);
+        x4:=xc-round(2*epaisseur);y4:=y3;
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xc-round(6*frxGlob[indexTCO]),yc);LineTo(xc,y0);
+      end;
     end;
 
     if position=const_droit then
     begin
-      // effacement du morceau
-      pen.color:=fond;
-      Brush.Color:=fond;
-      pen.Width:=1;
-      x1:=xc-round(2.3*epaisseur);y1:=yc-round(2*epaisseur);
-      x2:=xc+round(epaisseur);y2:=y1;
-      x3:=x2;y3:=yc-round(2*epaisseur);
-      x4:=x1;y4:=yc+round(1.1*epaisseur);
-      polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      if not affposfil then
+      begin
+        // effacement du morceau
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.Width:=1;
+        x1:=xc-round(2.3*epaisseur);y1:=yc-round(2*epaisseur);
+        x2:=xc+round(epaisseur);y2:=y1;
+        x3:=x2;y3:=yc-round(2*epaisseur);
+        x4:=x1;y4:=yc+round(1.1*epaisseur);
+        polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+        moveTo(x0,yf);LineTo(xf,y0);
+      end;
     end;
   end;
 end;
@@ -9714,9 +10926,9 @@ begin
       xt:=0;yt:=0;
       if Bimage=2  then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
       if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
-      if Bimage=4  then begin xt:=3;yt:=1;end;
+      if Bimage=4  then begin xt:=10*round(frxGlob[indexTCO]);yt:=1;end;
       if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
-      if Bimage=12 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
+      if Bimage=12 then begin xt:=round(35*frxGlob[indexTCO]);yt:=2;end;
       if Bimage=13 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=14 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=1;end;
       if Bimage=15 then begin xt:=3;yt:=1;end;
@@ -9725,9 +10937,9 @@ begin
       if Bimage=23 then begin xt:=round(33*frxGlob[indexTCO]);yt:=round(35*fryGlob[indexTCO]);end;
       if Bimage=24 then begin xt:=LargeurCell[indexTCO]-round(20*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=25 then begin xt:=round(34*frxGlob[indexTCO]);yt:=round(8*fryGlob[indexTCO]);end;
-      if Bimage=26 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
+      if Bimage=26 then begin xt:=round(35*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
       if Bimage=27 then begin xt:=3;yt:=1;end;
-      if Bimage=28 then begin xt:=3;yt:=1;end;
+      if Bimage=28 then begin xt:=round(35*frxGlob[indexTCO]);yt:=1;end;
       if Bimage=29 then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
       if Bimage=32 then begin xt:=3;yt:=1;end;
       if Bimage=33 then begin xt:=3;yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
@@ -10204,6 +11416,7 @@ procedure TFormTCO.FormCreate(Sender: TObject);
 var s : string;
 begin
   NB:=false;
+
   if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
   procetape('Création fenêtre TCO');
   //Screen.OnActiveControlChange := ActiveControlChanged;
@@ -10217,6 +11430,7 @@ begin
   end;
   {$IFEND}
 
+  affPosFil:=true;
   visible:=false;  // ne s'affiche pas par défaut et évite l'effet fenetre fantome.
   ClTexte:=$00FF00;
   clFondCantonV:=$206020;
@@ -10556,12 +11770,13 @@ end;
 //        =11 : det1=indexcanton det2=direction -  renvoie les éléments adjacent du canton dans la direction indiquée dans xCanton et tel1
 //        =12 : det1 = détecteur de départ - renvoie l'élément sursuivant (peut être un aiguillage)dans la direction demandée dans xCanton et tel1
 //              direction: 1=gauche  2=droite  3=bas  4=haut
+//        =13 : det1=adresse de l'élément TypEL : type de l'élément, s'arrête au suivant suivant direction
 // Ne nécessite pas que les aiguillages en talon soient bien positionnés entre det1 et det2
 // PosAig = False:teste toutes les routes en récursif les aiguillages en pointe
 //          True: les aiguillages en pointe doivent être positionnés
 // en sortie : true si det2 a été trouvé
 //
-function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
+function zone_tco_gx(indexTCO,det1: integer;typEL : tequipement;det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
 var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteration,indexIr,AdrTr,
     NbTrouve,AdrTr1,adrTr2 : integer;
     memtrouve,sortir,indextrouve : boolean;
@@ -10660,6 +11875,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
       // spécial mode 11 et 12
       nepasfaire:=(mode=12) and (adresse<>0) and (adresse<>det1);
       nepasfaire:=(mode=11) and (adresse<>0) or nepasfaire;
+      nepasfaire:=(mode=13) and (adresse<>0) and (adresse<>det1) or nepasfaire;
 
       if not(nepasFaire) then
       case Bimage of
@@ -10884,34 +12100,68 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                if (mdl=tjs) or (mdl=tjd) then
                begin
                  // tjd ou tjs
-                 if ancienX<x then  // on va à droite
+                 if (mode=13) then
                  begin
-                   // essayer vers E
-                   ancienX:=x;ancienY:=y;
-                   x:=x+1;
-                   el_tco(ancienx,ancienY,x,y,train,ir); 
-                   if not(memtrouve) then
+                   if (ancienX<x) and (ancienY=y) then  // on va à l'Est en mode 13
                    begin
-                   // essai vers NE
-                     AncienY:=y;
-                     AncienX:=x-1;
-                     y:=y-1;x:=x;
+                     ancienX:=x;ancienY:=y;
+                     x:=x+1;
                      el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
-                 end;
-                 if (ancienX>x) and not(Memtrouve) then  // on va à gauche
-                 begin
-                   // essayer vers O
-                   ancienX:=x;ancienY:=y;
-                   x:=x-1;
-                   el_tco(ancienx,ancienY,x,y,train,ir); 
-                   if not(memtrouve) then
+
+                   if (ancienX>x) and (ancienY<y) then  // on va au SO en mode 13
                    begin
-                   // essai vers SO
-                     AncienY:=y;
-                     AncienX:=x+1;
-                     y:=y+1;x:=x;
+                     ancienX:=x;ancienY:=y;
+                     dec(x);inc(y);
                      el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+
+                   if (ancienX<x) and (ancienY>y) then  // on va au NE en mode 13
+                   begin
+                     ancienX:=x;ancienY:=y;
+                     inc(x);dec(y);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+
+                   if (ancienX>x) and (ancienY=y) then  // on va au O en mode 13
+                   begin
+                     ancienX:=x;ancienY:=y;
+                     dec(x);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+                 end
+                 
+                 else
+                 begin
+                   if ancienX<x then  // on va à droite
+                   begin
+                     // essayer vers E
+                     ancienX:=x;ancienY:=y;
+                     x:=x+1;
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     if not(memtrouve) then
+                     begin
+                     // essai vers NE
+                       AncienY:=y;
+                       AncienX:=x-1;
+                       y:=y-1;x:=x;
+                       el_tco(ancienx,ancienY,x,y,train,ir); 
+                    end;
+                   end;
+                   if (ancienX>x) and not(Memtrouve) then  // on va à gauche
+                   begin
+                     // essayer vers O
+                     ancienX:=x;ancienY:=y;
+                     x:=x-1;
+                     el_tco(ancienx,ancienY,x,y,train,ir);
+                     if not(memtrouve) then
+                     begin
+                     // essai vers SO
+                       AncienY:=y;
+                       AncienX:=x+1;
+                       y:=y+1;x:=x;
+                       el_tco(ancienx,ancienY,x,y,train,ir); 
+                     end;
                    end;
                  end;
                end;
@@ -10943,36 +12193,70 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                if (mdl=tjs) or (mdl=tjd) then
                begin
                  // tjd ou tjs
-                 if ancienX<x then  // on va à droite
+                 if (mode=13) then
                  begin
-                   // essayer vers E
-                   ancienX:=x;ancienY:=y;
-                   x:=x+1;
-                   el_tco(ancienx,ancienY,x,y,train,ir); 
-                   if not(memtrouve) then
+                   if (ancienX<x) and (ancienY=y) then  // on va à l'Est en mode 13
                    begin
-                     // essai vers SE
-                     AncienY:=y;
-                     AncienX:=x-1;
-                     y:=y+1;x:=x;
-                     el_tco(ancienx,ancienY,x,y,train,ir);
-                   end;
-                 end;
-                 if (ancienX>x) and not(Memtrouve) then  // on va à gauche
-                 begin
-                   // essayer vers O
-                   ancienX:=x;ancienY:=y;
-                   x:=x-1;
-                   el_tco(ancienx,ancienY,x,y,train,ir); 
-                   if not(memtrouve) then
-                   begin
-                     // essai vers NO
-                     AncienY:=y;
-                     AncienX:=x+1;
-                     y:=y-1;x:=x;
+                     ancienX:=x;ancienY:=y;
+                     x:=x+1;
                      el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
-                 end;
+
+                   if (ancienX<x) and (ancienY<y) then  // on va au SE en mode 13
+                   begin
+                     ancienX:=x;ancienY:=y;
+                     inc(x);inc(y);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+
+                   if (ancienX>x) and (ancienY>y) then  // on va au NO en mode 13
+                   begin
+                     ancienX:=x;ancienY:=y;
+                     dec(x);dec(y);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+
+                   if (ancienX>x) and (ancienY=y) then  // on va au O en mode 13
+                   begin
+                     ancienX:=x;ancienY:=y;
+                     dec(x);
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                   end;
+                 end
+                 
+                 else
+                 begin
+                   if (ancienX<x) then  // on va à droite
+                   begin
+                     // essayer vers E
+                     ancienX:=x;ancienY:=y;
+                     x:=x+1;
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     if not(memtrouve) then
+                     begin
+                       // essai vers SE
+                      AncienY:=y;
+                        AncienX:=x-1;
+                       y:=y+1;x:=x;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                     end;
+                   end;
+                   if ((ancienX>x) and not(Memtrouve)) then  // on va à gauche
+                   begin
+                     // essayer vers O
+                     ancienX:=x;ancienY:=y;
+                     x:=x-1;
+                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     if not(memtrouve) then
+                     begin
+                       // essai vers NO
+                       AncienY:=y;
+                        AncienX:=x+1;
+                       y:=y-1;x:=x;
+                       el_tco(ancienx,ancienY,x,y,train,ir); 
+                     end;
+                   end;
+                 end;  
                end;
              end;
 
@@ -11004,34 +12288,67 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                   // tjd ou tjs
                   if (mdl=tjd) or (mdl=tjs) then
                   begin
-                    if ancienY<y then  // on va en bas
+                    if (mode=13) then
                     begin
-                      // essayer vers S
-                      ancienX:=x;ancienY:=y;
-                      y:=y+1;
-                      el_tco(ancienx,ancienY,x,y,train,ir); 
-                      if not(memtrouve) then
+                      if (ancienX=x) and (ancienY>y) then  // on va à N en mode 13
                       begin
-                        // essai vers SO
-                        AncienY:=y-1;
-                        AncienX:=x;
-                        x:=x-1;
+                        ancienX:=x;ancienY:=y;
+                        dec(y);
                         el_tco(ancienx,ancienY,x,y,train,ir); 
                       end;
-                    end;
-                    if (ancienY>y) and not(Memtrouve) then  // on monte
-                    begin
-                      // essayer vers N
-                      ancienX:=x;ancienY:=y;
-                      y:=y-1;
-                      el_tco(ancienx,ancienY,x,y,train,ir); 
-                      if not(memtrouve) then
+
+                      if (ancienX>x) and (ancienY<y) then  // on va au SO en mode 13
                       begin
-                        // essai vers NE
-                        AncienY:=y+1;
-                        AncienX:=x;
-                        x:=x+1;
+                        ancienX:=x;ancienY:=y;
+                        dec(x);inc(y);
                         el_tco(ancienx,ancienY,x,y,train,ir); 
+                      end;
+
+                      if (ancienX<x) and (ancienY>y) then  // on va au NE en mode 13
+                      begin
+                        ancienX:=x;ancienY:=y;
+                        inc(x);dec(y);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                      end;
+                 
+                      if (ancienX=x) and (ancienY<y) then  // on va au S en mode 13
+                      begin
+                        ancienX:=x;ancienY:=y;
+                        inc(y);
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                      end;
+                    end
+                    else
+                    begin
+                      if ancienY<y then  // on va en bas
+                      begin
+                        // essayer vers S
+                        ancienX:=x;ancienY:=y;
+                        y:=y+1;
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        if not(memtrouve) then
+                        begin
+                          // essai vers SO
+                          AncienY:=y-1;
+                          AncienX:=x;
+                          x:=x-1;
+                          el_tco(ancienx,ancienY,x,y,train,ir); 
+                        end;
+                      end;
+                      if (ancienY>y) and not(Memtrouve) then  // on monte
+                      begin
+                        // essayer vers N
+                        ancienX:=x;ancienY:=y;
+                        y:=y-1;
+                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        if not(memtrouve) then
+                        begin
+                          // essai vers NE
+                          AncienY:=y+1;
+                          AncienX:=x;
+                          x:=x+1;
+                          el_tco(ancienx,ancienY,x,y,train,ir); 
+                        end;
                       end;
                     end;
                   end;
@@ -11079,56 +12396,90 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
 
        // tjd ou croisement
      25 : begin
-             mdl:=rien;
-                if adresse<>0 then
+            mdl:=rien;
+            if adresse<>0 then
+            begin
+              j:=Index_Aig(adresse);
+              mdl:=aiguillage[j].modele;
+              // tjd ou tjs
+              if (mdl=tjd) or (mdl=tjs) then
+              begin
+                if (mode=13) then
                 begin
-                  j:=Index_Aig(adresse);
-                  mdl:=aiguillage[j].modele;
-                  // tjd ou tjs
-                  if (mdl=tjd) or (mdl=tjs) then
+                  if (ancienX=x) and (ancienY<y) then  // on va au S en mode 13
                   begin
-                    if ancienY<y then  // on va en bas
+                    ancienX:=x;ancienY:=y;
+                    inc(y);
+                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                  end;
+
+                  if (ancienX<x) and (ancienY<y) then  // on va au SE en mode 13
+                  begin
+                    ancienX:=x;ancienY:=y;
+                    inc(x);inc(y);
+                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                  end;
+
+                  if (ancienX>x) and (ancienY>y) then  // on va au NO en mode 13
+                  begin
+                    ancienX:=x;ancienY:=y;
+                    dec(x);dec(y);
+                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                  end;
+
+                  if (ancienX=x) and (ancienY>y) then  // on va au N en mode 13
+                  begin
+                    ancienX:=x;ancienY:=y;
+                    dec(y);
+                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                  end;
+                end
+                else
+                
+                begin
+                  if ancienY<y then  // on va en bas
+                  begin
+                    // essayer vers S
+                    ancienX:=x;ancienY:=y;
+                    y:=y+1;
+                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                    if not(memtrouve) then
                     begin
-                      // essayer vers S
-                      ancienX:=x;ancienY:=y;
-                      y:=y+1;
+                      // essai vers SE
+                      AncienY:=y-1;
+                      AncienX:=x;
+                      x:=x+1;
                       el_tco(ancienx,ancienY,x,y,train,ir); 
-                      if not(memtrouve) then
-                      begin
-                        // essai vers SE
-                        AncienY:=y-1;
-                        AncienX:=x;
-                        x:=x+1;
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
-                      end;
                     end;
-                    if (ancienY>y) and not(Memtrouve) then  // on monte
+                  end;
+                  if (ancienY>y) and not(Memtrouve) then  // on monte
+                  begin
+                    // essayer vers N
+                    ancienX:=x;ancienY:=y;
+                    y:=y-1;
+                    el_tco(ancienx,ancienY,x,y,train,ir);
+                    if not(memtrouve) then
                     begin
-                      // essayer vers N
-                      ancienX:=x;ancienY:=y;
-                      y:=y-1;
+                      // essai vers NO
+                      AncienY:=y+1;
+                      AncienX:=x;
+                      x:=x-1;
                       el_tco(ancienx,ancienY,x,y,train,ir); 
-                      if not(memtrouve) then
-                      begin
-                        // essai vers NO
-                        AncienY:=y+1;
-                        AncienX:=x;
-                        x:=x-1;
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
-                      end;
                     end;
                   end;
                 end;
-                if (adresse=0) or (mdl=crois) then
-                // croisement
-                begin
-                  if DebugTCO then AfficheDebug('Croisement',clyellow);
-                  if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=yn+1;end;
-                  if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=yn-1;end;
-                  if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
-                  if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
-                end;
-                if (mdl=aig) then
+              end;
+            end;
+              if (adresse=0) or (mdl=crois) then
+              // croisement
+              begin
+                if DebugTCO then AfficheDebug('Croisement',clyellow);
+                if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=yn+1;end;
+                if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=yn-1;end;
+                if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
+                if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
+              end;
+              if (mdl=aig) then
             begin
               Affiche('Erreur 51 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
               Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
@@ -11316,7 +12667,10 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
      inc(i);
      // éléments adj
      if (mode=11) and ( (adresse<>0) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
-     if (mode=12) and ( ((adresse<>0) and (adresse<>det1))  or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
+     if (mode=12) and ( ((adresse<>0) and (adresse<>det1)) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
+
+     if (mode=13) and ( ((adresse<>0) and (adresse<>det1)) or (tco[indexTCO,x,y].buttoir<>0)) then begin
+     sortir:=true;memtrouve:=true;end;
 
      if (adresse=det2) and (adresse<>0) then memTrouve:=true;
      if (adresse=0) and (det2=0) and (but<>0) then memTrouve:=true;
@@ -11342,7 +12696,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
   end;
 
 
-// Début de la procédure zone_tco, qui affiche le tracé
+// Début de la procédure zone_tco_gx, qui affiche le tracé
 begin
   if debugTCO then
   begin
@@ -11394,6 +12748,11 @@ begin
     begin
       trouve_El(indexTCO,det1,det,x,y);
     end;
+    if mode=13 then
+    begin
+      if (typEL=tjd) or (typEL=tjs) then typEL:=aig;
+      trouve_El(indexTCO,det1,TypEl,x,y);
+    end;
 
     xn:=x;yn:=y;
     ir:=1;    // index de la route du tco
@@ -11435,20 +12794,40 @@ begin
       begin ancieny:=y+1; ancienx:=x; end;
     end;
 
-    // uniquement modes 11/12: recherche élément à gauche
-    5 : begin
+    // uniquement modes 11/12/13: recherche élément à gauche
+    SensTCO_O : begin
           ancienx:=x+1; ancieny:=y;
         end;
-    // uniquement mode 11/12: recherche élément à droite
-    6 : begin
+    // uniquement mode 11/12/13: recherche élément à droite
+    SensTCO_E : begin
           ancienx:=x-1; ancieny:=y;
         end;
-    // uniquement mode 11: recherche élément en haut
-    7 : begin
+    // uniquement mode 11/12/13: recherche élément NO
+    SensTCO_NO : begin
+          ancienx:=x+1; ancieny:=y+1;
+        end;
+
+    // uniquement mode 11/12/13: recherche élément NE
+    SensTCO_NE : begin
+          ancienx:=x-1; ancieny:=y+1;
+        end;
+
+    // uniquement mode 11/12/13: recherche élément SE
+    SensTCO_SE : begin
+          ancienx:=x-1; ancieny:=y-1;
+        end;
+
+    // uniquement mode 11/12/13: recherche élément SO
+    SensTCO_SO : begin
+          ancienx:=x+1; ancieny:=y-1;
+        end;
+
+    // uniquement mode 11/12/13: recherche élément en haut
+    SensTCO_N : begin
           ancienx:=x; ancieny:=y+1;
         end;
-    // uniquement mode 11: recherche élément en bas
-    8 : begin
+    // uniquement mode 11/12/13: recherche élément en bas
+    SensTCO_S : begin
           ancienx:=x; ancieny:=y-1;
         end;
     end;
@@ -11473,7 +12852,7 @@ begin
       if isAigTCO(Bimage) then Tel1:=aig else tel1:=det;
       if but<>0 then tel1:=Buttoir;
     end;
-    if (mode=12) and (adresse<>det1) then
+    if ((mode=12) or (mode=13)) and (adresse<>det1) then
     begin
       Xcanton:=adresse;
       if isAigTCO(Bimage) then Tel1:=aig else tel1:=det;
@@ -11513,6 +12892,18 @@ begin
       Affiche_trajet(indexTCO,train,AdrTrain,indexIr,mode);     // affiche le trajet dans le TCO
     end;
   end;
+end;
+
+// fonction appellable en modes 1 2 3 10 11 12
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean; overload;
+begin
+  result:=zone_tco_gx(indexTCO,det1,det,det2,train,adrTrain,mode,posAig);
+end;
+
+// fonction appellable en mode 13
+function zone_tco(indexTCO,adr : integer;typEl : tequipement;sens,mode: integer;posAig : boolean) : boolean; overload;
+begin
+  result:=zone_tco_gx(indexTCO,adr,typEL,sens,0,0,mode,posAig);
 end;
 
 
@@ -11814,6 +13205,7 @@ begin
     positionne(indexTCO);
 
     renseigne_tous_cantons;
+    renseigne_TJDs;
     FormInit[indexTCO]:=true;
 
   end;
@@ -12743,7 +14135,7 @@ end;
 
 procedure end_Drag(icone,x,y : integer;Sender, Target: TObject);
 var s : string;
-indexTCO,i,xclic,Yclic,bim,nc,maxi : integer;
+indexTCO,i,xclic,Yclic,bim,nc,maxi,libre : integer;
 begin
   if not(Target is TImage) then exit;
   s:=(Target as TImage).Name;
@@ -12872,13 +14264,18 @@ begin
       end;
 
       // pour le numéro de canton,
-      maxi:=0;
+      maxi:=0; Libre:=0;
       for nc:=1 to nCantons do
       begin
         if canton[nc].numero>maxi then maxi:=canton[nc].numero;
+        if (nc>=2) and (nc<nCantons) then if canton[nc].numero+1<>canton[nc+1].numero then
+        begin
+          libre:=canton[nc].numero+1;
+          for i:=1 to nCantons do if canton[i].numero=Libre then Libre:=0;
+        end;
       end;
       inc(maxi);
-
+      if libre<>0 then Maxi:=Libre;
       inc(Ncantons);
 
       canton[Ncantons].horizontal:=Bim=1;

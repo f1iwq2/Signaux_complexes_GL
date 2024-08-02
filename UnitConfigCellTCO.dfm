@@ -572,7 +572,7 @@ object FormConfCellTCO: TFormConfCellTCO
       Caption = 'Num'#233'ro du canton : '
     end
     object LabelInfo: TLabel
-      Left = 160
+      Left = 152
       Top = 20
       Width = 10
       Height = 13

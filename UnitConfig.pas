@@ -723,6 +723,7 @@ function compile_branche(s : string;i : integer) : boolean;
 function encode_signal(i : integer): string;
 procedure valide_branches;
 procedure trier_aig;
+procedure trier_cantons;
 procedure trier_detecteurs;
 procedure trier_actionneurs;
 function decodeDCC(s : string) : string;
@@ -2279,6 +2280,26 @@ begin
   writeln(fichierN,'0');
 
   closefile(fichierN);
+end;
+
+// trier les cantons
+procedure trier_cantons;
+var i,j : integer;
+    temp : TCanton;
+    s : string;
+begin
+  for i:=1 to nCantons-1 do
+  begin
+    for j:=i+1 to nCantons do
+    begin
+      if canton[i].numero>canton[j].numero then
+      begin
+        temp:=canton[i];
+        canton[i]:=canton[j];
+        canton[j]:=temp;
+      end;
+    end;
+  end;
 end;
 
 // trier les détecteurs
@@ -7299,9 +7320,10 @@ begin
   ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
 
   EditComUSB.Hint:='COMX:vitesse,parité,nombre de bits,bits de stop,protocole'+#13+
-                   'procotole = 0 : sans protocole, avec temporisation d''envoi (Genli, LZV200)'+#13+
-                   '          = 1 ou 3  : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
+                   'procotole = 0 : sans protocole, avec temporisation d''envoi entre trames (Genli, LZV200)'+#13+
+                   '          = 1 : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
                    '          = 2 : protocole matériel RTS-CTS sans temporisation d''envoi (Interfaces Lenz LI)'+#13+
+                   '          = 3 : sans protocole, sans temporisation d''envoi entre octets'+#13+
                    '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi';
   EditComUSB.showHint:=true;
   ListBoxAig.Height:=382;
@@ -7721,7 +7743,7 @@ begin
   result:=s+intToSTR(adr);
 end;
 
-// mise à jour des champs du signal d'après le tableau feux
+// mise à jour des champs du signal d'après le tableau signaux
 Procedure aff_champs_signaux(index : integer);
 var j,l,d,p,k,nc,decodeur : integer;
     s : string;
@@ -7763,7 +7785,8 @@ begin
           EditSpecUni.Text:=IntToSTR(Signaux[index].Unisemaf);
           editSpecUni.Hint:='Paramètre de description de la cible LEB'+#13+'Mettre 100 pour les anciens décodeurs (mode binaire uniquement)';
           editSpecUni.ShowHint:=true;
-          RadioGroupLEB.Visible:=true;
+          j:=Signaux[index].UniSemaf;
+          if j=100 then RadioGroupLEB.Visible:=false else RadioGroupLEB.Visible:=true;
           RadioGroupLEB.ItemIndex:=signaux[index].BinLin;
         end;
     7 : ButtonConfigSR.Visible:=true;
@@ -9090,6 +9113,7 @@ begin
       erreur:=verif_LEB(Adr,i);
       if erreur=1 then begin LabelInfo.caption:='Erreur code cible LEB';exit;end;
       if erreur=2 then begin LabelInfo.caption:='Erreur cohérence aspect signal';exit;end;
+      if i=100 then radioGroupLEB.Visible:=false else radioGroupLEB.Visible:=true;
       LabelInfo.caption:=' ';
       Signaux[ligneClicSig+1].Unisemaf:=i;
     end;

@@ -259,4 +259,8 @@ version 9.0  : Pilotage des nouveaux décodeurs de signaux LEB (mode binaire, lin
                Pilotage des trains depuis le TCO
                Proposition des routes possibles depuis un train sur un détecteur de départ vers un détecteur d'arrivée sur le TCO.			  
                Pilotage des accessoires sans accusé de réception, ce qui fluidifie le trafic XpressNet
-               		   
+version 9.1  : Représentation de la position des TJD dans les TCOs.
+               Corrections sur les TJD 2 états.
+			   Correction connection en mode autonome aux interfaces pour la version D11.
+			   Correction pilotage décodeur LEB ancienne version.
+			  

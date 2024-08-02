@@ -1258,6 +1258,7 @@ begin
     sens:=SensHaut;
   end;
   TCO[indexTCOCourant,x,y].SensCirc:=Sens;
+  canton[Idc].SensCirc:=sens;
 end;
 
 procedure TFormConfCellTCO.RadioButtonDBClick(Sender: TObject);
@@ -1279,6 +1280,7 @@ begin
     sens:=SensBas;
   end;
   TCO[indexTCOCourant,x,y].SensCirc:=Sens;
+  canton[Idc].SensCirc:=sens;
 end;
 
 procedure TFormConfCellTCO.RadioButtonDSClick(Sender: TObject);
@@ -1294,6 +1296,7 @@ begin
   else
     ImageSens.Picture:=ImageHB.Picture;
   TCO[indexTCOCourant,x,y].SensCirc:=0;
+  canton[Idc].SensCirc:=0;
 end;
 
 procedure TFormConfCellTCO.CheckBoxEncadreClick(Sender: TObject);

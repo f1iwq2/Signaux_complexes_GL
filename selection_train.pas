@@ -326,6 +326,7 @@ begin
     ColWidths[6]:=30;
     ColWidths[7]:=35;
 
+    Cells[0,0]:='N°';
     Cells[1,0]:='Icône';
     Cells[2,0]:='Nom du train';
     Cells[3,0]:='Affectation'+#13+'au canton';
@@ -341,6 +342,7 @@ begin
   begin
     with StringGridTrains do
     begin
+      cells[0,i]:=intToSTR(i);
       cells[2,i]:=trains[i].nom_train;
     end;
   end;

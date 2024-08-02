@@ -1,5 +1,5 @@
 unit Unitprinc;
-// 01/07/2024 14h
+// 31/07/2024 21h
 (********************************************
   Programme signaux complexes Graphique Lenz
   [Delphi 7 ou RadStudio (Delphi 11)] + activeX Tmscomm + clientSocket
@@ -11,7 +11,7 @@ unit Unitprinc;
 
   Notes pour compilation sous Embarcadero : --------------------------------------------------
   Pour compilation avec Rad Studio (Delphi11): Projet / Options // Application / Apparence /
-    Embarcadero technologies / coher tous les thèmes : carbon Auric etc / et choisir le sytle par défaut : windows sinon plantage
+    Embarcadero technologies / cocher tous les thèmes : carbon Auric etc / et choisir le sytle par défaut : windows sinon plantage
 
   Pour le mode sombre sous Embarcadero, il faut sélectionner:
   Projet / Options // Application / manifeste /  fichier manifeste : personnaliser
@@ -32,8 +32,6 @@ unit Unitprinc;
  raquette   octet sortie
     +            2    =   vert  = aiguillage droit  = sortie 2 de l'adresse d'accessoire
     -            1    =   rouge = aiguillage dévié  = sortie 1 de l'adresse d'accessoire
-
- vitesse port com interface lenz LI-USB-ETH par défaut=57600
 
  ligne de commande en mode administrateur pour valider le socket du pare feu:
  netsh advfirewall firewall add rule name="cdm rail" dir=in action=allow program="C:\Program Files (x86)\CDM-Rail\cdr.exe" enable=yes
@@ -423,6 +421,7 @@ MaxTrainZone=40;      // nombre maximal de trains pour le tableau d'historique d
 Mtd=128;              // nombre maxi de détecteurs précédents stockés
 Max_event_det=4000;   // nombre maximal d'évenements détecteurs
 Max_action=100;       // nombre maximal d'actions
+Long_tampon_interface=5000;
 Max_actionneurs=2048;
 Maxelements=100;      // nombre maxi d'éléments scannés/réservés
 MaxBranches=200;      // nombre maxi de branches
@@ -549,7 +548,7 @@ IconeDeclSignal=23;
 
 type
 Tinterface    = (_interface,periph1,periph2);   // interface USB : interface vers centrale, périphérique 1 ou 2
-Taccessoire   = (aigP,signal);    // aiguillage ou signal
+Taccessoire   = (aigP,signal);             // aiguillage ou signal  pour la procédure pilote_acc
 TEquipement   = (rien,aig,tjd,tjs,triple,det,buttoir,voie,crois,act,sig);   // voie uniquement pour le tco
 TBranche      = record
                   BType : Tequipement ;   // ne prend que les valeurs suivantes: dét aig Buttoir
@@ -726,6 +725,14 @@ TElroute=array[1..MaxRoutes] of TUneroute;
 
 Tparcours=array[1..MaxParcours] of integer;
 
+TchaineBIN=array[0..Long_tampon_interface] of byte;
+
+{$IF CompilerVersion >= 28.0}   // si delphi>=11
+BinaryString = UnicodeString;
+{$ELSE}
+BinaryString = String;
+{$IFEND}
+
 var
   maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
   N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
@@ -739,7 +746,7 @@ var
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
   AigMal,AncMinute,axFP,ayFP,NbreOperations,NbreDeclencheurs,index_seqAct,NbreConditions,
-  SensAig,NbreRoutes,nbreIti,DetAtrouve,DetDepart,iteration,IdActTr,
+  SensAig,NbreRoutes,nbreIti,DetAtrouve,DetDepart,iteration,IdActTr,Long_recue,
   prec1,prec2,Eprec,Esuiv : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
@@ -761,10 +768,12 @@ var
 
   FormPrinc: TFormPrinc;
 
-  Enregistrement,chaine_Envoi,chaine_recue,Id_CDM,Af,version_Interface,entete,suffixe,Lay,
+  Enregistrement,chaine_Envoi,Id_CDM,Af,version_Interface,entete,suffixe,Lay,
   CheminProgrammes,cheminWin,fichierAide : string;
 
   Ancien_detecteur : array[0..NbMaxDet] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
+
+  trameIF : array of Byte;
 
   detecteur : array[0..NbMaxDet] of  // détecteurs indexés par l'adresse
   record
@@ -977,6 +986,7 @@ var
   Signal_supprime,Signal_sauve : TSignal;
   Aig_supprime,Aig_sauve : TAiguillage;
   BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
+  chaine_recue : TchaineBIN;
 
 {$R *.dfm}
 
@@ -1088,7 +1098,7 @@ function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : inte
 procedure prepare_route(depart,arrivee,sens : integer);
 function route_to_string(tablo : tUneRoute) : string;
 procedure supprime_route_train(idtrain : integer);
-procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer);
+procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer; erreur : boolean);
 procedure procetape(s : string);
 
 implementation
@@ -1259,6 +1269,7 @@ begin
     Affiche_Fenetre_TCO(i,avecTCO);
   end;
   renseigne_tous_cantons;  // les cantons doivent être renseignés pour les evts détecteurs
+  renseigne_TJDs;
 
   interface_ou_cdm; // démarrer l'interface , génère les evts détecteurs  ; ou cdm
 
@@ -1280,7 +1291,7 @@ end;
 
 // envoie une chaine s à un périphérique COM/USB en fonction du composant comp
 // contrôle si le pointeur comp est valide par traitement de l'exception
-procedure envoi_usb_comp(comp : Tmscomm;s : string);
+procedure envoi_usb_comp(comp : Tmscomm;s : variant);
 var i : integer;
 begin
   if comp=nil then
@@ -2948,6 +2959,19 @@ begin
   checksum:=s+char(check);
 end;
 
+function tablo_HEX(s: TchaineBIN) : string;
+var i : integer;
+    sa_hex: string;
+begin
+  sa_hex:='';
+  for i:=1 to long_recue do 
+  begin
+    sa_hex:=sa_hex+IntToHex(chaine_recue[i],2)+' ';
+  end;
+  tablo_HEX:=sa_hex;
+end;
+
+
 // renvoie une chaine ASCI Hexa affichable à partir d'une chaîne
 function chaine_HEX(s: string) : string;
 var i : integer;
@@ -2977,17 +3001,27 @@ begin
 end;
 
 
-// envoi d'une chaîne à la centrale par USBLenz ou socket, n'attend pas l'ack
+// envoi la chaîne trameIF à la centrale par USBLenz ou socket, n'attend pas l'ack
 // pour le protole XpressNet (1), on ajoute l'entete et le suffixe dans la trame.
 // ici on envoie pas à CDM
 procedure envoi_ss_ack(s : string);
-var i,timeout,valto : integer;
+var i,timeout,valto,l1,l2,l : integer;
 begin
   // XpressNet
-  if protocole=1 then
+  if (protocole=1) then
   begin
-    s:=entete+s+suffixe;
-    if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);
+    entete:=entete;
+    l1:=length(entete);
+    l2:=length(s);
+    l:=l1+l2;
+    Setlength(TrameIF,l);
+    for i:=0 to l1-1 do trameIF[i]:=ord(entete[i+1]);
+    for i:=0 to l2-1 do
+    begin
+      TrameIF[i+l1]:=byte(ord(s[i+1]));
+    end;
+
+    if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(entete+s),ClLime);
   end;
   // DCC++
   if (protocole=2) and TraceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+s,ClLime);
@@ -2997,7 +3031,7 @@ begin
   begin
     if (prot_serie=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
     begin
-      i:=1;
+      i:=0;
       valto:=10;
       //Affiche('envoi en tenant compte cts',clyellow);
       repeat
@@ -3006,45 +3040,49 @@ begin
           //Application.ProcessMessages;
           inc(timeout);
           Sleep(20);
-        until (MSCommUSBInterface.CTSHolding=true) or (timeout>valto);
+        until (MSCommUSBInterface.CTSHolding=false) or (timeout>valto);
 
         if timeout<=valto then
         begin
-          //if formprinc.MSCommUSBLenz.CTSHolding then sa:='CTS=1 ' else sa:='CTS=0 ';
-          envoi_usb_comp(MSCommUSBInterface,s[i]);
-          if terminal then Affiche(chaine_hex(s[i]),clyellow);
+          envoi_usb_comp(MSCommUSBInterface,char(TrameIF[i]));
+          //Affiche(intToSTR(TrameIF[i]),clyellow);
           inc(i);
         end;
-      until (i=length(s)+1) or (timeout>valto);
+      until (i=l) or (timeout>valto);
       if timeout>valto then affiche('Erreur attente interface trop longue',clred);
     end;
 
-    // protocole Rts Cts ou sans temporisation
+    // protocole Rts Cts ou avec temporisation entre trames
     if (prot_serie=2) or (tempoOctet=0) then
     begin
       envoi_usb_comp(MSCommUSBInterface,s);
-      exit;
+      Sleep(TempoOctet);
     end;
 
-    // procotole xon xoff ou xon-rts
+    // procotole xon xoff ou temporisé
     if (prot_serie=1) or (prot_serie=3) then
     begin
-      for i:=1 to length(s) do
+      for i:=0 to l-1 do
       begin
-        envoi_usb_comp(MSCommUSBInterface,s[i]);
+        envoi_usb_comp(MSCommUSBInterface,char(TrameIF[i]));
         //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
         Sleep(TempoOctet);
       end;
     end;
+    // temporisé entre trames
     if (prot_serie=0) then
     begin
-      envoi_usb_comp(MSCommUSBInterface,s);
+      envoi_usb_comp(MSCommUSBInterface,TrameIF);
       Sleep(TempoOctet);
     end;
   end;
 
   // par socket (ethernet)
-  if parSocketLenz or (etat_init_interface>=11) then Formprinc.ClientSocketInterface.Socket.SendText(s);
+  if parSocketLenz or (etat_init_interface>=11) then
+  begin
+    Formprinc.ClientSocketInterface.Socket.SendBuf(TrameIF[0],l);
+    Sleep(TempoOctet);
+  end;
 end;
 
 // envoi d'une chaîne à l'interface par USB ou socket, puis attend l'ack ou le nack
@@ -3997,13 +4035,16 @@ var index,mode,code,aspect,cible,combine,offset,sortie : integer;
       if (testBit(selection,i)) then begin octet:=1;end
       else begin octet:=2 ;end;
       Pilote_acc(adresse+i,octet,signal);
-      // le décodeur LEB nécessite qu'on envoie 0 après son pilotage ; si on est en mode usb ou ethernet
-      //sleep(100);
-      if (portCommOuvert or parSocketLenz) then Pilote_acc0_X(adresse+i,octet);
-      //sleep(100);
+      if (Cdm_connecte or portCommOuvert or parSocketLenz) then 
+      begin 
+        Sleep(Tempo_Signal);
+        Application.ProcessMessages;
+        // le décodeur LEB nécessite qu'on envoie 0 après son pilotage 
+        Pilote_acc0_X(adresse+i,octet); 
+        Sleep(Tempo_Signal);
+        Application.ProcessMessages;
+      end;  
     end;
-    //Affiche(inttoStr(selection),clOrange);
-    //Affiche(s,clOrange);
   end;
 
 begin
@@ -4021,7 +4062,7 @@ begin
     // mode binaire ancien
     if (cible=100) then
     begin
-      s:='Signal LEB (binaire) : ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
+      s:='Signal LEB (ancien binaire) : ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
       if (aspect<>-1) and (combine=-1) then
       begin
         if (aspect=carre)         then envoi5_LEB(0);
@@ -4099,19 +4140,19 @@ begin
         if mode=1 then
         begin
           s:='Signal LEB (linéaire) : ad'+IntToSTR(adresse)+'='+chaine_signal(adresse);
-          pilote_acc(adresse+offset,sortie,aigP);
+          pilote_acc(adresse+offset,sortie,signal);
+          Pilote_acc0_X(adresse+offset,sortie);  // remise à 0 obligatoire pour LEB
         end;
-
       end;
     end;
 
     if AffSig then affiche(s,clOrange);
     if Affsignal then afficheDebug(s,clOrange);
-    if AffDetSig then
+    {if AffDetSig then
     begin
       s:='Tick='+IntToSTR(tick)+' Signal '+IntToSTR(adresse)+'='+chaine_signal(adresse);
       AfficheDebug(s,clyellow);
-    end;
+    end; }
   end;
 end;
 
@@ -5461,7 +5502,7 @@ function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : inte
 var actuelCalc,PrecCalc,j,AdrSuiv,ia : integer;
     TypeprecCalc,TypeActuelCalc : TEquipement;
 begin
-  if NivDebug>=2 then
+  if (NivDebug>=2) or procPrinc then
     AfficheDebug('Proc Detecteur_suivant '+IntToSTR(prec)+','+BTypeToChaine(typeElPrec)+'/'+intToSTR(actuel)+','+
                   BTypeToChaine(TypeElActuel)+
                   ' Alg='+IntToSTR(algo),clyellow);
@@ -5478,7 +5519,7 @@ begin
     //Affiche(intToSTR(AdrSuiv)+'=alg3('+intToSTR(precCalc)+','+intToSTR(actuelCalc)+')',clWhite);
     // modif spécial TJD ==============
     ia:=index_aig(actuelCalc);
-    if aiguillage[ia].modele=tjd then
+    if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
       PrecCalc:=aiguillage[ia].Ddevie else
     // ================================
 
@@ -5970,8 +6011,10 @@ end;
 // trouve un élément en balayant les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
 // explore les branches
+// si une branche preférée est choisie, elle est non nulle. 
+// erreur=true affiche le message d'erreur
 // si pas trouvé, Branche_trouve=0 IndexBranche_trouve=0
-procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer);
+procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer;erreur : boolean);
 var i,adr,Branche : integer ;
     s : string;
     BT : TEquipement;
@@ -6002,14 +6045,17 @@ begin
     branche_trouve:=Branche;
     IndexBranche_trouve:=i-1;
   end
-  else begin s:='Erreur 175 : élément '+intToSTR(el)+' ';
-             s:=s+BTypeToChaine(TypeEl);
-             s:=s+' non trouvé';Affiche(s,clred);
-             branche_trouve:=0; IndexBranche_trouve:=0;
-             AfficheDebug(s,clred);
+  else begin 
+         branche_trouve:=0; IndexBranche_trouve:=0;
+         if erreur then
+         begin
+           s:='Erreur 175 : élément '+intToSTR(el)+' ';
+           s:=s+BTypeToChaine(TypeEl);
+           s:=s+' non trouvé';Affiche(s,clred);          
+           AfficheDebug(s,clred);
+         end;  
        end;
   if debug=3 then formprinc.Caption:='';
-
 end;
 
 // trouve un élément dans les branches depuis les index.
@@ -6017,7 +6063,7 @@ end;
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
 // avec cet algorithme, un détecteur ne peut se trouver qu'à un seul endroit dans les branches
 // si branche_Pref<>0 : recherche un aig sur la branche_Pref
-procedure trouve_element(el: integer; TypeEl : TEquipement;Branche_pref : integer); overload;
+procedure trouve_element(el: integer; TypeEl : TEquipement;Branche_pref : integer;erreur : boolean); overload;
 var s : string;
 begin
   if debug=3 then formprinc.Caption:='Trouve_element '+IntToSTR(el);
@@ -6049,7 +6095,7 @@ begin
 
   if (TypeEl=triple) or (typeEL=aig) or (typeEL=crois) or (typeEL=tjd) or (typeEL=tjs) then
   begin
-    Trouve_element_V1(el,TypeEl,1,branche_pref);
+    Trouve_element_V1(el,TypeEl,1,branche_pref,erreur);
   end;
 
   if typeEL=buttoir then
@@ -6069,35 +6115,42 @@ begin
 
   if IndexBranche_trouve=0 then
   begin
-    s:='Erreur 176 : élément '+intToSTR(el)+' ';
-    s:=s+BTypeToChaine(TypeEl);
-    s:=s+' non trouvé dans les branches';Affiche(s,clred);
     branche_trouve:=0; IndexBranche_trouve:=0;
-    AfficheDebug(s,clred);
+    if erreur then
+    begin
+      s:='Erreur 176 : élément '+intToSTR(el)+' ';
+      s:=s+BTypeToChaine(TypeEl);
+      s:=s+' non trouvé dans les branches';Affiche(s,clred);
+      AfficheDebug(s,clred);
+    end;  
   end;
   if debug=3 then formprinc.Caption:='';
 end;
 
 procedure trouve_element(el: integer; TypeEl : TEquipement); overload;
 begin
-  trouve_element(el,TypeEl,0);
+  trouve_element(el,TypeEl,0,true);
 end;
 
 
 // trouve actionneur_aig
-// trouve les actionneurs de l'aiguillage "index" au suivant
-// index = index aiguillage - suivant
+// trouve les actionneurs de l'aiguillage "index" au suivant (qui peut être un détecteur ou un aig)
+// index = index d'aiguillage - suivant
+// Index et Suivant doivent être contigus !!!!
 procedure trouve_actionneurs_aig(index,suivant : integer;tsuiv : tequipement);
 var i,adrAig,indexBranche_aig,branche_trouve_aig,indexBranche_Suiv,branche_trouve_Suiv : integer;
     typ : tequipement;
+    s : string;
 begin
   adrAig:=aiguillage[index].Adresse;
   typ:=aiguillage[index].modele;
-  if nivDebug=3 then AfficheDebug('trouve_actionneurs_aig '+intToSTR(adrAig)+' '+intToSTR(suivant),clCyan);
+  if (nivDebug=3) or procPrinc then AfficheDebug('trouve_actionneurs_aig '+intToSTR(adrAig)+' '+intToSTR(suivant),clCyan);
   if suivant=0 then  // possible sur buttoir
   begin
     exit;
   end;
+
+  
   // si suivant est un détecteur la recherche de l'aig se fera dans la même branche
   if tSuiv=det then
   begin
@@ -6111,11 +6164,23 @@ begin
     branche_trouve_Suiv:=branche_trouve;
 
     // chercher l'aig dans la même branche
-    trouve_element(AdrAig,typ,Branche_trouve_Suiv);
+    trouve_element(AdrAig,typ,Branche_trouve_Suiv,false);  // ne pas afficher l'erreur
     if IndexBranche_trouve=0 then
     begin
-      if NivDebug=3 then AfficheDebug('34. Element '+intToSTR(adrAig)+' non trouvé',clred);
-      exit;
+      // si pas trouvé, c'est peut être une TJD, elle a été déclarée par sa 2eme adresse dans les branches
+      if (typ=tjd) and (aiguillage[index].EtatTJD=4) then
+      begin
+        AdrAig:=aiguillage[index].DDroit;  // homologue
+        index:=index_aig(adrAig);
+        trouve_element(AdrAig,typ,Branche_trouve_Suiv,false);  // ne pas afficher l'erreur
+        if IndexBranche_trouve=0 then
+        begin
+          //if NivDebug=3 then
+          AfficheDebug('34. Element '+intToSTR(adrAig)+' non trouvé en branche '+intToSTR(Branche_trouve_Suiv),clred);
+          exit;
+        end;
+      end
+      else exit;  
     end;
     indexBranche_aig:=IndexBranche_trouve;
     branche_trouve_aig:=branche_trouve;
@@ -6127,7 +6192,24 @@ begin
   if tSuiv=aig then
   begin
     if nivDebug=3 then AfficheDebug('SuivAig',clred);
+    // vérifier que si index est une TJD 4 états, et vérifier la contiguité avec suivant
+    if (aiguillage[index].EtatTJD=4) and (aiguillage[index].modele=tjd) then
+    begin
+      if (aiguillage[index].ADroit<>suivant) and (aiguillage[index].ADevie<>suivant) then
+      begin
+        index:=index_aig(aiguillage[index].ddroit); // homologue
+        AdrAig:=aiguillage[index].Adresse;
+        if (aiguillage[index].ADroit<>suivant) and (aiguillage[index].ADevie<>suivant) then
+        begin
+          s:='Erreur 68 - Appel proc trouve_actionneurs_aig a échoué : '+intToSTR(adrAig)+' '+intToSTR(suivant)+' : éléments non contigus';
+          Affiche(s,clred);
+          AfficheDebug(s,Clred);
+        end;
+      end;
+    end;
+    
     suivant_alg3(adraig,typ,suivant,tsuiv,1);
+    if nivDebug=3 then AfficheDebug('FinProc trouve_actionneurs',clCyan);
     exit;
   end;
 
@@ -6152,15 +6234,12 @@ begin
         if idActTr<11 then Actionneur_trouve[idActTr]:=BrancheN[branche_trouve_suiv,i].Adresse;
       end;
     end;
+    if nivDebug=3 then AfficheDebug('FinProc trouve_actionneurs',clCyan);
     exit;
   end;
 
     //suivant_alg3(adresse,typ,suivant,tsuiv,1);
-  AfficheDebug('cas non prévu',clred);
-    exit;
-
-
-
+  AfficheDebug('cas non prévu - Fin proc trouve_actionneurs',clCyan);
 end;
 
 
@@ -6225,7 +6304,7 @@ end;
 // la variable "actuel" peut etre changée en cas de TJD!
 function suivant_alg3(prec : integer;typeELprec : TEquipement;actuel : integer;typeElActuel : TEquipement;alg : integer) : integer;
 var  Adr,AdrPrec,indexBranche_prec,branche_trouve_prec,indexBranche_actuel,branche_trouve_actuel,
-     tjsc1,tjsc2,AdrTjdP,Adr2,N_iteration,index,NetatTJD,index2,k,delta : integer;
+     tjsc1,tjsc2,AdrTjdP,Adr2,N_iteration,index,NetatTJD,index2,k,delta,posPrec,IndexPrec : integer;
      tjscourbe1,tjscourbe2,tjdC,tjsC,id : boolean;
      A,Aprec,tjsc1B,tjsc2B,typeprec: char;
      TypeGenS,Md,BT,BtypePrec,TypeEL : TEquipement;
@@ -6458,7 +6537,7 @@ begin
         suivant_alg3:=9997;     // attention code incorrect devrait être 9994
         exit;
       end;
-
+       
       // aiguillage index (adr) pris en pointe
       if (aiguillage[index].Apointe=prec) then
       begin
@@ -6490,6 +6569,7 @@ begin
           exit;
         end;
 
+        
         if aiguillage[index].position=const_devie then
         begin
           if NivDebug=3 then AfficheDebug('133 - aiguillage '+intToSTR(Adr)+' Pris en pointe dévié',clyellow);
@@ -6583,7 +6663,7 @@ begin
         else
         begin
           s:='Impossible de déterminer le passage de l''aiguillage '+intToSTR(adr);
-          if nivDebug=3 then AfficheDebug(s,clred);
+          if (nivDebug=3) or ProcPrinc then AfficheDebug(s,clred);
           Affiche(s,clred);
           result:=9999;
           exit;
@@ -6691,120 +6771,127 @@ begin
       //---------------TJD 2 états
       if (NetatTJD=2) and tjdC then
       begin
-        if aiguillage[index].position=const_droit then
+        if (TypeElPrec=aig) or (TypeElPrec=triple) or (TypeElPrec=Tjd) then
         begin
-          // d'où vient t-on de la tjd
-          if BtypePrec=Aig then
+          IndexPrec:=index_Aig(prec);
+          posPrec:=aiguillage[IndexPrec].position;
+          if posPrec=const_droit then Aprec:=aiguillage[indexPrec].ADroitB;
+          if posPrec=const_devie then Aprec:=aiguillage[indexPrec].AdevieB;
+        end;
+        if TypeElPrec=det then Aprec:='Z';
+        // d'ou vient t-on de la TJD
+        // extrémité 1      530
+        if (aiguillage[index].ADroit=prec) and (aiguillage[index].ADroitB=Aprec) then
+        begin
+          if aiguillage[index].position=const_droit then 
           begin
-            if (aiguillage[index].Ddroit=prec) and
-               (
-                 ((aiguillage[index].DdroitB='D') and (aiguillage[index_aig(prec)].position=const_droit))  or
-                 ((aiguillage[index].DdroitB='S') and (aiguillage[index_aig(prec)].position=const_devie))
-               ) then
-            begin
-              Adr:=aiguillage[index].Adroit;
-              A:=aiguillage[index].AdroitB;
-            end
-            else
-            begin
-              if (nivdebug>1) or traceliste then
-              begin
-                s:='Erreur 120 : TJD 2 états '+intToSTR(Adr)+' non résolue';
-                AfficheDebug(s,clred);
-                suivant_alg3:=9999;
-                exit;
-              end;
-            end;
-
-            if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
-            suivant_alg3:=adr;
-            if nivDebug=3 then Affichedebug('le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
-            trouve_actionneurs_aig(index,adr,TypeGenS);
-            typeGen:=TypeGenS;
+            adr:=aiguillage[index].Ddroit;
+            a:=aiguillage[index].DDroitB;
+          end
+          else
+          if aiguillage[index].position=const_devie then 
+          begin
+            adr:=aiguillage[index].DDevie;
+            a:=aiguillage[index].DdevieB;
+          end
+          else
+          begin
+            s:='Erreur 121.1 : position inconnue de la TJD 2 états '+intToSTR(Adr);
+            AfficheDebug(s,clred);
+            suivant_alg3:=9996;
             exit;
           end;
+        end
+        else
 
-          if BtypePrec=det then
+        // extrémité 2 - 21D
+        if (aiguillage[index].DDroit=prec) and (aiguillage[index].DDroitB=Aprec) then
+        begin
+          if aiguillage[index].position=const_droit then 
           begin
-            if aiguillage[index].Adroit=prec then
-            begin
-              Adr:=aiguillage[index].DDroit;
-              A:=aiguillage[index].DdroitB;
-            end;
-            if aiguillage[index].Adevie=prec then
-            begin
-              Adr:=aiguillage[index].Ddevie;
-              A:=aiguillage[index].DdevieB;
-            end;
-            if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
-            suivant_alg3:=adr;
-            if nivDebug=3 then Affichedebug('le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
-            trouve_actionneurs_aig(index,adr,TypeGenS);
-            typeGen:=TypeGenS;
+            adr:=aiguillage[index].Adroit;
+            a:=aiguillage[index].ADroitB;
+          end
+          else
+          if aiguillage[index].position=const_devie then 
+          begin
+            adr:=aiguillage[index].ADevie;
+            a:=aiguillage[index].AdevieB;
+          end
+          else
+          begin
+            s:='Erreur 121.2 : position inconnue de la TJD 2 états '+intToSTR(Adr);
+            AfficheDebug(s,clred);
+            suivant_alg3:=9996;
+            exit;
+          end; 
+        end
+        else
+
+        // extrémité 3 - 529
+        if (aiguillage[index].ADevie=prec) and (aiguillage[index].AdevieB=Aprec) then
+        begin
+          if aiguillage[index].position=const_droit then 
+          begin
+            adr:=aiguillage[index].Ddevie;
+            a:=aiguillage[index].DdevieB;
+          end
+          else
+          if aiguillage[index].position=const_devie then 
+          begin
+            adr:=aiguillage[index].Ddroit;
+            a:=aiguillage[index].DdroitB;
+          end
+          else
+          begin
+            s:='Erreur 121.2 : position inconnue de la TJD 2 états '+intToSTR(Adr);
+            AfficheDebug(s,clred);
+            suivant_alg3:=9996;
+            exit;
+          end;
+        end
+        else
+
+        // extrémité 4  - 21S
+        if (aiguillage[index].DDevie=prec) and (aiguillage[index].DDevieB=Aprec) then
+        begin
+          if aiguillage[index].position=const_droit then 
+          begin
+            adr:=aiguillage[index].ADevie;
+            a:=aiguillage[index].ADevieB;
+          end
+          else
+          if aiguillage[index].position=const_devie then 
+          begin
+            adr:=aiguillage[index].ADroit;
+            a:=aiguillage[index].AdroitB;
+          end
+          else
+          begin
+            s:='Erreur 121.4 : position inconnue de la TJD 2 états '+intToSTR(Adr);
+            AfficheDebug(s,clred);
+            suivant_alg3:=9996;
+            exit;
+          end;
+        end
+        else
+
+        begin
+          if (nivdebug>1) or traceliste then
+          begin
+            s:='Erreur 120 : TJD 2 états '+intToSTR(Adr)+' non résolue';
+            AfficheDebug(s,clred);
+            suivant_alg3:=9999;
             exit;
           end;
         end;
 
-        if aiguillage[index].position=const_devie then
-        begin
-          if (alg and 8)=8 then
-          begin
-            typeGen:=rien;
-            AdrDevie:=Adr;
-            suivant_alg3:=9997;
-            exit;
-          end;
-          if BtypePrec=Aig then
-          begin
-            if (aiguillage[index].Ddroit=prec) and
-               (
-                 ((aiguillage[index].DdroitB='D') and (aiguillage[index_aig(prec)].position=const_droit))  or
-                 ((aiguillage[index].DdroitB='S') and (aiguillage[index_aig(prec)].position=const_devie))
-                )
-            then
-            begin
-              Adr:=aiguillage[index].Adevie;
-              A:=aiguillage[index].AdevieB;
-            end
-            else
-            begin
-              if (nivdebug>1) or traceliste then
-              begin
-                s:='Erreur 121 : TJD 2 états '+intToSTR(Adr)+' non résolue';
-                AfficheDebug(s,clred);
-                suivant_alg3:=9999;
-                exit;
-              end;
-            end;
-
-            if (A='Z') or (a=#0) then typeGenS:=det else typeGens:=aig;
-            suivant_alg3:=adr;
-            if nivDebug=3 then Affichedebug('A. le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
-            trouve_actionneurs_aig(index,adr,TypeGenS);
-            typeGen:=TypeGenS;
-            exit;
-          end;
-
-          if BtypePrec=det then
-          begin
-            if aiguillage[index].Adroit=prec then
-            begin
-              Adr:=aiguillage[index].Ddevie;
-              A:=aiguillage[index].DdevieB;
-            end;
-            if aiguillage[index].Adevie=prec then
-            begin
-              Adr:=aiguillage[index].Ddroit;
-              A:=aiguillage[index].DdroitB;
-            end;
-            if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
-            suivant_alg3:=adr;
-            if nivDebug=3 then Affichedebug('B. le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
-            trouve_actionneurs_aig(index,adr,TypeGenS);
-            typeGen:=TypeGenS;
-            exit;
-          end;
-        end;
+        if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
+        suivant_alg3:=adr;
+        if nivDebug=3 then Affichedebug('le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
+        trouve_actionneurs_aig(index,adr,TypeGenS); 
+        typeGen:=TypeGenS;
+        exit;
       end;
 
       //--------------- 4 états ou TJS
@@ -6867,7 +6954,7 @@ begin
           suivant_alg3:=adr;
           Actuel:=aiguillage[index2].Adresse; // substitution de la TJS
           if nivDebug=3 then Affichedebug('A. le port de destination de la tjd/s est '+IntToSTR(adr)+a,clyellow);
-          trouve_actionneurs_aig(index,adr2,TypeGenS);
+          trouve_actionneurs_aig(index,adr,TypeGenS); 
           typeGen:=TypeGenS;
           exit;
         end;
@@ -7801,7 +7888,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(AdrFonc);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -8613,7 +8700,7 @@ begin
 
        // modif spécial TJD ==============
        ia:=index_aig(adrfonc);
-       if aiguillage[ia].modele=tjd then
+       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
        // ================================
         AdrPrec:=AdrFonc;TypePrec:=TypeFonc;
@@ -8661,7 +8748,7 @@ begin
 
         // modif spécial TJD ==============
         ia:=index_aig(ADrFonc);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrPrec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -8813,7 +8900,7 @@ begin
 
        // modif spécial TJD ==============
        ia:=index_aig(adrfonc);
-       if aiguillage[ia].modele=tjd then
+       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
        // ================================
         AdrPrec:=AdrFonc;TypePrec:=TypeFonc;
@@ -8862,7 +8949,7 @@ begin
 
         // modif spécial TJD ==============
         ia:=index_aig(ADrFonc);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrPrec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -8984,7 +9071,7 @@ begin
 
         // modif spécial TJD ==============
         ia:=index_aig(AdrFonc);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
            AdrPrec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -9239,7 +9326,7 @@ begin
     begin
       // modif spécial TJD ==============
       ia:=index_aig(Actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -9413,7 +9500,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -9593,7 +9680,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(Actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then 
          Prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -9762,7 +9849,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(Actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -9972,7 +10059,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(Actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -10066,7 +10153,7 @@ begin
 
       // modif spécial TJD ==============
       ia:=index_aig(Actuel);
-      if aiguillage[ia].modele=tjd then
+      if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
       // ================================
 
@@ -10225,7 +10312,7 @@ begin
       begin
         // modif spécial TJD ==============
         ia:=index_aig(Actuel);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
         Prec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -10448,7 +10535,7 @@ begin
       begin
         // modif spécial TJD ==============
         ia:=index_aig(Actuel);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
         Prec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -11046,7 +11133,7 @@ begin
 
     // modif spécial TJD ==============
     ia:=index_aig(suiv);
-    if aiguillage[ia].modele=tjd then
+    if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
     actuel:=aiguillage[ia].Ddevie else
     // ================================
 
@@ -11437,7 +11524,7 @@ begin
 
         // modif spécial TJD ==============
         ia:=index_aig(adrfonc);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           adrPrec:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -11484,7 +11571,7 @@ begin
 
         // modif spécial TJD ==============
         ia:=index_aig(adrprec);
-        if aiguillage[ia].modele=tjd then
+        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrFonc:=aiguillage[ia].Ddevie else
         // ================================
 
@@ -12819,6 +12906,7 @@ procedure demande_etat_det;
 var i,j,adr,t : integer;
     s : string;
 begin
+//  exit; // 
   if portCommOuvert or parSocketLenz or (etat_init_interface>=11) then
   begin
     Affiche('Demande état des détecteurs',ClYellow);
@@ -13587,8 +13675,8 @@ end;
 // traitement des évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
 var sens,dr,i,AdrSuiv,AdrSignal,AdrDetSignal,index,Etat01,AdrPrec,d1,d2,suivant,AdrTrain,
-    e1c,e2c : integer;
-    typeSuiv,t1,t2 : tequipement;
+    e1c,e2c,prec : integer;
+    typeSuiv,t1,t2,typePrec : tequipement;
     s : string;
     trouve : boolean;
 begin
@@ -13688,7 +13776,6 @@ begin
   if trouve then
   begin
     dec(i);
-
     sens:=0;suivant:=0;
     sens:=canton[i].sensLoco;
     AdrTrain:=canton[i].adresseTrain;
@@ -13698,13 +13785,15 @@ begin
       begin
         e1c:=canton[i].el2;t1:=canton[i].typ2;
         e2c:=canton[i].el1;t2:=canton[i].typ1;
-        suivant:=suivant_alg3(e1c,t1,e2c,t2,1);
+        suivant:=suivant_alg3(e1c,t1,e2c,t2,1); typeSuiv:=TypeGen;
+        prec:=suivant_alg3(e2c,t2,adresse,det,1); typePrec:=TypeGen;
       end;
       sensDroit,sensBas :
       begin
         e1c:=canton[i].el1;t1:=canton[i].typ1;
         e2c:=canton[i].el2;t2:=canton[i].typ2;
-        suivant:=suivant_alg3(e1c,t1,e2c,t2,1);
+        suivant:=suivant_alg3(e1c,t1,e2c,t2,1); typeSuiv:=TypeGen;
+        prec:=suivant_alg3(e2c,t2,adresse,det,1); typePrec:=TypeGen;
       end;
     end;
 
@@ -13713,10 +13802,10 @@ begin
     if sens<>0 then
     begin
       detecteur[adresse].suivant:=suivant;
-      detecteur[adresse].TypSuivant:=TypeGen;
+      detecteur[adresse].TypSuivant:=TypeSuiv;
       // le précédent
-      detecteur[adresse].precedent:=suivant_alg3(suivant,typeGen,adresse,det,1);
-      detecteur[adresse].TypPrecedent:=typegen;
+      detecteur[adresse].precedent:=prec;
+      detecteur[adresse].TypPrecedent:=typePrec;
     end;
 
   end;
@@ -13978,8 +14067,22 @@ begin
     if bjd then evalue;
   end;
 
-  // Mettre à jour les TCOs
-  for i:=1 to NbreTCO do Maj_TCO(i,Adresse);
+  // Mettre à jour les TCOs contenant l'adresse
+  id:=Index_Aig(adresse);
+  if id<>0 then
+  for i:=1 to NbreTCO do
+  begin
+    // vérifier si TJD à 2 adresses pour changer sa position dans le TCO
+    if (aiguillage[id].modele=TJD) or (aiguillage[id].modele=TJS) then
+    begin
+      if aiguillage[id].EtatTJD=4 then
+      begin
+        adr:=aiguillage[id].Ddevie; // homologue
+        Maj_TCO(i,adr);
+      end;  
+    end;
+    Maj_TCO(i,Adresse);
+  end;  
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
@@ -13997,13 +14100,19 @@ begin
       fonction:=((adresse-1) mod 4)*2 + (octet-1);
       s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
       s:=checksum(s);
-      envoi(s);     // envoi de la trame à l'interface et attente Ack
+      if avecAck then envoi(s) else envoi_ss_ack(s);  
     end;
     if protocole=2 then
     begin
       //la RAZ d'une sortie n'existe pas en DCC+!
     end;
   end;
+  if cdm_connecte then
+  begin
+    // remise à 0
+    s:=chaine_CDM_Acc(adresse,0);
+    envoi_CDM(s);
+  end;  
 end;
 
 // envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
@@ -14078,6 +14187,19 @@ begin
     envoi_CDM(s);
 
     if Acc<>Signal then event_aig(adresse,pilotage);
+
+    // si l'accessoire est un signal et sans raz des signaux, sortir
+    if (acc=signal) and not(Raz_Acc_signaux) then exit;
+    if Acc=AigP then
+    begin
+      temp:=aiguillage[indexAig].temps;if temp=0 then temp:=4; // mini pour pilotage en signaux LEB
+      if portCommOuvert or parSocketLenz then tempo(temp);
+    end;
+
+    // remise à 0
+    s:=chaine_CDM_Acc(adresse,0);
+    envoi_CDM(s);
+
     result:=true;
     exit;
   end;
@@ -14102,21 +14224,16 @@ begin
       s:=#$52+Char(groupe)+char(fonction or $88);   // activer la sortie
       s:=checksum(s);
       if debug_dec_sig and (acc=signal) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
-      //affiche('1.Acc='+intToSTR(adresse)+' '+intToSTR(tick),clwhite);
       if avecAck then envoi(s) else envoi_ss_ack(s);     // envoi de la trame avec/sans attente Ack
-      //affiche('2.'+intToSTR(tick),clyellow);
       if acc<>signal then event_aig(adresse,pilotage);
-      //affiche('3.'+intToSTR(tick),clyellow);
 
       // si l'accessoire est un signal et sans raz des signaux, sortir
       if (acc=signal) and not(Raz_Acc_signaux) then exit;
 
       // si aiguillage, faire une temporisation
-      //if (Index_Signal(adresse)=0) or (Acc=aig) then
-      //Affiche('*',clyellow);
       if Acc=AigP then
       begin
-        temp:=aiguillage[indexAig].temps;if temp=0 then temp:=4; // mini pour pilotage en signaux LEB
+        temp:=aiguillage[indexAig].temps;if temp=0 then temp:=4; 
         if portCommOuvert or parSocketLenz then tempo(temp);
       end;
 
@@ -14166,7 +14283,6 @@ function pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire): boolean; 
 begin
   pilote_acc_sc(adresse,octet,Acc,9999);
 end;
-
 
 // pilotage l'accessoire si l'accesoire est réservé par adrTrain ou non réservé
 Function pilote_acc(adresse : integer;octet : byte;adrTrain : integer) : boolean; overload;
@@ -14626,18 +14742,18 @@ begin
   result:='';
 end;
 
-// vérifie le checksum
-function check(s : string;n : integer): boolean;
+// vérifie le checksum de l'interface
+function check(s : TchaineBIN;n : integer): boolean;
 var x: byte;
     i,l : integer;
 begin
   x:=0;
   i:=1;
-  l:=length(s);
+  l:=Long_recue;
   if l>0 then
   begin
     repeat
-      x:=x xor ord(s[i]);
+      x:=x xor (s[i]);
       inc(i);
     until (i>l) or (i>n);
   end;
@@ -14646,10 +14762,37 @@ begin
 
 end;
 
+procedure Delete_tablo(var cb : TchaineBIN;offset,longueur : integer);
+var i,j : integer;
+begin
+  if (Long_recue<offset) or (Long_recue<offset+longueur-1) then exit;
+  for j:=offset+longueur-1 downto offset do
+    for i:=j to long_recue-1 do
+    begin
+      cb[i]:=cb[i+1];
+    end;
+
+  dec(Long_recue,longueur);
+end;
+
+// attention ne change pas "long_recue", stocke en 0 la longueur
+function Copy_tablo(cb : TchaineBIN;offset,longueur : integer) : TchaineBIN;
+var i,j : integer;
+begin
+  j:=1;
+  for i:=offset to offset+longueur-1 do
+  begin
+    result[j]:=cb[i];
+    inc(j);
+  end;
+  cb[0]:=longueur ;
+end;
+
+
 // décodage d'une chaine Xpressnet de la rétrosignalisation de la centrale
 // la chaine peut être composée de plusieurs ordres, car on boucle, et être coupée.
 // en sortie, la chaine chaineINT est supprimée de la partie traitée
-function decode_chaine_retro_Xpress(chaineINT : string) : string ;
+function decode_chaine_retro_Xpress(chaineINT : TchaineBIN) : TchaineBIN ;
 var msg,s : string;
     n,i,it,cvLoc,AdrTrainLoc,l,NOctets : integer;
     traite,connu: boolean;
@@ -14659,22 +14802,22 @@ begin
   ack:=true;nack:=false;
   it:=0;
 
-  if length(chaineINT)>3 then
+  if Long_recue>3 then
   repeat
     inc(it);
     //AfficheDebug('It='+IntToSTR(it),clLime);
     connu:=false;
     traite:=false;
 
-    if length(chaineINT)>4 then
+    if Long_recue>4 then
     begin
       // supprimer l'entete éventuelle FFFE ou FFFD
-      if (chaineINT[1]=#$ff) and ((chaineINT[2]=#$fe) or (chaineINT[2]=#$fd)) then Delete(chaineINT,1,2);
+      if (chaineINT[1]=$ff) and ((chaineINT[2]=$fe) or (chaineINT[2]=$fd)) then Delete_tablo(chaineINT,1,2);
     end;
 
-    l:=length(chaineINT);
+    l:=Long_recue;
 
-    if (chaineINT[1]=#$01) then
+    if (chaineINT[1]=$01) then
     begin
       nOctets:=3;
       connu:=true;
@@ -14683,28 +14826,28 @@ begin
         if check(chaineINT,nOctets) then
         begin
           case chaineINT[2] of   // page 13 doc XpressNet
-            #$01 :  begin nack:=true;msg:='Erreur timout transmission';end;
-            #$02 :  begin nack:=true;msg:='Erreur timout centrale';end;
-            #$03 :  begin nack:=true;msg:='Erreur communication inconnue';end;
-            #$04 :  begin succes:=true;msg:='Succès';end;
-            #$05 :  begin nack:=true;msg:='Plus de time slot';end;
-            #$06 :  begin nack:=true;msg:='Débordement tampon LI100';end;
+            $01 :  begin nack:=true;msg:='Erreur timeout transmission - Voir doc XpressNet p13';end;
+            $02 :  begin nack:=true;msg:='Erreur timout centrale - Voir doc XpressNet p13';end;
+            $03 :  begin nack:=true;msg:='Erreur communication inconnue - Voir doc XpressNet p13';end;
+            $04 :  begin succes:=true;msg:='Succès';end;
+            $05 :  begin nack:=true;msg:='Plus de time slot - Voir doc XpressNet p13';end;
+            $06 :  begin nack:=true;msg:='Débordement tampon LI100 - Voir doc XpressNet p13';end;
           end;
-          if traceTrames and (chaineINT[2]=#4) then AfficheDebug(msg,clYellow);
-          if traceTrames and (chaineINT[2]<>#4) then AfficheDebug(msg,clRed);
-
+          if traceTrames and (chaineINT[2]=4) then AfficheDebug(msg,clYellow);
+          if traceTrames and (chaineINT[2]<>4) then AfficheDebug(msg,clRed);
+          if (chaineINT[2]<>4) then Affiche(msg,clRed);
           traite:=true;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(chaineINT),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
 
-    if (chaineINT[1]=#$02) then
+    if (chaineINT[1]=$02) then
     begin
       connu:=true;
       nOctets:=4;
@@ -14712,16 +14855,16 @@ begin
       begin
         if check(chaineINT,nOctets) then
         begin
-          msg:='Version matérielle '+intTohex(ord(chaineINT[2]),2)+' - Version soft '+intToHex(ord(chaineINT[3]),2);
+          msg:='Version matérielle '+intTohex(chaineINT[2],2)+' - Version soft '+intToHex(chaineINT[3],2);
           Affiche(msg,clYellow);
-          version_Interface:=chaineInt;
+          version_Interface:=intToSTR(chaineint[2]);
           traite:=true;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
@@ -14730,7 +14873,7 @@ begin
     if (ord(chaineINT[1]) and $F0)=$40 then
     begin
       connu:=true;
-      n:=ord(chaineINT[1]) and $0F;  // nombre d'octets (doit être pair)
+      n:=(chaineINT[1]) and $0F;  // nombre d'octets (doit être pair)
       nOctets:=n+2;
       if (l>=nOctets) then
       begin
@@ -14739,60 +14882,68 @@ begin
           n:= n div 2;
           for i:=1 to n do
           begin
-            decode_retro_XpressNet(ord(chaineInt[i*2]),ord(chaineInt[i*2+1]));
+            decode_retro_XpressNet((chaineInt[i*2]),(chaineInt[i*2+1]));
           end;
           traite:=true;
         end
         else
         begin
-          s:='ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets));
+          s:='ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets));
           if TraceTrames then AfficheDebug(s,clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
 
 
     // recu 61 01 60
-    if (chaineINT[1]=#$61)  then
+    if (chaineINT[1]=$61)  then
     begin
       nOctets:=3;
       connu:=true;
-      if l>nOctets then
+      if l>=nOctets then
       begin
         if check(chaineINT,nOctets) then
         begin
           case chaineINT[2] of
-            #$00 : begin ack:=true;msg:='Voie hors tension';end;
-            #$01 : begin ack:=true;msg:='Reprise';Hors_tension:=false;end;
+            $00 : begin ack:=true;msg:='Voie hors tension';end;
+            $01 : begin ack:=true;msg:='Reprise';Hors_tension:=false;end;
+            $02 : begin ack:=true;msg:='Mode programmation ';end;
 
-            #$02 : begin ack:=true;msg:='Mode programmation ';end;
+            $11 : begin nack:=true;msg:='Voie prog Station prête';end;
+            $12 : begin ack:=true;msg:='Voie prog court-circuit';Hors_tension:=false;end;
+            $13 : begin ack:=true;msg:='Voie prog octet non trouvé';end;
+            $1F : begin nack:=true;msg:='Voie prog Station occupée - Voir doc XpressNet p29';end;
 
-            #$11 : begin nack:=true;msg:='Voie prog Station prête';end;
-            #$12 : begin ack:=true;msg:='Voie prog court-circuit';Hors_tension:=false;end;
-            #$13 : begin ack:=true;msg:='Voie prog octet non trouvé';end;
-            #$1F : begin nack:=true;msg:='Voie prog Station occupée - Voir doc XpressNet p29';end;
-
-            #$80 : begin nack:=true;msg:='Erreurs de transferts (Chk erroné) - Voir doc XpressNet p29';end;
-            #$81 : begin nack:=true;msg:='Station occupée - Voir doc XpressNet p29';end;
-            #$82 : begin nack:=true;msg:='Commande non implantée';end;
+            $80 : begin nack:=true;msg:='Erreurs de transferts (Chk erroné) - Voir doc XpressNet p29';end;
+            $81 : begin nack:=true;msg:='Station occupée - Voir doc XpressNet p29';end;
+            $82 : begin nack:=true;msg:='Commande non implantée';end;
 
             else begin nack:=true;msg:='Réception inconnue';end;
           end;
-          if nack then affiche(msg,clred) else affiche(msg,clyellow);
+          if nack then
+          begin
+            afficheDebug(msg,clred);
+            Affiche(msg,clred);
+          end
+          else
+          begin
+            afficheDebug(msg,clyellow);
+            affiche(msg,clyellow);
+          end;
           traite:=true;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
 
-    if (chaineINT[1]=#$63) then    // V3.6 uniquement
+    if (chaineINT[1]=$63) then    // V3.6 uniquement
     begin
       connu:=true;
       nOctets:=5;
@@ -14800,41 +14951,41 @@ begin
       begin
         if check(chaineINT,nOctets) then
         begin
-          if chaineINT[2]=#$14 then
+          if chaineINT[2]=$14 then
           begin
             // réception d'un CV. DocXpressNet p26   63 14 01 03 chk
-            cvLoc:=ord(chaineINT[3]);
+            cvLoc:=(chaineINT[3]);
             //Affiche('Réception CV'+IntToSTR(cvLoc)+' à '+IntToSTR(ord(chaineINT[2])),clyellow);
             if cvLoc>255 then Affiche('Erreur Recu CV>255',clRed)
             else
             begin
-              tablo_cv[cvLoc]:=ord(chaineINT[4]);
+              tablo_cv[cvLoc]:=(chaineINT[4]);
               inc(N_Cv); // nombre de CV recus
             end;
             recu_cv:=true;
             traite:=true;
           end;
-          if chaineINT[2]=#$10 then
+          if chaineINT[2]=$10 then
           begin
             traite:=true;
           end;
-          if chaineINT[2]=#$21 then
+          if chaineINT[2]=$21 then
           begin
             traite:=true;
           end;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
 
 
     // 81 00 mise hors tension
-    if (chaineINT[1]=#$81) then    // arrêt urgence  3 octets
+    if (chaineINT[1]=$81) then    // arrêt urgence  3 octets
     begin
       connu:=true;
       nOctets:=3;
@@ -14848,9 +14999,9 @@ begin
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end
     else
@@ -14863,7 +15014,7 @@ begin
     // A3  5
     // A4  6
 
-    if (chaineInt[1]=#$E1) then
+    if (chaineInt[1]=$E1) then
     begin
       NOctets:=3;
       connu:=true;
@@ -14875,9 +15026,9 @@ begin
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,NOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,NOctets)),clred);
         end;
-        delete(chaineInt,1,NOctets);
+        delete_tablo(chaineInt,1,NOctets);
       end;
     end
     else
@@ -14885,7 +15036,7 @@ begin
     // E2  4
 
     // E3
-    if (chaineInt[1]=#$E3) then
+    if (chaineInt[1]=$E3) then
     begin
       connu:=true;
       nOctets:=5;
@@ -14894,25 +15045,25 @@ begin
         // la loco ah al est pilotée par le PC
         if check(chaineINT,nOctets) then
         begin
-          if chaineInt[1]=#$40 then
+          if chaineInt[1]=$40 then
           begin
           end;
-          if chaineInt[2]=#$50 then
+          if chaineInt[2]=$50 then
           begin
           end;
           traite:=true;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineInt,1,nOctets);
+        delete_tablo(chaineInt,1,nOctets);
       end;
     end
     else
 
     // E4 id speed FcA FcB xor    loco information
-    if (chaineInt[1]=#$E4) then
+    if (chaineInt[1]=$E4) then
     begin
       connu:=true;
       nOctets:=6;
@@ -14920,17 +15071,17 @@ begin
       begin
         if check(chaineINT,nOctets) then
         begin
-          AdrTrainLoc:=ord(chaineInt[2]); // identification
-          i:=ord(chaineInt[3]);  // vitesse
-          Fa:=ord(chaineInt[4]); // fonction A
-          Fb:=ord(chaineInt[5]); // fonction B
+          AdrTrainLoc:=(chaineInt[2]); // identification
+          i:=(chaineInt[3]);  // vitesse
+          Fa:=(chaineInt[4]); // fonction A
+          Fb:=(chaineInt[5]); // fonction B
           traite:=true;
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineInt,1,nOctets);
+        delete_tablo(chaineInt,1,nOctets);
       end;
     end
     else
@@ -14940,7 +15091,7 @@ begin
 
     // spécifique Z21 : E7 0C 89 00 00 00 00 00 62
     // on n'en fait rien, c'est un genre d'ack à la réponse de stop loco ?
-    if (chaineINT[1]=#$E7) then
+    if (chaineINT[1]=$E7) then
     begin
       connu:=true;
       nOctets:=9;
@@ -14952,39 +15103,54 @@ begin
         end
         else
         begin
-          if TraceTrames then AfficheDebug('ErrCheck '+chaine_hex(copy(chaineINT,1,nOctets)),clred);
+          if TraceTrames then AfficheDebug('ErrCheck '+tablo_hex(copy_tablo(chaineINT,1,nOctets)),clred);
         end;
-        delete(chaineINT,1,nOctets);
+        delete_tablo(chaineINT,1,nOctets);
       end;
     end;
 
     // suppression du caractère inconnu car il n'a pas été traité
     if not(connu) then
     begin
-      if traceTrames then AfficheDebug('Suppression '+chaine_Hex(copy(chaineINT,1,1)),clred);
-      delete(chaineINT,1,1);
+      if traceTrames then AfficheDebug('Suppression '+intToHex(chaineINT[1],2),clred);
+      delete_tablo(chaineINT,1,1);
       traite:=true;
     end;
 
-  until (length(chaineINT)<3) or not(traite) or (it>20); // conditions de sortie du repeat until
+  until ((Long_recue<3) or not(traite) or (it>20)); // conditions de sortie du repeat until
 
   if it>=20 then
   begin
     s:='Erreur 623 : itérations trames XpressNet';
     Affiche(s,clred);
     AfficheDebug(s,clred);
-    chaineINT:='';
+    Long_recue:=0;
   end;
 
   decode_chaine_retro_Xpress:=chaineINT;
 end;
 
+function pos_tablo(b : byte;t : tchaineBIN) : integer;
+var i : integer;
+   trouve : boolean;
+begin
+  i:=0;
+  repeat
+    inc(i);
+    trouve:=t[i]=b;
+  until trouve or (i>=Long_recue);
+  if trouve then result:=i else result:=0;
+end;
+
 // procédure appellée après réception sur le port USB ou socket
 // la chaine peut contenir plusieurs informations
 // on boucle tant qu'on a pas traitée toute la chaine
-function interprete_reponse(chaine : string): string;
-var chaineInt: string;
-    i,j : integer;
+function interprete_reponse(chaine : tchaineBIN): tchaineBIN;
+var chaineInt: TchaineBIN;
+   s : string;
+   i,j : integer;
+   balise : boolean;
+   c : char;
 begin
   chaineINT:=chaine;
   if protocole=1 then
@@ -14994,14 +15160,26 @@ begin
 
   if protocole=2 then
   begin
-    i:=pos('<',chaineINT);
-    j:=pos('>',chaineINT);
+    // transformer chaine en s ascii
+    s:='';
+    for i:=1 to Long_recue do
+    begin
+      c:=char(chaine[i]);
+      if c<>#0 then s:=s+c else Affiche('DCC caractère #0 filtré',clOrange);
+    end;
+    i:=pos('<',s);
+    j:=pos('>',s);
     while (i<>0) and (j<>0) do
     begin
-      chaineINT:=decode_chaine_retro_dcc(chaineINT);
-      i:=pos('<',chaineINT);
-      j:=pos('>',chaineINT);
+      balise:=true;
+      s:=decode_chaine_retro_dcc(s);
+      i:=pos('<',s);
+      j:=pos('>',s);
     end;
+    if not(balise) then Affiche(s,clLime);
+    // retransformer en tchaineBIN
+    for i:=1 to length(s) do chaineINT[i]:=ord(s[i]);
+    long_recue:=length(s);
   end;
 
   interprete_reponse:=chaineINT;
@@ -15099,6 +15277,8 @@ function test_protocole : boolean;
 var s: string;
    temp : integer;
 begin
+//  result:=true;
+//  exit; // 
   begin
     if protocole=1 then   // Xpressnet
     begin
@@ -15132,17 +15312,11 @@ begin
       exit;
     end
     else
-    
+
     begin
       if length(version_interface)>0 then
       begin
-        if (protocole=1) and (version_interface[1]=#2) then
-        begin
-          Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
-          result:=true;
-          exit;
-        end;
-        if (protocole=2) and (version_interface<>'') then
+        if (version_interface<>'') then
         begin
           Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
           result:=true;
@@ -15346,8 +15520,16 @@ begin
 
     sc:=copy(portCom,i+1,j-i-1);
     Settings:=sc;   // vitesse,n,8,1
-    if prot_serie>=4 then Handshaking:=0 {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
-      else Handshaking:=prot_serie;
+
+    case prot_serie of
+    0 : Handshaking:=0; // aucun, envoi la trame complète
+    1 : Handshaking:=1; // xon-xoff
+    2 : Handshaking:=2; // rts-cts
+    3 : Handshaking:=0; // aucun, mais envoi octet par octet temporisé
+    4 : Handshaking:=0; // controle CTS avant émission :on utilise sans protocole
+    end;
+
+    {HandShaking: 0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
     SThreshold:=1;
     RThreshold:=1;
     InputLen:=0;
@@ -15361,7 +15543,7 @@ begin
     if protocole=2 then DTREnable:=false // évite de reset de l'arduino à la connexion
     else DTREnable:=True;
     if prot_serie=4 then RTSEnable:=True //pour la genli
-    else RTSenable:=False;
+    else RTSenable:=false;
     InputMode:=comInputModeBinary;
   end;
 
@@ -15665,15 +15847,15 @@ begin
     deconnecte_USB;
     Affiche('Lance les fonctions automatiques de CDM',clyellow);
     SetForegroundWindow(formprinc.Handle); // met SC devant
-    Sleep(250*TempoTC);
+    Sleep(300*TempoTC);
     Application.processMessages;
-    Sleep(380*tempoTC);       // attend le lancement de CDM
-    if serveurIPCDM_touche then sleep(250*tempoTC);
+    Sleep(400*tempoTC);       // attend le lancement de CDM
+    if serveurIPCDM_touche then sleep(300*tempoTC);
     ProcessRunning(s); // récupérer le handle de CDM
     SetForegroundWindow(CDMhd);            // met CDM en premier plan pour le télécommander par le clavier simulé
     SetActiveWindow(CdmHd);
     Application.ProcessMessages;
-    if serveurIPCDM_Touche then sleep(380*tempoTC);
+    if serveurIPCDM_Touche then sleep(400*tempoTC);
 
     // démarre le serveur IP de CDM par simulation de touches
     if serveurIPCDM_Touche then
@@ -15696,16 +15878,16 @@ begin
 
       // envoie les touches
       i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
-      Sleep(200*tempoTC);
+      Sleep(300*tempoTC);
       Application.ProcessMessages;
     end;
     KeybdInput(VK_RETURN,0);
     KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
     SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  //fermer la fenetre du serveur ip
-    Sleep(200*tempoTC);
+    Sleep(300*tempoTC);
 
     connecte_CDM;
-    Sleep(300*tempoTC);
+    Sleep(400*tempoTC);
     Application.processMessages;
 
     // Serveur d'interface --------------------------------------
@@ -15724,7 +15906,7 @@ begin
       KeybdInput(VK_RETURN,0);
       KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);     // affiche la fenetre d'interface
-      Sleep(180*tempoTC);
+      Sleep(240*tempoTC);
 
       // descendre le curseur n fois pour sélectionner le serveur
       for i:=1 to ServeurInterfaceCDM-1 do
@@ -15737,7 +15919,7 @@ begin
       KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
       KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP);
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-      Sleep(180*tempoTC);
+      Sleep(240*tempoTC);
 
       // Interface
       if (ServeurInterfaceCDM=1) or (ServeurInterfaceCDM=5) then
@@ -15762,18 +15944,18 @@ begin
           // TAB pour sélectionner OK
           KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
           SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-          Sleep(200*tempoTC);
+          Sleep(240*tempoTC);
         end;
 
         KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
 
-        Sleep(400*tempoTC);
+        Sleep(500*tempoTC);
         application.ProcessMessages;
         KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
 
-        Sleep(200*tempoTC);
+        Sleep(300*tempoTC);
         application.ProcessMessages;
         KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
@@ -16559,7 +16741,7 @@ var n,t,i,index,OrgMilieu : integer;
     Sr : TSearchRec;
     tmP,tmA : tMenuItem;
 begin
-  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
+  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion+' Gamma 2';
   {$IF CompilerVersion >= 28.0}
   af:=af+' D11';
   {$IFEND}
@@ -16600,8 +16782,8 @@ begin
   ConfCellTCO:=false;
   confasauver:=false;
   config_modifie:=false;
-  chaine_recue:='';
   Application.onHint:=doHint;
+  Long_recue:=0;
 
   // box2=CV
   GroupBoxCV.Left:=633;
@@ -16738,7 +16920,8 @@ begin
     AfficheDebug(s,clred);
     Affiche(s,clred);
   end;
-  if MSCommUSBInterface<>nil then MSCommUSBInterface.onComm:=RecuInterface;
+  if MSCommUSBInterface<>nil then MSCommUSBInterface.onComm:=RecuInterface; // procédure de réception
+  Setlength(TrameIF,100);
 
   // pour deux périphériques COM/USB
   try MSCommCde1:=TMSComm.Create(formprinc);
@@ -16876,7 +17059,6 @@ begin
     EcranTCO[i]:=1;
     lire_fichier_tco(i);
   end;
-
 
   verif_coherence;
   procetape('La configuration a été lue');
@@ -17081,7 +17263,7 @@ end;
 
 // évènement réception d'une trame sur le port COM USB centrale Xpressnet
 procedure TFormPrinc.RecuInterface(Sender: TObject);
-var i,tev : integer;
+var i,tev,l : integer;
     tablo : array of byte;  // tableau rx usb
 begin
   tev:=MSCommUSBInterface.commEvent;
@@ -17114,15 +17296,21 @@ begin
   if tev=comEvReceive then
   begin
     tablo:=MSCommUSBInterface.Input;
-    for i:=0 to length(tablo)-1 do
-    begin
-      chaine_recue:=chaine_recue+char(tablo[i]);
-    end;
+    l:=long_recue; // résidu précédent à chainer - longueur du tampon
+    i:=0;
+    repeat
+     // Affiche(intToSTR(tablo[i]),clYellow);
+      if i+l+1<Long_tampon_interface then  chaine_recue[i+l+1]:=ord(tablo[i]) else Affiche('Trop long',clred);
+      inc(i);
+    until (i+l+1>Long_tampon_interface) or (i>=length(tablo));
+
+    Long_recue:=l+length(tablo);
+    //chaine_recue[0]:=l+length(tablo);
     setlength(tablo,0);
     if traceTrames then
     begin
-      if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+chaine_Hex(chaine_recue),Clwhite);
-      if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+chaine_recue,Clwhite);
+      if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+tablo_Hex(chaine_recue),Clwhite);
+      if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+tablo_hex(chaine_recue),Clwhite);
     end;
     chaine_recue:=interprete_reponse(chaine_recue);
   end;
@@ -17813,11 +18001,21 @@ end;
 
 // lecture depuis socket interface
 procedure TFormPrinc.ClientSocketInterfaceRead(Sender: TObject; Socket: TCustomWinSocket);
-var s : string;
+var tampon : TchaineBIN;
+    i,l,j,lo : integer;
 begin
-  s:=ClientSocketInterface.Socket.ReceiveText;
-  if traceTrames then afficheDebug(chaine_hex(s),clWhite);
-  chaine_recue:=chaine_recue+s;
+  l:=ClientSocketInterface.Socket.ReceiveBuf(tampon[1],100); // réception binaire
+
+  lo:=long_recue;
+  j:=1;
+  for i:=lo+1 to lo+1+l do
+  begin
+    chaine_recue[i]:=tampon[j];
+    inc(j);
+  end;
+  long_recue:=l+lo;
+  
+  if traceTrames then afficheDebug(tablo_hex(tampon),clWhite);
   chaine_recue:=interprete_reponse(chaine_recue);
 end;
 
@@ -21351,7 +21549,7 @@ end;
 
 
 // trouve toutes les routes de prec à actuel et remplit le tableau tabloroute[route,i] (route=index de la route trouvée)
-// on teste les aiguillages ou les tjs sur toutes leurs positions
+// on teste les aiguillages et les tjd sur toutes leurs positions
 // procédure récursive
 // tabloroute[n,0].adresse contient le nombre d'éléments de la route n
 // prec,typePrec ; actuel,TypActuel : éléments contigus à explorer ; nroute : numéro de la route , id=index dans la route; ir = n° de récursivité : départ,fin : détecteurs de départ et de fin cliqués.
@@ -21410,13 +21608,13 @@ const
 itmax=90;
 var
 suivant,indexAig,IndexAigSuiv,it,r,c1,c2,sensEL1,sensEL2,el1,el2,sensCirc1,SensCirc2,
-NumCanton1,NumCanton2 : integer;
+NumCanton1,NumCanton2,origine,position,idx,indexAig2,AdrEntreTJD,nEtats : integer;
 typSuiv,tel1,tel2 : tEquipement;
 ok,AffRouteR,taig,Horz1,Horz2 : boolean;
 c : char;
 begin
   inc(ctot);
-  //AffRouteR:=true;
+  AffRouteR:=false;
 
   if ctot>200000 then
   begin
@@ -21715,16 +21913,67 @@ begin
       if (typactuel=tjd) or (typactuel=tjs) then
       begin
         inc(id);
-        // faire droit
-        actuel:=aiguillage[indexAig].Ddroit;
-        indexAig:=index_aig(actuel);  // homologue
+        // faire droit TJD
+        origine:=tabloroute[nroute,id-2].adresse;   // d'où on vient
+        position:=tabloroute[nroute,id-2].pos;      // position de l'élément d'ou on vient
+        indexAig:=index_aig(actuel);                // 28: entrée TJD
+        AdrEntreTJD:=actuel;                        // mémoriser l'adresse d'entrée de la TJD 4 états
 
-        tabloroute[nroute,id-1].pos:=const_droit;
+        // TJD d'entrée
+        tabloroute[nroute,id-1].pos:=const_droit;   // faire droit
+        tabloroute[nroute,id-1].typ:=tjd;
+        tabloroute[nroute,id-1].adresse:=actuel;    // 28
+        nEtats:=aiguillage[indexAig].EtatTJD;
+        
+        if nEtats=4 then
+        begin
+          actuel:=aiguillage[indexAig].Ddroit;      // homologue  :26
+          indexAig2:=index_aig(actuel);
+
+          if tabloroute[nroute,id-2].typ=aig then
+          begin
+            idx:=index_Aig(origine);
+            if position=0 then c:='P';
+            if aiguillage[idx].InversionCDM=1 then
+            begin
+              if position=const_droit then c:='S';
+              if position=const_devie then c:='D';
+            end
+            else
+            begin
+              if position=const_droit then c:='D';
+              if position=const_devie then c:='S';
+            end;
+          end;
+
+          inc(id);
+
+          if (aiguillage[indexAig].ADroit=origine) and (aiguillage[indexAig].ADroitB=c) then
+          begin
+            // on vient de la position droite de l'entrée de la TJD, ce qui détermine l'aiguille de sortie
+            tabloroute[nroute,id-1].pos:=const_droit;
+          end;
+          if (aiguillage[indexAig].ADevie=origine) and (aiguillage[indexAig].ADevieB=c) then
+          begin
+            // on vient de la position déviée de l'entrée de la TJD, ce qui détermine l'aiguille de sortie
+            tabloroute[nroute,id-1].pos:=const_devie;
+          end;
+
+          // sortie de TJD 4 états
+          actuel:=aiguillage[indexAig2].Adresse;
+          tabloroute[nroute,id-1].typ:=tjd;
+          tabloroute[nroute,id-1].adresse:=actuel;
+        end;
+        if nEtats=2 then
+        begin
+          indexAig2:=IndexAig;
+        end;
+
+        //--------------faire droit TJD
         tabloroute[nroute,id-1].talon:=false;
-        if affRouteR then 
-        Affiche('Faire droit tjd '+intToSTR(actuel),clorange);
-        suivant:=aiguillage[indexAig].ADroit;
-        c:=aiguillage[indexAig].AdroitB;
+        if affRouteR then Affiche('Faire droit tjd '+intToSTR(actuel),clorange);
+        suivant:=aiguillage[indexAig2].ADroit;     // 26 sortie TJD, direction droit
+        c:=aiguillage[indexAig2].AdroitB;
         if (c='S') or (c='D') or (c='P') then typSuiv:=aig else TypSuiv:=det;
         if typSuiv=aig then
         begin
@@ -21734,22 +21983,22 @@ begin
         if suivant=0 then TypSuiv:=buttoir;
         r:=explore_El(actuel,typActuel,Suivant,TypSuiv,nroute,id,ir,depart,fin,ctot);
         if affrouteR then affiche('3.Retour explore_el de la tjd '+intToSTR(actuel)+' pos droit :'+intToSTR(r),clCyan);
-        if r=9 then
+        if r=9 then      // demande de sortie
         begin
           result:=r;
           exit;
         end;
-        if r=10 then
+        if r=10 then    // trouvé le détecteur de fin
         begin
           result:=11;
         end;
 
-        // dévié
-        //if (actuel=77) or (actuel=78) then AffRouteR:=true;
+        // faire dévié dévié TJD
         if affRouteR then
         Affiche('Faire dévié tjd '+intToSTR(actuel),clorange);
-        suivant:=aiguillage[indexAig].ADevie;
-        c:=aiguillage[indexAig].AdevieB;
+        //suivant:=aiguillage[indexAig].ADevie;       // 28 entrée TJD
+        suivant:=aiguillage[indexAig2].ADevie;        // 26 sortie TJD
+        c:=aiguillage[indexAig2].AdevieB;
         if (c='S') or (c='D') or (c='P') then typSuiv:=aig else TypSuiv:=det;
         if typSuiv=aig then
         begin
@@ -21757,8 +22006,16 @@ begin
           TypSuiv:=aiguillage[indexAigSuiv].modele;
         end;
         if suivant=0 then TypSuiv:=buttoir;
-        tabloroute[nroute,id-1].pos:=const_devie;
-        tabloroute[nroute,id-1].talon:=false;
+        if nEtats=4 then
+        begin
+          tabloroute[nroute,id-2].pos:=const_devie;   // 28 entrée de la TJD 
+          tabloroute[nroute,id-2].talon:=false;
+        end;
+        if nEtats=2 then
+        begin
+          tabloroute[nroute,id-1].pos:=const_devie;
+          tabloroute[nroute,id-1].talon:=false;
+        end;
 
         r:=explore_El(actuel,typActuel,Suivant,TypSuiv,nroute,id,ir,depart,fin,ctot);
         if affrouteR then affiche('4.Retour explore_el de la tjd '+intToSTR(actuel)+' pos dévié :'+intToSTR(r),clCyan);
@@ -21879,7 +22136,7 @@ begin
   id:=2;
 
   ctot:=0;
-  r:=explore_el(DetDepart,det,suivant,TypSuivant,nroute,id,0,DetDepart,detAtrouve,ctot);
+  r:=explore_el(DetDepart,det,suivant,TypSuivant,nroute,id,0,DetDepart,detAtrouve,ctot);   // trouve toutes les routes
 
   {for j:=1 to NbreRoutes do
   begin
@@ -21981,17 +22238,17 @@ begin
 end;
 
 procedure TFormPrinc.Button3Click(Sender: TObject);
+var sb : tchaineBin;
 begin
-{  aiguillage[index_aig(30)].position:=const_devie;
-  aiguillage[index_aig(29)].position:=const_devie;
-  aiguillage[index_aig(10)].position:=const_droit;
-  aiguillage[index_aig(11)].position:=const_droit;
-  aiguillage[index_aig(18)].position:=const_devie;
-  aiguillage[index_aig(19)].position:=const_devie;
-  //debugTCO:=true;
- }
-  Zone_TCO(1,519,517,1,4,1,true);
-  //formDebug.Show;
+  traceTrames:=true;
+  FormDebug.Show;
+  //MSCommUSBInterface.Output:=#$01+#$80+#$41;
+  long_recue:=4;
+  sb[1]:=$42;
+  sb[2]:=0;
+  sb[3]:=02;
+  sb[4]:=$40;
+  decode_chaine_retro_Xpress(sb);
 end;
 
 

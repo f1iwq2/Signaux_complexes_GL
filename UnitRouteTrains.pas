@@ -64,7 +64,6 @@ begin
   AdrTrain:=Trains[indexTrain].adresse;
   Train:=Trains[indexTrain].nom_train;
 
-
   detect:=trains[indexTrain].dernierdet;
   index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);
   AdrSig1:=0;AdrSig2:=0;
@@ -150,7 +149,9 @@ begin
   trains[indexTrain].roulage:=2;
   if traceListe then AfficheDebug(s,clyellow);
 
-  trains[indextrain].TempoDemarre:=trains[indexTrain].TempsDemarreSig;
+  i:=trains[indexTrain].TempsDemarreSig;
+  if i=0 then i:=1;
+  trains[indextrain].TempoDemarre:=i;
 end;
 
 
@@ -406,7 +407,8 @@ begin
             else
             s:=s+' non positionné';
           end;
-          if traceListe then Affiche(s,clWhite);
+          //if traceListe then
+          Affiche(s,clWhite);
           if portCommOuvert or parSocketLenz or CDM_connecte then sleep(Tempo_Aig);
         end;
         // réservation
@@ -432,7 +434,7 @@ begin
   // si le train est doté d'une route
   if trains[indexTrainFR].route[0].adresse>0 then
   begin
-    aig_canton(indexTrainFR,trains[indexTrainFR].route[1].adresse);
+    aig_canton(indexTrainFR,trains[indexTrainFR].route[1].adresse);  // positionne aiguillage et fait les réservations
     demarre:=demarre_index_train(indexTrainFR);    // met la mémoire de roulage du train à 1
   end;
   close;

@@ -100,7 +100,7 @@ begin
 end;
 
 // Affiche sans effacer l'ancienne, la route du TCO du tableau ParcoursDet[]
-// détruit l'index du train dans le canton  !!!! zizi
+// détruit l'index du train dans le canton  !!!! 
 function Affiche_route_TCO : boolean ;
 var i,n,det1,det2,indexAig : integer;
     t :tequipement;

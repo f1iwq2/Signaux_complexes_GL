@@ -415,7 +415,7 @@ object FormDebug: TFormDebug
         object Button2: TButton
           Left = 200
           Top = 16
-          Width = 57
+          Width = 65
           Height = 49
           Hint = 
             'Teste si la position des aiguillages en aval du signal doivent i' +
@@ -428,7 +428,7 @@ object FormDebug: TFormDebug
           OnClick = Button2Click
         end
         object ButtonAigDevie: TButton
-          Left = 256
+          Left = 264
           Top = 16
           Width = 57
           Height = 49
