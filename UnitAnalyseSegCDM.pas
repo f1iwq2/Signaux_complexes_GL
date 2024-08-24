@@ -205,7 +205,6 @@ end;
 // cherche, isole et restreint la chaine s qui contient "chercher", et réduit s
 // ex:  isole_valeur('  periph #135 ','periph #',true)
 // renvoie '135' et s='periph'
-
 function isole_valeur(var s : string; chercher : string;afficheErr : boolean) : string;
 var i : integer;
     serr : string;
@@ -874,6 +873,7 @@ begin
   y:=(round( (yMaxiCDM-y)   * reducY/1000 )) + (cadre div 2);
 end;
 
+// degrés en radians
 function degtoRad(angle : double) : double;
 begin
   degtoRad:=angle*pisur180;
@@ -1598,8 +1598,8 @@ begin
     Brush.Style:=bsclear;  // permet d'écrire en transparent
   end;
 
-  coul:=false;
-  // balayage ...
+  coul:=false;
+  // balayage ...
   for i:=0 to nSeg-1 do
   begin
    // Affiche(intToSTR(i),clyellow);
@@ -4150,11 +4150,11 @@ begin
         end;
       end;
 
-      // créer aiguillage 1 (SO) c'est le port 0 de la BJS depuis l'index i des segments
+      // créer aiguillage 1 (SO) c'est le port 0 de la BJD depuis l'index i des segments
       ISegA1:=Nseg; // dernier index de segment
       cree_aiguillage(i,DernAdrAig,adresse);
       // remplir les coordonnées x y de chaque port
-      Segment[iSegA1].port[0].x:=segment[iSegCrois].port[3].x;      // SO : port 0 de la bjs
+      Segment[iSegA1].port[0].x:=segment[iSegCrois].port[3].x;      // SO : port 0 de la bjd
       Segment[iSegA1].port[0].y:=segment[iSegCrois].port[3].y;
       // port 1 : port droit : milieu
       Segment[iSegA1].port[1].x:=(segment[iSegCrois].port[3].x+segment[iSegCrois].port[0].x) div 2;
@@ -4164,10 +4164,10 @@ begin
       Segment[iSegA1].port[2].y:=(segment[iSegCrois].port[3].y+segment[iSegCrois].port[1].y) div 2;
       inc(DernAdrAig);
 
-      // créer aiguillage 2 (NO) c'est le port 1 de la BJS depuis l'index i des segments
+      // créer aiguillage 2 (NO) c'est le port 1 de la BJD depuis l'index i des segments
       ISegA2:=Nseg;
       cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 2 depuis l'index i des segments
-      Segment[IsegA2].port[0].x:=segment[iSegCrois].port[2].x;      // NO : port 1 de la bjs
+      Segment[IsegA2].port[0].x:=segment[iSegCrois].port[2].x;      // NO : port 1 de la bjD
       Segment[IsegA2].port[0].y:=segment[iSegCrois].port[2].y;
       // port 1 : port droit : milieu
       Segment[IsegA2].port[1].x:=(segment[iSegCrois].port[2].x+segment[iSegCrois].port[1].x) div 2;
@@ -4177,10 +4177,10 @@ begin
       Segment[IsegA2].port[2].y:=(segment[iSegCrois].port[2].y+segment[iSegCrois].port[0].y) div 2;
       inc(DernAdrAig);    
 
-      // créer aiguillage 3 (NE) c'est le port 3 de la BJS depuis l'index i des segments
+      // créer aiguillage 3 (NE) c'est le port 3 de la BJD depuis l'index i des segments
       ISegA3:=Nseg;
       cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 3 depuis l'index i des segments
-      Segment[ISegA3].port[0].x:=segment[iSegCrois].port[1].x;      // NE : port 3 de la bjs
+      Segment[ISegA3].port[0].x:=segment[iSegCrois].port[1].x;      // NE : port 3 de la bjD
       Segment[ISegA3].port[0].y:=segment[iSegCrois].port[1].y;
       // port 1 : port droit : milieu
       Segment[ISegA3].port[1].x:=(segment[iSegCrois].port[1].x+segment[iSegCrois].port[2].x) div 2;
@@ -4190,10 +4190,10 @@ begin
       Segment[ISegA3].port[2].y:=(segment[iSegCrois].port[1].y+segment[iSegCrois].port[3].y) div 2;
       inc(DernAdrAig);
 
-      // créer aiguillage 4 (SE) c'est le port 2 de la BJS depuis l'index i des segments
+      // créer aiguillage 4 (SE) c'est le port 2 de la BJD depuis l'index i des segments
       ISegA4:=Nseg;
       cree_aiguillage(i,DernAdrAig,adresse);  // créer aiguillage 3 depuis l'index i des segments
-      Segment[ISegA4].port[0].x:=segment[iSegCrois].port[0].x;      // NE : port 2 de la bjs
+      Segment[ISegA4].port[0].x:=segment[iSegCrois].port[0].x;      // NE : port 2 de la bjd
       Segment[ISegA4].port[0].y:=segment[iSegCrois].port[0].y;
       // port 1 : port droit : milieu
       Segment[ISegA4].port[1].x:=(segment[iSegCrois].port[0].x+segment[iSegCrois].port[3].x) div 2;
@@ -4458,8 +4458,8 @@ begin
   FWICImage.Assign(ImageLoco.Picture.graphic);
   FWICImage.TransparentColor:=clwhite;
 
-  premaff:=true;
-  buttonAnime.Visible:=not(diffusion);
+  premaff:=true;
+  buttonAnime.Visible:=not(diffusion);
 
   reducX:=1;
   reducY:=1; // évite la division par 0

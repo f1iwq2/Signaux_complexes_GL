@@ -339,111 +339,46 @@ type
     procedure buttonRazClick(Sender: TObject);
     procedure FormMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-    procedure ButtonCalibrageClick(Sender: TObject);
-    procedure ButtonCoulFondClick(Sender: TObject);
-    procedure ColorDialog1Show(Sender: TObject);
-    procedure ImagePalette24DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette24EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette24MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette25DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette25EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette25MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette4DragOver(Sender, Source: TObject; X, Y: Integer;
-      State: TDragState; var Accept: Boolean);
-    procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;
-      State: TDragState; var Accept: Boolean);
-    procedure EditTypeImageChange(Sender: TObject);
-    procedure Toutslectionner1Click(Sender: TObject);
-    procedure ButtonDessinerClick(Sender: TObject);
-    procedure ImagePalette26DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette26MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette23EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette23DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette23MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette27DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette27MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette27EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette28DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette28EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette28MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette29DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette29EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette29MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette32DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette32EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette32MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette33DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette33EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette33MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette34DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette34EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette34MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure EditAdrElementClick(Sender: TObject);
-    procedure ImagePalette53DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette52EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImagePalette53MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ButtonAffSCClick(Sender: TObject);
-    procedure RadioGroupSelClick(Sender: TObject);
-    procedure SauvegarderleTCO1Click(Sender: TObject);
-    procedure DessinerleTCO1Click(Sender: TObject);
-    procedure ConfigurationduTCO1Click(Sender: TObject);
-    procedure Redessine1Click(Sender: TObject);
-    procedure BandeauClick(Sender: TObject);
-    procedure Mosaquehorizontale1Click(Sender: TObject);
-    procedure Mosaqueverticale1Click(Sender: TObject);
-    procedure AfficherSignauxComplexes1Click(Sender: TObject);
-    procedure Signalvertical180Click(Sender: TObject);
-    procedure RechargerleTCOdepuislefichier1Click(Sender: TObject);
-    procedure Supprimercanton1Click(Sender: TObject);
-    procedure Affecterlocomotiveaucanton1Click(Sender: TObject);
-    procedure ImagePalette52MouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette52DragOver(Sender, Source: TObject; X,
-      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette53EndDrag(Sender, Target: TObject; X,
-      Y: Integer);
-    procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure AffRoutesClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-
-  private
+    procedure ButtonCalibrageClick(Sender: TObject);
+    procedure ButtonCoulFondClick(Sender: TObject);
+    procedure ColorDialog1Show(Sender: TObject);    procedure ImagePalette24DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);    procedure ImagePalette24EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette24MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette25DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette25EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette25MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);   procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;      Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette4DragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
+    procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
+    procedure EditTypeImageChange(Sender: TObject);   procedure Toutslectionner1Click(Sender: TObject);    procedure ButtonDessinerClick(Sender: TObject);    procedure ImagePalette26DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette26MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette23EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette23DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette23MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette27MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette28DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette28EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette28MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette29DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette29EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette29MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette32DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette32EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette32MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette33DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette33EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette33MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette34DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette34EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette34MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure EditAdrElementClick(Sender: TObject);    procedure ImagePalette53DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+     procedure ImagePalette52EndDrag(Sender, Target: TObject; X,      Y: Integer);
+     procedure ImagePalette53MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ButtonAffSCClick(Sender: TObject);    procedure RadioGroupSelClick(Sender: TObject);    procedure SauvegarderleTCO1Click(Sender: TObject);    procedure DessinerleTCO1Click(Sender: TObject);    procedure ConfigurationduTCO1Click(Sender: TObject);    procedure Redessine1Click(Sender: TObject);    procedure BandeauClick(Sender: TObject);    procedure Mosaquehorizontale1Click(Sender: TObject);    procedure Mosaqueverticale1Click(Sender: TObject);    procedure AfficherSignauxComplexes1Click(Sender: TObject);    procedure Signalvertical180Click(Sender: TObject);    procedure RechargerleTCOdepuislefichier1Click(Sender: TObject);    procedure Supprimercanton1Click(Sender: TObject);    procedure Affecterlocomotiveaucanton1Click(Sender: TObject);    procedure ImagePalette52MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette52DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette53EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);    procedure AffRoutesClick(Sender: TObject);     procedure Button1Click(Sender: TObject);   private
     { Déclarations privées }
     function index_TCOMainMenu : integer;
   public
@@ -451,7 +386,6 @@ type
   end;
 
 const
-  MaxCantons=100;
   // sens du train ou de circulation dans les cantons
   SensGauche=1;
   SensDroit=2;
@@ -714,6 +648,7 @@ procedure renseigne_tous_cantons;
 procedure renseigne_canton(i : integer); overload;
 function index_canton_numero(n : integer) : integer;
 procedure renseigne_TJDs;
+procedure Affiche_temps_arret(IdTrain,tps : integer);
 
 implementation
 
@@ -3085,7 +3020,7 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,yc);LineTo(xc+round(4*frxGlob[indexTCO]),yc);LineTo(x0,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
       end;
     end;
 
@@ -3370,7 +3305,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,yc);LineTo(xc-round(4*FrxGlob[indexTCO]),yc);LineTo(xf,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
+        //moveTo(x0,yc);LineTo(xc-round(4*FrxGlob[indexTCO]),yc);LineTo(xf,y0);
       end;
     end;
 
@@ -3658,7 +3594,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,yc);LineTo(xc-round(4*frxGlob[indexTCO]),yc);LineTo(xf,yf);
+        //moveTo(x0,yc);LineTo(xc-round(4*frxGlob[indexTCO]),yc);LineTo(xf,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -3686,7 +3623,6 @@ begin
     end;
   end;
 end;
-
 
 procedure dessin_4(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 begin
@@ -3946,7 +3882,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,yc);LineTo(xc+round(5*frxGlob[indexTCO]),yc);LineTo(x0,y0);
+        //moveTo(xf,yc);LineTo(xc+round(5*frxGlob[indexTCO]),yc);LineTo(x0,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -4694,7 +4631,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,y0);LineTo(xc-round(4*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(xf,yc);
+        //moveTo(x0,y0);LineTo(xc-round(4*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(xf,yc);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -4987,7 +4925,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,y0);LineTo(xc+round(6*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(x0,yc);
+        //moveTo(xf,y0);LineTo(xc+round(6*FrxGlob[indexTCO]),yc-round(6*FryGlob[indexTCO]));LineTo(x0,yc);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -5133,8 +5072,9 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,yf);LineTo(xc,yc);lineto(x0,yc);
-      end;  
+        //moveTo(xf,yf);LineTo(xc,yc);lineto(x0,yc);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
+      end;
     end;
 
     if position=const_droit then
@@ -5276,7 +5216,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));lineto(x0,yc);
+        //moveTo(xf,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));lineto(x0,yc);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -5301,7 +5242,7 @@ begin
         pen.width:=epaisseur div 2;
         moveTo(xf,yf);lineto(x0,y0);
       end;
-    end;  
+    end;
   end;
 end;
 
@@ -5563,7 +5504,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));LineTo(xf,yc);
+        //moveTo(x0,yf);LineTo(xc,yc+round(4*fryGlob[indexTCO]));LineTo(xf,yc);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -6647,6 +6589,52 @@ begin
   end;
 end;
 
+procedure Affiche_temps_arret(IdTrain,tps : integer);
+var larg,haut,IdC,x,y,n,x0,y0,IndexTCO,xRond,yRond,etat : integer;
+    Horz : boolean;
+    cf : Tcolor;
+begin
+  IdC:=index_canton_numero(Trains[idTrain].canton);
+  //Affiche(intToSTR(canton[idc].numero),clYellow);
+  if idc=0 then exit;
+  indexTCO:=canton[Idc].Ntco;
+  if indexTCO=0 then exit;
+  etat:=canton[Idc].bouton;
+  if etat>=3 then exit;
+  larg:=LargeurCell[indexTCO];
+  haut:=hauteurCell[indexTCO];
+  x:=canton[Idc].x;
+  y:=canton[Idc].y;
+  x0:=(x-1)*Larg;
+  y0:=(y-1)*haut;
+  n:=canton[Idc].Nelements;
+  horz:=canton[Idc].horizontal;
+  if horz then
+  begin
+    XRond:=x0+(n*Larg)-larg;
+    Xrond:=xrond+round(20*frXGlob[IndexTCO]);
+    Yrond:=y0+(Haut div 2)-round(10*fryGlob[indexTCO]);
+  end
+  else
+  begin
+    XRond:=x0+(Larg div 2)-5;
+    YRond:=y0+(n*Haut)-haut;
+  end;
+
+  case etat of
+   0 : cf:=ClYellow;
+   1 : cf:=ClCyan;
+   2 : cf:=ClLime;
+  end;
+  
+  PcanvasTCO[IndexTCO].Brush.color:=cf;
+  PcanvasTCO[IndexTCO].Font.Color:=clBlue;
+  if tps=0 then PcanvasTCO[IndexTCO].TextOut(xRond,yRond,'  ') else
+  PcanvasTCO[IndexTCO].TextOut(xRond,yRond,IntToSTR(tps div 10)+'  ');
+  
+end;
+
+
 
 // dessine le canton H
 // mode=0 canton normal  mode=1 : affiche le canton en mode rectangle de sélection avec les poignées
@@ -6779,13 +6767,14 @@ begin
     sens:=canton[i].SensLoco;
     case sens of
       0,sensGauche : xi:=x0+OffsetX;
-      sensDroit  : xi:=xf-largdest-larg;
+      sensDroit    : xi:=xf-largdest-larg;
     end;
 
     // coordonnées du texte de la loco
     if sens=sensGauche then begin xt:=xi+largDest+round(10*frx);yt:=y0+round(20*fry);dx:=xf-larg;dy:=yf;end; // espace restant
-    if sens=sensdroit then begin xt:=x0+round(20*frx);yt:=y0+round(20*fry);dx:=xi+largdest-larg;dy:=y0+offsety+hautdest;end;
+    if sens=sensdroit then begin xt:=x0+round(5*frx);yt:=y0+round(20*fry);dx:=xi+largdest-larg;dy:=y0+offsety+hautdest;end;
 
+    // Nom du train
     s:=canton[i].NomTrain;
     l:=TextWidth(s);
     if l<dx-xt then
@@ -7345,7 +7334,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xc,yf);LineTo(xc,yc+round(8*fryGlob[indexTCO]));LineTo(x0,y0);
+        //moveTo(xc,yf);LineTo(xc,yc+round(8*fryGlob[indexTCO]));LineTo(x0,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -7367,8 +7357,7 @@ begin
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
         moveTo(xc,yf);LineTo(xc,y0);
-      end;  
-        
+      end;
     end;
   end;
 end;
@@ -7843,7 +7832,7 @@ begin
       adr2:=aiguillage[index1].DDevie;  // homologue
       Index2:=Index_aig(adr2);
       position2:=aiguillage[index2].position;
-      
+
       if (position1=const_devie) and (position2=const_devie) then
       begin
         with canvas do begin
@@ -7854,13 +7843,13 @@ begin
       if (position1=const_droit) and (position2=const_droit) then
       begin
         with canvas do begin
-          moveTo(xc,yf);LineTo(xc,y0);  
+          moveTo(xc,yf);LineTo(xc,y0);
         end;
       end;
 
       if (position1=const_droit) and (position2=const_devie) then
       begin
-        if tco[indexTCO,x,y].tjdS=adr1 then 
+        if tco[indexTCO,x,y].tjdS=adr1 then
         with canvas do begin
           moveTo(xc,y0);LineTo(xc,yc);Lineto(xf,yf);
         end;
@@ -8164,9 +8153,9 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xc,yf);LineTo(xc,yc+round(4*FryGlob[indexTCO]));LineTo(xf,y0);
+        //moveTo(xc,yf);LineTo(xc,yc+round(4*FryGlob[indexTCO]));LineTo(xf,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
-
     end;
 
     if position=const_droit then
@@ -8456,7 +8445,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xc,y0);LineTo(xc,yc-round(4*frxGlob[indexTCO]));LineTo(x0,yf);
+        //moveTo(xc,y0);LineTo(xc,yc-round(4*frxGlob[indexTCO]));LineTo(x0,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -8724,7 +8714,7 @@ begin
       trajet_droit;
     end;
 
-    
+
     if (position=const_Devie) then
     begin
       if not(affPosFil) then
@@ -8744,8 +8734,9 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xc,y0);LineTo(xc,yc-round(4*fryGlob[indexTCO]));LineTo(xf,yf);  
-      end;  
+        //moveTo(xc,y0);LineTo(xc,yc-round(4*fryGlob[indexTCO]));LineTo(xf,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
+      end;
     end;
 
     if position=const_droit then
@@ -9028,7 +9019,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,y0);LineTo(xc-round(6*FrxGlob[indexTCO]),yc);LineTo(xc,yf);
+        //moveTo(x0,y0);LineTo(xc-round(6*FrxGlob[indexTCO]),yc);LineTo(xc,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -9316,7 +9308,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,y0);LineTo(xc+round(4*frxGlob[indexTCO]),yc);LineTo(xc,yf);
+        //moveTo(xf,y0);LineTo(xc+round(4*frxGlob[indexTCO]),yc);LineTo(xc,yf);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -9610,7 +9603,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xf,yf);LineTo(xc+round(4*FrxGlob[indexTCO]),yc);LineTo(xc,y0);
+        //moveTo(xf,yf);LineTo(xc+round(4*FrxGlob[indexTCO]),yc);LineTo(xc,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -9896,7 +9890,8 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(x0,yf);LineTo(xc-round(6*frxGlob[indexTCO]),yc);LineTo(xc,y0);
+        //moveTo(x0,yf);LineTo(xc-round(6*frxGlob[indexTCO]),yc);LineTo(xc,y0);
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
 
@@ -11769,7 +11764,7 @@ end;
 //        =10 : arrêt sur trouvé canton, et renvoie le x,y du canton dans les variables globales xCanton,yCanton
 //        =11 : det1=indexcanton det2=direction -  renvoie les éléments adjacent du canton dans la direction indiquée dans xCanton et tel1
 //        =12 : det1 = détecteur de départ - renvoie l'élément sursuivant (peut être un aiguillage)dans la direction demandée dans xCanton et tel1
-//              direction: 1=gauche  2=droite  3=bas  4=haut
+//              direction=det2 = TCO_N TCO_NE etc
 //        =13 : det1=adresse de l'élément TypEL : type de l'élément, s'arrête au suivant suivant direction
 // Ne nécessite pas que les aiguillages en talon soient bien positionnés entre det1 et det2
 // PosAig = False:teste toutes les routes en récursif les aiguillages en pointe
@@ -12417,7 +12412,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                   begin
                     ancienX:=x;ancienY:=y;
                     inc(x);inc(y);
-                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                    el_tco(ancienx,ancienY,x,y,train,ir);
                   end;
 
                   if (ancienX>x) and (ancienY>y) then  // on va au NO en mode 13
@@ -15130,9 +15125,9 @@ begin
     BallonHint.Description:=s2;
     BallonHint.Style:=bhsBalloon;
     BallonHint.HideAfter:=4000;
-    x:=canton[IdCantonSelect].x*LargeurCell[indexTCO];
-    y:=canton[IdCantonSelect].y*HauteurCell[indexTCO]-HauteurCell[indexTCO] div 2;
-    ballonhint.ShowHint(formTCO[indexTCO].ClientToScreen(point(x,y))); // affiche le ballonHint
+    x:=(canton[IdCantonSelect].x-1)*LargeurCell[indexTCO]+(LargeurCell[indexTCO] div 2);
+    y:=(canton[IdCantonSelect].y-1)*HauteurCell[indexTCO]+HauteurCell[indexTCO] div 2;
+    ballonhint.ShowHint(PimageTCO[indexTCO].ClientToScreen(point(x,y))); // affiche le ballonHint
  end;
  {$IFEND}
 end;
@@ -15147,6 +15142,7 @@ var position : Tpoint;
     presTrain : boolean;
 begin
   indexTCO:=index_tco(sender);
+  if indexTCO<1 then exit;
   GetCursorPos(Position);
   Position:=ImageTCO.screenToCLient(Position);
 
@@ -15309,6 +15305,8 @@ begin
             messageBeep(Mb_iconError);
             exit;
           end;
+          Trains[IndexTrain].cantonOrg:=cantonOrg;
+          Trains[IndexTrain].cantonDest:=cantonDest;
 
           formTCO[indexTCO].Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
           Screen.cursor:=crDefault;
@@ -15319,7 +15317,7 @@ begin
           dessin_canton(IdCantonClic,0);
           FormTCO[IndexTCO].Caption:='Calcul des routes en cours.....................';
           application.processMessages;
-          prepare_route(detDepart,detAtrouve,sens);   // à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
+          prepare_route(indexTCO,cantonOrg,detAtrouve,sens);   // à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
           if trains[indexTrain].route[0].adresse<>0 then formRouteTrain.show else formRoute.show;
           titre_Fenetre(indexTCO);
           detatrouve:=0;
@@ -17073,7 +17071,7 @@ begin
   c:=popupmenu1.PopupComponent ;     // imageTCO
   c:=c.GetParentComponent;           // scrollBox
   c:=c.GetParentComponent;           // formTCO
-  indexTCO:=index_tco(c);
+  indexTCO:=index_tco(c);
 
   if NbreCellY[indexTCO]>=MaxCellY then exit;
   TamponAffecte:=false;
@@ -17169,8 +17167,8 @@ begin
         tampontco[x,y]:=tco[indextco,x,y];
       end;
 
-  // balayer les cantons pour corriger leurs coordonnées
-  for i:=1 to nCantons do
+  // balayer les cantons pour corriger leurs coordonnées
+  for i:=1 to nCantons do
   begin
     y:=canton[i].y;
     n:=canton[i].numero;
@@ -17183,7 +17181,7 @@ begin
     else if y>=ligne_Supprime then dec(canton[i].y);
   end;
 
-  // supression ligne
+  // supression ligne
   for y:=YClicCell[indexTCO] to NbreCellY[indexTCO]-1 do
   begin
     for x:=1 to NbreCellX[indexTCO] do tco[indextco,x,y]:=tco[indextco,x,y+1];
@@ -17228,7 +17226,7 @@ begin
     for x:=TamponTCO_Org.x1 to TamponTCO_Org.x2 do
       tampontco[x,y]:=tco[indextco,x,y];
 
-  // supression colonne
+  // supression colonne
   // balayer les cantons pour corriger leurs coordonnées
   for i:=1 to nCantons do
   begin
@@ -17415,7 +17413,7 @@ procedure TFormTCO.ImagePalette1MouseDown(Sender: TObject;Button: TMouseButton; 
 begin
   debut_drag(ImagePalette1);
 end;
-
+
 procedure TFormTCO.FormDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
@@ -17957,8 +17955,8 @@ begin
     if Application.MessageBox(pchar(s),pchar('Confirmation'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then
     begin
       Affiche_tco(indexTCO);
-      exit;
-    end;
+      exit;
+    end;
     supprime_route_train(idTrain);
   end;
 

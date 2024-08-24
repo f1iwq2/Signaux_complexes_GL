@@ -47,6 +47,7 @@ procedure raz_trains_Idcanton(idc : integer);
 procedure raz_cantons_train(AdrTrain : integer);
 procedure trouve_det_canton(idcanton : integer;var el1,el2 : integer);
 function trouve_det_suiv_canton(idcanton,detecteur,sensTCO : integer) : integer;
+procedure Maj_detecteurs_canton(i,AdrTrain,adresse : integer);
 
 implementation
 
@@ -54,6 +55,68 @@ uses UnitConfigCellTCO,UnitTCO,unitconfig,unitDebug, UnitRouteTrains,
   UnitInfo;
 
 {$R *.dfm}
+
+// mise à jour des précédent, suivant du détecteur à 1 du canton avec l'adresse de train si une loco est sur le canton
+// i=index canton - AdrTrain=adresse du train - adresse=adresse du détecteur
+// attention le suivant et le précédent concernent le détecteur, pas le canton
+procedure Maj_detecteurs_canton(i,AdrTrain,adresse : integer);
+var sens,e1c,e2c,prec,suivant : integer;
+    typeSuiv,t1,t2,typePrec : tequipement;
+    trouve : boolean;
+begin
+  sens:=canton[i].sensLoco;
+  trouve:=false;
+  e1c:=canton[i].el1;t1:=canton[i].typ1;
+  e2c:=canton[i].el2;t2:=canton[i].typ2;
+
+  // le détecteur considéré est le e1c
+  if (e1c=adresse) and (t1=det) then
+  begin
+    case sens of
+      sensGauche,sensHaut :
+      begin
+        suivant:=suivant_alg3(e2c,t2,e1c,t1,1); typeSuiv:=TypeGen;
+        prec:=e2c;TypePrec:=t2;
+        trouve:=true;
+      end;
+      sensDroit,sensBas :
+      begin
+        Suivant:=e2c;TypeSuiv:=t2;
+        Prec:=suivant_alg3(e2c,t2,e1c,t1,1); typePrec:=TypeGen;
+        trouve:=true;
+      end;
+    end;
+  end;
+
+  // le détecteur considéré est le e2c
+  if (e2c=adresse) and (t1=det) then
+  begin
+    case sens of
+      sensGauche,sensHaut :
+      begin
+        Suivant:=e1c;TypeSuiv:=t1;
+        Prec:=suivant_alg3(e1c,t1,e2c,t2,1); typePrec:=TypeGen;
+        trouve:=true;
+      end;
+      sensDroit,sensBas :
+      begin
+        suivant:=suivant_alg3(e1c,t1,e2c,t2,1); typeSuiv:=TypeGen;
+        prec:=e1c;TypePrec:=t1;
+        trouve:=true;
+      end;
+    end;
+  end;
+
+  if trouve then
+  begin
+    detecteur[adresse].suivant:=suivant;
+    detecteur[adresse].TypSuivant:=TypeSuiv;
+    detecteur[adresse].precedent:=prec;
+    detecteur[adresse].TypPrecedent:=typePrec;
+    detecteur[adresse].AdrTrain:=AdrTrain;
+    detecteur[adresse].Train:=canton[i].NomTrain;
+  end;
+end;
 
 // supprime une entrée du tableau event_det_train contenant l'adresse du train
 procedure supprime_route(adresse : integer);
@@ -115,7 +178,8 @@ end;
 
 // supprime le train AdrTrain de tous les cantons, et réaffiche les cantons effacés concernés
 procedure raz_cantons_train(AdrTrain : integer);
-var i,t,idTCO,x,y : integer;
+var i,t,idTCO,x,y,detect : integer;
+    trouve : boolean;
 begin
   if (AdrTrain=0) then exit;
   //Affiche('Raz_cantons_train @='+intToSTR(AdrTrain),clyellow);
@@ -139,18 +203,39 @@ begin
         Dessin_canton(idTCO,pcanvasTCO[idTCO],x,y,0);
       end;
     end;
-    exit;
+
+    // balayer les détecteurs pour trouver sur quel détecteur est le train pour le razer
+    // non
+    {
+    i:=1;
+    repeat
+      detect:=adresse_detecteur[i];
+      trouve:=detecteur[detect].AdrTrain=AdrTrain;
+      if trouve then
+      begin
+        detecteur[detect].Train:='';
+        detecteur[detect].IndexTrainRoulant:=0;
+        detecteur[detect].AdrTrain:=0;
+        detecteur[detect].Suivant:=0;
+        detecteur[detect].TypSuivant:=rien;
+        detecteur[detect].Precedent:=0;
+        detecteur[detect].TypPrecedent:=rien;
+      end;
+      inc(i);
+    until trouve or (i>NDetecteurs);}
   end;
 end;
 
 
 // affecte le train id train ou adresse à l'Index canton et au TCO.
+//
 // désaffecte ce train pour tous les autres canton
 // si adrTrain=9999 , train inconnu
 // si adrTrain=0    ; efface
 // et les pointeurs de trains de l'idTrain sont razés
 procedure affecte_Train_canton(AdrTrain,idcanton : integer);
-var idTrain,t : integer;
+var idTrain,t,el1,el2 : integer;
+    t1,t2 : tequipement;
 begin
   //Affiche('Affecte_train_canton: IdTrain='+intToSTR(idTrain)+' @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
   if (IdCanton>0) and (idCanton<=nCantons) then
@@ -159,7 +244,7 @@ begin
     begin
       idTrain:=Index_train_adresse(adrTrain);
 
-      raz_cantons_train(AdrTrain);   // efface tous les cantons affichant le train Adrtrain
+      raz_cantons_train(AdrTrain);   // efface tous les cantons contenant le train Adrtrain
 
       trains[idTrain].canton:=canton[idcanton].numero;
       canton[Idcanton].indexTrain:=idTrain;
@@ -182,7 +267,26 @@ begin
     end;
 
     t:=canton[IdCanton].Ntco;
-    if (t>0) and (t<=nbreTCO) then TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
+    if (t>0) and (t<=nbreTCO) then
+    begin
+      TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
+    end;
+
+    // si l'un des deux détecteurs est à 1, affecter la loco au détecteur
+    el1:=canton[IdCanton].el1;t1:=canton[IdCanton].typ1;
+    el2:=canton[IdCanton].el2;t2:=canton[IdCanton].typ2;
+    if (t1=det) and detecteur[el1].Etat then
+    begin
+      detecteur[el1].AdrTrain:=AdrTrain;
+      detecteur[el1].Train:=trains[idTrain].nom_train;
+      Maj_detecteurs_canton(idCanton,AdrTrain,el1);
+    end;
+    if (t2=det) and detecteur[el2].Etat then
+    begin
+      detecteur[el2].AdrTrain:=AdrTrain;
+      detecteur[el2].Train:=trains[idTrain].nom_train;
+      Maj_detecteurs_canton(idCanton,AdrTrain,el2);
+    end;
   end;
 end;
 
@@ -298,7 +402,7 @@ begin
 end;
 
 procedure TFormSelTrain.FormCreate(Sender: TObject);
-var i,x,y : integer;
+var i : integer;
 begin
 
   with ImageHaut do begin Width:=60;Height:=60;visible:=false; end;
@@ -317,7 +421,7 @@ begin
     ColCount:=8;    // nombre de colonnes
     RowCount:=Ntrains+1;
     Options := StringGridTrains.Options + [goEditing];
-    ColWidths[0]:=30;
+    ColWidths[0]:=50;
     ColWidths[1]:=200;     // icone
     ColWidths[2]:=150;     // nom du train
     ColWidths[3]:=60;      // canton
@@ -326,7 +430,7 @@ begin
     ColWidths[6]:=30;
     ColWidths[7]:=35;
 
-    Cells[0,0]:='N°';
+    Cells[0,0]:='N° / @';
     Cells[1,0]:='Icône';
     Cells[2,0]:='Nom du train';
     Cells[3,0]:='Affectation'+#13+'au canton';
@@ -342,18 +446,13 @@ begin
   begin
     with StringGridTrains do
     begin
-      cells[0,i]:=intToSTR(i);
+      cells[0,i]:=intToSTR(i)+' @'+intToSTR(Trains[i].adresse);
       cells[2,i]:=trains[i].nom_train;
     end;
   end;
 
   // interdit la modification des cellules au clavier
-  with StringGridTrains do
-  begin
-  for x:=0 to RowCount-1 do
-    for y:=0 to ColCount-1 do
-    StringGridTrains.Options:=StringGridTrains.Options - [goEditing] - [goRangeSelect];
-  end;
+  StringGridTrains.Options:=StringGridTrains.Options - [goEditing] - [goRangeSelect];
 end;
 
 
@@ -410,7 +509,7 @@ begin
 
       TransparentBlt(canvas.Handle,rect.Left+2,rect.Top,largDest,hautDest,
                      Trains[indexTrain].Icone.canvas.Handle,0,0,l,h,clWhite);
-    end;
+    end;
   end;
 
   // dessine les fleches
@@ -508,7 +607,7 @@ begin
 
       supprime_route_train(indextrainclic);
       StringGridTrains.cells[7,ARow]:='';
-    end;
+    end;
 
     if faire then
     begin
@@ -571,32 +670,33 @@ begin
 
       f:=canton[IdAutreCanton].SensLoco;
 
-      inc(f);
+      inc(f);
       if canton[IdAutreCanton].horizontal then
       begin
         if (f<1) or (f>SensDroit) then f:=SensGauche;
       end
-      else
-      begin
-        if (f=5) or (f<SensHaut) then f:=SensHaut;
-      end;
-      if (canton[IdAutreCanton].sensCirc<>0) and (canton[IdAutreCanton].SensCirc<>f) then
-      begin
-        s:='Le sens de circulation du canton '+intToSTR(canton[IdAutreCanton].numero)+' ne permet pas de positionner le train dans ce sens';
-        LabelInfo.Caption:=s;
+      else
+      begin
+        if (f=5) or (f<SensHaut) then f:=SensHaut;
+      end;
+      if (canton[IdAutreCanton].sensCirc<>0) and (canton[IdAutreCanton].SensCirc<>f) then
+      begin
+        s:='Le sens de circulation du canton '+intToSTR(canton[IdAutreCanton].numero)+' ne permet pas de positionner le train dans ce sens';
+        LabelInfo.Caption:=s;
         FormInfo.LabelInfo.caption:=s;
         FormInfo.Top:=top+10;
         FormInfo.Left:=left+10;
         FormInfo.Show;
         exit;
-      end;
+      end;
 
-      renseigne_canton(IdAutreCanton);
-      canton[IdAutreCanton].SensLoco:=f;
-      //Affiche('Et 3',clYellow);
-      maj_signaux(true);
-    end;
-  end;
+      renseigne_canton(IdAutreCanton);
+      canton[IdAutreCanton].SensLoco:=f;
+      affecte_Train_canton(AdrTrain,idAutreCanton);
+      //Affiche('Et 3',clYellow);
+      maj_signaux(true);
+    end;
+  end;
 
   // cliqué sur la route
   if Acol=7 then
@@ -613,10 +713,10 @@ begin
     dessin_canton(i,0);
   end;
 
-end;
+end;
 
-// actualise la fenetre
-procedure actualise_seltrains;
+// actualise la fenetre
+procedure actualise_seltrains;
 var s : string;
     i : integer;
 begin

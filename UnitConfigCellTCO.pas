@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
   Buttons,
-  ImgList;
+  ImgList, Grids;
 
 type
   TFormConfCellTCO = class(TForm)
@@ -52,6 +52,8 @@ type
     ImageGD: TImage;
     ImageHB: TImage;
     Label4: TLabel;
+    GroupBoxDet: TGroupBox;
+    StringGridDet: TStringGrid;
     procedure EditAdrElementChange(Sender: TObject);
     procedure EditTexteCCTCOChange(Sender: TObject);
     procedure ButtonFonteClick(Sender: TObject);
@@ -203,7 +205,7 @@ end;
 
 // actualise le contenu de la fenetre et de la zone tco par rapport à la cellule cliquée
 procedure actualise(indexTCO : integer);
-var i,Bimage,oriente,piedFeu,act,sens : integer;
+var i,j,ligne,Adr,Bimage,oriente,piedFeu,act,sens : integer;
     s : string;
     ip : Timage;
     r : trect;
@@ -240,6 +242,7 @@ begin
   FormConfCellTCO.CheckBoxEncadre.visible:=Bimage=0;
 
   formConfCellTCO.GroupBox1.caption:='Texte';
+  // -------------canton
   if isCanton(Bimage) then
   begin
     with formConfCellTCO do
@@ -261,15 +264,12 @@ begin
       GroupBoxOrientation.visible:=false;
       GroupBoxImplantation.visible:=false;
       GroupBoxAction.Visible:=false;
+      GroupBoxDet.visible:=false;
+      GroupBoxCanton.visible:=true;
 
       sens:=tco[indexTCO,xClicC,yClicC].SensCirc;
       with GroupBoxCanton do
       begin
-        visible:=true;
-        left:=16;
-        top:=158;
-        width:=280;
-        height:=130;
         EditTypeImage.Enabled:=false;
         GroupBox1.caption:='Nom du canton';
       end;
@@ -345,6 +345,7 @@ begin
 
   else
 
+  // action ---------------------------
   if Bimage=Id_Action then
   begin
     with formConfCellTCO do
@@ -353,14 +354,11 @@ begin
       GroupBoxOrientation.visible:=false;
       GroupBoxImplantation.visible:=false;
       GroupBoxCanton.Visible:=false;
+      GroupBoxDet.visible:=false;
+      GroupBoxAction.visible:=true;
       EditTypeImage.Enabled:=true;
       with GroupBoxAction do
       begin
-        visible:=true;
-        left:=16;
-        top:=152;
-        width:=273;
-        height:=145;
         act:=tco[indexTCO,XclicC,YclicC].PiedFeu;
         if (act<0) or (act-1>ListBoxAction.Count) then
         begin
@@ -373,27 +371,12 @@ begin
       end;
     end;
   end
+
   else
-
-  begin
-    with formConfCellTCO do
-    begin
-      CheckBoxEncadre.checked:=tco[indexTCO,XclicC,YclicC].Buttoir=1;
-      with GroupBoxOrientation do
-      begin
-        visible:=true;
-        left:=8;
-        top:=152;
-      end;
-      EditTypeImage.Enabled:=true;
-      GroupBoxImplantation.visible:=true;
-      GroupBoxAction.visible:=false;
-      GroupBoxCanton.Visible:=false;
-    end;
-  end;
-
+  // si élément porteur d'un détecteur---------------------
   if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
   begin
+    // si buttoir
     if tco[indexTCO,XclicC,YclicC].buttoir<>0 then
     begin
       formConfCellTCO.EditAdrElement.enabled:=false;
@@ -401,15 +384,75 @@ begin
       tco[indexTCO,XclicC,YclicC].Adresse:=0;
     end
     else
+    // pas buttoir
     begin
       formConfCellTCO.EditAdrElement.enabled:=true;
       formTCO[indexTCO].EditAdrElement.enabled:=true;
     end;
+
+    With formConfCellTCO do
+    begin
+      GroupBoxOrientation.Visible:=false;
+      GroupBoxImplantation.Visible:=false;
+      GroupBoxCanton.Visible:=false;
+      GroupBoxDet.visible:=true;
+      GroupBoxAction.visible:=false;
+    end;
+    Adr:=tco[indexTCO,XClicC,YClicC].Adresse;
+
+    with formConfCellTCO.StringGridDet do
+    begin
+      for i:=0 to ColCount-1 do
+        for j:= 1 to RowCount-1 do
+          Cells[i,j]:='';
+      ligne:=1;
+      for i:=1 to Ntrains do
+      begin
+        for j:=1 to 10 do
+        if (trains[i].DetecteurArret[j].detecteur=adr) and (adr<>0) then
+        begin
+          s:='';
+          if trains[i].DetecteurArret[j].TPrec<>det then s:='A';
+          s:=s+intToSTR(trains[i].DetecteurArret[j].Prec);
+          cells[1,ligne]:=s;
+          cells[2,ligne]:=intToSTR(trains[i].DetecteurArret[j].temps)+'s';
+          cells[3,ligne]:=trains[i].nom_train;
+          
+          inc(ligne);
+        end;
+      end;
+    end;
   end
   else
+
+  // si signal
+  if Bimage=Id_signal then
+  With formConfCellTCO do
+  begin
+    GroupBoxOrientation.Visible:=true;
+    GroupBoxImplantation.Visible:=true;
+    GroupBoxCanton.Visible:=false;
+    GroupBoxDet.visible:=false;
+    GroupBoxAction.visible:=false;
+  end
+
+  else
+  
+  // rien
   begin
     formConfCellTCO.EditAdrElement.enabled:=true;
     formTCO[indexTCO].EditAdrElement.enabled:=true;
+    with formConfCellTCO do
+    begin
+      CheckBoxEncadre.checked:=tco[indexTCO,XclicC,YclicC].Buttoir=1;
+      
+      EditTypeImage.Enabled:=true;
+      GroupBoxOrientation.Visible:=false;
+      GroupBoxImplantation.Visible:=false;
+      GroupBoxCanton.Visible:=false;
+      GroupBoxDet.visible:=false;
+      GroupBoxAction.visible:=false;
+    end;
   end;
 
   if ConfCellTCO then // si la form confcelltco est affichée
@@ -474,29 +517,7 @@ begin
   Bimage:=tco[indexTCO,XclicC,YclicC].Bimage;
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
 
-  // si signal
-  if Bimage=Id_signal then
-  With formConfCellTCO.ImagePaletteCC do
-  begin
-    //Height:=FormTCO.ImagePalette1.Picture.Height;
-    //Width:=FormTCO.ImagePalette1.Picture.Width;
-    Transparent:=false;
-    FormConfCellTCO.LabelNumC.visible:=false;
-  end;
-
-  // si pas signal
-  if Bimage<>Id_signal then
-  with formConfCellTCO do
-  begin
-    RadioButtonV.Enabled:=false;
-    RadioButtonV180.Enabled:=false;
-    RadioButtonHG.Enabled:=false;
-    RadioButtonHD.Enabled:=false;
-    RadioButtonG.Enabled:=false;
-    RadioButtonD.Enabled:=false;
-    LabelNumC.visible:=false;
-    ImagePaletteCC.transparent:=false;
-  end;
+  
 
   // mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
   if Bimage=0 then
@@ -723,7 +744,53 @@ begin
   //RadioButtonGH.Visible:=not(diffusion);
   //RadioButtonDB.Visible:=not(diffusion);
   //RadioButtonDS.Visible:=not(diffusion);
+  with GroupBoxDet do
+  begin
+    left:=16;
+    top:=140;
+    width:=273;
+    height:=145;
+  end;
+  with GroupBoxOrientation do
+  begin
+    left:=8;
+    top:=152;
+  end;
+  with GroupBoxAction do
+  begin
+    left:=16;
+    top:=140;
+    width:=273;
+    height:=145;
+  end;
+  with GroupBoxCanton do
+  begin
+    left:=16;
+    top:=140;
+    width:=273;
+    height:=145;
+  end;
+  With StringGridDet do
+  begin
+    Height:=GroupBoxDet.Height-20;
+    Hint:='-';
+    ShowHint:=true;
+    ColCount:=5;    // nombre de colonnes
+    RowCount:=21;
+    Options := Options -[goEditing] ;
+    ColWidths[0]:=0;      // colonne grise invisible
+    ColWidths[1]:=40;     // Précédent
+    ColWidths[2]:=35;     // tempe
+    ColWidths[3]:=60;     // train
+    ColWidths[4]:=105;     // icone train
 
+    Cells[1,0]:='Précé.';
+    Cells[2,0]:='Temps';
+    Cells[3,0]:='Train';
+    for i:=0 to RowCount-1 do 
+      RowHeights[i]:=20;
+  end;
+  
   // fenetre toujours dessus
   position:=poMainFormCenter;
   if affevt then Affiche('FormConfCellTCO create',clLime);

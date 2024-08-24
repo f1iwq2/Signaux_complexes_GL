@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 81
-  Top = 253
+  Left = 75
+  Top = 270
   Width = 1148
   Height = 624
   Anchors = [akLeft, akTop, akRight]
@@ -2043,7 +2043,6 @@ object FormPrinc: TFormPrinc
     Height = 25
     Caption = 'Route'
     TabOrder = 2
-    OnClick = Button3Click
   end
   object Timer1: TTimer
     Interval = 100
@@ -2076,6 +2075,10 @@ object FormPrinc: TFormPrinc
           'Sauvegarde la position de la fen'#234'tre principale, de l'#39'horloge et' +
           ' du splitter'
         OnClick = Sauvegarderla1Click
+      end
+      object Sauvegarderlaconfiguration1: TMenuItem
+        Caption = 'Sauvegarder la configuration'
+        OnClick = Sauvegarderlaconfiguration1Click
       end
       object N14: TMenuItem
         Caption = '-'

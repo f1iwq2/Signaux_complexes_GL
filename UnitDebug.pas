@@ -206,11 +206,15 @@ begin
   RichDebug.WordWrap:=false;   // interdit la coupure des chaînes en limite du composant
   RichDebug.color:=$33;
   //constraints.MaxHeight:=800;  // taille Y maxi
+  ButtonDetSuiv.Hint:='Renvoie le détecteur suivant aux deux éléments (détecteurs ou aiguillages) '+#13+
+                      'suivant la position des aiguillages.'+#13+
+                      'Les éléments peuvent ne pas être contigus.'+#13+
+                      'detecteur_suivant_El';
   initform:=false;
   visible:=false;
   RichDebug.clear;
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
-  // l'ascenseur de la fenetre dans D11 ------------
+  // l'ascenseur de la fenetre dans D12 ------------
   // ne fonctionne que si le style est windows !!! (bug du VCL)
   // obligé d'utiliser une scrollBox
 
@@ -435,7 +439,8 @@ begin
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
   Val(s1,prec,erreur);
-  if (erreur<>0) or (prec<1) then begin NivDebug:=AncDebug;exit;end;
+  if prec=0 then type1:=buttoir;
+  if (erreur<>0) or (prec<0) then begin NivDebug:=AncDebug;exit;end;
   Val(s2,Actuel,erreur);
   if (erreur<>0) or (actuel<1) then begin NivDebug:=AncDebug;exit;end;
   Adr:=detecteur_suivant_El(prec,type1,actuel,type2,1);
@@ -558,7 +563,8 @@ begin
   if s1[1]='A' then begin type1:=aig;delete(s1,1,1);end else type1:=det;
   if s2[1]='A' then begin type2:=aig;delete(s2,1,1);end else type2:=det;
   Val(s1,prec,erreur);
-  if (erreur<>0) or (prec<1) then begin NivDebug:=AncDebug;exit;end;;
+  if (erreur<>0) or (prec<0) then begin NivDebug:=AncDebug;exit;end;
+  if prec=0 then type1:=buttoir;
   Val(s2,Actuel,erreur);
   if (erreur<>0) or (actuel<1) then begin NivDebug:=AncDebug;exit;end;;
   Adr:=suivant_Alg3(prec,type1,actuel,type2,1);
@@ -655,7 +661,7 @@ begin
     s:=chaine_CDM_Acc(adr,0);
     envoi_CDM(s);
   end;
-  
+
   // pilotage par USB ou par éthernet de la centrale ------------
   if (hors_tension=false) and (portCommOuvert or parSocketLenz) then
   begin
@@ -668,7 +674,7 @@ begin
       s:=checksum(s);
       envoi(s);     // envoi de la trame et attente Ack
     end;
-    if protocole=2 then AfficheDebug('D11: Commande DCC++ pas encore implantée',clred)
+    if protocole=2 then AfficheDebug('D11 Commande DCC++ pas encore implantée',clred)
   end;
 
   Self.ActiveControl:=nil;
@@ -714,7 +720,7 @@ begin
   NivDebug:=3;
   Aiguille_deviee(Adr);
   NivDebug:=AncDebug;
-end;
+end;
 
 procedure TFormDebug.ButtonSigPrecClick(Sender: TObject);
 var Adr,erreur,ancDebug : integer;

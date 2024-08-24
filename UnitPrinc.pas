@@ -1,8 +1,10 @@
 unit Unitprinc;
-// 31/07/2024 21h
+// 21/08/2024 18h30
 (********************************************
   Programme signaux complexes Graphique Lenz
-  [Delphi 7 ou RadStudio (Delphi 11)] + activeX Tmscomm + clientSocket
+  [Delphi 7 ou RadStudio (Delphi 12)] + activeX Tmscomm + clientSocket
+  Delphi12 : Client Socket et ServerSocker, option sans activeX TMSCOMM pour la liaison série USB : fait par AsyncPro
+  AsyncPro est compilable en 32 et en 64 bits.
 
   Options de compilation: options du debugger/exception du langage : décocher "arreter sur exceptions delphi"
   sinon une exception surgira au moment de l'ouverture du com
@@ -10,7 +12,7 @@ unit Unitprinc;
   En cas d'erreur interne L1333, supprimer les fichiers DCU ou simplement faire construire
 
   Notes pour compilation sous Embarcadero : --------------------------------------------------
-  Pour compilation avec Rad Studio (Delphi11): Projet / Options // Application / Apparence /
+  Pour compilation avec Rad Studio (Delphi12): Projet / Options // Application / Apparence /
     Embarcadero technologies / cocher tous les thèmes : carbon Auric etc / et choisir le sytle par défaut : windows sinon plantage
 
   Pour le mode sombre sous Embarcadero, il faut sélectionner:
@@ -64,17 +66,22 @@ unit Unitprinc;
 
 //{$Q-}  // pas de vérification du débordement des opérations de calcul
 //{$R-}  // pas de vérification des limites d'index du tableau et des variables
-interface
 
+
+interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MSCommLib_TLB, MMSystem ,
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem ,
   Buttons, NB30, comObj, activeX ,DateUtils
-  {$IF CompilerVersion >= 28.0}   // si delphi>=11
-  ,Vcl.Themes      // pour les thèmes d'affichage (auric etc)
+  {$IF CompilerVersion >= 28.0}   // si delphi>=12
+  ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
+  ,AdPort, OoMisc     // AsyncPro pour COM/USB
+  {$ELSE}
+  ,MSCommLib_TLB      // TMSComm pour COM/USB
   {$IFEND}
   ;
+
 
 type
   TFormPrinc = class(TForm)
@@ -247,10 +254,17 @@ type
     N17: TMenuItem;
     Codificationdestrains1: TMenuItem;
     Afficheroutespartrain1: TMenuItem;
+    Sauvegarderlaconfiguration1: TMenuItem;
     procedure FormCreate(Sender: TObject);
+    {$IF CompilerVersion >= 28.0}
+    procedure RecuInterface(Sender: TObject;count : word);
+    procedure RecuPeriph1(Sender: TObject;count : word);
+    procedure RecuPeriph2(Sender: TObject;count : word);
+    {$ELSE}
     procedure RecuInterface(Sender: TObject);
     procedure RecuPeriph1(Sender: TObject);
     procedure RecuPeriph2(Sender: TObject);
+    {$IFEND}
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Timer1Timer(Sender: TObject);
     procedure ButtonDroitClick(Sender: TObject);
@@ -391,10 +405,10 @@ type
     procedure Ini1Click(Sender: TObject);
     procedure Afficherlhorloge1Click(Sender: TObject);
     procedure Codificationdescantons1Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
     procedure Routes1Click(Sender: TObject);
     procedure Codificationdestrains1Click(Sender: TObject);
     procedure Afficheroutespartrain1Click(Sender: TObject);
+    procedure Sauvegarderlaconfiguration1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -415,12 +429,14 @@ titre='Signaux complexes GL ';
 itMaxi=70;            // itérations maxi pour les recherches
 MaxAcc=1024;          // adresse maxi d'accessoire XpressNet (testé à la LH100)
 NbMaxDet=2048;        // indice maximal de détecteurs d'un réseau
+NbDetArret=500;
 Max_Trains=100;       // nombre maximal de train de CDM ou déclarés ou en circulation
 MaxZones=250;         // nombre de zones de détecteurs activés par les trains
 MaxTrainZone=40;      // nombre maximal de trains pour le tableau d'historique des zones
 Mtd=128;              // nombre maxi de détecteurs précédents stockés
 Max_event_det=4000;   // nombre maximal d'évenements détecteurs
 Max_action=100;       // nombre maximal d'actions
+MaxCantons=100;
 Long_tampon_interface=5000;
 Max_actionneurs=2048;
 Maxelements=100;      // nombre maxi d'éléments scannés/réservés
@@ -547,6 +563,10 @@ IconeDeclSignal=23;
 
 
 type
+Tproc=(Ttrouve_actionneurs_aig,TAig_Adj,Tsuivant_alg3,Tindex_signal_det,TAig_ext,Tdet_contigu,Tdet_suiv_cont,Tdet_adj,
+       texplore_branche,Tdet_prec_signal,tdetecteur_suivant_El,ttrouve_actionneur,Tcond_carre,Tcarre_signal,
+       Tsignal_suivant_det,Tetat_signal_suivant,TAiguille_deviee,Ttest_memoire_zones,TSignal_precedent,tPresTrainPrec,
+       Treserve_canton,Tlibere_canton,Treserve_dereserve_det,Texplore_el);
 Tinterface    = (_interface,periph1,periph2);   // interface USB : interface vers centrale, périphérique 1 ou 2
 Taccessoire   = (aigP,signal);             // aiguillage ou signal  pour la procédure pilote_acc
 TEquipement   = (rien,aig,tjd,tjs,triple,det,buttoir,voie,crois,act,sig);   // voie uniquement pour le tco
@@ -586,7 +606,7 @@ Taiguillage = record
 
                 // si modifié en mode config
                 modifie : boolean ;
-                AdrCDM : integer; // adresse de l'aiguillage dans CDM, si c'est une BDJ (bretelle double jonction)
+                AdrCDM : integer; // adresse de l'aiguillage dans CDM, si c'est une BJD (bretelle jonction double)
               end;
 TtabloDet = array[0..MaxParcours] of integer;
 TSignal = record
@@ -674,16 +694,15 @@ Toperation = record
                adresse,
                etat,NumTCO,
                TempoCourante,      // valeur courante de la tempoF
-               vitesse,
-               periph,
+               vitesse,periph,
                fonctionF,TempoF    : integer;
                zero,valide         : boolean;
-               chaine : string;
+               chaine              : string;
                train,traincourant  : string;
               end;
 
 Tcondition = record
-               numcondition    : integer ;
+               numcondition    : integer;
                adresse         : integer;
                vitmini,vitMaxi : integer;
                accessoire,etat : integer;
@@ -692,8 +711,7 @@ Tcondition = record
                train           : string;
 end;
 
-Taction =
-  record
+Taction = record
     // action
     NbCond,NbOperations,declencheur,vitesse,
     heure,minute,NumPeriph,
@@ -704,18 +722,16 @@ Taction =
     TabloOp                 : array of Toperation;
   end;
 
-Tactionneur =
-  record
-    adresse,
-    prox1,prox2 : integer;
+Tactionneur = record
+    adresse,prox1,prox2     : integer;
     NumBranche,IndexBranche : integer;
   end;
 
 TelementRoute=record   // l'index 0 contient le nombre d'éléments
-                    adresse : integer;
-                    typ : tequipement;
-                    pos : integer;
-                    talon : boolean;
+                    adresse : integer;   // adresse de l'élément
+                    typ : tequipement;   // type de l'élément
+                    pos : integer;       // position pour la route si l'élément est un aiguillage
+                    talon : boolean;     // vrai si l'élément est un aiguillage pris en talon pour la route
                     traite : boolean;    // traité ou non par la procédure aig_canton
                   end;
 
@@ -747,7 +763,7 @@ var
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
   AigMal,AncMinute,axFP,ayFP,NbreOperations,NbreDeclencheurs,index_seqAct,NbreConditions,
   SensAig,NbreRoutes,nbreIti,DetAtrouve,DetDepart,iteration,IdActTr,Long_recue,
-  prec1,prec2,Eprec,Esuiv : integer;
+  prec1,prec2,Eprec,Esuiv,param1,param2,param3 : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecInit,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -758,18 +774,24 @@ var
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
   fichier_module_cdm,Diffusion,cdmDevant,serveurIPCDM_Touche,avecAckCDM,
-  sombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN : boolean;
+  sombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN,simuInterface,option_demitour : boolean;
 
   tick,Premier_tick : longint;
 
-  MSCommUSBInterface,MsCommCde1,MsCommCde2 : TMSComm;
+  {$IF CompilerVersion >= 28.0}
+   MSCommUSBInterface, MsCommCde1,MsCommCde2 : tApdComPort;  // objets AsyncPro
+  {$ELSE}
+   MSCommUSBInterface, MsCommCde1,MsCommCde2 : TMSComm;
+  {$IFEND}
 
   CDMhd : THandle;
+
+  proc : Tproc;
 
   FormPrinc: TFormPrinc;
 
   Enregistrement,chaine_Envoi,Id_CDM,Af,version_Interface,entete,suffixe,Lay,
-  CheminProgrammes,cheminWin,fichierAide : string;
+  CheminProgrammesCDM,CheminProgrammes,cheminWin,fichierAide : string;
 
   Ancien_detecteur : array[0..NbMaxDet] of boolean;   // anciens état des détecteurs et adresses des détecteurs et leur état
 
@@ -934,11 +956,14 @@ var
               vitesse : integer;                // vitesse actuelle de pilotage
               sens   : integer;                 // sens de déplacement, stockage provisoire pour restocker dans le tableau canton[]
               compteur_consigne : integer;      // compteur de consigne pour envoyer deux fois la vitesse en 10eme de s
+              // pilotage des trains-------------------
               TempoArret : integer;             // tempo d'arret pour le timer
               TempoArretCour : integer;         // valeur dynamique
               TempoDemarre : integer;           // tempo de démarrage, valeur dynamique
               TempsDemarreSig : integer;        // temps de redémarrage du signal, valeur d'initialisation (fichier de config)
+              TempoArretTemp : integer;         // temps d'arrêt temporisé sur un détecteur
               index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
+              //
               canton : integer ;                // numéro du canton (pas index) sur lequel le train se trouve
               icone : Timage ;
               NomIcone : string;
@@ -949,7 +974,16 @@ var
               // route -----------------------------------
               roulage : integer;                // =1 train en roulage mais arrêté pour réservation par tiers =2 en roulage effectif
               dernierDet : integer;             // dernier détecteur traité
-              route :  TuneRoute;               // tableau de la route
+              cantonOrg,CantonDest : integer;   // cantons origine et destination si route
+              route :  TuneRoute;               // tableau de la route du train
+              PointRout : integer;
+              // cantons sur lesquels le train doit d'arrêter
+              DetecteurArret : array[1..NbDetArret] of record
+                              Prec,             // adresse précédent, pour le sens
+                              detecteur,        // détecteur sur lequel s'arreter si le canton a 2 détecteurs
+                              temps : integer;  // temps d'arrêt en s
+                              TPrec : tEquipement; // aig ou det uniquement
+                             end;
            end;
 
   // éléments scannés et/ou verrouillés
@@ -975,7 +1009,7 @@ var
                     signal_rouge : integer ;      // adresse du signal si le train est arreté sur un signal au rouge (carré sémaphore violet)
                     nom_train : string;           // nom du train
                     suivant : integer;            // suivant prévisionnel à det1 et det2
-                    Det : array[1..2] of record   // tableau des evts détecteurs par train
+                    Det : array[1..3] of record   // tableau des evts détecteurs par train - 1 train peut occuper 2 détecteurs simultanément donc il faut 3 états historique
                        adresse : integer;
                        etat : boolean;
                        end;
@@ -1095,7 +1129,7 @@ procedure interface_ou_cdm;
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
 procedure Event_vitesse(adr: integer ;train : string;vitesse : integer);
 function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : integer;TypeElActuel : TEquipement;algo : integer) : integer ;
-procedure prepare_route(depart,arrivee,sens : integer);
+procedure prepare_route(IndexTCO,cantonOrg,arrivee,sens : integer);
 function route_to_string(tablo : tUneRoute) : string;
 procedure supprime_route_train(idtrain : integer);
 procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer; erreur : boolean);
@@ -1125,7 +1159,7 @@ begin
 end;
 }
 
-// change le style en fonction de Style_aff pour Delphi11 (compilateur>=28)
+// change le style en fonction de Style_aff pour Delphi12 (compilateur>=28)
 // Cette procédure doit être appellée depuis le module principal UnitPrinc sinon exception violation
 procedure change_style;
 var i : integer;
@@ -1233,16 +1267,16 @@ begin
     end;
 
     //affichage de la fenêtre principale
-    show;
-  end;
-end;
+    show;
+  end;
+end;
 
 
 procedure fin_preliminaire;
 var i : integer;
 begin
   {$IF CompilerVersion >= 28.0}
-  // en D11, obligé de positionner la fenêtre principale après avoir fixé le style
+  // en D12, obligé de positionner la fenêtre principale après avoir fixé le style
   positionne_principal;
   {$IFEND}
   calcul_pos_horloge;
@@ -1280,6 +1314,7 @@ end;
 
 // envoi une chaine à un périphérique COM/USB en fonction de l'interface
 // non utilisé
+{
 procedure envoi_usb(interf : Tinterface;s : string);
 begin
   case interf of
@@ -1287,8 +1322,82 @@ begin
     periph1    : MSCommCde1.Output:=s;
     periph2    : MSCommCde2.Output:=s;
   end;
+end;  }
+
+// renvoie une chaine ASCI Hexa affichable à partir d'une chaîne
+function chaine_HEX(s: string) : string;
+var i : integer;
+    sa_hex: string;
+begin
+  sa_hex:='';
+  for i:=1 to length(s) do
+  begin
+    sa_hex:=sa_hex+IntToHex(ord(s[i]),2)+' ';
+  end;
+  chaine_HEX:=sa_hex;
 end;
 
+// Affiche une chaîne en Hexa Ascii
+procedure affiche_chaine_hex(s : string;couleur : Tcolor);
+begin
+  if traceTrames then AfficheDebug(chaine_HEX(s),couleur);
+end;
+
+procedure Affiche(s : string;lacouleur : TColor);
+begin
+  with formprinc do
+  begin
+    FenRich.lines.add(s);
+    RE_ColorLine(FenRich,FenRich.lines.count-1,lacouleur);
+  end;
+end;
+
+procedure Affiche_suivi(s : string;lacouleur : TColor);
+var i : integer;
+begin
+  with formprinc.FenRich do
+  begin
+    i:=lines.Count-1;
+    s:=lines.Strings[i]+s;
+    lines.Strings[i]:=s;
+    RE_ColorLine(Formprinc.FenRich,i,lacouleur);
+  end;
+end;
+
+
+
+// procédures liaisons série com usb ------------------------------------------------
+// envoie une chaine s à un périphérique COM/USB en fonction du composant comp
+// contrôle si le pointeur comp est valide par traitement de l'exception
+{$IF CompilerVersion >= 28.0}
+procedure envoi_usb_comp(comp : tApdComPort;s : variant);
+var i : integer;
+begin
+  if comp=nil then
+  begin
+    Affiche('Erreur 600X: le composant périphérique n''est pas créé',clred);
+    exit;
+  end;
+  try
+    comp.output:=s;
+  except
+    on e : exception do
+    begin
+      Affiche(e.message+' COM'+intToSTR(comp.ComNumber)+': déconnecté. Fermeture du port ',clred);
+      // passe à faux les indicateurs d'ouverture du port
+      if comp=MSCommUSBInterface then portCommOuvert:=false;
+      for i:=1 to NbMaxi_Periph do
+      begin
+        if (tablo_periph[i].numComposant=1) and (comp=MSCommCde1) then tablo_periph[i].portouvert:=false;
+        if (tablo_periph[i].numComposant=2) and (comp=MSCommCde2) then tablo_periph[i].portouvert:=false;
+      end;
+      // ferme le port
+      comp.Open:=false;
+      Formprinc.StatusBar1.Panels[3].Text:='';
+    end;
+  end;
+end;
+{$ELSE}
 // envoie une chaine s à un périphérique COM/USB en fonction du composant comp
 // contrôle si le pointeur comp est valide par traitement de l'exception
 procedure envoi_usb_comp(comp : Tmscomm;s : variant);
@@ -1319,7 +1428,612 @@ begin
     end;
   end;
 end;
+{$IFEND}
 
+{$IF CompilerVersion >= 28.0}
+// envoi la chaîne trameIF à la centrale par USBLenz ou socket, n'attend pas l'ack
+// pour le protole XpressNet (1), on ajoute l'entete et le suffixe dans la trame.
+// ici on envoie pas à CDM
+// la fonction PutBlock nécessite un tableau commençant à 1 et pas à 0
+// avec asyncpro
+procedure envoi_ss_ack(s : string);
+var i,timeout,valto,l : integer;
+    z : array[1..100] of byte;
+begin
+  if simuInterface then exit;
+  // XpressNet
+  s:=entete+s;
+  l:=length(s);
+  for i:=1 to l do z[i]:=byte(ord(s[i]));
+  if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);
+
+  if traceTrames then
+  begin
+    if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);    //XpreeeNet
+    if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+s,ClLime);                //DCC++
+  end;
+
+  // par port com-usb
+  if portCommOuvert then
+  begin
+    if (prot_serie=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
+    begin
+      i:=1;
+      valto:=10;
+      //Affiche('envoi en tenant compte cts',clyellow);
+      repeat
+        timeout:=0;
+        repeat
+          //Application.ProcessMessages;
+          inc(timeout);
+          Sleep(20);
+        until (MSCommUSBInterface.CTS=false) or (timeout>valto);
+
+        if timeout<=valto then
+        begin
+          envoi_usb_comp(MSCommUSBInterface,Ansichar(z[i]));
+          //Affiche(intToSTR(TrameIF[i]),clyellow);
+          inc(i);
+        end;
+      until (i=l+1) or (timeout>valto);
+      Sleep(30);
+      if timeout>valto then affiche('Erreur attente interface trop longue',clred);
+    end;
+
+    // protocole Rts Cts
+    if (prot_serie=2) then
+    begin
+      MSCommUSBInterface.PutBlock(z,l);
+      Sleep(30);    // évite "station occupée"
+      //Sleep(TempoOctet);
+    end;
+
+    // procotole xon xoff ou temporisé
+    if (prot_serie=1) then
+    begin
+      for i:=1 to l do
+      begin
+        envoi_usb_comp(MSCommUSBInterface,AnsiChar(z[i]));
+        //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
+        Sleep(TempoOctet);
+      end;
+      Sleep(30);
+    end;
+
+    // sans protocole sans temporisation
+    if (prot_serie=0) and (TempoOctet=0) then
+    begin
+      MSCommUSBInterface.PutBlock(z,l);
+      Sleep(30);    // évite "station occupée"
+    end;
+
+    // sans procotole avec temporisation
+    if (prot_serie=0) and (TempoOctet<>0) then
+    begin
+      for i:=1 to l do
+      begin
+        envoi_usb_comp(MSCommUSBInterface,AnsiChar(z[i]));       // conversion correcte pour tous les caractères binaires
+        Sleep(TempoOctet);
+      end;
+      Sleep(30);
+    end;
+  end;
+
+  // par socket (ethernet)
+  if parSocketLenz or (etat_init_interface>=11) then
+  begin
+    Formprinc.ClientSocketInterface.Socket.SendBuf(z,l);
+  end;
+end;
+{$ELSE}
+// envoi la chaîne trameIF à la centrale par USBLenz ou socket, n'attend pas l'ack
+// pour le protole XpressNet (1), on ajoute l'entete et le suffixe dans la trame.
+// ici on envoie pas à CDM
+// utilisation de TMSCOMM
+procedure envoi_ss_ack(s : string);
+var i,timeout,valto,l : integer;
+begin
+  if simuInterface then exit;
+
+  s:=entete+s;
+  l:=length(s);
+  Setlength(TrameIF,l);
+  for i:=0 to l-1 do TrameIF[i]:=byte(ord(s[i+1]));
+
+  if traceTrames then
+  begin
+    if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(s),ClLime);    //XpreeeNet
+    if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+s,ClLime);                //DCC++
+  end;
+
+  // par port com-usb
+  if portCommOuvert then
+  begin
+    if (prot_serie=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
+    begin
+      i:=1;
+      valto:=10;
+      //Affiche('envoi en tenant compte cts',clyellow);
+      repeat
+        timeout:=0;
+        repeat
+          //Application.ProcessMessages;
+          inc(timeout);
+          Sleep(20);
+        until (MSCommUSBInterface.CTSHolding=false) or (timeout>valto);
+
+        if timeout<=valto then
+        begin
+          envoi_usb_comp(MSCommUSBInterface,s[i]);
+          //Affiche(intToSTR(TrameIF[i]),clyellow);
+          inc(i);
+        end;
+      until (i>l) or (timeout>valto);
+      Sleep(30);
+      if timeout>valto then affiche('Erreur attente interface trop longue',clred);
+    end;
+
+    // protocole Rts Cts ou avec temporisation entre trames
+    if (prot_serie=2) then
+    begin
+      envoi_usb_comp(MSCommUSBInterface,s);
+      Sleep(30);
+    end;
+
+    // procotole xon xoff ou temporisé
+    if (prot_serie=1) then
+    begin
+      for i:=1 to l do
+      begin
+        envoi_usb_comp(MSCommUSBInterface,s[i]);
+        //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
+        Sleep(TempoOctet);
+      end;
+      Sleep(30);
+    end;
+
+    // sans protocole sans temporisation
+    if (prot_serie=0) and (TempoOctet=0) then
+    begin
+      envoi_usb_comp(MSCommUSBInterface,TrameIF);
+      Sleep(30);    // évite "station occupée"
+    end;
+
+    // sans procotole avec temporisation
+    if (prot_serie=0) and (TempoOctet<>0) then
+    begin
+      for i:=1 to l do
+      begin
+        MSCommUSBInterface.Output:=s[i];
+        //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
+        Sleep(TempoOctet);
+      end;
+      Sleep(30);
+    end;
+  end;
+
+  // par socket (ethernet)
+  if parSocketLenz or (etat_init_interface>=11) then
+  begin
+    Formprinc.ClientSocketInterface.Socket.SendBuf(TrameIF[0],l);
+    Sleep(30);
+  end;
+end;
+{$IFEND}
+
+function test_protocole : boolean;
+var s: string;
+   temp : integer;
+begin
+  //result:=true;
+  //exit; // ####
+  begin
+    if protocole=1 then   // Xpressnet
+    begin
+      s:=#$f0;
+      s:=checksum(s);
+    end;
+    if protocole=2 then s:='<s>';    // dcc++
+
+    application.processMessages;
+    envoi_ss_ack(s);
+    application.processMessages;
+
+    temp:=0;
+    repeat
+      sleep(100);
+      inc(temp);
+      Application.processmessages;
+    until (version_Interface<>'') or (temp>15);
+
+    // result:=true;
+    //      exit;
+
+    if (temp>15) then
+    begin
+      s:=' mais l''interface n''a pas répondu ';
+      if protocole=1 then s:=s+' en XpressNet';
+      if protocole=2 then s:=s+' en DCC++';
+      Affiche_suivi(s,clyellow);
+      portCommOuvert:=false;  // refermer le port
+      result:=false;
+      exit;
+    end
+    else
+
+    begin
+      if length(version_interface)>0 then
+      begin
+        if (version_interface<>'') then
+        begin
+          Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
+          result:=true;
+          exit;
+        end;
+      end;
+      Affiche_suivi(s+' mais l''interface a répondu incorrectement',clyellow);
+      result:=false;
+    end;
+  end;
+end;
+
+{$IF CompilerVersion >= 28.0}
+// connecte un port usb interface avev AsyncPro. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
+// le numéro de port
+// affichage dans panel[3]
+function connecte_port_usb(port : integer) : integer;
+var i,j,nport,vit,Nbits,_StopBits,Parite,erreur : integer;
+    trouve : boolean;
+    s,sc : string;
+begin
+  result:=0;
+  trouve:=false;
+  application.processmessages;
+  if MSCommUSBInterface=nil then
+  begin
+    Affiche('Erreur 6000: le composant interface n''est pas créé',clred);
+    result:=0;
+    exit;
+  end;
+
+  With MSCommUSBInterface do
+  begin
+    //if debug=1 then Affiche('Test port com'+intToSTR(port),clLime);
+    version_interface:='';
+    s:=PortCom;
+    i:=pos(':',s);Delete(s,1,i);
+    val(s,vit,erreur);i:=pos(',',s);delete(s,1,i);
+
+    case s[1] of
+    'n' : parite:=0;
+    end;
+    parite:=0;
+    i:=pos(',',s);delete(s,1,i);
+
+    val(s,nBits,erreur);i:=pos(',',s);delete(s,1,i);
+    val(s,_StopBits,erreur);i:=pos(',',s);delete(s,1,i);
+    val(s,prot_serie,erreur);
+
+    StopBits:=_StopBits;
+    DataBits:=nBits;
+    Parity:=pNone;
+    Baud:=vit;
+    ComNumber:=port;
+
+    case prot_serie of
+    0 : HWFlowOptions:=[]; // aucun, envoi la trame complète
+    1 : HWFlowOptions:=[]; // xon-xoff
+    2 : HWFlowOptions:=[hwfUSERTS,hwfRequireCTS]; // rts-cts
+    3 : HWFlowOptions:=[]; // non utilisé
+    4 : HWFlowOptions:=[]; // controle CTS avant émission :on utilise sans protocole
+    end;
+
+    portCommOuvert:=true;
+    try
+      open:=true;
+    except
+      Affiche('Port COM'+intToSTR(port)+' absent',clOrange);
+      portCommOuvert:=false;
+    end;
+    if protocole=2 then DTR:=false // évite de reset de l'arduino à la connexion
+    else DTR:=True;
+    if prot_serie=4 then RTS:=True //pour la genli
+    else RTS:=false;
+  end;
+
+  if simuInterface then PortCommOuvert:=true;
+
+  if portCommOuvert and not(simuInterface) then
+  begin
+    FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
+    s:='COM'+intToSTR(port)+' ouvert';
+    Affiche(s,clLime);
+    s:='COM'+intToSTR(port)+':'+sc;
+
+    Formprinc.StatusBar1.Panels[3].Text:=s;
+    sleep(1000);
+    trouve:=test_protocole;
+    if not(trouve) then
+    begin
+      portCommOuvert:=false;
+      MSCommUSBInterface.open:=false;
+    end;
+  end;
+  if trouve then result:=port else result:=0;
+end;
+
+
+{$ELSE}
+
+// connecte un port usb interface avec TMSCOMM. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
+// le numéro de port
+// affichage dans panel[3]
+function connecte_port_usb(port : integer) : integer;
+var i,j : integer;
+    trouve : boolean;
+    s,sc : string;
+begin
+  result:=0;
+  trouve:=false;
+  application.processmessages;
+  if MSCommUSBInterface=nil then
+  begin
+    Affiche('Erreur 6000: le composant interface n''est pas créé',clred);
+    result:=0;
+    exit;
+  end;
+
+  With MSCommUSBInterface do
+  begin
+    //if debug=1 then Affiche('Test port com'+intToSTR(port),clLime);
+    version_interface:='';
+    i:=pos(':',portCom);
+    j:=pos(',',PortCom);
+    j:=posEx(',',PortCom,j+1);
+    j:=posEx(',',PortCom,j+1);
+    j:=posEx(',',PortCom,j+1);
+
+    sc:=copy(portCom,i+1,j-i-1);
+    Settings:=sc;   // vitesse,n,8,1
+
+    case prot_serie of
+    0 : Handshaking:=0; // aucun, envoi la trame complète
+    1 : Handshaking:=1; // xon-xoff
+    2 : Handshaking:=2; // rts-cts
+    3 : Handshaking:=0; // non utilisé
+    4 : Handshaking:=0; // controle CTS avant émission :on utilise sans protocole
+    end;
+
+    {HandShaking: 0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+    SThreshold:=1;
+    RThreshold:=1;
+    InputLen:=0;
+    CommPort:=Port;
+    if protocole=2 then DTREnable:=false // évite de reset de l'arduino à la connexion
+    else DTREnable:=True;
+    if prot_serie=4 then RTSEnable:=True //pour la genli
+    else RTSenable:=false;
+    InputMode:=comInputModeBinary;
+  end;
+
+  portCommOuvert:=true;
+  try
+     MSCommUSBInterface.portopen:=true;
+  except
+    portCommOuvert:=false;
+    Affiche('Port COM'+intToSTR(port)+' absent',clOrange);
+  end;
+
+  if simuInterface then PortCommOuvert:=true;
+
+  if portCommOuvert and not(simuInterface) then
+  begin
+    FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
+    s:='COM'+intToSTR(port)+' ouvert';
+    Affiche(s,clLime);
+    s:='COM'+intToSTR(port)+':'+sc;
+
+    Formprinc.StatusBar1.Panels[3].Text:=s;
+    sleep(1000);
+    trouve:=test_protocole;
+    if not(trouve) then
+    begin
+      portCommOuvert:=false;
+      MSCommUSBInterface.portopen:=false;
+    end;
+  end;
+  if trouve then result:=port else result:=0;
+end;
+{$IFEND}
+
+{$IF CompilerVersion >= 28.0}
+// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
+function connecte_usb_periph(index : integer) : boolean;
+var i,j,nc,numport,_vitesse,parite,nbits,stopbits,erreur,prot : integer;
+    s,sc,portComCde : string;
+    com : tApdComPort;
+begin
+  if (index>NbMaxi_Periph) or (index=0) then
+  begin
+    Affiche('Erreur 60 : numéro de périphérique hors limite '+intToSTR(index),clred);
+    exit;
+  end;
+  numport:=Tablo_periph[index].NumCom;
+  if (numport<1) or (numport>255) then
+  begin
+    affiche('Erreur portCom cde acc <0 ou >255',clred);
+    result:=false;
+    exit;
+  end;
+  portComCde:=Tablo_periph[index].protocole;
+
+  nc:=Tablo_periph[index].NumComposant;
+  // voir si le composant est valide
+  if MsCommCde1=nil then
+  begin
+    Affiche('Erreur 6001: le composant périphérique 1 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+  if MsCommCde2=nil then
+  begin
+    Affiche('Erreur 6002: le composant périphérique 2 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+
+  case nc of
+  1 : com:=MSCommCde1;
+  2 : com:=MSCommCde2;
+  end;
+
+  if nc>MaxComUSBPeriph then
+  begin
+    affiche('Le nombre maxi de portCom périphériques est atteint. Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
+    result:=false;
+    exit;
+  end;
+
+  if debug=1 then Affiche('Test port com cde'+intToSTR(port),clLime);
+  i:=pos(':',portComcde);delete(portComcde,1,i);
+  val(PortComCde,_vitesse,erreur);i:=pos(',',PortComcde); delete(s,1,i);
+  val(PortComCde,parite,erreur); i:=pos(',',PortComcde); delete(s,1,i);
+  val(PortComCde,nBits,erreur); i:=posEx(',',PortComcde,j+1); delete(s,1,i);
+  val(PortComCde,StopBits,erreur);i:=posEx(',',PortComcde,j+1); delete(s,1,i);
+  val(PortComCde,prot,erreur);
+
+  if (_vitesse<>300) and (_vitesse<>1200) and (_vitesse<>2400) and (_vitesse<>4800) and (_vitesse<>9600) and
+     (_vitesse<>19200) and (_vitesse<>38400) and (_vitesse<>57600) and (_vitesse<>115200) and (_vitesse<>128000) and (_vitesse<>256000) then
+  begin
+    Affiche('Vitesse périphérique COM'+intToSTR(port)+' ('+intToSTR(_vitesse)+') incorrecte',clred);
+    tablo_periph[index].PortOuvert:=false;
+    result:=false;
+    exit;
+  end;
+
+  tablo_periph[index].PortOuvert:=true;
+  With com do
+  begin
+    Baud:=_vitesse;
+
+    HWFlowOptions:=[]; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+    ComNumber:=numport;
+    DTR:=Tablo_periph[index].dtr;
+    RTS:=Tablo_periph[index].rts;
+  end;
+  try
+    com.open:=true;
+  except
+    tablo_periph[index].PortOuvert:=false;
+  end;
+
+  FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
+
+  if tablo_periph[index].PortOuvert then
+  begin
+    s:='COM'+intToSTR(numport)+':'+sc;
+    Formprinc.StatusBar1.Panels[3].Text:=s;
+  end;
+  result:=tablo_periph[index].PortOuvert;
+end;
+
+{$ELSE}
+
+// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
+function connecte_usb_periph(index : integer) : boolean;
+var i,j,nc,numport,vitesse,erreur : integer;
+    s,sc,portComCde : string;
+    com : TMSComm;
+begin
+  if (index>NbMaxi_Periph) or (index=0) then
+  begin
+    Affiche('Erreur 60 : numéro de périphérique hors limite '+intToSTR(index),clred);
+    exit;
+  end;
+  numport:=Tablo_periph[index].NumCom;
+  if (numport<1) or (numport>255) then
+  begin
+    affiche('Erreur portCom cde acc <0 ou >255',clred);
+    result:=false;
+    exit;
+  end;
+  portComCde:=Tablo_periph[index].protocole;
+
+  nc:=Tablo_periph[index].NumComposant;
+  // voir si le composant est valide
+  if MsCommCde1=nil then
+  begin
+    Affiche('Erreur 6001: le composant périphérique 1 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+  if MsCommCde2=nil then
+  begin
+    Affiche('Erreur 6002: le composant périphérique 2 n''est pas créé',clred);
+    result:=false;
+    exit;
+  end;
+
+  case nc of
+  1 : com:=MSCommCde1;
+  2 : com:=MSCommCde2;
+  end;
+
+  if nc>MaxComUSBPeriph then
+  begin
+    affiche('Le nombre maxi de portCom périphériques est atteint. Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
+    result:=false;
+    exit;
+  end;
+
+  if debug=1 then Affiche('Test port com cde'+intToSTR(port),clLime);
+  i:=pos(':',portComcde);
+  j:=pos(',',PortComcde);
+  j:=posEx(',',PortComcde,j+1);
+  j:=posEx(',',PortComcde,j+1);
+
+  sc:=copy(portComCde,i+1,j-i+1);
+  val(sc,vitesse,erreur);
+  if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
+     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
+  begin
+    Affiche('Vitesse périphérique COM'+intToSTR(port)+' ('+intToSTR(vitesse)+') incorrecte',clred);
+    tablo_periph[index].PortOuvert:=false;
+    result:=false;
+    exit;
+  end;
+
+  tablo_periph[index].PortOuvert:=true;
+  With com do
+  begin
+    Settings:=sc;   // vitesse,n,8,1
+    Handshaking:=0; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
+    SThreshold:=1;
+    RThreshold:=1;
+    InputLen:=0;
+    CommPort:=numport;
+    DTREnable:=Tablo_periph[index].dtr;
+    RTSEnable:=Tablo_periph[index].rts;
+
+    InputMode:=comInputModeBinary;
+
+  end;
+  try
+    com.portopen:=true;
+  except
+    tablo_periph[index].PortOuvert:=false;
+  end;
+
+  FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
+
+  if tablo_periph[index].PortOuvert then
+  begin
+    s:='COM'+intToSTR(numport)+':'+sc;
+    Formprinc.StatusBar1.Panels[3].Text:=s;
+  end;
+  result:=tablo_periph[index].PortOuvert;
+end;
+{$IFEND}
 
 procedure procetape(s : string);
 begin
@@ -2575,26 +3289,6 @@ begin
   end;
 end;
 
-procedure Affiche(s : string;lacouleur : TColor);
-begin
-  with formprinc do
-  begin
-    FenRich.lines.add(s);
-    RE_ColorLine(FenRich,FenRich.lines.count-1,lacouleur);
-  end;
-end;
-
-procedure Affiche_suivi(s : string;lacouleur : TColor);
-var i : integer;
-begin
-  with formprinc.FenRich do
-  begin
-    i:=lines.Count-1;
-    s:=lines.Strings[i]+s;
-    lines.Strings[i]:=s;
-    RE_ColorLine(Formprinc.FenRich,i,lacouleur);
-  end;
-end;
 
 // affiche un texte contenu dans une chaine avec plusieurs CR, et le découpe à l'affichage.
 procedure Affiche_CR(s: string;lacouleur : Tcolor);
@@ -2972,118 +3666,19 @@ begin
 end;
 
 
-// renvoie une chaine ASCI Hexa affichable à partir d'une chaîne
-function chaine_HEX(s: string) : string;
-var i : integer;
-    sa_hex: string;
-begin
-  sa_hex:='';
-  for i:=1 to length(s) do
-  begin
-    sa_hex:=sa_hex+IntToHex(ord(s[i]),2)+' ';
-  end;
-  chaine_HEX:=sa_hex;
-end;
-
-// Affiche une chaîne en Hexa Ascii
-procedure affiche_chaine_hex(s : string;couleur : Tcolor);
-begin
-  if traceTrames then AfficheDebug(chaine_HEX(s),couleur);
-end;
-
 // temporisation en x 100 ms (0,1 s)
 procedure Tempo(ValTemps : integer);
+var i : longint;
 begin
   temps:=Valtemps;
+  i:=0;
   repeat
+    inc(i);
     Application.ProcessMessages;
-  until (temps<=0);
+  until (temps<=0) or (i>1000000);
+  if i>1000000 then Affiche('Erreur temporisation',clred);
 end;
 
-
-// envoi la chaîne trameIF à la centrale par USBLenz ou socket, n'attend pas l'ack
-// pour le protole XpressNet (1), on ajoute l'entete et le suffixe dans la trame.
-// ici on envoie pas à CDM
-procedure envoi_ss_ack(s : string);
-var i,timeout,valto,l1,l2,l : integer;
-begin
-  // XpressNet
-  if (protocole=1) then
-  begin
-    entete:=entete;
-    l1:=length(entete);
-    l2:=length(s);
-    l:=l1+l2;
-    Setlength(TrameIF,l);
-    for i:=0 to l1-1 do trameIF[i]:=ord(entete[i+1]);
-    for i:=0 to l2-1 do
-    begin
-      TrameIF[i+l1]:=byte(ord(s[i+1]));
-    end;
-
-    if traceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+chaine_Hex(entete+s),ClLime);
-  end;
-  // DCC++
-  if (protocole=2) and TraceTrames then AfficheDebug('Tick='+IntToSTR(tick)+'/Env '+s,ClLime);
-
-  // par port com-usb
-  if portCommOuvert then
-  begin
-    if (prot_serie=4) then // le protocole 4 contrôle simplement la ligne CTS avant de transmettre et temporise octet par octet
-    begin
-      i:=0;
-      valto:=10;
-      //Affiche('envoi en tenant compte cts',clyellow);
-      repeat
-        timeout:=0;
-        repeat
-          //Application.ProcessMessages;
-          inc(timeout);
-          Sleep(20);
-        until (MSCommUSBInterface.CTSHolding=false) or (timeout>valto);
-
-        if timeout<=valto then
-        begin
-          envoi_usb_comp(MSCommUSBInterface,char(TrameIF[i]));
-          //Affiche(intToSTR(TrameIF[i]),clyellow);
-          inc(i);
-        end;
-      until (i=l) or (timeout>valto);
-      if timeout>valto then affiche('Erreur attente interface trop longue',clred);
-    end;
-
-    // protocole Rts Cts ou avec temporisation entre trames
-    if (prot_serie=2) or (tempoOctet=0) then
-    begin
-      envoi_usb_comp(MSCommUSBInterface,s);
-      Sleep(TempoOctet);
-    end;
-
-    // procotole xon xoff ou temporisé
-    if (prot_serie=1) or (prot_serie=3) then
-    begin
-      for i:=0 to l-1 do
-      begin
-        envoi_usb_comp(MSCommUSBInterface,char(TrameIF[i]));
-        //Affiche(s[i],clyellow);// else Affiche(chaine_hex(s[i]),clyellow);
-        Sleep(TempoOctet);
-      end;
-    end;
-    // temporisé entre trames
-    if (prot_serie=0) then
-    begin
-      envoi_usb_comp(MSCommUSBInterface,TrameIF);
-      Sleep(TempoOctet);
-    end;
-  end;
-
-  // par socket (ethernet)
-  if parSocketLenz or (etat_init_interface>=11) then
-  begin
-    Formprinc.ClientSocketInterface.Socket.SendBuf(TrameIF[0],l);
-    Sleep(TempoOctet);
-  end;
-end;
 
 // envoi d'une chaîne à l'interface par USB ou socket, puis attend l'ack ou le nack
 function envoi(s : string) : boolean;
@@ -3475,7 +4070,7 @@ var s : string;
 begin
   if not(hors_tension) and ((portCommOuvert or parSocketLenz)) then
   begin
-    //Affiche('vitesse train '+inttostr(adr_loco)+' '+inttostr(vitesse),clLime);
+    if not(Diffusion) then Affiche('Vitesse train @'+inttostr(adr_loco)+'='+inttostr(vitesse),clLime);
 
     // mettre à jour la trackBar si le train sélectionné=editAdrTrain
     val(Formprinc.EditAdrTrain.Text,v,erreur);
@@ -6007,11 +6602,42 @@ begin
   end;
 end;
 
+function quelle_procedure(var n : integer) : string;
+begin
+  n:=0;
+  case proc of
+    Ttrouve_actionneurs_aig : begin n:=2;result:='trouve_actionneurs_aig';end;
+    TAig_Adj : begin n:=3;result:='Aig_Adj';end;
+    Tsuivant_alg3 : begin n:=2;result:='suivant_alg3';end;
+    Tindex_signal_det : begin n:=1;result:='Tindex_signal_det';end;
+    TAig_ext : begin n:=1;result:='AigExt';end;
+    Tdet_contigu : begin n:=2;result:='det_contigu';end;
+    tdet_suiv_cont : begin n:=2;result:='det_suiv_cont';end;
+    tdet_adj : begin n:=1;result:='det_adj';end;
+    texplore_branche : begin n:=2;result:='explore_branche';end;
+    Tdet_prec_signal : begin n:=1;result:='det_prec_signal';end;
+    Tdetecteur_suivant_El : begin n:=2;result:='detecteur_suivant_El';end;
+    Ttrouve_actionneur : begin n:=2;result:='trouve_actionneur';end;
+    Tcond_carre : begin n:=1;result:='cond_carre';end;
+    Tcarre_signal : begin n:=2;result:='carre_signal';end;
+    Tsignal_suivant_det : begin n:=2;result:='signal_suivant_det';end;
+    Tetat_signal_suivant : begin n:=2;result:='etat_signal_suivant';end;
+    TAiguille_deviee : begin n:=1;result:='Aiguille_deviee';end;
+    Ttest_memoire_zones : begin n:=1;result:='test_memoire_zones';end;
+    TSignal_precedent : begin n:=1;result:='Signal_precedent';end;
+    TPresTrainPrec : begin n:=2;result:='PresTrainPrec';end;
+    Treserve_canton : begin n:=3;result:='reserve_canton';end;
+    Tlibere_canton : begin n:=2;result:='libere_canton';end;
+    Treserve_dereserve_det : begin n:=3;result:='reserve_dereserve_det';end;
+    Texplore_el : begin n:=2;result:='explore_el';end;
+  else result:='';
+  end;
+end;
 
 // trouve un élément en balayant les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
 // explore les branches
-// si une branche preférée est choisie, elle est non nulle. 
+// si une branche preférée est choisie, elle est non nulle.
 // erreur=true affiche le message d'erreur
 // si pas trouvé, Branche_trouve=0 IndexBranche_trouve=0
 procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref : integer;erreur : boolean);
@@ -6045,15 +6671,15 @@ begin
     branche_trouve:=Branche;
     IndexBranche_trouve:=i-1;
   end
-  else begin 
+  else begin
          branche_trouve:=0; IndexBranche_trouve:=0;
          if erreur then
          begin
            s:='Erreur 175 : élément '+intToSTR(el)+' ';
            s:=s+BTypeToChaine(TypeEl);
-           s:=s+' non trouvé';Affiche(s,clred);          
+           s:=s+' non trouvé';Affiche(s,clred);
            AfficheDebug(s,clred);
-         end;  
+         end;
        end;
   if debug=3 then formprinc.Caption:='';
 end;
@@ -6065,6 +6691,7 @@ end;
 // si branche_Pref<>0 : recherche un aig sur la branche_Pref
 procedure trouve_element(el: integer; TypeEl : TEquipement;Branche_pref : integer;erreur : boolean); overload;
 var s : string;
+    n,i : integer;
 begin
   if debug=3 then formprinc.Caption:='Trouve_element '+IntToSTR(el);
 
@@ -6073,7 +6700,17 @@ begin
 
   if el>NbMaxDet then
   begin
-    s:='Erreur 80 : trouve_element el='+inttoStr(el);
+    s:='Erreur 80 : trouve_element='+inttoStr(el)+' : '+quelle_procedure(n)+'(';
+    for i:=1 to n do
+    begin
+      case i of
+      1: s:=s+intToSTR(param1);
+      2: s:=s+','+intToSTR(param2);
+      3: s:=s+','+intToSTR(param3);
+      end;
+    end;
+    s:=s+')';
+
     Affiche(s,clred);
     AfficheDebug(s,clred);
     exit;
@@ -6110,7 +6747,6 @@ begin
     indexBranche_trouve:=actionneur[el].IndexBranche;
   end;
 
-
   //Affiche_Suivi(intToSTR(el),clred);
 
   if IndexBranche_trouve=0 then
@@ -6122,7 +6758,7 @@ begin
       s:=s+BTypeToChaine(TypeEl);
       s:=s+' non trouvé dans les branches';Affiche(s,clred);
       AfficheDebug(s,clred);
-    end;  
+    end;
   end;
   if debug=3 then formprinc.Caption:='';
 end;
@@ -6131,7 +6767,6 @@ procedure trouve_element(el: integer; TypeEl : TEquipement); overload;
 begin
   trouve_element(el,TypeEl,0,true);
 end;
-
 
 // trouve actionneur_aig
 // trouve les actionneurs de l'aiguillage "index" au suivant (qui peut être un détecteur ou un aig)
@@ -6142,15 +6777,17 @@ var i,adrAig,indexBranche_aig,branche_trouve_aig,indexBranche_Suiv,branche_trouv
     typ : tequipement;
     s : string;
 begin
+  proc:=Ttrouve_actionneurs_aig;
+  param1:=index;
+  param2:=suivant;
   adrAig:=aiguillage[index].Adresse;
   typ:=aiguillage[index].modele;
-  if (nivDebug=3) or procPrinc then AfficheDebug('trouve_actionneurs_aig '+intToSTR(adrAig)+' '+intToSTR(suivant),clCyan);
+  if (nivDebug=3) then AfficheDebug('trouve_actionneurs_aig '+intToSTR(adrAig)+' '+intToSTR(suivant),clCyan);
   if suivant=0 then  // possible sur buttoir
   begin
     exit;
   end;
 
-  
   // si suivant est un détecteur la recherche de l'aig se fera dans la même branche
   if tSuiv=det then
   begin
@@ -6185,13 +6822,11 @@ begin
     indexBranche_aig:=IndexBranche_trouve;
     branche_trouve_aig:=branche_trouve;
   end
-
   else
-
   // si le suivant est un aiguillage
   if tSuiv=aig then
   begin
-    if nivDebug=3 then AfficheDebug('SuivAig',clred);
+    // if nivDebug=3 then AfficheDebug('SuivAig',clred);
     // vérifier que si index est une TJD 4 états, et vérifier la contiguité avec suivant
     if (aiguillage[index].EtatTJD=4) and (aiguillage[index].modele=tjd) then
     begin
@@ -6201,13 +6836,13 @@ begin
         AdrAig:=aiguillage[index].Adresse;
         if (aiguillage[index].ADroit<>suivant) and (aiguillage[index].ADevie<>suivant) then
         begin
-          s:='Erreur 68 - Appel proc trouve_actionneurs_aig a échoué : '+intToSTR(adrAig)+' '+intToSTR(suivant)+' : éléments non contigus';
+          s:='Erreur 68 - proc trouve_actionneurs_aig a échoué : '+intToSTR(adrAig)+' '+intToSTR(suivant)+' : éléments non contigus';
           Affiche(s,clred);
           AfficheDebug(s,Clred);
         end;
       end;
     end;
-    
+
     suivant_alg3(adraig,typ,suivant,tsuiv,1);
     if nivDebug=3 then AfficheDebug('FinProc trouve_actionneurs',clCyan);
     exit;
@@ -6251,6 +6886,10 @@ var Branche,IndexBranche,i : integer;
     Bt : TEquipement;
     s : string;
 begin
+  proc:=TAig_Adj;
+  param1:=adresse;
+  param2:=adr1;
+  param3:=adr2;
   trouve_element(adresse,det); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
   begin
@@ -6276,9 +6915,7 @@ begin
     sortie:=bt=aig;
   until (i=0) or (bt=aig);
   adr2:=brancheN[branche,i+1].Adresse;
-
 end;
-
 
 // renvoie l'élément suivant des deux éléments dans le sens (prec,typeElprec) -> (actuel,typeElActuel) quels qu'ils soient mais contigus
 // *** attention, si les éléments ne sont pas contigus, le résultat est erroné!!! ***
@@ -6313,6 +6950,9 @@ var  Adr,AdrPrec,indexBranche_prec,branche_trouve_prec,indexBranche_actuel,branc
 label recommence;
 begin
   n_iteration:=0;
+  proc:=Tsuivant_alg3;
+  param1:=prec;
+  param2:=actuel;
 
   recommence:
   if (TypeELPrec=rien) or (typeElActuel=rien) then
@@ -6954,7 +7594,7 @@ begin
           suivant_alg3:=adr;
           Actuel:=aiguillage[index2].Adresse; // substitution de la TJS
           if nivDebug=3 then Affichedebug('A. le port de destination de la tjd/s est '+IntToSTR(adr)+a,clyellow);
-          trouve_actionneurs_aig(index,adr,TypeGenS); 
+          trouve_actionneurs_aig(index,adr,TypeGenS);
           typeGen:=TypeGenS;
           exit;
         end;
@@ -7403,6 +8043,8 @@ procedure index_signal_det(adr : integer;var voie1,index1,voie2,index2 : integer
 var trouve,i : integer;
     trouve1,trouve2,trouve3,trouve4 : boolean;
 begin
+  proc:=Tindex_signal_det;
+  param1:=adr;
   i:=1;
   trouve:=0;
   index2:=0;
@@ -7445,6 +8087,8 @@ procedure aig_ext(adr : integer ; connect : char;var suiv : integer;var typ_suiv
 var i : integer;
     typ : TEquipement;
 begin
+  proc:=TAig_ext;
+  param1:=adr;
   i:=index_aig(adr);
   typ:=aiguillage[i].modele;
 
@@ -7700,6 +8344,9 @@ var suiv1,indexBranche_det1,indexBranche_det2,branche_det2,branche_det1,
 
 
 begin
+  proc:=Tdet_contigu;
+  param1:=det1;
+  param2:=det2;
   // trouver les éléments du précédent
   if debug=3 then formprinc.Caption:='Det_contigu '+intToSTR(det1)+' '+intToSTr(det2);
   if NivDebug=3 then afdeb:=true else afdeb:=false;
@@ -7824,6 +8471,9 @@ function det_suiv_cont(det1,det2,alg : integer) : integer;
 var dernier: integer;
     derniertyp : Tequipement;
 begin
+  proc:=Tdet_suiv_cont;
+  param1:=det1;
+  param2:=det2;
   // si un aiguilage est entre det1 et det2 renvoie l'aig, sinon renvoie det1 si det1 et det2 sont contigus
   det_contigu(det1,det2,dernier,dernierTyp);
   if (dernier<>0) and (dernier<>9999) then
@@ -7845,6 +8495,8 @@ var ia,Adr,AdrFonc,Branche,AdrPrec,IndexBranche,i,Dir,delta : integer;
     BtypeFonc,BtypePrec : TEquipement;
     s : string;
 begin
+  proc:=Tdet_adj;
+  param1:=Adresse;
   trouve_element(adresse,det); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
   begin
@@ -7909,8 +8561,6 @@ begin
   until dir=3;
 end;
 
-
-
 // explore les connexions d'un aiguillage - récursif
 // prec : élément d'entrée de l'aiguillage, adrAig : adresse de l'aiguillage
 // remplit le tableau des détecteurs tabloDet contigus à tous les aiguillages , quelles que soient leurs positions
@@ -7921,6 +8571,9 @@ var i,i2,el1,el2,erreur : integer;
     c: char;
     typ,tq1,tq2 : tEquipement;
 begin
+  Proc:=texplore_branche;
+  param1:=prec;
+  param2:=AdrAig;
   result:=true;
     inc(it);
     erreur:=0;
@@ -8501,6 +9154,8 @@ procedure det_prec_signal(adresse : integer;var tabloDet : TTabloDet);
 var el1,el2,i,index,it,voie,Nparcours,IdParcours : integer;
     tq1,tq2 : tEquipement;
 begin
+  proc:=Tdet_prec_signal;
+  param1:=adresse;
   // trouver éléments avant le signal
   for i:=1 to MaxParcours do tabloDet[i]:=0;
   i:=index_signal(adresse);
@@ -8580,6 +9235,9 @@ var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,
     label reprise;
 
 begin
+  proc:=Tdetecteur_suivant_El;
+  param1:=el1;
+  param2:=el2;
   if debug=3 then formprinc.Caption:='Detecteur_suivant_el '+intToSTR(el1)+' '+intToSTR(el2);
   if NivDebug>=2 then
   AfficheDebug('Proc Detecteur_suivant_EL '+intToSTR(el1)+','+BTypeToChaine(Typedet1)+'/'+intToSTR(el2)+','+BTypeToChaine(Typedet2)+'-------------------------',clLime);
@@ -8596,36 +9254,6 @@ begin
     exit;
   end;
 
-  if typeDet1=buttoir then
-  begin
-    // inverser det1 et det2 pour qu'on parte du détecteur en det1
-    //mais ne marche pas...
-    j:=el1;
-    typePrec:=Typedet1;
-
-    el1:=el2;
-    typedet1:=typedet2;
-
-    el2:=j;
-    typeDet2:=TypePrec;
-  end;
-
-
-  // trouver détecteur 1
-  trouve_element(el1,Typedet1); // branche_trouve  IndexBranche_trouve
-  if (IndexBranche_trouve=0) then
-  begin
-    if NivDebug=3 then
-    begin
-      s:='611. '+IntToSTR(el1)+' non trouvé';
-      AfficheDebug(s,clOrange);
-    end;
-    detecteur_suivant_El:=9999;
-    exit;
-  end;
-  IndexBranche_det1:=IndexBranche_trouve;
-  branche_trouve_det1:=branche_trouve;
-
   // trouver détecteur 2
   trouve_element(el2,Typedet2); // branche_trouve  IndexBranche_trouve
   if (IndexBranche_trouve=0) then
@@ -8638,9 +9266,67 @@ begin
     end;
     detecteur_suivant_El:=9999;exit;
   end;
-
   IndexBranche_det2:=IndexBranche_trouve;
   branche_trouve_det2:=branche_trouve;
+  
+  if el1=0 then
+  begin
+    typeDet1:=buttoir;
+    //trouver l'index du buttoir de det2
+    j:=1;
+    repeat
+      //préparer les variables
+      AdrPrec:=el1;TypePrec:=typeDet1;
+      IdActTr:=0;   // init pointeur des actionneurs
+
+      // sens
+      delta:=1;
+      repeat
+        if j=1 then i1:=IndexBranche_det2+delta;
+        if j=2 then i1:=IndexBranche_det2-delta;
+
+        if i1=0 then begin result:=9999;exit;end;
+
+        AdrFonc:=BrancheN[branche_trouve_det2,i1].adresse;
+        typeFonc:=BrancheN[branche_trouve_det2,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+        elements[idEl].typ:=TypeFonc;
+        sortie:=typefonc=buttoir;
+        inc(delta);
+      until (sortie) or (TypeFonc=rien) ;
+      inc(j);
+    until (j=3) or sortie; 
+    if sortie then
+    begin
+      IndexBranche_det1:=i1;
+      Branche_trouve_det1:=Branche_trouve_det2;
+    end
+    else 
+    begin  
+      result:=9999;
+      exit;
+    end;
+  end;
+
+  // trouver détecteur 1
+  if el1<>0 then
+  begin
+    trouve_element(el1,Typedet1); // branche_trouve  IndexBranche_trouve
+    if (IndexBranche_trouve=0) then
+    begin
+      if NivDebug=3 then
+      begin
+        s:='611. '+IntToSTR(el1)+' non trouvé';
+        AfficheDebug(s,clOrange);
+      end;
+      detecteur_suivant_El:=9999;
+      exit;
+    end;
+    IndexBranche_det1:=IndexBranche_trouve;
+    branche_trouve_det1:=branche_trouve;
+  end;
+  
+
   j:=1;  // J=1 test en incrément J=2 test en décrément
   idEl:=1;
   // étape 1 : trouver le sens de progression (en incrément ou en décrément)
@@ -8656,13 +9342,17 @@ begin
     repeat
       if j=1 then i1:=IndexBranche_det1+delta;
       if j=2 then i1:=IndexBranche_det1-delta;
-      if i1=0 then begin result:=9999;exit;end;
 
-      AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
-      typeFonc:=BrancheN[branche_trouve_det1,i1].Btype;
-      elements[idEl].adresse:=adrFonc;
-      elements[idEl].typ:=TypeFonc;
-      inc(delta);
+      if IndexBranche_det1<>0 then
+      begin
+        if i1=0 then begin result:=9999;exit;end;
+
+        AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
+        typeFonc:=BrancheN[branche_trouve_det1,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+        elements[idEl].typ:=TypeFonc;
+        inc(delta);
+      end;
     until typeFonc<>act ;
 
     AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
@@ -8793,6 +9483,9 @@ var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,
     label reprise;
 
 begin
+  proc:=ttrouve_actionneur;
+  param1:=el1;
+  param2:=el2;
   if NivDebug>=2 then
   AfficheDebug('trouve_actionneur '+intToSTR(el1)+','+intToSTR(el2)+','+'-------------------------',clLime);
   if (el1>9000) or (el2>9000) then
@@ -9169,6 +9862,8 @@ var i,l,k,NCondCarre,adrAig,index : integer;
     resultatET,resultatOU: boolean;
     s : string;
 begin
+  proc:=Tcond_carre;
+  param1:=adresse;
   i:=Index_Signal(adresse);
   if i=0 then
   begin
@@ -9227,6 +9922,9 @@ var
    sort,prestrain  : boolean;
    s : string;
 begin
+  proc:=Tcarre_signal;
+  param1:=adresse;
+  param2:=TrainReserve;
   AdrTrain:=0;
   ReserveTrainTiers:=false;
   if (NivDebug>=1) or ProcPrinc then AfficheDebug('Proc carre_signal '+IntToSTR(adresse)+' -----------',clyellow);
@@ -9446,6 +10144,9 @@ var num_signal,AdrSignal,i,j,prec,AdrSuiv,indexSig1,indexSig2,voie1,voie2,ia : i
     Typ,TypePrec,TypeActuel : TEquipement;
     s : string;
 begin
+  proc:=tsignal_suivant_det;
+  param1:=det1;
+  param2:=det2;
   //traceDet:=true;
   if (NivDebug>=2) or ProcPrinc then AfficheDebug('Cherche signal suivant au détecteurs '+IntToSTR(det1)+' '+intToSTR(det2),clyellow);
 
@@ -9618,6 +10319,9 @@ var index,num_signal,etat,AdrSignal,i,j,prec,AdrSuiv,indexSig1,indexSig2,voie1,v
     TypePrec,TypeActuel,typ : TEquipement;
     s : string;
 begin
+  proc:=Tetat_signal_suivant;
+  param1:=adresse;
+  param2:=rang;
   if ProcPrinc or (NivDebug>=2) then AfficheDebug('Cherche état du signal suivant au '+IntToSTR(adresse),clyellow);
   i:=Index_Signal(adresse);
   if (i=0) then
@@ -9815,6 +10519,8 @@ var AdrSignal,i,j,prec,AdrSuiv,Actuel,index,indexSig1,indexSig2,voie1,voie2,ia :
    TypePrec,TypeActuel : TEquipement;
     s : string;
 begin
+  proc:=TAiguille_deviee;
+  param1:=adresse;
   if NivDebug>=2 then AfficheDebug('Test si aiguille déviée après signal '+IntToSTR(Adresse),clOrange);
   j:=0;
   i:=Index_Signal(adresse);
@@ -9989,6 +10695,8 @@ var
   Pres_train : boolean;
   s : string;
 begin
+  proc:=Ttest_memoire_zones;
+  param1:=adresse;
   if NivDebug>=1 then AfficheDebug('Proc test_memoire_zones('+intToSTR(adresse)+')',clyellow);
   i:=Index_Signal(adresse);
   if (i=0) then
@@ -10230,6 +10938,8 @@ var
   malpositionne : boolean;
   s : string;
 begin
+  proc:=TSignal_precedent;
+  param1:=adresse;
   if debug=3 then formprinc.Caption:='Signal_precedent '+IntToSTR(adresse);
   if NivDebug>=1 then AfficheDebug('Proc Signal_Precedent'+intToSTR(adresse)+')',clyellow);
   i:=Index_Signal(adresse);
@@ -10393,6 +11103,9 @@ var
   Pres_train,malpositionne,etat,etatDet,EtatZone,tcanton : boolean;
   s : string;
 begin
+  proc:=TPresTrainPrec;
+  param1:=adresse;
+  param2:=NbCtSig;
   AdrTr:=0;
   if (debug=3) or ProcPrinc then formprinc.Caption:='PresTrainPrec '+IntToSTR(adresse);
   if NivDebug>=1 then
@@ -10643,7 +11356,7 @@ begin
   else result:=testbit(etat,semaphore) or testbit(etat,carre) or testbit(etat,violet);
 end;
 
-// apellée en fin de mise à jour signal
+// appelée en fin de mise à jour signal
 procedure fin_maj_signal(AdrSignal : integer);
 var index,etat,adr_Det : integer;
 
@@ -11162,6 +11875,10 @@ var nc,AdrSig,i,j,etat,etatSuiv,AdrSignalsuivant,TrainExistant : integer;
     typ : tEquipement;
     s : string;
 begin
+  proc:=treserve_canton;
+  param1:=detecteur1;
+  param2:=detecteur2;
+  param3:=adrTrain;
   result:=0;
   if not(roulage) then exit;
   if (detecteur1=0) then
@@ -11377,6 +12094,9 @@ var sd2,i,j: integer;
     typ : tEquipement;
 begin
   if not(roulage) then exit;
+  proc:=Tlibere_canton;
+  param1:=detecteur1;
+  param2:=detecteur2;
   if traceliste or ProcPrinc or affres then
   affiche('Libère_canton '+intToSTR(detecteur1)+' '+intToSTR(detecteur2),clLime);
   if ProcPrinc or traceListe then AfficheDebug('Libère_Canton '+intToSTR(detecteur1)+' '+intToSTR(detecteur2),clLime);
@@ -11435,6 +12155,10 @@ var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,
     label reprise;
 begin
   s:='Reserve_dereserve_det '+intToSTR(det1)+' '+intToSTR(det2)+' pour train ';
+  proc:=Treserve_dereserve_det;
+  param1:=det1;
+  param1:=det2;
+  param3:=adrtrain;
   if roulage then s:=s+'@'+intToSTR(adrtrain);
   if traceliste or ProcPrinc then afficheDebug(s,clorange);
   if affRes then Affiche(s,ClOrange);
@@ -11627,15 +12351,8 @@ begin
   if debug=3 then formprinc.Caption:='';
 end;
 
-// renvoie vrai si le signal est dans le bon sens suivant le marquage du sens du detecteur
-{
-function signal_sens(IndexSignal,AdrDet : integer) : boolean;
-begin
-  result:=signaux[indexSignal].Adr_det1=detecteur[AdrDet].suivant;
-end;
-}
-
 // pilote le train sur le détecteur det2, d'adresse adrtrain
+// appelé depuis calcul_zones sur détecteur à 1 (sauf pour le 1er du train)
 // le det1 indique d'ou vient le train pour le bon sens du signal
 // det2 est le détecteur sur lequel se trouve le train
 // le train est piloté si on trouve un signal dans le bon sens sur det2
@@ -11648,8 +12365,8 @@ var entree_signal,jauneC,rappel30C,rappel60C,rouge : boolean;
     s,nomTrain : string;
 begin
   if not(roulage) or (adrtrain=0) then exit;
-  Affiche('Pilote train '+intToSTR(det1)+' '+intToSTR(det2),clYellow);
-
+  if not(diffusion) then Affiche('Pilote train '+intToSTR(det1)+' '+intToSTR(det2),clYellow);
+  if ProcPrinc then AfficheDebug('Pilote_train '+intToSTR(det1)+' '+intToSTR(det2)+' '+intToSTR(AdrTrain),clWhite);
   index_train:=index_train_adresse(adrTrain);  // index du tableau trains
   nomTrain:=trains[Index_train].nom_train;
   i2:=((it-1) mod NbCouleurTrain) +1;
@@ -11662,11 +12379,14 @@ begin
     s:='Fin de route '+nomTrain+' - Arrêt train ';
     if traceListe then AfficheDebug(s,couleur);
     Affiche(s,couleur);
+    trains[index_train].roulage:=0; // évite le démarrage du train s'il s'arrête sur un detecteur avec demade d'arret temporisé.
     //event_det_train[it].signal_rouge:=adresse;
-    //Affiche('*************AAAAAAAAAAAaaaaaaaaret train',clred);
+    //Affiche('*************Arret train',clred);
     if (index_train<>0) and (index_train<Max_Trains) then trains[index_train].TempoArret:=50;
+    supprime_route_train(index_train);
     exit;
   end;
+
 
 //  i:=index_signal_det(det2,voie,i2); // index du signal associé au det2  j:=signal_detecteur(det3);
 
@@ -11830,7 +12550,10 @@ begin
   end;
 
   // désaffecter les cantons
-  l:=trains[idTrain].canton;
+  l:=trains[idTrain].CantonDest;
+  trains[idTrain].cantonDest:=0;    // désaffecte le canton du train
+  trains[idTrain].cantonOrg:=0;
+
   if l>0 then
   begin
     l:=index_canton_numero(l);
@@ -11887,68 +12610,66 @@ var finroute,trouve : boolean;
     j,n,detect : integer;
     t : tequipement;
 begin
+  if trains[idTrain].TempoArretTemp<>0 then 
+  begin
+    trains[idTrain].TempoDemarre:=trains[idTrain].TempoArretTemp;
+    trains[idTrain].TempoArretTemp:=0;
+  end;  
+
   if not(roulage) then exit;
   //Affiche('Maj Route det '+intToSTR(detect),clWhite);
-    finroute:=false;
-    trouve:=false;
+  finroute:=false;
+  trouve:=false;
+  begin
+    with trains[idTrain] do
     begin
-      with trains[idTrain] do
+      detect:=dernierDet;
+      if roulage<>0 then
       begin
-        detect:=dernierDet;
-        if roulage<>0 then
+        n:=route[0].adresse;
+        j:=0;
+        repeat
+          inc(j);
+        until (j>n) or (route[j].traite=false);
+        if (j>n) and (route[n].adresse=detect) then
         begin
-          n:=route[0].adresse;
-          j:=0;
-          repeat
-            inc(j);
-          until (j>n) or (route[j].traite=false);
-          if (j>n) and (route[n].adresse=detect) then
+          //Affiche('Route du train '+nom_train,clWhite);
+          Affiche('Route du train '+nom_train+' terminée.',clOrange);
+
+          {trains[idTrain].TempoArretCour:=0;
+          trains[idTrain].TempoArret:=50;
+          }
+          // repartir à l'envers
+          if false then
           begin
-            //Affiche('Route du train '+nom_train,clWhite);
-            Affiche('Route du train '+nom_train+' terminée.',clOrange);
-
-            {trains[idTrain].TempoArretCour:=0;
-            trains[idTrain].TempoArret:=50;
-            }
-            // repartir à l'envers
-            if false then
-            begin
-              if not(diffusion) then Affiche('Route inverse',clWhite);
-              // inverser élement suivant et précédent du détecteur
-              echange(detecteur[detect].suivant,detecteur[detect].precedent);
-              t:=detecteur[detect].TypSuivant;
-              detecteur[detect].TypSuivant:=detecteur[detect].TypPrecedent;
-              detecteur[detect].TypPrecedent:=t;
-
-              j:=trains[IdTrain].index_event_det_train;
-              event_det_train[j].NbEl:=0;
-
-              Inverse_route(route);
-              for j:=1 to n do route[j].traite:=false;
-
-              aig_canton(idTrain,trains[idTrain].route[1].adresse);
-              demarre_index_train(idTrain);    // met la mémoire de roulage du train à 1
-              // effacer le tracé du TCO
-              for j:=1 to NbreTCO do zone_tco(j,detect,trains[idTrain].detecteurSuiv,1,trains[idTrain].adresse,0,false);
-            end
-            else
-            supprime_route_train(idTrain);
-
-          end;
+            if not(diffusion) then Affiche('Route inverse',clWhite);
+            // inverser élement suivant et précédent du détecteur
+            echange(detecteur[detect].suivant,detecteur[detect].precedent);
+            t:=detecteur[detect].TypSuivant;
+            detecteur[detect].TypSuivant:=detecteur[detect].TypPrecedent;
+            detecteur[detect].TypPrecedent:=t;
+            j:=trains[IdTrain].index_event_det_train;
+            event_det_train[j].NbEl:=0;
+            Inverse_route(route);
+            for j:=1 to n do route[j].traite:=false;
+            aig_canton(idTrain,trains[idTrain].route[1].adresse);
+            demarre_index_train(idTrain);    // met la mémoire de roulage du train à 1
+            // effacer le tracé du TCO
+            for j:=1 to NbreTCO do zone_tco(j,detect,trains[idTrain].detecteurSuiv,1,trains[idTrain].adresse,0,false);
+          end
+          else supprime_route_train(idTrain);
         end;
-
       end;
     end;
-
-
+  end;
 end;
-
 
 //--évolution de la route par train et mise à jour du pointeur
 // doit être appellée sur un état à 0 ou 1 de detect
 procedure maj_route(detect : integer);
 var i : integer;
 begin
+  //Affiche('Maj_route '+intToSTR(detect),clYellow);
   if roulage then
   begin
     // explorer les autres trains pour libérer leurs routes
@@ -11978,8 +12699,9 @@ end;
 // les aiguillages doivent être positionnés
 procedure calcul_zones_V1(adresse: integer;etat : boolean);
 var m,AdrSignal,AdrDetSignal,AdrTrainLoc,Nbre,i,i2,j,k,l,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,etatSig,ntco,d1,d2,sens,idT,sensTCO,suivant2,prec,indexTrain : integer ;
-    traite,trouve,SuivOk,casaig,rebond,finroute : boolean;
+    id_couleur,det_suiv,nc,etatSig,ntco,d1,d2,sens,idT,sensTCO,suivant2,prec,indexTrain,
+    a1,a2 : integer ;
+    traite,trouve,SuivOk1,Suivok2,casaig,rebond,finroute,but : boolean;
     couleur : tcolor;
     TypePrec,TypeSuiv : tEquipement;
     s,train_ch : string;
@@ -11993,7 +12715,6 @@ begin
   Affiche_evt(s,clwhite) ;
   if dupliqueEvt then Affiche(s,clyellow) ;
 
-
   for i:=1 to N_trains do // nombre de trains détectés en circulation
   begin
     index_couleur:=((i - 1) mod NbCouleurTrain) +1;
@@ -12005,7 +12726,6 @@ begin
     IndexTrain:=index_train_adresse(adrTrainLoc);
     trains[indexTrain].dernierDet:=det3;
 
-
     if ((det2=det3) and (nbre=2)) or ((det1=det3) and (nbre=1)) then
     begin
       //s:='Dét. '+intToSTR(det3)+' déjà affecté au train '+IntToSTR(i);
@@ -12015,7 +12735,6 @@ begin
       if dupliqueEvt then Affiche(s,clyellow);
       rebond:=true;  // possible rebond ?
     end;
-
 
     // 1 élément dans le tableau et détecteur à 0---------------------------------------------
     if (nbre=1) and not(etat) then
@@ -12188,8 +12907,8 @@ begin
 
       // vérifier si l'élément du tableau et le nouveau sont contigus
       Det_Adj(det1);  // renvoie les adresses des détecteurs adjacents au détecteur "det1" résultat dans adj1 et adj2
-      suivok:=((Adj1=det3) and (adj1<9999))  or ((Adj2=det3) and (adj2<9990));
-      if suivok then
+      suivok1:=((Adj1=det3) and (adj1<9999))  or ((Adj2=det3) and (adj2<9990));
+      if suivok1 then
       begin
         Train_ch:=event_det_train[i].nom_train;
         AdrTrainLoc:=event_det_train[i].AdrTrain;
@@ -12289,11 +13008,28 @@ begin
       // test si det1, det2 et det3 sont contigus malgré aig mal positionnés
       //det_suiv:=det_suiv_cont(det1,det2,1);   // test si le suivant de det1 à det2 est bien le nouveau détecteur (det3)
       det_suiv:=detecteur_suivant_el(det1,det,det2,det,1);
+      // si det_suiv=0 ; on fait un aller retour depuis un buttoir
+      but:=false;
+      if false and (det_suiv=0) then
+      begin
+        with event_det_train[i] do
+        begin
+          det[1].adresse:=0;
+          det[1].etat:=false;
+          det[2].adresse:=0;  // det3
+          det[2].etat:=false;
+          NbEl:=2;
+        end;
+        det2:=0;
+        det_suiv:=det1;
+        AdrSuiv:=det1;
+        but:=true;
+      end;
       if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),couleur);
-      SuivOk:=(det_suiv=det3) and (det_suiv<9990);
+      SuivOk1:=(det_suiv=det3) and (det_suiv<9990);
       CasAig:=false;
 
-      if not(SuivOk) then
+      if not(SuivOk1) and not(but) then
       begin
         // cas d'un aiguillage qui a changé
         if det3=event_det_train[i].suivant then
@@ -12310,13 +13046,13 @@ begin
         end;
       end;
 
-      if SuivOk or CasAig then
+      if SuivOk1 or CasAig or but then
       begin
         if TraceListe then AfficheDebug('Route est valide, dét '+intToSTR(det2)+' '+intToSTR(det3)+' contigus',couleur);
         // ici on cherche le suivant à det2 det3, algo=1
         event_det_tick[N_event_tick].train:=i;
 
-        if not(casAig) then AdrSuiv:=detecteur_suivant_el(det2,det,det3,det,0);  // dans le cas de CasAig, alors adrSuiv=9996 donc AdrSuiv a été calculé plus haut (ligne -27)
+        if not(casAig) and not(but) then AdrSuiv:=detecteur_suivant_el(det2,det,det3,det,0);  // dans le cas de CasAig, alors adrSuiv=9996 donc AdrSuiv a été calculé plus haut (ligne -27)
         if AdrSuiv<9990 then event_det_train[i].suivant:=AdrSuiv;
         if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),couleur);
         if (Adrsuiv>=9990) and not(casaig) then
@@ -12499,9 +13235,15 @@ begin
       if TraceListe or (NivDebug=3)  or ProcPrinc then AfficheDebug('2-1 traitement Train n°'+intToSTR(i)+' 2 détecteurs',couleur);
 
       det_suiv:=detecteur_suivant_el(det1,det,det2,det,1);
+      Suivok1:=(det_suiv=det3) and (det_suiv<9990);
       if traceliste then affichedebug('Le suivant aux '+intToSTR(det1)+' '+intToSTR(det2)+' est '+intToSTR(det_suiv),clWhite);
+      det_Adj(det2); // adj1, adj2
+      a1:=adj1;a2:=adj2;
+      det_Adj(det3);
+      SuivOk2:=((a1=adj1) and detecteur[a1].Etat) or ((a1=adj2) and detecteur[a1].Etat) or
+               ((a2=adj1) and detecteur[a2].Etat) or ((a2=adj2) and detecteur[a2].Etat);
 
-      if (det_suiv=det3) and (det_suiv<9990) then
+      if suivOk1 or Suivok2 then
       begin
         event_det_tick[N_event_tick].train:=i;
         if TraceListe then AfficheDebug('La route est valide car les détecteurs '+intToSTR(det2)+' '+intToSTR(det3)+' sont contigus',couleur);
@@ -12587,14 +13329,23 @@ begin
       end
       else
       begin
-        if (det1=det3) and false then
+        if (det1=det3) and option_demitour then
         begin
           s:='Demi-tour train '+intToSTR(i);
           if TraceListe then AfficheDebug(s,clOrange);
           Affiche_evt(s,clOrange);
           MemZone[det2,det_Suiv].etat:=false;
           MemZone[det2,det3].etat:=true;
-          efface_trajet(det2,i);
+          for ntco:=1 to nbreTCO do
+          begin
+            // désactivation du morceau avant l'aiguillage
+            efface_trajet(det2,i);
+            if PcanvasTCO[ntco]<>nil then
+            begin
+              Maj_Aig_TCO(ntco);
+              zone_TCO(ntco,det2,det_suiv,i,AdrTrainLoc,0,true);    // désactivation}
+            end;
+          end;
           with event_det_train[i] do
           begin
             det[1].adresse:=det_suiv;
@@ -12632,11 +13383,11 @@ begin
     i2:=signal_detecteur(det3);  // trouve le signal associé au detecteur2
     if i2<>0 then Maj_Signal_P(i2,false);  // avec détecteur
     }
-    for i:=1 to N_trains do
+    for i:=1 to N_trains do // N_trains est le nombre de trains détectés en circulation
     begin
       i2:=event_det_train[i].Suivant;
       if i2>NbMaxDet then begin AfficheDebug('Erreur 715 : détecteur '+intToSTR(i2)+' trop grand',clred);exit;end;
-      SuivOk:=event_det_train[i].Det[2].etat ;
+      SuivOk1:=event_det_train[i].Det[2].etat ;
       det_adj(det3);
       if (adj1=i2) or (adj2=i2) then
       begin
@@ -12659,6 +13410,7 @@ begin
         pilote_train(i2,det3,adrtrainLoc,i);   // pilote le train sur det3
         // test si on peut réserver le canton suivant
         det_suiv:=det_suiv_cont(i2,det3,1);
+        maj_route(det3);
         exit;
       end;
     end;
@@ -12685,6 +13437,7 @@ begin
       nom_train:='';
     end;
 
+    maj_route(det3);
     // vérifier si le détecteur du nouveau train est associé à un feu vers un buttoir
     for i:=1 to NbreSignaux do
     begin
@@ -12832,15 +13585,17 @@ begin
   end;
 
   //if etat then detecteur[det3].IndexTrain:=1;
-  end;
+end;
+
 
 // affecte le détecteur "adresse" d'état "front" au train et met sa route à jour
 procedure calcul_zones(adresse: integer;front : boolean);
 begin
   if debug=3 then formprinc.Caption:='Calcul_zones '+intToSTR(adresse);
-  if Algo_localisation=1 then calcul_zones_v1(adresse,front)
-    else affiche('Algo localisation inconnu',clred);
-
+  case Algo_localisation of
+  1 : calcul_zones_v1(adresse,front);
+  else affiche('Algo localisation inconnu',clred);
+  end;
   if debug=3 then formprinc.Caption:='';
 end;
 
@@ -12906,7 +13661,7 @@ procedure demande_etat_det;
 var i,j,adr,t : integer;
     s : string;
 begin
-//  exit; // 
+  //exit; // ####
   if portCommOuvert or parSocketLenz or (etat_init_interface>=11) then
   begin
     Affiche('Demande état des détecteurs',ClYellow);
@@ -12939,7 +13694,7 @@ begin
         if ((canton[i].el1=adr) and (canton[i].typ1=det)) or
            ((canton[i].el2=adr) and (canton[i].typ2=det)) then
         begin
-          if canton[i].adresseTrain=0 then
+          if (canton[i].adresseTrain=0) and (detecteur[j].etat) then
           begin
             s:='Le canton '+intToSTR(canton[i].numero)+' contigu au détecteur '+intToSTR(adr)+' à 1 ne contient pas de train';
             Affiche(s,clOrange);
@@ -13356,7 +14111,6 @@ begin
       end;
     end;
   end;
-
 end;
 
 
@@ -13674,11 +14428,9 @@ end;
 
 // traitement des évènements détecteurs
 procedure Event_Detecteur(Adresse : integer;etat : boolean;train : string);
-var sens,dr,i,AdrSuiv,AdrSignal,AdrDetSignal,index,Etat01,AdrPrec,d1,d2,suivant,AdrTrain,
-    e1c,e2c,prec : integer;
-    typeSuiv,t1,t2,typePrec : tequipement;
+var dr,i,AdrSuiv,AdrSignal,AdrDetSignal,index,Etat01,AdrPrec,d1,d2,suivant,AdrTrain : integer;
+    TypeSuiv : tequipement;
     s : string;
-    trouve : boolean;
 begin
   if adresse>NbMaxDet then
   begin
@@ -13734,6 +14486,7 @@ begin
   begin
     //s:='Evt Det '+intToSTR(adresse)+'='+intToSTR(etat01);
     s:='Tick='+IntToSTR(tick)+' Evt Det='+IntToSTR(adresse)+'='+intToSTR(etat01)+' Train='+train;
+    Affiche(s,clYellow);
     AfficheDebug(s,clyellow);
   end;
   if AFfDetSIg then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Det='+IntToSTR(adresse)+'='+intToSTR(etat01),clOrange);
@@ -13765,50 +14518,21 @@ begin
 
 
   // vérifier si le détecteur est attaché à un canton, pour voir si une loco y est affectée
-  // et affecter l'élément suivant et précédent au train
+  // et affecter l'élément suivant et précédent, et dernierDet au train
   i:=1;
   repeat
     d1:=canton[i].el1;t1:=canton[i].typ1;
     d2:=canton[i].el2;t2:=canton[i].typ2;
-    trouve:=(d1=adresse) or (d2=adresse);
-    inc(i);
-  until (i>Ncantons) or trouve;
-  if trouve then
-  begin
-    dec(i);
-    sens:=0;suivant:=0;
-    sens:=canton[i].sensLoco;
-    AdrTrain:=canton[i].adresseTrain;
-
-    case sens of
-      sensGauche,sensHaut :
-      begin
-        e1c:=canton[i].el2;t1:=canton[i].typ2;
-        e2c:=canton[i].el1;t2:=canton[i].typ1;
-        suivant:=suivant_alg3(e1c,t1,e2c,t2,1); typeSuiv:=TypeGen;
-        prec:=suivant_alg3(e2c,t2,adresse,det,1); typePrec:=TypeGen;
-      end;
-      sensDroit,sensBas :
-      begin
-        e1c:=canton[i].el1;t1:=canton[i].typ1;
-        e2c:=canton[i].el2;t2:=canton[i].typ2;
-        suivant:=suivant_alg3(e1c,t1,e2c,t2,1); typeSuiv:=TypeGen;
-        prec:=suivant_alg3(e2c,t2,adresse,det,1); typePrec:=TypeGen;
-      end;
-    end;
-
-    detecteur[adresse].AdrTrain:=AdrTrain;
-    detecteur[adresse].Train:=canton[i].NomTrain;
-    if sens<>0 then
+    if (d1=adresse) or (d2=adresse) then
     begin
-      detecteur[adresse].suivant:=suivant;
-      detecteur[adresse].TypSuivant:=TypeSuiv;
-      // le précédent
-      detecteur[adresse].precedent:=prec;
-      detecteur[adresse].TypPrecedent:=typePrec;
+      AdrTrain:=canton[i].adresseTrain;
+      if AdrTrain<>0 then
+      begin
+        Maj_detecteurs_canton(i,AdrTrain,Adresse);
+      end;
     end;
-
-  end;
+    inc(i);
+  until (i>Ncantons);
 
   // Affiche('stockage de '+intToSTR(N_event_tick)+' '+IntToSTR(Adresse)+' à '+intToSTR(etat01),clyellow);
 
@@ -14082,7 +14806,7 @@ begin
       end;  
     end;
     Maj_TCO(i,Adresse);
-  end;  
+  end;
 end;
 
 // pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
@@ -14757,9 +15481,7 @@ begin
       inc(i);
     until (i>l) or (i>n);
   end;
-
   result:=x=0;
-
 end;
 
 procedure Delete_tablo(var cb : TchaineBIN;offset,longueur : integer);
@@ -14771,7 +15493,6 @@ begin
     begin
       cb[i]:=cb[i+1];
     end;
-
   dec(Long_recue,longueur);
 end;
 
@@ -14787,7 +15508,6 @@ begin
   end;
   cb[0]:=longueur ;
 end;
-
 
 // décodage d'une chaine Xpressnet de la rétrosignalisation de la centrale
 // la chaine peut être composée de plusieurs ordres, car on boucle, et être coupée.
@@ -14835,7 +15555,7 @@ begin
           end;
           if traceTrames and (chaineINT[2]=4) then AfficheDebug(msg,clYellow);
           if traceTrames and (chaineINT[2]<>4) then AfficheDebug(msg,clRed);
-          if (chaineINT[2]<>4) then Affiche(msg,clRed);
+          if (chaineINT[2]<>$4) then Affiche(msg,clRed);
           traite:=true;
         end
         else
@@ -15090,6 +15810,7 @@ begin
     // E6  8
 
     // spécifique Z21 : E7 0C 89 00 00 00 00 00 62
+    //                  E7 0C 8F 00 00 00 00 00 64 
     // on n'en fait rien, c'est un genre d'ack à la réponse de stop loco ?
     if (chaineINT[1]=$E7) then
     begin
@@ -15176,7 +15897,7 @@ begin
       i:=pos('<',s);
       j:=pos('>',s);
     end;
-    if not(balise) then Affiche(s,clLime);
+    // if not(balise) then Affiche(s,clLime);
     // retransformer en tchaineBIN
     for i:=1 to length(s) do chaineINT[i]:=ord(s[i]);
     long_recue:=length(s);
@@ -15273,156 +15994,8 @@ begin
   end;
 end;
 
-function test_protocole : boolean;
-var s: string;
-   temp : integer;
-begin
-//  result:=true;
-//  exit; // 
-  begin
-    if protocole=1 then   // Xpressnet
-    begin
-      s:=#$f0;
-      s:=checksum(s);
-    end;
-    if protocole=2 then s:='<s>';    // dcc++
 
-    application.processMessages;
-    envoi_ss_ack(s);
-    application.processMessages;
 
-    temp:=0;
-    repeat
-      sleep(100);
-      inc(temp);
-      Application.processmessages;
-    until (version_Interface<>'') or (temp>15);
-
-    // result:=true;
-    //      exit;
-
-    if (temp>15) then
-    begin
-      s:=' mais l''interface n''a pas répondu ';
-      if protocole=1 then s:=s+' en XpressNet';
-      if protocole=2 then s:=s+' en DCC++';
-      Affiche_suivi(s,clyellow);
-      portCommOuvert:=false;  // refermer le port
-      result:=false;
-      exit;
-    end
-    else
-
-    begin
-      if length(version_interface)>0 then
-      begin
-        if (version_interface<>'') then
-        begin
-          Affiche_suivi(' et l''interface a répondu correctement en '+intToSTR(temp)+'00 ms',clLime);
-          result:=true;
-          exit;
-        end;
-      end;
-      Affiche_suivi(s+' mais l''interface a répondu incorrectement',clyellow);
-      result:=false;
-    end;
-  end;
-end;
-
-// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
-function connecte_usb_periph(index : integer) : boolean;
-var i,j,nc,numport,vitesse,erreur : integer;
-    s,sc,portComCde : string;
-    com : TMSComm;
-begin
-  if (index>NbMaxi_Periph) or (index=0) then
-  begin
-    Affiche('Erreur 60 : numéro de périphérique hors limite '+intToSTR(index),clred);
-    exit;
-  end;
-  numport:=Tablo_periph[index].NumCom;
-  if (numport<1) or (numport>255) then
-  begin
-    affiche('Erreur portCom cde acc <0 ou >255',clred);
-    result:=false;
-    exit;
-  end;
-  portComCde:=Tablo_periph[index].protocole;
-
-  nc:=Tablo_periph[index].NumComposant;
-  // voir si le composant est valide
-  if MsCommCde1=nil then
-  begin
-    Affiche('Erreur 6001: le composant périphérique 1 n''est pas créé',clred);
-    result:=false;
-    exit;
-  end;
-  if MsCommCde2=nil then
-  begin
-    Affiche('Erreur 6002: le composant périphérique 2 n''est pas créé',clred);
-    result:=false;
-    exit;
-  end;
-
-  case nc of
-  1 : com:=MSCommCde1;
-  2 : com:=MSCommCde2;
-  end;
-
-  if nc>MaxComUSBPeriph then
-  begin
-    affiche('Le nombre maxi de portCom périphériques est atteint. Le port COM'+inttostr(Tablo_periph[index].NumCom)+' ne sera pas ouvert',clred);
-    result:=false;
-    exit;
-  end;
-
-  if debug=1 then Affiche('Test port com cde'+intToSTR(port),clLime);
-  i:=pos(':',portComcde);
-  j:=pos(',',PortComcde);
-  j:=posEx(',',PortComcde,j+1);
-  j:=posEx(',',PortComcde,j+1);
-
-  sc:=copy(portComCde,i+1,j-i+1);
-  val(sc,vitesse,erreur);
-  if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
-     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
-  begin
-    Affiche('Vitesse périphérique COM'+intToSTR(port)+' ('+intToSTR(vitesse)+') incorrecte',clred);
-    tablo_periph[index].PortOuvert:=false;
-    result:=false;
-    exit;
-  end;
-
-  tablo_periph[index].PortOuvert:=true;
-  With com do
-  begin
-    Settings:=sc;   // vitesse,n,8,1
-    Handshaking:=0; {0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
-    SThreshold:=1;
-    RThreshold:=1;
-    InputLen:=0;
-    CommPort:=numport;
-    DTREnable:=Tablo_periph[index].dtr;
-    RTSEnable:=Tablo_periph[index].rts;
-
-    InputMode:=comInputModeBinary;
-
-  end;
-  try
-    com.portopen:=true;
-  except
-    tablo_periph[index].PortOuvert:=false;
-  end;
-
-  FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
-
-  if tablo_periph[index].PortOuvert then
-  begin
-    s:='COM'+intToSTR(numport)+':'+sc;
-    Formprinc.StatusBar1.Panels[3].Text:=s;
-  end;
-  result:=tablo_periph[index].PortOuvert;
-end;
 
 // détermine si le périphérique i est un comusb ou un socket
 // =0 erreur
@@ -15490,92 +16063,6 @@ begin
   result:=true;
 end;
 
-// connecte un port usb interface. Si le port n'est pas ouvert, renvoie 0, sinon renvoie
-// le numéro de port
-// affichage dans panel[3]
-function connecte_port_usb(port : integer) : integer;
-var i,j : integer;
-    trouve,portOK : boolean;
-    s,sc : string;
-begin
-  result:=0;
-  trouve:=false;
-  application.processmessages;
-  if MSCommUSBInterface=nil then
-  begin
-    Affiche('Erreur 6000: le composant interface n''est pas créé',clred);
-    result:=0;
-    exit;
-  end;
-
-  With MSCommUSBInterface do
-  begin
-    //if debug=1 then Affiche('Test port com'+intToSTR(port),clLime);
-    version_interface:='';
-    i:=pos(':',portCom);
-    j:=pos(',',PortCom);
-    j:=posEx(',',PortCom,j+1);
-    j:=posEx(',',PortCom,j+1);
-    j:=posEx(',',PortCom,j+1);
-
-    sc:=copy(portCom,i+1,j-i-1);
-    Settings:=sc;   // vitesse,n,8,1
-
-    case prot_serie of
-    0 : Handshaking:=0; // aucun, envoi la trame complète
-    1 : Handshaking:=1; // xon-xoff
-    2 : Handshaking:=2; // rts-cts
-    3 : Handshaking:=0; // aucun, mais envoi octet par octet temporisé
-    4 : Handshaking:=0; // controle CTS avant émission :on utilise sans protocole
-    end;
-
-    {HandShaking: 0=aucun 1=Xon-Xoff 2=cts 3=RTS-Xon-Xoff 4=5=protocoles "maison"}
-    SThreshold:=1;
-    RThreshold:=1;
-    InputLen:=0;
-    portOK:=true;
-    try
-      CommPort:=Port;
-    except
-      Affiche('Port COM'+intToSTR(port)+' invalide',clred);
-      portOK:=false;
-    end;
-    if protocole=2 then DTREnable:=false // évite de reset de l'arduino à la connexion
-    else DTREnable:=True;
-    if prot_serie=4 then RTSEnable:=True //pour la genli
-    else RTSenable:=false;
-    InputMode:=comInputModeBinary;
-  end;
-
-  portCommOuvert:=false;
-  if portOK then
-  begin
-    portCommOuvert:=true;
-    try
-       MSCommUSBInterface.portopen:=true;
-    except
-      portCommOuvert:=false;
-    end;
-  end;
-
-  if portCommOuvert then
-  begin
-    FormPrinc.StatusBar1.Panels[3].Style:=psOwnerDraw;  // permet de déclencher l'event onDrawPanel
-    s:='COM'+intToSTR(port)+' ouvert';
-    Affiche(s,clLime);
-    s:='COM'+intToSTR(port)+':'+sc;
-
-    Formprinc.StatusBar1.Panels[3].Text:=s;
-    sleep(1000);
-    trouve:=test_protocole;
-    if not(trouve) then
-    begin
-      portCommOuvert:=false;
-      MSCommUSBInterface.portopen:=false;
-    end;
-  end;
-  if trouve then result:=port else result:=0;
-end;
 
 // envoie la séquence d'init du fichier de config à Dccpp
 procedure init_dccpp;
@@ -15819,7 +16306,8 @@ begin
 
   cdm_lanceLoc:=false;
   // lancement depuis le répertoire 32 bits d'un OS64
-  repertoire:=CheminProgrammes+'\CDM-Rail';
+  if cheminProgrammesCDM='' then cheminprogrammesCDM:=cheminProgrammes;
+  repertoire:=CheminProgrammesCDM+'\CDM-Rail';
 
   //Affiche(s,clred);
   //Affiche(repertoire,clorange);
@@ -16036,7 +16524,7 @@ begin
   for j:=1 to NDetecteurs do
   begin
     i:=Adresse_detecteur[j];
-    detecteur[i].AdrTrainRes:=0; 
+    detecteur[i].AdrTrainRes:=0;
   end;
 
   i_simule:=0;
@@ -16065,8 +16553,10 @@ begin
     trains[i].detecteurSuiv:=0;
     trains[i].TempoArret:=0;
     trains[i].TempoArretCour:=0;
+    trains[i].TempoArretTemp:=0;
     trains[i].TempoDemarre:=0;
     trains[i].TempsDemarreSig:=0;
+    trains[i].roulage:=0;
   end;
 
   for index:=1 to NbreTCO do
@@ -16741,10 +17231,13 @@ var n,t,i,index,OrgMilieu : integer;
     Sr : TSearchRec;
     tmP,tmA : tMenuItem;
 begin
-  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion+' Gamma 2';
+  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion+' Rho';
   {$IF CompilerVersion >= 28.0}
-  af:=af+' D11';
+  af:=af+' D12';
   {$IFEND}
+  {$IFDEF WIN64}       // si compilé en 64 bits
+  af:=af+' x64';
+  {$ENDIF}
   for index:=1 to 10 do
   begin
     formTCO[index]:=nil;
@@ -16833,14 +17326,14 @@ begin
   formatY:=-1;
   serveurIPCDM_Touche:=false;
   debugPN:=false;
+  option_demitour:=false;
   sombre:=false;
   AvecInit:=true;         // avec initialisation des aiguillages ou pas
-
+  simuInterface:=false;
   Diffusion:=true;      // &&&& mode diffusion publique + debug mise au point etc
+  AffAigDet:=not(diffusion);
 
-//  Afficheroutespartrain1.Visible:=not(diffusion);
   Button3.Visible:=not(diffusion);
-
 
   FenRich.MaxLength:=$7FFFFFF0;
   NbDecodeur:=11;
@@ -16862,6 +17355,7 @@ begin
     trains[i].TempoArret:=0;
     trains[i].TempoArretCour:=0;
     trains[i].TempoDemarre:=0;
+    trains[i].TempoArretTemp:=0;
     trains[i].TempsDemarreSig:=0;
     Trains[i].icone:=Timage.create(self);
     with Trains[i].icone do
@@ -16896,24 +17390,48 @@ begin
     cheminWin:=GetCurrentProcessEnvVar('windir')+'\System32';
   end;
 
+
+  // création des composants MSComm (USB COM) -----------------
+  
+  {$IF CompilerVersion >= 28.0}
+  try MSCommUSBInterface:=tApdComPort.Create(formprinc);
+  except
+    s:='Erreur 6000 : Composant Interface non créé';
+    AfficheDebug(s,clred);
+    Affiche(s,clred);
+  end;
+  if MSCommUSBInterface<>nil then MSCommUSBInterface.onTriggerAvail:=RecuInterface; // procédure de réception
+  Setlength(TrameIF,100);
+
+  // pour deux périphériques COM/USB
+  try MSCommCde1:=tApdComPort.Create(formprinc);
+  except Affiche('Composant périphérique 1 non créé',clred);
+  end;
+  if MsCommCde1<>nil then MSCommCde1.onTriggerAvail:=RecuPeriph1;
+
+  try MSCommCde2:=tApdComPort.Create(formprinc);
+  except Affiche('Composant périphérique 2 non créé',clred);
+  end;
+  if MsCommCde2<>nil then MSCommCde2.onTriggerAvail:=RecuPeriph2;
+
+  {$ELSE}
+
   // vérifier ocx tmscomm
   s:=cheminwin+'\mscomm32.ocx';
   i:=filesize(s);
   if (i<>103744) and (i<>-1) then
-  begin
-    s:='Version fichier '+s+' incorrecte';
-    AfficheDebug(s,clOrange);
-    Affiche(s,clOrange);
-  end;
+  begin
+    s:='Version fichier '+s+' incorrecte';
+    AfficheDebug(s,clOrange);Affiche(s,clOrange);  
+  end;  
   if i=-1 then
   begin
     s:='Ficher '+s+' inexistant';
     AfficheDebug(s,clred);
     Affiche(s,clred);
   end;
-  // création des composants MSCom (USB COM) -----------------
+  
   // interface centrale - provoque l'apparition de la fenêtre "préparation de l'installation"
-
   try MSCommUSBInterface:=TMSComm.Create(formprinc);
   except
     s:='Erreur 6000 : Composant Interface non créé';
@@ -16933,7 +17451,7 @@ begin
   except Affiche('Composant périphérique 2 non créé',clred);
   end;
   if MsCommCde2<>nil then MSCommCde2.OnComm:=RecuPeriph2;
-
+  {$IFEND}
 
   //s:=GetCurrentDir;
   //Affiche(s,clLime);
@@ -17042,7 +17560,7 @@ begin
   if ecran_sc<1 then ecran_SC:=1;
   if Ecran_sc>Screen.MonitorCount then Ecran_SC:=1;
 
-  serveur_ouvert:=true;
+  serveur_ouvert:=true;
   serverSocket.Port:=PortServeur;
   try
     ServerSocket.Open;
@@ -17261,10 +17779,47 @@ begin
 end;
 
 
+{$IF CompilerVersion >= 28.0}
 // évènement réception d'une trame sur le port COM USB centrale Xpressnet
+procedure TFormPrinc.RecuInterface(Sender: TObject;Count : word);
+var i,tev,l : integer;
+    s : string;
+    tablo : array[1..255] of byte;
+begin
+  MSCommUSBInterface.GetBlock(tablo,count);
+
+  l:=Long_Recue; // résidu précédent à chainer - longueur du tampon
+
+  i:=1;
+  repeat
+    // Affiche(intToSTR(tablo[i]),clYellow);
+    if i+l<Long_tampon_interface then chaine_recue[i+l]:=tablo[i] else Affiche('Trop long',clred);
+    inc(i);
+  until (i+l>Long_tampon_interface) or (i>=255) or (i>count);
+
+  Long_recue:=l+count;
+
+  if traceTrames then
+  begin
+    if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+tablo_Hex(chaine_recue),Clwhite);
+    if protocole=2 then
+    begin
+      s:='';
+      for i:=1 to Long_Recue do
+      if (chaine_recue[i]<>$0D) and (chaine_recue[i]<>$0A) then s:=s+char(chaine_recue[i]);
+      AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+s,Clwhite);
+    end;
+  end;
+  chaine_recue:=interprete_reponse(chaine_recue);
+end;
+
+{$ELSE}
+
+// évènement réception d'une trame sur le port COM USB centrale Xpressnet par TMSCOMM
 procedure TFormPrinc.RecuInterface(Sender: TObject);
 var i,tev,l : integer;
     tablo : array of byte;  // tableau rx usb
+    s : string;
 begin
   tev:=MSCommUSBInterface.commEvent;
   {
@@ -17300,7 +17855,7 @@ begin
     i:=0;
     repeat
      // Affiche(intToSTR(tablo[i]),clYellow);
-      if i+l+1<Long_tampon_interface then  chaine_recue[i+l+1]:=ord(tablo[i]) else Affiche('Trop long',clred);
+      if i+l+1<Long_tampon_interface then chaine_recue[i+l+1]:=ord(tablo[i]) else Affiche('Trop long',clred);
       inc(i);
     until (i+l+1>Long_tampon_interface) or (i>=length(tablo));
 
@@ -17310,11 +17865,18 @@ begin
     if traceTrames then
     begin
       if protocole=1 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+tablo_Hex(chaine_recue),Clwhite);
-      if protocole=2 then AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+tablo_hex(chaine_recue),Clwhite);
+      if protocole=2 then
+      begin
+        s:='';
+        for i:=1 to Long_Recue do
+        if (chaine_recue[i]<>$0D) and (chaine_recue[i]<>$0A) then s:=s+char(chaine_recue[i]);
+        AfficheDebug('Tick='+IntToSTR(tick)+'/Rec '+s,Clwhite);
+      end;
     end;
     chaine_recue:=interprete_reponse(chaine_recue);
   end;
 end;
+{$IFEND}
 
 procedure TFormPrinc.FormClose(Sender: TObject; var Action: TCloseAction);
 var i,res : integer;
@@ -17339,10 +17901,14 @@ begin
   timer1.Enabled:=false;
   FermeSC:=true;
 
-  if portCommOuvert then
+  if portCommOuvert and not(simuInterface) then
   begin
     portCommOuvert:=false;
+    {$IF CompilerVersion >= 28.0}
+    MSCommUSBInterface.open:=false;
+    {$ELSE}
     MSCommUSBInterface.Portopen:=false;
+    {$IFEND}
   end;
   // déconnecte les 10 périphériques
   for res:=1 to 10 do
@@ -17712,14 +18278,13 @@ begin
   //if (tick mod 10)=0 then Affiche(intToSTR(trains[4].TempoArretCour),clWhite);
   for i:=1 to ntrains do
   begin
-    a:=trains[i].TempoArret;         // la tempo d'arret est écrite par pilote_train()
+    a:=trains[i].TempoArret;         // la tempo d'arret est écrite par pilote_train() ou autre
     if a<>0 then
     begin
-      //Affiche(intToSTR(a),clOrange);
       if trains[i].TempoArretCour=0 then
       begin
         trains[i].TempoArretCour:=a;
-        if not(diffusion) then Affiche('Vitesse train /2',clYellow);
+        if not(diffusion) then Affiche('Timer Vitesse train /2',clYellow);
         vitesse:=trains[i].VitRalenti div 2;
         trains[i].vitesse:=vitesse;
         if (trains[i].inverse) then vitesse:=-vitesse;
@@ -17740,24 +18305,25 @@ begin
           inc(detecteur[adresse].temps);
 
           vitesse:=trains[i].vitesse;
-          //  Affiche('Vitesse='+intToSTR(vitesse),clred);
+          if not(diffusion) then Affiche('Timer Vitesse='+intToSTR(vitesse),clred);
           if vitesse<>0 then
-            d:=round(detecteur[adresse].temps*90/vitesse)
-          else d:=0;
+            d:=abs(round(detecteur[adresse].temps*90/vitesse))
+          else d:=9999;   // si la vitesse du train est nulle, mettre une condition qui arrete le train en fin de parcours sur le détecteur
 
           //Affiche('TempoarretCour='+intToSTR(a)+' train '+intToSTR(i)+' detecteur='+intToSTR(adresse)+' TpsDet='+intToSTR(detecteur[adresse].temps),clOrange);
           // si la longueur déclarée du canton <>0 on s'arrete sur la longueur sinon on s'arrete sur la tempo d'arret.
           if (a<>0) and (longueur<>0) then
           begin
             // arrêt
-            if not(diffusion) then Affiche('Dist='+intToSTR(d),clYellow);
+            if not(diffusion) then Affiche('Timer Dist='+intToSTR(d),clYellow);
             if d>longueur-5 then
             begin
               a:=0;
               trains[i].TempoArret:=0;
               trains[i].TempoArretCour:=0;
-              if not(diffusion) then Affiche(trains[i].nom_train+' Arrêté',ClWhite);
+              if not(diffusion) then Affiche('Timer '+trains[i].nom_train+' Arrêté',ClWhite);
               vitesse:=0;
+              trains[i].vitesse:=vitesse;
               if (trains[i].inverse) then vitesse:=-vitesse;
               vitesse_loco(trains[i].nom_train,i,trains[i].adresse,vitesse,false);  // arrêt du train
               train_sarrete(i);
@@ -17768,7 +18334,7 @@ begin
           begin
             if (longueur=0) then
             begin
-              if not(diffusion) then Affiche('Cas longueur non déclarée',clWhite);
+              if not(diffusion) then Affiche('Timer Cas longueur non déclarée',clWhite);
               dec(a);
               trains[i].TempoArretCour:=a;   // il faut utiliser la tempo d'arret<>0 pour savoir que le train doit s'arrêter
               if a=0 then
@@ -17786,14 +18352,19 @@ begin
             end;
           end;
         end;
-      end;  
+      end;
+      if a=0 then
+      begin
+        trains[i].TempoArret:=0;
+        trains[i].TempoArretCour:=0;
+      end;
     end;
 
     // démarrage sur tempo
     a:=trains[i].TempoDemarre;
     if a<>0 then
     begin
-      //Affiche('tempo démarre '+intToSTR(a)+' '+intToSTR(trains[i].TempsDemarreSig-5),clWhite);
+      if not(diffusion) then Affiche('timer tempo démarre '+intToSTR(a)+' '+intToSTR(trains[i].TempsDemarreSig-5),clWhite);
       if a=(trains[i].TempsDemarreSig*10)-5 then  // renvoi consigne d'arret 5x1/10 de secondes apres
       begin
         s:=trains[i].nom_train;
@@ -17803,6 +18374,7 @@ begin
       end;
 
       dec(a);
+      if a mod 10=0 then Affiche_temps_arret(i,a);
       trains[i].TempoDemarre:=a;
       if a=0 then
       begin
@@ -18117,7 +18689,14 @@ begin
   if portCommOuvert then
   begin
     portCommOuvert:=false;
-    MSCommUSBInterface.Portopen:=false;
+    if not simuInterface then
+    begin
+      {$IF CompilerVersion >= 28.0}
+      MSCommUSBInterface.open:=false;
+      {$ELSE}
+      MSCommUSBInterface.Portopen:=false;
+      {$IFEND}
+    end;
     Affiche('Port USB déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
@@ -18146,9 +18725,14 @@ begin
   begin
     tablo_periph[index].PortOuvert:=false;
     n:=Tablo_periph[index].numComposant;
+    {$IF CompilerVersion >= 28.0}
+    if n=1 then MscommCde1.open:=false;
+    if n=2 then MscommCde2.open:=false;
+    {$ELSE}
     if n=1 then MscommCde1.Portopen:=false;
     if n=2 then MscommCde2.Portopen:=false;
-
+    {$IFEND}
+    
     if debug>0 then Affiche('Port COM'+intToSTR(Tablo_periph[index].NumCom)+' périphérique déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
@@ -19324,7 +19908,6 @@ var s: string;
     cv,valeur,erreur : integer;
 begin
   s:=GetCurrentDir;
-  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   with FormPrinc do
   begin
     OpenDialog.InitialDir:=s;
@@ -19373,7 +19956,6 @@ var s,sa: string;
     i,cv,erreur : integer;
 begin
   s:=GetCurrentDir;
-  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   N_Cv:=0; // nombre de CV recus à 0
   sa:='';
   Affiche('Lecture CV',clyellow);
@@ -19482,7 +20064,6 @@ var  s : string;
    fte : textFile;
 begin
   s:=GetCurrentDir;
-  //s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   OpenDialog.InitialDir:=s;
   OpenDialog.Title:='Ouvrir un fichier de trames CDM (protocole COM-IPC)';
   OpenDialog.DefaultExt:='txt';
@@ -19680,8 +20261,11 @@ begin
   Affiche(' ',clyellow);
   s:='Signaux complexes GL version '+versionSC+sousVersion;
   {$IF CompilerVersion >= 28.0}
-  s:=s+' D11';
+  s:=s+' D12';         // si compilé avec Delphi12
   {$IFEND}
+  {$IFDEF WIN64}       // si compilé en 64 bits
+  s:=s+' x64';
+  {$ENDIF}
   s:=s+' (C) 2022-24 F1IWQ Gily TDR';
   Affiche(s,clWhite);
 
@@ -20226,7 +20810,7 @@ begin
        Affiche(s,clWhite);
     end;
   end;
-end;
+end;
 
 procedure TFormPrinc.RazResaClick(Sender: TObject);
 var i : integer;
@@ -20260,8 +20844,8 @@ begin
 end;
 
 procedure TFormPrinc.EditAdrTrainChange(Sender: TObject);
-var i,adr,erreur : integer;
-begin
+var i,adr,erreur : integer;
+begin
   if clicComboTrain then exit;
   clicAdrTrain:=true;
   val(editAdrTrain.Text,adr,erreur);
@@ -20355,10 +20939,10 @@ begin
       Sleep(500);
       Application.ProcessMessages;
 
-      // clic droit valider le menu
-      KeybdInput(VK_RBUTTON,0);                // VK_APPS = menu droit
+      // clic droit valider le menu
+      KeybdInput(VK_RBUTTON,0);                // VK_APPS = menu droit
       KeybdInput(VK_RBUTTON,KEYEVENTF_KEYUP);
-      i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
       Application.ProcessMessages;
     end;
     exit;
@@ -20391,7 +20975,7 @@ begin
 end;
 
 
-procedure TFormPrinc.AffichertouslesTCO1Click(Sender: TObject);
+procedure TFormPrinc.AffichertouslesTCO1Click(Sender: TObject);
 var i : integer;
 begin
   for i:=1 to NbreTCO do Affiche_fenetre_TCO(i,true);
@@ -21116,8 +21700,8 @@ begin
   end;
 
   setlength(TCO[SauvNbreTCO],0);
-  PcanvasTCO[SauvNbreTCO]:=nil;
-  dec(SauvNbreTCO);
+  PcanvasTCO[SauvNbreTCO]:=nil;
+  dec(SauvNbreTCO);
   Menu_tco(SauvNbreTCO);
   config_modifie:=true;
   if SauvNbreTCO<>0 then Affiche('La nouvelle liste des noms des fichiers des TCO est la suivante:',ClLime);
@@ -21131,7 +21715,7 @@ begin
 end;
 
 procedure TFormPrinc.CO11Click(Sender: TObject);
-begin
+begin
   Supprimer_TCO(1);
 end;
 
@@ -21243,6 +21827,56 @@ begin
   end;
 end;
 
+{$IF CompilerVersion >= 28.0}
+ // réception COM/USB du périphérique 1
+procedure TFormPrinc.RecuPeriph1(Sender: TObject;Count : Word);
+var s : string;
+   tablo : array[1..255] of byte;  // tableau rx usb
+   c : char;
+   i : integer;
+begin
+  MScommCde1.GetBlock(Tablo,count);
+
+  for i:=1 to count do
+  begin
+    c:=char(tablo[i]);
+    //Affiche(c,clorange);
+    if c=#13 then
+    begin
+      s:=tablo_periph[1].tamponrx;
+      affiche(s,clyellow);
+      tablo_periph[1].tamponrx:='';
+
+      telecommande(s);
+    end;
+    if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;
+  end;
+end;
+
+// réception COM/USB du périphérique 2
+procedure TFormPrinc.RecuPeriph2(Sender: TObject;count : word);
+var s : string;
+   tablo : array[1..255] of byte;  // tableau rx usb
+   c : char;
+   i : integer;
+begin
+  MSCommCde2.GetBlock(Tablo,count);  // TMSComm autoadapte la longueur du tampon dynamique
+  for i:=1 to length(tablo) do
+  begin
+    c:=char(tablo[i]);
+    //Affiche(intToSTR(ord(c)),clorange);
+    if c=#13 then
+    begin
+      s:=tablo_periph[2].tamponrx;
+      affiche(s,clyellow);
+      tablo_periph[2].tamponrx:='';
+      telecommande(s);
+    end;
+    if (c>#31) and (c<#128) then tablo_periph[2].tamponrx:=tablo_periph[2].tamponrx+c;
+  end;
+end;
+{$ELSE}
+
 // réception COM/USB du périphérique 1
 procedure TFormPrinc.RecuPeriph1(Sender: TObject);
 var s : string;
@@ -21266,7 +21900,7 @@ begin
 
         telecommande(s);
       end;
-      if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;;
+      if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;
     end;
   end;
 end;
@@ -21296,6 +21930,7 @@ begin
     end;
   end;
 end;
+{$IFEND}
 
 procedure TFormPrinc.ClientSocketCde1Connect(Sender: TObject;Socket: TCustomWinSocket);
 begin
@@ -21366,7 +22001,7 @@ begin
 end;
 
 procedure TFormPrinc.Copierltatdesaiguillageseninitialisation1Click(Sender: TObject);
-var i,p : integer;
+var i,p : integer;
     tsi : boolean;
 begin
   tsi:=false;
@@ -21461,7 +22096,7 @@ begin
 end;
 
 procedure TFormPrinc.Afficherlhorloge1Click(Sender: TObject);
-begin
+begin
   affiche_horloge;
 end;
 
@@ -21486,7 +22121,7 @@ begin
 end;
 
 procedure TFormPrinc.Codificationdescantons1Click(Sender: TObject);
-var i : integer;
+var i : integer;
     s : string;
 begin
   Affiche('Etat des cantons',clWhite);
@@ -21548,7 +22183,10 @@ begin
 end;
 
 
-// trouve toutes les routes de prec à actuel et remplit le tableau tabloroute[route,i] (route=index de la route trouvée)
+// trouve toutes les routes de "depart" à "fin" ,
+// "prec" est le départ
+// "actuel" est l'élément suivant à pres  , pour le sens de rechercher au départ
+// remplit le tableau tabloroute[route,i] (route=index de la route trouvée)
 // on teste les aiguillages et les tjd sur toutes leurs positions
 // procédure récursive
 // tabloroute[n,0].adresse contient le nombre d'éléments de la route n
@@ -21613,9 +22251,11 @@ typSuiv,tel1,tel2 : tEquipement;
 ok,AffRouteR,taig,Horz1,Horz2 : boolean;
 c : char;
 begin
+  proc:=Texplore_el;
+  param1:=prec;
+  param2:=actuel;
   inc(ctot);
-  AffRouteR:=false;
-
+  AffRouteR:=false;  // pour debug
   if ctot>200000 then
   begin
     result:=9;
@@ -21626,7 +22266,8 @@ begin
 
   r:=0;
 
-  if AffRouteR then Affiche('Explore_el '+intToSTR(prec)+' '+intToSTR(actuel)+' route='+intToSTR(nroute)+' id='+intToSTR(id)+' ir='+intToSTR(ir)+'----------------',clYellow);
+  if AffRouteR then Affiche('Explore_el '+intToSTR(prec)+' '+intToSTR(actuel)+' route='+intToSTR(nroute)+
+     ' id='+intToSTR(id)+' ir='+intToSTR(ir)+' Depart='+intToSTR(depart)+' Fin='+intToSTR(fin)+'----------------',clYellow);
   it:=0;
   inc(ir);
   if ir>itMax then
@@ -21753,7 +22394,7 @@ begin
       result:=2;
       exit;
     end;
-    if (actuel=depart) then
+    if (actuel=depart) and (ir>1) then
     begin
       if affRouteR then affiche('Rebouclage',clred);
       result:=5;
@@ -22080,16 +22721,30 @@ begin
   dec(NbreRoutes);
 end;
 
-// trouve les routes des détecteurs départ à arrivée, selon le sens
-procedure prepare_route(depart,arrivee,sens : integer);
-var r,i,j,n,p,nroute,id,Suivant,ctot : integer;
+// trouve les routes du canton selon le sens à arrivée
+procedure prepare_route(IndexTCO,CantonOrg,arrivee,sens : integer);
+var r,i,j,n,p,nroute,id,Suiv,ctot,IndexCanton,prec,detDepart : integer;
     s : string;
-    TypSuivant : tequipement;
+    TypeS,TypeP : tequipement;
     tg,bouclage : boolean;
     temp : Tuneroute;
 begin
-  // initialisation de la route à 0
   TraceListe:=false;
+  if traceliste then
+  begin
+    s:='prepare_route de canton='+intToSTR(CantonOrg)+' à '+intToSTR(arrivee);
+    case sens of
+    SensTCO_O : s:=s+' gauche';
+    SensTCO_E : s:=s+' droite';
+    SensTCO_N : s:=s+' haut';
+    SensTCO_S : s:=s+' bas';
+    else s:=s+' inconnu';
+    end;
+    // à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
+    Affiche(s,clYellow);
+  end;
+
+  // initialisation de la route à 0
   for j:=1 to Maxroutes do
     for i:=0 to MaxParcours do
     begin
@@ -22101,23 +22756,34 @@ begin
 
   raz_route_fenetre;
 
-  // trouver l'élément suivant au détecteur de départ
-  nroute:=1;
-  DetDepart:=depart;
-  detAtrouve:=arrivee;
+  indexCanton:=index_canton_numero(CantonOrg);
+  // trouver l'élément précédent/suivant
+  case sens of
+    SensTCO_O : begin prec:=canton[indexcanton].el2;TypeP:=canton[indexcanton].Typ2;Suiv:=canton[indexcanton].el1;TypeS:=canton[indexcanton].Typ1;end;
+    SensTCO_E : begin prec:=canton[indexcanton].el1;TypeP:=canton[indexcanton].Typ1;Suiv:=canton[indexcanton].el2;TypeS:=canton[indexcanton].Typ2;end;
+    SensTCO_N : begin prec:=canton[indexcanton].el2;TypeP:=canton[indexcanton].Typ2;Suiv:=canton[indexcanton].el1;TypeS:=canton[indexcanton].Typ1;end;
+    SensTCO_S : begin prec:=canton[indexcanton].el1;TypeP:=canton[indexcanton].Typ1;Suiv:=canton[indexcanton].el2;TypeS:=canton[indexcanton].Typ2;end;
+  end;
 
-  zone_tco(1,DetDepart,sens,0,0,12,false);   // élément contigu à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
-  // résultat de l'élément suivant dans xcanton et Tel1
-  suivant:=Xcanton;
-  TypSuivant:=Tel1;
+  // la procédure explore_el attend un détecteur en 1er paramètre et un élément en 2ème paramètre
+
+  detDepart:=0;
+  // pour le départ, on choisit l'un des deux éléments du canton qui est un détecteur
+  if TypeP=det then DetDepart:=prec;
+  if typeS=det then DetDepart:=suiv;
+  if detDepart=0 then
+  begin
+    Affiche('Erreur 14 : configuration canton '+intToSTR(cantonOrg)+' sans détecteur contigu',clred);
+    exit;
+  end;
 
   // vérifier si le suivant est une TJD, et vérifier si c'est la bonne adresse de la TJD
-  if (TypSuivant=aig) or (TypSuivant=tjd) or (typSuivant=Triple) then
+  if (TypeS=aig) or (TypeS=tjd) or (typeS=Triple) then
   begin
-    i:=index_aig(suivant);
-    TypSuivant:=aiguillage[i].modele;
+    i:=index_aig(suiv);
+    TypeS:=aiguillage[i].modele;
   end;
-  if typSuivant=TJD then
+  if typeS=TJD then
   begin
     if (aiguillage[i].ADroit<>DetDepart) and (aiguillage[i].ADevie<>DetDepart) then
     begin
@@ -22128,22 +22794,20 @@ begin
   end;
 
   // stocker le départ
-  tabloroute[nroute,1].adresse:=detdepart;
-  tabloroute[nroute,1].typ:=det;
-  tabloroute[nroute,1].pos:=0;
-  tabloroute[nroute,1].talon:=false;
-
-  id:=2;
-
+  nroute:=1;
+  detAtrouve:=arrivee;
+  id:=1;
   ctot:=0;
-  r:=explore_el(DetDepart,det,suivant,TypSuivant,nroute,id,0,DetDepart,detAtrouve,ctot);   // trouve toutes les routes
+  // trouve toutes les routes de DetDeprt à Suivant
+  r:=explore_el(prec,TypeP,suiv,TypeS,nroute,id,0,DetDepart,detAtrouve,ctot);
+
 
   {for j:=1 to NbreRoutes do
   begin
     n:=tabloroute[j,0].adresse;
     Affiche('Route '+intToSTR(j)+' n='+intToSTR(n),clwhite);
-  end;
-  }
+  end; }
+
   if NbreRoutes>1 then Dec(NbreRoutes);  // la dernière route est forcément mauvaise
   if TraceListe then Affiche('Trouvé '+intToSTR(NbreRoutes)+' routes',clYellow);
   // supprimer les routes inutiles : trop grandes ou qui se rebouclent
@@ -22154,6 +22818,7 @@ begin
     tg:=n>MaxParcours;
     bouclage:=tabloroute[j,n].adresse<>DetAtrouve;
     if tg or bouclage then
+    //if false then
     begin
       {s:=' Supprime route '+intToSTR(j)+' ';
       if tg then s:=s+' trop grande ;';
@@ -22204,7 +22869,6 @@ begin
     end;
   end;
   if traceListe then Affiche('il y a '+intToSTR(NbreRoutes)+' routes',clYellow);
-
 end;
 
 function route_to_string(tablo : tUneRoute) : string;
@@ -22236,21 +22900,6 @@ begin
   end;
   result:=s;
 end;
-
-procedure TFormPrinc.Button3Click(Sender: TObject);
-var sb : tchaineBin;
-begin
-  traceTrames:=true;
-  FormDebug.Show;
-  //MSCommUSBInterface.Output:=#$01+#$80+#$41;
-  long_recue:=4;
-  sb[1]:=$42;
-  sb[2]:=0;
-  sb[3]:=02;
-  sb[4]:=$40;
-  decode_chaine_retro_Xpress(sb);
-end;
-
 
 procedure Affiche_routes_brut;
 var i,j,n,p : integer;
@@ -22287,7 +22936,7 @@ begin
 end;
 
 procedure TFormPrinc.Routes1Click(Sender: TObject);
-begin
+begin
   formRouteTrain.show;
 end;
 
@@ -22308,6 +22957,11 @@ end;
 procedure TFormPrinc.Afficheroutespartrain1Click(Sender: TObject);
 begin
   Affiche_routes_brut;
+end;
+
+procedure TFormPrinc.Sauvegarderlaconfiguration1Click(Sender: TObject);
+begin
+  Sauve_config;
 end;
 
 end.

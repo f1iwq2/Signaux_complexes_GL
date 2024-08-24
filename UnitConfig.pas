@@ -9,7 +9,7 @@ uses
   Grids , unitHorloge
 
   {$IF CompilerVersion >= 28.0}
-  ,Vcl.Themes
+  ,Vcl.Themes, CheckLst
   {$IFEND}
   ;
 
@@ -308,7 +308,7 @@ type
     CheckBoxSombre: TCheckBox;
     ButtonCouleur: TButton;
     ColorDialogFond: TColorDialog;
-    LabelD11: TLabel;
+    LabelD12: TLabel;
     ButtonPropage: TButton;
     ButtonPFCDM: TButton;
     TabAvance: TTabSheet;
@@ -349,6 +349,8 @@ type
     Button5: TButton;
     GroupBoxDet: TGroupBox;
     RadioGroupLEB: TRadioGroup;
+    Label45: TLabel;
+    StringGridArr: TStringGrid;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -479,60 +481,64 @@ type
     procedure ButtonSupAccComClick(Sender: TObject);
     procedure ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure RadioButtonSimpleClick(Sender: TObject);
-    procedure RadioButtonZoneClick(Sender: TObject);
-    procedure RadioGroupActPNClick(Sender: TObject);
-    procedure ComboBoxPNComChange(Sender: TObject);
-    procedure ComboBoxDecCdeChange(Sender: TObject);
-    procedure RadioCdeDecClick(Sender: TObject);
-    procedure Toutslectionner1Click(Sender: TObject);
-    procedure ButtonChercheClick(Sender: TObject);
-    procedure EditChercherChange(Sender: TObject);
-    procedure SBMonteClick(Sender: TObject);
-    procedure SBDescClick(Sender: TObject);
-    procedure EditPortServeurExit(Sender: TObject);
-    procedure EditPortServeurChange(Sender: TObject);
-    procedure EditAdrSigChange(Sender: TObject);
-    procedure EditP3Exit(Sender: TObject);
-    procedure EditP4Exit(Sender: TObject);
-    procedure EditP1Exit(Sender: TObject);
-    procedure EditP2Exit(Sender: TObject);
-    procedure EditDevieS2Change(Sender: TObject);
-    procedure ButtonCouleurClick(Sender: TObject);
-    procedure ColorDialogFondShow(Sender: TObject);
-    procedure ButtonPropageClick(Sender: TObject);
-    procedure EditAdrAigExit(Sender: TObject);
-    procedure EditAdrAigChange(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
-    procedure ButtonModActionClick(Sender: TObject);
-    procedure ListBoxActionsMouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ListBoxOperationsDrawItem(Control: TWinControl;
-      Index: Integer; Rect: TRect; State: TOwnerDrawState);
-    procedure ListBoxOperationsMouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ButtonTestActionClick(Sender: TObject);
-    procedure ModifActionClick(Sender: TObject);
-    procedure ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure ListBoxOperationsDblClick(Sender: TObject);
-    procedure SpeedButtonOuvreClick(Sender: TObject);
-    procedure EditIconeChange(Sender: TObject);
-    procedure LabeledEditTempoDChange(Sender: TObject);
-    procedure CheckBoxSensClick(Sender: TObject);
-    procedure ButtonImRCDMClick(Sender: TObject);
-    procedure ButtonSupActClick(Sender: TObject);
-    procedure ListBoxActionneursMouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure LabeledEditAdrActionneurChange(Sender: TObject);
-    procedure ButtonNouvActClick(Sender: TObject);
-    procedure ListBoxDetMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure Button4Click(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
-    procedure RadioGroupLEBClick(Sender: TObject);
+    procedure RadioButtonSimpleClick(Sender: TObject);    
+   	procedure RadioButtonZoneClick(Sender: TObject);
+   	procedure RadioGroupActPNClick(Sender: TObject);
+   	procedure ComboBoxPNComChange(Sender: TObject);
+    procedure ComboBoxDecCdeChange(Sender: TObject);
+    procedure RadioCdeDecClick(Sender: TObject);
+    procedure Toutslectionner1Click(Sender: TObject);
+    procedure ButtonChercheClick(Sender: TObject);
+    procedure EditChercherChange(Sender: TObject);
+    procedure SBMonteClick(Sender: TObject);
+    procedure SBDescClick(Sender: TObject);
+    procedure EditPortServeurExit(Sender: TObject);
+    procedure EditPortServeurChange(Sender: TObject);
+    procedure EditAdrSigChange(Sender: TObject);
+    procedure EditP3Exit(Sender: TObject);
+    procedure EditP4Exit(Sender: TObject);
+    procedure EditP1Exit(Sender: TObject);
+    procedure EditP2Exit(Sender: TObject);
+    procedure EditDevieS2Change(Sender: TObject);
+    procedure ButtonCouleurClick(Sender: TObject);
+    procedure ColorDialogFondShow(Sender: TObject);
+    procedure ButtonPropageClick(Sender: TObject);
+    procedure EditAdrAigExit(Sender: TObject);
+    procedure EditAdrAigChange(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure ButtonModActionClick(Sender: TObject);
+    procedure ListBoxActionsMouseDown(Sender: TObject;
+	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ListBoxOperationsDrawItem(Control: TWinControl;
+	Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure ListBoxOperationsMouseDown(Sender: TObject;
+	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ButtonTestActionClick(Sender: TObject);
+    procedure ModifActionClick(Sender: TObject);
+    procedure ListBoxActionsKeyDown(Sender: TObject; var Key: Word;      Shift: TShiftState);
+    procedure ListBoxOperationsDblClick(Sender: TObject);
+    procedure SpeedButtonOuvreClick(Sender: TObject);
+    procedure EditIconeChange(Sender: TObject);
+    procedure LabeledEditTempoDChange(Sender: TObject);
+    procedure CheckBoxSensClick(Sender: TObject);
+    procedure ButtonImRCDMClick(Sender: TObject);
+    procedure ButtonSupActClick(Sender: TObject);
+    procedure ListBoxActionneursMouseDown(Sender: TObject;
+	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure LabeledEditAdrActionneurChange(Sender: TObject);
+    procedure ButtonNouvActClick(Sender: TObject);
+    procedure ListBoxDetMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
+    procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure RadioGroupLEBClick(Sender: TObject);
+    procedure ListBoxActionsDblClick(Sender: TObject);
+    procedure StringGridArrSelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
+    procedure StringGridArrSetEditText(Sender: TObject; ACol,
+      ARow: Integer; const Value: String);
 
-  private
+  private
     { Déclarations privées }
   public
     { Déclarations publiques }
@@ -613,7 +619,7 @@ Periph_ch='Periph';
 comm_ch='Commande';
 nom_dec_pers_ch='Nom_dec_pers';
 Nom_fich_TCO_ch='Nom_fichier_TCO';
-CheminProgWin_ch='Chemin_progWin';
+CheminProgCDM_ch='Chemin_progCDM';
 LargeurF_ch='LargeurF'; // largeur de la fenêtre principale
 HauteurF_ch='HauteurF';
 OffsetXF_ch='OffsetX';  // .Left de la fenêtre principale
@@ -622,6 +628,7 @@ LargeurFC_ch='LargeurFC'; // largeur de la fenêtre clock
 HauteurFC_ch='HauteurFC';
 OffsetXFC_ch='OffsetXC';  // .Left de la fenêtre clock
 OffsetYFC_ch='OffsetYC';
+option_demitour_ch='Option_demiTour';
 
 PosSplitter_ch='Splitter';
 horlogeInterne_ch='HorlogeInterne';
@@ -676,7 +683,7 @@ var
   // composants dynamiques
   Gp1,GroupBoxAvance,GroupBoxExpert,GroupBoxChemin,GroupBoxAff : TGroupBox;
 
-  CheckBoxCR,Cb1,Cb2,Cb3,CbVis,cbDTR,cbRTS,cbAffSig,cbres,cbAck : TCheckBox;
+  CheckBoxCR,Cb1,Cb2,Cb3,CbVis,cbDTR,cbRTS,cbAffSig,cbres,cbAck,CheckBoxOptionDemiTour : TCheckBox;
 
   MemoPeriph : Tmemo;
 
@@ -1870,11 +1877,28 @@ end;
 
 function Train_tablo(index : integer) : string;
 var s: string;
+    nc,i : integer;
+
 begin
-  s:=trains[index].nom_train+','+inttostr(trains[index].adresse)+','+
-  intToSTR(trains[index].vitmax)+','+intToSTR(trains[index].vitnominale)+','+
-  intToSTR(trains[index].vitRalenti)+','+trains[index].NomIcone+','+intToSTR(trains[index].TempsDemarreSig)+',';
-  if trains[index].inverse then s:=s+'1' else s:=s+'0';
+  with trains[index] do
+  begin
+    s:=nom_train+','+inttostr(adresse)+','+
+    intToSTR(vitmax)+','+intToSTR(vitnominale)+','+
+    intToSTR(vitRalenti)+','+NomIcone+','+intToSTR(TempsDemarreSig)+',';
+    if inverse then s:=s+'1' else s:=s+'0';
+    // arrêts sur cantons
+    for i:=1 to ncantons do
+    begin
+      nc:=DetecteurArret[i].detecteur;
+      if nc<>0 then 
+      begin
+        s:=s+',P';
+        if detecteurArret[i].TPrec=aig then s:=s+'A';
+        s:=s+intToSTR(detecteurArret[i].Prec);
+        s:=s+',D'+intToSTR(nc)+',T'+intToSTR(DetecteurArret[i].temps);
+      end;  
+    end;
+  end;
   result:=s;
 end;
 
@@ -1891,7 +1915,7 @@ begin
   // copie_commentaire;
   s:='/ Fichier de configuration de signaux_complexes_GL version '+versionSC+sousversion;
   writeln(fichierN,s);
-  writeln(fichierN,CheminProgWin_ch+'=',cheminProgrammes);
+  writeln(fichierN,CheminProgCDM_ch+'=',cheminProgrammesCDM);
   writeln(fichierN,largeurF_ch+'=',largeurF);
   writeln(fichierN,hauteurF_ch+'=',hauteurF);
   writeln(fichierN,OffsetXF_ch+'=',OffsetXF);
@@ -2057,6 +2081,10 @@ begin
   // avec ack centrale
   if AvecAck then s:='1' else s:='0';
   writeln(fichierN,cbAck_ch+'='+s);
+
+  // avec option retour
+  if option_demitour then s:='1' else s:='0';
+  writeln(fichierN,option_demitour_ch+'='+s);
 
   // algorithme Unisemaf
   writeln(fichierN,Algo_unisemaf_ch+'=',IntToSTR(algo_Unisemaf));
@@ -2286,7 +2314,6 @@ end;
 procedure trier_cantons;
 var i,j : integer;
     temp : TCanton;
-    s : string;
 begin
   for i:=1 to nCantons-1 do
   begin
@@ -3761,6 +3788,46 @@ var train,s,sa,SOrigine: string;
         trains[ntrains].inverse:=i=1;
         delete(s,1,erreur-1);
       end;
+
+      // détecteurs d'arret 
+      i:=pos(',',s);
+      if i<>0 then
+      begin
+        j:=1;
+        delete(s,i,1);  // supprime virgule
+        repeat
+          if s[1]='P' then
+          begin
+            delete(s,1,1);
+            if s[1]='A' then 
+            begin
+              trains[ntrains].DetecteurArret[j].TPrec:=aig;
+              delete(s,1,1);
+            end
+            else trains[ntrains].DetecteurArret[j].Tprec:=det;
+            val(s,i,erreur);
+            trains[ntrains].DetecteurArret[j].Prec:=i;
+            delete(s,1,erreur);
+          end;
+          if s[1]='D' then
+          begin
+            delete(s,1,1);
+            val(s,i,erreur);
+            trains[ntrains].DetecteurArret[j].detecteur:=i;
+            delete(s,1,erreur);
+          end;
+          if s[1]='T' then
+          begin
+            delete(s,1,1);
+            val(s,i,erreur);
+            trains[ntrains].DetecteurArret[j].temps:=i;
+            if erreur=0 then erreur:=length(s);
+            delete(s,1,erreur);
+          end;
+          inc(j);
+        until s='';
+      end;
+
     end;
 
   until (sOrigine='0') or (ntrains>=Max_Trains);
@@ -4060,12 +4127,12 @@ var train,s,sa,SOrigine: string;
         if (i>0) and (i<11) then NomfichierTCO[i]:=s;
       end;
 
-      sa:=uppercase(CheminProgWin_ch)+'=';
+      sa:=uppercase(CheminProgCDM_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
       begin
         delete(sOrigine,1,length(sa));
-        CheminProgrammes:=sOrigine;
+        cheminProgrammesCDM:=sOrigine;
       end;
 
       sa:=uppercase(LargeurF_ch)+'=';
@@ -4445,6 +4512,15 @@ var train,s,sa,SOrigine: string;
         inc(nv);
         delete(s,i,length(sa));
         AvecAck:=s='1';
+      end;
+
+      sa:=uppercase(option_demitour_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        Option_demitour:=s='1';
       end;
 
       // temporisation aiguillages
@@ -5196,6 +5272,7 @@ begin
     AffSig:=cbAffSig.Checked;
     AffRes:=cbRes.checked;
     AvecAck:=cbAck.Checked;
+    Option_DemiTour:=CheckBoxOptionDemiTour.checked;
     sombre:=CheckBoxSombre.Checked;
     protocole:=1;
     if RadioButtonXpress.Checked then
@@ -5224,7 +5301,7 @@ begin
     val(EditMaxSignalSens.Text,i,erreur);
     Max_Signal_Sens:=i;
 
-    cheminProgrammes:=editchemin.Text;
+    cheminProgrammesCDM:=editchemin.Text;
 
   end;
   if change_srv then services_CDM;
@@ -5639,7 +5716,7 @@ begin
   until i>NbreDecPers;
 end;
 
-// ComboBox du changement de style (Delphi11)
+// ComboBox du changement de style (Delphi12)
 {$IF CompilerVersion >= 28.0}
 procedure TformConfig.modif_ComboStyle(Sender : Tobject);
 var i : integer;
@@ -5876,6 +5953,9 @@ begin
   if not(directoryExists(rep_icones)) then CreateDir(rep_icones);
   ChDir(s);  // revient au rep initial
 
+  EditTempoOctetUSB.Hint:='Temporisation entre deux octets de la trame.'+#13+
+                          'Cette valeur est ignorée en protocole 2 (rts cts) et 4 (cts)';
+  EditTempoOctetUSB.ShowHint:=true;
   visible:=false;
   clicListe:=true;
   position:=poMainFormCenter;
@@ -5909,6 +5989,7 @@ begin
 
   EditNbreAdr.Text:='2';
 
+  // trains
   for i:=1 to nTrains do  //
   begin
     cs:=trains[i].NomIcone;
@@ -5927,7 +6008,24 @@ begin
     end;
   end;
 
+  with StringGridArr do
+  begin
+    Hint:='-';
+    ShowHint:=true;
+    ColCount:=4;    // nombre de colonnes
+    RowCount:=NbDetArret+1;
+    Options := StringGridArr.Options + [goEditing];
+    ColWidths[0]:=0;      // colonne grise invisible
+    ColWidths[1]:=55;     // Précédent
+    ColWidths[2]:=55;     // détecteur
+    ColWidths[3]:=35;     // temps
 
+    Cells[1,0]:='Précédent';
+    Cells[2,0]:='Détecteur';
+    Cells[3,0]:='Temps (s)';
+    for i:=0 to RowCount-1 do 
+      RowHeights[i]:=15;
+   end;
   // création des champs dynamiques de l'onglet CDM Rail
   EditOuvreEcran:=TEdit.create(GroupBox5);
   with EditOuvreEcran do
@@ -5954,8 +6052,13 @@ begin
   end;
 
   {$IFDEF CompilerVersion < 28.0}} //- Delphi7 -----------------------------------------
-  labelD11.Visible:=false;
+  labelD12.Visible:=true;
   {$ENDIF}
+  {$IFDEF WIN64}       // si compilé en 64 bits
+  labelD12.Caption:='D12 x64';
+  LabelD12.Left:=730;
+  {$ENDIF}
+
 
   rgPilTrains:=TRadioGroup.Create(FormConfig.TabSheetPeriph);
   with rgPilTrains do
@@ -6976,10 +7079,9 @@ begin
     onclick:=formconfig.cb_onclick;
   end;
 
-
-  // compilation avec D11----------------------------------------
+  // compilation avec D12----------------------------------------
   {$IF CompilerVersion >= 28.0}
-  labelD11.Visible:=true;
+  labelD12.Visible:=true;
   //  Styles (Embarcadero Dephi11)
   LabelStyle:=TLabel.Create(FormConfig.GroupBoxDivers);
   with LabelStyle do
@@ -7009,7 +7111,16 @@ begin
 
   // remplir la combobox avec les styles disponibles
   for s in TStyleManager.StyleNames do
+  begin
+    cs:=lowercase(s);
+    {ne marche pas
+    if (pos('linux',cs)=0) and (pos('andro',cs)=0) then ComboStyle.Items.Add(s) else
+    begin
+      TStyleManager.UnRegisterStyle(tStyleManager.Style[s]);
+      TStyleManager.RemoveDesigningStyle(TStyleManager.StyleNames[Style_Aff]) ;
+    end}
     ComboStyle.Items.Add(s);
+  end;
 
   ComboStyle.itemIndex:=Style_Aff;
   CheckBoxSombre.Visible:=false;
@@ -7032,7 +7143,7 @@ begin
   GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxAvance do
   begin
-    Left:=3;Top:=40;Width:=300;Height:=160;   // maxi=580
+    Left:=3;Top:=40;Width:=300;Height:=190;   // maxi=580
     caption:='Jeu de paramètres avancés';
     name:='GroupBoxAvance';
     parent:=TabAvance;
@@ -7161,6 +7272,16 @@ begin
     ShowHint:=true;
   end;
 
+  CheckBoxOptionDemiTour:=TCheckBox.Create(FormConfig.TabAvance);
+  with CheckBoxOptionDemiTour do
+  begin
+    Left:=10;Top:=152;Width:=170;Height:=12;
+    caption:='Option demi tour des trains';
+    name:='CheckBoxOptionDemiTour';
+    parent:=GroupBoxAvance;
+    Hint:='Détecte le demi-tour des trains durant un parcours';
+  end;
+
   {
   RadioReserve:=TRadioGroup.Create(TabAvance);
   with RadioReserve do
@@ -7261,8 +7382,8 @@ begin
   LabelChemin:=TLabel.Create(FormConfig.TabAvance);
   with LabelChemin do
   begin
-    Left:=10;Top:=30;Width:=90;Height:=12;
-    caption:='Chemin Win CDM';
+    Left:=10;Top:=25;Width:=120;Height:=12;
+    caption:='Chemin Win de CDM'+#13+'(Sans \CDM-Rail)';
     name:='LabelChemin';
     Font.Size:=9;
     parent:=GroupBoxChemin;
@@ -7270,7 +7391,7 @@ begin
   EditChemin:=TEdit.Create(FormConfig.TabAvance);
   with EditChemin do
   begin
-    Left:=100;Top:=28;Width:=180;Height:=15;
+    Left:=140;Top:=28;Width:=150;Height:=15;
     name:='EditChemin';
     text:='';
     parent:=GroupBoxChemin;
@@ -7323,7 +7444,7 @@ begin
                    'procotole = 0 : sans protocole, avec temporisation d''envoi entre trames (Genli, LZV200)'+#13+
                    '          = 1 : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
                    '          = 2 : protocole matériel RTS-CTS sans temporisation d''envoi (Interfaces Lenz LI)'+#13+
-                   '          = 3 : sans protocole, sans temporisation d''envoi entre octets'+#13+
+                   '          = 3 : Non utilisé'+#13+
                    '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi';
   EditComUSB.showHint:=true;
   ListBoxAig.Height:=382;
@@ -7710,7 +7831,7 @@ begin
   if aiguillage[index].AdrCDM<>0 then
   begin
     if croi then s:='Croisement ' else s:='Aiguillage ';
-    formconfig.labelInfo.caption:=s+'décrivant la BJS '+intToSTR(aiguillage[index].AdrCDM);
+    formconfig.labelInfo.caption:=s+'décrivant la BJD '+intToSTR(aiguillage[index].AdrCDM);
   end;
 
   adresse:=aiguillage[ligneclicAig+1].Adresse;
@@ -11097,7 +11218,7 @@ begin
         adresse:=Tablo_Action[i].TabloOp[op].periph;
         if adresse>NbPeriph then
         begin
-          Affiche('Erreur 18 : l''action '+intToSTR(Tablo_Action[i].adresse)+' est liée à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
+          Affiche('Erreur 18 : l''action '+Tablo_Action[i].NomAction+' est liée à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
           ok:=false;
         end;
       end;
@@ -12744,6 +12865,7 @@ end;
 
 procedure clicListeTrains(index : integer);
 var s : string;
+    i,t : integer;
 begin
   if index<1 then exit;
   if Trains[index].nom_train='' then exit;
@@ -12763,6 +12885,26 @@ begin
     ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
 
     if s<>'' then Maj_icone_train(formconfig.ImageTrain,index);
+
+    // tableau des détecteurs d'arrêt
+    for i:=1 to NbDetArret do
+    begin
+      t:=trains[index].DetecteurArret[i].temps;
+      if t<>0 then
+      begin
+        s:='';
+        if trains[index].DetecteurArret[i].TPrec<>det then s:='A';
+        StringGridArr.Cells[1,i]:=s+intToSTR(trains[index].DetecteurArret[i].prec);
+        StringGridArr.Cells[2,i]:=intToSTR(trains[index].DetecteurArret[i].detecteur);
+        StringGridArr.Cells[3,i]:=intToSTR(t);
+      end
+      else
+      begin
+        StringGridArr.Cells[1,i]:='';
+        StringGridArr.Cells[2,i]:='';
+        StringGridArr.Cells[3,i]:='';
+      end;
+    end;
   end;
 end;
 
@@ -12836,7 +12978,7 @@ begin
 end;
 
 procedure TFormConfig.EditVitNomChange(Sender: TObject);
-var erreur,i : integer;
+var erreur,i : integer;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse nominale train',clyellow);
@@ -12852,9 +12994,9 @@ begin
   end;
 end;
 
-procedure TFormConfig.EditVitRalentiChange(Sender: TObject);
-var erreur,i : integer;
-begin
+procedure TFormConfig.EditVitRalentiChange(Sender: TObject);
+var erreur,i : integer;
+begin
   if clicliste then exit;
   if affevt then affiche('Evt change vitesse ralenti train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) then exit;
@@ -12975,13 +13117,13 @@ begin
 end;
 
 procedure TFormConfig.CheckBoxVerifXpressNetClick(Sender: TObject);
-begin
+begin
   if CheckBoxVerifXpressNet.checked then Verif_AdrXpressNet:=1 else Verif_AdrXpressNet:=0;
 end;
 
 
 procedure TFormConfig.ListBoxTrainsKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+  Shift: TShiftState);
 begin
   if ord(key)=VK_DELETE then supprime_train;
   if ord(Key)=VK_UP then
@@ -13051,15 +13193,15 @@ begin
 end;
 
 procedure TFormConfig.ButtonPFCDMClick(Sender: TObject);
-begin
+begin
   activecontrol:=nil;
   regle('CDM rail','\CDM-Rail\cdr.exe');
   regle('Signaux complexes','\Signaux_complexes\signaux_complexes_gl.exe');
 end;
 
 procedure TFormConfig.EditLAYChange(Sender: TObject);
-var s : string;
-begin
+var s : string;
+begin
   if clicListe then exit;
   if not(Affiche_avert) then
   begin
@@ -13071,13 +13213,13 @@ procedure TFormConfig.EditLAYChange(Sender: TObject);
 end;
 
 procedure TFormConfig.EditLAYExit(Sender: TObject);
-begin
+begin
   Affiche_avert:=false;
   LabelInfo.caption:='';
 end;
 
 procedure TFormConfig.Copier1Click(Sender: TObject);
-var tc : Trichedit;
+var tc : Trichedit;
 begin
   tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
   tc.CopyToClipboard;
@@ -13085,7 +13227,7 @@ begin
 end;
 
 procedure TFormConfig.Coller1Click(Sender: TObject);
-var tc : Trichedit;
+var tc : Trichedit;
 begin
   tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
   With tc do
@@ -13096,7 +13238,7 @@ begin
 end;
 
 procedure TFormConfig.RichCdeDccppMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i : integer;
+var i : integer;
 begin
   with Formconfig.RichCdeDCCpp do
   begin
@@ -13107,7 +13249,7 @@ begin
 end;
 
 procedure TFormConfig.RichCdeDccppKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+  Shift: TShiftState);
   var i : integer;
 begin
   with Formconfig.RichCdeDCCpp do
@@ -13130,8 +13272,8 @@ end;
 
 
 procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
-var s : string;
-begin
+var s : string;
+begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt VersContrevoie',clOrange);
 
@@ -13146,7 +13288,7 @@ procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
 end;
 
 procedure TFormConfig.CheckBoxContreVoieClick(Sender: TObject);
-var s : string;
+var s : string;
     adr : integer;
 begin
   if clicliste or (ligneClicSig<0) then exit;
@@ -13529,10 +13671,10 @@ begin
 end;
 
 // nouveau décodeur personnalisé
-procedure TFormConfig.BoutonNouveauClick(Sender: TObject);
-var s: string;
-    i,nombre,decCourant : integer;
-begin
+procedure TFormConfig.BoutonNouveauClick(Sender: TObject);
+var s: string;
+    i,nombre,decCourant : integer;
+begin
   if NbreDecPers>=NbreMaxiDecPers then exit;
 
   inc(NbreDecPers);
@@ -13817,7 +13959,7 @@ begin
 end;
 
 procedure TFormConfig.ListBoxSigKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+  Shift: TShiftState);
 begin
   if NbreSignaux<1 then exit;
   if key=VK_delete then supprime_sig;
@@ -13944,7 +14086,7 @@ end;
 
 
 procedure TFormConfig.Slectionnertout1Click(Sender: TObject);
-var tl: TListBox;
+var tl: TListBox;
 begin
   tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
   tl.SelectAll;
@@ -13954,8 +14096,8 @@ end;
 // supprimer un périphérique
 procedure supprime_periph;
 var ss,s : string;
-    n,i,j : integer;
-begin
+    n,i,j : integer;
+begin
   ss:='';
   n:=0;
   for i:=0 to NbPeriph-1 do
@@ -14074,7 +14216,7 @@ begin
   config_modifie:=true;
 end;
 
-// menu contextuel des listBox
+// menu contextuel des listBox
 procedure TFormConfig.Supprimer1Click(Sender: TObject);
 var tl: TListBox;
     s : string;
@@ -14204,12 +14346,12 @@ end;
 
 
 procedure TFormConfig.ButtonSupAccComClick(Sender: TObject);
-begin
-  supprime_periph;
-end;
+begin
+  supprime_periph;
+end;
 
-procedure TFormConfig.ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TFormConfig.ListBoxPeriphKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
   if NbPeriph<1 then exit;
   if key=VK_delete then supprime_periph;
@@ -14259,10 +14401,10 @@ begin
   end;
 
   clicListe:=false;
-end;
+end;
 
 procedure TFormConfig.RadioButtonSimpleClick(Sender: TObject);
-begin
+begin
   if clicliste then exit;
   if affevt then Affiche('Evt RadioButtonSimple',clyellow);
   GroupBoxPNA.Visible:=true;
@@ -14272,7 +14414,7 @@ procedure TFormConfig.RadioButtonSimpleClick(Sender: TObject);
 end;
 
 procedure TFormConfig.RadioButtonZoneClick(Sender: TObject);
-begin
+begin
   if clicliste then exit;
   if affevt then Affiche('Evt RadioButtonZone',clyellow);
   GroupBoxPNA.Visible:=false;
@@ -14284,8 +14426,8 @@ end;
 
 procedure TFormConfig.RadioGroupActPNClick(Sender: TObject);
 var s : string;
-begin
-  if clicliste or (lignecliqueePN<0) then exit;
+begin
+  if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt radio',clyellow);
   begin
     if RadioGroupActPN.itemindex=0 then
@@ -14300,12 +14442,12 @@ var s : string;
     end;
     s:=encode_act_PN(lignecliqueePN+1);
     ListBoxPN.items[lignecliqueePN]:=s;
-  end;
+  end;
 end;
 
 procedure TFormConfig.ComboBoxPNComChange(Sender: TObject);
-var s : string;
-begin
+var s : string;
+begin
   if clicliste or (lignecliqueePN<0) then exit;
   if affevt then affiche('Evt Edit portPN Change',clyellow);
   Tablo_PN[lignecliqueePN+1].AdresseFerme:=ComboBoxPNCom.ItemIndex+1;
@@ -14315,31 +14457,31 @@ procedure TFormConfig.ComboBoxPNComChange(Sender: TObject);
 end;
 
 procedure TFormConfig.ComboBoxDecCdeChange(Sender: TObject);
-begin
+begin
   if affevt then affiche('Evt ComboDecCde',clyellow);
   if decCourant=0 then exit;
   Decodeur_pers[decCourant].Peripherique:=ComboBoxDecCde.ItemIndex+1;
 end;
 
 procedure TFormConfig.RadioCdeDecClick(Sender: TObject);
-begin
+begin
   if radioCdeDec.ItemIndex=0 then Champs_dec_Centrale;
   if radioCdeDec.ItemIndex=1 then Champs_dec_Periph;
 end;
 
 procedure TFormConfig.Toutslectionner1Click(Sender: TObject);
-var tc : Trichedit;
-begin
+var tc : Trichedit;
+begin
   tc:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TRichEdit ;
   tc.SelectAll;
 end;
 
 
 procedure TFormConfig.ButtonChercheClick(Sender: TObject);
-var  s,sc : string;
+var  s,sc : string;
     l,i : integer;
     trouve : boolean;
-begin
+begin
   sc:=lowercase(editchercher.Text);
   with RichBranche do
   begin
@@ -14372,7 +14514,7 @@ procedure TFormConfig.ButtonChercheClick(Sender: TObject);
 end;
 
 procedure TFormConfig.EditChercherChange(Sender: TObject);
-begin
+begin
   ligneCherche:=0;
 end;
 
@@ -14393,7 +14535,7 @@ begin
 end;
 
 procedure TFormConfig.SBMonteClick(Sender: TObject);
-var i,n,IndexListe : integer;
+var i,n,IndexListe : integer;
     Periph : TPeripherique;
     trouve : boolean;
     s : string;
@@ -14442,7 +14584,7 @@ begin
 end;
 
 procedure TFormConfig.SBDescClick(Sender: TObject);
-var i,n,IndexListe : integer;
+var i,n,IndexListe : integer;
     trouve : boolean;
     Periph : Tperipherique;
     s : string;
@@ -14495,20 +14637,20 @@ begin
 end;
 
 
-procedure TFormConfig.EditPortServeurExit(Sender: TObject);
-var i,erreur : integer;
-begin
+procedure TFormConfig.EditPortServeurExit(Sender: TObject);
+var i,erreur : integer;
+begin
   Val(EditPortServeur.Text,i,erreur);
   if (i<1) or (i>65535) then EditPortServeur.Text:=IntToSTR(PortServeur);
 end;
 
 procedure TFormConfig.EditPortServeurChange(Sender: TObject);
-begin
+begin
   if activ=false then config_modifie:=true;
 end;
 
 procedure TFormConfig.EditAdrSigChange(Sender: TObject);
-var s : string;
+var s : string;
     i, erreur : integer;
 begin
   if clicliste then exit;
@@ -14545,18 +14687,18 @@ begin
 end;
 
 procedure TFormConfig.EditP1Exit(Sender: TObject);
-begin
+begin
  adresse_P1;
 end;
 
 procedure TFormConfig.EditP2Exit(Sender: TObject);
-begin
+begin
   adresse_P2;
 end;
 
 procedure TFormConfig.ButtonCouleurClick(Sender: TObject);
-begin
-  if colorDialogFond.execute then
+begin
+  if colorDialogFond.execute then
   begin
     Couleurfond:=colorDialogFond.Color;
     Maj_couleurs;
@@ -14564,14 +14706,14 @@ procedure TFormConfig.ButtonCouleurClick(Sender: TObject);
 end;
 
 procedure TFormConfig.ColorDialogFondShow(Sender: TObject);
-var s : string;
-begin
+var s : string;
+begin
   s:='Couleur de fond de Signaux_complexes';
   SetWindowText(ColorDialogFond.Handle,pchar(s));
 end;
 
 procedure TFormConfig.ButtonPropageClick(Sender: TObject);
-var x,y,i,adresse,AncienAdresse,AdresseBr,v,erreur : integer;
+var x,y,i,adresse,AncienAdresse,AdresseBr,v,erreur : integer;
     typ : tEquipement;
     s,Nb : string;
 begin
@@ -14752,7 +14894,7 @@ begin
 end;
 
 procedure change_adr_aig;
-var s : string;
+var s : string;
     nEtat,i,vide,erreur,index,adr2,AncienAdresse : integer;
     modele: TEquipement;
     c : char;
@@ -14854,7 +14996,7 @@ end;
 
 
 procedure TFormConfig.EditAdrAigChange(Sender: TObject);
-var i : integer;
+var i : integer;
 begin
   i:=ligneclicAig+1;
   if (i<1) or (i>MaxAiguillage) then exit;
@@ -14862,7 +15004,7 @@ begin
 end;
 
 procedure TFormConfig.FormActivate(Sender: TObject);
-  var i : integer;
+  var i : integer;
     s : string;
 begin
   if affevt or (debug=1) then affiche('FormConfig activate',clLime);
@@ -14963,6 +15105,7 @@ begin
   cbAffSig.Checked:=AffSig;
   cbRes.Checked:=affRes;
   cbAck.Checked:=avecAck;
+  CheckBoxOptionDemiTour.checked:=option_demitour;
   CheckBoxSombre.Checked:=sombre;
 
   RadioButtonXpress.Checked:=protocole=1;
@@ -14998,7 +15141,7 @@ begin
   editAlgo.Text:=intToSTR(Algo_localisation);
   EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
 
-  EditChemin.text:=cheminProgrammes;
+  EditChemin.text:=cheminProgrammesCDM;
 
   // trains
   with ListBoxTrains do
@@ -15006,12 +15149,22 @@ begin
     clear;
     for i:=1 to ntrains do items.Add(Train_tablo(i));
   end;
+
+ with StringGridArr do
+ begin
+   for i:=1 to NbDetArret do
+   begin
+     cells[1,i]:='';
+     cells[2,i]:='';
+     cells[3,i]:='';
+   end;
+ end;
 end;
 
-procedure TFormConfig.ButtonModActionClick(Sender: TObject);
-begin
-  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
+procedure TFormConfig.ButtonModActionClick(Sender: TObject);
+begin  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
   OperationAffiche:=0;
+  clicaction:=0;
   formModifAction.showModal;
 end;
 
@@ -15051,15 +15204,9 @@ begin
 end;
 
 procedure TFormConfig.ListBoxActionsMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);begin
   if maxTablo_act<1 then exit;
   clicliste:=true;
-//  raz_champs_act;
-
-  // dévalider la liste des PN (autre tableau)
- // for i:=0 to maxTablo_act-2 do formconfig.ListBoxAct.selected[i]:=false;
-  //for i:=0 to ListBoxPN.items.Count-1 do formconfig.ListBoxPN.selected[i]:=false;
 
   ligneclicAct:=listBoxActions.ItemIndex;
   if ligneclicAct<0 then
@@ -15076,8 +15223,7 @@ begin
 end;
 
 procedure TFormConfig.ListBoxOperationsDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);var
   i,erreur: Integer;
   ItemText: string;
 begin
@@ -15093,8 +15239,7 @@ begin
 end;
 
 procedure TFormConfig.ListBoxOperationsMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);begin
   ClicAction:=ListBoxOperations.ItemIndex;
 end;
 
@@ -15105,20 +15250,17 @@ end;
 
 procedure TFormConfig.ButtonTestActionClick(Sender: TObject);
 begin
-  if (ligneclicAct<0) then exit;
-  action_relais(ligneclicact+1);   // car action est une fonction d'une form...
+  if (ligneclicAct<0) then exit;  action_relais(ligneclicact+1);   // car action est une fonction d'une form...
 end;
 
 procedure TFormConfig.ModifActionClick(Sender: TObject);
-begin
-  DeclencheurAffiche:=0;
+begin  DeclencheurAffiche:=0;
   OperationAffiche:=clicaction+1;
   formModifAction.ShowModal;
 end;
 
 procedure TFormConfig.ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
+  Shift: TShiftState);begin
   if (maxTablo_act<1) or clicliste then exit;
   if key=VK_delete then supprime_action;
 
@@ -15157,10 +15299,7 @@ begin
 end;
 
 procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
-var s : string;
-    op,icone : integer;
-begin
-  if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
+var s : string;    op,icone : integer;begin  if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
 
   op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
@@ -15173,11 +15312,8 @@ procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
 end;
 
 
-procedure TFormConfig.SpeedButtonOuvreClick(Sender: TObject);
-var s,repini :string;
-    i : integer;
-begin
-  if ligneclicTrain<0 then exit;
+procedure TFormConfig.SpeedButtonOuvreClick(Sender: TObject);
+var s,repini :string;    i : integer;begin  if ligneclicTrain<0 then exit;
   i:=ligneclicTrain+1;
   s:=rep_icones;
   repIni:=GetCurrentDir;           // si le repertoire icones n'existe pas, il passe au supérieur
@@ -15201,9 +15337,7 @@ end;
 end;
 
 procedure TFormConfig.EditIconeChange(Sender: TObject);
-var s,Nom,repIni : string;
-
-begin
+var s,Nom,repIni : string;begin
   if ligneclicTrain<0 then exit;
   if clicliste then exit;
   repIni:=GetCurrentDir;
@@ -15220,8 +15354,7 @@ begin
 end;
 
 procedure TFormConfig.LabeledEditTempoDChange(Sender: TObject);
-var erreur,i :integer;
-begin
+var erreur,i :integer;begin
   if clicliste then exit;
   if affevt then affiche('Evt change temps démarre train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
@@ -15233,8 +15366,7 @@ begin
 end;
 
 procedure TFormConfig.CheckBoxSensClick(Sender: TObject);
-begin
-  if clicliste then exit;
+begin  if clicliste then exit;
   if affevt then affiche('Evt inverse train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
 
@@ -15244,9 +15376,8 @@ procedure TFormConfig.CheckBoxSensClick(Sender: TObject);
 end;
 
 
-procedure TFormConfig.ButtonImRCDMClick(Sender: TObject);
-var nPeriph,ia,i,j,adr : integer;
-    ctyp : string;
+procedure TFormConfig.ButtonImRCDMClick(Sender: TObject);
+var nPeriph,ia,i,j,adr : integer;    ctyp : string;
 begin
   if nSeg=0 then begin LabelInfo.caption:='Pas de structure réseau CDM trouvée';exit;end
   else LabelInfo.caption:='';
@@ -15354,7 +15485,6 @@ begin
 end;
 
 
-
 procedure supprime_actionneur;
 var n,i,j : integer;
     s,ss : string;
@@ -15417,7 +15547,7 @@ begin
 end;
 
 procedure TFormConfig.ButtonSupActClick(Sender: TObject);
-begin
+begin
   supprime_actionneur;
 end;
 
@@ -15445,8 +15575,7 @@ begin
 end;
 
 procedure TFormConfig.ListBoxActionneursMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,lc,adresse,erreur : integer;
+   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);var i,lc,adresse,erreur : integer;
     s : string;
 begin
   if nActionneurs<1 then exit;
@@ -15483,11 +15612,7 @@ begin
 end;
 
 procedure TFormConfig.LabeledEditAdrActionneurChange(Sender: TObject);
-var adr,i,erreur : integer;
-    trouve : boolean;
-begin
-  if clicliste then exit;
-  if (ligneclicActionneur<0) or (ligneclicActionneur>=nActionneurs) or (nactionneurs<1) then exit;
+var adr,i,erreur : integer;    trouve : boolean;begin  if clicliste then exit;  if (ligneclicActionneur<0) or (ligneclicActionneur>=nActionneurs) or (nactionneurs<1) then exit;
   val(LabeledEditAdrActionneur.text,adr,erreur);
 
   i:=1;
@@ -15602,16 +15727,12 @@ begin
   config_modifie:=true;
 end;
 
-
-
 procedure TFormConfig.ButtonNouvActClick(Sender: TObject);
-begin
-  ajoute_actionneur;
+begin  ajoute_actionneur;
 end;
 
 procedure TFormConfig.ListBoxDetMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,lc,adresse,erreur : integer;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);var i,lc,adresse,erreur : integer;
     s : string;
 begin
   if nDetecteurs<1 then exit;
@@ -15642,23 +15763,94 @@ begin
 end;
 
 procedure TFormConfig.Button4Click(Sender: TObject);
-begin
-  Ajoute_detecteur;
+begin  Ajoute_detecteur;
 end;
 
 procedure TFormConfig.Button5Click(Sender: TObject);
-begin
-  supprime_detecteur;
+begin  supprime_detecteur;
 end;
 
 procedure TFormConfig.RadioGroupLEBClick(Sender: TObject);
-begin
+begin
   if clicliste or (ligneClicSig<0) then exit;
   if affevt then Affiche('Evt RadioGroupLEB',clOrange);
 
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
     Signaux[ligneClicSig+1].BinLin:=radioGroupLEB.ItemIndex;
+end;
 
+procedure TFormConfig.ListBoxActionsDblClick(Sender: TObject);
+begin
+  if maxTablo_act<1 then exit;
+  clicliste:=true;
+
+  ligneclicAct:=listBoxActions.ItemIndex;
+  if ligneclicAct<0 then
+  begin
+    clicliste:=false;
+    exit;
+  end;
+
+  Affiche_action;
+
+  clicliste:=false;
+
+  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
+  OperationAffiche:=0;
+  clicaction:=0;
+  formModifAction.showModal;
+
+end;
+
+procedure TFormConfig.StringGridArrSelectCell(Sender: TObject; ACol,
+  ARow: Integer; var CanSelect: Boolean);
+begin
+  case ACol of
+  1 : StringGridArr.hint:='Element précédent : Aiguillage = précédé de A - Détecteur = adresse';
+  2 : StringGridArr.hint:='Détecteur';
+  3 : StringGridArr.hint:='Temps d''arrêt sur le détecteur en seconde(s)';
+  end;
+
+  // autorise uniquement la colonne 1 à 3 à être changée
+  if (ACol=1) or (ACol=2) or (Acol=3) then
+    StringGridArr.Options := StringGridArr.Options + [goEditing]
+  else
+    StringGridArr.Options := StringGridArr.Options - [goEditing];
+end;
+
+procedure TFormConfig.StringGridArrSetEditText(Sender: TObject; ACol,ARow: Integer; const Value: String);
+var i,v,erreur : integer;
+    s : string;
+    tprec : tequipement;
+begin
+  if ligneclicTrain<0 then exit;
+  i:=ligneclicTrain+1;
+  s:=value;
+  if length(s)=0 then exit;
+  if s[1]='A' then 
+  begin
+    tprec:=aig;
+    delete(s,1,1);
+  end
+  else tprec:=det;
+    
+  val(s,v,erreur);
+  if erreur<>0 then exit;
+
+  config_modifie:=true;
+  if aCol=1 then
+  begin
+    trains[i].DetecteurArret[Arow].prec:=v;
+    trains[i].DetecteurArret[Arow].TPrec:=tprec;
+  end;
+  if aCol=2 then
+  begin
+    trains[i].DetecteurArret[Arow].detecteur:=v;
+  end;
+  if aCol=3 then
+  begin
+    trains[i].DetecteurArret[Arow].temps:=v;
+  end;
 end;
 
 end.

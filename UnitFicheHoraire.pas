@@ -233,7 +233,7 @@ var
   DRect: TRect;
   couleur : tColor;
   Grid: TStringGrid;
-  d11 : boolean;
+  d12 : boolean;
 begin
   Grid:=Sender as TStringGrid;
 
@@ -283,13 +283,13 @@ begin
   end;  }
 
 
-  d11:=false;
+  d12:=false;
   {$IF CompilerVersion >= 28.0}
-    d11:=true;
+    d12:=true;
   {$IFEND}
 
   couleur:=$E0E0E0;
-  if d11 then couleur:=$505050;
+  if d12 then couleur:=$505050;
   with grid.canvas do
   begin
     Brush.Color := couleur;

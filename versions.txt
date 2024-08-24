@@ -263,4 +263,9 @@ version 9.1  : Représentation de la position des TJD dans les TCOs.
                Corrections sur les TJD 2 états.
 			   Correction connection en mode autonome aux interfaces pour la version D11.
 			   Correction pilotage décodeur LEB ancienne version.
+version 9.2  : Utilisation de l'unité ASyncPro pour les versions D12 pour les communications COM/USB.
+               Arrets temporisés sur les détecteurs en mode autonome/roulage pour les routes de canton à canton.
+	           Correction connexion à la GENLI.
+               Version x64 D12 disponible.
+     
 			  

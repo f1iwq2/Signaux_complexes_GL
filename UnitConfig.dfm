@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 281
-  Top = 137
+  Left = 202
+  Top = 143
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -639,12 +639,12 @@ object FormConfig: TFormConfig
     Visible = False
     WordWrap = True
   end
-  object LabelD11: TLabel
+  object LabelD12: TLabel
     Left = 752
     Top = 64
     Width = 40
     Height = 31
-    Caption = 'D11'
+    Caption = 'D12'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -27
@@ -682,7 +682,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetSig
+    ActivePage = TabAvance
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1218,6 +1218,7 @@ object FormConfig: TFormConfig
           Top = 48
           Width = 49
           Height = 21
+          Hint = 'Temporisation d'#39'envoi des octets'
           TabStop = False
           TabOrder = 1
         end
@@ -2874,6 +2875,7 @@ object FormConfig: TFormConfig
           ParentFont = False
           PopupMenu = PopupMenuListes
           TabOrder = 0
+          OnDblClick = ListBoxActionsDblClick
           OnKeyDown = ListBoxActionsKeyDown
           OnMouseDown = ListBoxActionsMouseDown
         end
@@ -2882,7 +2884,7 @@ object FormConfig: TFormConfig
           Top = 40
           Width = 249
           Height = 193
-          Hint = 'Double clic pour valider/d'#233'valider une action'
+          Hint = 'Double clic pour valider/d'#233'valider une op'#233'ration'
           Style = lbOwnerDrawVariable
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -3597,10 +3599,10 @@ object FormConfig: TFormConfig
         ParentFont = False
       end
       object GroupBox24: TGroupBox
-        Left = 312
-        Top = 72
-        Width = 297
-        Height = 377
+        Left = 296
+        Top = 16
+        Width = 321
+        Height = 441
         Caption = 'Trains'
         TabOrder = 0
         object Label51: TLabel
@@ -3639,21 +3641,21 @@ object FormConfig: TFormConfig
           Caption = 'Vitesse nominale'
         end
         object Label16: TLabel
-          Left = 24
-          Top = 280
+          Left = 16
+          Top = 352
           Width = 27
           Height = 13
           Caption = 'Ic'#244'ne'
         end
         object ImageTrain: TImage
           Left = 16
-          Top = 312
+          Top = 376
           Width = 257
           Height = 49
         end
         object SpeedButtonOuvre: TSpeedButton
-          Left = 128
-          Top = 272
+          Left = 120
+          Top = 344
           Width = 23
           Height = 22
           Hint = 'Charger ic'#244'ne'
@@ -3662,10 +3664,21 @@ object FormConfig: TFormConfig
           ShowHint = True
           OnClick = SpeedButtonOuvreClick
         end
+        object Label45: TLabel
+          Left = 26
+          Top = 232
+          Width = 111
+          Height = 39
+          Alignment = taRightJustify
+          Caption = 
+            'Arr'#234't temporis'#233' du train sur d'#233'tecteurs : (mode autonome seuleme' +
+            'nt)'
+          WordWrap = True
+        end
         object EditNomTrain: TEdit
           Left = 136
           Top = 24
-          Width = 145
+          Width = 169
           Height = 21
           Hint = 'Nom du train'
           ParentShowHint = False
@@ -3674,7 +3687,7 @@ object FormConfig: TFormConfig
           OnChange = EditNomTrainChange
         end
         object EditAdresseTrain: TEdit
-          Left = 240
+          Left = 264
           Top = 48
           Width = 41
           Height = 21
@@ -3685,7 +3698,7 @@ object FormConfig: TFormConfig
           OnChange = EditAdresseTrainChange
         end
         object EditVitesseMaxi: TEdit
-          Left = 240
+          Left = 264
           Top = 120
           Width = 41
           Height = 21
@@ -3696,7 +3709,7 @@ object FormConfig: TFormConfig
           OnChange = EditVitesseMaxiChange
         end
         object EditVitRalenti: TEdit
-          Left = 240
+          Left = 264
           Top = 72
           Width = 41
           Height = 21
@@ -3707,7 +3720,7 @@ object FormConfig: TFormConfig
           OnChange = EditVitRalentiChange
         end
         object EditVitNom: TEdit
-          Left = 240
+          Left = 264
           Top = 96
           Width = 41
           Height = 21
@@ -3718,15 +3731,15 @@ object FormConfig: TFormConfig
           OnChange = EditVitNomChange
         end
         object EditIcone: TEdit
-          Left = 160
-          Top = 272
+          Left = 168
+          Top = 344
           Width = 121
           Height = 21
           TabOrder = 5
           OnChange = EditIconeChange
         end
         object LabeledEditTempoD: TLabeledEdit
-          Left = 240
+          Left = 264
           Top = 144
           Width = 41
           Height = 21
@@ -3736,7 +3749,7 @@ object FormConfig: TFormConfig
           EditLabel.Layout = tlBottom
           EditLabel.WordWrap = True
           LabelPosition = lpLeft
-          LabelSpacing = 78
+          LabelSpacing = 100
           TabOrder = 6
           OnChange = LabeledEditTempoDChange
         end
@@ -3751,6 +3764,21 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 7
           OnClick = CheckBoxSensClick
+        end
+        object StringGridArr: TStringGrid
+          Left = 144
+          Top = 192
+          Width = 169
+          Height = 113
+          TabOrder = 8
+          OnSelectCell = StringGridArrSelectCell
+          OnSetEditText = StringGridArrSetEditText
+          RowHeights = (
+            24
+            24
+            24
+            24
+            24)
         end
       end
       object ButtonNT: TButton
@@ -3774,7 +3802,7 @@ object FormConfig: TFormConfig
       object ListBoxTrains: TListBox
         Left = 8
         Top = 72
-        Width = 281
+        Width = 273
         Height = 281
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET

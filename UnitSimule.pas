@@ -153,7 +153,6 @@ procedure TFormSimulation.ButtonChargeClick(Sender: TObject);
 var s : string;
 begin
   s:=GetCurrentDir;
-  s:='C:\Program Files (x86)\Borland\Delphi7\Projects\Signaux_complexes_GL';
   OpenDialog.InitialDir:=s;
   OpenDialog.DefaultExt:='txt';
   OpenDialog.Title:='Ouvrir un fichier de simulation';

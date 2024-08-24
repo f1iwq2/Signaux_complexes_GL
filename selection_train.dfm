@@ -5,7 +5,7 @@ object FormSelTrain: TFormSelTrain
   BorderStyle = bsDialog
   Caption = 'S'#233'lection train'
   ClientHeight = 311
-  ClientWidth = 768
+  ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,7 +16,7 @@ object FormSelTrain: TFormSelTrain
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    768
+    800
     311)
   PixelsPerInch = 96
   TextHeight = 13
@@ -329,7 +329,7 @@ object FormSelTrain: TFormSelTrain
     Height = 13
   end
   object ButtonOK: TButton
-    Left = 9
+    Left = 41
     Top = 280
     Width = 75
     Height = 24
@@ -350,7 +350,7 @@ object FormSelTrain: TFormSelTrain
   object StringGridTrains: TStringGrid
     Left = 8
     Top = 64
-    Width = 753
+    Width = 785
     Height = 209
     ColCount = 6
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goAlwaysShowEditor]

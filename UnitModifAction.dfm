@@ -1,6 +1,6 @@
 object FormModifAction: TFormModifAction
-  Left = 311
-  Top = 157
+  Left = 448
+  Top = 165
   BorderStyle = bsDialog
   Caption = 'Modifier une action'
   ClientHeight = 443
@@ -14,6 +14,7 @@ object FormModifAction: TFormModifAction
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -60,7 +61,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetDecl
+    ActivePage = TabSheetOp
     MultiLine = True
     TabOrder = 2
     object TabSheetDecl: TTabSheet
@@ -336,6 +337,7 @@ object FormModifAction: TFormModifAction
           EditLabel.Width = 39
           EditLabel.Height = 13
           EditLabel.Caption = 'Champ2'
+          EditLabel.WordWrap = True
           LabelPosition = lpLeft
           LabelSpacing = 10
           ParentShowHint = False
@@ -483,7 +485,7 @@ object FormModifAction: TFormModifAction
         Top = 32
         Width = 217
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
@@ -683,7 +685,7 @@ object FormModifAction: TFormModifAction
           Height = 21
           Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -722,8 +724,8 @@ object FormModifAction: TFormModifAction
         Width = 75
         Height = 25
         Hint = 
-          'Ajouter l'#39'action s'#233'lectionn'#233'e dans la liste des op'#233'rations '#224' r'#233'a' +
-          'liser'
+          'Ajouter l'#39'op'#233'ration s'#233'lectionn'#233'e dans la liste des op'#233'rations '#224' ' +
+          'r'#233'aliser'
         Caption = 'Ajouter >>>'
         ParentShowHint = False
         ShowHint = True
@@ -736,8 +738,8 @@ object FormModifAction: TFormModifAction
         Width = 75
         Height = 25
         Hint = 
-          'Mise '#224' jour du champ d'#39'action vers le champ de  la liste d'#39'op'#233'ra' +
-          'tions '#224' r'#233'aliser'
+          'Mise '#224' jour du champ d'#39'op'#233'ration vers le champ de  la liste d'#39'op' +
+          #233'rations '#224' r'#233'aliser'
         Caption = 'Appliquer >>>'
         ParentShowHint = False
         ShowHint = True

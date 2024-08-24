@@ -126,6 +126,7 @@ type
     procedure SpinEditEtatopChange(Sender: TObject);
     procedure ListBoxOperationsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Déclarations privées }
   public
@@ -152,6 +153,8 @@ procedure efface_tous_parametres;
 begin
   with FormModifAction do
   begin
+    //r:=Rect(
+   //  r:=TRect(ListBoxDeclench.handle,0,i*10,ListBoxDeclench.width,16);
     RadioEtatSignal.Visible:=false;
     LabelAdresse.Visible:=false;
     SpinEditEtat.Visible:=false;
@@ -272,20 +275,27 @@ end;
 
 procedure TFormModifAction.ListBoxDeclenchDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var
-  i,erreur: Integer;
-  ItemText: string;
+var larg,i,erreur : integer;
+    itemText : string;
 begin
-  with ListBoxDeclench do
+  with FormModifAction.ListBoxDeclench do  
   begin
+    larg:=formConfCellTCO.ImageListIcones.Width;
     ItemText:=Items[index];
     val(ItemText,i,erreur);
     Delete(ItemText,1,erreur-1);
+    // efface le rectangle de l'élément
     Canvas.Fillrect(Rect);
-    formConfCellTCO.ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, i);
-    Canvas.Textout(Rect.Left + formConfCellTCO.ImageListIcones.Width + 2, Rect.Top, ItemText);
+    if index+1=Tablo_Action[ligneclicAct+1].declencheur then
+    formConfCellTCO.ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, 24);
+
+    // affiche l'icone de l'élément
+    formConfCellTCO.ImageListIcones.Draw(Canvas, Rect.Left+larg, Rect.Top, i);
+    // affiche le texte de l'élément
+    Canvas.Textout(Rect.Left + 2*larg+ 2, Rect.Top, ItemText);
   end;
 end;
+
 
 procedure TFormModifAction.ListBoxOperationsDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -422,8 +432,6 @@ begin
   result:=s;
 end;
 
-
-
 // affiche les champs en fonction de l'index du tablo actionneur et de l'index de l'action
 procedure Aff_champs(index,IndexCond,IndexAction : integer);
 var i,decl,act,cond,Nb,icone : integer;
@@ -435,7 +443,6 @@ begin
   // Affiche('Aff_champs('+intToSTR(index)+','+intToSTR(indexAction)+')',clYellow);
   decl:=Tablo_Action[index].declencheur;
   formModifAction.ListBoxDeclench.ItemIndex:=decl-1;
-
   // comboboxActions
   s:=encode_actions(index);
   with formModifAction.ComboBoxActions do
@@ -891,7 +898,6 @@ end;
 
 procedure TFormModifAction.ButtonOkClick(Sender: TObject);
 begin
-  Aff_champs(ligneclicAct+1,1,1);
   close;
 end;
 
@@ -1006,7 +1012,7 @@ begin
   Aff_champs(idBD,1,IndexSrc+1);
   exit;
 
-  // réencoder la ligne
+  // réencoder la ligne
   s:=encode_actions(idBD);
   // maj combobox
   FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
@@ -1418,18 +1424,18 @@ begin
   end;
   clicliste:=false;
 end;
-}
+}
 
 
 procedure TFormModifAction.ButtonApplDeclClick(Sender: TObject);
 var i : integer;
 begin
-  ClicDeclenche:=ListBoxdeclench.itemindex;
-  if clicDeclenche<0 then exit;
-  i:=Clicdeclenche+1;
-  Tablo_Action[ligneclicAct+1].declencheur:=i;
-  Aff_champs(ligneclicAct+1,0,0);
+  i:=ListBoxdeclench.itemindex;
+  if i<0 then exit;
 
+  Tablo_Action[ligneclicAct+1].declencheur:=i+1;
+  Aff_champs(ligneclicAct+1,0,0);
+  ListBoxDeclench.Refresh;
 end;
 
 procedure TFormModifAction.LabeledEditNomActChange(Sender: TObject);
@@ -1711,5 +1717,11 @@ begin
 end;
 
 
+
+procedure TFormModifAction.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  Aff_champs(ligneclicAct+1,1,1);
+end;
 
 end.

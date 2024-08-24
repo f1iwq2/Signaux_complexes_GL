@@ -303,7 +303,7 @@ procedure couleurs_pilote;
 var i : integer;
     c : tcomponent;
 begin
-  {$IFNDEF DELPHI11}
+  {$IF CompilerVersion<28.0 }
   if sombre then with formPilote do
   begin
     Color:=Couleurfond;
@@ -313,7 +313,7 @@ begin
       composant(c,couleurFond,couleurTexte);
     end;
   end;
-  {$ENDIF}
+  {$IFEND}
 end;
 
 procedure TFormPilote.FormCreate(Sender: TObject);
