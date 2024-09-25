@@ -25,15 +25,16 @@ var
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
-Const  VersionSC ='9.1';  // sert à la comparaison de la version publiée
-       SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
-       // pour unzip
-       SHCONTCH_NOPROGRESSBOX = 4;
-       SHCONTCH_AUTORENAME = 8;
-       SHCONTCH_RESPONDYESTOALL = 16;
-       SHCONTF_INCLUDEHIDDEN = 128;
-       SHCONTF_FOLDERS = 32;
-       SHCONTF_NONFOLDERS = 64;
+Const
+VersionSC ='9.3';  // sert à la comparaison de la version publiée
+SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
+// pour unzip
+SHCONTCH_NOPROGRESSBOX=4;
+SHCONTCH_AUTORENAME=8;
+SHCONTCH_RESPONDYESTOALL=16;
+SHCONTF_INCLUDEHIDDEN=128;
+SHCONTF_FOLDERS=32;
+SHCONTF_NONFOLDERS=64;
 
 function GetCurrentProcessEnvVar(const VariableName: string): string;
 function verifie_version : real;
@@ -92,10 +93,10 @@ begin
         i:=getLastError;
         if i<>0 then
         case i of
-        12007 : Affiche('Erreur de résolution DNS',clred);
-        12037 : Affiche('Erreur validité de certificat - Mettre windows à jour ou version windows obsolète',clred);
-        12157 : Affiche('Erreur canal sécurisé SSL 2.0 - Mettre windows à jour ou version windows obsolète',clred);
-        else affiche('Erreur '+intToSTR(i),clred);
+        12007 : Affiche('Réseau: Erreur de résolution DNS',clred);
+        12037 : Affiche('Réseau: Erreur validité de certificat - Mettre windows à jour ou version windows obsolète',clred);
+        12157 : Affiche('Réseau: Erreur canal sécurisé SSL 2.0 - Mettre windows à jour ou version windows obsolète',clred);
+        else affiche('Erreur réseau '+intToSTR(i),clred);
         end;
         if Assigned(hService) then
         try

@@ -162,6 +162,8 @@ type
     ImageDrapVert: TImage;
     ImageDrapRouge: TImage;
     Button1: TButton;
+    Optiondesroutes1: TMenuItem;
+    rouverunlment1: TMenuItem;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -378,7 +380,9 @@ type
     procedure ButtonAffSCClick(Sender: TObject);    procedure RadioGroupSelClick(Sender: TObject);    procedure SauvegarderleTCO1Click(Sender: TObject);    procedure DessinerleTCO1Click(Sender: TObject);    procedure ConfigurationduTCO1Click(Sender: TObject);    procedure Redessine1Click(Sender: TObject);    procedure BandeauClick(Sender: TObject);    procedure Mosaquehorizontale1Click(Sender: TObject);    procedure Mosaqueverticale1Click(Sender: TObject);    procedure AfficherSignauxComplexes1Click(Sender: TObject);    procedure Signalvertical180Click(Sender: TObject);    procedure RechargerleTCOdepuislefichier1Click(Sender: TObject);    procedure Supprimercanton1Click(Sender: TObject);    procedure Affecterlocomotiveaucanton1Click(Sender: TObject);    procedure ImagePalette52MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ImagePalette52DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ImagePalette53EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);    procedure AffRoutesClick(Sender: TObject);     procedure Button1Click(Sender: TObject);   private
+    procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);    procedure AffRoutesClick(Sender: TObject);     procedure Button1Click(Sender: TObject);
+    procedure Optiondesroutes1Click(Sender: TObject);
+    procedure rouverunlment1Click(Sender: TObject);   private
     { Déclarations privées }
     function index_TCOMainMenu : integer;
   public
@@ -395,9 +399,9 @@ const
   SensTCO_O=5;  // gauche
   SensTCO_NO=9; // NO
   SensTCO_E=6;  // droite
-  SensTCO_N=7;  // haut
+  SensTCO_N=7;  // N
   SensTCO_NE=10; // NE
-  SensTCO_S=8;  // bas
+  SensTCO_S=8;  // S
   SensTCO_SE=11; // SE
   SensTCO_SO=12; // SO
   
@@ -533,8 +537,10 @@ var
   ancienTraceX,ancienTraceY,rangUndo,NbreTCO,IndexTCOCreate,deltaXrect,deltaYrect,
   CellX,CellY,AncienXclic,AncienYclic,xCadre1,yCadre1,xCadre2,yCadre2,colonne_supprime,
   couleurAction,couleurCanton,Ncantons,Xcanton,Ycanton,IdCantonSelect,IdCantonClic,AxSC,AySC,Drag,
-  Ldrag,Hdrag,IdCantonDragOrg,sens,idcantonRoute,cantonOrg,cantonDest,AncienIdCantonSelect,
+  Ldrag,Hdrag,IdCantonDragOrg,idcantonRoute,cantonOrg,cantonDest,AncienIdCantonSelect,
   indexTrainFR : integer;
+
+  ToucheTCO : char;
 
   Tel1,tel2 : Tequipement;
 
@@ -649,11 +655,12 @@ procedure renseigne_canton(i : integer); overload;
 function index_canton_numero(n : integer) : integer;
 procedure renseigne_TJDs;
 procedure Affiche_temps_arret(IdTrain,tps : integer);
+procedure titre_fenetre(indexTCO : integer);
 
 implementation
 
 uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO, UnitClock, selection_train ,
-  UnitRoute, UnitRouteTrains, UnitInfo;
+  UnitRoute, UnitRouteTrains, UnitInfo, UnitIntro;
 
 {$R *.dfm}
 
@@ -1143,7 +1150,13 @@ var n,Bim,larg,haut,xt,yt,adr,Xorg,Yorg,yr,xr,xm,ym : integer;
     r : Trect;
     ok,rien,versE,versO,versN,versS : boolean;
 begin
-  if canton[indexCanton].Ntco<>IndexTCO then begin result:=false; exit; end;  // si le canton n'est pas sur le bon TCO
+  //Affiche('AC',clWhite);
+  if canton[indexCanton].Ntco<>IndexTCO then
+  begin
+    //Affiche('Canton différent',clred);
+    result:=false;
+    exit;
+  end;  // si le canton n'est pas sur le bon TCO
   rien:=not(prise_droit) and not(prise_bas) and not(prise_gauche) and not(prise_haut) ;
 
   larg:=largeurCell[IndexTCO];
@@ -1188,7 +1201,6 @@ begin
   //if versO then begin  Affiche('-',clYellow); end;
 
   AxSC:=x;AySC:=y;
-
   ok:=(Adr=0) and ( (Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
   if not(ok) then   // sortir car non ok
   begin
@@ -1197,17 +1209,17 @@ begin
     exit;
   end;
 
-  // gauche
+  // poignée gauche
   r:=canton[indexCanton].rO;
   // si x est dans le rectangle
   if (((x>=r.left-5) and (x<=r.Right+5) and (y>=r.top-5) and (y<=r.bottom+5)) or prise_gauche) then //and (x>0) then
   begin
-    ok:=( (Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
+    ok:=( (Bim=1) or (Bim=0) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
     ok:=ok and (x>canton[indexCanton].mini);   // empeche d'aller à gauche
-    if not(ok) then begin result:=false;exit;end;
+    if not(ok) then begin result:=true;exit;end;
 
-    n:=abs(canton[indexCanton].gd.right-x) div larg;
-    if (n>9) or (n<3) then exit; // nombre de cellules tirées : maxi 9
+    n:=1+(abs(canton[indexCanton].gd.right-x) div larg);
+    if (n>10) or (n<4) then begin result:=false;exit;end; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeWE;
     if (rien and clicsouris) or prise_gauche then
     begin
@@ -1232,17 +1244,25 @@ begin
 
   // poignée droite
   r:=canton[indexCanton].rE;
+
   if (((x>=r.left-5) and (x<=r.Right+5) and (y>=r.top-5) and (y<=r.bottom+5)) or prise_droit) then //and (x<MaxX) then
   begin
-    ok:=( (Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
-    ok:=ok and (x<canton[indexCanton].maxi);   // empeche d'aller à droite
-    if not(ok) then begin result:=false;exit;end;
 
-    n:=abs(canton[indexCanton].gd.Left-x) div larg;
-    if (n>9) or (n<3) then exit; // nombre de cellules tirées : maxi 9
+    ok:=( (Bim=1) or (Bim=0) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
+    ok:=ok and (x<canton[indexCanton].maxi);   // empeche d'aller à droite
+    if not(ok) then begin
+      result:=true;
+      //Affiche('Haaaa',clred);
+      exit;
+    end;
+
+    n:=1+(abs(canton[indexCanton].gd.Left-x) div larg);
+    //Affiche(intToSTR(canton[indexCanton].gd.Left)+' '+intToSTR(x)+' n='+intToSTR(n),clYellow);
+    if (n>10) or (n<4) then begin result:=false;exit;end; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeWE;
     if (rien and clicsouris) or prise_droit then
     begin
+      //Affiche('traite',clOrange);
       // efface l'ancien
       Affiche_Rectangle_canton(IndexTCO,IndexCanton);
       prise_droit:=true;
@@ -1267,12 +1287,12 @@ begin
   r:=canton[indexCanton].rN;
   if ( ((x>=r.left-5) and (x<=r.Right+5) and (y>=r.top-5) and (y<=r.bottom+5)) or prise_haut) and (y>0) then
   begin
-    ok:=(Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9));
+    ok:=(Bim=0) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9));
     ok:=ok and (y>canton[indexCanton].mini);   // empeche d'aller en haut
     if not(ok) then begin result:=true;exit;end;
 
-    n:=abs(canton[indexCanton].gd.bottom-y) div larg;  // nombre de cellules tirées
-    if (n>9) or (n<3) then exit; // nombre de cellules tirées : maxi 9
+    n:=1+(abs(canton[indexCanton].gd.bottom-y) div larg);  // nombre de cellules tirées
+    if (n>10) or (n<4) then begin result:=false;exit;end;; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeNS;
     if (rien and clicsouris) or prise_haut then
     begin
@@ -1300,12 +1320,12 @@ begin
   r:=canton[indexCanton].rS;
   if (((x>=r.left-5) and (x<=r.Right+5) and (y>=r.top-5) and (y<=r.bottom+5)) or prise_bas) then //and (y<MaxY) then
   begin
-    ok:=(Bim=1) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9));
+    ok:=(Bim=0) or (Bim=20) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9));
     ok:=ok and (y<canton[indexCanton].maxi);   // empeche d'aller en bas
     if not(ok) then begin result:=true;exit;end;
 
-    n:=abs(canton[indexCanton].gd.top-y) div larg;
-    if (n>9) or (n<3) then exit; // nombre de cellules tirées : maxi 9
+    n:=1+(abs(canton[indexCanton].gd.top-y) div larg);
+    if (n>10) or (n<4) then begin result:=false;exit;end;; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeNS;
     if (rien and clicsouris) or prise_bas then
     begin
@@ -1373,8 +1393,9 @@ end;
 // i : indexCanton
 // remplit les champs horizontal, el1,el2,typ1,typ2,sens1,sens2 de canton[]
 // et les champs canton1 et canton2 du tableau detecteurs[]
+// remplit les case du TCO avec les Images du canton
 procedure renseigne_canton(i : integer;Horz :boolean) ; overload;
-var t,x,y,indexTCO : integer;
+var t,x,y,n,j,indexTCO : integer;
 begin
   if i<1 then exit;
   indexTCO:=canton[i].Ntco;
@@ -1393,13 +1414,13 @@ begin
 
   if horz then
   begin
-    zone_tco(t,i,5,0,0,11,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_O,0,0,11,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensGauche;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,6,0,0,11,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_E,0,0,11,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
     canton[i].SensEl2:=SensDroit;
@@ -1407,17 +1428,26 @@ begin
   end
   else
   begin
-    zone_tco(t,i,7,0,0,11,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_N,0,0,11,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensHaut;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,8,0,0,11,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_S,0,0,11,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
     canton[i].SensEl2:=SensBas;
     if tel1=det then detecteur[xCanton].canton2:=canton[i].numero;
+  end;
+
+  n:=canton[i].Nelements;
+  if horz then for j:=0 to n-1 do tco[t,x+j,y].BImage:=Id_cantonH+j
+  else for j:=0 to n-1 do tco[t,x,y+j].BImage:=Id_cantonV+j;
+
+  if (canton[i].el1=canton[i].el2) and (canton[i].typ1=det) and (canton[i].typ2=det) then
+  begin
+    Affiche('Erreur 210 : Le canton '+intToSTR(canton[i].numero)+' dans le tco '+intToSTR(t)+' dispose de deux détecteurs contigus d''adresses identiques: '+intToSTR(canton[i].el1),clred);
   end;
 
   //Affiche(intToSTR(xCanton)+' '+intToStr(yCanton),clyellow);
@@ -2267,7 +2297,9 @@ begin
     inc(y);x:=1;
   end;
   closefile(fichier);
+  renseigne_tous_cantons;
   trier_cantons;
+  affecte_trains_config;
 
 
   e:=sizeof(Tco) div 1024;
@@ -2685,16 +2717,25 @@ begin
 
   b:=tco[indextco,x,y].BImage;
 
-  if (b=id_Quai) then PCanvasTCO[indextco].Brush.Color:=clQuai[indexTCO]
-    else if ((b=id_cantonH) or (b=id_CantonV)) then
-    begin
-      if TCO[IndexTCO,x,y].train=0 then
-      PCanvasTCO[indextco].Brush.Color:=clFondCantonV
-      else PCanvasTCO[indextco].Brush.Color:=clFondCantonR;
-    end
-    else PCanvasTCO[indextco].Brush.Color:=tco[indextco,x,y].CouleurFond;
+  if not NB then
+  begin
+    if (b=id_Quai) then PCanvasTCO[indextco].Brush.Color:=clQuai[indexTCO]
+      else if ((b=id_cantonH) or (b=id_CantonV)) then
+      begin
+        if TCO[IndexTCO,x,y].train=0 then
+        PCanvasTCO[indextco].Brush.Color:=clFondCantonV
+        else PCanvasTCO[indextco].Brush.Color:=clFondCantonR;
+      end
+      else PCanvasTCO[indextco].Brush.Color:=tco[indextco,x,y].CouleurFond;
 
-  c.Font.Color:=tco[indextco,x,y].CoulFonte;
+    c.Font.Color:=tco[indextco,x,y].CoulFonte;
+  end
+  else
+  begin
+    PCanvasTCO[indextco].Brush.color:=clWhite;
+    c.Font.color:=clBlack;
+  end;
+
   nf:=tco[indextco,x,y].fonte;
   if nf='' then ss:='Arial';
   c.Font.Name:=nf;
@@ -5897,6 +5938,7 @@ var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont,adr1,adr2,
     index1,index2,etatTJD,position1,position2,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
     md,tHG,tBD : tequipement;
+    fond : tcolor;
   procedure horizontale;
   begin
     with canvas do
@@ -5919,7 +5961,7 @@ var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont,adr1,adr2,
     end;
   end;
 
-  procedure TjdHaut;
+  procedure TjdHaut(dessin : integer);
   begin
     x1:=x0-LargeurCell[indexTCO]-(LargeurCell[indexTCO] div 3);y1:=y0-2*hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 2);
     x2:=xf+(LargeurCell[indexTCO] div 3)+3;y2:=yc;
@@ -5928,12 +5970,23 @@ var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont,adr1,adr2,
 
     with canvas do
     begin
-      if testbit(ep,2) or testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,2) or testbit(ep,7) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
 
-  procedure TjdBas;
+  // si dessin=1 dessine en épaisseur de voie
+  // si dessin=2 dessine en épaisseur de trajet
+  procedure TjdBas(dessin : integer);
   begin
     x1:=xf-x0;
     x1:=x0-(x1 div 3);y1:=yc;
@@ -5943,7 +5996,11 @@ var yp,x1,x2,y1,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,pont,adr1,adr2,
 
     with canvas do
     begin
-      if testbit(ep,6) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,6) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else pen.width:=epaisseur div 2;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
@@ -5956,6 +6013,7 @@ begin
   xf:=x0+LargeurCell[indexTCO];
   yf:=y0+hauteurCell[indexTCO];
   ep:=tco[indextco,x,y].epaisseurs;
+  fond:=tco[indextco,x,y].CouleurFond;
   pont:=tco[indextco,x,y].pont;
   md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
 
@@ -5967,11 +6025,11 @@ begin
 
     horizontale;
     diagonale;
-    
+
     if (md=tjd) or (md=tjs) then
     begin
-      tjdbas;
-      tjdhaut;
+      tjdbas(1);
+      tjdhaut(1);
     end;
 
     // horizontale
@@ -6055,7 +6113,7 @@ begin
         moveto(x0,yf);LineTo(xc,yc);
         if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(xf,yc);}
-        tjdbas;
+        tjdbas(1);
       end;
       if trajet=4 then // -/  O C NE
       begin
@@ -6063,7 +6121,7 @@ begin
         moveto(x0,yc);LineTo(xc,yc);
         if testbit(ep,2) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(xf,y0);}
-        tjdhaut;
+        tjdhaut(1);
       end;
     end;
   end;
@@ -6104,23 +6162,27 @@ begin
       begin
         if tco[indexTCO,x,y].tjdE=adr1 then
         with canvas do begin
-          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+          //moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+          tjdhaut(2);
         end;
-        if tco[indexTCO,x,y].tjdE=adr2 then 
+        if tco[indexTCO,x,y].tjdE=adr2 then
         with canvas do begin
-          moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+          //moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+          tjdbas(2);
         end;
       end;
-      
+
       if (position1=const_devie) and (position2=const_droit) then
       begin
-        if tco[indexTCO,x,y].tjdE=adr1 then 
+        if tco[indexTCO,x,y].tjdE=adr1 then
         with canvas do begin
-          moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+          //moveTo(x0,yf);LineTo(xc,yc);Lineto(xf,yc);
+          tjdbas(2);
         end;
-        if tco[indexTCO,x,y].tjdE=adr2 then 
+        if tco[indexTCO,x,y].tjdE=adr2 then
         with canvas do begin
-          moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+          //moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,y0);
+          tjdhaut(2);
         end;
       end;
     end;
@@ -6132,14 +6194,14 @@ begin
       begin
         moveTo(x0,yf);LineTo(xf,y0);
         moveTo(x0,yc);LineTo(xf,yc);
-      end;  
+      end;
       if position1=const_devie then 
       with canvas do 
       begin                                                              
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
         droite(xc,yc,xf,y0,a1,b1);
         //haut
-        moveTo(x0,yc); LineTo(xc-epaisseur,yc); 
+        moveTo(x0,yc); LineTo(xc-epaisseur,yc);
         LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) ); LineTo(xf,y0);
         //bas
         moveTo(x0,yf);
@@ -6149,8 +6211,6 @@ begin
       end;  
     end;
   end;
-  
-
 end;
 
 // Element 22
@@ -6182,7 +6242,7 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,position1,positi
     end;
   end;
 
-  procedure TJDbas; // morceau courbe bas
+  procedure TJDbas(dessin :integer); // morceau courbe bas
   begin
     x1:=x0-LargeurCell[indexTCO]-(LargeurCell[indexTCO] div 3);y1:=yc;
     x2:=xf+(LargeurCell[indexTCO] div 3);y2:=yf+2*hauteurCell[indexTCO]+(hauteurCell[indexTCO] div 2);
@@ -6191,12 +6251,21 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,position1,positi
     ep:=tco[indextco,x,y].epaisseurs;
     with canvas do
     begin
-      if testbit(ep,7) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,7) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
 
-  procedure TJDHaut;  // morceau courbe haut
+  procedure TJDHaut(dessin :integer);  // morceau courbe haut
   begin
     x1:=x0-(LargeurCell[indexTCO] div 3);y1:=y0-2*hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 2);
     x2:=xf+LargeurCell[indexTCO]+(LargeurCell[indexTCO] div 3);y2:=yc;
@@ -6204,7 +6273,16 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,position1,positi
     x4:=xf;y4:=yc;
     with canvas do
     begin
-      if testbit(ep,0) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,0) or testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
@@ -6237,8 +6315,8 @@ begin
 
     if (md=tjd) or (md=tjs) then
     begin
-      TJDbas;
-      TJDHaut;
+      TJDbas(1);
+      TJDHaut(1);
     end;
 
     // horizontale
@@ -6300,7 +6378,6 @@ begin
       y1:=round(a2*x1+b2);
       moveto(x1,y1);lineTo(x2,y2);
     end;
-                   
 
     // regarder d'ou on vient de la route du tco
     if mode>0 then
@@ -6317,11 +6394,11 @@ begin
       if trajet=2 then diagonale;
       if trajet=3 then // NO centre E  \-
       begin
-        tjdhaut;
+        tjdhaut(1);
       end;
       if trajet=4 then // O C SE  -\
       begin
-        tjdbas;
+        tjdbas(1);
       end;
     end;
   end;
@@ -6360,38 +6437,44 @@ begin
       if (position1=const_droit) and (position2=const_devie) then
       begin
         if tco[indexTCO,x,y].tjdE=adr1 then
-        with canvas do begin
+        {with canvas do
+        begin
           moveTo(x0,y0);LineTo(xc,yc);Lineto(xf,yc);
-        end;
+        end;}
+        tjdhaut(2);
         if tco[indexTCO,x,y].tjdE=adr2 then
-        with canvas do begin
+        tjdbas(2);
+        {with canvas do
+        begin
           moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,yf);
-        end;
+        end;}
       end;
 
       if (position1=const_devie) and (position2=const_droit) then
       begin
-        if tco[indexTCO,x,y].tjdE=adr1 then 
-        with canvas do begin
+        if tco[indexTCO,x,y].tjdE=adr1 then
+        {with canvas do begin
           moveTo(x0,yc);LineTo(xc,yc);Lineto(xf,yf);
-        end;
-        if tco[indexTCO,x,y].tjdE=adr2 then 
-        with canvas do begin
+        end;}
+        tjdbas(2);
+        if tco[indexTCO,x,y].tjdE=adr2 then
+        {with canvas do begin
           moveTo(x0,y0);LineTo(xc,yc);Lineto(xf,yc);
-        end;
+         end;}
+        tjdhaut(2);
       end;
     end;
-    
+
     if etatTJD=2 then
     begin
-      if position1=const_droit then 
-      with canvas do 
+      if position1=const_droit then
+      with canvas do
       begin
         moveTo(x0,y0);LineTo(xf,yf);
         moveTo(x0,yc);LineTo(xf,yc);
-      end;  
-      if position1=const_devie then 
-      with canvas do 
+      end;
+      if position1=const_devie then
+      with canvas do
       begin                                                              
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
         droite(x0,y0,xc,yc,a1,b1);
@@ -6640,7 +6723,7 @@ end;
 // mode=0 canton normal  mode=1 : affiche le canton en mode rectangle de sélection avec les poignées
 //       =3  drapeau vert  =4 drapeau rouge
 procedure dessin_cantonH(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
-var i,xi,yi,x0,y0,yf,yc,xt,yt,dx,dy,larg,haut,xr,xm,LargDest,Hautdest,indexTrain,NumC,
+var i,xi,yi,x0,y0,yf,yc,xt,yt,dx,dy,larg,haut,xr,xm,LargDest,Hautdest,indexTrain,NumC,sens,
     offsetY,xf,AdrTrain,Xcentre,yCentre,n,al,r,l,h,HautDestF,LargDestF,LargSrc,HautSrc,OffsetX,
     bouton : integer;
     frX,frY,rd : real;
@@ -6766,13 +6849,15 @@ begin
 
     sens:=canton[i].SensLoco;
     case sens of
-      0,sensGauche : xi:=x0+OffsetX;
-      sensDroit    : xi:=xf-largdest-larg;
+      0,sensGauche : begin
+                       xi:=x0+OffsetX;
+                       xt:=xi+largDest+round(10*frx);yt:=y0+round(20*fry);dx:=xf-larg;dy:=yf; // espace restant
+                     end;
+      sensDroit    : begin
+                       xi:=xf-largdest-larg;
+                       xt:=x0+round(5*frx);yt:=y0+round(20*fry);dx:=xi+largdest-larg;dy:=y0+offsety+hautdest;
+                     end;
     end;
-
-    // coordonnées du texte de la loco
-    if sens=sensGauche then begin xt:=xi+largDest+round(10*frx);yt:=y0+round(20*fry);dx:=xf-larg;dy:=yf;end; // espace restant
-    if sens=sensdroit then begin xt:=x0+round(5*frx);yt:=y0+round(20*fry);dx:=xi+largdest-larg;dy:=y0+offsety+hautdest;end;
 
     // Nom du train
     s:=canton[i].NomTrain;
@@ -6787,7 +6872,7 @@ begin
     Canton[i].Licone:=LargDest;
     Canton[i].Hicone:=HautDest;
 
-    if canton[i].SensLoco=SensGauche then
+    if sens=SensGauche then
     begin
       // efface l'image temporaire
       with FormTCO[indexTCO].ImageTemp2.Canvas do
@@ -6825,7 +6910,7 @@ end;
 
 procedure dessin_cantonV(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer);
 var AdrTrain,i,xi,yi,xt,yt,x0,xc,yc,y0,xf,yf,dx,dy,larg,haut,hautDest,LargDest,LargSrc,HautSrc,yr,ym,l,
-    xCentre,yCentre,r,indexTrain,n,al,bouton : integer;
+    xCentre,yCentre,r,indexTrain,n,al,bouton,sens : integer;
     frX,frY,rd : real;
     coul : tcolor;
     s : string;
@@ -6958,18 +7043,21 @@ begin
 
     sens:=canton[i].SensLoco;
     case sens of
-      0,sensHaut : yi:=y0+10;
-      sensBas  : yi:=yf-Hautdest-haut;
+      0,sensHaut : begin
+                     yi:=y0+10;
+                      // coordonnées du texte de la loco
+                     xt:=x0+round(40*frx);yt:=yi+hautdest+round(10*fry);dx:=xf;dy:=yf-haut;
+                   end;
+      sensBas  : begin
+                   yi:=yf-Hautdest-haut;
+                   xt:=x0+round(40*frx);yt:=y0+round(10*fry);dx:=x0+Largdest;dy:=yi-haut
+                 end;
     end;
 
     Canton[i].Xicone:=x0+round(8*frx);
     Canton[i].Yicone:=y0;
     Canton[i].Licone:=LargDest;
     Canton[i].Hicone:=HautDest;
-
-    // coordonnées du texte de la loco
-    if sens=sensHaut then begin xt:=x0+round(40*frx);yt:=yi+hautdest+round(10*fry);dx:=xf;dy:=yf-haut;end; // espace restant
-    if sens=sensBas  then begin xt:=x0+round(40*frx);yt:=y0+round(10*fry);dx:=x0+Largdest;dy:=yi-haut;end;
 
     //PCanvasTCO[indexTCO].font.Size:=PCanvasTCO[indexTCO].font.Size+1;
     s:=canton[i].NomTrain;
@@ -7367,7 +7455,8 @@ procedure dessin_23(indexTCO : integer;Canvas : Tcanvas;x,y,mode: integer);
 var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,
     adr1,adr2,index1,index2,position1,position2,EtatTJD,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
-    md,tHG,tBD: tEquipement;
+    md,tHG,tBD : tEquipement;
+    fond : tcolor;
   procedure verticale;
   begin
     with canvas do
@@ -7390,7 +7479,7 @@ var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,
     end;
   end;
 
-  procedure tjd_d;
+  procedure tjd_d(dessin : integer);
   begin
     x1:=x0+(LargeurCell[indexTCO] div 2);y1:=y0-(hauteurCell[indexTCO] div 3);
     x2:=xf+(2*LargeurCell[indexTCO])+(LargeurCell[indexTCO] div 2);y2:=yf+hauteurCell[indexTCO]+(hauteurCell[indexTCO] div 3);
@@ -7400,12 +7489,21 @@ var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,
 
     with canvas do
     begin
-      if testbit(ep,2) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,2) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
 
-  procedure tjd_G;
+  procedure tjd_G(dessin : integer);
   begin
     x1:=x0-(2*LargeurCell[indexTCO])-(LargeurCell[indexTCO] div 2);y1:=y0-hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 3);
     x2:=x0+(LargeurCell[indexTCO] div 2);y2:=yf+round(hauteurCell[indexTCO] / 2.5);
@@ -7415,7 +7513,16 @@ var x1,x2,y1,y2,xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,
 
     with canvas do
     begin
-      if testbit(ep,1) or testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,1) or testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
@@ -7429,6 +7536,7 @@ begin
   yf:=y0+hauteurCell[indexTCO];
   ep:=tco[indextco,x,y].epaisseurs;
   pont:=tco[indextco,x,y].pont;
+  fond:=tco[indextco,x,y].CouleurFond;
 
   with canvas do
   begin
@@ -7446,8 +7554,8 @@ begin
     md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
     if (md=tjd) or (md=tjs) then
     begin
-      tjd_G;
-      tjd_D;
+      tjd_G(1);
+      tjd_D(1);
     end;
 
     // verticale
@@ -7531,7 +7639,7 @@ begin
         moveto(xf,y0);LineTo(xc,yc);
         if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(xc,yf);}
-        tjd_d;
+        tjd_d(1);
       end;
       if trajet=4 then // N C SO
       begin
@@ -7539,7 +7647,7 @@ begin
         moveto(xc,y0);LineTo(xc,yc);
         if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(x0,yf);}
-        tjd_g;
+        tjd_g(1);
       end;
     end;
   end;
@@ -7561,7 +7669,7 @@ begin
       adr2:=aiguillage[index1].DDevie;  // homologue
       Index2:=Index_aig(adr2);
       position2:=aiguillage[index2].position;
-      
+
       if (position1=const_devie) and (position2=const_devie) then
       begin
         with canvas do begin
@@ -7578,44 +7686,48 @@ begin
 
       if (position1=const_droit) and (position2=const_devie) then
       begin
-        if tco[indexTCO,x,y].tjdS=adr1 then 
-        with canvas do begin
+        if tco[indexTCO,x,y].tjdS=adr1 then
+        {with canvas do begin
           moveTo(xf,y0);LineTo(xc,yc);Lineto(xc,yf);
-        end;
-        if tco[indexTCO,x,y].tjdS=adr2 then 
-        with canvas do begin
+        end;}
+        tjd_d(2);
+        if tco[indexTCO,x,y].tjdS=adr2 then
+        {with canvas do begin
           moveTo(xc,y0);LineTo(xc,yc);Lineto(x0,yf);
-        end;
+        end;}
+        tjd_g(2);
       end;
-      
+
       if (position1=const_devie) and (position2=const_droit) then
       begin
         if tco[indexTCO,x,y].tjdS=adr1 then
-        with canvas do begin
+        {with canvas do begin
           moveTo(xc,y0);LineTo(xc,yc);Lineto(x0,yf);
-        end;
-        if tco[indexTCO,x,y].tjdS=adr2 then 
-        with canvas do begin
+        end; }
+        tjd_g(2);
+        if tco[indexTCO,x,y].tjdS=adr2 then
+        {with canvas do begin
           moveTo(xf,y0);LineTo(xc,yc);Lineto(xc,yf);
-        end;
+        end;}
+        tjd_d(2);
       end;
     end;
-    
+
     if etatTJD=2 then
     begin
-      if position1=const_droit then 
-      with canvas do 
+      if position1=const_droit then
+      with canvas do
       begin
         moveTo(xc,y0);LineTo(xc,yf);
         moveTo(xf,y0);LineTo(x0,yf);
-      end;  
-      if position1=const_devie then 
-      with canvas do 
-      begin                                                              
+      end;
+      if position1=const_devie then
+      with canvas do
+      begin
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
         droite(xc,yc,x0,yf,a1,b1);
         //gauche
-        moveTo(xc,y0); LineTo(xc,yc-epaisseur); 
+        moveTo(xc,y0); LineTo(xc,yc-epaisseur);
         LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(x0,yf);
         //droite
         moveTo(xc,yf);
@@ -7639,6 +7751,7 @@ var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2,
     adr1,adr2,index1,index2,position1,position2,EtatTJD,sHG,sBD : integer;
     a1,b1,a2,b2 : double;
     md,tHG,tBD : tEquipement;
+    fond : tcolor;
   procedure verticale;
   begin
     with canvas do
@@ -7661,7 +7774,7 @@ var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2,
     end;
   end;
 
-  procedure tjd_g;
+  procedure tjd_g(dessin : integer);
   begin
     x1:=x0-(2*LargeurCell[indexTCO])-(LargeurCell[indexTCO] div 2);y1:=y0-(hauteurCell[indexTCO] div 3);
     x2:=x0+(LargeurCell[indexTCO] div 2);y2:=yf+hauteurCell[indexTCO]+(hauteurCell[indexTCO] div 3);
@@ -7671,12 +7784,21 @@ var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2,
 
     with canvas do
     begin
-      if testbit(ep,0) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,0) or testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
 
-  procedure tjd_d;
+  procedure tjd_d(dessin : integer);
   begin
     x1:=x0+(LargeurCell[indexTCO] div 2);y1:=y0-hauteurCell[indexTCO]-(hauteurCell[indexTCO] div 3);
     x2:=xf+(2*LargeurCell[indexTCO])+(LargeurCell[indexTCO] div 2);y2:=yf+round(hauteurCell[indexTCO] / 3);
@@ -7686,7 +7808,16 @@ var xp,x0,y0,x3,y3,x4,y4,xf,yf,xc,yc,trajet,ep,pont,x1,x2,y1,y2,
 
     with canvas do
     begin
-      if testbit(ep,1) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      if dessin=1 then
+      begin
+        if testbit(ep,1) or testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
+      end
+      else
+      begin
+        pen.color:=fond;
+        Brush.Color:=fond;
+        pen.width:=epaisseur div 2;
+      end;
       Arc(x1,y1,x2,y2,x3,y3,x4,y4);
     end;
   end;
@@ -7700,6 +7831,7 @@ begin
   yf:=y0+hauteurCell[indexTCO];
   ep:=tco[indextco,x,y].epaisseurs;
   pont:=tco[indextco,x,y].pont;
+  fond:=tco[indexTco,x,y].CouleurFond;
 
   with canvas do
   begin
@@ -7717,9 +7849,9 @@ begin
     md:=aiguillage[index_aig(tco[indextco,x,y].Adresse)].modele;
     if (md=tjd) or (md=tjs) then
     begin
-      tjd_g;
-      tjd_d;
-    end;  
+      tjd_g(1);
+      tjd_d(1);
+    end;
 
     // verticale
     if testbit(pont,1) or testbit(pont,5) then
@@ -7802,7 +7934,7 @@ begin
         moveto(x0,y0);LineTo(xc,yc);
         if testbit(ep,5) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(xc,yf);}
-        tjd_g;
+        tjd_g(1);
       end;
       if trajet=4 then
       begin
@@ -7810,7 +7942,7 @@ begin
         moveto(xc,y0);LineTo(xc,yc);
         if testbit(ep,4) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
         lineTo(xf,yf);}
-        tjd_d;
+        tjd_d(1);
       end;
     end;
   end;
@@ -7850,28 +7982,32 @@ begin
       if (position1=const_droit) and (position2=const_devie) then
       begin
         if tco[indexTCO,x,y].tjdS=adr1 then
-        with canvas do begin
+        {with canvas do begin
           moveTo(xc,y0);LineTo(xc,yc);Lineto(xf,yf);
-        end;
-        if tco[indexTCO,x,y].tjdS=adr2 then 
-        with canvas do begin
+        end;}
+        tjd_d(2);
+        if tco[indexTCO,x,y].tjdS=adr2 then
+        {with canvas do begin
           moveTo(x0,y0);LineTo(xc,yc);Lineto(xc,yf);
-        end;
+        end; }
+        tjd_g(2);
       end;
-      
+
       if (position1=const_devie) and (position2=const_droit) then
       begin
-        if tco[indexTCO,x,y].tjdS=adr1 then 
-        with canvas do begin
+        if tco[indexTCO,x,y].tjdS=adr1 then
+        {with canvas do begin
           moveTo(x0,y0);LineTo(xc,yc);Lineto(xc,yf);
-        end;
-        if tco[indexTCO,x,y].tjdS=adr2 then 
-        with canvas do begin
+        end; }
+        tjd_g(2);
+        if tco[indexTCO,x,y].tjdS=adr2 then
+        {with canvas do begin
           moveTo(xc,y0);LineTo(xc,yc);Lineto(xf,yf);
-        end;
+        end; }
+        tjd_d(2);
       end;
     end;
-    
+
     if etatTJD=2 then
     begin
       if position1=const_droit then 
@@ -10864,7 +11000,7 @@ begin
   Epaisseur:=LargeurCell[indexTCO]*epaisseur_voies div 30;
   HautCell:=hauteurCell[indexTCO];
   largCell:=LargeurCell[indexTCO];
-  clFond:=tco[indextco,x,y].CouleurFond;
+  if not NB then clFond:=tco[indextco,x,y].CouleurFond else clFond:=clWhite;
   Xorg:=(x-1)*LargeurCell[indexTCO];
   Yorg:=(y-1)*HautCell;
 
@@ -10903,7 +11039,7 @@ begin
 
       if AdrTr=0 then
       begin
-        Brush.Color:=tco[indextco,x,y].CouleurFond;
+        if not NB then Brush.Color:=tco[indextco,x,y].CouleurFond else Brush.color:=clwhite;
         //SetBkMode(PCanvasTCO[indexTCO].Handle,TRANSPARENT);
         if roulage then s:=s+'  '; // efface l'adresse de réservation
       end
@@ -10950,7 +11086,7 @@ begin
     if repr<>0 then
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      if not NB then Brush.Color:=tco[indextco,x,y].CouleurFond else Brush.Color:=clwhite;
       if NB then font.color:=clblack else
         Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Name:='Arial';
@@ -11046,7 +11182,7 @@ begin
       if AdrTr<>0 then
       begin
         Brush.style:=bsSolid;
-        Brush.Color:=clBlue;
+        if not NB then Brush.Color:=clBlue else Brush.color:=clwhite;
         s:=s+' '+intToSTR(AdrTr);
       end
       else
@@ -11075,7 +11211,7 @@ begin
       if (AdrTr<>0) then
       begin
         Brush.style:=bsSolid;
-        clfond:=clBlue;
+        if not NB then clfond:=clBlue else clfond:=clwhite;
         s:=s+' '+intToSTR(AdrTr);
       end;
 
@@ -11090,7 +11226,7 @@ begin
   begin // Adresse de l'élément
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      if not NB then Brush.Color:=tco[indextco,x,y].CouleurFond else Brush.color:=clwhite;
       Font.Name:='Arial';
       Font.Style:=style(tco[indextco,x,y].FontStyle);
       if NB then font.color:=clblack else
@@ -11104,7 +11240,7 @@ begin
   begin // Adresse de l'élément
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      if not NB then Brush.Color:=tco[indextco,x,y].CouleurFond else Brush.color:=clwhite;
       if NB then font.color:=clblack else
         Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Style:=style(tco[indextco,x,y].FontStyle);
@@ -11194,7 +11330,7 @@ begin
 
     with PCanvasTCO[indexTCO] do
     begin
-      Brush.Color:=tco[indextco,x,y].CouleurFond;
+      if not NB then Brush.Color:=tco[indextco,x,y].CouleurFond else Brush.color:=clwhite;
       if NB then font.color:=clblack else
         Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Style:=style(tco[indextco,x,y].FontStyle);
@@ -11279,7 +11415,7 @@ begin
   end;
 end;
 
-// affiche le tco suivant le tableau TCO
+// affiche le tco "index"
 procedure Affiche_TCO(indexTCO : integer) ;
 var Bim,x,y,x1,y1,DimX,DimY : integer;
     s : string;
@@ -11333,7 +11469,7 @@ begin
       begin
         x1:=(x-1)*LargeurCell[indexTCO];
         y1:=(y-1)*hauteurCell[indexTCO];
-        brush.Color:=tco[indextco,x,y].CouleurFond;
+        if not NB then brush.Color:=tco[indextco,x,y].CouleurFond else brush.color:=clWhite;
 
         r:=rect(x1,y1,x1+LargeurCell[indexTCO],y1+hauteurCell[indexTCO]);
         FillRect(r);
@@ -11410,7 +11546,7 @@ end;
 procedure TFormTCO.FormCreate(Sender: TObject);
 var s : string;
 begin
-  NB:=false;
+  NB:=false; // mode noir et blanc pour l'affichage
 
   if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
   procetape('Création fenêtre TCO');
@@ -11605,11 +11741,10 @@ end;
 // sinon mode = couleur du train
 // affecte le train au canton
 procedure affiche_trajet(indexTCO,train,AdrTrain,ir,mode : integer);
-var i,sx,sy,x,y,ax,ay,Bimage,adresse,IdCanton,IdTrain,AncTrain : integer;
+var i,sx,sy,x,y,ax,ay,Bimage,adresse,IdCanton,IdTrain,AncTrain,d1,d2: integer;
     cant : boolean;
 begin
   // et affichage de la route
-
   if debugTCO then
   begin
     if ir<>0 then
@@ -11643,19 +11778,20 @@ begin
 
 
     //Affiche('Affiche_trajet: Affecte '+intToSTR(IdTrain)+' au TCO '+intToSTR(indexTCO)+' '+intToSTR(x)+' '+intToSTR(y),clWhite);
-    // si pas canton, affectation du train---------------------------
+    // si pas canton, affectation du train à la cellule---------------------------
     if not(cant) then TCO[IndexTCO,x,y].train:=IdTrain
     else
     begin
       // si canton
       IdCanton:=index_canton_numero(TCO[indexTCO,x,y].NumCanton); // index canton
+      {
       if (idTrain<>0) and (idcanton<>0) then
       begin
         if canton[IdCanton].indexTrain<>0 then  //si train dans canton
         begin
           if AdrTrain<>0 then canton[idCanton].indexTrain:=Index_Train_Adresse(AdrTrain);
           IdTrain:=canton[IdCanton].indexTrain;
-          //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].PiedFeu)),clred);
+          Affiche('1.Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].PiedFeu)),clred);
           affecte_train_canton(AdrTrain,IdCanton);
         end;
         if idTrain<=Ntrains then                  // dans le cas de la libération d'un canton par un train qui avance,
@@ -11665,8 +11801,22 @@ begin
           if (idTrain=0) and (AncTrain=9999) and (adrtrain=0) then adrTrain:=0;
           //if (ancTrain=0) or (IdTrain=0) then   // si le canton est déja affecté à un train et que le nouveau train<>0, on ne réaffecte pas le train qui arrive
             //if idTrain=0 then AdrTrain:=0;
-            //Affiche('Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].NumCanton)),clorange);
+          Affiche('2. Affecte train '+intToSTR(adrTrain)+' au canton n°'+intToSTR(index_canton_numero(TCO[indexTCO,x,y].NumCanton)),clorange);
           affecte_Train_canton(AdrTrain,IdCanton);
+        end;
+      end; }
+      AncTrain:=0;
+      if idcanton<>0 then
+      begin
+        if canton[idCanton].typ1=det then
+        begin
+          d1:=canton[idCanton].el1;
+          AncTrain:=detecteur[d1].AdrTrain; if AncTrain<>0 then affecte_Train_canton(AncTrain,IdCanton,canton[idcanton].SensLoco);
+        end;
+        if (canton[idCanton].typ2=det) and (ancTrain=0) then  // si déja affecté train
+        begin
+          d2:=canton[idCanton].el2;
+          AncTrain:=detecteur[d2].AdrTrain; if AncTrain<>0 then affecte_Train_canton(AncTrain,IdCanton,canton[idcanton].SensLoco);
         end;
       end;
     end;
@@ -11683,7 +11833,7 @@ begin
       if (ax-x=-1) and (ay-y=0)  and  (sx-x=1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de gauche à droite
       if (ax-x=1)  and (ay-y=0)  and  (sx-x=-1) and (sy-y=0)  then tco[indextco,x,y].trajet:=1;   // de droite à gauche
       if (ax-x=-1) and (ay-y=1)  and  (sx-x=1)  and (sy-y=-1) then tco[indextco,x,y].trajet:=2;   // de bas gauche vers haut droit
-      if (ax-x=1)  and (ay-y=-1) and (sx-x=-1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=2;   // de haut droit vers bas gauche
+      if (ax-x=1)  and (ay-y=-1) and (sx-x=-1)  and (sy-y=1)  then tco[indextco,x,y].trajet:=2;   // de NE vers SO
       if (ax-x=-1) and (ay-y=0)  and (sx-x=1)   and (sy-y=-1) then tco[indextco,x,y].trajet:=4;   // de gauche vers haut droite
       if (ax-x=1)  and (ay-y=-1) and (sx-x=-1)  and (sy-y=0)  then tco[indextco,x,y].trajet:=4;   // de haut droite vers gauche
       if (ax-x=-1) and (ay-y=1)  and (sx-x=1)   and (sy-y=0)  then tco[indextco,x,y].trajet:=3;   // de bas gauche vers droite
@@ -11751,6 +11901,7 @@ begin
       if tco[indextco,x,y].trajet=0 then affiche('Erreur 73 TCO - Cellule '+intToSTR(x)+','+intToSTR(y),clred);
     end;
     Affiche_cellule(indexTCO,x,y);
+    //Affiche('AC='+intToSTR(x)+' '+intToSTR(y),clyellow);
   end;
 end;
 
@@ -11765,7 +11916,7 @@ end;
 //        =11 : det1=indexcanton det2=direction -  renvoie les éléments adjacent du canton dans la direction indiquée dans xCanton et tel1
 //        =12 : det1 = détecteur de départ - renvoie l'élément sursuivant (peut être un aiguillage)dans la direction demandée dans xCanton et tel1
 //              direction=det2 = TCO_N TCO_NE etc
-//        =13 : det1=adresse de l'élément TypEL : type de l'élément, s'arrête au suivant suivant direction
+//        =13 : det1=adresse de l'élément TypEL : type de l'élément, s'arrête au suivant, suivant la direction
 // Ne nécessite pas que les aiguillages en talon soient bien positionnés entre det1 et det2
 // PosAig = False:teste toutes les routes en récursif les aiguillages en pointe
 //          True: les aiguillages en pointe doivent être positionnés
@@ -11812,13 +11963,15 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
   // récursivité suivante leur valeur, mais elles reprennent leur valeurs initiales à la remontée vers la résursivité appellante.
   Procedure El_tco(AncienX,ancienY,x,y,train : integer; ir : integer);
   var mdl : Tequipement;
-      i,j,index,position : integer;
+      i,j,index,position,TjdHom,Index_TjdHom,position2 : integer;
+      c1,c2 : char;
       SortirBoucle,NePasfaire : boolean;
   begin
     // répète la route depuis un aiguillage
     inc(iteration);
-    if DebugTCO then AfficheDebug('El_TCO',clorange);
-
+    //Affiche('123iteration '+intToSTR(iteration),clWhite);
+    if DebugTCO then AfficheDebug('El_TCO'+intToSTR(X)+' '+intToSTR(Y),clYellow);
+    //Affiche('El_TCO'+intToSTR(X)+' '+intToSTR(Y),clYellow);
     i:=0;
     repeat
       sortirBoucle:=false;
@@ -11845,32 +11998,31 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
       end;
       // vers case suivante: trouver le trajet pour rejoindre det1 à det2
 
-
       // si canton, prendre les coordonnées du canton
       if (Bimage>=id_cantonH) and (Bimage<=id_cantonH+9) then
       begin
         //if mode=10 then trouveCanton:=true;
         if (Bimage=id_cantonH) and (mode=10) then
         begin
-          Xcanton:=x-(Bimage-Id_cantonH);
+          Xcanton:=x-(Bimage-Id_cantonH);    // revenir à la coordonnée X du début du canton
           Ycanton:=y;  // variable globale
         end;
-        Bimage:=1;
+        Bimage:=1;  // substituer au canton un élément de voie H
       end;
       if (Bimage>=id_cantonV) and (Bimage<=id_cantonV+9) then
       begin
         if (Bimage=Id_cantonV) and (mode=10) then
         begin
           Xcanton:=x;
-          Ycanton:=y-(Bimage-Id_cantonH);
+          Ycanton:=y-(Bimage-Id_cantonH);    // revenir à la coordonnée Y du début du canton
         end;
-        Bimage:=20;
+        Bimage:=20; // substituer au canton un élément de voie V
       end;
 
       // spécial mode 11 et 12
       nepasfaire:=(mode=12) and (adresse<>0) and (adresse<>det1);
-      nepasfaire:=(mode=11) and (adresse<>0) or nepasfaire;
-      nepasfaire:=(mode=13) and (adresse<>0) and (adresse<>det1) or nepasfaire;
+      nepasfaire:=((mode=11) and (adresse<>0)) or nepasfaire;
+      nepasfaire:=((mode=13) and (adresse<>0) and (adresse<>det1)) or nepasfaire;
 
       if not(nepasFaire) then
       case Bimage of
@@ -11917,7 +12069,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 ancienX:=x;AncienY:=y;
                 inc(x);
-                el_tco(ancienx,ancienY,x,y,train,ir); 
+                el_tco(ancienx,ancienY,x,y,train,ir);
                 dec(x);
               end;
               // essayer dévié
@@ -11941,7 +12093,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                 AncienX:=x;AncienY:=y;
                 inc(x);
-                el_tco(ancienx,ancienY,x,y,train,ir); 
+                el_tco(ancienx,ancienY,x,y,train,ir);
                 dec(x);
               end;
               // essayer dévié
@@ -12016,7 +12168,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
               begin
                ancienX:=x;ancienY:=y;
                dec(x);inc(y);
-               el_tco(ancienx,ancienY,x,y,train,ir); 
+               el_tco(ancienx,ancienY,x,y,train,ir);
                inc(x);dec(y);
               end;
               // essayer dévié
@@ -12060,7 +12212,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                begin
                  ancienX:=x;ancienY:=y;
                  inc(x);dec(y);
-                 el_tco(ancienx,ancienY,x,y,train,ir); 
+                 el_tco(ancienx,ancienY,x,y,train,ir);
                  dec(x);inc(y);
                 end;
                 if not(memtrouve) and not(sortir) and (not(posaig) or (posAig and (position=const_devie))) then
@@ -12101,61 +12253,174 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    begin
                      ancienX:=x;ancienY:=y;
                      x:=x+1;
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX>x) and (ancienY<y) then  // on va au SO en mode 13
                    begin
                      ancienX:=x;ancienY:=y;
                      dec(x);inc(y);
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX<x) and (ancienY>y) then  // on va au NE en mode 13
                    begin
                      ancienX:=x;ancienY:=y;
                      inc(x);dec(y);
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX>x) and (ancienY=y) then  // on va au O en mode 13
                    begin
                      ancienX:=x;ancienY:=y;
                      dec(x);
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
                  end
-                 
-                 else
+                 else   // pas mode 13
                  begin
-                   if ancienX<x then  // on va à droite
+                   if not(posAig) then
                    begin
-                     // essayer vers E
-                     ancienX:=x;ancienY:=y;
-                     x:=x+1;
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
-                     if not(memtrouve) then
+                     if ancienX<x then  // on va à droite
                      begin
-                     // essai vers NE
-                       AncienY:=y;
-                       AncienX:=x-1;
-                       y:=y-1;x:=x;
-                       el_tco(ancienx,ancienY,x,y,train,ir); 
-                    end;
-                   end;
-                   if (ancienX>x) and not(Memtrouve) then  // on va à gauche
+                       // on esten mode récursif
+                       // essayer vers E
+                       ancienX:=x;ancienY:=y;
+                       x:=x+1;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                       if not(memtrouve) then
+                       begin
+                         // essai vers NE
+                         AncienY:=y;
+                         AncienX:=x-1;
+                         y:=y-1;x:=x;
+                         el_tco(ancienx,ancienY,x,y,train,ir);
+                       end;
+                     end;
+                     if (ancienX>x) and not(Memtrouve) then  // on va à gauche
+                     begin
+                       // essayer vers O
+                       ancienX:=x;ancienY:=y;
+                       x:=x-1;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                       if not(memtrouve) then
+                       begin
+                         // essai vers SO
+                         AncienY:=y;
+                         AncienX:=x+1;
+                         y:=y+1;x:=x;
+                         el_tco(ancienx,ancienY,x,y,train,ir);
+                       end;
+                     end
+                   end
+                   else // mode posaig=true : on tient compte de la position des aiguillages pur suivre le parcours
                    begin
-                     // essayer vers O
-                     ancienX:=x;ancienY:=y;
-                     x:=x-1;
-                     el_tco(ancienx,ancienY,x,y,train,ir);
-                     if not(memtrouve) then
+                     if aiguillage[index].EtatTJD=4 then              // TJD 4 états
                      begin
-                     // essai vers SO
-                       AncienY:=y;
-                       AncienX:=x+1;
-                       y:=y+1;x:=x;
-                       el_tco(ancienx,ancienY,x,y,train,ir); 
+                       TjdHom:=aiguillage[index].Ddevie;              // adresse de la TJD homologue
+                       Index_TjdHom:=index_aig(TjdHom);               // Index de la TJD homologue
+                       position2:=aiguillage[Index_TjdHom].position;  // position de la TJD homologue
+
+                       tjd4(adresse,position,TjdHom,position2,c1,c2); // retourne c1 et C2
+                       if (ancienY<y) and (ancienX>x) then            // on vient du NE
+                       begin
+                         if c1=c2 then                                // si on traverse la TJD
+                         begin
+                           dec(x);inc(y);                             // on va au SO
+                         end
+                         else                                         // si on passe la TJD en courbe
+                         begin
+                           dec(x);                                    // on va à l'Ouest
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX>x) then            // on vient de E
+                       begin
+                         if c1=c2 then                                // si on traverse la TJD
+                         begin
+                           dec(x);                                    //on va à l'O
+                         end
+                         else
+                         begin
+                           dec(x);inc(y)                              // on va au SO
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX<x) then // on vient du O
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           inc(x); //on va à l'E
+                         end
+                         else
+                         begin
+                           inc(x);dec(y) // on va au NE
+                         end;
+                       end
+                       else
+                       if (ancienY>y) and (ancienX<x) then // on vient du SO
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           inc(x);dec(y) //on va au NE
+                         end
+                         else
+                         begin
+                           inc(x); // on va E
+                         end;
+                       end;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                     end
+                     else
+                     begin   // TJD 2 états
+                       if (ancienY<y) and (ancienX>x) then            // on vient du NE
+                       begin
+                         if position=const_droit then                 // si on traverse la TJD
+                         begin
+                           dec(x);inc(y);                             // on va au SO
+                         end
+                         else                                         // si on passe la TJD en courbe
+                         begin
+                           dec(x);                                    // on va à l'Ouest
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX>x) then            // on vient de E
+                       begin
+                         if position=const_droit then                 // si on traverse la TJD
+                         begin
+                           dec(x);                                    //on va à l'O
+                         end
+                         else
+                         begin
+                           dec(x);inc(y)                              // on va au SO
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX<x) then // on vient du O
+                       begin
+                         if position=const_droit then
+                         begin
+                           inc(x); //on va à l'E
+                         end
+                         else
+                         begin
+                           inc(x);dec(y) // on va au NE
+                         end;
+                       end
+                       else
+                       if (ancienY>y) and (ancienX<x) then // on vient du SO
+                       begin
+                         if position=const_droit then  // si on traverse la TJD
+                         begin
+                           inc(x);dec(y) //on va au NE
+                         end
+                         else
+                         begin
+                           inc(x); // on va E
+                         end;
+                       end;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
                      end;
                    end;
                  end;
@@ -12194,21 +12459,21 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                    begin
                      ancienX:=x;ancienY:=y;
                      x:=x+1;
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX<x) and (ancienY<y) then  // on va au SE en mode 13
                    begin
                      ancienX:=x;ancienY:=y;
                      inc(x);inc(y);
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX>x) and (ancienY>y) then  // on va au NO en mode 13
                    begin
                      ancienX:=x;ancienY:=y;
                      dec(x);dec(y);
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
+                     el_tco(ancienx,ancienY,x,y,train,ir);
                    end;
 
                    if (ancienX>x) and (ancienY=y) then  // on va au O en mode 13
@@ -12218,40 +12483,151 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                      el_tco(ancienx,ancienY,x,y,train,ir); 
                    end;
                  end
-                 
-                 else
+                 else  // pas mode 13
                  begin
-                   if (ancienX<x) then  // on va à droite
+                   if not posAig then
                    begin
-                     // essayer vers E
-                     ancienX:=x;ancienY:=y;
-                     x:=x+1;
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
-                     if not(memtrouve) then
+                     if (ancienX<x) then  // on va à droite
                      begin
-                       // essai vers SE
-                      AncienY:=y;
-                        AncienX:=x-1;
-                       y:=y+1;x:=x;
+                       // essayer vers E
+                       ancienX:=x;ancienY:=y;
+                       x:=x+1;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                       if not(memtrouve) then
+                       begin
+                         // essai vers SE
+                         AncienY:=y;
+                         AncienX:=x-1;
+                         y:=y+1;x:=x;
+                         el_tco(ancienx,ancienY,x,y,train,ir);
+                       end;
+                     end;
+                     if ((ancienX>x) and not(Memtrouve)) then  // on va à gauche
+                     begin
+                       // essayer vers O
+                       ancienX:=x;ancienY:=y;
+                       x:=x-1;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                       if not(memtrouve) then
+                       begin
+                         // essai vers NO
+                         AncienY:=y;
+                         AncienX:=x+1;
+                         y:=y-1;x:=x;
+                         el_tco(ancienx,ancienY,x,y,train,ir);
+                       end;
+                     end;
+                   end
+                   else  // mode posAig
+                   begin
+                     if aiguillage[index].EtatTJD=4 then
+                     begin
+                       TjdHom:=aiguillage[index].Ddevie;    
+                       Index_TjdHom:=index_aig(TjdHom);
+                       position2:=aiguillage[Index_TjdHom].position;
+                       tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                       if (ancienY<y) and (ancienX<x) then // on vient du NO
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           inc(x);inc(y);
+                         end
+                         else
+                         begin
+                           inc(x); // on va à l'E
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX>x) then // on vient de E
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           dec(x); //on va à l'O
+                         end
+                         else
+                         begin
+                           dec(x);dec(y) // on va au NO
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX<x) then // on vient du O
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           inc(x); //on va à l'E
+                         end
+                         else
+                         begin
+                           inc(x);inc(y) // on va au SE
+                         end;
+                       end
+                       else
+                       if (ancienY>y) and (ancienX>x) then // on vient du SE
+                       begin
+                         if c1=c2 then  // si on traverse la TJD
+                         begin
+                           dec(x);dec(y) //on va au NO
+                         end
+                         else
+                         begin
+                           dec(x); // on va O
+                         end;
+                       end;
+                       el_tco(ancienx,ancienY,x,y,train,ir);
+                     end
+                     else
+                     begin // TJD 2 états
+                       if (ancienY<y) and (ancienX<x) then // on vient du NO
+                       begin
+                         if position=const_droit then  // si on traverse la TJD
+                         begin
+                           inc(x);inc(y);
+                         end
+                         else
+                         begin
+                           inc(x); // on va à l'E
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX>x) then // on vient de E
+                       begin
+                         if position=const_droit then  // si on traverse la TJD
+                         begin
+                           dec(x); //on va à l'O
+                         end
+                         else
+                         begin
+                           dec(x);dec(y) // on va au NO
+                         end;
+                       end
+                       else
+                       if (ancienY=y) and (ancienX<x) then // on vient du O
+                       begin
+                         if position=const_droit then  // si on traverse la TJD
+                         begin
+                           inc(x); //on va à l'E
+                         end
+                         else
+                         begin
+                           inc(x);inc(y) // on va au SE
+                         end;
+                       end
+                       else
+                       if (ancienY>y) and (ancienX>x) then // on vient du SE
+                       begin
+                         if position=const_droit then  // si on traverse la TJD
+                         begin
+                           dec(x);dec(y) //on va au NO
+                         end
+                         else
+                         begin
+                           dec(x); // on va O
+                         end;
+                       end;
                        el_tco(ancienx,ancienY,x,y,train,ir);
                      end;
                    end;
-                   if ((ancienX>x) and not(Memtrouve)) then  // on va à gauche
-                   begin
-                     // essayer vers O
-                     ancienX:=x;ancienY:=y;
-                     x:=x-1;
-                     el_tco(ancienx,ancienY,x,y,train,ir); 
-                     if not(memtrouve) then
-                     begin
-                       // essai vers NO
-                       AncienY:=y;
-                        AncienX:=x+1;
-                       y:=y-1;x:=x;
-                       el_tco(ancienx,ancienY,x,y,train,ir); 
-                     end;
-                   end;
-                 end;  
+                 end;
                end;
              end;
 
@@ -12289,60 +12665,172 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       begin
                         ancienX:=x;ancienY:=y;
                         dec(y);
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        el_tco(ancienx,ancienY,x,y,train,ir);
                       end;
 
                       if (ancienX>x) and (ancienY<y) then  // on va au SO en mode 13
                       begin
                         ancienX:=x;ancienY:=y;
                         dec(x);inc(y);
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        el_tco(ancienx,ancienY,x,y,train,ir);
                       end;
 
                       if (ancienX<x) and (ancienY>y) then  // on va au NE en mode 13
                       begin
                         ancienX:=x;ancienY:=y;
                         inc(x);dec(y);
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        el_tco(ancienx,ancienY,x,y,train,ir);
                       end;
-                 
+
                       if (ancienX=x) and (ancienY<y) then  // on va au S en mode 13
                       begin
                         ancienX:=x;ancienY:=y;
                         inc(y);
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
+                        el_tco(ancienx,ancienY,x,y,train,ir);
                       end;
                     end
-                    else
+                    else  // pas mode 13
                     begin
-                      if ancienY<y then  // on va en bas
+                      if not(posAig) then
                       begin
-                        // essayer vers S
-                        ancienX:=x;ancienY:=y;
-                        y:=y+1;
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
-                        if not(memtrouve) then
+                        if ancienY<y then  // on va en bas
                         begin
-                          // essai vers SO
-                          AncienY:=y-1;
-                          AncienX:=x;
-                          x:=x-1;
-                          el_tco(ancienx,ancienY,x,y,train,ir); 
+                          // essayer vers S
+                          ancienX:=x;ancienY:=y;
+                          y:=y+1;
+                          el_tco(ancienx,ancienY,x,y,train,ir);
+                          if not(memtrouve) then
+                          begin
+                            // essai vers SO
+                            AncienY:=y-1;
+                            AncienX:=x;
+                            x:=x-1;
+                            el_tco(ancienx,ancienY,x,y,train,ir);
+                          end;
                         end;
-                      end;
-                      if (ancienY>y) and not(Memtrouve) then  // on monte
-                      begin
-                        // essayer vers N
-                        ancienX:=x;ancienY:=y;
-                        y:=y-1;
-                        el_tco(ancienx,ancienY,x,y,train,ir); 
-                        if not(memtrouve) then
+                        if (ancienY>y) and not(Memtrouve) then  // on monte
                         begin
-                          // essai vers NE
-                          AncienY:=y+1;
-                          AncienX:=x;
-                          x:=x+1;
-                          el_tco(ancienx,ancienY,x,y,train,ir); 
+                          // essayer vers N
+                          ancienX:=x;ancienY:=y;
+                          y:=y-1;
+                          el_tco(ancienx,ancienY,x,y,train,ir);
+                          if not(memtrouve) then
+                          begin
+                            // essai vers NE
+                            AncienY:=y+1;
+                            AncienX:=x;
+                            x:=x+1;
+                            el_tco(ancienx,ancienY,x,y,train,ir);
+                          end;
+                        end;
+                      end
+                      else  // mode posAig
+                      begin
+                        if aiguillage[index].EtatTJD=4 then
+                        begin
+                          TjdHom:=aiguillage[index].Ddevie;    
+                          Index_TjdHom:=index_aig(TjdHom);
+                          position2:=aiguillage[Index_TjdHom].position;
+                          tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                          if (ancienY<y) and (ancienX>x) then // on vient du NE
+                          begin
+                            if c1=c2 then  // si on traverse la TJD
+                            begin
+                              dec(x);inc(y);   // on va au SO
+                            end
+                            else
+                            begin
+                              inc(y); // on va au S
+                            end;
+                          end
+                          else
+                          if (ancienY<y) and (ancienX=x) then // on vient de N
+                          begin
+                            if c1=c2 then  // si on traverse la TJD
+                            begin
+                              inc(y); //on va au S
+                            end
+                            else
+                            begin
+                              dec(x);inc(y) // on va au SO
+                            end;
+                          end
+                          else
+                          if (ancienY=y) and (ancienX<x) then // on vient du SO
+                          begin
+                            if c1=c2 then  // si on traverse la TJD
+                            begin
+                              inc(x);dec(y); //on va au NE
+                            end
+                            else
+                            begin
+                              dec(y) // on va au N
+                            end;
+                          end
+                          else
+                          if (ancienY>y) and (ancienX=x) then // on vient du S
+                          begin
+                            if c1=c2 then  // si on traverse la TJD
+                            begin
+                              dec(y) //on va au N
+                            end
+                            else
+                            begin
+                              inc(x);dec(y); // on va NE
+                            end;
+                          end;
+                          el_tco(ancienx,ancienY,x,y,train,ir);
+                        end
+                        else
+                        begin  // TJD 2 états
+                          if (ancienY<y) and (ancienX>x) then // on vient du NE
+                          begin
+                            if position=const_droit then  // si on traverse la TJD
+                            begin
+                              dec(x);inc(y);   // on va au SO
+                            end
+                            else
+                            begin
+                              inc(y); // on va au S
+                            end;
+                          end
+                          else
+                          if (ancienY<y) and (ancienX=x) then // on vient de N
+                          begin
+                            if position=const_droit then  // si on traverse la TJD
+                            begin
+                              inc(y); //on va au S
+                            end
+                            else
+                            begin
+                              dec(x);inc(y) // on va au SO
+                            end;
+                          end
+                          else
+                          if (ancienY=y) and (ancienX<x) then // on vient du SO
+                          begin
+                            if position=const_droit then  // si on traverse la TJD
+                            begin
+                              inc(x);dec(y); //on va au NE
+                            end
+                            else
+                            begin
+                              dec(y) // on va au N
+                            end;
+                          end
+                          else
+                          if (ancienY>y) and (ancienX=x) then // on vient du S
+                          begin
+                            if position=const_droit then  // si on traverse la TJD
+                            begin
+                              dec(y) //on va au N
+                            end
+                            else
+                            begin
+                              inc(x);dec(y); // on va NE
+                            end;
+                          end;
+                          el_tco(ancienx,ancienY,x,y,train,ir);
                         end;
                       end;
                     end;
@@ -12405,7 +12893,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                   begin
                     ancienX:=x;ancienY:=y;
                     inc(y);
-                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                    el_tco(ancienx,ancienY,x,y,train,ir);
                   end;
 
                   if (ancienX<x) and (ancienY<y) then  // on va au SE en mode 13
@@ -12419,62 +12907,173 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                   begin
                     ancienX:=x;ancienY:=y;
                     dec(x);dec(y);
-                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                    el_tco(ancienx,ancienY,x,y,train,ir);
                   end;
 
                   if (ancienX=x) and (ancienY>y) then  // on va au N en mode 13
                   begin
                     ancienX:=x;ancienY:=y;
                     dec(y);
-                    el_tco(ancienx,ancienY,x,y,train,ir); 
+                    el_tco(ancienx,ancienY,x,y,train,ir);
                   end;
                 end
-                else
-                
+                else  // pas mode 13
                 begin
-                  if ancienY<y then  // on va en bas
+                  if not posAig then
                   begin
-                    // essayer vers S
-                    ancienX:=x;ancienY:=y;
-                    y:=y+1;
-                    el_tco(ancienx,ancienY,x,y,train,ir); 
-                    if not(memtrouve) then
+                    if ancienY<y then  // on va en bas
                     begin
-                      // essai vers SE
-                      AncienY:=y-1;
-                      AncienX:=x;
-                      x:=x+1;
-                      el_tco(ancienx,ancienY,x,y,train,ir); 
+                      // essayer vers S
+                      ancienX:=x;ancienY:=y;
+                      y:=y+1;
+                      el_tco(ancienx,ancienY,x,y,train,ir);
+                      if not(memtrouve) then
+                      begin
+                        // essai vers SE
+                        AncienY:=y-1;
+                        AncienX:=x;
+                        x:=x+1;
+                        el_tco(ancienx,ancienY,x,y,train,ir);
+                      end;
                     end;
-                  end;
-                  if (ancienY>y) and not(Memtrouve) then  // on monte
-                  begin
-                    // essayer vers N
-                    ancienX:=x;ancienY:=y;
-                    y:=y-1;
-                    el_tco(ancienx,ancienY,x,y,train,ir);
-                    if not(memtrouve) then
+                    if (ancienY>y) and not(Memtrouve) then  // on monte
                     begin
-                      // essai vers NO
-                      AncienY:=y+1;
-                      AncienX:=x;
-                      x:=x-1;
-                      el_tco(ancienx,ancienY,x,y,train,ir); 
+                      // essayer vers N
+                      ancienX:=x;ancienY:=y;
+                      y:=y-1;
+                      el_tco(ancienx,ancienY,x,y,train,ir);
+                      if not(memtrouve) then
+                      begin
+                        // essai vers NO
+                        AncienY:=y+1;
+                        AncienX:=x;
+                        x:=x-1;
+                        el_tco(ancienx,ancienY,x,y,train,ir);
+                      end;
+                    end;
+                  end
+                  else
+                  begin   // mode posaig
+                    if aiguillage[index].EtatTJD=4 then
+                    begin
+                      TjdHom:=aiguillage[index].Ddevie;
+                      Index_TjdHom:=index_aig(TjdHom);
+                      position2:=aiguillage[Index_TjdHom].position;
+                      tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                      if (ancienY<y) and (ancienX<x) then // on vient du NO
+                      begin
+                        if c1=c2 then  // si on traverse la TJD
+                        begin
+                          inc(x);inc(y);   // on va au SE
+                        end
+                        else
+                        begin
+                          inc(y); // on va au S
+                        end;
+                      end
+                      else
+                      if (ancienY<y) and (ancienX=x) then // on vient de N
+                      begin
+                        if c1=c2 then  // si on traverse la TJD
+                        begin
+                          inc(y); //on va au S
+                        end
+                        else
+                        begin
+                          inc(x);inc(y) // on va au SE
+                        end;
+                      end
+                      else
+                      if (ancienY>y) and (ancienX>x) then // on vient du SE
+                      begin
+                        if c1=c2 then  // si on traverse la TJD
+                        begin
+                          dec(x);dec(y); //on va au NO
+                        end
+                        else
+                        begin
+                          dec(y) // on va au N
+                        end;
+                      end
+                      else
+                      if (ancienY>y) and (ancienX=x) then // on vient du S
+                      begin
+                        if c1=c2 then  // si on traverse la TJD
+                        begin
+                          dec(y) //on va au N
+                        end
+                        else
+                        begin
+                          dec(x);dec(y); // on va NO
+                        end;
+                      end;
+                      el_tco(ancienx,ancienY,x,y,train,ir);
+                    end
+                    else // tjs 2 états
+                    begin
+                      if (ancienY<y) and (ancienX<x) then // on vient du NO
+                      begin
+                        if position=const_droit then  // si on traverse la TJD
+                        begin
+                          inc(x);inc(y);   // on va au SE
+                        end
+                        else
+                        begin
+                          inc(y); // on va au S
+                        end;
+                      end
+                      else
+                      if (ancienY<y) and (ancienX=x) then // on vient de N
+                      begin
+                        if position=const_droit then  // si on traverse la TJD
+                        begin
+                          inc(y); //on va au S
+                        end
+                        else
+                        begin
+                          inc(x);inc(y) // on va au SE
+                        end;
+                      end
+                      else
+                      if (ancienY>y) and (ancienX>x) then // on vient du SE
+                      begin
+                        if position=const_droit then  // si on traverse la TJD
+                        begin
+                          dec(x);dec(y); //on va au NO
+                        end
+                        else
+                        begin
+                          dec(y) // on va au N
+                        end;
+                      end
+                      else
+                      if (ancienY>y) and (ancienX=x) then // on vient du S
+                      begin
+                        if position=const_droit then  // si on traverse la TJD
+                        begin
+                          dec(y) //on va au N
+                        end
+                        else
+                        begin
+                          dec(x);dec(y); // on va NO
+                        end;
+                      end;
+                      el_tco(ancienx,ancienY,x,y,train,ir);
                     end;
                   end;
                 end;
               end;
             end;
-              if (adresse=0) or (mdl=crois) then
-              // croisement
-              begin
-                if DebugTCO then AfficheDebug('Croisement',clyellow);
-                if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=yn+1;end;
-                if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=yn-1;end;
-                if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
-                if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
-              end;
-              if (mdl=aig) then
+            if (adresse=0) or (mdl=crois) then
+            // croisement
+            begin
+              if DebugTCO then AfficheDebug('Croisement',clyellow);
+              if (ancienX<x) and (ancienY<Y) then begin xn:=x+1;yn:=yn+1;end;
+              if (ancienX>x) and (ancienY>Y) then begin xn:=x-1;yn:=yn-1;end;
+              if (ancienX=x) and (ancienY<Y) then begin xn:=x;yn:=y+1;end;
+              if (ancienX=x) and (ancienY>Y) then begin xn:=x;yn:=y-1;end;
+            end;
+            if (mdl=aig) then
             begin
               Affiche('Erreur 51 TCO : la cellule '+intToSTR(x)+','+intToSTR(y)+' d''adresse '+intToSTR(Adresse)+' est décrite comme un aiguillage ',clred);
               Affiche('mais la cellule représente un croisement ou une TJD/S',clred);
@@ -12662,6 +13261,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
      inc(i);
      // éléments adj
      if (mode=11) and ( (adresse<>0) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
+     //if (mode=11) and ((adresse=0) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
      if (mode=12) and ( ((adresse<>0) and (adresse<>det1)) or (tco[indexTCO,x,y].buttoir<>0)) then sortir:=true;
 
      if (mode=13) and ( ((adresse<>0) and (adresse<>det1)) or (tco[indexTCO,x,y].buttoir<>0)) then begin
@@ -12840,7 +13440,8 @@ begin
 
     el_tco(ancienx,ancienY,x,y,train,ir);   // *********** trouve l'élément suivant, et explore les ports de l'aiguillage en récursif si posAig=true
 
-    if (mode=11) and ((adresse<>0) or (but<>0) or sortir) then
+//    if (mode=11) and ((adresse<>0) or (but<>0) or sortir) then
+    if (mode=11) then
     begin
       MemTrouve:=true;
       Xcanton:=adresse;
@@ -13430,6 +14031,7 @@ begin
   tco[indextco,x,y].FeuOriente:=0;
 end;
 
+// insère une colonne dans le Tco indexTCO à la colonne "colonne"
 procedure insere_colonne(indexTCO,colonne : integer);
 var x,y,i,Bim : integer;
 begin
@@ -13443,17 +14045,17 @@ begin
       inc(canton[i].x);
   end;
 
-  // copie pour décaler
+  // copie pour décaler la nouvelle colonne
   for x:=NbreCellX[indexTCO] downto colonne do
   begin
     for y:=1 to NbreCellY[indexTCO] do
     begin
       Bim:=tco[indexTco,x,y].Bimage;
-      if not(isCantonH(Bim)) then tco[indextco,x+1,y]:=tco[indextco,x,y];
+      tco[indextco,x+1,y]:=tco[indextco,x,y];
     end;
   end;
 
-  // efface la nouvelle ligne
+  // efface la nouvelle colonne
   for y:=1 to NbreCellY[indexTCO] do
   begin
     Bim:=tco[indexTco,colonne,y].Bimage;
@@ -13482,7 +14084,7 @@ begin
     for x:=1 to NbreCellX[indexTCO] do
     begin
       Bim:=tco[indexTco,x,y].Bimage;
-      if not(isCantonV(Bim)) then tco[indextco,x,y+1]:=tco[indextco,x,y];
+      tco[indextco,x,y+1]:=tco[indextco,x,y];
     end;
 
   // efface la nouvelle ligne
@@ -13643,7 +14245,8 @@ begin
 end;
 
 procedure couper(indexTCO: integer);
-var x,y,xMax,Ymax,XCell1,YCell1,xCell2,yCell2,haut,larg,Bim : integer;
+var x,y,xMax,Ymax,XCell1,YCell1,xCell2,yCell2,haut,larg,Bim,index : integer;
+    s : string;
     raz_canton: boolean;
 begin
   larg:=largeurCell[indexTCO];
@@ -13698,8 +14301,15 @@ begin
   begin
     // si c'est un canton, le supprimer en remplaçant par les voies
     Bim:=tco[indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]].BImage;
+
     if isCanton(Bim) then
     begin
+      index:=index_canton(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
+      s:='Voulez vous supprimer le canton ';
+      if index<>0 then s:=s+intToSTR(canton[index].numero)+' '+canton[index].nom;
+      s:=s+' ?';
+      if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
       bim:=index_canton(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
       supprime_remplace_canton(bim);
       raz_canton:=true;
@@ -15136,10 +15746,10 @@ end;
 procedure TFormTCO.ImageTCOMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
 var position : Tpoint;
     Numcanton,xt,yt,bt,indexTCO,i,n,adresse,Bimage,xf,yf,xclic,yclic,el1,el2,senscanton,larg,haut,
-    indexTrain,idcantonOrg,AdrTrain : integer;
+    indexTrain,idcantonOrg,idcantonDest,AdrTrain,sens : integer;
     tel1,tel2 : tequipement;
     s : string;
-    presTrain : boolean;
+    presTrain,Horz,Pc,trouve : boolean;
 begin
   indexTCO:=index_tco(sender);
   if indexTCO<1 then exit;
@@ -15165,8 +15775,23 @@ begin
     clicsouris:=true;
     Bimage:=tco[indextco,xclic,yclic].BImage;
 
+    pc:=false;
+    if IdCantonSelect<>0 then // si on clique sur un canton, augmenter les tolérances
+    begin
+      //Affiche('idcantonSelect'+IntToSTR(IdCantonSelect),clYellow);
+      Horz:=Canton[IdCantonSelect].horizontal;
+      if horz then
+      begin
+        pc:=(position.x>canton[IdCantonSelect].Gd.Left-5) and (position.x<canton[IdCantonSelect].Gd.Right+5);
+      end
+      else
+      begin
+        pc:=(position.y>canton[IdCantonSelect].Gd.Top-5) and (position.y<canton[IdCantonSelect].Gd.Bottom+5);
+      end;
+    end;
     // clic sur canton
-    if isCanton(Bimage) then
+    //if isCanton(Bimage) then
+    if pc then 
     begin
       IdCantonClic:=index_canton(indexTCO,xclic,yclic);
       if IdCantonClic>0 then
@@ -15183,7 +15808,10 @@ begin
     end
 
     else
-      IdCantonSelect:=0;  // pas cliqué sur un canton
+      begin
+        IdCantonSelect:=0;  // pas cliqué sur un canton
+        //Affiche('RAZ1 x='+intToSTR(xclic),clred);
+      end;
 
 
     // ------------------ si clic sur bouton canton
@@ -15243,6 +15871,48 @@ begin
           FormTCO[IndexTCO].Caption:='Attention, aucun train n''est physiquement présent dans le canton pour définir une route - Aucun des deux détecteurs encadrant le canton n''est à 1';
           exit;
         end;
+
+        //
+        n:=trains[indexTrain].routePref[0].adresse;
+        if n<>0 then
+        begin
+          Affiche('trouvé route affectée au train',clYellow);
+          el1:=trains[indexTrain].routePref[1].adresse;
+          // vérifier si le détecteur est l'un des deux du canton cliqué
+          if ((canton[IdCantonClic].el1=el1) and (canton[IdCantonClic].typ1=det)) or
+             ((canton[IdCantonClic].el2=el2) and (canton[IdCantonClic].typ2=det)) then
+          begin
+            // trouver le canton destination
+            if trains[indexTrain].routePref[n].typ<>det then exit;
+            el2:=trains[indexTrain].routePref[n].adresse;
+            i:=1;
+            repeat
+              trouve:=((canton[i].el1=el2) and (canton[i].typ1=det)) or
+                      ((canton[i].el2=el2) and (canton[i].typ2=det))  ;
+              inc(i);
+            until trouve or (i>ncantons);
+            if not trouve then exit;
+            dec(i);
+            Idcantondest:=i;
+
+            canton[IdCantonClic].bouton:=3;
+            canton[IdCantonClic].NumcantonOrg:=canton[IdcantonClic].numero;
+            canton[IdCantonClic].NumcantonDest:=canton[IdcantonDest].numero;
+            dessin_canton(IdCantonClic,0);
+
+            canton[IdCantonDest].bouton:=4;
+            canton[IdCantonDest].NumcantonOrg:=canton[IdcantonClic].numero;
+            canton[IdCantonDest].NumcantonDest:=canton[IdcantonDest].numero;
+            dessin_canton(IdCantonDest,0);
+
+            indexTrainFR:=indexTrain;
+            trains[indexTrain].route:=trains[indexTrain].routePref;
+            FormRouteTrain.Show;
+
+            exit;
+          end;
+        end;
+
         if tel1=det then detDepart:=el1;
         if tel2=det then detDepart:=el2;
         cantonOrg:=canton[IdCantonClic].numero;
@@ -15269,10 +15939,11 @@ begin
       end
       else
       begin
-        // detdépart validé : valider le det de destination
-        if (detatrouve=0) and (bt<3) and not(ConfCellTCO) then // bt=3 drapeau vert bt=4 drapeau rouge
+        // detdépart validé : valider le det de destination sauf si route en roulage
+        if (detatrouve=0) and (bt<=3) and not(ConfCellTCO) and (NbreRoutes=0)
+          then // bt=3 drapeau vert bt=4 drapeau rouge
         begin
-          if canton[IdCantonClic].adresseTrain<>0 then
+          if (canton[IdCantonClic].adresseTrain<>0) and (bt<3) then
           begin
             ImageTCO.Hint:='Canton occupé par train '+canton[IdCantonClic].nomtrain;
             exit;
@@ -15283,6 +15954,7 @@ begin
           canton[IdCantonClic].NumCantonOrg:=cantonOrg;
           canton[IdCantonClic].NumCantonDest:=cantonDest; // c'est lui meme
           idcantonOrg:=index_canton_numero(cantonOrg);
+          if idcantonOrg=0 then exit;
           canton[idcantonOrg].NumcantonOrg:=cantonOrg;
           canton[idcantonOrg].NumcantonDest:=cantonDest;
 
@@ -15291,10 +15963,10 @@ begin
           // trouve les routes  - sens du canton d'origine
           sensCanton:=canton[IdCantonOrg].sensLoco;
           case sensCanton of // sens de la loco dans le canton
-            sensGauche : begin sens:=5;end;
-            sensDroit : begin sens:=6;end;
-            SensHaut : begin sens:=7;end;
-            SensBas : begin sens:=8;end;
+            sensGauche : begin sens:=SensTCO_O;end;
+            sensDroit : begin sens:=SensTCO_E;end;
+            SensHaut : begin sens:=SensTCO_N;end;
+            SensBas : begin sens:=SensTCO_S;end;
           end;
 
           // affiche la fenetre des routes ou de la route affectée au train,
@@ -15302,12 +15974,11 @@ begin
           if indexTrain>9000 then
           begin
             Affiche('Anomalie 627',clred);
-            messageBeep(Mb_iconError);
+             messageBeep(Mb_iconError);
             exit;
           end;
           Trains[IndexTrain].cantonOrg:=cantonOrg;
           Trains[IndexTrain].cantonDest:=cantonDest;
-
           formTCO[indexTCO].Caption:='TCO'+intToSTR(indexTCO)+' : '+NomFichierTCO[indexTCO];
           Screen.cursor:=crDefault;
 
@@ -15316,23 +15987,25 @@ begin
           canton[idCantonClic].AdrTrainRoute:=Trains[indexTrain].adresse;
           dessin_canton(IdCantonClic,0);
           FormTCO[IndexTCO].Caption:='Calcul des routes en cours.....................';
+
           application.processMessages;
           prepare_route(indexTCO,cantonOrg,detAtrouve,sens);   // à gauche(5) du détecteur / droite (6) / en bas (8) / haut (7)
           if trains[indexTrain].route[0].adresse<>0 then formRouteTrain.show else formRoute.show;
           titre_Fenetre(indexTCO);
-          detatrouve:=0;
-          detDepart:=0;
-
+          //detatrouve:=0;
+          //detDepart:=0;
           exit;
         end;
-        // on clique sur le drapeau vert ou rouge
-        if (bt>=3) then   // canton de départ ou destination
+        // on clique sur le drapeau rouge
+        if (bt>=3) then   // canton de destination
         begin
           // est-ce un canton de destination?
+          if idcantonClic<1 then exit;
           Numcanton:=canton[IdCantonClic].numero;
           if canton[IdCantonClic].NumCantonDest=NumCanton then
           begin
             Numcanton:=canton[IdCantonClic].NumcantonOrg;   // revenir au canton origine de la route
+            if numcanton=0 then exit;
             IdCantonClic:=index_canton_numero(NumCanton);
           end;
 
@@ -15362,7 +16035,11 @@ begin
     titre_fenetre(indexTCO);
     if (IdCantonSelect<>0) and not(ConfCellTCO) then
     begin
-      if accroche_canton(indexTCO,IdCantonSelect,x,y) then exit;   // on a pas cliqué sur les poignées
+      if accroche_canton(indexTCO,IdCantonSelect,x,y) then
+      begin
+       // Affiche('on a pas cliqué sur les poignées dans MouseDown',clred);
+        exit;   // on a pas cliqué sur les poignées
+      end;
       begin
         // sinon, désélect le canton
         IndexTCO:=canton[IdCantonSelect].Ntco;   // reprendre l'index du TCO depuis le canton car on a peut etre cliqué sur un autre TCO
@@ -15374,6 +16051,7 @@ begin
         Dessin_canton(IdCantonClic,0);
         AncienIdCantonSelect:=IdCantonSelect;
         IdCantonSelect:=0;
+        //Affiche('RAZ2',clred);
         exit;
       end;
     end;
@@ -15386,7 +16064,7 @@ begin
         formRoute.Close;
         selec_canton(indexTCO);
         actualise(indexTCO);   // actualise la fenetre de paramétrage
-        ImageTCO.Hint:='canton '+intToSTR(canton[IdCantonSelect].numero);
+        if IdcantonSelect>0 then ImageTCO.Hint:='canton '+intToSTR(canton[IdCantonSelect].numero);
         exit;
       end;
     end;
@@ -15737,6 +16415,7 @@ begin
   cellY:=y div hauteurCell[indexTCO]+1;
   //Affiche(intToSTR(x)+','+intToSTR(y),clYellow);
 
+  //Affiche('IdCantonSelect='+intToSTR(IdCantonSelect),clWhite);
   // exécuté uniquement si changement position souris
   if (aSourisx<>x) or (aSourisy<>y) then
   begin
@@ -15753,7 +16432,11 @@ begin
     if IdCantonSelect<>0 then
     begin
       //Affiche('Acc',clOrange);
-      if Accroche_canton(IndexTCO,IdCantonSelect,x,y) then exit;
+      if Accroche_canton(IndexTCO,IdCantonSelect,x,y) then
+      begin
+        //Affiche('On a pas cliqué sur les poignées dans mouseMove',clred);
+        exit;
+      end;
 
       idTrain:=canton[IdCantonSelect].indexTrain;
       if clicSouris and (idTrain<>0) then if (trains[IdTrain].icone<>nil) and (trains[IdTrain].icone.width<>0) then
@@ -15762,7 +16445,8 @@ begin
         exit;
       end;
       exit;
-    end;
+    end ;
+
     // vérifier si on passe au dessus d'un bouton canton
     IdCanton:=passe_bouton_canton(indexTCO,x,y);
     if idCanton<>0 then
@@ -16100,7 +16784,7 @@ begin
       for y:=1 to NbreCellY[ntco] do
         for x:=1 to NbreCellX[ntco] do
         begin
-          Bim:=TCO[ntco,x,y].BImage;
+          Bim:=TCO[ntco,x,y].Bimage;
           //if IsAigTCO(Bim) then
           begin
             if TCO[ntco,x,y].Adresse=adresse then
@@ -17407,6 +18091,8 @@ end;
 procedure TFormTCO.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if affevt then Affiche('TCO.FormKeyPress',clOrange);
+  //MessageBeep(MB_ICONEXCLAMATION);
+  toucheTCO:=key;
 end;
 
 procedure TFormTCO.ImagePalette1MouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -17992,16 +18678,13 @@ begin
     exit;
   end;
 
-  canton[IdCantonDest].SensLoco:=sens;
-
   // raz train canton d'origine
   IdTrain:=canton[IdCantonDragOrg].indexTrain;
   supprime_route_train(canton[idcantonDragOrg].indexTrain);
   Raz_trains_idcanton(IdCantonDragOrg);  // raz du train du canton
 
-
   // affectation train canton destination
-  affecte_Train_canton(trains[idTrain].adresse,IdCantonDest);
+  affecte_Train_canton(trains[idTrain].adresse,IdCantonDest,sens);
   application.processMessages;
 
   Affiche_TCO(indexTCO);
@@ -18035,13 +18718,44 @@ begin
   formRouteTrain.Show;
 end;
 
-
 procedure TFormTCO.Button1Click(Sender: TObject);
 begin
   zone_tco(1,523,518,1,0,1,false);
 end;
 
+procedure TFormTCO.Optiondesroutes1Click(Sender: TObject);
+begin
+  formRoute.Show;
+end;
 
+procedure TFormTCO.rouverunlment1Click(Sender: TObject);
+var x,y : integer;
+    trouve : boolean;
+begin
+  IndexTCOCourant:=index_TCOMainMenu;
+  FormIntro.showmodal;
+  y:=1;
+  repeat
+    x:=1;
+    repeat
+      trouve:=tco[IndexTCOCourant,x,y].Adresse=Achercher;
+      inc(x);
+    until (x>NbreCellX[IndexTCOCourant]) or trouve;
+    inc(y);
+  until (y>NbreCellY[IndexTCOCourant]) or trouve;
+  if trouve then
+  begin
+    dec(x);dec(y);
+    x:=(x-1)*LargeurCell[indexTCOCourant];
+    y:=(y-1)*HauteurCell[indexTCOCourant];
+    with PcanvasTCO[indexTcoCourant] do
+    begin
+      Pen.Color:=clLime;
+      Pen.Width:=3;
+      moveto(0,0);LineTo(x,y);
+    end;
+  end;
+end;
 
 end.
 

@@ -1,8 +1,8 @@
 object FormPrinc: TFormPrinc
-  Left = 75
-  Top = 270
+  Left = 132
+  Top = 172
   Width = 1148
-  Height = 624
+  Height = 625
   Anchors = [akLeft, akTop, akRight]
   Caption = 'SIgnaux complexes'
   Color = clBtnFace
@@ -20,8 +20,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1140
-    573)
+    1132
+    566)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1445,8 +1445,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 551
-    Width = 1140
+    Top = 544
+    Width = 1132
     Height = 22
     Panels = <
       item
@@ -2043,6 +2043,7 @@ object FormPrinc: TFormPrinc
     Height = 25
     Caption = 'Route'
     TabOrder = 2
+    OnClick = Button3Click
   end
   object Timer1: TTimer
     Interval = 100
@@ -2417,7 +2418,7 @@ object FormPrinc: TFormPrinc
     object Roulage1: TMenuItem
       Caption = 'Roulage'
       object Routes1: TMenuItem
-        Caption = 'Fen'#234'tre des routes'
+        Caption = 'Fen'#234'tre des routes par trains'
         OnClick = Routes1Click
       end
       object Afficheroutespartrain1: TMenuItem

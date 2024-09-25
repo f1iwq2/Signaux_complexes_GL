@@ -18,8 +18,17 @@ type
     ButtonDetail: TButton;
     ButtonRAZ: TButton;
     ImageTrainR: TImage;
-    ComboBoxTrains: TComboBox;
     ButtonFenPil: TButton;
+    Button1: TButton;
+    ButtonRaf: TButton;
+    GroupBox1: TGroupBox;
+    EditObligeCanton: TEdit;
+    EditInterditCanton: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    ButtonTrouver: TButton;
+    CheckBoxRoutesLongues: TCheckBox;
+    CheckBoxDebugRoutes: TCheckBox;
     procedure FormActivate(Sender: TObject);
     procedure ListBoxRoutesMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -32,6 +41,14 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonFenPilClick(Sender: TObject);
+    procedure ButtonParcours(Sender: TObject);
+    procedure ButtonRafClick(Sender: TObject);
+    procedure EditObligeCantonChange(Sender: TObject);
+    procedure EditInterditCantonChange(Sender: TObject);
+    procedure ButtonTrouverClick(Sender: TObject);
+    procedure ListBoxRoutesDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure CheckBoxRoutesLonguesClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -41,7 +58,12 @@ type
 var
   FormRoute: TFormRoute;
   parcoursDet : TUneroute;
-  AncLigneRoute,LigneRoute,IdTrainCourant : integer;
+  CoulText : Tcolor;
+  AncLigneRoute,NumRoute,AncRoute,IndexLigneRoute,IdTrainCourant,Nprop,NpropTot : integer;
+  list_det_obl,list_det_int : array[1..20] of record
+              adresse : integer;
+              n :integer;
+              end;
 
 procedure raz_route_fenetre;
 procedure raz_toutes_routes;
@@ -57,7 +79,7 @@ uses UnitDebug,unitTCO,UnitConfig, UnitRouteTrains;
 
 // efface la route parcoursDet[]
 procedure efface_route_tco;
-var n,det1,det2,i,indexAig : integer;
+var n,det1,nti,x,y,det2,i,indexAig : integer;
     t : tequipement;
 begin
   n:=parcoursdet[0].adresse;
@@ -88,6 +110,21 @@ begin
       aiguillage[indexAig].Position:=aiguillage[indexAig].AncPos;  // restitue position
     end;
   end;
+
+  // rafraichir la position des aiguillages dans les TCO
+  for nti:=1 to NbreTCO do
+  begin
+    for y:=1 to NbreCellY[nti] do
+      for x:=1 to NbreCellX[nti] do
+        begin
+          if isAigTCO(tco[nti,x,y].BImage) then
+          begin
+            affiche_cellule(nti,x,y);
+           // entoure_cell_grille(indexTCO,x,y);
+          end;
+        end;
+    FormTCO[nti].Repaint;
+  end;
 end;
 
 // efface la fenetre et la route du tco
@@ -96,11 +133,12 @@ begin
   efface_route_tco;
 
   formRoute.ListBoxRoutes.Clear;
-  ligneroute:=-1;
+  Indexligneroute:=-1;
+  NumRoute:=-1;
 end;
 
 // Affiche sans effacer l'ancienne, la route du TCO du tableau ParcoursDet[]
-// détruit l'index du train dans le canton  !!!! 
+// détruit l'index du train dans le canton  !!!!
 function Affiche_route_TCO : boolean ;
 var i,n,det1,det2,indexAig : integer;
     t :tequipement;
@@ -117,12 +155,13 @@ begin
     begin
       indexaig:=index_aig(ParcoursDet[i].adresse);
       aiguillage[indexAig].AncPos:=aiguillage[IndexAig].position;  // sauvegarder position
+      //Affiche('Aig='+intToSTR(ParcoursDet[i].adresse)+' pos='+intToSTR(aiguillage[IndexAig].position),clYellow);
       aiguillage[indexAig].position:=ParcoursDet[i].pos;           // forcer la position de l'aiguillage sue le parcours
     end;                                                           // car on utilise TRUE dans la fonction zone_tco
     if t=det then
     begin
       det2:=ParcoursDet[i].adresse;
-      ok:=zone_tco(1,det1,det2,1,0,1,true) and ok;
+      ok:=zone_tco(1,det1,det2,1,0,1,true) and ok;       //çà efface laloco du canton
       det1:=det2;
     end;
   end;
@@ -146,44 +185,45 @@ var n,id : integer;
     ok : boolean;
     s : string;
 begin
-  AncLigneRoute:=LigneRoute;
+  AncLigneRoute:=IndexLigneRoute;
 
-  if LigneRoute<0 then exit;
-  id:=LigneRoute+1;
-  formRoute.ButtonDetail.caption:='Détail route '+intToSTR(id);
-  formRoute.ButtonEfface.caption:='Efface route '+intToSTR(id)+' du TCO';
+  if IndexLigneRoute<0 then exit;
+  id:=IndexLigneRoute;
+  formRoute.ButtonDetail.caption:='Détail route '+intToSTR(id+1);
+  formRoute.ButtonEfface.caption:='Efface route '+intToSTR(id+1)+' du TCO';
 
   efface_route_tco;
 
   // fabriquer le tableau parcoursDet[] depuis tabloRoute[]
-  parcoursDet:=tabloRoute[id];
+  parcoursDet:=tabloRoute[NumRoute];
   n:=ParcoursDet[0].adresse;
 
   // Affiche les routes
   ok:=Affiche_route_tco;
 
-  s:='Route '+intToSTR(id)+'/'+intToSTR(NbreRoutes)+' : '+intToSTR(n)+' éléments';
+  s:=intToSTR(Nprop)+' propositions - Route '+intToSTR(NumRoute)+'/'+intToSTR(NbreRoutes)+' : '+intToSTR(n)+' éléments';
   //if not(ok) then s:=s+' - Route pas affichable car des éléments ne sont pas au TCO';
   formRoute.LabelNombre.Caption:=s;
 end;
 
 
+// r: numéro de route
 procedure clic_route(r : integer);
 var idTrain : integer;
 begin
-  LigneRoute:=r;
+//  IndexLigneRoute:=r;
   // copier la route au train
-  if (idcantonroute<1) or (ligneroute<0) then exit;
+  if (idcantonroute<1) or (Indexligneroute<0) then exit;
   idTrain:=Index_Train_adresse(canton[idCantonRoute].AdrTrainRoute);
   //IdTrain:=canton[idcantonRoute].indexTrain;
-  if idtrain<1 then
+  if (idtrain<0) or (idTrain>Max_Trains) then
   begin
     // le train a été déplacé
     affiche('Anomalie 50',clred);
     exit;
   end;
-
-  trains[idTrain].route:=tabloroute[LigneRoute+1];
+  if r<1 then exit;
+  trains[idTrain].route:=tabloroute[r];
 
   formRoute.ButtonFenPil.enabled:=trains[IdTrain].route[0].adresse<>0;
 
@@ -191,13 +231,96 @@ begin
 
 end;
 
+// transforme la liste de chaine des cantons obligatoires en détecteurs
+procedure detObl_to_liste;
+var i,n,j,erreur :integer;
+    s : string;
+begin
+  // transformer la liste des cantons obligatoires en détecteurs
+  for i:=1 to 20 do begin list_det_obl[i].adresse:=0;list_det_obl[i].n:=0;end;
+
+  i:=1;
+  s:=formRoute.EditObligeCanton.text;
+  while (length(s)>0) and (i<20) do
+  begin
+    val(s,n,erreur); // n= numéro de canton
+    delete(s,1,erreur);
+    while not(s='') and not(s[1] in ['0'..'9']) do
+    begin
+      delete(s,1,1);
+    end;
+
+    if erreur=0 then s:='';
+    j:=index_canton_numero(n);
+    if j<>0 then
+    begin
+      if canton[j].typ1=det then
+      begin
+        list_det_obl[i].adresse:=canton[j].el1;
+        inc(i);
+      end;
+      if canton[j].typ2=det then
+      begin
+        list_det_obl[i].adresse:=canton[j].el2;
+        inc(i);
+      end;
+    end;
+  end;
+end;
+
+// transforme la liste de chaine des cantons interdits en détecteurs
+procedure detInt_to_liste;
+var i,n,j,erreur :integer;
+    s : string;
+begin
+  for i:=1 to 20 do begin list_det_int[i].adresse:=0;list_det_int[i].n:=0;end;
+
+  // transformer la liste des cantons interdits en détecteurs
+  i:=1;
+  s:=formRoute.EditInterditCanton.text;
+  while (length(s)>0) and (i<20) do
+  begin
+    val(s,n,erreur); // n= numéro de canton
+    delete(s,1,erreur);
+    while not(s='') and not(s[1] in ['0'..'9']) do
+    begin
+      delete(s,1,1);
+    end;
+
+    if erreur=0 then s:='';
+    j:=index_canton_numero(n);
+    if j<>0 then
+    begin
+      if canton[j].typ1=det then
+      begin
+        list_det_int[i].adresse:=canton[j].el1;
+        //Affiche('détecteur interdit '+intToSTR(canton[j].el1),clOrange);
+        inc(i);
+      end;
+      if canton[j].typ2=det then
+      begin
+        list_det_int[i].adresse:=canton[j].el2;
+        //Affiche('détecteur interdit '+intToSTR(canton[j].el2),clOrange);
+        inc(i);
+      end;
+    end;
+  end;
+end;
 
 // affiche les routes du train courant
 procedure maj_fenetre;
-var l,pluslongue,n,j,pixelLength : integer;
+var iI,iO,c,l,pluslongue,n,i,j,k,pixelLength,erreur,np : integer;
     s,chaineLongue : string;
+    trouveObl,trouveint,aflongue : boolean;
+    list_cantons_obl : array[1..10] of integer;
+
 begin
-  if (cantonorg=0) or (cantonDest=0) then FormRoute.caption:='Pas de canton depart/arrivée' else
+  if (idcantonroute<1) or (cantonorg=0) or (cantonDest=0) then
+  begin
+    FormRoute.caption:='Pas de canton depart/arrivée';
+    exit;
+  end;
+  Nprop:=0; NpropTot:=0;
   formRoute.caption:='Liste des routes trouvées du train '+canton[idcantonRoute].NomTrain+' pour aller de '+intToSTR(DetDepart)+' (canton '+intToSTR(cantonOrg)+
            ') à '+intToSTR(DetaTrouve)+' (canton '+intToSTR(cantonDest)+')';
   plusLongue:=0;
@@ -208,41 +331,92 @@ begin
   if idcantonRoute<>0 then formRoute.ListBoxRoutes.Hint:='Sélectionne une route pour l''affecter au train '+canton[idcantonRoute].NomTrain;
   formRoute.listBoxRoutes.Clear;
 
-  // trouver le canton dest d'après le canton origine cliqué
-  if IdCantonClic=0 then exit;
-  idCantonRoute:=index_canton_numero(canton[idCantonClic].NumcantonOrg);
-
-  if idcantonroute<>0 then
+  IdCantonClic:=Idcantonroute;
+  IdTrainCourant:=canton[idcantonRoute].indexTrain;
+  if idTrainCourant>9000 then
   begin
-    IdTrainCourant:=canton[idcantonRoute].indexTrain;
-    if idTrainCourant>9000 then
-    begin
-      Affiche('Anomalie 626 ',clred);
-      messageBeep(Mb_iconError);
-      exit;
-    end;
-  end
-  else idtraincourant:=0;
+    Affiche('Anomalie 626 ',clred);
+    messageBeep(Mb_iconError);
+    exit;
+  end;
 
   if NbreRoutes>0 then FormRoute.labelInfo.Caption:='Cliquer sur une route pour la visualiser sur le TCO et l''affecter au train';
 
+  Screen.Cursor:=crSQLWait;
+
+  // regarder chaque route pour les détecteurs obligatoires / interdits et l'afficher
+  aflongue:=FormRoute.checkBoxRoutesLongues.checked;
+  np:=tabloroute[1,0].adresse;
   for j:=1 to NbreRoutes do
   begin
+    // compter le nombre de détecteur obligatoires et interdits
+    iO:=1;
+    for k:=1 to 20 do begin list_det_obl[k].n:=0;list_det_int[k].n:=0;end;
     n:=tabloroute[j,0].adresse;
-    s:=intToSTR(j)+'. ';
-    s:=s+route_to_string(tabloroute[j]);
-    l:=Length(s);
-    if l>pluslongue then
+    // obligatoires
+    while (iO<=20) and (list_det_obl[iO].adresse<>0) do
     begin
-      chainelongue:=s;
-      pluslongue:=l;
+      for k:=1 to n do
+      begin
+        if (tabloroute[j,k].typ=det) and (list_det_obl[iO].adresse=tabloroute[j,k].adresse) then inc(list_Det_obl[iO].n);
+      end;
+      inc(iO);
+    end;
+    // interdits
+    iI:=1;
+    while (iI<=20) and (list_det_int[iI].adresse<>0) do
+    begin
+      for k:=1 to n do
+      begin
+        if (tabloroute[j,k].typ=det) and (list_det_int[iI].adresse=tabloroute[j,k].adresse) then inc(list_Det_int[iI].n);
+      end;
+      inc(iI);
     end;
 
-    FormRoute.listBoxRoutes.Items.Add(s);
+    trouveObl:=true;
+    trouveInt:=false;
+    // trouver si cette route j contient tous détecteurs obligatoires
+    // ou des détecteurs interdits
+    for k:=1 to iI-1 do
+    begin
+      trouveInt:=TrouveInt or (list_det_int[k].n>0);
+    end;
+    // obligatoires
+    for k:=1 to iO-1 do
+    begin
+      trouveObl:=TrouveObl and (list_det_obl[k].n>0);
+    end;
+    if trouveObl and not trouveint then
+    begin
+      s:=intToSTR(j)+'. ';
+      s:=s+route_restreinte_to_string(tabloroute[j]);
+      l:=Length(s);
+      if l>pluslongue then
+      begin
+        chainelongue:=s;
+        pluslongue:=l;
+      end;
+      inc(NpropTot);
+      if round(n/np)>2 then
+      begin
+        if afLongue then
+        begin
+          coulText:=clOrange;
+          FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // permet d'afficher un texte en couleurs avec l'evt onDrawItem
+        end
+      end
+      else
+      begin
+        inc(Nprop);
+        coulText:=clYellow;
+        FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // permet d'afficher un texte en couleurs avec l'evt onDrawItem
+      end;
+    end;
   end;
+  Screen.Cursor:=crDefault;
 
   PixelLength:=FormRoute.ListboxRoutes.Canvas.TextWidth(chaineLongue)+30;
-  // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
+    // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
   SendMessage(FormRoute.ListBoxRoutes.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
   // icone train
@@ -251,18 +425,28 @@ begin
   formRoute.ButtonFenPil.enabled:=trains[IdTrainCourant].route[0].adresse<>0;
 
   if NbreRoutes=1 then clic_route(0);
+
+  s:=intToSTR(Nprop)+' propositions - Route '+intToSTR(NumRoute)+'/'+intToSTR(NbreRoutes)+' : '+intToSTR(n)+' éléments';
+  FormRoute.LabelNombre.caption:=s;
+
 end;
 
 procedure TFormRoute.FormActivate(Sender: TObject);
 begin
   maj_fenetre;
+  coulText:=clYellow;
 end;
 
 procedure TFormRoute.ListBoxRoutesMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s : string;
+    erreur : integer;
 begin
-  LigneRoute:=listBoxRoutes.Itemindex;
-  clic_route(ligneRoute);
+  IndexLigneRoute:=listBoxRoutes.Itemindex;
+  if IndexLigneRoute<0 then exit;
+  s:=ListBoxRoutes.items[IndexLigneRoute];
+  val(s,NumRoute,erreur);
+  clic_route(NumRoute);
 end;
 
 procedure TFormRoute.ButtonEffaceClick(Sender: TObject);
@@ -281,7 +465,8 @@ var i,j,n,p : integer;
    s : string;
    typ : tequipement;
 begin
-  if ligneroute<0 then exit;
+  if (Indexligneroute<0) or (NumRoute<1) then exit;
+
   with formprinc do
   begin
     windowState:=wsNormal; //Maximized;
@@ -289,12 +474,12 @@ begin
     BringToFront;
   end;
 
-  j:=ligneroute+1;
+  j:=Indexligneroute+1;
   n:=tabloroute[j,0].adresse;
   Affiche('Route '+intToSTR(j)+' ---------------n='+intToSTR(n),clwhite);
   for i:=1 to n do
   begin
-    s:=intToSTR(tabloroute[j,i].adresse)+' '+BTypeToChaine(tabloroute[j,i].typ)+' ';
+    s:=intToSTR(i)+' : '+intToSTR(tabloroute[j,i].adresse)+' '+BTypeToChaine(tabloroute[j,i].typ)+' ';
     p:=tabloRoute[j,i].pos;
     typ:=tabloRoute[j,i].typ;
     if (typ=aig) or (typ=tjd) or (typ=tjs) or (typ=triple) then
@@ -367,17 +552,23 @@ end;
 
 procedure TFormRoute.ListBoxRoutesKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var s : string;
+    erreur : integer;
 begin
-  if (ord(Key)=VK_UP) and (ligneroute>0) then
+  if indexLigneRoute<0 then exit;
+  if (ord(Key)=VK_UP) and (Indexligneroute>0) then
   begin
-    dec(ligneRoute);
-    efface_affiche_route;
+    dec(IndexligneRoute);
   end;
-  if (ord(Key)=VK_DOWN) and (ligneroute+1<NbreRoutes) then
+  if (ord(Key)=VK_DOWN) and (Indexligneroute+1<ListBoxRoutes.Count) then
   begin
-    inc(ligneRoute);
-    efface_affiche_route;
+    inc(IndexligneRoute);
   end;
+  //Affiche('9985 '+intToSTR(indexLigneROute)+'/'+intToSTR(Nprop),clWhite);
+  s:=ListBoxRoutes.items[IndexLigneRoute];
+
+  val(s,NumRoute,erreur);
+  efface_affiche_route;
 end;
 
 
@@ -385,7 +576,12 @@ procedure TFormRoute.FormCreate(Sender: TObject);
 begin
   ButtonFenPil.hint:='Ouvre la fenêtre de pilotage des trains'+#13+'ce qui permet de lancer leur roulage';
   ButtonDetail.hint:='Affiche le détail de la route en fenêtre principale';
+  EditObligeCanton.Text:='aucun';
+  EditInterditCanton.Text:='aucun';
+  EditObligeCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune obligation';
+  EditInterditCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune interdiction';
 
+  ListBoxRoutes.Style:=lbOwnerDrawFixed;    // pour déclencher l'evt on drawitem
   // fenêtre toujours devant
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
 end;
@@ -413,9 +609,119 @@ end;
 
 procedure TFormRoute.ButtonFenPilClick(Sender: TObject);
 begin
+  if idcantonRoute<1 then exit;
   indexTrainFR:=canton[idcantonRoute].indexTrain;
   FormRouteTrain.show;
   close;
+end;
+
+procedure TFormRoute.ButtonParcours(Sender: TObject);
+var i,j,n,p,det1,det2 : integer;
+   s : string;
+   typ : tequipement;
+begin
+  if (Indexligneroute<0) or (NumRoute<1) then exit;
+  efface_route_tco;
+  hide;
+  j:=NumRoute;
+  n:=tabloroute[j,0].adresse;
+  i:=1;
+  det2:=0;
+  toucheTCO:=#0;
+  repeat
+    s:=intToSTR(tabloroute[j,i].adresse)+' '+BTypeToChaine(tabloroute[j,i].typ)+' ';
+    p:=tabloRoute[j,i].pos;
+    typ:=tabloRoute[j,i].typ;
+
+    if typ=det then
+    begin                          // attention on ne gère que le TCO1
+      Zone_TCO(1,det1,det2,1,0,0,false);   // faire true et positionner les aiguillages 
+      det1:=det2;
+      det2:=tabloroute[j,i].adresse;
+      Zone_TCO(1,det1,det2,1,0,1,false);
+      FormTCO[1].Caption:=intToSTR(i)+'/'+intToSTR(n)+' '+intToSTR(det1)+' '+intToSTR(det2)+ '       Arrêt par touche Echap';
+      //Affiche(intToSTR(det1)+' '+intToSTR(det2),clyellow);
+    end;
+
+    Application.ProcessMessages;
+    Sleep(500);
+
+    inc(i);
+  until (i>n) or (toucheTCO=#27);
+  titre_fenetre(1);
+  Show;
+  //Affiche('Fini',clred);
+end;
+
+procedure TFormRoute.ButtonRafClick(Sender: TObject);
+begin
+  maj_fenetre;
+end;
+
+procedure TFormRoute.EditObligeCantonChange(Sender: TObject);
+begin
+  detObl_to_liste;
+end;
+
+procedure TFormRoute.EditInterditCantonChange(Sender: TObject);
+begin
+  detInt_to_liste;
+end;
+
+procedure TFormRoute.ButtonTrouverClick(Sender: TObject);
+var sens,sensCanton,indexTCO,IdCantonOrg : integer;
+begin
+  if cantonOrg=0 then exit;
+
+  IdCantonOrg:=index_canton_numero(cantonOrg);
+  //IdCantonDest:=index_canton_numero(cantonDest);
+  sensCanton:=canton[IdCantonOrg].sensLoco;
+          case sensCanton of // sens de la loco dans le canton
+            sensGauche : begin sens:=SensTCO_O;end;
+            sensDroit  : begin sens:=SensTCO_E;end;
+            SensHaut   : begin sens:=SensTCO_N;end;
+            SensBas    : begin sens:=SensTCO_S;end;
+          end;
+  IndexTCO:=canton[IdcantonOrg].Ntco;
+  prepare_route(IndexTCO,CantonOrg,DetaTrouve,sens);
+  maj_fenetre;
+  
+end;
+
+procedure TFormRoute.ListBoxRoutesDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+ var
+    myColor: TColor;
+    myBrush: TBrush;
+    myPen : Tpen;
+begin
+  myBrush := TBrush.Create;
+  with (Control as TListBox).Canvas do // draw on control canvas, not on the form
+  begin
+{    if Index = 3 then
+      myColor := clRed
+    else
+      myColor := clBlack;
+}
+    //myBrush.Style := bsSolid;
+    //myBrush.Color := myColor;
+
+    //Windows.FillRect(handle, Rect, myBrush.Handle);
+    //Pen.color:=clWhite;//CoulText;
+    //myBrush.color:=clBlue;
+    //Brush.Style := bsClear;
+    // display the text
+   // TextOut(Rect.Left, Rect.Top, (Control as TListBox).Items[Index]);
+    //MyBrush.Free;
+    FillRect(Rect);
+    Font.Color := TColor(ListBoxRoutes.Items.Objects[Index]);
+    TextOut(Rect.Left + 2, Rect.Top, ListBoxRoutes.Items[Index]);
+  end;
+end;
+
+procedure TFormRoute.CheckBoxRoutesLonguesClick(Sender: TObject);
+begin
+  Maj_fenetre;
 end;
 
 end.

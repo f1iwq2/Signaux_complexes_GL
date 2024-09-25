@@ -61,7 +61,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetOp
+    ActivePage = TabSheet1
     MultiLine = True
     TabOrder = 2
     object TabSheetDecl: TTabSheet

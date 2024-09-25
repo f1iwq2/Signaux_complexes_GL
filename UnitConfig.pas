@@ -328,7 +328,6 @@ type
     PopupMenuActions: TPopupMenu;
     ModifAction: TMenuItem;
     Label16: TLabel;
-    ImageTrain: TImage;
     EditIcone: TEdit;
     SpeedButtonOuvre: TSpeedButton;
     LabeledEditTempoD: TLabeledEdit;
@@ -351,6 +350,9 @@ type
     RadioGroupLEB: TRadioGroup;
     Label45: TLabel;
     StringGridArr: TStringGrid;
+    ImageTrain: TImage;
+    Label46: TLabel;
+    MemoRoutes: TMemo;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -404,7 +406,6 @@ type
     procedure EditDet4Change(Sender: TObject);
     procedure EditSuiv4Change(Sender: TObject);
     procedure EditSpecUniChange(Sender: TObject);
-    procedure EditAigTripleChange(Sender: TObject);
     procedure EditPointe_BGChange(Sender: TObject);
     procedure EditDroit_BDChange(Sender: TObject);
     procedure EditDevie_HDChange(Sender: TObject);
@@ -537,6 +538,7 @@ type
       var CanSelect: Boolean);
     procedure StringGridArrSetEditText(Sender: TObject; ACol,
       ARow: Integer; const Value: String);
+    procedure EditAigTripleKeyPress(Sender: TObject; var Key: Char);
 
   private
     { Déclarations privées }
@@ -566,6 +568,7 @@ PortServeur_ch='Port_Serveur';
 AntiTimeoutEthLenz_ch='AntiTimeoutEthLenz';
 TempoTC_ch='TempoTC';
 Verif_AdrXpressNet_ch='Verif_AdrXpressNet';
+debugRoulage_ch='debugRoulage';
 Filtrage_det_ch='Filtrage_det';
 nCantons_Res_ch='nCantonsRes';
 MaxSignalSens_ch='Max_Signal_Sens';
@@ -629,7 +632,8 @@ HauteurFC_ch='HauteurFC';
 OffsetXFC_ch='OffsetXC';  // .Left de la fenêtre clock
 OffsetYFC_ch='OffsetYC';
 option_demitour_ch='Option_demiTour';
-
+MaxParcours_ch='MaxParcours';
+MaxRoutes_ch='MaxRoutes';
 PosSplitter_ch='Splitter';
 horlogeInterne_ch='HorlogeInterne';
 LanceHorl_ch='LanceHorl';
@@ -683,7 +687,8 @@ var
   // composants dynamiques
   Gp1,GroupBoxAvance,GroupBoxExpert,GroupBoxChemin,GroupBoxAff : TGroupBox;
 
-  CheckBoxCR,Cb1,Cb2,Cb3,CbVis,cbDTR,cbRTS,cbAffSig,cbres,cbAck,CheckBoxOptionDemiTour : TCheckBox;
+  CheckBoxCR,Cb1,Cb2,Cb3,CbVis,cbDTR,cbRTS,cbAffSig,cbres,cbAck,CheckBoxOptionDemiTour,
+  cbDebugRoulage : TCheckBox;
 
   MemoPeriph : Tmemo;
 
@@ -693,8 +698,9 @@ var
   EditZdet1V3F,EditZdet2V3F,EditZdet1V3O,EditZdet2V3O,
   EditZdet1V4F,EditZdet2V4F,EditZdet1V4O,EditZdet2V4O,
   EditZdet1V5F,EditZdet2V5F,EditZdet1V5O,EditZdet2V5O,EditOuvreEcran,
-  EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,EditChemin,
-  EditMaxSignalSens,EditnCantonsRes,EditAntiTO,EditRep,EditTempoTC : Tedit;
+  EditNbDetDist,EditNbCantons,EditFiltrDet,EditAlgo,EditChemin,EditMaxParcours,
+  EditMaxSignalSens,EditnCantonsRes,EditAntiTO,EditRep,EditTempoTC,
+  EditMaxRoutes : Tedit;
 
   EditT  : Array[1..10] of Tedit;
   TextBoxCde : array[1..19] of Tedit;
@@ -703,7 +709,7 @@ var
   LbZTitre,LbZPnVoie1,LbZPnVoie2,LbZPnVoie3,LbZPnVoie4,LbZPnVoie5,LabelMP,LabelNumeroP,
   LabelStyle,LabelOuvreEcran,LabelAvance1,LabelAvance2,LabelAntiTO,LabelCDM,
   LabelTD,LabelNC,LabelFiltre,LabelAlgo,LabelNbSignBS,LabelnCantonsRes,LabelTempoTC,
-  LabelChemin : Tlabel;
+  LabelChemin,LabelMaxParcours,LabelRoutes : Tlabel;
 
   RadioReserve,RadioServeurCDM,rgPilTrains : TradioGroup;
 
@@ -1279,7 +1285,7 @@ begin
     // adresse de signal
     val(s,adresse,erreur);
     if adresse=0 then begin affiche('Erreur 671 ligne '+s,clred);exit;end;
-    // vérifier si le signal existe pour ne pas le stocker
+    // vérifier si le signal existe déja pour ne pas le restocker
     for id:=1 to NbreSignaux do
     begin
       if Signaux[id].adresse=adresse then
@@ -1878,7 +1884,6 @@ end;
 function Train_tablo(index : integer) : string;
 var s: string;
     nc,i : integer;
-
 begin
   with trains[index] do
   begin
@@ -1890,13 +1895,13 @@ begin
     for i:=1 to ncantons do
     begin
       nc:=DetecteurArret[i].detecteur;
-      if nc<>0 then 
+      if nc<>0 then
       begin
         s:=s+',P';
         if detecteurArret[i].TPrec=aig then s:=s+'A';
         s:=s+intToSTR(detecteurArret[i].Prec);
         s:=s+',D'+intToSTR(nc)+',T'+intToSTR(DetecteurArret[i].temps);
-      end;  
+      end;
     end;
   end;
   result:=s;
@@ -1935,6 +1940,8 @@ begin
   writeln(fichierN,debug_ch+'=',debug);
   if sombre then s:='1' else s:='0';
   writeln(fichierN,sombre_ch+'=',s);
+  if debugRoulage then s:='1' else s:='0';
+  writeln(fichierN,debugRoulage_ch+'=',s);
   writeln(fichierN,couleur_fond_ch+'='+IntToHex(couleurFond,6));
   if serveurIPCDM_Touche then s:='1' else s:='0';
   writeln(fichierN,serveurIPCDM_Touche_ch+'='+s); 
@@ -1992,6 +1999,9 @@ begin
   
   // temporisation initialisation des aiguillages
   writeln(fichierN,Tempo_aig_ch+'=',IntToSTR(Tempo_aig));
+
+  writeln(fichierN,MaxParcours_ch+'=',IntToSTR(MaxParcours));
+  writeln(fichierN,MaxRoutes_ch+'=',IntToSTR(MaxRoutes));
 
   // connexion de l'interface en COM/USB
   if AvecDemandeInterfaceUSB then s:='1' else s:='0';
@@ -2176,18 +2186,6 @@ begin
   end;
   writeln(fichierN,'0');
 
-  // Fonctions Fx
-  // actionneurs Train ou accessoire
-  {
-  writeln(fichierN,'/------------');
-  writeln(fichierN,section_act_ch);
-  for i:=1 to maxTablo_act do
-  begin
-    s:=encode_act_loc_son(i);
-    if s<>'' then writeln(fichierN,s);
-  end;
-  }
-
   writeln(fichierN,'/------------');
   writeln(fichierN,section_PN_ch);
   // PN
@@ -2199,7 +2197,7 @@ begin
   writeln(fichierN,'0');
 
   writeln(fichierN,'/------------');
-  // actionnneurs V2
+  // actions
   writeln(fichierN,section_actV2_ch);
   for i:=1 to maxTablo_act do
   begin
@@ -2228,7 +2226,9 @@ begin
   writeln(fichierN,section_trains_ch);
   for i:=1 to ntrains do
   begin
+    // route du train :
     writeln(fichierN,Train_tablo(i));
+    if trains[i].route[0].adresse<>0 then Writeln(fichierN,'{'+route_totale_to_string(trains[i].routePref)+'}');
   end;
   writeln(fichierN,'0');
 
@@ -2368,7 +2368,7 @@ end;
 
 // trier les aiguillages par adresses croissantes
 procedure trier_aig;
-var i,j : integer;
+var i,j,adr : integer;
     temp : TAiguillage;
     s : string;
 begin
@@ -2385,8 +2385,25 @@ begin
     end;
   end;
 
+  // attribue les index
   for i:=1 to MaxAiguillage do
-    tablo_index_aiguillage[aiguillage[i].adresse]:=i;
+  begin
+    adr:=aiguillage[i].adresse;
+    tablo_index_aiguillage[adr]:=i;
+    aiguillage[i].visible:=true;
+  end;
+
+  // trouve les triple
+  // attribue les index
+  for i:=1 to MaxAiguillage do
+  begin
+    if aiguillage[i].modele=triple then
+    begin
+      j:=index_aig(aiguillage[i].adrTriple);
+      aiguillage[j].visible:=false;
+    end;
+  end;
+
 
   // réaffecte la listebox aiguillages
   if formconfig<>nil then
@@ -2475,7 +2492,7 @@ var train,s,sa,SOrigine: string;
     trouve_section_branche,trouve_section_sig,trouve_section_act,trouve_tempo_signal,
     trouve_algo_uni,croi,trouve_Nb_cantons_Sig,trouve_dem_aig,trouve_demcnxCOMUSB,trouve_demcnxEth   : boolean;
 
-    virgule,i_detect,i,erreur,aig2,detect,offset,j,position,
+    virgule,i_detect,erreur,aig2,detect,offset,j,position,i,
     ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,vers,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi,idtrain : integer;
     tabloDet : TTabloDet;
@@ -3316,6 +3333,8 @@ var train,s,sa,SOrigine: string;
       if debugConfig then Affiche('Adresse='+IntToSTR(adraig)+' enregistrement='+Enregistrement,clyellow);
       aiguillage[maxaiguillage].Adresse:=adraig;
       aiguillage[maxaiguillage].AncienAdresse:=adraig;
+      aiguillage[maxaiguillage].visible:=true;
+
       tablo_index_aiguillage[adrAig]:=maxaiguillage;   // stockage index avant tri
       aiguillage[maxaiguillage].AdroitB:='Z'; aiguillage[maxaiguillage].AdevieB:='Z';
       aiguillage[maxaiguillage].DdroitB:='Z'; aiguillage[maxaiguillage].DdevieB:='Z';
@@ -3537,6 +3556,7 @@ var train,s,sa,SOrigine: string;
         inc(itl);
       until (enregistrement='') or (itl>3);
       if itl>4 then begin Affiche('Erreur 400 ligne '+sOrigine,clred);exit;end;
+
     end;
     until (sOrigine='0');
   end;
@@ -3709,12 +3729,49 @@ var train,s,sa,SOrigine: string;
     until eof(fichier) or (s='0');
   end;
 
+  procedure compile_route(s : string);
+  var v,i,erreur,n : integer;
+  begin
+    s:=lowercase(s);
+    if s[1]='{' then delete(s,1,1);
+    n:=0;i:=1;
+    with trains[ntrains] do
+    repeat
+      val(s,v,erreur);                   //{540->91 dev->92 droit->105 droit->106 droit->566}
+      routePref[i].adresse:=v;
+      delete(s,1,erreur-1);
+      if (s[1]='-') or (s[1]='}') then begin routePref[i].typ:=det;routePref[i].pos:=0;end
+      else
+      begin
+        if s[1]=' ' then delete(s,1,1);
+        routePref[i].typ:=aiguillage[index_aig(v)].modele;  // type de l'aiguillage;
+        if copy(s,1,3)='dev' then begin delete(s,1,3);routePref[i].pos:=const_devie;end;
+        if copy(s,1,5)='droit' then begin delete(s,1,5);routePref[i].pos:=const_droit;end;
+      end;
+      delete(s,1,2);
+      inc(i);
+
+    until length(s)<2;
+    trains[ntrains].routePref[0].adresse:=i-1;
+  end;
+
   procedure compile_trains;
   var i,erreur : integer;
   begin
   ntrains:=0;
   repeat
     lit_ligne;
+
+    if length(s)>0 then
+    if s[1]='{' then
+    begin
+      compile_route(s);
+      while (pos('}',s)<>0) do
+      begin
+        lit_ligne;
+      end;
+    end;
+
     if s<>'0' then
     begin
       inc(ntrains);
@@ -4421,6 +4478,15 @@ var train,s,sa,SOrigine: string;
         PilotageTrainsCDMNom:=s='1';
       end;
 
+      sa:=uppercase(debugRoulage_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        debugRoulage:=s='1';
+      end;
+
       // avec demande de position des aiguillages en mode autonome au démarrage
       sa:=uppercase(Init_dem_aig_ch)+'=';
       i:=pos(sa,s);
@@ -4532,6 +4598,30 @@ var train,s,sa,SOrigine: string;
         trouve_Tempo_aig:=true;
         delete(s,i,length(sa));
         val(s,Tempo_Aig,erreur);
+      end;
+
+      sa:=uppercase(MaxParcours_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Tempo_aig:=true;
+        delete(s,i,length(sa));
+        val(s,MaxParcours,erreur);
+        if MaxParcours<50 then MaxParcours:=50;
+        if MaxParcours>MaxParcoursTablo then maxParcours:=MaxParcoursTablo;
+      end;
+
+      sa:=uppercase(MaxRoutes_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        trouve_Tempo_aig:=true;
+        delete(s,i,length(sa));
+        val(s,MaxRoutes,erreur);
+        if MaxRoutes<5000 then MaxRoutes:=5000;
+        if MaxRoutes>MaxRoutesCte then maxRoutes:=MaxRoutesCte;
       end;
 
       // temporisation décodeurs de signal
@@ -4778,14 +4868,12 @@ var train,s,sa,SOrigine: string;
         compile_PN;
       end;
 
-
       // section actionneurs
       sa:=uppercase(section_actV2_ch);
       if pos(sa,s)<>0 then
       begin
         compile_actions;
       end;
-
 
       // section dcc++
       sa:=uppercase(section_dccpp_ch);
@@ -5163,6 +5251,16 @@ begin
     if (i<0) or (i>10) then i:=1;
     TempoTC:=i;
 
+    val(EditMaxParcours.Text,i,erreur);
+    MaxParcours:=i;
+    if MaxParcours<50 then MaxParcours:=50;
+    if MaxParcours>MaxParcoursTablo then maxParcours:=MaxParcoursTablo;
+
+    val(EditMaxRoutes.Text,i,erreur);
+    MaxRoutes:=i;
+    if MaxRoutes<5000 then MaxRoutes:=5000;
+    if MaxRoutes>MaxRoutesCte then maxRoutes:=MaxRoutesCte;
+
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
@@ -5271,6 +5369,7 @@ begin
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
     AffSig:=cbAffSig.Checked;
     AffRes:=cbRes.checked;
+    DebugRoulage:=cbDebugRoulage.Checked;
     AvecAck:=cbAck.Checked;
     Option_DemiTour:=CheckBoxOptionDemiTour.checked;
     sombre:=CheckBoxSombre.Checked;
@@ -6018,7 +6117,7 @@ begin
     ColWidths[0]:=0;      // colonne grise invisible
     ColWidths[1]:=55;     // Précédent
     ColWidths[2]:=55;     // détecteur
-    ColWidths[3]:=35;     // temps
+    ColWidths[3]:=38;     // temps
 
     Cells[1,0]:='Précédent';
     Cells[2,0]:='Détecteur';
@@ -6058,8 +6157,7 @@ begin
   labelD12.Caption:='D12 x64';
   LabelD12.Left:=730;
   {$ENDIF}
-
-
+  
   rgPilTrains:=TRadioGroup.Create(FormConfig.TabSheetPeriph);
   with rgPilTrains do
   begin
@@ -7143,7 +7241,7 @@ begin
   GroupBoxAvance:=TGroupBox.Create(FormConfig.TabAvance);
   with GroupBoxAvance do
   begin
-    Left:=3;Top:=40;Width:=300;Height:=190;   // maxi=580
+    Left:=3;Top:=40;Width:=300;Height:=220;   // maxi=580
     caption:='Jeu de paramètres avancés';
     name:='GroupBoxAvance';
     parent:=TabAvance;
@@ -7226,7 +7324,7 @@ begin
     text:='';
     parent:=GroupBoxAvance;
     hint:='Nombre de cantons à réserver (1 à 5) en avant du train.'+#13+
-          'Utilisé en mode roulage ou réservation [sous mode réservation par canton (ci-dessous)].'+#13+
+          'Utilisé en mode roulage.'+#13+
           'Cette valeur dépend de la taille du réseau.';
     ShowHint:=true;
   end;
@@ -7272,10 +7370,50 @@ begin
     ShowHint:=true;
   end;
 
+  LabelMaxParcours:=TLabel.Create(FormConfig.TabAvance);
+  with LabelMaxParcours do
+  begin
+    Left:=10;Top:=152;Width:=170;Height:=12;
+    caption:='Nombre maximal d''éléments par route';
+    name:='LabelMaxParcours';
+    parent:=GroupBoxAvance;
+  end;
+  EditMaxParcours:=TEdit.Create(FormConfig.TabAvance);
+  with EditMaxParcours do
+  begin
+    Left:=x;Top:=152;Width:=30;Height:=15;
+    name:='EditMaxParcours';
+    text:='';
+    parent:=GroupBoxAvance;
+    s:='Nombre maximal d''éléments par route lors de la proposition du calcul des routes'+#13+'Maxi='+IntToSTR(MaxParcoursTablo);
+    hint:=s;
+    ShowHint:=true;
+  end;
+
+  LabelRoutes:=TLabel.Create(FormConfig.TabAvance);
+  with LabelRoutes do
+  begin
+    Left:=10;Top:=173;Width:=170;Height:=12;
+    caption:='Nombre maximal de routes';
+    name:='LabelRoutes';
+    parent:=GroupBoxAvance;
+  end;
+  EditMaxRoutes:=TEdit.Create(FormConfig.TabAvance);
+  with EditMaxRoutes do
+  begin
+    Left:=x-10;Top:=173;Width:=40;Height:=15;
+    name:='EditMaxRoutes';
+    text:='';
+    parent:=GroupBoxAvance;
+    s:='Nombre maximal de routes lors de la proposition du calcul des routes'+#13+'Maxi='+intToSTR(MaxRoutesCte);
+    hint:=s;
+    ShowHint:=true;
+  end;
+
   CheckBoxOptionDemiTour:=TCheckBox.Create(FormConfig.TabAvance);
   with CheckBoxOptionDemiTour do
   begin
-    Left:=10;Top:=152;Width:=170;Height:=12;
+    Left:=10;Top:=194;Width:=170;Height:=17;
     caption:='Option demi tour des trains';
     name:='CheckBoxOptionDemiTour';
     parent:=GroupBoxAvance;
@@ -7349,7 +7487,7 @@ begin
   cbAck:=tCheckBox.Create(FormConfig.TabAvance);
   with cbAck do
   begin
-    Left:=10;Top:=85;Width:=200;Height:=15;
+    Left:=10;Top:=85;Width:=200;Height:=17;
     name:='cbAck';
     caption:='Attendre ACK de la centrale';
     parent:=GroupBoxExpert;
@@ -7437,15 +7575,25 @@ begin
     showHint:=true;
     parent:=GroupBoxAff;
   end;
+  cbDebugRoulage:=TcheckBox.Create(formconfig.TabAvance);
+  with cbDebugRoulage do
+  begin
+    Left:=15;Top:=70;Width:=200;Height:=17;
+    caption:='Debug roulage';
+    name:='cbDebugRoulage';
+    hint:='Affiche des messages en mode roulage des trains en mode autonome';
+    showHint:=true;
+    parent:=GroupBoxAff;
+  end;
 
   ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
 
   EditComUSB.Hint:='COMX:vitesse,parité,nombre de bits,bits de stop,protocole'+#13+
-                   'procotole = 0 : sans protocole, avec temporisation d''envoi entre trames (Genli, LZV200)'+#13+
+                   'procotole = 0 : sans protocole, avec temporisation d''envoi entre trames (LZV200)'+#13+
                    '          = 1 : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
                    '          = 2 : protocole matériel RTS-CTS sans temporisation d''envoi (Interfaces Lenz LI)'+#13+
                    '          = 3 : Non utilisé'+#13+
-                   '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi';
+                   '          = 4 : contrôle de la ligne CTS avant d''émettre un caractère avec temporisation d''envoi (Genli)';
   EditComUSB.showHint:=true;
   ListBoxAig.Height:=382;
 
@@ -7622,6 +7770,11 @@ begin
     GroupBox21.Visible:=true;
     GroupBox10.Visible:=true;
     checkInverse.Visible:=true;
+
+    GroupBox16.Enabled:=aiguillage[ind].visible;
+    EditAdrAig.Enabled:=aiguillage[ind].visible;
+    BoutSupAig.enabled:=aiguillage[ind].visible;
+    ComboBoxAig.Enabled:=aiguillage[ind].visible;
 
     // tjd
     if tjd or tjs or croi then
@@ -7803,6 +7956,8 @@ begin
       EditDroit_BD.Hint:=TypeElAIg_to_char(aiguillage[index].Adroit,aiguillage[index].AdroitB);
       if tri then
       begin
+        Label20.Visible:=true;
+        
         ComboBoxAig.ItemIndex:=3; //  index de la combobox 0=aiguillage 1=TJD 2=TJS 3=aiguillage triple
         EditAigTriple.Visible:=true;
         labelTJD1.Visible:=false;
@@ -7816,7 +7971,6 @@ begin
         EditDevieS2.text:=intToSTR(aiguillage[index].Adevie2)+aiguillage[index].Adevie2B;
         i:=aiguillage[index].Adrtriple;
         EditAigTriple.Text:=intToSTR(i);
-        if i=0 then EditAigTriple.Color:=clred else EditAigTriple.Color:=clWindow;
       end;
     end;
   end;
@@ -9820,8 +9974,65 @@ begin
   supprime_pn;
 end;
 
+function nombre_adresses_signal(adr : integer) : integer;
+var x,dec,nc,i,j : integer;
+begin
+  nc:=0;
+  i:=index_Signal(adr);
+  dec:=Signaux[i].decodeur;
+  x:=Signaux[i].aspect;
+
+  // signal directionnel
+  if isDirectionnel(i) then
+  begin
+    nombre_adresses_signal:=x-10;
+    exit;
+  end;
+
+  // nc=nombre d'adresses du signal
+  if dec=0 then nc:=1;               // rien, occupe quand meme une adresse
+  if dec=1 then nc:=14;              // digitalbahn
+  if dec=2 then nc:=signaux[i].Na;   // cdf
+  if dec=3 then nc:=8;               // ldt LS dec sncf
+  if dec=4 then nc:=8;               // leb
+  if dec=5 then nc:=Signaux[i].Na;   // digikeijs
+  if dec=6 then                      // paco unisemaf
+  begin
+    x:=Signaux[index].Unisemaf;      // modèle
+    case x of
+    2 : nc:=1;
+    3,4 : nc:=2;
+    51,52 : nc:=3;
+    71 : nc:=2;
+    72,73 : nc:=3;
+    91,92 : nc:=3;
+    93,94,95,96,97,98,99 : nc:=4;
+    end;
+  end;
+  if dec=7 then nc:=Signaux[i].Na;   // SR
+  if dec=8 then                      // arcomora
+  begin
+    case x of
+    3 : nc:=3;
+    4,5 : nc:=4;
+    7 : nc:=5;
+    9 : nc:=5;
+    end;
+  end;
+  if dec=9 then nc:=2;               // LS-DEC-NMBS
+  if dec=10 then nc:=Signaux[i].Na;  // Bmodels
+  if dec>=NbDecodeurdeBase then
+  begin
+    j:=dec-NbDecodeurdeBase+1;
+    nc:=decodeur_pers[j].NbreAdr;
+  end;
+
+  nombre_adresses_signal:=nc;
+end;
+
+
 procedure ajoute_signal;
-var i,AdrMax : integer;
+var i,na,AdrMax : integer;
     s : string;
 begin
   clicliste:=true;
@@ -9836,14 +10047,25 @@ begin
 
   inc(NbreSignaux);
 
-  AdrMax:=0;
+  AdrMax:=0;na:=0;
   for i:=1 to NbreSignaux do
   begin
-    if AdrMax<Signaux[i].adresse then AdrMax:=Signaux[i].adresse;
+    if AdrMax<Signaux[i].adresse then
+    begin
+      AdrMax:=Signaux[i].adresse;
+    end;
   end;
 
+  if AdrMax<>0 then na:=Nombre_adresses_signal(AdrMax);
   i:=NbreSignaux;
-  Signaux[i].Adresse:=AdrMax+20;
+  if AdrMax+na>=MaxAcc then
+  begin
+    s:='L''adresse maximale de '+intToSTR(AdrMax)+' pour les signaux a été atteinte.'+#13+
+       'Veuillez compacter la liste des signaux sur leurs adresses';
+    Application.MessageBox(pchar(s),pchar('Erreur'), MB_Ok or MB_ICONERROR );
+    exit;
+  end;
+  Signaux[i].Adresse:=AdrMax+na;
   Signaux[i].Aspect:=3;
   Signaux[i].decodeur:=0;
   Signaux[i].verrouCarre:=false;
@@ -9864,16 +10086,6 @@ begin
   Signaux[i].SR[8].sortie0:=19;
   Signaux[i].SR[8].sortie1:=0;
   Signaux[i].Na:=4;
-
-
-
-
-
-
-
-
-
-
   cree_image(i);
   s:=encode_signal(i);
 
@@ -9883,7 +10095,7 @@ begin
     items.add(s);
     selected[i-1]:=true;
     SetFocus;
-    perform(WM_VSCROLL,SB_BOTTOM,0);                
+    perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
   formCOnfig.LabelInfo.caption:='';
@@ -10083,62 +10295,6 @@ begin
   verif_extr_branches:=Erreur;
 end;
 
-function nombre_adresses_signal(adr : integer) : integer;
-var x,dec,nc,i,j : integer;
-begin
-  nc:=0;
-  i:=index_Signal(adr);
-  dec:=Signaux[i].decodeur;
-  x:=Signaux[i].aspect;
-
-  // signal directionnel
-  if isDirectionnel(i) then
-  begin
-    nombre_adresses_signal:=x-10;
-    exit;
-  end;
-
-  // nc=nombre d'adresses du signal
-  if dec=0 then nc:=0;               // rien
-  if dec=1 then nc:=14;              // digitalbahn
-  if dec=2 then nc:=signaux[i].Na;   // cdf
-  if dec=3 then nc:=8;               // ldt LS dec sncf
-  if dec=4 then nc:=8;               // leb
-  if dec=5 then nc:=Signaux[i].Na;   // digikeijs
-  if dec=6 then                      // paco unisemaf
-  begin
-    x:=Signaux[index].Unisemaf;      // modèle
-    case x of
-    2 : nc:=1;
-    3,4 : nc:=2;
-    51,52 : nc:=3;
-    71 : nc:=2;
-    72,73 : nc:=3;
-    91,92 : nc:=3;
-    93,94,95,96,97,98,99 : nc:=4;
-    end;
-  end;
-  if dec=7 then nc:=Signaux[i].Na;   // SR
-  if dec=8 then                      // arcomora
-  begin
-    case x of
-    3 : nc:=3;
-    4,5 : nc:=4;
-    7 : nc:=5;
-    9 : nc:=5;
-    end;
-  end;
-  if dec=9 then nc:=2;               // LS-DEC-NMBS
-  if dec=10 then nc:=Signaux[i].Na;  // Bmodels
-  if dec>=NbDecodeurdeBase then
-  begin
-    j:=dec-NbDecodeurdeBase+1;
-    nc:=decodeur_pers[j].NbreAdr;
-  end;
-
-  nombre_adresses_signal:=nc;
-end;
-
 //vérifie si il n'y a pas de doublon dans l'adresse des trains
 function verif_trains : boolean;
 var i,j,adr : integer;
@@ -10168,7 +10324,7 @@ end;
 
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
-    x,y,extr2,adr3,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2,op,
+    x,y,extr2,adr3,adr4,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2,op,
     delta : integer;
     modAig,AncModel,model,km,SuivModel,model2,t1,t2: TEquipement;
     c : char;
@@ -10313,10 +10469,13 @@ begin
         else
         begin
           AdrAig:=aiguillage[IndexAig].Adresse;
+          //Affiche(intToSTR(adrAig),clred);
+
           delta:=0;
-          repeat
-            inc(delta);
-          until (brancheN[branche_trouve,indexBranche_trouve-delta].BType<>act) or (indexBranche_trouve-delta=0); // pour passer un actionneur éventuel
+          if indexBranche_trouve>1 then
+            repeat
+              inc(delta);
+            until (brancheN[branche_trouve,indexBranche_trouve-delta].BType<>act) or (indexBranche_trouve-delta=0); // pour passer un actionneur éventuel
           if indexBranche_trouve-delta>0 then det1br:=brancheN[branche_trouve,indexBranche_trouve-delta].Adresse // adresse avant détecteur
           else det1br:=0;
 
@@ -10326,7 +10485,7 @@ begin
           until (brancheN[branche_trouve,indexBranche_trouve+delta].BType<>act); // pour passer un actionneur éventuel
           det2br:=brancheN[branche_trouve,indexBranche_trouve+delta].Adresse; // adresse après détecteur
 
-          if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) then
+          if (det1br<>AdrAig) and (det2br<>AdrAig) and (adr<>0) and (aiguillage[indexAig].visible) then
           begin
             Affiche('Erreur 22.2: Le détecteur '+intToSTR(adr)+' est décrit dans l''aiguillage '+intToSTR(aiguillage[Indexaig].adresse)+' mais déclaré dans la ',clred);
             s:='branche '+intToSTR(Branche_trouve)+' entre';
@@ -10689,7 +10848,7 @@ begin
   begin
     adr:=aiguillage[indexaig].Adresse;
     model:=aiguillage[indexaig].modele;
-    
+
     if adr>NbMaxDet then
     begin
       Affiche('Erreur 9.11: adresse aiguillage trop grand: '+intToSTR(adr),clred);
@@ -10697,7 +10856,7 @@ begin
     end;
 
     // on ne vérifie pas les tjd tjs crois
-    if (model<>tjd) and (model<>tjd) and (model<>crois) then
+    //if (model<>tjd) and (model<>tjd) and (model<>crois) then
     begin
 
       adr2:=aiguillage[indexaig].ADroit;    // adresse de ce qui est connecté sur la position droite
@@ -10707,6 +10866,7 @@ begin
         if adr2=adr then affiche('Erreur 10.0 : la position droite de l''aiguillage '+intToSTR(adr)+' pointe sur elle même',clred);
         index2:=Index_aig(adr2);            // adresse de l'aiguillage connecté
         model2:=aiguillage[index2].modele;  // modèle de l'aiguillage connecté
+
         begin
           // tjs ou tjs à 2 états ou croisement
           if ( ((model2=tjs) or (model2=tjd)) and (aiguillage[index2].EtatTJD=2) ) or (model2=crois) then
@@ -10737,7 +10897,7 @@ begin
             if c='D' then
             begin
               extr:=aiguillage[index2].ADroit;
-              if adr<>extr then 
+              if adr<>extr then
               begin
                 Affiche('Erreur 10.23: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'D différent de '+intToSTR(extr),clred);
                 ok:=false;
@@ -10746,7 +10906,7 @@ begin
             if c='S' then
             begin
               extr:=aiguillage[index2].ADevie;
-              if adr<>extr then 
+              if adr<>extr then
               begin
                 Affiche('Erreur 10.24: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'S différent de '+intToSTR(extr),clred);
                 ok:=false;
@@ -10755,7 +10915,7 @@ begin
             if c='P' then
             begin
               extr:=aiguillage[index2].APointe;
-              if adr<>extr then 
+              if adr<>extr then
               begin
                 Affiche('Erreur 10.25: Discordance de déclaration aiguillages '+intToSTR(adr)+'D: '+intToSTR(adr2)+'P différent de '+intToSTR(extr),clred);
                 ok:=false;
@@ -11069,6 +11229,7 @@ begin
             adr:=TCO[indexTCO,x,y].adresse;
             if (index_aig(adr)=0) and (adr<>0) then
             begin
+
               Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
               ok:=false;
             end;
@@ -11099,6 +11260,66 @@ begin
     end;
   end;
 
+  // vérifier la cohérence des TJD 4 états avec les branches
+  for Indexaig:=1 to maxaiguillage do
+  //indexaig:=index_aig(93);
+  begin
+    adr:=aiguillage[indexaig].Adresse;
+    model:=aiguillage[indexaig].modele;
+
+    if (model=tjd) or (model=tjs) and (aiguillage[indexAig].EtatTJD=4) then
+    begin
+      l:=1;  // offset branche commence la recherche en 1
+      j:=0;  // offset dans branche
+      adresse:=aiguillage[indexAig].ADroit;    // élements de la tjd
+      adresse2:=aiguillage[indexAig].ADevie;
+      Adrok:=false;
+      Branche_trouve:=0;
+      repeat
+        j:=1;
+        repeat
+          k:=branche_trouve;  // ancien
+          trouve_element_V1(adr,tjd,l,0,j,false,0);    // indexs de la tjd dans les branches
+          if branche_trouve<>0 then
+          begin
+            if indexBranche_Trouve>1 then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse=adresse);
+
+            // pour la rechercher en +, incrémenter l'indexbranche jusqu'à trouve un non actionneur
+            repeat
+              sort:=BrancheN[Branche_trouve,indexBranche_Trouve+1].BType<>act;
+              if not(sort) then inc(IndexBranche_trouve);
+              if sort then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse=adresse) ;
+            until sort;
+
+            if indexBranche_Trouve>1 then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse=adresse2);
+
+            repeat
+              sort:=BrancheN[Branche_trouve,indexBranche_Trouve+1].BType<>act;
+              if not(sort) then inc(IndexBranche_trouve);
+              if sort then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse=adresse2) ;
+            until sort;
+
+            if not(Adrok) then
+            begin
+              Affiche('La TJD '+intToSTR(adr)+' décrite n''est pas cohérente avec les élements contigus dans la branche '+intToSTR(Branche_trouve)+' :',clred);
+              s:='TJD extrémités -> '+intToSTR(adresse)+','+intToSTR(adresse2)+' mais trouvé ';
+              extr:=BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse;
+              if extr<>0 then s:=s+intToSTR(extr);
+              extr:=BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse;
+              if extr<>0 then s:=s+' '+intToSTR(extr);
+              s:=s+' dans la branche '+intToSTR(Branche_trouve);
+              Affiche(s,clred);
+              ok:=false;
+            end;
+            j:=IndexBranche_trouve+1;
+            l:=branche_trouve;
+          end;
+        until (branche_trouve=0) ;
+        l:=Branche_trouve+1;
+      until (Branche_trouve=0);
+    end;
+  end;
+
   // 10 trains
   if not(verif_trains) then ok:=false;
 
@@ -11106,6 +11327,8 @@ begin
   i:=pos(':',portcom);j:=pos(',',portcom);
   val(copy(portcom,i+1,j-i),vitesse,l);
   if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
+
+  
 
   // si xpressnet, pas d'accesoires interférant avec les détecteurs
   AdrOk:=True;
@@ -11368,8 +11591,9 @@ end;
 
 // supprime le ou les aiguillages sélectionnés dans le richEdit
 procedure supprime_aig;
-var n,i,j : integer;
+var n,i,j,AdrTri : integer;
     s,ss : string;
+    trouve : boolean;
 begin
   ss:='';
   n:=0;
@@ -11377,7 +11601,22 @@ begin
   begin
     if formconfig.ListBoxAig.selected[i] then
     begin
-      ss:=ss+ intToSTR(aiguillage[i+1].adresse)+' ';
+      // si triple, supprimer aussi l'homologue
+      if Aiguillage[i+1].modele=triple then
+      begin
+        AdrTri:=aiguillage[i+1].Adrtriple;
+        j:=0;
+        repeat
+          trouve:=Aiguillage[j+1].Adresse=adrTri;
+          if trouve then
+          begin
+            formconfig.ListBoxAig.selected[j]:=true;
+            ss:=ss+intToSTR(adrTri)+' ';
+          end;
+          inc(j);
+        until (j>MaxAiguillage-1) or trouve;
+        ss:=ss+ intToSTR(aiguillage[i+1].adresse)+' ';
+      end;
       inc(n);
     end;
   end;
@@ -11393,6 +11632,7 @@ begin
   raz_champs_aig;
   Aig_sauve.adresse:=0;             // dévalider sa définition
   Formconfig.editAdrAig.text:='';   // annule l'adresse, ce qui évite le plantage quand on clique sur un champ de l'aiguillage
+
 
   // suppression
   n:=0;
@@ -12309,46 +12549,9 @@ begin
   ListBoxSig.Items[ligneClicSig]:=s;
   LabelInfo.Caption:='';
   clicListe:=false;
-end;  
-
-
-procedure TFormConfig.EditAigTripleChange(Sender: TObject);
-  var s : string;
-    i,erreur,index : integer;
-    model: TEquipement;
-begin
-  if clicliste then exit;
-  if ligneclicAig<0 then exit;
-  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
-  with Formconfig do
-  begin
-    s:=EditAigTriple.Text;
-    Val(s,i,erreur);
-    index:=ligneclicAig+1;
-    if index=0 then exit;
-
-    model:=aiguillage[index].modele;
-    if (model=triple) then
-    begin
-      if (erreur<>0) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
-      //  vérifier si l'adresse de l'aiguillage existe déja
-      if (aiguillage[Index_Aig(i)].modele<>rien) then
-      begin
-        LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
-        EditAigTriple.Color:=clred;
-        exit;
-      end ;
-      if i=0 then EditAigTriple.Color:=clred else EditAigTriple.Color:=clWindow;
-      LabelInfo.caption:='';
-
-      aiguillage[index].AdrTriple:=i;
-      aiguillage[index].modifie:=true;
-      s:=encode_aig(index);
-      formconfig.ListBoxAig.items[ligneclicAig]:=s;
-      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
-    end;
-  end;
 end;
+
+
 
 procedure TFormConfig.ComboBoxDDChange(Sender: TObject);
 var s: string;
@@ -12905,6 +13108,10 @@ begin
         StringGridArr.Cells[3,i]:='';
       end;
     end;
+
+    // routepref
+    MemoRoutes.Lines.Add(route_restreinte_to_string(trains[index].routePref));
+
   end;
 end;
 
@@ -15045,6 +15252,8 @@ begin
   EditnCantonsRes.Text:=intToSTR(nCantonsRes);
   EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
   EditTempoTC.Text:=intToSTR(TempoTC);
+  EditMaxParcours.Text:=intToSTR(MaxParcours);
+  EditMaxRoutes.Text:=intToSTR(MaxRoutes);
   EditRep.Text:=RepConfig;
 
   {$IF CompilerVersion >= 28.0}
@@ -15105,6 +15314,7 @@ begin
   cbAffSig.Checked:=AffSig;
   cbRes.Checked:=affRes;
   cbAck.Checked:=avecAck;
+  cbDebugRoulage.checked:=DebugRoulage;
   CheckBoxOptionDemiTour.checked:=option_demitour;
   CheckBoxSombre.Checked:=sombre;
 
@@ -15850,6 +16060,83 @@ begin
   if aCol=3 then
   begin
     trains[i].DetecteurArret[Arow].temps:=v;
+  end;
+end;
+
+
+
+procedure TFormConfig.EditAigTripleKeyPress(Sender: TObject;
+  var Key: Char);
+ var s : string;
+    i,erreur,index,ancien,adr1,adr2 : integer;
+    model: TEquipement;
+    nouveau : boolean;
+begin
+  if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetAig then
+  with Formconfig do
+  begin
+    s:=EditAigTriple.Text;
+    Val(s,Adr2,erreur);
+    index:=ligneclicAig+1;
+    if index=0 then exit;
+
+    model:=aiguillage[index].modele;
+    if (model=triple) then
+    begin
+      if (erreur<>0) then begin LabelInfo.caption:='Erreur adresse aiguillage ';exit;end;
+      //  vérifier si l'adresse de l'aiguillage existe déja
+      if (aiguillage[Index_Aig(i)].modele<>rien) then
+      begin
+        LabelInfo.caption:='aiguillage '+IntToSTR(i)+' existe déja - ne sera pas écrasé' ;
+        exit;
+      end ;
+      LabelInfo.caption:='';
+
+      Ancien:=aiguillage[index].AdrTriple;
+      adr1:=aiguillage[index].adresse;
+      aiguillage[index].AdrTriple:=adr2;
+      aiguillage[index].modifie:=true;
+      s:=encode_aig(index);
+      formconfig.ListBoxAig.items[ligneclicAig]:=s;
+      formconfig.ListBoxAig.selected[ligneclicAig]:=true;
+
+      // créer aiguillage homologue
+      if ancien<>Adr2 then
+      begin
+        i:=Index_aig(ancien);
+        nouveau:=i=0;
+        if nouveau then
+        begin
+          inc(MaxAiguillage);
+          i:=MaxAiguillage;
+        end;
+
+        if i>=NbreMaxiAiguillages then
+        begin
+          Affiche('Nombre maximal d''aiguillages atteint',clRed);
+          exit;
+        end;
+
+        // créer homologue triple
+        aiguillage[i].Adresse:=adr2;
+        aiguillage[i].modele:=aig;
+        aiguillage[i].Apointe:=aiguillage[index].Adroit;
+        aiguillage[i].ApointeB:='D';
+        aiguillage[i].ADevie:=aiguillage[index].Adevie2;
+        aiguillage[i].ADevieB:=aiguillage[index].Adevie2B;
+        aiguillage[i].ADroit:=aiguillage[index].Adroit;
+        aiguillage[i].ADroitB:=aiguillage[index].AdroitB;
+        aiguillage[i].visible:=false;
+        tablo_index_aiguillage[adr2]:=i;
+        s:=encode_Aig(i);
+        if nouveau then
+        begin
+          formconfig.ListBoxAig.items.add(s);
+        end
+        else formconfig.ListBoxAig.items[i-1]:=s;
+      end;
+    end;
   end;
 end;
 

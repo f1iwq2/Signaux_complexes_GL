@@ -682,7 +682,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabAvance
+    ActivePage = TabSheetActionneurs
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1198,11 +1198,11 @@ object FormConfig: TFormConfig
         object Label5: TLabel
           Left = 16
           Top = 75
-          Width = 152
+          Width = 151
           Height = 26
           Caption = 
-            '3. Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 100 m' +
-            's)'
+            '3. Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 50 ms' +
+            ')'
           WordWrap = True
         end
         object EditcomUSB: TEdit
@@ -1297,19 +1297,20 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 8
         Width = 297
-        Height = 49
+        Height = 65
         BevelInner = bvLowered
         BevelKind = bkFlat
         Lines.Strings = (
           '1. Port COM de l'#39'adresse USB de l'#39'interface XpressNet. '
           'COM de 1 '#224' 255 - Si COMX : Signaux complexes d'#233'tecte le '
-          'port automatiquement (mais le d'#233'marrage est plus long)')
+          'port automatiquement (mais le d'#233'marrage est plus long)'
+          'COMX , vitesse, parit'#233' , Nbre_bits , Bits_stop, protocole')
         ReadOnly = True
         TabOrder = 3
       end
       object Memo2: TMemo
         Left = 312
-        Top = 64
+        Top = 80
         Width = 297
         Height = 81
         BevelInner = bvLowered
@@ -1325,7 +1326,7 @@ object FormConfig: TFormConfig
       end
       object Memo3: TMemo
         Left = 312
-        Top = 152
+        Top = 168
         Width = 297
         Height = 89
         BevelInner = bvLowered
@@ -1409,7 +1410,7 @@ object FormConfig: TFormConfig
       end
       object GroupBox22: TGroupBox
         Left = 312
-        Top = 248
+        Top = 264
         Width = 297
         Height = 65
         Caption = 'Protocole de connexion '#224' la centrale ou '#224' l'#39'interface'
@@ -1835,9 +1836,10 @@ object FormConfig: TFormConfig
           Top = 20
           Width = 33
           Height = 21
+          Color = clLime
           TabOrder = 6
           Visible = False
-          OnChange = EditAigTripleChange
+          OnKeyPress = EditAigTripleKeyPress
         end
         object GroupBox21: TGroupBox
           Left = 8
@@ -2350,6 +2352,9 @@ object FormConfig: TFormConfig
           Top = 120
           Width = 41
           Height = 21
+          Hint = 'D'#233'tecteur 1 (obligatoire) associ'#233' au signal'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 3
           OnChange = EditDet1Change
         end
@@ -2358,6 +2363,9 @@ object FormConfig: TFormConfig
           Top = 120
           Width = 41
           Height = 21
+          Hint = 
+            'El'#233'ment imm'#233'diatement suivant apr'#232's le d'#233'tecteur 1 (aiguillage o' +
+            'u d'#233'tecteur) - Obligatoire'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -2368,6 +2376,9 @@ object FormConfig: TFormConfig
           Top = 144
           Width = 41
           Height = 21
+          Hint = 'D'#233'tecteur 2 (optionnel) associ'#233' au signal'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 5
           OnChange = EditDet2Change
         end
@@ -2376,6 +2387,9 @@ object FormConfig: TFormConfig
           Top = 144
           Width = 41
           Height = 21
+          Hint = 
+            'El'#233'ment imm'#233'diatement suivant apr'#232's le d'#233'tecteur 2 (aiguillage o' +
+            'u signal) - Optionnel'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 6
@@ -2386,6 +2400,9 @@ object FormConfig: TFormConfig
           Top = 168
           Width = 41
           Height = 21
+          Hint = 'D'#233'tecteur 3 (optionnel) associ'#233' au signal'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 7
           OnChange = EditDet3Change
         end
@@ -2394,6 +2411,9 @@ object FormConfig: TFormConfig
           Top = 168
           Width = 41
           Height = 21
+          Hint = 
+            'El'#233'ment imm'#233'diatement suivant apr'#232's le d'#233'tecteur 3 (aiguillage o' +
+            'u d'#233'tecteur) - Optionnel'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 8
@@ -2404,6 +2424,9 @@ object FormConfig: TFormConfig
           Top = 192
           Width = 41
           Height = 21
+          Hint = 'D'#233'tecteur 4 (optionnel) associ'#233' au signal'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 9
           OnChange = EditDet4Change
         end
@@ -2412,6 +2435,9 @@ object FormConfig: TFormConfig
           Top = 192
           Width = 41
           Height = 21
+          Hint = 
+            'El'#233'ment imm'#233'diatement suivant apr'#232's le d'#233'tecteur 4 (aiguillage o' +
+            'u d'#233'tecteur) - Optionnel'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 10
@@ -3598,6 +3624,12 @@ object FormConfig: TFormConfig
         Font.Style = [fsBold]
         ParentFont = False
       end
+      object ImageTrain: TImage
+        Left = 16
+        Top = 400
+        Width = 257
+        Height = 49
+      end
       object GroupBox24: TGroupBox
         Left = 296
         Top = 16
@@ -3642,20 +3674,14 @@ object FormConfig: TFormConfig
         end
         object Label16: TLabel
           Left = 16
-          Top = 352
+          Top = 400
           Width = 27
           Height = 13
           Caption = 'Ic'#244'ne'
         end
-        object ImageTrain: TImage
-          Left = 16
-          Top = 376
-          Width = 257
-          Height = 49
-        end
         object SpeedButtonOuvre: TSpeedButton
           Left = 120
-          Top = 344
+          Top = 392
           Width = 23
           Height = 22
           Hint = 'Charger ic'#244'ne'
@@ -3665,7 +3691,7 @@ object FormConfig: TFormConfig
           OnClick = SpeedButtonOuvreClick
         end
         object Label45: TLabel
-          Left = 26
+          Left = 10
           Top = 232
           Width = 111
           Height = 39
@@ -3674,6 +3700,13 @@ object FormConfig: TFormConfig
             'Arr'#234't temporis'#233' du train sur d'#233'tecteurs : (mode autonome seuleme' +
             'nt)'
           WordWrap = True
+        end
+        object Label46: TLabel
+          Left = 24
+          Top = 328
+          Width = 34
+          Height = 13
+          Caption = 'Routes'
         end
         object EditNomTrain: TEdit
           Left = 136
@@ -3732,7 +3765,7 @@ object FormConfig: TFormConfig
         end
         object EditIcone: TEdit
           Left = 168
-          Top = 344
+          Top = 392
           Width = 121
           Height = 21
           TabOrder = 5
@@ -3766,9 +3799,9 @@ object FormConfig: TFormConfig
           OnClick = CheckBoxSensClick
         end
         object StringGridArr: TStringGrid
-          Left = 144
+          Left = 136
           Top = 192
-          Width = 169
+          Width = 177
           Height = 113
           TabOrder = 8
           OnSelectCell = StringGridArrSelectCell
@@ -3779,6 +3812,15 @@ object FormConfig: TFormConfig
             24
             24
             24)
+        end
+        object MemoRoutes: TMemo
+          Left = 120
+          Top = 312
+          Width = 185
+          Height = 57
+          ReadOnly = True
+          ScrollBars = ssBoth
+          TabOrder = 9
         end
       end
       object ButtonNT: TButton

@@ -43,8 +43,8 @@ object FormRouteTrain: TFormRouteTrain
   end
   object ButtonQuitte: TButton
     Left = 8
-    Top = 118
-    Width = 89
+    Top = 120
+    Width = 81
     Height = 33
     Caption = 'Quitter'
     TabOrder = 1
@@ -93,9 +93,9 @@ object FormRouteTrain: TFormRouteTrain
     OnClick = ButtonSupprimeClick
   end
   object ButtonRouler1Tr: TButton
-    Left = 256
+    Left = 280
     Top = 120
-    Width = 107
+    Width = 83
     Height = 33
     Hint = 'Roule le train s'#233'lectionn'#233' s'#39'il dispose d'#39'une route'
     Caption = 'Rouler le train'
@@ -106,7 +106,7 @@ object FormRouteTrain: TFormRouteTrain
     OnClick = ButtonRouler1TrClick
   end
   object ButtonRoulerTsTrains: TButton
-    Left = 168
+    Left = 192
     Top = 120
     Width = 75
     Height = 33
@@ -117,5 +117,17 @@ object FormRouteTrain: TFormRouteTrain
     TabOrder = 6
     WordWrap = True
     OnClick = ButtonRoulerTsTrainsClick
+  end
+  object ButtonSauveRoute: TButton
+    Left = 104
+    Top = 120
+    Width = 81
+    Height = 33
+    Hint = 'Sauve la route et l'#39'affecte '#224' ce train'
+    Caption = 'Sauve route'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+    OnClick = ButtonSauveRouteClick
   end
 end

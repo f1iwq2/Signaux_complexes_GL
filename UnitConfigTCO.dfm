@@ -113,7 +113,7 @@ object FormConfigTCO: TFormConfigTCO
     end
     object Label10: TLabel
       Left = 56
-      Top = 256
+      Top = 224
       Width = 258
       Height = 13
       Caption = 'Cliquez sur l'#39'ic'#244'ne pour changer la couleur de l'#39#233'l'#233'ment'
@@ -170,11 +170,11 @@ object FormConfigTCO: TFormConfigTCO
       OnClick = ImagePiedFeuClick
     end
     object CheckCouleur: TCheckBox
-      Left = 64
-      Top = 224
+      Left = 48
+      Top = 248
       Width = 281
       Height = 17
-      Caption = 'Couleur du canton activ'#233' par la couleur du train'
+      Caption = 'Couleur du canton activ'#233'e par la couleur du train'
       TabOrder = 0
       OnClick = CheckCouleurClick
     end
@@ -241,7 +241,7 @@ object FormConfigTCO: TFormConfigTCO
     TabOrder = 4
   end
   object RadioButtonCourbes: TRadioButton
-    Left = 392
+    Left = 320
     Top = 328
     Width = 113
     Height = 17
@@ -445,7 +445,7 @@ object FormConfigTCO: TFormConfigTCO
     end
   end
   object RadioButtonLignes: TRadioButton
-    Left = 392
+    Left = 320
     Top = 312
     Width = 113
     Height = 17
@@ -458,6 +458,18 @@ object FormConfigTCO: TFormConfigTCO
     ParentFont = False
     TabOrder = 8
     OnClick = RadioButtonLignesClick
+  end
+  object CheckNB: TCheckBox
+    Left = 488
+    Top = 312
+    Width = 137
+    Height = 17
+    Hint = 'Affichage du TCO en noir et blanc pour impression'
+    Caption = 'Mode noir et blanc'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 9
+    OnClick = CheckNBClick
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show

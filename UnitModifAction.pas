@@ -1172,7 +1172,12 @@ begin
   if (decl<>declAccessoire) and (decl<>DeclDetAct) and (decl<>DeclZoneDet) then exit;
 
   val(SpinEditEtat.Text,i,erreur);
-  if (i<0) or (i>2) or (erreur<>0) then exit;
+  if (i<0) or (i>2) or (erreur<>0) then
+  begin
+    SpinEditEtat.value:=0;
+    exit;
+  end;
+  SpinEditEtat.value:=i;
   Tablo_Action[index].etat:=i;
 
   maj_combocactions(ligneclicAct);
@@ -1573,10 +1578,16 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditHeure1Change(Sender: TObject);
-var cond,i : integer;
+var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditHeure1.Value;
+  val(SpinEditHeure1.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditHeure1.Value:=0;
+    exit;
+  end;
+  SpinEditHeure1.Value:=i;
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].HeureMin:=i;
@@ -1584,12 +1595,17 @@ begin
   maj_combocactions(ligneclicAct);
 end;
 
-
 procedure TFormModifAction.SpinEditMn1Change(Sender: TObject);
-var cond,i : integer;
+var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditMn1.Value;
+  val(SpinEditMn1.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditMn1.Value:=0;
+    exit;
+  end;
+  SpinEditMn1.Value:=i;
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].MinuteMin:=i;
@@ -1598,10 +1614,16 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditHeure2Change(Sender: TObject);
-var cond,i : integer;
+var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditHeure2.Value;
+  val(SpinEditHeure2.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditHeure2.Value:=0;
+    exit;
+  end;
+  SpinEditHeure2.Value:=i;
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].HeureMax:=i;
@@ -1610,10 +1632,16 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditMn2Change(Sender: TObject);
-var cond,i : integer;
+var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditMn2.Value;
+  val(SpinEditMn2.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditMn2.Value:=0;
+    exit;
+  end;
+  SpinEditMn2.Value:=i;
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondHorl        : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].MinuteMax:=i;
@@ -1635,10 +1663,16 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditEtat2Change(Sender: TObject);
-var cond,i : integer;
+var cond,i,erreur : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditEtat2.Value;
+  val(SpinEditEtat2.Text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditEtat2.Value:=0;
+    exit;
+  end;
+  SpinEditEtat2.Value:=i;
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondPosAcc       : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
@@ -1659,10 +1693,16 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditEtatopChange(Sender: TObject);
-var i,op : integer;
+var i,o,erreur,op : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
-  i:=SpinEditEtatop.Value;
+  val(SpinEditEtatop.text,i,erreur);
+  if erreur<>0 then
+  begin
+    SpinEditEtatOp.Value:=0;
+    exit;
+  end;
+  SpinEditEtatop.Value:=i;
   op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
     ActionAccessoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
@@ -1723,5 +1763,7 @@ procedure TFormModifAction.FormClose(Sender: TObject;
 begin
   Aff_champs(ligneclicAct+1,1,1);
 end;
+
+
 
 end.

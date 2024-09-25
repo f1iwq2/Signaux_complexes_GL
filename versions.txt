@@ -267,5 +267,10 @@ version 9.2  : Utilisation de l'unité ASyncPro pour les versions D12 pour les co
                Arrets temporisés sur les détecteurs en mode autonome/roulage pour les routes de canton à canton.
 	           Correction connexion à la GENLI.
                Version x64 D12 disponible.
+version 9.3  : Amélioration de la proposition des routes en mode autonome.
+               Renforcement de la vérification des TJD.
+               Amélioration des aiguillages triples, et de leur représentation dans le TCO.
+               Gestion des erreurs de vérification d'étendue.
+			   
      
 			  

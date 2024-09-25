@@ -59,6 +59,7 @@ type
     Label17: TLabel;
     Label18: TLabel;
     RadioButtonLignes: TRadioButton;
+    CheckNB: TCheckBox;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
@@ -81,6 +82,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure TrackBarEpaisseurChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure CheckNBClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -612,6 +614,11 @@ begin
     end;
   end
   else action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
+end;
+
+procedure TFormConfigTCO.CheckNBClick(Sender: TObject);
+begin
+  NB:=CheckNB.checked;
 end;
 
 begin

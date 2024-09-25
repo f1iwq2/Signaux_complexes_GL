@@ -1355,6 +1355,7 @@ var idc,x,y: integer;
     h : boolean;
 begin
   Idc:=index_canton(indexTCOcourant,xclicC,yclicC);
+  if Idc<1 then exit;
   x:=canton[Idc].x;
   y:=canton[Idc].y;
   H:=IsCantonH(IndexTCOCourant,x,y);

@@ -1,11 +1,9 @@
 object FormSelTrain: TFormSelTrain
-  Left = 198
-  Top = 117
-  BorderIcons = [biSystemMenu]
-  BorderStyle = bsDialog
+  Left = 358
+  Top = 131
+  Width = 860
+  Height = 370
   Caption = 'S'#233'lection train'
-  ClientHeight = 311
-  ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,15 +14,16 @@ object FormSelTrain: TFormSelTrain
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    800
-    311)
+    844
+    331)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelInfo: TLabel
-    Left = 104
-    Top = 288
+    Left = 125
+    Top = 306
     Width = 44
     Height = 13
+    Anchors = [akBottom]
     Caption = 'LabelInfo'
   end
   object Label1: TLabel
@@ -329,11 +328,11 @@ object FormSelTrain: TFormSelTrain
     Height = 13
   end
   object ButtonOK: TButton
-    Left = 41
-    Top = 280
+    Left = 29
+    Top = 300
     Width = 75
     Height = 24
-    Anchors = [akTop, akRight]
+    Anchors = [akBottom]
     Caption = 'Ok'
     TabOrder = 0
     OnClick = ButtonOKClick
@@ -347,29 +346,52 @@ object FormSelTrain: TFormSelTrain
     TabOrder = 1
     OnChange = ComboBoxCantonChange
   end
-  object StringGridTrains: TStringGrid
-    Left = 8
-    Top = 64
-    Width = 785
-    Height = 209
-    ColCount = 6
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goAlwaysShowEditor]
-    ScrollBars = ssVertical
-    TabOrder = 2
-    OnDrawCell = StringGridTrainsDrawCell
-    OnKeyDown = StringGridTrainsKeyDown
-    OnSelectCell = StringGridTrainsSelectCell
-  end
   object ButtonSauve: TButton
-    Left = 624
-    Top = 280
-    Width = 129
+    Left = 695
+    Top = 300
+    Width = 82
     Height = 25
     Hint = 'Sauvegarde le placement des trains dans les cantons'
+    Anchors = [akBottom]
     Caption = 'Sauvegarder'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 3
+    TabOrder = 2
     OnClick = ButtonSauveClick
+  end
+  object ScrollBoxST: TScrollBox
+    Left = 11
+    Top = 49
+    Width = 821
+    Height = 240
+    HorzScrollBar.Smooth = True
+    HorzScrollBar.Tracking = True
+    VertScrollBar.Increment = 21
+    VertScrollBar.Tracking = True
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    TabOrder = 3
+    object StringGridTrains: TStringGrid
+      Left = 0
+      Top = 0
+      Width = 793
+      Height = 233
+      ColCount = 8
+      FixedCols = 0
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goAlwaysShowEditor]
+      ScrollBars = ssNone
+      TabOrder = 0
+      OnDrawCell = StringGridTrainsDrawCell
+      OnKeyDown = StringGridTrainsKeyDown
+      OnSelectCell = StringGridTrainsSelectCell
+      ColWidths = (
+        43
+        214
+        172
+        57
+        105
+        108
+        32
+        29)
+    end
   end
 end

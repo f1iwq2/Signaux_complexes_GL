@@ -17,8 +17,9 @@ type
     Imagegauche: TImage;
     ImageDroite: TImage;
     LabelCanton: TLabel;
-    StringGridTrains: TStringGrid;
     ButtonSauve: TButton;
+    ScrollBoxST: TScrollBox;
+    StringGridTrains: TStringGrid;
     procedure ButtonOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure StringGridTrainsDrawCell(Sender: TObject; ACol,
@@ -32,17 +33,20 @@ type
     procedure ButtonSauveClick(Sender: TObject);
   private
     { Déclarations privées }
-  public
+  public                
     { Déclarations publiques }
   end;
 
+const
+HauteurLigneSGT=30;
+
 var
   FormSelTrain: TFormSelTrain;
-  x,y,El,largC,hautC,indexTrainClic : Integer;
+  x,y,El,largC,hautC,indexTrainClic,LargeurSGT : Integer;
   routeSav : TuneRoute;
 
 procedure actualise_seltrains;
-procedure affecte_Train_canton(AdrTrain,idcanton : integer);
+procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
 procedure raz_trains_Idcanton(idc : integer);
 procedure raz_cantons_train(AdrTrain : integer);
 procedure trouve_det_canton(idcanton : integer;var el1,el2 : integer);
@@ -89,7 +93,7 @@ begin
   end;
 
   // le détecteur considéré est le e2c
-  if (e2c=adresse) and (t1=det) then
+  if (e2c=adresse) and (t2=det) then
   begin
     case sens of
       sensGauche,sensHaut :
@@ -233,7 +237,7 @@ end;
 // si adrTrain=9999 , train inconnu
 // si adrTrain=0    ; efface
 // et les pointeurs de trains de l'idTrain sont razés
-procedure affecte_Train_canton(AdrTrain,idcanton : integer);
+procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
 var idTrain,t,el1,el2 : integer;
     t1,t2 : tequipement;
 begin
@@ -247,6 +251,8 @@ begin
       raz_cantons_train(AdrTrain);   // efface tous les cantons contenant le train Adrtrain
 
       trains[idTrain].canton:=canton[idcanton].numero;
+      trains[idTrain].sens:=sens;
+      canton[IdCanton].SensLoco:=sens;
       canton[Idcanton].indexTrain:=idTrain;
       canton[Idcanton].NomTrain:=trains[idTrain].nom_train;
       canton[IdCanton].adresseTrain:=AdrTrain;
@@ -404,17 +410,29 @@ end;
 procedure TFormSelTrain.FormCreate(Sender: TObject);
 var i : integer;
 begin
-
   with ImageHaut do begin Width:=60;Height:=60;visible:=false; end;
   with ImageBas do begin Width:=60;Height:=60;visible:=false; end;
   with ImageDroite do begin Width:=60;Height:=60;visible:=false; end;
   with ImageGauche do begin Width:=60;Height:=60;visible:=false; end;
+
+  with ScrollBoxST do
+  begin
+    Anchors:=[akTop,AkLeft,akRight,AkBottom];
+    VertScrollBar.Smooth:=false; // ne pas mettre true sinon çà plante quand on clique sur la ScrollBar
+    VertScrollBar.tracking:=true;
+  end;
 
   hautC:=25;
   largC:=130;
   LabelInfo.caption:='';
   with StringGridTrains do
   begin
+    Anchors:=[];
+    Anchors:=[AkTop,AkLeft,akright];
+
+    Height:=nTrains*HauteurLigneSGT;
+    Top:=0;
+    Left:=0;
     //Options:=StringGridTrains.Options+[goEditing];
     Hint:='Sélection d''un train';
     ShowHint:=true;
@@ -429,8 +447,11 @@ begin
     ColWidths[5]:=120;
     ColWidths[6]:=30;
     ColWidths[7]:=35;
+    LargeurSGT:=0;
+    for i:=0 to 7 do LargeurSGT:=LargeurSGT+ColWidths[i];
+    width:=LargeurSGT+30;
 
-    Cells[0,0]:='N° / @';
+    Cells[0,0]:='Train'+#13+'N° / @';
     Cells[1,0]:='Icône';
     Cells[2,0]:='Nom du train';
     Cells[3,0]:='Affectation'+#13+'au canton';
@@ -439,7 +460,8 @@ begin
     Cells[6,0]:='Sens';
     Cells[7,0]:='Route';
 
-    RowHeights[0]:=30;
+    for i:=0 to RowCount-1 do
+      RowHeights[i]:=HauteurLigneSGT;
   end;
 
   for i:=1 to ntrains do
@@ -463,7 +485,7 @@ var indextrain,l,h,hautdest,largdest : integer;
     coul: Tcolor;
     s : string;
 begin
- // Affiche('DrawCell '+intToSTR(Acol)+'x'+intToSTR(Arow),clred);
+  //Affiche('DrawCell '+intToSTR(Acol)+'x'+intToSTR(Arow),clred);
 
   // titres sur 2 lignes
   if Arow=0 then
@@ -471,12 +493,12 @@ begin
   begin
     if Pos(#13,Cells[ACol,ARow])>0 then
     begin
-      Coul:=canvas.Pixels[5,5];  // trouver la couleur de la première ligne de la stringgrid, car elle change en fonction des styles
+      Coul:=canvas.Pixels[3,1];  // trouver la couleur de la première ligne de la stringgrid, car elle change en fonction des styles
       Canvas.Brush.Color:=coul;
       Canvas.FillRect(Rect);     // Efface la cellule qu'on va réécrire en mode WORDBREAK
-
-      Inc(Rect.Left, 2);
-      Inc(Rect.Top, 2);
+      // rectangle du texte
+      Inc(Rect.Left,2);
+      Inc(Rect.Top,2);
       DrawText(Canvas.Handle,PChar(Cells[ACol, ARow]),-1,Rect,DT_NOPREFIX or DT_WORDBREAK);
     end;
   end;
@@ -564,7 +586,7 @@ begin
 end;
 
 
-// cliqué sur cellule pour changer la sélection du train ou voir la route ou la flèche
+// cliqué ou roulé la molette souris sur cellule pour changer la sélection du train ou voir la route ou la flèche
 procedure TFormSelTrain.StringGridTrainsSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
 var f,AutreTrain,AutreCanton,idAutrecanton,i,ancienSens,AdrTrain,IdTrain,sensloco : integer;
@@ -641,8 +663,8 @@ begin
 
         if (canton[IdCantonSelect].sensCirc<>0) then sensLoco:=canton[IdCantonSelect].sensCirc ;
 
-        canton[IdCantonSelect].SensLoco:=sensLoco;
-        affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect);  // le train affecté contient la route du train razé
+        //canton[IdCantonSelect].SensLoco:=sensLoco;
+        affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect,sensLoco);  // le train affecté contient la route du train razé
 
         maj_signaux(true);
       end;
@@ -691,8 +713,7 @@ begin
       end;
 
       renseigne_canton(IdAutreCanton);
-      canton[IdAutreCanton].SensLoco:=f;
-      affecte_Train_canton(AdrTrain,idAutreCanton);
+      affecte_Train_canton(AdrTrain,idAutreCanton,f);
       //Affiche('Et 3',clYellow);
       maj_signaux(true);
     end;
@@ -785,6 +806,7 @@ begin
   // trouver si le train est dans la grille
   with StringGridTrains do
   begin
+    Height:=nTrains*HauteurLigneSGT+HauteurLigneSGT;  // actualiser la taille de la stringGrig en fonction du nombre de trains
     i:=1;n:=RowCount;
     repeat
       trouve:=cells[2,i]=nomTrain;
@@ -815,6 +837,8 @@ procedure TFormSelTrain.ButtonSauveClick(Sender: TObject);
 begin
   Sauve_config;
 end;
+
+
 
 end.
 

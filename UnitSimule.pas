@@ -38,7 +38,7 @@ procedure ouvre_simulation(nomfichier : string);
 var s: string;
    fte : text;
    i,k,erreur : integer;
-   sortie : boolean;
+   AvecTick,sortie : boolean;
 begin
   assignFile(fte,nomfichier);
   {$I+}
@@ -48,96 +48,111 @@ begin
     Affiche('Fichier '+nomFichier+' incorrect',clred);
     exit;
   end;
+  avecTick:=false;
   index_simule:=1;
   sortie:=false;
+  k:=0;
   while not(eof(fte)) and not(sortie) do
   begin
     readln(fte,s);
-    s:=Uppercase(s);
-    i:=pos('TICK=',s);
-    if i<>0 then
+    if length(s)>0 then
+    if s[1]<>'/' then
     begin
-      Delete(s,1,i+4);
-      val(s,k,erreur);
-      //if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
-      //  k:=Index_Simule+tick+30 ;
-      Tablo_simule[index_simule].tick:=k;
-
-      // détecteur?   Det=528=1 Train=BB16024
-      i:=pos('DET',s);
-      if i<>0 then
+      s:=Uppercase(s);
+      i:=pos('TICK=',s);
+      if ((i<>0) and avecTick) or (not avecTick) then
       begin
-        Delete(s,1,i+2);
-        if s[1]='=' then delete(s,1,1);
-        if s[1]=' ' then delete(s,1,1);
-        val(s,k,erreur);
-        Tablo_simule[index_simule].adresse:=k;
-        Tablo_simule[index_simule].modele:=det;
-        i:=pos('=',s);
+        if avecTick then
+        begin
+          Delete(s,1,i+4);
+          val(s,k,erreur);
+          //if intervalle<>0 then k:=Index_Simule*Intervalle+tick+30 else   // démarre dans 3s
+          //k:=Index_Simule+tick+30 ;
+        end
+        else inc(k);
+        Tablo_simule[index_simule].tick:=k;
+
+        // détecteur?   Det=528=1 Train=BB16024
+        i:=pos('DET',s);
         if i<>0 then
         begin
-          Delete(s,1,i);
+          Delete(s,1,i+2);
+          if s[1]='=' then delete(s,1,1);
+          if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
-          Tablo_simule[index_simule].etat:=k;
+          if k<>0 then
+          begin
+            Tablo_simule[index_simule].adresse:=k;
+            Tablo_simule[index_simule].modele:=det;
+            delete(s,1,erreur);
+            val(s,k,erreur);
+            Tablo_simule[index_simule].etat:=k;
+
+            i:=pos('=',s);
+            if i<>0 then
+            begin
+               delete(s,1,i);
+              Tablo_simule[index_simule].train:=s;
+            end;
+            inc(index_simule);
+          end;
         end;
-        i:=pos('=',s);
-        if i<>0 then delete(s,1,i);
-        Tablo_simule[index_simule].train:=s;
-
-        inc(index_simule);
-      end;
-
-      // actionneur?   Act=803/0=1 Train=CC406526
-      i:=pos('ACT',s);
-      if i<>0 then
-      begin
-        Delete(s,1,i+2);
-        if s[1]='=' then delete(s,1,1);
-        if s[1]=' ' then delete(s,1,1);
-        val(s,k,erreur);
-        Tablo_simule[index_simule].adresse:=k;
-
-        i:=pos('/',s);
-        if i<>0 then delete(s,1,i);
-        val(s,k,erreur);
-
-        i:=pos('=',s);
-        if i<>0 then delete(s,1,i);
-        val(s,k,erreur);
-
-        Tablo_simule[index_simule].modele:=act;
-        Tablo_simule[index_simule].etat:=k;
-
-        i:=pos('=',s);
-        if i<>0 then delete(s,1,i);
-        Tablo_simule[index_simule].train:=s;
-        inc(index_simule);
-      end;
-
-      // aiguillage?
-      i:=pos('AIG',s);
-      if i<>0 then
-      begin
-        Delete(s,1,i+2);
-        if s[1]='=' then delete(s,1,1);
-        if s[1]=' ' then delete(s,1,1);
-        val(s,k,erreur);
-        Tablo_simule[index_simule].adresse:=k;
-        Tablo_simule[index_simule].modele:=aig;
-        i:=pos('=',s);
+        // actionneur?   Act=803/0=1 Train=CC406526
+        i:=pos('ACT',s);
         if i<>0 then
         begin
-          Delete(s,1,i);
+          Delete(s,1,i+2);
+          if s[1]='=' then delete(s,1,1);
+          if s[1]=' ' then delete(s,1,1);
           val(s,k,erreur);
-          if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
-          else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
+          Tablo_simule[index_simule].adresse:=k;
+
+          i:=pos('/',s);
+          if i<>0 then delete(s,1,i);
+          val(s,k,erreur);
+
+          i:=pos('=',s);
+          if i<>0 then delete(s,1,i);
+          val(s,k,erreur);
+
+          Tablo_simule[index_simule].modele:=act;
+          Tablo_simule[index_simule].etat:=k;
+
+          i:=pos('=',s);
+          if i<>0 then delete(s,1,i);
+          Tablo_simule[index_simule].train:=s;
           inc(index_simule);
         end;
+
+        // aiguillage?
+        i:=pos('AIG',s);
+        if i<>0 then
+        begin
+          delete(s,1,i+2);
+          i:=pos(' ',s);
+          if i=0 then i:=pos('=',s);
+          delete(s,1,i);
+          val(s,k,erreur);
+          if k<>0 then
+          begin
+            Tablo_simule[index_simule].adresse:=k;
+            Tablo_simule[index_simule].modele:=aig;
+            i:=pos('=',s);
+            if i<>0 then
+            begin
+              Delete(s,1,i);
+              val(s,k,erreur);
+              if (k=1) or (k=2) then Tablo_simule[index_simule].etat:=k
+              else Affiche('Erreur 622 : Position aiguillage '+intToSTR(Tablo_simule[index_simule].adresse)+' inconnue dans le fichier de simulation',clred);
+              inc(index_simule);
+            end;
+          end;
+        end;
       end;
+      Application.ProcessMessages;
+      sortie:=eof(fte) or (index_simule>Max_Simule) or (pos('STOP',s)<>0);
     end;
-    Application.ProcessMessages;
-    sortie:=eof(fte) or (index_simule>Max_Simule) or (pos('STOP',s)<>0);
-  end ;
+  end;
 
   if index_simule>Max_Simule then Affiche('Tableau maximal atteint',clred);
   Affiche('Intervalle='+intToSTR(intervalle),clyellow);

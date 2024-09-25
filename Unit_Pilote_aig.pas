@@ -31,7 +31,7 @@ type
 var
   FormAig: TFormAig;
   aiguille,aiguille2 : integer;
-  tjdC,aigC : boolean;
+  tjdC,aigC,aigT : boolean;
 implementation
 
 {$R *.dfm}
@@ -72,11 +72,19 @@ var i : integer;
     s : string;
 begin
   i:=Index_aig(Aiguille);
+
+  aigC:=(aiguillage[i].modele=aig);
+  tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
+  AigT:=aiguillage[i].modele=triple;
+
+  if tjdC then s:='Pilotage de la TJD/S '+intToSTR(aiguille);
+  if aigC then s:='Pilotage de l''aiguillage '+intToSTR(aiguille);
+  if aigT then s:='Pilotage de l''aiguillage triple '+intToSTR(aiguille);
+
+  Label1.Caption:=s;
+
   if aiguillage[i].AdrTrain<>0 then
   begin
-    tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
-    if tjdC then s:='Pilotage de la TJD/S '+intToSTR(aiguille) else s:='Pilotage de l''aiguillage '+intToSTR(aiguille);
-    Label1.Caption:=s;
     if tjdC then s:='La TJD/S '+intToSTR(aiguille)+' est réservée ' else s:='L''aiguillage '+intToSTR(aiguille)+' est réservé ';
     labelAdr1.caption:=s+'par le train '+intToSTR(aiguillage[i].AdrTrain);
     labelAdr1.Visible:=true;
@@ -85,42 +93,53 @@ begin
     buttonDev2.Visible:=false;
     buttonDroit2.Visible:=false;
     LabelAdr2.Visible:=false;
-    if diffusion then exit;   
+    if diffusion then exit;
   end;
 
-  aigC:=(aiguillage[i].modele=aig);
-  tjdC:=(aiguillage[i].modele=tjd) or (aiguillage[i].modele=tjs);
   if aigC then
   begin
-    s:='Pilotage de l''aiguillage '+intToSTR(aiguille);
     commande_simple;
   end;
-  if tjdC then
+
+  if (tjdC and (aiguillage[i].EtatTJD=4)) then
   begin
-    s:='Pilotage de la TJD '+intToSTR(aiguille);
+    LabelAdr1.Caption:='Adresse1: '+intToSTR(aiguille);
+    aiguille2:=aiguillage[i].DDevie;
+    LabelAdr2.Caption:='Adresse2: '+intToSTR(aiguille2);
+    s:=s+'/'+intToSTR(aiguille2);
+    LabelAdr2.Visible:=true;
+    LabelAdr1.Visible:=true;
+    ButtonDev2.Visible:=true;
+    ButtonOk.Visible:=true;
+    ButtonDroit2.Visible:=true;
+    ButtonDev.Left:=8;
+    ButtonDroit.Left:=88;
 
-    if aiguillage[i].EtatTJD=4 then
-    begin
-      LabelAdr1.Caption:='Adresse1: '+intToSTR(aiguille);
-      aiguille2:=aiguillage[i].DDevie;
-      LabelAdr2.Caption:='Adresse2: '+intToSTR(aiguille2);
-      s:=s+'/'+intToSTR(aiguille2);
-      LabelAdr2.Visible:=true;
-      LabelAdr1.Visible:=true;
-      ButtonDev2.Visible:=true;
-      ButtonOk.Visible:=true;
-      ButtonDroit2.Visible:=true;
-      ButtonDev.Left:=8;
-      ButtonDroit.Left:=88;
-
-      buttonDroit.Visible:=true;
-      buttonDev.Visible:=true;
-
-    end;
+    buttonDroit.Visible:=true;
+    buttonDev.Visible:=true;
   end;
-  if aiguillage[i].EtatTJD=2 then
+
+  if TjdC and (aiguillage[i].EtatTJD=2) then
   begin
     commande_simple;
+  end;
+
+  if AigT then
+  begin
+    LabelAdr1.Caption:='Adresse1: '+intToSTR(aiguille);
+    aiguille2:=aiguillage[i].Adrtriple;
+    LabelAdr2.Caption:='Adresse2: '+intToSTR(aiguille2);
+    s:=s+'/'+intToSTR(aiguille2);
+    LabelAdr2.Visible:=true;
+    LabelAdr1.Visible:=true;
+    ButtonDev2.Visible:=true;
+    ButtonOk.Visible:=true;
+    ButtonDroit2.Visible:=true;
+    ButtonDev.Left:=8;
+    ButtonDroit.Left:=88;
+
+    buttonDroit.Visible:=true;
+    buttonDev.Visible:=true;
   end;
 
   Label1.Caption:=s;

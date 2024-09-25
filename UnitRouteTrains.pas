@@ -20,6 +20,7 @@ type
     ButtonSupprime: TButton;
     ButtonRouler1Tr: TButton;
     ButtonRoulerTsTrains: TButton;
+    ButtonSauveRoute: TButton;
     procedure FormActivate(Sender: TObject);
     procedure ButtonQuitteClick(Sender: TObject);
     procedure ComboBoxTrainsChange(Sender: TObject);
@@ -30,6 +31,7 @@ type
     procedure ButtonSupprimeClick(Sender: TObject);
     procedure ButtonRouler1TrClick(Sender: TObject);
     procedure ButtonRoulerTsTrainsClick(Sender: TObject);
+    procedure ButtonSauveRouteClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -78,7 +80,10 @@ begin
   if trouve then
   begin
     trains[indexTrain].dernierdet:=detect;
-    if not(diffusion) then Affiche('Le détecteur du train '+train+' est le '+intToSTR(detect),clWhite);
+    if debugRoulage then
+    begin
+      Affiche('Le détecteur du train '+train+' est le '+intToSTR(detect),clWhite);
+    end;
 
     index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);
     AdrSig1:=0;AdrSig2:=0;
@@ -163,6 +168,8 @@ begin
 
   if not(roulage) then exit;
 
+
+
   s:='Lancement du train '+train;
   if detect<>0 then s:=s+' depuis détecteur '+intToSTR(Detect);
   Affiche(s,clYellow);
@@ -195,7 +202,7 @@ begin
   with formRouteTrain do
   begin
     RicheditRoute.Clear;
-    RichEditRoute.Lines.Add(route_to_string(trains[idTrain].route));
+    RichEditRoute.Lines.Add(route_restreinte_to_string(trains[idTrain].route));
     if trains[idtrain].route[0].adresse<>0 then
     begin
       labelroute.caption:='Route affectée au train '+trains[idtrain].nom_train;
@@ -264,6 +271,7 @@ begin
 
   supprime_route_train(indexTrainFR);
   maj_infos(indexTrainFR);
+  close;
 end;
 
 // Réserve les éléments s'ils ne sont pas déja réservés et positionne les aiguillages
@@ -271,12 +279,12 @@ end;
 // en entrée : index du train ; detect=détecteur à partir duquel faire la réservation et le positionnement des aiguillages
 // en sortie : si erreur : -1   ou adresse du train qui a réservé le canton
 // phase 0 : si le détecteur detect est en fin de route, alors on active l'arret du train
-// phase 1 : tester si éléments réservés par train tiers jusqu'au signal suivant. Si oui, sortir.
+// phase 1 : tester si éléments réservés par train tiers jusqu'aux cantons suivants. Si oui, sortir.
 // phase 2 : positionner les aiguillages
 // phase 3 : réserver les aiguillages
 function aig_canton(idTrain,detect : integer) : integer;
-var AdrSig,n,i,ic,j,ideb,iFin,AdrTrain,etat,pointeur,voie1,voie2,indexSig1,indexSig2,
-    Trainexistant,adr,pos,index,Ncanton,icanton,NumCanton,pr,det_arret,it,PointRoute,ElPrec,
+var AdrSig,n,i,ic,j,ideb,iFin,AdrTrain,etat,pointeur,voie1,voie2,indexSig1,indexSig2,AncPr,
+    Trainexistant,adr,pos,index,Ncanton,icanton,NumCanton,det_arret,it,PointRoute,ElPrec,
     adr2 : integer;
     typ,tprec: tequipement;
     trainTiers,SigBonSens,trouve : boolean;
@@ -284,7 +292,7 @@ var AdrSig,n,i,ic,j,ideb,iFin,AdrTrain,etat,pointeur,voie1,voie2,indexSig1,index
 begin
   //traceliste:=true;
   if ProcPrinc then AfficheDebug('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
-  if not(diffusion) then Affiche('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
+  if debugRoulage then Affiche('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
   result:=0;
 
   If traceliste then
@@ -303,7 +311,7 @@ begin
   i:=pointeur-1;
   if i=0 then i:=1; // on commence à 1
 
-  if traceListe then
+  if DebugRoulage then
   begin
     Affiche('AC train @'+intToSTR(AdrTrain)+'Detecteur='+intToSTR(detect)+' Pointeur'+intToSTR(pointeur)+' ->'+intToSTR(trains[idTrain].route[i].adresse),clOrange);
     if i>=n then
@@ -314,17 +322,18 @@ begin
   end;
 
   j:=1;
-  pr:=trains[idTrain].PointRout;
+  AncPr:=trains[idTrain].PointRout;
   repeat
-    if (trains[idTrain].route[j].adresse=detect) and (trains[idTrain].route[j].typ=det) and (j>pr) then
+
+    trouve:=(trains[idTrain].route[j].adresse=detect) and (trains[idTrain].route[j].typ=det) and (j>=AncPr);
+    if trouve then
     begin
       trains[idTrain].PointRout:=j;
       PointRoute:=j;
-      //Affiche('Le pointeur de route est '+intToSTR(j)+' au détecteur '+intToSTR(detect),clred);
+      if DebugRoulage then Affiche('Le pointeur de route est '+intToSTR(j)+'/'+intToSTR(n)+' au détecteur '+intToSTR(detect),clWhite);
     end;
     inc(j);
-  until j>n;
-
+  until trouve or (j>n);
 
   // arrêt sur détecteur demandé
   trouve:=false;
@@ -344,36 +353,42 @@ begin
         adr2:=aiguillage[j].DDroit;  // homologue
       end;
     end;
-    if not(diffusion) and (Det_arret<>0) then Affiche('Détecteur demande arrêt rencontré ('+intToSTR(det_arret)+')',clYellow);
+    if debugRoulage and (Det_arret<>0) then Affiche('Détecteur demande arrêt rencontré ('+intToSTR(det_arret)+')',clYellow);
     // detecteur courant=arret
-    if (det_arret=detect) and (detecteur[detect].etat) and (trains[idTrain].route[PointRoute-1].adresse=ElPrec) and (trains[idTrain].route[PointRoute-1].typ=tPrec) then
+    if (det_arret=detect) and (detecteur[detect].etat) and
+       (trains[idTrain].route[PointRoute-1].adresse=ElPrec) and (trains[idTrain].route[PointRoute-1].typ=tPrec) and
+       (pointroute<n) then
     begin
       Affiche('Demande arrêt train '+trains[idTrain].nom_train+' '+intToSTR(trains[idTrain].DetecteurArret[it].temps)+'s sur détecteur '+inttoStr(detect)+' prec='+intToSTR(trains[idTrain].route[PointRoute-1].adresse),ClOrange);
-      trains[idTrain].TempoArret:=50;
+      //trains[idTrain].TempoArret:=2;
       trains[idTrain].TempoArretTemp:=trains[idTrain].DetecteurArret[it].temps*10;
+      trains[idTrain].arret_det:=true;
+      trains[idTrain].phase_arret:=0;
       trouve:=true;
     end;
     inc(it);
   until (it>NbDetArret) or trouve;
 
-  if (detect=trains[idTrain].route[n].adresse) and (trains[idTrain].route[n].typ=det) then
+  if pointRoute>=n then
   begin
     // route traitée , arrêter le train
-    trains[idTrain].TempoArretCour:=0;
-    trains[idTrain].TempoArret:=50;
+    if debugRoulage then Affiche('AC - Route terminée *****',clred);
+    trains[idTrain].arret_det:=true;
+    Trains[idTrain].phase_arret:=0;
   end;
 
   traintiers:=false;
   icanton:=0;
   ncanton:=0;
   TrainExistant:=0;
-  ideb:=i;
+  ideb:=trains[idTrain].PointRout;
   AdrSig:=0;
   SigBonSens:=false;
+  //TraceListe:=true;
   if traceliste then Affiche('Aiguillages',clOrange);
   with trains[idtrain] do
   begin
-    // boucle de vérification de réservation des aiguillages par un train tiers, jusqu'à rencontrer n cantons
+    // boucle de vérification de réservation des aiguillages par un train même lui même, jusqu'à rencontrer n cantons
     repeat
       typ:=route[i].typ;
       adr:=route[i].adresse;
@@ -383,7 +398,244 @@ begin
         if TraceListe then Affiche(intToSTR(adr)+' ',clOrange);
         // vérifier si l'aiguillage est libre
         TrainExistant:=Aiguillage[index_aig(adr)].AdrTrain;
-        if (trainexistant<>AdrTrain) and (TrainExistant<>0) then
+        //if (trainexistant<>AdrTrain) and (TrainExistant<>0) then
+        if (TrainExistant<>0) then
+        begin
+          result:=TrainExistant;
+          trains[idtrain].roulage:=1;
+          trainTiers:=true;
+          if traceListe then Affiche('AC-Aiguillage '+intToSTR(adr)+' réservé par autre train : @='+intToSTR(result),clyellow);
+        end;
+      end;
+      if (typ=det) then
+      begin
+        TrainExistant:=detecteur[adr].AdrTrainRes;
+        if (TrainExistant<>AdrTrain) and (trainExistant<>0) then
+        begin
+          result:=TrainExistant;
+          trains[idtrain].roulage:=1;  // le roulage est arrêté
+          traintiers:=true;
+          if traceListe then Affiche('AC-Détecteur '+intToSTR(adr)+' réservé par autre train : @='+intToSTR(result),clyellow);
+          //exit;
+        end;
+        // si détecteur comporte signal
+        index_signal_det(adr,voie1,indexSig1,voie2,indexSig2);
+        if indexSig1<>0 then
+        begin
+          AdrSig:=0;
+          // si le signal est dans le bon sens
+          if (i+1<=n) then // si on arrive pas en bout de route
+          begin
+            if (signaux[indexSig1].Adr_el_suiv1=route[i+1].adresse) then
+            begin
+              AdrSig:=signaux[indexSig1].adresse;
+              if TraceListe then Affiche('AC-Trouvé signal '+intToSTR(AdrSig)+' dans bon sens',clYellow);
+              inc(nCanton);
+              icanton:=i;
+              SigBonSens:=true;
+            end
+            else
+            begin
+              if TraceListe then Affiche('AC-Trouvé signal '+intToSTR(signaux[indexSig1].adresse)+' dans mauvais sens',clYellow);
+            end;
+
+            if indexSig2<>0 then
+            begin
+              if (signaux[indexSig2].Adr_el_suiv1=route[i+1].adresse) then
+              begin
+                AdrSig:=signaux[indexSig2].adresse;
+                if TraceListe then Affiche('AC-Trouvé signal '+intToSTR(AdrSig)+' dans bon sens',clYellow);
+                inc(nCanton);
+                icanton:=i;
+                SigBonSens:=true;
+              end
+              else
+              begin
+                if TraceListe then Affiche('AC-Trouvé signal '+intToSTR(signaux[indexSig2].adresse)+' dans mauvais sens',clYellow);
+              end;
+            end;
+          end;
+        end;
+      end;
+      inc(i);
+    until (i>n) or (SigBonSens and (nCanton=nCantonsRes+1)) or (trainTiers);
+
+    if traceliste then affiche('Phase 2-3',clWhite);
+    // phases 2 et 3
+    trains[idtrain].roulage:=2; // roulage effectif
+    result:=AdrTrain;
+    if not(traintiers) then iFin:=i-1 else iFin:=icanton;
+    AdrTrain:=trains[idTrain].adresse;
+
+    // balayage du (des) cantons libres -------------------------------------------------------------
+    if traceListe or debugRoulage then Affiche('Balayage de '+intToSTR(ideb)+' à '+intToSTR(ifin)+' pour positionner et réserver aiguillages',clYellow);
+    for i:=iDeb to iFin do
+    begin
+      route[i].traite:=true;
+      typ:=route[i].typ;
+      adr:=route[i].adresse;
+      if (typ=aig) or (typ=triple) or (typ=tjs) or (typ=tjd) or (typ=crois) then
+      begin
+        pos:=route[i].pos;
+        index:=index_aig(adr);
+
+        if ((typ=aig) or (typ=triple) or (typ=tjs) or (typ=tjd)) then
+        begin
+          if aiguillage[index].AdrTrain=0 then
+          begin
+            pilote_acc(adr,pos,AdrTrain); // pilote l'aig si il est reservé par le train ou non réservé
+            s:='AC-Pilote aiguillage '+intToSTR(adr)+'='+intToSTR(pos);
+            case pos of
+              const_devie : s:=s+' (dévié)';
+              const_droit : s:=s+' (droit)';
+              else
+              s:=s+' non positionné';
+            end;
+            if debugRoulage then Affiche(s,clWhite);
+            if portCommOuvert or parSocketLenz or CDM_connecte then sleep(Tempo_Aig);
+            // réservation
+            Affiche('Réservation Aig '+intToSTR(adr),clCyan);
+            aiguillage[index].adrTrain:=AdrTrain;
+          end;
+        end;
+      end;
+      if typ=det then
+      begin
+        detecteur[adr].AdrTrainRes:=adrTrain;
+      end;
+      Texte_aig_fond(adr);
+    end;
+  end;
+  maj_signaux(false);
+  //TraceListe:=false;
+end;
+
+// Réserve les éléments s'ils ne sont pas déja réservés et positionne les aiguillages
+// jusqu'au signal suivant (soit 1 canton)
+// en entrée : index du train ; detect=détecteur à partir duquel faire la réservation et le positionnement des aiguillages
+// en sortie : si erreur : -1   ou adresse du train qui a réservé le canton
+// phase 0 : si le détecteur detect est en fin de route, alors on active l'arret du train
+// phase 1 : tester si éléments réservés par train tiers jusqu'aux cantons suivants. Si oui, sortir.
+// phase 2 : positionner les aiguillages
+// phase 3 : réserver les aiguillages
+function aig_cantonX(idTrain,detect : integer) : integer;
+var AdrSig,n,i,ic,j,ideb,iFin,AdrTrain,etat,pointeur,voie1,voie2,indexSig1,indexSig2,AncPr,
+    Trainexistant,adr,pos,index,Ncanton,icanton,NumCanton,det_arret,it,PointRoute,ElPrec,
+    adr2 : integer;
+    typ,tprec: tequipement;
+    trainTiers,SigBonSens,trouve : boolean;
+    s : string;
+begin
+  //traceliste:=true;
+  if ProcPrinc then AfficheDebug('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
+  if debugRoulage then Affiche('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
+  result:=0;
+
+  If traceliste then
+  begin
+    if detecteur[detect].Etat then etat:=1 else etat:=0;
+    affiche('Aig_canton Train id='+intToSTR(idtrain)+' '+intToSTR(detect)+' à '+intToSTR(etat)+'---------------Phase 1',clWhite);
+  end;
+  AdrTrain:=trains[idTrain].adresse;
+
+  pointeur:=0;
+  n:=trains[idTrain].route[0].adresse;
+  repeat
+    inc(pointeur);
+  until (trains[idTrain].route[pointeur].traite=false) or (pointeur+1>=n);
+
+  i:=pointeur-1;
+  if i=0 then i:=1; // on commence à 1
+
+  if DebugRoulage then
+  begin
+    Affiche('AC train @'+intToSTR(AdrTrain)+'Detecteur='+intToSTR(detect)+' Pointeur'+intToSTR(pointeur)+' ->'+intToSTR(trains[idTrain].route[i].adresse),clOrange);
+    if i>=n then
+    begin
+      affiche('La route a été complètement traitée (réservation)',clOrange);
+      result:=0;
+    end;
+  end;
+
+  // mettre le pointeur de route j sur le détecteur "detect", après le pointeur 'AncPr'
+  j:=1;
+  AncPr:=trains[idTrain].PointRout;
+  repeat
+    trouve:=(trains[idTrain].route[j].adresse=detect) and (trains[idTrain].route[j].typ=det) and (j>=AncPr);
+    if trouve then
+    begin
+      trains[idTrain].PointRout:=j;   //<<<<<<<<< le pointeur est stocké
+      PointRoute:=j;
+      if DebugRoulage then Affiche('Le pointeur de route est '+intToSTR(j)+'/'+intToSTR(n)+' au détecteur '+intToSTR(detect),clWhite);
+    end;
+    inc(j);
+  until trouve or (j>n);
+
+  // arrêt temporisé sur détecteur demandé
+  trouve:=false;
+  it:=1; // boucle de détecteurs dans les trains
+  if roulage and (trains[idTrain].roulage>0) and (pointRoute>1) then
+  repeat
+    det_arret:=trains[idTrain].DetecteurArret[it].detecteur;
+    elPrec:=trains[idTrain].DetecteurArret[it].prec;
+    Tprec:=trains[idTrain].DetecteurArret[it].tprec;
+    adr2:=0;
+    // si le précédent est une TJD 4 états il faut tester les 2 adresses
+    if Tprec=aig then
+    begin
+      j:=index_aig(elprec);
+      if (aiguillage[j].modele=tjd) and (aiguillage[j].EtatTJD=4) then
+      begin
+        adr2:=aiguillage[j].DDroit;  // homologue
+      end;
+    end;
+    if debugRoulage and (Det_arret<>0) then Affiche('Détecteur demande arrêt rencontré ('+intToSTR(det_arret)+')',clYellow);
+    // detecteur courant=arret
+    if (det_arret=detect) and (detecteur[detect].etat) and
+       (trains[idTrain].route[PointRoute-1].adresse=ElPrec) and (trains[idTrain].route[PointRoute-1].typ=tPrec) and
+       (pointroute<n) then
+    begin
+      Affiche('Demande arrêt train '+trains[idTrain].nom_train+' '+intToSTR(trains[idTrain].DetecteurArret[it].temps)+'s sur détecteur '+inttoStr(detect)+' prec='+intToSTR(trains[idTrain].route[PointRoute-1].adresse),ClOrange);
+      //trains[idTrain].TempoArret:=2;
+      trains[idTrain].TempoArretTemp:=trains[idTrain].DetecteurArret[it].temps*10;  // récupérer le temps d'arrêt sur le détecteur
+      trains[idTrain].arret_det:=true;
+      trains[idTrain].phase_arret:=0;
+      trouve:=true;
+    end;
+    inc(it);
+  until (it>NbDetArret) or trouve;
+
+  if pointRoute>=n then
+  begin
+    // route traitée , arrêter le train
+    if debugRoulage then Affiche('AC - Route terminée *****',clred);
+    trains[idTrain].arret_det:=true;
+    Trains[idTrain].phase_arret:=0;
+  end;
+
+  traintiers:=false;
+  icanton:=0;
+  ncanton:=0;
+  TrainExistant:=0;
+  ideb:=trains[idTrain].PointRout; // i;  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  AdrSig:=0;
+  SigBonSens:=false;
+  //TraceListe:=true;
+  if traceliste then Affiche('Aiguillages',clOrange);
+  with trains[idtrain] do
+  begin
+    // boucle de vérification de réservation des aiguillages par un train même lui même, jusqu'à rencontrer n cantons
+    repeat
+      typ:=route[i].typ;
+      adr:=route[i].adresse;
+      typ:=route[i].typ;
+      if (typ=Aig) or (typ=tjd) or (typ=tjs) or (typ=crois) or (typ=triple) then
+      begin
+        if TraceListe then Affiche(intToSTR(adr)+' ',clOrange);
+        // vérifier si l'aiguillage est libre
+        TrainExistant:=Aiguillage[index_aig(adr)].AdrTrain;
+        //if (trainexistant<>AdrTrain) and (TrainExistant<>0) then
+        if (TrainExistant<>0) then
         begin
           result:=TrainExistant;
           trains[idtrain].roulage:=1;
@@ -448,7 +700,7 @@ begin
     // phases 2 et 3
     trains[idtrain].roulage:=2; // roulage effectif
     result:=AdrTrain;
-    if not(traintiers) then iFin:=i-1 else iFin:=icanton;
+    if not(traintiers) then iFin:=i-1 else iFin:=icanton;  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     AdrTrain:=trains[idTrain].adresse;
 
     // balayage du (des) cantons libres
@@ -463,30 +715,37 @@ begin
         pos:=route[i].pos;
         index:=index_aig(adr);
 
-        if (typ=aig) or (typ=triple) or (typ=tjs) or (typ=tjd) then
+        if ((typ=aig) or (typ=triple) or (typ=tjs) or (typ=tjd)) then
         begin
-          pilote_acc(adr,pos,AdrTrain); // pilote l'aig si il est reservé par le train ou non réservé
-
-          s:='AC-Pilote aiguillage '+intToSTR(adr)+'='+intToSTR(pos);
-          case pos of
-            const_devie : s:=s+' (dévié)';
-            const_droit : s:=s+' (droit)';
-            else
-            s:=s+' non positionné';
+          if aiguillage[index].AdrTrain=0 then
+          begin
+            pilote_acc(adr,pos,AdrTrain); // pilote l'aig si il est reservé par le train ou non réservé
+            s:='AC-Pilote aiguillage '+intToSTR(adr)+'='+intToSTR(pos);
+            case pos of
+              const_devie : s:=s+' (dévié)';
+              const_droit : s:=s+' (droit)';
+              else
+              s:=s+' non positionné';
+            end;
+            if debugRoulage then Affiche(s,clWhite);
+            if portCommOuvert or parSocketLenz or CDM_connecte then sleep(Tempo_Aig);
+            // réservation
+            Affiche('Réservation Aig '+intToSTR(adr),clCyan);
+            aiguillage[index].adrTrain:=AdrTrain;
           end;
-          if not(diffusion) then
-          Affiche(s,clWhite);
-          if portCommOuvert or parSocketLenz or CDM_connecte then sleep(Tempo_Aig);
         end;
-        // réservation
-        aiguillage[index].adrTrain:=AdrTrain;
       end;
-      if typ=det then detecteur[adr].AdrTrainRes:=adrTrain;
+      if typ=det then
+      begin
+        detecteur[adr].AdrTrainRes:=adrTrain;
+      end;
       Texte_aig_fond(adr);
     end;
   end;
   maj_signaux(false);
+  //TraceListe:=false;
 end;
+
 
 // bouton rouler 1 train
 procedure TFormRouteTrain.ButtonRouler1TrClick(Sender: TObject);
@@ -501,10 +760,11 @@ begin
   // si le train est doté d'une route
   if trains[indexTrainFR].route[0].adresse>0 then
   begin
-    aig_canton(indexTrainFR,trains[indexTrainFR].route[1].adresse);  // positionne aiguillage et fait les réservations
     demarre:=demarre_index_train(indexTrainFR);    // met la mémoire de roulage du train à 1
+    aig_canton(indexTrainFR,trains[indexTrainFR].route[1].adresse);  // positionne aiguillage et fait les réservations
+    if debugRoulage then Affiche_routes_brut;
   end;
-  close;
+  close;    // efface la route du TCO
 end;
 
 // bouton rouler tous les trains
@@ -519,23 +779,31 @@ begin
   maj_signaux(true);
 
   // positionner les aiguillages de la 1ère route
-  idtrain:=1;
-  repeat
-    //si le train est doté d'une route
-    if trains[idTrain].route[0].adresse>0 then
-    begin
-      aig_canton(idTrain,trains[idTrain].route[1].adresse);
-    end;
-    inc(idtrain);
-  until (idtrain>ntrains);
-
   for idtrain:=1 to ntrains do
   begin
     //si le train est doté d'une route
-    if trains[idTrain].route[0].adresse>0 then demarre:=demarre_index_train(idtrain); // met la mémoire de roulage du train à 1
+    if trains[idTrain].route[0].adresse>0 then
+    begin
+      if debugRoulage then Affiche_routes_brut;
+      demarre:=demarre_index_train(idtrain); // met la mémoire de roulage du train à 1
+      aig_canton(idTrain,trains[idTrain].route[1].adresse);
+    end;
   end;
   close;
 end;
+
+procedure TFormRouteTrain.ButtonSauveRouteClick(Sender: TObject);
+var n : integer;
+begin
+  if (indexTrainFR<1) then exit;
+  n:=trains[indexTrainFr].route[0].adresse;
+  if n=0 then exit;
+
+  Trains[indexTrainFr].routePref:=Trains[IndexTrainFr].route;
+  Sauve_config;
+end;
+
+
 
 end.
 

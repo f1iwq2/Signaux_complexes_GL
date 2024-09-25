@@ -300,12 +300,13 @@ begin
   if (erreur<>0) or (i<0) or (i>23) then
   begin
     LabelErreur.Caption:='Erreur heure';
+    SpinEditHInit.value:=0;
     exit;
   end;
+  SpinEditHInit.Value:=i;
   LabelErreur.Caption:='';
   HeureInit:=i;
   config_modifie:=true;
-
 end;
 
 procedure TFormHorloge.ButtonLanceClick(Sender: TObject);

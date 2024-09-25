@@ -25,7 +25,8 @@ uses
   selection_train in 'selection_train.pas' {FormSelTrain},
   UnitRoute in 'UnitRoute.pas' {FormRoute},
   UnitRouteTrains in 'UnitRouteTrains.pas' {FormRouteTrain},
-  UnitInfo in 'UnitInfo.pas' {FormInfo};
+  UnitInfo in 'UnitInfo.pas' {FormInfo},
+  UnitIntro in 'UnitIntro.pas' {FormIntro};
 
 {$R *.res}
 
@@ -54,6 +55,7 @@ begin
   Application.CreateForm(TFormRoute, FormRoute);
   Application.CreateForm(TFormRouteTrain, FormRouteTrain);
   Application.CreateForm(TFormInfo, FormInfo);
+  Application.CreateForm(TFormIntro, FormIntro);
   fin_preliminaire;
   Application.Run;
 end.

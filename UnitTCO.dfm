@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 229
-  Top = 65
+  Left = 332
+  Top = 73
   Width = 1013
   Height = 607
   VertScrollBar.Visible = False
@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    997
-    549)
+    1005
+    556)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -1537,6 +1537,10 @@ object FormTCO: TFormTCO
       object N8: TMenuItem
         Caption = '-'
       end
+      object rouverunlment1: TMenuItem
+        Caption = 'Trouver un '#233'l'#233'ment'
+        OnClick = rouverunlment1Click
+      end
       object DessinerleTCO1: TMenuItem
         Caption = 'Dessiner le TCO'
         Hint = 'Dessine le TCO '#224' la souris'
@@ -1575,8 +1579,12 @@ object FormTCO: TFormTCO
     end
     object Routes: TMenuItem
       Caption = 'Routes'
+      object Optiondesroutes1: TMenuItem
+        Caption = 'Option des routes'
+        OnClick = Optiondesroutes1Click
+      end
       object AffRoutes: TMenuItem
-        Caption = 'Fen'#234'tre des routes'
+        Caption = 'Fen'#234'tre des routes par trains'
         OnClick = AffRoutesClick
       end
     end
