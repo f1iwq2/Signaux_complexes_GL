@@ -22,5 +22,5 @@ Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.
 
 
 image::Imtitre.jpg[]
-image::tcon.png[]
+image::tco.jpg[]
 image::sigpresentation.gif[]

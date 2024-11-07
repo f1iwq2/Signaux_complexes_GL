@@ -26,7 +26,7 @@ var
   f : text;
 
 Const
-VersionSC ='9.3';  // sert à la comparaison de la version publiée
+VersionSC ='9.5';  // sert à la comparaison de la version publiée
 SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -463,7 +463,6 @@ begin
   if debug=1 then Affiche('Création fenêtre version',clLime);
   if debug=1 then Affiche('Fin création fenêtre version',clLime);
 
-  if not(AvecInit)     then exit;
   if not(verifVersion) then exit;
   if debug=1 then Affiche('Vérification version en ligne',clLime);
   V_publie:=verifie_version;
@@ -485,7 +484,6 @@ begin
   if lance_verif>0 then dec(lance_verif);
   if lance_verif=0 then
   begin
-    if not(AvecInit)     then exit;
     if not(verifVersion) then exit;
     if debug=1 then Affiche('Vérification version en ligne',clLime);
     V_publie:=verifie_version;

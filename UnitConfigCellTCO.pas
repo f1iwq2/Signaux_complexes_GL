@@ -205,7 +205,7 @@ end;
 
 // actualise le contenu de la fenetre et de la zone tco par rapport à la cellule cliquée
 procedure actualise(indexTCO : integer);
-var i,j,ligne,Adr,Bimage,oriente,piedFeu,act,sens : integer;
+var i,j,ligne,Adr,Bimage,oriente,piedFeu,act,sens,IdCanton : integer;
     s : string;
     ip : Timage;
     r : trect;
@@ -260,6 +260,8 @@ begin
       end;
       XclicCell[indexTCO]:=XclicC;
       YclicCell[indexTCO]:=YclicC;
+
+      idCanton:=index_canton(indexTCO,xclicC,yclicC);
 
       GroupBoxOrientation.visible:=false;
       GroupBoxImplantation.visible:=false;
@@ -621,7 +623,8 @@ begin
 
   with formConfCellTCO do
   begin
-    EditTexteCCTCO.Text:=tco[indexTCO,xclicC,yclicC].Texte;
+    if isCanton(Bimage) then EditTexteCCTCO.Text:=canton[idcanton].nom
+    else EditTexteCCTCO.Text:=tco[indexTCO,xclicC,yclicC].Texte;
     EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
     ComboRepr.ItemIndex:=tco[indexTCO,XclicC,YclicC].repr;
   end;
@@ -712,7 +715,7 @@ begin
     tco[indexTCOCourant,x,y].CoulFonte:=clTexte;
     tco[indexTCOCourant,x,y].TailleFonte:=8;
   end;
-  tco[indexTCOCourant,x,y].Texte:=EditTexteCCTCO.Text;
+
   if not(clicTCO) then TCO_modifie:=true;
   if not(selectionaffichee[indexTCOcourant]) then efface_entoure(indexTCOCourant);
 
@@ -725,7 +728,10 @@ begin
     Dessin_canton(indexTCOCourant,PcanvasTCO[indexTCOCourant],x,y,0);
   end
   else
+  begin
+    tco[indexTCOCourant,x,y].Texte:=EditTexteCCTCO.Text;
     affiche_texte(indexTCOCourant,x,y);
+  end;
 
   formTCO[indexTCOCourant].EditTexte.Text:=EditTexteCCTCO.text;
   if not(selectionaffichee[indexTCOcourant]) then _entoure_cell_clic(indexTCOCourant);

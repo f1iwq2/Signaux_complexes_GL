@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 202
-  Top = 143
+  Left = 414
+  Top = 95
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -682,7 +682,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetActionneurs
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -855,6 +855,22 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 7
+        end
+        object EditOuvreEcran: TLabeledEdit
+          Left = 205
+          Top = 150
+          Width = 28
+          Height = 21
+          Hint = #39'Num'#233'ro d'#39#39#233'cran sur lequel Signaux_Complexes s'#39'ouvrira'
+          EditLabel.Width = 173
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Ouvrir Signaux_Complexes sur '#233'cran'
+          LabelPosition = lpLeft
+          LabelSpacing = 10
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 8
+          OnChange = EditOuvreEcranChange
         end
       end
       object GroupBox6: TGroupBox
@@ -1361,7 +1377,7 @@ object FormConfig: TFormConfig
           Width = 257
           Height = 25
           Hint = 'Initialisation des aiguillages au d'#233'marrage'
-          Caption = 'Initialiser les aiguillages en position initiale'
+          Caption = 'Positionner les aiguillages en position initiale'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -1668,7 +1684,7 @@ object FormConfig: TFormConfig
           end
           object Label18: TLabel
             Left = 212
-            Top = 73
+            Top = 71
             Width = 16
             Height = 16
             Caption = 'S2'
@@ -1687,7 +1703,7 @@ object FormConfig: TFormConfig
             Caption = 'LabelTJD1'
           end
           object LabelTJD2: TLabel
-            Left = 168
+            Left = 160
             Top = 76
             Width = 52
             Height = 13
@@ -1836,7 +1852,10 @@ object FormConfig: TFormConfig
           Top = 20
           Width = 33
           Height = 21
+          Hint = '2'#232'me adresse de l'#39'aiguillage triple'
           Color = clLime
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 6
           Visible = False
           OnKeyPress = EditAigTripleKeyPress
@@ -2166,7 +2185,7 @@ object FormConfig: TFormConfig
         Caption = 'Temporisation entre deux commandes (ms)'
       end
       object GroupBox12: TGroupBox
-        Left = 336
+        Left = 328
         Top = 24
         Width = 289
         Height = 449
@@ -2584,7 +2603,7 @@ object FormConfig: TFormConfig
         object RadioGroupLEB: TRadioGroup
           Left = 8
           Top = 224
-          Width = 105
+          Width = 113
           Height = 41
           Caption = 'Pilotage'
           Items.Strings = (
@@ -2597,32 +2616,32 @@ object FormConfig: TFormConfig
           OnClick = RadioGroupLEBClick
         end
       end
-      object ButtonNouvFeu: TButton
+      object ButtonNouvSig: TButton
         Left = 0
         Top = 32
         Width = 65
         Height = 17
         Caption = 'Nouveau'
         TabOrder = 1
-        OnClick = ButtonNouvFeuClick
+        OnClick = ButtonNouvSigClick
       end
-      object ButtonSupFeu: TButton
+      object ButtonSupSig: TButton
         Left = 72
         Top = 32
         Width = 65
         Height = 17
         Caption = 'Supprime'
         TabOrder = 2
-        OnClick = ButtonSupFeuClick
+        OnClick = ButtonSupSigClick
       end
-      object ButtonInsFeu: TButton
+      object ButtonInsSig: TButton
         Left = 144
         Top = 32
         Width = 153
         Height = 17
         Caption = 'Ajouter le signal supprim'#233
         TabOrder = 3
-        OnClick = ButtonInsFeuClick
+        OnClick = ButtonInsSigClick
       end
       object CheckBoxRazSignaux: TCheckBox
         Left = 24
@@ -2635,13 +2654,13 @@ object FormConfig: TFormConfig
         ShowHint = True
         TabOrder = 4
       end
-      object EditTempoFeu: TEdit
+      object EditTempoSignal: TEdit
         Left = 16
         Top = 432
         Width = 33
         Height = 21
         TabOrder = 5
-        OnChange = EditTempoFeuChange
+        OnChange = EditTempoSignalChange
       end
       object ListBoxSig: TListBox
         Left = 0
@@ -2782,7 +2801,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2801,7 +2820,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2847,7 +2866,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3084,6 +3103,40 @@ object FormConfig: TFormConfig
           TabOrder = 0
           OnChange = LabeledEditAdrActionneurChange
         end
+        object Prox1: TLabeledEdit
+          Left = 200
+          Top = 64
+          Width = 30
+          Height = 21
+          Hint = 'Adresse du d'#233'tecteur 1 encadrant'
+          EditLabel.Width = 161
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse du d'#233'tecteur 1 encadrant'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 27
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnChange = Prox1Change
+        end
+        object Prox2: TLabeledEdit
+          Left = 200
+          Top = 88
+          Width = 30
+          Height = 21
+          Hint = 'Adresse du d'#233'tecteur 2 encadrant'
+          EditLabel.Width = 161
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse du d'#233'tecteur 2 encadrant'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 27
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnChange = Prox2Change
+        end
       end
     end
     object TabSheetDet: TTabSheet
@@ -3092,12 +3145,12 @@ object FormConfig: TFormConfig
       object Label42: TLabel
         Left = 8
         Top = 8
-        Width = 63
-        Height = 13
+        Width = 76
+        Height = 16
         Caption = 'D'#233'tecteurs'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -13
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -3114,9 +3167,9 @@ object FormConfig: TFormConfig
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ItemHeight = 13
-        MultiSelect = True
         ParentFont = False
         TabOrder = 0
+        OnKeyDown = ListBoxDetKeyDown
         OnMouseDown = ListBoxDetMouseDown
       end
       object Button4: TButton
@@ -3126,6 +3179,7 @@ object FormConfig: TFormConfig
         Height = 17
         Caption = 'Nouveau'
         TabOrder = 1
+        Visible = False
         OnClick = Button4Click
       end
       object Button5: TButton
@@ -3135,15 +3189,94 @@ object FormConfig: TFormConfig
         Height = 17
         Caption = 'Supprime'
         TabOrder = 2
+        Visible = False
         OnClick = Button5Click
       end
       object GroupBoxDet: TGroupBox
         Left = 336
         Top = 56
         Width = 265
-        Height = 161
+        Height = 97
         Caption = 'Description'
         TabOrder = 3
+        object LEAdrDet: TLabeledEdit
+          Left = 200
+          Top = 32
+          Width = 40
+          Height = 21
+          Hint = 'Adresse du d'#233'tecteur'
+          EditLabel.Width = 101
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse du d'#233'tecteur'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 80
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          OnChange = LEAdrDetChange
+        end
+        object LElongDet: TLabeledEdit
+          Left = 200
+          Top = 64
+          Width = 40
+          Height = 21
+          Hint = 'Longueur du d'#233'tecteir (cm)'
+          EditLabel.Width = 131
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Longueur du d'#233'tecteur (cm)'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnChange = LElongDetChange
+        end
+      end
+      object GroupBox19: TGroupBox
+        Left = 336
+        Top = 168
+        Width = 265
+        Height = 105
+        Caption = 'Arr'#234't sur d'#233'tecteur'
+        TabOrder = 4
+        object Label47: TLabel
+          Left = 176
+          Top = 16
+          Width = 67
+          Height = 13
+          Caption = 'd'#233'calage (cm)'
+        end
+        object RadioButtonArrFin: TRadioButton
+          Left = 8
+          Top = 32
+          Width = 145
+          Height = 17
+          Caption = 'Arr'#234't en fin de d'#233'tecteur'
+          TabOrder = 0
+          OnClick = RadioButtonArrFinClick
+        end
+        object RadioButtonARMil: TRadioButton
+          Left = 8
+          Top = 64
+          Width = 169
+          Height = 17
+          Caption = 'Arr'#234't au milieu du d'#233'tecteur'
+          TabOrder = 1
+          OnClick = RadioButtonARMilClick
+        end
+        object EditDecal: TEdit
+          Left = 200
+          Top = 32
+          Width = 40
+          Height = 21
+          Hint = 'Distance d'#39'arr'#234't avant la fin du d'#233'tecteur en cm'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnChange = EditDecalChange
+        end
       end
     end
     object TabSheetPN: TTabSheet
@@ -3317,7 +3450,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3630,206 +3763,13 @@ object FormConfig: TFormConfig
         Width = 257
         Height = 49
       end
-      object GroupBox24: TGroupBox
-        Left = 296
-        Top = 16
-        Width = 321
-        Height = 441
-        Caption = 'Trains'
-        TabOrder = 0
-        object Label51: TLabel
-          Left = 16
-          Top = 50
-          Width = 38
-          Height = 13
-          Caption = 'Adresse'
-        end
-        object Label52: TLabel
-          Left = 16
-          Top = 122
-          Width = 80
-          Height = 13
-          Caption = 'Vitesse maximale'
-        end
-        object Label53: TLabel
-          Left = 16
-          Top = 26
-          Width = 22
-          Height = 13
-          Caption = 'Nom'
-        end
-        object Label56: TLabel
-          Left = 16
-          Top = 74
-          Width = 215
-          Height = 13
-          Caption = 'Vitesse '#224' l'#39'avertissement ou au ralentissement'
-        end
-        object Label57: TLabel
-          Left = 16
-          Top = 98
-          Width = 79
-          Height = 13
-          Caption = 'Vitesse nominale'
-        end
-        object Label16: TLabel
-          Left = 16
-          Top = 400
-          Width = 27
-          Height = 13
-          Caption = 'Ic'#244'ne'
-        end
-        object SpeedButtonOuvre: TSpeedButton
-          Left = 120
-          Top = 392
-          Width = 23
-          Height = 22
-          Hint = 'Charger ic'#244'ne'
-          Caption = '...'
-          ParentShowHint = False
-          ShowHint = True
-          OnClick = SpeedButtonOuvreClick
-        end
-        object Label45: TLabel
-          Left = 10
-          Top = 232
-          Width = 111
-          Height = 39
-          Alignment = taRightJustify
-          Caption = 
-            'Arr'#234't temporis'#233' du train sur d'#233'tecteurs : (mode autonome seuleme' +
-            'nt)'
-          WordWrap = True
-        end
-        object Label46: TLabel
-          Left = 24
-          Top = 328
-          Width = 34
-          Height = 13
-          Caption = 'Routes'
-        end
-        object EditNomTrain: TEdit
-          Left = 136
-          Top = 24
-          Width = 169
-          Height = 21
-          Hint = 'Nom du train'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-          OnChange = EditNomTrainChange
-        end
-        object EditAdresseTrain: TEdit
-          Left = 264
-          Top = 48
-          Width = 41
-          Height = 21
-          Hint = 'Adresse du d'#233'codeur du train'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          OnChange = EditAdresseTrainChange
-        end
-        object EditVitesseMaxi: TEdit
-          Left = 264
-          Top = 120
-          Width = 41
-          Height = 21
-          Hint = 'Vitesse maximale autoris'#233'e par le d'#233'codeur'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnChange = EditVitesseMaxiChange
-        end
-        object EditVitRalenti: TEdit
-          Left = 264
-          Top = 72
-          Width = 41
-          Height = 21
-          Hint = 'Vitesse apr'#232's l'#39'avertissement'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 3
-          OnChange = EditVitRalentiChange
-        end
-        object EditVitNom: TEdit
-          Left = 264
-          Top = 96
-          Width = 41
-          Height = 21
-          Hint = 'Vitesse si voie libre'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 4
-          OnChange = EditVitNomChange
-        end
-        object EditIcone: TEdit
-          Left = 168
-          Top = 392
-          Width = 121
-          Height = 21
-          TabOrder = 5
-          OnChange = EditIconeChange
-        end
-        object LabeledEditTempoD: TLabeledEdit
-          Left = 264
-          Top = 144
-          Width = 41
-          Height = 21
-          EditLabel.Width = 146
-          EditLabel.Height = 26
-          EditLabel.Caption = 'Temporisation de d'#233'marrage '#224' l'#39'ouverture de signal (s)'
-          EditLabel.Layout = tlBottom
-          EditLabel.WordWrap = True
-          LabelPosition = lpLeft
-          LabelSpacing = 100
-          TabOrder = 6
-          OnChange = LabeledEditTempoDChange
-        end
-        object CheckBoxSens: TCheckBox
-          Left = 16
-          Top = 176
-          Width = 241
-          Height = 17
-          Hint = 'Inverse le sens de pilotage en mode roulage'
-          Caption = 'Sens de pilotage invers'#233
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 7
-          OnClick = CheckBoxSensClick
-        end
-        object StringGridArr: TStringGrid
-          Left = 136
-          Top = 192
-          Width = 177
-          Height = 113
-          TabOrder = 8
-          OnSelectCell = StringGridArrSelectCell
-          OnSetEditText = StringGridArrSetEditText
-          RowHeights = (
-            24
-            24
-            24
-            24
-            24)
-        end
-        object MemoRoutes: TMemo
-          Left = 120
-          Top = 312
-          Width = 185
-          Height = 57
-          ReadOnly = True
-          ScrollBars = ssBoth
-          TabOrder = 9
-        end
-      end
       object ButtonNT: TButton
         Left = 8
         Top = 48
         Width = 73
         Height = 17
         Caption = 'Nouveau'
-        TabOrder = 1
+        TabOrder = 0
         OnClick = ButtonNTClick
       end
       object ButtonSupprime: TButton
@@ -3838,7 +3778,7 @@ object FormConfig: TFormConfig
         Width = 75
         Height = 17
         Caption = 'Supprime'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = ButtonSupprimeClick
       end
       object ListBoxTrains: TListBox
@@ -3856,9 +3796,406 @@ object FormConfig: TFormConfig
         MultiSelect = True
         ParentFont = False
         PopupMenu = PopupMenuListes
-        TabOrder = 3
+        TabOrder = 2
         OnKeyDown = ListBoxTrainsKeyDown
         OnMouseDown = ListBoxTrainsMouseDown
+      end
+      object PageControlTr: TPageControl
+        Left = 288
+        Top = 16
+        Width = 337
+        Height = 457
+        ActivePage = TtabSheetEt
+        TabOrder = 3
+        object TabSheetTrGen: TTabSheet
+          Caption = 'G'#233'n'#233'ral'
+          object GroupBox24: TGroupBox
+            Left = 0
+            Top = 8
+            Width = 321
+            Height = 417
+            Caption = 'Trains'
+            TabOrder = 0
+            object Label51: TLabel
+              Left = 16
+              Top = 50
+              Width = 38
+              Height = 13
+              Caption = 'Adresse'
+            end
+            object Label52: TLabel
+              Left = 16
+              Top = 122
+              Width = 80
+              Height = 13
+              Caption = 'Vitesse maximale'
+            end
+            object Label53: TLabel
+              Left = 16
+              Top = 26
+              Width = 22
+              Height = 13
+              Caption = 'Nom'
+            end
+            object Label56: TLabel
+              Left = 16
+              Top = 74
+              Width = 215
+              Height = 13
+              Caption = 'Vitesse '#224' l'#39'avertissement ou au ralentissement'
+            end
+            object Label57: TLabel
+              Left = 16
+              Top = 98
+              Width = 79
+              Height = 13
+              Caption = 'Vitesse nominale'
+            end
+            object Label16: TLabel
+              Left = 32
+              Top = 352
+              Width = 27
+              Height = 13
+              Caption = 'Ic'#244'ne'
+            end
+            object SpeedButtonOuvre: TSpeedButton
+              Left = 112
+              Top = 344
+              Width = 23
+              Height = 22
+              Hint = 'Charger ic'#244'ne'
+              Caption = '...'
+              ParentShowHint = False
+              ShowHint = True
+              OnClick = SpeedButtonOuvreClick
+            end
+            object Label46: TLabel
+              Left = 16
+              Top = 170
+              Width = 148
+              Height = 13
+              Caption = 'Longueur de la locomotive (cm)'
+            end
+            object EditNomTrain: TEdit
+              Left = 136
+              Top = 24
+              Width = 169
+              Height = 21
+              Hint = 'Nom du train'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              OnChange = EditNomTrainChange
+            end
+            object EditAdresseTrain: TEdit
+              Left = 264
+              Top = 48
+              Width = 41
+              Height = 21
+              Hint = 'Adresse du d'#233'codeur du train'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              OnChange = EditAdresseTrainChange
+            end
+            object EditVitesseMaxi: TEdit
+              Left = 264
+              Top = 120
+              Width = 41
+              Height = 21
+              Hint = 'Vitesse maximale autoris'#233'e par le d'#233'codeur'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 2
+              OnChange = EditVitesseMaxihange
+            end
+            object EditVitRalenti: TEdit
+              Left = 264
+              Top = 72
+              Width = 41
+              Height = 21
+              Hint = 'Vitesse apr'#232's l'#39'avertissement'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 3
+              OnChange = EditVitRalentiChange
+            end
+            object EditVitNom: TEdit
+              Left = 264
+              Top = 96
+              Width = 41
+              Height = 21
+              Hint = 'Vitesse si voie libre'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 4
+              OnChange = EditVitNomChange
+            end
+            object EditIcone: TEdit
+              Left = 168
+              Top = 344
+              Width = 121
+              Height = 21
+              TabOrder = 5
+              OnChange = EditIconeChange
+            end
+            object LabeledEditTempoD: TLabeledEdit
+              Left = 264
+              Top = 144
+              Width = 41
+              Height = 21
+              EditLabel.Width = 221
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Tempo de d'#233'marrage '#224' l'#39'ouverture de signal (s)'
+              EditLabel.Layout = tlBottom
+              LabelPosition = lpLeft
+              LabelSpacing = 28
+              TabOrder = 6
+              OnChange = LabeledEditTempoDChange
+            end
+            object CheckBoxSens: TCheckBox
+              Left = 16
+              Top = 200
+              Width = 241
+              Height = 17
+              Hint = 'Inverse le sens de pilotage en mode roulage'
+              Caption = 'Sens de pilotage invers'#233
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 7
+              OnClick = CheckBoxSensClick
+            end
+            object ButtonRdT: TButton
+              Left = 176
+              Top = 288
+              Width = 99
+              Height = 33
+              Hint = 'Fen'#234'tre des routes m'#233'moris'#233'es du train'
+              Caption = 'Routes du train'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 8
+              WordWrap = True
+              OnClick = ButtonRdTClick
+            end
+            object EditLongLoco: TEdit
+              Left = 264
+              Top = 168
+              Width = 41
+              Height = 21
+              Hint = 'Longueur de la locomotive en cm'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 9
+              OnChange = EditLongLocoChange
+            end
+          end
+        end
+        object TabSheet1: TTabSheet
+          Caption = 'Arr'#234't sur d'#233'tecteurs'
+          ImageIndex = 1
+          object GroupBox14: TGroupBox
+            Left = 0
+            Top = 8
+            Width = 321
+            Height = 401
+            Caption = 'Arr'#234'ts temporis'#233's sur d'#233'tecteurs'
+            TabOrder = 0
+            object Label45: TLabel
+              Left = 50
+              Top = 40
+              Width = 192
+              Height = 26
+              Alignment = taCenter
+              Caption = 
+                'Arr'#234't temporis'#233' du train sur routes sur d'#233'tecteurs : (mode auton' +
+                'ome seulement)'
+              WordWrap = True
+            end
+            object StringGridArr: TStringGrid
+              Left = 40
+              Top = 88
+              Width = 225
+              Height = 185
+              TabOrder = 0
+              OnSelectCell = StringGridArrSelectCell
+              OnSetEditText = StringGridArrSetEditText
+              RowHeights = (
+                24
+                24
+                24
+                24
+                24)
+            end
+          end
+        end
+        object TtabSheetEt: TTabSheet
+          Caption = 'Etalonnage vitesse'
+          ImageIndex = 2
+          object GroupBox18: TGroupBox
+            Left = 0
+            Top = 8
+            Width = 321
+            Height = 409
+            Caption = 'Param'#232'tres de l'#39#233'talonnage  '
+            TabOrder = 0
+            object LabelEt: TLabel
+              Left = 16
+              Top = 24
+              Width = 213
+              Height = 26
+              Caption = 
+                'Les 3 coefficients de vitesse sont issus de la proc'#233'dure d'#39#233'talo' +
+                'nnage de la mesure du train'
+              WordWrap = True
+            end
+            object LabelErreur: TLabel
+              Left = 115
+              Top = 360
+              Width = 3
+              Height = 13
+              Caption = '.'
+            end
+            object LabelV2: TLabel
+              Left = 56
+              Top = 248
+              Width = 13
+              Height = 13
+              Caption = 'V2'
+            end
+            object LabelV3: TLabel
+              Left = 56
+              Top = 272
+              Width = 13
+              Height = 13
+              Caption = 'V3'
+            end
+            object LabelV1: TLabel
+              Left = 56
+              Top = 224
+              Width = 13
+              Height = 13
+              Caption = 'V1'
+            end
+            object Label49: TLabel
+              Left = 72
+              Top = 330
+              Width = 26
+              Height = 13
+              Caption = 'crans'
+            end
+            object LabeledEditV1: TLabeledEdit
+              Left = 224
+              Top = 64
+              Width = 41
+              Height = 21
+              EditLabel.Width = 119
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vitesse 1 - lente : 0 crans'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 0
+              OnChange = LabeledEditV1Change
+            end
+            object LabeledEditV2: TLabeledEdit
+              Left = 224
+              Top = 88
+              Width = 41
+              Height = 21
+              EditLabel.Width = 95
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vitesse 2 - moyenne'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 1
+              OnChange = LabeledEditV2Change
+            end
+            object LabeledEditV3: TLabeledEdit
+              Left = 224
+              Top = 112
+              Width = 41
+              Height = 21
+              EditLabel.Width = 81
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vitesse 3 - rapide'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 2
+              OnChange = LabeledEditV3Change
+            end
+            object LabeledEditCalcV: TLabeledEdit
+              Left = 16
+              Top = 328
+              Width = 49
+              Height = 21
+              Hint = 'Vitesse en crans'
+              EditLabel.Width = 119
+              EditLabel.Height = 13
+              EditLabel.Hint = 'Consigne en crans (1-120)'
+              EditLabel.Caption = 'Calcul de la vitesse r'#233'elle'
+              EditLabel.ParentShowHint = False
+              EditLabel.ShowHint = True
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 3
+              Text = '0'
+              OnChange = LabeledEditCalcVChange
+            end
+            object LabeledEditCV3: TLabeledEdit
+              Left = 224
+              Top = 136
+              Width = 41
+              Height = 21
+              EditLabel.Width = 135
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Valeur du CV3 (acc'#233'l'#233'ration)'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 4
+              OnChange = LabeledEditCV3Change
+            end
+            object LabeledEditCV4: TLabeledEdit
+              Left = 224
+              Top = 160
+              Width = 41
+              Height = 21
+              EditLabel.Width = 135
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Valeur du CV4 (d'#233'c'#233'l'#233'ration)'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 5
+              OnChange = LabeledEditCV4Change
+            end
+            object LabeledEditCrans: TLabeledEdit
+              Left = 224
+              Top = 184
+              Width = 41
+              Height = 21
+              EditLabel.Width = 144
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Nombre de crans du d'#233'codeur'
+              LabelPosition = lpLeft
+              LabelSpacing = 60
+              TabOrder = 6
+              OnChange = LabeledEditCransChange
+            end
+            object MemoCalc: TMemo
+              Left = 112
+              Top = 328
+              Width = 177
+              Height = 73
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clBlack
+              Font.Height = -12
+              Font.Name = 'Arial Narrow'
+              Font.Style = []
+              ParentFont = False
+              ReadOnly = True
+              TabOrder = 7
+            end
+          end
+        end
       end
     end
     object TabSheetPeriph: TTabSheet
@@ -3944,6 +4281,20 @@ object FormConfig: TFormConfig
           's et actionneurs via les services.'
         WordWrap = True
       end
+      object LabelRC: TLabel
+        Left = 288
+        Top = 312
+        Width = 250
+        Height = 13
+        Caption = 'R'#233'f'#233'rences crois'#233'es de l'#39#39'utilisation des p'#233'riph'#233'riques'
+      end
+      object LabelNumeroP: TLabel
+        Left = 8
+        Top = 384
+        Width = 59
+        Height = 13
+        Caption = 'P'#233'riph'#233'rique'
+      end
       object ListBoxPeriph: TListBox
         Left = 8
         Top = 96
@@ -4008,6 +4359,64 @@ object FormConfig: TFormConfig
           TabOrder = 0
           OnChange = EditNomPeriphChange
         end
+        object EditPortCde: TLabeledEdit
+          Left = 168
+          Top = 54
+          Width = 153
+          Height = 21
+          EditLabel.Width = 134
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Protocole de communication'
+          LabelPosition = lpLeft
+          LabelSpacing = 23
+          TabOrder = 1
+          OnChange = EditPortCdeChange
+        end
+        object CheckBoxCR: TCheckBox
+          Left = 16
+          Top = 80
+          Width = 153
+          Height = 17
+          Hint = 'Envoie un CR apr'#232's toute cha'#238'ne'
+          Caption = 'Envoyer CR (retour chariot)'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnClick = CheckBoxCRClick
+        end
+        object CbVis: TCheckBox
+          Left = 16
+          Top = 104
+          Width = 97
+          Height = 17
+          Hint = 'Affiche le texte '#224' l'#39#233'cran lors des envois'
+          Caption = 'Mode visible'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+          OnClick = CbVisClick
+        end
+        object cbDTR: TCheckBox
+          Left = 200
+          Top = 80
+          Width = 97
+          Height = 17
+          Caption = 'DTR'
+          TabOrder = 4
+          OnClick = cbDTRClick
+        end
+        object cbRTS: TCheckBox
+          Left = 200
+          Top = 104
+          Width = 97
+          Height = 17
+          Hint = 'COM/USB uniquement : mise '#224' 0 ou 1 de la ligne RTS'
+          Caption = 'RTS'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          OnClick = cbRTSClick
+        end
       end
       object ButtonOuvreCom: TButton
         Left = 14
@@ -4022,10 +4431,393 @@ object FormConfig: TFormConfig
         WordWrap = True
         OnClick = ButtonOuvreComClick
       end
+      object gp1: TGroupBox
+        Left = 288
+        Top = 208
+        Width = 329
+        Height = 90
+        Caption = 'Services envoy'#233's au p'#233'riph'#233'rique'
+        TabOrder = 5
+        object cbDet: TCheckBox
+          Left = 16
+          Top = 24
+          Width = 97
+          Height = 17
+          Hint = 'Envoie les '#233'v'#232'nements d'#233'tecteurs'
+          Caption = 'D'#233'tecteurs'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          OnClick = cbDetClick
+        end
+        object CbAct: TCheckBox
+          Left = 16
+          Top = 48
+          Width = 97
+          Height = 17
+          Hint = 'Envoie les '#233'v'#232'nements actionneurs'
+          Caption = 'Actionneurs'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnClick = CbActClick
+        end
+        object CbAig: TCheckBox
+          Left = 168
+          Top = 24
+          Width = 97
+          Height = 17
+          Hint = 'Envoie les '#233'v'#232'nements aiguillages (accessoires)'
+          Caption = 'Aiguillages'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnClick = CbAigClick
+        end
+      end
+      object MemoPeriph: TMemo
+        Left = 288
+        Top = 328
+        Width = 329
+        Height = 110
+        Hint = 'R'#233'f'#233'rences crois'#233'es de l'#39#39'utilisation des p'#233'riph'#233'riques'
+        ParentShowHint = False
+        ReadOnly = True
+        ShowHint = True
+        TabOrder = 6
+      end
+      object BoutonCom: TButton
+        Left = 144
+        Top = 424
+        Width = 75
+        Height = 33
+        Hint = 'Affiche les ports COM/USB disponibles'
+        Caption = 'Lister Coms'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 7
+        WordWrap = True
+        OnClick = BoutonComClick
+      end
     end
     object TabAvance: TTabSheet
       Caption = 'Avanc'#233
       ImageIndex = 10
+      object Label50: TLabel
+        Left = 8
+        Top = 8
+        Width = 216
+        Height = 16
+        Caption = 'Param'#232'tres avanc'#233's et experts'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object GroupBoxAvance: TGroupBox
+        Left = 3
+        Top = 32
+        Width = 300
+        Height = 241
+        Caption = 'Jeu de param'#232'tres avanc'#233's'
+        TabOrder = 0
+        object EditNbDetDist: TLabeledEdit
+          Left = 264
+          Top = 22
+          Width = 28
+          Height = 21
+          EditLabel.Width = 204
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Seuil du nombre de d'#233'tecteurs trop distants'
+          LabelPosition = lpLeft
+          LabelSpacing = 53
+          TabOrder = 0
+        end
+        object EditNbCantons: TLabeledEdit
+          Left = 264
+          Top = 46
+          Width = 28
+          Height = 21
+          EditLabel.Width = 223
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Nombre de cantons pr'#233'sence train avant signal'
+          LabelPosition = lpLeft
+          LabelSpacing = 33
+          TabOrder = 1
+        end
+        object EditFiltrDet: TLabeledEdit
+          Left = 264
+          Top = 70
+          Width = 28
+          Height = 21
+          Hint = 
+            'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'#39'+#13+'#39'Mode auto' +
+            'nome uniquement'#39
+          EditLabel.Width = 241
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Filtrage des d'#233'tecteurs (x100 ms) - Mode autonome'
+          LabelPosition = lpLeft
+          LabelSpacing = 16
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+        object EditnCantonsRes: TLabeledEdit
+          Left = 264
+          Top = 94
+          Width = 28
+          Height = 21
+          EditLabel.Width = 226
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Nombre de cantons '#224' r'#233'server en avant du train'
+          LabelPosition = lpLeft
+          LabelSpacing = 30
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 3
+        end
+        object EditAntiTO: TLabeledEdit
+          Left = 264
+          Top = 118
+          Width = 28
+          Height = 21
+          Hint = 
+            'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'#39'+#13+'#39'Mode auto' +
+            'nome uniquement'#39
+          EditLabel.Width = 192
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Utilisation de l'#39#39'anti timeout Lenz Ethernet'
+          LabelPosition = lpLeft
+          LabelSpacing = 65
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
+        end
+        object EditTempoTC: TLabeledEdit
+          Left = 264
+          Top = 142
+          Width = 28
+          Height = 21
+          Hint = 
+            'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'#39'+#13+'#39'Mode auto' +
+            'nome uniquement'#39
+          EditLabel.Width = 230
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Facteur de temporisation de t'#233'l'#233'commande CDM'
+          LabelPosition = lpLeft
+          LabelSpacing = 28
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+        end
+        object EditMaxParcours: TLabeledEdit
+          Left = 264
+          Top = 166
+          Width = 28
+          Height = 21
+          Hint = 
+            'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'#39'+#13+'#39'Mode auto' +
+            'nome uniquement'#39
+          EditLabel.Width = 177
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Nombre maximal d'#39#39#233'l'#233'ments par route'
+          LabelPosition = lpLeft
+          LabelSpacing = 80
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+        end
+        object EditMaxRoutes: TLabeledEdit
+          Left = 248
+          Top = 190
+          Width = 44
+          Height = 21
+          Hint = 
+            'Temps de filtrage des d'#233'tecteurs qui passent '#224' 0'#39'+#13+'#39'Mode auto' +
+            'nome uniquement'#39
+          EditLabel.Width = 124
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Nombre maximal de routes'
+          LabelPosition = lpLeft
+          LabelSpacing = 117
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
+        end
+        object CheckBoxOptionDemiTour: TCheckBox
+          Left = 8
+          Top = 216
+          Width = 161
+          Height = 17
+          Caption = 'Option demi tour des trains'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 8
+        end
+      end
+      object GroupBoxExpert: TGroupBox
+        Left = 3
+        Top = 280
+        Width = 300
+        Height = 97
+        Caption = 'Jeu de param'#232'tres experts '
+        TabOrder = 1
+        object EditAlgo: TLabeledEdit
+          Left = 264
+          Top = 17
+          Width = 28
+          Height = 21
+          Hint = 'Algorithme de localisation des trains'
+          EditLabel.Width = 167
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Algorithme de localisation des trains'
+          LabelPosition = lpLeft
+          LabelSpacing = 88
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 0
+        end
+        object EditMaxSignalSens: TLabeledEdit
+          Left = 264
+          Top = 41
+          Width = 28
+          Height = 21
+          Hint = 'Algorithme de localisation des trains'
+          EditLabel.Width = 335
+          EditLabel.Height = 13
+          EditLabel.Caption = 
+            'Nombre maxi d'#39#233'l'#233'ments de recherche lors d'#39'un signal dans le bon' +
+            ' sens'
+          EditLabel.WordWrap = True
+          LabelPosition = lpLeft
+          LabelSpacing = 55
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 1
+        end
+        object cbAck: TCheckBox
+          Left = 8
+          Top = 72
+          Width = 169
+          Height = 17
+          Hint = 
+            'Attendre l'#39'accus'#233' de r'#233'ception de la centrale lors du pilotage d' +
+            'es accessoires'
+          Caption = 'Attendre ACK de la centrale'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+      end
+      object rgPilTrains: TRadioGroup
+        Left = 315
+        Top = 276
+        Width = 300
+        Height = 69
+        Caption = 'M'#233'thode de pilotage des trains vers CDM Rail'
+        Items.Strings = (
+          'Par adresse de train'
+          'Par nom de train')
+        TabOrder = 2
+      end
+      object RadioServeurCDM: TRadioGroup
+        Left = 3
+        Top = 392
+        Width = 300
+        Height = 65
+        Caption = 'M'#233'thode de d'#233'marrage du serveur de CDM rail'
+        Items.Strings = (
+          'Par simulation de touches'
+          'Par ligne de commande')
+        TabOrder = 3
+      end
+      object GroupBoxChemin: TGroupBox
+        Left = 315
+        Top = 32
+        Width = 300
+        Height = 89
+        Caption = 'Chemin de fichiers'
+        TabOrder = 4
+        object Label58: TLabel
+          Left = 64
+          Top = 64
+          Width = 175
+          Height = 13
+          Caption = 'Ce chemin sera suivi de "\CDM-Rail"'
+        end
+        object EditChemin: TLabeledEdit
+          Left = 128
+          Top = 33
+          Width = 164
+          Height = 21
+          Hint = 'Algorithme de localisation des trains'
+          EditLabel.Width = 99
+          EditLabel.Height = 26
+          EditLabel.Caption = 'Chemin Win de CDM (Sans \CDM-Rail)'
+          EditLabel.WordWrap = True
+          LabelPosition = lpLeft
+          LabelSpacing = 20
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 0
+        end
+      end
+      object GroupBoxAff: TGroupBox
+        Left = 315
+        Top = 136
+        Width = 300
+        Height = 129
+        Caption = 'Affichages de la fen'#234'tre principale'
+        TabOrder = 5
+        object cbAffSig: TCheckBox
+          Left = 16
+          Top = 24
+          Width = 169
+          Height = 17
+          Hint = 'Affiche l'#39#233'tat des signaux lors de leur changement'
+          Caption = 'Ev'#232'nements signaux'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+        end
+        object cbres: TCheckBox
+          Left = 16
+          Top = 48
+          Width = 209
+          Height = 17
+          Hint = 
+            'Affiche les r'#233'servations/lib'#233'ration des cantons lors du roulage ' +
+            'des trains'
+          Caption = 'R'#233'servation/lib'#233'ration des cantons'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+        end
+        object cbDebugRoulage: TCheckBox
+          Left = 16
+          Top = 72
+          Width = 217
+          Height = 17
+          Hint = 'Affiche des messages en mode roulage des trains en mode autonome'
+          Caption = 'Debug roulage'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+        object cbAffLoc: TCheckBox
+          Left = 16
+          Top = 96
+          Width = 145
+          Height = 17
+          Hint = 'Affiche des messages de localisation des trains'
+          Caption = 'Localisation trains'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+        end
+      end
     end
   end
   object ButtonEnregistre: TButton

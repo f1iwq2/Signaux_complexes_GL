@@ -165,7 +165,7 @@ var Segment : array of Tsegment;
     DernAdrAig,SeqAdrCroisement,nb_det,IndexClic,xAig,yAig,cadre,largeur_voie,dernierSeg,
     largeurTrain,HauteurTrain : integer;
     lignes : TStrings;
-    reducX,reducY,ArcTanHautLargTrain : double;
+    reducX,reducY,ArcTanHautLargTrain : single;
     FormAnalyseCDM: TFormAnalyseCDM;
     sBranche,NomModuleCDM : string;
     clic,premaff : boolean;
@@ -178,7 +178,7 @@ procedure lit_fichier_segments_cdm;
 procedure affichage(imprime : boolean);
 procedure Aff_train(adr: integer;train:string;x1,y1,x2,y2 :integer);
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
-                rayon: Integer; StartDegres, StopDegres: Double);
+                rayon: Integer; StartDegres, StopDegres: single);
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 function explore_port_det(seg,port : integer) : integer;
 function index_segment_act(Adresse : integer;var TabloDetSeg : TdetSeg;var nombre : integer) : boolean;
@@ -874,14 +874,14 @@ begin
 end;
 
 // degrés en radians
-function degtoRad(angle : double) : double;
+function degtoRad(angle : single) : single;
 begin
   degtoRad:=angle*pisur180;
 end;
 
 // dessine un arc dans le canvas, dont le centre est CenterX,Y de rayon , angle de départ et de stop en degrés
 procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
-                rayon: Integer; StartDegres, StopDegres: Double);
+                rayon: Integer; StartDegres, StopDegres: single);
 var
   sinA,cosA   : extended;
   x1,x2,x3,x4: Integer;
@@ -909,7 +909,7 @@ end;
 // trouve si le point (x,y) est sur le segment (droit) x1,y1 x2,y2
 // s*l = distance du point au segment
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
-var l,r,s : Double;
+var l,r,s : single;
     p : integer;
 begin
   Result:=False;
@@ -925,8 +925,8 @@ begin
 end;
 
 // trouve si le point x,y est sur l'arc de centre CentreX,Y de rayon ..
-function point_sur_arc(x,y,CentreX,centreY,rayon : integer;StartDegres,StopDegres :double;deb : boolean) : boolean;
-var a : double;
+function point_sur_arc(x,y,CentreX,centreY,rayon : integer;StartDegres,StopDegres : single;deb : boolean) : boolean;
+var a : single;
    cosA,SinA : extended;
    xArc,yArc : integer;
    trouve,inverse : boolean;
@@ -1007,7 +1007,7 @@ begin
 end;
 
 // trace un arc selon les coordonnées CDM
-procedure angle_cdm(canvas : Tcanvas;centreX,centreY:integer;debut,fin : double ;rayon : integer);
+procedure angle_cdm(canvas : Tcanvas;centreX,centreY:integer;debut,fin : single ;rayon : integer);
 begin
   coords(centreX,centreY);     // transforme en coords windows
   rayon:=round(rayon*reducX) div 1000;
@@ -1084,7 +1084,7 @@ end;
 procedure arc_xy_CDM(canvas : tcanvas;centreX,centreY,rayon,xa,ya,xb,yb : integer);
 var x1,y1,x2,y2 : integer  ;
     arcXa,arcYa,arcxb,arcYb,angleA,angleB,
-    cosA,SinA,CosB,SinB: double;
+    cosA,SinA,CosB,SinB: single;
     inverse,maxA,maxB,deb : boolean;
 begin
   deb:=false;
@@ -1206,7 +1206,7 @@ end;
 // dessine un aiguillage courbe - pas encore au point
 procedure dessine_aig_courbe(canvas : Tcanvas;i : integer);
 var numseg,milieuX,milieuY,centreX,centreY,x0,y0,x1,y1,x2,y2,rayon : integer;
-    b,pente,rayonD,alpha : double;
+    b,pente,rayonD,alpha : single;
     coul : Tcolor;
     s : string;
 begin
@@ -1359,7 +1359,7 @@ procedure peindre(Indextrain,x,y : integer;Zoom : single);
 var
   XFormScale,XFormRot,XFormXLat,XForm,XFormOld  : TXForm;  //  matrice
   GMode,x0,y0,x1,y1,x2,y2,x3,y3,larg,haut,ax,ay,l2,h2       : Integer;
-  d,alpha,angle,z : double;
+  d,alpha,angle,z : single;
   sinA,cosA : extended;
   tv : array[0..3] of integer;
   ACanvas     : TCanvas;
@@ -1486,7 +1486,7 @@ end;
 
 
 procedure Aff_train(adr: integer;train:string;x1,y1,x2,y2 :integer);
-var zom : double;
+var zom : single;
     i : integer;
 begin
   zom:=reducX/40;
@@ -1503,7 +1503,7 @@ var r : Trect;
     i,j,x1,x2,y1,y2,largeur,hauteur,rayon,centreX,centreY,Numsegment,largeurCDM,hauteurCDM,
     maxiCDM,offset,ofs,CadreImp : integer;
     SegType,s,s2,ctyp : string;
-    Ech,Zoom,startAngle,StopAngle: double;
+    Ech,Zoom,startAngle,StopAngle: single;
     portsSeg : array[0..40] of record x,y : integer; end;
     coul : boolean;
     canvas : tCanvas;
@@ -3840,10 +3840,11 @@ begin
   Affiche('Importation des aiguillages et des branches',clWhite);
 
   // recopier les aiguillages CDM dans signaux_complexes
+  // pour l'aiguillage triple, son homologue sera créé au tri
   for i:=1 to NAig_CDM do
   begin
-    Aiguillage[i].adresse:=Aig_CDM[i].adresse;
     tablo_index_aiguillage[aiguillage[i].Adresse]:=i;
+    Aiguillage[i].adresse:=Aig_CDM[i].adresse;
     Aiguillage[i].adrtriple:=Aig_CDM[i].adrtriple;
     Aiguillage[i].modele:=Aig_Cdm[i].modele;
     Aiguillage[i].temps:=Aig_cdm[i].temps;
@@ -3862,13 +3863,12 @@ begin
     Aiguillage[i].Adevie2:=Aig_CDM[i].Adevie2;
     Aiguillage[i].Adevie2B:=Aig_CDM[i].Adevie2B;
 
-
     Aiguillage[i].posInit:=9;
     aiguillage[i].InversionCDM:=0;
     aiguillage[i].vitesse:=0;
   end;
   MaxAiguillage:=NAig_CDM;
-  trier_aig;
+  trier_aig;       // et crée les aiguillages triples homologues
 
   // remplit la list box les aiguillages
   formconfig.ListBoxAig.Clear;
@@ -4482,7 +4482,7 @@ end;
 procedure clic_image;
 var pt : Tpoint;
    xSouris,ySouris,x1,y1,x2,y2,i,j,centreX,centrey,rayon,numero: integer;
-   StartAngle,StopAngle : double;
+   StartAngle,StopAngle : single;
    trouve : boolean;
    debug : boolean;
    ctype,s : string;
@@ -4894,7 +4894,7 @@ end;
 procedure dessine_det(adresse : integer);
 var p,centreX,CentreY,rayon,i,index,x,y,x1,y1,x2,y2,x3,y3,x4,y4,np,NindexR,NumPort,IndexportSuiv,NumSeg,indexport,
     xs,ys,nombre,ind1,ind2,per1,per2,IndexSegBumper,PortBumper,port : integer;
-    StartAngle,stopangle,startDegres,StopDegres : double;
+    StartAngle,stopangle,startDegres,StopDegres : single;
     trouve,ts,tn,tp : boolean;
     ctyp,s : string;
     canvas : Tcanvas;

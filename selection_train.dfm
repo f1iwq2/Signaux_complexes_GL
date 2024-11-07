@@ -1,8 +1,8 @@
 object FormSelTrain: TFormSelTrain
-  Left = 358
-  Top = 131
-  Width = 860
-  Height = 370
+  Left = 405
+  Top = 201
+  Width = 800
+  Height = 464
   Caption = 'S'#233'lection train'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,16 +14,16 @@ object FormSelTrain: TFormSelTrain
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    844
-    331)
+    792
+    433)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelInfo: TLabel
     Left = 125
-    Top = 306
+    Top = 400
     Width = 44
     Height = 13
-    Anchors = [akBottom]
+    Anchors = [akLeft, akBottom]
     Caption = 'LabelInfo'
   end
   object Label1: TLabel
@@ -329,10 +329,10 @@ object FormSelTrain: TFormSelTrain
   end
   object ButtonOK: TButton
     Left = 29
-    Top = 300
+    Top = 394
     Width = 75
     Height = 24
-    Anchors = [akBottom]
+    Anchors = [akLeft, akBottom]
     Caption = 'Ok'
     TabOrder = 0
     OnClick = ButtonOKClick
@@ -347,8 +347,8 @@ object FormSelTrain: TFormSelTrain
     OnChange = ComboBoxCantonChange
   end
   object ButtonSauve: TButton
-    Left = 695
-    Top = 300
+    Left = 644
+    Top = 394
     Width = 82
     Height = 25
     Hint = 'Sauvegarde le placement des trains dans les cantons'
@@ -359,39 +359,27 @@ object FormSelTrain: TFormSelTrain
     TabOrder = 2
     OnClick = ButtonSauveClick
   end
-  object ScrollBoxST: TScrollBox
-    Left = 11
-    Top = 49
-    Width = 821
-    Height = 240
-    HorzScrollBar.Smooth = True
-    HorzScrollBar.Tracking = True
-    VertScrollBar.Increment = 21
-    VertScrollBar.Tracking = True
-    Anchors = [akLeft, akTop, akRight, akBottom]
+  object StringGridTrains: TStringGrid
+    Left = 8
+    Top = 40
+    Width = 769
+    Height = 329
+    ColCount = 8
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goAlwaysShowEditor, goThumbTracking]
+    ScrollBars = ssVertical
     TabOrder = 3
-    object StringGridTrains: TStringGrid
-      Left = 0
-      Top = 0
-      Width = 793
-      Height = 233
-      ColCount = 8
-      FixedCols = 0
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goAlwaysShowEditor]
-      ScrollBars = ssNone
-      TabOrder = 0
-      OnDrawCell = StringGridTrainsDrawCell
-      OnKeyDown = StringGridTrainsKeyDown
-      OnSelectCell = StringGridTrainsSelectCell
-      ColWidths = (
-        43
-        214
-        172
-        57
-        105
-        108
-        32
-        29)
-    end
+    OnDrawCell = StringGridTrainsDrawCell
+    OnKeyDown = StringGridTrainsKeyDown
+    OnSelectCell = StringGridTrainsSelectCell
+    ColWidths = (
+      43
+      214
+      172
+      57
+      105
+      108
+      32
+      29)
   end
 end

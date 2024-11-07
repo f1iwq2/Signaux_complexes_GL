@@ -271,6 +271,21 @@ version 9.3  : Amélioration de la proposition des routes en mode autonome.
                Renforcement de la vérification des TJD.
                Amélioration des aiguillages triples, et de leur représentation dans le TCO.
                Gestion des erreurs de vérification d'étendue.
+version 9.4  : Correction du pilotage du décodeur CDF.
+               Correction bug suppression aiguillages.
+               Possibilité d'attribuer plusieurs routes sur un train en mode autonome
+               et de les sauvegarder.
+version 9.41 : Affichage des noms des cantons dans les cantons du TCO.
+               En mode CDM, envoi des fonctions F>12 à la centrale par Ethernet.
+			   Pilotage de la fonction F0.
+			   Pilotage de l'état (0/1) des fonctions F dans les actions.
+			   Décodeurs CDF : sélection du pilotage en mode 4 (2 signaux indépendants)
+version 9.42 : Affiche des exclusions dans la fenêtre de pilotage des signaux.
+               Correction décodeur SR pour aspects combinés.
+			   Sélection correcte des routes mémorisées.
+			   Mesure pour étalonnage des vitesses des locomotives.
+			   Correction bug sauvegarde route avec croisement.
+			   Correction décodeur SR pour aspects combinés.
+version 9.5  : Etalonnage des vitesses des locomotives pour le mode autonome
+               pour arret précis sur détecteurs à distance souhaitée.
 			   
-     
-			  

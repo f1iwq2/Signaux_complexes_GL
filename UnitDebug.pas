@@ -701,10 +701,6 @@ begin
   ProcPrinc:=checkBoxPrinc.checked;
 end;
 
-
-
-
-
 procedure TFormDebug.Button3Click(Sender: TObject);
 begin
   ScrollBoxDebug.VertScrollBar.Position:=0;

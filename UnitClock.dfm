@@ -15,8 +15,8 @@ object FormClock: TFormClock
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    242
-    219)
+    234
+    211)
   PixelsPerInch = 96
   TextHeight = 13
   object BitBtnMarHor: TBitBtn
@@ -226,7 +226,7 @@ object FormClock: TFormClock
   end
   object PopupMenuH: TPopupMenu
     OwnerDraw = True
-    Left = 216
+    Left = 208
     Top = 96
     object TjsDev: TMenuItem
       Caption = '  Verrouiller devant'

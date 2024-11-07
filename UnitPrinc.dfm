@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 132
-  Top = 172
+  Left = 73
+  Top = 187
   Width = 1148
   Height = 625
   Anchors = [akLeft, akTop, akRight]
@@ -21,7 +21,7 @@ object FormPrinc: TFormPrinc
   OnResize = FormResize
   DesignSize = (
     1132
-    566)
+    567)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1445,7 +1445,7 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 544
+    Top = 545
     Width = 1132
     Height = 22
     Panels = <
@@ -1529,7 +1529,7 @@ object FormPrinc: TFormPrinc
     end
     object GroupBoxAcc: TGroupBox
       Left = 497
-      Top = 21
+      Top = 5
       Width = 265
       Height = 52
       Anchors = [akTop, akRight]
@@ -1602,19 +1602,19 @@ object FormPrinc: TFormPrinc
       object Label5: TLabel
         Left = 8
         Top = 44
-        Width = 74
+        Width = 76
         Height = 13
-        Caption = 'Vitesse train % :'
+        Caption = 'Vitesse train Cr :'
       end
       object LabelFonction: TLabel
-        Left = 144
+        Left = 148
         Top = 44
         Width = 47
         Height = 13
         Caption = 'Fonction: '
       end
       object Label6: TLabel
-        Left = 224
+        Left = 228
         Top = 44
         Width = 9
         Height = 13
@@ -1772,6 +1772,9 @@ object FormPrinc: TFormPrinc
         Top = 40
         Width = 33
         Height = 21
+        Hint = 'Vitesse du train en crans'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 2
         Text = '0'
         OnChange = EditVitesseChange
@@ -1786,7 +1789,7 @@ object FormPrinc: TFormPrinc
         OnChange = ComboTrainsChange
       end
       object EditNumFonction: TEdit
-        Left = 192
+        Left = 196
         Top = 40
         Width = 25
         Height = 21
@@ -1817,13 +1820,22 @@ object FormPrinc: TFormPrinc
         Height = 21
         Hint = 'Vitesse loco en %'
         Ctl3D = False
-        Max = 100
-        Min = -100
+        Max = 127
+        Min = -127
         ParentCtl3D = False
         ParentShowHint = False
         ShowHint = True
         TabOrder = 7
         OnChange = TrackBarVitChange
+      end
+      object Button0: TButton
+        Left = 124
+        Top = 48
+        Width = 17
+        Height = 17
+        Caption = '0'
+        TabOrder = 8
+        OnClick = Button0Click
       end
     end
     object Panel1: TPanel
@@ -1974,12 +1986,14 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 713
-      Top = 32
+      Left = 681
+      Top = 40
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
       Caption = 'Variables CV'
+      Color = clBtnFace
+      ParentColor = False
       TabOrder = 5
       object Label3: TLabel
         Left = 208
@@ -2041,7 +2055,7 @@ object FormPrinc: TFormPrinc
     Top = 8
     Width = 75
     Height = 25
-    Caption = 'Route'
+    Caption = 'Essai'
     TabOrder = 2
     OnClick = Button3Click
   end
@@ -2050,16 +2064,6 @@ object FormPrinc: TFormPrinc
     OnTimer = Timer1Timer
     Left = 1064
     Top = 232
-  end
-  object ClientSocketInterface: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    OnConnect = ClientSocketInterfaceConnect
-    OnDisconnect = ClientSocketInterfaceDisconnect
-    OnRead = ClientSocketInterfaceRead
-    OnError = ClientSocketInterfaceError
-    Left = 264
   end
   object MainMenu1: TMainMenu
     Left = 560
@@ -2439,6 +2443,17 @@ object FormPrinc: TFormPrinc
       object Copierltatdesaiguillageseninitialisation1: TMenuItem
         Caption = 'Copier l'#39#233'tat actuel des aiguillages en initialisation'
         OnClick = Copierltatdesaiguillageseninitialisation1Click
+      end
+      object N18: TMenuItem
+        Caption = '-'
+      end
+      object Mesurerlavitessedestrains: TMenuItem
+        Caption = 'Mesurer la vitesse des trains'
+        OnClick = MesurerlavitessedestrainsClick
+      end
+      object Affichelamesuredesvitesses1: TMenuItem
+        Caption = 'Afficher la mesure des trains'
+        OnClick = Affichelamesuredesvitesses1Click
       end
     end
   end

@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, Buttons, ExtCtrls, Spin , MMSystem;
+  Dialogs, StdCtrls, ComCtrls, Buttons, ExtCtrls, Spin , MMSystem, ImgList,
+  Menus;
 
 type
   TFormModifAction = class(TForm)
@@ -74,6 +75,25 @@ type
     RadioEtatSignal: TRadioGroup;
     SpinEditEtatop: TSpinEdit;
     LabelEtatOp: TLabel;
+    GroupBoxLogique: TGroupBox;
+    TreeViewL: TTreeView;
+    Label7: TLabel;
+    ButtonCreer: TButton;
+    ButtonAjouteVar: TButton;
+    BoutonSupprime: TButton;
+    ImageListLogic: TImageList;
+    ComboBoxFonction: TComboBox;
+    ButtonAjouteFonc: TButton;
+    ButtonVoir: TButton;
+    ButtonSupTout: TButton;
+    PopupMenuL: TPopupMenu;
+    Monter1: TMenuItem;
+    Descendre1: TMenuItem;
+    N1: TMenuItem;
+    Supprimer1: TMenuItem;
+    N2: TMenuItem;
+    outdployer1: TMenuItem;
+    outcontracter1: TMenuItem;
     procedure ButtonOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxOperDrawItem(Control: TWinControl; Index: Integer;
@@ -127,11 +147,44 @@ type
     procedure ListBoxOperationsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ButtonCreerClick(Sender: TObject);
+    procedure BoutonSupprimeClick(Sender: TObject);
+    procedure ComboBoxFonctionDrawItem(Control: TWinControl;
+      Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure ButtonAjouteVarClick(Sender: TObject);
+    procedure ButtonAjouteFoncClick(Sender: TObject);
+    procedure ButtonVoirClick(Sender: TObject);
+    procedure ButtonSupToutClick(Sender: TObject);
+    procedure Monter1Click(Sender: TObject);
+    procedure Descendre1Click(Sender: TObject);
+    procedure Supprimer1Click(Sender: TObject);
+    procedure TreeViewLChange(Sender: TObject; Node: TTreeNode);
+    procedure outdployer1Click(Sender: TObject);
+    procedure outcontracter1Click(Sender: TObject);
+    procedure ComboBoxFonctionChange(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Déclarations publiques }
   end;
+
+const
+// indice des icones donc des fonctions
+FoncVAR=0;
+//--------
+foncET=1;
+foncOU=2;
+foncNON=3;
+//-------
+EtatDCC=4;
+EtatDet=5;
+NomVAR='Variables';
+NomFoncET='Fonction ET';
+NomFoncOU='Fonction OU';
+NomFoncNON='Fonction NON';
+NomEtatDCC='Etat DCC';
+NomEtatDet='Etat détecteur';
+
 
 var
   FormModifAction: TFormModifAction;
@@ -195,11 +248,43 @@ end;
 procedure TFormModifAction.FormCreate(Sender: TObject);
 var i,icone : integer;
 begin
+  GroupBoxLogique.Visible:=AvecLogique;  
+  TreeViewL.HideSelection:=false;
+
   ListBoxOper.Style:=lbOwnerDrawVariable;      // pour afficher des icones
   ListBoxDeclench.Style:=lbOwnerDrawVariable;
   ListBoxOperations.Style:=lbOwnerDrawVariable;
   ListBoxCondTot.Style:=lbOwnerDrawVariable;
   ListBoxConditions.Style:=lbOwnerDrawVariable;
+  with ComboBoxFonction do
+  begin
+    Style:=csOwnerDrawFixed;
+    clear;
+    itemHeight:=18; // hauteur des icones
+    items.add(nomFoncET);
+    items.add(NomFoncOU);
+    items.add(NomFoncNON);
+    items.add(NomEtatDCC);
+    items.add(NomEtatDet);
+  end;
+
+  for i:=1 to NbreDeclencheurs do
+  begin
+    icone:=0;
+    case i of
+      DeclHorloge : icone:=iconeHorloge;
+      DeclPeriph : icone:=iconePeriph;
+      DeclAccessoire: icone:=IconeAccessoire;
+      DeclDetAct: icone:=IconeDet;
+      DeclZoneDet: icone:=IconeZoneDet;
+      DeclDemarTrain : icone:=IconeDemarTrain;
+      DeclArretTrain : icone:=IconeArretTrain;
+      DeclSignal : icone:=IconeSignal;
+      DeclLogique : icone:=IconeLogique;
+    end;
+    ListBoxDeclench.Items.Add(Format('%d%s', [icone, declencheurs[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+    ListBoxDeclench.itemHeight:=17;
+  end;
 
   for i:=1 to NbreOperations do
   begin
@@ -222,22 +307,6 @@ begin
     ListBoxCondTot.itemHeight:=17; // 16 mini taille des éléments pour l'icone
   end;
 
-  for i:=1 to NbreDeclencheurs do
-  begin
-    icone:=0;
-    case i of
-      DeclHorloge : icone:=iconeHorloge;
-      DeclPeriph : icone:=iconePeriph;
-      DeclAccessoire: icone:=IconeAccessoire;
-      DeclDetAct: icone:=IconeDet;
-      DeclZoneDet: icone:=IconeZoneDet;
-      DeclDemarTrain : icone:=IconeDemarTrain;
-      DeclArretTrain : icone:=IconeArretTrain;
-      DeclSignal : icone:=IconeSignal;
-    end;
-    ListBoxDeclench.Items.Add(Format('%d%s', [icone, declencheurs[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-    ListBoxDeclench.itemHeight:=17;
-  end;
 
   with ComboBoxFamille do
   begin
@@ -250,6 +319,7 @@ begin
 
   ListBoxOperations.Hint:='Liste chronologique des opérations à effectuer'+#13+
                           'Double clic pour valider/dévalider une opération';
+  LabeledEditFonctionF.Hint:='Fonction F de 0 à 28';
 
   Efface_tous_parametres;
   PageControlAct.ActivePage:=TabSheetDecl;
@@ -270,7 +340,6 @@ begin
     formConfCellTCO.ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, i);
     Canvas.Textout(Rect.Left + formConfCellTCO.ImageListIcones.Width + 2, Rect.Top, ItemText);
   end;
-
 end;
 
 procedure TFormModifAction.ListBoxDeclenchDrawItem(Control: TWinControl;
@@ -278,7 +347,7 @@ procedure TFormModifAction.ListBoxDeclenchDrawItem(Control: TWinControl;
 var larg,i,erreur : integer;
     itemText : string;
 begin
-  with FormModifAction.ListBoxDeclench do  
+  with FormModifAction.ListBoxDeclench do
   begin
     larg:=formConfCellTCO.ImageListIcones.Width;
     ItemText:=Items[index];
@@ -336,7 +405,7 @@ end;
 
 function Info_action(i : integer) : string;
 var nop,op,top,decl : integer;
-    r : double;
+    r : single;
     s :string;
 begin
   decl:=Tablo_Action[i].declencheur;
@@ -419,7 +488,8 @@ begin
       ActionAffHorl : s:=s+'Affiche l''horloge'+#13;
       ActionVitesse : s:=s+'Modifie la vitesse du train '+Tablo_Action[i].tabloop[op].train+' à '+intToSTR(Tablo_Action[i].tabloop[op].vitesse)+#13;
       ActionCdePeriph : s:=s+'Pilote le périphérique '+intToSTR(Tablo_Action[i].tabloop[op].periph)+' chaîne : '+Tablo_Action[i].tabloop[op].chaine+#13;
-      ActionFonctionF : s:=s+'Fonction F'+intToSTR(Tablo_Action[i].tabloop[op].fonctionF)+' train dest='+Tablo_Action[i].tabloop[op].train+#13;
+      ActionFonctionF : s:=s+'Fonction F'+intToSTR(Tablo_Action[i].tabloop[op].fonctionF)+' à '+IntToSTR(Tablo_action[i].tabloOp[op].etat)+
+                            ' train dest='+Tablo_Action[i].tabloop[op].train+#13;
       ActionSon : s:=s+'Son '+Tablo_Action[i].tabloop[op].train+#13;
       ActionTempo :
       begin
@@ -531,6 +601,7 @@ begin
   case decl of
   DeclHorloge :
     begin
+      GroupBoxLogique.Visible:=false;
       EditAdr.text:=intToSTR(Tablo_Action[index].heure);
       EditAdr2.text:=intToSTR(Tablo_Action[index].minute);
       LabelHeure.visible:=true;
@@ -551,6 +622,7 @@ begin
     end;
   DeclPeriph :
     begin
+      GroupBoxLogique.Visible:=false;
       EditTrainDecl.Text:=Tablo_Action[index].ordrePeriph;
       LabelHeure.visible:=false;
       LabelAdresse.visible:=false;
@@ -574,6 +646,7 @@ begin
     end;
   DeclAccessoire :
     begin
+      GroupBoxLogique.Visible:=false;
       EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
 
       with SpinEditEtat do
@@ -607,6 +680,7 @@ begin
 
   DeclDetAct :
     begin
+      GroupBoxLogique.Visible:=false;
       EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
       EditTrainDecl.Visible:=true;
       EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
@@ -645,6 +719,7 @@ begin
 
    DeclZoneDet :
    begin
+      GroupBoxLogique.Visible:=false;
       EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
       EditAdr2.text:=intToSTR(Tablo_Action[index].adresse2);
 
@@ -683,6 +758,7 @@ begin
 
    DeclDemarTrain :
    begin
+     GroupBoxLogique.Visible:=false;
      LabelTrain.visible:=true;
      EditTrainDecl.Visible:=true;
      LabelAdresse.Visible:=true;
@@ -702,6 +778,7 @@ begin
 
    DeclArretTrain :
    begin
+     GroupBoxLogique.Visible:=false;
      LabelTrain.visible:=true;
      EditTrainDecl.Visible:=true;
      LabelAdresse.Visible:=true;
@@ -720,6 +797,7 @@ begin
 
    DeclSignal :
    begin
+     GroupBoxLogique.Visible:=false;
      LabelAdresse.Visible:=true;
      EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
      RadioEtatSignal.ItemIndex:=Tablo_Action[index].Etat;
@@ -733,6 +811,11 @@ begin
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeSignal,ImageIcone.Picture.Bitmap);
      ImageIcone.repaint;
+   end;
+
+   DeclLogique :
+   begin
+     GroupBoxLogique.Visible:=true;
    end;
   end;
 
@@ -865,12 +948,18 @@ begin
       end;
       ActionFonctionF :
       begin
+        SpinEditEtatop.Visible:=true;
+        SpinEditEtatop.MinValue:=0;
+        SpinEditEtatop.MaxValue:=1;
+
+        labelEtatOp.Visible:=true;
         LabeledEditFonctionF.Visible:=true;
         LabeledEditTempoF.Visible:=true;
         LabeledEditTrain.EditLabel.Caption:='Train destinataire';
         LabeledEditFonctionF.EditLabel.Caption:='Fonction F';
         LabeledEditTrain.Visible:=true;
         LabeledEditTrain.hint:='Nom unique du train';
+        SpinEditEtatOp.Text:=IntToSTR(Tablo_Action[index].tabloop[indexAction].etat);
         LabeledEditFonctionF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].fonctionF);
         LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
         LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
@@ -1706,6 +1795,7 @@ begin
   op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
     ActionAccessoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
+    ActionFonctionF   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1764,6 +1854,258 @@ begin
   Aff_champs(ligneclicAct+1,1,1);
 end;
 
+procedure TFormModifAction.ButtonCreerClick(Sender: TObject);
+var MyTreeNode1, MyTreeNode2: TTreeNode;
+    i : integer;
+begin
+ with TreeViewL.Items do
+ begin
+    Clear; { Remove any existing nodes. }
+    mytreenode1:=Add(nil, 'R1'); { Add a root node. }
+    { Add a child node to the node just added. }
+    AddChild(MyTreeNode1,NomFoncET);
 
+    {Add another root node}
+    MyTreeNode2 := Add(MyTreeNode1,NomFoncOU);
+    {Give MyTreeNode2 to a child. }
+    AddChild(MyTreeNode2,NomFoncOU);
+
+    {Change MyTreeNode2 to ChildNode2 }
+    { Add a child node to it. }
+    MyTreeNode2 := TreeViewL.Items[3];
+    AddChild(MyTreeNode2,NomEtatDCC);
+
+    { Add another child to ChildNode2, after ChildNode2a. }
+    AddChild(MyTreeNode2,NomEtatDet);
+
+    { Add another root node. }
+    Add(MyTreeNode1, NomFoncOU);
+
+    //AddChild(ParentNode,'Nom'.AsString);
+
+  end;
+
+  TreeViewL.Items[1].ImageIndex:=FoncET;       // index de l'image si non sélectionné
+  TreeViewL.Items[1].SelectedIndex:=FoncET;    // index de l'image si sélectionné
+
+
+  TreeViewL.Items[2].ImageIndex:=FoncOU;
+  TreeViewL.Items[2].SelectedIndex:=FoncOU;
+
+  TreeViewL.Items[3].ImageIndex:=FoncNon;
+  TreeViewL.Items[3].SelectedIndex:=FoncNON;
+
+  TreeViewL.Items[4].ImageIndex:=EtatDCC;
+  TreeViewL.Items[4].SelectedIndex:=EtatDCC;
+
+  TreeViewL.Items[5].ImageIndex:=EtatDet;
+  TreeViewL.Items[5].SelectedIndex:=EtatDet;
+
+
+  //TreeviewL.Items[1].Item[0].ImageIndex:=2;
+  //TreeViewL.Items[4].SelectedIndex:=1;
+end;
+
+procedure Supprime_node;
+  // A procedure to recursively delete nodes
+  procedure DeleteNode(ANode: TTreeNode);
+  begin
+    while ANode.HasChildren do
+      DeleteNode(ANode.GetLastChild);
+    formModifAction.TreeViewL.Items.Delete(ANode);
+  end;
+
+begin
+  if formModifAction.TreeViewL.Selected = nil then exit;
+
+  // If the selected node has child nodes, first ask for confirmation
+  if formModifAction.TreeviewL.Selected.HasChildren then
+    if MessageDlg('Delete node and all children?', mtConfirmation, [mbYes,mbNo], 0 ) <> mrYes then
+      exit;
+  DeleteNode(formModifAction.TreeViewL.Selected);
+end;
+
+procedure TFormModifAction.BoutonSupprimeClick(Sender: TObject);
+var node : TtreeNode;
+begin
+  node:=TreeViewL.Selected;
+  if Assigned(Node) then node.Delete;
+end;
+
+procedure TFormModifAction.ComboBoxFonctionDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+begin
+  comboboxFonction.canvas.fillrect(rect);
+
+  (* This line draws the actual bitmap*)
+  imagelistLogic.Draw(comboBoxFonction.Canvas,rect.left,rect.top,Index+1); //+1 car on commence à 1
+
+  (*  This line writes the text after the bitmap*)
+  comboboxFonction.canvas.textout(rect.left+imagelistLogic.width+2,rect.top,
+                          comboboxFonction.items[index]);
+end;
+
+procedure TFormModifAction.ButtonAjouteVarClick(Sender: TObject);
+var NodeOrigine,node : Ttreenode;
+begin
+  if TreeViewL.Items.Count=0 then exit;
+
+  nodeOrigine:=TreeViewL.Selected;
+  if nodeOrigine=nil then exit;
+  if (nodeOrigine.ImageIndex>=foncET) and (nodeOrigine.ImageIndex<=FoncNon) then  // on ne peut pas rajouter une variable sur une variable ou surle 1er élément
+  begin
+    node:=TreeViewL.items.AddChild(nodeOrigine,NomEtatDCC);
+    Node.ImageIndex:=EtatDCC;
+    Node.SelectedIndex:=EtatDCC;
+    NodeOrigine.Expand(true);
+  end;
+end;
+
+// https://wiki.freepascal.org/TTreeView
+
+procedure TFormModifAction.ButtonAjouteFoncClick(Sender: TObject);
+var node,NodeOrigine : Ttreenode;
+    n : integer;
+begin
+  // ajoute en fin
+  n:=TreeViewL.Items.Count;
+  if n=0 then
+  begin
+    Node:=TreeviewL.Items.Add(nil,NomVar);
+    Node.ImageIndex:=FoncVar;
+    Node.SelectedIndex:=FoncVar;
+    exit;
+  end;
+
+  nodeOrigine:=TreeViewL.Selected;
+  if nodeOrigine=nil
+   then exit;
+
+{  if NodeOrigine.Index=0 then
+  begin
+    node:=TreeViewL.items.Add(nodeOrigine,NomFoncET);
+  end
+  else    }
+    node:=TreeViewL.items.AddChild(nodeOrigine,NomFoncET);
+
+  Node.ImageIndex:=FoncET;
+  Node.SelectedIndex:=FoncET;
+  NodeOrigine.Expand(true);
+
+end;
+
+procedure TFormModifAction.ButtonVoirClick(Sender: TObject);
+var i : integer;
+    s : string;
+begin
+
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    s:=inttoSTR(i)+' '+TreeViewL.Items[i].Text;
+    if TreeViewL.Items[i].IsFirstNode then s:=s+' *';
+    if TreeViewL.Items[i].HasChildren then s:=s+' ->';
+    Affiche(s,clYellow);
+    TreeViewL.Items[i].Expand(true);
+  end;
+
+
+end;
+
+procedure TFormModifAction.ButtonSupToutClick(Sender: TObject);
+begin
+  TreeViewL.Items.clear;
+end;
+
+procedure TFormModifAction.Monter1Click(Sender: TObject);
+begin
+  // Ensure a node is selected
+  if(TreeviewL.Selected <> nil) then
+    // Ensure there is a previous sibling node
+    if TreeviewL.Selected.GetPrevSibling <> nil then
+      // If we have made it this far, move it UP
+      TreeviewL.Selected.MoveTo(TreeviewL.Selected.GetPrevSibling, naInsert);
+end;
+
+procedure TFormModifAction.Descendre1Click(Sender: TObject);
+begin
+  // Ensure a node is selected
+  if(TreeviewL.Selected <> nil) then
+  // Ensure there is a next sibling node
+  if TreeviewL.Selected.GetNextSibling <> nil then
+    // If we have made it this far, move it DOWN
+    // naAdd, naAddFirst, naAddChild, naAddChildFirst, naInsert
+    // naAdd        The new or relocated node becomes the last sibling of the other node.
+    // naAddFirst   The new or relocated node becomes the first sibling of the other node.
+    // naInsert     The new or relocated node becomes the sibling immediately before the other node.
+    // naAddChild   The new or relocated node becomes the last child of the other node.
+    // naAddChildFirst The new or relocated node becomes the first child of the other node.
+    TreeviewL.Selected.MoveTo(TreeviewL.Selected.GetNextSibling, naAdd);
+end;
+
+
+procedure TFormModifAction.Supprimer1Click(Sender: TObject);
+begin
+  TreeViewL.Selected.Delete;
+end;
+
+
+procedure TFormModifAction.TreeViewLChange(Sender: TObject;
+  Node: TTreeNode);
+begin
+  if Assigned(Node) then
+   // if Node.AbsoluteIndex = 1 then
+  begin
+    Affiche('Le node est '+node.Text+' id='+intToSTR(node.ImageIndex),clYellow);
+    ComboBoxFonction.ItemIndex:=node.ImageIndex-1;
+  end;
+end;
+
+procedure TFormModifAction.outdployer1Click(Sender: TObject);
+var i : integer;
+begin
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    Affiche(inttoSTR(i)+' '+TreeViewL.Items[i].Text,clYellow);
+    TreeViewL.Items[i].Expand(true);
+  end;
+end;
+
+procedure TFormModifAction.outcontracter1Click(Sender: TObject);
+var i : integer;
+begin
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    Affiche(inttoSTR(i)+' '+TreeViewL.Items[i].Text,clYellow);
+    TreeViewL.Items[i].Collapse(true);
+  end;
+end;
+
+procedure TFormModifAction.ComboBoxFonctionChange(Sender: TObject);
+var node : tTreenode;
+    i,Fnode : integer;
+begin
+  node:=TreeViewL.Selected;
+  if assigned(node) then
+  begin
+    i:=ComboBoxFonction.ItemIndex+1;
+    Fnode:=node.ImageIndex;
+    // si le node est une fonction logique ET OU NON
+    //if (node.HasChildren) and (i<EtatDCC) then
+    if (Fnode>=FoncET) and (Fnode<=FoncNON) and (i>=FoncET) and (i<=FoncNON) then
+    begin
+      node.Text:=ComboBoxFonction.Items[i-1];
+      node.ImageIndex:=i;
+      node.SelectedIndex:=i;
+    end;
+    {
+    // si le node n'a pas d'enfant, c'est une variable
+    if not(node.HasChildren) and (i>=EtatDCC) then
+    begin
+      node.Text:=ComboBoxFonction.Items[i];
+      node.ImageIndex:=i;
+      node.SelectedIndex:=i;
+    end;  }
+  end;
+end;
 
 end.

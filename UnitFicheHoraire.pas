@@ -18,6 +18,8 @@ type
     procedure FormActivate(Sender: TObject);
     procedure StringGridFODrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
+    procedure StringGridFOSetEditText(Sender: TObject; ACol, ARow: Integer;
+      const Value: String);
   private
     { Déclarations privées }
   public
@@ -26,22 +28,33 @@ type
 
 const
   MaxHoraire=200;
-
+  colLigne=0;
+  ColTrain=1;
+  ColRoute=2;
+  ColHDep=3;
+  ColVitDem=4;
+  ColSens=5;
+  ColArret=6;
 var
   FormFicheHoraire: TFormFicheHoraire;
   Nombre_horaires : integer;
 
   GrilleHoraire : Array[1..MaxHoraire] of record
                     NomTrain : string ;
-                    Adresse : integer;
+                    route : string;
+                    Adresse : integer;  // adresse du train
                     vitesse : integer;
-                    sens : boolean;
+                    sens : boolean;  //Normal=true  inverse=false
                     arretDepart : boolean;  // arret du train au démarrage de l'horloge
                     heure,minute : integer;
                     detecteur,actionneur : integer;
                   end;
 
+Bouton : Tbutton;
+
 implementation
+
+uses verif_version;
 
 {$R *.dfm}
 
@@ -52,14 +65,17 @@ var f : textfile;
 begin
   assignFile(f,'FicheHoraire.txt');
   rewrite(f);
-  writeln(f,'/ Fichier horaire');
+  writeln(f,'/ Fichier horaire Version '+VersionSC);
   n:=stringGridFO.RowCount-1;
   if n>MaxHoraire then n:=MaxHoraire;
   for ligne:=1 to n do
   begin
+    // nomtrain,Nomroute,départ,vitesse démarre,sens,inverse
+
+    // recopier le composant grille dans le tableau grilleHoraire[]
     grilleHoraire[ligne].NomTrain:=stringGridFO.Cells[1,ligne];
 
-    s:=stringGridFO.Cells[2,ligne]; // heure de démarrage
+    s:=stringGridFO.Cells[ColHDep,ligne]; // heure de démarrage
     val(s,i,erreur);
     grilleHoraire[ligne].heure:=i;
     delete(s,1,erreur);
@@ -97,35 +113,47 @@ begin
   end;
 end;
 
+
 procedure TFormFicheHoraire.FormCreate(Sender: TObject);
 var i,champ,ligne,col,erreur : integer;
     f : textFile ;
-    s,ss : string;
+    s,ss,v : string;
+    ver : single;
+    MRect : Trect;
 begin
   // cells[colonne,ligne]
   with stringGridFO do
   begin
+    Anchors:=[];
+    Anchors:=[AkTop,AkLeft,akright,akBottom];
+    Options:=options
+    // édition      pas multiselect  trackbar dynamique   autoriz le dimensionnement des colonnes
+    + [goEditing] - [goRangeSelect] + [goThumbTracking]+ [goColSizing]
+    + [goAlwaysShowEditor]; // autorise l'édition
     Hint:='Grille horaire';
     ShowHint:=true;
-    ColCount:=6;
+    ColCount:=7;
     RowCount:=MaxHoraire+1;
     Options := stringGridFO.Options + [goEditing];
-    ColWidths[0]:=30;
-    ColWidths[1]:=200;
-    ColWidths[2]:=60;
-    ColWidths[3]:=60;
-    ColWidths[4]:=50;
-    ColWidths[5]:=60;
+    ColWidths[ColLigne]:=30;
+    ColWidths[ColTrain]:=200;
+    ColWidths[ColRoute]:=100;
+    ColWidths[ColHDep]:=60;
+    ColWidths[ColVitDem]:=60;
+    ColWidths[ColSens]:=50;
+    ColWidths[ColArret]:=60;
 
-    Cells[0,0]:='Ligne';
-    Cells[1,0]:='Nom du train';
-    Cells[2,0]:='Départ';
-    Cells[3,0]:='Vitesse'+#13+'démarrage';
-    Cells[4,0]:='Sens'+#13+'(N/R)';
-    Cells[5,0]:='Forcer arrêt'+#13+'O/N';
+    Cells[ColLigne,0]:='Ligne';
+    Cells[ColTrain,0]:='Nom du train';
+    Cells[ColRoute,0]:='Nom de la route';
+    Cells[ColHDep,0]:='Départ';
+    Cells[ColVitDem,0]:='Vitesse'+#13+'démarrage';
+    Cells[ColSens,0]:='Sens'+#13+'(N/R)';
+    Cells[ColArret,0]:='Forcer arrêt'+#13+'O/N';
 
     RowHeights[0]:=22;
 
+    // numéroter les lignes et fixer la hauteur des lignes
     for i:=1 to RowCount-1 do
     begin
       if i>0 then Cells[0,i]:=intToSTR(i);
@@ -142,6 +170,18 @@ begin
     exit;
   end;
 
+  readln(f,s); // version
+  s:=lowercase(s);
+  i:=pos('version ',s);
+  v:='';
+  if i<>0 then
+  begin
+    delete(s,1,i+7);
+    v:=s;
+  end;
+
+  val(v,ver,erreur);
+
   ligne:=1;
   repeat
     readln(f,s);
@@ -153,7 +193,7 @@ begin
         col:=1;
         repeat        // lecture de la ligne
           champ:=pos(',',s);
-          if col=1 then   // nom du train
+          if col=ColTrain then   // nom du train
           begin
             if champ=0 then begin affiche('Erreur 17',clred);closefile(f);end;
             ss:=copy(s,1,champ-1);
@@ -162,11 +202,20 @@ begin
             if champ<>0 then delete(s,1,champ);
           end;
 
-          if col=2 then  // heure
+          if (col=ColRoute) then  // route
+          begin
+            ss:=s;
+            ss:=copy(s,1,champ-1);
+            stringGridFO.Cells[colRoute,ligne]:=ss;
+            grilleHoraire[ligne].route:=ss;
+            if champ<>0 then delete(s,1,champ);
+          end;
+
+          if col=3 then  // heure
           begin
             ss:=s;
             if champ<>0 then ss:=copy(s,1,champ-1);
-            stringGridFO.Cells[col,ligne]:=ss;
+            stringGridFO.Cells[ColHDep,ligne]:=ss;
             val(ss,i,erreur);
             grilleHoraire[ligne].heure:=i;
             delete(ss,1,erreur);
@@ -175,30 +224,30 @@ begin
             if champ<>0 then delete(s,1,champ);
           end;
 
-          if col=3 then  // vitesse
+          if (col=4) then  // vitesse
           begin
             ss:=copy(s,1,champ-1);
             val(ss,i,erreur);
             grilleHoraire[ligne].vitesse:=i;
-            stringGridFO.Cells[col,ligne]:=ss;
+            stringGridFO.Cells[colVitDem,ligne]:=ss;
             if champ<>0 then delete(s,1,champ);
           end;
 
-          if col=4 then  // sens
+          if (col=5) then  // sens
           begin
             ss:=copy(s,1,champ-1);
             grilleHoraire[ligne].sens:=ss='N';
             if grilleHoraire[ligne].sens then ss:='N' else ss:='R';
-            stringGridFO.Cells[col,ligne]:=ss;
+            stringGridFO.Cells[colSens,ligne]:=ss;
             if champ<>0 then delete(s,1,champ);
           end;
 
-          if col=5 then  // arret du train au démarrage de l'horloge
+          if (col=6) then  // arret du train au démarrage de l'horloge
           begin
             ss:=copy(s,1,champ-1);
             grilleHoraire[ligne].arretDepart:=ss='O';
             if grilleHoraire[ligne].arretDepart then ss:='O' else ss:='N';
-            stringGridFO.Cells[col,ligne]:=ss;
+            stringGridFO.Cells[colArret,ligne]:=ss;
             if champ<>0 then delete(s,1,champ);
           end;
 
@@ -239,32 +288,30 @@ begin
 
   s:=Grid.Cells[ACol,ARow];
   sM:=uppercase(s);
-  if (Acol=2) and (Arow>0) and (s<>'') then
+  if (Acol=ColHdep) and (Arow>0) and (s<>'') then
   begin
     if pos('H',sM)=0 then LabelErreur.caption:='Erreur : l''heure doit être au format HHhMM'
     else labelErreur.Caption:='';
   end;
 
-  if (Acol=3) and (Arow>0) and (s<>'') then
+  if (Acol=ColVitDem) and (Arow>0) and (s<>'') then
   begin
     val(s,i,erreur);
     if (i<0) or (i>120) or (erreur<>0) then LabelErreur.caption:='Erreur : la vitesse doit être comprise entre 0 et 120'
     else labelErreur.Caption:='';
   end;
 
-
-  if (Acol=4) and (Arow>0) and (s<>'') then
+  if (Acol=colSens) and (Arow>0) and (s<>'') then
   begin
     if (sM<>'N') and (sM<>'R') then LabelErreur.caption:='Erreur : le sens doit être N(direct) ou R(recul)'
     else labelErreur.Caption:='';
   end;
 
-  if (Acol=5) and (Arow>0) and (s<>'') then
+  if (Acol=ColArret) and (Arow>0) and (s<>'') then
   begin
     if (sM<>'O') and (sM<>'N') then LabelErreur.caption:='Erreur : la demande d''arrêt doit être N(non) ou O(oui)'
     else labelErreur.Caption:='';
   end;
-
 
   // pour écrire sur 2 lignes dans une stringGrid
  {
@@ -288,26 +335,92 @@ begin
     d12:=true;
   {$IFEND}
 
+  // couleur de fond
   couleur:=$E0E0E0;
   if d12 then couleur:=$505050;
   with grid.canvas do
   begin
     Brush.Color := couleur;
     FillRect(Rect);
+    font.Color:=clBlack;   // couleur de la fonte
   end;
 
-    DRect:=Rect;
-    // calcule, ajuste et positionne la ligne de l'espace vertical nécessaire
-    DrawText(Grid.Canvas.Handle,Pchar(S),Length(S),DRect,DT_CALCRECT or DT_CENTER);
-    // if the text height is greater than the row height, increase the row height
-    if (DRect.Bottom - DRect.Top) > Grid.RowHeights[ARow] then Grid.RowHeights[ARow]:=DRect.Bottom - DRect.Top
-    // changer la hauteur de la cellule provoque son redessinage
-    else
+  DRect:=Rect;
+  // calcule, ajuste et positionne la ligne de l'espace vertical nécessaire
+  DrawText(Grid.Canvas.Handle,Pchar(S),Length(S),DRect,DT_CALCRECT or DT_CENTER);
+  // if the text height is greater than the row height, increase the row height
+
+  if (DRect.Bottom - DRect.Top) > Grid.RowHeights[ARow] then Grid.RowHeights[ARow]:=DRect.Bottom - DRect.Top
+  // changer la hauteur de la cellule provoque son redessinage
+  else
+  begin
+    DRect.Right:=Rect.Right;
+    Grid.Canvas.FillRect(DRect);
+    DrawText(Grid.Canvas.Handle, Pchar(S), Length(S), DRect, DT_CENTER);
+  end;
+end;
+
+
+procedure TFormFicheHoraire.StringGridFOSetEditText(Sender: TObject; ACol,
+  ARow: Integer; const Value: String);
+var s : string;
+    i,erreur : integer;
+begin
+  case Acol of
+    ColTrain :
     begin
-      DRect.Right:=Rect.Right;
-      Grid.Canvas.FillRect(DRect);
-      DrawText(Grid.Canvas.Handle, Pchar(S), Length(S), DRect, DT_CENTER);
+      GrilleHoraire[ARow].NomTrain:=StringGridFO.Cells[Acol,ARow];
+      application.CancelHint;
+      FormFicheHoraire.Caption:='Nom du train';
     end;
+    Colroute :
+    begin
+      GrilleHoraire[ARow].Route:=StringGridFO.Cells[Acol,ARow];
+      application.CancelHint;
+      FormFicheHoraire.Caption:='Nom de la route mémorisée du train';
+    end;
+    ColHDep :
+    begin
+      FormFicheHoraire.Caption:='Heure au format XXhXX';
+      s:=stringGridFO.Cells[Acol,Arow]; // heure de démarrage
+      val(s,i,erreur);
+      grilleHoraire[Arow].heure:=i;
+      if erreur<>0 then
+      begin
+        delete(s,1,erreur);
+        val(s,i,erreur);
+        grilleHoraire[Arow].minute:=i;
+        LabelErreur.caption:='';
+      end
+      else
+        LabelErreur.caption:='Erreur : l''heure doit être au format HHhMM';
+    end;
+    ColVitDem :
+    begin
+      FormFicheHoraire.Caption:='Vitesse entre 0 et 120';
+      s:=stringGridFO.Cells[Acol,Arow];
+      val(s,i,erreur);
+      if (i<0) or (i>120) or (erreur<>0) then LabelErreur.caption:='Erreur : la vitesse doit être comprise entre 0 et 120'
+        else labelErreur.Caption:='';
+      grilleHoraire[Arow].vitesse:=i;
+    end;
+    ColSens :
+    begin
+      FormFicheHoraire.Caption:='Sens N(direct) ou R(recul)';
+      s:=stringGridFO.Cells[Acol,Arow];
+      if (s<>'N') and (s<>'R') then LabelErreur.caption:='Erreur : le sens doit être N(direct) ou R(recul)'
+        else labelErreur.Caption:='';
+      grilleHoraire[Arow].sens:=s='N';
+    end;
+    ColArret :
+    begin
+      FormFicheHoraire.Caption:='N(non) ou O(oui)';
+      s:=stringGridFO.Cells[Acol,Arow];
+      grilleHoraire[Arow].arretDepart:=s='O';
+      if (s<>'O') and (s<>'N') then LabelErreur.caption:='Erreur : la demande d''arrêt doit être N(non) ou O(oui)'
+      else labelErreur.Caption:='';
+    end;
+  end;
 end;
 
 end.

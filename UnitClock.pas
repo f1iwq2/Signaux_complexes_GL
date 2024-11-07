@@ -18,6 +18,7 @@ uses
 
 const pisur180=pi/180;
       pisur360=pi/360;
+      pisur30=pi/30;
       pisur6=pi/6;
 type
    TFormClock = class(TForm)
@@ -49,7 +50,6 @@ type
   private
     Ticker : TTimer;
 
-    FPen: TPen;          // couleur de crayon
     FBitMap : TBitMap;   // arrière plan
     // Clock variables
     CenterPoint : TPoint; // Centre des aiguilles
@@ -73,7 +73,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure tickercall;
-    procedure DrawArrows; // Draw clock arrows
+    procedure DrawArrows; // dessine les aiguilles
 
   published
     property Align;
@@ -101,7 +101,7 @@ uses UnitConfigCellTCO, UnitPrinc, UnitFicheHoraire;
 
 const
   SecScale=1;     // longueur de l'aiguille des secondes
-  MinScale=0.95;  // longueur de l'aiguille des minutes
+  MinScale=0.93;  // longueur de l'aiguille des minutes
   HouScale=0.60;  // longueur de l'aiguille des heures
   offsetx=20;     // décalage x du bitmap l'horloge par rapport à la fenetre
   offsety=60;     // y
@@ -118,8 +118,6 @@ begin
   FArrowColor:=clBlack;
   ShowSecond:=true;
 
-  // Crée le crayon horloge pour le bitmap
-  FPen:=TPen.Create;
   // Crée le bitmap d'arrière plan
   FBitMap:=TBitMap.Create;
   FBitMap.Width:=Width;
@@ -147,7 +145,6 @@ end;
 
 destructor TClock.Destroy;
 begin
-  FPen.Free;
   FBitMap.Free;
   Ticker.Free;
   inherited Destroy;
@@ -176,13 +173,13 @@ var
   sin,cos :extended;
 
   // Dessine les flèches dans le bitmap hors écran
-  procedure DrawArrow( Angle, Scale : real; AWidth : integer);
+  procedure DrawArrow(Angle, Scale : real;AWidth : integer);
   var SR : real;
   begin
     with ABitMap.Canvas do
     begin
       Pen.Width:=AWidth;
-      MoveTo(CenterPoint.X, CenterPoint.Y);
+      MoveTo(CenterPoint.X,CenterPoint.Y);
       SR:=Scale*Radius;
       sincos(Angle,sin,cos);
       LineTo(round(SR*sin)+ CenterPoint.X,
@@ -193,32 +190,29 @@ var
 begin
   // Crée le bitmap AbitMap hors écran
   ABitMap:=TBitMap.Create;
-  FPen.Color:=ClkArrowColor;
-  try
-    // dessine les aiguilles sur l'image hors écran
-    // Attributs du bitmap hors écran
-    ABitMap.Width:=Width;
-    ABitMap.Height:=Height;
-    with ABitMap.Canvas do
-    begin
-      Pen:=FPen;
-      Brush.Color:=clred;
-    end;
-    // Copie l'image de fond du bitmap dans le bitmap hors écran
-    ABitMap.Canvas.CopyMode:=cmSrcCopy;
-    ABitMap.Canvas.CopyRect(ABitMap.Canvas.ClipRect,FBitMap.Canvas,FBitMap.Canvas.ClipRect);
-    // Dessine les nouvelles aiguilles dans le bitmap hors écran
-    if ShowSecond then DrawArrow( seconde*pi/30,  SecScale, SecThick); // seconde
-    DrawArrow(minute*pi/30,MinScale, MinThick);   // minute
-    DrawArrow(HourAngle(heure,minute),HouScale,HouThick);   // heure
+  // dessine les aiguilles sur l'image hors écran
+  // Attributs du bitmap hors écran
+  ABitMap.Width:=Width;
+  ABitMap.Height:=Height;
 
-    // Dessine le bitmap hors écran dans l'horloge
-    Canvas.CopyMode:=cmSrcCopy;
-    Canvas.Draw(0,0,ABitMap);
-    formclock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
-  finally
-    ABitMap.Free;
+  // Copie l'image de fond du bitmap dans le bitmap hors écran
+  ABitMap.Canvas.CopyMode:=cmSrcCopy;
+  ABitMap.Canvas.CopyRect(ABitMap.Canvas.ClipRect,FBitMap.Canvas,FBitMap.Canvas.ClipRect);
+  // Dessine les nouvelles aiguilles dans le bitmap hors écran
+  if ShowSecond then
+  begin
+    ABitMap.Canvas.pen.Color:=$600000;      // bleu foncé
+    DrawArrow(seconde*pisur30,  SecScale, SecThick); // seconde
   end;
+  ABitMap.Canvas.Pen.color:=ClkArrowColor;
+  DrawArrow(minute*pisur30,MinScale, MinThick);   // minute
+  DrawArrow(HourAngle(heure,minute),HouScale,HouThick);   // heure
+
+  // copie le bitmap hors écran dans l'horloge
+  Canvas.CopyMode:=cmSrcCopy;
+  Canvas.Draw(0,0,ABitMap);
+  formclock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
+  ABitMap.Free;
 end;
 
 procedure TClock.CalcClockSettings;
@@ -338,6 +332,7 @@ end;
 
 procedure calcul_pos_horloge;
 begin
+  if not assigned(formclock) or (formclock=nil) or fermeSC then exit;
   if LargeurFC<150 then
   begin
     LargeurFC:=250;
@@ -346,9 +341,9 @@ begin
     formclock.height:=HauteurFC;
   end;
 
-  OffsetYFC:=(formprinc.top+formPrinc.height)-FormClock.height-32;
+  OffsetYFC:=(formprinc.top+formPrinc.height)-FormClock.height-28;
   OffsetXFC:=(formprinc.left+formPrinc.width)-formClock.width;
-  
+
   // écart entre fenetre principale et clock
   DeltaFPCY:=OffsetYFC-formprinc.top;
   DeltaFPCX:=OffsetXFC-formprinc.left;
@@ -368,7 +363,6 @@ begin
   begin
     SetWindowPos(FormClock.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NoMove or SWP_NoSize);
     Verrouille:=true;
-
 
     clock:=tClock.Create(formClock);
     clock.Parent:=formclock;
@@ -473,7 +467,7 @@ end;
 
 procedure TFormClock.TjsVerClick(Sender: TObject);
 begin
-  SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NoMove or SWP_NoSize);
+  SetWindowPos(Handle,HWND_TOPMOST, 0, 0, 0, 0,SWP_NoMove or SWP_NoSize);
   // le checked ne fonctionne pas sous D7, fonctionne sous D12.
   TjsDev.Checked:=true;
   Dverrouiller1.Checked:=false;
@@ -482,7 +476,7 @@ end;
 
 procedure TFormClock.Dverrouiller1Click(Sender: TObject);
 begin
-  SetWindowPos(Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NoMove or SWP_NoSize);
+  SetWindowPos(Handle,HWND_NOTOPMOST, 0, 0, 0, 0,SWP_NoMove or SWP_NoSize);
   TjsDev.Checked:=false;
   Dverrouiller1.Checked:=true;
   Verrouille:=false;
@@ -499,12 +493,11 @@ begin
 end;
 
 
-
-
 procedure TFormClock.ButtonGHClick(Sender: TObject);
 begin
   formFicheHoraire.showModal;
 end;
+
 
 end.
 

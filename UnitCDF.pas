@@ -374,6 +374,7 @@ begin
   end;
 end;
 
+// Ralen 30
 procedure TFormCDF.Edit11Change(Sender: TObject);
 var erreur,i : integer;
 begin
@@ -388,6 +389,7 @@ begin
   end;
 end;
 
+// ralen 60
 procedure TFormCDF.Edit12Change(Sender: TObject);
 var erreur,i: integer;
 begin
@@ -402,6 +404,7 @@ begin
   end;
 end;
 
+// rappel 30
 procedure TFormCDF.Edit13Change(Sender: TObject);
 var erreur,i : integer;
 begin
@@ -411,11 +414,12 @@ begin
     if (i<0) or (i>255) or (erreur<>0) then exit;
     Signaux[index].SR[13].sortie1:=i;
     Maj_DB;
-    if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,ral_60);Maj_Etat_Signal(0,jaune_cli);end;
+    if label13.Caption=etats[13] then begin Maj_Etat_Signal(0,rappel_30);end;
     dessine_signal_CDF;
   end;
 end;
 
+// rappel 60
 procedure TFormCDF.Edit14Change(Sender: TObject);
 var erreur,i : integer;
 begin
@@ -425,11 +429,12 @@ begin
     if (i<0) or (i>255) or (erreur<>0) then exit;
     Signaux[index].SR[14].sortie1:=i;
     Maj_DB;
-    if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_30);end;
+    if label14.Caption=etats[14] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
     dessine_signal_CDF;
   end;
 end;
 
+// ralen60 jaune cli
 procedure TFormCDF.Edit15Change(Sender: TObject);
 var erreur,i : integer;
 begin
@@ -439,11 +444,12 @@ begin
     if (i<0) or (i>255) or (erreur<>0) then exit;
     Signaux[index].SR[15].sortie1:=i;
     Maj_DB;
-    if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,semaphore);Maj_Etat_Signal(0,rappel_60);end;
+    if label15.Caption=etats[15] then begin Maj_Etat_Signal(0,jaune_cli);Maj_Etat_Signal(0,ral_60);end;
     dessine_signal_CDF;
   end;
 end;
 
+// rappel 30 + avertissement
 procedure TFormCDF.Edit16Change(Sender: TObject);
 var erreur,i : integer;
 begin

@@ -1,9 +1,9 @@
 object FormConfigTCO: TFormConfigTCO
-  Left = 296
-  Top = 201
+  Left = 319
+  Top = 137
   BorderStyle = bsDialog
   Caption = 'Configuration du TCO'
-  ClientHeight = 420
+  ClientHeight = 443
   ClientWidth = 665
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -49,20 +49,20 @@ object FormConfigTCO: TFormConfigTCO
     object ImageAig: TImage
       Left = 128
       Top = 16
-      Width = 41
-      Height = 41
+      Width = 32
+      Height = 32
       OnClick = ImageAigClick
     end
     object ImageFond: TImage
       Left = 128
-      Top = 64
-      Width = 41
-      Height = 41
+      Top = 56
+      Width = 32
+      Height = 32
       OnClick = ImageFondClick
     end
     object Label6: TLabel
       Left = 33
-      Top = 72
+      Top = 56
       Width = 75
       Height = 26
       Alignment = taRightJustify
@@ -71,44 +71,44 @@ object FormConfigTCO: TFormConfigTCO
     end
     object ImageGrille: TImage
       Left = 128
-      Top = 112
-      Width = 41
-      Height = 41
+      Top = 96
+      Width = 32
+      Height = 32
       OnClick = ImageGrilleClick
     end
     object Label7: TLabel
       Left = 31
-      Top = 128
+      Top = 104
       Width = 74
       Height = 13
       Caption = 'couleur de grille'
     end
     object ImageDetAct: TImage
       Left = 128
-      Top = 160
-      Width = 41
-      Height = 41
-      OnClick = ImageDetActClick
+      Top = 136
+      Width = 32
+      Height = 32
+      OnClick = ImageDetAtlick
     end
     object Label8: TLabel
       Left = 26
-      Top = 176
+      Top = 144
       Width = 79
       Height = 13
       Caption = 'D'#233'tecteur activ'#233
     end
     object Label9: TLabel
       Left = 218
-      Top = 176
+      Top = 144
       Width = 66
       Height = 13
       Caption = 'Canton activ'#233
     end
     object Imagecanton: TImage
       Left = 296
-      Top = 160
-      Width = 41
-      Height = 41
+      Top = 136
+      Width = 32
+      Height = 32
       OnClick = ImagecantonClick
     end
     object Label10: TLabel
@@ -121,41 +121,41 @@ object FormConfigTCO: TFormConfigTCO
     object ImageTexte: TImage
       Left = 296
       Top = 16
-      Width = 41
-      Height = 41
+      Width = 32
+      Height = 32
       OnClick = ImageTexteClick
     end
     object Label11: TLabel
       Left = 197
-      Top = 24
+      Top = 16
       Width = 87
       Height = 13
       Caption = 'Couleur des textes'
     end
     object Label12: TLabel
       Left = 192
-      Top = 40
+      Top = 32
       Width = 93
       Height = 13
       Caption = 'statiques par d'#233'faut'
     end
     object ImageQuai: TImage
       Left = 296
-      Top = 64
-      Width = 41
-      Height = 41
+      Top = 56
+      Width = 32
+      Height = 32
       OnClick = ImageQuaiClick
     end
     object Label13: TLabel
       Left = 214
-      Top = 80
+      Top = 64
       Width = 74
       Height = 13
       Caption = 'Couleur de quai'
     end
     object Label1: TLabel
       Left = 184
-      Top = 120
+      Top = 96
       Width = 102
       Height = 26
       Alignment = taRightJustify
@@ -164,10 +164,38 @@ object FormConfigTCO: TFormConfigTCO
     end
     object ImagePiedFeu: TImage
       Left = 296
-      Top = 112
-      Width = 41
-      Height = 41
+      Top = 96
+      Width = 32
+      Height = 32
       OnClick = ImagePiedFeuClick
+    end
+    object ImageCantonLibre: TImage
+      Left = 128
+      Top = 176
+      Width = 32
+      Height = 32
+      OnClick = ImageCantonLibreClick
+    end
+    object ImageCantonOccupe: TImage
+      Left = 296
+      Top = 176
+      Width = 32
+      Height = 32
+      OnClick = ImageCantonOccupeClick
+    end
+    object Label19: TLabel
+      Left = 58
+      Top = 184
+      Width = 56
+      Height = 13
+      Caption = 'Canton libre'
+    end
+    object Label20: TLabel
+      Left = 210
+      Top = 184
+      Width = 73
+      Height = 13
+      Caption = 'Canton occup'#233
     end
     object CheckCouleur: TCheckBox
       Left = 48
@@ -181,7 +209,7 @@ object FormConfigTCO: TFormConfigTCO
   end
   object Memo1: TMemo
     Left = 304
-    Top = 360
+    Top = 392
     Width = 353
     Height = 49
     BevelInner = bvLowered
@@ -230,7 +258,7 @@ object FormConfigTCO: TFormConfigTCO
     Left = 304
     Top = 296
     Width = 353
-    Height = 57
+    Height = 89
     Caption = 'Graphisme de tous les TCOs'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -240,22 +268,13 @@ object FormConfigTCO: TFormConfigTCO
     ParentFont = False
     TabOrder = 4
   end
-  object RadioButtonCourbes: TRadioButton
-    Left = 320
-    Top = 328
-    Width = 113
-    Height = 17
-    Caption = 'Lignes courbes'
-    TabOrder = 5
-    OnClick = RadioButtonCourbesClick
-  end
   object GroupBox3: TGroupBox
     Left = 8
     Top = 8
     Width = 289
     Height = 89
     Caption = 'Configuration du TCO '
-    TabOrder = 6
+    TabOrder = 5
     object Label3: TLabel
       Left = 16
       Top = 20
@@ -335,7 +354,7 @@ object FormConfigTCO: TFormConfigTCO
     Width = 289
     Height = 273
     Caption = 'Configuration de tous les TCOs'
-    TabOrder = 7
+    TabOrder = 6
     object Ratio: TLabel
       Left = 8
       Top = 208
@@ -444,32 +463,30 @@ object FormConfigTCO: TFormConfigTCO
       OnChange = TrackBarEpaisseurChange
     end
   end
-  object RadioButtonLignes: TRadioButton
-    Left = 320
+  object RadioGroupStyle: TRadioGroup
+    Left = 480
     Top = 312
-    Width = 113
-    Height = 17
-    Caption = 'Lignes bris'#233'es'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    TabOrder = 8
-    OnClick = RadioButtonLignesClick
+    Width = 169
+    Height = 65
+    Caption = 'Mode d'#39'affichage'
+    Items.Strings = (
+      'Mode sombre'
+      'Mode clair'
+      'Mode noir et blanc')
+    TabOrder = 7
+    OnClick = RadioGroupStyleClick
   end
-  object CheckNB: TCheckBox
-    Left = 488
+  object RadioGroupVoies: TRadioGroup
+    Left = 312
     Top = 312
-    Width = 137
-    Height = 17
-    Hint = 'Affichage du TCO en noir et blanc pour impression'
-    Caption = 'Mode noir et blanc'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 9
-    OnClick = CheckNBClick
+    Width = 153
+    Height = 49
+    Caption = 'Style de voies'
+    Items.Strings = (
+      'Lignes bris'#233'es'
+      'Lignes courbes')
+    TabOrder = 8
+    OnClick = RadioGroupVoiesClick
   end
   object ColorDialog1: TColorDialog
     OnShow = ColorDialog1Show

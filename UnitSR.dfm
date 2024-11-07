@@ -24,18 +24,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR1'
   end
   object Label1: TLabel
-    Left = 120
+    Left = 112
     Top = 56
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label2: TLabel
-    Left = 120
+    Left = 112
     Top = 80
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object Label300: TLabel
     Left = 24
@@ -90,18 +90,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label3: TLabel
-    Left = 120
+    Left = 112
     Top = 112
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label4: TLabel
-    Left = 120
+    Left = 112
     Top = 136
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object Label303: TLabel
     Left = 344
@@ -186,18 +186,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label5: TLabel
-    Left = 120
+    Left = 112
     Top = 168
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label6: TLabel
-    Left = 120
+    Left = 112
     Top = 192
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV9: TLabel
     Left = 320
@@ -241,18 +241,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label7: TLabel
-    Left = 120
+    Left = 112
     Top = 232
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label8: TLabel
-    Left = 120
+    Left = 112
     Top = 256
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV13: TLabel
     Left = 320
@@ -296,18 +296,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label9: TLabel
-    Left = 120
+    Left = 112
     Top = 288
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label10: TLabel
-    Left = 120
+    Left = 112
     Top = 312
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV17: TLabel
     Left = 320
@@ -351,18 +351,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label11: TLabel
-    Left = 120
+    Left = 112
     Top = 344
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label12: TLabel
-    Left = 120
+    Left = 112
     Top = 368
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV21: TLabel
     Left = 320
@@ -406,18 +406,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label13: TLabel
-    Left = 120
+    Left = 112
     Top = 400
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label14: TLabel
-    Left = 120
+    Left = 112
     Top = 424
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV25: TLabel
     Left = 320
@@ -461,18 +461,18 @@ object FormSR: TFormSR
     Caption = 'LabelAdrSR2'
   end
   object Label15: TLabel
-    Left = 120
+    Left = 112
     Top = 448
-    Width = 15
+    Width = 38
     Height = 13
-    Caption = '+ 2'
+    Caption = '+ 2 droit'
   end
   object Label16: TLabel
-    Left = 120
+    Left = 112
     Top = 480
-    Width = 12
+    Width = 41
     Height = 13
-    Caption = '- 1'
+    Caption = '- 1 d'#233'vi'#233
   end
   object LabelCV29: TLabel
     Left = 320

@@ -36,7 +36,6 @@ type
     ImagePiedFeu: TImage;
     BitBtnOk: TBitBtn;
     RadioGroup1: TRadioGroup;
-    RadioButtonCourbes: TRadioButton;
     GroupBox3: TGroupBox;
     Label3: TLabel;
     Label4: TLabel;
@@ -58,14 +57,18 @@ type
     TrackBarEpaisseur: TTrackBar;
     Label17: TLabel;
     Label18: TLabel;
-    RadioButtonLignes: TRadioButton;
-    CheckNB: TCheckBox;
+    RadioGroupStyle: TRadioGroup;
+    RadioGroupVoies: TRadioGroup;
+    ImageCantonLibre: TImage;
+    ImageCantonOccupe: TImage;
+    Label19: TLabel;
+    Label20: TLabel;
     procedure ButtonDessineClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ImageAigClick(Sender: TObject);
     procedure ImageFondClick(Sender: TObject);
     procedure ImageGrilleClick(Sender: TObject);
-    procedure ImageDetActClick(Sender: TObject);
+    procedure ImageDetAtlick(Sender: TObject);
     procedure ImagecantonClick(Sender: TObject);
     procedure ColorDialog1Show(Sender: TObject);
     procedure ImageTexteClick(Sender: TObject);
@@ -77,12 +80,13 @@ type
     procedure EditNbCellYChange(Sender: TObject);
     procedure CheckDessineGrilleClick(Sender: TObject);
     procedure CheckCouleurClick(Sender: TObject);
-    procedure RadioButtonLignesClick(Sender: TObject);
-    procedure RadioButtonCourbesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrackBarEpaisseurChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure CheckNBClick(Sender: TObject);
+    procedure RadioGroupVoiesClick(Sender: TObject);
+    procedure RadioGroupStyleClick(Sender: TObject);
+    procedure ImageCantonLibreClick(Sender: TObject);
+    procedure ImageCantonOccupeClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -94,6 +98,10 @@ var  FormConfigTCO: TFormConfigTCO;
      titre_couleur : string;
      graphisme : integer;
 
+procedure sauve_styles_tco(indexTCO: integer);
+procedure restitue_styles(indexTCO: integer);
+procedure jeu_clair(indexTCO: integer);
+
 implementation
 
 uses UnitPrinc,unitconfig ;
@@ -103,8 +111,6 @@ uses UnitPrinc,unitconfig ;
 
 // icone exemple
 procedure icone_aig;
-var r : Trect;
-    x1,y1,x2,y2,x3,y3,x4,y4 : integer;
 begin
   with FormConfigTCO.ImageAig do
   begin
@@ -114,15 +120,58 @@ begin
 
     canvas.pen.color:=clVoies[indexTCOCourant];
     canvas.brush.color:=clvoies[indexTCOCourant];
-    // bande horizontale
-    r:=Rect(0,(height div 2)-3,width,(height div 2)+3);
-    canvas.FillRect(r);
 
-    x1:=(width div 2); y1:=(height div 2)-3;
-    x2:=3; y2:=0;
-    x3:=0; y3:=3;
-    x4:=0+(width div 2)-1; y4:=(height div 2)+3-1;
-    canvas.Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
+    Canvas.Pen.Width:=4;
+    canvas.MoveTo(0,height div 2);Canvas.LineTo(width,height div 2);
+
+    canvas.MoveTo(width div 2,height div 2);Canvas.LineTo(0,0);
+
+  end;
+end;
+
+procedure icone_canton_libre;
+var haut,larg,yc1,yc2 : integer;
+begin
+  haut:=FormConfigTCO.ImageCantonLibre.Height;
+  larg:=FormConfigTCO.ImageCantonLibre.Width;
+  yc1:=haut div 4;
+  yc2:=larg-(haut div 4);
+
+  with FormConfigTCO.ImageCantonLibre.Canvas do
+  begin
+    Pen.color:=clfond[indexTCOCourant];
+    Brush.Color:=clfond[indexTCOCourant];
+    Rectangle(0,0,larg,Haut);
+
+    Pen.Width:=1;
+
+    Brush.Color:=CoulCantonLibre[indexTCOCourant];
+    pen.color:=clwhite;
+
+    Roundrect(0,yc1,larg,yc2,larg div 2,(yc2-yc1) div 2);
+  end;
+end;
+
+procedure icone_canton_occupe;
+var haut,larg,yc1,yc2 : integer;
+begin
+  haut:=FormConfigTCO.ImageCantonLibre.Height;
+  larg:=FormConfigTCO.ImageCantonLibre.Width;
+  yc1:=haut div 4;
+  yc2:=larg-(haut div 4);
+
+  with FormConfigTCO.ImageCantonOccupe.Canvas do
+  begin
+    Pen.color:=clfond[indexTCOCourant];
+    Brush.Color:=clfond[indexTCOCourant];
+    Rectangle(0,0,larg,Haut);
+
+    Pen.Width:=1;
+
+    Brush.Color:=CoulCantonOccupe[indexTCOCourant];
+    pen.color:=clwhite;
+
+    Roundrect(0,yc1,larg,yc2,larg div 2,(yc2-yc1) div 2);
   end;
 end;
 
@@ -149,7 +198,7 @@ begin
     canvas.Rectangle(0,0,Width,Height);
     canvas.Pen.color:=ClGrille[IndexTCO];
     canvas.moveto(0,5); canvas.LineTo(width,5);
-    canvas.moveto(27,0); canvas.LineTo(27,Height);
+    canvas.moveto(8,0); canvas.LineTo(8,Height);
   end;
   // 4 détecteur
   with formConfigTCO.ImageDetAct do
@@ -227,6 +276,10 @@ begin
     canvas.LineTo(x1,y2);
     canvas.LineTo(x1-10,y2);
   end;
+
+  icone_canton_libre;
+  icone_canton_occupe;
+
 end;
 
 function verif_config_TCO(indexTCO : integer) : boolean;  // renvoie true si ok
@@ -311,8 +364,8 @@ begin
   EditNbCellY.Text:=IntToSTR(NbreCellY[indexTCOcourant]);
   EditRatio.text:=IntToSTR(RatioC);
   EditEcran.Text:=intToSTR(EcranTCO[indexTCOcourant]);
-  RadioButtonCourbes.checked:=graphisme=2;
-  RadioButtonLignes.checked:=graphisme=1;
+  RadioGroupVoies.ItemIndex:=graphisme-1;
+  RadioGroupStyle.itemIndex:=JeuCouleurs-1;
   checkDessineGrille.Checked:=AvecGrille[IndexTCOCourant];
   checkCouleur.Checked:=ModeCouleurCanton=1;
   trackbarEpaisseur.Position:=Epaisseur_voies;
@@ -355,6 +408,7 @@ begin
     clVoies[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -371,6 +425,7 @@ begin
     clfond[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -388,10 +443,11 @@ begin
     ClGrille[IndexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
-procedure TFormConfigTCO.ImageDetActClick(Sender: TObject);
+procedure TFormConfigTCO.ImageDetAtlick(Sender: TObject);
 var s: string;
 begin
   titre_couleur:='Changer la couleur de détecteur activé';
@@ -404,6 +460,7 @@ begin
     ClAllume[indexTCOCourant]:=ColorDialog1.Color;
     TCO_modifie:=true;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -416,6 +473,7 @@ begin
   begin
     ClCanton[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -428,6 +486,7 @@ begin
   begin
     ClTexte:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -440,6 +499,7 @@ begin
   begin
     ClQuai[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -452,6 +512,7 @@ begin
   begin
     clPiedSignal[indexTCOCourant]:=ColorDialog1.Color;
     dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
   end;
 end;
 
@@ -494,17 +555,6 @@ begin
   if not(clicConf) then TCO_modifie:=true;
 end;
 
-procedure TFormConfigTCO.RadioButtonLignesClick(Sender: TObject);
-begin
-  if not(clicConf) then TCO_modifie:=true;
-  graphisme:=1;
-end;
-
-procedure TFormConfigTCO.RadioButtonCourbesClick(Sender: TObject);
-begin
-  if not(clicConf) then TCO_modifie:=true;
-  graphisme:=2;
-end;
 
 procedure TFormConfigTCO.FormCreate(Sender: TObject);
 var i : integer;
@@ -540,6 +590,48 @@ begin
       composant(c,couleurFond,couleurTexte);
     end;
   end;
+
+  With ImageAig do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageFond do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageGrille do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageDetAct do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageTexte do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageQuai do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImagePiedFeu do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+  With ImageCanton do
+  begin
+    Height:=32;
+    Width:=32;
+  end;
+
   if debug=1 then Affiche('Fin création fenetre configTCO',clLime);
 end;
 
@@ -573,17 +665,6 @@ begin
           if tco[indexTCOCourant,x,y].CouleurFond=0 then tco[indexTCOCourant,x,y].CouleurFond:=clfond[indexTCOCourant];
         end;
 
-    if RadioButtonLignes.Checked then
-    begin
-      if graphisme=2 then TCO_modifie:=true;
-      graphisme:=1 ;
-    end;
-    if RadioButtonCourbes.Checked then
-    begin
-      if graphisme=1 then TCO_modifie:=true;
-      graphisme:=2;
-    end;
-
     epaisseur_voies:=trackBarEpaisseur.Position;
 
     val(editEcran.Text,i,erreur);
@@ -616,10 +697,126 @@ begin
   else action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
 end;
 
-procedure TFormConfigTCO.CheckNBClick(Sender: TObject);
+
+
+procedure TFormConfigTCO.RadioGroupVoiesClick(Sender: TObject);
 begin
-  NB:=CheckNB.checked;
+  if not(clicConf) then TCO_modifie:=true;
+  if RadioGroupVoies.itemIndex<0 then exit;
+  tco_Modifie:=graphisme<>RadioGroupVoies.itemIndex+1;
+  graphisme:=RadioGroupVoies.itemIndex+1;
 end;
 
+procedure sauve_styles_tco(indexTCO: integer);
+var x,y : integer;
 begin
+  clvoiesSV:=clVoies[indexTCO];
+  clFoncSV:=ClFond[indexTCO];
+  clGrilleSV:=ClGrille[IndexTCO];
+  clCoulCantonLibreSV:=CoulCantonLibre[IndexTco];
+  clCoulCantonOccupeSV:=CoulCantonOccupe[IndexTCO];
+  for y:=1 to NbreCellY[indexTCO] do
+   for x:=1 to NbreCellX[indexTCO] do
+     clCoulFondSV[IndexTCO,x,y]:=TCO[indexTCO,x,y].CouleurFond;
+end;
+
+procedure restitue_styles(indexTCO: integer);
+var x,y : integer;
+begin
+  clVoies[indexTCO]:=clVoiesSV;
+  ClFond[indexTCO]:=clFoncSV;
+  ClGrille[IndexTCO]:=ClGrilleSV;
+  CoulCantonLibre[IndexTco]:=ClCoulCantonLibreSV;
+  CoulCantonOccupe[IndexTCO]:=ClCoulCantonOccupeSV;
+  for y:=1 to NbreCellY[indexTCO] do
+   for x:=1 to NbreCellX[indexTCO] do
+     begin
+       TCO[indexTCO,x,y].CouleurFond:=ClCoulFondSV[IndexTCO,x,y];
+    end;
+end;
+
+procedure jeu_clair(indexTCO: integer);
+var x,y : integer;
+begin
+  for indexTCO:=1 to NbreTco do
+  begin
+    clVoies[indexTCO]:=$A00000;
+    ClFond[indexTCO]:=$A00000;
+    ClGrille[IndexTCO]:=$FFC0C0;
+    CoulCantonLibre[IndexTco]:=$A0A0A0;
+    CoulCantonOccupe[IndexTCO]:=$A0A0FF;
+    for y:=1 to NbreCellY[indexTCO] do
+      for x:=1 to NbreCellX[indexTCO] do
+        TCO[indexTCO,x,y].CouleurFond:=$FFFFFF;
+  end;
+end;
+
+procedure TFormConfigTCO.RadioGroupStyleClick(Sender: TObject);
+var indexTCO,AncienJeuCouleurs : integer;
+begin
+  AncienJeuCouleurs:=JeuCouleurs;
+  if ancienJeuCouleurs=1 then sauve_styles_tco(1);
+  JeuCouleurs:=RadioGroupStyle.itemIndex+1;
+
+  if (JeuCouleurs<0) or (AncienJeuCouleurs=JeuCouleurs) then exit;
+
+  // mode sombre
+  if JeuCouleurs=1 then
+  begin
+    for indexTCO:=1 to NbreTco do
+    begin
+      restitue_styles(indexTCO);
+      Affiche_tco(indexTCO);
+    end;
+  end;
+
+  // mode clair
+  if JeuCouleurs=2 then
+  begin
+    for indexTCO:=1 to NbreTco do
+    begin
+      jeu_clair(indexTCO);
+      Affiche_tco(indexTCO);
+    end;
+  end;
+
+  NB:=JeuCouleurs=3;
+end;
+
+procedure TFormConfigTCO.ImageCantonLibreClick(Sender: TObject);
+var s : string;
+begin
+  titre_couleur:='Changer la couleur du canton libre';
+  ColorDialog1.Color:=clAllume[indexTCOCourant];
+
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
+  if ColorDialog1.execute then
+  begin
+    CoulCantonLibre[indexTCOCourant]:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCourant);
+  end;
+end;
+
+procedure TFormConfigTCO.ImageCantonOccupeClick(Sender: TObject);
+var s : string;
+begin
+  titre_couleur:='Changer la couleur du canton occupé';
+  ColorDialog1.Color:=clAllume[indexTCOCourant];
+
+  s:='ColorA='+IntToHex(clfond[indexTCOCourant],6);  // ajouter aux couleurs personnalisées
+  colorDialog1.CustomColors.Add(s);
+  if ColorDialog1.execute then
+  begin
+    CoulCantonOccupe[indexTCOCourant]:=ColorDialog1.Color;
+    TCO_modifie:=true;
+    dessine_icones_config(indexTCOCourant);
+    sauve_styles_tco(indexTCOCOurant);
+  end;
+end;
+
+
+
 end.

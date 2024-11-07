@@ -190,11 +190,38 @@ begin
     if decodeur_pers[dec-NbDecodeurdeBase+1].nation=2 then i:=2;
   end;
   result:=i;
-
 end;
+
+procedure Raz_combine;
+begin
+  with FormPilote do
+  begin
+    RadioRalen30.checked:=false;
+    RadioRappel30.checked:=false;
+    RadioRalen60.checked:=false;
+    RadioRappel60.checked:=false;
+  end;
+end;
+
+procedure Raz_Base;
+begin
+  with FormPilote do
+  begin
+    RadioVert.checked:=false;
+    RadioVertCli.checked:=false;
+    RadioRouge.checked:=false;
+    RadioRougeCli.checked:=false;
+    RadioCarre.checked:=false;
+    RadioBlanc.checked:=false;
+    RadioBlancCli.checked:=false;
+    RadioViolet.checked:=false;
+  end;
+end;
+
 
 procedure TFormPilote.RadioVertClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,vert) else Maj_Etat_Signal(0,vertB) ;
   dessine_signal_pilote;
@@ -202,6 +229,7 @@ end;
 
 procedure TFormPilote.RadioVertCliClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,vert_cli);
   dessine_signal_pilote;
@@ -209,7 +237,9 @@ end;
 
 procedure TFormPilote.RadioJauneClick(Sender: TObject);
 begin
-    Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  RadioRalen30.Checked:=false;
+  RadioRalen60.Checked:=false;
   if nation=1 then Maj_Etat_Signal(0,jaune) else Maj_Etat_Signal(0,deux_jaunes);
   dessine_signal_pilote;
 end;
@@ -217,12 +247,14 @@ end;
 procedure TFormPilote.RadioJaunecliClick(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  RadioRalen30.Checked:=false;
   Maj_Etat_Signal(0,jaune_cli);
   dessine_signal_pilote;
 end;
 
 procedure TFormPilote.RadioRougeClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore);
   dessine_signal_pilote;
@@ -230,6 +262,7 @@ end;
 
 procedure TFormPilote.RadioRougeCliClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,semaphore_cli);
   dessine_signal_pilote;
@@ -237,6 +270,7 @@ end;
 
 procedure TFormPilote.RadioCarreClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,carre) else Maj_Etat_Signal(0,vert_jaune_H);
   dessine_signal_pilote;
@@ -244,6 +278,7 @@ end;
 
 procedure TFormPilote.RadioBlancClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,blanc) else Maj_Etat_Signal(0,rouge_blanc);
   dessine_signal_pilote;
@@ -251,6 +286,7 @@ end;
 
 procedure TFormPilote.RadioVioletClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   if nation=1 then Maj_Etat_Signal(0,violet) else Maj_Etat_Signal(0,vert_jaune_V);
   dessine_signal_pilote;
@@ -258,6 +294,7 @@ end;
 
 procedure TFormPilote.RadioBlancCliClick(Sender: TObject);
 begin
+  Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,blanc_cli);
   dessine_signal_pilote;
@@ -271,6 +308,16 @@ end;
 
 procedure TFormPilote.RadioRalen30Click(Sender: TObject);
 begin
+  Raz_Base;
+  RadioJaune.Checked:=false;
+  RadioJauneCli.Checked:=false;
+  RadioBlanc.checked:=false;
+  RadioBlancCli.checked:=false;
+  RadioViolet.checked:=false;
+  RadioRouge.checked:=false;
+  RadioRougeCli.checked:=false;
+  RadioVert.Checked:=false;
+  RadioVertCli.Checked:=false;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
   Maj_Etat_Signal(0,ral_30);
   dessine_signal_pilote;
@@ -280,14 +327,28 @@ end;
 procedure TFormPilote.RadioRappel60Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  RadioBlanc.checked:=false;
+  RadioBlancCli.checked:=false;
+  RadioViolet.checked:=false;
+  RadioRouge.checked:=false;
+  RadioRougeCli.checked:=false;
+  RadioVert.Checked:=false;
+  RadioVertCli.Checked:=false;
   Maj_Etat_Signal(0,rappel_60);
   dessine_signal_pilote;
 end;
 
-
 procedure TFormPilote.RadioRalen60Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  RadioJaune.Checked:=false;
+  RadioBlanc.checked:=false;
+  RadioBlancCli.checked:=false;
+  RadioViolet.checked:=false;
+  RadioRouge.checked:=false;
+  RadioRougeCli.checked:=false;
+  RadioVert.Checked:=false;
+  RadioVertCli.Checked:=false;
   Maj_Etat_Signal(0,ral_60);
   dessine_signal_pilote;
 end;
@@ -295,6 +356,13 @@ end;
 procedure TFormPilote.RadioRappel30Click(Sender: TObject);
 begin
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
+  RadioBlanc.checked:=false;
+  RadioBlancCli.checked:=false;
+  RadioViolet.checked:=false;
+  RadioRouge.checked:=false;
+  RadioRougeCli.checked:=false;
+  RadioVert.Checked:=false;
+  RadioVertCli.Checked:=false;
   Maj_Etat_Signal(0,rappel_30);
   dessine_signal_pilote;
 end;

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Grids, ExtCtrls, UnitPrinc;
+  Dialogs, StdCtrls, Grids, ExtCtrls, UnitPrinc, ComCtrls;
 
 type
   TFormSelTrain = class(TForm)
@@ -18,7 +18,6 @@ type
     ImageDroite: TImage;
     LabelCanton: TLabel;
     ButtonSauve: TButton;
-    ScrollBoxST: TScrollBox;
     StringGridTrains: TStringGrid;
     procedure ButtonOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -33,7 +32,7 @@ type
     procedure ButtonSauveClick(Sender: TObject);
   private
     { Déclarations privées }
-  public                
+  public
     { Déclarations publiques }
   end;
 
@@ -47,8 +46,8 @@ var
 
 procedure actualise_seltrains;
 procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
-procedure raz_trains_Idcanton(idc : integer);
-procedure raz_cantons_train(AdrTrain : integer);
+procedure xxxraz_trains_Idcanton(idc : integer);
+procedure raz_cantons_train(AdrTrain : integer;raz : boolean);
 procedure trouve_det_canton(idcanton : integer;var el1,el2 : integer);
 function trouve_det_suiv_canton(idcanton,detecteur,sensTCO : integer) : integer;
 procedure Maj_detecteurs_canton(i,AdrTrain,adresse : integer);
@@ -175,18 +174,45 @@ function trouve_det_suiv_canton(idcanton,detecteur,sensTCO : integer) : integer;
 var t : integer;
 begin
   t:=canton[idcanton].ntco;
-  zone_tco(t,detecteur,sensTCO,0,0,12,false);   // élément contigu à droite (6) du canton , résultat dans xcanton  , teste les 2 pos des aig
+  zone_tco(t,detecteur,sensTCO,0,0,12,false,false);   // élément contigu à droite (6) du canton , résultat dans xcanton  , teste les 2 pos des aig
   if tel1=Aig then xcanton:=detecteur_suivant(detecteur,det,xcanton,aig,1);
   result:=xcanton;
 end;
 
+// raz des trains affectés au canton d'index "idc"
+procedure xxxraz_trains_idcanton(idc : integer);
+var ax,ay,i,ic : integer;
+begin
+  if traceliste then Affiche('Raz train affectés au canton index='+intToSTR(idc),clyellow);
+  for i:=1 to Ntrains do
+  begin
+    ic:=index_canton_numero(trains[i].canton);
+    if ic=idc then
+    begin
+      routeSav:=trains[i].route;         // sauvegarde la route
+      trains[i].canton:=0;
+      trains[i].route[0].adresse:=0;
+      if ic<>0 then
+      begin
+        ax:=canton[Ic].x;
+        ay:=canton[Ic].y;
+        tco[IndexTCOCourant,ax,ay].train:=0;
+        canton[Ic].indexTrain:=0;
+        canton[Ic].adresseTrain:=0;
+        canton[Ic].NomTrain:='';
+      end;
+    end;
+  end;
+end;
+
 // supprime le train AdrTrain de tous les cantons, et réaffiche les cantons effacés concernés
-procedure raz_cantons_train(AdrTrain : integer);
+// si raz=true : raz aussi le train du détecteur
+procedure raz_cantons_train(AdrTrain : integer;raz : boolean);
 var i,t,idTCO,x,y,detect : integer;
     trouve : boolean;
 begin
   if (AdrTrain=0) then exit;
-  //Affiche('Raz_cantons_train @='+intToSTR(AdrTrain),clyellow);
+  if procPrinc then AfficheDebug('Raz_cantons_train @='+intToSTR(AdrTrain),clyellow);
   if adrTrain<>0 then
   begin
     for i:=1 to Ncantons do
@@ -195,7 +221,7 @@ begin
       begin
         t:=canton[i].indexTrain;
         trains[t].canton:=0;
-
+        routeSav:=trains[t].route;         // sauvegarde la route
         canton[i].indexTrain:=0;
         canton[i].adresseTrain:=0;
         canton[i].NomTrain:='';
@@ -210,30 +236,31 @@ begin
 
     // balayer les détecteurs pour trouver sur quel détecteur est le train pour le razer
     // non
-    {
-    i:=1;
-    repeat
-      detect:=adresse_detecteur[i];
-      trouve:=detecteur[detect].AdrTrain=AdrTrain;
-      if trouve then
-      begin
-        detecteur[detect].Train:='';
-        detecteur[detect].IndexTrainRoulant:=0;
-        detecteur[detect].AdrTrain:=0;
-        detecteur[detect].Suivant:=0;
-        detecteur[detect].TypSuivant:=rien;
-        detecteur[detect].Precedent:=0;
-        detecteur[detect].TypPrecedent:=rien;
-      end;
-      inc(i);
-    until trouve or (i>NDetecteurs);}
+    if raz then
+    begin
+      i:=1;
+      repeat
+        detect:=adresse_detecteur[i];
+        trouve:=detecteur[detect].AdrTrain=AdrTrain;
+        if trouve then
+        begin
+          detecteur[detect].Train:='';
+          detecteur[detect].IndexTrainRoulant:=0;
+          detecteur[detect].AdrTrain:=0;
+          detecteur[detect].Suivant:=0;
+          detecteur[detect].TypSuivant:=rien;
+          detecteur[detect].Precedent:=0;
+          detecteur[detect].TypPrecedent:=rien;
+        end;
+        inc(i);
+      until trouve or (i>NDetecteurs);
+    end;
   end;
 end;
 
 
 // affecte le train id train ou adresse à l'Index canton et au TCO.
-//
-// désaffecte ce train pour tous les autres canton
+// désaffecte ce train pour tous les autres cantons
 // si adrTrain=9999 , train inconnu
 // si adrTrain=0    ; efface
 // et les pointeurs de trains de l'idTrain sont razés
@@ -241,14 +268,14 @@ procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
 var idTrain,t,el1,el2 : integer;
     t1,t2 : tequipement;
 begin
-  //Affiche('Affecte_train_canton: IdTrain='+intToSTR(idTrain)+' @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
+  if ProcPrinc then AfficheDebug('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
   if (IdCanton>0) and (idCanton<=nCantons) then
   begin
     if (AdrTrain<>0) and (adrTrain<>9999) then
     begin
       idTrain:=Index_train_adresse(adrTrain);
 
-      raz_cantons_train(AdrTrain);   // efface tous les cantons contenant le train Adrtrain
+      raz_cantons_train(AdrTrain,false);  // efface tous les cantons contenant le train Adrtrain sans raz du détecteur
 
       trains[idTrain].canton:=canton[idcanton].numero;
       trains[idTrain].sens:=sens;
@@ -337,6 +364,7 @@ var i,ic,t,NumCanton : integer;
     s : string;
 begin
   // maj de la stringGrig
+  if AffEvt then Affiche('Maj_stringGrid',clYellow);
   if IdCantonSelect>0 then
   begin
     s:='Sélection d''un train';
@@ -415,30 +443,18 @@ begin
   with ImageDroite do begin Width:=60;Height:=60;visible:=false; end;
   with ImageGauche do begin Width:=60;Height:=60;visible:=false; end;
 
-  with ScrollBoxST do
-  begin
-    Anchors:=[akTop,AkLeft,akRight,AkBottom];
-    VertScrollBar.Smooth:=false; // ne pas mettre true sinon çà plante quand on clique sur la ScrollBar
-    VertScrollBar.tracking:=true;
-  end;
-
   hautC:=25;
   largC:=130;
   LabelInfo.caption:='';
   with StringGridTrains do
   begin
     Anchors:=[];
-    Anchors:=[AkTop,AkLeft,akright];
+    Anchors:=[AkTop,AkLeft,akright,akBottom];
 
-    Height:=nTrains*HauteurLigneSGT;
-    Top:=0;
-    Left:=0;
-    //Options:=StringGridTrains.Options+[goEditing];
     Hint:='Sélection d''un train';
     ShowHint:=true;
     ColCount:=8;    // nombre de colonnes
     RowCount:=Ntrains+1;
-    Options := StringGridTrains.Options + [goEditing];
     ColWidths[0]:=50;
     ColWidths[1]:=200;     // icone
     ColWidths[2]:=150;     // nom du train
@@ -473,20 +489,23 @@ begin
     end;
   end;
 
-  // interdit la modification des cellules au clavier
-  StringGridTrains.Options:=StringGridTrains.Options - [goEditing] - [goRangeSelect];
+  //options de la stringgrid
+  StringGridTrains.Options:=StringGridTrains.options
+  //pas édition  pas multiselect  trackbar dynamique   autoriz le dimensionnement des colonnes
+  - [goEditing] - [goRangeSelect] + [goThumbTracking]+ [goColSizing]
+  + [goAlwaysShowEditor] //- [goFixedRowDefAlign];
+
 end;
 
 
 procedure TFormSelTrain.StringGridTrainsDrawCell(Sender: TObject; ACol,ARow: Integer; Rect: TRect; State: TGridDrawState);
 var indextrain,l,h,hautdest,largdest : integer;
-    rd : double;
+    rd : single;
     r : trect;
     coul: Tcolor;
     s : string;
 begin
   //Affiche('DrawCell '+intToSTR(Acol)+'x'+intToSTR(Arow),clred);
-
   // titres sur 2 lignes
   if Arow=0 then
   with StringGridTrains do
@@ -559,32 +578,6 @@ begin
   end;
 end;
 
-// raz des trains affectés au canton d'index "idc"
-procedure raz_trains_idcanton(idc : integer);
-var ax,ay,i,ic : integer;
-begin
-  if traceliste then Affiche('Raz train affectés au canton index='+intToSTR(idc),clyellow);
-  for i:=1 to Ntrains do
-  begin
-    ic:=index_canton_numero(trains[i].canton);
-    if ic=idc then
-    begin
-      routeSav:=trains[i].route;         // sauvegarde la route
-      trains[i].canton:=0;
-      trains[i].route[0].adresse:=0;
-      if ic<>0 then
-      begin
-        ax:=canton[Ic].x;
-        ay:=canton[Ic].y;
-        tco[IndexTCOCourant,ax,ay].train:=0;
-        canton[Ic].indexTrain:=0;
-        canton[Ic].adresseTrain:=0;
-        canton[Ic].NomTrain:='';
-      end;
-    end;
-  end;
-end;
-
 
 // cliqué ou roulé la molette souris sur cellule pour changer la sélection du train ou voir la route ou la flèche
 procedure TFormSelTrain.StringGridTrainsSelectCell(Sender: TObject; ACol,
@@ -594,9 +587,8 @@ var f,AutreTrain,AutreCanton,idAutrecanton,i,ancienSens,AdrTrain,IdTrain,sensloc
     s : string;
 begin
   if IdCantonSelect=0 then IdCantonSelect:=AncienIdCantonSelect;
-  if affevt then Affiche('FormSelTrain.StringGridTrainsSelectCell '+intToSTR(ACol)+' '+intToSTR(ARow),clYellow);
+  if affevt then Affiche('FormSelTrain.StringGridTrainsSelectCell col='+intToSTR(ACol)+' lig='+intToSTR(ARow),clYellow);
   if (Arow>nTrains) or (IdCantonSelect<1) then exit;
-
   faire:=false;
   //------------change la sélection du train
   if (Arow>=1) and (ACol<=5) then
@@ -637,7 +629,7 @@ begin
       AutreTrain:=canton[IdCantonSelect].indexTrain;
       if autreTrain<>0 then
       begin
-        LabelInfo.caption:='Le train '+intToSTR(AutreTrain)+' '+trains[AutreTrain].nom_train+' est déjà affecté au canton - Effacement';
+        LabelInfo.caption:='Suppression du train '+intToSTR(AutreTrain)+' '+trains[AutreTrain].nom_train+' du canton '+intToSTR(autrecanton);
         // affecter la route de l'ancien train au nouveau train
         routeSav:=trains[AutreTrain].route;  // sauve la route
         trains[AutreTrain].route[0].adresse:=0;
@@ -648,8 +640,8 @@ begin
         faire:=true;
         if trains[indexTrainClic].canton=canton[IdCantonSelect].numero then faire:=false ; // ne pas faire l'affectaction, c'est une désaffectaction
 
-
-        raz_trains_idcanton(IdCantonSelect);  // au retour, route contient la route du train razé du canton
+        //raz_trains_idcanton(IdCantonSelect);  // au retour, route contient la route du train razé du canton
+        raz_cantons_train(trains[AutreTrain].adresse,true);
         //Affiche('Et 1',clYellow);
         maj_signaux(true);
       end;
@@ -665,7 +657,7 @@ begin
 
         //canton[IdCantonSelect].SensLoco:=sensLoco;
         affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect,sensLoco);  // le train affecté contient la route du train razé
-
+        LabelInfo.caption:='Affectation du train '+intToSTR(IndexTrainClic)+' '+trains[indexTrainClic].nom_train+' au canton '+intToSTR(canton[idcantonSelect].numero);
         maj_signaux(true);
       end;
     end;
@@ -695,11 +687,11 @@ begin
       inc(f);
       if canton[IdAutreCanton].horizontal then
       begin
-        if (f<1) or (f>SensDroit) then f:=SensGauche;
+        if (f<SensGauche) or (f>SensDroit) then f:=SensGauche;
       end
       else
       begin
-        if (f=5) or (f<SensHaut) then f:=SensHaut;
+        if (f>SensBas) or (f<SensHaut) then f:=SensHaut;
       end;
       if (canton[IdAutreCanton].sensCirc<>0) and (canton[IdAutreCanton].SensCirc<>f) then
       begin
@@ -712,7 +704,7 @@ begin
         exit;
       end;
 
-      renseigne_canton(IdAutreCanton);
+      renseigne_canton(IdAutreCanton);    //?? pourquoi faire le canton est normalement déje renseigné
       affecte_Train_canton(AdrTrain,idAutreCanton,f);
       //Affiche('Et 3',clYellow);
       maj_signaux(true);
@@ -751,7 +743,7 @@ begin
   end;
 
   Quel_canton;
-  FormSelTrain.caption:=s;
+  FormSelTrain.caption:=s;     // s est indéfini !!
 
   with formSelTrain.ComboBoxCanton do
   begin
@@ -770,28 +762,10 @@ end;
 // positionne la VertscrollBar de la stringGrid
 procedure Positionne_SG(n : integer);
 var i : integer;
-  {
-  SB_LINEUP ;
-  SB_LINELEFT ;
-  SB_LINEDOWN ;
-  SB_LINERIGHT ;
-  SB_PAGEUP ;
-  SB_PAGELEFT ;
-  SB_PAGEDOWN ;
-  SB_PAGERIGHT ;
-  SB_THUMBPOSITION ;
-  SB_THUMBTRACK ;
-  SB_TOP ;
-  SB_LEFT ;
-  SB_BOTTOM ;
-  SB_RIGHT ;
-  SB_ENDSCROLL ;
-  }
 begin
-  // Positionne la stringGrid
-  SendMessage(formSelTrain.StringGridTrains.Handle, WM_VScroll, SB_TOP, 0);  // déplace en haut
-  for i:=1 to n-5 do  // 7-2 c'est le nombre de lignes affichées par la stringgrid
-    SendMessage(formSelTrain.StringGridTrains.Handle, WM_VScroll, SB_LINEDOWN, 0);  // déplace d'une ligne à la fois
+ formSelTrain.stringGridTrains.Perform(WM_VSCROLL,SB_TOP,0);
+ for i:=1 to n-1 do
+   formSelTrain.stringGridTrains.Perform(WM_VSCROLL,SB_LINEDOWN,0);
 end;
 
 procedure TFormSelTrain.FormActivate(Sender: TObject);
@@ -806,7 +780,6 @@ begin
   // trouver si le train est dans la grille
   with StringGridTrains do
   begin
-    Height:=nTrains*HauteurLigneSGT+HauteurLigneSGT;  // actualiser la taille de la stringGrig en fonction du nombre de trains
     i:=1;n:=RowCount;
     repeat
       trouve:=cells[2,i]=nomTrain;
@@ -814,7 +787,7 @@ begin
     until trouve or (i>=n);
     if trouve then
     begin
-      Positionne_SG(i);
+      Positionne_SG(i-1);
     end;
   end;
 end;
@@ -837,6 +810,7 @@ procedure TFormSelTrain.ButtonSauveClick(Sender: TObject);
 begin
   Sauve_config;
 end;
+
 
 
 

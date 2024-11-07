@@ -115,8 +115,8 @@ procedure Demarre_horloge;
 var h,m,sec,ms : word;
 begin
   decodeTime(GetTime,h,m,sec,ms);
-  //Affiche(intToSTR(ms),clwhite);
   comptSec:=ms div 100;
+  if comptsec>9 then comptsec:=0;
   horloge:=true;
 end;
 

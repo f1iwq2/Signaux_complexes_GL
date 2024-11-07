@@ -5,7 +5,7 @@ object FormInfo: TFormInfo
   BorderStyle = bsNone
   Caption = 'FormInfo'
   ClientHeight = 50
-  ClientWidth = 575
+  ClientWidth = 615
   Color = clBackground
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
