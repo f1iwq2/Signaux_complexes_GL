@@ -428,6 +428,7 @@ end;
 procedure TFormPilote.FormActivate(Sender: TObject);
 var n,i,d : integer;
 begin
+  if fermeSC then exit;
   // mise à jour du champ décodeur
   if affevt then affiche('FormPilote activate',clLime);
   i:=Index_Signal(AdrPilote);

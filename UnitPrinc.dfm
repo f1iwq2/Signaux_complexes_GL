@@ -1,7 +1,7 @@
 object FormPrinc: TFormPrinc
-  Left = 73
-  Top = 187
-  Width = 1148
+  Left = 103
+  Top = 192
+  Width = 1146
   Height = 625
   Anchors = [akLeft, akTop, akRight]
   Caption = 'SIgnaux complexes'
@@ -20,7 +20,7 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1132
+    1130
     567)
   PixelsPerInch = 96
   TextHeight = 13
@@ -1429,7 +1429,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 1040
+    Left = 1038
     Top = 0
     Width = 85
     Height = 22
@@ -1446,7 +1446,7 @@ object FormPrinc: TFormPrinc
   object StatusBar1: TStatusBar
     Left = 0
     Top = 545
-    Width = 1132
+    Width = 1130
     Height = 22
     Panels = <
       item

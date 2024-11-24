@@ -1457,12 +1457,14 @@ begin
   if horz then
   begin
     zone_tco(t,i,SensTCO_O,0,0,11,false,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
+    if xCanton=0 then tel1:=buttoir;
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensGauche;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
     zone_tco(t,i,SensTCO_E,0,0,11,false,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
+    if xCanton=0 then tel1:=buttoir;
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
     canton[i].SensEl2:=SensDroit;
@@ -1471,12 +1473,14 @@ begin
   else
   begin
     zone_tco(t,i,SensTCO_N,0,0,11,false,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
+    if xCanton=0 then tel1:=buttoir;
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensHaut;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
     zone_tco(t,i,SensTCO_S,0,0,11,false,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
+    if xCanton=0 then tel1:=buttoir;
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
     canton[i].SensEl2:=SensBas;
@@ -1484,9 +1488,9 @@ begin
   end;
 
   n:=canton[i].Nelements;
-  if horz then for j:=0 to n-1 do tco[t,x+j,y].BImage:=Id_cantonH+j
+{  if horz then for j:=0 to n-1 do tco[t,x+j,y].BImage:=Id_cantonH+j
   else for j:=0 to n-1 do tco[t,x,y+j].BImage:=Id_cantonV+j;
-
+  }
   if (canton[i].el1=canton[i].el2) and (canton[i].typ1=det) and (canton[i].typ2=det) then
   begin
     Affiche('Erreur 210 : Le canton '+intToSTR(canton[i].numero)+' dans le tco '+intToSTR(t)+' dispose de deux détecteurs contigus d''adresses identiques: '+intToSTR(canton[i].el1),clred);
@@ -15020,15 +15024,15 @@ begin
       if ((bim<>1) and (bim<>20)) or (Ncantons>=MaxCantons) then
       begin
         Affiche_TCO(indexTCO);
-         s:='Un canton doit être déposé sur un élément horizontal ou vertical d''au moins 3 cases';
-         formTCO[indexTCO].Caption:=s;
-         Affiche_TCO(indexTCO);
-         FormInfo.LabelInfo.caption:=s;
-         FormInfo.Top:=Y+20;
-         FormInfo.Left:=X+50;
-         FormInfo.Show;
-         exit;
-       end;
+        s:='Un canton doit être déposé sur un élément horizontal ou vertical d''au moins 3 cases';
+        formTCO[indexTCO].Caption:=s;
+        Affiche_TCO(indexTCO);
+        FormInfo.LabelInfo.caption:=s;
+        FormInfo.Top:=Y+20;
+        FormInfo.Left:=X+50;
+        FormInfo.Show;
+        exit;
+      end;
 
       for i:=0 to 2 do
       begin
@@ -15067,7 +15071,7 @@ begin
       canton[Ncantons+1].x:=Xclic;
       canton[Ncantons+1].y:=Yclic;
       canton[Ncantons+1].Ntco:=indexTCO;
-      renseigne_canton(Ncantons+1,Bim=1);
+      renseigne_canton(Ncantons+1,Bim=1);   
       if (canton[Ncantons+1].typ1<>det) and (canton[Ncantons+1].typ2<>det) then
       begin
         s:='Un canton doit avoir un détecteur comme élément adjacent';

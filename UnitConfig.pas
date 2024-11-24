@@ -6,10 +6,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
   MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd,
-  Grids , unitHorloge
+  Grids , unitHorloge, spin
 
   {$IF CompilerVersion >= 28.0}
-  ,Vcl.Themes, CheckLst
+  ,Vcl.Themes, CheckLst, ImgList
   {$IFEND}
   ;
 
@@ -422,6 +422,42 @@ type
     LabelNumeroP: TLabel;
     Prox1: TLabeledEdit;
     Prox2: TLabeledEdit;
+    TabSheetFonctions: TTabSheet;
+    GroupBoxLogique: TGroupBox;
+    Label59: TLabel;
+    Label60: TLabel;
+    TreeViewL: TTreeView;
+    ButtonAjouteVar: TButton;
+    ComboBoxOperateur: TComboBox;
+    ButtonAjouteOperateur: TButton;
+    ButtonVoir: TButton;
+    ComboBoxVar: TComboBox;
+    PanelAcc: TPanel;
+    LabeledEditDCC: TLabeledEdit;
+    LabeledEditEtatAcc: TLabeledEdit;
+    ButtonSupLog: TButton;
+    PopupMenuFL: TPopupMenu;
+    M1: TMenuItem;
+    Descendre1: TMenuItem;
+    N4: TMenuItem;
+    Supprimer2: TMenuItem;
+    N5: TMenuItem;
+    outdployer1: TMenuItem;
+    outcontracter1: TMenuItem;
+    ImageListLogic: TImageList;
+    Label63: TLabel;
+    ComboBoxFL: TComboBox;
+    ButtonFSE: TButton;
+    RichEdit1: TRichEdit;
+    ButtonNouvFL: TButton;
+    ButtonEvalue: TButton;
+    LabeledEditNomLog: TLabeledEdit;
+    LabelEtat: TLabel;
+    SpinEditEtat: TSpinEdit;
+    ButtonAjOpEnfant: TButton;
+    LabelFonction: TLabel;
+    LabeledEditNumFonc: TLabeledEdit;
+    LabeledEditTrain: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -459,7 +495,7 @@ type
     procedure ComboBoxDDChange(Sender: TObject);
     procedure EditLChange(Sender: TObject);
     procedure CheckBoxFBClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure ButtonFSEClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure EditP3KeyPress(Sender: TObject; var Key: Char);
     procedure EditP4KeyPress(Sender: TObject; var Key: Char);
@@ -636,6 +672,32 @@ type
     procedure CbAigClick(Sender: TObject);
     procedure Prox1Change(Sender: TObject);
     procedure Prox2Change(Sender: TObject);
+    procedure ButtonSupLogClick(Sender: TObject);
+    procedure ComboBoxOperateurDrawItem(Control: TWinControl;
+      Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure ButtonAjouteVarClick(Sender: TObject);
+    procedure ButtonAjouteOperateurClick(Sender: TObject);
+    procedure ButtonVoirClick(Sender: TObject);
+    procedure M1Click(Sender: TObject);
+    procedure Descendre1Click(Sender: TObject);
+    procedure TreeViewLChange(Sender: TObject; Node: TTreeNode);
+    procedure outdployer1Click(Sender: TObject);
+    procedure outcontracter1Click(Sender: TObject);
+    procedure ComboBoxOperateurChange(Sender: TObject);
+    procedure ComboBoxVarChange(Sender: TObject);
+    procedure ComboBoxVarDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure LabeledEditDCCChange(Sender: TObject);
+    procedure LabeledEditEtatAccChange(Sender: TObject);
+    procedure ButtonNouvFLClick(Sender: TObject);
+    procedure ComboBoxFLChange(Sender: TObject);
+    procedure ButtonEvalueClick(Sender: TObject);
+    procedure Supprimer2Click(Sender: TObject);
+    procedure LabeledEditNomLogChange(Sender: TObject);
+    procedure SpinEditEtatChange(Sender: TObject);
+    procedure ButtonAjOpEnfantClick(Sender: TObject);
+    procedure LabeledEditNumFoncChange(Sender: TObject);
+    procedure LabeledEditTrainChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -755,12 +817,31 @@ section_accCOM_ch='[section_accCOMUSB]';
 section_horloge_ch='[section horloge]';
 section_actionneurs_ch='[section_actionneurs]';
 section_detecteurs_ch='[section_detecteurs]';
+section_logique_ch='[section_logique]';
 
 rep_icones='icones';
 
+// indice des icones donc des fonctions
+FoncVAR=0;
+//--------
+OpET=1;
+OpOU=2;
+OpNON=3;
+//-------
+EtatDCC=4;
+EtatDet=5;
+NomVAR='Fonction logique';
+NomOpET='Opérateur ET';
+NomOpOU='Opérateur OU';
+NomOpNON='Opérateur NON';
+NomEtatDCC='Etat DCC';
+NomEtatDet='Etat détect./actionn.';
+NomFonc : array[0..5] of string[25]=(NomVar,NomOpET,NomOpOu,NomOpNon,NomEtatDCC,NomEtatDet);
+
+
 var
   FormConfig: TFormConfig;
-  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,RepConfig : string; //,trainsauve : string;
+  AdresseIPCDM,AdresseIP,PortCom,recuCDM,residuCDM,RepConfig : string;
 
   portCDM,TempoOctet,TimoutMaxInterface,Valeur_entete,PortInterface,prot_serie,NumPort,debug,
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,PortServeur,
@@ -769,12 +850,14 @@ var
   Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
   compt_Ligne,Style_aff,Ancien_Style,Ecran_SC,Max_Signal_Sens,nCantonsRes,ligneClicActionneur,
-  TempoTC,Nbuttoirs,AncLigneClicActionneur,AncligneclicDet,ligneclicDet : integer;
+  TempoTC,Nbuttoirs,AncLigneClicActionneur,AncligneclicDet,ligneclicDet,foncCourante,
+  NbreFL,IdOperateur : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND,
-  PilotageTrainsCDMNom,LanceHorl,AffSig,AffRes,avecAck,affLoc : boolean;
+  PilotageTrainsCDMNom,LanceHorl,AffSig,AffRes,avecAck,affLoc,changeCom,
+  clicTree : boolean;
 
   fichier : text;
 
@@ -828,6 +911,8 @@ function encode_Periph(index : integer) : string;
 procedure ajoute_champs_combos(i : integer);
 function verif_trains : boolean;
 procedure Maj_icone_train(IImage : Timage;index :integer);
+function evalue_fonction(NumFonc : integer;var formule : string) : boolean;
+procedure fabrique_treeview(k : integer);
 
 implementation
 
@@ -1808,6 +1893,7 @@ begin
     DeclDemarTrain : s:=s+intToSTR(Tablo_Action[i].adresse)+','+Tablo_Action[i].trainDecl+',';
     DeclArretTrain : s:=s+intToSTR(Tablo_Action[i].adresse)+','+Tablo_Action[i].trainDecl+',';
     DeclSignal     : s:=s+intToSTR(Tablo_Action[i].adresse)+','+intToSTR(Tablo_Action[i].etat)+',';
+    DeclFonction   : s:=s+intToSTR(Tablo_Action[i].adresse)+',';
   end;
 
   // conditions
@@ -1823,6 +1909,7 @@ begin
       condHorl     : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].HeureMin)+','+intToSTR(Tablo_Action[i].TabloCond[j].MinuteMin)+','+
                               intToSTR(Tablo_Action[i].TabloCond[j].HeureMax)+','+intToSTR(Tablo_Action[i].TabloCond[j].MinuteMax)+',';
       condTrainSig : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+','+Tablo_Action[i].TabloCond[j].train+',';
+      condFonction : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+',';
     end;
   end;
 
@@ -2399,6 +2486,27 @@ begin
   end;
   writeln(fichierN,'0');
 
+  writeln(fichierN,'/------------');
+  writeln(fichierN,section_logique_ch);
+  for j:=1 to NbreFL do
+  begin
+    writeln(fichierN,'/--- fonction '+intToSTR(j));
+    writeln(FichierN,'"'+NomFonction[j]+'"');  // ajouter les guillemets pour éviter chaine vide
+    n:=fonction[j,0].adresse;
+    for i:=0 to n-1 do
+    begin
+      s:=intToSTR(i)+','+nomfonc[fonction[j,i].typ]+',';
+      s:=s+'N'+intToSTR(fonction[j,i].niveau)+',';
+      s:=s+'T'+intToSTR(fonction[j,i].typ)+',';
+      s:=s+'A'+intToSTR(fonction[j,i].adresse)+',';
+      s:=s+'E'+intToSTR(fonction[j,i].etat)+',';
+      s:=s+'V'+','+fonction[j,i].train+',';
+      Writeln(fichierN,s);
+    end;
+    Writeln(fichierN,'FF'); // marqueur fin de fonction
+  end;
+  writeln(fichierN,'0');
+
   closefile(fichierN);
 end;
 
@@ -2437,6 +2545,12 @@ begin
       end;
     end;
   end;
+  for i:=1 to NDetecteurs do
+  begin
+    temp:=adresse_detecteur[i];
+    detecteur[temp].index:=i;
+  end;
+
 end;
 
 procedure trier_actionneurs;
@@ -2599,6 +2713,92 @@ begin
     if s[i]=',' then inc(c);
   result:=c;
 end;
+
+function isOperateur(typ : integer): boolean;
+begin
+  result:=(typ>=OpET) and (typ<=OpNON);
+end;
+
+function isVariable(typ : integer): boolean;
+begin
+  result:=(typ>=EtatDCC) and (typ<=EtatDet);
+end;
+
+// donne le texte à mettre dans le tree view en fonction de l'index de fonction[]
+// attention fonction[].typ doit être à jour
+function texte_tv(fonc,i : integer) : string;
+var s : string;
+    etat,typ : integer;
+begin
+  if i=0 then typ:=0 else typ:=fonction[fonc,i].typ;  // pour l'indice 0, le type n'est pas significatif
+
+  s:=NomFonc[typ]+' ';
+  if typ=FoncVar then
+  begin
+    s:=NomVar+' '+IntToSTR(fonction[fonc,0].niveau); // delphi 12 n'accepte pas les tableaux de constante avec le 1er indice à 0 (NomFonc)
+  end;
+  if isVariable(typ) then
+  begin
+    if typ=EtatDCC then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse);
+      etat:=fonction[fonc,i].etat;
+      case etat of
+        1 : s:=s+' dévié ';
+        2 : s:=s+' droit ';
+        else s:=s+' inconnu ';
+      end;
+      s:=s+'('+intToSTR(etat)+')';
+    end;
+    if typ=EtatDet then
+    begin
+      s:=s+fonction[fonc,i].train+' '+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
+    end;
+  end;
+  result:=s;
+end;
+
+function texte_simple_tv(fonc,i : integer) : string;
+var s : string;
+    etat,typ : integer;
+begin
+  if i=0 then typ:=0 else typ:=fonction[fonc,i].typ;  // pour l'indice 0, le type n'est pas significatif
+
+  if typ=FoncVar then
+  begin
+    s:=s+IntToSTR(fonction[fonc,0].niveau);
+  end;
+
+  if isVariable(typ) then
+  begin
+    if typ=EtatDCC then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse);
+      etat:=fonction[fonc,i].etat;
+      case etat of
+        1 : s:=s+' dévié ';
+        2 : s:=s+' droit ';
+        else s:=s+' inconnu ';
+      end;
+    end;
+    if typ=EtatDet then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
+    end;
+  end;
+
+  if isOperateur(typ) then
+  begin
+    case typ of
+    opET : s:=s+'ET';
+    opOU : s:=s+'OU';
+    opNON: s:=s+'NON';
+    end;
+  end;
+
+  result:=s;
+end;
+
 
 procedure lit_config;
 var train,s,sa,SOrigine: string;
@@ -3212,6 +3412,11 @@ var train,s,sa,SOrigine: string;
              if (i<0) or (i>1) then i:=0;
              Tablo_Action[maxtablo_act].Etat:=i;
            end;
+           DeclFonction :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);  // adresse
+             Tablo_Action[maxtablo_act].adresse:=i;
+           end;
         end;
 
 
@@ -3278,6 +3483,11 @@ var train,s,sa,SOrigine: string;
               end
               else sa:=s;
               Tablo_Action[maxtablo_act].tabloCond[k].train:=sa;
+            end;
+            CondFonction :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);  // adresse
+              Tablo_Action[maxtablo_act].TabloCond[k].adresse:=i;
             end;
             end;
           end;
@@ -3866,7 +4076,7 @@ var train,s,sa,SOrigine: string;
         while s[1]=' ' do
         begin
           delete(s,1,1);
-        end;
+        end;                                   
         if ((s[1]='-') or (s[1]='}')) and not bug then begin routePref[j][i].typ:=det;routePref[j][i].pos:=0;end
         else
         begin
@@ -4307,6 +4517,78 @@ var train,s,sa,SOrigine: string;
     until (sOrigine='0') or (s='');
   end;
 
+  procedure compile_fonctions;
+  var posv,v,i,erreur : integer;
+      ss : string;
+      ligne : boolean;
+  begin
+    nbreFL:=0;
+    idOperateur:=0;
+    lit_ligne;
+    repeat    // boucle des fonctions
+      i:=pos('"',sOrigine);
+      if i<>0 then delete(sOrigine,i,1);      // supprime les guillemets
+      i:=pos('"',sOrigine);
+      if i<>0 then delete(sOrigine,i,1);
+      i:=0;
+      NomFonction[NbreFL+1]:=sOrigine;   
+      lit_ligne;
+      ligne:=false;
+      repeat  // boucle de la fonction
+        if (s<>'0') and (s<>'') then
+        begin
+          posv:=pos(',',s);
+          // 0,Variables,N0,T0
+          ss:=copy(s,1,posv-1);  // indice , non compilé
+          delete(s,1,posv);
+
+          posv:=pos(',',s);
+          ss:=copy(s,1,posv-1);  // texte du type , non compilé
+          delete(s,1,posv);
+
+          Delete(s,1,1);         // supprime N
+          val(s,v,erreur);
+          Fonction[NbreFL+1,i].niveau:=v;
+          Delete(s,1,erreur);
+
+          Delete(s,1,1);        // supprime T
+          val(s,v,erreur);
+          delete(s,1,erreur);
+          Fonction[NbreFL+1,i].typ:=v;
+          inc(idOperateur);
+          ArbreFonc[idOperateur,0]:=i;
+
+          Delete(s,1,1);        // supprime A
+          val(s,v,erreur);
+          delete(s,1,erreur);
+          Fonction[NbreFL+1,i].adresse:=v;
+
+          Delete(s,1,1);        // supprime E
+          val(s,v,erreur);
+          delete(s,1,erreur);
+          Fonction[NbreFL+1,i].etat:=v;
+
+          j:=pos('V,',s);
+          if j<>0 then delete(s,1,2);
+          j:=pos(',',s);
+          Fonction[NbreFL+1,i].train:=copy(s,1,j-1);
+
+          inc(i);
+          lit_ligne;
+          ligne:=true;
+        end;
+      until (s='FF') or (s='0') or (s='');  // fin de fonction
+      c:='Z';
+      if s='FF' then
+      repeat
+        readln(fichier,s);
+        sOrigine:=s;
+        if length(s)>0 then c:=s[1];
+      until (c<>'/') or (s='') or eof(fichier) ;
+
+     if ligne then inc(nbreFL);
+    until (s='0') or (s='') ;  // fin des fonctions
+  end;
 
   procedure compile_horloge;
   begin
@@ -5273,6 +5555,13 @@ var train,s,sa,SOrigine: string;
         compile_detecteurs;
       end;
 
+      // section fonctions
+      sa:=uppercase(section_logique_ch);
+      if pos(sa,s)<>0 then
+      begin
+        compile_fonctions;
+      end;
+
 
       inc(it);
     until (eof(fichier));
@@ -5468,7 +5757,6 @@ end;
 
 // génère les informations calculées 
 procedure genere_informations_BD;
-var tabloDet : TTabloDet;
 begin
   renseigne_TJDs_TCO;
   trier_aig;
@@ -6271,13 +6559,137 @@ begin
   end;
 end;
 
+Procedure tout_deployer;
+var i : integer;
+begin
+  for i:=0 to Formconfig.TreeViewL.Items.Count-1 do
+  begin
+    formconfig.TreeViewL.Items[i].Expand(true);
+  end;
+end;
+
+// fabrique le tree view depuis la fonction k
+procedure fabrique_treeview(k : integer);
+var n,niveau,niveauPrec,j,i,idVar,typ : integer;
+    node,nodePrec : Ttreenode;
+    s : string;
+begin
+  if (k=0) or (k>NbreFL) then exit;
+  formConfig.TreeViewL.Items.Clear;
+  nodePrec:=formConfig.TreeViewL.Items.add(nil,texte_tv(k,0));   // Node origine
+  // niv 0
+  idOperateur:=0;
+  idVar:=0;
+  n:=fonction[k,0].adresse;
+  for i:=1 to n-1 do
+  begin
+    begin
+      if i>1 then niveauPrec:=fonction[k,i-1].niveau // niveau précédent  attention pour l'indice 0 c'est le numéro de fonction
+      else NiveauPrec:=1;
+      niveau:=fonction[k,i].niveau;
+
+      s:=texte_tv(k,i);
+
+      // créer le nouveau node
+      if niveau>niveauPrec then node:=formconfig.TreeViewL.items.addchild(nodePrec,s);
+      if niveau=niveauPrec then node:=formconfig.TreeViewL.items.add(nodePrec,s);
+      if niveau<niveauPrec then
+      begin
+        // remonter au niveau précédent
+        j:=i;
+        repeat
+          dec(j);
+        until (j=0) or (fonction[k,j].niveau=niveau);
+        nodePrec:=formconfig.TreeViewL.Items[j];
+        node:=formconfig.TreeViewL.items.add(nodePrec,s);
+        if node.AbsoluteIndex<>i then Affiche('Erreur 784 : Fonction'+intToSTR(k)+': discordance '+intToSTR(Node.AbsoluteIndex)+' / '+intToSTR(i),clred);
+      end;
+
+      typ:=fonction[k,i].typ;
+
+      node.ImageIndex:=typ;
+      node.SelectedIndex:=typ;
+
+      {if isOperateur(typ) then
+      begin
+        inc(idOperateur);
+        idVar:=0;
+        ArbreFonc[idOperateur,0]:=i;
+      end;
+      if isVariable(typ) then
+      begin
+        inc(idVar);
+        ArbreFonc[idOperateur,idVar]:=i;
+      end;}
+
+      if node.parent<>nil then
+      begin
+        fonction[k,i].Indexprec:=node.Parent.AbsoluteIndex;
+      end
+        else fonction[k,i].Indexprec:=0;
+
+      nodePrec:=node;
+    end;
+  end;
+  for i:=1 to 5 do
+    for j:=1 to 4 do
+    begin
+     // Affiche('ArbreFonc['+intToSTR(i)+','+intToSTR(j)+']='+inttostr(arbreFonc[i,j]),clOrange);
+    end;
+  tout_deployer;
+end;
+
+
 procedure TFormConfig.FormCreate(Sender: TObject);
-var i,j,x,y,l,LongestLength,PixelLength : integer;
+var i,j,x,y,l,k,LongestLength,PixelLength : integer;
     cs,s,LongestString : string;
 begin
   if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
 
+  ButtonVoir.Visible:=not(diffusion);
+  LabeledEditTrain.Visible:=not(diffusion);
+
   TabSheetActionneurs.TabVisible:=not(diffusion); // invisible / visible
+  TabSheetFonctions.Visible:=AvecLogique;
+  TreeViewL.HideSelection:=false;
+  TreeViewL.Images:=ImageListLogic;
+
+  with SpinEditEtat do
+  begin
+    Top:=19;
+    Left:=160;
+    Visible:=false;
+    text:='1';
+    MaxValue:=2;
+    Hint:='Etat de l''accessoire'+#13+
+          '1=dévié'+#13+
+          '2=droit';
+    ShowHint:=true;
+  end;
+
+  LabelEtat.Top:=4;
+  LabelEtat.Left:=160;
+  LabelEtat.Visible:=false;
+
+  with ComboBoxOperateur do
+  begin
+    Style:=csOwnerDrawFixed;
+    clear;
+    itemHeight:=18; // hauteur des icones
+    items.add(nomopET);
+    items.add(NomOpOU);
+    //items.add(NomOpNON);
+  end;
+
+  with ComboBoxVar do
+  begin
+    Style:=csOwnerDrawFixed;
+    clear;
+    itemHeight:=18; // hauteur des icones
+    items.add(NomEtatDCC);
+    items.add(NomEtatDet);
+  end;
+
 
   s:=GetCurrentDir;
   if not(directoryExists(rep_icones)) then CreateDir(rep_icones);
@@ -6301,12 +6713,14 @@ begin
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   PageControlTR.ActivePage:=FormConfig.TabSheetTrGen;
   ButtonImRCDM.Hint:='Importation des actionneurs depuis le fichier '+#13+NomModuleCDM;
+  foncCourante:=1;
   Aig_supprime.Adresse:=0;
   Signal_Supprime.Adresse:=0;
   Signal_sauve.adresse:=0;
   AncLigneCliqueePN:=-1;
   lignecliqueePN:=-1;
   clicListe:=false;
+  changeCom:=false;
   ligneCherche:=0;
   Compt_ligne:=0;
   ConfigPrete:=true;
@@ -7296,9 +7710,20 @@ begin
   ligneClicAccPeriph:=-1;
   AncligneClicAccPeriph:=-1;
 
+  fabrique_treeview(1);
+    ComboBoxFL.Clear;
+  for i:=1 to NbreFL do ComboBoxFL.Items.Add(NomVAR+' '+IntToSTR(i));
+
+  if NbreFL<>0 then
+  begin
+    changeCom:=true;
+    ComboBoxFL.ItemIndex:=0;
+    LabeledEditNomLog.text:=nomFonction[1];
+    LabeledEditNumFonc.text:=intToSTR(Fonction[1,0].niveau);
+    changeCom:=false;
+  end;
   couleurs_config;
 end;
-
 
 // décode un morceau d'une chaine d'aiguillage ('P5S')
 //
@@ -8011,6 +8436,7 @@ begin
     if s='' then
     begin
       ligneclicAig:=-1;
+      clicListe:=false;
       exit;
     end;
 
@@ -9805,7 +10231,6 @@ begin
 
       // supprimer le signal i
       Affiche('Supprime signal '+intToSTR(Signaux[i].adresse),clOrange);
-
 
       formconfig.ListBoxSig.Items.Delete(i-1);
 
@@ -12311,7 +12736,7 @@ begin
   end;
 end;
 
-procedure TFormConfig.Button2Click(Sender: TObject);
+procedure TFormConfig.ButtonFSEClick(Sender: TObject);
 begin
   close;
 end;
@@ -12791,17 +13216,20 @@ begin
 
     With LabeledEditV1 do
     begin
-      EditLabel.Caption:='Vitesse 1 - Lente '+intToSTR(Trains[index].ConsV1)+' crans :';
+      EditLabel.Caption:='Coefficient vitesse 1 - Lente '+intToSTR(Trains[index].ConsV1)+' crans :';
+      LabelSpacing:=20;
       Text:=FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2,FormatSettings);
     end;
     With LabeledEditV2 do
     begin
-      EditLabel.Caption:='Vitesse 2 - Moyenne '+intToSTR(Trains[index].ConsV2)+' crans :';
+      EditLabel.Caption:='Coefficient vitesse 2 - Moyenne '+intToSTR(Trains[index].ConsV2)+' crans :';
+      LabelSpacing:=20;
       Text:=FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2,FormatSettings);
     end;
     With LabeledEditV3 do
     begin
-      EditLabel.Caption:='Vitesse 3 - Rapide '+intToSTR(Trains[index].ConsV3)+' crans :';
+      EditLabel.Caption:='Coefficient vitesse 3 - Rapide '+intToSTR(Trains[index].ConsV3)+' crans :';
+      LabelSpacing:=20;
       Text:=FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2,FormatSettings);
     end;
 
@@ -13026,7 +13454,6 @@ begin
   repeat
     if formconfig.ListBoxTrains.selected[i-1] then
     begin
-
       for j:=i to ntrains-1 do
       begin
         formconfig.ListBoxTrains.selected[j-1]:=formconfig.ListBoxTrains.selected[j];
@@ -16245,6 +16672,937 @@ begin
   formconfig.ListBoxActionneurs.selected[ligneclicActionneur]:=true;
 end;
 
+// gestion des fonctions -------------------
+// https://wiki.freepascal.org/TTreeView
+
+// supprime un élément index d'une fonction fonc dans le tableau fonction[][]
+procedure supprime_element_fonction(fonc,index : integer);
+var i,n : integer;
+begin
+  n:=fonction[fonc,0].adresse;
+  for i:=index to n-1 do
+  begin
+    fonction[fonc,i]:=fonction[fonc,i+1];
+  end;
+  if fonction[fonc,0].adresse>0 then dec(fonction[fonc,0].adresse);
+end;
+
+
+procedure TFormConfig.LabeledEditEtatAccChange(Sender: TObject);
+var node : tTreenode;
+    i,v,erreur : integer;
+    s : string;
+begin
+  if ClicTree then exit;
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  config_modifie:=true;
+  val(LabeledEditEtatAcc.text,v,erreur);
+  fonction[foncCourante,i].etat:=v;
+  s:=texte_tv(foncCourante,i);
+  node.Text:=s;
+end;
+
+
+procedure TFormConfig.LabeledEditDCCChange(Sender: TObject);
+var node : tTreenode;
+    i,v,erreur : integer;
+    s : string;
+begin
+  if clicTree then exit;
+
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  config_modifie:=true;
+  val(LabeledEditDCC.text,v,erreur);
+  fonction[foncCourante,i].adresse:=v;
+  s:=texte_tv(foncCourante,i);
+  node.Text:=s;
+end;
+
+
+procedure TformConfig.outdployer1Click(Sender: TObject);
+begin
+  tout_deployer;
+end;
+
+procedure TFormConfig.ComboBoxVarDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+begin
+  comboboxVar.canvas.fillrect(rect);
+
+  // dessine l'icone
+  imagelistLogic.Draw(comboBoxVar.Canvas,rect.left,rect.top,Index+EtatDCC); //+1 car on commence à 1
+
+  // ecrit le texte
+  comboboxVar.canvas.textout(rect.left+imagelistLogic.width+2,rect.top,
+                          comboboxVar.items[index]);
+end;
+
+procedure TFormConfig.ComboBoxVarChange(Sender: TObject);
+var node : tTreenode;
+    i,Fnode,inode : integer;
+begin
+  if clicListe then exit;
+  node:=TreeViewL.Selected;
+  if assigned(node) then
+  begin
+    i:=ComboBoxVar.ItemIndex;
+    inode:=node.AbsoluteIndex;
+    Fnode:=node.ImageIndex;
+    // si le node est une fonction logique ET OU NON
+    //if (Fnode>=EtatDCC) and (Fnode<=EtatDet) and (i+OpNON+1>=EtatDCC) and (i+OpNON+1<=EtatDet) then
+    if isVariable(Fnode) then //and isVariable(i+opNON) then
+    begin
+      fonction[foncCourante,inode].typ:=i+etatDCC;
+      node.Text:=texte_tv(foncCourante,inode);
+      node.ImageIndex:=i+etatDCC;
+      node.SelectedIndex:=i+etatDCC;
+
+      if i+EtatDCC=EtatDet then
+      begin
+        LabeledEditTrain.Visible:=true;
+        LabeledEditDCC.EditLabel.Caption:='Adresse';
+      end;
+      if i+EtatDCC=EtatDCC then
+      begin
+        LabeledEditTrain.Visible:=false;
+        LabeledEditDCC.EditLabel.Caption:='Adresse accessoire';
+      end;
+
+    end;
+  end;
+end;
+
+procedure TFormConfig.ComboBoxOperateurChange(Sender: TObject);
+var node : tTreenode;
+    i,inode,Fnode : integer;
+begin
+  if clicListe then exit;
+  node:=TreeViewL.Selected;
+  if assigned(node) then
+  begin
+    i:=ComboBoxOperateur.ItemIndex+1;
+    inode:=node.AbsoluteIndex;
+    Fnode:=node.ImageIndex;
+    // si le node est un opérateur ET OU NON
+    //if (Fnode>=OpET) and (Fnode<=OpNON) and (i>=OpET) and (i<=OpNON) then
+    if isOperateur(Fnode) and (isOperateur(i)) then
+    begin
+      fonction[foncCourante,inode].typ:=i;
+      node.Text:=texte_tv(foncCourante,inode);
+      node.ImageIndex:=i;
+      node.SelectedIndex:=i;
+    end;
+  end;
+end;
+
+
+procedure TFormConfig.outcontracter1Click(Sender: TObject);
+var i : integer;
+begin
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    TreeViewL.Items[i].Collapse(true);
+  end;
+end;
+
+procedure TFormConfig.TreeViewLChange(Sender: TObject; Node: TTreeNode);
+// cliqué ou sélectionné un node
+var i,inode,typ : integer;
+begin
+  if Assigned(Node) then
+  begin
+    clicTree:=true;
+    i:=node.ImageIndex;
+    inode:=node.AbsoluteIndex;
+    //Affiche('Le node '+intToSTR(iNode)+' est '+node.Text+' image='+intToSTR(node.ImageIndex),clYellow);
+    if i=foncVar then
+    begin
+
+      TreeViewL.hint:='Numéro de fonction logique';
+      ComboBoxVar.Enabled:=false;
+      ComboBoxOperateur.Enabled:=false;
+      LabelEtat.visible:=false;
+      SpineditEtat.visible:=false;
+      ButtonAjouteOperateur.Enabled:=false;
+      ButtonAjOpEnfant.Enabled:=true;
+      ButtonAjoutevar.enabled:=false;
+      PanelAcc.Visible:=false;
+      typ:=fonction[foncCourante,inode+1].typ;
+      if node.HasChildren then
+        ButtonAjOpEnfant.Enabled:=false
+      else
+        ButtonAjOpEnfant.Enabled:=true;
+    end
+      else ButtonAjoutevar.enabled:=true;
+
+    if isOperateur(i) then
+    begin
+      // interdire montée descente menu
+      PopupMenuFL.Items[0].Enabled:=false;
+      PopupMenuFL.Items[1].Enabled:=false;
+
+      TreeViewL.hint:='Opérateur logique';
+      ComboBoxVar.Enabled:=false;
+      LabelEtat.visible:=false;
+      SpineditEtat.visible:=false;
+      LabeledEditEtatAcc.visible:=false;
+      LabeledEditTrain.visible:=false;
+
+      ComboBoxOperateur.Enabled:=true;
+      ComboBoxOperateur.ItemIndex:=i-1;
+      PanelAcc.Visible:=false;
+      ButtonAjOpEnfant.Enabled:=true;
+      //if i=1 then ButtonAjOpEnfant.Enabled:=false else ButtonAjOpEnfant.Enabled:=true;
+
+      clicTree:=false;
+      exit;
+    end;
+
+    if isVariable(i) then
+    begin
+       // autoriser montée descente menu
+      PopupMenuFL.Items[0].Enabled:=true;
+      PopupMenuFL.Items[1].Enabled:=true;
+
+
+      TreeViewL.hint:='état logique';
+      PanelAcc.Visible:=true;
+
+      ComboBoxVar.Enabled:=true;
+      ComboBoxOperateur.Enabled:=false;
+      ComboBoxVar.ItemIndex:=i-EtatDCC;
+      ButtonAjoutevar.enabled:=true;
+      LabeledEditTrain.visible:=true;
+      ButtonAjOpEnfant.Enabled:=false;   // on ne peut pas ajouter d'opérateur sur une variable
+
+      if i=EtatDCC then
+      begin
+        LabelEtat.Visible:=true;
+        SpinEditEtat.Visible:=true;
+        LabeledEditEtatACC.Visible:=false;
+        LabeledEditTrain.visible:=false;
+        PanelAcc.Visible:=true;
+        LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
+        LabeledEditDcc.EditLabel.Caption:='Adresse accessoire';
+        SpinEditEtat.Value:=fonction[foncCourante,iNode].etat;
+      end;
+
+      if i=EtatDet then
+      begin
+        LabelEtat.Visible:=false;
+        LabeledEditTrain.visible:=true;
+        LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
+        SpinEditEtat.Visible:=false;
+        LabeledEditEtatACC.Visible:=true;
+        LabeledEditDcc.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
+        LabeledEditDcc.EditLabel.Caption:='Adresse';
+        LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
+      end;
+    end;
+  end;
+  clicTree:=false;
+end;
+
+ // insère une entrée dans le tableau fonction à l'indice index, et remplit niveau et fonc
+procedure insersion(k,index,niveau,fonc : integer);
+var i : integer;
+begin
+  for i:=fonction[k,0].adresse-1 downto index do
+  begin
+    fonction[k,i+1]:=fonction[k,i];
+  end;
+  fonction[k,index].niveau:=niveau;
+  fonction[k,index].typ:=fonc;
+end;
+
+procedure insersion_simple(k,index : integer);
+var i : integer;
+begin
+  for i:=fonction[k,0].adresse-1 downto index do
+  begin
+    fonction[k,i+1]:=fonction[k,i];
+  end;
+end;
+
+procedure TFormConfig.Descendre1Click(Sender: TObject);
+var nodeA,nodeB : tTreeNode;
+    idA,idB : integer;
+    fonc : Tfonction;
+begin
+  nodeA:=TreeviewL.Selected;
+  if nodeA<>nil then
+  // s'assurer que le suivant est un node frère
+  if nodeA.GetNextSibling <> nil then
+    // si oui le descendre
+    // naAdd, naAddFirst, naAddChild, naAddChildFirst, naInsert
+    // naAdd        The new or relocated node becomes the last sibling of the other node.
+    // naAddFirst   The new or relocated node becomes the first sibling of the other node.
+    // naInsert     The new or relocated node becomes the sibling immediately before the other node.
+    // naAddChild   The new or relocated node becomes the last child of the other node.
+    // naAddChildFirst The new or relocated node becomes the first child of the other node. Non reconnu en D7
+  begin
+    nodeB:=nodeA.GetNextSibling;
+    {$IF CompilerVersion >= 28.0}   // si delphi>=11
+    TreeviewL.Selected.MoveTo(nodeB,naAddChildFirst);
+    {$ELSE}
+    TreeviewL.Selected.MoveTo(nodeB,naAdd);
+    {$IFEND}
+    idA:=nodeA.AbsoluteIndex;
+    idB:=nodeB.AbsoluteIndex;
+    fonc:=fonction[foncCourante,iDA];
+    fonction[foncCourante,idA]:=fonction[foncCourante,idB];
+    fonction[foncCourante,idB]:=fonc;
+    config_modifie:=true;
+  end;
+end;
+
+// monter le node
+procedure TFormConfig.M1Click(Sender: TObject);
+var nodeA,nodeB : tTreeNode;
+    idA,idB : integer;
+    fonc : Tfonction;
+begin
+  nodeA:=TreeviewL.Selected;
+  if(nodeA<>nil) then
+    // Asssure qu'il y a un node frère au dessus
+    if nodeA.GetPrevSibling <> nil then
+    // oui le monter
+    begin
+      nodeB:=nodeA.GetPrevSibling;  // celui du dessus
+      idA:=nodeA.AbsoluteIndex;    // origine
+      idB:=nodeB.AbsoluteIndex;   // destination
+      fonc:=Fonction[foncCourante,idA];  // sauver le node origine
+      TreeviewL.Selected.MoveTo(nodeB,naInsert);
+      nodeB:=treeViewL.Items[idB];
+
+      insersion_simple(fonccourante,idB);
+      // remplir
+      fonction[foncCourante,idB]:=fonc;
+      // ajuster le niveau
+      fonction[foncCourante,idB].niveau:=TreeViewL.items[idB].Level+1;
+      // ajuster le parent
+      fonction[foncCourante,idB].Indexprec:=TreeViewL.items[idB].Parent.AbsoluteIndex;
+
+    end;
+end;
+
+procedure TFormConfig.ButtonVoirClick(Sender: TObject);
+var i,n : integer;
+    s : string;
+begin
+{  Affiche('tableau treeview---------',clOrange);
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    s:=inttoSTR(i)+' '+TreeViewL.Items[i].Text;
+    s:=s+' Niveau=';
+    s:=s+intToSTR(TreeViewL.Items[i].Level);
+    if TreeViewL.Items[i].IsFirstNode then s:=s+' *';
+    if TreeViewL.Items[i].HasChildren then s:=s+' ->';
+    Affiche(s,clYellow);
+  end;
+}
+  Affiche('tableau fonction----------',clOrange);
+  n:=fonction[foncCourante,0].adresse;
+  for i:=0 to n-1 do
+  begin
+    s:=inttoSTR(i)+' '+NomFonc[fonction[foncCourante,i].typ];
+    if i=0 then s:=s+' Nombre='+intToSTR(Fonction[foncCourante,i].adresse)+' Numéro='
+    else  s:=s+' Niveau=';
+    s:=s+intToSTR(fonction[foncCourante,i].niveau)+' idParent='+intToSTR(fonction[foncCourante,i].Indexprec);
+    if i<>0 then s:=s+'  adr='+intToSTR(fonction[foncCourante,i].adresse)+' état='+intToSTR(fonction[foncCourante,i].etat);
+    if fonction[foncCourante,i].train<>'' then s:=s+' '+fonction[foncCourante,i].train;
+    Affiche(s,clYellow);
+  end;
+end;
+
+
+// trouve le parent d'un opérateur
+procedure trouve_parent_OP(k,idNode : integer);
+var j,niveau : integer;
+    node : TTreenode;
+begin
+  niveau:=fonction[k,idnode].niveau;
+  // remonter au niveau précédent
+  j:=idNode;
+  repeat
+     dec(j);
+  until (j=0) or (fonction[k,j].niveau=niveau);
+  node:=formconfig.TreeViewL.Items[j];
+  //if node.AbsoluteIndex<>i then Affiche('Erreur 784 : Fonction'+intToSTR(k)+': discordance '+intToSTR(Node.AbsoluteIndex)+' / '+intToSTR(idNode),clred);
+  if node.Parent<>nil then fonction[k,idNode].Indexprec:=node.Parent.AbsoluteIndex
+    else fonction[k,idNode].Indexprec:=node.AbsoluteIndex;
+end;
+
+procedure TFormConfig.ButtonAjouteOperateurClick(Sender: TObject);
+var node,NodeOrigine : Ttreenode;
+    n,inode,typ,inodeOrigine : integer;
+begin
+  n:=TreeViewL.Items.Count;
+  if n>=95 then exit;
+  // premier
+  if n=0 then exit;
+
+  nodeOrigine:=TreeViewL.Selected;
+  if nodeOrigine=nil then exit;
+
+  // on ne peut pas ajouter un opérateur sur Variable ou opérateur sur index 0 ou 1 si il y a déja un enfant opérateur
+  inodeOrigine:=NodeOrigine.AbsoluteIndex;
+  typ:=fonction[foncCourante,inodeOrigine+1].typ;
+  if (inodeOrigine=0) and isOperateur(typ) then exit;
+  if inodeOrigine=0 then exit;
+  typ:=fonction[foncCourante,inodeOrigine].typ;
+
+  Node:=TreeViewL.items.Add(nodeOrigine,NomFonc[1]) ;
+  config_modifie:=true;
+
+  Node.ImageIndex:=1;
+  Node.SelectedIndex:=1;
+  NodeOrigine.Expand(true);
+
+  inode:=node.AbsoluteIndex;
+
+  if inode<TreeViewL.Items.count then
+  begin
+    if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
+    insersion(fonccourante,inode,node.level+1,opET); 
+
+  end
+  else
+  begin  // ajout en fin
+    if not(diffusion) then Affiche('Ajout en '+inttoSTR(inode),clyellow);
+    fonction[foncCourante,inode].niveau:=node.Level+1;
+    fonction[foncCourante,inode].typ:=opET;
+  end;
+
+  fonction[foncCourante,inode].Indexprec:=inodeOrigine;
+  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
+
+  trouve_parent_OP(FoncCOurante,inode);
+
+  //fonction[foncCourante,inode].niveau:=node.Level+1;
+  //fonction[foncCourante,inode].typ:=OpET;
+end;
+
+procedure TFormConfig.ButtonAjOpEnfantClick(Sender: TObject);
+  var node,NodeOrigine : Ttreenode;
+    n,inode,typ,inodeOrigine : integer;
+begin
+  n:=TreeViewL.Items.Count;
+  if n>=95 then exit;
+  // premier
+  if n=0 then exit;
+
+  nodeOrigine:=TreeViewL.Selected;
+  if nodeOrigine=nil then exit;
+
+  inodeOrigine:=NodeOrigine.AbsoluteIndex;
+
+  if iNodeOrigine=0 then ButtonAjOpEnfant.Enabled:=false;
+
+  Node:=TreeViewL.items.AddChild(nodeOrigine,NomFonc[1]) ;
+  config_modifie:=true;
+
+  Node.ImageIndex:=1;
+  Node.SelectedIndex:=1;
+  NodeOrigine.Expand(true);
+
+  inode:=node.AbsoluteIndex;
+
+  if inode<TreeViewL.Items.count then
+  begin
+    if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
+    insersion(fonccourante,inode,node.level+1,opET); 
+
+  end
+  else
+  begin  // ajout en fin
+    if not(diffusion) then Affiche('Ajout en '+inttoSTR(inode),clyellow);
+    fonction[foncCourante,inode].niveau:=node.Level+1;
+    fonction[foncCourante,inode].typ:=opET;
+  end;
+
+  fonction[foncCourante,inode].Indexprec:=inodeOrigine;
+  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
+
+  trouve_parent_OP(FoncCOurante,inode);
+
+end;
+
+procedure supprime_fonction(n : integer);
+var i : integer;
+begin
+  if NbreFL>0 then
+  begin
+    for i:=n to NbreFL-1 do
+    begin
+      fonction[i]:=fonction[i+1];
+      NomFonction[i]:=NomFonction[i+1];
+    end;
+    dec(NbreFL);
+    formconfig.ComboBoxFL.Clear;
+    for i:=1 to NbreFL do formconfig.ComboBoxFL.Items.Add(texte_tv(i,0));
+
+    formConfig.ComboBoxFL.ItemIndex:=-1;
+  end
+  else
+  Affiche('Erreur de suppression',clred);
+end;
+
+
+
+// supprime un élément du treeview et de fonction[]
+// la suppression peut changer les niveaux
+procedure supprime_node;
+var inode,NivOrigine,Niv : integer;
+    node,NodeOrigine : TtreeNode;
+    s : string;
+begin
+  node:=formConfig.TreeViewL.Selected;
+  if node=nil then exit;
+
+  inode:=node.AbsoluteIndex;
+
+  if node.HasChildren then
+  begin
+    s:='Voulez vous supprimer l''élément ['+texte_tv(foncCourante,inode)+'] et ses enfants?';
+    if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  end;
+
+  config_modifie:=true;
+
+  if node.HasChildren then
+  begin
+    NivOrigine:=node.Level;
+    NodeOrigine:=node;
+    inode:=NodeOrigine.AbsoluteIndex;
+    Affiche('1.Supprime '+node.Text+' n='+intToSTR(NivOrigine)+' indexNode'+intToSTR(inode),clred);
+    Supprime_element_fonction(foncCourante,inode);
+
+    Niv:=nivorigine+1;
+    while (niv>NivOrigine) and (node<>nil) do
+    begin
+      node:=node.GetNext;
+      if node<>nil then
+      begin
+        Niv:=node.Level;
+        if niv>NivOrigine then
+        begin
+          inode:=node.AbsoluteIndex;
+          Affiche('2.Supprime '+node.Text+' n='+intToSTR(Niv)+' indexNode'+intToSTR(inode),clred);
+          supprime_element_fonction(foncCourante,inode);
+        end;
+      end;
+    end;
+    nodeOrigine.delete;
+    //Affiche('il reste '+intToSTR(fonction[foncCourante,0].adresse),clYellow);
+    if fonction[foncCourante,0].adresse=0 then supprime_fonction(foncCourante);
+    exit;
+  end;
+
+  node.Delete;
+  supprime_element_fonction(foncCourante,inode);
+  //Affiche('il reste '+intToSTR(fonction[foncCourante,0].adresse),clYellow);
+  if fonction[foncCourante,0].adresse=0 then supprime_fonction(foncCourante);
+end;
+
+procedure TFormConfig.ButtonSupLogClick(Sender: TObject);
+begin
+  supprime_node;
+end;
+
+procedure TFormConfig.ButtonAjouteVarClick(Sender: TObject);
+var NodeOrigine,node : Ttreenode;
+    n,j,inode,niveau : integer;
+begin
+  n:=TreeViewL.Items.Count;
+  if (n=0) or (n>=95) then exit;
+
+  node:=nil;
+  nodeOrigine:=TreeViewL.Selected;
+  if nodeOrigine=nil then exit;
+
+  // si le node origine est un opérateur
+  if isOperateur(nodeOrigine.ImageIndex) then
+  begin
+    Node:=TreeViewL.items.AddChild(nodeOrigine,NomEtatDCC);
+    Node.ImageIndex:=EtatDCC;
+    Node.SelectedIndex:=EtatDCC;
+    NodeOrigine.Expand(true);
+  end;
+  // si le node origine est une variable
+  if isVariable(nodeOrigine.ImageIndex) then
+  begin
+    Node:=TreeViewL.items.Add(nodeOrigine,NomEtatDCC);
+    Node.ImageIndex:=EtatDCC;
+    Node.SelectedIndex:=EtatDCC;
+    NodeOrigine.Expand(true);
+  end;
+  config_modifie:=true;
+  if node=nil then exit;
+
+  inode:=node.AbsoluteIndex;
+  //
+  if inode<TreeViewL.Items.count then
+  begin
+    if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
+    insersion(fonccourante,inode,node.level+1,EtatDCC);
+  end
+  else
+  begin  // ajout en fin
+    if not(diffusion) then Affiche('Ajout en '+inttoSTR(inode),clyellow);
+    fonction[foncCourante,inode].niveau:=node.Level+1;
+    fonction[foncCourante,inode].typ:=EtatDCC;
+  end;
+
+  Niveau:=TreeviewL.Items[inode].Level+1;
+
+  // remonter au niveau précédent pour trouver le parent
+  j:=iNode;
+  repeat
+     dec(j);
+  until (j=0) or (fonction[foncCourante,j].niveau+1=niveau);
+  fonction[foncCourante,iNode].Indexprec:=j;
+
+  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
+
+end;
+
+procedure TFormConfig.ComboBoxOperateurDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+begin
+  ComboBoxOperateur.canvas.fillrect(rect);
+
+  // Affiche l'image dans la comboboc
+  imagelistLogic.Draw(ComboBoxOperateur.Canvas,rect.left,rect.top,Index+1); //+1 car on commence à 1
+
+  if index=2 then
+      SetTextColor(Canvas.Handle, clBlack)
+    else
+      SetTextColor(Canvas.Handle, clGray);
+
+  // écrit le texte
+  ComboBoxOperateur.canvas.textout(rect.left+imagelistLogic.width+2,rect.top,
+                          ComboBoxOperateur.items[index]);
+end;
+
+
+
+// Nouvelle fonction
+procedure TFormConfig.ButtonNouvFLClick(Sender: TObject);
+begin
+  if NbreFL>=100 then exit;
+  inc(NbreFL,1);
+  FoncCourante:=NbreFL; // nombre de fonctions
+  ComboBoxFL.Items.add(NomVAR+' '+intToSTR(NbreFL));
+  ComboBoxFL.ItemIndex:=NbreFL-1;
+  LabeledEditNomLog.Text:=NomFonction[NbreFl];
+  fonction[FoncCourante,0].niveau:=NbreFL;
+  fonction[FoncCourante,0].typ:=FoncVar;           // identificateur de fonction
+
+  fonction[foncCourante,0].adresse:=1;       // nombre d'éléments
+  config_modifie:=true;
+  ButtonAjouteOperateur.enabled:=false;
+  ButtonAjOpEnfant.enabled:=true;
+  ButtonAjoutevar.enabled:=false;
+
+  treeViewL.items.Clear;
+  TreeViewL.Items.add(nil,texte_tv(foncCourante,0));
+
+  LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
+
+end;
+
+procedure TFormConfig.ComboBoxFLChange(Sender: TObject);
+var i : integer;
+begin
+  if changeCom or ClicTree then exit;
+  if affevt then Affiche('ComboBoxFL change',clyellow);
+  FoncCourante:=ComboBoxFL.itemIndex+1;
+  fabrique_treeview(FoncCourante);
+
+  for i:=0 to TreeViewL.Items.Count-1 do
+  begin
+    TreeViewL.Items[i].Expand(true);
+  end;
+
+  changeCom:=true;
+  LabelFonction.caption:='';
+  LabeledEditNomLog.Text:=NomFonction[FoncCourante];
+  LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
+  changeCom:=false;
+end;
+
+Function Etat_variable(k,i : integer): boolean ;
+var pos,j,typ,adr : integer;
+    resultat : boolean;
+    train : string;
+begin
+  adr:=fonction[k,i].adresse;
+  typ:=fonction[k,i].typ;
+
+  if typ=EtatDCC then // si état DCC
+  begin
+    j:=index_aig(adr);
+    pos:=aiguillage[j].position;
+    result:=(pos=const_droit) and (fonction[k,i].etat=2) or (pos=const_devie) and (fonction[k,i].etat=1);   // 1=dévié 2=droit
+    exit;
+  end;
+
+  if typ=EtatDet then // si état détecteur / actionneur
+  begin
+    resultat:=detecteur[adr].Etat=(fonction[k,i].etat=1);
+    // ajouter ici si on teste un train sur détecteur
+    train:=fonction[k,i].train;
+    if train<>'' then
+    begin
+      //Affiche('Eval45 '+intToSTR(adr)+' '+Train,clwhite);
+      if detecteur[adr].Train<>train then resultat:=false;
+    end;
+
+    result:=resultat;
+    exit;
+  end;
+end;
+
+// donne le suivant de même niveau de même index précédent
+function suivant_niveau(k,i : integer) : integer;
+var node : Ttreenode;
+    n,idparent,Niveau : integer;
+    trouve : boolean;
+begin
+  n:=fonction[k,0].adresse;
+  Niveau:=fonction[k,i].niveau;
+  idparent:=fonction[k,i].Indexprec;
+  repeat
+    inc(i);
+    trouve:=(fonction[k,i].niveau=niveau) and (fonction[k,i].IndexPrec=idparent);
+  until trouve or (i>=n-1);
+
+  if trouve then result:=i else result:=-1;
+
+end;
+
+// évalue en récursif une branche d'opérateur de fonction
+// k : numéro de fonction ; i : index dans l'arbre de la fonction ; compteur: compteur d'opérande de l'opérateur
+function evalue_operateur(k,i,compteur : integer;var formule : string) : boolean;
+var j,typ,typOP,niv,niveau,parent,suivant : integer;
+    debugFonction,resultatOP,resultat : boolean;
+    node : Ttreenode;
+    s : string;
+begin
+  debugFonction:=false;
+  repeat
+    typ:=fonction[k,i].typ;
+    niveau:=fonction[k,i].niveau;
+    niv:=niveau;
+    fonction[k,i].traite:=true;
+    if debugFonction then Affiche(IntToSTR(i)+' traité',clyellow);
+
+    if IsVariable(typ) then
+    begin
+      typOP:=fonction[k,i-1].typ; // type de l'opérande à l'index précédent
+      while isVariable(typ) and (niveau=niv) do
+      begin
+        if compteur=0 then resultat:=etat_variable(k,i) else     // 1er état de la variable
+        begin
+          if typOP=opET then resultat:=etat_variable(k,i) and resultat;
+          if typOP=opOU then resultat:=etat_variable(k,i) or resultat;
+        end;
+        if compteur>0 then formule:=formule+', ';
+        formule:=formule+texte_simple_tv(k,i);
+
+        if debugFonction then
+        begin
+          s:='Id='+intToSTR(i)+' '+texte_TV(k,i);
+          if resultat then s:=s+' 1' else s:=s+' 0';
+          Affiche(s,clYellow);
+        end;
+        fonction[k,i].traite:=true;
+        //Affiche(IntToSTR(i)+' traité',clyellow);
+
+        inc(i);
+        inc(compteur);
+        typ:=fonction[k,i].typ;
+        niv:=fonction[k,i].niveau;
+      end;
+      // on sort car on vient de rencontrer un niveau inférieur
+      if niv<niveau then
+      begin
+        if debugFonction then Affiche('Sortie A car niveau inférieur à l''index '+intToSTR(i),clLime);
+        formule:=formule+')';
+        //Affiche(')',clyellow);
+        result:=resultat;
+        exit;
+      end;
+    end;
+
+    if IsOperateur(typ) then
+    begin
+      if debugFonction then Affiche('Id='+intToSTR(i)+' '+texte_TV(k,i),clWhite);
+      if i>1 then formule:=formule+', ';
+      formule:=formule+texte_simple_tv(k,i)+'(';
+      fonction[k,i].traite:=true;
+
+      inc(i);
+      resultatOP:=evalue_operateur(k,i,0,formule); //***********************
+      dec(i);
+
+      if debugFonction then
+      begin
+        s:='-------------Résultat de l''opérateur index '+intToSTR(i)+': ';
+        if resultatOP then s:=s+'R= 1' else s:=s+'R= 0';
+      end;
+
+      parent:=fonction[k,i].Indexprec;
+      typ:=fonction[k,parent].typ;
+      if compteur=0 then resultat:=resultatOP else
+      begin
+        if typ=opET then resultat:=resultat and resultatOP;
+        if typ=opOU then resultat:=resultat or resultatOP;
+      end;
+      inc(compteur);
+      if debugFonction then
+      begin
+        if resultat then s:=s+'résultat chainé R= 1' else s:=s+'résultat chainé R= 0';
+        Affiche(s,clYellow);
+      end;
+
+      if fonction[k,i].traite then
+      begin
+        //il faut le suivant au i de même niveau et de même précédent
+        suivant:=suivant_niveau(k,i);
+        if debugFonction then Affiche('Suivant à l''index '+intToSTR(i)+' est '+intToSTR(suivant),clYellow);
+        if suivant=-1 then
+        begin
+          result:=resultat;
+          if debugFonction then Affiche('Sortie B ',clYellow);
+          if i<>1 then formule:=formule+')';  // dernier )
+          //Affiche(intToSTR(i)+')',clred);
+          exit;
+        end;
+        i:=suivant;
+      end;
+
+      //suivant:=suivant_niveau(k,i);
+      if (suivant=-1) and (fonction[k,i].niveau=2) then
+      begin
+        result:=resultat;
+        if debugFonction then Affiche('Sortie finale ',clYellow);
+        exit;
+      end;
+    end;
+
+  until i>=fonction[k,0].adresse;
+
+  result:=resultat;
+end;
+
+// évalue la fonction NumFonc, et renvoie dans s sa formule
+function evalue_fonction(NumFonc : integer;var formule : string) : boolean;
+var i,nbre : integer;
+    s : string;
+begin
+  nbre:=fonction[Numfonc,0].adresse;
+  if nbre<2 then exit;
+
+  for i:=1 to nbre-1 do
+  begin
+    fonction[NumFonc,i].traite:=false;
+  end;
+
+  formule:='';
+
+  fonction[numFonc,0].etatprec:=fonction[numFonc,0].etatactuel;
+  fonction[numFonc,0].etatactuel:=evalue_operateur(Numfonc,1,0,formule) ;    // pour gérer le front montant
+  result:=fonction[numFonc,0].etatactuel;
+end;
+
+procedure TFormConfig.ButtonEvalueClick(Sender: TObject);
+var s,formule,vf : string;
+begin
+  //s:='Résultat de fonction '+intToSTR(FoncCourante)+' '+NomFonction[FoncCourante]+' : ';
+
+  if evalue_fonction(foncCourante,formule) then vf:='1' else vf:='0';
+
+ // Affiche(s+vf,clLime);
+  LabelFonction.caption:=formule+' = '+vf;
+  //affiche(formule,clorange);
+end;
+
+
+// menu
+procedure TFormConfig.Supprimer2Click(Sender: TObject);
+begin
+  supprime_node;
+end;
+
+procedure TFormConfig.LabeledEditNomLogChange(Sender: TObject);
+begin
+  if clicListe then exit;
+  NomFonction[foncCourante]:=LabelededitNomLog.text;
+end;
+
+
+
+procedure TFormConfig.SpinEditEtatChange(Sender: TObject);
+var i,erreur,v : integer;
+    node : tTreeNode;
+begin
+  if ClicTree then exit;
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  val(SpinEditEtat.Text,v,erreur);
+  if (v<1) or (v>2) or (erreur<>0) then
+  begin
+    SpinEditEtat.value:=0;
+    exit;
+  end;
+  SpinEditEtat.value:=v;
+  fonction[foncCourante,i].etat:=v;
+  node.Text:=texte_tv(foncCourante,i);
+end;
+
+procedure TFormConfig.LabeledEditNumFoncChange(Sender: TObject);
+var v,erreur : integer;
+    s : string;
+begin
+  if clicTree or (foncCourante=0) or changeCom or (TreeViewL=nil) then exit;
+  if affevt then Affiche('LabeledEditNumFonc Change',clyellow);
+  config_modifie:=true;
+  val(LabeledEditNumFonc.text,v,erreur);
+  if (erreur<>0) or (v<1) then exit;
+  fonction[foncCourante,0].Niveau:=v;
+  s:=texte_tv(foncCourante,0);
+  TreeviewL.Items[0].Text:=s;
+  ChangeCom:=true;
+  ComboBoxFL.Items[FoncCourante-1]:=s;
+  ComboBoxFL.ItemIndex:=FoncCourante-1;
+
+  changeCom:=false;
+end;
+
+procedure TFormConfig.LabeledEditTrainChange(Sender: TObject);
+var node : tTreenode;
+    i,v,erreur : integer;
+    s : string;
+begin
+  if ClicTree then exit;
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  config_modifie:=true;
+
+  fonction[foncCourante,i].train:=labeledEditTrain.Text;
+end;
 
 
 end.

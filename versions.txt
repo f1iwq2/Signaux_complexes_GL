@@ -288,4 +288,6 @@ version 9.42 : Affiche des exclusions dans la fenêtre de pilotage des signaux.
 			   Correction décodeur SR pour aspects combinés.
 version 9.5  : Etalonnage des vitesses des locomotives pour le mode autonome
                pour arret précis sur détecteurs à distance souhaitée.
-			   
+version 9.6  : Fonctions logiques sur position d'accessoires, de détecteurs et d'actionneurs
+               intégrables dans les déclencheurs et les conditions des actions.
+			  

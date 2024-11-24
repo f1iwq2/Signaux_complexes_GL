@@ -76,16 +76,15 @@ unit Unitprinc;
 //{$R-}  // pas de vérification des limites d'index du tableau et des variables
 
 
-{$DEFINE xAvecIdTCP}   // le composant IdTCPClient na pas d'evt receive, il faut le traiter dans un thread
+{$DEFINE xAvecIdTCP}   // le composant IdTCPClient n'a pas d'evt receive, il faut le traiter dans un thread
 // il ne marche pas bien en version D12, l'évent RX provoque une violation au démarrage puis plus rien
-
 
 interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem ,
-  Buttons, NB30, comObj, activeX ,DateUtils, PsAPI
+  Buttons, NB30, comObj, activeX //,DateUtils//, PsAPI
   {$IFDEF AvecIdTCP}
   ,IdTCPClient // client socket indy
   {$ENDIF}
@@ -637,7 +636,7 @@ DeclZoneDet=5;
 DeclDemarTrain=6;
 DeclArretTrain=7;
 DeclSignal=8;
-DeclLogique=9;
+DeclFonction=9;
 
 // conditions
 CondVrai=1;
@@ -646,7 +645,7 @@ CondVitTrain=3;
 CondPosAcc=4;
 CondHorl=5;
 CondTrainSig=6;
-
+CondFonction=7;
 
 // Type d'opération (action)
 Action0=0;
@@ -686,7 +685,7 @@ IconeFaux=15;
 IconeSignal=22;
 IconeDeclSignal=23;
 IconeDroite=24;
-IconeLogique=25;
+IconeFonction=25;
 
 
 type
@@ -701,6 +700,18 @@ TBranche      = record
                   BType : Tequipement ;   // ne prend que les valeurs suivantes: dét aig Buttoir
                   Adresse : integer ;     // adresse du détecteur ou de l'aiguillage
                 end;
+
+Tfonction =
+ record
+    typ : integer;
+    Indexprec  : integer ;       // index du niveau précédent d'origine (parent)
+    adresse,etat : integer;      // adresse : l'indice 0 contient le nombre d'éléments
+    niveau : integer;            // niveau : l'indice 0 contient le numéro de fonction modifiable
+    traite : boolean;
+    etatprec : boolean;          // sert au front montant
+    etatactuel : boolean;          // etat actuel
+    train : string;
+  end;
 
 Taiguillage = record
                 Adresse : integer;         // adresse de l'aiguillage
@@ -851,8 +862,10 @@ Taction = record
   end;
 
 Tactionneur = record
-    adresse,prox1,prox2     : integer;
+    adresse,prox1,prox2  : integer;
     NumBranche,IndexBranche : integer;
+    etat                    : boolean;
+    train                   : string;
   end;
 
 TelementRoute=record   // l'index 0 contient le nombre d'éléments dans "adresse" et le sens dans "talon" (si talon=true : consigne vitesse négative)
@@ -1002,7 +1015,7 @@ var
 
   Tablo_action : array[0..Max_action] of Taction;
 
-  Actionneur : array[0..Max_actionneurs] of Tactionneur;
+  Actionneur : array[0..Max_actionneurs] of Tactionneur;  // actionneurs indexés par numéro
 
   // décodeurs personnalisés de signaux
   decodeur_pers : array[1..NbreMaxiDecPers] of
@@ -1046,6 +1059,10 @@ var
     index : integer;
     famille : integer; // 1=système 2=CDM 3=SC  ne sert qu'a filtrer l'affichage par la combobox
   end;
+
+  Fonction : array[0..100,0..100] of Tfonction;
+  NomFonction : array[0..100] of string;
+  ArbreFonc : array[0..100,0..100] of integer;
 
   Conditions : array[0..10] of
   record
@@ -3585,6 +3602,19 @@ begin
   if trouve then result:=i-1 else result:=0;
 end;
 
+// trouve l'index d'un actionneur par son adresse
+function index_actionneur(adr : integer) : integer;
+var i : integer;
+    trouve : boolean;
+begin
+  i:=1;
+  repeat
+    trouve:=actionneur[i].adresse=adr;
+    inc(i);
+  until trouve or (i>Nactionneurs);
+  if trouve then result:=i-1 else result:=0;
+end;
+
 // trouve l'index d'un train par son nom dans le tableau trains
 function index_train_nom(nom : string) : integer;
 var i : integer;
@@ -4363,10 +4393,12 @@ procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vite
 var s : string;
     v,erreur : integer;
 begin
-  if debugRoulage then Affiche('Vitesse train @'+inttostr(adr_loco)+'='+inttostr(vitesse),clLime);
-
+  if (index=0) and (adr_loco=0) then adr_loco:=index_train_nom(nom_train);
   if (index=0) and (adr_loco<>0) then index:=index_train_adresse(adr_loco);
   if (s='') and (index<>0) then nom_train:=trains[index].nom_train;
+
+  if debugRoulage then Affiche('Vitesse train @'+inttostr(adr_loco)+'='+inttostr(vitesse),clLime);
+
   // mettre à jour la trackBar si le train sélectionné=editAdrTrain
   val(Formprinc.EditAdrTrain.Text,v,erreur);
   if v=adr_loco then
@@ -6622,6 +6654,11 @@ begin
           vit1:=signaux[it].Adr_det1;
           condValide:=detecteur[vit1].Train=tr;
         end;
+        condFonction :
+        begin
+          adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de fonction
+          condValide:=evalue_fonction(adr,tr);
+        end;
       end;
     end;
   result:=condValide;
@@ -6643,6 +6680,7 @@ begin
         begin
           if teste_condition(i) then
           begin
+            Affiche('ZZ test condition',clRed);
             action(i); // exécute toutes les opérations de l'actionneur i
           end
         end;
@@ -6651,20 +6689,36 @@ begin
   end;
 end;
 
+
 procedure arret_train(nom : string;id,adresse : integer);
-var s : string;
 begin
-  if Cdm_connecte then
+  if (portCommOuvert or parSocketLenz or Cdm_connecte) then
   begin
-    s:=chaine_CDM_StopTrainST(nom);
-    envoi_cdm(s);
-  end
-  else
-  if (portCommOuvert or parSocketLenz) then
-  begin
+    if id=0 then id:=index_train_adresse(adresse);
     vitesse_loco(nom,id,adr,0,10);
+    trains[id].TempoArretCour:=0;
+    trains[id].arret_det:=false;
+    trains[id].phase_arret:=0;
   end;
 end;
+
+procedure stop_trains;
+var i,adr : integer;
+begin
+  for i:=1 to Ntrains do
+  begin
+    adr:=Trains[i].adresse;
+    if adr<>0 then
+    begin
+      Affiche('Arrêt train @'+intToSTR(adr)+' '+Trains[i].nom_train,clyellow);
+      vitesse_loco('',i,adr,0,10);
+      trains[i].TempoArretCour:=0;
+      trains[i].arret_det:=false;
+      trains[i].phase_arret:=0;
+    end;
+  end;
+end;
+
 
 // pilotage d'un signal, et mise à jour du graphisme du signal dans les 3 fenetres
 procedure envoi_signal(Adr : integer);
@@ -7151,7 +7205,6 @@ begin
     AfficheDebug(s,clred);
     exit;
   end;
-
 
   if typeEL=det then
   begin
@@ -14873,6 +14926,7 @@ begin
         begin
           if not(Tablo_Action[i].traite) and teste_condition(i) then
           begin
+            Affiche('YY test condition',clred);
             Tablo_Action[i].traite:=true;
             action(i); // exécute toutes les opérations de l'actionneur i
           end
@@ -14890,6 +14944,7 @@ begin
           if not(Tablo_Action[i].traite) and teste_condition(i) then
           begin
             Tablo_Action[i].traite:=true;
+            if not(Diffusion) then Affiche('CCC EventVitesse action',clred);
             action(i); // exécute toutes les opérations de l'actionneur i
           end
         end
@@ -14900,18 +14955,17 @@ begin
 end;
 
 
-// traitement des évènements actions (detecteurs aussi)
+// traitement des évènements actions (détecteurs et mémoire de zone aussi)
 // autres que horaire et péripériques
 // adr adr2 : pour mémoire de zone
 // trainDecl : composé de X, d'un train ou de plusieurs, séparés par +
 procedure Event_act(adr,adr2,etat : integer;trainDecl : string);
 var typ,i,v,etatAct,Af,Ao,dZ1F,dZ2F,dZ1O,dZ2O : integer;
-    sDecl : string;
-    fm,fd,adresseOk,etatvalide,condValide : boolean;
+    s,sDecl : string;
+    Typdet,Typact,rf,fm,fd,adresseOk,etatvalide,condValide : boolean;
     Ts : TAccessoire;
 begin
   if adr<=0 then exit;
-
   if adr>1024 then
   begin
     Affiche('Erreur 281 : reçu adresse accessoire trop grande : '+intToSTR(adr),clred);
@@ -14928,6 +14982,11 @@ begin
   //    1      0     FD
   //    2      0     FD
 
+  TypDet:=detecteur[adr].index<>0;
+  if not typDet then TypAct:=true; // TypAct:=index_actionneur(adr)<>0;
+
+  // normalement il faut différencier les actionneurs des détecteurs
+  // les actionneurs sont stockés par index
   if (adr2=0) then
   begin
     fd:=(Ancien_actionneur[adr]>0)  and (etat=0);         // front descendant (FD)
@@ -14937,9 +14996,20 @@ begin
     if not(fd) and not(fm) then exit;
   end;
 
+
+  detecteur[adr].Etat:=etat=1;
+  detecteur[adr].Train:=TrainDecl;
+  i:=index_actionneur(adr);
+  actionneur[i].etat:=etat=1;
+  actionneur[i].train:=trainDecl;
+
   if AffAigDet and (adr2=0) then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
+  //Affiche('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+'/'+intToSTR(Adr2)+' Train='+trainDecl,clyellow);
+  //if fm then affiche('Front montant',clred);
+  //if fd then affiche('Front desc',clLime);
+
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
-  // dans tableau des actionneurs
+  // dans tableau des actions
 
   i:=1;
   repeat
@@ -14947,6 +15017,23 @@ begin
     etatAct:=Tablo_Action[i].etat ;  // état à réagir
     etatValide:=((etatAct=etat) and fm) or ((etatAct=0) and fd);      // front montant ou descendant
     typ:=Tablo_Action[i].declencheur;
+
+    // fonction. Attention l'évaluation de la fonction est prise sur sur front montant.
+    // Or à chaque evt détecteur actionneur , elle est réévaluée.
+    if (typ=DeclFonction) and (Adr2=0) then
+    begin
+      condvalide:=teste_condition(i);
+      if condValide then
+      begin
+        //Affiche('Eval 10 action '+intToSTR(i),clwhite);
+        rf:=evalue_fonction(tablo_action[i].adresse,s);
+        if rf and not(fonction[tablo_action[i].adresse,0].etatprec) then
+        begin
+          if not(Diffusion) then Affiche('AAA EventAct '+intToSTR(i)+' fonction adr='+intToSTR(adr)+' état'+' '+intToSTR(etat),clred);
+          action(i); // exécute toutes les opérations de l'actionneur i
+        end;
+      end;
+    end;
 
     // si déclencheur par adresse
     adresseok:=( ((Tablo_Action[i].adresse=adr) and (adr2=0) ) and ((typ=declDetAct) or (typ=DeclAccessoire)) ) or
@@ -14963,6 +15050,7 @@ begin
     if adresseok and condValide and etatValide then
     begin
       //Affiche('Action dans EventAct',clred);
+      if not(Diffusion) then Affiche('BBB Action '+intToSTR(i),clred);
       action(i); // exécute toutes les opérations de l'actionneur i
     end;
     inc(i);
@@ -15515,7 +15603,7 @@ end;
 // pos = const_droit=2 ou const_devie=1
 procedure Event_Aig(adresse,pos : integer);
 var s: string;
-    faire_event,inv,bjd : boolean;
+    faire_event,inv,bjd,rf,CondValide : boolean;
     prov,index,i,id,etatact,typ,adr : integer;
 begin
   //if AffAigDet then Affiche('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
@@ -15579,7 +15667,9 @@ begin
     etatAct:=Tablo_Action[i].etat ;
     adr:=Tablo_Action[i].adresse;
     typ:=Tablo_Action[i].declencheur;
-    if (typ=DeclAccessoire) and (Adr=adresse) then event_act(Adresse,0,pos,''); // évent aig
+    rf:=false;
+
+    if ((typ=DeclAccessoire) and (Adr=adresse)) or (typ=declFonction) then event_act(Adresse,0,pos,''); // évent aig
   end;
 
   // pour services aux périphériques
@@ -18020,7 +18110,14 @@ begin
     index:=CondTrainSig;
     famille:=0;
   end;
-  NbreConditions:=CondTrainSig;
+  with Conditions[CondFonction] do
+  begin
+    nom:='Fonction logique';
+    index:=CondFonction;
+    famille:=0;
+  end;
+
+  if avecLogique then NbreConditions:=CondFonction else NbreConditions:=CondTrainSig;
 end;
 
 procedure init_declencheurs;
@@ -18079,14 +18176,15 @@ begin
     index:=DeclSignal;
     famille:=2;
   end;
-  with declencheurs[DeclLogique] do
+  with declencheurs[DeclFonction] do
   begin
-    nom:='Logique';
-    index:=DeclLogique;
+    nom:='Fonction logique';
+    index:=DeclFonction;
     famille:=0;
   end;
-  if avecLogique then Nbredeclencheurs:=DeclLogique
+  if avecLogique then Nbredeclencheurs:=DeclFonction
   else NbreDeclencheurs:=DeclSignal;
+
 end;
 
 function Index_Declencheur(s : string) : integer;
@@ -18326,6 +18424,7 @@ begin
   heure:=0;
   minute:=0;
   seconde:=0;
+  NbreFL:=0;
   etape:=1;
   affevt:=false;
   EvtClicDet:=false;
@@ -18350,7 +18449,7 @@ begin
   MaxParcours:=100;      // Nombre maxi d'éléments d'une route
   MaxRoutes:=1000;     // nombre maxi de routes
   Diffusion:=true;      // &&&& mode diffusion publique + debug mise au point etc
-  avecLogique:=false;
+  avecLogique:=true;
   AffAigDet:=false;
 
   Button3.Visible:=not(diffusion);
@@ -19116,7 +19215,7 @@ begin
       dec(index_seqAct);
       a:=j;
       repeat
-        //Affiche('Faire action '+intToSTR(i)+' op '+intToSTR(a),clLime);
+        Affiche('Faire action séquencée'+intToSTR(i)+' op '+intToSTR(a),clLime);
         Action_operation(i,a);
         faire:=(Tablo_Action[i].TabloOp[a].numoperation=ActionTempo);
         inc(a);
@@ -19618,7 +19717,7 @@ begin
 
   if pilote_acc(adr,const_droit,aigP) then
   begin
-    s:='accessoire '+IntToSTR(adr)+' droit';
+    s:='Accessoire '+IntToSTR(adr)+' droit';
     Affiche(s,clyellow);
   end;
   Self.ActiveControl:=nil;
@@ -19637,7 +19736,7 @@ begin
 
   if pilote_acc(adr,const_devie,aigP) then
   begin
-    s:='accessoire '+IntToSTR(adr)+' dévié';
+    s:='Accessoire '+IntToSTR(adr)+' dévié';
     Affiche(s,clyellow);
   end;
   Self.ActiveControl:=nil;
@@ -19930,6 +20029,19 @@ begin
     Affiche(s,c);
   end;
   Affiche('Nombre de détecteurs à 1 :'+intToSTR(NbDet1),clyellow);
+
+  Affiche(' ',clYellow);
+  Affiche('Etat des actionneurs',clYellow);
+  for j:=1 to Nactionneurs do
+  begin
+   // if detecteur[j].index<>0 then
+   // if actionneur[j].etat then
+   s:='Act '+intToSTR(j)+' '+intToSTR(actionneur[j].adresse)+' ';
+   if actionneur[j].etat then s:=s+'1' else s:=s+'0';
+   s:=s+actionneur[j].train;
+   Affiche(s,clyellow);
+  end;
+
 end;
 
 // trouve l'index du détecteur de. Si pas trouvé, renvoie 0
@@ -20519,7 +20631,7 @@ begin
           ss:=copy(commandeCDM,i+4,l-i-4);
           val(ss,adr2,erreur);
           Delete(commandeCDM,i,l-i+1);
-        end;  
+        end;
 
         i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
@@ -20571,7 +20683,7 @@ begin
           train:=ss;
           Delete(commandeCDM,i,l-i+1);
         end;
-        
+
         i:=posEx('STATE=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if i<>0 then
         begin
@@ -20579,7 +20691,7 @@ begin
           val(ss,etat,erreur);
           Delete(commandeCDM,i,l-i+1);
         end;
-        
+
         if AffAigDet then AfficheDebug('Actionneur AD='+intToSTR(adr)+' Nom='+nom+' Train='+train+' Etat='+IntToSTR(etat),clyellow);
         Event_act(adr,0,etat,train); // déclenche évent actionneur
       end;
@@ -21943,23 +22055,6 @@ begin
     Affiche_tco(i);
 end;
 
-procedure stop_trains;
-var i,adr : integer;
-begin
-  for i:=1 to Ntrains do
-  begin
-    adr:=Trains[i].adresse;
-    if adr<>0 then
-    begin
-      Affiche('Arrêt train @'+intToSTR(adr)+' '+Trains[i].nom_train,clyellow);
-      vitesse_loco('',i,adr,0,10);
-      trains[i].TempoArretCour:=0;
-      trains[i].arret_det:=false;
-      trains[i].phase_arret:=0;
-
-    end;
-  end;
-end;
 
 procedure TFormPrinc.SBMarcheArretLocoClick(Sender: TObject);
 begin
@@ -23258,9 +23353,19 @@ begin
             intToSTR(canton[i].y)+' Nel='+intToSTR(canton[i].Nelements)+'   '+canton[i].nom+
             '   IndexTrain='+intToSTR(Canton[i].indexTrain)+'  train='+Canton[i].NomTrain+
             ' El contigu1='+intToSTR(canton[i].el1);
-    if canton[i].typ1=aig then s:=s+' Aig' else s:=s+' Det';
+
+    case canton[i].typ1 of
+      det : s:=s+' Det';
+      buttoir : s:=s+' But';
+      else s:=s+' Aig';
+    end;
+
     s:=s+' El contigu2='+intToSTR(canton[i].el2);
-    if canton[i].typ2=aig then s:=s+' Aig' else s:=s+' Det';
+    case canton[i].typ2 of
+      det : s:=s+' Det';
+      buttoir : s:=s+' But';
+      else s:=s+' Aig';
+    end;
     if canton[i].NumcantonOrg<>0 then s:=s+' CantonDépart='+intToSTR(canton[i].NumcantonOrg);
     if canton[i].NumcantonDest<>0 then s:=s+' CantonArrivée='+intToSTR(canton[i].NumcantonDest);
 
@@ -25126,8 +25231,7 @@ end;
 
 procedure TFormPrinc.Button3Click(Sender: TObject);
 begin
-   event_det_train[1].NbEl:=0;
-
+  Maj_detecteurs_canton(32,4,544);
 end;
 
 

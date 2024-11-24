@@ -558,7 +558,7 @@ procedure TFormRoute.ListBoxRoutesKeyDown(Sender: TObject; var Key: Word;
 var s : string;
     erreur : integer;
 begin
-  if indexLigneRoute<0 then exit;
+  if (indexLigneRoute<0) or (ListBoxRoutes.Count=0) then exit;
   if (ord(Key)=VK_UP) and (Indexligneroute>0) then
   begin
     dec(IndexligneRoute);
