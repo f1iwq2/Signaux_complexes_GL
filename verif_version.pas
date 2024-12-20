@@ -11,7 +11,7 @@ type
   TFormVersion = class(TForm)
     Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
-    procedure TimerVerifTimer(Sender: TObject);
+    //procedure TimerVerifTimer(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -21,13 +21,13 @@ type
 var
   FormVersion: TFormVersion;
   Lance_verif : integer;
-  verifVersion,notificationVersion,essai : boolean;
+  DebugVV,verifVersion,notificationVersion,essai : boolean;
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
   f : text;
 
 Const
-VersionSC ='9.6';  // sert à la comparaison de la version publiée
-SousVersion=' '; // A B C ... en cas d'absence de sous version mettre un espace
+VersionSC ='9.7';  // sert à la comparaison de la version publiée
+SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
 SHCONTCH_AUTORENAME=8;
@@ -85,10 +85,13 @@ begin
   t:=0;
   Try Fs:=TFileStream.Create(s,fmCreate);
     //hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+    if DebugVV then Affiche('TFileStream.Create ok',clLime);
     hSession:=InternetOpen('MyApp',INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY,nil,nil,0);
+    if DebugVV then Affiche('InternetOpen ok',clLime);
     try
       if Assigned(hSession) then
       begin
+        if DebugVV then Affiche('Session assignée',clYellow);
         hService:=InternetOpenUrl(hSession,PChar(aUrl),nil,0,INTERNET_FLAG_RELOAD,0);
         i:=getLastError;
         if i<>0 then
@@ -100,7 +103,7 @@ begin
         end;
         if Assigned(hService) then
         try
-          //Affiche('Service assigné',clLime);
+          if DebugVV then Affiche('Service assigné',clLime);
           while True do
             begin
               dwBytesRead:=1024;
@@ -272,10 +275,13 @@ begin
   Url:='https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';
   LocalFile:='page.txt';
   trouve_version:=false;
+  DebugVV:=false;
   trouve_zip:=false;
   zone_comm:=false;
   Ncomm:=0;
+  if DebugVV then Affiche('Lancement DownloadURL_NOCache',clYellow);
   if DownloadURL_NOCache(Url,localFile,taille) then
+  //if true then
   begin
     if not(FileExists(localfile)) then
     begin
@@ -285,6 +291,7 @@ begin
       result:=0;
       exit;
     end;
+    if DebugVV then Affiche('DownloadURL_NOCache passé',clYellow);
 
     AssignFile(fichier,LocalFile);
     reset(fichier);
@@ -292,11 +299,17 @@ begin
     while not(eof(fichier)) and  (not(trouve_version) or not(trouve_zip)) do
     begin
       readln(fichier,s);
+      if DebugVV then Affiche(s,clYellow);
+
       s:=utf8Decode(s);
       //Affiche(s,clyellow);
       // adresse de téléchargement
       s3:=extrait_champ('browser_download_url');
-      if s3<>'' then trouve_zip:=true;
+      if s3<>'' then
+      begin
+        if DebugVV then affiche('ZIP trouvé',clYellow);
+        trouve_zip:=true;
+      end;
 
       // nombre de téléchargements
       nombre_tel:=extrait_champ_simple('download_count');
@@ -306,6 +319,7 @@ begin
       if date_creation_ang<>'' then
       begin
         //Affiche(date_creation_ang,clyellow);
+        if DebugVV then affiche('Date création trouvé',clYellow);
         i:=pos('-',date_creation_ang);
         j:=posex('-',date_creation_ang,i+1);
         i2:=pos('T',date_creation_ang);
@@ -320,12 +334,14 @@ begin
       if version_p<>'' then
       begin
         trouve_version:=true;
+        if DebugVV then affiche('Version trouvée',clYellow);
         if not(version_p[1] in ['0'..'9']) then delete(version_p,1,1);
       end;
 
       description:=extrait_champ('body');
       if description<>'' then
       begin
+        if DebugVV then affiche('Description trouvée',clYellow);
         //description:=utf8Decode(description);
         i:=1 ; j:=1;
         // couper en chaînes et mettre dans comm[]
@@ -350,6 +366,7 @@ begin
       end;
     end;
     closefile(fichier);
+    if DebugVV then affiche('Fermeture du fichier d''échange',clYellow);
 
     if trouve_version and trouve_zip then
     begin
@@ -357,10 +374,11 @@ begin
       //isoler le nom du fichier
       i:=length(s3);
       repeat
-        dec(i);
+       dec(i);
         locZip:=s3[i]='/';
       until (i=1) or LocZip;
       nomfichier:=copy(s3,i+1,length(s3)-i);
+
       //affiche(nombre_tel,cllime);
       //Affiche(s3,clLime);
       //Affiche(nomfichier,clred);
@@ -374,19 +392,9 @@ begin
       l:=length(s);
       SV_publie:=s[l];
       if Sv_publie in ['0'..'9'] then Sv_Publie:=' ' else begin s:=copy(s,1,l-1);Version_P:=s;end;
-      val(s,V_publie,erreur);
-      if erreur<>0 then
-      begin
-        Affiche('Erreur 701',clred);
-        exit;
-      end;
-      val(s2,V_utile,erreur);
-      if erreur<>0 then
-      begin
-        Affiche('Erreur 702',clred);
-        exit;
-      end;
-      //
+      V_Publie:=StrToFloat(s,FormatSettings);
+      V_utile:=StrToFloat(s2,FormatSettings);
+
       if (V_utile<V_publie) or ((V_utile=V_publie) and (SousVersion<SV_publie)) then
       begin
         FormVersion.Top:=10;
@@ -476,6 +484,7 @@ begin
   
 end;
 
+{
 procedure TFormVersion.TimerVerifTimer(Sender: TObject);
 var V_utile,V_publie : real;
     erreur: integer;
@@ -496,7 +505,7 @@ begin
     end;
   end;
 end;
-
+}
 
 // ne parche pas pour les répertoires non vides
 procedure DeleteDirectory(const DirName: string);

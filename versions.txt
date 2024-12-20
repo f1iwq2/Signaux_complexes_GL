@@ -280,7 +280,7 @@ version 9.41 : Affichage des noms des cantons dans les cantons du TCO.
 			   Pilotage de la fonction F0.
 			   Pilotage de l'état (0/1) des fonctions F dans les actions.
 			   Décodeurs CDF : sélection du pilotage en mode 4 (2 signaux indépendants)
-version 9.42 : Affiche des exclusions dans la fenêtre de pilotage des signaux.
+version 9.42 : Affiche les exclusions dans la fenêtre de pilotage des signaux.
                Correction décodeur SR pour aspects combinés.
 			   Sélection correcte des routes mémorisées.
 			   Mesure pour étalonnage des vitesses des locomotives.
@@ -289,5 +289,11 @@ version 9.42 : Affiche des exclusions dans la fenêtre de pilotage des signaux.
 version 9.5  : Etalonnage des vitesses des locomotives pour le mode autonome
                pour arret précis sur détecteurs à distance souhaitée.
 version 9.6  : Fonctions logiques sur position d'accessoires, de détecteurs et d'actionneurs
-               intégrables dans les déclencheurs et les conditions des actions.
+9.61 et 9.62   intégrables dans les déclencheurs et les conditions des actions.
+version 9.7  : Boutons dans le TCO intégrables dans les conditions des actions,
+               ou commandables dans les opérations.
+ 			   Mémoires actionnables dans les actions.
+               Gestion du décodeur de signaux LEA de Ligéa.
+			   Correction bug PN sur mémoires de zones.
+			   
 			  

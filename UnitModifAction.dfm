@@ -37,20 +37,12 @@ object FormModifAction: TFormModifAction
     Width = 3
     Height = 13
   end
-  object Shape3: TShape
-    Left = 8
-    Top = 408
-    Width = 73
-    Height = 25
-    Brush.Color = clActiveCaption
-  end
   object SpeedButton1: TSpeedButton
     Left = 8
     Top = 408
     Width = 73
     Height = 25
     Caption = 'OK'
-    Flat = True
     OnClick = SpeedButton1Click
   end
   object ComboBoxActions: TComboBox
@@ -68,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheet1
+    ActivePage = TabSheetOp
     MultiLine = True
     TabOrder = 1
     object TabSheetDecl: TTabSheet
@@ -748,7 +740,7 @@ object FormModifAction: TFormModifAction
         object SpinEditEtatop: TSpinEdit
           Left = 152
           Top = 32
-          Width = 33
+          Width = 41
           Height = 22
           MaxValue = 0
           MinValue = 0

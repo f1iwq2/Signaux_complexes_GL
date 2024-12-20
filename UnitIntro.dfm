@@ -3,8 +3,8 @@ object FormIntro: TFormIntro
   Top = 150
   BorderStyle = bsDialog
   Caption = 'Introduction de donn'#233'es'
-  ClientHeight = 95
-  ClientWidth = 186
+  ClientHeight = 106
+  ClientWidth = 188
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,22 +15,41 @@ object FormIntro: TFormIntro
   PixelsPerInch = 96
   TextHeight = 13
   object LabeledEditDetAig: TLabeledEdit
-    Left = 40
+    Left = 24
     Top = 24
-    Width = 121
+    Width = 57
     Height = 21
     EditLabel.Width = 47
     EditLabel.Height = 13
     EditLabel.Caption = 'D'#233'tecteur'
     TabOrder = 0
   end
-  object ButtonTrouver: TButton
-    Left = 56
-    Top = 56
-    Width = 75
+  object ButtonTrCanton: TButton
+    Left = 112
+    Top = 64
+    Width = 65
     Height = 25
     Caption = 'Trouver'
     TabOrder = 1
-    OnClick = ButtonTrouverClick
+    OnClick = ButtonTrCantonClick
+  end
+  object LabeledEditCanton: TLabeledEdit
+    Left = 24
+    Top = 64
+    Width = 57
+    Height = 21
+    EditLabel.Width = 34
+    EditLabel.Height = 13
+    EditLabel.Caption = 'Canton'
+    TabOrder = 2
+  end
+  object ButtonTrDet: TButton
+    Left = 112
+    Top = 24
+    Width = 65
+    Height = 25
+    Caption = 'Trouver'
+    TabOrder = 3
+    OnClick = ButtonTrDetClick
   end
 end

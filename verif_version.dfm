@@ -17,10 +17,10 @@ object FormVersion: TFormVersion
   PixelsPerInch = 96
   TextHeight = 20
   object Memo1: TMemo
-    Left = 8
-    Top = 8
-    Width = 625
-    Height = 217
+    Left = 0
+    Top = 0
+    Width = 649
+    Height = 233
     Color = clNavy
     Font.Charset = ANSI_CHARSET
     Font.Color = clYellow

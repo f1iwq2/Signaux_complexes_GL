@@ -747,8 +747,8 @@ begin
    // TextOut(Rect.Left, Rect.Top, (Control as TListBox).Items[Index]);
     //MyBrush.Free;
     FillRect(Rect);
-    Font.Color := TColor(ListBoxRoutes.Items.Objects[Index]);
-    TextOut(Rect.Left + 2, Rect.Top, ListBoxRoutes.Items[Index]);
+    Font.Color:=TColor(ListBoxRoutes.Items.Objects[Index]);
+    TextOut(Rect.Left+2, Rect.Top, ListBoxRoutes.Items[Index]);
   end;
 end;
 

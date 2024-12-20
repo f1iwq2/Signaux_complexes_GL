@@ -7,7 +7,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+
+  unitprinc,UnitConfig,unitTCO,UnitHorloge,unitFicheHoraire,UnitDebug,UnitRoute,selection_train;
+
 
 type
   TFormRouteTrain = class(TForm)
@@ -35,6 +38,7 @@ type
     Label1: TLabel;
     CheckBoxSens: TCheckBox;
     CheckBoxSIRA: TCheckBox;
+    LabelID: TLabel;
     procedure FormActivate(Sender: TObject);
     procedure ButtonQuitteClick(Sender: TObject);
     procedure ComboBoxTrainsChange(Sender: TObject);
@@ -65,6 +69,7 @@ type
     { Déclarations publiques }
   end;
 
+
 var
   FormRouteTrain: TFormRouteTrain;
   IrPref : integer;
@@ -72,10 +77,9 @@ var
 function aig_canton(idTrain,detect : integer) : integer;
 function demarre_index_train(indexTrain  : integer) : boolean;
 procedure couleurs_routeTrains;
+function routes_identiques(route1,route2 : TUneroute) : boolean;
 
 implementation
-
-uses unitprinc,UnitConfig,unitTCO,UnitHorloge,unitFicheHoraire,UnitDebug,UnitRoute,selection_train;
 
 {$R *.dfm}
 
@@ -225,10 +229,28 @@ begin
   trains[indextrain].TempoDemarre:=i;   // démarrage à la vitesse nominale
 end;
 
+// si les routes route1 et route2 sont identiques, retourne vrai
+function routes_identiques(route1,route2 : TUneroute) : boolean;
+var n,i : integer;
+    egal : boolean;
+begin
+  n:=route1[0].adresse;
+  if n=route2[0].adresse then
+  begin
+    i:=1;
+    repeat
+      egal:=(route1[i].adresse=route2[i].adresse) and (route1[i].typ=route2[i].typ);
+      inc(i);
+    until (i>n) or not(egal);
+    result:=egal;
+  end
+  else result:=false;
+end;
+
 
 // mise à jour des infos de la fenetre : combobox
 procedure maj_infos(idtrain : integer);
-var i,j,indexcanton,det1,det2,PixelLength : integer;
+var i,j,PixelLength : integer;
     s : string;
 begin
   formRouteTrain.comboBoxTrains.Clear;
@@ -284,7 +306,7 @@ begin
       PixelLength:=0;
       for j:=1 to trains[idtrain].routePref[0][0].adresse do
       begin
-        s:=IntToSTR(j)+'. '+route_restreinte_to_string(trains[idTrain].routePref[j]);
+        s:='Id='+intToSTR(trains[idTrain].routePref[j][0].pos)+' '+route_restreinte_to_string(trains[idTrain].routePref[j]);
         if Canvas.TextWidth(s)+30>PixelLength then PixelLength:=Canvas.TextWidth(s)+30;
         ListBoxRM.Items.Add(s);
       end;
@@ -681,6 +703,7 @@ begin
 
   Trains[indexTrainFr].routePref[i]:=Trains[IndexTrainFr].route;
   maj_infos(indexTrainFR);
+  compile_id_routes;
   Sauve_config;
 end;
 
@@ -715,7 +738,6 @@ end;
 procedure TFormRouteTrain.ButtonMClick(Sender: TObject);
 var n,sens,el1R,el2R,el1,el2,IdCanton,detfin,IdCantonDest,IdCantonOrg : integer;
     t1,t2,t1R,t2R : tequipement;
-    trouve : boolean;
 begin
   if indexTrainFR<0 then begin labelRoute.caption:='Pas de train';exit;end;
 
@@ -736,7 +758,6 @@ begin
         end;
       end;
       }
-
 
   if trains[indexTrainFR].routePref[IrPref][0].adresse<>0 then
   begin
@@ -863,8 +884,8 @@ begin
   tabloRoute[NumRoute]:=trains[indexTrainFR].routePref[IrPref];
   Efface_Affiche_route;
   checkBoxSens.checked:=trains[indexTrainFR].routePref[IrPref][0].talon;
+  LabelID.caption:='Id de la route : '+intToSTR(trains[indexTrainFR].routePref[IrPref][0].pos);
 
-  
   // si le train de la route est en roulage, ne pas afficher la route car
   // sinon les index des trains passent à 0 dans les cantons par la fonction zone_tco
   if trains[indexTrainFR].roulage=0 then affiche_route_tco;
@@ -886,14 +907,14 @@ procedure TFormRouteTrain.ButtonSRClick(Sender: TObject);
 var i,n : integer;
     s : string;
 begin
-  if IrPref<0 then exit;
+  if IrPref<1 then exit;
 
   s:='Voulez-vous supprimer la route sauvegardée n°'+intToSTR(IrPref)+' ?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   n:=trains[indexTrainFR].routePref[0][0].adresse;  // nombre de routes
   for i:=IrPref to n do
-    tabloRoute[i]:=tabloRoute[i+1];
+    tabloRoute[i]:=tabloRoute[i+1]; 
   trains[indexTrainFR].routePref[0][0].adresse:=n-1;
   dec(irPref);
   maj_infos(indexTrainFR);
@@ -929,7 +950,7 @@ begin
   IndexLigneRoute:=IrPref;
   tabloRoute[NumRoute]:=trains[indexTrainFR].routePref[IrPref];
   checkBoxSens.checked:=trains[indexTrainFR].routePref[IrPref][0].talon;
-
+  LabelID.caption:='Id de la route : '+intToSTR(trains[indexTrainFR].routePref[IrPref][0].pos);
   efface_affiche_route;
   EditNomRoute.Text:=trains[indexTrainFR].NomRoute[irPref];
 end;

@@ -105,7 +105,7 @@ const
   AcArret_horloge=7;
   AcInit_horloge=8;
   AcAff_horloge=9;
-
+  AcBouton_bistable=10;
 
 var
   FormConfCellTCO: TFormConfCellTCO;
@@ -119,8 +119,6 @@ implementation
 uses UnitPrinc,UnitAnalyseSegCDM,UnitConfigTCO,UnitTCO,selection_train;
 
 {$R *.dfm}
-
-//https://codes-sources.commentcamarche.net/forum/affich-1015879-ajouter-un-icon-dans-un-listbox
 
 // procédure qui met la bd à jour, et réactualise la cellule, ce qui appelle "select elements"
 procedure stocke_bd;
@@ -192,12 +190,20 @@ begin
     // arreter horloge
     AcArret_horloge :
     begin
-      EditParam1.Visible:=false; EditParam2.Visible:=false;
+      EditParam1.Visible:=false;
+      EditParam2.Visible:=false;
     end;
     // initialiser horloge
     AcInit_horloge :
     begin
       EditParam1.Visible:=false;
+      EditParam2.Visible:=false;
+    end;
+    AcBouton_bistable :
+    begin
+      EditParam1.Visible:=true;
+      EditParam1.Hint:='Numéro de bouton';
+      EditParam1.Text:=intToSTR(tco[indexTCO,XclicC,YclicC].Adresse);
       EditParam2.Visible:=false;
     end;
   end;
@@ -660,15 +666,18 @@ end;
 
 
 procedure TFormConfCellTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,index,Bimage : integer;
+var Adr,erreur,index,Bimage,x,y : integer;
 begin
   if clicTCO or not(ConfCellTCO) or actualize then exit;
   if affevt then Affiche('TFormConfCellTCO.EditAdrElementChange',clyellow);
   clicTCO:=true;
-  Bimage:=tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].BImage;
+  x:=XclicCell[indexTCOcourant];
+  y:=YclicCell[indexTCOcourant];
+
+  Bimage:=tco[indexTCOcourant,x,y].BImage;
   if (Bimage=1) or (Bimage=10) or (Bimage=11) or (Bimage=20) then
   begin
-    if tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].buttoir<>0 then
+    if tco[indexTCOcourant,x,y].buttoir<>0 then
     begin
       EditAdrElement.Text:='';
       clicTCO:=false;
@@ -679,14 +688,14 @@ begin
   Val(EditAdrElement.Text,Adr,erreur);
   if (erreur<>0) or (Adr<0) or (Adr>2048) then Adr:=0;
 
-  if Adr=0 then tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].repr:=2;
+  if Adr=0 then tco[indexTCOcourant,x,y].repr:=2;
 
-  tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].Adresse:=Adr;
+  tco[indexTCOcourant,x,y].Adresse:=Adr;
   formTCO[indexTCOcourant].EditAdrElement.Text:=intToSTR(adr);
 
   clicTCO:=false;
 
-  if tco[indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]].BImage=Id_signal then
+  if BImage=Id_signal then
   begin
     index:=Index_Signal(adr);
     if index=0 then exit
@@ -696,6 +705,17 @@ begin
        affiche_tco(indexTCOcourant);
      end;
   end;
+
+  if (BImage=Id_action) and (ligneclicAction+1=ActionBoutonTCO) then
+  begin
+    //if not BoutonTCO[Adr].existe then
+    begin
+      boutonTCO[adr].idtco:=indexTCOCourant;
+      boutonTCO[adr].x:=x;
+      boutonTCO[adr].y:=y;
+    end;
+  end;
+
   if not(selectionaffichee[indexTCOcourant]) then efface_entoure(indexTCOcourant);
   Affiche_cellule(indexTCOcourant,XclicCell[indexTCOcourant],YclicCell[indexTCOcourant]);
   if not(selectionaffichee[indexTCOcourant]) then _entoure_cell_clic(indexTCOcourant);
@@ -750,6 +770,7 @@ begin
   //RadioButtonGH.Visible:=not(diffusion);
   //RadioButtonDB.Visible:=not(diffusion);
   //RadioButtonDS.Visible:=not(diffusion);
+  width:=320;Height:=504;
   with GroupBoxDet do
   begin
     left:=16;
@@ -838,6 +859,8 @@ begin
     Items.Add(Format('%d%s', [7, 'Initialiser l''horloge']));
     itemHeight:=16;
     Items.Add(Format('%d%s', [8, 'Afficher l''horloge']));
+    itemHeight:=16;
+    Items.Add(Format('%d%s', [26, 'Bouton bistable']));
     itemHeight:=16;
   end;
 
@@ -1196,6 +1219,7 @@ procedure TFormConfCellTCO.EditParam1Change(Sender: TObject);
 var i,erreur,act : integer;
 begin
   act:=ligneclicAction+1;
+
   case act of
   AcChangeTCO : // afficher TCO n
   begin
@@ -1212,9 +1236,18 @@ begin
     Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
   end;
 
-
   //sortie
   AcActSortie :
+  begin
+    if clicTCO then exit;
+    val(EditParam1.Text,i,erreur);
+    if erreur<>0 then exit;
+    tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].adresse:=i;
+    Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
+  end;
+
+  // bouton
+  AcBouton_bistable :
   begin
     if clicTCO then exit;
     val(EditParam1.Text,i,erreur);
@@ -1384,6 +1417,8 @@ begin
   //affiche_cellule(XclicCell[indexTCO],YclicCell[indexTCO]);
   affiche_tco(indexTCOcourant);
 end;
+
+
 
 end.
 

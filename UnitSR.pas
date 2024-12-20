@@ -154,12 +154,15 @@ begin
     Lb:=formSR.findComponent(s) as tLabel;
     Lb.Visible:=i-1<2*nadr;
 
-    s:='LabelCV'+intToSTR(i*2-1);
-    Lb:=formSR.findComponent(s) as tLabel;
-    Lb.Visible:=i-1<2*nadr;
-    s:='LabelCV'+intToSTR(i*2);
-    Lb:=formSR.findComponent(s) as tLabel;
-    Lb.Visible:=i-1<2*nadr;
+    if signaux[indexSig].decodeur=7 then
+    begin
+      s:='LabelCV'+intToSTR(i*2-1);
+      Lb:=formSR.findComponent(s) as tLabel;
+      Lb.Visible:=i-1<2*nadr;
+      s:='LabelCV'+intToSTR(i*2);
+      Lb:=formSR.findComponent(s) as tLabel;
+      Lb.Visible:=i-1<2*nadr;
+    end;
   end;
 
   for i:=1 to 8 do
@@ -546,13 +549,78 @@ begin
 end;
 
 procedure TFormSR.FormActivate(Sender: TObject);
-var erreur,etat1,etat2,ne : integer;
+const p2d='+ 2 droit';
+      m1d='- 1 dévié';
+
+var dec,erreur,etat1,etat2,ne : integer;
 begin
   Val(FormConfig.EditAdrSig.text,Adr,erreur);
   indexSig:=index_Signal(Adr);
+
   if IndexSig=0 then LabelErreur.caption:='Erreur 512 : signal '+intToSTR(Adr)+' inexistant'
   else
   begin
+    dec:=signaux[IndexSig].decodeur;
+    // SR
+    if dec=7 then
+    begin
+      label1.Caption:=p2d;
+      label2.Caption:=m1d;
+      label3.Caption:=p2d;
+      label4.Caption:=m1d;
+      label5.Caption:=p2d;
+      label6.Caption:=m1d;
+      label7.Caption:=p2d;
+      label8.Caption:=m1d;
+      label9.Caption:=p2d;
+      label10.Caption:=m1d;
+      label11.Caption:=p2d;
+      label12.Caption:=m1d;
+      label13.Caption:=p2d;
+      label14.Caption:=m1d;
+      label15.Caption:=p2d;
+      label16.Caption:=m1d;
+      Caption:='Configuration du décodeur de signal Stéphane Ravaut';
+      label303.Visible:=true;
+      labelCV1.Visible:=true; labelCV2.Visible:=true; labelCV3.Visible:=true; labelCV4.Visible:=true;
+      labelCV5.Visible:=true; labelCV6.Visible:=true; labelCV7.Visible:=true; labelCV8.Visible:=true;
+      labelCV9.Visible:=true; labelCV10.Visible:=true; labelCV11.Visible:=true; labelCV12.Visible:=true;
+      labelCV13.Visible:=true; labelCV14.Visible:=true; labelCV15.Visible:=true; labelCV16.Visible:=true;
+      labelCV17.Visible:=true; labelCV18.Visible:=true; labelCV19.Visible:=true; labelCV20.Visible:=true;
+      labelCV21.Visible:=true; labelCV22.Visible:=true; labelCV23.Visible:=true; labelCV24.Visible:=true;
+      labelCV25.Visible:=true; labelCV26.Visible:=true; labelCV27.Visible:=true; labelCV28.Visible:=true;
+      labelCV29.Visible:=true; labelCV30.Visible:=true; labelCV31.Visible:=true; labelCV32.Visible:=true;
+    end;
+    // LEA
+    if dec=11 then
+    begin
+      FormSR.Caption:='Configuration du décodeur de signal LEA';
+      label303.Visible:=false;
+      labelCV1.Visible:=false; labelCV2.Visible:=false; labelCV3.Visible:=false; labelCV4.Visible:=false;
+      labelCV5.Visible:=false; labelCV6.Visible:=false; labelCV7.Visible:=false; labelCV8.Visible:=false;
+      labelCV9.Visible:=false; labelCV10.Visible:=false; labelCV11.Visible:=false; labelCV12.Visible:=false;
+      labelCV13.Visible:=false; labelCV14.Visible:=false; labelCV15.Visible:=false; labelCV16.Visible:=false;
+      labelCV17.Visible:=false; labelCV18.Visible:=false; labelCV19.Visible:=false; labelCV20.Visible:=false;
+      labelCV21.Visible:=false; labelCV22.Visible:=false; labelCV23.Visible:=false; labelCV24.Visible:=false;
+      labelCV25.Visible:=false; labelCV26.Visible:=false; labelCV27.Visible:=false; labelCV28.Visible:=false;
+      labelCV29.Visible:=false; labelCV30.Visible:=false; labelCV31.Visible:=false; labelCV32.Visible:=false;
+      label1.Caption:=m1d;
+      label2.Caption:=p2d;
+      label3.Caption:=m1d;
+      label4.Caption:=p2d;
+      label5.Caption:=m1d;
+      label6.Caption:=p2d;
+      label7.Caption:=m1d;
+      label8.Caption:=p2d;
+      label9.Caption:=m1d;
+      label10.Caption:=p2d;
+      label11.Caption:=m1d;
+      label12.Caption:=p2d;
+      label13.Caption:=m1d;
+      label14.Caption:=p2d;
+      label15.Caption:=m1d;
+      label16.Caption:=p2d;
+    end;
     LabelAdrSR1.caption:=intToSTR(Adr);
     LabelAdrSR2.caption:=intToSTR(Adr+1);
     LabelAdrSR3.caption:=intToSTR(Adr+2);
@@ -578,34 +646,6 @@ begin
     ComboBoxAdr14.ItemIndex:=Signaux[indexSig].SR[7].sortie0;
     ComboBoxAdr15.ItemIndex:=Signaux[indexSig].SR[8].sortie1;
     ComboBoxAdr16.ItemIndex:=Signaux[indexSig].SR[8].sortie0;
-
-    {
-    for i:=1 to 16 do
-    begin
-      ComboBoxAdr1.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr2.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr3.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr4.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr5.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr6.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr7.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr8.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr9.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr10.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr11.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr12.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr13.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr14.Items[i-1]:=etats[etatsDefSR[i]];
-
-      ComboBoxAdr15.Items[i-1]:=etats[etatsDefSR[i]];
-      ComboBoxAdr16.Items[i-1]:=etats[etatsDefSR[i]];
-    end; }
 
     ne:=Signaux[indexSig].Na;  // nombre d'états du signal (2 à 19)
     EditNESignal.Text:=intToSTr(ne);

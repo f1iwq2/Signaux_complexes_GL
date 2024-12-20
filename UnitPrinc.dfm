@@ -20,8 +20,8 @@ object FormPrinc: TFormPrinc
   OnCreate = FormCreate
   OnResize = FormResize
   DesignSize = (
-    1130
-    567)
+    1138
+    574)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1445,8 +1445,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 545
-    Width = 1130
+    Top = 552
+    Width = 1138
     Height = 22
     Panels = <
       item
@@ -2093,6 +2093,10 @@ object FormPrinc: TFormPrinc
         Hint = 'Affiche l'#39#233'tat des d'#233'tecteurs'
         OnClick = AffEtatDetecteurs
       end
+      object Etatdesactionneurs1: TMenuItem
+        Caption = 'Etat des actionneurs'
+        OnClick = Etatdesactionneurs1Click
+      end
       object Etatdesaiguillages1: TMenuItem
         Caption = 'Etat des aiguillages'
         OnClick = Etatdesaiguillages1Click
@@ -2240,6 +2244,11 @@ object FormPrinc: TFormPrinc
         Caption = 'Configuration'
         Hint = 'Modifie les variables de configuration'
         OnClick = ConfigClick
+      end
+      object Compilerlabasededonnes1: TMenuItem
+        Caption = 'Compiler la base de donn'#233'es'
+        Hint = 'Trie les aiguillages, les signaux, analyse les cantons'
+        OnClick = Compilerlabasededonnes1Click
       end
       object Vrifierlacohrence: TMenuItem
         Caption = 'V'#233'rifier la coh'#233'rence'

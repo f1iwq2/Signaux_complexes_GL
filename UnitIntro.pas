@@ -9,8 +9,11 @@ uses
 type
   TFormIntro = class(TForm)
     LabeledEditDetAig: TLabeledEdit;
-    ButtonTrouver: TButton;
-    procedure ButtonTrouverClick(Sender: TObject);
+    ButtonTrCanton: TButton;
+    LabeledEditCanton: TLabeledEdit;
+    ButtonTrDet: TButton;
+    procedure ButtonTrCantonClick(Sender: TObject);
+    procedure ButtonTrDetClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -19,17 +22,23 @@ type
 
 var
   FormIntro: TFormIntro;
-  Achercher : integer;
+  AchercherDet,AchercherCanton : integer;
 
 implementation
 
 {$R *.dfm}
 
-procedure TFormIntro.ButtonTrouverClick(Sender: TObject);
-var i,erreur : integer;
+procedure TFormIntro.ButtonTrCantonClick(Sender: TObject);
+var erreur : integer;
 begin
-  val(LabeledEditDetAig.text,i,erreur);
-  Achercher:=i;
+  val(LabeledEditCanton.text,Acherchercanton,erreur);
+  close;
+end;
+
+procedure TFormIntro.ButtonTrDetClick(Sender: TObject);
+var erreur : integer;
+begin
+  val(LabeledEditDetAig.text,AchercherDet,erreur);
   close;
 end;
 

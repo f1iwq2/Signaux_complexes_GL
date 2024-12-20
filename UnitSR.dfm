@@ -490,7 +490,7 @@ object FormSR: TFormSR
   end
   object LabelCV31: TLabel
     Left = 320
-    Top = 484
+    Top = 476
     Width = 20
     Height = 13
     Caption = 'CV='

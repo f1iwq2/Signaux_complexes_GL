@@ -86,7 +86,6 @@ type
     ButtonVoirFonc: TButton;
     LabelInfoFonc: TLabel;
     Label2InfoFonction: TLabel;
-    Shape3: TShape;
     SpeedButton1: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure ListBoxOperDrawItem(Control: TWinControl; Index: Integer;
@@ -155,6 +154,7 @@ var
   ClicDeclenche,ClicAction,ClicCond,DeclencheurAffiche,OperationAffiche : integer;
 
 function Info_action(i : integer) : string;
+procedure affecte_operation(i : integer;t: TListBox);
 
 implementation
 
@@ -163,8 +163,7 @@ uses Unitprinc, UnitConfigCellTCO, UnitConfig;
 
 {$R *.dfm}
 
-
-
+// rend tous les composants invisibles
 procedure efface_tous_parametres;
 begin
   with FormModifAction do
@@ -211,17 +210,24 @@ begin
   end;
 end;
 
+// ajoute à la listbox t une ligne avec son icone opérations[]
+procedure affecte_operation(i : integer;t : tListBox);
+begin
+  if i<ActionBoutonTCO then t.Items.Add(Format('%d%s', [i-1, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionBoutonTCO then t.Items.Add(Format('%d%s', [IconeBouton, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionAffecteMemoire then t.Items.Add(Format('%d%s', [IconeActionAffecteMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionIncMemoire then t.Items.Add(Format('%d%s', [IconeActionIncMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionDecMemoire then t.Items.Add(Format('%d%s', [IconeActionDecMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+end;
 
 procedure TFormModifAction.FormCreate(Sender: TObject);
 var i,icone : integer;
 begin
-
   ListBoxOper.Style:=lbOwnerDrawVariable;      // pour afficher des icones
   ListBoxDeclench.Style:=lbOwnerDrawVariable;
   ListBoxOperations.Style:=lbOwnerDrawVariable;
   ListBoxCondTot.Style:=lbOwnerDrawVariable;
   ListBoxConditions.Style:=lbOwnerDrawVariable;
-
 
   for i:=1 to NbreDeclencheurs do
   begin
@@ -243,7 +249,7 @@ begin
 
   for i:=1 to NbreOperations do
   begin
-    ListBoxOper.Items.Add(Format('%d%s', [i-1, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+    affecte_operation(i,formModifAction.ListBoxOper);
     ListBoxOper.itemHeight:=17; // 16 mini taille des éléments pour l'icone
   end;
 
@@ -258,11 +264,15 @@ begin
       condHorl : icone:=IconeLanceHorl;
       condTrainSig : icone:=IconeDeclSignal;
       CondFonction : icone:=IconeFonction;
+      CondBouton : icone:=IconeBouton;
+      CondMemoireEgal : icone:=IconeCondMemoireEgal;
+      CondMemoireInf : icone:=IconeCondMemoireInf;
+      CondMemoireSup : icone:=IconeCondMemoireSup;
+
     end;
     ListBoxCondTot.Items.Add(Format('%d%s', [icone, Conditions[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
     ListBoxCondTot.itemHeight:=17; // 16 mini taille des éléments pour l'icone
   end;
-
 
   with ComboBoxFamille do
   begin
@@ -353,8 +363,7 @@ begin
     if (operations[i].famille=famille) or (famille=0) then
     begin
       s:=operations[i].nom;
-      n:=Index_Operation(s);
-      ListBoxOper.Items.Add(Format('%d%s', [n-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
+      affecte_operation(i,formModifAction.ListBoxOper);
     end;
   end;
 end;
@@ -406,7 +415,7 @@ begin
   nop:=Tablo_Action[i].NbCond;
   for op:=1 to nop do
   begin
-    s:=s+'condition ';
+    s:=s+'Condition :';
     top:=Tablo_Action[i].tabloCond[op].numcondition;
     case top of
     CondVrai : s:=s+'toujours vraie ';
@@ -417,7 +426,11 @@ begin
     CondHorl : s:=s+' horloge '+intToSTR(Tablo_Action[i].tabloCond[op].HeureMin)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMin)+' à '+
                                  intToSTR(Tablo_Action[i].tabloCond[op].HeureMax)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMax)+' ';
     condTrainSig : s:=s+'train '+Tablo_Action[i].tabloCond[op].train+' arrêté au signal '+intToSTR(Tablo_Action[i].tabloCond[op].Adresse);
-    condFonction : s:=s+'Fonction logique '+intToSTR(tablo_action[i].tabloCond[op].adresse);
+    condFonction : s:=s+'fonction logique '+intToSTR(tablo_action[i].tabloCond[op].adresse);
+    condBouton : s:=s+'bouton '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' TCO';
+    condMemoireEgal : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat);
+    condMemoireInf : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' < '+intToSTR(tablo_action[i].tabloCond[op].etat);
+    condMemoireSup : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' > '+intToSTR(tablo_action[i].tabloCond[op].etat);
 
     end;
     s:=s+#13;
@@ -460,6 +473,10 @@ begin
         r:=nop/10;
         s:=s+'Temporisation '+intToSTR(nop)+' ('+Format('%.1f', [r])+'s)'#13;
       end;
+      ActionBoutonTCO : s:=s+'Change l''état du bouton '+intToSTR(Tablo_Action[i].tabloop[op].adresse)+' à '+intToSTR(Tablo_Action[i].tabloop[op].etat)+#13;
+      ActionAffecteMemoire : s:=s+'Affectation de la mémoire '+intToSTR(Tablo_Action[i].tabloop[op].adresse)+' à '+intToSTR(Tablo_Action[i].tabloop[op].etat)+#13;
+      ActionIncMemoire : s:=s+'Incrémentation de la mémoire '+intToSTR(Tablo_Action[i].tabloop[op].adresse)+#13;
+      ActionDecMemoire : s:=s+'Décrémentation de la mémoire '+intToSTR(Tablo_Action[i].tabloop[op].adresse)+#13;
     end;
   end;
   result:=s;
@@ -512,10 +529,18 @@ begin
         if not(Tablo_Action[index].tabloOp[i].valide) then s:=s+' [dévalidé]';
         if act<1 then icone:=0  else icone:=act-1;
 
-        items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
+        // listbox de la formmodifAction
+        if act<=ActionTempo then items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
+        if act=ActionBoutonTCO then items.Add(Format('%d%s', [iconeBouton, s]));
+        if act=ActionAffecteMemoire then items.Add(Format('%d%s', [iconeActionAffecteMemoire, s]));
+        if act=ActionIncMemoire then items.Add(Format('%d%s', [iconeActionIncMemoire, s]));
+        if act=ActionDecMemoire then items.Add(Format('%d%s', [iconeActionDecMemoire, s]));
+
 
         // listboxOperations de la formConfig
-        formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
+        if act<=ActionTempo then formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
+        if act=ActionBoutonTCO then formConfig.ListBoxOperations.items.Add(Format('%d%s', [IconeBouton, s]));
+
         itemHeight:=17;
       end;
     end;
@@ -538,6 +563,10 @@ begin
         condHorl : icone:=IconeLanceHorl;
         condTrainSig : icone:=IconeDeclSignal;
         condFonction : icone:=IconeFonction;
+        condBouton : icone:=IconeBouton;
+        condMemoireEgal: icone:=IconeCondMemoireEgal;
+        condMemoireSup: icone:=IconeCondMemoireSup;
+        condMemoireInf: icone:=IconeCondMemoireinf;
       end;
 
       items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
@@ -613,6 +642,7 @@ begin
       with SpinEditEtat do
       begin
         text:=intToSTR(Tablo_Action[index].etat);
+        MaxValue:=0;
         MaxValue:=2;
         Hint:='Etat de l''accessoire'+#13+
               '0=nul'+#13+
@@ -660,6 +690,7 @@ begin
       with SpinEditEtat do
       begin
         text:=intToSTR(Tablo_Action[index].etat);
+        MaxValue:=0;
         MaxValue:=1;
         Hint:='Etat du détecteur/actionneur'+#13+
               '0=désactivé'+#13+
@@ -702,6 +733,7 @@ begin
       with SpinEditEtat do
       begin
         text:=intToSTR(Tablo_Action[index].etat);
+        MaxValue:=0;
         MaxValue:=1;
         Hint:='Etat de la zone de détection'+#13+
               '0=désactivé'+#13+
@@ -832,6 +864,7 @@ begin
           ButtonVoirFonc.Visible:=false;
           labelEtat2.Visible:=true;
           SpinEditEtat2.visible:=true;
+          SpinEditEtat2.MinValue:=0;
           SpinEditEtat2.MaxValue:=2;
         end;
         condHorl :
@@ -869,11 +902,29 @@ begin
           Label2InfoFonction.Visible:=true;
           Label2InfoFonction.Caption:=NomFonction[Tablo_Action[index].tabloCond[indexCond].adresse];
         end;
+        condBouton :
+        begin
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].adresse);
+          champ1.editLabel.Caption:='Numéro de bouton TCO';
+          champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
+          champ1.Visible:=true;
+          ButtonVoirFonc.Visible:=false;
+          champTrain.Visible:=false;
+          Label2InfoFonction.Visible:=false;
+        end;
+        condMemoireEgal,CondMemoireInf,CondMemoireSup :
+        begin
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].adresse);
+          champ1.editLabel.Caption:='Numéro de mémoire';
+          champ1.Visible:=true;
+          champ2.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].etat);
+          Champ2.EditLabel.Caption:='Valeur';
+          Champ2.Visible:=true;
+        end;
 
       end;
     end;
   end;
-
 
   Nb:=Tablo_Action[index].NbOperations;
 
@@ -971,14 +1022,43 @@ begin
         LabeledEditTempoF.EditLabel.Caption:='Temporisation (x100 ms)';
         LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
       end;
+      ActionBoutonTCO :
+      begin
+        LabeledEditAdresse.Visible:=true;
+        LabeledEditAdresse.EditLabel.Caption:='Bouton';
+        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        SpinEditEtatOp.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
+        SpinEditEtatOp.Visible:=true;
+        SpinEditEtatOp.MinValue:=0;
+        SpinEditEtatOp.MaxValue:=1;
+      end;
+      ActionAffecteMemoire :
+      begin
+        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
+        LabeledEditAdresse.Visible:=true;
+        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        SpinEditEtatOp.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
+        SpinEditEtatOp.Visible:=true;
+        SpinEditEtatOp.MinValue:=-999;
+        SpinEditEtatOp.MaxValue:=999;
+      end;
+      ActionIncMemoire :
+      begin
+        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
+        LabeledEditAdresse.Visible:=true;
+        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+      end;
+      ActionDecMemoire :
+      begin
+        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
+        LabeledEditAdresse.Visible:=true;
+        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+      end;
     end;
     end;
   end;
   clicliste:=false;
 end;
-
-
-
 
 procedure TFormModifAction.FormActivate(Sender: TObject);
 var i : integer;
@@ -1009,18 +1089,17 @@ begin
   LabelDecl.Caption:='Liste de déclencheurs de l''action n°'+intToSTR(ComboBoxactions.ItemIndex+1);
 end;
 
-
 procedure TFormModifAction.ButtonAppActionClick(Sender: TObject);
 var indexSrc,IndexDest,i : integer;
     s : string;
 begin
   indexSrc:=listboxOper.ItemIndex;
   IndexDest:=ListBoxOperations.Itemindex;
-  if (indexSrc<0) or (ligneclicAct<0) then exit;
-
+  if (indexSrc<0) or (ligneclicAct<0) or (Tablo_Action[ligneClicAct+1].NbOperations<1) then exit;
 
   s:=ListBoxOper.Items[indexSrc];
   i:=Index_Operation(s);
+  if i=0 then exit;
 
   if (IndexDest<0) then IndexDest:=0;
   Tablo_Action[ligneClicAct+1].TabloOp[IndexDest+1].numoperation:=i;
@@ -1055,10 +1134,7 @@ begin
   Aff_champs(idbd,nbCond,Nbop);
   clicAction:=NbOp-1;
   ListBoxOperations.ItemIndex:=clicAction;
-
 end;
-
-
 
 procedure supprime_operation;
 var i,indexSrc,idBD,NbOp,NumOp : integer;
@@ -1131,19 +1207,15 @@ begin
     for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
-      items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+      //items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+      affecte_operation(no,ListBoxOperations);
       itemHeight:=17;
     end;
     ItemIndex:=indexSrc-1;
   end;
-
-  //Affiche(intToSTR(ligneClicAct),clyellow);
-
-
 end;
 
 procedure TFormModifAction.SpinButton1DownClick(Sender: TObject);
-
 var no,i,indexSrc,idBD,idOp : integer;
     top : Toperation;
     s : string;
@@ -1153,14 +1225,12 @@ begin
   idBD:=ligneClicAct+1;
   idop:=indexSrc+1;
 
-
   no:=Tablo_Action[idBD].NbOperations;
 
   if (indexSrc+1>=No) then exit;
   top:=Tablo_Action[idBD].TabloOp[idOp+1];
   Tablo_Action[idBD].TabloOp[idOp+1]:=Tablo_Action[idBD].TabloOp[idOp];
   Tablo_Action[idBD].TabloOp[idOp]:=top;
-
 
   // réencoder la ligne
   s:=encode_actions(idBD);
@@ -1175,16 +1245,12 @@ begin
     for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
-      items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+      affecte_operation(no,ListBoxOperations);
       itemHeight:=17;
     end;
 
     ItemIndex:=indexSrc+1;
   end;
-
-  //Affiche(intToSTR(ligneClicAct),clyellow);
-
-
 end;
 
 procedure maj_combocactions(i : integer);
@@ -1239,6 +1305,7 @@ begin
   if decl=DeclZoneDet then Tablo_Action[index].adresse2:=i;
   if decl=DeclFonction then
   begin
+    if (i<1) or (i>100) then exit;
     Tablo_Action[index].adresse:=i;
     LabelInfoFonc.caption:=NomFonction[i];
   end;
@@ -1293,7 +1360,6 @@ begin
   Aff_champs(ligneclicAct+1,1,ClicAction+1);
 end;
 
-
 procedure TFormModifAction.LabeledEditAdresseChange(Sender: TObject);
 var i,erreur,op : integer;
 begin
@@ -1304,6 +1370,10 @@ begin
     ActionAffTCO    : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numTCO:=i;
     ActionAccessoire: Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
     ActionVitesse   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].vitesse:=i;
+    ActionBoutonTCO : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
+    ActionAffecteMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
+    ActionIncMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
+    ActionDecMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1379,142 +1449,6 @@ begin
   maj_combocactions(ligneclicAct);
 end;
 
-// affiche les champs de l'actionneur PN en fonction de l'index du tableau
-{
-procedure aff_champs_PN(i : integer);
-var erreur,j,v,periph : integer;
-    trouve : boolean;
-    s : string;
-begin
-
-  if affevt then affiche('Aff_champs_PN('+intToSTR(i)+')',clyellow);
-  if i<1 then
-  begin
-    clicliste:=false;
-    exit;
-  end;
-  //s:=Uppercase(formModifAction.ListBoxPN.items[i-1]);
-  if s='' then
-  begin
-    clicliste:=false;
-    exit;
-  end;
-
-  with formModifAction do
-  begin
-    LabelInfo.caption:='';
-    raz_champs_pn;
-  end;
-
-  // actionneur passage à niveau
-  if s[1]='(' then
-  begin
-    champs_type_pn;
-    // trouver le numéro de périphérique
-    v:=pos('PN(',s);
-    delete(s,1,v+2);
-    val(s,periph,erreur);
-    {
-    i:=0;
-    repeat
-      inc(i);
-      trouve:=(Tablo_PN[i].AdresseFerme=adresse);
-    until trouve or (i>NbrePN);
-    if not(trouve) then exit;}
-  {
-    with formModifAction do
-    begin
-      RadioGroupActPN.itemindex:=Tablo_PN[i].TypeCde;
-
-      if Tablo_PN[i].TypeCde=0 then champs_pn_act;
-      if Tablo_PN[i].TypeCde=1 then champs_pn_comusbSockets;
-
-      if Tablo_PN[i].Pulse=1 then trouve:=true else trouve:=false;
-      CheckPnPulse.Checked:=trouve;
-
-      // par actionneur
-      if Tablo_PN[i].actionneur then
-      begin
-        RadioButtonSimple.Checked:=true;
-        RadioButtonZone.Checked:=false;
-        GroupBoxPNA.Visible:=true;
-        GroupBoxPNZ.Visible:=false;
-        EditV1F.text:=intToSTR(Tablo_PN[i].voie[1].ActFerme);
-        EditV1O.text:=intToSTR(Tablo_PN[i].voie[1].ActOuvre);
-        v:=Tablo_PN[i].nbvoies;
-        if v>=2 then
-        begin
-          EditV2F.text:=intToSTR(Tablo_PN[i].voie[2].ActFerme);
-          EditV2O.text:=intToSTR(Tablo_PN[i].voie[2].ActOuvre);
-        end;
-        if v>=3 then
-        begin
-          EditV3F.text:=intToSTR(Tablo_PN[i].voie[3].ActFerme);
-          EditV3O.text:=intToSTR(Tablo_PN[i].voie[3].ActOuvre);
-        end;
-        if v>=4 then
-        begin
-          EditV4F.text:=intToSTR(Tablo_PN[i].voie[4].ActFerme);
-          EditV4O.text:=intToSTR(Tablo_PN[i].voie[4].ActOuvre);
-        end;
-        if v>=5 then
-        begin
-          EditV5F.text:=intToSTR(Tablo_PN[i].voie[5].ActFerme);
-          EditV5O.text:=intToSTR(Tablo_PN[i].voie[5].ActOuvre);
-        end;
-
-      end
-      else
-      begin
-        // par zone de détecteurs
-        RadioButtonSimple.Checked:=false;
-        RadioButtonZone.Checked:=true;
-        GroupBoxPNA.Visible:=false;
-        GroupBoxPNZ.Visible:=true;
-        v:=Tablo_PN[i].nbvoies;
-        j:=Tablo_PN[i].voie[1].detZ1F;if j<>0 then
-        begin
-          EditZdet1V1F.text:=intToSTR(j);
-          EditZdet2V1F.text:=intToSTR(Tablo_PN[i].voie[1].detZ2F);
-          EditZdet1V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ1O);
-          EditZdet2V1O.text:=intToSTR(Tablo_PN[i].voie[1].detZ2O);
-          if v>=2 then
-          begin
-            EditZdet1V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ1F);
-            EditZdet2V2F.text:=intToSTR(Tablo_PN[i].voie[2].detZ2F);
-            EditZdet1V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ1O);
-            EditZdet2V2O.text:=intToSTR(Tablo_PN[i].voie[2].detZ2O);
-          end;
-          if v>=3 then
-          begin
-            EditZdet1V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ1F);
-            EditZdet2V3F.text:=intToSTR(Tablo_PN[i].voie[3].detZ2F);
-            EditZdet1V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ1O);
-            EditZdet2V3O.text:=intToSTR(Tablo_PN[i].voie[3].detZ2O);
-          end;
-          if v>=4 then
-          begin
-            EditZdet1V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ1F);
-            EditZdet2V4F.text:=intToSTR(Tablo_PN[i].voie[4].detZ2F);
-            EditZdet1V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ1O);
-            EditZdet2V4O.text:=intToSTR(Tablo_PN[i].voie[4].detZ2O);
-          end;
-          if v>=5 then
-          begin
-            EditZdet1V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ1F);
-            EditZdet2V5F.text:=intToSTR(Tablo_PN[i].voie[5].detZ2F);
-            EditZdet1V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ1O);
-            EditZdet2V5O.text:=intToSTR(Tablo_PN[i].voie[5].detZ2O);
-          end;
-        end;
-      end;
-    end;
-  end;
-  clicliste:=false;
-end;
-}
-
-
 procedure TFormModifAction.ButtonApplDeclClick(Sender: TObject);
 var i : integer;
 begin
@@ -1536,8 +1470,6 @@ begin
 
   Aff_champs(index,0,0);
 end;
-
-
 
 procedure TFormModifAction.ComboBoxAccComUSBChange(Sender: TObject);
 var index : integer;
@@ -1565,8 +1497,6 @@ begin
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
   maj_combocactions(ligneclicAct);
 end;
-
-
 
 procedure TFormModifAction.ListBoxCondTotDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -1626,13 +1556,10 @@ begin
   if (IndexDest<0) then IndexDest:=0;
   Tablo_Action[ligneClicAct+1].TabloCond[IndexDest+1].numCondition:=i;
 
-  listboxConditions.Items[indexDest]:=ListBoxCondTot.Items[indexSrc];
-
   clicAction:=ligneclicact;
   Aff_champs(ligneClicAct+1,indexDest+1,0);
 
 end;
-
 
 procedure TFormModifAction.Champ1Change(Sender: TObject);
 var cond,i,erreur : integer;
@@ -1648,6 +1575,9 @@ begin
                         Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
                         Label2InfoFonction.caption:=NomFonction[i];
                       end;
+    CondBouton      : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
+    CondMemoireEgal,CondMemoireInf,CondMemoireSup
+                    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1660,6 +1590,8 @@ begin
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondVitTrain    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].vitmaxi:=i;
+    CondMemoireEgal,CondMemoireInf,CondMemoireSup
+                    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1794,6 +1726,8 @@ begin
   case op of
     ActionAccessoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
     ActionFonctionF   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
+    ActionBoutonTCO   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
+    ActionAffecteMemoire : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1844,14 +1778,11 @@ begin
   clicListe:=false;
 end;
 
-
-
 procedure TFormModifAction.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   Aff_champs(ligneclicAct+1,1,1);
 end;
-
 
 procedure TFormModifAction.ButtonFonctionClick(Sender: TObject);
 begin

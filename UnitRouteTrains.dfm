@@ -27,7 +27,7 @@ object FormRouteTrain: TFormRouteTrain
     TabOrder = 3
     object LabelRoute: TLabel
       Left = 8
-      Top = 112
+      Top = 120
       Width = 71
       Height = 13
       Caption = 'Route affect'#233'e'
@@ -40,16 +40,13 @@ object FormRouteTrain: TFormRouteTrain
       ParentShowHint = False
       ShowHint = False
     end
-  end
-  object ComboBoxTrains: TComboBox
-    Left = 8
-    Top = 56
-    Width = 241
-    Height = 21
-    Style = csDropDownList
-    ItemHeight = 13
-    TabOrder = 0
-    OnChange = ComboBoxTrainsChange
+    object LabelID: TLabel
+      Left = 13
+      Top = 96
+      Width = 68
+      Height = 13
+      Caption = 'Id de la route :'
+    end
   end
   object PageControlRoutes: TPageControl
     Left = 256
@@ -258,6 +255,16 @@ object FormRouteTrain: TFormRouteTrain
         OnClick = CheckBoxSensClick
       end
     end
+  end
+  object ComboBoxTrains: TComboBox
+    Left = 8
+    Top = 56
+    Width = 241
+    Height = 21
+    Style = csDropDownList
+    ItemHeight = 13
+    TabOrder = 0
+    OnChange = ComboBoxTrainsChange
   end
   object ButtonQuitte: TButton
     Left = 8

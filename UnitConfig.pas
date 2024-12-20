@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls , jpeg, ComCtrls ,StrUtils, Unitprinc,
   MMSystem, Buttons , UnitPareFeu, verif_version, Menus, ClipBrd,
-  Grids , unitHorloge, spin
+  Grids , unitHorloge, spin, Valedit , Math
 
   {$IF CompilerVersion >= 28.0}
   ,Vcl.Themes, CheckLst, ImgList
@@ -429,7 +429,6 @@ type
     TreeViewL: TTreeView;
     ButtonAjouteVar: TButton;
     ComboBoxOperateur: TComboBox;
-    ButtonAjouteOperateur: TButton;
     ButtonVoir: TButton;
     ComboBoxVar: TComboBox;
     PanelAcc: TPanel;
@@ -458,6 +457,9 @@ type
     LabelFonction: TLabel;
     LabeledEditNumFonc: TLabeledEdit;
     LabeledEditTrain: TLabeledEdit;
+    ValueListEditor: TValueListEditor;
+    Label65: TLabel;
+    RadioGroupOP: TRadioGroup;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -676,7 +678,6 @@ type
     procedure ComboBoxOperateurDrawItem(Control: TWinControl;
       Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure ButtonAjouteVarClick(Sender: TObject);
-    procedure ButtonAjouteOperateurClick(Sender: TObject);
     procedure ButtonVoirClick(Sender: TObject);
     procedure M1Click(Sender: TObject);
     procedure Descendre1Click(Sender: TObject);
@@ -698,6 +699,14 @@ type
     procedure ButtonAjOpEnfantClick(Sender: TObject);
     procedure LabeledEditNumFoncChange(Sender: TObject);
     procedure LabeledEditTrainChange(Sender: TObject);
+    procedure ValueListEditorSetEditText(Sender: TObject; ACol,
+      ARow: Integer; const Value: String);
+    procedure ValueListEditorDrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure ValueListEditorMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Integer);
+    procedure Button2Click(Sender: TObject);
+    procedure RadioGroupOPClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -711,6 +720,14 @@ type
     procedure modif_ComboStyle(Sender : Tobject);
     {$IFEND}
   end;
+
+  Tliste = record
+           Nom    : string;
+           aide   : string;
+           typ    : (Simple,PickList,titre);
+           masque : string;
+         end;
+  Tlistes = array[1..19] of Tliste;
 
 const
 // constantes du fichier de configuration
@@ -830,13 +847,63 @@ OpNON=3;
 //-------
 EtatDCC=4;
 EtatDet=5;
+EtatBoutonTCO=6;
+EtatMemoire=7;
 NomVAR='Fonction logique';
 NomOpET='Opérateur ET';
 NomOpOU='Opérateur OU';
 NomOpNON='Opérateur NON';
 NomEtatDCC='Etat DCC';
 NomEtatDet='Etat détect./actionn.';
-NomFonc : array[0..5] of string[25]=(NomVar,NomOpET,NomOpOu,NomOpNon,NomEtatDCC,NomEtatDet);
+NomEtatBoutonTCO='Bouton TCO';
+NomEtatMemoire='Mémoire';
+NomFonc : array[0..7] of string[25]=(NomVar,NomOpET,NomOpOu,NomOpNon,NomEtatDCC,NomEtatDet,NomEtatBoutonTCO,NomEtatMemoire);
+oui='Oui';
+non='Non';
+
+// liste des paramètres du mode expert de la ValueListEditor
+// syntaxe des masques:
+// 0 : chiffre  9 : chiffre ou espace   # : chiffre ou signe  L : lettre   ? : lettre ou espace
+// A : lettre ou chiffre   a : lettre, chiffre ou espace   & : tout caractère
+Liste : Tlistes = ((nom: 'Seuil du nombre de détecteurs trop distants' ;
+                    aide:'Seuil du nombre de détecteurs trop distants' ; typ: Simple ; masque: '0'),
+                   (nom:'Nombre de cantons présence train avant signal' ;
+                    aide:'Nombre de cantons présence train avant signal';typ : Simple ; masque: '0'),
+                   (nom:'Filtrage des détecteurs (x100ms) mode autonome';
+                    aide:'Temps de filtrage des détecteurs qui passent à 0'+#13+'Mode autonome uniquement'; typ : Simple ; masque: '0'),
+                   (nom:'Nombre de cantons à réserver en avant du train';
+                    aide:'Nombre de cantons à réserver en avant du train'; typ : Simple ; masque: '0'),
+                   (nom:'Utilisation de l''anti timeout Ethernet';
+                    aide:'Utilisation de l''anti timeout Ethernet';typ : PickList),
+                   (nom:'Facteur de Temporisation de télécommande CDM';
+                    aide:'Facteur de Temporisation de télécommande CDM'; typ:Simple ; masque: '0'),
+                   (nom:'Nombre maximal d''élements par route';
+                    aide: 'Nombre maximal d''élements par route'; typ:Simple ; masque: '000'),
+                   (nom:'Nombre maximal de routes';
+                    aide:'Nombre maximal de routes'; typ:Simple ; masque: '00000'),
+                   (nom:'Option demi tour des trains (mode autonome)';
+                    aide:'Option demi tour des trains (mode autonome)'; typ : Picklist),
+                   (nom:'Algorithme de localisation des trains';
+                    aide:'Algorithme de localisation des trains'; typ:Simple ; masque: '0'),   //10
+                   (nom:'Nombre maxi d''éléments de recherche d''un signal dans le bon sens';
+                    aide:'Nombre maxi d''éléments de recherche d''un signal dans le bon sens'; typ:Simple ; masque: '0'),
+                   (nom:'Attendre ACK de la centrale (mode autonome)';
+                    aide:'Attendre ACK de la centrale (mode autonome)'; typ : Picklist),
+                   (nom:'Méthode de démarrage du serveur de CDM rail';
+                    aide : 'Méthode de démarrage du serveur de CDM rail'; typ : Picklist),
+                   (nom:'Chemin windows de CDM Rail (sans \CDM-Rail)';
+                    aide:'Chemin windows de CDM Rail (sans \CDM-Rail)'; typ:Simple ; masque: ''),
+                   (nom:'Affichages de la fenêtre principale';
+                    aide:'Affichages de la fenêtre principale'; typ:titre ; masque: ''),           //15
+                   (nom:'Evènements signaux';
+                    aide:'Affiche l''état des signaux lors de leur changement'; typ:PickList ; masque: ''),
+                   (nom:'Réservation/libération des cantons';
+                    aide:'Affiche les réservations/libération des cantons lors du roulage des trains'; typ:PickList ; masque: ''),
+                   (nom:'Debug roulage';
+                    aide:'Affiche des messages en mode roulage des trains en mode autonome';typ:PickList ; masque: ''),
+                   (nom:'Localisation trains';
+                    aide : 'Affiche des messages de localisation des trains' ;typ:PickList ; masque: ''));                        //19
+
 
 
 var
@@ -913,6 +980,8 @@ function verif_trains : boolean;
 procedure Maj_icone_train(IImage : Timage;index :integer);
 function evalue_fonction(NumFonc : integer;var formule : string) : boolean;
 procedure fabrique_treeview(k : integer);
+procedure compile_id_routes;
+procedure genere_informations_BD;
 
 implementation
 
@@ -1298,9 +1367,14 @@ var s : string;
 begin
   // adresse
   adresse:=Signaux[i].adresse;
+ 
+  if adresse=0 then
+  begin
+    Affiche('Adresse nulle signal',clRed);
+    result:='';
+    exit;
+  end;
   if affevt then Affiche('Encode_sig_feux('+IntToSTR(i)+') : adresse='+IntToSTR(adresse),clyellow);
-
-  if adresse=0 then begin encode_signal:='';exit;end;
 
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
@@ -1373,8 +1447,8 @@ begin
       end;
     end;
 
-    // décodeur SR
-    if Signaux[i].decodeur=7 then
+    // décodeur SR ou LEA
+    if (Signaux[i].decodeur=7) or (Signaux[i].decodeur=11) then
     begin
       s:=s+',SR(';
       for nc:=1 to 8 do
@@ -1910,6 +1984,9 @@ begin
                               intToSTR(Tablo_Action[i].TabloCond[j].HeureMax)+','+intToSTR(Tablo_Action[i].TabloCond[j].MinuteMax)+',';
       condTrainSig : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+','+Tablo_Action[i].TabloCond[j].train+',';
       condFonction : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+',';
+      condBouton   : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+',';
+      CondMemoireEgal,CondMemoireInf,CondMemoireSup
+                   : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+','+intToSTR(Tablo_Action[i].TabloCond[j].etat)+',';
     end;
   end;
 
@@ -1933,6 +2010,11 @@ begin
       ActionFonctionF : s:=s+','+intToSTR(Tablo_Action[i].tabloOp[j].fonctionF)+','+intToSTR(Tablo_Action[i].tabloOp[j].etat)+','+intToSTR(Tablo_Action[i].tabloOp[j].TempoF)+','+Tablo_Action[i].tabloOp[j].train;
       ActionSon       : s:=s+','+Tablo_Action[i].tabloOp[j].train;  // nom du fichier
       ActionTempo     : s:=s+','+intToSTR(Tablo_Action[i].tabloOp[j].TempoF);
+      ActionBoutonTCO : s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse)+','+intToSTR(Tablo_action[i].TabloOP[j].etat);
+      ActionAffecteMemoire  : s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse)+','+intToSTR(Tablo_Action[i].tabloOP[j].etat);
+      ActionIncMemoire: s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse);
+      ActionDecMemoire: s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse);
+
     end;
 
     if j<nb then s:=s+',';
@@ -1942,55 +2024,6 @@ begin
   encode_actions:=s;
 end;
 
-
-// transforme l'actionneur type loco ou actionneur ou son ou vitesse du tableau en texte
-// paramètre d'entrée : index
-{
-function encode_act_loc_son(i : integer): string;
-var s : string;
-    adresse,adresse2 : integer;
-begin
-  // adresse
-  adresse:=Tablo_Action[i].adresse;
-  adresse2:=Tablo_Action[i].adresse2;
-
-  // type déclencheur
-  case Tablo_Action[i].typdeclenche of
-    0 : s:=IntToSTR(adresse);// if Tablo_Action[i].det then s:=s+'Z';
-    // horloge
-    1 : S:='H'+IntToSTR(adresse)+'h'+IntToSTR(adresse2);
-    // type aiguillage
-    2 : s:='A'+IntToSTR(adresse);
-    // type mémoire de zone
-    3 : s:='Mem['+IntToSTR(adresse)+','+IntToSTR(Tablo_Action[i].adresse2)+']';
-  end;
-
-  // type d'action
-  if Tablo_Action[i].loco then
-    s:=s+','+IntToSTR(Tablo_Action[i].Etat)+','+Tablo_Action[i].trainDecl+',F'+
-             IntToSTR(Tablo_Action[i].fonction)+','+intToSTR(Tablo_Action[i].tempo)+
-             ','+Tablo_Action[i].trainDest;
-
-  if Tablo_Action[i].act then
-  begin
-    s:=s+','+IntToSTR(Tablo_Action[i].Etat)+','+Tablo_Action[i].trainDecl+
-       ',A'+IntToSTR(Tablo_Action[i].accessoire)+','+intToSTR(Tablo_Action[i].sortie)+',';
-    if Tablo_Action[i].Raz then s:=s+'Z' else s:=s+'S';
-  end;
-
-  if Tablo_Action[i].son then
-    s:=s+','+IntToSTR(Tablo_Action[i].Etat)+','+Tablo_Action[i].trainDecl+',"'+Tablo_Action[i].trainDecl+'"';
-
-  if Tablo_Action[i].periph then
-    s:=s+','+IntToSTR(Tablo_Action[i].Etat)+','+Tablo_Action[i].trainDecl+',ACC'+IntToSTR(Tablo_Action[i].fonction)+','+Tablo_Action[i].trainDest;
-
-  if Tablo_Action[i].vit then
-    s:=s+','+IntToSTR(Tablo_Action[i].Etat)+','+Tablo_Action[i].trainDecl+',V'+IntToSTR(Tablo_Action[i].fonction)+','+Tablo_Action[i].trainDest;
-
-
-  encode_act_loc_son:=s;
-end;
-}
 
 // encode l'actionneur PN du tableau en texte
 function encode_act_pn(i : integer) : string;
@@ -2404,7 +2437,8 @@ begin
     for j:=1 to trains[i].routePref[0][0].adresse do
     begin
       s:='['+trains[i].NomRoute[j]+']'+',';
-      if trains[i].routePref[j][0].talon then s:=s+'1' else s:=s+'0';
+      if trains[i].routePref[j][0].talon then s:=s+'1,' else s:=s+'0,';  // sens
+      s:=s+intToSTR(trains[i].routePref[j][0].pos);  // id route
       writeln(fichierN,s);
       if trains[i].routePref[j][0].adresse<>0 then Writeln(fichierN,'{'+route_totale_to_string(trains[i].routePref[j])+'}');
     end;
@@ -2501,6 +2535,7 @@ begin
       s:=s+'A'+intToSTR(fonction[j,i].adresse)+',';
       s:=s+'E'+intToSTR(fonction[j,i].etat)+',';
       s:=s+'V'+','+fonction[j,i].train+',';
+      s:=s+'O'+intToSTR(fonction[j,i].OpMemoire)+',';
       Writeln(fichierN,s);
     end;
     Writeln(fichierN,'FF'); // marqueur fin de fonction
@@ -2704,6 +2739,56 @@ begin
   end;
 end;
 
+// trouve les id des routes des trains
+procedure compile_id_routes;
+var t1,t2,r1,r2,Id,nr : integer;
+    route1 : tUneroute;
+begin             
+  // raz tous les ID de routes
+  for t1:=1 to nTrains do
+  begin
+    nr:=trains[t1].routePref[0,0].adresse;  // nombre de routes
+    for r1:=1 to nr do
+    begin
+      trains[t1].routePref[r1,0].pos:=0;
+    end;
+  end;
+
+  Id:=1;
+  // boucle des trains
+  t1:=1;
+  while (t1<=nTrains) do
+  begin
+    nr:=trains[t1].routePref[0,0].adresse;  // nombre de routes
+    //r1:=routePref[1]; // route 1 du train t
+    r1:=1;
+    // boucle des routes
+    while r1<nr+1 do
+    begin
+      route1:=trains[t1].routePref[r1];
+      if trains[t1].routePref[r1,0].pos=0 then
+      begin
+        for t2:=t1 to nTrains do
+        begin
+          for r2:=1 to nr do
+          begin
+            //Affiche('Comparaison T'+intToSTR(t1)+' R'+intToSTR(r1)+' et T'+intToSTR(t2)+' R'+intToSTR(r2),clLime);
+            if routes_identiques(route1,trains[t2].routePref[r2]) then
+            begin
+              trains[t2].routePref[r2,0].pos:=id;
+              trains[t1].routePref[r1,0].pos:=id;
+              //Affiche('Affecte T'+intToSTR(t1)+' R'+intToSTR(r1)+' et T'+intToSTR(t2)+' R'+intToSTR(r2)+' = '+intToSTR(id),clLime);
+            end;
+          end;
+        end;
+        inc(id);
+      end;
+      inc(r1);
+    end;
+    inc(t1);
+  end;
+end;
+
 // compte le nombre de virgules dans la chaine
 function Nbre_virgules(s : string) : integer ;
 var i,c : integer;
@@ -2721,7 +2806,7 @@ end;
 
 function isVariable(typ : integer): boolean;
 begin
-  result:=(typ>=EtatDCC) and (typ<=EtatDet);
+  result:=(typ>=EtatDCC) and (typ<=EtatMemoire);
 end;
 
 // donne le texte à mettre dans le tree view en fonction de l'index de fonction[]
@@ -2754,6 +2839,27 @@ begin
     begin
       s:=s+fonction[fonc,i].train+' '+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
     end;
+    if typ=EtatBoutonTCO then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' ';
+      etat:=fonction[fonc,i].etat;
+      case etat of
+        0 : s:=s+' désactivé ';
+        1 : s:=s+' activé ';
+        else s:=s+' inconnu ';
+      end;
+      s:=s+'('+intToSTR(etat)+')';
+    end;
+    if typ=EtatMemoire then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse);
+      case fonction[fonc,i].opMemoire of
+      0 : s:=s+' = ';
+      1 : s:=s+' > ';
+      2 : s:=s+' < ';
+      end;
+      s:=s+intToSTR(fonction[fonc,i].etat);
+    end;
   end;
   result:=s;
 end;
@@ -2785,6 +2891,21 @@ begin
     begin
       s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
     end;
+    if typ=EtatBoutonTCO then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
+    end;
+    if typ=EtatMemoire then
+    begin
+      s:=s+'Mem'+intToSTR(fonction[fonc,i].adresse);
+      case fonction[fonc,i].opMemoire of
+      0 : s:=s+' = ';
+      1 : s:=s+' > ';
+      2 : s:=s+' < ';
+      end;
+      s:=s+intToSTR(fonction[fonc,i].etat);
+    end;
+
   end;
 
   if isOperateur(typ) then
@@ -2797,6 +2918,18 @@ begin
   end;
 
   result:=s;
+end;
+
+
+// génère les informations calculées
+procedure genere_informations_BD;
+begin
+  renseigne_TJDs_TCO;
+  trier_aig;
+  renseigne_tous_cantons;
+  trier_cantons;
+  trier_signaux;
+  compile_id_routes;
 end;
 
 
@@ -2814,7 +2947,7 @@ var train,s,sa,SOrigine: string;
     ComptEl,Compt_IT,Num_Element,adr,Nligne,postriple,itl,vers,
     postjd,postjs,nv,it,Num_Champ,asp,adraig,poscroi,idtrain : integer;
     
-    versR : single;
+    versR : double;
 
  function lit_ligne : string ;
     var esp,l1,l2 : integer;
@@ -3417,6 +3550,7 @@ var train,s,sa,SOrigine: string;
              Val(s,i,erreur);Delete(s,1,erreur);  // adresse
              Tablo_Action[maxtablo_act].adresse:=i;
            end;
+
         end;
 
 
@@ -3488,6 +3622,22 @@ var train,s,sa,SOrigine: string;
             begin
               Val(s,i,erreur);Delete(s,1,erreur);  // adresse
               Tablo_Action[maxtablo_act].TabloCond[k].adresse:=i;
+            end;
+            CondBouton :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);  // numéro de bouton
+              Tablo_Action[maxtablo_act].TabloCond[k].adresse:=i;
+            end;
+            CondMemoireEgal,CondMemoireInf,CondMemoireSup :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].TabloCond[k].adresse:=i;
+              // si >=9.62
+              if CompareValue(versR,9.70)>=0 then    //9.70
+              begin
+                Val(s,i,erreur);Delete(s,1,erreur);
+                Tablo_Action[maxtablo_act].tabloCond[k].etat:=i;
+              end;
             end;
             end;
           end;
@@ -3607,6 +3757,35 @@ var train,s,sa,SOrigine: string;
             begin
               Val(s,i,erreur);Delete(s,1,erreur);
               Tablo_Action[maxtablo_act].tabloOp[k].TempoF:=i;
+            end;
+            ActionBoutonTCO :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].tabloOp[k].adresse:=i;
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].tabloOp[k].etat:=i;
+            end;
+            ActionAffecteMemoire :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].tabloOp[k].adresse:=i;
+              // v9.7
+              // si >=9.62
+              if CompareValue(versR,9.70)>=0 then    //9.70
+              begin
+                Val(s,i,erreur);Delete(s,1,erreur);
+                Tablo_Action[maxtablo_act].tabloOp[k].etat:=i;
+              end;
+            end;
+            ActionIncMemoire:
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].tabloOp[k].adresse:=i;
+            end;
+            ActionDecMemoire:
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].tabloOp[k].adresse:=i;
             end;
           else
           begin
@@ -4094,7 +4273,7 @@ var train,s,sa,SOrigine: string;
   end;
 
   procedure compile_trains;
-  var i,j,erreur,n : integer;
+  var i,j,erreur,n,id : integer;
       r : single;
       ss : string;
       lire,trouveNom,sens : boolean;
@@ -4359,7 +4538,18 @@ var train,s,sa,SOrigine: string;
           // sens de la consigne de la route
           delete(s,1,1);
           sens:=s[1]='1';
+          delete(s,1,1);
         end;
+        i:=pos(',',s);
+        id:=0;
+        if i<>0 then
+        begin
+          // ID de route
+          delete(s,1,1);
+          val(s,id,erreur);
+          delete(s,1,1);
+        end;
+
         lit_ligne;
       end;
 
@@ -4371,6 +4561,7 @@ var train,s,sa,SOrigine: string;
         end;
         n:=trains[ntrains].RoutePref[0][0].adresse;
         trains[ntrains].routePref[n,0].talon:=sens;
+        trains[ntrains].routePref[n,0].pos:=id;
         compile_route(s);
         lit_ligne;
         lire:=false;
@@ -4531,7 +4722,7 @@ var train,s,sa,SOrigine: string;
       i:=pos('"',sOrigine);
       if i<>0 then delete(sOrigine,i,1);
       i:=0;
-      NomFonction[NbreFL+1]:=sOrigine;   
+      NomFonction[NbreFL+1]:=sOrigine;
       lit_ligne;
       ligne:=false;
       repeat  // boucle de la fonction
@@ -4572,6 +4763,15 @@ var train,s,sa,SOrigine: string;
           if j<>0 then delete(s,1,2);
           j:=pos(',',s);
           Fonction[NbreFL+1,i].train:=copy(s,1,j-1);
+          if j<>0 then delete(s,1,j);
+
+          j:=pos('O',s);
+          if j<>0 then
+          begin
+            delete(s,1,1);
+            val(s,v,erreur);
+            Fonction[NbreFL+1,i].OpMemoire:=v;
+          end;
 
           inc(i);
           lit_ligne;
@@ -5688,21 +5888,18 @@ begin
   end;
   readln(fichier,s);
   // trouver la version avec laquelle le fichier de config a été créé
+  versR:=0;
   i:=pos('version',s);
   if i<>0 then
   begin
     delete(s,1,i+7);
-    val(s,versR,erreur);
-    if erreur<>0 then
-    begin
-      delete(s,erreur,length(s)-erreur+1);
-      val(s,versR,erreur);
-    end;
+    versR:=STRtoFloat(s,FormatSettings) ;
   end else
   begin
     versR:=0;
     Affiche('Version fichier de configuration inconnue',clred);
   end;
+  versR:=roundTo(versR,-2);
   lit_flux;
   close(fichier);
 
@@ -5750,20 +5947,13 @@ begin
   if not(trouve_section_sig) then Affiche('Manque section '+section_sig_ch,clred);
   if not(trouve_section_branche) then Affiche('Manque section '+section_branches_ch,clred);
 
+  genere_informations_BD;
+
   {$IF CompilerVersion >= 28.0}
   sombre:=false;
   {$IFEND}
 end;
 
-// génère les informations calculées 
-procedure genere_informations_BD;
-begin
-  renseigne_TJDs_TCO;
-  trier_aig;
-  renseigne_tous_cantons;
-  trier_cantons;
-  trier_signaux;
-end;
 
 // sauvegarder la config dans le fichier cfg
 function Sauve_config : boolean;
@@ -5829,32 +6019,6 @@ begin
     changeInterface:=changeInterface or (i<>portinterface);
     portInterface:=i;
 
-    val(EditFiltrDet.Text,i,erreur);
-    if (i<0) or (i>10) then i:=3;
-    filtrageDet0:=i;
-
-    val(EditnCantonsRes.Text,i,erreur);
-    if (i<1) or (i>5) then i:=2;
-    nCantonsRes:=i;
-
-    val(EditAntiTO.Text,i,erreur);
-    if (i<0) or (i>1) then i:=0;
-    AntiTimeoutEthLenz:=i;
-
-    val(EditTempoTC.Text,i,erreur);
-    if (i<0) or (i>10) then i:=1;
-    TempoTC:=i;
-
-    val(EditMaxParcours.Text,i,erreur);
-    MaxParcours:=i;
-    if MaxParcours<50 then MaxParcours:=50;
-    if MaxParcours>MaxParcoursTablo then maxParcours:=MaxParcoursTablo;
-
-    val(EditMaxRoutes.Text,i,erreur);
-    MaxRoutes:=i;
-    if MaxRoutes<5000 then MaxRoutes:=5000;
-    if MaxRoutes>MaxRoutesCte then maxRoutes:=MaxRoutesCte;
-
     Val(editTempoAig.Text,i,erreur);
     if i>3000 then begin labelInfo.Caption:='Temporisation de séquencement incorrecte ';ok:=false;end;
     Tempo_Aig:=i;
@@ -5877,15 +6041,6 @@ begin
     val(EditTempoReponse.text,i,erreur);
     if erreur<>0 then begin labelInfo.Caption:='Valeur temporisation de réponse interface';ok:=false;end;
     TimoutMaxInterface:=i;
-
-    val(EditNbDetDist.text,i,erreur);
-    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';ok:=false;end;
-    Nb_Det_Dist:=i;
-
-    val(EditNbCantons.text,i,erreur);
-    if (erreur<>0) or ((i<3) or (i>5)) then begin labelInfo.Caption:='Valeur cantons signaux de 3 à 5';ok:=false;end;
-    Nb_cantons_Sig:=i;
-    formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
 
     if RadioButton1.checked then Valeur_entete:=0;
     if RadioButton2.checked then Valeur_entete:=1;
@@ -5955,13 +6110,61 @@ begin
     AvecDemandeAiguillages:=checkPosAig.checked;
     AvecDemandeInterfaceUSB:=CheckBoxDemarUSB.checked;
     AvecDemandeInterfaceEth:=CheckBoxDemarEth.checked;
+    sombre:=CheckBoxSombre.Checked;
+
+    {paramètres experts
     AffSig:=cbAffSig.Checked;
     AffRes:=cbRes.checked;
     DebugRoulage:=cbDebugRoulage.Checked;
     AffLoc:=cbAffLoc.checked;
     AvecAck:=cbAck.Checked;
     Option_DemiTour:=CheckBoxOptionDemiTour.checked;
-    sombre:=CheckBoxSombre.Checked;
+    cheminProgrammesCDM:=editchemin.Text;
+
+    val(EditAlgo.Text,i,erreur);
+    if (i<1) or (i>1) then i:=1;
+    Algo_localisation:=i;
+
+    val(EditMaxSignalSens.Text,i,erreur);
+    Max_Signal_Sens:=i;
+
+    val(EditNbDetDist.text,i,erreur);
+    if (erreur<>0) or (i<3) then begin labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte';ok:=false;end;
+    Nb_Det_Dist:=i;
+
+    val(EditNbCantons.text,i,erreur);
+    if (erreur<>0) or ((i<3) or (i>5)) then begin labelInfo.Caption:='Valeur cantons signaux de 3 à 5';ok:=false;end;
+    Nb_cantons_Sig:=i;
+    formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
+
+    val(EditFiltrDet.Text,i,erreur);
+    if (i<0) or (i>10) then i:=3;
+    filtrageDet0:=i;
+
+    val(EditnCantonsRes.Text,i,erreur);
+    if (i<1) or (i>5) then i:=2;
+    nCantonsRes:=i;
+
+    val(EditAntiTO.Text,i,erreur);
+    if (i<0) or (i>1) then i:=0;
+    AntiTimeoutEthLenz:=i;
+
+     val(EditTempoTC.Text,i,erreur);
+    if (i<0) or (i>10) then i:=1;
+    TempoTC:=i;
+
+    val(EditMaxParcours.Text,i,erreur);
+    MaxParcours:=i;
+    if MaxParcours<50 then MaxParcours:=50;
+    if MaxParcours>MaxParcoursTablo then maxParcours:=MaxParcoursTablo;
+
+    val(EditMaxRoutes.Text,i,erreur);
+    MaxRoutes:=i;
+    if MaxRoutes<5000 then MaxRoutes:=5000;
+    if MaxRoutes>MaxRoutesCte then maxRoutes:=MaxRoutesCte;
+    serveurIPCDM_Touche:=radioServeurCDM.ItemIndex=0;
+    }
+
     protocole:=1;
     if RadioButtonXpress.Checked then
     begin
@@ -5979,18 +6182,6 @@ begin
     if checkEnvAigDccpp.Checked then EnvAigDccpp:=1 else EnvAigDccpp:=0;
     val(EditBase.Text,AdrBaseDetDccpp,erreur);
      if (AdrBaseDetDccpp<0) or (AdrBaseDetDccpp>2048) then AdrBaseDetDccpp:=513;
-
-    serveurIPCDM_Touche:=radioServeurCDM.ItemIndex=0;
-
-    val(EditAlgo.Text,i,erreur);
-    if (i<1) or (i>1) then i:=1;
-    Algo_localisation:=i;
-
-    val(EditMaxSignalSens.Text,i,erreur);
-    Max_Signal_Sens:=i;
-
-    cheminProgrammesCDM:=editchemin.Text;
-
   end;
   if change_srv then services_CDM;
   verifie_panneau_config:=ok;
@@ -6040,7 +6231,6 @@ begin
   aff_champs_signaux(index);   // affiche les champs du signal
   clicliste:=false;
 end;
-
 
 procedure champs_dec_centrale;
 var i,nombre : integer;
@@ -6566,6 +6756,7 @@ begin
   begin
     formconfig.TreeViewL.Items[i].Expand(true);
   end;
+  formconfig.ButtonAjOpEnfant.enabled:=false;
 end;
 
 // fabrique le tree view depuis la fonction k
@@ -6610,18 +6801,6 @@ begin
       node.ImageIndex:=typ;
       node.SelectedIndex:=typ;
 
-      {if isOperateur(typ) then
-      begin
-        inc(idOperateur);
-        idVar:=0;
-        ArbreFonc[idOperateur,0]:=i;
-      end;
-      if isVariable(typ) then
-      begin
-        inc(idVar);
-        ArbreFonc[idOperateur,idVar]:=i;
-      end;}
-
       if node.parent<>nil then
       begin
         fonction[k,i].Indexprec:=node.Parent.AbsoluteIndex;
@@ -6637,20 +6816,107 @@ begin
      // Affiche('ArbreFonc['+intToSTR(i)+','+intToSTR(j)+']='+inttostr(arbreFonc[i,j]),clOrange);
     end;
   tout_deployer;
+  formconfig.ButtonAjOpEnfant.enabled:=false;
 end;
 
 
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,x,y,l,k,LongestLength,PixelLength : integer;
     cs,s,LongestString : string;
+    tp : tpersistent;
 begin
   if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
+
+  ValueListEditor.Visible:=true;
+
+  with ValueListEditor do
+  begin
+    Left:=1;
+    Top:=32;
+    width:=617;
+    Height:=420;
+
+    TitleCaptions[0]:='Désignation';
+    TitleCaptions[1]:='Valeur';
+    ColWidths[0]:=450;
+
+    for i:=1 to high(Liste) do
+    begin
+      case i of
+      1 : values[liste[i].Nom]:=intToSTR(Nb_Det_Dist);  // création de l'élément dans la valueListEditor
+      2 : values[liste[i].Nom]:=intToSTR(Nb_cantons_Sig);
+      3 : values[liste[i].Nom]:=intToSTR(filtrageDet0);
+      4 : values[liste[i].Nom]:=intToSTR(nCantonsRes);
+      5 : if AntiTimeoutEthLenz=1 then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      6 : values[liste[i].Nom]:=intToSTR(TempoTC);
+      7 : values[liste[i].Nom]:=intToSTR(MaxParcours);
+      8 : values[liste[i].Nom]:=intToSTR(MaxRoutes);
+      9 : if Option_DemiTour then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      10 : values[liste[i].Nom]:=intToSTR(Algo_localisation);
+      11 : values[liste[i].Nom]:=intToSTR(Max_Signal_Sens);
+      12 : if AvecAck then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      13 : if serveurIPCDM_Touche then values[liste[i].Nom]:='Simulation de touches' else values[liste[i].Nom]:='Ligne de commande';
+      14 : values[liste[i].Nom]:=cheminProgrammesCDM;
+      15 : values[liste[i].Nom]:='';
+      16 : if AffSig then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      17 : if AffRes then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      18 : if DebugRoulage then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      19 : if AffLoc then values[liste[i].Nom]:=Oui else values[liste[i].Nom]:=Non;
+      else values[liste[i].Nom]:='?';
+      end;
+
+      if liste[i].typ=Simple then
+      begin
+        itemprops[i-1].EditMask:=liste[i].masque;
+        ItemProps[i-1].EditStyle:=esSimple;
+      end;
+      if liste[i].typ=PickList then
+      begin
+        ItemProps[i-1].EditStyle:=esPickList;
+        if i=13 then
+        begin
+          ItemProps[i-1].PickList.add('Simulation de touches');
+          itemProps[i-1].PickList.add('Ligne de commande');
+        end
+        else
+        begin
+          ItemProps[i-1].PickList.add(Oui);
+          itemProps[i-1].PickList.add(Non);
+        end;
+      end;
+    end;
+
+
+  end;
+  //ValueListEditor.ColWidths[0]:=500;
+
+  {
+  with ValueListEditor do
+  begin
+    ItemProps[0].EditStyle:=esPickList;
+    ItemProps[0].PickList.add('br1');
+    itemProps[0].PickList.add('br2');        // TValueListEditor.OnGetPickList event
+
+    InsertRow('Element','123',true);     // ligne 4
+  end;
+  ValueListEditor.ItemProps[1].EditStyle:=esEllipsis;
+  // For Numeric input, set the TItemProp.EditStyle to esSimple, and set the TItemProp.EditMask and TItemProp.MaxLength as needed.
+  // You can then convert the user's entered value to an Integer when needed.
+  with ValueListEditor do
+  begin
+    Cells[0,3]:='zim';
+    Cells[1,3]:='456';
+    itemprops[2].EditStyle:=esSimple;    // attention les itemsprops sont décalés d'un index
+    itemprops[2].EditMask:='###';
+  end;
+  }
+
 
   ButtonVoir.Visible:=not(diffusion);
   LabeledEditTrain.Visible:=not(diffusion);
 
+  editDebug.Hint:='Débug au démarrage'+#13+'0=sans'+#13+'1=Log démarrage'+#13+'2=Démarrage par étape'+#13+'3=Dynamique';
   TabSheetActionneurs.TabVisible:=not(diffusion); // invisible / visible
-  TabSheetFonctions.Visible:=AvecLogique;
   TreeViewL.HideSelection:=false;
   TreeViewL.Images:=ImageListLogic;
 
@@ -6688,8 +6954,9 @@ begin
     itemHeight:=18; // hauteur des icones
     items.add(NomEtatDCC);
     items.add(NomEtatDet);
+    items.add(NomEtatBoutonTCO);
+    items.add(NomEtatMemoire);
   end;
-
 
   s:=GetCurrentDir;
   if not(directoryExists(rep_icones)) then CreateDir(rep_icones);
@@ -6710,7 +6977,6 @@ begin
 
   Affiche_avert:=false;
   if affevt then affiche('FormConfig create',clLime);
-  PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   PageControlTR.ActivePage:=FormConfig.TabSheetTrGen;
   ButtonImRCDM.Hint:='Importation des actionneurs depuis le fichier '+#13+NomModuleCDM;
   foncCourante:=1;
@@ -6971,7 +7237,6 @@ begin
     parent:=GroupBoxPNA;
     onChange:=formConfig.modif_editT;
   end;
-
 
   LbAPnVoie2:=Tlabel.create(formconfig.GroupBoxPNA);
   with LbAPnVoie2 do
@@ -7722,11 +7987,12 @@ begin
     LabeledEditNumFonc.text:=intToSTR(Fonction[1,0].niveau);
     changeCom:=false;
   end;
+
+  PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   couleurs_config;
 end;
 
 // décode un morceau d'une chaine d'aiguillage ('P5S')
-//
 // si erreur, B='?'
 procedure decodeAig(s : string;var adr : integer;var B : char);
 var erreur,i : integer;
@@ -8070,7 +8336,7 @@ begin
       if tri then
       begin
         Label20.Visible:=true;
-        
+
         ComboBoxAig.ItemIndex:=3; //  index de la combobox 0=aiguillage 1=TJD 2=TJS 3=aiguillage triple
         EditAigTriple.Visible:=true;
         labelTJD1.Visible:=false;
@@ -8131,6 +8397,8 @@ begin
   result:=s+intToSTR(adr);
 end;
 
+
+
 // mise à jour des champs du signal d'après le tableau signaux
 Procedure aff_champs_signaux(index : integer);
 var j,l,d,p,k,nc,decodeur : integer;
@@ -8180,7 +8448,10 @@ begin
           if j=100 then RadioGroupLEB.Visible:=false else RadioGroupLEB.Visible:=true;
           RadioGroupLEB.ItemIndex:=signaux[index].BinLin;
         end;
-    7 : ButtonConfigSR.Visible:=true;
+    7 : begin
+          ButtonConfigSR.Visible:=true;
+          //Aff_label_SR;
+        end;
     5 : ButtonConfigSR.Visible:=true ; // digikeijs
     6 : begin
         EditSpecUni.Visible:=true;
@@ -8202,7 +8473,12 @@ begin
        editSpecUni.ShowHint:=true;
        EditSpecUni.Visible:=true;
        EditSpecUni.Text:=IntToSTR(Signaux[index].Na);
-       end
+       end;
+    11: begin
+         ButtonConfigSR.Visible:=true;
+         //Aff_label_LEA;
+       end;
+
   else labelInfo.Caption:='';
   end;
 
@@ -8390,8 +8666,6 @@ end;
 
   clicListe:=false;
 end;
-
-
 
 procedure raz_champs_sig;
 begin
@@ -9010,8 +9284,10 @@ begin
     9 : if aspect<>20 then begin result:=false;if aff then Affiche('Erreur 348 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
     // B-models
     10 : if aspect<>20 then begin result:=false;if aff then Affiche('Erreur 349 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
-    end;
+    // LEA
+    11 : if aspect>10 then begin result:=false;if aff then Affiche('Erreur 350 : Signal '+intToSTR(Adr)+': Combinaison décodeur '+decodeur[dec]+' et aspect '+aspects[indexAspect]+' incompatibles',clred);end;
     // personnalisé
+    end;
     if (dec>=NbDecodeurdeBase) then
     begin
       // nationalité du décodeur
@@ -9968,7 +10244,6 @@ begin
   // réafficher la liste
   for i:=1 to maxTablo_act do
   begin
-    //s:=encode_act_loc_son(i);
     s:=encode_actions(i);
     FormConfig.ListBoxActions.items.Add(s);
   end;
@@ -10104,6 +10379,7 @@ begin
     j:=dec-NbDecodeurdeBase+1;
     nc:=decodeur_pers[j].NbreAdr;
   end;
+  if dec=11 then nc:=Signaux[i].Na;   // LEA
 
   nombre_adresses_signal:=nc;
 end;
@@ -10144,6 +10420,8 @@ begin
     exit;
   end;
   Signaux[i].Adresse:=AdrMax+na;
+  if Signaux[i].Adresse=0 then Signaux[i].Adresse:=1;
+
   Signaux[i].Aspect:=3;
   Signaux[i].decodeur:=0;
   Signaux[i].verrouCarre:=false;
@@ -11554,12 +11832,12 @@ begin
   // PN
   for i:=1 to NbrePN do
   begin
-    if tablo_pn[i].TypeCde=1 then
+    if tablo_pn[i].TypeCde=1 then  // par com USB
     begin
-      adresse:=tablo_pn[i].AdresseFerme;
+      adresse:=tablo_pn[i].AdresseFerme;  //numéro de périphérique
       if adresse>NbPeriph then
       begin
-        Affiche('Erreur 20 : le PN '+intToSTR(tablo_pn[i].voie[1].ActFerme)+' est lié à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
+        Affiche('Erreur 20 : le PN n°'+intToSTR(i)+' est lié à un périphérique n°'+intToSTR(adresse)+' COM/USB/Socket inexistant',clred);
         ok:=false;
       end;
     end;
@@ -12751,13 +13029,13 @@ begin
     begin
       action:=tCloseAction(caNone);
       exit;
-    end;      
-  end;  
+    end;
+  end;
   modif_branches:=false;
 
   for index:=1 to NbreSignaux do
   begin
-    // créer les nouveau checkBox de feux blancs si de nouveaux ont été cochés
+    // créer les nouveaux checkBox de feux blancs si de nouveaux ont été cochés
     if Signaux[index].FeuBlanc and (Signaux[index].checkFB=nil) then
     begin
       Signaux[index].CheckFB:=TCheckBox.create(Formprinc.ScrollBoxSig);  // crée le handle
@@ -12792,7 +13070,7 @@ var decodeur : integer;
 begin
   clicListe:=true;
   decodeur:=Signaux[ligneClicSig+1].decodeur;
-  if decodeur=7 then  // SR
+  if (decodeur=7) or (decodeur=11) then  // SR ou LEA
   begin
     formSR.showmodal;
     formSR.close;
@@ -12803,10 +13081,10 @@ begin
     formCDF.close;
   end;
 
-  if decodeur>=11 then
+  if decodeur>=NbDecodeurdeBase then
   begin
     FormConfig.PageControl.ActivePage:=TabSheetDecodeurs;
-    ComboBoxDecodeurPerso.ItemIndex:=decodeur-11;
+    ComboBoxDecodeurPerso.ItemIndex:=decodeur-NbDecodeurdeBase;
   end;
 
   ListBoxSig.selected[ligneClicSig]:=true;
@@ -13130,7 +13408,12 @@ procedure Maj_icone_train(IImage : Timage;index :integer);
 var h,l,HautDest,LargDest,y : integer;
     rd : single;
 begin
-  if (index<1) or (index>Ntrains) then exit;
+  if (index<1) or (index>Ntrains) then
+  begin
+    Iimage.Picture:=nil;
+    exit;
+  end
+  else
     begin
       // source
       l:=Trains[index].Icone.width;
@@ -15461,7 +15744,7 @@ begin  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
 end;
 
 procedure Affiche_action;
-var i,j,decl :integer;
+var i,io,j,decl :integer;
     s : string;
 begin
   // remplir la listbox en fonction des opérations de l'action cliquée
@@ -15477,7 +15760,10 @@ begin
       if j<1 then
         items.Add(Format('%d%s', [0, 'aucune opération']))
       else
-        items.Add(Format('%d%s', [j-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
+      begin
+        io:=Tablo_Action[ligneclicAct+1].tabloOp[i].numoperation;
+        affecte_operation(io,formConfig.ListBoxOperations);
+      end;
       itemHeight:=17;
     end;
   end;
@@ -15495,11 +15781,11 @@ begin
   if decl>0 then formConfig.RichEditInfo.Lines.Add(s);
 end;
 
-procedure TFormConfig.ListBoxActionsMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);begin
+procedure TFormConfig.ListBoxActionsMouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
   if maxTablo_act<1 then exit;
   clicliste:=true;
-
+  //Affiche('ListBoxActions mouse down',clYellow);
   ligneclicAct:=listBoxActions.ItemIndex;
   if ligneclicAct<0 then
   begin
@@ -15542,17 +15828,20 @@ end;
 
 procedure TFormConfig.ButtonTestActionClick(Sender: TObject);
 begin
-  if (ligneclicAct<0) then exit;  action_relais(ligneclicact+1);   // car action est une fonction d'une form...
+  if (ligneclicAct<0) then exit;
+  action_relais(ligneclicact+1);   // car action est une fonction d'une form...
 end;
 
 procedure TFormConfig.ModifActionClick(Sender: TObject);
-begin  DeclencheurAffiche:=0;
+begin
+  DeclencheurAffiche:=0;
   OperationAffiche:=clicaction+1;
   formModifAction.ShowModal;
 end;
 
 procedure TFormConfig.ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);begin
+  Shift: TShiftState);
+begin
   if (maxTablo_act<1) or clicliste then exit;
   if key=VK_delete then supprime_action;
 
@@ -15591,15 +15880,22 @@ procedure TFormConfig.ListBoxActionsKeyDown(Sender: TObject; var Key: Word;
 end;
 
 procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
-var s : string;    op,icone : integer;begin  if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
+var s : string;
+  op,i : integer;
+const sd=' [dévalidé]';
+begin
+  if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
 
   op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
-  if op<1 then icone:=0  else icone:=op-1;
 
-  s:=operations[op].nom;
-  if not(Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+' [dévalidé]';
-  listBoxOperations.Items[clicaction]:=Format('%d%s', [icone, s]);
+  s:=ListBoxOperations.Items[clicaction];
+  i:=pos(sd,s);
+  if i<>0 then delete(s,i,length(sd));
+
+  if not(Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+sd;
+
+  listBoxOperations.Items[clicaction]:=s;
   ListBoxActions.items[ligneClicAct]:=encode_actions(ligneclicAct+1);
 end;
 
@@ -16700,6 +16996,37 @@ begin
 
   config_modifie:=true;
   val(LabeledEditEtatAcc.text,v,erreur);
+
+  if (ComboBoxVar.ItemIndex=EtatDCC-EtatDCC) then
+  begin
+    if (v<0) or (v>2) then
+    begin
+      labelInfo.Caption:='Erreur';
+      exit;
+    end;
+  end;
+
+  if (ComboBoxVar.ItemIndex=EtatDet-EtatDCC) then
+  begin
+    if (v<0) or (v>1) then
+    begin
+      labelInfo.Caption:='Erreur';
+      exit;
+    end;
+  end;
+
+  if (ComboBoxVar.ItemIndex=EtatBoutonTCO-EtatDCC) then
+  begin
+    if (v<0) or (v>1) then
+    begin
+      labelInfo.Caption:='Erreur';
+      exit;
+    end;
+  end;
+  if (ComboBoxVar.ItemIndex=EtatMemoire-EtatDCC) then
+  begin
+  end;
+  labelInfo.Caption:='';
   fonction[foncCourante,i].etat:=v;
   s:=texte_tv(foncCourante,i);
   node.Text:=s;
@@ -16719,6 +17046,12 @@ begin
 
   config_modifie:=true;
   val(LabeledEditDCC.text,v,erreur);
+  if v<1 then
+  begin
+    labelInfo.Caption:='Erreur';
+    exit;
+  end;
+  labelInfo.Caption:='';
   fonction[foncCourante,i].adresse:=v;
   s:=texte_tv(foncCourante,i);
   node.Text:=s;
@@ -16736,11 +17069,70 @@ begin
   comboboxVar.canvas.fillrect(rect);
 
   // dessine l'icone
-  imagelistLogic.Draw(comboBoxVar.Canvas,rect.left,rect.top,Index+EtatDCC); //+1 car on commence à 1
+  imagelistLogic.Draw(comboBoxVar.Canvas,rect.left,rect.top,Index+EtatDCC);
 
   // ecrit le texte
   comboboxVar.canvas.textout(rect.left+imagelistLogic.width+2,rect.top,
                           comboboxVar.items[index]);
+end;
+
+procedure maj_champs_variable(i,foncCourante,iNode : integer);
+begin
+  with formconfig do
+  begin
+    if i=EtatDCC then
+    begin
+      LabelEtat.Visible:=true;
+      SpinEditEtat.Visible:=true;
+      RadioGroupOP.Visible:=false;
+      LabeledEditEtatACC.Visible:=false;
+      LabeledEditTrain.visible:=false;
+      PanelAcc.Visible:=true;
+      LabeledEditDcc.EditLabel.Caption:='Adresse accessoire';
+      LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
+      SpinEditEtat.Value:=fonction[foncCourante,iNode].etat;
+    end;
+
+    if i=EtatDet then
+    begin
+      RadioGroupOP.Visible:=false;
+      LabelEtat.Visible:=false;
+      LabeledEditTrain.visible:=true;
+      SpinEditEtat.Visible:=false;
+      LabeledEditEtatACC.Visible:=true;
+      LabeledEditDcc.EditLabel.Caption:='Adresse';
+      LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
+      LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
+    end;
+
+    if i=EtatBoutonTCO then
+    begin
+      RadioGroupOP.Visible:=false;
+      LabelEtat.Visible:=true;
+      SpinEditEtat.Visible:=false;
+      LabeledEditEtatACC.Visible:=true;
+      LabeledEditTrain.visible:=false;
+      PanelAcc.Visible:=true;
+      LabeledEditDCC.Visible:=true;
+      LabeledEditDcc.EditLabel.Caption:='Numéro de bouton';
+      LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
+      LabeledEditEtatAcc.text:=intToSTR(fonction[foncCourante,iNode].etat);
+    end;
+
+    if i=EtatMemoire then
+    begin
+      RadioGroupOP.Visible:=true;
+      LabeledEditDCC.Visible:=true;
+      LabeledEditDcc.EditLabel.Caption:='Numéro de mémoire';
+      LabeledEditTrain.visible:=false;
+      LabeledEditEtatACC.Visible:=true;
+      SpineditEtat.Visible:=false;
+      LabelEtat.visible:=false;
+      LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
+      LabeledEditEtatAcc.text:=intToSTR(fonction[foncCourante,iNode].etat);
+      RadioGroupOP.ItemIndex:=fonction[foncCourante,iNode].OpMemoire;
+    end;
+  end;
 end;
 
 procedure TFormConfig.ComboBoxVarChange(Sender: TObject);
@@ -16755,7 +17147,6 @@ begin
     inode:=node.AbsoluteIndex;
     Fnode:=node.ImageIndex;
     // si le node est une fonction logique ET OU NON
-    //if (Fnode>=EtatDCC) and (Fnode<=EtatDet) and (i+OpNON+1>=EtatDCC) and (i+OpNON+1<=EtatDet) then
     if isVariable(Fnode) then //and isVariable(i+opNON) then
     begin
       fonction[foncCourante,inode].typ:=i+etatDCC;
@@ -16763,16 +17154,7 @@ begin
       node.ImageIndex:=i+etatDCC;
       node.SelectedIndex:=i+etatDCC;
 
-      if i+EtatDCC=EtatDet then
-      begin
-        LabeledEditTrain.Visible:=true;
-        LabeledEditDCC.EditLabel.Caption:='Adresse';
-      end;
-      if i+EtatDCC=EtatDCC then
-      begin
-        LabeledEditTrain.Visible:=false;
-        LabeledEditDCC.EditLabel.Caption:='Adresse accessoire';
-      end;
+      Maj_champs_variable(i+EtatDCC,FoncCourante,inode);
 
     end;
   end;
@@ -16811,6 +17193,7 @@ begin
   end;
 end;
 
+
 procedure TFormConfig.TreeViewLChange(Sender: TObject; Node: TTreeNode);
 // cliqué ou sélectionné un node
 var i,inode,typ : integer;
@@ -16821,15 +17204,13 @@ begin
     i:=node.ImageIndex;
     inode:=node.AbsoluteIndex;
     //Affiche('Le node '+intToSTR(iNode)+' est '+node.Text+' image='+intToSTR(node.ImageIndex),clYellow);
-    if i=foncVar then
+    if i=foncVar then //racine du treeview
     begin
-
       TreeViewL.hint:='Numéro de fonction logique';
       ComboBoxVar.Enabled:=false;
       ComboBoxOperateur.Enabled:=false;
       LabelEtat.visible:=false;
       SpineditEtat.visible:=false;
-      ButtonAjouteOperateur.Enabled:=false;
       ButtonAjOpEnfant.Enabled:=true;
       ButtonAjoutevar.enabled:=false;
       PanelAcc.Visible:=false;
@@ -16866,44 +17247,21 @@ begin
 
     if isVariable(i) then
     begin
-       // autoriser montée descente menu
+      // autoriser montée descente menu
       PopupMenuFL.Items[0].Enabled:=true;
       PopupMenuFL.Items[1].Enabled:=true;
 
-
       TreeViewL.hint:='état logique';
       PanelAcc.Visible:=true;
+
+      Maj_champs_variable(i,FoncCourante,Inode);
 
       ComboBoxVar.Enabled:=true;
       ComboBoxOperateur.Enabled:=false;
       ComboBoxVar.ItemIndex:=i-EtatDCC;
       ButtonAjoutevar.enabled:=true;
-      LabeledEditTrain.visible:=true;
       ButtonAjOpEnfant.Enabled:=false;   // on ne peut pas ajouter d'opérateur sur une variable
 
-      if i=EtatDCC then
-      begin
-        LabelEtat.Visible:=true;
-        SpinEditEtat.Visible:=true;
-        LabeledEditEtatACC.Visible:=false;
-        LabeledEditTrain.visible:=false;
-        PanelAcc.Visible:=true;
-        LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
-        LabeledEditDcc.EditLabel.Caption:='Adresse accessoire';
-        SpinEditEtat.Value:=fonction[foncCourante,iNode].etat;
-      end;
-
-      if i=EtatDet then
-      begin
-        LabelEtat.Visible:=false;
-        LabeledEditTrain.visible:=true;
-        LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
-        SpinEditEtat.Visible:=false;
-        LabeledEditEtatACC.Visible:=true;
-        LabeledEditDcc.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
-        LabeledEditDcc.EditLabel.Caption:='Adresse';
-        LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
-      end;
     end;
   end;
   clicTree:=false;
@@ -17039,59 +17397,9 @@ begin
     else fonction[k,idNode].Indexprec:=node.AbsoluteIndex;
 end;
 
-procedure TFormConfig.ButtonAjouteOperateurClick(Sender: TObject);
-var node,NodeOrigine : Ttreenode;
-    n,inode,typ,inodeOrigine : integer;
-begin
-  n:=TreeViewL.Items.Count;
-  if n>=95 then exit;
-  // premier
-  if n=0 then exit;
-
-  nodeOrigine:=TreeViewL.Selected;
-  if nodeOrigine=nil then exit;
-
-  // on ne peut pas ajouter un opérateur sur Variable ou opérateur sur index 0 ou 1 si il y a déja un enfant opérateur
-  inodeOrigine:=NodeOrigine.AbsoluteIndex;
-  typ:=fonction[foncCourante,inodeOrigine+1].typ;
-  if (inodeOrigine=0) and isOperateur(typ) then exit;
-  if inodeOrigine=0 then exit;
-  typ:=fonction[foncCourante,inodeOrigine].typ;
-
-  Node:=TreeViewL.items.Add(nodeOrigine,NomFonc[1]) ;
-  config_modifie:=true;
-
-  Node.ImageIndex:=1;
-  Node.SelectedIndex:=1;
-  NodeOrigine.Expand(true);
-
-  inode:=node.AbsoluteIndex;
-
-  if inode<TreeViewL.Items.count then
-  begin
-    if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
-    insersion(fonccourante,inode,node.level+1,opET); 
-
-  end
-  else
-  begin  // ajout en fin
-    if not(diffusion) then Affiche('Ajout en '+inttoSTR(inode),clyellow);
-    fonction[foncCourante,inode].niveau:=node.Level+1;
-    fonction[foncCourante,inode].typ:=opET;
-  end;
-
-  fonction[foncCourante,inode].Indexprec:=inodeOrigine;
-  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
-
-  trouve_parent_OP(FoncCOurante,inode);
-
-  //fonction[foncCourante,inode].niveau:=node.Level+1;
-  //fonction[foncCourante,inode].typ:=OpET;
-end;
-
 procedure TFormConfig.ButtonAjOpEnfantClick(Sender: TObject);
   var node,NodeOrigine : Ttreenode;
-    n,inode,typ,inodeOrigine : integer;
+    n,inode,inodeOrigine : integer;
 begin
   n:=TreeViewL.Items.Count;
   if n>=95 then exit;
@@ -17117,7 +17425,7 @@ begin
   if inode<TreeViewL.Items.count then
   begin
     if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
-    insersion(fonccourante,inode,node.level+1,opET); 
+    insersion(fonccourante,inode,node.level+1,opET);
 
   end
   else
@@ -17307,9 +17615,9 @@ begin
 
   fonction[foncCourante,0].adresse:=1;       // nombre d'éléments
   config_modifie:=true;
-  ButtonAjouteOperateur.enabled:=false;
-  ButtonAjOpEnfant.enabled:=true;
+  ButtonAjOpEnfant.enabled:=false;
   ButtonAjoutevar.enabled:=false;
+
 
   treeViewL.items.Clear;
   TreeViewL.Items.add(nil,texte_tv(foncCourante,0));
@@ -17335,6 +17643,9 @@ begin
   LabelFonction.caption:='';
   LabeledEditNomLog.Text:=NomFonction[FoncCourante];
   LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
+  ButtonAjOpEnfant.enabled:=false;
+  PanelACC.Visible:=false;
+
   changeCom:=false;
 end;
 
@@ -17364,16 +17675,34 @@ begin
       //Affiche('Eval45 '+intToSTR(adr)+' '+Train,clwhite);
       if detecteur[adr].Train<>train then resultat:=false;
     end;
-
     result:=resultat;
     exit;
   end;
+
+  if typ=EtatBoutonTCO then
+  begin
+    pos:=BoutonTCO[adr].etat;
+    result:=(pos=1) and (fonction[k,i].etat=1) or (pos=0) and (fonction[k,i].etat=0);
+    exit;
+  end;
+
+  if typ=EtatMemoire then
+  begin
+    pos:=memoire[adr];
+    case fonction[k,i].OpMemoire of
+    0 :  result:=pos=fonction[k,i].etat;
+    1 :  result:=pos>fonction[k,i].etat;
+    2 :  result:=pos<fonction[k,i].etat;
+    end;
+    exit;
+  end;
+
+
 end;
 
 // donne le suivant de même niveau de même index précédent
 function suivant_niveau(k,i : integer) : integer;
-var node : Ttreenode;
-    n,idparent,Niveau : integer;
+var n,idparent,Niveau : integer;
     trouve : boolean;
 begin
   n:=fonction[k,0].adresse;
@@ -17391,9 +17720,8 @@ end;
 // évalue en récursif une branche d'opérateur de fonction
 // k : numéro de fonction ; i : index dans l'arbre de la fonction ; compteur: compteur d'opérande de l'opérateur
 function evalue_operateur(k,i,compteur : integer;var formule : string) : boolean;
-var j,typ,typOP,niv,niveau,parent,suivant : integer;
+var typ,typOP,niv,niveau,parent,suivant : integer;
     debugFonction,resultatOP,resultat : boolean;
-    node : Ttreenode;
     s : string;
 begin
   debugFonction:=false;
@@ -17409,7 +17737,7 @@ begin
       typOP:=fonction[k,i-1].typ; // type de l'opérande à l'index précédent
       while isVariable(typ) and (niveau=niv) do
       begin
-        if compteur=0 then resultat:=etat_variable(k,i) else     // 1er état de la variable
+        if compteur=0 then resultat:=etat_variable(k,i) else     // ************1er état de la variable
         begin
           if typOP=opET then resultat:=etat_variable(k,i) and resultat;
           if typOP=opOU then resultat:=etat_variable(k,i) or resultat;
@@ -17506,7 +17834,6 @@ end;
 // évalue la fonction NumFonc, et renvoie dans s sa formule
 function evalue_fonction(NumFonc : integer;var formule : string) : boolean;
 var i,nbre : integer;
-    s : string;
 begin
   nbre:=fonction[Numfonc,0].adresse;
   if nbre<2 then exit;
@@ -17524,7 +17851,7 @@ begin
 end;
 
 procedure TFormConfig.ButtonEvalueClick(Sender: TObject);
-var s,formule,vf : string;
+var formule,vf : string;
 begin
   //s:='Résultat de fonction '+intToSTR(FoncCourante)+' '+NomFonction[FoncCourante]+' : ';
 
@@ -17534,7 +17861,6 @@ begin
   LabelFonction.caption:=formule+' = '+vf;
   //affiche(formule,clorange);
 end;
-
 
 // menu
 procedure TFormConfig.Supprimer2Click(Sender: TObject);
@@ -17547,8 +17873,6 @@ begin
   if clicListe then exit;
   NomFonction[foncCourante]:=LabelededitNomLog.text;
 end;
-
-
 
 procedure TFormConfig.SpinEditEtatChange(Sender: TObject);
 var i,erreur,v : integer;
@@ -17574,7 +17898,7 @@ procedure TFormConfig.LabeledEditNumFoncChange(Sender: TObject);
 var v,erreur : integer;
     s : string;
 begin
-  if clicTree or (foncCourante=0) or changeCom or (TreeViewL=nil) then exit;
+  if clicTree or (foncCourante=0) or changeCom or (TreeViewL=nil) or (TreeViewL.Selected=nil) then exit;
   if affevt then Affiche('LabeledEditNumFonc Change',clyellow);
   config_modifie:=true;
   val(LabeledEditNumFonc.text,v,erreur);
@@ -17591,7 +17915,146 @@ end;
 
 procedure TFormConfig.LabeledEditTrainChange(Sender: TObject);
 var node : tTreenode;
-    i,v,erreur : integer;
+    i : integer;
+begin
+  if ClicTree then exit;
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  config_modifie:=true;
+  fonction[foncCourante,i].train:=labeledEditTrain.Text;
+  node.Text:=texte_tv(foncCourante,i);
+end;
+
+procedure TFormConfig.ValueListEditorSetEditText(Sender: TObject; ACol,
+  ARow: Integer; const Value: String);
+var i,erreur : integer;
+   s : string;
+begin
+  //Affiche('OnSetEditText '+intToSTR(Arow)+' '+Value,clYellow);
+  s:=Lowercase(Value);
+  val(value,i,erreur);
+  LabelInfo.caption:='';
+  ValueListEditor.Hint:=liste[Arow].aide;
+  case Arow of
+  1 :
+  begin
+    if (erreur<>0) or (i<0) then exit;
+    if (i<3) then labelInfo.Caption:='Valeur nombre de détecteurs trop distants incorrecte'
+    else Nb_Det_Dist:=i;
+  end;
+  2 :  begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<3) or (i>5) then labelInfo.Caption:='Valeur nombre de cantons incorrecte'
+         else Nb_cantons_sig:=i;
+       end;
+  3 :  begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<3) or (i>5) then labelInfo.Caption:='Valeur incorrecte'
+         else FiltrageDet0:=i;
+       end;
+  4 :  begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<1) or (i>5) then labelInfo.Caption:='Valeur incorrecte'
+         else nCantonsRes:=i;
+       end;
+  5 :  begin
+         if s=lowercase(oui) then AntiTimeOutEthLenz:=1 else AntiTimeOutEthLenz:=0;
+       end;
+  6 :  begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<1) or (i>5) then labelInfo.Caption:='Valeur incorrecte'
+         else TempoTC:=i;
+       end;
+  7 : begin
+         if (i<50) or (i>MaxParcoursTablo) then begin labelInfo.Caption:='Valeur incorrecte';exit;end;
+         MaxParcours:=i;
+         //if MaxParcours<50 then MaxParcours:=50;
+         //if MaxParcours>MaxParcoursTablo then maxParcours:=MaxParcoursTablo;
+         //ValueListEditor.onSetEditText:=nil;
+         //ValueListEditor.Cells[Acol,Arow]:=intToSTR(MaxParcours);
+         //ValueListEditor.onSetEditText:=ValueListEditorSetEditText;
+       end;
+  8 : begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<1) or (i>5000) then labelInfo.Caption:='Valeur incorrecte'
+         else MaxRoutes:=i;
+         if MaxRoutes<5000 then MaxRoutes:=5000;
+         if MaxRoutes>MaxRoutesCte then maxRoutes:=MaxRoutesCte;
+       end;
+  9 : begin
+         Option_DemiTour:=s=lowercase(oui);
+       end;
+  10: begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<1) or (i>1) then labelInfo.Caption:='Valeur incorrecte'
+         else Algo_Localisation:=i;
+       end;
+  11: begin
+         if (erreur<>0) or (i<0) then exit;
+         if (i<5) or (i>50) then labelInfo.Caption:='Valeur incorrecte'
+         else Max_signal_sens:=i;
+       end;
+  12 :begin
+         AvecAck:=s=lowercase(oui);
+       end;
+  13 : begin
+         ServeurIPCDM_touche:=s='simulation de touches';
+       end;
+  14 : begin
+         if length(s)<4 then labelInfo.Caption:='Valeur incorrecte'
+         else CheminProgrammesCDM:=s;
+       end;
+  16 :  begin
+         AffSig:=s=lowercase(oui);
+       end;
+  17 :  begin
+         AffRes:=s=lowercase(oui);
+       end;
+  18 :  begin
+         DebugRoulage:=s=lowercase(oui);
+       end;
+  19 :  begin
+         AffLoc:=s=lowercase(oui);
+       end;
+
+  end;
+end;
+
+
+procedure TFormConfig.ValueListEditorDrawCell(Sender: TObject; ACol,ARow: Integer; Rect: TRect; State: TGridDrawState);
+var coul : tColor;
+begin
+  with ValueListEditor do
+  begin
+    Inc(Rect.Left,2);
+    Inc(Rect.Top,2);
+    //DrawText(Canvas.Handle,PChar(Cells[ACol, ARow]),-1,Rect,DT_NOPREFIX or DT_WORDBREAK);
+    if (Arow=15) or (aRow=0) then Canvas.Font.Style:=[fsBold] else Canvas.Font.Style:=[];
+    canvas.TextOut(Rect.left,Rect.Top,Cells[ACol, ARow] );
+ end;
+end;
+
+procedure TFormConfig.ValueListEditorMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  y:=y div (ValueListEditor.RowHeights[0]+1);
+  if (y>high(liste)) or (y<1) then exit;
+  //Affiche('OnMouseMove y='+intToSTR(y),clYellow);
+  ValueListEditor.hint:=Liste[y].aide;
+end;
+
+
+
+procedure TFormConfig.Button2Click(Sender: TObject);
+begin
+  ValueListEditor.Cells[1,7]:='hgjg';
+end;
+
+procedure TFormConfig.RadioGroupOPClick(Sender: TObject);
+var node : tTreeNode;
+    i : integer;
     s : string;
 begin
   if ClicTree then exit;
@@ -17601,9 +18064,13 @@ begin
 
   config_modifie:=true;
 
-  fonction[foncCourante,i].train:=labeledEditTrain.Text;
+  if (ComboBoxVar.ItemIndex=EtatMemoire-EtatDCC) then
+  begin
+    fonction[foncCourante,i].opMemoire:=RadioGroupOP.ItemIndex;
+    s:=texte_tv(foncCourante,i);
+    node.Text:=s;
+  end;
 end;
-
 
 end.
 
