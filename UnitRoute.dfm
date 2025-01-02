@@ -222,7 +222,7 @@ object FormRoute: TFormRoute
     Top = 54
     Width = 209
     Height = 17
-    Caption = 'Afficher les routes longues (en orange)'
+    Caption = 'Afficher les routes longues (en gras)'
     TabOrder = 10
     OnClick = CheckBoxRoutesLonguesClick
   end

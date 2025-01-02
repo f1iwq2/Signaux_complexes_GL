@@ -244,13 +244,13 @@ begin
       DeclFonction : icone:=IconeFonction;
     end;
     ListBoxDeclench.Items.Add(Format('%d%s', [icone, declencheurs[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-    ListBoxDeclench.itemHeight:=17;
+    ListBoxDeclench.itemHeight:=16;
   end;
 
   for i:=1 to NbreOperations do
   begin
     affecte_operation(i,formModifAction.ListBoxOper);
-    ListBoxOper.itemHeight:=17; // 16 mini taille des éléments pour l'icone
+    ListBoxOper.itemHeight:=16; // 16 mini taille des éléments pour l'icone
   end;
 
   for i:=1 to NbreConditions do
@@ -271,7 +271,7 @@ begin
 
     end;
     ListBoxCondTot.Items.Add(Format('%d%s', [icone, Conditions[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-    ListBoxCondTot.itemHeight:=17; // 16 mini taille des éléments pour l'icone
+    ListBoxCondTot.itemHeight:=16; // 16  taille des éléments pour l'icone
   end;
 
   with ComboBoxFamille do
@@ -409,7 +409,6 @@ begin
      end;
   end;
 
-
   // conditions
   s:=s+#13;
   nop:=Tablo_Action[i].NbCond;
@@ -541,7 +540,7 @@ begin
         if act<=ActionTempo then formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
         if act=ActionBoutonTCO then formConfig.ListBoxOperations.items.Add(Format('%d%s', [IconeBouton, s]));
 
-        itemHeight:=17;
+        itemHeight:=16;
       end;
     end;
     if indexaction<>0 then itemIndex:=indexaction-1;
@@ -571,7 +570,7 @@ begin
 
       items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
 
-      itemHeight:=17;
+      itemHeight:=16;
     end;
     if indexCond<>0 then itemIndex:=indexCond-1;
   end;
@@ -1209,7 +1208,7 @@ begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       //items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
       affecte_operation(no,ListBoxOperations);
-      itemHeight:=17;
+      itemHeight:=16;
     end;
     ItemIndex:=indexSrc-1;
   end;
@@ -1246,7 +1245,7 @@ begin
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       affecte_operation(no,ListBoxOperations);
-      itemHeight:=17;
+      itemHeight:=16;
     end;
 
     ItemIndex:=indexSrc+1;

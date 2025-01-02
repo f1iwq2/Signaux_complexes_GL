@@ -59,6 +59,7 @@ var
   FormRoute: TFormRoute;
   parcoursDet : TUneroute;
   CoulText : Tcolor;
+  StyleText : integer;
   AncLigneRoute,NumRoute,AncRoute,IndexLigneRoute,IdTrainCourant,Nprop,NpropTot : integer;
   list_det_obl,list_det_int : array[1..20] of record
               adresse : integer;
@@ -405,14 +406,18 @@ begin
         if afLongue then
         begin
           coulText:=clOrange;
-          FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // permet d'afficher un texte en couleurs avec l'evt onDrawItem
+          StyleText:=1; // gras
+          FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(integer(StyleText)));     //
+          //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   //ne pas utiliser à cause des styles D12 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
         end
       end
       else
       begin
         inc(Nprop);
         coulText:=clYellow;
-        FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // permet d'afficher un texte en couleurs avec l'evt onDrawItem
+        StyleText:=0; // normal
+        FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(integer(StyleText)));
+        //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // ne pas utiliser à cause des styles D12 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
       end;
     end;
   end;
@@ -584,7 +589,7 @@ begin
   EditObligeCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune obligation';
   EditInterditCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune interdiction';
 
-  ListBoxRoutes.Style:=lbOwnerDrawFixed;    // pour déclencher l'evt on drawitem
+  ListBoxRoutes.Style:=lbOwnerDrawFixed;    //pour déclencher l'evt on drawitem
   // fenêtre toujours devant
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
 end;
@@ -728,6 +733,8 @@ end;
 
 procedure TFormRoute.ListBoxRoutesDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var  fs : integer;
+     s : string;
 begin
   //myBrush := TBrush.Create;
   with (Control as TListBox).Canvas do // draw on control canvas, not on the form
@@ -746,9 +753,12 @@ begin
     //Brush.Style := bsClear;
    // TextOut(Rect.Left, Rect.Top, (Control as TListBox).Items[Index]);
     //MyBrush.Free;
-    FillRect(Rect);
-    Font.Color:=TColor(ListBoxRoutes.Items.Objects[Index]);
-    TextOut(Rect.Left+2, Rect.Top, ListBoxRoutes.Items[Index]);
+    FillRect(Rect);   // on à cause des styles
+    s:=ListBoxRoutes.Items[Index];
+    fs:=integer(ListBoxRoutes.Items.Objects[Index]);
+    if fs=0 then font.style:=[] else font.Style:=[fsBold];
+//    Font.Color:=TColor(ListBoxRoutes.Items.Objects[Index]); ne pas changer de couleur à cause des styles
+    TextOut(Rect.Left+2, Rect.Top, s);
   end;
 end;
 

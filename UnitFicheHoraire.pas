@@ -98,7 +98,8 @@ var c : tcomponent;
     i : integer;
     fond,texte : tColor;
 begin
-  if sombre then
+  {$IF CompilerVersion < 28.0}
+  if Modesombre then
   begin
     fond:=couleurFond;
     texte:=couleurTexte;
@@ -111,6 +112,8 @@ begin
       composant(c,fond,texte);
     end;
   end;
+  {$IFEND}
+
 end;
 
 
@@ -337,12 +340,12 @@ begin
 
   // couleur de fond
   couleur:=$E0E0E0;
-  if d12 then couleur:=$505050;
+  if d12 then couleur:=canvas.Pixels[1,1];
   with grid.canvas do
   begin
     Brush.Color := couleur;
+    inc(Rect.top); inc(Rect.left); // rend visible les quadrillages
     FillRect(Rect);
-    font.Color:=clBlack;   // couleur de la fonte
   end;
 
   DRect:=Rect;

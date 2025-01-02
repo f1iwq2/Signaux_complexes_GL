@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    997
-    548)
+    1005
+    556)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -43,17 +43,17 @@ object FormTCO: TFormTCO
     ParentFont = False
   end
   object ImageTemp: TImage
-    Left = 816
-    Top = 8
-    Width = 121
-    Height = 121
+    Left = 704
+    Top = 0
+    Width = 249
+    Height = 257
     Hint = 'haha'
     Anchors = [akTop, akRight]
     ParentShowHint = False
     ShowHint = True
   end
   object ImageTemp2: TImage
-    Left = 688
+    Left = 504
     Top = 137
     Width = 248
     Height = 256

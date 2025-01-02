@@ -104,7 +104,7 @@ procedure couleurs_cdf;
 var i : integer;
     c : tComponent;
 begin
-  if sombre then with formCDF do
+  if Modesombre then with formCDF do
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do

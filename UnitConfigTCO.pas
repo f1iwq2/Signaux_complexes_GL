@@ -581,7 +581,7 @@ begin
     font.Color:=clBlack;
   end;
 
-  if sombre then
+  if Modesombre then
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do

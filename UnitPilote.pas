@@ -372,7 +372,7 @@ var i : integer;
     c : tcomponent;
 begin
   {$IF CompilerVersion<28.0 }
-  if sombre then with formPilote do
+  if Modesombre then with formPilote do
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do

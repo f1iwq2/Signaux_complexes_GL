@@ -416,15 +416,23 @@ const
   SensBas=4;
   // sens dans les TCO
   SensTCO_O=5;  // gauche
-  SensTCO_NO=9; // NO
   SensTCO_E=6;  // droite
   SensTCO_N=7;  // N
-  SensTCO_NE=10; // NE
   SensTCO_S=8;  // S
+  SensTCO_NO=9; // NO
+  SensTCO_NE=10; // NE
   SensTCO_SE=11; // SE
   SensTCO_SO=12; // SO
-  
-  
+  // fonction replace (2=NE 3=Est 4=SE 5=S )
+  Nord=1;
+  NordEst=2;
+  Est=3;
+  SudEst=4;
+  Sud=5;
+  SudOuest=6;
+  Ouest=7;
+  NordOuest=8;
+
   MaxCellX=150;MaxCellY=70;
   licone=26;   // largeur icone du bas 35
   hicone=licone;
@@ -462,7 +470,8 @@ const
   Id_cantonV=70; //           "
 
 
-  // liaisons des voies pour chaque icone par bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
+  // liaisons des voies pour chaque icone par N° de bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest) 7
+  // un bit à 1 indique une liaison
   Liaisons : array[0..53] of integer=
    // 0   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28 29 30 31
      (0,$88,$c8,$8c,$98,$89,$9,$84,$90,$48,$44,$11,$19,$c4,$91,$4c,$21,$24,$42,$12,$22,$cc,$99,$66,$23,$33,$26,$62,$32,$31,0,0,
@@ -508,7 +517,7 @@ type
   // élément graphique "canton"
   Tcanton = record
              numero        : integer;  // numéro du canton
-             SensLoco      : integer;  // sens de la loco stockée sur le canton 1=gauche 2=droit 3=haut 4=bas
+             SensLoco      : integer;  // sens de la loco stockée sur le canton 1=Sensgauche 2=Sensdroit 3=Senshaut 4=Sensbas
              Ntco          : integer;  // numéro du tco
              Nelements     : integer;  // nombre de cellules du canton
              nom           : string;   // nom du canton
@@ -7001,6 +7010,7 @@ begin
       exit;
     end;
 
+    // dessin de la loco ----------------------
     if (trains[indexTrain].icone=nil) or (Trains[indexTrain].Icone.height=0) then exit;
 
     //---redimensionnement
@@ -7037,8 +7047,11 @@ begin
     l:=TextWidth(s);
     if l<dx-xt then
     begin
+      font.Style:=[];
+      font.Size:=((Larg*10) div 40)+1;             //((LargCell*5) div 29);
+     // Affiche(intToSTR(numC)+' '+intToSTR(font.size),clYellow);
       brush.color:=coul;
-      textout(xt,yt+2,s);
+      textout(xt,yt,s);
     end;
     Canton[i].Xicone:=xi;
     Canton[i].Yicone:=y0;
@@ -7065,7 +7078,6 @@ begin
 
       PlgBlt(FormTCO[indexTCO].ImageTemp2.Canvas.Handle,p,
             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 180°
-    //  FormTCO[indexTCO].ImageTemp2.repaint;
 
       // !!! TransparentBLt ne mirroire pas les images. et StretchBlt pour inverser mais assombrit l'image
       TransparentBlt(PcanvasTCO[indexTCO].Handle,xi,y0+offsetY,largDest,hautDest,
@@ -7219,7 +7231,7 @@ begin
         Textout(xi,yi,s);
         {$ELSE}
         AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xi,yi,
-                                  PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,coul,s+'   ',900);
+                                  PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,s+'   ',900);
         {$IFEND}
       end;
       exit;
@@ -7227,6 +7239,8 @@ begin
 
     // pas d'icone
     if (trains[indexTrain].icone=nil) or (Trains[indexTrain].Icone.height=0) then exit;
+
+
 
     // ----- prépare l'icone du train
     hautdest:=round(haut/1.2);
@@ -7244,7 +7258,6 @@ begin
       hautdest:=(n-1)*haut;
       largDest:=round(HautDest/rd);
     end;
-    //---- fin du redimensionnement
 
     sens:=canton[i].SensLoco;
     case sens of
@@ -7259,12 +7272,6 @@ begin
                  end;
     end;
 
-    Canton[i].Xicone:=x0+round(8*frx);
-    Canton[i].Yicone:=y0;
-    Canton[i].Licone:=LargDest;
-    Canton[i].Hicone:=HautDest;
-
-    //PCanvasTCO[indexTCO].font.Size:=PCanvasTCO[indexTCO].font.Size+1;
     s:=canton[i].NomTrain;
     l:=TextWidth(s);
     Brush.Color:=coul;
@@ -7276,8 +7283,15 @@ begin
     end;
     {$ELSE}
     AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xt,yt,
-                              PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,ClBlack,s,-900);
+                              PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,s,-900);
     {$IFEND}
+
+
+    Canton[i].Xicone:=x0+round(8*frx);
+    Canton[i].Yicone:=yi;
+    Canton[i].Licone:=LargDest;
+    Canton[i].Hicone:=HautDest;
+
     if canton[i].SensLoco=SensHaut then
     begin
       with FormTCO[indexTCO].ImageTemp2.Canvas do
@@ -7286,49 +7300,55 @@ begin
         brush.Color:=clblack;
         Rectangle(0,0,500,500);
       end;
-      // matrice de copie à -90°G sans mise à l'échelle dans l'image provisoire
-      //   ok mais tournée dans mauvais sens (270 CW)
-      p[0].X:=0;
-      p[0].Y:=largSrc;
-      p[1].X:=0;
-      p[1].Y:=0;
-      p[2].X:=HautSrc;
-      p[2].Y:=LargSrc;
-     { p[0].X:=0;
+
+      // Mise à 90°
+      p[0].X:=HautSrc;
       p[0].Y:=0;
-      p[1].X:=LargDest;
-      p[1].Y:=0;
-      p[2].X:=LargSrc;
-      p[2].Y:=HautSrc;}
-  {
-    If Index = 0 Then 'Rotate Left
-        udtNewPoints(0).x = 0
-        udtNewPoints(0).y = Picture2.ScaleHeight
+      p[1].X:=HautSrc;
+      p[1].Y:=LargSrc;
+      p[2].X:=0;
+      p[2].Y:=0;
 
-        udtNewPoints(1).x = 0
-        udtNewPoints(1).y = 0
+      PlgBlt(FormTCO[indexTCO].ImageTemp.Canvas.Handle,p,
+             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
 
-        udtNewPoints(2).x = Picture2.ScaleWidth
-        udtNewPoints(2).y = Picture2.ScaleHeight
-
-    Else 'rotate right
-        udtNewPoints(0).x = Picture2.ScaleWidth
-        udtNewPoints(0).y = 0
-
-        udtNewPoints(1).x = Picture2.ScaleWidth
-        udtNewPoints(1).y = Picture2.ScaleHeight
-
-        udtNewPoints(2).x = 0
-        udtNewPoints(2).y = 0
-
-      }
+      // et inversion miroir
+      p[0].X:=0;
+      p[0].Y:=LargSrc;
+      p[1].X:=HautSrc;
+      p[1].Y:=LargSrc;
+      p[2].X:=0;
+      p[2].Y:=0;
 
       PlgBlt(FormTCO[indexTCO].ImageTemp2.Canvas.Handle,p,
-             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
-       // FormTCO[indexTCO].ImageTemp2.repaint;
+             FormTCO[indexTCO].ImageTemp.Canvas.Handle,0,0,HautSrc,largSrc,0,0,0);   // image 90°
+
       // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparent
+      // c'est moche
       TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),yi,largDest,hautDest,   // destination avec mise à l'échelle
-                   FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSRC,LargSrc,clWhite);
+                     FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSRC,LargSrc,clWhite);
+
+
+      // StretchBlt est beau mais ne copie pas en transparent!
+      //SetStretchBltMode(pCanvasTCO[indexTCO].Handle,halftone);           // blackonwhite
+
+
+      //formTCO[indexTCO].ImageTCO.Transparent:=true;
+      //formTCO[indexTCO].TransparentColor:=true;
+      //formTCO[indexTCO].ImageTCO.Picture.Bitmap.TransparentColor:=clwhite;
+      //pCanvasTCO[indexTCO].Brush.Color:=clwhite;
+      //StretchBlt(pCanvasTCO[indexTCO].Handle,x0+round(8*frx),yi,largDest,hautDest,
+      //           FormTCO[indexTCO].ImageTemp2.canvas.Handle,0,0,HautSRC,LargSrc,patcopy);
+
+      //formTCO[indexTCO].ImageTCO.Transparent:=true;
+      //formTCO[indexTCO].TransparentColor:=true;
+      //formTCO[indexTCO].ImageTCO.Stretch:=true;
+      //pCanvasTCO[indexTCO].CopyRect(rect( x0+round(8*frx),yi,largDest,hautDest),
+      //                              FormTCO[indexTCO].ImageTemp2.Canvas,rect(0,0,HautSrc,LargSrc));
+
+      //pCanvasTCO[indexTCO].Draw(x0+round(8*frx),yi,FormTCO[indexTCO].ImageTemp2.Picture.Bitmap);
+      //StretchBitmapRectTransparent
+
     end
     else
     begin
@@ -7342,11 +7362,10 @@ begin
       p[2].Y:=0;  //0;
       PlgBlt(FormTCO[indexTCO].ImageTemp2.Canvas.Handle,p,
             Trains[indexTrain].Icone.canvas.Handle,0,0,largSrc,HautSrc,0,0,0);   // image 90°
-      //  FormTCO[indexTCO].ImageTemp2.repaint;
       // copie l'image du signal retournée depuis image temporaire vers tco avec une réduction en mode transparent
       TransparentBlt(pcanvasTCO[indexTCO].Handle,x0+round(8*frx),yi,largDest,hautDest,   // destination avec mise à l'échelle
                  FormTCO[indexTCO].ImageTemp2.Canvas.Handle,0,0,HautSrc,LargSrc,clWhite);
-   end;
+    end;
   end;
 end;
 
@@ -11468,7 +11487,7 @@ begin
         Textout(xt,yt,s);
         {$ELSE}
         AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xt,yt,
-                                  PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,clfond,s+'   ',900);
+                                  PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,s+'   ',900);
         {$IFEND}
       end;
     end;
@@ -11854,6 +11873,8 @@ begin
 
   ImageTemp2.Width:=500;
   ImageTemp2.Height:=500;
+  ImageTemp.Width:=500;
+  ImageTemp.Height:=500;
 
   couleurAdresse:=clCyan;
   xMiniSel:=99999;yMiniSel:=99999;   // coordonnées cellules
@@ -14013,8 +14034,8 @@ begin
 
     with ScrollBox do
     begin
-      Width:=clLarge-55; // laisser 50 pixels pour la trackbarzoom + scrollBar
-//     Width:=clLarge-400;  // &&& mode pour voir les imageTemp
+      if diffusion then Width:=clLarge-55 // laisser 50 pixels pour la trackbarzoom + scrollBar
+      else Width:=clLarge-500;  // &&& mode pour voir les imageTemp
       top:=0;
       left:=0;
     end;
@@ -14909,7 +14930,7 @@ begin
   IdCantonDragOrg:=Id;
   lDrag:=canton[id].Licone-1;
   hDrag:=canton[id].Hicone-1;
-  xg:=canton[id].Xicone+1;
+  xg:=canton[id].Xicone+1;  // début de l'image du train (coord absolues)
   yg:=canton[id].Yicone+1;
 
   // ImageTemp <- image du canton du tco
@@ -15493,7 +15514,7 @@ begin
 end;
 
 // renvoie une icone en fonction des 4 tracés désirés
-// exemple : deux lignes qui se croisent renvoie un croisement
+// exemple : deux lignes qui se croisent renvoient un croisement
 // el  = élement à remplacer
 // quadrant des 4 tracés (2=NE 3=Est 4=SE 5=S )
 // premier : si c'est le premier élément du tracé
@@ -15509,7 +15530,7 @@ begin
   case bim of
    0 : result:=el;
    1 : begin
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then
            begin
@@ -15521,7 +15542,7 @@ begin
            end;
            if not(premier) and not(dernier) then result:=21;
          end;
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if dernier then
            begin
@@ -15540,53 +15561,53 @@ begin
              if not(testbit(tco[indextco,x+1,y].liaisons,7)) and testbit(tco[indextco,x-1,y].liaisons,3) then result:=14;
            end;
          end;
-         if quadrant=3 then result:=1;
+         if quadrant=Est then result:=1;
        end;
 
    2 : begin
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=21;
            if dernier then result:=2;
            if not(premier) and not(dernier) then result:=21;
          end;
-         if quadrant=3 then result:=2;
+         if quadrant=Est then result:=2;
        end;
    3 : begin
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=3;
            if dernier then result:=21;
            if not(premier) and not(dernier) then result:=21;
          end;
-         if quadrant=3 then result:=3;
+         if quadrant=Est then result:=3;
        end;
    4 : begin
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if premier then result:=4;
            if dernier then result:=22;
            if not(premier) and not(dernier) then result:=22;
          end;
-         if quadrant=3 then result:=4;
+         if quadrant=Est then result:=4;
        end;
    5 : begin
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if premier then result:=22;
            if dernier then result:=5;
            if not(premier) and not(dernier) then result:=22;
          end;
-         if quadrant=3 then result:=5;
+         if quadrant=Est then result:=5;
        end;
    6 : begin
-         if quadrant=3 then
+         if quadrant=Est then
          begin
            if premier then result:=6;
            if dernier then result:=5;
            if not(premier) and not(dernier) then result:=5;
          end;
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if premier then result:=12;
            if dernier then result:=6;
@@ -15594,13 +15615,13 @@ begin
          end;
        end;
    7 : begin
-         if quadrant=3 then
+         if quadrant=Est then
          begin
            if premier then result:=3;
            if dernier then result:=7;
            if not(premier) and not(dernier) then result:=3;
          end;
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=7;
            if dernier then result:=13;
@@ -15608,13 +15629,13 @@ begin
          end;
        end;
    8 : begin
-         if quadrant=3 then
+         if quadrant=Est then
          begin
            if premier then result:=4;
            if dernier then result:=8;
            if not(premier) and not(dernier) then result:=4;
          end;
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if premier then result:=8;
            if dernier then result:=14;
@@ -15622,13 +15643,13 @@ begin
          end;
        end;
    9 : begin
-         if quadrant=3 then
+         if quadrant=Est then
          begin
            if premier then result:=9;
            if dernier then result:=2;
            if not(premier) and not(dernier) then result:=2;
          end;
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=15;
            if dernier then result:=9;
@@ -15636,8 +15657,8 @@ begin
          end;
        end;
   10 : begin
-         if quadrant=2 then result:=10;
-         if quadrant=3 then
+         if quadrant=NordEst then result:=10;
+         if quadrant=Est then
          begin
            if premier then begin if testbit(tco[indextco,x+1,y-1].liaisons,6) then result:=15 else result:=9;end
            else
@@ -15650,7 +15671,7 @@ begin
              if testbit(tco[indextco,x-1,y+1].liaisons,2) and not(testbit(tco[indextco,x+1,y-1].liaisons,6)) then result:=2;
            end;
          end;
-         if quadrant=5 then
+         if quadrant=Sud then
          begin
            if premier then
            begin
@@ -15666,8 +15687,8 @@ begin
          end;
        end;
   11 : begin
-         if quadrant=1 then result:=19;
-         if quadrant=3 then
+         if quadrant=Nord then result:=19;
+         if quadrant=Est then
          begin
            if dernier then begin if testbit(tco[indextco,x-1,y-1].liaisons,4) then result:=14 else result:=8;end
            else
@@ -15680,8 +15701,8 @@ begin
              if testbit(tco[indextco,x-1,y-1].liaisons,4) and not(testbit(tco[indextco,x+1,y+1].liaisons,0)) then result:=5;
            end;
          end;
-         if quadrant=4 then result:=11;
-         if quadrant=5 then
+         if quadrant=SudEst then result:=11;
+         if quadrant=Sud then
          begin
            if dernier then
            begin
@@ -15697,8 +15718,8 @@ begin
          end;
        end;
   12 : begin
-         if quadrant=4 then result:=12;
-         if quadrant=3 then
+         if quadrant=SudEst then result:=12;
+         if quadrant=Est then
          begin
            if dernier then result:=22;
            if premier then result:=12;
@@ -15706,8 +15727,8 @@ begin
          end;
        end;
   13 : begin
-         if quadrant=2 then result:=13;
-         if quadrant=3 then
+         if quadrant=NordEst then result:=13;
+         if quadrant=Est then
          begin
            if dernier then result:=13;
            if premier then result:=21;
@@ -15715,8 +15736,8 @@ begin
          end;
        end;
   14 : begin
-         if quadrant=4 then result:=14;
-         if quadrant=3 then
+         if quadrant=SudEst then result:=14;
+         if quadrant=Est then
          begin
            if dernier then result:=14;
            if premier then result:=22;
@@ -15725,8 +15746,8 @@ begin
        end;
 
   15 : begin
-         if quadrant=2 then result:=15;
-         if quadrant=3 then
+         if quadrant=NordEst then result:=15;
+         if quadrant=Est then
          begin
            if dernier then result:=21;
            if premier then result:=15;
@@ -15735,26 +15756,26 @@ begin
        end;
 
   16 : begin
-          if quadrant=4 then
+          if quadrant=SudEst then
           begin
             if premier then result:=29;
             if dernier then result:=16;
             if not(premier) and not(dernier) then result:=29;
           end;
-          if quadrant=5 then
+          if quadrant=Sud then
           begin
             if testbit(tco[indextco,x,y-1].liaisons,5) then result:=24 else result:=16;
           end;
        end;
 
   17 : begin
-          if quadrant=2 then
+          if quadrant=NordEst then
           begin
             if premier then result:=17;
             if dernier then result:=32;
             if not(premier) and not(dernier) then result:=32;
           end;
-          if quadrant=5 then
+          if quadrant=Sud then
           begin
             if premier then result:=17;
             if dernier then result:=26;
@@ -15763,8 +15784,8 @@ begin
         end;
 
   18 : begin
-          if quadrant=2 then result:=34;
-          if quadrant=5 then
+          if quadrant=NordEst then result:=34;
+          if quadrant=Sud then
           begin
             if premier then result:=27;
             if dernier then
@@ -15776,15 +15797,15 @@ begin
         end;
 
   19 : begin
-          if quadrant=4 then result:=19;
-          if quadrant=5 then
+          if quadrant=SudEst then result:=19;
+          if quadrant=Sud then
           begin
             result:=28;
           end;
         end;
 
   20 : begin
-          if (quadrant=2) then
+          if (quadrant=NordEst) then
           begin
             if premier then
             begin
@@ -15802,7 +15823,7 @@ begin
             end;
             if not(premier) and not(dernier) then result:=23;
           end;
-          if quadrant=4 then
+          if quadrant=SudEst then
           begin
             if dernier then
             begin
@@ -15821,13 +15842,13 @@ begin
             end;
             if not(premier) and not(dernier) then result:=25;
           end;
-          if quadrant=5 then result:=20;
+          if quadrant=Sud then result:=20;
         end;
    21 : result:=21;
    22 : result:=22;
    23 : result:=23;
    24 : begin
-          if quadrant=4 then
+          if quadrant=SudEst then
           begin
             if dernier then
             begin
@@ -15837,11 +15858,11 @@ begin
             if premier then result:=25;
             if not(premier) and not(dernier) then result:=25;
           end;
-          if quadrant=5 then result:=24;
+          if quadrant=Sud then result:=24;
         end;
   25 : result:=25;
   26 : begin
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=26;
            if dernier then result:=23;
@@ -15850,17 +15871,17 @@ begin
        end;
 
    27 : begin
-         if quadrant=2 then
+         if quadrant=NordEst then
          begin
            if premier then result:=23;
            if dernier then result:=27;
            if not(premier) and not(dernier) then result:=23;
          end;
-         if quadrant=5 then result:=27;
+         if quadrant=Sud then result:=27;
        end;
 
     28 : begin
-         if quadrant=4 then
+         if quadrant=SudEst then
          begin
            if premier then result:=28;
            if dernier then
@@ -15869,11 +15890,11 @@ begin
            end;
            if not(premier) and not(dernier) then result:=25;
          end;
-         if quadrant=5 then result:=28;
+         if quadrant=Sud then result:=28;
        end;
   29 : begin
-         if quadrant=4 then result:=29;
-         if quadrant=5 then
+         if quadrant=SudEst then result:=29;
+         if quadrant=Sud then
          begin
            if dernier then result:=25;
            if premier then result:=29;
@@ -15881,8 +15902,8 @@ begin
          end;
        end;
   32 : begin
-         if quadrant=2 then result:=32;
-         if quadrant=5 then
+         if quadrant=NordEst then result:=32;
+         if quadrant=Sud then
          begin
            if dernier then result:=23;
            if premier then
@@ -15898,23 +15919,23 @@ begin
          end;
        end;
   33 : begin
-         if quadrant=1 then
+         if quadrant=Nord then
          begin
            if premier then result:=32;
            if dernier then result:=25;
            if not(premier) and not(dernier) then result:=25;
          end;
-         if quadrant=5 then
+         if quadrant=Sud then
          begin
            if premier then result:=25;
            if dernier then result:=33;
            if not(premier) and not(dernier) then result:=25;
          end;
-         if quadrant=4 then result:=33;
+         if quadrant=SudEst then result:=33;
        end;
   34 : begin
-         if quadrant=2 then result:=34;
-         if quadrant=5 then
+         if quadrant=NordEst then result:=34;
+         if quadrant=Sud then
          begin
            if dernier then result:=34;
            if premier then result:=23;
@@ -16419,7 +16440,7 @@ begin
             begin
               stocke_undo(indextco,i,xt,yt);  // stocke les points de la ligne entière dessinée
               inc(i);
-              Bimage:=replace(indexTCO,xt,yt,1,3,xt=traceXY[1].x,xt=traceXY[2].x);
+              Bimage:=replace(indexTCO,xt,yt,1,Est,xt=traceXY[1].x,xt=traceXY[2].x);
               tco[indextco,xt,yt].BImage:=Bimage;
               tco[indextco,xt,yt].liaisons:=liaisons[Bimage];
             end;
@@ -16440,7 +16461,7 @@ begin
               begin
                 stocke_undo(indexTCO,i,xt,yt);
                 inc(i);
-                Bimage:=replace(indexTCO,xt,yt,20,5,yt=traceXY[1].y,yt=traceXY[2].y);
+                Bimage:=replace(indexTCO,xt,yt,20,Sud,yt=traceXY[1].y,yt=traceXY[2].y);
                 tco[indextco,xt,yt].BImage:=Bimage;
                 tco[indextco,xt,yt].liaisons:=liaisons[Bimage];
               end;
@@ -16467,7 +16488,7 @@ begin
                 begin
                   stocke_undo(indexTCO,i,xt,yt);
                   inc(i);
-                  Bimage:=replace(indexTCO,xt,yt,11,4,xt=traceXY[1].x,xt=traceXY[2].x);
+                  Bimage:=replace(indexTCO,xt,yt,11,SudEst,xt=traceXY[1].x,xt=traceXY[2].x);
                   tco[indextco,xt,yt].BImage:=Bimage;
                   tco[indextco,xt,yt].liaisons:=liaisons[Bimage];
                   inc(yt);
@@ -16483,8 +16504,8 @@ begin
                 for xt:=traceXY[1].x to traceXY[2].x do
                 begin
                   stocke_undo(indexTCO,i,xt,yt);
-                  inc(i);
-                  Bimage:=replace(indexTCO,xt,yt,10,2,xt=traceXY[1].x,xt=traceXY[2].x);
+                  inc(i);           
+                  Bimage:=replace(indexTCO,xt,yt,10,NordEst,xt=traceXY[1].x,xt=traceXY[2].x);
                   tco[indextco,xt,yt].BImage:=Bimage;
                   tco[indextco,xt,yt].liaisons:=liaisons[Bimage];
                   dec(yt);
@@ -18915,7 +18936,7 @@ begin
   Ypix:=(y-1)*HauteurCell[indexTCO];
 
   milieuX_pix:=xpix+(canton[idcantonDest].Nelements*largeurCell[indexTCO] div 2);
-  milieuY_pix:=Ypix+(canton[idcantonDest].Nelements*HauteurCell[indexTCO] div 2);
+  milieuY_pix:=ypix+(canton[idcantonDest].Nelements*HauteurCell[indexTCO] div 2);
 
   if canton[idcantonDest].horizontal then
   begin
@@ -18933,10 +18954,11 @@ begin
   begin
     s:='Le sens de circulation du canton '+intToSTR(canton[idcantonDest].numero)+' ne permet pas de positionner le train dans ce sens';
     formTCO[indexTCO].Caption:=s;
+    //Affiche(intToSTR(ypix),clred);
     Affiche_TCO(indexTCO);
     FormInfo.LabelInfo.caption:=s;
-    FormInfo.Top:=Ypix;
-    FormInfo.Left:=Xpix;
+    FormInfo.Top:=Ypix-ScrollBox.VertScrollBar.Position;
+    FormInfo.Left:=Xpix-ScrollBox.HorzScrollBar.Position;
 
     FormInfo.Show;
     exit;
@@ -19040,7 +19062,6 @@ begin
     end;
   end;
 end;
-
 
 
 

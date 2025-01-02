@@ -27,7 +27,7 @@ Const
 // Ajoute une règle au pare feu pour un programme en utilisant Microsoft Windows Firewall APIs.
 // sp=Nom indicatif du programme (nom de la règle qui sera insérée dans le par-feu
 // chemin : chemin partiel et executable
-function AddApplicationRule(sp,chemin : string) : boolean;
+function AjouteRegle(sp,chemin : string) : boolean;
 var
   CurrentProfiles,fwPolicy2,RulesObject,NewRule : OleVariant;
   s,fichier : string;
@@ -56,7 +56,7 @@ begin
   NewRule.Profiles:=CurrentProfiles;
   NewRule.Action:=NET_FW_ACTION_ALLOW;
 
-  //Ajouter une règle
+  //Ajouter la règle
   try
     RulesObject.Add(NewRule);
     r:=true;
@@ -81,7 +81,7 @@ begin
   try
     CoResult:=CoInitializeEx(nil,COINIT_MULTITHREADED);
     try
-      r:=AddApplicationRule(sp,chemin);
+      r:=AjouteRegle(sp,chemin);
     finally
     begin
       CoUninitialize;
@@ -113,7 +113,7 @@ end;
 // retour =0 : pas dans le pare feu
 // =1 oui mais inactive
 // =2 oui et active              sp=Nom regle CDM
-function CheckingRuleEnabled(sp : string) : integer;
+function VerifieReglePF(sp : string) : integer;
 var
   fwPolicy2,RulesObject,regle : OleVariant;
   CurrentProfiles : Integer;
@@ -171,7 +171,7 @@ begin
   try
     CoInitialize(nil);
     try
-      i:=CheckingRuleEnabled(sp);
+      i:=VerifieReglePF(sp);
     finally
       CoUninitialize;
     end;

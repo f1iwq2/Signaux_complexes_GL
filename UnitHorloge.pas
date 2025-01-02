@@ -235,7 +235,7 @@ var c : tcomponent;
     i : integer;
     fond,texte : tColor;
 begin
-  if sombre then
+  if Modesombre then
   begin
     fond:=couleurFond;
     texte:=couleurTexte;

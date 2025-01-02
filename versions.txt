@@ -45,7 +45,7 @@ version 2.21 : Paramétrage du nombre de détecteurs considérés comme trop distant
 version 2.3  : Changement de la méthode de réception des trames du protocole IPC de CDM-Rail
                Affichage au démarrage des variables manquantes du fichier config-gl.cfg
 version 2.31 : Amélioration calcul des routes depuis buttoir
-	         Lancement du TCO à la validation dans la configuration
+	           Lancement du TCO à la validation dans la configuration
 version 2.4  : Optimisation de la gestion des évènements aiguillages
                Gestion des aiguillages inversés dans CDM pour le mode autonome
                Debug pilotage feux LEB
@@ -53,9 +53,9 @@ version 2.5  : Panneau de configuration:
                Correction gestion des conditions supplémentaires d'affichage du carré
                Affichage de champs modifiables supplémentaires
 version 3.0  : Ajout des fonctions Nouveau / supprimer feu, accessoires dans le panneau de configuration.
-	         Tous les éléments des feux, aiguillages, branches et actionneurs peuvent être modifiés depuis le panneau.
+	           Tous les éléments des feux, aiguillages, branches et actionneurs peuvent être modifiés depuis le panneau.
                Nécessite de nommer les sections dans le fichier config.cfg
-	         Il n'est donc plus nécessaire de modifier les fichiers de configuration.	
+	           Il n'est donc plus nécessaire de modifier les fichiers de configuration.	
 version 3.1  : Renforcement de la vérification de la configuration.
                Modification de la liste d'initialisation des aiguillages en mode autonome.
                Indépendance des modifications entre les onglets du panneau de configuration.
@@ -295,5 +295,8 @@ version 9.7  : Boutons dans le TCO intégrables dans les conditions des actions,
  			   Mémoires actionnables dans les actions.
                Gestion du décodeur de signaux LEA de Ligéa.
 			   Correction bug PN sur mémoires de zones.
+version 9.71 : Nouveaux styles d'affichages pour les versions D12.
+               Création des opérateurs NonOU et NonET dans les fonctions
+			   
 			   
 			  

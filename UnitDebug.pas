@@ -171,7 +171,7 @@ procedure couleurs_debug;
 var c : tcomponent;
     i : integer;
 begin
-  if sombre then with formdebug do
+  if ModeSombre then with formdebug do
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do

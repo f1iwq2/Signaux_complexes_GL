@@ -10,21 +10,17 @@ unit Unitprinc;
   on utilise AsyncPro pour les liaisons série/USB - ce composant est compilable en 32 et en 64 bits.
   clientSocket et ServerSocker pour les connexions réseau socket
 
-  un essai avec IdTCPClient (Indy) est fait avec D7/D12. En D7 nécéssite le fichier Idtcpclient.dcu.
+  un essai avec IdTCPClient (Indy) a été fait avec D7/D12. En D7 nécéssite le fichier Idtcpclient.dcu.
   En D12 l'event Rx nécessite un thread et ne fonctionne pas bien. C'est ok en D7.
 
-  Options de compilation: options du debugger/exception du langage : décocher "arreter sur exceptions delphi"
+  Options de compilation D7: options du debugger/exception du langage : décocher "arreter sur exceptions delphi"
   sinon une exception surgira au moment de l'ouverture du com
   Dans projet/option/fiches : fiches disponibles : formtco uniquement
   En cas d'erreur interne L1333, supprimer les fichiers DCU ou simplement faire construire
 
-  Notes pour compilation sous Embarcadero : --------------------------------------------------
-  Pour compilation avec Rad Studio (Delphi12): Projet / Options // Application / Apparence /
-    Embarcadero technologies / cocher tous les thèmes : carbon Auric etc / et choisir le style par défaut : windows sinon plantage
-
   Pour le mode sombre sous Embarcadero, il faut sélectionner:
   Projet / Options // Application / manifeste /  fichier manifeste : personnaliser
-  à la sauvegarde, ce champ appraitra sous "générer automatiquement"
+  à la sauvegarde, ce champ apparaitra sous "générer automatiquement"
   et : décocher "activer les thèmes d'exécution"
 
  ********************************************
@@ -90,6 +86,7 @@ uses
   {$ENDIF}
   {$IF CompilerVersion >= 28.0}   // si delphi>=12
   ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
+  ,Vcl.Styles.Ext     // styles étendus
   ,AdPort, OoMisc     // AsyncPro pour COM/USB
   ,idGlobal           // pour utiliser tidBytes
   {$ELSE}
@@ -263,7 +260,7 @@ type
     N16: TMenuItem;
     Afficherlhorloge1: TMenuItem;
     Codificationdescantons1: TMenuItem;
-    Button3: TButton;
+    ButtonEssai: TButton;
     Routes1: TMenuItem;
     N17: TMenuItem;
     Codificationdestrains1: TMenuItem;
@@ -428,7 +425,6 @@ type
     procedure Codificationdestrains1Click(Sender: TObject);
     procedure Afficheroutespartrain1Click(Sender: TObject);
     procedure Sauvegarderlaconfiguration1Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
     procedure MesurerlavitessedestrainsClick(Sender: TObject);
     procedure Affichelamesuredesvitesses1Click(Sender: TObject);
     procedure Button0Click(Sender: TObject);
@@ -733,6 +729,13 @@ Tfonction =
     train : string;
   end;
 
+Tstyle = record
+    NomCheminFichier : string;   // avec le chemin
+    NomFichier  : string;
+    NomStyle : string;     // nom à utiliser pour l'ouverture
+    clarte   : (tous,sombre,moyen,clair);
+  end;
+
 Taiguillage = record
                 Adresse : integer;         // adresse de l'aiguillage
                 AncienAdresse : integer;
@@ -921,7 +924,7 @@ var
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
-  etape,idEl,intervalle_courant,filtrageDet0,Nactionneurs,
+  etape,idEl,intervalle_courant,filtrageDet0,Nactionneurs,nombreStyles,
   TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
   AigMal,AncMinute,axFP,ayFP,NbreOperations,NbreDeclencheurs,index_seqAct,NbreConditions,
@@ -937,8 +940,10 @@ var
   AvecDemandeInterfaceUSB,AvecDemandeInterfaceEth,aff_acc,affiche_aigdcc,modeStkRetro,
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
   fichier_module_cdm,Diffusion,cdmDevant,serveurIPCDM_Touche,avecAckCDM,Stop_Maj_Sig,
-  sombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN,simuInterface,option_demitour,
+  Modesombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN,simuInterface,option_demitour,
   mesureTrains : boolean;
+
+  Style : array[0..200] of Tstyle;
 
   tick,Premier_tick : longint;
 
@@ -1334,7 +1339,7 @@ procedure composant(c : tComponent;fond,texte : tColor);
 procedure maj_couleurs;
 procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
                                     clBord : TColor; EpBord : integer; PenMode : TPenMode;
-                                    clfond : tColor; texte : string; AngleDD : longint);
+                                    texte : string; AngleDD : longint);
 procedure change_style;
 function isDirectionnel(index : integer) : boolean;
 procedure stop_trains;
@@ -1470,24 +1475,299 @@ begin
 end;
 }
 
+// lire les styles vsf - Uniquement D12
+procedure lire_styles;
+var path,ext : string;
+    DirList : TStrings;
+    ok  : boolean;
+    Sr      : TSearchRec;
+    commande,chem,s : string;
+    nombre,i,j : integer;
+    Style1 : tStyle;
+    {$IF CompilerVersion >= 28.0}
+    ss : TArray<string>;
+    si : tStyleInfo;
+    {$IFEND}
+    Nbss : integer;
+begin
+  // liste des fichiers chemin destination
+  {$IF CompilerVersion >= 28.0}
+
+  ss:=TStyleManager.StyleNames;  // contient les styles déja chargés en mémoire
+  Nbss:=high(ss);
+
+  s:=GetCurrentDir;
+
+  Path:=s+'\Styles\';
+
+  // trouver les fichiers
+  DirList:=TStringList.Create;
+  nombreStyles:=0;
+  if FindFirst(Path+'*.*',faAnyFile,Sr) = 0 then
+  begin
+    repeat
+      s:=sr.Name;
+      if (s<>'.') and (s<>'..') and ((sr.Attr and faDirectory)=0) then
+      begin
+        DirList.Add(SR.Name); //remplir la liste
+        i:=pos('.',s);
+        s:=copy(s,1,i-1);
+        ext:=lowercase(copy(sr.Name,i+1));
+        ok:=true;
+        if ext='vsf' then
+        begin
+          try TStylemanager.loadFromFile(path+sr.Name);
+          except begin Affiche('Impossible de charger le style '+sr.name,clOrange);ok:=false;end;
+          end;
+          if ok then // style chargé
+          begin
+            if debug=1 then Affiche('chargement du style '+sr.name,clYellow);
+            inc(nombreStyles);
+            style[NombreStyles].NomCheminFichier:=path+sr.name;
+            style[NombreStyles].NomFichier:=sr.name;
+
+            if tStyleManager.IsValidStyle(path+sr.name,si)=false then
+            begin
+              Affiche('Le style '+sr.name+' est invalide. Version='+si.Version,clOrange);
+              dec(nombreStyles);
+            end
+            else
+            begin
+              style[NombreStyles].NomStyle:=si.Name;
+            end;
+          end;
+        end;
+      end;
+    until FindNext(Sr)<>0;
+    FindClose(Sr);
+  end;
+
+  // trier par NomStyle
+  Style[0].NomStyle:=tStyleManager.StyleNames[0];
+
+  for i:=1 to nombreStyles-1 do
+  begin
+    for j:=i+1 to nombreStyles do
+    begin
+      if Style[i].NomStyle>Style[j].NomStyle then
+      begin
+        style1:=Style[i];
+        Style[i]:=Style[j];
+        Style[j]:=style1;
+      end;
+    end;
+  end;
+  {$IFEND}
+
+  // renseigner clair/sombre
+  for i:=1 to nombreStyles do
+  begin
+    s:=lowercase(style[i].NomStyle);
+
+    if s='amakrits' then style[i].clarte:=sombre;
+    if s='amethyst kamri' then style[i].clarte:=sombre;
+    if s='aqua graphite' then style[i].clarte:=sombre;       // très beau
+    if s='aqua light slate' then style[i].clarte:=clair;
+    if s='aqua light slate 2' then style[i].clarte:=clair;
+    if s='auric' then style[i].clarte:=sombre;               // très beau
+    if s='calypso' then style[i].clarte:=sombre;
+    if s='calypso le' then style[i].clarte:=sombre;
+    if s='calypso se' then style[i].clarte:=sombre;
+    if s='calypso sle' then style[i].clarte:=sombre;
+    if s='carbon' then style[i].clarte:=sombre;
+    if s='charcoal dark slate' then style[i].clarte:=sombre;
+    if s='cobalt xemedia' then style[i].clarte:=sombre;
+    if s='copper' then style[i].clarte:=sombre;
+    if s='copperdark' then style[i].clarte:=sombre;
+    if s='coppervari' then style[i].clarte:=clair;
+    if s='coppervaridark' then style[i].clarte:=clair;
+    if s='coppervarii' then style[i].clarte:=clair;
+    if s='Coppervariiblack' then style[i].clarte:=clair;
+    if s='Coppervariii' then style[i].clarte:=clair;
+    if s='Coppervariiiblack' then style[i].clarte:=clair;
+    if s='Coppervariv' then style[i].clarte:=clair;
+    if s='Coppervarivblack' then style[i].clarte:=clair;
+    if s='Coppervarv' then style[i].clarte:=clair;
+    if s='Coppervarvblack' then style[i].clarte:=clair;
+    if s='Coppervarvi' then style[i].clarte:=clair;
+    if s='Coppervarviblack' then style[i].clarte:=clair;
+    if s='Coppervarvii' then style[i].clarte:=clair;
+    if s='Coppervarviiblack' then style[i].clarte:=clair;
+    if s='coral' then style[i].clarte:=clair;
+    if s='cyan dusk' then style[i].clarte:=clair;
+    if s='cyan night' then style[i].clarte:=clair;
+    if s='diamond' then style[i].clarte:=clair;
+    if s='emerald' then style[i].clarte:=clair;             // moche
+    if s='emerald Light Slate' then style[i].clarte:=clair;
+    if s='flat ui light' then style[i].clarte:=clair;
+    if s='gnome hybrid' then style[i].clarte:=clair;
+    if s='glossy' then style[i].clarte:=sombre;
+    if s='glossy2' then style[i].clarte:=sombre;
+    if s='glow' then style[i].clarte:=sombre;
+    if s='golden graphite' then style[i].clarte:=sombre;
+    if s='iceberg classico' then style[i].clarte:=clair;     //beau
+    if s='jet' then style[i].clarte:=sombre;
+    if s='golden graphite' then style[i].clarte:=sombre;  // beau avec boutons or
+    if s='glossy' then style[i].clarte:=sombre;
+    if s='glossy2' then style[i].clarte:=sombre;
+    if s='glow' then style[i].clarte:=sombre;
+    if s='golden graphite' then style[i].clarte:=sombre;
+    if s='iceberg classico' then style[i].clarte:=clair;
+    if s='jet' then style[i].clarte:=sombre;
+    if s='lavender classico' then style[i].clarte:=clair;
+    if s='light' then style[i].clarte:=clair;
+    if s='light green' then style[i].clarte:=clair;
+    if s='light' then style[i].clarte:=clair;
+    if s='lilac' then style[i].clarte:=clair;
+    if s='luna' then style[i].clarte:=clair;
+    if s='lucky point' then style[i].clarte:=sombre;
+    if s='material' then style[i].clarte:=sombre;
+    if s='material oxford blue' then style[i].clarte:=sombre;
+    if s='material oxford blue se' then style[i].clarte:=sombre;
+    if s='material patterns blue' then style[i].clarte:=clair;
+    if s='material white texture' then style[i].clarte:=clair;
+    if s='metro black' then style[i].clarte:=sombre;
+    if s='metropolis ui dark' then style[i].clarte:=sombre;
+    if s='mountain mist' then style[i].clarte:=clair;
+    if s='obsidian' then style[i].clarte:=sombre;
+    if s='onyx blue' then style[i].clarte:=sombre;                   // beau
+    if s='puerto rico' then style[i].clarte:=clair;
+    if s='radiant' then style[i].clarte:=clair;
+    if s='ruby graphite' then style[i].clarte:=sombre;               // beau, boutons rouge
+    if s='sapphire kamri' then style[i].clarte:=clair;               // beau , fond orange
+    if s='sky' then style[i].clarte:=clair;
+    if s='sky2' then style[i].clarte:=clair;
+    if s='smokey quartz kamri' then style[i].clarte:=clair;
+    if s='stellar' then style[i].clarte:=clair;
+    if s='stellar dark' then style[i].clarte:=clair;
+    if s='sterling' then style[i].clarte:=clair;
+    if s='state classico' then style[i].clarte:=clair;
+    if s='tablet dark' then style[i].clarte:=sombre;
+    if s='tablet light' then style[i].clarte:=clair;
+    if s='turquoise gray' then style[i].clarte:=clair;
+    if s='vapor' then style[i].clarte:=sombre;
+    if s='wedgewood light' then style[i].clarte:=clair;
+    if s='win10ide_dark' then style[i].clarte:=sombre;   //beau  fond bleu clair
+    if s='win10ide_light' then style[i].clarte:=clair;   //beau  fond bleu clair
+    if s='windows' then style[i].clarte:=clair;
+    if s='windows designer' then style[i].clarte:=clair;
+    if s='windows designer dark' then style[i].clarte:=clair;
+    if s='windows10' then style[i].clarte:=clair;
+    if s='windows10 black pearl' then style[i].clarte:=sombre;
+    if s='windows10 blue' then style[i].clarte:=sombre;       // moche
+    if s='windows10 blue whale' then style[i].clarte:=sombre;
+    if s='windows10 blue whale le' then style[i].clarte:=sombre;
+    if s='windows10 charcoal' then style[i].clarte:=sombre;
+    if s='windows10 clear day' then style[i].clarte:=clair;
+    if s='windows10 dark' then style[i].clarte:=sombre;
+    if s='windows10 green' then style[i].clarte:=sombre;
+    if s='windows10 malibu' then style[i].clarte:=clair;
+    if s='windows10 purple' then style[i].clarte:=sombre;
+    if s='windows10 stategray' then style[i].clarte:=sombre;   //beau
+    if s='windows11 impressive dark se' then style[i].clarte:=sombre;   //beau
+    if s='windows11 impressive dark se' then style[i].clarte:=sombre;   //beau
+    if s='windows11 impressive light' then style[i].clarte:=clair;   //beau
+    if s='windows11 impressive light se' then style[i].clarte:=clair;   //beau
+    if s='windows11 mineShaft' then style[i].clarte:=sombre;   //beau
+    if s='windows11 modern dark' then style[i].clarte:=sombre;
+    if s='windows11 modern light' then style[i].clarte:=clair;
+    if s='windows11 polar dark' then style[i].clarte:=sombre;
+    if s='windows11 polar light' then style[i].clarte:=clair;           // beau
+    if s='windows11 white smoke' then style[i].clarte:=clair;
+    if s='zircon' then style[i].clarte:=clair;
+    if s='zircon se' then style[i].clarte:=clair;
+  end;
+end;
 
 // change le style en fonction de Style_aff pour Delphi12 (compilateur>=28)
 // Cette procédure doit être appellée depuis le module principal UnitPrinc sinon exception violation
+// Pour les RichEdit, il faut les réafficher après chaque changement de style, sinon elles peuvent être mal contrastées.
+// ceci doit être fait dans l'evt OnActivate de chaque feuille.
 procedure change_style;
-var i : integer;
+var i,j,index : integer;
+    Re : tRichEdit;
+    s : string;
+    comp : Tcomponent;
+    {$IF CompilerVersion >= 28.0}
+    si : tStyleInfo;
+    {$IFEND}
 begin
-  {$IF CompilerVersion >= 28.0}
-  if Ancien_Style<>Style_Aff then
+ {$IF CompilerVersion >= 28.0}
+  if Ancien_Nom_Style<>Nom_style_aff then
   begin
-    TStyleManager.TrySetStyle(TStyleManager.StyleNames[0]);   // repasse en windows (style 0) pour éviter exception
-    TStyleManager.TrySetStyle(TStyleManager.StyleNames[Style_Aff]);    // passe dans le style demandé
-    // repasser certains composants dans le style windows permet que le composant affiche en couleurs
+    TStyleManager.TrySetStyle(TStyleManager.StyleNames[0]);   // repasse en windows (style 0) pour éviter exception après changement du nouveau style
+    if Nom_Style_Aff='Windows' then exit;
+    index:=trouve_index_style;
+    if index<0 then
+    begin
+      Affiche('Style '+Nom_Style_aff+' non trouvé',clred);
+      exit;
+    end;
+    s:=style[index].NomCheminFichier;
+
+    // vérificztion si le fichier de style existe
+    if FileExists(s)=false then
+    begin
+      Affiche('Le fichier de style '+Nom_Style_aff+' est inexistant',clOrange);
+      Affiche(s,clOrange);
+      Exit;
+    end;
+
+    // vérification de la validité du style, et récupération de la structure si qui contient le vrai nom
+    // du style qu'il faudra utiliser pour son application
+    try
+      if tStyleManager.IsValidStyle(s,si)=false then
+      begin
+        Affiche('Le style '+Nom_Style_Aff+' est invalide. Version='+si.Version,clOrange);
+        exit;
+      end;
+    except
+      begin
+        Affiche('Le style '+Nom_Style_Aff+' est inexistant',clOrange);
+        exit;
+      end;
+    end;
+
+    // reprendre le vrai nom du style depuis SI.name car le nom du fichier peur être différent du nom du style
+    // exemple le style Metropolis UI Dark (avec espaces) a pour nom de fichier MetropolisUIDark.vsf
+    Nom_style_aff:=si.Name;
+
+    try
+      TStyleManager.ReloadStyle(Nom_Style_aff);   // librairie Vcl.Styles.Ext
+    except
+      Affiche('Erreur d''application du style '+Nom_style_aff+' version='+si.version,clOrange);
+      exit;
+    end;
+
+    // repasser certains composants dans le styleName windows permet que le composant affiche en couleurs voulues
+    // car changer de style sur un composant dont le styleName n'est plus windows interdit de changer sa couleur
+
     Formprinc.FenRich.StyleName:='Windows';
     if formDebug<>nil then
     begin
       FormDebug.RichDebug.StyleName:='Windows';
       formDebug.MemoEvtDet.StyleName:='Windows';
     end;
+
+    // énumérer tous les composants pour repaint les richedit - ne marche pas
+    {
+    for i:=0 to Screen.FormCount-1 do
+    begin
+      //Affiche(Screen.Forms[i].Name,clYellow);
+      for j:=0 to Screen.Forms[i].ComponentCount-1 do
+      begin
+        comp:=Screen.Forms[i].Components[j];
+        if comp is tRichEdit then
+        begin
+          re:=comp as tRichEdit;
+          re.repaint;
+          //Affiche(comp.name,clWhite);
+        end;
+      end;
+    end;
+    }
+
+    {
     if formConfig<>nil then
     begin
       FormConfig.RichBranche.StyleName:='Windows';
@@ -1496,8 +1776,8 @@ begin
     for i:=1 to NbreTCO do
     begin
       if FormTCO[i]<>nil then FormTCO[i].ScrollBox.StyleName:='Windows';
-    end;
-    Ancien_style:=Style_aff;
+    end; }
+    Ancien_nom_style:=nom_Style_aff;
   end;
   {$IFEND}
 end;
@@ -1585,7 +1865,7 @@ end;
 
 
 procedure fin_preliminaire;
-var i : integer;
+var i,j : integer;
     s : string;
 begin
   s:='Début du préliminaire';
@@ -3162,7 +3442,7 @@ end;
 //          AngleDD = Angle d'inclinaison en Dixièmes de degré.
 procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
                                     clBord : TColor; EpBord : integer; PenMode : TPenMode;
-                                    clfond : tColor; texte : string; AngleDD : longint);
+                                    texte : string; AngleDD : longint);
 var dc : Hdc;
     lgFont : Logfont;           // structure d'attributs de police
     AncFonte,NouvFonte : Hfont;
@@ -3174,11 +3454,11 @@ begin
   dc:=C.Handle;
 
   c.pen.Mode:=PmCopy;
-  c.pen.Color:=clfond; //clfond;
-  c.Brush.color:=clfond;
+  //c.pen.Color:=clfond; //clfond;
+  //c.Brush.color:=clfond;
   c.pen.width:=1;
   i:=round(length(texte)*0.5*abs(fonte.size));
-  c.Rectangle(x+2,y,x+15,y-i);
+//  c.Rectangle(x+2,y,x+15,y-i);
 
   // Initialisation de la fonte
   zeroMemory(@lgFont,sizeOf(lgFont));      // remplit la structure de 0
@@ -3452,7 +3732,7 @@ begin
           3 : angle:=900;
           4 : angle:=1800;
           end;
-          AffTexteIncliBordeTexture(Acanvas,XTexte,YTexte,Acanvas.Font,clYellow,0,pmcopy,clblack,intToSTR(vitesse),angle);
+          AffTexteIncliBordeTexture(Acanvas,XTexte,YTexte,Acanvas.Font,clYellow,0,pmcopy,intToSTR(vitesse),angle);
         end;
       end;
     end
@@ -17418,16 +17698,17 @@ begin
       KeybdInput(Ord('I'),KEYEVENTF_KEYUP);
 
       KeybdInput(VK_MENU,KEYEVENTF_KEYUP); // relache ALT
-      KeybdInput(Ord('I'),0);
+      KeybdInput(Ord('I'),0);              // I
       KeybdInput(Ord('I'),KEYEVENTF_KEYUP);
 
-      KeybdInput(VK_RETURN,0);
+      KeybdInput(VK_RETURN,0);                // return
       KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
       KeybdInput(VK_RETURN,0);
-      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
+      KeybdInput(VK_RETURN,KEYEVENTF_KEYUP); // return
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);     // affiche la fenetre d'interface
       Sleep(240*tempoTC);
 
+      // la fenêtre interface est ouverte
       // descendre le curseur n fois pour sélectionner le serveur
       for i:=1 to ServeurInterfaceCDM-1 do
       begin
@@ -17439,13 +17720,13 @@ begin
       KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
       KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);    // 3 TAB depuis version 24.10
 
-      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP);
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP);      // valide la fenetre
       SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
       Sleep(240*tempoTC);
 
       // Interface
-      //    Xpressnet                   RS
-      if (ServeurInterfaceCDM=1) or (ServeurInterfaceCDM=5) then
+      //    Xpressnet                   RS2pc
+      if (ServeurInterfaceCDM=1) or (ServeurInterfaceCDM=6) then
       begin
         for i:=1 to ServeurRetroCDM-1 do
         begin
@@ -17483,14 +17764,86 @@ begin
         application.ProcessMessages;
         KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
         SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-
-        Sleep(300*tempoTC);
-        application.ProcessMessages;
-        KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
-        SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
-
       end;
     end;
+
+    if (ServeurInterfaceCDM=4) then // HSI
+    begin
+      for i:=1 to 4 do
+      begin
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      end;
+
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.processMessages;
+      Sleep(200*tempoTC);
+    end;
+
+    if (ServeurInterfaceCDM=5) then // FIS88
+    begin
+      for i:=1 to 3 do
+      begin
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      end;
+
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.processMessages;
+      Sleep(200*tempoTC);
+    end;
+
+    if (ServeurInterfaceCDM=7) then // dccpp
+    begin
+      Sleep(500*tempoTC);    // attendre l'affichage de la fenetre
+      for i:=1 to 5 do
+      begin
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      end;
+
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.processMessages;
+      Sleep(200*tempoTC);
+    end;
+
+    if (ServeurInterfaceCDM=8) then // Ecos ESU
+    begin
+      for i:=1 to 6 do
+      begin
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      end;
+
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.processMessages;
+      Sleep(200*tempoTC);
+    end;
+
+    if (ServeurInterfaceCDM=9) then // Dcc++
+    begin
+      Sleep(500*tempoTC);    // attendre l'affichage de la fenetre
+      for i:=1 to 2 do
+      begin
+        KeybdInput(VK_TAB,0);KeybdInput(VK_TAB,KEYEVENTF_KEYUP);
+        SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      end;
+
+      KeybdInput(VK_SPACE,0);KeybdInput(VK_SPACE,KEYEVENTF_KEYUP); // valide la fenetre d'interface
+      SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+      Application.processMessages;
+      Sleep(200*tempoTC);
+    end;
+
+    Sleep(300*tempoTC);
+    application.ProcessMessages;
+    KeybdInput(VK_RETURN,0);KeybdInput(VK_RETURN, KEYEVENTF_KEYUP);  // valide la fenetre finale
+    SendInput(Length(KeyInputs), KeyInputs[0], SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);
+
   end;
   Lance_CDM:=true;
 end;
@@ -17912,7 +18265,7 @@ var fond,texte : tColor;
 begin
   fond:=couleurFond;
   texte:=couleurTexte;
-  if sombre then
+  if Modesombre then
   begin
     formprinc.Color:=fond;
     for i:=0 to formprinc.ComponentCount-1 do
@@ -18408,8 +18761,11 @@ var n,t,i,j,index,OrgMilieu : integer;
     s,vc : string;
     trouve : boolean;
     Sr : TSearchRec;
+    comp : Tcomponent;
     tmP,tmA : tMenuItem;
 begin
+  Ancien_Nom_Style:='';
+  Nom_style_aff:='windows';
   af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
   vc:='';
   {$IF CompilerVersion >= 28.0}
@@ -18512,7 +18868,7 @@ begin
   option_demitour:=false;
   debugroulage:=false;
   mesureTrains:=false;
-  sombre:=false;
+  Modesombre:=false;
   simuInterface:=false;
   Stop_Maj_Sig:=false;
   MaxParcours:=100;      // Nombre maxi d'éléments d'une route
@@ -18520,7 +18876,7 @@ begin
   Diffusion:=true;      // &&&& mode diffusion publique + debug mise au point etc
   AffAigDet:=false;
 
-  Button3.Visible:=not(diffusion);
+  ButtonEssai.Visible:=not(diffusion);
   GetLocaleFormatSettings(0,FormatSettings);
   FormatSettings.DecimalSeparator:='.';
 
@@ -18799,9 +19155,13 @@ begin
   Application.HintPause:=400; // 400ms
   //visible:=true;  // rend la form visible plus tot
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
+  lire_styles;
+
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
+
+
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
   change_style;
@@ -18999,6 +19359,8 @@ begin
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
 
+
+
 end;
 
 
@@ -19121,7 +19483,10 @@ begin
   if confasauver then sauve_config;
   if sauve_tco then sauve_fichiers_tco;
 
-  for i:=1 to NbreTCO do FormTCO[i].Close;
+  for i:=1 to NbreTCO do
+  begin
+    if FormTCO[i]<>nil then FormTCO[i].Close;
+  end;
 
   timer1.Enabled:=false;
   FermeSC:=true;
@@ -19163,7 +19528,7 @@ begin
   begin
     if (grilleHoraire[i].NomTrain=train) and (grilleHoraire[i].arretDepart) then
     begin
-      if (  (grilleHoraire[i].heure<heure) or
+      if ( (grilleHoraire[i].heure<heure) or
           ((grilleHoraire[i].heure=heure) and (grilleHoraire[i].minute>minute))
          ) and (seconde<10) then
       begin
@@ -21339,9 +21704,6 @@ begin
   if ConfigPrete then
   begin
     formconfig.showmodal;
-    {$IF CompilerVersion >= 28.0}
-    change_style;
-    {$IFEND}
     // ne pas faire close : déja provoqué par le self de la fermeture
   end;
 end;
@@ -21585,7 +21947,7 @@ begin
   {$IFDEF WIN64}       // si compilé en 64 bits
   s:=s+' x64';
   {$ENDIF}
-  s:=s+' (C) 2022-24 F1IWQ Gily TDR';
+  s:=s+' (C) 2022-25 F1IWQ Gily TDR';
   Affiche(s,clWhite);
 
   Affiche('Double cliquez sur un des liens ci-dessous',clWhite);
@@ -22018,7 +22380,7 @@ begin
 end;
 
 // informations sur les ports série/usb disponibles
-procedure GetWin32_SerialPortInfo;
+procedure DemandeSerialPortInfo;
 const
   WbemUser='';
   WbemPassword='';
@@ -22068,12 +22430,13 @@ begin
   if i=0 then Affiche('R2 : Aucun port com sur usb',clLime);
 end;
 
+// affiche les ports com série ou usb
 procedure liste_portcom ;
 begin
   try
     CoInitialize(nil);           // on va utiliser Ole
     try
-      GetWin32_SerialPortInfo;   // chercher les ports com avec Ole
+      DemandeSerialPortInfo;     // chercher les ports com avec Ole
     finally
       CoUninitialize;            // on a fini d'utiliser Ole
     end;
@@ -24994,14 +25357,6 @@ procedure TFormPrinc.Sauvegarderlaconfiguration1Click(Sender: TObject);
 begin
   Sauve_config;
 end;
-
-procedure TFormPrinc.Button3Click(Sender: TObject);
-begin
-  if routes_identiques(trains[3].routePref[1],trains[4].routePref[1]) then
-  Affiche('oui',clred);
-
-end;
-
 
 procedure TFormPrinc.MesurerlavitessedestrainsClick(Sender: TObject);
 begin

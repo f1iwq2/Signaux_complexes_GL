@@ -13,6 +13,7 @@ object FormInfo: TFormInfo
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poDefault
   OnActivate = FormActivate
   OnCreate = FormCreate
   PixelsPerInch = 96

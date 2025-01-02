@@ -420,7 +420,7 @@ procedure couleurs_SR;
 var i : integer;
     c : tComponent;
 begin
-  if sombre then with formSR do
+  if modesombre then with formSR do
   begin
     color:=couleurfond;
     for i:=0 to ComponentCount-1 do

@@ -53,7 +53,7 @@ object FormRouteTrain: TFormRouteTrain
     Top = 8
     Width = 585
     Height = 177
-    ActivePage = TabSheetRM
+    ActivePage = TabSheetRA
     TabOrder = 1
     object TabSheetRA: TTabSheet
       Caption = 'Route affect'#233'e'
@@ -121,7 +121,9 @@ object FormRouteTrain: TFormRouteTrain
         Top = 108
         Width = 81
         Height = 33
-        Hint = 'Sauve la route et l'#39'affecte '#224' ce train'
+        Hint = 
+          'Sauve la route dans la liste des routes m'#233'moris'#233'es si elle est u' +
+          'nique'
         Caption = 'Sauve route'
         ParentShowHint = False
         ShowHint = True

@@ -1,5 +1,7 @@
 unit UnitInfo;
 
+// afiche une info dans le TCO
+
 interface
 
 uses

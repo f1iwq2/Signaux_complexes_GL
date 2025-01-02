@@ -46,7 +46,6 @@ var
 
 procedure actualise_seltrains;
 procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
-procedure xxxraz_trains_Idcanton(idc : integer);
 procedure raz_cantons_train(AdrTrain : integer;raz : boolean);
 procedure trouve_det_canton(idcanton : integer;var el1,el2 : integer);
 function trouve_det_suiv_canton(idcanton,detecteur,sensTCO : integer) : integer;
@@ -54,8 +53,7 @@ procedure Maj_detecteurs_canton(i,AdrTrain,adresse : integer);
 
 implementation
 
-uses UnitConfigCellTCO,UnitTCO,unitconfig,unitDebug, UnitRouteTrains,
-  UnitInfo;
+uses UnitConfigCellTCO,UnitTCO,unitconfig,unitDebug, UnitRouteTrains,UnitInfo;
 
 {$R *.dfm}
 
@@ -177,32 +175,6 @@ begin
   zone_tco(t,detecteur,sensTCO,0,0,12,false,false);   // élément contigu à droite (6) du canton , résultat dans xcanton  , teste les 2 pos des aig
   if tel1=Aig then xcanton:=detecteur_suivant(detecteur,det,xcanton,aig,1);
   result:=xcanton;
-end;
-
-// raz des trains affectés au canton d'index "idc"
-procedure xxxraz_trains_idcanton(idc : integer);
-var ax,ay,i,ic : integer;
-begin
-  if traceliste then Affiche('Raz train affectés au canton index='+intToSTR(idc),clyellow);
-  for i:=1 to Ntrains do
-  begin
-    ic:=index_canton_numero(trains[i].canton);
-    if ic=idc then
-    begin
-      routeSav:=trains[i].route;         // sauvegarde la route
-      trains[i].canton:=0;
-      trains[i].route[0].adresse:=0;
-      if ic<>0 then
-      begin
-        ax:=canton[Ic].x;
-        ay:=canton[Ic].y;
-        tco[IndexTCOCourant,ax,ay].train:=0;
-        canton[Ic].indexTrain:=0;
-        canton[Ic].adresseTrain:=0;
-        canton[Ic].NomTrain:='';
-      end;
-    end;
-  end;
 end;
 
 // supprime le train AdrTrain de tous les cantons, et réaffiche les cantons effacés concernés
@@ -347,10 +319,10 @@ begin
     with StringGridTrains do
     begin
       case canton[idcanton].SensLoco of
-      1 : Image:=ImageGauche;
-      2 : Image:=ImageDroite;
-      3 : Image:=ImageHaut;
-      4 : Image:=ImageBas;
+      SensGauche : Image:=ImageGauche;   
+      SensDroit : Image:=ImageDroite;
+      SensHaut : Image:=ImageHaut;
+      SensBas : Image:=ImageBas;
       else exit;
       end;
       StretchBlt(canvas.Handle,r.left,r.Top,ColWidths[6],RowHeights[6],   // destination avec mise à l'échelle
@@ -516,8 +488,8 @@ begin
       Canvas.Brush.Color:=coul;
       Canvas.FillRect(Rect);     // Efface la cellule qu'on va réécrire en mode WORDBREAK
       // rectangle du texte
-      Inc(Rect.Left,2);
-      Inc(Rect.Top,2);
+      Inc(Rect.Left,1);
+      Inc(Rect.Top,1);
       DrawText(Canvas.Handle,PChar(Cells[ACol, ARow]),-1,Rect,DT_NOPREFIX or DT_WORDBREAK);
     end;
   end;
@@ -684,7 +656,7 @@ begin
 
       f:=canton[IdAutreCanton].SensLoco;
 
-      inc(f);
+      inc(f);    // les sens vont de 1 à 4
       if canton[IdAutreCanton].horizontal then
       begin
         if (f<SensGauche) or (f>SensDroit) then f:=SensGauche;
@@ -810,7 +782,6 @@ procedure TFormSelTrain.ButtonSauveClick(Sender: TObject);
 begin
   Sauve_config;
 end;
-
 
 
 

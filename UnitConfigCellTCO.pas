@@ -174,7 +174,7 @@ begin
       EditParam2.Text:=intToSTR(tco[indexTCO,XclicC,YclicC].sortie);
       EditParam1.Hint:='Adresse de la sortie';
       EditParam1.ShowHint:=true;
-      EditParam2.Hint:='Valeur de la sortie (0-1-2)';
+      EditParam2.Hint:='Valeur de la sortie'+#13+'0= nulle'+#13+intToSTR(const_devie)+'= dévié'+#13+intToSTR(const_droit)+'= droit';
       EditParam2.ShowHint:=true;
     end;
     // arret des trains
@@ -425,7 +425,7 @@ begin
           cells[1,ligne]:=s;
           cells[2,ligne]:=intToSTR(trains[i].DetecteurArret[j].temps)+'s';
           cells[3,ligne]:=trains[i].nom_train;
-          
+
           inc(ligne);
         end;
       end;
@@ -777,7 +777,7 @@ begin
     top:=140;
     width:=273;
     height:=145;
-  end;
+  end; 
   with GroupBoxOrientation do
   begin
     left:=8;
@@ -797,6 +797,7 @@ begin
     width:=273;
     height:=145;
   end;
+
   With StringGridDet do
   begin
     Height:=GroupBoxDet.Height-20;
@@ -814,10 +815,10 @@ begin
     Cells[1,0]:='Précé.';
     Cells[2,0]:='Temps';
     Cells[3,0]:='Train';
-    for i:=0 to RowCount-1 do 
+    for i:=0 to RowCount-1 do
       RowHeights[i]:=20;
   end;
-  
+
   // fenetre toujours dessus
   position:=poMainFormCenter;
   if affevt then Affiche('FormConfCellTCO create',clLime);
@@ -829,7 +830,7 @@ begin
   ImagePaletteCC.Height:=iconeY;
   RadioGroupSel.itemIndex:=0;
 
-  if sombre then
+  if modesombre then
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do

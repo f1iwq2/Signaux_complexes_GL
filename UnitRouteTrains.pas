@@ -294,7 +294,8 @@ begin
     else LabelRC.Caption:='Pas de route courante affectée au train '+trains[idtrain].nom_train;
 
     j:=trains[idtrain].routePref[0][0].adresse;
-    if j<>0 then  // route mémorisée du train
+    TabSheetRM.Caption:='Routes mémorisées ('+intToSTR(j)+')';
+    if j<>0 then  // nombre de route mémorisée du train
     begin
       s:=intToSTR(j)+' route';
       if j=1 then s:=s+' mémorisée au train ';
@@ -350,7 +351,6 @@ begin
   // sinon les index des trains passent à 0 dans les cantons par la fonction zone_tco
   if trains[indexTrainFR].roulage=0 then affiche_route_tco;
 end;
-
 
 procedure TFormRouteTrain.ButtonEffaceClick(Sender: TObject);
 begin
@@ -711,7 +711,7 @@ procedure couleurs_routeTrains;
 var c : tcomponent;
     i : integer;
 begin
-  if sombre then with formRouteTrain do
+  if Modesombre then with formRouteTrain do
   begin
     Color:=Couleurfond;
     for i:=0 to ComponentCount-1 do
@@ -731,7 +731,6 @@ begin
   PageControlRoutes.ActivePageIndex:=0;
   ButtonM.hint:='Affecter la route à ce train lors de sa sauvegarde et '+#13+'affecter le train au canton dans le sens de démarrage de la route';
   couleurs_RouteTrains;
-
 end;
 
 // choisir cette route mémorisée

@@ -2050,14 +2050,13 @@ object FormPrinc: TFormPrinc
       end
     end
   end
-  object Button3: TButton
+  object ButtonEssai: TButton
     Left = 504
     Top = 8
     Width = 75
     Height = 25
     Caption = 'Essai'
     TabOrder = 2
-    OnClick = Button3Click
   end
   object Timer1: TTimer
     Interval = 100
