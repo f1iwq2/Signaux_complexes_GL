@@ -856,7 +856,7 @@ begin
   end;
 end;
 
-// coordonnées image en CDM
+// coordonnées fenêtre image en CDM
 procedure inv_coords(var x,y : integer);
 begin
   x:=x-(cadre div 2);
@@ -866,7 +866,7 @@ begin
   y:=ymaxiCDM-(round(y*1000/reducY));
 end;
 
-// coordonnées CDM en image
+// coordonnées CDM en fenêtre image
 procedure Coords(var x,y : integer);
 begin
   x:=(round( (x - xMiniCDM) * reducX/1000 )) + (cadre div 2);
@@ -925,6 +925,7 @@ begin
 end;
 
 // trouve si le point x,y est sur l'arc de centre CentreX,Y de rayon ..
+// deb = debug affichage
 function point_sur_arc(x,y,CentreX,centreY,rayon : integer;StartDegres,StopDegres : single;deb : boolean) : boolean;
 var a : single;
    cosA,SinA : extended;
@@ -944,7 +945,7 @@ begin
     StopDegres:=-StopDegres;
   end;
 
-  StartDegres:=StartDegres*pisur180; //+3*pi/4;
+  StartDegres:=StartDegres*pisur180;
   StopDegres:=StartDegres+StopDegres*pisur180;
   a:=startDegres;
   repeat
@@ -954,12 +955,12 @@ begin
       yArc:=CentreY-round(rayon*sinA);
 
     trouve:=(abs(x-xArc)<precision_clic) and (abs(y-yArc)<precision_clic);
-     if deb then
-     begin
-       Affiche(intToSTR(x-xArc)+' / '+intToSTR(y-yARc),clyellow);
-       canvas.Pen.Color:=clred;
-       canvas.MoveTo(xArc,yArc);Canvas.LineTo(Xarc+3,yArc+3);
-     end;
+    if deb then
+    begin
+      Affiche(intToSTR(x-xArc)+' / '+intToSTR(y-yARc),clyellow);
+      canvas.Pen.Color:=clred;
+      canvas.MoveTo(xArc,yArc);Canvas.LineTo(Xarc+3,yArc+3);
+    end;
     a:=a+0.02;
   until (trouve) or (a>StopDegres);
   result:=trouve;
@@ -1068,9 +1069,10 @@ begin
   end;
 end;
 
+// trace une ligne en coordonnées CDM
 procedure ligneCDM(canvas: Tcanvas;x1,y1,x2,y2 : integer);
 begin
-  coords(x1,y1);
+  coords(x1,y1);    // transforme en coordonnées fenêtre
   coords(x2,y2);
   with canvas do
   begin

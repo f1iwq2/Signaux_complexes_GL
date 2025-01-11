@@ -26,7 +26,7 @@ var
   f : text;
 
 Const
-VersionSC ='9.71';  // sert à la comparaison de la version publiée
+VersionSC ='9.74';  // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -83,6 +83,7 @@ var
 begin
   Result:=False;
   t:=0;
+  // l'utilisation de TfileStream.Create inplique que le répertoire de destination soit libre de droits
   Try Fs:=TFileStream.Create(s,fmCreate);
     //hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
     if DebugVV then Affiche('TFileStream.Create ok',clLime);
@@ -121,9 +122,13 @@ begin
     finally
       InternetCloseHandle(hSession);
     end;
-  finally
-    fs.Free;
+  except
+    begin
+      Affiche('Le fichier de vérification des versions n''a pas pu être créé car le répertoire ',clred);
+      Affiche(ExtractFilePath(s)+' n''a pas les droits requis',clred);
+    end;
   end;
+  fs.Free;
 end;
 
 procedure log(s : string;couleur : Tcolor);
@@ -214,7 +219,7 @@ end;
 // renvoie le numéro de version depuis le site github, et télécharge... etc
 function verifie_version : real;
 var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : string;
-    trouve_version,trouve_zip,zone_comm,LocZip : boolean;
+    faire,trouve_version,trouve_zip,zone_comm,LocZip : boolean;
     fichier : text;
     i,j,erreur,Ncomm,i2,l : integer;
     V_utile,V_publie : real;
@@ -272,20 +277,37 @@ var description,s,s2,s3,Version_p,Url,LocalFile,nomfichier,date_creation_ang : s
 
 begin
   //Affiche('vérifie version',clLime);
+  // URL de l'API github des dernières releases
   Url:='https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';
-  LocalFile:='page.txt';
+
+  // l'utilisation de TfileStream.Create inplique que le répertoire de destination soit libre de droits,
+  // ce qui ne marche pas pour c:\program files (x64)\signaux_complexes.
+  // Le fichier page.txt est donc mis dans C:\Users\moi\AppData\Roaming\signaux_complexes qui lui a tous les droits
+  // fabrication du nom de fichier destinataire et son chemin
+  LocalFile:=SysUtils.GetEnvironmentVariable('APPDATA');
+  if LocalFile<>'' then LocalFile:=IncludeTrailingPathDelimiter(LocalFile)+'Signaux_complexes';
+  if not(directoryExists(LocalFile)) then MkDir(LocalFile);
+  LocalFile:=LocalFile+'\page.txt';
+  if Debug=1 then Affiche('fichier page: '+LocalFile,clOrange);
+
+  //
   trouve_version:=false;
   DebugVV:=false;
   trouve_zip:=false;
   zone_comm:=false;
+  essai:=false;
   Ncomm:=0;
   if DebugVV then Affiche('Lancement DownloadURL_NOCache',clYellow);
-  if DownloadURL_NOCache(Url,localFile,taille) then
-  //if true then
+  faire:=essai;
+  if not(essai) then
+  begin
+    faire:=DownloadURL_NOCache(Url,localFile,taille);
+  end;
+  if faire then
   begin
     if not(FileExists(localfile)) then
     begin
-      Affiche('Erreur fichier dépot non écrit. Vérifiez les droits du répertoire ',clred);
+      Affiche('Erreur fichier dépot absent. Vérifiez les droits du répertoire ',clred);
       Affiche(GetCurrentDir,clred);
       Affiche('Voir la notice page 9 : Refus de modification des fichiers du dossier par Windows',clred);
       result:=0;
@@ -395,7 +417,7 @@ begin
       V_Publie:=StrToFloat(s,FormatSettings);
       V_utile:=StrToFloat(s2,FormatSettings);
 
-      if (V_utile<V_publie) or ((V_utile=V_publie) and (SousVersion<SV_publie)) then
+      if essai or (V_utile<V_publie) or ((V_utile=V_publie) and (SousVersion<SV_publie)) then
       begin
         FormVersion.Top:=10;
         FormVersion.Left:=10;
@@ -412,8 +434,6 @@ begin
         begin
           // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte
           s:=GetCurrentProcessEnvVar('USERPROFILE')+'\Downloads\'+Nomfichier;
-
-          essai:=false;
 
           // s3=url complete avecnom de fichier      ex : 'https://github.com/f1iwq2/Signaux_complexes_GL/releases/download/V8.51/signaux_complexes_V8.51.zip'
           // s=répertoire+fichier de téléchargement  ex : 'C:\Users\moi\Downloads\signaux_complexes_V8.51.zip'

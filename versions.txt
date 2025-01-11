@@ -297,6 +297,14 @@ version 9.7  : Boutons dans le TCO intégrables dans les conditions des actions,
 			   Correction bug PN sur mémoires de zones.
 version 9.71 : Nouveaux styles d'affichages pour les versions D12.
                Création des opérateurs NonOU et NonET dans les fonctions
+version 9.72 : Correction de l'affichage de la fiche horaire.
+               Nouvel installeur
+version 9.73 : Changement de l'algorithme du fichier de vérification de versions.
+               Nouvel installeur
+version 9.74 : Correction suppression routes préférentielles des trains
+
+			  
 			   
+
 			   
 			  

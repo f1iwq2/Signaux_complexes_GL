@@ -330,6 +330,7 @@ begin
   DrawMinSteps;
 end;
 
+// sur la fermeture de SC, l'horloge provoque une exception
 procedure calcul_pos_horloge;
 begin
   if not assigned(formclock) or (formclock=nil) or fermeSC then exit;
@@ -341,7 +342,9 @@ begin
     formclock.height:=HauteurFC;
   end;
 
-  OffsetYFC:=(formprinc.top+formPrinc.height)-FormClock.height-28;
+  try OffsetYFC:=(formprinc.top+formPrinc.height)-FormClock.height-28;
+  except exit;
+  end;
   OffsetXFC:=(formprinc.left+formPrinc.width)-formClock.width;
 
   // écart entre fenetre principale et clock

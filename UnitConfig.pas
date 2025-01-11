@@ -707,14 +707,14 @@ type
     procedure tbCde_onchange(Sender : Tobject);
   end;
 
-  Tliste = record
-           Nom      : string;
-           aide     : string;
-           typ      : (Simple,PickList,titre);
-           masque   : string;
-           variable : pointer;
-           typeVar  : (rien3,entier,bool,chaine);
-           textePL1,textePL2 : string;
+  Tliste = record                                 // liste des paramètres avancés de la ValueListEditor
+           Nom      : string;                     // Nom de la variable
+           aide     : string;                     // pour le hint
+           typ      : (Simple,PickList,titre);    // type d'entrée : simple=entier picklist=combobox titre=texte sans variable associée
+           masque   : string;                     // masque de saisie des entiers
+           variable : pointer;                    // pointeur sur la variable à modifier
+           typeVar  : (rien3,entier,bool,chaine); // type de la variable à modifier
+           textePL1,textePL2 : string;            // texte des comboBox si typ est picklist
          end;
 
 const
@@ -2554,17 +2554,18 @@ begin
 end;
 
 // trier les aiguillages par adresses croissantes
-// et complète les aiguillages triples
+// et complète les aiguillages triples (créée aiguillahe homologue)
 procedure trier_aig;
 var i,j,adr : integer;
     temp : TAiguillage;
     s : string;
 begin
-  // trouve les aig triple
+
   // attribue les index
   i:=1;
   while (i<MaxAiguillage) do
   begin
+    // trouve les aiguillages triples
     if aiguillage[i].modele=triple then
     begin
       j:=index_aig(aiguillage[i].adrTriple);  // adresse de l'aiguillage homologue triple
@@ -2589,6 +2590,7 @@ begin
     inc(i);
   end;
 
+  // tri du tableau d'aiguillages
   for i:=1 to MaxAiguillage-1 do
   begin
     for j:=i+1 to MaxAiguillage do
@@ -2685,7 +2687,7 @@ begin
   end;
 end;
 
-// trouve les id des routes des trains
+// trouve les id des routesPref des trains et le stocke dedans
 procedure compile_id_routes;
 var t1,t2,r1,r2,Id,nr : integer;
     route1 : tUneroute;
@@ -6756,7 +6758,7 @@ begin
                           '3 pour les petits réseaux jusque 5 ou 6 pour les grands' ;
 
     typ:= Simple ;
-    masque:= '0';
+    masque:= '0';        // 1 chiffre
     variable:=@Nb_Det_Dist;
     typeVar:=entier;
   end;
@@ -7812,7 +7814,7 @@ begin
   comboBoxNation.Items.add('Française');
   comboBoxNation.Items.add('Belge');
 
-  // actionneurs actions
+  // actions
   ListBoxActions.Clear;
   longestLength:=0;
   for i:=1 to maxTablo_act do
@@ -7935,12 +7937,6 @@ begin
   //  Styles (Embarcadero Dephi11)
 
   // remplir la combobox avec les styles disponibles
-  {for s in TStyleManager.StyleNames do
-  begin
-    cs:=lowercase(s);
-    ComboStyle.Items.Add(s);
-  end;   }
-
   for i:=0 to nombreStyles do
   begin
     ComboStyle.Items.Add(Style[i].NomStyle);
@@ -7989,6 +7985,7 @@ begin
 
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   couleurs_config;
+  formconfig.LabelInfo.Caption:='';
 end;
 
 // décode un morceau d'une chaine d'aiguillage ('P5S')
@@ -15731,6 +15728,7 @@ begin
   end;
 
   // et DCC
+  {
   i:=1;
   RichCdeDCCpp.clear;
   repeat
@@ -15741,6 +15739,7 @@ begin
     end;
     inc(i);
   until (CdeDccpp[i]='') or (i>MaxCdeDccpp);
+  }
 
   // trains
   with ListBoxTrains do

@@ -1481,7 +1481,7 @@ var path,ext : string;
     DirList : TStrings;
     ok  : boolean;
     Sr      : TSearchRec;
-    commande,chem,s : string;
+    chem,s : string;
     nombre,i,j : integer;
     Style1 : tStyle;
     {$IF CompilerVersion >= 28.0}
@@ -1863,6 +1863,186 @@ begin
   end;
 end;
 
+function GetMACAdress: tstrings;
+var
+  NCB: PNCB;
+  Adapter: PAdapterStatus;
+  RetCode: Ansichar;
+  s : tstrings;
+  I: integer;
+  Lenum: PlanaEnum;
+  _SystemID: string;
+begin
+  Result:=nil;
+  _SystemID:='';
+  Getmem(NCB,SizeOf(TNCB));
+  Fillchar(NCB^,SizeOf(TNCB),0);
+
+  Getmem(Lenum,SizeOf(TLanaEnum));
+  Fillchar(Lenum^,SizeOf(TLanaEnum),0);
+
+  Getmem(Adapter,SizeOf(TAdapterStatus));
+  Fillchar(Adapter^,SizeOf(TAdapterStatus),0);
+
+  Lenum.Length    := chr(0);
+  NCB.ncb_command := chr(NCBENUM);
+  NCB.ncb_buffer  := Pointer(Lenum);
+  NCB.ncb_length  := SizeOf(Lenum);
+  RetCode         := Netbios(NCB);
+
+  s:=TstringList.Create;
+  i:=0;
+  repeat
+    Fillchar(NCB^,SizeOf(TNCB), 0);
+    Ncb.ncb_command:=chr(NCBRESET);
+    Ncb.ncb_lana_num:=lenum.lana[I];
+    RetCode:=Netbios(Ncb);
+
+    Fillchar(NCB^,SizeOf(TNCB), 0);
+    Ncb.ncb_command:=chr(NCBASTAT);
+    Ncb.ncb_lana_num:=lenum.lana[I];
+    // Must be 16
+    Ncb.ncb_callname:='*               ';
+
+    Ncb.ncb_buffer:=Pointer(Adapter);
+
+    Ncb.ncb_length:=SizeOf(TAdapterStatus);
+    RetCode:=Netbios(Ncb);
+    //---- calc _systemId de la mac-address[2-5] XOR mac-address[1]...
+    if (RetCode=chr(0)) or (RetCode=chr(6)) then
+    begin
+      _SystemId := IntToHex(Ord(Adapter.adapter_address[0]), 2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[1]),2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[2]),2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[3]),2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[4]),2) + '-' +
+        IntToHex(Ord(Adapter.adapter_address[5]),2);
+      s.add(_SystemID);
+      //Affiche(_systemID,clYellow);
+    end;
+    Inc(i);
+  until (i>=Ord(Lenum.Length)) ;//or (_SystemID<>'00-00-00-00-00-00');
+  FreeMem(NCB);
+  FreeMem(Adapter);
+  FreeMem(Lenum);
+  result:=s;
+end;
+
+// ex2
+function GetAdapterInfo(Lana: AnsiChar): String;
+var
+  Adapter: TAdapterStatus;
+  Ncb: Tncb;
+begin
+  FillChar(Ncb,SizeOf(Ncb),0);
+  Ncb.ncb_command:=Char(NCBRESET);
+  Ncb.ncb_lana_num:=Lana;
+  if Netbios(@Ncb)<>Char(NRC_GOODRET) then
+  begin
+    Result:='mac non trouvée';
+    Exit;
+  end;
+
+  FillChar(NCB,SizeOf(Ncb), 0);
+  NCB.ncb_command:=Char(NCBASTAT);
+  NCB.ncb_lana_num:=Lana;
+  NCB.ncb_callname:='*';
+
+  FillChar(Adapter,SizeOf(Adapter), 0);
+  NCB.ncb_buffer:=@Adapter;
+  NCB.ncb_length:=SizeOf(Adapter);
+  if Netbios(@Ncb)<>Char(NRC_GOODRET) then
+  begin
+    Result:='mac non trouvée';
+    Exit;
+  end;
+  Result:=
+    IntToHex(Byte(Adapter.adapter_address[0]),2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[1]),2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[2]),2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[3]),2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[4]),2) + '-' +
+    IntToHex(Byte(Adapter.adapter_address[5]),2);
+end;
+
+function GetMACAddress: string;
+var
+  AdapterList: TLanaEnum;
+  Ncb: Tncb;
+begin
+  FillChar(Ncb,SizeOf(NCB),0);
+  NCB.ncb_command:=Char(NCBENUM);
+  NCB.ncb_buffer:=@AdapterList;
+  NCB.ncb_length:=SizeOf(AdapterList);
+  Netbios(@NCB);
+  if Byte(AdapterList.length)>0 then
+    Result:=GetAdapterInfo(AdapterList.lana[0])
+  else
+    Result:='mac non trouvée';
+end;
+
+procedure envoie_infos;
+var ts : tstrings;
+    s,cmd : string;
+    retour,i,erreur : integer;
+    f : textFile;
+begin
+  s:='';
+  cmd:='/c vol c: >vol.txt';  // /c ferme la fenetre en fin d'exec   /k ne ferme pas
+  // si on fait un runas au lieu de open, çà ouvre une fenetre de demande admin sur les postes non admin
+  // ou dont le niveau d'utilisateur est bas dans le profil
+  retour:=ShellExecute(formprinc.Handle,pchar('open'),pchar('cmd.Exe'),PChar(cmd),nil,SW_SHOWNORMAL);
+  if retour<=32 then
+  begin
+    ShowMessage(SysErrorMessage(GetLastError));
+  end
+  else
+  begin
+    assignfile(f,'vol.txt');
+    {$I-}
+    reset(f);
+    erreur:=IoResult;
+    {$I+}
+    if erreur=0 then
+    begin
+      readln(f,s);
+      readln(f,s);
+      closefile(f);
+      i:=pos('-',s);
+      if i>4 then
+      begin
+        i:=i-4;
+        s:=copy(s,i,9)+'  ';
+      end;
+    end;
+  end;
+
+  ts:=GetMACAdress;
+  for i:=0 to ts.Count-1 do
+  begin
+    s:=s+ts[i]+'  ';
+  end;
+  Affiche(s,clyellow);
+  s:=DateToStr(date)+' '+TimeToStr(Time)+' V'+versionSC;
+  Affiche(s,clyellow);
+
+  //Affiche(GetCurrentDir,clyellow);
+
+  s:='NbreTCO='+intToSTR(nbreTCO);
+  s:=s+' Nbrecantons='+intToSTR(ncantons);
+  s:=s+' NbreTrains='+intToSTR(n_trains);
+  s:=s+' NbreHoraires='+intToSTR(Nombre_horaires);
+  s:=s+' NbreAig='+intToSTR(maxaiguillage);
+  s:=s+' NbreSignaux='+intToSTR(NbreSignaux);
+  s:=s+' NbreActions='+intToSTR(maxTablo_act);
+  s:=s+' NbrePN='+intToSTR(NbrePN);
+
+  s:=s+' Nbrefonctions='+intToSTR(NbreFL);
+  s:=s+' NbrePeriph='+intToSTR(NbPeriph);
+
+  Affiche(s,clyellow);
+end;
+
 
 procedure fin_preliminaire;
 var i,j : integer;
@@ -1907,23 +2087,14 @@ begin
 
   interface_ou_cdm; // démarrer l'interface , génère les evts détecteurs  ; ou cdm
 
+  
+  //envoie_infos;
+
   formprinc.SetFocus;
   s:='Fin du préliminaire';
   procetape(s);
 
 end;
-
-// envoi une chaine à un périphérique COM/USB en fonction de l'interface
-// non utilisé
-{
-procedure envoi_usb(interf : Tinterface;s : string);
-begin
-  case interf of
-    _interface : MSCommUSBInterface.Output:=s;
-    periph1    : MSCommCde1.Output:=s;
-    periph2    : MSCommCde2.Output:=s;
-  end;
-end;  }
 
 // renvoie une chaine ASCI Hexa affichable à partir d'une chaîne
 function chaine_HEX(s: string) : string;
@@ -4856,7 +5027,7 @@ begin
     end;
     if (aspect=rappel_60) then // rappel 60
     begin
-      Signaux[i].EtatSignal:=Signaux[i].EtatSignal and not($1Cff);   // cas du rappel 60: efface les bits 0 1 2 3 4 5 6 7 10 11 et 12  1 1100 1111 0000
+      Signaux[i].EtatSignal:=Signaux[i].EtatSignal and not($1cff);   // cas du rappel 60: efface les bits 0 1 2 3 4 5 6 7 10 11 et 12  1 1100 1111 0000
     end;
     if (aspect=aspect8) then // ral_60_jaune_cli décodeur LDT
     begin
@@ -8288,7 +8459,7 @@ begin
         if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
         suivant_alg3:=adr;
         if nivDebug=3 then Affichedebug('le port de destination de la tjd 2 états est '+IntToSTR(adr)+a,clyellow);
-        trouve_actionneurs_aig(index,adr,TypeGenS); 
+        trouve_actionneurs_aig(index,adr,TypeGenS);
         typeGen:=TypeGenS;
         exit;
       end;
@@ -17625,7 +17796,7 @@ begin
   //Affiche(repertoire,clorange);
   retour:=ShellExecute(Formprinc.Handle,'open',
                     Pchar('cdr.exe'),
-                    Pchar(s),  // paramètre
+                    Pchar(s),  // paramètre : -f armentieres.lay -COMIPC
                     PChar(repertoire)  // répertoire
                     ,SW_SHOWNORMAL);
   if retour>32 then
@@ -18028,122 +18199,9 @@ begin
   Maj_Signaux(false);
 end;
 
-// renvoyer date heure, MAC, version SC , verif_version, avec_roulage
 
-// ex 1
-function GetMACAdress: string;
-var
-  NCB: PNCB;
-  Adapter: PAdapterStatus;
-  RetCode: Ansichar;
-  I: integer;
-  Lenum: PlanaEnum;
-  _SystemID: string;
-begin
-  Result:='';
-  _SystemID:='';
-  Getmem(NCB,SizeOf(TNCB));
-  Fillchar(NCB^,SizeOf(TNCB),0);
-
-  Getmem(Lenum,SizeOf(TLanaEnum));
-  Fillchar(Lenum^,SizeOf(TLanaEnum),0);
-
-  Getmem(Adapter,SizeOf(TAdapterStatus));
-  Fillchar(Adapter^,SizeOf(TAdapterStatus),0);
-
-  Lenum.Length    := chr(0);
-  NCB.ncb_command := chr(NCBENUM);
-  NCB.ncb_buffer  := Pointer(Lenum);
-  NCB.ncb_length  := SizeOf(Lenum);
-  RetCode         := Netbios(NCB);
-
-  i:=0;
-  repeat
-    Fillchar(NCB^,SizeOf(TNCB), 0);
-    Ncb.ncb_command:=chr(NCBRESET);
-    Ncb.ncb_lana_num:=lenum.lana[I];
-    RetCode:=Netbios(Ncb);
-
-    Fillchar(NCB^,SizeOf(TNCB), 0);
-    Ncb.ncb_command:=chr(NCBASTAT);
-    Ncb.ncb_lana_num:=lenum.lana[I];
-    // Must be 16
-    Ncb.ncb_callname:='*               ';
-
-    Ncb.ncb_buffer:=Pointer(Adapter);
-
-    Ncb.ncb_length:=SizeOf(TAdapterStatus);
-    RetCode:=Netbios(Ncb);
-    //---- calc _systemId de la mac-address[2-5] XOR mac-address[1]...
-    if (RetCode=chr(0)) or (RetCode=chr(6)) then
-    begin
-      _SystemId := IntToHex(Ord(Adapter.adapter_address[0]), 2) + '-' +
-        IntToHex(Ord(Adapter.adapter_address[1]),2) + '-' +
-        IntToHex(Ord(Adapter.adapter_address[2]),2) + '-' +
-        IntToHex(Ord(Adapter.adapter_address[3]),2) + '-' +
-        IntToHex(Ord(Adapter.adapter_address[4]),2) + '-' +
-        IntToHex(Ord(Adapter.adapter_address[5]),2);
-    end;
-    Inc(i);
-  until (i>=Ord(Lenum.Length)) or (_SystemID<>'00-00-00-00-00-00');
-  FreeMem(NCB);
-  FreeMem(Adapter);
-  FreeMem(Lenum);
-  GetMacAdress:=_SystemID;
-end;
-
-// ex2
-function GetAdapterInfo(Lana: AnsiChar): String;
-var
-  Adapter: TAdapterStatus;
-  Ncb: Tncb;
-begin
-  FillChar(Ncb,SizeOf(Ncb),0);
-  Ncb.ncb_command:=Char(NCBRESET);
-  Ncb.ncb_lana_num:=Lana;
-  if Netbios(@Ncb)<>Char(NRC_GOODRET) then
-  begin
-    Result:='mac non trouvée';
-    Exit;
-  end;
-
-  FillChar(NCB,SizeOf(Ncb), 0);
-  NCB.ncb_command:=Char(NCBASTAT);
-  NCB.ncb_lana_num:=Lana;
-  NCB.ncb_callname:='*';
-
-  FillChar(Adapter,SizeOf(Adapter), 0);
-  NCB.ncb_buffer:=@Adapter;
-  NCB.ncb_length:=SizeOf(Adapter);
-  if Netbios(@Ncb)<>Char(NRC_GOODRET) then
-  begin
-    Result:='mac non trouvée';
-    Exit;
-  end;
-  Result:=
-    IntToHex(Byte(Adapter.adapter_address[0]),2) + '-' +
-    IntToHex(Byte(Adapter.adapter_address[1]),2) + '-' +
-    IntToHex(Byte(Adapter.adapter_address[2]),2) + '-' +
-    IntToHex(Byte(Adapter.adapter_address[3]),2) + '-' +
-    IntToHex(Byte(Adapter.adapter_address[4]),2) + '-' +
-    IntToHex(Byte(Adapter.adapter_address[5]),2);
-end;
-
-function GetMACAddress: string;
-var
-  AdapterList: TLanaEnum;
-  Ncb: Tncb;
-begin
-  FillChar(Ncb,SizeOf(NCB),0);
-  NCB.ncb_command:=Char(NCBENUM);
-  NCB.ncb_buffer:=@AdapterList;
-  NCB.ncb_length:=SizeOf(AdapterList);
-  Netbios(@NCB);
-  if Byte(AdapterList.length)>0 then
-    Result:=GetAdapterInfo(AdapterList.lana[0])
-  else
-    Result:='mac non trouvée';
-end;
+// renvoyer date heure, MAC, version SC , verif_version
+// ex 1 ... renvoie celui de la virtual box
 
 // positionne les composants de la fenêtre principale
 // i : position X du splitter
@@ -19047,6 +19105,7 @@ begin
     end;
 
     {$ELSE}
+    // composant TclientSocket
     ClientSocketInterface:=tClientSocket.Create(nil);
     ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
     ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
@@ -19341,6 +19400,7 @@ begin
 
   }
 
+
   procetape('Fin des initialisations');
 
   // vérifier si le fichier de segments existe
@@ -19354,7 +19414,7 @@ begin
   end
     else Affiche_fenetre_CDM.Enabled:=false;
 
-  //Affiche(GetMACAddress,clred);
+
   //formPrinc.left:=-1000;
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
@@ -21988,6 +22048,8 @@ begin
   Affiche('Taille des actionneurs PN: '+intToSTR(SizeOf(Tablo_PN) )+' octets',clorange);
   Affiche('Taille du tableau d''évènements détecteurs '+intToSTR(SizeOf(event_det) )+' octets',clorange);
   Affiche(' ',clyellow);
+
+  envoie_infos;
 end;
 
 // cliqué droit sur un signal puis sur le menu propriétés

@@ -352,7 +352,7 @@ begin
 end;
 
 procedure TFormModifAction.ComboBoxFamilleChange(Sender: TObject);
-var i,n,famille : integer;
+var i,famille : integer;
     s : string;
 begin
   ListBoxOper.Clear;
@@ -1711,7 +1711,7 @@ begin
 end;
 
 procedure TFormModifAction.SpinEditEtatopChange(Sender: TObject);
-var i,o,erreur,op : integer;
+var i,erreur,op : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   val(SpinEditEtatop.text,i,erreur);

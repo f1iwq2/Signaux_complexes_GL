@@ -254,6 +254,7 @@ begin
     with formConfCellTCO do
     begin
       // ramener la coordonnée cliquée à l'origine du canton
+      {
       if (Bimage>=Id_cantonH) and (Bimage<=Id_cantonH+9) then
       begin
         H:=true;
@@ -266,7 +267,7 @@ begin
       end;
       XclicCell[indexTCO]:=XclicC;
       YclicCell[indexTCO]:=YclicC;
-
+      }
       idCanton:=index_canton(indexTCO,xclicC,yclicC);
 
       GroupBoxOrientation.visible:=false;

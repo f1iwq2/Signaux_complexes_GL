@@ -1,7 +1,7 @@
 object FormFicheHoraire: TFormFicheHoraire
   Left = 358
   Top = 169
-  Width = 617
+  Width = 623
   Height = 377
   Caption = 'Fiche horaire'
   Color = clBtnFace
@@ -15,8 +15,8 @@ object FormFicheHoraire: TFormFicheHoraire
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    609
-    346)
+    607
+    321)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -60,7 +60,7 @@ object FormFicheHoraire: TFormFicheHoraire
   object StringGridFO: TStringGrid
     Left = 8
     Top = 16
-    Width = 593
+    Width = 601
     Height = 233
     ColCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]

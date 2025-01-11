@@ -120,9 +120,8 @@ end;
 procedure TFormFicheHoraire.FormCreate(Sender: TObject);
 var i,champ,ligne,col,erreur : integer;
     f : textFile ;
-    s,ss,v : string;
+    s,ss,v,nomTrain : string;
     ver : single;
-    MRect : Trect;
 begin
   // cells[colonne,ligne]
   with stringGridFO do
@@ -143,7 +142,7 @@ begin
     ColWidths[ColRoute]:=100;
     ColWidths[ColHDep]:=60;
     ColWidths[ColVitDem]:=60;
-    ColWidths[ColSens]:=50;
+    ColWidths[ColSens]:=60;
     ColWidths[ColArret]:=60;
 
     Cells[ColLigne,0]:='Ligne';
@@ -154,7 +153,7 @@ begin
     Cells[ColSens,0]:='Sens'+#13+'(N/R)';
     Cells[ColArret,0]:='Forcer arrêt'+#13+'O/N';
 
-    RowHeights[0]:=22;
+    RowHeights[0]:=30;
 
     // numéroter les lignes et fixer la hauteur des lignes
     for i:=1 to RowCount-1 do
@@ -199,9 +198,9 @@ begin
           if col=ColTrain then   // nom du train
           begin
             if champ=0 then begin affiche('Erreur 17',clred);closefile(f);end;
-            ss:=copy(s,1,champ-1);
-            stringGridFO.Cells[col,ligne]:=ss;
-            grilleHoraire[ligne].NomTrain:=ss;
+            NomTrain:=copy(s,1,champ-1);
+            stringGridFO.Cells[col,ligne]:=NomTrain;
+            grilleHoraire[ligne].NomTrain:=NomTrain;
             if champ<>0 then delete(s,1,champ);
           end;
 
@@ -260,8 +259,8 @@ begin
         inc(ligne);
       end;
     end;
-  until eof(f) or (ligne>MaxHoraire);
-  Nombre_horaires:=ligne-1;
+  until eof(f) or (nomTrain='') or (ligne>MaxHoraire);
+  Nombre_horaires:=ligne-2;
 
   closefile(f);
   couleurs_Fiche;
@@ -337,29 +336,30 @@ begin
   {$IF CompilerVersion >= 28.0}
     d12:=true;
   {$IFEND}
-
+  //Affiche(intToSTR(arow)+' '+intToSTR(aCol),clYellow);
   // couleur de fond
-  couleur:=$E0E0E0;
-  if d12 then couleur:=canvas.Pixels[1,1];
-  with grid.canvas do
+  if Arow=0 then
   begin
-    Brush.Color := couleur;
-    inc(Rect.top); inc(Rect.left); // rend visible les quadrillages
-    FillRect(Rect);
-  end;
+    if d12 then couleur:=grid.canvas.Pixels[35,6] else couleur:=$E0E0E0;
+    with grid.canvas do
+    begin
+      Brush.Color := couleur;
+      inc(Rect.top); inc(Rect.left); // rend visible les quadrillages
+      FillRect(Rect);
+    end;
 
-  DRect:=Rect;
-  // calcule, ajuste et positionne la ligne de l'espace vertical nécessaire
-  DrawText(Grid.Canvas.Handle,Pchar(S),Length(S),DRect,DT_CALCRECT or DT_CENTER);
-  // if the text height is greater than the row height, increase the row height
-
-  if (DRect.Bottom - DRect.Top) > Grid.RowHeights[ARow] then Grid.RowHeights[ARow]:=DRect.Bottom - DRect.Top
-  // changer la hauteur de la cellule provoque son redessinage
-  else
-  begin
-    DRect.Right:=Rect.Right;
-    Grid.Canvas.FillRect(DRect);
-    DrawText(Grid.Canvas.Handle, Pchar(S), Length(S), DRect, DT_CENTER);
+    DRect:=Rect;
+    // calcule, ajuste et positionne la ligne de l'espace vertical nécessaire
+    DrawText(Grid.Canvas.Handle,Pchar(S),Length(S),DRect,DT_CALCRECT or DT_CENTER);
+    // si la hauteur du texte est plus grande que la hauteur de la ligne, augmenter la hauteur de la ligne
+    if (DRect.Bottom-DRect.Top)>Grid.RowHeights[ARow] then Grid.RowHeights[ARow]:=DRect.Bottom-DRect.Top
+    // changer la hauteur de la cellule provoque son redessinage
+    else
+    begin
+      DRect.Right:=Rect.Right;
+      Grid.Canvas.FillRect(DRect);
+      DrawText(Grid.Canvas.Handle, Pchar(S), Length(S), DRect, DT_CENTER);
+    end;
   end;
 end;
 
