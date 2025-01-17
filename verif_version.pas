@@ -26,7 +26,7 @@ var
   f : text;
 
 Const
-VersionSC ='9.74';  // sert à la comparaison de la version publiée
+VersionSC = '9.75'; //'9.76';  // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -137,6 +137,26 @@ begin
   writeln(f,s);
 end;
 
+function Cree_dir(s : string) : boolean;
+var erreur : integer;
+begin
+  result:=true;
+  if not(directoryExists(s)) then
+  begin
+    {$I-}
+    MkDir(s);
+    erreur:=IoResult;
+    {$I+}
+    if erreur<>0 then
+    begin
+      log('Impossible de créer répertoire '+s+' erreur '+intToSTR(erreur),clred);
+      result:=false;
+      exit;
+    end;
+  end;
+end;
+
+
 procedure copie_fichier(s : string);
 var fs,fd : string;
     i : integer;
@@ -161,7 +181,7 @@ var i : integer;
 begin
   // Vérifier si répertoire dest existe
   chemin_Dest:=CheminProgrammes+'\Signaux_complexes';
-  if not(directoryExists(chemin_Dest)) then mkDir(chemin_dest);
+  if not(directoryExists(chemin_Dest)) then cree_Dir(chemin_dest);
 
   i:=pos('.zip',s);
   if i=0 then
@@ -286,7 +306,7 @@ begin
   // fabrication du nom de fichier destinataire et son chemin
   LocalFile:=SysUtils.GetEnvironmentVariable('APPDATA');
   if LocalFile<>'' then LocalFile:=IncludeTrailingPathDelimiter(LocalFile)+'Signaux_complexes';
-  if not(directoryExists(LocalFile)) then MkDir(LocalFile);
+  cree_dir(LocalFile);
   LocalFile:=LocalFile+'\page.txt';
   if Debug=1 then Affiche('fichier page: '+LocalFile,clOrange);
 
@@ -567,18 +587,7 @@ begin
   delete(filtre,i,4);
 
   // créer le répertoire destination du zip (obligatoire car la commande de dézippe ne le créée pas)
-  if not(directoryExists(filtre)) then
-  begin
-    {$I-}
-    MkDir(filtre);
-    erreur:=IoResult;
-    {$I+}
-    if erreur<>0 then
-    begin
-      log('Impossible de créer répertoire '+filtre+' erreur '+intToSTR(erreur),clred);
-      exit;
-    end;
-  end;
+  if not(Cree_dir(filtre)) then exit;
 
   repertoire:=filtre;  // mettre dans olevariant
 

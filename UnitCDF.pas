@@ -202,12 +202,12 @@ begin
 
   case Signaux[i].aspect of
   // feux de signalisation
-   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1);
-   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1);
-   4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1);
-   5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1);
-   7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1);
-   9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1);
+   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
+   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
+   4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1,i);
+   5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1,i);
+   7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1,i);
+   9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1,i);
   // indicateurs de direction
   12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
   13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);

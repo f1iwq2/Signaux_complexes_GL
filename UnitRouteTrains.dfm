@@ -2,7 +2,7 @@ object FormRouteTrain: TFormRouteTrain
   Left = 202
   Top = 190
   BorderStyle = bsDialog
-  Caption = 'Liste des routes affect'#233'es aux trains'
+  Caption = 'Liste des routes affect'#233'es et m'#233'moris'#233'es aux trains'
   ClientHeight = 194
   ClientWidth = 853
   Color = clBtnFace
@@ -123,7 +123,7 @@ object FormRouteTrain: TFormRouteTrain
         Height = 33
         Hint = 
           'Sauve la route dans la liste des routes m'#233'moris'#233'es si elle est u' +
-          'nique'
+          'nique et sauvegarde la configuration'
         Caption = 'Sauve route'
         ParentShowHint = False
         ShowHint = True

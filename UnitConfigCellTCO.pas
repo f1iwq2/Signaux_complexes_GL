@@ -1254,6 +1254,7 @@ begin
     if clicTCO then exit;
     val(EditParam1.Text,i,erreur);
     if erreur<>0 then exit;
+    if (i>100) or (i<1) then begin i:=1; EditParam1.Text:='1';end;
     tco[IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]].adresse:=i;
     Affiche_cellule(IndexTCOCourant,XclicCell[indexTCOCourant],YclicCell[indexTCOCourant]);
   end;
@@ -1280,7 +1281,7 @@ begin
 end;
 
 
-// dessine les icones et le texte dans la listbox
+// dessine les icones et le texte dans la listboxAction
 procedure TFormConfCellTCO.ListBoxActionDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
@@ -1293,12 +1294,10 @@ begin
     val(ItemText,i,erreur);
     Delete(ItemText,1,erreur-1);
     Canvas.Fillrect(Rect);
-    ImageListIcones.Draw(Canvas, Rect.Left, Rect.Top, i);
-    Canvas.Textout(Rect.Left + ImageListIcones.Width + 2, Rect.Top, ItemText);
+    ImageListIcones.Draw(Canvas,Rect.Left,Rect.Top,i);
+    Canvas.Textout(Rect.Left+ImageListIcones.Width+2, Rect.Top, ItemText);
   end;
 end;
-
-
 
 procedure TFormConfCellTCO.EditCantonExit(Sender: TObject);
 var NumC,i,erreur :integer;

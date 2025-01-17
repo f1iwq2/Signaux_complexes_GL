@@ -17,7 +17,6 @@ uses
   UnitPareFeu in 'UnitPareFeu.pas',
   UnitAnalyseSegCDM in 'UnitAnalyseSegCDM.pas' {FormAnalyseCDM},
   Importation in 'Importation.pas' {FormImportation},
-  MSCommLib_TLB in 'MSCommLib_TLB.pas',
   UnitHorloge in 'UnitHorloge.pas' {FormHorloge},
   UnitFicheHoraire in 'UnitFicheHoraire.pas' {FormFicheHoraire},
   UnitClock in 'UnitClock.pas' {FormClock},

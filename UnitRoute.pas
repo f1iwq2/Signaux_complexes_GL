@@ -183,7 +183,7 @@ begin
   result:=ok;
 end;
 
-// Efface, fabrique le tableau ParcoursDet[] depuis TabloRoute[id] et affiche la route dans le TCO contenue dans ParcoursDet[]
+// Efface route du TCO, fabrique le tableau ParcoursDet[] depuis TabloRoute[id] et affiche la route dans le TCO contenue dans ParcoursDet[]
 procedure Efface_Affiche_route;
 var n,id : integer;
     ok : boolean;
@@ -709,12 +709,13 @@ begin
   IdCantonOrg:=index_canton_numero(cantonOrg);
   //IdCantonDest:=index_canton_numero(cantonDest);
   sensCanton:=canton[IdCantonOrg].sensLoco;
-          case sensCanton of // sens de la loco dans le canton
-            sensGauche : begin sens:=SensTCO_O;end;
-            sensDroit  : begin sens:=SensTCO_E;end;
-            SensHaut   : begin sens:=SensTCO_N;end;
-            SensBas    : begin sens:=SensTCO_S;end;
-          end;
+  // sens de la loco dans le canton
+  case sensCanton of
+    sensGauche : sens:=SensTCO_O;
+    sensDroit  : sens:=SensTCO_E;
+    SensHaut   : sens:=SensTCO_N;
+    SensBas    : sens:=SensTCO_S;
+  end;
   IndexTCO:=canton[IdcantonOrg].Ntco;
   r:=prepare_route(IndexTCO,CantonOrg,DetaTrouve,sens);
   if r<>0 then
@@ -743,16 +744,16 @@ begin
       myColor := clRed
     else
       myColor := clBlack;
-}
-    //myBrush.Style := bsSolid;
-    //myBrush.Color := myColor;
 
-    //Windows.FillRect(handle, Rect, myBrush.Handle);
-    //Pen.color:=clWhite;//CoulText;
-    //myBrush.color:=clBlue;
-    //Brush.Style := bsClear;
-   // TextOut(Rect.Left, Rect.Top, (Control as TListBox).Items[Index]);
-    //MyBrush.Free;
+    myBrush.Style := bsSolid;
+    myBrush.Color := myColor;
+
+    Windows.FillRect(handle, Rect, myBrush.Handle);
+    Pen.color:=clWhite;//CoulText;
+    myBrush.color:=clBlue;
+    Brush.Style := bsClear;
+    TextOut(Rect.Left, Rect.Top, (Control as TListBox).Items[Index]);
+    MyBrush.Free; }
     FillRect(Rect);   // on à cause des styles
     s:=ListBoxRoutes.Items[Index];
     fs:=integer(ListBoxRoutes.Items.Objects[Index]);

@@ -298,10 +298,16 @@ version 9.7  : Boutons dans le TCO intégrables dans les conditions des actions,
 version 9.71 : Nouveaux styles d'affichages pour les versions D12.
                Création des opérateurs NonOU et NonET dans les fonctions
 version 9.72 : Correction de l'affichage de la fiche horaire.
-               Nouvel installeur
+               Nouvel installeur.
 version 9.73 : Changement de l'algorithme du fichier de vérification de versions.
-               Nouvel installeur
-version 9.74 : Correction suppression routes préférentielles des trains
+               Nouvel installeur.
+version 9.74 : Correction suppression routes préférentielles des trains.
+version 9.75 : Corrections dans le TCO.
+               Correction importations TJD 2 et 4 états de CDM rail.
+version 9.76 : Amélioration de l'importation des réseaux depuis CDM rail.
+               Correction de l'affichage du réseau CDM en version x64.
+               Renforcement de la vérification de la configuration.
+
 
 			  
 			   

@@ -683,7 +683,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabAvance
+    ActivePage = TabSheetBranches
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1208,7 +1208,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2036,9 +2036,9 @@ object FormConfig: TFormConfig
         OnClick = ButtonAjSupClick
       end
       object ListBoxAig: TListBox
-        Left = 8
-        Top = 64
-        Width = 305
+        Left = 0
+        Top = 56
+        Width = 321
         Height = 377
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
@@ -2180,8 +2180,6 @@ object FormConfig: TFormConfig
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         HideSelection = False
-        Lines.Strings = (
-          'RichBranche')
         ParentFont = False
         PopupMenu = PopupMenuRichedit
         ScrollBars = ssBoth
@@ -2192,9 +2190,9 @@ object FormConfig: TFormConfig
       end
       object Memo5: TMemo
         Left = 464
-        Top = 296
+        Top = 248
         Width = 153
-        Height = 145
+        Height = 193
         Lines.Strings = (
           'Une ligne doit commencer par '
           'un aiguillage (ou un buttoir) et '
@@ -2205,7 +2203,11 @@ object FormConfig: TFormConfig
           ''
           'Un aiguillage peut se retrouver '
           #224' plusieurs endroits de cette '
-          'section, mais pas un d'#233'tecteur. ')
+          'section, mais pas un d'#233'tecteur. '
+          ''
+          'Tous les d'#233'tecteurs et '
+          'aiguillages doivent '#234'tre '
+          'pr'#233'sents.')
         ReadOnly = True
         TabOrder = 2
       end
@@ -2413,7 +2415,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2544,7 +2546,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2737,8 +2739,8 @@ object FormConfig: TFormConfig
       Caption = 'D'#233'codeurs'
       ImageIndex = 8
       object Label61: TLabel
-        Left = 13
-        Top = 12
+        Left = 0
+        Top = 8
         Width = 208
         Height = 13
         Caption = 'D'#233'codeurs personnalis'#233's de signaux'
@@ -2852,7 +2854,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2871,7 +2873,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2917,7 +2919,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -2928,7 +2930,7 @@ object FormConfig: TFormConfig
       ImageIndex = 6
       object Label44: TLabel
         Left = 0
-        Top = 12
+        Top = 8
         Width = 537
         Height = 13
         Caption = 
@@ -3063,14 +3065,14 @@ object FormConfig: TFormConfig
       Caption = 'Fonctions'
       ImageIndex = 14
       object Label63: TLabel
-        Left = 16
-        Top = 16
-        Width = 136
-        Height = 16
+        Left = 0
+        Top = 8
+        Width = 111
+        Height = 13
         Caption = 'Fonctions logiques '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -3132,7 +3134,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -3152,7 +3154,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -3253,7 +3255,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -3479,12 +3481,12 @@ object FormConfig: TFormConfig
       object Label42: TLabel
         Left = 8
         Top = 8
-        Width = 76
-        Height = 16
+        Width = 63
+        Height = 13
         Caption = 'D'#233'tecteurs'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -3624,17 +3626,30 @@ object FormConfig: TFormConfig
     object TabSheetPN: TTabSheet
       Caption = 'PN'
       ImageIndex = 6
+      object Label58: TLabel
+        Left = 0
+        Top = 8
+        Width = 114
+        Height = 13
+        Caption = 'Passages '#224' niveaux'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
       object GroupBox13: TGroupBox
-        Left = 352
+        Left = 336
         Top = 24
-        Width = 265
+        Width = 281
         Height = 441
-        Caption = 'Description de l'#39'action'
+        Caption = 'Description du PN'
         TabOrder = 0
         object GroupBoxPNA: TGroupBox
           Left = 8
           Top = 240
-          Width = 249
+          Width = 265
           Height = 121
           Caption = 'Actionneurs PN simples'
           TabOrder = 0
@@ -3642,7 +3657,7 @@ object FormConfig: TFormConfig
         object GroupBoxPNZ: TGroupBox
           Left = 8
           Top = 368
-          Width = 249
+          Width = 265
           Height = 65
           Caption = 'Zones de d'#233'tection'
           TabOrder = 1
@@ -3650,7 +3665,7 @@ object FormConfig: TFormConfig
         object GroupBoxPN: TGroupBox
           Left = 8
           Top = 16
-          Width = 249
+          Width = 265
           Height = 217
           Caption = 'Action gestion passage '#224' niveau'
           ParentShowHint = False
@@ -3689,7 +3704,7 @@ object FormConfig: TFormConfig
           object EditCdeFerme: TEdit
             Left = 168
             Top = 88
-            Width = 25
+            Width = 41
             Height = 21
             Hint = 'Commande de fermeture (0 '#224' 2)'
             ParentShowHint = False
@@ -3700,7 +3715,7 @@ object FormConfig: TFormConfig
           object EditCdeOuvre: TEdit
             Left = 168
             Top = 112
-            Width = 25
+            Width = 41
             Height = 21
             Hint = 'Commande d'#39'ouverture (0 '#224' 2)'
             ParentShowHint = False
@@ -3709,7 +3724,7 @@ object FormConfig: TFormConfig
             OnChange = EditCdeOuvreChange
           end
           object ButtonTestFerme: TButton
-            Left = 208
+            Left = 224
             Top = 88
             Width = 27
             Height = 21
@@ -3721,7 +3736,7 @@ object FormConfig: TFormConfig
             OnClick = ButtonTestFermeClick
           end
           object ButtonTestOuvre: TButton
-            Left = 208
+            Left = 224
             Top = 112
             Width = 27
             Height = 21
@@ -3792,7 +3807,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -3800,53 +3815,45 @@ object FormConfig: TFormConfig
           end
         end
       end
-      object GroupBox17: TGroupBox
+      object ListBoxPN: TListBox
         Left = 0
-        Top = 16
-        Width = 345
-        Height = 449
-        Caption = 'Actionneurs/d'#233'tecteurs passage '#224' niveau'
+        Top = 56
+        Width = 321
+        Height = 361
+        Color = clBlack
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ItemHeight = 13
+        MultiSelect = True
+        ParentFont = False
+        PopupMenu = PopupMenuListes
         TabOrder = 1
-        object ButtonNouvPN: TButton
-          Left = 8
-          Top = 24
-          Width = 65
-          Height = 17
-          Caption = 'Nouveau'
-          TabOrder = 0
-          OnClick = ButtonNouvPNClick
-        end
-        object ButtonSupPN: TButton
-          Left = 80
-          Top = 24
-          Width = 65
-          Height = 17
-          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
-          Caption = 'Supprime'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          OnClick = ButtonSupPNClick
-        end
-        object ListBoxPN: TListBox
-          Left = 8
-          Top = 48
-          Width = 329
-          Height = 345
-          Color = clBlack
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clAqua
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ItemHeight = 13
-          MultiSelect = True
-          ParentFont = False
-          PopupMenu = PopupMenuListes
-          TabOrder = 2
-          OnKeyDown = ListBoxPNKeyDown
-          OnMouseDown = ListBoxPNMouseDown
-        end
+        OnKeyDown = ListBoxPNKeyDown
+        OnMouseDown = ListBoxPNMouseDown
+      end
+      object ButtonNouvPN: TButton
+        Left = 0
+        Top = 32
+        Width = 65
+        Height = 17
+        Caption = 'Nouveau'
+        TabOrder = 2
+        OnClick = ButtonNouvPNClick
+      end
+      object ButtonSupPN: TButton
+        Left = 72
+        Top = 32
+        Width = 65
+        Height = 17
+        Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
+        Caption = 'Supprime'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        OnClick = ButtonSupPNClick
       end
     end
     object TabSheetDccpp: TTabSheet
@@ -4106,28 +4113,28 @@ object FormConfig: TFormConfig
         Height = 49
       end
       object ButtonNT: TButton
-        Left = 8
-        Top = 48
-        Width = 73
+        Left = 0
+        Top = 32
+        Width = 65
         Height = 17
         Caption = 'Nouveau'
         TabOrder = 0
         OnClick = ButtonNTClick
       end
       object ButtonSupprime: TButton
-        Left = 88
-        Top = 48
-        Width = 75
+        Left = 72
+        Top = 32
+        Width = 65
         Height = 17
         Caption = 'Supprime'
         TabOrder = 1
         OnClick = ButtonSupprimeClick
       end
       object ListBoxTrains: TListBox
-        Left = 8
-        Top = 72
-        Width = 273
-        Height = 281
+        Left = 0
+        Top = 56
+        Width = 281
+        Height = 313
         Color = clBlack
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -4535,6 +4542,30 @@ object FormConfig: TFormConfig
               ParentFont = False
               ReadOnly = True
               TabOrder = 7
+            end
+            object ButtonlCV3: TButton
+              Left = 272
+              Top = 136
+              Width = 27
+              Height = 25
+              Hint = 'Lire le CV3 de la locomotive plac'#233'e sur la voie de programmation'
+              Caption = 'CV'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 8
+              OnClick = ButtonlCV3Click
+            end
+            object ButtonlCV4: TButton
+              Left = 272
+              Top = 160
+              Width = 27
+              Height = 25
+              Hint = 'Lire le CV4 de la locomotive plac'#233'e sur la voie de programmation'
+              Caption = 'CV'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 9
+              OnClick = ButtonlCV4Click
             end
           end
         end

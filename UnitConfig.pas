@@ -147,9 +147,6 @@ type
     EditSpecUni: TEdit;
     LabelUni: TLabel;
     Buttonrestaure: TButton;
-    GroupBox17: TGroupBox;
-    ButtonNouvPN: TButton;
-    ButtonSupPN: TButton;
     ButtonNouvSig: TButton;
     ButtonSupSig: TButton;
     ButtonInsSig: TButton;
@@ -245,7 +242,6 @@ type
     Label69: TLabel;
     LabelCrois: TLabel;
     ListBoxSig: TListBox;
-    ListBoxPN: TListBox;
     PopupMenuListes: TPopupMenu;
     Slectionnertout1: TMenuItem;
     Nouveau1: TMenuItem;
@@ -442,6 +438,12 @@ type
     RadioButtonFIS88: TRadioButton;
     RadioButtonDccPlusPlus: TRadioButton;
     Memo4: TMemo;
+    ButtonlCV3: TButton;
+    ButtonlCV4: TButton;
+    ListBoxPN: TListBox;
+    ButtonNouvPN: TButton;
+    ButtonSupPN: TButton;
+    Label58: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -687,7 +689,7 @@ type
       Rect: TRect; State: TGridDrawState);
     procedure ValueListEditorMouseMove(Sender: TObject; Shift: TShiftState;
       X, Y: Integer);
-    procedure Button2Click(Sender: TObject);
+    procedure ButtonlCV4Click(Sender: TObject);
     procedure RadioGroupOPClick(Sender: TObject);
     procedure Panel1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -696,6 +698,7 @@ type
     procedure Panel1Click(Sender: TObject);
     procedure ComboStyleChange(Sender: TObject);
     procedure RadioGroupClClick(Sender: TObject);
+    procedure ButtonlCV3Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -7900,7 +7903,7 @@ begin
   SendMessage(ListBoxTrains.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
   LabeledEditCrans.Hint:='Nombre de crans du décodeur, 128 par défaut.'+#13+
-                         'Le nombre de crans est configué dans le CV29 du décodeur';
+                         'Le nombre de crans à 128 est validé par la mise à 1 du bit 1 du CV29 du décodeur';
   LabeledEditCrans.ShowHint:=true;
 
   // actionneurs
@@ -10671,11 +10674,11 @@ end;
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
     x,y,extr2,adr3,adr4,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2,op,
-    delta : integer;
+    delta,broft,adresse3 : integer;
     modAig,AncModel,model,km,SuivModel,model2,t1,t2: TEquipement;
     c : char;
     vitesse : longint;
-    sort,OkSignal,ok,trouveSuiv,TrouvePrec,AdrOk : boolean;
+    sort,OkSignal,ok,trouveSuiv,TrouvePrec,AdrOk,ok1,ok2,ok3,ok4 : boolean;
     s : string;
 begin
   // validation des index signaux et détecteurs
@@ -10749,7 +10752,6 @@ begin
     end;
 
     // vérifier si l'aiguillage est dans les branches
-    { non c'est autorisé!
     if aiguillage[Indexaig].modele<>rien then
     begin
       trouve_aiguillage(aiguillage[Indexaig].adresse); // passe l'adresse de l'aiguillage à trouver
@@ -10759,7 +10761,7 @@ begin
         ok:=false;
       end;
     end;
-    }
+
 
     // exclure les TJD/S
     if (modAig<>tjd) and (modAig<>tjs) then
@@ -11107,16 +11109,36 @@ begin
         if k=0 then
         begin
           ok:=false;
-          Affiche('Erreur 9.2: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
+          Affiche('Erreur 9.20: aiguillage '+intToSTR(i)+' non existant mais associé au signal '+IntToSTR(Signaux[j].adresse),clred);
         end
         else
         begin
           // vérifier si le détecteur du signal et l'aiguillage sont consécutifs
           l:=Signaux[j].Adr_det1;
-          if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
+          km:=aiguillage[k].modele;
+          if km=aig then
           begin
-            ok:=false;
-            Affiche('Erreur 9.21: signal '+intToSTR(Signaux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
+            if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
+            begin
+              ok:=false;
+              Affiche('Erreur 9.21: signal '+intToSTR(Signaux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
+            end;
+          end;
+          if (km=crois) or (km=tjs) or (km=tjd) then
+          begin
+            if (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].Ddroit<>l) and (aiguillage[k].Ddevie<>l) then
+            begin
+              ok:=false;
+              Affiche('Erreur 9.22: signal '+intToSTR(Signaux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
+            end;
+          end;
+          if km=triple then
+          begin
+            if (aiguillage[k].Adevie2<>l) and (aiguillage[k].ADroit<>l) and (aiguillage[k].ADevie<>l) and (aiguillage[k].APointe<>l) then
+            begin
+              ok:=false;
+              Affiche('Erreur 9.23: signal '+intToSTR(Signaux[j].adresse)+' : aiguillage '+intToSTR(i)+' et détecteur '+intToSTR(l)+' non contigüs ',clred);
+            end;
           end;
         end;
       end;
@@ -11625,38 +11647,63 @@ begin
     adr:=aiguillage[indexaig].Adresse;
     model:=aiguillage[indexaig].modele;
 
+    // TJD 4 états
     if (model=tjd) or (model=tjs) and (aiguillage[indexAig].EtatTJD=4) then
     begin
+      // ne pas tester si la TJD est la dernière exemple : A25,529,A26,A28 : ne pas tester la 28
       l:=1;  // offset branche commence la recherche en 1
       j:=0;  // offset dans branche
       adresse:=aiguillage[indexAig].ADroit;    // élements de la tjd
       adresse2:=aiguillage[indexAig].ADevie;
+      adresse3:=aiguillage[indexAig].Ddroit;    // homologue
       Adrok:=false;
       Branche_trouve:=0;
       repeat
         j:=1;
         repeat
           k:=branche_trouve;  // ancien
-          trouve_element_V1(adr,tjd,l,0,j,false,0);    // indexs de la tjd dans les branches
+          trouve_element_V1(adr,tjd,l,0,j,false,1);    // indexs de la tjd dans les branches , it=1 permet de ne pas rechercher la tjs homologue ce qui fausserait le résultat
           if branche_trouve<>0 then
           begin
-            if indexBranche_Trouve>1 then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse=adresse);
+            // il faut trouver adresse et adresse2 à gauche ou à droite le la TJD dans les branches
 
-            // pour la rechercher en +, incrémenter l'indexbranche jusqu'à trouve un non actionneur
+            // trouver si les éléments de connexion de la tjd sont les mêmes dans les branches
+
+            // vérifie si l'élémént Adroit (port0, NO), Adevie (port1, SO)  de la TJD est ok dans la branche en décrément
+            if indexBranche_Trouve>1 then
+            begin
+              k:=BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse;   // élément précédent
+              ok1:=(k=adresse) or (k=adresse2) or (k=adresse3);
+              Adrok:=Adrok or ok1;
+            end;
+
+            // pour la recherche en +, incrémenter l'indexbranche jusqu'à trouve un non actionneur
+            // vérifie si l'élémént Adroit (port0, NO) de la TJD est ok dans la branche en incrément
+            ok2:=true;
             repeat
               sort:=BrancheN[Branche_trouve,indexBranche_Trouve+1].BType<>act;
               if not(sort) then inc(IndexBranche_trouve);
-              if sort then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse=adresse) ;
+              if sort then
+              begin
+                k:=BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse;
+                ok2:=(k=adresse) or (k=adresse2) or (k=adresse3);
+                Adrok:=Adrok or ok2;
+              end;
             until sort;
+
+            if not(adrOK) then Affiche('La TJD '+intToSTR(adr)+' décrite n''est pas cohérente test 1 : branche '+intToSTR(Branche_trouve)+' '+
+                      intToSTR(brancheN[Branche_trouve,indexBranche_Trouve+1].Adresse)+' différent de '+intToSTR(adresse),clred);
 
             if indexBranche_Trouve>1 then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve-1].Adresse=adresse2);
 
+            {
             repeat
               sort:=BrancheN[Branche_trouve,indexBranche_Trouve+1].BType<>act;
               if not(sort) then inc(IndexBranche_trouve);
-              if sort then Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse=adresse2) ;
+              if sort then
+                Adrok:=Adrok or (BrancheN[Branche_trouve,indexBranche_Trouve+1].Adresse=adresse2) ;
             until sort;
-
+            }
             if not(Adrok) then
             begin
               Affiche('La TJD '+intToSTR(adr)+' décrite n''est pas cohérente avec les élements contigus dans la branche '+intToSTR(Branche_trouve)+' :',clred);
@@ -18094,10 +18141,7 @@ begin
   ValueListEditor.hint:=Liste[y].aide;
 end;
 
-procedure TFormConfig.Button2Click(Sender: TObject);
-begin
-  ValueListEditor.Cells[1,7]:='hgjg';
-end;
+
 
 procedure TFormConfig.RadioGroupOPClick(Sender: TObject);
 var node : tTreeNode;
@@ -18163,6 +18207,52 @@ begin
   end;
 end;
 
+
+
+procedure TFormConfig.ButtonlCV3Click(Sender: TObject);
+var valeur : integer;
+begin
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
+  valeur:=lire_cv(3);
+  if valeur=-1 then
+  begin
+    LabelInfo.caption:='Erreur attente trop longue CV';
+    exit;
+  end;
+  if valeur=-2 then
+  begin
+    LabelInfo.caption:='Pas de réponse de l''interface après demande de passage en mode prog';
+    exit;
+  end;
+
+  clicListe:=true;
+  trains[ligneclicTrain+1].cv3:=valeur;
+  LabeledEditCV3.Text:=IntToSTR(valeur);
+  clicListe:=false;
+end;
+
+procedure TFormConfig.ButtonlCV4Click(Sender: TObject);
+var valeur : integer;
+begin
+  if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
+  valeur:=lire_cv(4);
+  if valeur=-1 then
+  begin
+    LabelInfo.caption:='Erreur attente trop longue CV';
+    exit;
+  end;
+  if valeur=-2 then
+  begin
+    LabelInfo.caption:='Pas de réponse de l''interface après demande de passage en mode prog';
+    exit;
+  end;
+
+  clicListe:=true;
+  trains[ligneclicTrain+1].cv4:=valeur;
+  LabeledEditCV4.Text:=IntToSTR(valeur);
+  clicListe:=false;
+
+end;
 
 
 end.

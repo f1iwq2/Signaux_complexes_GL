@@ -742,12 +742,12 @@ begin
   begin
     clVoies[indexTCO]:=$A00000;
     ClFond[indexTCO]:=$A00000;
-    ClGrille[IndexTCO]:=$FFC0C0;
-    CoulCantonLibre[IndexTco]:=$A0A0A0;
-    CoulCantonOccupe[IndexTCO]:=$A0A0FF;
+    ClGrille[IndexTCO]:=$FFC0C0;        // bleu
+    CoulCantonLibre[IndexTco]:=$A0F0A0;    // vert
+    CoulCantonOccupe[IndexTCO]:=$A0A0FF;   // rouge
     for y:=1 to NbreCellY[indexTCO] do
       for x:=1 to NbreCellX[indexTCO] do
-        TCO[indexTCO,x,y].CouleurFond:=$FFFFFF;
+        TCO[indexTCO,x,y].CouleurFond:=$B0B0B0;   // blanc doux
   end;
 end;
 

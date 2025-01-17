@@ -113,17 +113,17 @@ object FormAnalyseCDM: TFormAnalyseCDM
       TabOrder = 0
       OnClick = CheckConnexionsClick
     end
-    object CheckAdresses: TCheckBox
+    object CheckDet: TCheckBox
       Left = 8
       Top = 32
       Width = 97
       Height = 17
-      Hint = 'Adresses des d'#233'tecteurs et actionneurs'
-      Caption = 'Adresses'
+      Hint = 'Adresses des d'#233'tecteurs'
+      Caption = 'Adresses det'
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      OnClick = CheckAdressesClick
+      OnClick = CheckDetClick
     end
     object CheckSegments: TCheckBox
       Left = 128
@@ -135,7 +135,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
       OnClick = CheckSegmentsClick
     end
     object CheckPorts: TCheckBox
-      Left = 128
+      Left = 240
       Top = 32
       Width = 65
       Height = 17
@@ -179,7 +179,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
       OnClick = ButtonAffDetClick
     end
     object CheckColorationDiff: TCheckBox
-      Left = 232
+      Left = 240
       Top = 16
       Width = 137
       Height = 17
@@ -205,6 +205,18 @@ object FormAnalyseCDM: TFormAnalyseCDM
       TabOrder = 10
       OnClick = ButtonImprimeClick
     end
+    object CheckBoxAutres: TCheckBox
+      Left = 128
+      Top = 32
+      Width = 97
+      Height = 17
+      Hint = 'Adresses des aiguillages, actionneurs et signaux'
+      Caption = 'Autres adresses'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 11
+      OnClick = CheckDetClick
+    end
   end
   object TrackBar1: TTrackBar
     Left = 1001
@@ -225,7 +237,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   object GroupBoxSegment: TGroupBox
     Left = 400
     Top = 484
-    Width = 145
+    Width = 177
     Height = 109
     Anchors = [akLeft, akBottom]
     Caption = 'Segment'
@@ -239,14 +251,14 @@ object FormAnalyseCDM: TFormAnalyseCDM
     end
     object LabelAdresse: TLabel
       Left = 11
-      Top = 48
+      Top = 44
       Width = 44
       Height = 13
       Caption = 'Adresse :'
     end
     object LabelPorts: TLabel
       Left = 11
-      Top = 74
+      Top = 66
       Width = 33
       Height = 13
       Caption = 'Ports : '
@@ -262,7 +274,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
     end
     object EditAdresse: TEdit
       Left = 64
-      Top = 44
+      Top = 40
       Width = 57
       Height = 21
       Hint = 'Changement de l'#39'adresse de l'#39'aiguillage'
@@ -273,7 +285,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
     end
   end
   object Memo1: TMemo
-    Left = 552
+    Left = 584
     Top = 492
     Width = 105
     Height = 93
@@ -297,7 +309,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
     OnClick = ButtonAnimeClick
   end
   object PrintDialog1: TPrintDialog
-    Left = 688
+    Left = 728
     Top = 560
   end
 end

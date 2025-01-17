@@ -1986,7 +1986,7 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 681
+      Left = 561
       Top = 40
       Width = 265
       Height = 129

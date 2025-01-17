@@ -223,6 +223,11 @@ begin
   RichDebug.Height:=scrollBoxdebug.Height-30;
   RichDebug.Anchors:=[akLeft,akTop,akRight,akBottom];
 
+  {$IF CompilerVersion >= 28.0}
+  RichDebug.StyleName:='Windows';
+  MemoEvtDet.StyleName:='Windows';
+  {$IFEND}
+
   with scrollBoxdebug do
   begin
     Anchors:=[akLeft,akTop,akRight,akBottom];
@@ -253,7 +258,6 @@ begin
   formDebug.buttonCP.Caption:='Etat '+intToSTR(Nb_cantons_Sig)+' cantons précédents signal';
 end;
 
-
 procedure TFormDebug.ButtonEcrLogClick(Sender: TObject);
 var s : string;
     i : integer;
@@ -280,9 +284,9 @@ end;
 procedure TFormDebug.EditNivDebugKeyPress(Sender: TObject; var Key: Char);
   var i,e  : integer;
 begin
- if ord(Key)=VK_RETURN then
+  if ord(Key)=VK_RETURN then
   begin
-    Key:=#0; // prevent beeping
+    Key:=#0; // évite bip
     val(EditNivDebug.text,i,e);
     if e=0 then
     begin
@@ -290,7 +294,7 @@ begin
       else EditNivDebug.text:='3';
     end
     else EditNivDebug.text:='0';
-  end; 
+  end;
   RichDebug.Lines.add('Niveau='+intToSTR(NivDebug));
 end;
 

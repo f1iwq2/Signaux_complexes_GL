@@ -5,8 +5,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Grids , UnitPrinc, StdCtrls, ExtCtrls, Menus, UnitPilote, UnitDebug,
   ComCtrls ,StrUtils, math, unitconfig, UnitAnalyseSegCDM,  Buttons , verif_version,
-  UnitHorloge,
-  ImgList ;
+  UnitHorloge, ImgList ;
 
 type
   TFormTCO = class(TForm)
@@ -557,7 +556,7 @@ var
   couleurAdresse,cltexte,CoulFonte,clCoulGrilleSV,clvoiesSV,
   clFoncSV,clGrilleSV,clCoulCantonLibreSV,clCoulCantonOccupeSV : Tcolor;
 
-  TamponAffecte,TCO_modifie,clicsouris,prise_N,affPosFil,
+  TamponAffecte,TCO_modifie,prise_N,affPosFil,clicsouris,
   clicTCO,piloteAig,BandeauMasque,eval_format,sauve_tco,prise_droit,prise_haut,deja_calcule,
   prise_bas,prise_gauche,prise_NE,prise_NO,prise_SE,prise_SO,ligneAffiche,colonneAffiche,
   TCOActive,TCOCree,ancienok,dbleClicTCO,auto_tcurs,EvtClicDet,SelecBouge,NB : boolean;
@@ -580,8 +579,6 @@ var
   titre_Fonte,s90,s91,s93,s94,s100,s101 : string;
 
   // élements dupliqués dans le TCO :
-  //TCO[i,x,y].FeuOriente=Nelements
-  //TCO[i,x,y].PiedFeu=numéro
   canton : array[1..MaxCantons] of Tcanton;
 
   // structure de tous les tco
@@ -926,7 +923,7 @@ begin
   begin
     screen.cursor:=crSizeNS;
     //if (not(prise_droit) and not(prise_bas) and not(prise_gauche) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO)) and clicsouris  then
-    if (rien and clicsouris) or prise_haut then
+    if (rien and (clicsouris)) or prise_haut then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -952,7 +949,7 @@ begin
   begin
     screen.cursor:=crSizeWE;
     //if (not(prise_haut) and not(prise_bas) and not(prise_gauche) and not(prise_NE) and not(prise_NO) and not(prise_SE) and not(prise_SO)) and clicsouris then
-    if (rien and clicsouris) or prise_droit then
+    if (rien and (clicsouris)) or prise_droit then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -977,7 +974,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_bas) then //and (y<MaxY) then
   begin
     screen.cursor:=crSizeNS;
-    if (rien and clicsouris) or prise_bas then
+    if (rien and (clicsouris)) or prise_bas then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1003,7 +1000,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_gauche) then //and (x>0) then
   begin
     screen.cursor:=crSizeWE;
-    if (rien and clicsouris) or prise_gauche then
+    if (rien and (clicsouris)) or prise_gauche then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1028,7 +1025,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NE) then //and (x<MaxX) and (y>0) then
   begin
     screen.cursor:=crSizeNESW;
-    if (rien and clicsouris) or prise_NE then
+    if (rien and (clicsouris)) or prise_NE then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1046,7 +1043,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_NO) then //and (x>0) and (y>0) then
   begin
     screen.cursor:=crSizeNWSE;
-    if (rien and clicsouris) or prise_NO then
+    if (rien and (clicsouris)) or prise_NO then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1064,7 +1061,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SE) then //and (x<MaxX) and (y<MaxY) then
   begin
     screen.cursor:=crSizeNWSE;
-    if (rien and clicsouris) or prise_SE then
+    if (rien and (clicsouris)) or prise_SE then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1082,7 +1079,7 @@ begin
   if (((x>=r.left) and (x<=r.Right) and (y>=r.top) and (y<=r.bottom)) or prise_SO) then //and (x>0) and (y<MaxY) then
   begin
     screen.cursor:=crSizeNESW;
-    if (rien and clicsouris) or prise_SO then
+    if (rien and (clicsouris)) or prise_SO then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1100,14 +1097,14 @@ begin
   if ((y>r.top) and (y<r.bottom) and (x>r.Left) and (x<r.Right) and (x>0) and (x<MaxX) and (y>0) and (y<maxY)) or prise_N then
   begin
     screen.cursor:=crSizeAll;
-    if not(prise_N) and clicSOuris then
+    if not(prise_N) and (clicsouris) then
     begin
       // sauvegarder le rectangle avant qu'on le bouge
       Sauv_rect_select:=Rect_Select.Gd;
       deltaXrect:=x-rect_Select.Gd.Left;
       DeltaYrect:=y-rect_Select.Gd.top;
     end;
-    if (rien and clicsouris) or prise_N then
+    if (rien and (clicsouris)) or prise_N then
     begin
       // efface l'ancien
       Affiche_Rectangle(IndexTCO,Rect_select);
@@ -1281,7 +1278,7 @@ begin
     n:=1+(abs(canton[indexCanton].gd.right-x) div larg);
     if (n>10) or (n<4) then begin result:=false;exit;end; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeWE;
-    if (rien and clicsouris) or prise_gauche then
+    if (rien and (clicsouris)) or prise_gauche then
     begin
       // efface l'ancien
       Affiche_Rectangle_canton(IndexTCO,IndexCanton);
@@ -1320,7 +1317,7 @@ begin
     //Affiche(intToSTR(canton[indexCanton].gd.Left)+' '+intToSTR(x)+' n='+intToSTR(n),clYellow);
     if (n>10) or (n<4) then begin result:=false;exit;end; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeWE;
-    if (rien and clicsouris) or prise_droit then
+    if (rien and (clicsouris)) or prise_droit then
     begin
       //Affiche('traite',clOrange);
       // efface l'ancien
@@ -1354,7 +1351,7 @@ begin
     n:=1+(abs(canton[indexCanton].gd.bottom-y) div larg);  // nombre de cellules tirées
     if (n>10) or (n<4) then begin result:=false;exit;end;; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeNS;
-    if (rien and clicsouris) or prise_haut then
+    if (rien and (clicsouris)) or prise_haut then
     begin
       // efface l'ancien
       Affiche_Rectangle_canton(IndexTCO,IndexCanton);
@@ -1387,7 +1384,7 @@ begin
     n:=1+(abs(canton[indexCanton].gd.top-y) div larg);
     if (n>10) or (n<4) then begin result:=false;exit;end;; // nombre de cellules tirées : maxi 9
     screen.cursor:=crSizeNS;
-    if (rien and clicsouris) or prise_bas then
+    if (rien and (clicsouris)) or prise_bas then
     begin
       // efface l'ancien
       Affiche_Rectangle_canton(IndexTCO,IndexCanton);
@@ -2321,12 +2318,16 @@ begin
         begin
           tco[indexTCO,x,y].PiedFeu:=PiedFeu;       // quelle action
           tco[indexTCO,x,y].FeuOriente:=FeuOriente; // paramètre de l'action
-          if PiedFeu=AcBouton_bistable then
+          if (PiedFeu=AcBouton_bistable) then
           begin
-            BoutonTCO[adresse].existe:=true;
-            BoutonTCO[adresse].idtco:=IndexTCO;
-            BoutonTCO[adresse].x:=x;
-            BoutonTCO[adresse].y:=y;
+            if (adresse<=100) and (adresse>0) then
+            begin
+              BoutonTCO[adresse].existe:=true;
+              BoutonTCO[adresse].idtco:=IndexTCO;
+              BoutonTCO[adresse].x:=x;
+              BoutonTCO[adresse].y:=y;
+            end
+            else Affiche('Erreur N° de bouton TCO incorrect ('+intToSTR(adresse)+')',clred);
           end;
         end;
 
@@ -2721,7 +2722,6 @@ begin
       pen.Color:=Clred;
       moveto(xc,yc+round(7*fryGlob[indexTCO]));
       LineTo(xc,yc-round(7*fryGlob[indexTCO]));
-
       exit;
     end;
 
@@ -2741,6 +2741,7 @@ begin
         pen.color:=tco[indextco,x,y].CouleurFond;
         brush.color:=tco[indextco,x,y].CouleurFond;
       end;
+      // dessine la bande horizontale
       jy1:=y0+(HauteurCell[indexTCO] div 2)-round(7*fryGlob[indexTCO]); // pos Y de la bande sup
       jy2:=y0+(HauteurCell[indexTCO] div 2)+round(7*fryGlob[indexTCO]); // pos Y de la bande inf
       if avecGrille[indexTCO] then r:=Rect(x0+1,jy1,xf-1,jy2) else
@@ -2748,6 +2749,7 @@ begin
       FillRect(r);
     end;
 
+    // dessine la voie
     case mode of
       0 : couleur:=clVoies[indexTCO];
       1 : couleur:=clAllume[indexTCO];
@@ -2929,7 +2931,6 @@ begin
   if taillefont=0 then taillefont:=8;
   tf:=(taillefont*LargeurCell[indexTCO]) div 40;
   c.font.Size:=tf;
-  //c.font.Size:=taille_fonte(tco[indextco,x,y].TailleFonte);  
 
   if b=id_action then c.Brush.Color:=couleurAction;
 
@@ -11280,7 +11281,6 @@ begin
 end;
 
 
-
 // affiche la cellule x et y en cases
 // index est utilisé pour accéder au tableau du tracé de la fonction zone_tco
 procedure affiche_cellule(indexTCO,x,y : integer);
@@ -11436,8 +11436,7 @@ begin
         begin
           Brush.style:=bsSolid;
           Brush.Color:=clBlue;
-          //s:=s+' '+intToSTR(AdrTr);
-          s:=s+format('%d',[adrTr]);
+          s:=s+' '+format('%d',[adrTr]);
         end
         else
         begin
@@ -11505,7 +11504,6 @@ begin
         begin
           Brush.style:=bsSolid;
           if not NB then Brush.Color:=clBlue else Brush.color:=clwhite;
-          //s:=s+' '+intToSTR(AdrTr);
           s:=s+' '+format('%d',[adrTr]);
         end
         else
@@ -11737,22 +11735,30 @@ end;
 
 procedure _entoure_cell_clic(indexTCO: integer);
 begin
+  // si entoure pas affiché
   if not(entoure[indexTCO]) then
   begin
     Entoure_cell(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
     Xentoure[indexTCO]:=XClicCell[indexTCO];
     Yentoure[indexTCO]:=YclicCell[indexTCO];
     entoure[indexTCO]:=true;
+    exit;
   end
   else
   begin
+    // si entoure affiché
     Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);   // efface l'ancien
-    // si on clique sur le même on l'efface sans afficher un nouveau
+    // si on clique sur une cellule différente affiche un nouveau
     if (Xentoure[indexTCO]<>XclicCell[indexTCO]) or (Yentoure[indexTCO]<>YClicCell[indexTCO]) then
     begin
       Entoure_cell(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
+      Xentoure[indexTCO]:=XClicCell[indexTCO];
+      Yentoure[indexTCO]:=YclicCell[indexTCO];
+      exit;
     end
-    else entoure[indexTCO]:=false;
+    else
+    // on a cliqué sur ancien
+    entoure[indexTCO]:=false;
     Xentoure[indexTCO]:=XClicCell[indexTCO];
     Yentoure[indexTCO]:=YclicCell[indexTCO];
   end;
@@ -11891,7 +11897,7 @@ var s : string;
 begin
   NB:=false; // mode noir et blanc pour l'affichage
   if jeucouleurs=0 then JeuCouleurs:=1; // style de couleur sombre par défaut
-
+  clicsouris:=false;
   if affevt or (debug=1) then Affiche('FormTCO'+intToSTR(indexTCOCreate)+' create',clLime);
   procetape('Création fenêtre TCO');
   //Screen.OnActiveControlChange := ActiveControlChanged;
@@ -14787,6 +14793,7 @@ begin
     Rectangle(r);
   end;
   SelectionAffichee[indexTCO]:=true;
+  if affevt then Affiche('Sélection bleue 1',clCyan);
 end;
 
 procedure selec_tout(indexTCO : integer);
@@ -14837,7 +14844,7 @@ begin
   begin
     if not(ssShift in Shift) then
     case Key of
-     VK_right : if x<NbreCellX[indexTCO] then
+     VK_right : if XclicCell[indexTCO]<NbreCellX[indexTCO] then
                 begin
                   inc(XClicCell[indexTCO]);
                   // Affiche('Incrémente',clLime);
@@ -16111,6 +16118,9 @@ var position : Tpoint;
     s : string;
     presTrain,Horz,Pc,trouve : boolean;
 begin
+  if affEvt then affiche('ImageTCO mouse down',clYellow);
+  if Tdoubleclic<>0 then exit;
+  
   indexTCO:=index_tco(sender);
   if indexTCO<1 then exit;
   GetCursorPos(Position);
@@ -16123,7 +16133,7 @@ begin
   if button=mbLeft then
   begin
     //Affiche('TCO'+intToSTR(indexTCO)+' souris clicG enfoncée',clYellow);
-    if affEvt then Affiche('TCO'+intToSTR(i)+' souris clicG enfoncée',clYellow);
+    //if affEvt then Affiche('TCO'+intToSTR(i)+' souris clicG enfoncée',clYellow);
     if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
 
     // coordonnées grille
@@ -16169,8 +16179,13 @@ begin
 
     else
       begin
-        IdCantonSelect:=0;  // pas cliqué sur un canton
-        //Affiche('RAZ1 x='+intToSTR(xclic),clred);
+        //Affiche('RAZ1 x='+intToSTR(xclic)+' Idcanton'+intToSTR(idcantonSelect),clred);
+        // réaffiche le TCO pour désélectionner le canton qui a été sélectionné, mais ona cliqué ailleurs
+        if IdCantonSelect<>0 then
+        begin
+          IdCantonSelect:=0;  // pas cliqué sur un canton
+          Affiche_TCO(indexTCO);
+        end;
       end;
 
 
@@ -16375,7 +16390,6 @@ begin
         AncienIdCantonSelect:=IdCantonSelect;
         IdCantonSelect:=0;
         //Affiche('RAZ2',clred);
-        exit;
       end;
     end;
 
@@ -16459,8 +16473,6 @@ begin
                 end;
               end;
             end;
-
-
       end;
       end;
     end;
@@ -16636,6 +16648,7 @@ begin
         Init_rectangle(IndexTCO,Rect_Select);
         Affiche_Rectangle(indexTCO,Rect_select);
         selectionAffichee[indexTCO]:=true;
+        if affevt then Affiche('Sélection bleue 2',clCyan);
       end;
     end
     else
@@ -16714,7 +16727,7 @@ begin
       if Xclic>NbreCellX[indexTCO] then exit;
       if Yclic>NbreCellY[indexTCO] then exit;
       //if cantonSelect<>0 then exit;
-      if not(selectionaffichee[indexTCO]) then _entoure_cell_clic(indexTCO);
+      if not(selectionaffichee[indexTCO]) and (Tdoubleclic=0) then _entoure_cell_clic(indexTCO);
       actualise(indexTCO);    // actualise la fenetre de config cellule
     end;
 
@@ -16760,7 +16773,11 @@ var r : Trect;
     ok : boolean;
 begin
 //  if affevt then Affiche('ImageTCOMouseMove',clLime);
-  if dbleClicTCO then begin dbleClicTCO:=false;exit;end;
+  if dbleClicTCO then
+  begin
+    dbleClicTCO:=false;
+    exit;
+  end;
   //Affiche(IntToSTR(tempoSouris),clred);
   indexTCO:=index_tco(sender);
 
@@ -16792,13 +16809,13 @@ begin
       end;
 
       idTrain:=canton[IdCantonSelect].indexTrain;
-      if clicSouris and (idTrain<>0) then if (trains[IdTrain].icone<>nil) and (trains[IdTrain].icone.width<>0) then
+      if (clicsouris) and (idTrain<>0) then if (trains[IdTrain].icone<>nil) and (trains[IdTrain].icone.width<>0) then
       begin
         debut_drag_train(IndexTCO,canton[IdCantonSelect].x,canton[IdCantonSelect].y);
         exit;
       end;
       exit;
-    end ;
+    end;
 
     // vérifier si on passe au dessus d'un bouton canton
     IdCanton:=passe_bouton_canton(indexTCO,x,y);
@@ -16875,6 +16892,7 @@ begin
   TpsBougeSouris:=5;
   if not(clicsouris) or (temposouris>0) then exit;
 
+  //Affiche('sélection cours',clred);
 
   Bim:=Tco[IndexTCO,cellx,celly].Bimage;
   //Affiche('ajuste rect '+intToSTR(Bim)+' '+intToSTR(cellx)+' '+intToSTR(celly),clWhite);
@@ -16920,6 +16938,7 @@ begin
   Affiche_selection(indexTCO);
 
   SelectionAffichee[indexTCO]:=true;
+  if affevt then Affiche('Sélection bleue 3',clCyan);
   //Affiche('Sélection affichée',clLime);
   if entoure[indexTCO] then begin Entoure_cell(indexTCO,Xentoure[indexTCO],Yentoure[indexTCO]);entoure[indexTCO]:=false;end; // efface
 end;
@@ -16927,7 +16946,7 @@ end;
 procedure TFormTCO.ImageTCOMouseUp(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
 var An,Nouvx,Nouvy,xc,yc,n,indexTCO,lg,ht,xo,yo,larg,haut,i : integer;
 begin
-  if affevt then Affiche('Souris clic relachée',clyellow);
+  if affevt then Affiche('ImageTCO mouseUp',clyellow);
   clicsouris:=false;
   SelecBouge:=false;
   indextco:=index_TCO(sender);
@@ -17105,7 +17124,7 @@ begin
         if tco[indextco,x,y].Adresse=Adresse then
         begin
           affiche_cellule(indexTCO,x,y);
-          entoure_cell_grille(indexTCO,x,y);
+          entoure_cell_grille(indexTCO,x,y);  // si grille
         end;
       end;
 end;
@@ -17557,7 +17576,11 @@ var Bimage,Adresse,i,indextco,xt,yt,idcanton : integer;
     tjdC : boolean;
 begin
   if affEvt then Affiche('Double clic',clYellow);
-  clicsouris:=false;
+  //clicsouris:=false;
+
+  doubleclic:=true;
+  Tdoubleclic:=3;
+
   auto_tcurs:=true;  // autorise le déplacement du des touches curseur encadré du TCO
   indexTCO:=index_TCO(sender);
 
@@ -17565,12 +17588,20 @@ begin
   Adresse:=tco[indextco,xClicCell[indexTCO],yClicCell[indexTCO]].Adresse;
 
   // double clic sur détecteur : inversion
-  //if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and (adresse<>0) then
-  if not(isAigTCO(Bimage)) and (adresse<>0) then
+  if ((Bimage=1) or (Bimage=20) or (Bimage=10) or (Bimage=11)) and (adresse<>0) then
+  //if not(isAigTCO(Bimage)) and (adresse<>0) then
   begin
-    if EvtClicDet then event_detecteur(adresse,not(detecteur[adresse].etat),'')
-    else detecteur[adresse].etat:=not(detecteur[adresse].etat);
-    Maj_TCO(indexTCO,Adresse)
+    if EvtClicDet then
+    begin
+      //if detecteur[adresse].etat=false then
+      efface_entoure(indextco);
+      event_detecteur(adresse,not(detecteur[adresse].etat),'');
+    end
+      else detecteur[adresse].etat:=not(detecteur[adresse].etat);
+    //clicsouris:=false;
+    //Maj_TCO(indexTCO,Adresse);
+    doubleclic:=false;
+    exit;
   end;
 
   tjdC:=false;
@@ -17590,6 +17621,7 @@ begin
     if i=0 then
     begin
       Affiche('Aiguillage '+intToSTR(adresse)+' non configuré pour pilotage',clOrange);
+      doubleclic:=false;
       exit;
     end;
 
@@ -17609,6 +17641,7 @@ begin
       yt:=canton[IdCantonSelect].y;
       IdCanton:=TCO[IndexTCO,xt,yt].NumCanton;
       formSelTrain.Show;
+      doubleclic:=false;
       exit;
     end;
   end;
@@ -17618,8 +17651,7 @@ begin
   begin
     AdrPilote:=adresse;
     i:=Index_Signal(adresse);
-    if i=0 then exit;
-    TFormPilote.Create(Self);
+    if i=0 then begin doubleclic:=false;exit;end;
     with formPilote do
     begin
       show;
@@ -17656,8 +17688,9 @@ begin
       end;
     end;
   end;
-  clicsouris:=false;
+  //clicsouris:=false;
   dbleClicTCO:=true;
+  doubleclic:=false;
 end;
 
 procedure TFormTCO.ComboReprChange(Sender: TObject);
@@ -19128,11 +19161,6 @@ begin
     end;
   end;
 end;
-
-
-
-
-
 
 end.
 

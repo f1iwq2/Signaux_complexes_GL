@@ -81,16 +81,18 @@ uses
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem ,
   Buttons, NB30, comObj, activeX //,DateUtils//, PsAPI
+
   {$IFDEF AvecIdTCP}
-  ,IdTCPClient        // client socket indy , ne marche pas bien
+    ,IdTCPClient        // client socket indy , ne marche pas bien
   {$ENDIF}
+
   {$IF CompilerVersion >= 28.0}   // si delphi>=12
-  ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
-  ,Vcl.Styles.Ext     // styles étendus
-  ,AdPort, OoMisc     // AsyncPro pour COM/USB
-  ,idGlobal           // pour utiliser tidBytes
+    ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
+    ,Vcl.Styles.Ext     // styles étendus
+    ,AdPort, OoMisc     // AsyncPro pour COM/USB
+    ,idGlobal           // pour utiliser tidBytes
   {$ELSE}
-  ,MSCommLib_TLB      // TMSComm pour COM/USB
+    ,MSCommLib_TLB      // TMSComm pour COM/USB
   {$IFEND}
   ;
 
@@ -558,28 +560,28 @@ MaxTrainZone=40;      // nombre maximal de trains pour le tableau d'historique d
 Mtd=128;              // nombre maxi de détecteurs précédents stockés
 Max_event_det=4000;   // nombre maximal d'évenements détecteurs
 Max_action=100;       // nombre maximal d'actions
-MaxCantons=100;
-Long_tampon_interface=5000;
-Max_actionneurs=2048;
-Maxelements=100;      // nombre maxi d'éléments scannés/réservés
+MaxCantons=100;       // nombre maximal de cantons
+Long_tampon_interface=5000; // taille tampon interface
+Max_actionneurs=2048; // nombre maxi d'actionneurs cdm
+Maxelements=100;      // nombre maxi d'éléments de voies scannés/réservés
 MaxBranches=200;      // nombre maxi de branches
 MaxElBranches=200;    // nombre maxi d'éléments par branche
 NbreMaxiAiguillages=MaxAcc; // nombre maxi d'aiguillages
-NbreMaxiSignaux=200;  // nombre maxi de signaux
+NbreMaxiSignaux=250;  // nombre maxi de signaux
 NbreMaxiDecPers=10;   // nombre maxi de décodeurs personnalisés
 NbMaxi_Periph=10;     // nombre maxi de périphériques COM/USB/Socket
 LargImg=50;HtImg=91;  // Dimensions image des signaux (le plus grand, le 9 feux)
 MaxComUSBPeriph=2;    // Nombre maxi d'objets périphériques périphériques USB Tmscom
 MaxComSocketPeriph=2; // Nombre maxi d'objets périphériques périphériques socket TClientsocket
-const_droit=2;        // positions aiguillages transmises par la centrale LENZ
-const_devie=1;        // positions aiguillages transmises par la centrale LENZ
-const_devieG_CDM=3;   // positions aiguillages transmises par cdm
-const_devieD_CDM=2;   // positions aiguillages transmises par cdm
-const_droit_CDM=0;    // positions aiguillages transmises par cdm
+const_droit=2;        // position droite aiguillages transmises par la centrale LENZ
+const_devie=1;        // position déviée aiguillages transmises par la centrale LENZ
+const_devieG_CDM=3;   // position déviée gauche aiguillages transmises par cdm
+const_devieD_CDM=2;   // position déviée droite aiguillages transmises par cdm
+const_droit_CDM=0;    // position non déviée aiguillages transmises par cdm
 const_inconnu=9;      // position inconnue
 const_pointe=10;      // aiguillage pris en pointe
 const_talon=11;       // aiguillage pris en talon
-IdClients=10;         // Index maxi de clients
+IdClients=10;         // Index maxi de clients réseau
 MaxParcoursTablo=200; // taille maxi du tableau des routes
 MaxRoutesCte=25000;   // Nombre maximal de routes
 NbCouleurTrain=8;
@@ -818,7 +820,7 @@ TSignal = record
                                   Adresse : integer;    // aiguillage
                                   posAig : char;
                                end;
-                SR : array[1..19] of record   // configuration des sorties du décodeur Stéphane Ravaut ou digikeijs ou cdf pour chacun des 19 états
+                SR : array[1..19] of record   // configuration des sorties du décodeur Stéphane Ravaut ou digikeijs ou cdf ou LEA pour chacun des 19 états
                                    sortie1,sortie0 : integer;     // ex SR[1]=[carre] (voir tableau Etats)
                                    end;
                 Na : integer;               // nombre d'adresses du signal occupées par le décodeur CDF/SR/digikeijs/Belge
@@ -831,10 +833,10 @@ TPeripherique = record
                   portouvert : boolean;      // si le port COM est ouvert
                   numComposant : integer ;   // numéro de composant MSCOM ou clientSocket
                   ScvAig,ScvDet,ScvAct,ScvVis,cr,dtr,rts : boolean ;  // services, visible, avecCR ...
-                  protocole,tamponRX : string; // protocole COM ou socket, tanpon de réception
+                  protocole,tamponRX : string; // protocole COM ou socket, tampon de réception
                 end;
 
-TPn = record
+TPn = record  // structure passage à niveau
     AdresseFerme  : integer;  // adresse de pilotage DCC pour la fermeture  ou numéro de périphérique pour pilotage usb
     commandeFerme : integer;  // commande de fermeture (1 ou 2)
     AdresseOuvre  : integer;  // adresse de pilotage DCC pour l'ouverture
@@ -885,13 +887,13 @@ Taction = record
   end;
 
 TelementRoute=record
-             // l'index 0 contient dans "adresse" le nombre d'éléments et
+             // l'index 0 contient dans "adresse" le nombre d'éléments
              //                    dans "talon" (si talon=true : consigne vitesse négative)
              //                    dans "pos" l'id de route
                 adresse : integer;   // adresse de l'élément
                 typ : tequipement;   // type de l'élément
-                pos : integer;       // position pour la route si l'élément est un aiguillage
-                talon : boolean;     // vrai si l'élément est un aiguillage pris en talon pour la route
+                pos : integer;       // position pour la route si l'élément est un aiguillage // indice[0] : id de la route
+                talon : boolean;     // vrai si l'élément est un aiguillage pris en talon pour la route // indice[0]: inverse le sens de la loco
                 traite : boolean;    // traité ou non par la procédure aig_canton
               end;
 
@@ -1187,14 +1189,15 @@ var
               SbitMap : TBitmap ;               // pointeur sur tampon sous l'icone de déplacement du train en page CDM
               ax,ay,x,y : integer;              // coordonnées du train (anciennes et nouvelles) en points windows
               x0,y0,x1,y1 : integer;            // ancien contour du tampon, pour l'animation dans la fenêtre cdm
-              // route -----------------------------------
+              // routes -----------------------------------
               roulage : integer;                // =1 train en roulage mais arrêté pour réservation par tiers =2 en roulage effectif
               dernierDet : integer;             // dernier détecteur traité
               cantonOrg,CantonDest : integer;   // cantons origine et destination si route
               route :  TuneRoute;               // tableau de la route en cours du train
               NomRoute : array[1..30] of string; // nom de la route sauvegardée
               NomRouteCour : string;            // nom de la route courante
-              routePref : array[0..30] of TUneroute; // tableau de la route sauvegardée du train. routePref[0,0].adresse est le nombre de routes
+              routePref : array[0..30] of TUneroute; // tableaux dess route sauvegardées du train. routePref[0,0].adresse est le nombre de routes
+                                                     // routePref[0,0].talon = consigne inverse au train
               PointRout : integer;
               // cantons (via leurs déteceteurs) sur lesquels le train doit d'arrêter
               DetecteurArret : array[1..NbDetArret] of record
@@ -1253,12 +1256,12 @@ var
 // utilisation des procédures et fonctions dans les autres unités
 function Index_Signal(adresse : integer) : integer;
 function Index_Aig(adresse : integer) : integer;
-procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
-procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
-procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
-procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
-procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
-procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : single;etatsignal : word;orientation : integer);
+procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : single;etatsignal : word;orientation,index : integer);
 procedure dessine_signal20(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,adresse : integer);
 procedure dessine_dirN(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,N : integer);
 procedure Maj_Etat_Signal(adresse,aspect : integer);
@@ -1369,6 +1372,7 @@ procedure affecte_trains_config;
 procedure Fonction_Loco_Operation(loco,fonction,etat : integer);
 procedure calcul_equations_coeff(indexTrain : integer);
 procedure connecte_interface_ethernet;
+function lire_cv(cv : integer) : integer;
 
 implementation
 
@@ -1692,7 +1696,7 @@ var i,j,index : integer;
     si : tStyleInfo;
     {$IFEND}
 begin
- {$IF CompilerVersion >= 28.0}
+  {$IF CompilerVersion >= 28.0}
   if Ancien_Nom_Style<>Nom_style_aff then
   begin
     TStyleManager.TrySetStyle(TStyleManager.StyleNames[0]);   // repasse en windows (style 0) pour éviter exception après changement du nouveau style
@@ -1714,7 +1718,7 @@ begin
     end;
 
     // vérification de la validité du style, et récupération de la structure si qui contient le vrai nom
-    // du style qu'il faudra utiliser pour son application
+    // du style qu'il faudra utiliser dans la fonction d'ouverture du style
     try
       if tStyleManager.IsValidStyle(s,si)=false then
       begin
@@ -1729,11 +1733,11 @@ begin
     end;
 
     // reprendre le vrai nom du style depuis SI.name car le nom du fichier peur être différent du nom du style
-    // exemple le style Metropolis UI Dark (avec espaces) a pour nom de fichier MetropolisUIDark.vsf
+    // exemple le style "Metropolis UI Dark" (avec espaces) a pour nom de fichier "MetropolisUIDark.vsf"
     Nom_style_aff:=si.Name;
 
     try
-      TStyleManager.ReloadStyle(Nom_Style_aff);   // librairie Vcl.Styles.Ext
+      TStyleManager.ReloadStyle(Nom_Style_aff);   // charge le style - librairie Vcl.Styles.Ext
     except
       Affiche('Erreur d''application du style '+Nom_style_aff+' version='+si.version,clOrange);
       exit;
@@ -1741,13 +1745,8 @@ begin
 
     // repasser certains composants dans le styleName windows permet que le composant affiche en couleurs voulues
     // car changer de style sur un composant dont le styleName n'est plus windows interdit de changer sa couleur
-
     Formprinc.FenRich.StyleName:='Windows';
-    if formDebug<>nil then
-    begin
-      FormDebug.RichDebug.StyleName:='Windows';
-      formDebug.MemoEvtDet.StyleName:='Windows';
-    end;
+    // et dans formdebug.Create aussi
 
     // énumérer tous les composants pour repaint les richedit - ne marche pas
     {
@@ -1767,16 +1766,6 @@ begin
     end;
     }
 
-    {
-    if formConfig<>nil then
-    begin
-      FormConfig.RichBranche.StyleName:='Windows';
-      FormConfig.RichCdeDccpp.StyleName:='Windows';
-    end;
-    for i:=1 to NbreTCO do
-    begin
-      if FormTCO[i]<>nil then FormTCO[i].ScrollBox.StyleName:='Windows';
-    end; }
     Ancien_nom_style:=nom_Style_aff;
   end;
   {$IFEND}
@@ -3026,13 +3015,103 @@ begin
   end;
 end;
 
+// Ecrire sur un canvas un texte avec un angle, avec ou sans bordure, monochrome ou à face texturée
+// params : C       = Canvas-cible
+//          X,Y     = Coordonnées angle supérieur gauche du début du texte.
+//          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
+//          clBord  = Couleur de la bordure.
+//          EpBord  = Epaisseur de la bordure.
+//          PenMode = TPenMode : utiliser en général pmCopy.
+//          si Clfond=clback, on écrit en transparent
+//          Texte   = Texte à écrire.
+//          AngleDD = Angle d'inclinaison en Dixièmes de degré.
+procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
+                                    clBord : TColor; EpBord : integer; PenMode : TPenMode;
+                                    texte : string; AngleDD : longint);
+var dc : Hdc;
+    lgFont : Logfont;           // structure d'attributs de police
+    AncFonte,NouvFonte : Hfont;
+    AncPen,NouvPen : Hpen;
+    AncBrush,NouvBrush : Hbrush;
+    i : integer;
+begin
+  C.Pen.Mode:=PenMode;
+  dc:=C.Handle;
+
+  c.pen.Mode:=PmCopy;
+  //c.pen.Color:=clfond; //clfond;
+  //c.Brush.color:=clfond;
+  c.pen.width:=1;
+  i:=round(length(texte)*0.5*abs(fonte.size));
+//  c.Rectangle(x+2,y,x+15,y-i);
+
+  // Initialisation de la fonte
+  zeroMemory(@lgFont,sizeOf(lgFont));      // remplit la structure de 0
+  strPCopy(lgFont.lfFaceName,Fonte.Name);  // copie la chaîne dans le nom de la fonte depuis le paramètre
+  lgFont.lfHeight:=Fonte.Height;           // la taille
+  if Fonte.style=[] then lgFont.lfWeight:=FW_REGULAR; // Normal
+  if Fonte.style=[fsBold] then lgFont.lfWeight:=FW_BOLD;    // Gras
+
+  if fsItalic in Fonte.style    then lgFont.lfItalic:=1;
+  if fsUnderline in Fonte.style then lgFont.lfUnderline:=1;
+  if fsStrikeout in Fonte.style then lgFont.lfStrikeout:=1;
+
+  lgFont.lfEscapement:=AngleDD; // Angle d'inclinaison en dixièmes de degrés
+
+  NouvFonte:=CreateFontInDirect(lgFont);
+  AncFonte:=SelectObject(dc,NouvFonte);
+
+  // Initialisation du contour :
+  if EpBord<>0 then NouvPen := CreatePen(PS_SOLID,EpBord,clBord)
+                       else NouvPen := CreatePen(PS_NULL,0,0);
+  AncPen:= SelectObject(dc,NouvPen);
+
+  // Initialisation de la couleur de la police ou de la Texture :
+  //if Texture=nil then
+  NouvBrush := CreateSolidBrush(Fonte.color);
+  //                       else NouvBrush := CreatePatternBrush(Texture.Handle);
+  AncBrush:=SelectObject(dc,NouvBrush);
+  // Le contexte doit être transparent
+  SetBkMode(dc,TRANSPARENT);
+
+
+
+
+  // Dessin du texe :
+  BeginPath(dc);
+  TextOut(dc,X,Y,PChar(Texte),length(texte)); //<- au lieu de TextOut(dc,X,Y,PansiChar(Texte),length(texte)) pour rendre le code compatible avec toutes les versions de Delphi (de D2 à XE2);
+  EndPath(dc);
+  StrokeAndFillPath(dc);
+
+  // Restauration objets et libération mémoire
+  SelectObject(dc,AncFonte);
+  DeleteObject(NouvFonte);
+  SelectObject(dc,AncPen);
+  DeleteObject(NouvPen);
+  SelectObject(dc,AncBrush);
+  DeleteObject(NouvBrush);
+end;
+// inverse une image (miroir horizontal) et la met dans dest
+// Utilisé pour les signaux belges, et les trains
+procedure inverse_image(imageDest,ImageSrc : Timage);
+var mrect,nrect : trect;
+    larg,haut : integer;
+begin
+  larg:=ImageSrc.Width;
+  haut:=ImageSrc.Height;
+  mRect:=rect(0,0,larg,haut);
+  nRect:=rect(larg-1,0,-1,haut);
+  ImageDest.canvas.CopyRect(mRect,ImageSrc.canvas,nRect);
+end;
+
+{
 // dessine les 2 feux sur la cible dans le canvas spécifié
 // x,y : offset en pixels du coin supérieur gauche du feu
 // Acanvas : canvas de destination
 // frX, frY : facteurs de réduction (pour agrandissement)
 // EtatSignal : état du signal
 // orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite  4=180°
-procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
+procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
 var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -3077,9 +3156,17 @@ begin
   XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+y;
   XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+y;
 
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+    cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
-  cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
+  if (code=blanc_cli) and not(clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
 
   // allumages
   if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
@@ -3087,7 +3174,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_signal3x(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,index : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : real;EtatSignal : word;orientation,index : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -3144,22 +3231,724 @@ begin
     signaux[index].AncienAff:=EtatSignal;
   end;
 
+  // efface
   if (code=vert_cli) and not(clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
   if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
   if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
-
-  if (code=vert_cli) and not(clignotant) then Affiche('efface vert',clred);
-  if (code=jaune_cli) and not(clignotant) then Affiche('efface jaune',clred);
-  if (code=semaphore_cli) and not(clignotant) then Affiche('efface rouge',clred);
 
   // allumages
   if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
   if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clOrange);
   if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
+
+end;
+
+// dessine les feux sur une cible à 4 feux
+// orientation=1 vertical
+procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
+    LgImage,HtImage,code,combine : integer;
+    ech : real;
+begin
+  code_to_aspect(Etatsignal,code,combine); // et aspect
+  rayon:=round(6*frX);
+
+  with Formprinc.Image4feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+
+  Xcarre:=13; ycarre:=11;
+  Xvert:=13;  Yvert:=22;
+  xSem:=13;   ySem:=33;
+  xJaune:=13; yJaune:=44;
+
+  if (orientation=2) then
+  begin
+    // rotation 90° vers la gauche des feux
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjaune; YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-ycarre; Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;   YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;  Yvert:=Xvert;Xvert:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+  end;
+
+  if (orientation=4) then
+  begin
+    // rotation 180°
+    Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
+    XSem:=LgImage-XSem;    YSem:=HtImage-YSem;
+    XVert:=LgImage-Xvert;  Yvert:=HtImage-Yvert;
+    Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+
+  // nouveau cercle(ACanvas,Xcarre,yCarre,rayon,GrisF); Affiche('Eteint carré',clYellow);
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xSem,ySem,rayon,GrisF);
+    cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+    cercle(ACanvas,xCarre,yCarre,rayon,GrisF);
+
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  // extinctions
+  if (code=vert_cli) and not(clignotant) then cercle(ACanvas,Xvert,yvert,rayon,GrisF);
+  if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,GrisF);
+  if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,Xjaune,YJaune,rayon,GrisF);
+
+  // allumages
+  if (code=vert_cli) and clignotant or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if (code=semaphore_cli) and clignotant or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
+  if (code=jaune_cli) and clignotant or (code=jaune) then cercle(Acanvas,Xjaune,yJaune,rayon,clOrange);
+  if code=carre then begin cercle(ACanvas,xSem,Ysem,rayon,clRed);cercle(ACanvas,xCarre,yCarre,rayon,clRed);end;
+
+end;
+
+// dessine les feux sur une cible à 5 feux
+procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
+    Temp,rayon,LgImage,HtImage,code,combine : integer;
+    ech : real;
+
+begin
+  code_to_aspect(Etatsignal,code,combine); // et aspect
+  rayon:=round(6*frX);
+  XBlanc:=13; YBlanc:=11;
+  xJaune:=13; yJaune:=55;
+  Xcarre:=13; Ycarre:=22;
+  XSem:=13;   Ysem:=44;
+  XVert:=13;  YVert:=33;
+
+  with Formprinc.Image5feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+  if (orientation=2) then
+  begin
+    // rotation 90° vers la gauche des signaux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    // rotation 90° vers la droite des signaux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+  end;
+
+  if (orientation=4) then
+  begin
+    // rotation 180°
+    Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
+    XSem:=LgImage-XSem;    YSem:=HtImage-YSem;
+    XVert:=LgImage-Xvert;  Yvert:=HtImage-Yvert;
+    Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
+    Xblanc:=LgImage-Xblanc;Yblanc:=HtImage-YBlanc;
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xSem,ySem,rayon,GrisF);
+    cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+    cercle(ACanvas,xCarre,yCarre,rayon,GrisF);
+    cercle(ACanvas,xblanc,yblanc,rayon,GrisF);
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  // extinctions
+  if (code=blanc_cli) and not(clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+  if (code=vert_cli) and not(clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
+  if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
+
+  // allumages
+  if code=carre then begin cercle(ACanvas,xcarre,ycarre,rayon,clRed);cercle(ACanvas,xsem,ysem,rayon,clRed);end;
+
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xvert,yVert,rayon,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,xJaune,yjaune,rayon,clorange);
+end;
+
+
+// dessine les feux sur une cible à 7 feux
+procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
+    Temp,rayon,LgImage,HtImage,code,combine  : integer;
+    ech : real;
+begin
+  code_to_aspect(Etatsignal,code,combine); // et combine
+  rayon:=round(6*frX);
+  XBlanc:=13; YBlanc:=23;
+  Xral1:=13;  YRal1:=11;
+  Xral2:=37;  YRal2:=11;
+  xJaune:=13; yJaune:=66;
+  Xcarre:=13; Ycarre:=35;
+  XSem:=13;   Ysem:=56;
+  XVert:=13;  YVert:=45;
+
+  with Formprinc.Image7feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+  if (orientation=2) then
+  begin
+    // rotation 90° vers la gauche des feux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRal1;YRal1:=XRal1;XRal1:=Temp;
+    Temp:=HtImage-yRal2;YRal2:=XRal2;XRal2:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    // rotation 90° vers la droite des feux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xral1;Xral1:=Yral1;Yral1:=Temp;
+    Temp:=LgImage-Xral2;Xral2:=Yral2;Yral2:=Temp;
+  end;
+
+  if (orientation=4) then
+  begin
+    //rotation 180°
+    Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
+    XSem:=LgImage-XSem;    YSem:=HtImage-YSem;
+    XVert:=LgImage-Xvert;  Yvert:=HtImage-Yvert;
+    Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
+    Xblanc:=LgImage-Xblanc;Yblanc:=HtImage-YBlanc;
+    Xral1:=LgImage-Xral1;  Yral1:=HtImage-Yral1;
+    Xral2:=LgImage-Xral2;  Yral2:=HtImage-Yral2;
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  XRal1:=round(XRal1*FrX)+x;    YRal1:=round(YRal1*FrY)+Y;
+  XRal2:=round(XRal2*FrX)+x;    YRal2:=round(YRal2*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xSem,ySem,rayon,GrisF);
+    cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+    cercle(ACanvas,xCarre,yCarre,rayon,GrisF);
+    cercle(ACanvas,xblanc,yblanc,rayon,GrisF);
+    cercle(ACanvas,xRal1,yRal1,rayon,GrisF);
+    cercle(ACanvas,xRal2,yRal2,rayon,GrisF);
+
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  // effacements
+  if (code=blanc_cli) and not(clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,grisF);
+  if (combine=ral_60) and not(clignotant) then begin cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,Xral2,Yral2,rayon,GrisF);end;
+  if (code=vert_cli) and not(clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
+  if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+  if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+
+  // Allumages
+  if (combine=ral_30) or ((combine=ral_60) and clignotant) then begin cercle(ACanvas,xRal1,yRal1,rayon,clOrange);cercle(ACanvas,xRal2,yRal2,Rayon,clOrange);end;
+  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  if code=carre then
+  begin
+    cercle(ACanvas,xCarre,yCarre,rayon,clRed);
+    cercle(ACanvas,xSem,ySem,rayon,clRed);
+  end;
+end;
+
+// dessine les feux sur une cible à 9 feux
+procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : single;etatsignal : word;orientation,index : integer);
+var rayon,
+    XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
+    Xrap1,Yrap1,Xrap2,Yrap2,Temp,LgImage,HtImage,xt,yt,code,combine  : integer;
+    ech : real;
+begin
+  rayon:=round(6*frX);
+  code_to_aspect(Etatsignal,code,combine); // et aspect
+  // mise à l'échelle des coordonnées des feux en fonction du facteur de réduction frX et frY et x et y (offsets)
+
+  XBlanc:=13; YBlanc:=36;
+  Xral1:=13;  YRal1:=24;
+  Xral2:=37;  YRal2:=24;
+  xJaune:=13; yJaune:=80;
+  xRap1:=37;  yRap1:=12;
+  xrap2:=37;  yRap2:=37;
+  Xcarre:=13; Ycarre:=47;
+  XSem:=13;   Ysem:=69;
+  XVert:=13;  YVert:=58;
+
+  with Formprinc.Image9feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux : échange des coordonnées X et Y et translation sur HtImage
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjaune;YJaune:=XJaune;Xjaune:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRal1;YRal1:=XRal1;XRal1:=Temp;
+    Temp:=HtImage-yRal2;YRal2:=XRal2;XRal2:=Temp;
+    Temp:=HtImage-ycarre;Ycarre:=Xcarre;Xcarre:=Temp;
+    Temp:=HtImage-ySem;YSem:=XSem;XSem:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+    Temp:=HtImage-yRap1;YRap1:=XRap1;XRap1:=Temp;
+    Temp:=HtImage-yRap2;YRap2:=XRap2;XRap2:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    //rotation 90° vers la droite des feux : échange des coordonnées X et Y et translation sur LgImage
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-Xjaune;XJaune:=YJaune;Yjaune:=Temp;
+    Temp:=LgImage-XSem;XSem:=YSem;YSem:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xcarre;Xcarre:=Ycarre;Ycarre:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xral1;Xral1:=Yral1;Yral1:=Temp;
+    Temp:=LgImage-Xral2;Xral2:=Yral2;Yral2:=Temp;
+    Temp:=LgImage-Xrap1;Xrap1:=Yrap1;Yrap1:=Temp;
+    Temp:=LgImage-Xrap2;Xrap2:=Yrap2;Yrap2:=Temp;
+  end;
+
+  if (orientation=4) then
+  begin
+    //rotation 180°
+    Xjaune:=LgImage-Xjaune;YJaune:=HtImage-YJaune;
+    XSem:=LgImage-XSem;    YSem:=HtImage-YSem;
+    XVert:=LgImage-Xvert;  Yvert:=HtImage-Yvert;
+    Xcarre:=LgImage-Xcarre;Ycarre:=HtImage-Ycarre;
+    Xblanc:=LgImage-Xblanc;Yblanc:=HtImage-YBlanc;
+    Xral1:=LgImage-Xral1;  Yral1:=HtImage-Yral1;
+    Xral2:=LgImage-Xral2;  Yral2:=HtImage-Yral2;
+    Xrap1:=LgImage-Xrap1;  Yrap1:=HtImage-Yrap1;
+    Xrap2:=LgImage-Xrap2;  Yrap2:=HtImage-Yrap2;
+  end;
+
+  XJaune:=round(Xjaune*Frx)+x;  YJaune:=round(Yjaune*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  XRal1:=round(XRal1*FrX)+x;    YRal1:=round(YRal1*FrY)+Y;
+  XRal2:=round(XRal2*FrX)+x;    YRal2:=round(YRal2*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  XSem:=round(XSem*FrX)+x;      YSem:=round(YSem*FrY)+Y;
+  Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
+  XRap1:=round(XRap1*FrX)+x;    YRap1:=round(YRap1*FrY)+Y;
+  XRap2:=round(XRap2*FrX)+x;    YRap2:=round(YRap2*FrY)+Y;
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xSem,ySem,rayon,GrisF);
+    cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
+    cercle(ACanvas,xCarre,yCarre,rayon,GrisF);
+    cercle(ACanvas,xblanc,yblanc,rayon,GrisF);
+    cercle(ACanvas,xRal1,yRal1,rayon,GrisF);
+    cercle(ACanvas,xRal2,yRal2,rayon,GrisF);
+    cercle(ACanvas,xRap1,yRap1,rayon,GrisF);
+    cercle(ACanvas,xRap2,yRap2,rayon,GrisF);
+
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  // extinctions
+  if (code=blanc_cli) and not(clignotant) then cercle(ACanvas,xBlanc,yBlanc,Rayon,grisF);
+  if (combine=ral_60) and not(clignotant) then begin cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,xRal2,yRal2,rayon,grisF);end;
+  if (code=jaune_cli) and not(clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,grisF);
+  if (code=rappel_60) and not(clignotant) then begin cercle(ACanvas,xrap1,yrap1,rayon,grisF);cercle(ACanvas,xrap2,yrap2,rayon,grisF);end;
+  if (code=semaphore_cli) and not(clignotant) then cercle(ACanvas,xSem,ySem,rayon,grisF);
+  if (code=vert_cli) and not(clignotant) then cercle(ACanvas,xvert,yvert,rayon,grisF);
+
+  // allumages
+  if ((code=ral_60) and clignotant) or (code=ral_30) or ((combine=ral_60) and clignotant) or (combine=ral_30) then
+  begin
+    cercle(ACanvas,Xral1,yRal1,rayon,clOrange);cercle(ACanvas,xral2,yral2,rayon,clOrange);
+  end;
+
+  if ((code=rappel_60) and clignotant) or (code=rappel_30) or
+     ((combine=rappel_60) and clignotant) or (combine=rappel_30) then
+  begin
+    cercle(ACanvas,xrap1,yrap1,rayon,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clOrange);
+  end;
+  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
+  if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clRed);
+  if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
+  if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+
+  if code=carre then
+  begin
+    cercle(ACanvas,xcarre,yCarre,rayon,clRed);
+    cercle(ACanvas,xsem,ysem,rayon,clRed);
+  end;
+end;
+
+
+// dessine les feux sur une cible belge à 5 feux
+// cette image peut être inversée (contre voie)
+
+procedure dessine_signal20(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,adresse : integer);
+var xblanc,xvert,xrouge,Yblanc,xjauneBas,xJauneHaut,yJauneBas,yJauneHaut,YVert,Yrouge,largeur,
+    index,Temp,rayon,LgImage,HtImage,code,combine,x1,y1,x2,y2,x3,y3,xChiffre,yChiffre,xfin,yfin,angle,
+    AdrAig,IndexAig,vitesse,indexTCO,tailleFonte,xTexte,yTexte : integer;
+    ech : real;
+    inverse,etatChevron,EtatChiffre,codeClignote : boolean;
+    r : Trect;
+begin
+
+  code:=etatSignal and $3f;
+  combine:=etatSignal and $1c0;
+  // LDT-DEC-NMBS ou b-model
+  etatChiffre:=testBit(combine,chiffre);
+  etatChevron:=testBit(combine,chevron);
+  CodeClignote:=testBit(combine,clignote);
+  largeur:=57;
+
+  rayon:=round(6*frX);
+  xVert:=15; yvert:=24;
+  xrouge:=15; yrouge:=37;
+  xjauneBas:=15;yjauneBas:=50;
+  xblanc:=15;yblanc:=63;
+  xJauneHaut:=41;yJauneHaut:=24;
+
+  // chevron
+  x1:=9;y1:=3;
+  x2:=16;y2:=10;
+  x3:=x2+(x2-x1);y3:=y1;
+  // effacement du chiffre
+  XChiffre:=11;Ychiffre:=77;
+  Xfin:=27;yFin:=102;
+  // texte du chiffre
+  xTexte:=xChiffre+2;
+  yTexte:=yChiffre+1;
+
+  index:=index_signal(adresse);
+  if Signaux[index].contrevoie then
+  begin
+    xvert:=largeur-xvert;
+    xrouge:=largeur-xrouge;
+    xjaunebas:=largeur-xjaunebas;
+    xjaunehaut:=largeur-xjaunehaut;
+    xblanc:=largeur-xblanc;
+    x1:=largeur-x1;
+    x2:=largeur-x2;
+    x3:=largeur-x3;
+    Xchiffre:=32;
+    Xfin:=44;
+    Xtexte:=Xchiffre+1;
+    codeclignote:=true;
+  end;
+
+  if XChiffre>Xfin then echange(Xchiffre,Xfin);
+
+  with Formprinc.ImageSignal20.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des signaux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yjauneBas;YJauneBas:=XJauneBas;XjauneBas:=Temp;
+    Temp:=HtImage-yjauneHaut;YJauneHaut:=XJauneHaut;XjauneHaut:=Temp;
+    Temp:=HtImage-yblanc;YBlanc:=XBlanc;XBlanc:=Temp;
+    Temp:=HtImage-yRouge;YRouge:=Xrouge;XRouge:=Temp;
+    Temp:=HtImage-yvert;Yvert:=Xvert;Xvert:=Temp;
+    Temp:=HtImage-y1;Y1:=X1;X1:=Temp;
+    Temp:=HtImage-y2;Y2:=X2;X2:=Temp;
+    Temp:=HtImage-y3;Y3:=X3;X3:=Temp;
+    Temp:=HtImage-yChiffre;YChiffre:=XChiffre;XChiffre:=Temp;
+    Temp:=HtImage-yTexte;YTexte:=XTexte;XTexte:=Temp;
+    Temp:=HtImage-yfin;Yfin:=Xfin;Xfin:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    // rotation 90° vers la droite des signaux
+    // calcul des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-XjauneBas;XJauneBas:=YJauneBas;YjauneBas:=Temp;
+    Temp:=LgImage-XJauneHaut;XJauneHaut:=YJauneHaut;YjauneHaut:=Temp;
+    Temp:=LgImage-Xvert;Xvert:=Yvert;Yvert:=Temp;
+    Temp:=LgImage-Xrouge;Xrouge:=Yrouge;Yrouge:=Temp;
+    Temp:=LgImage-Xblanc;Xblanc:=Yblanc;Yblanc:=Temp;
+
+    Temp:=LgImage-x1;X1:=Y1;Y1:=Temp;
+    Temp:=LgImage-X2;X2:=Y2;Y2:=Temp;
+    Temp:=LgImage-X3;X3:=Y3;Y3:=Temp;
+    Temp:=LgImage-XChiffre;XChiffre:=YChiffre;YChiffre:=Temp;
+    Temp:=LgImage-Xfin;Xfin:=Yfin;Yfin:=Temp;
+    Temp:=LgImage-XTexte;XTexte:=YTexte;YTexte:=Temp;
+  end;
+
+  if orientation=4 then
+  begin
+    XjauneBas:=LgImage-XjauneBas;YjauneBas:=HtImage-YjauneBas;
+    XJauneHaut:=LgImage-XJauneHaut;YjauneHaut:=HtImage-YjauneHaut;
+    Xvert:=LgImage-Xvert;Yvert:=HtImage-Yvert;
+    Xrouge:=LgImage-Xrouge;Yrouge:=HtImage-Yrouge;
+    XBlanc:=LgImage-XBlanc;YBlanc:=HtImage-YBlanc;
+
+    X1:=LgImage-X1;Y1:=HtImage-Y1;
+    X2:=LgImage-X2;Y2:=HtImage-Y2;
+    X3:=LgImage-X3;Y3:=HtImage-Y3;
+    XChiffre:=LgImage-XChiffre;YChiffre:=HtImage-YChiffre;
+    XFin:=LgImage-Xfin;Yfin:=HtImage-yFin;
+    xTexte:=LgImage-XTexte;YTexte:=HtImage-YTexte;
+  end;
+
+  XJauneBas:=round(XjauneBas*Frx)+x;  YJauneBas:=round(YjauneBas*Fry)+Y;
+  XJauneHaut:=round(XjauneHaut*Frx)+x;  YJauneHaut:=round(YjauneHaut*Fry)+Y;
+  Xblanc:=round(XBlanc*FrX)+x;  YBlanc:=round(YBlanc*FrY)+Y;
+  Xvert:=round(Xvert*FrX)+x;    Yvert:=round(Yvert*FrY)+Y;
+  Xrouge:=round(Xrouge*FrX)+x;  Yrouge:=round(Yrouge*FrY)+Y;
+  xchiffre:=round(Xchiffre*frx)+x;  ychiffre:=round(ychiffre*fry)+y;
+  xTexte:=round(XTexte*frx)+x;  yTexte:=round(yTexte*fry)+y;
+  xfin:=round(Xfin*frx)+x;  yfin:=round(yfin*fry)+y;
+  x1:=round(X1*frx)+x;  y1:=round(y1*fry)+y;
+  x2:=round(X2*frx)+x;  y2:=round(y2*fry)+y;
+  x3:=round(X3*frx)+x;  y3:=round(y3*fry)+y;
+
+  if signaux[index].AncienAff<>EtatSignal then
+  begin
+    //Affiche('efface tout',clred);
+    cercle(ACanvas,xVert,yVert,rayon,GrisF);
+    cercle(ACanvas,xRouge,yRouge,rayon,GrisF);
+    cercle(ACanvas,xblanc,yblanc,rayon,GrisF);
+    cercle(ACanvas,xJauneBas,yJauneBas,rayon,GrisF);
+    cercle(ACanvas,xJauneHaut,yJauneHaut,rayon,GrisF);
+
+    signaux[index].AncienAff:=EtatSignal;
+  end;
+
+  // extinctions
+  if (code=vertB_F) and codeclignote and not(clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
+  if (code=rouge_F) and codeclignote and not(clignotant) then cercle(ACanvas,xrouge,yrouge,rayon,GrisF);
+  if (code=rouge_blanc_F) and codeclignote and not(clignotant) then
+  begin
+    cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+    cercle(ACanvas,xRouge,yRouge,rayon,GrisF);
+  end;
+  if (code=deux_jaunes_F) and codeclignote and not(clignotant) then
+  begin
+    cercle(ACanvas,xjaunebas,yjauneBas,rayon,GrisF);
+    cercle(ACanvas,xjaunehaut,yjauneHaut,rayon,GrisF);
+  end;
+  if (code=vert_jaune_H_F) and codeclignote and not(clignotant) then
+  begin
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,grisF);
+  end;
+  if (code=vert_jaune_V_F) and codeclignote and not(clignotant) then
+  begin
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,grisF);
+  end;
+
+  //allumages
+  if ((code=vertB_F) and codeClignote and clignotant) or ((code=vertB_F) and not(codeclignote)) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
+  if ((code=rouge_F) and codeClignote and clignotant) or ((code=rouge_F) and not(codeclignote)) then cercle(ACanvas,xrouge,yrouge,rayon,clRed);
+  if ((code=rouge_blanc_F) and codeClignote and clignotant) or ((code=rouge_blanc_F) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
+    cercle(ACanvas,xrouge,yrouge,rayon,clred);
+  end;
+  if ((code=deux_jaunes_F) and codeClignote and clignotant) or ((code=deux_jaunes_F) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,clOrange);
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clOrange);
+  end;
+  if ((code=vert_jaune_H_F) and codeClignote and clignotant) or ((code=vert_jaune_H_F) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+  end;
+  if ((code=vert_jaune_V_F) and codeClignote and clignotant) or ((code=vert_jaune_V_F) and not(codeclignote)) then
+  begin
+    cercle(ACanvas,xjaunebas,yjaunebas,rayon,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+  end;
+
+  with Acanvas do
+  begin
+    if Etatchevron then pen.color:=ClWhite else pen.color:=clblack;
+
+    // dessine le chevron
+    pen.Width:=2;
+    Moveto(x1,y1);Lineto(x2,y2);Lineto(x3,y3);
+
+    // écrit le chiffre
+    if etatChiffre then
+    begin
+      taillefonte:=round(frx*ZoomMax);
+      tailleFonte:=(taillefonte div 4)+2;
+      //Affiche(inttoSTR(taillefonte),clred);
+      Brush.Color:=clblack;
+      with font do
+      begin
+        Color:=clWhite;
+        Size:=taillefonte;
+        Style:=[fsbold];
+        Name:='Arial';
+      end;
+
+      if Signaux[index].Btype_suiv1=aig then
+      begin
+        adrAig:=Signaux[index].Adr_el_suiv1;
+        IndexAig:=index_aig(adrAig);
+        vitesse:=aiguillage[IndexAig].vitesse div 10;
+
+        if orientation=1 then Textout(XTexte,YTexte,intToSTR(vitesse))
+        else
+        begin
+          case orientation of
+          2 : angle:=-900;
+          3 : angle:=900;
+          4 : angle:=1800;
+          end;
+          AffTexteIncliBordeTexture(Acanvas,XTexte,YTexte,Acanvas.Font,clYellow,0,pmcopy,intToSTR(vitesse),angle);
+        end;
+      end;
+    end
+    else
+    begin
+      // éteint le chiffre
+      Brush.Color:=clblack;
+      Pen.Color:=clblack;
+      r.Left:=xchiffre;r.Top:=Ychiffre;
+      r.Right:=Xfin;r.Bottom:=Yfin;
+      Fillrect(r);
+    end;
+  end;
+end;    }
+
+// dessine les 2 feux sur la cible dans le canvas spécifié
+// x,y : offset en pixels du coin supérieur gauche du feu
+// Acanvas : canvas de destination
+// frX, frY : facteurs de réduction (pour agrandissement)
+// EtatSignal : état du signal
+// orientation à donner au signal : 1= vertical 2=90° à gauche  3=90° à droite  4=180°
+procedure dessine_signal2(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
+var Temp,rayon,xViolet,YViolet,xBlanc,yBlanc,
+    LgImage,HtImage,code,combine : integer;
+    ech : real;
+begin
+  code_to_aspect(Etatsignal,code,combine);
+  rayon:=round(6*frX);
+
+  // récupérer les dimensions de l'image d'origine du feu
+  with Formprinc.Image2feux.Picture.Bitmap do
+  begin
+    LgImage:=Width;
+    HtImage:=Height;
+  end;
+
+  XBlanc:=13; YBlanc:=11;
+  xViolet:=13; yViolet:=23;
+
+  if (orientation=2) then
+  begin
+    //rotation 90° vers la gauche des feux
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=HtImage-yViolet;YViolet:=XViolet;XViolet:=Temp;
+    Temp:=HtImage-yBlanc;YBlanc:=XBlanc;XBlanc:=Temp;
+  end;
+
+  if (orientation=3) then
+  begin
+    // rotation 90° vers la droite des feux
+    // inversion des facteurs de réduction pour la rotation
+    ech:=frY;frY:=frX;FrX:=ech;
+    Temp:=LgImage-XBlanc;Xblanc:=Yblanc;Yblanc:=Temp;
+    Temp:=LgImage-Xviolet;Xviolet:=Yviolet;Yviolet:=Temp;
+  end;
+
+  // 180°
+  if orientation=4 then
+  begin
+    Xblanc:=LgIMage-Xblanc;Yblanc:=HtImage-Yblanc;
+    Xviolet:=LgIMage-Xviolet;Yviolet:=HtImage-Yviolet;
+  end;
+
+  XBlanc:=round(xBlanc*Frx)+x;   YBlanc:=round(Yblanc*Fry)+y;
+  XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+y;
+
+  // extinctions
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
+  cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
+
+  // allumages
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
+  if code=violet then cercle(ACanvas,xViolet,yViolet,rayon,clviolet);
 end;
 
 // dessine les feux sur une cible à 3 feux
-procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
+procedure dessine_signal3(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -3232,7 +4021,7 @@ end;
 
 // dessine les feux sur une cible à 4 feux
 // orientation=1 vertical
-procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
+procedure dessine_signal4(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
 var Temp,rayon,xSem,Ysem,xJaune,Yjaune,Xcarre,Ycarre,Xvert,Yvert,
     LgImage,HtImage,code,combine : integer;
     ech : real;
@@ -3287,7 +4076,7 @@ begin
   Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
 
   // extinctions
-  cercle(ACanvas,Xcarre,yCarre,rayon,GrisF);
+  if not(code=carre) then cercle(ACanvas,Xcarre,yCarre,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,GrisF);
   if not((code=vert_cli) and clignotant) then cercle(ACanvas,Xvert,yvert,rayon,GrisF);
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,Xjaune,YJaune,rayon,GrisF);
@@ -3304,11 +4093,10 @@ begin
 end;
 
 // dessine les feux sur une cible à 5 feux
-procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
+procedure dessine_signal5(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,
     Temp,rayon,LgImage,HtImage,code,combine : integer;
     ech : real;
-
 begin
   code_to_aspect(Etatsignal,code,combine); // et aspect
   rayon:=round(6*frX);
@@ -3365,7 +4153,7 @@ begin
 
   // extinctions
   if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
-  cercle(ACanvas,xcarre,ycarre,rayon,GrisF);
+  if not(code=carre) then cercle(ACanvas,xcarre,ycarre,rayon,GrisF);
   if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
@@ -3385,7 +4173,7 @@ end;
 
 
 // dessine les feux sur une cible à 7 feux
-procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation : integer);
+procedure dessine_signal7(Acanvas : Tcanvas;x,y : integer;frX,frY : single;EtatSignal : word;orientation,index : integer);
 var XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Temp,rayon,LgImage,HtImage,code,combine  : integer;
     ech : real;
@@ -3460,7 +4248,7 @@ begin
     cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,Xral2,Yral2,rayon,GrisF);
   end;
   if not((code=vert_cli) and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
-  cercle(ACanvas,xcarre,yCarre,rayon,GrisF);cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if not(code=carre) then cercle(ACanvas,xcarre,yCarre,rayon,GrisF);cercle(ACanvas,xSem,ySem,rayon,GrisF);
   if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
 
@@ -3482,7 +4270,7 @@ begin
 end;
 
 // dessine les feux sur une cible à 9 feux
-procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : single;etatsignal : word;orientation : integer);
+procedure dessine_signal9(Acanvas : Tcanvas;x,y : integer;frX,frY : single;etatsignal : word;orientation,index : integer);
 var rayon,
     XBlanc,Yblanc,xJaune,yJaune,Xsem,YSem,Xvert,YVert,Xcarre,Ycarre,Xral1,Yral1,Xral2,YRal2,
     Xrap1,Yrap1,Xrap2,Yrap2,Temp,LgImage,HtImage,xt,yt,code,combine  : integer;
@@ -3572,7 +4360,7 @@ begin
   begin
     cercle(ACanvas,xrap1,yrap1,rayon,grisF);cercle(ACanvas,xrap2,yrap2,rayon,grisF);
   end;
-  cercle(ACanvas,xcarre,Ycarre,rayon,grisF); // carré supérieur
+  if not(code=carre) then cercle(ACanvas,xcarre,Ycarre,rayon,grisF); // carré supérieur
   if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,grisF);
   if not((code=vert_cli) and clignotant) then  cercle(ACanvas,xvert,yvert,rayon,grisF);
 
@@ -3601,94 +4389,6 @@ begin
   end;
 end;
 
-// Ecrire sur un canvas un texte avec un angle, avec ou sans bordure, monochrome ou à face texturée
-// params : C       = Canvas-cible
-//          X,Y     = Coordonnées angle supérieur gauche du début du texte.
-//          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
-//          clBord  = Couleur de la bordure.
-//          EpBord  = Epaisseur de la bordure.
-//          PenMode = TPenMode : utiliser en général pmCopy.
-//          si Clfond=clback, on écrit en transparent
-//          Texte   = Texte à écrire.
-//          AngleDD = Angle d'inclinaison en Dixièmes de degré.
-procedure AffTexteIncliBordeTexture(c : TCanvas; x,y : integer; Fonte : tFont;
-                                    clBord : TColor; EpBord : integer; PenMode : TPenMode;
-                                    texte : string; AngleDD : longint);
-var dc : Hdc;
-    lgFont : Logfont;           // structure d'attributs de police
-    AncFonte,NouvFonte : Hfont;
-    AncPen,NouvPen : Hpen;
-    AncBrush,NouvBrush : Hbrush;
-    i : integer;
-begin
-  C.Pen.Mode:=PenMode;
-  dc:=C.Handle;
-
-  c.pen.Mode:=PmCopy;
-  //c.pen.Color:=clfond; //clfond;
-  //c.Brush.color:=clfond;
-  c.pen.width:=1;
-  i:=round(length(texte)*0.5*abs(fonte.size));
-//  c.Rectangle(x+2,y,x+15,y-i);
-
-  // Initialisation de la fonte
-  zeroMemory(@lgFont,sizeOf(lgFont));      // remplit la structure de 0
-  strPCopy(lgFont.lfFaceName,Fonte.Name);  // copie la chaîne dans le nom de la fonte depuis le paramètre
-  lgFont.lfHeight:=Fonte.Height;           // la taille
-  if Fonte.style=[] then lgFont.lfWeight:=FW_REGULAR; // Normal
-  if Fonte.style=[fsBold] then lgFont.lfWeight:=FW_BOLD;    // Gras
-
-  if fsItalic in Fonte.style    then lgFont.lfItalic:=1;
-  if fsUnderline in Fonte.style then lgFont.lfUnderline:=1;
-  if fsStrikeout in Fonte.style then lgFont.lfStrikeout:=1;
-
-  lgFont.lfEscapement:=AngleDD; // Angle d'inclinaison en dixièmes de degrés
-
-  NouvFonte:=CreateFontInDirect(lgFont);
-  AncFonte:=SelectObject(dc,NouvFonte);
-
-  // Initialisation du contour :
-  if EpBord<>0 then NouvPen := CreatePen(PS_SOLID,EpBord,clBord)
-                       else NouvPen := CreatePen(PS_NULL,0,0);
-  AncPen:= SelectObject(dc,NouvPen);
-
-  // Initialisation de la couleur de la police ou de la Texture :
-  //if Texture=nil then
-  NouvBrush := CreateSolidBrush(Fonte.color);
-  //                       else NouvBrush := CreatePatternBrush(Texture.Handle);
-  AncBrush:=SelectObject(dc,NouvBrush);
-  // Le contexte doit être transparent
-  SetBkMode(dc,TRANSPARENT);
-
-
-
-
-  // Dessin du texe :
-  BeginPath(dc);
-  TextOut(dc,X,Y,PChar(Texte),length(texte)); //<- au lieu de TextOut(dc,X,Y,PansiChar(Texte),length(texte)) pour rendre le code compatible avec toutes les versions de Delphi (de D2 à XE2);
-  EndPath(dc);
-  StrokeAndFillPath(dc);
-
-  // Restauration objets et libération mémoire
-  SelectObject(dc,AncFonte);
-  DeleteObject(NouvFonte);
-  SelectObject(dc,AncPen);
-  DeleteObject(NouvPen);
-  SelectObject(dc,AncBrush);
-  DeleteObject(NouvBrush);
-end;
-// inverse une image (miroir horizontal) et la met dans dest
-// Utilisé pour les signaux belges, et les trains
-procedure inverse_image(imageDest,ImageSrc : Timage);
-var mrect,nrect : trect;
-    larg,haut : integer;
-begin
-  larg:=ImageSrc.Width;
-  haut:=ImageSrc.Height;
-  mRect:=rect(0,0,larg,haut);
-  nRect:=rect(larg-1,0,-1,haut);
-  ImageDest.canvas.CopyRect(mRect,ImageSrc.canvas,nRect);
-end;
 
 // dessine les feux sur une cible belge à 5 feux
 // cette image peut être inversée (contre voie)
@@ -4207,12 +4907,12 @@ begin
     aspect:=Signaux[i].aspect ;
     case aspect of
       // signaux
-      2 : dessine_signal2(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      3 : dessine_signal3(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      4 : dessine_signal4(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      5 : dessine_signal5(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      7 : dessine_signal7(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
-      9 : dessine_signal9(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation);
+      2 : dessine_signal2(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
+      3 : dessine_signal3(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
+      4 : dessine_signal4(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
+      5 : dessine_signal5(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
+      7 : dessine_signal7(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
+      9 : dessine_signal9(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,i);
      20 : dessine_signal20(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,Signaux[i].adresse);   // signal belge
      // indicateurs de direction
      12..16 : dessine_dirN(CanvasDest,x,y,frx,fry,Signaux[i].EtatSignal,orientation,aspect-10);
@@ -4259,11 +4959,7 @@ begin
   i:=Index_Signal(AdrPilote);
   if i=0 then exit;
 
-  with Formpilote do
-  begin
-   // TFormPilote.Create(Self);
-    show;
-  end;
+  Formpilote.show;
 end;
 
 function Select_dessin_Signal(TypeSignal : integer) : TBitmap;
@@ -7550,9 +8246,11 @@ end;
 
 // trouve un élément en balayant les branches à partir de la branche offset renvoie  branche_trouve IndexBranche_trouve
 // el : adresse de l'élément  TypeEL=(1=détécteur 2=aig  3=aig Bis 4=aig triple - Buttoir)
+// si l'élément est une TJD et qu'on la trouve pas, on cherche l'homologue
 // explore les branches
 // si une branche preférée est choisie, elle est non nulle.
 // erreur=true affiche le message d'erreur
+// it<>0 permet de ne pas chercher une TJD homologue si 2 états
 // si pas trouvé, Branche_trouve=0 IndexBranche_trouve=0
 procedure trouve_element_V1(el: integer; TypeEl : TEquipement; Offset,branche_pref,OffsetDsBranche : integer;erreur : boolean;it : integer);
 var i,adr,Branche,ia : integer ;
@@ -7627,7 +8325,7 @@ begin
 
   if el>NbMaxDet then
   begin
-    s:='Erreur 80 : trouve_element='+inttoStr(el)+' : '+quelle_procedure(n)+'(';
+    s:='Erreur 97 : trouve_element='+inttoStr(el)+' : '+quelle_procedure(n)+'(';
     for i:=1 to n do
     begin
       case i of
@@ -8107,7 +8805,7 @@ begin
         suivant_alg3:=9997;     // attention code incorrect devrait être 9994
         exit;
       end;
-       
+
       // aiguillage index (adr) pris en pointe
       if (aiguillage[index].Apointe=prec) then
       begin
@@ -8820,6 +9518,12 @@ begin
       if aiguillage[index].Adevie=prec then begin adr:=aiguillage[index].Ddevie;A:=aiguillage[index].DdevieB;end;
       if aiguillage[index].Ddevie=prec then begin adr:=aiguillage[index].Adevie;A:=aiguillage[index].AdevieB;end;
       if aiguillage[index].Ddroit=prec then begin adr:=aiguillage[index].Adroit;A:=aiguillage[index].AdroitB;end;
+      if adr=9999 then
+      begin
+        Affiche('Erreur 183 : L''aiguillage '+IntToSTR(aiguillage[index].adresse)+' n''a aucun point de connexion à l''élément '+intToSTR(prec),clred);
+        result:=adr;
+        exit;
+      end;
       if (A='Z') or (a=#0) then typeGenS:=det else typeGenS:=aig;
       suivant_alg3:=adr;
       if a='' then a:=' ';
@@ -17587,7 +18291,6 @@ begin
   end;
 end;
 
-
 // connecte la centrale en USB/COM en explorant les ports USB/COM de 1 à MaxComPort
 // et demande les états des détecteurs
 procedure connecte_usb;
@@ -18824,7 +19527,7 @@ var n,t,i,j,index,OrgMilieu : integer;
 begin
   Ancien_Nom_Style:='';
   Nom_style_aff:='windows';
-  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
+  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion+' alpha';
   vc:='';
   {$IF CompilerVersion >= 28.0}
   vc:=' D12';
@@ -18953,7 +19656,14 @@ begin
   for i:=1 to 100 do
   begin
     memoire[i]:=0;
-    boutonTCO[i].existe:=false;
+    with boutonTCO[i] do
+    begin
+      existe:=false;
+      etat:=0;
+      idTCO:=0;
+      x:=0;
+      y:=0;
+    end;
   end;
   // créer icones des trains et raz champs
   for i:=1 to Max_Trains do
@@ -19013,6 +19723,24 @@ begin
       width:=200;
       height:=100;
     end;
+  end;
+
+  for i:=1 to MaxCantons do
+  with canton[i] do
+  begin
+    numero:=0;SensLoco:=0;
+    Ntco:=0;nElements:=0;
+    x:=0;y:=0;
+    el1:=0;el2:=0;
+    typ1:=rien;typ2:=rien;
+    det1:=0;det2:=0;
+    SensEl1:=0;SensEl2:=0;SensCirc:=0;
+    Signal:=0;indexTrain:=0;adresseTrain:=0;
+    Xicone:=0;yIcone:=0;NumcantonOrg:=0;NumCantonDest:=0;
+    Licone:=0;Hicone:=0;AdrTrainRoute:=0;
+    bouton:=0;
+    Select:=false;Horizontal:=false;
+    Nom:='';NomTrain:='';
   end;
 
   OsBits:=0;
@@ -21673,13 +22401,61 @@ begin
   Lire_fichier_CV;
 end;
 
+function lire_cv(cv : integer) : integer;
+var s : string;
+    i : integer;
+begin
+  result:=-1;
+  s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
+  //s:=#$22+#$18+Char(cv);    //CV de 1 à 255 + 1024 (V3.6)
+  s:=checksum(s);
+  // envoi de la trame : fait passer la centrale en mode programmation (service)
+  envoi_ss_ack(s);
+
+  // attendre la trame 01 04 05 "succès" (env 1s)
+  succes:=false;i:=0;
+  repeat
+    Application.processMessages;
+    Sleep(100);
+    inc(i);
+  until succes or (i>20);
+
+  if succes then
+  begin
+    recu_cv:=false;
+    //Affiche('reçu trame succes',clyellow);
+    s:=#$21+#$10;      // demande d'envoi du résultat du mode service
+    s:=checksum(s);
+    //envoi(s);
+    envoi_ss_ack(s);
+    Tempo2(1);
+    // attente de la réponse de la centrale
+    i:=0;
+    repeat
+      Tempo2(2); // attend 200 ms
+      inc(i);
+     until recu_cv or (i>4);
+    if (i>4) then
+    begin
+      Affiche('Erreur attente trop longue CV',clred);
+      result:=-1;
+      exit;
+    end;
+    result:=Tablo_cv[cv];
+  end
+  else
+  begin
+    Affiche('Pas de réponse de l''interface après demande de passage en mode prog',clOrange);
+    result:=-2;
+  end;
+end;
+
 procedure TFormPrinc.ButtonLitCVClick(Sender: TObject);
 var s,sa: string;
-    i,cv,erreur : integer;
+    i,cv,r,erreur : integer;
 begin
   s:=GetCurrentDir;
   N_Cv:=0; // nombre de CV recus à 0
-  sa:='';
   Affiche('Lecture CV',clyellow);
 
   val(EditCV.Text,cv,erreur);
@@ -21691,6 +22467,7 @@ begin
 
   if protocole=1 then
   begin
+    {
     //trace:=true;
     s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
     //s:=#$22+#$18+Char(cv);    //CV de 1 à 255 + 1024 (V3.6)
@@ -21726,11 +22503,18 @@ begin
         Affiche('Erreur attente trop longue CV',clred);
         exit;
       end;
-      sa:=sa+'Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+      sa:='Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
       Affiche(sa,clyellow);sa:='';
     end
     else
     Affiche('Pas de réponse de l''interface après demande de passage en mode prog',clOrange);
+    }
+    r:=lire_cv(cv);
+    if r<>-1 then
+    begin
+      sa:='Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
+      Affiche(sa,clyellow);sa:='';
+    end;
   end;
 
   if protocole=2 then

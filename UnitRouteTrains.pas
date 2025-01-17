@@ -688,7 +688,7 @@ begin
   until (i>trains[indexTrainFR].routePref[0][0].adresse) or trouve;
   if trouve then
   begin
-    LabelRoute.Caption:='La route existe déja en zone sauvegardée';
+    LabelRoute.Caption:='La route existe déja en zone mémorisée';
     exit;
   end;
 
@@ -908,12 +908,12 @@ var i,n : integer;
 begin
   if IrPref<1 then exit;
 
-  s:='Voulez-vous supprimer la route sauvegardée n°'+intToSTR(IrPref)+' ?';
+  s:='Voulez-vous supprimer la route mémorisée n°'+intToSTR(IrPref)+' ?';
   if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   n:=trains[indexTrainFR].routePref[0][0].adresse;  // nombre de routes
-  for i:=IrPref to n do
-    tabloRoute[i]:=tabloRoute[i+1]; 
+  for i:=IrPref to n-1 do
+    trains[indexTrainFR].routePref[i]:=trains[indexTrainFR].routePref[i+1];
   trains[indexTrainFR].routePref[0][0].adresse:=n-1;
   dec(irPref);
   maj_infos(indexTrainFR);
