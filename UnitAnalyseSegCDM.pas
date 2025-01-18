@@ -4071,10 +4071,12 @@ begin
                   'Voulez vous continuer l''importation? (aiguillages & branches)',mtConfirmation,[mbyes,mbNo],0)=mrNo then
       begin
         Affiche('Importation annulée',clOrange);
+        formAnalyseCDM.hide;
         exit;
       end;
   end;
 
+  formAnalyseCDM.Hide;
   MaxAiguillage:=0;
   n:=0;
   Affiche('Importation des aiguillages et des branches',clWhite);
@@ -4309,8 +4311,9 @@ begin
     exit;
   end;
 
-  formImportation.showmodal;
+  formImportation.showmodal;   // fenêtre d'importation , demande infos pour l'importation
   if not(faireImport) then exit;
+
 
   ndet_cdm:=0;
   //debugAnalyse:=true;
@@ -4329,7 +4332,6 @@ begin
 
   NomModuleCDM:=AnsiLowerCase(Lignes[0]+'.cdm');
   formAnalyseCDM.Caption:='Squelette du réseau '+NomModuleCDM;
-  formAnalyseCDM.Show;
 
   Affiche('Compilation en cours',clWhite);
   // on compile: on crée la base de données
@@ -4615,7 +4617,7 @@ begin
     AfficheDebug('Nombre de détecteurs='+intToSTR(NDet_cdm),clyellow);
     for i:=1 to Ndet_cdm do AfficheDebug(intToSTR(Det_cdm[i]),clYellow);
   end;
-  
+
   formAnalyseCDM.Show;
   formprinc.ButtonAffAnalyseCDM.Visible:=true;
   Affiche('Compilation terminée. Nombre de segments='+intToSTR(nSeg),clWhite);
@@ -4637,6 +4639,7 @@ begin
     Affiche('Au moins un aiguillage n''a pas d''adresse dans CDM et',clAqua);
     Affiche('la modélisation du réseau ne peut pas être complète.',clAqua);
   end;
+  formAnalyseCDM.show;
 end;
 
 

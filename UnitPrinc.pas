@@ -1970,17 +1970,21 @@ begin
     Result:='mac non trouvée';
 end;
 
+// renvoyer date heure, MAC, version SC , verif_version
+// ex 1 ... renvoie celui de la virtual box
 procedure envoie_infos;
 var ts : tstrings;
     s,cmd : string;
     retour,i,erreur : integer;
     f : textFile;
 begin
-  s:='';
-  cmd:='/c vol c: >vol.txt';  // /c ferme la fenetre en fin d'exec   /k ne ferme pas
+  s:=GetCurrentProcessEnvVar('SystemDrive'); // s='c:'
+
+  cmd:='/c vol '+s+' >vol.txt';  // /c ferme la fenetre en fin d'exec   /k ne ferme pas
   // si on fait un runas au lieu de open, çà ouvre une fenetre de demande admin sur les postes non admin
   // ou dont le niveau d'utilisateur est bas dans le profil
   retour:=ShellExecute(formprinc.Handle,pchar('open'),pchar('cmd.Exe'),PChar(cmd),nil,SW_SHOWNORMAL);
+  s:='';
   if retour<=32 then
   begin
     ShowMessage(SysErrorMessage(GetLastError));
@@ -2001,7 +2005,7 @@ begin
       if i>4 then
       begin
         i:=i-4;
-        s:=copy(s,i,9)+'  ';
+        s:=copy(s,i,9)+'  ';  // Id de formatage de c:\
       end;
     end;
   end;
@@ -8100,7 +8104,7 @@ var i,adr : integer;
       repeat
         adr:=BrancheN[Num_Branche,i].adresse;
         trouve:=(AdrAig=adr) and ((BrancheN[Num_Branche,i].Btype=aig) or (BrancheN[Num_branche,i].BType=buttoir)); // cherche un aiguillage
-        //Affiche('cherche='+intToSTR(det)+'/explore='+intToSTR(adr)+' Branche='+intToStr(Num_branche)+' index='+intToStr(i),ClWhite);
+        //Affiche('cherche='+intToSTR(AdrAig)+'/explore='+intToSTR(adr)+' Branche='+intToStr(Num_branche)+' index='+intToStr(i),ClWhite);
         if not(trouve) then inc(i);
         //if trouve then Affiche('Trouvé en branche'+IntToSTR(Num_branche)+' index='+IntToSTR(i),clGreen);
       until trouve or (adr=0) or (i>MaxElBranches) ;
@@ -18902,10 +18906,6 @@ begin
   Maj_Signaux(false);
 end;
 
-
-// renvoyer date heure, MAC, version SC , verif_version
-// ex 1 ... renvoie celui de la virtual box
-
 // positionne les composants de la fenêtre principale
 // i : position X du splitter
 procedure positionne_elements(i : integer);
@@ -19527,7 +19527,7 @@ var n,t,i,j,index,OrgMilieu : integer;
 begin
   Ancien_Nom_Style:='';
   Nom_style_aff:='windows';
-  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion+' alpha';
+  af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
   vc:='';
   {$IF CompilerVersion >= 28.0}
   vc:=' D12';

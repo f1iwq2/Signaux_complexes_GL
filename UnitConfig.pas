@@ -10762,7 +10762,6 @@ begin
       end;
     end;
 
-
     // exclure les TJD/S
     if (modAig<>tjd) and (modAig<>tjs) then
     begin
@@ -15431,6 +15430,13 @@ begin
         Nb:=Nb+'A'+intToSTR(adresseBr)+',';
       end
       else
+      if s[1]='T' then
+      begin
+        delete(s,1,1);
+        val(s,adresseBr,erreur);
+        Nb:=Nb+'T'+intToSTR(adresseBr)+',';
+      end
+      else
       begin
         val(s,adresseBr,erreur);
         Nb:=Nb+intToSTR(adresseBr)+',';
@@ -15657,12 +15663,6 @@ begin
   EditIPLenz.text:=AdresseIP;
   EditportLenz.text:=IntToSTR(PortInterface);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
-  //EditFiltrDet.text:=intToSTR(filtrageDet0);
-  //EditnCantonsRes.Text:=intToSTR(nCantonsRes);
-  //EditAntiTO.Text:=intToSTR(AntiTimeoutEthLenz);
-  //EditTempoTC.Text:=intToSTR(TempoTC);
-  //EditMaxParcours.Text:=intToSTR(MaxParcours);
-  //EditMaxRoutes.Text:=intToSTR(MaxRoutes);
   EditOuvreEcran.Text:=intToSTR(ecran_SC);
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
@@ -15717,12 +15717,6 @@ begin
   CheckPosAig.checked:=AvecDemandeAiguillages;
   CheckBoxDemarUSB.checked:=AvecDemandeInterfaceUSB;
   CheckBoxDemarEth.checked:=AvecDemandeInterfaceEth;
-  //cbAffSig.Checked:=AffSig;
-  //cbRes.Checked:=affRes;
-  //cbAck.Checked:=avecAck;
-  //cbDebugRoulage.checked:=DebugRoulage;
-  //cbAffLoc.checked:=AffLoc;
-  //CheckBoxOptionDemiTour.checked:=option_demitour;
   CheckBoxSombre.Checked:=Modesombre;
 
   RadioButtonXpress.Checked:=protocole=1;
@@ -15754,12 +15748,6 @@ begin
   end;
   ListBoxAig.itemindex:=0;
 
-  //if serveurIPCDM_Touche then RadioServeurCDM.ItemIndex:=0 else RadioServeurCDM.ItemIndex:=1;
-  //editAlgo.Text:=intToSTR(Algo_localisation);
-  //EditMaxSignalSens.Text:=intToSTR(Max_Signal_Sens);
-
-  //EditChemin.text:=cheminProgrammesCDM;
-
   // branches à réafficher si changement de style
   RichBranche.clear;
   for i:=1 to NbreBranches do
@@ -15773,20 +15761,6 @@ begin
     SelStart:=0;
     Perform(EM_SCROLLCARET,0,0);
   end;
-
-  // et DCC
-  {
-  i:=1;
-  RichCdeDCCpp.clear;
-  repeat
-    if CdeDccpp[i]<>'' then
-    begin
-      RichCdeDccpp.Lines.add(CdeDccpp[i]);
-      RE_ColorLine(RichCdeDccpp,RichCdeDccpp.lines.count-1,ClAqua);
-    end;
-    inc(i);
-  until (CdeDccpp[i]='') or (i>MaxCdeDccpp);
-  }
 
   // trains
   with ListBoxTrains do
@@ -16394,7 +16368,7 @@ begin
       exit;
     end;
 
-    AncligneclicDet:=ligneclicDet;
+    AncligneclicDet:=lc;
     ligneclicDet:=lc;
   end;
 
@@ -16798,6 +16772,7 @@ procedure TFormConfig.ListBoxDetKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if nDetecteurs<1 then exit;
+
   //if key=VK_delete then supprime_detecteur;
 
   if ord(Key)=VK_UP then
@@ -16850,6 +16825,7 @@ procedure TFormConfig.LEAdrDetChange(Sender: TObject);
 var i,erreur : integer;
     s : string;
 begin
+  if clicListe then exit;
   val(LEAdrDet.text,i,erreur);
   if (erreur<>0) or (i<1) then
   begin
@@ -16867,6 +16843,7 @@ procedure TFormConfig.LElongDetChange(Sender: TObject);
 var r,i,erreur :integer;
     s : string;
 begin
+  if clicListe then exit;
   val(LElongDet.Text,i,erreur);
   if (erreur<>0) or (i<1) then
   begin
