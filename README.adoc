@@ -20,7 +20,7 @@ Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.
 
 * {lien}[Lien vers le fil] -- Forum de CDM rail
 * {cdm}[Lien vers CDM rail] -- Site de CDM rail  
-* {release} [Lien vers le téléchargement, choisir signaux_complexes_VX.X.zip] -- 
+* {release}[Lien vers le téléchargement, choisir signaux_complexes_VX.X.zip] -- Lien vers téléchargement
 
 image::Imtitre.jpg[]
 image::tco.jpg[]
