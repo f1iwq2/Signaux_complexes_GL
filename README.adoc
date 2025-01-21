@@ -16,10 +16,11 @@ Vous pouvez voir les nouveautés de chaque version dans le fichier versions.txt.
 
 :lien: http://cdmrail.free.fr/ForumCDR/viewtopic.php?f=77&t=3906#p50499
 :cdm:  http://cdmrail.free.fr/SiteCDR/index.html
+:release:  https://github.com/f1iwq2/Signaux_complexes_GL/releases
 
 * {lien}[Lien vers le fil] -- Forum de CDM rail
 * {cdm}[Lien vers CDM rail] -- Site de CDM rail  
-
+* {release} [Lien vers le téléchargement, choisir signaux_complexes_VX.X.zip] -- 
 
 image::Imtitre.jpg[]
 image::tco.jpg[]
