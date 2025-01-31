@@ -1,9 +1,10 @@
 object FormSelTrain: TFormSelTrain
   Left = 405
   Top = 201
-  Width = 800
-  Height = 464
+  BorderStyle = bsDialog
   Caption = 'S'#233'lection train'
+  ClientHeight = 433
+  ClientWidth = 792
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

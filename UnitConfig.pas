@@ -418,7 +418,6 @@ type
     ImageListLogic: TImageList;
     Label63: TLabel;
     ComboBoxFL: TComboBox;
-    ButtonFSE: TButton;
     ButtonNouvFL: TButton;
     ButtonEvalue: TButton;
     LabeledEditNomLog: TLabeledEdit;
@@ -444,6 +443,7 @@ type
     ButtonNouvPN: TButton;
     ButtonSupPN: TButton;
     Label58: TLabel;
+    ButtonRepriseDCC: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -699,6 +699,7 @@ type
     procedure ComboStyleChange(Sender: TObject);
     procedure RadioGroupClClick(Sender: TObject);
     procedure ButtonlCV3Click(Sender: TObject);
+    procedure ButtonRepriseDCCClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -2030,7 +2031,7 @@ begin
 end;
 
 // encode une entrée de train
-function Train_tablo(index : integer) : string;
+function encode_train(index : integer) : string;
 var s: string;
     nc,i : integer;
 begin
@@ -2038,7 +2039,7 @@ begin
   begin
     s:=nom_train+','+inttostr(adresse)+','+
     intToSTR(vitmax)+','+intToSTR(vitnominale)+','+
-    intToSTR(vitRalenti)+','+NomIcone+','+intToSTR(TempsDemarreSig)+',';            
+    intToSTR(vitRalenti)+','+NomIcone+','+intToSTR(TempsDemarreSig)+',';
     if inverse then s:=s+'1,' else s:=s+'0,';
     s:=s+intToSTR(longueur)+','+IntToSTR(ConsV1)+','+IntToSTR(ConsV2)+','+IntToSTR(ConsV3)+',';
     s:=s+FloatToSTRF(coeffV1,ffFixed,5,2,FormatSettings)+','+FloatToSTRF(coeffV2,ffFixed,5,2,FormatSettings)+','+FloatToSTRF(coeffV3,ffFixed,5,2,FormatSettings)+',';
@@ -2381,7 +2382,7 @@ begin
   writeln(fichierN,section_trains_ch);
   for i:=1 to ntrains do
   begin
-    writeln(fichierN,Train_tablo(i));
+    writeln(fichierN,encode_train(i));
     // route du train
     for j:=1 to trains[i].routePref[0][0].adresse do
     begin
@@ -2556,6 +2557,8 @@ begin
 
 end;
 
+
+
 // trier les aiguillages par adresses croissantes
 // et complète les aiguillages triples (créée aiguillahe homologue)
 procedure trier_aig;
@@ -2690,11 +2693,35 @@ begin
   end;
 end;
 
+
+// trie les trains par adresses croissantes
+// on utilise l'index 0 car si on déclare une variabe temporaire
+// t : Ttrain
+// on a une erreur de stack overflow à l'exécution car la structure de Ttrain est trop grosse
+procedure trier_trains;
+var i,j : integer;
+begin
+  for i:=1 to ntrains-1 do
+  begin
+    for j:=i+1 to ntrains do
+    begin
+      if trains[i].Adresse>trains[j].adresse then
+      begin
+       trains[0]:=trains[i];
+       trains[i]:=trains[j];
+       trains[j]:=trains[0];
+      end;
+    end;
+  end;
+
+end;
+
+
 // trouve les id des routesPref des trains et le stocke dedans
 procedure compile_id_routes;
 var t1,t2,r1,r2,Id,nr : integer;
     route1 : tUneroute;
-begin             
+begin
   // raz tous les ID de routes
   for t1:=1 to nTrains do
   begin
@@ -5634,6 +5661,7 @@ const LessThanValue=-1;
       begin
         trouve_section_trains:=true;
         compile_trains;
+        trier_trains;
       end;
 
       // section dédodeurs
@@ -7884,10 +7912,9 @@ begin
   with ListBoxTrains do
   begin
     clear;
-
     for i:=1 to ntrains do
     begin
-      s:=Train_tablo(i);
+      s:=encode_train(i);
       items.Add(s);
       l:=Length(s);
       if l>LongestLength then
@@ -7897,6 +7924,10 @@ begin
       end;
     end;
   end;
+  ButtonlCV3.hint:='Passe la centrale en mode programmation et'+#13+
+                  'lit le CV3 de la locomotive placée sur la voie de programmation';
+  ButtonlCV4.hint:='Passe la centrale en mode programmation et'+#13+
+                  'lit le CV4 de la locomotive placée sur la voie de programmation';
 
   PixelLength:=ListboxTrains.Canvas.TextWidth(LongestString)+8;
   // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
@@ -13624,7 +13655,7 @@ begin
   if affevt then affiche('Evt change nom train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
   trains[ligneclicTrain+1].Nom_train:=EditNomTrain.text;
-  ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 
   i:=formprinc.ComboTrains.ItemIndex;
@@ -13642,7 +13673,7 @@ begin
   val(EditAdresseTrain.text,i,erreur);
   if i<1 then exit;
   trains[ligneclicTrain+1].adresse:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -13655,7 +13686,7 @@ begin
   val(EditVitesseMaxi.text,i,erreur);
   if i<1 then exit;
   trains[ligneclicTrain+1].vitmax:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -13668,7 +13699,7 @@ begin
   val(EditLongLoco.text,i,erreur);
   if i<1 then exit;
   trains[ligneclicTrain+1].longueur:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -13684,7 +13715,7 @@ begin
     val(EditVitNom.text,i,erreur);
     if i<1 then exit;
     trains[ligneclicTrain+1].vitNominale:=i;
-    ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+    ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
     ListBoxTrains.selected[ligneclicTrain]:=true;
   end;
 end;
@@ -13701,7 +13732,7 @@ begin
     val(EditVitRalenti.text,i,erreur);
     if i<1 then exit;
     trains[ligneclicTrain+1].vitRalenti:=i;
-    ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+    ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
     ListBoxTrains.selected[ligneclicTrain]:=true;
   end;
 end;
@@ -13721,13 +13752,13 @@ begin
   ligneclicTrain:=ntrains-1;
   clicListe:=false;
 
-  formprinc.ComboTrains.Items.Add(Train_tablo(ntrains));
+  formprinc.ComboTrains.Items.Add(encode_train(ntrains));
 
   for i:=0 to ntrains-2 do formConfig.ListBoxTrains.selected[i]:=false;
 
   with formConfig.ListBoxTrains do
   begin
-    items.add(Train_tablo(ntrains));
+    items.add(encode_train(ntrains));
     selected[ntrains-1]:=true;
     SetFocus;
     perform(WM_VSCROLL,SB_BOTTOM,0);
@@ -13772,6 +13803,15 @@ begin
     editVitNom.Text:='';
     editVitesseMaxi.text:='';
     editLongLoco.text:='';
+    LabeledEditTempoD.text:='';
+    checkboxSens.Checked:=false;
+    editIcone.Text:='';
+    LabeledEditV1.Text:='';
+    LabeledEditV2.Text:='';
+    LabeledEditV3.Text:='';
+    LabeledEditCV3.Text:='';
+    LabeledEditCV4.Text:='';
+    LabeledEditCrans.Text:='';
   end;
 
   // suppression
@@ -13797,7 +13837,7 @@ begin
   // réafficher la liste
   for i:=1 to ntrains do
   begin
-    s:=trains[i].nom_train+','+inttostr(trains[i].adresse)+','+intToSTR(trains[i].vitmax);
+    s:=encode_train(i);
     FormConfig.ListBoxtrains.items.Add(s);
   end;
   ligneclicTrain:=-1;
@@ -15766,7 +15806,7 @@ begin
   with ListBoxTrains do
   begin
     clear;
-    for i:=1 to ntrains do items.Add(Train_tablo(i));
+    for i:=1 to ntrains do items.Add(encode_train(i));
   end;
 
  with StringGridArr do
@@ -15962,7 +16002,7 @@ var s,repini :string;    i : integer;begin  if ligneclicTrain<0 then exit;
     trains[i].icone.Picture.LoadFromFile(s);
     //ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
     Maj_icone_train(formconfig.ImageTrain,i);
-    formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+    formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
     //formconfig.ImageTrain.Picture.assign(trains[i].icone.Picture);
   end;
   chDir(RepIni);
@@ -15981,7 +16021,7 @@ var s,Nom,repIni : string;begin
    // Affiche(s,clWhite);
     trains[ligneclicTrain+1].icone.Picture.LoadFromFile(s);
     Maj_icone_train(formconfig.ImageTrain,ligneclicTrain+1);
-    formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+    formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   end;
 end;
 
@@ -15993,7 +16033,7 @@ var erreur,i :integer;begin
   val(LabeledEditTempoD.text,i,erreur);
   if i<0 then exit;
   trains[ligneclicTrain+1].TempsDemarreSig:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16003,7 +16043,7 @@ begin  if clicliste then exit;
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
 
   trains[ligneclicTrain+1].inverse:=CheckBoxSens.Checked;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   formconfig.ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16472,7 +16512,7 @@ begin
   begin
     trains[i].DetecteurArret[Arow].temps:=v;
   end;
-  ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16591,7 +16631,7 @@ begin
     end;
   end;
 
-  ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16618,7 +16658,7 @@ begin
       exit;
     end;
   end;
-  ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16645,14 +16685,14 @@ begin
       exit;
     end;
   end;
-  ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
 
 
 procedure TFormConfig.EditDecalChange(Sender: TObject);
-var r,i,erreur : integer;
+var l,r,i,erreur : integer;
 begin
   if clicListe then exit;
   val(editDecal.Text,i,erreur);
@@ -16663,16 +16703,32 @@ begin
   end;
   labelInfo.caption:='';
   r:=adresse_detecteur[ligneclicDet+1];
+
+  l:=detecteur[r].longueur;
+  if i>=l then
+  begin
+    labelInfo.caption:='Erreur : la distance d''arrêt est supérieure à la longueur du détecteur';
+    exit;
+  end;
+
+  labelInfo.caption:='';
+
   detecteur[r].distArret:=i;
   ListBoxDet.items[ligneclicDet]:=encode_detecteur(ligneclicDet+1);
   ListBoxDet.selected[ligneclicDet]:=true;
 end;
 
 procedure TFormConfig.RadioButtonArrFinClick(Sender: TObject);
-var r : integer;
+var r,d,l : integer;
 begin
   if clicListe then exit;
   r:=adresse_detecteur[ligneclicDet+1];
+  l:=detecteur[r].longueur;
+  d:=detecteur[r].distArret;
+  if d>=l then
+  begin
+    labelInfo.caption:='Erreur : la distance d''arrêt est supérieure à la longueur du détecteur';
+  end;
   detecteur[r].ModeArret:=1;
   ListBoxDet.items[ligneclicDet]:=encode_detecteur(ligneclicDet+1);
   ListBoxDet.selected[ligneclicDet]:=true;
@@ -16684,6 +16740,7 @@ begin
   if clicListe then exit;
   r:=adresse_detecteur[ligneclicDet+1];
   detecteur[r].ModeArret:=2;
+  LabelInfo.Caption:='';
   ListBoxDet.items[ligneclicDet]:=encode_detecteur(ligneclicDet+1);
   ListBoxDet.selected[ligneclicDet]:=true;
 end;
@@ -16737,7 +16794,7 @@ begin
   val(LabeledEditCV3.text,i,erreur);
   if i<0 then exit;
   trains[ligneclicTrain+1].cv3:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16750,7 +16807,7 @@ begin
   val(LabeledEditCV4.text,i,erreur);
   if i<0 then exit;
   trains[ligneclicTrain+1].cv4:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
   calculs;
 end;
@@ -16764,7 +16821,7 @@ begin
   val(LabeledEditCrans.text,i,erreur);
   if i<0 then exit;
   trains[ligneclicTrain+1].Crans:=i;
-  formconfig.ListBoxTrains.items[ligneclicTrain]:=Train_tablo(ligneclicTrain+1);
+  formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
 end;
 
@@ -16825,6 +16882,7 @@ procedure TFormConfig.LEAdrDetChange(Sender: TObject);
 var i,erreur : integer;
     s : string;
 begin
+  exit;
   if clicListe then exit;
   val(LEAdrDet.text,i,erreur);
   if (erreur<>0) or (i<1) then
@@ -16840,7 +16898,7 @@ begin
 end;
 
 procedure TFormConfig.LElongDetChange(Sender: TObject);
-var r,i,erreur :integer;
+var r,i,d,erreur :integer;
     s : string;
 begin
   if clicListe then exit;
@@ -16852,6 +16910,15 @@ begin
   end;
   labelInfo.caption:='';
   r:=adresse_detecteur[ligneclicDet+1];
+
+  d:=detecteur[r].distArret;
+  if d>=i then
+  begin
+    labelInfo.caption:='Erreur : la longueur du détecteur est inférieure à la distance d''arrêt';
+    exit;
+  end;
+
+  labelInfo.caption:='';
   detecteur[r].longueur:=i;
   s:=encode_detecteur(ligneclicDet+1);
   formconfig.ListBoxDet.items[ligneclicDet]:=s;
@@ -18093,7 +18160,6 @@ begin
 end;
 
 procedure TFormConfig.ValueListEditorDrawCell(Sender: TObject; ACol,ARow: Integer; Rect: TRect; State: TGridDrawState);
-var coul : tColor;
 begin
   with ValueListEditor do
   begin
@@ -18231,6 +18297,11 @@ begin
 
 end;
 
+
+procedure TFormConfig.ButtonRepriseDCCClick(Sender: TObject);
+begin
+  reprise_dcc;
+end;
 
 end.
 

@@ -254,20 +254,22 @@ begin
     with formConfCellTCO do
     begin
       // ramener la coordonnée cliquée à l'origine du canton
-      {
-      if (Bimage>=Id_cantonH) and (Bimage<=Id_cantonH+9) then
+
+      if isCantonH(Bimage) then
+      //if (Bimage>=Id_cantonH) and (Bimage<=Id_cantonH+9) then
       begin
         H:=true;
-        xClicC:=xClicC-(Bimage-Id_cantonH);
+        //xClicC:=xClicC-(Bimage-Id_cantonH);
       end;
-      if (Bimage>=Id_cantonV) and (Bimage<=Id_cantonV+9) then
+      if isCantonV(Bimage) then
+      //if (Bimage>=Id_cantonV) and (Bimage<=Id_cantonV+9) then
       begin
         H:=false;
-        yClicC:=yClicC-(Bimage-Id_cantonV);
+        //yClicC:=yClicC-(Bimage-Id_cantonV);
       end;
-      XclicCell[indexTCO]:=XclicC;
-      YclicCell[indexTCO]:=YclicC;
-      }
+      //XclicCell[indexTCO]:=XclicC;
+      //YclicCell[indexTCO]:=YclicC;
+
       idCanton:=index_canton(indexTCO,xclicC,yclicC);
 
       GroupBoxOrientation.visible:=false;
@@ -519,14 +521,11 @@ begin
   if tco[indexTCO,Xclic,Yclic].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicC,YclicC].adresse);
   //hint:=s;
 
-
   if not(ConfCellTCO) then exit;
   actualize:=true;  // évite les évènements parasites
   FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XclicC)+','+intToSTR(YclicC)+' TCO '+intToSTR(IndexTCO);
   Bimage:=tco[indexTCO,XclicC,YclicC].Bimage;
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);
-
-  
 
   // mettre l'image de la cellule cliquée dans l'icone de la fenetre de config cellule
   if Bimage=0 then

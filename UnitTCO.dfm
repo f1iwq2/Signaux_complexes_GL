@@ -1637,6 +1637,10 @@ object FormTCO: TFormTCO
         Caption = 'Trouver un '#233'l'#233'ment'
         OnClick = Trouverunlment1Click
       end
+      object Mmoiredezone1: TMenuItem
+        Caption = 'Activer/d'#233'sactiver m'#233'moire de zone'
+        OnClick = Mmoiredezone1Click
+      end
       object DessinerleTCO1: TMenuItem
         Caption = 'Dessiner le TCO'
         Hint = 'Dessine le TCO '#224' la souris'

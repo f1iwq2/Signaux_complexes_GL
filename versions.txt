@@ -30,7 +30,7 @@ version 1.74 : Amélioration des affichages du TCO  - Pilotage des aiguillages de
 Version 1.75 : conditions supplémentaires permettant l'affichage d'un carré sur un signal en fonction des aiguillages dans le fichier config.cfg
 version 1.76 : Modification des aiguillages modélisés depuis le menu de configuration générale
                Les aiguillages BIS ne sont plus supportés car ils induisent des erreurs.
-               Correction d'un bug sur les feux dont l'élément suivant est un détecteur
+               Correction d'un bug sur les signaux dont l'élément suivant est un détecteur
 version 2.0  : Changement de description des TJD
                Amélioration de l'algorithme des routes
                Variables nommées dans config-GL.cfg
@@ -307,6 +307,8 @@ version 9.75 : Corrections dans le TCO.
 version 9.76 : Amélioration de l'importation des réseaux depuis CDM rail.
                Correction de l'affichage du réseau CDM en version x64.
                Renforcement de la vérification de la configuration.
+version 9.77 : Amélioratios diverses.
+               Correction de quelques bugs.
 
 
 			  

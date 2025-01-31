@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetDecl
+    ActivePage = TabSheetOp
     MultiLine = True
     TabOrder = 1
     object TabSheetDecl: TTabSheet
@@ -516,7 +516,7 @@ object FormModifAction: TFormModifAction
         Top = 32
         Width = 217
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
@@ -716,9 +716,9 @@ object FormModifAction: TFormModifAction
           Top = 144
           Width = 201
           Height = 21
-          Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
+          Hint = 'Nom du p'#233'riph'#233'rique d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4

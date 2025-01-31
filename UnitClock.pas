@@ -62,7 +62,7 @@ type
     procedure SetFaceColor( Value : TColor);
     procedure SetArrowColor( Value : TColor);
     procedure SetShowSecond( Value : boolean);
-    function HourAngle( Hou, Min : word) : real; // Hour arrow angle
+    function HourAngle( Hou, Min : word) : single; // Hour arrow angle
     procedure CalcClockSettings;
     procedure DrawClockBkg; // Draw clock background on FBitMap
 
@@ -150,7 +150,7 @@ begin
   inherited Destroy;
 end;
 
-function TClock.HourAngle( Hou, Min : word) : real;
+function TClock.HourAngle( Hou, Min : word) : single;
 begin
   HourAngle:=(Hou mod 12) * pisur6 + (Min*pisur360);
 end;
@@ -172,9 +172,9 @@ var
   ABitMap : TBitMap;
   sin,cos :extended;
 
-  // Dessine les flèches dans le bitmap hors écran
-  procedure DrawArrow(Angle, Scale : real;AWidth : integer);
-  var SR : real;
+  // Dessine les flèches dans le bitmap hors écran (Abitmap)
+  procedure DessineAiguille(Angle,Scale : single;AWidth : integer);
+  var SR : single;
   begin
     with ABitMap.Canvas do
     begin
@@ -202,17 +202,17 @@ begin
   if ShowSecond then
   begin
     ABitMap.Canvas.pen.Color:=$600000;      // bleu foncé
-    DrawArrow(seconde*pisur30,  SecScale, SecThick); // seconde
+    DessineAiguille(seconde*pisur30,SecScale,SecThick); // seconde
   end;
   ABitMap.Canvas.Pen.color:=ClkArrowColor;
-  DrawArrow(minute*pisur30,MinScale, MinThick);   // minute
-  DrawArrow(HourAngle(heure,minute),HouScale,HouThick);   // heure
+  DessineAiguille(minute*pisur30,MinScale, MinThick);   // minute
+  DessineAiguille(HourAngle(heure,minute),HouScale,HouThick);   // heure
 
-  // copie le bitmap hors écran dans l'horloge
+  // copie le bitmap hors écran (Abitmap) dans l'horloge
   Canvas.CopyMode:=cmSrcCopy;
-  Canvas.Draw(0,0,ABitMap);
-  formclock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
+  Canvas.Draw(0,0,ABitMap);              // copie formclock.canvas<-Abitmap
   ABitMap.Free;
+  formclock.Caption:=format('%.2dh%.2d:%.2d',[heure,minute,seconde] );
 end;
 
 procedure TClock.CalcClockSettings;
@@ -239,19 +239,19 @@ end;
 procedure TClock.DrawClockBkg;
 
   // Dessine les tirets minute sur FBitMap
-  procedure DrawMinSteps;
-  const EpGd=2;       // epaisseurs des aiguilles
-        LgGd=25;
-        EpPt=1;
-        LgPt=7;
+  procedure DessineTiretsMn;
+  const EpGd=2;       // epaisseurs grands marqueurs 12 3 6 9
+        LgGd=25;      // longueur grands marqueurs
+        EpPt=1;       // epaisseurs petits marqueurs
+        LgPt=7;       // longueur petits marqueurs
   var
     ep,lg,OfsX : integer;
     Angle : word;
-    SR : real;
-    sin, cos : extended;
+    SR : single;
+    sin,cos : extended;
     x1,y1,x2,y2,x3,y3,x4,y4 : integer;
   begin
-    OfsX := LapStepW DIV 2;
+    OfsX := LapStepW div 2;
     Angle:=0;
     FBitMap.Canvas.Pen.color:=ClkArrowColor;
     Fbitmap.canvas.Brush.Color:=clkArrowColor;
@@ -325,9 +325,9 @@ begin
   begin
     Brush.Style:=bsSolid;
     Brush.Color:=ClkFaceColor;
-    FillRect( ClipRect);
+    FillRect(ClipRect);
   end;
-  DrawMinSteps;
+  DessineTiretsMn;
 end;
 
 // sur la fermeture de SC, l'horloge provoque une exception
@@ -380,7 +380,7 @@ begin
     off:=40;
     {$IFEND}
 
-    ImageList24x24.GetBitmap(0,BitBtnMarHor.Glyph);
+    ImageList24x24.GetBitmap(0,BitBtnMarHor.Glyph);   // marche horloge
     with BitBtnMarHor do
     begin
       Height:=26;
@@ -388,7 +388,7 @@ begin
       Top:=formClock.Height-BitBtnMarHor.Height-off;
     end;
 
-    ImageList24x24.GetBitmap(1,BitBtnArrHorl.Glyph);
+    ImageList24x24.GetBitmap(1,BitBtnArrHorl.Glyph);  // arrêt horloge
     with BitBtnArrHorl do
     begin
       Height:=26;
@@ -396,7 +396,7 @@ begin
       Top:=formClock.Height-BitBtnMarHor.Height-off;
     end;
 
-    ImageList24x24.GetBitmap(2,BitBtnInitHor.Glyph);
+    ImageList24x24.GetBitmap(2,BitBtnInitHor.Glyph);  // init horloge
     with BitBtnInitHor do
     begin
       Height:=26;
@@ -426,7 +426,7 @@ begin
   end;
 end;
 
-// fixer les valeurs maxi et mini de la taille de la fenetre
+// fixer les valeurs maxi et mini de la taille de la fenetre de l'horloge
 procedure TFormClock.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
 var  MinMaxInfo : PMinMaxInfo;
 begin
@@ -470,7 +470,7 @@ end;
 
 procedure TFormClock.TjsVerClick(Sender: TObject);
 begin
-  SetWindowPos(Handle,HWND_TOPMOST, 0, 0, 0, 0,SWP_NoMove or SWP_NoSize);
+  SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   // le checked ne fonctionne pas sous D7, fonctionne sous D12.
   TjsDev.Checked:=true;
   Dverrouiller1.Checked:=false;
@@ -479,12 +479,11 @@ end;
 
 procedure TFormClock.Dverrouiller1Click(Sender: TObject);
 begin
-  SetWindowPos(Handle,HWND_NOTOPMOST, 0, 0, 0, 0,SWP_NoMove or SWP_NoSize);
+  SetWindowPos(Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   TjsDev.Checked:=false;
   Dverrouiller1.Checked:=true;
   Verrouille:=false;
 end;
-
 
 procedure affiche_horloge;
 begin
@@ -494,7 +493,6 @@ begin
     formClock.BringToFront;
   end;
 end;
-
 
 procedure TFormClock.ButtonGHClick(Sender: TObject);
 begin

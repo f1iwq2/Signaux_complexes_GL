@@ -473,7 +473,7 @@ begin
   if (erreur<>0) or (adr<1) then exit;
   ancdebug:=NivDebug;
   NivDebug:=3;
-  if PresTrainPrec(Adr,Nb_cantons_Sig,false,adrtrain,voie) then AfficheDebug('Présence train '+intToSTR(AdrTrain),clYellow) else
+  if PresTrainPrec(Adr,Nb_cantons_Sig,true,adrtrain,voie) then AfficheDebug('Présence train @='+intToSTR(AdrTrain),clYellow) else
     AfficheDebug('Absence train',clyellow);
   NivDebug:=AncDebug;
 end;

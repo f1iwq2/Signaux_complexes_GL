@@ -61,7 +61,7 @@ uses UnitConfigCellTCO,UnitTCO,unitconfig,unitDebug, UnitRouteTrains,UnitInfo;
 // i=index canton - AdrTrain=adresse du train - adresse=adresse du détecteur
 // attention le suivant et le précédent concernent le détecteur, pas le canton
 procedure Maj_detecteurs_canton(i,AdrTrain,adresse : integer);
-var sens,e1c,e2c,prec,suivant : integer;
+var j,sens,e1c,e2c,prec,suivant : integer;
     typeSuiv,t1,t2,typePrec : tequipement;
     trouve : boolean;
 begin
@@ -116,6 +116,9 @@ begin
     detecteur[adresse].TypPrecedent:=typePrec;
     detecteur[adresse].AdrTrain:=AdrTrain;
     detecteur[adresse].Train:=canton[i].NomTrain;
+    j:=index_train_adresse(AdrTrain);
+    trains[j].ElSuivant:=suivant;
+    trains[j].tElSuivant:=typesuiv;
   end;
 end;
 
@@ -206,6 +209,14 @@ begin
       end;
     end;
 
+    // supprimer le canton du train
+    i:=index_train_adresse(AdrTrain);
+    if i<>0 then
+    begin
+      trains[i].canton:=0;
+    end;
+
+
     // balayer les détecteurs pour trouver sur quel détecteur est le train pour le razer
     // non
     if raz then
@@ -231,10 +242,10 @@ begin
 end;
 
 
-// affecte le train id train ou adresse à l'Index canton et au TCO.
+// affecte le train Adrtrain à l'Index canton dans le sens, et affecte la loco au détecteur à 1 du canton
 // désaffecte ce train pour tous les autres cantons
 // si adrTrain=9999 , train inconnu
-// si adrTrain=0    ; efface
+// si adrTrain=0    ; efface le train du canton
 // et les pointeurs de trains de l'idTrain sont razés
 procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
 var idTrain,t,el1,el2 : integer;
@@ -277,7 +288,7 @@ begin
       TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
     end;
 
-    // si l'un des deux détecteurs est à 1, affecter la loco au détecteur
+    // si l'un des deux éléments adjacents au canton est un détecteur à 1, affecter la loco au détecteur
     el1:=canton[IdCanton].el1;t1:=canton[IdCanton].typ1;
     el2:=canton[IdCanton].el2;t2:=canton[IdCanton].typ2;
     if (t1=det) and detecteur[el1].Etat then
@@ -293,6 +304,8 @@ begin
       Maj_detecteurs_canton(idCanton,AdrTrain,el2);
     end;
   end;
+  //affiche('Det du canton '+intToSTR(canton[Idcanton].numero)+' det1='+intToSTR(canton[Idcanton].det1)+' det2='+intToSTR(canton[Idcanton].det2),clyellow);
+
 end;
 
 // renvoie x,y El et indexCanton de IdCantonSelect en variable globale
@@ -627,7 +640,6 @@ begin
 
         if (canton[IdCantonSelect].sensCirc<>0) then sensLoco:=canton[IdCantonSelect].sensCirc ;
 
-        //canton[IdCantonSelect].SensLoco:=sensLoco;
         affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect,sensLoco);  // le train affecté contient la route du train razé
         LabelInfo.caption:='Affectation du train '+intToSTR(IndexTrainClic)+' '+trains[indexTrainClic].nom_train+' au canton '+intToSTR(canton[idcantonSelect].numero);
         maj_signaux(true);
@@ -782,6 +794,8 @@ procedure TFormSelTrain.ButtonSauveClick(Sender: TObject);
 begin
   Sauve_config;
 end;
+
+
 
 
 

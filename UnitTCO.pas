@@ -165,6 +165,7 @@ type
     Trouverunlment1: TMenuItem;
     ImageBt0Bistable: TImage;
     ImageBt1Bistable: TImage;
+    Mmoiredezone1: TMenuItem;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -403,6 +404,7 @@ type
     procedure Trouverunlment1Click(Sender: TObject);
     { Déclarations privées }
     function index_TCOMainMenu : integer;
+    procedure Mmoiredezone1Click(Sender: TObject);
   public
     { Déclarations publiques }
   end;
@@ -696,11 +698,12 @@ function index_canton_numero(n : integer) : integer;
 procedure renseigne_TJDs_TCO;
 procedure Affiche_temps_arret(IdTrain,tps : integer);
 procedure titre_fenetre(indexTCO : integer);
+function IsVoieDroite(i : integer) : boolean;
 
 implementation
 
 uses UnitConfigTCO, Unit_Pilote_aig, UnitConfigCellTCO, UnitClock, selection_train ,
-  UnitRoute, UnitRouteTrains, UnitInfo, UnitIntro;
+  UnitRoute, UnitRouteTrains, UnitInfo, UnitIntro, UnitMemZone;
 
 {$R *.dfm}
 
@@ -721,11 +724,11 @@ procedure coord_canton(indexTCO : integer;var x,y : integer);
 var el : integer;
 begin
   El:=TCO[indexTCO,x,y].BImage;
-  if (El>=Id_cantonH) and (El<=Id_cantonH+9) then
+  if isCantonH(El) then
   begin
     x:=x-(el-Id_cantonH);
   end;
-  if (El>=Id_cantonV) and (El<=Id_cantonV+9) then
+  if isCantonV(El) then
   begin
     y:=y-(el-Id_cantonV);
   end;
@@ -736,7 +739,7 @@ function index_canton(IndexTCO,x,y : integer) : integer;
 var i : integer;
     trouve : boolean;
 begin
-  coord_canton(indexTCO,x,y);
+  coord_canton(indexTCO,x,y);  // ramener les coordonnées à la première cellule
   i:=1;
   repeat
     trouve:=(canton[i].x=x) and (canton[i].y=y);
@@ -2761,6 +2764,11 @@ begin
   end;
 end;
 
+function IsVoieDroite(i : integer) : boolean;
+begin
+  result:=(i=1) or (i=10) or (i=11) or (i=20);
+end;
+
 // renvoie vrai si l'élément i est un canton H ou V
 function IsCanton(i : integer) : boolean;
 begin
@@ -2773,7 +2781,7 @@ begin
   result:=((i>=Id_cantonH) and (i<=Id_CantonH+9));
 end;
 
-// 2eme forme
+// 2eme forme ; si x,y est un canton
 function IsCantonH(indexTCO,x,y : integer) : boolean;  overload;
 var b : integer;
 begin
@@ -2847,7 +2855,7 @@ begin
     repeat
       s:=s+st[i]+' ';
       inc(i);
-       //Affiche(s+' '+intToSTR(tf*length(s+st[i])),clyellow);
+      //Affiche(s+' '+intToSTR(tf*length(s+st[i])),clyellow);
     until (round(0.8*tf*length(s+st[i]))>larg) or (i>NombreMots);
     //yl:=(y-1)*round((l*tf));
     delete(s,length(s),1);
@@ -5477,13 +5485,11 @@ begin
   end;
 end;
 
-
 procedure dessin_14(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 begin
   if graphisme=1 then dessin_14L(indexTco,Canvas,x,y,Mode);
   if graphisme=2 then dessin_14C(indexTco,Canvas,x,y,Mode);
 end;
-
 
 // Element 15
 procedure dessin_15L(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
@@ -12025,8 +12031,11 @@ begin
   s101:='Supprime la colonne pointée';
   popupMenu1.Items[10][1].Hint:=s101;
 
-  if MasqueBandeauTCO then bandeauMasque:=true;
-
+  if MasqueBandeauTCO then
+  begin
+    bandeauMasque:=true;
+    Bandeau.Caption:='Afficher le bandeau';
+  end;
   tcoCree:=true;
   if debug=1 then Affiche('Fin création fenêtre TCO',clLime);
 end;
@@ -14991,13 +15000,14 @@ var n,iD,xg,yg : integer;
 begin
   if affevt then affiche('Debut_drag_train',clYellow);
   Id:=Index_canton_numero(Tco[indexTCO,x,y].NumCanton);
-  if id=0 then exit;
+  if (id=0) or Maj_signaux_cours then exit;
   n:=canton[Id].Nelements;
   horizontal:=canton[Id].horizontal;
 
   PImageTCO[indexTCO].BeginDrag(true);
 
   IdCantonDragOrg:=Id;
+  cantonOrg:=canton[id].numero;
   lDrag:=canton[id].Licone-1;
   hDrag:=canton[id].Hicone-1;
   xg:=canton[id].Xicone+1;  // début de l'image du train (coord absolues)
@@ -16334,7 +16344,7 @@ begin
           //detDepart:=0;
           exit;
         end;
-        // on clique sur le drapeau rouge
+        // on clique sur le drapeau vert ou rouge
         if (bt>=3) then   // canton de destination
         begin
           // est-ce un canton de destination?
@@ -16355,7 +16365,13 @@ begin
           if indextrain<>0 then
           begin
             indexTrainFR:=IndexTrain;  // la formRouteTrain utilise IndexTrainFR
-            if (trains[indexTrain].route[0].adresse<>0) then formRouteTrain.show else formRoute.show;
+            if (trains[indexTrain].route[0].adresse<>0) then
+            begin
+              // afficher la fenetre des routes
+              formRouteTrain.PageControlRoutes.ActivePage:=formRouteTrain.TabSheetRA;
+              formRouteTrain.show;
+            end
+            else formRoute.show;
           end;
           AdrTrain:=canton[IdCantonClic].AdrTrainRoute;
           if AdrTrain<>0 then
@@ -16729,6 +16745,7 @@ begin
       //if cantonSelect<>0 then exit;
       if not(selectionaffichee[indexTCO]) and (Tdoubleclic=0) then _entoure_cell_clic(indexTCO);
       actualise(indexTCO);    // actualise la fenetre de config cellule
+      actualise_memZone(indexTCO);
     end;
 
     clicTCO:=false;
@@ -16809,7 +16826,8 @@ begin
       end;
 
       idTrain:=canton[IdCantonSelect].indexTrain;
-      if (clicsouris) and (idTrain<>0) then if (trains[IdTrain].icone<>nil) and (trains[IdTrain].icone.width<>0) then
+      // ajouté Maj_signaux_cours car si on déplace un train pendant une maj de signaux, çà plante en fin de procédure TFormTCO.ImageTCOEndDrag
+      if (clicsouris) and (idTrain<>0) and not(Maj_signaux_cours) then if (trains[IdTrain].icone<>nil) and (trains[IdTrain].icone.width<>0) then
       begin
         debut_drag_train(IndexTCO,canton[IdCantonSelect].x,canton[IdCantonSelect].y);
         exit;
@@ -17004,7 +17022,7 @@ begin
         begin
           NouvY:=yc;
           for i:=1 to n do Tco[indexTCO,xc,yc+i-1].BImage:=Id_CantonV+(i-1);
-          if n<An then for i:=n to An do Tco[indexTCO,xc,Nouvy+i].BImage:=20;  // si on a diminué le nombre de cases du canton, remplir les anciennes de 20
+          if n<An then for i:=n to An-1 do Tco[indexTCO,xc,Nouvy+i].BImage:=20;  // si on a diminué le nombre de cases du canton, remplir les anciennes de 20
         end;
         if prise_haut then
         begin
@@ -18015,7 +18033,7 @@ begin
 end;
 
 procedure TFormTCO.PopupMenu1Popup(Sender: TObject);
-var oriente,piedFeu,indexTCO : integer;
+var Bim,oriente,piedFeu,indexTCO : integer;
     c : Tcomponent;
 begin
   if affevt then Affiche('on popup',clyellow);
@@ -18034,7 +18052,8 @@ begin
   PopUpMenu1.Items[10][1].Caption:='Colonne '+intToSTR(XclicCell[indexTCO]);
 
   // grise ou non l'entrée signal du menu
-  if tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage=Id_signal then
+  Bim:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage;
+  if Bim=Id_signal then
   begin
     PopUpMenu1.Items[6].Enabled:=true;
     // coche sur l'orientation du signal
@@ -18082,6 +18101,18 @@ begin
   end
   else
     PopUpMenu1.Items[6].Enabled:=false;
+
+  if iscanton(Bim) then
+  begin
+    PopUpMenu1.Items[12].Enabled:=true;
+    PopUpMenu1.Items[13].Enabled:=true
+  end
+  else
+  begin
+    PopUpMenu1.Items[12].Enabled:=false;
+    PopUpMenu1.Items[13].Enabled:=false;
+  end;
+
 end;
 
 // encadre la ligne cliquée du tco courant
@@ -18912,7 +18943,8 @@ begin
   xc:=xClicCell[indexTCO];
   yc:=yClicCell[indexTCO];
   El:=tco[indexTCO,xc,yc].BImage;
-  if ((El>=Id_CantonH) and (El<=Id_CantonH+9)) or ((El>=Id_CantonV) and (El<=Id_CantonV+9)) then
+  if isCanton(El) then
+  //if ((El>=Id_CantonH) and (El<=Id_CantonH+9)) or ((El>=Id_CantonV) and (El<=Id_CantonV+9)) then
   begin
     formSelTrain.Show;
   end;
@@ -18971,7 +19003,7 @@ end;
 procedure TFormTCO.ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
 var s : string;
     Sens,idCantondest,IdTrain,Bim,xdest,ydest,xOrg,Yorg,indexTCO,milieuX_pix,milieuY_pix,
-    xPix,yPix,adresse,AdrTrain,xDrag,yDrag : integer;
+    xPix,yPix,adresse,AdrTrain,xDrag,yDrag,trainDest,idTrainDest : integer;
     t : tequipement;
 begin
   if not(Target is TImage) then exit;
@@ -19013,11 +19045,27 @@ begin
   // dessine le train sur le canton de destination
   //BitBlt(PcanvasTCO[indexTCO].handle,oldx+50,oldy,LIcone,hIcone,oldbmp.canvas.handle,0,0,SRCCOPY);
 
-  // ici on dépose sur un canton
-  IdCantonDest:=index_canton_numero(tco[IndexTCO,x,y].NumCanton);
 
+  // ici on dépose sur un canton
   AdrTrain:=canton[IdCantonDragOrg].adresseTrain; // train sur le canton source
+  cantonDest:=tco[IndexTCO,x,y].NumCanton;
+  IdCantonDest:=index_canton_numero(cantonDest);
   IdTrain:=index_train_adresse(AdrTrain);
+
+  Traindest:=canton[IdcantonDest].adresseTrain;
+  idTrainDest:=index_train_adresse(TrainDest);
+
+  if (TrainDest<>0) and (TrainDest<>AdrTrain) then
+  begin
+    s:='Le train '+Trains[idTrain].nom_train+' va écraser le train '+Trains[idTrainDest].nom_train+#13;
+    s:=s+'Voulez-vous continuer?';
+    if Application.MessageBox(pchar(s),pchar('Confirmation'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then
+    begin
+      Affiche_tco(indexTCO);
+      exit;
+    end;
+  end;
+
   // si le train du canton source a une route affectée
   if Trains[IdTrain].route[0].adresse<>0 then
   begin
@@ -19053,7 +19101,7 @@ begin
 
   // vérifier si le sens de dépose est compatible avec le sens du canton
   if (canton[idcantonDest].SensCirc<>0) and (canton[idcantonDest].SensCirc<>sens) then
-  begin  
+  begin
     s:='Le sens de circulation du canton '+intToSTR(canton[idcantonDest].numero)+' ne permet pas de positionner le train dans ce sens';
     formTCO[indexTCO].Caption:=s;
     //Affiche(intToSTR(ypix),clred);
@@ -19071,7 +19119,14 @@ begin
 
   // affectation train canton destination
   affecte_Train_canton(trains[idTrain].adresse,IdCantonDest,sens);
-  application.processMessages;
+  //application.processMessages;
+
+  // si le canton destination était occupé au déplacement d'un train de canton
+  if (TrainDest<>0) and (cantonDest<>CantonOrg) then
+  begin
+    supprime_route_train(idTrainDest);
+    raz_cantons_train(TrainDest,true); // true=avec raz détecteur
+  end;
 
   Affiche_TCO(indexTCO);
   XclicCell[indexTCO]:=xDest;
@@ -19160,6 +19215,13 @@ begin
       moveto(0,0);LineTo(x,y);
     end;
   end;
+end;
+
+procedure TFormTCO.Mmoiredezone1Click(Sender: TObject);
+begin
+  FormMemZone.show;
+  FormMemZone.BringToFront;
+
 end;
 
 end.

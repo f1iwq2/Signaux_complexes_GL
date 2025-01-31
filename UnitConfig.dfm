@@ -665,32 +665,19 @@ object FormConfig: TFormConfig
     TabOrder = 0
     OnClick = ButtonAppliquerEtFermerClick
   end
-  object ButtonFSE: TButton
-    Left = 696
-    Top = 440
-    Width = 33
-    Height = 25
-    Hint = 'Ferme la fen'#234'tre sans enregistrer la configuration'
-    Caption = 'Fermer sans enregistrer la configuration'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 1
-    Visible = False
-    OnClick = ButtonFSEClick
-  end
   object PageControl: TPageControl
     Left = 8
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAig
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 1
     OnChange = PageControlChange
     object TabSheetCDM: TTabSheet
       Caption = 'CDM Rail'
@@ -1208,7 +1195,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2415,7 +2402,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2546,7 +2533,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2854,7 +2841,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2873,7 +2860,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2919,7 +2906,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3134,7 +3121,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -3154,7 +3141,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -3255,7 +3242,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -3337,9 +3324,7 @@ object FormConfig: TFormConfig
           
             'Elles permettent de r'#233'aliser des combinaisons logiques d'#39#39#233'lemen' +
             'ts divers comme '
-          
-            'l'#39#39#233'tat des aiguillages, d'#233'tecteurs, boutons TCO, m'#233'moires etc..' +
-            '.')
+          'l'#39#233'tat des aiguillages, d'#233'tecteurs, boutons TCO, m'#233'moires etc...')
         ReadOnly = True
         TabOrder = 2
       end
@@ -3807,7 +3792,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -4002,12 +3987,12 @@ object FormConfig: TFormConfig
       object Label19: TLabel
         Left = 8
         Top = 8
-        Width = 404
-        Height = 16
+        Width = 333
+        Height = 13
         Caption = 'Configuration de l'#39'interface DCC++ pour le mode autonome'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -4094,14 +4079,14 @@ object FormConfig: TFormConfig
       Caption = 'Trains'
       ImageIndex = 7
       object Label54: TLabel
-        Left = 16
+        Left = 8
         Top = 8
-        Width = 244
-        Height = 16
+        Width = 199
+        Height = 13
         Caption = 'Liste des trains d'#233'clar'#233's du r'#233'seau'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -4493,7 +4478,7 @@ object FormConfig: TFormConfig
             object LabeledEditCV3: TLabeledEdit
               Left = 224
               Top = 136
-              Width = 41
+              Width = 33
               Height = 21
               EditLabel.Width = 135
               EditLabel.Height = 13
@@ -4506,7 +4491,7 @@ object FormConfig: TFormConfig
             object LabeledEditCV4: TLabeledEdit
               Left = 224
               Top = 160
-              Width = 41
+              Width = 33
               Height = 21
               EditLabel.Width = 135
               EditLabel.Height = 13
@@ -4536,7 +4521,7 @@ object FormConfig: TFormConfig
               Height = 73
               Font.Charset = ANSI_CHARSET
               Font.Color = clBlack
-              Font.Height = -12
+              Font.Height = -13
               Font.Name = 'Arial Narrow'
               Font.Style = []
               ParentFont = False
@@ -4544,9 +4529,9 @@ object FormConfig: TFormConfig
               TabOrder = 7
             end
             object ButtonlCV3: TButton
-              Left = 272
+              Left = 264
               Top = 136
-              Width = 27
+              Width = 20
               Height = 25
               Hint = 'Lire le CV3 de la locomotive plac'#233'e sur la voie de programmation'
               Caption = 'CV'
@@ -4556,9 +4541,9 @@ object FormConfig: TFormConfig
               OnClick = ButtonlCV3Click
             end
             object ButtonlCV4: TButton
-              Left = 272
+              Left = 264
               Top = 160
-              Width = 27
+              Width = 20
               Height = 25
               Hint = 'Lire le CV4 de la locomotive plac'#233'e sur la voie de programmation'
               Caption = 'CV'
@@ -4566,6 +4551,18 @@ object FormConfig: TFormConfig
               ShowHint = True
               TabOrder = 9
               OnClick = ButtonlCV4Click
+            end
+            object ButtonRepriseDCC: TButton
+              Left = 288
+              Top = 144
+              Width = 25
+              Height = 25
+              Hint = 'Repasse la centrale en mode DCC'
+              Caption = 'Dcc'
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 10
+              OnClick = ButtonRepriseDCCClick
             end
           end
         end
@@ -4577,12 +4574,12 @@ object FormConfig: TFormConfig
       object Label73: TLabel
         Left = 8
         Top = 8
-        Width = 252
-        Height = 16
+        Width = 208
+        Height = 13
         Caption = 'P'#233'riph'#233'riques COM/USB ou Sockets'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -4879,12 +4876,12 @@ object FormConfig: TFormConfig
       object Label50: TLabel
         Left = 8
         Top = 8
-        Width = 216
-        Height = 16
+        Width = 176
+        Height = 13
         Caption = 'Param'#232'tres avanc'#233's et experts'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -13
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -4916,7 +4913,7 @@ object FormConfig: TFormConfig
     Caption = 'Enregistre la configuration'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 3
+    TabOrder = 2
     OnClick = ButtonEnregistreClick
   end
   object Panel1: TPanel
@@ -4927,7 +4924,7 @@ object FormConfig: TFormConfig
     BevelWidth = 2
     Caption = 'Fermer sans enregistrer la configuration'
     Color = clGradientActiveCaption
-    TabOrder = 4
+    TabOrder = 3
     OnClick = Panel1Click
     OnMouseDown = Panel1MouseDown
     OnMouseUp = Panel1MouseUp

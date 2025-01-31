@@ -1314,11 +1314,11 @@ var
   TmpBmp: TBitmap;
   ARect: TRect;
 begin
-  TmpBmp := TBitmap.Create;
-  TmpBmp.Width  := wid;
-  TmpBmp.Height := hei;
-  ARect := Rect(0,0, wid, hei);
-  TmpBmp.Canvas.StretchDraw(ARect, Bitmp);
+  TmpBmp:=TBitmap.Create;
+  TmpBmp.Width:=wid;
+  TmpBmp.Height:=hei;
+  ARect:=Rect(0,0, wid, hei);
+  TmpBmp.Canvas.StretchDraw(ARect,Bitmp);
   bitmp.Assign(TmpBmp);
   TmpBmp.Free;
 end;
@@ -1330,7 +1330,7 @@ begin
   SinCos(Angle,SinA,CosA);
   Result.eM11:=CosA;
   Result.eM12:=SinA;
-  Result.eM21:=-SinA;                  
+  Result.eM21:=-SinA;
   Result.eM22:=CosA;
   Result.eDx:=(Centre.X - (CosA*Centre.X)) + (SinA*Centre.Y);
   Result.eDy:=(Centre.Y - (SinA*Centre.X)) - (CosA*Centre.Y);
@@ -1370,7 +1370,7 @@ var
   recta : trect;
 begin
   ACanvas:=FormAnalyseCDM.ImageCDm.Canvas;
- 
+
   l2:=largeurTrain div 2;
   h2:=hauteurTrain div 2;
   y:=y-1;  // décalage observé
@@ -1897,7 +1897,7 @@ begin
 end;
 
 // renvoie si le segment est de type aiguillage croisement compris
-function segment_aig(s : string) : boolean;
+function segment_aig_crois(s : string) : boolean;
 begin
   result:=(s='turnout') or (s='dbl_slip_switch') or (s='turnout_sym') or
           (s='turnout_curved') or (s='turnout_curved_2r') or (s='turnout_3way') or
@@ -1935,7 +1935,7 @@ begin
     p:=segment[i].adresse;
     p2:=segment[i].adresse2;
     //Affiche(intToSTR(p),clwhite);
-    trouve:=((p=adresse) or (p2=adresse)) and segment_aig(segment[i].typ);
+    trouve:=((p=adresse) or (p2=adresse)) and segment_aig_crois(segment[i].typ);
     inc(i);
   until (i>nSeg-1) or trouve;
   dec(i);
@@ -2399,7 +2399,7 @@ begin
     exit;
   end;
 
-  if segment_aig(typeP) then // est-ce un aig
+  if segment_aig_crois(typeP) then // est-ce un aig
   //------------- aiguillage
   begin
     portlocal:=segment[idSeg].port[idport].local;
@@ -2874,7 +2874,7 @@ begin
   end;
 
   // autre aiguillage
-  if segment_aig(ctype) then
+  if segment_aig_crois(ctype) then
   begin
     // déterminer le numéro du port d'origine
     pOrg:=0;
@@ -3104,7 +3104,7 @@ begin
       ctype:=segment[indexSegSuivant].typ;
 
       // est-ce un aiguillage ou tjd (croisement compris)
-      if segment_aig(ctype) then
+      if segment_aig_crois(ctype) then
       begin
         AdrAigRencontre:=segment[indexSegSuivant].adresse;
         if debugBranche then Affichedebug('Aiguillage '+intTostr(adrAigRencontre),clyellow);
@@ -3489,7 +3489,7 @@ begin
       end;
       // si on rencontre une table, çà revient dans l'autre sens
 
-      trouve:=segment_aig(ctype);  // est-ce un aiguillage ???
+      trouve:=segment_aig_crois(ctype);  // est-ce un aiguillage ???
 
       // prépare suivant
       if not(trouve) then
@@ -4732,9 +4732,8 @@ end;
 procedure clic_image;
 var pt : Tpoint;
    xSouris,ySouris,x1,y1,x2,y2,i,j,centreX,centrey,rayon,numero: integer;
-   StartAngle,StopAngle : single;
-   trouve : boolean;
-   debug : boolean;
+   StartAngle,StopAngle,Zoom : single;
+   trouve,debug : boolean;
    ctype,s : string;
    canvasI : Tcanvas;
 begin
@@ -4744,6 +4743,8 @@ begin
   ySouris:=pt.y;
 
   canvasI:=FormAnalyseCDM.ImageCDM.Canvas;
+  Zoom:=(2*(90-formAnalyseCDM.TrackBar1.Position)/100)+0.4;
+  canvasI.font.size:=round(zoom*10);
 
   i:=0;
   repeat
@@ -4756,7 +4757,7 @@ begin
     ctype:=Segment[i].typ;
 
     // aiguillage à 3 ports (turnout)
-    if segment_aig(ctype) and (ctype<>'dbl_slip_switch') then
+    if segment_aig_crois(ctype) and (ctype<>'dbl_slip_switch') then
     begin
       x1:=segment[i].port[0].x;
       y1:=segment[i].port[0].y;
@@ -4818,10 +4819,10 @@ begin
       trouve:=point_Sur_Segment(Xsouris,Ysouris,x1,y1,x2,y2);
       if trouve then
       begin
-         s:=intToSTR(Segment[i].adresse);
+        s:=intToSTR(Segment[i].adresse);
         if Segment[i].adresse2<>0 then s:=s+'/'+intToSTR(Segment[i].adresse2);
         formAnalyseCDM.EditAdresse.Text:=s;
-        s:='Ports 0/1/2/3 = '+IntToSTR(Segment[i].port[0].numero)+'/'+IntToSTR(Segment[i].port[1].numero)+'/'+
+        s:='Ports 0/1/2/3 = (NO/SO/NE/SE)'+#13+IntToSTR(Segment[i].port[0].numero)+'/'+IntToSTR(Segment[i].port[1].numero)+'/'+
                               IntToSTR(Segment[i].port[2].numero)+'/'+IntToSTR(Segment[i].port[3].numero);
         formAnalyseCDM.LabelPorts.Caption:=s;
 
@@ -4984,7 +4985,7 @@ begin
     if adresse2<>0 then segment[IndexClic].adresse2:=adresse2;
     if (ctyp='crossing') then ofs:=YcrOffset;
     ctyp:=segment[IndexClic].typ;
-    if not(segment_aig(ctyp)) and not(ctyp='crossing') then exit;  // si c'est pas un aiguillage ni un croisement
+    if not(segment_aig_crois(ctyp)) and not(ctyp='crossing') then exit;  // si c'est pas un aiguillage ni un croisement
     if (ctyp='crossing') or (ctyp='dbl_slip_switch') then ofs:=YcrOffset;
     if (ctyp='turnout') or (ctyp='turnout_sym') then ofs:=yTurnoutOffset;
     if (ctyp='turnout_curved') or (ctyp='turnout_curved_2r') then ofs:=YcrOffset;

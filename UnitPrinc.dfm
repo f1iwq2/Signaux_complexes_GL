@@ -2309,7 +2309,7 @@ object FormPrinc: TFormPrinc
         OnClick = Vrifiernouvelleversion1Click
       end
     end
-    object COs1: TMenuItem
+    object TCOs1: TMenuItem
       Caption = 'TCOs'
       object AffichertouslesTCO1: TMenuItem
         Caption = 'Afficher tous les TCO'
@@ -2521,8 +2521,7 @@ object FormPrinc: TFormPrinc
     OnConnect = ClientSocketCde1Connect
     OnRead = ClientSocketCde1Read
     OnError = ClientSocketCde1Error
-    Left = 1072
-    Top = 344
+    Left = 360
   end
   object ClientSocketCde2: TClientSocket
     Active = False
@@ -2531,8 +2530,7 @@ object FormPrinc: TFormPrinc
     OnConnect = ClientSocketCde2Connect
     OnRead = ClientSocketCde2Read
     OnError = ClientSocketCde2Error
-    Left = 1072
-    Top = 376
+    Left = 392
   end
   object ServerSocket: TServerSocket
     Active = False

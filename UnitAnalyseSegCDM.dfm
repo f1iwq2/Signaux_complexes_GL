@@ -137,10 +137,10 @@ object FormAnalyseCDM: TFormAnalyseCDM
     object CheckPorts: TCheckBox
       Left = 240
       Top = 32
-      Width = 65
+      Width = 129
       Height = 17
       Hint = 'Affiche le num'#233'ro de segment et le port de CDM'
-      Caption = 'Ports'
+      Caption = 'Ports et segments'
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
@@ -198,7 +198,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
     end
     object ButtonImprime: TButton
       Left = 232
-      Top = 48
+      Top = 56
       Width = 75
       Height = 25
       Caption = 'Imprimer'

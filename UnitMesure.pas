@@ -155,15 +155,72 @@ begin
 end;
 
 procedure TFormMesure.ButtonLanceMesClick(Sender: TObject);
+var el1,el2,i,det_depart,el : integer;
+    t1,t2,t : Tequipement;
+    s: string;
+    boucle : boolean;
 begin
   if (IndexTrainMes<1) or mesureTrains then exit;
+  i:=trains[indexTrainMes].canton;       // numéro du canton sur lequel le train se trouve
+  if i=0 then
+  begin
+    Affiche('Le train '+trains[indexTrainMes].nom_train+'ne se trouve sur aucun canton',clred);
+    exit;
+  end;
+  el1:=canton[i].el1; t1:=canton[i].typ1;
+  el2:=canton[i].el2; t2:=canton[i].typ2;
+  if t1=det then det_depart:=el1;
+  if t2=det then det_depart:=el2;
+
+  i:=0;
+  repeat
+    el:=suivant_alg3(el1,t1,el2,t2,1);
+    t:=typeGen;
+
+    el1:=el2;t1:=t2;
+    el2:=el;t2:=t;
+
+    inc(i);
+  until (i>50) or (el>9000) or (el=det_depart);
+
+  boucle:=true;
+  if el>9000 then
+  begin
+    if el=9996 then
+    begin
+      s:='La position de l''aiguillage '+intToSTR(el1)+' est inconnue'+#13;
+      s:=s+'L''itinéraire du train '+trains[indexTrainMes].nom_train+' peut ne pas être bouclé.'+#13;
+      boucle:=false;
+    end
+    else
+    begin
+      s:='Il n''est pas possible de déterminer si l''itinéraire du train '+trains[indexTrainMes].nom_train+' est bouclé.'+#13;
+      boucle:=false;
+    end;
+  end
+  else
+    if el<>det_depart then
+    begin
+      s:='Il n''est pas possible de déterminer si l''itinéraire du train '+trains[indexTrainMes].nom_train+' est bouclé.'+#13;
+      boucle:=false;
+    end;
+
+  if not boucle then
+  begin
+    s:=s+'Voulez vous continuer?';
+    if MessageDlg(s,mtConfirmation,[mbNo,mbYes],0)=mrNo then exit;
+  end;
+
   ComboBoxTrains.Enabled:=false;
   ButtonLanceMes.Enabled:=false;
   Affiche('Mesure vitesse 1',clYellow);
   PhaseVitesse:=1;  // vitesse 1 2 ou 3
   DetecteurREF:=0;
+
+
   mesureTrains:=true;
   vitesse_loco('',0,trains[indexTrainMes].adresse,v1,10);
+
   LabelMesC.Visible:=true;
   LabelMesC.top:=178;
 end;

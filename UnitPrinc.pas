@@ -169,7 +169,7 @@ type
     Coller1: TMenuItem;
     Affiche_fenetre_CDM: TMenuItem;
     ImageSignal20: TImage;
-    COs1: TMenuItem;
+    TCOs1: TMenuItem;
     AffichertouslesTCO1: TMenuItem;
     N10: TMenuItem;
     Mosaquehorizontale1: TMenuItem;
@@ -289,8 +289,18 @@ type
     procedure ButtonDroitClick(Sender: TObject);
     procedure EditvalEnter(Sender: TObject);
     procedure BoutonRafClick(Sender: TObject);
-    procedure ClientSocketInterfaceError(Sender: TObject; Socket: TCustomWinSocket;
-      ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+
+    procedure ClientSocketInterfaceError(Sender: TObject; Socket: TCustomWinSocket;ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure ClientSocketInterfaceConnect(Sender: TObject;Socket: TCustomWinSocket);
+    procedure ClientSocketInterfaceDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ClientSocketInterfaceRead(Sender: TObject; Socket: TCustomWinSocket);
+
+    procedure ClientInfoError(Sender: TObject; Socket: TCustomWinSocket;ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure ClientInfoConnect(Sender: TObject;Socket: TCustomWinSocket);
+    procedure ClientInfoDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ClientInfoRead(Sender: TObject; Socket: TCustomWinSocket);
+
+
     procedure MenuConnecterUSBClick(Sender: TObject);
     procedure DeconnecterUSBClick(Sender: TObject);
     procedure MenuConnecterEthernetClick(Sender: TObject);
@@ -302,8 +312,7 @@ type
     procedure ClientSocketCDMError(Sender: TObject;
       Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
       var ErrorCode: Integer);
-    procedure ClientSocketInterfaceConnect(Sender: TObject;
-      Socket: TCustomWinSocket);
+
     procedure ClientSocketCDMConnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure ClientSocketCDMRead(Sender: TObject;
@@ -313,8 +322,6 @@ type
     procedure ClientSocketCDMDisconnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure CodificationdessignauxClick(Sender: TObject);
-    procedure ClientSocketInterfaceDisconnect(Sender: TObject;
-      Socket: TCustomWinSocket);
     procedure FichierSimuClick(Sender: TObject);
     procedure ButtonEcrCVClick(Sender: TObject);
     procedure LireunfichierdeCV1Click(Sender: TObject);
@@ -444,7 +451,6 @@ type
     procedure proc_checkBoxFV(Sender : Tobject);
     procedure proc_checkBoxFR(Sender : Tobject);
     procedure procAide(Sender : Tobject);
-    procedure ClientSocketInterfaceRead(Sender: TObject; Socket: TCustomWinSocket);
     {$IF CompilerVersion >= 28.0}
     procedure DataReceived(const Data: TidBytes);
     {$ELSE}
@@ -904,10 +910,91 @@ Tactionneur = record
     train                   : string;
   end;
 
-
 TUneRoute=array[0..MaxParcoursTablo] of TelementRoute;      // Une route
 
 TElroute=array[1..MaxRoutesCte] of TUneroute;             // tableau de routes
+
+// la longueur de la structure ttrain ne permet pas le passage de paramètre en procédure
+tTrain =  record
+              nom_train : string;
+              inverse : boolean;                // placement
+              detecteurA : integer;             // détecteur sur lequel le train se trouve
+              detecteurSuiv : integer;          // détecteur vers lequel se dirige le train
+              ElSuivant : integer;              // élément suivant vers lequel se dirige le train
+              TElSuivant : tEquipement;
+              adresse,vitmax,VitNominale,VitRalenti : integer;
+              AncVitesseCons : integer;         // ancienne consigne
+              AVitesseCons : integer;           // ancienne consigne du tick précédent
+              vitesseCons : integer;            // vitesse Consigne actuelle de pilotage
+              VitesseReelleR : single;          // Vitesse réelle calculée (tient compte de la décélération
+              VitesseReelle : integer;
+              sens   : integer;                 // sens de déplacement, stockage provisoire pour restocker dans le tableau canton[]
+              longueur: integer;                // longueur de la loco
+              compteur_consigne : integer;      // compteur de consigne pour envoyer deux fois la vitesse en 10eme de s
+              cv3,cv4 : integer;
+              crans : integer;                  // crans du décodeur
+              // pilotage des trains-------------------
+              //TempoArret : integer;             // tempo d'arret pour le timer
+              TempoArretCour : integer;         // valeur dynamique
+              TempoDemarre : integer;           // tempo de démarrage, valeur dynamique
+              TempsDemarreSig : integer;        // temps de redémarrage du signal, valeur d'initialisation (fichier de config)
+              TempoArretTemp : integer;         // temps d'arrêt temporisé sur un détecteur
+              index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
+              arret_det : boolean;              // arrêt du train sur le détecteur
+              phase_arret : integer;            // numéro de phase arret
+              // mesure et étalonnage de la vitesse------
+              VitesseDetE : integer;            // vitesse en entrée du détecteur
+              VitesseDetS : integer;            // vitesse en sortie du détecteur
+              //Temps_cour  : integer;            // compteur du temps en 1/10 s évolution pendant le détecteur à 1
+              pointMes    : integer;            // pointeur de mesures 1 à 100
+              // tableau des mesures
+              mesure : array[1..100] of record
+                // valeurs mesurées:
+                VitCons   : integer;            // vitesse de consigne en crans
+                detecteurM : integer;            // détecteur
+                temps     : integer;            // temps de passage sur le détecteue à 1 (1/10s)
+                // valeurs calculées:
+                vr        : single;             // vitesse réelle calculée en cm/s
+              end;
+              // Mesure vitesse des trains: affectation des vitesses moyennes aux détecteurs rencontrés
+              // par detecteur (NbMaxDet) et par consigne (128 max)
+              detecteurR  : array[0..NbMaxDet,1..128] of record
+                nombre    : integer;
+                moyenne   : single;            // moyenne de la vitesse calculée par détecteur/
+                ecart     : single;            //
+                somme     : single;
+              end;
+              ConsV1,consV2,consV3 : integer;  // consignes auxquels les coefficients V1 V2 V3 ont été calculés
+              CoeffV1,CoeffV2,CoeffV3 : single; // coefficients pour calculer la vitesse réelle en cm/s depuis la vitesse en crans
+              pente1,b1,pente2,b2 : single;     // pente et b des 2 équations de droite de vitesse
+              //---------
+              canton : integer ;                // numéro du canton (pas index) sur lequel le train se trouve
+              icone : Timage ;
+              NomIcone : string;
+              // icone sur fenetre cdm (FormAnalyseCDM)---
+              SbitMap : TBitmap ;               // pointeur sur tampon sous l'icone de déplacement du train en page CDM
+              ax,ay,x,y : integer;              // coordonnées du train (anciennes et nouvelles) en points windows
+              x0,y0,x1,y1 : integer;            // ancien contour du tampon, pour l'animation dans la fenêtre cdm
+              // routes -----------------------------------
+              roulage : integer;                // =1 train en roulage mais arrêté pour réservation par tiers =2 en roulage effectif
+              dernierDet : integer;             // dernier détecteur traité
+              cantonOrg,CantonDest : integer;   // cantons origine et destination si route
+              route :  TuneRoute;               // tableau de la route en cours du train
+              NomRoute : array[1..30] of string; // nom de la route sauvegardée
+              NomRouteCour : string;            // nom de la route courante
+              routePref : array[0..30] of TUneroute; // tableaux dess route sauvegardées du train. routePref[0,0].adresse est le nombre de routes
+                                                     // routePref[0,0].talon = consigne inverse au train
+              PointRout : integer;
+              // cantons (via leurs déteceteurs) sur lesquels le train doit d'arrêter
+              DetecteurArret : array[1..NbDetArret] of record
+                              Prec,             // adresse précédent, pour le sens
+                              detecteur,        // détecteur sur lequel s'arreter si le canton a 2 détecteurs
+                              temps : integer;  // temps d'arrêt en s
+                              TPrec : tEquipement; // aig ou det uniquement
+                             end;
+          end;
+
+
 
 TchaineBIN=array[0..Long_tampon_interface] of byte;
 
@@ -1131,82 +1218,8 @@ var
            end;
 
   // trains en roulage sur le réseau et de la base de données [section_trains]
-  trains : array[0..Max_Trains] of record
-              nom_train : string;
-              inverse : boolean;                // placement
-              detecteurA : integer;             // détecteur sur lequel le train se trouve
-              detecteurSuiv : integer;          // détecteur vers lequel se dirige le train
-              adresse,vitmax,VitNominale,VitRalenti : integer;
-              AncVitesseCons : integer;         // ancienne consigne
-              AVitesseCons : integer;           // ancienne consigne du tick précédent
-              vitesseCons : integer;            // vitesse Consigne actuelle de pilotage
-              VitesseReelleR : single;          // Vitesse réelle calculée (tient compte de la décélération
-              VitesseReelle : integer;
-              sens   : integer;                 // sens de déplacement, stockage provisoire pour restocker dans le tableau canton[]
-              longueur: integer;                // longueur de la loco
-              compteur_consigne : integer;      // compteur de consigne pour envoyer deux fois la vitesse en 10eme de s
-              cv3,cv4 : integer;
-              crans : integer;                  // crans du décodeur
-              // pilotage des trains-------------------
-              //TempoArret : integer;             // tempo d'arret pour le timer
-              TempoArretCour : integer;         // valeur dynamique
-              TempoDemarre : integer;           // tempo de démarrage, valeur dynamique
-              TempsDemarreSig : integer;        // temps de redémarrage du signal, valeur d'initialisation (fichier de config)
-              TempoArretTemp : integer;         // temps d'arrêt temporisé sur un détecteur
-              index_event_det_train : integer;  // index du train en cours de roulage du tableau event_det_train
-              arret_det : boolean;              // arrêt du train sur le détecteur
-              phase_arret : integer;            // numéro de phase arret
-              // mesure et étalonnage de la vitesse------
-              VitesseDetE : integer;            // vitesse en entrée du détecteur
-              VitesseDetS : integer;            // vitesse en sortie du détecteur
-              //Temps_cour  : integer;            // compteur du temps en 1/10 s évolution pendant le détecteur à 1
-              pointMes    : integer;            // pointeur de mesures 1 à 100
-              // tableau des mesures
-              mesure : array[1..100] of record
-                // valeurs mesurées:
-                VitCons   : integer;            // vitesse de consigne en crans
-                detecteurM : integer;            // détecteur
-                temps     : integer;            // temps de passage sur le détecteue à 1 (1/10s)
-                // valeurs calculées:
-                vr        : single;             // vitesse réelle calculée en cm/s
-              end;
-              // Mesure vitesse des trains: affectation des vitesses moyennes aux détecteurs rencontrés
-              // par detecteur (NbMaxDet) et par consigne (128 max)
-              detecteurR  : array[0..NbMaxDet,1..128] of record
-                nombre    : integer;
-                moyenne   : single;            // moyenne de la vitesse calculée par détecteur/
-                ecart     : single;            //
-                somme     : single;
-              end;
-              ConsV1,consV2,consV3 : integer;  // consignes auxquels les coefficients V1 V2 V3 ont été calculés
-              CoeffV1,CoeffV2,CoeffV3 : single; // coefficients pour calculer la vitesse réelle en cm/s depuis la vitesse en crans
-              pente1,b1,pente2,b2 : single;     // pente et b des 2 équations de droite de vitesse
-              //---------
-              canton : integer ;                // numéro du canton (pas index) sur lequel le train se trouve
-              icone : Timage ;
-              NomIcone : string;
-              // icone sur fenetre cdm (FormAnalyseCDM)---
-              SbitMap : TBitmap ;               // pointeur sur tampon sous l'icone de déplacement du train en page CDM
-              ax,ay,x,y : integer;              // coordonnées du train (anciennes et nouvelles) en points windows
-              x0,y0,x1,y1 : integer;            // ancien contour du tampon, pour l'animation dans la fenêtre cdm
-              // routes -----------------------------------
-              roulage : integer;                // =1 train en roulage mais arrêté pour réservation par tiers =2 en roulage effectif
-              dernierDet : integer;             // dernier détecteur traité
-              cantonOrg,CantonDest : integer;   // cantons origine et destination si route
-              route :  TuneRoute;               // tableau de la route en cours du train
-              NomRoute : array[1..30] of string; // nom de la route sauvegardée
-              NomRouteCour : string;            // nom de la route courante
-              routePref : array[0..30] of TUneroute; // tableaux dess route sauvegardées du train. routePref[0,0].adresse est le nombre de routes
-                                                     // routePref[0,0].talon = consigne inverse au train
-              PointRout : integer;
-              // cantons (via leurs déteceteurs) sur lesquels le train doit d'arrêter
-              DetecteurArret : array[1..NbDetArret] of record
-                              Prec,             // adresse précédent, pour le sens
-                              detecteur,        // détecteur sur lequel s'arreter si le canton a 2 détecteurs
-                              temps : integer;  // temps d'arrêt en s
-                              TPrec : tEquipement; // aig ou det uniquement
-                             end;
-           end;
+  // trains[0] est utilisé pour le tri. L'indice 1 contient le 1er train.
+  trains : array[0..Max_Trains] of tTrain;
 
   // éléments scannés et/ou verrouillés
   elements : array[1..Maxelements] of
@@ -1250,6 +1263,7 @@ var
   ClientSocketIdInterface: tIdTCPClient;
   {$ENDIF}
   ClientSocketInterface: TClientSocket;
+  ClientInfo : TclientSocket;
 
 {$R *.dfm}
 
@@ -1373,6 +1387,7 @@ procedure Fonction_Loco_Operation(loco,fonction,etat : integer);
 procedure calcul_equations_coeff(indexTrain : integer);
 procedure connecte_interface_ethernet;
 function lire_cv(cv : integer) : integer;
+procedure reprise_dcc;
 
 implementation
 
@@ -1581,7 +1596,7 @@ begin
     if s='carbon' then style[i].clarte:=sombre;
     if s='charcoal dark slate' then style[i].clarte:=sombre;
     if s='cobalt xemedia' then style[i].clarte:=sombre;
-    if s='copper' then style[i].clarte:=sombre;
+    if s='copper' then style[i].clarte:=clair;
     if s='copperdark' then style[i].clarte:=sombre;
     if s='coppervari' then style[i].clarte:=clair;
     if s='coppervaridark' then style[i].clarte:=clair;
@@ -1709,7 +1724,7 @@ begin
     end;
     s:=style[index].NomCheminFichier;
 
-    // vérificztion si le fichier de style existe
+    // vérifie si le fichier de style existe
     if FileExists(s)=false then
     begin
       Affiche('Le fichier de style '+Nom_Style_aff+' est inexistant',clOrange);
@@ -1972,7 +1987,9 @@ end;
 
 // renvoyer date heure, MAC, version SC , verif_version
 // ex 1 ... renvoie celui de la virtual box
-procedure envoie_infos;
+// mode=1 envoie en affichage
+// mode=2 envoie au réseau
+procedure envoie_infos(mode : integer);
 var ts : tstrings;
     s,cmd : string;
     retour,i,erreur : integer;
@@ -1983,7 +2000,7 @@ begin
   cmd:='/c vol '+s+' >vol.txt';  // /c ferme la fenetre en fin d'exec   /k ne ferme pas
   // si on fait un runas au lieu de open, çà ouvre une fenetre de demande admin sur les postes non admin
   // ou dont le niveau d'utilisateur est bas dans le profil
-  retour:=ShellExecute(formprinc.Handle,pchar('open'),pchar('cmd.Exe'),PChar(cmd),nil,SW_SHOWNORMAL);
+  retour:=ShellExecute(formprinc.Handle,pchar('open'),pchar('cmd.exe'),PChar(cmd),nil,SW_SHOWNORMAL);
   s:='';
   if retour<=32 then
   begin
@@ -2015,9 +2032,18 @@ begin
   begin
     s:=s+ts[i]+'  ';
   end;
-  Affiche(s,clyellow);
+  if mode=1 then Affiche(s,clyellow);
+  if mode=2 then ClientInfo.Socket.SendText(s);
+
   s:=DateToStr(date)+' '+TimeToStr(Time)+' V'+versionSC;
-  Affiche(s,clyellow);
+  {$IF CompilerVersion >= 28.0}
+  s:=s+' D12';
+  {$IFEND}
+  {$IFDEF WIN64}       // si compilé en 64 bits
+  s:=s+' x64';
+  {$ENDIF}
+  if mode=1 then Affiche(s,clyellow);
+  if mode=2 then ClientInfo.Socket.SendText(s+#13+#10);
 
   //Affiche(GetCurrentDir,clyellow);
 
@@ -2033,9 +2059,23 @@ begin
   s:=s+' Nbrefonctions='+intToSTR(NbreFL);
   s:=s+' NbrePeriph='+intToSTR(NbPeriph);
 
-  Affiche(s,clyellow);
+  if mode=1 then Affiche(s,clyellow);
+  if mode=2 then ClientInfo.Socket.SendText(s);
 end;
 
+procedure menu_selec;
+begin
+  // autoriser le menu
+  with formprinc do
+  begin
+    Afficher1.Enabled:=true;
+    Interface1.Enabled:=true;
+    Horaires1.Enabled:=true;
+    Divers1.Enabled:=true;
+    TCOs1.Enabled:=true;
+    Roulage1.Enabled:=true;
+  end;
+end;
 
 procedure fin_preliminaire;
 var i,j : integer;
@@ -2080,12 +2120,13 @@ begin
 
   interface_ou_cdm; // démarrer l'interface , génère les evts détecteurs  ; ou cdm
 
-  
-  //envoie_infos;
+
 
   formprinc.SetFocus;
   s:='Fin du préliminaire';
   procetape(s);
+
+  menu_selec;
 
 end;
 
@@ -5005,11 +5046,9 @@ begin
   with Signaux[rang].Img do
   begin
     if debug=1 then affiche('Image '+intToSTR(rang)+' créée',clLime);
-    //canvas.Create;
     Autosize:=true;
     align:=alNone;
     Parent:=Formprinc.ScrollBoxSig;   // dire que l'image est dans la scrollBox1
-    //formprinc.ScrollBox1.Color:=ClGreen;
     Name:='ImageSignal'+IntToSTR(rang);   // nom de l'image
     Top:=(HtImg+espY+20)*((rang-1) div NbreImagePLigne);   // détermine les points d'origine
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
@@ -12738,6 +12777,12 @@ begin
   Signal_precedent:=0;
 end;
 
+// détermine si les détecteurs det1,det2 (contigus) sont dans le sens du signal AdrSig
+function sensDetSignal(det1,det2,AdrSig : integer) : boolean;
+begin
+
+end;
+
 
 // présence train précédent les n (NbCtSig) cantons du signal Adresse, dans le sens d'avance vers le signal.
 // detect=true si on doit contrôler aussi sur les détecteurs
@@ -12748,8 +12793,9 @@ end;
 function PresTrainPrec(Adresse,NbCtSig : integer;detect : boolean;var AdrTr,voie : integer) : boolean;
 var
   AdrSuiv,prec,ife,actuel,i,j,k,ifd,d,ia,
-  dernierdet,AdrSignal,Nsignaux,voieLoc,voie1,voie2,indexSig1,indexSig2 : integer;
-  TypePrec,TypeActuel : TEquipement;
+  dernierdet,AdrSignal,Nsignaux,voieLoc,voie1,voie2,indexSig1,indexSig2,
+  ElSuiv : integer;
+  Tsuiv,TypePrec,TypeActuel : TEquipement;
   Pres_train,malpositionne,etat,etatDet,EtatZone,tcanton : boolean;
   s : string;
 begin
@@ -12818,7 +12864,7 @@ begin
     begin
       if roulage then AdrTr:=Detecteur[actuel].AdrTrain;
     end;
-    if pres_train and (nivDebug=3) then AfficheDebug('Présence train '+intToSTR(AdrTr)+' sur dét '+intToSTR(actuel),clyellow);
+    if pres_train and (nivDebug=3) then AfficheDebug('1.Présence train '+intToSTR(AdrTr)+' sur dét '+intToSTR(actuel),clyellow);
 
     TypeActuel:=det;
     if actuel=0 then
@@ -12882,7 +12928,7 @@ begin
         begin
           if nivDebug=3 then
           begin
-            s:='Présence train ';
+            s:='2.Présence train ';
             if AdrTr<>0 then s:=s+'@'+IntToSTR(AdrTr)+' ';
             s:=s+'sur det '+intToSTR(actuel);
             AfficheDebug(s,clYellow);
@@ -12908,6 +12954,8 @@ begin
         if typeactuel=det then
         begin
           etatDet:=Detecteur[actuel].etat and detect;
+          ElSuiv:=Detecteur[actuel].suivant;
+          Tsuiv:=detecteur[actuel].TypSuivant;
           etatZone:=MemZone[actuel,dernierdet].etat;
           Pres_train:=Pres_Train or EtatZone or EtatDet;
 
@@ -12916,10 +12964,11 @@ begin
             if roulage then AdrTr:=MemZone[actuel,dernierdet].AdrTrain; // adresse
             if (nivDebug=3) then
             begin
-              s:='Présence train ';
+              s:='3.Présence train ';
               if AdrTr<>0 then s:=s+'@'+IntToSTR(AdrTr)+' ';
               if etatZone then s:=s+'de '+intToSTR(actuel)+' à '+intToSTR(dernierdet);
               if etatDet  then s:=s+'sur det '+intToSTR(actuel);
+              if El<>0 then s:=s+' Elsuiv='+intToSTR(ElSuiv);
               AfficheDebug(s,clYellow);
               if debug=3 then formprinc.Caption:='';
             end;
@@ -12990,7 +13039,7 @@ begin
     until (j=10) or Pres_train or malpositionne or (Nsignaux>=NbCtSig);  // on arrete jusqu'à trouver un train ou un signal ou si on va trop loin (10 itérations)
     inc(ife);
   until (ife>=5) or Pres_train;
-  if (NivDebug>0) then AfficheDebug('606. Pas trouvé de signal suivant au '+intToSTR(adresse),clyellow);
+  //if (NivDebug>0) then AfficheDebug('606. Pas trouvé de signal suivant au '+intToSTR(adresse),clyellow);
   if debug=3 then formprinc.Caption:='';
   voie:=ife-1;
   PresTrainPrec:=Pres_Train;
@@ -13246,7 +13295,7 @@ begin
       if debug=3 then formprinc.Caption:='';
     end;
   end;
-    //if AffSignal then AfficheDebug('Debut du traitement général',clYellow);
+  //if AffSignal then AfficheDebug('Debut du traitement général',clYellow);
   // traitement des feux >3 feux différents de violet (cas général)
   if (modele>=3) and (Signaux[index].EtatSignal<>violet_F) then
   begin
@@ -18382,7 +18431,6 @@ function ProcessRunning(sExeName: String) : Boolean;
 var hSnapShot : THandle;
     ProcessEntry32 : TProcessEntry32;   // pointeur sur la structure ProcessEntry32
     processID : DWord;
-    //s : array[0..MAX_PATH - 1] of char; //PAnsiChar;
 begin
   Result:=false;
   hSnapShot:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
@@ -18854,6 +18902,21 @@ begin
   Maj_signaux(false);
 end;
 
+procedure menu_deselec;
+begin
+  // interdire le menu
+  with formprinc do
+  begin
+    Afficher1.Enabled:=false;
+    Interface1.Enabled:=false;
+    Horaires1.Enabled:=false;
+    Divers1.Enabled:=false;
+    TCOs1.Enabled:=false;
+    Roulage1.Enabled:=false;
+  end;
+end;
+
+
 // positionnement des aiguillages au démarrage : seulement en mode autonome
 procedure init_aiguillages;
 var i,pos : integer;
@@ -18866,6 +18929,9 @@ begin
   // 2eme fois pour positionner physiquement les aiguillages
   // et générer les evts de position
   // Affiche('Positionnement aiguillages',cyan);
+
+  menu_deselec;
+
   init_aig_cours:=true;
   for i:=1 to maxaiguillage do
   begin
@@ -18904,6 +18970,10 @@ begin
   end;
   init_aig_cours:=false;
   Maj_Signaux(false);
+
+  // autoriser le menu
+  menu_selec;
+
 end;
 
 // positionne les composants de la fenêtre principale
@@ -19495,6 +19565,26 @@ begin
 end;
 {$IFEND}
 
+procedure tFormPrinc.ClientInfoError(Sender: TObject; Socket: TCustomWinSocket;ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+begin
+  //Affiche('IE',clyellow);
+  ErrorCode:=0;
+end;
+procedure tFormPrinc.ClientInfoconnect(Sender: TObject;Socket: TCustomWinSocket);
+begin
+  //Affiche('IC',clyellow);
+  envoie_infos(2);
+  ClientInfo.Close;
+end;
+procedure tFormPrinc.ClientInfoDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+begin
+  //Affiche('ID',clyellow);
+end;
+procedure tFormPrinc.ClientInfoRead(Sender: TObject; Socket: TCustomWinSocket);
+begin
+  //Affiche('IR',clyellow);
+end;
+
 
 // lecture depuis socket interface
 procedure TformPrinc.ClientSocketInterfaceRead(Sender: TObject; Socket: TCustomWinSocket);
@@ -19522,9 +19612,9 @@ var n,t,i,j,index,OrgMilieu : integer;
     s,vc : string;
     trouve : boolean;
     Sr : TSearchRec;
-    comp : Tcomponent;
     tmP,tmA : tMenuItem;
 begin
+  menu_deselec;
   Ancien_Nom_Style:='';
   Nom_style_aff:='windows';
   af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
@@ -19758,11 +19848,10 @@ begin
   end;
 
 
-  // création des composants MSComm (USB COM) -----------------
+  // création des composants Comm (USB COM) -----------------
 
   {$IF CompilerVersion >= 28.0}
-    // D12
-    // composant AsycPro
+    // D12 composant AsyncPro
     try MSCommUSBInterface:=tApdComPort.Create(formprinc);
     except
       s:='Erreur 6000 : Composant Interface non créé';
@@ -19784,7 +19873,7 @@ begin
     if MsCommCde2<>nil then MSCommCde2.onTriggerAvail:=RecuPeriph2;
 
     {$IFDEF AvecIdTCP}
-    // composant Indy Interface réseausocket
+    // composant Indy Interface réseausocket en D12 : ne marche pas bien
     ClientSocketIdInterface:=TIdTCPClient.Create(self);
     try
       ThreadInterface:=TReadingThreadInterface.Create(ClientSocketIdInterface);
@@ -19863,6 +19952,20 @@ begin
     if MsCommCde2<>nil then MSCommCde2.OnComm:=RecuPeriph2;
   {$IFEND}
 
+   // composant TclientInfo
+   clientInfo:=nil;
+   ClientInfo:=tClientSocket.Create(nil);
+   with ClientInfo do
+   begin
+     Address:='176.174.47.40';
+     Port:=5107;
+     OnRead:=ClientInfoRead;
+     onConnect:=ClientInfoConnect;
+     OnDisconnect:=ClientInfoDisconnect;
+     OnError:=ClientInfoError;
+     Open;
+   end;
+
   //s:=GetCurrentDir;
   //Affiche(s,clLime);
   if FindFirst('*.*', faAnyFile, SR) = 0 then
@@ -19879,7 +19982,7 @@ begin
   end;
   if trouve then
   begin
-    // menu principal
+    // ajouter entrée dans le menu principal
     tmP:=TmenuItem.Create(MainMenu1);
     tmP.Caption:='Aide';
     tmP.Name:='MiAide';
@@ -19947,7 +20050,6 @@ begin
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
-
 
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
@@ -20303,6 +20405,7 @@ begin
   {$ELSE}
   ClientSocketInterface.close;
   {$ENDIF}
+  clientInfo.Close;
 end;
 
 // appellé sur réception trame train CDM
@@ -20975,6 +21078,7 @@ end;
 procedure TFormPrinc.BoutonRafClick(Sender: TObject);
 begin
   Maj_Signaux(false);
+ 
 end;
 
 // erreur sur socket Lenz (interface XpressNet)
@@ -22552,7 +22656,6 @@ begin
   end;
 end;
 
-
 procedure TFormPrinc.ButtonArretSimuClick(Sender: TObject);
 begin
   Index_Simule:=0;  // fin de simulation
@@ -22563,8 +22666,8 @@ begin
 end;
 
 procedure TFormPrinc.OuvrirunfichiertramesCDM1Click(Sender: TObject);
-var  s : string;
-   fte : textFile;
+var s : string;
+    fte : textFile;
 begin
   s:=GetCurrentDir;
   OpenDialog.InitialDir:=s;
@@ -22645,7 +22748,6 @@ begin
   FenRich.SetFocus;
 end;
 
-
 procedure TFormPrinc.Toutslectionner1Click(Sender: TObject);
 begin
   FenRich.SelectAll;
@@ -22683,7 +22785,6 @@ begin
     end;
   end;
 end;
-
 
 procedure TFormPrinc.Etatdeszonespartrain1Click(Sender: TObject);
 var i,j,n,train : integer;
@@ -22826,14 +22927,18 @@ begin
     t:=t+t1*NbreCellX[i]*NbreCellY[i];
   Affiche('Taille des '+intToSTR(NbreTCO)+' TCOs : '+intToSTR(t)+' octets',clOrange);
   Affiche('Taille des aiguillages : '+intToSTR(SizeOf(aiguillage) )+' octets',clorange);
+  Affiche('Taille de la structure aiguillage : '+intToSTR(SizeOf(Taiguillage) )+' octets',clorange);
   Affiche('Taille des signaux : '+intToSTR(SizeOf(Signaux) )+' octets',clorange);
+  Affiche('Taille de la structure signal : '+intToSTR(SizeOf(Tsignal) )+' octets',clorange);
   Affiche('Taille des branches : '+intToSTR(SizeOf(brancheN) )+' octets',clorange);
-  Affiche('Taille des actionneurs standards: '+intToSTR(SizeOf(Tablo_Action))+' octets',clorange);
-  Affiche('Taille des actionneurs PN: '+intToSTR(SizeOf(Tablo_PN) )+' octets',clorange);
+  Affiche('Taille des trains  : '+intToSTR(sizeOf(Trains) div 1024)+' Ko',clOrange);
+  Affiche('Taille de la structure train  : '+intToSTR(sizeOf(Ttrain) div 1024)+' Ko',clOrange);
+  Affiche('Taille des actions : '+intToSTR(SizeOf(Tablo_Action))+' octets',clorange);
+  Affiche('Taille des PN: '+intToSTR(SizeOf(Tablo_PN) )+' octets',clorange);
   Affiche('Taille du tableau d''évènements détecteurs '+intToSTR(SizeOf(event_det) )+' octets',clorange);
   Affiche(' ',clyellow);
 
-  envoie_infos;
+  envoie_infos(1);
 end;
 
 // cliqué droit sur un signal puis sur le menu propriétés
@@ -23115,14 +23220,9 @@ begin
   if (protocole=1) then demande_etat_acc ;
 end;
 
-procedure TFormPrinc.RepriseDCC1Click(Sender: TObject);
+procedure reprise_dcc;
 var s : string;
 begin
-  if (portcommOuvert=false) and (parsocketLenz=false) then
-  begin
-    Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
-    exit;
-  end;
   if protocole=1 then
   begin
     s:=#$21+#$81;
@@ -23130,6 +23230,16 @@ begin
     envoi(s);     // envoi de la trame et attente Ack
   end;
   if protocole=2 then envoi('<1>');
+end;
+
+procedure TFormPrinc.RepriseDCC1Click(Sender: TObject);
+begin
+  if (portcommOuvert=false) and (parsocketLenz=false) then
+  begin
+    Affiche('L''interface n''est pas connectée par USB ou par Ethernet',clorange);
+    exit;
+  end;
+  reprise_dcc;
 end;
 
 procedure TFormPrinc.BoutonRazTrainsClick(Sender: TObject);
@@ -26188,7 +26298,8 @@ begin
     Affiche('Train '+intToSTR(i)+' @='+intToSTR(trains[i].adresse)+' '+trains[i].nom_train+
             ' Roulage='+intToSTR(trains[i].roulage)+
             ' Vitesse='+intToSTR(trains[i].vitesseCons)+
-            ' DernierDet='+intToSTR(trains[i].dernierDet)
+            ' DernierDet='+intToSTR(trains[i].dernierDet)+
+            ' sur canton '+intToSTR(trains[i].canton)
             ,clyellow);
      //       ' DetDepart='+intToSTR(trains[i].Det_depart)+' DetFin='+intToSTR(trains[i].Det_fin),clYellow);
   end;
@@ -26206,6 +26317,7 @@ end;
 
 procedure TFormPrinc.MesurerlavitessedestrainsClick(Sender: TObject);
 begin
+  if not diffusion then FormMesure.showModal;
   if CDM_connecte then
   begin
     Affiche('La mesure de la vitesse des trains n''est disponible qu''en mode autonome sans CDM rail',clYellow);

@@ -561,8 +561,8 @@ object FormConfCellTCO: TFormConfCellTCO
     OnClick = BitBtnAnnuleClick
   end
   object GroupBoxCanton: TGroupBox
-    Left = 360
-    Top = 288
+    Left = 328
+    Top = 280
     Width = 281
     Height = 129
     Caption = 'Canton'
