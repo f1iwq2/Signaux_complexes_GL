@@ -307,9 +307,11 @@ version 9.75 : Corrections dans le TCO.
 version 9.76 : Amélioration de l'importation des réseaux depuis CDM rail.
                Correction de l'affichage du réseau CDM en version x64.
                Renforcement de la vérification de la configuration.
-version 9.77 : Amélioratios diverses.
+version 9.77 : Améliorations diverses.
                Correction de quelques bugs.
-
+version 9.78 : Correction du déclencheur "démarrage train"
+version 9.79 : Corrections et améliorations diverses.
+version 9.8  : Intégration des claviers et boutons rotatifs USB
 
 			  
 			   

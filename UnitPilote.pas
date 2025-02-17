@@ -73,6 +73,7 @@ type
 // code des aspects des signaux
 const
 
+// signaux français
 carre            =0 ; carre_F=1;
 semaphore        =1 ; semaphore_F=2;
 semaphore_cli    =2 ; semaphore_cli_F=4;
@@ -92,7 +93,7 @@ Disque_D         =14; // pour décodeur LDT
 ral_60_jaune_cli =15;ral_60_jaune_cli_F=32768; // pour décodeur LDT
 aspect8          =16 ;
 
-// signal belge
+// signaux belges
 // base
 vert_jaune_H     =0 ; vert_jaune_H_F=1; // signal belge
 rouge            =1 ; rouge_F=2;

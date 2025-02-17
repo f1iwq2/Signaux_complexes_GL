@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 103
-  Top = 192
+  Left = 80
+  Top = 204
   Width = 1146
   Height = 625
   Anchors = [akLeft, akTop, akRight]
@@ -11,6 +11,7 @@ object FormPrinc: TFormPrinc
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   Menu = MainMenu1
   OldCreateOrder = False
   Position = poDefault
@@ -18,10 +19,11 @@ object FormPrinc: TFormPrinc
   Visible = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   DesignSize = (
-    1138
-    574)
+    1130
+    567)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1445,8 +1447,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 552
-    Width = 1138
+    Top = 545
+    Width = 1130
     Height = 22
     Panels = <
       item
@@ -1513,20 +1515,6 @@ object FormPrinc: TFormPrinc
       OnChange = FenRichChange
       OnMouseDown = FenRichMouseDown
     end
-    object ScrollBoxSig: TScrollBox
-      Left = 536
-      Top = 176
-      Width = 465
-      Height = 249
-      HorzScrollBar.Increment = 48
-      HorzScrollBar.Tracking = True
-      VertScrollBar.Smooth = True
-      VertScrollBar.Tracking = True
-      Anchors = [akTop, akRight]
-      Color = clSilver
-      ParentColor = False
-      TabOrder = 1
-    end
     object GroupBoxAcc: TGroupBox
       Left = 497
       Top = 5
@@ -1534,7 +1522,7 @@ object FormPrinc: TFormPrinc
       Height = 52
       Anchors = [akTop, akRight]
       Caption = 'Commande d'#39'accessoires'
-      TabOrder = 2
+      TabOrder = 1
       object Label2: TLabel
         Left = 7
         Top = 24
@@ -1591,7 +1579,7 @@ object FormPrinc: TFormPrinc
       Height = 129
       Anchors = [akTop, akRight]
       Caption = 'Commande aux trains'
-      TabOrder = 3
+      TabOrder = 2
       object Label4: TLabel
         Left = 8
         Top = 22
@@ -1784,6 +1772,7 @@ object FormPrinc: TFormPrinc
         Top = 16
         Width = 145
         Height = 21
+        Style = csDropDownList
         ItemHeight = 13
         TabOrder = 3
         OnChange = ComboTrainsChange
@@ -1844,7 +1833,7 @@ object FormPrinc: TFormPrinc
       Width = 281
       Height = 180
       Anchors = [akTop, akRight]
-      TabOrder = 4
+      TabOrder = 3
       DesignSize = (
         281
         180)
@@ -1986,15 +1975,15 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 561
-      Top = 40
+      Left = 753
+      Top = 32
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]
       Caption = 'Variables CV'
       Color = clBtnFace
       ParentColor = False
-      TabOrder = 5
+      TabOrder = 4
       object Label3: TLabel
         Left = 208
         Top = 42
@@ -2049,6 +2038,47 @@ object FormPrinc: TFormPrinc
         TabOrder = 3
       end
     end
+    object PageControl: TPageControl
+      Left = 536
+      Top = 232
+      Width = 305
+      Height = 193
+      ActivePage = TabSheetTrains
+      TabOrder = 5
+      object TabSheetSig: TTabSheet
+        Caption = 'Signaux'
+        DesignSize = (
+          297
+          165)
+        object ScrollBoxSig: TScrollBox
+          Left = 0
+          Top = 4
+          Width = 137
+          Height = 161
+          HorzScrollBar.Increment = 48
+          HorzScrollBar.Tracking = True
+          VertScrollBar.Smooth = True
+          VertScrollBar.Tracking = True
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          Color = clSilver
+          ParentColor = False
+          TabOrder = 0
+        end
+      end
+      object TabSheetTrains: TTabSheet
+        Caption = 'Trains'
+        ImageIndex = 1
+        object ScrollBoxTrains: TScrollBox
+          Left = 8
+          Top = 24
+          Width = 241
+          Height = 65
+          Color = clSilver
+          ParentColor = False
+          TabOrder = 0
+        end
+      end
+    end
   end
   object ButtonEssai: TButton
     Left = 504
@@ -2057,6 +2087,7 @@ object FormPrinc: TFormPrinc
     Height = 25
     Caption = 'Essai'
     TabOrder = 2
+    OnClick = ButtonEssaiClick
   end
   object Timer1: TTimer
     Interval = 100
@@ -2540,5 +2571,13 @@ object FormPrinc: TFormPrinc
     OnClientDisconnect = ServerSocketClientDisconnect
     OnClientRead = ServerSocketClientRead
     Left = 320
+  end
+  object PopupMenuTrains: TPopupMenu
+    OnPopup = PopupMenuTrainsPopup
+    Left = 1008
+    object Propritsdutrain1: TMenuItem
+      Caption = 'Propri'#233't'#233's du train'
+      OnClick = Propritsdutrain1Click
+    end
   end
 end

@@ -26,7 +26,7 @@ var
   f : text;
 
 Const
-VersionSC = '9.77'; // sert à la comparaison de la version publiée
+VersionSC = '9.8'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -39,7 +39,6 @@ SHCONTF_NONFOLDERS=64;
 function GetCurrentProcessEnvVar(const VariableName: string): string;
 function verifie_version : real;
 function DownloadURL_NOCache(aUrl: string;s : string;var taille : longint): Boolean;
-function Unzip(zipfile : oleVariant): boolean;
 
 implementation
 
@@ -173,6 +172,59 @@ begin
   log(s+' copié',clLime);
 end;
 
+// dézipe un fichier. Si réussi : result=true
+function Unzip(zipfile : oleVariant): boolean;
+var
+  shellobj,srcfldr, destfldr, shellfldritems,repertoire: Olevariant;
+  filtre: string;
+  i : integer;
+  erreur : integer;
+begin
+  result:=false;
+  filtre:='';
+  zipfile:=lowercase(zipfile);
+  i:=pos('.zip',zipfile);
+  if i=0 then
+  begin
+    log('Fichier zip : '+zipfile+' incorrect',clred);
+    exit;
+  end;
+  filtre:=zipfile;
+  delete(filtre,i,4);
+
+  // créer le répertoire destination du zip (obligatoire car la commande de dézippe ne le créée pas)
+  if not(Cree_dir(filtre)) then
+  begin
+    log('Création répertoire '+filtre+' impossible',clred);
+    exit;
+  end;
+
+  repertoire:=filtre;  // mettre dans olevariant
+
+  filtre:='';
+  shellobj:=CreateOleObject('Shell.Application');
+  srcfldr:=ShellObj.NameSpace(Zipfile);
+  if not((VarType(srcfldr)=varDispatch) and Assigned(TVarData(srcfldr).VDispatch)) then
+  begin
+    log('Fichier '+zipfile+ ' invalide ou absent',clred);
+    exit;
+  end;
+
+  destfldr:=ShellObj.NameSpace(repertoire);
+  if not ((VarType(destfldr)=varDispatch) and Assigned(TVarData(destfldr).VDispatch)) then
+  begin
+    log('Répertoire destination invalide : '+ repertoire,clred);
+    exit;
+  end;
+
+  shellfldritems:=srcfldr.Items;
+  if (filtre<>'') then shellfldritems.Filter(SHCONTF_INCLUDEHIDDEN or SHCONTF_NONFOLDERS or SHCONTF_FOLDERS,filtre);
+
+  //destfldr.CopyHere(shellfldritems, SHCONTCH_NOPROGRESSBOX or SHCONTCH_RESPONDYESTOALL);
+  destfldr.CopyHere(shellfldritems,  SHCONTCH_RESPONDYESTOALL);
+  result:=true;
+end;
+
 
 // dézipe copie les fichiers et lance la nouvelle version
 // s : chemin et fichier à déziper
@@ -227,6 +279,7 @@ begin
 
   if i>32 then
   begin
+    fermeSC:=true;
     Application.Terminate;
   end
   else
@@ -572,50 +625,6 @@ begin
   Result:=(0=ShFileOperation(fos));
 end;
 
-function Unzip(zipfile : oleVariant): boolean;
-var
-  shellobj,srcfldr, destfldr, shellfldritems,repertoire: Olevariant;
-  filtre: string;
-  i : integer;
-  erreur : integer;
-begin
-  filtre:='';
-  zipfile:=lowercase(zipfile);
-  i:=pos('.zip',zipfile);
-  if i=0 then exit;
-  filtre:=zipfile;
-  delete(filtre,i,4);
-
-  // créer le répertoire destination du zip (obligatoire car la commande de dézippe ne le créée pas)
-  if not(Cree_dir(filtre)) then exit;
-
-  repertoire:=filtre;  // mettre dans olevariant
-
-  filtre:='';
-  shellobj:=CreateOleObject('Shell.Application');
-  srcfldr:=ShellObj.NameSpace(Zipfile);
-  if not((VarType(srcfldr)=varDispatch) and Assigned(TVarData(srcfldr).VDispatch)) then
-  begin
-    log('Fichier '+zipfile+ ' invalide ou absent',clred);
-    result:=false;
-    exit;
-  end;
-
-  destfldr:=ShellObj.NameSpace(repertoire);
-  if not ((VarType(destfldr)=varDispatch) and Assigned(TVarData(destfldr).VDispatch)) then
-  begin
-    log('Répertoire destination invalide : '+ repertoire,clred);
-    result:=false;
-    exit;
-  end;
-
-  shellfldritems:=srcfldr.Items;
-  if (filtre<>'') then shellfldritems.Filter(SHCONTF_INCLUDEHIDDEN or SHCONTF_NONFOLDERS or SHCONTF_FOLDERS,filtre);
-
-  //destfldr.CopyHere(shellfldritems, SHCONTCH_NOPROGRESSBOX or SHCONTCH_RESPONDYESTOALL);
-  destfldr.CopyHere(shellfldritems,  SHCONTCH_RESPONDYESTOALL);
-  result:=true;
-end;
 
 
 begin

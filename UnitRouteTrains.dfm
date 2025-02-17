@@ -4,7 +4,7 @@ object FormRouteTrain: TFormRouteTrain
   BorderStyle = bsDialog
   Caption = 'Liste des routes affect'#233'es et m'#233'moris'#233'es aux trains'
   ClientHeight = 194
-  ClientWidth = 853
+  ClientWidth = 850
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -53,7 +53,7 @@ object FormRouteTrain: TFormRouteTrain
     Top = 8
     Width = 585
     Height = 177
-    ActivePage = TabSheetRA
+    ActivePage = TabSheetRM
     TabOrder = 1
     object TabSheetRA: TTabSheet
       Caption = 'Route affect'#233'e'

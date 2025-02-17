@@ -54,7 +54,7 @@ uses UnitPrinc,unitTCO;
 procedure arret_mesure ;
 begin
   mesureTrains:=false;
-  vitesse_loco('',0,trains[indexTrainMes].adresse,0,10);
+  vitesse_loco('',0,trains[indexTrainMes].adresse,0,10,ActionVitesse);  // action vitesse pour ne pas générer d'event vitesse
   with formMesure do
   begin
     ComboBoxTrains.Enabled:=true;
@@ -219,7 +219,7 @@ begin
 
 
   mesureTrains:=true;
-  vitesse_loco('',0,trains[indexTrainMes].adresse,v1,10);
+  vitesse_loco('',0,trains[indexTrainMes].adresse,v1,10,ActionVitesse);  // ActionVitesse pour ne pas générer d'event_vitesse
 
   LabelMesC.Visible:=true;
   LabelMesC.top:=178;

@@ -163,13 +163,11 @@ uses Unitprinc, UnitConfigCellTCO, UnitConfig;
 
 {$R *.dfm}
 
-// rend tous les composants invisibles
-procedure efface_tous_parametres;
+procedure efface_champs_declencheurs_conditions;
 begin
-  with FormModifAction do
+  with formModifAction do
   begin
-    //r:=Rect(
-   //  r:=TRect(ListBoxDeclench.handle,0,i*10,ListBoxDeclench.width,16);
+    // déclencheurs
     RadioEtatSignal.Visible:=false;
     LabelAdresse.Visible:=false;
     SpinEditEtat.Visible:=false;
@@ -178,8 +176,33 @@ begin
     EditAdr2.Visible:=false;
     LabelTrain.Visible:=false;
     EditTrainDecl.Visible:=false;
-    LabelPeriph.Visible:=false;
     LabelEtat.Visible:=false;
+    LabelInfoFonc.Visible:=false;
+    ButtonFonction.Visible:=false;
+    // conditions
+    Champ1.Visible:=false;
+    Champ2.Visible:=false;
+    SpinEditHeure1.visible:=false;
+    SpinEditMn1.visible:=false;
+    SpinEditHeure2.visible:=false;
+    SpinEditMn2.visible:=false;
+    LabelHeureDebut.Visible:=false;
+    LabelHeureFin.Visible:=false;
+    LabelEtat2.Visible:=false;
+    SpinEditEtat2.Visible:=false;
+    ChampTrain.Visible:=false;
+    ButtonVoirFonc.Visible:=false;
+    Label2InfoFonction.visible:=false;
+  end;
+
+end;
+
+// rend invisibles les champs opérations
+procedure efface_champs_operations;
+begin
+  with FormModifAction do
+  begin
+    LabelPeriph.Visible:=false;
     LabeledEditTempoF.Visible:=false;
     LabeledEditTrain.Visible:=false;
     SpeedButtonJoue.visible:=false;
@@ -192,21 +215,6 @@ begin
     labelEtatOp.Visible:=false;
     RichEditInf.clear;
     ComboBoxAccComUSB.visible:=false;
-    Champ1.Visible:=false;
-    Champ2.Visible:=false;
-    LabelHeureDebut.Visible:=false;
-    LabelHeureFin.Visible:=false;
-    SpinEditHeure1.visible:=false;
-    SpinEditMn1.visible:=false;
-    SpinEditHeure2.visible:=false;
-    SpinEditMn2.visible:=false;
-    LabelEtat2.Visible:=false;
-    SpinEditEtat2.Visible:=false;
-    ChampTrain.Visible:=false;
-    ButtonVoirFonc.Visible:=false;
-    ButtonFonction.Visible:=false;
-    LabelInfoFonc.Visible:=false;
-    Label2InfoFonction.visible:=false;
   end;
 end;
 
@@ -287,7 +295,8 @@ begin
                           'Double clic pour valider/dévalider une opération';
   LabeledEditFonctionF.Hint:='Fonction F de 0 à 28';
 
-  Efface_tous_parametres;
+  Efface_champs_operations;
+  Efface_champs_declencheurs_conditions;
   PageControlAct.ActivePage:=TabSheetDecl;
 end;
 
@@ -338,7 +347,7 @@ var
   i,erreur: Integer;
   ItemText: string;
 begin
-  //Affiche('Evt ListBoxOperationsDrawItem',clyellow);
+  if affevt then Affiche('Evt ListBoxOperationsDrawItem '+intToSTR(index),clyellow);
   with ListBoxOperations do
   begin
     ItemText:=Items[index];
@@ -390,9 +399,9 @@ begin
   DeclZoneDet :
      s:=s+'Zone détection '+intToSTR(Tablo_Action[i].adresse)+' '+intToSTR(Tablo_Action[i].adresse2);
   DeclDemarTrain :
-     s:=s+'démarrage du train '+Tablo_Action[i].trainDecl+' au seuil de '+intToSTR(Tablo_Action[i].adresse);
+     s:=s+'démarrage du train '+Tablo_Action[i].trainDecl;
   DeclArretTrain :
-     s:=s+'arrêt du train '+Tablo_Action[i].trainDecl+' au seuil de '+intToSTR(Tablo_Action[i].adresse);
+     s:=s+'arrêt du train '+Tablo_Action[i].trainDecl;
   DeclSignal :
     begin
      s:=s+'changement du signal '+intToSTR(Tablo_Action[i].adresse);
@@ -481,15 +490,187 @@ begin
   result:=s;
 end;
 
+procedure affiche_champs_operations(index,indexaction : integer);
+var nb,act : integer;
+begin
+  Nb:=Tablo_Action[index].NbOperations;
+  // si pas d'action sélectionnée et que la liste n'est pas nulle, sélectionner la première
+  if (Nb>0) and (indexAction=0) then
+  begin
+    indexAction:=1;
+    formModifAction.listBoxOperations.itemIndex:=indexaction;
+    formModifAction.listBoxOperations.Selected[indexaction-1]:=true;
+  end;
+
+  efface_champs_operations;
+
+  if Nb>=indexAction then
+  begin
+    Act:=Tablo_Action[index].tabloop[indexAction].numoperation;
+
+    with formModifAction do
+    begin
+      case Act of
+      ActionAffTCO :
+      begin
+        LabeledEditAdresse.hint:='Numéro du TCO';
+        LabeledEditAdresse.Visible:=true;
+        LabeledEditAdresse.EditLabel.Caption:='TCO n°';
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].NumTCO);
+      end;
+      ActionAccessoire :
+      begin
+        LabeledEditAdresse.hint:='Adresse d''accessoire sur le bus DCC';
+        LabeledEditAdresse.EditLabel.Caption:='Adresse';
+        LabeledEditAdresse.visible:=true;
+        SpinEditEtatop.Visible:=true;
+        labelEtatOp.Visible:=true;
+        SpinEditEtatop.MinValue:=0;
+        SpinEditEtatop.MaxValue:=2;
+        SpinEditEtatop.hint:='Etat de l''accessoire'+#13+
+              '0=nul'+#13+
+              '1=dévié'+#13+
+              '2=droit';
+
+        checkBoxRaz.Visible:=true;
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        SpinEditEtatop.Value:=Tablo_Action[index].tabloop[indexAction].etat;
+        checkBoxRAZ.Checked:=Tablo_Action[index].tabloop[indexAction].zero;
+      end;
+      ActionVitesse :
+      begin
+        LabeledEditAdresse.EditLabel.Caption:='Vitesse';
+        LabeledEditAdresse.visible:=true;
+        LabeledEditAdresse.hint:='Vitesse de pilotage du train en crans';
+        LabeledEditTrain.Visible:=true;
+        LabeledEditTrain.EditLabel.Caption:='Train destinataire';
+        LabeledEditTrain.hint:='Nom unique du train';
+        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].vitesse);
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
+      end;
+      ActionCdePeriph :
+      begin
+        LabeledEditTrain.Visible:=true;
+        ComboBoxAccComUSB.Visible:=true;
+        LabelPeriph.Visible:=true;
+        LabeledEditTrain.EditLabel.Caption:='Commande';
+        LabeledEditTrain.Hint:='Commande Ascii';
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].chaine;
+        ComboBoxAccComUSB.itemIndex:=Tablo_Action[index].tabloop[indexAction].periph-1;
+      end;
+      ActionFonctionF :
+      begin
+        with SpinEditEtatop do
+        begin
+          Visible:=true;
+          MinValue:=0;
+          MaxValue:=1;
+          hint:='Etat 0 ou 1 de la fonction F';
+        end;
+        labelEtatOp.Visible:=true;
+        with LabeledEditTempoF do
+        begin
+          Visible:=true;
+          hint:='Valeur de la temporisation en 1/10ème de s'+#13+
+                'pour désactiver la fonction F'+#13+
+                'Si 0, la fonction F reste activée';
+          EditLabel.Caption:='Tempo (x100ms)';
+          Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
+        end;
+        LabeledEditTrain.Visible:=true;
+        LabeledEditTrain.EditLabel.Caption:='Train destinataire';
+        LabeledEditTrain.hint:='Nom unique du train';
+        SpinEditEtatOp.Text:=IntToSTR(Tablo_Action[index].tabloop[indexAction].etat);
+        LabeledEditFonctionF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].fonctionF);
+        LabeledEditFonctionF.Visible:=true;
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
+      end;
+      ActionSon :
+      begin
+        LabeledEditTrain.Visible:=true;
+        SpeedButtonJoue.Visible:=true;
+        SpeedButtonCharger.Visible:=true;
+        LabeledEditTrain.EditLabel.Caption:='Son';
+        LabeledEditTrain.Hint:='fichier son';
+        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
+      end;
+      ActionTempo :
+      begin
+        LabeledEditTempoF.Visible:=true;
+        LabeledEditTempoF.EditLabel.Caption:='Temporisation (x100 ms)';
+        LabeledEditTempoF.hint:='Valeur en dixièmes de secondes';
+        LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
+      end;
+      ActionBoutonTCO :
+      begin
+        with LabeledEditAdresse do
+        begin
+          hint:='Numéro de bouton de TCO';
+          Visible:=true;
+          EditLabel.Caption:='Bouton';
+          text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        end;
+        With SpinEditEtatOp do
+        begin
+          Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
+          Visible:=true;
+          MinValue:=0;
+          MaxValue:=1;
+          hint:='Etat 0 ou 1 du bouton';
+        end;
+      end;
+      ActionAffecteMemoire :
+      begin
+        with LabeledEditAdresse do
+        begin
+          EditLabel.Caption:='Mémoire';
+          Visible:=true;
+          hint:='Numéro de mémoire';
+          text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        end;
+        with SpinEditEtatOp do
+        begin
+          Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
+          Visible:=true;
+          MinValue:=-999;
+          MaxValue:=999;
+          hint:='Valeur d''affectation de -999 à 999';
+        end;
+      end;
+      ActionIncMemoire :
+      begin
+        with LabeledEditAdresse do
+        begin
+          EditLabel.Caption:='Mémoire';
+          hint:='Numéro de mémoire';
+          Visible:=true;
+          text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        end;
+      end;
+      ActionDecMemoire :
+      begin
+        with LabeledEditAdresse do
+        begin
+          EditLabel.Caption:='Mémoire';
+          hint:='Numéro de mémoire';
+          Visible:=true;
+          text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
+        end;
+      end;
+    end;
+    end;
+  end;
+end;
+
 // affiche les champs en fonction de l'index du tablo actionneur et de l'index de l'action
 procedure Aff_champs(index,IndexCond,IndexAction : integer);
-var i,decl,act,cond,Nb,icone : integer;
+var i,decl,act,cond,icone : integer;
     s : string;
 begin
   if (index<1) then exit;
   if clicListe then exit;
   clicliste:=true;
-  // Affiche('Aff_champs('+intToSTR(index)+','+intToSTR(indexAction)+')',clYellow);
+  if affevt then Affiche('Aff_champs('+intToSTR(index)+', indexOperation='+intToSTR(indexAction)+')',clYellow);
   decl:=Tablo_Action[index].declencheur;
   formModifAction.ListBoxDeclench.ItemIndex:=decl-1;
   // comboboxActions
@@ -515,6 +696,7 @@ begin
   FormModifAction.LabeledEditNomAct.Text:=Tablo_Action[index].NomAction;
 
   // ListBox opérations
+
   with FormModifAction.ListBoxOperations do
   begin
     clear;
@@ -534,7 +716,6 @@ begin
         if act=ActionAffecteMemoire then items.Add(Format('%d%s', [iconeActionAffecteMemoire, s]));
         if act=ActionIncMemoire then items.Add(Format('%d%s', [iconeActionIncMemoire, s]));
         if act=ActionDecMemoire then items.Add(Format('%d%s', [iconeActionDecMemoire, s]));
-
 
         // listboxOperations de la formConfig
         if act<=ActionTempo then formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
@@ -575,6 +756,7 @@ begin
     if indexCond<>0 then itemIndex:=indexCond-1;
   end;
 
+
   // listBoxActions de la formConfig
   FormConfig.ListBoxActions.Clear;
   for i:=1 to maxTablo_act do
@@ -583,7 +765,7 @@ begin
     formConfig.ListBoxActions.Items.add(s);
   end;
 
-  efface_tous_parametres;
+  efface_champs_declencheurs_conditions;
 
   // déclencheurs
   with FormModifAction do
@@ -595,40 +777,24 @@ begin
       LabelHeure.visible:=true;
       LabelAdresse.visible:=true;
       EditAdr.Visible:=true;
-      ButtonFonction.Visible:=false;
       LabelAdresse.Caption:='Heure';
       EditAdr.Hint:='Heure du déclencheur';
       EditAdr2.Hint:='Minute du déclencheur';
       EditAdr2.Visible:=true;
-      LabelEtat.Visible:=false;
-      SpinEditEtat.Visible:=false;
-      LabelTrain.Visible:=false;
-      EditTrainDecl.Visible:=false;
       RichEditInf.Lines.Add('Déclenchement par l''horloge');
       ImageIcone.Picture:=nil;
-      LabelInfoFonc.Visible:=false;
       formConfCellTCO.ImageListIcones.GetBitmap(IconeHorloge,ImageIcone.Picture.Bitmap);
       ImageIcone.repaint;
     end;
   DeclPeriph :
     begin
       EditTrainDecl.Text:=Tablo_Action[index].ordrePeriph;
-      LabelHeure.visible:=false;
-      LabelAdresse.visible:=false;
-      EditAdr.Visible:=false;
-      EditAdr2.Visible:=false;
-      LabelEtat.Visible:=false;
-
-      SpinEditEtat.Visible:=false;
-      LabelTrain.Visible:=false;
-      ButtonFonction.Visible:=false;
       EditTrainDecl.Visible:=true;
       EditTrainDecl.Hint:='Chaîne ASCII';
 
       LabelTrain.visible:=true;
       LabelTrain.Caption:='Commande du périphérique';
       RichEditInf.Lines.Add('Déclenchement par chaîne ASCII depuis un périphérique COM/USB - Socket');
-      LabelInfoFonc.Visible:=false;
 
       ImageIcone.Picture:=nil;
       formConfCellTCO.ImageListIcones.GetBitmap(IconePeriph,ImageIcone.Picture.Bitmap);
@@ -651,18 +817,11 @@ begin
         visible:=true;
       end;
 
-      LabelHeure.visible:=false;
       LabelAdresse.caption:='Adresse';
       LabelAdresse.visible:=true;
       EditAdr.Hint:='Adresse de l''accessoire sur le bus';
       EditAdr.Visible:=true;
-      EditAdr2.Visible:=false;
-      ButtonFonction.Visible:=false;
       LabelEtat.Visible:=true;
-      LabelInfoFonc.Visible:=false;
-
-      LabelTrain.Visible:=false;
-      EditTrainDecl.Visible:=false;
       RichEditInf.Lines.Add('Accessoire sur le bus DCC (aiguillage)');
       ImageIcone.Picture:=nil;
       formConfCellTCO.ImageListIcones.GetBitmap(IconeAccessoire,ImageIcone.Picture.Bitmap);
@@ -674,18 +833,13 @@ begin
       EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
       EditTrainDecl.Visible:=true;
       EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
-      ButtonFonction.Visible:=false;
       EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
                +#13+'Mettre X pour tous les trains.'+#13+'Déclenchement par actionneur uniquement';
-      LabelAdresse.visible:=true;
       EditAdr.Visible:=true;
       EditAdr.Hint:='Adresse du détecteur sur le bus de rétrosignalisation '+#13+'ou de l''actionneur CDM';
-      LabelHeure.visible:=false;
-      EditAdr2.Visible:=false;
       LabelAdresse.Caption:='Adresse';
       LabelEtat.Visible:=true;
-      LabelInfoFonc.Visible:=false;
-
+      LabelAdresse.Visible:=true;
       with SpinEditEtat do
       begin
         text:=intToSTR(Tablo_Action[index].etat);
@@ -697,7 +851,6 @@ begin
         ShowHint:=true;
         visible:=true;
       end;
-      ButtonFonction.Visible:=false;
       LabelTrain.Visible:=true;
       LabelTrain.Caption:='Train déclencheur';
       s:='Déclenchement par détecteur/actionneur suivant son état et un train, un groupe de trains ou tous les trains.'+#13;
@@ -719,11 +872,9 @@ begin
       EditAdr2.Hint:='Adresse2 de la zone de détection du déclencheur';
       LabelAdresse.visible:=true;
       EditAdr.Visible:=true;
-      LabelHeure.visible:=false;
       EditAdr2.Visible:=true;
       LabelAdresse.Caption:='Adresse';
       LabelEtat.Visible:=true;
-      LabelInfoFonc.Visible:=false;
 
       EditTrainDecl.Visible:=true;
       EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
@@ -740,7 +891,6 @@ begin
         ShowHint:=true;
         visible:=true;
       end;
-      ButtonFonction.Visible:=false;
       LabelTrain.Visible:=true;
       LabelTrain.Caption:='Train déclencheur';
       RichEditInf.Lines.Add('Déclenchement par zones de détections contigües suivant son état et un train, un groupe de trains ou tous les trains.');
@@ -753,16 +903,10 @@ begin
    begin
      LabelTrain.visible:=true;
      EditTrainDecl.Visible:=true;
-     LabelAdresse.Visible:=true;
-     LabelAdresse.caption:='Seuil de vitesse';
-     EditAdr.Visible:=true;
-     ButtonFonction.Visible:=false;
      EdittrainDecl.Hint:='Train déclencheur unique';
-     LabelInfoFonc.Visible:=false;
-     EditADR.Hint:='Seuil de vitesse de démarrage du train ';
      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
      EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
-     RichEditInf.Lines.Add('Déclenchement par démarrage d''un train à un seuil donné');
+     RichEditInf.Lines.Add('Déclenchement par démarrage d''un train');
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeDemarTrain,ImageIcone.Picture.Bitmap);
      ImageIcone.repaint;
@@ -772,17 +916,11 @@ begin
    begin
      LabelTrain.visible:=true;
      EditTrainDecl.Visible:=true;
-     LabelAdresse.Visible:=true;
-     LabelAdresse.caption:='Seuil de vitesse';
      EdittrainDecl.Hint:='Train déclencheur unique';
-     ButtonFonction.Visible:=false;
-     EditAdr.Visible:=true;
-     EditADR.Hint:='Seuil de vitesse d''arrêt du train';
      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
      EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
-     RichEditInf.Lines.Add('Déclenchement par arrêt d''un train à un seuil donné');
+     RichEditInf.Lines.Add('Déclenchement par arrêt d''un train');
      ImageIcone.Picture:=nil;
-     LabelInfoFonc.Visible:=false;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeArretTrain,ImageIcone.Picture.Bitmap);
      ImageIcone.repaint;
    end;
@@ -794,12 +932,10 @@ begin
      RadioEtatSignal.ItemIndex:=Tablo_Action[index].Etat;
      LabelAdresse.Caption:='Adresse';
      EditAdr.Hint:='Adresse de base du signal';
-     ButtonFonction.Visible:=false;
      EditAdr.Visible:=true;
      RadioEtatSignal.Visible:=true;
      RadioEtatSignal.Left:=16;
      RadioEtatSignal.top:=64;
-     LabelInfoFonc.Visible:=false;
      RichEditInf.Lines.Add('Déclenchement par changement d''état d''un signal');
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeSignal,ImageIcone.Picture.Bitmap);
@@ -810,18 +946,16 @@ begin
    begin
      LabelAdresse.Visible:=true; // numéro de fonction
      LabelAdresse.caption:='Numéro de fonction';
-     EditAdr.Visible:=false;
      ButtonFonction.Visible:=true;
-     RadioEtatSignal.visible:=false;
      EditAdr2.Visible:=true;    // entrée le la fonction
      EditAdr2.Text:=IntToSTR(tablo_action[index].adresse);
-     RadioEtatSignal.Visible:=false;
      ImageIcone.Picture:=nil;
      formConfCellTCO.ImageListIcones.GetBitmap(IconeFonction,ImageIcone.Picture.Bitmap);
      ImageIcone.repaint;
      LabelInfoFonc.Visible:=true;
      RichEditInf.Lines.Add('Déclenchement par fonction logique');
-     LabelInfoFonc.Caption:=NomFonction[index];
+     if (tablo_action[index].adresse>0) and (tablo_action[index].adresse<NbreFL) then  LabelInfoFonc.Caption:=NomFonction[tablo_action[index].adresse]
+       else LabelInfoFonc.Caption:='';
    end;
 
   end;
@@ -845,7 +979,6 @@ begin
           ChampTrain.Hint:='Nom du train unique pour la condition';
           champ1.Visible:=true;
           champ2.Visible:=true;
-          ButtonVoirFonc.Visible:=false;
           ChampTrain.Visible:=true;
         end;
         CondPosAcc :
@@ -860,7 +993,6 @@ begin
               '2=droit';
           Champ1.EditLabel.Caption:='Adresse'+#13+'acc';
           champ1.Visible:=true;
-          ButtonVoirFonc.Visible:=false;
           labelEtat2.Visible:=true;
           SpinEditEtat2.visible:=true;
           SpinEditEtat2.MinValue:=0;
@@ -877,7 +1009,6 @@ begin
           SpinEditHeure2.visible:=true;
           SpinEditMn1.visible:=true;
           SpinEditMn2.visible:=true;
-          ButtonVoirFonc.Visible:=false;
           LabelHeureDebut.Visible:=true;
           LabelHeureFin.Visible:=true;
         end;
@@ -887,7 +1018,6 @@ begin
           champ1.editLabel.Caption:='Adresse du signal';
           champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
-          ButtonVoirFonc.Visible:=false;
           champTrain.Visible:=true;
         end;
         condFonction :
@@ -897,7 +1027,6 @@ begin
           champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
           ButtonVoirFonc.Visible:=true;
-          champTrain.Visible:=false;
           Label2InfoFonction.Visible:=true;
           Label2InfoFonction.Caption:=NomFonction[Tablo_Action[index].tabloCond[indexCond].adresse];
         end;
@@ -907,9 +1036,6 @@ begin
           champ1.editLabel.Caption:='Numéro de bouton TCO';
           champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
-          ButtonVoirFonc.Visible:=false;
-          champTrain.Visible:=false;
-          Label2InfoFonction.Visible:=false;
         end;
         condMemoireEgal,CondMemoireInf,CondMemoireSup :
         begin
@@ -925,137 +1051,9 @@ begin
     end;
   end;
 
-  Nb:=Tablo_Action[index].NbOperations;
+  Efface_champs_operations;
+  Affiche_champs_operations(index,indexaction);
 
-  // si pas d'action sélectionnée et que la liste n'est pas nulle, sélectionner la première
-  if (Nb>0) and (indexAction=0) then
-  begin
-    indexAction:=1;
-    formModifAction.listBoxOperations.itemIndex:=indexaction;
-    formModifAction.listBoxOperations.Selected[indexaction-1]:=true;
-  end;
-
-  if Nb>=indexAction then
-  begin
-
-    Act:=Tablo_Action[index].tabloop[indexAction].numoperation;
-
-    with formModifAction do
-    begin
-
-      case Act of
-      ActionAffTCO :
-      begin
-        LabeledEditAdresse.Visible:=true;
-        LabeledEditAdresse.EditLabel.Caption:='TCO n°';
-        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].NumTCO);
-      end;
-      ActionAccessoire :
-      begin
-        LabeledEditAdresse.EditLabel.Caption:='Adresse';
-        LabeledEditAdresse.visible:=true;
-        SpinEditEtatop.Visible:=true;
-        labelEtatOp.Visible:=true;
-        SpinEditEtatop.MinValue:=0;
-        SpinEditEtatop.MaxValue:=2;
-        SpinEditEtatop.hint:='Etat de l''accessoire'+#13+
-              '0=nul'+#13+
-              '1=dévié'+#13+
-              '2=droit';
-
-        checkBoxRaz.Visible:=true;
-        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
-        SpinEditEtatop.Value:=Tablo_Action[index].tabloop[indexAction].etat;
-        checkBoxRAZ.Checked:=Tablo_Action[index].tabloop[indexAction].zero;
-      end;
-      ActionVitesse :
-      begin
-        LabeledEditAdresse.EditLabel.Caption:='Vitesse';
-        LabeledEditAdresse.visible:=true;
-        LabeledEditTrain.Visible:=true;
-        LabeledEditTrain.EditLabel.Caption:='Train destinataire';
-        LabeledEditTrain.hint:='Nom unique du train';
-        LabeledEditAdresse.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].vitesse);
-        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
-      end;
-      ActionCdePeriph :
-      begin
-        LabeledEditTrain.Visible:=true;
-        ComboBoxAccComUSB.Visible:=true;
-        LabelPeriph.Visible:=true;
-        LabeledEditTrain.EditLabel.Caption:='Commande';
-        LabeledEditTrain.Hint:='Commande Ascii';
-        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].chaine;
-        ComboBoxAccComUSB.itemIndex:=Tablo_Action[index].tabloop[indexAction].periph-1;
-      end;
-      ActionFonctionF :
-      begin
-        SpinEditEtatop.Visible:=true;
-        SpinEditEtatop.MinValue:=0;
-        SpinEditEtatop.MaxValue:=1;
-
-        labelEtatOp.Visible:=true;
-        LabeledEditFonctionF.Visible:=true;
-        LabeledEditTempoF.Visible:=true;
-        LabeledEditTrain.EditLabel.Caption:='Train destinataire';
-        LabeledEditFonctionF.EditLabel.Caption:='Fonction F';
-        LabeledEditTrain.Visible:=true;
-        LabeledEditTrain.hint:='Nom unique du train';
-        SpinEditEtatOp.Text:=IntToSTR(Tablo_Action[index].tabloop[indexAction].etat);
-        LabeledEditFonctionF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].fonctionF);
-        LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
-        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
-      end;
-      ActionSon :
-      begin
-        LabeledEditTrain.Visible:=true;
-        SpeedButtonJoue.Visible:=true;
-        SpeedButtonCharger.Visible:=true;
-        LabeledEditTrain.EditLabel.Caption:='Son';
-        LabeledEditTrain.Hint:='fichier son';
-        LabeledEditTrain.Text:=Tablo_Action[index].tabloop[indexAction].train;
-      end;
-      ActionTempo :
-      begin
-        LabeledEditTempoF.Visible:=true;
-        LabeledEditTempoF.EditLabel.Caption:='Temporisation (x100 ms)';
-        LabeledEditTempoF.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].TempoF);
-      end;
-      ActionBoutonTCO :
-      begin
-        LabeledEditAdresse.Visible:=true;
-        LabeledEditAdresse.EditLabel.Caption:='Bouton';
-        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
-        SpinEditEtatOp.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
-        SpinEditEtatOp.Visible:=true;
-        SpinEditEtatOp.MinValue:=0;
-        SpinEditEtatOp.MaxValue:=1;
-      end;
-      ActionAffecteMemoire :
-      begin
-        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
-        LabeledEditAdresse.Visible:=true;
-        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
-        SpinEditEtatOp.Text:=intToSTR(Tablo_Action[index].tabloop[indexAction].etat);
-        SpinEditEtatOp.Visible:=true;
-        SpinEditEtatOp.MinValue:=-999;
-        SpinEditEtatOp.MaxValue:=999;
-      end;
-      ActionIncMemoire :
-      begin
-        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
-        LabeledEditAdresse.Visible:=true;
-        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
-      end;
-      ActionDecMemoire :
-      begin
-        LabeledEditAdresse.EditLabel.Caption:='Mémoire';
-        LabeledEditAdresse.Visible:=true;
-        LabeledEditAdresse.text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
-      end;
-    end;
-    end;
-  end;
   clicliste:=false;
 end;
 
@@ -1250,6 +1248,7 @@ begin
 
     ItemIndex:=indexSrc+1;
   end;
+  Config_Modifie:=true;
 end;
 
 procedure maj_combocactions(i : integer);
@@ -1353,10 +1352,10 @@ end;
 procedure TFormModifAction.ListBoxOperationsMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  //Affiche('Clic ListBoxOperations',clyellow);
+  if affevt then Affiche('Clic ListBoxOperations',clyellow);
   ClicAction:=ListBoxOperations.itemindex;
   if ClicAction<0 then exit;
-  Aff_champs(ligneclicAct+1,1,ClicAction+1);
+  Affiche_champs_operations(ligneclicAct+1,ClicAction+1);
 end;
 
 procedure TFormModifAction.LabeledEditAdresseChange(Sender: TObject);
@@ -1456,6 +1455,7 @@ begin
 
   Tablo_Action[ligneclicAct+1].declencheur:=i+1;
   Aff_champs(ligneclicAct+1,0,0);
+  //aff_champs_declencheur(
   ListBoxDeclench.Refresh;
 end;
 
@@ -1739,32 +1739,24 @@ begin
   if (nb<1) or clicliste then exit;
   if key=VK_delete then supprime_operation;
 
-  exit;  // interfére,ce avec montée baisse
   if ord(Key)=VK_UP then
   begin
-    clicListe:=true;
-    //with FormModifAction.ListBoxOperations.Items do
     begin
       if clicAction>0 then
       begin
         dec(clicaction);
-        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
-        Formconfig.ListBoxactions.Itemindex:=clicaction;
+        Affiche_champs_operations(ligneclicAct+1,ClicAction+1);
       end;
     end;
   end;
 
   if ord(Key)=VK_DOWN then
   begin
-    //if clicListe then exit;
-    clicListe:=true;
-    //with Formconfig.ListBoxactions.Items do
     begin
       if clicaction<nb-1 then
       begin
         inc(clicaction);
-        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
-        Formconfig.ListBoxactions.Itemindex:=clicaction;
+        Affiche_champs_operations(ligneclicAct+1,ClicAction+1);
       end;
     end;
   end;
@@ -1785,13 +1777,13 @@ end;
 
 procedure TFormModifAction.ButtonFonctionClick(Sender: TObject);
 begin
+  FoncCourante:=Tablo_Action[ligneClicAct+1].adresse;
+  if (FoncCourante<=0) or (FoncCourante>NbreFL) then exit;
+
   formModifAction.Close;
   formconfig.PageControl.ActivePage:=formconfig.TabSheetFonctions;
-
-  FoncCourante:=Tablo_Action[ligneClicAct+1].adresse;
-
-  FormConfig.ComboBoxFL.ItemIndex:=FoncCourante-1;
-  fabrique_treeview(FoncCourante);
+  formConfig.comboBoxFL.ItemIndex:=FoncCourante-1;
+  ComboBoxFL_mizajour;
   formconfig.show;
 end;
 

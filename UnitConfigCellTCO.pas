@@ -419,7 +419,7 @@ begin
       ligne:=1;
       for i:=1 to Ntrains do
       begin
-        for j:=1 to 10 do
+        for j:=1 to NbDetArret do
         if (trains[i].DetecteurArret[j].detecteur=adr) and (adr<>0) then
         begin
           s:='';
@@ -666,7 +666,7 @@ end;
 
 
 procedure TFormConfCellTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,index,Bimage,x,y : integer;
+var Adr,erreur,Bimage,x,y : integer;
 begin
   if clicTCO or not(ConfCellTCO) or actualize then exit;
   if affevt then Affiche('TFormConfCellTCO.EditAdrElementChange',clyellow);
@@ -697,11 +697,10 @@ begin
 
   if BImage=Id_signal then
   begin
-    index:=Index_Signal(adr);
+   { index:=Index_Signal(adr);
     if index=0 then exit
-    else
+    else }
       begin
-       //Affiche('Feu '+intToSTR(Adr),clyellow);
        affiche_tco(indexTCOcourant);
      end;
   end;

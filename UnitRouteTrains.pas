@@ -197,7 +197,7 @@ begin
       vitesse:=GrilleHoraire[i].vitesse;
       if trains[indexTrain].route[0].talon then vitesse:=-vitesse;
       trains[indexTrain].roulage:=2;
-      vitesse_loco(train,indextrain,adrTrain,vitesse,10);
+      vitesse_loco(train,indextrain,adrTrain,vitesse,10,0);
     end;
   end;
 
@@ -271,7 +271,7 @@ begin
 
   formRouteTrain.comboBoxTrains.ItemIndex:=indexTrainFR-1;
 
-  Maj_icone_train(FormRouteTrain.ImageTrainR,idTrain);
+  Maj_icone_train(FormRouteTrain.ImageTrainR,idTrain,clWhite);
   with formRouteTrain do
   begin
     TabSheetRM.Enabled:=false;
@@ -329,7 +329,7 @@ procedure TFormRouteTrain.FormActivate(Sender: TObject);
 begin
   maj_infos(indexTrainFR);
 
-  if ntrains>0 then Maj_icone_train(FormRouteTrain.ImageTrainR,indexTrainFR);
+  if ntrains>0 then Maj_icone_train(FormRouteTrain.ImageTrainR,indexTrainFR,clWhite);
 end;
 
 procedure TFormRouteTrain.ButtonQuitteClick(Sender: TObject);
@@ -769,6 +769,7 @@ begin
     el2R:=trains[indexTrainFR].routePref[IrPref][2].adresse;
     t2R:=trains[indexTrainFR].routePref[IrPref][2].typ;
 
+    // canton du départ de la route
     IdCanton:=index_canton_det(el1R);       // trouve l'index du canton du détecteur el1R (départ de route) = c'est le canton origine de la route
     if IdCanton=0 then begin labelRoute.caption:='Le train de départ n''est pas sur un canton';exit;end;
     FormRouteTrain.Caption:=trains[indexTrainFR].nom_train+' départ depuis canton '+intToSTR(canton[IdCanton].numero)+' '+canton[idcanton].nom;
@@ -838,7 +839,7 @@ begin
       canton[idCantonOrg].Bouton:=0;
       dessin_canton(IdCantonOrg,0);
     end;
-    if idcantonOrg<>0 then
+    if idcantonDest<>0 then
     begin
       canton[idCantonDest].NumcantonOrg:=0;
       canton[idCantonDest].NumcantonDest:=0;
@@ -846,8 +847,8 @@ begin
       dessin_canton(IdCantonDest,0);
     end;
 
-    // affecter le canton origine et destination
-    canton[IdCanton].bouton:=3;
+    // affecter le canton origine et destination - IdCanton = canton départ de la route
+    canton[IdCanton].bouton:=3;     // 3 = drapeau vert
 
     n:=trains[indexTrainFR].route[0].adresse ;
     detfin:=trains[indexTrainFR].route[n].adresse;

@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetPeriph
+    ActivePage = TabSheetBouton
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -684,8 +684,8 @@ object FormConfig: TFormConfig
       object Label36: TLabel
         Left = 24
         Top = 458
-        Width = 369
-        Height = 13
+        Width = 325
+        Height = 26
         Caption = 
           'Param'#232'tres de connexion et d'#39#233'change avec CDM rail et param'#232'tres' +
           ' g'#233'n'#233'raux'
@@ -1067,7 +1067,7 @@ object FormConfig: TFormConfig
           Hint = 
             'Utilis'#233' avec la fenetre CDM de signaux complexes pour afficher l' +
             'es trains'
-          Caption = 'Position trains'
+          Caption = 'Position et vitesses trains'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 3
@@ -1222,8 +1222,8 @@ object FormConfig: TFormConfig
       object Label9: TLabel
         Left = 16
         Top = 456
-        Width = 294
-        Height = 13
+        Width = 249
+        Height = 26
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
         WordWrap = True
       end
@@ -1244,7 +1244,7 @@ object FormConfig: TFormConfig
         object Label4: TLabel
           Left = 16
           Top = 45
-          Width = 138
+          Width = 135
           Height = 26
           Caption = '2. Temporisation d'#39'envoi des octets de la trame (ms)'
           WordWrap = True
@@ -1252,7 +1252,7 @@ object FormConfig: TFormConfig
         object Label5: TLabel
           Left = 16
           Top = 75
-          Width = 151
+          Width = 148
           Height = 26
           Caption = 
             '3. Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 50 ms' +
@@ -1534,7 +1534,7 @@ object FormConfig: TFormConfig
         object LabelCrois: TLabel
           Left = 96
           Top = 312
-          Width = 187
+          Width = 178
           Height = 26
           Caption = 
             'Les croisements re'#231'oivent une adresse m'#234'me s'#39'ils ne sont pas pil' +
@@ -2077,8 +2077,8 @@ object FormConfig: TFormConfig
       object Label34: TLabel
         Left = 472
         Top = 200
-        Width = 136
-        Height = 26
+        Width = 115
+        Height = 39
         Caption = 'Tapez CTRL-Z pour annuler une modification r'#233'cente'
         WordWrap = True
       end
@@ -2274,8 +2274,8 @@ object FormConfig: TFormConfig
         object Label17: TLabel
           Left = 8
           Top = 326
-          Width = 131
-          Height = 39
+          Width = 115
+          Height = 52
           Hint = 
             'Permet d'#39'afficher un carr'#233' si les aiguillages sont dans les posi' +
             'tions d'#233'crites ci dessous'
@@ -2369,7 +2369,7 @@ object FormConfig: TFormConfig
         object Label69: TLabel
           Left = 152
           Top = 326
-          Width = 122
+          Width = 107
           Height = 39
           Hint = 
             'Permet d'#39'afficher un feu blanc si les aiguillages sont dans les ' +
@@ -2800,9 +2800,9 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object LabelNa: TLabel
-          Left = 19
+          Left = 36
           Top = 304
-          Width = 126
+          Width = 109
           Height = 39
           Alignment = taRightJustify
           Caption = 'Nombre d'#39'adresses occup'#233'es par le signal sur le d'#233'codeur:'
@@ -3187,7 +3187,7 @@ object FormConfig: TFormConfig
             Left = 240
             Top = 19
             Width = 33
-            Height = 22
+            Height = 21
             MaxValue = 2
             MinValue = 0
             TabOrder = 2
@@ -3348,7 +3348,7 @@ object FormConfig: TFormConfig
       object Label31: TLabel
         Left = 352
         Top = 296
-        Width = 229
+        Width = 203
         Height = 26
         Caption = 'Les actionneurs doivent '#234'tre compris entre deux d'#233'tecteurs'
         WordWrap = True
@@ -4338,8 +4338,8 @@ object FormConfig: TFormConfig
             object Label45: TLabel
               Left = 50
               Top = 40
-              Width = 192
-              Height = 26
+              Width = 160
+              Height = 39
               Alignment = taCenter
               Caption = 
                 'Arr'#234't temporis'#233' du train sur routes sur d'#233'tecteurs : (mode auton' +
@@ -4376,8 +4376,8 @@ object FormConfig: TFormConfig
             object LabelEt: TLabel
               Left = 16
               Top = 24
-              Width = 213
-              Height = 26
+              Width = 201
+              Height = 39
               Caption = 
                 'Les 3 coefficients de vitesse sont issus de la proc'#233'dure d'#39#233'talo' +
                 'nnage de la mesure du train'
@@ -4641,8 +4641,8 @@ object FormConfig: TFormConfig
       end
       object Label23: TLabel
         Left = 8
-        Top = 36
-        Width = 534
+        Top = 28
+        Width = 571
         Height = 26
         Caption = 
           'Les p'#233'riph'#233'riques sont utilis'#233's pour '#234'tre activ'#233's par une action' +
@@ -4870,9 +4870,302 @@ object FormConfig: TFormConfig
         OnClick = BoutonComClick
       end
     end
+    object TabSheetBouton: TTabSheet
+      Caption = 'Boutons USB'
+      ImageIndex = 10
+      object GroupBoxB: TGroupBox
+        Left = 8
+        Top = 8
+        Width = 593
+        Height = 441
+        Caption = 'Boutons rotatifs / poussoirs USB'
+        TabOrder = 0
+        object Shape1: TShape
+          Left = 72
+          Top = 80
+          Width = 193
+          Height = 201
+          Brush.Color = clOlive
+        end
+        object ShapeBR: TShape
+          Left = 120
+          Top = 112
+          Width = 97
+          Height = 89
+          Hint = 'Bouton rotatif et clic'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeBRMouseDown
+        end
+        object ShapeB1: TShape
+          Left = 80
+          Top = 224
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 1'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB1MouseDown
+        end
+        object ShapeB2: TShape
+          Left = 128
+          Top = 224
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 2'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB2MouseDown
+        end
+        object ShapeB3: TShape
+          Left = 176
+          Top = 224
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 3'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB3MouseDown
+        end
+        object ShapeB4: TShape
+          Left = 224
+          Top = 224
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 4'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB4MouseDown
+        end
+        object Label66: TLabel
+          Left = 72
+          Top = 336
+          Width = 122
+          Height = 16
+          Caption = 'Code de touche : '
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'MS Sans Serif'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object LabelCode: TLabel
+          Left = 200
+          Top = 336
+          Width = 5
+          Height = 16
+          Caption = '.'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'MS Sans Serif'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label70: TLabel
+          Left = 16
+          Top = 32
+          Width = 263
+          Height = 13
+          Caption = 'D'#233'finition des boutons des blocs claviers USB'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label72: TLabel
+          Left = 27
+          Top = 392
+          Width = 3
+          Height = 13
+          Caption = '-'
+        end
+        object Label74: TLabel
+          Left = 312
+          Top = 240
+          Width = 81
+          Height = 13
+          Caption = 'Affecter au train :'
+        end
+        object LabelId: TLabel
+          Left = 80
+          Top = 88
+          Width = 16
+          Height = 34
+          Caption = '1'
+          Color = clOlive
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -29
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentColor = False
+          ParentFont = False
+        end
+        object LabeledEditCT: TLabeledEdit
+          Left = 480
+          Top = 80
+          Width = 40
+          Height = 21
+          Hint = 'Code ascii envoy'#233' par le bouton'
+          EditLabel.Width = 76
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Code de touche'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          OnChange = LabeledEditCTChange
+        end
+        object LabeledEditRm: TLabeledEdit
+          Left = 480
+          Top = 128
+          Width = 40
+          Height = 21
+          Hint = 'Code ascii envoy'#233' par la rotation anti horaire (-)'
+          EditLabel.Width = 99
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Code de rotation en -'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnChange = LabeledEditRmChange
+        end
+        object LabeledEditRp: TLabeledEdit
+          Left = 480
+          Top = 152
+          Width = 40
+          Height = 21
+          Hint = 'Code ascii envoy'#233' par la rotation horaire (+)'
+          EditLabel.Width = 102
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Code de rotation en +'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnChange = LabeledEditRpChange
+        end
+        object LabeledEditClic: TLabeledEdit
+          Left = 480
+          Top = 176
+          Width = 40
+          Height = 21
+          Hint = 'Code ascii envoy'#233' par le clic bouton'
+          EditLabel.Width = 59
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Code de clic'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+          OnChange = LabeledEditClicChange
+        end
+        object LabeledEditNUM: TLabeledEdit
+          Left = 480
+          Top = 40
+          Width = 25
+          Height = 21
+          Hint = 'Num'#233'ro de contr'#244'leur clavier USB (1 '#224' 10)'
+          EditLabel.Width = 134
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Num'#233'ro de bloc clavier USB'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 30
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
+          OnChange = LabeledEditNUMChange
+        end
+        object LabeledEditF: TLabeledEdit
+          Left = 480
+          Top = 104
+          Width = 40
+          Height = 21
+          Hint = 'Fonction F associ'#233'e au bouton'
+          EditLabel.Width = 100
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Fonction F '#224' envoyer'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          OnChange = LabeledEditFChange
+        end
+        object LabeledEditIncr: TLabeledEdit
+          Left = 480
+          Top = 200
+          Width = 40
+          Height = 21
+          Hint = 'Valeur de l'#39'incr'#233'ment sur une rotation'
+          EditLabel.Width = 105
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Incr'#233'ment '#224' la rotation'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 50
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          OnChange = LabeledEditIncrChange
+        end
+        object ComboBoxUSBTr: TComboBox
+          Left = 416
+          Top = 240
+          Width = 153
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 7
+          OnChange = ComboBoxUSBTrChange
+        end
+        object LabeledEditFn: TLabeledEdit
+          Left = 536
+          Top = 104
+          Width = 16
+          Height = 21
+          Hint = '0 ou 1'
+          EditLabel.Width = 6
+          EditLabel.Height = 13
+          EditLabel.Caption = #224
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 5
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 8
+          OnChange = LabeledEditFnChange
+        end
+      end
+    end
     object TabAvance: TTabSheet
       Caption = 'Avanc'#233
-      ImageIndex = 10
+      ImageIndex = 11
       object Label50: TLabel
         Left = 8
         Top = 8

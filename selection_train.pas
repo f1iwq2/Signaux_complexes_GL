@@ -41,7 +41,7 @@ HauteurLigneSGT=30;
 
 var
   FormSelTrain: TFormSelTrain;
-  x,y,El,largC,hautC,indexTrainClic,LargeurSGT : Integer;
+  x,y,El,largC,hautC,LargeurSGT,indexTrainClic : Integer;
   routeSav : TuneRoute;
 
 procedure actualise_seltrains;
@@ -216,6 +216,7 @@ begin
       trains[i].canton:=0;
     end;
 
+    // Maj_icone_train(Image_Train[i],i,clWhite);   // maj arrière plan train page principale
 
     // balayer les détecteurs pour trouver sur quel détecteur est le train pour le razer
     // non
@@ -259,7 +260,7 @@ begin
       idTrain:=Index_train_adresse(adrTrain);
 
       raz_cantons_train(AdrTrain,false);  // efface tous les cantons contenant le train Adrtrain sans raz du détecteur
-
+      //Maj_icone_train(Image_Train[idTrain],idTrain,$e0e0e0);   // maj arrière plan train page principale
       trains[idTrain].canton:=canton[idcanton].numero;
       trains[idTrain].sens:=sens;
       canton[IdCanton].SensLoco:=sens;
@@ -280,8 +281,10 @@ begin
       canton[Idcanton].NomTrain:='';
       canton[Idcanton].indexTrain:=0;
       canton[IdCanton].adresseTrain:=0;
+      // a revoir IDTrain=0 !!!! Maj_icone_train(Image_Train[idTrain],idTrain,clWhite);
     end;
 
+    // affecte le canton avec l'id du train, même si nul
     t:=canton[IdCanton].Ntco;
     if (t>0) and (t<=nbreTCO) then
     begin
@@ -305,7 +308,6 @@ begin
     end;
   end;
   //affiche('Det du canton '+intToSTR(canton[Idcanton].numero)+' det1='+intToSTR(canton[Idcanton].det1)+' det2='+intToSTR(canton[Idcanton].det2),clyellow);
-
 end;
 
 // renvoie x,y El et indexCanton de IdCantonSelect en variable globale

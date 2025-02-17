@@ -444,6 +444,29 @@ type
     ButtonSupPN: TButton;
     Label58: TLabel;
     ButtonRepriseDCC: TButton;
+    TabSheetBouton: TTabSheet;
+    GroupBoxB: TGroupBox;
+    Shape1: TShape;
+    ShapeBR: TShape;
+    ShapeB1: TShape;
+    ShapeB2: TShape;
+    ShapeB3: TShape;
+    ShapeB4: TShape;
+    LabeledEditCT: TLabeledEdit;
+    LabeledEditRm: TLabeledEdit;
+    LabeledEditRp: TLabeledEdit;
+    LabeledEditClic: TLabeledEdit;
+    Label66: TLabel;
+    LabelCode: TLabel;
+    LabeledEditNUM: TLabeledEdit;
+    Label70: TLabel;
+    Label72: TLabel;
+    LabeledEditF: TLabeledEdit;
+    LabeledEditIncr: TLabeledEdit;
+    ComboBoxUSBTr: TComboBox;
+    Label74: TLabel;
+    LabelId: TLabel;
+    LabeledEditFn: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -700,6 +723,25 @@ type
     procedure RadioGroupClClick(Sender: TObject);
     procedure ButtonlCV3Click(Sender: TObject);
     procedure ButtonRepriseDCCClick(Sender: TObject);
+    procedure ShapeBRMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ShapeB1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ShapeB2MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ShapeB3MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ShapeB4MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure LabeledEditCTChange(Sender: TObject);
+    procedure LabeledEditRmChange(Sender: TObject);
+    procedure LabeledEditRpChange(Sender: TObject);
+    procedure LabeledEditClicChange(Sender: TObject);
+    procedure LabeledEditNUMChange(Sender: TObject);
+    procedure LabeledEditFChange(Sender: TObject);
+    procedure LabeledEditIncrChange(Sender: TObject);
+    procedure ComboBoxUSBTrChange(Sender: TObject);
+    procedure LabeledEditFnChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -813,7 +855,7 @@ relanceHorl_init_ch='relanceHorl_init';
 // sections de config
 section_aig_ch='[section_aig]';
 section_sig_ch='[section_sig]';
-section_act_ch='[section_act]';
+section_act_ch='[section_act]';  // anciens actionneurs
 section_actV2_ch='[section_actions]';
 section_PN_ch='[section_PN]';
 section_branches_ch='[section_branches]';
@@ -827,6 +869,7 @@ section_horloge_ch='[section horloge]';
 section_actionneurs_ch='[section_actionneurs]';
 section_detecteurs_ch='[section_detecteurs]';
 section_logique_ch='[section_logique]';
+section_blocs_USB_ch='[section_blocs_USB]';
 
 rep_icones='icones';
 
@@ -862,16 +905,16 @@ var
   LigneCliqueePN,AncLigneCliqueePN,clicMemo,Nb_cantons_Sig,protocole,Port,PortServeur,
   ligneclicAig,AncLigneClicAig,ligneClicSig,AncligneClicSig,EnvAigDccpp,AdrBaseDetDccpp,
   ligneClicBr,AncligneClicBr,ligneClicAct,AncLigneClicAct,IndexSignalclic,NumTrameCDM,
-  Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AncligneclicTrain,AntiTimeoutEthLenz,
+  Algo_localisation,Verif_AdrXpressNet,ligneclicTrain,AntiTimeoutEthLenz,NumBlocUSB,
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
-  compt_Ligne,Ecran_SC,Max_Signal_Sens,nCantonsRes,ligneClicActionneur,
+  compt_Ligne,Ecran_SC,Max_Signal_Sens,nCantonsRes,ligneClicActionneur,BoutonBloc,
   TempoTC,Nbuttoirs,AncLigneClicActionneur,AncligneclicDet,ligneclicDet,foncCourante,
-  NbreFL,IdOperateur : integer;
+  NbreFL,IdOperateur,NbreBlocsUSB : integer;
 
-  ack_cdm,clicliste,config_modifie,clicproprietes,confasauver,trouve_MaxPort,
+  ack_cdm,clicliste,config_modifie,clicproprietesSig,clicproprietesTrains,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
   trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND,
-  PilotageTrainsCDMNom,LanceHorl,AffSig,AffRes,avecAck,affLoc,changeCom,
+  PilotageTrainsCDMNom,LanceHorl,AffSig,AffRes,avecAck,affLoc,changeCom,tsbouton,
   clicTree : boolean;
 
   fichier : text;
@@ -926,12 +969,14 @@ function encode_act_pn(i : integer) : string;
 function encode_Periph(index : integer) : string;
 procedure ajoute_champs_combos(i : integer);
 function verif_trains : boolean;
-procedure Maj_icone_train(IImage : Timage;index :integer);
+procedure Maj_icone_train(IImage : Timage;index :integer;coulfond : Tcolor);
 function evalue_fonction(NumFonc : integer;var formule : string) : boolean;
 procedure fabrique_treeview(k : integer);
 procedure compile_id_routes;
 procedure genere_informations_BD;
 function trouve_index_style : integer;
+procedure ComboBoxFL_mizajour;
+procedure clic_BRM;
 
 implementation
 
@@ -964,7 +1009,7 @@ begin
   if Srvc_Aig then begin s:=s+'SRV=ATNT;';inc(i);end;   // service changement aiguillage
   if Srvc_Act then begin s:=s+'SRV=AACT;';inc(i);end;   // service actionneurs
   if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;   // service détecteurs
-  if Srvc_Pos then begin s:=s+'SRV=TSXY;';inc(i);end;   // service position des trains
+  if Srvc_Pos then begin s:=s+'SRV=TSXY;';inc(i);end;   // service position et vitesses des trains
   if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;   // service signaux
   if Srvc_tdcc then begin s:=s+'SRV=TDCC;';inc(i);end;  // service info train (si chgt vitesse)
 
@@ -1023,7 +1068,6 @@ begin
       until (i>10) or CDM_connecte  ;
       //if i>10 then affiche('Timeout',clred);
       if not(CDM_connecte) then begin Affiche('Socket CDM non connecté',clOrange);exit;end;
-
 
       savAck:=avecAckCDM; // sauver l'état avecou sans ack
       avecAckCDM:=true;   // il faut l'ack pour la phase de connexion avec cdm
@@ -1317,7 +1361,7 @@ var s : string;
 begin
   // adresse
   adresse:=Signaux[i].adresse;
- 
+
   if adresse=0 then
   begin
     Affiche('Adresse nulle signal',clRed);
@@ -1361,7 +1405,7 @@ begin
     // si unisemaf ou LEB, paramètre supplémentaire
     if (decod=4) or (decod=6) then s:=s+',U'+intToSTR(Signaux[i].unisemaf);
 
-    if (decod=4) then s:=s+',L'+intToSTR(signaux[i].BinLin); 
+    if (decod=4) then s:=s+',L'+intToSTR(signaux[i].BinLin);
 
     // conditions supplémentaires pour le carré
     for nc:=1 to 6 do
@@ -2045,7 +2089,7 @@ begin
     s:=s+FloatToSTRF(coeffV1,ffFixed,5,2,FormatSettings)+','+FloatToSTRF(coeffV2,ffFixed,5,2,FormatSettings)+','+FloatToSTRF(coeffV3,ffFixed,5,2,FormatSettings)+',';
     s:=s+intToSTR(CV3)+','+intToSTR(CV4)+','+intToSTR(crans);
     // arrêts sur cantons
-    for i:=1 to ncantons do
+    for i:=1 to NbDetArret do
     begin
       nc:=DetecteurArret[i].detecteur;
       if nc<>0 then
@@ -2152,7 +2196,7 @@ begin
   // avec ou sans demande de la position des aiguillages en mode autonome
   if AvecDemandeAiguillages then s:='1' else s:='0';
   writeln(fichierN,Init_dem_aig_ch+'='+s);
-  
+
   // temporisation initialisation des aiguillages
   writeln(fichierN,Tempo_aig_ch+'=',IntToSTR(Tempo_aig));
 
@@ -2316,12 +2360,11 @@ begin
         end;
         if k=2 then
         begin
-          for j:=1 to 9 do 
+          for j:=1 to 9 do
           begin
             s:=EtatSignBelge[j]+','+decodeur_pers[i].desc[j].Chcommande;
             writeln(fichierN,s);
-            
-          end;  
+          end;
           for j:=10 to 19 do writeln(fichierN,' ,');
         end;
       end;  
@@ -2474,7 +2517,7 @@ begin
   writeln(fichierN,section_logique_ch);
   for j:=1 to NbreFL do
   begin
-    writeln(fichierN,'/--- fonction '+intToSTR(j));
+    writeln(fichierN,'/--- Fonction '+intToSTR(j));
     writeln(FichierN,'"'+NomFonction[j]+'"');  // ajouter les guillemets pour éviter chaine vide
     n:=fonction[j,0].adresse;
     for i:=0 to n-1 do
@@ -2489,6 +2532,26 @@ begin
       Writeln(fichierN,s);
     end;
     Writeln(fichierN,'FF'); // marqueur fin de fonction
+  end;
+  writeln(fichierN,'0');
+
+  writeln(fichierN,'/------------');
+  writeln(fichierN,section_blocs_USB_ch);
+  for j:=1 to NbreBlocsUSB do
+  begin
+    s:='B'+intToSTR(j)+','+blocUSB[j].afftrain+',BR'+intToSTR(blocUSB[j].rotatifM)+','+intToSTR(blocUSB[j].rotatifP)+','+intToSTR(blocUSB[j].clic)+
+           ','+intToSTR(blocUSB[j].increment)+
+           ',B'+intToSTR(blocUSB[j].Bp1)+','+IntToSTR(blocUSB[j].Fbp1)+','+IntToSTR(blocUSB[j].Fnp1)+
+           ',B'+intToSTR(blocUSB[j].Bp2)+','+IntToSTR(blocUSB[j].Fbp2)+','+IntToSTR(blocUSB[j].Fnp2)+
+           ',B'+intToSTR(blocUSB[j].Bp3)+','+IntToSTR(blocUSB[j].Fbp3)+','+IntToSTR(blocUSB[j].Fnp3)+
+           ',B'+intToSTR(blocUSB[j].Bp4)+','+IntToSTR(blocUSB[j].Fbp4)+','+IntToSTR(blocUSB[j].Fnp4)+
+           ',B'+intToSTR(blocUSB[j].Bp5)+','+IntToSTR(blocUSB[j].Fbp5)+','+IntToSTR(blocUSB[j].Fnp5)+
+           ',B'+intToSTR(blocUSB[j].Bp6)+','+IntToSTR(blocUSB[j].Fbp6)+','+IntToSTR(blocUSB[j].Fnp6)+
+           ',B'+intToSTR(blocUSB[j].Bp7)+','+IntToSTR(blocUSB[j].Fbp7)+','+IntToSTR(blocUSB[j].Fnp7)+
+           ',B'+intToSTR(blocUSB[j].Bp8)+','+IntToSTR(blocUSB[j].Fbp8)+','+IntToSTR(blocUSB[j].Fnp8)+
+           ',B'+intToSTR(blocUSB[j].Bp9)+','+IntToSTR(blocUSB[j].Fbp9)+','+IntToSTR(blocUSB[j].Fnp9)+
+           ',B'+intToSTR(blocUSB[j].Bp10)+','+IntToSTR(blocUSB[j].Fbp10)+','+IntToSTR(blocUSB[j].Fnp10);
+    Writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
 
@@ -2535,7 +2598,6 @@ begin
     temp:=adresse_detecteur[i];
     detecteur[temp].index:=i;
   end;
-
 end;
 
 procedure trier_actionneurs;
@@ -2554,10 +2616,7 @@ begin
       end;
     end;
   end;
-
 end;
-
-
 
 // trier les aiguillages par adresses croissantes
 // et complète les aiguillages triples (créée aiguillahe homologue)
@@ -2566,7 +2625,6 @@ var i,j,adr : integer;
     temp : TAiguillage;
     s : string;
 begin
-
   // attribue les index
   i:=1;
   while (i<MaxAiguillage) do
@@ -2713,9 +2771,7 @@ begin
       end;
     end;
   end;
-
 end;
-
 
 // trouve les id des routesPref des trains et le stocke dedans
 procedure compile_id_routes;
@@ -2883,7 +2939,6 @@ begin
       end;
       s:=s+intToSTR(fonction[fonc,i].etat);
     end;
-
   end;
 
   if isOperateur(typ) then
@@ -2898,7 +2953,6 @@ begin
   result:=s;
 end;
 
-
 // génère les informations calculées
 procedure genere_informations_BD;
 begin
@@ -2909,7 +2963,6 @@ begin
   trier_signaux;
   compile_id_routes;
 end;
-
 
 procedure lit_config;
 var train,s,sa,SOrigine: string;
@@ -3504,7 +3557,7 @@ const LessThanValue=-1;
            end;
            DeclDemarTrain :
            begin
-             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse
+             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse : non utilisé
              Tablo_Action[maxtablo_act].adresse:=i;
              i:=pos(',',s);if i=0 then i:=length(s)+1;
              sa:=copy(s,1,i-1);delete(s,1,i);
@@ -3512,7 +3565,7 @@ const LessThanValue=-1;
            end;
            DeclArretTrain :
            begin
-             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse
+             Val(s,i,erreur);Delete(s,1,erreur);  // seuil de vitesse : non utilisé
              Tablo_Action[maxtablo_act].adresse:=i;
              i:=pos(',',s);if i=0 then i:=length(s)+1;
              sa:=copy(s,1,i-1);delete(s,1,i);
@@ -4492,7 +4545,7 @@ const LessThanValue=-1;
             delete(s,1,erreur);
           end;
           inc(j);
-        until (s='') or (j>10);
+        until (s='') or (j>NbDetArret);
       end;
     end;
 
@@ -4778,6 +4831,118 @@ const LessThanValue=-1;
 
      if ligne then inc(nbreFL);
     until (s='0') or (s='') ;  // fin des fonctions
+  end;
+
+  procedure compile_blocsUSB;
+  var n : integer;
+      ss : string;
+  begin
+    n:=0;
+    repeat
+      lit_ligne;
+      if s<>'0' then
+      begin
+        s:=sOrigine;
+        delete(s,1,1);
+        val(s,i,erreur);  // i=numéro de bloc usb de 1 à 10
+        delete(s,1,erreur);
+        j:=pos(',',s);
+        ss:=copy(s,1,j-1);
+        blocUSB[i].AffTrain:=ss;delete(s,1,j);
+
+        delete(s,1,2); // supprime BR
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].rotatifM:=j;
+        val(s,j,erreur);delete(s,1,erreur);          //   B1,Pas d'affectation,BR45,43,224,4,B38,1,1,B233,2,0,B34,3,0,B39,4,0,B5,0,0,B6,0,0,B7,0,0,B8,0,0,B9,0,0,B10,0,0
+        blocUsb[i].rotatifP:=j;             //107
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].clic:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].increment:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp1:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp1:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp1:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp2:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp2:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp2:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp3:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp3:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp3:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp4:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp4:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp4:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp5:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp5:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp5:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp6:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp6:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp6:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp7:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp7:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp7:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp8:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp8:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp8:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp9:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp9:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp9:=j;
+
+        delete(s,1,1); // supprime B
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Bp10:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fbp10:=j;
+        val(s,j,erreur);delete(s,1,erreur);
+        blocUsb[i].Fnp10:=j;
+
+        inc(n);
+      end;
+    until (sOrigine='0') or (s='') or (n>=10);
   end;
 
   procedure compile_horloge;
@@ -5751,6 +5916,12 @@ const LessThanValue=-1;
         compile_fonctions;
       end;
 
+      sa:=uppercase(section_blocs_USB_ch);
+      if pos(sa,s)<>0 then
+      begin
+        compile_blocsUSB;
+      end;
+
 
       inc(it);
     until (eof(fichier));
@@ -5841,7 +6012,7 @@ begin
     reset(fichier);
   except
     Affiche('Fichier '+NomConfig+' non trouvé : création d''un fichier vide par défaut',clred);
-    portcom:='COM3:57600,N,8,1,2';
+    portcom:='COMX:57600,N,8,1,2';
     adresseIPCDM:='127.0.0.1';portCDM:=9999;
     adresseIP:='192.168.1.23';portInterface:=5550;
     verifVersion:=true;
@@ -5851,14 +6022,14 @@ begin
     Srvc_Aig:=true;
     Srvc_Act:=true;
     Srvc_Det:=true;
-    Srvc_Pos:=false;
+    Srvc_Pos:=true;
     Srvc_Sig:=false;
     Srvc_tdcc:=false;
     TimoutMaxInterface:=7;
-    AvecInitAiguillages:=true;
+    AvecInitAiguillages:=false;
     PilotageTrainsCDMNom:=true;
-    AvecDemandeInterfaceUSB:=true;
-    AvecDemandeInterfaceEth:=true;
+    AvecDemandeInterfaceUSB:=false;
+    AvecDemandeInterfaceEth:=false;
     AffSig:=true;
     AffRes:=true;
     AvecAck:=false;
@@ -6764,6 +6935,117 @@ begin
   if trouve then result:=i-1 else result:=-1;
 end;
 
+procedure clicListeTrains(index : integer);
+var s : string;
+    i,t : integer;
+    r : single;
+begin
+  if affevt then Affiche('clicListeTrains '+intToSTR(index),clyellow);
+  if index<1 then exit;
+  if Trains[index].nom_train='' then exit;
+  clicListe:=true;
+  with formconfig do
+  begin
+    i:=trains[index].routePref[0][0].adresse;
+    s:='';
+    case i of
+    0 : s:='Pas de route';
+    1 : s:='1 route';
+    else s:=intToSTR(i)+' routes';
+    end;
+    ButtonRdt.Caption:=s;
+
+    editNomTrain.text:=Trains[index].nom_train;
+    editAdresseTrain.Text:=intToSTR(trains[index].adresse);
+    editVitesseMaxi.Text:=intToSTR(trains[index].vitmax);
+    editLongLoco.text:=IntToSTR(trains[index].longueur);
+    LabeledEditTempoD.Text:=intToSTR(trains[index].TempsDemarreSig);
+    editVitRalenti.Text:=IntToSTR(trains[index].Vitralenti);
+    editvitnom.text:=IntToSTR(trains[index].VitNominale);
+    CheckBoxSens.Checked:=trains[index].inverse;
+    s:=trains[index].NomIcone;
+    editIcone.Text:=s;
+
+    // Efface l'icone de train
+    ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
+
+    if s<>'' then
+    begin
+      Maj_icone_train(formconfig.ImageTrain,index,clWhite);
+      Maj_icone_train(Image_Train[index],index,clWhite);
+    end;
+
+    // tableau des détecteurs d'arrêt
+    for i:=1 to NbDetArret do
+    begin
+      t:=trains[index].DetecteurArret[i].temps;
+      if t<>0 then
+      begin
+        s:='';
+        if trains[index].DetecteurArret[i].TPrec<>det then s:='A';
+        StringGridArr.Cells[1,i]:=s+intToSTR(trains[index].DetecteurArret[i].prec);
+        StringGridArr.Cells[2,i]:=intToSTR(trains[index].DetecteurArret[i].detecteur);
+        StringGridArr.Cells[3,i]:=intToSTR(t);
+      end
+      else
+      begin
+        StringGridArr.Cells[1,i]:='';
+        StringGridArr.Cells[2,i]:='';
+        StringGridArr.Cells[3,i]:='';
+      end;
+    end;
+
+    With LabeledEditV1 do
+    begin
+      EditLabel.Caption:='Coefficient vitesse 1 - Lente '+intToSTR(Trains[index].ConsV1)+' crans :';
+      LabelSpacing:=20;
+      Text:=FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2,FormatSettings);
+    end;
+    With LabeledEditV2 do
+    begin
+      EditLabel.Caption:='Coefficient vitesse 2 - Moyenne '+intToSTR(Trains[index].ConsV2)+' crans :';
+      LabelSpacing:=20;
+      Text:=FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2,FormatSettings);
+    end;
+    With LabeledEditV3 do
+    begin
+      EditLabel.Caption:='Coefficient vitesse 3 - Rapide '+intToSTR(Trains[index].ConsV3)+' crans :';
+      LabelSpacing:=20;
+      Text:=FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2,FormatSettings);
+    end;
+
+    if Trains[index].coeffV1<>0 then
+    begin
+      r:=Trains[index].consV1/Trains[index].coeffV1;
+      LabelV1.Caption:='Vr1 (cm/s) = '+intToSTR(trains[index].consV1)+' (crans) / '+FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2)+
+                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
+    end
+    else LabelV1.Caption:='Vr1';
+
+    if Trains[index].coeffV2<>0 then
+    begin
+      r:=Trains[index].consV2/Trains[index].coeffV2;
+      LabelV2.Caption:='Vr2 (cm/s) = '+intToSTR(trains[index].consV2)+' (crans) / '+FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2)+
+                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
+    end
+    else LabelV2.Caption:='Vr2';
+
+    if Trains[index].coeffV3<>0 then
+    begin
+      r:=Trains[index].consV3/Trains[index].coeffV3;
+      LabelV3.Caption:='Vr3 (cm/s) = '+intToSTR(trains[index].consV3)+' (crans) / '+FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2)+
+                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
+    end
+    else LabelV3.Caption:='Vr3';
+
+    LabeledEditCV3.Text:=intToSTR(Trains[index].CV3);
+    LabeledEditCV4.Text:=intToSTR(Trains[index].CV4);
+    LabeledEditCrans.Text:=intToSTR(Trains[index].crans);
+  end;
+  clicListe:=false;
+end;
+
+
 procedure TFormConfig.FormCreate(Sender: TObject);
 var i,j,x,y,l,k,LongestLength,PixelLength : integer;
     cs,s,LongestString : string;
@@ -7126,15 +7408,17 @@ begin
     s:=s+'\'+cs;
     if cs<>'' then
     begin
-    // lire le fichier icone
-    if fileExists(s) then
-    begin
-      trains[i].icone.Picture.LoadFromFile(s);
-    end
-    else Affiche('Le fichier icône train '+s+' n''a pas été trouvé',clred);
-
+      // lire le fichier icone
+     if fileExists(s) then
+      begin
+        trains[i].icone.Picture.LoadFromFile(s);
+      end
+      else Affiche('Le fichier icône train '+s+' n''a pas été trouvé',clred);
     end;
+    cree_image_train(i);
   end;
+
+  affecte_trains_config;  // affecte les trains aux cantons
 
   with StringGridArr do
   begin
@@ -7891,8 +8175,10 @@ begin
   SendMessage(ListBoxPN.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
   champs_pn_act;
 
-  if clicproprietes then clicListeSignal(IndexSignalClic);
-  clicproprietes:=false;
+  if clicproprietesSig then clicListeSignal(IndexSignalClic);
+  clicproprietesSig:=false;
+  if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
+  clicproprietesTrains:=false;
 
   i:=1;
   RichCdeDCCpp.clear;
@@ -7924,6 +8210,8 @@ begin
       end;
     end;
   end;
+  if ntrains<>0 then IdTrainClic:=1;
+
   ButtonlCV3.hint:='Passe la centrale en mode programmation et'+#13+
                   'lit le CV3 de la locomotive placée sur la voie de programmation';
   ButtonlCV4.hint:='Passe la centrale en mode programmation et'+#13+
@@ -8016,6 +8304,18 @@ begin
     LabeledEditNumFonc.text:=intToSTR(Fonction[1,0].niveau);
     changeCom:=false;
   end;
+
+  // blocs usb
+  ComboBoxUSBTr.Items.Add('Pas d''affectation');
+  LabeledEditNUM.Text:=intToSTR(NumBlocUSB);
+  for i:=1 to ntrains do
+  begin
+    ComboBoxUSBTr.Items.Add(trains[i].nom_train);
+  end;
+  i:=index_train_nom(BlocUSB[1].AffTrain);
+  ComboBoxUSBTr.ItemIndex:=i;
+  label72.caption:='La rotation de bouton changera la vitesse du train. L''appui sur le bouton stoppe le train.'+#13+
+                   'Les évènements clavier sont interceptés par signaux complexes ce qui ne nécessite pas d''activer la fenêtre';
 
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   couleurs_config;
@@ -10467,7 +10767,7 @@ begin
   Signaux[i].SR[8].sortie0:=19;
   Signaux[i].SR[8].sortie1:=0;
   Signaux[i].Na:=4;
-  cree_image(i);
+  cree_image_signal(i);
   s:=encode_signal(i);
 
   // scroller à la fin et sélectionner
@@ -10624,7 +10924,7 @@ begin
     Tablo_Index_Signal[Signaux[NbreSignaux].adresse]:=NbreSignaux;   // index
     Signal_supprime.adresse:=0;  // dévalider le signal sauvegardé
     Signal_supprime.aspect:=0;
-    cree_image(NbreSignaux);
+    cree_image_signal(NbreSignaux);
     config_modifie:=true;
     // réafficher le rechedit
     s:=encode_signal(NbreSignaux);
@@ -13096,7 +13396,7 @@ begin
   {$IF CompilerVersion >= 28.0}
   change_style;
   {$IFEND}
-
+  tsbouton:=false;
   if modif_branches then
   begin
     if MessageDlg('Les branches ont été modifiées mais non validées. Voulez fermer la fenêtre ?',mtConfirmation,[mbYes,mbNo],0)=mrNo then
@@ -13171,6 +13471,7 @@ begin
   LabelInfo.caption:='';
   if FormConfig.PageControl.ActivePage=FormConfig.TabSheetPN then label40.Visible:=true
     else label40.Visible:=false;
+  tsbouton:=FormConfig.PageControl.ActivePage=TabSheetBouton;
 end;
 
 
@@ -13477,18 +13778,19 @@ begin
 end;
 
 // affiche l'icone du train index dans le canvas
-// Icanvas: canvas de destination ; index: index du train
-procedure Maj_icone_train(IImage : Timage;index :integer);
+// Iimage: destination ; index: index du train
+procedure Maj_icone_train(IImage : Timage;index :integer;coulfond : Tcolor);
 var h,l,HautDest,LargDest,y : integer;
     rd : single;
 begin
   if (index<1) or (index>Ntrains) then
   begin
-    Iimage.Picture:=nil;
+    //Iimage.Picture:=nil;
     exit;
   end
   else
     begin
+      //Affiche('Maj_icone_train '+intToSTR(index),clYellow);
       // source
       l:=Trains[index].Icone.width;
       h:=Trains[index].Icone.Height;
@@ -13509,116 +13811,17 @@ begin
 
       y:=iImage.Height-HautDest;
 
-      Iimage.Canvas.Rectangle(0,0,Iimage.Width,Iimage.Height);
+      with Iimage.Canvas do
+      begin
+        brush.Color:=coulfond;
+        pen.Color:=clwhite;
+        Rectangle(0,0,Iimage.Width,Iimage.Height);
+
+      end;
       TransparentBlt(Iimage.canvas.Handle,0,y,largDest,hautDest,
                      Trains[index].Icone.canvas.Handle,0,0,l,h,clWhite);
-
     end;
-  formconfig.ImageTrain.Repaint;
-end;
-
-procedure clicListeTrains(index : integer);
-var s : string;
-    i,t : integer;
-    r : single;
-begin
-  if index<1 then exit;
-  if Trains[index].nom_train='' then exit;
-  with formconfig do
-  begin
-    i:=trains[index].routePref[0][0].adresse;
-    s:='';
-    case i of
-    0 : s:='Pas de route';
-    1 : s:='1 route';
-    else s:=intToSTR(i)+' routes';
-    end;
-    ButtonRdt.Caption:=s;
-
-    editNomTrain.text:=Trains[index].nom_train;
-    editAdresseTrain.Text:=intToSTR(trains[index].adresse);
-    editVitesseMaxi.Text:=intToSTR(trains[index].vitmax);
-    editLongLoco.text:=IntToSTR(trains[index].longueur);
-    LabeledEditTempoD.Text:=intToSTR(trains[index].TempsDemarreSig);
-    editVitRalenti.Text:=IntToSTR(trains[index].Vitralenti);
-    editvitnom.text:=IntToSTR(trains[index].VitNominale);
-    CheckBoxSens.Checked:=trains[index].inverse;
-    s:=trains[index].NomIcone;
-    editIcone.Text:=s;
-
-    // Efface l'icone de train
-    ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
-
-    if s<>'' then Maj_icone_train(formconfig.ImageTrain,index);
-
-    // tableau des détecteurs d'arrêt
-    for i:=1 to NbDetArret do
-    begin
-      t:=trains[index].DetecteurArret[i].temps;
-      if t<>0 then
-      begin
-        s:='';
-        if trains[index].DetecteurArret[i].TPrec<>det then s:='A';
-        StringGridArr.Cells[1,i]:=s+intToSTR(trains[index].DetecteurArret[i].prec);
-        StringGridArr.Cells[2,i]:=intToSTR(trains[index].DetecteurArret[i].detecteur);
-        StringGridArr.Cells[3,i]:=intToSTR(t);
-      end
-      else
-      begin
-        StringGridArr.Cells[1,i]:='';
-        StringGridArr.Cells[2,i]:='';
-        StringGridArr.Cells[3,i]:='';
-      end;
-    end;
-
-    With LabeledEditV1 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 1 - Lente '+intToSTR(Trains[index].ConsV1)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2,FormatSettings);
-    end;
-    With LabeledEditV2 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 2 - Moyenne '+intToSTR(Trains[index].ConsV2)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2,FormatSettings);
-    end;
-    With LabeledEditV3 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 3 - Rapide '+intToSTR(Trains[index].ConsV3)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2,FormatSettings);
-    end;
-
-    if Trains[index].coeffV1<>0 then
-    begin
-      r:=Trains[index].consV1/Trains[index].coeffV1;
-      LabelV1.Caption:='Vr1 (cm/s) = '+intToSTR(trains[index].consV1)+' (crans) / '+FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2)+
-                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
-    end
-    else LabelV1.Caption:='Vr1';
-
-    if Trains[index].coeffV2<>0 then
-    begin
-      r:=Trains[index].consV2/Trains[index].coeffV2;
-      LabelV2.Caption:='Vr2 (cm/s) = '+intToSTR(trains[index].consV2)+' (crans) / '+FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2)+
-                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
-    end
-    else LabelV2.Caption:='Vr2';
-
-    if Trains[index].coeffV3<>0 then
-    begin
-      r:=Trains[index].consV3/Trains[index].coeffV3;
-      LabelV3.Caption:='Vr3 (cm/s) = '+intToSTR(trains[index].consV3)+' (crans) / '+FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2)+
-                     ' = '+FloatToSTRF(r,ffFixed,5,2)+' cm/s';
-    end
-    else LabelV3.Caption:='Vr3';
-
-    LabeledEditCV3.Text:=intToSTR(Trains[index].CV3);
-    LabeledEditCV4.Text:=intToSTR(Trains[index].CV4);
-    LabeledEditCrans.Text:=intToSTR(Trains[index].crans);
-
-  end;
+  Iimage.Repaint;
 end;
 
 
@@ -13629,7 +13832,6 @@ begin
   //affiche('RichEditTrainChange',clyellow);
   clicListe:=true;
 
-  AncligneclicTrain:=ligneclicTrain;
   ligneclicTrain:=ListBoxTrains.ItemIndex;
 
   //Affiche(intToSTR(lc),clyellow);
@@ -13657,11 +13859,17 @@ begin
   trains[ligneclicTrain+1].Nom_train:=EditNomTrain.text;
   ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
+  LabelTrain[ligneclicTrain+1].Caption:=EditNomTrain.text;
 
   i:=formprinc.ComboTrains.ItemIndex;
   if i<0 then exit;
   formprinc.ComboTrains.Items[ligneclicTrain]:=EditNomTrain.text;
-  if i=ligneclicTrain then formprinc.ComboTrains.Text:=EditNomTrain.text;
+  formConfig.ComboBoxUSBTr.Items[LigneClicTrain+1]:=EditNomTrain.text;
+  if LabelTrain[ligneclicTrain+1]<>nil then LabelTrain[ligneclicTrain+1].Caption:=EditNomTrain.text;
+  if i=ligneclicTrain then
+  begin
+    formprinc.ComboTrains.Text:=EditNomTrain.text;
+  end;
 end;
 
 procedure TFormConfig.EditAdresseTrainChange(Sender: TObject);
@@ -13752,7 +13960,8 @@ begin
   ligneclicTrain:=ntrains-1;
   clicListe:=false;
 
-  formprinc.ComboTrains.Items.Add(encode_train(ntrains));
+  formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
+  formconfig.ComboBoxUSBTr.Items.Add(trains[ntrains].nom_train);
 
   for i:=0 to ntrains-2 do formConfig.ListBoxTrains.selected[i]:=false;
 
@@ -13763,6 +13972,9 @@ begin
     SetFocus;
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
+
+  cree_image_Train(ntrains);
+
 end;
 
 procedure TFormConfig.ButtonNTClick(Sender: TObject);
@@ -13812,6 +14024,7 @@ begin
     LabeledEditCV3.Text:='';
     LabeledEditCV4.Text:='';
     LabeledEditCrans.Text:='';
+
   end;
 
   // suppression
@@ -13820,16 +14033,36 @@ begin
   repeat
     if formconfig.ListBoxTrains.selected[i-1] then
     begin
-      for j:=i to ntrains-1 do
+      for j:=i to ntrains do
       begin
-        formconfig.ListBoxTrains.selected[j-1]:=formconfig.ListBoxTrains.selected[j];
-        trains[j]:=trains[j+1];
+        if formconfig.ListBoxTrains.selected[j-1] then
+        begin
+          // libérer les composants car on va réaffecter des noms
+          image_train[j].free;
+          labeltrain[j].free;
+          LabelVitesse[j].free;
+          //Formprinc.ScrollBoxTrains.Repaint;
+        end;
+        if j<ntrains then
+        begin
+          formconfig.ListBoxTrains.selected[j-1]:=formconfig.ListBoxTrains.selected[j];
+          trains[j]:=trains[j+1];
+          image_train[j]:=image_train[j+1];
+          // renseigne les composants train page principale
+          labeltrain[j]:=labeltrain[j+1];
+          LabelVitesse[j]:=LabelVitesse[j+1];
+          renseigne_comp_trains(j);
+          //Formprinc.ScrollBoxTrains.Repaint;
+        end;
       end;
       dec(ntrains);
+
       i:=0;
     end;
     inc(i);
   until i>ntrains;
+
+  Formprinc.ScrollBoxTrains.Repaint;
 
   config_modifie:=true;
   FormConfig.ListBoxTrains.Clear;
@@ -13840,8 +14073,20 @@ begin
     s:=encode_train(i);
     FormConfig.ListBoxtrains.items.Add(s);
   end;
+
+  formprinc.ComboTrains.Clear;
+  with formconfig do
+  begin
+    comboBoxUSBTr.clear;
+    comboBoxUSBTr.items.add('Pas d''affectation');
+  end;
+  for i:=1 to ntrains do
+  begin
+    FormPrinc.ComboTrains.items.Add(Trains[i].nom_train);
+    FormConfig.ComboBoxUSBTr.items.Add(Trains[i].nom_train);
+  end;
+
   ligneclicTrain:=-1;
-  AncligneclicTrain:=-1;
   clicliste:=false;
 end;
 
@@ -13860,8 +14105,8 @@ end;
 procedure TFormConfig.ListBoxTrainsKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if ord(key)=VK_DELETE then supprime_train;
-  if ord(Key)=VK_UP then
+  if key=VK_DELETE then supprime_train;
+  if Key=VK_UP then
   begin
     if clicListe then exit;
     clicListe:=true;
@@ -13870,17 +14115,15 @@ begin
     begin
       if ligneclicTrain>0 then
       begin
-        dec(ligneclicTrain);
-        if AncligneclicTrain<>ligneclicTrain then
         begin
-          AncligneclicTrain:=ligneclicTrain;
+          dec(ligneclicTrain);
           clicListeTrains(ligneclicTrain+1);
         end;
       end;
    end;
   end;
 
-  if ord(Key)=VK_DOWN then
+  if Key=VK_DOWN then
   begin
     if clicListe then exit;
     clicListe:=true;
@@ -13889,10 +14132,8 @@ begin
     begin
       if ligneclicTrain<ntrains-1 then
       begin
-        inc(ligneclicTrain);
-        if AncligneclicTrain<>ligneclicTrain then
         begin
-          AncligneclicTrain:=ligneclicTrain;
+          inc(ligneclicTrain);
           clicListeTrains(ligneclicTrain+1);
         end;
       end;
@@ -15770,13 +16011,15 @@ begin
 
   LabelNbDecPers.caption:=intToSTR(NbreDecPers);
 
-
   //l'onglet affiché est sélectionné à l'appel de la fiche dans l'unité UnitPrinc
   clicListe:=false;
   activ:=false;
 
-  if clicproprietes then clicListeSignal(IndexSignalClic);
-  clicproprietes:=false;
+  if clicproprietesSig then clicListeSignal(IndexSignalClic);
+  clicproprietesSig:=false;
+  if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
+  clicproprietesTrains:=false;
+
 
   // aiguillages
   ListBoxAig.Clear;
@@ -15809,8 +16052,10 @@ begin
     for i:=1 to ntrains do items.Add(encode_train(i));
   end;
 
- with StringGridArr do
- begin
+  tsbouton:=FormConfig.PageControl.ActivePage=TabSheetBouton;
+
+  with StringGridArr do
+  begin
    for i:=1 to NbDetArret do
    begin
      cells[1,i]:='';
@@ -16001,7 +16246,8 @@ var s,repini :string;    i : integer;begin  if ligneclicTrain<0 then exit;
     EditIcone.Text:=s;
     trains[i].icone.Picture.LoadFromFile(s);
     //ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
-    Maj_icone_train(formconfig.ImageTrain,i);
+    Maj_icone_train(formconfig.ImageTrain,i,clWhite);
+    Maj_icone_train(Image_Train[i],i,clWhite);
     formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
     //formconfig.ImageTrain.Picture.assign(trains[i].icone.Picture);
   end;
@@ -16020,7 +16266,7 @@ var s,Nom,repIni : string;begin
     trains[ligneclicTrain+1].NomIcone:=nom;
    // Affiche(s,clWhite);
     trains[ligneclicTrain+1].icone.Picture.LoadFromFile(s);
-    Maj_icone_train(formconfig.ImageTrain,ligneclicTrain+1);
+    Maj_icone_train(formconfig.ImageTrain,ligneclicTrain+1,clWhite);
     formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   end;
 end;
@@ -16603,7 +16849,7 @@ begin
       IndexTrainFR:=ligneclicTrain+1;
       irPref:=1;
       ShowModal;
-    end; 
+    end;
   end;
 end;
 
@@ -17745,27 +17991,35 @@ begin
 
 end;
 
-procedure TFormConfig.ComboBoxFLChange(Sender: TObject);
+
+procedure ComboBoxFL_mizajour;
 var i : integer;
+begin
+  fabrique_treeview(FoncCourante);
+
+  for i:=0 to formconfig.TreeViewL.Items.Count-1 do
+  begin
+    Formconfig.TreeViewL.Items[i].Expand(true);
+  end;
+
+  changeCom:=true;
+  with Formconfig do
+  begin
+    LabelFonction.caption:='';
+    LabeledEditNomLog.Text:=NomFonction[FoncCourante];
+    LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
+    ButtonAjOpEnfant.enabled:=false;
+    PanelACC.Visible:=false;
+  end;
+  changeCom:=false;
+end;
+
+procedure TFormConfig.ComboBoxFLChange(Sender: TObject);
 begin
   if changeCom or ClicTree then exit;
   if affevt then Affiche('ComboBoxFL change',clyellow);
   FoncCourante:=ComboBoxFL.itemIndex+1;
-  fabrique_treeview(FoncCourante);
-
-  for i:=0 to TreeViewL.Items.Count-1 do
-  begin
-    TreeViewL.Items[i].Expand(true);
-  end;
-
-  changeCom:=true;
-  LabelFonction.caption:='';
-  LabeledEditNomLog.Text:=NomFonction[FoncCourante];
-  LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
-  ButtonAjOpEnfant.enabled:=false;
-  PanelACC.Visible:=false;
-
-  changeCom:=false;
+  ComboBoxFL_mizajour;
 end;
 
 Function Etat_variable(k,i : integer): boolean ;
@@ -18107,10 +18361,10 @@ begin
        end;
   8 : begin
          if (erreur<>0) or (i<0) then exit;
-         if (i<1) or (i>5000) then labelInfo.Caption:='Valeur incorrecte'
+         if (i<1) or (i>MaxRoutesCte) then labelInfo.Caption:='Valeur incorrecte'
          else MaxRoutes:=i;
-         if MaxRoutes<5000 then MaxRoutes:=5000;
-         if MaxRoutes>MaxRoutesCte then integer(p^):=i;  // maxRoutes:=MaxRoutesCte;
+         if MaxRoutes<MaxRoutesCte then MaxRoutes:=MaxRoutesCte;
+         if MaxRoutes>MaxRoutesCte then MaxRoutes:=MaxRoutesCte;
        end;
   9 : begin
          Option_DemiTour:=s=lowercase(liste[Arow].textePL1);
@@ -18185,7 +18439,6 @@ begin
 end;
 
 
-
 procedure TFormConfig.RadioGroupOPClick(Sender: TObject);
 var node : tTreeNode;
     i : integer;
@@ -18205,7 +18458,6 @@ begin
     node.Text:=s;
   end;
 end;
-
 
 procedure TFormConfig.Panel1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -18294,13 +18546,248 @@ begin
   trains[ligneclicTrain+1].cv4:=valeur;
   LabeledEditCV4.Text:=IntToSTR(valeur);
   clicListe:=false;
-
 end;
-
 
 procedure TFormConfig.ButtonRepriseDCCClick(Sender: TObject);
 begin
   reprise_dcc;
+end;
+
+procedure boutons;
+begin
+  with formConfig do
+  begin
+    shapeBR.Brush.Color:=clGray;
+    shapeB1.Brush.Color:=clGray;
+    shapeB2.Brush.Color:=clGray;
+    shapeB3.Brush.Color:=clGray;
+    shapeB4.Brush.Color:=clGray;
+    LabeledEditCT.visible:=true;
+    LabeledEditRm.visible:=false;
+    LabeledEditRp.visible:=false;
+    LabeledEditClic.Visible:=false;
+    LabeledEditF.Visible:=true;
+    LabeledEditFn.Visible:=true;
+    LabeledEditIncr.Visible:=false;
+  end;
+end;
+
+procedure rotatif;
+begin
+  with formConfig do
+  begin
+    ShapeBR.Brush.Color:=clYellow;
+    shapeB1.Brush.Color:=clGray;
+    shapeB2.Brush.Color:=clGray;
+    shapeB3.Brush.Color:=clGray;
+    shapeB4.Brush.Color:=clGray;
+    LabeledEditCT.visible:=false;
+    LabeledEditF.Visible:=false;
+    LabeledEditFn.Visible:=false;
+    LabeledEditRm.visible:=true;
+    LabeledEditRp.visible:=true;
+    LabeledEditClic.Visible:=true;
+    LabeledEditIncr.Visible:=true;
+  end;
+end;
+
+Procedure Aff_champs_BRM;
+begin
+  with formConfig do
+  begin
+    LabeledEditRM.Text:=intToSTR(blocUSB[NumBlocUSB].rotatifM);
+    LabeledEditRP.Text:=intToSTR(blocUSB[NumBlocUSB].rotatifP);
+    LabeledEditClic.Text:=intToSTR(blocUSB[NumBlocUSB].clic);
+    if blocUSB[NumBlocUSB].increment<1 then blocUSB[NumBlocUSB].increment:=1;
+    LabeledEditIncr.Text:=intToSTR(blocUSB[NumBlocUSB].increment);
+  end;
+end;
+
+procedure clic_BRM;
+begin
+  rotatif;
+  BoutonBloc:=99;
+  Aff_champs_BRM;
+end;
+
+procedure TFormConfig.ShapeBRMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  clic_BRM;
+end;
+
+procedure TFormConfig.ShapeB1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  boutons;
+  ShapeB1.Brush.Color:=clYellow;
+  BoutonBloc:=1;
+  LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp1);
+  LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp1);
+  LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp1);
+end;
+
+procedure TFormConfig.ShapeB2MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  boutons;
+  ShapeB2.Brush.Color:=clYellow;
+  BoutonBloc:=2;
+  LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp2);
+  LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp2);
+  LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp2);
+end;
+
+procedure TFormConfig.ShapeB3MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  boutons;
+  ShapeB3.Brush.Color:=clYellow;
+  BoutonBloc:=3;
+  LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp3);
+  LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp3);
+  LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp3);
+end;
+
+procedure TFormConfig.ShapeB4MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  boutons;
+  ShapeB4.Brush.Color:=clYellow;
+  BoutonBloc:=4;
+  LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp4);
+  LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp4);
+  LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp4);
+end;
+
+procedure TFormConfig.LabeledEditCTChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditCT.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>255) then exit;
+  case BoutonBloc of
+  1 : blocUSB[NumBlocUSB].Bp1:=i;
+  2 : blocUSB[NumBlocUSB].Bp2:=i;
+  3 : blocUSB[NumBlocUSB].Bp3:=i;
+  4 : blocUSB[NumBlocUSB].Bp4:=i;
+  5 : blocUSB[NumBlocUSB].Bp5:=i;
+  6 : blocUSB[NumBlocUSB].Bp6:=i;
+  7 : blocUSB[NumBlocUSB].Bp7:=i;
+  8 : blocUSB[NumBlocUSB].Bp8:=i;
+  9 : blocUSB[NumBlocUSB].Bp9:=i;
+  10 : blocUSB[NumBlocUSB].Bp10:=i;
+  end;
+end;
+
+procedure TFormConfig.LabeledEditRmChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditRm.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>255) then exit;
+  blocUSB[NumBlocUSB].rotatifM:=i;
+end;
+
+procedure TFormConfig.LabeledEditRpChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditRp.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>255) then exit;
+  blocUSB[NumBlocUSB].rotatifP:=i;
+end;
+
+procedure TFormConfig.LabeledEditClicChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditClic.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>255) then exit;
+  blocUSB[NumBlocUSB].clic:=i;
+end;
+
+
+procedure TFormConfig.LabeledEditNUMChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditNUM.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>10) then exit;
+  NumBlocUSB:=i;
+  LabeledEditCT.Text:='';
+  LabeledEditRM.Text:='';
+  LabeledEditRP.Text:='';
+  LabeledEditClic.Text:='';
+  LabeledEditF.Text:='';
+  LabeledEditFn.Text:='';
+  ShapeBR.Brush.Color:=clGray;
+  shapeB1.Brush.Color:=clGray;
+  shapeB2.Brush.Color:=clGray;
+  shapeB3.Brush.Color:=clGray;
+  shapeB4.Brush.Color:=clGray;
+  LabelID.caption:=intToSTR(i);
+  //Aff_champs_BRM;
+  i:=index_train_nom(BlocUSB[NumBlocUSB].AffTrain);
+  ComboBoxUSBTr.ItemIndex:=i;
+  label72.caption:='';
+end;
+
+procedure TFormConfig.LabeledEditFChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditF.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>30) then exit;
+  case boutonbloc of
+  1 : blocUSB[NumBlocUSB].Fbp1:=i;
+  2 : blocUSB[NumBlocUSB].Fbp2:=i;
+  3 : blocUSB[NumBlocUSB].Fbp3:=i;
+  4 : blocUSB[NumBlocUSB].Fbp4:=i;
+  5 : blocUSB[NumBlocUSB].Fbp5:=i;
+  6 : blocUSB[NumBlocUSB].Fbp6:=i;
+  7 : blocUSB[NumBlocUSB].Fbp7:=i;
+  8 : blocUSB[NumBlocUSB].Fbp8:=i;
+  9 : blocUSB[NumBlocUSB].Fbp9:=i;
+  10 : blocUSB[NumBlocUSB].Fbp10:=i;
+  end;
+end;
+
+procedure TFormConfig.LabeledEditIncrChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditIncr.Text,i,erreur);
+  if (erreur<>0) or (i<1) or (i>20) then exit;
+  blocUSB[NumBlocUSB].increment:=i;
+end;
+
+procedure TFormConfig.ComboBoxUSBTrChange(Sender: TObject);
+var i : integer;
+begin
+  i:=ComboBoxUSBTr.ItemIndex;
+  if i=0 then
+  begin
+    blocUSB[NumBlocUSB].AffTrain:='Pas d''affectation';
+    Label72.Caption:='La sélection du train est celle de la page principale';
+  end
+  else
+  begin
+    blocUSB[NumBlocUSB].AffTrain:=trains[i].nom_train;
+    Label72.Caption:=trains[i].nom_train+' sélectionné pour le bloc USB '+intToSTR(NumBlocUSB);
+  end;
+end;
+
+procedure TFormConfig.LabeledEditFnChange(Sender: TObject);
+var i,erreur :integer;
+begin
+  val(LabeledEditFn.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>30) then exit;
+  case boutonbloc of
+  1 : blocUSB[NumBlocUSB].Fnp1:=i;
+  2 : blocUSB[NumBlocUSB].Fnp2:=i;
+  3 : blocUSB[NumBlocUSB].Fnp3:=i;
+  4 : blocUSB[NumBlocUSB].Fnp4:=i;
+  5 : blocUSB[NumBlocUSB].Fnp5:=i;
+  6 : blocUSB[NumBlocUSB].Fnp6:=i;
+  7 : blocUSB[NumBlocUSB].Fnp7:=i;
+  8 : blocUSB[NumBlocUSB].Fnp8:=i;
+  9 : blocUSB[NumBlocUSB].Fnp9:=i;
+  10 : blocUSB[NumBlocUSB].Fnp10:=i;
+  end;
 end;
 
 end.

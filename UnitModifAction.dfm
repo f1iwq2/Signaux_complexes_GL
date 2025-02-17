@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetOp
+    ActivePage = TabSheetDecl
     MultiLine = True
     TabOrder = 1
     object TabSheetDecl: TTabSheet
@@ -684,6 +684,8 @@ object FormModifAction: TFormModifAction
           EditLabel.Caption = 'Adresse'
           LabelPosition = lpLeft
           LabelSpacing = 10
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 1
           OnChange = LabeledEditAdresseChange
         end
@@ -734,6 +736,8 @@ object FormModifAction: TFormModifAction
           EditLabel.Caption = 'Tempo x100ms'
           LabelPosition = lpLeft
           LabelSpacing = 10
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 5
           OnChange = LabeledEditTempoFChange
         end

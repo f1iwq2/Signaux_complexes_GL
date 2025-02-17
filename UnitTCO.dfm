@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1005
-    556)
+    997
+    548)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -1299,10 +1299,10 @@ object FormTCO: TFormTCO
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        ReadOnly = True
         TabOrder = 0
         OnChange = EditAdrElementChange
         OnClick = EditAdrElementClick
+        OnExit = EditAdrElementExit
       end
       object EditTypeImage: TEdit
         Left = 184

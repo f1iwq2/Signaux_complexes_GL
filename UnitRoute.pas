@@ -428,7 +428,7 @@ begin
   SendMessage(FormRoute.ListBoxRoutes.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
   // icone train
-  if idcantonRoute<>0 then Maj_icone_train(FormRoute.ImageTrainR,idTrainCourant);
+  if idcantonRoute<>0 then Maj_icone_train(FormRoute.ImageTrainR,idTrainCourant,clWhite);
 
   formRoute.ButtonFenPil.enabled:=trains[IdTrainCourant].route[0].adresse<>0;
 

@@ -405,6 +405,7 @@ type
     { Déclarations privées }
     function index_TCOMainMenu : integer;
     procedure Mmoiredezone1Click(Sender: TObject);
+    procedure EditAdrElementExit(Sender: TObject);
   public
     { Déclarations publiques }
   end;
@@ -1450,7 +1451,6 @@ end;
 
 // remplit les informations du canton avec les éléments adjacents, et des détecteurs adjacents
 // et vérifie si le canton ne contient pas de case incorrecte
-// Cantons uniquement TCO1
 // i : indexCanton
 // remplit les champs horizontal, el1,el2,typ1,typ2,sens1,sens2 de canton[]
 // et les champs canton1 et canton2 du tableau detecteurs[]
@@ -2446,7 +2446,7 @@ begin
   closefile(fichier);
   renseigne_tous_cantons;
   trier_cantons;
-  affecte_trains_config;
+       
 
   sauve_styles_tco(indexTCO); // sauver le jeu sombre
   if jeucouleurs=2 then jeu_clair(indexTCO);
@@ -14989,6 +14989,7 @@ begin
     //Affiche('xClicCell='+intToSTR(XClicCell[indexTCO]),clYellow);
     clicTCO:=true;
     formTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Adresse);
+    defocusControl(EditAdrElement,true); // pour enlever le curseur
     actualise(indexTCO);
     clicTCO:=false;
   end;
@@ -15290,7 +15291,9 @@ begin
   tco[indextco,XClic,YClic].liaisons:=liaisons[icone];  // liaisons des voies
   tco[indextco,xClic,YClic].CoulFonte:=clYellow;
   tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Repr:=2;
+
   formTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indextco,XClic,YClic].Adresse);
+
   formTCO[indexTCO].EdittypeImage.Text:=IntToSTR(tco[indextco,XClic,YClic].BImage);
 end;
 
@@ -16284,8 +16287,7 @@ begin
       else
       begin
         // detdépart validé : valider le det de destination sauf si route en roulage
-        if (detatrouve=0) and (bt<=3) and not(ConfCellTCO) and (NbreRoutes=0)
-          then // bt=3 drapeau vert bt=4 drapeau rouge
+        if (detatrouve=0) and (bt<=3) and not(ConfCellTCO) and (canton[idCantonClic].NumCantonDest=0) then // bt=3 drapeau vert bt=4 drapeau rouge
         begin
           if (canton[IdCantonClic].adresseTrain<>0) and (bt<3) then
           begin
@@ -16776,6 +16778,7 @@ begin
     YclicCellInserer:=YClic;
     clicTCO:=true;
     EditAdrElement.Text:=IntToSTR(tco[indextco,XClicCellInserer,YClicCellInserer].Adresse);
+    defocusControl(EditAdrElement,true);
     EditTypeImage.Text:=IntToSTR(tco[indextco,XClicCellInserer,YClicCellInserer].Bimage);
     CheckPinv.Checked:=tco[indextco,XClicCellInserer,YClicCellInserer].inverse;
     clicTCO:=false;
@@ -17081,15 +17084,24 @@ end;
 
 // changement de l'adresse d'un élément
 procedure TFormTCO.EditAdrElementChange(Sender: TObject);
-var Adr,erreur,index,indexTCO : integer;
+var Adr,erreur,indexTCO,Bim : integer;
     s: string;
 begin
-  exit;
-  //Affiche('Chgt adresse',clyellow);
-  if clicTCO or not(ConfCellTCO) then exit;
-  clicTCO:=true;
-  auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les touches curseur s'applique au Tedit)
+//  exit;
+  //Affiche('EditAdrElement change',clyellow);
+  //if clicTCO or not(ConfCellTCO) then exit;
+
+  if clicTCO then
+  begin
+    HideCaret(EditAdrElement.Handle);  // supprime le curseur
+    exit;
+  end;
+  //clicTCO:=true;
   indexTCO:=index_TCO(sender);
+  bim:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage;
+  if bim=0 then exit;
+
+  auto_tcurs:=false;  // interdit le déplacement du curseur encadré du TCO (pour que les touches curseur s'applique au Tedit)
   s:=formTCO[indexTCO].EditAdrElement.Text;
   if length(s)>1 then
   begin
@@ -17106,17 +17118,16 @@ begin
 
   efface_entoure(indexTCO);
   tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Adresse:=Adr;
-  //formConfCellTCO.editAdrElement.Text:=intToSTR(Adr);
+  formConfCellTCO.editAdrElement.Text:=intToSTR(Adr);
   tco_Modifie:=true;
 
   // si signal
   if tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].BImage=Id_signal then
   begin
-    index:=Index_Signal(adr);
+    {index:=Index_Signal(adr);
     if index=0 then exit
-    else
+    else }
       begin
-       //Affiche('Signal '+intToSTR(Adr),clyellow);
        affiche_tco(indexTCO);
      end;
   end;
@@ -17197,7 +17208,6 @@ procedure TFormTCO.ImagePalette10EndDrag(Sender, Target: TObject; X, Y: Integer)
 begin
   end_drag(10,x,y,Sender,Target);
 end;
-
 
 procedure TFormTCO.ImagePalette11EndDrag(Sender, Target: TObject; X,
   Y: Integer);
@@ -18739,7 +18749,7 @@ end;
 
 procedure TFormTCO.EditAdrElementClick(Sender: TObject);
 begin
-  auto_tcurs:=false;
+//  auto_tcurs:=false;
 end;
 
 procedure TFormTCO.ImagePalette53DragOver(Sender, Source: TObject; X,
@@ -19222,6 +19232,12 @@ begin
   FormMemZone.show;
   FormMemZone.BringToFront;
 
+end;
+
+procedure TFormTCO.EditAdrElementExit(Sender: TObject);
+begin
+  auto_tcurs:=true;  // réautorise le déplacement du curseur
+  defocusControl(EditAdrElement,true);
 end;
 
 end.
