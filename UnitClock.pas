@@ -88,15 +88,15 @@ type
 
 var  FormClock: TFormClock;
      clock : Tclock;
-     FormClockInit,Verrouille : boolean;
+     FormClockInit,VerrouilleClock : boolean;
      SecThick,MinThick,HouThick,DeltaFPCX,DeltaFPCY,largeurFC,hauteurFC,OffsetXFC,OffsetYFC : integer;
 
 procedure affiche_horloge;
-procedure calcul_pos_horloge;
+procedure calcul_pos_horloge_compt;
 
 implementation
 
-uses UnitConfigCellTCO, UnitPrinc, UnitFicheHoraire;
+uses UnitConfigCellTCO, UnitPrinc, UnitFicheHoraire, UnitCompteur;
 {$R *.dfm}
 
 const
@@ -331,7 +331,7 @@ begin
 end;
 
 // sur la fermeture de SC, l'horloge provoque une exception
-procedure calcul_pos_horloge;
+procedure calcul_pos_horloge_compt;
 begin
   if not assigned(formclock) or (formclock=nil) or fermeSC then exit;
   if LargeurFC<150 then
@@ -354,6 +354,21 @@ begin
   formclock.top:=OffsetYFC;
   formclock.left:=OffsetXFC;
 
+  // compteur
+  position_compteur;
+  {
+  if (formCompteur[1]<>nil) and Verrouillecompteur then
+  begin
+    with formCompteur[1] do
+    begin
+      Left:=formprinc.Left+formprinc.Width-width;
+    end;
+    if FormClock.Showing then
+    with formCompteur[1] do
+    begin
+      top:=formclock.top-height;
+    end;
+  end; }
 end;
 
 
@@ -365,7 +380,7 @@ begin
   if formClock<>nil then
   begin
     SetWindowPos(FormClock.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NoMove or SWP_NoSize);
-    Verrouille:=true;
+    VerrouilleClock:=true;
 
     clock:=tClock.Create(formClock);
     clock.Parent:=formclock;
@@ -474,7 +489,7 @@ begin
   // le checked ne fonctionne pas sous D7, fonctionne sous D12.
   TjsDev.Checked:=true;
   Dverrouiller1.Checked:=false;
-  Verrouille:=true;
+  VerrouilleClock:=true;
 end;
 
 procedure TFormClock.Dverrouiller1Click(Sender: TObject);
@@ -482,7 +497,7 @@ begin
   SetWindowPos(Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
   TjsDev.Checked:=false;
   Dverrouiller1.Checked:=true;
-  Verrouille:=false;
+  VerrouilleClock:=false;
 end;
 
 procedure affiche_horloge;

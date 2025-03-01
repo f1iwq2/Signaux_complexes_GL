@@ -120,7 +120,7 @@ begin
     for y:=1 to NbreCellY[nti] do
       for x:=1 to NbreCellX[nti] do
         begin
-          if isAigTCO(tco[nti,x,y].BImage) then
+          if IsAigTJDCroiTCO(tco[nti,x,y].BImage) then
           begin
             affiche_cellule(nti,x,y);
            // entoure_cell_grille(indexTCO,x,y);

@@ -33,7 +33,7 @@ var
   s,fichier : string;
   r : boolean;
 begin
-  fichier:=CheminProgrammes+chemin; //'\CDM-Rail\cdr.exe';
+  fichier:=CheminProgrammes+chemin;
 
   // Crée l'objet FwPolicy2
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');

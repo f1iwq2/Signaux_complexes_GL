@@ -275,6 +275,14 @@ begin
       canton[Idcanton].indexTrain:=9999;
       canton[IdCanton].adresseTrain:=0;
     end;
+
+    // affecte le canton avec l'id du train, même si nul
+    t:=canton[IdCanton].Ntco;
+    if (t>0) and (t<=nbreTCO) then
+    begin
+      TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
+    end;
+
     if AdrTrain=0 then
     begin
       idTrain:=0;
@@ -284,26 +292,19 @@ begin
       // a revoir IDTrain=0 !!!! Maj_icone_train(Image_Train[idTrain],idTrain,clWhite);
     end;
 
-    // affecte le canton avec l'id du train, même si nul
-    t:=canton[IdCanton].Ntco;
-    if (t>0) and (t<=nbreTCO) then
-    begin
-      TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
-    end;
-
     // si l'un des deux éléments adjacents au canton est un détecteur à 1, affecter la loco au détecteur
     el1:=canton[IdCanton].el1;t1:=canton[IdCanton].typ1;
     el2:=canton[IdCanton].el2;t2:=canton[IdCanton].typ2;
     if (t1=det) and detecteur[el1].Etat then
     begin
       detecteur[el1].AdrTrain:=AdrTrain;
-      detecteur[el1].Train:=trains[idTrain].nom_train;
+      if idTrain<>0 then detecteur[el1].Train:=trains[idTrain].nom_train;
       Maj_detecteurs_canton(idCanton,AdrTrain,el1);
     end;
     if (t2=det) and detecteur[el2].Etat then
     begin
       detecteur[el2].AdrTrain:=AdrTrain;
-      detecteur[el2].Train:=trains[idTrain].nom_train;
+      if idTrain<>0 then detecteur[el2].Train:=trains[idTrain].nom_train;
       Maj_detecteurs_canton(idCanton,AdrTrain,el2);
     end;
   end;

@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetBouton
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1079,6 +1079,16 @@ object FormConfig: TFormConfig
           Height = 17
           Caption = 'Signaux (non utilis'#233')'
           TabOrder = 4
+        end
+        object CheckBoxSrvTdcc: TCheckBox
+          Left = 120
+          Top = 72
+          Width = 145
+          Height = 17
+          Caption = 'Vitesses trains (non utilis'#233')'
+          ParentShowHint = False
+          ShowHint = False
+          TabOrder = 5
         end
       end
       object GroupBoxDivers: TGroupBox
@@ -3187,7 +3197,7 @@ object FormConfig: TFormConfig
             Left = 240
             Top = 19
             Width = 33
-            Height = 21
+            Height = 22
             MaxValue = 2
             MinValue = 0
             TabOrder = 2
@@ -4093,7 +4103,7 @@ object FormConfig: TFormConfig
       end
       object ImageTrain: TImage
         Left = 16
-        Top = 400
+        Top = 392
         Width = 257
         Height = 49
       end
@@ -4139,7 +4149,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TtabSheetEt
+        ActivePage = TabSheetTrGen
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'
@@ -5140,7 +5150,7 @@ object FormConfig: TFormConfig
           Width = 153
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxUSBTrChange
         end

@@ -1478,7 +1478,14 @@ object FormTCO: TFormTCO
       Caption = 'Button1'
       TabOrder = 9
       Visible = False
-      OnClick = Button1Click
+    end
+    object Button2: TButton
+      Left = 848
+      Top = 96
+      Width = 75
+      Height = 25
+      Caption = 'Button2'
+      TabOrder = 10
     end
   end
   object PopupMenu1: TPopupMenu

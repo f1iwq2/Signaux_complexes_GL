@@ -505,27 +505,7 @@ begin
 
 
   position:=poMainFormCenter;
-  {
-  for i:=1 to 16 do
-  begin
-
-    ComboBoxAdr1.items.add('');
-    ComboBoxAdr2.items.add('');
-    ComboBoxAdr3.items.add('');
-    ComboBoxAdr4.items.add('');
-    ComboBoxAdr5.items.add('');
-    ComboBoxAdr6.items.add('');
-    ComboBoxAdr7.items.add('');
-    ComboBoxAdr8.items.add('');
-    ComboBoxAdr9.items.add('');
-    ComboBoxAdr10.items.add('');
-    ComboBoxAdr11.items.add('');
-    ComboBoxAdr12.items.add('');
-    ComboBoxAdr13.items.add('');
-    ComboBoxAdr14.items.add('');
-    ComboBoxAdr15.items.add('');
-    ComboBoxAdr16.items.add('');
-   }
+  
   for i:=0 to 19 do
   begin
     ComboBoxAdr1.items.add(etats[i]);

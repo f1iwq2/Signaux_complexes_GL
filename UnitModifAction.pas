@@ -213,7 +213,7 @@ begin
     checkBoxRaz.Visible:=false;
     GroupBoxParam.Visible:=true;
     labelEtatOp.Visible:=false;
-    RichEditInf.clear;
+    //RichEditInf.clear;
     ComboBoxAccComUSB.visible:=false;
   end;
 end;
@@ -250,6 +250,7 @@ begin
       DeclArretTrain : icone:=IconeArretTrain;
       DeclSignal : icone:=IconeSignal;
       DeclFonction : icone:=IconeFonction;
+      DeclClavier : icone:=IconeBoutonClavier;
     end;
     ListBoxDeclench.Items.Add(Format('%d%s', [icone, declencheurs[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
     ListBoxDeclench.itemHeight:=16;
@@ -416,6 +417,7 @@ begin
     begin
        s:=s+'Fonction logique '+intToSTR(tablo_action[i].adresse);
      end;
+  DeclClavier : s:=s+'Touche du clavier et/ou bloc USB '+intToSTR(tablo_action[i].adresse);
   end;
 
   // conditions
@@ -502,6 +504,7 @@ begin
     formModifAction.listBoxOperations.Selected[indexaction-1]:=true;
   end;
 
+//  formModifAction.RichEditInf.clear;
   efface_champs_operations;
 
   if Nb>=indexAction then
@@ -694,6 +697,7 @@ begin
   end;
 
   FormModifAction.LabeledEditNomAct.Text:=Tablo_Action[index].NomAction;
+  FormModifAction.RichEditInf.Clear;
 
   // ListBox opérations
 
@@ -956,6 +960,19 @@ begin
      RichEditInf.Lines.Add('Déclenchement par fonction logique');
      if (tablo_action[index].adresse>0) and (tablo_action[index].adresse<NbreFL) then  LabelInfoFonc.Caption:=NomFonction[tablo_action[index].adresse]
        else LabelInfoFonc.Caption:='';
+   end;
+
+   DeclClavier :
+   begin
+     LabelAdresse.Visible:=true; // numéro de fonction
+     LabelAdresse.caption:='Code de touche';
+     ButtonFonction.Visible:=false;
+     EditAdr.Text:=IntToSTR(tablo_action[index].adresse);
+     EditAdr.Visible:=true;
+     ImageIcone.Picture:=nil;
+     formConfCellTCO.ImageListIcones.GetBitmap(IconeBoutonClavier,ImageIcone.Picture.Bitmap);
+     ImageIcone.repaint;
+     RichEditInf.Lines.Add('Déclenchement touche de clavier ou bloc usb');
    end;
 
   end;
@@ -1277,6 +1294,14 @@ begin
   begin
     if (i>23) then exit;
     Tablo_Action[index].heure:=i;
+  end
+  else
+  if decl=DeclClavier then
+  begin
+    LabelHeure.Visible:=true;
+    if (i<0) or (i>255) then exit;
+    LabelHeure.Caption:=char(i);
+    Tablo_Action[index].adresse:=i;
   end
   else Tablo_Action[index].adresse:=i;
   maj_combocactions(ligneclicAct);

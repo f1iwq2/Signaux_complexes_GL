@@ -5,7 +5,7 @@ unit Unitprinc;
   Delphi 7 :
   on utilise activeX Tmscomm pour les liaisons série/USB
   clientSocket et ServeurSocket pour les connexions réseau socket
-          
+
   Delphi 12 :
   on utilise AsyncPro pour les liaisons série/USB - ce composant est compilable en 32 et en 64 bits.
   clientSocket et ServerSocker pour les connexions réseau socket
@@ -80,7 +80,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
-  ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem ,
+  ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem , math,
   Buttons, NB30, comObj, activeX //,DateUtils//, PsAPI
 
   {$IFDEF AvecIdTCP}
@@ -281,6 +281,11 @@ type
     ScrollBoxTrains: TScrollBox;
     PopupMenuTrains: TPopupMenu;
     Propritsdutrain1: TMenuItem;
+    ImageCompteur1: TImage;
+    ImageCompteur2: TImage;
+    Timer2: TTimer;
+    N19: TMenuItem;
+    Affiche_compteur: TMenuItem;
     procedure FormCreate(Sender: TObject);
     {$IF CompilerVersion >= 28.0}
     procedure RecuInterface(Sender: TObject;count : word);
@@ -446,11 +451,13 @@ type
     procedure Button0Click(Sender: TObject);
     procedure Etatdesactionneurs1Click(Sender: TObject);
     procedure Compilerlabasededonnes1Click(Sender: TObject);
-    procedure ButtonEssaiClick(Sender: TObject);
     procedure PopupMenuTrainsPopup(Sender: TObject);
     procedure Propritsdutrain1Click(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ButtonEssaiClick(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
+    procedure Affiche_compteurClick(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -650,6 +657,9 @@ EtatSignBelge: array[0..9] of string[30]=
 // dir6 feux   10     16
 // belge       11     20
 
+consigneBLocUSB=125;
+
+
 // Type de déclencheurs
 Decl0=0;
 DeclHorloge=1;
@@ -661,6 +671,7 @@ DeclDemarTrain=6;
 DeclArretTrain=7;
 DeclSignal=8;
 DeclFonction=9;
+DeclClavier=10;
 
 // conditions
 CondVrai=1;
@@ -725,6 +736,7 @@ IconeActionDecMemoire=29;
 IconeCondMemoireEgal=30;
 IconeCondMemoireSup=31;
 IconeCondMemoireInf=32;
+IconeBoutonClavier=33;
 
 
 type
@@ -739,16 +751,14 @@ TBranche      = record
                   BType : Tequipement ;   // ne prend que les valeurs suivantes: dét aig Buttoir
                   Adresse : integer ;     // adresse du détecteur ou de l'aiguillage
                 end;
-// structure pour hook clavier bas niveau
-tagKBDLLHOOKSTRUCT =  packed record    // type enregistrement compacté
-    vkCode :            DWORD;
-    scanCode :          DWORD;
-    flags :             DWORD;
-    time :              DWORD;
-    dwExtraInfo :       Integer;
+// structure pour hook clavier bas niveau pour le bloc USB
+tagKBDLLHOOKSTRUCT =
+   packed record    // type enregistrement compacté
+    vkCode,scanCode,flags,time : dword;
+    dwExtraInfo : Integer;
   end;
-  KBDLLHOOKSTRUCT      =  tagKBDLLHOOKSTRUCT;
-  PKBDLLHOOKSTRUCT     =  ^KBDLLHOOKSTRUCT;
+  KbDLLHookStruct = tagKbDLLHookStruct;
+  PkBDLLHookStruct= ^KbDLLHookStruct;
 
 Tfonction =
  record
@@ -951,8 +961,9 @@ tTrain =  record
               adresse,vitmax,VitNominale,VitRalenti : integer;
               AncVitesseCons : integer;         // ancienne consigne
               AVitesseCons : integer;           // ancienne consigne du tick précédent
+              VitesseCompteur : integer;        // vitesse en cours jusque VitesseCons du compteur
               vitesseCons : integer;            // vitesse Consigne actuelle de pilotage par CDM ou SC
-              VitesseReelleR : single;          // Vitesse réelle calculée (tient compte de la décélération
+              VitesseReelleR : single;          // Vitesse réelle calculée (tient compte de la décélération)
               VitesseReelle : integer;
               VitesseBlocUSB : integer;
               sens   : integer;                 // sens de déplacement, stockage provisoire pour restocker dans le tableau canton[]
@@ -1033,25 +1044,26 @@ BinaryString = String;
 {$IFEND}
 
 var
-  maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,
+  maxaiguillage,detecteur_chgt,Temps,Tempo_init,Suivant,ntrains,MaxPortCom,rAig,
   N_Cv,index_simule,NDetecteurs,N_Trains,N_routes,espY,Tps_affiche_retour_dcc,
-  NbreImagePligne,NbreBranches,Index2_aig,branche_det,ntrains_cdm,
+  NbreImagePligne,NbreBranches,Index2_aig,branche_det,ntrains_cdm,compteur,
   I_simule,maxTablo_act,NbreVoies,El_suivant,N_modules_dcc,NbDet1,ncrois,
   tempsCli,NbreSignaux,pasreponse,AdrDevie,fenetre,Tempo_Aig,Tempo_Signal,etat_init_interface,
   NombreImages,signalCpx,branche_trouve,Indexbranche_trouve,Actuel,Signal_suivant,
   Nbre_recu_cdm,Tempo_chgt_feux,Adj1,Adj2,NbrePN,ServeurInterfaceCDM,index_couleur,
   ServeurRetroCDM,TailleFonte,Nb_Det_Dist,Tdoubleclic,algo_Unisemaf,fA,fB,
   etape,idEl,intervalle_courant,filtrageDet0,Nactionneurs,nombreStyles,
-  TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,
+  TpsTimeoutSL,formatY,OsBits,NbreDecPers,NbDecodeur,NbDecodeurdeBase,HautImageC,LargImageC,
   LargeurF,HauteurF,OffsetXF,OffsetYF,PosSplitter,NbPeriph,NbPeriph_COMUSB,NbPeriph_Socket,
   AigMal,AncMinute,axFP,ayFP,NbreOperations,NbreDeclencheurs,index_seqAct,NbreConditions,
   SensAig,NbreRoutes,nbreIti,DetAtrouve,DetDepart,iteration,IdActTr,Long_recue,
   prec1,prec2,Eprec,Esuiv,param1,param2,param3,MaxParcours,MaxRoutes,tempoBlocUSB,
-  IdTrainClic,TempoCombo : integer;
+  IdTrainClic,TempoCombo,RayonCompteur,XcentreCompteur,YCentreCompteur,AigCX,AigCY,
+  IncrCompteur,tickt2 : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
-  Srvc_Pos,Srvc_Sig,debugtrames,LayParParam,AvecFVR,InverseMotif,Srvc_tdcc,fermeSC,
+  Srvc_Pos,Srvc_Sig,debugtrames,LayParParam,AvecFVR,InverseMotif,Srvc_tspd,fermeSC,
   Hors_tension,TraceZone,parSocketLenz,ackCdm,PremierFD,doubleclic,debugRoulage,
   NackCDM,MsgSim,StopSimu,succes,recu_cv,AffAigDet,AffTiers,AvecDemandeAiguillages,
   TraceListe,clignotant,nack,Maj_signaux_cours,configNulle,LanceCDM,AvecInitAiguillages,
@@ -1059,14 +1071,16 @@ var
   retEtatDet,roulage,init_aig_cours,affevt,placeAffiche,clicComboTrain,clicAdrTrain,
   fichier_module_cdm,Diffusion,cdmDevant,serveurIPCDM_Touche,avecAckCDM,Stop_Maj_Sig,
   Modesombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN,simuInterface,option_demitour,
-  mesureTrains : boolean;
+  mesureTrains,AffCompteur : boolean;
 
   Style : array[0..200] of Tstyle;
 
   tick,Premier_tick : longint;
 
+  // composants de sélection du train
   Image_Train: array[0..Max_Trains] of tImage;
-  LabelTrain,LabelVitesse : array[0..Max_Trains] of tLabel;
+  LabelTrain,LabelVitesse,LabelBlocUSB : array[0..Max_Trains] of tLabel;
+
   KBHook: HHook;
 
   {$IF CompilerVersion >= 28.0}
@@ -1075,6 +1089,7 @@ var
   MSCommUSBInterface, MsCommCde1,MsCommCde2 : TMSComm; // objets TMSCOM
   {$IFEND}
 
+  FCBitMap : tBitmap;
   CDMhd : THandle;
 
   proc : Tproc;
@@ -1411,7 +1426,7 @@ function Index_Condition(s : string) : integer;
 function Lance_CDM(avecSocket : boolean) : boolean;
 procedure action(action : integer);
 procedure interface_ou_cdm;
-procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
+procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;coulcercle,couleurfond : Tcolor);
 procedure Event_vitesse(adr: integer ;train : string;vitesse : integer);
 function detecteur_suivant(prec : integer;TypeElPrec : TEquipement;actuel : integer;TypeElActuel : TEquipement;algo : integer) : integer ;
 function prepare_route(IndexTCO,cantonOrg,arrivee,sens : integer) : integer;
@@ -1431,7 +1446,6 @@ procedure connecte_interface_ethernet;
 function lire_cv(cv : integer) : integer;
 procedure reprise_dcc;
 procedure renseigne_comp_trains(i : integer);
-//function ClavierHookProc(Code: Integer; WordParam: Word; LongParam: LongInt): LongInt; stdcall;
 function ClavierHookLLProc(Code : integer; WordParam : wparam; LongParam: lparam) : LongInt; stdcall;
 
 implementation
@@ -1439,7 +1453,8 @@ implementation
 uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
   verif_version , UnitCDF, UnitAnalyseSegCDM, UnitConfigCellTCO,
   UnitConfigTCO,UnitSR,  UnitHorloge,  UnitFicheHoraire,  UnitClock,
-  UnitModifAction, selection_train, UnitRouteTrains, UnitRoute, UnitMesure;
+  UnitModifAction, selection_train, UnitRouteTrains, UnitRoute, UnitMesure,
+  UnitCompteur;
 
 {$IFDEF AvecIdTCP} //------ composant indy socket réseau
   // création thread interface
@@ -1836,41 +1851,35 @@ end;
 //        =2 vient de bloc USB
 procedure consigne_train(origine : integer);
 var s : string;
-    vit,erreur : integer;
+    vit,erreur,vientde : integer;
 begin
+  vientde:=0;
   with formprinc do
   begin
     if (idTrainClic<1) or (idTrainClic>nTrains) then exit;
-    //adr:=trains[idTrainClic].adresse;
-    //val(s,adr,erreur);
-    //if (erreur<>0) or (adr<0) then exit;
+
     if origine=1 then
     begin
       s:=editVitesse.Text;
       val(s,vit,erreur);
       //Affiche('vitconsigne1='+intToSTR(vit),clOrange);
-      if (erreur<>0) or (vit<-127) or (vit>127) then exit;
+      if (erreur<>0) or (vit<-128) or (vit>127) then exit;
     end;
     if origine=2 then
     begin
       vit:=trains[idTrainClic].VitesseBlocUSB;
+      VientDe:=consigneBLocUSB; // ne génère pas event_vitesse
       //Affiche('vitconsigne2='+intToSTR(vit),cllime);
     end;
-   { i:=0;s:='';
-    if combotrains.itemindex<>-1 then
-    begin
-      s:=combotrains.Items[combotrains.itemindex];
-      i:=index_train_nom(s);
-    end;  }
   end;
 
-  vitesse_loco(trains[IdTrainClic].nom_train,idTrainClic,trains[idTrainClic].adresse,vit,10,0);
+  vitesse_loco(trains[IdTrainClic].nom_train,idTrainClic,trains[idTrainClic].adresse,vit,10,vientde);
 end;
 
 
 procedure positionne_principal;
 begin
-// positionnement de la fenêtre principale
+  // positionnement de la fenêtre principale
   //Affiche('positionne_principal',clyellow);
   with formprinc do
   begin
@@ -1904,7 +1913,7 @@ begin
       left:=2;
       top:=formprinc.LabelTitre.top+formprinc.LabelTitre.Height+4;;
       width:=formprinc.width-20;
-      height:=formprinc.height-StatusBar1.Height-labeltitre.Height-labelTitre.top-64;
+      height:=formprinc.height-StatusBar1.Height-labeltitre.Height-labelTitre.top-70; //64;
       Anchors:=[akLeft,akTop,akRight,akBottom];
     end;
 
@@ -1933,7 +1942,7 @@ begin
         Parent:=GrandPanel;
         Anchors:=[akTop,akRight,akBottom];
         width:=GrandPanel.Width-SplitterV.Width-5;
-        height:=GrandPanel.Height-GroupBoxTrains.height-GroupBoxTrains.top-10;
+        height:=GrandPanel.Height-GroupBoxTrains.height-GroupBoxTrains.top-4;
         top:=GroupBoxTrains.Top+GroupBoxTrains.Height+5;
       end;
 
@@ -1989,11 +1998,11 @@ begin
   Getmem(Adapter,SizeOf(TAdapterStatus));
   Fillchar(Adapter^,SizeOf(TAdapterStatus),0);
 
-  Lenum.Length    := chr(0);
-  NCB.ncb_command := chr(NCBENUM);
-  NCB.ncb_buffer  := Pointer(Lenum);
-  NCB.ncb_length  := SizeOf(Lenum);
-  RetCode         := Netbios(NCB);
+  Lenum.Length:=chr(0);
+  NCB.ncb_command:=chr(NCBENUM);
+  NCB.ncb_buffer:=Pointer(Lenum);
+  NCB.ncb_length:=SizeOf(Lenum);
+  RetCode:=Netbios(NCB);
 
   s:=TstringList.Create;
   i:=0;
@@ -2006,7 +2015,7 @@ begin
     Fillchar(NCB^,SizeOf(TNCB), 0);
     Ncb.ncb_command:=chr(NCBASTAT);
     Ncb.ncb_lana_num:=lenum.lana[I];
-    // Must be 16
+    // doit être 16
     Ncb.ncb_callname:='*               ';
 
     Ncb.ncb_buffer:=Pointer(Adapter);
@@ -2180,7 +2189,7 @@ begin
 end;
 
 procedure fin_preliminaire;
-var i,j : integer;
+var i : integer;
     s : string;
 begin
   s:='Début du préliminaire';
@@ -2189,9 +2198,26 @@ begin
   // en D12, obligé de positionner la fenêtre principale après avoir fixé le style
   positionne_principal;
 
-  calcul_pos_horloge;
+  calcul_pos_horloge_compt;
   if AffHorl then Affiche_horloge;
   if LanceHorl then Demarre_horloge;
+  // création des compteurs
+  if (compteur<0) or (compteur>3) then compteur:=1;
+  for i:=1 to 1 do
+  begin
+    formCompteur[i]:=TformCompteur.Create(nil);
+    with formCompteur[i] do
+    begin
+      Name:='FormCompteur'+intToSTR(i);
+      Caption:='Compteur ';
+      formStyle:=fsStayonTop;
+    end;
+
+    Init_compteur(i);
+    formCompteur[i].left:=formprinc.left+formPrinc.width-formCompteur[i].width;
+    if AffCompteur then formCompteur[i].Show;
+  end;
+
 
   formConfig.listBoxPeriph.clear;
   formModifAction.ComboBoxAccComUSB.Clear;
@@ -2854,7 +2880,7 @@ end;
 
 {$ELSE}
 
-// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
+// connecte un port usb pour la comm des périphériques. Si le port n'est pas ouvert, renvoie false
 // version TMSCom
 function connecte_usb_periph(index : integer) : boolean;
 var i,j,nc,numport,vitesse,erreur : integer;
@@ -2932,7 +2958,6 @@ begin
     RTSEnable:=Tablo_periph[index].rts;
 
     InputMode:=comInputModeBinary;
-
   end;
   try
     com.portopen:=true;
@@ -3147,13 +3172,13 @@ end;
 
 
 // dessine un cercle plein dans le signal dans le canvas
-procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;couleur : Tcolor);
+procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;coulcercle,couleurfond : Tcolor);
 begin
   with Acanvas do
   begin
     //brush.Style:=bsSolid;
-    brush.Color:=couleur;
-    pen.Color:=clBlack;
+    brush.Color:=couleurFond;
+    pen.Color:=coulCercle;
     pen.Width:=1;
     pen.Mode:=pmCopy;
     Ellipse(x-rayon,y-rayon,x+rayon,y+rayon);
@@ -4081,12 +4106,12 @@ begin
   XViolet:=round(XViolet*FrX)+x; YViolet:=round(YViolet*FrY)+y;
 
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
-  cercle(ACanvas,xViolet,yViolet,rayon,GrisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,grisF);
+  cercle(ACanvas,xViolet,yViolet,rayon,clBlack,GrisF);
 
   // allumages
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
-  if code=violet then cercle(ACanvas,xViolet,yViolet,rayon,clviolet);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,clWhite);
+  if code=violet then cercle(ACanvas,xViolet,yViolet,rayon,clBlack,clViolet);
 end;
 
 // dessine les feux sur une cible à 3 feux
@@ -4150,14 +4175,14 @@ begin
 }
 
 
-  if not((code=jaune_cli) and clignotant)      then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
-  if not((code=vert_cli)  and clignotant)      then cercle(ACanvas,xVert,yVert,rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant)  then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if not((code=jaune_cli) and clignotant)      then cercle(ACanvas,xJaune,yJaune,rayon,clBlack,grisF);
+  if not((code=vert_cli)  and clignotant)      then cercle(ACanvas,xVert,yVert,rayon,clBlack,grisF);
+  if not((code=semaphore_cli) and clignotant)  then cercle(ACanvas,xSem,ySem,rayon,clBlack,grisF);
 
   // allumages
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clBlack,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,xJaune,yJaune,rayon,clBlack,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clBlack,clRed);
 end;
 
 
@@ -4218,19 +4243,19 @@ begin
   Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
 
   // extinctions
-  if not(code=carre) then cercle(ACanvas,Xcarre,yCarre,rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,GrisF);
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,Xvert,yvert,rayon,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,Xjaune,YJaune,rayon,GrisF);
+  if not(code=carre) then cercle(ACanvas,Xcarre,yCarre,rayon,clBlack,grisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,Xsem,Ysem,rayon,clBlack,grisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,Xvert,yvert,rayon,clBlack,grisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,Xjaune,YJaune,rayon,clBlack,grisF);
 
   // allumages
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,Xjaune,yJaune,rayon,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clBlack,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(Acanvas,Xjaune,yJaune,rayon,clBlack,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xSem,ySem,rayon,clBlack,clRed);
   if code=carre then
   begin
-    cercle(ACanvas,xSem,Ysem,rayon,clRed);
-    cercle(ACanvas,xCarre,yCarre,rayon,clRed);
+    cercle(ACanvas,xSem,Ysem,rayon,clBlack,clRed);
+    cercle(ACanvas,xCarre,yCarre,rayon,clBlack,clRed);
   end;
 end;
 
@@ -4294,23 +4319,23 @@ begin
   Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
 
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
-  if not(code=carre) then cercle(ACanvas,xcarre,ycarre,rayon,GrisF);
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,GrisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,GrisF);
+  if not(code=carre) then cercle(ACanvas,xcarre,ycarre,rayon,grisF,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xvert,yvert,rayon,clBlack,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,clBlack,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xjaune,yjaune,rayon,clBlack,GrisF);
 
   // allumages
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
-  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clBlack,clRed);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xblanc,yblanc,rayon,clBlack,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clBlack,clViolet);
   if code=carre then
   begin
-    cercle(ACanvas,xcarre,ycarre,rayon,clRed);
-    cercle(ACanvas,xsem,ysem,rayon,clRed);
+    cercle(ACanvas,xcarre,ycarre,rayon,clBlack,clRed);
+    cercle(ACanvas,xsem,ysem,rayon,clBlack,clRed);
   end;
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xvert,yVert,rayon,clGreen);
-  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,xJaune,yjaune,rayon,clorange);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xvert,yVert,rayon,clBlack,clGreen);
+  if ((code=jaune_cli) and (clignotant)) or (code=jaune) then cercle(ACanvas,xJaune,yjaune,rayon,clBlack,clorange);
 end;
 
 
@@ -4384,30 +4409,30 @@ begin
   Xcarre:=round(Xcarre*FrX)+x;  Ycarre:=round(Ycarre*FrY)+Y;
 
   // effacements
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,grisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,grisF);
   if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
   begin
-    cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,Xral2,Yral2,rayon,GrisF);
+    cercle(ACanvas,Xral1,Yral1,rayon,clBlack,grisF);cercle(ACanvas,Xral2,Yral2,rayon,clBlack,GrisF);
   end;
-  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xVert,yVert,rayon,GrisF);
-  if not(code=carre) then cercle(ACanvas,xcarre,yCarre,rayon,GrisF);cercle(ACanvas,xSem,ySem,rayon,GrisF);
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,GrisF);
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,GrisF);
+  if not((code=vert_cli) and clignotant) then cercle(ACanvas,xVert,yVert,rayon,clBlack,GrisF);
+  if not(code=carre) then cercle(ACanvas,xcarre,yCarre,rayon,grisF,GrisF);cercle(ACanvas,xSem,ySem,rayon,clBlack,GrisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,clBlack,GrisF);
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,clBlack,GrisF);
 
   // Allumages
   if (code=ral_30) or (combine=ral_30) or ((code=ral_60) or (combine=ral_60)) and clignotant then
   begin
-    cercle(ACanvas,xRal1,yRal1,rayon,clOrange);cercle(ACanvas,xRal2,yRal2,Rayon,clOrange);
+    cercle(ACanvas,xRal1,yRal1,rayon,clBlack,clOrange);cercle(ACanvas,xRal2,yRal2,Rayon,clBlack,clOrange);
   end;
-  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
-  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clRed);
-  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clGreen);
-  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
-  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  if (code=jaune) or ((code=jaune_cli) and clignotant) then cercle(Acanvas,xjaune,yjaune,rayon,clBlack,clOrange);
+  if ((code=semaphore_cli) and (clignotant)) or (code=semaphore) then cercle(ACanvas,xsem,ysem,rayon,clBlack,clRed);
+  if ((code=vert_cli) and (clignotant)) or (code=vert) then cercle(ACanvas,xVert,yVert,rayon,clBlack,clGreen);
+  if ((code=blanc_cli) and (clignotant)) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clBlack,clViolet);
   if code=carre then
   begin
-    cercle(ACanvas,xCarre,yCarre,rayon,clRed);
-    cercle(ACanvas,xSem,ySem,rayon,clRed);
+    cercle(ACanvas,xCarre,yCarre,rayon,clBlack,clRed);
+    cercle(ACanvas,xSem,ySem,rayon,clBlack,clRed);
   end;
 end;
 
@@ -4492,42 +4517,42 @@ begin
   XRap2:=round(XRap2*FrX)+x;    YRap2:=round(YRap2*FrY)+Y;
 
   // extinctions
-  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,Rayon,grisF);
+  if not((code=blanc_cli) and clignotant) then cercle(ACanvas,xBlanc,yBlanc,Rayon,clBlack,grisF);
   if not((code=ral_60) and clignotant) or not((combine=ral_60) and clignotant) then
   begin
-    cercle(ACanvas,Xral1,Yral1,rayon,grisF);cercle(ACanvas,xRal2,yRal2,rayon,grisF);
+    cercle(ACanvas,Xral1,Yral1,rayon,clBlack,grisF);cercle(ACanvas,xRal2,yRal2,rayon,clBlack,grisF);
   end;
-  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,grisF);
+  if not((code=jaune_cli) and clignotant) then cercle(ACanvas,xJaune,yJaune,rayon,clBlack,grisF);
   if not((code=rappel_60) and clignotant) or not((combine=rappel_60) and clignotant) then
   begin
-    cercle(ACanvas,xrap1,yrap1,rayon,grisF);cercle(ACanvas,xrap2,yrap2,rayon,grisF);
+    cercle(ACanvas,xrap1,yrap1,rayon,clBlack,grisF);cercle(ACanvas,xrap2,yrap2,rayon,clBlack,grisF);
   end;
-  if not(code=carre) then cercle(ACanvas,xcarre,Ycarre,rayon,grisF); // carré supérieur
-  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,grisF);
-  if not((code=vert_cli) and clignotant) then  cercle(ACanvas,xvert,yvert,rayon,grisF);
+  if not(code=carre) then cercle(ACanvas,xcarre,Ycarre,rayon,grisF,grisF); // carré supérieur
+  if not((code=semaphore_cli) and clignotant) then cercle(ACanvas,xSem,ySem,rayon,clBlack,grisF);
+  if not((code=vert_cli) and clignotant) then  cercle(ACanvas,xvert,yvert,rayon,clBlack,grisF);
 
   // allumages
   if ((code=ral_60) and clignotant) or (code=ral_30) or
      ((combine=ral_60) and clignotant) or (combine=ral_30) then
   begin
-    cercle(ACanvas,Xral1,yRal1,rayon,clOrange);cercle(ACanvas,xral2,yral2,rayon,clOrange);
+    cercle(ACanvas,Xral1,yRal1,rayon,clBlack,clOrange);cercle(ACanvas,xral2,yral2,rayon,clBlack,clOrange);
   end;
 
   if ((code=rappel_60) and clignotant) or (code=rappel_30) or
      ((combine=rappel_60) and clignotant) or (combine=rappel_30) then
   begin
-    cercle(ACanvas,xrap1,yrap1,rayon,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clOrange);
+    cercle(ACanvas,xrap1,yrap1,rayon,clBlack,clOrange);cercle(ACanvas,xrap2,yrap2,rayon,clBlack,clOrange);
   end;
-  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clOrange);
-  if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clRed);
-  if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
-  if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clWhite);
-  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clViolet);
+  if ((code=jaune_cli) and clignotant) or (code=jaune) then cercle(Acanvas,xjaune,yjaune,rayon,clBlack,clOrange);
+  if ((code=semaphore_cli) and clignotant) or (code=semaphore) then cercle(ACanvas,Xsem,ySem,rayon,clBlack,clRed);
+  if ((code=vert_cli) and clignotant) or (code=vert) then cercle(ACanvas,xvert,yvert,rayon,clBlack,clGreen);
+  if ((code=blanc_cli) and clignotant) or (code=blanc) then cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,clWhite);
+  if (code=violet) then cercle(ACanvas,xblanc,yblanc,rayon,clBlack,clViolet);
 
   if code=carre then
   begin
-    cercle(ACanvas,xcarre,yCarre,rayon,clRed);
-    cercle(ACanvas,xsem,ysem,rayon,clRed);
+    cercle(ACanvas,xcarre,yCarre,rayon,clBlack,clRed);
+    cercle(ACanvas,xsem,ysem,rayon,clBlack,clRed);
   end;
 end;
 
@@ -4660,52 +4685,52 @@ begin
   x3:=round(X3*frx)+x;  y3:=round(y3*fry)+y;
 
   // extinctions
-  if not((code=vertB_F) and codeclignote and clignotant) then cercle(ACanvas,xvert,yvert,rayon,GrisF);
-  if not((code=rouge_F) and codeclignote and clignotant) then cercle(ACanvas,xrouge,yrouge,rayon,GrisF);
+  if not((code=vertB_F) and codeclignote and clignotant) then cercle(ACanvas,xvert,yvert,rayon,clBlack,GrisF);
+  if not((code=rouge_F) and codeclignote and clignotant) then cercle(ACanvas,xrouge,yrouge,rayon,clBlack,GrisF);
   if not((code=rouge_blanc_F) and codeclignote and clignotant) then
   begin
-    cercle(ACanvas,xBlanc,yBlanc,rayon,GrisF);
-    cercle(ACanvas,xRouge,yRouge,rayon,GrisF);
+    cercle(ACanvas,xBlanc,yBlanc,rayon,clBlack,GrisF);
+    cercle(ACanvas,xRouge,yRouge,rayon,clBlack,GrisF);
   end;
   if not((code=deux_jaunes_F) and codeclignote and clignotant) then
   begin
-    cercle(ACanvas,xjaunebas,yjauneBas,rayon,GrisF);
-    cercle(ACanvas,xjaunehaut,yjauneHaut,rayon,GrisF);
+    cercle(ACanvas,xjaunebas,yjauneBas,rayon,clBlack,GrisF);
+    cercle(ACanvas,xjaunehaut,yjauneHaut,rayon,clBlack,GrisF);
   end;
   if not((code=vert_jaune_H_F) and codeclignote and clignotant) then
   begin
-    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,grisF);
-    cercle(ACanvas,xvert,yvert,rayon,grisF);
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clBlack,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,clBlack,grisF);
   end;
   if not((code=vert_jaune_V_F) and codeclignote and clignotant) then
   begin
-    cercle(ACanvas,xjauneBas,yjauneBas,rayon,grisF);
-    cercle(ACanvas,xvert,yvert,rayon,grisF);
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,clBlack,grisF);
+    cercle(ACanvas,xvert,yvert,rayon,clBlack,grisF);
   end;
 
 
   //allumages
-  if ((code=vertB_F) and codeClignote and clignotant) or ((code=vertB_F) and not(codeclignote)) then cercle(ACanvas,xvert,yvert,rayon,clGreen);
-  if ((code=rouge_F) and codeClignote and clignotant) or ((code=rouge_F) and not(codeclignote)) then cercle(ACanvas,xrouge,yrouge,rayon,clRed);
+  if ((code=vertB_F) and codeClignote and clignotant) or ((code=vertB_F) and not(codeclignote)) then cercle(ACanvas,xvert,yvert,rayon,clBlack,clGreen);
+  if ((code=rouge_F) and codeClignote and clignotant) or ((code=rouge_F) and not(codeclignote)) then cercle(ACanvas,xrouge,yrouge,rayon,clBlack,clRed);
   if ((code=rouge_blanc_F) and codeClignote and clignotant) or ((code=rouge_blanc_F) and not(codeclignote)) then
   begin
-    cercle(ACanvas,xblanc,yblanc,rayon,clWhite);
-    cercle(ACanvas,xrouge,yrouge,rayon,clred);
+    cercle(ACanvas,xblanc,yblanc,rayon,clBlack,clWhite);
+    cercle(ACanvas,xrouge,yrouge,rayon,clBlack,clred);
   end;
   if ((code=deux_jaunes_F) and codeClignote and clignotant) or ((code=deux_jaunes_F) and not(codeclignote)) then
   begin
-    cercle(ACanvas,xjauneBas,yjauneBas,rayon,clOrange);
-    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clOrange);
+    cercle(ACanvas,xjauneBas,yjauneBas,rayon,clBlack,clOrange);
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clBlack,clOrange);
   end;
   if ((code=vert_jaune_H_F) and codeClignote and clignotant) or ((code=vert_jaune_H_F) and not(codeclignote)) then
   begin
-    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clorange);
-    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+    cercle(ACanvas,xjauneHaut,yjauneHaut,rayon,clBlack,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clBlack,clgreen);
   end;
   if ((code=vert_jaune_V_F) and codeClignote and clignotant) or ((code=vert_jaune_V_F) and not(codeclignote)) then
   begin
-    cercle(ACanvas,xjaunebas,yjaunebas,rayon,clorange);
-    cercle(ACanvas,xvert,yvert,rayon,clgreen);
+    cercle(ACanvas,xjaunebas,yjaunebas,rayon,clBlack,clorange);
+    cercle(ACanvas,xvert,yvert,rayon,clBlack,clgreen);
   end;
 
   with Acanvas do
@@ -4834,66 +4859,66 @@ begin
 
   if EtatSignal=0 then
   begin
-    cercle(ACanvas,x1,y1,rayon,GrisF);
-    cercle(ACanvas,x2,y2,rayon,GrisF);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,GrisF);
+    cercle(ACanvas,x2,y2,rayon,clBlack,GrisF);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,GrisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;
   if EtatSignal=1 then
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,grisF);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,grisF);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,grisF);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,grisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;
   if EtatSignal=2 then
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,clWhite);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,GrisF);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,GrisF);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;                  
   if EtatSignal=3 then
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,clWhite);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,GrisF);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,GrisF);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;
   if EtatSignal=4 then
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,clWhite);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,GrisF);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;
   if EtatSignal=5 then 
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,clWhite);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,clWhite);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,GrisF);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,clWhite);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
   end;
   if EtatSignal=6 then 
   begin
-    cercle(ACanvas,x1,y1,rayon,clWhite);
-    cercle(ACanvas,x2,y2,rayon,clWhite);
-    if N>2 then cercle(ACanvas,x3,y3,rayon,clWhite);
-    if N>3 then cercle(ACanvas,x4,y4,rayon,clWhite);
-    if N>4 then cercle(ACanvas,x5,y5,rayon,clWhite);
-    if N>5 then cercle(ACanvas,x6,y6,rayon,clWhite);
+    cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
+    cercle(ACanvas,x2,y2,rayon,clBlack,clWhite);
+    if N>2 then cercle(ACanvas,x3,y3,rayon,clBlack,clWhite);
+    if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,clWhite);
+    if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,clWhite);
+    if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,clWhite);
   end;
 end;
 
@@ -5238,7 +5263,235 @@ begin
   else Signaux[rang].checkFB:=nil;
 end;
 
+{
+Procedure Init_compteur1;
+var i,l,h : integer;
+    redX,redY : single;
+begin
+  LargImageC:=230;      // 200 ok
+
+  with Formprinc.ImageCompteur1 do
+  begin
+    l:=width;
+    h:=height;
+  end;
+  HautImageC:=round(LargImageC*h/l);
+
+  redX:=largImageC/l;
+  redY:=hautImageC/h;
+
+  // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur2 (grande)
+
+  // créer un bitmap réduit qui sert de référence
+  FCBitMap.Free;
+  FCBitMap:=TBitMap.Create;
+  FCBitMap.Width:=LargImageC;
+  FCBitMap.Height:=HautImageC+20;
+
+  with FCBitMap.Canvas do
+  begin
+    Brush.Style:=bsSolid;
+    Brush.Color:=$141414; //$e0e0e0;
+    StretchDraw(rect(0,0,LargImageC,HautImageC),Formprinc.ImageCompteur1.Picture.Bitmap);
+
+    font.size:=round(redx*10);
+    font.name:='arial';
+    font.Style:=[fsBold];
+    font.color:=clWhite;
+
+    TextOut(round(50*redX),round(128*redY),'0');
+    TextOut(round(36*redX),round(90*redY),'20');
+    TextOut(round(50*redX),round(54*redY),'40');
+    TextOut(round(89*redX),round(36*redY),'60');
+    TextOut(round(130*redX),round(53*redY),'80');
+    TextOut(round(136*redX),round(91*redY),'100');
+    TextOut(round(124*redX),round(126*redY),'120');
+    font.color:=clBlue; // pour affichage des trains
+  end;
+
+  // ajuste la taille de ImageC
+  with Formprinc.ImageC do
+  begin
+    Width:=LargImageC;
+    Height:=HautImageC+20;
+    Picture.Bitmap.Width:=LargImageC;
+    Picture.Bitmap.Height:=HautImageC+20;
+    left:=310;
+    BringToFront;
+    canvas.pen.color:=clRed;
+    canvas.pen.width:=3;  // épaisseur aiguille
+  end;
+
+  //formprinc.DoubleBuffered:=true;
+
+  // centre de l'aiguille
+  AigCX:=round(98*redX);
+  AigCY:=round(96*redY);
+  rAig:=round(AigCX / 1.5);
+end;
+
+Procedure Init_compteur2;
+var i,l,h : integer;
+    redX,redY : single;
+begin
+  LargImageC:=230;      // 200 ok
+
+  with Formprinc.ImageCompteur2 do
+  begin
+    l:=width;
+    h:=height;
+  end;
+  HautImageC:=round(LargImageC*h/l);
+
+  redX:=largImageC/l;
+  redY:=hautImageC/h;
+
+  // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur2 (grande)
+
+  // créer un bitmap réduit qui sert de référence
+  FCBitMap.Free;
+  FCBitMap:=TBitMap.Create;
+  FCBitMap.Width:=LargImageC;
+  FCBitMap.Height:=HautImageC+20;
+  with FCBitMap.Canvas do
+  begin
+    Brush.Style:=bsSolid;
+    Brush.Color:=clWhite; //$e0e0e0;
+    StretchDraw(rect(0,0,LargImageC,HautImageC),Formprinc.ImageCompteur2.Picture.Bitmap);
+    font.size:=round(redx*22);
+    font.name:='arial';
+    font.Style:=[fsBold];
+    font.color:=clblue;
+    TextOut(round(47*redX),round(167*redY),'0');
+    TextOut(round(58*redX),round(118*redY),'20');
+    TextOut(round(89*redX),round(80*redY),'40');
+    TextOut(round(133*redX),round(54*redY),'60');
+    TextOut(round(190*redX),round(40*redY),'80');
+    TextOut(round(232*redX),round(52*redY),'100');
+    TextOut(round(274*redX),round(78*redY),'120');
+    TextOut(round(306*redX),round(118*redY),'140');
+    TextOut(round(324*redX),round(168*redY),'160');
+  end;
+
+  with Formprinc.ImageC do
+  begin
+    Width:=LargImageC;
+    Height:=HautImageC+20;
+    Picture.Bitmap.Width:=LargImageC;
+    Picture.Bitmap.Height:=HautImageC+20;
+    left:=310;
+    BringToFront;
+    canvas.pen.color:=clRed; // couleur aiguille
+    canvas.pen.width:=3;  // épaisseur aiguille
+  end;
+
+  //formprinc.DoubleBuffered:=true;
+
+  // centre de l'aiguille et longueur
+  AigCX:=round(204*redX);
+  AigCY:=round(207*redY);
+  rAig:=round(AigCX/1.05);
+end;
+
+procedure aiguille_compteur(c,idTrain : integer);
+var mini,maxi,vmax,r,i,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin : integer;
+    a,b : single;
+    angleDeb,AngleFin,sinD,cosD,sinF,cosF : extended ;
+begin
+  if c<1 then exit;
+  case c of
+  1 : begin
+        mini:=-133;
+        maxi:=150;
+        vmax:=127;
+        r:=70;  // rayon de l'arc vert
+        a:=(maxi-mini)/vmax;
+        b:=mini;
+      end;
+   2: begin
+        mini:=-81;           // le 0 est à mini degrés
+        maxi:=81;            // le vmax est à max degrés
+        vmax:=160;           // vmax du compteur
+        r:=100;              // rayon de l'arc vert
+        a:=(maxi-mini)/vmax; // pente de conversion vitesse en degrés compteur
+        b:=mini;             // coordonnées origine conversion
+      end;
+    end;
+
+  if idTrain<>0 then
+  begin
+    vitesse:=abs(trains[idTrain].VitesseCompteur);
+    vitesseFin:=abs(trains[idTrain].vitesseCons);
+  end
+  else
+  begin
+    vitesse:=0;VitesseFin:=0;
+  end;
+
+  //Affiche('compteur='+inttoSTR(vitesse),clred);
+
+  angleDeb:=a*vitesse+b;
+  angleFin:=a*vitesseFin+b;
+
+  sincos(angleDeb*pisur180,sinD,cosD);
+
+  with formprinc.ImageC.Canvas do
+  begin
+    copyrect(rect(0,0,largImageC,hautImageC+20),FcBitMap.canvas,rect(0,0,largImageC,hautImageC+20));
+    // afficher l'arc vert
+    if (vitesse<>0) and (angleDeb<>angleFin) then
+    begin
+      x1:=AigCX - r;
+      y1:=AigCY - r;
+      x2:=AigCX + r;
+      y2:=AigCY + r;
+      x3:=AigCX + Round(r*sinD);
+      y3:=AigCY - Round(r*cosD);
+      sincos(AngleFin*pisur180,sinF,cosF);  // paramètres d'angleFin
+      x4:=AigCX + Round(r*sinF);
+      y4:=AigCY - Round(r*cosF);
+      pen.color:=clLime;
+      moveTo(X3,y3);LineTo(x3+2,y3+2);
+      if angleDeb>angleFin then setArcDirection(Handle,AD_COUNTERCLOCKWISE) else setArcDirection(Handle,AD_CLOCKWISE) ;
+      Arc(x1,y1,x2,y2,x3,y3,x4,y4);
+    end;
+    // Afficher l'aiguille (angleDeb)
+    Pen.color:=clred;
+    MoveTo(AigCX,AigCY);
+    LineTo(round(rAig*sinD)+AigCX,round(-rAig*cosD)+AigCY);
+  end;
+
+  formprinc.ImageC.Repaint;
+end;
+
+
+// Affiche le nom du train sur le compteur
+procedure affiche_train_compteur;
+var s : string;
+    i,j,x,y,dx,milieuX : integer;
+begin
+  // affiche le nom du train dans le compteur (dans FcBitmap)
+  with FCbitMap.Canvas do
+  begin
+    s:=trains[IdTrainClic].nom_train;
+    i:=TextWidth(s);
+    j:=TextHeight(s);
+    milieuX:=largImageC div 2;
+    x:=milieuX - (i div 2);
+    case compteur of
+    1 : begin y:=hautImageC;dx:=milieuX;end;
+    2 : begin y:=hautImageC;dx:=60;end;
+    end;
+    brush.color:=clwhite;
+    brush.Style:=bsSolid;
+    //font.color:=clBlue;
+    Fillrect(rect(milieuX-dx,y,milieuX+dx,y+j));
+    TextOUT(x,y,s);
+  end;
+end;   }
+
 // cliqué sur image, labelnom ou labelvitesse
+// cliqué train
 procedure tFormprinc.ImageTrainonclick(Sender : tObject);
 var P_component : tComponent;
 begin
@@ -5249,9 +5502,14 @@ begin
 
   IdTrainClic:=extract_int(P_Component.name);  // récupérer le nom du composant cliqué (image, label) qui contient l'index du train
   if (IdTrainClic<1) or (IdTrainClic>nTrains) then exit;
+
   Maj_icone_train(Image_Train[IdTrainClic],IdTrainClic,$e0e0e0);
   Combotrains.ItemIndex:=IdTrainclic-1;
   EditAdrTrain.Text:=intToSTR(trains[idTrainClic].adresse);
+
+  // affiche le compteur du train cliqué
+  affiche_train_compteur(1);
+  aiguille_compteur_l(1,idTrainClic);
 end;
 
 // renseigne les composants image train, label et vitesse
@@ -5291,12 +5549,23 @@ begin
           Left:=LargImgTrain+10;
           BringToFront;
         end;
+         with LabelBlocUSB[i] do
+        begin
+          Name:='LabelBlocUSB'+intToSTR(i);
+          caption:='';
+          Parent:=Formprinc.ScrollBoxTrains;
+          font.color:=clBlack;
+          width:=100;height:=20;
+          Top:=Image_train[i].Top+(HautImgTrain div 3)+24;
+          Left:=LargImgTrain+10;
+          BringToFront;
+        end;
 end;
 
 // créée une image, 2 label dynamiquement dans la partie droite pour un nouveau train déclaré dans le fichier de config
 // rang commence à 1
 procedure cree_image_Train(rang : integer);
-var adresse : integer;
+var i,adresse : integer;
     s : string;
 begin
   if rang<1 then exit;
@@ -5312,10 +5581,18 @@ begin
   LabelVitesse[rang]:=Tlabel.create(Formprinc.ScrollBoxTrains);
   LabelVitesse[rang].OnClick:=formprinc.ImageTrainonclick;
 
-  renseigne_comp_trains(rang);
+  // créée le label pour afficher les infos du bloc USB
+  LabelBlocUSB[rang]:=Tlabel.create(Formprinc.ScrollBoxTrains);
+  LabelBlocUSB[rang].OnClick:=formprinc.ImageTrainonclick;
 
+  {$IF CompilerVersion >= 28.0}
+  Formprinc.TabSheetTrains.styleName:='Windows';     // pour avoir le fond clair indépendant du style
+  {$IFEND}
+
+  renseigne_comp_trains(rang);
   with Image_Train[rang] do
   begin
+
     onClick:=Formprinc.ImageTrainonclick;    // affectation procédure clique G sur image
     //onMouseDown:=Formprinc.ProcOnMouseDown; // clique G ou D
     PopUpMenu:=Formprinc.PopupMenuTrains;  // affectation popupmenu sur clic droit
@@ -5337,6 +5614,16 @@ begin
     Picture.Bitmap.Modified:=True;
   end;
 
+  s:=trains[rang].nom_train;
+  // si un bloc usb est affecté à un train
+  for i:=1 to 10 do
+  begin
+    if blocUSB[i].AffTrain=s then
+    begin
+      labelBlocUSB[rang].Caption:='Bloc USB '+intToSTR(i);
+    end;
+
+  end;
 end;
 
 
@@ -5344,7 +5631,7 @@ end;
 procedure Affiche_signaux;
 var i : integer;
 begin
-  i:=(Formprinc.ScrollBoxSig.Width div (largImg+5)) ;
+  i:=(Formprinc.ScrollBoxSig.Width div (largImg+2))-1 ;
   if (i=NbreImagePLigne) or (i<=0) then exit;
   NbreImagePLigne:=i;
   for i:=1 to NbreSignaux do
@@ -5570,8 +5857,106 @@ begin
   end;
 end;
 
+function teste_condition(action : integer) : boolean;
+var condValide : boolean;
+ vit,vit1,vit2,it,pa,m1,m2,hc,n,ncond,cond,etat : integer;
+ tr : string;
+begin
+  // 1 condition - pas de chaînage avec 1 seule condition
+  condValide:=false;
+  n:=Tablo_Action[action].NbCond;
+  for ncond:=1 to n do
+  begin
+    cond:=Tablo_Action[action].tabloCond[ncond].numcondition;
+    case cond of
+      CondVrai : condValide:=true;
+      CondFaux : condValide:=false;
+      CondVitTrain :
+      begin
+        tr:=Tablo_Action[action].tabloCond[ncond].train;
+        vit1:=Tablo_Action[action].tabloCond[ncond].vitmini;
+        vit2:=Tablo_Action[action].tabloCond[ncond].vitmaxi;
+        it:=index_train_nom(tr);
+        if it>0 then
+        begin
+         vit:=Trains[it].vitesseCons;
+          condvalide:=(vit>=vit1) and (vit<=vit2);
+        end;
+      end;
+      CondPosAcc :
+      begin
+        vit1:=Tablo_Action[action].tabloCond[ncond].accessoire;
+        vit2:=Tablo_Action[action].tabloCond[ncond].etat;
+        it:=index_aig(vit1);
+        if it>0 then
+        begin
+          pa:=aiguillage[it].position;
+          if pa=const_inconnu then Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' : position accessoire '+intToSTR(vit1)+' inconnue',clred);
+          condvalide:=pa=vit2;
+        end else Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' : Aiguillage '+intToSTR(vit1)+' inconnu',clred);
+      end;
+      CondHorl :
+      begin
+        vit1:=Tablo_Action[action].tabloCond[ncond].HeureMin*60;
+        vit2:=Tablo_Action[action].tabloCond[ncond].HeureMax*60;
+        m1:=Tablo_Action[action].tabloCond[ncond].MinuteMin;
+        m2:=Tablo_Action[action].tabloCond[ncond].MinuteMax;
+        vit1:=vit1+m1;
+        vit2:=vit2+m2;
+        hc:=heure*60+minute;
+        condValide:=(hc>=vit1) and (hc<=vit2);
+      end;
+      condTrainSig :
+      begin
+        vit1:=Tablo_Action[action].tabloCond[ncond].adresse;
+        tr:=Tablo_Action[action].tabloCond[ncond].train;
+        it:=index_Signal(vit1);
+        if it=0 then begin Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' signal '+intToSTR(vit1)+' inconnu',clred);exit;end;
+        vit1:=signaux[it].Adr_det1;
+        condValide:=detecteur[vit1].Train=tr;
+      end;
+      condFonction :
+      begin
+        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de fonction
+        condValide:=evalue_fonction(adr,tr);
+      end;
+      condBouton :
+      begin
+        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de bouton
+        condValide:=false;
+        if (adr>1) or (adr<=100) then condValide:=boutonTCO[adr].etat=1;
+      end;
+      condMemoireEgal :
+      begin
+        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
+        etat:=Tablo_Action[action].tabloCond[ncond].etat;
+        condValide:=false;
+        if (adr>1) or (adr<=100) then condValide:=memoire[adr]=etat;
+      end;
+      condMemoireInf :
+      begin
+        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
+        etat:=Tablo_Action[action].tabloCond[ncond].etat;
+        condValide:=false;
+        if (adr>1) or (adr<=100) then condValide:=memoire[adr]<etat;
+      end;
+      condMemoireSup :
+      begin
+        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
+        etat:=Tablo_Action[action].tabloCond[ncond].etat;
+        condValide:=false;
+        if (adr>1) or (adr<=100) then condValide:=memoire[adr]>etat;
+      end;
+    end;
+  end;
+  result:=condValide;
+end;
+
+
+// appelé par le hooker clavier
 function traite_code_blocUSB(code: integer) : integer;
 var vitesse,f,n,i,idTrain : integer;
+    condValide,EtatValide : boolean;
     s : string;
 begin
   //Affiche('Z='+intToSTR(wordParam),cllime);
@@ -5585,7 +5970,6 @@ begin
     if (code=blocUSB[NumBlocUSB].rotatifM) or
        (code=blocUSB[NumBlocUSB].rotatifP) or
        (code=blocUSB[NumBlocUSB].clic) then clic_BRM;
-
     result:=255;
     exit;
   end;
@@ -5594,23 +5978,25 @@ begin
   //vitesse:=trains[idTrainClic].vitesseCons;
 
   result:=0;
-  for i:=1 to 10 do
+  for i:=1 to 10 do // balayer les 10 blocs
   begin
     s:=lowercase(blocUSB[i].AffTrain);
     // si bloc usb pas affecté à un train
     if (s='') or (pos('pas d',s)<>0) then idTrain:=IdTrainClic else  // index du train cliqué
       begin
         idtrain:=Index_train_nom(s);
-        idTrainClic:=idTrain;  // 
+        idTrainClic:=idTrain;  //
       end;
     vitesse:=trains[idTrain].vitesseCons;
     // rotation moins -------------------------------
     if code=blocUSB[i].rotatifM then
     begin
-      if vitesse>-127 then
+      if vitesse>-128 then
       begin
         trains[idTrain].vitesseBlocUSB:=vitesse;
-        dec(trains[idTrain].vitesseBlocUSB,blocUSB[i].increment);
+        if vitesse-blocUSB[i].increment<-128 then trains[idTrain].vitesseBlocUSB:=-128
+        else
+          dec(trains[idTrain].vitesseBlocUSB,blocUSB[i].increment);
         //Affiche('IdTrain='+intToSTR(idTrain)+' vitesse'+IntToSTR(trains[idTrain].vitesseBlocUSB),clYellow);
         tempoBlocUSB:=2;  // envoie consigne du train sélectionné dans 0,2 s
       end;
@@ -5624,7 +6010,9 @@ begin
       if vitesse<127 then
       begin
         trains[idTrain].vitesseBlocUSB:=vitesse;
-        inc(trains[idTrain].vitesseBlocUSB,blocUSB[i].increment);
+        if vitesse+blocUSB[i].increment>127 then trains[idTrain].vitesseBlocUSB:=127
+        else
+          inc(trains[idTrain].vitesseBlocUSB,blocUSB[i].increment);
         //Affiche('IdTrain='+intToSTR(idTrain)+' vitesse'+IntToSTR(trains[idTrain].vitesseBlocUSB),clYellow);
         tempoBlocUSB:=2;
       end;
@@ -5688,8 +6076,30 @@ begin
       exit;
     end
   end;
+
+  // déclencheur touche
+  // si onglet config affiché
+  if formConfig.showing then exit;
+  i:=1;
+  repeat
+    if Tablo_Action[i].declencheur=declClavier then
+    begin
+      etatValide:=tablo_Action[i].adresse=code;
+      condvalide:=teste_condition(i);
+      if condValide and etatValide then
+      begin
+        //Affiche('Action dans EventAct',clred);
+        if not(Diffusion) then Affiche('CCC Action '+intToSTR(i),clred);
+        result:=255;
+        action(i); // exécute toutes les opérations de l'actionneur i
+      end;
+    end;
+    inc(i);
+  until (i>maxTablo_act);
+
 end;
 
+{
 // fonction hook clavier appellée par appui sur une touche
 // cette fonction intercepte tous les évènements clavier de signaux complexes (uniquement) quelque soit la fenetre.
 function ClavierHookProc(Code: Integer; WordParam: Word; LongParam: LongInt) : LongInt;
@@ -5697,7 +6107,7 @@ begin
   //Affiche('Hook haut niveau',clyellow);
   result:=traite_code_blocUSB(WordParam);
 end;
-
+}
 
 // fonction hook clavier de bas niveau (LL) appellée par appui ou relache sur une touche
 // cette fonction intercepte tous les évènements clavier windows quelque soit la fenetre ou le prog activé.
@@ -6009,9 +6419,11 @@ end;
 //       vrai           oui       non
 //  inversion train[].inverse xor (vitesse>=0)
 // procédure : si ActionVitesse vient de ActionVitesse
+// si consigneBLocUSB on vient d'une consigne par bloc usb
 procedure vitesse_loco(nom_train :string;index : integer;adr_loco : integer;vitesse : integer;repetition,proc : integer);
 var s : string;
     v,erreur : integer;
+    sc : boolean;
 begin
   if (index=0) and (adr_loco=0) then adr_loco:=index_train_nom(nom_train);
   if (index=0) and (adr_loco<>0) then index:=index_train_adresse(adr_loco);
@@ -6019,23 +6431,28 @@ begin
 
   //if debugRoulage then Affiche('Vitesse train @'+inttostr(adr_loco)+'='+inttostr(vitesse),clLime);
 
-  // mettre à jour la trackBar si le train sélectionné=editAdrTrain
+  sc:=true; // stocker vitesse dans trains[].vitessecons
+
+  // mettre à jour la trackBar et edit si le train sélectionné=editAdrTrain
   val(Formprinc.EditAdrTrain.Text,v,erreur);
   if v=adr_loco then
   begin
     pasChgTBV:=true; // évite de repositionner la trackbar
     Formprinc.TrackBarVit.Position:=vitesse;
+    formprinc.EditVitesse.text:=intToSTR(vitesse); 
     pasChgTBV:=false;
   end;
 
   if not(hors_tension) and ((portCommOuvert or parSocketLenz)) then
   begin
+    sc:=true;
     if protocole=1 then
     begin
       //AfficheDebug('X9 train '+inttostr(loco)+' '+inttostr(vitesse),clOrange);
       v:=vitesse;
-      v:=abs(v);
       if v>127 then v:=127;
+      if v<-128 then v:=-128;
+      v:=abs(v);
       if (trains[index].inverse) xor (vitesse>=0) then v:=v or 128;
       s:=#$e4+#$13+#$0+char(adr_loco)+char(v);
       s:=checksum(s);
@@ -6054,6 +6471,7 @@ begin
 
   if cdm_connecte then
   begin
+    sc:=false;
     // il faut qu'on soit en RUN pour que les vitesses trains soient prises en compte
     if PilotageTrainsCDMNom then
       s:=chaine_CDM_vitesseST(vitesse,nom_train)  // par nom du train
@@ -6069,10 +6487,13 @@ begin
   begin
     trains[index].compteur_consigne:=repetition;
   end;
-  trains[index].vitesseCons:=vitesse;
+
+  // on stocke la vitesse qu'en mode autonome ou non connecté.
+  // en mode CDM on ne la stocke pas, elle sera stockée par un event_vitesse.
+  if sc then trains[index].vitesseCons:=vitesse;
 
   //Affiche('Mesure vitesse train '+nom_train+' = '+intToSTR(vitesse),clWhite);
-  if proc<>ActionVitesse then event_vitesse(adr_loco,nom_train,vitesse);  // si on vient pas d'une action vitesse
+  if (proc<>ActionVitesse) and (proc<>consigneBlocUSB) then event_vitesse(adr_loco,nom_train,vitesse);  // si on vient pas d'une action vitesse
 end;
 
 
@@ -8146,100 +8567,6 @@ begin
   detecteur_suivant:=AdrSuiv;
 end;
 
-function teste_condition(action : integer) : boolean;
-var condValide : boolean;
- vit,vit1,vit2,it,pa,m1,m2,hc,n,ncond,cond,etat : integer;
- tr : string;
-begin
-  // 1 condition - pas de chaînage avec 1 seule condition
-  condValide:=false;
-  n:=Tablo_Action[action].NbCond;
-  for ncond:=1 to n do
-  begin
-    cond:=Tablo_Action[action].tabloCond[ncond].numcondition;
-    case cond of
-      CondVrai : condValide:=true;
-      CondFaux : condValide:=false;
-      CondVitTrain :
-      begin
-        tr:=Tablo_Action[action].tabloCond[ncond].train;
-        vit1:=Tablo_Action[action].tabloCond[ncond].vitmini;
-        vit2:=Tablo_Action[action].tabloCond[ncond].vitmaxi;
-        it:=index_train_nom(tr);
-        if it>0 then
-        begin
-         vit:=Trains[it].vitesseCons;
-          condvalide:=(vit>=vit1) and (vit<=vit2);
-        end;
-      end;
-      CondPosAcc :
-      begin
-        vit1:=Tablo_Action[action].tabloCond[ncond].accessoire;
-        vit2:=Tablo_Action[action].tabloCond[ncond].etat;
-        it:=index_aig(vit1);
-        if it>0 then
-        begin
-          pa:=aiguillage[it].position;
-          if pa=const_inconnu then Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' : position accessoire '+intToSTR(vit1)+' inconnue',clred);
-          condvalide:=pa=vit2;
-        end else Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' : Aiguillage '+intToSTR(vit1)+' inconnu',clred);
-      end;
-      CondHorl :
-      begin
-        vit1:=Tablo_Action[action].tabloCond[ncond].HeureMin*60;
-        vit2:=Tablo_Action[action].tabloCond[ncond].HeureMax*60;
-        m1:=Tablo_Action[action].tabloCond[ncond].MinuteMin;
-        m2:=Tablo_Action[action].tabloCond[ncond].MinuteMax;
-        vit1:=vit1+m1;
-        vit2:=vit2+m2;
-        hc:=heure*60+minute;
-        condValide:=(hc>=vit1) and (hc<=vit2);
-      end;
-      condTrainSig :
-      begin
-        vit1:=Tablo_Action[action].tabloCond[ncond].adresse;
-        tr:=Tablo_Action[action].tabloCond[ncond].train;
-        it:=index_Signal(vit1);
-        if it=0 then begin Affiche('Action '+intToSTR(action)+' / condition '+intToSTR(ncond)+' signal '+intToSTR(vit1)+' inconnu',clred);exit;end;
-        vit1:=signaux[it].Adr_det1;
-        condValide:=detecteur[vit1].Train=tr;
-      end;
-      condFonction :
-      begin
-        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de fonction
-        condValide:=evalue_fonction(adr,tr);
-      end;
-      condBouton :
-      begin
-        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de bouton
-        condValide:=false;
-        if (adr>1) or (adr<=100) then condValide:=boutonTCO[adr].etat=1;
-      end;
-      condMemoireEgal :
-      begin
-        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
-        etat:=Tablo_Action[action].tabloCond[ncond].etat;
-        condValide:=false;
-        if (adr>1) or (adr<=100) then condValide:=memoire[adr]=etat;
-      end;
-      condMemoireInf :
-      begin
-        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
-        etat:=Tablo_Action[action].tabloCond[ncond].etat;
-        condValide:=false;
-        if (adr>1) or (adr<=100) then condValide:=memoire[adr]<etat;
-      end;
-      condMemoireSup :
-      begin
-        adr:=Tablo_Action[action].tabloCond[ncond].adresse;  // numéro de mémoire
-        etat:=Tablo_Action[action].tabloCond[ncond].etat;
-        condValide:=false;
-        if (adr>1) or (adr<=100) then condValide:=memoire[adr]>etat;
-      end;
-    end;
-  end;
-  result:=condValide;
-end;
 
 // index signal niveau=0 : (ouvert) 1= ouvert au vert  =2 ouvert restreint  =3 fermé (carré sémaphore violet)
 procedure event_Signal(idSignal,niveau : integer);
@@ -16537,6 +16864,7 @@ end;
 
 
 // traite l'évènement vitesse train - appelé depuis réception trame CDM ou vitesse_loco
+// stocke la vitesse dans trains[].vitesseCons
 procedure Event_vitesse(adr: integer ;train : string;vitesse : integer);
 var i,idt,ac : integer;
 begin
@@ -16654,7 +16982,7 @@ begin
 
   // vérifier si l'actionneur en évènement a été déclaré pour réagir
   // dans tableau des actions
-
+       
   i:=1;
   repeat
     sDecl:=Tablo_Action[i].trainDecl;
@@ -17073,8 +17401,7 @@ begin
   event_det_tick[N_event_tick].adresse:=Adresse;
   event_det_tick[N_event_tick].modele:=det;
   event_det_tick[N_event_tick].etat:=etat01;
-  if (n_Event_tick mod 10) =0 then affiche_memoire;
-
+  if (n_Event_tick mod 10)=0 then affiche_memoire;
 
   // vérifier si le détecteur est attaché à un canton, pour voir si une loco y est affectée
   // et affecter l'élément suivant et précédent, et dernierDet au train
@@ -17433,7 +17760,8 @@ begin
   envoi_CDM:=ackCDM;
 end;
 
-// pilote aiguillage avec condition : l'aiguillage doit être réservé par AdrTrain (adrTrain<>0) ou sans condition (adrTrain=0)
+// pilote aiguillage (accessoire) avec condition : l'aiguillage doit être réservé par AdrTrain (adrTrain<>0) ou sans condition (adrTrain=0)
+// acc : AigP (aiguillage) ou signal
 function pilote_acc_sc(adresse : integer;octet : byte;Acc : TAccessoire;adrTrain : integer) : boolean;
 var  groupe,temp,indexAig,AdrTrainLoc : integer ;
      fonction,pilotage,pilotageCDM : byte;
@@ -18258,8 +18586,6 @@ begin
       end;
     end
     else
-
-
     // 81 00 mise hors tension
     if (chaine_recue[1]=$81) then    // arrêt urgence  3 octets
     begin
@@ -18367,7 +18693,7 @@ begin
 
     // spécifique Z21 : E7 0C 89 00 00 00 00 00 62
     //                  E7 0C 8F 00 00 00 00 00 64
-    // on n'en fait rien, c'est un genre d'ack à la réponse de stop loco ?
+    // on en fait rien, c'est un genre d'ack à la réponse de stop loco ?
     if (chaine_recue[1]=$E7) then
     begin
       connu:=true;
@@ -19845,7 +20171,14 @@ begin
     index:=DeclFonction;
     famille:=0;
   end;
-  Nbredeclencheurs:=DeclFonction;
+  with declencheurs[DeclClavier] do
+  begin
+    nom:='Bouton clavier';
+    index:=DeclClavier;
+    famille:=0;
+  end;
+
+  Nbredeclencheurs:=DeclClavier;
 end;
 
 // renvoie l'index du déclencheur en fonction de son nom
@@ -20041,6 +20374,11 @@ begin
   begin
     formTCO[index]:=nil;
   end;
+  for index:=1 to NbreCompteurs do
+  begin
+    FormCompteur[index]:=nil;
+  end;
+
 
   BorderStyle:=bsSizeable;
   Caption:=af;
@@ -20114,8 +20452,11 @@ begin
   minute:=0;
   seconde:=0;
   NbreBlocsUSB:=10;
+  tickt2:=0;
   NumBlocUSB:=1;
+  IncrCompteur:=3;
   NbreFL:=0;
+  compteur:=1;
   etape:=1;
   affevt:=false;
   EvtClicDet:=false;
@@ -20132,6 +20473,7 @@ begin
   serveurIPCDM_Touche:=false;
   debugPN:=false;
   option_demitour:=false;
+  AffCompteur:=false;
   debugroulage:=false;
   mesureTrains:=false;
   Modesombre:=false;
@@ -20383,7 +20725,7 @@ begin
      onConnect:=ClientInfoConnect;
      OnDisconnect:=ClientInfoDisconnect;
      OnError:=ClientInfoError;
-     Open; //se connecte au serveur SC et envoie les infos
+     Open; // se connecte au serveur SC et envoie les infos
    end;
 
   //s:=GetCurrentDir;
@@ -20426,6 +20768,7 @@ begin
   if OsBits=64 then s:='OS 64 Bits' else s:='OS 32 Bits';
   s:=DateToStr(date)+' '+TimeToStr(Time)+' '+s;
   s:=s+' SC '+versionSC+' '+vc;
+
 
   Affiche(s,clLime);
   With ScrollBoxSig do
@@ -20521,8 +20864,21 @@ begin
   begin
     EcranTCO[i]:=1;
     lire_fichier_tco(i);
-    
   end;
+
+  {
+  case compteur of
+  1 : begin
+        init_compteur1;
+        aiguille_compteur(1,0);
+        Compteurdevitesse1.checked:=true;
+      end;
+  2 : begin
+        Init_compteur2;
+        aiguille_compteur(2,0);
+        Compteurdevitesse2.checked:=true;
+      end;
+  end; }
 
   verif_coherence;
   procetape('La configuration a été lue');
@@ -20542,8 +20898,8 @@ begin
   // Initialisation des images des signaux
   procetape('Création des signaux');
 
-  NbreImagePLigne:=(Formprinc.ScrollBoxSig.Width div (largImg+5)) ;
-  if NbreImagePLigne<=0 then NbreImagePLigne:=1;
+  //NbreImagePLigne:=(Formprinc.ScrollBoxSig.Width div (largImg+2))-1 ;
+  //if NbreImagePLigne<=0 then NbreImagePLigne:=1;
 
   // ajoute les images des signaux dynamiquement
   for i:=1 to NbreSignaux do
@@ -20589,6 +20945,7 @@ begin
   end;
   renseigne_tous_cantons; // les form des TCO doivent être créés
 
+
   // ouvre les périphériques commandes actionneurs, car on a lu les com dans la config
   for i:=1 to NbPeriph do
   begin
@@ -20629,7 +20986,7 @@ begin
 
   // mise en place du hook clavier pour intercepter les évènemets clavier pour le bloc USB
   // KBHook:=SetWindowsHookEx(WH_KEYBOARD,@ClavierHookProc,HInstance,GetCurrentThreadId()) ;   // haut niveau on utilisé
-  KBHook:=SetWindowsHookExA(WH_KEYBOARD_LL,@ClavierHookLLProc,HInstance,0);  // bas niveau
+  KBHook:=SetWindowsHookExA(WH_KEYBOARD_LL,@ClavierHookLLProc,HInstance,0);  // bas niveau (.._LL)
 
  {
   //DoubleBuffered:=true;
@@ -20949,7 +21306,7 @@ end;
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
 var n,i,j,a,d,longueur,adresseEl,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect,
-   IdDet,longDet,LongLoco,distArret,vitcons,vitesseABS : integer;
+   IdDet,longDet,LongLoco,distArret,vitcons,vitesseABS,delta : integer;
    imageSignal : Timage;
    frx,fry : single;
    incrementPas,tempsArret,coeff,vitR : single;
@@ -20961,9 +21318,10 @@ begin
 
   if tempoBlocUSB>0 then
   begin
-    dec(tempoBlocUSB);
+    //dec(tempoBlocUSB);
+    tempoblocUSB:=0;
     if tempoBlocUSB=0 then
-    consigne_train(2);
+    consigne_train(2);  // la consigne vient de bloc USB
   end;
 
   // séquencement des actions après tempo
@@ -21218,19 +21576,38 @@ begin
     end;
   end;
 
-  // pilotage des trains :
 
-  // arret loco sur n secondes
-  // démarrage loco temporisé
-  // renvoi de la consigne
-  // l'index de train 0 est le train courant
-  //if (tick mod 10)=0 then Affiche(intToSTR(trains[4].TempoArretCour),clWhite);
+  // if (tick mod 10)=0 then Affiche(intToSTR(trains[4].TempoArretCour),clWhite);
   for i:=1 to ntrains do
   begin
-
-    // calculer la vitesse instantanée du train en fonction des accel et des décel
+    // compteurs de vitesse
     with trains[i] do
     begin
+      delta:=vitesseCons-VitesseCompteur;
+      if delta<>0 then
+      begin
+        //Affiche('Delta '+intToSTR(Delta),clYellow);
+        a:=abs(delta);
+        if a>10 then IncrCompteur:=3 else IncrCompteur:=1;
+        if a<IncrCompteur then
+          vitesseCompteur:=vitesseCons; //-delta;
+        if abs(delta)>=IncrCompteur then
+          if vitesseCompteur<vitesseCons then
+          begin
+            inc(vitesseCompteur,IncrCompteur);
+            //Affiche('Après + '+intToSTR(vitesseCompteur),clYellow);
+          end
+          else
+          begin
+            dec(vitesseCompteur,IncrCompteur);
+            //Affiche('Après - '+intToSTR(vitesseCompteur),clYellow);
+          end;
+        //Affiche('Appel '+intToSTR(vitesseCompteur),clYellow);
+        aiguille_compteur_l(1,idTrainClic); // else aiguille_compteur(compteur,idTrainClic);
+
+      end;
+
+      // calculer la vitesse instantanée du train en fonction des accel et des décel
       if vitesseCons<>AVitesseCons then
       begin
         // mémoriser changement de consigne vitesse
@@ -21266,6 +21643,10 @@ begin
 
       //if vitesseReelle<>0 then Affiche('Vitesse réelle '+intToSTR(vitesseReelle)+' crans',clOrange);
 
+      // arret loco sur n secondes
+      // démarrage loco temporisé
+      // renvoi de la consigne
+      // l'index de train 0 est le train courant
       // mesure temps de parcours et distance d'un train sur détecteur à 1
       j:=detecteurA;
       if j<>0 then
@@ -22469,7 +22850,8 @@ begin
         Event_act(adr,0,etat,train); // déclenche évent actionneur
       end;
 
-      // évènement position des trains
+      // évènement position et vitesse des trains
+      // génère un évènement vitesse
       // S-E-01-0039-CDMTRN-SPDXY|063|07|NAME=TRAIN_3;AD=0;SPEED=3;X=24735;Y=19630;X2=16874;Y2=19630;
       i:=pos('CMDTRN-SPDXY',commandeCDM);
       if i<>0 then
@@ -22546,7 +22928,7 @@ begin
       end;
 
       // évènement vitesse des trains - non stocké ni interprété
-      //S-E-01-0189-CDMTRN-SPEED|054|06|NAME=TRAIN_3;AD=0;SPEED=99;RMAX=120;CMAX=120;REQ=8;
+      // S-E-01-0189-CDMTRN-SPEED|054|06|NAME=TRAIN_3;AD=0;SPEED=99;RMAX=120;CMAX=120;REQ=8;
       i:=pos('CMDTRN-SPEED',commandeCDM);
       if i<>0 then
       begin
@@ -22682,6 +23064,7 @@ begin
       end;
 
       //S-E-03-0477-CMDTRN-DCCSF|137|19|NAME=CC406526;AD=4;MODE=128;STEP=100;CSTEP=75;FX0=0;FX1=0;FX2=0;FX3=0;FX4=0;FX5=0;FX6=0;FX7=0;FX8=0;FX9=0;FX10=0;FX11=0;FX12=0;FX13=0;
+      //S-E-02-0254-CMDTRN-DCCSF|137|19|NAME=CC406526;AD=4;MODE=128;STEP=100;CSTEP=88;FX0=0;FX1=0;FX2=0;FX3=0;FX4=0;FX5=0;FX6=0;FX7=0;FX8=0;FX9=0;FX10=0;FX11=0;FX12=0;FX13=0;
       // évènement train
       // pas traité !!
 
@@ -23152,7 +23535,7 @@ begin
   //if not(portCommOuvert) and not(parSocketLenz) and not(CDM_Connecte) then exit;
   s:=editVitesse.Text;
   val(s,vit,erreur);
-  if (erreur<>0) or (vit<-127) or (vit>127) then exit;
+  if (erreur<>0) or (vit<-128) or (vit>127) then exit;
   i:=0;s:='';
   if combotrains.itemindex<>-1 then
   begin
@@ -23570,6 +23953,7 @@ begin
   else begin GroupBoxCV.Visible:=false;GroupBoxTrains.Visible:=true;end;
 end;
 
+
 procedure TFormPrinc.ComboTrainsChange(Sender: TObject);
 var i : integer;
 begin
@@ -23584,9 +23968,13 @@ begin
     IdTrainClic:=i;
     EditAdrTrain.Text:=intToSTR(trains[IdTrainClic].adresse);
     Maj_icone_train(Image_Train[IdTrainClic],IdTrainClic,$e0e0e0);
+
+    //mise à jour compteur train
+    affiche_train_compteur(1);
+    aiguille_compteur_l(1,idTrainClic);
+
   end;
   clicComboTrain:=false;
-
 end;
 
 procedure TFormPrinc.ButtonFonctionClick(Sender: TObject);
@@ -23697,8 +24085,8 @@ procedure TFormPrinc.TrackBarVitChange(Sender: TObject);
 var s : string;
     i,adr,vit,erreur : integer;
 begin
-  if affEvt then Affiche('Changement TrackBarVit',clyellow);
   if pasChgTBV then exit;
+  if affEvt then Affiche('Changement TrackBarVit',clyellow);
   EditVitesse.Text:=intToSTR(TrackBarVit.position);
   s:=editAdrTrain.Text;
   val(s,adr,erreur);
@@ -23724,8 +24112,9 @@ end;
 procedure TFormPrinc.EditVitesseChange(Sender: TObject);
 var i,e : integer;
 begin
+  if pasChgTBV then exit;
   val(EditVitesse.Text,i,e);
-  if (e=0) and (i>=-127) and (i<=127) then TrackBarVit.position:=i;
+  if (e=0) and (i>=-127) and (i<=128) then TrackBarVit.position:=i;
 end;
 
 procedure TFormPrinc.ButtonEnvClick(Sender: TObject);
@@ -24856,7 +25245,7 @@ begin
   //Affiche('On Resize',clyellow);
   splitterV.Left:=FenRich.left+FenRich.Width-5;
 
-  calcul_pos_horloge;
+  calcul_pos_horloge_compt;
 end;
 
 procedure TFormPrinc.Affichagenormal1Click(Sender: TObject);
@@ -24865,7 +25254,7 @@ begin
   splitterV.Left:=FenRich.left+FenRich.Width-5;
   positionne_elements(splitterV.Left);
   LargeurFC:=0;
-  calcul_pos_horloge;
+  calcul_pos_horloge_compt;
 end;
 
 procedure TFormPrinc.Sauvegarderla1Click(Sender: TObject);
@@ -25181,7 +25570,7 @@ end;
 
 procedure TFormPrinc.WindowPosChanging(var Msg: TWMWindowPosMsg);
 begin
-  if not(Verrouille) then exit;
+  if not(VerrouilleClock) then exit;
   if (formclock<>nil) and not(FermeSC) then
   begin
     if (axFP<>left) or (ayFP<>top) then
@@ -25194,8 +25583,8 @@ begin
    end;
    axFP:=left;
    ayFP:=top;
-
   end;
+  position_compteur;
   inherited;
 end;
 
@@ -26803,11 +27192,168 @@ begin
   Affiche('Recompilation des bases de données terminée',clLime);
 end;
 
+{
 procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
+var ABitMap : TBitMap;
+    sin,cos,angle : extended;
+    xc,yc : integer;
+
+  procedure DessineAiguille(Angle,Scale : single;AWidth : integer);
+  var SR : single;
+  begin
+
+    with ABitMap.Canvas do
+    begin
+      Pen.Width:=AWidth;
+      MoveTo(xc div 2,yc div 2);
+      SR:=Scale*50;
+      sincos(Angle,sin,cos);
+      LineTo(round(SR*sin)+ (xc div 2),round(-SR*cos)+ (yc div 2));
+    end;
+  end;
+
 begin
-  if registerHotKey(formprinc.Handle,0,1,0)=false then Affiche('Erreur',clred);
+  angle:=20;
+  xc:=ImageCompteur.Width ;
+  yc:=ImageCompteur.Height ;
+
+  // Crée le bitmap AbitMap hors écran
+  ABitMap:=TBitMap.Create;
+  // dessine les aiguilles sur l'image hors écran
+  // Attributs du bitmap hors écran
+  ABitMap.Width:=xc;
+  ABitMap.Height:=yc;
+
+   // Copie l'image de fond du bitmap dans le bitmap hors écran
+  ABitMap.Canvas.CopyMode:=cmSrcCopy;
+  ABitMap.Canvas.CopyRect(ABitMap.Canvas.ClipRect,ImageCompteur.Canvas,ImageCompteur.Canvas.ClipRect);
+  // Dessine les nouvelles aiguilles dans le bitmap hors écran
+
+  ABitMap.Canvas.Pen.color:=clred;
+  DessineAiguille(50*pisur30,50, 10);   // minute
+
+
+  // copie le bitmap hors écran (Abitmap) dans l'horloge
+  ImageCompteur.Canvas.CopyMode:=cmSrcCopy;
+  ImageCompteur.Canvas.Draw(0,0,ABitMap);              // copie formclock.canvas<-Abitmap
+  ABitMap.Free;
 
 end;
+
+procedure Cree_fond_compteur;
+  // Dessine les tirets minute sur FBitMap
+  procedure DessineTiretsMn;
+  const EpGd=2;       // epaisseurs grands marqueurs 12 3 6 9
+        LgGd=12;      // longueur grands marqueurs
+        EpPt=0.5;       // epaisseurs petits marqueurs
+        LgPt=7;       // longueur petits marqueurs
+  var
+    lg,OfsX,LapStepW : integer;
+    Angle,cangle : integer;
+    SR,ep : single;
+    sin,cos : extended;
+    x1,y1,x2,y2,x3,y3,x4,y4 : integer;
+  begin
+    FCBitMap.Free;
+    FCBitMap:=TBitMap.Create;
+    FCBitMap.Width:=140;
+    FCBitMap.Height:=80;
+    with FCBitMap.Canvas do
+    begin
+      Brush.Style:=bsSolid;
+      Brush.Color:=$e0e0e0;
+      FillRect(ClipRect);
+    end;
+    RayonCompteur:=round(FCBitMap.Height / 1.2);
+    LapStepW:=5;
+    OfsX := LapStepW div 2;
+    Angle:=92;
+    XcentreCompteur:=FCBitMap.Width div 2;
+    YcentreCompteur:=70;
+    FCBitMap.Canvas.Pen.color:=Clblue;
+    FCbitmap.canvas.Brush.Color:=clBlue;
+    cangle:=0;
+    while Angle<274 do
+    begin
+      if cAngle mod 5 = 0 then
+      begin
+        // grands marqueurs
+        ep:=EpGd;
+        lg:=LgGd;
+      end
+      else
+      begin
+        ep:=EpPt;
+        lg:=LgPt;
+      end;
+
+      sr:=RayonCompteur + OfsX;
+      sincos((Angle+Ep)*pisur180,cos,sin);
+      x1:=round(-sr*cos)+XcentreCompteur; y1:=round(sr*sin)+YcentreCompteur;
+
+      sincos((Angle-Ep)*pisur180,cos,sin);
+      x2:=round(-sr*cos)+XcentreCompteur; y2:=round(sr*sin)+YcentreCompteur;
+
+      if Angle=0 then   //6h
+      begin
+        inc(x2);
+        x3:=x2;y3:=y2-lg;
+        x4:=x1;y4:=y1-lg;
+      end
+      else
+      if Angle=90 then //3h
+      begin
+        inc(y1);
+        x3:=x2-lg;y3:=y2;
+        x4:=x1-lg;y4:=y1;
+      end
+      else
+      if Angle=180 then  //0h
+      begin
+        inc(x1);
+        x3:=x2;y3:=y2+lg;
+        x4:=x1;y4:=y1+lg;
+      end
+      else
+      if Angle=270 then  //9h
+      begin
+        inc(y2);
+        x3:=x2+lg;y3:=y2;
+        x4:=x1+lg;y4:=y1;
+      end
+      else
+      begin
+        sr:=(RayonCompteur-lg) + OfsX;
+        sincos((Angle-Ep)*pisur180,sin,cos);
+        x3:=round(-sr*sin)+XcentreCompteur; y3:=round(sr*cos)+YcentreCompteur;
+
+        sincos((Angle+Ep)*pisur180,sin,cos);
+        x4:=round(-sr*sin)+XcentreCompteur; y4:=round(sr*cos)+YcentreCompteur;
+      end;
+
+      FCbitmap.canvas.polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
+
+      inc(Angle,6);
+      inc(cangle,6);
+    end;
+  end; // DrawMinSteps
+
+begin
+
+  DessineTiretsMn;
+  with formprinc.ImageC do
+  begin
+    left:=350;
+    Width:=FCbitMap.Width;
+    Height:=FCbitMap.Height;
+    Picture.Bitmap.Width:=FCbitMap.Width;
+    Picture.Bitmap.Height:=FCbitMap.Height;
+    stretch:=false;
+    canvas.Draw(0,0,FCBitMap);
+ //
+  end;
+
+end;   }
 
 procedure TFormPrinc.PopupMenuTrainsPopup(Sender: TObject);
 var ob : TPopupMenu;
@@ -26845,6 +27391,9 @@ begin
     EditAdrTrain.Text:=intToSTR(trains[IdTrainClic].adresse);
     Maj_icone_train(Image_Train[IdTrainClic],IdTrainClic,$e0e0e0);
     Combotrains.ItemIndex:=IdTrainclic-1;
+    //affiche_train_compteur;
+    affiche_train_compteur(1);
+    aiguille_compteur_l(1,idTrainClic);
     key:=0;
   end;
   if (key=vk_up) and (IdTrainClic>1) then
@@ -26854,9 +27403,51 @@ begin
     EditAdrTrain.Text:=intToSTR(trains[IdTrainClic].adresse);
     Maj_icone_train(Image_Train[IdTrainClic],IdTrainClic,$e0e0e0);
     Combotrains.ItemIndex:=IdTrainclic-1;
+    //affiche_train_compteur;
+    affiche_train_compteur(1);
+    aiguille_compteur_l(1,idTrainClic);
     key:=0;
   end;
 end;
+
+procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
+begin
+  exit;
+end;
+
+
+
+procedure TFormPrinc.Timer2Timer(Sender: TObject);
+var i,delta : integer;
+begin
+ { for i:=1 to nTrains do
+  with trains[i] do
+    begin
+      // accélération compteur
+      delta:=VitesseCompteur-vitesseCons;
+      if delta<>0 then
+      begin
+        if abs(delta)<IncrCompteur then vitesseCompteur:=vitesseCons
+        else
+          if delta<0 then inc(vitesseCompteur,IncrCompteur) else dec(vitesseCompteur,IncrCompteur);
+
+        if IdTrainClic=i then
+        begin
+          //if tickT2=0 then tickt2:=GetTickCount;
+          //Affiche('Timer2='+intToSTR(GetTickCount-tickt2),clred);
+          aiguille_compteur(compteur,i);
+          //
+        end;
+      end;
+    end; }
+end;
+
+procedure TFormPrinc.Affiche_compteurClick(Sender: TObject);
+begin
+  AffCompteur:=true;
+  formCompteur[1].Show;
+end;
+
 
 
 end.

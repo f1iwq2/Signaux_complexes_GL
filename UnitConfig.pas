@@ -467,6 +467,7 @@ type
     Label74: TLabel;
     LabelId: TLabel;
     LabeledEditFn: TLabeledEdit;
+    CheckBoxSrvTdcc: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -851,6 +852,10 @@ RetourHeure_ch='RetourHeure';
 RetourMinute_ch='RetourMinute';
 DureeMinute_ch='DureeMinute';
 relanceHorl_init_ch='relanceHorl_init';
+compteur_ch='compteur';
+Affcompteur_ch='AffCompteur';
+LargCompteur_ch='LargCompteur';
+VerrouCompteur_ch='VerrouCompteur';
 
 // sections de config
 section_aig_ch='[section_aig]';
@@ -873,7 +878,7 @@ section_blocs_USB_ch='[section_blocs_USB]';
 
 rep_icones='icones';
 
-// indice des icones donc des fonctions
+// indice des icones donc des fonctions logiques
 FoncVAR=0;
 //--------
 OpET=1;
@@ -981,7 +986,7 @@ procedure clic_BRM;
 implementation
 
 uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote, unitclock,
-  UnitModifAction,UnitConfigCellTCO, UnitRouteTrains;
+  UnitModifAction,UnitConfigCellTCO, UnitRouteTrains,UnitCompteur;
 
 {$R *.dfm}
 
@@ -1011,7 +1016,7 @@ begin
   if Srvc_Det then begin s:=s+'SRV=ADET;';inc(i);end;   // service détecteurs
   if Srvc_Pos then begin s:=s+'SRV=TSXY;';inc(i);end;   // service position et vitesses des trains
   if Srvc_Sig then begin s:=s+'SRV=ASIG;';inc(i);end;   // service signaux
-  if Srvc_tdcc then begin s:=s+'SRV=TDCC;';inc(i);end;  // service info train (si chgt vitesse)
+  if Srvc_tspd then begin s:=s+'SRV=TSPD;';inc(i);end;  // service info train (si chgt vitesse)
 
   // insère le nombre de paramètres
   ss:=format('%.*d',[2,i]) ;
@@ -1034,6 +1039,7 @@ begin
     if Srvc_Det then s:=s+'- détecteurs ';
     if Srvc_Pos then s:=s+'- position des trains ';
     if Srvc_sig then s:=s+'- état des signaux ';
+    if Srvc_tspd then s:=s+'- chgt vitesse trains ';
     Affiche(s,clYellow);
   end;
   services_CDM:=ack_cdm;
@@ -1332,16 +1338,15 @@ end;
 // renvoie un A si BT est un aiguillage (aig, tjd, tjs tri)
 function TypeEl_to_char(BT : TEquipement) : string;
 begin
-  case BT of  // 1=détecteur 2=aig ou TJD ou TJS  4=tri
-  det : TypeEl_to_char:='';
-  aig,tjd,tjs,triple : TypeEl_to_char:='A';
-  end;
+  if (bt=aig) or (bt=tjd) or (bt=tjs) or (bt=triple) then result:='A'
+    else result:='';
 end;
 
-function TypeElAIg_to_char(adr : integer;c : char) : string;
+// renvoie un texte pour le hint de l'aiguillage adr extrémité c
+function TypeElAig_to_char(adr : integer;c : char) : string;
 var s: string;
 begin
-  if (adr=0) and (c<>'D') and (c<>'S') and (c<>'P')  then s:='Buttoir';
+  if (adr=0) and (c<>'D') and (c<>'S') and (c<>'P') then s:='Buttoir';
 
   if adr<>0 then
   begin
@@ -1962,6 +1967,7 @@ begin
     DeclArretTrain : s:=s+intToSTR(Tablo_Action[i].adresse)+','+Tablo_Action[i].trainDecl+',';
     DeclSignal     : s:=s+intToSTR(Tablo_Action[i].adresse)+','+intToSTR(Tablo_Action[i].etat)+',';
     DeclFonction   : s:=s+intToSTR(Tablo_Action[i].adresse)+',';
+    DeclClavier    : s:=s+intToSTR(Tablo_Action[i].adresse)+',';
   end;
 
   // conditions
@@ -2104,7 +2110,7 @@ begin
   result:=s;
 end;
 
-// modifie le fichier de config en fonction du paramétrage
+// écrit le fichier de config en fonction du paramétrage
 procedure genere_config;
 var s: string;
     fichierN : text;
@@ -2168,6 +2174,7 @@ begin
   if Srvc_Det then i:=setbit(i,2);
   if Srvc_Pos then i:=setbit(i,3);
   if Srvc_Sig then i:=setbit(i,4);
+  if Srvc_tspd then i:=setbit(i,5);
   writeln(fichierN,ServicesCDM_ch+'=',i);
 
   // adresse ip interface XpressNet
@@ -2202,6 +2209,13 @@ begin
 
   writeln(fichierN,MaxParcours_ch+'=',IntToSTR(MaxParcours));
   writeln(fichierN,MaxRoutes_ch+'=',IntToSTR(MaxRoutes));
+  writeln(fichierN,compteur_ch+'=',IntToSTR(compteur));
+  writeln(fichierN,LargCompteur_ch+'=',IntToSTR(LargeurCompteurs));
+  if VerrouilleCompteur then s:='1' else s:='0';
+  writeln(fichierN,VerrouCompteur_ch+'=',s);
+
+  if AffCompteur then s:='1' else s:='0';
+  writeln(fichierN,AffCompteur_ch+'=',s);
 
   // connexion de l'interface en COM/USB
   if AvecDemandeInterfaceUSB then s:='1' else s:='0';
@@ -3585,6 +3599,11 @@ const LessThanValue=-1;
              Val(s,i,erreur);Delete(s,1,erreur);  // adresse
              Tablo_Action[maxtablo_act].adresse:=i;
            end;
+           DeclClavier :
+           begin
+             Val(s,i,erreur);Delete(s,1,erreur);  // adresse
+             Tablo_Action[maxtablo_act].adresse:=i;
+           end;
 
         end;
 
@@ -4850,6 +4869,7 @@ const LessThanValue=-1;
         ss:=copy(s,1,j-1);
         blocUSB[i].AffTrain:=ss;delete(s,1,j);
 
+
         delete(s,1,2); // supprime BR
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].rotatifM:=j;
@@ -5314,7 +5334,7 @@ const LessThanValue=-1;
         Srvc_det:=testbit(i,2);
         Srvc_pos:=testbit(i,3);
         Srvc_sig:=testbit(i,4);
-        Srvc_tdcc:=false;
+        Srvc_tspd:=testbit(i,5);
       end;
 
       // adresse ip et port de la centrale
@@ -5536,6 +5556,45 @@ const LessThanValue=-1;
         delete(s,i,length(sa));
         val(s,Tempo_Aig,erreur);
       end;
+
+      sa:=uppercase(compteur_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,compteur,erreur);
+      end;
+
+      sa:=uppercase(LargCompteur_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,LargeurCompteurs,erreur);
+      end;
+
+      sa:=uppercase(AffCompteur_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        AffCompteur:=i=1;
+      end;
+
+      sa:=uppercase(VerrouCompteur_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        VerrouilleCompteur:=i=1;
+      end;
+
 
       sa:=uppercase(MaxParcours_ch)+'=';
       i:=pos(sa,s);
@@ -6024,7 +6083,7 @@ begin
     Srvc_Det:=true;
     Srvc_Pos:=true;
     Srvc_Sig:=false;
-    Srvc_tdcc:=false;
+    Srvc_tspd:=false;
     TimoutMaxInterface:=7;
     AvecInitAiguillages:=false;
     PilotageTrainsCDMNom:=true;
@@ -6258,12 +6317,15 @@ begin
     change_srv:=Srvc_Act<>CheckBoxServAct.checked or change_srv;
     change_srv:=Srvc_Pos<>CheckServPosTrains.checked or change_srv;
     change_srv:=Srvc_Sig<>CheckBoxSrvSig.checked or change_srv;
+    change_srv:=Srvc_tspd<>CheckBoxSrvTdcc.checked or change_srv;
 
     Srvc_Aig:=CheckBoxServAig.checked;
     Srvc_Det:=CheckBoxServDet.checked;
     Srvc_Act:=CheckBoxServAct.checked;
     Srvc_Pos:=CheckServPosTrains.checked;
     Srvc_Sig:=CheckBoxSrvSig.checked;
+    Srvc_tspd:=CheckBoxSrvTdcc.checked;
+
     Raz_Acc_signaux:=CheckBoxRazSignaux.checked;
     AffAigND:=CheckBoxMsgAigInc.checked;
     AvecInitAiguillages:=CheckBoxInitAig.Checked;
@@ -6844,6 +6906,7 @@ begin
   end;
 end;
 
+// déploye tout le treeview courant
 Procedure tout_deployer;
 var i : integer;
 begin
@@ -6860,7 +6923,7 @@ var n,niveau,niveauPrec,j,i,idVar,typ : integer;
     node,nodePrec : Ttreenode;
     s : string;
 begin
-  if (k=0) or (k>NbreFL) then exit;
+  if (k<1) or (k>NbreFL) then exit;
   formConfig.TreeViewL.Items.Clear;
   nodePrec:=formConfig.TreeViewL.Items.add(nil,texte_tv(k,0));   // Node origine
   // niv 0
@@ -6914,6 +6977,7 @@ begin
   formconfig.ButtonAjOpEnfant.enabled:=false;
 end;
 
+// si pas trouvé renvoie -1
 function trouve_index_style : integer;
 var i : integer;
     trouve : boolean;
@@ -8264,7 +8328,9 @@ begin
     ComboStyle.Items.Add(Style[i].NomStyle);
   end;
 
-  ComboStyle.ItemIndex:=trouve_index_style;
+  i:=trouve_index_style;
+  if i=-1 then i:=0;
+  ComboStyle.ItemIndex:=i;
 
   CheckBoxSombre.Visible:=false;
   ButtonCouleur.Visible:=false;
@@ -11934,17 +12000,17 @@ begin
             end;
           end;
 
-          if isAigTCO(i) then
+          if IsAigTJDCroiTCO(i) then
           begin
             adr:=TCO[indexTCO,x,y].adresse;
             if (index_aig(adr)=0) and (adr<>0) then
             begin
-
               Affiche('Un aiguillage '+IntToSTR(adr)+' est déclaré dans le TCO'+intToSTR(indexTCO)+' ['+intToSTR(x)+','+intToSTR(y)+'] mais absent de la configuration',clred);
               ok:=false;
             end;
           end;
-          if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) or (i=10) or (i=11) then
+          // élément de voie linéaire
+          if (i=1) or (i=6) or (i=7) or (i=8) or (i=9) or (i=10) or (i=11) or (i=16) or (i=17) or (i=18) or (i=19) or (i=20) then
           begin
             adr:=TCO[indexTCO,x,y].adresse;
             if adr<>0 then
@@ -12062,8 +12128,6 @@ begin
   i:=pos(':',portcom);j:=pos(',',portcom);
   val(copy(portcom,i+1,j-i),vitesse,l);
   if (protocole=2) and (vitesse<>115200) then Affiche('La vitesse COM/USB en procotole DCC++ doit être de 115200 bauds',clred);
-
-  
 
   // si xpressnet, pas d'accesoires interférant avec les détecteurs
   AdrOk:=True;
@@ -14024,7 +14088,6 @@ begin
     LabeledEditCV3.Text:='';
     LabeledEditCV4.Text:='';
     LabeledEditCrans.Text:='';
-
   end;
 
   // suppression
@@ -14145,6 +14208,7 @@ begin
   clicListe:=false;
 end;
 
+// affiche l'état de la règle "nom" du parefeu du chemin du programme avec exe
 procedure regle(nom,chemin : string);
 var i : integer;
     s : string;
@@ -14243,9 +14307,7 @@ begin
   begin
     RichCdeDccpp.SelectAll;
   end;
-
 end;
-
 
 procedure TFormConfig.CheckBoxVersContrevoieClick(Sender: TObject);
 var s : string;
@@ -14904,7 +14966,6 @@ begin
   end;
 
   clicListe:=false;
-
 end;
 
 procedure TFormConfig.ListBoxPNMouseDown(Sender: TObject;
@@ -15529,7 +15590,6 @@ begin
   Aff_champs_PN(lignecliqueePN+1);
 
   config_modifie:=true;
-
 end;
 
 
@@ -15990,6 +16050,8 @@ begin
   CheckBoxServAct.checked:=Srvc_Act;
   CheckServPosTrains.checked:=Srvc_Pos;
   CheckBoxSrvSig.Checked:=Srvc_Sig;
+  CheckBoxSrvTdcc.Checked:=Srvc_tspd;
+
 
   CheckBoxRazSignaux.checked:=Raz_Acc_signaux;
   CheckBoxMsgAigInc.checked:=AffAigND;
@@ -17537,7 +17599,6 @@ begin
     inode:=node.AbsoluteIndex;
     Fnode:=node.ImageIndex;
     // si le node est un opérateur ET OU NON
-    //if (Fnode>=OpET) and (Fnode<=OpNON) and (i>=OpET) and (i<=OpNON) then
     if isOperateur(Fnode) and (isOperateur(i)) then
     begin
       fonction[foncCourante,inode].typ:=i;
@@ -17663,12 +17724,12 @@ begin
   // s'assurer que le suivant est un node frère
   if nodeA.GetNextSibling <> nil then
     // si oui le descendre
-    // naAdd, naAddFirst, naAddChild, naAddChildFirst, naInsert
-    // naAdd        The new or relocated node becomes the last sibling of the other node.
-    // naAddFirst   The new or relocated node becomes the first sibling of the other node.
-    // naInsert     The new or relocated node becomes the sibling immediately before the other node.
-    // naAddChild   The new or relocated node becomes the last child of the other node.
-    // naAddChildFirst The new or relocated node becomes the first child of the other node. Non reconnu en D7
+    // naAdd, naAddFirst, naAddChild, naAddChildFirst, naInsert  :
+    // naAdd        Le nouveau node ou le node déplacé devient le dernier frère de l’autre node.
+    // naAddFirst   Le nouveau node ou le node déplacé devient le 1er frère de l’autre node.
+    // naInsert     Le nouveau node ou le node déplacé devient le node frère immédiatement avant l'autre node
+    // naAddChild   Le nouveau node ou le node déplacé devient le dernier enfant de l'autre node.
+    // naAddChildFirst Le nouveau node ou le node déplacé devient le premier enfant de l'autre node. Non reconnu en D7
   begin
     nodeB:=nodeA.GetNextSibling;
     {$IF CompilerVersion >= 28.0}   // si delphi>=11
@@ -17711,7 +17772,6 @@ begin
       fonction[foncCourante,idB].niveau:=TreeViewL.items[idB].Level+1;
       // ajuster le parent
       fonction[foncCourante,idB].Indexprec:=TreeViewL.items[idB].Parent.AbsoluteIndex;
-
     end;
 end;
 
@@ -17743,7 +17803,6 @@ begin
     Affiche(s,clYellow);
   end;
 end;
-
 
 // trouve le parent d'un opérateur
 procedure trouve_parent_OP(k,idNode : integer);
@@ -17791,7 +17850,6 @@ begin
   begin
     if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
     insersion(fonccourante,inode,node.level+1,opET);
-
   end
   else
   begin  // ajout en fin
@@ -17804,7 +17862,6 @@ begin
   fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
 
   trouve_parent_OP(FoncCOurante,inode);
-
 end;
 
 procedure supprime_fonction(n : integer);
@@ -17826,8 +17883,6 @@ begin
   else
   Affiche('Erreur de suppression',clred);
 end;
-
-
 
 // supprime un élément du treeview et de fonction[]
 // la suppression peut changer les niveaux
@@ -17884,6 +17939,7 @@ begin
   if fonction[foncCourante,0].adresse=0 then supprime_fonction(foncCourante);
 end;
 
+// supprime fonction logique;
 procedure TFormConfig.ButtonSupLogClick(Sender: TObject);
 begin
   supprime_node;
@@ -17938,12 +17994,11 @@ begin
   // remonter au niveau précédent pour trouver le parent
   j:=iNode;
   repeat
-     dec(j);
+    dec(j);
   until (j=0) or (fonction[foncCourante,j].niveau+1=niveau);
   fonction[foncCourante,iNode].Indexprec:=j;
 
   fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
-
 end;
 
 procedure TFormConfig.ComboBoxOperateurDrawItem(Control: TWinControl;
@@ -17954,16 +18009,13 @@ begin
   // Affiche l'image dans la comboboc
   imagelistLogic.Draw(ComboBoxOperateur.Canvas,rect.left,rect.top,Index+1); //+1 car on commence à 1
 
-  if index=2 then
-      SetTextColor(Canvas.Handle, clBlack)
-    else
-      SetTextColor(Canvas.Handle, clGray);
+  if index=2 then SetTextColor(Canvas.Handle, clBlack)
+    else SetTextColor(Canvas.Handle, clGray);
 
   // écrit le texte
   ComboBoxOperateur.canvas.textout(rect.left+imagelistLogic.width+2,rect.top,
                           ComboBoxOperateur.items[index]);
 end;
-
 
 
 // Nouvelle fonction
@@ -17983,14 +18035,11 @@ begin
   ButtonAjOpEnfant.enabled:=false;
   ButtonAjoutevar.enabled:=false;
 
-
   treeViewL.items.Clear;
   TreeViewL.Items.add(nil,texte_tv(foncCourante,0));
 
   LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
-
 end;
-
 
 procedure ComboBoxFL_mizajour;
 var i : integer;
@@ -18069,8 +18118,6 @@ begin
     end;
     exit;
   end;
-
-
 end;
 
 // donne le suivant de même niveau de même index précédent
@@ -18087,7 +18134,6 @@ begin
   until trouve or (i>=n-1);
 
   if trouve then result:=i else result:=-1;
-
 end;
 
 // évalue en récursif une branche d'opérateur de fonction
@@ -18113,7 +18159,6 @@ begin
         if compteur=0 then
         begin
           resultat:=etat_variable(k,i);
-          //if (typOP=opNonET) or (typOP=opNonOU) then resultat:=not(resultat); // inversion en cas d'une seule variable
         end
         else     // ************1er état de la variable
         begin
@@ -18140,7 +18185,14 @@ begin
         niv:=fonction[k,i].niveau;
       end;
       // on sort car on vient de rencontrer un niveau différent
-      if (compteur=1) and ((typOP=opNonET) or (typOP=opNonOU)) then resultat:=not(resultat); // inversion en cas d'une seule variable
+      {if (compteur=1) and ((typOP=opNonET) or (typOP=opNonOU)) then
+      begin
+        resultat:=not(resultat); // inversion en cas d'une seule variable
+        if debugFonction then
+        begin
+          if resultat then affiche('inversion R=1',clOrange) else affiche('inversion R=0',clOrange);
+        end;
+      end; }
 
       if niv<niveau then
       begin
@@ -18160,7 +18212,7 @@ begin
       fonction[k,i].traite:=true;
 
       inc(i);
-      resultatOP:=evalue_operateur(k,i,0,formule); //***********************
+      resultatOP:=evalue_operateur(k,i,0,formule); //entrée récursive ***********************
       dec(i);
 
       if debugFonction then
@@ -18173,13 +18225,16 @@ begin
       typ:=fonction[k,parent].typ;
       if compteur=0 then resultat:=resultatOP else
       begin
+        if debugfonction then Affiche('Passage0 1 variable',clWhite);
         if typ=opET then resultat:=resultat and resultatOP;
         if typ=opOU then resultat:=resultat or resultatOP;
+        if typOP=opNonEt then resultat:=not(resultat and resultatOP);
+        if typOP=opNonOu then resultat:=not(resultat or resultatOP);
       end;
       inc(compteur);
       if debugFonction then
       begin
-        if resultat then s:=s+'résultat chainé R= 1' else s:=s+'résultat chainé R= 0';
+        if resultat then s:=s+'résultat chainé R=1' else s:=s+'résultat chainé R=0';
         Affiche(s,clYellow);
       end;
 
@@ -18242,6 +18297,12 @@ begin
  // Affiche(s+vf,clLime);
   LabelFonction.caption:=formule+' = '+vf;
   //affiche(formule,clorange);
+
+ { a:=aiguillage[1].position=const_devie;
+  b:=aiguillage[2].position=const_devie;
+
+  r:=not(a and not(b and b));
+  if r then Affiche('oui',clYellow) else affiche('non',clYellow); }
 end;
 
 // menu
@@ -18392,7 +18453,6 @@ begin
   15 : begin
          boolean(p^):=s=lowercase(liste[Arow].textePL1);  // PilotageTrainsCDMNom
        end;
-
   17 :  begin
          //AffSig:=s=lowercase(oui);
          boolean(p^):=s=lowercase(liste[Arow].textePL1);
@@ -18437,7 +18497,6 @@ begin
   //Affiche('OnMouseMove y='+intToSTR(y),clYellow);
   ValueListEditor.hint:=Liste[y].aide;
 end;
-
 
 procedure TFormConfig.RadioGroupOPClick(Sender: TObject);
 var node : tTreeNode;
@@ -18501,7 +18560,6 @@ begin
          then ComboStyle.Items.add(Style[i].NomStyle);
   end;
 end;
-
 
 
 procedure TFormConfig.ButtonlCV3Click(Sender: TObject);
@@ -18756,18 +18814,29 @@ begin
 end;
 
 procedure TFormConfig.ComboBoxUSBTrChange(Sender: TObject);
-var i : integer;
+var i,j : integer;
+    s,sb : string;
 begin
   i:=ComboBoxUSBTr.ItemIndex;
+
+  sb:='Bloc USB '+intToSTR(NumBlocUSB);
+  for j:=1 to ntrains do
+  begin
+    if labelBlocUSB[j].Caption=sb then labelBlocUSB[j].Caption:='';  // libère l'affectation
+  end;
+
   if i=0 then
   begin
     blocUSB[NumBlocUSB].AffTrain:='Pas d''affectation';
     Label72.Caption:='La sélection du train est celle de la page principale';
+    LabelBlocUSB[i].caption:='';
   end
   else
   begin
-    blocUSB[NumBlocUSB].AffTrain:=trains[i].nom_train;
+    s:=trains[i].nom_train;
+    blocUSB[NumBlocUSB].AffTrain:=s;
     Label72.Caption:=trains[i].nom_train+' sélectionné pour le bloc USB '+intToSTR(NumBlocUSB);
+    LabelBlocUSB[i].caption:=sb;
   end;
 end;
 
@@ -18775,7 +18844,7 @@ procedure TFormConfig.LabeledEditFnChange(Sender: TObject);
 var i,erreur :integer;
 begin
   val(LabeledEditFn.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>30) then exit;
+  if (erreur<>0) or (i<0) or (i>1) then exit;
   case boutonbloc of
   1 : blocUSB[NumBlocUSB].Fnp1:=i;
   2 : blocUSB[NumBlocUSB].Fnp2:=i;

@@ -401,15 +401,16 @@ begin
       formTCO[indexTCO].EditAdrElement.enabled:=true;
     end;
 
+    Adr:=tco[indexTCO,XClicC,YClicC].Adresse;
+
     With formConfCellTCO do
     begin
       GroupBoxOrientation.Visible:=false;
       GroupBoxImplantation.Visible:=false;
       GroupBoxCanton.Visible:=false;
-      GroupBoxDet.visible:=true;
+      if Adr<>0 then GroupBoxDet.visible:=true else GroupBoxDet.visible:=false;
       GroupBoxAction.visible:=false;
     end;
-    Adr:=tco[indexTCO,XClicC,YClicC].Adresse;
 
     with formConfCellTCO.StringGridDet do
     begin
@@ -623,7 +624,7 @@ begin
   end;
 
   // aiguillage ou TJD
-  if IsAigTCO(Bimage) then
+  if IsAigTJDCroiTCO(Bimage) then
     formConfCellTCO.checkPinv.Enabled:=true
     else formConfCellTCO.checkPinv.Enabled:=false;
 

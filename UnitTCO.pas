@@ -166,6 +166,7 @@ type
     ImageBt0Bistable: TImage;
     ImageBt1Bistable: TImage;
     Mmoiredezone1: TMenuItem;
+    Button2: TButton;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -210,7 +211,6 @@ type
     procedure MenuCollerClick(Sender: TObject);
     procedure ButtonRedessineClick(Sender: TObject);
     procedure EditAdrElementChange(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure ImagePalette10EndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ImagePalette10MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -399,7 +399,6 @@ type
     procedure ImagePalette53EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure AffRoutesClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure Optiondesroutes1Click(Sender: TObject);
     procedure Trouverunlment1Click(Sender: TObject);
     { Déclarations privées }
@@ -674,7 +673,7 @@ procedure dessine_icones(indexTCO : integer);
 procedure echange(var a,b : integer);
 procedure Efface_Cellule(indextco : integer;Canvas : Tcanvas;x,y : integer;Mode : TPenMode);
 procedure dessine_icone(indexTCO : integer;PCanvasTCO : tcanvas;Bimage,X,Y,mode : integer);
-function IsAigTCO(i : integer) : boolean;
+function IsAigTJDCroiTCO(i : integer) : boolean;
 function index_TCO(t : Tobject) : integer;
 procedure Init_TCO(indexTCO : integer);
 procedure init_tampon_copiercoller;
@@ -1311,9 +1310,9 @@ begin
 
     ok:=( (Bim=1) or (Bim=0) or ((Bim>=Id_cantonH) and (bim<=Id_cantonH+9)) or ((Bim>=Id_cantonV) and (bim<=Id_cantonV+9)));
     ok:=ok and (x<canton[indexCanton].maxi);   // empeche d'aller à droite
-    if not(ok) then begin
+    if not(ok) then
+    begin
       result:=true;
-      //Affiche('Haaaa',clred);
       exit;
     end;
 
@@ -1427,7 +1426,7 @@ begin
     repeat
       inc(xc);
       b:=tco[indextco,xc,yc].Bimage;
-      if isAigTCO(b) then tq:=aig else tq:=det;
+      if IsAigTJDCroiTCO(b) then tq:=aig else tq:=det;
       if b=id_signal then tq:=sig;
       if tco[indextco,xc,yc].buttoir<>0 then tq:=buttoir;
 
@@ -2804,7 +2803,7 @@ begin
 end;
 
 // renvoie vrai si l'élément i est un aiguillage ou une TJD/S ou un croisement
-function IsAigTCO(i : integer) : boolean;
+function IsAigTJDCroiTCO(i : integer) : boolean;
 begin
   result:=((i=2) or (i=3) or (i=4) or (i=5) or (i=12) or (i=13) or (i=14) or (i=15) or
           ((i>=21) and (i<=34) )) ;
@@ -7049,7 +7048,7 @@ begin
       1 : couleur:=clLime;
       2 : couleur:=clAqua;
     end;
-    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur)
+    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur,couleur)
     else
     begin
       if bouton=3 then
@@ -7099,6 +7098,11 @@ begin
     offsetY:=(haut div 2)-(hautDest div 2)+1; // centrer l'icone au centre Y
 
     sens:=canton[i].SensLoco;
+    if (sens<>SensGauche) and (sens<>SensDroit) and (sens<>0) then
+    begin
+      Sens:=SensGauche;
+      Affiche('Anomalie sens train canton '+intToSTR(canton[i].numero)+' incohérent ; repositionné à gauche',clOrange);
+    end;
     case sens of
       0,sensGauche : begin
                        xi:=x0+OffsetX;
@@ -7265,7 +7269,7 @@ begin
       1 : couleur:=clLime;
       2 : couleur:=ClAqua;
     end;
-    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur)
+    if bouton<=2 then cercle(PcanvasTCO[indexTCO],xCentre,ycentre,r,couleur,couleur)
     else
     begin
       if bouton=3 then // drapeau vert
@@ -7328,6 +7332,11 @@ begin
     end;
 
     sens:=canton[i].SensLoco;
+    if (sens<>SensHaut) and (sens<>SensBas) and (sens<>0) then
+    begin
+      Sens:=SensHaut;
+      Affiche('Anomalie sens train canton '+intToSTR(canton[i].numero)+' incohérent ; repositionné en haut',clOrange);
+    end;
     case sens of
       0,sensHaut : begin
                      yi:=y0+10;
@@ -7360,7 +7369,7 @@ begin
     Canton[i].Licone:=LargDest;
     Canton[i].Hicone:=HautDest;
 
-    if canton[i].SensLoco=SensHaut then
+    if sens=SensHaut then
     begin
       with FormTCO[indexTCO].ImageTemp2.Canvas do
       begin
@@ -7420,7 +7429,7 @@ begin
     end
     else
     begin
-      // bas
+      // Sens loco bas
       // matrice de copie à 90°G sans mise à l'échelle dans l'image provisoire
       p[0].X:=HautSrc;  //90;
       p[0].Y:=0;  //0;
@@ -11344,7 +11353,7 @@ begin
     s:=format('%d',[adresse]);
 
     // affiche le texte des aiguillages
-    if IsAigTCO(Bimage) and (adresse<>0) then
+    if IsAigTJDCroiTCO(Bimage) and (adresse<>0) then
     begin
       if adresse<>0 then s:='A'+s+' ' else s:=' ';
       with PCanvasTCO[indexTCO] do
@@ -12075,7 +12084,7 @@ begin
         x:=Trace_Train[t].train[train].route[i].x;
         y:=Trace_Train[t].train[train].route[i].y;
         Bimage:=tco[t,x,y].BImage;
-        trouve:=isAigTCO(Bimage);
+        trouve:=IsAigTJDCroiTCO(Bimage);
         dec(i);
       until trouve or (i=0);
 
@@ -13827,13 +13836,13 @@ begin
     begin
       MemTrouve:=true;
       Xcanton:=adresse;
-      if isAigTCO(Bimage) then Tel1:=aig else tel1:=det;
+      if IsAigTJDCroiTCO(Bimage) then Tel1:=aig else tel1:=det;
       if but<>0 then tel1:=Buttoir;
     end;
     if ((mode=12) or (mode=13)) and (adresse<>det1) then
     begin
       Xcanton:=adresse;
-      if isAigTCO(Bimage) then Tel1:=aig else tel1:=det;
+      if IsAigTJDCroiTCO(Bimage) then Tel1:=aig else tel1:=det;
       Memtrouve:=true;
     end;
 
@@ -14350,6 +14359,14 @@ procedure supprime_remplace_canton(index : integer);
 var el,i,n,xc,yc,idT : integer;
 begin
   if (index<1) or (index>ncantons) then exit;
+
+  // désaffecter le train du canton
+  i:=canton[index].indexTrain;
+  if i<>0 then
+  begin
+    affecte_Train_canton(0,index,0);
+  end;
+
   n:=canton[index].Nelements;
   xc:=canton[index].x;
   yc:=canton[index].y;
@@ -16701,7 +16718,7 @@ begin
         ImageTCO.Hint:=s;
       end
       else
-      if IsAigTCO(Bimage) then
+      if IsAigTJDCroiTCO(Bimage) then
       begin
         adresse:=tco[IndexTCO,xClic,yClic].Adresse;
         if adresse=0 then s:='Aiguillage sans adresse'
@@ -17166,7 +17183,7 @@ begin
   for y:=1 to NbreCellY[indexTCO] do
     for x:=1 to NbreCellX[indexTCO] do
       begin
-        if IsAigTCO(tco[indextco,x,y].Bimage) then
+        if IsAigTJDCroiTCO(tco[indextco,x,y].Bimage) then
         begin
           affiche_cellule(indexTCO,x,y);
         end;
@@ -17186,23 +17203,16 @@ begin
         for x:=1 to NbreCellX[ntco] do
         begin
           Bim:=TCO[ntco,x,y].Bimage;
-          //if IsAigTCO(Bim) then
+          if TCO[ntco,x,y].Adresse=adresse then
           begin
-            if TCO[ntco,x,y].Adresse=adresse then
-            begin
-              affiche_cellule(ntco,x,y);
-            end;
+            affiche_cellule(ntco,x,y);
           end;
         end;
     end;
   end;
 end;
 
-procedure TFormTCO.Button2Click(Sender: TObject);
-begin
-  Detecteur[569].etat:=false;
-  Maj_tco(index_TCO(sender),569);
-end;
+
 
 procedure TFormTCO.ImagePalette10EndDrag(Sender, Target: TObject; X, Y: Integer);
 begin
@@ -17584,7 +17594,7 @@ begin
   indexTCO:=index_TCO(sender);
   if (xClicCell[indexTCO]=0) or (xClicCell[indexTCO]>NbreCellX[indexTCO]) or (yClicCell[indexTCO]=0) or (yClicCell[indexTCO]>NbreCelly[indexTCO]) then exit;
   Bimage:=tco[indextco,xClicCell[indexTCO],yClicCell[indexTCO]].Bimage;
-  if IsAIgTCO(Bimage) then
+  if IsAigTJDCroiTCO(Bimage) then
   begin
     tco[indextco,xClicCell[indexTCO],yClicCell[indexTCO]].inverse:=CheckPinv.checked;
     TCO_modifie:=true;
@@ -17642,7 +17652,7 @@ begin
   end;
 
   // commande aiguillage
-  if isAigTCO(Bimage) or TJDc then
+  if IsAigTJDCroiTCO(Bimage) or TJDc then
   begin
     aiguille:=Adresse;
     i:=Index_aig(Adresse);
@@ -18939,7 +18949,6 @@ begin
   supprime_remplace_canton(index);
   tco_modifie:=true;
   Affiche_tco(indexTCO);
-
 end;
 
 procedure TFormTCO.Affecterlocomotiveaucanton1Click(Sender: TObject);
@@ -19184,14 +19193,49 @@ begin
   end;
 end;
 
-procedure TFormTCO.Button1Click(Sender: TObject);
-begin
-  zone_tco(1,523,518,1,0,1,false,false);
-end;
-
 procedure TFormTCO.Optiondesroutes1Click(Sender: TObject);
+var GMode,l2,h2 : integer;
+    XFormScale,XFormRot,XFormOld,XFormXLat,xform  : TXForm;
+    angle,Zoom : single;
+    recta : trect;
 begin
-  formRoute.Show;
+ { angle:=5;
+  Zoom:=2;
+  l2:=trains[1].icone.picture.width div 2;
+  h2:=trains[1].icone.picture.height div 2;
+
+
+  GMode:=SetGraphicsMode(PCanvasTCO[1].Handle, GM_ADVANCED);
+  if GetWorldTransform(PCanvasTCO[1].Handle, XFormOld) then  // renvoie la matrice courante dans XformOld
+  begin
+    // faire les 3 transformations
+    XFormRot:=XForm_Rotation(Angle,Point(l2,h2));      // rotation autour du centre
+    XFormScale:=XForm_Echelle(Zoom,Zoom,point(l2,h2)); // Zoom au point central
+    XFormXLat:=XForm_Translation(x-l2,y-h2);           // décalage
+
+    // Combiner les 3 transformations
+    CombineTransform(XForm,XFormRot,XFormScale);     // Xform<-- f(XformRot,XformScale)
+    CombineTransform(XForm,XForm,XFormXLat);         // Xform<-- f(Xform,XformScale)
+
+    if not(premaff) then recta:=rect(trains[1].x0,trains[1].y0,trains[1].x1,trains[1].y1);
+    premaff:=false;
+    PCanvasTCO[1].CopyRect(recta,trains[1].SBitmap.canvas,rect(0,0,trains[1].x1-trains[1].x0,trains[1].y1-trains[1].y0));   // copie dans Acanvas <-- SbitMap.canvas
+
+    // sauvegarder à la nouvelle position avant d'afficher la nouvelle position
+    recta:=rect(x0,y0,x1,y1);
+    trains[IndexTrain].sbitmap.canvas.CopyRect(rect(0,0,larg,haut),Acanvas,recta);   // copie dans sbitmap.canvas <-- Acanvas
+    //FormAnalyseCDM.Image1.Canvas.CopyRect(rect(0,0,larg,haut),Acanvas,recta );
+
+    trains[IndexTrain].x0:=x0;
+    trains[IndexTrain].y0:=y0;
+    trains[IndexTrain].x1:=x1;
+    trains[IndexTrain].y1:=y1;
+
+    // appliquer les transformations dans le canvas et afficher l'icône du train
+    SetWorldTransform(ACanvas.Handle,XForm);         // mettre dans le canvas
+    ACanvas.Draw(0,0,FWICImage);                     // afficher le bitmap
+    SetWorldTransform(ACanvas.Handle,XFormOld);
+  end; }
 end;
 
 procedure TFormTCO.Trouverunlment1Click(Sender: TObject);

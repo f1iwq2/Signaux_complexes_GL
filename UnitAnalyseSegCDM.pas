@@ -183,6 +183,9 @@ procedure D_Arc(Canvas: TCanvas; CenterX,CenterY: integer;
 function point_Sur_Segment(x,y,x1,y1,x2,y2 : integer): Boolean;
 function explore_port_det(seg,port : integer) : integer;
 function index_segment_act(Adresse : integer;var TabloDetSeg : TdetSeg;var nombre : integer) : boolean;
+function XForm_Rotation(Angle : Single;Centre : TPoint) : TXForm;
+function XForm_Echelle(const AZoomX : Single;const AZoomY : Single;const centre: TPoint) : TXForm;
+function XForm_Translation(const ADistX : Integer;const ADistY : Integer) : TXForm;
 
 implementation
 
@@ -1497,7 +1500,6 @@ begin
   i:=index_train_adresse(adr);
   if i>0 then peindre(i,x1,y1,zom);
 end;
-
 
 // Affiche le réseau CDM
 procedure affichage(imprime : boolean);
