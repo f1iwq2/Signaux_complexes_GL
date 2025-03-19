@@ -516,7 +516,7 @@ object FormModifAction: TFormModifAction
         Top = 32
         Width = 217
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
@@ -720,7 +720,7 @@ object FormModifAction: TFormModifAction
           Height = 21
           Hint = 'Nom du p'#233'riph'#233'rique d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4

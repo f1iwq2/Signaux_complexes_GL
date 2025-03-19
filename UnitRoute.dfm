@@ -1,6 +1,6 @@
 object FormRoute: TFormRoute
-  Left = 201
-  Top = 182
+  Left = 338
+  Top = 290
   BorderStyle = bsDialog
   Caption = 'Route'
   ClientHeight = 298
@@ -61,8 +61,10 @@ object FormRoute: TFormRoute
     ItemHeight = 13
     ParentFont = False
     ParentShowHint = False
+    PopupMenu = PopupMenuR
     ShowHint = True
     TabOrder = 0
+    OnDblClick = ListBoxRoutesDblClick
     OnDrawItem = ListBoxRoutesDrawItem
     OnKeyDown = ListBoxRoutesKeyDown
     OnMouseDown = ListBoxRoutesMouseDown
@@ -118,13 +120,13 @@ object FormRoute: TFormRoute
     OnClick = ButtonRAZClick
   end
   object ButtonFenPil: TButton
-    Left = 232
+    Left = 224
     Top = 258
     Width = 83
     Height = 33
     Hint = 'Ouvre la fen'#234'tre de pilotage des trains'
     Anchors = [akLeft, akBottom]
-    Caption = 'Fen'#234'tre de pilotage'
+    Caption = 'Choisir cette route'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 5
@@ -233,5 +235,14 @@ object FormRoute: TFormRoute
     Height = 17
     Caption = 'Debug'
     TabOrder = 11
+  end
+  object PopupMenuR: TPopupMenu
+    OnPopup = PopupMenuRPopup
+    Left = 344
+    Top = 8
+    object Choisircetteroute1: TMenuItem
+      Caption = 'Choisir cette route'
+      OnClick = Choisircetteroute1Click
+    end
   end
 end

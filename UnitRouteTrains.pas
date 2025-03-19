@@ -113,7 +113,7 @@ begin
   begin
     detect:=0;
     Affiche('Le train '+train+' n''est pas déclaré sur le détecteur d''un canton',clOrange);
-    Affiche('ou le décteur du train n''est pas activé',clOrange);
+    Affiche('ou le détecteur du train n''est pas activé',clOrange);
     exit;
   end;
 

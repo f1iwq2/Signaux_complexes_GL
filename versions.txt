@@ -312,11 +312,16 @@ version 9.77 : Améliorations diverses.
 version 9.78 : Correction du déclencheur "démarrage train"
 version 9.79 : Corrections et améliorations diverses.
 version 9.8  : Intégration des claviers et boutons rotatifs USB
-version 9.9  : Correction évalution fonctions logiques sur opérateur NONET NONOU
+version 9.9  : Correction évaluation fonctions logiques sur opérateur NONET NONOU
 version 10.0 : Création de 3 compteurs de vitesse de trains utilisables en mode autonome ou CDM.
                Création de déclencheurs depuis appui sur touches de clavier ou blocs USB.
-
-
+version 10.1 : Correction d'un bug sur l'évolution des trains dans le TCO.
+version 10.2 : Ajout de 4 boutons aux claviers USB
+               Compteurs de vitesses pour chaque train dans un nouvel onglet "compteurs".
+	       Les couleurs des compteurs sont personnalisables.
+               Pilotage des accessoires en mode asynchrone.
+               Correction bug fonction F bloc USB et pilotage train affecté au bloc
+			   
 			  
 			   
 

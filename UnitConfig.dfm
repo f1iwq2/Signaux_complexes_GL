@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 245
-  Top = 117
+  Left = 240
+  Top = 128
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetTrains
+    ActivePage = TabSheetBouton
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -4149,7 +4149,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TabSheetTrGen
+        ActivePage = TtabSheetEt
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'
@@ -4578,6 +4578,148 @@ object FormConfig: TFormConfig
         end
       end
     end
+    object TabSheetCompt: TTabSheet
+      Caption = 'Compteurs'
+      ImageIndex = 8
+      object Label75: TLabel
+        Left = 8
+        Top = 8
+        Width = 122
+        Height = 13
+        Caption = 'Compteurs de vitesse'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label81: TLabel
+        Left = 320
+        Top = 24
+        Width = 263
+        Height = 13
+        Caption = 'Personnalisation des couleurs des compteurs de vitesse'
+      end
+      object GroupBox17: TGroupBox
+        Left = 312
+        Top = 72
+        Width = 249
+        Height = 265
+        Caption = 'Param'#232'tres de couleur'
+        TabOrder = 0
+        object Label76: TLabel
+          Left = 74
+          Top = 88
+          Width = 79
+          Height = 13
+          Caption = 'Couleur d'#39'aiguille'
+        end
+        object Label77: TLabel
+          Left = 39
+          Top = 120
+          Width = 114
+          Height = 13
+          Caption = 'Couleur des graduations'
+        end
+        object Label78: TLabel
+          Left = 54
+          Top = 152
+          Width = 99
+          Height = 13
+          Caption = 'Couleur des num'#233'ros'
+        end
+        object Label79: TLabel
+          Left = 75
+          Top = 184
+          Width = 78
+          Height = 13
+          Caption = 'Couleur  de fond'
+        end
+        object Label80: TLabel
+          Left = 88
+          Top = 214
+          Width = 65
+          Height = 13
+          Caption = 'Couleur  d'#39'arc'
+        end
+        object ComboBoxCompt: TComboBox
+          Left = 48
+          Top = 28
+          Width = 145
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = ComboBoxComptChange
+          Items.Strings = (
+            'Compteur type 1'
+            'Compteur type 2'
+            'Compteur tachro')
+        end
+        object BoutonCoulAig: TButton
+          Left = 182
+          Top = 80
+          Width = 27
+          Height = 25
+          Caption = 'A'
+          TabOrder = 1
+          OnClick = BoutonCoulAigClick
+        end
+        object ButtonCoulGrad: TButton
+          Left = 182
+          Top = 112
+          Width = 27
+          Height = 25
+          Caption = 'G'
+          Enabled = False
+          TabOrder = 2
+          OnClick = ButtonCoulGradClick
+        end
+        object ButtonCoulNum: TButton
+          Left = 182
+          Top = 144
+          Width = 27
+          Height = 25
+          Caption = 'N'
+          TabOrder = 3
+          OnClick = ButtonCoulNumClick
+        end
+        object ButtonCoulFond: TButton
+          Left = 182
+          Top = 176
+          Width = 27
+          Height = 25
+          Caption = 'F'
+          Enabled = False
+          TabOrder = 4
+          OnClick = ButtonCoulFondClick
+        end
+        object ButtonCoulArc: TButton
+          Left = 182
+          Top = 208
+          Width = 27
+          Height = 25
+          Caption = 'Arc'
+          TabOrder = 5
+          OnClick = ButtonCoulArcClick
+        end
+      end
+      object Panel2: TPanel
+        Left = 8
+        Top = 72
+        Width = 281
+        Height = 281
+        Caption = 'Panel2'
+        TabOrder = 1
+        object ImageCtC: TImage
+          Left = 8
+          Top = 8
+          Width = 265
+          Height = 265
+        end
+      end
+    end
     object TabSheetPeriph: TTabSheet
       Caption = 'P'#233'riph'#233'riques'
       ImageIndex = 9
@@ -4894,7 +5036,7 @@ object FormConfig: TFormConfig
           Left = 72
           Top = 80
           Width = 193
-          Height = 201
+          Height = 233
           Brush.Color = clOlive
         end
         object ShapeBR: TShape
@@ -5003,13 +5145,6 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = '-'
         end
-        object Label74: TLabel
-          Left = 312
-          Top = 240
-          Width = 81
-          Height = 13
-          Caption = 'Affecter au train :'
-        end
         object LabelId: TLabel
           Left = 80
           Top = 88
@@ -5025,151 +5160,243 @@ object FormConfig: TFormConfig
           ParentColor = False
           ParentFont = False
         end
-        object LabeledEditCT: TLabeledEdit
-          Left = 480
-          Top = 80
-          Width = 40
-          Height = 21
-          Hint = 'Code ascii envoy'#233' par le bouton'
-          EditLabel.Width = 76
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Code de touche'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
+        object ShapeB5: TShape
+          Left = 80
+          Top = 264
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 5'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB5MousDown
+        end
+        object ShapeB6: TShape
+          Left = 128
+          Top = 264
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 6'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB6MouseDown
+        end
+        object ShapeB7: TShape
+          Left = 176
+          Top = 264
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 7'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB7MouseDown
+        end
+        object ShapeB8: TShape
+          Left = 224
+          Top = 264
+          Width = 33
+          Height = 33
+          Hint = 'Clic bouton 8'
+          Brush.Color = clGray
+          ParentShowHint = False
+          Shape = stCircle
+          ShowHint = True
+          OnMouseDown = ShapeB8MouseDown
+        end
+        object ButtonHook: TButton
+          Left = 448
+          Top = 328
+          Width = 113
+          Height = 41
+          Hint = 'Relance le gestionnaire d'#39'interception du clavier USB'
+          Caption = 'Relance interception clavier USB'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
-          OnChange = LabeledEditCTChange
+          WordWrap = True
+          OnClick = ButtonHookClick
         end
-        object LabeledEditRm: TLabeledEdit
-          Left = 480
-          Top = 128
-          Width = 40
-          Height = 21
-          Hint = 'Code ascii envoy'#233' par la rotation anti horaire (-)'
-          EditLabel.Width = 99
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Code de rotation en -'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          OnChange = LabeledEditRmChange
-        end
-        object LabeledEditRp: TLabeledEdit
-          Left = 480
-          Top = 152
-          Width = 40
-          Height = 21
-          Hint = 'Code ascii envoy'#233' par la rotation horaire (+)'
-          EditLabel.Width = 102
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Code de rotation en +'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnChange = LabeledEditRpChange
-        end
-        object LabeledEditClic: TLabeledEdit
-          Left = 480
+        object GroupBoxBR: TGroupBox
+          Left = 312
           Top = 176
-          Width = 40
-          Height = 21
-          Hint = 'Code ascii envoy'#233' par le clic bouton'
-          EditLabel.Width = 59
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Code de clic'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
-          ParentShowHint = False
-          ShowHint = True
+          Width = 260
+          Height = 121
+          Caption = 'Bouton rotatif'
+          TabOrder = 1
+          object LabeledEditRm: TLabeledEdit
+            Left = 193
+            Top = 20
+            Width = 40
+            Height = 21
+            Hint = 'Code ascii envoy'#233' par la rotation anti horaire (-)'
+            EditLabel.Width = 99
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Code de rotation en -'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            OnChange = LabeledEditRmChange
+          end
+          object LabeledEditRp: TLabeledEdit
+            Left = 193
+            Top = 44
+            Width = 40
+            Height = 21
+            Hint = 'Code ascii envoy'#233' par la rotation horaire (+)'
+            EditLabel.Width = 102
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Code de rotation en +'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+            OnChange = LabeledEditRpChange
+          end
+          object LabeledEditClic: TLabeledEdit
+            Left = 193
+            Top = 68
+            Width = 40
+            Height = 21
+            Hint = 'Code ascii envoy'#233' par le clic bouton'
+            EditLabel.Width = 59
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Code de clic'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 2
+            OnChange = LabeledEditClicChange
+          end
+          object LabeledEditIncr: TLabeledEdit
+            Left = 193
+            Top = 92
+            Width = 40
+            Height = 21
+            Hint = 'Valeur de l'#39'incr'#233'ment sur une rotation'
+            EditLabel.Width = 105
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Incr'#233'ment '#224' la rotation'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            OnChange = LabeledEditIncrChange
+          end
+        end
+        object GroupBoxBt: TGroupBox
+          Left = 312
+          Top = 176
+          Width = 260
+          Height = 121
+          Caption = 'Bouton'
+          TabOrder = 2
+          object LabeledEditF: TLabeledEdit
+            Left = 185
+            Top = 52
+            Width = 40
+            Height = 21
+            Hint = 'Fonction F associ'#233'e au bouton'
+            EditLabel.Width = 100
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Fonction F '#224' envoyer'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            OnChange = LabeledEditFChange
+          end
+          object LabeledEditFn: TLabeledEdit
+            Left = 201
+            Top = 76
+            Width = 16
+            Height = 21
+            Hint = '0 ou 1'
+            EditLabel.Width = 6
+            EditLabel.Height = 13
+            EditLabel.Caption = #224
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 5
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+            OnChange = LabeledEditFnChange
+          end
+          object LabeledEditCT: TLabeledEdit
+            Left = 185
+            Top = 20
+            Width = 40
+            Height = 21
+            Hint = 'Code ascii envoy'#233' par le bouton'
+            EditLabel.Width = 76
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Code de touche'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 50
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 2
+            OnChange = LabeledEditCTChange
+          end
+        end
+        object GroupBoxBloc: TGroupBox
+          Left = 312
+          Top = 48
+          Width = 257
+          Height = 113
+          Caption = 'G'#233'n'#233'ral'
           TabOrder = 3
-          OnChange = LabeledEditClicChange
-        end
-        object LabeledEditNUM: TLabeledEdit
-          Left = 480
-          Top = 40
-          Width = 25
-          Height = 21
-          Hint = 'Num'#233'ro de contr'#244'leur clavier USB (1 '#224' 10)'
-          EditLabel.Width = 134
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Num'#233'ro de bloc clavier USB'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 30
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 4
-          OnChange = LabeledEditNUMChange
-        end
-        object LabeledEditF: TLabeledEdit
-          Left = 480
-          Top = 104
-          Width = 40
-          Height = 21
-          Hint = 'Fonction F associ'#233'e au bouton'
-          EditLabel.Width = 100
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Fonction F '#224' envoyer'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 5
-          OnChange = LabeledEditFChange
-        end
-        object LabeledEditIncr: TLabeledEdit
-          Left = 480
-          Top = 200
-          Width = 40
-          Height = 21
-          Hint = 'Valeur de l'#39'incr'#233'ment sur une rotation'
-          EditLabel.Width = 105
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Incr'#233'ment '#224' la rotation'
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 50
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 6
-          OnChange = LabeledEditIncrChange
-        end
-        object ComboBoxUSBTr: TComboBox
-          Left = 416
-          Top = 240
-          Width = 153
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 0
-          TabOrder = 7
-          OnChange = ComboBoxUSBTrChange
-        end
-        object LabeledEditFn: TLabeledEdit
-          Left = 536
-          Top = 104
-          Width = 16
-          Height = 21
-          Hint = '0 ou 1'
-          EditLabel.Width = 6
-          EditLabel.Height = 13
-          EditLabel.Caption = #224
-          EditLabel.Layout = tlBottom
-          LabelPosition = lpLeft
-          LabelSpacing = 5
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 8
-          OnChange = LabeledEditFnChange
+          object Label74: TLabel
+            Left = 8
+            Top = 32
+            Width = 81
+            Height = 13
+            Caption = 'Affecter au train :'
+          end
+          object ComboBoxUSBTr: TComboBox
+            Left = 96
+            Top = 28
+            Width = 153
+            Height = 21
+            Style = csDropDownList
+            ItemHeight = 13
+            TabOrder = 0
+            OnChange = ComboBoxUSBTrChange
+          end
+          object LabeledEditNUM: TLabeledEdit
+            Left = 208
+            Top = 72
+            Width = 25
+            Height = 21
+            Hint = 'Num'#233'ro de contr'#244'leur clavier USB (1 '#224' 10)'
+            EditLabel.Width = 134
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Num'#233'ro de bloc clavier USB'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 30
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+            OnChange = LabeledEditNUMChange
+          end
         end
       end
     end

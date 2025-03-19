@@ -53,7 +53,7 @@ object FormRouteTrain: TFormRouteTrain
     Top = 8
     Width = 585
     Height = 177
-    ActivePage = TabSheetRM
+    ActivePage = TabSheetRA
     TabOrder = 1
     object TabSheetRA: TTabSheet
       Caption = 'Route affect'#233'e'

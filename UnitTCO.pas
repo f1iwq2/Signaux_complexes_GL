@@ -345,15 +345,22 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure ButtonCalibrageClick(Sender: TObject);
     procedure ButtonCoulFondClick(Sender: TObject);
-    procedure ColorDialog1Show(Sender: TObject);    procedure ImagePalette24DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);    procedure ImagePalette24EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ColorDialog1Show(Sender: TObject);
+     procedure ImagePalette24DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette24EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImagePalette24MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ImagePalette25DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ImagePalette25EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImagePalette25MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);   procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;      Shift: TShiftState; X, Y: Integer);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;      Shift: TShiftState; X, Y: Integer);
     procedure ImagePalette4DragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
     procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
-    procedure EditTypeImageChange(Sender: TObject);   procedure Toutslectionner1Click(Sender: TObject);    procedure ButtonDessinerClick(Sender: TObject);    procedure ImagePalette26DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure EditTypeImageChange(Sender: TObject);
+    procedure Toutslectionner1Click(Sender: TObject);
+    procedure ButtonDessinerClick(Sender: TObject);
+    procedure ImagePalette26DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImagePalette26MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ImagePalette23EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImagePalette23DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
@@ -377,8 +384,8 @@ type
     procedure ImagePalette34EndDrag(Sender, Target: TObject; X,      Y: Integer);
     procedure ImagePalette34MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure EditAdrElementClick(Sender: TObject);
-    procedure ImagePalette53DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-     procedure ImagePalette52EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette53DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+     procedure ImagePalette52EndDrag(Sender, Target: TObject; X, Y: Integer);
      procedure ImagePalette53MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ButtonAffSCClick(Sender: TObject);
     procedure RadioGroupSelClick(Sender: TObject);
@@ -484,7 +491,7 @@ type
            Adresse     : integer;     // adresse du détecteur ou de l'aiguillage ou du feu OU si action sortie : adresse
            BImage      : integer;     // icone: 0=rien 1=voie 2=aiguillage gauche  ... 50=feu
            mode        : integer;     // couleur de voie 0=éteint 1=ClVoies 2=couleur dans le champ train
-           train       : integer;     // numéro du train
+           train       : integer;     // index du train
            trajet      : integer;     // décrit le trajet ouvert sur la voie (cas d'un croisement ou d'une tjd/S)
            inverse     : boolean;     // aiguillage piloté inversé
            repr        : integer;     // position de la représentation texte 0 = rien 1=centré 2=Haut  3=Bas 4=réparti 5=double centré
@@ -699,6 +706,7 @@ procedure renseigne_TJDs_TCO;
 procedure Affiche_temps_arret(IdTrain,tps : integer);
 procedure titre_fenetre(indexTCO : integer);
 function IsVoieDroite(i : integer) : boolean;
+function trouve_canton(el1 : integer;tel1 : tequipement;el2 : integer;tel2 : tequipement) : integer;
 
 implementation
 
@@ -803,6 +811,26 @@ begin
   end
   else result:=0;
 end;
+
+// renvoie l'index de canton encadré par les 2 éléments el1 et el2
+function trouve_canton(el1 : integer;tel1 : tequipement;el2 : integer;tel2 : tequipement) : integer;
+var i,eLc1,eLc2 : integer;
+    teLc1,teLc2 : tequipement;
+    trouve : boolean;
+begin
+  i:=1;
+  result:=0;
+  repeat
+    eLc1:=canton[i].el1; teLc1:=canton[i].typ1;
+    eLc2:=canton[i].el2; teLc2:=canton[i].typ2;
+
+    trouve:=((elc1=el1) and (teLc1=tel1) and (elc2=el2) and (teLc2=tel2)) or
+            ((elc2=el1) and (teLc2=tel1) and (elc1=el2) and (teLc1=tel2)) ;
+    inc(i);
+  until (trouve) or (i>nCantons);
+  if trouve then result:=i-1;
+end;
+
 
 // le tampon est aussi grand que le x/y du plus grand TCO
 procedure init_tampon_copiercoller;
@@ -1490,6 +1518,7 @@ begin
   end
   else
   begin
+    // canton vertical
     zone_tco(t,i,SensTCO_N,0,0,11,false,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
     if xCanton=0 then tel1:=buttoir;
     canton[i].el1:=xCanton;
@@ -6981,6 +7010,11 @@ begin
     if i=0 then begin Affiche('Erreur 19H : index canton nul en TCO'+intToSTR(indexTCO)+' x='+intToSTR(x)+' y='+intToSTR(y),clred);exit;end;
 
     indexTrain:=TCO[IndexTCO,x,y].train;
+    if (indexTrain<0) or (indexTrain>NTrains) then
+    begin
+      Affiche('Anomalie 670',clred);
+      exit;
+    end;
     AdrTrain:=canton[i].adresseTrain;
     //Affiche('Canton '+intToSTR(canton[i].numero)+' adrTrain='+intToSTR(AdrTrain),clLime);
 
@@ -7101,6 +7135,7 @@ begin
     if (sens<>SensGauche) and (sens<>SensDroit) and (sens<>0) then
     begin
       Sens:=SensGauche;
+      canton[i].SensLoco:=sens;
       Affiche('Anomalie sens train canton '+intToSTR(canton[i].numero)+' incohérent ; repositionné à gauche',clOrange);
     end;
     case sens of
@@ -7207,6 +7242,12 @@ begin
     textOUT(x0-length(s)*8,y0+1,s);}
 
     indexTrain:=TCO[IndexTCO,x,y].train;
+    if (indexTrain<0) or (indexTrain>NTrains) then
+    begin
+      Affiche('Anomalie 671',clred);
+      exit;
+    end;
+
     AdrTrain:=canton[i].adresseTrain;
     if AdrTrain<>0 then indexTrain:=index_train_adresse(adrTrain);
 
@@ -7335,6 +7376,7 @@ begin
     if (sens<>SensHaut) and (sens<>SensBas) and (sens<>0) then
     begin
       Sens:=SensHaut;
+      canton[i].SensLoco:=sens;
       Affiche('Anomalie sens train canton '+intToSTR(canton[i].numero)+' incohérent ; repositionné en haut',clOrange);
     end;
     case sens of
@@ -19138,7 +19180,6 @@ begin
 
   // affectation train canton destination
   affecte_Train_canton(trains[idTrain].adresse,IdCantonDest,sens);
-  //application.processMessages;
 
   // si le canton destination était occupé au déplacement d'un train de canton
   if (TrainDest<>0) and (cantonDest<>CantonOrg) then
@@ -19167,7 +19208,7 @@ begin
     detecteur[adresse].AdrTrain:=canton[idCantonDest].adresseTrain;
     detecteur[adresse].Train:=canton[idCantonDest].NomTrain;
   end;
-  maj_signaux(true);
+  maj_signaux(false);
 end;
 
 
@@ -19199,6 +19240,7 @@ var GMode,l2,h2 : integer;
     angle,Zoom : single;
     recta : trect;
 begin
+ formRoute.Show;
  { angle:=5;
   Zoom:=2;
   l2:=trains[1].icone.picture.width div 2;

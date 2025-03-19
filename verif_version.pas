@@ -26,7 +26,7 @@ var
   f : text;
 
 Const
-VersionSC = '10.0'; // sert à la comparaison de la version publiée
+VersionSC = '10.2'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -284,6 +284,8 @@ begin
   else
   begin
     Affiche('Erreur '+intToSTR(i)+' au lancement de installeur.exe ',clred);
+    Affiche(SysErrorMessage(GetLastError),clred);
+    Affiche('Exécutez le manuellement',clred);
   end;
 
 end;

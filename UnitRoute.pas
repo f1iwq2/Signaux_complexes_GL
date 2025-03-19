@@ -6,7 +6,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ShellCtrls, StdCtrls, ExtCtrls , UnitPrinc;
+  Dialogs, ComCtrls, ShellCtrls, StdCtrls, ExtCtrls , UnitPrinc, Menus;
 
 type
   TFormRoute = class(TForm)
@@ -29,6 +29,8 @@ type
     ButtonTrouver: TButton;
     CheckBoxRoutesLongues: TCheckBox;
     CheckBoxDebugRoutes: TCheckBox;
+    PopupMenuR: TPopupMenu;
+    Choisircetteroute1: TMenuItem;
     procedure FormActivate(Sender: TObject);
     procedure ListBoxRoutesMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -49,6 +51,9 @@ type
     procedure ListBoxRoutesDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure CheckBoxRoutesLonguesClick(Sender: TObject);
+    procedure Choisircetteroute1Click(Sender: TObject);
+    procedure ListBoxRoutesDblClick(Sender: TObject);
+    procedure PopupMenuRPopup(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -330,7 +335,13 @@ begin
   formRoute.ButtonDetail.caption:='Détail route ';
   formRoute.ButtonEfface.caption:='Efface route ';
 
-  if idcantonRoute<>0 then formRoute.ListBoxRoutes.Hint:='Sélectionne une route pour l''affecter au train '+canton[idcantonRoute].NomTrain;
+  if idcantonRoute<>0 then
+  begin
+    formRoute.ListBoxRoutes.Hint:='Sélectionne une route pour l''affecter au train '+canton[idcantonRoute].NomTrain+' par '+#13+
+                                  'double clic ou'+#13+
+                                  'clic droit "choisir cette route" ou'+#13+
+                                  'bouton "choisir cette route"';
+  end;
 
   IdCantonClic:=Idcantonroute;
   IdTrainCourant:=canton[idcantonRoute].indexTrain;
@@ -525,6 +536,8 @@ begin
     begin
       trains[idt].route[0].adresse:=0;
     end;
+    canton[i].numcantonorg:=0;
+    canton[i].numcantonDest:=0;
   end;
 
   i:=index_canton_numero(cantonDest);
@@ -532,6 +545,9 @@ begin
   begin
     canton[i].bouton:=0;
     dessin_canton(i,0);   // remet le bouton jaune du canton dest
+    canton[i].numcantonorg:=0;
+    canton[i].numcantonDest:=0;
+
   end;
 
   // efface icone train
@@ -589,6 +605,7 @@ begin
   EditObligeCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune obligation';
   EditInterditCanton.Hint:='Numéro de cantons séparés par des virgules (10 maxi)'+#13+'Laisser vide pour aucune interdiction';
 
+
   ListBoxRoutes.Style:=lbOwnerDrawFixed;    //pour déclencher l'evt on drawitem
   // fenêtre toujours devant
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
@@ -615,7 +632,7 @@ begin
   efface_route_tco(false);
 end;
 
-procedure TFormRoute.ButtonFenPilClick(Sender: TObject);
+procedure choisir_cette_route;
 begin
   if idcantonRoute<1 then exit;
   indexTrainFR:=canton[idcantonRoute].indexTrain;
@@ -624,7 +641,12 @@ begin
     TabSheetRA.Enabled:=true;
     show;
   end;
-  close;
+  formroute.close;
+end;
+
+procedure TFormRoute.ButtonFenPilClick(Sender: TObject);
+begin
+  choisir_cette_route;
 end;
 
 procedure TFormRoute.ButtonParcours(Sender: TObject);
@@ -766,6 +788,22 @@ end;
 procedure TFormRoute.CheckBoxRoutesLonguesClick(Sender: TObject);
 begin
   Maj_fenetre;
+end;
+
+procedure TFormRoute.Choisircetteroute1Click(Sender: TObject);
+begin
+  choisir_cette_route;
+end;
+
+procedure TFormRoute.ListBoxRoutesDblClick(Sender: TObject);
+begin
+  choisir_cette_route;
+end;
+
+procedure TFormRoute.PopupMenuRPopup(Sender: TObject);
+begin
+  if IndexLigneRoute<0 then choisirCetteRoute1.Caption:='Pas de route'
+  else choisirCetteRoute1.Caption:='Choisir cette route';
 end;
 
 end.

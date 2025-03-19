@@ -188,6 +188,7 @@ var i,t,idTCO,x,y,detect : integer;
 begin
   if (AdrTrain=0) then exit;
   if procPrinc then AfficheDebug('Raz_cantons_train @='+intToSTR(AdrTrain),clyellow);
+  //Affiche('Raz_cantons_train @='+intToSTR(AdrTrain),clyellow);
   if adrTrain<>0 then
   begin
     for i:=1 to Ncantons do
@@ -253,8 +254,10 @@ var idTrain,t,el1,el2 : integer;
     t1,t2 : tequipement;
 begin
   if ProcPrinc then AfficheDebug('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
+  //Affiche('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clyellow);
   if (IdCanton>0) and (idCanton<=nCantons) then
   begin
+    idTrain:=0;
     if (AdrTrain<>0) and (adrTrain<>9999) then
     begin
       idTrain:=Index_train_adresse(adrTrain);
@@ -308,6 +311,9 @@ begin
       Maj_detecteurs_canton(idCanton,AdrTrain,el2);
     end;
   end;
+
+  maj_signaux(false);
+
   //affiche('Det du canton '+intToSTR(canton[Idcanton].numero)+' det1='+intToSTR(canton[Idcanton].det1)+' det2='+intToSTR(canton[Idcanton].det2),clyellow);
 end;
 

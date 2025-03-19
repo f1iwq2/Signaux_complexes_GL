@@ -219,13 +219,18 @@ begin
 end;
 
 // ajoute à la listbox t une ligne avec son icone opérations[]
+// i numéro d'opération
 procedure affecte_operation(i : integer;t : tListBox);
+var s : string;
 begin
-  if i<ActionBoutonTCO then t.Items.Add(Format('%d%s', [i-1, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionBoutonTCO then t.Items.Add(Format('%d%s', [IconeBouton, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionAffecteMemoire then t.Items.Add(Format('%d%s', [IconeActionAffecteMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionIncMemoire then t.Items.Add(Format('%d%s', [IconeActionIncMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionDecMemoire then t.Items.Add(Format('%d%s', [IconeActionDecMemoire, operations[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
+  if ligneclicAct<0 then exit;
+  s:=operations[i].nom;
+  if not(Tablo_Action[ligneclicact+1].tabloOp[i].valide) then s:=s+sd;
+  if i<ActionBoutonTCO then t.Items.Add(Format('%d%s', [i-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionBoutonTCO then t.Items.Add(Format('%d%s', [IconeBouton, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionAffecteMemoire then t.Items.Add(Format('%d%s', [IconeActionAffecteMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionIncMemoire then t.Items.Add(Format('%d%s', [IconeActionIncMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionDecMemoire then t.Items.Add(Format('%d%s', [IconeActionDecMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
 end;
 
 procedure TFormModifAction.FormCreate(Sender: TObject);
@@ -966,6 +971,7 @@ begin
    begin
      LabelAdresse.Visible:=true; // numéro de fonction
      LabelAdresse.caption:='Code de touche';
+     EditAdr.Hint:='Code de touche';
      ButtonFonction.Visible:=false;
      EditAdr.Text:=IntToSTR(tablo_action[index].adresse);
      EditAdr.Visible:=true;
@@ -1516,9 +1522,23 @@ begin
 end;
 
 procedure TFormModifAction.ListBoxOperationsDblClick(Sender: TObject);
+var s : string;
+    i : integer;
 begin
   if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
+
+//  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
+
+  s:=ListBoxOperations.Items[clicaction];
+  i:=pos(sd,s);
+  if i<>0 then delete(s,i,length(sd));
+
+  if not(Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+sd;
+
+  listBoxOperations.Items[clicaction]:=s;
+  formconfig.ListBoxOperations.items[clicaction]:=s; //encode_actions(ligneclicAct+1);
+
   maj_combocactions(ligneclicAct);
 end;
 

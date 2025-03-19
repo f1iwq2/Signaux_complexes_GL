@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, math, ComCtrls, Menus;
+  Dialogs, StdCtrls, ExtCtrls, math, ComCtrls, Menus, Unitprinc ;
 
 const
 pisur180=pi/180;
@@ -13,8 +13,7 @@ NbreCompteurs=10;
 type
   TFormCompteur = class(TForm)
     ImageCompteur: TImage;
-    TrackBar1: TTrackBar;
-    LabelTrain: TLabel;
+    TrackBarC: TTrackBar;
     PopupMenu1: TPopupMenu;
     Verrouillerdevant1: TMenuItem;
     Dverrouiller1: TMenuItem;
@@ -22,7 +21,12 @@ type
     Compteurdevitesse11: TMenuItem;
     Compteurdevitesse21: TMenuItem;
     Compteurtachro1: TMenuItem;
-    ImageTachro: TImage;
+    Labeltrain: TLabel;
+    Button0: TButton;
+    ImageTprov: TImage;
+    N2: TMenuItem;
+    Affichericonedutrain1: TMenuItem;
+    ImageTrain: TImage;
     procedure FormActivate(Sender: TObject);
     procedure Dverrouiller1Click(Sender: TObject);
     procedure Verrouillerdevant1Click(Sender: TObject);
@@ -30,116 +34,312 @@ type
     procedure Compteurdevitesse21Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Compteurtachro1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure TrackBarCChange(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure Button0Click(Sender: TObject);
+    procedure Affichericonedutrain1Click(Sender: TObject);
   private
     { Déclarations privées }
     protected
     procedure WMExitSizeMove(var Message: TMessage); message WM_EXITSIZEMOVE;  // détecte fin de redimensionnement fenêtre
+    //procedure WMNCPaint(var Mes : TWMNCPaint); message WM_NCPAINT;
   public
     { Déclarations publiques }
   end;
 
+type
+   typ=(fen,gb,im);
+   TTcompteur=array[1..10] of record
+      FcBitMap : Tbitmap;
+      paramcompt : TparamCompt;
+  end;
+
 var
   formCompteur : array[1..10] of TformCompteur;
-  AigCX,AigCY,Raig,Rav : array[1..NbreCompteurs] of integer;
-  redX,redY,ComptA,ComptB : array[1..NbreCompteurs] of single;
-  FCBitMap : array[1..NbreCompteurs] of tBitmap;
-  VerrouilleCompteur : boolean;
-  LargeurCompteurs,HauteurCompteurs : integer;
+  Scompteur,CompteurPP :  TTCompteur;
+  ParamCompteur : array[1..3] of record
+    coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
+  end;
+
+  VerrouilleCompteur,affTrainCompteur : boolean;
+  LargeurCompteurs,HauteurCompteurs,LargComptC,HautComptC : integer;
+  couleurTete : tcolor;
 
 
-Procedure Init_compteur(i : integer);
-procedure aiguille_compteur_l(id,idTrain : integer);
+Procedure Init_compteur(i : integer;c : Tcomponent);
+procedure aiguille_compteur(c,idTrain : integer;comp : Tcomponent);
+procedure dessin_fond_compteur(var param : TparamCompt;i: integer ; Im : tbitmap;typCompt : integer);
 procedure position_compteur;
 procedure affiche_train_compteur(c : integer);
 
 implementation
 
-uses UnitPrinc, UnitTCO, UnitClock;
+uses  UnitTCO, UnitClock , UnitConfig;
 
 {$R *.dfm}
 
-// event fin de redimmensionnement
-procedure TFormCompteur.WMExitSizeMove(var Message: TMessage);
+// ne pas utiliser - essai
+procedure affiche_caption(s : string);
+var
+  ACanvas : TCanvas;
+  l,h : integer;
 begin
-  inherited;
-  // Affiche(IntToSTR(Message.Msg)+' '+inTtOstr(message.WParam)+' '+intToSTR(message.LParam)+' '+intToSTR(message.WParamLo),clred);
-  LargeurCompteurs:=formCompteur[1].Width;   // nouvelle largeur
-  init_compteur(1);
-end;
+  l:=formCompteur[1].Width-40;
+  h:=30;
+  ACanvas:=TCanvas.Create;
+  try
+    ACanvas.Handle:=GetWindowDC(FormCompteur[1].Handle);
+    with ACanvas do
+    begin
+     // Brush.Color := couleurTete;
+      Font.Name:='Arial';
+      Font.Size:=12;
+      Font.Color:=clCaptionText;
+      Font.Style:=[fsBold];
 
-// affiche le nom du train
-procedure affiche_train_compteur(c : integer);
-var s : string;
-begin
-  s:=trains[IdTrainClic].nom_train;
-  FormCompteur[c].caption:=s;
-  with FormCompteur[c].labelTrain do
-  begin
-    caption:=s;
-    Width:=FormCompteur[c].Width-5;
+      FillRect(rect(2,2,l,h));
+      Textout(8,6,s);
+    end;
+  finally
+    ReleaseDC(FormCompteur[1].Handle, ACanvas.Handle);
+    ACanvas.Free;
   end;
 end;
 
-procedure aiguille_compteur_l(id,idTrain : integer);
-var x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
+// affiche le nom du train dans le compteur
+procedure affiche_train_compteur(c : integer);
+var s : string;
+    larg,haut : integer;
+begin
+  if idTrainClic<0 then exit;
+  s:=trains[IdTrainClic].nom_train;
+  with FormCompteur[c] do
+  begin
+    caption:=s;
+    if affTrainCompteur then
+    begin
+      //Affiche(intToSTR(Imagetrain.Picture.Width),clYellow);
+      larg:=Maj_icone_train(ImageTProv,IdTrainClic,clWhite);
+      haut:=ImageTProv.height;
+      ImageTrain.Width:=larg;
+      ImageTrain.Height:=haut;
+      ImageTrain.canvas.copyrect(rect(0,0,larg,haut),ImageTprov.canvas,rect(0,0,larg,haut));
+
+      //Affiche(intToSTR(larg)+'x'+intToSTR(haut),clYellow);
+      ImageTrain.left:=ImageCompteur.Picture.Width-larg;
+    end;
+    LabelTrain.caption:=s;
+  end;
+end;
+
+// event fin de redimensionnement
+procedure TFormCompteur.WMExitSizeMove(var Message: TMessage);
+begin
+  inherited;
+  //Affiche('ExitSizeMove '+IntToSTR(Message.Msg)+' '+inTtOstr(message.WParam)+' '+intToSTR(message.LParam)+' '+intToSTR(message.WParamLo),clred);
+  LargeurCompteurs:=formCompteur[1].Width;   // nouvelle largeur
+  init_compteur(1,formcompteur[1]);
+  affiche_train_compteur(1);
+end;
+
+
+// change l'aiguille du compteur
+// c : du compteur     idTrain : index du train
+procedure aiguille_compteur(c,idTrain : integer ; comp : Tcomponent);
+var ComptLoc,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
     angleDeb,AngleFin,sinD,cosD,sinF,cosF : extended ;
+    canvDest :tcanvas;
+    param : Tparamcompt;
+    typDest : typ;
 begin
   if compteur<1 then exit;
 
+  if comp is tform then typDest:=fen;
+  if comp is tgroupBox then typDest:=gb;
+  if comp is tImage then typDest:=im;
+
   if idTrain<>0 then
   begin
-    vitesse:=abs(trains[idTrain].VitesseCompteur);
-    vitesseFin:=abs(trains[idTrain].vitesseCons);
+    // détermine début et fin de l'arc vert
+    vitesse:=abs(trains[idTrain].VitesseCompteur);  // vitesse en cours
+    vitesseFin:=abs(trains[idTrain].vitesseCons);   // vitesse consigne
   end
   else
   begin
-    vitesse:=0;VitesseFin:=0;
+    vitesse:=0;
+    VitesseFin:=0;
   end;
 
   // convertir les vitesses instantanées et fin en angles par
   // la formule angle=A.vitesse+b
-  angleDeb:=comptA[id]*vitesse+comptB[id];
-  angleFin:=ComptA[id]*vitesseFin+comptB[id];
+  if typdest=fen then
+  begin
+    ComptLoc:=compteur;   // type de compteur 1 2 ou 3
+    param:=Scompteur[c].paramcompt;
+    canvDest:=formCompteur[c].ImageCompteur.Canvas;
+  end;
+  if typdest=gb then
+  begin
+    ComptLoc:=compteur;
+    param:=CompteurT[c].paramcompt;
+    canvDest:=compteurT[c].Img.Canvas;
+  end;
+  if typdest=im then
+  begin
+    ComptLoc:=formconfig.ComboBoxCompt.ItemIndex+1;
+    param:=paramcomptIm;
+    canvDest:=formconfig.ImageCtC.Canvas;
+  end;
+
+  with param do
+  begin
+    angleDeb:=ComptA*vitesse+comptB;
+    angleFin:=ComptA*vitesseFin+comptB;
+    lim:=imgL;
+    Him:=imgH;
+  end;
 
   sincos(angleDeb*pisur180,sinD,cosD);
 
-  with formCompteur[id].ImageCompteur do
-  begin
-    lim:=width;
-    him:=Height;
-  end;
+  //Affiche('Ad,Af='+floatToSTR(AngleDeb)+' '+floatToSTR(AngleFin),clred);
 
-  with formCompteur[id].ImageCompteur.Canvas do
+  with canvDest do
   begin
-    copyrect(rect(0,0,lim,him),FcBitMap[id].canvas,rect(0,0,lim,him));
+    // copie le fond du compteur
 
+    if typdest=fen then copyrect(rect(0,0,lim,him),Scompteur[c].FcBitMap.canvas,rect(0,0,lim,him));
+    if typdest=gb then copyrect(rect(0,0,lim,him),compteurT[c].FcBitMap.canvas,rect(0,0,lim,him));
+    if typdest=im then copyrect(rect(0,0,lim,him),FbmcompC.canvas,rect(0,0,lim,him));
+
+    //moveto(0,0);lineTo(200,200);
     // afficher l'arc vert
-    if (vitesse<>0) and (angleDeb<>angleFin) then
+    with param do
     begin
-      x1:=AigCX[id] - rav[id];
-      y1:=AigCY[id] - rav[id];
-      x2:=AigCX[id] + rav[id];
-      y2:=AigCY[id] + rav[id];
-      x3:=AigCX[id] + Round(rav[id]*sinD);
-      y3:=AigCY[id] - Round(rav[id]*cosD);
-      sincos(AngleFin*pisur180,sinF,cosF);  // paramètres d'angleFin
-      x4:=AigCX[id] + Round(rav[id]*sinF);
-      y4:=AigCY[id] - Round(rav[id]*cosF);
-      pen.color:=clLime;
-      moveTo(X3,y3);LineTo(x3+2,y3+2);
-      if angleDeb>angleFin then setArcDirection(Handle,AD_COUNTERCLOCKWISE) else setArcDirection(Handle,AD_CLOCKWISE) ;
-      Arc(x1,y1,x2,y2,x3,y3,x4,y4);
-    end;
-    // Afficher l'aiguille (angleDeb)
-    if compteur=3 then Pen.color:=$ffa0a0 else Pen.color:=clred;
-    MoveTo(AigCX[id],AigCY[id]);
-    LineTo(round(rAig[id]*sinD)+AigCX[id],round(-rAig[id]*cosD)+AigCY[id]);
-  end;
+      pen.mode:=pmCopy;
+      pen.width:=round(4*redX);
+      if (vitesse<>0) and (angleDeb<>angleFin) then
+      begin
+        x1:=AigCX - rav;
+        y1:=AigCY - rav;
+        x2:=AigCX + rav;
+        y2:=AigCY + rav;
+        x3:=AigCX + Round(rav*sinD);
+        y3:=AigCY - Round(rav*cosD);
+        sincos(AngleFin*pisur180,sinF,cosF);  // paramètres d'angleFin
+        x4:=AigCX + Round(rav*sinF);
+        y4:=AigCY - Round(rav*cosF);
+        pen.color:=ParamCompteur[comptloc].coulArc;
+        if angleDeb>=angleFin then setArcDirection(Handle,AD_COUNTERCLOCKWISE) else setArcDirection(Handle,AD_CLOCKWISE) ;
+        Arc(x1,y1,x2,y2,x3,y3,x4,y4);
+      end;
 
-  formCompteur[id].ImageCompteur.Repaint;
+      // Afficher l'aiguille (angleDeb)
+      pen.color:=ParamCompteur[comptloc].coulAig;
+      MoveTo(AigCX,AigCY);
+      LineTo(round(rAig*sinD)+AigCX,round(-rAig*cosD)+AigCY);
+    end;
+  end;
 end;
 
-procedure compteur_tachro;
+procedure compteur_2(c : integer;bm : tbitmap;param : tparamcompt);
+var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
+    angle,angleFin,incr,r,a : single;
+    s : string;
+begin
+  angle:=10;     // angle début des graduations
+  angleFin:=170;  // angle fin des graduations
+  incr:=2.5;      // incrément d'angle en ° des graduations
+  n:=0;
+  v:=0;
+  lim:=bm.Width;
+  him:=bm.height;
+
+  with param do
+  begin
+    //AigCX:=him div 2;               // centre aiguille
+    //AigCY:=round(200*param.redY);
+    r:=redx;                        // réduction
+    //Raig[1]:=(Lim div 2)-round(10*r);  // rayon
+    rg:=round(AigCX/1.05);            // rayon des graduations
+    rayon2:=Rg-round(10*r);              // rayon de fin des graduations
+    rayon3:=Rg-round(20*r);
+    rayon4:=Rg-round(20*r);              // chiffres
+
+    with bm.Canvas do
+    begin
+      pen.width:=1;
+      pen.Color:=ParamCompteur[2].coulGrad;
+      Brush.Color:=ParamCompteur[2].coulFond;
+      brush.style:=bssolid;   // pour effacer
+      FillRect(Rect(0,0,lim,him));
+
+      Brush.Color:=ParamCompteur[2].coulFond;
+
+
+      Cercle(bm.canvas,AigCX,AigCY,round(10*r),clBlack,clBlack);
+
+      font.Name:='Arial';;
+      font.color:=ParamCompteur[2].CoulNum;
+      font.size:=round(r*20);
+      font.style:=[fsbold];
+    end;
+
+    // dessine le cadran
+    repeat
+      // affiche les chiffres
+      if n mod 10=0 then
+      begin
+        // pour centrer le chiffre de vitesse sur l'axe de la graduation
+        // affiche les chiffres
+        case v of
+         0 : begin xt:=round(30*r);yt:=round(160*r);s:='0';end;
+         1 : begin xt:=round(60*r);yt:=round(100*r);s:='20';end;
+         2 : begin xt:=round(110*r);yt:=round(55*r);s:='40';end;
+         3 : begin xt:=round(170*r);yt:=round(35*r);s:='60';end;
+         4 : begin xt:=round(240*r);yt:=round(40*r);s:='80';end;
+         5 : begin xt:=round(280*r);yt:=round(80*r);s:='100';end;
+         6 : begin xt:=round(310*r);yt:=round(130*r);s:='120';end;
+         //7 : begin xt:=round(300*r);yt:=round(100*r);s:='140';end;
+        end;
+
+       //bm.Canvas.brush.Style:=bsClear;
+       bm.canvas.Brush.Style:=bsclear;  // pour transparent de la fonte
+       bm.canvas.Textout(xt,yt,s);
+       inc(v);
+      end;
+
+      x1:=round(cos((angle+180)*pisur180)*Rg)+AigCX;
+      y1:=round(sin((angle+180)*pisur180)*Rg)+AigCY;
+      // gros traits
+      if n mod 5 = 0 then
+      begin
+        bm.canvas.pen.Width:=round(4*r);
+        x2:=round(cos((angle+180)*pisur180)*rayon3)+AigCX;
+        y2:=round(sin((angle+180)*pisur180)*rayon3)+AigCY;
+      end
+      else
+      begin
+        // traits fins
+        bm.canvas.pen.Width:=round(2*r);
+        x2:=round(cos((angle+180)*pisur180)*rayon2)+AigCX;
+        y2:=round(sin((angle+180)*pisur180)*rayon2)+AigCY;
+      end;
+
+      with bm.canvas do
+      begin
+        Brush.Style:=bsSolid;
+        pen.color:=ParamCompteur[2].coulGrad;
+        MoveTo(x1,y1);
+        lineTo(x2,y2);
+      end;
+      inc(n);
+      angle:=angle+incr;       // 18
+    until angle>AngleFin+incr;
+  end;
+end;
+
+procedure compteur_tachro(c : integer;bm : tbitmap;param : tparamcompt);
 var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
     angle,angleFin,incr,r,a : single;
     s : string;
@@ -149,115 +349,195 @@ begin
   incr:=2.5;      // incrément d'angle en ° des graduations
   n:=0;
   v:=0;
-  lim:=fcbitmap[1].Width;
-  him:=fcbitmap[1].height;
 
-  with fcBitmap[1] do
+  with param do
   begin
-    AigCX[1]:=width div 2;               // centre aiguille
-    AigCY[1]:=AigCX[1];
-    r:=width/400;                        // réduction
-    //Raig[1]:=(Lim div 2)-round(10*r);  // rayon
-    rg:=round(AigCX[1]/1.05);            // rayon des graduations
-    rayon2:=Rg-round(10*r);              // rayon de fin des graduations
-    rayon3:=Rg-round(20*r);
-    rayon4:=Rg-round(20*r);              // chiffres
+    lim:=ImgL;
+    him:=ImgH;
+    AigCX:=lim div 2;      // centre aiguille
+    AigCY:=round(200*redY);
 
-    with fcBitmap[1].Canvas do
+    r:=lim/400;            // réduction
+    rg:=round(AigCX/1.07);            // rayon des graduations
+    rayon2:=Rg-round(10*r);           // rayon de fin des graduations
+    rayon3:=Rg-round(20*r);           // rayon des grands traits
+    rayon4:=Rg-round(16*r);           // chiffres
+
+    with Bm.Canvas do
     begin
       pen.width:=1;
-      pen.Color:=clWhite;
-      Brush.Color:=clBlack;
+      pen.Color:=ParamCompteur[3].coulfond;
+      Brush.Color:=ParamCompteur[3].coulfond;
       Brush.Style:=bsSolid;
       FillRect(Rect(0,0,lim,him));
+    end;
 
-      Cercle(fcBitmap[1].Canvas,AigCX[1],AigCY[1],round(130*r),clGray,clblack);
-      Cercle(fcBitmap[1].Canvas,AigCX[1],AigCY[1],round(10*r),clwhite,clWhite);
+    Cercle(bm.Canvas,AigCX,AigCY,round(130*r),clGray,ParamCompteur[3].CoulFond);
+    Cercle(bm.Canvas,AigCX,AigCY,round(10*r),clwhite,clWhite);
 
+    with bm.Canvas do
+    begin
       font.Name:='Arial';
       brush.color:=clBlack;
-      pen.color:=clwhite;
-      font.color:=clWhite;
+      pen.color:=ParamCompteur[3].coulgrad;
+      font.color:=ParamCompteur[3].CoulNum;
       font.size:=round(r*20);
       //Affiche(intToSTR(font.size),clred);
       font.style:=[fsbold];
     end;
-  end;
 
-  // dessine le cadran
-  repeat
+    // dessine le cadran
+    repeat
      // affiche les chiffres
      if n mod 10=0 then
      begin
        s:=intToSTR(round(v));
        // pour centrer le chiffre de vitesse sur l'axe de la graduation
-       a:=(fcBitmap[1].canvas.TextWidth(s) div 2)/rayon4;
+       a:=(bm.Canvas.TextWidth(s) div 2)/rayon4;
        if abs(a)>1 then a:=1;
        a:=arcSin(a);
        l:=round(a*180/pi);
        //Affiche(intToSTR(l),clYellow);
-       xt:=round(cos((angle+180-l)*pisur180)*rayon4)+AigCX[1];
-       yt:=round(sin((angle+180-l)*pisur180)*rayon4)+AigCY[1];
+       xt:=round(cos((angle+180-l)*pisur180)*rayon4)+AigCX;
+       yt:=round(sin((angle+180-l)*pisur180)*rayon4)+AigCY;
 
        // affiche les chiffres
        {$IF CompilerVersion >= 28.0}
        av:=round(90-angle)*10;
-       fcBitmap[1].canvas.font.orientation:=av;
-       fcBitmap[1].canvas.Textout(xt,yt,s);
+       bm.canvas.font.orientation:=av;
+       bm.canvas.Textout(xt,yt,s);
        {$ELSE}
        av:=10+round(90-angle)*10;
-       AffTexteIncliBordeTexture(fcBitmap[1].canvas,xt,yt,fcBitmap[1].canvas.font,clYellow,0,pmcopy,s,av);
+       AffTexteIncliBordeTexture(bm.Canvas,xt,yt,bm.Canvas.font,clYellow,0,pmcopy,s,av);
        {$IFEND}
 
        inc(v,20);
      end;
 
-     x1:=round(cos((angle+180)*pisur180)*Rg)+AigCX[1];
-     y1:=round(sin((angle+180)*pisur180)*Rg)+AigCY[1];
+     x1:=round(cos((angle+180)*pisur180)*Rg)+AigCX;
+     y1:=round(sin((angle+180)*pisur180)*Rg)+AigCY;
      // gros traits
      if n mod 5 = 0 then
      begin
-       fcBitmap[1].canvas.pen.Width:=round(4*r);
-       x2:=round(cos((angle+180)*pisur180)*rayon3)+AigCX[1];
-       y2:=round(sin((angle+180)*pisur180)*rayon3)+AigCY[1];
+       bm.Canvas.pen.Width:=round(4*r);
+       x2:=round(cos((angle+180)*pisur180)*rayon3)+AigCX;
+       y2:=round(sin((angle+180)*pisur180)*rayon3)+AigCY;
      end
      else
      begin
        // traits fins
-       fcBitmap[1].canvas.pen.Width:=round(2*r);
-       x2:=round(cos((angle+180)*pisur180)*rayon2)+AigCX[1];
-       y2:=round(sin((angle+180)*pisur180)*rayon2)+AigCY[1];
+       bm.Canvas.pen.Width:=round(2*r);
+       x2:=round(cos((angle+180)*pisur180)*rayon2)+AigCX;
+       y2:=round(sin((angle+180)*pisur180)*rayon2)+AigCY;
      end;
 
-     with fcBitmap[1].canvas do
+     with bm.Canvas do
      begin
        MoveTo(x1,y1);
        lineTo(x2,y2);
      end;
      inc(n);
      angle:=angle+incr;       // 18
-  until angle>AngleFin+incr;
+    until angle>AngleFin+incr;
+  end;
 
-  lim:=formCompteur[1].ImageTachro.width;
-  him:=formCompteur[1].ImageTachro.height;
+  //lim:=formCompteur[c].ImageTachro.width;
+  //him:=formCompteur[c].ImageTachro.height;
+  lim:=param.ImgL;
+  him:=param.ImgH;
 
-  // copie l'image tachro mise à l'échelle
-  StretchBlt(fcBitmap[1].canvas.Handle,round(145*r),round(85*r),round(lim*r),round(him*r),
-             FormCompteur[1].ImageTachro.canvas.Handle,0,0,lim,him,srcCopy);
+  // copie l'image du texte "tachro" mise à l'échelle
+  StretchBlt(bm.Canvas.Handle,round(145*r),round(85*r),round(lim*r),round(him*r),
+             FormPrinc.ImageTachro.canvas.Handle,0,0,lim,him,srcCopy);
 end;
 
-Procedure Init_compteur(i : integer);
-const ofs=20; // décalage entre la taille de l'image et de la fenetre
-var l,h,lim,him,hfen,mini,maxi,vmax : integer;
+
+// dessine dans le FbitMap
+// le var est obligatoire
+// typecompt : type du compteur 1 2 ou 3
+procedure dessin_fond_compteur(var param : TparamCompt;i: integer ; Im : tbitmap;typCompt : integer);
+var lim,him : integer;
 begin
-  if i<1 then exit;
+  lim:=param.ImgL;
+  him:=param.ImgH;
+
+  with Im.Canvas do
+  begin
+    Brush.Style:=bsSolid;
+    Brush.Color:=$141414; //$e0e0e0;
+
+    font.name:='arial';
+    font.Style:=[fsBold];
+
+    // le compteurs 1  provient de bitmaps
+    // le compteur 2 et 3 sont dessinés par
+    with param do
+    begin
+      case typCompt of
+      1 : begin
+          // le compteur 1 provient d'une image
+          StretchDraw(rect(0,0,Lim,Him),Formprinc.ImageCompteur1.Picture.Bitmap);
+          Brush.Style:=bsSolid;
+          Brush.Color:=$1F1A17;
+          font.color:=ParamCompteur[1].CoulNum;
+          font.size:=round(redx*10);
+          TextOut(round(50*redX),round(128*redY),'0');
+          TextOut(round(36*redX),round(90*redY),'20');
+          TextOut(round(50*redX),round(54*redY),'40');
+          TextOut(round(90*redX),round(36*redY),'60');
+          TextOut(round(129*redX),round(53*redY),'80');
+          TextOut(round(137*redX),round(91*redY),'100');
+          TextOut(round(126*redX),round(126*redY),'120');
+          // centre de l'aiguille
+          AigCX:=round(98*redX);
+          AigCY:=round(96*redY);
+          rAig:=round(AigCX / 1.5);
+          end;
+      2 : begin
+            // centre de l'aiguille et longueur
+            AigCX:=lim div 2;
+            AigCY:=round(200*redY);
+            rAig:=round(AigCX/1.07);
+            // le compteur 2 est dessiné
+            compteur_2(i,im,param);
+          end;
+      3 : begin
+            // centre de l'aiguille et longueur
+            AigCX:=lim div 2;
+            AigCY:=round(200*redY);
+            rAig:=round(AigCX/1.07);
+            // le compteur tachro est dessiné
+            compteur_tachro(i,im,param);
+          end;
+        end;
+      end;
+  end;
+end;
+
+Procedure Init_compteur(i : integer;c : Tcomponent);
+const ofs=30; // décalage entre la taille de l'image et de la fenetre
+     // compteurs fenetre principale
+      HautTb=10;  // hauteur trackbar
+      ofsGBH=15;  // marge haut du groupbox
+      ofsGBB=8;  // marge bas du groupbox
+
+var comptLoc,l,h,lim,him,hfen,mini,maxi,vmax : integer;
+    typDest : typ;
+    r : single;
+    image : timage;
+    canv : tcanvas;
+begin
+  if (i<1) or (hautComptC=0) then exit;
   //Affiche('Init compteur de vitesse',clYellow);
 
-  // fixer la largeur de la fenêtre
-  formCompteur[i].Width:=LargeurCompteurs;
-  Lim:=LargeurCompteurs-ofs;
-  formCompteur[i].ImageCompteur.width:=Lim;
-  case compteur of
+  if c is tform then typDest:=fen;  // si le compteur est la fenetre, sinon le groupBox de la fenetre principale
+  if c is tGroupBox then typDest:=gb;
+  if c is tImage then typDest:=im;
+
+  if (typDest=fen) or (typDest=gb) then ComptLoc:=compteur;
+  if typDest=im then ComptLoc:=formconfig.ComboBoxCompt.ItemIndex+1;
+
+  case ComptLoc of
     1 :
     begin
       mini:=-135;
@@ -268,11 +548,11 @@ begin
     end;
     2 :
     begin
-      mini:=-81;           // le 0 est à mini degrés
-      maxi:=82;            // le vmax est à max degrés
+      mini:=-80;           // le 0 est à mini degrés
+      maxi:=120;            // le vmax est à max degrés
       vmax:=160;           // vmax du compteur
-      l:=formPrinc.ImageCompteur2.width;
-      h:=formPrinc.ImageCompteur2.height;
+      l:=400;
+      h:=215;
     end;
     3 :
     begin
@@ -284,137 +564,235 @@ begin
     end;
   end;
 
-  ComptA[i]:=(maxi-mini)/vmax; // pente de conversion vitesse en degrés compteur
-  ComptB[i]:=mini;             // coordonnées origine conversion
+  // fixer la largeur de la fenêtre
+  if typDest=fen then
+  begin
+    Lim:=LargeurCompteurs-ofs;
+    //p:=Scompteur[i].paramcompt;
+    formCompteur[i].Width:=LargeurCompteurs;
+    Scompteur[i].paramcompt.ComptA:=(maxi-mini)/vmax; // pente de conversion vitesse en degrés compteur
+    Scompteur[i].paramcompt.ComptB:=mini;             // coordonnées origine conversion
+  end;
+  if typDest=gb then
+  begin
+    compteurT[i].paramcompt.ComptA:=(maxi-mini)/vmax;
+    compteurT[i].paramcompt.ComptB:=mini;
+  end;
+  if typDest=im then
+  begin
+    paramcomptIm.ComptA:=(maxi-mini)/vmax;
+    paramcomptIm.ComptB:=mini;
+  end;
+
+  r:=h/l;
 
   if l>=h then
   begin
-    him:=round(lim*h/l);  // hauteur image
+    him:=round(lim*r);  // hauteur image
     //Affiche('Lim him = '+IntToSTR(lim)+' '+intToSTR(him),clLime);
     //Affiche('L h = '+IntToSTR(l)+' '+intToSTR(h),clLime);
   end
   else
   begin
     him:=round(h*largeurCompteurs/l);  // a revoir
+    Affiche('non traité 6',clred);
   end;
 
-  redX[i]:=Lim/l;
-  redY[i]:=Him/h;
-  case compteur of
-  1 : rav[i]:=round(70*redx[i]);  // rayon de l'arc vert
-  2 : rav[i]:=round(100*redx[i]);
-  3 : rav[i]:=round(122*redx[i]);
+  if typDest=fen then
+  begin
+    formCompteur[i].ImageCompteur.width:=Lim;
+  end;
+  if typDest=gb then
+  begin
+    //Lim:=compteurT[i].gb.Width-10-round(CompteurT[i].tb.Height/r);
+    //him:=round(lim*r);
+    if l>h then
+    begin
+      lim:=LargComptC-10;
+      him:=round(lim*r);
+    end
+    else
+    begin
+      him:=HautComptC-ofsGBH-CompteurT[i].tb.Height-ofsGBB;
+      lim:=round(him/r);
+    end;
+    //p:=compteurT[i].paramcompt;
+    with CompteurT[i] do
+    begin
+      gb.Width:=LargComptC;
+      gb.height:=ofsGBH+him+CompteurT[i].tb.Height+ofsGBB;
+      gb.Top:=(gb.Height+5)*((i-1) div NbreCompteursPLigne);
+      gb.left:=(LargComptC+5)*((i-1) mod (NbreCompteursPLigne));
+      Img.height:=HautComptC;
+      paramCompt.ImgL:=lim;
+      paramCompt.imgH:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
+      Img.picture.Bitmap.Width:=lim;
+      Img.picture.Bitmap.Height:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
+    end;
   end;
 
+  if typDest=fen then
+  begin
+    Scompteur[i].paramcompt.redX:=Lim/l;
+    Scompteur[i].paramcompt.redY:=Him/h;
+    Scompteur[i].paramcompt.ImgL:=Lim;
+    Scompteur[i].paramcompt.ImgH:=Him;
+
+    case compteur of
+    1 : Scompteur[i].paramcompt.rav:=round(70*Scompteur[i].paramcompt.redx);  // rayon de l'arc vert
+    2 : Scompteur[i].paramcompt.rav:=round(100*Scompteur[i].paramcompt.redx);
+    3 : Scompteur[i].paramcompt.rav:=round(122*Scompteur[i].paramcompt.redx);
+    end;
+  end;
+  if typDest=gb then
+  begin
+    with compteurT[i] do
+    begin
+      paramcompt.redX:=Lim/l;
+      paramcompt.redY:=Him/h;
+      paramcompt.ImgL:=Lim;
+      paramcompt.ImgH:=Him;
+      tb.Top:=him+ofsGBH;    // position de la trackbar
+      tb.Width:=lim;
+      bouton.Top:=tb.Top-12;
+      bouton.left:=(lim div 2)-6;
+      bouton.Width:=16;
+    end;
+
+    case compteur of
+    1 : compteurT[i].paramcompt.rav:=round(70*compteurT[i].paramcompt.redx);  // rayon de l'arc vert
+    2 : compteurT[i].paramcompt.rav:=round(100*compteurT[i].paramcompt.redx);
+    3 : compteurT[i].paramcompt.rav:=round(122*compteurT[i].paramcompt.redx);
+    end;
+  end;
+
+  if typDest=fen then
   with formCompteur[i] do
   begin
     if VerrouilleCompteur then Left:=formprinc.Left+formprinc.Width-width;
 
     // ajuster hauteur de la fenetre
-    hfen:=him+LabelTrain.Height+40; //formCompteur[i].TrackBar1.height+48;//+10;
+    Hfen:=him+trackBarC.height;
+    if affTrainCompteur then Hfen:=Hfen+ImageTrain.Height+45 else
+    Hfen:=Hfen+LabelTrain.Height+40;
     height:=hfen;
+    Scompteur[i].paramcompt.ImgL:=Lim;
+    Scompteur[i].paramcompt.ImgH:=Him;
 
-    with constraints do
+    with ImageCompteur do
     begin
-      MaxWidth:=400;
-      MinWidth:=200;
-      MaxHeight:=450;
-      MinHeight:=100;
+      Width:=Lim;
+      Height:=Him;
+      Picture.Bitmap.Width:=Lim;
+      Picture.Bitmap.Height:=Him;
+    end;
+    with trackbarC do
+    begin
+      top:=him+ImageCompteur.Top;
+      width:=lim-2;
+      Left:=0;
+      visible:=true;
+    end;
+    with labelTrain do
+    begin
+      top:=trackbarC.Top+TrackBarC.Height;
+      left:=0;
+    end;
+    with button0 do
+    begin
+      top:=ImageCompteur.height-button0.height;//trackbarC.Top+TrackBarC.Height;
+      left:=(lim div 2)-(width div 2);
+    end;
+    With ImageTprov do
+    begin
+      left:=0;
+      width:=lim-2;
+    end;
+    With ImageTrain do
+    begin
+      top:=trackbarC.Top+TrackBarC.Height;
+      left:=2;
+      visible:=affTrainCompteur;
     end;
 
-    ImageCompteur.Width:=Lim;
-    ImageCompteur.Height:=Him;
-    ImageCompteur.Picture.Bitmap.Width:=Lim;
-    ImageCompteur.Picture.Bitmap.Height:=Him;
-
-    trackBar1.top:=ImageCompteur.Height+8;
-    trackBar1.width:=LargeurCompteurs-5;
-
-    LabelTrain.top:=ImageCompteur.top+ImageCompteur.Height; //trackBar1.top+formCompteur[i].trackBar1.height;
-    LabelTrain.Width:=Lim-2;
+    // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
+    // créer un bitmap réduit qui sert de référence
+    Scompteur[i].FCBitMap.Free;
+    Scompteur[i].fcBitMap:=tbitmap.Create;
+    with Scompteur[i].FCBitMap do
+    begin
+      Width:=lim;
+      Height:=him;
+    end;
+  end;
+  if typDest=gb then
+  begin
+    //p:=compteurT[i].paramcompt;
+    compteurT[i].FCBitMap.Free;
+    compteurT[i].fcBitMap:=tbitmap.Create;
+    with compteurT[i].FCBitMap do
+    begin
+      Width:=lim;
+      Height:=him;
+    end;
   end;
 
-  // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur2 (grande)
-
-  // créer un bitmap réduit qui sert de référence
-  FCBitMap[i].Free;
-  FCBitMap[i]:=TBitMap.Create;
-  FCBitMap[i].Width:=lim;
-  FCBitMap[i].Height:=him;
-
-  with FCBitMap[i].Canvas do
+  // image onglet config compteur
+  if typdest=im then
   begin
-    Brush.Style:=bsSolid;
-    Brush.Color:=$141414; //$e0e0e0;
-
-    if compteur=1 then StretchDraw(rect(0,0,Lim,Him),Formprinc.ImageCompteur1.Picture.Bitmap);
-    if compteur=2 then StretchDraw(rect(0,0,Lim,Him),Formprinc.ImageCompteur2.Picture.Bitmap);
-
-    font.name:='arial';
-    font.Style:=[fsBold];
-
-    // les compteurs 1 et 2 proviennent de bitmaps
-    // le compteur 3 (tachro) est dessiné par "compteur_tachro"
-    case compteur of
-    1 : begin
-          Brush.Style:=bsSolid;
-          Brush.Color:=$1F1A17;
-          font.color:=clwhite;
-          font.size:=round(redx[i]*10);
-          TextOut(round(50*redX[i]),round(128*redY[i]),'0');
-          TextOut(round(36*redX[i]),round(90*redY[i]),'20');
-          TextOut(round(50*redX[i]),round(54*redY[i]),'40');
-          TextOut(round(90*redX[i]),round(36*redY[i]),'60');
-          TextOut(round(129*redX[i]),round(53*redY[i]),'80');
-          TextOut(round(137*redX[i]),round(91*redY[i]),'100');
-          TextOut(round(126*redX[i]),round(126*redY[i]),'120');
-          // centre de l'aiguille
-          AigCX[i]:=round(98*redX[i]);
-          AigCY[i]:=round(96*redY[i]);
-          rAig[i]:=round(AigCX[i] / 1.5);
-        end;
-    2 : begin
-          font.color:=clblue;
-          Brush.Style:=bsSolid;
-          Brush.Color:=clWhite;
-          font.size:=round(redx[i]*22);
-          TextOut(round(47*redX[i]),round(167*redY[i]),'0');
-          TextOut(round(58*redX[i]),round(118*redY[i]),'20');
-          TextOut(round(89*redX[i]),round(80*redY[i]),'40');
-          TextOut(round(133*redX[i]),round(50*redY[i]),'60');
-          TextOut(round(190*redX[i]),round(40*redY[i]),'80');
-          TextOut(round(232*redX[i]),round(50*redY[i]),'100');
-          TextOut(round(274*redX[i]),round(80*redY[i]),'120');
-          TextOut(round(306*redX[i]),round(118*redY[i]),'140');
-          TextOut(round(324*redX[i]),round(168*redY[i]),'160');
-          // centre de l'aiguille et longueur
-          AigCX[i]:=round(204*redX[i]);
-          AigCY[i]:=round(207*redY[i]);
-          rAig[i]:=round(AigCX[i]/1.05);
-        end;
-    3 : begin
-          // centre de l'aiguille et longueur
-          AigCX[i]:=lim div 2;
-          AigCY[i]:=him div 2;
-          rAig[i]:=round(AigCX[i]/1.07);
-          compteur_tachro;
-        end;
+    image:=c as tImage;
+    lim:=Image.Width;
+    if l>h then
+    begin
+      him:=round(lim*r);
+    end
+    else
+    begin
+      him:=round(lim*r);
+      lim:=round(him/r);
     end;
 
+    Image.Width:=lim;
+    Image.Height:=him;
+
+    paramcomptIm.redX:=Lim/l;
+    paramcomptIm.redY:=Him/h;
+    paramcomptIm.ImgL:=Lim;
+    paramcomptIm.ImgH:=Him;
+    i:=formconfig.ComboBoxCompt.Itemindex+1;
+    case i of
+    1 : paramcomptIm.rav:=round(70*paramcomptIm.redx);  // rayon de l'arc vert
+    2 : paramcomptIm.rav:=round(100*paramcomptIm.redx);
+    3 : paramcomptIm.rav:=round(122*paramcomptIm.redx);
+    end;
+    FbmcompC.Width:=lim;
+    FbmcompC.height:=him;
+    canv:=formconfig.ImageCtC.Canvas;//   Picture.Bitmap.Canvas;
+
+    dessin_fond_compteur(paramcomptIm,1,FbmcompC,i);
+    Aiguille_compteur(1,1,formconfig.ImageCTC);
+    exit;
   end;
 
-  // ajuste la taille
-  with FormCompteur[i].ImageCompteur do
+  // dessine le fond du compteur dans le FcBitmap (non visible)
+  if typDest=fen then
   begin
-    canvas.pen.color:=clRed;
-    canvas.pen.width:=3;  // épaisseur aiguille
+    dessin_fond_compteur(Scompteur[i].paramcompt,i,Scompteur[i].FcBitmap,compteur);
+    //canv:=formCompteur[i].ImageCompteur.Canvas;
+    Aiguille_compteur(i,IdTrainClic,formCompteur[i]);
+    Affiche_train_compteur(i);
+  end;
+  if typDest=gb then
+  begin
+    dessin_fond_compteur(compteurT[i].paramcompt,i,compteurT[i].fcBitmap,compteur);
+    //canv:=compteurT[i].Img.Canvas;
+    Aiguille_compteur(i,i,compteurT[i].gb);
   end;
 
-  //formprinc.DoubleBuffered:=true;
-
-  Aiguille_compteur_l(i,IdTrainClic);
+  if typDest=im then Aiguille_compteur(i,i,formconfig.ImageCTC);
 end;
 
+// repositionne le compteur principal
 procedure position_compteur;
 begin
   if not(Verrouillecompteur) then exit;
@@ -463,9 +841,9 @@ begin
   Compteurdevitesse21.checked:=false;
   Compteurtachro1.checked:=false;
   compteur:=1;
-  init_compteur(1);
+  init_compteur(1,formCOmpteur[1]);
   affiche_train_compteur(1);
-  aiguille_compteur_l(1,idTrainClic);
+  aiguille_compteur(1,idTrainClic,formCOmpteur[1]);
 end;
 
 procedure TFormCompteur.Compteurdevitesse21Click(Sender: TObject);
@@ -474,9 +852,9 @@ begin
   Compteurdevitesse21.checked:=true;
   Compteurtachro1.checked:=false;
   compteur:=2;
-  init_compteur(1);
+  init_compteur(1,formcompteur[1]);
   affiche_train_compteur(1);
-  aiguille_compteur_l(1,idTrainClic);
+  aiguille_compteur(1,idTrainClic,formCompteur[1]);
 end;
 
 procedure TFormCompteur.Compteurtachro1Click(Sender: TObject);
@@ -485,9 +863,9 @@ begin
   Compteurdevitesse21.checked:=false;
   Compteurtachro1.checked:=true;
   compteur:=3;
-  init_compteur(1);
+  init_compteur(1,formcompteur[1]);
   affiche_train_compteur(1);
-  aiguille_compteur_l(1,idTrainClic);
+  aiguille_compteur(1,idTrainClic,formCompteur[1]);
 end;
 
 procedure TFormCompteur.FormClose(Sender: TObject;
@@ -496,12 +874,71 @@ begin
   AffCompteur:=false;
 end;
 
-
+procedure TFormCompteur.FormCreate(Sender: TObject);
+var form : Tform;
+    Acanvas : tcanvas;
 begin
-  LargeurCompteurs:=200;
+  //LargComptC:=150;HautCompTC:=150;
+  // valeurs mini et maxi de la fenetre
+  with constraints do
+  begin
+    MaxWidth:=400;
+    MinWidth:=200;
+    MaxHeight:=450;
+    MinHeight:=100;
+  end;
+
+  if (Largeurcompteurs<=0) or (LargeurCompteurs>400) then LargeurCompteurs:=200;
   HauteurCompteurs:=200;
+  ImageTrain.Height:=30;         // les deux images doivent avoir la même hauteur
+  ImageTProv.height:=ImageTrain.Height;
 
+  // pour pouvoir redimensionner ImageTtrain, la première écriture de width doit etre au maxi possible et
+  // dessiner dedans sinon on ne peut plus l'agrandir au dela du maxi
+  with ImageTrain do
+  begin
+    Width:=400;
+    canvas.fillrect(rect(0,0,400,30));
+  end;
+end;
 
+procedure TFormCompteur.TrackBarCChange(Sender: TObject);
+var s : string;
+    c,i,vit,larg : integer;
+    tt : ttrackbar;
+    f : tform;
+begin
+  if clicTBtrain or clicTBGB then exit;
+  clicTBFen:=true;
+  //If affevt then
+  //Affiche('Changement TrackBarcc',clyellow);
+  tt:=sender as TTrackBar;
+  f:=tt.Parent as tform;
+  s:=f.caption;   // nom du train=caption de la fenêtre
 
+  i:=index_train_nom(s);
+  vit:=TrackBarC.position;
+  compteurT[i].tb.Position:=vit;
+  vitesse_loco(s,i,trains[i].adresse,vit,10,0);
+  clicTBFen:=false;
+end;
+
+procedure TFormCompteur.FormResize(Sender: TObject);
+begin
+  refresh;
+end;
+
+procedure TFormCompteur.Button0Click(Sender: TObject);
+begin
+  trackBarC.Position:=0;
+end;
+
+procedure TFormCompteur.Affichericonedutrain1Click(Sender: TObject);
+begin
+  affTrainCompteur:=not(affTrainCompteur);
+  afficherIconeDuTrain1.Checked:=affTrainCompteur;
+  init_compteur(1,formcompteur[1]);
+  affiche_train_compteur(1);
+end;
 
 end.
