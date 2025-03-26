@@ -1021,7 +1021,7 @@ begin
 end;
 
 // affiche le libellé de l'aiguillage du segment i
-procedure coords_aff_aig(canvas : Tcanvas;i : integer);
+procedure coords_aff_aig(canvas : Tcanvas;i : integer;imprime : boolean);
 var segType,s: string;
     a,x,y,x3,y3 : integer;
 begin
@@ -1062,8 +1062,12 @@ begin
     end;
 
     s:='A'+intToSTR(adresse)+'  ';
-    canvas.Font.Color:=clLime;
-    canvas.TextOut(x,y+YcrOffset,s);
+    with canvas do
+    begin
+      Font.Color:=clLime;
+      if imprime then Brush.color:=clWhite else Brush.color:=Fond_cdm;
+      TextOut(x,y+YcrOffset,s);
+    end;
 
     a:=adresse2;
     if a<>0 then
@@ -1637,6 +1641,7 @@ begin
       begin
         if formAnalyseCDM.CheckSegments.checked then
         begin
+          if imprime then Brush.color:=clWhite else Brush.color:=Fond_cdm;
           Textout(x1,y1,s);
           pen.Width:=1;
           PolyGon([point(x1,y1),Point(x2,y2)]);
@@ -1656,9 +1661,14 @@ begin
 
     if formAnalyseCDM.CheckPorts.checked then
     begin
-      if imprime then canvas.Font.Color:=ClBlack
+      if imprime then
+      begin
+        canvas.Brush.Color:=clwhite;
+        canvas.Font.Color:=ClBlack;
+      end
       else
       begin
+        canvas.Brush.Color:=fond_cdm;
         if coul then Canvas.font.Color:=clWhite else
           Canvas.font.color:=ClYellow;
       end;
@@ -1666,6 +1676,7 @@ begin
       y1:=(Segment[i].port[0].y+Segment[i].port[1].y) div 2;
       coords(x1,y1);
       s:='S'+intToSTR(NumSegment);
+      Canvas.Font.Size:=8;
       Canvas.Textout(x1,y1,s);
     end;
 
@@ -1681,8 +1692,9 @@ begin
           with canvas do
           begin
             pen.Color:=clOrange;
+            Brush.Color:=clOrange;
             pen.width:=2;
-            Ellipse(x1-5,y1-5,x1+5,y1+5);
+            Rectangle(x1-5,y1-5,x1+5,y1+5);
             canvas.pen.Color:=clWhite;
           end;
         end;
@@ -1709,7 +1721,12 @@ begin
           coords(x1,y1);
           x1:=x1+offset;
           s:='P'+intToSTR(Segment[i].port[j].numero);
-          canvas.textout(x1,y1,s);
+          with canvas do
+          begin
+            if imprime then Brush.color:=clWhite else Brush.color:=Fond_cdm;
+            font.Size:=8;
+            textout(x1,y1,s);
+          end;
         end;
       end;
       //Affiche(s,ClYellow);
@@ -1732,7 +1749,7 @@ begin
           moveto(portsSeg[1].x,portsSeg[1].y);
           LineTo(portsSeg[3].x,portsSeg[3].y);
         end;
-        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i);
+        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i,imprime);
       end
       else
       if (segtype='turnout') or (segtype='turnout_sym')  then
@@ -1745,7 +1762,7 @@ begin
         LineTo(portsSeg[1].x,portsSeg[1].y);
         moveTo((portsSeg[0].x+portsSeg[1].x) div 2,(portsSeg[0].y+portsSeg[1].y) div 2);
         LineTo(portsSeg[2].x,portsSeg[2].y);
-        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i);
+        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i,imprime);
       end
       else
       if (segtype='turnout_3way') then
@@ -1759,7 +1776,7 @@ begin
         LineTo(portsSeg[2].x,portsSeg[2].y);
         moveTo((portsSeg[0].x+portsSeg[1].x) div 2,(portsSeg[0].y+portsSeg[1].y) div 2);
         LineTo(portsSeg[3].x,portsSeg[3].y);
-        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i);
+        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i,imprime);
       end
       else
       if (segtype='turnout_curved') or (segtype='turnout_curved_2r')
@@ -1777,7 +1794,7 @@ begin
         LineTo(portsSeg[2].x,portsSeg[2].y);
 
         //dessine_aig_courbe(canvas,i);
-        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i);
+        if formAnalyseCDM.CheckBoxAutres.checked then coords_aff_aig(canvas,i,imprime);
       end
       else
       if (segType='arc') or (segType='curve') then
@@ -1825,7 +1842,7 @@ begin
             font.Size:=TailleFonte;
             //Affiche(intToSTR(round(zoom /10)),clyellow);
             pen.color:=couleur;
-
+            if imprime then Brush.color:=clWhite else Brush.color:=Fond_cdm;
             textout(x1+4,y1+ofs,s2);
             pen.Width:=2;
             Ellipse(x1-5,y1-5,x1+5,y1+5);
@@ -1837,7 +1854,7 @@ begin
             font.Size:=TailleFonte;
             //Affiche(intToSTR(round(zoom /10)),clyellow);
             pen.color:=couleur;
-
+            if imprime then Brush.color:=clWhite else Brush.color:=Fond_cdm;
             textout(x1+4,y1+ofs,s2);
             pen.Width:=2;
             Ellipse(x1-5,y1-5,x1+5,y1+5);
@@ -4999,7 +5016,7 @@ begin
       Brush.Style:=bsSolid;
       brush.Color:=fond_cdm;
     end;
-    coords_aff_aig(canvas,indexClic);
+    coords_aff_aig(canvas,indexClic,false);
     canvas.Brush.Style:=bsClear;
   end;
 end;

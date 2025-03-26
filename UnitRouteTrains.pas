@@ -361,6 +361,8 @@ procedure TFormRouteTrain.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   efface_route_tco(false);
+  maj_signaux(true);
+  maj_signaux(true);
 end;
 
 procedure TFormRouteTrain.ButtonSupprimeClick(Sender: TObject);
@@ -626,8 +628,6 @@ begin
   if (indexTrainFR<1) then exit;
   hide;
   efface_route_tco(false);
-  maj_signaux(true);
-  maj_signaux(true);
 
   // positionner les aiguillages de la route
   // si le train est doté d'une route
@@ -637,6 +637,7 @@ begin
     aig_canton(indexTrainFR,trains[indexTrainFR].route[1].adresse);  // positionne aiguillage et fait les réservations
     demarre:=demarre_index_train(indexTrainFR);    // met la mémoire de roulage du train à 1
   end;
+  maj_signaux(true);
   close;    // efface la route du TCO
 end;
 

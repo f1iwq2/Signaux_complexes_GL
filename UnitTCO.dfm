@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    1005
-    556)
+    997
+    548)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -1138,7 +1138,7 @@ object FormTCO: TFormTCO
       Top = 104
       Width = 33
       Height = 33
-      Hint = 'Action'
+      Hint = 'Bouton action'
       ParentShowHint = False
       ShowHint = True
       OnDragOver = ImagePalette52DragOver
@@ -1401,9 +1401,9 @@ object FormTCO: TFormTCO
       end
     end
     object buttonRaz: TButton
-      Left = 889
+      Left = 888
       Top = 88
-      Width = 97
+      Width = 96
       Height = 33
       Anchors = [akTop, akRight]
       Caption = 'Raz des occupations'
@@ -1469,23 +1469,6 @@ object FormTCO: TFormTCO
       ParentFont = False
       TabOrder = 8
       OnClick = RadioGroupSelClick
-    end
-    object Button1: TButton
-      Left = 800
-      Top = 88
-      Width = 75
-      Height = 25
-      Caption = 'Button1'
-      TabOrder = 9
-      Visible = False
-    end
-    object Button2: TButton
-      Left = 848
-      Top = 96
-      Width = 75
-      Height = 25
-      Caption = 'Button2'
-      TabOrder = 10
     end
   end
   object PopupMenu1: TPopupMenu

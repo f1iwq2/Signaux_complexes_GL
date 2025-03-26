@@ -23,7 +23,7 @@ var
   Lance_verif : integer;
   DebugVV,verifVersion,notificationVersion,essai : boolean;
   chemin_Dest,chemin_src,date_creation,nombre_tel : string;
-  f : text;
+  f : textFile;
 
 Const
 VersionSC = '10.2'; // sert à la comparaison de la version publiée
@@ -237,7 +237,7 @@ begin
   i:=pos('.zip',s);
   if i=0 then
   begin
-    log('nom du zip invalide',clred);
+    Affiche('Nom du zip invalide',clred);
     exit;
   end;
 
@@ -267,7 +267,6 @@ begin
   chdir(chemin_src);
   //s:='"'+chemin_dest+'" "'+chemin_src+'"';
   //log('exécution de copie_sc.exe '+s,clyellow);
-  close(f);
   Affiche('Installation de la nouvelle version',clyellow);
   Sleep(2000);
   i:=ShellExecute(Formprinc.Handle,pchar('runas'),        // mode admin
@@ -283,11 +282,11 @@ begin
   end
   else
   begin
-    Affiche('Erreur '+intToSTR(i)+' au lancement de installeur.exe ',clred);
     Affiche(SysErrorMessage(GetLastError),clred);
-    Affiche('Exécutez le manuellement',clred);
+    log('Erreur '+intToSTR(i)+' au lancement de installeur.exe ',clred);
+    log('Exécutez le manuellement',clred);
   end;
-
+  close(f);
 end;
 
 // renvoie le numéro de version depuis le site github, et télécharge... etc

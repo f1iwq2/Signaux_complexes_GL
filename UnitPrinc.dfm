@@ -5951,8 +5951,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 593
-      Top = 32
+      Left = 697
+      Top = 8
       Width = 265
       Height = 129
       Anchors = [akTop, akRight]

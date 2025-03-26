@@ -49,15 +49,15 @@ type
   end;
 
 type
-   typ=(fen,gb,im);
+   typ=(rien,fen,gb,im);    // un compteur peut être de la fenetre 'formCompteur' (fen), des groupBox de la fenetre principale (gb) ou d'une image (onglet compteurs formConfig)
    TTcompteur=array[1..10] of record
       FcBitMap : Tbitmap;
       paramcompt : TparamCompt;
   end;
 
 var
-  formCompteur : array[1..10] of TformCompteur;
-  Scompteur,CompteurPP :  TTCompteur;
+  formCompteur : array[1..10] of TformCompteur;     // il y a 10 fenetres mais on utilise qu'un compteur.
+  Scompteur :  TTCompteur;  //   Scompteur : associé à fen
   ParamCompteur : array[1..3] of record
     coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
   end;
@@ -145,7 +145,7 @@ end;
 
 
 // change l'aiguille du compteur
-// c : du compteur     idTrain : index du train
+// c : n° du compteur     idTrain : index du train  comp : composant dans lequel se trouve le compteur (form, groupbox ou image)
 procedure aiguille_compteur(c,idTrain : integer ; comp : Tcomponent);
 var ComptLoc,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
     angleDeb,AngleFin,sinD,cosD,sinF,cosF : extended ;
@@ -155,9 +155,15 @@ var ComptLoc,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
 begin
   if compteur<1 then exit;
 
+  typDest:=rien;
   if comp is tform then typDest:=fen;
   if comp is tgroupBox then typDest:=gb;
   if comp is tImage then typDest:=im;
+  if TypDest=rien then
+  begin
+    Affiche('Anomalie 47',clred);
+    exit;
+  end;
 
   if idTrain<>0 then
   begin
@@ -167,7 +173,7 @@ begin
   end
   else
   begin
-    vitesse:=0;
+    Vitesse:=0;
     VitesseFin:=0;
   end;
 
@@ -200,19 +206,16 @@ begin
     Him:=imgH;
   end;
 
-  sincos(angleDeb*pisur180,sinD,cosD);
-
-  //Affiche('Ad,Af='+floatToSTR(AngleDeb)+' '+floatToSTR(AngleFin),clred);
+  sincos(AngleDeb*pisur180,sinD,cosD);  // arc vitesse de début
+  sincos(AngleFin*pisur180,sinF,cosF);  // arc vitesse de fin
 
   with canvDest do
   begin
     // copie le fond du compteur
-
     if typdest=fen then copyrect(rect(0,0,lim,him),Scompteur[c].FcBitMap.canvas,rect(0,0,lim,him));
     if typdest=gb then copyrect(rect(0,0,lim,him),compteurT[c].FcBitMap.canvas,rect(0,0,lim,him));
     if typdest=im then copyrect(rect(0,0,lim,him),FbmcompC.canvas,rect(0,0,lim,him));
 
-    //moveto(0,0);lineTo(200,200);
     // afficher l'arc vert
     with param do
     begin
@@ -226,7 +229,6 @@ begin
         y2:=AigCY + rav;
         x3:=AigCX + Round(rav*sinD);
         y3:=AigCY - Round(rav*cosD);
-        sincos(AngleFin*pisur180,sinF,cosF);  // paramètres d'angleFin
         x4:=AigCX + Round(rav*sinF);
         y4:=AigCY - Round(rav*cosF);
         pen.color:=ParamCompteur[comptloc].coulArc;
@@ -243,8 +245,8 @@ begin
 end;
 
 procedure compteur_2(c : integer;bm : tbitmap;param : tparamcompt);
-var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
-    angle,angleFin,incr,r,a : single;
+var n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
+    angle,angleFin,incr,r : single;
     s : string;
 begin
   angle:=10;     // angle début des graduations
@@ -257,14 +259,11 @@ begin
 
   with param do
   begin
-    //AigCX:=him div 2;               // centre aiguille
-    //AigCY:=round(200*param.redY);
     r:=redx;                        // réduction
-    //Raig[1]:=(Lim div 2)-round(10*r);  // rayon
-    rg:=round(AigCX/1.05);            // rayon des graduations
-    rayon2:=Rg-round(10*r);              // rayon de fin des graduations
+    rg:=round(AigCX/1.05);          // rayon des graduations
+    rayon2:=Rg-round(10*r);         // rayon de fin des graduations
     rayon3:=Rg-round(20*r);
-    rayon4:=Rg-round(20*r);              // chiffres
+    rayon4:=Rg-round(20*r);         // chiffres
 
     with bm.Canvas do
     begin
@@ -275,7 +274,6 @@ begin
       FillRect(Rect(0,0,lim,him));
 
       Brush.Color:=ParamCompteur[2].coulFond;
-
 
       Cercle(bm.canvas,AigCX,AigCY,round(10*r),clBlack,clBlack);
 
@@ -341,7 +339,7 @@ end;
 
 procedure compteur_tachro(c : integer;bm : tbitmap;param : tparamcompt);
 var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
-    angle,angleFin,incr,r,a : single;
+    angle,angleFin,incr,r,a,sinA,cosA : single;
     s : string;
 begin
   angle:=-40;     // angle début des graduations
@@ -372,7 +370,7 @@ begin
       FillRect(Rect(0,0,lim,him));
     end;
 
-    Cercle(bm.Canvas,AigCX,AigCY,round(130*r),clGray,ParamCompteur[3].CoulFond);
+    Cercle(bm.Canvas,AigCX,AigCY,round(125*r),clGray,ParamCompteur[3].CoulFond);
     Cercle(bm.Canvas,AigCX,AigCY,round(10*r),clwhite,clWhite);
 
     with bm.Canvas do
@@ -383,7 +381,7 @@ begin
       font.color:=ParamCompteur[3].CoulNum;
       font.size:=round(r*20);
       //Affiche(intToSTR(font.size),clred);
-      font.style:=[fsbold];
+      font.style:=[];
     end;
 
     // dessine le cadran
@@ -401,7 +399,7 @@ begin
        xt:=round(cos((angle+180-l)*pisur180)*rayon4)+AigCX;
        yt:=round(sin((angle+180-l)*pisur180)*rayon4)+AigCY;
 
-       // affiche les chiffres
+       // affiche les chiffres avec un angle
        {$IF CompilerVersion >= 28.0}
        av:=round(90-angle)*10;
        bm.canvas.font.orientation:=av;
@@ -414,21 +412,23 @@ begin
        inc(v,20);
      end;
 
-     x1:=round(cos((angle+180)*pisur180)*Rg)+AigCX;
-     y1:=round(sin((angle+180)*pisur180)*Rg)+AigCY;
+     cosA:=cos((angle+180)*pisur180);
+     sinA:=sin((angle+180)*pisur180);
+     x1:=round(cosA*Rg)+AigCX;
+     y1:=round(SinA*Rg)+AigCY;
      // gros traits
      if n mod 5 = 0 then
      begin
        bm.Canvas.pen.Width:=round(4*r);
-       x2:=round(cos((angle+180)*pisur180)*rayon3)+AigCX;
-       y2:=round(sin((angle+180)*pisur180)*rayon3)+AigCY;
+       x2:=round(cosA*rayon3)+AigCX;
+       y2:=round(sinA*rayon3)+AigCY;
      end
      else
      begin
        // traits fins
        bm.Canvas.pen.Width:=round(2*r);
-       x2:=round(cos((angle+180)*pisur180)*rayon2)+AigCX;
-       y2:=round(sin((angle+180)*pisur180)*rayon2)+AigCY;
+       x2:=round(cosA*rayon2)+AigCX;
+       y2:=round(sinA*rayon2)+AigCY;
      end;
 
      with bm.Canvas do
@@ -437,17 +437,15 @@ begin
        lineTo(x2,y2);
      end;
      inc(n);
-     angle:=angle+incr;       // 18
+     angle:=angle+incr;
     until angle>AngleFin+incr;
   end;
 
-  //lim:=formCompteur[c].ImageTachro.width;
-  //him:=formCompteur[c].ImageTachro.height;
   lim:=param.ImgL;
   him:=param.ImgH;
 
   // copie l'image du texte "tachro" mise à l'échelle
-  StretchBlt(bm.Canvas.Handle,round(145*r),round(85*r),round(lim*r),round(him*r),
+  StretchBlt(bm.Canvas.Handle,round(145*r),round(90*r),round(lim*r),round(him*r),
              FormPrinc.ImageTachro.canvas.Handle,0,0,lim,him,srcCopy);
 end;
 
@@ -464,7 +462,7 @@ begin
   with Im.Canvas do
   begin
     Brush.Style:=bsSolid;
-    Brush.Color:=$141414; //$e0e0e0;
+    Brush.Color:=$141414;
 
     font.name:='arial';
     font.Style:=[fsBold];
@@ -530,9 +528,9 @@ begin
   if (i<1) or (hautComptC=0) then exit;
   //Affiche('Init compteur de vitesse',clYellow);
 
-  if c is tform then typDest:=fen;  // si le compteur est la fenetre, sinon le groupBox de la fenetre principale
-  if c is tGroupBox then typDest:=gb;
-  if c is tImage then typDest:=im;
+  if c is tform then typDest:=fen;      // si le compteur est la fenetre unique
+  if c is tGroupBox then typDest:=gb;   // si le compteur est le groupBox de la fenetre principale
+  if c is tImage then typDest:=im;      // si le compteur est l'image de l'onglet config compteurs
 
   if (typDest=fen) or (typDest=gb) then ComptLoc:=compteur;
   if typDest=im then ComptLoc:=formconfig.ComboBoxCompt.ItemIndex+1;
@@ -568,7 +566,6 @@ begin
   if typDest=fen then
   begin
     Lim:=LargeurCompteurs-ofs;
-    //p:=Scompteur[i].paramcompt;
     formCompteur[i].Width:=LargeurCompteurs;
     Scompteur[i].paramcompt.ComptA:=(maxi-mini)/vmax; // pente de conversion vitesse en degrés compteur
     Scompteur[i].paramcompt.ComptB:=mini;             // coordonnées origine conversion
@@ -604,8 +601,6 @@ begin
   end;
   if typDest=gb then
   begin
-    //Lim:=compteurT[i].gb.Width-10-round(CompteurT[i].tb.Height/r);
-    //him:=round(lim*r);
     if l>h then
     begin
       lim:=LargComptC-10;
@@ -616,7 +611,6 @@ begin
       him:=HautComptC-ofsGBH-CompteurT[i].tb.Height-ofsGBB;
       lim:=round(him/r);
     end;
-    //p:=compteurT[i].paramcompt;
     with CompteurT[i] do
     begin
       gb.Width:=LargComptC;
@@ -637,11 +631,10 @@ begin
     Scompteur[i].paramcompt.redY:=Him/h;
     Scompteur[i].paramcompt.ImgL:=Lim;
     Scompteur[i].paramcompt.ImgH:=Him;
-
     case compteur of
     1 : Scompteur[i].paramcompt.rav:=round(70*Scompteur[i].paramcompt.redx);  // rayon de l'arc vert
     2 : Scompteur[i].paramcompt.rav:=round(100*Scompteur[i].paramcompt.redx);
-    3 : Scompteur[i].paramcompt.rav:=round(122*Scompteur[i].paramcompt.redx);
+    3 : Scompteur[i].paramcompt.rav:=round(115*Scompteur[i].paramcompt.redx);
     end;
   end;
   if typDest=gb then
@@ -658,12 +651,11 @@ begin
       bouton.left:=(lim div 2)-6;
       bouton.Width:=16;
     end;
-
     case compteur of
     1 : compteurT[i].paramcompt.rav:=round(70*compteurT[i].paramcompt.redx);  // rayon de l'arc vert
     2 : compteurT[i].paramcompt.rav:=round(100*compteurT[i].paramcompt.redx);
-    3 : compteurT[i].paramcompt.rav:=round(122*compteurT[i].paramcompt.redx);
-    end;
+    3 : compteurT[i].paramcompt.rav:=round(115*compteurT[i].paramcompt.redx);
+  end;
   end;
 
   if typDest=fen then
@@ -727,7 +719,6 @@ begin
   end;
   if typDest=gb then
   begin
-    //p:=compteurT[i].paramcompt;
     compteurT[i].FCBitMap.Free;
     compteurT[i].fcBitMap:=tbitmap.Create;
     with compteurT[i].FCBitMap do
@@ -778,14 +769,12 @@ begin
   if typDest=fen then
   begin
     dessin_fond_compteur(Scompteur[i].paramcompt,i,Scompteur[i].FcBitmap,compteur);
-    //canv:=formCompteur[i].ImageCompteur.Canvas;
     Aiguille_compteur(i,IdTrainClic,formCompteur[i]);
     Affiche_train_compteur(i);
   end;
   if typDest=gb then
   begin
     dessin_fond_compteur(compteurT[i].paramcompt,i,compteurT[i].fcBitmap,compteur);
-    //canv:=compteurT[i].Img.Canvas;
     Aiguille_compteur(i,i,compteurT[i].gb);
   end;
 
@@ -800,7 +789,6 @@ begin
   with formCompteur[1] do
   begin
     Left:=formprinc.Left+formprinc.Width-width-2;
-    //left:=0;
   end;
   if (formClock<>nil) and not(fermeSC) then
   begin
@@ -875,8 +863,6 @@ begin
 end;
 
 procedure TFormCompteur.FormCreate(Sender: TObject);
-var form : Tform;
-    Acanvas : tcanvas;
 begin
   //LargComptC:=150;HautCompTC:=150;
   // valeurs mini et maxi de la fenetre
@@ -904,7 +890,7 @@ end;
 
 procedure TFormCompteur.TrackBarCChange(Sender: TObject);
 var s : string;
-    c,i,vit,larg : integer;
+    i,vit : integer;
     tt : ttrackbar;
     f : tform;
 begin

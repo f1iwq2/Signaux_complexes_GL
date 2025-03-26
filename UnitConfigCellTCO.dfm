@@ -4,7 +4,7 @@ object FormConfCellTCO: TFormConfCellTCO
   BorderStyle = bsDialog
   Caption = 'FormConfCellTCO'
   ClientHeight = 473
-  ClientWidth = 571
+  ClientWidth = 613
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -485,8 +485,8 @@ object FormConfCellTCO: TFormConfCellTCO
     OnClick = CheckPinvClick
   end
   object GroupBoxAction: TGroupBox
-    Left = 352
-    Top = 80
+    Left = 312
+    Top = 152
     Width = 273
     Height = 145
     Caption = 'Actions'
@@ -561,8 +561,8 @@ object FormConfCellTCO: TFormConfCellTCO
     OnClick = BitBtnAnnuleClick
   end
   object GroupBoxCanton: TGroupBox
-    Left = 328
-    Top = 280
+    Left = 312
+    Top = 312
     Width = 281
     Height = 129
     Caption = 'Canton'
@@ -639,8 +639,8 @@ object FormConfCellTCO: TFormConfCellTCO
     end
   end
   object GroupBoxDet: TGroupBox
-    Left = 376
-    Top = 24
+    Left = 320
+    Top = 16
     Width = 281
     Height = 121
     Caption = 'Visu options d'#39'arr'#234't des trains sur le d'#233'tecteur'

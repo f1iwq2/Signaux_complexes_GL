@@ -1,4 +1,5 @@
 unit UnitTCO;
+
 // ne pas utiliser les éléments 30 et 31 qui sont les anciens signaux et quais
 interface
 uses
@@ -160,13 +161,11 @@ type
     AffRoutes: TMenuItem;
     ImageDrapVert: TImage;
     ImageDrapRouge: TImage;
-    Button1: TButton;
     Optiondesroutes1: TMenuItem;
     Trouverunlment1: TMenuItem;
     ImageBt0Bistable: TImage;
     ImageBt1Bistable: TImage;
     Mmoiredezone1: TMenuItem;
-    Button2: TButton;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -346,47 +345,47 @@ type
     procedure ButtonCalibrageClick(Sender: TObject);
     procedure ButtonCoulFondClick(Sender: TObject);
     procedure ColorDialog1Show(Sender: TObject);
-     procedure ImagePalette24DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette24EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette24MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette25DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette25EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette25MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+     procedure ImagePalette24DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette24EndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ImagePalette24MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette25DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette25EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette25MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;      Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette4DragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
-    procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;      State: TDragState; var Accept: Boolean);
+    procedure ImagePalette1MouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette4DragOver(Sender, Source: TObject; X, Y: Integer;State: TDragState; var Accept: Boolean);
+    procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;State: TDragState; var Accept: Boolean);
     procedure EditTypeImageChange(Sender: TObject);
     procedure Toutslectionner1Click(Sender: TObject);
     procedure ButtonDessinerClick(Sender: TObject);
-    procedure ImagePalette26DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette26MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette23EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette23DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette23MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette27DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette27MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette27EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette28DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette28EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette28MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette29DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette29EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette29MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette32DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette32EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette32MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette33DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette33EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette33MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette34DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette34EndDrag(Sender, Target: TObject; X,      Y: Integer);
-    procedure ImagePalette34MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette26DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette26EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette26MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette23EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette23DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette23MouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette27MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette27EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette28DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette28EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette28MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette29DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette29EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette29MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette32DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette32EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette32MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette33DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette33EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette33MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette34DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette34EndDrag(Sender, Target: TObject; X,Y: Integer);
+    procedure ImagePalette34MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure EditAdrElementClick(Sender: TObject);
     procedure ImagePalette53DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
      procedure ImagePalette52EndDrag(Sender, Target: TObject; X, Y: Integer);
-     procedure ImagePalette53MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+     procedure ImagePalette53MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ButtonAffSCClick(Sender: TObject);
     procedure RadioGroupSelClick(Sender: TObject);
     procedure SauvegarderleTCO1Click(Sender: TObject);
@@ -401,9 +400,9 @@ type
     procedure RechargerleTCOdepuislefichier1Click(Sender: TObject);
     procedure Supprimercanton1Click(Sender: TObject);
     procedure Affecterlocomotiveaucanton1Click(Sender: TObject);
-    procedure ImagePalette52MouseDown(Sender: TObject;      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure ImagePalette52DragOver(Sender, Source: TObject; X,      Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure ImagePalette53EndDrag(Sender, Target: TObject; X,      Y: Integer);
+    procedure ImagePalette52MouseDown(Sender: TObject;Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ImagePalette52DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure ImagePalette53EndDrag(Sender, Target: TObject; X,Y: Integer);
     procedure ImageTCOEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure AffRoutesClick(Sender: TObject);
     procedure Optiondesroutes1Click(Sender: TObject);
@@ -477,9 +476,8 @@ const
   Id_cantonH=60; // codifications de l'icone dans le TCO
   Id_cantonV=70; //           "
 
-
   // liaisons des voies pour chaque icone par N° de bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest) 7
-  // un bit à 1 indique une liaison
+  // un bit à 1 indique une liaison de l'élément
   Liaisons : array[0..53] of integer=
    // 0   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28 29 30 31
      (0,$88,$c8,$8c,$98,$89,$9,$84,$90,$48,$44,$11,$19,$c4,$91,$4c,$21,$24,$42,$12,$22,$cc,$99,$66,$23,$33,$26,$62,$32,$31,0,0,
@@ -503,7 +501,7 @@ type
            TailleFonte : integer;
            CouleurFond : Tcolor;      // couleur de fond
            // pour les signaux seulement ou action
-           PiedFeu     : integer;     // type de pied au signal : signal à gauche=1 ou à droite=2 de la voie OU si action: type d'action
+           PiedSignal  : integer;     // type de pied au signal : signal à gauche=1 ou à droite=2 de la voie OU si action: type d'action
            NumCanton   : integer;     // numéro de canton, pas son index
            x,y         : integer;     // coordonnées pixels relativés du coin sup gauche du signal pour le décalage par rapport au 0,0 cellule
            Xundo,Yundo : integer;     // coordonnées x,y de la cellule pour le undo
@@ -1860,7 +1858,7 @@ begin
         Texte:='';
         fonte:='Arial';
         fontSTyle:='';
-        piedFeu:=0;
+        PiedSignal:=0;
         NumCanton:=0;
         x:=0;
         y:=0;
@@ -2341,13 +2339,13 @@ begin
 
             if PiedFeu<1 then PiedFeu:=1;
             if PiedFeu>2 then PiedFeu:=2;
-            tco[indexTCO,x,y].PiedFeu:=PiedFeu;
+            tco[indexTCO,x,y].PiedSignal:=PiedFeu;
           end;
         end;
         // si c'est une action, remplir les paramètres de l'action
         if tco[indexTCO,x,y].Bimage=Id_action then
         begin
-          tco[indexTCO,x,y].PiedFeu:=PiedFeu;       // quelle action
+          tco[indexTCO,x,y].PiedSignal:=PiedFeu;       // quelle action
           tco[indexTCO,x,y].FeuOriente:=FeuOriente; // paramètre de l'action
           if (PiedFeu=AcBouton_bistable) then
           begin
@@ -2564,7 +2562,7 @@ begin
 
         // piedFeu ou index canton
         if (Bimage=Id_CantonH) or (Bimage=Id_cantonV) then s:=s+intToSTR(tco[i,x,y].NumCanton)
-        else s:=s+IntToSTR(tco[i,x,y].PiedFeu);
+        else s:=s+IntToSTR(tco[i,x,y].PiedSignal);
         s:=s+',';
 
         // texte ou nom du canton
@@ -2982,7 +2980,7 @@ begin
     s:=format('%d',[TCO[indexTCO,x,y].Numcanton]);
   end
   else
-  if (b=id_action) and (tco[indexTCO,x,y].PiedFeu=AcBouton_bistable) then
+  if (b=id_action) and (tco[indexTCO,x,y].PiedSignal=AcBouton_bistable) then
   begin
     exit;
   end;
@@ -5275,7 +5273,7 @@ var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
        moveto(x0,yc);lineto(xc,yc);    // partie droite
      end;
    end;
-   
+
  
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine
@@ -6772,7 +6770,7 @@ begin
     //s:=tco[indexTCO,x,y].texte;
     s:='';
     if s='' then tco[indexTCO,x,y].repr:=5; // centré en X et Y
-    act:=tco[indexTCO,x,y].PiedFeu;
+    act:=tco[indexTCO,x,y].PiedSignal;
     case act of
     AcChangeTCO :
     begin
@@ -6883,13 +6881,9 @@ begin
       //PImageTCO[indexTCO].Picture.Bitmap.Canvas.textOut(x0+3,y0+3,s);
       //exit;
     end;
-
     end;
-
     //affiche_texte(indextco,x,y);
   end;
-
-
 end;
 
 
@@ -7404,7 +7398,6 @@ begin
     AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xt,yt,
                               PCanvasTCO[indexTCO].Font,clYellow,0,pmcopy,s,-900);
     {$IFEND}
-
 
     Canton[i].Xicone:=x0+round(8*frx);
     Canton[i].Yicone:=yi;
@@ -9073,7 +9066,7 @@ begin
         pen.color:=fond;
         Brush.Color:=fond;
         pen.width:=epaisseur div 2;
-        moveTo(xc,y0);LineTo(xc,yc);LineTo(xf,yf);  
+        moveTo(xc,y0);LineTo(xc,yc);LineTo(xf,yf);
       end;  
     end;
 
@@ -10412,14 +10405,12 @@ end;
 // calcul des facteurs de réductions X et Y pour l'adapter à l'image de destination
 procedure calcul_reduction(Var frx,fry : single;DimDestX,DimDestY : integer);
 begin
-  //frX:=DimDestX/DimOrgX;
-  //frY:=DimDestY/DimOrgY;
   frx:=DimDestX/ZoomMax;
   fry:=DimDestY/ZoomMax;
   //Affiche(formatfloat('0.000000',frY),clyellow);
 end;
 
-procedure Feu_180(index : integer;ImageSource : TImage;x,y : integer;FrX,FrY : real;inverse : boolean);
+procedure Signal_180(index : integer;ImageSource : TImage;x,y : integer;FrX,FrY : real;inverse : boolean);
 var p : array[0..2] of TPoint;
     TailleY,TailleX : integer;
 begin
@@ -10461,7 +10452,7 @@ end;
 
 // Affiche dans le TCO en x,y un signal à 90° d'après l'image transmise
 // x y en coordonnées pixels
-procedure Feu_90G(index : integer;ImageSource : TImage;x,y : integer;FrX,FrY : real;inverse : boolean);
+procedure Signal_90G(index : integer;ImageSource : TImage;x,y : integer;FrX,FrY : real;inverse : boolean);
 var p : array[0..2] of TPoint;
     TailleY,TailleX : integer;
 begin
@@ -10493,7 +10484,7 @@ begin
 end;
 
 // copie de l'image du signal à 90° dans le canvas source et le tourne de 90° et le met dans l'image temporaire
-procedure Feu_90D(index : integer;ImageSource : TImage;x,y : integer ; FrX,FrY : real;inverse : boolean);
+procedure Signal_90D(index : integer;ImageSource : TImage;x,y : integer ; FrX,FrY : real;inverse : boolean);
 var p : array[0..2] of TPoint;
     TailleY,TailleX  : integer;
 begin
@@ -10587,7 +10578,7 @@ begin
   end;
 end;
 
-procedure affiche_pied7_180(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied7_180(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10598,12 +10589,12 @@ begin
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     y1:=y1-6;
     LineTo( x+round(x1*frX),y+round(y1*frY) );
-    if pied=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
+    if piedSignal=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
                    LineTo( x+round((x1+40)*frX),y+round(y1*frY) );
   end;
 end;
 
-procedure affiche_pied9_180(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied9_180(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10614,12 +10605,12 @@ begin
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     y1:=y1-6;
     LineTo( x+round(x1*frX),y+round(y1*frY) );
-    if pied=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
+    if piedSignal=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
                    LineTo( x+round((x1+40)*frX),y+round(y1*frY) );
   end;
 end;
 
-procedure affiche_pied20_90G(index,x,y : integer;FrX,frY : real;pied : integer;contrevoie : boolean);
+procedure affiche_pied20_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer;contrevoie : boolean);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10633,7 +10624,7 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       x1:=x1-6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round(x1*frX),y+round((y1+40)*frY) ) else     // a gauche
+      if piedSignal=1 then LineTo( x+round(x1*frX),y+round((y1+40)*frY) ) else     // a gauche
                      LineTo( x+round(x1*frX),y+round((y1-65)*frY) );         // a droite
     end
     else
@@ -10642,13 +10633,13 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       x1:=x1-6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round(x1*frX),y+round((y1+60)*frY) ) else
+      if piedSignal=1 then LineTo( x+round(x1*frX),y+round((y1+60)*frY) ) else
                      LineTo( x+round(x1*frX),y+round((y1-45)*frY) );
     end;
   end;
 end;
 
-procedure affiche_pied20_90D(index,x,y : integer;FrX,frY : real;pied : integer;contrevoie : boolean);
+procedure affiche_pied20_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer;contrevoie : boolean);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10662,7 +10653,7 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       x1:=x1+6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round(x1*frX),y+round((y1+65)*frY) ) else     // a gauche
+      if piedSignal=1 then LineTo( x+round(x1*frX),y+round((y1+65)*frY) ) else     // a gauche
                      LineTo( x+round(x1*frX),y+round((y1-40)*frY) );         // a droite
     end
     else
@@ -10671,13 +10662,13 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       x1:=x1+6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round(x1*frX),y+round((y1-57)*frY) ) else
+      if piedSignal=1 then LineTo( x+round(x1*frX),y+round((y1-57)*frY) ) else
                      LineTo( x+round(x1*frX),y+round((y1+45)*frY) );
     end;
   end;
 end;
 
-procedure affiche_pied20_180(index,x,y : integer;FrX,frY : real;pied : integer;contrevoie : boolean);
+procedure affiche_pied20_180(index,x,y : integer;FrX,frY : real;piedSignal : integer;contrevoie : boolean);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10691,7 +10682,7 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       y1:=y1-6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round((x1-50)*frX),y+round(y1*frY) ) else     // a gauche
+      if piedSignal=1 then LineTo( x+round((x1-50)*frX),y+round(y1*frY) ) else     // a gauche
                      LineTo( x+round((x1+55)*frX),y+round(y1*frY) );         // a droite
     end
     else
@@ -10700,13 +10691,13 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       y1:=y1-6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
+      if piedSignal=1 then LineTo( x+round((x1-63)*frX),y+round(y1*frY) ) else
                      LineTo( x+round((x1+40)*frX),y+round(y1*frY) );
     end;
   end;
 end;
 
-procedure affiche_pied20_vertical(index,x,y : integer;FrX,frY : real;pied : integer;contrevoie : boolean);
+procedure affiche_pied20_vertical(index,x,y : integer;FrX,frY : real;piedSignal : integer;contrevoie : boolean);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10720,7 +10711,7 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       y1:=y1+6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round((x1+40)*frX),y+round(y1*frY) ) else
+      if piedSignal=1 then LineTo( x+round((x1+40)*frX),y+round(y1*frY) ) else
                      LineTo( x+round((x1-65)*frX),y+round(y1*frY) );
     end
     else
@@ -10729,14 +10720,14 @@ begin
       moveTo( x+round(x1*frX),y+round(y1*frY) );
       y1:=y1+6;
       LineTo( x+round(x1*frX),y+round(y1*frY) );
-      if pied=1 then LineTo( x+round((x1+62)*frX),y+round(y1*frY) ) else
+      if piedSignal=1 then LineTo( x+round((x1+62)*frX),y+round(y1*frY) ) else
                      LineTo( x+round((x1-40)*frX),y+round(y1*frY) );
     end;
   end;
 end;
 
 
-procedure affiche_pied2G_90G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied2G_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,frYR : real;
 begin
@@ -10749,12 +10740,12 @@ begin
     x1:=0;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frYR) );
     LineTo( x+round((x1-6)*frX),y+round((y1+0)*frYR) );
-    if pied=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
+    if piedSignal=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
                    LineTo( x+round((x1-6)*frX),y+round((y1-50)*frYR) );
   end;
 end;
 
-procedure affiche_pied2G_90D(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied2G_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,frYR: real;
 begin
@@ -10767,12 +10758,12 @@ begin
     x1:=35;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frYR) );
     LineTo( x+round((x1+6)*frX),y+round((y1+0)*frYR) );
-    if pied=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
+    if piedSignal=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
                    LineTo( x+round((x1+6)*frX),y+round((y1+50)*fryR) ) ;
   end;
 end;
 
-procedure affiche_pied_Vertical2G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied_Vertical2G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10782,12 +10773,12 @@ begin
     x1:=12;y1:=35;
     moveTo( x+round((x1+0)*frX),y+round(y1*frY) );
     LineTo( x+round((x1+0)*frX),y+round((y1+6)*frY) );
-    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+6)*frY) ) else
+    if piedSignal=1 then LineTo( x+round((x1+50)*frX),y+round((y1+6)*frY) ) else
                    LineTo( x+round((x1-50)*frX),y+round((y1+6)*frY) );
   end;
 end;
 
-procedure affiche_pied3G_90D(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied3G_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,fryR : real;
 begin
@@ -10800,12 +10791,12 @@ begin
     x1:=45;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1+6)*frX),y+round((y1+0)*frY) );
-    if pied=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
+    if piedSignal=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
                    LineTo( x+round((x1+6)*frX),y+round((y1+50)*fryR) );
   end;
 end;
 
-procedure affiche_pied3G_90G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied3G_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,frYR : real;
 begin
@@ -10818,12 +10809,12 @@ begin
     x1:=0;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1-4)*frX),y+round((y1+0)*frY) );
-    if pied=1 then LineTo( x+round((x1-4)*frX),y+round((y1+50)*frYR) ) else
+    if piedSignal=1 then LineTo( x+round((x1-4)*frX),y+round((y1+50)*frYR) ) else
                    LineTo( x+round((x1-4)*frX),y+round((y1-50)*fryR) );
   end;
 end;
 
-procedure affiche_pied_Vertical3G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied_Vertical3G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10833,12 +10824,12 @@ begin
     x1:=12;y1:=42;
     moveTo( x+round((x1+0)*frX),y+round(y1*frY) );
     LineTo( x+round((x1+0)*frX),y+round((y1+6)*frY) );
-    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+6)*frY) )
+    if piedSignal=1 then LineTo( x+round((x1+50)*frX),y+round((y1+6)*frY) )
              else  LineTo( x+round((x1-50)*frX),y+round((y1+6)*frY) ) ;
   end;
 end;
 
-procedure affiche_pied4G_90G(index,x,y : integer;FrX,frY : real;piedFeu : integer);
+procedure affiche_pied4G_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     fryR,ech : real;
 begin
@@ -10851,12 +10842,12 @@ begin
     x1:=0;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1-6)*frX),y+round((y1+0)*frY) );
-    if piedFeu=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
+    if piedSignal=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
                       LineTo( x+round((x1-6)*frX),y+round((y1-50)*frYR) ) ;
   end;
 end;
 
-procedure affiche_pied4G_90D(index,x,y : integer;FrX,frY : real;piedfeu: integer);
+procedure affiche_pied4G_90D(index,x,y : integer;FrX,frY : real;piedSignal: integer);
 var x1,y1 : integer;
     ech,frYR : real;
 begin
@@ -10869,12 +10860,12 @@ begin
     x1:=55;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1+6)*frX),y+round((y1+0)*frY) );
-    if piedFeu=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) )
+    if piedSignal=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) )
                  else LineTo( x+round((x1+6)*frX),y+round((y1+50)*fryR) );
   end;
 end;
 
-procedure affiche_pied_Vertical4G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied_Vertical4G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10884,12 +10875,12 @@ begin
     x1:=12;y1:=55;
     moveTo( x+round((x1+0)*frX),y+round(y1*frY) );
     LineTo( x+round((x1+0)*frX),y+round((y1+7)*frY) );
-    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else
+    if piedSignal=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else
                    LineTo( x+round((x1-50)*frX),y+round((y1+7)*frY) );
   end;
 end;
 
-procedure affiche_pied9G_90D(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied9G_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     var ech,frYR : real;
 begin
@@ -10902,12 +10893,12 @@ begin
     x1:=90;y1:=38;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1+7)*frX),y+round((y1+0)*frY) );
-    if pied=1 then LineTo( x+round((x1+7)*frX),y+round((y1-62)*fryR)) else
+    if piedSignal=1 then LineTo( x+round((x1+7)*frX),y+round((y1-62)*fryR)) else
                    LineTo( x+round((x1+7)*frX),y+round((y1+40)*fryR));
   end;
 end;
 
-procedure affiche_pied5G_90D(index,x,y : integer;FrX,frY : real;piedFeu : integer);
+procedure affiche_pied5G_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,frYR : real;
 begin
@@ -10920,12 +10911,12 @@ begin
     x1:=66;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1+6)*frX),y+round((y1+0)*frY) );
-    if piedFeu=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
+    if piedSignal=1 then LineTo( x+round((x1+6)*frX),y+round((y1-50)*fryR) ) else
                       LineTo( x+round((x1+6)*frX),y+round((y1+50)*fryR) );
   end;
 end;
 
-procedure affiche_pied5G_90G(index,x,y : integer;FrX,frY : real;piedFeu : integer);
+procedure affiche_pied5G_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,fryR : real;
 begin
@@ -10938,12 +10929,12 @@ begin
     x1:=0;y1:=12;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1-6)*frX),y+round((y1+0)*frY) );
-    if piedFeu=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
+    if piedSignal=1 then LineTo( x+round((x1-6)*frX),y+round((y1+50)*frYR) ) else
                       LineTo( x+round((x1-6)*frX),y+round((y1-50)*fryR) );
   end;
 end;
 
-procedure affiche_pied_Vertical5G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied_Vertical5G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
 begin
   with PcanvasTCO[index] do
@@ -10954,12 +10945,12 @@ begin
     moveTo( x+round((x1+0)*frX),y+round(y1*frY) );
     LineTo( x+round((x1+0)*frX),y+round((y1+7)*frY) );
 
-    if pied=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else
+    if piedSignal=1 then LineTo( x+round((x1+50)*frX),y+round((y1+7)*frY) ) else
                    LineTo( x+round((x1-50)*frX),y+round((y1+7)*frY) );
   end;
 end;
 
-procedure affiche_pied7G_90D(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied7G_90D(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     ech,frYR : real;
 begin
@@ -10972,7 +10963,7 @@ begin
     x1:=75;y1:=38;
     moveTo( x+round(x1*frX),y+round(y1*frY) );
     LineTo( x+round((x1+7)*frX),y+round((y1+0)*frY) );
-    if pied=1 then LineTo( x+round((x1+7)*frX),y+round((y1-62)*fryR) ) else
+    if piedSignal=1 then LineTo( x+round((x1+7)*frX),y+round((y1-62)*fryR) ) else
                    LineTo( x+round((x1+7)*frX),y+round((y1+38)*fryR) ) ;
   end;
 end;
@@ -11010,7 +11001,7 @@ begin
   end;
 end;
 
-procedure affiche_pied9G_90G(index,x,y : integer;FrX,frY : real;pied : integer);
+procedure affiche_pied9G_90G(index,x,y : integer;FrX,frY : real;piedSignal : integer);
 var x1,y1 : integer;
     frYR,ech : real;
 begin
@@ -11025,7 +11016,7 @@ begin
     moveTo( x+round(x1*frX),y+round(y1*frYR) );
     LineTo( x+round((x1-6)*frX),y+round((y1+0)*frYR) );
 
-    if pied=1 then LineTo( x+round((x1-6)*frX),y+round((y1+58)*frYR) ) else
+    if piedSignal=1 then LineTo( x+round((x1-6)*frX),y+round((y1+58)*frYR) ) else
                    LineTo( x+round((x1-6)*frX),y+round((y1-40)*frYR) ) ;
   end;
 end;
@@ -11053,7 +11044,7 @@ begin
   {
   if y>1 then
   begin
-    // si la cellule au dessus contient un feu vertical, ne pas effacer la cellule
+    // si la cellule au dessus contient un signal vertical, ne pas effacer la cellule
     // if (tco[indextco,x,y-1].BImage=12) and (tco[indextco,x,y-1].FeuOriente=1) then exit;
   end;
   if x<NbreCellX then
@@ -11133,7 +11124,7 @@ begin
 
   TailleX:=ImageFeu.picture.BitMap.Width;
   TailleY:=ImageFeu.picture.BitMap.Height; // taille du feu d'origine  (verticale)
-  PiedFeu:=tco[indextco,x,y].PiedFeu;  // gauche ou droite de la voie
+  PiedFeu:=tco[indextco,x,y].PiedSignal;  // gauche ou droite de la voie
 
   // réduction variable en fonction de la taille des cellules. 50 est le Zoom Maxi
   calcul_reduction(frx,fry,Larg,haut);
@@ -11220,10 +11211,10 @@ begin
     end;
   end;
 
-  // affichage du feu et du pied - orientation 90°G
+  // affichage du signal et du pied - orientation 90°G
   if Orientation=2 then
   begin
-    Feu_90G(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie); // ici on passe l'origine du signal
+    Signal_90G(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie); // ici on passe l'origine du signal
     // dessiner le pied
     case aspect of
     20 : affiche_pied20_90G(indexTCO,x0+2,y0+round(fry*5),frX,frY,piedFeu,contrevoie);
@@ -11239,7 +11230,7 @@ begin
   // affichage du signal et du pied - orientation 90°D
   if Orientation=3 then
   begin
-    Feu_90D(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie);
+    Signal_90D(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie);
     // dessiner le pied
     case aspect of
     20 : affiche_pied20_90D(indexTCO,x0+(LargeurCell[indexTCO] div 2)+round(frx*12),y0+(hauteurCell[indexTCO] div 2),frX,frY,piedFeu,contrevoie);
@@ -11255,7 +11246,7 @@ begin
   // 180°
   if orientation=4 then
   begin
-    Feu_180(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie);
+    Signal_180(indexTCO,ImageFeu,x0,y0,frX,frY,contrevoie);
     case aspect of
     2 : affiche_pied2_180(indexTCO,x0,y0,frX,frY,PiedFeu);
     3 : affiche_pied3_180(indexTCO,x0,y0,frX,frY,PiedFeu);
@@ -11651,7 +11642,7 @@ begin
       index:=Index_Signal(adresse);
       aspect:=Signaux[index].Aspect;
       oriente:=tco[indextco,x,y].FeuOriente;
-      pied:=tco[indextco,x,y].PiedFeu;
+      pied:=tco[indextco,x,y].PiedSignal;
       inverse:=Signaux[index].contrevoie;    // pour signal belge
       xt:=0;yt:=0;
       // signal belge
@@ -11682,13 +11673,13 @@ begin
       end;
       if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=round(60*fryGlob[indexTCO]);end;
       if (aspect=9) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);end;    // orientation G
-      if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+round(25*frxGlob[indexTCO]);yt:=1;end;
+      if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+round(20*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=9) and (Oriente=4) and (pied=1) then begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=9) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
       if (aspect=7) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;
-      if (aspect=7) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
-      if (aspect=7) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+2;yt:=1;end;
+      if (aspect=7) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(25*fryGlob[indexTCO]);end;
+      if (aspect=7) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+2;yt:=round(4*frYGlob[indexTCO]);end;
       if (aspect=7) and (Oriente=4) and (pied=1) then begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=7) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
@@ -11719,7 +11710,7 @@ begin
       if (aspect=2) and (Oriente=4) then begin xt:=round(40*frxGlob[indexTCO]);yt:=round(10*fryglob[indexTCO]);end;  // orientation 180
 
       // signaux directionnels
-      if (aspect>10) and (aspect<20) and(oriente=1) then begin xt:=1;yt:=hauteurCell[indexTCO]-round(14*fryGlob[indexTCO]);end;
+      if (aspect>10) and (aspect<20) and (oriente=1) then begin xt:=1;yt:=hauteurCell[indexTCO]-round(14*fryGlob[indexTCO]);end;
       if (aspect>10) and (aspect<20) and (oriente=2) then begin xt:=LargeurCell[indexTCO]-round(15*frxGlob[indexTCO]);yt:=0;end;
       if (aspect>10) and (aspect<20) and (oriente=3) then begin xt:=LargeurCell[indexTCO]-round(15*frxGlob[indexTCO]);yt:=0;end;
 
@@ -14467,7 +14458,7 @@ begin
   tco[indextco,x,y].FontStyle:='';
   tco[indextco,x,y].CoulFonte:=0;
   // tco[indextco,x,y].CouleurFond:=0;
-  tco[indextco,x,y].PiedFeu:=0;
+  tco[indextco,x,y].PiedSignal:=0;
   tco[indexTCO,x,y].NumCanton:=0;
   tco[indextco,x,y].x:=0;
   tco[indextco,x,y].y:=0;
@@ -16486,7 +16477,7 @@ begin
     // action
     if (Bimage=id_action) and not(ConfCellTCO) then
     begin
-      i:=tco[indextco,xclic,yclic].piedfeu; // type d'action
+      i:=tco[indextco,xclic,yclic].PiedSignal; // type d'action
       n:=tco[indextco,xclic,yclic].feuoriente;
       //Affiche('Clic bouton action i='+intToSTR(i)+' n='+intToSTR(n),clYellow);
       case i of
@@ -16540,7 +16531,7 @@ begin
             begin
               if tco[i,x,y].BImage=Id_Action then
               begin
-                if tco[i,x,y].PiedFeu=acBouton_bistable then
+                if tco[i,x,y].PiedSignal=acBouton_bistable then
                 begin
                   j:=tco[indextco,xclic,yclic].Adresse;
                   if j=adresse then
@@ -17310,7 +17301,7 @@ begin
   raz_cellule(indextco,xClic,yClic);
   tco[indextco,XClic,YClic].BImage:=Id_signal;
   tco[indextco,XClic,YClic].FeuOriente:=1;
-  tco[indextco,XClic,YClic].PiedFeu:=1;
+  tco[indextco,XClic,YClic].PiedSignal:=1;
   tco[indextco,XClic,YClic].coulFonte:=clWhite;
   clicTCO:=true;
   editAdrElement.Text:='';
@@ -18057,7 +18048,7 @@ begin
   if actualize then exit;
   if tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage=Id_signal then
   begin
-    tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedFeu:=2;
+    tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedSignal:=2;
     Affiche_TCO(indexTCO);
     TCO_modifie:=true;
     actualise(indexTCO);    // met à jour la fenetre de config de la cellule
@@ -18078,7 +18069,7 @@ begin
   if actualize then exit;
   if tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].Bimage=Id_signal then
   begin
-    tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedFeu:=1;
+    tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedSignal:=1;
     Affiche_TCO(indexTCO);
     TCO_modifie:=true;
     actualise(indexTCO);    // met à jour la fenetre de config de la cellule
@@ -18149,7 +18140,7 @@ begin
       PopUpMenu1.Items[6][3].checked:=true;
     end;
     // coche sur l'orientation du pied
-    PiedFeu:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedFeu;
+    PiedFeu:=tco[indextco,XClicCell[indexTCO],YClicCell[indexTCO]].PiedSignal;
     if PiedFeu=1 then
     begin
       PopUpMenu1.Items[6][5].checked:=true;
@@ -19325,6 +19316,9 @@ begin
   auto_tcurs:=true;  // réautorise le déplacement du curseur
   defocusControl(EditAdrElement,true);
 end;
+
+
+
 
 end.
 

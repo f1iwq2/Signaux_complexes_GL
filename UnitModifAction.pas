@@ -223,9 +223,8 @@ end;
 procedure affecte_operation(i : integer;t : tListBox);
 var s : string;
 begin
-  if ligneclicAct<0 then exit;
   s:=operations[i].nom;
-  if not(Tablo_Action[ligneclicact+1].tabloOp[i].valide) then s:=s+sd;
+  if ligneclicAct>0 then if not(Tablo_Action[ligneclicact+1].tabloOp[i].valide) then s:=s+sd;
   if i<ActionBoutonTCO then t.Items.Add(Format('%d%s', [i-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
   if i=ActionBoutonTCO then t.Items.Add(Format('%d%s', [IconeBouton, s])); // valeur d'index de l'icone dans la ImagelistIcones
   if i=ActionAffecteMemoire then t.Items.Add(Format('%d%s', [IconeActionAffecteMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones

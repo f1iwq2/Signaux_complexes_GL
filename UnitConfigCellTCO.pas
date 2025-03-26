@@ -130,7 +130,7 @@ begin
   if bim=Id_action then
   begin
     act:=ligneclicAction+1;
-    tco[IndexTCOCourant,X,Y].PiedFeu:=act;
+    tco[IndexTCOCourant,X,Y].PiedSignal:=act;
     efface_cellule(indexTCOCourant,PCanvasTCO[indexTCOcourant],x,y,pmcopy);
     affiche_cellule(IndexTCOCourant,x,Y);
     actualise(indexTCOCourant);
@@ -370,7 +370,7 @@ begin
       EditTypeImage.Enabled:=true;
       with GroupBoxAction do
       begin
-        act:=tco[indexTCO,XclicC,YclicC].PiedFeu;
+        act:=tco[indexTCO,XclicC,YclicC].PiedSignal;
         if (act<0) or (act-1>ListBoxAction.Count) then
         begin
           Affiche('Erreur 29 ',clred);
@@ -607,7 +607,7 @@ begin
           end;
           end;
 
-          PiedFeu:=tco[indexTCO,XclicC,YclicC].PiedFeu;
+          PiedFeu:=tco[indexTCO,XclicC,YclicC].PiedSignal;
           if PiedFeu=1 then
           begin
             RadioButtonG.checked:=true;

@@ -14083,7 +14083,7 @@ function Maj_icone_train(IImage : Timage;index :integer;coulfond : Tcolor) : int
 var h,l,HautDest,LargDest,y : integer;
     rd : single;
 begin
-  if (index<1) or (index>Ntrains) then
+  if (index<1) or (index>Ntrains) or (iImage=nil) then
   begin
     //Iimage.Picture:=nil;
     result:=0;
@@ -14975,7 +14975,6 @@ begin
   EditNbreAdr.Text:=intToSTR(decodeur_pers[decCourant].NbreAdr);
   //Affiche('Décodeur courant = '+intToSTR(decCourant),clyellow);
   maj_decodeurs;
-
 end;
 
 // renvoie vrai si chaine est dans le combobox 'combo' et renvoie son index
@@ -15026,7 +15025,7 @@ begin
   for i:=ma to NbreDecPers-1 do
   begin
     Affiche('traitement décodeur '+inttoSTR(i),clyellow);
-    decodeur_pers[i]:=decodeur_pers[i+1];          
+    decodeur_pers[i]:=decodeur_pers[i+1];
   end;
   dec(NbreDecPers);
   if NbreDecPers=0 then ComboBoxDecodeurPerso.Text:='';
@@ -15452,7 +15451,7 @@ begin
   if s='ListBoxAig' then ajoute_aiguillage;
   if s='ListBoxTrains' then ajoute_train;
   if s='ListBoxPeriph' then ajoute_periph;
-end;   
+end;
 
 procedure TFormConfig.outcopierentatquetexte1Click(Sender: TObject);
 var tl: TListBox;
@@ -15928,7 +15927,7 @@ begin
   index:=Index_Aig(Adresse);
   AncienAdresse:=aiguillage[index].AncienAdresse;
   if Adresse=AncienAdresse then exit;
-  
+
   Affiche('Propagation de l''adresse '+intToSTR(adresse)+' en remplacement de l''ancienne adresse '+intToSTR(AncienAdresse),clOrange);
 
   // --------- aiguillages -----------
@@ -16102,7 +16101,6 @@ begin
   ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
                       'des aiguillages, des branches et des signaux'+#13+
                       'si on a changé l''adresse d''un aiguillage';
-
   clicListe:=false;
 end;
 
@@ -19259,6 +19257,8 @@ begin
     aiguille_compteur(1,1,ImageCTC);
   end;
 end;
+
+
 
 end.
 
