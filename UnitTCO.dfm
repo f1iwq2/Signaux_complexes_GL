@@ -24,8 +24,8 @@ object FormTCO: TFormTCO
   OnKeyPress = FormKeyPress
   OnMouseWheel = FormMouseWheel
   DesignSize = (
-    997
-    548)
+    1005
+    556)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelZoom: TLabel
@@ -1635,6 +1635,20 @@ object FormTCO: TFormTCO
         Caption = 'Dessiner le TCO'
         Hint = 'Dessine le TCO '#224' la souris'
         OnClick = DessinerleTCO1Click
+      end
+      object N11: TMenuItem
+        Caption = '-'
+      end
+      object Modeslection1: TMenuItem
+        Caption = 'Mode s'#233'lection'
+        OnClick = Modeslection1Click
+      end
+      object Modedplacement1: TMenuItem
+        Caption = 'Mode d'#233'placement'
+        OnClick = Modedplacement1Click
+      end
+      object N12: TMenuItem
+        Caption = '-'
       end
       object ConfigurationduTCO1: TMenuItem
         Caption = 'Configuration du TCO'

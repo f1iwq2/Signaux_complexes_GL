@@ -122,6 +122,7 @@ var
   iValue : LongWord;
   s : string;
 begin
+  BisEnabled:=false;
   fwPolicy2:=CreateOleObject('HNetCfg.FwPolicy2');
   RulesObject:=fwPolicy2.Rules;
   CurrentProfiles:=fwPolicy2.CurrentProfileTypes;

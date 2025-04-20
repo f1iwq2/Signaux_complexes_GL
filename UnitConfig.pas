@@ -38,8 +38,6 @@ type
     RadioButtonSP: TRadioButton;
     RadioButtonHSI: TRadioButton;
     RadioButtonECOS: TRadioButton;
-    RadioButtonRS: TRadioButton;
-    RadioButtonDCCpl: TRadioButton;
     GroupBox7: TGroupBox;
     RadioButton13: TRadioButton;
     RadioButton14: TRadioButton;
@@ -303,7 +301,6 @@ type
     GroupBox15: TGroupBox;
     ListBoxActions: TListBox;
     ListBoxOperations: TListBox;
-    ButtonModAction: TButton;
     Label44: TLabel;
     Label48: TLabel;
     RichEditInfo: TRichEdit;
@@ -435,7 +432,7 @@ type
     ComboStyle: TComboBox;
     RadioGroupCl: TRadioGroup;
     RadioButtonFIS88: TRadioButton;
-    RadioButtonDccPlusPlus: TRadioButton;
+    RadioButtonDSI2: TRadioButton;
     Memo4: TMemo;
     ButtonlCV3: TButton;
     ButtonlCV4: TButton;
@@ -493,6 +490,25 @@ type
     Label81: TLabel;
     Panel2: TPanel;
     ImageCtC: TImage;
+    ButtonMod: TButton;
+    GroupBox25: TGroupBox;
+    ComboBoxEchelle: TComboBox;
+    Label82: TLabel;
+    TabSheetCourbes: TTabSheet;
+    GroupBoxCVit: TGroupBox;
+    ImageCourbes: TImage;
+    LabelValeur: TLabel;
+    LabelCran: TLabel;
+    LabelVcms: TLabel;
+    LabeledEditVit1: TLabeledEdit;
+    LabeledEditVit2: TLabeledEdit;
+    LabeledEditVit3: TLabeledEdit;
+    LabelEchelle: TLabel;
+    LabelV1Cons: TLabel;
+    LabelV2Cons: TLabel;
+    LabelV3Cons: TLabel;
+    Label83: TLabel;
+    Label84: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -647,7 +663,6 @@ type
     procedure EditAdrAigExit(Sender: TObject);
     procedure EditAdrAigChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure ButtonModActionClick(Sender: TObject);
     procedure ListBoxActionsMouseDown(Sender: TObject;
 	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ListBoxOperationsDrawItem(Control: TWinControl;
@@ -783,6 +798,15 @@ type
     procedure ButtonCoulNumClick(Sender: TObject);
     procedure ButtonCoulFondClick(Sender: TObject);
     procedure ButtonCoulArcClick(Sender: TObject);
+    procedure ButtonModClick(Sender: TObject);
+    procedure ValueListEditorSelectCell(Sender: TObject; ACol,
+      ARow: Integer; var CanSelect: Boolean);
+    procedure ComboBoxEchelleChange(Sender: TObject);
+    procedure ImageCourbesMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure LabeledEditVit1Change(Sender: TObject);
+    procedure LabeledEditVit2Change(Sender: TObject);
+    procedure LabeledEditVit3Change(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -899,6 +923,7 @@ LargCompteur_ch='LargCompteur';
 LargComptC_ch='LargCompteurC';
 HautComptC_ch='HautCompteurC';
 VerrouCompteur_ch='VerrouCompteur';
+Echelle_ch='Echelle';
 AffIconeTrCompteur_ch='AffIconeTrCompteur';
 Onglet_ch='Onglet';
 
@@ -963,11 +988,11 @@ var
   ligneDCC,decCourant,AffMemoFenetre,ligneClicAccPeriph,AncligneClicAccPeriph,ligneCherche,
   compt_Ligne,Ecran_SC,Max_Signal_Sens,nCantonsRes,ligneClicActionneur,BoutonBloc,
   TempoTC,Nbuttoirs,AncLigneClicActionneur,AncligneclicDet,ligneclicDet,foncCourante,
-  NbreFL,IdOperateur,NbreBlocsUSB,Onglet : integer;
+  NbreFL,IdOperateur,NbreBlocsUSB,Onglet,Echelle,ax : integer;
 
   ack_cdm,clicliste,config_modifie,clicproprietesSig,clicproprietesTrains,confasauver,trouve_MaxPort,
   modif_branches,ConfigPrete,trouve_section_dccpp,trouve_section_trains,trouve_section_acccomusb,
-  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND,
+  trouveAvecVerifIconesTCO,Affiche_avert,activ,trouve_section_dec_pers,Z21,AffAigND,prem,
   PilotageTrainsCDMNom,LanceHorl,AffSig,AffRes,avecAck,affLoc,changeCom,tsbouton,VisuIntercepte,
   clicTree : boolean;
 
@@ -977,6 +1002,8 @@ var
   FormatSettings : TFormatSettings;
 
   Liste : array[1..22] of Tliste;
+
+  ValVitTrain : array[0..127] of integer;
 
   // composants dynamiques voies PN
   EditV1F,EditV1O,EditV2F,EditV2O,EditV3F,EditV3O,EditV4F,EditV4O,EditV5F,EditV5O,
@@ -1032,6 +1059,8 @@ procedure genere_informations_BD;
 function trouve_index_style : integer;
 procedure ComboBoxFL_mizajour;
 procedure clic_BRM;
+function crans_to_Vrcms(v,idTrain : integer) : single;
+procedure courbe_train(indexTrain : integer);
 
 implementation
 
@@ -2266,6 +2295,8 @@ begin
 
   if VerrouilleCompteur then s:='1' else s:='0';
   writeln(fichierN,VerrouCompteur_ch+'=',s);
+
+  writeln(fichierN,Echelle_ch+'='+intToSTR(Echelle));
 
   if affTrainCompteur then s:='1' else s:='0';
   writeln(fichierN,AffIconeTrCompteur_ch+'=',s);
@@ -4700,14 +4731,7 @@ const LessThanValue=-1;
     end;
 
   until (sOrigine='0') or (ntrains>=Max_Trains);
-  for i:=1 to ntrains do
-  begin
-    trains[i].canton:=0;
-    trains[i].x:=-999999;
-    trains[i].y:=-999999;
-    trains[i].BlocUSB:=0;
-    calcul_equations_coeff(i);
-  end;
+
   if ntrains>1 then
     with Formprinc do
     begin
@@ -5044,8 +5068,7 @@ const LessThanValue=-1;
   end;
 
   procedure compile_compteurs;
-  var n,id,i : integer;
-      ss : string;
+  var n,i : integer;
   begin
     n:=1;
     repeat
@@ -5742,6 +5765,16 @@ const LessThanValue=-1;
         delete(s,i,length(sa));
         val(s,i,erreur);
         VerrouilleCompteur:=i=1;
+      end;
+
+      sa:=uppercase(Echelle_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,i,erreur);
+        Echelle:=i;
       end;
 
       sa:=uppercase(AffIconeTrCompteur_ch)+'=';
@@ -6478,11 +6511,10 @@ begin
     if RadioButtonp50.Checked then ServeurInterfaceCDM:=2;
     if RadioButtonSP.Checked then ServeurInterfaceCDM:=3;
     if RadioButtonHSI.Checked then ServeurInterfaceCDM:=4;
-    if RadioButtonFIS88.Checked then ServeurInterfaceCDM:=5;
-    if RadioButtonRs.Checked then ServeurInterfaceCDM:=6;
-    if RadioButtonDccpp.Checked then ServeurInterfaceCDM:=7;
+    if RadioButtonDSI2.Checked then ServeurInterfaceCDM:=5;
+    if RadioButtonFIS88.Checked then ServeurInterfaceCDM:=6;
+    if RadioButtonDCCpp.Checked then ServeurInterfaceCDM:=7;
     if RadioButtonEcos.Checked then ServeurInterfaceCDM:=8;
-    if RadioButtonDccPlusPlus.Checked then ServeurInterfaceCDM:=7;
     if RadioButton13.Checked then ServeurRetroCDM:=1;
     if RadioButton14.Checked then ServeurRetroCDM:=2;
     if RadioButton15.Checked then ServeurRetroCDM:=3;
@@ -7086,7 +7118,7 @@ begin
   end;
 end;
 
-// déploye tout le treeview courant
+// déploye tout le treeview de la fonction courante
 Procedure tout_deployer;
 var i : integer;
 begin
@@ -7179,6 +7211,79 @@ begin
   if trouve then result:=i-1 else result:=-1;
 end;
 
+// dessine la courbe de vitesse du train
+procedure courbe_train(indexTrain : integer);
+  procedure cord(var x,y : integer);
+  begin
+    x:=2*x;
+    y:=(formConfig.ImageCourbes.Height-y*2);
+  end;
+  var x,y,c,vcms : integer ;
+begin
+  prem:=true;
+  with formConfig.ImageCourbes.Canvas do
+  begin
+    Pen.Color := clWhite;
+    Brush.Color := clWhite;
+    pen.Mode:=pmCopy;
+    Rectangle(0,0,formConfig.ImageCourbes.width,formConfig.ImageCourbes.Height);
+    pen.width:=1;
+
+    // dessine les axes en noir
+    pen.Color:=clblack;
+    moveTo(0,FormConfig.ImageCourbes.Height); LineTo(0,0);
+    moveTo(0,FormConfig.ImageCourbes.Height-1); LineTo(formConfig.ImageCourbes.Width,FormConfig.ImageCourbes.Height-1);
+
+    // dessine la 1ere vitesse de mesure
+    pen.color:=clGreen;
+    x:=trains[indexTrain].ConsV1; y:=0;
+    cord(x,y); moveTo(x,y);
+    formConfig.LabelV1Cons.left:=x+formConfig.ImageCourbes.Left-5;
+    x:=trains[indexTrain].ConsV1; y:=round(crans_to_Vrcms(x,indexTrain));
+    cord(x,y); LineTo(x,y);
+    x:=0; y:=round(crans_to_Vrcms(trains[indexTrain].ConsV1,indexTrain));
+    cord(x,y); LineTo(x,y);
+
+    // dessine la 2eme vitesse de mesure
+    x:=trains[indexTrain].ConsV2; y:=0;
+    cord(x,y); moveTo(x,y);
+    formConfig.LabelV2Cons.left:=x+formConfig.ImageCourbes.Left-5;
+    x:=trains[indexTrain].ConsV2; y:=round(crans_to_Vrcms(x,indexTrain));
+    cord(x,y); LineTo(x,y);
+    x:=0; y:=round(crans_to_Vrcms(trains[indexTrain].ConsV2,indexTrain));
+    cord(x,y); LineTo(x,y);
+
+    // dessine la 3eme vitesse de mesure
+    x:=trains[indexTrain].ConsV3; y:=0;
+    cord(x,y); moveTo(x,y);
+    formConfig.LabelV3Cons.left:=x+formConfig.ImageCourbes.Left-5;
+    x:=trains[indexTrain].ConsV3; y:=round(crans_to_Vrcms(x,indexTrain));
+    cord(x,y); LineTo(x,y);
+    x:=0; y:=round(crans_to_Vrcms(trains[indexTrain].ConsV3,indexTrain));
+    cord(x,y); LineTo(x,y);
+
+    moveTo(0,FormConfig.ImageCourbes.Height);
+    pen.Width:=2;
+    pen.color:=clred;
+    for x:=1 to 127 do
+    begin
+      vcms:=round(crans_to_Vrcms(x,indexTrain));
+      c:=x;
+      ValVitTrain[x]:=vcms;
+      cord(c,vcms);
+      lineTo(c,vcms);
+    end;
+  end;
+
+  with formconfig do
+  begin
+    LabelCran.caption:='';
+    LabelValeur.caption:='';
+    LabelVcms.Caption:='';
+  end;
+
+end;
+
 procedure clicListeTrains(index : integer);
 var s : string;
     i,t : integer;
@@ -7239,24 +7344,14 @@ begin
       end;
     end;
 
-    With LabeledEditV1 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 1 - Lente '+intToSTR(Trains[index].ConsV1)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2,FormatSettings);
-    end;
-    With LabeledEditV2 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 2 - Moyenne '+intToSTR(Trains[index].ConsV2)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2,FormatSettings);
-    end;
-    With LabeledEditV3 do
-    begin
-      EditLabel.Caption:='Coefficient vitesse 3 - Rapide '+intToSTR(Trains[index].ConsV3)+' crans :';
-      LabelSpacing:=20;
-      Text:=FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2,FormatSettings);
-    end;
+    LabeledEditVit1.text:=intToSTR(Trains[index].ConsV1);
+    LabeledEditV1.Text:=FloatToSTRF(Trains[index].coeffV1,ffFixed,5,2,FormatSettings);
+
+    LabeledEditVit2.text:=intToSTR(Trains[index].ConsV2);
+    LabeledEditV2.Text:=FloatToSTRF(Trains[index].coeffV2,ffFixed,5,2,FormatSettings);
+
+    LabeledEditVit3.text:=intToSTR(Trains[index].ConsV3);
+    LabeledEditV3.Text:=FloatToSTRF(Trains[index].coeffV3,ffFixed,5,2,FormatSettings);
 
     if Trains[index].coeffV1<>0 then
     begin
@@ -7285,6 +7380,9 @@ begin
     LabeledEditCV3.Text:=intToSTR(Trains[index].CV3);
     LabeledEditCV4.Text:=intToSTR(Trains[index].CV4);
     LabeledEditCrans.Text:=intToSTR(Trains[index].crans);
+
+    courbe_train(index);
+
   end;
   clicListe:=false;
 end;
@@ -7312,8 +7410,8 @@ begin
   begin
     Nom:='1. Seuil du nombre de détecteurs trop distants' ;
     aide:='Nombre de détecteurs considérés comme trop distants'+#13+
-                          'Cette valeur dépend de la taille du réseau:'+#13+
-                          '3 pour les petits réseaux jusque 5 ou 6 pour les grands' ;
+          'Cette valeur dépend de la taille du réseau:'+#13+
+          '3 pour les petits réseaux jusque 5 ou 6 pour les grands' ;
 
     typ:= Simple ;
     masque:= '0';        // 1 chiffre
@@ -7325,8 +7423,8 @@ begin
   begin
     nom:='2. Nombre de cantons présence train avant signal' ;
     aide:='Nombre de cantons à réserver (1 à 5) en avant du train.'+#13+
-                         'Utilisé en mode roulage.'+#13+
-                         'Cette valeur dépend de la taille du réseau.';
+          'Utilisé en mode roulage.'+#13+
+          'Cette valeur dépend de la taille du réseau.';
     typ:= Simple ;
     masque:= '0';
     variable:=@Nb_cantons_Sig;
@@ -7357,7 +7455,7 @@ begin
   begin
     nom:='5. Utilisation de l''anti timeout Ethernet';
     aide:='Si 1, envoie un caractère chaque minute à la centrale '+#13+
-                         'pour éviter sa déconnexion (uniquement en Ethernet)';
+          'pour éviter sa déconnexion (uniquement en Ethernet)';
     typ:= PickList;
     variable:=@AntiTimeoutEthLenz;
     typeVar:=Bool;
@@ -7369,7 +7467,7 @@ begin
   begin
     nom:='6. Facteur de Temporisation de télécommande CDM';
     aide:='Facteur multiplicateur de 1 à 10 pour la temporisation'+#13+
-                          'de la télécommande du démarrage de CDM';
+          'de la télécommande du démarrage de CDM';
     typ:=Simple ;
     masque:= '0';
     variable:=@TempoTc;
@@ -8450,6 +8548,11 @@ begin
   if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
   clicproprietesTrains:=false;
 
+  // trains
+  EditVitRalenti.Hint:='Vitesse après l''avertissement'+#13+'en crans';
+  EditVitNom.Hint:='Vitesse si voie libre'+#13+'en crans';
+  EditVitesseMaxi.Hint:='Vitesse maximale autorisée par le décodeur'+#13+'en crans';
+  
   i:=1;
   RichCdeDCCpp.clear;
   repeat
@@ -8595,7 +8698,6 @@ begin
   label72.caption:='La rotation de bouton changera la vitesse du train. L''appui sur le bouton stoppe le train.'+#13+
                    'Les évènements clavier sont interceptés par signaux complexes ce qui ne nécessite pas d''activer la fenêtre';
 
-
   with GroupBoxBr do
   begin
     Left:=312;
@@ -8609,7 +8711,7 @@ begin
     Left:=312;
     top:=170;
     Width:=260;
-    Height:=120;
+    Height:=140;
     Visible:=false;
   end;
 
@@ -8890,10 +8992,7 @@ begin
       else
       if vitesse=60 then begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=false;RadioButton60kmh.checked:=true;end
       else
-                         begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;
-
-                         end;
-
+        begin RadioButtonSans.checked:=false;RadioButton30kmh.checked:=false;RadioButtonSpecifique.checked:=true ;RadioButton60kmh.checked:=false;end;
     end;
 
     if croi then
@@ -10771,7 +10870,7 @@ begin
   tablo_PN[NbrePN].Pulse:=0;
   tablo_PN[NbrePN].actionneur:=true;
 
-  for j:=1 to 4 do
+  for j:=1 to 5 do
   begin
     tablo_PN[NbrePN].Voie[j].ActFerme:=0;
     tablo_PN[NbrePN].Voie[j].ActOuvre:=0;
@@ -13731,11 +13830,7 @@ begin
 
   if not(ok) then action:=tCloseAction(caNone);  // si la config est nok, on ferme pas la fenetre
 
-  for index:=1 to ntrains do
-  begin
-    init_compteur(index,CompteurT[index].gb);
-  end;
-  init_compteur(1,FormCompteur[1]);
+  init_compteurs;
 end;
 
 procedure TFormConfig.ButtonConfigSRClick(Sender: TObject);
@@ -14354,8 +14449,7 @@ begin
           compteurt[j].lbl.Free;
           compteurt[j].bouton.Free;
           compteurT[j].gb.free;
-          compteurt[j].FcBitmap.Free;
-
+          compteurT[j].FcBitmap.Free;
         end;
         if j<ntrains then
         begin
@@ -16214,6 +16308,19 @@ begin
   change_adr_aig;
 end;
 
+procedure affiche_echelle;
+var s : string;
+begin
+  s:='La vitesse en km/h est calculée pour l''échelle ';
+  case echelle of
+  0 : s:=s+'H0';
+  1 : s:=s+'N';
+  2 : s:=s+'Z';
+  end;
+
+  formConfig.LabelEchelle.caption:=s;
+end;
+
 procedure TFormConfig.FormActivate(Sender: TObject);
   var i : integer;
     s : string;
@@ -16246,6 +16353,9 @@ begin
   CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
   //EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
   EditTempoSignal.Text:=IntToSTR(Tempo_Signal);
+  ComboBoxEchelle.ItemIndex:=echelle;
+  Affiche_echelle;
+
   //EditNbDetDist.text:=IntToSTR(Nb_Det_dist);
   EditAdrIPCDM.text:=adresseIPCDM;
   EditPortCDM.Text:=IntToSTR(portCDM);
@@ -16279,11 +16389,11 @@ begin
   RadioButtonP50.Checked:=ServeurInterfaceCDM=2;   // P50x
   RadioButtonSP.Checked:=ServeurInterfaceCDM=3;    // Sprog
   RadioButtonHSI.Checked:=ServeurInterfaceCDM=4;   // hsi88
-  RadioButtonFIS88.Checked:=ServeurInterfaceCDM=5; // fis88
-  RadioButtonRS.Checked:=ServeurInterfaceCDM=6;    // rs2pc
-  RadioButtonDccpp.Checked:=ServeurInterfaceCDM=7; // dccpp
-  RadioButtonEcos.Checked:=ServeurInterfaceCDM=8;  // ecos esu
-  RadioButtonDccplusplus.Checked:=ServeurInterfaceCDM=9;      // dcc++
+  RadioButtonDSI2.Checked:=ServeurInterfaceCDM=5;  // Dsi2
+  RadioButtonFis88.Checked:=ServeurInterfaceCDM=6; // FIS88
+  RadioButtonDccpp.Checked:=ServeurInterfaceCDM=7;  // Dccpp
+  RadioButtonEcos.Checked:=ServeurInterfaceCDM=8;  // Dccpp
+  
 
   RadioButton13.Checked:=ServeurRetroCDM=1;   // automatique
   RadioButton14.Checked:=ServeurRetroCDM=2;   // LI USB
@@ -16375,12 +16485,6 @@ begin
  end;
 end;
 
-procedure TFormConfig.ButtonModActionClick(Sender: TObject);
-begin  DeclencheurAffiche:=0;    // pas de demande d'affichage onglet/opération
-  OperationAffiche:=0;
-  clicaction:=0;
-  formModifAction.showModal;
-end;
 
 procedure Affiche_action;
 var i,io,j,decl :integer;
@@ -16511,7 +16615,7 @@ begin
     end;
   end;
 
-  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  if (Shift=[ssCtrl]) and (key = ord('A')) then
   begin
     ListBoxActions.SelectAll;
   end;
@@ -16993,12 +17097,12 @@ begin
     Signaux[ligneClicSig+1].BinLin:=radioGroupLEB.ItemIndex;
 end;
 
-procedure TFormConfig.ListBoxActionsDblClick(Sender: TObject);
+procedure modif_action;
 begin
   if maxTablo_act<1 then exit;
   clicliste:=true;
 
-  ligneclicAct:=listBoxActions.ItemIndex;
+  ligneclicAct:=formconfig.listBoxActions.ItemIndex;
   if ligneclicAct<0 then
   begin
     clicliste:=false;
@@ -17013,7 +17117,11 @@ begin
   OperationAffiche:=0;
   clicaction:=0;
   formModifAction.showModal;
+end;
 
+procedure TFormConfig.ListBoxActionsDblClick(Sender: TObject);
+begin
+  modif_action;
 end;
 
 procedure TFormConfig.StringGridArrSelectCell(Sender: TObject; ACol,
@@ -17189,6 +17297,7 @@ begin
 
   ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
+  calcul_equations_coeff(ligneclicTrain+1);
 end;
 
 procedure TFormConfig.LabeledEditV2Change(Sender: TObject);
@@ -17216,6 +17325,7 @@ begin
   end;
   ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
+  calcul_equations_coeff(ligneclicTrain+1);
 end;
 
 procedure TFormConfig.LabeledEditV3Change(Sender: TObject);
@@ -17243,8 +17353,8 @@ begin
   end;
   ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
+  calcul_equations_coeff(ligneclicTrain+1);
 end;
-
 
 
 procedure TFormConfig.EditDecalChange(Sender: TObject);
@@ -17301,6 +17411,19 @@ begin
   ListBoxDet.selected[ligneclicDet]:=true;
 end;
 
+// calcul vitesse réelle en cm/s du train IdTrain, de vitesse en crans
+function crans_to_Vrcms(v,idTrain : integer) : single;
+var coeff : single;
+begin
+  result:=0;
+  with trains[idTrain] do
+  begin
+    if v<consV2 then coeff:=pente1*v+b1
+      else coeff:=pente2*v+b2;
+    if coeff<>0 then result:=v/coeff;
+  end;
+end;
+
 procedure calculs;
 var vitesse,erreur,distArret : integer;
     coeff,vitR,TempsArret : single;
@@ -17309,22 +17432,17 @@ begin
   vitesse:=abs(vitesse);
   if vitesse>127 then exit;
 
-  with trains[ligneclicTrain+1] do
+  vitR:=crans_to_Vrcms(vitesse,ligneClicTrain+1);
+  with formconfig.MemoCalc do
   begin
-    if vitesse<consV2 then coeff:=pente1*vitesse+b1
-      else coeff:=pente2*vitesse+b2;
-    if coeff<>0 then vitR:=vitesse/coeff;
-    with formconfig.MemoCalc do
-    begin
-      Lines.Clear;
-      lines.add('Vitesse='+FloatToSTRF(vitR,ffFixed,5,2)+' cm/s');
+    Lines.Clear;
+    lines.add('Vitesse='+FloatToSTRF(vitR,ffFixed,5,2)+' cm/s');
 
-      TempsArret:=0.896*cv4*Vitesse/128;
-      Lines.Add('Temps d''arrêt='+FloatToSTRF(TempsArret,ffFixed,5,2)+' s');
+    TempsArret:=0.896*Trains[ligneClicTrain+1].cv4*Vitesse/128;
+    Lines.Add('Temps d''arrêt='+FloatToSTRF(TempsArret,ffFixed,5,2)+' s');
 
-      distArret:=round(TempsArret*vitR/2.2);   // en cm
-      Lines.Add('Distance approx d''arrêt='+IntToSTR(distArret)+' cm');
-    end;
+    distArret:=round(TempsArret*vitR/2.2);   // en cm
+    Lines.Add('Distance approx d''arrêt='+IntToSTR(distArret)+' cm');
   end;
 end;
 
@@ -17761,6 +17879,7 @@ begin
       LabeledEditDcc.EditLabel.Caption:='Adresse accessoire';
       LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
       SpinEditEtat.Value:=fonction[foncCourante,iNode].etat;
+      LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
     end;
 
     if i=EtatDet then
@@ -17773,6 +17892,7 @@ begin
       LabeledEditDcc.EditLabel.Caption:='Adresse';
       LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
       LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
+      LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
     end;
 
     if i=EtatBoutonTCO then
@@ -17870,13 +17990,15 @@ end;
 
 procedure TFormConfig.TreeViewLChange(Sender: TObject; Node: TTreeNode);
 // cliqué ou sélectionné un node
-var i,inode,typ : integer;
+var i,inode,typ,TypAdjAv,TypAdjAp,n : integer;
 begin
   if Assigned(Node) then
   begin
     clicTree:=true;
     i:=node.ImageIndex;
     inode:=node.AbsoluteIndex;
+    n:=fonction[foncCourante,0].adresse-1;
+
     //Affiche('Le node '+intToSTR(iNode)+' est '+node.Text+' image='+intToSTR(node.ImageIndex),clYellow);
     if i=foncVar then //racine du treeview
     begin
@@ -17921,9 +18043,25 @@ begin
 
     if isVariable(i) then
     begin
-      // autoriser montée descente menu
-      PopupMenuFL.Items[0].Enabled:=true;
-      PopupMenuFL.Items[1].Enabled:=true;
+      // autoriser montée descente menu que si l'adjacent est une variable
+      TypAdjAv:=fonction[foncCourante,inode-1].typ;
+      TypAdjAp:=fonction[foncCourante,inode+1].typ;
+      if isVariable(TypAdjAv) then
+      begin
+        PopupMenuFL.Items[0].Enabled:=true;
+      end
+      else
+      begin
+        PopupMenuFL.Items[0].Enabled:=false;
+      end;
+      if isVariable(TypAdjAp) and (inode+1<=n) then
+      begin
+        PopupMenuFL.Items[1].Enabled:=true;
+      end
+      else
+      begin
+        PopupMenuFL.Items[1].Enabled:=false;
+      end;
 
       TreeViewL.hint:='état logique';
       PanelAcc.Visible:=true;
@@ -17935,13 +18073,12 @@ begin
       ComboBoxVar.ItemIndex:=i-EtatDCC;
       ButtonAjoutevar.enabled:=true;
       ButtonAjOpEnfant.Enabled:=false;   // on ne peut pas ajouter d'opérateur sur une variable
-
     end;
   end;
   clicTree:=false;
 end;
 
- // insère une entrée dans le tableau fonction à l'indice index, et remplit niveau et fonc
+// insère une entrée dans le tableau fonction à l'indice index, et remplit niveau et fonc
 procedure insersion(k,index,niveau,fonc : integer);
 var i : integer;
 begin
@@ -18006,9 +18143,9 @@ begin
     if nodeA.GetPrevSibling <> nil then
     // oui le monter
     begin
-      nodeB:=nodeA.GetPrevSibling;  // celui du dessus
+      nodeB:=nodeA.GetPrevSibling; // celui du dessus
       idA:=nodeA.AbsoluteIndex;    // origine
-      idB:=nodeB.AbsoluteIndex;   // destination
+      idB:=nodeB.AbsoluteIndex;    // destination
       fonc:=Fonction[foncCourante,idA];  // sauver le node origine
       TreeviewL.Selected.MoveTo(nodeB,naInsert);
       nodeB:=treeViewL.Items[idB];
@@ -18212,6 +18349,7 @@ begin
     Node.SelectedIndex:=EtatDCC;
     NodeOrigine.Expand(true);
   end;
+
   // si le node origine est une variable
   if isVariable(nodeOrigine.ImageIndex) then
   begin
@@ -18220,6 +18358,7 @@ begin
     Node.SelectedIndex:=EtatDCC;
     NodeOrigine.Expand(true);
   end;
+
   config_modifie:=true;
   if node=nil then exit;
 
@@ -18360,9 +18499,9 @@ begin
   begin
     pos:=memoire[adr];
     case fonction[k,i].OpMemoire of
-    0 :  result:=pos=fonction[k,i].etat;
-    1 :  result:=pos>fonction[k,i].etat;
-    2 :  result:=pos<fonction[k,i].etat;
+    0 : result:=pos=fonction[k,i].etat;
+    1 : result:=pos>fonction[k,i].etat;
+    2 : result:=pos<fonction[k,i].etat;
     end;
     exit;
   end;
@@ -18623,13 +18762,11 @@ var i,erreur : integer;
    s : string;
    p : pointer;
 begin
-  //Affiche('OnSetEditText '+intToSTR(Arow)+' '+Value,clYellow);
+//  Affiche('OnSetEditText '+intToSTR(Arow)+' '+Value,clYellow);
   s:=Lowercase(Value);
   val(value,i,erreur);
   LabelInfo.caption:='';
-  ValueListEditor.Hint:=liste[Arow].aide;
   p:=liste[Arow].variable;
-
   case Arow of
   1 :  begin
          if (erreur<>0) or (i<0) then exit;
@@ -18747,11 +18884,14 @@ end;
 
 procedure TFormConfig.ValueListEditorMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+var BarInfo: TScrollInfo;
 begin
+  exit;
   y:=y div (ValueListEditor.RowHeights[0]+1);
   if (y>high(liste)) or (y<1) then exit;
-  //Affiche('OnMouseMove y='+intToSTR(y),clYellow);
-  ValueListEditor.hint:=Liste[y].aide;
+//  GetScrollInfo(ValueListEditor.Handle,Integer(SB_Vert),BarInfo);
+//  Affiche('OnMouseMove scrollBar='+intToSTr(barInfo.nPos)  ,clYellow);
+ // ValueListEditor.hint:=Liste[y].aide;
 end;
 
 procedure TFormConfig.RadioGroupOPClick(Sender: TObject);
@@ -18888,7 +19028,9 @@ begin
     shapeB8.Brush.Color:=clGray;
     GroupBoxBt.visible:=true;
     GroupBoxBr.visible:=false;
+    GroupBoxBT.caption:='Bouton n°'+intToSTR(BoutonBloc);
   end;
+
 end;
 
 procedure rotatif;
@@ -18937,9 +19079,9 @@ end;
 procedure TFormConfig.ShapeB1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=1;
   boutons;
   ShapeB1.Brush.Color:=clYellow;
-  BoutonBloc:=1;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp1);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp1);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp1);
@@ -18948,9 +19090,9 @@ end;
 procedure TFormConfig.ShapeB2MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=2;
   boutons;
   ShapeB2.Brush.Color:=clYellow;
-  BoutonBloc:=2;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp2);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp2);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp2);
@@ -18959,9 +19101,9 @@ end;
 procedure TFormConfig.ShapeB3MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=3;
   boutons;
   ShapeB3.Brush.Color:=clYellow;
-  BoutonBloc:=3;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp3);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp3);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp3);
@@ -18970,9 +19112,9 @@ end;
 procedure TFormConfig.ShapeB4MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=4;
   boutons;
   ShapeB4.Brush.Color:=clYellow;
-  BoutonBloc:=4;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp4);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp4);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp4);
@@ -18981,9 +19123,9 @@ end;
 procedure TFormConfig.ShapeB5MousDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=5;
   boutons;
   ShapeB5.Brush.Color:=clYellow;
-  BoutonBloc:=5;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp5);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp5);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp5);
@@ -18992,9 +19134,9 @@ end;
 procedure TFormConfig.ShapeB6MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=6;
   boutons;
   ShapeB6.Brush.Color:=clYellow;
-  BoutonBloc:=6;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp6);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp6);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp6);
@@ -19003,9 +19145,9 @@ end;
 procedure TFormConfig.ShapeB7MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=7;
   boutons;
   ShapeB7.Brush.Color:=clYellow;
-  BoutonBloc:=7;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp7);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp7);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp7);
@@ -19014,9 +19156,9 @@ end;
 procedure TFormConfig.ShapeB8MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  BoutonBloc:=8;
   boutons;
   ShapeB8.Brush.Color:=clYellow;
-  BoutonBloc:=8;
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp8);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp8);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp8);
@@ -19258,7 +19400,138 @@ begin
   end;
 end;
 
+procedure TFormConfig.ButtonModClick(Sender: TObject);
+begin
+  modif_action;
+end;
 
+procedure TFormConfig.ValueListEditorSelectCell(Sender: TObject; ACol,
+  ARow: Integer; var CanSelect: Boolean);
+begin
+  ValueListEditor.Hint:=liste[Arow].aide;
+end;
+
+procedure TFormConfig.ComboBoxEchelleChange(Sender: TObject);
+begin
+  // 0 : H0 1/87
+  // 1 : N 1/160
+  // 2 : Z 1/220
+  echelle:=ComboBoxEchelle.ItemIndex;  // de 0 à 2
+  Affiche_echelle;
+end;
+
+procedure TFormConfig.ImageCourbesMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var i,j,maxi : integer;
+    s : string;
+begin
+  i:=x div 2;
+  if (i<0) or (i>127) then exit;
+
+  with ImageCourbes.Canvas do
+  begin
+    maxi:=ImageCourbes.Height;
+    pen.Color:=clYellow;
+    pen.Mode:=pmXor;
+    pen.width:=1;
+    if not(prem) then
+    begin
+      j:=maxi-(ValVitTrain[ax div 2]*2);
+      moveTo(0,j);LineTo(ax,j);LineTo(ax,maxi);
+    end;
+
+    j:=maxi-(ValVitTrain[i]*2);
+    moveTo(0,j);LineTo(x,j);LineTo(x,maxi);
+    prem:=false;
+    ax:=x;
+  end;
+
+  s:='Cran '+intToSTR(i)+' : '+intToSTR(ValVitTrain[i])+' cm/s  ';
+  s:=s+intToSTR(Vr_kmh(ValVitTrain[i]))+' km/h';
+
+  LabelValeur.caption:=s;
+  with LabelCran do
+  begin
+    Left:=x+ImageCourbes.Left-10;
+    caption:=intToSTR(i);
+  end;
+  with LabelVCMS do
+  begin
+    if j>16 then top:=j+ImageCourbes.Top-5;
+
+    caption:=intToSTR(ValVitTrain[i]);
+  end;
+
+end;
+
+procedure TFormConfig.LabeledEditVit1Change(Sender: TObject);
+var i,erreur : integer;
+begin
+  if (ligneClicTrain<0) or (clicliste) then exit;
+  val(labelededitVit1.Text,i,erreur);
+
+  if erreur=0 then
+  begin
+    LabelErreur.caption:='';
+    if i<128 then trains[ligneclicTrain+1].ConsV1:=i
+    else
+    begin
+      LabelErreur.caption:='Hors limites';
+      exit;
+    end;
+  end;
+
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
+  ListBoxTrains.selected[ligneclicTrain]:=true;
+  calcul_equations_coeff(ligneclicTrain+1);
+end;
+
+procedure TFormConfig.LabeledEditVit2Change(Sender: TObject);
+var i,erreur : integer;
+begin
+  if (ligneClicTrain<0) or (clicliste) then exit;
+  val(labelededitVit2.Text,i,erreur);
+
+  if erreur=0 then
+  begin
+    LabelErreur.caption:='';
+    if i<128 then trains[ligneclicTrain+1].ConsV2:=i
+    else
+    begin
+      LabelErreur.caption:='Hors limites';
+      exit;
+    end;
+  end;
+
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
+  ListBoxTrains.selected[ligneclicTrain]:=true;
+  calcul_equations_coeff(ligneclicTrain+1);
+
+end;
+
+procedure TFormConfig.LabeledEditVit3Change(Sender: TObject);
+var i,erreur : integer;
+begin
+  if (ligneClicTrain<0) or (clicliste) then exit;
+  val(labelededitVit3.Text,i,erreur);
+
+  if erreur=0 then
+  begin
+    LabelErreur.caption:='';
+    if i<128 then trains[ligneclicTrain+1].ConsV3:=i
+    else
+    begin
+      LabelErreur.caption:='Hors limites';
+      exit;
+    end;
+  end;
+
+  ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
+  ListBoxTrains.selected[ligneclicTrain]:=true;
+
+  calcul_equations_coeff(ligneclicTrain+1);
+
+end;
 
 end.
 

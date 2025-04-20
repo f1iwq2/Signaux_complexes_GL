@@ -421,7 +421,7 @@ begin
     begin
        s:=s+'Fonction logique '+intToSTR(tablo_action[i].adresse);
      end;
-  DeclClavier : s:=s+'Touche du clavier et/ou bloc USB '+intToSTR(tablo_action[i].adresse);
+  DeclClavier : s:=s+'Touche '+intToSTR(tablo_action[i].adresse)+' du clavier/bloc USB ';
   end;
 
   // conditions
@@ -432,19 +432,19 @@ begin
     s:=s+'Condition :';
     top:=Tablo_Action[i].tabloCond[op].numcondition;
     case top of
-    CondVrai : s:=s+'toujours vraie ';
-    CondFaux : s:=s+'toujours fausse ';
-    CondVitTrain : s:=s+'vitesse train '+Tablo_Action[i].tabloCond[op].train+' '+intToSTR(Tablo_Action[i].tabloCond[op].vitmini)+
+      CondVrai : s:=s+'toujours vraie ';
+      CondFaux : s:=s+'toujours fausse ';
+      CondVitTrain : s:=s+'vitesse train '+Tablo_Action[i].tabloCond[op].train+' '+intToSTR(Tablo_Action[i].tabloCond[op].vitmini)+
                         ' '+intToSTR(Tablo_Action[i].tabloCond[op].vitMaxi);
-    CondPosAcc : s:=s+' position d''accessoire '+intToSTR(Tablo_Action[i].tabloCond[op].accessoire)+' état '+intToSTR(Tablo_Action[i].tabloCond[op].etat);
-    CondHorl : s:=s+' horloge '+intToSTR(Tablo_Action[i].tabloCond[op].HeureMin)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMin)+' à '+
+      CondPosAcc : s:=s+' position d''accessoire '+intToSTR(Tablo_Action[i].tabloCond[op].accessoire)+' état '+intToSTR(Tablo_Action[i].tabloCond[op].etat);
+      CondHorl : s:=s+' horloge '+intToSTR(Tablo_Action[i].tabloCond[op].HeureMin)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMin)+' à '+
                                  intToSTR(Tablo_Action[i].tabloCond[op].HeureMax)+'h'+intToSTR(Tablo_Action[i].tabloCond[op].MinuteMax)+' ';
-    condTrainSig : s:=s+'train '+Tablo_Action[i].tabloCond[op].train+' arrêté au signal '+intToSTR(Tablo_Action[i].tabloCond[op].Adresse);
-    condFonction : s:=s+'fonction logique '+intToSTR(tablo_action[i].tabloCond[op].adresse);
-    condBouton : s:=s+'bouton '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' TCO';
-    condMemoireEgal : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat);
-    condMemoireInf : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' < '+intToSTR(tablo_action[i].tabloCond[op].etat);
-    condMemoireSup : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' > '+intToSTR(tablo_action[i].tabloCond[op].etat);
+      condTrainSig : s:=s+'train '+Tablo_Action[i].tabloCond[op].train+' arrêté au signal '+intToSTR(Tablo_Action[i].tabloCond[op].Adresse);
+      condFonction : s:=s+'fonction logique '+intToSTR(tablo_action[i].tabloCond[op].adresse);
+      condBouton : s:=s+'bouton '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' TCO';
+      condMemoireEgal : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat);
+      condMemoireInf : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' < '+intToSTR(tablo_action[i].tabloCond[op].etat);
+      condMemoireSup : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' > '+intToSTR(tablo_action[i].tabloCond[op].etat);
 
     end;
     s:=s+#13;
@@ -632,7 +632,7 @@ begin
         begin
           EditLabel.Caption:='Mémoire';
           Visible:=true;
-          hint:='Numéro de mémoire';
+          hint:='Numéro de mémoire de 0 à '+intToSTR(MaxMemoires);
           text:=intToSTR(Tablo_Action[index].tabloop[indexAction].adresse);
         end;
         with SpinEditEtatOp do

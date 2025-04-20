@@ -211,7 +211,7 @@ end;
 
 // actualise le contenu de la fenetre et de la zone tco par rapport à la cellule cliquée
 procedure actualise(indexTCO : integer);
-var i,j,ligne,Adr,Bimage,oriente,piedFeu,act,sens,IdCanton : integer;
+var i,j,ligne,Adr,Bimage,oriente,piedFeu,act,sens,IdCanton,x,y,xc,yc : integer;
     s : string;
     ip : Timage;
     r : trect;
@@ -270,7 +270,10 @@ begin
       //XclicCell[indexTCO]:=XclicC;
       //YclicCell[indexTCO]:=YclicC;
 
-      idCanton:=index_canton(indexTCO,xclicC,yclicC);
+      xc:=xClicC;yc:=yClicC;
+      origine_canton(xc,yc);
+
+      idCanton:=index_canton(indexTCO,xC,yC);
 
       GroupBoxOrientation.visible:=false;
       GroupBoxImplantation.visible:=false;
@@ -278,7 +281,7 @@ begin
       GroupBoxDet.visible:=false;
       GroupBoxCanton.visible:=true;
 
-      sens:=tco[indexTCO,xClicC,yClicC].SensCirc;
+      sens:=tco[indexTCO,xC,yC].SensCirc;
       with GroupBoxCanton do
       begin
         EditTypeImage.Enabled:=false;
@@ -457,7 +460,7 @@ begin
     with formConfCellTCO do
     begin
       CheckBoxEncadre.checked:=tco[indexTCO,XclicC,YclicC].Buttoir=1;
-      
+
       EditTypeImage.Enabled:=true;
       GroupBoxOrientation.Visible:=false;
       GroupBoxImplantation.Visible:=false;
@@ -630,7 +633,10 @@ begin
 
   with formConfCellTCO do
   begin
-    if isCanton(Bimage) then EditTexteCCTCO.Text:=canton[idcanton].nom
+    if isCanton(Bimage) then
+    begin
+      if idcanton>0 then EditTexteCCTCO.Text:=canton[idcanton].nom;
+    end
     else EditTexteCCTCO.Text:=tco[indexTCO,xclicC,yclicC].Texte;
     EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
     ComboRepr.ItemIndex:=tco[indexTCO,XclicC,YclicC].repr;
@@ -659,7 +665,14 @@ begin
       i:=index_canton(indexTCO,xclicC,yclicC);
       if i>0 then FormConfCellTCO.EditCanton.text:=intToSTR(canton[i].numero);
     end
-    else FormConfCellTCO.LabelNumC.caption:='Elément de canton';
+    else                
+    begin
+      FormConfCellTCO.LabelNumC.caption:='Elément de canton';
+      x:=xClicC;y:=yClicC;
+      origine_canton(x,y);
+      i:=tco[indexTCO,x,y].NumCanton;
+      if i>0 then FormConfCellTCO.EditCanton.text:=intToSTR(i);
+    end;
   end;
 
   actualize:=false;
@@ -1350,6 +1363,7 @@ var idc,x,y,sens : integer;
     H : boolean;
 begin
   Idc:=index_canton(indexTCOcourant,xclicC,yclicC);
+  //Affiche('IDC='+intToSTR(idc),clYellow);
   x:=canton[Idc].x;
   y:=canton[Idc].y;
   H:=IsCantonH(IndexTCOCourant,x,y);

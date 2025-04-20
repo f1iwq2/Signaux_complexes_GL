@@ -8,13 +8,13 @@ uses
 
 const
 pisur180=pi/180;
-NbreCompteurs=10;
+NbreCompteurs=1;
 
 type
   TFormCompteur = class(TForm)
     ImageCompteur: TImage;
     TrackBarC: TTrackBar;
-    PopupMenu1: TPopupMenu;
+    PopupMenuC: TPopupMenu;
     Verrouillerdevant1: TMenuItem;
     Dverrouiller1: TMenuItem;
     N1: TMenuItem;
@@ -27,6 +27,9 @@ type
     N2: TMenuItem;
     Affichericonedutrain1: TMenuItem;
     ImageTrain: TImage;
+    N3: TMenuItem;
+    Vitesseencrans1: TMenuItem;
+    Vitesserelle1: TMenuItem;
     procedure FormActivate(Sender: TObject);
     procedure Dverrouiller1Click(Sender: TObject);
     procedure Verrouillerdevant1Click(Sender: TObject);
@@ -39,6 +42,9 @@ type
     procedure FormResize(Sender: TObject);
     procedure Button0Click(Sender: TObject);
     procedure Affichericonedutrain1Click(Sender: TObject);
+    procedure Vitesseencrans1Click(Sender: TObject);
+    procedure Vitesserelle1Click(Sender: TObject);
+    procedure PopupMenuCPopup(Sender: TObject);
   private
     { Déclarations privées }
     protected
@@ -49,20 +55,20 @@ type
   end;
 
 type
-   typ=(rien,fen,gb,im);    // un compteur peut être de la fenetre 'formCompteur' (fen), des groupBox de la fenetre principale (gb) ou d'une image (onglet compteurs formConfig)
-   TTcompteur=array[1..10] of record
+   typ=(Trien,fen,gb,im);    // un compteur peut être de la fenetre 'formCompteur' (fen), des groupBox de la fenetre principale (gb) ou d'une image (onglet compteurs formConfig)
+   TTcompteur=array[1..1] of record
       FcBitMap : Tbitmap;
       paramcompt : TparamCompt;
   end;
 
 var
-  formCompteur : array[1..10] of TformCompteur;     // il y a 10 fenetres mais on utilise qu'un compteur.
+  formCompteur : array[1..1] of TformCompteur;     // il y a 10 fenetres mais on utilise qu'un compteur.
   Scompteur :  TTCompteur;  //   Scompteur : associé à fen
   ParamCompteur : array[1..3] of record
     coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
   end;
 
-  VerrouilleCompteur,affTrainCompteur : boolean;
+  VerrouilleCompteur,affTrainCompteur,VitCrans : boolean;
   LargeurCompteurs,HauteurCompteurs,LargComptC,HautComptC : integer;
   couleurTete : tcolor;
 
@@ -72,6 +78,8 @@ procedure aiguille_compteur(c,idTrain : integer;comp : Tcomponent);
 procedure dessin_fond_compteur(var param : TparamCompt;i: integer ; Im : tbitmap;typCompt : integer);
 procedure position_compteur;
 procedure affiche_train_compteur(c : integer);
+procedure init_compteurs;
+function Vr_kmh(v : integer) : integer;
 
 implementation
 
@@ -143,25 +151,34 @@ begin
   affiche_train_compteur(1);
 end;
 
+// convertit une vitesse en cm/s en km/h suivant l'échelle
+function Vr_kmh(v : integer) : integer;
+begin
+  case echelle of
+  0 :  result:=(v*87*36) div 1000;    // H0
+  1 :  result:=(v*160*36) div 1000;   // N
+  2 :  result:=(v*220*36) div 1000;   // Z
+  end;
+end;
 
 // change l'aiguille du compteur
-// c : n° du compteur     idTrain : index du train  comp : composant dans lequel se trouve le compteur (form, groupbox ou image)
+// c : n° de fenetre du compteur     idTrain : index du train  comp : composant dans lequel se trouve le compteur (form, groupbox ou image)
 procedure aiguille_compteur(c,idTrain : integer ; comp : Tcomponent);
 var ComptLoc,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
-    angleDeb,AngleFin,sinD,cosD,sinF,cosF : extended ;
+    angleDeb,AngleFinLoc,sinD,cosD,sinF,cosF : extended ;
     canvDest :tcanvas;
     param : Tparamcompt;
     typDest : typ;
 begin
   if compteur<1 then exit;
 
-  typDest:=rien;
+  typDest:=Trien;
   if comp is tform then typDest:=fen;
   if comp is tgroupBox then typDest:=gb;
   if comp is tImage then typDest:=im;
-  if TypDest=rien then
+  if TypDest=Trien then
   begin
-    Affiche('Anomalie 47',clred);
+    Affiche('Anomalie 47 c='+intToSTR(c)+' i='+intToSTR(idTrain),clred);
     exit;
   end;
 
@@ -198,16 +215,32 @@ begin
     canvDest:=formconfig.ImageCtC.Canvas;
   end;
 
+  if not(VitCrans) then
+  begin
+    if trains[idTrain].CoeffV1<>0 then  // si le train est étalonné
+    begin
+      vitesse:=round(crans_to_Vrcms(vitesse,idTrain));          // vitesse en cm/s
+      vitesseFin:=round(crans_to_Vrcms(vitesseFin,idTrain));    // vitesse en cms/s
+
+      vitesse:=vr_kmh(vitesse);
+      VitesseFin:=vr_kmh(vitesseFin);
+
+      if vitesse>param.AngleFin then vitesse:=param.AngleFin;
+      if vitesseFin>param.AngleFin then VitesseFin:=param.AngleFin;
+    end;
+  end;
+
   with param do
   begin
     angleDeb:=ComptA*vitesse+comptB;
-    angleFin:=ComptA*vitesseFin+comptB;
+    angleFinLoc:=ComptA*vitesseFin+comptB;
+
     lim:=imgL;
     Him:=imgH;
   end;
 
   sincos(AngleDeb*pisur180,sinD,cosD);  // arc vitesse de début
-  sincos(AngleFin*pisur180,sinF,cosF);  // arc vitesse de fin
+  sincos(AngleFinLoc*pisur180,sinF,cosF);  // arc vitesse de fin
 
   with canvDest do
   begin
@@ -221,7 +254,7 @@ begin
     begin
       pen.mode:=pmCopy;
       pen.width:=round(4*redX);
-      if (vitesse<>0) and (angleDeb<>angleFin) then
+      if (vitesse<>0) and (angleDeb<>angleFinLoc) then
       begin
         x1:=AigCX - rav;
         y1:=AigCY - rav;
@@ -232,7 +265,7 @@ begin
         x4:=AigCX + Round(rav*sinF);
         y4:=AigCY - Round(rav*cosF);
         pen.color:=ParamCompteur[comptloc].coulArc;
-        if angleDeb>=angleFin then setArcDirection(Handle,AD_COUNTERCLOCKWISE) else setArcDirection(Handle,AD_CLOCKWISE) ;
+        if angleDeb>=angleFinLoc then setArcDirection(Handle,AD_COUNTERCLOCKWISE) else setArcDirection(Handle,AD_CLOCKWISE) ;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
 
@@ -244,13 +277,12 @@ begin
   end;
 end;
 
-procedure compteur_2(c : integer;bm : tbitmap;param : tparamcompt);
+procedure compteur_2(c : integer;bm : tbitmap;var param : tparamcompt);
 var n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
-    angle,angleFin,incr,r : single;
+    angle,incr,r : single;
     s : string;
 begin
   angle:=10;     // angle début des graduations
-  angleFin:=170;  // angle fin des graduations
   incr:=2.5;      // incrément d'angle en ° des graduations
   n:=0;
   v:=0;
@@ -259,6 +291,7 @@ begin
 
   with param do
   begin
+    AngleFin:=170;                  // 170 angle fin des graduations
     r:=redx;                        // réduction
     rg:=round(AigCX/1.05);          // rayon des graduations
     rayon2:=Rg-round(10*r);         // rayon de fin des graduations
@@ -281,6 +314,9 @@ begin
       font.color:=ParamCompteur[2].CoulNum;
       font.size:=round(r*20);
       font.style:=[fsbold];
+      {$IF CompilerVersion >= 28.0}
+      font.orientation:=0;
+      {$IFEND}
     end;
 
     // dessine le cadran
@@ -333,23 +369,25 @@ begin
       end;
       inc(n);
       angle:=angle+incr;       // 18
-    until angle>AngleFin+incr;
+    until angle>param.AngleFin+incr;
+
+  AngleFin:=130;     // en fait vitesse maxi compteur
   end;
 end;
 
-procedure compteur_tachro(c : integer;bm : tbitmap;param : tparamcompt);
+procedure compteur_tachro(c : integer;bm : tbitmap;var param : tparamcompt);
 var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
-    angle,angleFin,incr,r,a,sinA,cosA : single;
+    angle,incr,r,a,sinA,cosA : single;
     s : string;
 begin
   angle:=-40;     // angle début des graduations
-  angleFin:=220;  // angle fin des graduations
   incr:=2.5;      // incrément d'angle en ° des graduations
   n:=0;
   v:=0;
 
   with param do
   begin
+    angleFin:=220;  // angle fin des graduations en km/h
     lim:=ImgL;
     him:=ImgH;
     AigCX:=lim div 2;      // centre aiguille
@@ -438,15 +476,11 @@ begin
      end;
      inc(n);
      angle:=angle+incr;
-    until angle>AngleFin+incr;
+    until angle>param.AngleFin+incr;
   end;
 
-  lim:=param.ImgL;
-  him:=param.ImgH;
-
-  // copie l'image du texte "tachro" mise à l'échelle
-  StretchBlt(bm.Canvas.Handle,round(145*r),round(90*r),round(lim*r),round(him*r),
-             FormPrinc.ImageTachro.canvas.Handle,0,0,lim,him,srcCopy);
+  param.AngleFin:=220;   // en fait vitesse maxi compteur
+  exit;
 end;
 
 
@@ -479,6 +513,9 @@ begin
           Brush.Color:=$1F1A17;
           font.color:=ParamCompteur[1].CoulNum;
           font.size:=round(redx*10);
+          {$IF CompilerVersion >= 28.0}
+          font.orientation:=0;
+          {$IFEND}
           TextOut(round(50*redX),round(128*redY),'0');
           TextOut(round(36*redX),round(90*redY),'20');
           TextOut(round(50*redX),round(54*redY),'40');
@@ -488,8 +525,9 @@ begin
           TextOut(round(126*redX),round(126*redY),'120');
           // centre de l'aiguille
           AigCX:=round(98*redX);
-          AigCY:=round(96*redY);
+          AigCY:=round(98*redY);
           rAig:=round(AigCX / 1.5);
+          angleFin:=127;  // en fait vitesse maxi compteur
           end;
       2 : begin
             // centre de l'aiguille et longueur
@@ -499,17 +537,27 @@ begin
             // le compteur 2 est dessiné
             compteur_2(i,im,param);
           end;
-      3 : begin
+      3 : begin  // tachro
             // centre de l'aiguille et longueur
             AigCX:=lim div 2;
             AigCY:=round(200*redY);
-            rAig:=round(AigCX/1.07);
+            rAig:=round(AigCX/1.1);
             // le compteur tachro est dessiné
             compteur_tachro(i,im,param);
           end;
         end;
       end;
   end;
+end;
+
+procedure init_compteurs;
+var i : integer;
+begin
+  for i:=1 to ntrains do
+  begin
+    init_compteur(i,CompteurT[i].gb);
+  end;
+  init_compteur(1,FormCompteur[1]);
 end;
 
 Procedure Init_compteur(i : integer;c : Tcomponent);
@@ -528,9 +576,15 @@ begin
   if (i<1) or (hautComptC=0) then exit;
   //Affiche('Init compteur de vitesse',clYellow);
 
+  typDest:=Trien;
   if c is tform then typDest:=fen;      // si le compteur est la fenetre unique
   if c is tGroupBox then typDest:=gb;   // si le compteur est le groupBox de la fenetre principale
   if c is tImage then typDest:=im;      // si le compteur est l'image de l'onglet config compteurs
+  if typDest=Trien then
+  begin
+    Affiche('Anomalie 48 i='+intToSTR(i),clred);
+    exit;
+  end;
 
   if (typDest=fen) or (typDest=gb) then ComptLoc:=compteur;
   if typDest=im then ComptLoc:=formconfig.ComboBoxCompt.ItemIndex+1;
@@ -547,15 +601,15 @@ begin
     2 :
     begin
       mini:=-80;           // le 0 est à mini degrés
-      maxi:=120;            // le vmax est à max degrés
+      maxi:=120;           // le vmax est à max degrés
       vmax:=160;           // vmax du compteur
       l:=400;
       h:=215;
     end;
     3 :
     begin
-      mini:=-130;           // le 0 est à mini degrés
-      maxi:=132;            // le vmax est à max degrés
+      mini:=-130;          // le 0 est à mini degrés
+      maxi:=132;           // le vmax est à max degrés
       vmax:=210;           // vmax du compteur
       l:=400;
       h:=340;
@@ -595,11 +649,8 @@ begin
     Affiche('non traité 6',clred);
   end;
 
-  if typDest=fen then
-  begin
-    formCompteur[i].ImageCompteur.width:=Lim;
-  end;
-  if typDest=gb then
+  // --- traitement par type de compteur
+  if typDest=gb then  // GroupBox de l'onglet compteurs de la page principale
   begin
     if l>h then
     begin
@@ -622,25 +673,6 @@ begin
       paramCompt.imgH:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
       Img.picture.Bitmap.Width:=lim;
       Img.picture.Bitmap.Height:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
-    end;
-  end;
-
-  if typDest=fen then
-  begin
-    Scompteur[i].paramcompt.redX:=Lim/l;
-    Scompteur[i].paramcompt.redY:=Him/h;
-    Scompteur[i].paramcompt.ImgL:=Lim;
-    Scompteur[i].paramcompt.ImgH:=Him;
-    case compteur of
-    1 : Scompteur[i].paramcompt.rav:=round(70*Scompteur[i].paramcompt.redx);  // rayon de l'arc vert
-    2 : Scompteur[i].paramcompt.rav:=round(100*Scompteur[i].paramcompt.redx);
-    3 : Scompteur[i].paramcompt.rav:=round(115*Scompteur[i].paramcompt.redx);
-    end;
-  end;
-  if typDest=gb then
-  begin
-    with compteurT[i] do
-    begin
       paramcompt.redX:=Lim/l;
       paramcompt.redY:=Him/h;
       paramcompt.ImgL:=Lim;
@@ -655,70 +687,8 @@ begin
     1 : compteurT[i].paramcompt.rav:=round(70*compteurT[i].paramcompt.redx);  // rayon de l'arc vert
     2 : compteurT[i].paramcompt.rav:=round(100*compteurT[i].paramcompt.redx);
     3 : compteurT[i].paramcompt.rav:=round(115*compteurT[i].paramcompt.redx);
-  end;
-  end;
-
-  if typDest=fen then
-  with formCompteur[i] do
-  begin
-    if VerrouilleCompteur then Left:=formprinc.Left+formprinc.Width-width;
-
-    // ajuster hauteur de la fenetre
-    Hfen:=him+trackBarC.height;
-    if affTrainCompteur then Hfen:=Hfen+ImageTrain.Height+45 else
-    Hfen:=Hfen+LabelTrain.Height+40;
-    height:=hfen;
-    Scompteur[i].paramcompt.ImgL:=Lim;
-    Scompteur[i].paramcompt.ImgH:=Him;
-
-    with ImageCompteur do
-    begin
-      Width:=Lim;
-      Height:=Him;
-      Picture.Bitmap.Width:=Lim;
-      Picture.Bitmap.Height:=Him;
-    end;
-    with trackbarC do
-    begin
-      top:=him+ImageCompteur.Top;
-      width:=lim-2;
-      Left:=0;
-      visible:=true;
-    end;
-    with labelTrain do
-    begin
-      top:=trackbarC.Top+TrackBarC.Height;
-      left:=0;
-    end;
-    with button0 do
-    begin
-      top:=ImageCompteur.height-button0.height;//trackbarC.Top+TrackBarC.Height;
-      left:=(lim div 2)-(width div 2);
-    end;
-    With ImageTprov do
-    begin
-      left:=0;
-      width:=lim-2;
-    end;
-    With ImageTrain do
-    begin
-      top:=trackbarC.Top+TrackBarC.Height;
-      left:=2;
-      visible:=affTrainCompteur;
     end;
 
-    // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
-    // créer un bitmap réduit qui sert de référence
-    Scompteur[i].FCBitMap.Free;
-    Scompteur[i].fcBitMap:=tbitmap.Create;
-    with Scompteur[i].FCBitMap do
-    begin
-      Width:=lim;
-      Height:=him;
-    end;
-  end;
-  if typDest=gb then
-  begin
     compteurT[i].FCBitMap.Free;
     compteurT[i].fcBitMap:=tbitmap.Create;
     with compteurT[i].FCBitMap do
@@ -726,6 +696,87 @@ begin
       Width:=lim;
       Height:=him;
     end;
+
+    dessin_fond_compteur(compteurT[i].paramcompt,i,compteurT[i].fcBitmap,compteur);
+    Aiguille_compteur(i,i,compteurT[i].gb);
+  end;
+
+  // fenetre compteur unique
+  if typDest=fen then
+  begin
+    formCompteur[i].ImageCompteur.width:=Lim;
+    Scompteur[i].paramcompt.redX:=Lim/l;
+    Scompteur[i].paramcompt.redY:=Him/h;
+    Scompteur[i].paramcompt.ImgL:=Lim;
+    Scompteur[i].paramcompt.ImgH:=Him;
+    case compteur of
+    1 : Scompteur[i].paramcompt.rav:=round(70*Scompteur[i].paramcompt.redx);  // rayon de l'arc vert
+    2 : Scompteur[i].paramcompt.rav:=round(100*Scompteur[i].paramcompt.redx);
+    3 : Scompteur[i].paramcompt.rav:=round(115*Scompteur[i].paramcompt.redx);
+    end;
+
+    with formCompteur[i] do
+    begin
+      if VerrouilleCompteur then Left:=formprinc.Left+formprinc.Width-width;
+
+      // ajuster hauteur de la fenetre
+      Hfen:=him+trackBarC.height;
+      if affTrainCompteur then Hfen:=Hfen+ImageTrain.Height+45 else
+      Hfen:=Hfen+LabelTrain.Height+40;
+      height:=hfen;
+      Scompteur[i].paramcompt.ImgL:=Lim;
+      Scompteur[i].paramcompt.ImgH:=Him;
+
+      with ImageCompteur do
+      begin
+        Width:=Lim;
+        Height:=Him;
+        Picture.Bitmap.Width:=Lim;
+       Picture.Bitmap.Height:=Him;
+      end;
+      with trackbarC do
+      begin
+        top:=him+ImageCompteur.Top;
+        width:=lim-2;
+        Left:=0;
+        visible:=true;
+      end;
+      with labelTrain do
+      begin
+        top:=trackbarC.Top+TrackBarC.Height;
+        left:=0;
+      end;
+      with button0 do
+      begin
+        top:=ImageCompteur.height-button0.height;//trackbarC.Top+TrackBarC.Height;
+        left:=(lim div 2)-(width div 2);
+      end;
+      With ImageTprov do
+      begin
+        left:=0;
+        width:=lim-2;
+      end;
+      With ImageTrain do
+      begin
+        top:=trackbarC.Top+TrackBarC.Height;
+        left:=2;
+        visible:=affTrainCompteur;
+      end;
+
+      // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
+      // créer un bitmap réduit qui sert de référence
+      Scompteur[i].FCBitMap.Free;
+      Scompteur[i].fcBitMap:=tbitmap.Create;
+      with Scompteur[i].FCBitMap do
+      begin
+        Width:=lim;
+        Height:=him;
+      end;
+    end;
+    dessin_fond_compteur(Scompteur[i].paramcompt,i,Scompteur[i].FcBitmap,compteur);
+
+    Aiguille_compteur(i,IdTrainClic,formCompteur[i]);
+    Affiche_train_compteur(i);
   end;
 
   // image onglet config compteur
@@ -761,24 +812,9 @@ begin
     canv:=formconfig.ImageCtC.Canvas;//   Picture.Bitmap.Canvas;
 
     dessin_fond_compteur(paramcomptIm,1,FbmcompC,i);
-    Aiguille_compteur(1,1,formconfig.ImageCTC);
-    exit;
+    //Aiguille_compteur(1,1,formconfig.ImageCTC);
+    Aiguille_compteur(i,i,formconfig.ImageCTC);
   end;
-
-  // dessine le fond du compteur dans le FcBitmap (non visible)
-  if typDest=fen then
-  begin
-    dessin_fond_compteur(Scompteur[i].paramcompt,i,Scompteur[i].FcBitmap,compteur);
-    Aiguille_compteur(i,IdTrainClic,formCompteur[i]);
-    Affiche_train_compteur(i);
-  end;
-  if typDest=gb then
-  begin
-    dessin_fond_compteur(compteurT[i].paramcompt,i,compteurT[i].fcBitmap,compteur);
-    Aiguille_compteur(i,i,compteurT[i].gb);
-  end;
-
-  if typDest=im then Aiguille_compteur(i,i,formconfig.ImageCTC);
 end;
 
 // repositionne le compteur principal
@@ -829,7 +865,7 @@ begin
   Compteurdevitesse21.checked:=false;
   Compteurtachro1.checked:=false;
   compteur:=1;
-  init_compteur(1,formCOmpteur[1]);
+  init_compteurs;
   affiche_train_compteur(1);
   aiguille_compteur(1,idTrainClic,formCOmpteur[1]);
 end;
@@ -840,7 +876,7 @@ begin
   Compteurdevitesse21.checked:=true;
   Compteurtachro1.checked:=false;
   compteur:=2;
-  init_compteur(1,formcompteur[1]);
+  init_compteurs;
   affiche_train_compteur(1);
   aiguille_compteur(1,idTrainClic,formCompteur[1]);
 end;
@@ -851,7 +887,7 @@ begin
   Compteurdevitesse21.checked:=false;
   Compteurtachro1.checked:=true;
   compteur:=3;
-  init_compteur(1,formcompteur[1]);
+  init_compteurs;
   affiche_train_compteur(1);
   aiguille_compteur(1,idTrainClic,formCompteur[1]);
 end;
@@ -896,14 +932,14 @@ var s : string;
 begin
   if clicTBtrain or clicTBGB then exit;
   clicTBFen:=true;
-  //If affevt then
-  //Affiche('Changement TrackBarcc',clyellow);
+
   tt:=sender as TTrackBar;
   f:=tt.Parent as tform;
   s:=f.caption;   // nom du train=caption de la fenêtre
 
   i:=index_train_nom(s);
   vit:=TrackBarC.position;
+  //If affevt then Affiche('Changement TrackBarcc Vit='+intToSTR(vit),clyellow);
   compteurT[i].tb.Position:=vit;
   vitesse_loco(s,i,trains[i].adresse,vit,10,0);
   clicTBFen:=false;
@@ -915,8 +951,22 @@ begin
 end;
 
 procedure TFormCompteur.Button0Click(Sender: TObject);
+var i : integer;
+    tt : tbutton;
+    f : Tform;
+    s : string;
 begin
+  clicTBFen:=true;
+  tt:=sender as TButton;
+  f:=tt.Parent as tform;
+  s:=f.caption;   // nom du train=caption de la fenêtre
+
+  i:=index_train_nom(s);
+  trains[i].vitesseCons:=0;
+  compteurT[i].tb.Position:=0;
   trackBarC.Position:=0;
+  //vitesse_loco(s,i,trains[i].adresse,0,10,0);
+  clicTBFen:=false;
 end;
 
 procedure TFormCompteur.Affichericonedutrain1Click(Sender: TObject);
@@ -925,6 +975,47 @@ begin
   afficherIconeDuTrain1.Checked:=affTrainCompteur;
   init_compteur(1,formcompteur[1]);
   affiche_train_compteur(1);
+
+end;
+
+procedure TFormCompteur.Vitesseencrans1Click(Sender: TObject);
+begin
+  Vitesseencrans1.Checked:=true;
+  Vitesserelle1.checked:=false;
+  VitCrans:=true;
+end;
+
+procedure TFormCompteur.Vitesserelle1Click(Sender: TObject);
+begin
+  Vitesserelle1.Checked:=true;
+  Vitesseencrans1.Checked:=false;
+  VitCrans:=false;
+end;
+
+procedure TFormCompteur.PopupMenuCPopup(Sender: TObject);
+var c : tcomponent;
+    f : tform;
+    s : string;
+    i : integer;
+begin
+  c:=popupmenuC.PopupComponent;  // trouver la form parente du popup
+  c:=c.GetParentComponent;
+  if c is tform then
+  begin
+    f:=c as tform;
+    s:=f.caption;   // train
+    i:=index_train_nom(s);
+    if trains[i].CoeffV3=0 then
+    begin
+      Vitesseencrans1.enabled:=false;
+      Vitesserelle1.enabled:=false;
+    end
+    else
+    begin
+      Vitesseencrans1.enabled:=true;
+      Vitesserelle1.enabled:=true;
+    end;
+  end;
 end;
 
 end.

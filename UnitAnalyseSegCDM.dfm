@@ -75,7 +75,9 @@ object FormAnalyseCDM: TFormAnalyseCDM
       ParentShowHint = False
       ShowHint = True
       OnClick = ImageCDMClick
+      OnMouseDown = ImageCDMMouseDown
       OnMouseMove = ImageCDMMouseMove
+      OnMouseUp = ImageCDMMouseUp
     end
   end
   object GroupBox1: TGroupBox

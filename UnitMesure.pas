@@ -217,7 +217,6 @@ begin
   PhaseVitesse:=1;  // vitesse 1 2 ou 3
   DetecteurREF:=0;
 
-
   mesureTrains:=true;
   vitesse_loco('',0,trains[indexTrainMes].adresse,v1,10,ActionVitesse);  // ActionVitesse pour ne pas générer d'event_vitesse
 

@@ -73,6 +73,10 @@ type
       Y: Integer);
     procedure ButtonAnimeClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure ImageCDMMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ImageCDMMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Déclarations privées }
   public
@@ -164,12 +168,12 @@ type
 var Segment : array of Tsegment;
     nInter,nPeriph,nSeg,nPort,nligne,XminiCDM,XmaxiCDM,YminiCDM,YmaxiCDM,NAig_CDM,Ndet_CDM,
     DernAdrAig,SeqAdrCroisement,nb_det,IndexClic,xAig,yAig,cadre,largeur_voie,dernierSeg,
-    largeurTrain,HauteurTrain : integer;
+    largeurTrain,HauteurTrain,xBas,Ybas : integer;
     lignes : TStrings;
     reducX,reducY,ArcTanHautLargTrain : single;
     FormAnalyseCDM: TFormAnalyseCDM;
     sBranche,NomModuleCDM : string;
-    clic,premaff,adr_nulle : boolean;
+    clic,premaff,adr_nulle,SourisBas : boolean;
     Aig_CDM : array[0..NbreMaxiAiguillages] of TAig_CDM;
     Det_CDM : array[1..500] of integer;
     FWICImage : tBitmap;
@@ -1171,7 +1175,8 @@ begin
   // en déduire l'angle A et B
   if arcYa<0 then angleA:=360-ArcXa else angleA:=ArcXa;
   if arcYb<0 then angleB:=360-ArcXb else angleB:=ArcXb;
-  if angleA>360 then angleA:=360-angleA;
+  if AngleA>=360 then AngleA:=360-AngleA;
+  if AngleB>=360 then AngleB:=360-AngleB;
 
   if abs(angleA-angleB)>180 then
   begin
@@ -5493,7 +5498,7 @@ begin
 end;
 
 procedure TFormAnalyseCDM.ImageCDMMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-var Xs,Ys,i,xt,yt : integer;
+var Xs,Ys,i,xt,yt,dx,dy : integer;
     trouve : boolean;
 begin
   xs:=x;ys:=y;
@@ -5514,6 +5519,17 @@ begin
     ImageCDM.showHint:=true;
   end
   else ImageCDM.showhint:=false;
+
+  if sourisBas then
+  begin
+    dx:=(Xbas-x) div 2;
+    dy:=(Ybas-y) div 2;
+    if dx<>0 then
+    ScrollBox1.HorzScrollBar.Position:=ScrollBox1.HorzScrollBar.Position+dx;
+    if dy<>0 then
+    ScrollBox1.VertScrollBar.Position:=ScrollBox1.VertScrollBar.Position+dy;
+  end;
+
 end;
 
 procedure TFormAnalyseCDM.ButtonAnimeClick(Sender: TObject);
@@ -5547,6 +5563,20 @@ end;
 procedure TFormAnalyseCDM.Button1Click(Sender: TObject);
 begin
   dessine_det(523);
+end;
+
+procedure TFormAnalyseCDM.ImageCDMMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SourisBas:=true;
+  Xbas:=x;
+  Ybas:=y;
+end;
+
+procedure TFormAnalyseCDM.ImageCDMMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SourisBas:=false;
 end;
 
 end.

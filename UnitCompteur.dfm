@@ -1,7 +1,7 @@
 object FormCompteur: TFormCompteur
   Left = 550
   Top = 218
-  Width = 227
+  Width = 258
   Height = 262
   BorderStyle = bsSizeToolWin
   Caption = 'Compteur'
@@ -25,7 +25,7 @@ object FormCompteur: TFormCompteur
     Top = 0
     Width = 180
     Height = 128
-    PopupMenu = PopupMenu1
+    PopupMenu = PopupMenuC
   end
   object Labeltrain: TLabel
     Left = 32
@@ -74,7 +74,8 @@ object FormCompteur: TFormCompteur
     TabOrder = 1
     OnClick = Button0Click
   end
-  object PopupMenu1: TPopupMenu
+  object PopupMenuC: TPopupMenu
+    OnPopup = PopupMenuCPopup
     Left = 184
     Top = 16
     object Verrouillerdevant1: TMenuItem
@@ -106,6 +107,17 @@ object FormCompteur: TFormCompteur
     object Affichericonedutrain1: TMenuItem
       Caption = 'Afficher icone du train'
       OnClick = Affichericonedutrain1Click
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object Vitesseencrans1: TMenuItem
+      Caption = 'Vitesse en crans'
+      OnClick = Vitesseencrans1Click
+    end
+    object Vitesserelle1: TMenuItem
+      Caption = 'Vitesse r'#233'elle'
+      OnClick = Vitesserelle1Click
     end
   end
 end

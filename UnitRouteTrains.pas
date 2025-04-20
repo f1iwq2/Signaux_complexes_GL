@@ -253,6 +253,7 @@ procedure maj_infos(idtrain : integer);
 var i,j,PixelLength : integer;
     s : string;
 begin
+  if idtrain<1 then exit;
   formRouteTrain.comboBoxTrains.Clear;
   formRouteTrain.ListBoxRM.Clear;
   for i:=1 to NTrains do
@@ -291,7 +292,11 @@ begin
       ButtonRouler1tr.caption:='Rouler le train '+trains[idtrain].nom_train;
       ButtonRouler1tr.enabled:=true;
     end
-    else LabelRC.Caption:='Pas de route courante affectée au train '+trains[idtrain].nom_train;
+    else
+    begin
+      LabelRC.Caption:='Pas de route courante affectée au train '+trains[idtrain].nom_train;
+      labelroute.caption:='Pas de route courante affectée au train '+trains[idtrain].nom_train;
+    end;
 
     j:=trains[idtrain].routePref[0][0].adresse;
     TabSheetRM.Caption:='Routes mémorisées ('+intToSTR(j)+')';
@@ -318,7 +323,7 @@ begin
 
     if (trains[idTrain].route[0].adresse=0) and (trains[idTrain].routePref[1][0].adresse=0) then
     begin
-      labelroute.caption:='Pas de route affectée au train '+trains[idtrain].nom_train;
+
       ButtonRouler1tr.caption:=' ';
       ButtonRouler1tr.enabled:=false;
     end;
@@ -732,6 +737,9 @@ begin
   PageControlRoutes.ActivePageIndex:=0;
   ButtonM.hint:='Affecter la route à ce train lors de sa sauvegarde et '+#13+'affecter le train au canton dans le sens de démarrage de la route';
   couleurs_RouteTrains;
+  ComboBoxTrains.ItemIndex:=0;
+  IndexTrainFR:=1;
+  maj_infos(indexTrainFR);
 end;
 
 // choisir cette route mémorisée

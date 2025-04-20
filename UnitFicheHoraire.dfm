@@ -1,8 +1,8 @@
 object FormFicheHoraire: TFormFicheHoraire
   Left = 358
   Top = 169
-  Width = 623
-  Height = 377
+  Width = 628
+  Height = 385
   Caption = 'Fiche horaire'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,13 +15,13 @@ object FormFicheHoraire: TFormFicheHoraire
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    607
-    321)
+    620
+    354)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 24
-    Top = 272
+    Left = 104
+    Top = 313
     Width = 310
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -30,25 +30,26 @@ object FormFicheHoraire: TFormFicheHoraire
       'il'
   end
   object LabelErreur: TLabel
-    Left = 280
-    Top = 296
-    Width = 3
+    Left = 99
+    Top = 297
+    Width = 173
     Height = 13
     Anchors = [akLeft, akBottom]
+    Caption = '.'
   end
   object Label2: TLabel
-    Left = 288
-    Top = 320
+    Left = 104
+    Top = 329
     Width = 296
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'Les horaires sont sauvegard'#233's dans le fichier '#39'FicheHoraire.txt"'
   end
   object ButtonOk: TButton
-    Left = 16
-    Top = 304
+    Left = 8
+    Top = 313
     Width = 75
-    Height = 25
+    Height = 32
     Hint = 'Sauvegarde la fiche et ferme la fen'#234'tre'
     Anchors = [akLeft, akBottom]
     Caption = 'Ok'
@@ -61,7 +62,7 @@ object FormFicheHoraire: TFormFicheHoraire
     Left = 8
     Top = 16
     Width = 601
-    Height = 233
+    Height = 273
     ColCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
     TabOrder = 1

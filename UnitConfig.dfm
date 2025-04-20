@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 240
-  Top = 128
+  Left = 242
+  Top = 193
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetCDM
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -683,9 +683,9 @@ object FormConfig: TFormConfig
       Caption = 'CDM Rail'
       object Label36: TLabel
         Left = 24
-        Top = 458
-        Width = 325
-        Height = 26
+        Top = 456
+        Width = 369
+        Height = 13
         Caption = 
           'Param'#232'tres de connexion et d'#39#233'change avec CDM rail et param'#232'tres' +
           ' g'#233'n'#233'raux'
@@ -864,8 +864,8 @@ object FormConfig: TFormConfig
       object GroupBox6: TGroupBox
         Left = 312
         Top = 0
-        Width = 297
-        Height = 121
+        Width = 305
+        Height = 113
         Caption = 'Au d'#233'marrage de CDM Rail : interface'
         TabOrder = 2
         object RadioButtonSS: TRadioButton
@@ -877,15 +877,15 @@ object FormConfig: TFormConfig
           TabOrder = 0
         end
         object RadioButtonXN: TRadioButton
-          Left = 8
-          Top = 32
-          Width = 225
+          Left = 176
+          Top = 16
+          Width = 137
           Height = 17
           Caption = 'XpressNet (lenz.roco)'
           TabOrder = 1
         end
         object RadioButtonP50: TRadioButton
-          Left = 184
+          Left = 8
           Top = 32
           Width = 97
           Height = 17
@@ -893,15 +893,15 @@ object FormConfig: TFormConfig
           TabOrder = 2
         end
         object RadioButtonSP: TRadioButton
-          Left = 8
-          Top = 48
+          Left = 176
+          Top = 32
           Width = 81
           Height = 17
           Caption = 'Sprog'
           TabOrder = 3
         end
         object RadioButtonHSI: TRadioButton
-          Left = 184
+          Left = 8
           Top = 48
           Width = 113
           Height = 17
@@ -909,36 +909,20 @@ object FormConfig: TFormConfig
           TabOrder = 4
         end
         object RadioButtonECOS: TRadioButton
-          Left = 184
+          Left = 8
           Top = 80
           Width = 89
           Height = 17
           Caption = 'Ecos ESU'
           TabOrder = 5
         end
-        object RadioButtonRS: TRadioButton
-          Left = 184
-          Top = 64
-          Width = 73
-          Height = 17
-          Caption = 'RS2PC'
-          TabOrder = 6
-        end
-        object RadioButtonDCCpl: TRadioButton
-          Left = 184
-          Top = 16
-          Width = 73
-          Height = 17
-          Caption = 'DCC++'
-          TabOrder = 7
-        end
         object RadioButtonDCCpp: TRadioButton
-          Left = 8
-          Top = 80
+          Left = 176
+          Top = 64
           Width = 89
           Height = 17
           Caption = 'DCCpp'
-          TabOrder = 8
+          TabOrder = 6
         end
         object RadioButtonFIS88: TRadioButton
           Left = 8
@@ -946,21 +930,21 @@ object FormConfig: TFormConfig
           Width = 113
           Height = 17
           Caption = 'FIS88 (S88/S88N)'
-          TabOrder = 9
+          TabOrder = 7
         end
-        object RadioButtonDccPlusPlus: TRadioButton
-          Left = 8
-          Top = 96
+        object RadioButtonDSI2: TRadioButton
+          Left = 176
+          Top = 48
           Width = 105
           Height = 17
-          Caption = 'DCC++'
-          TabOrder = 10
+          Caption = 'DSI2'
+          TabOrder = 8
         end
       end
       object GroupBox7: TGroupBox
         Left = 312
         Top = 122
-        Width = 297
+        Width = 305
         Height = 71
         Caption = 'Au d'#233'marrage de CDM Rail : interface LENZ / XpressNet'
         TabOrder = 3
@@ -1094,7 +1078,7 @@ object FormConfig: TFormConfig
       object GroupBoxDivers: TGroupBox
         Left = 312
         Top = 200
-        Width = 297
+        Width = 305
         Height = 137
         Caption = 'Divers'
         TabOrder = 5
@@ -1191,7 +1175,7 @@ object FormConfig: TFormConfig
       object GroupBoxStyles: TGroupBox
         Left = 312
         Top = 344
-        Width = 297
+        Width = 305
         Height = 113
         Caption = 'Styles d'#39'affichage'
         TabOrder = 6
@@ -1232,8 +1216,8 @@ object FormConfig: TFormConfig
       object Label9: TLabel
         Left = 16
         Top = 456
-        Width = 249
-        Height = 26
+        Width = 294
+        Height = 13
         Caption = 'Ces param'#232'tres sont utilis'#233's en fonctionnement sans CDM Rail'
         WordWrap = True
       end
@@ -1500,6 +1484,35 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
+        end
+      end
+      object GroupBox25: TGroupBox
+        Left = 312
+        Top = 336
+        Width = 297
+        Height = 105
+        Caption = 'Divers'
+        TabOrder = 8
+        object Label82: TLabel
+          Left = 16
+          Top = 32
+          Width = 35
+          Height = 13
+          Caption = 'Echelle'
+        end
+        object ComboBoxEchelle: TComboBox
+          Left = 120
+          Top = 24
+          Width = 145
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = ComboBoxEchelleChange
+          Items.Strings = (
+            'H0 1/87'
+            'N   1/160'
+            'Z   1/220')
         end
       end
     end
@@ -2237,7 +2250,7 @@ object FormConfig: TFormConfig
       object GroupBox12: TGroupBox
         Left = 328
         Top = 24
-        Width = 289
+        Width = 297
         Height = 449
         Caption = 'Description du signal'
         TabOrder = 0
@@ -2412,7 +2425,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2543,7 +2556,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2571,7 +2584,7 @@ object FormConfig: TFormConfig
         object CheckBoxFB: TCheckBox
           Left = 136
           Top = 264
-          Width = 145
+          Width = 153
           Height = 17
           Caption = 'Avec demande feu blanc'
           TabOrder = 15
@@ -2851,7 +2864,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2870,7 +2883,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2916,7 +2929,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -2996,20 +3009,6 @@ object FormConfig: TFormConfig
           OnDrawItem = ListBoxOperationsDrawItem
           OnMouseDown = ListBoxOperationsMouseDown
         end
-        object ButtonModAction: TButton
-          Left = 344
-          Top = 272
-          Width = 75
-          Height = 25
-          Hint = 
-            'Modifie l'#39'action : permet d'#39'attribuer un d'#233'clencheur et des op'#233'r' +
-            'ations'
-          Caption = 'Modifier'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnClick = ButtonModActionClick
-        end
         object RichEditInfo: TRichEdit
           Left = 16
           Top = 240
@@ -3024,7 +3023,7 @@ object FormConfig: TFormConfig
           ParentFont = False
           ReadOnly = True
           ScrollBars = ssVertical
-          TabOrder = 3
+          TabOrder = 2
         end
         object Button1: TButton
           Left = 16
@@ -3032,29 +3031,41 @@ object FormConfig: TFormConfig
           Width = 65
           Height = 17
           Caption = 'Nouveau'
-          TabOrder = 4
+          TabOrder = 3
           OnClick = ButtonNouvAccClick
         end
         object Button3: TButton
+          Left = 192
+          Top = 16
+          Width = 65
+          Height = 17
+          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
+          Caption = 'Supprimer'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 4
+          OnClick = ButtonSupAccClick
+        end
+        object ButtonTestAction: TButton
+          Left = 504
+          Top = 368
+          Width = 83
+          Height = 25
+          Caption = 'Test action'
+          TabOrder = 5
+          OnClick = ButtonTestActionClick
+        end
+        object ButtonMod: TButton
           Left = 104
           Top = 16
           Width = 65
           Height = 17
           Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
-          Caption = 'Supprime'
+          Caption = 'Modifier'
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 5
-          OnClick = ButtonSupAccClick
-        end
-        object ButtonTestAction: TButton
-          Left = 504
-          Top = 272
-          Width = 75
-          Height = 25
-          Caption = 'Test action'
           TabOrder = 6
-          OnClick = ButtonTestActionClick
+          OnClick = ButtonModClick
         end
       end
     end
@@ -3131,7 +3142,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -3151,7 +3162,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -3252,7 +3263,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -3802,7 +3813,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -4149,7 +4160,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TtabSheetEt
+        ActivePage = TabSheetCourbes
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'
@@ -4247,7 +4258,6 @@ object FormConfig: TFormConfig
               Top = 120
               Width = 41
               Height = 21
-              Hint = 'Vitesse maximale autoris'#233'e par le d'#233'codeur'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 2
@@ -4258,7 +4268,6 @@ object FormConfig: TFormConfig
               Top = 72
               Width = 41
               Height = 21
-              Hint = 'Vitesse apr'#232's l'#39'avertissement'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 3
@@ -4269,7 +4278,6 @@ object FormConfig: TFormConfig
               Top = 96
               Width = 41
               Height = 21
-              Hint = 'Vitesse si voie libre'
               ParentShowHint = False
               ShowHint = True
               TabOrder = 4
@@ -4348,8 +4356,8 @@ object FormConfig: TFormConfig
             object Label45: TLabel
               Left = 50
               Top = 40
-              Width = 160
-              Height = 39
+              Width = 192
+              Height = 26
               Alignment = taCenter
               Caption = 
                 'Arr'#234't temporis'#233' du train sur routes sur d'#233'tecteurs : (mode auton' +
@@ -4384,13 +4392,14 @@ object FormConfig: TFormConfig
             Caption = 'Param'#232'tres de l'#39#233'talonnage  '
             TabOrder = 0
             object LabelEt: TLabel
-              Left = 16
+              Left = 8
               Top = 24
-              Width = 201
+              Width = 294
               Height = 39
               Caption = 
                 'Les 3 coefficients de vitesse sont issus de la proc'#233'dure d'#39#233'talo' +
-                'nnage de la mesure du train'
+                'nnage de la mesure du train (menu roulage / mesurer la vitesse d' +
+                'es trains)'
               WordWrap = True
             end
             object LabelErreur: TLabel
@@ -4429,41 +4438,50 @@ object FormConfig: TFormConfig
               Caption = 'crans'
             end
             object LabeledEditV1: TLabeledEdit
-              Left = 224
-              Top = 64
-              Width = 41
+              Left = 136
+              Top = 72
+              Width = 33
               Height = 21
-              EditLabel.Width = 171
+              Hint = 'Coeff=Vitesse en crans / Vitesse r'#233'elle en cm/s'
+              EditLabel.Width = 102
               EditLabel.Height = 13
-              EditLabel.Caption = 'Coefficient vitesse 1 - lente : 0 crans'
-              LabelPosition = lpLeft
-              LabelSpacing = 30
+              EditLabel.Caption = 'Coeff vitesse 1 - lente'
+              LabelPosition = lpRight
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 0
               OnChange = LabeledEditV1Change
             end
             object LabeledEditV2: TLabeledEdit
-              Left = 224
-              Top = 88
-              Width = 41
+              Left = 136
+              Top = 96
+              Width = 33
               Height = 21
-              EditLabel.Width = 147
+              Hint = 'Coeff=Vitesse en crans / Vitesse r'#233'elle en cm/s'
+              EditLabel.Width = 122
               EditLabel.Height = 13
-              EditLabel.Caption = 'Coefficient vitesse 2 - moyenne'
-              LabelPosition = lpLeft
-              LabelSpacing = 30
+              EditLabel.Caption = 'Coeff vitesse 2 - moyenne'
+              LabelPosition = lpRight
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 1
               OnChange = LabeledEditV2Change
             end
             object LabeledEditV3: TLabeledEdit
-              Left = 224
-              Top = 112
-              Width = 41
+              Left = 136
+              Top = 120
+              Width = 33
               Height = 21
-              EditLabel.Width = 133
+              Hint = 'Coeff=Vitesse en crans / Vitesse r'#233'elle en cm/s'
+              EditLabel.Width = 108
               EditLabel.Height = 13
-              EditLabel.Caption = 'Coefficient vitesse 3 - rapide'
-              LabelPosition = lpLeft
-              LabelSpacing = 30
+              EditLabel.Caption = 'Coeff vitesse 3 - rapide'
+              LabelPosition = lpRight
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 2
               OnChange = LabeledEditV3Change
             end
@@ -4487,7 +4505,7 @@ object FormConfig: TFormConfig
             end
             object LabeledEditCV3: TLabeledEdit
               Left = 224
-              Top = 136
+              Top = 144
               Width = 33
               Height = 21
               EditLabel.Width = 135
@@ -4500,7 +4518,7 @@ object FormConfig: TFormConfig
             end
             object LabeledEditCV4: TLabeledEdit
               Left = 224
-              Top = 160
+              Top = 168
               Width = 33
               Height = 21
               EditLabel.Width = 135
@@ -4513,7 +4531,7 @@ object FormConfig: TFormConfig
             end
             object LabeledEditCrans: TLabeledEdit
               Left = 224
-              Top = 184
+              Top = 192
               Width = 41
               Height = 21
               EditLabel.Width = 144
@@ -4540,7 +4558,7 @@ object FormConfig: TFormConfig
             end
             object ButtonlCV3: TButton
               Left = 264
-              Top = 136
+              Top = 144
               Width = 20
               Height = 25
               Hint = 'Lire le CV3 de la locomotive plac'#233'e sur la voie de programmation'
@@ -4552,7 +4570,7 @@ object FormConfig: TFormConfig
             end
             object ButtonlCV4: TButton
               Left = 264
-              Top = 160
+              Top = 168
               Width = 20
               Height = 25
               Hint = 'Lire le CV4 de la locomotive plac'#233'e sur la voie de programmation'
@@ -4564,7 +4582,7 @@ object FormConfig: TFormConfig
             end
             object ButtonRepriseDCC: TButton
               Left = 288
-              Top = 144
+              Top = 152
               Width = 25
               Height = 25
               Hint = 'Repasse la centrale en mode DCC'
@@ -4573,6 +4591,136 @@ object FormConfig: TFormConfig
               ShowHint = True
               TabOrder = 10
               OnClick = ButtonRepriseDCCClick
+            end
+            object LabeledEditVit1: TLabeledEdit
+              Left = 96
+              Top = 72
+              Width = 33
+              Height = 21
+              Hint = 'Vitesse en crans du coefficient V1'
+              EditLabel.Width = 57
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vit 1 (Crans)'
+              LabelPosition = lpLeft
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 11
+              OnChange = LabeledEditVit1Change
+            end
+            object LabeledEditVit2: TLabeledEdit
+              Left = 96
+              Top = 96
+              Width = 33
+              Height = 21
+              Hint = 'Vitesse en crans du coefficient V2'
+              EditLabel.Width = 57
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vit 2 (Crans)'
+              LabelPosition = lpLeft
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 12
+              OnChange = LabeledEditVit2Change
+            end
+            object LabeledEditVit3: TLabeledEdit
+              Left = 96
+              Top = 120
+              Width = 33
+              Height = 21
+              Hint = 'Vitesse en crans du coefficient V3'
+              EditLabel.Width = 57
+              EditLabel.Height = 13
+              EditLabel.Caption = 'Vit 3 (Crans)'
+              LabelPosition = lpLeft
+              LabelSpacing = 10
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 13
+              OnChange = LabeledEditVit3Change
+            end
+          end
+        end
+        object TabSheetCourbes: TTabSheet
+          Caption = 'Courbe vitesse'
+          ImageIndex = 3
+          object GroupBoxCVit: TGroupBox
+            Left = 0
+            Top = 8
+            Width = 321
+            Height = 409
+            Caption = 'Courbe de vitesse'
+            TabOrder = 0
+            object ImageCourbes: TImage
+              Left = 48
+              Top = 32
+              Width = 257
+              Height = 281
+              OnMouseMove = ImageCourbesMouseMove
+            end
+            object LabelValeur: TLabel
+              Left = 48
+              Top = 364
+              Width = 4
+              Height = 13
+              Caption = #39#39
+            end
+            object LabelCran: TLabel
+              Left = 48
+              Top = 340
+              Width = 4
+              Height = 13
+              Caption = #39#39
+            end
+            object LabelVcms: TLabel
+              Left = 16
+              Top = 304
+              Width = 4
+              Height = 13
+              Caption = #39#39
+            end
+            object LabelEchelle: TLabel
+              Left = 48
+              Top = 384
+              Width = 216
+              Height = 13
+              Caption = 'La vitesse en km/h est calcul'#233'e pour l'#39#233'chelle'
+            end
+            object LabelV1Cons: TLabel
+              Left = 72
+              Top = 326
+              Width = 13
+              Height = 13
+              Caption = 'V1'
+            end
+            object LabelV2Cons: TLabel
+              Left = 144
+              Top = 326
+              Width = 13
+              Height = 13
+              Caption = 'V2'
+            end
+            object LabelV3Cons: TLabel
+              Left = 224
+              Top = 326
+              Width = 13
+              Height = 13
+              Caption = 'V3'
+            end
+            object Label83: TLabel
+              Left = 284
+              Top = 314
+              Width = 27
+              Height = 13
+              Caption = 'Crans'
+            end
+            object Label84: TLabel
+              Left = 22
+              Top = 32
+              Width = 24
+              Height = 13
+              Caption = 'cm/s'
             end
           end
         end
@@ -4806,9 +4954,9 @@ object FormConfig: TFormConfig
       object LabelRC: TLabel
         Left = 288
         Top = 312
-        Width = 250
+        Width = 248
         Height = 13
-        Caption = 'R'#233'f'#233'rences crois'#233'es de l'#39#39'utilisation des p'#233'riph'#233'riques'
+        Caption = 'R'#233'f'#233'rences crois'#233'es de l'#39'utilisation des p'#233'riph'#233'riques'
       end
       object LabelNumeroP: TLabel
         Left = 8
@@ -5299,7 +5447,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxBt: TGroupBox
           Left = 312
-          Top = 200
+          Top = 192
           Width = 260
           Height = 121
           Caption = 'Bouton'
@@ -5365,24 +5513,24 @@ object FormConfig: TFormConfig
           TabOrder = 3
           object Label74: TLabel
             Left = 8
-            Top = 32
+            Top = 64
             Width = 81
             Height = 13
             Caption = 'Affecter au train :'
           end
           object ComboBoxUSBTr: TComboBox
             Left = 96
-            Top = 28
+            Top = 60
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end
           object LabeledEditNUM: TLabeledEdit
             Left = 208
-            Top = 72
+            Top = 24
             Width = 25
             Height = 21
             Hint = 'Num'#233'ro de contr'#244'leur clavier USB (1 '#224' 10)'
@@ -5427,6 +5575,7 @@ object FormConfig: TFormConfig
         TabOrder = 0
         OnDrawCell = ValueListEditorDrawCell
         OnMouseMove = ValueListEditorMouseMove
+        OnSelectCell = ValueListEditorSelectCell
         OnSetEditText = ValueListEditorSetEditText
         ColWidths = (
           150

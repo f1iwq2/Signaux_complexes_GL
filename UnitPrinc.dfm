@@ -591,8 +591,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image3feux: TImage
-    Left = 600
-    Top = 16
+    Left = 200
+    Top = 8
     Width = 33
     Height = 57
     Picture.Data = {
@@ -5421,6 +5421,26 @@ object FormPrinc: TFormPrinc
       0000}
     Visible = False
   end
+  object Label1: TLabel
+    Left = 856
+    Top = 4
+    Width = 89
+    Height = 13
+    Caption = 'Nombre de trains : '
+  end
+  object LabelNbTrains: TLabel
+    Left = 960
+    Top = 2
+    Width = 9
+    Height = 19
+    Caption = '0'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -16
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object StatusBar1: TStatusBar
     Left = 0
     Top = 596
@@ -5492,8 +5512,8 @@ object FormPrinc: TFormPrinc
       OnMouseDown = FenRichMouseDown
     end
     object GroupBoxAcc: TGroupBox
-      Left = 425
-      Top = 5
+      Left = 433
+      Top = 29
       Width = 265
       Height = 52
       Anchors = [akTop, akRight]
@@ -5549,10 +5569,10 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxTrains: TGroupBox
-      Left = 425
-      Top = 64
+      Left = 441
+      Top = 72
       Width = 265
-      Height = 129
+      Height = 81
       Anchors = [akTop, akRight]
       Caption = 'Commande aux trains'
       TabOrder = 2
@@ -5563,31 +5583,78 @@ object FormPrinc: TFormPrinc
         Height = 13
         Caption = 'Adresse train :'
       end
-      object Label5: TLabel
-        Left = 8
-        Top = 44
-        Width = 76
-        Height = 13
-        Caption = 'Vitesse train Cr :'
-      end
       object LabelFonction: TLabel
-        Left = 148
-        Top = 44
+        Left = 20
+        Top = 48
         Width = 47
         Height = 13
         Caption = 'Fonction: '
       end
       object Label6: TLabel
-        Left = 228
-        Top = 44
+        Left = 116
+        Top = 48
         Width = 9
         Height = 13
         Caption = #224' '
       end
+      object EditAdrTrain: TEdit
+        Left = 80
+        Top = 16
+        Width = 25
+        Height = 21
+        TabOrder = 0
+        OnChange = EditAdrTrainChange
+      end
+      object ComboTrains: TComboBox
+        Left = 112
+        Top = 16
+        Width = 145
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 1
+        OnChange = ComboTrainsChange
+      end
+      object EditNumFonction: TEdit
+        Left = 76
+        Top = 44
+        Width = 25
+        Height = 21
+        Hint = 'Fonction de 0 '#224' 12 ou 28'
+        TabOrder = 2
+      end
+      object ButtonFonction: TButton
+        Left = 176
+        Top = 44
+        Width = 81
+        Height = 25
+        Caption = 'Envoi fonction'
+        TabOrder = 4
+        WordWrap = True
+        OnClick = ButtonFonctionClick
+      end
+      object EditFonc01: TEdit
+        Left = 136
+        Top = 44
+        Width = 17
+        Height = 21
+        TabOrder = 3
+      end
+    end
+    object Panel1: TPanel
+      Left = 696
+      Top = 13
+      Width = 281
+      Height = 172
+      Anchors = [akTop, akRight]
+      TabOrder = 3
+      DesignSize = (
+        281
+        172)
       object SBMarcheArretLoco: TSpeedButton
-        Left = 96
+        Left = 192
         Top = 88
-        Width = 73
+        Width = 89
         Height = 33
         Hint = 'Arr'#234't de tous les trains'
         Glyph.Data = {
@@ -5710,129 +5777,6 @@ object FormPrinc: TFormPrinc
         Visible = False
         OnClick = SBMarcheArretLocoClick
       end
-      object loco: TButton
-        Left = 6
-        Top = 88
-        Width = 83
-        Height = 33
-        Hint = 'Envoie la vitesse au train'
-        Caption = 'Envoi vitesse '#224' loco'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        WordWrap = True
-        OnClick = locoClick
-      end
-      object EditAdrTrain: TEdit
-        Left = 80
-        Top = 16
-        Width = 25
-        Height = 21
-        TabOrder = 1
-        OnChange = EditAdrTrainChange
-      end
-      object EditVitesse: TEdit
-        Left = 88
-        Top = 40
-        Width = 33
-        Height = 21
-        Hint = 'Vitesse du train en crans'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        Text = '0'
-        OnChange = EditVitesseChange
-      end
-      object ComboTrains: TComboBox
-        Left = 112
-        Top = 16
-        Width = 145
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        TabOrder = 3
-        OnChange = ComboTrainsChange
-      end
-      object EditNumFonction: TEdit
-        Left = 196
-        Top = 40
-        Width = 25
-        Height = 21
-        Hint = 'Fonction de 0 '#224' 12 ou 28'
-        TabOrder = 4
-      end
-      object ButtonFonction: TButton
-        Left = 176
-        Top = 88
-        Width = 81
-        Height = 33
-        Caption = 'Envoi fonction '#224' loco'
-        TabOrder = 6
-        WordWrap = True
-        OnClick = ButtonFonctionClick
-      end
-      object EditFonc01: TEdit
-        Left = 240
-        Top = 40
-        Width = 17
-        Height = 21
-        TabOrder = 5
-      end
-      object TrackBarVit: TTrackBar
-        Left = 16
-        Top = 64
-        Width = 233
-        Height = 21
-        Hint = 'Vitesse loco en %'
-        Ctl3D = False
-        Max = 127
-        Min = -128
-        ParentCtl3D = False
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 7
-        OnChange = TrackBarVitChange
-      end
-      object Button0: TButton
-        Left = 124
-        Top = 48
-        Width = 17
-        Height = 17
-        Caption = '0'
-        TabOrder = 8
-        OnClick = Button0Click
-      end
-    end
-    object Panel1: TPanel
-      Left = 696
-      Top = -3
-      Width = 281
-      Height = 180
-      Anchors = [akTop, akRight]
-      TabOrder = 3
-      DesignSize = (
-        281
-        180)
-      object Label1: TLabel
-        Left = 152
-        Top = 136
-        Width = 89
-        Height = 13
-        Caption = 'Nombre de trains : '
-      end
-      object LabelNbTrains: TLabel
-        Left = 256
-        Top = 132
-        Width = 9
-        Height = 19
-        Caption = '0'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -16
-        Font.Name = 'Arial'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
       object BoutonRaf: TButton
         Left = 8
         Top = 8
@@ -5930,7 +5874,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonCDMClick
       end
       object EditEnvoi: TEdit
-        Left = -8
+        Left = 8
         Top = 127
         Width = 121
         Height = 21
@@ -5939,7 +5883,7 @@ object FormPrinc: TFormPrinc
         Text = '<1>'
       end
       object ButtonEnv: TButton
-        Left = 1
+        Left = 9
         Top = 88
         Width = 88
         Height = 33
@@ -5951,10 +5895,10 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 697
-      Top = 8
+      Left = 737
+      Top = 16
       Width = 265
-      Height = 129
+      Height = 105
       Anchors = [akTop, akRight]
       Caption = 'Variables CV'
       Color = clBtnFace
@@ -5962,7 +5906,7 @@ object FormPrinc: TFormPrinc
       TabOrder = 4
       object Label3: TLabel
         Left = 208
-        Top = 42
+        Top = 34
         Width = 14
         Height = 13
         Caption = 'CV'
@@ -5970,7 +5914,7 @@ object FormPrinc: TFormPrinc
       end
       object LabelVCV: TLabel
         Left = 208
-        Top = 71
+        Top = 63
         Width = 47
         Height = 13
         Caption = 'Valeur CV'
@@ -5978,7 +5922,7 @@ object FormPrinc: TFormPrinc
       end
       object ButtonEcrCV: TButton
         Left = 8
-        Top = 24
+        Top = 16
         Width = 153
         Height = 33
         Hint = 'Ecriture CV en mode direct sur voie de  programmation'
@@ -5989,7 +5933,7 @@ object FormPrinc: TFormPrinc
       end
       object ButtonLitCV: TButton
         Left = 8
-        Top = 80
+        Top = 64
         Width = 153
         Height = 33
         Hint = 'Lecture CV en mode direct sur voie de  programmation'
@@ -6001,14 +5945,14 @@ object FormPrinc: TFormPrinc
       end
       object EditCV: TEdit
         Left = 168
-        Top = 40
+        Top = 32
         Width = 33
         Height = 21
         TabOrder = 2
       end
       object EditVal: TEdit
         Left = 168
-        Top = 68
+        Top = 60
         Width = 33
         Height = 21
         TabOrder = 3
@@ -6099,8 +6043,8 @@ object FormPrinc: TFormPrinc
     end
   end
   object ButtonEssai: TButton
-    Left = 504
-    Top = 8
+    Left = 312
+    Top = 16
     Width = 75
     Height = 25
     Caption = 'Essai'
@@ -6115,7 +6059,7 @@ object FormPrinc: TFormPrinc
     Top = 8
   end
   object MainMenu1: TMainMenu
-    Left = 560
+    Left = 536
     object Afficher1: TMenuItem
       Caption = 'Afficher'
       object Affichagenormal1: TMenuItem
@@ -6526,8 +6470,8 @@ object FormPrinc: TFormPrinc
     Left = 296
   end
   object OpenDialog: TOpenDialog
-    Left = 944
-    Top = 65528
+    Left = 584
+    Top = 16
   end
   object SaveDialog: TSaveDialog
     Left = 744
@@ -6606,10 +6550,15 @@ object FormPrinc: TFormPrinc
     end
   end
   object PopupMenuCompteurs: TPopupMenu
+    OnPopup = PopupMenuCompteursPopup
     Left = 848
     object Propritsdescompteurs1: TMenuItem
       Caption = 'Propri'#233't'#233's des compteurs'
       OnClick = Propritsdescompteurs1Click
+    end
+    object Dtacherlecompteur1: TMenuItem
+      Caption = 'D'#233'tacher le compteur'
+      OnClick = Dtacherlecompteur1Click
     end
   end
 end

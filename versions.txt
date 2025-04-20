@@ -318,10 +318,21 @@ version 10.0 : Création de 3 compteurs de vitesse de trains utilisables en mode 
 version 10.1 : Correction d'un bug sur l'évolution des trains dans le TCO.
 version 10.2 : Ajout de 4 boutons aux claviers USB
                Compteurs de vitesses pour chaque train dans un nouvel onglet "compteurs".
-	       Les couleurs des compteurs sont personnalisables.
+               Les couleurs des compteurs sont personnalisables.
                Pilotage des accessoires en mode asynchrone.
                Correction bug fonction F bloc USB et pilotage train affecté au bloc
+version 10.3 : Améliorations diverses.
+               Icones de trains supplémentaires.
+               Correction d'un bug sur les compteurs de vitesse avec CDM.
+version 10.4 : Améliorations diverses.			   
+version 10.5 : Correction affichage réseau CDM.
+               Correction suppression lignes/colonnes dans le TCO pour les cantons.
+               Création mode "déplacer" et "sélectionner" dans le TCO et le réseau CDM.
+               Affichage des courbes de vitesses des trains étalonnés.
+
 			   
+
+	   
 			  
 			   
 
