@@ -19704,7 +19704,7 @@ end;
 
 procedure explore_CDM_DGI(r : string);
 var Sr : TSearchRec;
-    s : string;  // zizi
+    s : string;  
     i,j : integer;
 begin
   r:=r+'\CDM_DGI\';
@@ -21269,7 +21269,7 @@ begin
      onConnect:=ClientInfoConnect;
      OnDisconnect:=ClientInfoDisconnect;
      OnError:=ClientInfoError;
-     // Open; //zizi se connecte au serveur SC et envoie les infos
+     Open; /// se connecte au serveur SC et envoie les infos
    end;
 
   //s:=GetCurrentDir;
