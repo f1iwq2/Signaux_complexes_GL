@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 242
-  Top = 193
+  Left = 265
+  Top = 106
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1098,13 +1098,13 @@ object FormConfig: TFormConfig
         end
         object Label28: TLabel
           Left = 8
-          Top = 70
+          Top = 64
           Width = 182
           Height = 13
           Caption = 'Port du serveur de Signaux Complexes'
         end
         object EditFonte: TEdit
-          Left = 240
+          Left = 248
           Top = 16
           Width = 25
           Height = 21
@@ -1113,7 +1113,7 @@ object FormConfig: TFormConfig
           TabOrder = 0
         end
         object EditDebug: TEdit
-          Left = 240
+          Left = 248
           Top = 38
           Width = 25
           Height = 21
@@ -1136,7 +1136,7 @@ object FormConfig: TFormConfig
           OnClick = CheckBoxVerifXpressNetClick
         end
         object EditPortServeur: TEdit
-          Left = 216
+          Left = 224
           Top = 62
           Width = 49
           Height = 21
@@ -1189,7 +1189,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -4160,7 +4160,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TabSheetCourbes
+        ActivePage = TabSheetTrGen
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'

@@ -32,7 +32,7 @@ object FormFicheHoraire: TFormFicheHoraire
   object LabelErreur: TLabel
     Left = 99
     Top = 297
-    Width = 173
+    Width = 3
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = '.'

@@ -5895,64 +5895,64 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 737
-      Top = 16
+      Left = 657
+      Top = 72
       Width = 265
-      Height = 105
+      Height = 81
       Anchors = [akTop, akRight]
       Caption = 'Variables CV'
       Color = clBtnFace
       ParentColor = False
       TabOrder = 4
       object Label3: TLabel
-        Left = 208
-        Top = 34
+        Left = 192
+        Top = 18
         Width = 14
         Height = 13
         Caption = 'CV'
         WordWrap = True
       end
       object LabelVCV: TLabel
-        Left = 208
-        Top = 63
+        Left = 192
+        Top = 47
         Width = 47
         Height = 13
         Caption = 'Valeur CV'
         WordWrap = True
       end
       object ButtonEcrCV: TButton
-        Left = 8
+        Left = 24
         Top = 16
-        Width = 153
-        Height = 33
+        Width = 65
+        Height = 25
         Hint = 'Ecriture CV en mode direct sur voie de  programmation'
-        Caption = 'Ecriture CV - 1 '#224' 255  par interface'
+        Caption = 'Ecriture CV'
         TabOrder = 0
         WordWrap = True
         OnClick = ButtonEcrCVClick
       end
       object ButtonLitCV: TButton
-        Left = 8
-        Top = 64
-        Width = 153
-        Height = 33
+        Left = 24
+        Top = 48
+        Width = 65
+        Height = 25
         Hint = 'Lecture CV en mode direct sur voie de  programmation'
-        Caption = 'Lecture CV - 1 '#224' 255 par interface'
+        Caption = 'Lecture CV'
         Enabled = False
         TabOrder = 1
         WordWrap = True
         OnClick = ButtonLitCVClick
       end
       object EditCV: TEdit
-        Left = 168
-        Top = 32
+        Left = 152
+        Top = 16
         Width = 33
         Height = 21
         TabOrder = 2
       end
       object EditVal: TEdit
-        Left = 168
-        Top = 60
+        Left = 152
+        Top = 44
         Width = 33
         Height = 21
         TabOrder = 3

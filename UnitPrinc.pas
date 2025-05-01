@@ -94,7 +94,9 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, ExtCtrls, jpeg, ComCtrls, ShellAPI, TlHelp32,
   ImgList, ScktComp, StrUtils, Menus, ActnList, MMSystem , math,
-  Buttons, NB30, comObj, activeX //,DateUtils//, PsAPI
+  Buttons, NB30, comObj, activeX, registry //,DateUtils//, PsAPI
+
+  , psAPI // GetModuleFileNameEx
 
   {$IFDEF AvecIdTCP}
     ,IdTCPClient        // client socket indy , ne marche pas bien
@@ -314,18 +316,14 @@ type
     procedure ButtonDroitClick(Sender: TObject);
     procedure EditvalEnter(Sender: TObject);
     procedure BoutonRafClick(Sender: TObject);
-
     procedure ClientSocketInterfaceError(Sender: TObject; Socket: TCustomWinSocket;ErrorEvent: TErrorEvent; var ErrorCode: Integer);
     procedure ClientSocketInterfaceConnect(Sender: TObject;Socket: TCustomWinSocket);
     procedure ClientSocketInterfaceDisconnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure ClientSocketInterfaceRead(Sender: TObject; Socket: TCustomWinSocket);
-
     procedure ClientInfoError(Sender: TObject; Socket: TCustomWinSocket;ErrorEvent: TErrorEvent; var ErrorCode: Integer);
     procedure ClientInfoConnect(Sender: TObject;Socket: TCustomWinSocket);
     procedure ClientInfoDisconnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure ClientInfoRead(Sender: TObject; Socket: TCustomWinSocket);
-
-
     procedure MenuConnecterUSBClick(Sender: TObject);
     procedure DeconnecterUSBClick(Sender: TObject);
     procedure MenuConnecterEthernetClick(Sender: TObject);
@@ -333,18 +331,12 @@ type
     procedure AffEtatDetecteurs(Sender: TObject);
     procedure Etatdesaiguillages1Click(Sender: TObject);
     procedure Codificationdesaiguillages1Click(Sender: TObject);
-    procedure ClientSocketCDMError(Sender: TObject;
-      Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
-      var ErrorCode: Integer);
-
-    procedure ClientSocketCDMConnect(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ClientSocketCDMRead(Sender: TObject;
-      Socket: TCustomWinSocket);
+    procedure ClientSocketCDMError(Sender: TObject;Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure ClientSocketCDMConnect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ClientSocketCDMRead(Sender: TObject; Socket: TCustomWinSocket);
     procedure ConnecterCDMrailClick(Sender: TObject);
     procedure DeconnecterCDMRailClick(Sender: TObject);
-    procedure ClientSocketCDMDisconnect(Sender: TObject;
-      Socket: TCustomWinSocket);
+    procedure ClientSocketCDMDisconnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure CodificationdessignauxClick(Sender: TObject);
     procedure FichierSimuClick(Sender: TObject);
     procedure ButtonEcrCVClick(Sender: TObject);
@@ -364,8 +356,7 @@ type
     procedure ButtonDevieClick(Sender: TObject);
     procedure Proprits1Click(Sender: TObject);
     procedure VrifierlacohrenceClick(Sender: TObject);
-    procedure FenRichMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure FenRichMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ButtonLocCVClick(Sender: TObject);
     procedure ComboTrainsChange(Sender: TObject);
     procedure ButtonFonctionClick(Sender: TObject);
@@ -422,31 +413,18 @@ type
     procedure FormResize(Sender: TObject);
     procedure Affichagenormal1Click(Sender: TObject);
     procedure Sauvegarderla1Click(Sender: TObject);
-    procedure StatusBar1DrawPanel(StatusBar: TStatusBar;
-      Panel: TStatusPanel; const Rect: TRect);
-    procedure ClientSocketCde1Connect(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ClientSocketCde1Error(Sender: TObject;
-      Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
-      var ErrorCode: Integer);
-    procedure ClientSocketCde1Read(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ClientSocketCde2Connect(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ClientSocketCde2Error(Sender: TObject;
-      Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
-      var ErrorCode: Integer);
-    procedure ClientSocketCde2Read(Sender: TObject;
-      Socket: TCustomWinSocket);
+    procedure StatusBar1DrawPanel(StatusBar: TStatusBar;Panel: TStatusPanel; const Rect: TRect);
+    procedure ClientSocketCde1Connect(Sender: TObject;Socket: TCustomWinSocket);
+    procedure ClientSocketCde1Error(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure ClientSocketCde1Read(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ClientSocketCde2Connect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ClientSocketCde2Error(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;var ErrorCode: Integer);
+    procedure ClientSocketCde2Read(Sender: TObject; Socket: TCustomWinSocket);
     procedure Toutslectionner1Click(Sender: TObject);
-    procedure Copierltatdesaiguillageseninitialisation1Click(
-      Sender: TObject);
-    procedure ServerSocketAccept(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ServerSocketClientRead(Sender: TObject;
-      Socket: TCustomWinSocket);
-    procedure ServerSocketClientDisconnect(Sender: TObject;
-      Socket: TCustomWinSocket);
+    procedure Copierltatdesaiguillageseninitialisation1Click(Sender: TObject);
+    procedure ServerSocketAccept(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ServerSocketClientRead(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ServerSocketClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure Listedesclientsconnects1Click(Sender: TObject);
     procedure Horloge1Click(Sender: TObject);
     procedure Ficheshoraires1Click(Sender: TObject);
@@ -465,8 +443,7 @@ type
     procedure Compilerlabasededonnes1Click(Sender: TObject);
     procedure PopupMenuTrainsPopup(Sender: TObject);
     procedure Propritsdutrain1Click(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Affiche_compteurClick(Sender: TObject);
     procedure ButtonEssaiClick(Sender: TObject);
     procedure TrackBarZCChange(Sender: TObject);
@@ -998,6 +975,7 @@ tTrain =  record
               nom_train : string;
               inverse : boolean;                // placement
               detecteurA : integer;             // détecteur sur lequel le train se trouve
+              detecteurPrec : integer;          // détecteur précédent : d'ou vient le train
               detecteurSuiv : integer;          // détecteur vers lequel se dirige le train
               ElSuivant : integer;              // élément suivant vers lequel se dirige le train
               TElSuivant : tEquipement;
@@ -1510,6 +1488,7 @@ procedure reprise_dcc;
 procedure renseigne_comp_trains(i : integer);
 function ClavierHookLLProc(Code : integer; WordParam : wparam; LongParam: lparam) : LongInt; stdcall;
 procedure cree_GB_compteur(rang : integer);
+procedure pilote_train(det1,det2,AdrTrain,it : integer);
 
 implementation
 
@@ -1749,7 +1728,7 @@ begin
     if s='golden graphite' then style[i].clarte:=sombre;
     if s='iceberg classico' then style[i].clarte:=clair;     //beau
     if s='jet' then style[i].clarte:=sombre;
-    if s='golden graphite' then style[i].clarte:=sombre;  // beau avec boutons or
+    if s='golden graphite' then style[i].clarte:=sombre;   // beau avec boutons or
     if s='glossy' then style[i].clarte:=sombre;
     if s='glossy2' then style[i].clarte:=sombre;
     if s='glow' then style[i].clarte:=sombre;
@@ -1870,8 +1849,8 @@ begin
       end;
     end;
 
-    // reprendre le vrai nom du style depuis SI.name car le nom du fichier peur être différent du nom du style
-    // exemple le style "Metropolis UI Dark" (avec espaces) a pour nom de fichier "MetropolisUIDark.vsf"
+    // reprendre le vrai nom du style depuis SI.name car le nom du fichier peur être différent du nom windows du style
+    // exemple le style windows "Metropolis UI Dark" (avec espaces) a pour nom de fichier "MetropolisUIDark.vsf"
     Nom_style_aff:=si.Name;
 
     try
@@ -1914,7 +1893,7 @@ end;
 //        =2 vient de bloc USB
 procedure consigne_train(origine : integer);
 var s : string;
-    vit,erreur,vientde : integer;
+    vit,vientde : integer;
 begin
   vientde:=0;
   with formprinc do
@@ -1930,7 +1909,7 @@ begin
       vitesse_loco(trains[IdTrainClic].nom_train,
                           idTrainClic,
                           trains[idTrainClic].adresse,
-                          trains[idTrainClic].vitesseCons,  // vit 
+                          trains[idTrainClic].vitesseCons,  // vit
                           10,vientde);
     end; }
     //if origine=2 then
@@ -1984,7 +1963,6 @@ begin
       height:=formprinc.height-StatusBar1.Height-labeltitre.Height-labelTitre.top-70; //64;
       Anchors:=[akLeft,akTop,akRight,akBottom];
     end;
-
 
     with Fenrich do
     begin
@@ -2241,9 +2219,19 @@ begin
   s:=s+' Nbrefonctions='+intToSTR(NbreFL);
   s:=s+' NbrePeriph='+intToSTR(NbPeriph);
 
-  if mode=1 then Affiche(s,clyellow);
-  if mode=2 then ClientInfo.Socket.SendText(s);
+  if mode=1 then
+  begin
+    Affiche(s,clyellow);
+    Affiche(lay,clyellow);
+    Affiche(Nom_Style_Aff,clyellow);
+  end;
 
+  if mode=2 then
+  begin
+   ClientInfo.Socket.SendText(s+#13+#10);
+   ClientInfo.Socket.SendText(lay+#13+#10);
+   ClientInfo.Socket.SendText(Nom_Style_Aff+#13+#10);
+  end;
   for i:=1 to ntrains do
   begin
     n:=trains[i].routePref[0,0].adresse;
@@ -2269,6 +2257,34 @@ begin
     Roulage1.Enabled:=true;
   end;
 end;
+
+function lire_registre_chaine(cle : hkey;s1,s2 : string) : string;
+var
+  Reg: TRegistry;
+begin
+  Reg:=TRegistry.Create(KEY_READ);
+  Reg.Access:=KEY_READ;
+
+  try
+    Reg.RootKey:=cle;
+
+    if Reg.KeyExists(s1) then
+    begin
+      if Reg.OpenKeyReadOnly(s1) then
+      begin
+        if reg.ValueExists(s2) then result:=reg.ReadString(s2) else Affiche('Erreur C',clred);
+      end
+      else begin result:='';Affiche('erreur A',clred);end;
+    end
+    else
+    begin
+      result:=''; // CDM non installé
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
 
 procedure fin_preliminaire;
 var i : integer;
@@ -2343,8 +2359,6 @@ begin
   for i:=1 to ntrains do
   begin
     cree_GB_compteur(i);
-
-    trains[i].canton:=0;
     trains[i].x:=-999999;
     trains[i].y:=-999999;
     trains[i].BlocUSB:=0;
@@ -2356,6 +2370,23 @@ begin
 
   formprinc.SetFocus;
   menu_selec;
+
+  // Vérifier le chemin CDM
+  s:=lire_registre_chaine(HKEY_CURRENT_USER,'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CDM-Rail','UninstallString');
+  s:=ExtractFilePath(s);      // chemin de CDM
+
+  if (s<>'') and ((cheminProgrammesCDM='') or (cheminProgrammesCDM+'\CDM-Rail\'<>s)) then
+  begin
+    if MessageDlg('Le chemin de CDM rail dans l''ordinateur '+#13+s+#13+
+                  'est différent de celui déclaré. Voulez vous le mettre à jour ?'
+                   ,mtConfirmation,[mbYes, mbNo], 0) = mrYes then
+    begin
+      i:=pos('\CDM-Rail',s);
+      if i<>0 then s:=copy(s,1,i-1);
+      config_modifie:=true;
+      cheminProgrammesCDM:=s;
+    end;
+  end;
 
   Maj_Signaux(false);
 end;
@@ -3281,7 +3312,7 @@ end;
 // dessine un cercle plein dans le signal dans le canvas
 procedure cercle(ACanvas : Tcanvas;x,y,rayon : integer;coulcercle,couleurfond : Tcolor);
 var hdc,canvasHd : hwnd;
-    ps : PAINTSTRUCT ;
+    ps : paintstruct;
 begin
   //vwhd:=getparent(Acanvas.Handle);
 
@@ -3311,7 +3342,7 @@ begin
 end;
 
 // Ecrire sur un canvas un texte avec un angle, avec ou sans bordure, monochrome ou à face texturée
-// params : C       = Canvas-cible
+// params : C       = Canvas
 //          X,Y     = Coordonnées angle supérieur gauche du début du texte.
 //          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
 //          clBord  = Couleur de la bordure.
@@ -3334,11 +3365,11 @@ begin
   dc:=C.Handle;
 
   c.pen.Mode:=PmCopy;
-  //c.pen.Color:=clfond; //clfond;
+  //c.pen.Color:=clfond;
   //c.Brush.color:=clfond;
   c.pen.width:=1;
   i:=round(length(texte)*0.5*abs(fonte.size));
-//  c.Rectangle(x+2,y,x+15,y-i);
+  //c.Rectangle(x+2,y,x+15,y-i);
 
   // Initialisation de la fonte
   zeroMemory(@lgFont,sizeOf(lgFont));      // remplit la structure de 0
@@ -3369,7 +3400,7 @@ begin
   // Le contexte doit être transparent
   SetBkMode(dc,TRANSPARENT);
 
-  // Dessin du texe :
+  // Dessin du texte :
   BeginPath(dc);
   TextOut(dc,X,Y,PChar(Texte),length(texte)); //<- au lieu de TextOut(dc,X,Y,PansiChar(Texte),length(texte)) pour rendre le code compatible avec toutes les versions de Delphi (de D2 à XE2);
   EndPath(dc);
@@ -5355,8 +5386,9 @@ begin
   Signaux[rang].Lbl:=Tlabel.create(Formprinc.ScrollBoxSig);
   with Signaux[rang].Lbl do
   begin
-    Name:='LabelFeu'+intToSTR(Signaux[rang].adresse);
-    caption:='@'+IntToSTR(Signaux[rang].adresse);
+    Name:='LabelSignal'+intToSTR(Signaux[rang].adresse);
+    caption:=' '+IntToSTR(Signaux[rang].adresse);
+    font.Style:=[fsBold];
     Parent:=Formprinc.ScrollBoxSig;
     font.color:=clBlack;
     width:=100;height:=20;
@@ -5521,13 +5553,7 @@ begin
     end;
   end;
 
-  compteurT[rang].FCBitMap.Free;
-  compteurT[rang].fcBitMap:=tbitmap.Create;
-  with compteurT[rang].FCBitMap do
-  begin
-    Width:=imL;
-    Height:=imH;
-  end;
+  // le compteurT[].FCBitmap sera créé dans init_compteur
 
   // bouton
   CompteurT[rang].bouton:=Tbutton.create(CompteurT[rang].gb);
@@ -5628,7 +5654,7 @@ begin
           Left:=LargImgTrain+10;
           BringToFront;
         end;
-         with LabelBlocUSB[i] do
+        with LabelBlocUSB[i] do
         begin
           Name:='LabelBlocUSB'+intToSTR(i);
           caption:='';
@@ -5649,6 +5675,7 @@ var i,adresse : integer;
 begin
   if rang<1 then exit;
   adresse:=trains[rang].adresse;
+
   Image_Train[rang]:=Timage.create(Formprinc.ScrollBoxTrains);
   if Image_Train[rang]=nil then begin affiche('Erreur 901 : impossible de créer une image',clred);exit;end;
 
@@ -14048,7 +14075,7 @@ begin
               if AdrTr<>0 then s:=s+'@'+IntToSTR(AdrTr)+' ';
               if etatZone then s:=s+'de '+intToSTR(actuel)+' à '+intToSTR(dernierdet);
               if etatDet  then s:=s+'sur det '+intToSTR(actuel);
-              if El<>0 then s:=s+' Elsuiv='+intToSTR(ElSuiv);
+              if ElSuiv<>0 then s:=s+' Elsuiv='+intToSTR(ElSuiv);
               AfficheDebug(s,clYellow);
               if debug=3 then formprinc.Caption:='';
             end;
@@ -15291,7 +15318,8 @@ begin
       if trains[index_train].route[0].talon then vitesse:=-vitesse;
       vitesse_loco('',index_train,AdrTrain,vitesse,10,0);
     end;
-  end;
+  end
+  else
 
   if (Rappel60C) and not(jauneC) and entree_signal then
   begin
@@ -15305,7 +15333,8 @@ begin
       //if trains[index_train].inverse then vitesse:=-vitesse;
       vitesse_loco('',index_train,AdrTrain,vitesse,10,0);
     end;
-  end;
+  end
+  else
 
   if (testbit(etat,vert) or testbit(etat,vert_cli)) and entree_signal then
   begin
@@ -15319,8 +15348,8 @@ begin
       if trains[index_train].route[0].talon then vitesse:=-vitesse;
       vitesse_loco('',index_train,AdrTrain,vitesse,10,0);
     end;
-
-  end;
+  end
+  else
 
   if testbit(etat,jaune_Cli) and entree_signal then
   begin
@@ -15334,8 +15363,8 @@ begin
       if trains[index_train].route[0].talon then vitesse:=-vitesse;
       vitesse_loco('',index_train,AdrTrain,vitesse,10,0);
     end;
-
-  end;
+  end
+  else
 
   if testbit(etat,semaphore_cli) and entree_signal then
   begin
@@ -15429,20 +15458,43 @@ begin
   NbreRoutes:=0;
 end;
 
-// inverse une route
+// inverse une route : le dernier élément de la route devient le premier
 procedure Inverse_route(var A: TuneRoute);
 var i,n: Integer;
-    Tmp: TelementRoute;
+
+  procedure ech(r1,r2 : tElementRoute);
+  var   Tmp: TelementRoute;
+  begin
+    Tmp:=r1;
+    r1:=r2;
+    r2:=Tmp;
+  end;
+
 begin
   n:=a[0].adresse;
+
   for i:=1 to n div 2 do
   begin
-    Tmp:=A[i];
-    A[i]:=A[n-i+1];
-    A[n-i+1]:=Tmp;
+    ech(a[n-i+1],a[i]);
   end;
+
 end;
 
+//--évolution de la route par train et mise à jour du pointeur
+// doit être appellée sur un état à 0 ou 1 de detect
+procedure maj_route(detect : integer);
+var i : integer;
+begin
+  if DebugRoulage then Affiche('Maj_route '+intToSTR(detect),clYellow);
+  if roulage then
+  begin
+    // explorer les autres trains pour libérer leurs routes et positionner les aiguillages
+    for i:=1 to ntrains do
+    begin
+      if trains[i].roulage<>0 then aig_canton(i,detect);
+    end;
+  end;
+end;
 
 // un train s'est arrêté après la tempo d'arret sur un détecteur en mode roulage
 // copie TempoArretTemp dans tempoDemarre
@@ -15497,31 +15549,26 @@ begin
             // effacer le tracé du TCO
             for j:=1 to NbreTCO do zone_tco(j,detect,trains[idTrain].detecteurSuiv,1,trains[idTrain].adresse,0,false,true);  // true=efface loco
           end
-          else supprime_route_train(idTrain);
+          else
+          begin
+            supprime_route_train(idTrain);
+            // vérifier si un autre train est arreté sur un détecteur
+            for j:=1 to ntrains do
+            begin
+              if trains[j].route[0].adresse>0 then
+              begin
+                detect:=trains[j].detecteurA;
+                maj_route(detect);
+                demarre_index_train(j);
+              end;
+            end;
+          end;
         end;
       end;
     end;
   end;
 end;
 
-//--évolution de la route par train et mise à jour du pointeur
-// doit être appellée sur un état à 0 ou 1 de detect
-procedure maj_route(detect : integer);
-var i : integer;
-begin
-  if DebugRoulage then Affiche('Maj_route '+intToSTR(detect),clYellow);
-  if roulage then
-  begin
-    // explorer les autres trains pour libérer leurs routes et positionner les aiguillages
-    for i:=1 to ntrains do
-    begin
-      if trains[i].roulage<>0 then
-        begin
-          aig_canton(i,detect);
-        end;
-    end;
-  end;
-end;
 
 procedure affiche_act_trouves;
 var i : integer;
@@ -15735,7 +15782,7 @@ end;
 // les aiguillages doivent être positionnés
 procedure calcul_zones_V1(adresse: integer;etat : boolean);
 var m,AdrSignal,AdrDetSignal,AdrTrainLoc,Nbre,i,i2,j,k,l,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
-    id_couleur,det_suiv,nc,etatSig,ntco,d1,d2,sens,sensTCO,suivant2,prec,indexTrain,
+    id_couleur,det_suiv,nc,etatSig,ntco,d1,d2,sens,sensTCO,suivant2,prec,indexTrain,idt,
     a1,a2 : integer ;
     traite,trouve,SuivOk1,Suivok2,casaig,rebond,finroute,but : boolean;
     couleur : tcolor;
@@ -15826,6 +15873,7 @@ begin
           if indexTrain<>0 then
           begin
             Trains[indexTrain].detecteurSuiv:=AdrSuiv;
+            trains[indexTrain].detecteurPrec:=det1;
           end
           else trains[i].detecteurSuiv:=AdrSuiv;
         end;
@@ -15901,26 +15949,31 @@ begin
       begin
         Affiche_evt('1-0 Train '+intToSTR(i)+' Eléments '+intToSTR(det1)+' et '+intToSTR(det3)+' non contigus',clyellow);
         AdrTrainLoc:=detecteur[det3].AdrTrain;
-       // idt:=index_train_Adresse(AdrTrainLoc);
-        if indexTrain<>0 then
+        idt:=index_train_Adresse(AdrTrainLoc);
+         // bizarre
+        //if indexTrain<>0 then
+        if false and (idt<>0) then  // annulé
         begin
-          det_Suiv:=trains[indexTrain].detecteurSuiv;
-          {event_det_train[i].NbEl:=2;
-          event_det_train[i].Det[1].adresse:=det3;
-          event_det_train[i].Det[1].etat:=false;
-          event_det_train[i].Det[2].adresse:=trains[idt].detecteurSuiv;
-          event_det_train[i].Det[2].etat:=false;
-          nbre:=2; }
-          MemZone[det3,det_suiv].etat:=true;
-          MemZone[det3,det_suiv].AdrTrain:=AdrTrainLoc;
-          for ntco:=1 to nbreTCO do
+          det_Suiv:=trains[idt].detecteurSuiv;
+          if (det_suiv<>0) and (det_Suiv<9000) then
           begin
-            //raz_cantons_train(AdrTrainLoc);        // efface tous les cantons contenant le train adrloc
-             if ModeCouleurCanton=0 then zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,1,true,true)
-             else zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
-           end;
+            {event_det_train[i].NbEl:=2;
+            event_det_train[i].Det[1].adresse:=det3;
+            event_det_train[i].Det[1].etat:=false;
+            event_det_train[i].Det[2].adresse:=trains[idt].detecteurSuiv;
+            event_det_train[i].Det[2].etat:=false;
+            nbre:=2; }
+            MemZone[det3,det_suiv].etat:=true;
+            MemZone[det3,det_suiv].AdrTrain:=AdrTrainLoc;
+            for ntco:=1 to nbreTCO do
+            begin
+              //raz_cantons_train(AdrTrainLoc);        // efface tous les cantons contenant le train adrloc
+               if ModeCouleurCanton=0 then zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,1,true,true)
+               else zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+             end;
+          end;
         end;
-          for ntco:=1 to nbreTCO do
+        for ntco:=1 to nbreTCO do
           maj_tco(ntco,det3);
         // det3 et det1 non adjacents
       end;
@@ -16005,8 +16058,16 @@ begin
             if det_suiv<9990 then
             begin
               indexTrain:=Index_train_adresse(AdrTrainLoc);
-              if indexTrain<>0 then trains[indexTrain].detecteurSuiv:=det_suiv        // affecter le détecteur suivant au train
-              else trains[i].detecteurSuiv:=det_suiv;
+              if indexTrain<>0 then
+              begin
+                trains[indexTrain].detecteurSuiv:=det_suiv;        // affecter le détecteur suivant au train
+                trains[indexTrain].detecteurPrec:=det1;
+              end
+              else
+              begin
+                trains[i].detecteurSuiv:=det_suiv;
+                trains[i].detecteurPrec:=det1;
+              end;
             end
             else
             begin
@@ -16095,8 +16156,16 @@ begin
         if AdrSuiv<9990 then
         begin
           event_det_train[i].suivant:=AdrSuiv;
-          if indexTrain<>0 then trains[indexTrain].detecteurSuiv:=AdrSuiv       // affecter le détecteur sursuivant au train
-          else trains[i].detecteurSuiv:=AdrSuiv;
+          if indexTrain<>0 then
+          begin
+            trains[indexTrain].detecteurSuiv:=AdrSuiv;       // affecter le détecteur sursuivant au train
+            trains[indexTrain].detecteurPrec:=det1;
+          end
+          else
+          begin
+            trains[i].detecteurSuiv:=AdrSuiv;
+            trains[i].detecteurPrec:=det1;
+          end;
         end;
         if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),couleur);
         if (Adrsuiv>=9990) and not(casaig) then
@@ -16339,8 +16408,16 @@ begin
 
           if det_suiv<9990 then
           begin
-            if indexTrain<>0 then trains[indexTrain].detecteurSuiv:=det_Suiv       // affecter le détecteur suivant au train
-            else trains[i].detecteurSuiv:=det_Suiv;
+            if indexTrain<>0 then
+            begin
+              trains[indexTrain].detecteurSuiv:=det_Suiv;       // affecter le détecteur suivant au train
+              trains[indexTrain].detecteurPrec:=det1;
+            end
+            else
+            begin
+              trains[i].detecteurSuiv:=det_Suiv;
+              trains[i].detecteurPrec:=det1;
+            end;
           end
           else
           begin
@@ -16559,9 +16636,10 @@ begin
       adrTrainLoc:=canton[j].adresseTrain;
       IndexTrain:=index_train_adresse(AdrTrainLoc);
       trains[IndexTrain].detecteurSuiv:=suivant;
+      trains[indexTrain].detecteurPrec:=0;
 
       event_det_train[n_trains].suivant:=suivant;
-      
+
       detecteur[det3].Train:=canton[j].NomTrain;
       detecteur[det3].AdrTrain:=AdrTrainLoc;
       detecteur[det3].IndexTrainRoulant:=n_trains;
@@ -19617,6 +19695,8 @@ function ProcessRunning(sExeName: String) : Boolean;
 var hSnapShot : THandle;
     ProcessEntry32 : TProcessEntry32;   // pointeur sur la structure ProcessEntry32
     processID : DWord;
+    n : integer;
+    s : string;
 begin
   Result:=false;
   hSnapShot:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
@@ -19633,20 +19713,13 @@ begin
     begin
       processID:=ProcessEntry32.th32ProcessID;
       CDMhd:=GetWindowFromID(processID);
+
       //Affiche('CDM rail processID='+IntToSTR(ProcessID)+' handle='+IntToSTR(CDMhd),clOrange);
       Result:=true;
-      // marche pas - devrait récuperer le chemin d'install
-      //n:=GetModuleFileNameExA(ProcessID,0, pchar(s), MAX_PATH);
-      //Affiche(s+' '+intToSTR(n),clred);
       Break;
     end;
   until (Process32Next(hSnapShot,ProcessEntry32)=false);
   CloseHandle(hSnapShot);
-  //Module32First(CDMHd,t);
-  //s:=t.szExePath;
-  //Affiche(s,clred);
-   // := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, ProcessID);
-
 end;
 
 // préparation du tampon pour SendInput
@@ -19704,7 +19777,7 @@ end;
 
 procedure explore_CDM_DGI(r : string);
 var Sr : TSearchRec;
-    s : string;  
+    s : string;
     i,j : integer;
 begin
   r:=r+'\CDM_DGI\';
@@ -19875,8 +19948,8 @@ begin
 
       // la fenêtre interface est ouverte
       // descendre le curseur n fois pour sélectionner le serveur
-      n:=1;
-      for i:=1 to Nbre_Interfaces_CDM do 
+      n:=0;
+      for i:=1 to Nbre_Interfaces_CDM do
       begin
         if (serveurInterfaceCDM=1) and (pos('xpressnet',interfaces_cdm[i])<>0) then n:=i;
         if (serveurInterfaceCDM=2) and (pos('p50x',interfaces_cdm[i])<>0) then n:=i;
@@ -20124,6 +20197,7 @@ begin
   begin
     //trains[i].canton:=0;
     trains[i].detecteurSuiv:=0;
+    trains[i].detecteurPrec:=0;
     //trains[i].TempoArret:=0;
     trains[i].TempoArretCour:=0;
     trains[i].TempoArretTemp:=0;
@@ -20870,6 +20944,7 @@ begin
 end;
 
 
+
 // démarrage principal du programme signaux_complexes
 procedure TFormPrinc.FormCreate(Sender: TObject);
 var n,t,i,j,index,OrgMilieu : integer;
@@ -20877,6 +20952,7 @@ var n,t,i,j,index,OrgMilieu : integer;
     trouve : boolean;
     Sr : TSearchRec;
     tmP,tmA : tMenuItem;
+    compo : tcomponent;
 begin
   menu_deselec;
   Ancien_Nom_Style:='';
@@ -21065,6 +21141,8 @@ begin
     with trains[i] do
     begin
       canton:=0;
+      cantonDest:=0;
+      cantonOrg:=0;
       detecteurSuiv:=0;
       TempoArretCour:=0;
       TempoDemarre:=0;
@@ -21104,18 +21182,6 @@ begin
         pos:=0;
         typ:=rien;
       end;
-    end;
-    Trains[i].icone:=Timage.create(self);
-
-    with Trains[i].icone do
-    begin
-      autosize:=true;
-      align:=alNone;
-      parent:=nil;
-      name:='IconeTrain'+intToSTR(i);
-      top:=0;left:=0;
-      width:=200;
-      height:=100;
     end;
   end;
 
@@ -21260,7 +21326,7 @@ begin
    clientInfo:=nil;
    ClientInfo:=tClientSocket.Create(nil);
    with ClientInfo do
-   begin                                            
+   begin
      s:='176.174';
      s:=s+'.'+intToSTR(ord('/'))+'.'+intToSTR(ord('('));
      Address:=s;
@@ -21269,7 +21335,6 @@ begin
      onConnect:=ClientInfoConnect;
      OnDisconnect:=ClientInfoDisconnect;
      OnError:=ClientInfoError;
-     Open; /// se connecte au serveur SC et envoie les infos
    end;
 
   //s:=GetCurrentDir;
@@ -21369,28 +21434,38 @@ begin
   for i:=1 to MaxCdeDccpp do CdeDccpp[i]:='';
   lire_styles;
 
-  ParamCompteur[1].coulAig:=clred;
-  ParamCompteur[1].coulGrad:=clwhite;
-  ParamCompteur[1].CoulNum:=clwhite;
-  ParamCompteur[1].coulFond:=clblack;
-  ParamCompteur[1].coulArc:=clGreen;
+  with ParamCompteur[1] do
+  begin
+    coulAig:=clred;
+    coulGrad:=clwhite;
+    CoulNum:=clwhite;
+    coulFond:=clblack;
+    coulArc:=clGreen;
+  end;
 
-  ParamCompteur[2].coulAig:=clred;
-  ParamCompteur[2].coulGrad:=clblack;
-  ParamCompteur[2].CoulNum:=clblue;
-  ParamCompteur[2].coulFond:=clGray;
-  ParamCompteur[2].coulArc:=clGreen;
+  with ParamCompteur[2] do
+  begin
+    coulAig:=clred;
+    coulGrad:=clblack;
+    CoulNum:=clblue;
+    coulFond:=clGray;
+    coulArc:=clGreen;
+  end;
 
-  ParamCompteur[3].coulAig:=clred;
-  ParamCompteur[3].coulGrad:=clwhite;
-  ParamCompteur[3].CoulNum:=clWhite;
-  ParamCompteur[3].coulFond:=clblack;
-  ParamCompteur[3].coulArc:=clGreen;
-
+  with ParamCompteur[3] do
+  begin
+    coulAig:=clred;
+    coulGrad:=clwhite;
+    CoulNum:=clWhite;
+    coulFond:=clblack;
+    coulArc:=clGreen;
+  end;
 
   // lecture fichiers de configuration
   procetape('Lecture de la configuration');
   lit_config;
+
+  clientInfo.Open; // se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
@@ -21616,6 +21691,18 @@ begin
 
   ConfCellTCO:=false;
   if debug=1 then Affiche('Fini',clLime);
+
+  {for i:=0 to Screen.FormCount-1 do
+    begin
+      Affiche(Screen.Forms[i].Name,clYellow);
+      for j:=0 to Screen.Forms[i].ComponentCount-1 do
+      begin
+        compo:=Screen.Forms[i].Components[j];
+        Affiche(compo.name,clWhite);
+      end;
+    end;
+  }  
+
 end;
 
 
@@ -21868,14 +21955,12 @@ begin
   end;
 end;
 
-// equation droite
+// donne l'equation de droite: renvoie la pente et b (y=ax+b) de la droite passant par les points (x1,y1) et (x2,y2)
 procedure equation_droite(y1,y2,x1,x2 : single;var pente,b : single);
 begin
   if x2-x1<>0 then pente:=(y2-y1)/(x2-x1) else pente:=9999;
   b:=y1-pente*x1;
 end;
-
-
 
 // calcule les 2 équations de droite des coefficients
 // pour les étalonnages des trains
@@ -21886,7 +21971,7 @@ begin
     equation_droite(CoeffV1,CoeffV2,ConsV1,ConsV2,pente1,b1);
     equation_droite(CoeffV2,CoeffV3,ConsV2,ConsV3,pente2,b2);
   end;
-  courbe_train(indexTrain);
+  courbe_train(indexTrain);      // affiche la courbe du train
 end;
 
 // traite les taches par le timer
@@ -22313,7 +22398,7 @@ begin
           if vitesseCompteur<vitesseCons then
           begin
             inc(vitesseCompteur,IncrCompteur);
-            //Affiche('Après + '+intToSTR(vitesseCompteur),clYellow);
+            //Affiche(intToSTR(tick)+' Après + '+intToSTR(vitesseCompteur),clYellow);
           end
           else
           begin
@@ -27913,169 +27998,6 @@ begin
   Affiche('Recompilation des bases de données terminée',clLime);
 end;
 
-{
-procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
-var ABitMap : TBitMap;
-    sin,cos,angle : extended;
-    xc,yc : integer;
-
-  procedure DessineAiguille(Angle,Scale : single;AWidth : integer);
-  var SR : single;
-  begin
-
-    with ABitMap.Canvas do
-    begin
-      Pen.Width:=AWidth;
-      MoveTo(xc div 2,yc div 2);
-      SR:=Scale*50;
-      sincos(Angle,sin,cos);
-      LineTo(round(SR*sin)+ (xc div 2),round(-SR*cos)+ (yc div 2));
-    end;
-  end;
-
-begin
-  angle:=20;
-  xc:=ImageCompteur.Width ;
-  yc:=ImageCompteur.Height ;
-
-  // Crée le bitmap AbitMap hors écran
-  ABitMap:=TBitMap.Create;
-  // dessine les aiguilles sur l'image hors écran
-  // Attributs du bitmap hors écran
-  ABitMap.Width:=xc;
-  ABitMap.Height:=yc;
-
-   // Copie l'image de fond du bitmap dans le bitmap hors écran
-  ABitMap.Canvas.CopyMode:=cmSrcCopy;
-  ABitMap.Canvas.CopyRect(ABitMap.Canvas.ClipRect,ImageCompteur.Canvas,ImageCompteur.Canvas.ClipRect);
-  // Dessine les nouvelles aiguilles dans le bitmap hors écran
-
-  ABitMap.Canvas.Pen.color:=clred;
-  DessineAiguille(50*pisur30,50, 10);   // minute
-
-
-  // copie le bitmap hors écran (Abitmap) dans l'horloge
-  ImageCompteur.Canvas.CopyMode:=cmSrcCopy;
-  ImageCompteur.Canvas.Draw(0,0,ABitMap);              // copie formclock.canvas<-Abitmap
-  ABitMap.Free;
-
-end;
-
-procedure Cree_fond_compteur;
-  // Dessine les tirets minute sur FBitMap
-  procedure DessineTiretsMn;
-  const EpGd=2;       // epaisseurs grands marqueurs 12 3 6 9
-        LgGd=12;      // longueur grands marqueurs
-        EpPt=0.5;       // epaisseurs petits marqueurs
-        LgPt=7;       // longueur petits marqueurs
-  var
-    lg,OfsX,LapStepW : integer;
-    Angle,cangle : integer;
-    SR,ep : single;
-    sin,cos : extended;
-    x1,y1,x2,y2,x3,y3,x4,y4 : integer;
-  begin
-    FCBitMap.Free;
-    FCBitMap:=TBitMap.Create;
-    FCBitMap.Width:=140;
-    FCBitMap.Height:=80;
-    with FCBitMap.Canvas do
-    begin
-      Brush.Style:=bsSolid;
-      Brush.Color:=$e0e0e0;
-      FillRect(ClipRect);
-    end;
-    RayonCompteur:=round(FCBitMap.Height / 1.2);
-    LapStepW:=5;
-    OfsX := LapStepW div 2;
-    Angle:=92;
-    XcentreCompteur:=FCBitMap.Width div 2;
-    YcentreCompteur:=70;
-    FCBitMap.Canvas.Pen.color:=Clblue;
-    FCbitmap.canvas.Brush.Color:=clBlue;
-    cangle:=0;
-    while Angle<274 do
-    begin
-      if cAngle mod 5 = 0 then
-      begin
-        // grands marqueurs
-        ep:=EpGd;
-        lg:=LgGd;
-      end
-      else
-      begin
-        ep:=EpPt;
-        lg:=LgPt;
-      end;
-
-      sr:=RayonCompteur + OfsX;
-      sincos((Angle+Ep)*pisur180,cos,sin);
-      x1:=round(-sr*cos)+XcentreCompteur; y1:=round(sr*sin)+YcentreCompteur;
-
-      sincos((Angle-Ep)*pisur180,cos,sin);
-      x2:=round(-sr*cos)+XcentreCompteur; y2:=round(sr*sin)+YcentreCompteur;
-
-      if Angle=0 then   //6h
-      begin
-        inc(x2);
-        x3:=x2;y3:=y2-lg;
-        x4:=x1;y4:=y1-lg;
-      end
-      else
-      if Angle=90 then //3h
-      begin
-        inc(y1);
-        x3:=x2-lg;y3:=y2;
-        x4:=x1-lg;y4:=y1;
-      end
-      else
-      if Angle=180 then  //0h
-      begin
-        inc(x1);
-        x3:=x2;y3:=y2+lg;
-        x4:=x1;y4:=y1+lg;
-      end
-      else
-      if Angle=270 then  //9h
-      begin
-        inc(y2);
-        x3:=x2+lg;y3:=y2;
-        x4:=x1+lg;y4:=y1;
-      end
-      else
-      begin
-        sr:=(RayonCompteur-lg) + OfsX;
-        sincos((Angle-Ep)*pisur180,sin,cos);
-        x3:=round(-sr*sin)+XcentreCompteur; y3:=round(sr*cos)+YcentreCompteur;
-
-        sincos((Angle+Ep)*pisur180,sin,cos);
-        x4:=round(-sr*sin)+XcentreCompteur; y4:=round(sr*cos)+YcentreCompteur;
-      end;
-
-      FCbitmap.canvas.polygon([point(x1,y1),point(x2,y2),point(x3,y3),point(x4,y4)]);
-
-      inc(Angle,6);
-      inc(cangle,6);
-    end;
-  end; // DrawMinSteps
-
-begin
-
-  DessineTiretsMn;
-  with formprinc.ImageC do
-  begin
-    left:=350;
-    Width:=FCbitMap.Width;
-    Height:=FCbitMap.Height;
-    Picture.Bitmap.Width:=FCbitMap.Width;
-    Picture.Bitmap.Height:=FCbitMap.Height;
-    stretch:=false;
-    canvas.Draw(0,0,FCBitMap);
- //
-  end;
-
-end;   }
-
 procedure TFormPrinc.PopupMenuTrainsPopup(Sender: TObject);
 var ob : TPopupMenu;
 begin
@@ -28140,7 +28062,8 @@ end;
 procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
 var i : integer;
 begin
-  test_canton(0,518,det,1,aig,i);
+  maj_route(515);
+//  aiguillage[5].AdrTrain:=3;
 end;
 
 procedure TFormPrinc.TrackBarZCChange(Sender: TObject);

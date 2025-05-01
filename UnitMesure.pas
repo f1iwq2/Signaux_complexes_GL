@@ -125,7 +125,6 @@ begin
 
      TransparentBlt(cv.Handle,rect.Left+2,rect.Top,largDest,hautDest,
                     Trains[index+1].Icone.canvas.Handle,0,0,l,h,clWhite);
-
 end;
 
 procedure TFormMesure.ComboBoxTrainsChange(Sender: TObject);

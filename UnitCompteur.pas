@@ -63,7 +63,7 @@ type
 
 var
   formCompteur : array[1..1] of TformCompteur;     // il y a 10 fenetres mais on utilise qu'un compteur.
-  Scompteur :  TTCompteur;  //   Scompteur : associé à fen
+  Scompteur :  TTCompteur;  //   Scompteur : associé à grande fenetre compteur
   ParamCompteur : array[1..3] of record
     coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
   end;
@@ -83,7 +83,7 @@ function Vr_kmh(v : integer) : integer;
 
 implementation
 
-uses  UnitTCO, UnitClock , UnitConfig;
+uses  UnitTCO, UnitClock , UnitConfig, UnitDebug;
 
 {$R *.dfm}
 
@@ -112,6 +112,7 @@ begin
   finally
     ReleaseDC(FormCompteur[1].Handle, ACanvas.Handle);
     ACanvas.Free;
+    ACanvas:=nil;
   end;
 end;
 
@@ -479,8 +480,11 @@ begin
     until angle>param.AngleFin+incr;
   end;
 
+  // copie l'image du texte "tachro" mise à l'échelle
+  StretchBlt(bm.Canvas.Handle,round(145*r),round(90*r),round(lim*r),round(him*r),
+             FormPrinc.ImageTachro.canvas.Handle,0,0,lim,him,srcCopy);
+
   param.AngleFin:=220;   // en fait vitesse maxi compteur
-  exit;
 end;
 
 
@@ -574,7 +578,7 @@ var comptLoc,l,h,lim,him,hfen,mini,maxi,vmax : integer;
     canv : tcanvas;
 begin
   if (i<1) or (hautComptC=0) then exit;
-  //Affiche('Init compteur de vitesse',clYellow);
+  if ProcPrinc then Affiche('Init compteur de vitesse '+intToSTR(i)+' composant '+c.name,clYellow);
 
   typDest:=Trien;
   if c is tform then typDest:=fen;      // si le compteur est la fenetre unique
@@ -689,7 +693,7 @@ begin
     3 : compteurT[i].paramcompt.rav:=round(115*compteurT[i].paramcompt.redx);
     end;
 
-    compteurT[i].FCBitMap.Free;
+    //ne pas faire compteurT[i].FCBitMap.Free çà fait une exception si il est déja en nil, contrairement à D12.
     compteurT[i].fcBitMap:=tbitmap.Create;
     with compteurT[i].FCBitMap do
     begin
@@ -765,7 +769,7 @@ begin
 
       // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
       // créer un bitmap réduit qui sert de référence
-      Scompteur[i].FCBitMap.Free;
+      Scompteur[i].FCBitMap.Free;    
       Scompteur[i].fcBitMap:=tbitmap.Create;
       with Scompteur[i].FCBitMap do
       begin

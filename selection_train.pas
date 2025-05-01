@@ -41,7 +41,7 @@ HauteurLigneSGT=30;
 
 var
   FormSelTrain: TFormSelTrain;
-  x,y,El,largC,hautC,LargeurSGT,indexTrainClic : Integer;
+  largC,hautC,LargeurSGT,indexTrainClic : Integer;
   routeSav : TuneRoute;
 
 procedure actualise_seltrains;
@@ -317,8 +317,8 @@ begin
   //affiche('Det du canton '+intToSTR(canton[Idcanton].numero)+' det1='+intToSTR(canton[Idcanton].det1)+' det2='+intToSTR(canton[Idcanton].det2),clyellow);
 end;
 
-// renvoie x,y El et indexCanton de IdCantonSelect en variable globale
-procedure quel_canton;
+// renvoie x,y El et indexCanton de IdCantonSelect
+procedure quel_canton(var x,y,el : integer);
 begin
   if IdCantonSelect=0 then exit;
   x:=canton[IdCantonSelect].x;
@@ -354,7 +354,7 @@ begin
 end;
 
 procedure maj_stringGrig;
-var i,ic,t,NumCanton : integer;
+var i,ic,t,NumCanton,Adr : integer;
     s : string;
 begin
   // maj de la stringGrig
@@ -383,13 +383,18 @@ begin
       SensDroit : s:=s+' droit ';
     end;
 
-    s:=s+' loco vers ';
-    i:=canton[IdCantonSelect].SensLoco;
-    case i of
-      SensHaut : s:=s+' haut ';
-      SensBas : s:=s+' bas ';
-      SensGauche : s:=s+' gauche ';
-      SensDroit : s:=s+' droit ';
+    adr:=canton[idCantonSelect].adresseTrain;
+    if adr<>0 then
+    begin
+      adr:=index_train_adresse(adr);
+      s:=s+' train '+trains[adr].nom_train+' vers ';
+      i:=canton[IdCantonSelect].SensLoco;
+      case i of
+        SensHaut : s:=s+' haut ';
+        SensBas : s:=s+' bas ';
+        SensGauche : s:=s+' gauche ';
+        SensDroit : s:=s+' droit ';
+      end;
     end;
     formSelTrain.LabelCanton.caption:=s;
   end;
@@ -576,7 +581,7 @@ end;
 // cliqué ou roulé la molette souris sur cellule pour changer la sélection du train ou voir la route ou la flèche
 procedure TFormSelTrain.StringGridTrainsSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
-var f,AutreTrain,AutreCanton,idAutrecanton,i,ancienSens,AdrTrain,IdTrain,sensloco : integer;
+var f,AutreTrain,AutreCanton,idAutrecanton,i,ancienSens,AdrTrain,IdTrain,sensloco,x,y,el : integer;
     faire : boolean;
     s : string;
 begin
@@ -591,7 +596,7 @@ begin
     indexTrainClic:=Arow;
     //  Affiche('ligne='+intToSTR(Arow)+' col='+intToSTR(Acol),clyellow);
 
-    quel_canton;   // x,y El et indexCanton du canton activé
+    quel_canton(x,y,el);   // x,y El et indexCanton du canton activé
 
     faire:=true;
     LabelInfo.caption:='';
@@ -724,7 +729,7 @@ end;
 // actualise la fenetre
 procedure actualise_seltrains;
 var s : string;
-    i : integer;
+    i,x,y,el : integer;
 begin
   with formSelTrain.StringGridTrains do
   begin
@@ -735,7 +740,7 @@ begin
     end;
   end;
 
-  Quel_canton;
+  Quel_canton(x,y,el);
   FormSelTrain.caption:=s;     // s est indéfini !!
 
   with formSelTrain.ComboBoxCanton do
@@ -798,15 +803,10 @@ begin
   Affiche_TCO(indexTCOCourant);
 end;
 
-
 procedure TFormSelTrain.ButtonSauveClick(Sender: TObject);
 begin
   Sauve_config;
 end;
-
-
-
-
 
 end.
 

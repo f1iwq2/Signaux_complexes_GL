@@ -221,7 +221,7 @@ begin
   if affevt then affiche('FormConfigCellTCO actualise',clyellow);
   xclicC:=XclicCell[indexTCO];
   yclicC:=YclicCell[indexTCO];
-
+   actualize:=true;        // évite les évènements parasites  
   //with FormConfCellTCO.ImagePaletteCC.Picture.Bitmap do
   with FormConfCellTCO.ImagePaletteCC do
   begin
@@ -377,6 +377,7 @@ begin
         if (act<0) or (act-1>ListBoxAction.Count) then
         begin
           Affiche('Erreur 29 ',clred);
+          actualize:=false;
           exit;
         end;
         ListBoxAction.ItemIndex:=act-1;
@@ -514,7 +515,8 @@ begin
   ConfCellTCO:=false;
   FormTCO[indexTCO].GroupBox1.Caption:='Configuration cellule '+s;
   XclicCellInserer:=XclicC;
-  YclicCellInserer:=YclicC;
+  YclicCellInserer:=YclicC; 
+  
   FormTCO[indexTCO].EditAdrElement.Text:=IntToSTR(tco[indexTCO,XclicCellInserer,YclicCellInserer].Adresse);
   FormTCO[indexTCO].EdittypeImage.Text:=IntToSTR(BImage);
   FormTCO[indexTCO].ComboRepr.ItemIndex:=tco[indexTCO,XclicC,YclicC].repr;
@@ -525,8 +527,8 @@ begin
   if tco[indexTCO,Xclic,Yclic].adresse<>0 then s:=s+' Adr='+intToSTR(tco[indexTCO,XclicC,YclicC].adresse);
   //hint:=s;
 
-  if not(ConfCellTCO) then exit;
-  actualize:=true;  // évite les évènements parasites
+  if not(ConfCellTCO) then begin actualize:=false;exit;end;
+  actualize:=true; 
   FormConfCellTCO.caption:='Propriétés de la cellule '+IntToSTR(XclicC)+','+intToSTR(YclicC)+' TCO '+intToSTR(IndexTCO);
   Bimage:=tco[indexTCO,XclicC,YclicC].Bimage;
   formConfCellTCO.EditTypeImage.Text:=intToSTR(Bimage);

@@ -123,24 +123,12 @@ end;
 procedure TFormHorloge.FormActivate(Sender: TObject);
 begin
   if formHorloge=nil then exit;
-
-  if horlogeinterne then
-  begin
-    valide_hi;
-  end
-  else
-  begin
-    devalide_hi;
-  end;
+  if horlogeinterne then valide_hi else devalide_hi;
 end;
 
 
 procedure TFormHorloge.TrackBarTempsChange(Sender: TObject);
 begin
-  //DureeMinute:=TrackBarTemps.position;
-  //if (DureeMinute<1) or (DureeMinute>60) then DureeMinute:=30;
-  //LabelDuree.caption:=intToSTR(6*(DureeMinute*5) div 30);
-
   CompteurDixiemes:=TrackBarTemps.position;
 
   DureeMinute:=CompteurDixiemes;       // variable de sauvegarde
@@ -166,8 +154,6 @@ procedure TFormHorloge.ButtonInitClick(Sender: TObject);
 begin
   init_horloge;
 end;
-
-
 
 procedure TFormHorloge.EditMInitChange(Sender: TObject);
 var i,erreur : integer;
@@ -255,7 +241,7 @@ begin
   CompteurDixiemes:=DureeMinute;
   couleurs_horloge;
   TrackBarTemps.position:=DureeMinute;
-  
+
   RadioButtonHI.Checked:=horlogeInterne;
   RadioButtonHS.Checked:=not(horlogeInterne);
   CheckBoxLanceHorl.Checked:=LanceHorl;
@@ -268,7 +254,6 @@ begin
   EditRetourMinute.Text:=intToSTR(RetourMinute);
   LabelDuree.caption:=intToSTR(6*CompteurDixiemes);
   config_modifie:=false;
-
 end;
 
 procedure TFormHorloge.CheckBoxLanceHorlClick(Sender: TObject);

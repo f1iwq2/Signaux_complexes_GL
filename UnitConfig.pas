@@ -4497,6 +4497,19 @@ const LessThanValue=-1;
         i:=pos(',',s);
         if i=0 then i:=length(s)+1;
         trains[ntrains].NomIcone:=copy(s,1,i-1);
+        Trains[ntrains].icone:=Timage.create(nil);
+
+        with Trains[ntrains].icone do
+        begin
+          autosize:=true;
+          align:=alNone;
+          parent:=nil;
+          name:='IconeTrain'+intToSTR(nTrains);
+          top:=0;left:=0;
+          width:=200;
+          height:=100;
+        end;
+
         Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
         delete(s,1,i-1);
       end;
@@ -6188,9 +6201,8 @@ const LessThanValue=-1;
         compile_compteurs;
       end;
 
-
-
       inc(it);
+
     until (eof(fichier));
 
     end;  // fin de lit_flux
@@ -11047,6 +11059,7 @@ begin
   supprime_pn;
 end;
 
+// renvoie le nombre d'adresses occupées par un signal
 function nombre_adresses_signal(adr : integer) : integer;
 var x,dec,nc,i,j : integer;
 begin
@@ -11094,12 +11107,13 @@ begin
   end;
   if dec=9 then nc:=2;               // LS-DEC-NMBS
   if dec=10 then nc:=Signaux[i].Na;  // Bmodels
+  if dec=11 then nc:=Signaux[i].Na;  // LEA
+
   if dec>=NbDecodeurdeBase then
   begin
     j:=dec-NbDecodeurdeBase+1;
     nc:=decodeur_pers[j].NbreAdr;
   end;
-  if dec=11 then nc:=Signaux[i].Na;   // LEA
 
   nombre_adresses_signal:=nc;
 end;
@@ -11233,11 +11247,14 @@ begin
       formconfig.ListBoxSig.Items.Delete(i-1);
 
       Signaux[i].Img.free;  // supprime l'image, ce qui efface le signal du tableau graphique
+      Signaux[i].Img:=nil;
       Signaux[i].Lbl.free;  // supprime le label
+      Signaux[i].Lbl:=nil;
       Tablo_Index_Signal[Signaux[i].adresse]:=0;
       if Signaux[i].checkFB<>nil then
       begin
-        Signaux[i].checkFB.Free;Signaux[i].CheckFB:=nil;
+        Signaux[i].checkFB.Free;
+        Signaux[i].CheckFB:=nil;
       end;  // supprime le check du feu blanc s'il existait
 
       for j:=i to NbreSignaux-1 do
@@ -14171,7 +14188,7 @@ begin
   if CheckEnvAigDccpp.checked then EnvAigDccpp:=1 else EnvAigDccpp:=0;
 end;
 
-// affiche l'icone du train index dans le canvas
+// copie et affiche l'icone du train index dans Iimage depuis Trains[].Icone
 // Iimage: destination ; index: index du train
 // en sortie : largeur de l'image générée
 function Maj_icone_train(IImage : Timage;index :integer;coulfond : Tcolor) : integer;
@@ -14352,11 +14369,26 @@ begin
   if nTrains>=Max_Trains then exit;
   clicListe:=true;
   inc(nTrains);
-  trains[ntrains].nom_train:='train';
-  trains[ntrains].adresse:=99;
-  trains[ntrains].VitNominale:=60;
-  trains[ntrains].VitRalenti:=40;
-  trains[ntrains].vitmax:=120;
+  with trains[ntrains] do
+  begin
+    nom_train:='train';
+    adresse:=99;
+    VitNominale:=60;
+    VitRalenti:=40;
+    vitmax:=120;
+    icone:=Timage.create(nil);
+    with icone do
+    begin
+      Name:='IconeTrain'+intToSTR(nTrains); 
+      autosize:=true;
+      align:=alNone;
+      parent:=nil;
+      top:=0;left:=0;
+      width:=200;
+      height:=100;
+    end;
+  end;
+
   clicListeTrains(ntrains);
   ligneclicTrain:=ntrains-1;
   clicListe:=false;
@@ -14391,7 +14423,6 @@ var i,j,n : integer;
     s,ss : string;
 begin
   ss:='';
-  n:=0;
   for i:=0 to nTrains-1 do
   begin
     if formconfig.ListBoxTrains.selected[i] then
@@ -14430,45 +14461,69 @@ begin
   end;
 
   // suppression
-  n:=0;
+  formCompteur[1].close;
+
   i:=1;
   repeat
     if formconfig.ListBoxTrains.selected[i-1] then
     begin
-      for j:=i to ntrains do
+      j:=i;
+      Affiche('Supprime train '+intToSTR(j)+' '+Trains[j].nom_train,clOrange);
+      // libérer les composants car on va réaffecter des noms
+      trains[j].icone.Free;
+      image_train[j].free;
+      labeltrain[j].free;
+      LabelVitesse[j].free;
+      labelBlocUSB[j].free;
+      trains[j].icone:=nil;
+      image_train[j]:=nil;
+      labeltrain[j]:=nil;
+      LabelVitesse[j]:=nil;
+      labelBlocUSB[j]:=nil;
+      // composants onglet compteurs
+      compteurT[j].Img.Free;
+      compteurT[j].img:=nil;
+      compteurT[j].tb.Free;
+      compteurT[j].tb:=nil;
+      compteurT[j].lbl.Free;
+      compteurT[j].lbl:=nil;
+      compteurT[j].bouton.Free;
+      compteurT[j].bouton:=nil;
+      compteurT[j].FcBitmap.Free;
+      compteurT[j].FcBitmap:=nil;
+      compteurT[j].gb.free;
+      compteurT[j].gb:=nil;
+
+      // décaler le reste du tableau
+      for j:=i to nTrains do
       begin
-        if formconfig.ListBoxTrains.selected[j-1] then
-        begin
-          // libérer les composants car on va réaffecter des noms
-          image_train[j].free;
-          labeltrain[j].free;
-          LabelVitesse[j].free;
-          // onglet compteurs
-          compteurt[j].Img.Free;
-          compteurt[j].tb.Free;
-          compteurt[j].lbl.Free;
-          compteurt[j].bouton.Free;
-          compteurT[j].gb.free;
-          compteurT[j].FcBitmap.Free;
-        end;
         if j<ntrains then
         begin
-          formconfig.ListBoxTrains.selected[j-1]:=formconfig.ListBoxTrains.selected[j];
+         formconfig.ListBoxTrains.selected[j-1]:=formconfig.ListBoxTrains.selected[j];
           trains[j]:=trains[j+1];
           image_train[j]:=image_train[j+1];
+          image_train[j].Name:='ImageTrain'+IntToSTR(j);
           // renseigne les composants train page principale
           labeltrain[j]:=labeltrain[j+1];
           LabelVitesse[j]:=LabelVitesse[j+1];
+          LabelBlocUSB[j]:=LabelBlocUSB[j+1];
           renseigne_comp_trains(j);
           // onglet compteurs
           compteurT[j]:=compteurt[j+1];
+          with compteurT[j] do
+          begin
+            gb.name:='GroupBoxT'+IntToSTR(j);
+            lbl.Name:='LabelT'+IntToSTR(j);
+            Img.Name:='ImageCompteurT'+IntToSTR(j);
+            Bouton.Name:='BoutonT'+IntToSTR(j);
+            tb.Name:='TrackBarT'+IntToSTR(j);
+          end;
         end;
       end;
       dec(ntrains);
-
-      i:=0;
-    end;
-    inc(i);
+    end
+    else
+      inc(i);
   until i>ntrains;
 
   Formprinc.ScrollBoxTrains.Repaint;
@@ -18832,7 +18887,7 @@ begin
          ServeurIPCDM_touche:=s='simulation de touches';
        end;
   14 : begin
-         if length(s)<4 then labelInfo.Caption:='Valeur incorrecte'
+         if length(s)<1 then labelInfo.Caption:='Valeur incorrecte'
          else string(p^):=s;  // CheminProgrammesCDM:=s;
        end;
   15 : begin

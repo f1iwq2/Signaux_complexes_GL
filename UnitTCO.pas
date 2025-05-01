@@ -513,7 +513,7 @@ type
            Xundo,Yundo : integer;     // coordonnées x,y de la cellule pour le undo
            FeuOriente  : integer;     // orientation du signal : 1 vertical en bas  / 2 horizontal gauche / 3 horizontal droit  / OU si action : numéro du TCO etc / OU Nbre éléments du canton
            liaisons    : integer;     // quadrants des liaisons
-           epaisseurs  : integer;     // épaisseur des liaisons : si le bit n est à 1 : liaison fine
+           epaisseurs  : integer;     // épaisseur des liaisons : si le bit n est à 1 : liaison fine bit0=NO bit1=N bit2=NE bit3=E bit4=SE bit5=S bit6=SE bit 7=O
            SensCirc    : integer;     // sens de la circulation des trains dans canton à la lecture du tco, copié dans canton au renseignement du canton tous sens=0  SensGauche=1  SensDroit=2  SensHaut=3  SensBas=4
            pont        : integer;     // définition du pont : si le bit n est à 1 : pont (bits symétriques) OU si canton: alignement train (0=centré 1=Gauche/haut 2=droite/bas)
            buttoir     : integer;     // définition des buttoirs : si le bit n°n est à 1 : buttoir ; ou encadre cellule
@@ -3720,8 +3720,10 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
-        moveTo(x0,yc);LineTo(xc,yc);LineTo(xf,yf);
+        if testbit(ep,0) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc,yc);
+        if testbit(ep,4) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        LineTo(xf,yf);
       end;
     end;
 
@@ -3743,7 +3745,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3865,8 +3867,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
-        //moveTo(x0,yc);LineTo(xc-round(4*frxGlob[indexTCO]),yc);LineTo(xf,yf);
+        if testbit(ep,0) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
@@ -3889,7 +3890,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3902,6 +3903,7 @@ begin
   if graphisme=2 then dessin_4C(indexTCO,Canvas,x,y,Mode);
 end;
 
+// mode=mode pour la couleur
 procedure dessin_5L(indexTCO : integer;Canvas : Tcanvas;x,y : integer;Mode : integer);
 var x0,y0,xc,yc,xf,yf,x1,x2,y1,y2,x3,y3,x4,y4,position,ep : integer;
     r : Trect;
@@ -3970,11 +3972,12 @@ begin
 
     Pen.Width:=epaisseur;
     Brush.Color:=clVoies[indexTCO];
-    Pen.Color:=clVoies[indexTCO];
+    //Pen.Color:=clVoies[indexTCO];
     Pen.Mode:=pmCopy;
 
     if mode>0 then
     begin
+      // dessiner l'aiguillage dans son trajet
       if (position=const_devie) or (position=const_inconnu) then
       begin
         trajet_droit;
@@ -3986,13 +3989,14 @@ begin
         trajet_droit;
       end;
     end
-
     else
     begin
+      // ne dessiner que l'aiguillage sans trajet
       trajet_devie;
       trajet_droit;
     end;
 
+    // Effacement pour le trajet
     if (position=const_Devie) then
     begin
       if not(AffPosFil) then
@@ -4004,15 +4008,17 @@ begin
         x3:=x2-epaisseur;y3:=y2-epaisseur-1;
         x4:=x3+epaisseur;y4:=y3;
         pen.color:=fond;
-        Brush.Color:=fond;
+        //Brush.Color:=fond;
         Polygon([point(x1,y1),Point(x2,y2),Point(x3,y3),Point(x4,y4)]);
       end
       else
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
-        moveTo(xf,yc);LineTo(xc,yc);LineTo(x0,y0);
+        if testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(xc,yc);
+        if testbit(ep,0) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        LineTo(x0,y0);
       end;
     end;
 
@@ -4033,8 +4039,10 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
-        moveTo(xf,yc);LineTo(x0,yc);
+        if testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        moveTo(xf,yc);LineTo(xc,yc);
+        if testbit(ep,7) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        LineTo(x0,yc);
       end;
     end;
   end;
@@ -4153,8 +4161,8 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
         //moveTo(xf,yc);LineTo(xc+round(5*frxGlob[indexTCO]),yc);LineTo(x0,y0);
+        if testbit(ep,3) or testBit(ep,0) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
@@ -4177,7 +4185,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,3) or testbit(ep,7) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -16263,7 +16271,7 @@ end;
 
 // sélectionne le canton du tco, qui a été cliqué à la souris
 procedure selec_canton(indexTCO : integer);
-var i,idTrain,Bimage,xt,yt,xclic,yclic : integer;
+var i,idTrain,Bimage,xt,yt,xclic,yclic,x,y : integer;
     s,s1,s2 : string;
 begin
   xclic:=XclicCell[indexTCO];
@@ -16508,6 +16516,7 @@ begin
             ImageTCO.Hint:='Canton occupé par train '+canton[IdCantonClic].nomtrain;
             exit;
           end;
+          detDepart:=0;
           if tel1=det then detatrouve:=el1;
           if tel2=det then detatrouve:=el2;
           cantonDest:=canton[IdCantonClic].numero;
@@ -16556,7 +16565,7 @@ begin
             formRoute.show;
           end;
           titre_Fenetre(indexTCO);
-          //detatrouve:=0;
+          detatrouve:=0;
           //detDepart:=0;
           exit;
         end;
@@ -17314,7 +17323,7 @@ begin
   //Affiche('EditAdrElement change',clyellow);
   //if clicTCO or not(ConfCellTCO) then exit;
 
-  if clicTCO then
+  if clicTCO or actualize then
   begin
     HideCaret(EditAdrElement.Handle);  // supprime le curseur
     exit;
@@ -18869,7 +18878,7 @@ procedure TFormTCO.EditTypeImageChange(Sender: TObject);
 var Bimage,erreur,indexTCO : integer;
 begin
   // plus éditable
-  if clicTCO or not(ConfCellTCO) then exit;
+  if clicTCO or not(ConfCellTCO) or actualize then exit;
   if affevt then Affiche('TCO evt editTypeImageChange',clorange);
   if actualize then exit;
   indexTCO:=index_tco(sender);

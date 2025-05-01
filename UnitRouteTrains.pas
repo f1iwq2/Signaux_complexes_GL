@@ -83,11 +83,74 @@ implementation
 
 {$R *.dfm}
 
+// renvoie l'adresse du signal du train sur détecteur
+function Adresse_signal_det_train(detect,IndexTrain : integer) : integer;
+var voie1,voie2,indexSig1,IndexSig2,AdrSig1,AdrSig2,IndexSig,AdrSig : integer;
+    s : string;
+begin
+  if detect=0 then
+  begin
+    result:=0;
+    exit;
+  end;
+  index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);
+  AdrSig:=0;AdrSig1:=0;AdrSig2:=0;
+  if indexSig1<>0 then AdrSig1:=signaux[indexSig1].adresse;
+  if indexSig2<>0 then AdrSig2:=signaux[indexSig2].adresse;
+
+  // si le détecteur sur le train au départ dispose d'un signal
+  if (AdrSig1<>0) or (AdrSig2<>0) then
+  begin
+    indexSig:=0;
+    if (signaux[indexSig1].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig1].Btype_suiv1=trains[IndexTrain].TElSuivant) then
+      indexSig:=IndexSig1;
+    if (signaux[indexSig2].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig2].Btype_suiv1=trains[IndexTrain].TElSuivant) then
+      indexSig:=IndexSig2;
+
+    {
+    // trouver le premier détecteur de la route et son suivant non traité pour trouver le signal dans le bon sens
+    n:=trains[indexTrain].route[0].adresse;
+    i:=1;det1:=0;el2:=0;trouve:=false;
+    with trains[indexTrain] do
+    begin
+      repeat
+        if route[i].typ=det then
+        begin
+          det1:=route[i].adresse;
+          el2:=route[i+1].adresse;tel2:=route[i+1].typ;
+          trouve:=true
+        end;
+        inc(i);
+      until trouve or (i>n);
+    end;
+
+    //trouve le signal dans le bon sens
+    IndexSig:=0;
+    if AdrSig1<>0 then
+    begin
+      if (signaux[indexSig1].Adr_el_suiv1=el2) and (signaux[indexSig1].Btype_suiv1=tel2) then IndexSig:=IndexSig1;
+    end;
+    if adrSig2<>0 then
+    begin
+      if (signaux[indexSig2].Adr_el_suiv1=el2) and (signaux[indexSig2].Btype_suiv1=tel2) then IndexSig:=IndexSig2;
+    end;
+    }
+
+    //AdrSig:=signaux[indexSig].adresse;
+    if IndexSig=0 then begin result:=0;exit;end;
+
+    //Affiche('IndexSig='+intToSTR(IndexSig)+' detect='+intToSTR(detect),clred);
+    result:=signaux[indexSig].adresse;
+    exit;
+  end
+  else result:=0;  // pas de signal
+end;
+
 // démarre un train si le signal n'est pas au rouge
 // appelé par gestion des horaires dans le timer  ou  bouton rouler 1 train ou rouler tous les trains
 function demarre_index_train(indexTrain  : integer) : boolean;
 var i,n,det1,el2,vitesse,AdrTrain,idcanton,voie1,voie2,indexSig1,indexSig2,AdrSig1,AdrSig2,AdrSig,
-    detect,indexSig : integer;
+    detect,indexSig,etsign : integer;
     tel2 : tequipement;
     trouve : boolean;
     Train,s : string;
@@ -124,52 +187,16 @@ begin
     Affiche('Le train '+train+' est sur le détecteur '+intToSTR(detect),clWhite);
   end;
 
-  index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);
-  AdrSig1:=0;AdrSig2:=0;
-  if indexSig1<>0 then AdrSig1:=signaux[indexSig1].adresse;
-  if indexSig2<>0 then AdrSig2:=signaux[indexSig2].adresse;
-
-  // si le détecteur sur le train au départ dispose d'un signal
-  if (AdrSig1<>0) or (AdrSig2<>0) then
+  etsign:=Adresse_signal_det_train(detect,indexTrain);
+  if etSign<>0 then
   begin
-    // trouver le premier détecteur de la route et son suivant non traité pour trouver le signal dans le bon sens
-    n:=trains[indexTrain].route[0].adresse;
-    i:=1;det1:=0;el2:=0;trouve:=false;
-    with trains[indexTrain] do
+    if traceliste then Affiche('Le signal dans le bon sens est '+intToSTR(EtSign)+' '+chaine_signal(EtSign),clOrange);
+    if signal_rouge(etSign) then
     begin
-      repeat
-        if route[i].typ=det then
-        begin
-          det1:=route[i].adresse;
-          el2:=route[i+1].adresse;tel2:=route[i+1].typ;
-          trouve:=true
-        end;
-        inc(i);
-      until trouve or (i>n);
-    end;
-
-    //trouve le signal dans le bon sens
-    IndexSig:=0;
-    if AdrSig1<>0 then
-    begin
-      if (signaux[indexSig1].Adr_el_suiv1=el2) and (signaux[indexSig1].Btype_suiv1=tel2) then IndexSig:=IndexSig1;
-    end;
-    if adrSig2<>0 then
-    begin
-      if (signaux[indexSig2].Adr_el_suiv1=el2) and (signaux[indexSig2].Btype_suiv1=tel2) then IndexSig:=IndexSig2;
-    end;
-
-    AdrSig:=signaux[indexSig].adresse;
-    if adrSig<>0 then
-    begin
-      if traceliste then Affiche('Le signal dans le bon sens est '+intToSTR(AdrSig)+' '+chaine_signal(AdrSig),clOrange);
-      if signal_rouge(AdrSig) then
-      begin
-        s:='Le train '+train+' est arreté au signal '+intToSTR(signaux[IndexSig].adresse);
-        affiche(s,clyellow);
-        trains[indexTrain].roulage:=1;
-        exit;  // on sort car on ne démarre pas un train arrêté au rouge
-      end;
+      s:='Le train '+trains[indexTrain].nom_train+' est arreté au signal '+intToSTR(etSign);
+      affiche(s,clyellow);
+      trains[indexTrain].roulage:=1;
+      exit;  // on sort car on ne démarre pas un train arrêté au rouge
     end;
   end;
 
@@ -210,8 +237,8 @@ begin
   trains[indexTrain].roulage:=2;
   if traceListe then AfficheDebug(s,clyellow);
 
-  // supprimer les evts du trains
-
+  // au lancement du train de la route, initialiser le tableau
+  // event_det_train à 1
   i:=1;
   repeat
     if event_det_train[i].AdrTrain=AdrTrain then
@@ -222,7 +249,6 @@ begin
     end;
     inc(i);
   until (i>n_trains);
-
 
   i:=trains[indexTrain].TempsDemarreSig;
   if i=0 then i:=1;
@@ -246,7 +272,6 @@ begin
   end
   else result:=false;
 end;
-
 
 // mise à jour des infos de la fenetre : combobox
 procedure maj_infos(idtrain : integer);
@@ -399,12 +424,13 @@ end;
 function aig_canton(idTrain,detect : integer) : integer;
 var AdrSig,n,i,ic,j,ideb,iFin,AdrTrain,etat,pointeur,voie1,voie2,indexSig1,indexSig2,AncPr,
     Trainexistant,adr,pos,index,Ncanton,icanton,NumCanton,det_arret,it,PointRoute,ElPrec,
-    adr2 : integer;
+    adr2,etatSig : integer;
     typ,tprec: tequipement;
     trainTiers,SigBonSens,trouve : boolean;
     s : string;
 begin
   //traceliste:=true;
+  //if (detect=525) and (idTrain=4) then traceliste:=true else traceliste:=false;
   if ProcPrinc then AfficheDebug('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
   if debugRoulage then Affiche('Aig_canton '+intToSTR(idTrain)+' '+intToSTR(detect),clWhite);
   result:=0;
@@ -427,7 +453,7 @@ begin
 
   if DebugRoulage then
   begin
-    Affiche('AC train @'+intToSTR(AdrTrain)+'Detecteur='+intToSTR(detect)+' Pointeur'+intToSTR(pointeur)+' ->'+intToSTR(trains[idTrain].route[i].adresse),clOrange);
+    Affiche('AC train @'+intToSTR(AdrTrain)+'Detecteur='+intToSTR(detect)+' Pointeur='+intToSTR(pointeur)+' prec='+intToSTR(trains[idTrain].route[i].adresse),clOrange);
     if i>=n then
     begin
       affiche('La route a été complètement traitée (réservation)',clOrange);
@@ -497,6 +523,7 @@ begin
   ncanton:=0;
   TrainExistant:=0;
   ideb:=trains[idTrain].PointRout;
+  ideb:=Pointeur; 
   AdrSig:=0;
   SigBonSens:=false;
   //TraceListe:=true;
@@ -579,6 +606,8 @@ begin
     // phases 2 et 3
     trains[idtrain].roulage:=2; // roulage effectif
     result:=AdrTrain;
+
+    // affectation ifin
     if not(traintiers) then iFin:=i-1 else iFin:=icanton;
     AdrTrain:=trains[idTrain].adresse;
 
@@ -623,6 +652,21 @@ begin
     end;
   end;
   maj_signaux(false);
+
+  // redémarre le train si arrêté au rouge et qu'il redémarre
+  detect:=trains[idTrain].detecteurA;
+  if detect<>0 then
+  begin
+    //Affiche('test Redémarre train '+intToSTR(idTrain)+' detecteur '+intToSTR(detect),clyellow);
+    etatSig:=Adresse_signal_det_train(detect,idtrain);
+    if (etatSig<>0) and (trains[idTrain].vitesseCons=0) then
+    begin
+      if not(Signal_Rouge(EtatSig)) then
+      begin
+        pilote_train(trains[idTrain].detecteurPrec,detect,trains[idTrain].adresse,1);
+      end;
+    end;
+  end;
   //TraceListe:=false;
 end;
 
@@ -661,7 +705,8 @@ begin
   for idtrain:=1 to ntrains do
   begin
     //si le train est doté d'une route
-    if trains[idTrain].route[0].adresse>0 then
+    if trains[idTrain].route[0].adresse>0 then           
+    
     begin
       if debugRoulage then Affiche_routes_brut;
       aig_canton(idTrain,trains[idTrain].route[1].adresse);

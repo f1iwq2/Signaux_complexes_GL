@@ -265,10 +265,7 @@ begin
   closefile(f);
   couleurs_Fiche;
   StringGridFO.Selection:=tGridRect(rect(0,0,0,0));
-
 end;
-
-
 
 procedure TFormFicheHoraire.FormActivate(Sender: TObject);
 begin

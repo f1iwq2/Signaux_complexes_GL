@@ -146,6 +146,7 @@ end;
 destructor TClock.Destroy;
 begin
   FBitMap.Free;
+  FbitMap:=nil;
   Ticker.Free;
   inherited Destroy;
 end;
