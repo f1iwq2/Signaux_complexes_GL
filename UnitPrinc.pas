@@ -21453,7 +21453,7 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-//  clientInfo.Open; //zizi se connecte au serveur SC et envoie les infos
+  clientInfo.Open; // se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
