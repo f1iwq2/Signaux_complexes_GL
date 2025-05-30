@@ -1393,7 +1393,7 @@ object FormConfig: TFormConfig
         Left = 8
         Top = 282
         Width = 297
-        Height = 161
+        Height = 159
         Caption = 'Au d'#233'marrage de signaux complexes en mode autonome'
         TabOrder = 6
         object Label32: TLabel
@@ -3232,8 +3232,8 @@ object FormConfig: TFormConfig
             OnChange = LabeledEditTrainChange
           end
           object RadioGroupOP: TRadioGroup
-            Left = 256
-            Top = 24
+            Left = 208
+            Top = 16
             Width = 89
             Height = 57
             Caption = 'Op'#233'rateur'
@@ -3657,7 +3657,7 @@ object FormConfig: TFormConfig
           Top = 240
           Width = 265
           Height = 121
-          Caption = 'Actionneurs PN simples'
+          Caption = 'Actionneurs CDM PN simples'
           TabOrder = 0
         end
         object GroupBoxPNZ: TGroupBox
@@ -3772,8 +3772,8 @@ object FormConfig: TFormConfig
             Top = 174
             Width = 113
             Height = 17
-            Hint = 'PN command'#233' par actionneurs'
-            Caption = 'Actionneurs simples'
+            Hint = 'PN command'#233' par actionneurs CDM'
+            Caption = 'Actionneurs CDM'
             ParentShowHint = False
             ShowHint = True
             TabOrder = 7

@@ -127,8 +127,9 @@ object FormModifAction: TFormModifAction
         object ImageIcone: TImage
           Left = 304
           Top = 24
-          Width = 16
-          Height = 16
+          Width = 32
+          Height = 32
+          Stretch = True
         end
         object LabelInfoFonc: TLabel
           Left = 136

@@ -769,7 +769,7 @@ begin
 
       // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
       // créer un bitmap réduit qui sert de référence
-      Scompteur[i].FCBitMap.Free;    
+      Scompteur[i].FCBitMap.Free;          // zizi
       Scompteur[i].fcBitMap:=tbitmap.Create;
       with Scompteur[i].FCBitMap do
       begin

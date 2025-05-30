@@ -1318,7 +1318,8 @@ var
   // trains[0] est utilisé pour le tri. L'indice 1 contient le 1er train.
   trains : array[0..Max_Trains] of tTrain;
 
-  // éléments scannés et/ou verrouillés
+  // éléments scannés et/ou verrouillés ; rempli par detecteur_suivant  trouve_actionneur  etat_signal_suivant
+  // reserve_canton  etat_signal_precedent
   elements : array[1..Maxelements] of
              record
                adresse : integer;
@@ -5615,7 +5616,6 @@ begin
   AffCompteur:=true;
   formCompteur[1].Show;
 end;
-
 
 // renseigne les composants image train, label et vitesse
 procedure renseigne_comp_trains(i : integer);
@@ -20126,18 +20126,6 @@ begin
     event_det_tick[i].reaffecte:=0 ;
   end;
   for i:=1 to NbMaxDet do
-  begin
-    // detecteur[i].etat:=false; ne pas razer les états de détecteurs
-    //detecteur[i].train:='';
-    //detecteur[i].adrTrain:=0;
-    //detecteur[i].IndexTrainRoulant:=0;
-    //detecteur[i].suivant:=0;
-    //detecteur[i].TypSuivant:=rien;
-    //detecteur[i].precedent:=0;
-    //detecteur[i].TypPrecedent:=rien;
-    //ancien_detecteur[i]:=detecteur[i].etat;
-  end;
-  for i:=1 to NbMaxDet do
     for j:=1 to NbMaxDet do
     begin
       MemZone[i,j].etat:=false;
@@ -21465,7 +21453,7 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-  clientInfo.Open; // se connecte au serveur SC et envoie les infos
+//  clientInfo.Open; //zizi se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions

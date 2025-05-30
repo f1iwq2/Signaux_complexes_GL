@@ -523,7 +523,7 @@ begin
   ncanton:=0;
   TrainExistant:=0;
   ideb:=trains[idTrain].PointRout;
-  ideb:=Pointeur; 
+  ideb:=Pointeur; // zizi
   AdrSig:=0;
   SigBonSens:=false;
   //TraceListe:=true;

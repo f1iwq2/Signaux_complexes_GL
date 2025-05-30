@@ -3148,8 +3148,10 @@ begin
      begin
        pen.color:=fond;
        Brush.Color:=fond;
-       pen.width:=epaisseur div 2;
-       moveTo(xf,yc);LineTo(xc,yc);LineTo(x0,yf);
+       if testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+       moveTo(xf,yc);LineTo(xc,yc);
+       if testbit(ep,6) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+       LineTo(x0,yf);
      end;
     end;
 
@@ -3169,7 +3171,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3291,7 +3293,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,3) or testbit(ep,6) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4); //courbe
       end;
     end;
@@ -3312,7 +3314,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,3) or testbit(ep,7) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3430,8 +3432,10 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
-        moveTo(x0,yc);LineTo(xc,yc);LineTo(xf,y0);
+        if testbit(ep,7) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        moveTo(x0,yc);LineTo(xc,yc);
+        if testbit(ep,2) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        LineTo(xf,y0);
       end;
     end;
 
@@ -3451,7 +3455,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3576,9 +3580,8 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4);
-        //moveTo(x0,yc);LineTo(xc-round(4*FrxGlob[indexTCO]),yc);LineTo(xf,y0);
       end;
     end;
 
@@ -3598,7 +3601,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xf,yc);
       end;
     end;
@@ -3720,7 +3723,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        if testbit(ep,0) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        if testbit(ep,7) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         moveTo(x0,yc);LineTo(xc,yc);
         if testbit(ep,4) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         LineTo(xf,yf);
@@ -3867,7 +3870,7 @@ begin
       begin
         pen.color:=fond;
         Brush.Color:=fond;
-        if testbit(ep,0) or testbit(ep,3) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
+        if testbit(ep,7) or testbit(ep,4) then pen.Width:=epaisseur div 4 else pen.width:=epaisseur div 2;
         Arc(x1,y1,x2,y2,x3,y3,x4,y4);
       end;
     end;
@@ -8486,7 +8489,6 @@ begin
       trajet_droit;
     end;
 
-
     if (position=const_Devie) then
     begin
       if not affposFil then
@@ -8728,7 +8730,6 @@ var x0,y0,jx2,jy2,jx3,jy3,xc,yc,jx1,jy1,xf,yf,position,ep : integer;
        lineTo(x0,yf);
      end;
    end;
-
 
 begin
   x0:=(x-1)*LargeurCell[indexTCO];       // x origine

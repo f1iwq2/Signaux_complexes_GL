@@ -332,7 +332,10 @@ version 10.5 : Correction affichage réseau CDM.
 version 10.51 : Correction placement des trains dans le TCO.
 version 10.52 : Sélection routes pour plusieurs trains dans le TCO.
 version 10.53 : Vérification du répertoire d'installation de CDM Rail.
-		Correction d'un bug sur la suppression/création train.
+                Correction d'un bug sur la suppression/création train.
+version 10.54 : Améliorations diverses
+
+
 			
 
 

@@ -821,7 +821,7 @@ type
   Tliste = record                                 // liste des paramètres avancés de la ValueListEditor
            Nom      : string;                     // Nom de la variable
            aide     : string;                     // pour le hint
-           typ      : (Simple,PickList,titre);    // type d'entrée : simple=entier picklist=combobox titre=texte sans variable associée
+           typ      : (Simple,PickList,titre);    // type d'entrée : simple=entier  picklist=combobox  titre=texte sans variable associée
            masque   : string;                     // masque de saisie des entiers
            variable : pointer;                    // pointeur sur la variable à modifier
            typeVar  : (rien3,entier,bool,chaine); // type de la variable à modifier
@@ -7305,8 +7305,10 @@ begin
   if index<1 then exit;
   if Trains[index].nom_train='' then exit;
   clicListe:=true;
+
   with formconfig do
   begin
+    LabelInfo.caption:='';
     i:=trains[index].routePref[0][0].adresse;
     s:='';
     case i of
@@ -14291,13 +14293,33 @@ begin
 end;
 
 procedure TFormConfig.EditAdresseTrainChange(Sender: TObject);
-var erreur,i :integer;
+var erreur,i,j :integer;
+    trouve : boolean;
 begin
   if clicliste then exit;
   if affevt then affiche('Evt change adresse train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
   val(EditAdresseTrain.text,i,erreur);
-  if i<1 then exit;
+  if (i<1) or (i>255) then
+  begin
+    LabelInfo.caption:='Erreur'; 
+    exit;
+  end;
+
+  j:=1;
+  repeat
+    trouve:=(trains[j].adresse=i) and (j<>ligneclicTrain+1);
+    inc(j);
+  until (j>ntrains) or trouve;
+
+  if trouve then
+  begin
+    dec(j);
+    LabelInfo.caption:='Erreur: le train '+Trains[j].nom_train+' a déjà l''adresse '+intToSTR(i);
+    exit;
+  end;
+  LabelInfo.caption:='';
+
   trains[ligneclicTrain+1].adresse:=i;
   formconfig.ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
@@ -16245,6 +16267,7 @@ begin
           Affiche('Changement dans TCO '+intToSTR(i)+' cellule '+intToSTR(x)+','+intToSTR(y),clyellow);
         end;
       end;
+    Affiche_TCO(i);
   end;
 
   ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
@@ -17099,7 +17122,8 @@ begin
 end;
 
 procedure TFormConfig.ButtonNouvActClick(Sender: TObject);
-begin  ajoute_actionneur;
+begin
+  ajoute_actionneur;
 end;
 
 procedure TFormConfig.ListBoxDetMouseDown(Sender: TObject;
@@ -18175,7 +18199,7 @@ begin
     {$IF CompilerVersion >= 28.0}   // si delphi>=11
     TreeviewL.Selected.MoveTo(nodeB,naAddChildFirst);
     {$ELSE}
-    TreeviewL.Selected.MoveTo(nodeB,naAdd); 
+    TreeviewL.Selected.MoveTo(nodeB,naAdd);
     {$IFEND}
     idA:=nodeA.AbsoluteIndex;
     idB:=nodeB.AbsoluteIndex;
@@ -18379,7 +18403,7 @@ begin
   if fonction[foncCourante,0].adresse=0 then supprime_fonction(foncCourante);
 end;
 
-// supprime fonction logique;
+// supprime fonction logique
 procedure TFormConfig.ButtonSupLogClick(Sender: TObject);
 begin
   supprime_node;
@@ -18812,6 +18836,7 @@ begin
   node.Text:=texte_tv(foncCourante,i);
 end;
 
+// modification d'une valeur de la listeditor
 procedure TFormConfig.ValueListEditorSetEditText(Sender: TObject; ACol,ARow: Integer; const Value: String);
 var i,erreur : integer;
    s : string;
@@ -19355,15 +19380,15 @@ begin
   val(LabeledEditFn.Text,i,erreur);
   if (erreur<>0) or (i<0) or (i>1) then exit;
   case boutonbloc of
-  1 : blocUSB[NumBlocUSB].Fnp1:=i;
-  2 : blocUSB[NumBlocUSB].Fnp2:=i;
-  3 : blocUSB[NumBlocUSB].Fnp3:=i;
-  4 : blocUSB[NumBlocUSB].Fnp4:=i;
-  5 : blocUSB[NumBlocUSB].Fnp5:=i;
-  6 : blocUSB[NumBlocUSB].Fnp6:=i;
-  7 : blocUSB[NumBlocUSB].Fnp7:=i;
-  8 : blocUSB[NumBlocUSB].Fnp8:=i;
-  9 : blocUSB[NumBlocUSB].Fnp9:=i;
+   1 : blocUSB[NumBlocUSB].Fnp1:=i;
+   2 : blocUSB[NumBlocUSB].Fnp2:=i;
+   3 : blocUSB[NumBlocUSB].Fnp3:=i;
+   4 : blocUSB[NumBlocUSB].Fnp4:=i;
+   5 : blocUSB[NumBlocUSB].Fnp5:=i;
+   6 : blocUSB[NumBlocUSB].Fnp6:=i;
+   7 : blocUSB[NumBlocUSB].Fnp7:=i;
+   8 : blocUSB[NumBlocUSB].Fnp8:=i;
+   9 : blocUSB[NumBlocUSB].Fnp9:=i;
   10 : blocUSB[NumBlocUSB].Fnp10:=i;
   end;
 end;
