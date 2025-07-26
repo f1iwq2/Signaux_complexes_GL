@@ -13,6 +13,7 @@ object FormAig: TFormAig
   KeyPreview = True
   OldCreateOrder = False
   OnActivate = FormActivate
+  OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13

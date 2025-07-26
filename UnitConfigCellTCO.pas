@@ -15,7 +15,7 @@ type
     Label1: TLabel;
     ButtonFonte: TButton;
     EditTexteCCTCO: TEdit;
-    GroupBox2: TGroupBox;
+    GroupBoxEl: TGroupBox;
     Label15: TLabel;
     EditTypeImage: TEdit;
     CheckPinv: TCheckBox;
@@ -419,7 +419,7 @@ begin
     with formConfCellTCO.StringGridDet do
     begin
       for i:=0 to ColCount-1 do
-        for j:= 1 to RowCount-1 do
+        for j:=1 to RowCount-1 do
           Cells[i,j]:='';
       ligne:=1;
       for i:=1 to Ntrains do
@@ -822,10 +822,10 @@ begin
     RowCount:=21;
     Options := Options -[goEditing] ;
     ColWidths[0]:=0;      // colonne grise invisible
-    ColWidths[1]:=40;     // Précédent
-    ColWidths[2]:=35;     // tempe
-    ColWidths[3]:=60;     // train
-    ColWidths[4]:=105;     // icone train
+    ColWidths[1]:=round(40/RedFonte);     // Précédent
+    ColWidths[2]:=round(35/RedFonte);     // tempe
+    ColWidths[3]:=round(60/RedFonte);     // train
+    ColWidths[4]:=round(105/RedFonte);     // icone train
 
     Cells[1,0]:='Précé.';
     Cells[2,0]:='Temps';
@@ -879,6 +879,23 @@ begin
     Items.Add(Format('%d%s', [26, 'Bouton bistable']));
     itemHeight:=16;
   end;
+
+  // calcul des éléments en fonction de la taille de GroupBoxEL à cause du dimensionnement enn % des textes windows
+  width:=GroupBoxEL.Left+GroupBoxEL.Width+20;
+  height:=BitBtnOk.Top+BitBtnOK.Height+50;
+  GroupBoxCanton.top:=ButtonFond.Top+ButtonFond.Height+12;
+  GroupBoxCanton.Height:=RadioButtonDS.Height+RadioButtonDS.Top+10;
+  GroupBoxCanton.Width:=GroupBoxEL.Width-10;
+  GroupBoxDet.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;
+  GroupBoxDet.Width:=GroupBoxEL.Width-10;
+  GroupBoxAction.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;
+  GroupBoxAction.Width:=GroupBoxEL.Width-10;
+
+  GroupBoxOrientation.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;
+  GroupBoxOrientation.Width:=GroupBoxEL.Width-20;
+
+  GroupBoxImplantation.top:=GroupBoxOrientation.Height+GroupBoxOrientation.Top+10;
+  GroupBoxImplantation.Width:=GroupBoxEL.Width-20;
 
   // dessine les composants - non utilisé
   {

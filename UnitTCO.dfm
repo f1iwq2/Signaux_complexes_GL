@@ -307,6 +307,20 @@ object FormTCO: TFormTCO
       8888888888888888888BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
       BBBB}
   end
+  object LabelPM: TLabel
+    Left = 968
+    Top = 320
+    Width = 16
+    Height = 20
+    Anchors = [akTop, akRight]
+    Caption = '- +'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Arial Narrow'
+    Font.Style = []
+    ParentFont = False
+  end
   object ScrollBox: TScrollBox
     Left = 8
     Top = 12

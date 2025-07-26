@@ -1,5 +1,5 @@
 unit Unitprinc;
-// 27/03/2025 
+// 11/06/2025
 (********************************************
   Programme signaux complexes Graphique Lenz
   Composants ClientSocket et ServeurSocket pour les connexions réseau socket
@@ -1056,7 +1056,7 @@ tTrain =  record
 
 
 Ttache = array[1..MaxTaches] of record
-              typeTache : integer ; // 0 : rien  - 1 : accessoire ... etc
+              typeTache : integer ; // 0:rien  - 1:accessoire 2:vitesse train  3:fonction F  4:tempo
               traite    : boolean;  // traitement en cours
               tempo     : integer;  // tempo avant exécution de la commande
               dest      : integer;  // destinataire : 1=CDM  - 2=XpressNet  3=Dccpp
@@ -1100,6 +1100,8 @@ var
   fichier_module_cdm,Diffusion,cdmDevant,serveurIPCDM_Touche,avecAckCDM,Stop_Maj_Sig,
   Modesombre,serveur_ouvert,pasChgTBV,FpBouge,debugPN,simuInterface,option_demitour,
   mesureTrains,AffCompteur,clicTBGB,clicTBfen,clicTBTrain,ModeTache,NoTraite : boolean;
+
+  RedFonte : single;
 
   Style : array[0..200] of Tstyle;
 
@@ -1257,9 +1259,9 @@ var
     famille : integer; // 1=système 2=CDM 3=SC  ne sert qu'à filtrer l'affichage par la combobox
   end;
 
-  Fonction : array[0..100,0..100] of Tfonction;
-  NomFonction : array[0..100] of string;
-  ArbreFonc : array[0..100,0..100] of integer;
+  Fonction : array[0..100,0..100] of Tfonction;    // indice de la fonction,éléments de la fonction
+  NomFonction : array[0..100] of string;           // nom de la fonction
+  ArbreFonc : array[0..100,0..100] of integer;     // fonction sous forme d'arbre
 
   blocUSB : array[1..10] of record
               AffTrain : string;
@@ -1490,6 +1492,7 @@ procedure renseigne_comp_trains(i : integer);
 function ClavierHookLLProc(Code : integer; WordParam : wparam; LongParam: lparam) : LongInt; stdcall;
 procedure cree_GB_compteur(rang : integer);
 procedure pilote_train(det1,det2,AdrTrain,it : integer);
+procedure equation_droite(y1,y2,x1,x2 : single;var pente,b : single);
 
 implementation
 
@@ -1866,7 +1869,7 @@ begin
     Formprinc.FenRich.StyleName:='Windows';
     // et dans formdebug.Create aussi
 
-    // énumérer tous les composants pour repaint les richedit - ne marche pas
+    // énumérer tous les composants pour repaint les richedit - ne marche pas :D
     {
     for i:=0 to Screen.FormCount-1 do
     begin
@@ -2156,7 +2159,6 @@ var ts : tstrings;
     f : textFile;
 begin
   s:=GetCurrentProcessEnvVar('SystemDrive'); // s='c:'
-
   cmd:='/c vol '+s+' >vol.txt';  // /c ferme la fenetre en fin d'exec   /k ne ferme pas
   // si on fait un runas au lieu de open, çà ouvre une fenetre de demande admin sur les postes non admin
   // ou dont le niveau d'utilisateur est bas dans le profil
@@ -2181,7 +2183,7 @@ begin
       i:=pos('-',s);
       if i>4 then
       begin
-        i:=i-4;
+        i:=i-4;                                    
         s:=copy(s,i,9)+'  ';  // Id de formatage de c:\
       end;
     end
@@ -2403,12 +2405,6 @@ begin
     sa_hex:=sa_hex+IntToHex(ord(s[i]),2)+' ';
   end;
   chaine_HEX:=sa_hex;
-end;
-
-// Affiche une chaîne en Hexa Ascii
-procedure affiche_chaine_hex(s : string;couleur : Tcolor);
-begin
-  if traceTrames then AfficheDebug(chaine_HEX(s),couleur);
 end;
 
 procedure Affiche(s : string;lacouleur : TColor);
@@ -2840,7 +2836,6 @@ begin
   end;
   if trouve then result:=port else result:=0;
 end;
-
 
 {$ELSE}
 
@@ -5221,7 +5216,7 @@ begin
 end;
 }
 
-// dessine l'aspect du signal en fonction de son adresse dans la partie droite de droite
+// dessine l'aspect du signal en fonction de son adresse dans le canvas de destination
 procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : single;adresse : integer;orientation : integer);
 var i,aspect : integer;
 begin
@@ -5507,6 +5502,7 @@ begin
     //CompteurT[rang].ImgH:=imH;
   end;
 
+  // Nom du train
   CompteurT[rang].lbl:=TLabel.Create(Formprinc.ScrollBoxC);
   with CompteurT[rang].lbl do
   begin
@@ -5518,15 +5514,13 @@ begin
     left:=8;
     width:=largComptC-10;
     font.Name:='Arial';
-    font.Size:=10;
+    font.Size:=round(RedFonte*10);
     font.Style:=[fsbold];
     //transparent:=false;
     //couleur:=compteurT[rang].gb.Color;
     //affiche(intToHex(couleur,6),clyellow);
     //color:=couleur;
-
     caption:=trains[rang].nom_train;
-
   end;
 
   CompteurT[rang].Img:=Timage.create(CompteurT[rang].gb);
@@ -5620,51 +5614,51 @@ end;
 // renseigne les composants image train, label et vitesse
 procedure renseigne_comp_trains(i : integer);
 begin
- with image_train[i] do
-        begin
-          Autosize:=true;
-          align:=alNone;
-          Parent:=Formprinc.ScrollBoxTrains;
-          Name:='ImageTrain'+IntToSTR(i);   // nom de l'image
-          Top:=50*(i-1);   // détermine les points d'origine
-          Left:=0;
-          picture.Bitmap.Width:=LargImgTrain;
-          picture.Bitmap.Height:=HautImgTrain;
-        end;
-        with labeltrain[i] do
-        begin
-          Name:='LabelTrain'+intToSTR(i);
-          Caption:=Trains[i].nom_train;
-          Parent:=Formprinc.ScrollBoxTrains;
-          font.color:=clBlack;
-          font.Style:=[fsbold];
-          width:=100;height:=20;
-          Top:=Image_train[i].Top+(HautImgTrain div 3);
-          Left:=LargImgTrain+10;
-          BringToFront;
-        end;
-        with LabelVitesse[i] do
-        begin
-          Name:='LabelVitesse'+intToSTR(i);
-          Caption:='V=0';
-          Parent:=Formprinc.ScrollBoxTrains;
-          font.color:=clBlack;
-          width:=100;height:=20;
-          Top:=Image_train[i].Top+(HautImgTrain div 3)+12;
-          Left:=LargImgTrain+10;
-          BringToFront;
-        end;
-        with LabelBlocUSB[i] do
-        begin
-          Name:='LabelBlocUSB'+intToSTR(i);
-          caption:='';
-          Parent:=Formprinc.ScrollBoxTrains;
-          font.color:=clBlack;
-          width:=100;height:=20;
-          Top:=Image_train[i].Top+(HautImgTrain div 3)+24;
-          Left:=LargImgTrain+10;
-          BringToFront;
-        end;
+  with image_train[i] do
+  begin
+    Autosize:=true;
+    align:=alNone;
+    Parent:=Formprinc.ScrollBoxTrains;
+    Name:='ImageTrain'+IntToSTR(i);   // nom de l'image
+    Top:=50*(i-1);   // détermine les points d'origine
+    Left:=0;
+    picture.Bitmap.Width:=LargImgTrain;
+    picture.Bitmap.Height:=HautImgTrain;
+  end;
+  with labeltrain[i] do
+  begin
+    Name:='LabelTrain'+intToSTR(i);
+    Caption:=Trains[i].nom_train;
+    Parent:=Formprinc.ScrollBoxTrains;
+    font.color:=clBlack;
+    font.Style:=[fsbold];
+    width:=100;height:=20;
+    Top:=Image_train[i].Top+(HautImgTrain div 3);
+    Left:=LargImgTrain+10;
+    BringToFront;
+  end;
+  with LabelVitesse[i] do
+  begin
+    Name:='LabelVitesse'+intToSTR(i);
+    Caption:='V=0';
+    Parent:=Formprinc.ScrollBoxTrains;
+    font.color:=clBlack;
+    width:=100;height:=20;
+    Top:=Image_train[i].Top+(HautImgTrain div 3)+12;
+    Left:=LargImgTrain+10;
+    BringToFront;
+  end;
+  with LabelBlocUSB[i] do
+  begin
+    Name:='LabelBlocUSB'+intToSTR(i);
+    caption:='';
+    Parent:=Formprinc.ScrollBoxTrains;
+    font.color:=clBlack;
+    width:=100;height:=20;
+    Top:=Image_train[i].Top+(HautImgTrain div 3)+24;
+    Left:=LargImgTrain+10;
+    BringToFront;
+  end;
 end;
 
 // créée une image dans l'onglet trains , 2 label dynamiquement dans la partie droite pour un nouveau train déclaré dans le fichier de config
@@ -5698,7 +5692,6 @@ begin
   renseigne_comp_trains(rang);
   with Image_Train[rang] do
   begin
-
     onClick:=Formprinc.ImageTrainonclick;    // affectation procédure clique G sur image
     OnDblClick:=formPrinc.ImageTrainDoubleClic;
     //onMouseDown:=Formprinc.ProcOnMouseDown; // clique G ou D
@@ -5730,7 +5723,6 @@ begin
     begin
       labelBlocUSB[rang].Caption:='Bloc USB '+intToSTR(i);
     end;
-
   end;
 end;
 
@@ -6032,7 +6024,8 @@ begin
   end;
 end;
 
-// teste la condition d'une action
+// teste la (les) condition(s) d'une action
+// action : index de l'action
 function teste_condition(action : integer) : boolean;
 var condValide : boolean;
  vit,vit1,vit2,it,pa,m1,m2,hc,n,ncond,cond,etat : integer;
@@ -6394,7 +6387,7 @@ end;
 
 
 // fonction hook clavier de bas niveau (LL) appellée par appui ou relache sur une touche
-// cette fonction intercepte tous les évènements clavier (pas les touches de fonctions [hotkeys]) windows quelque soit la fenetre ou le prog activé.
+// cette fonction d'interception est appellée par tous les évènements clavier (pas les touches de fonctions [hotkeys]) windows quelque soit la fenetre ou le prog activé.
 // https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms644984(v=vs.85)?redirectedfrom=MSDN
 // https://learn.microsoft.com/fr-fr/windows/win32/api/winuser/ns-winuser-kbdllhookstruct
 function ClavierHookLLProc(Code : integer; WordParam : wparam; LongParam: lparam) : longint;
@@ -6764,7 +6757,7 @@ begin
   begin
     sc:=false;
     // il faut qu'on soit en RUN pour que les vitesses des trains soient prises en compte
-    // pour arrêter un train dans CDM, envoyer une consigne nulle ne suffit pas, il faut envoyer un _STOP
+    // pour arrêter un train dans CDM, envoyer une consigne nulle ne suffit pas, il faut envoyer un _STOP mais il n'y a pas de décélération
     if PilotageTrainsCDMNom then
       s:=chaine_CDM_vitesseST(vitesse,nom_train)  // par nom du train
     else
@@ -21091,6 +21084,12 @@ begin
   timer1.Interval:=100;
   timer1.Enabled:=true;
 
+  {$IF CompilerVersion >= 28.0}
+  RedFonte:=Screen.DefaultPixelsPerInch/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
+  {$ELSE}
+  RedFonte:=100/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
+  {$IFEND}
+             
   ButtonEssai.Visible:=not(diffusion);
   GetLocaleFormatSettings(0,FormatSettings);
   FormatSettings.DecimalSeparator:='.';
@@ -21943,7 +21942,7 @@ begin
   end;
 end;
 
-// donne l'equation de droite: renvoie la pente et b (y=ax+b) de la droite passant par les points (x1,y1) et (x2,y2)
+// donne l'equation de droite: renvoie la pente a et b (y=ax+b) de la droite passant par les points (x1,y1) et (x2,y2)
 procedure equation_droite(y1,y2,x1,x2 : single;var pente,b : single);
 begin
   if x2-x1<>0 then pente:=(y2-y1)/(x2-x1) else pente:=9999;
@@ -21963,6 +21962,7 @@ begin
 end;
 
 // traite les taches par le timer
+// une tache est piloter un accessoire, une vitesse de train ou une fonction F
 // tableau taches[].typeTache
 //               [].chaine
 //               [].tempo
@@ -28096,5 +28096,7 @@ begin
   menu:=Sender as tPopUpMenu;
   menu.Items[1].caption:='Extraire le compteur du train '+trains[IdTrainClic].nom_train;
 end;
+
+
 
 end.

@@ -22,6 +22,7 @@ type
     procedure ButtonDev2Click(Sender: TObject);
     procedure ButtonDroit2Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -194,9 +195,10 @@ begin
   if key=chr(27) then close;
 end;
 
+procedure TFormAig.FormCreate(Sender: TObject);
 begin
+  width:=ButtonDroit2.left+buttonDroit2.Width+30;  // adapte la fenetre aux taille des boutons qui ont pu changer si on sélectionne un % de fonte dans windows
+end;
 
-
-
-
+begin
 end.

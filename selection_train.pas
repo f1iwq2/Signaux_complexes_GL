@@ -36,12 +36,10 @@ type
     { Déclarations publiques }
   end;
 
-const
-HauteurLigneSGT=30;
 
 var
   FormSelTrain: TFormSelTrain;
-  largC,hautC,LargeurSGT,indexTrainClic : Integer;
+  largC,hautC,LargeurSGT,indexTrainClic,HauteurLigneSGT : Integer;
   routeSav : TuneRoute;
 
 procedure actualise_seltrains;
@@ -437,6 +435,7 @@ end;
 procedure TFormSelTrain.FormCreate(Sender: TObject);
 var i : integer;
 begin
+  HauteurLigneSGT:=round(30/redFonte);
   with ImageHaut do begin Width:=60;Height:=60;visible:=false; end;
   with ImageBas do begin Width:=60;Height:=60;visible:=false; end;
   with ImageDroite do begin Width:=60;Height:=60;visible:=false; end;
@@ -454,14 +453,14 @@ begin
     ShowHint:=true;
     ColCount:=8;    // nombre de colonnes
     RowCount:=Ntrains+1;
-    ColWidths[0]:=50;
-    ColWidths[1]:=200;     // icone
-    ColWidths[2]:=150;     // nom du train
-    ColWidths[3]:=60;      // canton
-    ColWidths[4]:=100;
-    ColWidths[5]:=120;
-    ColWidths[6]:=30;
-    ColWidths[7]:=35;
+    ColWidths[0]:=round(50/RedFonte);;
+    ColWidths[1]:=round(200/RedFonte);;     // icone
+    ColWidths[2]:=round(150/RedFonte);;     // nom du train
+    ColWidths[3]:=round(60/RedFonte);;      // canton
+    ColWidths[4]:=round(100/RedFonte);;
+    ColWidths[5]:=round(120/RedFonte);;
+    ColWidths[6]:=round(30/RedFonte);;
+    ColWidths[7]:=round(35/RedFonte);;
     LargeurSGT:=0;
     for i:=0 to 7 do LargeurSGT:=LargeurSGT+ColWidths[i];
     width:=LargeurSGT+30;

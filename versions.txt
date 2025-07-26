@@ -333,7 +333,12 @@ version 10.51 : Correction placement des trains dans le TCO.
 version 10.52 : Sélection routes pour plusieurs trains dans le TCO.
 version 10.53 : Vérification du répertoire d'installation de CDM Rail.
                 Correction d'un bug sur la suppression/création train.
-version 10.54 : Améliorations diverses
+version 10.54 : Améliorations diverses.
+version 10.6 : Modification pour l'affichage de la barre de zoom du TCO pour les
+               versions les plus récentes de W11.
+               Ajout des touches + et - pour le zoom du TCO.
+			   Correction des affichages lors des mises à l'échelle du texte dans win10/11.
+			   
 
 
 			

@@ -20,6 +20,7 @@ type
       Rect: TRect; State: TGridDrawState);
     procedure StringGridFOSetEditText(Sender: TObject; ACol, ARow: Integer;
       const Value: String);
+    procedure Button1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -118,7 +119,7 @@ end;
 
 
 procedure TFormFicheHoraire.FormCreate(Sender: TObject);
-var i,champ,ligne,col,erreur : integer;
+var i,champ,ligne,col,erreur,larg : integer;
     f : textFile ;
     s,ss,v,nomTrain : string;
     ver : single;
@@ -127,23 +128,29 @@ begin
   with stringGridFO do
   begin
     Anchors:=[];
-    Anchors:=[AkTop,AkLeft,akright,akBottom];
+    //Anchors:=[AkTop,AkLeft,akright,akBottom];
+    Anchors:=[];
+    Anchors:=[AkTop,AkLeft,akright];
     Options:=options
     // édition      pas multiselect  trackbar dynamique   autoriz le dimensionnement des colonnes
     + [goEditing] - [goRangeSelect] + [goThumbTracking]+ [goColSizing]
     + [goAlwaysShowEditor]; // autorise l'édition
     Hint:='Grille horaire';
+
     ShowHint:=true;
     ColCount:=7;
     RowCount:=MaxHoraire+1;
-    Options := stringGridFO.Options + [goEditing];
-    ColWidths[ColLigne]:=30;
-    ColWidths[ColTrain]:=200;
-    ColWidths[ColRoute]:=100;
-    ColWidths[ColHDep]:=60;
-    ColWidths[ColVitDem]:=60;
-    ColWidths[ColSens]:=60;
-    ColWidths[ColArret]:=60;
+    //Options := stringGridFO.Options + [goEditing];
+
+    ColWidths[ColLigne]:=round(30/RedFonte);
+    ColWidths[ColTrain]:=round(200/RedFonte);
+    ColWidths[ColRoute]:=round(100/RedFonte);
+    ColWidths[ColHDep]:=round(60/RedFonte);
+    ColWidths[ColVitDem]:=round(60/RedFonte);
+    ColWidths[ColSens]:=round(60/RedFonte);
+    ColWidths[ColArret]:=round(60/RedFonte);
+    larg:=0;
+    for i:=0 to colCount-1 do larg:=larg+ColWidths[i];
 
     Cells[ColLigne,0]:='Ligne';
     Cells[ColTrain,0]:='Nom du train';
@@ -154,8 +161,8 @@ begin
     Cells[ColArret,0]:='Forcer arrêt'+#13+'O/N';
 
     RowHeights[0]:=30;
-
-    // numéroter les lignes et fixer la hauteur des lignes
+    
+    // numéroter les lignes et fixer la hauteur des lignes à 16
     for i:=1 to RowCount-1 do
     begin
       if i>0 then Cells[0,i]:=intToSTR(i);
@@ -265,6 +272,8 @@ begin
   closefile(f);
   couleurs_Fiche;
   StringGridFO.Selection:=tGridRect(rect(0,0,0,0));
+  FormFicheHoraire.Width:=larg+70;
+  FormFicheHoraire.Height:=ButtonOK.Top+ButtonOK.Height+50;
 end;
 
 procedure TFormFicheHoraire.FormActivate(Sender: TObject);
@@ -421,6 +430,11 @@ begin
       else labelErreur.Caption:='';
     end;
   end;
+end;
+
+procedure TFormFicheHoraire.Button1Click(Sender: TObject);
+begin
+FormFicheHoraire.Width:=StringGridFO.Left+StringGridFO.Width+10;
 end;
 
 end.

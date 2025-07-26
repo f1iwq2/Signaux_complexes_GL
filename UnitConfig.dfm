@@ -670,7 +670,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetTrains
+    ActivePage = TabSheetPN
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1189,7 +1189,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2425,7 +2425,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -2556,7 +2556,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -2864,7 +2864,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -2883,7 +2883,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -2929,7 +2929,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3142,7 +3142,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -3162,7 +3162,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -3263,7 +3263,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -3645,7 +3645,7 @@ object FormConfig: TFormConfig
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object GroupBox13: TGroupBox
+      object GroupBoxGPN: TGroupBox
         Left = 336
         Top = 24
         Width = 281
@@ -3807,13 +3807,13 @@ object FormConfig: TFormConfig
             OnClick = RadioGroupActPNClick
           end
           object ComboBoxPNCom: TComboBox
-            Left = 8
+            Left = 16
             Top = 152
             Width = 145
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -4114,9 +4114,22 @@ object FormConfig: TFormConfig
       end
       object ImageTrain: TImage
         Left = 16
-        Top = 392
+        Top = 384
         Width = 257
         Height = 49
+      end
+      object LabelTitreTrain: TLabel
+        Left = 16
+        Top = 448
+        Width = 4
+        Height = 19
+        Caption = ' '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -16
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object ButtonNT: TButton
         Left = 0
@@ -4160,7 +4173,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TabSheetTrGen
+        ActivePage = TabSheet1
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'
@@ -5524,7 +5537,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end

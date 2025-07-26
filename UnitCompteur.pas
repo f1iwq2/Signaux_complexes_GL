@@ -55,10 +55,10 @@ type
   end;
 
 type
-   typ=(Trien,fen,gb,im);    // un compteur peut être de la fenetre 'formCompteur' (fen), des groupBox de la fenetre principale (gb) ou d'une image (onglet compteurs formConfig)
+   typ=(Trien,fen,gb,im);    // indique où se situe le compteur : dans la fenetre 'formCompteur' (fen), un des groupBox de la fenetre principale (gb) ou d'une image (onglet compteurs formConfig)
    TTcompteur=array[1..1] of record
-      FcBitMap : Tbitmap;
-      paramcompt : TparamCompt;
+     FcBitMap : Tbitmap;
+     paramcompt : TparamCompt;
   end;
 
 var
@@ -293,7 +293,7 @@ begin
   with param do
   begin
     AngleFin:=170;                  // 170 angle fin des graduations
-    r:=redx;                        // réduction
+    r:=redx;                        // facteur réduction de la fenetre du compteur
     rg:=round(AigCX/1.05);          // rayon des graduations
     rayon2:=Rg-round(10*r);         // rayon de fin des graduations
     rayon3:=Rg-round(20*r);
@@ -313,8 +313,8 @@ begin
 
       font.Name:='Arial';;
       font.color:=ParamCompteur[2].CoulNum;
-      font.size:=round(r*20);
       font.style:=[fsbold];
+      font.size:=round(r*15*RedFonte);
       {$IF CompilerVersion >= 28.0}
       font.orientation:=0;
       {$IFEND}
@@ -418,7 +418,7 @@ begin
       brush.color:=clBlack;
       pen.color:=ParamCompteur[3].coulgrad;
       font.color:=ParamCompteur[3].CoulNum;
-      font.size:=round(r*20);
+      font.size:=round(r*20*RedFonte); // taille de la fonte constante même si changement % affichage windows
       //Affiche(intToSTR(font.size),clred);
       font.style:=[];
     end;
@@ -516,10 +516,10 @@ begin
           Brush.Style:=bsSolid;
           Brush.Color:=$1F1A17;
           font.color:=ParamCompteur[1].CoulNum;
-          font.size:=round(redx*10);
           {$IF CompilerVersion >= 28.0}
           font.orientation:=0;
           {$IFEND}
+          font.size:=round(redx*10*RedFonte);
           TextOut(round(50*redX),round(128*redY),'0');
           TextOut(round(36*redX),round(90*redY),'20');
           TextOut(round(50*redX),round(54*redY),'40');
@@ -926,6 +926,7 @@ begin
     Width:=400;
     canvas.fillrect(rect(0,0,400,30));
   end;
+  LabelTrain.Font.Size:=round(14*RedFonte);
 end;
 
 procedure TFormCompteur.TrackBarCChange(Sender: TObject);

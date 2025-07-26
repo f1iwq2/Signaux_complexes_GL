@@ -226,7 +226,7 @@ object FormConfCellTCO: TFormConfCellTCO
       OnChange = EditTexteCCTCOChange
     end
   end
-  object GroupBox2: TGroupBox
+  object GroupBoxEl: TGroupBox
     Left = 8
     Top = 8
     Width = 297
@@ -256,7 +256,7 @@ object FormConfCellTCO: TFormConfCellTCO
     end
     object Label2: TLabel
       Left = 192
-      Top = 6
+      Top = 14
       Width = 53
       Height = 20
       Caption = 'Adresse : '

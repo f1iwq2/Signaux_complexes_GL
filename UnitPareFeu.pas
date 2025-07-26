@@ -49,7 +49,8 @@ begin
 
   NewRule.Applicationname:=fichier;
   NewRule.Protocol:=NET_FW_IP_PROTOCOL_TCP;
-  //NewRule.LocalPorts := '9999';   // '80,443,4520-4533'   sans spécif=tous ports
+  NewRule.LocalPorts :='';  //   sans spécif=tous ports
+  //NewRule.LocalPorts := '9999';   // '80,443,4520-4533'
   NewRule.Direction:=net_fw_rule_dir_in;
   NewRule.Enabled:=True;
   NewRule.Grouping:='';
@@ -62,7 +63,9 @@ begin
     r:=true;
   except
     begin
-      s:='Erreur: impossible d''accéder au pare feu Windows. Le pare feu est géré par un programme tiers.';
+      s:='Erreur: impossible d''accéder au pare feu Windows. Le pare feu est géré par un programme tiers';
+      Affiche(s,clred);
+      s:='ou Signaux_Complexes n''a pas été lancé en mode administrateur.';
       Affiche(s,clred);
       formconfig.Labelinfo.caption:=s;
       r:=false;

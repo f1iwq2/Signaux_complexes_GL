@@ -92,7 +92,7 @@ type
     GroupBox12: TGroupBox;
     ImageSignal: TImage;
     LabelAdrSig: TLabel;
-    GroupBox13: TGroupBox;
+    GroupBoxGPN: TGroupBox;
     LabelDec: TLabel;
     LabelDetAss: TLabel;
     LabelElSuiv: TLabel;
@@ -509,6 +509,7 @@ type
     LabelV3Cons: TLabel;
     Label83: TLabel;
     Label84: TLabel;
+    LabelTitreTrain: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -7054,6 +7055,11 @@ procedure champs_pn_act;
 begin
   with formConfig do
   begin
+    EditAdrFerme.text:=IntToSTR(Tablo_PN[lignecliqueePN+1].AdresseFerme);
+    EditAdrOuvre.text:=IntToSTR(Tablo_PN[lignecliqueePN+1].AdresseOuvre);
+    EditCdeFerme.text:=intToSTR(Tablo_PN[lignecliqueePN+1].CommandeFerme);
+    EditCdeOuvre.text:=intToSTR(Tablo_PN[lignecliqueePN+1].CommandeOuvre);
+
     comboBoxPNCom.Visible:=false;
     EditCdeOuvre.width:=25;
     editCdeFerme.Width:=25;
@@ -7063,8 +7069,8 @@ begin
     ButtonTestFerme.Top:=EditAdrFerme.Top;
     ButtonTestOuvre.Top:=EditAdrOuvre.Top;
 
-    editCdeFerme.Left:=168;
-    editCdeOuvre.Left:=168;
+    EditCdeFerme.Left:=EditAdrFerme.Left+EditAdrFerme.width+10;
+    EditCdeOuvre.Left:=EditAdrOuvre.Left+EditAdrOuvre.width+10;
 
     EditCdeOuvre.Hint:='Commande d''ouverture (0 à 2)';
     EditCdeFerme.Hint:='Commande de fermeture (0 à 2)';
@@ -7076,12 +7082,10 @@ begin
     EditAdrFerme.Visible:=true;
     Label22.visible:=true;
     CheckPnPulse.Visible:=true;
-    CheckPnPulse.top:=140;
+    CheckPnPulse.top:=EditCdeOuvre.Top+EditCdeOuvre.Height+10;
+
     Label21.Caption:='Adresse de fermeture';
-    EditAdrFerme.text:=IntToSTR(Tablo_PN[lignecliqueePN+1].AdresseFerme);
-    EditAdrOuvre.text:=IntToSTR(Tablo_PN[lignecliqueePN+1].AdresseOuvre);
-    EditCdeFerme.text:=intToSTR(Tablo_PN[lignecliqueePN+1].CommandeFerme);
-    EditCdeOuvre.text:=intToSTR(Tablo_PN[lignecliqueePN+1].CommandeOuvre);
+
   end;
 end;
 
@@ -7089,27 +7093,36 @@ procedure champs_pn_COMUSBSockets;
 begin
   with formConfig do
   begin
+    EditCdeFerme.Text:=Tablo_PN[lignecliqueePN+1].CommandeF;
+    EditCdeOuvre.Text:=Tablo_PN[lignecliqueePN+1].CommandeO;
+
     comboBoxPNCom.Visible:=true;
     ComboBoxPNCom.Width:=150;
-    ComboBoxPNCom.Left:=4;
-    ComboBoxPNCom.top:=120;
+    ComboBoxPNCom.Left:=8;
+
     EditAdrFerme.visible:=false;
     editAdrOuvre.Visible:=false;
     CheckPnPulse.Visible:=false;
     EditCdeOuvre.width:=50;
     editCdeFerme.width:=50;
-    editCdeFerme.top:=120;ButtonTestFerme.Top:=120;ButtonTestFerme.Top:=120;
-    editCdeOuvre.top:=150;ButtonTestOuvre.Top:=150;ButtonTestOuvre.Top:=150;
-    editCdeFerme.Left:=160;
-    editCdeOuvre.Left:=160;
+    editCdeFerme.top:=Label21.top+Label21.Height+10;
+
+    ButtonTestFerme.Top:=Label21.top+Label21.Height+10;
+    editCdeOuvre.top:=ButtonTestFerme.top+ButtonTestFerme.Height+10;
+    ButtonTestOuvre.Top:=ButtonTestFerme.top+ButtonTestFerme.Height+10;
+
+    EditCdeFerme.Left:=EditAdrFerme.Left+EditAdrFerme.width+10;
+    EditCdeOuvre.Left:=EditAdrOuvre.Left+EditAdrOuvre.width+10;
+
+    ComboBoxPNCom.top:=ButtonTestFerme.Top;
+
     ButtonTestFerme.Hint:='Test de fermeture (par interface COM/USB)';
     ButtonTestOuvre.Hint:='Test d''ouverture (par interface COM/USB)';
     editcdeFerme.Hint:='Commande ASCII de fermeture';
     EditCdeOuvre.Hint:='Commande ASCII d''ouverture';
     Label22.visible:=false;
     Label21.Caption:='Périphérique COM/USB/Socket   Commandes';
-    EditCdeFerme.Text:=Tablo_PN[lignecliqueePN+1].CommandeF;
-    EditCdeOuvre.Text:=Tablo_PN[lignecliqueePN+1].CommandeO;
+
     ComboBoxPnCom.ItemIndex:=Tablo_PN[lignecliqueePN+1].AdresseFerme-1;
     CheckPNPulse.Visible:=false;
   end;
@@ -7319,6 +7332,7 @@ begin
     ButtonRdt.Caption:=s;
 
     editNomTrain.text:=Trains[index].nom_train;
+    LabelTitreTrain.Caption:=Trains[index].nom_train;
     editAdresseTrain.Text:=intToSTR(trains[index].adresse);
     editVitesseMaxi.Text:=intToSTR(trains[index].vitmax);
     editLongLoco.text:=IntToSTR(trains[index].longueur);
@@ -7662,12 +7676,12 @@ begin
   begin
     Left:=1;
     Top:=32;
-    width:=617;
+    width:=round(617/redfonte);
     Height:=420;
 
     TitleCaptions[0]:='Désignation';
     TitleCaptions[1]:='Valeur';
-    ColWidths[0]:=420;
+    ColWidths[0]:=round(420/RedFonte);
 
     // création des lignes de la liste
     for i:=1 to 22 do
@@ -7811,9 +7825,9 @@ begin
     RowCount:=NbDetArret+1;
     Options := StringGridArr.Options + [goEditing];
     ColWidths[0]:=0;      // colonne grise invisible
-    ColWidths[1]:=70;     // Précédent
-    ColWidths[2]:=70;     // détecteur
-    ColWidths[3]:=55;     // temps
+    ColWidths[1]:=round(70/RedFonte);     // Précédent
+    ColWidths[2]:=round(70/RedFonte);     // détecteur
+    ColWidths[3]:=round(55/RedFonte);     // temps
 
     Cells[1,0]:='Précédent';
     Cells[2,0]:='Détecteur';
@@ -7828,7 +7842,7 @@ begin
   {$IFEND}
   {$IFDEF WIN64}       // si compilé en 64 bits
   labelD12.Caption:='D12 x64';
-  LabelD12.Left:=730;
+  LabelD12.Left:=LabelD12.Left-30;
   {$ENDIF}
 
   // création des champs dynamiques de l'onglet décodeurs personnalisés
@@ -7961,7 +7975,7 @@ begin
     Left:=8;
     top:=GroupBoxPN.Top+GroupBoxPN.Height+5;
     width:=GroupBoxPN.Width;
-    height:=190;
+    height:=GroupBoxGPN.height-GroupBoxPN.Height-40;
     visible:=true;
   end;
   with GroupBoxPNZ do
@@ -7969,7 +7983,7 @@ begin
     Left:=8;
     top:=GroupBoxPN.Top+GroupBoxPN.Height+5;
     width:=GroupBoxPN.Width;
-    height:=190;
+    height:=GroupBoxGPN.height-GroupBoxPN.Height-40;
     visible:=false;
   end;
 
@@ -7977,7 +7991,7 @@ begin
   with LbATitre do
   begin
     Left:=64;Top:=20;Width:=50;Height:=12;
-    caption:='Act ferme               Act ouvre';
+    caption:='Act ferme                Act ouvre';
     name:='LbATitre';
     parent:=GroupBoxPNA;
   end;
@@ -8185,7 +8199,7 @@ begin
   with EditZDet2V1F do
   begin
     Name:='EditZDet2V1F';
-    left:=100;Top:=50;Width:=35;Height:=21;
+    left:=104;Top:=50;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 de fermeture';
     showhint:=true;
@@ -8196,7 +8210,7 @@ begin
   with EditZDet1V1O do
   begin
     Name:='EditZDet1V1O';
-    left:=152;Top:=50;Width:=35;Height:=21;
+    left:=164;Top:=50;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 1 d''ouverture';
     showhint:=true;
@@ -8207,7 +8221,7 @@ begin
   with EditZDet2V1O do
   begin
     Name:='EditZDet2V1O';
-    left:=190;Top:=50;Width:=35;Height:=21;
+    left:=204;Top:=50;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 d''ouverture';
     showhint:=true;
@@ -8238,7 +8252,7 @@ begin
   with EditZDet2V2F do
   begin
     Name:='EditZDet2V2F';
-    left:=100;Top:=74;Width:=35;Height:=21;
+    left:=104;Top:=74;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 de fermeture';
     showhint:=true;
@@ -8249,7 +8263,7 @@ begin
   with EditZDet1V2O do
   begin
     Name:='EditZDet1V2O';
-    left:=152;Top:=74;Width:=35;Height:=21;
+    left:=164;Top:=74;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 1 d''ouverture';
     showhint:=true;
@@ -8260,7 +8274,7 @@ begin
   with EditZDet2V2O do
   begin
     Name:='EditZDet2V2O';
-    left:=190;Top:=74;Width:=35;Height:=21;
+    left:=204;Top:=74;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 d''ouverture';
     showhint:=true;
@@ -8292,7 +8306,7 @@ begin
   with EditZDet2V3F do
   begin
     Name:='EditZDet2V3F';
-    left:=100;Top:=98;Width:=35;Height:=21;
+    left:=104;Top:=98;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 de fermeture';
     showhint:=true;
@@ -8303,7 +8317,7 @@ begin
   with EditZDet1V3O do
   begin
     Name:='EditZDet1V3O';
-    left:=152;Top:=98;Width:=35;Height:=21;
+    left:=164;Top:=98;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 1 d''ouverture';
@@ -8314,7 +8328,7 @@ begin
   with EditZDet2V3O do
   begin
     Name:='EditZDet2V3O';
-    left:=190;Top:=98;Width:=35;Height:=21;
+    left:=204;Top:=98;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 2 d''ouverture';
@@ -8345,7 +8359,7 @@ begin
   with EditZDet2V4F do
   begin
     Name:='EditZDet2V4F';
-    left:=100;Top:=122;Width:=35;Height:=21;
+    left:=104;Top:=122;Width:=35;Height:=21;
     text:='';
     hint:='Détecteur 2 de fermeture';
     showhint:=true;
@@ -8356,7 +8370,7 @@ begin
   with EditZDet1V4O do
   begin
     Name:='EditZDet1V4O';
-    left:=152;Top:=122;Width:=35;Height:=21;
+    left:=164;Top:=122;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 1 d''ouverture';
@@ -8367,7 +8381,7 @@ begin
   with EditZDet2V4O do
   begin
     Name:='EditZDet2V4O';
-    left:=190;Top:=122;Width:=35;Height:=21;
+    left:=204;Top:=122;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 2 d''ouverture';
@@ -8398,7 +8412,7 @@ begin
   with EditZDet2V5F do
   begin
     Name:='EditZDet2V5F';
-    left:=100;Top:=146;Width:=35;Height:=21;
+    left:=104;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 2 de fermeture';
@@ -8409,7 +8423,7 @@ begin
   with EditZDet1V5O do
   begin
     Name:='EditZDet1V5O';
-    left:=152;Top:=146;Width:=35;Height:=21;
+    left:=164;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 1 d''ouverture';
@@ -8420,7 +8434,7 @@ begin
   with EditZDet2V5O do
   begin
     Name:='EditZDet2V5O';
-    left:=190;Top:=146;Width:=35;Height:=21;
+    left:=204;Top:=146;Width:=35;Height:=21;
     text:='';
     parent:=GroupBoxPNZ;
     hint:='Détecteur 2 d''ouverture';
@@ -8712,6 +8726,7 @@ begin
   label72.caption:='La rotation de bouton changera la vitesse du train. L''appui sur le bouton stoppe le train.'+#13+
                    'Les évènements clavier sont interceptés par signaux complexes ce qui ne nécessite pas d''activer la fenêtre';
 
+  {
   with GroupBoxBr do
   begin
     Left:=312;
@@ -8727,7 +8742,8 @@ begin
     Width:=260;
     Height:=140;
     Visible:=false;
-  end;
+  end;}
+  GroupBoxBT.Visible:=false;
 
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   couleurs_config;
@@ -19292,7 +19308,7 @@ procedure TFormConfig.LabeledEditNUMChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditNUM.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>10) then exit;
+  if (erreur<>0) or (i<1) or (i>10) then exit;
   NumBlocUSB:=i;
   LabeledEditCT.Text:='';
   LabeledEditRM.Text:='';

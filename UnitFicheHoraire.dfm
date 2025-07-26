@@ -15,43 +15,40 @@ object FormFicheHoraire: TFormFicheHoraire
   OnActivate = FormActivate
   OnCreate = FormCreate
   DesignSize = (
-    620
-    354)
+    612
+    346)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 104
-    Top = 313
+    Left = 96
+    Top = 305
     Width = 310
     Height = 13
-    Anchors = [akLeft, akBottom]
     Caption = 
       'Le nom des trains doit respecter l'#39#233'criture d'#233'clar'#233'e dans CDM Ra' +
       'il'
   end
   object LabelErreur: TLabel
-    Left = 99
-    Top = 297
+    Left = 11
+    Top = 0
     Width = 3
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = '.'
   end
   object Label2: TLabel
-    Left = 104
-    Top = 329
+    Left = 96
+    Top = 321
     Width = 296
     Height = 13
-    Anchors = [akLeft, akBottom]
     Caption = 'Les horaires sont sauvegard'#233's dans le fichier '#39'FicheHoraire.txt"'
   end
   object ButtonOk: TButton
     Left = 8
-    Top = 313
+    Top = 305
     Width = 75
     Height = 32
     Hint = 'Sauvegarde la fiche et ferme la fen'#234'tre'
-    Anchors = [akLeft, akBottom]
     Caption = 'Ok'
     ParentShowHint = False
     ShowHint = True
@@ -61,7 +58,7 @@ object FormFicheHoraire: TFormFicheHoraire
   object StringGridFO: TStringGrid
     Left = 8
     Top = 16
-    Width = 601
+    Width = 593
     Height = 273
     ColCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]

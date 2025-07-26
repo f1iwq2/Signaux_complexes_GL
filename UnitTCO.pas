@@ -170,6 +170,7 @@ type
     Modeslection1: TMenuItem;
     Modedplacement1: TMenuItem;
     N12: TMenuItem;
+    LabelPM: TLabel;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -417,6 +418,7 @@ type
     procedure EditAdrElementExit(Sender: TObject);
     procedure Modeslection1Click(Sender: TObject);
     procedure Modedplacement1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   public
     { Déclarations publiques }
   end;
@@ -1633,7 +1635,7 @@ begin
             if (typEL=Tjd) or (typel=Tjs) then
             begin
               if deb then Affiche(intToSTR(adr1),clred);
-
+              // croisements ou tjd
               case Bim of
               21 : begin
                      zone_tco(t,adr1,typEl,SensTCO_E,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
@@ -1835,7 +1837,7 @@ procedure Init_TCO(indexTCO : integer);
 var x,y : integer;
 begin
   sauve_tco:=true;
-  Affiche('Nouveau tco '+intToSTr(indexTCO),clyellow);
+  Affiche('Nouveau tco '+intToStr(indexTCO),clyellow);
   NbreCellX[indexTCO]:=35;NbreCellY[indexTCO]:=20;LargeurCell[indexTCO]:=35;HauteurCell[indexTCO]:=35;
   largeurCelld2[indexTCO]:=largeurCell[indexTCO] div 2;HauteurCelld2[indexTCO]:=HauteurCell[indexTCO] div 2;
   EcranTCO[indexTCO]:=1;
@@ -2500,13 +2502,6 @@ begin
   b:=i;
 end;
 
-// donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
-procedure droite(x1,y1,x2,y2: integer;var a,b: single);
-begin
-  if x2<>x1 then a:=(y2-y1)/(x2-x1) else a:=99999;
-  b:=y1-a*x1;
-end;
-
 procedure sauve_fichiers_tco;
 var fichier : textfile;
     s : string;
@@ -2971,7 +2966,7 @@ begin
   taillefont:=tco[indextco,x,y].TailleFonte;
   if taillefont=0 then taillefont:=8;
   tf:=(taillefont*LargeurCell[indexTCO]) div 40;
-  c.font.Size:=tf;
+  c.font.Size:=round(tf*RedFonte);
 
   if b=id_action then c.Brush.Color:=couleurAction;
 
@@ -3018,7 +3013,7 @@ begin
 
   if repr=4 then texte_reparti(s,indextco,x,y,c.font.size) else
     c.Textout(x0+xt,y0+yt,s);
-  
+
 
   // texte encadré
   if tco[indextco,x,y].buttoir=1 then
@@ -6294,7 +6289,7 @@ begin
     if testbit(pont,2) or testbit(pont,6) then
     begin
       pen.color:=clfond[indexTCO];
-      droite(xf,y0,x0,yf,a1,b1);
+      equation_droite(xf,y0,x0,yf,a1,b1);
       // droite a2,b2 // passant par x2,y2
       a2:=a1;
 
@@ -6439,7 +6434,7 @@ begin
       with canvas do
       begin                                                              
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
-        droite(xc,yc,xf,y0,a1,b1);
+        equation_droite(xc,yc,xf,y0,a1,b1);
         //haut
         moveTo(x0,yc); LineTo(xc-epaisseur,yc);
         LineTo(xc+epaisseur,round((xc+epaisseur)*a1+b1) ); LineTo(xf,y0);
@@ -6581,7 +6576,7 @@ begin
     if testbit(pont,0) or testbit(pont,4) then
     begin
       pen.color:=clfond[indexTCO];
-      droite(x0,y0,xf,yf,a1,b1);
+      equation_droite(x0,y0,xf,yf,a1,b1);
       // droite a2,b2 // passant par x2,y2
       a2:=a1;
 
@@ -6717,7 +6712,7 @@ begin
       with canvas do
       begin                                                              
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
-        droite(x0,y0,xc,yc,a1,b1);
+        equation_droite(x0,y0,xc,yc,a1,b1);
         moveTo(x0,y0);LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(xc+epaisseur,yc); LineTo(xf,yc);
 
         moveTo(x0,yc);lineTo(xc-epaisseur,yc);
@@ -7115,7 +7110,7 @@ begin
       s:=canton[i].nom;
       if s<>'' then
       begin
-        font.Size:=((Larg*10) div 30)+1;             //((LargCell*5) div 29);
+        font.Size:=round(RedFonte*((Larg*10) div 30)+1);             //((LargCell*5) div 29);
         Brush.Color:=coul;
         dx:=TextWidth(s) div 2;
         dy:=TextHeight(s) div 2;
@@ -7168,7 +7163,7 @@ begin
     if l<dx-xt then
     begin
       font.Style:=[];
-      font.Size:=((Larg*10) div 40)+1;             //((LargCell*5) div 29);
+      font.Size:=round(RedFonte*((Larg*10) div 40)+1);             //((LargCell*5) div 29);
      // Affiche(intToSTR(numC)+' '+intToSTR(font.size),clYellow);
       brush.color:=coul;
       textout(xt,yt,s);
@@ -7346,7 +7341,7 @@ begin
       s:=canton[i].nom;
       if s<>'' then
       begin
-        font.Size:=((Larg*10) div 30)+1;             //((LargCell*5) div 29);
+        font.Size:=round(RedFonte*((Larg*10) div 30)+1);             //((LargCell*5) div 29);
         Brush.Color:=coul;
         dy:=TextWidth(s) div 2;
         dx:=TextHeight(s) div 2;
@@ -7941,7 +7936,7 @@ begin
     if testbit(pont,2) or testbit(pont,6) then
     begin
       pen.color:=clfond[indexTCO];
-      droite(xf,y0,x0,yf,a1,b1);
+      equation_droite(xf,y0,x0,yf,a1,b1);
       // droite a2,b2 // passant par x2,y2
       a2:=a1;
 
@@ -8085,7 +8080,7 @@ begin
       with canvas do
       begin
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
-        droite(xc,yc,x0,yf,a1,b1);
+        equation_droite(xc,yc,x0,yf,a1,b1);
         //gauche
         moveTo(xc,y0); LineTo(xc,yc-epaisseur);
         LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(x0,yf);
@@ -8236,7 +8231,7 @@ begin
     if testbit(pont,0) or testbit(pont,4) then
     begin
       pen.color:=clfond[indexTCO];
-      droite(x0,y0,xf,yf,a1,b1);
+      equation_droite(x0,y0,xf,yf,a1,b1);
       // droite a2,b2 // passant par x2,y2
       a2:=a1;
 
@@ -8380,7 +8375,7 @@ begin
       with canvas do
       begin                                                              
         // donne l'équation de droite y=ax+b passant par les points (x1,y1) (x2,y2)
-        droite(x0,y0,xf,yf,a1,b1);
+        equation_droite(x0,y0,xf,yf,a1,b1);
         //gauche
         moveTo(xc,yf); LineTo(xc,yc+epaisseur);
         LineTo(xc-epaisseur,round((xc-epaisseur)*a1+b1) ); LineTo(x0,y0);
@@ -11390,7 +11385,7 @@ begin
     with PCanvasTCO[indexTCO] do
     begin
       Brush.Color:=clFond;
-      font.Size:=((LargCell*6) div 30)+1;             //((LargCell*5) div 29);
+      font.Size:=round(RedFonte*((LargCell*6) div 30)+1);             //((LargCell*5) div 29);
       if NB then font.color:=clBlack else
         Font.Color:=tco[indextco,x,y].coulFonte;
       Font.Name:='Arial';
@@ -11973,8 +11968,49 @@ begin
   begin
     parent:=self;
     name:='BallonHint';
+    BallonHint.Style:=bhsBalloon;
+    BallonHint.HideAfter:=4000;
   end;
   {$IFEND}
+
+
+
+  Label1.Font.Size:=round(12*RedFonte);
+  Label2.Font.Size:=round(12*RedFonte);
+  Label3.Font.Size:=round(12*RedFonte);
+  Label4.Font.Size:=round(12*RedFonte);
+  Label5.Font.Size:=round(12*RedFonte);
+  Label6.Font.Size:=round(12*RedFonte);
+  Label7.Font.Size:=round(12*RedFonte);
+  Label8.Font.Size:=round(12*RedFonte);
+  Label9.Font.Size:=round(12*RedFonte);
+  Label10.Font.Size:=round(12*RedFonte);
+  Label11.Font.Size:=round(12*RedFonte);
+  Label12.Font.Size:=round(12*RedFonte);
+  Label13.Font.Size:=round(12*RedFonte);
+  Label14.Font.Size:=round(12*RedFonte);
+  Label15.Font.Size:=round(12*RedFonte);
+  Label16.Font.Size:=round(12*RedFonte);
+  Label17.Font.Size:=round(12*RedFonte);
+  Label18.Font.Size:=round(12*RedFonte);
+  Label19.Font.Size:=round(12*RedFonte);
+  Label20.Font.Size:=round(12*RedFonte);
+  Label21.Font.Size:=round(12*RedFonte);
+  Label22.Font.Size:=round(12*RedFonte);
+  Label23.Font.Size:=round(12*RedFonte);
+  Label24.Font.Size:=round(12*RedFonte);
+  Label25.Font.Size:=round(12*RedFonte);
+  Label26.Font.Size:=round(12*RedFonte);
+  Label27.Font.Size:=round(12*RedFonte);
+  Label28.Font.Size:=round(12*RedFonte);
+  Label29.Font.Size:=round(12*RedFonte);
+  Label32.Font.Size:=round(12*RedFonte);
+  Label33.Font.Size:=round(12*RedFonte);
+  Label34.Font.Size:=round(12*RedFonte);
+  Label50.Font.Size:=round(12*RedFonte);
+  Label51.Font.Size:=round(12*RedFonte);
+  Label52.Font.Size:=round(12*RedFonte);
+  Label53.Font.Size:=round(12*RedFonte);
 
   ModeSlection1.checked:=false;
   ModeDplacement1.Checked:=true;
@@ -12000,7 +12036,19 @@ begin
   TamponTCO_org.Yorg:=0;
   indexTrace:=0;
   KeyPreview:=true; // valide les évènements clavier
-  TrackBarZoom.Tabstop:=false;     // permet d'avoir les evts curseurs
+  with TrackBarZoom do
+  begin
+    Tabstop:=false;     // permet d'avoir les evts curseurs
+    Anchors:=[];
+    Anchors:=[akTop,akRight];
+  end;
+  ImageDrapVert.Visible:=false;
+  ImageDrapRouge.Visible:=false;
+  ImageBt0Bistable.Visible:=false;
+  ImageBt1Bistable.Visible:=false;
+  ImageTemp2.Visible:=false;
+  ImageTemp.Visible:=false;
+
   ButtonSauveTCO.TabStop:=false;
   ButtonConfigTCO.TabStop:=false;
   ButtonRaz.TabStop:=false;
@@ -14169,6 +14217,7 @@ begin
     clLarge:=Width;
     clHaut:=Height;
 
+    PanelBas.Height:=GroupBox1.top+GroupBox1.Height+20;
     panelBas.width:=clLarge-5;
     PanelBas.Top:=clHaut-PanelBas.Height-50; // 50=entete de la fenetre
 
@@ -14204,7 +14253,7 @@ end;
 
 procedure TFormTCO.FormActivate(Sender: TObject);
 //procedure PFormTCO[indexTCO].FormActivate(Sender: TObject);
-var indextco : integer;
+var i,indextco : integer;
 begin
   indextco:=index_TCO(sender);
   IndexTCOCourant:=indexTCO;
@@ -14248,6 +14297,10 @@ begin
     TrackBarZoom.Min:=ZoomMin;
 
     positionne(indexTCO);
+    i:=ScrollBox.Left+ScrollBox.Width;
+    trackBarZoom.Left:=i;
+    LabelPM.Left:=i;
+    LabelZoom.Left:=i;
 
     renseigne_tous_cantons;
     renseigne_TJDs_TCO;
@@ -15083,6 +15136,7 @@ var s,d,indexTCO : integer;
 begin
   if affevt then Affiche('TCO.FormKeyDown',clOrange);
   indexTCO:=index_TCO(Sender);
+
   //Affiche('Avant xClicCell='+intToSTR(XClicCell[indexTCO]),clCyan);
 
   if (RadioGroupSel.ItemIndex=1) and (Key=Vk_Escape) then
@@ -15153,6 +15207,23 @@ begin
                     stop_modetrace(indexTCO);
                   end;
      VK_DELETE : couper(indexTCO);
+
+     107 : begin
+             d:=TrackBarZoom.Position;
+             if d>15 then
+             begin
+               dec(d);
+               TrackBarZoom.Position:=d;
+              end;
+           end;
+     109 : begin
+             d:=TrackBarZoom.Position;
+             if d<100 then
+             begin
+               inc(d);
+               TrackBarZoom.Position:=d;
+              end;
+           end;
      end;
 
      if (ssShift in Shift) then
@@ -16329,13 +16400,12 @@ begin
   begin
     BallonHint.Title:=s1;
     BallonHint.Description:=s2;
-    BallonHint.Style:=bhsBalloon;
-    BallonHint.HideAfter:=4000;
     x:=(canton[IdCantonSelect].x-1)*LargeurCell[indexTCO]+(LargeurCell[indexTCO] div 2);
     y:=(canton[IdCantonSelect].y-1)*HauteurCell[indexTCO]+HauteurCell[indexTCO] div 2;
     ballonhint.ShowHint(PimageTCO[indexTCO].ClientToScreen(point(x,y))); // affiche le ballonHint
- end;
- {$IFEND}
+    ImageTCO.Hint:='';  // pas de hint "normal"
+  end;
+  {$IFEND}
 end;
 
 // évènement qui se produit quand on clique gauche ou droit
@@ -18184,7 +18254,7 @@ begin
   begin
     FontDialog1.Font.Name:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].Fonte;
     FontDialog1.Font.Color:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].CoulFonte;
-    FontDialog1.Font.Size:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].taillefonte;
+    FontDialog1.Font.Size:=round(RedFonte*tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].taillefonte);
 
     fs:=[];
     s:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].FontStyle;
@@ -19629,6 +19699,15 @@ begin
   ModeSlection1.checked:=false;
   ModeDplacement1.Checked:=true;
   modeGlisse:=true;
+end;
+
+procedure TFormTCO.Button1Click(Sender: TObject);
+var i : integer;
+begin
+  i:=trackBarZoom.Left ;
+  Affiche(intToSTR(i),clLime);
+  dec(i);
+  trackBarZoom.Left:=i;
 end;
 
 end.
