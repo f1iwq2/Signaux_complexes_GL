@@ -3,7 +3,7 @@ object FormIntro: TFormIntro
   Top = 150
   BorderStyle = bsDialog
   Caption = 'Introduction de donn'#233'es'
-  ClientHeight = 106
+  ClientHeight = 103
   ClientWidth = 188
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,9 +19,9 @@ object FormIntro: TFormIntro
     Top = 24
     Width = 57
     Height = 21
-    EditLabel.Width = 47
+    EditLabel.Width = 102
     EditLabel.Height = 13
-    EditLabel.Caption = 'D'#233'tecteur'
+    EditLabel.Caption = 'D'#233'tecteur / aiguillage'
     TabOrder = 0
   end
   object ButtonTrCanton: TButton

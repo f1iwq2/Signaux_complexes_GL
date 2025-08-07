@@ -338,18 +338,12 @@ version 10.6 : Modification pour l'affichage de la barre de zoom du TCO pour les
                versions les plus récentes de W11.
                Ajout des touches + et - pour le zoom du TCO.
 			   Correction des affichages lors des mises à l'échelle du texte dans win10/11.
-			   
-
-
+version 10.7 : Affichage du compteur de train depuis le menu contextuel des cantons du tco.			   
+               En roulage ou RUN CDM, suppression d'un train non suivi de la liste des trains en roulage.
+               Correction désaffectation trains sur cantons.
 			
 
 
 			   
 
-	   
-			  
-			   
-
-			   
-			  
--
+	

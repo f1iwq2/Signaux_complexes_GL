@@ -8,6 +8,9 @@ unit Unitprinc;
   on utilise activeX Tmscomm pour les liaisons série/USB
 
   Delphi 12 :
+  Dans Outils / Options / Interface utilisateurs / Concerpteur de fiches / Haute résolution
+  Sélextionner Automatique (PPI de l'écran) et cocher "taille de la grille..."
+
   on utilise AsyncPro pour les liaisons série/USB - ce composant est compilable en 32 et en 64 bits.
   https://github.com/TurboPack/AsyncPro
   liste des fichiers nécessaires:
@@ -21,6 +24,8 @@ unit Unitprinc;
   AwDefine.inc
   AwUser.pas
   AwWin32.pas
+  LnsWin32.pas
+  LnsQueue.pas
   OoMisc.pas
 
   un essai avec IdTCPClient (Indy) a été fait avec D7/D12. En D7 nécéssite le fichier Idtcpclient.dcu.
@@ -438,7 +443,6 @@ type
     procedure Sauvegarderlaconfiguration1Click(Sender: TObject);
     procedure MesurerlavitessedestrainsClick(Sender: TObject);
     procedure Affichelamesuredesvitesses1Click(Sender: TObject);
-    procedure Button0Click(Sender: TObject);
     procedure Etatdesactionneurs1Click(Sender: TObject);
     procedure Compilerlabasededonnes1Click(Sender: TObject);
     procedure PopupMenuTrainsPopup(Sender: TObject);
@@ -1037,7 +1041,7 @@ tTrain =  record
               x0,y0,x1,y1 : integer;            // ancien contour du tampon, pour l'animation dans la fenêtre cdm
               // routes -----------------------------------
               roulage : integer;                // =1 train en roulage mais arrêté pour réservation par tiers =2 en roulage effectif
-              dernierDet : integer;             // dernier détecteur traité
+              dernierDet : integer;             // dernier détecteur traité (le n-1)
               cantonOrg,CantonDest : integer;   // cantons origine et destination si route
               route :  TuneRoute;               // tableau de la route en cours du train
               NomRoute : array[1..30] of string; // nom de la route sauvegardée
@@ -1493,6 +1497,7 @@ function ClavierHookLLProc(Code : integer; WordParam : wparam; LongParam: lparam
 procedure cree_GB_compteur(rang : integer);
 procedure pilote_train(det1,det2,AdrTrain,it : integer);
 procedure equation_droite(y1,y2,x1,x2 : single;var pente,b : single);
+procedure change_clic_train(i : integer);
 
 implementation
 
@@ -1550,7 +1555,7 @@ uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
       Fclient.IOHandler.ReadBytes(Fdata,0,false);
       if (FData <> nil) and Assigned(FOnData) then
       {$ELSE}
-      FData := FClient.CurrentReadBuffer;
+      FData:=FClient.CurrentReadBuffer;
       if (FData <> '') and Assigned(FOnData) then
       {$IFEND}
         Synchronize(DataReceived);
@@ -2078,7 +2083,7 @@ begin
     //---- calc _systemId de la mac-address[2-5] XOR mac-address[1]...
     if (RetCode=chr(0)) or (RetCode=chr(6)) then
     begin
-      _SystemId := IntToHex(Ord(Adapter.adapter_address[0]), 2) + '-' +
+      _SystemId:=IntToHex(Ord(Adapter.adapter_address[0]), 2) + '-' +
         IntToHex(Ord(Adapter.adapter_address[1]),2) + '-' +
         IntToHex(Ord(Adapter.adapter_address[2]),2) + '-' +
         IntToHex(Ord(Adapter.adapter_address[3]),2) + '-' +
@@ -2183,7 +2188,7 @@ begin
       i:=pos('-',s);
       if i>4 then
       begin
-        i:=i-4;                                    
+        i:=i-4;
         s:=copy(s,i,9)+'  ';  // Id de formatage de c:\
       end;
     end
@@ -2288,7 +2293,7 @@ begin
   end;
 end;
 
-
+// exécuté en fin d'init (voir menu Projet/voir le source)
 procedure fin_preliminaire;
 var i : integer;
     s : string;
@@ -2594,7 +2599,7 @@ begin
 end;
 
 {$ELSE}
-// envoi la chaîne trameIF à la centrale par USBLenz ou socket, n'attend pas l'ack
+// envoi la chaîne trameIF à la centrale par USB ou socket, n'attend pas l'ack
 // pour le protole XpressNet (1), on ajoute l'entete et le suffixe dans la trame.
 // ici on envoie pas à CDM
 // utilisation de TMSCOMM
@@ -2603,7 +2608,7 @@ var i,timeout,valto,l : integer;
 begin
   if simuInterface then exit;
 
-  if protocole=1 then s:=entete+s; // ajout de l'entete en Xpressnet, pas en Dccpp
+  if protocole=1 then s:=entete+s; // ajout de l'entete définie dans le panneau de config en Xpressnet, pas en Dccpp
   l:=length(s);
   Setlength(TrameIF,l);
   for i:=0 to l-1 do TrameIF[i]:=byte(ord(s[i+1]));      // transforme la chaine en tableau dynamique d'octets
@@ -3338,6 +3343,7 @@ begin
 end;
 
 // Ecrire sur un canvas un texte avec un angle, avec ou sans bordure, monochrome ou à face texturée
+// procédure pour Delphi 7
 // params : C       = Canvas
 //          X,Y     = Coordonnées angle supérieur gauche du début du texte.
 //          Fonte   = Police de caractères à utiliser : uniquement des fontes scalables.
@@ -3410,6 +3416,7 @@ begin
   SelectObject(dc,AncBrush);
   DeleteObject(NouvBrush);
 end;
+
 // inverse une image (miroir horizontal) et la met dans dest
 // Utilisé pour les signaux belges, et les trains
 procedure inverse_image(imageDest,ImageSrc : Timage);
@@ -4902,7 +4909,7 @@ begin
       with font do
       begin
         Color:=clWhite;
-        Size:=taillefonte;
+        Size:=round(taillefonte*RedFonte);
         Style:=[fsbold];
         Name:='Arial';
       end;
@@ -5216,7 +5223,7 @@ begin
 end;
 }
 
-// dessine l'aspect du signal en fonction de son adresse dans le canvas de destination
+// dessine dans le canvas de destination l'aspect du signal en fonction de son adresse passé en paramètre, son orientation, facteurs de réduction (FrX et FrY) en x,y
 procedure Dessine_signal_mx(CanvasDest : Tcanvas;x,y : integer;FrX,frY : single;adresse : integer;orientation : integer);
 var i,aspect : integer;
 begin
@@ -5284,7 +5291,7 @@ end;
 function Select_dessin_Signal(TypeSignal : integer) : TBitmap;
 var Bm : TBitMap;
 begin
-   case TypeSignal of
+  case TypeSignal of
     2 : Bm:=Formprinc.Image2feux.picture.Bitmap;
     3 : Bm:=Formprinc.Image3feux.picture.Bitmap;
     4 : Bm:=Formprinc.Image4feux.picture.Bitmap;
@@ -5299,9 +5306,9 @@ begin
     14 : Bm:=Formprinc.Image4Dir.picture.Bitmap;
     15 : Bm:=Formprinc.Image5Dir.picture.Bitmap;
     16 : Bm:=Formprinc.Image6Dir.picture.Bitmap;
-    else Bm:=nil;
-    end;
-    Select_dessin_Signal:=bm;
+  else Bm:=nil;
+  end;
+  Select_dessin_Signal:=bm;
 end;
 
 // créée une image dynamiquement dans la partie droite pour un nouveau signal déclaré dans le fichier de config
@@ -5415,6 +5422,7 @@ begin
   else Signaux[rang].checkFB:=nil;
 end;
 
+// change le train sélectionné ; i=nouvel index train
 procedure change_clic_train(i : integer);
 begin
   if (i<1) or (i>nTrains) then exit;
@@ -5480,7 +5488,7 @@ end;
 procedure cree_GB_compteur(rang : integer);
 const HautTb=10;  // hauteur trackbar
       ofsGBH=15;  // marge haut du groupbox
-      ofsGBB=8;  // marge bas du groupbox
+      ofsGBB=8;   // marge bas du groupbox
 var Imh,Iml : integer;
 begin
   iml:=0;imh:=0;
@@ -5974,7 +5982,7 @@ begin
   chaine_CDM_Acc:=so+s;
 end;
 
-// prépare une tache pour le timer
+// met une tache en tableau taches[] pour le timer
 // ttache=1 : pilote accessoire...
 // temporisation pour le timer avant action
 // destinataire (1=CDM  2=XpressNet  3=Dccpp)
@@ -5989,7 +5997,7 @@ begin
     exit;
   end;
 
-  NoTraite:=true;   // interdire le traitement pour éviter interférence 
+  NoTraite:=true;   // interdire le traitement pour éviter interférence
   with taches[pointeurTaches+1] do
   begin
     traite:=false;
@@ -6435,7 +6443,7 @@ begin
     //else Affiche('action='+intToSTR(code),clLime);
   end;
 
-  // en sortie si on renvoie <>0,la touche n'est pas transmise
+  // en sortie si on renvoie <>0,la touche n'est pas transmise à windows
   callNextHookEx(kbHook,code,wordparam,longparam);
   if r=99 then result:=0 else result:=r;
 end;
@@ -6611,7 +6619,7 @@ begin
       end;
       if (fonction>=13) and (fonction<=20) then
       begin
-        b:=222;
+        b:=222;   // 1101 1110
         if etat=1 then
         case fonction of
         13 : c:=1;
@@ -6811,13 +6819,13 @@ begin
       Signaux[i].EtatSignal:=etats;
     end;
     // signalisation combinée
-    if (aspect and $1C0)<>0 then
+    if (aspect and $1c0)<>0 then
     begin
       etats:=Signaux[i].EtatSignal;
       //si le bit 15 (bita1) est à 1, c'est l'indicateur de mise à 1
       if testBit(aspect,bita1) then
       begin
-         etats:=etats or (aspect and $1C0);   // mise à 1 par masquage
+         etats:=etats or (aspect and $1c0);   // mise à 1 par masquage
          Signaux[i].EtatSignal:=Signaux[i].EtatSignal or etats;
       end
       else
@@ -8114,18 +8122,18 @@ begin
         // 98=VJR + blanc + violet + ral30 + rappel30
         if modele=98 then
         begin
-            case aspect of
+          case aspect of
             vert,vert_cli         : begin pilote_acc(adresse+1,1,signal);pilote_acc(adresse+3,2,signal);end;
             jaune,jaune_cli       : begin pilote_acc(adresse,1,signal);pilote_acc(adresse+3,2,signal);end;
             semaphore,semaphore_cli: begin pilote_acc(adresse,2,signal);pilote_acc(adresse+3,2,signal);end;
             blanc,blanc_cli       : pilote_acc(adresse+1,2,signal);
             violet                : pilote_acc(adresse+3,1,signal);
-            end;
+          end;
           if combine=ral_30         then begin pilote_acc(adresse+2,1,signal);pilote_acc(adresse+3,2,signal);end;
           if combine=rappel_30      then begin pilote_acc(adresse+2,2,signal);pilote_acc(adresse+3,2,signal);end;
           if ((aspect=jaune) or (aspect=jaune_cli)) and (combine=rappel_30)
                                     then begin pilote_acc(adresse,1,signal);pilote_acc(adresse+2,2,signal);pilote_acc(adresse+3,2,signal);end;
-      end;
+        end;
 
       // 99=VJR + blanc + violet + ral30 + rappel60
       if modele=99 then
@@ -13402,7 +13410,7 @@ end;  }
 function test_memoire_zones(adresse : integer) : boolean;
 var
   AdrSuiv,prec,ife,actuel,i,j,it,
-  dernierdet,AdrSignal,NSignaux,NSigMax,voie1,voie2,indexSig2,indexSig1,ia : integer;
+  dernierdetec,AdrSignal,NSignaux,NSigMax,voie1,voie2,indexSig2,indexSig1,ia : integer;
   TypePrec,TypeActuel : TEquipement;
   Pres_train : boolean;
   s : string;
@@ -13463,7 +13471,7 @@ begin
 
     Pres_train:=false;
     TypePrec:=det;
-    dernierdet:=prec;
+    dernierdetec:=prec;
 
     // purge les aiguillages après le signal
     it:=0;
@@ -13503,19 +13511,19 @@ begin
     repeat
       inc(j);
 
-      if (typeactuel=det) and (dernierdet<>0) then
+      if (typeactuel=det) and (dernierdetec<>0) then
       begin
-        Pres_train:=MemZone[dernierdet,actuel].etat or detecteur[actuel].etat or Pres_Train;
+        Pres_train:=MemZone[dernierdetec,actuel].etat or detecteur[actuel].etat or Pres_Train;
         if (nivDebug=3) then
         begin
-          if Pres_Train then AfficheDebug('Présence train de '+intToSTR(dernierdet)+' à '+intToSTR(actuel),clyellow)
-          else AfficheDebug('Absence train de '+intToSTR(dernierdet)+' à '+intToSTR(actuel),clyellow)
+          if Pres_Train then AfficheDebug('Présence train de '+intToSTR(dernierdetec)+' à '+intToSTR(actuel),clyellow)
+          else AfficheDebug('Absence train de '+intToSTR(dernierdetec)+' à '+intToSTR(actuel),clyellow)
         end;
-        Pres_train:=MemZone[actuel,dernierdet].etat or Pres_Train;
+        Pres_train:=MemZone[actuel,dernierdetec].etat or Pres_Train;
         if (nivDebug=3) then
         begin
-          if Pres_Train then AfficheDebug('Présence train inverse de '+intToSTR(actuel)+' à '+intToSTR(dernierdet),clyellow)
-          else AfficheDebug('Absence train de '+intToSTR(actuel)+' à '+intToSTR(dernierdet),clyellow)
+          if Pres_Train then AfficheDebug('Présence train inverse de '+intToSTR(actuel)+' à '+intToSTR(dernierdetec),clyellow)
+          else AfficheDebug('Absence train de '+intToSTR(actuel)+' à '+intToSTR(dernierdetec),clyellow)
         end;
         // sortir de suite
         if Pres_train then
@@ -13525,7 +13533,7 @@ begin
           exit;
         end;
 
-        dernierdet:=actuel;
+        dernierdetec:=actuel;
 
 //        isi:=index_signal_det(Actuel,voie,index2);  // renvoie l'index du signal se trouvant au détecteur "AdrSuiv": il peut y avoir 4 détecteurs par signal
         index_signal_det(actuel,voie1,indexSig1,voie2,indexSig2);
@@ -15768,6 +15776,65 @@ begin
   detecteur[detect].Temps_cour:=0;                // arret incrémente le compteur
 end;
 
+// Supprime le train i du tableau TrainZone
+procedure supprime_train_zone(isup,det1,det2,AdrTrainLoc : integer);
+var i : integer;
+begin
+  // N_trains est ke nombre de trains détectés
+  for i:=isup to N_Trains-1 do
+  begin
+    TrainZone[i]:=TrainZone[i+1];
+  end;
+
+  dec(N_Trains);
+  Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+
+  MemZone[det1,det2].etat:=FALSE;      // dévalide l'ancienne zone
+  MemZone[det1,det2].train:='';
+  MemZone[det1,det2].Adrtrain:=0;
+  MemZone[det1,det2].IndexTrainRoulant:=0;
+  MemZone[det2,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
+  MemZone[det2,det1].train:='';
+  MemZone[det2,det1].Adrtrain:=0;      // libère la réservation
+  MemZone[det2,det1].IndexTrainRoulant:=0;
+  with detecteur[det1] do
+  begin
+    Train:='';
+    AdrTrainRes:=0;
+    IndexTrainRoulant:=0;
+    AdrTrain:=0;
+    precedent:=0;
+    suivant:=0;
+  end;
+  with detecteur[det2] do
+  begin
+    Train:='';
+    AdrTrainRes:=0;
+    AdrTrain:=0;
+    IndexTrainRoulant:=0;
+    precedent:=0;
+    suivant:=0;
+  end;
+
+  libere_canton(det1,det2,AdrTrainLoc);   
+  for i:=1 to nbreTCO do
+  begin
+    Zone_TCO(i,det1,det2,isup,AdrTrainLoc,0,true,true);   //  enleve la loco des cantons du tco
+    maj_tco(i,det2);
+  end;
+
+  isup:=index_train_adresse(AdrTrainLoc);
+  with trains[isup] do
+  begin
+    detecteurSuiv:=0;
+    detecteurPrec:=0;
+    dernierDet:=0;
+  end;
+  actualise_seltrains;
+
+  Affiche_evt('Suppression du train',clOrange);
+end;
+
 // calcul des zones depuis le tableau des fronts montants ou descendants des évènements détecteurs
 // transmis dans le tableau Event_det
 // rattache le nouveau détecteur à un train
@@ -15838,7 +15905,7 @@ begin
           Affiche('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
           if TraceListe then AfficheDebug('Démarrage train non placé depuis détecteur '+intToSTR(det3),clred);
         end;
-         // affecter le nouveau détecteur
+        // affecter le nouveau détecteur
         detecteur[det3].train:=Train_ch;
         detecteur[det3].AdrTrain:=AdrTrainLoc;
         detecteur[det3].IndexTrainRoulant:=i;
@@ -15855,9 +15922,37 @@ begin
 
         if adrSuiv>NbMaxDet then
         begin
-          if adrsuiv=9996 then affiche_evt('Erreur aiguillage '+intToSTR(AigMal)+' mal positionné',clred)
-          else
+          if AdrSuiv=9996 then Affiche_evt('La position de l''aiguillage '+intToSTR(AigMal)+' est inconnue',clred);
           Affiche_evt('Info 1-0 '+intToSTR(AdrSuiv)+' : pas de suivant detecteur_suivant_el '+intToSTR(det1)+' '+intToSTR(det3),clWhite);
+          MemZone[det1,det3].etat:=FALSE;      // dévalide l'ancienne zone
+          MemZone[det1,det3].train:='';
+          MemZone[det1,det3].Adrtrain:=0;
+          MemZone[det1,det3].IndexTrainRoulant:=0;
+          MemZone[det3,det1].etat:=FALSE;      // dévalide l'ancienne zone inverse
+          MemZone[det3,det1].train:='';
+          MemZone[det3,det1].Adrtrain:=0;      // libère la réservation
+          MemZone[det3,det1].IndexTrainRoulant:=0;
+          with detecteur[det1] do
+          begin
+            Train:='';
+            AdrTrainRes:=0;
+            IndexTrainRoulant:=0;
+          end;
+          with detecteur[det3] do
+          begin
+            Train:='';
+            AdrTrainRes:=0;
+            IndexTrainRoulant:=0;
+          end;
+
+          libere_canton(det1,det3,AdrTrainLoc);   // on quitte det3
+          for ntco:=1 to nbreTCO do
+          begin
+             Zone_TCO(ntco,det1,det3,i,AdrTrainLoc,0,false,true);   // tco,det1,det2,train, mode
+             maj_tco(ntco,det3);
+          end;
+          // le train est perdu, le suppprimer
+          supprime_train_zone(i,det1,det3,AdrTrainLoc);
           exit;
         end
         else
@@ -15960,7 +16055,6 @@ begin
             MemZone[det3,det_suiv].AdrTrain:=AdrTrainLoc;
             for ntco:=1 to nbreTCO do
             begin
-              //raz_cantons_train(AdrTrainLoc);        // efface tous les cantons contenant le train adrloc
                if ModeCouleurCanton=0 then zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,1,true,true)
                else zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
              end;
@@ -16163,8 +16257,13 @@ begin
         if TraceListe then AfficheDebug('le sursuivant est '+intToSTR(adrsuiv),couleur);
         if (Adrsuiv>=9990) and not(casaig) then
         begin
-          //Affiche('Erreur 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clRed);
           if (NivDebug=3) or TraceListe then AfficheDebug('Msg 1500 : pas de suivant sur la route de '+intToSTR(det2)+' à '+intToSTR(det3),clorange);
+          if AdrSuiv=9996 then Affiche_evt('La position de l''aiguillage '+intToSTR(AigMal)+' est inconnue',clred);
+          Affiche_evt('Info 2-0 '+intToSTR(AdrSuiv)+' : pas de suivant detecteur_suivant_el '+intToSTR(det1)+' '+intToSTR(det3),clWhite);
+
+          // le train est perdu, le suppprimer
+          supprime_train_zone(i,det2,det3,AdrTrainLoc);
+          exit;
         end
         else
         begin
@@ -16414,8 +16513,9 @@ begin
           end
           else
           begin
-            if det_suiv=9996 then affiche_evt('Erreur 2-1 position inconnue aiguillage ',clred)
+            if det_suiv=9996 then affiche_evt('Erreur 2-1 position inconnue aiguillage '+intToSTR(AigMal),clred)
               else Affiche_evt('Erreur 2-1 '+intToSTR(Det_Suiv)+' : pas de suivant det_suiv_cont '+intToSTR(det2)+' '+intToSTR(det3),clred);
+       
           end;
         end
         else
@@ -16552,7 +16652,7 @@ begin
     // Nombre d'éléments à 0 : ici c'est un nouveau train donc créer un train, donc un tableau
     if N_Trains>=Max_Trains then
     begin
-      Affiche('Erreur nombre de train maximal atteint',clRed);
+      Affiche('Erreur nombre de trains en circulation maximal atteint',clRed);
       N_trains:=0;
     end;
     Inc(N_trains);
@@ -21502,20 +21602,6 @@ begin
     lire_fichier_tco(i);
   end;
 
-  {
-  case compteur of
-  1 : begin
-        init_compteur1;
-        aiguille_compteur(1,0);
-        Compteurdevitesse1.checked:=true;
-      end;
-  2 : begin
-        Init_compteur2;
-        aiguille_compteur(2,0);
-        Compteurdevitesse2.checked:=true;
-      end;
-  end; }
-
   verif_coherence;
   procetape('La configuration a été lue');
 
@@ -21575,7 +21661,6 @@ begin
     end;
   end;
   renseigne_tous_cantons; // les form des TCO doivent être créés
-
 
   // ouvre les périphériques commandes actionneurs, car on a lu les com dans la config
   for i:=1 to NbPeriph do
@@ -21698,8 +21783,14 @@ end;
 procedure TFormPrinc.RecuInterface(Sender: TObject;Count : word);
 var i,tev,l : integer;
     s : string;
-    tablo : array[1..255] of byte;
+    tablo : array[1..1024] of byte;
 begin
+  if count>1024 then
+  begin
+    Affiche('Débordement Com interface',clred);
+    count:=1024;
+  end;
+
   MSCommUSBInterface.GetBlock(tablo,count);
 
   l:=Long_Recue; // résidu précédent à chainer - longueur du tampon
@@ -22690,7 +22781,7 @@ begin
  
 end;
 
-// erreur sur socket Lenz (interface XpressNet)
+// erreur sur socket interface XpressNet)
 procedure TFormPrinc.ClientSocketInterfaceError(Sender: TObject;
   Socket: TCustomWinSocket; ErrorEvent: TErrorEvent;
   var ErrorCode: Integer);
@@ -23375,7 +23466,7 @@ begin
           ss:=copy(commandeCDM,i+5,l-i-5);
           nom:=ss;
           Delete(commandeCDM,i,l-i+1);
-        end; 
+        end;
 
         i:=posEx('OBJ=',commandeCDM,1);l:=posEx(';',commandeCDM,i);
         if (i<>0) and (l<>0) then
@@ -24047,8 +24138,8 @@ begin
 
   if protocole=1 then
   begin
-    //s:=#$ff+#$fe+#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
-    //s:=#$ff+#$fe+#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
+    //s:=#$23+#$1e+Char(adr)+Char(valeur);    //CV de 512 à 767 V3.4
+    //s:=#$23+#$1d+Char(adr)+Char(valeur);    //CV de 256 à 511 V3.4
     s:=#$23+#$16+Char(adr)+Char(valeur);      //CV de 1 à 256
     s:=checksum(s);
     envoi(s);     // envoi de la trame et attente Ack
@@ -24323,8 +24414,6 @@ begin
   end;
 end;
 
-
-
 // pour déplacer l'ascenseur de l'affichage automatiquement en bas
 procedure TFormPrinc.FenRichChange(Sender: TObject);
 begin
@@ -24376,7 +24465,7 @@ begin
 end;
 
 procedure TFormPrinc.Etatdeszonespartrain1Click(Sender: TObject);
-var i,j,n,train : integer;
+var i,j,n,train,nb : integer;
     couleur : tcolor;
     rien,aff : boolean;
     s,ss : string;
@@ -24384,7 +24473,8 @@ begin
   Affiche('',clyellow);
   Affiche('Historique de l''état des zones par train',clWhite);
   rien:=true;
-  for train:=1 to 20 do
+
+  for train:=1 to nTrains do
   begin
     n:=TrainZone[train].Nbre;
     for i:=1 to n do
@@ -24399,8 +24489,9 @@ begin
       Affiche(s,CouleurTrain[couleur]);
     end;
   end;
+
   Affiche('Liste des zones actuellement occupées:',clWhite);
-  i:=0;
+  nb:=0;i:=0;
   repeat
     j:=0;
     repeat
@@ -24411,14 +24502,14 @@ begin
         s:=s+' Train n°'+intToSTR(MemZone[i,j].IndexTrainRoulant);
         s:=s+' PrevSuiv='+intToSTR(MemZone[i,j].Prev);
         Affiche(s,couleurTrain[MemZone[i,j].IndexTrainRoulant]);
-
+        inc(nb);
         rien:=false;
       end;
       inc(j);
     until (j>NbMaxDet);
     inc(i);
   until (i>NbMaxDet);
-
+  if nb=0 then Affiche('Aucune zone occupée',clYellow);
   {Affiche('Derniers éléments scannés:',clWhite);
   for i:=1 to idEl do
   begin
@@ -26092,10 +26183,16 @@ end;
 // réception COM/USB du périphérique 1 avec Asyncpro
 procedure TFormPrinc.RecuPeriph1(Sender: TObject;Count : Word);
 var s : string;
-   tablo : array[1..255] of byte;  // tableau rx usb
+   tablo : array[1..1024] of byte;  // tableau rx usb
    c : char;
    i : integer;
 begin
+  if count>1024 then
+  begin
+    Affiche('Débordement com périph1',clred);
+    count:=1024;
+  end;
+
   MScommCde1.GetBlock(Tablo,count);
 
   for i:=1 to count do
@@ -26107,7 +26204,6 @@ begin
       s:=tablo_periph[1].tamponrx;
       affiche(s,clyellow);
       tablo_periph[1].tamponrx:='';
-
       telecommande(s);
     end;
     if (c>#31) and (c<#128) then tablo_periph[1].tamponrx:=tablo_periph[1].tamponrx+c;
@@ -26121,7 +26217,14 @@ var s : string;
    c : char;
    i : integer;
 begin
+  if count>1024 then
+  begin
+    Affiche('Débordement com périph2',clred);
+    count:=1024;
+  end;
+
   MSCommCde2.GetBlock(Tablo,count);  // TMSComm autoadapte la longueur du tampon dynamique
+
   for i:=1 to length(tablo) do
   begin
     c:=char(tablo[i]);
@@ -27974,11 +28077,7 @@ begin
   Affiche_mesure_trains;
 end;
 
-procedure TFormPrinc.Button0Click(Sender: TObject);
-begin
-{  EditVitesse.Text:='0';
-  TrackBarVit.Position:=0; }
-end;
+
 
 procedure TFormPrinc.Compilerlabasededonnes1Click(Sender: TObject);
 begin

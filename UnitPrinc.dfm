@@ -1,11 +1,11 @@
 object FormPrinc: TFormPrinc
-  Left = 257
-  Top = 205
+  Left = 148
+  Top = 246
   Anchors = [akLeft, akTop, akRight]
   BorderStyle = bsNone
   Caption = 'Signaux complexes'
-  ClientHeight = 431
-  ClientWidth = 866
+  ClientHeight = 520
+  ClientWidth = 976
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,8 +23,8 @@ object FormPrinc: TFormPrinc
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   DesignSize = (
-    866
-    431)
+    976
+    520)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1432,7 +1432,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 774
+    Left = 884
     Top = 0
     Width = 85
     Height = 22
@@ -5443,8 +5443,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 409
-    Width = 866
+    Top = 498
+    Width = 976
     Height = 22
     Panels = <
       item
@@ -6450,7 +6450,7 @@ object FormPrinc: TFormPrinc
         Caption = '-'
       end
       object Mesurerlavitessedestrains: TMenuItem
-        Caption = 'Mesurer la vitesse des trains'
+        Caption = 'Mesurer la vitesse des trains ('#233'talonnage)'
         OnClick = MesurerlavitessedestrainsClick
       end
       object Affichelamesuredesvitesses1: TMenuItem

@@ -485,10 +485,10 @@ object FormConfCellTCO: TFormConfCellTCO
     OnClick = CheckPinvClick
   end
   object GroupBoxAction: TGroupBox
-    Left = 312
+    Left = 320
     Top = 152
     Width = 273
-    Height = 145
+    Height = 153
     Caption = 'Actions'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -497,8 +497,8 @@ object FormConfCellTCO: TFormConfCellTCO
     Font.Style = []
     ParentFont = False
     TabOrder = 3
-    object Label3: TLabel
-      Left = 16
+    object LabelAction: TLabel
+      Left = 8
       Top = 122
       Width = 110
       Height = 13
@@ -523,7 +523,7 @@ object FormConfCellTCO: TFormConfCellTCO
       OnMouseDown = ListBoxActionMouseDown
     end
     object EditParam1: TEdit
-      Left = 144
+      Left = 128
       Top = 118
       Width = 33
       Height = 21
@@ -534,7 +534,7 @@ object FormConfCellTCO: TFormConfCellTCO
       OnChange = EditParam1Change
     end
     object EditParam2: TEdit
-      Left = 184
+      Left = 168
       Top = 118
       Width = 33
       Height = 21

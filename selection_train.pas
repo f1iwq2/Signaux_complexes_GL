@@ -251,7 +251,8 @@ procedure affecte_Train_canton(AdrTrain,idcanton,sens : integer);
 var idTrain,t,el1,el2 : integer;
     t1,t2 : tequipement;
 begin
-  if ProcPrinc then AfficheDebug('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
+  if ProcPrinc then
+   AfficheDebug('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
   //Affiche('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clyellow);
   if (IdCanton>0) and (idCanton<=nCantons) then
   begin
@@ -284,13 +285,14 @@ begin
       TCO[t,canton[idCanton].x,canton[idCanton].y].train:=idTrain;
     end;
 
-    if AdrTrain=0 then
+    if AdrTrain=0 then  // effacement train du canton
     begin
-      idTrain:=0;
+      idTrain:=canton[Idcanton].indexTrain;
+      trains[idTrain].canton:=0;
       canton[Idcanton].NomTrain:='';
       canton[Idcanton].indexTrain:=0;
       canton[IdCanton].adresseTrain:=0;
-      // a revoir IDTrain=0 !!!! Maj_icone_train(Image_Train[idTrain],idTrain,clWhite);
+      idTrain:=0;
     end;
 
     // si l'un des deux éléments adjacents au canton est un détecteur à 1, affecter la loco au détecteur
@@ -641,7 +643,7 @@ begin
         //raz_trains_idcanton(IdCantonSelect);  // au retour, route contient la route du train razé du canton
         raz_cantons_train(trains[AutreTrain].adresse,true);
         //Affiche('Et 1',clYellow);
-        maj_signaux(true);
+        maj_signaux(false);
       end;
 
 
@@ -655,7 +657,7 @@ begin
 
         affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect,sensLoco);  // le train affecté contient la route du train razé
         LabelInfo.caption:='Affectation du train '+intToSTR(IndexTrainClic)+' '+trains[indexTrainClic].nom_train+' au canton '+intToSTR(canton[idcantonSelect].numero);
-        maj_signaux(true);
+        maj_signaux(false);
       end;
     end;
   end;
@@ -701,10 +703,10 @@ begin
         exit;
       end;
 
-      renseigne_canton(IdAutreCanton);    //?? pourquoi faire le canton est normalement déje renseigné
+      renseigne_canton(IdAutreCanton);    //?? pourquoi faire le canton est normalement déjà renseigné
       affecte_Train_canton(AdrTrain,idAutreCanton,f);
       //Affiche('Et 3',clYellow);
-      maj_signaux(true);
+      maj_signaux(false);
     end;
   end;
 
@@ -722,6 +724,7 @@ begin
   begin
     dessin_canton(i,0);
   end;
+  maj_signaux(false);
 
 end;
 
@@ -739,8 +742,8 @@ begin
     end;
   end;
 
-  Quel_canton(x,y,el);
-  FormSelTrain.caption:=s;     // s est indéfini !!
+  Quel_canton(x,y,el);   // renvoie le canton en fonction de la var globale  IdCantonSelect
+  FormSelTrain.caption:='';     // s est indéfini !!
 
   with formSelTrain.ComboBoxCanton do
   begin
@@ -784,7 +787,7 @@ begin
     until trouve or (i>=n);
     if trouve then
     begin
-      Positionne_SG(i-1);
+      Positionne_SG(i-1);       // positionne la scrollbar
     end;
   end;
 end;

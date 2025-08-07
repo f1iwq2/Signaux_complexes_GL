@@ -1598,6 +1598,10 @@ object FormTCO: TFormTCO
       Caption = 'Supprimer le canton'
       OnClick = Supprimercanton1Click
     end
+    object Afficherlecompteurdevitessedutrain1: TMenuItem
+      Caption = 'Afficher le compteur de vitesse du train'
+      OnClick = Afficherlecompteurdevitessedutrain1Click
+    end
     object N6: TMenuItem
       Caption = '-'
     end

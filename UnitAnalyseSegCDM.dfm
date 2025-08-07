@@ -1,6 +1,6 @@
 object FormAnalyseCDM: TFormAnalyseCDM
-  Left = 193
-  Top = 60
+  Left = 206
+  Top = 145
   AutoScroll = False
   Caption = 'Fen'#234'tre r'#233'seau CDM'
   ClientHeight = 596
@@ -11,9 +11,11 @@ object FormAnalyseCDM: TFormAnalyseCDM
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   DesignSize = (
@@ -23,11 +25,12 @@ object FormAnalyseCDM: TFormAnalyseCDM
   TextHeight = 13
   object Label4: TLabel
     Left = 1001
-    Top = 520
+    Top = 512
     Width = 27
     Height = 13
     Anchors = [akTop, akRight]
     Caption = 'Zoom'
+    WordWrap = True
   end
   object ImageLoco: TImage
     Left = 688
@@ -55,6 +58,14 @@ object FormAnalyseCDM: TFormAnalyseCDM
       FFFFF0000000}
     Transparent = True
     Visible = False
+  end
+  object Label5: TLabel
+    Left = 1005
+    Top = 528
+    Width = 24
+    Height = 13
+    Anchors = [akTop, akRight]
+    Caption = '+ -'
   end
   object ScrollBox1: TScrollBox
     Left = 8

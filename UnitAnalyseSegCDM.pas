@@ -53,6 +53,7 @@ type
     ButtonAnime: TButton;
     ImageLoco: TImage;
     CheckBoxAutres: TCheckBox;
+    Label5: TLabel;
     procedure FormResize(Sender: TObject);
     procedure CheckSegmentsClick(Sender: TObject);
     procedure CheckConnexionsClick(Sender: TObject);
@@ -77,6 +78,8 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure ImageCDMMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -4717,7 +4720,7 @@ begin
   CheckDet.checked:=true;
   LabelPorts.Width:=160;
   LabelPorts.Height:=23;
-
+  KeyPreview:=true; // pour avtiver l'evt onKeyPressed
   ImageCDM.Top:=0;
   ImageCDM.Left:=0;
   formAnalyseCDM.Caption:=NomModuleCDM;
@@ -5577,6 +5580,22 @@ procedure TFormAnalyseCDM.ImageCDMMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   SourisBas:=false;
+end;
+
+procedure TFormAnalyseCDM.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var i : integer;
+begin
+  if key=109 then
+  begin
+    i:=trackbar1.position;
+    if i<90 then trackBar1.Position:=i+1;
+  end;
+  if key=107 then
+  begin
+    i:=trackbar1.position;
+    if i>50 then trackBar1.Position:=i-1;
+  end;
 end;
 
 end.

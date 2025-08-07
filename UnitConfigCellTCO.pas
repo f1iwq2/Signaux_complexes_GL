@@ -36,7 +36,7 @@ type
     ListBoxAction: TListBox;
     EditParam1: TEdit;
     EditParam2: TEdit;
-    Label3: TLabel;
+    LabelAction: TLabel;
     ImageListIcones: TImageList;
     BitBtnOk: TBitBtn;
     BitBtnAnnule: TBitBtn;
@@ -792,7 +792,7 @@ begin
     top:=140;
     width:=273;
     height:=145;
-  end; 
+  end;
   with GroupBoxOrientation do
   begin
     left:=8;
@@ -803,15 +803,18 @@ begin
     left:=16;
     top:=140;
     width:=273;
-    height:=145;
+    height:=ListBoxAction.Height+60;;
   end;
   with GroupBoxCanton do
   begin
     left:=16;
     top:=140;
     width:=273;
-    height:=145;
+    height:=130;
   end;
+  LabelAction.top:=ListBoxAction.top+ListBoxAction.Height+10;
+  EditParam1.Top:=ListBoxAction.top+ListBoxAction.Height+6;
+  EditParam2.Top:=ListBoxAction.top+ListBoxAction.Height+6;
 
   With StringGridDet do
   begin
@@ -858,6 +861,7 @@ begin
   // une imagelist c'est 16x16 maxi
   with ListBoxAction do
   begin
+    Font.Size:=round(8*RedFonte);
     Items.Add(Format('%d%s', [0, 'Afficher TCO'])); // valeur d'index de l'icone dans la ImagelistIcones
     itemHeight:=16;
     Items.Add(Format('%d%s', [1, 'Afficher Signaux Complexes']));
@@ -878,6 +882,8 @@ begin
     itemHeight:=16;
     Items.Add(Format('%d%s', [26, 'Bouton bistable']));
     itemHeight:=16;
+
+    //height:=GroupBoxEl.Height-ListBoxAction.top;
   end;
 
   // calcul des éléments en fonction de la taille de GroupBoxEL à cause du dimensionnement enn % des textes windows
@@ -888,7 +894,7 @@ begin
   GroupBoxCanton.Width:=GroupBoxEL.Width-10;
   GroupBoxDet.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;
   GroupBoxDet.Width:=GroupBoxEL.Width-10;
-  GroupBoxAction.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;
+  GroupBoxAction.top:=RadioGroupSEl.Height+RadioGroupSel.Top+5;
   GroupBoxAction.Width:=GroupBoxEL.Width-10;
 
   GroupBoxOrientation.top:=RadioGroupSEl.Height+RadioGroupSel.Top+10;

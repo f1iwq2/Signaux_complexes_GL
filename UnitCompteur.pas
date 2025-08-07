@@ -668,6 +668,7 @@ begin
     end;
     with CompteurT[i] do
     begin
+      tb.Height:=15;
       gb.Width:=LargComptC;
       gb.height:=ofsGBH+him+CompteurT[i].tb.Height+ofsGBB;
       gb.Top:=(gb.Height+5)*((i-1) div NbreCompteursPLigne);
@@ -769,7 +770,7 @@ begin
 
       // imageC <-- FCBitMap (on écrit les vitesses) <- ImageCompteur (grande)
       // créer un bitmap réduit qui sert de référence
-      Scompteur[i].FCBitMap.Free;          // zizi
+      Scompteur[i].FCBitMap.Free;         
       Scompteur[i].fcBitMap:=tbitmap.Create;
       with Scompteur[i].FCBitMap do
       begin

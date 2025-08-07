@@ -39,7 +39,6 @@ type
     CheckChiffre: TCheckBox;
     CheckChevron: TCheckBox;
     CheckClignote: TCheckBox;
-    ImageSignaux: TImage;
     procedure RadioVertClick(Sender: TObject);
     procedure RadioVertCliClick(Sender: TObject);
     procedure RadioJauneClick(Sender: TObject);

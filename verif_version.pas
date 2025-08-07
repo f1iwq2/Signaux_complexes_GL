@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '10.6'; // sert à la comparaison de la version publiée
+VersionSC = '10.7'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -574,58 +574,29 @@ begin
     if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' est à jour',clLime);
     if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
   end;
-  
 end;
 
-{
-procedure TFormVersion.TimerVerifTimer(Sender: TObject);
-var V_utile,V_publie : real;
-    erreur: integer;
-    s : string;
-begin
-  if lance_verif>0 then dec(lance_verif);
-  if lance_verif=0 then
-  begin
-    if not(verifVersion) then exit;
-    if debug=1 then Affiche('Vérification version en ligne',clLime);
-    V_publie:=verifie_version;
-    if notificationVersion and (v_publie>0) then
-    begin
-      val(version,V_utile,erreur);
-      str(v_publie:2:2,s);
-      if V_utile=V_publie then Affiche('Votre version '+Version+SousVersion+' est à jour',clLime);
-      if V_utile>V_publie then Affiche('Votre version '+version+SousVersion+' est plus récente que la version publiée '+s,clLime);
-    end;
-  end;
-end;
-}
 
-// ne parche pas pour les répertoires non vides
+// ne marche pas pour les répertoires non vides
 procedure DeleteDirectory(const DirName: string);
-var
-  FileFolderOperation: TSHFileOpStruct;
+var fos: TSHFileOpStruct;
 begin
-  FillChar(FileFolderOperation, SizeOf(FileFolderOperation), 0);
-  FileFolderOperation.wFunc := FO_DELETE;
-  FileFolderOperation.pFrom := PChar(ExcludeTrailingPathDelimiter(DirName) + #0);
-  FileFolderOperation.fFlags := FOF_SILENT or FOF_NOERRORUI or FOF_NOCONFIRMATION;
-  SHFileOperation(FileFolderOperation);
+  FillChar(Fos, SizeOf(Fos),0);
+  Fos.wFunc:=FO_DELETE;
+  Fos.pFrom:=PChar(ExcludeTrailingPathDelimiter(DirName) + #0);
+  Fos.fFlags:=FOF_SILENT or FOF_NOERRORUI or FOF_NOCONFIRMATION;
+  SHFileOperation(Fos);
 end;
 
 function DelDir(Dir: String): Boolean;
 var fos: TSHFileOpStruct;
 begin
   ZeroMemory(@fos,SizeOf(fos));
-  with fos do
-  begin
-    wFunc:=FO_DELETE;
-    fFlags:=FOF_SILENT or FOF_NOCONFIRMATION;
-    pFrom:=PChar(Dir + #0);
-  end;
+  fos.wFunc:=FO_DELETE;
+  fos.pFrom:=PChar(Dir + #0);
+  fos.fFlags:=FOF_SILENT or FOF_NOCONFIRMATION;
   Result:=(0=ShFileOperation(fos));
 end;
-
-
 
 begin
 end.

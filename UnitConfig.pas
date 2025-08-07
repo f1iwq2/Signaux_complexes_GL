@@ -7426,6 +7426,7 @@ var i,j,x,y,l,k,LongestLength,PixelLength : integer;
 begin
   if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
 
+  editAdrIPCDM.Hint:='Adresse IP du PC sur lequel CDM rail s''exécute'+#13+'ou 127.0.0.1 pour indiquer ce pc';
   ValueListEditor.Visible:=true;
 
   // liste des paramètres du mode expert de la ValueListEditor
@@ -7482,8 +7483,8 @@ begin
   with Liste[5] do
   begin
     nom:='5. Utilisation de l''anti timeout Ethernet';
-    aide:='Si 1, envoie un caractère chaque minute à la centrale '+#13+
-          'pour éviter sa déconnexion (uniquement en Ethernet)';
+    aide:='Si avec, envoie un caractère chaque minute à la centrale '+#13+
+          'pour éviter sa déconnexion (uniquement en Ethernet XpressNet)';
     typ:= PickList;
     variable:=@AntiTimeoutEthLenz;
     typeVar:=Bool;
@@ -7713,47 +7714,7 @@ begin
   TreeViewL.HideSelection:=false;
   TreeViewL.Images:=ImageListLogic;
 
-  with SpinEditEtat do
-  begin
-    Top:=19;
-    Left:=160;
-    Visible:=false;
-    text:='1';
-    MaxValue:=2;
-    Hint:='Etat de l''accessoire'+#13+
-          '1=dévié'+#13+
-          '2=droit';
-    ShowHint:=true;
-  end;
-
-  LabelEtat.Top:=4;
-  LabelEtat.Left:=160;
-  LabelEtat.Visible:=false;
-
-  with ComboBoxOperateur do
-  begin
-    Style:=csOwnerDrawFixed;
-    clear;
-    itemHeight:=18; // hauteur des icones
-    items.add(nomopET);
-    items.add(NomOpOU);
-    items.add(NomOpNonET);
-    items.add(NomOpNonOU);
-  end;
-
-  RadioGroupOP.visible:=false;
-
-  with ComboBoxVar do
-  begin
-    Style:=csOwnerDrawFixed;
-    clear;
-    itemHeight:=18; // hauteur des icones
-    items.add(NomEtatDCC);
-    items.add(NomEtatDet);
-    items.add(NomEtatBoutonTCO);
-    items.add(NomEtatMemoire);
-  end;
-
+  
   s:=GetCurrentDir;
   if not(directoryExists(rep_icones)) then CreateDir(rep_icones);
   ChDir(s);  // revient au rep initial
@@ -8164,7 +8125,7 @@ begin
   with LbZTitre do
   begin
     Left:=64;Top:=20;Width:=50;Height:=12;
-    caption:='Zone ferme               Zone ouvre';
+    caption:='Zone ferme                 Zone ouvre';
     name:='LbZTitre';
     parent:=GroupBoxPNZ;
   end;
@@ -8548,6 +8509,53 @@ begin
   // marche pas!!
   SendMessage(ListBoxActions.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
 
+  // fonctions 
+  LabeledEditEtatACC.Left:=LabeledEditDCC.Left+LabeledEditDCC.editlabel.Width+10;
+  LabeledEditTrain.Left:=LabeledEditEtatACC.Left;
+  RadioGroupOP.Left:=LabeledEditEtatACC.Left+LabeledEditEtatACC.editLabel.width+10;
+  with SpinEditEtat do
+  begin
+    Top:=22;
+    Left:=LabeledEditEtatACC.left;
+    Visible:=false;
+    text:='1';
+    MaxValue:=2;
+    Hint:='Etat de l''accessoire'+#13+
+          '1=dévié'+#13+
+          '2=droit';
+    ShowHint:=true;
+  end;
+
+  LabelEtat.Top:=4;
+  LabelEtat.Left:=SpinEditEtat.left;
+  LabelEtat.Visible:=false;
+
+  with ComboBoxOperateur do
+  begin
+    Style:=csOwnerDrawFixed;
+    clear;
+    itemHeight:=18; // hauteur des icones
+    items.add(nomopET);
+    items.add(NomOpOU);
+    items.add(NomOpNonET);
+    items.add(NomOpNonOU);
+  end;
+
+  RadioGroupOP.visible:=false;
+
+  with ComboBoxVar do
+  begin
+    Style:=csOwnerDrawFixed;
+    clear;
+    itemHeight:=18; // hauteur des icones
+    items.add(NomEtatDCC);
+    items.add(NomEtatDet);
+    items.add(NomEtatBoutonTCO);
+    items.add(NomEtatMemoire);
+  end;
+
+
+
   // actionneurs PN
   ListBoxPN.Clear;
   longestLength:=0;
@@ -8626,6 +8634,7 @@ begin
                          'Le nombre de crans à 128 est validé par la mise à 1 du bit 1 du CV29 du décodeur';
   LabeledEditCrans.ShowHint:=true;
 
+
   // compteurs
   ComboBoxCompt.ItemIndex:=0;
 
@@ -8679,8 +8688,6 @@ begin
   ButtonCouleur.Visible:=false;
   {$IFEND}
 
-  ImageSignaux.picture.Assign(formpilote.ImageSignaux.Picture);
-
   EditComUSB.Hint:='COMX:vitesse,parité,nombre de bits,bits de stop,protocole'+#13+
                    'procotole = 0 : sans protocole, avec temporisation d''envoi entre trames (LZV200)'+#13+
                    '          = 1 : protocole logiciel XON-XOFF avec temporisation d''envoi'+#13+
@@ -8726,24 +8733,8 @@ begin
   label72.caption:='La rotation de bouton changera la vitesse du train. L''appui sur le bouton stoppe le train.'+#13+
                    'Les évènements clavier sont interceptés par signaux complexes ce qui ne nécessite pas d''activer la fenêtre';
 
-  {
-  with GroupBoxBr do
-  begin
-    Left:=312;
-    top:=170;
-    Width:=260;
-    Height:=140;
-    visible:=true;
-  end;
-  with GroupBoxBT do
-  begin
-    Left:=312;
-    top:=170;
-    Width:=260;
-    Height:=140;
-    Visible:=false;
-  end;}
   GroupBoxBT.Visible:=false;
+  clic_BRM;
 
   PageControl.ActivePage:=Formconfig.TabSheetCDM;  // force le premier onglet sur la page
   couleurs_config;
@@ -17521,7 +17512,7 @@ end;
 
 procedure calculs;
 var vitesse,erreur,distArret : integer;
-    coeff,vitR,TempsArret : single;
+    vitR,TempsArret : single;
 begin
   val(FormConfig.LabeledEditCalcV.text,vitesse,erreur);
   vitesse:=abs(vitesse);
@@ -17977,7 +17968,7 @@ begin
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
     end;
 
-    if i=EtatDet then
+    if i=EtatDet then  // actionneur détecteur
     begin
       RadioGroupOP.Visible:=false;
       LabelEtat.Visible:=false;
@@ -17993,7 +17984,7 @@ begin
     if i=EtatBoutonTCO then
     begin
       RadioGroupOP.Visible:=false;
-      LabelEtat.Visible:=true;
+      //LabelEtat.Visible:=true;
       SpinEditEtat.Visible:=false;
       LabeledEditEtatACC.Visible:=true;
       LabeledEditTrain.visible:=false;
@@ -18009,7 +18000,7 @@ begin
       with RadioGroupOP do
       begin
         Visible:=true;
-        left:=208;
+        left:=LabeledEditEtatACC.Left+LabeledEditEtatACC.width+10;
         top:=8;
       end;
       LabeledEditDCC.Visible:=true;
@@ -18980,7 +18971,6 @@ end;
 
 procedure TFormConfig.ValueListEditorMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
-var BarInfo: TScrollInfo;
 begin
   exit;
   y:=y div (ValueListEditor.RowHeights[0]+1);
@@ -19123,10 +19113,10 @@ begin
     shapeB7.Brush.Color:=clGray;
     shapeB8.Brush.Color:=clGray;
     GroupBoxBt.visible:=true;
+    GroupBoxBT.Top:=GroupBoxBloc.Top+GroupBoxBloc.Height+10;
     GroupBoxBr.visible:=false;
     GroupBoxBT.caption:='Bouton n°'+intToSTR(BoutonBloc);
   end;
-
 end;
 
 procedure rotatif;
@@ -19144,6 +19134,7 @@ begin
     shapeB8.Brush.Color:=clGray;
     GroupBoxBR.visible:=true;
     GroupBoxBT.Visible:=false;
+    GroupBoxBR.Top:=GroupBoxBloc.Top+GroupBoxBloc.Height+10;
   end;
 end;
 
@@ -19264,7 +19255,12 @@ procedure TFormConfig.LabeledEditCTChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditCT.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>255) then exit;
+  if (erreur<>0) or (i<0) or (i>255) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 1 à 255';
+    exit;
+  end;
+  labelInfo.Caption:='';
   case BoutonBloc of
   1 : blocUSB[NumBlocUSB].Bp1:=i;
   2 : blocUSB[NumBlocUSB].Bp2:=i;
@@ -19283,7 +19279,12 @@ procedure TFormConfig.LabeledEditRmChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditRm.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>255) then exit;
+  if (erreur<>0) or (i<0) or (i>255) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 1 à 255';
+    exit;
+  end;
+  labelInfo.Caption:='';
   blocUSB[NumBlocUSB].rotatifM:=i;
 end;
 
@@ -19291,7 +19292,12 @@ procedure TFormConfig.LabeledEditRpChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditRp.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>255) then exit;
+  if (erreur<>0) or (i<0) or (i>255) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 1 à 255';
+    exit;
+  end;
+  labelInfo.Caption:='';
   blocUSB[NumBlocUSB].rotatifP:=i;
 end;
 
@@ -19299,7 +19305,12 @@ procedure TFormConfig.LabeledEditClicChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditClic.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>255) then exit;
+  if (erreur<>0) or (i<0) or (i>255) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 1 à 255';
+    exit;
+  end;
+  labelInfo.Caption:='';
   blocUSB[NumBlocUSB].clic:=i;
 end;
 
@@ -19308,7 +19319,12 @@ procedure TFormConfig.LabeledEditNUMChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditNUM.Text,i,erreur);
-  if (erreur<>0) or (i<1) or (i>10) then exit;
+  if (erreur<>0) or (i<1) or (i>10) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 1 à 10';
+    exit;
+  end;
+  labelInfo.Caption:='';
   NumBlocUSB:=i;
   LabeledEditCT.Text:='';
   LabeledEditRM.Text:='';
@@ -19326,13 +19342,19 @@ begin
   i:=index_train_nom(BlocUSB[NumBlocUSB].AffTrain);
   ComboBoxUSBTr.ItemIndex:=i;
   label72.caption:='';
+  clic_BRM;
 end;
 
 procedure TFormConfig.LabeledEditFChange(Sender: TObject);
 var i,erreur : integer;
 begin
   val(LabeledEditF.Text,i,erreur);
-  if (erreur<>0) or (i<0) or (i>30) then exit;
+  if (erreur<>0) or (i<0) or (i>30) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 0 à 30';
+    exit;
+  end;
+  labelInfo.Caption:='';
   case boutonbloc of
   1 : blocUSB[NumBlocUSB].Fbp1:=i;
   2 : blocUSB[NumBlocUSB].Fbp2:=i;
@@ -19602,7 +19624,6 @@ begin
   ListBoxTrains.items[ligneclicTrain]:=encode_train(ligneclicTrain+1);
   ListBoxTrains.selected[ligneclicTrain]:=true;
   calcul_equations_coeff(ligneclicTrain+1);
-
 end;
 
 procedure TFormConfig.LabeledEditVit3Change(Sender: TObject);
@@ -19626,8 +19647,9 @@ begin
   ListBoxTrains.selected[ligneclicTrain]:=true;
 
   calcul_equations_coeff(ligneclicTrain+1);
-
 end;
+
+
 
 end.
 

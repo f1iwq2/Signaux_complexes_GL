@@ -22,7 +22,7 @@ type
 
 var
   FormIntro: TFormIntro;
-  AchercherDet,AchercherCanton : integer;
+  AchercherDetAig,AchercherCanton : integer;
 
 implementation
 
@@ -35,10 +35,12 @@ begin
   close;
 end;
 
+
+
 procedure TFormIntro.ButtonTrDetClick(Sender: TObject);
 var erreur : integer;
 begin
-  val(LabeledEditDetAig.text,AchercherDet,erreur);
+  val(LabeledEditDetAig.text,AchercherDetAig,erreur);
   close;
 end;
 
