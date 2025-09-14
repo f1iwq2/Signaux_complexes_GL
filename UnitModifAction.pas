@@ -154,7 +154,7 @@ var
   ClicDeclenche,ClicAction,ClicCond,DeclencheurAffiche,OperationAffiche : integer;
 
 function Info_action(i : integer) : string;
-procedure affecte_operation(i : integer;t: TListBox);
+function affecte_operation(i : integer) : string;
 
 implementation
 
@@ -219,21 +219,25 @@ begin
 end;
 
 // ajoute à la listbox t une ligne avec son icone opérations[]
-// i numéro d'opération
-procedure affecte_operation(i : integer;t : tListBox);
+// i numéro d'opération dans le ytableau operations
+function affecte_operation(i : integer) : string;
 var s : string;
+    io : integer;
 begin
-  s:=operations[i].nom;
-  if ligneclicAct>0 then if not(Tablo_Action[ligneclicact+1].tabloOp[i].valide) then s:=s+sd;
-  if i<ActionBoutonTCO then t.Items.Add(Format('%d%s', [i-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionBoutonTCO then t.Items.Add(Format('%d%s', [IconeBouton, s])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionAffecteMemoire then t.Items.Add(Format('%d%s', [IconeActionAffecteMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionIncMemoire then t.Items.Add(Format('%d%s', [IconeActionIncMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
-  if i=ActionDecMemoire then t.Items.Add(Format('%d%s', [IconeActionDecMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  //if ligneClicAct>=0 then io:=Tablo_Action[ligneclicAct+1].tabloOp[i].numoperation else io:=0;
+  s:='';
+  if i<ActionBoutonTCO then s:=(Format('%d%s', [i-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionBoutonTCO then s:=(Format('%d%s', [IconeBouton, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionAffecteMemoire then s:=(Format('%d%s', [IconeActionAffecteMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionIncMemoire then s:=(Format('%d%s', [IconeActionIncMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  if i=ActionDecMemoire then s:=(Format('%d%s', [IconeActionDecMemoire, s])); // valeur d'index de l'icone dans la ImagelistIcones
+  s:=s+operations[i].nom;
+  result:=s;
 end;
 
 procedure TFormModifAction.FormCreate(Sender: TObject);
 var i,icone : integer;
+    s : string;
 begin
   ListBoxOper.Style:=lbOwnerDrawVariable;      // pour afficher des icones
   ListBoxDeclench.Style:=lbOwnerDrawVariable;
@@ -262,7 +266,8 @@ begin
 
   for i:=1 to NbreOperations do
   begin
-    affecte_operation(i,formModifAction.ListBoxOper);
+    s:=affecte_operation(i);
+    formModifAction.ListBoxOper.Items.add(s);
     ListBoxOper.itemHeight:=16; // 16 mini taille des éléments pour l'icone
   end;
 
@@ -376,8 +381,9 @@ begin
   begin
     if (operations[i].famille=famille) or (famille=0) then
     begin
-      s:=operations[i].nom;
-      affecte_operation(i,formModifAction.ListBoxOper);
+      //s:=operations[i].nom;
+      s:=affecte_operation(i);
+      formModifAction.ListBoxOper.items.Add(s);
     end;
   end;
 end;
@@ -718,7 +724,7 @@ begin
         if not(Tablo_Action[index].tabloOp[i].valide) then s:=s+' [dévalidé]';
         if act<1 then icone:=0  else icone:=act-1;
 
-        // listbox de la formmodifAction
+        // listboxOperations de la formmodifAction
         if act<=ActionTempo then items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
         if act=ActionBoutonTCO then items.Add(Format('%d%s', [iconeBouton, s]));
         if act=ActionAffecteMemoire then items.Add(Format('%d%s', [iconeActionAffecteMemoire, s]));
@@ -728,6 +734,9 @@ begin
         // listboxOperations de la formConfig
         if act<=ActionTempo then formConfig.ListBoxOperations.Items.add(Format('%d%s', [act-1, s]));
         if act=ActionBoutonTCO then formConfig.ListBoxOperations.items.Add(Format('%d%s', [IconeBouton, s]));
+        if act=ActionAffecteMemoire then formConfig.ListBoxOperations.items.Add(Format('%d%s', [iconeActionAffecteMemoire, s]));
+        if act=ActionIncMemoire then formConfig.ListBoxOperations.items.Add(Format('%d%s', [iconeActionIncMemoire, s]));
+        if act=ActionDecMemoire then formConfig.ListBoxOperations.items.Add(Format('%d%s', [iconeActionDecMemoire, s]));
 
         itemHeight:=16;
       end;
@@ -1083,16 +1092,17 @@ procedure TFormModifAction.FormActivate(Sender: TObject);
 var i : integer;
     s : string;
 begin
-
   ComboBoxActions.Clear;
   for i:=1 to maxTablo_act do
   begin
     s:=encode_actions(i);
     if s<>'' then ComboBoxActions.Items.Add(s);
   end;
+
   //ligneclicACt:=0;
   ComboBoxActions.ItemIndex:=ligneclicAct;
   LabelDecl.Caption:='Déclencheur de l''action n°'+intToSTR(ComboBoxactions.ItemIndex+1);
+
   Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
 
   if OperationAffiche<>0 then
@@ -1226,8 +1236,8 @@ begin
     for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
-      //items.Add(Format('%d%s', [no-1, operations[no].nom])); // valeur d'index de l'icone dans la ImagelistIcones
-      affecte_operation(no,ListBoxOperations);
+      s:=affecte_operation(no);
+      ListBoxOperations.Items.add(s);
       itemHeight:=16;
     end;
     ItemIndex:=indexSrc-1;
@@ -1264,7 +1274,8 @@ begin
     for i:=1 to Tablo_Action[idBD].NbOperations do
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
-      affecte_operation(no,ListBoxOperations);
+      s:=affecte_operation(no);
+      ListBoxOperations.Items.Add(s);
       itemHeight:=16;
     end;
 
@@ -1536,7 +1547,7 @@ begin
   if not(Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].valide) then s:=s+sd;
 
   listBoxOperations.Items[clicaction]:=s;
-  formconfig.ListBoxOperations.items[clicaction]:=s; //encode_actions(ligneclicAct+1);
+  if formconfig.ListBoxOperations.Count>=clicaction then formconfig.ListBoxOperations.items[clicaction]:=s; //encode_actions(ligneclicAct+1);
 
   maj_combocactions(ligneclicAct);
 end;

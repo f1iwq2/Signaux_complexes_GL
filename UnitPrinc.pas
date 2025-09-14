@@ -778,7 +778,7 @@ Tfonction =
  record
     typ : integer;               // opOU, EtatDCC, EtatDet ... etc
     Indexprec  : integer ;       // index du niveau précédent d'origine (parent)
-    adresse,etat : integer;      // adresse : l'indice 0 contient le nombre d'éléments
+    adresse,adresse2,etat : integer;      // adresse : l'indice 0 contient le nombre d'éléments
     OpMemoire : integer;         // opérateur "mémoire" : 0=égal 1=> 2=<
     niveau : integer;            // niveau : l'indice 0 contient le numéro de fonction modifiable
     traite : boolean;
@@ -21552,7 +21552,7 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-  clientInfo.Open; // se connecte au serveur SC et envoie les infos
+  clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
@@ -28149,8 +28149,8 @@ end;
 procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
 var i : integer;
 begin
-  maj_route(515);
-//  aiguillage[5].AdrTrain:=3;
+  i:=Tablo_Action[1].tabloOp[10].numoperation;
+  Affiche(intToSTR(i),clYellow); 
 end;
 
 procedure TFormPrinc.TrackBarZCChange(Sender: TObject);

@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetAutonome
+    ActivePage = TabSheetActions
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2098,7 +2098,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -3340,7 +3340,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3471,7 +3471,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -3779,7 +3779,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3798,7 +3798,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3844,7 +3844,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -4057,7 +4057,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4077,7 +4077,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4147,8 +4147,8 @@ object FormConfig: TFormConfig
             OnChange = LabeledEditTrainChange
           end
           object RadioGroupOP: TRadioGroup
-            Left = 48
-            Top = 32
+            Left = 72
+            Top = 24
             Width = 89
             Height = 57
             Caption = 'Op'#233'rateur'
@@ -4158,6 +4158,17 @@ object FormConfig: TFormConfig
               '< inf'#233'rieur')
             TabOrder = 4
             OnClick = RadioGroupOPClick
+          end
+          object LabeledEditZone: TLabeledEdit
+            Left = 16
+            Top = 44
+            Width = 41
+            Height = 21
+            EditLabel.Width = 25
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Zone'
+            TabOrder = 5
+            OnChange = LabeledEditZoneChange
           end
         end
         object ButtonSupLog: TButton
@@ -4178,7 +4189,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4728,7 +4739,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -6455,7 +6466,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end
@@ -6635,7 +6646,7 @@ object FormConfig: TFormConfig
     Left = 664
     Top = 72
     Bitmap = {
-      494C010109000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -6791,17 +6802,17 @@ object FormConfig: TFormConfig
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000000000FF000000
+      FF000000FF000000FF000000FF0000000000000000000000FF000000FF000000
+      FF000000FF000000FF0000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000000000FF000000
+      FF000000FF000000FF000000FF0000000000000000000000FF000000FF000000
+      FF000000FF000000FF0000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -7155,11 +7166,11 @@ object FormConfig: TFormConfig
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      00000000000000000000000000000000FFFF000000000000742E000000000000
-      75EE000000000000546A00000000000025E4000000000000742E000000000000
-      FFFF000000000000FFFF00000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000FFFF000000000000FB4700000000
+      00000000000000000000000000000000FFFFFFFF00000000742EFFFF00000000
+      75EEFFFF00000000546AC1830000000025E4C18300000000742EFFFF00000000
+      FFFFFFFF00000000FFFFB6DB0000000000000000000000000000B6DB00000000
+      00000000000000000000B6DB000000000000FFFF000000000000FFFF00000000
+      0000FFFF000000000000FFFF000000000000FFFF000000000000FB4700000000
       0000F56F000000000000F56F000000000000F54F000000000000FB6F00000000
       0000FFFF00000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

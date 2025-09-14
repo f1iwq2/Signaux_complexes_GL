@@ -341,6 +341,9 @@ version 10.6 : Modification pour l'affichage de la barre de zoom du TCO pour les
 version 10.7 : Affichage du compteur de train depuis le menu contextuel des cantons du tco.			   
                En roulage ou RUN CDM, suppression d'un train non suivi de la liste des trains en roulage.
                Correction désaffectation trains sur cantons.
+version 10.71 : Ajout dans les variables des fonctions les mémoires de zone.
+                Correction bug activation mémoires de zone dans le menu du TCO.
+				Correction bug affichage des opérations dans les actions.
 			
 
 

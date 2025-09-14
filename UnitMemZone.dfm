@@ -4,7 +4,7 @@ object FormMemZone: TFormMemZone
   BorderStyle = bsDialog
   Caption = 'Activer / d'#233'sactiver des m'#233'moires de zone'
   ClientHeight = 173
-  ClientWidth = 370
+  ClientWidth = 405
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,15 +19,16 @@ object FormMemZone: TFormMemZone
   TextHeight = 13
   object Label1: TLabel
     Left = 24
-    Top = 8
+    Top = 0
     Width = 329
-    Height = 33
+    Height = 39
     Caption = 
       'Les m'#233'moires de zone sont constitu'#233'es de deux d'#233'tecteurs contigu' +
-      's'
+      's. Si les deux d'#233'tecteurs sont s'#233'par'#233's par un ou des aiguillage(' +
+      's), il doit '#234'tre correctement positionn'#233
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -40,28 +41,28 @@ object FormMemZone: TFormMemZone
     Height = 13
   end
   object Shape1: TShape
-    Left = 216
+    Left = 240
     Top = 88
     Width = 137
     Height = 9
     Brush.Color = clBlue
   end
   object Shape2: TShape
-    Left = 232
+    Left = 256
     Top = 83
     Width = 25
     Height = 20
     Brush.Color = clRed
   end
   object Shape3: TShape
-    Left = 312
+    Left = 336
     Top = 83
     Width = 25
     Height = 20
     Brush.Color = clRed
   end
   object Label2: TLabel
-    Left = 225
+    Left = 249
     Top = 56
     Width = 35
     Height = 19
@@ -74,7 +75,7 @@ object FormMemZone: TFormMemZone
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 304
+    Left = 328
     Top = 56
     Width = 35
     Height = 19

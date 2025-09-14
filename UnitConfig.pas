@@ -510,6 +510,7 @@ type
     Label83: TLabel;
     Label84: TLabel;
     LabelTitreTrain: TLabel;
+    LabeledEditZone: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -808,6 +809,7 @@ type
     procedure LabeledEditVit1Change(Sender: TObject);
     procedure LabeledEditVit2Change(Sender: TObject);
     procedure LabeledEditVit3Change(Sender: TObject);
+    procedure LabeledEditZoneChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -964,6 +966,7 @@ EtatDCC=5;
 EtatDet=6;
 EtatBoutonTCO=7;
 EtatMemoire=8;
+EtatZone=9;
 NomVAR='Fonction logique';
 NomOpET='Opérateur ET';
 NomOpOU='Opérateur OU';
@@ -973,7 +976,8 @@ NomEtatDCC='Etat DCC';
 NomEtatDet='Etat détect./actionn.';
 NomEtatBoutonTCO='Bouton TCO';
 NomEtatMemoire='Mémoire';
-NomFonc : array[0..8] of string[25]=(NomVar,NomOpET,NomOpOu,NomOpNonET,NomOpNonOU,NomEtatDCC,NomEtatDet,NomEtatBoutonTCO,NomEtatMemoire);
+NomEtatZone='Zone';
+NomFonc : array[0..9] of string[25]=(NomVar,NomOpET,NomOpOu,NomOpNonET,NomOpNonOU,NomEtatDCC,NomEtatDet,NomEtatBoutonTCO,NomEtatMemoire,NomEtatZone);
 
 
 var
@@ -2632,7 +2636,9 @@ begin
       s:=intToSTR(i)+','+nomfonc[fonction[j,i].typ]+',';
       s:=s+'N'+intToSTR(fonction[j,i].niveau)+',';
       s:=s+'T'+intToSTR(fonction[j,i].typ)+',';
-      s:=s+'A'+intToSTR(fonction[j,i].adresse)+',';
+      s:=s+'A'+intToSTR(fonction[j,i].adresse);
+      if fonction[j,i].typ=EtatZone then s:=s+'-'+intToSTR(fonction[j,i].adresse2);
+      s:=s+',';
       s:=s+'E'+intToSTR(fonction[j,i].etat)+',';
       s:=s+'V'+','+fonction[j,i].train+',';
       s:=s+'O'+intToSTR(fonction[j,i].OpMemoire)+',';
@@ -2954,14 +2960,16 @@ begin
   result:=c;
 end;
 
+// renvoie vrai si typ est un opérateur
 function isOperateur(typ : integer): boolean;
 begin
   result:=(typ>=OpET) and (typ<=OpNonOu);
 end;
 
+// renvoie vrai si typ est une variable
 function isVariable(typ : integer): boolean;
 begin
-  result:=(typ>=EtatDCC) and (typ<=EtatMemoire);
+  result:=(typ>=EtatDCC) and (typ<=EtatZone);
 end;
 
 // donne le texte à mettre dans le tree view en fonction de l'index de fonction[]
@@ -3015,6 +3023,10 @@ begin
       end;
       s:=s+intToSTR(fonction[fonc,i].etat);
     end;
+    if typ=EtatZone then
+    begin
+      s:=s+fonction[fonc,i].train+' '+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].adresse2)+' '+intToSTR(fonction[fonc,i].etat);
+    end;
   end;
   result:=s;
 end;
@@ -3042,9 +3054,13 @@ begin
         else s:=s+' inconnu ';
       end;
     end;
-    if typ=EtatDet then
+    if (typ=EtatDet) then
     begin
       s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
+    end;
+    if (typ=EtatZone) then
+    begin
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].adresse2)+' '+intToSTR(fonction[fonc,i].etat);
     end;
     if typ=EtatBoutonTCO then
     begin
@@ -4913,24 +4929,33 @@ const LessThanValue=-1;
           Fonction[NbreFL+1,i].niveau:=v;
           Delete(s,1,erreur);
 
-          Delete(s,1,1);        // supprime T
+          Delete(s,1,1);        // supprime T (type)
           val(s,v,erreur);
           delete(s,1,erreur);
-          erreur:=CompareValue(versR,9.7,0.01);
-          if (erreur=LessThanValue) or (erreur=EqualsValue) then
-          begin
-            if (v>=4) then inc(v);
-          end;
-          Fonction[NbreFL+1,i].typ:=v;
+          //erreur:=CompareValue(versR,9.7,0.01);
+          //if (erreur=LessThanValue) or (erreur=EqualsValue) then
+          //begin
+          //  if (v>=4) then inc(v);
+          //end;
+          Fonction[NbreFL+1,i].typ:=v;  // type
           inc(idOperateur);
           ArbreFonc[idOperateur,0]:=i;
 
-          Delete(s,1,1);        // supprime A
+          Delete(s,1,1);        // supprime A   (adresse)
           val(s,v,erreur);
-          delete(s,1,erreur);
-          Fonction[NbreFL+1,i].adresse:=v;
 
-          Delete(s,1,1);        // supprime E
+          Fonction[NbreFL+1,i].adresse:=v;
+          delete(s,1,erreur-1);
+          if s[1]='-' then     // si adresse 2 pour mémoire de zone
+          begin
+            delete(s,1,1);
+            val(s,v,erreur);
+            Fonction[NbreFL+1,i].adresse2:=v;
+            delete(s,1,erreur-1);
+          end;
+          delete(s,1,1);         // supprime ,
+
+          Delete(s,1,1);        // supprime E   (état)
           val(s,v,erreur);
           delete(s,1,erreur);
           Fonction[NbreFL+1,i].etat:=v;
@@ -8552,9 +8577,8 @@ begin
     items.add(NomEtatDet);
     items.add(NomEtatBoutonTCO);
     items.add(NomEtatMemoire);
+    items.Add(NomEtatZone);
   end;
-
-
 
   // actionneurs PN
   ListBoxPN.Clear;
@@ -16576,6 +16600,7 @@ var i,io,j,decl :integer;
     s : string;
 begin
   // remplir la listbox en fonction des opérations de l'action cliquée
+  //Affiche('Affiche_action',clYellow);
   with FormConfig.ListBoxOperations do
   begin
     clear;
@@ -16590,11 +16615,14 @@ begin
       else
       begin
         io:=Tablo_Action[ligneclicAct+1].tabloOp[i].numoperation;
-        affecte_operation(io,formConfig.ListBoxOperations);
+        s:=affecte_operation(io);
+        if ligneclicAct>0 then if not(Tablo_Action[ligneclicact+1].tabloOp[i].valide) then s:=s+sd;
+        formConfig.ListBoxOperations.Items.Add(s);
       end;
       itemHeight:=16;
     end;
   end;
+  Application.ProcessMessages;
 
   formConfig.RichEditInfo.clear;
   decl:=Tablo_Action[ligneclicAct+1].declencheur;
@@ -17897,7 +17925,7 @@ begin
       exit;
     end;
   end;
-  if (ComboBoxVar.ItemIndex=EtatMemoire-EtatDCC) then
+  if (ComboBoxVar.ItemIndex=EtatZone-EtatDCC) then
   begin
   end;
   labelInfo.Caption:='';
@@ -17931,6 +17959,31 @@ begin
   node.Text:=s;
 end;
 
+procedure TFormConfig.LabeledEditZoneChange(Sender: TObject);
+var node : tTreenode;
+    i,v,erreur : integer;
+    s : string;
+begin
+  if clicTree then exit;
+
+  node:=TreeViewL.Selected;
+  if node=nil then exit;
+  i:=node.AbsoluteIndex;
+
+  config_modifie:=true;
+  val(LabeledEditZone.text,v,erreur);
+  if v<1 then
+  begin
+    labelInfo.Caption:='Erreur';
+    exit;
+  end;
+  labelInfo.Caption:='';
+  fonction[foncCourante,i].adresse2:=v;   
+  s:=texte_tv(foncCourante,i);
+  node.Text:=s;
+
+end;
+
 
 procedure TformConfig.outdployer1Click(Sender: TObject);
 begin
@@ -17959,6 +18012,7 @@ begin
       LabelEtat.Visible:=true;
       SpinEditEtat.Visible:=true;
       RadioGroupOP.Visible:=false;
+      LabeledEditZone.Visible:=false;
       LabeledEditEtatACC.Visible:=false;
       LabeledEditTrain.visible:=false;
       PanelAcc.Visible:=true;
@@ -17968,17 +18022,33 @@ begin
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
     end;
 
-    if i=EtatDet then  // actionneur détecteur
+    if (i=EtatDet) then  // actionneur détecteur
     begin
       RadioGroupOP.Visible:=false;
       LabelEtat.Visible:=false;
       LabeledEditTrain.visible:=true;
       SpinEditEtat.Visible:=false;
+      LabeledEditZone.Visible:=false;
       LabeledEditEtatACC.Visible:=true;
       LabeledEditDcc.EditLabel.Caption:='Adresse';
       LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
       LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
+    end;
+
+    if (i=EtatZone) then  //  zone
+    begin
+      RadioGroupOP.Visible:=false;
+      LabelEtat.Visible:=false;
+      LabeledEditTrain.visible:=true;
+      SpinEditEtat.Visible:=false;
+      LabeledEditZone.Visible:=true;
+      LabeledEditEtatACC.Visible:=true;
+      LabeledEditDcc.EditLabel.Caption:='Adresse';
+      LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
+      LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
+      LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
+      LabeledEditZone.text:=intToSTR(fonction[foncCourante,iNode].adresse2);
     end;
 
     if i=EtatBoutonTCO then
@@ -17989,6 +18059,7 @@ begin
       LabeledEditEtatACC.Visible:=true;
       LabeledEditTrain.visible:=false;
       PanelAcc.Visible:=true;
+      LabeledEditZone.Visible:=false;
       LabeledEditDCC.Visible:=true;
       LabeledEditDcc.EditLabel.Caption:='Numéro de bouton';
       LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
@@ -18004,6 +18075,7 @@ begin
         top:=8;
       end;
       LabeledEditDCC.Visible:=true;
+      LabeledEditZone.Visible:=false;
       LabeledEditDcc.EditLabel.Caption:='Numéro de mémoire';
       LabeledEditTrain.visible:=false;
       LabeledEditEtatACC.Visible:=true;
@@ -18545,7 +18617,7 @@ begin
 end;
 
 Function Etat_variable(k,i : integer): boolean ;
-var pos,j,typ,adr : integer;
+var pos,j,typ,adr,adr2 : integer;
     resultat : boolean;
     train : string;
 begin
@@ -18559,6 +18631,7 @@ begin
     result:=(pos=const_droit) and (fonction[k,i].etat=2) or (pos=const_devie) and (fonction[k,i].etat=1);   // 1=dévié 2=droit
     exit;
   end;
+
 
   if typ=EtatDet then // si état détecteur / actionneur
   begin
@@ -18591,6 +18664,22 @@ begin
     end;
     exit;
   end;
+
+  if typ=EtatZone then // si Zone
+  begin
+    adr2:=fonction[k,i].adresse2;
+    resultat:=MemZone[adr,adr2].Etat=(fonction[k,i].etat=1);
+    // ajouter ici si on teste un train sur détecteur
+    train:=fonction[k,i].train;
+    if train<>'' then
+    begin
+      //Affiche('Eval45 '+intToSTR(adr)+' '+Train,clwhite);
+      if detecteur[adr].Train<>train then resultat:=false;
+    end;
+    result:=resultat;
+    exit;
+  end;
+
 end;
 
 // donne le suivant de même niveau de même index précédent
@@ -18992,7 +19081,7 @@ begin
 
   config_modifie:=true;
 
-  if (ComboBoxVar.ItemIndex=EtatMemoire-EtatDCC) then
+  if (ComboBoxVar.ItemIndex=EtatZone-EtatDCC) then
   begin
     fonction[foncCourante,i].opMemoire:=RadioGroupOP.ItemIndex;
     s:=texte_tv(foncCourante,i);
@@ -19648,6 +19737,8 @@ begin
 
   calcul_equations_coeff(ligneclicTrain+1);
 end;
+
+
 
 
 

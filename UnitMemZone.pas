@@ -78,7 +78,6 @@ end;
 
 function valide_det : boolean;
 var erreur : integer;
-    elsuiv : tEquipement;
 begin
   result:=false;
   val(FormMemZone.labeledEditDet1.text,det1Z,erreur);
@@ -93,15 +92,16 @@ begin
   end;
 
   val(FormMemZone.labeledEditDet2.text,det2Z,erreur);
-  det_contigu(det1Z,det2Z,suivant,ElSuiv);
-
-  if suivant=0 then
+  Det_Adj(det1Z);  // renvoie les adresses des détecteurs adjacents au détecteur "det1Zrésultat dans adj1 et adj2
+  if (adj1=det2Z) or (adj2=det2Z) then
   begin
-    FormMemZone.LabelInfo.Caption:='Les détecteurs '+intToSTR(det1Z)+' / '+intToSTR(det2Z)+' ne sont pas contigus';
+    result:=true;
+    FormMemZone.LabelInfo.caption:='';
     exit;
   end;
-  FormMemZone.LabelInfo.caption:='';
-  result:=true;
+
+  FormMemZone.LabelInfo.Caption:='Les détecteurs '+intToSTR(det1Z)+' / '+intToSTR(det2Z)+' ne sont pas contigus';
+  result:=false;
 end;
 
 procedure TFormMemZone.ButtonActClick(Sender: TObject);
