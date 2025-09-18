@@ -4913,7 +4913,7 @@ const LessThanValue=-1;
       lit_ligne;
       ligne:=false;
       repeat  // boucle de la fonction
-        if (s<>'0') and (s<>'') then
+        if (s<>'0') and (s<>'') and (s<>'FF') then
         begin
           posv:=pos(',',s);
           // 0,Variables,N0,T0
@@ -4946,7 +4946,7 @@ const LessThanValue=-1;
 
           Fonction[NbreFL+1,i].adresse:=v;
           delete(s,1,erreur-1);
-          if s[1]='-' then     // si adresse 2 pour mémoire de zone
+          if length(s)>0 then if s[1]='-' then     // si adresse 2 pour mémoire de zone
           begin
             delete(s,1,1);
             val(s,v,erreur);
@@ -14238,6 +14238,10 @@ begin
     begin
       //Affiche('Maj_icone_train '+intToSTR(index),clYellow);
       // source
+      if Trains[index].icone=nil then
+      begin
+        result:=0;exit;
+      end;
       l:=Trains[index].Icone.width;
       h:=Trains[index].Icone.Height;
       if h=0 then

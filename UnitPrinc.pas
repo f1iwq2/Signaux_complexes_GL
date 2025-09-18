@@ -860,7 +860,7 @@ TSignal = record
                 EtatSignal  : word  ;       // état du signal
                 AncienEtat  : word  ;       // ancien état du signal
                 AncienAff   : word  ;       // état ancien affichage
-                UniSemaf    : integer ;     // définition supplémentaire de la cible pour les décodeurs UNISEMAF
+                UniSemaf    : integer ;     // définition supplémentaire de la cible pour les décodeurs UNISEMAF ou LEB
                 BinLin      : integer;      // Binaire=0 ou Linéaire décodeur LEB - =1 : mode 2 signaux décodeur CDF
                 AigDirection : array[1..7] of array of record        // pour les signaux directionnels : contient la liste des aiguillages associés
                                   Adresse : integer;     // 6 feux max associés à un tableau dynamique décrivant les aiguillages +1 position 0
@@ -23333,8 +23333,7 @@ begin
             Trains[ntrains].adresse:=Trains_cdm[i].adresse;
             Trains[ntrains].vitmax:=Trains_cdm[i].vitmax;
             FormPrinc.ComboTrains.Items.Add(trains_cdm[i].nom_train);
-            cree_image_Train(ntrains);
-            cree_GB_compteur(ntrains);
+            //cree_GB_compteur(ntrains);
           end;
         end;
 
