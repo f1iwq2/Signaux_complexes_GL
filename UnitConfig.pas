@@ -1,6 +1,6 @@
 Unit UnitConfig;
 
-interface
+interface       
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
@@ -73,7 +73,6 @@ type
     TabSheetBranches: TTabSheet;
     Label14: TLabel;
     TabSheetSig: TTabSheet;
-    Label15: TLabel;
     TabSheetPN: TTabSheet;
     CheckBoxSrvSig: TCheckBox;
     Memo1: TMemo;
@@ -511,6 +510,8 @@ type
     Label84: TLabel;
     LabelTitreTrain: TLabel;
     LabeledEditZone: TLabeledEdit;
+    EditTempoSig: TEdit;
+    Label15: TLabel;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -810,6 +811,7 @@ type
     procedure LabeledEditVit2Change(Sender: TObject);
     procedure LabeledEditVit3Change(Sender: TObject);
     procedure LabeledEditZoneChange(Sender: TObject);
+    procedure EditTempoSigChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1066,6 +1068,7 @@ procedure ComboBoxFL_mizajour;
 procedure clic_BRM;
 function crans_to_Vrcms(v,idTrain : integer) : single;
 procedure courbe_train(indexTrain : integer);
+procedure cree_icone_train(i : integer);
 
 implementation
 
@@ -1580,6 +1583,9 @@ begin
     end;
   end;
 
+  // tempo de retard au pilotage
+  s:=s+',T'+intToSTR(Signaux[i].Tempo);
+
   encode_signal:=s;
 end;
 
@@ -1623,6 +1629,7 @@ begin
     begin
       inc(NbreSignaux);
       Signaux[i].adresse:=adresse;
+      Signaux[i].Tempo:=0;
       tablo_Index_Signal[adresse]:=i; // stocker l'index provisoire avant tri
       j:=pos(',',s);
       if j>1 then
@@ -1970,7 +1977,6 @@ begin
            val(s,j,erreur);
            delete(s,1,erreur);
            Signaux[i].na:=j;
-
          end;
        end;
 
@@ -1994,11 +2000,18 @@ begin
            if (j<0) or (j>5) then
            begin
              j:=5;affiche('Paramètre NA incorrect dans ligne '+chaine_signal,clred)
-          end;
-          Signaux[i].na:=j;
-        end;
-      end;
-      end;
+           end;
+           Signaux[i].na:=j;
+         end;
+       end;
+       if length(s)>1 then if s[1]='T' then
+       begin
+         delete(s,1,1);
+         val(s,j,erreur);
+         delete(s,1,erreur);
+         signaux[i].Tempo:=j;
+       end;
+     end;
     end;
   end;
 end;
@@ -3088,6 +3101,21 @@ begin
     end;
   end;
   result:=s;
+end;
+
+procedure cree_icone_train(i : integer);
+begin
+  Trains[i].icone:=Timage.create(nil);
+  with Trains[i].icone do
+  begin
+    autosize:=true;
+    align:=alNone;
+    parent:=nil;
+    name:='IconeTrain'+intToSTR(i);
+    top:=0;left:=0;
+    width:=200;
+    height:=100;
+  end;
 end;
 
 // génère les informations calculées
@@ -4495,7 +4523,9 @@ const LessThanValue=-1;
       if i<>0 then
       begin
         delete(s,i,1);
-        val(s,trains[ntrains].vitnominale,erreur);
+        val(s,i,erreur);
+        if i=0 then i:=trains[ntrains].vitMax;
+        trains[ntrains].vitnominale:=i;
         delete(s,1,erreur-1);
       end;
 
@@ -4503,7 +4533,9 @@ const LessThanValue=-1;
       if i<>0 then
       begin
         delete(s,i,1);
-        val(s,trains[ntrains].vitralenti,erreur);
+        val(s,i,erreur);
+        if i=0 then i:=trains[ntrains].vitnominale div 2;
+        trains[ntrains].vitralenti:=i;
         delete(s,1,erreur-1);
       end;
 
@@ -4514,18 +4546,7 @@ const LessThanValue=-1;
         i:=pos(',',s);
         if i=0 then i:=length(s)+1;
         trains[ntrains].NomIcone:=copy(s,1,i-1);
-        Trains[ntrains].icone:=Timage.create(nil);
-
-        with Trains[ntrains].icone do
-        begin
-          autosize:=true;
-          align:=alNone;
-          parent:=nil;
-          name:='IconeTrain'+intToSTR(nTrains);
-          top:=0;left:=0;
-          width:=200;
-          height:=100;
-        end;
+        cree_icone_train(ntrains);
 
         Formprinc.ComboTrains.Items.Add(trains[ntrains].nom_train);
         delete(s,1,i-1);
@@ -6633,6 +6654,8 @@ begin
 
   Signal_Sauve:=Signaux[index];  // sauvegarde
 
+  formconfig.listBoxSig.itemIndex:=index-1;
+  formconfig.listBoxSig.Selected[index-1]:=true;
   AncLigneClicSig:=ligneclicSig;
   ligneClicSig:=index-1;
 
@@ -7356,6 +7379,9 @@ begin
     end;
     ButtonRdt.Caption:=s;
 
+    ListBoxTrains.ItemIndex:=index-1;
+    ListBoxTrains.selected[index-1]:=true;
+
     editNomTrain.text:=Trains[index].nom_train;
     LabelTitreTrain.Caption:=Trains[index].nom_train;
     editAdresseTrain.Text:=intToSTR(trains[index].adresse);
@@ -7798,10 +7824,14 @@ begin
       end
       else Affiche('Le fichier icône train '+s+' n''a pas été trouvé',clred);
     end;
-    cree_image_train(i);
+    cree_image_onglet_train(i);
   end;
 
   affecte_trains_config;  // affecte les trains aux cantons
+
+  labeledEditVit1.Hint:='Vitesse en crans du coefficient V1'+#13+'(vitesse lente)';
+  labeledEditVit2.Hint:='Vitesse en crans du coefficient V2'+#13+'(vitesse moyenne)';
+  labeledEditVit3.Hint:='Vitesse en crans du coefficient V3'+#13+'(vitesse rapide)';
 
   with StringGridArr do
   begin
@@ -7809,7 +7839,7 @@ begin
     ShowHint:=true;
     ColCount:=4;    // nombre de colonnes
     RowCount:=NbDetArret+1;
-    Options := StringGridArr.Options + [goEditing];
+    Options:=StringGridArr.Options + [goEditing];  // autorise la modification de la stringGrid
     ColWidths[0]:=0;      // colonne grise invisible
     ColWidths[1]:=round(70/RedFonte);     // Précédent
     ColWidths[2]:=round(70/RedFonte);     // détecteur
@@ -7820,7 +7850,7 @@ begin
     Cells[3,0]:='Temps (s)';
     for i:=0 to RowCount-1 do
       RowHeights[i]:=18;
-   end;
+    end;
 
   {$IF CompilerVersion >= 28.0}
   labelD12.Visible:=true;
@@ -8472,6 +8502,10 @@ begin
   begin
     ComboBoxDec.items.add(decodeur[i-1]);
   end;
+  EditTempoSig.Hint:='Temporisation de retard de l''affichage en dixièmes de secondes.'+#13+
+                     'Ne fonctionne qu''en mode de pilotage asynchrone.'+#13+
+                     'Voir paramètres avancés / pilotage des accessoires.';
+  EditTempoSig.ShowHint:=true;
 
   // décodeurs personalisés
   for i:=1 to NbreDecPers do
@@ -8612,7 +8646,7 @@ begin
   EditVitRalenti.Hint:='Vitesse après l''avertissement'+#13+'en crans';
   EditVitNom.Hint:='Vitesse si voie libre'+#13+'en crans';
   EditVitesseMaxi.Hint:='Vitesse maximale autorisée par le décodeur'+#13+'en crans';
-  
+
   i:=1;
   RichCdeDCCpp.clear;
   repeat
@@ -9257,6 +9291,7 @@ begin
   if decodeur<>4 then RadioGroupLEB.Visible:=false;
   // plus tard !!  if decodeur>=11 then ButtonConfigSR.Visible:=true;
 
+  editTempoSig.Text:=intToSTR(signaux[index].Tempo);
 
   case d of
     2 : ComboBoxAsp.ItemIndex:=0;
@@ -10127,6 +10162,26 @@ begin
   if affevt then Affiche('Evt ComboBox Decodeur',clOrange);
 end;
 
+procedure TFormConfig.EditTempoSigChange(Sender: TObject);
+var s : string;
+    i,erreur : integer;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=EditTempoSig.Text;
+    Val(s,i,erreur);
+    if (s='') or (erreur<>0) or (i<0) then begin LabelInfo.caption:='Erreur temporisation signal ';exit;end;
+    LabelInfo.caption:=' ';
+    Signaux[ligneClicSig+1].Tempo:=i;
+
+    s:=encode_signal(ligneClicSig+1);
+    ListBoxSig.Items[ligneClicSig]:=s;
+    Signaux[ligneClicSig+1].modifie:=true;
+    ListBoxSig.selected[ligneClicSig]:=true;
+  end;
+end;
 
 procedure TFormConfig.EditDet1Change(Sender: TObject);
 var s : string;
@@ -11209,6 +11264,7 @@ begin
   Signaux[i].SR[8].sortie0:=19;
   Signaux[i].SR[8].sortie1:=0;
   Signaux[i].Na:=4;
+  Signaux[i].Tempo:=0;
   cree_image_signal(i);
   s:=encode_signal(i);
 
@@ -11301,12 +11357,13 @@ begin
             Parent:=Formprinc.ScrollBoxSig;   // dire que l'image est dans la scrollBox1
             Top:=(HtImg+espY+20)*((j-1) div NbreImagePLigne);   // détermine les points d'origine
             Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
-            Name:='ImageSignal'+IntToSTR(Signaux[j].adresse);
+            Name:='ImageSignal'+IntToSTR(j);
             Maj_Hint_Signal(j);
           end;
 
         with Signaux[j].Lbl do
         begin
+          Name:='LabelSignal'+intToSTR(j);
           Top:=HtImg+((HtImg+EspY+20)*((j-1) div NbreImagePLigne));
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
           caption:='@'+IntToSTR(Signaux[j].adresse);
@@ -11314,7 +11371,7 @@ begin
         if Signaux[j].checkFB<>nil then
         with Signaux[j].CheckFB do
         begin
-          Name:='CheckBoxFB'+intToSTR(Signaux[j].adresse);
+          Name:='CheckBoxFB'+intToSTR(j);
           Hint:='Feu blanc';
           Top:=HtImg+15+((HtImg+EspY+20)*((j-1) div NbreImagePLigne));
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
@@ -14433,20 +14490,10 @@ begin
     VitNominale:=60;
     VitRalenti:=40;
     vitmax:=120;
-    icone:=Timage.create(nil);
-    with icone do
-    begin
-      Name:='IconeTrain'+intToSTR(nTrains); 
-      autosize:=true;
-      align:=alNone;
-      parent:=nil;
-      top:=0;left:=0;
-      width:=200;
-      height:=100;
-    end;
   end;
 
-  clicListeTrains(ntrains);
+  cree_icone_train(nTrains);
+
   ligneclicTrain:=ntrains-1;
   clicListe:=false;
 
@@ -14463,7 +14510,8 @@ begin
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
-  cree_image_Train(ntrains);
+  clicListeTrains(ntrains);
+  cree_image_onglet_Train(ntrains);
 
   // ajoute le compteur
   cree_GB_compteur(ntrains);
@@ -16550,9 +16598,6 @@ begin
 
   if clicproprietesSig then clicListeSignal(IndexSignalClic);
   clicproprietesSig:=false;
-  if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
-  clicproprietesTrains:=false;
-
 
   // aiguillages
   ListBoxAig.Clear;
@@ -16584,6 +16629,8 @@ begin
     clear;
     for i:=1 to ntrains do items.Add(encode_train(i));
   end;
+  if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
+  clicproprietesTrains:=false;
 
   tsbouton:=FormConfig.PageControl.ActivePage=TabSheetBouton;
 
@@ -19672,7 +19719,6 @@ begin
 
     caption:=intToSTR(ValVitTrain[i]);
   end;
-
 end;
 
 procedure TFormConfig.LabeledEditVit1Change(Sender: TObject);
@@ -19741,10 +19787,6 @@ begin
 
   calcul_equations_coeff(ligneclicTrain+1);
 end;
-
-
-
-
 
 end.
 

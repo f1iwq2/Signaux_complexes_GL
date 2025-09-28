@@ -4,12 +4,14 @@ unit Unitprinc;
   Programme signaux complexes Graphique Lenz
   Composants ClientSocket et ServeurSocket pour les connexions réseau socket
 
+  --------------------------------------------------------------
   Delphi 7 :
   on utilise activeX Tmscomm pour les liaisons série/USB
 
+  --------------------------------------------------------------
   Delphi 12 :
   Dans Outils / Options / Interface utilisateurs / Concerpteur de fiches / Haute résolution
-  Sélextionner Automatique (PPI de l'écran) et cocher "taille de la grille..."
+  Sélectionner Automatique (PPI de l'écran) et cocher "taille de la grille..."
 
   on utilise AsyncPro pour les liaisons série/USB - ce composant est compilable en 32 et en 64 bits.
   https://github.com/TurboPack/AsyncPro
@@ -28,8 +30,7 @@ unit Unitprinc;
   LnsQueue.pas
   OoMisc.pas
 
-  un essai avec IdTCPClient (Indy) a été fait avec D7/D12. En D7 nécéssite le fichier Idtcpclient.dcu.
-  En D12 l'event Rx nécessite un thread et ne fonctionne pas bien. C'est ok en D7.
+  -------------------------------------------------
 
   Options de compilation D7: options du debugger/exception du langage : décocher "arreter sur exceptions delphi"
   sinon une exception surgira au moment de l'ouverture du com
@@ -91,8 +92,6 @@ unit Unitprinc;
 //{$D-}    // pas d'information de debuggage : pas de débug possible
 //{$L-}    // pas d'information sur les symboles locaux
 
-{$DEFINE xAvecIdTCP}   // le composant IdTCPClient n'a pas d'evt receive, il faut le traiter dans un thread
-// il ne marche pas bien en version D12, l'évent RX provoque une violation au démarrage puis plus rien
 
 interface
 uses
@@ -102,10 +101,6 @@ uses
   Buttons, NB30, comObj, activeX, registry //,DateUtils//, PsAPI
 
   , psAPI // GetModuleFileNameEx
-
-  {$IFDEF AvecIdTCP}
-    ,IdTCPClient        // client socket indy , ne marche pas bien
-  {$ENDIF}
 
   {$IF CompilerVersion >= 28.0}   // si delphi>=12
     ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
@@ -476,105 +471,10 @@ type
     {$IF CompilerVersion >= 28.0}
     procedure DataReceived(const Data: TidBytes);
     {$ELSE}
-    procedure DataReceived(const Data: string);  // réception interface socket indy
+    procedure DataReceived(const Data: string);
     {$IFEND}
   end;
 
-  {$IFDEF AvecIdTCP}
-    {$IF CompilerVersion >= 28.0}
-    // thread interface socket Indy D12, pour créer event en réception
-    TDataEventInterface=procedure(const Data: TidBytes) of object;
-    TreadingThreadInterface=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      Fdata : Tidbytes;
-      FOnData: TDataEventInterface;
-    protected
-      procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventInterface read FOnData write FOnData;
-      procedure DataReceived;
-    end;
-
-    // thread périphérique1 D12 socket Indy
-    TDataEventPeriph1=procedure(const Data: TidBytes) of object;
-    TreadingThreadPeriph1=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      Fdata : Tidbytes;
-      FOnData: TDataEventPeriph1;
-    protected
-      procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventPeriph1 read FOnData write FOnData;
-     procedure DataReceived;
-    end;
-
-    // thread périphérique2 D12 socket Indy
-    TDataEventPeriph2=procedure(const Data: TidBytes) of object;
-    TreadingThreadPeriph2=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      Fdata : Tidbytes;
-      FOnData: TDataEventPeriph2;
-    protected
-      procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventPeriph2 read FOnData write FOnData;
-      procedure DataReceived;
-    end;
-
-    {$ELSE}
-
-    // Thread interface Indy D7
-    TDataEventInterface=procedure(const Data: string) of object;
-    TreadingThreadInterface=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      FData: string;
-      FOnData: TDataEventInterface;
-    protected
-    procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventInterface read FOnData write FOnData;
-      procedure DataReceived;
-    end;
-
-    // Thread périph1 Indy D7
-    TDataEventPeriph1=procedure(const Data: string) of object;
-    TreadingThreadPeriph1=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      FData: string;
-      FOnData: TDataEventPeriph1;
-    protected
-      procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventPeriph1 read FOnData write FOnData;
-      procedure DataReceived;
-    end;
-
-    // Thread périph2 Indy D7
-    TDataEventPeriph2=procedure(const Data: string) of object;
-    TreadingThreadPeriph2=class(TThread)
-    private
-      FClient: TIdTCPClient;
-      FData: string;
-      FOnData: TDataEventPeriph2;
-    protected
-      procedure Execute; override;
-    public
-      constructor Create(AClient: TIdTCPClient); reintroduce;
-      property OnData: TDataEventPeriph2 read FOnData write FOnData;
-      procedure DataReceived;
-    end;
-    {$IFEND}
-  {$ENDIF}
 
 const
 titre='Signaux complexes GL ';
@@ -881,6 +781,7 @@ TSignal = record
                                    end;
                 Na : integer;               // nombre d'adresses du signal occupées par le décodeur CDF/SR/digikeijs/Belge
                 DetAmont : TtabloDet;       // tableau des détecteurs amonts, calculés à la lecture du fichier de config
+                Tempo : integer;            // temporisation de retard au pilotage en x100 ms
               end;
 
 TPeripherique = record
@@ -1059,7 +960,7 @@ tTrain =  record
           end;
 
 
-Ttache = array[1..MaxTaches] of record
+Ttache = record
               typeTache : integer ; // 0:rien  - 1:accessoire 2:vitesse train  3:fonction F  4:tempo
               traite    : boolean;  // traitement en cours
               tempo     : integer;  // tempo avant exécution de la commande
@@ -1161,10 +1062,6 @@ var
   end;
   Adresse_detecteur : array[0..NbMaxDet] of integer; // adresses des détecteurs par index
 
-  {$IFDEF AvecIdTCP}
-  clientTCPInterface: tidtcpclient;
-  {$ENDIF}
-
   Ecran : array[1..10] of record     // écrans du pc
             x0,y0,larg,haut : integer;
           end;
@@ -1174,7 +1071,7 @@ var
                     PortDistant,PortLocal : integer;
                   end;
 
-  taches : Ttache;
+  taches : array[1..MaxTaches] of Ttache;
 
   Actionneur_trouve : array[1..10] of integer;
 
@@ -1359,12 +1256,6 @@ var
   Aig_supprime,Aig_sauve : TAiguillage;
   BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
   chaine_recue : TchaineBIN;
-  {$IFDEF AvecIdTCP}  //-----------composant Indy
-  ThreadInterface : TReadingThreadInterface;
-  ThreadPeriph1 : TReadingThreadPeriph1;
-  ThreadPeriph2 : TReadingThreadPeriph2;
-  ClientSocketIdInterface: tIdTCPClient;
-  {$ENDIF}
   ClientSocketInterface: TClientSocket;
   ClientInfo : TclientSocket;
 
@@ -1409,7 +1300,7 @@ function verif_UniSemaf(adresse,UniSem : integer) : integer;
 function verif_LEB(adresse,UniSem : integer) : integer;
 function Select_dessin_Signal(TypeSignal : integer) : TBitmap;
 procedure cree_image_signal(rang : integer);
-procedure cree_image_Train(rang : integer);
+procedure cree_image_onglet_Train(rang : integer);
 procedure trouve_aiguillage(adresse : integer);
 procedure trouve_detecteur(detecteur : integer);
 function ProcessRunning(sExeName: String) : Boolean;
@@ -1507,88 +1398,6 @@ uses UnitDebug, UnitPilote, UnitSimule, UnitTCO, UnitConfig,
   UnitModifAction, selection_train, UnitRouteTrains, UnitRoute, UnitMesure,
   UnitCompteur;
 
-{$IFDEF AvecIdTCP} //------ composant indy socket réseau
-  // création thread interface
-  constructor TReadingThreadInterface.Create(AClient: TIdTCPClient);
-  begin
-    inherited Create(True);
-    FClient:=AClient;
-  end;
-
-  procedure TReadingThreadInterface.Execute;
-  begin
-    while not Terminated do
-    begin
-      {$IF CompilerVersion >= 28.0}
-      Fclient.IOHandler.ReadBytes(Fdata,0,false);
-      if (FData <> nil) and Assigned(FOnData) then
-      {$ELSE}
-      FData := FClient.CurrentReadBuffer;
-      if (FData <> '') and Assigned(FOnData) then
-      {$IFEND}
-      Synchronize(DataReceived);
-    end;
-  end;
-
-  procedure TReadingThreadInterface.DataReceived;
-  begin
-    if Assigned(FOnData) then FOnData(FData);
-  end;
-
-  constructor TReadingThreadPeriph1.Create(AClient: TIdTCPClient);
-  begin
-    inherited Create(True);
-    FClient := AClient;
-  end;
-
-  // création thread périphérique1
-  procedure TReadingThreadPeriph1.DataReceived;
-  begin
-    if Assigned(FOnData) then FOnData(FData);
-  end;
-
-  procedure TReadingThreadPeriph1.Execute;
-  begin
-    while not Terminated do
-    begin
-      {$IF CompilerVersion >= 28.0}
-      Fclient.IOHandler.ReadBytes(Fdata,0,false);
-      if (FData <> nil) and Assigned(FOnData) then
-      {$ELSE}
-      FData:=FClient.CurrentReadBuffer;
-      if (FData <> '') and Assigned(FOnData) then
-      {$IFEND}
-        Synchronize(DataReceived);
-    end;
-  end;
-
-  // création thread périphérique2
-  procedure TReadingThreadPeriph2.DataReceived;
-  begin
-    if Assigned(FOnData) then FOnData(FData);
-  end;
-
-  constructor TReadingThreadPeriph2.Create(AClient: TIdTCPClient);
-  begin
-    inherited Create(True);
-    FClient := AClient;
-  end;
-
-  procedure TReadingThreadPeriph2.Execute;
-  begin
-    while not Terminated do
-    begin
-      {$IF CompilerVersion >= 28.0}
-      Fclient.IOHandler.ReadBytes(Fdata,0,false);
-      if (FData <> nil) and Assigned(FOnData) then
-      {$ELSE}
-      FData := FClient.CurrentReadBuffer;
-      if (FData <> '') and Assigned(FOnData) then
-      {$IFEND}
-        Synchronize(DataReceived);
-    end;
-  end;
-{$ENDIF}
 
 {
 procedure menu_interface(MA : TMA);
@@ -2589,11 +2398,7 @@ begin
   // par socket (ethernet)
   if parSocketLenz or (etat_init_interface>=11) then
   begin
-    {$IFDEF AvecIdTCP}
-    ClientSocketIdInterface.IoHandler.write(RawToBytes(z,l));   // RawToBytes() convertit n'importe quoi en TidBytes
-    {$ELSE}
     ClientSocketInterface.Socket.SendBuf(z,l);
-    {$ENDIF}
     if not modetache then sleep(30);
   end;
 end;
@@ -2688,11 +2493,7 @@ begin
   // par socket (ethernet)
   if parSocketLenz or (etat_init_interface>=11) then
   begin
-    {$IFDEF AvecIdTCP}
-    ClientSocketIdInterface.Socket.Send(TrameIF[0],l);
-    {$ELSE}
     ClientSocketInterface.Socket.SendBuf(TrameIF[0],l);
-    {$ENDIF}
     if not modetache then Sleep(30);
   end;
 end;
@@ -5389,7 +5190,7 @@ begin
   Signaux[rang].Lbl:=Tlabel.create(Formprinc.ScrollBoxSig);
   with Signaux[rang].Lbl do
   begin
-    Name:='LabelSignal'+intToSTR(Signaux[rang].adresse);
+    Name:='LabelSignal'+intToSTR(rang);
     caption:=' '+IntToSTR(Signaux[rang].adresse);
     font.Style:=[fsBold];
     Parent:=Formprinc.ScrollBoxSig;
@@ -5409,7 +5210,7 @@ begin
     begin
       onClick:=formprinc.proc_checkBoxFB;  // affecter l'adresse de la procédure de traitement quand on clique dessus
       Hint:='Feu blanc';
-      Name:='CheckBoxFB'+intToSTR(adresse);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
+      Name:='CheckBoxFB'+intToSTR(rang);  // affecter l'adresse du feu pour pouvoir le retrouver dans la procédure
       caption:='dem FB';
       font.color:=clBlack;
       Parent:=Formprinc.ScrollBoxSig;
@@ -5595,7 +5396,7 @@ end;
 // cliqué train
 procedure tFormprinc.ImageTrainonclick(Sender : tObject);
 var P_component : tComponent;
-     i : integer;
+    i : integer;
 begin
   //Affiche('clic image train',clred);
   P_component:=sender as Tcomponent;
@@ -5671,7 +5472,7 @@ end;
 
 // créée une image dans l'onglet trains , 2 label dynamiquement dans la partie droite pour un nouveau train déclaré dans le fichier de config
 // rang commence à 1
-procedure cree_image_Train(rang : integer);
+procedure cree_image_onglet_Train(rang : integer);
 var i,adresse : integer;
     s : string;
 begin
@@ -5982,7 +5783,7 @@ begin
   chaine_CDM_Acc:=so+s;
 end;
 
-// met une tache en tableau taches[] pour le timer
+// ajoute une tache en tableau taches[] pour le timer
 // ttache=1 : pilote accessoire...
 // temporisation pour le timer avant action
 // destinataire (1=CDM  2=XpressNet  3=Dccpp)
@@ -10003,7 +9804,7 @@ begin
         end
         else
         begin
-          s:='Impossible de déterminer le passage de l''aiguillage '+intToSTR(adr);
+          s:='Erreur 841 : impossible de déterminer le passage de l''aiguillage '+intToSTR(adr);
           if (nivDebug=3) or ProcPrinc then AfficheDebug(s,clred);
           Affiche(s,clred);
           result:=9999;
@@ -10124,7 +9925,7 @@ begin
         // extrémité 1      530
         if (aiguillage[index].ADroit=prec) and (aiguillage[index].ADroitB=Aprec) then
         begin
-          if aiguillage[index].position=const_droit then 
+          if aiguillage[index].position=const_droit then
           begin
             adr:=aiguillage[index].Ddroit;
             a:=aiguillage[index].DDroitB;
@@ -10254,7 +10055,8 @@ begin
              (aiguillage[index2].position=const_droit) )  then
         begin
           // d'où vient ton sur la tjs
-          if BtypePrec=Aig then
+          // si on vient d'un aiguillage pas en pointe
+          if (BtypePrec=Aig) and (aiguillage[index].AdroitB<>'P') then
           begin
              if ( ((aiguillage[index].AdroitB)='S') and (aiguillage[index_aig(prec)].position=const_devie) ) or
                 ( ((aiguillage[index].AdroitB)='D') and (aiguillage[index_aig(prec)].position=const_droit) )
@@ -10323,7 +10125,8 @@ begin
           end;
 
           // d'où vient ton sur la tjd
-          if BtypePrec=Aig then
+          // si on vient d'un aiguillage pas en pointe
+          if (BtypePrec=Aig) and (aiguillage[index].AdroitB<>'P') then
           begin
             if ( ((aiguillage[index].AdroitB)='S') and (aiguillage[index_aig(prec)].position=const_devie) ) or
                ( ((aiguillage[index].AdroitB)='D') and (aiguillage[index_aig(prec)].position=const_droit) )
@@ -10403,7 +10206,8 @@ begin
             exit;
           end;
           // d'où vient t-on sur la tjd
-          if BtypePrec=Aig then
+          // si on vient d'un aiguillage pas en pointe
+          if (BtypePrec=Aig) and (aiguillage[index].AdevieB<>'P') then
           begin
             if ( ((aiguillage[index].AdevieB)='S') and (aiguillage[index_aig(prec)].position=const_devie) ) or
                ( ((aiguillage[index].AdevieB)='D') and (aiguillage[index_aig(prec)].position=const_droit) )
@@ -10478,7 +10282,7 @@ begin
            and (aiguillage[index2].position=const_devie)  then
         begin
           // d'où vient ton sur la tjd
-          if BtypePrec=Aig then
+          if (BtypePrec=Aig) and (aiguillage[index].AdevieB<>'P') then
           begin
             if ( ((aiguillage[index].AdevieB)='S') and (aiguillage[index_aig(prec)].position=const_devie) ) or
                ( ((aiguillage[index].AdevieB)='D') and (aiguillage[index_aig(prec)].position=const_droit) )
@@ -11876,6 +11680,7 @@ begin
   // trouver éléments avant le signal
   for i:=1 to MaxParcours do tabloDet[i]:=0;
   i:=index_signal(adresse);
+  if isDirectionnel(i) then exit;
   if i=0 then
   begin
     affiche('Erreur 842 : signal '+intToSTR(adresse)+' inconnu',clred);
@@ -11893,6 +11698,10 @@ begin
           tq2:=det;
           el1:=Signaux[i].Adr_el_suiv1;
           tq1:=Signaux[i].Btype_suiv1;
+          if el1=0 then
+          begin
+            Affiche('Erreur le signal '+intToSTR(adresse)+' ne comporte pas d''élément suivant',clred);
+           end;
         end;
     2 : begin
           el2:=Signaux[i].Adr_det2;
@@ -11913,6 +11722,7 @@ begin
           tq1:=Signaux[i].Btype_suiv4;
         end;
     end;
+
 
     if el2<>0 then
     begin
@@ -12729,7 +12539,7 @@ begin
   sort:=false;
   repeat
     inc(j);
-    AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);  // arret sur aiguille en talon mal positionéne
+    AdrSuiv:=suivant_alg3(prec,typeElPrec,actuel,typeELActuel,2);  // arret sur aiguille en talon mal positionnée
 
     if (AdrSuiv=9999) or (AdrSuiv=9996) or (AdrSuiv=9995) then // élément non trouvé ou position aiguillage inconnu ou buttoir
     begin;
@@ -14020,7 +13830,7 @@ begin
         if AdrSuiv=0 then
         begin
           EtatDet:=Detecteur[actuel].etat and detect;
-          Pres_Train:=Pres_Train or etatDet;
+          Pres_Train:=Pres_Train or etatDet;   // contrôle si détecteur à 1 et si mode détecteur
           if Pres_Train and (adrTr=0) then
           begin
             if roulage then AdrTr:=Detecteur[actuel].AdrTrain;
@@ -18057,7 +17867,14 @@ var s: string;
     faire_event,inv,bjd,rf : boolean;
     prov,index,i,id,etatact,typ,adr : integer;
 begin
-  if AffAigDet then Affiche('Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos),clorange);
+  if AffAigDet then
+  begin
+    s:='Tick='+IntToSTR(tick)+' Event Aig '+intToSTR(adresse)+'='+intToSTR(pos);
+    if pos=const_droit then s:=s+' [droit]';
+    if pos=const_devie then s:=s+' [dévié]';
+
+    Affiche(s,clorange);
+  end;
   index:=index_aig(adresse);
   if index<>0 then
   begin
@@ -18245,7 +18062,7 @@ end;
 
 // pilote accessoire sous condition, version taches par le timer
 function pilote_acc_sc_taches(adresse : integer;octet : byte;Acc : TAccessoire;adrTrain : integer) : boolean;
-var  groupe,temp,indexAig,AdrTrainLoc : integer ;
+var  groupe,temp,index,AdrTrainLoc : integer ;
      fonction,pilotage,pilotageCDM : byte;
      s : string;
 begin
@@ -18256,20 +18073,21 @@ begin
     exit;
   end;
   pilotage:=octet;
-  indexAig:=index_aig(adresse);
+  if Acc=aigP then index:=index_aig(adresse);
+  if acc=Signal then Index:=Index_Signal(adresse);
   // test si pilotage aiguillage inversé
   if (acc=aigP) then
   begin
-    if indexAig<>0 then
+    if index<>0 then
     begin
-      AdrTrainLoc:=aiguillage[indexAig].AdrTrain;
+      AdrTrainLoc:=aiguillage[index].AdrTrain;
       if (AdrTrainLoc<>0) and (AdrTrain<>0) and (AdrTrainLoc<>AdrTrain) then
       begin
         Affiche('Pilotage impossible, l''aiguillage '+intToSTR(adresse)+' est réservé par le train @'+intToSTR(AdrTrainLoc),clred);
         Result:=false;
         exit;
       end;
-      if (aiguillage[indexAig].inversionCDM=1) then
+      if (aiguillage[index].inversionCDM=1) then
       begin
         if octet=1 then pilotage:=2 else pilotage:=1;
       end;
@@ -18287,13 +18105,13 @@ begin
 
     s:=chaine_CDM_Acc(adresse,pilotageCDM);
     // pilotage actif de l'accessoire----------------
-    tache(ttacheAcc,0,ttDestCDM,s);  // TypeTache,tempo,destinataire,chaine
-
+    if acc<>signal then tache(ttacheAcc,0,ttDestCDM,s)  // TypeTache,tempo,destinataire,chaine
+      else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
     // si l'accessoire est un signal et sans raz des signaux, sortir
     if (acc=signal) and not(Raz_Acc_signaux) then exit;
     if Acc=AigP then
     begin
-      temp:=aiguillage[indexAig].temps;if temp=0 then temp:=4; // mini pour pilotage en signaux LEB
+      temp:=aiguillage[index].temps;if temp=0 then temp:=4; // mini pour pilotage en signaux LEB
     end;
 
     // remise à 0 --------------
@@ -18301,7 +18119,7 @@ begin
 
     tache(ttacheAcc,temp,ttDestCDM,s);  // TypeTache,tempo,destinataire,chaine
     // si l'accessoire est un aiguillage, temporiser suivant variable de séquenceent
-    if indexaig<>0 then tache(ttacheTempo,tempo_Aig div 100,0,'');
+    if index<>0 then tache(ttacheTempo,tempo_Aig div 100,0,'');
 
     result:=true;
   end;
@@ -18328,7 +18146,9 @@ begin
       if debug_dec_sig and (acc=signal) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
       //if avecAck then envoi(s) else envoi_ss_ack(s);     // envoi de la trame avec/sans attente Ack
 
-      tache(ttacheAcc,0,ttDestXpressNet,s);  // TypeTache,tempo,destinataire,chaine
+
+      if acc<>signal then tache(ttacheAcc,0,ttDestXpressNet,s)
+         else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
 
       // si l'accessoire est un signal et sans raz des signaux, sortir
       if (acc=signal) and not(Raz_Acc_signaux) then exit;
@@ -18336,7 +18156,7 @@ begin
       // si aiguillage, faire une temporisation
       if Acc=AigP then
       begin
-        temp:=aiguillage[indexAig].temps;if temp=0 then temp:=4;
+        temp:=aiguillage[index].temps;if temp=0 then temp:=4;
       end;
 
       // pilotage à 0 pour éteindre le pilotage de la bobine du relais
@@ -18346,7 +18166,7 @@ begin
       //if avecAck then envoi(s) else envoi_ss_ack(s);     // envoi de la trame avec ou sans Ack
       tache(ttacheAcc,temp,ttDestXpressNet,s);
 
-      if indexAig<>0 then tache(ttacheTempo,tempo_Aig div 100,0,'');
+      if index<>0 then tache(ttacheTempo,tempo_Aig div 100,0,'');
 
       //affiche('5.'+intToSTR(tick),clyellow);
       result:=true;
@@ -18370,7 +18190,7 @@ begin
     end;
   end;
 
-  if indexAig<>0 then event_aig(adresse,octet)
+  if index<>0 then event_aig(adresse,octet)
   else
     // Serveur envoi au clients
     Envoi_serveur('T'+intToSTR(adresse)+','+intToSTR(octet));
@@ -18519,7 +18339,7 @@ end;
 // Résultat true si ok
 function pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire): boolean; overload;
 begin
-  if ModeTache then pilote_acc_sc_taches(adresse,octet,Acc,9999) else
+  if ModeTache then pilote_acc_sc_taches(adresse,octet,Acc,9999) else    
     pilote_acc_sc(adresse,octet,Acc,9999);
 end;
 
@@ -19635,69 +19455,12 @@ begin
   begin
     etat_init_interface:=10;
     Affiche('Demande ouverture interface par Ethernet '+AdresseIP+':'+intToSTR(portinterface),clyellow);
-    {$IFDEF AvecIdTCP}
-    with ClientSocketIdInterface do
-    {$ELSE}
     with ClientSocketInterface do
-    {$ENDIF}
 
     begin
-      {$IFDEF AvecIdTCP}
-      port:=portInterface;            // composant Indy
-      //ClientSocketInterface.
-      host:=AdresseIP;
-      try
-        {$IF CompilerVersion >= 28.0}   // si delphi>=12
-        ConnectTimeOut:=1000;
-        connect;
-        {$ELSE}
-        connect(1000);
-        {$IFEND}
-      except
-        on e : exception do
-        begin
-          Affiche(e.message+' socket interface '+AdresseIP,clred);
-          exit;
-        end;
-      end;
-
-      Affiche('Socket interface connecté ',clYellow);
-      AfficheDebug('Socket interface connecté ',clYellow);
-      with formprinc do
-      begin
-        ButtonEcrCV.Enabled:=true;
-        ButtonLitCV.Enabled:=true;
-        LireunfichierdeCV1.enabled:=true;
-        LabelTitre.caption:=titre+' Interface connectée par Ethernet';
-        Formprinc.StatusBar1.Panels[4].Text:=AdresseIP;
-        etat_init_interface:=11;
-        trouve:=test_protocole; // appelle l'état des détecteurs
-      end;
-      if not trouve then
-      begin
-        Affiche('Socket connecté mais centrale muette',clred);
-        disconnect;
-        etat_init_interface:=0;
-        exit;
-      end;
-      if protocole=1 then
-      begin
-        etat_init_interface:=20;  // interface protocole reconnue
-        parSocketLenz:=true;
-      end;
-      if (protocole=2) then
-      begin
-        init_dccpp;
-        etat_init_interface:=20;
-      end;
-      // interface ethernet connectée, faire les init
-      init_aig_det;
-
-      {$ELSE}
       port:=portInterface;
       Address:=AdresseIP;  // ne pas mettre active et open en même temps, ca génère 2 evt onConnect et initialise les aig 2 fois.
       Open;
-      {$ENDIF}
     end;
     //Application.processMessages;
   end;
@@ -20947,7 +20710,6 @@ begin
   end;
 end;
 
-// Event socket interface par indy
 {$IF CompilerVersion >= 28.0}
 procedure TFormPrinc.DataReceived(const Data: TidBytes);
   var i,l,j,lo : integer;
@@ -21329,25 +21091,12 @@ begin
     end;
     if MsCommCde2<>nil then MSCommCde2.onTriggerAvail:=RecuPeriph2;
 
-    {$IFDEF AvecIdTCP}
-    // composant Indy Interface réseausocket en D12 : ne marche pas bien
-    ClientSocketIdInterface:=TIdTCPClient.Create(self);
-    try
-      ThreadInterface:=TReadingThreadInterface.Create(ClientSocketIdInterface);
-      ThreadInterface.OnData:=DataReceived ;
-      ThreadInterface.Resume;
-    except
-      ClientSocketIdInterface.Disconnect;
-      raise;
-    end;
-    {$ELSE}
     // composant TclientSocket
     ClientSocketInterface:=tClientSocket.Create(nil);
     ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
     ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
     ClientSocketInterface.OnDisconnect:=ClientSocketInterfaceDisconnect;
     ClientSocketInterface.OnError:=ClientSocketInterfaceError;
-    {$ENDIF}
 
   {$ELSE}
     // D7
@@ -21366,26 +21115,12 @@ begin
       Affiche(s,clred);
     end;
 
-    {$IFDEF AvecIdTCP}
-    // D7 composant Indy Interface réseausocket
-    ClientSocketIdInterface:=TIdTCPClient.Create(self);
-    try
-      ThreadInterface:=TReadingThreadInterface.Create(ClientSocketIdInterface);
-      ThreadInterface.OnData:=DataReceived ;
-      ThreadInterface.Resume;
-    except
-      ClientSocketIdInterface.Disconnect;
-     raise;
-    end;
-
-    {$ELSE}
     // composant TclientSocket
     ClientSocketInterface:=tClientSocket.Create(nil);
     ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
     ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
     ClientSocketInterface.OnDisconnect:=ClientSocketInterfaceDisconnect;
     ClientSocketInterface.OnError:=ClientSocketInterfaceError;
-    {$ENDIF}
 
     // interface centrale - provoque l'apparition de la fenêtre "préparation de l'installation"
     try MSCommUSBInterface:=TMSComm.Create(formprinc);
@@ -21930,12 +21665,7 @@ begin
   end;
   ServerSocket.Close;
   ClientSocketCDM.close;
-  {$IFDEF AvecIdTCP}
-  ClientSocketIdInterface.Disconnect;
-  ClientSocketIdInterface.Free;
-  {$ELSE}
   ClientSocketInterface.close;
-  {$ENDIF}
   clientInfo.Close;
 end;
 
@@ -21988,7 +21718,7 @@ begin
           vitesse:=grilleHoraire[i].vitesse;
           if not(grilleHoraire[i].sens) then vitesse:=-vitesse;
           Affiche('Démarrage train '+train+' à l''horaire '+format('%.2dh%.2d',[heure,minute]),clyellow);
-          // &&& voir pour la couleur
+          //  voir pour la couleur
           FormFicheHoraire.StringGridFO.Cells[1,i]:=GrilleHoraire[i].NomTrain;
 
           Demarre_index_train(indextrain);
@@ -22082,7 +21812,7 @@ begin
       // si tempo non nulle de fin d'accessoire
       if (typeTache=ttacheAcc) and (tempo<>0) then
       begin
-        if affe then Affiche('dec tempo ',clLime);
+        if affe then Affiche('dec tempo='+intToSTR(tempo),clLime);
         dec(tempo);
         exit;  // ne rien faire d'autre dans ce tour timer
       end
@@ -22295,17 +22025,7 @@ begin
     if TpsTimeoutSL<=0 then
     begin
       TpsTimeoutSL:=450;  // envoyer caractère toutes les 45 secondes
-      // indy
-      {$IFDEF AvecIdTCP}
-      s:=' ';
-        {$IF CompilerVersion >= 28.0}
-        ClientSocketIdInterface.IoHandler.write(RawToBytes(s,1),1);
-        {$ELSE}
-        ClientSocketIdInterface.Socket.Send(s,1)
-        {$IFEND}
-      {$ELSE}
       ClientSocketInterface.Socket.SendText(' ');
-      {$ENDIF}
     end;
   end;
 
@@ -22945,11 +22665,7 @@ begin
   portCommOuvert:=false;
   with formprinc do
   begin
-    {$IFDEF AvecIdTCP}
-    ClientSocketIdInterface.Disconnect;
-    {$ELSE}
     ClientSocketInterface.close;
-    {$ENDIF}
     MenuConnecterUSB.enabled:=true;
     DeConnecterUSB.enabled:=false;
     ConnecterCDMRail.enabled:=true;
@@ -23008,11 +22724,7 @@ end;
 
 procedure deconnecte_interfaceEth;
 begin
-  {$IFDEF AvecIdTCP}
-  ClientSocketIdInterface.disconnect;
-  {$ELSE}
   ClientSocketInterface.Close;
-  {$ENDIF}
 end;
 
 procedure TFormPrinc.MenuConnecterEthernetClick(Sender: TObject);
@@ -23221,9 +22933,7 @@ begin
     // interface ethernet connectée, faire les init
     init_aig_det;
   end;
-  {$IFNDEF AvecIdTCP}
   if not(trouve) then ClientSocketInterface.Close;
-  {$ENDIF}
 end;
 
 // CDM rail se connecte
@@ -23303,9 +23013,7 @@ begin
       if pos('ACK',trame_cdm)<>0 then Ack_cdm:=true;
       if (pos('DSCTRN-__END',trame_cdm)<>0) and (ntrains_CDM<>0) then
       begin
-        //fin de la description des trains
-        FormPrinc.ComboTrains.Items.Clear;
-
+        // fin de la description des trains
         // on remplace les trains du combo et de la base (non stockée)
         // dans la même adresse que l'existante
         // ne pas écraser j
@@ -23316,7 +23024,7 @@ begin
             trouve:=trains[l].adresse=trains_cdm[i].adresse;
             if trouve then   // si l'adresse du train CDM est déja existante on copie le train CDM dans le train SC
             begin
-              //affiche('train '+intToSTR(trains_cdm[i].adresse)+' trouvé dans l''existant',clLime);
+              //affiche('train '+intToSTR(trains_cdm[i].adresse)+' trouvé dans l''existant index '+intToSTR(i),clLime);
               Formprinc.ComboTrains.Items.Add(trains_cdm[i].nom_train);
               Trains[l].nom_train:=trains_cdm[i].nom_train;
               Trains[l].adresse:=Trains_cdm[i].adresse;
@@ -23325,17 +23033,20 @@ begin
             inc(l);
           until (l>ntrains) or trouve;
 
-          if not(trouve) then // si pas trouvé le train dans SC, on créée le train
+          if not(trouve) then // si pas trouvé l'adresse du train dans SC, on créée le train
           begin
             inc(ntrains);
-            //affiche('train '+intToSTR(trains_cdm[i].adresse)+' créé',clLime);
+            affiche('Train @'+intToSTR(trains_cdm[i].adresse)+' '+trains_cdm[i].nom_train+' importé de CDM à l''index '+intToSTR(nTrains),clLime);
             Trains[ntrains].nom_train:=trains_cdm[i].nom_train;
             Trains[ntrains].adresse:=Trains_cdm[i].adresse;
             Trains[ntrains].vitmax:=Trains_cdm[i].vitmax;
-            FormPrinc.ComboTrains.Items.Add(trains_cdm[i].nom_train);
-            //cree_GB_compteur(ntrains);
+            cree_icone_train(ntrains);                          
+            cree_image_onglet_Train(ntrains);
           end;
         end;
+        // remplir la combobox
+        FormPrinc.ComboTrains.Items.Clear;
+        for i:=1 to ntrains do FormPrinc.ComboTrains.Items.Add(trains[i].nom_train);
 
         // vérifier si pas doublon adresse train
         verif_trains;
@@ -28110,9 +27821,10 @@ end;
 
 procedure TFormPrinc.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var i,d : integer;
 begin
   if (PageControl.ActivePage<>TabSheettrains) or (TempoCombo>0) or (ComboTrains.Focused) or clicComboTrain then exit;
-  //Affiche('FormKeyDown',clyellow);
+  //Affiche('FormKeyDown '+intToSTR(key),clyellow);
   if (key=vk_down) and (IdTrainClic<NTrains) then
   begin
     Maj_icone_train(Image_Train[IdTrainClic],IdTrainClic,clWhite);
@@ -28123,6 +27835,11 @@ begin
     //affiche_train_compteur;
     affiche_train_compteur(1);
     aiguille_compteur(1,idTrainClic,formCompteur[1]);
+
+    i:=scrollBoxTrains.VertScrollBar.Position;
+    d:=(IdTrainClic)*Image_Train[IdTrainClic].height;
+    if d>i+ScrollBoxTrains.Height then scrollBoxTrains.VertScrollBar.Position:=(idTrainClic-(ScrollBoxTrains.Height div Image_Train[IdTrainClic].height))*Image_Train[IdTrainClic].height;
+
     key:=0;
   end;
   if (key=vk_up) and (IdTrainClic>1) then
@@ -28135,6 +27852,11 @@ begin
     //affiche_train_compteur;
     affiche_train_compteur(1);
     aiguille_compteur(1,idTrainClic,formCompteur[1]);
+
+    i:=scrollBoxTrains.VertScrollBar.Position;
+    d:=(IdTrainClic)*Image_Train[IdTrainClic].height;
+    if d<=i then scrollBoxTrains.VertScrollBar.Position:=(idTrainClic-(ScrollBoxTrains.Height div Image_Train[IdTrainClic].height))*Image_Train[IdTrainClic].height;
+
     key:=0;
   end;
 end;

@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '10.73'; // sert à la comparaison de la version publiée
+VersionSC = '10.75'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -82,7 +82,7 @@ var
 begin
   Result:=False;
   t:=0;
-  // l'utilisation de TfileStream.Create inplique que le répertoire de destination soit libre de droits
+  // l'utilisation de TfileStream.Create implique que le répertoire de destination soit libre de droits
   Try Fs:=TFileStream.Create(s,fmCreate);
     //hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
     if DebugVV then Affiche('TFileStream.Create ok',clLime);
@@ -353,7 +353,7 @@ begin
   // URL de l'API github des dernières releases
   Url:='https://api.github.com/repos/f1iwq2/signaux_complexes_gl/releases/latest';
 
-  // l'utilisation de TfileStream.Create inplique que le répertoire de destination soit libre de droits,
+  // l'utilisation de TfileStream.Create implique que le répertoire de destination soit libre de droits,
   // ce qui ne marche pas pour c:\program files (x64)\signaux_complexes.
   // Le fichier page.txt est donc mis dans C:\Users\moi\AppData\Roaming\signaux_complexes qui lui a tous les droits
   // fabrication du nom de fichier destinataire et son chemin

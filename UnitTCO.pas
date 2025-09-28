@@ -833,9 +833,13 @@ begin
   repeat
     eLc1:=canton[i].el1; teLc1:=canton[i].typ1;
     eLc2:=canton[i].el2; teLc2:=canton[i].typ2;
-
-    trouve:=((elc1=el1) and (teLc1=tel1) and (elc2=el2) and (teLc2=tel2)) or
-            ((elc2=el1) and (teLc2=tel1) and (elc1=el2) and (teLc1=tel2)) ;
+    // ******** modif du 20/09/2025
+    // il faut que les deux éléments soient présents
+    {trouve:=((elc1=el1) and (teLc1=tel1) and (elc2=el2) and (teLc2=tel2)) or
+            ((elc2=el1) and (teLc2=tel1) and (elc1=el2) and (teLc1=tel2)) ;   }
+    // il faut l'un des deux éléments présents
+    trouve:=( ((elc1=el1) and (teLc1=tel1)) or ((elc2=el2) and (teLc2=tel2)) ) or
+            ( ((elc2=el1) and (teLc2=tel1)) or ((elc1=el2) and (teLc1=tel2)) ) ;
     inc(i);
   until (trouve) or (i>nCantons);
   if trouve then result:=i-1;
@@ -6261,7 +6265,7 @@ begin
     Pen.Width:=1;
     Brush.Color:=clvoies[indexTCO];
     pen.color:=clvoies[indexTCO];
-
+    
     horizontale;
     diagonale;
 
@@ -6375,8 +6379,13 @@ begin
     position1:=aiguillage[index1].position;
     sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
     sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
-    canvas.pen.color:=clfond[indexTCO];
-    canvas.pen.Width:=epaisseur div 2;
+
+    with canvas do
+    begin                         
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=epaisseur div 2;
+    end;
     if etatTJD=4 then
     begin
       adr2:=aiguillage[index1].DDevie;  // homologue
@@ -6425,7 +6434,7 @@ begin
         end;
       end;
     end;
-   
+
     if etatTJD=2 then
     begin
       if position1=const_droit then
@@ -6481,6 +6490,8 @@ var pont,yp,x1,y1,x2,y2,x3,y3,x4,y4,x0,y0,xc,yc,xf,yf,trajet,ep,position1,positi
     end;
   end;
 
+  // si dessin=1 dessine en épaisseur de voie
+  // si dessin=2 dessine en épaisseur de trajet
   procedure TJDbas(dessin :integer); // morceau courbe bas
   begin
     x1:=x0-LargeurCell[indexTCO]-(LargeurCell[indexTCO] div 3);y1:=yc;
@@ -6547,6 +6558,7 @@ begin
 
     Brush.Color:=clvoies[indexTCO];
     pen.color:=clvoies[indexTCO];
+
     pen.width:=epaisseur;
 
     diagonale;
@@ -6651,14 +6663,19 @@ begin
     position1:=aiguillage[index1].position;
     sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
     sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
-    canvas.pen.color:=clfond[indexTCO];
-    canvas.pen.Width:=epaisseur div 2;
+    //canvas.pen.color:=clfond[indexTCO];
+    with canvas do
+    begin
+      pen.color:=fond;    
+      Brush.Color:=fond;
+      pen.Width:=epaisseur div 2;
+    end;
     if etatTJD=4 then
     begin
       adr2:=aiguillage[index1].DDevie;  // homologue
       Index2:=Index_aig(adr2);
       position2:=aiguillage[index2].position;
-
+         //  canvas.pen.color:=clBlack;
       if (position1=const_devie) and (position2=const_devie) then
       begin
         with canvas do begin
@@ -6939,8 +6956,15 @@ begin
     position1:=aiguillage[index1].position;
     sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
     sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
-    canvas.pen.color:=clfond[indexTCO];;
-    canvas.pen.Width:=epaisseur div 2;
+    //canvas.pen.color:=clfond[indexTCO];;
+    //canvas.
+    with canvas do
+    begin
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=epaisseur div 2;
+    end;
+
     if etatTJD=4 then
     begin
       adr2:=aiguillage[index1].DDevie;  // homologue
@@ -7512,8 +7536,14 @@ begin
     position1:=aiguillage[index1].position;
     sHG:=TCO[indexTCO,x,y].suivHG;tHG:=TCO[indexTCO,x,y].typHG;
     sBD:=TCO[indexTCO,x,y].suivBD;tBD:=TCO[indexTCO,x,y].typBD;
-    canvas.pen.color:=clfond[indexTCO];
-    canvas.pen.Width:=epaisseur div 2;
+    //canvas.pen.color:=clfond[indexTCO];
+    //canvas.pen.Width:=epaisseur div 2;
+    with canvas do
+    begin                         
+      pen.color:=fond;
+      Brush.Color:=fond;
+      pen.Width:=epaisseur div 2;
+    end;
     if etatTJD=4 then
     begin
       adr2:=aiguillage[index1].DDevie;  // homologue
@@ -13814,6 +13844,7 @@ begin
     Direction:=det2;
   end;
 
+  i:=0;   // itérations
   repeat  // boucle de test de direction
     sortir:=false;
     if mode<=10 then
@@ -13844,7 +13875,7 @@ begin
 
     xn:=x;yn:=y;
     ir:=1;    // index de la route du tco
-    i:=0;     // itérations
+
     if debugTCO then afficheDebug('Direction '+intToSTR(direction),clOrange);
 
     // initialiser les points d'où l'on vient
@@ -13956,7 +13987,7 @@ begin
 
     if (i>NbCellulesTCO[indexTCO]) then AfficheDebug('Erreur 1000 TCO'+intToSTR(indexTCO)+' : dépassement d''itérations - Route de '+IntToSTR(det1)+' à '+IntToSTR(det2),clred);
     inc(direction)
-  until ((direction=5) and (mode<=10)) or ((direction=9) and (mode>=11)) or memtrouve  ;
+  until ((direction=5) and (mode<=10)) or ((direction=9) and (mode>=11)) or memtrouve or (i>NbCellulesTCO[indexTCO]) ;
 
   if memTrouve then
   begin

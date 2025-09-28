@@ -1,11 +1,11 @@
 object FormPrinc: TFormPrinc
-  Left = -8
-  Top = -8
+  Left = 330
+  Top = 216
   Anchors = [akLeft, akTop, akRight]
   BorderStyle = bsNone
   Caption = 'Signaux complexes'
-  ClientHeight = 942
-  ClientWidth = 1280
+  ClientHeight = 513
+  ClientWidth = 915
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,8 +23,8 @@ object FormPrinc: TFormPrinc
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   DesignSize = (
-    1280
-    942)
+    915
+    513)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelTitre: TLabel
@@ -1432,7 +1432,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 1188
+    Left = 823
     Top = 0
     Width = 85
     Height = 22
@@ -5443,8 +5443,8 @@ object FormPrinc: TFormPrinc
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 920
-    Width = 1280
+    Top = 491
+    Width = 915
     Height = 22
     Panels = <
       item
@@ -5963,7 +5963,7 @@ object FormPrinc: TFormPrinc
       Top = 200
       Width = 393
       Height = 265
-      ActivePage = TabSheetComp
+      ActivePage = TabSheetSig
       Anchors = []
       TabOrder = 5
       OnChange = PageControlChange

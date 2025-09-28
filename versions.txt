@@ -343,9 +343,14 @@ version 10.7 : Affichage du compteur de train depuis le menu contextuel des cant
                Correction désaffectation trains sur cantons.
 version 10.71 : Ajout dans les variables des fonctions les mémoires de zone.
                 Correction bug activation mémoires de zone dans le menu du TCO.
-		Correction bug affichage des opérations dans les actions.
-version 10.72 : correction bug dans les fonctions.
-version 10.73 : correction bug téléchargement trains depuis CDM.
+				Correction bug affichage des opérations dans les actions.
+version 10.72 : Correction bug dans les fonctions.
+version 10.73 : Correction bug téléchargement trains depuis CDM.
+version 10.74 : Traitement du cas TJD abordée par aiguillage en pointe.
+                Ajout paramètre de temporisation de commande des signaux.
+version 10.75 : Amélioration de l'importation des trains depuis CDM rail.
+                Correction suppression des signaux.
+				
 			
 
 

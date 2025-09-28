@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetActions
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1638,7 +1638,6 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
-          Text = '123'
         end
         object ButtonPFCDM: TButton
           Left = 16
@@ -2098,7 +2097,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2295,10 +2294,10 @@ object FormConfig: TFormConfig
         BevelInner = bvLowered
         BevelKind = bkFlat
         Lines.Strings = (
-          '3. Valeur maximale par tranche de 100 ms qui d'#233'finit le temps '
-          'd'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's '
-          'une trame qui lui est transf'#233'r'#233'e. Cette valeur est '#224' tester en '
-          'fonction de votre interface. '
+          '3. Valeur maximale par tranche de 50 ms qui d'#233'finit le temps '
+          'd'#39'attente de la r'#233'ponse de l'#39'interface apr'#232's une trame qui lui '
+          'est transf'#233'r'#233'e. Cette valeur est '#224' tester en fonction de votre '
+          'interface. '
           'En cas de d'#233'passement de la valeur, un message '#171' pas de '
           'r'#233'ponse de l'#39'interface '#187' sera affich'#233'.')
         ReadOnly = True
@@ -3140,21 +3139,6 @@ object FormConfig: TFormConfig
     object TabSheetSig: TTabSheet
       Caption = 'Signaux'
       ImageIndex = 4
-      object Label15: TLabel
-        Left = 0
-        Top = 8
-        Width = 531
-        Height = 13
-        Caption = 
-          'Liste de mod'#233'lisation des signaux - cliquez sur une ligne pour a' +
-          'fficher la description du signal'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
       object Label35: TLabel
         Left = 72
         Top = 436
@@ -3164,14 +3148,14 @@ object FormConfig: TFormConfig
       end
       object GroupBox12: TGroupBox
         Left = 328
-        Top = 24
+        Top = 8
         Width = 297
-        Height = 449
+        Height = 465
         Caption = 'Description du signal'
         TabOrder = 0
         object ImageSignal: TImage
           Left = 8
-          Top = 48
+          Top = 64
           Width = 81
           Height = 105
         end
@@ -3190,30 +3174,30 @@ object FormConfig: TFormConfig
         end
         object LabelDec: TLabel
           Left = 92
-          Top = 52
+          Top = 76
           Width = 53
           Height = 13
           Caption = 'D'#233'codeur: '
         end
         object LabelDetAss: TLabel
           Left = 96
-          Top = 104
+          Top = 120
           Width = 86
           Height = 13
           Caption = 'D'#233'tecteur associ'#233
         end
         object LabelElSuiv: TLabel
           Left = 192
-          Top = 104
+          Top = 120
           Width = 75
           Height = 13
           Caption = 'Element suivant'
         end
         object Label17: TLabel
           Left = 8
-          Top = 326
-          Width = 115
-          Height = 52
+          Top = 344
+          Width = 128
+          Height = 39
           Hint = 
             'Permet d'#39'afficher un carr'#233' si les aiguillages sont dans les posi' +
             'tions d'#233'crites ci dessous'
@@ -3225,8 +3209,8 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object Label24: TLabel
-          Left = 104
-          Top = 124
+          Left = 120
+          Top = 140
           Width = 8
           Height = 13
           Caption = '1'
@@ -3238,8 +3222,8 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label25: TLabel
-          Left = 104
-          Top = 148
+          Left = 120
+          Top = 164
           Width = 8
           Height = 13
           Caption = '2'
@@ -3251,8 +3235,8 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label26: TLabel
-          Left = 104
-          Top = 172
+          Left = 120
+          Top = 188
           Width = 8
           Height = 13
           Caption = '3'
@@ -3264,8 +3248,8 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label27: TLabel
-          Left = 104
-          Top = 196
+          Left = 120
+          Top = 212
           Width = 8
           Height = 13
           Caption = '4'
@@ -3278,22 +3262,22 @@ object FormConfig: TFormConfig
         end
         object Label33: TLabel
           Left = 104
-          Top = 76
+          Top = 100
           Width = 36
           Height = 13
           Caption = 'Aspect:'
         end
         object LabelUni: TLabel
           Left = 8
-          Top = 176
+          Top = 200
           Width = 72
           Height = 13
           Caption = 'Spec Unisemaf'
           Visible = False
         end
         object Label43: TLabel
-          Left = 48
-          Top = 160
+          Left = 72
+          Top = 176
           Width = 38
           Height = 16
           Caption = 'Voies:'
@@ -3306,8 +3290,8 @@ object FormConfig: TFormConfig
         end
         object Label69: TLabel
           Left = 152
-          Top = 326
-          Width = 107
+          Top = 350
+          Width = 122
           Height = 39
           Hint = 
             'Permet d'#39'afficher un feu blanc si les aiguillages sont dans les ' +
@@ -3318,11 +3302,19 @@ object FormConfig: TFormConfig
           ShowHint = True
           WordWrap = True
         end
+        object Label15: TLabel
+          Left = 56
+          Top = 44
+          Width = 171
+          Height = 13
+          Caption = 'Temporisation commandes (x100mx)'
+          WordWrap = True
+        end
         object MemoCarre: TMemo
           Left = 8
-          Top = 368
+          Top = 392
           Width = 137
-          Height = 73
+          Height = 65
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
@@ -3336,17 +3328,17 @@ object FormConfig: TFormConfig
         end
         object ComboBoxDec: TComboBox
           Left = 144
-          Top = 48
+          Top = 72
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
         object EditDet1: TEdit
           Left = 136
-          Top = 120
+          Top = 136
           Width = 41
           Height = 21
           Hint = 'D'#233'tecteur 1 (obligatoire) associ'#233' au signal'
@@ -3357,7 +3349,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv1: TEdit
           Left = 200
-          Top = 120
+          Top = 136
           Width = 41
           Height = 21
           Hint = 
@@ -3370,7 +3362,7 @@ object FormConfig: TFormConfig
         end
         object EditDet2: TEdit
           Left = 136
-          Top = 144
+          Top = 160
           Width = 41
           Height = 21
           Hint = 'D'#233'tecteur 2 (optionnel) associ'#233' au signal'
@@ -3381,7 +3373,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv2: TEdit
           Left = 200
-          Top = 144
+          Top = 160
           Width = 41
           Height = 21
           Hint = 
@@ -3394,7 +3386,7 @@ object FormConfig: TFormConfig
         end
         object EditDet3: TEdit
           Left = 136
-          Top = 168
+          Top = 184
           Width = 41
           Height = 21
           Hint = 'D'#233'tecteur 3 (optionnel) associ'#233' au signal'
@@ -3405,7 +3397,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv3: TEdit
           Left = 200
-          Top = 168
+          Top = 184
           Width = 41
           Height = 21
           Hint = 
@@ -3418,7 +3410,7 @@ object FormConfig: TFormConfig
         end
         object EditDet4: TEdit
           Left = 136
-          Top = 192
+          Top = 208
           Width = 41
           Height = 21
           Hint = 'D'#233'tecteur 4 (optionnel) associ'#233' au signal'
@@ -3429,7 +3421,7 @@ object FormConfig: TFormConfig
         end
         object EditSuiv4: TEdit
           Left = 200
-          Top = 192
+          Top = 208
           Width = 41
           Height = 21
           Hint = 
@@ -3442,7 +3434,7 @@ object FormConfig: TFormConfig
         end
         object CheckVerrouCarre: TCheckBox
           Left = 136
-          Top = 216
+          Top = 240
           Width = 137
           Height = 17
           Hint = 
@@ -3467,17 +3459,17 @@ object FormConfig: TFormConfig
         end
         object ComboBoxAsp: TComboBox
           Left = 144
-          Top = 72
+          Top = 96
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
         object EditSpecUni: TEdit
           Left = 8
-          Top = 192
+          Top = 216
           Width = 33
           Height = 21
           TabOrder = 14
@@ -3485,8 +3477,8 @@ object FormConfig: TFormConfig
           OnChange = EditSpecUniChange
         end
         object Buttonrestaure: TButton
-          Left = 24
-          Top = 272
+          Left = 32
+          Top = 288
           Width = 75
           Height = 25
           Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
@@ -3498,7 +3490,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxFB: TCheckBox
           Left = 136
-          Top = 264
+          Top = 288
           Width = 153
           Height = 17
           Caption = 'Avec demande feu blanc'
@@ -3506,8 +3498,8 @@ object FormConfig: TFormConfig
           OnClick = CheckBoxFBClick
         end
         object ButtonConfigSR: TButton
-          Left = 24
-          Top = 296
+          Left = 32
+          Top = 312
           Width = 75
           Height = 25
           Caption = 'Configuration'
@@ -3517,7 +3509,7 @@ object FormConfig: TFormConfig
         end
         object CheckFVC: TCheckBox
           Left = 136
-          Top = 232
+          Top = 256
           Width = 121
           Height = 17
           Hint = 'Remplace le feu vert par un feu vert clignotant'
@@ -3529,7 +3521,7 @@ object FormConfig: TFormConfig
         end
         object CheckFRC: TCheckBox
           Left = 136
-          Top = 248
+          Top = 272
           Width = 129
           Height = 17
           Hint = 'Remplace le s'#233'maphore par un feu rouge clignotant'
@@ -3541,7 +3533,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVersContrevoie: TCheckBox
           Left = 136
-          Top = 280
+          Top = 304
           Width = 137
           Height = 17
           Hint = 'Permet d'#39'afficher le chevron si l'#39'aiguillage du signal est devi'#233
@@ -3553,7 +3545,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxContreVoie: TCheckBox
           Left = 136
-          Top = 296
+          Top = 320
           Width = 129
           Height = 17
           Hint = 'Signal clignotant'
@@ -3565,9 +3557,9 @@ object FormConfig: TFormConfig
         end
         object MemoBlanc: TMemo
           Left = 152
-          Top = 368
+          Top = 392
           Width = 129
-          Height = 73
+          Height = 65
           Hint = 
             'Une ligne contient les conditions en ET. Les lignes sont cha'#238'n'#233'e' +
             's en OU'
@@ -3579,8 +3571,8 @@ object FormConfig: TFormConfig
           OnChange = MemoBlancChange
         end
         object RadioGroupLEB: TRadioGroup
-          Left = 8
-          Top = 224
+          Left = 16
+          Top = 248
           Width = 113
           Height = 41
           Caption = 'Pilotage'
@@ -3593,10 +3585,18 @@ object FormConfig: TFormConfig
           Visible = False
           OnClick = RadioGroupLEBClick
         end
+        object EditTempoSig: TEdit
+          Left = 240
+          Top = 40
+          Width = 33
+          Height = 21
+          TabOrder = 23
+          OnChange = EditTempoSigChange
+        end
       end
       object ButtonNouvSig: TButton
         Left = 0
-        Top = 32
+        Top = 16
         Width = 65
         Height = 17
         Caption = 'Nouveau'
@@ -3605,7 +3605,7 @@ object FormConfig: TFormConfig
       end
       object ButtonSupSig: TButton
         Left = 72
-        Top = 32
+        Top = 16
         Width = 65
         Height = 17
         Caption = 'Supprime'
@@ -3614,7 +3614,7 @@ object FormConfig: TFormConfig
       end
       object ButtonInsSig: TButton
         Left = 144
-        Top = 32
+        Top = 16
         Width = 153
         Height = 17
         Caption = 'Ajouter le signal supprim'#233
@@ -3642,7 +3642,7 @@ object FormConfig: TFormConfig
       end
       object ListBoxSig: TListBox
         Left = 0
-        Top = 56
+        Top = 48
         Width = 321
         Height = 337
         Color = clBlack
@@ -3779,7 +3779,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3798,7 +3798,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3844,7 +3844,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -4057,7 +4057,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4077,7 +4077,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4189,7 +4189,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4739,7 +4739,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -5099,7 +5099,7 @@ object FormConfig: TFormConfig
         Top = 16
         Width = 337
         Height = 457
-        ActivePage = TabSheet1
+        ActivePage = TtabSheetEt
         TabOrder = 3
         object TabSheetTrGen: TTabSheet
           Caption = 'G'#233'n'#233'ral'
@@ -6313,7 +6313,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxBR: TGroupBox
           Left = 312
-          Top = 176
+          Top = 120
           Width = 260
           Height = 121
           Caption = 'Bouton rotatif'
@@ -6389,7 +6389,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxBt: TGroupBox
           Left = 312
-          Top = 320
+          Top = 224
           Width = 260
           Height = 121
           Caption = 'Bouton'
@@ -6466,7 +6466,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end
