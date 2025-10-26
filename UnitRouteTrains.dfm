@@ -53,7 +53,7 @@ object FormRouteTrain: TFormRouteTrain
     Top = 8
     Width = 585
     Height = 177
-    ActivePage = TabSheetRA
+    ActivePage = TabSheetRM
     TabOrder = 1
     object TabSheetRA: TTabSheet
       Caption = 'Route affect'#233'e'
@@ -210,6 +210,7 @@ object FormRouteTrain: TFormRouteTrain
         Font.Style = []
         ItemHeight = 13
         ParentFont = False
+        PopupMenu = PopupMenuRoutes
         TabOrder = 1
         OnKeyDown = ListBoxRMKeyDown
         OnMouseDown = ListBoxRMMouseDown
@@ -276,5 +277,18 @@ object FormRouteTrain: TFormRouteTrain
     Caption = 'Quitter'
     TabOrder = 2
     OnClick = ButtonQuitteClick
+  end
+  object PopupMenuRoutes: TPopupMenu
+    OnPopup = PopupMenuRoutesPopup
+    Left = 764
+    Top = 144
+    object Copierroute1: TMenuItem
+      Caption = 'Copier route'
+      OnClick = Copierroute1Click
+    end
+    object Collerroute1: TMenuItem
+      Caption = 'Coller route'
+      OnClick = Collerroute1Click
+    end
   end
 end

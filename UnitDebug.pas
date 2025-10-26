@@ -214,7 +214,7 @@ begin
   visible:=false;
   RichDebug.clear;
   s:=DateToStr(date)+' '+TimeToStr(Time)+' ';
-  // l'ascenseur de la fenetre dans D12 ------------
+  // l'ascenseur de la fenetre dans D13 ------------
   // ne fonctionne que si le style est windows !!! (bug du VCL)
   // obligé d'utiliser une scrollBox
 

@@ -290,7 +290,7 @@ var
   DRect: TRect;
   couleur : tColor;
   Grid: TStringGrid;
-  d12 : boolean;
+  d13 : boolean;
 begin
   Grid:=Sender as TStringGrid;
 
@@ -338,15 +338,15 @@ begin
   end;  }
 
 
-  d12:=false;
+  d13:=false;
   {$IF CompilerVersion >= 28.0}
-    d12:=true;
+  d13:=true;
   {$IFEND}
   //Affiche(intToSTR(arow)+' '+intToSTR(aCol),clYellow);
   // couleur de fond
   if Arow=0 then
   begin
-    if d12 then couleur:=grid.canvas.Pixels[35,6] else couleur:=$E0E0E0;
+    if d13 then couleur:=grid.canvas.Pixels[35,6] else couleur:=$E0E0E0;
     with grid.canvas do
     begin
       Brush.Color := couleur;

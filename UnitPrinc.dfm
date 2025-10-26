@@ -5,7 +5,7 @@ object FormPrinc: TFormPrinc
   BorderStyle = bsNone
   Caption = 'Signaux complexes'
   ClientHeight = 513
-  ClientWidth = 915
+  ClientWidth = 1094
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,7 +23,7 @@ object FormPrinc: TFormPrinc
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   DesignSize = (
-    915
+    1094
     513)
   PixelsPerInch = 96
   TextHeight = 13
@@ -1432,7 +1432,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 823
+    Left = 1002
     Top = 0
     Width = 85
     Height = 22
@@ -5422,17 +5422,19 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Label1: TLabel
-    Left = 856
+    Left = 792
     Top = 4
     Width = 89
     Height = 13
+    Anchors = [akTop, akRight]
     Caption = 'Nombre de trains : '
   end
   object LabelNbTrains: TLabel
-    Left = 960
+    Left = 888
     Top = 2
     Width = 9
     Height = 19
+    Anchors = [akTop, akRight]
     Caption = '0'
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlack
@@ -5444,7 +5446,7 @@ object FormPrinc: TFormPrinc
   object StatusBar1: TStatusBar
     Left = 0
     Top = 491
-    Width = 915
+    Width = 1094
     Height = 22
     Panels = <
       item
@@ -5778,7 +5780,7 @@ object FormPrinc: TFormPrinc
         OnClick = SBMarcheArretLocoClick
       end
       object BoutonRaf: TButton
-        Left = 8
+        Left = 4
         Top = 8
         Width = 89
         Height = 33
@@ -5792,7 +5794,7 @@ object FormPrinc: TFormPrinc
         OnClick = BoutonRafClick
       end
       object ButtonArretSimu: TButton
-        Left = 192
+        Left = 190
         Top = 88
         Width = 89
         Height = 33
@@ -5803,7 +5805,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonArretSimuClick
       end
       object ButtonAffTCO: TButton
-        Left = 104
+        Left = 100
         Top = 48
         Width = 81
         Height = 33
@@ -5812,7 +5814,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonAffTCOClick
       end
       object ButtonLanceCDM: TButton
-        Left = 192
+        Left = 190
         Top = 8
         Width = 89
         Height = 33
@@ -5824,7 +5826,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonLanceCDMClick
       end
       object ButtonLocCV: TButton
-        Left = 104
+        Left = 100
         Top = 88
         Width = 81
         Height = 33
@@ -5836,7 +5838,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonLocCVClick
       end
       object BoutonRazTrains: TButton
-        Left = 192
+        Left = 190
         Top = 48
         Width = 89
         Height = 33
@@ -5851,7 +5853,7 @@ object FormPrinc: TFormPrinc
         OnClick = BoutonRazTrainsClick
       end
       object ButtonAffAnalyseCDM: TButton
-        Left = 8
+        Left = 4
         Top = 48
         Width = 89
         Height = 33
@@ -5864,7 +5866,7 @@ object FormPrinc: TFormPrinc
         OnClick = ButtonAffAnalyseCDMClick
       end
       object ButtonCDM: TButton
-        Left = 104
+        Left = 100
         Top = 8
         Width = 81
         Height = 33
@@ -5883,7 +5885,7 @@ object FormPrinc: TFormPrinc
         Text = '<1>'
       end
       object ButtonEnv: TButton
-        Left = 9
+        Left = 4
         Top = 88
         Width = 88
         Height = 33
@@ -5895,8 +5897,8 @@ object FormPrinc: TFormPrinc
       end
     end
     object GroupBoxCV: TGroupBox
-      Left = 657
-      Top = 72
+      Left = 617
+      Top = 128
       Width = 265
       Height = 81
       Anchors = [akTop, akRight]
@@ -6497,7 +6499,8 @@ object FormPrinc: TFormPrinc
   end
   object PopupMenuSignal: TPopupMenu
     OnPopup = PopupMenuSignalPopup
-    Left = 784
+    Left = 504
+    Top = 32
     object Proprits1: TMenuItem
       Caption = 'Propri'#233't'#233's du signal'
       OnClick = Proprits1Click
@@ -6536,7 +6539,7 @@ object FormPrinc: TFormPrinc
   end
   object PopupMenuTrains: TPopupMenu
     OnPopup = PopupMenuTrainsPopup
-    Left = 816
+    Left = 480
     object Propritsdutrain1: TMenuItem
       Caption = 'Propri'#233't'#233's du train'
       OnClick = Propritsdutrain1Click
@@ -6551,7 +6554,7 @@ object FormPrinc: TFormPrinc
   end
   object PopupMenuCompteurs: TPopupMenu
     OnPopup = PopupMenuCompteursPopup
-    Left = 848
+    Left = 512
     object Propritsdescompteurs1: TMenuItem
       Caption = 'Propri'#233't'#233's des compteurs'
       OnClick = Propritsdescompteurs1Click

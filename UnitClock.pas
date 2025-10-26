@@ -487,7 +487,7 @@ end;
 procedure TFormClock.TjsVerClick(Sender: TObject);
 begin
   SetWindowPos(Handle,HWND_TOPMOST,0,0,0,0,SWP_NoMove or SWP_NoSize);
-  // le checked ne fonctionne pas sous D7, fonctionne sous D12.
+  // le checked ne fonctionne pas sous D7, fonctionne sous D13.
   TjsDev.Checked:=true;
   Dverrouiller1.Checked:=false;
   VerrouilleClock:=true;

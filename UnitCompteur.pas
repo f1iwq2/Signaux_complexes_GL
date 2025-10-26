@@ -694,7 +694,7 @@ begin
     3 : compteurT[i].paramcompt.rav:=round(115*compteurT[i].paramcompt.redx);
     end;
 
-    //ne pas faire compteurT[i].FCBitMap.Free çà fait une exception si il est déja en nil, contrairement à D12.
+    //ne pas faire compteurT[i].FCBitMap.Free çà fait une exception si il est déja en nil, contrairement à D13.
     compteurT[i].fcBitMap:=tbitmap.Create;
     with compteurT[i].FCBitMap do
     begin

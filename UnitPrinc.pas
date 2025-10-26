@@ -9,7 +9,7 @@ unit Unitprinc;
   on utilise activeX Tmscomm pour les liaisons série/USB
 
   --------------------------------------------------------------
-  Delphi 12 :
+  Delphi 13 :
   Dans Outils / Options / Interface utilisateurs / Concerpteur de fiches / Haute résolution
   Sélectionner Automatique (PPI de l'écran) et cocher "taille de la grille..."
 
@@ -37,7 +37,7 @@ unit Unitprinc;
   Dans projet/option/fiches : fiches disponibles : formtco uniquement
   En cas d'erreur interne L1333, supprimer les fichiers DCU du projet ou simplement faire construire
 
-  Pour le mode sombre sous D12, il faut sélectionner:
+  Pour le mode sombre sous D13, il faut sélectionner:
   Projet / Options // Application / manifeste /  fichier manifeste : personnaliser
   à la sauvegarde, ce champ apparaitra sous "générer automatiquement"
   et : décocher "activer les thèmes d'exécution"
@@ -86,7 +86,8 @@ unit Unitprinc;
 // à la centrale par le menu "interface / demander état détecteurs"
 //
 // Si SC envoie une position d'aiguillage à CDM, il ne change pas sa représentation dans CDM.
-
+ //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
+ 
 //{$Q-}  // pas de vérification du débordement des opérations de calcul
 //{$R-}  // pas de vérification des limites d'index du tableau et des variables
 //{$D-}    // pas d'information de debuggage : pas de débug possible
@@ -947,8 +948,12 @@ tTrain =  record
               route :  TuneRoute;               // tableau de la route en cours du train
               NomRoute : array[1..30] of string; // nom de la route sauvegardée
               NomRouteCour : string;            // nom de la route courante
-              routePref : array[0..30] of TUneroute; // tableaux dess route sauvegardées du train. routePref[0,0].adresse est le nombre de routes
-                                                     // routePref[0,0].talon = consigne inverse au train
+              routePref : array[0..30] of TUneroute; // tableaux des route sauvegardées du train.
+                                                     // routePref[0,0].adresse est le nombre de routes
+                                                     // si x>=1:
+                                                     // routePref[x,0].adresse est le nombre d'éléments de la route
+                                                     // routePref[x,0].pos = Id de route
+                                                     // routePref[x,0].talon = consigne inverse au train
               PointRout : integer;
               // cantons (via leurs détecteurs) sur lesquels le train doit d'arrêter
               DetecteurArret : array[1..NbDetArret] of record
@@ -1414,7 +1419,7 @@ begin
 end;
 }
 
-// lire les fichiers styles vsf - Uniquement D12
+// lire les fichiers styles vsf - Uniquement D13
 procedure lire_styles;
 var path,ext : string;
     DirList : TStrings;
@@ -2015,7 +2020,7 @@ begin
 
   s:=DateToStr(date)+' '+TimeToStr(Time)+' V'+versionSC;
   {$IF CompilerVersion >= 28.0}
-  s:=s+' D12';
+  s:=s+' D13';
   {$IFEND}
   {$IFDEF WIN64}       // si compilé en 64 bits
   s:=s+' x64';
@@ -2110,7 +2115,7 @@ begin
   s:='Début du préliminaire';
   procetape(s);
 
-  // en D12, obligé de positionner la fenêtre principale après avoir fixé le style
+  // en D13, obligé de positionner la fenêtre principale après avoir fixé le style
   positionne_principal;
 
   calcul_pos_horloge_compt;
@@ -6752,7 +6757,8 @@ begin
           end;
     end;
     Signaux[i].EtatSignal:=code;
-    Dessine_signal_mx(Signaux[Index_Signal(adr)].Img.Canvas,0,0,1,1,adr,1);
+    //if signaux[i].img<>nil then
+    Dessine_signal_mx(signaux[i].Img.Canvas,0,0,1,1,adr,1);
   end;
 end;
 
@@ -8849,7 +8855,7 @@ begin
     Signaux[i].AncienEtat:=Signaux[i].EtatSignal;
 
     // allume les feux du signal dans la fenêtre de droite
-    Dessine_signal_mx(Signaux[i].Img.Canvas,0,0,1,1,adr,1);
+    if (Signaux[i].Img<>nil) then Dessine_signal_mx(Signaux[i].Img.Canvas,0,0,1,1,adr,1);
 
     // allume les feux du signal dans le TCO
     for indexTCO:=1 to NbreTCO do
@@ -14388,6 +14394,7 @@ end;
 procedure maj_Signal_P(adrSignal : integer;detect : boolean);
 var adrPrec,etat : integer;
 begin
+  //Affiche('Maj_signal_P '+intToSTR(adrSignal),clyellow);
   Maj_signal(Adrsignal,detect);
   // si le signal est rouge ou rappel, mettre à jour son précédent
   etat:=Signaux[index_signal(AdrSignal)].EtatSignal;
@@ -14413,6 +14420,7 @@ begin
     Maj_signaux_cours:=TRUE;
     i:=1;
     repeat
+      //Affiche('Mal '+intToSTR(Signaux[i].Adresse),clred);
       Maj_Signal_P(Signaux[i].Adresse,detect);
       inc(i);
     until (i>NbreSignaux) or Stop_Maj_Sig;
@@ -17859,7 +17867,7 @@ end;
 
 // note: si on pilote un aiguillage par signaux complexes vers CDM et que celui ci est inversé,
 // on recoit un evt de CDM de l'aiguillage dans le mauvais sens.
-// par contre si on pilote cet aiguillage dans CDM, on le recoit dans le bon sens.
+// Attention : si on pilote cet aiguillage dans CDM, on le recoit dans le bon sens.
 // évènement d'aiguillage (accessoire)
 // pos = const_droit=2 ou const_devie=1
 procedure Event_Aig(adresse,pos : integer);
@@ -17889,7 +17897,8 @@ begin
 
     // ne pas faire l'évaluation si l'ancien état de l'aiguillage est indéterminée (9)
     // car le RUN vient de démarrer
-    faire_event:=aiguillage[index].position<>9;
+    //faire_event:=aiguillage[index].position<>9;
+    faire_event:=true;
     aiguillage[index].position:=pos;    // stockage de la nouvelle position de l'aiguillage
 
     // ------------- stockage évènement aiguillage dans tampon event_det_tick -------------------------
@@ -17922,7 +17931,8 @@ begin
     // l'évaluation des routes est à faire selon conditions
     if faire_event and not(confignulle) then
     begin
-      evalue;evalue;evalue;
+      //Affiche('Evalue',clred);
+      evalue;evalue;evalue;   // maj des signaux
     end;
   end
 
@@ -18061,8 +18071,9 @@ end;
 
 
 // pilote accessoire sous condition, version taches par le timer
+// si l'accessoire est un signal, adresse est l'index;
 function pilote_acc_sc_taches(adresse : integer;octet : byte;Acc : TAccessoire;adrTrain : integer) : boolean;
-var  groupe,temp,index,AdrTrainLoc : integer ;
+var  groupe,temp,indexAig,AdrTrainLoc : integer ;
      fonction,pilotage,pilotageCDM : byte;
      s : string;
 begin
@@ -18073,8 +18084,9 @@ begin
     exit;
   end;
   pilotage:=octet;
-  if Acc=aigP then index:=index_aig(adresse);
-  if acc=Signal then Index:=Index_Signal(adresse);
+  //if Acc=aigP then index:=index_aig(adresse);
+  //if acc=Signal then Index:=adresse;
+  indexAig:=index_aig(adresse);
   // test si pilotage aiguillage inversé
   if (acc=aigP) then
   begin
@@ -18105,8 +18117,10 @@ begin
 
     s:=chaine_CDM_Acc(adresse,pilotageCDM);
     // pilotage actif de l'accessoire----------------
-    if acc<>signal then tache(ttacheAcc,0,ttDestCDM,s)  // TypeTache,tempo,destinataire,chaine
-      else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
+    //if acc<>signal then
+    tache(ttacheAcc,0,ttDestCDM,s);
+    // TypeTache,tempo,destinataire,chaine
+    //  else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
     // si l'accessoire est un signal et sans raz des signaux, sortir
     if (acc=signal) and not(Raz_Acc_signaux) then exit;
     if Acc=AigP then
@@ -18147,8 +18161,8 @@ begin
       //if avecAck then envoi(s) else envoi_ss_ack(s);     // envoi de la trame avec/sans attente Ack
 
 
-      if acc<>signal then tache(ttacheAcc,0,ttDestXpressNet,s)
-         else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
+      //if acc<>signal then tache(ttacheAcc,0,ttDestXpressNet,s) else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
+      tache(ttacheAcc,0,ttDestXpressNet,s);
 
       // si l'accessoire est un signal et sans raz des signaux, sortir
       if (acc=signal) and not(Raz_Acc_signaux) then exit;
@@ -20803,7 +20817,7 @@ begin
   af:='Client TCP-IP ou USB CDM Rail - Système XpressNet DCC++ Version '+VersionSC+sousVersion;
   vc:='';
   {$IF CompilerVersion >= 28.0}
-  vc:=' D12';
+  vc:=' D13';
   {$IFEND}
   {$IFDEF WIN64}       // si compilé en 64 bits
   vc:=vc+' x64';
@@ -21070,7 +21084,7 @@ begin
   // création des composants Comm (USB COM) -----------------
 
   {$IF CompilerVersion >= 28.0}
-    // D12 composant AsyncPro
+    // D13 composant AsyncPro
     try MSCommUSBInterface:=tApdComPort.Create(formprinc);
     except
       s:='Erreur 6000 : Composant Interface non créé';
@@ -21290,7 +21304,6 @@ begin
   clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
-  //https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
   change_style;
   {$IFEND}
   init_horloge;
@@ -21329,13 +21342,6 @@ begin
   end;
   if serveur_ouvert then ServerSocket.Active:=true;
 
-  Menu_tco(NbreTCO);
-  procetape('Lecture du TCO');
-  for i:=1 to NbreTCO do
-  begin
-    EcranTCO[i]:=1;
-    lire_fichier_tco(i);
-  end;
 
   verif_coherence;
   procetape('La configuration a été lue');
@@ -21361,6 +21367,15 @@ begin
     if debug=1 then affiche('Création image signal '+intToSTR(i)+' ----------',clLime);
     cree_image_signal(i);  // et initialisation tableaux signaux
   end;
+
+  Menu_tco(NbreTCO);
+  procetape('Lecture du TCO');
+  for i:=1 to NbreTCO do
+  begin
+    EcranTCO[i]:=1;
+    lire_fichier_tco(i);
+  end;
+
 
   Tempo_init:=5;  // démarre les initialisations des signaux et des aiguillages dans 0,5 s
 
@@ -24277,7 +24292,7 @@ begin
   Affiche(' ',clyellow);
   s:='Signaux complexes GL version '+versionSC+sousVersion;
   {$IF CompilerVersion >= 28.0}
-  s:=s+' D12';         // si compilé avec Delphi12
+  s:=s+' D13';         // si compilé avec Delphi12
   {$IFEND}
   {$IFDEF WIN64}       // si compilé en 64 bits
   s:=s+' x64';

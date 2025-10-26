@@ -419,7 +419,7 @@ begin
           coulText:=clOrange;
           StyleText:=1; // gras
           FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(integer(StyleText)));     //
-          //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   //ne pas utiliser à cause des styles D12 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
+          //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   //ne pas utiliser à cause des styles D13 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
         end
       end
       else
@@ -428,7 +428,7 @@ begin
         coulText:=clYellow;
         StyleText:=0; // normal
         FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(integer(StyleText)));
-        //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // ne pas utiliser à cause des styles D12 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
+        //FormRoute.ListBoxRoutes.Items.AddObject(s,pointer(CoulText));   // ne pas utiliser à cause des styles D13 - permet d'afficher un texte en couleurs avec l'evt onDrawItem
       end;
     end;
   end;

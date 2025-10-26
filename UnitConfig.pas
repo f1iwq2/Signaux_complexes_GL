@@ -290,7 +290,7 @@ type
     CheckBoxSombre: TCheckBox;
     ButtonCouleur: TButton;
     ColorDialogFond: TColorDialog;
-    LabelD12: TLabel;
+    LabelD13: TLabel;
     ButtonPropage: TButton;
     ButtonPFCDM: TButton;
     TabAvance: TTabSheet;
@@ -1679,13 +1679,14 @@ begin
             until s[1]=')';
             delete(s,1,1);
             inc(k);
-          until length(s)<1;
+          until k>l+1;  //(length(s)<1) or ;
           dec(k);
           if k<>l+1 then
           begin
             Affiche('Erreur 675 ligne '+chaine_signal,clred);
             Affiche('Nombre incorrect de description des aiguillages: '+intToSTR(k)+' pour '+intToSTR(l)+' feux directionnels',clred);
           end;
+          if length(s)>0 then delete(s,1,1);
         end
         else
         // feu de signalisation---------------------------------
@@ -7827,7 +7828,7 @@ begin
     cree_image_onglet_train(i);
   end;
 
-  affecte_trains_config;  // affecte les trains aux cantons
+  //affecte_trains_config;  // affecte les trains aux cantons
 
   labeledEditVit1.Hint:='Vitesse en crans du coefficient V1'+#13+'(vitesse lente)';
   labeledEditVit2.Hint:='Vitesse en crans du coefficient V2'+#13+'(vitesse moyenne)';
@@ -7853,12 +7854,12 @@ begin
     end;
 
   {$IF CompilerVersion >= 28.0}
-  labelD12.Visible:=true;
+  labelD13.Visible:=true;
   GroupBoxStyles.Visible:=true;
   {$IFEND}
   {$IFDEF WIN64}       // si compilé en 64 bits
-  labelD12.Caption:='D12 x64';
-  LabelD12.Left:=LabelD12.Left-30;
+  labelD13.Caption:='D13 x64';
+  LabelD13.Left:=LabelD13.Left-30;
   {$ENDIF}
 
   // création des champs dynamiques de l'onglet décodeurs personnalisés
@@ -8727,9 +8728,9 @@ begin
     ShowHint:=true;
   end;
 
-  // compilation avec D12----------------------------------------
+  // compilation avec D13----------------------------------------
   {$IF CompilerVersion >= 28.0}
-  labelD12.Visible:=true;
+  labelD13.Visible:=true;
   //  Styles (Embarcadero Dephi11)
 
   // remplir la combobox avec les styles disponibles

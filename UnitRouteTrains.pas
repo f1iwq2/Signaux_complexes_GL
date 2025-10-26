@@ -9,7 +9,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls,
 
-  unitprinc,UnitConfig,unitTCO,UnitHorloge,unitFicheHoraire,UnitDebug,UnitRoute,selection_train;
+  unitprinc,UnitConfig,unitTCO,UnitHorloge,unitFicheHoraire,UnitDebug,UnitRoute,selection_train,
+  Menus;
 
 
 type
@@ -39,6 +40,9 @@ type
     CheckBoxSens: TCheckBox;
     CheckBoxSIRA: TCheckBox;
     LabelID: TLabel;
+    PopupMenuRoutes: TPopupMenu;
+    Copierroute1: TMenuItem;
+    Collerroute1: TMenuItem;
     procedure FormActivate(Sender: TObject);
     procedure ButtonQuitteClick(Sender: TObject);
     procedure ComboBoxTrainsChange(Sender: TObject);
@@ -63,6 +67,9 @@ type
       Shift: TShiftState);
     procedure CheckBoxSensClick(Sender: TObject);
     procedure CheckBoxSIRAClick(Sender: TObject);
+    procedure Copierroute1Click(Sender: TObject);
+    procedure Collerroute1Click(Sender: TObject);
+    procedure PopupMenuRoutesPopup(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -73,6 +80,10 @@ type
 var
   FormRouteTrain: TFormRouteTrain;
   IrPref : integer;
+  routeCopie : record
+                 IdTrain : integer;
+                 IdRoute : integer;
+               end;
 
 function aig_canton(idTrain,detect : integer) : integer;
 function demarre_index_train(indexTrain  : integer) : boolean;
@@ -281,6 +292,7 @@ begin
   if idtrain<1 then exit;
   formRouteTrain.comboBoxTrains.Clear;
   formRouteTrain.ListBoxRM.Clear;
+
   for i:=1 to NTrains do
   begin
     s:=trains[i].nom_train;
@@ -298,9 +310,11 @@ begin
   formRouteTrain.comboBoxTrains.ItemIndex:=indexTrainFR-1;
 
   Maj_icone_train(FormRouteTrain.ImageTrainR,idTrain,clWhite);
+
   with formRouteTrain do
   begin
-    TabSheetRM.Enabled:=false;
+    // ahhhh  TabSheetRM.Enabled:=false;
+    EditNomRoute.Text:='';
     ListBoxRA.Clear;
 
     if trains[idtrain].route[0].adresse<>0 then  // route affectée au train
@@ -341,10 +355,13 @@ begin
         if Canvas.TextWidth(s)+30>PixelLength then PixelLength:=Canvas.TextWidth(s)+30;
         ListBoxRM.Items.Add(s);
       end;
-      EditNomRoute.Text:=trains[idTrain].NomRouteCour;
+      EditNomRoute.Text:=trains[idTrain].NomRoute[j];
       SendMessage(ListBoxRM.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);      // crée la HorzScroll baz
     end
-    else LabelRM.Caption:='Pas de route mémorisée au train '+trains[idtrain].nom_train;
+    else
+    begin
+      LabelRM.Caption:='Pas de route mémorisée au train '+trains[idtrain].nom_train;
+    end;
 
     if (trains[idTrain].route[0].adresse=0) and (trains[idTrain].routePref[1][0].adresse=0) then
     begin
@@ -785,6 +802,8 @@ begin
   ComboBoxTrains.ItemIndex:=0;
   IndexTrainFR:=1;
   maj_infos(indexTrainFR);
+  routecopie.IdTrain:=0;
+  routecopie.IdRoute:=0;
 end;
 
 // choisir cette route mémorisée
@@ -931,6 +950,7 @@ end;
 procedure TFormRouteTrain.ListBoxRMMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  //Affiche('ListBoxRMMouseDown',clred);
   NumRoute:=1;
   IrPref:=ListBoxRM.ItemIndex+1;
   if irPref<1 then exit;
@@ -949,6 +969,7 @@ end;
 procedure TFormRouteTrain.ListBoxRAMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  //Affiche('ListBoxRAMouseDown',clred);
   // si le train de la route est en roulage, ne pas afficher la route car
   // sinon les index des trains passent à 0 dans les cantons par la fonction zone_tco
   if trains[indexTrainFR].roulage=0 then affiche_route_tco;
@@ -994,7 +1015,7 @@ begin
   begin
     dec(IrPref);
   end
-  else 
+  else
   if (ord(Key)=VK_DOWN) and (IrPref<ListBoxRM.Count) then
   begin
     inc(IrPref);
@@ -1027,6 +1048,79 @@ begin
     exit;
   end;
   trains[indexTrainFR].route[0].talon:=checkBoxSens.checked;
+end;
+
+procedure TFormRouteTrain.Copierroute1Click(Sender: TObject);
+var i : integer;
+begin
+  i:=ListBoxRM.ItemIndex;
+  if i<0 then exit;
+  RouteCopie.IdTrain:=ComboBoxTrains.ItemIndex+1;
+  RouteCopie.IdRoute:=i+1;
+  //Affiche('IdTrain='+intToSTR(ROuteCopie.IdTrain)+' IdRoute='+intToSTR(ROuteCopie.IdROute),clYellow);
+end;
+
+procedure TFormRouteTrain.Collerroute1Click(Sender: TObject);
+var i,n,id,IdTrainDest,nDest : integer;
+    ok : boolean;
+    s : string;
+begin
+  IdTrainDest:=ComboBoxTrains.ItemIndex+1;
+  nDest:=Trains[IdTrainDest].routePref[0,0].adresse;
+  if nDest>30 then exit;
+
+  // vérifier si une des routes du train de destination a la même id que la route qu'on veut coller
+  ok:=true;
+  n:=Trains[RouteCopie.IdTrain].routePref[0,0].adresse;  // nombre de routes du train copié (route source)
+  id:=Trains[RouteCopie.IdTrain].routePref[RouteCopie.IdRoute,0].pos;  // ID de la route du train copié
+  IdTrainDest:=ComboBoxTrains.ItemIndex+1;
+  i:=1;
+  while (i<=n) and ok do
+  begin
+    ok:=Trains[IdTrainDest].routePref[i,0].pos<>Id;  // Id de la route i du train de destination
+    inc(i);
+  end;
+  if ok then CollerRoute1.Enabled:=true
+    else
+    begin
+      LabelRoute.caption:='La route '+intToSTR(i-1)+' est identique à la route copiée';
+      exit;
+    end;
+
+  inc(nDest);
+  // copier la route
+  Trains[IdTrainDest].routePref[0,0].adresse:=ndest;
+  Trains[IdTrainDest].routePref[nDest]:=Trains[RouteCopie.IdTrain].RoutePref[RouteCopie.IdRoute];
+  // et le nom de la route
+  s:=Trains[RouteCopie.IdTrain].NomRoute[RouteCopie.IdRoute];
+  Trains[IdTrainDest].NomRoute[nDest]:=s;
+  EditNomRoute.Text:=s;
+  maj_infos(IdTrainDest);
+end;
+
+procedure TFormRouteTrain.PopupMenuRoutesPopup(Sender: TObject);
+begin
+
+  if RouteCopie.IdTrain=0 then
+  begin
+    CopierRoute1.Enabled:=false;
+    CollerRoute1.Enabled:=false;
+  end;
+
+  // valider menu copier
+  if (ListBoxRM.ItemIndex>=0) then
+  begin
+
+    CopierRoute1.Enabled:=true;
+  end;
+
+  // valider menu coller
+  if (RouteCopie.IdTrain<>0) then
+  begin
+    CollerRoute1.Enabled:=true;
+  end;
+
+
 end;
 
 end.

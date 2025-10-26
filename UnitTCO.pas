@@ -2488,7 +2488,7 @@ begin
   closefile(fichier);
   renseigne_tous_cantons;
   trier_cantons;
-       
+  affecte_trains_config;
 
   sauve_styles_tco(indexTCO); // sauver le jeu sombre
   if jeucouleurs=2 then jeu_clair(indexTCO);
