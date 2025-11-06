@@ -1,6 +1,6 @@
 object FormPrinc: TFormPrinc
-  Left = 330
-  Top = 216
+  Left = 272
+  Top = 402
   Anchors = [akLeft, akTop, akRight]
   BorderStyle = bsNone
   Caption = 'Signaux complexes'
@@ -5965,7 +5965,7 @@ object FormPrinc: TFormPrinc
       Top = 200
       Width = 393
       Height = 265
-      ActivePage = TabSheetSig
+      ActivePage = TabSheetComp
       Anchors = []
       TabOrder = 5
       OnChange = PageControlChange

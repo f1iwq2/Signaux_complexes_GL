@@ -810,6 +810,7 @@ begin
       EditTrainDecl.Hint:='Chaîne ASCII';
 
       LabelTrain.visible:=true;
+      labelTrain.Width:=105;
       LabelTrain.Caption:='Commande du périphérique';
       RichEditInf.Lines.Add('Déclenchement par chaîne ASCII depuis un périphérique COM/USB - Socket');
 
@@ -922,6 +923,8 @@ begin
      EditTrainDecl.Visible:=true;
      EdittrainDecl.Hint:='Train déclencheur unique';
      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
+     labelTrain.Width:=105;
+     labelTrain.caption:='Train déclencheur';
      EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
      RichEditInf.Lines.Add('Déclenchement par démarrage d''un train');
      ImageIcone.Picture:=nil;
@@ -933,8 +936,10 @@ begin
    begin
      LabelTrain.visible:=true;
      EditTrainDecl.Visible:=true;
+     labelTrain.caption:='Train déclencheur';
      EdittrainDecl.Hint:='Train déclencheur unique';
      EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
+     labelTrain.Width:=105;
      EditAdr.Text:=IntToSTR(Tablo_Action[index].adresse);
      RichEditInf.Lines.Add('Déclenchement par arrêt d''un train');
      ImageIcone.Picture:=nil;
@@ -978,8 +983,8 @@ begin
    DeclClavier :
    begin
      LabelAdresse.Visible:=true; // numéro de fonction
-     LabelAdresse.caption:='Code de touche';
-     EditAdr.Hint:='Code de touche';
+     LabelAdresse.caption:='Code ASCII de la touche';
+     EditAdr.Hint:='Code ASCII de la touche';
      ButtonFonction.Visible:=false;
      EditAdr.Text:=IntToSTR(tablo_action[index].adresse);
      EditAdr.Visible:=true;

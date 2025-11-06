@@ -66,6 +66,7 @@ var
   Scompteur :  TTCompteur;  //   Scompteur : associé à grande fenetre compteur
   ParamCompteur : array[1..3] of record
     coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
+    increment : integer;  // incrément rapide
   end;
 
   VerrouilleCompteur,affTrainCompteur,VitCrans : boolean;

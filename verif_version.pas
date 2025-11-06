@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '10.76'; // sert à la comparaison de la version publiée
+VersionSC = '10.77'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;

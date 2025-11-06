@@ -103,16 +103,15 @@ uses
 
   , psAPI // GetModuleFileNameEx
 
-  {$IF CompilerVersion >= 28.0}   // si delphi>=12
+  {$IF CompilerVersion >= 28.0}   // si Delphi>=13
     ,Vcl.Themes         // pour les thèmes d'affichage (auric etc)
     ,Vcl.Styles.Ext     // styles étendus
     ,AdPort, OoMisc     // AsyncPro pour COM/USB
     ,idGlobal           // pour utiliser tidBytes
-  {$ELSE}
+  {$ELSE}               // si Delphi 7
     ,MSCommLib_TLB      // TMSComm pour COM/USB
   {$IFEND}
   ;
-
 
 type
   TFormPrinc = class(TForm)
@@ -838,7 +837,7 @@ TparamCompt=record
        Raig,                // rayon aiguille
        Rav,                 // rayon arc vert (consigne vitesse)
        ImgL,ImgH : integer; // larg haut image
-       idTrain :  integer;
+       idTrain :  integer;  // affectation au train
        AngleFin : integer;  // angle maxi du compteur
        redX,redY,ComptA,ComptB : single;
      end;
@@ -997,7 +996,7 @@ var
   SensAig,NbreRoutes,nbreIti,DetAtrouve,DetDepart,iteration,IdActTr,Long_recue,
   prec1,prec2,Eprec,Esuiv,param1,param2,param3,MaxParcours,MaxRoutes,tempoBlocUSB,
   IdTrainClic,TempoCombo,RayonCompteur,XcentreCompteur,YCentreCompteur,AigCX,AigCY,
-  IncrCompteur,tickt2,pointeurTaches,Nbre_Interfaces_CDM : integer;
+  tickt2,pointeurTaches,Nbre_Interfaces_CDM : integer;
 
   ack,portCommOuvert,traceTrames,AffMem,CDM_connecte,dupliqueEvt,affiche_retour_dcc,
   Raz_Acc_signaux,AvecTCO,terminal,Srvc_Aig,Srvc_Det,Srvc_Act,MasqueBandeauTCO,
@@ -2789,7 +2788,8 @@ begin
   val(PortComCde,prot,erreur);
 
   if (_vitesse<>300) and (_vitesse<>1200) and (_vitesse<>2400) and (_vitesse<>4800) and (_vitesse<>9600) and
-     (_vitesse<>19200) and (_vitesse<>38400) and (_vitesse<>57600) and (_vitesse<>115200) and (_vitesse<>128000) and (_vitesse<>256000) then
+     (_vitesse<>19200) and (_vitesse<>38400) and (_vitesse<>57600) and (_vitesse<>115200) and (_vitesse<>128000) and
+     (_vitesse<>230400) and(_vitesse<>256000) then
   begin
     Affiche('Vitesse périphérique COM'+intToSTR(port)+' ('+intToSTR(_vitesse)+') incorrecte',clred);
     tablo_periph[index].PortOuvert:=false;
@@ -2882,9 +2882,12 @@ begin
   sc:=copy(portComCde,i+1,j-i+1);
   val(sc,vitesse,erreur);
   if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
-     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
+     (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and
+     (vitesse<>256000) then
+     // 230400) interdits en MSCOMM
   begin
     Affiche('Vitesse périphérique COM'+intToSTR(port)+' ('+intToSTR(vitesse)+') incorrecte',clred);
+    if (vitesse=230400) then Affiche('La vitesse 230400 est interdite sur cette version',clred);
     tablo_periph[index].PortOuvert:=false;
     result:=false;
     exit;
@@ -5254,6 +5257,8 @@ var i : integer;
 begin
   i:=extract_int((Sender as tbutton).Name);
   vitesse_loco(trains[i].nom_train,i,trains[i].adresse,0,10,0);
+  // mettre la trackbar à 0
+  compteurT[i].tb.Position:=0;
 end;
 
 // changement trackbar compteurs groupBox
@@ -17065,7 +17070,7 @@ begin
     if (op=ActionCdePeriph) then
     begin
       v:=Tablo_Action[i].TabloOp[ida].periph;   // numéro d'accessoire
-      Affiche(st+' Envoi commande',clYellow);
+      Affiche(st+' Envoi commande '+Tablo_Action[i].TabloOp[ida].chaine,clYellow); 
       af:=com_socket(v);
       if af=1 then envoi_periph_usb(i,ida);    // numéro d'actionneur
       if af=2 then envoi_socket_periph_act(i,ida); // numéro d'actionneur
@@ -17939,7 +17944,7 @@ begin
   else
     if AffAigND then affiche('Avertissement 47 : un evt accessoire '+intToSTR(adresse)+' non déclaré a été reçu',clOrange);
 
-  // evt actionneur d'aiguillage
+  // evt actionneur d'aiguillage dans actions
   for i:=1 to maxTablo_act do
   begin
     etatAct:=Tablo_Action[i].etat ;
@@ -18204,7 +18209,7 @@ begin
     end;
   end;
 
-  if index<>0 then event_aig(adresse,octet)
+  if indexAig<>0 then event_aig(adresse,octet)
   else
     // Serveur envoi au clients
     Envoi_serveur('T'+intToSTR(adresse)+','+intToSTR(octet));
@@ -18228,6 +18233,7 @@ begin
   end;
   pilotage:=octet;
   // test si pilotage aiguillage inversé
+  indexAig:=0;
   if (acc=aigP) then
   begin
     indexAig:=index_aig(adresse);
@@ -18353,7 +18359,7 @@ end;
 // Résultat true si ok
 function pilote_acc(adresse : integer;octet : byte;Acc : TAccessoire): boolean; overload;
 begin
-  if ModeTache then pilote_acc_sc_taches(adresse,octet,Acc,9999) else    
+  if ModeTache then pilote_acc_sc_taches(adresse,octet,Acc,9999) else
     pilote_acc_sc(adresse,octet,Acc,9999);
 end;
 
@@ -20921,7 +20927,11 @@ begin
   NbreBlocsUSB:=10;
   tickt2:=0;
   NumBlocUSB:=1;
-  IncrCompteur:=3;
+
+  paramCompteur[1].increment:=3;
+  paramCompteur[2].increment:=3;
+  paramCompteur[3].increment:=3;
+
   NbreFL:=0;
   compteur:=1;
   etape:=1;
@@ -21854,11 +21864,13 @@ begin
         if typetache=ttacheACC then
         begin
           traite:=true;
+          // CDM Rail
           if dest=ttDestCDM then
           begin
             if affe then Affiche(chaine,clyellow);
             envoi_cdm(chaine);    // cdm taches[].chaine
           end;
+          // xpressNet
           if dest=ttDestXpressNet then
           begin
             envoi_ss_ack(chaine); // xpressnet
@@ -21873,6 +21885,7 @@ begin
               Affiche('adr='+intToSTR(adresse)+' Sortie '+intToSTR(sortie)+' état = '+intToSTR(etat),clyellow);
             end;
           end;
+          // Dccpp
           if dest=ttDestDccpp then envoi_ss_ack(chaine);
 
           // lorsque l'action i est traitée, la supprimer, et décaler la liste des taches d'un cran
@@ -21923,7 +21936,7 @@ end;
 // timer à 100 ms
 procedure TFormPrinc.Timer1Timer(Sender: TObject);
 var n,i,j,a,d,longueur,adresseEl,TailleX,TailleY,orientation,indexTCO,x,y,Bimage,aspect,
-   IdDet,longDet,LongLoco,distArret,vitcons,vitesseABS,delta : integer;
+   IdDet,longDet,LongLoco,distArret,vitcons,vitesseABS,delta,IncrCompteur : integer;
    imageSignal : Timage;
    frx,fry : single;
    incrementPas,tempsArret,coeff,vitR : single;
@@ -22206,7 +22219,8 @@ begin
       begin
         //Affiche('Delta '+intToSTR(Delta),clYellow);
         a:=abs(delta);
-        if a>10 then IncrCompteur:=3 else IncrCompteur:=1;
+
+        if a>10 then IncrCompteur:=ParamCompteur[1].increment else IncrCompteur:=1;
         if a<IncrCompteur then vitesseCompteur:=vitesseCons;
         if a>=IncrCompteur then
           if vitesseCompteur<vitesseCons then

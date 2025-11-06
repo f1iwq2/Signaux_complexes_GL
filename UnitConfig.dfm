@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetCompt
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -3332,7 +3332,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3463,7 +3463,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -5692,7 +5692,7 @@ object FormConfig: TFormConfig
         Left = 312
         Top = 72
         Width = 249
-        Height = 265
+        Height = 289
         Caption = 'Param'#232'tres de couleur'
         TabOrder = 0
         object Label76: TLabel
@@ -5805,6 +5805,22 @@ object FormConfig: TFormConfig
           Width = 265
           Height = 265
         end
+      end
+      object LabeledEditCr: TLabeledEdit
+        Left = 152
+        Top = 424
+        Width = 33
+        Height = 21
+        Hint = 'Valeur de l'#39'incr'#233'ment en crans de vitesse (1-6)'
+        EditLabel.Width = 98
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Incr'#233'ment de vitesse'
+        LabelPosition = lpLeft
+        LabelSpacing = 10
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+        OnChange = LabeledEditCrChange
       end
     end
     object TabSheetPeriph: TTabSheet
@@ -6092,7 +6108,7 @@ object FormConfig: TFormConfig
         Top = 328
         Width = 329
         Height = 110
-        Hint = 'R'#233'f'#233'rences crois'#233'es de l'#39#39'utilisation des p'#233'riph'#233'riques'
+        Hint = 'R'#233'f'#233'rences crois'#233'es de l'#39'utilisation des p'#233'riph'#233'riques'
         ParentShowHint = False
         ReadOnly = True
         ShowHint = True

@@ -512,6 +512,7 @@ type
     LabeledEditZone: TLabeledEdit;
     EditTempoSig: TEdit;
     Label15: TLabel;
+    LabeledEditCr: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -812,6 +813,7 @@ type
     procedure LabeledEditVit3Change(Sender: TObject);
     procedure LabeledEditZoneChange(Sender: TObject);
     procedure EditTempoSigChange(Sender: TObject);
+    procedure LabeledEditCrChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1247,7 +1249,8 @@ begin
     delete(s,1,i);
     val(s,vitesse,i);
     if (vitesse<>300) and (vitesse<>1200) and (vitesse<>2400) and (vitesse<>4800) and (vitesse<>9600) and
-       (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and (vitesse<>256000) then
+       (vitesse<>19200) and (vitesse<>38400) and (vitesse<>57600) and (vitesse<>115200) and (vitesse<>128000) and
+       (vitesse<>230400) and (vitesse<>256000) then
     begin
       Affiche('Vitesse COM ('+intToSTR(vitesse)+') incorrecte',clred);
       result:=false;
@@ -1629,6 +1632,8 @@ begin
     begin
       inc(NbreSignaux);
       Signaux[i].adresse:=adresse;
+      Signaux[i].AncienEtat:=$ffff;
+      Signaux[i].AncienAff:=$ffff;
       Signaux[i].Tempo:=0;
       tablo_Index_Signal[adresse]:=i; // stocker l'index provisoire avant tri
       j:=pos(',',s);
@@ -2692,7 +2697,7 @@ begin
     writeln(fichierN,'Numeros='+intToHex(ParamCompteur[i].coulNum,6));
     writeln(fichierN,'Fond='+intToHex(ParamCompteur[i].coulFond,6));
     writeln(fichierN,'Arc='+intToHex(ParamCompteur[i].coulArc,6));
-
+    writeln(fichierN,'Increment='+intToSTR(ParamCompteur[i].increment));
   end;
   writeln(fichierN,'0');
 
@@ -5136,9 +5141,11 @@ const LessThanValue=-1;
       lit_ligne;
       if s<>'0' then
       begin
-        lit_ligne;
+        if pos('=',s)=0 then lit_ligne;
+
         i:=pos('=',s);
         delete(s,1,i);
+
         val('$'+s,j,erreur);
         ParamCompteur[n].coulAig:=j;
 
@@ -5165,6 +5172,17 @@ const LessThanValue=-1;
         delete(s,1,i);
         val('$'+s,j,erreur);
         ParamCompteur[n].coulArc:=j;
+
+        lit_ligne;
+        i:=pos('=',s);
+        if i<>0 then
+        begin
+          delete(s,1,i);
+          val('$'+s,j,erreur);
+          if (j<1) or (j>6) then j:=3;
+          ParamCompteur[n].increment:=j;
+        end;
+
       end;
       inc(n);
     until (sOrigine='0') or (s='') or (n>=10);
@@ -8696,6 +8714,7 @@ begin
 
   // compteurs
   ComboBoxCompt.ItemIndex:=0;
+  LabeledEditCr.Text:=intToSTR(paramCompteur[1].increment);
 
   FbmcompC:=Tbitmap.create;
   init_compteur(1,ImageCtC);
@@ -11032,7 +11051,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer ';
   if n=1 then s:=s+' l''action ' else s:=s+' les actions ';
   s:=s+ss+' ?';
 
@@ -11098,7 +11117,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' le PN ' else s:=s+' les PNs ';
   s:=s+ss+' ?';
 
@@ -11248,6 +11267,7 @@ begin
   Signaux[i].Aspect:=3;
   Signaux[i].decodeur:=0;
   Signaux[i].verrouCarre:=false;
+  Signaux[i].EtatSignal:=$ffff;
   Signaux[i].SR[1].sortie0:=1;
   Signaux[i].SR[1].sortie1:=6;
   Signaux[i].SR[2].sortie0:=2;
@@ -11311,7 +11331,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' le signal ' else s:=s+' les signaux ';
   s:=s+ss+' ?';
 
@@ -12863,7 +12883,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer ';
   if n=1 then s:=s+' l''aiguillage ' else s:=s+' les aiguillages ';
   s:=s+ss+' ?';
 
@@ -14539,7 +14559,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer ';
   if n=1 then s:=s+' le train ' else s:=s+' les trains ';
   s:=s+ss+' ?';
 
@@ -15572,7 +15592,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' le périphérique ' else s:=s+' les périphériques ';
   s:=s+ss+' ?'+#13;
 
@@ -16881,7 +16901,7 @@ begin
 
   if Nactionneurs<>0 then
   begin
-    j:=MessageDlg('Voulez-vous supprimer les actionneurs existants?'
+    j:=MessageDlg('Voulez vous supprimer les actionneurs existants?'
                   ,mtConfirmation,[mbNo,mbYes],0) ;
      if j=mrNo then exit;
   end;
@@ -16937,7 +16957,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer ';
   if n=1 then s:=s+' le détecteur ' else s:=s+' les détecteurs ';
   s:=s+ss+' ?';
 
@@ -16998,7 +17018,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez-vous supprimer ';
+  s:='Voulez vous supprimer ';
   if n=1 then s:=s+' l''actionneur ' else s:=s+' les actionneurs ';
   s:=s+ss+' ?';
 
@@ -19787,6 +19807,28 @@ begin
   ListBoxTrains.selected[ligneclicTrain]:=true;
 
   calcul_equations_coeff(ligneclicTrain+1);
+end;
+
+procedure TFormConfig.LabeledEditCrChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditCr.Text,i,erreur);
+
+  if erreur=0 then
+  begin
+    LabelErreur.caption:='';
+    if (i>0) and (i<7) then
+    begin
+      paramCompteur[1].increment:=i;
+      paramCompteur[2].increment:=i;
+      paramCompteur[3].increment:=i;
+    end
+    else
+    begin
+      LabelErreur.caption:='Hors limites';
+      exit;
+    end;
+  end;
 end;
 
 end.
