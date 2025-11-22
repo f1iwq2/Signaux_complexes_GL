@@ -16,7 +16,6 @@ object FormPrinc: TFormPrinc
   Menu = MainMenu1
   OldCreateOrder = False
   Position = poDefault
-  Scaled = False
   Visible = True
   OnClose = FormClose
   OnCreate = FormCreate

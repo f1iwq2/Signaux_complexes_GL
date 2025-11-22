@@ -513,6 +513,7 @@ type
     EditTempoSig: TEdit;
     Label15: TLabel;
     LabeledEditCr: TLabeledEdit;
+    LabeledEditT: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -814,6 +815,7 @@ type
     procedure LabeledEditZoneChange(Sender: TObject);
     procedure EditTempoSigChange(Sender: TObject);
     procedure LabeledEditCrChange(Sender: TObject);
+    procedure LabeledEditTChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -972,10 +974,12 @@ EtatBoutonTCO=7;
 EtatMemoire=8;
 EtatZone=9;
 NomVAR='Fonction logique';
+// Opérateurs des fonctions
 NomOpET='Opérateur ET';
 NomOpOU='Opérateur OU';
 NomOpNonET='Opérateur Non ET';
 NomOpNonOU='Opérateur Non OU';
+// Variables des fonctions
 NomEtatDCC='Etat DCC';
 NomEtatDet='Etat détect./actionn.';
 NomEtatBoutonTCO='Bouton TCO';
@@ -2673,16 +2677,16 @@ begin
   begin
     s:='B'+intToSTR(j)+','+blocUSB[j].afftrain+',BR'+intToSTR(blocUSB[j].rotatifM)+','+intToSTR(blocUSB[j].rotatifP)+','+intToSTR(blocUSB[j].clic)+
            ','+intToSTR(blocUSB[j].increment)+
-           ',B'+intToSTR(blocUSB[j].Bp1)+','+IntToSTR(blocUSB[j].Fbp1)+','+IntToSTR(blocUSB[j].Fnp1)+
-           ',B'+intToSTR(blocUSB[j].Bp2)+','+IntToSTR(blocUSB[j].Fbp2)+','+IntToSTR(blocUSB[j].Fnp2)+
-           ',B'+intToSTR(blocUSB[j].Bp3)+','+IntToSTR(blocUSB[j].Fbp3)+','+IntToSTR(blocUSB[j].Fnp3)+
-           ',B'+intToSTR(blocUSB[j].Bp4)+','+IntToSTR(blocUSB[j].Fbp4)+','+IntToSTR(blocUSB[j].Fnp4)+
-           ',B'+intToSTR(blocUSB[j].Bp5)+','+IntToSTR(blocUSB[j].Fbp5)+','+IntToSTR(blocUSB[j].Fnp5)+
-           ',B'+intToSTR(blocUSB[j].Bp6)+','+IntToSTR(blocUSB[j].Fbp6)+','+IntToSTR(blocUSB[j].Fnp6)+
-           ',B'+intToSTR(blocUSB[j].Bp7)+','+IntToSTR(blocUSB[j].Fbp7)+','+IntToSTR(blocUSB[j].Fnp7)+
-           ',B'+intToSTR(blocUSB[j].Bp8)+','+IntToSTR(blocUSB[j].Fbp8)+','+IntToSTR(blocUSB[j].Fnp8)+
-           ',B'+intToSTR(blocUSB[j].Bp9)+','+IntToSTR(blocUSB[j].Fbp9)+','+IntToSTR(blocUSB[j].Fnp9)+
-           ',B'+intToSTR(blocUSB[j].Bp10)+','+IntToSTR(blocUSB[j].Fbp10)+','+IntToSTR(blocUSB[j].Fnp10);
+           ',B'+intToSTR(blocUSB[j].Bp1)+','+IntToSTR(blocUSB[j].Fbp1)+','+IntToSTR(blocUSB[j].Fnp1)+','+IntToSTR(blocUSB[j].Tbp1)+
+           ',B'+intToSTR(blocUSB[j].Bp2)+','+IntToSTR(blocUSB[j].Fbp2)+','+IntToSTR(blocUSB[j].Fnp2)+','+IntToSTR(blocUSB[j].Tbp2)+
+           ',B'+intToSTR(blocUSB[j].Bp3)+','+IntToSTR(blocUSB[j].Fbp3)+','+IntToSTR(blocUSB[j].Fnp3)+','+IntToSTR(blocUSB[j].Tbp3)+
+           ',B'+intToSTR(blocUSB[j].Bp4)+','+IntToSTR(blocUSB[j].Fbp4)+','+IntToSTR(blocUSB[j].Fnp4)+','+IntToSTR(blocUSB[j].Tbp4)+
+           ',B'+intToSTR(blocUSB[j].Bp5)+','+IntToSTR(blocUSB[j].Fbp5)+','+IntToSTR(blocUSB[j].Fnp5)+','+IntToSTR(blocUSB[j].Tbp5)+
+           ',B'+intToSTR(blocUSB[j].Bp6)+','+IntToSTR(blocUSB[j].Fbp6)+','+IntToSTR(blocUSB[j].Fnp6)+','+IntToSTR(blocUSB[j].Tbp6)+
+           ',B'+intToSTR(blocUSB[j].Bp7)+','+IntToSTR(blocUSB[j].Fbp7)+','+IntToSTR(blocUSB[j].Fnp7)+','+IntToSTR(blocUSB[j].Tbp7)+
+           ',B'+intToSTR(blocUSB[j].Bp8)+','+IntToSTR(blocUSB[j].Fbp8)+','+IntToSTR(blocUSB[j].Fnp8)+','+IntToSTR(blocUSB[j].Tbp8)+
+           ',B'+intToSTR(blocUSB[j].Bp9)+','+IntToSTR(blocUSB[j].Fbp9)+','+IntToSTR(blocUSB[j].Fnp9)+','+IntToSTR(blocUSB[j].Tbp9)+
+           ',B'+intToSTR(blocUSB[j].Bp10)+','+IntToSTR(blocUSB[j].Fbp10)+','+IntToSTR(blocUSB[j].Fnp10)+','+IntToSTR(blocUSB[j].Tbp10);
     Writeln(fichierN,s);
   end;
   writeln(fichierN,'0');
@@ -3019,7 +3023,7 @@ begin
     end;
     if typ=EtatDet then
     begin
-      s:=s+fonction[fonc,i].train+' '+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat);
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat)+' '+fonction[fonc,i].train;
     end;
     if typ=EtatBoutonTCO then
     begin
@@ -3044,7 +3048,7 @@ begin
     end;
     if typ=EtatZone then
     begin
-      s:=s+fonction[fonc,i].train+' '+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].adresse2)+' '+intToSTR(fonction[fonc,i].etat);
+      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].adresse2)+' '+intToSTR(fonction[fonc,i].etat)+' '+fonction[fonc,i].train;
     end;
   end;
   result:=s;
@@ -5019,7 +5023,7 @@ const LessThanValue=-1;
   end;
 
   procedure compile_blocsUSB;
-  var n,id,i : integer;
+  var n,id,i,nv : integer;
       ss : string;
   begin
     n:=0;
@@ -5028,6 +5032,7 @@ const LessThanValue=-1;
       if s<>'0' then
       begin
         s:=sOrigine;
+        nv:=Nbre_virgules(s);
         delete(s,1,1);
         val(s,i,erreur);  // i=numéro de bloc usb de 1 à 10
         if i>10 then i:=10;
@@ -5050,11 +5055,16 @@ const LessThanValue=-1;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
-        blocUsb[i].Bp1:=j;
+        blocUsb[i].Bp1:=j;                  // Bouton1 pour fonction F
         val(s,j,erreur);delete(s,1,erreur);
-        blocUsb[i].Fbp1:=j;
+        blocUsb[i].Fbp1:=j;                 // Fonction F
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp1:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp1:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5063,6 +5073,12 @@ const LessThanValue=-1;
         blocUsb[i].Fbp2:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp2:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp2:=j;              // valeur de tempo
+        end;
+
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5071,6 +5087,12 @@ const LessThanValue=-1;
         blocUsb[i].Fbp3:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp3:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp3:=j;              // valeur de tempo
+        end;
+
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5079,6 +5101,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp4:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp4:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp4:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5087,6 +5114,12 @@ const LessThanValue=-1;
         blocUsb[i].Fbp5:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp5:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp5:=j;              // valeur de tempo
+        end;
+
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5095,6 +5128,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp6:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp6:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp6:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5103,6 +5141,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp7:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp7:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp7:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5111,6 +5154,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp8:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp8:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp8:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5119,6 +5167,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp9:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp9:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp9:=j;              // valeur de tempo
+        end;
 
         delete(s,1,1); // supprime B
         val(s,j,erreur);delete(s,1,erreur);
@@ -5127,6 +5180,11 @@ const LessThanValue=-1;
         blocUsb[i].Fbp10:=j;
         val(s,j,erreur);delete(s,1,erreur);
         blocUsb[i].Fnp10:=j;
+        if nv>35 then
+        begin
+          val(s,j,erreur);delete(s,1,erreur);
+          blocUsb[i].tbp10:=j;              // valeur de tempo
+        end;
 
         inc(n);
       end;
@@ -7498,12 +7556,25 @@ begin
 
   editAdrIPCDM.Hint:='Adresse IP du PC sur lequel CDM rail s''exécute'+#13+'ou 127.0.0.1 pour indiquer ce pc';
   ValueListEditor.Visible:=true;
+  ImageAffiche.stretch:=true;
+  ImageAffiche.Transparent:=true;
+  ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
+  ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
+  LabeledEditT.Hint:='Temporisation de retomnée de la fonction F'+#13+
+                     'en x100 ms'+#13+
+                     'Si 0 : pas de retombée';
+
+  ButtonAjOpEnfant.Hint:='Ajoute un opérateur'+#13+'-> ET'+#13+
+                                                   '-> OU'+#13+
+                                                   '-> NON_ET'+#13+
+                                                   '-> NON_OU';
+  ButtonAjouteVar.Hint:='Ajoute une variable'+#13+'->'+NomFonc[5]+#13+'->'+NomFonc[6]+#13+'->'+NomFonc[7]+#13+'->'+NomFonc[8]+#13+'->'+NomFonc[9];
+  ButtonAjouteVar.ShowHint:=true;
 
   // liste des paramètres du mode expert de la ValueListEditor
   // syntaxe des masques:
   // 0 : chiffre  9 : chiffre ou espace   # : chiffre ou signe  L : lettre   ? : lettre ou espace
   // A : lettre ou chiffre   a : lettre, chiffre ou espace   & : tout caractère
-
 
   with Liste[1] do
   begin
@@ -8969,9 +9040,7 @@ begin
   croi:=pos('CROI',s)<>0 ;
   with formconfig do
   begin
-    ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
-    ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
-    ImageAffiche.Transparent:=true;
+
     GroupBoxEtatTJD.Visible:=false;
     GroupBox21.Visible:=true;
     GroupBox10.Visible:=true;
@@ -9020,6 +9089,8 @@ begin
       end;
 
       ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
+      ImageAffiche.Picture.BitMap.Canvas.Draw(0,0,ImageTJD.Picture.Bitmap);
+
       labelBG.Caption:='S';
       Edit_HG.Visible:=true;
       EditAigTriple.Visible:=false;
@@ -9121,7 +9192,8 @@ begin
       ComboBoxAig.ItemIndex:=0;
       if not(tri) then
       begin
-        ImageAffiche.Picture.BitMap:=Imageaig.Picture.Bitmap;
+        ImageAffiche.Picture.BitMap:=Imagetjd.Picture.Bitmap;
+        ImageAffiche.Picture.BitMap.Canvas.Draw(0,0,Imageaig.Picture.Bitmap);
         EditDevieS2.Visible:=false;
         EditAigTriple.Visible:=false;
       end;
@@ -9167,7 +9239,10 @@ begin
         LabelTJD2.Visible:=false;
         EditPointe_BG.ReadOnly:=false;
         labelBG.Caption:='P';
+
         ImageAffiche.Picture.BitMap:=ImageTri.Picture.Bitmap;
+        ImageAffiche.Picture.BitMap.Canvas.Draw(0,0,ImageTri.Picture.Bitmap);
+
         EditDevieS2.Visible:=true;
         Label18.Visible:=true;
         adr2:=aiguillage[index].AdrTriple;
@@ -19333,6 +19408,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp1);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp1);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp1);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp1);
 end;
 
 procedure TFormConfig.ShapeB2MouseDown(Sender: TObject;
@@ -19344,6 +19420,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp2);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp2);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp2);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp2);
 end;
 
 procedure TFormConfig.ShapeB3MouseDown(Sender: TObject;
@@ -19355,6 +19432,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp3);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp3);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp3);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp3);
 end;
 
 procedure TFormConfig.ShapeB4MouseDown(Sender: TObject;
@@ -19366,6 +19444,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp4);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp4);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp4);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp4);
 end;
 
 procedure TFormConfig.ShapeB5MousDown(Sender: TObject;
@@ -19377,6 +19456,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp5);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp5);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp5);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp5);
 end;
 
 procedure TFormConfig.ShapeB6MouseDown(Sender: TObject;
@@ -19388,6 +19468,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp6);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp6);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp6);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp6);
 end;
 
 procedure TFormConfig.ShapeB7MouseDown(Sender: TObject;
@@ -19399,6 +19480,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp7);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp7);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp7);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp7);
 end;
 
 procedure TFormConfig.ShapeB8MouseDown(Sender: TObject;
@@ -19410,6 +19492,7 @@ begin
   LabeledEditCT.Text:=intToSTR(blocUSB[NumBlocUSB].Bp8);
   LabeledEditF.Text:=intToSTR(blocUSB[NumBlocUSB].Fbp8);
   LabeledEditFn.Text:=intToSTR(blocUSB[NumBlocUSB].Fnp8);
+  LabeledEditT.Text:=intToSTR(blocUSB[NumBlocUSB].Tbp8);
 end;
 
 procedure TFormConfig.LabeledEditCTChange(Sender: TObject);
@@ -19493,6 +19576,8 @@ begin
   LabeledEditClic.Text:='';
   LabeledEditF.Text:='';
   LabeledEditFn.Text:='';
+  LabeledEditT.Text:='';
+
   ShapeBR.Brush.Color:=clGray;
   shapeB1.Brush.Color:=clGray;
   shapeB2.Brush.Color:=clGray;
@@ -19505,6 +19590,32 @@ begin
   label72.caption:='';
   clic_BRM;
 end;
+
+
+procedure TFormConfig.LabeledEditTChange(Sender: TObject);
+var i,erreur : integer;
+begin
+  val(LabeledEditT.Text,i,erreur);
+  if (erreur<>0) or (i<0) or (i>30) then
+  begin
+    labelInfo.Caption:='Erreur : valeur de 0 à 30';
+    exit;
+  end;
+  labelInfo.Caption:='';
+  case boutonbloc of
+  1 : blocUSB[NumBlocUSB].Tbp1:=i;
+  2 : blocUSB[NumBlocUSB].Tbp2:=i;
+  3 : blocUSB[NumBlocUSB].Tbp3:=i;
+  4 : blocUSB[NumBlocUSB].Tbp4:=i;
+  5 : blocUSB[NumBlocUSB].Tbp5:=i;
+  6 : blocUSB[NumBlocUSB].Tbp6:=i;
+  7 : blocUSB[NumBlocUSB].Tbp7:=i;
+  8 : blocUSB[NumBlocUSB].Tbp8:=i;
+  9 : blocUSB[NumBlocUSB].Tbp9:=i;
+  10 : blocUSB[NumBlocUSB].Tbp10:=i;
+  end;
+end;
+
 
 procedure TFormConfig.LabeledEditFChange(Sender: TObject);
 var i,erreur : integer;
@@ -19830,6 +19941,7 @@ begin
     end;
   end;
 end;
+
 
 end.
 

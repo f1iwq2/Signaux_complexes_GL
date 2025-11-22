@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCompt
+    ActivePage = TabSheetBouton
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2097,7 +2097,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -3303,11 +3303,11 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object Label15: TLabel
-          Left = 56
-          Top = 44
+          Left = 64
+          Top = 46
           Width = 171
           Height = 13
-          Caption = 'Temporisation commandes (x100mx)'
+          Caption = 'Temporisation commandes (x100ms)'
           WordWrap = True
         end
         object MemoCarre: TMemo
@@ -3332,7 +3332,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3463,7 +3463,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -3779,7 +3779,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3798,7 +3798,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3844,7 +3844,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -4057,7 +4057,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4077,7 +4077,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4189,7 +4189,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4739,7 +4739,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -6329,7 +6329,7 @@ object FormConfig: TFormConfig
         end
         object GroupBoxBR: TGroupBox
           Left = 312
-          Top = 120
+          Top = 128
           Width = 260
           Height = 121
           Caption = 'Bouton rotatif'
@@ -6407,11 +6407,11 @@ object FormConfig: TFormConfig
           Left = 312
           Top = 224
           Width = 260
-          Height = 121
+          Height = 145
           Caption = 'Bouton'
           TabOrder = 2
           object LabeledEditF: TLabeledEdit
-            Left = 185
+            Left = 193
             Top = 52
             Width = 40
             Height = 21
@@ -6428,7 +6428,7 @@ object FormConfig: TFormConfig
             OnChange = LabeledEditFChange
           end
           object LabeledEditFn: TLabeledEdit
-            Left = 201
+            Left = 217
             Top = 76
             Width = 16
             Height = 21
@@ -6445,7 +6445,7 @@ object FormConfig: TFormConfig
             OnChange = LabeledEditFnChange
           end
           object LabeledEditCT: TLabeledEdit
-            Left = 185
+            Left = 193
             Top = 20
             Width = 40
             Height = 21
@@ -6460,6 +6460,23 @@ object FormConfig: TFormConfig
             ShowHint = True
             TabOrder = 2
             OnChange = LabeledEditCTChange
+          end
+          object LabeledEditT: TLabeledEdit
+            Left = 193
+            Top = 108
+            Width = 40
+            Height = 21
+            Hint = 'Temporisation de retomb'#233'e de la fonction F.'
+            EditLabel.Width = 173
+            EditLabel.Height = 13
+            EditLabel.Caption = 'Temporisation de retomb'#233'e (x100ms)'
+            EditLabel.Layout = tlBottom
+            LabelPosition = lpLeft
+            LabelSpacing = 10
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            OnChange = LabeledEditTChange
           end
         end
         object GroupBoxBloc: TGroupBox
@@ -6482,7 +6499,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end

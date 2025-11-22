@@ -1,5 +1,5 @@
 unit Unitprinc;
-// 11/06/2025
+// 21/11/2025
 (********************************************
   Programme signaux complexes Graphique Lenz
   Composants ClientSocket et ServeurSocket pour les connexions réseau socket
@@ -1174,6 +1174,8 @@ var
               Bp1,bp2,bp3,bp4,bp5,bp6,bp7,bp8,bp9,bp10 : integer;
               Fbp1,fbp2,fbp3,Fbp4,fbp5,fbp6,Fbp7,fbp8,fbp9,Fbp10 : integer; // fonctions F des BP
               Fnp1,fnp2,fnp3,Fnp4,fnp5,fnp6,Fnp7,fnp8,fnp9,Fnp10 : integer; // état F des BP
+              Tbp1,Tbp2,Tbp3,Tbp4,Tbp5,Tbp6,Tbp7,Tbp8,Tbp9,Tbp10 : integer; // temps de retombée de la fonction F
+              Tcp : array[1..10] of integer; // valeur courante de la tempo de retombée
             end;
            
   Memoire : array[0..MaxMemoires] of integer;
@@ -4995,6 +4997,21 @@ begin
   if Signaux[result].adresse<>adresse then result:=0;
 end;
 
+// trouve l'index du signal de l'adresse d'un signal qui n'est pas sa première adresse
+function index_signal_quelc(adresse : integer) : integer;
+var i,adr : integer;
+    trouve : boolean;
+begin
+  trouve:=false;
+  adr:=signaux[NbreSignaux].adresse;  // adresse du dernier signal
+  i:=index_signal(adr);
+  repeat
+    trouve:=adresse>=signaux[i].Adresse ;
+    dec(i);
+  until trouve or (i>NbreSignaux);
+  if trouve then result:=i+1 else result:=0;
+end;
+
 // renvoie l'index de l'aiguillage dans le tableau aiguillages[] en fonction de son adresse
 // si pas trouvé renvoie 0
 function Index_Aig_V1(adresse : integer) : integer;
@@ -5203,6 +5220,7 @@ begin
     font.Style:=[fsBold];
     Parent:=Formprinc.ScrollBoxSig;
     font.color:=clBlack;
+    font.size:=round(RedFonte*10);
     width:=100;height:=20;
     Top:=HtImg+((HtImg+EspY+20)*((rang-1) div NbreImagePLigne));
     Left:=10+ (LargImg+5)*((rang-1) mod (NbreImagePLigne));
@@ -5793,8 +5811,9 @@ begin
   chaine_CDM_Acc:=so+s;
 end;
 
-// ajoute une tache en tableau taches[] pour le timer
-// ttache=1 : pilote accessoire...
+// ajoute une tache dans le tableau taches[]
+// pour pilotage dans le timer. On pilotera une tache par tick timer (1/10ème de s)
+// ttache=ttacheAcc (pilote acc), ttacheVit (vitesse train) , ttacheFF (fonctionF) , ttacheTempo (temporisation)
 // temporisation pour le timer avant action
 // destinataire (1=CDM  2=XpressNet  3=Dccpp)
 // commande : chaine de pilotage pour le destinataire
@@ -5824,7 +5843,7 @@ end;
 
 // envoie une fonction F à une loco via CDM ou socket ou usb
 // si c'est une fonction F>12 elle peut être envoyée en XpressNet
-procedure envoie_fonction(fonction,etat : integer;train : string);
+procedure envoie_fonction(fonction,etat : integer;train : string); 
 var loco : integer;
     s : string;
 begin
@@ -5943,7 +5962,7 @@ end;
 
 // appellé par le hooker clavier
 function traite_code_blocUSB(code: integer) : integer;
-var vitesse,f,n,i : integer;
+var vitesse,f,n,i,t : integer;
     condValide,EtatValide,BlocSelec : boolean;
     s : string;
 begin
@@ -6060,8 +6079,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp1; // numéro de fonction F
-      n:=blocUSB[1].Fnp1;
+      f:=blocUSB[i].Fbp1; // numéro de fonction F
+      n:=blocUSB[i].Fnp1;
+      blocUSB[i].Tcp[1]:=blocUSB[1].Tbp1;  // affecter la tempo de retombée à la valeur courante
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B1 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6076,8 +6096,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp2; // numéro de fonction F
-      n:=blocUSB[1].Fnp2;
+      f:=blocUSB[i].Fbp2; // numéro de fonction F
+      n:=blocUSB[i].Fnp2;
+      blocUSB[i].Tcp[i]:=blocUSB[1].Tbp2;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B2 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6092,8 +6113,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp3; // numéro de fonction F
-      n:=blocUSB[1].Fnp3;
+      f:=blocUSB[i].Fbp3; // numéro de fonction F
+      n:=blocUSB[i].Fnp3;
+      blocUSB[i].Tcp[3]:=blocUSB[i].Tbp3;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B3 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6108,8 +6130,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp4; // numéro de fonction F
-      n:=blocUSB[1].Fnp4;
+      f:=blocUSB[i].Fbp4; // numéro de fonction F
+      n:=blocUSB[i].Fnp4;
+      blocUSB[i].Tcp[4]:=blocUSB[4].Tbp4;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B4 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6124,8 +6147,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp5; // numéro de fonction F
-      n:=blocUSB[1].Fnp5;
+      f:=blocUSB[i].Fbp5; // numéro de fonction F
+      n:=blocUSB[i].Fnp5;
+      blocUSB[i].Tcp[5]:=blocUSB[i].Tbp5;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B4Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6140,8 +6164,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp6; // numéro de fonction F
-      n:=blocUSB[1].Fnp6;
+      f:=blocUSB[i].Fbp6; // numéro de fonction F
+      n:=blocUSB[i].Fnp6;
+      blocUSB[i].Tcp[6]:=blocUSB[i].Tbp6;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B6 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6156,8 +6181,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp7; // numéro de fonction F
-      n:=blocUSB[1].Fnp7;
+      f:=blocUSB[i].Fbp7; // numéro de fonction F
+      n:=blocUSB[i].Fnp7;
+      blocUSB[i].Tcp[7]:=blocUSB[i].Tbp7;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B7 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -6172,8 +6198,9 @@ begin
         result:=255;
         exit;
       end;
-      f:=blocUSB[1].Fbp8; // numéro de fonction F
-      n:=blocUSB[1].Fnp8;
+      f:=blocUSB[i].Fbp8; // numéro de fonction F
+      n:=blocUSB[i].Fnp8;
+      blocUSB[i].Tcp[8]:=blocUSB[1].Tbp8;
       s:=trains[IdTrainUSB].nom_train;
       Affiche('B8 Fonction F'+intToSTR(f)+' à '+intToSTR(n)+' train '+s,clWhite);
       envoie_fonction(f,n,s);
@@ -7165,8 +7192,8 @@ var index,mode,code,aspect,cible,combine,offset,sortie : integer;
       if (testBit(selection,i)) then begin octet:=1;end
       else begin octet:=2 ;end;
       Pilote_acc(adresse+i,octet,signal);
-      if (Cdm_connecte or portCommOuvert or parSocketLenz) then 
-      begin 
+      if (Cdm_connecte or portCommOuvert or parSocketLenz) then
+      begin
         if not modetache then
         begin
           Sleep(Tempo_Signal);
@@ -17076,16 +17103,17 @@ begin
       if af=2 then envoi_socket_periph_act(i,ida); // numéro d'actionneur
     end;
 
-    // 12 actionneur pour fonction train
+    // 12 action pour fonction train
     if (op=ActionFonctionF) then
     begin
-      trainDest:=Tablo_Action[i].tabloOp[ida].train;
-      // exécution de la fonction F vers CDM
+      trainDest:=Tablo_Action[i].tabloOp[ida].train ;
       etat:=Tablo_Action[i].tabloop[ida].etat;
-
-      tr:=Tablo_Action[i].tabloop[ida].TempoF/10;
+      t:=Tablo_Action[i].tabloop[ida].TempoF;
+      tr:=Tablo_Action[i].tabloop[ida].TempoF;  // pour affichage uniquement
       Affiche(st+' TrainDest='+trainDest+' F'+IntToSTR(Tablo_Action[i].tabloOp[ida].fonctionF)+':'+intToSTR(etat)+' t='+Format('%.1f', [tr])+'s',clyellow);
+
       envoie_fonction(Tablo_Action[i].TabloOp[ida].fonctionF,etat,trainDest);
+      // Tempo de retombée de la fonction F
       Tablo_Action[i].tabloOp[ida].TrainCourant:=trainDest;  // pour mémoriser le train pour la retombée de la fonction
       Tablo_Action[i].TabloOp[ida].TempoCourante:=Tablo_Action[i].tabloop[ida].TempoF;
     end;
@@ -18018,35 +18046,7 @@ begin
   end;
 end;
 
-// pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
-procedure Pilote_acc0_X(adresse : integer;octet : byte);
-var groupe : integer ;
-    fonction : byte;
-    s : string;
-begin
-  if (portCommOuvert or parSocketLenz) then
-  begin
-    if debug_dec_sig then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet)+' à 0',clorange);
-    if protocole=1 then
-    begin
-      groupe:=(adresse-1) div 4;
-      fonction:=((adresse-1) mod 4)*2 + (octet-1);
-      s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
-      s:=checksum(s);
-      if avecAck then envoi(s) else envoi_ss_ack(s);  
-    end;
-    if protocole=2 then
-    begin
-      //la RAZ d'une sortie n'existe pas en DCC+!
-    end;
-  end;
-  if cdm_connecte then
-  begin
-    // remise à 0
-    s:=chaine_CDM_Acc(adresse,0);
-    envoi_CDM(s);
-  end;
-end;
+
 
 // envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
 function envoi_CDM(s : string) : boolean;
@@ -18122,10 +18122,9 @@ begin
 
     s:=chaine_CDM_Acc(adresse,pilotageCDM);
     // pilotage actif de l'accessoire----------------
-    //if acc<>signal then
-    tache(ttacheAcc,0,ttDestCDM,s);
-    // TypeTache,tempo,destinataire,chaine
-    //  else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
+    if acc<>signal then tache(ttacheAcc,0,ttDestCDM,s)  // TypeTache,tempo,destinataire,chaine
+      else tache(ttacheAcc,signaux[index_signal_quelc(adresse)].Tempo,ttDestCDM,s);
+
     // si l'accessoire est un signal et sans raz des signaux, sortir
     if (acc=signal) and not(Raz_Acc_signaux) then exit;
     if Acc=AigP then
@@ -18147,7 +18146,7 @@ begin
 
   // pilotage par USB ou par éthernet de la centrale ------------
   if (portCommOuvert or parSocketLenz) and not CDM_connecte then
-  begin
+  begin                                                
     if hors_tension then
     begin
       Affiche('Voie hors tension, pas de pilotage d''accessoires',clRose);
@@ -18165,9 +18164,9 @@ begin
       if debug_dec_sig and (acc=signal) then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(pilotage),clorange);
       //if avecAck then envoi(s) else envoi_ss_ack(s);     // envoi de la trame avec/sans attente Ack
 
-
-      //if acc<>signal then tache(ttacheAcc,0,ttDestXpressNet,s) else tache(ttacheAcc,signaux[index].Tempo,ttDestCDM,s);
-      tache(ttacheAcc,0,ttDestXpressNet,s);
+      if acc<>signal then tache(ttacheAcc,0,ttDestXpressNet,s)
+        else tache(ttacheAcc,signaux[index_signal_quelc(adresse)].Tempo,ttDestXpressNet,s);
+      //tache(ttacheAcc,0,ttDestXpressNet,s);
 
       // si l'accessoire est un signal et sans raz des signaux, sortir
       if (acc=signal) and not(Raz_Acc_signaux) then exit;
@@ -18216,6 +18215,43 @@ begin
 
   result:=true;
 
+end;
+
+
+// pilote une sortie à 0 à l'interface dont l'adresse est à 1 ou 2 (octet)
+procedure Pilote_acc0_X(adresse : integer;octet : byte);
+var groupe : integer ;
+    fonction : byte;
+    s : string;
+begin
+  if (portCommOuvert or parSocketLenz) then
+  begin
+    if debug_dec_sig then AfficheDebug('Tick='+IntToSTR(Tick)+' signal '+intToSTR(adresse)+' '+intToSTR(octet)+' à 0',clorange);
+    if protocole=1 then
+    begin
+      groupe:=(adresse-1) div 4;
+      fonction:=((adresse-1) mod 4)*2 + (octet-1);
+      s:=#$52+Char(groupe)+char(fonction or $80);  // désactiver la sortie
+      s:=checksum(s);
+
+      if ModeTache then tache(ttacheAcc,0,ttDestXpressNet,s)
+      else
+      begin
+       if avecAck then envoi(s) else envoi_ss_ack(s);
+      end;
+    end;
+    if protocole=2 then
+    begin
+      //la RAZ d'une sortie n'existe pas en DCC+!
+    end;
+  end;
+  if cdm_connecte then
+  begin
+    // remise à 0
+    s:=chaine_CDM_Acc(adresse,0);
+    if ModeTache then tache(ttacheAcc,0,ttDestCDM,s)
+      else envoi_CDM(s);
+  end;
 end;
 
 // pilote aiguillage sous condition (accessoire) avec condition : l'aiguillage doit être réservé par AdrTrain (adrTrain<>0) ou sans condition (adrTrain=0)
@@ -20972,13 +21008,17 @@ begin
 
   {$IF CompilerVersion >= 28.0}
   RedFonte:=Screen.DefaultPixelsPerInch/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
+  FormatSettings:=tFormatSettings.Create;
   {$ELSE}
   RedFonte:=100/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
-  {$IFEND}
-             
-  ButtonEssai.Visible:=not(diffusion);
   GetLocaleFormatSettings(0,FormatSettings);
+  {$IFEND}
+
   FormatSettings.DecimalSeparator:='.';
+
+  ButtonEssai.Visible:=not(diffusion);
+
+
 
   FenRich.MaxLength:=$7FFFFFF0;
   NbDecodeur:=12;
@@ -21539,7 +21579,7 @@ end;
 
 
 {$IF CompilerVersion >= 28.0}
-// évènement réception d'une trame sur le port COM USB centrale Xpressnet
+// évènement réception d'une trame sur le port COM USB centrale Xpressnet avec Asyncpro
 procedure TFormPrinc.RecuInterface(Sender: TObject;Count : word);
 var i,tev,l : integer;
     s : string;
@@ -22171,6 +22211,31 @@ begin
       begin
         // signal belge
         if TestBit(a,clignote) or Signaux[0].contrevoie then dessine_signal_pilote;
+      end;
+    end;
+  end;
+
+  // tempo retombée fonction F bloc USB
+  for i:=1 to 10 do
+  begin
+    for j:=1 to 10 do
+    begin
+      a:=blocUSB[i].tcp[j];  // tempo courante du bouton j du bloc i
+      if a<>0 then
+      begin
+        dec(a);
+        blocUSB[i].tcp[j]:=a;
+        if a=0 then
+        begin
+          s:=lowercase(blocUSB[i].AffTrain);
+          // si bloc usb pas affecté à un train
+          if (s='') or (pos('pas d',s)<>0) then
+          begin
+            s:=trains[idTrainClic].nom_train;    // nom du train cliqué
+          end;
+          envoie_fonction(blocUSB[i].Fbp1,0,s);
+          Affiche('B='+intToSTR(i)+' Fonction F'+inttoSTR(blocUSB[i].Fbp1)+' à 0 Train '+s,clyellow);
+        end;
       end;
     end;
   end;

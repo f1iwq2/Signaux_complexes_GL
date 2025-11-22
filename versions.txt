@@ -354,6 +354,11 @@ version 10.76 : Ajout du copier/coller des routes de trains.
                 Correction du bug de la 10.74 sur le pilotage des signaux.
 version 10.77 : Amélioration diverses.
                 Correction du non affichage de la position des aiguillages dans le TCO.
+version 10.78 : Correction affichage aiguillages dans l'écran de config des versions D13.
+                Correction pilotage des décodeurs LEB en mode binaire.
+		Ajout temps de retombée fonction F trains dans les blocs claviers USB.
+				
+
 				
 
 
