@@ -1146,7 +1146,7 @@ var s : string;
 begin
   result:=false;
   // déconnexion de l'ancienne liaison éventuelle
-  Formprinc.ClientSocketCDM.Close;
+  ClientSocketCDM.Close;
 
   if (AdresseIPCDM<>'0') and IpOk(AdresseIPCDM) then
   begin
@@ -7551,8 +7551,38 @@ var i,j,x,y,l,k,LongestLength,PixelLength : integer;
     trouve : boolean;
     param : TparamCompt;
     p: pointer;
+    comp : tComponent;
+    tlE : tLabeledEdit;
+    re : tEdit;
 begin
   if AffEvt or (debug=1) then Affiche('Création fenêtre config',clLime);
+
+  {$IF CompilerVersion >= 28.0}
+  // composants à repasser en style de base car on change la couleur de fond
+  EditP1.StyleName:='Windows';
+  EditP2.StyleName:='Windows';
+  EditP3.StyleName:='Windows';
+  EditP4.StyleName:='Windows';
+  EditAigTriple.StyleName:='Windows';
+
+  // énumérer tous les composants pour Tedit
+  for i:=0 to Formconfig.ComponentCount-1 do
+  begin
+    comp:=formConfig.Components[i];
+    if comp is tEdit then
+    begin
+      re:=comp as tEdit;
+      if (re.Name<>'EditLAY') and (re.name<>'EditcomUSB') and (re.name<>'EditNomTrain') and
+         (re.Name<>'EditNomPeriph') and (re.name<>'EditPortCde') then
+           re.alignment:=taRightJustify;
+    end;
+    if comp is tLabeledEdit then
+    begin
+      tle:=comp as tLabeledEdit;
+      tle.alignment:=taRightJustify;
+    end;
+  end;
+  {$IFEND}
 
   editAdrIPCDM.Hint:='Adresse IP du PC sur lequel CDM rail s''exécute'+#13+'ou 127.0.0.1 pour indiquer ce pc';
   ValueListEditor.Visible:=true;
@@ -7570,6 +7600,7 @@ begin
                                                    '-> NON_OU';
   ButtonAjouteVar.Hint:='Ajoute une variable'+#13+'->'+NomFonc[5]+#13+'->'+NomFonc[6]+#13+'->'+NomFonc[7]+#13+'->'+NomFonc[8]+#13+'->'+NomFonc[9];
   ButtonAjouteVar.ShowHint:=true;
+  ImageCtc.Stretch:=false;
 
   // liste des paramètres du mode expert de la ValueListEditor
   // syntaxe des masques:
@@ -17155,6 +17186,7 @@ begin
     EditDecal.Text:=IntToSTR(detecteur[adr].distArret);
     RadioButtonArrFin.Checked:=detecteur[adr].ModeArret=1;
     RadioButtonARMil.Checked:=detecteur[adr].ModeArret=2;
+    if detecteur[adr].ModeArret=1 then editDecal.Enabled:=true else editDecal.Enabled:=false;
   end;
 end;
 
@@ -17657,6 +17689,7 @@ begin
     labelInfo.caption:='Erreur : la distance d''arrêt est supérieure à la longueur du détecteur';
   end;
   detecteur[r].ModeArret:=1;
+  editDecal.Enabled:=true;
   ListBoxDet.items[ligneclicDet]:=encode_detecteur(ligneclicDet+1);
   ListBoxDet.selected[ligneclicDet]:=true;
 end;
@@ -17668,6 +17701,7 @@ begin
   r:=adresse_detecteur[ligneclicDet+1];
   detecteur[r].ModeArret:=2;
   LabelInfo.Caption:='';
+  editDecal.Enabled:=false;
   ListBoxDet.items[ligneclicDet]:=encode_detecteur(ligneclicDet+1);
   ListBoxDet.selected[ligneclicDet]:=true;
 end;
@@ -18025,6 +18059,7 @@ procedure supprime_element_fonction(fonc,index : integer);
 var i,n : integer;
 begin
   n:=fonction[fonc,0].adresse;
+  if index=0 then fonction[fonc,0].adresse:=0;  // si on supprime une fonction
   for i:=index to n-1 do
   begin
     fonction[fonc,i]:=fonction[fonc,i+1];
@@ -19736,6 +19771,7 @@ begin
     buttonCoulGrad.enabled:=true;
     buttonCoulFond.enabled:=true;
   end;
+
   init_compteur(1,ImageCtC);
 end;
 

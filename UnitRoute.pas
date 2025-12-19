@@ -85,13 +85,38 @@ uses UnitDebug,unitTCO,UnitConfig, UnitRouteTrains , Selection_Train;
 
 // efface la route parcoursDet[] du TCO indexTCOcourant
 // si affecte_loco=true : affecte la loco rencontrée aux cantons
-procedure efface_route_tco(affecte_loco :boolean);
-var n,det1,nti,x,y,det2,i,indexAig : integer;
+procedure efface_route_tco; //(affecte_loco :boolean);
+var n,det1,nti,x,y,det2,i,indexAig,tcoC : integer;
     t : tequipement;
+    trouve : boolean;
 begin
   if Nbretco<1 then exit;
   n:=parcoursdet[0].adresse;
   det1:=parcoursdet[1].adresse;
+
+  // trouver à quel TCO appartient le det1
+  tcoC:=1;
+  repeat
+    y:=1;
+    repeat
+      x:=1;
+      repeat
+        trouve:=tco[tcoC,x,y].Adresse=det1;
+        inc(x);
+      until (x>NbreCellX[tcoC]) or trouve;
+      inc(y);
+    until (y>NbreCellY[tcoC]) or trouve;
+    inc(tcoC);
+  until (tcoC>NbreTCO) or trouve;
+
+  if trouve then dec(tcoC);
+
+  if trouve=false then
+  begin
+    Affiche('Erreur 57 : détecteur '+intToSTR(det1)+' trouvé dans aucun des TCO',clOrange);
+    exit;
+  end;
+
   for i:=2 to n do
   begin
     det2:=parcoursdet[i].adresse;
@@ -104,7 +129,7 @@ begin
     end;
     if t=det then
     begin
-      zone_tco(indexTCOcourant,det1,det2,1,0,0,true,affecte_loco); // mode "aiguillages mis"
+      zone_tco(TcoC,det1,det2,1,0,0,true); // mode "aiguillages mis"
       det1:=det2;
     end;
   end;
@@ -148,14 +173,38 @@ end;
 
 // Affiche sans effacer l'ancienne, la route du TCO indexTCOcourant du tableau ParcoursDet[]
 function Affiche_route_TCO : boolean ;
-var i,n,det1,det2,indexAig : integer;
+var i,n,det1,det2,indexAig,tcoC,x,y : integer;
     t :tequipement;
-    ok : boolean;
+    ok,trouve : boolean;
 begin
   if Nbretco<1 then begin result:=false;exit;end;
   n:=ParcoursDet[0].adresse;
   ok:=true;
   det1:=parcoursDet[1].adresse;
+
+ // trouver à quel TCO appartient le det1
+  tcoC:=1;
+  repeat
+    y:=1;
+    repeat
+      x:=1;
+      repeat
+        trouve:=tco[tcoC,x,y].Adresse=det1;
+        inc(x);
+      until (x>NbreCellX[TcoC]) or trouve;
+      inc(y);
+    until (y>NbreCellY[TcoC]) or trouve;
+    inc(tcoC);
+  until (tcoC>NbreTCO) or trouve;
+
+  if trouve then dec(tcoC);
+
+  if trouve=false then
+  begin
+    Affiche('Erreur 57 : détecteur '+intToSTR(det1)+' trouvé dans aucun des TCO',clOrange);
+    exit;
+  end;
+
   for i:=2 to n do
   begin
     t:=ParcoursDet[i].typ;
@@ -170,7 +219,7 @@ begin
     begin
       det2:=ParcoursDet[i].adresse;
       //          tco,det1,det2,train,adrTrain,Mode,posAig,affecte_loco
-      ok:=zone_tco(indexTCOcourant,det1,det2,1,0,1,true,false) and ok;     //posAig=true=teste les routes en récursif  affecte_loco=n'affecte pas la loco
+      ok:=zone_tco(tcoC,det1,det2,1,0,1,true) and ok;     //posAig=true=teste les routes en récursif  affecte_loco=n'affecte pas la loco
       det1:=det2;
     end;
   end;
@@ -677,10 +726,10 @@ begin
 
     if typ=det then
     begin                          // attention on ne gère que le TCO1
-      Zone_TCO(indexTCOcourant,det1,det2,1,0,0,true,false);   // faire true et positionner les aiguillages
+      Zone_TCO(indexTCOcourant,det1,det2,1,0,0,true);   // faire true et positionner les aiguillages
       det1:=det2;
       det2:=tabloroute[j,i].adresse;
-      Zone_TCO(indexTCOcourant,det1,det2,1,0,1,false,false);
+      Zone_TCO(indexTCOcourant,det1,det2,1,0,1,false);
       FormTCO[1].Caption:=intToSTR(i)+'/'+intToSTR(n)+' '+intToSTR(det1)+' '+intToSTR(det2)+ '       Arrêt par touche Echap';
       //Affiche(intToSTR(det1)+' '+intToSTR(det2),clyellow);
     end;

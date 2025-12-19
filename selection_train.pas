@@ -173,7 +173,7 @@ function trouve_det_suiv_canton(idcanton,detecteur,sensTCO : integer) : integer;
 var t : integer;
 begin
   t:=canton[idcanton].ntco;
-  zone_tco(t,detecteur,sensTCO,0,0,12,false,false);   // élément contigu à droite (6) du canton , résultat dans xcanton  , teste les 2 pos des aig
+  zone_tco(t,detecteur,sensTCO,0,0,12,false);   // élément contigu à droite (6) du canton , résultat dans xcanton  , teste les 2 pos des aig
   if tel1=Aig then xcanton:=detecteur_suivant(detecteur,det,xcanton,aig,1);
   result:=xcanton;
 end;
@@ -253,7 +253,7 @@ var idTrain,t,el1,el2 : integer;
 begin
   if ProcPrinc then
    AfficheDebug('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clorange);
-  //Affiche('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clyellow);
+//  Affiche('Affecte_train_canton: @='+intToSTR(AdrTrain)+' Idcanton='+intToSTR(idcanton),clyellow);
   if (IdCanton>0) and (idCanton<=nCantons) then
   begin
     idTrain:=0;
@@ -313,6 +313,7 @@ begin
   end;
 
   maj_signaux(false);
+  dessin_canton(idCanton,0);   // redessine le canton
 
   //affiche('Det du canton '+intToSTR(canton[Idcanton].numero)+' det1='+intToSTR(canton[Idcanton].det1)+' det2='+intToSTR(canton[Idcanton].det2),clyellow);
 end;

@@ -172,6 +172,8 @@ type
     N12: TMenuItem;
     LabelPM: TLabel;
     Afficherlecompteurdevitessedutrain1: TMenuItem;
+    MenuSuppTCO: TMenuItem;
+    N14: TMenuItem;
     //TimerTCO: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -421,6 +423,7 @@ type
     procedure Modedplacement1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Afficherlecompteurdevitessedutrain1Click(Sender: TObject);
+    procedure MenuSuppTCOClick(Sender: TObject);
   public
     { Déclarations publiques }
   end;
@@ -666,8 +669,8 @@ var
 procedure calcul_reduction(Var frx,fry : single;DimDestX,DimDestY : integer);
 procedure calcul_cellules(indextco : integer);
 procedure sauve_fichiers_tco;
-function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig,affecte_loco : boolean) : boolean; overload;
-function zone_tco(indexTCO,adr : integer;typEl : tequipement;Sens,mode: integer;posAig,affecte_loco : boolean) : boolean; overload;
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean; overload;
+function zone_tco(indexTCO,adr : integer;typEl : tequipement;Sens,mode: integer;posAig : boolean) : boolean; overload;
 procedure _entoure_cell_clic(indexTCO: integer);
 procedure Affiche_TCO(indexTCO : integer) ;
 procedure affiche_cellule(indexTCO,x,y : integer);
@@ -716,6 +719,9 @@ procedure titre_fenetre(indexTCO : integer);
 function IsVoieDroite(i : integer) : boolean;
 function trouve_canton(el1 : integer;tel1 : tequipement;el2 : integer;tel2 : tequipement) : integer;
 procedure origine_canton(var x,y : integer);
+procedure Supprimer_TCO(TcoS : integer);
+procedure toggle_bandeau(indexTCO : integer);
+function sens_train_canton(AdrTrain,Idcanton : integer) : integer;
 
 implementation
 
@@ -822,7 +828,11 @@ begin
   else result:=0;
 end;
 
+
+
 // renvoie l'index de canton encadré par les 2 éléments el1 et el2
+// il faudrait faire par détecteur.
+// ex (526,det,513,det)= 1
 function trouve_canton(el1 : integer;tel1 : tequipement;el2 : integer;tel2 : tequipement) : integer;
 var i,eLc1,eLc2 : integer;
     teLc1,teLc2 : tequipement;
@@ -833,13 +843,11 @@ begin
   repeat
     eLc1:=canton[i].el1; teLc1:=canton[i].typ1;
     eLc2:=canton[i].el2; teLc2:=canton[i].typ2;
-    // ******** modif du 20/09/2025
+
     // il faut que les deux éléments soient présents
-    {trouve:=((elc1=el1) and (teLc1=tel1) and (elc2=el2) and (teLc2=tel2)) or
-            ((elc2=el1) and (teLc2=tel1) and (elc1=el2) and (teLc1=tel2)) ;   }
-    // il faut l'un des deux éléments présents
-    trouve:=( ((elc1=el1) and (teLc1=tel1)) or ((elc2=el2) and (teLc2=tel2)) ) or
-            ( ((elc2=el1) and (teLc2=tel1)) or ((elc1=el2) and (teLc1=tel2)) ) ;
+    trouve:=((elc1=el1) and (teLc1=tel1) and (elc2=el2) and (teLc2=tel2)) or
+            ((elc2=el1) and (teLc2=tel1) and (elc1=el2) and (teLc1=tel2)) ;
+  
     inc(i);
   until (trouve) or (i>nCantons);
   if trouve then result:=i-1;
@@ -1516,14 +1524,14 @@ begin
 
   if horz then
   begin
-    zone_tco(t,i,SensTCO_O,0,0,11,false,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_O,0,0,11,false); // demande éléments contigus à gauche (5) du canton, résultats dans var globales xCanton et tel1
     if xCanton=0 then tel1:=buttoir;
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensGauche;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,SensTCO_E,0,0,11,false,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_E,0,0,11,false); // demande éléments contigus à droite (6) du canton, résultats dans var globales xCanton et tel1
     if xCanton=0 then tel1:=buttoir;
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
@@ -1533,14 +1541,14 @@ begin
   else
   begin
     // canton vertical
-    zone_tco(t,i,SensTCO_N,0,0,11,false,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_N,0,0,11,false); // demande éléments contigus en haut (7) du canton, résultats dans var globales xCanton et tel1
     if xCanton=0 then tel1:=buttoir;
     canton[i].el1:=xCanton;
     canton[i].typ1:=tel1;
     canton[i].SensEl1:=SensHaut;
     if tel1=det then detecteur[xCanton].canton1:=canton[i].numero;
 
-    zone_tco(t,i,SensTCO_S,0,0,11,false,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
+    zone_tco(t,i,SensTCO_S,0,0,11,false); // demande éléments contigus en bas (8) du canton, résultats dans var globales xCanton et tel1
     if xCanton=0 then tel1:=buttoir;
     canton[i].el2:=xCanton;
     canton[i].typ2:=tel1;
@@ -1645,22 +1653,22 @@ begin
               // croisements ou tjd
               case Bim of
               21 : begin
-                     zone_tco(t,adr1,typEl,SensTCO_E,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_E,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivE:=xCanton;
                      tco[t,x,y].TypeE:=tel1;
                      if deb then Affiche('E='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false,false);  // chercher 1er élément SO
+                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false);  // chercher 1er élément SO
                      tco[t,x,y].SuivSO:=xCanton;
                      tco[t,x,y].TypeSO:=tel1;
                      if deb then Affiche('SO='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_O,13,false,false);  // élément à gauche
+                     zone_tco(t,adr1,typEl,SensTCO_O,13,false);  // élément à gauche
                      tco[t,x,y].SuivO:=xCanton;
                      tco[t,x,y].TypeO:=tel1;
                      if deb then Affiche('O='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false,false);  // chercher 1er élément NE
+                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false);  // chercher 1er élément NE
                      tco[t,x,y].SuivNE:=xCanton;
                      tco[t,x,y].TypeNE:=tel1;
                      if deb then Affiche('NE='+intToSTR(xcanton),clLime);
@@ -1693,22 +1701,22 @@ begin
                    end;
 
               22 : begin
-                     zone_tco(t,adr1,typEl,SensTCO_E,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_E,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivE:=xCanton;
                      tco[t,x,y].TypeE:=tel1;
                      if deb then Affiche('E='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivSE:=xCanton;
                      tco[t,x,y].TypeSE:=tel1;
                      if deb then Affiche('SE='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_O,13,false,false);  // élément à gauche
+                     zone_tco(t,adr1,typEl,SensTCO_O,13,false);  // élément à gauche
                      tco[t,x,y].SuivO:=xCanton;
                      tco[t,x,y].TypeO:=tel1;
                      if deb then Affiche('O='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivNO:=xCanton;
                      tco[t,x,y].TypeNO:=tel1;
                      if deb then Affiche('NO='+intToSTR(xcanton),clLime);
@@ -1739,22 +1747,22 @@ begin
                      end;
                    end;
               23 : begin
-                     zone_tco(t,adr1,typEl,SensTCO_N,13,false,false);  // haut
+                     zone_tco(t,adr1,typEl,SensTCO_N,13,false);  // haut
                      tco[t,x,y].SuivN:=xCanton;
                      tco[t,x,y].TypeN:=tel1;
                      if deb then Affiche('N='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_S,13,false,false);  // élément bas
+                     zone_tco(t,adr1,typEl,SensTCO_S,13,false);  // élément bas
                      tco[t,x,y].SuivS:=xCanton;
                      tco[t,x,y].TypeS:=tel1;
                      if deb then Affiche('S='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false,false);
+                     zone_tco(t,adr1,typEl,SensTCO_NE,13,false);
                      tco[t,x,y].SuivNE:=xCanton;
                      tco[t,x,y].TypeNE:=tel1;
                      if deb then Affiche('NE='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false,false);
+                     zone_tco(t,adr1,typEl,SensTCO_SO,13,false);
                      tco[t,x,y].SuivSO:=xCanton;
                      tco[t,x,y].TypeSO:=tel1;
                      if deb then Affiche('SO='+intToSTR(xcanton),clLime);
@@ -1786,22 +1794,22 @@ begin
                    end;
 
               25 : begin
-                     zone_tco(t,adr1,typEl,SensTCO_N,13,false,false);  // haut
+                     zone_tco(t,adr1,typEl,SensTCO_N,13,false);  // haut
                      tco[t,x,y].SuivN:=xCanton;
                      tco[t,x,y].TypeN:=tel1;
                      if deb then Affiche('N='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_S,13,false,false);  // élément bas
+                     zone_tco(t,adr1,typEl,SensTCO_S,13,false);  // élément bas
                      tco[t,x,y].SuivS:=xCanton;
                      tco[t,x,y].TypeS:=tel1;
                      if deb then Affiche('S='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_NO,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivNO:=xCanton;
                      tco[t,x,y].TypeNO:=tel1;
                      if deb then Affiche('NO='+intToSTR(xcanton),clLime);
 
-                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false,false);  // chercher 1er élément à droite - xcanton Tel1
+                     zone_tco(t,adr1,typEl,SensTCO_SE,13,false);  // chercher 1er élément à droite - xcanton Tel1
                      tco[t,x,y].SuivSE:=xCanton;
                      tco[t,x,y].TypeSE:=tel1;
                      if deb then Affiche('SE='+intToSTR(xcanton),clLime);
@@ -2488,7 +2496,7 @@ begin
   closefile(fichier);
   renseigne_tous_cantons;
   trier_cantons;
-  affecte_trains_config;
+  //affecte_trains_config;
 
   sauve_styles_tco(indexTCO); // sauver le jeu sombre
   if jeucouleurs=2 then jeu_clair(indexTCO);
@@ -4456,7 +4464,7 @@ begin
     Brush.Color:=Couleur;
     pen.color:=Couleur;
     Pen.Mode:=pmCopy;
-   
+
     if testbit(ep,6) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
     MoveTo(x0,y0+hauteurCell[indexTCO]);lineto(xc,yc);
     if testbit(ep,3) then pen.Width:=epaisseur div 2 else pen.Width:=epaisseur;
@@ -11193,8 +11201,8 @@ begin
   if orientation=2 then //90°G
   begin
     if aspect=20 then begin x0:=0; y0:=0;end;
-    if aspect=9 then begin x0:=round(10*frX); y0:=hauteurCell[indexTCO]-round(tailleX*frY);end;
-    if aspect=7 then begin x0:=round(10*frX); y0:=hauteurCell[indexTCO]-round(tailleX*frY);end;
+    if aspect=9 then begin x0:=round(10*frX); y0:=round(4*frY);end;
+    if aspect=7 then begin x0:=round(10*frX); y0:=round(4*frY);end;
     if aspect=5 then begin x0:=round(10*frX); y0:=round((tailleX/2)*frY);end;
     if aspect=4 then begin x0:=round(10*frX); y0:=round((tailleX/2)*frY);end;
     if aspect=3 then begin x0:=round(8*frX);  y0:=round((tailleX/2)*frY);end;
@@ -11238,7 +11246,7 @@ begin
       inverse_image(FormTCO[indexTCO].ImageTemp,ImageFeu);
       // copie avec mise à l'échelle de l'image du signal
       TransparentBlt(canvasDest.Handle,x0,y0,round(TailleX*frX),round(TailleY*frY),
-                   FormTCO[indexTCO].ImageTemp.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
+                     FormTCO[indexTCO].ImageTemp.Canvas.Handle,0,0,TailleX,TailleY,clBlue);
     end
     else
       // copie avec mise à l'échelle de l'image du signal
@@ -11465,7 +11473,7 @@ begin
         if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
         if Bimage=4  then begin xt:=10*round(frxGlob[indexTCO]);yt:=1;end;
         if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
-        if Bimage=12 then begin xt:=round(35*frxGlob[indexTCO]);yt:=2;end;
+        if Bimage=12 then begin xt:=round(33*fryGlob[indexTCO]);yt:=1;end;
         if Bimage=13 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
         if Bimage=14 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=1;end;
         if Bimage=15 then begin xt:=3;yt:=1;end;
@@ -11718,13 +11726,13 @@ begin
         end;
       end;
       if (aspect=9) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=round(60*fryGlob[indexTCO]);end;
-      if (aspect=9) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(17*fryGlob[indexTCO]);end;    // orientation G
+      if (aspect=9) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;    // orientation G
       if (aspect=9) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+round(20*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=9) and (Oriente=4) and (pied=1) then begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=9) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
 
       if (aspect=7) and (Oriente=1) then begin xt:=LargeurCell[indexTCO]-round(25*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO];end;
-      if (aspect=7) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(25*fryGlob[indexTCO]);end;
+      if (aspect=7) and (Oriente=2) then begin xt:=round(10*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(20*fryGlob[indexTCO]);end;
       if (aspect=7) and (Oriente=3) then begin xt:=LargeurCell[indexTCO]+2;yt:=round(4*frYGlob[indexTCO]);end;
       if (aspect=7) and (Oriente=4) and (pied=1) then begin xt:=round(2*frxGlob[indexTCO]);yt:=round(10*frYGlob[indexTCO]);end;
       if (aspect=7) and (Oriente=4) and (pied=2) then begin xt:=round(3*frxGlob[indexTCO]);yt:=round(1*frYGlob[indexTCO]);end;
@@ -11997,6 +12005,7 @@ begin
   //Screen.OnActiveControlChange := ActiveControlChanged;
 
   {$IF CompilerVersion >= 28.0}
+  ScrollBox.StyleName:='Windows';
   BallonHint:=TballoonHint.Create(self);
   with BallonHint do
   begin
@@ -12097,7 +12106,7 @@ begin
   xMiniSel:=99999;yMiniSel:=99999;   // coordonnées cellules
   xMaxiSel:=0;yMaxiSel:=0;
   SelectionAffichee[indexTCOCreate]:=false;
-  //ImageTCO.Canvas.font.Name:='Arial';  //<--- peut générer exception out of ressource!!
+  ImageTCO.Canvas.font.Name:='Arial';  //<--- peut générer exception out of ressource!!
   clTexte:=ClLime;
   // évite le clignotement pendant les affichages mais ne marche pas
   //DoubleBuffered:=true;
@@ -12261,13 +12270,13 @@ begin
 end;
 
 // affiche le trajet Trace_Train[] dans le tco du train,ir =nombre d'éléments du tableau trace_train mode=couleur
+// ir=index route
 // mode=0 : effacement du trajet
 // sinon mode = couleur du train
-// affecte_loco = true : procède à l'affectation du train dans les cantons
-//             = false : ne change pas le train dans le canton
-procedure affiche_trajet(indexTCO,train,AdrTrain,ir,mode : integer;affecte_loco : boolean);
-var i,sx,sy,x,y,ax,ay,Bimage,adresse,IdCanton,IdTrain,AncTrain,
+procedure affiche_trajet(indexTCO,train,AdrTrain,ir,mode : integer);
+var i,sx,sy,x,y,ax,ay,Bimage,adresse,IdCanton,IdTrain,AncTrain,elPrec,
     DernierDet,sens : integer;
+    TypePrec: tEquipement;
     cant : boolean;
 begin
   // et affichage de la route
@@ -12303,7 +12312,22 @@ begin
     if adresse<>0 then
     begin
       // si l'adresse est un détecteur
-      if (index_adresse_detecteur(adresse)<>0) then DernierDet:=adresse;
+      if (index_adresse_detecteur(adresse)<>0) then
+      begin
+        DernierDet:=adresse;
+        elprec:=detecteur[adresse].precedent;
+        typePrec:=detecteur[adresse].TypPrecedent;
+        idCanton:=trouve_canton(adresse,det,elPrec,typePrec);
+        // si canton adjacent au détecteur suivant le sens d'avance du train et que le détecteur passe à 0,
+        // désaffecter le train du canton
+        // annulé car désaffecte le train apr_s 2 tours sur le canton 7
+        {if (idCanton<>0) and (detecteur[adresse].Etat=false) then
+        begin
+          affiche('Canton='+IntToSTR(canton[idCanton].numero),clYellow);
+          affecte_train_canton(0,idCanton,0);
+        end;
+        }
+      end;
     end;
     tco[indextco,x,y].trajet:=0;
 
@@ -12319,6 +12343,7 @@ begin
       IdCanton:=index_canton_numero(TCO[indexTCO,x,y].NumCanton); // index canton
 
       AncTrain:=0;
+      {
       if (idcanton<>0) and affecte_loco then
       begin
         if mode=0 then // désaffecter le train
@@ -12338,8 +12363,8 @@ begin
             end;
           end;
         end;
-
       end;
+      }
       //if (idcanton<>0) and  not affecte_Loco then Affiche('Pas en mode affecte_loco',clOrange);
     end;
 
@@ -12442,10 +12467,9 @@ end;
 // Ne nécessite pas que les aiguillages en talon soient bien positionnés entre det1 et det2
 // PosAig = False: teste toutes les routes en récursif les aiguillages en pointe
 //          True:  suit les aiguillages en pointe qui doivent être positionnés
-// affecte_loco : true : efface la loco
 // en sortie : true si det2 a été trouvé
 //
-function zone_tco_gx(indexTCO,det1: integer;typEL : tequipement;det2,train,adrTrain,mode: integer;posAig,affecte_loco : boolean) : boolean;
+function zone_tco_gx(indexTCO,det1: integer;typEL : tequipement;det2,train,adrTrain,mode: integer;posAig : boolean) : boolean;
 var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iteration,indexIr,AdrTr,
     NbTrouve,AdrTr1,adrTr2 : integer;
     memtrouve,sortir,indextrouve : boolean;
@@ -14009,7 +14033,7 @@ begin
         AdrTr:=Adrtr2;
         //Affiche(intToSTR(det1)+' '+intToSTR(det2)+' Mode '+intToSTR(mode)+' Le détecteur2 '+intToSTR(Det2)+ ' est affecté au train @'+intToSTR(AdrTr2),clYellow);
       end;
-      Affiche_trajet(indexTCO,train,AdrTrain,indexIr,mode,affecte_loco);     // affiche le trajet dans le TCO
+      Affiche_trajet(indexTCO,train,AdrTrain,indexIr,mode);     // affiche le trajet dans le TCO
     end;
   end;
 end;
@@ -14018,17 +14042,15 @@ end;
 // affiche le tracé de det1 à det2; n°Train n°i (pas son index), adresseTrain, mode=0=éteint =1 allumejaune =2 allume selon index,
 // posAig=false : ne tient pas compte de la position des aiguillages pour le tracé (cherche en récursif det2
 //       = true : suit le tracé suivant la position des aiguillages jusque det2
-// affecte_loco=true : affecte loco si on rencontre un canton. Si mode=0 çà désaffecte la loco du canton
-//             =false : ne change pas l'affectation d'un canton rencontré
-function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig,affecte_loco : boolean) : boolean; overload;
+function zone_tco(indexTCO,det1,det2,train,adrTrain,mode: integer;posAig : boolean) : boolean; overload;
 begin
-  result:=zone_tco_gx(indexTCO,det1,det,det2,train,adrTrain,mode,posAig,affecte_loco);
+  result:=zone_tco_gx(indexTCO,det1,det,det2,train,adrTrain,mode,posAig);
 end;
 
 // fonction appellable en mode 13
-function zone_tco(indexTCO,adr : integer;typEl : tequipement;sens,mode: integer;posAig,affecte_loco : boolean) : boolean; overload;
+function zone_tco(indexTCO,adr : integer;typEl : tequipement;sens,mode: integer;posAig : boolean) : boolean; overload;
 begin
-  result:=zone_tco_gx(indexTCO,adr,typEL,sens,0,0,mode,posAig,affecte_loco);
+  result:=zone_tco_gx(indexTCO,adr,typEL,sens,0,0,mode,posAig);
 end;
 
 
@@ -17471,7 +17493,7 @@ begin
 end;
 
 
-// mise à jour des cellules de l'adresse "adresse"
+// Affichage : mise à jour des cellules de l'adresse "adresse"
 procedure Maj_TCO(indexTCO,Adresse : integer);
 var x,y: integer;
 begin
@@ -17896,7 +17918,7 @@ begin
   aiguillage[Index_Aig(117)].position:=const_devie;
 
   //debugTco:=true;
-  zone_tco(1,527,519,1,0,1,false,false);
+  zone_tco(1,527,519,1,0,1,false);
  //   zone_tco(518,515,1);
 
   //zone_tco(522,514,1);
@@ -19048,6 +19070,8 @@ begin
     screen.cursor:=crUpArrow;
   end
   else stop_modetrace(indexTCO);
+
+  FormTCO[indexTCO].DessinerleTCO1.Checked:=modetrace[indexTCO];
 end;
 
 procedure TFormTCO.ButtonDessinerClick(Sender: TObject);
@@ -19314,11 +19338,9 @@ begin
   end;
 end;
 
-procedure TFormTCO.BandeauClick(Sender: TObject);
-var indexTCO : integer;
+procedure toggle_bandeau(indexTCO : integer);
 begin
-  indexTCO:=index_TCOMainMenu;
-  if bandeauMasque then
+  if bandeauMasque then with formTCO[indexTCO] do
   begin
     PanelBas.Show;
     PanelBas.Visible:=true;
@@ -19331,6 +19353,11 @@ begin
   begin
     masque_bandeau(indexTCO);
   end;
+end;
+
+procedure TFormTCO.BandeauClick(Sender: TObject);
+begin
+  toggle_bandeau(index_TCOMainMenu);
 end;
 
 procedure TFormTCO.Mosaquehorizontale1Click(Sender: TObject);
@@ -19767,6 +19794,85 @@ begin
 
   change_clic_train(Idc);
   formCompteur[1].Show;
+end;
+
+procedure Supprimer_TCO(TcoS : integer);
+var c,x,y,i,SauvNbreTCO : integer;
+    s : string;
+begin
+  if Tcos>NbreTCO then exit;
+  s:='Voulez-vous supprimer le TCO '+intToSTR(TcoS)+' ('+NomFichierTCO[tcoS]+')';
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer sinon il peut tenter d'allumer un feu sur le TCO qu'on supprime->violation
+  NbreTCO:=0;
+  TCOActive:=false;
+
+  Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
+
+  // supprimer les cantons
+  for y:=1 to NbreCellY[tcos] do
+    for x:=1 to NbreCellX[tcos] do
+    begin
+      if isCanton(tco[tcos,x,y].Bimage) then
+      begin
+        c:=tco[tcos,x,y].NumCanton;
+        if c<>0 then supprime_canton(c);
+      end;
+    end;
+
+  FormTCO[tcos].Release;   // annuler le pointeur et raz les mémoires de la form
+
+  for i:=tCos to SauvNbreTCO-1 do
+  begin
+    NomFichierTCO[i]:=NomFichierTCO[i+1];
+
+    FormTCO[i]:=FormTCO[i+1];
+    FormTCO[i].Name:='TCO'+intToSTR(i);  // renommer le TCO
+    TCO[i]:=Tco[i+1]; // déplacer les données
+    // et toutes les variables du tco
+    PcanvasTCO[i]:=PcanvasTCO[i+1];
+    PBitMapTCO[i]:=PBitMapTCO[i+1];
+    PImageTCO[i]:=PImageTCO[i+1];
+    PImageTemp[i]:=PImageTemp[i+1];
+    frXGlob[i]:=frXGlob[i+1];
+    frYGlob[i]:=frYGlob[i+1];
+    SelectionAffichee[i]:=SelectionAffichee[i+1];
+    forminit[i]:=forminit[i+1];
+    modeTrace[i]:=modeTrace[i+1];
+    entoure[i]:=entoure[i+1];
+    avecGrille[i]:=avecGrille[i+1];
+    NbreCellX[i]:=NbreCellX[i+1];
+    NbreCellY[i]:=NbreCellY[i+1];
+    largeurCelld2[i]:=largeurCelld2[i+1];
+    HauteurCelld2[i]:=HauteurCelld2[i+1];
+    largeurCell[i]:=largeurCell[i+1];
+    HauteurCell[i]:=HauteurCell[i+1];
+    EcranTCO[i]:=EcranTCO[i+1];
+    Forminit[i]:=false;
+  end;
+
+  setlength(TCO[SauvNbreTCO],0);
+  PcanvasTCO[SauvNbreTCO]:=nil;
+  dec(SauvNbreTCO);
+  Menu_tco(SauvNbreTCO);
+  config_modifie:=true;
+  if SauvNbreTCO<>0 then Affiche('La nouvelle liste des noms des fichiers des TCO est la suivante:',ClLime);
+
+  for i:=1 to SauvNbreTCO do
+  begin
+    Affiche(IntToSTR(i)+'  '+NomFichierTCO[i],clLime);
+  end;
+  NbreTCO:=SauvNbreTCO;
+  tcoActive:=true;
+end;
+
+
+procedure TFormTCO.MenuSuppTCOClick(Sender: TObject);
+var indexTCO : integer;
+begin
+  indexTCO:=index_TCOMainMenu;
+  Supprimer_TCO(indexTCO);
 end;
 
 end.

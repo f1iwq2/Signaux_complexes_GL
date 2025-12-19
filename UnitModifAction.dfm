@@ -1,6 +1,6 @@
 object FormModifAction: TFormModifAction
-  Left = 542
-  Top = 189
+  Left = 355
+  Top = 223
   BorderStyle = bsDialog
   Caption = 'Modifier une action'
   ClientHeight = 443
@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetDecl
+    ActivePage = TabSheetOp
     MultiLine = True
     TabOrder = 1
     object TabSheetDecl: TTabSheet
@@ -517,7 +517,7 @@ object FormModifAction: TFormModifAction
         Top = 32
         Width = 217
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
@@ -544,6 +544,7 @@ object FormModifAction: TFormModifAction
         Hint = 'Liste chronologique des op'#233'rations '#224' effectuer'
         ItemHeight = 13
         ParentShowHint = False
+        PopupMenu = PopupMenuOP
         ShowHint = True
         TabOrder = 2
         OnDblClick = ListBoxOperationsDblClick
@@ -721,7 +722,7 @@ object FormModifAction: TFormModifAction
           Height = 21
           Hint = 'Nom du p'#233'riph'#233'rique d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -837,29 +838,23 @@ object FormModifAction: TFormModifAction
   object OpenDialogSon: TOpenDialog
     Left = 680
   end
-  object PopupMenuL: TPopupMenu
-    Left = 692
-    Top = 104
-    object Monter1: TMenuItem
-      Caption = 'Monter'
+  object PopupMenuOP: TPopupMenu
+    Left = 680
+    Top = 32
+    object Monteropration1: TMenuItem
+      Caption = 'Monter op'#233'ration'
+      OnClick = Monteropration1Click
     end
-    object Descendre1: TMenuItem
-      Caption = 'Descendre'
+    object Descendreopration1: TMenuItem
+      Caption = 'Descendre op'#233'ration'
+      OnClick = Descendreopration1Click
     end
     object N1: TMenuItem
       Caption = '-'
     end
-    object Supprimer1: TMenuItem
-      Caption = 'Supprimer'
-    end
-    object N2: TMenuItem
-      Caption = '-'
-    end
-    object outdployer1: TMenuItem
-      Caption = 'Tout d'#233'ployer'
-    end
-    object outcontracter1: TMenuItem
-      Caption = 'Tout contracter'
+    object Supprimeropration1: TMenuItem
+      Caption = 'Supprimer op'#233'ration'
+      OnClick = Supprimeropration1Click
     end
   end
 end

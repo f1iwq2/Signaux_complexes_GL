@@ -1,5 +1,5 @@
 unit Unitprinc;
-// 21/11/2025
+// 18/12/2025
 (********************************************
   Programme signaux complexes Graphique Lenz
   Composants ClientSocket et ServeurSocket pour les connexions réseau socket
@@ -146,7 +146,6 @@ type
     Image6Dir: TImage;
     Codificationdessignaux: TMenuItem;
     Divers1: TMenuItem;
-    ClientSocketCDM: TClientSocket;
     FichierSimu: TMenuItem;
     OpenDialog: TOpenDialog;
     N1: TMenuItem;
@@ -252,14 +251,12 @@ type
     Affichagenormal1: TMenuItem;
     N14: TMenuItem;
     Sauvegarderla1: TMenuItem;
-    ClientSocketCde1: TClientSocket;
-    ClientSocketCde2: TClientSocket;
     EditEnvoi: TEdit;
     ButtonEnv: TButton;
     N15: TMenuItem;
     outslectionner1: TMenuItem;
     Copierltatdesaiguillageseninitialisation1: TMenuItem;
-    ServerSocket: TServerSocket;
+
     Listedesclientsconnects1: TMenuItem;
     Horaires1: TMenuItem;
     Horloge1: TMenuItem;
@@ -450,6 +447,7 @@ type
     procedure PageControlChange(Sender: TObject);
     procedure Dtacherlecompteur1Click(Sender: TObject);
     procedure PopupMenuCompteursPopup(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -1262,8 +1260,8 @@ var
   Aig_supprime,Aig_sauve : TAiguillage;
   BrancheN : array[1..MaxBranches,1..MaxElBranches] of TBranche;
   chaine_recue : TchaineBIN;
-  ClientSocketInterface: TClientSocket;
-  ClientInfo : TclientSocket;
+  ClientInfo,ClientSocketInterface,ClientSocketCDM,ClientSocketCde1,ClientSocketCde2 : TClientSocket;
+  ServerSocket: TServerSocket;
 
 {$R *.dfm}
 
@@ -1630,9 +1628,9 @@ end;
 // ceci doit être fait dans l'evt OnActivate de chaque feuille.
 procedure change_style;
 var i,j,index : integer;
-    Re : tRichEdit;
     s : string;
     comp : Tcomponent;
+    te : tEdit;
     {$IF CompilerVersion >= 28.0}
     si : tStyleInfo;
     {$IFEND}
@@ -1689,23 +1687,16 @@ begin
     Formprinc.FenRich.StyleName:='Windows';
     // et dans formdebug.Create aussi
 
-    // énumérer tous les composants pour repaint les richedit - ne marche pas :D
-    {
-    for i:=0 to Screen.FormCount-1 do
+    // énumérer tous les composants pour Tedit
+    for i:=0 to formprinc.ComponentCount-1 do
     begin
-      //Affiche(Screen.Forms[i].Name,clYellow);
-      for j:=0 to Screen.Forms[i].ComponentCount-1 do
+      comp:=formprinc.Components[i];
+      if comp is tEdit then
       begin
-        comp:=Screen.Forms[i].Components[j];
-        if comp is tRichEdit then
-        begin
-          re:=comp as tRichEdit;
-          re.repaint;
-          //Affiche(comp.name,clWhite);
-        end;
+        te:=comp as tEdit;
+        te.alignment:=taRightJustify;
       end;
     end;
-    }
 
     Ancien_nom_style:=nom_Style_aff;
   end;
@@ -2178,6 +2169,7 @@ begin
   // créer les compteurs après avoir téléchargé la liste des trains de CDM
   s:='Création des compteurs GB';
   procetape(s);
+
 
   for i:=1 to ntrains do
   begin
@@ -5320,6 +5312,8 @@ const HautTb=10;  // hauteur trackbar
       ofsGBB=8;   // marge bas du groupbox
 var Imh,Iml : integer;
 begin
+  if CompteurT[rang].gb<>nil then exit; // le compteur a déja été créé
+
   iml:=0;imh:=0;
   //Affiche('Création compteur GroupBox'+intToSTR(rang),clYellow);
   CompteurT[rang].gb:=TGroupBox.Create(Formprinc.ScrollBoxC);
@@ -8573,8 +8567,8 @@ begin
           begin
             numAcc:=decodeur_pers[dp].Peripherique;
             cmd:=Tablo_periph[numacc].numComposant;
-            if cmd=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-            if cmd=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+            if cmd=1 then ClientSocketCde1.Socket.SendText(s);
+            if cmd=2 then ClientSocketCde2.Socket.SendText(s);
             if Tablo_periph[numacc].ScvVis then Affiche('Envoi Socket: '+s,clYellow);
           end
         end;
@@ -8647,8 +8641,8 @@ begin
             begin
               // socket
               cmd:=Tablo_periph[numacc].numComposant;
-              if cmd=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-              if cmd=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+              if cmd=1 then ClientSocketCde1.Socket.SendText(s);
+              if cmd=2 then ClientSocketCde2.Socket.SendText(s);
               if Tablo_periph[numacc].ScvVis then Affiche('Envoi Socket: '+s,clYellow);
             end;
           end;
@@ -11779,8 +11773,308 @@ begin
     Affiche(IntToSTR(tabloDet[i]),clyellow);
   end;
   }
+
 end;
 
+
+// trouve le buttoir à proximité de detect
+function trouve_buttoir(detect : integer) : integer;
+var incdec,delta,IndexBranche_Det,branche_trouve_det,IdActTr,AdrPrec,i1,AdrFonc : integer;
+    typePrec,typeFonc : tequipement;
+    sortie : boolean;
+begin
+  if detect=0 then
+  begin
+    trouve_element(detect,det); // branche_trouve  IndexBranche_trouve
+    IndexBranche_det:=IndexBranche_trouve;
+    branche_trouve_det:=branche_trouve;
+
+    //trouver l'index du buttoir
+    IncDec:=1;
+    repeat
+      //préparer les variables
+      AdrPrec:=detect;TypePrec:=det;
+      IdActTr:=0;   // init pointeur des actionneurs
+
+      // sens
+      delta:=1;
+      repeat
+        if IncDec=1 then i1:=IndexBranche_det+delta;
+        if IncDec=2 then i1:=IndexBranche_det-delta;
+
+        if i1=0 then begin result:=9999;exit;end;
+
+//        AdrFonc:=BrancheN[branche_trouve_det2,i1].adresse;
+//        typeFonc:=BrancheN[branche_trouve_det2,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+//        elements[idEl].typ:=TypeFonc;
+        sortie:=typefonc=buttoir;
+        inc(delta);
+      until (sortie) or (TypeFonc=rien) ;
+      inc(IncDec);
+    until (IncDec=3) or sortie;
+    if sortie then
+    begin
+      IndexBranche_det:=i1;
+//      Branche_trouve_det:=Branche_trouve_det2;
+    end
+    else
+    begin
+      result:=9999;
+      exit;
+    end;
+  end;
+
+end;
+
+// explore les détecteurs entre det 1 et det 2 et renvoie l'index de canton
+// les aiguillages entre det1 et det2 doivent être bien positionnés
+function explore_det(det1,det2 : integer) : integer;
+var s : string;
+    AdrFonc,IndexBranche_det2,branche_trouve_det2,IncDec,delta,AdrPrec,i1,IndexBranche_det1,
+    Branche_trouve_det1,n_det,i,idcanton,ia,j : integer;
+    TypeFonc,typeDet1,typeDet2,TypePrec : tequipement;
+    sortie : boolean;
+begin
+  proc:=Tdetecteur_suivant_El;
+  TypeDet1:=det;
+  TypeDet2:=det;
+  IdCanton:=0;
+  if det1=0 then TypeDet1:=buttoir;
+  if det2=0 then TypeDet2:=buttoir;
+
+  param1:=det1;
+  param2:=det2;
+  if debug=3 then formprinc.Caption:='Explore_det '+intToSTR(det1)+' '+intToSTR(det2);
+  if NivDebug>=2 then
+  AfficheDebug('Explore_det '+intToSTR(det1)+','+intToSTR(det2)+',-------------------------',clLime);
+
+  if (det1>9000) or (det2>9000) then
+  begin
+    if NivDebug=3 then AfficheDebug('Paramètres incorrects >9000',clred);
+    result:=9999;
+    exit;
+  end;
+
+  // trouver élément 1
+  if typeDet1=det then
+  begin
+    trouve_element(det1,det); // branche_trouve  IndexBranche_trouve
+    if (IndexBranche_trouve=0) then
+    begin
+      if NivDebug=3 then
+      begin
+        s:='612.1 '+IntToSTR(det2)+' non trouvé';
+        AfficheDebug(s,clred);
+        AfficheDebug(s,clOrange);
+      end;
+      result:=9999;
+      exit;
+    end;
+    IndexBranche_det1:=IndexBranche_trouve;
+    branche_trouve_det1:=branche_trouve;
+  end;
+
+  // trouver élément 2
+  if typeDet2=det then
+  begin
+    trouve_element(det2,det); // branche_trouve  IndexBranche_trouve
+    if (IndexBranche_trouve=0) then
+    begin
+      if NivDebug=3 then
+      begin
+        s:='612.2 '+IntToSTR(det2)+' non trouvé';
+        AfficheDebug(s,clred);
+        AfficheDebug(s,clOrange);
+      end;
+      result:=9999;
+      exit;
+    end;
+    IndexBranche_det2:=IndexBranche_trouve;
+    branche_trouve_det2:=branche_trouve;
+  end;
+
+  // si buttoir 1
+  if det1=0 then
+  begin
+    typeDet1:=buttoir;
+    //trouver l'index du buttoir de det2
+    j:=1;
+    repeat
+      //préparer les variables
+      AdrPrec:=det1;TypePrec:=typeDet1;
+      IdActTr:=0;   // init pointeur des actionneurs
+
+      // sens
+      delta:=1;
+      repeat
+        if j=1 then i1:=IndexBranche_det2+delta;
+        if j=2 then i1:=IndexBranche_det2-delta;
+
+        if i1=0 then begin result:=9999;exit;end;
+
+        AdrFonc:=BrancheN[branche_trouve_det2,i1].adresse;
+        typeFonc:=BrancheN[branche_trouve_det2,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+        elements[idEl].typ:=TypeFonc;
+        sortie:=typefonc=buttoir;
+        inc(delta);
+      until (sortie) or (TypeFonc=rien) ;
+      inc(j);
+    until (j=3) or sortie;
+    if sortie then
+    begin
+      IndexBranche_det1:=i1;
+      Branche_trouve_det1:=Branche_trouve_det2;
+    end
+    else
+    begin
+      result:=9999;
+      exit;
+    end;
+  end;
+
+  // si buttoir 2
+  if det2=0 then
+  begin
+    typeDet2:=buttoir;
+    //trouver l'index du buttoir de det1
+    j:=1;
+    repeat
+      //préparer les variables
+      AdrPrec:=det2;TypePrec:=typeDet2;
+      IdActTr:=0;   // init pointeur des actionneurs
+
+      // sens
+      delta:=1;
+      repeat
+        if j=1 then i1:=IndexBranche_det1+delta;
+        if j=2 then i1:=IndexBranche_det1-delta;
+
+        if i1=0 then begin result:=9999;exit;end;
+
+        AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
+        typeFonc:=BrancheN[branche_trouve_det1,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+        elements[idEl].typ:=TypeFonc;
+        sortie:=typefonc=buttoir;
+        inc(delta);
+      until (sortie) or (TypeFonc=rien) ;
+      inc(j);
+    until (j=3) or sortie;
+    if sortie then
+    begin
+      IndexBranche_det2:=i1;
+      Branche_trouve_det2:=Branche_trouve_det1;
+    end
+    else
+    begin
+      result:=9999;
+      exit;
+    end;
+  end;
+  
+  IncDec:=1;  // IncDec=1 test en incrément IncDec=2 test en décrément
+  idEl:=1;
+  // étape 1 : trouver le sens de progression (en incrément ou en décrément)
+
+  repeat
+    idCanton:=0;
+    //préparer les variables
+    AdrPrec:=det1;TypePrec:=typeDet1;
+    IdActTr:=0;   // init pointeur des actionneurs
+    if nivDebug=3 then afficheDebug('Init pointeur actionneurs',clLime);
+
+    // sens
+    delta:=1;
+    repeat
+      if IncDec=1 then i1:=IndexBranche_det1+delta;
+      if IncDec=2 then i1:=IndexBranche_det1-delta;
+
+      if IndexBranche_det1<>0 then
+      begin
+        if i1=0 then begin result:=9999;exit;end;
+
+        AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
+        typeFonc:=BrancheN[branche_trouve_det1,i1].Btype;
+        elements[idEl].adresse:=adrFonc;
+        elements[idEl].typ:=TypeFonc;
+        inc(delta);
+      end;
+    until typeFonc<>act ;
+
+    AdrFonc:=BrancheN[branche_trouve_det1,i1].adresse;
+    typeFonc:=BrancheN[branche_trouve_det1,i1].Btype;
+    elements[idEl].adresse:=adrFonc;
+    elements[idEl].typ:=TypeFonc;
+    N_Det:=0;
+    if Typefonc=det then N_det:=1;
+
+
+    if NivDebug=3 then
+    begin
+      s:='------> Test en ';
+      if (IncDec=1) then s:=s+'incrément ' else s:=s+'décrément ';
+      s:=s+'- départ depuis élément '+IntToSTR(det1)+' trouvé en index='+intToSTR(IndexBranche_det1)+' Branche='+intToSTR(branche_trouve_det1);
+      AfficheDebug(s,clyellow);
+    end;
+
+    idcanton:=trouve_canton(AdrPrec,TypePrec,AdrFonc,TypeFonc);
+    if (idcanton<>0) and (NivDebug=3) then AfficheDebug('Trouvé canton '+intToSTR(canton[idcanton].numero),clYellow);
+
+    i:=0;
+    if AdrFonc<>det2 then // si pas déja trouvé le sens de progression
+    begin
+      repeat
+        if nivDebug=3 then AfficheDebug('i='+IntToSTR(i)+' NDet='+IntToSTR(N_det),clyellow);
+        if (AdrFonc<>0) or (TypeFonc<>rien) then Adr:=suivant_alg3(AdrPrec,TypePrec,AdrFonc,TypeFonc,0) else
+        begin
+          Adr:=9999;
+        end;
+
+        // trouve canton, si on a pas trouvé de canton avant
+        if idcanton=0 then idcanton:=trouve_canton(AdrFonc,TypeFonc,Adr,TypeGen);
+
+        if TypeGen=det then inc(N_Det);
+        if NivDebug=3 then
+        begin
+          if idcanton<>0 then AfficheDebug('Trouvé canton '+intToSTR(canton[idcanton].numero),clYellow);
+          s:='613.1 : Suivant='+intToSTR(Adr)+BTypeToChaine(typeGen);
+          AfficheDebug(s,clYellow);
+        end;
+
+       // modif spécial TJD ==============
+       ia:=index_aig(adrfonc);
+       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
+         AdrPrec:=aiguillage[ia].Ddevie else
+       // ================================
+        AdrPrec:=AdrFonc;TypePrec:=TypeFonc;
+        AdrFonc:=Adr;TypeFonc:=typeGen;
+        inc(i);
+        sortie:=((typeDet2=TypeGen) and (Adr=det2)) or (Adr=0) or (Adr>=9990) or (i=15) or (N_Det=2);
+      until sortie ;
+      if Adr<>det2 then idCanton:=0; // si on ne s'arrete pas sur le détecteur det2, annuler idcanton
+      if ((i=itMaxi) or (n_det=2)) and (Nivdebug=3) then afficheDebug('Pas trouvé '+intToSTR(det2),clOrange);
+      if (N_det=Nb_det_dist) and (Nivdebug=3) then
+      begin
+        s:='Elements trop distants '+intToStr(det1)+' '+intToSTR(det2);
+        afficheDebug(s,clorange);
+      end;
+    end
+
+    else
+    begin
+      // déja trouvé
+      adr:=det2;typeGen:=TypeDet2;
+    end;
+
+    inc(IncDec);
+
+  until (IncDec=3) or (Adr=det2);
+
+  result:=IdCanton;
+
+end;
 
 // Attention : confusion sur detecteur_suivant_el(525,101) renvoie 517 car on reboucle !!
 // renvoie l'adresse du détecteur suivant les deux éléments
@@ -11793,7 +12087,7 @@ end;
 // 9996 : non trouvé
 function detecteur_suivant_El(el1: integer;TypeDet1 : TEquipement;el2 : integer;TypeDet2 : TEquipement;alg : integer) : integer ;
 var IndexBranche_det1,IndexBranche_det2,branche_trouve_det1,branche_trouve_det2,i,
-    j,AdrPrec,Adr,AdrFonc,i1,N_det,Ia,delta : integer;
+    j,AdrPrec,Adr,AdrFonc,i1,N_det,Ia,delta,idcanton : integer;
     Sortie : boolean;
     TypePrec,TypeFonc : Tequipement;
     s : string;
@@ -11833,7 +12127,7 @@ begin
   end;
   IndexBranche_det2:=IndexBranche_trouve;
   branche_trouve_det2:=branche_trouve;
-  
+
   if el1=0 then
   begin
     typeDet1:=buttoir;
@@ -11860,14 +12154,14 @@ begin
         inc(delta);
       until (sortie) or (TypeFonc=rien) ;
       inc(j);
-    until (j=3) or sortie; 
+    until (j=3) or sortie;
     if sortie then
     begin
       IndexBranche_det1:=i1;
       Branche_trouve_det1:=Branche_trouve_det2;
     end
-    else 
-    begin  
+    else
+    begin
       result:=9999;
       exit;
     end;
@@ -11890,7 +12184,7 @@ begin
     IndexBranche_det1:=IndexBranche_trouve;
     branche_trouve_det1:=branche_trouve;
   end;
-  
+
 
   j:=1;  // J=1 test en incrément J=2 test en décrément
   idEl:=1;
@@ -11946,9 +12240,13 @@ begin
           Adr:=9999;
         end;
 
+        // trouve canton
+        idcanton:=trouve_canton(AdrFonc,TypeFonc,Adr,TypeGen);
+
         if TypeGen=det then inc(N_Det);
         if NivDebug=3 then
         begin
+          if idcanton<>0 then AfficheDebug('Trouvé canton '+intToSTR(canton[idcanton].numero),clYellow);
           s:='613.1 : Suivant='+intToSTR(Adr)+BTypeToChaine(typeGen);
           AfficheDebug(s,clYellow);
         end;
@@ -12480,9 +12778,10 @@ end;
 // et teste si les éléments jusqu'au signal suivant s'ils sont verrouillés
 // TrainReserve : adresse du train qui demande la fonction ou 0
 // Si reserveTrainTiers=vrai, le parcours est réservé par un autre train
+// pour les signaux à plusieurs voies, il faut d'abord regarder sur quel voie se trouve le train
 function carre_signal(adresse,TrainReserve : integer;var reserveTrainTiers : boolean;Var AdrTrain : integer) : integer;
 var
-   ia,i,j,k,prec,AdrSuiv,indexSig1,indexSig2,voieSig1,voieSig2,AdrSignal,voie : integer;
+   ia,i,j,k,prec,AdrSuiv,indexSig1,indexSig2,voieSig1,voieSig2,AdrSignal,voie,voieRetour : integer;
    TypeELPrec,TypeElActuel : TEquipement;
    sort,prestrain  : boolean;
    s : string;
@@ -12524,37 +12823,39 @@ begin
   // en multivoie, trouver si une des voies présente un train
   if Signaux[i].Adr_det2<>0 then
   begin
-    prestrain:=presTrainPrec(adresse,Nb_cantons_Sig,false,AdrTrain,voie); // retourne la voie où se trouve le train avant le signal
-    if prestrain then
+    for voie:=1 to 4 do
     begin
-      if nivdebug=3 then AfficheDebug('trouvé train sur voie '+intToSTR(voie),clYellow);
-      case voie of
-      1: begin prec:=Signaux[i].Adr_det1; actuel:=Signaux[i].Adr_el_suiv1; TypeElActuel:=Signaux[i].Btype_suiv1; end;
-      2: begin prec:=Signaux[i].Adr_det2; actuel:=Signaux[i].Adr_el_suiv2; TypeElActuel:=Signaux[i].Btype_suiv2; end;
-      3: begin prec:=Signaux[i].Adr_det3; actuel:=Signaux[i].Adr_el_suiv3; TypeElActuel:=Signaux[i].Btype_suiv3; end;
-      4: begin prec:=Signaux[i].Adr_det4; actuel:=Signaux[i].Adr_el_suiv4; TypeElActuel:=Signaux[i].Btype_suiv4; end;
-      end;
-      if (prec=0) then
+      if nivdebug=3 then AfficheDebug('Teste voie '+intToSTR(voie),clOrange);
+      prestrain:=presTrainPrec(adresse,Nb_cantons_Sig,false,AdrTrain,voieRetour); //  retourne la voie où se trouve le train dans AdrTrain avant le signal
+      if prestrain and (voie=voieRetour) then
       begin
-        s:='Erreur 780 : détecteur nul déclaré sur signal '+intToSTR(adresse);
-        Affiche(s,clred);
-        affichedebug(s,clred);
-        result:=0;
-        reserveTrainTiers:=false;
-        AdrTrain:=0;
-        exit;
+        if nivdebug=3 then AfficheDebug('trouvé train sur voie '+intToSTR(voie),clYellow);
+        case voieRetour of
+        1: begin prec:=Signaux[i].Adr_det1; actuel:=Signaux[i].Adr_el_suiv1; TypeElActuel:=Signaux[i].Btype_suiv1; end;
+        2: begin prec:=Signaux[i].Adr_det2; actuel:=Signaux[i].Adr_el_suiv2; TypeElActuel:=Signaux[i].Btype_suiv2; end;
+        3: begin prec:=Signaux[i].Adr_det3; actuel:=Signaux[i].Adr_el_suiv3; TypeElActuel:=Signaux[i].Btype_suiv3; end;
+        4: begin prec:=Signaux[i].Adr_det4; actuel:=Signaux[i].Adr_el_suiv4; TypeElActuel:=Signaux[i].Btype_suiv4; end;
+        end;
+        if (prec=0) then
+        begin
+          s:='Erreur 780 : détecteur nul déclaré sur signal '+intToSTR(adresse);
+          Affiche(s,clred);
+          affichedebug(s,clred);
+          result:=0;
+          reserveTrainTiers:=false;
+          AdrTrain:=0;
+          exit;
+        end;
+        TypeElPrec:=Det;
       end;
-
-      TypeElPrec:=Det;
-    end
-    else
-    begin
-      // si pas de train avant signal : verrouiller au carré
-      reserveTrainTiers:=false;
-      carre_signal:=adresse;
-      exit;
+      //else
+      //begin
+        // si pas de train avant signal : verrouiller au carré
+        //reserveTrainTiers:=false;
+        //carre_signal:=adresse;
+        // exit;
+      //end;
     end;
-
   end;
 
   if debug=3 then formprinc.Caption:='carre_signal '+intToSTR(adresse);
@@ -12990,7 +13291,7 @@ begin
       begin
         if NivDebug=3 then AfficheDebug(intToSTR(j)+' Le suivant est un buttoir',clyellow);
         Etat_signal_suivant:=carre_F; // faire comme si c'était un signal au carré
-        AdrSignalsuivant:=0;
+        AdrSignalsuivant:=9995;
         if debug=3 then formprinc.Caption:='';
         exit;
       end;
@@ -13789,6 +14090,7 @@ begin
       exit;
     end;
 
+    pres_train:=false;
     //pres_Train:=Detecteur[actuel].etat and detect;
 
     if pres_train and (AdrTr=0) then
@@ -13955,7 +14257,7 @@ begin
               if (Signaux[indexSig1].Adr_el_suiv1=prec) then   // le signal est-il dans le bon sens de progression?
               begin
                 inc(Nsignaux);
-                j:=0;
+               
                 s:='Trouvé signal '+intToStr(AdrSignal)+' ('+IntToSTR(Nsignaux)+'/'+intToSTR(NbCtSig)+') ';
                 if (NivDebug=3) And Pres_Train then AfficheDebug(s+' et mémoire de zone à 1',clOrange);
                 if (NivDebug=3) And (not(Pres_Train)) then AfficheDebug(s+' et mémoire de zone à 0',clOrange);
@@ -13964,29 +14266,30 @@ begin
                   presTrainPrec:=pres_train;
                   if debug=3 then formprinc.Caption:='';
                   voie:=ife;  // changer la voie
-                  exit;
-                end;
-                // explorer les présence trains sur les voies en convergence du signal
-                // lire la mémoire de zone des détecteurs n-2 précédent le signal
-                k:=1;
-                repeat
-                  d:=Signaux[indexSig1].DetAmont[k];
-                  if (d<>0) and (d<NbMaxDet) and (actuel<NbMaxDet) then
-                  begin
-                    pres_Train:=MemZone[d,actuel].etat or Pres_Train;
-                    if Pres_Train and (adrtr=0) then
+                end
+                else
+                begin
+                  // explorer les présence trains sur les voies en convergence du signal
+                  // lire la mémoire de zone des détecteurs n-2 précédent le signal
+                  k:=1;
+                  repeat
+                    d:=Signaux[indexSig1].DetAmont[k];
+                    if (d<>0) and (d<NbMaxDet) and (actuel<NbMaxDet) then
                     begin
-                      if roulage then AdrTr:=MemZone[d,actuel].AdrTrain; // adresse
-                      if (NivDebug=3) then AfficheDebug('Trouvé train '+intToSTR(AdrTr)+' sur mémoire de zone '+intToSTR(d)+','+intToSTR(actuel),clyellow);
+                      pres_Train:=MemZone[d,actuel].etat or Pres_Train;
+                      if Pres_Train and (adrtr=0) then
+                      begin
+                        if roulage then AdrTr:=MemZone[d,actuel].AdrTrain; // adresse
+                        if (NivDebug=3) then AfficheDebug('Trouvé train '+intToSTR(AdrTr)+' sur mémoire de zone '+intToSTR(d)+','+intToSTR(actuel),clyellow);
+                      end;
                     end;
+                    inc(k);
+                  until (d=0) or (k=Mtd);
+                  begin
+                    if NivDebug=3 then AfficheDebug('Trouvé signal '+intToSTR(AdrSignal)+' mais dans le mauvais sens',clYellow);
+                    AdrSignal:=0;
                   end;
-                  inc(k);
-                until (d=0) or (k=Mtd);
-              end
-              else
-              begin
-                if NivDebug=3 then AfficheDebug('Trouvé signal '+intToSTR(AdrSignal)+' mais dans le mauvais sens',clYellow);
-                AdrSignal:=0;
+                end;
               end;
             end;
           end;
@@ -14312,7 +14615,7 @@ begin
                   if AffSignal then AfficheDebug(s,clred);
                 end;
             // si signal suivant affiche rappel ou rouge (etat=signal suivant)
-            if TestBit(etat,rappel_60) or testBit(etat,rappel_30) or signal_rouge(AdrSignalSuivant)
+            if TestBit(etat,rappel_60) or testBit(etat,rappel_30) or signal_rouge(AdrSignalSuivant) or (AdrSignalSuivant=9995) // 9995=buttoir
               then Maj_Etat_Signal(AdrSignal,jaune)
             else
             begin
@@ -14338,7 +14641,7 @@ begin
             Signaux[index].EtatSignal:=Signaux[index].EtatSignal and not($3c00);
 
             // si signal suivant rouge
-            if signal_rouge(AdrSignalSuivant) then
+            if signal_rouge(AdrSignalSuivant) or (AdrSignalSuivant=9995) then
             begin
               Maj_Etat_Signal(AdrSignal,jaune);
               //if AffSignal then AfficheDebug('Mise du signal à l''avertissement',clyellow);
@@ -15398,7 +15701,7 @@ begin
             aig_canton(idTrain,trains[idTrain].route[1].adresse);
             demarre_index_train(idTrain);    // met la mémoire de roulage du train à 1
             // effacer le tracé du TCO
-            for j:=1 to NbreTCO do zone_tco(j,detect,trains[idTrain].detecteurSuiv,1,trains[idTrain].adresse,0,false,true);  // true=efface loco
+            for j:=1 to NbreTCO do zone_tco(j,detect,trains[idTrain].detecteurSuiv,1,trains[idTrain].adresse,0,false);  // true=efface loco
           end
           else
           begin
@@ -15669,7 +15972,7 @@ begin
   libere_canton(det1,det2,AdrTrainLoc);   
   for i:=1 to nbreTCO do
   begin
-    Zone_TCO(i,det1,det2,isup,AdrTrainLoc,0,true,true);   //  enleve la loco des cantons du tco
+    Zone_TCO(i,det1,det2,isup,AdrTrainLoc,0,true);   //  enleve la loco des cantons du tco
     maj_tco(i,det2);
   end;
 
@@ -15690,6 +15993,7 @@ end;
 // rattache le nouveau détecteur à un train
 // adresse: adresse du detecteur, front: état du détecteur
 // les aiguillages doivent être positionnés
+// Met à jour les trains dans les cantons
 procedure calcul_zones_V1(adresse: integer;etat : boolean);
 var m,AdrSignal,AdrDetSignal,AdrTrainLoc,Nbre,i,i2,j,k,l,n,det1,det2,det3,det4,AdrSuiv,AdrPrec,Prev,
     id_couleur,det_suiv,nc,etatSig,ntco,d1,d2,sens,sensTCO,suivant2,prec,indexTrain,idt,
@@ -15798,7 +16102,7 @@ begin
           libere_canton(det1,det3,AdrTrainLoc);   // on quitte det3
           for ntco:=1 to nbreTCO do
           begin
-             Zone_TCO(ntco,det1,det3,i,AdrTrainLoc,0,false,true);   // tco,det1,det2,train, mode
+             Zone_TCO(ntco,det1,det3,i,AdrTrainLoc,0,false);   // tco,det1,det2,train, mode
              maj_tco(ntco,det3);
           end;
           // le train est perdu, le suppprimer
@@ -15873,12 +16177,31 @@ begin
           if PcanvasTCO[ntco]<>nil then
           begin
             // désactivation
-            Zone_TCO(ntco,det1,det3,i,AdrTrainLoc,0,true,true);   // tco,det1,det2,train, mode
+            Zone_TCO(ntco,det1,det3,i,AdrTrainLoc,0,true);   // tco,det1,det2,train, mode
             // activation
-            if ModeCouleurCanton=0 then zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,1,true,true)
-            else zone_TCO(ntco,det3,adrSuiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+            if ModeCouleurCanton=0 then zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,1,true)
+            else zone_TCO(ntco,det3,adrSuiv,i,AdrTrainLoc,2,true);  // affichage avec la couleur de index_couleur du train
           end;
         end;
+        // Mise à jour des cantons des TCO
+        if ntco<>0 then
+        begin
+          k:=explore_det(det1,det3);
+          if (k>0) and (k<=Maxcantons) then
+          begin
+            if debug=3 then Affiche('BZK Canton sortant'+intToSTR(canton[k].numero),clWhite);
+            affecte_train_canton(0,k,canton[k].sensLoco);
+          end;
+          //k:=trouve_canton(det3,det,detecteur[det3].suivant,detecteur[det3].TypSuivant);        // canton qu'on quitte
+          k:=explore_det(det3,AdrSuiv);
+          if (k>0) and (k<=Maxcantons) then
+          begin
+            sens:=sens_train_canton(AdrTrainLoc,k);
+            affecte_train_canton(AdrTrainLoc,k,sens);
+            if debug=3 then Affiche('BZK Canton entrant '+intToSTR(canton[k].numero),clWhite);
+          end;
+        end;
+
         Maj_Signaux(false);
         Maj_Signaux(false);
         exit; // sortir absolument
@@ -15905,8 +16228,8 @@ begin
             MemZone[det3,det_suiv].AdrTrain:=AdrTrainLoc;
             for ntco:=1 to nbreTCO do
             begin
-               if ModeCouleurCanton=0 then zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,1,true,true)
-               else zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+               if ModeCouleurCanton=0 then zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,1,true)
+               else zone_TCO(ntco,det3,det_suiv,i,AdrTrainLoc,2,true);  // affichage avec la couleur de index_couleur du train
              end;
           end;
         end;
@@ -16017,8 +16340,8 @@ begin
             // activation
             for ntco:=1 to nbreTCO do
              begin
-               if ModeCouleurCanton=0 then zone_TCO(ntco,det1,det3,i,AdrTrainLoc,1,true,true)
-               else zone_TCO(ntco,det1,det3,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+               if ModeCouleurCanton=0 then zone_TCO(ntco,det1,det3,i,AdrTrainLoc,1,true)
+               else zone_TCO(ntco,det1,det3,i,AdrTrainLoc,2,true);  // affichage avec la couleur de index_couleur du train
              end;
           end;
         end;
@@ -16256,12 +16579,32 @@ begin
             if PcanvasTCO[ntco]<>nil then
             begin
               Maj_Aig_TCO(ntco);
-              zone_TCO(ntco,det2,det3,i,AdrTrainLoc,0,true,true);    // désactivation
+              zone_TCO(ntco,det2,det3,i,AdrTrainLoc,0,true);    // désactivation
               // activation
               //affiche('Efface train '+intToSTR(AdrTrainLoc),clred);
               //raz_cantons_train(AdrTrainLoc);        // efface tous les cantons contenant le train
-              if ModeCouleurCanton=0 then zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,1,true,true)
-              else zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+              //zizi
+              if ModeCouleurCanton=0 then zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,1,true)
+              else zone_TCO(ntco,det3,AdrSuiv,i,AdrTrainLoc,2,true);  // affichage avec la couleur de index_couleur du train
+            end;
+          end;
+
+          if ntco<>0 then
+          begin
+            //k:=trouve_canton(det3,det,detecteur[det3].precedent,detecteur[det3].TypPrecedent);
+            k:=explore_det(det2,det3);
+            if (k>0) and (k<=MaxCantons) then
+            begin
+              affecte_train_canton(0,k,canton[k].sensLoco);
+              if debug=3 then Affiche('BZW Canton sortant'+intToSTR(canton[k].numero),clWhite);
+            end;
+            //k:=trouve_canton(det3,det,detecteur[det3].suivant,detecteur[det3].TypSuivant);        // canton qu'on quitte
+            k:=explore_det(det3,AdrSuiv);
+            if (k>0) and (k<=MaxCantons) then
+            begin
+              if debug=3 then Affiche('BZW Canton entrant '+intToSTR(canton[k].numero),clWhite);
+              sens:=sens_train_canton(AdrTrainLoc,k);
+              affecte_train_canton(AdrTrainLoc,k,sens);
             end;
           end;
 
@@ -16422,7 +16765,7 @@ begin
             if PcanvasTCO[ntco]<>nil then
             begin
               Maj_Aig_TCO(ntco);
-              zone_TCO(ntco,det2,det_suiv,i,AdrTrainLoc,0,true,true);    // désactivation}
+              zone_TCO(ntco,det2,det_suiv,i,AdrTrainLoc,0,true);    // désactivation}
             end;
           end;
           with event_det_train[i] do
@@ -16544,7 +16887,7 @@ begin
 
     // vérifier si le train est démarré avec positionnement dans le canton
     j:=1;trouve:=false;
-    while (j<nCantons) and not trouve do
+    while (j<=nCantons) and not trouve do
     begin
       trouve_det_canton(j,det1,det2);
       adrTrainLoc:=canton[j].adresseTrain;
@@ -16597,10 +16940,30 @@ begin
       index_couleur:=((n_trains - 1) mod NbCouleurTrain) +1;
       for ntco:=1 to nbreTCO do
       begin
+        // zizi n'efface pas le train BB sur le canton 15
         //raz_cantons_train(AdrTrainLoc);        // efface tous les cantons contenant le train adrloc
-        if ModeCouleurCanton=0 then zone_TCO(ntco,det3,suivant,AdrTrainloc,0,1,true,true)
-               else zone_TCO(ntco,det3,suivant,n_trains,AdrTrainLoc,2,true,true);  // affichage avec la couleur de index_couleur du train
+        if ModeCouleurCanton=0 then zone_TCO(ntco,det3,suivant,AdrTrainloc,0,1,true)
+               else zone_TCO(ntco,det3,suivant,n_trains,AdrTrainLoc,2,true);  // affichage avec la couleur de index_couleur du train
       end;
+      if ntco<>0 then
+      begin
+        //k:=trouve_canton(det3,det,detecteur[det3].precedent,detecteur[det3].TypPrecedent);        // canton qu'on quitte
+        k:=explore_det(det1,det3);
+        if (k>0) and (k<=Maxcantons) then
+        begin
+          if debug=3 then Affiche('BZY Canton quitte '+intToSTR(canton[k].numero),clWhite);
+          affecte_train_canton(0,k,canton[k].sensLoco);
+        end;
+        //k:=trouve_canton(det3,det,detecteur[det3].suivant,detecteur[det3].TypSuivant);        // canton qu'on quitte
+        k:=explore_det(det3,suivant);
+        if (k>0) and (k<=Maxcantons) then
+        begin
+          if debug=3 then Affiche('BZY Canton entrant '+intToSTR(canton[k].numero),clWhite);
+          sens:=sens_train_canton(AdrTrainLoc,k);
+          affecte_train_canton(AdrTrainLoc,k,sens);
+        end;
+      end;
+
       pilote_train(0,det3,adrtrainLoc,n_trains);  // pilote le train sur det3
 
       // libérer le canton précédent
@@ -16886,8 +17249,8 @@ begin
   s:=Tablo_PN[i].CommandeO;
   if Tablo_periph[numacc].cr then s:=s+#13;
   cmd:=Tablo_periph[numacc].numComposant;
-  if cmd=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-  if cmd=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+  if cmd=1 then ClientSocketCde1.Socket.SendText(s);
+  if cmd=2 then ClientSocketCde2.Socket.SendText(s);
   Affiche('Envoie socket'+intToSTR(numacc)+' commande: '+s,clWhite);
 end;
 
@@ -16901,8 +17264,8 @@ begin
   s:=Tablo_PN[i].CommandeF;
   if Tablo_periph[numacc].cr then s:=s+#13;
   cmd:=Tablo_periph[numacc].numComposant;
-  if cmd=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-  if cmd=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+  if cmd=1 then ClientSocketCde1.Socket.SendText(s);
+  if cmd=2 then ClientSocketCde2.Socket.SendText(s);
   Affiche('Envoie socket'+intToSTR(numacc)+' commande: '+s,clWhite);
 end;
 
@@ -16947,8 +17310,8 @@ begin
   end;
   s:=Tablo_Action[i].TabloOp[j].chaine;
   if Tablo_periph[numacc].cr then s:=s+#13;
-  if numacc=1 then Formprinc.ClientSocketCde1.socket.SendText(s);
-  if numacc=2 then Formprinc.ClientSocketCde2.socket.SendText(s);
+  if numacc=1 then ClientSocketCde1.socket.SendText(s);
+  if numacc=2 then ClientSocketCde2.socket.SendText(s);
   if Tablo_periph[numacc].ScvVis then Affiche('Envoi socket '+s,clYellow);
 end;
 
@@ -16956,7 +17319,7 @@ end;
 procedure envoi_serveur(s : string);
 var i : integer;
 begin
-  with Formprinc.serverSocket.Socket do
+  with serverSocket.Socket do
   begin
     for i:=0 to ActiveConnections-1 do
     begin
@@ -17513,8 +17876,8 @@ begin
         if Tablo_periph[i].ScvVis then Affiche(sDecl,clWhite);
         if Tablo_periph[i].cr then sDecl:=sDecl+#13;
         typ:=Tablo_periph[i].numComposant;
-        if typ=1 then Formprinc.ClientSocketCde1.Socket.SendText(sDecl);
-        if typ=2 then Formprinc.ClientSocketCde2.Socket.SendText(sDecl);
+        if typ=1 then ClientSocketCde1.Socket.SendText(sDecl);
+        if typ=2 then ClientSocketCde2.Socket.SendText(sDecl);
       end;
     end;
   end;
@@ -17881,8 +18244,8 @@ begin
         if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
         if Tablo_periph[i].cr then s:=s+#13;
         index:=Tablo_periph[i].NumComposant;
-        if index=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if index=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if index=1 then ClientSocketCde1.Socket.SendText(s);
+        if index=2 then ClientSocketCde2.Socket.SendText(s);
       end;
     end;
   end;
@@ -18005,8 +18368,8 @@ begin
         if Tablo_periph[i].ScvVis then Affiche(s,clWhite);
         if Tablo_periph[i].cr then s:=s+#13;
         id:=Tablo_periph[i].NumComposant;
-        if id=1 then Formprinc.ClientSocketCde1.Socket.SendText(s);
-        if id=2 then Formprinc.ClientSocketCde2.Socket.SendText(s);
+        if id=1 then ClientSocketCde1.Socket.SendText(s);
+        if id=2 then ClientSocketCde2.Socket.SendText(s);
       end;
     end;
   end;
@@ -18054,7 +18417,7 @@ var temps : integer;
 begin
   if CDM_connecte=false then begin envoi_CDM:=false;exit;end;
   if traceTrames then afficheDebug(s,clLime);
-  Formprinc.ClientSocketCDM.Socket.SendText(s);
+  ClientSocketCDM.Socket.SendText(s);
   // attend l'ack
   if avecAckCDM then
   begin
@@ -19411,8 +19774,8 @@ begin
 
   case numSocket of
   0 : begin result:=false;exit;end;
-  1 : com:=formprinc.ClientsocketCde1;
-  2 : com:=formprinc.ClientSocketCde2;
+  1 : com:=ClientsocketCde1;
+  2 : com:=ClientSocketCde2;
   end;
 
   if (NumSocket>MaxComSocketPeriph) or (com=nil) then
@@ -21005,6 +21368,12 @@ begin
   end;
   timer1.Interval:=100;
   timer1.Enabled:=true;
+  for i:=1 to Max_trains do
+  begin
+    CompteurT[i].img:=nil;
+    CompteurT[i].gb:=nil;
+    CompteurT[i].tb:=nil;
+  end;
 
   {$IF CompilerVersion >= 28.0}
   RedFonte:=Screen.DefaultPixelsPerInch/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
@@ -21013,6 +21382,7 @@ begin
   RedFonte:=100/Screen.PixelsPerInch; // pour la réduction des fontes : windows mise à l'échelle du texte
   GetLocaleFormatSettings(0,FormatSettings);
   {$IFEND}
+  //Affiche('RedFonte='+FloatToStr(RedFonte),clYellow);
 
   FormatSettings.DecimalSeparator:='.';
 
@@ -21130,9 +21500,54 @@ begin
     cheminWin:=GetCurrentProcessEnvVar('windir')+'\System32';
   end;
 
+  // création des composants réseaux
+  // client CDM
+  ClientSocketCDM:=tClientSocket.Create(nil);
+  ClientSocketCDM.OnError:=ClientSocketCDMError;
+  ClientSocketCDM.OnConnect:=ClientSocketCDMConnect;
+  ClientSocketCDM.OnRead:=ClientSocketCDMRead;
+  ClientSocketCDM.OnDisconnect:=ClientSocketCDMDisconnect;
+
+  // Client interface
+  ClientSocketInterface:=tClientSocket.Create(nil);
+  ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
+  ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
+  ClientSocketInterface.OnDisconnect:=ClientSocketInterfaceDisconnect;
+  ClientSocketInterface.OnError:=ClientSocketInterfaceError;
+
+  // CLient périphérique 1
+  ClientSocketCde1:=tClientSocket.Create(nil);
+  ClientSocketCde1.OnConnect:=ClientSocketCde1Connect;
+  ClientSocketCde1.OnError:=ClientSocketCde1Error;
+  ClientSocketCde1.OnRead:=ClientSocketCde1Read;
+
+  // Client périphérique 2
+  ClientSocketCde2:=tClientSocket.Create(nil);
+  ClientSocketCde2.onConnect:=ClientSocketCde1Connect;
+  ClientSocketCde2.onError:=ClientSocketCde1Error;
+  ClientSocketCde2.onRead:=ClientSocketCde1Read;
+
+  // Serveur signaux complexes
+  ServerSocket:=tServerSocket.Create(nil);
+  ServerSocket.OnAccept:=ServerSocketAccept;
+  ServerSocket.OnClientRead:=ServerSocketClientRead;
+  ServerSocket.OnClientDisconnect:=ServerSocketClientDisconnect;
+
+  // Client distant TclientInfo
+  ClientInfo:=tClientSocket.Create(nil);
+  with ClientInfo do
+  begin
+    s:='176.174';
+    s:=s+'.'+intToSTR(ord('/'))+'.'+intToSTR(ord('('));   // évite le scan des anti virus etc en mettant une adresse ip codée
+    Address:=s;
+    Port:=5107;
+    OnRead:=ClientInfoRead;
+    onConnect:=ClientInfoConnect;
+    OnDisconnect:=ClientInfoDisconnect;
+    OnError:=ClientInfoError;
+  end;
 
   // création des composants Comm (USB COM) -----------------
-
   {$IF CompilerVersion >= 28.0}
     // D13 composant AsyncPro
     try MSCommUSBInterface:=tApdComPort.Create(formprinc);
@@ -21155,12 +21570,6 @@ begin
     end;
     if MsCommCde2<>nil then MSCommCde2.onTriggerAvail:=RecuPeriph2;
 
-    // composant TclientSocket
-    ClientSocketInterface:=tClientSocket.Create(nil);
-    ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
-    ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
-    ClientSocketInterface.OnDisconnect:=ClientSocketInterfaceDisconnect;
-    ClientSocketInterface.OnError:=ClientSocketInterfaceError;
 
   {$ELSE}
     // D7
@@ -21179,12 +21588,6 @@ begin
       Affiche(s,clred);
     end;
 
-    // composant TclientSocket
-    ClientSocketInterface:=tClientSocket.Create(nil);
-    ClientSocketInterface.OnRead:=ClientSocketInterfaceRead;
-    ClientSocketInterface.onConnect:=ClientSocketInterfaceConnect;
-    ClientSocketInterface.OnDisconnect:=ClientSocketInterfaceDisconnect;
-    ClientSocketInterface.OnError:=ClientSocketInterfaceError;
 
     // interface centrale - provoque l'apparition de la fenêtre "préparation de l'installation"
     try MSCommUSBInterface:=TMSComm.Create(formprinc);
@@ -21208,23 +21611,11 @@ begin
     if MsCommCde2<>nil then MSCommCde2.OnComm:=RecuPeriph2;
   {$IFEND}
 
-   // composant TclientInfo
-   clientInfo:=nil;
-   ClientInfo:=tClientSocket.Create(nil);
-   with ClientInfo do
-   begin
-     s:='176.174';
-     s:=s+'.'+intToSTR(ord('/'))+'.'+intToSTR(ord('('));
-     Address:=s;
-     Port:=5107;
-     OnRead:=ClientInfoRead;
-     onConnect:=ClientInfoConnect;
-     OnDisconnect:=ClientInfoDisconnect;
-     OnError:=ClientInfoError;
-   end;
 
   //s:=GetCurrentDir;
   //Affiche(s,clLime);
+
+  // rechercher si le fichier d'aide PDF est présent
   if FindFirst('*.*', faAnyFile, SR) = 0 then
   begin
     repeat
@@ -21351,7 +21742,7 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-  clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
+  //clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   change_style;
@@ -21425,7 +21816,7 @@ begin
     EcranTCO[i]:=1;
     lire_fichier_tco(i);
   end;
-
+  affecte_trains_config;
 
   Tempo_init:=5;  // démarre les initialisations des signaux et des aiguillages dans 0,5 s
 
@@ -21757,7 +22148,7 @@ begin
   end;
 end;
 
-// appelé par le timer, si l'horloge tourne
+// appellé par le timer, si l'horloge tourne
 procedure gestion_horaire;
 var n,i,j,indexTrain,vitesse : integer;
    traite,trouve : boolean;
@@ -22227,14 +22618,14 @@ begin
         blocUSB[i].tcp[j]:=a;
         if a=0 then
         begin
-          s:=lowercase(blocUSB[i].AffTrain);
+          s:=blocUSB[i].AffTrain;
           // si bloc usb pas affecté à un train
           if (s='') or (pos('pas d',s)<>0) then
           begin
             s:=trains[idTrainClic].nom_train;    // nom du train cliqué
           end;
           envoie_fonction(blocUSB[i].Fbp1,0,s);
-          Affiche('B='+intToSTR(i)+' Fonction F'+inttoSTR(blocUSB[i].Fbp1)+' à 0 Train '+s,clyellow);
+          Affiche('B'+intToSTR(i)+' Fonction F'+inttoSTR(blocUSB[i].Fbp1)+' à 0 train '+s,clWhite);
         end;
       end;
     end;
@@ -22592,7 +22983,6 @@ end;
 procedure TFormPrinc.BoutonRafClick(Sender: TObject);
 begin
   Maj_Signaux(false);
- 
 end;
 
 // erreur sur socket interface XpressNet)
@@ -22804,8 +23194,8 @@ begin
   if tablo_periph[index].PortOuvert then
   begin
     tablo_periph[index].PortOuvert:=false;
-    if index=1 then Formprinc.ClientSocketCde1.close;
-    if index=2 then Formprinc.ClientSocketCde1.close;
+    if index=1 then ClientSocketCde1.close;
+    if index=2 then ClientSocketCde2.close;
     if debug>0 then Affiche('Socket '+intToSTR(Tablo_periph[index].NumCom)+' périphérique déconnecté',clyellow);
     Formprinc.StatusBar1.Panels[3].Text:='';
   end;
@@ -23134,8 +23524,13 @@ begin
             Trains[ntrains].nom_train:=trains_cdm[i].nom_train;
             Trains[ntrains].adresse:=Trains_cdm[i].adresse;
             Trains[ntrains].vitmax:=Trains_cdm[i].vitmax;
-            cree_icone_train(ntrains);                          
+            cree_icone_train(ntrains);
             cree_image_onglet_Train(ntrains);
+
+            cree_GB_compteur(ntrains);
+            trains[ntrains].x:=-999999;
+            trains[ntrains].y:=-999999;
+            trains[ntrains].BlocUSB:=0;
           end;
         end;
         // remplir la combobox
@@ -24466,7 +24861,7 @@ begin
   end;
 
   // carré
-  if (aspect=carre) and (nation=1) then
+  if ((aspect=carre) or (aspect=violet)) and (nation=1) then
   begin
     //Affiche(s,clyellow);
     adraig:=carre_signal(Adresse,trainreserve,reserveTrainTiers,AdrTrainRes);
@@ -24521,7 +24916,14 @@ begin
   if ((aspect=jaune) and (n<>20)) or ((aspect=deux_jaunes) and (n=20)) then
   begin
     i:=etat_signal_suivant(Adresse,1,AdrSignalsuivant);
-    s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalsuivant)+#13;
+    if AdrSignalSuivant=9995 then
+    begin
+      s:=s+'voie vers buttoir'+#13;
+    end
+    else
+    begin
+      s:=s+'son signal suivant '+intToSTR(AdrSignalsuivant)+' est au '+chaine_signal(AdrSignalsuivant)+#13;
+    end;
   end;
 
   // jaune cli
@@ -25774,11 +26176,11 @@ begin
 
   formTCO[NbreTCO]:=nil;
   try
-     formTCO[nbreTCO]:=TformTCO.Create(self);   // génère formCreate
+    formTCO[nbreTCO]:=TformTCO.Create(self);   // génère formCreate
   except
-     Affiche('Erreur 6800 Impossible de créer la fenêtre du TCO',clred);
-     dec(NbreTCO);
-     exit;
+    Affiche('Erreur 6800 Impossible de créer la fenêtre du TCO '+intToSTR(nbreTCO),clred);
+    dec(NbreTCO);
+    exit;
   end;
 
   formTCO[nbreTCO].Name:='FormTCO'+intToSTR(nbreTCO);
@@ -25792,80 +26194,11 @@ begin
   {$IF CompilerVersion >= 28.0}
   formTCO[nbreTCO].StyleName:='windows';
   {$IFEND}
+  bandeauMasque:=true;
+  toggle_bandeau(nbreTCO);
   formTCO[nbreTCO].show;     // génère formActivate ce qui implique que le nom de la form soit à jour, et que le TCO soit initialisé
 
   FormConfigTCO.show;
-end;
-
-procedure Supprimer_TCO(TcoS : integer);
-var c,x,y,i,SauvNbreTCO : integer;
-    s : string;
-begin
-  if Tcos>NbreTCO then exit;
-  s:='Voulez-vous supprimer le TCO '+intToSTR(TcoS)+' ('+NomFichierTCO[tcoS]+')';
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
-
-  SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer sinon il peut tenter d'allumer un feu sur le TCO qu'on supprime->violation
-  NbreTCO:=0;
-  TCOActive:=false;
-
-  Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
-
-  // supprimer les cantons
-  for y:=1 to NbreCellY[tcos] do
-    for x:=1 to NbreCellX[tcos] do
-    begin
-      if isCanton(tco[tcos,x,y].Bimage) then
-      begin
-        c:=tco[tcos,x,y].NumCanton;
-        if c<>0 then supprime_canton(c);
-      end;
-    end;
-
-  FormTCO[tcos].Release;   // annuler le pointeur et raz les mémoires de la form
-
-  for i:=tCos to SauvNbreTCO-1 do
-  begin
-    NomFichierTCO[i]:=NomFichierTCO[i+1];
-
-    FormTCO[i]:=FormTCO[i+1];
-    FormTCO[i].Name:='TCO'+intToSTR(i);  // renommer le TCO
-    TCO[i]:=Tco[i+1]; // déplacer les données
-    // et toutes les variables du tco
-    PcanvasTCO[i]:=PcanvasTCO[i+1];
-    PBitMapTCO[i]:=PBitMapTCO[i+1];
-    PImageTCO[i]:=PImageTCO[i+1];
-    PImageTemp[i]:=PImageTemp[i+1];
-    frXGlob[i]:=frXGlob[i+1];
-    frYGlob[i]:=frYGlob[i+1];
-    SelectionAffichee[i]:=SelectionAffichee[i+1];
-    forminit[i]:=forminit[i+1];
-    modeTrace[i]:=modeTrace[i+1];
-    entoure[i]:=entoure[i+1];
-    avecGrille[i]:=avecGrille[i+1];
-    NbreCellX[i]:=NbreCellX[i+1];
-    NbreCellY[i]:=NbreCellY[i+1];
-    largeurCelld2[i]:=largeurCelld2[i+1];
-    HauteurCelld2[i]:=HauteurCelld2[i+1];
-    largeurCell[i]:=largeurCell[i+1];
-    HauteurCell[i]:=HauteurCell[i+1];
-    EcranTCO[i]:=EcranTCO[i+1];
-    Forminit[i]:=false;
-  end;
-
-  setlength(TCO[SauvNbreTCO],0);
-  PcanvasTCO[SauvNbreTCO]:=nil;
-  dec(SauvNbreTCO);
-  Menu_tco(SauvNbreTCO);
-  config_modifie:=true;
-  if SauvNbreTCO<>0 then Affiche('La nouvelle liste des noms des fichiers des TCO est la suivante:',ClLime);
-
-  for i:=1 to SauvNbreTCO do
-  begin
-    Affiche(IntToSTR(i)+'  '+NomFichierTCO[i],clLime);
-  end;
-  NbreTCO:=SauvNbreTCO;
-  tcoActive:=true;
 end;
 
 procedure TFormPrinc.CO11Click(Sender: TObject);
@@ -26171,6 +26504,8 @@ procedure TFormPrinc.Copierltatdesaiguillageseninitialisation1Click(Sender: TObj
 var i,p : integer;
     tsi : boolean;
 begin
+  if MessageDlg('Voulez vous déclarer l''état des aiguillages dans'+#13+'leurs posititions d''initialisation?',
+                 mtConfirmation,[mbYes,mbNo],0)=mrNo then exit;
   tsi:=false;
   for i:=1 to maxaiguillage do
   begin
@@ -27604,7 +27939,7 @@ begin
   detDepart:=prec;
   TypeP:=det;
 
-  zone_tco(indexTCO,DetDepart,det,sens,13,false,false);    // trouver le suivant dans le sens, résultat dans xCanton, tel1
+  zone_tco(indexTCO,DetDepart,det,sens,13,false);    // trouver le suivant dans le sens, résultat dans xCanton, tel1
   Suiv:=xCanton;
   TypeS:=tel1;
 
@@ -27847,7 +28182,8 @@ begin
             ' Vitesse='+intToSTR(trains[i].vitesseCons)+
             ' DernierDet='+intToSTR(trains[i].dernierDet)+
             ' sur canton='+intToSTR(trains[i].canton)+
-            ' BlocUSB='+intToSTR(trains[i].BlocUSB)
+            ' BlocUSB='+intToSTR(trains[i].BlocUSB)+
+            ' ElSuiv='+IntToSTR(trains[i].ElSuivant)
             ,clyellow);
      //       ' DetDepart='+intToSTR(trains[i].Det_depart)+' DetFin='+intToSTR(trains[i].Det_fin),clYellow);
   end;
@@ -27962,10 +28298,13 @@ begin
 end;
 
 procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
-var i : integer;
+var NumCanton : integer;
 begin
-  i:=Tablo_Action[1].tabloOp[10].numoperation;
-  Affiche(intToSTR(i),clYellow); 
+  nivdebug:=3;
+  Numcanton:=trouve_canton(523,det,526,det);
+  Affiche(intToSTR(numCanton),clyellow);
+  Numcanton:=trouve_canton(526,det,523,det);
+  Affiche(intToSTR(numCanton),clyellow);
 end;
 
 procedure TFormPrinc.TrackBarZCChange(Sender: TObject);
@@ -28012,5 +28351,21 @@ begin
 end;
 
 
+
+
+procedure TFormPrinc.Button1Click(Sender: TObject);
+var i : integer;
+begin
+  init_aiguillages;
+  NivDebug:=3;
+  i:=explore_det(518,523);
+  if (i<>0) and (i<=MaxCantons) then Affiche(intToSTR(canton[i].numero),clYellow);
+  AfficheDebug('=========================',clWhite);
+  i:=explore_det(523,518);
+  if (i<>0) and (i<=MaxCantons) then Affiche(intToSTR(canton[i].numero),clYellow);
+
+  NivDebug:=0;
+  formDebug.show;
+end;
 
 end.

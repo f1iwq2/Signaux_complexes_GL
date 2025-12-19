@@ -1,11 +1,11 @@
 object FormPrinc: TFormPrinc
-  Left = 272
-  Top = 402
+  Left = 134
+  Top = 277
   Anchors = [akLeft, akTop, akRight]
   BorderStyle = bsNone
   Caption = 'Signaux complexes'
   ClientHeight = 513
-  ClientWidth = 1094
+  ClientWidth = 847
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,7 +22,7 @@ object FormPrinc: TFormPrinc
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   DesignSize = (
-    1094
+    847
     513)
   PixelsPerInch = 96
   TextHeight = 13
@@ -1431,7 +1431,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object LabelClock: TLabel
-    Left = 1002
+    Left = 755
     Top = 0
     Width = 85
     Height = 22
@@ -5421,7 +5421,7 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Label1: TLabel
-    Left = 792
+    Left = 545
     Top = 4
     Width = 89
     Height = 13
@@ -5429,7 +5429,7 @@ object FormPrinc: TFormPrinc
     Caption = 'Nombre de trains : '
   end
   object LabelNbTrains: TLabel
-    Left = 888
+    Left = 641
     Top = 2
     Width = 9
     Height = 19
@@ -5445,7 +5445,7 @@ object FormPrinc: TFormPrinc
   object StatusBar1: TStatusBar
     Left = 0
     Top = 491
-    Width = 1094
+    Width = 847
     Height = 22
     Panels = <
       item
@@ -6460,16 +6460,6 @@ object FormPrinc: TFormPrinc
       end
     end
   end
-  object ClientSocketCDM: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    OnConnect = ClientSocketCDMConnect
-    OnDisconnect = ClientSocketCDMDisconnect
-    OnRead = ClientSocketCDMRead
-    OnError = ClientSocketCDMError
-    Left = 296
-  end
   object OpenDialog: TOpenDialog
     Left = 584
     Top = 16
@@ -6508,33 +6498,6 @@ object FormPrinc: TFormPrinc
       Caption = 'Informations du signal'
       OnClick = Informationsdusignal1Click
     end
-  end
-  object ClientSocketCde1: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    OnConnect = ClientSocketCde1Connect
-    OnRead = ClientSocketCde1Read
-    OnError = ClientSocketCde1Error
-    Left = 360
-  end
-  object ClientSocketCde2: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    OnConnect = ClientSocketCde2Connect
-    OnRead = ClientSocketCde2Read
-    OnError = ClientSocketCde2Error
-    Left = 392
-  end
-  object ServerSocket: TServerSocket
-    Active = False
-    Port = 0
-    ServerType = stNonBlocking
-    OnAccept = ServerSocketAccept
-    OnClientDisconnect = ServerSocketClientDisconnect
-    OnClientRead = ServerSocketClientRead
-    Left = 320
   end
   object PopupMenuTrains: TPopupMenu
     OnPopup = PopupMenuTrainsPopup

@@ -1,6 +1,6 @@
 object FormTCO: TFormTCO
-  Left = 186
-  Top = 112
+  Left = 187
+  Top = 113
   Width = 1013
   Height = 607
   VertScrollBar.Visible = False
@@ -1666,6 +1666,13 @@ object FormTCO: TFormTCO
         OnClick = Modedplacement1Click
       end
       object N12: TMenuItem
+        Caption = '-'
+      end
+      object MenuSuppTCO: TMenuItem
+        Caption = 'Supprimer le TCO'
+        OnClick = MenuSuppTCOClick
+      end
+      object N14: TMenuItem
         Caption = '-'
       end
       object ConfigurationduTCO1: TMenuItem

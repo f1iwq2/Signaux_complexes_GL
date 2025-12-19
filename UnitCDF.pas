@@ -1,6 +1,6 @@
 unit UnitCDF;
 
-// configuration des décodeurs CDM et Digikeijs
+// configuration des décodeurs CDF et Digikeijs
 
 interface
 
@@ -195,25 +195,25 @@ begin
   i:=0;
 
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
-  EtatFeuPilote:=Signaux[i].EtatSignal;
+  EtatSignalPilote:=Signaux[i].EtatSignal;
   AncienEtat:=Signaux[i].AncienEtat;
   dessineCDF:=true; // demande dessin CDF pour les clignotements
   Vcanvas:=FormCDF.ImageDigi.picture.bitmap.Canvas;
 
   case Signaux[i].aspect of
   // feux de signalisation
-   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
-   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
-   4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1,i);
+   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
+   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
+   4 : dessine_signal4(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   5 : dessine_signal5(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   7 : dessine_signal7(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   9 : dessine_signal9(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
   // indicateurs de direction
-  12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
-  13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
-  14 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,4);
-  15 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,5);
-  16 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,6);
+  12 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,2);
+  13 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,3);
+  14 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,4);
+  15 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,5);
+  16 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,6);
   end;
 end;
 

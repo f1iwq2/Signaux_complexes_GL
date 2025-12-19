@@ -508,31 +508,39 @@ begin
 
     // le compteurs 1  provient de bitmaps
     // le compteur 2 et 3 sont dessinés par
+
     with param do
     begin
       case typCompt of
       1 : begin
-          // le compteur 1 provient d'une image
-          StretchDraw(rect(0,0,Lim,Him),Formprinc.ImageCompteur1.Picture.Bitmap);
-          Brush.Style:=bsSolid;
-          Brush.Color:=$1F1A17;
-          font.color:=ParamCompteur[1].CoulNum;
-          {$IF CompilerVersion >= 28.0}
-          font.orientation:=0;
-          {$IFEND}
-          font.size:=round(redx*10*RedFonte);
-          TextOut(round(50*redX),round(128*redY),'0');
-          TextOut(round(36*redX),round(90*redY),'20');
-          TextOut(round(50*redX),round(54*redY),'40');
-          TextOut(round(90*redX),round(36*redY),'60');
-          TextOut(round(129*redX),round(53*redY),'80');
-          TextOut(round(137*redX),round(91*redY),'100');
-          TextOut(round(126*redX),round(126*redY),'120');
-          // centre de l'aiguille
-          AigCX:=round(98*redX);
-          AigCY:=round(98*redY);
-          rAig:=round(AigCX / 1.5);
-          angleFin:=127;  // en fait vitesse maxi compteur
+            // le compteur 1 provient d'une image
+            StretchDraw(rect(0,0,Lim,Him),Formprinc.ImageCompteur1.Picture.Bitmap);
+            Brush.Style:=bsSolid;
+            Brush.Color:=$1F1A17;
+            font.color:=ParamCompteur[1].CoulNum;
+            {$IF CompilerVersion >= 28.0}
+            font.orientation:=0;
+            // centre de l'aiguille
+            AigCX:=round(97*redX);    // le centre de l'aiguille est en 97 97
+            AigCY:=round(97*redY);
+            {$ELSE}
+            // centre de l'aiguille
+            AigCX:=round(97*redX*RedFonte);    // le centre de l'aiguille est en 97 97
+            AigCY:=round(97*redY*RedFonte);
+            {$IFEND}
+            font.size:=round(redx*10*RedFonte);
+            TextOut(round(50*redX),round(128*redY),'0');
+            TextOut(round(40*redX),round(92*redY),'20');
+            TextOut(round(56*redX),round(56*redY),'40');
+            TextOut(round(94*redX),round(36*redY),'60');
+            TextOut(round(129*redX),round(53*redY),'80');
+            TextOut(round(137*redX),round(91*redY),'100');
+            TextOut(round(124*redX),round(130*redY),'120');
+
+
+
+            rAig:=round(AigCX / 1.5);
+            angleFin:=127;  // en fait vitesse maxi compteur
           end;
       2 : begin
             // centre de l'aiguille et longueur
@@ -565,12 +573,15 @@ begin
   init_compteur(1,FormCompteur[1]);
 end;
 
+// initialise le compteur
+// i = rang du compteur
+// c : composant de destination
 Procedure Init_compteur(i : integer;c : Tcomponent);
 const ofs=30; // décalage entre la taille de l'image et de la fenetre
      // compteurs fenetre principale
       HautTb=10;  // hauteur trackbar
       ofsGBH=15;  // marge haut du groupbox
-      ofsGBB=8;  // marge bas du groupbox
+      ofsGBB=8;   // marge bas du groupbox
 
 var comptLoc,l,h,lim,him,hfen,mini,maxi,vmax : integer;
     typDest : typ;
@@ -591,10 +602,10 @@ begin
     exit;
   end;
 
-  if (typDest=fen) or (typDest=gb) then ComptLoc:=compteur;
+  if (typDest=fen) or (typDest=gb) then ComptLoc:=compteur;   // compteur est une variable globale qui désigne le type de compteur de la grande fenetre de compteur
   if typDest=im then ComptLoc:=formconfig.ComboBoxCompt.ItemIndex+1;
 
-  case ComptLoc of
+  case ComptLoc of      // 1=compteur 1, 2=compteur 2  , 3=compteur tachro
     1 :
     begin
       mini:=-135;
@@ -679,8 +690,18 @@ begin
       paramCompt.imgH:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
       Img.picture.Bitmap.Width:=lim;
       Img.picture.Bitmap.Height:=him; //HautCompt-HautTb-ofsGBH-ofsGBB;
-      paramcompt.redX:=Lim/l;
-      paramcompt.redY:=Him/h;
+
+      if ComptLoc=1 then
+      begin
+        paramcompt.redX:=Lim/l/RedFonte;   // pour le compteur 1; il faut intégrer le facteur de réduction
+        paramcompt.redY:=Him/h/RedFonte;
+      end
+      else
+      begin
+        paramcompt.redX:=Lim/l;
+        paramcompt.redY:=Him/h;
+      end;
+
       paramcompt.ImgL:=Lim;
       paramcompt.ImgH:=Him;
       tb.Top:=him+ofsGBH;    // position de la trackbar
@@ -711,8 +732,17 @@ begin
   if typDest=fen then
   begin
     formCompteur[i].ImageCompteur.width:=Lim;
-    Scompteur[i].paramcompt.redX:=Lim/l;
-    Scompteur[i].paramcompt.redY:=Him/h;
+    if ComptLoc=1 then
+    begin
+      Scompteur[i].paramcompt.redX:=Lim/l/RedFonte;
+      Scompteur[i].paramcompt.redY:=Him/h/RedFonte;
+    end
+    else
+    begin
+      Scompteur[i].paramcompt.redX:=Lim/l;
+      Scompteur[i].paramcompt.redY:=Him/h;
+    end;
+
     Scompteur[i].paramcompt.ImgL:=Lim;
     Scompteur[i].paramcompt.ImgH:=Him;
     case compteur of
@@ -803,8 +833,17 @@ begin
     Image.Width:=lim;
     Image.Height:=him;
 
-    paramcomptIm.redX:=Lim/l;
-    paramcomptIm.redY:=Him/h;
+    if ComptLoc=1 then
+    begin
+      paramcomptIm.redX:=Lim/l/RedFonte;
+      paramcomptIm.redY:=Him/h/RedFonte;
+    end
+    else
+    begin
+      paramcomptIm.redX:=Lim/l;
+      paramcomptIm.redY:=Him/h;
+    end;
+
     paramcomptIm.ImgL:=Lim;
     paramcomptIm.ImgH:=Him;
     i:=formconfig.ComboBoxCompt.Itemindex+1;

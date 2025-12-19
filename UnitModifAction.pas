@@ -74,19 +74,16 @@ type
     RadioEtatSignal: TRadioGroup;
     SpinEditEtatop: TSpinEdit;
     LabelEtatOp: TLabel;
-    PopupMenuL: TPopupMenu;
-    Monter1: TMenuItem;
-    Descendre1: TMenuItem;
-    N1: TMenuItem;
-    Supprimer1: TMenuItem;
-    N2: TMenuItem;
-    outdployer1: TMenuItem;
-    outcontracter1: TMenuItem;
     ButtonFonction: TButton;
     ButtonVoirFonc: TButton;
     LabelInfoFonc: TLabel;
     Label2InfoFonction: TLabel;
     SpeedButton1: TSpeedButton;
+    PopupMenuOP: TPopupMenu;
+    Monteropration1: TMenuItem;
+    Descendreopration1: TMenuItem;
+    N1: TMenuItem;
+    Supprimeropration1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure ListBoxOperDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -142,6 +139,9 @@ type
     procedure ButtonFonctionClick(Sender: TObject);
     procedure ButtonVoirFoncClick(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
+    procedure Supprimeropration1Click(Sender: TObject);
+    procedure Monteropration1Click(Sender: TObject);
+    procedure Descendreopration1Click(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -1212,12 +1212,12 @@ begin
   supprime_operation;
 end;
 
-procedure TFormModifAction.SpinButton1UpClick(Sender: TObject);
+procedure monte_operation;
 var i,indexSrc,idBD,idOp,no : integer;
     top : Toperation;
     s : string;
 begin
- indexSrc:=listboxOperations.ItemIndex;
+  indexSrc:=FormModifAction.listboxOperations.ItemIndex;
   if indexSrc<0 then exit;
   idBD:=ligneClicAct+1;
   idop:=indexSrc+1;
@@ -1231,8 +1231,8 @@ begin
   // réencoder la ligne
   s:=encode_actions(idBD);
   // maj combobox
-  ComboBoxActions.Items[idBD-1]:=s;
-  ComboBoxActions.ItemIndex:=idbd-1;
+  FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
+  FormModifAction.ComboBoxActions.ItemIndex:=idbd-1;
 
   // maj opérations
   with FormModifAction.ListBoxOperations do
@@ -1242,19 +1242,24 @@ begin
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       s:=affecte_operation(no);
-      ListBoxOperations.Items.add(s);
+      FormModifAction.ListBoxOperations.Items.add(s);
       itemHeight:=16;
     end;
     ItemIndex:=indexSrc-1;
   end;
 end;
 
-procedure TFormModifAction.SpinButton1DownClick(Sender: TObject);
-var no,i,indexSrc,idBD,idOp : integer;
+procedure TFormModifAction.SpinButton1UpClick(Sender: TObject);
+begin
+  monte_operation;
+end;
+
+Procedure Descend_operation;
+ var no,i,indexSrc,idBD,idOp : integer;
     top : Toperation;
     s : string;
 begin
-  indexSrc:=listboxOperations.ItemIndex;
+  indexSrc:=FormModifAction.listboxOperations.ItemIndex;
   if indexSrc<0 then exit;
   idBD:=ligneClicAct+1;
   idop:=indexSrc+1;
@@ -1269,8 +1274,8 @@ begin
   // réencoder la ligne
   s:=encode_actions(idBD);
   // maj combobox
-  ComboBoxActions.Items[idBD-1]:=s;
-  ComboBoxActions.ItemIndex:=idbd-1;
+  FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
+  FormModifAction.ComboBoxActions.ItemIndex:=idbd-1;
 
   // maj opérations
   with FormModifAction.ListBoxOperations do
@@ -1280,13 +1285,18 @@ begin
     begin
       no:=Tablo_Action[idBD].tabloOp[i].numoperation;
       s:=affecte_operation(no);
-      ListBoxOperations.Items.Add(s);
+      FormModifAction.ListBoxOperations.Items.Add(s);
       itemHeight:=16;
     end;
 
     ItemIndex:=indexSrc+1;
   end;
   Config_Modifie:=true;
+end;
+
+procedure TFormModifAction.SpinButton1DownClick(Sender: TObject);
+begin
+  Descend_operation;
 end;
 
 procedure maj_combocactions(i : integer);
@@ -1862,6 +1872,21 @@ end;
 procedure TFormModifAction.SpeedButton1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TFormModifAction.Supprimeropration1Click(Sender: TObject);
+begin
+  supprime_operation;
+end;
+
+procedure TFormModifAction.Monteropration1Click(Sender: TObject);
+begin
+  monte_operation;
+end;
+
+procedure TFormModifAction.Descendreopration1Click(Sender: TObject);
+begin
+  descend_operation;
 end;
 
 end.

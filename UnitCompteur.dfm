@@ -1,6 +1,6 @@
 object FormCompteur: TFormCompteur
-  Left = 550
-  Top = 218
+  Left = 614
+  Top = 296
   Width = 258
   Height = 262
   BorderStyle = bsSizeToolWin

@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '10.78'; // sert à la comparaison de la version publiée
+VersionSC = '10.8'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -463,16 +463,21 @@ begin
     closefile(fichier);
     if DebugVV then affiche('Fermeture du fichier d''échange',clYellow);
 
-    if trouve_version and trouve_zip then
+    //if trouve_version and trouve_zip then
+    if trouve_version then
     begin
       //----------------------------------------------------
       //isoler le nom du fichier
       i:=length(s3);
-      repeat
-       dec(i);
-        locZip:=s3[i]='/';
-      until (i=1) or LocZip;
-      nomfichier:=copy(s3,i+1,length(s3)-i);
+      if i<>0 then
+      begin
+        repeat
+         dec(i);
+          locZip:=s3[i]='/';
+        until (i=1) or LocZip;
+        nomfichier:=copy(s3,i+1,length(s3)-i);
+      end
+      else nomfichier:='';
 
       //affiche(nombre_tel,cllime);
       //Affiche(s3,clLime);
@@ -495,6 +500,7 @@ begin
         FormVersion.Top:=10;
         FormVersion.Left:=10;
         FormVersion.show;
+
         s:='Vous utilisez la version '+versionSC+SousVersion+' mais il existe la version '+Version_p+SV_publie;
         if nComm>0 then
         begin
@@ -503,6 +509,14 @@ begin
           Aff(' ');
           for i:=1 to ncomm do aff(comm[i]);
         end;
+
+        if not(trouve_zip) then
+        begin
+          ShowMessage('Pas de version téléchargeable');
+          result:=0;
+          exit;
+        end;
+
         if MessageDlg(s+#13+'Voulez-vous la télécharger, l''installer et l''exécuter?',mtConfirmation,[mbYes,mbNo],0)=mrYes then
         begin
           // récupérer depuis la variable d'environnement windows USERPROFILE le repertoire de la session ouverte

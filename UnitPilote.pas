@@ -129,7 +129,7 @@ JauneCliRalen60LEB=19;
 
 var
   FormPilote: TFormPilote;
-  EtatFeuPilote : word;
+  EtatSignalPilote : word;
   AdrPilote : integer;
   tableLEB : array[1..41,1..19] of
      record
@@ -150,29 +150,29 @@ procedure dessine_signal_pilote;
 var i,ancienEtat : integer;
     Vcanvas : Tcanvas;
 begin
-  i:=Index_Signal(AdrPilote);    // adresse du feu d'origine
+  i:=Index_Signal(AdrPilote);    // adresse du signal d'origine
   if i<>0 then
 
   //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
-  EtatFeuPilote:=Signaux[0].EtatSignal;
+  EtatSignalPilote:=Signaux[0].EtatSignal;
   AncienEtat:=Signaux[0].ancienEtat;
   Vcanvas:=FormPilote.ImagePilote.picture.bitmap.Canvas;
 
   case Signaux[i].aspect of
   // feux de signalisation
-   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
-   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatFeupilote,1,i);
-   4 : dessine_signal4(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   5 : dessine_signal5(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   7 : dessine_signal7(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-   9 : dessine_signal9(VCanvas,0,0,1,1,EtatFeupilote,1,i);
-  20 : dessine_signal20(VCanvas,0,0,1,1,EtatFeupilote,1,Signaux[i].adresse);
+   2 : dessine_signal2(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
+   3 : dessine_signal3(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
+   4 : dessine_signal4(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   5 : dessine_signal5(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   7 : dessine_signal7(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+   9 : dessine_signal9(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
+  20 : dessine_signal20(VCanvas,0,0,1,1,EtatSignalPilote,1,Signaux[i].adresse);
   // indicateurs de direction
-  12 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,2);
-  13 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,3);
-  14 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,4);
-  15 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,5);
-  16 : dessine_dirN(VCanvas,0,0,1,1,EtatFeupilote,1,6);
+  12 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,2);
+  13 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,3);
+  14 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,4);
+  15 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,5);
+  16 : dessine_dirN(VCanvas,0,0,1,1,EtatSignalPilote,1,6);
   end;
 end;
 
