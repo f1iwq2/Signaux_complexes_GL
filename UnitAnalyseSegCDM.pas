@@ -73,7 +73,6 @@ type
     procedure ImageCDMMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure ButtonAnimeClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure ImageCDMMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ImageCDMMouseUp(Sender: TObject; Button: TMouseButton;
@@ -220,6 +219,8 @@ function isole_valeur(var s : string; chercher : string;afficheErr : boolean) : 
 var i : integer;
     serr : string;
 begin
+  chercher:=lowercase(chercher);
+  s:=lowercase(s);
   i:=pos(chercher,s);
   if i=0 then
   begin
@@ -235,8 +236,8 @@ begin
   delete(s,1,i+length(chercher)-1);
 
   repeat
-    if s[1]=' ' then delete(s,1,1);
-  until (s[1]<>' ') or (length(s)=0);
+    if (s[1]=' ') or (s[1]='=') then delete(s,1,1);
+  until ((s[1]<>' ') and (s[1]<>'=')) or (length(s)=0);
 
   i:=pos(' ',s);
   if i<>0 then isole_valeur:=copy(s,1,i-1) else isole_valeur:=s;
@@ -301,7 +302,28 @@ begin
   Segment[nSeg-1].periph[nperiph-1].location:=i;
 
   s:=AnsiLowerCase(lignes[nligne]);
-  // ne pas faire inc(nligne) car on va regarder la ligne suivante en indiçant en +1
+  inc(nligne);
+
+  {non utilisé mais doit être pris en compte
+   Actionneurs Tickets horaire ou gestionnaire de voie unique,
+   tickets = le type de l'actionneur, soit :
+    0 = ACT_STD, Actionneur standard.
+    1 = ACT_MANO, Actionneur manuel, non actionné par les trains mais par un clic souris.
+    2 = ACT_VUH Actionneur Voie Unique ou Tickets Horaire, actionné dans les deux sens par les trains. Ils vont toujours par paire.
+    Twined = RefIndex de l'actionneur associé en cas d'un ACT_VUH.
+  }
+  s2:=isole_valeur(s,'tckets',false);  // nouveau
+  if s2<>'' then
+  begin
+    s:=AnsiLowerCase(lignes[nligne]);
+    inc(nLigne);
+  end;
+  s2:=isole_valeur(s,'tickets',false);  // nouveau Tickets = 0 Twined = 0
+  if s2<>'' then
+  begin
+    s:=AnsiLowerCase(lignes[nligne]);
+    inc(nLigne);
+  end;
 
   s2:=isole_valeur(s,'address',true);
   val(s2,i,erreur);
@@ -325,7 +347,7 @@ begin
   val(s2,i,erreur);
   Segment[nSeg-1].periph[nperiph-1].status:=i;
 
-  // peut être suivi de 'On device port' si une adresse de détecteur ou d'actionneur se trouve sur l'appareil de voie
+  // peut être suivi de 'on device port' si une adresse de détecteur ou d'actionneur se trouve sur l'appareil de voie
   Segment[nSeg-1].periph[nperiph-1].OnDevicePort:=-1; // marqueur d'invalidité
   s:=AnsiLowerCase(lignes[nligne+1]);
   if pos('on device port',s)<>0 then
@@ -342,6 +364,7 @@ begin
   end;
 
 end;
+
 
 procedure compile_inter;
 var i,erreur : integer;
@@ -370,6 +393,7 @@ begin
   s2:=isole_valeur(s,'type:',true);
   Segment[nSeg-1].inter[nInter-1].typ:=s2;
 
+  // nouvelle ligne:   Mirror:                         Z=       1416
   s:=AnsiLowerCase(lignes[nligne]);
   inc(nLigne);
   s2:=isole_valeur(s,'z=',true);
@@ -4328,7 +4352,7 @@ begin
     s:=lowercase(Formprinc.fenRich.Lines[0]);
     if pos('module',s)=0 then
     begin
-      Affiche('Pas de module CDM détecté',clred);
+      Affiche('Pas de module CDM détecté - Abandon',clred);
       exit;
     end;
   end
@@ -4387,7 +4411,12 @@ begin
     end;
     inc(nligne);
   until (nligne>nombre);
-  Affiche('Fin de la compilation des segments',cllime);
+  if nseg<>0 then Affiche('Fin de la compilation des segments',cllime)
+    else
+    begin
+      Affiche('Aucun segment trouvé - Abandon',clred);
+      exit;
+    end;
 
   // balayer les segments pour transformer les bjd en créant 1 croisement et 4 aiguillages dans les segments, puis on supprime la bjd des segments
   i:=0;
@@ -5555,18 +5584,8 @@ begin
     sleep(40);
     Application.processMessages;
   until x>800;
-
-  //until x>500;
-
-
 end;
 
-
-
-procedure TFormAnalyseCDM.Button1Click(Sender: TObject);
-begin
-  dessine_det(523);
-end;
 
 procedure TFormAnalyseCDM.ImageCDMMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

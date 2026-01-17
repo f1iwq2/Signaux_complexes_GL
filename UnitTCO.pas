@@ -718,7 +718,7 @@ procedure Affiche_temps_arret(IdTrain,tps : integer);
 procedure titre_fenetre(indexTCO : integer);
 function IsVoieDroite(i : integer) : boolean;
 function trouve_canton(el1 : integer;tel1 : tequipement;el2 : integer;tel2 : tequipement) : integer;
-procedure origine_canton(var x,y : integer);
+procedure origine_canton(idt : integer;var x,y : integer);
 procedure Supprimer_TCO(TcoS : integer);
 procedure toggle_bandeau(indexTCO : integer);
 function sens_train_canton(AdrTrain,Idcanton : integer) : integer;
@@ -827,8 +827,6 @@ begin
   end
   else result:=0;
 end;
-
-
 
 // renvoie l'index de canton encadré par les 2 éléments el1 et el2
 // il faudrait faire par détecteur.
@@ -10277,7 +10275,8 @@ begin
       s:=canton[i].nom;
       if s<>'' then
       begin
-        font.Size:=round(RedFonte*((Larg*10) div 30)+1);             //((LargCell*5) div 29);
+        font.Size:=round(RedFonte*((Larg*10) div 30)+1);         //((LargCell*5) div 29);
+
         Brush.Color:=coul;
         dy:=TextWidth(s) div 2;
         dx:=TextHeight(s) div 2;
@@ -10336,11 +10335,12 @@ begin
     s:=canton[i].NomTrain;
     l:=TextWidth(s);
     Brush.Color:=coul;
-    if l<dy-yt then
+    //if l<dy-yt then
+    if yt+l<yf then
     {$IF CompilerVersion >= 28.0}
     begin
-      font.orientation:=900;
-      Textout(xi,yi,s);
+      font.orientation:=-900;
+      Textout(xt,yt,s);
     end;
     {$ELSE}
     AffTexteIncliBordeTexture(PCanvasTCO[indexTCO],xt,yt,
@@ -10454,6 +10454,7 @@ end;
 procedure dessin_canton(indexTCO : integer;Canvas : Tcanvas;x,y,mode : integer); overload;
 begin
   if PcanvasTCO[indexTCO]=nil then exit;
+  origine_canton(indexTCO,x,y);  // revenir au point d'origine du canton
   if isCantonV(indexTCO,x,y) then
   begin
     dessin_cantonV(indexTCO,Canvas,x,y,mode);
@@ -11363,10 +11364,11 @@ begin
    end;
 end;
 
-procedure origine_canton(var x,y : integer);
+// renvoie les coordonnées X Y d'origine du canton de la cellule x,y du TCO idt du canton
+procedure origine_canton(idt : integer;var x,y : integer);
 var Bimage : integer;
 begin
-  Bimage:=tco[indexTCOCourant,x,y].BImage;
+  Bimage:=tco[idt,x,y].BImage;
   if isCantonH(Bimage) then
   begin
     x:=x-(Bimage-Id_cantonH);    // revenir à la coordonnée X du début du canton
@@ -11419,8 +11421,7 @@ begin
   // affiche d'abord l'icone de la cellule et colore la voie si zone ou détecteur actionnée selon valeur mode
   dessine_icone(indexTCO,PCanvasTCO[indexTCO],Bimage,X,Y,mode);
   // dessin du train sur le canton
-    if (Bimage=Id_CantonH) or (Bimage=Id_CantonV) then dessin_canton(indexTCO,PCanvasTCO[indexTCO],x,y,0);
-
+  if (Bimage=Id_CantonH) or (Bimage=Id_CantonV) then dessin_canton(indexTCO,PCanvasTCO[indexTCO],x,y,0);
 
   if LargCell>24 then
   begin
@@ -12275,7 +12276,7 @@ end;
 // sinon mode = couleur du train
 procedure affiche_trajet(indexTCO,train,AdrTrain,ir,mode : integer);
 var i,sx,sy,x,y,ax,ay,Bimage,adresse,IdCanton,IdTrain,AncTrain,elPrec,
-    DernierDet,sens : integer;
+    DernierDet : integer;
     TypePrec: tEquipement;
     cant : boolean;
 begin
@@ -14616,7 +14617,7 @@ begin
     if isCantonH(tco[indexTCO,colonne,y].BImage) then
     begin
       yc:=y;xc:=colonne;
-      origine_canton(xc,yc);
+      origine_canton(indexTCO,xc,yc);
       n:=tco[indexTCO,xc,yc].NumCanton;
       if n<>0 then
       begin
@@ -14714,7 +14715,7 @@ begin
     if isCantonV(tco[indexTCO,x,ligne].BImage) then
     begin
       xc:=x;yc:=ligne;
-      origine_canton(xc,yc);
+      origine_canton(indexTCO,xc,yc);
       n:=tco[indexTCO,xc,yc].NumCanton;
       if n<>0 then
       begin
@@ -14845,7 +14846,7 @@ begin
             begin
               //Affiche('xy='+IntToSTR(x)+','+intToSTR(y)+' Bimage='+intToSTR(Bimage),clYellow);
               Xcanton:=x;Ycanton:=y;
-              origine_canton(Xcanton,Ycanton);
+              origine_canton(indexTCO,Xcanton,Ycanton);
               if xcanton=0 then  // cas d'un canton supprimé
               begin
                 // reconstituer le canton
@@ -15504,7 +15505,7 @@ end;
 
 procedure end_Drag(icone,x,y : integer;Sender, Target: TObject);
 var s : string;
-indexTCO,i,xclic,Yclic,bim,nc,maxi,libre : integer;
+indexTCO,i,xclic,Yclic,bim : integer;
 begin
   if not(Target is TImage) then exit;
   s:=(Target as TImage).Name;
@@ -18030,17 +18031,16 @@ begin
     AdrPilote:=adresse;
     i:=Index_Signal(adresse);
     if i=0 then begin doubleclic:=false;exit;end;
+    Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
+
     with formPilote do
     begin
-      show;
       ImagePilote.Parent:=FormPilote;
       ImagePilote.Picture.Bitmap.TransparentMode:=tmAuto;
       ImagePilote.Picture.Bitmap.TransparentColor:=clblue;
       ImagePilote.Transparent:=true;
 
-      ImagePilote.Picture.BitMap:=Signaux[i].Img.Picture.Bitmap;
       LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(Adresse);
-      Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
 
       LabelNbFeux.Visible:=False;
       EditNbreFeux.Visible:=false;
@@ -18064,6 +18064,7 @@ begin
         GroupBox1.Visible:=true;
         if (Signaux[i].aspect<20) then GroupBox2.Visible:=true else GroupBox2.Visible:=false;
       end;
+      show;
     end;
   end;
   //clicsouris:=false;
@@ -18308,7 +18309,7 @@ begin
   begin
     FontDialog1.Font.Name:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].Fonte;
     FontDialog1.Font.Color:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].CoulFonte;
-    FontDialog1.Font.Size:=round(RedFonte*tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].taillefonte);
+    FontDialog1.Font.Size:=round(tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].taillefonte);
 
     fs:=[];
     s:=tco[indextco,XclicCell[indexTCO],YclicCell[indexTCO]].FontStyle;
@@ -18659,7 +18660,7 @@ begin
     if isCantonV(tco[indexTCO,x,ligne_supprime].BImage) then
     begin
       xc:=x;yc:=ligne_Supprime;
-      origine_canton(xc,yc);
+      origine_canton(indexTCO,xc,yc);
       n:=tco[indexTCO,xc,yc].NumCanton;
       if n<>0 then
       begin
@@ -18780,7 +18781,7 @@ begin
     if isCantonH(tco[indexTCO,colonne_supprime,y].BImage) then
     begin
       yc:=y;xc:=colonne_Supprime;
-      origine_canton(xc,yc);
+      origine_canton(indexTCO,xc,yc);
       n:=tco[indexTCO,xc,yc].NumCanton;
       if n<>0 then
       begin
@@ -19654,7 +19655,7 @@ begin
     y:=YClicCell[indexTCOCourant];
     if isCanton(TCO[indexTcoCourant,x,y].BImage) then
     begin
-      origine_canton(x,y);
+      origine_canton(indexTCOcourant,x,y);
       if (x<>0) and (y<>0) then
       begin
         idc:=Index_Canton_numero(tco[indexTCOcourant,x,y].NumCanton);    //index canton
@@ -19666,10 +19667,6 @@ begin
 end;
 
 procedure TFormTCO.Optiondesroutes1Click(Sender: TObject);
-var GMode,l2,h2 : integer;
-    XFormScale,XFormRot,XFormOld,XFormXLat,xform  : TXForm;
-    angle,Zoom : single;
-    recta : trect;
 begin
  formRoute.Show;
  { angle:=5;
@@ -19810,7 +19807,7 @@ begin
 
   Affiche('Suppression du TCO '+intToSTR(Tcos),clOrange);
 
-  // supprimer les cantons
+  // supprimer les cantons du TCO avant de supprimer le TCO
   for y:=1 to NbreCellY[tcos] do
     for x:=1 to NbreCellX[tcos] do
     begin

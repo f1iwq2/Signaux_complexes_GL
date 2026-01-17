@@ -1,6 +1,6 @@
 object FormAnalyseCDM: TFormAnalyseCDM
-  Left = 206
-  Top = 145
+  Left = 210
+  Top = 94
   AutoScroll = False
   Caption = 'Fen'#234'tre r'#233'seau CDM'
   ClientHeight = 596
@@ -62,7 +62,7 @@ object FormAnalyseCDM: TFormAnalyseCDM
   object Label5: TLabel
     Left = 1005
     Top = 528
-    Width = 24
+    Width = 12
     Height = 13
     Anchors = [akTop, akRight]
     Caption = '+ -'

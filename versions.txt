@@ -360,7 +360,11 @@ version 10.78 : Correction affichage aiguillages dans l'écran de config des vers
 version 10.79 : Prise en compte du facteur réduction affichage windows pour les compteurs.
 version 10.8  : Amélioration de la création des compteurs de vitesse en mode CDM rail
                 et de l'affectation des trains dans les cantons.
-				Corrections diverses.
+version 10.81 : Prise en compte des nouveaux champs d'exportation de CDM pour l'importation du réseau.
+version 10.82 : Ajout d'une barre de zoom pour la fenetre des signaux.
+                Ajout commande fonctions F trains pour la télécommande par serveur
+                Corrections diverses
+
 
 
 

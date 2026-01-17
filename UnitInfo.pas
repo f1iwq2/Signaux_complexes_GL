@@ -1,6 +1,6 @@
 unit UnitInfo;
 
-// afiche une info dans le TCO
+// affiche une info dans le TCO
 
 interface
 
@@ -40,7 +40,7 @@ end;
 
 procedure TFormInfo.FormActivate(Sender: TObject);
 begin
-  TickInfo:=5;
+  TickInfo:=5;  // temps de fermeture de la fenetre pour le timer
 end;
 
 procedure TFormInfo.FormCreate(Sender: TObject);

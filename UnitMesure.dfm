@@ -16,10 +16,13 @@ object FormMesure: TFormMesure
   TextHeight = 13
   object Label1: TLabel
     Left = 56
-    Top = 16
-    Width = 272
-    Height = 13
-    Caption = 'S'#233'lection d'#39'un train plac'#233' sur le TCO pour son '#233'talonnage'
+    Top = 0
+    Width = 289
+    Height = 29
+    Caption = 
+      'S'#233'lection d'#39'un train plac'#233' sur le TCO pour son '#233'talonnage. Le pa' +
+      'rcours doit '#234'tre boucl'#233'.'
+    WordWrap = True
   end
   object LabelEtat: TLabel
     Left = 24

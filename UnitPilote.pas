@@ -132,7 +132,7 @@ var
   EtatSignalPilote : word;
   AdrPilote : integer;
   tableLEB : array[1..41,1..19] of
-     record
+     record          // pour le décodeur LEB :
        offset,       // offset en mode linéaire
        sortie,       // numéro de sortie en mode linéaire
        code          // code de pilotage en mode binaire
@@ -153,13 +153,11 @@ begin
   i:=Index_Signal(AdrPilote);    // adresse du signal d'origine
   if i<>0 then
 
-  //ImagePilote.Picture.Bitmap:=FormPilote.ImagePilote.picture.bitmap;
   EtatSignalPilote:=Signaux[0].EtatSignal;
   AncienEtat:=Signaux[0].ancienEtat;
   Vcanvas:=FormPilote.ImagePilote.picture.bitmap.Canvas;
 
   case Signaux[i].aspect of
-  // feux de signalisation
    2 : dessine_signal2(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
    3 : dessine_signal3(Vcanvas,0,0,1,1,EtatSignalPilote,1,i);
    4 : dessine_signal4(VCanvas,0,0,1,1,EtatSignalPilote,1,i);
@@ -426,7 +424,8 @@ if ord(Key) = VK_RETURN then
 end;
 
 procedure TFormPilote.FormActivate(Sender: TObject);
-var n,i,d : integer;
+var n,i,d,l,h : integer;
+    b : tBitmap;
 begin
   if fermeSC then exit;
   // mise à jour du champ décodeur
@@ -497,12 +496,16 @@ begin
     Picture.Bitmap.TransparentMode:=tmAuto;
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
-    Picture.BitMap:=Signaux[i].Img.Picture.Bitmap;
-    //left:=groupBox1.width+50;
+    picture.Bitmap.canvas.Brush.Color:=clBtnFace;
+    picture.Bitmap.Canvas.Rectangle(0,0,width,height);
+
+    b:=Select_dessin_Signal(n,l,h);
+    Picture.BitMap:=b;
   end;
 
   LabelTitrePilote.Caption:='Pilotage du signal '+intToSTR(AdrPilote);
   Signaux[0].EtatSignal:=Signaux[i].EtatSignal;
+  dessine_signal_pilote;
 
   if isDirectionnel(i) then
   begin
@@ -578,6 +581,7 @@ end;
 
 // initialisation de l'unité
 begin
+  // tableau de pilotage du décodeur LEB
   // les offsets sont incrémentés tous les 2, on alterne les sorties entre droit et dévié ;
   // offset et sortie sont pour le mode linéaire ; code est pour le mode binaire
   // cible 1 vert rouge

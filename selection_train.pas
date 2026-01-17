@@ -590,6 +590,7 @@ begin
   if IdCantonSelect=0 then IdCantonSelect:=AncienIdCantonSelect;
   if affevt then Affiche('FormSelTrain.StringGridTrainsSelectCell col='+intToSTR(ACol)+' lig='+intToSTR(ARow),clYellow);
   if (Arow>nTrains) or (IdCantonSelect<1) then exit;
+
   faire:=false;
   //------------change la sélection du train
   if (Arow>=1) and (ACol<=5) then
@@ -607,7 +608,9 @@ begin
     idAutrecanton:=index_canton_numero(autreCanton);
     if (IdAutrecanton<>0) and (IdAutreCanton<>IdCantonSelect) then
     begin
-      LabelInfo.caption:='Le train '+intToSTR(IndexTrainClic)+' '+trains[IndexTrainClic].nom_train+' est affecté au canton '+intToSTR(AutreCanton);
+      s:='Le train '+intToSTR(IndexTrainClic)+' '+trains[IndexTrainClic].nom_train+' est affecté au canton '+intToSTR(AutreCanton);
+      LabelInfo.caption:=s;
+      StringGridTrains.hint:='Affectation impossible,'+#13+s;
       exit;
     end;
 
@@ -622,6 +625,7 @@ begin
 
       supprime_route_train(indextrainclic);
       StringGridTrains.cells[7,ARow]:='';
+
     end;
 
     if faire then
@@ -657,7 +661,9 @@ begin
         if (canton[IdCantonSelect].sensCirc<>0) then sensLoco:=canton[IdCantonSelect].sensCirc ;
 
         affecte_Train_canton(trains[indexTrainClic].adresse,IdCantonSelect,sensLoco);  // le train affecté contient la route du train razé
-        LabelInfo.caption:='Affectation du train '+intToSTR(IndexTrainClic)+' '+trains[indexTrainClic].nom_train+' au canton '+intToSTR(canton[idcantonSelect].numero);
+        s:='Affectation du train '+intToSTR(IndexTrainClic)+' '+trains[indexTrainClic].nom_train+' au canton '+intToSTR(canton[idcantonSelect].numero);
+        LabelInfo.caption:=s;
+        StringGridTrains.hint:=s;
         maj_signaux(false);
       end;
     end;

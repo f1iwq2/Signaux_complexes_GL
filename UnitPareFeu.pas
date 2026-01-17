@@ -49,7 +49,7 @@ begin
 
   NewRule.Applicationname:=fichier;
   NewRule.Protocol:=NET_FW_IP_PROTOCOL_TCP;
-  NewRule.LocalPorts :='';  //   sans spécif=tous ports
+  NewRule.LocalPorts:='';  //   sans spécif=tous ports
   //NewRule.LocalPorts := '9999';   // '80,443,4520-4533'
   NewRule.Direction:=net_fw_rule_dir_in;
   NewRule.Enabled:=True;

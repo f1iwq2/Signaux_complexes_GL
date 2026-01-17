@@ -16,7 +16,7 @@ object FormClock: TFormClock
   OnResize = FormResize
   DesignSize = (
     234
-    212)
+    211)
   PixelsPerInch = 96
   TextHeight = 13
   object BitBtnMarHor: TBitBtn

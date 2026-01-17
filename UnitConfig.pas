@@ -514,6 +514,8 @@ type
     Label15: TLabel;
     LabeledEditCr: TLabeledEdit;
     LabeledEditT: TLabeledEdit;
+    SpeedButtonLay: TSpeedButton;
+    MenuListesCopier2: TMenuItem;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -816,6 +818,8 @@ type
     procedure EditTempoSigChange(Sender: TObject);
     procedure LabeledEditCrChange(Sender: TObject);
     procedure LabeledEditTChange(Sender: TObject);
+    procedure SpeedButtonLayClick(Sender: TObject);
+    procedure MenuListesCopier2Click(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -931,6 +935,7 @@ Affcompteur_ch='AffCompteur';
 LargCompteur_ch='LargCompteur';
 LargComptC_ch='LargCompteurC';
 HautComptC_ch='HautCompteurC';
+ZoomSignaux_ch='ZoomSignaux';
 VerrouCompteur_ch='VerrouCompteur';
 Echelle_ch='Echelle';
 AffIconeTrCompteur_ch='AffIconeTrCompteur';
@@ -1238,7 +1243,7 @@ begin
 end;
 
 // vérifie si la config de la com série/usb est ok
-// COM7:9600,n,8,1
+// exemple s='COM7:9600,n,8,1'
 function config_com(s : string) : boolean;
 var sa : string;
     i,erreur,vitesse : integer;
@@ -1467,7 +1472,7 @@ begin
     result:='';
     exit;
   end;
-  if affevt then Affiche('Encode_sig_feux('+IntToSTR(i)+') : adresse='+IntToSTR(adresse),clyellow);
+  if affevt then Affiche('Encode_signal('+IntToSTR(i)+') : adresse='+IntToSTR(adresse),clyellow);
 
   s:=IntToSTR(adresse)+',';
   // forme - D=directionnel ajouter 10
@@ -2048,7 +2053,7 @@ begin
 end;
 
 
-// transforme l'action en chaine
+// encode l'action en chaine
 function encode_actions(i : integer) : string;
 var s : string;
     decl,action,Nb,j: integer;
@@ -2121,7 +2126,6 @@ begin
       ActionAffecteMemoire  : s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse)+','+intToSTR(Tablo_Action[i].tabloOP[j].etat);
       ActionIncMemoire: s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse);
       ActionDecMemoire: s:=s+','+intToSTR(Tablo_Action[i].tabloOP[j].adresse);
-
     end;
 
     if j<nb then s:=s+',';
@@ -2223,7 +2227,7 @@ var s: string;
     fichierN : text;
     i,j,n,k : integer;
 begin
-  assignFile(fichierN,NomConfig);
+  assignFile(fichierN,repertoire_SC+'\'+NomConfig);
   rewrite(fichierN);
 
   // entête
@@ -2320,6 +2324,8 @@ begin
   writeln(fichierN,LargCompteur_ch+'=',IntToSTR(LargeurCompteurs));
   writeln(fichierN,LargComptC_ch+'=',IntToSTR(LargComptC));
   writeln(fichierN,HautComptC_ch+'=',IntToSTR(HautComptC));
+
+  writeln(fichierN,ZoomSignaux_ch+'=',FloatToSTRF(RedAffSig,ffFixed,5,1,FormatSettings));
 
   if VerrouilleCompteur then s:='1' else s:='0';
   writeln(fichierN,VerrouCompteur_ch+'=',s);
@@ -2727,7 +2733,7 @@ begin
   end;
 end;
 
-// trier les détecteurs
+// trier les détecteurs et affecte le tableau detecteur[]
 procedure trier_detecteurs;
 var i,j,temp : integer;
 begin
@@ -3128,6 +3134,29 @@ begin
   end;
 end;
 
+// extrait les détecteurs des branches
+procedure compile_detecteurs_des_branches;
+var i,j,id : integer;
+begin
+  id:=0;
+  for i:=1 to NbreBranches do
+  begin
+    j:=1;
+    while not(brancheN[i,j].Adresse=0) do
+    begin
+      if brancheN[i,j].BType=det then
+      begin
+        inc(id);
+        // Affiche('Détecteur '+intToSTR(brancheN[i,j].adresse),clWhite);
+        Adresse_detecteur[id]:=brancheN[i,j].adresse;
+      end;
+      inc(j);
+    end;
+  end;
+  NDetecteurs:=id;
+  trier_detecteurs; // et affecte le tableau detecteurs[]
+end;
+
 // génère les informations calculées
 procedure genere_informations_BD;
 begin
@@ -3137,6 +3166,7 @@ begin
   trier_cantons;
   trier_signaux;
   compile_id_routes;
+  compile_detecteurs_des_branches;
 end;
 
 procedure lit_config;
@@ -4472,7 +4502,7 @@ const LessThanValue=-1;
         while s[1]=' ' do
         begin
           delete(s,1,1);
-        end;                                   
+        end;
         if ((s[1]='-') or (s[1]='}')) and not bug then begin routePref[j][i].typ:=det;routePref[j][i].pos:=0;end
         else
         begin
@@ -5884,6 +5914,16 @@ const LessThanValue=-1;
         val(s,HautComptC,erreur);
       end;
 
+      sa:=uppercase(ZoomSignaux_ch)+'=';
+      i:=pos(sa,s);
+      if i=1 then
+      begin
+        inc(nv);
+        delete(s,i,length(sa));
+        val(s,RedAffSig,erreur);
+      end;
+
+
       sa:=uppercase(AffCompteur_ch)+'=';
       i:=pos(sa,s);
       if i=1 then
@@ -6069,8 +6109,8 @@ const LessThanValue=-1;
       begin
         inc(nv);
         trouve_lay:=true;
-        delete(s,i,length(sa));
-        lay:=s;
+        delete(sOrigine,i,length(sa));
+        lay:=sOrigine;
       end;
 
       sa:=uppercase(NomModuleCDM_ch)+'=';
@@ -6396,6 +6436,7 @@ begin
     Aiguillage[i].EtatTJD:=4;
     Aiguillage[i].vitesse:=0;
   end;
+  // initialisation des détecteurs
   for i:=1 to NbMaxDet do
   begin
     Detecteur[i].etat:=false;
@@ -6403,12 +6444,16 @@ begin
     Detecteur[i].AdrTrain:=0;
     Detecteur[i].tempo0:=0;
     Detecteur[i].IndexTrainRoulant:=0;
+    Detecteur[i].AdrTrainRes:=0;
+    Detecteur[i].longueur:=0;
+    Detecteur[i].distArret:=0;
+    Detecteur[i].ModeArret:=0;
+    Adresse_detecteur[i]:=0;
     Ancien_detecteur[i]:=false;
   end;
 
-  GetDir(0,s);
   Affiche('Lecture du fichier de configuration du répertoire',clYellow);
-  Affiche(s,clyellow);
+  Affiche(repertoire_SC,clyellow);
 
   try
     assignFile(fichier,NomConfig);
@@ -7431,16 +7476,16 @@ begin
     LabelValeur.caption:='';
     LabelVcms.Caption:='';
   end;
-
 end;
 
+// index = index du train
 procedure clicListeTrains(index : integer);
 var s : string;
     i,t : integer;
     r : single;
 begin
   if affevt then Affiche('clicListeTrains '+intToSTR(index),clyellow);
-  if index<1 then exit;
+  if index<0 then exit;
   if Trains[index].nom_train='' then exit;
   clicListe:=true;
 
@@ -7455,9 +7500,6 @@ begin
     else s:=intToSTR(i)+' routes';
     end;
     ButtonRdt.Caption:=s;
-
-    ListBoxTrains.ItemIndex:=index-1;
-    ListBoxTrains.selected[index-1]:=true;
 
     editNomTrain.text:=Trains[index].nom_train;
     LabelTitreTrain.Caption:=Trains[index].nom_train;
@@ -7559,6 +7601,7 @@ begin
 
   {$IF CompilerVersion >= 28.0}
   // composants à repasser en style de base car on change la couleur de fond
+
   EditP1.StyleName:='Windows';
   EditP2.StyleName:='Windows';
   EditP3.StyleName:='Windows';
@@ -7583,6 +7626,10 @@ begin
     end;
   end;
   {$IFEND}
+
+  MenuListesCopier2.Visible:=false;  // coller liste dans la listbox des signaux est neutralisé, crée des problemes pour les structures de signaux
+  ComboBoxEchelle.hint:='L''échelle est utilisée pour le calcul des vitesses des trains'+#13+
+                        'ainsi que pour les distances d''arrêt';
 
   editAdrIPCDM.Hint:='Adresse IP du PC sur lequel CDM rail s''exécute'+#13+'ou 127.0.0.1 pour indiquer ce pc';
   ValueListEditor.Visible:=true;
@@ -8760,6 +8807,7 @@ begin
 
   if clicproprietesSig then clicListeSignal(IndexSignalClic);
   clicproprietesSig:=false;
+  
   if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
   clicproprietesTrains:=false;
 
@@ -9328,10 +9376,9 @@ begin
 end;
 
 
-
 // mise à jour des champs du signal d'après le tableau signaux
 Procedure aff_champs_signaux(index : integer);
-var j,l,d,p,k,nc,decodeur : integer;
+var j,l,d,p,k,nc,decodeur,lIcone,hIcone : integer;
     s : string;
 begin
   if Affevt then affiche('Aff_champs_sig_feux('+intToSTR(index)+')',clyellow);
@@ -9344,7 +9391,7 @@ begin
     Picture.Bitmap.TransparentMode:=tmAuto;
     Picture.Bitmap.TransparentColor:=clblue;
     Transparent:=true;
-    picture.Bitmap:=Select_dessin_Signal(Signaux[index].aspect);
+    picture.Bitmap:=Select_dessin_Signal(Signaux[index].aspect,lIcone,hIcone);
   end;
 
   if Signaux[index].contrevoie then inverse_image(formConfig.ImageSignal,Formprinc.ImageSignal20);
@@ -9434,26 +9481,26 @@ begin
   // affiche ou non les checkbox en fonction de l'aspect
   if (((d=2) or (d>=5)) and (d<10)) or (d=20) then
   begin
-    checkBoxFB.Visible:=true;
+    checkBoxFB.Visible:=true;   // ne pas afficher checkbox feu blanc
     Label69.Visible:=true;
     MemoBlanc.Visible:=true;
   end
   else
   begin
-    checkBoxFB.Visible:=false;
+    checkBoxFB.Visible:=false;  // ne pas afficher checkbox feu blanc
     Label69.Visible:=false;
     MemoBlanc.Visible:=false;
   end;
 
   if d>2 then
   begin
-    checkFVC.Visible:=true;
-    checkFRC.Visible:=true;
+    checkFVC.Visible:=true;     // afficher checkbox feu vert clignotant
+    checkFRC.Visible:=true;     // afficher checkbox feu rouge clignotant
   end
   else
   begin
-    checkFVC.Visible:=false;
-    checkFRC.Visible:=false;
+    checkFVC.Visible:=false;    // ne pas afficher checkbox feu vert clignotant
+    checkFRC.Visible:=false;    // na pas afficher checkbox feu rouge clignotant
   end;
 
   if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
@@ -10112,6 +10159,7 @@ begin
   formconfig.ListBoxAig.selected[ligneclicAig]:=true;
 end;
 
+// vitesse spécifique franchissement aiguillage en position déviée
 procedure vitesse_spec;
 var s : string;
     AdrAig,erreur,index,v : integer;
@@ -10167,6 +10215,7 @@ begin
   formconfig.ListBoxAig.selected[ligneclicAig]:=true;
 end;
 
+// vérifie la cohérence entre le décodeur et la cible de signal (aspect)
 function verif_dec_sig(aff : boolean) : boolean;
 var Adr,i,dec,aspect,indexAspect : integer;
 begin
@@ -10660,7 +10709,7 @@ begin
 end;
 
 procedure TFormConfig.ComboBoxAspChange(Sender: TObject);
-var indexTCO,x,y,i,index,aspect,adresseFeu : integer;
+var indexTCO,x,y,i,index,aspect,adresseSig,lIcone,hIcone : integer;
     s : string;
     bm :tbitmap;
 begin
@@ -10680,7 +10729,7 @@ begin
   11 : aspect:=20;
   else aspect:=i+6;
   end;
-  index:=ligneClicSig+1;  // index du feu
+  index:=ligneClicSig+1;  // index du signal
   if index<1 then
   begin
     ComboBoxAsp.ItemIndex:=-1;
@@ -10702,8 +10751,8 @@ begin
 
   ListBoxSig.Selected[ligneClicSig]:=true;
 
-  // change l'image du feu dans la feuille graphique principale
-  bm:=Select_dessin_Signal(Signaux[index].aspect);
+  // change l'image du signal dans la feuille graphique principale
+  bm:=Select_dessin_Signal(Signaux[index].aspect,lIcone,hicone);
   if bm=nil then exit;
   Signaux[index].Img.picture.Bitmap:=bm;
   dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
@@ -10718,8 +10767,8 @@ begin
       begin
         if TCO[indexTCO,x,y].BImage=Id_Signal then   
         begin
-          AdresseFeu:=Signaux[index].adresse;
-          if tco[IndexTCO,x,y].Adresse=AdresseFeu then affiche_tco(indexTCO);
+          AdresseSig:=Signaux[index].adresse;
+          if tco[IndexTCO,x,y].Adresse=AdresseSig then affiche_tco(indexTCO);
         end;
       end;
     end;
@@ -10767,7 +10816,7 @@ begin
 end;
 
 procedure TFormConfig.ButtonrestaureClick(Sender: TObject);
-var index : integer;
+var index,lIcone,hIcone : integer;
 begin
   if (Signal_sauve.adresse<>0) and (ligneClicSig>=0) then
   begin
@@ -10778,9 +10827,9 @@ begin
     ListBoxSig.selected[ligneClicSig]:=true;
     aff_champs_signaux(index);  // réaffiche les champs
     Maj_Hint_Signal(index);
-    // change l'image du feu dans la feuille graphique principale
-    Signaux[index].Img.picture.Bitmap:=Select_dessin_Signal(Signaux[index].aspect);
-    dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal
+    // change l'image du signal dans la feuille graphique principale
+    Signaux[index].Img.picture.Bitmap:=Select_dessin_Signal(Signaux[index].aspect,lIcone,hIcone);
+    dessine_signal_mx(Signaux[index].Img.Canvas,0,0,1,1,Signaux[index].adresse,1);  // dessine les feux du signal, échelle 1
     clicListe:=false;
   end;
 end;
@@ -10888,7 +10937,7 @@ begin
   if affevt then affiche('Evt bouton nouveau acc',clyellow);
   if maxtablo_act>=Max_action then
   begin
-    Affiche('Nombre maximal d''actionneurs atteint',clred);
+    Affiche('Nombre maximal d''actions atteint',clred);
     exit;
   end;
   clicliste:=true;
@@ -11157,7 +11206,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez vous supprimer ';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' l''action ' else s:=s+' les actions ';
   s:=s+ss+' ?';
 
@@ -11171,6 +11220,7 @@ begin
   repeat
     if formconfig.ListBoxActions.selected[i-1] then
     begin
+      Affiche('Suppression action '+tablo_action[i].NomAction,clOrange);
       for j:=i to maxTablo_act-1 do
       begin
         formconfig.ListBoxActions.selected[j-1]:=formconfig.ListBoxActions.selected[j];
@@ -11404,7 +11454,7 @@ begin
     perform(WM_VSCROLL,SB_BOTTOM,0);
   end;
 
-  formCOnfig.LabelInfo.caption:='';
+  formConfig.LabelInfo.caption:='';
   ligneClicSig:=i-1;
   AncligneClicSig:=ligneClicSig;
   aff_champs_signaux(i);
@@ -11467,15 +11517,14 @@ begin
       Signaux[i].Lbl.free;  // supprime le label
       Signaux[i].Lbl:=nil;
       Tablo_Index_Signal[Signaux[i].adresse]:=0;
-      if Signaux[i].checkFB<>nil then
-      begin
-        Signaux[i].checkFB.Free;
-        Signaux[i].CheckFB:=nil;
-      end;  // supprime le check du feu blanc s'il existait
+      if Signaux[i].checkFB<>nil then Signaux[i].checkFB.Free; // supprime le check du feu blanc s'il existait
+      Signaux[i].CheckFB:=nil;
+      Signaux[i].FeuBlanc:=false;
 
       for j:=i to NbreSignaux-1 do
       begin
         Signaux[j]:=Signaux[j+1];
+        //Affiche('Signal '+intToSTR(j)+' affecté',clred);
         tablo_index_signal[signaux[j].adresse]:=j;
         if Signaux[j].img=nil then affiche('erreur',clred)
         else
@@ -11504,7 +11553,20 @@ begin
           Left:=10+ (LargImg+5)*((j-1) mod (NbreImagePLigne));
         end;
       end;
+
+      {
+      Affiche('Efface signal'+intToSTR(NbreSignaux),clred);
+      Signaux[NbreSignaux].Img.free;  // supprime l'image, ce qui efface le signal du tableau graphique
+      Signaux[NbreSignaux].Img:=nil;
+      Signaux[NbreSignaux].Lbl.free;  // supprime le label
+      Signaux[NbreSignaux].Lbl:=nil;
+      Tablo_Index_Signal[Signaux[NbreSignaux].adresse]:=0;
+      if Signaux[NbreSignaux].checkFB<>nil then Signaux[NbreSignaux].checkFB.Free; // supprime le check du feu blanc s'il existait
+      Signaux[NbreSignaux].CheckFB:=nil;
+      Signaux[NbreSignaux].FeuBlanc:=false;
+       }
       dec(NbreSignaux);
+
       i:=0;
     end;
     inc(i);
@@ -12739,8 +12801,8 @@ begin
       if not(oksignal) then
       begin
         Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+
-         ' à '+intToSTR(adresse+nc-1)+' et chevauche le(s) détecteur(s) ',clred);
-        affiche(s,clred);
+         ' à '+intToSTR(adresse+nc-1)+' et chevauche le(s) détecteur(s) suivant(s)',clred);
+        Affiche(s,clred);
       end;
     end;
 
@@ -12989,7 +13051,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez vous supprimer ';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' l''aiguillage ' else s:=s+' les aiguillages ';
   s:=s+ss+' ?';
 
@@ -13556,11 +13618,20 @@ end;
 
 procedure valide_branches;
 var s: string;
-    ligne,esp : integer;
+    ligne,esp,i : integer;
     ok : boolean;
 begin
   ligne:=1;
   ok:=true;
+
+  // vider les tableaux des détecteurs
+  for i:=1 to NbMaxDet do
+  begin
+    Adresse_detecteur[i]:=0;
+    detecteur[i].index:=0;
+  end;
+  NDetecteurs:=0;
+
   repeat
     s:=AnsiUpperCase(formConfig.RichBranche.Lines[ligne-1]);
     if s<>'' then
@@ -13609,6 +13680,7 @@ begin
     modif_branches:=false;
   end
     else FormConfig.labelResult.Caption:='Erreur de syntaxe';
+  trier_detecteurs;
 end;
 
 procedure TFormConfig.ButtonValLigneClick(Sender: TObject);
@@ -13641,6 +13713,7 @@ begin
   enregistrement:=ss;
   if j=0 then result:=0 else result:=j+1;
 end;
+
 
 // compile une branche de réseau sous forme de texte, et la stocke dans le tableau des branches
 // crée les index dans la structure détecteurs et des aiguillages
@@ -13756,7 +13829,7 @@ begin
        until ((bd=NDetecteurs+1) or trouve) or (bd>NbMaxDet) ;
        if not(trouve) then
        begin
-         Adresse_detecteur[bd]:=detect;
+         Adresse_detecteur[bd]:=detect;            // stocke le détecteur de la branche dans la liste des détecteurs
          NDetecteurs:=bd;
        end;
      end;
@@ -14428,9 +14501,17 @@ begin
       end;
       l:=Trains[index].Icone.width;
       h:=Trains[index].Icone.Height;
-      if h=0 then
+      if h=0 then   // si pas d'icone de train dessiner un rectangle
       begin
         result:=0;
+        l:=image_train[index].Width;
+        h:=image_train[index].Height;
+        with Iimage.Canvas do
+        begin
+          brush.Color:=coulfond;
+          pen.Color:=coulfond;
+          rectangle(0,0,l,h);
+        end;
         exit;
       end;
       rd:=l/h;
@@ -14473,12 +14554,6 @@ begin
 
   ligneclicTrain:=ListBoxTrains.ItemIndex;
 
-  //Affiche(intToSTR(lc),clyellow);
-
-  if ligneclicTrain+1>ntrains then
-  begin
-    ligneclicTrain:=ntrains-1;
-  end;
   if ligneclicTrain<0 then exit;
   s:=ListBoxTrains.items[ligneclicTrain];
   if s='' then exit;
@@ -14665,7 +14740,7 @@ begin
   end;
   if ss='' then exit;
 
-  s:='Voulez vous supprimer ';
+  s:='Voulez vous supprimer';
   if n=1 then s:=s+' le train ' else s:=s+' les trains ';
   s:=s+ss+' ?';
 
@@ -15443,7 +15518,7 @@ begin
     ListBoxSig.Items.Clear;
     for i:=1 to NbreSignaux do
     begin
-      s:=encode_signal(i);  // encode la ligne depuis le tableau feux
+      s:=encode_signal(i);  // encode la ligne depuis le tableau signaux
       if s<>'' then
       begin
         ListBoxSig.Items.Add(s);
@@ -16610,7 +16685,7 @@ begin
 end;
 
 procedure TFormConfig.FormActivate(Sender: TObject);
-  var i : integer;
+var i : integer;
     s : string;
 begin
   if affevt or (debug=1) then affiche('FormConfig activate',clLime);
@@ -16835,7 +16910,8 @@ begin
 end;
 
 procedure TFormConfig.ListBoxOperationsDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);var
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
   i,erreur: Integer;
   ItemText: string;
 begin
@@ -16851,7 +16927,8 @@ begin
 end;
 
 procedure TFormConfig.ListBoxOperationsMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);begin
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
   ClicAction:=ListBoxOperations.ItemIndex;
 end;
 
@@ -16916,7 +16993,6 @@ end;
 procedure TFormConfig.ListBoxOperationsDblClick(Sender: TObject);
 var s : string;
   op,i : integer;
-
 begin
   if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
@@ -16935,7 +17011,10 @@ end;
 
 
 procedure TFormConfig.SpeedButtonOuvreClick(Sender: TObject);
-var s,repini :string;    i : integer;begin  if ligneclicTrain<0 then exit;
+var s,repini :string;
+    i : integer;
+begin
+  if ligneclicTrain<0 then exit;
   i:=ligneclicTrain+1;
   s:=rep_icones;
   repIni:=GetCurrentDir;           // si le repertoire icones n'existe pas, il passe au supérieur
@@ -16960,7 +17039,8 @@ var s,repini :string;    i : integer;begin  if ligneclicTrain<0 then exit;
 end;
 
 procedure TFormConfig.EditIconeChange(Sender: TObject);
-var s,Nom,repIni : string;begin
+var s,Nom,repIni : string;
+begin
   if ligneclicTrain<0 then exit;
   if clicliste then exit;
   repIni:=GetCurrentDir;
@@ -16977,7 +17057,8 @@ var s,Nom,repIni : string;begin
 end;
 
 procedure TFormConfig.LabeledEditTempoDChange(Sender: TObject);
-var erreur,i :integer;begin
+var erreur,i :integer;
+begin
   if clicliste then exit;
   if affevt then affiche('Evt change temps démarre train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
@@ -16989,7 +17070,8 @@ var erreur,i :integer;begin
 end;
 
 procedure TFormConfig.CheckBoxSensClick(Sender: TObject);
-begin  if clicliste then exit;
+begin
+  if clicliste then exit;
   if affevt then affiche('Evt inverse train',clyellow);
   if (ligneclicTrain<0) or (ligneclicTrain>=ntrains) or (ntrains<1) then exit;
 
@@ -17000,7 +17082,8 @@ end;
 
 
 procedure TFormConfig.ButtonImRCDMClick(Sender: TObject);
-var nPeriph,ia,i,j,adr : integer;    ctyp : string;
+var nPeriph,ia,i,j,adr : integer;
+    ctyp : string;
 begin
   if nSeg=0 then begin LabelInfo.caption:='Pas de structure réseau CDM trouvée';exit;end
   else LabelInfo.caption:='';
@@ -19978,6 +20061,43 @@ begin
   end;
 end;
 
+
+procedure TFormConfig.SpeedButtonLayClick(Sender: TObject);
+var i : integer;
+    s : string;
+begin
+  if ligneclicTrain<0 then exit;
+  i:=ligneclicTrain+1;
+  s:=rep_icones;
+  OpenDialogSon.InitialDir:='';     
+  OpenDialogSon.DefaultExt:='bmp';
+  OpenDialogSon.Title:='Choix du fichier LAY de CDM';
+  OpenDialogSon.Filter:='Fichiers LAY (*.LAY)|*.lay|Tous fichiers (*.*)|*.*';
+  if openDialogSon.execute then
+  begin
+    s:=openDialogSon.filename;
+    EditLAY.Text:=ExtractFileName(s);   // ne pas mettre le chemin pour l'ouverture du LAY avec CDM
+  end;
+end;
+
+procedure TFormConfig.MenuListesCopier2Click(Sender: TObject);
+var tl: TListBox;
+    i  : integer;
+    s  : string;
+begin
+  tl:=(Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TlistBox ;
+  //ClipBoard.SetTextBuf(tl.Items.GetText);
+  if not Clipboard.HasFormat(CF_TEXT) then Exit;
+  tl.Items.Text := Clipboard.AsText;
+
+  for i:=1 to tl.items.count do
+  begin
+    s:=tl.Items[i-1];
+    if not(decode_ligne_signal(s,i)) then    // décode la chaine et stocke en tableau signal
+       Affiche('Erreur 59 : définition inccorecte du signal '+intToSTR(i),clred);
+   end;
+
+end;
 
 end.
 

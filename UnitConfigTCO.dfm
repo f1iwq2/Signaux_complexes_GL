@@ -384,9 +384,9 @@ object FormConfigTCO: TFormConfigTCO
       Caption = '(10 maximum)'
     end
     object Label17: TLabel
-      Left = 146
+      Left = 144
       Top = 202
-      Width = 49
+      Width = 51
       Height = 26
       Alignment = taRightJustify
       Caption = 'Epaisseur des voies'

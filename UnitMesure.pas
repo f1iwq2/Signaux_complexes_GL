@@ -1,6 +1,6 @@
 unit UnitMesure;
 
-// mesure de la vitesse des trains
+// mesure de la vitesse des trains pour l'étalonnage
 
 interface
 
@@ -112,19 +112,19 @@ begin
     cv.brush.color:=clWindow;
     cv.fillrect(rect);
   end;
-     // Affichage du texte
-     cv.font.style:=canvas.font.style+[fsbold];
-     cv.textout(rect.left+largDest+5,rect.top,ComboBoxTrains.items[index]);
-     if (odSelected in state) then
-     begin
-       cv.brush.color:=clWindowFrame;
-       cv.fillrect(rect);
-       //cv.font.color:=clblue;
-       cv.textout(rect.left+largDest+5,rect.top,ComboBoxTrains.items[index]);
-     end;
+  // Affichage du texte
+  cv.font.style:=canvas.font.style+[fsbold];
+  cv.textout(rect.left+largDest+5,rect.top,ComboBoxTrains.items[index]);
+  if (odSelected in state) then
+  begin
+    cv.brush.color:=clWindowFrame;
+    cv.fillrect(rect);
+    //cv.font.color:=clblue;
+    cv.textout(rect.left+largDest+5,rect.top,ComboBoxTrains.items[index]);
+  end;
 
-     TransparentBlt(cv.Handle,rect.Left+2,rect.Top,largDest,hautDest,
-                    Trains[index+1].Icone.canvas.Handle,0,0,l,h,clWhite);
+  TransparentBlt(cv.Handle,rect.Left+2,rect.Top,largDest,hautDest,
+                 Trains[index+1].Icone.canvas.Handle,0,0,l,h,clWhite);
 end;
 
 procedure TFormMesure.ComboBoxTrainsChange(Sender: TObject);

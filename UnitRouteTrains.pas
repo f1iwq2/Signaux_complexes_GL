@@ -97,7 +97,6 @@ implementation
 // renvoie l'adresse du signal du train sur détecteur
 function Adresse_signal_det_train(detect,IndexTrain : integer) : integer;
 var voie1,voie2,indexSig1,IndexSig2,AdrSig1,AdrSig2,IndexSig,AdrSig : integer;
-    s : string;
 begin
   if detect=0 then
   begin
@@ -160,9 +159,8 @@ end;
 // démarre un train si le signal n'est pas au rouge
 // appelé par gestion des horaires dans le timer  ou  bouton rouler 1 train ou rouler tous les trains
 function demarre_index_train(indexTrain  : integer) : boolean;
-var i,n,det1,el2,vitesse,AdrTrain,idcanton,voie1,voie2,indexSig1,indexSig2,AdrSig1,AdrSig2,AdrSig,
+var i,vitesse,AdrTrain,idcanton,
     detect,indexSig,etsign : integer;
-    tel2 : tequipement;
     trouve : boolean;
     Train,s : string;
 

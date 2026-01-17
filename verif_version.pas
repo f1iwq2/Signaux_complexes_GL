@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '10.8'; // sert à la comparaison de la version publiée
+VersionSC = '10.82'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -559,7 +559,7 @@ begin
       formprinc.FenRich.SelStart:=length(formprinc.FenRich.Text);
       formprinc.FenRich.SelAttributes.Style:=[fsUnderline];
       Affiche('https://github.com/f1iwq2/Signaux_complexes_GL/releases',clAqua);
-      Affiche('ne comprend aucune version diffusée.',clOrange);
+      Affiche('ne comprend actuellement aucune version diffusée.',clOrange);
     end;
   end
   else

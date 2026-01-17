@@ -271,7 +271,7 @@ begin
       //YclicCell[indexTCO]:=YclicC;
 
       xc:=xClicC;yc:=yClicC;
-      origine_canton(xc,yc);
+      origine_canton(indexTCO,xc,yc);
 
       idCanton:=index_canton(indexTCO,xC,yC);
 
@@ -671,7 +671,7 @@ begin
     begin
       FormConfCellTCO.LabelNumC.caption:='Elément de canton';
       x:=xClicC;y:=yClicC;
-      origine_canton(x,y);
+      origine_canton(indexTCO,x,y);
       i:=tco[indexTCO,x,y].NumCanton;
       if i>0 then FormConfCellTCO.EditCanton.text:=intToSTR(i);
     end;

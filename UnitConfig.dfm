@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 265
-  Top = 106
+  Left = 404
+  Top = 164
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetCDM
+    ActivePage = TabSheetSig
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1668,6 +1668,17 @@ object FormConfig: TFormConfig
           Height = 13
           Caption = 'Nom du fichier LAY '#224' utiliser au d'#233'marrage de CDM'
         end
+        object SpeedButtonLay: TSpeedButton
+          Left = 232
+          Top = 192
+          Width = 23
+          Height = 22
+          Hint = 'Choix du fichier LAY'
+          Caption = '...'
+          ParentShowHint = False
+          ShowHint = True
+          OnClick = SpeedButtonLayClick
+        end
         object CheckVerifVersion: TCheckBox
           Left = 8
           Top = 56
@@ -1729,7 +1740,7 @@ object FormConfig: TFormConfig
         object EditLAY: TEdit
           Left = 8
           Top = 192
-          Width = 249
+          Width = 217
           Height = 21
           Hint = 'Nom du LAY avec .lay'
           ParentShowHint = False
@@ -2031,7 +2042,7 @@ object FormConfig: TFormConfig
         end
         object CheckBoxVerifXpressNet: TCheckBox
           Left = 8
-          Top = 90
+          Top = 88
           Width = 233
           Height = 17
           Hint = 
@@ -2097,7 +2108,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -2146,7 +2157,7 @@ object FormConfig: TFormConfig
         object Label4: TLabel
           Left = 16
           Top = 45
-          Width = 135
+          Width = 196
           Height = 26
           Caption = '2. Temporisation d'#39'envoi des octets de la trame (ms)'
           WordWrap = True
@@ -2154,7 +2165,7 @@ object FormConfig: TFormConfig
         object Label5: TLabel
           Left = 16
           Top = 75
-          Width = 148
+          Width = 192
           Height = 26
           Caption = 
             '3. Temporisation d'#39'attente de la r'#233'ponse de l'#39'interface (x 50 ms' +
@@ -2419,8 +2430,11 @@ object FormConfig: TFormConfig
           Top = 24
           Width = 145
           Height = 21
+          Hint = 'Echelle'
           Style = csDropDownList
           ItemHeight = 13
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 0
           OnChange = ComboBoxEchelleChange
           Items.Strings = (
@@ -3779,7 +3793,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3798,7 +3812,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3844,7 +3858,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -4057,7 +4071,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4077,7 +4091,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4189,7 +4203,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4725,7 +4739,7 @@ object FormConfig: TFormConfig
             Hint = 'action par accessoire DCC ou commande COM/USB'
             Caption = 'Type d'#39'action'
             Items.Strings = (
-              'Accessoire'
+              'Accessoire DCC'
               'Commande COM/USB ou Socket')
             ParentShowHint = False
             ShowHint = True
@@ -4739,7 +4753,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -6499,7 +6513,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end
@@ -6632,6 +6646,10 @@ object FormConfig: TFormConfig
       Caption = 'Tout copier en tant que texte'
       Hint = 'Copie tout le contenu en tant que texte dans le presse-papier'
       OnClick = outcopierentatquetexte1Click
+    end
+    object MenuListesCopier2: TMenuItem
+      Caption = 'Coller'
+      OnClick = MenuListesCopier2Click
     end
   end
   object ColorDialogFond: TColorDialog
