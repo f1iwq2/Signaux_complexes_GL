@@ -6310,7 +6310,7 @@ object FormPrinc: TFormPrinc
       Top = 200
       Width = 393
       Height = 265
-      ActivePage = TabSheetSig
+      ActivePage = TabSheetTrains
       Anchors = []
       TabOrder = 5
       OnChange = PageControlChange

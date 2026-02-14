@@ -221,7 +221,12 @@ procedure TFormPilote.RadioVertClick(Sender: TObject);
 begin
   Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
-  if nation=1 then Maj_Etat_Signal(0,vert) else Maj_Etat_Signal(0,vertB) ;
+  if nation=1 then
+  begin
+    if Signaux[index_Signal(AdrPilote)].checkFV then Maj_Etat_Signal(0,blanc)
+     else Maj_Etat_Signal(0,vert);
+  end
+  else Maj_Etat_Signal(0,vertB) ;
   dessine_signal_pilote;
 end;
 
@@ -254,7 +259,12 @@ procedure TFormPilote.RadioRougeClick(Sender: TObject);
 begin
   Raz_combine;
   Signaux[0].AncienEtat:=Signaux[0].EtatSignal;
-  Maj_Etat_Signal(0,semaphore);
+  if nation=1 then
+  begin
+    if Signaux[index_Signal(AdrPilote)].checkFV then Maj_Etat_Signal(0,violet)
+     else Maj_Etat_Signal(0,semaphore);
+  end
+  else Maj_Etat_Signal(0,vertB) ;
   dessine_signal_pilote;
 end;
 

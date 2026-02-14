@@ -1,6 +1,6 @@
 object FormConfig: TFormConfig
-  Left = 404
-  Top = 164
+  Left = 254
+  Top = 172
   Hint = 'Modifie la configuration selon les s'#233'lections choisies'
   BorderStyle = bsDialog
   Caption = 'Configuration g'#233'n'#233'rale'
@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetSig
+    ActivePage = TabSheetDet
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2930,7 +2930,7 @@ object FormConfig: TFormConfig
             OnClick = RadioButtonTJD4Click
           end
         end
-        object ButtonPropage: TButton
+        object ButtonPropageAig: TButton
           Left = 192
           Top = 56
           Width = 89
@@ -2943,7 +2943,7 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 9
           WordWrap = True
-          OnClick = ButtonPropageClick
+          OnClick = ButtonPropageAigClick
         end
       end
       object ButtonNouvAig: TButton
@@ -3346,7 +3346,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3477,7 +3477,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
@@ -3606,6 +3606,21 @@ object FormConfig: TFormConfig
           Height = 21
           TabOrder = 23
           OnChange = EditTempoSigChange
+        end
+        object ButtonPropageSig: TButton
+          Left = 224
+          Top = 16
+          Width = 57
+          Height = 17
+          Hint = 
+            'Change les adresses dans les TCOs si on a chang'#233' l'#39'adresse d'#39'un ' +
+            'signal'
+          Caption = 'Propage'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 24
+          WordWrap = True
+          OnClick = ButtonPropageSigClick
         end
       end
       object ButtonNouvSig: TButton
@@ -4566,6 +4581,57 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 2
           OnChange = EditDecalChange
+        end
+      end
+      object GroupBox13: TGroupBox
+        Left = 336
+        Top = 272
+        Width = 265
+        Height = 137
+        Caption = 'Changement de l'#39'adresse d'#39'un d'#233'tecteur'
+        TabOrder = 5
+        object Label85: TLabel
+          Left = 16
+          Top = 24
+          Width = 92
+          Height = 13
+          Caption = 'D'#233'tecteur courant :'
+        end
+        object LabelDetCour: TLabel
+          Left = 208
+          Top = 24
+          Width = 3
+          Height = 13
+          Caption = '.'
+        end
+        object LabeledNvleAdrDet: TLabeledEdit
+          Left = 200
+          Top = 48
+          Width = 40
+          Height = 21
+          Hint = 'Nouvelle adresse du d'#233'tecteur'
+          EditLabel.Width = 145
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Nouvelle adresse du d'#233'tecteur'
+          EditLabel.Layout = tlBottom
+          LabelPosition = lpLeft
+          LabelSpacing = 40
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+        end
+        object ButtonValideDet: TButton
+          Left = 72
+          Top = 88
+          Width = 137
+          Height = 33
+          Hint = 
+            'Propage l'#39'adresse du d'#233'tecteur dans les branches, les aiguillage' +
+            's, les signaux et les TCO'
+          Caption = 'Valider et propager le d'#233'tecteur'
+          TabOrder = 1
+          WordWrap = True
+          OnClick = ButtonValideDetClick
         end
       end
     end

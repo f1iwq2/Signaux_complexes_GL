@@ -460,6 +460,7 @@ const
   maxUndo=30;
   ZoomMax=(8191 div MaxCellX)-1;  // pour ne pas dépasser un canvas de 8191 pixel maxi
   ZoomMin=15;
+  NomFichier_ch='Nom_fichier';
   ClFond_ch='CoulFond';
   clVoies_ch='CoulVoies';
   clAllume_ch='CoulAllume';
@@ -632,7 +633,7 @@ var
       route : array[1..500] of record x,y : integer;
       end;
     end;
-    end;
+  end;
 
   // tracé en mode dessin
   traceXY : Array[1..50] of record x,y : integer; // en coordonnées grille
@@ -737,7 +738,7 @@ begin
   if c<>0 then
   begin
     //Affiche('Suppression canton '+intToSTR(c),clorange);
-    for i:=c to ncantons-1 do       // supprime le canton c de la liste
+    for i:=c to ncantons-1 do       // supprime le canton c de la liste des cantons
       canton[i]:=canton[i+1];
     dec(ncantons);
   end;
@@ -1959,6 +1960,15 @@ begin
   repeat
     s:=lit_ligne;
 
+    sa:=uppercase(NomFichier_ch)+'=';
+    i:=pos(sa,s);
+    if i<>0 then
+    begin
+      inc(nv);
+      delete(s,i,length(sa));   // nom stocké
+      s:='';
+    end;
+
     sa:=uppercase(ClFond_ch)+'=';
     i:=pos(sa,s);
     if i<>0 then
@@ -2529,6 +2539,7 @@ begin
     AssignFile(fichier,nomfichierTCO[i]);
     rewrite(fichier);
     Writeln(fichier,'/ Définitions TCO version '+versionSC+sousversion);
+    writeln(fichier,NomFichier_ch+'=',NomFichierTCO[i]);
     writeln(fichier,ZoomInit_ch+'=',ZoomInit[i]);
     writeln(fichier,XYInit_ch+'=',XInit[i],',',Yinit[i]);
     Writeln(fichier,clFond_ch+'='+IntToHex(clfond[i],6));
@@ -11470,16 +11481,44 @@ begin
         //Brush.Style:=Bsclear;
 
         xt:=0;yt:=0;
-        if Bimage=2  then begin xt:=LargeurCell[indexTCO] div 2;yt:=1;end;
-        if Bimage=3  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
-        if Bimage=4  then begin xt:=10*round(frxGlob[indexTCO]);yt:=1;end;
-        if Bimage=5  then begin xt:=3;yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
-        if Bimage=12 then begin xt:=round(33*fryGlob[indexTCO]);yt:=1;end;
+        if Bimage=2  then begin xt:=round(14*frxGlob[indexTCO]);yt:=1;end;
+        if Bimage=3  then begin xt:=round(14*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
+        if Bimage=4  then begin xt:=round(14*frxGlob[indexTCO]);yt:=1;end;
+        if Bimage=5  then begin xt:=round(14*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(18*fryGlob[indexTCO]);end;
+        if Bimage=12 then begin xt:=round(33*frxGlob[indexTCO]);yt:=1;end;
         if Bimage=13 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
         if Bimage=14 then begin xt:=LargeurCell[indexTCO]-round(30*frxGlob[indexTCO]);yt:=1;end;
-        if Bimage=15 then begin xt:=3;yt:=1;end;
-        if Bimage=21 then begin xt:=-round(5*frxGlob[indexTCO]);yt:=0;end;
-        if Bimage=22 then begin xt:=(LargeurCell[indexTCO] div 2);yt:=-2;end;
+        if Bimage=15 then
+        begin
+          if (repr=3) then   // texte bas
+          begin
+            xt:=round(25*frxGlob[indexTCO]);yt:=round(37*fryGlob[indexTCO]);
+          end
+          else
+          begin
+            xt:=3;yt:=1;
+          end;
+        end;
+        if Bimage=21 then
+        begin
+          if (repr=3) then  // texte bas
+          begin
+            xt:=round(24*frxGlob[indexTCO]);yt:=round(36*fryGlob[indexTCO]);
+          end else
+          begin
+            xt:=-round(5*frxGlob[indexTCO]);yt:=0;
+          end;
+        end;
+        if Bimage=22 then
+        begin
+          if (repr=3) then
+          begin
+            xt:=-5;yt:=round(38*fryGlob[indexTCO])    // texte bas
+          end else
+          begin
+            xt:=(LargeurCell[indexTCO] div 2);yt:=-2; // texte haut
+          end;
+        end;
         if Bimage=23 then begin xt:=round(33*frxGlob[indexTCO]);yt:=round(35*fryGlob[indexTCO]);end;
         if Bimage=24 then begin xt:=LargeurCell[indexTCO]-round(20*frxGlob[indexTCO]);yt:=hauteurCell[indexTCO]-round(15*fryGlob[indexTCO]);end;
         if Bimage=25 then begin xt:=round(34*frxGlob[indexTCO]);yt:=round(8*fryGlob[indexTCO]);end;
@@ -12197,7 +12236,7 @@ procedure Erreur_TCO(indexTCO,x,y : integer);
 var s : string;
     i,adresse : integer;
 begin
-  s:='Erreur 92 TCO - Cellule '+intToSTR(x)+','+intToSTR(y)+' ';
+  s:='Erreur 92 TCO '+intToSTR(indexTCO)+' - Cellule '+intToSTR(x)+','+intToSTR(y)+' ';
   adresse:=tco[indextco,x,y].Adresse;
   i:=index_aig(adresse);
   if i=0 then s:=s+'aiguillage '+intToSTR(adresse)+' inconnu';
@@ -12869,7 +12908,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                        Index_TjdHom:=index_aig(TjdHom);               // Index de la TJD homologue
                        position2:=aiguillage[Index_TjdHom].position;  // position de la TJD homologue
 
-                       tjd4(adresse,position,TjdHom,position2,c1,c2); // retourne c1 et C2
+                       tjd4(position,position2,c1,c2); // retourne c1 et C2
                        if (ancienY<y) and (ancienX>x) then            // on vient du NE
                        begin
                          if c1=c2 then                                // si on traverse la TJD
@@ -13073,7 +13112,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                        TjdHom:=aiguillage[index].Ddevie;
                        Index_TjdHom:=index_aig(TjdHom);
                        position2:=aiguillage[Index_TjdHom].position;
-                       tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                       tjd4(position,position2,c1,c2);  // retourne c1 et C2
                        if (ancienY<y) and (ancienX<x) then // on vient du NO
                        begin
                          if c1=c2 then  // si on traverse la TJD
@@ -13279,7 +13318,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                           TjdHom:=aiguillage[index].Ddevie;    
                           Index_TjdHom:=index_aig(TjdHom);
                           position2:=aiguillage[Index_TjdHom].position;
-                          tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                          tjd4(position,position2,c1,c2);  // retourne c1 et C2
                           if (ancienY<y) and (ancienX>x) then // on vient du NE
                           begin
                             if c1=c2 then  // si on traverse la TJD
@@ -13507,7 +13546,7 @@ var i,ir,adresse,But,Bimage,direction,ancienX,ancienY,x,y,xn,yn,Xdet1,yDet1,iter
                       TjdHom:=aiguillage[index].Ddevie;
                       Index_TjdHom:=index_aig(TjdHom);
                       position2:=aiguillage[Index_TjdHom].position;
-                      tjd4(adresse,position,TjdHom,position2,c1,c2);  // retourne c1 et C2
+                      tjd4(position,position2,c1,c2);  // retourne c1 et C2
                       if (ancienY<y) and (ancienX<x) then // on vient du NO
                       begin
                         if c1=c2 then  // si on traverse la TJD

@@ -84,6 +84,9 @@ type
     Descendreopration1: TMenuItem;
     N1: TMenuItem;
     Supprimeropration1: TMenuItem;
+    ButtonAjCond: TButton;
+    SpeedButtonSupCond: TSpeedButton;
+    Label7: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ListBoxOperDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -142,6 +145,10 @@ type
     procedure Supprimeropration1Click(Sender: TObject);
     procedure Monteropration1Click(Sender: TObject);
     procedure Descendreopration1Click(Sender: TObject);
+    procedure ButtonAjCondClick(Sender: TObject);
+    procedure SpeedButtonSupCondClick(Sender: TObject);
+    procedure ListBoxConditionsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Déclarations privées }
   public
@@ -286,7 +293,7 @@ begin
       CondMemoireEgal : icone:=IconeCondMemoireEgal;
       CondMemoireInf : icone:=IconeCondMemoireInf;
       CondMemoireSup : icone:=IconeCondMemoireSup;
-
+      CondDetAct : Icone:=IconeDet;
     end;
     ListBoxCondTot.Items.Add(Format('%d%s', [icone, Conditions[i].nom])); // valeur d'index de l'icone dans la ImagelistIcones
     ListBoxCondTot.itemHeight:=16; // 16  taille des éléments pour l'icone
@@ -404,7 +411,7 @@ begin
       s:=s+'accessoire '+intToSTR(Tablo_Action[i].adresse);
   DeclDetAct :
       begin
-        s:=s+'détecteur/Actionneur '+intToSTR(Tablo_Action[i].adresse);
+        s:=s+'détecteur/Actionneur '+intToSTR(Tablo_Action[i].adresse)+' à '+intToSTR(Tablo_Action[i].etat);
         s:=s+' par le train "'+Tablo_Action[i].trainDecl+'"';
       end;
   DeclZoneDet :
@@ -451,7 +458,7 @@ begin
       condMemoireEgal : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat);
       condMemoireInf : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' < '+intToSTR(tablo_action[i].tabloCond[op].etat);
       condMemoireSup : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' > '+intToSTR(tablo_action[i].tabloCond[op].etat);
-
+      condDetAct : s:=s+'det/act '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat)+' train:'+tablo_action[i].tabloCond[op].train;
     end;
     s:=s+#13;
   end;
@@ -677,7 +684,7 @@ end;
 
 // affiche les champs en fonction de l'index du tablo actionneur et de l'index de l'action
 procedure Aff_champs(index,IndexCond,IndexAction : integer);
-var i,decl,act,cond,icone : integer;
+var i,decl,act,cond,icone,adr : integer;
     s : string;
 begin
   if (index<1) then exit;
@@ -751,23 +758,27 @@ begin
     for i:=1 to Tablo_Action[index].NbCond do
     begin
       cond:=Tablo_Action[index].tabloCond[i].numcondition;
-      s:=conditions[cond].nom;
-      case cond of
-        CondVrai : icone:=iconeVrai;
-        CondFaux : icone:=iconeFaux;
-        CondVitTrain : icone:=IconeVitTrain;
-        CondPosAcc : icone:=IconeAccessoire;
-        condHorl : icone:=IconeLanceHorl;
-        condTrainSig : icone:=IconeDeclSignal;
-        condFonction : icone:=IconeFonction;
-        condBouton : icone:=IconeBouton;
-        condMemoireEgal: icone:=IconeCondMemoireEgal;
-        condMemoireSup: icone:=IconeCondMemoireSup;
-        condMemoireInf: icone:=IconeCondMemoireinf;
-      end;
+      if (cond<0) or (cond>CondDetAct) then Affiche('Erreur structure conditions',clred)
+      else
+      begin
+        s:=conditions[cond].nom;
+        case cond of
+          CondVrai : icone:=iconeVrai;
+          CondFaux : icone:=iconeFaux;
+          CondVitTrain : icone:=IconeVitTrain;
+          CondPosAcc : icone:=IconeAccessoire;
+          condHorl : icone:=IconeLanceHorl;
+          condTrainSig : icone:=IconeDeclSignal;
+          condFonction : icone:=IconeFonction;
+          condBouton : icone:=IconeBouton;
+          condMemoireEgal: icone:=IconeCondMemoireEgal;
+          condMemoireSup: icone:=IconeCondMemoireSup;
+          condMemoireInf: icone:=IconeCondMemoireinf;
+          condDetAct: icone:=IconeDet;
+        end;
 
-      items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
-
+        items.Add(Format('%d%s', [icone, s])); // valeur d'index de l'icone dans la ImagelistIcones
+       end;
       itemHeight:=16;
     end;
     if indexCond<>0 then itemIndex:=indexCond-1;
@@ -1016,6 +1027,12 @@ begin
           champ1.Visible:=true;
           champ2.Visible:=true;
           ChampTrain.Visible:=true;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
         end;
         CondPosAcc :
         begin
@@ -1033,6 +1050,12 @@ begin
           SpinEditEtat2.visible:=true;
           SpinEditEtat2.MinValue:=0;
           SpinEditEtat2.MaxValue:=2;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
         end;
         condHorl :
         begin
@@ -1055,6 +1078,12 @@ begin
           champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
           champTrain.Visible:=true;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
         end;
         condFonction :
         begin
@@ -1064,7 +1093,14 @@ begin
           champ1.Visible:=true;
           ButtonVoirFonc.Visible:=true;
           Label2InfoFonction.Visible:=true;
-          Label2InfoFonction.Caption:=NomFonction[Tablo_Action[index].tabloCond[indexCond].adresse];
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
+          Adr:=Tablo_Action[index].tabloCond[indexCond].adresse;
+          if Adr<100 then Label2InfoFonction.Caption:=NomFonction[adr] else Label2InfoFonction.Caption:='';
         end;
         condBouton :
         begin
@@ -1072,6 +1108,12 @@ begin
           champ1.editLabel.Caption:='Numéro de bouton TCO';
           champTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
           champ1.Visible:=true;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
         end;
         condMemoireEgal,CondMemoireInf,CondMemoireSup :
         begin
@@ -1081,8 +1123,33 @@ begin
           champ2.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].etat);
           Champ2.EditLabel.Caption:='Valeur';
           Champ2.Visible:=true;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
         end;
-
+        condDetAct :
+        begin
+          champ1.Text:=intToSTR(Tablo_Action[index].tabloCond[indexCond].adresse);
+          champ1.editLabel.Caption:='Adresse';
+          champ1.Visible:=true;
+          champ2.Visible:=false;
+          SpinEditHeure1.visible:=false;
+          SpinEditHeure2.visible:=false;
+          SpinEditMn1.visible:=false;
+          SpinEditMn2.visible:=false;
+          LabelHeureDebut.Visible:=false;
+          LabelHeureFin.Visible:=false;
+          ChampTrain.Visible:=true;
+          ChampTrain.Text:=Tablo_Action[index].tabloCond[indexCond].train;
+          SpinEditEtat2.Value:=Tablo_Action[index].tabloCond[indexCond].etat;
+          SpinEditEtat2.visible:=true;
+          SpinEditEtat2.hint:='Etat du détecteur/actionneur'+#13+
+              '0=non activé'+#13+
+              '1=activé';
+        end;
       end;
     end;
   end;
@@ -1169,6 +1236,46 @@ begin
   clicAction:=NbOp-1;
   ListBoxOperations.ItemIndex:=clicAction;
 end;
+
+procedure supprime_condition;
+var i,indexSrc,idBD,NbCond,NumCond,NumOp : integer;
+    s : string;
+begin
+  indexSrc:=formModifaction.listboxConditions.ItemIndex;
+  if (indexSrc<0) or (formModifaction.listboxConditions.Count=1) then exit;
+
+  idBD:=ligneClicAct+1;
+  NbCond:=Tablo_Action[idBD].NbCond;
+  if NbCond<1 then exit;
+
+  NumCond:=Tablo_Action[idBD].TabloCond[indexSrc+1].numcondition;
+//  NumOp:=Tablo_Action[idBD].tabloOp[I               [indexSrc+1].numcondition;
+
+  s:='Voulez vous supprimer la condition '+#13+conditions[NumCond].Nom+' ?';
+
+  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+
+  // supprimer
+  FormModifAction.listboxConditions.Items.Delete(indexSrc);
+  for i:=IndexSrc+1 to NbCond-1 do
+  begin
+    Tablo_Action[idBD].TabloCond[i]:=Tablo_Action[idBD].TabloCond[i+1];
+  end;
+
+  dec(NbCond);
+  Tablo_Action[idBD].NbCond:=NbCond;
+  Setlength(Tablo_Action[idBD].tabloCond,NbCond+1);
+
+  Aff_champs(idBD,IndexSrc,1); //???
+  exit;
+
+  // réencoder la ligne
+  s:=encode_actions(idBD);
+  // maj combobox
+  FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
+  FormModifAction.ComboBoxActions.ItemIndex:=idbd-1;
+end;
+
 
 procedure supprime_operation;
 var i,indexSrc,idBD,NbOp,NumOp : integer;
@@ -1641,12 +1748,14 @@ begin
     CondPosAcc      : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].accessoire:=i;
     CondTrainSig    : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
     CondFonction    : begin
+                        if i>100 then i:=1;
                         Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
                         Label2InfoFonction.caption:=NomFonction[i];
                       end;
     CondBouton      : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
     CondMemoireEgal,CondMemoireInf,CondMemoireSup
                     : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
+    CondDetAct      : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].adresse:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1745,6 +1854,7 @@ begin
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondVitTrain,CondTrainSig   : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].train:=ChampTrain.Text;
+    CondDetAct : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].train:=ChampTrain.Text;
   end;
   maj_combocactions(ligneclicAct);
 
@@ -1764,6 +1874,7 @@ begin
   cond:=Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].numcondition;
   case cond of
     CondPosAcc       : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
+    CondDetAct       : Tablo_Action[ligneclicact+1].tabloCond[cliccond+1].etat:=i;
   end;
   maj_combocactions(ligneclicAct);
 end;
@@ -1802,8 +1913,8 @@ begin
 end;
 
 procedure TFormModifAction.ListBoxOperationsKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-var nb : integer;
+var Key: Word; Shift: TShiftState);
+var    nb : integer;
 begin
   nb:=Tablo_Action[ligneclicAct+1].NbOperations;
   if (nb<1) or clicliste then exit;
@@ -1888,5 +1999,75 @@ procedure TFormModifAction.Descendreopration1Click(Sender: TObject);
 begin
   descend_operation;
 end;
+
+procedure TFormModifAction.ButtonAjCondClick(Sender: TObject);
+var indexSrc,idBD,NbOp,NbCond,i : integer;
+    s : string;
+begin
+  indexSrc:=listboxCondTot.ItemIndex;
+  if indexSrc<0 then exit;
+
+  s:=ListBoxCondTot.Items[IndexSrc];
+  i:=index_condition(s);
+  if i=0 then exit;
+
+  idBD:=ligneClicAct+1;
+  NbOp:=Tablo_Action[idBD].NbOperations;
+  NbCond:=Tablo_Action[idBD].NbCond;
+  inc(NbCond);
+  Tablo_Action[idBD].NbCond:=NbCond;
+  Setlength(Tablo_Action[idBD].TabloCond,NbCond+1);
+  // le nouveau numéro de condition c'est l'index de la listboxCond
+  Tablo_Action[idBD].tabloCond[NbCond].numcondition:=i;
+
+  Aff_champs(idbd,nbCond,Nbop);
+  clicCond:=NbCond-1;
+  ListBoxOperations.ItemIndex:=clicCond;
+end;
+
+procedure TFormModifAction.SpeedButtonSupCondClick(Sender: TObject);
+begin
+  supprime_condition;
+end;
+
+procedure TFormModifAction.ListBoxConditionsKeyDown(Sender: TObject;
+var Key: Word; Shift: TShiftState);
+var    nb : integer;
+begin
+  nb:=Tablo_Action[ligneclicAct+1].NbCond;
+  if (nb<1) or clicliste then exit;
+  if key=VK_delete then supprime_Condition;
+
+  if ord(Key)=VK_UP then
+  begin
+    begin
+      if clicCond>0 then
+      begin
+        dec(clicCond);
+        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
+      end;
+    end;
+  end;
+
+  if ord(Key)=VK_DOWN then
+  begin
+    begin
+      if clicCond<nb-1 then
+      begin
+        inc(clicCond);
+        Aff_champs(ligneclicAct+1,ClicCond+1,ClicAction+1);
+      end;
+    end;
+  end;
+
+  if (Shift = [ssCtrl]) and (key = ord('A')) then
+  begin
+    ListBoxConditions.SelectAll;
+  end;
+
+  clicListe:=false;
+end;
+
+
 
 end.

@@ -731,7 +731,7 @@ begin
   NivDebug:=3;
   erreur:=Signal_Precedent(Adr);
   NivDebug:=AncDebug;
-  AfficheDebug('signal précédent='+intToSTR(erreur),clyellow);
+  AfficheDebug('Signal précédent='+intToSTR(erreur),clyellow);
 end;
 
 end.

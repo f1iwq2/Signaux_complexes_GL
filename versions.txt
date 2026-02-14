@@ -364,6 +364,12 @@ version 10.81 : Prise en compte des nouveaux champs d'exportation de CDM pour l'
 version 10.82 : Ajout d'une barre de zoom pour la fenetre des signaux.
                 Ajout commande fonctions F trains pour la télécommande par serveur
                 Corrections diverses
+version 10.9  : Possibilité de déclarer des feux verts/rouge pour les signaux à deux feux.
+                Création d'un bouton de propagation du changement d'adresse d'un signal
+				Création d'un bouton de propagation du changement d'adresse d'un détecteur
+				Création d'une condition "détecteur/actionneur" dans les actions
+version 10.91	Possibilité d'ajouter plusieurs conditions dans les actions
+				Une action ne peuvent être lancée que si la même action précédente est terminée
 
 
 

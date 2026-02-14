@@ -163,7 +163,7 @@ begin
   end;
 end;
 
-// change l'aiguille du compteur
+// change l'aiguille du compteur "c" en fonction de la vitesse du train "idTrain" dans le composant "comp"
 // c : n° de fenetre du compteur     idTrain : index du train  comp : composant dans lequel se trouve le compteur (form, groupbox ou image)
 procedure aiguille_compteur(c,idTrain : integer ; comp : Tcomponent);
 var ComptLoc,x1,y1,x2,y2,x3,y3,x4,y4,vitesse,vitesseFin,lim,him : integer;
@@ -279,6 +279,7 @@ begin
   end;
 end;
 
+// dessine le fond du compteur 2 (graduations et chiffres)
 procedure compteur_2(c : integer;bm : tbitmap;var param : tparamcompt);
 var n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
     angle,incr,r : single;
@@ -377,6 +378,7 @@ begin
   end;
 end;
 
+// dessine le fond du compteur tachro
 procedure compteur_tachro(c : integer;bm : tbitmap;var param : tparamcompt);
 var l,av,n,v,rayon2,rayon3,rayon4,x1,y1,x2,y2,xt,yt,lim,him,rg : integer;
     angle,incr,r,a,sinA,cosA : single;
@@ -489,7 +491,7 @@ begin
 end;
 
 
-// dessine dans le FbitMap
+// dessine le fond du compteur pour tous les compteurs dans le FbitMap
 // le var est obligatoire
 // typecompt : type du compteur 1 2 ou 3
 procedure dessin_fond_compteur(var param : TparamCompt;i: integer ; Im : tbitmap;typCompt : integer);
@@ -536,8 +538,6 @@ begin
             TextOut(round(129*redX),round(53*redY),'80');
             TextOut(round(137*redX),round(91*redY),'100');
             TextOut(round(124*redX),round(130*redY),'120');
-
-
 
             rAig:=round(AigCX / 1.5);
             angleFin:=127;  // en fait vitesse maxi compteur
@@ -1021,7 +1021,6 @@ begin
   afficherIconeDuTrain1.Checked:=affTrainCompteur;
   init_compteur(1,formcompteur[1]);
   affiche_train_compteur(1);
-
 end;
 
 procedure TFormCompteur.Vitesseencrans1Click(Sender: TObject);

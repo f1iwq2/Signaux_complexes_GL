@@ -4794,7 +4794,7 @@ var pt : Tpoint;
    canvasI : Tcanvas;
 begin
   clic:=true;
-  pt:= formAnalyseCDM.ImageCDM.ScreenToClient(Mouse.CursorPos);  // coordonnées par rapport à l'image
+  pt:=formAnalyseCDM.ImageCDM.ScreenToClient(Mouse.CursorPos);  // coordonnées par rapport à l'image
   xSouris:=pt.x;
   ySouris:=pt.y;
 

@@ -60,7 +60,7 @@ object FormModifAction: TFormModifAction
     Top = 64
     Width = 729
     Height = 337
-    ActivePage = TabSheetOp
+    ActivePage = TabSheet1
     MultiLine = True
     TabOrder = 1
     object TabSheetDecl: TTabSheet
@@ -255,15 +255,41 @@ object FormModifAction: TFormModifAction
       object Label6: TLabel
         Left = 258
         Top = 8
-        Width = 118
+        Width = 124
         Height = 13
-        Caption = 'Condition '#224' observer'
+        Caption = 'Conditions '#224' observer'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
+      end
+      object SpeedButtonSupCond: TSpeedButton
+        Left = 338
+        Top = 255
+        Width = 23
+        Height = 22
+        Hint = 'Supprime une condition de la liste'
+        Glyph.Data = {
+          F6000000424DF600000000000000760000002800000010000000100000000100
+          04000000000080000000C40E0000C40E00001000000000000000000000000000
+          8000008000000080800080000000800080008080000080808000C0C0C0000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFF9FFFFFFF9
+          9FFFFF999FFFFF9999FFF99999FFF999999F9999999F9999999FF99999999999
+          99FFFF99999999999FFFFFF999999999FFFFFFFF9999999FFFFFFFF999999999
+          FFFFFF99999999999FFFF9999999999999FF9999999F9999999F999999FFF999
+          999FF9999FFFFF9999FFFF99FFFFFFF99FFFFFFFFFFFFFFFFFFF}
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SpeedButtonSupCondClick
+      end
+      object Label7: TLabel
+        Left = 240
+        Top = 258
+        Width = 93
+        Height = 13
+        Caption = 'Supprimer condition'
       end
       object ListBoxCondTot: TListBox
         Left = 0
@@ -279,12 +305,13 @@ object FormModifAction: TFormModifAction
         Top = 28
         Width = 201
         Height = 201
-        Hint = 'Condition de r'#233'alisation du d'#233'clencheur'
+        Hint = 'Conditions (chainage en ET) de r'#233'alisation du d'#233'clencheur'
         ItemHeight = 13
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
         OnDrawItem = ListBoxConditionsDrawItem
+        OnKeyDown = ListBoxConditionsKeyDown
         OnMouseDown = ListBoxConditionsMouseDown
       end
       object GroupBox1: TGroupBox
@@ -449,6 +476,18 @@ object FormModifAction: TFormModifAction
         TabOrder = 3
         OnClick = ButtonAppCondClick
       end
+      object ButtonAjCond: TButton
+        Left = 128
+        Top = 276
+        Width = 75
+        Height = 25
+        Hint = 'Ajouter la condition s'#233'lectionn'#233'e dans la liste des conditions'
+        Caption = 'Ajouter >>>'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
+        OnClick = ButtonAjCondClick
+      end
     end
     object TabSheetOp: TTabSheet
       Caption = 'Op'#233'rations'
@@ -517,7 +556,7 @@ object FormModifAction: TFormModifAction
         Top = 32
         Width = 217
         Height = 21
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = ComboBoxFamilleChange
       end
@@ -722,7 +761,7 @@ object FormModifAction: TFormModifAction
           Height = 21
           Hint = 'Nom du p'#233'riph'#233'rique d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4

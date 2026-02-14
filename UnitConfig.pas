@@ -1,6 +1,6 @@
 Unit UnitConfig;
 
-interface       
+interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
@@ -291,7 +291,7 @@ type
     ButtonCouleur: TButton;
     ColorDialogFond: TColorDialog;
     LabelD13: TLabel;
-    ButtonPropage: TButton;
+    ButtonPropageAig: TButton;
     ButtonPFCDM: TButton;
     TabAvance: TTabSheet;
     Label39: TLabel;
@@ -516,6 +516,12 @@ type
     LabeledEditT: TLabeledEdit;
     SpeedButtonLay: TSpeedButton;
     MenuListesCopier2: TMenuItem;
+    ButtonPropageSig: TButton;
+    GroupBox13: TGroupBox;
+    LabeledNvleAdrDet: TLabeledEdit;
+    Label85: TLabel;
+    LabelDetCour: TLabel;
+    ButtonValideDet: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -666,7 +672,7 @@ type
     procedure EditDevieS2Change(Sender: TObject);
     procedure ButtonCouleurClick(Sender: TObject);
     procedure ColorDialogFondShow(Sender: TObject);
-    procedure ButtonPropageClick(Sender: TObject);
+    procedure ButtonPropageAigClick(Sender: TObject);
     procedure EditAdrAigExit(Sender: TObject);
     procedure EditAdrAigChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -820,6 +826,8 @@ type
     procedure LabeledEditTChange(Sender: TObject);
     procedure SpeedButtonLayClick(Sender: TObject);
     procedure MenuListesCopier2Click(Sender: TObject);
+    procedure ButtonPropageSigClick(Sender: TObject);
+    procedure ButtonValideDetClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1641,6 +1649,7 @@ begin
     begin
       inc(NbreSignaux);
       Signaux[i].adresse:=adresse;
+      Signaux[i].Ancienadresse:=adresse;
       Signaux[i].AncienEtat:=$ffff;
       Signaux[i].AncienAff:=$ffff;
       Signaux[i].Tempo:=0;
@@ -2099,6 +2108,7 @@ begin
       condBouton   : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+',';
       CondMemoireEgal,CondMemoireInf,CondMemoireSup
                    : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+','+intToSTR(Tablo_Action[i].TabloCond[j].etat)+',';
+      CondDetAct   : s:=s+intToSTR(Tablo_Action[i].TabloCond[j].adresse)+','+intToSTR(Tablo_Action[i].TabloCond[j].etat)+','+Tablo_Action[i].TabloCond[j].train+',';
     end;
   end;
 
@@ -3689,6 +3699,7 @@ const LessThanValue=-1;
 
   procedure compile_actions;
   var n,k,l : integer;
+      fini : boolean;
   begin
     maxTablo_act:=1;
     Nligne:=1;
@@ -3884,6 +3895,16 @@ const LessThanValue=-1;
                 Tablo_Action[maxtablo_act].tabloCond[k].etat:=i;
               end;
             end;
+            condDetAct :
+            begin
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].TabloCond[k].adresse:=i;
+              Val(s,i,erreur);Delete(s,1,erreur);
+              Tablo_Action[maxtablo_act].TabloCond[k].etat:=i;
+              i:=pos(',',s);if i=0 then i:=length(s)+1;
+              sa:=copy(s,1,i-1);delete(s,1,i);
+              Tablo_Action[maxtablo_act].TabloCond[k].train:=sa;
+            end;
             end;
           end;
         end;
@@ -4042,8 +4063,9 @@ const LessThanValue=-1;
           end;
         end;
         inc(maxTablo_act);
-      end;
-    until (s='0') or eof(fichier) ;
+      end
+      else fini:=true;
+    until eof(fichier) or fini;
     dec(maxTablo_act);
   end;
 
@@ -7969,7 +7991,7 @@ begin
   richBranche.HideSelection:=false; // pour pouvoir copier coller la fenetre
   //groupBox21.Top:=304;
   GroupBox21.Left:=8;
-  ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+  ButtonPropageAig.Hint:='Change les adresses dans les points de connexions'+#13+
                       'des aiguillages, des branches et des signaux'+#13+
                       'si on a changé l''adresse d''un aiguillage';
   if debug=1 then Affiche('Fin création fenêtre config',clLime);
@@ -9350,9 +9372,9 @@ begin
   index:=Index_Aig(Adresse);
   AncienAdresse:=aiguillage[index].AncienAdresse;
   if adresse<>AncienAdresse then
-  FormConfig.ButtonPropage.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
+  FormConfig.ButtonPropageAig.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
                          'des aiguillages et des branches par l''adresse '+intToSTR(adresse)
-  else FormConfig.ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+  else FormConfig.ButtonPropageAig.Hint:='Change les adresses dans les points de connexions'+#13+
                       'des aiguillages, des branches et des signaux'+#13+
                       'si on a changé l''adresse d''un aiguillage';
   clicListe:=false;
@@ -9496,11 +9518,21 @@ begin
   begin
     checkFVC.Visible:=true;     // afficher checkbox feu vert clignotant
     checkFRC.Visible:=true;     // afficher checkbox feu rouge clignotant
+    checkFVC.Caption:='Feu vert clignotant';
+    checkFVC.Hint:='Remplace le feu vert par un feu vert clignotant';
   end
   else
   begin
     checkFVC.Visible:=false;    // ne pas afficher checkbox feu vert clignotant
     checkFRC.Visible:=false;    // na pas afficher checkbox feu rouge clignotant
+  end;
+
+  if d=2 then
+  begin
+    checkFVC.Visible:=true;     // afficher checkbox feu vert clignotant
+    checkFVC.Caption:='Feux rouge/vert';
+    checkFVC.Hint:='coché   : signal rouge/vert'+#13+
+                   'décoché : signal violet/blanc';
   end;
 
   if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
@@ -11696,7 +11728,7 @@ end;
 function verif_coherence : boolean;
 var AncAdr,i,j,k,l,Indexaig,adr,adr2,extr,detect,condcarre,nc,index2,SuivAdr,indexTCO,AdrAig,
     x,y,extr2,adr3,adr4,index3,det1Br,det2Br,det1index,det2index,adresse,Adresse2,dec,nc2,op,
-    delta,broft,adresse3 : integer;
+    delta,broft,adresse3,Sk : integer;
     modAig,AncModel,model,km,SuivModel,model2,t1,t2: TEquipement;
     c : char;
     vitesse : longint;
@@ -12793,6 +12825,7 @@ begin
           dec:=Signaux[i].decodeur;
           AdrOk:=false;
           ok:=false;
+          Sk:=k;
           okSignal:=false;
           s:=s+intToSTR(adresse_detecteur[k])+' ';
         end;
@@ -12802,6 +12835,7 @@ begin
       begin
         Affiche('Erreur 14: le signal '+IntToSTR(adresse)+' '+decodeur[dec]+' occupe '+intToSTR(nc)+' adresses de '+intToSTR(adresse)+
          ' à '+intToSTR(adresse+nc-1)+' et chevauche le(s) détecteur(s) suivant(s)',clred);
+        s:=s+' car ('+intToSTR(adresse_detecteur[Sk])+'-1 / 2) +1  >='+intToSTR(adresse)+' et <='+intToSTR(adresse+nc-1);
         Affiche(s,clred);
       end;
     end;
@@ -16373,7 +16407,37 @@ begin
   SetWindowText(ColorDialogFond.Handle,pchar(scouleur));
 end;
 
-procedure TFormConfig.ButtonPropageClick(Sender: TObject);
+procedure TFormConfig.ButtonPropageSigClick(Sender: TObject);
+var i,x,y,adresse,index,AncienAdresse : integer;
+    s : string;
+begin
+  adresse:=signaux[ligneclicSig+1].Adresse;
+  if adresse=0 then exit;
+  index:=Index_Signal(Adresse);
+  AncienAdresse:=signaux[index].AncienAdresse;
+  if Adresse=AncienAdresse then exit;
+
+  // TCOs
+  for i:=1 to NbreTCO do
+  begin
+    for y:=1 to NbreCellY[i] do
+      for x:=1 to NbreCellX[i] do
+      begin
+        if tco[i,x,y].Adresse=AncienAdresse then
+        begin
+          tco[i,x,y].Adresse:=Adresse;
+          s:='TCO '+intToSTR(i)+' cellule '+intToSTR(x)+','+intToSTR(y)+' ';
+          s:=s+'Changement ancienne adresse de signal '+intToSTR(AncienAdresse)+' par nouvelle adresse '+intToSTR(adresse);
+          Affiche(s,clyellow);
+        end;
+      end;
+    Affiche_TCO(i);
+  end;
+
+end;
+
+
+procedure TFormConfig.ButtonPropageAigClick(Sender: TObject);
 var x,y,i,adresse,AncienAdresse,AdresseBr,v,erreur : integer;
     typ : tEquipement;
     s,Nb : string;
@@ -16412,11 +16476,11 @@ begin
       end;
     end;
     if typ=triple then if aiguillage[index].AdrTriple=AncienAdresse then
-      begin
-        aiguillage[i].AdrTriple:=adresse;
-        Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' triple',clyellow);
-        config_modifie:=true;
-      end;
+    begin
+      aiguillage[i].AdrTriple:=adresse;
+      Affiche('Réaffectation aiguillage '+intToSTR(aiguillage[i].Adresse)+' triple',clyellow);
+      config_modifie:=true;
+    end;
     if (typ=tjd) or (typ=tjs) or (typ=crois) then
     begin
       if aiguillage[i].ADroit=AncienAdresse then
@@ -16456,7 +16520,7 @@ begin
   end;
   formconfig.ListBoxAig.itemindex:=0;
 
-  // branches ----------------------------------
+  // changer l'aiguillage dans les branches ----------------------------------
   for i:=1 to NbreBranches do
   begin
     Nb:='';v:=0;
@@ -16520,24 +16584,24 @@ begin
       Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
       config_modifie:=true;
     end;
-    if (signaux[i].Adr_el_suiv2=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    if (signaux[i].Adr_el_suiv2=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then
     begin
       signaux[i].Adr_el_suiv2:=adresse;
       Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
       config_modifie:=true;
-    end;  
-    if (signaux[i].Adr_el_suiv3=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then 
+    end;
+    if (signaux[i].Adr_el_suiv3=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then
     begin
       signaux[i].Adr_el_suiv3:=adresse;
       Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
       config_modifie:=true;
-    end;  
+    end;
     if (signaux[i].Adr_el_suiv4=AncienAdresse) and (signaux[i].Btype_suiv1=aig) then
     begin
       signaux[i].Adr_el_suiv4:=adresse;
       Affiche('Changement dans signal '+intToSTR(signaux[i].adresse),clYellow);
       config_modifie:=true;
-    end;  
+    end;
   end;
 
   // TCOs
@@ -16555,7 +16619,7 @@ begin
     Affiche_TCO(i);
   end;
 
-  ButtonPropage.Hint:='Change les adresses dans les points de connexions'+#13+
+  ButtonPropageAig.Hint:='Change les adresses dans les points de connexions'+#13+
                       'des aiguillages, des branches et des signaux'+#13+
                       'si on a changé l''adresse d''un aiguillage';
   clicListe:=false;
@@ -16651,7 +16715,7 @@ begin
     index:=Index_Aig(Adresse);
     AncienAdresse:=aiguillage[index].AncienAdresse;
     if adresse<>AncienAdresse then
-    ButtonPropage.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
+    ButtonPropageAig.Hint:='Change les adresses '+intToSTR(AncienAdresse)+' dans les points de connexions'+#13+
                          'des aiguillages et des branches par l''adresse '+intToSTR(adresse);
   end;
 end;
@@ -17269,6 +17333,7 @@ begin
     EditDecal.Text:=IntToSTR(detecteur[adr].distArret);
     RadioButtonArrFin.Checked:=detecteur[adr].ModeArret=1;
     RadioButtonARMil.Checked:=detecteur[adr].ModeArret=2;
+    LabelDetCour.Caption:=intToSTR(adr);
     if detecteur[adr].ModeArret=1 then editDecal.Enabled:=true else editDecal.Enabled:=false;
   end;
 end;
@@ -17448,7 +17513,7 @@ begin
     ligneclicDet:=lc;
   end;
 
-  Val(s,Adresse,erreur);  // Adresse de l'aguillage
+  Val(s,Adresse,erreur);  // Adresse du détecteur
 
   aff_champs_Detecteurs(lc);
   clicliste:=false;
@@ -20096,6 +20161,222 @@ begin
     if not(decode_ligne_signal(s,i)) then    // décode la chaine et stocke en tableau signal
        Affiche('Erreur 59 : définition inccorecte du signal '+intToSTR(i),clred);
    end;
+end;
+
+
+procedure TFormConfig.ButtonValideDetClick(Sender: TObject);
+var i,erreur,detect,AncienDet,indexDet,v,adresseBr,x,y,longestLength,l,PixelLength : integer;
+typ : tEquipement;
+    s,nb,LongestString : string;
+    chgt : boolean;
+begin
+  if clicListe then exit;
+  val(LabeledNvleAdrDet.text,detect,erreur);
+  if (erreur<>0) or (detect<1) then
+  begin
+    labelInfo.caption:='Erreur';
+    exit;
+  end;
+
+  val(LEAdrDet.text,AncienDet,erreur);
+  if (erreur<>0) or (AncienDet<1) then
+  begin
+    labelInfo.caption:='Erreur';
+    exit;
+  end;
+
+  if ancienDet=detect then exit;
+
+  // vérifier si le nouveau détecteur existe
+  if detecteur[detect].index<>0 then
+  begin
+    LabelInfo.caption:='Le détecteur '+intToSTR(detect)+' existe déja';
+    exit;
+  end;
+
+  labelInfo.caption:='';
+  indexDet:=detecteur[AncienDet].index;
+  detecteur[detect]:=detecteur[ancienDet];   // copier l'ancien dans le nouveau
+
+  with detecteur[ancienDet] do
+  begin
+    index:=0;
+    NumBranche:=0;
+    IndexBranche:=0;
+  end;
+
+  Adresse_detecteur[ligneclicDet+1]:=detect;
+  trier_detecteurs;
+
+  // réafficher la listBox
+  with ListBoxDet do
+  begin
+    clear;
+    for i:=1 to NDetecteurs do items.add(encode_detecteur(i));
+  end;
+  indexDet:=Detecteur[detect].index;
+  formconfig.ListBoxDet.selected[indexDet-1]:=true;
+
+  Affiche('----------------------------------------------------',clWhite);
+  Affiche('Changement détecteur '+intToSTR(ancienDet)+' par l''adresse '+intToSTR(detect),clwhite);
+
+  // changer le détecteur dans les branches chaine ----------------------------------
+  for i:=1 to NbreBranches do
+  begin
+    Nb:='';v:=0;
+    s:=Branche[i];
+    repeat
+      v:=pos(',',s);
+
+      if (s[1]<>'A') and (s[1]<>'T') then
+      begin
+        val(s,adresseBr,erreur);
+        if adresseBR=AncienDet then adresseBr:=detect;
+        Nb:=Nb+intToSTR(adresseBr)+',';
+      end
+      else
+      begin
+        if v=0 then
+        Nb:=Nb+s+','
+        else Nb:=Nb+copy(s,1,v-1)+',';
+      end;
+      delete(s,1,v);
+    until (v=0);
+
+    delete(nb,length(nb),1);  // supprime la virgule terminale
+    branche[i]:=nb;
+    compile_branche(nb,i);
+  end;
+
+  // réafficher les branches
+  richBranche.Clear;
+  for i:=1 to NbreBranches do
+  begin
+    s:=Branche[i];
+    RichBranche.Lines.Add(s);
+    RE_ColorLine(RichBranche,RichBranche.lines.count-1,ClAqua);
+  end;
+
+  // les détecteurs dans aiguillages
+  // --------- aiguillages -----------
+  for i:=1 to maxaiguillage do
+  begin
+    typ:=aiguillage[i].modele;
+    if (typ=aig) or (typ=triple) then
+    begin
+      if (aiguillage[i].ADroit=AncienDet) and ((aiguillage[i].ADroitB='Z') or (aiguillage[i].ADroitB='')) then
+      begin
+        aiguillage[i].ADroit:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' droit',clyellow);
+        config_modifie:=true;
+      end;
+      if (aiguillage[i].ADevie=AncienDet) and ((aiguillage[i].ADevieB='Z') or (aiguillage[i].AdevieB='')) then
+      begin
+        aiguillage[i].ADevie:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' dévié',clyellow);
+        config_modifie:=true;
+      end;
+      if (aiguillage[i].APointe=AncienDet) and ((aiguillage[i].ApointeB='Z') or (aiguillage[i].ApointeB=''))then
+      begin
+        aiguillage[i].APointe:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' pointe',clyellow);
+        config_modifie:=true;
+      end;
+    end;
+
+    if (typ=tjd) or (typ=tjs) or (typ=crois) then
+    begin
+      if (aiguillage[i].ADroit=AncienDet) and ((aiguillage[i].ADroitB='Z') or (aiguillage[i].ADroitB='')) then
+      begin
+        aiguillage[i].ADroit:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' Adroit',clyellow);
+        config_modifie:=true;
+      end;
+      if (aiguillage[i].ADevie=AncienDet) and ((aiguillage[i].ADevieB='Z') or (aiguillage[i].ADevieB='')) then
+      begin
+        aiguillage[i].ADevie:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' Ddevie',clyellow);
+        config_modifie:=true;
+      end;
+      if (aiguillage[i].DDroit=AncienDet) and ((aiguillage[i].DDroitB='Z') or (aiguillage[i].DDroitB='')) then
+      begin
+        aiguillage[i].DDroit:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' Ddroit',clyellow);
+        config_modifie:=true;
+      end;
+      if (aiguillage[i].DDevie=AncienDet) and ((aiguillage[i].DdevieB='Z') or (aiguillage[i].dDevieB='')) then
+      begin
+        aiguillage[i].DDevie:=detect;
+        Affiche('Réaffectation '+BTypeToChaine(typ)+' '+intToSTR(aiguillage[i].Adresse)+' Ddevie',clyellow);
+        config_modifie:=true;
+      end;
+    end;
+  end;
+  // réaffecte la listebox aiguillages
+  formconfig.ListBoxAig.Clear;
+  for i:=1 to MaxAiguillage do
+  begin
+    s:=encode_aig(i);
+    formConfig.ListBoxAig.Items.AddObject(s,Pointer(clYellow));
+    Aiguillage[i].modifie:=false;
+  end;
+  formconfig.ListBoxAig.itemindex:=0;
+
+  // dans les signaux
+  for i:=1 to NbreSignaux do
+  begin
+    chgt:=false;
+    if signaux[i].Adr_det1=AncienDet then begin signaux[i].Adr_det1:=detect;chgt:=true;end;
+    if signaux[i].Adr_det2=AncienDet then begin signaux[i].Adr_det2:=detect;chgt:=true;end;
+    if signaux[i].Adr_det3=AncienDet then begin signaux[i].Adr_det3:=detect;chgt:=true;end;
+    if signaux[i].Adr_det4=AncienDet then begin signaux[i].Adr_det4:=detect;chgt:=true;end;
+    if (signaux[i].Btype_suiv1=det) and (signaux[i].Adr_el_suiv1=AncienDet) then begin signaux[i].Adr_el_suiv1:=detect;chgt:=true;end;
+    if (signaux[i].Btype_suiv2=det) and (signaux[i].Adr_el_suiv2=AncienDet) then begin signaux[i].Adr_el_suiv2:=detect;chgt:=true;end;
+    if (signaux[i].Btype_suiv3=det) and (signaux[i].Adr_el_suiv3=AncienDet) then begin signaux[i].Adr_el_suiv3:=detect;chgt:=true;end;
+    if (signaux[i].Btype_suiv4=det) and (signaux[i].Adr_el_suiv4=AncienDet) then begin signaux[i].Adr_el_suiv4:=detect;chgt:=true;end;
+
+    if chgt then Affiche('Changement détecteur dans signal '+intToSTR(signaux[i].adresse),clYellow);
+  end;
+  formconfig.ListBoxSig.Clear;
+  longestLength:=0;
+  for i:=1 to NbreSignaux do
+  begin
+    s:=encode_signal(i);  // encode la ligne depuis le tableau feux
+    //Affiche(s,clwhite);
+    if s<>'' then
+    begin
+      formconfig.ListBoxSig.Items.Add(s);
+      // trouver la chaine la plus longue pour la future scrollbar
+      l:=Length(s);
+      if l>LongestLength then
+      begin
+        LongestString:=s;
+        LongestLength:=l;
+      end;
+      Signaux[i].modifie:=false;
+    end;
+  end;
+  PixelLength:=formconfig.ListboxSig.Canvas.TextWidth(LongestString);
+  // positionne une scrollbar dans la listbox - pour l'enlever, envoyer 0 dans pixelLength
+  SendMessage(formconfig.ListBoxSig.Handle,LB_SETHORIZONTALEXTENT,PixelLength,0);
+
+
+  // TCOs
+  for i:=1 to NbreTCO do
+  begin
+    for y:=1 to NbreCellY[i] do
+      for x:=1 to NbreCellX[i] do
+      begin
+        if (tco[i,x,y].Adresse=AncienDet) and (tco[i,x,y].BImage<>Id_Signal) then
+        begin
+          tco[i,x,y].Adresse:=detect;
+          s:='TCO '+intToSTR(i)+' cellule '+intToSTR(x)+','+intToSTR(y)+' ';
+          s:=s+'Changement adresse '+intToSTR(AncienDet)+' par adresse '+intToSTR(detect);
+          Affiche(s,clyellow);
+        end;
+      end;
+    Affiche_TCO(i);
+  end;
 
 end;
 
