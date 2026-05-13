@@ -412,7 +412,7 @@ begin
   DeclDetAct :
       begin
         s:=s+'détecteur/Actionneur '+intToSTR(Tablo_Action[i].adresse)+' à '+intToSTR(Tablo_Action[i].etat);
-        s:=s+' par le train "'+Tablo_Action[i].trainDecl+'"';
+        s:=s+' par le train '+Tablo_Action[i].trainDecl;
       end;
   DeclZoneDet :
      s:=s+'Zone détection '+intToSTR(Tablo_Action[i].adresse)+' '+intToSTR(Tablo_Action[i].adresse2);
@@ -442,7 +442,7 @@ begin
   nop:=Tablo_Action[i].NbCond;
   for op:=1 to nop do
   begin
-    s:=s+'Condition :';
+    s:=s+'Condition '+intToSTR(op)+' : ';
     top:=Tablo_Action[i].tabloCond[op].numcondition;
     case top of
       CondVrai : s:=s+'toujours vraie ';
@@ -458,7 +458,7 @@ begin
       condMemoireEgal : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat);
       condMemoireInf : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' < '+intToSTR(tablo_action[i].tabloCond[op].etat);
       condMemoireSup : s:=s+'mémoire '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' > '+intToSTR(tablo_action[i].tabloCond[op].etat);
-      condDetAct : s:=s+'det/act '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat)+' train:'+tablo_action[i].tabloCond[op].train;
+      condDetAct : s:=s+'det/act '+intToSTR(tablo_action[i].tabloCond[op].adresse)+' à '+intToSTR(tablo_action[i].tabloCond[op].etat)+' train '+tablo_action[i].tabloCond[op].train;
     end;
     s:=s+#13;
   end;
@@ -474,6 +474,7 @@ begin
   for op:=1 to nop do
   begin
     top:=Tablo_Action[i].tabloop[op].numoperation;
+    s:=s+intToSTR(op)+'. ';
     case top of
       ActionAffTCO : s:=s+'Affiche TCO '+intToSTR(Tablo_Action[i].tabloop[op].NumTCO)+#13;
       ActionAffSC : s:=s+'Affiche signaux_complexes'+#13;
@@ -492,7 +493,7 @@ begin
       ActionVitesse : s:=s+'Modifie la vitesse du train '+Tablo_Action[i].tabloop[op].train+' à '+intToSTR(Tablo_Action[i].tabloop[op].vitesse)+#13;
       ActionCdePeriph : s:=s+'Pilote le périphérique '+intToSTR(Tablo_Action[i].tabloop[op].periph)+' chaîne : '+Tablo_Action[i].tabloop[op].chaine+#13;
       ActionFonctionF : s:=s+'Fonction F'+intToSTR(Tablo_Action[i].tabloop[op].fonctionF)+' à '+IntToSTR(Tablo_action[i].tabloOp[op].etat)+
-                            ' train dest='+Tablo_Action[i].tabloop[op].train+#13;
+                            ' train '+Tablo_Action[i].tabloop[op].train+#13;
       ActionSon : s:=s+'Son '+Tablo_Action[i].tabloop[op].train+#13;
       ActionTempo :
       begin
@@ -521,7 +522,6 @@ begin
     formModifAction.listBoxOperations.Selected[indexaction-1]:=true;
   end;
 
-//  formModifAction.RichEditInf.clear;
   efface_champs_operations;
 
   if Nb>=indexAction then
@@ -1266,7 +1266,8 @@ begin
   Tablo_Action[idBD].NbCond:=NbCond;
   Setlength(Tablo_Action[idBD].tabloCond,NbCond+1);
 
-  Aff_champs(idBD,IndexSrc,1); //???
+  dec(clicCond);
+  Aff_champs(idBD,IndexSrc,1);
   exit;
 
   // réencoder la ligne

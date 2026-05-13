@@ -98,7 +98,7 @@ type
     LabelErreur: TLabel;
     Label900: TLabel;
     EditNEsignal: TEdit;
-    Button1: TButton;
+    ButtonOk: TButton;
     Shape8: TShape;
     procedure FormActivate(Sender: TObject);
     procedure ComboBoxAdr1Change(Sender: TObject);
@@ -119,7 +119,7 @@ type
     procedure ComboBoxAdr16Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditNEsignalChange(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure ButtonOkClick(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -717,7 +717,7 @@ begin
   efface(i);
 end;
 
-procedure TFormSR.Button1Click(Sender: TObject);
+procedure TFormSR.ButtonOkClick(Sender: TObject);
 begin
   close;
 end;

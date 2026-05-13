@@ -7523,6 +7523,10 @@ begin
     end;
     ButtonRdt.Caption:=s;
 
+    // sélectionne la ligne, ne pas valider ca double déplace la ligne sélectionnée avec les touches du curseur
+    //formconfig.ListBoxTrains.Selected[index-1]:=true;
+    //formconfig.ListBoxTrains.ItemIndex:=index-1;
+
     editNomTrain.text:=Trains[index].nom_train;
     LabelTitreTrain.Caption:=Trains[index].nom_train;
     editAdresseTrain.Text:=intToSTR(trains[index].adresse);
@@ -11242,7 +11246,7 @@ begin
   if n=1 then s:=s+' l''action ' else s:=s+' les actions ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
 
@@ -11309,7 +11313,7 @@ begin
   if n=1 then s:=s+' le PN ' else s:=s+' les PNs ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
 
@@ -11523,7 +11527,7 @@ begin
   if n=1 then s:=s+' le signal ' else s:=s+' les signaux ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
   raz_champs_sig;
@@ -13089,7 +13093,7 @@ begin
   if n=1 then s:=s+' l''aiguillage ' else s:=s+' les aiguillages ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
   raz_champs_aig;
@@ -14778,7 +14782,7 @@ begin
   if n=1 then s:=s+' le train ' else s:=s+' les trains ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
 
@@ -15491,7 +15495,7 @@ begin
   if decCourant=0 then exit;
 
   s:='Voulez vous supprimer le décodeur personnalisé '#13+decodeur_pers[decCourant].nom+' ?';
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   //supprimer de la liste des décodeurs peronnalisés
   s:=decodeur_pers[decCourant].nom;
@@ -15815,7 +15819,7 @@ begin
 
   s:=s+utilisateurs_peripheriques;
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
   formConfig.EditNomPeriph.text:='';
@@ -16890,11 +16894,13 @@ begin
   end;
 
   // trains
+  (*
   with ListBoxTrains do
   begin
     clear;
     for i:=1 to ntrains do items.Add(encode_train(i));
   end;
+  *)
   if clicproprietesTrains then clicListeTrains(ligneclicTrain+1);
   clicproprietesTrains:=false;
 
@@ -17075,7 +17081,7 @@ end;
 
 
 procedure TFormConfig.SpeedButtonOuvreClick(Sender: TObject);
-var s,repini :string;
+var s,repini,Nom_complet :string;
     i : integer;
 begin
   if ligneclicTrain<0 then exit;
@@ -17088,11 +17094,11 @@ begin
   OpenDialogSon.Filter:='Fichiers BMP (*.BMP)|*.bmp|Tous fichiers (*.*)|*.*';
   if openDialogSon.execute then
   begin
-    s:=openDialogSon.filename;
-    trains[i].NomIcone:=ExtractFileName(s);
-    s:=trains[i].NomIcone;
+    Nom_complet:=openDialogSon.filename;
+    s:=ExtractFileName(Nom_complet);
+    trains[i].NomIcone:=s;
     EditIcone.Text:=s;
-    trains[i].icone.Picture.LoadFromFile(s);
+    trains[i].icone.Picture.LoadFromFile(Nom_complet);
     //ImageTrain.Canvas.Rectangle(0,0,ImageTrain.Width,ImageTrain.Height);
     Maj_icone_train(formconfig.ImageTrain,i,clWhite);
     Maj_icone_train(Image_Train[i],i,clWhite);
@@ -17214,7 +17220,7 @@ begin
   if n=1 then s:=s+' le détecteur ' else s:=s+' les détecteurs ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
 
@@ -17275,7 +17281,7 @@ begin
   if n=1 then s:=s+' l''actionneur ' else s:=s+' les actionneurs ';
   s:=s+ss+' ?';
 
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   clicliste:=true;
 
@@ -18772,7 +18778,7 @@ begin
   if node.HasChildren then
   begin
     s:='Voulez vous supprimer l''élément ['+texte_tv(foncCourante,inode)+'] et ses enfants?';
-    if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+    if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   end;
 
   config_modifie:=true;
@@ -19230,12 +19236,14 @@ begin
 end;
 
 procedure TFormConfig.LabeledEditNumFoncChange(Sender: TObject);
-var v,erreur : integer;
+var v,erreur,n : integer;
     s : string;
 begin
   if clicTree or (foncCourante=0) or changeCom or (TreeViewL=nil) then exit;
   if affevt then Affiche('LabeledEditNumFonc Change',clyellow);
   config_modifie:=true;
+  n:=fonction[foncCourante,0].adresse;
+  if n=0 then exit;   // si la fonction courante ne comporte pas d'élément (vide)
   val(LabeledEditNumFonc.text,v,erreur);
   if (erreur<>0) or (v<1) then exit;
   fonction[foncCourante,0].Niveau:=v;
@@ -20379,6 +20387,7 @@ begin
   end;
 
 end;
+
 
 end.
 

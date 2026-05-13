@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetDet
+    ActivePage = TabSheetTrains
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -4778,7 +4778,7 @@ object FormConfig: TFormConfig
             Top = 174
             Width = 113
             Height = 17
-            Hint = 'PN command'#233' par actionneurs CDM'
+            Hint = 'PN d'#233'clench'#233' par actionneurs CDM'
             Caption = 'Actionneurs CDM'
             ParentShowHint = False
             ShowHint = True
@@ -4788,9 +4788,9 @@ object FormConfig: TFormConfig
           object RadioButtonZone: TRadioButton
             Left = 24
             Top = 192
-            Width = 113
+            Width = 137
             Height = 17
-            Hint = 'PN command'#233' par m'#233'moires de zone'
+            Hint = 'PN d'#233'clench'#233' par m'#233'moires de zone'
             Caption = 'Zones de d'#233'tection'
             ParentShowHint = False
             ShowHint = True
@@ -4802,7 +4802,7 @@ object FormConfig: TFormConfig
             Top = 24
             Width = 233
             Height = 57
-            Hint = 'action par accessoire DCC ou commande COM/USB'
+            Hint = 'Commande du PN par accessoire DCC ou commande COM/USB'
             Caption = 'Type d'#39'action'
             Items.Strings = (
               'Accessoire DCC'
@@ -6161,10 +6161,10 @@ object FormConfig: TFormConfig
         object CbAct: TCheckBox
           Left = 16
           Top = 48
-          Width = 97
+          Width = 105
           Height = 17
-          Hint = 'Envoie les '#233'v'#232'nements actionneurs'
-          Caption = 'Actionneurs'
+          Hint = 'Envoie les '#233'v'#232'nements actionneurs CDM Rail'
+          Caption = 'Actionneurs CDM'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1

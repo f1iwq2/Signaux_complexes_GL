@@ -180,7 +180,7 @@ begin
   if comp is tImage then typDest:=im;
   if TypDest=Trien then
   begin
-    Affiche('Anomalie 47 c='+intToSTR(c)+' i='+intToSTR(idTrain),clred);
+    Affiche('Compteur='+intToSTR(c)+' Anomalie 47 idTrain='+intToSTR(idTrain),clred);
     exit;
   end;
 
@@ -1008,10 +1008,11 @@ begin
   s:=f.caption;   // nom du train=caption de la fenêtre
 
   i:=index_train_nom(s);
+  //trains[i].AVitesseCons:=9;  // pour différence entre ancienne et nouvelle vitesse
   trains[i].vitesseCons:=0;
   compteurT[i].tb.Position:=0;
   trackBarC.Position:=0;
-  //vitesse_loco(s,i,trains[i].adresse,0,10,0);
+  vitesse_loco(s,i,trains[i].adresse,0,10,0);
   clicTBFen:=false;
 end;
 

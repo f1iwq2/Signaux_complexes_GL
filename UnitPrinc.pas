@@ -1,5 +1,5 @@
 unit Unitprinc;
-// 24/12/2025
+// 13/5/2026
 { ********************************************
   Programme signaux complexes Graphique Lenz
   --------------------------------------------------------------
@@ -5941,7 +5941,6 @@ end;
 
 // teste la (les) condition(s) d'une action
 // action : index de l'action
-//zizi
 function teste_condition(action : integer) : boolean;
 var condValide,condfinale : boolean;
  vit,vit1,vit2,it,pa,m1,m2,hc,n,ncond,cond,etat : integer;
@@ -18353,7 +18352,6 @@ begin
         index:=Tablo_periph[i].NumComposant;
         if index=1 then envoi_usb_comp(MSCommCde1,s);
         if index=2 then envoi_usb_comp(MSCommCde2,s);
-
       end;
     end;
     if dr=2 then
@@ -19070,6 +19068,7 @@ var i,j,n,adresse,groupe,rang,valeur,erreur : integer;
     b : byte;
     s : string;
 begin
+
   if length(s)>0 then if chaineINT[1]=#$0D then delete(chaineINT,1,1);
   if length(s)>0 then if chaineINT[1]=#$0A then delete(chaineINT,1,1);
 
@@ -20168,6 +20167,8 @@ begin
   convert_VK:=s;
 end;
 
+// explore le répertoire CDM DGI de CDM pour y trouver les interfaces
+// met les interfaces trouvées dans le tableau Interfaces_CDM
 procedure explore_CDM_DGI(r : string);
 var Sr : TSearchRec;
     s : string;
@@ -20180,6 +20181,7 @@ begin
   begin
     repeat
       s:=lowercase(sr.Name);
+      //Affiche(s,clwhite);
       if (s<>'.') and (s<>'..') then
       begin
         inc(i);
@@ -20189,11 +20191,11 @@ begin
     FindClose(sr);
   end;
   Nbre_Interfaces_CDM:=i;
-  
+
   // trier par ordre alpha
   for i:=1 to Nbre_Interfaces_CDM-1 do
   begin
-    if Interfaces_CDM[i+1]<Interfaces_CDM[i] then 
+    if Interfaces_CDM[i+1]<Interfaces_CDM[i] then
     begin
       s:=Interfaces_CDM[i];
       Interfaces_CDM[i]:=Interfaces_CDM[i+1];
@@ -20208,15 +20210,15 @@ begin
     begin
       for j:=i to Nbre_interfaces_cdm do
       begin
-        Interfaces_CDM[j]:=Interfaces_CDM[j+1]; 
+        Interfaces_CDM[j]:=Interfaces_CDM[j+1];
       end;
       dec(Nbre_interfaces_cdm);
     end;
     inc(i);
   until i>Nbre_interfaces_cdm;
 
-  //for i:=1 to Nbre_Interfaces_CDM do Affiche(interfaces_cdm[i],clYellow);
-  
+  //for i:=1 to Nbre_Interfaces_CDM do Affiche('Interface '+intToSTR(i)+'='+interfaces_cdm[i],clYellow);
+
 end;
 
 // Lance et connecte CDM rail si avecsocket=true. en sortie si CDM est lancé Lance_CDM=true,
@@ -20270,7 +20272,7 @@ begin
   end;
 
   explore_CDM_DGI(repertoire);   // explorer le répertoire CDM_DGI
-  
+
   if AvecSocket and cdm_lanceLoc then
   begin
     Formprinc.caption:=af+' - '+lay;
@@ -20352,7 +20354,7 @@ begin
         if (serveurInterfaceCDM=6) and (pos('fis',interfaces_cdm[i])<>0) then n:=i;
         if (serveurInterfaceCDM=7) and (pos('dccpp',interfaces_cdm[i])<>0) then n:=i;
         if (serveurInterfaceCDM=8) and (pos('ecos',interfaces_cdm[i])<>0) then n:=i;
-      end; 
+      end;
 
       for i:=1 to n-1 do
       begin
@@ -21850,7 +21852,7 @@ begin
   procetape('Lecture de la configuration');
   lit_config;
 
-  //clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
+  clientInfo.Open; // &&& se connecte au serveur SC et envoie les infos
 
   {$IF CompilerVersion >= 28.0}
   procetape('Application des styles');
@@ -25177,10 +25179,10 @@ var erreur,fonction,etat,loco : integer;
     s : string;
 begin
   val(editNumFonction.Text,fonction,erreur);
-  if (erreur<>0) or (fonction<0) then exit;
+  if (erreur<>0) or (fonction<0) then begin Affiche('numéro de fonction incorrect',clred);exit;end;
   val(editFonc01.Text,etat,erreur);
-  if (erreur<>0) or (etat<0) then exit;
-  if not(portCommOuvert) and not(parSocketLenz) and not(CDM_connecte) then exit;
+  if (erreur<>0) or (etat<0) or (etat>1) then begin Affiche('Etat de fonction incorrect',clred);exit;end;
+  if not(portCommOuvert) and not(parSocketLenz) and not(CDM_connecte) then begin Affiche('Non connecté à l''interface ou à CDM',clOrange);exit;end;
   val(editAdrTrain.Text,loco,erreur);
   s:=trains[combotrains.itemindex+1].nom_train;
   if CDM_connecte then
@@ -28330,21 +28332,31 @@ begin
   // AdrPilote est récupéré de l'event OnMouseDown de l'image du signal qui se produit avant
   if Affevt then Affiche('PopupMenuTrain',clYellow);
   ob:=Sender as Tpopupmenu;
- // ob.Items[0].Caption:='Propriétés du train '+intToSTR(AdrPilote);
-
+  //ob.Items[0].Caption:='Propriétés du train '+intToSTR(IdTrainClic);
 end;
 
 procedure TFormPrinc.Propritsdutrain1Click(Sender: TObject);
 var s : string;
+    i : integer;
 begin
   clicliste:=false;
   if affEvt then Affiche('Clic propriétés train',clYellow);
   s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pour récupérer l'index du train (ex: ImageSignal2)
   ligneclicTrain:=extract_int(s)-1;   // extraire l'adresse (ex 2)
   formconfig.PageControl.ActivePage:=formconfig.TabSheetTrains;
+
+
+
   clicproprietesTrains:=true;
+
+  for i:=1 to ntrains do formconfig.ListBoxTrains.Selected[i-1]:=false;  // déselectionner tous les trains de la list box
+  formconfig.ListBoxTrains.Selected[LigneClicTrain]:=true;
+
+  //formconfig.ListBoxTrains.Refresh;
   formconfig.showmodal;
-  formconfig.close;
+
+
+  //formconfig.close;
 end;
 
 

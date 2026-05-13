@@ -803,13 +803,14 @@ begin
   maj_fenetre;
 end;
 
+// écriture dans la listbox
 procedure TFormRoute.ListBoxRoutesDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var  fs : integer;
      s : string;
 begin
   //myBrush := TBrush.Create;
-  with (Control as TListBox).Canvas do // draw on control canvas, not on the form
+  with (Control as TListBox).Canvas do // dessine dans le canvas de la listbox
   begin
 {    if Index = 3 then
       myColor := clRed

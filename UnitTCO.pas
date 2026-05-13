@@ -490,7 +490,7 @@ const
   Id_cantonH=60; // codifications de l'icone dans le TCO
   Id_cantonV=70; //           "
 
-  // liaisons des voies pour chaque icone par N° de bit (0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest) 7
+  // liaisons des voies pour chaque icone par N° de bit (bit 0=NO 1=Nord 2=NE 3=Est 4=SE 5=S 6=SO 7=Ouest)
   // un bit à 1 indique une liaison de l'élément
   Liaisons : array[0..53] of integer=
    // 0   1   2   3   4   5  6   7  8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28 29 30 31
@@ -744,7 +744,7 @@ begin
   end;
 end;
 
-// ramener les coordonnées à la première cellule du canton
+// ramener les coordonnées du canton en x,y à la première cellule du canton
 procedure coord_canton(indexTCO : integer;var x,y : integer);
 var el : integer;
 begin
@@ -15090,7 +15090,7 @@ begin
       s:='Voulez vous supprimer le canton ';
       if index<>0 then s:=s+intToSTR(canton[index].numero)+' '+canton[index].nom;
       s:=s+' ?';
-      if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+      if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
       bim:=index_canton(indexTCO,XclicCell[indexTCO],YclicCell[indexTCO]);
       supprime_remplace_canton(bim);
@@ -18213,13 +18213,11 @@ begin
   accept:=true;
 end;
 
-
 procedure TFormTCO.ImagePalette51EndDrag(Sender, Target: TObject; X,
   Y: Integer);
 begin
   end_drag(id_Quai,x,y,sender,target);
 end;
-
 
 procedure TFormTCO.ImagePalette24EndDrag(Sender, Target: TObject; X,
   Y: Integer);
@@ -18632,7 +18630,7 @@ procedure TFormTCO.Colonnedroite1Click(Sender: TObject);
 var indexTCO : integer;
     c : tcomponent;
 begin
-  c:=popupmenu1.PopupComponent ;     // imageTCO
+  c:=popupmenu1.PopupComponent;      // imageTCO
   c:=c.GetParentComponent;           // scrollBox
   c:=c.GetParentComponent;           // formTCO
   indexTCO:=index_tco(c);
@@ -18644,7 +18642,6 @@ begin
   insere_colonne(indexTCO,colonne_supprime);
   affiche_TCO(indexTCO);
 end;
-
 
 procedure TFormTCO.SupprimeLigneClick(Sender: TObject);
 var x,y,i,yy,indexTCO,n,xc,yc,Bimage : integer;
@@ -19456,7 +19453,7 @@ begin
     index:=index_canton(indexTCO,xc,yc);
     if index<>0 then s:=s+intToSTR(canton[index].numero)+' '+canton[index].nom;
     s:=s+' ?';
-    if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+    if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
   end;
 
   supprime_remplace_canton(index);
@@ -19485,7 +19482,7 @@ end;
 procedure TFormTCO.ImagePalette52MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-   debut_drag(ImagePalette52);
+  debut_drag(ImagePalette52);
 end;
 
 procedure TFormTCO.ImagePalette52DragOver(Sender, Source: TObject; X,
@@ -19838,7 +19835,7 @@ var c,x,y,i,SauvNbreTCO : integer;
 begin
   if Tcos>NbreTCO then exit;
   s:='Voulez-vous supprimer le TCO '+intToSTR(TcoS)+' ('+NomFichierTCO[tcoS]+')';
-  if Application.MessageBox(pchar(s),pchar('confirm'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
+  if Application.MessageBox(pchar(s),pchar('confirmer'), MB_YESNO or MB_DEFBUTTON2 or MB_ICONQUESTION)=idNo then exit;
 
   SauvNbreTCO:=NbreTCO;  // dire au programme Timer qu'il n'y a plus de TCO le temps de supprimer sinon il peut tenter d'allumer un feu sur le TCO qu'on supprime->violation
   NbreTCO:=0;

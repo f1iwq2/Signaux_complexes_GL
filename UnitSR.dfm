@@ -692,13 +692,13 @@ object FormSR: TFormSR
     TabOrder = 16
     OnChange = EditNEsignalChange
   end
-  object Button1: TButton
+  object ButtonOk: TButton
     Left = 32
     Top = 536
     Width = 75
     Height = 25
     Caption = 'Ok'
     TabOrder = 17
-    OnClick = Button1Click
+    OnClick = ButtonOkClick
   end
 end
