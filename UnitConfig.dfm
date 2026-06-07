@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetTrains
+    ActivePage = TabSheetFonctions
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -4086,7 +4086,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4106,7 +4106,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4218,7 +4218,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4243,7 +4243,9 @@ object FormConfig: TFormConfig
           Height = 21
           EditLabel.Width = 126
           EditLabel.Height = 13
+          EditLabel.BiDiMode = bdRightToLeft
           EditLabel.Caption = 'Nom de la fonction logique'
+          EditLabel.ParentBiDiMode = False
           LabelPosition = lpRight
           LabelSpacing = 10
           TabOrder = 9
@@ -4819,7 +4821,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -6579,7 +6581,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end

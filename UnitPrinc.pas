@@ -1450,7 +1450,6 @@ var path,ext : string;
     Nbss : integer;
 begin
   // liste des fichiers chemin destination
-  //{$IF CompilerVersion >= 28.0}
 
   ss:=TStyleManager.StyleNames;  // contient les styles déja chargés en mémoire
   Nbss:=high(ss);
@@ -1516,7 +1515,6 @@ begin
       end;
     end;
   end;
-  //{$IFEND}
 
   // renseigner clair/sombre
   for i:=1 to nombreStyles do
@@ -1637,7 +1635,7 @@ begin
     if s='zircon se' then style[i].clarte:=clair;
   end;
 end;
- {$IFEND}
+{$IFEND}
 
 
 // change le style en fonction de Style_aff pour Delphi12 (compilateur>=28)
@@ -4868,7 +4866,7 @@ begin
     if N>3 then cercle(ACanvas,x4,y4,rayon,clBlack,GrisF);
     if N>4 then cercle(ACanvas,x5,y5,rayon,clBlack,GrisF);
     if N>5 then cercle(ACanvas,x6,y6,rayon,clBlack,GrisF);
-  end;                  
+  end;
   if EtatSignal=3 then
   begin
     cercle(ACanvas,x1,y1,rayon,clBlack,clWhite);
@@ -5366,6 +5364,7 @@ begin
 end;
 
 // créée les composants trains dynamiquement dans la partie droite pour un nouveau compteur par train
+// dans la groupBox (GB)
 // rang commence à 1
 procedure cree_GB_compteur(rang : integer);
 const HautTb=10;  // hauteur trackbar
@@ -8769,7 +8768,7 @@ begin
     inc(j);
     AdrSuiv:=suivant_alg3(precCalc,TypeprecCalc,actuelCalc,TypeActuelCalc,algo);
     //Affiche(intToSTR(AdrSuiv)+'=alg3('+intToSTR(precCalc)+','+intToSTR(actuelCalc)+')',clWhite);
-    // modif spécial TJD ==============
+    // TJD ==============
     ia:=index_aig(actuelCalc);
     if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
       PrecCalc:=aiguillage[ia].Ddevie else
@@ -9011,7 +9010,7 @@ begin
               Orientation:=tco[indextco,x,y].FeuOriente;
               // réduction variable en fonction de la taille des cellules
               calcul_reduction(frx,fry,LargeurCell[indexTCO],HauteurCell[indexTCO]);
-              // décalage en X pour mettre la tete du signal alignée sur le bord droit de la cellule pour les signaux tournés à 90G
+              // décalage en X,Y pour mettre la tete du signal alignée sur le bord droit de la cellule pour les signaux tournés à 90G
               Dessine_signal_mx(PCanvasTCO[indexTCO],tco[indexTCO,x,y].x,tco[indextco,x,y].y,frx,fry,adresse,orientation);
             end;
           end;
@@ -9840,7 +9839,6 @@ begin
           exit;
         end;
 
-        
         if aiguillage[index].position=const_devie then
         begin
           if NivDebug=3 then AfficheDebug('133 - aiguillage '+intToSTR(Adr)+' Pris en pointe dévié',clyellow);
@@ -11188,7 +11186,7 @@ begin
       if Adr>9990 then typeGen:=det;
       if (NivDebug=3) then AfficheDebug('trouvé '+intToSTR(Adr)+' '+BTypeToChaine(typeGen),clorange);
 
-      // modif spécial TJD ==============
+      //  TJD ==============
       ia:=index_aig(AdrFonc);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
@@ -12140,7 +12138,7 @@ begin
           AfficheDebug(s,clYellow);
         end;
 
-       // modif spécial TJD ==============
+       // TJD ==============
        ia:=index_aig(adrfonc);
        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
@@ -12348,7 +12346,7 @@ begin
           AfficheDebug(s,clYellow);
         end;
 
-       // modif spécial TJD ==============
+       // TJD ==============
        ia:=index_aig(adrfonc);
        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
@@ -12396,7 +12394,7 @@ begin
         elements[idEl].adresse:=adr;
         elements[idEl].typ:=TypeGen;
 
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(ADrFonc);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrPrec:=aiguillage[ia].Ddevie else
@@ -12498,7 +12496,7 @@ begin
     IdActTr:=0;   // init pointeur des actionneurs
     if nivDebug=3 then afficheDebug('Init pointeur actionneurs',clLime);
     // sens
-    //========================nouveau
+    //========================
     delta:=1;
     repeat
       if j=1 then i1:=IndexBranche_det1+delta;
@@ -12551,7 +12549,7 @@ begin
           if adr=el2 then exit;
         end;
 
-       // modif spécial TJD ==============
+       // TJD ==============
        ia:=index_aig(adrfonc);
        if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          AdrPrec:=aiguillage[ia].Ddevie else
@@ -12600,7 +12598,7 @@ begin
         elements[idEl].adresse:=adr;
         elements[idEl].typ:=TypeGen;
 
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(ADrFonc);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrPrec:=aiguillage[ia].Ddevie else
@@ -12722,7 +12720,7 @@ begin
           AfficheDebug(s,clYellow);
         end;
 
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(AdrFonc);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
            AdrPrec:=aiguillage[ia].Ddevie else
@@ -12986,7 +12984,7 @@ begin
 
     if (AdrSuiv<>9998) then // pas arret sur aiguillage en talon mal positionnée
     begin
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(Actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          prec:=aiguillage[ia].Ddevie else
@@ -13163,7 +13161,7 @@ begin
       AdrSuiv:=suivant_alg3(prec,TypePrec,actuel,TypeActuel,1);  // arret sur élément suivant
       if Nivdebug=3 then AfficheDebug('Suivant='+intToSTR(AdrSuiv),clyellow);
 
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          prec:=aiguillage[ia].Ddevie else
@@ -13348,7 +13346,7 @@ begin
         AfficheDebug('Suivant='+intToSTR(AdrSuiv),clyellow);
       end;
 
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(Actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
@@ -13520,7 +13518,7 @@ begin
     begin
       // pas trouvé aig dévié
 
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(Actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
@@ -13731,7 +13729,7 @@ begin
         exit;
       end;
 
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(Actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
@@ -13825,7 +13823,7 @@ begin
         exit;
       end;
 
-      // modif spécial TJD ==============
+      // TJD ==============
       ia:=index_aig(Actuel);
       if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
          Prec:=aiguillage[ia].Ddevie else
@@ -13986,7 +13984,7 @@ begin
 
       if not(malpositionne) then
       begin
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(Actuel);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
         Prec:=aiguillage[ia].Ddevie else
@@ -14293,7 +14291,7 @@ begin
 
       if not(malpositionne) then
       begin
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(Actuel);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
         Prec:=aiguillage[ia].Ddevie else
@@ -14904,7 +14902,7 @@ begin
       Affiche('Erreur 154',clred);
     end;
 
-    // modif spécial TJD ==============
+    // TJD ==============
     ia:=index_aig(suiv);
     if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
     actuel:=aiguillage[ia].Ddevie else
@@ -15341,7 +15339,7 @@ begin
           AfficheDebug(s,clYellow);
         end;
 
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(adrfonc);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           adrPrec:=aiguillage[ia].Ddevie else
@@ -15388,7 +15386,7 @@ begin
         elements[idEl].adresse:=adr;
         elements[idEl].typ:=TypeGen;
 
-        // modif spécial TJD ==============
+        // TJD ==============
         ia:=index_aig(adrprec);
         if (aiguillage[ia].modele=tjd) and (aiguillage[ia].EtatTJD=4) then
           AdrFonc:=aiguillage[ia].Ddevie else
@@ -17773,7 +17771,6 @@ begin
   i:=index_actionneur(adr);
   actionneur[i].etat:=etat=1;
   actionneur[i].train:=trainDecl;
-
   if AffAigDet and (adr2=0) then AfficheDebug('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+' Train='+trainDecl,clyellow);
   //Affiche('Tick='+IntToSTR(tick)+' Evt Act='+intToSTR(Adr)+'='+intToSTR(etat)+'/'+intToSTR(Adr2)+' Train='+trainDecl,clyellow);
   //if fm then affiche('Front montant',clred);
@@ -18001,7 +17998,7 @@ begin
   // lance cdm
   if pos('<LCDM>',s)<>0 then
   begin
-    Lance_CDM(true);
+    Lance_CDM(true);  // avec serveur comIP
     result:=true;
   end;
   // affiche cdm
@@ -18274,19 +18271,29 @@ begin
       end;
     end;
 
-    if etat then i:=1 else i:=0;
+
     if not(confignulle) then calcul_zones(adresse,true);   // *** calcul zones
 
     // gérer l'évènement actionneur pour action sur front montant hors mode CDM
-    if not(CDM_connecte) then event_act(Adresse,0,i,train);
+    //AfficheDebug('Avant-->'+intToSTR(adresse)+' '+intToSTR(i),clWhite);
+    if not(CDM_connecte) then
+    begin
+      if etat then i:=1 else i:=0;
+      event_act(Adresse,0,i,train);
+    end;
   end;
 
   // gérer l'évènement actionneur pour action sur état à 1 en mode CDM
   // car le nom du train est passé au 2eme message du détecteur à 1 comIP , et donc
-  // le détecteur n'est plus en front montan
+  // le détecteur n'est plus en front montant
   if etat and CDM_connecte then
   begin
-    if train<>'_NONE' then event_act(Adresse,0,i,train);
+    //AfficheDebug(intToSTR(adresse)+' '+intToSTR(i),clred);
+    if train<>'_NONE' then
+    begin
+      if etat then i:=1 else i:=0;
+      event_act(Adresse,0,i,train);
+    end;  
   end;
 
   // détection fronts descendants
@@ -18321,10 +18328,10 @@ begin
      // idTrain:=index_train_adresse(detecteur[adresse].AdrTrain);
      // if idTrain<>0 then trains[idTrain].detecteurA:=adresse;
 
-      if etat then i:=1 else i:=0;
       if not(confignulle) then calcul_zones(adresse,false);  // *** calcul zones
 
       // gérer l'évènement detecteur pour action
+      if etat then i:=1 else i:=0;
       event_act(Adresse,0,i,train);
     end;
   end;
@@ -19716,7 +19723,7 @@ end;
 
 function pos_tablo(b : byte;t : tchaineBIN) : integer;
 var i : integer;
-   trouve : boolean;
+    trouve : boolean;
 begin
   i:=0;
   repeat
@@ -20221,7 +20228,9 @@ begin
 
 end;
 
-// Lance et connecte CDM rail si avecsocket=true. en sortie si CDM est lancé Lance_CDM=true,
+// Lance et connecte CDM rail
+// paramètre si True: lance le serveur COMIP de CDM rail.
+// En sortie si CDM est lancé Lance_CDM=true,
 function Lance_CDM(avecSocket : boolean) : boolean;
 var i,n,retour : integer;
     repertoire,s : string;
@@ -21185,7 +21194,7 @@ procedure interface_ou_cdm;
 begin
 // lancer CDM rail et le connecte si on le demande ; à faire après la création des signaux et du tco
   procetape('Test CDM et son lancement');
-  if LanceCDM then Lance_CDM(true);
+  if LanceCDM then Lance_CDM(true);  // true=avec serveur comIP
   procetape('Fin cdm');
 
   // tenter la liaison vers CDM rail
@@ -21414,7 +21423,7 @@ begin
       typetache:=0;
     end;
   end;
-  ProcPrinc:=false;
+  ProcPrinc:=false; // &&&&
   algo_Unisemaf:=1;
   IdTrainClic:=0;
   NbPeriph:=0;
@@ -22317,7 +22326,7 @@ begin
           end;
         end;
       end;
-   end;
+    end;
   end;
 
   // évènements actionneurs horaires
@@ -22341,14 +22350,16 @@ begin
   b:=y1-pente*x1;
 end;
 
-// calcule les 2 équations de droite des coefficients
+// calcule les 2 équations de droite des 3 coefficients
 // pour les étalonnages des trains
+// droite 1 encadrée par coeffV1 coeffV2, consV1,consV2
+// droite 2 encadrée par coeffV2 coeffV3, consV2,consV3
 procedure calcul_equations_coeff(indexTrain : integer);
 begin
   with trains[indexTrain] do
   begin
-    equation_droite(CoeffV1,CoeffV2,ConsV1,ConsV2,pente1,b1);
-    equation_droite(CoeffV2,CoeffV3,ConsV2,ConsV3,pente2,b2);
+    equation_droite(CoeffV1,CoeffV2,ConsV1,ConsV2,pente1,b1);       // droite 1
+    equation_droite(CoeffV2,CoeffV3,ConsV2,ConsV3,pente2,b2);       // droite 2
   end;
   courbe_train(indexTrain);      // affiche la courbe du train
 end;
@@ -24590,48 +24601,6 @@ begin
 
   if protocole=1 then
   begin
-    {
-    //trace:=true;
-    s:=#$22+#$15+Char(cv);      //CV de 1 à 256 (V3.0)
-    //s:=#$22+#$18+Char(cv);    //CV de 1 à 255 + 1024 (V3.6)
-    s:=checksum(s);
-    // envoi de la trame : fait passer la centrale en mode programmation (service)
-    envoi_ss_ack(s);
-
-    // attendre la trame 01 04 05 "succès" (env 1s)
-    succes:=false;i:=0;
-    repeat
-      Application.processMessages;
-      Sleep(100);
-      inc(i);
-    until succes or (i>20);
-
-    if succes then
-    begin
-      recu_cv:=false;
-      //Affiche('reçu trame succes',clyellow);
-      s:=#$21+#$10;      // demande d'envoi du résultat du mode service
-      s:=checksum(s);
-      //envoi(s);
-      envoi_ss_ack(s);
-      Tempo2(1);
-      // attente de la réponse de la centrale
-      i:=0;
-      repeat
-        Tempo2(2); // attend 200 ms
-        inc(i);
-      until recu_cv or (i>4);
-      if (i>4) then
-      begin
-        Affiche('Erreur attente trop longue CV',clred);
-        exit;
-      end;
-      sa:='Cv'+IntToSTR(cv)+'='+IntToSTR(Tablo_cv[cv])+' ';
-      Affiche(sa,clyellow);sa:='';
-    end
-    else
-    Affiche('Pas de réponse de l''interface après demande de passage en mode prog',clOrange);
-    }
     r:=lire_cv(cv);
     if r<>-1 then
     begin
@@ -24723,7 +24692,7 @@ end;
 
 procedure TFormPrinc.ButtonLanceCDMClick(Sender: TObject);
 begin
-  Lance_CDM(true);
+  Lance_CDM(true);  // true=avec serveur comip
 end;
 
 procedure TFormPrinc.Affichefentredebug1Click(Sender: TObject);
@@ -25264,7 +25233,7 @@ end;
 
 procedure TFormPrinc.LancerCDMrail1Click(Sender: TObject);
 begin
-  Lance_CDM(true);
+  Lance_CDM(true);   // true= avec serveur comIP
 end;
 
 // tackBar "commande aux trains"
@@ -25566,7 +25535,7 @@ begin
     Affiche('Dans Signaux complexes, clic droit et "coller, compiler et importer le réseau CDM rail" ',clLime);
     Affiche('Dans la fenêtre graphique d''importation cliquer sur "compiler"',clLime);
 
-    if lance_cdm(false) then
+    if lance_cdm(false) then  // false=sans serveur comip
     begin
       sleep(400);
       s2:='CDR';

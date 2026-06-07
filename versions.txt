@@ -370,6 +370,8 @@ version 10.9  : Possibilité de déclarer des feux verts/rouge pour les signaux à 
 				Création d'une condition "détecteur/actionneur" dans les actions
 version 10.91	Possibilité d'ajouter plusieurs conditions dans les actions
 				Une action ne peuvent être lancée que si la même action précédente est terminée
+version 10.92	Corrections diverses
+version 10.93   Correction bug: génération évènements parasites actionneurs
 
 
 
