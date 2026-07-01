@@ -522,6 +522,7 @@ type
     Label85: TLabel;
     LabelDetCour: TLabel;
     ButtonValideDet: TButton;
+    LabeledEditSigCDM: TLabeledEdit;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -828,6 +829,7 @@ type
     procedure MenuListesCopier2Click(Sender: TObject);
     procedure ButtonPropageSigClick(Sender: TObject);
     procedure ButtonValideDetClick(Sender: TObject);
+    procedure LabeledEditSigCDMChange(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1606,6 +1608,10 @@ begin
   // tempo de retard au pilotage
   s:=s+',T'+intToSTR(Signaux[i].Tempo);
 
+  // adresse CDM
+  s:=s+',C'+intToSTR(Signaux[i].adresseCDM);
+
+
   encode_signal:=s;
 end;
 
@@ -2035,6 +2041,14 @@ begin
          delete(s,1,erreur);
          signaux[i].Tempo:=j;
        end;
+       if length(s)>1 then if s[1]='C' then
+       begin
+         delete(s,1,1);
+         val(s,j,erreur);
+         delete(s,1,erreur);
+         signaux[i].adresseCDM:=j;
+       end;
+
      end;
     end;
   end;
@@ -5588,7 +5602,8 @@ const LessThanValue=-1;
       begin
         delete(s,i,length(sa));
         val(s,Algo_localisation,erreur);
-        if Algo_localisation<>1 then Affiche('Avertissement: Algo_localisation='+intToSTR(algo_localisation)+' est expérimental et non garanti',clorange);
+        if (Algo_localisation<1) or (Algo_localisation>2) then Affiche('Erreur Algo_localisation='+intToSTR(algo_localisation)+' incorrect',clorange);
+        
       end;
 
       sa:=uppercase(MaxSignalSens_ch)+'=';
@@ -5669,6 +5684,12 @@ const LessThanValue=-1;
         Srvc_pos:=testbit(i,3);
         Srvc_sig:=testbit(i,4);
         Srvc_tspd:=testbit(i,5);
+        if (algo_localisation=2) and (Srvc_sig=false) then
+        begin
+          Affiche('Activation du service signaux de CDM',clOrange);
+          Srvc_sig:=true;
+          config_modifie:=true;
+        end;
       end;
 
       // adresse ip et port de la centrale
@@ -6493,7 +6514,7 @@ begin
     Srvc_Act:=true;
     Srvc_Det:=true;
     Srvc_Pos:=true;
-    Srvc_Sig:=false;
+    Srvc_Sig:=true;
     Srvc_tspd:=false;
     TimoutMaxInterface:=7;
     AvecInitAiguillages:=false;
@@ -7779,7 +7800,9 @@ begin
   with Liste[10] do
   begin
     nom:='10. Algorithme de localisation des trains';
-    aide:='Algorithme de localisation des trains';
+    aide:='Algorithme de localisation des trains'+#13+
+          '1=localisation par détecteurs'+#13+
+          '2=1+localisation par changement d''état des signaux CDM';
     typ:=Simple ;
     masque:= '0';   //10
     variable:=@Algo_localisation;
@@ -9578,6 +9601,7 @@ begin
     Label24.Visible:=true; Label25.Visible:=true;Label26.Visible:=true;Label27.Visible:=true;
     EditDet1.Text:=IntToSTR(Signaux[index].Adr_det1);
     EditSuiv1.Text:=TypeEl_To_char(Signaux[index].Btype_suiv1)+IntToSTR(Signaux[index].Adr_el_suiv1);
+    LabeledEditSigCDM.Text:=intToSTR(Signaux[index].AdresseCDM);
 
     EditSuiv1.Hint:=chaine_element(Signaux[index].Btype_suiv1,Signaux[index].Adr_el_suiv1);
     j:=Signaux[index].Adr_det2;
@@ -9690,6 +9714,7 @@ begin
     EditDet2.Text:='';EditSuiv2.Text:='';
     EditDet3.Text:='';EditSuiv3.Text:='';
     EditDet4.Text:='';EditSuiv4.Text:='';
+    LabeledEditSigCDM.text:='';
     EditAdrSig.Text:='';
     MemoCarre.Clear;
     ComboBoxAsp.ItemIndex:=-1;
@@ -16386,6 +16411,37 @@ begin
   end;
 end;
 
+procedure TFormConfig.LabeledEditSigCDMChange(Sender: TObject);
+  var s : string;
+   i, erreur : integer;
+begin
+  if clicliste then exit;
+  if affevt then Affiche('Evt adresseCDM signal',clOrange);
+  // attention interférence avec clic droit propriétés sur un signal qui génère un evt sur ce contrôle
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  with Formconfig do
+  begin
+    s:=LabeledEditSigCDM.Text;
+    if (s='') or (ligneClicSig<0) then exit;
+    Val(s,i,erreur);
+    if (erreur<>0) or (i<=0) or (i>MaxAcc) then
+    begin
+      EditAdrSig.Color:=clred;
+      LabelInfo.caption:='Erreur adresse signal CDM';exit;
+    end;
+
+
+    if Modesombre then LabeledEditSigCDM.Color:=couleurfond else LabeledEditSigCDM.Color:=clWindow;
+    LabelInfo.caption:=' ';
+    Signaux[ligneClicSig+1].adresseCDM:=i;
+
+    s:=encode_signal(ligneClicSig+1);
+    ListBoxSig.Items[ligneClicSig]:=s;
+    ListBoxSig.selected[ligneClicSig]:=true;
+
+  end;
+end;
+
 procedure TFormConfig.EditP1Exit(Sender: TObject);
 begin
  adresse_P1;
@@ -19331,13 +19387,13 @@ begin
        end;
   10: begin
          if (erreur<>0) or (i<0) then exit;
-         if (i<1) or (i>1) then labelInfo.Caption:='Valeur incorrecte'
-         else integer(p^):=i;  // Algo_Localisation:=i;
+         if (i<1) or (i>2) then labelInfo.Caption:='Valeur incorrecte'
+         else integer(p^):=i;  // Algo_Localisation
        end;
   11: begin
          if (erreur<>0) or (i<0) then exit;
          if (i<5) or (i>50) then labelInfo.Caption:='Valeur incorrecte'
-         else integer(p^):=i;  // Max_signal_sens:=i;
+         else integer(p^):=i;  // Max_signal_sens
        end;
   12 :begin
          AvecAck:=s=lowercase(liste[Arow].textePL1);
@@ -20387,6 +20443,8 @@ begin
   end;
 
 end;
+
+
 
 
 end.

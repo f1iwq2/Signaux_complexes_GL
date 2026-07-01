@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetFonctions
+    ActivePage = TabAvance
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1980,7 +1980,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 113
           Height = 17
-          Caption = 'Signaux (non utilis'#233')'
+          Caption = 'Signaux'
           TabOrder = 4
         end
         object CheckBoxSrvTdcc: TCheckBox
@@ -2108,7 +2108,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -3194,14 +3194,14 @@ object FormConfig: TFormConfig
           Caption = 'D'#233'codeur: '
         end
         object LabelDetAss: TLabel
-          Left = 96
+          Left = 120
           Top = 120
           Width = 86
           Height = 13
           Caption = 'D'#233'tecteur associ'#233
         end
         object LabelElSuiv: TLabel
-          Left = 192
+          Left = 208
           Top = 120
           Width = 75
           Height = 13
@@ -3223,7 +3223,7 @@ object FormConfig: TFormConfig
           WordWrap = True
         end
         object Label24: TLabel
-          Left = 120
+          Left = 144
           Top = 140
           Width = 8
           Height = 13
@@ -3236,7 +3236,7 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label25: TLabel
-          Left = 120
+          Left = 144
           Top = 164
           Width = 8
           Height = 13
@@ -3249,7 +3249,7 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label26: TLabel
-          Left = 120
+          Left = 144
           Top = 188
           Width = 8
           Height = 13
@@ -3262,7 +3262,7 @@ object FormConfig: TFormConfig
           ParentFont = False
         end
         object Label27: TLabel
-          Left = 120
+          Left = 144
           Top = 212
           Width = 8
           Height = 13
@@ -3282,16 +3282,16 @@ object FormConfig: TFormConfig
           Caption = 'Aspect:'
         end
         object LabelUni: TLabel
-          Left = 8
-          Top = 200
+          Left = 7
+          Top = 220
           Width = 72
           Height = 13
           Caption = 'Spec Unisemaf'
           Visible = False
         end
         object Label43: TLabel
-          Left = 72
-          Top = 176
+          Left = 104
+          Top = 138
           Width = 38
           Height = 16
           Caption = 'Voies:'
@@ -3346,12 +3346,12 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
         object EditDet1: TEdit
-          Left = 136
+          Left = 160
           Top = 136
           Width = 41
           Height = 21
@@ -3362,7 +3362,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet1Change
         end
         object EditSuiv1: TEdit
-          Left = 200
+          Left = 240
           Top = 136
           Width = 41
           Height = 21
@@ -3375,7 +3375,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv1Change
         end
         object EditDet2: TEdit
-          Left = 136
+          Left = 160
           Top = 160
           Width = 41
           Height = 21
@@ -3386,7 +3386,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet2Change
         end
         object EditSuiv2: TEdit
-          Left = 200
+          Left = 240
           Top = 160
           Width = 41
           Height = 21
@@ -3399,7 +3399,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv2Change
         end
         object EditDet3: TEdit
-          Left = 136
+          Left = 160
           Top = 184
           Width = 41
           Height = 21
@@ -3410,7 +3410,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet3Change
         end
         object EditSuiv3: TEdit
-          Left = 200
+          Left = 240
           Top = 184
           Width = 41
           Height = 21
@@ -3423,7 +3423,7 @@ object FormConfig: TFormConfig
           OnChange = EditSuiv3Change
         end
         object EditDet4: TEdit
-          Left = 136
+          Left = 160
           Top = 208
           Width = 41
           Height = 21
@@ -3434,7 +3434,7 @@ object FormConfig: TFormConfig
           OnChange = EditDet4Change
         end
         object EditSuiv4: TEdit
-          Left = 200
+          Left = 240
           Top = 208
           Width = 41
           Height = 21
@@ -3477,12 +3477,12 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
         object EditSpecUni: TEdit
-          Left = 8
+          Left = 80
           Top = 216
           Width = 33
           Height = 21
@@ -3621,6 +3621,21 @@ object FormConfig: TFormConfig
           TabOrder = 24
           WordWrap = True
           OnClick = ButtonPropageSigClick
+        end
+        object LabeledEditSigCDM: TLabeledEdit
+          Left = 80
+          Top = 176
+          Width = 33
+          Height = 21
+          Hint = 'Adresse du signal dans CDM Rail.'
+          EditLabel.Width = 65
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Adresse CDM'
+          LabelPosition = lpLeft
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 25
+          OnChange = LabeledEditSigCDMChange
         end
       end
       object ButtonNouvSig: TButton
@@ -3808,7 +3823,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3827,7 +3842,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3873,7 +3888,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end

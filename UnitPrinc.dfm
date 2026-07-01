@@ -398,8 +398,8 @@ object FormPrinc: TFormPrinc
     Visible = False
   end
   object Image5feux: TImage
-    Left = 416
-    Top = 0
+    Left = 984
+    Top = 168
     Width = 41
     Height = 89
     Picture.Data = {

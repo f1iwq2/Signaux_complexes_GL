@@ -739,6 +739,7 @@ Taiguillage = record
 TtabloDet = array[0..MaxParcoursTablo] of integer;
 TSignal = record
                 adresse,aspect,AncienAdresse : integer;  // adresse du signal, aspect (2 feux..9 feux 12=direction 2 feux .. 16=direction 6 feux)  (11=signal belge 1)
+                adresseCDM,etatCDM,AncienEtatCDM : integer;            // etatCDM : 0=rouge 1=jaune 2=vert
                 Img : TImage;               // Pointeur sur structure TImage du signal
                 Lbl : TLabel;               // pointeur sur structure Tlabel du signal
                 checkFB : TCheckBox;        // pointeur sur structure Checkbox "demande feu blanc"
@@ -5129,6 +5130,7 @@ begin
   Formpilote.show;
 end;
 
+// renvoie l'image de fond du signal en fonction du type
 function Select_dessin_Signal(TypeSignal : integer;var l,h : integer) : TBitmap;
 var Bm : TBitMap;
 begin
@@ -5139,7 +5141,7 @@ begin
 //    3 : begin Bm:=Formprinc.Image3feux2x.picture.Bitmap;l:=52;h:=88;end;
 
     4 : begin Bm:=Formprinc.Image4feux.picture.Bitmap;l:=26;h:=57;end;
-    5 : begin Bm:=Formprinc.Image5feux.picture.Bitmap;l:=26;h:=55;end;
+    5 : begin Bm:=Formprinc.Image5feux.picture.Bitmap;l:=26;h:=67;end; //55
     7 : begin Bm:=Formprinc.Image7feux.picture.Bitmap;l:=50;h:=77;end;
     9 : begin Bm:=Formprinc.Image9feux.picture.Bitmap;l:=50;h:=91;end;
     20 : begin Bm:=Formprinc.ImageSignal20.picture.Bitmap;l:=57;h:=105;end;  // belge
@@ -17137,10 +17139,7 @@ end;
 procedure calcul_zones(adresse: integer;front : boolean);
 begin
   if debug=3 then formprinc.Caption:='Calcul_zones '+intToSTR(adresse);
-  case Algo_localisation of
-  1 : calcul_zones_v1(adresse,front);
-  else affiche('Algo localisation inconnu',clred);
-  end;
+  calcul_zones_v1(adresse,front);
   if debug=3 then formprinc.Caption:='';
 end;
 
@@ -17721,6 +17720,87 @@ begin
   end;
 end;
 
+
+// évènement signal CDM - i = index du signal, etat=etat CDM
+// etatCDM : 0=rouge 1=jaune 2=vert
+// expérimental
+procedure event_signalCDM(adresseCDM,etat : integer);
+var detAct,detAv,detSuiv,i,asp,indexSig : integer;
+    trouve : boolean;
+begin
+  // trouver le signal SC par rapport au signal CDM
+  if Algo_localisation=1 then exit;     // la localisation des trains par signaux CDM uniquement Algo_localisation=2
+  indexSig:=0;
+  repeat
+    inc(indexSig);
+    trouve:=signaux[indexSig].adresseCDM=adresseCDM;
+  until trouve or (indexSig=NbreSignaux+1);
+
+  if not(trouve) then exit;
+
+  Signaux[indexSig].AncienetatCDM:=Signaux[indexSig].etatCDM;
+  Signaux[indexSig].etatCDM:=etat;
+
+  if (etat=0) and (signaux[indexSig].ancienEtatCDM<>0) then // si le signal CDM passe au rouge
+  begin
+    // mettre la zone de détection avant le signal
+    detAct:=signaux[indexSig].Adr_det1;
+
+    // voir si on a pris en compte le détecteur detAct
+    trouve:=false;
+    i:=1;
+    while (i<=n_trains) do
+    begin
+      //Affiche('boucle '+intToSTR(i),clOrange);
+      if (event_det_train[i].NbEl=1) and (event_det_train[i].Det[1].adresse=detAct) then trouve:=true;
+      inc(i);
+
+    end;
+
+    if trouve then exit;
+
+    Affiche('SignalSC='+intToSTR(signaux[indexSig].adresse)+' Signal CDM=ad='+intToSTR(adresseCDM)+' Etat='+intToSTR(etat),clSkyblue);
+
+    // trouver le détecteur précédent
+   // Affiche(' '+intToSTR(signaux[indexSig].Adr_el_suiv1)+' / '+intToSTR(detact),clyellow);
+
+    // Détecteur suivant le signal. Si l'élément suivant au signal est déja un détecteur,on l'a déja trouvé
+    DetAv:=detecteur_suivant(signaux[indexSig].Adr_el_suiv1,signaux[indexSig].Btype_suiv1,detAct,det,1) ; // détecteur précédent le signal, algo 1
+    if signaux[indexSig].Btype_suiv1<>det then DetSuiv:=detecteur_suivant(detAct,det,signaux[indexSig].Adr_el_suiv1,signaux[indexSig].Btype_suiv1,1)  // détecteur suivant
+      else DetSuiv:=signaux[indexSig].Adr_el_suiv1;
+   // Affiche('Nouveau train détecteur par signal CDM '+intToSTR(detav)+' à '+intToSTR(detact),clyellow);
+
+
+   // 
+     inc(n_trains); // nouveau train
+     Formprinc.LabelNbTrains.caption:=IntToSTR(N_trains);
+     //detecteur[detAct].precedent:=detav;
+     //detecteur[detAct].IndexTrainRoulant:=n_trains;
+     MemZone[DetAct,detSuiv].etat:=true;    // valide la nouvelle zone
+     MemZone[DetAct,detSuiv].train:='?';
+     MemZone[DetAct,detSuiv].AdrTrain:=9999;
+     MemZone[DetAct,detSuiv].IndexTrainRoulant:=n_trains;
+
+     MemZone[detAv,DetAct].IndexTrainRoulant:=n_trains;
+     Maj_signal(signaux[indexSig].adresse,false);
+     event_det_train[n_trains].det[1].adresse:=DetAv;
+     event_det_train[n_trains].det[1].etat:=false;
+     event_det_train[n_trains].det[2].adresse:=DetAct;
+     event_det_train[n_trains].det[2].etat:=false;
+     event_det_train[n_trains].NbEl:=2;
+
+     maj_signaux(false);
+     exit;
+
+    asp:=signaux[indexSig].aspect;
+    if (asp<>20) then
+    begin
+      if asp=2 then Maj_Etat_Signal(Adr,violet)
+       else  Maj_Etat_Signal(Adr,rouge)
+    end
+  else Maj_Etat_Signal_belge(Adr,rouge);
+  end;
+end;
 
 // traitement des évènements actions (détecteurs et mémoire de zone aussi)
 // autres que horaire et péripériques
@@ -20326,7 +20406,7 @@ begin
     KeybdInput(VK_RETURN,0);
     KeybdInput(VK_RETURN,KEYEVENTF_KEYUP);
     SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  //fermer la fenetre du serveur ip
-    Sleep(300*tempoTC);
+    Sleep(500*tempoTC);
 
     connecte_CDM;
     Sleep(400*tempoTC);
@@ -21375,7 +21455,7 @@ begin
   Srvc_Det:=true;
   Srvc_Act:=true;
   Srvc_Pos:=true;
-  Srvc_sig:=false;
+  Srvc_sig:=true;
 
   Z21:=false;
   DebugAffiche:=false;
@@ -21449,7 +21529,7 @@ begin
   
   affevt:=false;
   EvtClicDet:=false;
-  Algo_localisation:=1;     // normal
+  Algo_localisation:=1;     // 1=normal 2=localisation avec signaux CDM
   nCantonsRes:=2;
   AntiTimeoutEthLenz:=0;
   nCantons:=0;
@@ -23572,7 +23652,7 @@ end;
 // décodage d'une trame CDM au protocole IPC (COMIP)
 // la trame_CDM peut contenir 2000 caractères à l'initialisation du RUN.
 procedure Interprete_trameCDM(trame_CDM:string);
-var i,j,objet,k,l,erreur,posErr,adr,adr2,etat,etataig,
+var i,j,objet,k,l,erreur,posErr,adr,adr2,etat,etataig,asp,
     vitesse,etatAig2,name,prv,nbre,nbreVir,long,index,posDes,AncNumTrameCDM,idt : integer ;
     x,y,x2,y2 : longint ;
     nom,s,ss,train,commandeCDM : string;
@@ -24016,9 +24096,9 @@ begin
           val(ss,etat,erreur);
           Delete(commandeCDM,i,l-i+1);
         end;
+        if adr<>0 then event_signalCDM(adr,etat);
 
-        s:='SignalCDM '+intToSTR(adr)+'='+IntToStr(etat);
-        if afftiers then AfficheDebug(s,ClSkyBlue);
+        if afftiers then begin s:='SignalCDM '+intToSTR(adr)+'='+IntToStr(etat);AfficheDebug(s,ClSkyBlue);end;
       end;
 
       // évènement actionneur
@@ -25537,14 +25617,14 @@ begin
 
     if lance_cdm(false) then  // false=sans serveur comip
     begin
-      sleep(400);
+      sleep(400*TempoTC);
       s2:='CDR';
       //SetBackgroundWindow(formprinc.Handle); // met SC devant
       ProcessRunning(s2); // récupérer le handle de CDM
       SetForegroundWindow(CDMhd);
       SetActiveWindow(CdmHd);
       Application.ProcessMessages;
-      sleep(900);
+      sleep(900*TempoTC);
       Application.ProcessMessages;
 
 
@@ -25562,7 +25642,7 @@ begin
 
       // envoie les touches
       i:=SendInput(Length(KeyInputs),KeyInputs[0],SizeOf(KeyInputs[0]));SetLength(KeyInputs,0);  // la fenetre serveur démarré est affichée
-      Sleep(500);
+      Sleep(500*TempoTC);
       Application.ProcessMessages;
 
       // clic droit valider le menu
@@ -28397,30 +28477,7 @@ procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
 var l,h : integer;
 begin
 
-//   telecommande('<F12,1,CC406526>');
-   telecommande('<ACS12,1');
-   exit;
-
-
-  //Signaux[2].Img.Stretch:=true;
-  //Signaux[2].Img.Proportional:=true;
-
-  l:=round(LargImg*1.5);
-  h:=round(HtImg*1.5);
-  //Signaux[2].Img.Width:=l;
-  //Signaux[2].Img.Height:=h;
-  Signaux[2].Img.picture.bitmap.width:=l;
-  Signaux[2].Img.picture.bitmap.height:=h;
-
-  Signaux[2].Img.Canvas.StretchDraw(rect(0,0,l,h),Formprinc.Image7feux.Picture.Bitmap);
-                                // .Bitmap:=Image7feux.Picture.Bitmap;
-  exit;
-  Signaux[1].Img.repaint;
-
-  //dessine_signal_mx(Signaux[rang].Img.Canvas,0,0,1,1,Signaux[rang].adresse,1);
-    //if Signaux[rang].aspect=5 then cercle(Picture.Bitmap.Canvas,13,22,6,ClYellow);
-   Signaux[1].Img.refresh;
-    Signaux[1].Img.Picture.Bitmap.Modified:=True;
+  event_signalCDM(53,0);
 end;
 
 // changement TrackBar zoom compteurs
