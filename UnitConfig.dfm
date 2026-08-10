@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabAvance
+    ActivePage = TabSheetBranches
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -2108,7 +2108,7 @@ object FormConfig: TFormConfig
             'S'#233'lection du style d'#39#39'affichage - Le style sera chang'#233' '#224' la ferm' +
             'eture de la fen'#234'tre'#39
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -3209,7 +3209,7 @@ object FormConfig: TFormConfig
         end
         object Label17: TLabel
           Left = 8
-          Top = 344
+          Top = 350
           Width = 128
           Height = 39
           Hint = 
@@ -3283,7 +3283,7 @@ object FormConfig: TFormConfig
         end
         object LabelUni: TLabel
           Left = 7
-          Top = 220
+          Top = 204
           Width = 72
           Height = 13
           Caption = 'Spec Unisemaf'
@@ -3346,7 +3346,7 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = ComboBoxDecChange
         end
@@ -3477,13 +3477,13 @@ object FormConfig: TFormConfig
           Width = 137
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxAspChange
         end
         object EditSpecUni: TEdit
           Left = 80
-          Top = 216
+          Top = 200
           Width = 33
           Height = 21
           TabOrder = 14
@@ -3636,6 +3636,15 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 25
           OnChange = LabeledEditSigCDMChange
+        end
+        object CheckBoxJauneCli: TCheckBox
+          Left = 136
+          Top = 336
+          Width = 153
+          Height = 17
+          Caption = 'Ne pas afficher le jaune cli'
+          TabOrder = 26
+          OnClick = CheckBoxJauneCliClick
         end
       end
       object ButtonNouvSig: TButton
@@ -3823,7 +3832,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 193
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxDecodeurPersoChange
         end
@@ -3842,7 +3851,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxNationChange
         end
@@ -3888,7 +3897,7 @@ object FormConfig: TFormConfig
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
           OnChange = ComboBoxDecCdeChange
         end
@@ -3998,7 +4007,7 @@ object FormConfig: TFormConfig
           Top = 16
           Width = 65
           Height = 17
-          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
+          Hint = 'Supprime l'#39'action ou les actions s'#233'lectionn'#233'e(s)'
           Caption = 'Supprimer'
           ParentShowHint = False
           ShowHint = True
@@ -4010,7 +4019,10 @@ object FormConfig: TFormConfig
           Top = 368
           Width = 83
           Height = 25
+          Hint = 'Lance les op'#233'rations de l'#39'action s'#233'lectionn'#233'e pour test'
           Caption = 'Test action'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 5
           OnClick = ButtonTestActionClick
         end
@@ -4019,7 +4031,7 @@ object FormConfig: TFormConfig
           Top = 16
           Width = 65
           Height = 17
-          Hint = 'Supprime l'#39'actionneur(s) s'#233'lectionn'#233'(s)'
+          Hint = 'Modifie l'#39'action s'#233'lectionn'#233'e'
           Caption = 'Modifier'
           ParentShowHint = False
           ShowHint = True
@@ -4101,7 +4113,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 137
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = ComboBoxOperateurChange
           OnDrawItem = ComboBoxOperateurDrawItem
@@ -4121,7 +4133,7 @@ object FormConfig: TFormConfig
           Top = 96
           Width = 161
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 4
@@ -4146,9 +4158,12 @@ object FormConfig: TFormConfig
             Top = 20
             Width = 41
             Height = 21
+            Hint = 'Adresse'
             EditLabel.Width = 92
             EditLabel.Height = 13
             EditLabel.Caption = 'Adresse accessoire'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 0
             OnChange = LabeledEditDCCChange
           end
@@ -4157,9 +4172,12 @@ object FormConfig: TFormConfig
             Top = 20
             Width = 41
             Height = 21
+            Hint = 'Etat'
             EditLabel.Width = 19
             EditLabel.Height = 13
             EditLabel.Caption = 'Etat'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 1
             OnChange = LabeledEditEtatAccChange
           end
@@ -4208,9 +4226,12 @@ object FormConfig: TFormConfig
             Top = 44
             Width = 41
             Height = 21
+            Hint = 'Adresse 2'
             EditLabel.Width = 25
             EditLabel.Height = 13
             EditLabel.Caption = 'Zone'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 5
             OnChange = LabeledEditZoneChange
           end
@@ -4233,7 +4254,7 @@ object FormConfig: TFormConfig
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 7
           OnChange = ComboBoxFLChange
         end
@@ -4543,7 +4564,7 @@ object FormConfig: TFormConfig
           Top = 56
           Width = 40
           Height = 21
-          Hint = 'Longueur du d'#233'tecteir (cm)'
+          Hint = 'Longueur du d'#233'tecteur (cm)'
           EditLabel.Width = 131
           EditLabel.Height = 13
           EditLabel.Caption = 'Longueur du d'#233'tecteur (cm)'
@@ -4816,11 +4837,11 @@ object FormConfig: TFormConfig
           end
           object RadioGroupActPN: TRadioGroup
             Left = 8
-            Top = 24
+            Top = 18
             Width = 233
-            Height = 57
+            Height = 60
             Hint = 'Commande du PN par accessoire DCC ou commande COM/USB'
-            Caption = 'Type d'#39'action'
+            Caption = 'Type de pilotage du PN'
             Items.Strings = (
               'Accessoire DCC'
               'Commande COM/USB ou Socket')
@@ -4836,7 +4857,7 @@ object FormConfig: TFormConfig
             Height = 21
             Hint = 'Nom de l'#39'accessoire d'#233'fini dans l'#39'onglet "p'#233'riph'#233'riques COM/USB"'
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             ParentShowHint = False
             ShowHint = True
             TabOrder = 10
@@ -6596,7 +6617,7 @@ object FormConfig: TFormConfig
             Width = 153
             Height = 21
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             TabOrder = 0
             OnChange = ComboBoxUSBTrChange
           end

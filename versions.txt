@@ -45,7 +45,7 @@ version 2.21 : Paramétrage du nombre de détecteurs considérés comme trop distant
 version 2.3  : Changement de la méthode de réception des trames du protocole IPC de CDM-Rail
                Affichage au démarrage des variables manquantes du fichier config-gl.cfg
 version 2.31 : Amélioration calcul des routes depuis buttoir
-	       Lancement du TCO à la validation dans la configuration
+	           Lancement du TCO à la validation dans la configuration
 version 2.4  : Optimisation de la gestion des évènements aiguillages
                Gestion des aiguillages inversés dans CDM pour le mode autonome
                Debug pilotage feux LEB
@@ -261,11 +261,11 @@ version 9.0  : Pilotage des nouveaux décodeurs de signaux LEB (mode binaire, lin
                Pilotage des accessoires sans accusé de réception, ce qui fluidifie le trafic XpressNet
 version 9.1  : Représentation de la position des TJD dans les TCOs.
                Corrections sur les TJD 2 états.
-	       Correction connection en mode autonome aux interfaces pour la version D11.
-	       Correction pilotage décodeur LEB ancienne version.
+	           Correction connection en mode autonome aux interfaces pour la version D11.
+	           Correction pilotage décodeur LEB ancienne version.
 version 9.2  : Utilisation de l'unité ASyncPro pour les versions D12 pour les communications COM/USB.
                Arrets temporisés sur les détecteurs en mode autonome/roulage pour les routes de canton à canton.
-	       Correction connexion à la GENLI.
+	           Correction connexion à la GENLI.
                Version x64 D12 disponible.
 version 9.3  : Amélioration de la proposition des routes en mode autonome.
                Renforcement de la vérification des TJD.
@@ -372,8 +372,11 @@ version 10.91	Possibilité d'ajouter plusieurs conditions dans les actions
 				Une action ne peuvent être lancée que si la même action précédente est terminée
 version 10.92	Corrections diverses
 version 10.93   Correction bug: génération évènements parasites actionneurs
+version 11.0    Correction du graphisme signal 5 feux.
+                Prise en compte du changement des signaux CDM pour la localisation des trains.
 
-
+version 11.1	Gère le non jaune clignotant (coche dans la config du signal)
+		Ouverture des signaux au démarrage du RUN CDM.
 
 
 				

@@ -523,6 +523,7 @@ type
     LabelDetCour: TLabel;
     ButtonValideDet: TButton;
     LabeledEditSigCDM: TLabeledEdit;
+    CheckBoxJauneCli: TCheckBox;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -830,6 +831,7 @@ type
     procedure ButtonPropageSigClick(Sender: TObject);
     procedure ButtonValideDetClick(Sender: TObject);
     procedure LabeledEditSigCDMChange(Sender: TObject);
+    procedure CheckBoxJauneCliClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1611,6 +1613,8 @@ begin
   // adresse CDM
   s:=s+',C'+intToSTR(Signaux[i].adresseCDM);
 
+  // sans jaune cli
+  s:=s+',J'; if Signaux[i].SansJauneCli then s:=s+'1' else s:=s+'0';
 
   encode_signal:=s;
 end;
@@ -2047,6 +2051,13 @@ begin
          val(s,j,erreur);
          delete(s,1,erreur);
          signaux[i].adresseCDM:=j;
+       end;
+       if length(s)>1 then if s[1]='J' then
+       begin
+         delete(s,1,1);
+         val(s,j,erreur);
+         delete(s,1,erreur);
+         signaux[i].SansJauneCli:=j=1;
        end;
 
      end;
@@ -3038,8 +3049,10 @@ begin
   begin
     s:=NomVar+' '+IntToSTR(fonction[fonc,0].niveau); // delphi 12 n'accepte pas les tableaux de constante avec le 1er indice à 0 (NomFonc)
   end;
+
   if isVariable(typ) then
   begin
+
     if typ=EtatDCC then
     begin
       s:=s+intToSTR(fonction[fonc,i].adresse);
@@ -3051,13 +3064,23 @@ begin
       end;
       s:=s+'('+intToSTR(etat)+')';
     end;
+
+
     if typ=EtatDet then
     begin
-      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].etat)+' '+fonction[fonc,i].train;
+      s:=s+intToSTR(fonction[fonc,i].adresse);
+      etat:=fonction[fonc,i].etat;
+      case etat of
+        0 : s:=s+' désactivé ';
+        1 : s:=s+' activé ';
+        else s:=s+' inconnu ';
+      end;
+      s:=s+fonction[fonc,i].train;;
     end;
+
     if typ=EtatBoutonTCO then
     begin
-      s:=s+intToSTR(fonction[fonc,i].adresse)+' ';
+      s:=s+intToSTR(fonction[fonc,i].adresse);
       etat:=fonction[fonc,i].etat;
       case etat of
         0 : s:=s+' désactivé ';
@@ -3066,6 +3089,7 @@ begin
       end;
       s:=s+'('+intToSTR(etat)+')';
     end;
+
     if typ=EtatMemoire then
     begin
       s:=s+intToSTR(fonction[fonc,i].adresse);
@@ -3076,9 +3100,10 @@ begin
       end;
       s:=s+intToSTR(fonction[fonc,i].etat);
     end;
+
     if typ=EtatZone then
     begin
-      s:=s+intToSTR(fonction[fonc,i].adresse)+' '+intToSTR(fonction[fonc,i].adresse2)+' '+intToSTR(fonction[fonc,i].etat)+' '+fonction[fonc,i].train;
+      s:=s+'['+intToSTR(fonction[fonc,i].adresse)+' à '+intToSTR(fonction[fonc,i].adresse2)+'] à '+intToSTR(fonction[fonc,i].etat)+' '+fonction[fonc,i].train;
     end;
   end;
   result:=s;
@@ -9552,6 +9577,7 @@ begin
   begin
     checkFVC.Visible:=false;    // ne pas afficher checkbox feu vert clignotant
     checkFRC.Visible:=false;    // na pas afficher checkbox feu rouge clignotant
+    CheckBoxJauneCli.Visible:=false;
   end;
 
   if d=2 then
@@ -9563,8 +9589,10 @@ begin
   end;
 
   if ((d>3) and (d<10)) or (d=20) then CheckVerrouCarre.Visible:=true else CheckVerrouCarre.Visible:=false;
-  if d=20 then
+
+  if d=20 then // signal belge
   begin
+    CheckBoxJauneCli.Visible:=false;
     CheckBoxVersContrevoie.Visible:=true;
     CheckBoxContrevoie.Visible:=true;
     CheckBoxContrevoie.Checked:=Signaux[index].contrevoie;
@@ -9594,7 +9622,10 @@ begin
     label17.Width:=131;
     LabelDetAss.visible:=true;
     LabelElSuiv.visible:=true;
+    LabeledEditSigCDM.Visible:=true;
     label43.Visible:=true;
+    if (d<>20) and (d>2) then CheckBoxJauneCli.Visible:=true;
+    CheckBoxJauneCli.top:=304;
 
     EditDet1.Visible:=true;EditDet2.Visible:=true;EditDet3.Visible:=true;EditDet4.Visible:=true;
     EditSuiv1.Visible:=true;EditSuiv2.Visible:=true;EditSuiv3.Visible:=true;EditSuiv4.Visible:=true;
@@ -9631,6 +9662,7 @@ begin
     checkBoxFB.Checked:=Signaux[index].FeuBlanc;
     checkFVC.Checked:=Signaux[index].checkFV;
     checkFRC.Checked:=Signaux[index].checkFR;
+    checkboxJauneCli.Checked:=signaux[index].SansJauneCli;
     // conditions supplémentaires du carré par aiguillages
     l:=1;
     repeat
@@ -9675,6 +9707,8 @@ begin
     Label17.Caption:='Conditions d''affichage du signal directionnel :';
     label17.Width:=131;
     label43.Visible:=false;
+    LabeledEditSigCDM.Visible:=false;
+    CheckBoxJauneCli.Visible:=false;
     LabelDetAss.visible:=false;
     LabelElSuiv.visible:=false;
     EditDet1.Visible:=false;EditDet2.Visible:=false;EditDet3.Visible:=false;EditDet4.Visible:=false;
@@ -10494,6 +10528,7 @@ begin
     s:=encode_signal(ligneClicSig+1);
     ListBoxSig.Items[ligneClicSig]:=s;
     ListBoxSig.selected[ligneClicSig]:=true;
+    EditSuiv1.Hint:=chaine_element(bt,i);
   end;
 end;
 
@@ -13578,7 +13613,6 @@ begin
   adresse_P3;
 end;
 
-
 procedure TFormConfig.EditP4KeyPress(Sender: TObject; var Key: Char);
 begin
   if clicliste or (ligneclicAig<0) or (ord(Key)<>VK_RETURN) then exit;
@@ -13741,6 +13775,13 @@ begin
     FormConfig.labelResult.Caption:='Syntaxe correcte';
     config_modifie:=true;
     modif_branches:=false;
+    // réafficher la listBox des détecteurs
+    with formconfig.ListBoxDet do
+    begin
+      clear;
+      for i:=1 to NDetecteurs do items.add(encode_detecteur(i));
+    end;
+
   end
     else FormConfig.labelResult.Caption:='Erreur de syntaxe';
   trier_detecteurs;
@@ -16506,6 +16547,7 @@ begin
   if adresse=0 then exit;
   index:=Index_Aig(Adresse);
   AncienAdresse:=aiguillage[index].AncienAdresse;
+  if AncienAdresse=0 then exit;
   if Adresse=AncienAdresse then exit;
 
   Affiche('Propagation de l''adresse '+intToSTR(adresse)+' en remplacement de l''ancienne adresse '+intToSTR(AncienAdresse),clOrange);
@@ -17056,6 +17098,7 @@ procedure TFormConfig.ListBoxOperationsMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   ClicAction:=ListBoxOperations.ItemIndex;
+  
 end;
 
 procedure action_relais(i : integer);
@@ -17256,6 +17299,7 @@ begin
   clicListe:=false;
 end;
 
+// plus utilisé
 procedure supprime_detecteur;
 var n,i,j : integer;
     s,ss : string;
@@ -17581,6 +17625,7 @@ begin
   clicliste:=false;
 end;
 
+// ces boutons sont invisibles, on ne peut pas ajouter no supprimer un détecteur
 procedure TFormConfig.Button4Click(Sender: TObject);
 begin
   Ajoute_detecteur;
@@ -18319,6 +18364,11 @@ begin
   end;
   if (ComboBoxVar.ItemIndex=EtatZone-EtatDCC) then
   begin
+    if (v<0) or (v>1) then
+    begin
+      labelInfo.Caption:='Erreur';
+      exit;
+    end;
   end;
   labelInfo.Caption:='';
   fonction[foncCourante,i].etat:=v;
@@ -18395,6 +18445,7 @@ begin
                           comboboxVar.items[index]);
 end;
 
+// met à jour les champs de la fonction logique
 procedure maj_champs_variable(i,foncCourante,iNode : integer);
 begin
   with formconfig do
@@ -18408,7 +18459,8 @@ begin
       LabeledEditEtatACC.Visible:=false;
       LabeledEditTrain.visible:=false;
       PanelAcc.Visible:=true;
-      LabeledEditDcc.EditLabel.Caption:='Adresse accessoire';
+      LabeledEditDcc.Editlabel.Caption:='Adresse accessoire';
+      LabeledEditDcc.hint:='Adresse de l''accessoire';
       LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
       SpinEditEtat.Value:=fonction[foncCourante,iNode].etat;
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
@@ -18422,7 +18474,9 @@ begin
       SpinEditEtat.Visible:=false;
       LabeledEditZone.Visible:=false;
       LabeledEditEtatACC.Visible:=true;
-      LabeledEditDcc.EditLabel.Caption:='Adresse';
+      LabeledEditDcc.EditLabel.caption:='Adresse';
+      LabeledEditDcc.hint:='Adresse de l''actionneur CDM ou du détecteur';
+      LabeledEditEtatAcc.hint:='Etat (0/1)';
       LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
       LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
@@ -18436,7 +18490,10 @@ begin
       SpinEditEtat.Visible:=false;
       LabeledEditZone.Visible:=true;
       LabeledEditEtatACC.Visible:=true;
-      LabeledEditDcc.EditLabel.Caption:='Adresse';
+      LabeledEditDcc.Hint:='Adresse 1 de la zone de mémoire';
+      LabeledEditZone.Hint:='Adresse 2 de la zone de mémoire';
+      LabeledEditEtatAcc.hint:='Etat de la zone (0=absence train, 1=présence train)';
+
       LabeledEditTrain.Text:=fonction[foncCourante,iNode].train;
       LabeledEditEtatAcc.Text:=intToSTR(fonction[foncCourante,iNode].etat);
       LabeledEditDCC.text:=intToSTR(fonction[foncCourante,iNode].adresse);
@@ -18446,13 +18503,14 @@ begin
     if i=EtatBoutonTCO then
     begin
       RadioGroupOP.Visible:=false;
-      //LabelEtat.Visible:=true;
       SpinEditEtat.Visible:=false;
       LabeledEditEtatACC.Visible:=true;
       LabeledEditTrain.visible:=false;
       PanelAcc.Visible:=true;
       LabeledEditZone.Visible:=false;
       LabeledEditDCC.Visible:=true;
+      LabeledEditDcc.Hint:='Numéro de bouton du TCO';
+      LabeledEditEtatAcc.hint:='Etat du bouton du TCO (0=désactivé ; 1=activé)';
       LabeledEditDcc.EditLabel.Caption:='Numéro de bouton';
       LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
       LabeledEditEtatAcc.text:=intToSTR(fonction[foncCourante,iNode].etat);
@@ -18469,8 +18527,11 @@ begin
       LabeledEditDCC.Visible:=true;
       LabeledEditZone.Visible:=false;
       LabeledEditDcc.EditLabel.Caption:='Numéro de mémoire';
+      LabeledEditDcc.hint:='Numéro de mémoire';
+
       LabeledEditTrain.visible:=false;
       LabeledEditEtatACC.Visible:=true;
+      LabeledEditEtatACC.Hint:='Valeur de la mémoire';
       SpineditEtat.Visible:=false;
       LabelEtat.visible:=false;
       LabeledEditDCC.Text:=intToSTR(fonction[foncCourante,iNode].adresse);
@@ -18491,8 +18552,8 @@ begin
     i:=ComboBoxVar.ItemIndex;
     inode:=node.AbsoluteIndex;
     Fnode:=node.ImageIndex;
-    // si le node est une fonction logique ET OU
-    if isVariable(Fnode) then //and isVariable(i+opNON) then
+    // si le node est une variable
+    if isVariable(Fnode) then
     begin
       fonction[foncCourante,inode].typ:=i+etatDCC;
       node.Text:=texte_tv(foncCourante,inode);
@@ -19475,7 +19536,7 @@ begin
 
   config_modifie:=true;
 
-  if (ComboBoxVar.ItemIndex=EtatZone-EtatDCC) then
+  if (ComboBoxVar.ItemIndex=EtatMemoire-EtatDCC) then
   begin
     fonction[foncCourante,i].opMemoire:=RadioGroupOP.ItemIndex;
     s:=texte_tv(foncCourante,i);
@@ -20441,11 +20502,24 @@ begin
       end;
     Affiche_TCO(i);
   end;
-
 end;
 
 
+procedure TFormConfig.CheckBoxJauneCliClick(Sender: TObject);
+var s : string;
+begin
+  if clicliste or (ligneClicSig<0) then exit;
+  if affevt then Affiche('Evt Jaunecli',clOrange);
 
+  if FormConfig.PageControl.ActivePage=FormConfig.TabSheetSig then
+  begin
+    Signaux[ligneClicSig+1].SansJauneCli:=checkboxJauneCli.Checked;
+    s:=encode_signal(ligneClicSig+1);
+    ListBoxSig.Items[ligneClicSig]:=s;
+    ListBoxSig.selected[ligneClicSig]:=true;
+    Signaux[ligneClicSig+1].modifie:=true;
+  end;
+end;
 
 end.
 

@@ -26,7 +26,9 @@ uses
   UnitRouteTrains in 'UnitRouteTrains.pas' {FormRouteTrain},
   UnitInfo in 'UnitInfo.pas' {FormInfo},
   UnitIntro in 'UnitIntro.pas' {FormIntro},
-  UnitMesure in 'UnitMesure.pas' {FormMesure};
+  UnitMesure in 'UnitMesure.pas' {FormMesure},
+  UnitMemZone in 'UnitMemZone.pas' {FormMemZone},
+  UnitCompteur in 'UnitCompteur.pas' {FormCompteur};
 
 {$R *.res}
 
@@ -57,6 +59,7 @@ begin
   Application.CreateForm(TFormInfo, FormInfo);
   Application.CreateForm(TFormIntro, FormIntro);
   Application.CreateForm(TFormMesure, FormMesure);
+  Application.CreateForm(TFormMemZone, FormMemZone);
   fin_preliminaire;
   Application.Run;
 end.

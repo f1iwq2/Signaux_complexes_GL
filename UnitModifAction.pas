@@ -87,6 +87,7 @@ type
     ButtonAjCond: TButton;
     SpeedButtonSupCond: TSpeedButton;
     Label7: TLabel;
+    LabelTdelc: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ListBoxOperDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -229,9 +230,7 @@ end;
 // i numéro d'opération dans le ytableau operations
 function affecte_operation(i : integer) : string;
 var s : string;
-    io : integer;
 begin
-  //if ligneClicAct>=0 then io:=Tablo_Action[ligneclicAct+1].tabloOp[i].numoperation else io:=0;
   s:='';
   if i<ActionBoutonTCO then s:=(Format('%d%s', [i-1, s])); // valeur d'index de l'icone dans la ImagelistIcones
   if i=ActionBoutonTCO then s:=(Format('%d%s', [IconeBouton, s])); // valeur d'index de l'icone dans la ImagelistIcones
@@ -796,6 +795,7 @@ begin
   efface_champs_declencheurs_conditions;
 
   // déclencheurs
+  FormModifAction.labelTdelc.Caption:=declencheurs[decl].nom;
   with FormModifAction do
   case decl of
   DeclHorloge :
@@ -1207,7 +1207,6 @@ begin
 
   listboxoperations.Items[indexDest]:=ListBoxOper.Items[indexSrc];
 
-  clicAction:=ligneclicact;
   Aff_champs(ligneClicAct+1,1,indexDest+1);
 end;
 
@@ -1237,6 +1236,7 @@ begin
   ListBoxOperations.ItemIndex:=clicAction;
 end;
 
+// supprime la condition sélectionnée par la listbox
 procedure supprime_condition;
 var i,indexSrc,idBD,NbCond,NumCond,NumOp : integer;
     s : string;
@@ -1249,7 +1249,6 @@ begin
   if NbCond<1 then exit;
 
   NumCond:=Tablo_Action[idBD].TabloCond[indexSrc+1].numcondition;
-//  NumOp:=Tablo_Action[idBD].tabloOp[I               [indexSrc+1].numcondition;
 
   s:='Voulez vous supprimer la condition '+#13+conditions[NumCond].Nom+' ?';
 
@@ -1305,14 +1304,8 @@ begin
   Tablo_Action[idBD].NbOperations:=NbOp;
   Setlength(Tablo_Action[idBD].tabloOp,NbOp+1);
 
+  // mettre à jour la fenetre d'opérations de la page config
   Aff_champs(idBD,1,IndexSrc+1);
-  exit;
-
-  // réencoder la ligne
-  s:=encode_actions(idBD);
-  // maj combobox
-  FormModifAction.ComboBoxActions.Items[idBD-1]:=s;
-  FormModifAction.ComboBoxActions.ItemIndex:=idbd-1;
 end;
 
 procedure TFormModifAction.SpeedButtonSupprimeClick(Sender: TObject);
@@ -1399,6 +1392,7 @@ begin
 
     ItemIndex:=indexSrc+1;
   end;
+
   Config_Modifie:=true;
 end;
 
@@ -1527,13 +1521,14 @@ var i,erreur,op : integer;
 begin
   if (ligneclicAct<0) or clicliste then exit;
   val(LabeledEditAdresse.Text,i,erreur);
+
   op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
   case op of
     ActionAffTCO    : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numTCO:=i;
     ActionAccessoire: Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
     ActionVitesse   : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].vitesse:=i;
     ActionBoutonTCO : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
-    ActionAffecteMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
+    ActionAffecteMemoire : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
     ActionIncMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
     ActionDecMemoire  : Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].adresse:=i;
   end;
@@ -1660,8 +1655,6 @@ var s : string;
 begin
   if (clicAction<0) or (ligneclicAct<0) or clicliste then exit;
   Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide:=not(Tablo_Action[ligneclicAct+1].tabloOp[clicaction+1].valide);
-
-//  op:=Tablo_Action[ligneclicact+1].tabloOp[clicaction+1].numoperation;
 
   s:=ListBoxOperations.Items[clicaction];
   i:=pos(sd,s);
@@ -2068,7 +2061,5 @@ begin
 
   clicListe:=false;
 end;
-
-
 
 end.
