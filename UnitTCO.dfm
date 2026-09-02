@@ -1355,6 +1355,7 @@ object FormTCO: TFormTCO
         ParentFont = False
         TabOrder = 3
         OnChange = EditTexteChange
+        OnKeyPress = EditTexteKeyPress
       end
       object ComboRepr: TComboBox
         Left = 120

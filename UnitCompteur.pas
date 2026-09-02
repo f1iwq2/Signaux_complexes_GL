@@ -30,6 +30,8 @@ type
     N3: TMenuItem;
     Vitesseencrans1: TMenuItem;
     Vitesserelle1: TMenuItem;
+    N4: TMenuItem;
+    Propritsducompteur1: TMenuItem;
     procedure FormActivate(Sender: TObject);
     procedure Dverrouiller1Click(Sender: TObject);
     procedure Verrouillerdevant1Click(Sender: TObject);
@@ -45,6 +47,7 @@ type
     procedure Vitesseencrans1Click(Sender: TObject);
     procedure Vitesserelle1Click(Sender: TObject);
     procedure PopupMenuCPopup(Sender: TObject);
+    procedure Propritsducompteur1Click(Sender: TObject);
   private
     { Déclarations privées }
     protected
@@ -64,7 +67,7 @@ type
 var
   formCompteur : array[1..1] of TformCompteur;     // il y a 10 fenetres mais on utilise qu'un compteur.
   Scompteur :  TTCompteur;  //   Scompteur : associé à grande fenetre compteur
-  ParamCompteur : array[1..3] of record
+  ParamCompteur : array[1..3] of record        // il y a 3 types de compteurs : rond, graphique en demi lune, et tachro
     coulAig,coulGrad,CoulNum,CoulFond,CoulArc : tcolor;
     increment : integer;  // incrément rapide
   end;
@@ -566,11 +569,12 @@ end;
 procedure init_compteurs;
 var i : integer;
 begin
+  // initialise les compteurs de la group bos de droite pour chaqur train
   for i:=1 to ntrains do
   begin
     init_compteur(i,CompteurT[i].gb);
   end;
-  init_compteur(1,FormCompteur[1]);
+  init_compteur(1,FormCompteur[1]); // et le compteur principal pour le train 1
 end;
 
 // initialise le compteur
@@ -662,7 +666,7 @@ begin
   else
   begin
     him:=round(h*largeurCompteurs/l);  // a revoir
-    Affiche('non traité 6',clred);
+    Affiche('Compteur '+intToSTR(i)+' composant '+c.Name+' non traité 6',clred);
   end;
 
   // --- traitement par type de compteur
@@ -1062,6 +1066,13 @@ begin
       Vitesserelle1.enabled:=true;
     end;
   end;
+end;
+
+procedure TFormCompteur.Propritsducompteur1Click(Sender: TObject);
+begin
+  formconfig.PageControl.ActivePage:=formconfig.TabSheetCompt;
+  formconfig.showmodal;
+  formconfig.close;
 end;
 
 end.

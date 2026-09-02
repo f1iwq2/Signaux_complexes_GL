@@ -408,6 +408,7 @@ object FormConfigTCO: TFormConfigTCO
       FixedColor = clAppWorkSpace
       RowCount = 11
       TabOrder = 0
+      OnKeyPress = StringGridTCOKeyPress
       ColWidths = (
         64
         64

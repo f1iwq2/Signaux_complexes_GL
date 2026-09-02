@@ -14,6 +14,7 @@ object FormFicheHoraire: TFormFicheHoraire
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
   DesignSize = (
     612
     346)

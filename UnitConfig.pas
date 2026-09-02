@@ -524,6 +524,7 @@ type
     ButtonValideDet: TButton;
     LabeledEditSigCDM: TLabeledEdit;
     CheckBoxJauneCli: TCheckBox;
+    ButtonLirePorts: TButton;
     procedure ButtonAppliquerEtFermerClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBoxAigMouseDown(Sender: TObject; Button: TMouseButton;
@@ -832,6 +833,14 @@ type
     procedure ButtonValideDetClick(Sender: TObject);
     procedure LabeledEditSigCDMChange(Sender: TObject);
     procedure CheckBoxJauneCliClick(Sender: TObject);
+    procedure ButtonLirePortsClick(Sender: TObject);
+    procedure LabeledEditNomLogKeyPress(Sender: TObject; var Key: Char);
+    procedure LabeledEditTrainKeyPress(Sender: TObject; var Key: Char);
+    procedure EditAdrIPCDMKeyPress(Sender: TObject; var Key: Char);
+    procedure EditLAYKeyPress(Sender: TObject; var Key: Char);
+    procedure EditIPLenzKeyPress(Sender: TObject; var Key: Char);
+    procedure EditNomTrainKeyPress(Sender: TObject; var Key: Char);
+    procedure EditNomPeriphKeyPress(Sender: TObject; var Key: Char);
 
   private
     { Déclarations privées }
@@ -1092,6 +1101,7 @@ procedure clic_BRM;
 function crans_to_Vrcms(v,idTrain : integer) : single;
 procedure courbe_train(indexTrain : integer);
 procedure cree_icone_train(i : integer);
+function supprime_virgules(s : string) : string;
 
 implementation
 
@@ -1099,6 +1109,19 @@ uses UnitDebug,UnitTCO, UnitSR, UnitCDF,UnitAnalyseSegCDM, unitPilote, unitclock
   UnitModifAction,UnitConfigCellTCO, UnitRouteTrains,UnitCompteur;
 
 {$R *.dfm}
+
+function supprime_virgules(s : string) : string;
+var i : integer;
+begin
+  i:=1;
+  while i<length(s) do
+  begin
+    if s[i]=',' then delete(s,i,1)
+    else inc(i);
+  end;
+  result:=s;
+end;
+
 
 procedure Maj_Hint_Signal(indexSignal : integer);
 var s : string;
@@ -2695,7 +2718,7 @@ begin
     writeln(fichierN,'/--- Fonction '+intToSTR(j));
     writeln(FichierN,'"'+NomFonction[j]+'"');  // ajouter les guillemets pour éviter chaine vide
     n:=fonction[j,0].adresse;
-    for i:=0 to n-1 do
+    for i:=0 to n do
     begin
       s:=intToSTR(i)+','+nomfonc[fonction[j,i].typ]+',';
       s:=s+'N'+intToSTR(fonction[j,i].niveau)+',';
@@ -5025,12 +5048,13 @@ const LessThanValue=-1;
     nbreFL:=0;
     idOperateur:=0;
     lit_ligne;
+    if s<>'0' then
     repeat    // boucle des fonctions
       i:=pos('"',sOrigine);
       if i<>0 then delete(sOrigine,i,1);      // supprime les guillemets
       i:=pos('"',sOrigine);
       if i<>0 then delete(sOrigine,i,1);
-      i:=0;
+      i:=0;  // nombre de variables indice0=fonction et nom  indice1=premier opérateur indice2=première variable etc
       NomFonction[NbreFL+1]:=sOrigine;
       lit_ligne;
       ligne:=false;
@@ -5059,44 +5083,53 @@ const LessThanValue=-1;
           //begin
           //  if (v>=4) then inc(v);
           //end;
+
           Fonction[NbreFL+1,i].typ:=v;  // type
           inc(idOperateur);
-          ArbreFonc[idOperateur,0]:=i;
-
-          Delete(s,1,1);        // supprime A   (adresse)
-          val(s,v,erreur);
-
-          Fonction[NbreFL+1,i].adresse:=v;
-          delete(s,1,erreur-1);
-          if length(s)>0 then if s[1]='-' then     // si adresse 2 pour mémoire de zone
+          if idOperateur>=100 then
           begin
-            delete(s,1,1);
+            Affiche('Erreur 657 compilation des fonctions logiques',clred);
+            exit;
+          end
+          else
+          begin
+            //Affiche('i='+intToSTR(i)+' fonction '+intToSTR(NbreFL+1),clred);
+            fonction[NbreFL+1,0].adresse:=i;
+            //Affiche('fonction '+IntToSTR(idOperateur)+' à '+intToSTR(i),clred);
+            Delete(s,1,1);        // supprime A   (adresse)
             val(s,v,erreur);
-            Fonction[NbreFL+1,i].adresse2:=v;
+
+            Fonction[NbreFL+1,i].adresse:=v;
             delete(s,1,erreur-1);
-          end;
-          delete(s,1,1);         // supprime ,
+            if length(s)>0 then if s[1]='-' then     // si adresse 2 pour mémoire de zone
+            begin
+              delete(s,1,1);
+              val(s,v,erreur);
+              Fonction[NbreFL+1,i].adresse2:=v;
+              delete(s,1,erreur-1);
+            end;
+            delete(s,1,1);         // supprime ,
 
-          Delete(s,1,1);        // supprime E   (état)
-          val(s,v,erreur);
-          delete(s,1,erreur);
-          Fonction[NbreFL+1,i].etat:=v;
-
-          j:=pos('V,',s);
-          if j<>0 then delete(s,1,2);
-          j:=pos(',',s);
-          Fonction[NbreFL+1,i].train:=copy(s,1,j-1);
-          if j<>0 then delete(s,1,j);
-
-          j:=pos('O',s);
-          if j<>0 then
-          begin
-            delete(s,1,1);
+            Delete(s,1,1);        // supprime E   (état)
             val(s,v,erreur);
-            Fonction[NbreFL+1,i].OpMemoire:=v;
-          end;
+            delete(s,1,erreur);
+            Fonction[NbreFL+1,i].etat:=v;
 
-          inc(i);
+            j:=pos('V,',s);
+            if j<>0 then delete(s,1,2);
+            j:=pos(',',s);
+            Fonction[NbreFL+1,i].train:=copy(s,1,j-1);
+            if j<>0 then delete(s,1,j);
+
+            j:=pos('O',s);
+            if j<>0 then
+            begin
+              delete(s,1,1);
+              val(s,v,erreur);
+              Fonction[NbreFL+1,i].OpMemoire:=v;
+            end;
+          end;
+          inc(i);     // incrément variable
           lit_ligne;
           ligne:=true;
         end;
@@ -5110,7 +5143,7 @@ const LessThanValue=-1;
       until (c<>'/') or (s='') or eof(fichier) ;
 
      if ligne then inc(nbreFL);
-    until (s='0') or (s='') ;  // fin des fonctions
+    until (s='0') or (s='') or (NbreFL>=100) ;  // fin des fonctions
   end;
 
   procedure compile_blocsUSB;
@@ -5130,8 +5163,10 @@ const LessThanValue=-1;
         delete(s,1,erreur);
         j:=pos(',',s);
         ss:=copy(s,1,j-1);
-        blocUSB[i].AffTrain:=ss;delete(s,1,j);
+        blocUSB[i].AffTrain:=ss;
+        delete(s,1,j);
         id:=index_train_nom(ss);
+        if (id=0) and (ss<>'') then Affiche('Bloc USB'+intToSTR(i)+' : le train '+ss+' n''a pas été déclaré',clred);
         trains[id].BlocUSB:=i;
 
         delete(s,1,2); // supprime BR
@@ -7405,7 +7440,13 @@ begin
   idOperateur:=0;
   idVar:=0;
   n:=fonction[k,0].adresse;
-  for i:=1 to n-1 do
+
+  if n>100 then
+  begin
+    Affiche('Erreur 653 : nombre d''éléments de la fonction logique '+intToSTR(k)+' ramené de '+intToSTR(n)+' à 100',clRed);
+    n:=100;
+  end;
+  for i:=1 to n do   
   begin
     begin
       if i>1 then niveauPrec:=fonction[k,i-1].niveau // niveau précédent  attention pour l'indice 0 c'est le numéro de fonction
@@ -7443,11 +7484,7 @@ begin
       nodePrec:=node;
     end;
   end;
-  {for i:=1 to 5 do
-    for j:=1 to 4 do
-    begin
-      Affiche('ArbreFonc['+intToSTR(i)+','+intToSTR(j)+']='+inttostr(arbreFonc[i,j]),clOrange);
-    end;}
+
   tout_deployer;
   formconfig.ButtonAjOpEnfant.enabled:=false;
 end;
@@ -7709,6 +7746,7 @@ begin
   ImageAffiche.Transparent:=true;
   ImageAffiche.Picture.Bitmap.TransparentMode:=tmAuto;
   ImageAffiche.Picture.Bitmap.TransparentColor:=clblue;
+  ButtonLirePorts.Hint:='Liste les ports COM et USB'+#13+'connectés ou branchés';
   LabeledEditT.Hint:='Temporisation de retomnée de la fonction F'+#13+
                      'en x100 ms'+#13+
                      'Si 0 : pas de retombée';
@@ -7982,20 +8020,20 @@ begin
     begin
       p:=liste[i].variable;
       if liste[i].typeVar=entier then
-       begin
-         values[liste[i].Nom]:=intToSTR(integer(p^));    // écrire dans ValueListEditor.values la variable crée la ligne
-       end;
-       if liste[i].typeVar=bool then
-       begin
-         // la variable booléenne contient les chaînes "textePL1 et PL2" de la combobox (PickList) de sélection
-         if boolean(p^) then values[liste[i].Nom]:=liste[i].textePL1 else values[liste[i].Nom]:=liste[i].textePL2;
-         ItemProps[i-1].EditStyle:=esPickList;
-         ItemProps[i-1].PickList.clear;
-         ItemProps[i-1].PickList.add(liste[i].textePL1);
-         ItemProps[i-1].PickList.add(liste[i].textePL2);
-       end;
-       if liste[i].typeVar=chaine then values[liste[i].Nom]:=string(p^);
-       if liste[i].typeVar=rien3 then values[liste[i].Nom]:='';      // titre et sans valeur
+      begin
+        values[liste[i].Nom]:=intToSTR(integer(p^));    // écrire dans ValueListEditor.values la variable crée la ligne
+      end;
+      if liste[i].typeVar=bool then
+      begin
+        // la variable booléenne contient les chaînes "textePL1 et PL2" de la combobox (PickList) de sélection
+        if boolean(p^) then values[liste[i].Nom]:=liste[i].textePL1 else values[liste[i].Nom]:=liste[i].textePL2;
+        ItemProps[i-1].EditStyle:=esPickList;
+        ItemProps[i-1].PickList.clear;
+        ItemProps[i-1].PickList.add(liste[i].textePL1);
+        ItemProps[i-1].PickList.add(liste[i].textePL2);
+      end;
+      if liste[i].typeVar=chaine then values[liste[i].Nom]:=string(p^);
+      if liste[i].typeVar=rien3 then values[liste[i].Nom]:='';      // titre et sans valeur
     end;
   end;
 
@@ -18611,6 +18649,7 @@ begin
     n:=fonction[foncCourante,0].adresse-1;
 
     //Affiche('Le node '+intToSTR(iNode)+' est '+node.Text+' image='+intToSTR(node.ImageIndex),clYellow);
+
     if i=foncVar then //racine du treeview
     begin
       TreeViewL.hint:='Numéro de fonction logique';
@@ -18657,6 +18696,7 @@ begin
       // autoriser montée descente menu que si l'adjacent est une variable
       TypAdjAv:=fonction[foncCourante,inode-1].typ;
       TypAdjAp:=fonction[foncCourante,inode+1].typ;
+      { verrouillé car pose des problèmes
       if isVariable(TypAdjAv) then
       begin
         PopupMenuFL.Items[0].Enabled:=true;
@@ -18665,7 +18705,7 @@ begin
       begin
         PopupMenuFL.Items[0].Enabled:=false;
       end;
-      if isVariable(TypAdjAp) and (inode+1<=n) then
+      if isVariable(TypAdjAp) and (inode<=n) then
       begin
         PopupMenuFL.Items[1].Enabled:=true;
       end
@@ -18673,7 +18713,7 @@ begin
       begin
         PopupMenuFL.Items[1].Enabled:=false;
       end;
-
+      }
       TreeViewL.hint:='état logique';
       PanelAcc.Visible:=true;
 
@@ -18689,7 +18729,7 @@ begin
   clicTree:=false;
 end;
 
-// insère une entrée dans le tableau fonction à l'indice index, et remplit niveau et fonc
+// insère une entrée dans le tableau fonction k à l'indice index, et remplit niveau et fonc
 procedure insersion(k,index,niveau,fonc : integer);
 var i : integer;
 begin
@@ -18733,11 +18773,11 @@ begin
     {$ELSE}
     TreeviewL.Selected.MoveTo(nodeB,naAdd);
     {$IFEND}
-    idA:=nodeA.AbsoluteIndex;
-    idB:=nodeB.AbsoluteIndex;
+    idA:=nodeA.AbsoluteIndex;    Affiche('idA='+intToSTR(ida),clyellow);
+    idB:=nodeB.AbsoluteIndex;    Affiche('idB='+intToSTR(idb),clyellow);
     fonc:=fonction[foncCourante,iDA];
-    fonction[foncCourante,idA]:=fonction[foncCourante,idB];
-    fonction[foncCourante,idB]:=fonc;
+    //fonction[foncCourante,idA]:=fonction[foncCourante,idB];
+    //fonction[foncCourante,idB]:=fonc;
     config_modifie:=true;
   end;
 end;
@@ -18751,7 +18791,7 @@ begin
   nodeA:=TreeviewL.Selected;
   if(nodeA<>nil) then
     // Asssure qu'il y a un node frère au dessus
-    if nodeA.GetPrevSibling <> nil then
+    if nodeA.GetPrevSibling<>nil then
     // oui le monter
     begin
       nodeB:=nodeA.GetPrevSibling; // celui du dessus
@@ -18772,7 +18812,7 @@ begin
 end;
 
 procedure TFormConfig.ButtonVoirClick(Sender: TObject);
-var i,n : integer;
+var f,i,n,t : integer;
     s : string;
 begin
 {  Affiche('tableau treeview---------',clOrange);
@@ -18786,17 +18826,26 @@ begin
     Affiche(s,clYellow);
   end;
 }
-  Affiche('tableau fonction----------',clOrange);
-  n:=fonction[foncCourante,0].adresse;
-  for i:=0 to n-1 do
+  for f:=1 to nbreFL do
   begin
-    s:=inttoSTR(i)+' '+NomFonc[fonction[foncCourante,i].typ];
-    if i=0 then s:=s+' Nombre='+intToSTR(Fonction[foncCourante,i].adresse)+' Numéro='
-    else  s:=s+' Niveau=';
-    s:=s+intToSTR(fonction[foncCourante,i].niveau)+' idParent='+intToSTR(fonction[foncCourante,i].Indexprec);
-    if i<>0 then s:=s+'  adr='+intToSTR(fonction[foncCourante,i].adresse)+' état='+intToSTR(fonction[foncCourante,i].etat);
-    if fonction[foncCourante,i].train<>'' then s:=s+' '+fonction[foncCourante,i].train;
-    Affiche(s,clYellow);
+    Affiche('tableau fonction '+intToSTR(f)+' ----------',clOrange);
+    n:=fonction[f,0].adresse;
+    Affiche('Nombre='+intToSTR(n),clYellow);
+    if n>100 then n:=100;
+
+    for i:=1 to n do
+    begin
+      t:=fonction[f,i].typ;
+      s:=inttoSTR(i)+' '+NomFonc[t];
+      if i=0 then s:=s+' Nombre='+intToSTR(Fonction[f,i].adresse)+' Numéro='
+      else  s:=s+' Niveau=';
+      s:=s+intToSTR(fonction[f,i].niveau)+' idParent='+intToSTR(fonction[f,i].Indexprec);
+      if i<>0 then s:=s+'  adr='+intToSTR(fonction[f,i].adresse);
+      if t=EtatZone then s:=s+'/'+intToSTR(fonction[f,i].adresse2);
+      s:=s+' état='+intToSTR(fonction[f,i].etat);
+      if fonction[f,i].train<>'' then s:=s+' '+fonction[f,i].train;
+      Affiche(s,clYellow);
+    end;
   end;
 end;
 
@@ -18842,7 +18891,7 @@ begin
 
   inode:=node.AbsoluteIndex;
 
-  if inode<TreeViewL.Items.count then
+  if inode<TreeViewL.Items.count-1 then
   begin
     if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
     insersion(fonccourante,inode,node.level+1,opET);
@@ -18855,7 +18904,7 @@ begin
   end;
 
   fonction[foncCourante,inode].Indexprec:=inodeOrigine;
-  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
+  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count-1;
 
   trouve_parent_OP(FoncCOurante,inode);
 end;
@@ -18975,7 +19024,7 @@ begin
 
   inode:=node.AbsoluteIndex;
   //
-  if inode<TreeViewL.Items.count then
+  if inode<TreeViewL.Items.count-1 then
   begin
     if not(diffusion) then Affiche('Insersion en '+inttoSTR(inode),clyellow);
     insersion(fonccourante,inode,node.level+1,EtatDCC);
@@ -18996,7 +19045,7 @@ begin
   until (j=0) or (fonction[foncCourante,j].niveau+1=niveau);
   fonction[foncCourante,iNode].Indexprec:=j;
 
-  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count;
+  fonction[foncCourante,0].adresse:=TreeViewL.Items.Count-1;
 end;
 
 procedure TFormConfig.ComboBoxOperateurDrawItem(Control: TWinControl;
@@ -19028,15 +19077,15 @@ begin
   fonction[FoncCourante,0].niveau:=NbreFL;
   fonction[FoncCourante,0].typ:=FoncVar;           // identificateur de fonction
 
-  fonction[foncCourante,0].adresse:=1;       // nombre d'éléments
+  fonction[foncCourante,0].adresse:=0;       // nombre d'éléments
   config_modifie:=true;
   ButtonAjOpEnfant.enabled:=false;
   ButtonAjoutevar.enabled:=false;
 
-  treeViewL.items.Clear;
-  TreeViewL.Items.add(nil,texte_tv(foncCourante,0));
+  fabrique_treeview(NbreFL);
 
   LabeledEditNumFonc.Text:=intToSTR(fonction[FoncCourante,0].niveau);
+
 end;
 
 procedure ComboBoxFL_mizajour;
@@ -19069,6 +19118,7 @@ begin
   ComboBoxFL_mizajour;
 end;
 
+// renvoie l'état de la variable de la fonction k, indice i
 Function Etat_variable(k,i : integer): boolean ;
 var pos,j,typ,adr,adr2 : integer;
     resultat : boolean;
@@ -19084,7 +19134,6 @@ begin
     result:=(pos=const_droit) and (fonction[k,i].etat=2) or (pos=const_devie) and (fonction[k,i].etat=1);   // 1=dévié 2=droit
     exit;
   end;
-
 
   if typ=EtatDet then // si état détecteur / actionneur
   begin
@@ -19387,7 +19436,7 @@ begin
   node.Text:=texte_tv(foncCourante,i);
 end;
 
-// modification d'une valeur de la listeditor
+// modification d'une valeur de la listeditor onglet avancé
 procedure TFormConfig.ValueListEditorSetEditText(Sender: TObject; ACol,ARow: Integer; const Value: String);
 var i,erreur : integer;
    s : string;
@@ -19427,7 +19476,7 @@ begin
          if (i<1) or (i>5) then labelInfo.Caption:='Valeur incorrecte'
          else integer(p^):=i;  // TempoTC:=i;
        end;
-  7 : begin
+  7 :  begin
          if (i<50) or (i>MaxParcoursTablo) then begin labelInfo.Caption:='Valeur incorrecte';exit;end;
          integer(p^):=i;  // MaxParcours:=i;
          //if MaxParcours<50 then MaxParcours:=50;
@@ -19436,7 +19485,7 @@ begin
          //ValueListEditor.Cells[Acol,Arow]:=intToSTR(MaxParcours);
          //ValueListEditor.onSetEditText:=ValueListEditorSetEditText;
        end;
-  8 : begin
+  8 :  begin
          if (erreur<>0) or (i<0) then exit;
          if (i<1) or (i>MaxRoutesCte) then labelInfo.Caption:='Valeur incorrecte'
          else MaxRoutes:=i;
@@ -19464,7 +19513,7 @@ begin
        end;
   14 : begin
          if length(s)<1 then labelInfo.Caption:='Valeur incorrecte'
-         else string(p^):=s;  // CheminProgrammesCDM:=s;
+         else string(p^):=supprime_virgules(s);  // CheminProgrammesCDM:=s;
        end;
   15 : begin
          boolean(p^):=s=lowercase(liste[Arow].textePL1);  // PilotageTrainsCDMNom
@@ -20519,6 +20568,49 @@ begin
     ListBoxSig.selected[ligneClicSig]:=true;
     Signaux[ligneClicSig+1].modifie:=true;
   end;
+end;
+
+procedure TFormConfig.ButtonLirePortsClick(Sender: TObject);
+begin
+  liste_portcom;
+end;
+
+procedure TFormConfig.LabeledEditNomLogKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.LabeledEditTrainKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.EditAdrIPCDMKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.EditLAYKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.EditIPLenzKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.EditNomTrainKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (key=',') or (key='+') then key:=#0;
+end;
+
+procedure TFormConfig.EditNomPeriphKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
 end;
 
 end.

@@ -87,6 +87,7 @@ type
     procedure RadioGroupStyleClick(Sender: TObject);
     procedure ImageCantonLibreClick(Sender: TObject);
     procedure ImageCantonOccupeClick(Sender: TObject);
+    procedure StringGridTCOKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -818,5 +819,11 @@ begin
 end;
 
 
+
+procedure TFormConfigTCO.StringGridTCOKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
 
 end.

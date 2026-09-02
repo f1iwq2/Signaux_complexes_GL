@@ -5968,6 +5968,8 @@ object FormPrinc: TFormPrinc
         Width = 25
         Height = 21
         Hint = 'Fonction de 0 '#224' 12 ou 28'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 2
       end
       object ButtonFonction: TButton
@@ -5985,6 +5987,9 @@ object FormPrinc: TFormPrinc
         Top = 44
         Width = 17
         Height = 21
+        Hint = '0 ou 1'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 3
       end
     end

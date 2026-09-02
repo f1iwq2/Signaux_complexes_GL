@@ -150,6 +150,10 @@ type
     procedure SpeedButtonSupCondClick(Sender: TObject);
     procedure ListBoxConditionsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure EditTrainDeclKeyPress(Sender: TObject; var Key: Char);
+    procedure ChampTrainKeyPress(Sender: TObject; var Key: Char);
+    procedure LabeledEditTrainKeyPress(Sender: TObject; var Key: Char);
+    procedure LabeledEditNomActKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -862,7 +866,7 @@ begin
       EditAdr.text:=intToSTR(Tablo_Action[index].adresse);
       EditTrainDecl.Visible:=true;
       EditTrainDecl.Text:=Tablo_Action[index].trainDecl;
-      EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
+      EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des + pour lesquels la condition s''applique.'
                +#13+'Mettre X pour tous les trains.'+#13+'Déclenchement par actionneur uniquement';
       EditAdr.Visible:=true;
       EditAdr.Hint:='Adresse du détecteur sur le bus de rétrosignalisation '+#13+'ou de l''actionneur CDM';
@@ -906,7 +910,7 @@ begin
       LabelEtat.Visible:=true;
 
       EditTrainDecl.Visible:=true;
-      EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des virgules pour lesquels la condition s''applique.'
+      EdittrainDecl.Hint:='Train(s) déclencheur(s) séparés par des + pour lesquels la condition s''applique.'
                +#13+'Mettre X pour tous les trains.'+#13+'Mode autonome uniquement';
 
       with SpinEditEtat do
@@ -2060,6 +2064,28 @@ begin
   end;
 
   clicListe:=false;
+end;
+
+procedure TFormModifAction.EditTrainDeclKeyPress(Sender: TObject;var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormModifAction.ChampTrainKeyPress(Sender: TObject;var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormModifAction.LabeledEditTrainKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
+
+procedure TFormModifAction.LabeledEditNomActKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
 end;
 
 end.

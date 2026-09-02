@@ -1573,7 +1573,7 @@ object FormConfig: TFormConfig
     Top = 8
     Width = 633
     Height = 505
-    ActivePage = TabSheetBranches
+    ActivePage = TabSheetPeriph
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11
@@ -1625,6 +1625,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          OnKeyPress = EditAdrIPCDMKeyPress
         end
         object EditPortCDM: TEdit
           Left = 200
@@ -1749,6 +1750,7 @@ object FormConfig: TFormConfig
           Text = 'Nom du fichier LAY avec .lay'
           OnChange = EditLAYChange
           OnExit = EditLAYExit
+          OnKeyPress = EditLAYKeyPress
         end
         object CheckBoxAffMemo: TCheckBox
           Left = 8
@@ -2253,6 +2255,7 @@ object FormConfig: TFormConfig
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          OnKeyPress = EditIPLenzKeyPress
         end
         object EditportLenz: TEdit
           Left = 176
@@ -2419,15 +2422,15 @@ object FormConfig: TFormConfig
         Caption = 'Divers'
         TabOrder = 8
         object Label82: TLabel
-          Left = 16
-          Top = 28
+          Left = 24
+          Top = 20
           Width = 35
           Height = 13
           Caption = 'Echelle'
         end
         object ComboBoxEchelle: TComboBox
           Left = 120
-          Top = 24
+          Top = 16
           Width = 145
           Height = 21
           Hint = 'Echelle'
@@ -2441,6 +2444,21 @@ object FormConfig: TFormConfig
             'H0 1/87'
             'N   1/160'
             'Z   1/220')
+        end
+        object ButtonLirePorts: TButton
+          Left = 184
+          Top = 48
+          Width = 81
+          Height = 33
+          Hint = 
+            'Affiche les ports COM et USB disponibles dans la fen'#234'tre princip' +
+            'ale'
+          Caption = 'Liste les ports COM'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          WordWrap = True
+          OnClick = ButtonLirePortsClick
         end
       end
     end
@@ -3492,7 +3510,7 @@ object FormConfig: TFormConfig
         end
         object Buttonrestaure: TButton
           Left = 32
-          Top = 288
+          Top = 296
           Width = 75
           Height = 25
           Hint = 'Restaure la configuration du feu d'#39'avant sa modification'
@@ -3513,7 +3531,7 @@ object FormConfig: TFormConfig
         end
         object ButtonConfigSR: TButton
           Left = 32
-          Top = 312
+          Top = 320
           Width = 75
           Height = 25
           Caption = 'Configuration'
@@ -4207,6 +4225,7 @@ object FormConfig: TFormConfig
             LabelPosition = lpRight
             TabOrder = 3
             OnChange = LabeledEditTrainChange
+            OnKeyPress = LabeledEditTrainKeyPress
           end
           object RadioGroupOP: TRadioGroup
             Left = 72
@@ -4286,6 +4305,7 @@ object FormConfig: TFormConfig
           LabelSpacing = 10
           TabOrder = 9
           OnChange = LabeledEditNomLogChange
+          OnKeyPress = LabeledEditNomLogKeyPress
         end
         object ButtonAjOpEnfant: TButton
           Left = 304
@@ -5298,6 +5318,7 @@ object FormConfig: TFormConfig
               ShowHint = True
               TabOrder = 0
               OnChange = EditNomTrainChange
+              OnKeyPress = EditNomTrainKeyPress
             end
             object EditAdresseTrain: TEdit
               Left = 264
@@ -6101,6 +6122,7 @@ object FormConfig: TFormConfig
           ShowHint = True
           TabOrder = 0
           OnChange = EditNomPeriphChange
+          OnKeyPress = EditNomPeriphKeyPress
         end
         object EditPortCde: TLabeledEdit
           Left = 168
@@ -6772,10 +6794,12 @@ object FormConfig: TFormConfig
     Left = 804
     object M1: TMenuItem
       Caption = 'Monter'
+      Enabled = False
       OnClick = M1Click
     end
     object Descendre1: TMenuItem
       Caption = 'Descendre'
+      Enabled = False
       OnClick = Descendre1Click
     end
     object N4: TMenuItem

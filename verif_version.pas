@@ -26,7 +26,7 @@ var
   f : textFile;
 
 Const
-VersionSC = '11.2'; // sert à la comparaison de la version publiée
+VersionSC = '11.3'; // sert à la comparaison de la version publiée
 SousVersion=' ';   // A B C ... en cas d'absence de sous version mettre un espace
 // pour unzip
 SHCONTCH_NOPROGRESSBOX=4;
@@ -71,6 +71,7 @@ end;
 
 // téléchargement d'une page internet sans cache dans un fichier
 // aUrl = adresse URL du fichier - S : chemin et nom du fichier à écrire - taille : renvoie la taille lue en octets
+// retour Vrai si ok
 function DownloadURL_NOCache(aUrl: string;s : string;var taille : longint): Boolean;
 var
   hSession,hService: hinternet;

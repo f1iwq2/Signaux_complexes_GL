@@ -119,5 +119,12 @@ object FormCompteur: TFormCompteur
       Caption = 'Vitesse r'#233'elle'
       OnClick = Vitesserelle1Click
     end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object Propritsducompteur1: TMenuItem
+      Caption = 'Propri'#233't'#233's du compteur'
+      OnClick = Propritsducompteur1Click
+    end
   end
 end

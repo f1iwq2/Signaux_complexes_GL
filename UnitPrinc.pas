@@ -1182,7 +1182,6 @@ var
 
   Fonction : array[0..100,0..100] of Tfonction;    // indice de la fonction,éléments de la fonction
   NomFonction : array[0..100] of string;           // nom de la fonction
-  ArbreFonc : array[0..100,0..100] of integer;     // fonction sous forme d'arbre
 
   blocUSB : array[1..10] of record // 10 éléments pour 10 blocs USB
               AffTrain : string;
@@ -2127,6 +2126,7 @@ begin
   calcul_pos_horloge_compt;
   if AffHorl then Affiche_horloge;
   if LanceHorl then Demarre_horloge;
+
   // création des compteurs
   if (compteur<0) or (compteur>3) then compteur:=1;
   for i:=1 to 1 do  // il n'y a qu'une seule fenetre compteurs
@@ -2239,6 +2239,7 @@ begin
   chaine_HEX:=sa_hex;
 end;
 
+// affiche un texte dans la fenetre richedit en couleurs
 procedure Affiche(s : string;lacouleur : TColor);
 begin
   with formprinc do
@@ -2248,6 +2249,7 @@ begin
   end;
 end;
 
+// affiche un texte à la fin du précédent
 procedure Affiche_suivi(s : string;lacouleur : TColor);
 var i : integer;
 begin
@@ -2514,6 +2516,7 @@ begin
 end;
 {$IFEND}
 
+// teste si la centrale répond à la demande de version F0 (xpressnet) ou <s> (dcc++)
 function test_protocole : boolean;
 var s: string;
    temp : integer;
@@ -2741,8 +2744,8 @@ begin
 end;
 {$IFEND}
 
-{$IF CompilerVersion >= 28.0}
-// connecte un port usb pour la comm périphériques. Si le port n'est pas ouvert, renvoie false
+{$IF CompilerVersion >= 28.0}              
+// connecte un port usb pour la comm des périphériques. Si le port n'est pas ouvert, renvoie false
 // version AsyncPro
 function connecte_usb_periph(index : integer) : boolean;
 var i,j,nc,numport,_vitesse,parite,nbits,stopbits,erreur,prot : integer;
@@ -17463,7 +17466,7 @@ var decl,op,af,access,sortie,t,v,etat,adr : integer;
 begin
   // tablo action n'est pas un tableau dynamique, mais Tablo_action[].TabloOp oui
   if length(Tablo_Action[i].tabloOP)-1<ida then exit;
-  st:='Action '+Tablo_Action[i].NomAction+' op='+intToSTR(ida)+' : ';
+  st:='Action '+Tablo_Action[i].NomAction+' opération='+intToSTR(ida)+' : ';
   op:=Tablo_Action[i].tabloOp[ida].numoperation;
   if Tablo_Action[i].tabloOp[ida].valide then  // si l'opération n'est pas inhibée par le double clic
   begin
@@ -20607,7 +20610,7 @@ begin
     aiguillage[i].AdrTrain:=0;
 end;
 
-// supprime les events, les trains etc
+// Raz du roulage, les réservations, supprime les events, les trains etc
 Procedure Raz_tout;
 var i,j,index,Bim : integer;
 begin
@@ -20959,7 +20962,7 @@ var info: TWin32FileAttributeData;
 begin
   result:=-1;
   if not GetFileAttributesEx(PChar(aFileName),GetFileExInfoStandard,@info) then exit;
-  result:=Int64(info.nFileSizeLow) or Int64(info.nFileSizeHigh shl 32);
+  result:=int64(info.nFileSizeLow) or int64(info.nFileSizeHigh shl 32);
 end;
 
 procedure Tformprinc.procAide(Sender : Tobject);
@@ -21094,6 +21097,7 @@ begin
   NbreOperations:=ActionDecMemoire;
 end;
 
+// renvoie l'index d'une opération d'après son nom
 function Index_operation(s : string) : integer;
 var i : integer;
     trouve : boolean;
@@ -22466,7 +22470,7 @@ end;
 //               [].chaine
 //               [].tempo
 // Pilote 1 tache du tableau suivant la valeur de pointeurTaches
-procedure traite_taches;
+procedure traite_taches_timer;
 const affe=false;
 var i,j,fonc,sortie,etat :integer;
 begin
@@ -22487,6 +22491,7 @@ begin
         if affe then Affiche('Traite 1 en cours',clblue);
         exit;
       end;
+
       // si tempo non nulle de fin d'accessoire
       if (typeTache=ttacheAcc) and (tempo<>0) then
       begin
@@ -22494,6 +22499,7 @@ begin
         dec(tempo);
         exit;  // ne rien faire d'autre dans ce tour timer
       end
+
       else
       if (TypeTache=ttacheTempo) then
       begin
@@ -22510,6 +22516,7 @@ begin
         end;
         exit;
       end
+
       else
       begin
         // ------------ envoyer au destinataire -------------
@@ -22598,7 +22605,7 @@ begin
 
   //if tick<10 then Affiche(intToSTR(scrollBoxSig.width)+' '+inttostr(scrollBoxC.width),clred);
 
-  if pointeurTaches>0 then Traite_taches;
+  if pointeurTaches>0 then Traite_taches_timer;
 
   // vitesses par bloc USB
   if tempoBlocUSB>0 then
@@ -25496,6 +25503,7 @@ end;
 // affiche les ports com série ou usb
 procedure liste_portcom ;
 begin
+
   try
     CoInitialize(nil);           // on va utiliser Ole
     try
@@ -28501,8 +28509,8 @@ end;
 procedure TFormPrinc.ButtonEssaiClick(Sender: TObject);
 var l,h : integer;
 begin
+  if test_train_decl('ABC+CDE+tagada','CCD') then Affiche('Oui',clred);
 
-  event_signalCDM(53,0);
 end;
 
 // changement TrackBar zoom compteurs

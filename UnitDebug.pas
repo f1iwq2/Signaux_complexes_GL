@@ -68,7 +68,6 @@ type
     ButtonAigDevie: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonEcrLogClick(Sender: TObject);
-    procedure EditNivDebugKeyPress(Sender: TObject; var Key: Char);
     procedure CheckAffSigClick(Sender: TObject);
     procedure ButtonRazTamponClick(Sender: TObject);
     procedure ButtonChercheClick(Sender: TObject);
@@ -108,6 +107,7 @@ type
     procedure Button3Click(Sender: TObject);
     procedure ButtonAigDevieClick(Sender: TObject);
     procedure ButtonSigPrecClick(Sender: TObject);
+    procedure EditNivDebugChange(Sender: TObject);
   private
     { Déclarations privées }
   public
@@ -279,23 +279,6 @@ begin
     end;
     closefile(fte);
   end;
-end;
-
-procedure TFormDebug.EditNivDebugKeyPress(Sender: TObject; var Key: Char);
-  var i,e  : integer;
-begin
-  if ord(Key)=VK_RETURN then
-  begin
-    Key:=#0; // évite bip
-    val(EditNivDebug.text,i,e);
-    if e=0 then
-    begin
-      if (i>=0) and (i<=3) then NivDebug:=i
-      else EditNivDebug.text:='3';
-    end
-    else EditNivDebug.text:='0';
-  end;
-  RichDebug.Lines.add('Niveau='+intToSTR(NivDebug));
 end;
 
 
@@ -732,6 +715,19 @@ begin
   erreur:=Signal_Precedent(Adr);
   NivDebug:=AncDebug;
   AfficheDebug('Signal précédent='+intToSTR(erreur),clyellow);
+end;
+
+procedure TFormDebug.EditNivDebugChange(Sender: TObject);
+var i,e : integer;
+begin
+  val(EditNivDebug.text,i,e);
+  if e=0 then
+  begin
+    if (i>=0) and (i<=3) then NivDebug:=i
+    else AfficheDebug('Erreur niveau debug',clred);
+  end;
+
+  AfficheDebug('Niveau='+intToSTR(NivDebug),clWhite);
 end;
 
 end.

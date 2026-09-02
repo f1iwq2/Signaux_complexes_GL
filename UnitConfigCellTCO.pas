@@ -89,6 +89,7 @@ type
     procedure RadioButtonGHClick(Sender: TObject);
     procedure RadioButtonDBClick(Sender: TObject);
     procedure RadioButtonDSClick(Sender: TObject);
+    procedure EditTexteCCTCOKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -1458,6 +1459,12 @@ begin
 end;
 
 
+
+procedure TFormConfCellTCO.EditTexteCCTCOKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
+end;
 
 end.
 

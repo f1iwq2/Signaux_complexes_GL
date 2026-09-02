@@ -21,6 +21,7 @@ type
     procedure StringGridFOSetEditText(Sender: TObject; ACol, ARow: Integer;
       const Value: String);
     procedure Button1Click(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -55,9 +56,12 @@ Bouton : Tbutton;
 
 implementation
 
-uses verif_version;
+uses verif_version,UnitConfig;
+
+
 
 {$R *.dfm}
+
 
 procedure TFormFicheHoraire.ButtonOkClick(Sender: TObject);
 var f : textfile;
@@ -74,7 +78,10 @@ begin
     // nomtrain,Nomroute,départ,vitesse démarre,sens,inverse
 
     // recopier le composant grille dans le tableau grilleHoraire[]
-    grilleHoraire[ligne].NomTrain:=stringGridFO.Cells[1,ligne];
+    s:=stringGridFO.Cells[1,ligne];
+    s:=supprime_virgules(s);
+    stringGridFO.Cells[1,ligne]:=s;
+    grilleHoraire[ligne].NomTrain:=s;
 
     s:=stringGridFO.Cells[ColHDep,ligne]; // heure de démarrage
     val(s,i,erreur);
@@ -86,7 +93,7 @@ begin
     s:='';
     for col:=1 to stringGridFO.ColCount-1 do
     begin
-      s:=s+stringGridFO.Cells[col,ligne]+',';
+      s:=s+supprime_virgules(stringGridFO.Cells[col,ligne])+',';
     end;
     writeln(f,s);
   end;
@@ -281,7 +288,7 @@ begin
   if FormFicheHoraire=nil then exit;
 end;
 
-// apellée sur dessin d'une cellule.
+// appellée sur dessin d'une cellule.
 procedure TFormFicheHoraire.StringGridFODrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
@@ -435,6 +442,12 @@ end;
 procedure TFormFicheHoraire.Button1Click(Sender: TObject);
 begin
 FormFicheHoraire.Width:=StringGridFO.Left+StringGridFO.Width+10;
+end;
+
+procedure TFormFicheHoraire.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  // pas d'evt!!
+  if key=',' then key:=#0;
 end;
 
 end.

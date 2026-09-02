@@ -70,6 +70,7 @@ type
     procedure Copierroute1Click(Sender: TObject);
     procedure Collerroute1Click(Sender: TObject);
     procedure PopupMenuRoutesPopup(Sender: TObject);
+    procedure EditnomRouteKeyPress(Sender: TObject; var Key: Char);
   private
     { Déclarations privées }
   public
@@ -1119,6 +1120,12 @@ begin
   end;
 
 
+end;
+
+procedure TFormRouteTrain.EditnomRouteKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key=',' then key:=#0;
 end;
 
 end.

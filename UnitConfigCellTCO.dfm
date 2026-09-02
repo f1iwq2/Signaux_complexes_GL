@@ -224,6 +224,7 @@ object FormConfCellTCO: TFormConfCellTCO
       Height = 24
       TabOrder = 2
       OnChange = EditTexteCCTCOChange
+      OnKeyPress = EditTexteCCTCOKeyPress
     end
   end
   object GroupBoxEl: TGroupBox

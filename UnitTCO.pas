@@ -424,6 +424,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Afficherlecompteurdevitessedutrain1Click(Sender: TObject);
     procedure MenuSuppTCOClick(Sender: TObject);
+    procedure EditTexteKeyPress(Sender: TObject; var Key: Char);
   public
     { Déclarations publiques }
   end;
@@ -19906,6 +19907,11 @@ var indexTCO : integer;
 begin
   indexTCO:=index_TCOMainMenu;
   Supprimer_TCO(indexTCO);
+end;
+
+procedure TFormTCO.EditTexteKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key=',' then key:=#0;
 end;
 
 end.

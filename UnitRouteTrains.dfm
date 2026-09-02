@@ -244,6 +244,7 @@ object FormRouteTrain: TFormRouteTrain
         Height = 21
         TabOrder = 4
         OnChange = EditnomRouteChange
+        OnKeyPress = EditnomRouteKeyPress
       end
       object CheckBoxSens: TCheckBox
         Left = 352
