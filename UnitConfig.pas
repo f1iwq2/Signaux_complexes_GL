@@ -841,6 +841,7 @@ type
     procedure EditIPLenzKeyPress(Sender: TObject; var Key: Char);
     procedure EditNomTrainKeyPress(Sender: TObject; var Key: Char);
     procedure EditNomPeriphKeyPress(Sender: TObject; var Key: Char);
+    procedure CheckBoxAffMemoClick(Sender: TObject);
 
   private
     { Déclarations privées }
@@ -1213,7 +1214,7 @@ begin
       // connexion à CDM rail
       recuCDM:='';
       s:='C-C-00-0001-CMDGEN-_CNCT|000|';
-      envoi_cdm(s);
+      envoi_cdm_ack(s);
       if ack_cdm then
       begin
         ack_cdm:=false;
@@ -1232,7 +1233,7 @@ begin
           // demande la description des trains
           s:=place_id('C-C-01-0002-DSCTRN-DLOAD|000|');
           ntrains_cdm:=0;
-          envoi_CDM(s);
+          envoi_CDM_ack(s);
           sleep(10);
           Application.ProcessMessages;
           result:=true;
@@ -7160,6 +7161,7 @@ procedure reaffecte_index_combos(ancien1,ancien2,nouveau1,nouveau2 : integer);
 var i,op : integer;
     s : string;
 begin
+  // opération des actions (le périphérique du déclencheur n'est pas lié au périphérique mais à la chaîne qu'il envoie)
   i:=1;
   repeat
     for op:=1 to Tablo_Action[i].NbOperations do
@@ -7171,26 +7173,23 @@ begin
           Tablo_Action[i].tabloOp[op].periph:=nouveau1;
           s:=encode_actions(i);
           formConfig.ListBoxActions.Items[i-1]:=s;
-          inc(i);
         end
         else
         if Tablo_Action[i].TabloOp[op].periph=ancien2  then
         begin
+          //Affiche('Cas 2 ',clyellow);
           Tablo_Action[i].TabloOp[op].periph:=nouveau2;
           s:=encode_actions(i);
           formConfig.ListBoxActions.Items[i-1]:=s;
-          inc(i);
         end
-        else
-         inc(i);
-      end
-      else inc(i);
+      end;
     end;
+    inc(i);
   until i>maxTablo_act ;
 
+  // commande des PN par périphérique
   i:=1;
   repeat
-    // commande par périphérique
     if Tablo_PN[i].typeCde=1 then
     begin
       if tablo_pn[i].AdresseFerme=ancien1 then // numéro périph
@@ -7214,6 +7213,7 @@ begin
     else inc(i);
   until i>nbrePN ;
 
+  // décodeurs personnalisés commandés par périphériques
   i:=1;
   repeat
     if decodeur_pers[i].commande=1 then
@@ -7717,23 +7717,23 @@ begin
   EditP4.StyleName:='Windows';
   EditAigTriple.StyleName:='Windows';
 
-  // énumérer tous les composants pour Tedit
+  // énumérer tous les composants pour Tedit pour alignement à droite mais annulé c'est moche
+  {
   for i:=0 to Formconfig.ComponentCount-1 do
   begin
     comp:=formConfig.Components[i];
+
     if comp is tEdit then
     begin
       re:=comp as tEdit;
-      if (re.Name<>'EditLAY') and (re.name<>'EditcomUSB') and (re.name<>'EditNomTrain') and
-         (re.Name<>'EditNomPeriph') and (re.name<>'EditPortCde') then
-           re.alignment:=taRightJustify;
+      if (re.Name<>'EditLAY') then re.alignment:=taRightJustify;
     end;
     if comp is tLabeledEdit then
     begin
       tle:=comp as tLabeledEdit;
       tle.alignment:=taRightJustify;
     end;
-  end;
+  end;   }
   {$IFEND}
 
   MenuListesCopier2.Visible:=false;  // coller liste dans la listbox des signaux est neutralisé, crée des problemes pour les structures de signaux
@@ -16918,6 +16918,8 @@ begin
   Edit_HG.ReadOnly:=false;
 
   CheckBoxAffMemo.Checked:=AffMemoFenetre=1;
+  EditOuvreEcran.Enabled:=not(CheckBoxAffMemo.checked);
+
   //EditNbCantons.text:=intToSTR(Nb_cantons_Sig);
   EditTempoSignal.Text:=IntToSTR(Tempo_Signal);
   ComboBoxEchelle.ItemIndex:=echelle;
@@ -16930,6 +16932,7 @@ begin
   EditportLenz.text:=IntToSTR(PortInterface);
   EditTempoAig.Text:=IntToSTR(Tempo_Aig);
   EditOuvreEcran.Text:=intToSTR(ecran_SC);
+
   EditComUSB.Text:=PortCom;
   EditFonte.text:=IntToSTR(TailleFonte);
   editdebug.Text:=IntToSTR(debug);
@@ -20611,6 +20614,11 @@ procedure TFormConfig.EditNomPeriphKeyPress(Sender: TObject;
   var Key: Char);
 begin
   if key=',' then key:=#0;
+end;
+
+procedure TFormConfig.CheckBoxAffMemoClick(Sender: TObject);
+begin
+  EditOuvreEcran.Enabled:=not(CheckBoxAffMemo.checked);
 end;
 
 end.

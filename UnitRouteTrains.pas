@@ -95,67 +95,6 @@ implementation
 
 {$R *.dfm}
 
-// renvoie l'adresse du signal du train sur détecteur
-function Adresse_signal_det_train(detect,IndexTrain : integer) : integer;
-var voie1,voie2,indexSig1,IndexSig2,AdrSig1,AdrSig2,IndexSig,AdrSig : integer;
-begin
-  if detect=0 then
-  begin
-    result:=0;
-    exit;
-  end;
-  index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);
-  AdrSig:=0;AdrSig1:=0;AdrSig2:=0;
-  if indexSig1<>0 then AdrSig1:=signaux[indexSig1].adresse;
-  if indexSig2<>0 then AdrSig2:=signaux[indexSig2].adresse;
-
-  // si le détecteur sur le train au départ dispose d'un signal
-  if (AdrSig1<>0) or (AdrSig2<>0) then
-  begin
-    indexSig:=0;
-    if (signaux[indexSig1].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig1].Btype_suiv1=trains[IndexTrain].TElSuivant) then
-      indexSig:=IndexSig1;
-    if (signaux[indexSig2].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig2].Btype_suiv1=trains[IndexTrain].TElSuivant) then
-      indexSig:=IndexSig2;
-
-    {
-    // trouver le premier détecteur de la route et son suivant non traité pour trouver le signal dans le bon sens
-    n:=trains[indexTrain].route[0].adresse;
-    i:=1;det1:=0;el2:=0;trouve:=false;
-    with trains[indexTrain] do
-    begin
-      repeat
-        if route[i].typ=det then
-        begin
-          det1:=route[i].adresse;
-          el2:=route[i+1].adresse;tel2:=route[i+1].typ;
-          trouve:=true
-        end;
-        inc(i);
-      until trouve or (i>n);
-    end;
-
-    //trouve le signal dans le bon sens
-    IndexSig:=0;
-    if AdrSig1<>0 then
-    begin
-      if (signaux[indexSig1].Adr_el_suiv1=el2) and (signaux[indexSig1].Btype_suiv1=tel2) then IndexSig:=IndexSig1;
-    end;
-    if adrSig2<>0 then
-    begin
-      if (signaux[indexSig2].Adr_el_suiv1=el2) and (signaux[indexSig2].Btype_suiv1=tel2) then IndexSig:=IndexSig2;
-    end;
-    }
-
-    //AdrSig:=signaux[indexSig].adresse;
-    if IndexSig=0 then begin result:=0;exit;end;
-
-    //Affiche('IndexSig='+intToSTR(IndexSig)+' detect='+intToSTR(detect),clred);
-    result:=signaux[indexSig].adresse;
-    exit;
-  end
-  else result:=0;  // pas de signal
-end;
 
 // démarre un train si le signal n'est pas au rouge
 // appelé par gestion des horaires dans le timer  ou  bouton rouler 1 train ou rouler tous les trains

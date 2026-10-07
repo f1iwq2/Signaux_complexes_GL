@@ -1,10 +1,13 @@
 unit Unitprinc;
-// 02/7/2026
+// 25/9/2026
 { ********************************************
   Programme signaux complexes Graphique Lenz
   --------------------------------------------------------------
   Delphi 7 :
   pour les liaisons série/USB on utilise l'activeX Tmscomm
+  Pour TMSCOM pour D7: il est nécessaire d'avoir le fichier mscomm32.ocx dans le repertoire system de windows
+  (Pour un Os64, %systemroot%\sysWOW64   pour unOs32 : %systemroot%\system32)
+  et que ce composant soit enregistré (avec regsvr32)
 
   --------------------------------------------------------------
   Delphi 13 :
@@ -19,7 +22,6 @@ unit Unitprinc;
   AdExcept.fra               https://github.com/TurboPack/AsyncPro/blob/master/source/AdExcept.fra
   AdExcept.pas               https://github.com/TurboPack/AsyncPro/blob/master/source/AdExcept.pas
   AdPort.pas                 https://github.com/TurboPack/AsyncPro/blob/master/source/AdPort.pas
-  AdSelCom.dfm               https://github.com/TurboPack/AsyncPro/blob/master/source/AdSelCom.dfm
   AdSelCom.pas               https://github.com/TurboPack/AsyncPro/blob/master/source/AdSelCom.pas
   AdStrMap.pas               https://github.com/TurboPack/AsyncPro/blob/master/source/AdStrMap.pas
   AwDefine.inc               https://github.com/TurboPack/AsyncPro/blob/master/source/AwDefine.inc
@@ -28,7 +30,8 @@ unit Unitprinc;
   LnsWin32.pas               https://github.com/TurboPack/AsyncPro/blob/master/source/LNSWin32.pas
   LnsQueue.pas               https://github.com/TurboPack/AsyncPro/blob/master/source/LnsQueue.pas
   OoMisc.pas                 https://github.com/TurboPack/AsyncPro/blob/master/source/OoMisc.pas
-  AwDefine.inc
+  AwDefine.inc               https://github.com/TurboPack/AsyncPro/blob/master/source/AwDefine.inc
+  AdSelCom.dfm               https://github.com/TurboPack/AsyncPro/blob/master/source/AdSelCom.dfm
 
   Utilisation des styles:
   https://github.com/RRUZ/vcl-styles-utils
@@ -42,7 +45,7 @@ unit Unitprinc;
   Récupération des sources depuis github:
   attention si on télécharge les fichiers sources depuis
   https://github.com/f1iwq2/Signaux_complexes_GL
-  il faut copier coller les fichiers source un par un, importer les fichiers ZIP ne fonctionnera pas (les CR LF ne
+  il faut copier coller les fichiers source un par un, car importer les fichiers ZIP ne fonctionnera pas (les CR LF ne
   sont pas conformes pour l'éditeur Delphi)
 
   Options de compilation D7: options du debugger/exception du langage : décocher "arreter sur exceptions delphi"
@@ -58,9 +61,7 @@ unit Unitprinc;
 
  ********************************************
 
- Pour TMSCOM : il est nécessaire d'avoir le fichier mscomm32.ocx dans le repertoire system de windows
- (Pour un Os64, %systemroot%\sysWOW64   pour unOs32 : %systemroot%\system32)
- et que ce composant soit enregistré (avec regsvr32)
+
 
  Attention si le répertoire d'install n'est pas autorisé, windows10-11 va sauver les fichiers dans
  C:\Users\Nom_utilisateur\AppData\Local\VirtualStore\Program Files (x86)\Signaux_complexes
@@ -317,6 +318,7 @@ type
     Image3feux2x: TImage;
     Image2feux2x: TImage;
     Timer2: TTimer;
+    Routesdutrain1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     {$IF CompilerVersion >= 28.0}
     procedure RecuInterface(Sender: TObject;count : word);
@@ -467,6 +469,7 @@ type
     procedure PopupMenuCompteursPopup(Sender: TObject);
     procedure TrackBarSigChange(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure Routesdutrain1Click(Sender: TObject);
   private
     { Déclarations privées }
     procedure DoHint(Sender : Tobject);
@@ -585,7 +588,7 @@ ttDestCDM=1;   // destinataire CDM
 ttDestXpressNet=2; // xpresset
 ttDestDccpp=3;  // dccpp
 
-// Type de déclencheurs
+// Actions, type de déclencheurs
 Decl0=0;
 DeclHorloge=1;
 DeclPeriph=2;
@@ -598,7 +601,7 @@ DeclSignal=8;
 DeclFonction=9;
 DeclClavier=10;
 
-// conditions
+// Actions, conditions
 CondVrai=1;
 CondFaux=2;
 CondVitTrain=3;
@@ -612,7 +615,7 @@ CondMemoireSup=10;
 CondMemoireInf=11;
 CondDetAct=12;
 
-// Type d'opération (action)
+// Actions, type d'opération
 Action0=0;
 ActionAffTCO=1;
 ActionAffSC=2;
@@ -868,7 +871,7 @@ Taction = record
     TabloOp                 : array of Toperation;
   end;
 
-TelementRoute=record
+TelementRoute = record
              // l'index 0 contient dans "adresse" le nombre d'éléments
              //                    dans "talon" (si talon=true : consigne vitesse négative)
              //                    dans "pos" l'id de route
@@ -891,7 +894,7 @@ TUneRoute=array[0..MaxParcoursTablo] of TelementRoute;      // Une route
 TElroute=array[1..MaxRoutesCte] of TUneroute;             // tableau de routes
 
 // la longueur de la structure ttrain ne permet pas le passage de paramètre en procédure
-tTrain =  record
+tTrain = record
               nom_train : string;
               inverse : boolean;                // placement
               detecteurA : integer;             // détecteur sur lequel le train se trouve
@@ -1040,6 +1043,7 @@ var
   KBHook: HHook;
 
   {$IF CompilerVersion >= 28.0}
+  // liaison USB interface ; liaisons usb interfaces
   MSCommUSBInterface, MsCommCde1,MsCommCde2 : tApdComPort;  // objets AsyncPro
   {$ELSE}
   MSCommUSBInterface, MsCommCde1,MsCommCde2 : TMSComm; // objets TMSCOM
@@ -1368,6 +1372,8 @@ function signal_rouge(adresse : word) : boolean;
 function chaine_signal(adresse : word) : string;
 function signal_suivant_det(det1,det2 : integer) : integer;
 procedure envoi_signauxCplx;
+function Adresse_signal_det_train(detect,IndexTrain : integer) : integer;
+
 procedure composant(c : tComponent;fond,texte : tColor);
 procedure maj_couleurs;
 {$IF CompilerVersion < 28.0}
@@ -1381,7 +1387,8 @@ procedure change_style;
 function isDirectionnel(index : integer) : boolean;
 procedure stop_trains;
 function Aiguille_deviee(adresse : integer) : integer ;
-function envoi_CDM(s : string) : boolean;
+procedure envoi_CDM(s : string) ;
+function envoi_CDM_ack(s : string) : boolean;
 function place_id(s : string) : string;
 procedure fin_preliminaire;
 function Index_operation(s : string) : integer;
@@ -1414,6 +1421,7 @@ procedure cree_GB_compteur(rang : integer);
 procedure pilote_train(det1,det2,AdrTrain,it : integer);
 procedure equation_droite(y1,y2,x1,x2 : single;var pente,b : single);
 procedure change_clic_train(i : integer);
+
 
 implementation
 
@@ -1644,7 +1652,7 @@ end;
 {$IFEND}
 
 
-// change le style en fonction de Style_aff pour Delphi12 (compilateur>=28)
+// change le style en fonction de Style_aff pour Delphi13 (compilateur>=28)
 // Cette procédure doit être appellée depuis le module principal UnitPrinc sinon exception violation
 // Pour les RichEdit, il faut les réafficher après chaque changement de style, sinon elles peuvent être mal contrastées.
 // ceci doit être fait dans l'evt OnActivate de chaque feuille.
@@ -1654,9 +1662,8 @@ var i,j,index : integer;
     s : string;
     comp : Tcomponent;
     te : tEdit;
-   // {$IF CompilerVersion >= 28.0}
     si : tStyleInfo;
-  //  {$IFEND}
+
 begin
 
   if Ancien_Nom_Style<>Nom_style_aff then
@@ -5376,7 +5383,7 @@ end;
 
 // créée les composants trains dynamiquement dans la partie droite pour un nouveau compteur par train
 // dans la groupBox (GB)
-// rang commence à 1
+// rang commence à 1 (c'est l'index du train)
 procedure cree_GB_compteur(rang : integer);
 const HautTb=10;  // hauteur trackbar
       ofsGBH=15;  // marge haut du groupbox
@@ -8754,6 +8761,69 @@ begin
       end;
     end;
   end;
+end;
+
+
+// renvoie l'adresse du signal du train sur détecteur
+function Adresse_signal_det_train(detect,IndexTrain : integer) : integer;
+var voie1,voie2,indexSig1,IndexSig2,AdrSig1,AdrSig2,IndexSig,AdrSig : integer;
+begin
+  if detect=0 then
+  begin
+    result:=0;
+    exit;
+  end;
+  index_signal_det(detect,voie1,indexSig1,voie2,indexSig2);  // trouve l'index du signal associé au détecteur detect
+  AdrSig:=0;AdrSig1:=0;AdrSig2:=0;
+  if indexSig1<>0 then AdrSig1:=signaux[indexSig1].adresse;
+  if indexSig2<>0 then AdrSig2:=signaux[indexSig2].adresse;
+
+  // si le détecteur sur le train au départ dispose d'un signal
+  if (AdrSig1<>0) or (AdrSig2<>0) then
+  begin
+    indexSig:=0;
+    if (signaux[indexSig1].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig1].Btype_suiv1=trains[IndexTrain].TElSuivant) then
+      indexSig:=IndexSig1;
+    if (signaux[indexSig2].Adr_el_suiv1=trains[IndexTrain].ElSuivant) and (signaux[indexSig2].Btype_suiv1=trains[IndexTrain].TElSuivant) then
+      indexSig:=IndexSig2;
+
+    {
+    // trouver le premier détecteur de la route et son suivant non traité pour trouver le signal dans le bon sens
+    n:=trains[indexTrain].route[0].adresse;
+    i:=1;det1:=0;el2:=0;trouve:=false;
+    with trains[indexTrain] do
+    begin
+      repeat
+        if route[i].typ=det then
+        begin
+          det1:=route[i].adresse;
+          el2:=route[i+1].adresse;tel2:=route[i+1].typ;
+          trouve:=true
+        end;
+        inc(i);
+      until trouve or (i>n);
+    end;
+
+    //trouve le signal dans le bon sens
+    IndexSig:=0;
+    if AdrSig1<>0 then
+    begin
+      if (signaux[indexSig1].Adr_el_suiv1=el2) and (signaux[indexSig1].Btype_suiv1=tel2) then IndexSig:=IndexSig1;
+    end;
+    if adrSig2<>0 then
+    begin
+      if (signaux[indexSig2].Adr_el_suiv1=el2) and (signaux[indexSig2].Btype_suiv1=tel2) then IndexSig:=IndexSig2;
+    end;
+    }
+
+    //AdrSig:=signaux[indexSig].adresse;
+    if IndexSig=0 then begin result:=0;exit;end;
+
+    //Affiche('IndexSig='+intToSTR(IndexSig)+' detect='+intToSTR(detect),clred);
+    result:=signaux[indexSig].adresse;
+    exit;
+  end
+  else result:=0;  // pas de signal
 end;
 
 
@@ -18633,13 +18703,19 @@ begin
   end;
 end;
 
-
+// envoi d'une chaîne Com_IPC à CDM par socket, n'attend pas l'ack
+procedure envoi_CDM(s : string);
+begin
+  if CDM_connecte=false then exit;
+  if traceTrames then afficheDebug(s,clLime);
+  ClientSocketCDM.Socket.SendText(s);
+end;
 
 // envoi d'une chaîne Com_IPC à CDM par socket, puis attend l'ack ou le nack
-function envoi_CDM(s : string) : boolean;
+function envoi_CDM_ack(s : string) : boolean;
 var temps : integer;
 begin
-  if CDM_connecte=false then begin envoi_CDM:=false;exit;end;
+  if CDM_connecte=false then begin result:=false;exit;end;
   if traceTrames then afficheDebug(s,clLime);
   ClientSocketCDM.Socket.SendText(s);
   // attend l'ack
@@ -18658,7 +18734,7 @@ begin
       Affiche('Pas de réponse de CDM Rail',clRed);
     end;
   end;
-  envoi_CDM:=ackCDM;
+  result:=ackCDM;
 end;
 
 
@@ -22726,11 +22802,13 @@ begin
   if temps>0 then dec(temps);
 
   // gestion du clignotant des signaux de la page principale----------------------
+
   if tempsCli>0 then dec(tempsCli);
   if tempsCli=0 then
   begin
     tempsCli:=4;
     clignotant:=not(clignotant);  // inversion du clignotant
+
     //tester chaque signal pour voir s'il y a un code de clignotement
     for i:=1 to NbreSignaux do
     begin
@@ -22753,7 +22831,7 @@ begin
            testBit(a,vert_cli)  or testbit(a,blanc_cli) then
            begin
              Dessine_signal_mx(Signaux[i].Img.Canvas,0,0,redAffSig,redAffSig,adresseEl,1);
-            //Affiche('Clignote signal '+IntToSTR(adresse),clyellow);
+             //Affiche('Clignote signal '+IntToSTR(i),clyellow);
            end;
       end;
     end;
@@ -28607,6 +28685,22 @@ begin
        aiguille_compteur(1,idTrainClic,formCompteur[1]); // fenetre détachée
        aiguille_compteur(i,i,compteurT[i].gb);  // compteurs des groupbox
     end;
+  end;
+end;
+
+procedure TFormPrinc.Routesdutrain1Click(Sender: TObject);
+var s : string;
+begin
+  clicliste:=false;
+  s:=((Tpopupmenu(Tmenuitem(sender).GetParentMenu).PopupComponent) as TImage).name; // nom du composant, pour récupérer l'index du train (ex: ImageSignal2)
+  ligneclicTrain:=extract_int(s)-1;   // extraire l'adresse (ex 2)
+
+  indexTrainFR:=ligneclicTrain+1;   // pour sélectionner l'entrée du train dans la combobox
+  with formRouteTrain do
+  begin
+    TabSheetRA.Enabled:=true;
+    ComboBoxtrains.ItemIndex:=ligneclicTrain-1;
+    show;
   end;
 end;
 

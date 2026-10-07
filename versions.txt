@@ -377,6 +377,10 @@ version 11.0    Correction du graphisme signal 5 feux.
 version 11.1    Gère le non jaune clignotant (coche dans la config du signal)
                 Ouverture des signaux au démarrage du RUN CDM
 version 11.2    Correction bug "fonctions logiques" saisie comparaison des mémoires.
-version 11.3	Correction compilation des fonctions logiques.
-	            Correction notice "les noms des trains déclencheurs doivent être séparés par des + et non des virgules".
-				Améliorations diverses
+version 11.3    Correction compilation des fonctions logiques.
+                Correction notice "les noms des trains déclencheurs doivent être séparés par des + et non des virgules".
+		        Améliorations diverses
+version 11.4    Plus d'attente de l'ACK de CDM dans les communications Com-ip
+                Correction bug montée/descente périphériques onglet configuration/périphériques
+
+

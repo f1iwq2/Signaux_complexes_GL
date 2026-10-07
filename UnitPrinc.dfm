@@ -6876,6 +6876,11 @@ object FormPrinc: TFormPrinc
       Caption = 'Propri'#233't'#233's du train'
       OnClick = Propritsdutrain1Click
     end
+    object Routesdutrain1: TMenuItem
+      Caption = 'Routes du train'
+      Hint = 'Affiche la fen'#234'tre des routes de ce train'
+      OnClick = Routesdutrain1Click
+    end
     object N19: TMenuItem
       Caption = '-'
     end
